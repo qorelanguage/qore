@@ -68,6 +68,7 @@ noinst_HEADERS = \
 	include/qore/BinaryObject.h \
 	include/qore/SingleExitGate.h \
 	include/qore/RegexSubst.h \
+	include/qore/RegexTrans.h \
 	include/qore/module.h \
 	include/qore/hash_map.h \
 	include/qore/ExecArgList.h \
@@ -152,8 +153,6 @@ EXTRA_DIST = .build next_build.sh WHATISQORE RELEASE-NOTES \
         test/thread-test.q \
         test/tibco-listener.q \
         test/tibco-test.q \
-        test/umlaut.q \
-        test/umlaut.txt \
         test/unlocked-thread-test.q \
 	examples/HTTPClient.qc \
 	examples/HTTPServer.qc \

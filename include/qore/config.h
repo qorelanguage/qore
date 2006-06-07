@@ -2,7 +2,7 @@
 /* include/qore/config.h.in.  Generated from configure.ac by autoheader.  */
 
 /* build number */
-#define BUILD 55
+#define BUILD 56
 
 /* Define if debugging support should be included */
 #define DEBUG 1
@@ -367,7 +367,7 @@
 #define VERSION_MINOR 5
 
 /* qore version string */
-#define VERSION_STRING "0.5.1-55"
+#define VERSION_STRING "0.5.1-56"
 
 /* sub version number */
 #define VERSION_SUB 1

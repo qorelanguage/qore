@@ -23,6 +23,11 @@ Qore now assumes character offsets instead of byte offsets for multi-byte charac
 NOTE: length() and strlen() will now return different values for strings with multi-byte characters.
 The ord() function still accepts only byte offsets and returns single-byte values.
 
+*) transliteration operator implemented, i.e.:
+	$str =~ tr/abc/123/;
+        $str =~ tr/a-z/A-Z/;
+note that this operator is not yet multi-byte charset aware for range specifications
+
 *) support for non-threading build of qore removed
 had been broken for a long time anyway.  from now on optimizations will be concentrated on the single multi-threaded version of qore
 
@@ -51,6 +56,9 @@ returns the number of characters in a string
 *) the "-" and "-=" operators updated to delete keys from hashes
 ex: $hash - "string" or $hash -= "string"
 will remove the key "string" from the hash if it exists.  note that this will only dereference the value at that key, so if the value is an object and this is not the last reference to the object, the object will not be deleted.
+
+* implemented "instanceof" operator
+like Java's operator of the same name
 
 *) implemented %= (modula-equals), *= (multiply-equals), /= (divide-equals), ^= (xor-equals), <<= (shift-left-equals), and >>= (shift-right-equals) operators
 

@@ -88,43 +88,44 @@
      DATETIME = 314,
      QUOTED_WORD = 315,
      REGEX_SUBST = 316,
-     BASE_CLASS_CALL = 317,
-     REGEX = 318,
-     IFX = 319,
-     TOK_ELSE = 320,
-     SHIFT_RIGHT_EQUALS = 321,
-     SHIFT_LEFT_EQUALS = 322,
-     XOR_EQUALS = 323,
-     DIVIDE_EQUALS = 324,
-     MULTIPLY_EQUALS = 325,
-     MODULA_EQUALS = 326,
-     OR_EQUALS = 327,
-     AND_EQUALS = 328,
-     MINUS_EQUALS = 329,
-     PLUS_EQUALS = 330,
-     TOK_SPLICE = 331,
-     TOK_PUSH = 332,
-     TOK_UNSHIFT = 333,
-     LOGICAL_OR = 334,
-     LOGICAL_AND = 335,
-     REGEX_NMATCH = 336,
-     REGEX_MATCH = 337,
-     ABSOLUTE_NE = 338,
-     ABSOLUTE_EQ = 339,
-     LOGICAL_CMP = 340,
-     LOGICAL_GE = 341,
-     LOGICAL_LE = 342,
-     LOGICAL_NE = 343,
-     LOGICAL_EQ = 344,
-     TOK_INSTANCEOF = 345,
-     TOK_EXISTS = 346,
-     SHIFT_LEFT = 347,
-     SHIFT_RIGHT = 348,
-     TOK_KEYS = 349,
-     TOK_ELEMENTS = 350,
-     TOK_POP = 351,
-     TOK_SHIFT = 352,
-     NEG = 353
+     REGEX_TRANS = 317,
+     BASE_CLASS_CALL = 318,
+     REGEX = 319,
+     IFX = 320,
+     TOK_ELSE = 321,
+     SHIFT_RIGHT_EQUALS = 322,
+     SHIFT_LEFT_EQUALS = 323,
+     XOR_EQUALS = 324,
+     DIVIDE_EQUALS = 325,
+     MULTIPLY_EQUALS = 326,
+     MODULA_EQUALS = 327,
+     OR_EQUALS = 328,
+     AND_EQUALS = 329,
+     MINUS_EQUALS = 330,
+     PLUS_EQUALS = 331,
+     TOK_SPLICE = 332,
+     TOK_PUSH = 333,
+     TOK_UNSHIFT = 334,
+     LOGICAL_OR = 335,
+     LOGICAL_AND = 336,
+     REGEX_NMATCH = 337,
+     REGEX_MATCH = 338,
+     ABSOLUTE_NE = 339,
+     ABSOLUTE_EQ = 340,
+     LOGICAL_CMP = 341,
+     LOGICAL_GE = 342,
+     LOGICAL_LE = 343,
+     LOGICAL_NE = 344,
+     LOGICAL_EQ = 345,
+     TOK_INSTANCEOF = 346,
+     TOK_EXISTS = 347,
+     SHIFT_LEFT = 348,
+     SHIFT_RIGHT = 349,
+     TOK_KEYS = 350,
+     TOK_ELEMENTS = 351,
+     TOK_POP = 352,
+     TOK_SHIFT = 353,
+     NEG = 354
    };
 #endif
 /* Tokens.  */
@@ -187,49 +188,50 @@
 #define DATETIME 314
 #define QUOTED_WORD 315
 #define REGEX_SUBST 316
-#define BASE_CLASS_CALL 317
-#define REGEX 318
-#define IFX 319
-#define TOK_ELSE 320
-#define SHIFT_RIGHT_EQUALS 321
-#define SHIFT_LEFT_EQUALS 322
-#define XOR_EQUALS 323
-#define DIVIDE_EQUALS 324
-#define MULTIPLY_EQUALS 325
-#define MODULA_EQUALS 326
-#define OR_EQUALS 327
-#define AND_EQUALS 328
-#define MINUS_EQUALS 329
-#define PLUS_EQUALS 330
-#define TOK_SPLICE 331
-#define TOK_PUSH 332
-#define TOK_UNSHIFT 333
-#define LOGICAL_OR 334
-#define LOGICAL_AND 335
-#define REGEX_NMATCH 336
-#define REGEX_MATCH 337
-#define ABSOLUTE_NE 338
-#define ABSOLUTE_EQ 339
-#define LOGICAL_CMP 340
-#define LOGICAL_GE 341
-#define LOGICAL_LE 342
-#define LOGICAL_NE 343
-#define LOGICAL_EQ 344
-#define TOK_INSTANCEOF 345
-#define TOK_EXISTS 346
-#define SHIFT_LEFT 347
-#define SHIFT_RIGHT 348
-#define TOK_KEYS 349
-#define TOK_ELEMENTS 350
-#define TOK_POP 351
-#define TOK_SHIFT 352
-#define NEG 353
+#define REGEX_TRANS 317
+#define BASE_CLASS_CALL 318
+#define REGEX 319
+#define IFX 320
+#define TOK_ELSE 321
+#define SHIFT_RIGHT_EQUALS 322
+#define SHIFT_LEFT_EQUALS 323
+#define XOR_EQUALS 324
+#define DIVIDE_EQUALS 325
+#define MULTIPLY_EQUALS 326
+#define MODULA_EQUALS 327
+#define OR_EQUALS 328
+#define AND_EQUALS 329
+#define MINUS_EQUALS 330
+#define PLUS_EQUALS 331
+#define TOK_SPLICE 332
+#define TOK_PUSH 333
+#define TOK_UNSHIFT 334
+#define LOGICAL_OR 335
+#define LOGICAL_AND 336
+#define REGEX_NMATCH 337
+#define REGEX_MATCH 338
+#define ABSOLUTE_NE 339
+#define ABSOLUTE_EQ 340
+#define LOGICAL_CMP 341
+#define LOGICAL_GE 342
+#define LOGICAL_LE 343
+#define LOGICAL_NE 344
+#define LOGICAL_EQ 345
+#define TOK_INSTANCEOF 346
+#define TOK_EXISTS 347
+#define SHIFT_LEFT 348
+#define SHIFT_RIGHT 349
+#define TOK_KEYS 350
+#define TOK_ELEMENTS 351
+#define TOK_POP 352
+#define TOK_SHIFT 353
+#define NEG 354
 
 
 
 
 #if ! defined (YYSTYPE) && ! defined (YYSTYPE_IS_DECLARED)
-#line 223 "parser.yy"
+#line 224 "parser.yy"
 typedef union YYSTYPE {
       int i4;
       int64 integer;
@@ -252,6 +254,7 @@ typedef union YYSTYPE {
       class ObjClassDef *objdef;
       class DateTime *datetime;
       class RegexSubst *RegexSubst;
+      class RegexTrans *RegexTrans;
       class SwitchStatement *switchstmt;
       class CaseNode *casenode;
       class BCList *sclist;
@@ -262,7 +265,7 @@ typedef union YYSTYPE {
       class QoreRegex *Regex;
 } YYSTYPE;
 /* Line 1447 of yacc.c.  */
-#line 266 "parser.h"
+#line 269 "parser.h"
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
 # define YYSTYPE_IS_TRIVIAL 1

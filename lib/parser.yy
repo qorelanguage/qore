@@ -40,6 +40,7 @@
 #include <qore/DateTime.h>
 #include <qore/RegexSubst.h>
 #include <qore/QoreRegex.h>
+#include <qore/RegexTrans.h>
 
 #include "parser.h"
 
@@ -242,6 +243,7 @@ static inline void tryAddMethod(int mod, char *n, QoreNode *params, BCAList *bca
       class ObjClassDef *objdef;
       class DateTime *datetime;
       class RegexSubst *RegexSubst;
+      class RegexTrans *RegexTrans;
       class SwitchStatement *switchstmt;
       class CaseNode *casenode;
       class BCList *sclist;
@@ -289,6 +291,7 @@ void yyerror(yyscan_t scanner, const char *str)
 %token <datetime> DATETIME
 %token <String> QUOTED_WORD
 %token <RegexSubst> REGEX_SUBST
+%token <RegexTrans> REGEX_TRANS
 %token <nscope> BASE_CLASS_CALL
 %token <Regex> REGEX
 
@@ -359,7 +362,7 @@ void yyerror(yyscan_t scanner, const char *str)
 %type <bcanode>     base_constructor
 
  // destructor actions for elements that need deleting when parse errors occur
-%destructor { if ($$) delete $$; } DATETIME QUOTED_WORD REGEX REGEX_SUBST block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod method_definition object_def top_namespace_decl namespace_decls namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor private_member_list member_list
+%destructor { if ($$) delete $$; } DATETIME QUOTED_WORD REGEX REGEX_SUBST REGEX_TRANS block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod method_definition object_def top_namespace_decl namespace_decls namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor private_member_list member_list
 %destructor { if ($$) $$->deref(); } base_constructor_list base_constructors superclass_list inheritance_list class_attributes
 %destructor { if ($$) $$->deref(NULL); } exp myexp scalar function_call scoped_object_call self_function_call hash list
 %destructor { free($$); } IDENTIFIER VAR_REF SELF_REF CONTEXT_REF COMPLEX_CONTEXT_REF BACKQUOTE SCOPED_REF KW_IDENTIFIER_OPENPAREN optname
@@ -1434,6 +1437,19 @@ exp:    scalar
 	   {
 	      //printf("REGEX_SUBST: '%s'\n", $3->getPattern()->getBuffer());
 	      $$ = makeTree(OP_REGEX_SUBST, $1, new QoreNode($3));
+	   }
+	}
+        | exp REGEX_MATCH REGEX_TRANS
+        {
+	   if (check_lvalue($1))
+	   {
+	      parse_error("left-hand side of transliteration operator is not an lvalue");
+	      $$ = makeErrorTree(OP_REGEX_TRANS, $1, new QoreNode($3));
+	   }
+	   else
+	   {
+	      //printf("REGEX_SUBST: '%s'\n", $3->getPattern()->getBuffer());
+	      $$ = makeTree(OP_REGEX_TRANS, $1, new QoreNode($3));
 	   }
 	}
 	| exp '>' exp		     { $$ = makeTree(OP_LOG_GT, $1, $3); }

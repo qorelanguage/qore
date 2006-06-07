@@ -101,6 +101,8 @@ union node_u {
       class RegexSubst *resub;
       // for regular expression matches
       class QoreRegex *regex;
+      // for regular expression translations
+      class RegexTrans *retrans;
       // for class references
       class ClassRef *classref;
 };
@@ -142,6 +144,7 @@ class QoreNode : public ReferenceObject
       inline QoreNode(class VarRef *v);
       inline QoreNode(class QoreNode *l, class Operator *o, class QoreNode *r);
       inline QoreNode(class RegexSubst *rs);
+      inline QoreNode(class RegexTrans *rt);
       inline QoreNode(class ComplexContextRef *ccref);
       inline QoreNode(class LVRef *lvref);
       inline QoreNode(class QoreRegex *r);
@@ -712,6 +715,15 @@ inline QoreNode::QoreNode(class RegexSubst *rs)
 {
    type = NT_REGEX_SUBST;
    val.resub = rs;
+#if TRACK_REFS
+   printd(5, "QoreNode::ref() %08x type=%s (0->1)\n", this, type->name);
+#endif
+}
+
+inline QoreNode::QoreNode(class RegexTrans *rt)
+{
+   type = NT_REGEX_TRANS;
+   val.retrans = rt;
 #if TRACK_REFS
    printd(5, "QoreNode::ref() %08x type=%s (0->1)\n", this, type->name);
 #endif

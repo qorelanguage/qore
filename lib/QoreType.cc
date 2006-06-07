@@ -37,6 +37,7 @@
 #include <qore/Namespace.h>
 #include <qore/Context.h>
 #include <qore/RegexSubst.h>
+#include <qore/RegexTrans.h>
 #include <qore/QoreRegex.h>
 
 // get type functions
@@ -63,7 +64,7 @@ class QoreType *NT_NOTHING, *NT_INT, *NT_FLOAT, *NT_STRING, *NT_DATE,
    *NT_OBJECT, *NT_FLIST, *NT_BACKQUOTE, *NT_CONTEXTREF, *NT_COMPLEXCONTEXTREF,
    *NT_VARREF, *NT_TREE, *NT_FIND, *NT_FUNCTION_CALL, *NT_SELF_VARREF,
    *NT_SCOPE_REF, *NT_CONSTANT, *NT_BAREWORD, *NT_REFERENCE, *NT_CONTEXT_ROW,
-   *NT_REGEX_SUBST, *NT_VLIST, *NT_REGEX, *NT_CLASSREF;
+   *NT_REGEX_SUBST, *NT_REGEX_TRANS, *NT_VLIST, *NT_REGEX, *NT_CLASSREF;
 
 // default value nodes for builtin types
 class QoreNode *Nothing, *Null, *Zero, *NullString, *ZeroFloat, *ZeroDate, *True, *False, *emptyList, *emptyHash;
@@ -169,6 +170,11 @@ static void regexsubst_DeleteContents(class QoreNode *n)
    delete n->val.resub;
 }
 
+static void regextrans_DeleteContents(class QoreNode *n)
+{
+   delete n->val.retrans;
+}
+
 static void regex_DeleteContents(class QoreNode *n)
 {
    delete n->val.regex;
@@ -211,6 +217,7 @@ QoreTypeManager::QoreTypeManager()
    add(NT_REFERENCE = new QoreType("reference to lvalue", NULL, NULL, NULL, INVALID_COPY, NULL, ref_DeleteContents, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
    add(NT_CONTEXT_ROW = new QoreType("get context row", contextrow_Eval, NULL, NULL, NULL, NULL, NULL, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
    add(NT_REGEX_SUBST = new QoreType("regular expression substitution", NULL, NULL, NULL, INVALID_COPY, NULL, regexsubst_DeleteContents, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
+   add(NT_REGEX_TRANS = new QoreType("regular expression translation", NULL, NULL, NULL, INVALID_COPY, NULL, regextrans_DeleteContents, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
    add(NT_VLIST = new QoreType("variable list", NULL, NULL, NULL, NULL, NULL, list_DeleteContents, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
    add(NT_REGEX = new QoreType("regular expression", NULL, NULL, NULL, INVALID_COPY, NULL, regex_DeleteContents, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
    add(NT_CLASSREF = new QoreType("class reference", NULL, NULL, NULL, INVALID_COPY, NULL, classref_DeleteContents, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));

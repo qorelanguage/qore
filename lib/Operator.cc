@@ -34,6 +34,7 @@
 #include <qore/Namespace.h>
 #include <qore/BinaryObject.h>
 #include <qore/RegexSubst.h>
+#include <qore/RegexTrans.h>
 #include <qore/QoreRegex.h>
 
 #include <stdio.h>
@@ -55,7 +56,8 @@ class Operator *OP_ASSIGNMENT, *OP_LOG_AND, *OP_LOG_OR, *OP_LOG_LT,
    *OP_OBJECT_FUNC_REF, *OP_NEW, *OP_SHIFT, *OP_POP, *OP_PUSH, *OP_EXISTS, 
    *OP_SINGLE_ASSIGN, *OP_UNSHIFT, *OP_REGEX_SUBST, *OP_LIST_ASSIGNMENT,
    *OP_SPLICE, *OP_MODULA_EQUALS, *OP_MULTIPLY_EQUALS, *OP_DIVIDE_EQUALS,
-   *OP_XOR_EQUALS, *OP_SHIFT_LEFT_EQUALS, *OP_SHIFT_RIGHT_EQUALS, *OP_INSTANCEOF;
+   *OP_XOR_EQUALS, *OP_SHIFT_LEFT_EQUALS, *OP_SHIFT_RIGHT_EQUALS, *OP_INSTANCEOF,
+   *OP_REGEX_TRANS;
 
 const int month_lengths[] = { 0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 
@@ -593,6 +595,30 @@ static class QoreNode *op_regex_subst(class QoreNode *left, class QoreNode *righ
       return NULL;
 
    QoreString *nv = right->val.resub->exec((*v)->val.String, xsink);
+   if (xsink->isEvent())
+      return NULL;
+
+   // assign new value to lvalue
+   (*v)->deref(xsink);
+   (*v) = new QoreNode(nv);
+   // reference for return value
+   (*v)->ref();
+   return (*v);      
+}
+
+static class QoreNode *op_regex_trans(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+{
+   // get current value and save
+   class VLock vl;
+   class QoreNode **v = get_var_value_ptr(left, &vl, xsink);
+   if (xsink->isEvent())
+      return NULL;
+
+   // if it's not a string, then do nothing
+   if (!(*v) || (*v)->type != NT_STRING)
+      return NULL;
+
+   QoreString *nv = right->val.retrans->exec((*v)->val.String, xsink);
    if (xsink->isEvent())
       return NULL;
 
@@ -2480,6 +2506,9 @@ void operatorsInit()
 
    OP_INSTANCEOF = oplist.add(new Operator(2, "instanceof", "instanceof", 0, false));
    OP_INSTANCEOF->addFunction(NT_ALL, NT_CLASSREF, op_instanceof);
+
+   OP_REGEX_TRANS = oplist.add(new Operator(1, "transliteration", "transliteration", 0, true, true));
+   OP_REGEX_TRANS->addFunction(NT_ALL, NT_REGEX_TRANS, op_regex_trans);
 
    // initialize all operators
    class Operator *w = oplist.getHead();

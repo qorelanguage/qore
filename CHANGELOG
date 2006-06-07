@@ -1,3 +1,10 @@
+2006.06.07: David Nichols
+	* migrated to subversion on sourceforge.net
+	* implemented transliteration operator with ranges, i.e.:
+		$str =~ tr/abc/123/;
+		$str =~ tr/a-z/A-Z/;
+	* added transliteration tests to test/test.q
+
 2006.06.06: David Nichols
 	* removed support for building non-threading version of Qore (was broken
 	  anyway for a long time)

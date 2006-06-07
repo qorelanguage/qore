@@ -39,6 +39,7 @@
 #include <qore/common.h>
 #include <qore/ParserSupport.h>
 #include <qore/RegexSubst.h>
+#include <qore/RegexTrans.h>
 #include <qore/ModuleManager.h>
 #include <qore/QoreRegex.h>
 
@@ -224,7 +225,7 @@ static inline bool isRegexSubstModifier(class RegexSubst *qr, int c)
 %option reentrant bison-bridge
 %option stack
 
-%x str_state regex_state incl check_regex regex_subst1 regex_subst2 line_comment exec_class requires
+%x str_state regex_state incl check_regex regex_subst1 regex_subst2 line_comment exec_class requires regex_trans1 regex_trans2
 
 HEX_CONST       0x[0-9A-Fa-f]+
 OCTAL_CONST     \\[0-7]{1,3}
@@ -393,11 +394,66 @@ MSEC            [0-9]{2}
 					      yylval->RegexSubst->concat(*(yptr++));
 					}
 }
+<regex_trans2>{
+      -                                 yylval->RegexTrans->setTargetRange();
+      \/				{
+					   BEGIN(INITIAL); 
+					   yylval->RegexTrans->finishTarget(); 
+					   return REGEX_TRANS;
+                                        }
+      \n				{
+	                                   increment_pgm_counter();
+					   yylval->RegexTrans->concatTarget('\n');
+                                        }
+      \\n				yylval->RegexTrans->concatTarget('\n');
+      \\t				yylval->RegexTrans->concatTarget('\t');
+      \\r				yylval->RegexTrans->concatTarget('\r');
+      \\b				yylval->RegexTrans->concatTarget('\b');
+      \\f				yylval->RegexTrans->concatTarget('\f');
+      \\\n                              {
+	                                   increment_pgm_counter();
+					   yylval->RegexTrans->concatTarget('\n');
+                                        }
+      \\\/                              yylval->RegexTrans->concatTarget('/');
+      \\.				yylval->RegexTrans->concatTarget(yytext[1]);
+      [^\n\\/\-]+			        {
+					   char *yptr = yytext;
+					   while (*yptr)
+					      yylval->RegexTrans->concatTarget(*(yptr++));
+					}
+}
+<regex_trans1>{
+      -                                 yylval->RegexTrans->setSourceRange();
+      \/  	                        BEGIN(regex_trans2); yylval->RegexTrans->finishSource();
+      \n				{
+	                                   increment_pgm_counter();
+					   yylval->RegexTrans->concatSource('\n');
+                                        }
+      \\n				yylval->RegexTrans->concatSource('\n');
+      \\t				yylval->RegexTrans->concatSource('\t');
+      \\r				yylval->RegexTrans->concatSource('\r');
+      \\b				yylval->RegexTrans->concatSource('\b');
+      \\f				yylval->RegexTrans->concatSource('\f');
+      \\\n                              {
+	                                   increment_pgm_counter();
+					   yylval->RegexTrans->concatSource('\n');
+                                        }
+
+
+      \\\/                              yylval->RegexTrans->concatSource('/');
+      \\.				yylval->RegexTrans->concatSource(yytext[1]);
+      [^\n\\/\-]+			        {
+					   char *yptr = yytext;
+					   while (*yptr)
+					      yylval->RegexTrans->concatSource(*(yptr++));
+					}
+}
 <check_regex>{
       {WS}+                             // ignore 
       s\/                               yylval->RegexSubst = new RegexSubst(); BEGIN(regex_subst1);
       m\/                               yylval->Regex = new QoreRegex(); BEGIN(regex_state);
       \/                                yylval->Regex = new QoreRegex(); BEGIN(regex_state);
+      tr\/                              yylval->RegexTrans = new RegexTrans(); BEGIN(regex_trans1);
       [^\/]                             BEGIN(INITIAL);
 }
 <regex_state>{
