@@ -35,6 +35,57 @@
 // note that the following constant is > 32 bits
 #define QRE_GLOBAL 0x100000000LL
 
+#define QRNT_STRING 0
+#define QRNT_VAR    1
+
+#if 0
+class QRNode {
+   private:
+      union {
+	    class QoreString *str;
+	    class VarRef *var;
+      } d;
+      int type;
+
+   public:
+      class QRNode *next;
+
+      inline QRNode(class QoreString *str);
+      inline QRNode(class VarRef *v);
+      inline ~QRNode();
+      inline int getType() { return type; }
+};
+
+class QRList {
+   private:
+      class QRNode *head, *tail;
+
+   public:
+      inline QRList()
+      {
+	 head = tail = NULL;
+      }
+      inline ~QRList()
+      {
+	 class QRNode *w = head;
+	 while (w)
+	 {
+	    head = w->next;
+	    delete w;
+	    w = head;
+	 }
+      }
+      inline void add(class QRNode *n)
+      {
+	 if (tail)
+	    tail->next = n;
+	 else
+	    head = n;
+	 tail = n;
+      }
+};
+#endif
+
 class QoreRegexBase {
    protected:
       pcre *p;
@@ -59,5 +110,32 @@ class QoreRegexBase {
 	 options |= PCRE_MULTILINE;
       }      
 };
+
+#if 0
+#include <qore/QoreString.h>
+#include <qore/Variable.h>
+
+inline QRNode::QRNode(class QoreString *str)
+{
+   type = QRNT_STRING;
+   d.str = str;
+   next = NULL;
+}
+
+inline QRNode::QRNode(class VarRef *v)
+{
+   type = QRNT_VAR;
+   d.var = v;
+   next = NULL;
+}
+
+inline QRNode::~QRNode()
+{
+   if (type == QRNT_STRING)
+      delete d.str;
+   else
+      delete d.var;
+}
+#endif
 
 #endif
