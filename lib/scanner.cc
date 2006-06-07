@@ -1928,18 +1928,18 @@ YY_RULE_SETUP
 #line 371 "scanner.ll"
 {
 	                                   increment_pgm_counter();
-					   yylval->RegexSubst->concat('\n');
+					   yylval->RegexSubst->concatTarget('\n');
                                         }
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
 #line 375 "scanner.ll"
-yylval->RegexSubst->concat('/');
+yylval->RegexSubst->concatTarget('/');
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
 #line 376 "scanner.ll"
-{ yylval->RegexSubst->concat('\\'); yylval->RegexSubst->concat(yytext[1]); }
+{ yylval->RegexSubst->concatTarget('\\'); yylval->RegexSubst->concatTarget(yytext[1]); }
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
@@ -1947,7 +1947,7 @@ YY_RULE_SETUP
 {
 					   char *yptr = yytext;
 					   while (*yptr)
-					      yylval->RegexSubst->concat(*(yptr++));
+					      yylval->RegexSubst->concatTarget(*(yptr++));
 					}
 	YY_BREAK
 
@@ -1955,7 +1955,7 @@ YY_RULE_SETUP
 case 40:
 YY_RULE_SETUP
 #line 384 "scanner.ll"
-BEGIN(regex_subst2); yylval->RegexSubst->setDivider();
+BEGIN(regex_subst2);
 	YY_BREAK
 case 41:
 /* rule 41 can match eol */
@@ -1963,18 +1963,18 @@ YY_RULE_SETUP
 #line 385 "scanner.ll"
 {
 	                                   increment_pgm_counter();
-					   yylval->RegexSubst->concat('\n');
+					   yylval->RegexSubst->concatSource('\n');
                                         }
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
 #line 389 "scanner.ll"
-yylval->RegexSubst->concat('/');
+yylval->RegexSubst->concatSource('/');
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
 #line 390 "scanner.ll"
-{ yylval->RegexSubst->concat('\\'); yylval->RegexSubst->concat(yytext[1]); }
+{ yylval->RegexSubst->concatSource('\\'); yylval->RegexSubst->concatSource(yytext[1]); }
 	YY_BREAK
 case 44:
 YY_RULE_SETUP
@@ -1982,7 +1982,7 @@ YY_RULE_SETUP
 {
 					   char *yptr = yytext;
 					   while (*yptr)
-					      yylval->RegexSubst->concat(*(yptr++));
+					      yylval->RegexSubst->concatSource(*(yptr++));
 					}
 	YY_BREAK
 

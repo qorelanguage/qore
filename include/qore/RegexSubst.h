@@ -34,7 +34,6 @@ class RegexSubst : public QoreRegexBase
    private:
       bool global;
       class QoreString *newstr;
-      int divider;
 
       inline void init();
       inline void concat(class QoreString *str, int *ovector, int olen, char *ptr, char *target);
@@ -47,14 +46,11 @@ class RegexSubst : public QoreRegexBase
       inline void parse();
       inline class QoreString *exec(class QoreString *target, class ExceptionSink *xsink);
       inline class QoreString *exec(class QoreString *target, class QoreString *newstr, class ExceptionSink *xsink);
-      inline void concat(char c);
+      inline void concatSource(char c);
+      inline void concatTarget(char c);
       inline void setGlobal()
       {
 	 global = true;
-      }
-      inline void setDivider()
-      {
-	 divider = str->strlen();
       }
       inline QoreString *getPattern()
       {
@@ -74,8 +70,6 @@ inline void RegexSubst::init()
 {
    p = NULL;
    global = false;
-   divider = -1;
-   newstr = NULL;
    options = PCRE_UTF8;
 }
 
@@ -85,6 +79,7 @@ inline RegexSubst::RegexSubst()
    //printd(5, "RegexSubst::RegexSubst() this=%08x\n", this);
    init();
    str = new QoreString();
+   newstr = new QoreString();
 }
 
 // constructor when used at run-time
@@ -96,6 +91,7 @@ inline RegexSubst::RegexSubst(class QoreString *pstr, int opts, class ExceptionS
    else
       options |= opts;
 
+   newstr = NULL;
    str = NULL;
    parseRT(pstr, xsink);
 }
@@ -111,9 +107,14 @@ inline RegexSubst::~RegexSubst()
       delete str;
 }
 
-inline void RegexSubst::concat(char c)
+inline void RegexSubst::concatSource(char c)
 {
    str->concat(c);
+}
+
+inline void RegexSubst::concatTarget(char c)
+{
+   newstr->concat(c);
 }
 
 // returns 0 for OK, -1 if parse error raised
@@ -145,25 +146,10 @@ inline void RegexSubst::parseRT(class QoreString *pstr, class ExceptionSink *xsi
 inline void RegexSubst::parse()
 {
    //printd(5, "RegexSubst() this=%08x: str='%s', divider=%d\n", this, str->getBuffer(), divider);
-   if (divider < 1)
-   {
-      parse_error("invalid regular expression pattern, missing divider");
-      return;
-   }
-
-   // get pattern string;
-   QoreString *pstr = new QoreString(str, divider);
-
    class ExceptionSink xsink;
-   parseRT(pstr, &xsink);
+   parseRT(str, &xsink);
    if (xsink.isEvent())
       getProgram()->addParseException(&xsink);
-
-   // delete pattern string
-   delete pstr;
-
-   // now assign values
-   newstr = str->substr(divider);
 
    //printd(5, "RegexSubst::parse() this=%08x: pstr=%s, newstr=%s, global=%s\n", this, pstr->getBuffer(), newstr->getBuffer(), global ? "true" : "false"); 
 

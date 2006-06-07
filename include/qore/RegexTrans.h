@@ -1,7 +1,7 @@
 /*
   RegexTrans.h
 
-  regular expression transliteration class definition
+  regex-like transliteration class definition
 
   Qore Programming Language
 

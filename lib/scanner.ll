@@ -370,28 +370,28 @@ MSEC            [0-9]{2}
                                         }
       \n				{
 	                                   increment_pgm_counter();
-					   yylval->RegexSubst->concat('\n');
+					   yylval->RegexSubst->concatTarget('\n');
                                         }
-      \\\/                              yylval->RegexSubst->concat('/');
-      \\.                               { yylval->RegexSubst->concat('\\'); yylval->RegexSubst->concat(yytext[1]); }
+      \\\/                              yylval->RegexSubst->concatTarget('/');
+      \\.                               { yylval->RegexSubst->concatTarget('\\'); yylval->RegexSubst->concatTarget(yytext[1]); }
       [^\n\\/]+			        {
 					   char *yptr = yytext;
 					   while (*yptr)
-					      yylval->RegexSubst->concat(*(yptr++));
+					      yylval->RegexSubst->concatTarget(*(yptr++));
 					}
 }
 <regex_subst1>{
-      \/  	                        BEGIN(regex_subst2); yylval->RegexSubst->setDivider();
+      \/  	                        BEGIN(regex_subst2);
       \n				{
 	                                   increment_pgm_counter();
-					   yylval->RegexSubst->concat('\n');
+					   yylval->RegexSubst->concatSource('\n');
                                         }
-      \\\/                              yylval->RegexSubst->concat('/');
-      \\.                               { yylval->RegexSubst->concat('\\'); yylval->RegexSubst->concat(yytext[1]); }
+      \\\/                              yylval->RegexSubst->concatSource('/');
+      \\.                               { yylval->RegexSubst->concatSource('\\'); yylval->RegexSubst->concatSource(yytext[1]); }
       [^\n\\/]+			        {
 					   char *yptr = yytext;
 					   while (*yptr)
-					      yylval->RegexSubst->concat(*(yptr++));
+					      yylval->RegexSubst->concatSource(*(yptr++));
 					}
 }
 <regex_trans2>{
