@@ -1,0 +1,656 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<chapter id="Modules">
+  <title>Modules</title>
+  
+  <para>This section will describe the modules that are shipped with Qore.</para>
+  
+  <sect1 id="ncurses_Module">
+    <title>ncurses Module</title>
+
+    <para>The ncurses module enables Qore programmers to write sophisticated console applications.</para>
+
+  </sect1>
+
+  <sect1 id="tibco_Module">
+    <title>tibco Module</title>
+
+    <sect2 id="Qore_TibcoAdapter_Class">
+      <title>Qore::TibcoAdapter Class</title>
+
+      <para>TibcoAdapter objects allow Qore programs to communicate with other TIBCO Active Enterprise components over the TIBCO bus. </para>
+
+      <para>Use of this class requires a valid TIBCO repository with an adapter configuration (can be empty) and any ActiveEnterprise class definitions for outgoing messages and responses.</para>
+
+      <para>String data is converted to UTF-8 format if necessary for transmission with TIBCO Rendezvous.</para>
+
+      <para>The <link linkend="Qore_TibcoAdapter_constructor">TibcoAdapter::constructor()</link> method takes an adapter property hash to give the location for the repository and tell the SDK how the adapter should be instantiated.  The table below describes the recognized keys in the adapter property hash and how they are used to describe the repository and the adapter.</para>
+
+      <para>When Qore data is serialized to TIBCO data format and you need to specify the class name for the data, use a hash and put the class name in the <code>^class^</code> key and the value in the <code>^value^</code> key.</para>
+
+      <para>Otherwise generally Qore data types are transformed to TIBCO data types.  If the data type does not match what the repository has defined, then a run-time exception is raised.</para>
+
+      <table id="Tibco_Adapter_Property_Hash">
+	<title>TIBCO Adapter Property Hash</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>	
+	  <thead>
+	    <row>
+	      <entry><para>Key</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><code>AppInfo</code></entry>
+	      <entry><para>Information for the adapter.</para></entry>
+	    </row>
+	    <row>
+	      <entry><code>AppName</code></entry>
+	      <entry><para>The name of the adapter.</para></entry>
+	    </row>
+	    <row>
+	      <entry><code>AppVersion</code></entry>
+	      <entry><para>The version of the adapter.</para></entry>
+	    </row>
+	    <row>
+	      <entry><code>RepoURL</code></entry>
+	      <entry><para>The locataion of the repository.</para></entry>
+	    </row>
+	    <row>
+	      <entry><code>ConfigURL</code></entry>
+	      <entry><para>The location of the adapter in the repository.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Method Overview</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>	
+	  <thead>
+	    <row>
+	      <entry><para>Method</para></entry>
+	      <entry><para>Except?</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><link linkend="Qore_TibcoAdapter_constructor">TibcoAdapter::constructor()</link></para></entry>
+	      <entry><para>Y</para></entry>
+	      <entry><para>Creates the adapter object based on the repository URL, class hash, and the connection parameters passed.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><link linkend="Qore_TibcoAdapter_destructor">TibcoAdapter::destructor()</link></para></entry>
+	      <entry><para>N</para></entry>
+	      <entry><para>Destroys the TibcoAdapter object.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><link linkend="Qore_TibcoAdapter_copy">TibcoAdapter::copy()</link></para></entry>
+	      <entry><para>Y</para></entry>
+	      <entry><para>Throws an exception; objects of this class cannot be copied.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><link linkend="Qore_TibcoAdapter_receive">TibcoAdapter::receive()</link></para></entry>
+	      <entry><para>Y</para></entry>
+	      <entry><para>Creates a listener and receives data based on the subject and timeout values passed.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><link linkend="Qore_TibcoAdapter_sendSubject">TibcoAdapter::sendSubject()</link></para></entry>
+	      <entry>Y</entry>
+	      <entry><para>Creates a publisher and transmits data.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><link linkend="Qore_TibcoAdapter_sendSubjectWithSyncReply">TibcoAdapter::sendSubjectWithSyncReply()</link></para></entry>
+	      <entry>Y</entry>
+	      <entry><para>Creates a publisher, transmits data, and returns a data structure representing the reply.</para></entry>
+	    </row>	    
+	  </tbody>
+	</tgroup>
+      </table>
+      
+      <sect3 id="Qore_TibcoAdapter_constructor">
+	<title>Qore::TibcoAdapter::constructor()</title>
+	
+	<variablelist>
+	  <varlistentry>
+	    <term>Synopsis</term>
+	    <listitem>
+	      <para>Opens and parses a repository and instantiates an instance of an adapter based on the arguments passed.</para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term>Usage</term>
+	    <listitem>
+	      <programlisting><command>new</command> TibcoAdapter(<replaceable>session_name, properties, [classlist, service, network, daemon]</replaceable>)</programlisting>
+	    </listitem>
+	  </varlistentry>
+	</variablelist>
+	
+	<table>
+	  <title>Arguments for TibcoAdapter::constructor()</title>
+	  <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	    <thead>
+	      <row>
+		<entry><para>Argument</para></entry>
+		<entry><para>Type</para></entry>
+		<entry><para>Description</para></entry>
+	      </row>
+	    </thead>
+	    <tbody>
+	      <row>
+		<entry><para><replaceable>session_name</replaceable></para></entry>
+		<entry><para>String</para></entry>
+		<entry><para>The name of the session in the adapter.</para></entry>
+	      </row>
+	      <row>
+		<entry><para><replaceable>properties</replaceable></para></entry>
+		<entry><para>Hash</para></entry>
+		<entry><para>Adapter properties, see <link linkend="Tibco_Adapter_Property_Hash">Adapter Property Hash</link> for more information.</para></entry>
+	      </row>
+	      <row>
+		<entry><para><replaceable>[classlist]</replaceable></para></entry>
+		<entry><para>Hash</para></entry>
+		<entry><para>Maps function class names to adapter positions.</para></entry>
+	      </row>
+	      <row>
+		<entry><para><replaceable>[service]</replaceable></para></entry>
+		<entry><para>String</para></entry>
+		<entry><para>Service for rendezvous daemon to connect to.</para></entry>
+	      </row>
+	      <row>
+		<entry><para><replaceable>[network]</replaceable></para></entry>
+		<entry><para>String</para></entry>
+		<entry><para>Network parameter for Rendezvous daemon to connect to.</para></entry>
+	      </row>
+	      <row>
+		<entry><para><replaceable>[daemon]</replaceable></para></entry>
+		<entry><para>String</para></entry>
+		<entry><para>Daemon IP address for Rendezvous daemon to connect to.</para></entry>
+	      </row>
+	    </tbody>
+	  </tgroup>
+	</table>
+	
+	<table>
+	  <title>Return Values for TibcoAdapter::constructor()</title>
+	  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	    <thead>
+	      <row>
+		<entry><para>Return Type</para></entry>
+		<entry><para>Description</para></entry>
+	      </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry>TibcoAdapter Object</entry>
+	      <entry>The new object created.</entry>
+	    </row>
+	  </tbody>
+	  </tgroup>
+	</table>	
+
+	<table>
+	  <title>Exceptions Thrown by TibcoAdapter::constructor()</title>
+	  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	    <thead>
+	      <row>
+		<entry><para>err</para></entry>
+		<entry><para>desc</para></entry>
+	      </row>
+	    </thead>
+	    <tbody>
+	      <row>
+		<entry><para>TIBCO-INVALID-PROPERTIES-HASH</para></entry>
+		<entry><para>Non-string value found in properties hash.</para></entry>
+	      </row>
+	      <row>
+		<entry><para>TIBCO-PARAMETER-ERROR</para></entry>
+		<entry><para>Invalid parameters passed to constructor.</para></entry>
+	      </row>
+	      <row>
+		<entry><para>TIBCO-EXCEPTION</para></entry>
+		<entry><para>The TIBCO SDK raised an exception instantiating the adapter.</para></entry>
+	      </row>
+	    </tbody>
+	  </tgroup>
+	</table>
+      </sect3>
+
+      <sect3 id="Qore_TibcoAdapter_destructor">
+	<title>Qore::TibcoAdapter::destructor()</title>
+
+	<variablelist>
+	  <varlistentry>
+	    <term>Synopsis</term>
+	    <listitem>
+	      <para>Destroys the object.</para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term>Usage</term>
+	    <listitem>
+	      <programlisting><command>delete</command> <replaceable>lvalue</replaceable></programlisting>
+	    </listitem>
+	  </varlistentry>
+	</variablelist>
+      </sect3>
+
+      <sect3 id="Qore_TibcoAdapter_copy">
+	<title>Qore::TibcoAdapter::copy()</title>
+
+	<variablelist>
+	  <varlistentry>
+	    <term>Synopsis</term>
+	    <listitem>
+	      <para>Throws an exception - copying TibcoAdapter objects is not supported.</para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term>Usage</term>
+	    <listitem>
+	      <para>Do not use this method; this method is only present to prohibit copying of TibcoAdapter objects.</para>
+	    </listitem>
+	  </varlistentry>
+	</variablelist>
+
+	<table>
+	  <title>Arguments for TibcoAdapter::copy()</title>
+	  <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	    <thead>
+	      <row>
+		<entry><para>Argument</para></entry>
+		<entry><para>Type</para></entry>
+		<entry><para>Description</para></entry>
+	      </row>
+	    </thead>
+	    <tbody>
+	      <row>
+		<entry><para>n/a</para></entry>
+		<entry><para>n/a</para></entry>
+		<entry><para>This method takes no arguments.</para></entry>
+	      </row>
+	    </tbody>
+	  </tgroup>
+	</table>
+
+	<table>
+	  <title>Exceptions Thrown by TibcoAdapter::copy()</title>
+	  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	    <thead>
+	      <row>
+		<entry><para>err</para></entry>
+		<entry><para>desc</para></entry>
+	      </row>
+	    </thead>
+	    <tbody>
+	      <row>
+		<entry><para>TIBCO-ADAPTER-COPY-ERROR</para></entry>
+		<entry><para>Objects of this class cannot be copied.</para></entry>
+	      </row>
+	    </tbody>
+	  </tgroup>
+	</table>
+      </sect3>
+
+      <sect3 id="Qore_TibcoAdapter_receive">
+	<title>Qore::TibcoAdapter::receive()</title>
+	
+	<variablelist>
+	  <varlistentry>
+	    <term>Synopsis</term>
+	    <listitem>
+	      <para>Creates a listener and receives data based on the subject and timeout values passed.</para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term>Usage</term>
+	    <listitem>
+	      <programlisting>TibcoAdapter::receive(<replaceable>subject, [timeout]</replaceable>)</programlisting>
+	    </listitem>
+	  </varlistentry>
+	</variablelist>
+	
+	<table>
+	  <title>Arguments for TibcoAdapter::receive()</title>
+	  <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	    <thead>
+	      <row>
+		<entry><para>Argument</para></entry>
+		<entry><para>Type</para></entry>
+		<entry><para>Description</para></entry>
+	      </row>
+	    </thead>
+	    <tbody>
+	      <row>
+		<entry><para><replaceable>subject</replaceable></para></entry>
+		<entry><para>String</para></entry>
+		<entry><para>The subject to listen on.</para></entry>
+	      </row>
+	      <row>
+		<entry><para><replaceable>[timeout]</replaceable></para></entry>
+		<entry><para>Integer</para></entry>
+		<entry><para>The timeout in milliseconds (1/1000 second).</para></entry>
+	      </row>
+	    </tbody>
+	  </tgroup>
+	</table>
+	
+	<table>
+	  <title>Return Values for TibcoAdapter::receive()</title>
+	  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	    <thead>
+	      <row>
+		<entry><para>Return Type</para></entry>
+		<entry><para>Description</para></entry>
+	      </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry>Hash</entry>
+	      <entry>The message received.  If a timeout value was set and no message was sent within the timeout period, no value is returned.</entry>
+	    </row>
+	  </tbody>
+	  </tgroup>
+	</table>
+
+	<table>
+	  <title>Exceptions Thrown by TibcoAdapter::receive()</title>
+	  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	    <thead>
+	      <row>
+		<entry><para>err</para></entry>
+		<entry><para>desc</para></entry>
+	      </row>
+	    </thead>
+	    <tbody>
+	      <row>
+		<entry><para>MAP-ERROR</para></entry>
+		<entry><para>Don't know how to map TIBCO data to Qore data (unsupported TIBCO data type).</para></entry>
+	      </row>
+	    </tbody>
+	  </tgroup>
+	</table>	
+      </sect3>
+
+      <sect3 id="Qore_TibcoAdapter_sendSubject">
+	<title>Qore::TibcoAdapter::sendSubject()</title>
+	
+	<variablelist>
+	  <varlistentry>
+	    <term>Synopsis</term>
+	    <listitem>
+	      <para>Creates a publisher and transmits data.</para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term>Usage</term>
+	    <listitem>
+	      <programlisting>TibcoAdapter::sendSubject(<replaceable>subject, function, message</replaceable>)</programlisting>
+	    </listitem>
+	  </varlistentry>
+	</variablelist>
+	
+	<table>
+	  <title>Arguments for TibcoAdapter::sendSubject()</title>
+	  <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	    <thead>
+	      <row>
+		<entry><para>Argument</para></entry>
+		<entry><para>Type</para></entry>
+		<entry><para>Description</para></entry>
+	      </row>
+	    </thead>
+	    <tbody>
+	      <row>
+		<entry><para><replaceable>subject</replaceable></para></entry>
+		<entry><para>String</para></entry>
+		<entry><para>The subject to use for the message.</para></entry>
+	      </row>
+	      <row>
+		<entry><para><replaceable>function</replaceable></para></entry>
+		<entry><para>String</para></entry>
+		<entry><para>The class to use for the message.</para></entry>
+	      </row>
+	      <row>
+		<entry><para><replaceable>message</replaceable></para></entry>
+		<entry><para>Hash</para></entry>
+		<entry><para>The message data, must match the class description or an exception will be thrown.</para></entry>
+	      </row>
+	    </tbody>
+	  </tgroup>
+	</table>
+	
+	<table>
+	  <title>Return Values for TibcoAdapter::sendSubject()</title>
+	  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	    <thead>
+	      <row>
+		<entry><para>Return Type</para></entry>
+		<entry><para>Description</para></entry>
+	      </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry>n/a</entry>
+	      <entry>This method does not return any value.</entry>
+	    </row>
+	  </tbody>
+	  </tgroup>
+	</table>
+
+	<table>
+	  <title>Exceptions Thrown by TibcoAdapter::sendSubject()</title>
+	  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	    <thead>
+	      <row>
+		<entry><para>err</para></entry>
+		<entry><para>desc</para></entry>
+	      </row>
+	    </thead>
+	    <tbody>
+	      <row>
+		<entry><para>TIBCO-SENDSUBJECT-PARAMETER-ERROR</para></entry>
+		<entry><para>Invalid parameters passed to the method.</para></entry>
+	      </row>
+	      <row>
+		<entry><para>TIBCO-EXCEPTION</para></entry>
+		<entry><para>The TIBCO SDK raised an exception instantiating the adapter.</para></entry>
+	      </row>
+	    </tbody>
+	  </tgroup>
+	</table>
+      </sect3>
+
+      <sect3 id="Qore_TibcoAdapter_sendSubjectWithSyncReply">
+	<title>Qore::TibcoAdapter::sendSubjectWithSyncReply()</title>
+	<variablelist>
+	  <varlistentry>
+	    <term>Synopsis</term>
+	    <listitem>
+	      <para>Creates a publisher, transmits data with the given subject, and returns a data structure representing the synchronous reply.</para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term>Usage</term>
+	    <listitem>
+	      <programlisting>TibcoAdapter::sendSubjectWithSyncReply(<replaceable>subject, function, message, [timeout]</replaceable>)</programlisting>
+	    </listitem>
+	  </varlistentry>
+	</variablelist>
+	
+	<table>
+	  <title>Arguments for TibcoAdapter::sendSubjectWithSyncReply()</title>
+	  <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	    <thead>
+	      <row>
+		<entry><para>Argument</para></entry>
+		<entry><para>Type</para></entry>
+		<entry><para>Description</para></entry>
+	      </row>
+	    </thead>
+	    <tbody>
+	      <row>
+		<entry><para><replaceable>subject</replaceable></para></entry>
+		<entry><para>String</para></entry>
+		<entry><para>The subject to use for the message.</para></entry>
+	      </row>
+	      <row>
+		<entry><para><replaceable>function</replaceable></para></entry>
+		<entry><para>String</para></entry>
+		<entry><para>The class to use for the message.</para></entry>
+	      </row>
+	      <row>
+		<entry><para><replaceable>message</replaceable></para></entry>
+		<entry><para>Hash</para></entry>
+		<entry><para>The message data, must match the class description or an exception will be thrown.</para></entry>
+	      </row>
+	      <row>
+		<entry><para><replaceable>[timeout]</replaceable></para></entry>
+		<entry><para>Integer</para></entry>
+		<entry><para>The timeout in milliseconds (1/1000 second).</para></entry>
+	      </row>
+	    </tbody>
+	  </tgroup>
+	</table>
+	
+	<table>
+	  <title>Return Values for TibcoAdapter::sendSubjectWithSyncReply()</title>
+	  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	    <thead>
+	      <row>
+		<entry><para>Return Type</para></entry>
+		<entry><para>Description</para></entry>
+	      </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry>Hash</entry>
+	      <entry>The reply message received.  If a timeout value was set and no message was sent within the timeout period, no value is returned.</entry>
+	    </row>
+	  </tbody>
+	  </tgroup>
+	</table>
+      </sect3>
+    </sect2>
+  </sect1>
+
+  <sect1 id="oracle_Module">
+    <title>oracle Module</title>
+
+    <para>The oracle module provides an Oracle driver to Qore's DBI system, allowing Qore programs to take access Oracle databases through the <link linkend="Qore::SQL::Datasource_Class">Datasource Class</link>.</para>
+
+    <para>This driver supports the following DBI capabilities: <code>DBI_CAP_TRANSACTION_MANAGEMENT, DBI_CAP_STORED_PROCEDURES, DBI_CAP_CHARSET_SUPPORT, DBI_CAP_LOB_SUPPORT</code>.</para>
+
+    <note><para>There seems to be a bug in Oracle 9i and earlier in the streaming OCILobRead() function, where the LOB buffer must be at least twice as big as the LOB data to be read.  This bug does not affect versions of the Qore oracle module linked with Oracle 10g libraries.</para></note>
+
+    <table>
+      <title>Qore to Oracle Type Mappings for Binding Values in Datasource::exec()</title>
+      <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>Argument</para></entry>
+	    <entry><para>OCI Type</para></entry>
+	    <entry><para>Description</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row>
+	    <entry>Type::Binary</entry>
+	    <entry>SQLT_BIN</entry>
+	    <entry>For use with BLOB columns, for example.</entry>
+	  </row>
+	  <row>
+	    <entry>Type::String</entry>
+	    <entry>SQLT_STR</entry>
+	    <entry>For use with string data, VARCHAR* columns, etc</entry>
+	  </row>
+	  <row>
+	    <entry>Type::Integer</entry>
+	    <entry>SQLT_INT or SQLT_STR</entry>
+	    <entry>For use with numeric columns, NUMBER*, etc (int &gt; 32-bits = SQLT_STR, &lt;= 32-bit int = SQLT_INT)</entry>
+	  </row>
+	  <row>
+	    <entry>Type::Boolean</entry>
+	    <entry>SQLT_INT</entry>
+	    <entry>True is bound as 1, False as 0</entry>
+	  </row>
+	  <row>
+	    <entry>Type::Float</entry>
+	    <entry>SQLT_FLT</entry>
+	    <entry>For use with NUMBER* columns, etc</entry>
+	  </row>
+	  <row>
+	    <entry>Type::Date</entry>
+	    <entry>SQLT_DAT</entry>
+	    <entry>For use with date columns, etc.</entry>
+	  </row>
+	</tbody>
+      </tgroup>
+    </table>
+
+    <table>
+      <title>Qore to Oracle Type Mappings for Placeholder Specifications in Datasource::exec()</title>
+      <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>Argument</para></entry>
+	    <entry><para>OCI Type</para></entry>
+	    <entry><para>Description</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row>
+	    <entry>Type::Binary</entry>
+	    <entry>SQLT_BLOB</entry>
+	    <entry>For retrieving BLOB data, for example.</entry>
+	  </row>
+	  <row>
+	    <entry>"clob"</entry>
+	    <entry>SQLT_CLOB</entry>
+	    <entry>For retrieving CLOB data.</entry>
+	  </row>
+	  <row>
+	    <entry>Type::String</entry>
+	    <entry>SQLT_STR</entry>
+	    <entry>For retrieving VARCHAR* data.</entry>
+	  </row>
+	  <row>
+	    <entry>Type::Integer</entry>
+	    <entry>SQLT_INT</entry>
+	    <entry>For retrieving integer numeric data up to 32 bits (for larger numbers or for non-integer numbers use Type::String or Type::Float).</entry>
+	  </row>
+	  <row>
+	    <entry>Type::Float</entry>
+	    <entry>SQLT_FLT</entry>
+	    <entry>For retrieving data in 64-bit floating point format.</entry>
+	  </row>
+	  <row>
+	    <entry>Type::Date</entry>
+	    <entry>SQLT_DAT</entry>
+	    <entry>For retrieving dates and times.</entry>
+	  </row>
+	  <row>
+	    <entry>Type::Hash</entry>
+	    <entry>SQLT_RSET</entry>
+	    <entry>For retrieving result sets from a stored procedure that returns a cursor.</entry>
+	  </row>
+	</tbody>
+      </tgroup>
+    </table>
+  </sect1>
+
+  <sect1 id="mysql_Module">
+    <title>mysql Module</title>
+
+    <para>The oracle module provides a MySQL driver to Qore's DBI system, allowing Qore programs to access MySQL databases through the <link linkend="Qore::SQL::Datasource_Class">Datasource Class</link>.</para>
+
+    <para>This driver supports the following DBI capabilities when compiled against MySQL 4 or 5: <code>DBI_CAP_TRANSACTION_MANAGEMENT, DBI_CAP_CHARSET_SUPPORT</code>.</para>
+
+    <para>The driver uses MySQL's prepared statement interface when it is available (at least with MySQL 4 and 5).</para>
+
+    <para>Like all Qore components, the MySQL DBI driver is thread-safe.</para>
+
+  </sect1>
+
+</chapter>

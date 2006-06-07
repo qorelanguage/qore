@@ -1,0 +1,209 @@
+pkglibdir = $(libdir)/@PACKAGE@-@VERSION@
+
+## use automake to create the Makefile.in for configure
+
+AUTOMAKE_OPTIONS = foreign
+
+SUBDIRS = modules lib
+
+INCLUDES = -I$(top_srcdir)/include
+
+noinst_HEADERS = \
+	include/qore/AutoNamespaceList.h \
+	include/qore/mysignal.h \
+	include/qore/types/Number.h \
+	include/qore/Context.h \
+	include/qore/thread.h \
+	include/qore/QoreProgram.h \
+	include/qore/ReferenceObject.h \
+	include/qore/QoreType.h \
+	include/qore/List.h \
+	include/qore/ArgvStack.h \
+	include/qore/params.h \
+	include/qore/node_types.h \
+	include/qore/Function.h \
+	include/qore/BuiltinFunctionList.h \
+	include/qore/Variable.h \
+	include/qore/TypeConstants.h \
+	include/qore/Sequence.h \
+	include/qore/CallStack.h \
+	include/qore/LockedObject.h \
+	include/qore/RMutex.h \
+	include/qore/QoreClass.h \
+	include/qore/Operator.h \
+	include/qore/QoreClassList.h \
+	include/qore/QoreString.h \
+	include/qore/Reference.h \
+	include/qore/Statement.h \
+	include/qore/common.h \
+	include/qore/proto.h \
+	include/qore/ConstantList.h \
+	include/qore/charset.h \
+	include/qore/ParserSupport.h \
+	include/qore/DateTime.h \
+	include/qore/support.h \
+	include/qore/QoreProgramStack.h \
+	include/qore/Exception.h \
+	include/qore/Hash.h \
+	include/qore/Find.h \
+	include/qore/QoreNumber.h \
+	include/qore/ErrnoConstants.h \
+	include/qore/Gate.h \
+	include/qore/QoreNode.h \
+	include/qore/ModuleManager.h \
+	include/qore/Namespace.h \
+	include/qore/NamedScope.h \
+	include/qore/Object.h \
+	include/qore/macros-i386.h \
+	include/qore/macros-powerpc.h \
+	include/qore/macros-sparc.h \
+	include/qore/macros-none.h \
+	include/qore/QoreSocket.h \
+	include/qore/QoreNet.h \
+	include/qore/Restrictions.h \
+	include/qore/QoreFile.h \
+	include/qore/QoreLib.h \
+	include/qore/QoreCondition.h \
+	include/qore/QoreCounter.h \
+	include/qore/BinaryObject.h \
+	include/qore/SingleExitGate.h \
+	include/qore/RegexSubst.h \
+	include/qore/module.h \
+	include/qore/hash_map.h \
+	include/qore/ExecArgList.h \
+	include/qore/SwitchStatement.h \
+	include/qore/QoreRegex.h \
+	include/qore/QoreRegexBase.h \
+	include/qore/QoreGetOpt.h \
+	include/qore/FtpClient.h \
+	include/qore/StringList.h \
+	include/qore/QT_NOTHING.h \
+	include/qore/QT_bigint.h \
+	include/qore/QT_float.h \
+	include/qore/QT_string.h \
+	include/qore/QT_date.h \
+	include/qore/QT_boolean.h \
+	include/qore/QT_NULL.h \
+	include/qore/QT_binary.h \
+	include/qore/QT_list.h \
+	include/qore/QT_hash.h \
+	include/qore/QT_object.h \
+	include/qore/QT_backquote.h \
+	include/qore/QT_context.h \
+	include/qore/QT_varref.h \
+	include/qore/ql_string.h \
+	include/qore/ql_misc.h \
+	include/qore/ql_math.h \
+	include/qore/ql_io.h \
+	include/qore/ql_pwd.h \
+	include/qore/ql_env.h \
+	include/qore/ql_type.h \
+	include/qore/ql_lib.h \
+	include/qore/ql_time.h \
+	include/qore/ql_debug.h \
+	include/qore/ql_thread.h \
+	include/qore/ql_xml.h \
+	include/qore/QC_Queue.h \
+	include/qore/QC_Socket.h \
+	include/qore/QC_Sequence.h \
+	include/qore/QC_RWLock.h \
+	include/qore/QC_Program.h \
+	include/qore/QC_Mutex.h \
+	include/qore/QC_RMutex.h \
+	include/qore/QC_Condition.h \
+	include/qore/QC_Gate.h \
+	include/qore/QC_File.h \
+	include/qore/QC_Counter.h \
+	include/qore/QC_Datasource.h \
+	include/qore/QC_GetOpt.h \
+	include/qore/QC_FtpClient.h \
+	include/qore/DBI.h \
+	modules/oracle/oracle-config.h \
+	modules/oracle/oracle.h \
+	modules/oracle/oracle-module.h \
+	modules/mysql/qore-mysql-module.h \
+	modules/TIBCO/tibco-module.h \
+	modules/TIBCO/QoreApp.h \
+	modules/TIBCO/tibco.h \
+	modules/ncurses/QC_Window.h \
+	modules/ncurses/QC_Panel.h \
+	modules/ncurses/ncurses-module.h \
+	command-line.h \
+	include/qore/Qore.h
+
+EXTRA_DIST = .build next_build.sh WHATISQORE RELEASE-NOTES \
+        test/counter-test.q \
+        test/create-iso-8859-1-file.q \
+        test/empty.q \
+        test/file-test.q \
+        test/ftp-test.q \
+        test/gate-test.q \
+        test/max-threads-test.q \
+	test/ncurses.q \
+        test/new.dat \
+        test/object-test.q \
+        test/rwlock-test.q \
+        test/socket-test.q \
+        test/subprogram-thread-test.q \
+        test/system-test.q \
+        test/test-exception.q \
+        test/test.q \
+        test/Test.qc \
+        test/thread-test.q \
+        test/tibco-listener.q \
+        test/tibco-test.q \
+        test/umlaut.q \
+        test/umlaut.txt \
+        test/unlocked-thread-test.q \
+	examples/HTTPClient.qc \
+	examples/HTTPServer.qc \
+	examples/XmlRpcClient.qc \
+        examples/xmlrpc.ql \
+        examples/XmlRpcHandler.qc \
+        examples/XmlRpcServerValidation.q \
+	examples/stmt.q \
+	examples/exp.q \
+	examples/obj2.q \
+	examples/hash.q \
+	examples/hanoi.q \
+	examples/clisrv.q \
+	examples/xml-rpc-client.q \
+	examples/inherit.q \
+	examples/regex.q \
+	examples/getopt.q \
+	examples/worm.q \
+	docs/qore.html \
+	docs/roadmap.html \
+	qore-0.5.1-1.spec \
+	CHANGELOG
+
+dist_man_MANS = qore.1
+
+qore_LDADD = lib/libqore.la ${PTHREAD_LIBS}
+
+AM_CXXFLAGS = ${PTHREAD_CFLAGS}
+
+if COND_DEBUG
+AM_CXXFLAGS += -g
+qore_LDFLAGS=-g
+else
+if COND_PROFILE
+AM_CXXFLAGS += -g -pg
+qore_LDFLAGS=-g -pg
+else
+##qore_LDFLAGS=-s
+endif
+endif
+
+bin_PROGRAMS = qore
+qore_SOURCES = \
+	main.cc \
+	command-line.cc
+
+BUILD=$(shell cat $(top_srcdir)/.build)
+PACKAGE_VERSION=$(shell grep PACKAGE_VERSION include/qore/config.h | cut -f3 -d\  | sed s/\"//g)
+TAR_NAME := arch/qore-v$(PACKAGE_VERSION)-$(BUILD)-$(shell date +%Y%m%d).tar
+
+tar: clean
+	find $(top_srcdir) -name \*~ -exec rm {} \;
+	cd ..; tar cvf $(TAR_NAME) src && gzip $(TAR_NAME)

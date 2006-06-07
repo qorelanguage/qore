@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<chapter id="Appendix_B:_Known_Bugs">
+  <title>Appendix B: Known Bugs</title>
+
+  <para>The string functions (particularly substr() and length()) do not work properly with multi-byte character sets (such as UTF-8) yet.  Furthermore specifying field widths with print formatting only works properly with character encodings where each character is always 1 byte</para>
+
+  <para>Out of memory errors are not always captured. Internal support for trapping these conditions in the C++ <command>new</command> operator must be developed.</para>
+
+  <para>The MySQL driver doesn't support stored procedure execution yet.</para>
+
+  <para>XML serialization needs to be improved regarding repeating elements (lists) while preserving order, interfaces need to be sanitized.</para>
+
+  <para>date and time handling need to be sanitized, particulary regarding relative and absolute dates &amp; date arithmetic.</para>
+
+  <para>parse option implementation needs to be fixed to prohibit access to classes which provide access to restricted features.  Currently even if, for example <code>PO_NO_NETWORK</code> is set, the Socket and FtpClient classes are available.  Also the documentation needs to be updated providing details about which functions/features are not available when parse options are set.</para>
+
+</chapter>
+

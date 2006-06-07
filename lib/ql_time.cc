@@ -1,0 +1,345 @@
+/*
+  ql_time.cc
+
+  Qore Programming Language
+
+  Copyright (C) 2003, 2004, 2005, 2006 David Nichols
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+#include <qore/config.h>
+#include <qore/ql_time.h>
+#include <qore/QoreNode.h>
+#include <qore/support.h>
+#include <qore/QoreString.h>
+#include <qore/DateTime.h>
+#include <qore/params.h>
+#include <qore/QoreLib.h>
+#include <qore/BuiltinFunctionList.h>
+
+#include <stdio.h>
+#include <time.h>
+#include <sys/time.h>
+
+// define qore_gettime() for various platforms to get time in nanoseconds
+#ifdef HAVE_CLOCK_GETTIME
+// define qore_gettime() for POSIX platforms
+typedef struct timespec qore_timespec_t;
+static inline void qore_gettime(qore_timespec_t *tp)
+{
+   clock_gettime(CLOCK_REALTIME, tp);
+}
+#else
+// use gettimeofday() to get microsecond resolution and multiply by 1000
+struct qore_timespec_t
+{
+      unsigned tv_sec;
+      unsigned tv_nsec;
+};
+static inline void qore_gettime(qore_timespec_t *tp)
+{
+   struct timeval tv;
+   gettimeofday(&tv, NULL);
+   tp->tv_sec = tv.tv_sec;
+   tp->tv_nsec = tv.tv_usec * 1000;
+}
+#endif
+
+static class QoreNode *f_now(class QoreNode *params, ExceptionSink *xsink)
+{
+   time_t ct;
+
+   ct = time(NULL);
+
+   struct tm tms;
+   class DateTime *dt = new DateTime(q_localtime(&ct, &tms));
+   //printf("f_now() %d\n", ct);
+
+   return new QoreNode(dt);
+}
+
+static class QoreNode *f_format_date(class QoreNode *params, ExceptionSink *xsink)
+{
+   class QoreNode *temp, *p0, *p1;
+
+   if (!(p0 = test_param(params, NT_STRING, 0)) ||
+       !(p1 = get_param(params, 1)))
+      return NULL;
+
+   tracein("format_date()");
+   // second argument is converted to a date if necessary
+   if (p1->type != NT_DATE)
+      temp = p1->convert(NT_DATE);
+   else
+      temp = p1;
+
+   class QoreString *rv = temp->val.date_time->format(p0->val.String->getBuffer());
+   
+   if (temp != p1)
+      temp->deref(xsink);
+
+   printd(5, "format_date() returning \"%s\"\n", rv->getBuffer());
+   traceout("format_date()");
+
+   return new QoreNode(rv);
+}
+
+static class QoreNode *f_localtime(class QoreNode *params, ExceptionSink *xsink)
+{
+   class QoreNode *p0;
+   time_t t;
+
+   if (!(p0 = get_param(params, 0)))
+      return NULL;
+
+   t = p0->getAsInt();
+
+   struct tm tms;
+   class DateTime *dt = new DateTime(q_localtime(&t, &tms));
+
+   return new QoreNode(dt);
+}
+
+static class QoreNode *f_gmtime(class QoreNode *params, ExceptionSink *xsink)
+{
+   class QoreNode *p0;
+   time_t t;
+
+   if (!(p0 = get_param(params, 0)))
+      return NULL;
+
+   t = p0->getAsInt();
+
+   struct tm tms;
+   class DateTime *dt = new DateTime(q_gmtime(&t, &tms));
+
+   return new QoreNode(dt);
+}
+
+static class QoreNode *f_mktime(class QoreNode *params, ExceptionSink *xsink)
+{
+   class QoreNode *temp, *p0;
+   struct tm nt;
+   time_t t;
+
+   if (!(p0 = get_param(params, 0)))
+      return NULL;
+   if (p0->type == NT_DATE)
+      temp = p0;
+   else
+      temp = p0->convert(NT_DATE);
+
+   temp->val.date_time->getTM(&nt);
+
+   t = mktime(&nt);
+
+   if (temp != p0)
+      temp->deref(xsink);
+
+   return new QoreNode(NT_INT, t);
+}
+
+#ifdef HAVE_TIMEGM
+static class QoreNode *f_timegm(class QoreNode *params, ExceptionSink *xsink)
+{
+   class QoreNode *temp, *p0;
+   struct tm nt;
+   time_t t;
+
+   if (!(p0 = get_param(params, 0)))
+      return NULL;
+   if (p0->type != NT_DATE)
+      temp = p0->convert(NT_DATE);
+   else
+      temp = p0;
+
+   temp->val.date_time->getTM(&nt);
+   t = timegm(&nt);
+
+   if (temp != p0)
+      temp->deref(xsink);
+
+   return new QoreNode(NT_INT, t);
+}
+#endif
+
+static class QoreNode *f_years(class QoreNode *params, ExceptionSink *xsink)
+{
+   int y;
+   class QoreNode *p0 = get_param(params, 0);
+   if (!p0)
+      y = 0;
+   else
+      y = p0->getAsInt();
+   
+   class DateTime *dt = new DateTime();
+   dt->year = y;
+   dt->relative = 1;
+   return new QoreNode(dt);
+}
+
+static class QoreNode *f_months(class QoreNode *params, ExceptionSink *xsink)
+{
+   int m;
+   class QoreNode *p0 = get_param(params, 0);
+   if (!p0)
+      m = 0;
+   else
+      m = p0->getAsInt();
+   
+   class DateTime *dt = new DateTime();
+   dt->month = m;
+   dt->relative = 1;
+   return new QoreNode(dt);
+}
+
+static class QoreNode *f_days(class QoreNode *params, ExceptionSink *xsink)
+{
+   int d;
+   class QoreNode *p0 = get_param(params, 0);
+   if (!p0)
+      d = 0;
+   else
+      d = p0->getAsInt();
+   
+   class DateTime *dt = new DateTime();
+   dt->day = d;
+   dt->relative = 1;
+   return new QoreNode(dt);
+}
+
+static class QoreNode *f_hours(class QoreNode *params, ExceptionSink *xsink)
+{
+   int h;
+   class QoreNode *p0 = get_param(params, 0);
+   if (!p0)
+      h = 0;
+   else
+      h = p0->getAsInt();
+   
+   class DateTime *dt = new DateTime();
+   dt->hour = h;
+   dt->relative = 1;
+   return new QoreNode(dt);
+}
+
+static class QoreNode *f_minutes(class QoreNode *params, ExceptionSink *xsink)
+{
+   int m;
+   class QoreNode *p0 = get_param(params, 0);
+   if (!p0)
+      m = 0;
+   else
+      m = p0->getAsInt();
+   
+   class DateTime *dt = new DateTime();
+   dt->minute = m;
+   dt->relative = 1;
+   return new QoreNode(dt);
+}
+
+static class QoreNode *f_seconds(class QoreNode *params, ExceptionSink *xsink)
+{
+   int s;
+   class QoreNode *p0 = get_param(params, 0);
+   if (!p0)
+      s = 0;
+   else
+      s = p0->getAsInt();
+   
+   class DateTime *dt = new DateTime();
+   dt->second = s;
+   dt->relative = 1;
+   return new QoreNode(dt);
+}
+
+static class QoreNode *f_milliseconds(class QoreNode *params, ExceptionSink *xsink)
+{
+   int m;
+   class QoreNode *p0 = get_param(params, 0);
+   if (!p0)
+      m = 0;
+   else
+      m = p0->getAsInt();
+   
+   class DateTime *dt = new DateTime();
+   dt->millisecond = m;
+   dt->relative = 1;
+   return new QoreNode(dt);
+}
+
+
+/**
+ * f_clock_getmillis(class QoreNode *params, ExceptionSink *xsink)
+ *
+ * returns the current system clock time value as milliseconds
+ * 20051114 aargon
+ * updates for Darwin
+ * 20051116 david_nichols
+ */
+static class QoreNode *f_clock_getmillis(class QoreNode *params, ExceptionSink *xsink) {
+   struct timeval tv;
+   gettimeofday(&tv, NULL);
+
+   return new QoreNode(((int64)tv.tv_sec*(int64)1000 + tv.tv_usec/1000));
+}
+
+/*
+ * qore: cock_getnanos()
+ * returns the current system clock time value as nanoseconds since Jan 1, 1970
+ */
+static class QoreNode *f_clock_getnanos(class QoreNode *params, ExceptionSink *xsink) 
+{
+   qore_timespec_t tp;
+   qore_gettime(&tp);
+
+   return new QoreNode(((int64)tp.tv_sec * (int64)1000000000 + tp.tv_nsec)); 
+}
+
+/* qore: clock_getmicros()
+ * returns the current system clock time value as microseconds since Jan 1, 1970
+ */
+static class QoreNode *f_clock_getmicros(class QoreNode *params, ExceptionSink *xsink) 
+{
+   struct timeval tv;
+   gettimeofday(&tv, NULL);
+
+   return new QoreNode(((int64)tv.tv_sec * (int64)1000000 + tv.tv_usec));
+}
+
+void init_time_functions()
+{
+   builtinFunctions.add("now", f_now);
+   builtinFunctions.add("format_date", f_format_date);
+   builtinFunctions.add("localtime", f_localtime);
+   builtinFunctions.add("gmtime", f_gmtime);
+   builtinFunctions.add("mktime", f_mktime);
+#ifdef HAVE_TIMEGM
+   builtinFunctions.add("timegm", f_timegm);
+#endif
+
+   builtinFunctions.add("years",           f_years);
+   builtinFunctions.add("months",          f_months);
+   builtinFunctions.add("days",            f_days);
+   builtinFunctions.add("hours",           f_hours);
+   builtinFunctions.add("minutes",         f_minutes);
+   builtinFunctions.add("seconds",         f_seconds);
+   builtinFunctions.add("milliseconds",    f_milliseconds);
+
+   builtinFunctions.add("clock_getmillis", f_clock_getmillis);
+   builtinFunctions.add("clock_getnanos",  f_clock_getnanos);
+   builtinFunctions.add("clock_getmicros", f_clock_getmicros);
+}

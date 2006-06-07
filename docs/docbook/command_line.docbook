@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+
+<chapter id="Command-Line_Parsing">
+  <title>Command-Line Parsing</title>
+
+  <para>Qore will scan the command-line for the options in the following table.  Arguments after the script name will be passed to the script in the global <code>$ARGV</code> variable as a list of options. <code>$ARGV[0]</code> will be the first option and will not be the script name.  If no script name is given and the <code>--exec</code> option is not used, then Qore code is read from standard input.</para>
+
+    <para><replaceable>qore</replaceable> [options] script.q</para>
+
+    <table><title>Parse Option Command-Line Parameters</title>
+    <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+      <thead>
+  <row>
+    <entry><para>Long Param</para></entry>
+    <entry><para>Short</para></entry>
+    <entry><para>Description</para></entry>
+  </row>
+  </thead>
+
+<tbody>
+  <row>
+    <entry><para><code>--no-global-vars</code></para></entry>
+    <entry><para><code>-G</code></para></entry>
+    <entry><para>Disallows the use of global variables.  Equivalent to parse option <code>PO_NO_GLOBAL_VARS</code> and the <code>%no-global-vars</code> directive.</para></entry>
+  </row>
+  <row>
+    <entry><para><code>--no-subroutine-defs</code></para></entry>
+    <entry><para><code>-S</code></para></entry>
+    <entry><para>Disallows subroutine (function) definitions.  Equivalent to parse option <code>PO_NO_SUBROUTINE_DEFS</code> and the <code>%no-subroutine-defs</code> directive.</para></entry>
+  </row>
+  <row>
+    <entry><para><code>--no-threads</code></para></entry>
+    <entry><para><code>-B</code></para></entry>
+    <entry><para>Disallows any thread operations (<link linkend="Background_Operator"><command>background</command> operator</link> and <link linkend="thread_exit_Statements"><command>thread_exit</command> statement</link>, for example).  Equivalent to parse option <code>PO_NO_THREADS</code> and the <code>%no-threads</code> directive.</para></entry>
+  </row>
+  <row>
+    <entry><para><code>--no-top-level</code></para></entry>
+    <entry><para><code>-L</code></para></entry>
+    <entry><para>Disallows top level code.  Equivalent to parse option <code>PO_NO_TOP_LEVEL_STATEMENTS</code> and the <code>%no-top-level</code> directive.</para></entry>
+  </row>
+  <row>
+    <entry><para><code>--no-class-defs</code></para></entry>
+    <entry><para><code>-C</code></para></entry>
+    <entry><para>Disallows class definitions.  Equivalent to <code>PO_NO_CLASS_DEFS</code> and the <code>%no-class-defs</code> directive.</para></entry>
+  </row>
+  <row>
+    <entry><para><code>--no-namespace-defs</code></para></entry>
+    <entry><para><code>-D</code></para></entry>
+    <entry><para>Disallows new namespace definitions.  Equivalent to <code>PO_NO_NAMESPACE_DEFS</code> and the <code>%no-namespace-defs</code> directive.</para></entry>
+  </row>
+  <row>
+    <entry><para><code>--no-external-process</code></para></entry>
+    <entry><para><code>-E</code></para></entry>
+    <entry><para>Disallows any access to external processes (with  <link linkend="system">system()</link>, <link linkend="backquote">backquote()</link>, <link linkend="exec">exec()</link>, the <link linkend="Backquote_Operator"><command>backquote</command> operator</link>, etc).  Equivalent to parse option <code>PO_NO_EXTERNAL_PROCESS</code> and the <code>%no-external-process</code> directive.</para></entry>
+  </row>
+  <row>
+    <entry><para><code>--no-process-control</code></para></entry>
+    <entry><para><code>-P</code></para></entry>
+    <entry><para>Disallows access to functions that would affect the current process (<link linkend="exit">exit()</link>, <link linkend="fork">fork()</link>, etc).  Equivalent to parse option <code>PO_NO_PROCESS_CONTROL</code> and the <code>%no-process-control</code> directive.</para></entry>
+  </row>
+  <row>
+    <entry><para><code>--no-constant-defs</code></para></entry>
+    <entry><para><code>-F</code></para></entry>
+    <entry><para>Disallows constant definitions.  Equivalent to parse option <code>PO_NO_CONSTANT_DEFS</code> and the <code>%no-constant-defs</code> directive.</para></entry>
+  </row>
+  <row>
+    <entry><para><code>--no-new</code></para></entry>
+    <entry><para><code>-N</code></para></entry>
+    <entry><para>Disallows use of the <command>new</command> operator.  Equivalent to parse option <code>PO_NO_NEW</code> and the <code>%no-new</code> directive.</para></entry>
+  </row>
+  <row>
+    <entry><para><code>--no-child-restrictions</code></para></entry>
+    <entry><para><code>-I</code></para></entry>
+    <entry><para>Allows child program objects to have parse option restrictions that are not a strict subset of the parents.  Equivalent to parse option <code>PO_NO_CHILD_RESTRICTIONS</code> and the <code>%no-child-restrictions</code> directive.</para></entry>
+  </row>
+  <row>
+    <entry><para><code>--require-our</code></para></entry>
+    <entry><para><code>-O</code></para></entry>
+    <entry><para>Requires global variables to be declared with <command>our</command> prior to use (similar to perl's <command>use strict vars</command> pragma).  Equivalent to parse option <code>PO_REQUIRE_OUR</code> and the <code>%require-our</code> directive.</para></entry>
+  </row>
+  <row>
+    <entry><para><code>--lock-options</code></para></entry>
+    <entry><para><code>-K</code></para></entry>
+    <entry><para>Prohibits further changes to parse options (equivalent to the <code>%lock-options</code> directive).</para></entry>
+  </row>
+
+</tbody>
+</tgroup>
+</table>
+
+<table><title>Miscellaneous Command-Line Parameters</title>
+<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+
+  <thead>
+  <row>
+    <entry><para>Long Param</para></entry>
+    <entry><para>Short</para></entry>
+    <entry><para>Description</para></entry>
+  </row>
+  </thead>
+
+<tbody>
+  <row>
+    <entry><para><code>--exec=ARG</code></para></entry>
+    <entry><para><code>-e</code></para></entry>
+    <entry><para>parses and executes the argument text as a Qore program.  If this option is specified then any script given on the command-line will be ignored.</para></entry>
+  </row>
+  <row>
+    <entry><para><code>--exec-class[=ARG]</code></para></entry>
+    <entry><para><code>-x</code></para></entry>
+    <entry><para>parses and executes the argument text as a Qore program, instantiating the class with the same name as the program (with the directory path and extension stripped); also turns on <code>--no-top-level</code>.  If the program is read from stdin or from the command-line, an argument must be given specifying the class name.</para></entry>
+  </row>
+  <row>
+    <entry><para><code>--show-module-errors</code></para></entry>
+    <entry><para><code>-m</code></para></entry>
+    <entry><para>Shows any errors loading Qore modules</para></entry>
+  </row>
+  <row>
+    <entry><para><code>--charset=ARG</code></para></entry>
+    <entry><para><code>-c</code></para></entry>
+    <entry><para>Sets the default character set for the program</para></entry>
+  </row>
+  <row>
+    <entry><para><code>--show-charset=ARG</code></para></entry>
+    <entry><para></para></entry>
+    <entry><para>Shows a list of all known character sets</para></entry>
+  </row>
+  <row>
+    <entry><para><code>--show-aliases</code></para></entry>
+    <entry><para></para></entry>
+    <entry><para>Shows a list of all known character set aliases</para></entry>
+  </row>
+  <row>
+    <entry><para><code>--help</code></para></entry>
+    <entry><para><code>-h</code></para></entry>
+    <entry><para>Shows help text</para></entry>
+  </row>
+  <row>
+    <entry><para><code>--version</code></para></entry>
+    <entry><para><code>-v</code></para></entry>
+    <entry><para>Shows program version information and exits</para></entry>
+  </row>
+
+</tbody>
+</tgroup>
+</table>
+
+<para>There are two additional options available with debugging versions of Qore as follows:</para>
+
+<table><title>Description of Debugging Command-Line Parameters</title>
+<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+
+  <thead>
+  <row>
+    <entry><para>Long Param</para></entry>
+    <entry><para>Short</para></entry>
+    <entry><para>Description</para></entry>
+  </row>
+  </thead>
+
+<tbody>
+  <row>
+    <entry><para>--debug=<replaceable>&lt;arg&gt;</replaceable></para></entry>
+    <entry><para>-d<replaceable>&lt;arg&gt;</replaceable></para></entry>
+    <entry><para>Turns on Qore debugging output. Higher <replaceable>arg</replaceable> 
+      numbers give more output. This option is only available with DEBUG 
+      builds.</para></entry>
+  </row>
+  <row>
+    <entry><para>--trace</para></entry>
+    <entry><para>-t</para></entry>
+    <entry><para>Turns on Qore 
+      tracing. This option is only available with DEBUG 
+      builds.</para></entry>
+  </row>
+  
+
+</tbody>
+</tgroup>
+</table>
+</chapter>
+

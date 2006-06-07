@@ -1,0 +1,13 @@
+File: 
+    
+    qore.xml - kate syntax plugin for the language qore
+   
+If you want to use it, copy it to 
+
+    ~/.kde/share/apps/katepart/syntax/qore.xml
+    
+References:
+Kate (KDE Advanced Text Editor) http://kate.kde.org/
+Qore Programming Language http://qore.sourceforge.org
+
+Helmut Wollmersdorfer, Nov 2005  

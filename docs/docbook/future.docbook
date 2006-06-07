@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<chapter id="Appendix_D:_Future_Development">
+  <title>Appendix D: Future Development</title>
+
+  <para>Some changes planned for future releases:</para>
+
+  <itemizedlist mark='bullet'>
+    <listitem>
+      <para>fix <link linkend="length">length()</link>, <link linkend="substr">substr()</link>, and <link linkend="String_Formatting">printf string formatting</link> to work on characters and not bytes for multi-byte character set encodings.</para>
+    </listitem>
+    <listitem>
+      <para>improve XML serialization with repeating elements while preserving order, sanitize interfaces</para>
+    </listitem>
+    <listitem>
+      <para>Sanitize date and time handling, particulary with relative and absolute dates &amp; date arithmetic.</para>
+    </listitem>
+    <listitem>
+      <para>Fix parse option implementation to prohibit access to classes which provide access to restricted features.</para>
+    </listitem>
+    <listitem>
+      <para>use pcre to provide powerful platform-independent regular expression support</para>
+    </listitem>
+    <listitem>
+      <para>improve mysql driver to support MySQL 5 interfaces (stored procedures, etc)</para>
+    </listitem>
+    <listitem>
+      <para>add optional strong typing to the language + strongly typed data structures</para>
+    </listitem>
+    <listitem>
+      <para>add PostgresSQL and Sybase drivers to the DBI layer</para>
+    </listitem>
+    <listitem>
+      <para>add BEA Tuxedo messaging integration</para>
+    </listitem>
+  </itemizedlist>
+</chapter>

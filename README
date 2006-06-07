@@ -1,0 +1,55 @@
+Qore README
+
+author: David Nichols <david_nichols@users.sourceforge.net>
+updated: 2006.06.04
+
+This document contains some general information on the Qore language.  Please refer to the following files/locations for specific information:
+
+RELEASE-NOTES
+-------------
+for release notes, known issues, etc
+
+BUILD
+-----
+for information on how to build and install qore
+NOTE: qore requires at least flex 2.5.31 (most distributions have flex 2.5.4) in order to compile a multithreaded parser; you can get this version at 
+	http://sourceforge.net/projects/lex
+NOTE: qore also requires libxml2 headers and libraries for the build; libxml2 support is no longer optional
+NOTE: qore now requires pcre headers and libraries for the build, POSIX regex support is no longer used
+
+WHATISQORE
+----------
+a general description of the Qore programming language
+
+docs/qore.html
+---------------------------------------------
+The Qore Programming Language Reference Manual built from the docbook sources (docbook sources are only in CVS at the moment).  The documentation has been extensively updated as of version 0.5.0 and is nearly complete.
+
+docs/roadmap.html
+-----------------
+An html page giving a list of planned features and their status.
+The most current version can be found on http://qore.sourceforge.net/roadmap.html
+
+test/
+-----
+some test scripts.  test/test.q is the main regression test script; testing is not yet automated...
+
+examples/
+---------
+some example Qore scripts/programs.
+
+***************
+*** HISTORY ***
+***************
+
+OM/Qore Workflow and EAI System
+-------------------------------
+The primary vehicle for qore language development up to now has been the OM/Qore Workflow/EAI system, which is a highly multi-threaded, Oracle-integrated workflow and service platform with a multithreaded XML-RPC server, where user (and some system) logic is stored in an Oracle database and run in Qore Program objects with restricted capabilities.  This system is entirely written in the Qore language, and is currently a proprietary product.
+
+Basically the qore language was developed in order to make it possible to write this application, however, solutions to various challenges in the OM/Qore system design were implemented in the most generic way possible in order to make qore as useful in as many similar contexts as possible.
+
+OM/Qore is in commercial use by Hutchison 3G Austria, and is the primary enterprise application integration system now for the only pure 3G telecommunications & multimedia provider in Austria.  OM/Qore has replaced java-based workflows and ECMA-script based integration logic in TIBCO InConcert and Integration Manager and has proved to both a much cheaper development platform and a much more reliable and tracable operational platform with respect to the old TIBCO solutions. 
+
+HP is the worldwide integration partner for OM/Qore.
+
+If you would like more information on the features and capbilities of OM/Qore, please send me an email.

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<chapter id="Parse_Directives">
+  <title>Parse Directives</title>
+
+  <para>Qore supports the use of parse directives in order to set parsing options, load modules, and include other files.  Parse directives that set parsing options can be used any time parse options have not been locked on a Program object.  They are used most often when it's not possible or desirable to set the parse options in the qore command-line.</para>
+
+  <table>
+    <title>Parse Directives</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Directive</para></entry>
+	  <entry><para>Description</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code>%include</code> <replaceable>file_name</replaceable></para></entry>
+	  <entry><para>Starts parsing <replaceable>file_name</replaceable> immediately.  Parsing resumes with the current input after <replaceable>file_name</replaceable> has been completely parsed.</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>%requires</code> <replaceable>feature</replaceable></para></entry>
+	  <entry><para>If the named feature is not already present in Qore, then the <code>QORE_MODULE_DIR</code> environment variable is used to provide a list of directories to seach for a module with the same name (<replaceable>feature</replaceable><code>.qmod</code>).  If the module is not found, then the qore default module directory is checked.</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>%exec-class</code> <replaceable>[class name]</replaceable></para></entry>
+	  <entry><para>With no argument: instantiates the class with the same name as the program (with the directory path and extension stripped); with an argument, instantiates the named class as the application class.  Also turns on <code>%no-top-level</code>.  If the program is read from stdin or from the command-line, an argument must be given specifying the class name.</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>%no-global-vars</code></para></entry>
+	  <entry><para>Disallows the use of global variables.  Equivalent to parse option <code>PO_NO_GLOBAL_VARS</code> and the <code>--no-global-vars</code> command-line option.</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>%no-subroutine-defs</code></para></entry>
+	  <entry><para>Disallows subroutine (function) definitions.  Equivalent to parse option <code>PO_NO_SUBROUTINE_DEFS</code> and the <code>--no-subroutine-defs</code> command-line option.</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>%no-threads</code></para></entry>
+	  <entry><para>Disallows any thread operations (background operator and thre_exit statement, for example).  Equivalent to parse option <code>PO_NO_THREADS</code> and the <code>--no-threads</code> command-line option.</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>%no-top-level</code></para></entry>
+	  <entry><para>Disallows top level code.  Equivalent to parse option <code>PO_NO_TOP_LEVEL_STATEMENTS</code> and the <code>--no-top-level</code> command-line option.</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>%no-class-defs</code></para></entry>
+	  <entry><para>Disallows class definitions.  Equivalent to <code>PO_NO_CLASS_DEFS</code> and the <code>--no-class-defs</code> command-line option.</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>%no-namespace-defs</code></para></entry>
+	  <entry><para>Disallows new namespace definitions.  Equivalent to <code>PO_NO_NAMESPACE_DEFS</code> and the <code>--no-namespace-defs</code> command-line option..</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>%no-external-process</code></para></entry>
+	  <entry><para>Disallows any access to external processes (with <link linkend="system">system()</link>, <link linkend="backquote">backquote()</link>, <link linkend="exec">exec()</link>, the <link linkend="Backquote_Operator"><command>backquote</command> operator</link>, etc).  Equivalent to parse option <code>PO_NO_EXTERNAL_PROCESS</code> and the <code>--no-external-process</code> command-line option..</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>%no-process-control</code></para></entry>
+	  <entry><para>Disallows access to functions that would affect the current process (<link linkend="exit">exit()</link>, <link linkend="fork">fork()</link>, etc).  Equivalent to parse option <code>PO_NO_PROCESS_CONTROL</code> and the <code>--no-process-control</code> command-line option..</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>%no-constant-defs</code></para></entry>
+	  <entry><para>Disallows constant definitions.  Equivalent to parse option <code>PO_NO_CONSTANT_DEFS</code> and the <code>--no-constant-defs</code> command-line option..</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>%no-new</code></para></entry>
+	  <entry><para>Disallows use of the <command>new</command> operator.  Equivalent to parse option <code>PO_NO_NEW</code> and the <code>--no-new</code> command-line option..</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>%no-child-restrictions</code></para></entry>
+	  <entry><para>Allows child program objects to have parse option restrictions that are not a strict subset of the parents.  Equivalent to parse option <code>PO_NO_CHILD_RESTRICTIONS</code> and the <code>--no-child-restrictions</code> command-line option..</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>%require-our</code></para></entry>
+	  <entry><para>Requires global variables to be declared with "our" prior to use (like perl's <code>use strict vars</code> pragma).  Equivalent to parse option <code>PO_REQUIRE_OUR</code> and the <code>--require-our</code> command-line option..</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>%lock-options</code></para></entry>
+	  <entry><para>Prohibits further changes to parse options (equivalent to the --lock-options command-line option.).</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>  
+</chapter>

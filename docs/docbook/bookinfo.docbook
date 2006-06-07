@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<bookinfo>
+<title>Qore v0.5.0</title>
+<subtitle>Programming Language Reference Manual</subtitle>
+<authorgroup>
+<author>
+<firstname>David</firstname>
+<surname>Nichols</surname>
+</author>
+<author>
+<firstname>Helmut</firstname>
+<surname>Wollmersdorfer</surname>
+</author>
+</authorgroup>
+
+<date>7 May 2006</date>
+<releaseinfo>V. 0.5.0</releaseinfo>
+
+<revhistory>
+
+<revision>
+  <revnumber>1.4</revnumber>
+  <date>7 May 2006</date>
+  <authorinitials>dn</authorinitials>
+  <revremark>Update to 0.5.0, extensive updates, new content</revremark>
+</revision>
+
+<revision>
+  <revnumber>1.3</revnumber>
+  <date>30 Nov 2005</date>
+  <authorinitials>dn</authorinitials>
+  <revremark>Update to 0.4.2</revremark>
+</revision>
+
+<revision>
+  <revnumber>1.2</revnumber>
+  <date>26 Oct 2005</date>
+  <authorinitials>dn</authorinitials>
+  <revremark>Update to 0.4.0</revremark>
+</revision>
+
+<revision>
+  <revnumber>1.1</revnumber>
+  <date>14 Oct 2005</date>
+  <authorinitials>hw</authorinitials>
+  <revremark>Converted to docbook.xml</revremark>
+</revision>
+
+<revision>
+  <revnumber>1.0</revnumber>
+  <date>2 Aug 2005</date>
+  <authorinitials>hw</authorinitials>
+  <revremark>First release</revremark>
+</revision>
+
+</revhistory>
+
+</bookinfo>
+
+<!-- Copyright (C) 2004, 2005 David Nichols, All Rights Reserved -->
+

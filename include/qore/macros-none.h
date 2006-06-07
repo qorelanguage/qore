@@ -1,0 +1,3 @@
+
+#undef HAVE_ATOMIC_MACROS
+

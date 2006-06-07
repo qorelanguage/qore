@@ -1,0 +1,854 @@
+2006.06.06: David Nichols
+	* removed support for building non-threading version of Qore (was broken
+	  anyway for a long time)
+	* implemented better XML tests in test/test.q, removed redundant and not
+	  very useful test/namespace.q test/xml-test2.q test/xml-test3.q, and
+	  test/program-test.q
+	* changed getByte() so it also works on strings
+
+2006.06.04: David Nichols
+	* fixed substr() to be multi-byte character set encoding aware to assume
+	  that all offsets are character positions instead of byte offsets.
+	* fixed index() and rindex() to be multi-byte character set aware and 
+	  return character position offsets instead of byte offsets
+	* fixed the rindex() function to treat the optional position argument in
+	  the same way as perl (to start the reverse search from this position
+	  going backwards)
+	* added bindex() and brindex() functions to always return byte offsets
+	* added enhanced test cases to test/test.q to verify the new 
+	  functionality
+	* fixed string splice to use character offsets and lengths instead of
+	  byte offsets for multi-byte character set encodings
+	* made string soft compare (==) do automatic character encoding
+	  translations if necessary before the comparison, hard compare (===)
+	  will return False if the strings have a different character encoding,
+	  unless both strings are empty, in which case True will be returned
+	* fixed "field" f_*printf functions to respect character boundries in
+	  field width specifications with multi-byte character encodings
+
+2006.06.03: David Nichols
+	* streamlined charset encoding support, make charset identifiers 
+	  pointers to a QoreEncoding structure instead of an index into an
+	  array.
+	* changed the File class to assume the default character set if none
+	  is otherwise given.
+	* added optional multi-byte character set functions to the new 
+	  QoreEncoding class to allow for flexible multi-byte character set
+	  encoding support
+
+2006.06.02: David Nichols
+	* implemented "copy on write" reference counting for class definitions.
+	  now classes in namespaces inherited from parent program objects are
+	  reference counted, and if an extension is attempted on a class with
+	  a reference count > 1, the class is copied, dereferenced, and the
+	  modifications are done on the new copy.
+	* thread-local storage now specific to program objects and is inherited
+	  by subprogram objects
+	* the default root namespace is created on-demand for non-inherited
+	  program objects - due to this change, the global "qpgm" QoreProgram 
+	  object could be and has been removed from the Qore shared library.  
+	  Client programs must create their own QoreProgram, and it is now 
+	  possible to create more than one QoreProgram object at the top level.
+	* module subsystem changes:
+	  1) modules now have 2 initialization routines, "module_init" and
+	     "module_ns_init".  "module_init" is executed when the module is 
+	     first loaded, and "module_ns_init" is executed whenever the feature
+	     the module provides is required by a program object. 
+	  2) any "module_ns_init" functions are executed automatically for new
+	     non-inherited (non-subprogram) program objects once the module has
+	     been loaded and initialized.
+	  3) any program (even subprograms) can now parse the "%requires" 
+	     directive.  If the feature is not present and a loaded module 
+	     provides the feature, the "module_ns_init" function will be called
+	     on that program's RootNS and QoreNS namespaces to make the new
+	     features available to the new program.  If the feature is not yet
+	     available, then a module with the same name is searched and loaded
+	     if available.
+	  4) subprogram objects inherit the parent's namespace as usual,
+	     including any namespace additions provided by modules.  The parent
+	     program's feature list is also inherited.
+	* small corrections/enhancements to test/test.q - added UTF-8 regex test
+	  cases
+
+2006.06.01: David Nichols
+	* added option to turn off annoying "String literal converted to char*"
+	  warnings with Solaris' SunPro CC C++ compiler in configure.ac
+	* updated the File::open() method to assume mode mask 0666 if none is
+	  present (to turn of the executable bit unless explicitly given).
+	* enhanced regex() tests in test/test.q
+
+2006.05.31: David Nichols
+	* modified scanner to accept =~ m/.../ as well as =~ /.../ for pattern 
+	  matching
+	* pcre: implemented subpattern backreference substitution in the 
+	  regular expression substitution operator:
+	     $a = "abc def";
+	     $a =~ s/(\w+) +(\w+)/$2, $1/; 
+	     # $a now equals = "def, abc"
+	* subpattern backreference substitution test case added to test/test.q
+	* modified the "elements" operator to return the number of characters in
+	  a string for string arguments (currently actually returns the number
+	  of bytes - planned to be fixed soon)
+	* modified the -= and - operators to allow a key to be deleted from a 
+	  hash, like so:
+	     ex: $hash - "string" : gives the result of deleting the key 
+	                            "string" from the hash
+	     ex: $hash -= "string" : does the same for an lvalue
+	* added test cases to test/test.q for the above changes
+	* added regex_subst() function to allow for pcre regular-expression
+	  substitutions with run-time generated patterns, etc
+	* added RE_Caseless, RE_Extended, RE_DotAll, and RE_MultiLine to be used
+	  as options for the regex() and regex_subst() functions.
+	* added RE_Global to be used as an option for the regex_subst() function
+
+2006.05.30: David Nichols
+	* implemented %= (modula-equals) operator
+	* implemented *= (multiply-equals) operator
+	* implemented /= (divide-equals) operator
+	* implemented ^= (xor-equals) operator
+	* implemented <<= (shift-left-equals) operator
+	* implemented >>= (shift-right-equals) operator
+	* corrected bugs in the |=, &=, +=, and -= operators where the precision
+	  was artificially restricted to 32-bits
+	* implemented the "instanceof" operator
+	* made "shift" and "unshift" also valid function and method names
+	* added test cases for new operators and new pcre-regex options to 
+	  test/test.q script
+	* modified oracle driver to ignore non-alphabetic characters after a ':'
+	  character instead of throwing an exception
+	* added DBI constants VARCHAR, CLOB, BLOB, DATE for use in binding 
+	  placeholders in Datasource::exec() and Datasource::vexec() methods
+	* modified Oracle driver to accept an integer as a placeholder bind
+	  specification argument to specify the length of a string buffer to
+	  bind.
+
+2006.05.24: David Nichols
+	* added optional timeout values in ms for Queue::pop() and Queue::get()
+	  (both throw exceptions when a timeout occurs)
+
+2006.05.23: David Nichols
+	* implemented UTF-8 support for PCRE regular expression matching
+	* added runtime support to QoreRegex PCRE class, changed regex() also to
+	  use PCRE library functions
+	* pcre regex: implemented the /i flag for case-insensitve matching
+	* pcre regex: implemented the /s flag to have a dot (.) match a newline 
+	  character
+	* pcre regex: implemented the /x flag for extended matching - where 
+	  whitespace characters in a pattern are ignored except when escaped or
+	  in a character class, and all characters after an unescaped # until a
+	  newline are ignored, allowing comments in complicated patterns
+	* pcre regex: implemented the /m flag to turn on multiline matching
+
+2006.05.22: David Nichols
+	* started adding pcre support
+
+2006.05.18: David Nichols
+	* allow %requires only in the topmost program if the feature is not
+	  already loaded
+
+2006.05.17: David Nichols
+	* added libz-based compress(), compress2(), uncompress_to_string(), and
+	  uncompress_to_binary() functions
+	* changed the elements operator to return the size of a binary object in
+	  bytes
+	* changed ord() to take an optional offset argument after the string
+	* added the getByte() function to retrieve a specific byte from a binary
+	  object
+
+2006.05.15: David Nichols
+	* fixed a memory error/core dump with deletions of certain summarize
+	  statement options
+
+*** v0.5.0 *** RELEASE
+
+2006.05.15: David Nichols
+	* fixed a static memory leak with the summarize statement
+
+2006.05.10: David Nichols
+	* fixed a memory leak with the %requires directive
+
+2006.05.08: David Nichols
+	* implemented FtpClient::copy() method to throw an exception to prevent
+	  copying.
+	* implemented exec() function
+
+2006.05.05: David Nichols
+	* fixed the socket class to only unlink UNIX domain socket files when
+	  created with bind() (otherwise after every close() to a connected
+	  UNIX domain socket, the class would try to unlink the socket file!)
+
+2006.05.04: David Nichols
+	* moved mkfifo() from lib/ql_io.cc to lib/ql_lib.cc
+	* renamed getClass() to getClassName() and removed className() 
+	  (redundant functions)
+	* changed rand() and srand() to use random() and srandom() internally
+
+2006.05.03: David Nichols
+	* fixed the stat() and lstat() field order
+	* lots of documentation updates
+
+2006.05.02: David Nichols
+	* fixed XML-RPC value parsing to be consistent with both kinds of empty
+	  XML elements - now both return empty values instead of NOTHING
+
+2006.04.29: David Nichols
+	* fixed a core dump when local variable modifications were attempted in
+	  background expressions; now parse exceptions is thrown
+	* fixed a core dump where the background expression in the pre-thread-
+	  start evaluation evaluated to NULL (now the thread is simply not
+	  started)
+
+2006.04.28: David Nichols
+	* fixes to XML-RPC parsing to emit "blank" data types for empty value
+	  elements
+	* documentation corrections and enhancements
+
+2006.04.27: David Nichols
+	* made capabilities hierarchical
+	* added optional URL element to module information
+	* renamed TIBCO module to tibco to make all modules consistent with
+	  lower case
+	* added perl-style join() function
+	* fixed object reference-counting bug when starting new threads using
+	  object calls - the object would go out of scope before the new thread
+	  completed if there were no other references to the object
+	* implemented Socket methods: recvi4LSB(), recvi2LSB(), sendi2LSB(),
+	  sendi4LSB()
+	* implemented File methods: readi2LSB(), readi4LSB(), writei2LSB(),
+	  writei4LSB() 
+	* modified the ncurses plugin so that it can be built with Solaris 
+	  curses
+	* Solaris and monolithic build fixes
+
+2006.04.26: David Nichols
+	* made SQL support non-optional for qore builds (db drivers are still
+	  optional)
+	* changed build to use libdir/packagename-version as package lib in all
+	  Makefile.am files to ensure that module directories are specific to
+	  the current build
+	* reworked module subsystem, default namespacess, etc to allow for on-
+	  demand module loading
+
+2006.04.25: David Nichols
+	* fixed XML-RPC parsing to accept empty value type nodes (i.e.: 
+	  "<string/>") and to allow whitespace-only strings to be parsed
+	* fixed the MySQL driver to use the prepared statement interface by
+	  default when present
+	* added Datasource::selectRows() method (and DBI driver changes) to
+	  allow a list of hashes to be returned for queries when needed, Oracle
+	  and MySQL drivers updated
+
+2006.04.24: David Nichols
+	* revamped internal setup and execution of class methods to include the
+	  "self" object pointer directly in the call (more efficiency =
+	  performance improvement for OO execution)
+	* adapted object and class infrastructure to allow for system
+	  initialization of system objects not bound to a program object
+	* created stdin, stdout, and stderr system constants as File objects in
+	  the Qore:: namespace
+	* removed the deprecated "file" basic type and all associated global
+	  variables, functions, etc
+	* added File::vprintf(), File::f_printf(), and File::f_vprintf()
+	  methods
+
+2006.04.18: David Nichols
+	* added a "typecode" member to each entry in the call stack, fixed
+	  the default exception handler to skip rethrow entries in the call
+	  stack when printing out the "called from" location
+	* fixed a bug in the new throw statement
+	* changed the HTTPClient class to allow the HTTP protocol level to be
+	  overridden
+	* changed the HTTPServer class to properly serve HEAD requests
+
+2006.04.17: David Nichols
+	* bug fixes in list splice, made negative offsets and lengths work 
+	  properly
+	* modified list splice to work like perl when the offset is after the
+	  end of the list; it will now append the new list to the end of the 
+	  list
+	* moved xml tests from test/xml-test.q into test/test.q and removed
+	  test/xml-test.q (because XML functionality is no longer optional in
+	  qore)
+	* implemented string splice behavior
+	* implemented RMutex recursive thread lock as a replacement for the 
+	  Gate class - should give the entire language a speed improvement even
+	  in single-threaded applications
+	* XML-RPC parsing fixes
+
+2006.04.16: David Nichols
+	* completed parseXMLRPCResponse(), corrections to parseXMLRPCCall, now 
+	  all XML-RPC generation and parsing functions are implemented
+	  internally
+	* updated XmlRpcServerValidation.q to give a description for each 
+	  method
+	* HTTPServer class updated to do (hopefully) correct http 1.1 compliant
+	  connection handling (respecting Connection: header tags, closing
+	  connections by default for http 1.0 clients that do not explicitly
+	  include keep-alive in the header, etc)
+	* HTTPClient updated to claim http 1.1 compatibility due to the updated
+	  http 1.1 compliant connection handling
+
+2006.04.14: David Nichols
+	* completed parseXMLRPCValue(), parseXMLRPCCall()
+
+2006.04.13: David Nichols
+	* removed parseXMLIntern() function
+	* started adding XML-RPC parsing functions
+
+2006.04.12: David Nichols
+	* FtpClient module moved into qore, module deleted
+	* XML module moved into qore, module deleted
+	* modules & ModuleManager updated to do explicit initialization, API
+	  conformity checked before initiazing
+	* implemented "rethrow" statement
+
+2006.04.11: David Nichols
+	* reimplemented internal exception handling (lots of updates)
+	* implemented new throw and catch semantics
+
+2006.04.10: David Nichols
+	* implemented the Datasource::vexec() method, allows arguments to be
+	  given as an explicit list for an exec call
+
+2006.04.06: David Nichols
+	* fixed segfaults due to complex circular references in class #
+	  inheritance (now throws an exception)
+
+2006.04.05: David Nichols
+	* fixed a segfault when a class would inherit itself (now throws an 
+	  exception)
+
+2006.04.03: David Nichols
+	* finally implemented private inheritance
+
+2006.03.30: David Nichols
+	* implemented Socket::shutdown() method
+
+2006.03.28: David Nichols
+	* improved binding of numeric values in Oracle driver
+	* fixed an object reference-counting bug in the CallStack class that
+	  caused core dumps when the callObjectMethod() or 
+	  callObjectMethodArgs() functions were called within an object of the
+	  same class of the object containing the method being called
+	* added boolean binding support to Oracle driver
+
+2006.03.27: David Nichols
+	* made Oracle ::exec() more flexible with placeholders - default to
+	  string type
+	* fixed BLOB reading and writing in Oracle driver
+	* modified Oracle driver to accept NOTHING as NULL when binding values
+
+2006.03.24: David Nichols
+	* major overhaul of Oracle Datasource::exec() function, new syntax 
+	  implemented (also backwards-compatibility is maintained if the old
+	  syntax is detected), supporting safe and correct reading and writing 
+	  from strings, dates, ints, floats, reading from result sets (stored 
+	  procs that return a cursor), reading and writing *LOB values, ability
+	  to specify maximum buffer size for strings when needed, etc
+
+2006.03.21: Wolfgang Ritzinger
+	* implemented sql variable bind by name in oracle database module for 
+	  manipulating data (insert, update)
+
+2006.03.21: David Nichols
+	* added locking to ncurses classes to try and maintain some 
+	  threadability with curses
+	* fixed another memory corruption bug with stored procedure calls and
+	  exception handling in the Oracle driver
+
+2006.03.13: David Nichols
+	* implemented locking for doupdate() calls so the screen will not get
+	  corrupted in a multithreaded program
+	* fixed a bug in splice
+
+2006.03.12: David Nichols
+	* implemented splice operator to work like's perl's splice function
+
+2006.03.11: David Nichols
+	* fixed a parse bug where using in-object member references out of an
+	  object would cause a core dump instead of throwing an exception
+	* enhanced NCurses module and test script
+	* added support for using certain keywords as function and method names
+	* started implementing "splice" list operator
+
+2006.03.10: David Nichols
+	* more NCurses::Window and NCurses::Panel additions.
+	* added examples/worm.q and examples/hanoi.q ncurses example scripts
+
+2006.03.09: David Nichols
+	* added NCurses::Panel class
+	* changes to SQL::Datasource class: corrections to the original design:
+	  the Datasource class will no longer grab the transaction even 
+	  temporarily if autocommit is turned on, also the transaction lock 
+	  will only be freed when there is a DBI driver method exception and
+	  autocommit is off and the thread did not already own the lock before
+	  the call
+	* fixed THREAD-CREATION-FAILURE handling to no longer dump core, however
+	  out of memory conditions can still cause a core dump
+
+2006.03.08: David Nichols
+	* started adding an ncurses module & NCurses::Window class
+
+2006.03.06: David Nichols
+	* fixed a bug where getAllThreadCallStacks() could dump core when a
+	  thread did not yet have a call stack (was NULL)
+	* added push and pop list operators
+
+2006.03.03: David Nichols
+	* expressions in a for statement can now be empty
+	* fixed a bug passing a reference to an object within an object when
+	  calling another object's method - a reference to the wrong object
+	  was passed
+
+2006.03.02: David Nichols
+	* fixed a deletion-order bug deleting thread data in the parent thread
+	  of a Qore process in the case of objects that are deleted where the
+	  destructor methods call a function in the program object where the
+	  object was created; the program was being deleted before the object -
+	  added a new internal API function dereferenceThreadData() that must
+	  be explicitly called by the parent thread before exiting.
+
+2006.03.01: David Nichols
+	* fixed the Datasource class to maintain internal copies of connection
+	  parameters to avoid race conditions, threading errors, potential core
+	  dumps when the connection parameters are modified in another thread 
+	  while Datasource methods are executing
+	* added get_all_thread_data() and delete_all_thread_data() functions
+	* modified save_thread_data() to accept a hash to merge with the thread
+	  data hash
+
+2006.02.23: David Nichols
+	* added optional timeout value in ms to Condition::wait(), on timeout
+	  will return ETIMEDOUT, otherwise returns 0
+
+2006.02.21: David Nichols
+	* added Queue::pop() method so that the Queue class can also be used
+	  as a thread-safe stack.
+
+2006.02.20: David Nichols
+	* fixed a bug with recvi*() methods - they would cause a SOCKET-CLOSED
+	  exception to be thrown every time they read valid data
+
+2006.02.17: David Nichols
+	* fixed a bug in the TibcoAdapter class where if the session string 
+	  goes out of scope and a message is sent, a memory error occurs (or a 
+	  core dump)
+	* fixed callObjectMethod() and callObjectMethodArgs() to allow access
+	  to private object methods if called internally from the object they
+	  are referencing
+
+2006.02.16: Wolfgang Ritzinger
+	* bugfix for q_gethostbyname(): increase BUFSIZE to 512
+	  in QoreNet.h make resolving hostnames and dns names possible
+
+2006.02.15: David Nichols
+	* make all Socket::*() methods that read data behave as follows:
+	  - on TIMEOUT: return NOTHING
+	  - on socket error: throw a SOCKET-RECV-ERROR exception
+	  - on other side close()ed or shutdown(): throw a SOCKET-CLOSED 
+	    exception
+	* implemented parseDatasource() function to parse a dataaource in the
+	  following format: type:name/pass@db(charset)%hostname
+	  - type, charset and hostname are optional
+	  - hostname is only for MySQL datasources at the moment 
+
+2006.02.14: David Nichols
+	* made "dni()" a public function with debugging builds
+
+2006.02.13: David Nichols
+	* added chdir() function
+	* fixed a stupid segfault when the class name to be executed is 
+	  directly given on the command-line
+
+*** v0.4.3 *** RELEASE
+
+2006.02.10: David Nichols
+	* XML generation fixes for explicit ^value^ nodes
+
+2006.02.09: David Nichols
+	* XML parsing fixes (fixed parsing list of empty elements with 
+	  attributes) 
+	* fixed memory leaks when XML parse exceptions occur
+
+2006.02.09: David Nichols
+	* fixed binary() to do nothing if a binary object passed as an
+	  argument.
+
+2006.02.07: David Nichols
+	* made get_thread_data(), save_thread_data(), delete_thread_data(),
+	  getAllThreadCallStacks() illegal when the --no-threads option used
+
+2006.01.31: David Nichols
+	* added additional information to other "object-already-deleted" 
+	  exceptions
+
+2006.01.24: David Nichols
+	* fixed foreach to not execute if a literal NOTHING was passed as the
+	  list argument
+
+2006.01.23: David Nichols
+	* changed split() to return an empty list even with invalid arguments
+
+2006.01.19: Wolfgang Ritzinger
+	* allow to create empty class with class. eg: TheClass() {}
+
+2006.01.18: David Nichols
+	* added additional information added to exceptions when objects are
+	  accessed after they've been deleted
+	* fixed a bug where base class destructors would not be called when
+          there was an exception in the constructor or in a destructor earlier
+	  in the destructor list
+	* fixed several bugs related to socket handling that could cause core
+	  dumps in server processes
+	* fixed a race condition in object handling when there are base classes
+	  it was possible to get a core dump when a base class destructor was
+	  run and in another thread a method of that class was executed
+
+2006.01.17: David Nichols
+	* all Type::* constant values have been changed to strings instead of
+	  using unpredictable integers.
+
+2006.01.12: David Nichols
+	* fixed a bug on some platforms with stored procedure execution in the
+	  Oracle driver - values could be erroneously reported as NULL (did not
+	  affect i386 Linux, but did affect Sparc Solaris at least)
+	* fixed a memory leak when an exec call with return variables threw an
+	  exception
+
+2006.01.09: David Nichols
+	* fixed a bug parsing constants as keys in hashes
+
+2006.12.09: David Nichols
+	* build fixes for HP-UX
+
+2006.12.08: David Nichols
+	* added -s to LDFLAGS for non-debugging, non-profiling builds on most
+	  platforms (-Wl,-x on Darwin)
+	* updated release label to 0.4.3
+
+*** v0.4.2 *** RELEASE
+
+2005.12.06: David Nichols
+	* finally fixed a stupid parsing bug with "-" signs
+	* partially re-wrote oracle driver, added support for *LOB columns
+	  using streaming callback functions - 128K limit for CLOB columns is
+	  no longer present, and BLOBs are now select()'ed as binary objects
+
+2005.12.05: David Nichols
+	* re-added ::copy() methods to be only explicity called to generate
+	  copies of objects
+
+2005.12.01: David Nichols
+	* more object-reference bugfixes
+	* added ability to retrieve result sets from cursors from executed
+	  SQL statements in the Oracle driver 
+
+2005.11.30: David Nichols
+	* fixed some bugs with Socket::read*() and File::read*() methods
+	* fixed incompatible base64 <-> implementations
+	* fixed makeBase64String() to accept a string as well as a binary
+	  object
+	* object-reference bugfixes
+
+2005.11.29: David Nichols
+	* fixed realCopy() with objects
+	* removed deprecated socket_*() functions
+	* simplified C++ Object class due to no more copy method
+
+2005.11.28: David Nichols
+	* added %exec-class option to set class execution within the file
+	* added File class methods ::writei1(), ::writei2(), ::writei4(), 
+	  ::readi1(), ::readi2(), ::readi4() that read and write integer data 
+	  in LSB format on all platforms
+	* fixed a bug where the FtpClient class was not included in monolithic 
+	  builds
+	* objects are now always passed by reference, never copied; the 
+	  ::copy() methods will no longer be executes still need to remove a 
+	  lot more code
+
+2005.11.27: David Nichols
+	* added ability to set parse options in the scanner with %require-our, 
+	  etc declarations in the scanner
+
+2005.11.25: David Nichols
+	* added -x,--exec-class command-line argument to execute a Qore script 
+	  as an objec-oriented program, also turns on --no-top-level
+	* added -K,--lock-options to lock parse options from being changed
+
+2005.11.23: David Nichols
+	* finally fixed recursive local variable reference instantiations
+	* fixed a race condition with the Queue class that could cause a 
+	  segmentation fault
+
+2005.11.22: David Nichols
+	* added Socket::sendBinary() method to send string data without doing 
+	  any character set conversions
+
+2005.11.21: David Nichols
+	* fixed a memory error with STL hash_map and private class member lists
+	* fixed an infinite recursion error with recursive instantiations of 
+	  references to local variables
+
+2005.11.20: David Nichols
+	* implemented builtin GetOpt class (finally)
+
+2005.11.18: David Nichols
+	* reference fixes (it's now possible to safely pass an in-object member
+	  reference as a reference), also all invalid reference uses should now
+	  be caught at parse time
+
+2005.11.16: David Nichols
+	* changes to clock_getmillis() to work on platforms without
+	  clock_gettime() (such as Darwin)
+	* added clock_getnanos() and clock_getmicros() functions
+	* changed list() when a list of arguments is passed to return a new 
+	  list where the first element is a copy of the list passed (before the
+	   elements after the first were ignored)
+	* changed File::read() and File::readBinary() to accept negative
+	  arguments properly
+
+2005.11.15: Wolfgang Ritzinger
+	* insert clock_getmillis() as call to clock_getmillis() from librt for 
+	  getting the current time as milliseconds
+
+2005.11.14: David Nichols
+	* fixed the XML generation to always output empty-element tags for 
+	  empty hashes when serializing to XML strings
+
+2005.11.11: David Nichols
+	* fixed a bug regarding automatic type conversions to list and/or hash 
+	  with certain operators
+
+2005.11.08: David Nichols
+	* changed scanner.ll to treat \r as whitespace
+	* fixed some XML generation bugs
+
+2005.11.07: David Nichols
+	* more bugfixes for class inheritance (fixing the fixes :-))
+	* fixed some stupid parse bugs (thanks to Wolfgang Ritzinger for 
+	  debugging help)
+	* fixed some silly bugs with exception handling in the TIBCO module 
+	  (again thanks to Wolfgang Ritzinger for more debugging help)
+
+2005.11.06: David Nichols
+	* added support for overriding base class constructor arguments
+	* added support for calling base class methods from subclasses
+	* updated some examples
+
+2005.11.05: David Nichols
+	* added execution of "special" methods of base classes in class
+	  hierarchies.  base class constructor and copy methods are called in 
+	  depth-first, left-to-right (declaration) order, and destructor 
+	  methods are called in the reverse order.  It's currently not possible
+	  to override constructor arguments for base classes (implementation 
+	  pending) 
+
+2005.11.04: David Nichols
+	* fixed a bug generating XML with list values
+
+2005.11.03: David Nichols
+	* fixed a bug parsing line comments at the end of a file
+	  where there was no EOL marker
+	* implemented the absolute not equals operator
+	* implemented Socket methods ::recvi1(), ::recvi2(), ::recvi4(),
+	  ::sendi1(), ::sendi2(), ::sendi4()
+
+2005.11.02: David Nichols
+	* fixed a segfault when parsing some rare conditions
+
+2005.11.01: David Nichols
+	* small parsing fixes to class inheritance support
+
+2005.10.30: David Nichols
+	* implemented class inheritance and superclass method resolution
+	  (no superclass special method execution yet)
+
+2005.10.29: David Nichols
+	* moved in-object method call resolution to parse stage, fixed
+	  some bugs with class definitions and 2-phase parse commits
+	* started implementing class inheritance support
+
+2005.10.28: David Nichols
+	* fixed a bug where qore would create invalid XML when serializing some
+	  qore data structures
+
+*** v0.4.0 *** RELEASE
+
+2005.10.27: David Nichols
+	* changes required to compile qore with hash_map support on Solaris 
+	  with CC 5.5 and stlport4
+
+2005.10.26: David Nichols
+	* changed QoreString class to use memcpy instead of strcpy in order to 
+	  preseve binary data after a 0 byte
+	* documentation updates, added qore.html as generated from the docbook 
+	  sources to the package
+
+2005.10.25: David Nichols
+	* fixed a bug regarding relative date arithmetic
+	* more example updates
+	* fixed a bug in the oracle driver where an exception executing a 
+	  stored procedure when values should be returned would cause a 
+	  segmentation fault
+	* checked in docbook documentation source (thanks to Helmut
+	  Wolmersdorfer for the invaluable help there)
+
+2005.10.24: David Nichols
+	* updated examples
+	* fixed a bug initializing switch/case statement
+
+2005.10.24: David Nichols
+	* added the ability to specify a timeout value in milliseconds to
+	  each Socket::recv*() method and to Socket::readHTTPHeader()
+	* added an option to the Socket::bind() call to set the
+	  SO_REUSEADDR option on the socket to enable opening the socket
+	  even if the port is in a TIME_WAIT state
+	* changed makeXMLRPCCallStringArgs() and 
+	  makeFormattedXMLRPCCallStringArgs() to accept a non-list argument
+	  as well
+
+2005.10.23: David Nichols
+	* fixed a race condition with thread termination
+
+2005.10.22: David Nichols
+        * finally implemented switch/case statement by popular demand
+	* added more math functions (sin(), cos(), etc)
+
+2005.10.21: David Nichols
+	* enabled prepared statement mysql interface by default
+	* fixed some memory bugs related to debugging builds only
+
+2005.10.20: David Nichols
+	* set default transaction isolation level for mysql builds supporting 
+	  transaction management to "read committed"
+	* renabled hash insertion order persistance for hashes in order to
+	  ensure proper support for serializing to XML strings
+	* started support for prepared statement API in mysql driver
+
+2005.10.19: David Nichols
+	* fixed a bug with the "-e" option
+	* now empty programs are accepted without a parse exception
+	* fixed a segfault with "subcontext" statements with unamed parent
+	  contexts
+
+2005.10.18: David Nichols
+	* enabled threading in mysql driver
+	* enabled transaction management in mysql driver
+	* enabled character set support in mysql driver
+	* added -e (exec) and -m (show module errors) command-line options
+	* fixes to support proper building of RPM packages
+	* fixed a bug with monolithic builds where statically-linked modules 
+	  would be cleaned up twice
+
+2005.10.14: David Nichols
+	* added support for list variable declarations:
+	  my ($a, $b, ...) and our ($a, $b, ...)
+	* changed the parser so that global variable declarations with 'our' 
+	  can appear anywhere
+	* fixed a memory leak in regular expression substitution when the new 
+	  string was empty
+	* fixed a segfault where q_vsprintf() would return NULL instead of an 
+	  empty string
+
+2005.10.13: David Nichols
+	* added hash_map support to QoreClass and QoreClassList
+	* fixed system() to to a fork() and execvp() if no shell meta-
+	  characters are found
+	* added list assigment support ($a, $b, $c) = (1, 2, 3);
+
+2005.10.12: David Nichols
+	* fixed the infinite recursion in ::copy() method bug (now an 
+	  exception will be thrown) 
+	* fixed the "illegal find in background expression" bug by evaluating 
+	  the find before the thread is started
+	* disabled the Datasource::describe() method for now
+	* made it possible for imported functions to be exported to sub program
+	  objects to an arbitrary depth
+	* changed Program::callFunction() to allow calls to imported functions
+	  as well
+	* fixed a bug processing constants that could leave invalid values in 
+	  the parse tree
+	* added File::printf() method
+	* made it possible to modify an lvalue in a foreach statement by using
+	  a reference
+
+2005.10.12: Wolfgang Ritzinger
+	* patched parser.yy to allow empty expressions in lists and hashes 
+	  (ie ,,), so trailing commas will be ignored
+
+2005.10.11: David Nichols
+	* fixed memory leak with parse errors bug with discovery of the
+	  %destructor bison token
+	* added a check for expressions with no effect passed to the 
+	  background operator (caused a segfault)
+	* fixed "memory leak with parse errors" bug by using bison's 
+	  %destructor token
+	* enabled verbose error reporting in bison parser
+	* renamed Nothing and Null type constants to NothingType and NullType 
+	  to avoid confusion with the NOTHING and NULL values
+
+2005.10.11: Wolfgang Ritzinger
+	* added oci.h check in configure.ac
+
+2005.10.11: David Nichols
+	* added mkdir(), rmdir(), chmod() builtin functions
+
+2005.10.10: David Nichols
+	* fixed a bug where an empty call stack would cause a seg fault when an
+	  exception was raised
+
+2005.10.07: Marian Bonda
+	* added initial man page for qore
+
+2005.10.07: David Nichols
+	* more hash_map fixes
+	* fixed hash_map destruction function bug in the Hash class
+	* added hash_map support to ConstantList and BuiltinFunctionList
+	* turned on hash_map support by default for platforms where the
+	  configure script can figure out where it is
+
+2005.10.06: David Nichols
+	* started adding hash_map support to Qore for quick hash lookups
+	* un-inlined a lot of functions
+
+2005.10.05: David Nichols
+	* fixed a bug where Socket::recv(-1) would cause problems. now all 
+	  Socket::recv*() methods will accept unreasonably large buffer size
+	  arguments and read in all data until the socket is closed or memory
+	  runs out...
+	* added the Socket::isDataAvailable(<optional integer: timeout in ms>) 
+	  method to support non-blocking socket reads (need to add more non-
+	  blocking support for File and Socket classes)
+	* changed command-line option for --no-constant-defs to use "-F"
+	  (-C was already taken! :-) )
+
+2005.10.04: David Nichols
+	* added debugging function: dbg_get_ns_info(): returns a large data 
+	  structure will all namespace info (classes, constants, 
+	  subnamespaces, etc): currently only available with debugging builds
+	* fixed a bug where exceptions in evaluating operators with scalar
+	  parameters during parsing could cause a segmentation fault or a 
+	  memory leak
+	* fixed a bug calling methods with a background expression
+	* fixed a bug where referencing the first argument to a ::copy() 
+	  method would normally cause an infinite recursive loop and a core 
+	  dump
+
+*** v0.3.4 *** RELEASE
+
+2005.10.03: David Nichols: 
+	* fixed the configure script to not rely on the current directory
+	  being in the path
+	* updated the version number for new release
+
+2005.09.30: David Nichols
+	* added Socket::sendHTTPMessage() method
+	* added Socket::sendHTTPResponse() method
+	* made the QoreSocket (C++) and Socket (Qore) classes character-set 
+	  aware for string operations
+	* fixed a bug in the parseURL() call
+
+*** V0.3.3 *** RELEASE
+
+2005.09.29: David Nichols: 
+	* first public release of Qore
