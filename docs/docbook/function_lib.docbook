@@ -147,6 +147,22 @@
         <row>
           <entry>
             <para>
+              <link linkend="index">bindex()</link>
+            </para>
+          </entry>
+          <entry>
+            <para>Int</para>
+          </entry>
+          <entry>
+            <para>N</para>
+          </entry>
+          <entry>
+            <para>Returns the byte position of a substring within a string and takes an optional starting offset</para>
+          </entry>
+        </row>
+        <row>
+          <entry>
+            <para>
               <link linkend="boolean">boolean()</link>
             </para>
           </entry>
@@ -158,6 +174,22 @@
           </entry>
           <entry>
             <para>Converts the argument to a boolean value</para>
+          </entry>
+        </row>
+        <row>
+          <entry>
+            <para>
+              <link linkend="index">brindex()</link>
+            </para>
+          </entry>
+          <entry>
+            <para>Int</para>
+          </entry>
+          <entry>
+            <para>N</para>
+          </entry>
+          <entry>
+            <para>Returns the byte position of a substring within a string as searched from the end of the string and takes an optional starting offset</para>
           </entry>
         </row>
         <row>
@@ -317,6 +349,38 @@
           </entry>
           <entry>
             <para>Returns the system time in nanoseconds (1/1000000000 second intervals since Jan 1, 1970 00:00).</para>
+          </entry>
+        </row>
+        <row>
+          <entry>
+            <para>
+              <link linkend="compress">compress()</link>
+            </para>
+          </entry>
+          <entry>
+            <para>String or Binary</para>
+          </entry>
+          <entry>
+            <para>Y</para>
+          </entry>
+          <entry>
+            <para>Performs zlib-based data compression and returns a binary object of the compressed data.</para>
+          </entry>
+        </row>
+        <row>
+          <entry>
+            <para>
+              <link linkend="compress2">compress2()</link>
+            </para>
+          </entry>
+          <entry>
+            <para>String or Binary</para>
+          </entry>
+          <entry>
+            <para>Y</para>
+          </entry>
+          <entry>
+            <para>Performs libz-based data compression and returns a binary object of the compressed data.  The level of compression is determined by the argument.</para>
           </entry>
         </row>
         <row>
@@ -758,7 +822,7 @@
             <para>N</para>
           </entry>
           <entry>
-            <para>Retuns the effective group ID of the current process.</para>
+            <para>Returns the effective group ID of the current process.</para>
           </entry>
         </row>
         <row>
@@ -885,7 +949,7 @@
             <para>N</para>
           </entry>
           <entry>
-            <para>Retuns the PID (process ID) of the current process.</para>
+            <para>Returns the PID (process ID) of the current process.</para>
           </entry>
         </row>
         <row>
@@ -1093,7 +1157,7 @@
             <para>N</para>
           </entry>
           <entry>
-            <para>Retuns the position of a substring within a string</para>
+            <para>Returns the character position of a substring within a string and takes an optional starting offset</para>
           </entry>
         </row>
         <row>
@@ -1800,20 +1864,16 @@
           </entry>
         </row>
         <row>
-          <entry>
-            <para>
-              <link linkend="regex">regex()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>Boolean</para>
-          </entry>
-          <entry>
-            <para>Y</para>
-          </entry>
-          <entry>
-            <para>Returns true if the regular expression matches the string passed</para>
-          </entry>
+          <entry><para><link linkend="regex">regex()</link></para></entry>
+	  <entry><para>Boolean</para></entry>
+          <entry><para>Y</para></entry>
+          <entry><para>Returns true if the regular expression matches the string passed</para></entry>
+        </row>
+        <row>
+          <entry><para><link linkend="regex_subst">regex_subst()</link></para></entry>
+	  <entry><para>String</para></entry>
+          <entry><para>Y</para></entry>
+          <entry><para>Returns a string with patterns substituted according to the arguments passed.</para></entry>
         </row>
         <row>
           <entry>
@@ -1844,7 +1904,7 @@
             <para>N</para>
           </entry>
           <entry>
-            <para>Returns the starting position of a string in another string as searched from the end of the string</para>
+            <para>Returns the starting character position of a string in another string as searched from the end of the string.</para>
           </entry>
         </row>
         <row>
@@ -2281,6 +2341,38 @@
           </entry>
           <entry>
             <para>Sets the file creation mask for the process</para>
+          </entry>
+        </row>
+        <row>
+          <entry>
+            <para>
+              <link linkend="uncompress_to_binary">uncompress_to_binary()</link>
+            </para>
+          </entry>
+          <entry>
+            <para>Binary</para>
+          </entry>
+          <entry>
+            <para>N</para>
+          </entry>
+          <entry>
+            <para>Uncompresses compressed data compressed using zlib functions and returns a binary value.</para>
+          </entry>
+        </row>
+        <row>
+          <entry>
+            <para>
+              <link linkend="uncompress_to_string">uncompress_to_string()</link>
+            </para>
+          </entry>
+          <entry>
+            <para>Binary</para>
+          </entry>
+          <entry>
+            <para>N</para>
+          </entry>
+          <entry>
+            <para>Uncompresses compressed data compressed using zlib functions and returns a string value.</para>
           </entry>
         </row>
         <row>
@@ -5357,6 +5449,83 @@
 <sect1 id="String_Functions">
 <title>String Functions</title>
 
+<sect2 id="bindex">
+  <title>bindex()</title>
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Retrieves the byte position of a substring within a string.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+	<programlisting>bindex(<replaceable>string, substring [, start_position]</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+      <table>
+        <title>Arguments and Return Values for bindex()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry><para>Argument Type</para></entry>
+              <entry><para>Return Type</para></entry>
+              <entry><para>Description</para></entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+	      <entry><para>String, String, [Integer]</para></entry>
+              <entry><para>Integer</para></entry>
+              <entry><para>If the substring is found, returns the byte position of the substring within the string (starting at 0). If not found, returns -1.  If an offset position is given, the search starts at the offset position.  All values are byte positions, not character positions, which may differ for multi-byte character sets.</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+  <para>This function does not throw any exceptions.</para>
+</sect2>
+
+    <sect2 id="brindex">
+      <title>brindex()</title>
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Returns the starting byte position of a string in another, starting from the end of the string (-1 if not found) and takes an optional starting position.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>brindex(<replaceable>string, substring, [position]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments and Return Values for brindex()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry><para>Argument Type</para></entry>
+              <entry><para>Return Type</para></entry>
+              <entry><para>Description</para></entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+	      <entry><para>String, String, [Integer]</para></entry>
+              <entry><para>Integer</para></entry>
+              <entry><para>Returns the starting byte position of a string in another, starting from the end of the string, or from <replaceable>position</replaceable> if given.  If <replaceable>position</replaceable> is given, then the reverse search starts at that character position (searches always go from the end of the string toward the beginning).  Returns -1 if the substring cannot be found.  All values are byte positions, not character positions, which may differ for multi-byte character sets.</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <para>This function does not throw any exceptions.</para>
+    </sect2>
+
 <sect2 id="chr">
 <title>chr()</title>
 
@@ -5499,13 +5668,12 @@
 </sect2>
 
 <sect2 id="index">
-<title>index()</title>
-
+  <title>index()</title>
   <variablelist>
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Retrieves the position of a substring within a string.</para>
+	<para>Retrieves the character position of a substring within a string.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -5530,14 +5698,12 @@
             <row>
 	      <entry><para>String, String, [Integer]</para></entry>
               <entry><para>Integer</para></entry>
-              <entry><para>If the substring is found, returns the position of the substring within the string (starting at 0). If not found, returns -1.  If an offset position is given, the search starts at the offset position.</para></entry>
+              <entry><para>If the substring is found, returns the position of the substring within the string (starting at 0). If not found, returns -1.  If an offset position is given, the search starts at the offset position.  All values are character positions, not byte positions, which may differ for multi-byte character sets.</para></entry>
             </row>
           </tbody>
         </tgroup>
       </table>
-
   <para>This function does not throw any exceptions.</para>
-
 </sect2>
 
 <sect2 id="join">
@@ -5611,16 +5777,12 @@
             <row>
 	      <entry><para>String</para></entry>
               <entry><para>Integer</para></entry>
-              <entry><para>Returns the length in characters for the string passed.</para></entry>
+              <entry><para>Returns the length in characters for the string passed.  Note that the byte length may differ from the character length with multi-byte character sets.  For byte length of a string, see  <link linkend="strlen">strlen()</link>.</para></entry>
             </row>
           </tbody>
         </tgroup>
       </table>
-
-  <para>This function does not throw any exceptions.</para>
-
-  <note><para>This function only works properly where a character = 1 byte.  The behaviour of length will be corrected in a future version of Qore to work properly with multi-byte character sets.  For now, use <link linkend="strlen">strlen()</link>.</para></note>
-
+      <para>This function does not throw any exceptions.</para>
 </sect2>
 
 <sect2 id="ord">
@@ -5722,6 +5884,67 @@
 
 </sect2>
 
+<sect2 id="regex_subst">
+<title>regex_subst()</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Returns a string with patterns substituted according to the arguments passed.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+	<programlisting>regex_subst(<replaceable>string, pattern_string, target_string, [options]</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+      <table>
+        <title>Arguments and Return Values for regex_subst()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry><para>Argument Type</para></entry>
+              <entry><para>Return Type</para></entry>
+              <entry><para>Description</para></entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+	      <entry><para>String, String, String, [Integer]</para></entry>
+              <entry><para>String</para></entry>
+              <entry><para>Returns the result of <replaceable>string =~ s/pattern_string/target_string/options</replaceable>.</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+
+  <table><title>Exceptions Thrown by regex_subst()</title>
+  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+    <thead>
+      <row>
+	<entry><para>err</para></entry>
+	<entry><para>desc</para></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+	<entry><para>REGEX-OPTION-ERROR</para></entry>
+	<entry><para>Invalid options were passed to the function.</para></entry>
+      </row>
+      <row>
+	<entry><para>REGEX-COMPILATION-ERROR</para></entry>
+	<entry><para>There was an error compiling the regular expression.</para></entry>
+      </row>
+    </tbody>
+  </tgroup>
+  </table>
+
+</sect2>
+
 <sect2 id="replace">
 <title>replace()</title>
 
@@ -5764,24 +5987,22 @@
 
 </sect2>
 
-<sect2 id="rindex">
-<title>rindex()</title>
-
-  <variablelist>
-    <varlistentry>
-      <term>Synopsis</term>
-      <listitem>
-	<para>Returns the starting position of a string in another, starting from the end of the string (-1 if not found).</para>
-      </listitem>
-    </varlistentry>
-    <varlistentry>
-      <term>Usage</term>
-      <listitem>
-	<programlisting>rindex(<replaceable>string, substring, [position]</replaceable>)</programlisting>
-      </listitem>
-    </varlistentry>
-  </variablelist>
-
+    <sect2 id="rindex">
+      <title>rindex()</title>
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Returns the starting character position of a string in another, starting from the end of the string (-1 if not found) and takes an optional starting position.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>rindex(<replaceable>string, substring, [position]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
       <table>
         <title>Arguments and Return Values for rindex()</title>
         <tgroup cols="3" align="left" colsep="1" rowsep="1">
@@ -5796,15 +6017,13 @@
             <row>
 	      <entry><para>String, String, [Integer]</para></entry>
               <entry><para>Integer</para></entry>
-              <entry><para>Returns the starting position of a string in another, starting from the end of the string, or from <replaceable>position</replaceable> if given.  Returns -1 if the substring cannot be found.</para></entry>
+              <entry><para>Returns the starting character position of a string in another, starting from the end of the string, or from <replaceable>position</replaceable> if given.  If <replaceable>position</replaceable> is given, then the reverse search starts at that character position (searches always go from the end of the string toward the beginning).  Returns -1 if the substring cannot be found.  All values are character positions, not byte positions, which may differ for multi-byte character sets.</para></entry>
             </row>
           </tbody>
         </tgroup>
       </table>
-
-  <para>This function does not throw any exceptions.</para>
-
-</sect2>
+      <para>This function does not throw any exceptions.</para>
+    </sect2>
 
 <sect2 id="split">
 <title>split()</title>
@@ -5880,7 +6099,7 @@
             <row>
 	      <entry><para>String</para></entry>
               <entry><para>Integer</para></entry>
-              <entry><para>Returns the length of the string passed. If the argument is not a string, then it is converted to a string.</para></entry>
+              <entry><para>Returns the length of the string passed. If the argument is not a string, then it is converted to a string.  Note that the byte length may differ from the character length with multi-byte character sets.  For the character length of a string, see  <link linkend="length">length()</link></para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -5896,7 +6115,7 @@
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Returns a portion of a string starting from an integer offset, with an optional length.  Arguments can be negative, giving offsets from the end of the string.</para>
+	<para>Returns a portion of a string starting from an integer offset, with an optional length.  Arguments can be negative, giving offsets from the end of the string.  All offsets are character positions, not byte positions.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -6430,7 +6649,7 @@
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Retuns the effective group ID of the current process.</para>
+	<para>Returns the effective group ID of the current process.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -6456,7 +6675,7 @@
   <row>
     <entry><para>n/a</para></entry>
     <entry><para>Integer</para></entry>
-    <entry><para>Retuns the effective group ID of the current process.</para></entry>
+    <entry><para>Returns the effective group ID of the current process.</para></entry>
   </row>
 
 </tbody>
@@ -6603,7 +6822,7 @@
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Retuns the PID (process ID) of the current process.</para>
+	<para>Returns the PID (process ID) of the current process.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -6629,7 +6848,7 @@
   <row>
     <entry><para>n/a</para></entry>
     <entry><para>Integer</para></entry>
-    <entry><para>Retuns the PID (process ID) of the current process.</para></entry>
+    <entry><para>Returns the PID (process ID) of the current process.</para></entry>
   </row>
 
 </tbody>
@@ -6646,7 +6865,7 @@
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Retuns the PID (process ID) of the parent process of the current process.</para>
+	<para>Returns the PID (process ID) of the parent process of the current process.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -6672,7 +6891,7 @@
   <row>
     <entry><para>n/a</para></entry>
     <entry><para>Integer</para></entry>
-    <entry><para>Retuns the PID (process ID) of the parent of the current process.</para></entry>
+    <entry><para>Returns the PID (process ID) of the parent of the current process.</para></entry>
   </row>
 
 </tbody>
@@ -7735,6 +7954,126 @@
 
 </sect2>
 
+<sect2 id="compress">
+  <title>compress()</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Performs zlib-based data compression and returns a binary object of the compressed data.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+	<programlisting>compress(<replaceable>string | binary</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+
+<table><title>Arguments and Return Values for compress()</title>
+<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+
+  <thead>
+  <row>
+    <entry><para>Argument Type</para></entry>
+    <entry><para>Return Type</para></entry>
+    <entry><para>Description</para></entry>
+  </row>
+  </thead>
+
+<tbody>
+  <row>
+    <entry><para><replaceable>string | binary</replaceable></para></entry>
+    <entry><para>Binary</para></entry>
+    <entry><para>Compresses the input data and returns a binary object.</para></entry>
+  </row>
+
+</tbody>
+</tgroup>
+</table>
+
+  <table><title>Exceptions Thrown by compress()</title>
+  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+    <thead>
+      <row>
+	<entry><para>err</para></entry>
+	<entry><para>desc</para></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+	<entry><para>ZLIB-COMPRESS-ERROR</para></entry>
+	<entry><para>zlib returned an error to the compress function.</para></entry>
+      </row>
+    </tbody>
+  </tgroup>
+  </table>
+
+</sect2>
+
+<sect2 id="compress2">
+  <title>compress2()</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Performs zlib-based data compression and returns a binary object of the compressed data.  The second argument specifies the compression level.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+	<programlisting>compress2(<replaceable>string | binary, level</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+  <table>
+    <title>Arguments and Return Values for compress()</title>
+    <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument Type</para></entry>
+	  <entry><para>Return Type</para></entry>
+	  <entry><para>Description</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><replaceable>string | binary, level</replaceable></para></entry>
+	  <entry><para>Binary</para></entry>
+	  <entry><para>Compresses the input data and returns a binary object.  The <replaceable>level</replaceable> argument must be an integer between 0 and 9, 9 meaning the highest compression level.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+
+  <table><title>Exceptions Thrown by compress2()</title>
+  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+    <thead>
+      <row>
+	<entry><para>err</para></entry>
+	<entry><para>desc</para></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+	<entry><para>ZLIB-COMPRESS2-ERROR</para></entry>
+	<entry><para>zlib returned an error to the compress function.</para></entry>
+      </row>
+      <row>
+	<entry><para>ZLIB-LEVEL-ERROR</para></entry>
+	<entry><para>The compression level was not between 0 and 9.</para></entry>
+      </row>
+    </tbody>
+  </tgroup>
+  </table>
+
+</sect2>
 <sect2 id="existsFunction">
 <title>existsFunction()</title>
 
@@ -8760,7 +9099,120 @@
     </tgroup>
   </table>
   <para>This function does not throw any exceptions.</para>
-  
+</sect2>
+
+<sect2 id="uncompress_to_binary">
+  <title>uncompress_to_binary()</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Uncompresses data using zlib functions and returns a binary object of the uncompressed data.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+	<programlisting>uncompress_to_binary(<replaceable>binary, buffer_size</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+  <table>
+    <title>Arguments and Return Values for uncompress_to_binary()</title>
+    <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument Type</para></entry>
+	  <entry><para>Return Type</para></entry>
+	  <entry><para>Description</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><replaceable>binary, buffer_size</replaceable></para></entry>
+	  <entry><para>Binary</para></entry>
+	  <entry><para>Uncompresses the input data and returns a binary object.  The <replaceable>buffer_size</replaceable> argument gives the size of the buffer for the uncompressed data.  If the buffer is too small, then -1 is returned.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+
+  <table><title>Exceptions Thrown by uncompress_to_binary()</title>
+  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+    <thead>
+      <row>
+	<entry><para>err</para></entry>
+	<entry><para>desc</para></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+	<entry><para>ZLIB-UNCOMPRESS-ERROR</para></entry>
+	<entry><para>zlib returned an error to the uncompress() function.</para></entry>
+      </row>
+    </tbody>
+  </tgroup>
+  </table>
+
+</sect2>
+
+<sect2 id="uncompress_to_string">
+  <title>uncompress_to_string()</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Uncompresses data using zlib functions and returns a string of the uncompressed data.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+	<programlisting>uncompress_to_string(<replaceable>binary, buffer_size</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+  <table>
+    <title>Arguments and Return Values for uncompress_to_string()</title>
+    <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument Type</para></entry>
+	  <entry><para>Return Type</para></entry>
+	  <entry><para>Description</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><replaceable>binary, buffer_size</replaceable></para></entry>
+	  <entry><para>Binary</para></entry>
+	  <entry><para>Uncompresses the input data and returns a string.  The <replaceable>buffer_size</replaceable> argument gives the size of the buffer for the uncompressed data.  If the buffer is too small, then -1 is returned.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+
+  <table><title>Exceptions Thrown by uncompress_to_string()</title>
+  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+    <thead>
+      <row>
+	<entry><para>err</para></entry>
+	<entry><para>desc</para></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+	<entry><para>ZLIB-UNCOMPRESS-ERROR</para></entry>
+	<entry><para>zlib returned an error to the uncompress() function.</para></entry>
+      </row>
+    </tbody>
+  </tgroup>
+  </table>
+
 </sect2>
 
 <sect1 id="Threading_Functions">

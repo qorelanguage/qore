@@ -3289,19 +3289,20 @@ $hash + ( "newkey" : 100 )</programlisting>
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Looks for a regular expression match in a string, and, if found, substitutes the matched string with a new string.</para>
+	<para>Looks for a regular expression match in a string, and, if found, substitutes the matched string with a new string.  Subpattern backreferences are supported in the target string, $1=first subpattern, $2=second subpattern, etc...</para>
      </listitem>
     </varlistentry>
     <varlistentry>
       <term>Syntax</term>
       <listitem>
-	<programlisting><replaceable>lvalue</replaceable> =~ s/<replaceable>regex</replaceable>/<replaceable>text</replaceable>/[gisxm]</programlisting>
+	<programlisting><replaceable>lvalue</replaceable> =~ s/<replaceable>regex_pattern</replaceable>/<replaceable>target_string</replaceable>/[gisxm]</programlisting>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Example</term>
       <listitem>
-	<programlisting>$str =~ s/hello/goodbye/;</programlisting>
+	<programlisting>$str =~ s/hello/goodbye/i;</programlisting>
+	<programlisting>$str =~ s/(\w+) +(\w+)/$2, $1/;</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -3318,7 +3319,7 @@ $hash + ( "newkey" : 100 )</programlisting>
 <tbody>
   <row>
     <entry><para>String</para></entry>
-    <entry><para>This operator substitutes text in the <replaceable>lvalue</replaceable> string if the regular expression matches.</para></entry>
+    <entry><para>This operator substitutes text in the <replaceable>lvalue</replaceable> string if the regular expression matches.  Subpattern backreferences are supported in the target string, $1=first subpattern, $2=second subpattern, etc..</para></entry>
   </row>
 
 </tbody>
@@ -3820,6 +3821,7 @@ $hash + ( "newkey" : 100 )</programlisting>
 
   <para>Works on either strings or lists in a similar way; removes elements from a list or characters from a string and optionally inserts new ones.  If no <replaceable>length_expression</replaceable> is given, <command>splice</command> removes all elements/characters from the list or string starting at <replaceable>offset_expression</replaceable>) (list and string offsets begin at 0).  Otherwise, a number of elements/characters equal to <replaceable>length_expression</replaceable> is removed (or up to the end of the list/string if applicable).  If <replaceable>substitution_expression</replaceable> is present, then the removed elements/characters are substituted with the elements/string given by this expression.</para>
 
+  <para>Note that string splice takes character offsets, which may not be the same as byte offsets for multi-byte character set encodings, such as UTF-8</para>
   <table>
     <title>Arguments Processed By splice</title>
     <tgroup cols='2' align='left' colsep='1' rowsep='1'>
