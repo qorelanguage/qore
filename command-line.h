@@ -1,7 +1,7 @@
 /*
    command-line.h
 
-   core
+   qore
 */
 
 #ifndef QORE_COMMAND_LINE_H
