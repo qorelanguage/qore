@@ -503,7 +503,7 @@ static class QoreNode *f_uncompress_to_binary(class QoreNode *params, ExceptionS
 
    if (rc != Z_OK)
    {
-      xsink->raiseException("ZLIB-COMPRESS-ERROR", "compress() returned error code %d", rc);
+      xsink->raiseException("ZLIB-UNCOMPRESS-ERROR", "uncompress() returned error code %d", rc);
       free(buf);
       return NULL;
    }
