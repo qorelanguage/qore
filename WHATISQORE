@@ -30,14 +30,16 @@ Qore has good Oracle integration, making it easy to write scripts/programs to ma
 
 Qore has libxml2 integration, allowing simple, automatic, and transparent serialization/deserialization to/from XML data to/from Qore data structures.
 
+Qore uses the PCRE library to provide Perl-compatible regular expression support.x
+
 Qore has TIBCO ActiveEnterprise integration, making it very easy to write scripts/programs making use of TIBCO ActiveEnterprise components.  Serializing/deserializing to/from TIBCO messages and to/from Qore data structures is simple, automatic, and transparent to the programmer.
 
 On the future roadmap:
 * improve mysql driver to support stored procedures
-* use pcre to provide powerful platform-independent regular expression support
+* improve pcre support, add variable substitution, direct subpattern match extraction capabilities
 * add optional strong typing to the language + strongly typed data structures
 * add PostgresSQL and Sybase drivers to the DBI layer
-* add Tuxedo integration
+* add integration with other messaging technologies
 
 How does Qore compare to other programming languages?
 -----------------------------------------------------
@@ -51,15 +53,17 @@ Qore's syntax superficially appears to be a mixture of C and perl with some uniq
 * Qore and perl share many statements (like for, foreach, while, do, if, etc)
 * Qore and perl share many basic operators
 * Qore and perl both use double-precision floating point numbers
+* Qore uses PCRE (www.pcre.org) to provide perl-compatible regular expression support
 
 (Some) differences from perl
 * Qore has a clean and powerful threading model, built-in from the start by design
 * Qore has clean object-oriented features, built-in from the start by design
+* Qore has native UTF-8 support (qore's substr(), string splice, index(), etc work on character offsets, not byte offsets according to the character encoding used for the string), perl's wide character support is not as transparent - for example, 'printf("%s\n", substr("ä", 0, 1));' will output an invalid character in perl, but work properly in Qore using UTF-8 variable-width characters
 * Qore tends to avoid syntactic shortcuts and require more verbose expressions than perl; Qore has a much smaller grammar than perl, and no default variables (no $_, etc); Qore has "if" statements, but no "unless"; etc
 * A Qore variable can be of any type, whereas in perl the type of variable also depends on the name
 	perl: @array = (1, "two"); %hash = ( "a", 1, "b", 2);   $scalar = 3.0;
 	Qore: $array = (1, "two"); $hash = ( "a" : 1, "b" : 2); $scalar = 3.0;
-* Qore subroutines can be declared with an optional list of local variables to receive subroutine arguments; the parentheses after the subroutine name are not optional.
+* Qore subroutines can be declared with an optional list of local variables to receive subroutine arguments; the parentheses after the subroutine name are not optional in Qore.
 * Qore accepts a statement or a statement block after if, while, for, foreach, etc, like C, C++, and Java, but unlike perl that requires a block ("{" "}") after such statements
 * Qore has a switch/case statement, whereas perl has none
 * Qore hashes must be specified with a specific syntax ( "key" : <value expr.> )
@@ -70,4 +74,5 @@ Qore's syntax superficially appears to be a mixture of C and perl with some uniq
 * Qore's operators can change lvalues without references, in Qore a function can change an lvalue only if a reference is passed
 * there is currently no generic equivalent to perl's references.  It is only possible to pass values by reference in Qore if the subroutine includes a local variable argument list
 * Qore does not support enclosures or lamba functions, however Qore's Program class provides a powerful mechanism for embedding logic in a program or even for self-modifying programs
-* Qore has relative weak regular expression support based on the c library's POSIX regex support (this will change in a future release :-) ).
+* Qore does not yet support variable substitution or direct subpattern extraction from regular expressions, but this will change in a future release
+* Qore does not yet support signal handling; this is planned for a future release (before 1.0)

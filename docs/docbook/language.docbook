@@ -1027,6 +1027,12 @@ $hash + ( "newkey" : 100 )</programlisting>
     <entry><para><link linkend='Regular_Expression_Substitution_Operator'>regular expression substitution operator</link></para></entry>
     <entry><programlisting>$a =~ s/text/text/</programlisting></entry>
   </row>
+ <row>
+    <entry><para>=~ tr</para></entry>
+    <entry><para>14</para></entry>
+    <entry><para><link linkend='Transliteration_Operator'>transliteration operator</link></para></entry>
+    <entry><programlisting>$a =~ tr/src_chars/targ_chars/</programlisting></entry>
+  </row>
   <row>
     <entry><para>&amp;</para></entry>
     <entry><para>15</para></entry>
@@ -1116,6 +1122,42 @@ $hash + ( "newkey" : 100 )</programlisting>
     <entry><para>21</para></entry>
     <entry><para><link linkend='Or_Equals_Operator'>or-equals operator</link></para></entry>
     <entry><programlisting>$var |= 0x2000</programlisting></entry>
+  </row>
+  <row>
+    <entry><para>%=</para></entry>
+    <entry><para>21</para></entry>
+    <entry><para><link linkend='Modula_Equals_Operator'>modula-equals operator</link></para></entry>
+    <entry><programlisting>$var %= 100</programlisting></entry>
+  </row>
+  <row>
+    <entry><para>*=</para></entry>
+    <entry><para>21</para></entry>
+    <entry><para><link linkend='Multiply_Equals_Operator'>multiply-equals operator</link></para></entry>
+    <entry><programlisting>$var *= 10</programlisting></entry>
+  </row>
+  <row>
+    <entry><para>/=</para></entry>
+    <entry><para>21</para></entry>
+    <entry><para><link linkend='Divide_Equals_Operator'>divide-equals operator</link></para></entry>
+    <entry><programlisting>$var /= 10</programlisting></entry>
+  </row>
+  <row>
+    <entry><para>^=</para></entry>
+    <entry><para>21</para></entry>
+    <entry><para><link linkend='Xor_Equals_Operator'>xor-equals operator</link></para></entry>
+    <entry><programlisting>$var ^= 0x2000</programlisting></entry>
+  </row>
+  <row>
+    <entry><para>&lt;&lt;=</para></entry>
+    <entry><para>21</para></entry>
+    <entry><para><link linkend='Shift_Left_Equals_Operator'>shift-left-equals operator</link></para></entry>
+    <entry><programlisting>$var &lt;&lt;= 0x2000</programlisting></entry>
+  </row>
+  <row>
+    <entry><para>&gt;&gt;=</para></entry>
+    <entry><para>21</para></entry>
+    <entry><para><link linkend='Shift_Right_Equals_Operator'>shift-right-equals operator</link></para></entry>
+    <entry><programlisting>$var &gt;&gt;= 0x2000</programlisting></entry>
   </row>
 
 </tbody>
@@ -3206,7 +3248,7 @@ $hash + ( "newkey" : 100 )</programlisting>
     <varlistentry>
       <term>Syntax</term>
       <listitem>
-	<programlisting><replaceable>expression</replaceable> !~ /<replaceable>regex</replaceable>/</programlisting>
+	<programlisting><replaceable>expression</replaceable> !~ [m]/<replaceable>regex</replaceable>/[isxm]</programlisting>
       </listitem>
     </varlistentry>
 
@@ -3240,6 +3282,7 @@ $hash + ( "newkey" : 100 )</programlisting>
   <para>This operator does not throw any exceptions.</para>
 
 </sect2>
+
 <sect2 id="Regular_Expression_Substitution_Operator">
   <title>Regular Expression Substitution Operator</title>
   <variablelist>
@@ -3252,7 +3295,7 @@ $hash + ( "newkey" : 100 )</programlisting>
     <varlistentry>
       <term>Syntax</term>
       <listitem>
-	<programlisting><replaceable>lvalue</replaceable> =~ s/<replaceable>regex</replaceable>/<replaceable>text</replaceable>/[g]</programlisting>
+	<programlisting><replaceable>lvalue</replaceable> =~ s/<replaceable>regex</replaceable>/<replaceable>text</replaceable>/[gisxm]</programlisting>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -3276,6 +3319,52 @@ $hash + ( "newkey" : 100 )</programlisting>
   <row>
     <entry><para>String</para></entry>
     <entry><para>This operator substitutes text in the <replaceable>lvalue</replaceable> string if the regular expression matches.</para></entry>
+  </row>
+
+</tbody>
+</tgroup>
+</table>
+
+<para>This operator does not throw any exceptions.</para>
+
+</sect2>
+
+<sect2 id="Transliteration_Operator">
+  <title>Transliteration Operator</title>
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Makes character substitutions in an lvalue; character ranges can also be used.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><replaceable>lvalue</replaceable> =~ tr/<replaceable>source_chars</replaceable>/<replaceable>target_chars</replaceable>/</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$str =~ tr/a-z/A-Z/;</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+  <table><title>Arguments Processed By =~ tr//</title>
+<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+  <thead>
+  <row>
+    <entry><para>Argument</para></entry>
+    <entry><para>Processing</para></entry>
+  </row>
+  </thead>
+
+<tbody>
+  <row>
+    <entry><para>String</para></entry>
+    <entry><para>This operator substitutes characters in the <replaceable>lvalue</replaceable> string.  Note that if there are more characters in the source string than in the target string, then the last character in the target string will be used for any source matches where the source character position is greater than the target string.</para></entry>
   </row>
 
 </tbody>
@@ -3990,6 +4079,271 @@ $hash + ( "newkey" : 100 )</programlisting>
   </tgroup>
   </table>
 </sect2>
+
+<sect2 id="Modula_Equals_Operator">
+  <title>Modula Equals Operator (%=)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Performs a modula calculation on an lvalue using the value of an expression.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><replaceable>lvalue</replaceable> %= <replaceable>expression</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$a %= 100;</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+  <table><title>Arguments Processed By %=</title>
+  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+    <thead>
+      <row>
+	<entry><para>Argument</para></entry>
+	<entry><para>Processing</para></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+	<entry><para>All</para></entry>
+	<entry><para>the lvalue's type will be converted to an integer if necessary, and the expression will be evaluated and converted to an integer as well if necessary, and then the result will be used to divide the lvalue's value and the remainder will be saved to the lvalue</para></entry>
+      </row>
+    </tbody>
+  </tgroup>
+  </table>
+</sect2>
+
+<sect2 id="Multiply_Equals_Operator">
+  <title>Multiply Equals Operator (*=)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Performs a multiplication operation on an lvalue using the value of an expression.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><replaceable>lvalue</replaceable> *= <replaceable>expression</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$a *= 10;</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+  <table><title>Arguments Processed By *=</title>
+  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+    <thead>
+      <row>
+	<entry><para>Argument</para></entry>
+	<entry><para>Processing</para></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+	<entry><para>All</para></entry>
+	<entry><para>If either side of the operator is a float, the result will be a float as well.  Otherwise the result is an integer value.  The expression will be evaluated and multiplied by the lvalue, and the result will be saved to the lvalue.</para></entry>
+      </row>
+    </tbody>
+  </tgroup>
+  </table>
+</sect2>
+
+<sect2 id="Divide_Equals_Operator">
+  <title>Divide Equals Operator (/=)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Performs a division operation on an lvalue using the value of an expression.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><replaceable>lvalue</replaceable> /= <replaceable>expression</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$a /= 10;</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+  <table><title>Arguments Processed By *=</title>
+  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+    <thead>
+      <row>
+	<entry><para>Argument</para></entry>
+	<entry><para>Processing</para></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+	<entry><para>All</para></entry>
+	<entry><para>If either side of the operator is a float, the result will be a float as well.  Otherwise the result is an integer value.  The expression will be evaluated and used to divide the lvalue, and the result will be saved to the lvalue.</para></entry>
+      </row>
+    </tbody>
+  </tgroup>
+  </table>
+
+  <table>
+    <title>Exceptions Thrown by /*</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>err</para></entry>
+	  <entry><para>desc</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para>DIVISION-BY-ZERO</para></entry>
+	  <entry><para>If the divisor expression evaluates to zero, this exception is thrown.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+</sect2>
+
+<sect2 id="Xor_Equals_Operator">
+  <title>Xor Equals Operator (^=)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Performs an exclusive-or operation on an lvalue using the value of an expression.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><replaceable>lvalue</replaceable> ^= <replaceable>expression</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$a ^= 0xf9034ba7;</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+  <table><title>Arguments Processed By ^=</title>
+  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+    <thead>
+      <row>
+	<entry><para>Argument</para></entry>
+	<entry><para>Processing</para></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+	<entry><para>All</para></entry>
+	<entry><para>Values are converted to integers if necessary.  The expression will be evaluated and exclusive-or'ed with the lvalue, and the result will be saved to the lvalue.</para></entry>
+      </row>
+    </tbody>
+  </tgroup>
+  </table>
+</sect2>
+
+<sect2 id="Shift_Left_Equals_Operator">
+  <title>Shift Left Equals Operator (&lt;&lt;=)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Performs a shift-left operation on an lvalue using the value of an expression.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><replaceable>lvalue</replaceable> &lt;&lt;= <replaceable>expression</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$a &lt;&lt;= 3;</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+  <table><title>Arguments Processed By &lt;&lt;=</title>
+  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+    <thead>
+      <row>
+	<entry><para>Argument</para></entry>
+	<entry><para>Processing</para></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+	<entry><para>All</para></entry>
+	<entry><para>Values are converted to integers if necessary.  The expression will be evaluated and this value will determine how many bits the lvalue will be shifted left.  The result will be saved to the lvalue.</para></entry>
+      </row>
+    </tbody>
+  </tgroup>
+  </table>
+</sect2>
+
+<sect2 id="Shift_Right_Equals_Operator">
+  <title>Shift Right Equals Operator (&gt;&gt;=)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Performs a shift-right operation on an lvalue using the value of an expression.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><replaceable>lvalue</replaceable> &gt;&gt;= <replaceable>expression</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$a &gt;&gt;= 3;</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+  <table><title>Arguments Processed By &gt;&gt;=</title>
+  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+    <thead>
+      <row>
+	<entry><para>Argument</para></entry>
+	<entry><para>Processing</para></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+	<entry><para>All</para></entry>
+	<entry><para>Values are converted to integers if necessary.  The expression will be evaluated and this value will determine how many bits the lvalue will be shifted right.  The result will be saved to the lvalue.</para></entry>
+      </row>
+    </tbody>
+  </tgroup>
+  </table>
+</sect2>
+
 </sect1>
 
 <sect1 id="Date_Arithmetic">
