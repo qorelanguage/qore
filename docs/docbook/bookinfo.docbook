@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
 <bookinfo>
-<title>Qore v0.5.0</title>
+<title>Qore v0.5.1</title>
 <subtitle>Programming Language Reference Manual</subtitle>
 <authorgroup>
 <author>
@@ -14,10 +14,17 @@
 </author>
 </authorgroup>
 
-<date>7 May 2006</date>
-<releaseinfo>V. 0.5.0</releaseinfo>
+<date>8 June 2006</date>
+<releaseinfo>V. 0.5.1</releaseinfo>
 
 <revhistory>
+
+<revision>
+  <revnumber>1.5</revnumber>
+  <date>8 June 2006</date>
+  <authorinitials>dn</authorinitials>
+  <revremark>Update to 0.5.1</revremark>
+</revision>
 
 <revision>
   <revnumber>1.4</revnumber>
@@ -59,4 +66,3 @@
 </bookinfo>
 
 <!-- Copyright (C) 2004, 2005 David Nichols, All Rights Reserved -->
-

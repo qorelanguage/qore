@@ -18,7 +18,6 @@
 
 <book>
 
-&bookinfo;
 &introduction;
 &language;
 &function_lib;
@@ -30,6 +29,7 @@
 &bugs;
 &comparison;
 &future;
+&bookinfo;
 
 <colophon>
 <para>This document was first drafted with OpenOffice.org, then converted to docbook XML by Helmut Wollmersdorfer, then edited by hand with Emacs.</para>

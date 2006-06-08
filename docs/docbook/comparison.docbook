@@ -25,13 +25,16 @@
         <para>In Qore, subroutines are declared with the keyword <command>sub</command></para>
       </listitem>
       <listitem>
-        <para>Qore and perl share many statements (like <command>for</command>, <command>foreach</command>, <command>while</command>, <command>do</command>, <command>if</command>, etc)</para>
+        <para>Qore and perl share many statements (like <command>for</command>, <command>foreach</command>, <command>while</command>, <command>do</command>, <command>if</command>, etc), and operators.</para>
       </listitem>
       <listitem>
         <para>Qore and perl share many basic operators</para>
       </listitem>
       <listitem>
         <para>Qore and perl both use double-precision floating point numbers</para>
+      </listitem>
+      <listitem>
+        <para>Qore uses <ulink url="http://www.pcre.org">PCRE</ulink> to provide perl5-compatible regular expression support</para>
       </listitem>
     </itemizedlist>
 
@@ -43,6 +46,9 @@
       </listitem>
       <listitem>
         <para>Qore has clean object-oriented features, built-in from the start by design</para>
+      </listitem>
+      <listitem>
+        <para>Qore has transparent UTF-8 support (qore's substr(), string splice, index(), etc work on character offsets, not byte offsets according to the character encoding used for the string), perl's wide character support is not as transparent - for example, 'printf("%s\n", substr("ä", 0, 1));' will output an invalid character in perl, but work properly in Qore using UTF-8 variable-width characters</para>
       </listitem>
       <listitem>
         <para>Qore tends to avoid syntactic shortcuts and require more verbose expressions than perl; Qore has a much smaller grammar than perl, and no default variables (no $_, etc); Qore has <command>if</command> statements, but no "unless"; etc</para>
@@ -63,6 +69,9 @@ $scalar = 3.0;</programlisting>
       </listitem>
       <listitem>
         <para>Qore accepts a statement or a statement block after <command>if</command>, <command>while</command>, <command>for</command>, <command>foreach</command>, etc, like C, C++, and Java, but unlike perl that requires a block ("{" "}") after such statements.</para>
+      </listitem>
+      <listitem>
+        <para>Qore's <link linkend="Splice_Operator"><command>splice</command> operator</link> works on strings (respecting character offsets for multi-byte character encodings) as well as lists.</para>
       </listitem>
       <listitem>
         <para>Qore has a <command>switch/case</command> statement, whereas perl has none</para>
@@ -92,7 +101,7 @@ $scalar = 3.0;</programlisting>
         <para>Qore does not support enclosures or lamba functions, however Qore's Program class provides a powerful mechanism for embedding logic in a program or even for self-modifying programs</para>
       </listitem>
       <listitem>
-        <para>Qore has relatively weak regular expression support based on the C library's POSIX regex support (this will change in a future release :-) )</para>
+        <para>Qore does not yet support signal handling; this is planned for a future release (before 1.0)</para>
       </listitem>
     </itemizedlist>
 

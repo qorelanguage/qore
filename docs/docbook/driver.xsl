@@ -25,4 +25,7 @@
     set       toc,title
   </xsl:param>
 
+  <xsl:param name="toc.max.depth">2</xsl:param>
+  <xsl:param name="html.stylesheet">qore-style.css</xsl:param>
+
 </xsl:stylesheet>

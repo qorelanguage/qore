@@ -21,37 +21,37 @@
 	</thead>
 	<tbody>
 	  <row>
-	    <entry><para>True</para></entry>
+	    <entry><para><code>True</code></para></entry>
 	    <entry><para>Boolean</para></entry>
 	    <entry><para>True</para></entry>
 	  </row>
 	  <row>
-	    <entry><para>False</para></entry>
+	    <entry><para><code>False</code></para></entry>
 	    <entry><para>Boolean</para></entry>
 	    <entry><para>False</para></entry>
 	  </row>
 	  <row>
-	    <entry><para>VersionString</para></entry>
+	    <entry><para><code>VersionString</code></para></entry>
 	    <entry><para>String</para></entry>
 	    <entry><para>The complete version string for this version of Qore.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para>VersionMajor</para></entry>
+	    <entry><para><code>VersionMajor</code></para></entry>
 	    <entry><para>Integer</para></entry>
 	    <entry><para>The major version number of Qore.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para>VersionMinor</para></entry>
+	    <entry><para><code>VersionMinor</code></para></entry>
 	    <entry><para>Integer</para></entry>
 	    <entry><para>The minor version number of Qore.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para>VersionSub</para></entry>
+	    <entry><para><code>VersionSub</code></para></entry>
 	    <entry><para>Integer</para></entry>
 	    <entry><para>The sub version number of Qore.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para>Build</para></entry>
+	    <entry><para><code>Build</code></para></entry>
 	    <entry><para>Integer</para></entry>
 	    <entry><para>The build number for Qore.</para></entry>
 	  </row>
@@ -71,17 +71,17 @@
 	</thead>
 	<tbody>
 	  <row>
-	    <entry><para>stdin</para></entry>
+	    <entry><para><code>stdin</code></para></entry>
 	    <entry><para>File Object</para></entry>
 	    <entry><para>Standard input File object.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para>stdout</para></entry>
+	    <entry><para><code>stdout</code></para></entry>
 	    <entry><para>File Object</para></entry>
 	    <entry><para>Standard output File object.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para>stderr</para></entry>
+	    <entry><para><code>stderr</code></para></entry>
 	    <entry><para>File Object</para></entry>
 	    <entry><para>Standard error File object.</para></entry>
 	  </row>
@@ -103,7 +103,7 @@
 	</thead>
 	<tbody>
 	  <row>
-	    <entry><para>Err::*</para></entry>
+	    <entry><para><code>Err::*</code></para></entry>
 	    <entry><para>Integer</para></entry>
 	    <entry><para>System-dependent integer ERRNO constants (ex: ENOMEM, etc)</para></entry>
 	  </row>
@@ -123,32 +123,32 @@
 	</thead>
 	<tbody>
 	  <row>
-	    <entry><para>ET_System</para></entry>
+	    <entry><para><code>ET_System</code></para></entry>
 	    <entry><para>String</para></entry>
 	    <entry><para>Exception Type System: used for system exceptions.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para>ET_User</para></entry>
+	    <entry><para><code>ET_User</code></para></entry>
 	    <entry><para>String</para></entry>
 	    <entry><para>Exception Type User: used for user exceptions (thrown using the <command>throw</command> statement.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para>CT_User</para></entry>
+	    <entry><para><code>CT_User</code></para></entry>
 	    <entry><para>Integer</para></entry>
 	    <entry><para>Call Type User: used for user function/method calls in a call stack.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para>CT_Builtin</para></entry>
+	    <entry><para><code>CT_Builtin</code></para></entry>
 	    <entry><para>Integer</para></entry>
 	    <entry><para>Call Type Builtin: used for builtin function/method calls in a call stack.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para>CT_NewThread</para></entry>
+	    <entry><para><code>CT_NewThread</code></para></entry>
 	    <entry><para>Integer</para></entry>
 	    <entry><para>Call Type New Thread: used in a call stack when a new thread is started with the <command>background</command> expression.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para>CT_Rethrow</para></entry>
+	    <entry><para><code>CT_Rethrow</code></para></entry>
 	    <entry><para>Integer</para></entry>
 	    <entry><para>Call Type Rethrow: a marker for a rethrown exception in a call stack.</para></entry>
 	  </row>
@@ -156,6 +156,40 @@
       </tgroup>
     </table>
 
+    <table id="Qore_Regex_Constants">
+      <title>Regular Expression Option Constants in the Qore Namespace</title>
+      <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>Name</para></entry>
+	    <entry><para>Type and Value</para></entry>
+	    <entry><para>Description</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row>
+	    <entry><para><code>RE_Caseless</code></para></entry>
+	    <entry><para>Integer: 1</para></entry>
+	    <entry><para>Ignores case when matching regular expressions, equivalent to /i</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>RE_MultiLine</code></para></entry>
+	    <entry><para>Integer: 2</para></entry>
+	    <entry><para>makes start-of-line (^) or end-of-line ($) match after or before any newline in the subject string, equivalent to /m</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>RE_DotAll</code></para></entry>
+	    <entry><para>Integer: 4</para></entry>
+	    <entry><para>makes a dot (.) match a newline character, equivalent to /s</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>RE_Extended</code></para></entry>
+	    <entry><para>Integer: 8</para></entry>
+	    <entry><para>ignores whitespace characters and enables comments prefixed by #, equivalent to /x</para></entry>
+	  </row>
+	</tbody>
+      </tgroup>
+    </table>
   </sect1>
 
   <sect1 id="Qore_Type_Namespace">
@@ -174,48 +208,48 @@
 	</thead>
 	<tbody>
 	  <row>
-	    <entry><para>Qore::Type::Boolean</para></entry>
-	    <entry><link linkend="Boolean">Boolean</link></entry>
+	    <entry><para><code>Qore::Type::Boolean</code></para></entry>
+	    <entry><para><link linkend="Boolean">Boolean</link></para></entry>
 	  </row>
 	  <row>
-	    <entry><para>Qore::Type::Int</para></entry>
-	    <entry><link linkend="Integer">Integer</link></entry>
+	    <entry><para><code>Qore::Type::Int</code></para></entry>
+	    <entry><para><link linkend="Integer">Integer</link></para></entry>
 	  </row>
 	  <row>
-	    <entry><para>Qore::Type::String</para></entry>
-	    <entry><link linkend="String">String</link></entry>
+	    <entry><para><code>Qore::Type::String</code></para></entry>
+	    <entry><para><link linkend="String">String</link></para></entry>
 	  </row>
 	  <row>
-	    <entry><para>Qore::Type::Float</para></entry>
-	    <entry><link linkend="Float">Float</link></entry>
+	    <entry><para><code>Qore::Type::Float</code></para></entry>
+	    <entry><para><link linkend="Float">Float</link></para></entry>
 	  </row>
 	  <row>
-	    <entry><para>Qore::Type::Date</para></entry>
-	    <entry><link linkend="Date">Date</link></entry>
+	    <entry><para><code>Qore::Type::Date</code></para></entry>
+	    <entry><para><link linkend="Date">Date</link></para></entry>
 	  </row>
 	  <row>
-	    <entry><para>Qore::Type::Binary</para></entry>
-	    <entry><link linkend="Binary">Binary</link></entry>
+	    <entry><para><code>Qore::Type::Binary</code></para></entry>
+	    <entry><para><link linkend="Binary">Binary</link></para></entry>
 	  </row>
 	  <row>
-	    <entry><para>Qore::Type::Hash</para></entry>
-	    <entry><link linkend="Hashes">Hash</link></entry>
+	    <entry><para><code>Qore::Type::Hash</code></para></entry>
+	    <entry><para><link linkend="Hashes">Hash</link></para></entry>
 	  </row>
 	  <row>
-	    <entry><para>Qore::Type::List</para></entry>
-	    <entry><link linkend="Lists">List</link></entry>
+	    <entry><para><code>Qore::Type::List</code></para></entry>
+	    <entry><para><link linkend="Lists">List</link></para></entry>
 	  </row>
 	  <row>
-	    <entry><para>Qore::Type::Object</para></entry>
-	    <entry><link linkend="Objects">Object</link></entry>
+	    <entry><para><code>Qore::Type::Object</code></para></entry>
+	    <entry><para><link linkend="Objects">Object</link></para></entry>
 	  </row>
 	  <row>
-	    <entry><para>Qore::Type::NullType</para></entry>
-	    <entry><link linkend="NULL">SQL NULL</link></entry>
+	    <entry><para><code>Qore::Type::NullType</code></para></entry>
+	    <entry><para><link linkend="NULL">SQL NULL</link></para></entry>
 	  </row>
 	  <row>
-	    <entry><para>Qore::Type::NothingType</para></entry>
-	    <entry><link linkend="NOTHING">NOTHING</link></entry>
+	    <entry><para><code>Qore::Type::NothingType</code></para></entry>
+	    <entry><para><link linkend="NOTHING">NOTHING</link></para></entry>
 	  </row>
 	</tbody>
       </tgroup>
@@ -419,27 +453,27 @@
 	</thead>      
 	<tbody>
 	  <row>
-	    <entry><para>O_RDONLY</para></entry>
+	    <entry><para><code>O_RDONLY</code></para></entry>
 	    <entry><para>Open the file read-only.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para>O_WRONLY</para></entry>
+	    <entry><para><code>O_WRONLY</code></para></entry>
 	    <entry><para>Open the file write-only.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para>O_CREAT</para></entry>
+	    <entry><para><code>O_CREAT</code></para></entry>
 	    <entry><para>Create the file if it doesn't exist.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para>O_APPEND</para></entry>
+	    <entry><para><code>O_APPEND</code></para></entry>
 	    <entry><para>Open the file in append mode.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para>O_RDWR</para></entry>
+	    <entry><para><code>O_RDWR</code></para></entry>
 	    <entry><para>Open for reading and writing.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para>O_TRUNC</para></entry>
+	    <entry><para><code>O_TRUNC</code></para></entry>
 	    <entry><para>Truncate the size to zero.</para></entry>
 	  </row>
 	</tbody>
@@ -8027,6 +8061,38 @@
       </tgroup>
     </table>
 
+    <table>
+      <title>Placeholder Bind Constants in the Qore::SQL Namespace</title>
+      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>Constant</para></entry>
+	    <entry><para>Description</para></entry>
+	  </row>
+	</thead>
+	
+	<tbody>
+	  <row>
+	    <entry><para>SQL::VARCHAR</para></entry>
+	    <entry><para>Indicates that the placeholder buffer should be a string buffer</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>SQL::CLOB</para></entry>
+	    <entry><para>Indicates that the placeholder buffer should be a CLOB string buffer.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>SQL::BLOB</para></entry>
+	    <entry><para>Indicates that the placeholder buffer should be a binary buffer.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>SQL::DATE</para></entry>
+	    <entry><para>Indicates that the placeholder buffer should be a date-time buffer.</para></entry>
+	  </row>
+	  
+	</tbody>
+      </tgroup>
+    </table>
+
     <table id="DBI_Capability_Constants">
       <title>DBI Capability Constant Codes in the Qore::SQL Namespace</title>
       <tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -10781,13 +10847,13 @@
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Blocks until at least one entry is available on the queue, then returns the first entry in the queue.</para>
+	    <para>Blocks until at least one entry is available on the queue, then returns the first entry in the queue.  Accepts an optional timeout value in ms (1/1000 second).</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
-	    <programlisting>Queue::get()</programlisting>
+	    <programlisting>Queue::get(<replaceable>[timeout_ms]</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -10804,9 +10870,9 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
+	      <entry><para><replaceable>[timeout_ms]</replaceable></para></entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>If present, a timeout value in ms (1/1000 second).  If no data is available in the timeout period, a QUEUE-TIMEOUT exception is thrown.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -10830,6 +10896,23 @@
 	</tgroup>
       </table>
 
+      <table>
+	<title>Exceptions Thrown by Queue::get()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>QUEUE-TIMEOUT</para></entry>
+	      <entry><para>The timeout value was exceeded.</para></entry>
+	    </row>
+´	  </tbody>
+	</tgroup>
+      </table>
     </sect2>
 
     <sect2 id="Qore::Thread::Queue::pop">
@@ -10839,13 +10922,13 @@
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Blocks until at least one entry is available on the queue, then returns the last entry in the queue.</para>
+	    <para>Blocks until at least one entry is available on the queue, then returns the last entry in the queue.  Accepts an optional timeout value in ms (1/1000 second).</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
-	    <programlisting>Queue::pop()</programlisting>
+	    <programlisting>Queue::pop(<replaceable>[timeout_ms]</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -10862,9 +10945,9 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
+	      <entry><para><replaceable>[timeout_ms]</replaceable></para></entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>If present, a timeout value in ms (1/1000 second).  If no data is available in the timeout period, a QUEUE-TIMEOUT exception is thrown.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -10888,6 +10971,23 @@
 	</tgroup>
       </table>
 
+      <table>
+	<title>Exceptions Thrown by Queue::pop()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>QUEUE-TIMEOUT</para></entry>
+	      <entry><para>The timeout value was exceeded.</para></entry>
+	    </row>
+´	  </tbody>
+	</tgroup>
+      </table>
     </sect2>
 
     <sect2 id="Qore::Thread::Queue::push">

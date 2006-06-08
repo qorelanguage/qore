@@ -52,7 +52,7 @@
       <listitem>
 	<para>Intuitive Syntax</para>
 
-	<para>The Qore syntax is intuitive, allowing new programmers to rapidly come up to speed in the language and be productive quicker than with comparable languages. The language features some of the best features from C++ (ex: <link linkend="Class_Inheritance">multiple inheritance</link>, <link linkend="Exception_Handling">exception handling</link>), Java (ex: the <command>synchronized</command> keyword, object implementation), and Perl (ex: the <link linkend="foreach_Statements"><command>foreach</command> statement</link>, <link linkend="Splice_Operator"><command>splice</command></link>, <link linkend="Push_Operator"><command>push</command></link>, <link linkend="Pop_Operator"><command>pop</command></link> operators, etc), and with enhancements unique to Qore.  Due to the simple yet powerful syntax, Qore code is clear, self-documenting, and easy to maintain, even for programs written by others.</para>
+	<para>The Qore syntax is intuitive, allowing new programmers to rapidly come up to speed in the language and be productive quicker than with comparable languages. The language features some of the best features from C++ (ex: <link linkend="Class_Inheritance">multiple inheritance</link>, <link linkend="Exception_Handling">exception handling</link>), Java (ex: the <link linkend="Private_and_Synchronized_Methods"><command>synchronized</command></link> keyword, the <link linkend="Instanceof_Operator">instanceof</link> operator, object implementation), and Perl (ex: the <link linkend="foreach_Statements"><command>foreach</command> statement</link>, <link linkend="Splice_Operator"><command>splice</command></link>, <link linkend="Push_Operator"><command>push</command></link>, <link linkend="Pop_Operator"><command>pop</command></link> operators, etc), and with enhancements unique to Qore.  Due to the simple yet powerful syntax, Qore code is clear, self-documenting, and easy to maintain, even for programs written by others.</para>
 
 	<para>Qore's intelligent <link linkend="Operators">operators</link> are designed to produce the expected results for the programmer even when data types are mixed, a feature meant to further flatten the learning curve for new programmers.</para>
       </listitem>
@@ -103,8 +103,7 @@ any valid statement may be used in the positions indicated.</para>
 
 <para>Optional text is given in square brackets "[" and "]" as follows:</para>
 
-<para><command>sub</command> name([<replaceable>$variable1</replaceable>,<replaceable> 
-$variable2</replaceable>, ...])</para>
+<para><code><command>sub</command> name([<replaceable>$variable1</replaceable>,<replaceable> $variable2</replaceable>, ...])</code></para>
 
 <para>indicating that an arbitrarily long 
 list of variable names separated by commas (or nothing at all) may appear in 

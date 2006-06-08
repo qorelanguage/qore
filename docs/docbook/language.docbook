@@ -16,7 +16,7 @@
     
     <para>Qore can be used a a traditional subroutine-based scripting language or as a pure object-oriented language, where the application is defined as a class. Aside from traditional local and global variables, constants, and subroutines, Qore also supports nested namespaces, classes, multiple inheritance, overriding base class constructor arguments, and private members and methods.</para>
     
-    <para>All elements of Qore are designed to work together seamlessly: <link linkend="Qore::SQL::Datasource_Class">database access</link>, <link linkend="XML_Integration">XML transformations</link>, <link linkend="Qore_Socket_Class">socket communication</link>, <link linkend="Qore_Program_Class">embedding logic</link> in subprograms, regular expressions, <link linkend="Operators">operators</link>, <link linkend="Function_Library">functions</link>, and all other elements are thread-safe and built on an execution engine that was designed for SMP scalability.</para>
+    <para>All elements of Qore are designed to work together seamlessly: <link linkend="Qore::SQL::Datasource_Class">database access</link>, <link linkend="XML_Integration">XML transformations</link>, <link linkend="Qore_Socket_Class">socket communication</link>, <link linkend="Qore_Program_Class">embedding logic</link> in subprograms, <link linkend="Regular_Expressions">regular expressions</link>, <link linkend="Operators">operators</link>, <link linkend="Function_Library">functions</link>, and all other elements are thread-safe and built on an execution engine that was designed for SMP scalability.</para>
 
     <para>Qore automatically converts data types when necessary when evaluating operators. The goal is to provide the expected result for the programmer without requiring the programmer to explicitly convert data types. Please see section <link linkend='Operators'>Operators</link> for more information.</para>
 
@@ -311,49 +311,49 @@ print("global a = $a\n"); </programlisting>
   <row>
     <entry><para><link linkend="Boolean">Boolean</link></para></entry>
     <entry><para>True or False value</para></entry>
-    <entry><programlisting>True</programlisting></entry>
+    <entry><code>True</code></entry>
     <entry><para>False</para></entry>
   </row>
   <row>
     <entry><para><link linkend="String">String</link></para></entry>
     <entry><para>A sequence of ASCII characters</para></entry>
-    <entry><programlisting>"string"</programlisting></entry>
+    <entry><code>"string"</code></entry>
     <entry><para>Empty string</para></entry>
   </row>
   <row>
     <entry><para><link linkend="Integer">Integer</link></para></entry>
     <entry><para>A 64-bit signed integer</para></entry>
-    <entry><programlisting>1</programlisting></entry>
+    <entry><code>1</code></entry>
     <entry><para>0</para></entry>
   </row>
   <row>
     <entry><para><link linkend="Float">Float</link></para></entry>
     <entry><para>A double-precision floating-point number</para></entry>
-    <entry><programlisting>1.00023</programlisting></entry>
+    <entry><code>1.00023</code></entry>
     <entry><para>0.0</para></entry>
   </row>
   <row>
     <entry><para><link linkend="Date">Date</link></para></entry>
     <entry><para>A date with an optional time component, with resolution to the second.</para></entry>
-    <entry><programlisting>2005-07-20</programlisting></entry>
+    <entry><code>2005-07-20</code></entry>
     <entry><para>0000-00-00 00:00:00</para></entry>
   </row>
   <row>
     <entry><para><link linkend="Binary">Binary</link></para></entry>
     <entry><para>An opaque binary object</para></entry>
-    <entry><programlisting>n/a</programlisting></entry>
+    <entry><para>n/a</para></entry>
     <entry><para>an empty object of size 0</para></entry>
   </row>
   <row>
     <entry><para><link linkend="NULL">NULL</link></para></entry>
     <entry><para>Corresponds to a NULL value in a database query (not equivalent to NOTHING)</para></entry>
-    <entry><programlisting><command>NULL</command></programlisting></entry>
+    <entry><code><command>NULL</command></code></entry>
     <entry><para>n/a</para></entry>
   </row>
   <row>
     <entry><para><link linkend="NOTHING">NOTHING</link></para></entry>
     <entry><para>Represents the state of a variable having no value or function returning no value (not equivalent to NULL)</para></entry>
-    <entry><programlisting><command>NOTHING</command></programlisting></entry>
+    <entry><code><command>NOTHING</command></code></entry>
     <entry><para>n/a</para></entry>
   </row>
 
@@ -428,37 +428,37 @@ print("global a = $a\n"); </programlisting>
       <row>
 	<entry><para>Y</para></entry>
 	<entry><para>Years</para></entry>
-	<entry><programlisting>2Y</programlisting></entry>
+	<entry><code>2Y</code></entry>
 	<entry><para>2 Years</para></entry>
       </row>
       <row>
 	<entry><para>M</para></entry>
 	<entry><para>Months</para></entry>
-	<entry><programlisting>3M</programlisting></entry>
+	<entry><code>3M</code></entry>
 	<entry><para>3 Months</para></entry>
       </row>
       <row>
 	<entry><para>D</para></entry>
 	<entry><para>Days</para></entry>
-	<entry><programlisting>10D</programlisting></entry>
+	<entry><code>10D</code></entry>
 	<entry><para>10 Days</para></entry>
       </row>
       <row>
 	<entry><para>h</para></entry>
 	<entry><para>Hours</para></entry>
-	<entry><programlisting>15h</programlisting></entry>
+	<entry><code>15h</code></entry>
 	<entry><para>15 hours</para></entry>
       </row>
       <row>
 	<entry><para>m</para></entry>
 	<entry><para>Minutes</para></entry>
-	<entry><programlisting>25m</programlisting></entry>
+	<entry><code>25m</code></entry>
 	<entry><para>25 minutes</para></entry>
       </row>
       <row>
 	<entry><para>s</para></entry>
 	<entry><para>Seconds</para></entry>
-	<entry><programlisting>19s</programlisting></entry>
+	<entry><code>19s</code></entry>
 	<entry><para>19 seconds</para></entry>
       </row>
     </tbody>
@@ -479,7 +479,7 @@ language, either by an addition to this data type, or by adding another date typ
   <para>The binary data type is used to hold binary arbitrary binary data. Internally 
   it is represented by a memory pointer and a size indicator. </para>
 
-  <para>Currently this data can be manipulated by being written and read from File, Socket, and Datasource objects, or converted and parsed to/from base64 encoded strings using the <link linkend="makeBase64String">makeBase64String()</link> and <link linkend="parseBase64String">parseBase64String()</link> functions.</para>
+  <para>This data can be manipulated by being written and read from File, Socket, and Datasource objects, or converted and parsed to/from base64 encoded strings using the <link linkend="makeBase64String">makeBase64String()</link> and <link linkend="parseBase64String">parseBase64String()</link> functions, or compressed and decompressed using the <link linkend="compress">compress()</link>, <link linkend="compress2">compress2()</link>, <link linkend="uncompress_to_binary">uncompress_to_binary()</link> functions, among others.</para>
 
   <para>Binary objects can be read from a File object using the <link linkend="Qore_File_readBinary">File::readBinary()</link> method and can be written using the <link linkend="Qore_File_write">File::write()</link> method.  Please see the <link linkend='Qore_File_Class'>File Class</link> for more information.</para>
   
@@ -609,9 +609,11 @@ language, either by an addition to this data type, or by adding another date typ
 <sect1 id="Qore_Strings_and_Character_Set_Encoding">
 <title>Qore Strings and Character Set Encoding</title>
 
-<para>The Qore language is character-set aware.  All strings are assumed to have the default character set, unless the program explicitly specified another character set for certain objects and operations.  Every Qore string has a character set ID attached to it, so, when another character set is required, the Qore language will attempt to do a character set translation.</para>
+<para>The Qore language is character-set-encoding aware.  All strings are assumed to have the default character set encoding, unless the program explicitly specified another encoding for certain objects and operations.  Every Qore string has a character set encoding ID attached to it, so, when another character set is required, the Qore language will attempt to do a character set translation.</para>
 
-<para>Qore supports character sets that are backwards compatible with 7-bit ASCII.  This includes all ISO-8859-* character sets, UTF-8, KOIR-8, KOIU-8, and KOI7, among others.</para>
+<para>Qore uses the operating system's iconv library functions to perform any encoding conversions.</para>
+
+<para>Qore supports character sets that are backwards compatible with 7-bit ASCII.  This includes all ISO-8859-* character sets, UTF-8, KOIR-8, KOIU-8, and KOI7, among others.  However, mutibyte character encodings are currently only properly supported for UTF-8.  For UTF-8 strings, the <link linkend="strlen">strlen()</link>, <link linkend="index">index()</link>, <link linkend="rindex">rindex()</link>, <link linkend="Splice_Operator">splice operator</link> all work with character offsets, which may be different than byte offsets.  For all other character set encodings, a 1 byte=1 character relationship is assumed.</para>
 
 <para>The default Qore character set is determined by environment variables.</para>
 
@@ -667,85 +669,76 @@ language, either by an addition to this data type, or by adding another date typ
 	  <row>
 	    <entry><para>A variable reference</para></entry>
 	    <entry><para>Qore variables (see <link linkend="Variables">Variables</link> for more information)</para></entry>
-	    <entry>
-	      <programlisting>$var</programlisting>
-	    </entry>
+	    <entry><code>$var</code></entry>
 	  </row>
 	  <row>
 	    <entry><para>A variable or variable expression assignment</para></entry>
 	    <entry><para>Assigns a value to a lvalue (see <link linkend="Assignment_Operator">Assignment Operator</link> for more information)</para></entry>
 	    <entry>
-	      <programlisting>$var = 1
-($a, $b, $c, $date) = (1, "two", 3.3, 2005-10-28)</programlisting>
+	      <para><code>$var = 1</code></para>
+	      <para><code>($a, $b, $c, $date) = (1, "two", 3.3, 2005-10-28)</code></para>
 	    </entry>
 	  </row>
 	  <row>
 	    <entry><para>A subroutine/function call</para></entry>
 	    <entry><para>Qore subroutine calls (see <link linkend="Subroutines">Subroutines</link> for more information)</para></entry>
-	    <entry>
-	      <programlisting>calculate($var1, $var2, "string", 4)</programlisting>
+	    <entry><code>calculate($var1, $var2, "string", 4)</code>
 	    </entry>
 	  </row>
 	  <row>
 	    <entry><para>A method call</para></entry>
 	    <entry><para>Qore object method calls (see <link linkend="Objects">Objects</link> for more information)</para></entry>
-	    <entry><programlisting>$object.method("argument")</programlisting></entry>
+	    <entry><code>$object.method("argument")</code></entry>
 	  </row>
 	  <row>
 	    <entry><para>Expressions with operators</para></entry>
 	    <entry><para>Use of Qore operators (see <link linkend='Operators'>Operators</link> for more information)</para></entry>
 	    <entry>
-	      <programlisting>1 + 2
-$a || $b
-<command>background</command> my_function()</programlisting>
+	      <para><code>1 + 2</code></para>
+	      <para><code>$a || $b</code></para>
+	      <para><code><command>background</command> my_function()</code></para>
 	    </entry>
 	  </row>
 	  <row>
 	    <entry><para>An expression in parentheses</para></entry>
 	    <entry><para>Use of parentheses for clarity or to specify evaluation precedence.</para></entry>
 	    <entry>
-	      <programlisting>(1 + 2)
-(2 * (3 + 1))</programlisting>
+	      <para><code>(1 + 2)</code></para>
+	      <para><code>(2 * (3 + 1))</code></para>
 	    </entry>
 	  </row>
 	  <row>
 	    <entry><para>A list</para></entry>
 	    <entry><para>a list of values (see <link linkend="Lists">Lists</link> for more information)</para></entry>
-	    <entry>
-	    <programlisting>1, 2, 3, "four", 5.0</programlisting></entry>
+	    <entry><code>1, 2, 3, "four", 5.0</code></entry>
 	  </row>
 	  <row>
 	    <entry><para>A hash</para></entry>
 	    <entry><para>a hash (associative/keyed array) value container (see <link linkend="Hashes">Hashes</link> for more information)</para></entry>
-	    <entry>
-	      <programlisting>( "key1" : 1, "key2" : "two" )</programlisting>
+	    <entry><code>( "key1" : 1, "key2" : "two" )</code>
 	    </entry>
 	  </row>
 	  <row>
 	    <entry><para>A <command>find</command> expression</para></entry>
 	    <entry><para>Finds a value or values in a hash of lists, such as returned by the <link linkend="Qore::SQL::Datasource::select">Datasource::select() method</link> (see <link linkend="find_Expressions">find expressions</link> for more information)</para></entry>
 	    <entry>
-	      <programlisting><command>find</command> %name, %id <command>in</command> $data <command>where</command> (%name =~ /Smith/);</programlisting>
+	      <code><command>find</command> %name, %id <command>in</command> $data <command>where</command> (%name =~ /Smith/);</code>
 	    </entry>
 	  </row>
 	  <row>
 	    <entry><para>A context identifier (<code>%column</code>)</para></entry>
 	    <entry><para>A contextual reference to the value of a key of a complex data structure within the current row being iterated by a <link linkend="context_Statements"><command>context</command></link>, <link linkend="summarize_Statements"><command>summarize</command></link>, <link linkend="subcontext_Statements"><command>subcontext</command></link> statement, or a  <link linkend="find_Expressions"><command>find</command> expression</link>.</para></entry>
-	    <entry>
-	      <programlisting>%name</programlisting>
-	    </entry>
+	    <entry><code>%name</code></entry>
 	  </row>
 	  <row>
 	    <entry><para>A context row identifier (<code>%%</code>)</para></entry>
 	    <entry><para>A contextual reference to the current row of complex data structure being iterated by a <link linkend="context_Statements"><command>context</command></link>, <link linkend="summarize_Statements"><command>summarize</command></link>, <link linkend="subcontext_Statements"><command>subcontext</command></link> statement, or a <link linkend="find_Expressions"><command>find</command> expression</link>.  This expression will return a hash of the current row.</para></entry>
-	    <entry>
-	      <programlisting>%%</programlisting>
-	    </entry>
+	    <entry><code>%%</code></entry>
 	  </row>
 	  <row>
 	    <entry><para>A backquote expression</para></entry>
 	    <entry><para>Executes a UNIX process and returns the stdout as a string</para></entry>
-	    <entry><programlisting>'ls -l'</programlisting></entry>
+	    <entry><code>'ls -l'</code></entry>
 	  </row>
 	</tbody>
       </tgroup>
@@ -814,350 +807,357 @@ $a || $b
     <entry><para>``</para></entry>
     <entry><para>1</para></entry>
     <entry><para><link linkend='Backquote_Operator'>backquote/backtick operator</link></para></entry>
-    <entry><programlisting>`ls -l`</programlisting></entry>
+    <entry><code>`ls -l`</code></entry>
   </row>
   <row>
     <entry><para>{}</para></entry>
     <entry><para>1</para></entry>
     <entry><para><link linkend='Hash_Element_Expression_Dereference_Operator'>hash element or object member expression dereference operator</link></para></entry>
-    <entry><programlisting>$hash{"na" + "me"}</programlisting></entry>
+    <entry><code>$hash{"na" + "me"}</code></entry>
   </row>
   <row>
     <entry><para>.</para></entry>
     <entry><para>1</para></entry>
     <entry><para><link linkend='Hash_Element_Literal_Dereference_Operator'>hash element or object member literal dereference operator</link></para></entry>
     <entry>
-      <programlisting>$hash.name
-$obj.method()</programlisting>
+      <para><code>$hash.name</code></para>
+      <para><code>$obj.method()</code></para>
     </entry>
   </row>
   <row>
     <entry><para>[]</para></entry>
     <entry><para>1</para></entry>
     <entry><para><link linkend='List_Dereference_Operator'>list element dereference operator</link></para></entry>
-    <entry><programlisting>$list[1]</programlisting></entry>
+    <entry><code>$list[1]</code></entry>
   </row>
   <row>
     <entry><para>++</para></entry>
     <entry><para>2</para></entry>
     <entry><para><link linkend='Pre_Increment_Operator'>pre-increment operator</link>, <link linkend='Post_Increment_Operator'>post-increment operator</link></para></entry>
-    <entry><programlisting>$a++</programlisting></entry>
+    <entry><code>$a++</code></entry>
   </row>
   <row>
     <entry><para>--</para></entry>
     <entry><para>2</para></entry>
     <entry><para><link linkend='Pre_Increment_Operator'>pre-increment operator</link>, <link linkend='Post_Increment_Operator'>post-increment operator</link></para></entry>
-    <entry><programlisting>$a--</programlisting></entry>
+    <entry><code>$a--</code></entry>
   </row>
   <row>
     <entry><para><command>new</command></para></entry>
     <entry><para>3</para></entry>
     <entry><para><link linkend='New_Object_Operator'>class instantiation/new object operator</link></para></entry>
-    <entry><programlisting><command>new</command> Socket()</programlisting></entry>
+    <entry><code><command>new</command> Socket()</code></entry>
   </row>
   <row>
     <entry><para><command>background</command></para></entry>
     <entry><para>3</para></entry>
     <entry><para><link linkend='Background_Operator'>background/thread creation operator</link></para></entry>
-    <entry><programlisting><command>background</command> mainThread()</programlisting></entry>
+    <entry><code><command>background</command> mainThread()</code></entry>
   </row>
   <row>
     <entry><para>!</para></entry>
     <entry><para>4</para></entry>
     <entry><para><link linkend='Logical_Not_Operator'>logical negation operator</link></para></entry>
-    <entry><programlisting><command>if</command> (!($a &gt; 10)) ...</programlisting></entry>
+    <entry><code><command>if</command> (!($a &gt; 10)) ...</code></entry>
   </row>
   <row>
     <entry><para>~</para></entry>
     <entry><para>5</para></entry>
     <entry><para><link linkend='Binary_Not_Operator'>binary not/bit inversion operator</link></para></entry>
-    <entry><programlisting>$var = ~$var</programlisting></entry>
+    <entry><code>$var = ~$var</code></entry>
   </row>
   <row>
     <entry><para>- (unary minus)</para></entry>
     <entry><para>6</para></entry>
     <entry><para><link linkend='Unary_Minus_Operator'>unary minus operator</link></para></entry>
-    <entry><programlisting>$var = -$var</programlisting></entry>
+    <entry><code>$var = -$var</code></entry>
   </row>
   <row>
     <entry><para><command>shift</command></para></entry>
     <entry><para>7</para></entry>
     <entry><para><link linkend='Shift_Operator'>shift list element operator</link></para></entry>
-    <entry><programlisting><command>shift</command> $list</programlisting></entry>
+    <entry><code><command>shift</command> $list</code></entry>
   </row>
   <row>
     <entry><para><command>pop</command></para></entry>
     <entry><para>7</para></entry>
     <entry><para><link linkend='Pop_Operator'>pop list element operator</link></para></entry>
-    <entry><programlisting><command>pop</command> $list</programlisting></entry>
+    <entry><code><command>pop</command> $list</code></entry>
   </row>
   <row>
     <entry><para><command>elements</command></para></entry>
     <entry><para>8</para></entry>
-    <entry><para><link linkend='Elements_Operator'>number of elements list/hash operator</link></para></entry>
-    <entry><programlisting><command>elements</command> $list</programlisting></entry>
+    <entry><para><link linkend='Elements_Operator'>number of elements operator (list, hash, string, binary)</link></para></entry>
+    <entry><code><command>elements</command> $list</code></entry>
   </row>
   <row>
     <entry><para><command>keys</command></para></entry>
     <entry><para>8</para></entry>
     <entry><para><link linkend='Keys_Operator'>hash key list operator</link></para></entry>
-    <entry><programlisting><command>keys</command> $hash</programlisting></entry>
+    <entry><code><command>keys</command> $hash</code></entry>
   </row>
   <row>
     <entry><para>*</para></entry>
     <entry><para>9</para></entry>
     <entry><para><link linkend='Multiply_Operator'>arithmetic multiplication operator</link></para></entry>
-    <entry><programlisting>$var = $a * 10</programlisting></entry>
+    <entry><code>$var = $a * 10</code></entry>
   </row>
   <row>
     <entry><para>/</para></entry>
     <entry><para>9</para></entry>
     <entry><para><link linkend='Divide_Operator'>arithmetic division operator</link></para></entry>
-    <entry><programlisting>$var = $a / 10</programlisting></entry>
+    <entry><code>$var = $a / 10</code></entry>
   </row>
   <row>
     <entry><para>%</para></entry>
     <entry><para>10</para></entry>
     <entry><para><link linkend='Modula_Operator'>arithmetic modula operator</link></para></entry>
-    <entry><programlisting>$var = $a % 10</programlisting></entry>
+    <entry><code>$var = $a % 10</code></entry>
   </row>
   <row>
     <entry><para>+</para></entry>
     <entry><para>11</para></entry>
     <entry><para><link linkend='Plus_Operator'>plus operator: string, list, and hash concatenation, integer and float addition</link></para></entry>
-    <entry><programlisting>$a + 10
-"hello" + "there"
-$list + "new value"
-$hash + ( "newkey" : 100 )</programlisting>
+    <entry>
+      <para><code>$a + 10</code></para>
+      <para><code>"hello" + "there"</code></para>
+      <para><code>$list + "new value"</code></para>
+      <para><code>$hash + ( "newkey" : 100 )</code></para>
     </entry>
   </row>
   <row>
     <entry><para>-</para></entry>
     <entry><para>11</para></entry>
-    <entry><para><link linkend='Minus_Operator'>minus operator, arithmetic subtraction</link></para></entry>
-    <entry><programlisting>$a - 10</programlisting></entry>
+    <entry><para><link linkend='Minus_Operator'>minus operator (arithmetic subtraction, hash key removal)</link></para></entry>
+    <entry><code>$a - 10</code></entry>
   </row>
   <row>
     <entry><para>&gt;&gt;</para></entry>
     <entry><para>12</para></entry>
     <entry><para><link linkend='Shift_Right_Operator'>bitwise shift right operator</link></para></entry>
-    <entry><programlisting>0xff00 &gt;&gt; 8</programlisting></entry>
+    <entry><code>0xff00 &gt;&gt; 8</code></entry>
   </row>
   <row>
     <entry><para>&lt;&lt;</para></entry>
     <entry><para>12</para></entry>
     <entry><para><link linkend='Shift_Left_Operator'>bitwise shift left operator</link></para></entry>
-    <entry><programlisting>0xff00 &lt;&lt; 8</programlisting></entry>
+    <entry><code>0xff00 &lt;&lt; 8</code></entry>
   </row>
   <row>
     <entry><para><command>exists</command></para></entry>
     <entry><para>13</para></entry>
     <entry><para><link linkend='Exists_Operator'>exists value operator</link></para></entry>
-    <entry><programlisting><command>exists</command> $var</programlisting></entry>
+    <entry><code><command>exists</command> $var</code></entry>
+  </row>
+  <row>
+    <entry><para><command>instanceof</command></para></entry>
+    <entry><para>13</para></entry>
+    <entry><para><link linkend='Instanceof_Operator'>instanceof class operator</link></para></entry>
+    <entry><code><command>instanceof</command> Qore::Mutex</code></entry>
   </row>
   <row>
     <entry><para>&lt;</para></entry>
     <entry><para>14</para></entry>
     <entry><para><link linkend='Less_Than_Operator'>Logical less than operator</link></para></entry>
-    <entry><programlisting>$a &lt; 10</programlisting></entry>
+    <entry><code>$a &lt; 10</code></entry>
   </row>
   <row>
     <entry><para>&gt;</para></entry>
     <entry><para>14</para></entry>
     <entry><para><link linkend='Greater_Than_Operator'>Logical greater than operator</link></para></entry>
-    <entry><programlisting>$a &gt; 10</programlisting></entry>
+    <entry><code>$a &gt; 10</code></entry>
   </row>
   <row>
     <entry><para>==</para></entry>
     <entry><para>14</para></entry>
     <entry><para><link linkend='Equals_Operator'>Logical equality operator</link></para></entry>
-    <entry><programlisting>$a == 10</programlisting></entry>
+    <entry><code>$a == 10</code></entry>
   </row>
   <row>
     <entry><para>!=</para></entry>
     <entry><para>14</para></entry>
     <entry><para><link linkend='Not_Equals_Operator'>logical inequality operator</link></para></entry>
-    <entry><programlisting>$a != 10</programlisting></entry>
+    <entry><code>$a != 10</code></entry>
   </row>
   <row>
     <entry><para>&lt;=</para></entry>
     <entry><para>14</para></entry>
     <entry><para><link linkend='Less_Than_Or_Equals_Operator'>Logical less then or equals operator</link></para></entry>
-    <entry><programlisting>$a &lt;= 10</programlisting></entry>
+    <entry><code>$a &lt;= 10</code></entry>
   </row>
   <row>
     <entry><para>&gt;=</para></entry>
     <entry><para>14</para></entry>
     <entry><para><link linkend='Greater_Than_Or_Equals_Operator'>logical greater than or equals operator</link></para></entry>
-    <entry><programlisting>$a &gt;= 10</programlisting></entry>
+    <entry><code>$a &gt;= 10</code></entry>
   </row>
   <row>
     <entry><para>&lt;=&gt;</para></entry>
     <entry><para>14</para></entry>
     <entry><para><link linkend='Comparison_Operator'>logical comparison operator</link></para></entry>
-    <entry><programlisting>$a &lt;=&gt; $b</programlisting></entry>
+    <entry><code>$a &lt;=&gt; $b</code></entry>
   </row>
   <row>
     <entry><para>===</para></entry>
     <entry><para>14</para></entry>
     <entry><para><link linkend='Absolute_Equals_Operator'>absolute logical equality operator</link></para></entry>
-    <entry><programlisting>$a === 10</programlisting></entry>
+    <entry><code>$a === 10</code></entry>
   </row>
   <row>
     <entry><para>!==</para></entry>
     <entry><para>14</para></entry>
     <entry><para><link linkend='Absolute_Not_Equals_Operator'>absolute logical inequality operator</link></para></entry>
-    <entry><programlisting>$a !== 10</programlisting></entry>
+    <entry><code>$a !== 10</code></entry>
   </row>
   <row>
     <entry><para>=~</para></entry>
     <entry><para>14</para></entry>
     <entry><para><link linkend='Regular_Expression_Match_Operator'>regular expression match operator</link></para></entry>
-    <entry><programlisting>$a =~ /text/</programlisting></entry>
+    <entry><code>$a =~ /text/</code></entry>
   </row>
   <row>
     <entry><para>!~</para></entry>
     <entry><para>14</para></entry>
     <entry><para><link linkend='Regular_Expression_No_Match_Operator'>regular expression no match operator</link></para></entry>
-    <entry><programlisting>$a !~ /text/</programlisting></entry>
+    <entry><code>$a !~ /text/</code></entry>
   </row>
  <row>
     <entry><para>=~ s</para></entry>
     <entry><para>14</para></entry>
     <entry><para><link linkend='Regular_Expression_Substitution_Operator'>regular expression substitution operator</link></para></entry>
-    <entry><programlisting>$a =~ s/text/text/</programlisting></entry>
+    <entry><code>$a =~ s/text/text/</code></entry>
   </row>
  <row>
     <entry><para>=~ tr</para></entry>
     <entry><para>14</para></entry>
     <entry><para><link linkend='Transliteration_Operator'>transliteration operator</link></para></entry>
-    <entry><programlisting>$a =~ tr/src_chars/targ_chars/</programlisting></entry>
+    <entry><code>$a =~ tr/src_chars/targ_chars/</code></entry>
   </row>
   <row>
     <entry><para>&amp;</para></entry>
     <entry><para>15</para></entry>
     <entry><para><link linkend='Binary_And_Operator'>bitwise AND operator</link></para></entry>
-    <entry><programlisting>$a &amp; 0xff</programlisting></entry>
+    <entry><code>$a &amp; 0xff</code></entry>
   </row>
   <row>
     <entry><para>|</para></entry>
     <entry><para>15</para></entry>
     <entry><para><link linkend='Binary_Or_Operator'>bitwise OR operator</link></para></entry>
-    <entry><programlisting>$a | 0xff</programlisting></entry>
+    <entry><code>$a | 0xff</code></entry>
   </row>
   <row>
     <entry><para>^</para></entry>
     <entry><para>15</para></entry>
     <entry><para><link linkend='Binary_Xor_Operator'>bitwise XOR operator</link></para></entry>
-    <entry><programlisting>$a ^ 0xff</programlisting></entry>
+    <entry><code>$a ^ 0xff</code></entry>
   </row>
   <row>
     <entry><para>&amp;&amp;</para></entry>
     <entry><para>16</para></entry>
     <entry><para><link linkend='Logical_And_Operator'>logical AND operator</link></para></entry>
-    <entry><programlisting>($a = 1) &amp;&amp; ($b &lt; 10)</programlisting></entry>
+    <entry><code>($a = 1) &amp;&amp; ($b &lt; 10)</code></entry>
   </row>
   <row>
     <entry><para>||</para></entry>
     <entry><para>16</para></entry>
     <entry><para><link linkend='Logical_Or_Operator'>logical OR operator</link></para></entry>
-    <entry><programlisting>($a = 1) || ($b &lt; 10)</programlisting></entry>
+    <entry><code>($a = 1) || ($b &lt; 10)</code></entry>
   </row>
   <row>
     <entry><para>? :</para></entry>
     <entry><para>17</para></entry>
     <entry><para><link linkend='Conditional_Operator'>conditional operator</link></para></entry>
-    <entry><programlisting>$a == 2 ? "yes" : "no"</programlisting></entry>
+    <entry><code>$a == 2 ? "yes" : "no"</code></entry>
   </row>
   <row>
     <entry><para>,</para></entry>
     <entry><para>18</para></entry>
     <entry><para><link linkend='Comma_Operator'>comma operator</link></para></entry>
-    <entry><programlisting>1, 2, 3, 4, 5</programlisting></entry>
+    <entry><code>1, 2, 3, 4, 5</code></entry>
   </row>
   <row>
     <entry><para><command>unshift</command></para></entry>
     <entry><para>19</para></entry>
     <entry><para><link linkend='Unshift_Operator'>unshift list element operator</link></para></entry>
-    <entry><programlisting><command>unshift</command> $list, $val</programlisting></entry>
+    <entry><code><command>unshift</command> $list, $val</code></entry>
   </row>
   <row>
     <entry><para><command>push</command></para></entry>
     <entry><para>19</para></entry>
     <entry><para><link linkend='Push_Operator'>push list element operator</link></para></entry>
-    <entry><programlisting><command>push</command> $list, $val</programlisting></entry>
+    <entry><code><command>push</command> $list, $val</code></entry>
   </row>
   <row>
     <entry><para><command>splice</command></para></entry>
     <entry><para>19</para></entry>
     <entry><para><link linkend='Splice_Operator'>splice list or string operator</link></para></entry>
-    <entry><programlisting><command>splice</command> $list, 2, 2, (1, 2, 3)</programlisting></entry>
+    <entry><code><command>splice</command> $list, 2, 2, (1, 2, 3)</code></entry>
   </row>
   <row>
     <entry><para>=</para></entry>
     <entry><para>20</para></entry>
     <entry><para><link linkend='Assignment_Operator'>assignment operator</link></para></entry>
-    <entry><programlisting>$var = 1</programlisting></entry>
+    <entry><code>$var = 1</code></entry>
   </row>
   <row>
     <entry><para>+=</para></entry>
     <entry><para>21</para></entry>
     <entry><para><link linkend='Plus_Equals_Operator'>plus-equals (add-to) operator</link></para></entry>
-    <entry><programlisting>$var += 5</programlisting></entry>
+    <entry><code>$var += 5</code></entry>
   </row>
   <row>
     <entry><para>-=</para></entry>
     <entry><para>21</para></entry>
     <entry><para><link linkend='Minus_Equals_Operator'>minus-equals (subtract-from) operator</link></para></entry>
-    <entry><programlisting>$var -= 5</programlisting></entry>
+    <entry><code>$var -= 5</code></entry>
   </row>
   <row>
     <entry><para>&amp;=</para></entry>
     <entry><para>21</para></entry>
     <entry><para><link linkend='And_Equals_Operator'>and-equals operator</link></para></entry>
-    <entry><programlisting>$var &amp;= 0x2000</programlisting></entry>
+    <entry><code>$var &amp;= 0x2000</code></entry>
   </row>
   <row>
     <entry><para>|=</para></entry>
     <entry><para>21</para></entry>
     <entry><para><link linkend='Or_Equals_Operator'>or-equals operator</link></para></entry>
-    <entry><programlisting>$var |= 0x2000</programlisting></entry>
+    <entry><code>$var |= 0x2000</code></entry>
   </row>
   <row>
     <entry><para>%=</para></entry>
     <entry><para>21</para></entry>
     <entry><para><link linkend='Modula_Equals_Operator'>modula-equals operator</link></para></entry>
-    <entry><programlisting>$var %= 100</programlisting></entry>
+    <entry><code>$var %= 100</code></entry>
   </row>
   <row>
     <entry><para>*=</para></entry>
     <entry><para>21</para></entry>
     <entry><para><link linkend='Multiply_Equals_Operator'>multiply-equals operator</link></para></entry>
-    <entry><programlisting>$var *= 10</programlisting></entry>
+    <entry><code>$var *= 10</code></entry>
   </row>
   <row>
     <entry><para>/=</para></entry>
     <entry><para>21</para></entry>
     <entry><para><link linkend='Divide_Equals_Operator'>divide-equals operator</link></para></entry>
-    <entry><programlisting>$var /= 10</programlisting></entry>
+    <entry><code>$var /= 10</code></entry>
   </row>
   <row>
     <entry><para>^=</para></entry>
     <entry><para>21</para></entry>
     <entry><para><link linkend='Xor_Equals_Operator'>xor-equals operator</link></para></entry>
-    <entry><programlisting>$var ^= 0x2000</programlisting></entry>
+    <entry><code>$var ^= 0x2000</code></entry>
   </row>
   <row>
     <entry><para>&lt;&lt;=</para></entry>
     <entry><para>21</para></entry>
     <entry><para><link linkend='Shift_Left_Equals_Operator'>shift-left-equals operator</link></para></entry>
-    <entry><programlisting>$var &lt;&lt;= 0x2000</programlisting></entry>
+    <entry><code>$var &lt;&lt;= 0x2000</code></entry>
   </row>
   <row>
     <entry><para>&gt;&gt;=</para></entry>
     <entry><para>21</para></entry>
     <entry><para><link linkend='Shift_Right_Equals_Operator'>shift-right-equals operator</link></para></entry>
-    <entry><programlisting>$var &gt;&gt;= 0x2000</programlisting></entry>
+    <entry><code>$var &gt;&gt;= 0x2000</code></entry>
   </row>
 
 </tbody>
@@ -1165,7 +1165,7 @@ $hash + ( "newkey" : 100 )</programlisting>
 </table>
 
 <note>
-<para>All Qore operators perform thread-atomic actions with respect to the immediate arguments of the operator.  If the operators are used in a complex expression, the entire expression is not thread-atomic unless explicit user-level locking is used.  For example: $a += 5 is a thread-atomic action, but $a += $b-- is not atomic, but rather made up of two atomic actions.</para>
+<para>All Qore operators perform thread-atomic actions with respect to the immediate arguments of the operator.  If the operators are used in a complex expression, the entire expression is not thread-atomic unless explicit user-level locking is used.  For example: <code>$a += 5</code> is a thread-atomic action, but <code>$a += $b--</code> is not atomic, but rather made up of two atomic actions.</para>
 </note>
 
 <note>
@@ -1186,7 +1186,7 @@ $hash + ( "newkey" : 100 )</programlisting>
 </note>
 
 <note>
-  <para>The Qore comma ',' operator has a higher precendece than the '=' operator, meaning that a statement like $a = 1, 2, 3; is possible without parentheses.  However, it means that a statment like $a = func(1, 2, $b = 3, 4); will probably not do what you want (it use $b as the third argument which is assigned to the list (3, 4)); you must write $a = func(1, 2, ($b = 3), 4); to pass 4 arguments to the function func.</para>
+  <para>The Qore comma ',' operator has a higher precendece than the '=' operator, meaning that a statement like <code>$a = 1, 2, 3;</code> is possible without parentheses.  However, it means that a statment like <code>$a = func(1, 2, $b = 3, 4);</code> will probably not do what you want (it use <code>$b</code> as the third argument which is assigned to the list <code>(3, 4)</code>); you must write <code>$a = func(1, 2, ($b = 3), 4);</code> to pass 4 arguments to the function <code>func</code>.</para>
 </note>
 
 <sect2 id="Backquote_Operator">
@@ -1750,7 +1750,7 @@ $hash + ( "newkey" : 100 )</programlisting>
     <varlistentry>
       <term>Example</term>
       <listitem>
-	<programlisting></programlisting>
+	<programlisting>$obj = <command>new</command> Qore::Mutex();</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -2115,13 +2115,13 @@ $hash + ( "newkey" : 100 )</programlisting>
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Returns the number of elements in a list or the number of keys in a hash.</para>
+	<para>Returns the number of elements in a list, the number of keys in a hash, the number of characters (not bytes) in a string, or the number of bytes in a binary object.</para>
      </listitem>
     </varlistentry>
     <varlistentry>
       <term>Syntax</term>
       <listitem>
-	<programlisting><command>elements</command> <replaceable>container_expression</replaceable></programlisting>
+	<programlisting><command>elements</command> <replaceable>expression</replaceable></programlisting>
       </listitem>
     </varlistentry>
 
@@ -2150,6 +2150,14 @@ $hash + ( "newkey" : 100 )</programlisting>
 	<row>
 	  <entry><para>Hash</para></entry>
 	  <entry><para>Returns the number of keys in the hash.</para></entry>
+	</row>
+	<row>
+	  <entry><para>String</para></entry>
+	  <entry><para>Returns the number of characters in the string.</para></entry>
+	</row>
+	<row>
+	  <entry><para>Binary</para></entry>
+	  <entry><para>Returns the number of bytes in the binary object.</para></entry>
 	</row>
       </tbody>
     </tgroup>
@@ -2427,7 +2435,7 @@ $hash + ( "newkey" : 100 )</programlisting>
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Subtracts one number from another.</para>
+	<para>With float or integer arguments, subtracts one number from another, however if the left-hand side is a hash, and the right-hand side is a string, then the hash key represented by the string will be removed from the hash.</para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -2441,6 +2449,7 @@ $hash + ( "newkey" : 100 )</programlisting>
       <term>Example</term>
       <listitem>
 	<programlisting>$num = $x - $y;</programlisting>
+	<programlisting>$hash = $hash - "key";</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -2462,6 +2471,10 @@ $hash + ( "newkey" : 100 )</programlisting>
 	<row>
 	  <entry><para>Integer</para></entry>
 	  <entry><para>arithmetic subtraction: <replaceable>expression1</replaceable> - <replaceable>expression2</replaceable></para></entry>
+	</row>
+	<row>
+	  <entry><para>Hash - String</para></entry>
+	  <entry><para>hash key deletion: <replaceable>expression1</replaceable> - <replaceable>expression2</replaceable></para></entry>
 	</row>
       </tbody>
     </tgroup>
@@ -2554,6 +2567,53 @@ $hash + ( "newkey" : 100 )</programlisting>
   <row>
     <entry><para>Integer</para></entry>
     <entry><para>Gives the result of shifting <replaceable>expression1</replaceable> left by <replaceable>expression2</replaceable> bits.  Arguments are converted to integers if necessary.</para></entry>
+  </row>
+
+</tbody>
+</tgroup>
+</table>
+
+<para>This operator does not throw any exceptions.</para>
+
+</sect2>
+    <sect2 id="Instanceof_Operator">
+      <title>Class Instance Operator (instanceof)</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Tests if an expression is an instance of a class or not.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Syntax</term>
+	  <listitem>
+	    <programlisting><replaceable>expression</replaceable> <command>instanceof</command> <replaceable>class_specification</replaceable></programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting><command>if</command> ($obj <command>instanceof</command> Qore::Mutex)
+    print("object is Mutex\n");</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+  <table><title>Arguments Processed By instanceof</title>
+<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+  <thead>
+  <row>
+    <entry><para>Argument</para></entry>
+    <entry><para>Processing</para></entry>
+  </row>
+  </thead>
+
+<tbody>
+  <row>
+    <entry><para><replaceable>expression</replaceable></para></entry>
+    <entry><para>If <replaceable>expression</replaceable> is an instance of the named class, then the operator returns True, otherwise returns False.  The operator will return True if the class is a base class, also even if it is privately inherited.</para></entry>
   </row>
 
 </tbody>
@@ -3960,7 +4020,7 @@ $hash + ( "newkey" : 100 )</programlisting>
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Decrements the value of an lvalue by the value of an expression.</para>
+	<para>For a float or integer argument, decrements the value of an lvalue by the value of an expression.  However if the lvalue is a hash and the expression is a string, removes the key represented by the string from the hash.</para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -3989,6 +4049,10 @@ $hash + ( "newkey" : 100 )</programlisting>
       <row>
 	<entry><para><replaceable>lvalue</replaceable>: Float</para></entry>
 	<entry><para>the expression will be evaluated and converted to a float if necessary and subtracted from the lvalue</para></entry>
+      </row>
+      <row>
+	<entry><para><replaceable>lvalue</replaceable>: Hash, <replaceable>expression</replaceable>: String</para></entry>
+	<entry><para>the hash key represented by <replaceable>expression</replaceable> will be removed from the lvalue</para></entry>
       </row>
       <row>
 	<entry><para><replaceable>lvalue</replaceable>: all others</para></entry>
@@ -4348,35 +4412,75 @@ $hash + ( "newkey" : 100 )</programlisting>
 
 </sect1>
 
-<sect1 id="Date_Arithmetic">
-  <title>Date Arithmetic</title>
+  <sect1 id="Regular_Expressions">
+    <title>Regular Expressions in Qore</title>
 
-  <para>Date arithmetic is relatively straightforward and should normally produce the expected results.  However with leap years and months with different lengths, the situation can be confusing; this section will clarify how Qore does date arithmetic considering these special cases.</para>
+    <para>Regular expression functionality in Qore is provided by <ulink url="http://www.pcre.org">PCRE: Perl-Compatible Regular Expression library</ulink>.</para>
 
-  <sect2 id="Addding_And_Subtracting_Years_And_Monts">
-    <title>Adding and Subtracting Years and Months</title>
+    <para>Using this library, Qore implements regular expression pattern matching using the same syntax and semantics as Perl 5.</para>
 
-    <para>Adding or subtracting years and months (ex: $date += 2Y + 3M) will give you the same day on the desired month in the desired year. If the target month has fewer days than the source month, then you will get the last day of the month in that year. For example:</para>
+    <para>See the table below for valid regular expression options.</para>
 
-    <programlisting>2004-02-29 - 1Y = 2003-02-28</programlisting>
-  </sect2>
+    <table id="Regular_Expression_Options">
+      <title>Regular Expression Options</title>
+      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>Option</para></entry>
+	    <entry><para>Description</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row>
+	    <entry><para>/i</para></entry>
+	    <entry><para>Ignores case when matching</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>/m</para></entry>
+	    <entry><para>makes start-of-line (^) or end-of-line ($) match after or before any newline in the subject string</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>/s</para></entry>
+	    <entry><para>makes a dot (.) match a newline character</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>/x</para></entry>
+	    <entry><para>ignores whitespace characters and enables comments prefixed by #</para></entry>
+	  </row>
+	</tbody>
+      </tgroup>
+    </table>
+  </sect1>
 
-  <sect2 id="Addding_And_Subtracting_Days">
-    <title>Adding and Subtracting Days</title>
-    <para>Adding or subtracting days does not mean adding or subtracting 24h periods.  In most cases, one day represents 24 hours, but in the case of daylight savings time changes, a day can be 23 or 25 hours.</para>
-  </sect2>
+  <sect1 id="Date_Arithmetic">
+    <title>Date Arithmetic</title>
 
-  <sect2 id="Timezones_And_Daylight_Savings_Time">
-    <title>Timezones and Daylight Savings Time </title>
-    <para>Unless otherwise documented, all times are assumed to be in the timezone set for the system.  Daylight Savings Time is taken into effect for date addition and subtraction.</para>
-  </sect2>
+    <para>Date arithmetic is relatively straightforward and should normally produce the expected results.  However with leap years and months with different lengths, the situation can be confusing; this section will clarify how Qore does date arithmetic considering these special cases.</para>
 
-</sect1>
+    <sect2 id="Addding_And_Subtracting_Years_And_Monts">
+      <title>Adding and Subtracting Years and Months</title>
 
-<sect1 id="Statements">
-  <title>Statements</title>
+      <para>Adding or subtracting years and months (ex: $date += 2Y + 3M) will give you the same day on the desired month in the desired year. If the target month has fewer days than the source month, then you will get the last day of the month in that year. For example:</para>
 
-  <para>Non-block statements in Qore are always terminated by a semi-colon ";" as in Perl, C, or Java. Statements can be grouped into blocks, which are delimited by curly brackets "{" and "}" containing zero or more semi-colon delimited statements, as in C or Java. Like C, C++, and Java, but unlike perl, any Qore statement taking a statement modifier will accept a single statement or a statement block.</para>
+      <programlisting>2004-02-29 - 1Y = 2003-02-28</programlisting>
+    </sect2>
+
+    <sect2 id="Addding_And_Subtracting_Days">
+      <title>Adding and Subtracting Days</title>
+      <para>Adding or subtracting days does not mean adding or subtracting 24h periods.  In most cases, one day represents 24 hours, but in the case of daylight savings time changes, a day can be 23 or 25 hours.</para>
+    </sect2>
+    
+    <sect2 id="Timezones_And_Daylight_Savings_Time">
+      <title>Timezones and Daylight Savings Time </title>
+      <para>Unless otherwise documented, all times are assumed to be in the timezone set for the system.  Daylight Savings Time is taken into effect for date addition and subtraction.</para>
+    </sect2>
+    
+  </sect1>
+  
+  <sect1 id="Statements">
+    <title>Statements</title>
+
+    <para>Non-block statements in Qore are always terminated by a semi-colon ";" as in Perl, C, or Java. Statements can be grouped into blocks, which are delimited by curly brackets "{" and "}" containing zero or more semi-colon delimited statements, as in C or Java. Like C, C++, and Java, but unlike perl, any Qore statement taking a statement modifier will accept a single statement or a statement block.</para>
 
 <para>A statement can be any of the following (note that statements are also recursively defined):</para>
 
@@ -4398,22 +4502,22 @@ $hash + ( "newkey" : 100 )</programlisting>
 $var += 5;
 $var[1].count++;
 <command>shift</command> $var.key[$i];</programlisting></entry>
-    <entry><link linkend="Expressions">Expressions</link></entry>
+    <entry><para><link linkend="Expressions">Expressions</link></para></entry>
   </row>
   <row>
     <entry><para>An expression with the <command>new</command> operator</para></entry>
     <entry><programlisting><command>new</command> ObjectClass(1, 2, 3);</programlisting></entry>
-    <entry><link linkend='New_Object_Operator'>class instantiation/new object operator</link></entry>
+    <entry><para><link linkend='New_Object_Operator'>class instantiation/new object operator</link></para></entry>
   </row>
   <row>
     <entry><para>An expression with the <command>background</command> operator</para></entry>
     <entry><programlisting><command>background</command> function();</programlisting></entry>
-    <entry><link linkend='Background_Operator'>background/thread creation operator</link></entry>
+    <entry><para><link linkend='Background_Operator'>background/thread creation operator</link></para></entry>
   </row>
   <row>
     <entry><para>A method call</para></entry>
     <entry><programlisting>$object.method(1, 2, 3);</programlisting></entry>
-    <entry><link linkend="Classes">Classes</link> </entry>
+    <entry><para><link linkend="Classes">Classes</link></para></entry>
   </row>
   <row>
     <entry><para>An "if" statement </para></entry>
@@ -4422,7 +4526,10 @@ $var[1].count++;
   </row>
   <row>
     <entry><para>An "if ... else" statement</para></entry>
-    <entry><programlisting><command>if</command> ($var == 3) <replaceable>statement </replaceable><command>else</command> <replaceable>statement</replaceable></programlisting></entry>
+    <entry><programlisting><command>if</command> ($var == 3)
+    <replaceable>statement</replaceable>
+<command>else</command>
+    <replaceable>statement</replaceable></programlisting></entry>
     <entry><para><link linkend='if_and_else_Statements'>if and else Statements</link></para></entry>
   </row>
   <row>
@@ -4956,9 +5063,8 @@ $var[1].count++;
 	<para><replaceable>data_expression</replaceable></para>
 	<para>This must evaluate to a hash of arrays in order for the <command>context</command> statement to execute.</para>
 
-	<programlisting>[ <command>where</command> ( <replaceable>expression</replaceable> ) ]</programlisting>
-	<para>An optional <command>where</command> 
-	expression may be given, in which case for each row in the hash, 
+	<para><code>[ <command>where</command> ( <replaceable>expression</replaceable> ) ]</code></para>
+	<para>An optional <command>where</command> expression may be given, in which case for each row in the hash, 
 	the expression will be executed, and if the <command>where</command> expression evaluates to True, 
 	the row will be iterated in the <command>context</command> loop. If this expression evaluates 
 	to False, then the row will not be iterated. This option is given so the 
@@ -4966,10 +5072,10 @@ $var[1].count++;
 	result set) in memory rather than build different data structures by 
 	hand.</para>
 
-	<programlisting>[ <command>sortBy</command> ( <replaceable>expression</replaceable> ) ]</programlisting>
+	<para><code>[ <command>sortBy</command> ( <replaceable>expression</replaceable> ) ]</code></para>
 	<para>An optional <command>sort_by</command> expression may also be given. In this case, the expression will be evaluated for each row of the query given, and then the result set will be sorted in ascending order by the results of the expressions according to the resulting type of the evaluated expression (i.e. if the result of the evaluation of the expression gives a string, then string order is used to sort, if the result of the evaluation is an integer, then integer order is used, etc).</para>
 
-	<programlisting>[ <command>sortDescendingBy</command> ( <replaceable>expression</replaceable> ) ]</programlisting>
+	<para><code>[ <command>sortDescendingBy</command> ( <replaceable>expression</replaceable> ) ]</code></para>
 	<para>Another optional modifier to the context statement that behaves the same as above except that the results are sorted in descending order.</para>
       </listitem>
     </varlistentry>
@@ -5015,7 +5121,7 @@ $var[1].count++;
       <listitem>
 	<para><command>summarize</command> statements modifiers have the same effect as those for the <command>context</command> statement, except for the following:</para>
 
-	<programlisting><command>by</command> ( <replaceable>expression</replaceable> )</programlisting>
+	<para><code><command>by</command> ( <replaceable>expression</replaceable> )</code></para>
 	<para>The <command>by</command> expression is executed for each row in the data structure indicated. 
 	The set of unique results defines groups of result rows. For each group of 
 	result rows, each row having an identical result of the evaluation of the 
@@ -5365,6 +5471,8 @@ $var[1].count++;
 
   <para>The Qore language is thread-safe and Qore programs should not crash the Qore executable due to threading errors.  Threading errors should only cause application errors.</para>
 
+  <para>Threading functionality in Qore is provided by the operating system's POSIX threads library.</para>
+
   <sect2 id="Creating_and_Terminating_Threads">
     <title>Creating and Terminating Threads</title>
 
@@ -5508,7 +5616,7 @@ $var[1].count++;
   <para>The exception hash contains the following members:</para>
 
   <table>
-    <title>Exception hash keys</title>
+    <title>Exception Hash Keys</title>
     <tgroup cols='3' align='left' colsep='1' rowsep='1'>
       <thead>
 	<row>
@@ -5519,37 +5627,37 @@ $var[1].count++;
       </thead>
       <tbody>
 	<row>
-	  <entry><para>type</para></entry>
+	  <entry><para><code>type</code></para></entry>
 	  <entry><para>string</para></entry>
 	  <entry><para>"System" or "User" depending on exception type</para></entry>
 	</row>
 	<row>
-	  <entry><para>file</para></entry>
+	  <entry><para><code>file</code></para></entry>
 	  <entry><para>string</para></entry>
 	  <entry><para>File name of file where exception occurred</para></entry>
 	</row>
 	<row>
-	  <entry><para>line</para></entry>
+	  <entry><para><code>line</code></para></entry>
 	  <entry><para>integer</para></entry>
 	  <entry><para>Line number where exception occurred</para></entry>
 	</row>
 	<row>
-	  <entry><para>callStack</para></entry>
+	  <entry><para><code>callStack</code></para></entry>
 	  <entry><para>list of hashes</para></entry>
 	  <entry><para>Backtrace information</para></entry>
 	</row>
 	<row>
-	  <entry><para>err</para></entry>
+	  <entry><para><code>err</code></para></entry>
 	  <entry><para>any</para></entry>
 	  <entry><para>This key is populated with the value of the first expression of the <command>throw</command> statement.  For system exceptions, this is a string giving the exception code.</para></entry>
 	</row>
 	<row>
-	  <entry><para>desc</para></entry>
+	  <entry><para><code>desc</code></para></entry>
 	  <entry><para>any</para></entry>
 	  <entry><para>This key is populated with the value of the second expression of the <command>throw</command> statement (if a list was thrown).  For system exceptions, this is a string giving a text description of the error.</para></entry>
 	</row>
 	<row>
-	  <entry><para>arg</para></entry>
+	  <entry><para><code>arg</code></para></entry>
 	  <entry><para>any</para></entry>
 	  <entry><para>This key is populated with the value of the third expression of the <command>throw</command> statement (if a list was thrown).  For system exceptions, this is not populated.</para></entry>
 	</row>
@@ -5569,27 +5677,27 @@ $var[1].count++;
       </thead>
       <tbody>
 	<row>
-	  <entry><para>function</para></entry>
+	  <entry><para><code>function</code></para></entry>
 	  <entry><para>string</para></entry>
 	  <entry><para>function name </para></entry>
 	</row>
 	<row>
-	  <entry><para>line</para></entry>
+	  <entry><para><code>line</code></para></entry>
 	  <entry><para>integer</para></entry>
 	  <entry><para>line number</para></entry>
 	</row>
 	<row>
-	  <entry><para>file</para></entry>
+	  <entry><para><code>file</code></para></entry>
 	  <entry><para>string</para></entry>
 	  <entry><para>file name</para></entry>
 	</row>
 	<row>
-	  <entry><para>type</para></entry>
+	  <entry><para><code>type</code></para></entry>
 	  <entry><para>string</para></entry>
 	  <entry><para>Exception Type (ET_*) constants; see <link linkend="Qore_Exception_Constants">Exception Constants</link> for values.</para></entry>
 	</row>
 	<row>
-	  <entry><para>typecode</para></entry>
+	  <entry><para><code>typecode</code></para></entry>
 	  <entry><para>integer</para></entry>
 	  <entry><para>Call Type (CT_*) constants; see <link linkend="Qore_Exception_Constants">Exception Constants</link> for values.</para></entry>
 	</row>
@@ -5604,7 +5712,9 @@ $var[1].count++;
   <sect1 id="XML_Integration">
     <title>XML Integration</title>
 
-    <para>XML provides an excellent way to describe hierarchical data, and Qore allows for easy serialization and deserialization between XML strings and Qore data structures.</para>
+    <para>XML functionality in Qore is provided by the <ulink url="http://www.xmlsoft.org">libxml2</ulink> library, which provides a powerful, stable, clean, and thread-safe basis for XML integration in Qore.</para>
+
+    <para>XML provides an excellent way to describe hierarchical data, and thanks to libxml2, Qore can allow for easy serialization and deserialization between XML strings and Qore data structures.</para>
 
     <para>Note that XML attributes are represented in Qore data structures in a hash key named <code>^attributes^</code>.  The value of this key should be a hash, and each member of this hash will represent an attribute-value pair.</para>
     
@@ -5696,15 +5806,15 @@ $var[1].count++;
 	  </row>
 	  <row>
 	    <entry><para><link linkend="parseXMLRPCCall">parseXMLRPCCall()</link></para></entry>
-	    <entry>deserializies an XML-RPC call string, returning a Qore hash respresenting the call information.</entry>
+	    <entry><para>deserializies an XML-RPC call string, returning a Qore hash respresenting the call information.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="parseXMLRPCResponse">parseXMLRPCResponse()</link></para></entry>
-	    <entry>deserializies an XML-RPC response string, returning a Qore hash respresenting the response information.</entry>
+	    <entry><para>deserializies an XML-RPC response string, returning a Qore hash respresenting the response information.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="parseXMLRPCValue">parseXMLRPCValue()</link></para></entry>
-	    <entry>deserializies an XML-RPC value tree, returning a Qore hash respresenting the information.</entry>
+	    <entry><para>deserializies an XML-RPC value tree, returning a Qore hash respresenting the information.</para></entry>
 	  </row>
 	</tbody>
       </tgroup>

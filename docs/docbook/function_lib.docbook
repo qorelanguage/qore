@@ -1741,7 +1741,7 @@
           <entry>
             <para>Y</para>
           </entry>
-          <entry>Parses a URL string and returns a hash of the components.</entry>
+          <entry><para>Parses a URL string and returns a hash of the components.</para></entry>
         </row>
         <row>
           <entry>
@@ -1755,7 +1755,7 @@
           <entry>
             <para>Y</para>
           </entry>
-          <entry>parses an XML string and returns a Qore hash structure.</entry>
+          <entry><para>parses an XML string and returns a Qore hash structure.</para></entry>
         </row>
         <row>
           <entry>
@@ -1769,7 +1769,7 @@
           <entry>
             <para>Y</para>
           </entry>
-          <entry>deserializies an XML-RPC call string, returning a Qore data structure representing the call information.</entry>
+          <entry><para>deserializies an XML-RPC call string, returning a Qore data structure representing the call information.</para></entry>
         </row>
         <row>
           <entry>
@@ -1783,7 +1783,7 @@
           <entry>
             <para>Y</para>
           </entry>
-          <entry>deserializies an XML-RPC response string, returning a Qore data structure representing the response information.</entry>
+          <entry><para>deserializies an XML-RPC response string, returning a Qore data structure representing the response information.</para></entry>
         </row>
         <row>
           <entry>
@@ -1797,7 +1797,7 @@
           <entry>
             <para>Y</para>
           </entry>
-          <entry>deserializies an XML-RPC value tree, returning a Qore data structure representing the information.</entry>
+          <entry><para>deserializies an XML-RPC value tree, returning a Qore data structure representing the information.</para></entry>
         </row>
         <row>
           <entry>
@@ -4164,103 +4164,103 @@
       </thead>
       <tbody>
 	<row>
-	  <entry><para>YY</para></entry>
+	  <entry><para><code>YY</code></para></entry>
 	  <entry><para>last two digits of year</para></entry>
 	</row>
 	<row>
-	  <entry><para>YYYY</para></entry>
+	  <entry><para><code>YYYY</code></para></entry>
 	  <entry><para>four-digit year</para></entry>
 	</row>
 	<row>
-	  <entry><para>M</para></entry>
+	  <entry><para><code>M</code></para></entry>
 	  <entry><para>non zero-padded month number (1-12)</para></entry>
 	</row>
 	<row>
-	  <entry><para>MM</para></entry>
+	  <entry><para><code>MM</code></para></entry>
 	  <entry><para>zero-padded two-digit month number (01-12)</para></entry>
 	</row>
 	<row>
-	  <entry><para>Month</para></entry>
+	  <entry><para><code>Month</code></para></entry>
 	  <entry><para>long month string (ex: January)</para></entry>
 	</row>
 	<row>
-	  <entry><para>MONTH</para></entry>
+	  <entry><para><code>MONTH</code></para></entry>
 	  <entry><para>long month string capitalized (ex:   JANUARY)</para></entry>
 	</row>
 	<row>
-	  <entry><para>Mon</para></entry>
+	  <entry><para><code>Mon</code></para></entry>
 	  <entry><para>abbreviated month (ex: Jan)</para></entry>
 	</row>
 	<row>
-	  <entry><para>MON</para></entry>
+	  <entry><para><code>MON</code></para></entry>
 	  <entry><para>abbreviated month, capitalized (ex: JAN) </para></entry>
 	</row>
 	<row>
-	  <entry><para>D</para></entry>
+	  <entry><para><code>D</code></para></entry>
 	  <entry><para>non zero-padded day number (1 - 31)</para></entry>
 	</row>
 	<row>
-	  <entry><para>DD</para></entry>
+	  <entry><para><code>DD</code></para></entry>
 	  <entry><para>zero-padded day number (01 - 31)</para></entry>
 	</row>
 	<row>
-	  <entry><para>Day</para></entry>
+	  <entry><para><code>Day</code></para></entry>
 	  <entry><para>long day of week string (ex: Monday)</para></entry>
 	</row>
 	<row>
-	  <entry><para>DAY</para></entry>
+	  <entry><para><code>DAY</code></para></entry>
 	  <entry><para>long day of week string, capitalized (ex: 
 	  MONDAY)</para></entry>
 	</row>
 	<row>
-	  <entry><para>Dy</para></entry>
+	  <entry><para><code>Dy</code></para></entry>
 	  <entry><para>abbreviated day of week string (ex: Mon)</para></entry>
 	</row>
 	<row>
-	  <entry><para>DY</para></entry>
+	  <entry><para><code>DY</code></para></entry>
 	  <entry><para>abbreviated day of week string capitalised (ex: 
 	  MON)</para></entry>
 	</row>
 	<row>
-	  <entry><para>H</para></entry>
+	  <entry><para><code>H</code></para></entry>
 	  <entry><para>non zero-padded hour number (0 - 23)</para></entry>
 	</row>
 	<row>
-	  <entry><para>HH</para></entry>
+	  <entry><para><code>HH</code></para></entry>
 	  <entry><para>zero-padded hour number (00 - 23)</para></entry>
 	</row>
 	<row>
-	  <entry><para>h</para></entry>
+	  <entry><para><code>h</code></para></entry>
 	  <entry><para>non zero-padded hour number, 12-hour clock (1 - 12) 
 	  </para></entry>
 	</row>
 	<row>
-	  <entry><para>hh</para></entry>
+	  <entry><para><code>hh</code></para></entry>
 	  <entry><para>zero-padded hour number, 12-hour clock (01 - 12) 
 	  </para></entry>
 	</row>
 	<row>
-	  <entry><para>m</para></entry>
+	  <entry><para><code>m</code></para></entry>
 	  <entry><para>non zero-padded minute number (0 - 59)</para></entry>
 	</row>
 	<row>
-	  <entry><para>mm</para></entry>
+	  <entry><para><code>mm</code></para></entry>
 	  <entry><para>zero-padded minute number (00 - 59)</para></entry>
 	</row>
 	<row>
-	  <entry><para>S</para></entry>
+	  <entry><para><code>S</code></para></entry>
 	  <entry><para>non zero-padded second number (0 - 59)</para></entry>
 	</row>
 	<row>
-	  <entry><para>SS</para></entry>
+	  <entry><para><code>SS</code></para></entry>
 	  <entry><para>zero-padded second number (00 - 59)</para></entry>
 	</row>
 	<row>
-	  <entry><para>P</para></entry>
+	  <entry><para><code>P</code></para></entry>
 	  <entry><para>AM or PM (upper-case)</para></entry>
 	</row>
 	<row>
-	  <entry><para>p</para></entry>
+	  <entry><para><code>p</code></para></entry>
 	  <entry><para>am or pm (lower-case)</para></entry>
 	</row>	
       </tbody>
@@ -5840,7 +5840,7 @@
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>regex(<replaceable>string, pattern_string</replaceable>)</programlisting>
+	<programlisting>regex(<replaceable>string, pattern_string, [options]</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -5859,7 +5859,7 @@
             <row>
 	      <entry><para>String, String</para></entry>
               <entry><para>Boolean</para></entry>
-              <entry><para>Returns True if <replaceable>string</replaceable> matches <replaceable>pattern</replaceable>, False if not.</para></entry>
+              <entry><para>Returns True if <replaceable>string</replaceable> matches <replaceable>pattern</replaceable>, False if not.  For valid options, see <link linkend="Qore_Regex_Constants">Regex Constants</link></para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -5881,6 +5881,8 @@
     </tbody>
   </tgroup>
   </table>
+
+  <para>For more information on regular expression processing, see <link linkend="Regular_Expressions">Regular Expressions</link>.</para>
 
 </sect2>
 
@@ -5916,7 +5918,7 @@
             <row>
 	      <entry><para>String, String, String, [Integer]</para></entry>
               <entry><para>String</para></entry>
-              <entry><para>Returns the result of <replaceable>string =~ s/pattern_string/target_string/options</replaceable>.</para></entry>
+              <entry><para>Returns the result of <replaceable>string =~ s/pattern_string/target_string/[options]</replaceable>.  For valid options, see <link linkend="Qore_Regex_Constants">Regex Constants</link></para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -5942,6 +5944,8 @@
     </tbody>
   </tgroup>
   </table>
+
+  <para>For more information on regular expression processing, see <link linkend="Regular_Expressions">Regular Expressions</link>.</para>
 
 </sect2>
 
@@ -8033,7 +8037,7 @@
   </variablelist>
 
   <table>
-    <title>Arguments and Return Values for compress()</title>
+    <title>Arguments and Return Values for compress2()</title>
     <tgroup cols='3' align='left' colsep='1' rowsep='1'>
       <thead>
 	<row>
@@ -10679,7 +10683,7 @@
 
   <para>After the "%" sign, there can be zero or more flags as follows:</para>
   <table>
-    <title>After the "%" sign, there can be zero or more flags as follows:</title>
+    <title>Printf Formatting Flags</title>
     <tgroup cols='2' align='left' colsep='1' rowsep='1'>
       <thead>
 	<row>
@@ -10711,7 +10715,7 @@
   <para>For floating-point arguments, a precision specifier may be given by including a period "." and another digit string, which indicates the number of digits to appear after the decimal point.</para>
   <para>Then the format character is given as follows:</para>
   <table>
-    <title>Then the format character is given as follows:</title>
+    <title>Printf Formatting Characters</title>
     <tgroup cols='2' align='left' colsep='1' rowsep='1'>
       <thead>
 	<row>
