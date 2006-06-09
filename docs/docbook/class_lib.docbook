@@ -743,7 +743,7 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>FILE-WRITE-ERROR</para></entry>
+	      <entry><para><code>FILE-WRITE-ERROR</code></para></entry>
 	      <entry><para>File is not open.</para></entry>
 	    </row>
 	  </tbody>
@@ -824,7 +824,7 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>FILE-WRITE-ERROR</para></entry>
+	      <entry><para><code>FILE-WRITE-ERROR</code></para></entry>
 	      <entry><para>File is not open.</para></entry>
 	    </row>
 	  </tbody>
@@ -1083,7 +1083,7 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>FILE-WRITE-ERROR</para></entry>
+	      <entry><para><code>FILE-WRITE-ERROR</code></para></entry>
 	      <entry><para>File is not open.</para></entry>
 	    </row>
 	  </tbody>
@@ -1175,7 +1175,7 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>FILE-OPEN-PARAMETER-ERROR</para></entry>
+	      <entry><para><code>FILE-OPEN-PARAMETER-ERROR</code></para></entry>
 	      <entry><para>Missing filename argument.</para></entry>
 	    </row>
 	  </tbody>
@@ -1252,11 +1252,11 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>FILE-READ-PARAMETER-ERROR</para></entry>
+	      <entry><para><code>FILE-READ-PARAMETER-ERROR</code></para></entry>
 	      <entry><para>Missing size argument.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>FILE-READ-ERROR</para></entry>
+	      <entry><para><code>FILE-READ-ERROR</code></para></entry>
 	      <entry><para>File is not open.</para></entry>
 	    </row>
 	  </tbody>
@@ -1333,7 +1333,7 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>FILE-READ-ERROR</para></entry>
+	      <entry><para><code>FILE-READ-ERROR</code></para></entry>
 	      <entry><para>File is not open.</para></entry>
 	    </row>
 	  </tbody>
@@ -1409,7 +1409,7 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>FILE-READ-ERROR</para></entry>
+	      <entry><para><code>FILE-READ-ERROR</code></para></entry>
 	      <entry><para>File is not open.</para></entry>
 	    </row>
 	  </tbody>
@@ -1485,7 +1485,7 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>FILE-READ-ERROR</para></entry>
+	      <entry><para><code>FILE-READ-ERROR</code></para></entry>
 	      <entry><para>File is not open.</para></entry>
 	    </row>
 	  </tbody>
@@ -1559,7 +1559,7 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>FILE-READ-ERROR</para></entry>
+	      <entry><para><code>FILE-READ-ERROR</code></para></entry>
 	      <entry><para>File is not open.</para></entry>
 	    </row>
 	  </tbody>
@@ -1633,7 +1633,7 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>FILE-READ-ERROR</para></entry>
+	      <entry><para><code>FILE-READ-ERROR</code></para></entry>
 	      <entry><para>File is not open.</para></entry>
 	    </row>
 	  </tbody>
@@ -1708,11 +1708,11 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>FILE-READ-BINARY-PARAMETER-ERROR</para></entry>
+	      <entry><para><code>FILE-READ-BINARY-PARAMETER-ERROR</code></para></entry>
 	      <entry><para>Missing size argument.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>FILE-READ-ERROR</para></entry>
+	      <entry><para><code>FILE-READ-ERROR</code></para></entry>
 	      <entry><para>File is not open.</para></entry>
 	    </row>
 	  </tbody>
@@ -1788,7 +1788,7 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>FILE-READLINE-ERROR</para></entry>
+	      <entry><para><code>FILE-READLINE-ERROR</code></para></entry>
 	      <entry><para>File is not open.</para></entry>
 	    </row>
 	  </tbody>
@@ -2041,7 +2041,7 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>FILE-WRITE-ERROR</para></entry>
+	      <entry><para><code>FILE-WRITE-ERROR</code></para></entry>
 	      <entry><para>File is not open.</para></entry>
 	    </row>
 	  </tbody>
@@ -2117,11 +2117,11 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>FILE-WRITE-PARAMETER-ERROR</para></entry>
+	      <entry><para><code>FILE-WRITE-PARAMETER-ERROR</code></para></entry>
 	      <entry><para>Missing string or binary argument.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>FILE-WRITE-ERROR</para></entry>
+	      <entry><para><code>FILE-WRITE-ERROR</code></para></entry>
 	      <entry><para>File is not open.</para></entry>
 	    </row>
 	  </tbody>
@@ -2195,7 +2195,7 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>FILE-WRITE-ERROR</para></entry>
+	      <entry><para><code>FILE-WRITE-ERROR</code></para></entry>
 	      <entry><para>File is not open.</para></entry>
 	    </row>
 	  </tbody>
@@ -2270,7 +2270,7 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>FILE-WRITE-ERROR</para></entry>
+	      <entry><para><code>FILE-WRITE-ERROR</code></para></entry>
 	      <entry><para>File is not open.</para></entry>
 	    </row>
 	  </tbody>
@@ -2345,7 +2345,7 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>FILE-WRITE-ERROR</para></entry>
+	      <entry><para><code>FILE-WRITE-ERROR</code></para></entry>
 	      <entry><para>File is not open.</para></entry>
 	    </row>
 	  </tbody>
@@ -2419,7 +2419,7 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>FILE-WRITE-ERROR</para></entry>
+	      <entry><para><code>FILE-WRITE-ERROR</code></para></entry>
 	      <entry><para>File is not open.</para></entry>
 	    </row>
 	  </tbody>
@@ -2494,7 +2494,7 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>FILE-WRITE-ERROR</para></entry>
+	      <entry><para><code>FILE-WRITE-ERROR</code></para></entry>
 	      <entry><para>File is not open.</para></entry>
 	    </row>
 	  </tbody>
@@ -2524,23 +2524,23 @@
 	<tbody>
 	  <row>
 	    <entry><para><link linkend="Qore::GetOpt::constructor">GetOpt::constructor()</link></para></entry>
-	    <entry>Y</entry>
-	    <entry>Creates the GetOpt object with the option hash passed.</entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Creates the GetOpt object with the option hash passed.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_GetOpt_destructor">GetOpt::destructor()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Destroys the object.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Destroys the object.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_GetOpt_copy">GetOpt::copy()</link></para></entry>
-	    <entry>Y</entry>
-	    <entry>Throws an exception; objects of this class cannot be copied.</entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Throws an exception; objects of this class cannot be copied.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::GetOpt::parse">GetOpt::parse()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Parses the argument list passed and retuns a hash of the results.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Parses the argument list passed and retuns a hash of the results.</para></entry>
 	  </row>
 	  
 	</tbody>
@@ -2643,7 +2643,7 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>GETOPT-OPTION-ERROR</para></entry>
+	      <entry><para><code>GETOPT-OPTION-ERROR</code></para></entry>
 	      <entry><para>There was a syntax or format error in the option specification.</para></entry>
 	    </row>
 	  </tbody>
@@ -2737,7 +2737,7 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>GETOPT-COPY-ERROR</para></entry>
+	      <entry><para><code>GETOPT-COPY-ERROR</code></para></entry>
 	      <entry><para>Objects of this class cannot be copied.</para></entry>
 	    </row>
 	  </tbody>
@@ -2824,15 +2824,15 @@
 	<tbody>
 	  <row>
 	    <entry><para><replaceable>username</replaceable></para></entry>
-	    <entry><programlisting>anonymous</programlisting></entry>
+	    <entry><code>anonymous</code></entry>
 	  </row>
 	  <row>
 	    <entry><para><replaceable>password</replaceable></para></entry>
-	    <entry><programlisting>qore@nohost.com</programlisting></entry>
+	    <entry><code>qore@nohost.com</code></entry>
 	  </row>
 	  <row>
 	    <entry><para><replaceable>port</replaceable></para></entry>
-	    <entry><programlisting>21</programlisting></entry>
+	    <entry><code>21</code></entry>
 	  </row>
 	</tbody>
       </tgroup>
@@ -3035,11 +3035,11 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>UNSUPPORTED-PROTOCOL</para></entry>
+	      <entry><para><code>UNSUPPORTED-PROTOCOL</code></para></entry>
 	      <entry><para>Only &quot;ftp&quot; is allowed as the protocol in the URL.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>FTP-URL-ERROR</para></entry>
+	      <entry><para><code>FTP-URL-ERROR</code></para></entry>
 	      <entry><para>No hostname given in the URL.</para></entry>
 	    </row>
 	  </tbody>
@@ -3134,7 +3134,7 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>FTPCLIENT-COPY-ERROR</para></entry>
+	      <entry><para><code>FTPCLIENT-COPY-ERROR</code></para></entry>
 	      <entry><para>Objects of this class cannot be copied.</para></entry>
 	    </row>
 	  </tbody>
@@ -3191,8 +3191,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>Integer</entry>
-	      <entry>Returns 0 for success, -1 for error.</entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>Returns 0 for success, -1 for error.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -3209,15 +3209,15 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>FTP-RESPONSE-ERROR</para></entry>
+	      <entry><para><code>FTP-RESPONSE-ERROR</code></para></entry>
 	      <entry><para>Invalid response received from FTP server.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>FTP-CONNECT-ERROR</para></entry>
+	      <entry><para><code>FTP-CONNECT-ERROR</code></para></entry>
 	      <entry><para>Cannot establish connection on data port, no hostname set, FTP server reported an error, etc.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>FTP-LOGIN-ERROR</para></entry>
+	      <entry><para><code>FTP-LOGIN-ERROR</code></para></entry>
 	      <entry><para>Login denied by FTP server.</para></entry>
 	    </row>
 	  </tbody>
@@ -3331,8 +3331,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>String</entry>
-	      <entry>The string returned by the server without any translations or processing.</entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>The string returned by the server without any translations or processing.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -3349,15 +3349,15 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>FTP-RECEIVE-ERROR</para></entry>
+	      <entry><para><code>FTP-RECEIVE-ERROR</code></para></entry>
 	      <entry><para>Incomplete message received on control port.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>FTP-NOT-CONNECTED</para></entry>
+	      <entry><para><code>FTP-NOT-CONNECTED</code></para></entry>
 	      <entry><para>Not connected to FTP server (call FtpClient::connect() first).</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>FTP-LIST-ERROR</para></entry>
+	      <entry><para><code>FTP-LIST-ERROR</code></para></entry>
 	      <entry><para>FTP server returned an error in response to the LIST command.</para></entry>
 	    </row>
 	  </tbody>
@@ -3414,8 +3414,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>String</entry>
-	      <entry>The string returned by the server without any translations or processing.</entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>The string returned by the server without any translations or processing.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -3432,15 +3432,15 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>FTP-RECEIVE-ERROR</para></entry>
+	      <entry><para><code>FTP-RECEIVE-ERROR</code></para></entry>
 	      <entry><para>Incomplete message received on control port.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>FTP-NOT-CONNECTED</para></entry>
+	      <entry><para><code>FTP-NOT-CONNECTED</code></para></entry>
 	      <entry><para>Not connected to FTP server (call FtpClient::connect() first).</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>FTP-LIST-ERROR</para></entry>
+	      <entry><para><code>FTP-LIST-ERROR</code></para></entry>
 	      <entry><para>FTP server returned an error in response to the NSLT command.</para></entry>
 	    </row>
 	  </tbody>
@@ -3497,8 +3497,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>String</entry>
-	      <entry>The server-side current working directory.</entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>The server-side current working directory.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -3515,15 +3515,15 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>FTP-RECEIVE-ERROR</para></entry>
+	      <entry><para><code>FTP-RECEIVE-ERROR</code></para></entry>
 	      <entry><para>Incomplete message received on control port.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>FTP-NOT-CONNECTED</para></entry>
+	      <entry><para><code>FTP-NOT-CONNECTED</code></para></entry>
 	      <entry><para>Not connected to FTP server (call FtpClient::connect() first).</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>FTP-PWD-ERROR</para></entry>
+	      <entry><para><code>FTP-PWD-ERROR</code></para></entry>
 	      <entry><para>FTP server returned an error to the PWD command.</para></entry>
 	    </row>
 	  </tbody>
@@ -3580,8 +3580,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>Integer</entry>
-	      <entry>Always returns 0, on errors exceptions are raised.</entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>Always returns 0, on errors exceptions are raised.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -3598,19 +3598,19 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>FTP-RECEIVE-ERROR</para></entry>
+	      <entry><para><code>FTP-RECEIVE-ERROR</code></para></entry>
 	      <entry><para>Incomplete message received on control port.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>FTP-NOT-CONNECTED</para></entry>
+	      <entry><para><code>FTP-NOT-CONNECTED</code></para></entry>
 	      <entry><para>Not connected to FTP server (call FtpClient::connect() first).</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>FTP-CWD-ERROR</para></entry>
+	      <entry><para><code>FTP-CWD-ERROR</code></para></entry>
 	      <entry><para>FTP server returned an error to the CWD command.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>FTPCLIENT-CWD-PARAMETER-ERROR</para></entry>
+	      <entry><para><code>FTPCLIENT-CWD-PARAMETER-ERROR</code></para></entry>
 	      <entry><para>Missing argument to the method.</para></entry>
 	    </row>
 	  </tbody>
@@ -3671,8 +3671,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>Integer</entry>
-	      <entry>Always returns 0, on errors exceptions are raised.</entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>Always returns 0, on errors exceptions are raised.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -3689,23 +3689,23 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>FTP-RECEIVE-ERROR</para></entry>
+	      <entry><para><code>FTP-RECEIVE-ERROR</code></para></entry>
 	      <entry><para>Incomplete message received on control port.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>FTP-NOT-CONNECTED</para></entry>
+	      <entry><para><code>FTP-NOT-CONNECTED</code></para></entry>
 	      <entry><para>Not connected to FTP server (call FtpClient::connect() first).</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>FTP-FILE-OPEN-ERROR</para></entry>
+	      <entry><para><code>FTP-FILE-OPEN-ERROR</code></para></entry>
 	      <entry><para>Could not create the local file.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>FTP-GET-ERROR</para></entry>
+	      <entry><para><code>FTP-GET-ERROR</code></para></entry>
 	      <entry><para>There was an error retrieving the file.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>FTPCLIENT-GET-PARAMETER-ERROR</para></entry>
+	      <entry><para><code>FTPCLIENT-GET-PARAMETER-ERROR</code></para></entry>
 	      <entry><para>Missing argument to the method.</para></entry>
 	    </row>
 	  </tbody>
@@ -3766,8 +3766,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>Integer</entry>
-	      <entry>Always returns 0, on errors exceptions are raised.</entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>Always returns 0, on errors exceptions are raised.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -3784,27 +3784,27 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>FTP-RECEIVE-ERROR</para></entry>
+	      <entry><para><code>FTP-RECEIVE-ERROR</code></para></entry>
 	      <entry><para>Incomplete message received on control port.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>FTP-NOT-CONNECTED</para></entry>
+	      <entry><para><code>FTP-NOT-CONNECTED</code></para></entry>
 	      <entry><para>Not connected to FTP server (call FtpClient::connect() first).</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>FTP-FILE-OPEN-ERROR</para></entry>
+	      <entry><para><code>FTP-FILE-OPEN-ERROR</code></para></entry>
 	      <entry><para>Could not open local file for reading.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>FTP-FILE-PUT-ERROR</para></entry>
+	      <entry><para><code>FTP-FILE-PUT-ERROR</code></para></entry>
 	      <entry><para>Could not determine file size of local file (stat() failed).</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>FTP-PUT-ERROR</para></entry>
+	      <entry><para><code>FTP-PUT-ERROR</code></para></entry>
 	      <entry><para>An error occurred while sending the file.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>FTPCLIENT-PUT-PARAMETER-ERROR</para></entry>
+	      <entry><para><code>FTPCLIENT-PUT-PARAMETER-ERROR</code></para></entry>
 	      <entry><para>Missing argument to the method.</para></entry>
 	    </row>
 	  </tbody>
@@ -3860,8 +3860,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>Integer</entry>
-	      <entry>Always returns 0, on errors exceptions are raised.</entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>Always returns 0, on errors exceptions are raised.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -3878,19 +3878,19 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>FTP-RECEIVE-ERROR</para></entry>
+	      <entry><para><code>FTP-RECEIVE-ERROR</code></para></entry>
 	      <entry><para>Incomplete message received on control port.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>FTP-NOT-CONNECTED</para></entry>
+	      <entry><para><code>FTP-NOT-CONNECTED</code></para></entry>
 	      <entry><para>Not connected to FTP server (call FtpClient::connect() first).</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>FTP-DELETE-ERROR</para></entry>
+	      <entry><para><code>FTP-DELETE-ERROR</code></para></entry>
 	      <entry><para>FTP server returned an error to the DELE command.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>FTPCLIENT-DEL-PARAMETER-ERROR</para></entry>
+	      <entry><para><code>FTPCLIENT-DEL-PARAMETER-ERROR</code></para></entry>
 	      <entry><para>Missing argument to the method.</para></entry>
 	    </row>
 	  </tbody>
@@ -3946,8 +3946,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>n/a</entry>
-	      <entry>This method does not return any value.</entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method does not return any value.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -3964,7 +3964,7 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>FTPCLIENT-SETUSERNAME-PARAMETER-ERROR</para></entry>
+	      <entry><para><code>FTPCLIENT-SETUSERNAME-PARAMETER-ERROR</code></para></entry>
 	      <entry><para>Missing argument to the method.</para></entry>
 	    </row>
 	  </tbody>
@@ -4020,8 +4020,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>n/a</entry>
-	      <entry>This method does not return any value.</entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method does not return any value.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -4038,7 +4038,7 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>FTPCLIENT-SETPASSWORD-PARAMETER-ERROR</para></entry>
+	      <entry><para><code>FTPCLIENT-SETPASSWORD-PARAMETER-ERROR</code></para></entry>
 	      <entry><para>Missing argument to the method.</para></entry>
 	    </row>
 	  </tbody>
@@ -4094,8 +4094,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>n/a</entry>
-	      <entry>This method does not return any value.</entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method does not return any value.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -4112,7 +4112,7 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>FTPCLIENT-SETHOSTNAME-PARAMETER-ERROR</para></entry>
+	      <entry><para><code>FTPCLIENT-SETHOSTNAME-PARAMETER-ERROR</code></para></entry>
 	      <entry><para>Missing argument to the method.</para></entry>
 	    </row>
 	  </tbody>
@@ -4168,8 +4168,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>n/a</entry>
-	      <entry>This method does not return any value.</entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method does not return any value.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -4186,7 +4186,7 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>FTPCLIENT-SETPORT-PARAMETER-ERROR</para></entry>
+	      <entry><para><code>FTPCLIENT-SETPORT-PARAMETER-ERROR</code></para></entry>
 	      <entry><para>Missing argument to the method.</para></entry>
 	    </row>
 	  </tbody>
@@ -4242,8 +4242,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>n/a</entry>
-	      <entry>This method does not return any value.</entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method does not return any value.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -4260,15 +4260,15 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>UNSUPPORTED-PROTOCOL</para></entry>
+	      <entry><para><code>UNSUPPORTED-PROTOCOL</code></para></entry>
 	      <entry><para>Only &quot;ftp&quot; is allowed as the protocol in the URL.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>FTP-URL-ERROR</para></entry>
+	      <entry><para><code>FTP-URL-ERROR</code></para></entry>
 	      <entry><para>No hostname given in the URL.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>FTPCLIENT-SETURL-PARAMETER-ERROR</para></entry>
+	      <entry><para><code>FTPCLIENT-SETURL-PARAMETER-ERROR</code></para></entry>
 	      <entry><para>Missing argument to the method.</para></entry>
 	    </row>
 	  </tbody>
@@ -4324,8 +4324,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>String</entry>
-	      <entry>The current username value.</entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>The current username value.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -4380,8 +4380,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>String</entry>
-	      <entry>The current password value.</entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>The current password value.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -4436,8 +4436,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>String</entry>
-	      <entry>The current hostname value.</entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>The current hostname value.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -4492,8 +4492,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>Integer</entry>
-	      <entry>The current connection port value.</entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>The current connection port value.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -4548,8 +4548,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>String</entry>
-	      <entry>The current URL value.</entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>The current URL value.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -4577,67 +4577,67 @@
 	<tbody>
 	  <row>
 	    <entry><para>Qore::PO_NO_GLOBAL_VARS</para></entry>
-	    <entry>Disallows the use of global variables.</entry>
+	    <entry><para>Disallows the use of global variables.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para>Qore::PO_NO_SUBROUTINE_DEFS</para></entry>
-	    <entry>Disallows subroutine (function) definitions.</entry>
+	    <entry><para>Disallows subroutine (function) definitions.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para>Qore::PO_NO_THREADS</para></entry>
-	    <entry>Disallows any thread operations (<link linkend="Background_Operator"><command>background</command> operator</link> and <link linkend="thread_exit_Statements"><command>thread_exit</command> statement</link>, for example).</entry>
+	    <entry><para>Disallows any thread operations (<link linkend="Background_Operator"><command>background</command> operator</link> and <link linkend="thread_exit_Statements"><command>thread_exit</command> statement</link>, for example).</para></entry>
 	  </row>
 	  <row>
 	    <entry><para>Qore::PO_NO_TOP_LEVEL_STATEMENTS</para></entry>
-	    <entry>Disallows top level code.</entry>
+	    <entry><para>Disallows top level code.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para>Qore::PO_NO_CLASS_DEFS</para></entry>
-	    <entry>Disallows class definitions.</entry>
+	    <entry><para>Disallows class definitions.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para>Qore::PO_NO_NAMESPACE_DEFS</para></entry>
-	    <entry>Disallows new namespace definitions.</entry>
+	    <entry><para>Disallows new namespace definitions.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para>Qore::PO_NO_CONSTANT_DEFS</para></entry>
-	    <entry>Disallows constant definitions.</entry>
+	    <entry><para>Disallows constant definitions.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para>Qore::PO_NO_NEW</para></entry>
-	    <entry>Disallows use of the <command>new</command> operator.</entry>
+	    <entry><para>Disallows use of the <command>new</command> operator.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para>Qore::PO_NO_SYSTEM_CLASSES</para></entry>
-	    <entry>Prohibits system classes from being imported into the new Program object.</entry>
+	    <entry><para>Prohibits system classes from being imported into the new Program object.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para>Qore::PO_NO_USER_CLASSES</para></entry>
-	    <entry>Prohibits user classes from being imported into the new Program object.</entry>
+	    <entry><para>Prohibits user classes from being imported into the new Program object.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para>Qore::PO_NO_CHILD_PO_RESTRICTIONS</para></entry>
-	    <entry>Allows child program objects to have fewer parse restrictions than the parent object.</entry>
+	    <entry><para>Allows child program objects to have fewer parse restrictions than the parent object.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para>Qore::PO_NO_EXTERNAL_PROCESS</para></entry>
-	    <entry>Disallows any access to external processes (with <link linkend="system">system()</link>, <link linkend="backquote">backquote()</link>, <link linkend="exec">exec()</link>, etc).</entry>
+	    <entry><para>Disallows any access to external processes (with <link linkend="system">system()</link>, <link linkend="backquote">backquote()</link>, <link linkend="exec">exec()</link>, etc).</para></entry>
 	  </row>
 	  <row>
 	    <entry><para>Qore::PO_REQUIRE_OUR</para></entry>
-	    <entry>Requires global variables to be declared with <command>our</command> before use.</entry>
+	    <entry><para>Requires global variables to be declared with <command>our</command> before use.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para>Qore::PO_NO_PROCESS_CONTROL</para></entry>
-	    <entry>Disallows access to functions that would affect the current process (<link linkend="exit">exit()</link>, <link linkend="exit">exec()</link>, <link linkend="fork">fork()</link>, etc).</entry>
+	    <entry><para>Disallows access to functions that would affect the current process (<link linkend="exit">exit()</link>, <link linkend="exit">exec()</link>, <link linkend="fork">fork()</link>, etc).</para></entry>
 	  </row>
 	  <row>
 	    <entry><para>Qore::PO_NO_NETWORK</para></entry>
-	    <entry>Disallows access to network functions.</entry>
+	    <entry><para>Disallows access to network functions.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para>Qore::PO_NO_FILESYSTEM</para></entry>
-	    <entry>Disallows access to the filesystem.</entry>
+	    <entry><para>Disallows access to the filesystem.</para></entry>
 	  </row>
 	  
 	</tbody>
@@ -4876,7 +4876,7 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>PROGRAM-COPY-ERROR</para></entry>
+	      <entry><para><code>PROGRAM-COPY-ERROR</code></para></entry>
 	      <entry><para>Objects of this class cannot be copied.</para></entry>
 	    </row>
 	  </tbody>
@@ -4937,8 +4937,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>n/a</entry>
-	      <entry>This method does not return any value.</entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method does not return any value.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -4955,7 +4955,7 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>PARSE-ERROR</para></entry>
+	      <entry><para><code>PARSE-ERROR</code></para></entry>
 	      <entry><para>An error occurred parsing the text.</para></entry>
 	    </row>
 	  </tbody>
@@ -5016,8 +5016,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>n/a</entry>
-	      <entry>This method does not return any value.</entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method does not return any value.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -5034,7 +5034,7 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>PARSE-ERROR</para></entry>
+	      <entry><para><code>PARSE-ERROR</code></para></entry>
 	      <entry><para>An error occurred parsing the text.</para></entry>
 	    </row>
 	  </tbody>
@@ -5090,8 +5090,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>n/a</entry>
-	      <entry>This method does not return any value.</entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method does not return any value.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -5146,8 +5146,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>n/a</entry>
-	      <entry>This method does not return any value.</entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method does not return any value.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -5164,7 +5164,7 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>PARSE-ERROR</para></entry>
+	      <entry><para><code>PARSE-ERROR</code></para></entry>
 	      <entry><para>An error occurred parsing the text.</para></entry>
 	    </row>
 	  </tbody>
@@ -5225,8 +5225,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>Any</entry>
-	      <entry>Depends on the function being called.</entry>
+	      <entry><para>Any</para></entry>
+	      <entry><para>Depends on the function being called.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -5243,11 +5243,11 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>INVALID-FUNCTION-ACCESS</para></entry>
+	      <entry><para><code>INVALID-FUNCTION-ACCESS</code></para></entry>
 	      <entry><para>Parse options do not allow this builtin function to be called.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>NO-FUNCTION</para></entry>
+	      <entry><para><code>NO-FUNCTION</code></para></entry>
 	      <entry><para>The function does not exist.</para></entry>
 	    </row>
 	  </tbody>
@@ -5308,8 +5308,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>Any</entry>
-	      <entry>Depends on the function being called.</entry>
+	      <entry><para>Any</para></entry>
+	      <entry><para>Depends on the function being called.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -5326,11 +5326,11 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>INVALID-FUNCTION-ACCESS</para></entry>
+	      <entry><para><code>INVALID-FUNCTION-ACCESS</code></para></entry>
 	      <entry><para>Parse options do not allow this builtin function to be called.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>NO-FUNCTION</para></entry>
+	      <entry><para><code>NO-FUNCTION</code></para></entry>
 	      <entry><para>The function does not exist.</para></entry>
 	    </row>
 	  </tbody>
@@ -5386,8 +5386,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>Boolean</entry>
-	      <entry>Returns True if the function exists, False if not.</entry>
+	      <entry><para>Boolean</para></entry>
+	      <entry><para>Returns True if the function exists, False if not.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -5442,8 +5442,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>Any</entry>
-	      <entry>Depends on the program - any final <command>return</command> statement will return a value to this method.</entry>
+	      <entry><para>Any</para></entry>
+	      <entry><para>Depends on the program - any final <command>return</command> statement will return a value to this method.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -5498,8 +5498,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>n/a</entry>
-	      <entry>This method does not return any value.</entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method does not return any value.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -5516,15 +5516,15 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>PROGRAM-IMPORTFUNCTION-PARAMETER-ERROR</para></entry>
+	      <entry><para><code>PROGRAM-IMPORTFUNCTION-PARAMETER-ERROR</code></para></entry>
 	      <entry><para>No function name was passed to the method.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>PROGRAM-IMPORTFUNCTION-PARAMETER-ERROR</para></entry>
+	      <entry><para><code>PROGRAM-IMPORTFUNCTION-PARAMETER-ERROR</code></para></entry>
 	      <entry><para>Cannot import a function into the same Program object.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>PROGRAM-IMPORTFUNCTION-NO-FUNCTION</para></entry>
+	      <entry><para><code>PROGRAM-IMPORTFUNCTION-NO-FUNCTION</code></para></entry>
 	      <entry><para>The function does not exist.</para></entry>
 	    </row>
 	  </tbody>
@@ -5585,8 +5585,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>n/a</entry>
-	      <entry>This method does not return any value.</entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method does not return any value.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -5603,11 +5603,11 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>PROGRAM-IMPORTGLOBALVARIABLE-PARAMETER-ERROR</para></entry>
+	      <entry><para><code>PROGRAM-IMPORTGLOBALVARIABLE-PARAMETER-ERROR</code></para></entry>
 	      <entry><para>No variable name was passed to the method.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>PROGRAM-IMPORTGLOBALVARIABLE-EXCEPTION</para></entry>
+	      <entry><para><code>PROGRAM-IMPORTGLOBALVARIABLE-EXCEPTION</code></para></entry>
 	      <entry><para>The global variable does not exist.</para></entry>
 	    </row>
 	  </tbody>
@@ -5664,8 +5664,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>List</entry>
-	      <entry>A list of strings giving the names of all functions implemented in the program object.</entry>
+	      <entry><para>List</para></entry>
+	      <entry><para>A list of strings giving the names of all functions implemented in the program object.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -5899,8 +5899,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>Object</entry>
-	      <entry>The new Socket object created.</entry>
+	      <entry><para>Object</para></entry>
+	      <entry><para>The new Socket object created.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -6048,8 +6048,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>Integer</entry>
-	      <entry>Returns 0 for success, -1 for error.</entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>Returns 0 for success, -1 for error.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -6066,7 +6066,7 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>SOCKET-BIND-PARAMETER-ERROR</para></entry>
+	      <entry><para><code>SOCKET-BIND-PARAMETER-ERROR</code></para></entry>
 	      <entry><para>No argument was passed to the method.</para></entry>
 	    </row>
 	  </tbody>
@@ -6122,8 +6122,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>Socket Object</entry>
-	      <entry>When a new connection has been accepted, a new Socket object is returned for the new connection.</entry>
+	      <entry><para>Socket Object</para></entry>
+	      <entry><para>When a new connection has been accepted, a new Socket object is returned for the new connection.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -6140,7 +6140,7 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>SOCKET-NOT-OPEN</para></entry>
+	      <entry><para><code>SOCKET-NOT-OPEN</code></para></entry>
 	      <entry><para>The socket is not bound.</para></entry>
 	    </row>
 	  </tbody>
@@ -6202,8 +6202,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>Integer</entry>
-	      <entry>Returns 0 for success, -1 for error.</entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>Returns 0 for success, -1 for error.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -6220,7 +6220,7 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>SOCKET-CONNECT-PARAMETER-ERROR</para></entry>
+	      <entry><para><code>SOCKET-CONNECT-PARAMETER-ERROR</code></para></entry>
 	      <entry><para>No argument was passed to the method.</para></entry>
 	    </row>
 	  </tbody>
@@ -6276,8 +6276,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>Integer</entry>
-	      <entry>Returns 0 for success, -1 for error.</entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>Returns 0 for success, -1 for error.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -6294,7 +6294,7 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>SOCKET-NOT-OPEN</para></entry>
+	      <entry><para><code>SOCKET-NOT-OPEN</code></para></entry>
 	      <entry><para>The socket is not bound.</para></entry>
 	    </row>
 	  </tbody>
@@ -6350,8 +6350,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>Boolean</entry>
-	      <entry>True if data is available on the socket, False if not.</entry>
+	      <entry><para>Boolean</para></entry>
+	      <entry><para>True if data is available on the socket, False if not.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -6411,8 +6411,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>Integer</entry>
-	      <entry>0 for success, -1 for error.</entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>0 for success, -1 for error.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -6429,11 +6429,11 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>SOCKET-SEND-PARAMETER-ERROR</para></entry>
+	      <entry><para><code>SOCKET-SEND-PARAMETER-ERROR</code></para></entry>
 	      <entry><para>No argument was passed to the method.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>SOCKET-NOT-OPEN</para></entry>
+	      <entry><para><code>SOCKET-NOT-OPEN</code></para></entry>
 	      <entry><para>The socket is not connected.</para></entry>
 	    </row>
 	  </tbody>
@@ -6489,8 +6489,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>Integer</entry>
-	      <entry>Returns 0 for success, -1 for error.</entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>Returns 0 for success, -1 for error.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -6507,7 +6507,7 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>SOCKET-NOT-OPEN</para></entry>
+	      <entry><para><code>SOCKET-NOT-OPEN</code></para></entry>
 	      <entry><para>The socket is not connected.</para></entry>
 	    </row>
 	  </tbody>
@@ -6563,8 +6563,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>Integer</entry>
-	      <entry>Returns 0 for success, -1 for error.</entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>Returns 0 for success, -1 for error.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -6581,7 +6581,7 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>SOCKET-NOT-OPEN</para></entry>
+	      <entry><para><code>SOCKET-NOT-OPEN</code></para></entry>
 	      <entry><para>The socket is not connected.</para></entry>
 	    </row>
 	  </tbody>
@@ -6637,8 +6637,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>Integer</entry>
-	      <entry>Returns 0 for success, -1 for error.</entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>Returns 0 for success, -1 for error.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -6655,7 +6655,7 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>SOCKET-NOT-OPEN</para></entry>
+	      <entry><para><code>SOCKET-NOT-OPEN</code></para></entry>
 	      <entry><para>The socket is not connected.</para></entry>
 	    </row>
 	  </tbody>
@@ -6711,8 +6711,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>Integer</entry>
-	      <entry>Returns 0 for success, -1 for error.</entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>Returns 0 for success, -1 for error.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -6729,7 +6729,7 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>SOCKET-NOT-OPEN</para></entry>
+	      <entry><para><code>SOCKET-NOT-OPEN</code></para></entry>
 	      <entry><para>The socket is not connected.</para></entry>
 	    </row>
 	  </tbody>
@@ -6785,8 +6785,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>Integer</entry>
-	      <entry>Returns 0 for success, -1 for error.</entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>Returns 0 for success, -1 for error.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -6803,7 +6803,7 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>SOCKET-NOT-OPEN</para></entry>
+	      <entry><para><code>SOCKET-NOT-OPEN</code></para></entry>
 	      <entry><para>The socket is not connected.</para></entry>
 	    </row>
 	  </tbody>
@@ -6884,8 +6884,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>n/a</entry>
-	      <entry>This method returns no value.  If any errors occur, exceptions are raised.</entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method returns no value.  If any errors occur, exceptions are raised.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -6902,15 +6902,15 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>SOCKET-SENDHTTPMESSAGE-PARAMETER-ERROR</para></entry>
+	      <entry><para><code>SOCKET-SENDHTTPMESSAGE-PARAMETER-ERROR</code></para></entry>
 	      <entry><para>One or more of the required arguments is missing.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>SOCKET-NOT-OPEN</para></entry>
+	      <entry><para><code>SOCKET-NOT-OPEN</code></para></entry>
 	      <entry><para>The socket is not connected.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>SOCKET-SEND-ERROR</para></entry>
+	      <entry><para><code>SOCKET-SEND-ERROR</code></para></entry>
 	      <entry><para>Send failed.</para></entry>
 	    </row>
 	  </tbody>
@@ -6991,8 +6991,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>n/a</entry>
-	      <entry>This method returns no value.  If any errors occur, exceptions are raised.</entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method returns no value.  If any errors occur, exceptions are raised.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -7009,15 +7009,15 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>SOCKET-SENDHTTPRESPONSE-PARAMETER-ERROR</para></entry>
+	      <entry><para><code>SOCKET-SENDHTTPRESPONSE-PARAMETER-ERROR</code></para></entry>
 	      <entry><para>One or more of the required arguments is missing.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>SOCKET-NOT-OPEN</para></entry>
+	      <entry><para><code>SOCKET-NOT-OPEN</code></para></entry>
 	      <entry><para>The socket is not connected.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>SOCKET-SEND-ERROR</para></entry>
+	      <entry><para><code>SOCKET-SEND-ERROR</code></para></entry>
 	      <entry><para>Send failed.</para></entry>
 	    </row>
 	  </tbody>
@@ -7078,8 +7078,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>String</entry>
-	      <entry>The data read, returned as a string.</entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>The data read, returned as a string.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -7096,15 +7096,15 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>SOCKET-NOT-OPEN</para></entry>
+	      <entry><para><code>SOCKET-NOT-OPEN</code></para></entry>
 	      <entry><para>The socket is not connected.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>SOCKET-CLOSED</para></entry>
+	      <entry><para><code>SOCKET-CLOSED</code></para></entry>
 	      <entry><para>The remote end has closed the connection.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>SOCKET-RECV-ERROR</para></entry>
+	      <entry><para><code>SOCKET-RECV-ERROR</code></para></entry>
 	      <entry><para>There was an error receiving the data.</para></entry>
 	    </row>
 	  </tbody>
@@ -7165,8 +7165,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>Binary</entry>
-	      <entry>The data read, returned as a binary object.</entry>
+	      <entry><para>Binary</para></entry>
+	      <entry><para>The data read, returned as a binary object.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -7183,15 +7183,15 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>SOCKET-NOT-OPEN</para></entry>
+	      <entry><para><code>SOCKET-NOT-OPEN</code></para></entry>
 	      <entry><para>The socket is not connected.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>SOCKET-CLOSED</para></entry>
+	      <entry><para><code>SOCKET-CLOSED</code></para></entry>
 	      <entry><para>The remote end has closed the connection.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>SOCKET-RECV-ERROR</para></entry>
+	      <entry><para><code>SOCKET-RECV-ERROR</code></para></entry>
 	      <entry><para>There was an error receiving the data.</para></entry>
 	    </row>
 	  </tbody>
@@ -7247,8 +7247,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>Integer</entry>
-	      <entry>The 1-byte integer read.</entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>The 1-byte integer read.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -7265,15 +7265,15 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>SOCKET-NOT-OPEN</para></entry>
+	      <entry><para><code>SOCKET-NOT-OPEN</code></para></entry>
 	      <entry><para>The socket is not connected.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>SOCKET-CLOSED</para></entry>
+	      <entry><para><code>SOCKET-CLOSED</code></para></entry>
 	      <entry><para>The remote end has closed the connection.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>SOCKET-RECV-ERROR</para></entry>
+	      <entry><para><code>SOCKET-RECV-ERROR</code></para></entry>
 	      <entry><para>There was an error receiving the data.</para></entry>
 	    </row>
 	  </tbody>
@@ -7329,8 +7329,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>Integer</entry>
-	      <entry>The 2-byte integer read.</entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>The 2-byte integer read.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -7347,15 +7347,15 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>SOCKET-NOT-OPEN</para></entry>
+	      <entry><para><code>SOCKET-NOT-OPEN</code></para></entry>
 	      <entry><para>The socket is not connected.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>SOCKET-CLOSED</para></entry>
+	      <entry><para><code>SOCKET-CLOSED</code></para></entry>
 	      <entry><para>The remote end has closed the connection.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>SOCKET-RECV-ERROR</para></entry>
+	      <entry><para><code>SOCKET-RECV-ERROR</code></para></entry>
 	      <entry><para>There was an error receiving the data.</para></entry>
 	    </row>
 	  </tbody>
@@ -7411,8 +7411,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>Integer</entry>
-	      <entry>The 4-byte integer read.</entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>The 4-byte integer read.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -7429,15 +7429,15 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>SOCKET-NOT-OPEN</para></entry>
+	      <entry><para><code>SOCKET-NOT-OPEN</code></para></entry>
 	      <entry><para>The socket is not connected.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>SOCKET-CLOSED</para></entry>
+	      <entry><para><code>SOCKET-CLOSED</code></para></entry>
 	      <entry><para>The remote end has closed the connection.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>SOCKET-RECV-ERROR</para></entry>
+	      <entry><para><code>SOCKET-RECV-ERROR</code></para></entry>
 	      <entry><para>There was an error receiving the data.</para></entry>
 	    </row>
 	  </tbody>
@@ -7493,8 +7493,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>Integer</entry>
-	      <entry>The 2-byte integer read.</entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>The 2-byte integer read.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -7511,15 +7511,15 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>SOCKET-NOT-OPEN</para></entry>
+	      <entry><para><code>SOCKET-NOT-OPEN</code></para></entry>
 	      <entry><para>The socket is not connected.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>SOCKET-CLOSED</para></entry>
+	      <entry><para><code>SOCKET-CLOSED</code></para></entry>
 	      <entry><para>The remote end has closed the connection.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>SOCKET-RECV-ERROR</para></entry>
+	      <entry><para><code>SOCKET-RECV-ERROR</code></para></entry>
 	      <entry><para>There was an error receiving the data.</para></entry>
 	    </row>
 	  </tbody>
@@ -7575,8 +7575,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>Integer</entry>
-	      <entry>The 4-byte integer read.</entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>The 4-byte integer read.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -7593,15 +7593,15 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>SOCKET-NOT-OPEN</para></entry>
+	      <entry><para><code>SOCKET-NOT-OPEN</code></para></entry>
 	      <entry><para>The socket is not connected.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>SOCKET-CLOSED</para></entry>
+	      <entry><para><code>SOCKET-CLOSED</code></para></entry>
 	      <entry><para>The remote end has closed the connection.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>SOCKET-RECV-ERROR</para></entry>
+	      <entry><para><code>SOCKET-RECV-ERROR</code></para></entry>
 	      <entry><para>There was an error receiving the data.</para></entry>
 	    </row>
 	  </tbody>
@@ -7657,8 +7657,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>Hash</entry>
-	      <entry>The return hash will contain keys for each header, plus an http_version key, giving the HTTP protocol version.  For HTTP responses, the following keys will be returned: status_code, status_message.  For outgoing HTTP messages, the following keys will be populated: method, path.</entry>
+	      <entry><para>Hash</para></entry>
+	      <entry><para>The return hash will contain keys for each header, plus an http_version key, giving the HTTP protocol version.  For HTTP responses, the following keys will be returned: status_code, status_message.  For outgoing HTTP messages, the following keys will be populated: method, path.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -7675,15 +7675,15 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>SOCKET-NOT-OPEN</para></entry>
+	      <entry><para><code>SOCKET-NOT-OPEN</code></para></entry>
 	      <entry><para>The socket is not connected.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>SOCKET-CLOSED</para></entry>
+	      <entry><para><code>SOCKET-CLOSED</code></para></entry>
 	      <entry><para>The remote end has closed the connection.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>SOCKET-RECV-ERROR</para></entry>
+	      <entry><para><code>SOCKET-RECV-ERROR</code></para></entry>
 	      <entry><para>There was an error receiving the data.</para></entry>
 	    </row>
 	  </tbody>
@@ -7739,8 +7739,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>Integer</entry>
-	      <entry>Returns the port number for an INET connection, -1 if no INET connection has been established.</entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>Returns the port number for an INET connection, -1 if no INET connection has been established.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -7795,8 +7795,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>Integer</entry>
-	      <entry>Returns 0 for success, -1 for error.</entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>Returns 0 for success, -1 for error.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -7851,8 +7851,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>Integer</entry>
-	      <entry>Returns 0 for success, -1 for error.</entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>Returns 0 for success, -1 for error.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -8025,8 +8025,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>Integer</entry>
-	      <entry>The file descriptor associated to the socket.</entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>The file descriptor associated to the socket.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -8155,57 +8155,57 @@
 	  <row>
 	    <entry><para><link linkend="Qore::SQL::Datasource::constructor">Datasource::constructor()</link></para></entry>
 	    <entry><para>Y</para></entry>
-	    <entry>Creates the Datasource object.</entry>
+	    <entry><para>Creates the Datasource object.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::SQL::Datasource::destructor">Datasource::destructor()</link></para></entry>
 	    <entry><para>Y</para></entry>
-	    <entry>Destroys the object.</entry>
+	    <entry><para>Destroys the object.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::SQL::Datasource::copy">Datasource::copy()</link></para></entry>
 	    <entry><para>N</para></entry>
-	    <entry>Creates a new Datasource object with the same driver as the original and copies of all the connection parameters.</entry>
+	    <entry><para>Creates a new Datasource object with the same driver as the original and copies of all the connection parameters.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::SQL::Datasource::open">Datasource::open()</link></para></entry>
-	    <entry>Y</entry>
-	    <entry>Opens a connection to a database.</entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Opens a connection to a database.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::SQL::Datasource::close">Datasource::close()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Closes the connection to the database.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Closes the connection to the database.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::SQL::Datasource::commit">Datasource::commit()</link></para></entry>
-	    <entry>Y</entry>
-	    <entry>Commits the transaction and releases the transaction lock.</entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Commits the transaction and releases the transaction lock.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::SQL::Datasource::rollback">Datasource::rollback()</link></para></entry>
-	    <entry>Y</entry>
-	    <entry>Rolls back the transaction and releases the transaction lock.</entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Rolls back the transaction and releases the transaction lock.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::SQL::Datasource::setAutoCommit">Datasource::setAutoCommit()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Turns autocommit on or off for this object.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Turns autocommit on or off for this object.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::SQL::Datasource::exec">Datasource::exec()</link></para></entry>
-	    <entry>Y</entry>
-	    <entry>Executes SQL code on the DB connection.</entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Executes SQL code on the DB connection.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::SQL::Datasource::select">Datasource::select()</link></para></entry>
-	    <entry>Y</entry>
-	    <entry>Executes a select statement on the server and returns the results in a hash (column names) of lists (rows).</entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Executes a select statement on the server and returns the results in a hash (column names) of lists (rows).</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::SQL::Datasource::selectRows">Datasource::selectRows()</link></para></entry>
-	    <entry>Y</entry>
-	    <entry>Executes a select statement on the server and returns the results in a list (rows) of hashes (column names and values).</entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Executes a select statement on the server and returns the results in a list (rows) of hashes (column names and values).</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::SQL::Datasource::beginTransaction">Datasource::beginTransaction()</link></para></entry>
@@ -8214,58 +8214,58 @@
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::SQL::Datasource::setUserName">Datasource::setUserName()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Sets the username parameter for the next open.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Sets the username parameter for the next open.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::SQL::Datasource::getUserName">Datasource::getUserName()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Returns the username parameter.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Returns the username parameter.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::SQL::Datasource::setPassword">Datasource::setPassword()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Sets the password parameter for the next open.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Sets the password parameter for the next open.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::SQL::Datasource::getPassword">Datasource::getPassword()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Returns the password parameter.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Returns the password parameter.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::SQL::Datasource::setDBName">Datasource::setDBName()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Sets the DB name parameter for the next open.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Sets the DB name parameter for the next open.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::SQL::Datasource::getDBName">Datasource::getDBName()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Returns the dbname parameter.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Returns the dbname parameter.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::SQL::Datasource::setDBCharset">Datasource::setDBCharset()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Sets the charset parameter for the next open.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Sets the charset parameter for the next open.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::SQL::Datasource::getDBCharset">Datasource::getDBCharset()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Returns the DBI driver specific charset name for the current connection.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Returns the DBI driver specific charset name for the current connection.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::SQL::Datasource::getOSCharset">Datasource::getOSCharset()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Returns the Qore charset name for the current connection.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Returns the Qore charset name for the current connection.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::SQL::Datasource::setHostName">Datasource::setHostName()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Sets the hostname parameter for the next open.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Sets the hostname parameter for the next open.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::SQL::Datasource::getHostName">Datasource::getHostName()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Returns the hostname parameter.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Returns the hostname parameter.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::SQL::Datasource::setTransactionLockTimeout">Datasource::setTransactionLockTimeout()</link></para></entry>
@@ -8464,8 +8464,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>n/a</entry>
-	      <entry>This method returns no value.</entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method return no value.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -8482,11 +8482,11 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>AUTOCOMMIT-ERROR</para></entry>
+	      <entry><para><code>AUTOCOMMIT-ERROR</code></para></entry>
 	      <entry><para>Cannot grab the transaction lock on a datasource when autocommit is enabled.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>TRANSACTION-TIMEOUT</para></entry>
+	      <entry><para><code>TRANSACTION-TIMEOUT</code></para></entry>
 	      <entry><para>Timeout trying to acquire the transaction lock.</para></entry>
 	    </row>
 ´	  </tbody>
@@ -8543,8 +8543,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>Integer</entry>
-	      <entry>Returns 0 for success, -1 for error.</entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>Returns 0 for success, -1 for error.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -8618,8 +8618,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>Integer</entry>
-	      <entry>0 for success, -1 for not open.</entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>0 for success, -1 for not open.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -8676,8 +8676,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>Integer</entry>
-	      <entry>0 for success, -1 for not open.</entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>0 for success, -1 for not open.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -8694,7 +8694,7 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>TRANSACTION-TIMEOUT</para></entry>
+	      <entry><para><code>TRANSACTION-TIMEOUT</code></para></entry>
 	      <entry><para>Timeout trying to acquire the transaction lock.</para></entry>
 	    </row>
 	    <row>
@@ -8755,8 +8755,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>Integer</entry>
-	      <entry>0 for success, -1 for not open.</entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>0 for success, -1 for not open.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -8773,7 +8773,7 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>TRANSACTION-TIMEOUT</para></entry>
+	      <entry><para><code>TRANSACTION-TIMEOUT</code></para></entry>
 	      <entry><para>Timeout trying to acquire the transaction lock.</para></entry>
 	    </row>
 	    <row>
@@ -8833,8 +8833,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>n/a</entry>
-	      <entry>This method does not return any value.</entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method does not return any value.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -8897,8 +8897,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>Integer or Hash</entry>
-	      <entry>For commands with placeholders, a hash is returned holding the values acquired from executing the SQL statement.  For all other commands, a row count is returned.</entry>
+	      <entry><para>Integer or Hash</para></entry>
+	      <entry><para>For commands with placeholders, a hash is returned holding the values acquired from executing the SQL statement.  For all other commands, a row count is returned.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -8915,7 +8915,7 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>TRANSACTION-TIMEOUT</para></entry>
+	      <entry><para><code>TRANSACTION-TIMEOUT</code></para></entry>
 	      <entry><para>Timeout trying to acquire the transaction lock.</para></entry>
 	    </row>
 	    <row>
@@ -8976,8 +8976,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>Hash</entry>
-	      <entry>Returns a hash (the keys are the column names) of lists (each hash key's value is a list giving the row data).</entry>
+	      <entry><para>Hash</para></entry>
+	      <entry><para>Returns a hash (the keys are the column names) of lists (each hash key's value is a list giving the row data).</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -9051,8 +9051,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>List</entry>
-	      <entry>Returns a list (the rows returned) of hashes (column values).</entry>
+	      <entry><para>List</para></entry>
+	      <entry><para>Returns a list (the rows returned) of hashes (column values).</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -9126,8 +9126,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>n/a</entry>
-	      <entry>This method does not return any value.</entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method does not return any value.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -9183,8 +9183,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>Integer</entry>
-	      <entry>The transaction timeout value in seconds.</entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>The transaction timeout value in seconds.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -9241,8 +9241,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>n/a</entry>
-	      <entry>This method does not return any value.</entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method does not return any value.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -9298,8 +9298,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>String</entry>
-	      <entry>The username connection parameter.</entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>The username connection parameter.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -9356,8 +9356,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>n/a</entry>
-	      <entry>This method does not return any value.</entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method does not return any value.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -9413,8 +9413,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>String</entry>
-	      <entry>Retrieves the password connection parameter.</entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>Retrieves the password connection parameter.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -9471,8 +9471,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>n/a</entry>
-	      <entry>This method does not return any value.</entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method does not return any value.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -9528,8 +9528,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>String</entry>
-	      <entry>Retrieves the password connection parameter.</entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>Retrieves the password connection parameter.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -9586,8 +9586,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>n/a</entry>
-	      <entry>This method does not return any value.</entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method does not return any value.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -9643,8 +9643,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>n/a</entry>
-	      <entry>This method does not return any value.</entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method does not return any value.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -9700,8 +9700,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>String</entry>
-	      <entry>Retrieves the database-specific charset set encoding for the current connection.</entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>Retrieves the database-specific charset set encoding for the current connection.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -9757,8 +9757,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>String</entry>
-	      <entry>Retrieves the Qore charset set encoding for the current connection.</entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>Retrieves the Qore charset set encoding for the current connection.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -9814,8 +9814,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>String</entry>
-	      <entry>Retrieves the hostname connection parameter.</entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>Retrieves the hostname connection parameter.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -9841,33 +9841,33 @@
 	<tbody>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::Condition::constructor">Condition::constructor()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Creates the Condition object.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Creates the Condition object.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::Condition::destructor">Condition::destructor()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Destroys the Condition object.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Destroys the Condition object.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::Condition::copy">Condition::copy()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Creates a new Condition object, not based on the original.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Creates a new Condition object, not based on the original.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::Condition::signal">Condition::signal()</link></para></entry>
-	    <entry>Y</entry>
-	    <entry>Signals a single blocked thread to wake up.</entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Signals a single blocked thread to wake up.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::Condition::broadcast">Condition::broadcast()</link></para></entry>
-	    <entry>Y</entry>
-	    <entry>Signals all threads blocked on this Condition object to wake up.</entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Signals all threads blocked on this Condition object to wake up.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::Condition::wait">Condition::wait()</link></para></entry>
-	    <entry>Y</entry>
-	    <entry>Blocks a thread until signaled.</entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Blocks a thread until signaled.</para></entry>
 	  </row>
 	</tbody>
       </tgroup>
@@ -9922,8 +9922,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>Condition Object</entry>
-	      <entry>The new Condition object.</entry>
+	      <entry><para>Condition Object</para></entry>
+	      <entry><para>The new Condition object.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -10056,8 +10056,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>n/a</entry>
-	      <entry>This method returns no values.</entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method returns no values.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -10074,7 +10074,7 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>CONDITION-SIGNAL-ERROR</para></entry>
+	      <entry><para><code>CONDITION-SIGNAL-ERROR</code></para></entry>
 	      <entry><para>This exception should never be thrown - it indicates a low-level error in executing the method.</para></entry>
 	    </row>
 	  </tbody>
@@ -10131,8 +10131,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>n/a</entry>
-	      <entry>This method returns no values.</entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method returns no value.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -10149,7 +10149,7 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>CONDITION-BROADCAST-ERROR</para></entry>
+	      <entry><para><code>CONDITION-BROADCAST-ERROR</code></para></entry>
 	      <entry><para>This exception should never be thrown - it indicates a low-level error in executing the method.</para></entry>
 	    </row>
 ´	  </tbody>
@@ -10206,8 +10206,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>Integer</entry>
-	      <entry>0 for success, -1 for errors.</entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>0 for success, -1 for errors.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -10224,7 +10224,7 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>CONDITION-WAIT-ERROR</para></entry>
+	      <entry><para><code>CONDITION-WAIT-ERROR</code></para></entry>
 	      <entry><para>This exception should never be thrown - it indicates a low-level error in executing the method.</para></entry>
 	    </row>
 ´	  </tbody>
@@ -10251,38 +10251,38 @@
 	<tbody>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::Counter::constructor">Counter::constructor()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Creates the Counter object.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Creates the Counter object.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::Counter::destructor">Counter::destructor()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Destroys the Counter object.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Destroys the Counter object.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::Counter::copy">Counter::copy()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Creates a new Counter object, not based on the original.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Creates a new Counter object, not based on the original.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::Counter::inc">Counter::inc()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Atomically increments the counter value.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Atomically increments the counter value.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::Counter::dec">Counter::dec()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Atomically decrements the counter value.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Atomically decrements the counter value.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::Counter::waitForZero">Counter::waitForZero()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Blocks a thread until the counter reaches zero.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Blocks a thread until the counter reaches zero.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::Counter::getCount">Counter::getCount()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Returns the current counter value.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Returns the current counter value.</para></entry>
 	  </row>
 	</tbody>
       </tgroup>
@@ -10338,7 +10338,7 @@
 	  <tbody>
 	    <row>
 	      <entry>Counter Object</entry>
-	      <entry>The new object created.</entry>
+	      <entry><para>The new object created.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -10471,8 +10471,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>n/a</entry>
-	      <entry>This method returns no value.</entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method return no value.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -10528,8 +10528,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>n/a</entry>
-	      <entry>This method returns no value.</entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method return no value.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -10585,8 +10585,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>n/a</entry>
-	      <entry>This method returns no value.</entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method return no value.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -10642,8 +10642,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>Integer</entry>
-	      <entry>The current counter value.</entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>The current counter value.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -10669,38 +10669,38 @@
 	<tbody>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::Queue::constructor">Queue::constructor()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Creates the Queue object.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Creates the Queue object.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::Queue::destructor">Queue::destructor()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Destroys the Queue object.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Destroys the Queue object.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::Queue::copy">Queue::copy()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Creates a new Queue object, not based on the original.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Creates a new Queue object, not based on the original.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::Queue::get">Queue::get()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Blocks until at least one entry is available on the queue, then returns the first entry in the queue.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Blocks until at least one entry is available on the queue, then returns the first entry in the queue.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::Queue::pop">Queue::pop()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Blocks until at least one entry is available on the queue, then returns the last entry in the queue.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Blocks until at least one entry is available on the queue, then returns the last entry in the queue.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::Queue::push">Queue::push()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Puts a value on the end of the queue.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Puts a value on the end of the queue.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::Queue::size">Queue::size()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Returns the number of elements in the queue.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Returns the number of elements in the queue.</para></entry>
 	  </row>
 	</tbody>
       </tgroup>
@@ -10755,8 +10755,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>Queue Object</entry>
-	      <entry>The new object created.</entry>
+	      <entry><para>Queue Object</para></entry>
+	      <entry><para>The new object created.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -10889,8 +10889,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>Any</entry>
-	      <entry>Depends on the value put on the queue.</entry>
+	      <entry><para>Any</para></entry>
+	      <entry><para>Depends on the value put on the queue.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -10907,7 +10907,7 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>QUEUE-TIMEOUT</para></entry>
+	      <entry><para><code>QUEUE-TIMEOUT</code></para></entry>
 	      <entry><para>The timeout value was exceeded.</para></entry>
 	    </row>
 ´	  </tbody>
@@ -10964,8 +10964,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>Any</entry>
-	      <entry>Depends on the value put on the queue.</entry>
+	      <entry><para>Any</para></entry>
+	      <entry><para>Depends on the value put on the queue.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -10982,7 +10982,7 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>QUEUE-TIMEOUT</para></entry>
+	      <entry><para><code>QUEUE-TIMEOUT</code></para></entry>
 	      <entry><para>The timeout value was exceeded.</para></entry>
 	    </row>
 ´	  </tbody>
@@ -11039,8 +11039,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>n/a</entry>
-	      <entry>This method returns no value.</entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method return no value.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -11096,8 +11096,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>Integer</entry>
-	      <entry>The number of elements in the queue.</entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>The number of elements in the queue.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -11130,53 +11130,53 @@
 	<tbody>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::RWLock::constructor">RWLock::constructor()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Creates the RWLock object.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Creates the RWLock object.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::RWLock::destructor">RWLock::destructor()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Destroys the RWLock object.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Destroys the RWLock object.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::RWLock::copy">RWLock::copy()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Creates a new RWLock object, not based on the original.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Creates a new RWLock object, not based on the original.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::RWLock::readLock">RWLock::readLock()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Acquires the read lock or increments the read lock counter; blocks if the write lock is already acquired.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Acquires the read lock or increments the read lock counter; blocks if the write lock is already acquired.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::RWLock::readUnlock">RWLock::readUnlock()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Decrements the read lock counter and releases the read lock if the counter is zero.  If at least one thread is blocked trying to acquire the write lock and the read counter reaches zero, then one thread waiting on the write lock is woken up.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Decrements the read lock counter and releases the read lock if the counter is zero.  If at least one thread is blocked trying to acquire the write lock and the read counter reaches zero, then one thread waiting on the write lock is woken up.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::RWLock::writeLock">RWLock::writeLock()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Acquires the write lock; blocks if either the read lock or write lock is already acquired.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Acquires the write lock; blocks if either the read lock or write lock is already acquired.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::RWLock::writeUnlock">RWLock::writeUnlock()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Releases the write lock, if any writers are waiting, then wakes one up, otherwise if any readers are waiting, wakes up all readers.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Releases the write lock, if any writers are waiting, then wakes one up, otherwise if any readers are waiting, wakes up all readers.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::RWLock::tryReadLock">RWLock::tryReadLock()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Acquires the read lock only if it can be acquired immediately.  Returns 0 for success (read lock acquired, read lock count incremented) or -1 if the call would block.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Acquires the read lock only if it can be acquired immediately.  Returns 0 for success (read lock acquired, read lock count incremented) or -1 if the call would block.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::RWLock::tryWriteLock">RWLock::tryWriteLock()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Acquires the write lock only if it can be acquired immediately.  Returns 0 for success (write lock acquired) or -1 if the call would block.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Acquires the write lock only if it can be acquired immediately.  Returns 0 for success (write lock acquired) or -1 if the call would block.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::RWLock::numReaders">RWLock::numReaders()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Returns the read lock count.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Returns the read lock count.</para></entry>
 	  </row>
 	</tbody>
       </tgroup>
@@ -11231,8 +11231,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>RWLock Object</entry>
-	      <entry>The object created.</entry>
+	      <entry><para>RWLock Object</para></entry>
+	      <entry><para>The object created.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -11365,8 +11365,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>n/a</entry>
-	      <entry>This method returns no value.</entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method return no value.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -11422,8 +11422,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>n/a</entry>
-	      <entry>This method returns no value.</entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method return no value.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -11479,8 +11479,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>n/a</entry>
-	      <entry>This method returns no value.</entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method return no value.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -11536,8 +11536,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>n/a</entry>
-	      <entry>This method returns no value.</entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method return no value.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -11593,8 +11593,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>Integer</entry>
-	      <entry>Returns 0 for success (read lock acquired, read lock count incremented) or -1 if the call would block.</entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>Returns 0 for success (read lock acquired, read lock count incremented) or -1 if the call would block.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -11650,8 +11650,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>Integer</entry>
-	      <entry>Returns 0 for success (write lock acquired) or -1 if the call would block.</entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>Returns 0 for success (write lock acquired) or -1 if the call would block.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -11707,8 +11707,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>Integer</entry>
-	      <entry>The read lock count.</entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>The read lock count.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -11734,33 +11734,33 @@
 	<tbody>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::Mutex::constructor">Mutex::constructor()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Creates the Mutex object.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Creates the Mutex object.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::Mutex::destructor">Mutex::destructor()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Destroys the Mutex object.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Destroys the Mutex object.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::Mutex::copy">Mutex::copy()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Creates a new Mutex object, not based on the original.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Creates a new Mutex object, not based on the original.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::Mutex::lock">Mutex::lock()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Locks the Mutex object.  Blocks if the lock is already held.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Locks the Mutex object.  Blocks if the lock is already held.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::Mutex::unlock">Mutex::unlock()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Unlocks the Mutex object.  Wakes up one thread if any threads are blocked on this lock.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Unlocks the Mutex object.  Wakes up one thread if any threads are blocked on this lock.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::Mutex::trylock">Mutex::trylock()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Acquires the lock only if it is not already held by another thread.  Returns 0 for success (lock acquired) or -1 if the call would block.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Acquires the lock only if it is not already held by another thread.  Returns 0 for success (lock acquired) or -1 if the call would block.</para></entry>
 	  </row>
 	</tbody>
       </tgroup>
@@ -11815,8 +11815,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>Mutex Object</entry>
-	      <entry>The new object created.</entry>
+	      <entry><para>Mutex Object</para></entry>
+	      <entry><para>The new object created.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -11949,8 +11949,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>n/a</entry>
-	      <entry>This method returns no value.</entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method return no value.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -12006,8 +12006,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>n/a</entry>
-	      <entry>This method returns no value.</entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method return no value.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -12063,8 +12063,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>Integer</entry>
-	      <entry>Returns 0 for success (lock acquired) or -1 if the call would block.</entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>Returns 0 for success (lock acquired) or -1 if the call would block.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -12090,28 +12090,28 @@
 	<tbody>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::RMutex::constructor">RMutex::constructor()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Creates a new RMutex object.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Creates a new RMutex object.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::RMutex::destructor">RMutex::destructor()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Destroys the RMutex object.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Destroys the RMutex object.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::RMutex::copy">RMutex::copy()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Creates a new RMutex object, not based on the original.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Creates a new RMutex object, not based on the original.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::RMutex::enter">RMutex::enter()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Acquires the lock or increments the lock count if already acquired by this thread.  If acquired by another thread, then the call blocks until the lock count reaches zero.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Acquires the lock or increments the lock count if already acquired by this thread.  If acquired by another thread, then the call blocks until the lock count reaches zero.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::RMutex::exit">RMutex::exit()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Decrements the lock count, if the result is zero, and there are blocked threads, wakes up one thread.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Decrements the lock count, if the result is zero, and there are blocked threads, wakes up one thread.</para></entry>
 	  </row>
 	</tbody>
       </tgroup>
@@ -12166,8 +12166,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>RMutex Object</entry>
-	      <entry>The new object created.</entry>
+	      <entry><para>RMutex Object</para></entry>
+	      <entry><para>The new object created.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -12298,8 +12298,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>n/a</entry>
-	      <entry>This method returns no value.</entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method return no value.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -12354,8 +12354,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>n/a</entry>
-	      <entry>This method returns no value.</entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method return no value.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -12381,28 +12381,28 @@
 	<tbody>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::Sequence::constructor">Sequence::constructor()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Creates a new Sequence object.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Creates a new Sequence object.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::Sequence::destructor">Sequence::destructor()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Destroys the Sequence object.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Destroys the Sequence object.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::Sequence::copy">Sequence::copy()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Creates a new Sequence object, not based on the original.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Creates a new Sequence object, not based on the original.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::Sequence::next">Sequence::next()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Atomically increments the counter and returns the last value.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Atomically increments the counter and returns the last value.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::Sequence::getCurrent">Sequence::getCurrent()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Returns the current value of the counter.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Returns the current value of the counter.</para></entry>
 	  </row>
 	</tbody>
       </tgroup>
@@ -12457,8 +12457,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>Sequence Object</entry>
-	      <entry>The new object created.</entry>
+	      <entry><para>Sequence Object</para></entry>
+	      <entry><para>The new object created.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -12590,8 +12590,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>Integer</entry>
-	      <entry>The last value of the sequence.</entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>The last value of the sequence.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -12647,8 +12647,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>Integer</entry>
-	      <entry>The current value of the counter.</entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>The current value of the counter.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -12674,43 +12674,43 @@
 	<tbody>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::Gate::constructor">Gate::constructor()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Create a new Gate object.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Create a new Gate object.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::Gate::destructor">Gate::destructor()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Destroys the Gate object.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Destroys the Gate object.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::Gate::copy">Gate::copy()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Creates a new Gate object, not based on the original.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Creates a new Gate object, not based on the original.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::Gate::enter">Gate::enter()</link></para></entry>
-	    <entry>Y</entry>
-	    <entry>Acquires the lock if it is unlocked or locked with the same key, otherwise blocks until the lock counter reaches zero.</entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Acquires the lock if it is unlocked or locked with the same key, otherwise blocks until the lock counter reaches zero.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::Gate::tryEnter">Gate::tryEnter()</link></para></entry>
-	    <entry>Y</entry>
-	    <entry>Acquires the lock if it is unlocked or locked with the same key, otherwise returns immediately with -1.</entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Acquires the lock if it is unlocked or locked with the same key, otherwise returns immediately with -1.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::Gate::exit">Gate::exit()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Decrements the lock counter; if it reaches zero then the lock is unlocked and any blocked threads are awoken.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Decrements the lock counter; if it reaches zero then the lock is unlocked and any blocked threads are awoken.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::Gate::numInside">Gate::numInside()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Returns the current lock count.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Returns the current lock count.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::Gate::numWaiting">Gate::numWaiting()</link></para></entry>
-	    <entry>N</entry>
-	    <entry>Returns the number of threads blocked on the Gate.</entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Returns the number of threads blocked on the Gate.</para></entry>
 	  </row>
 	</tbody>
       </tgroup>
@@ -12765,8 +12765,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>Gate Object</entry>
-	      <entry>The new object created.</entry>
+	      <entry><para>Gate Object</para></entry>
+	      <entry><para>The new object created.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -12898,8 +12898,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>n/a</entry>
-	      <entry>This method returns no value.</entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method returns no value.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -12916,7 +12916,7 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>GATE-ENTER-PARAMETER-EXCEPTION</para></entry>
+	      <entry><para><code>GATE-ENTER-PARAMETER-EXCEPTION</code></para></entry>
 	      <entry><para>-1 is an illegal key for this object.</para></entry>
 	    </row>
 ´	  </tbody>
@@ -12972,8 +12972,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>Integer</entry>
-	      <entry>Returns 0 for success (acquired the lock) or -1 for failure (would block).</entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>Returns 0 for success (acquired the lock) or -1 for failure (would block).</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -12990,7 +12990,7 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>GATE-TRYENTER-PARAMETER-EXCEPTION</para></entry>
+	      <entry><para><code>GATE-TRYENTER-PARAMETER-EXCEPTION</code></para></entry>
 	      <entry><para>-1 is an illegal key for this object.</para></entry>
 	    </row>
 ´	  </tbody>
@@ -13046,8 +13046,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>n/a</entry>
-	      <entry>This method returns no value.</entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method returns no value.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -13102,8 +13102,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>Integer</entry>
-	      <entry>Returns the current lock count.</entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>Returns the current lock count.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -13158,8 +13158,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>Integer</entry>
-	      <entry>Returns the number of threads blocked on this object.</entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>Returns the number of threads blocked on this object.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>

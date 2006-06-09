@@ -183,8 +183,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>TibcoAdapter Object</entry>
-	      <entry>The new object created.</entry>
+	      <entry><para>TibcoAdapter Object</para></entry>
+	      <entry><para>The new object created.</para></entry>
 	    </row>
 	  </tbody>
 	  </tgroup>
@@ -201,15 +201,15 @@
 	    </thead>
 	    <tbody>
 	      <row>
-		<entry><para>TIBCO-INVALID-PROPERTIES-HASH</para></entry>
+		<entry><para><code>TIBCO-INVALID-PROPERTIES-HASH</code></para></entry>
 		<entry><para>Non-string value found in properties hash.</para></entry>
 	      </row>
 	      <row>
-		<entry><para>TIBCO-PARAMETER-ERROR</para></entry>
+		<entry><para><code>TIBCO-PARAMETER-ERROR</code></para></entry>
 		<entry><para>Invalid parameters passed to constructor.</para></entry>
 	      </row>
 	      <row>
-		<entry><para>TIBCO-EXCEPTION</para></entry>
+		<entry><para><code>TIBCO-EXCEPTION</code></para></entry>
 		<entry><para>The TIBCO SDK raised an exception instantiating the adapter.</para></entry>
 	      </row>
 	    </tbody>
@@ -285,7 +285,7 @@
 	    </thead>
 	    <tbody>
 	      <row>
-		<entry><para>TIBCO-ADAPTER-COPY-ERROR</para></entry>
+		<entry><para><code>TIBCO-ADAPTER-COPY-ERROR</code></para></entry>
 		<entry><para>Objects of this class cannot be copied.</para></entry>
 	      </row>
 	    </tbody>
@@ -347,8 +347,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>Hash</entry>
-	      <entry>The message received.  If a timeout value was set and no message was sent within the timeout period, no value is returned.</entry>
+	      <entry><para>Hash</para></entry>
+	      <entry><para>The message received.  If a timeout value was set and no message was sent within the timeout period, no value is returned.</para></entry>
 	    </row>
 	  </tbody>
 	  </tgroup>
@@ -365,7 +365,7 @@
 	    </thead>
 	    <tbody>
 	      <row>
-		<entry><para>MAP-ERROR</para></entry>
+		<entry><para><code>MAP-ERROR</code></para></entry>
 		<entry><para>Don't know how to map TIBCO data to Qore data (unsupported TIBCO data type).</para></entry>
 	      </row>
 	    </tbody>
@@ -432,8 +432,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>n/a</entry>
-	      <entry>This method does not return any value.</entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method does not return any value.</para></entry>
 	    </row>
 	  </tbody>
 	  </tgroup>
@@ -450,11 +450,11 @@
 	    </thead>
 	    <tbody>
 	      <row>
-		<entry><para>TIBCO-SENDSUBJECT-PARAMETER-ERROR</para></entry>
+		<entry><para><code>TIBCO-SENDSUBJECT-PARAMETER-ERROR</code></para></entry>
 		<entry><para>Invalid parameters passed to the method.</para></entry>
 	      </row>
 	      <row>
-		<entry><para>TIBCO-EXCEPTION</para></entry>
+		<entry><para><code>TIBCO-EXCEPTION</code></para></entry>
 		<entry><para>The TIBCO SDK raised an exception instantiating the adapter.</para></entry>
 	      </row>
 	    </tbody>
@@ -525,8 +525,8 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry>Hash</entry>
-	      <entry>The reply message received.  If a timeout value was set and no message was sent within the timeout period, no value is returned.</entry>
+	      <entry><para>Hash</para></entry>
+	      <entry><para>The reply message received.  If a timeout value was set and no message was sent within the timeout period, no value is returned.</para></entry>
 	    </row>
 	  </tbody>
 	  </tgroup>
@@ -556,34 +556,34 @@
 	</thead>
 	<tbody>
 	  <row>
-	    <entry>Type::Binary</entry>
-	    <entry>SQLT_BIN</entry>
-	    <entry>For use with BLOB columns, for example.</entry>
+	    <entry><para>Type::Binary</para></entry>
+	    <entry><para>SQLT_BIN</para></entry>
+	    <entry><para>For use with BLOB columns, for example.</para></entry>
 	  </row>
 	  <row>
-	    <entry>Type::String</entry>
-	    <entry>SQLT_STR</entry>
-	    <entry>For use with string data, VARCHAR* columns, etc</entry>
+	    <entry><para>Type::String</para></entry>
+	    <entry><para>SQLT_STR</para></entry>
+	    <entry><para>For use with string data, VARCHAR* columns, etc</para></entry>
 	  </row>
 	  <row>
-	    <entry>Type::Integer</entry>
-	    <entry>SQLT_INT or SQLT_STR</entry>
-	    <entry>For use with numeric columns, NUMBER*, etc (int &gt; 32-bits = SQLT_STR, &lt;= 32-bit int = SQLT_INT)</entry>
+	    <entry><para>Type::Integer</para></entry>
+	    <entry><para>SQLT_INT or SQLT_STR</para></entry>
+	    <entry><para>For use with numeric columns, NUMBER*, etc (int &gt; 32-bits = SQLT_STR, &lt;= 32-bit int = SQLT_INT)</para></entry>
 	  </row>
 	  <row>
-	    <entry>Type::Boolean</entry>
-	    <entry>SQLT_INT</entry>
-	    <entry>True is bound as 1, False as 0</entry>
+	    <entry><para>Type::Boolean</para></entry>
+	    <entry><para>SQLT_INT</para></entry>
+	    <entry><para>True is bound as 1, False as 0</para></entry>
 	  </row>
 	  <row>
-	    <entry>Type::Float</entry>
-	    <entry>SQLT_FLT</entry>
-	    <entry>For use with NUMBER* columns, etc</entry>
+	    <entry><para>Type::Float</para></entry>
+	    <entry><para>SQLT_FLT</para></entry>
+	    <entry><para>For use with NUMBER* columns, etc</para></entry>
 	  </row>
 	  <row>
-	    <entry>Type::Date</entry>
-	    <entry>SQLT_DAT</entry>
-	    <entry>For use with date columns, etc.</entry>
+	    <entry><para>Type::Date</para></entry>
+	    <entry><para>SQLT_DAT</para></entry>
+	    <entry><para>For use with date columns, etc.</para></entry>
 	  </row>
 	</tbody>
       </tgroup>
@@ -601,39 +601,39 @@
 	</thead>
 	<tbody>
 	  <row>
-	    <entry>Type::Binary</entry>
-	    <entry>SQLT_BLOB</entry>
-	    <entry>For retrieving BLOB data, for example.</entry>
+	    <entry><para><code>SQL::BLOB</code></para></entry>
+	    <entry><para>SQLT_BLOB</para></entry>
+	    <entry><para>For retrieving BLOB data, for example.</para></entry>
 	  </row>
 	  <row>
-	    <entry>"clob"</entry>
-	    <entry>SQLT_CLOB</entry>
-	    <entry>For retrieving CLOB data.</entry>
+	    <entry><para><code>SQL::CLOB</code></para></entry>
+	    <entry><para>SQLT_CLOB</para></entry>
+	    <entry><para>For retrieving CLOB data.</para></entry>
 	  </row>
 	  <row>
-	    <entry>Type::String</entry>
-	    <entry>SQLT_STR</entry>
-	    <entry>For retrieving VARCHAR* data.</entry>
+	    <entry><para><code>SQL::VARCHAR</code></para></entry>
+	    <entry><para>SQLT_STR</para></entry>
+	    <entry><para>For retrieving VARCHAR* data.  To specifiy a buffer size larger than 512 bytes, simply use the size in bytes as the argument.</para></entry>
 	  </row>
 	  <row>
-	    <entry>Type::Integer</entry>
-	    <entry>SQLT_INT</entry>
-	    <entry>For retrieving integer numeric data up to 32 bits (for larger numbers or for non-integer numbers use Type::String or Type::Float).</entry>
+	    <entry><para><code>Type::Integer</code></para></entry>
+	    <entry><para>SQLT_INT</para></entry>
+	    <entry><para>For retrieving integer numeric data up to 32 bits (for larger numbers or for non-integer numbers use SQL::VARCHAR or Type::Float).</para></entry>
 	  </row>
 	  <row>
-	    <entry>Type::Float</entry>
-	    <entry>SQLT_FLT</entry>
-	    <entry>For retrieving data in 64-bit floating point format.</entry>
+	    <entry><para><code>Type::Float</code></para></entry>
+	    <entry><para>SQLT_FLT</para></entry>
+	    <entry><para>For retrieving data in 64-bit floating point format.</para></entry>
 	  </row>
 	  <row>
-	    <entry>Type::Date</entry>
-	    <entry>SQLT_DAT</entry>
-	    <entry>For retrieving dates and times.</entry>
+	    <entry><para><code>Type::Date</code></para></entry>
+	    <entry><para>SQLT_DAT</para></entry>
+	    <entry><para>For retrieving dates and times.</para></entry>
 	  </row>
 	  <row>
-	    <entry>Type::Hash</entry>
-	    <entry>SQLT_RSET</entry>
-	    <entry>For retrieving result sets from a stored procedure that returns a cursor.</entry>
+	    <entry><para><code>Type::Hash</code></para></entry>
+	    <entry><para>SQLT_RSET</para></entry>
+	    <entry><para>For retrieving result sets from a stored procedure that returns a cursor.</para></entry>
 	  </row>
 	</tbody>
       </tgroup>

@@ -3335,11 +3335,11 @@
     </thead>
     <tbody>
       <row>
-	<entry><para>DIVISION-BY-ZERO</para></entry>
+	<entry><para><code>DIVISION-BY-ZERO</code></para></entry>
 	<entry><para>pow(x, y): y must be a non-negative value.</para></entry>
       </row>
       <row>
-	<entry><para>INVALID-POW-ARGUMENTS</para></entry>
+	<entry><para><code>INVALID-POW-ARGUMENTS</code></para></entry>
 	<entry><para>pow(x, y): x cannot be negative when y is not an integer value.</para></entry>
       </row>
     </tbody>
@@ -5616,7 +5616,7 @@
     </thead>
     <tbody>
       <row>
-	<entry><para>STRING-ENCODING-CONVERSION-ERROR</para></entry>
+	<entry><para><code>STRING-ENCODING-CONVERSION-ERROR</code></para></entry>
 	<entry><para>There was an error converting to the target encoding (ex: conversion not supported, illegal character sequence, etc).</para></entry>
       </row>
     </tbody>
@@ -5875,7 +5875,7 @@
     </thead>
     <tbody>
       <row>
-	<entry><para>REGEX-COMPILATION-ERROR</para></entry>
+	<entry><para><code>REGEX-COMPILATION-ERROR</code></para></entry>
 	<entry><para>There was an error compiling the regular expression.</para></entry>
       </row>
     </tbody>
@@ -5934,11 +5934,11 @@
     </thead>
     <tbody>
       <row>
-	<entry><para>REGEX-OPTION-ERROR</para></entry>
+	<entry><para><code>REGEX-OPTION-ERROR</code></para></entry>
 	<entry><para>Invalid options were passed to the function.</para></entry>
       </row>
       <row>
-	<entry><para>REGEX-COMPILATION-ERROR</para></entry>
+	<entry><para><code>REGEX-COMPILATION-ERROR</code></para></entry>
 	<entry><para>There was an error compiling the regular expression.</para></entry>
       </row>
     </tbody>
@@ -6403,7 +6403,7 @@
     </thead>
     <tbody>
       <row>
-	<entry><para>CHDIR-PARAMETER-ERROR</para></entry>
+	<entry><para><code>CHDIR-PARAMETER-ERROR</code></para></entry>
 	<entry><para>The string for the new directory was missing from the call.</para></entry>
       </row>
     </tbody>
@@ -6463,7 +6463,7 @@
     </thead>
     <tbody>
       <row>
-	<entry><para>CHMOD-PARAMETER-ERROR</para></entry>
+	<entry><para><code>CHMOD-PARAMETER-ERROR</code></para></entry>
 	<entry><para>Either the filename or the mode was missing from the call.</para></entry>
       </row>
     </tbody>
@@ -7120,7 +7120,7 @@
     </thead>
     <tbody>
       <row>
-	<entry><para>MKDIR-PARAMETER-ERROR</para></entry>
+	<entry><para><code>MKDIR-PARAMETER-ERROR</code></para></entry>
 	<entry><para>Missing directory name for the mkdir() call.</para></entry>
       </row>
     </tbody>
@@ -7235,8 +7235,8 @@
     </thead>
     <tbody>
       <row>
-	<entry><para>RMDIR-PARAMETER-ERROR</para></entry>
-	<entry><para>Missing directory name for the rmdir() call.</para></entry>
+	<entry><para><code>RMDIR-PARAMETER-ERROR</code></para></entry>
+	<entry><para>Missing directory name for the <code>rmdir()</code> call.</para></entry>
       </row>
     </tbody>
   </tgroup>
@@ -7670,8 +7670,8 @@
     </thead>
     <tbody>
       <row>
-	<entry><para>BACKQUOTE-ERROR</para></entry>
-	<entry><para>An error occurred with the fork() or opening the stdout pipe.</para></entry>
+	<entry><para><code>BACKQUOTE-ERROR</code></para></entry>
+	<entry><para>An error occurred with the <code>fork()</code> or opening the stdout pipe.</para></entry>
       </row>
     </tbody>
   </tgroup>
@@ -7729,11 +7729,11 @@
     </thead>
     <tbody>
       <row>
-	<entry><para>CALL-FUNCTION-ARGS-PARAMETER-ERROR</para></entry>
+	<entry><para><code>CALL-FUNCTION-ARGS-PARAMETER-ERROR</code></para></entry>
 	<entry><para>The first argument must be a string.</para></entry>
       </row>
       <row>
-	<entry><para>INVALID-FUNCTION-ACCESS</para></entry>
+	<entry><para><code>INVALID-FUNCTION-ACCESS</code></para></entry>
 	<entry><para>Parse options do not allow access to the function.</para></entry>
       </row>
       <row>
@@ -7797,11 +7797,11 @@
     </thead>
     <tbody>
       <row>
-	<entry><para>CALL-FUNCTION-PARAMETER-ERROR</para></entry>
+	<entry><para><code>CALL-FUNCTION-PARAMETER-ERROR</code></para></entry>
 	<entry><para>The first argument must be a string.</para></entry>
       </row>
       <row>
-	<entry><para>INVALID-FUNCTION-ACCESS</para></entry>
+	<entry><para><code>INVALID-FUNCTION-ACCESS</code></para></entry>
 	<entry><para>Parse options do not allow access to the function.</para></entry>
       </row>
       <row>
@@ -7865,19 +7865,19 @@
     </thead>
     <tbody>
       <row>
-	<entry><para>METHOD-DOES-NOT-EXIST</para></entry>
+	<entry><para><code>METHOD-DOES-NOT-EXIST</code></para></entry>
 	<entry><para>The named method does not exist in this class.</para></entry>
       </row>
       <row>
-	<entry><para>ILLEGAL-EXPLICIT-METHOD-CALL</para></entry>
+	<entry><para><code>ILLEGAL-EXPLICIT-METHOD-CALL</code></para></entry>
 	<entry><para>The named method may not be called explicitly.</para></entry>
       </row>
       <row>
-	<entry><para>METHOD-IS-PRIVATE</para></entry>
+	<entry><para><code>METHOD-IS-PRIVATE</code></para></entry>
 	<entry><para>The named method is private and therefore can only be called within the class.</para></entry>
       </row>
       <row>
-	<entry><para>BASE-CLASS-IS-PRIVATE</para></entry>
+	<entry><para><code>BASE-CLASS-IS-PRIVATE</code></para></entry>
 	<entry><para>The named method is a member of a privately inherited base class.</para></entry>
       </row>
     </tbody>
@@ -7937,19 +7937,19 @@
     </thead>
     <tbody>
       <row>
-	<entry><para>METHOD-DOES-NOT-EXIST</para></entry>
+	<entry><para><code>METHOD-DOES-NOT-EXIST</code></para></entry>
 	<entry><para>The named method does not exist in this class.</para></entry>
       </row>
       <row>
-	<entry><para>ILLEGAL-EXPLICIT-METHOD-CALL</para></entry>
+	<entry><para><code>ILLEGAL-EXPLICIT-METHOD-CALL</code></para></entry>
 	<entry><para>The named method may not be called explicitly.</para></entry>
       </row>
       <row>
-	<entry><para>METHOD-IS-PRIVATE</para></entry>
+	<entry><para><code>METHOD-IS-PRIVATE</code></para></entry>
 	<entry><para>The named method is private and therefore can only be called within the class.</para></entry>
       </row>
       <row>
-	<entry><para>BASE-CLASS-IS-PRIVATE</para></entry>
+	<entry><para><code>BASE-CLASS-IS-PRIVATE</code></para></entry>
 	<entry><para>The named method is a member of a privately inherited base class.</para></entry>
       </row>
     </tbody>
@@ -8009,7 +8009,7 @@
     </thead>
     <tbody>
       <row>
-	<entry><para>ZLIB-COMPRESS-ERROR</para></entry>
+	<entry><para><code>ZLIB-COMPRESS-ERROR</code></para></entry>
 	<entry><para>zlib returned an error to the compress function.</para></entry>
       </row>
     </tbody>
@@ -8066,11 +8066,11 @@
     </thead>
     <tbody>
       <row>
-	<entry><para>ZLIB-COMPRESS2-ERROR</para></entry>
+	<entry><para><code>ZLIB-COMPRESS2-ERROR</code></para></entry>
 	<entry><para>zlib returned an error to the compress function.</para></entry>
       </row>
       <row>
-	<entry><para>ZLIB-LEVEL-ERROR</para></entry>
+	<entry><para><code>ZLIB-LEVEL-ERROR</code></para></entry>
 	<entry><para>The compression level was not between 0 and 9.</para></entry>
       </row>
     </tbody>
@@ -8779,7 +8779,7 @@
     </thead>
     <tbody>
       <row>
-	<entry><para>PARSE-ERROR</para></entry>
+	<entry><para><code>PARSE-ERROR</code></para></entry>
 	<entry><para>An error occurred parsing the text.</para></entry>
       </row>
     </tbody>
@@ -8839,7 +8839,7 @@
     </thead>
     <tbody>
       <row>
-	<entry><para>BASE64-PARSE-ERROR</para></entry>
+	<entry><para><code>BASE64-PARSE-ERROR</code></para></entry>
 	<entry><para>A syntax error occurred parsing the base64 string (invalid character, etc).</para></entry>
       </row>
     </tbody>
@@ -8895,7 +8895,7 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>DATASOURCE-PARSE-ERROR</para></entry>
+	      <entry><para><code>DATASOURCE-PARSE-ERROR</code></para></entry>
 	      <entry><para>A syntax error occurred parsing the datasource string (missing field, unexpected character, etc).</para></entry>
 	    </row>
 	  </tbody>
@@ -9153,7 +9153,7 @@
     </thead>
     <tbody>
       <row>
-	<entry><para>ZLIB-UNCOMPRESS-ERROR</para></entry>
+	<entry><para><code>ZLIB-UNCOMPRESS-ERROR</code></para></entry>
 	<entry><para>zlib returned an error to the uncompress() function.</para></entry>
       </row>
     </tbody>
@@ -9210,7 +9210,7 @@
     </thead>
     <tbody>
       <row>
-	<entry><para>ZLIB-UNCOMPRESS-ERROR</para></entry>
+	<entry><para><code>ZLIB-UNCOMPRESS-ERROR</code></para></entry>
 	<entry><para>zlib returned an error to the uncompress() function.</para></entry>
       </row>
     </tbody>
@@ -9643,7 +9643,7 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>MAKE-XML-ERROR</para></entry>
+	      <entry><para><code>MAKE-XML-ERROR</code></para></entry>
 	      <entry><para>An error occurred serializing the Qore data to an XML string.</para></entry>
 	    </row>
 	  </tbody>
@@ -9700,7 +9700,7 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>MAKE-XML-ERROR</para></entry>
+	      <entry><para><code>MAKE-XML-ERROR</code></para></entry>
 	      <entry><para>An error occurred serializing the Qore data to an XML string.</para></entry>
 	    </row>
 	  </tbody>
@@ -9757,7 +9757,7 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>MAKE-XML-ERROR</para></entry>
+	      <entry><para><code>MAKE-XML-ERROR</code></para></entry>
 	      <entry><para>An error occurred serializing the Qore data to an XML string.</para></entry>
 	    </row>
 	  </tbody>
@@ -9814,11 +9814,11 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>MAKE-XML-ERROR</para></entry>
+	      <entry><para><code>MAKE-XML-ERROR</code></para></entry>
 	      <entry><para>An error occurred serializing the Qore data to an XML string.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>MAKE-XML-RPC-FAULT-RESPONSE-STRING-PARAMETER-ERROR</para></entry>
+	      <entry><para><code>MAKE-XML-RPC-FAULT-RESPONSE-STRING-PARAMETER-ERROR</code></para></entry>
 	      <entry><para>missing either the error code or the error string arguments.</para></entry>
 	    </row>
 	  </tbody>
@@ -9876,7 +9876,7 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>MAKE-XML-ERROR</para></entry>
+	      <entry><para><code>MAKE-XML-ERROR</code></para></entry>
 	      <entry><para>An error occurred serializing the Qore data to an XML string.</para></entry>
 	    </row>
 	  </tbody>
@@ -9932,7 +9932,7 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>MAKE-XML-ERROR</para></entry>
+	      <entry><para><code>MAKE-XML-ERROR</code></para></entry>
 	      <entry><para>An error occurred serializing the Qore data to an XML string.</para></entry>
 	    </row>
 	  </tbody>
@@ -9995,11 +9995,11 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>MAKE-XML-ERROR</para></entry>
+	      <entry><para><code>MAKE-XML-ERROR</code></para></entry>
 	      <entry><para>An error occurred serializing the Qore data to an XML string.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>MAKE-FORMATTED-XML-STRING-PARAMETER-EXCEPTION</para></entry>
+	      <entry><para><code>MAKE-FORMATTED-XML-STRING-PARAMETER-EXCEPTION</code></para></entry>
 	      <entry><para>Incorrect arguments passed.</para></entry>
 	    </row>
 	  </tbody>
@@ -10056,7 +10056,7 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>MAKE-XML-ERROR</para></entry>
+	      <entry><para><code>MAKE-XML-ERROR</code></para></entry>
 	      <entry><para>An error occurred serializing the Qore data to an XML string.</para></entry>
 	    </row>
 	  </tbody>
@@ -10113,7 +10113,7 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>MAKE-XML-ERROR</para></entry>
+	      <entry><para><code>MAKE-XML-ERROR</code></para></entry>
 	      <entry><para>An error occurred serializing the Qore data to an XML string.</para></entry>
 	    </row>
 	  </tbody>
@@ -10170,7 +10170,7 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>MAKE-XML-ERROR</para></entry>
+	      <entry><para><code>MAKE-XML-ERROR</code></para></entry>
 	      <entry><para>An error occurred serializing the Qore data to an XML string.</para></entry>
 	    </row>
 	  </tbody>
@@ -10227,11 +10227,11 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>MAKE-XML-ERROR</para></entry>
+	      <entry><para><code>MAKE-XML-ERROR</code></para></entry>
 	      <entry><para>An error occurred serializing the Qore data to an XML string.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>MAKE-XML-RPC-FAULT-RESPONSE-STRING-PARAMETER-ERROR</para></entry>
+	      <entry><para><code>MAKE-XML-RPC-FAULT-RESPONSE-STRING-PARAMETER-ERROR</code></para></entry>
 	      <entry><para>missing either the error code or the error string arguments.</para></entry>
 	    </row>
 	  </tbody>
@@ -10289,7 +10289,7 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>MAKE-XML-ERROR</para></entry>
+	      <entry><para><code>MAKE-XML-ERROR</code></para></entry>
 	      <entry><para>An error occurred serializing the Qore data to an XML string.</para></entry>
 	    </row>
 	  </tbody>
@@ -10345,7 +10345,7 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>MAKE-XML-ERROR</para></entry>
+	      <entry><para><code>MAKE-XML-ERROR</code></para></entry>
 	      <entry><para>An error occurred serializing the Qore data to an XML string.</para></entry>
 	    </row>
 	  </tbody>
@@ -10408,11 +10408,11 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>MAKE-XML-ERROR</para></entry>
+	      <entry><para><code>MAKE-XML-ERROR</code></para></entry>
 	      <entry><para>An error occurred serializing the Qore data to an XML string.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>MAKE-XML-STRING-PARAMETER-EXCEPTION</para></entry>
+	      <entry><para><code>MAKE-XML-STRING-PARAMETER-EXCEPTION</code></para></entry>
 	      <entry><para>Incorrect arguments passed.</para></entry>
 	    </row>
 	  </tbody>
@@ -10469,7 +10469,7 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>PARSE-XML-EXCEPTION</para></entry>
+	      <entry><para><code>PARSE-XML-EXCEPTION</code></para></entry>
 	      <entry><para>Error parsing the XML string.</para></entry>
 	    </row>
 	  </tbody>
@@ -10526,11 +10526,11 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>PARSE-XML-RPC-CALL-ERROR</para></entry>
+	      <entry><para><code>PARSE-XML-RPC-CALL-ERROR</code></para></entry>
 	      <entry><para>Error parsing the XML-RPC call string.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>PARSE-XML-RPC-VALUE-ERROR</para></entry>
+	      <entry><para><code>PARSE-XML-RPC-VALUE-ERROR</code></para></entry>
 	      <entry><para>Error parsing an XML-RPC value node.</para></entry>
 	    </row>
 	  </tbody>
@@ -10586,11 +10586,11 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>PARSE-XML-RPC-RESPONSE-ERROR</para></entry>
+	      <entry><para><code>PARSE-XML-RPC-RESPONSE-ERROR</code></para></entry>
 	      <entry><para>Error parsing the XML-RPC response string.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>PARSE-XML-RPC-VALUE-ERROR</para></entry>
+	      <entry><para><code>PARSE-XML-RPC-VALUE-ERROR</code></para></entry>
 	      <entry><para>Error parsing an XML-RPC value node.</para></entry>
 	    </row>
 	  </tbody>
@@ -10647,7 +10647,7 @@
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>PARSE-XML-RPC-VALUE-ERROR</para></entry>
+	      <entry><para><code>PARSE-XML-RPC-VALUE-ERROR</code></para></entry>
 	      <entry><para>Error parsing an XML-RPC value node.</para></entry>
 	    </row>
 	  </tbody>

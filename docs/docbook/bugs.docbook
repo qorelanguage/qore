@@ -3,8 +3,6 @@
 <chapter id="Appendix_B:_Known_Bugs">
   <title>Appendix B: Known Bugs</title>
 
-  <para>The string functions (particularly substr() and length()) do not work properly with multi-byte character sets (such as UTF-8) yet.  Furthermore specifying field widths with print formatting only works properly with character encodings where each character is always 1 byte</para>
-
   <para>Out of memory errors are not always captured. Internal support for trapping these conditions in the C++ <command>new</command> operator must be developed.</para>
 
   <para>The MySQL driver doesn't support stored procedure execution yet.</para>

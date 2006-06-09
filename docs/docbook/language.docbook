@@ -1241,7 +1241,7 @@ language, either by an addition to this data type, or by adding another date typ
       </thead>
       <tbody>
 	<row>
-	  <entry><para>BACKQUOTE-ERROR</para></entry>
+	  <entry><para><code>BACKQUOTE-ERROR</code></para></entry>
 	  <entry><para>An error occurred in fork() or creating the output pipe.</para></entry>
 	</row>
       </tbody>
@@ -1306,7 +1306,7 @@ language, either by an addition to this data type, or by adding another date typ
     </thead>
     <tbody>
       <row>
-	<entry><para>PRIVATE-MEMBER</para></entry>
+	<entry><para><code>PRIVATE-MEMBER</code></para></entry>
 	<entry><para>Attempt to access a private member outside the class.</para></entry>
       </row>
     </tbody>
@@ -1381,23 +1381,23 @@ language, either by an addition to this data type, or by adding another date typ
       
       <tbody>
 	<row>
-	  <entry><para>PRIVATE-MEMBER</para></entry>
+	  <entry><para><code>PRIVATE-MEMBER</code></para></entry>
 	  <entry><para>Attempt to access a private member outside the class.</para></entry>
 	</row>
 	<row>
-	  <entry><para>METHOD-DOES-NOT-EXIST</para></entry>
+	  <entry><para><code>METHOD-DOES-NOT-EXIST</code></para></entry>
 	  <entry><para>Attempt to access a method not defined for this class.</para></entry>
 	</row>
 	<row>
-	  <entry><para>METHOD-IS-PRIVATE</para></entry>
+	  <entry><para><code>METHOD-IS-PRIVATE</code></para></entry>
 	  <entry><para>Attempt to access a private method from outside the class.</para></entry>
 	</row>
 	<row>
-	  <entry><para>BASE-CLASS-IS-PRIVATE</para></entry>
+	  <entry><para><code>BASE-CLASS-IS-PRIVATE</code></para></entry>
 	  <entry><para>Attempt to access a method of a privately-inherited base class from outside the class.</para></entry>
 	</row>
 	<row>
-	  <entry><para>OBJECT-METHOD-EVAL-ON-NON-OBJECT</para></entry>
+	  <entry><para><code>OBJECT-METHOD-EVAL-ON-NON-OBJECT</code></para></entry>
 	  <entry><para>Attempt to execute a method on a non-object.</para></entry>
 	</row>
       </tbody>
@@ -1863,7 +1863,7 @@ language, either by an addition to this data type, or by adding another date typ
       </thead>
       <tbody>
 	<row>
-	  <entry><para>THREAD-CREATION-FAILURE</para></entry>
+	  <entry><para><code>THREAD-CREATION-FAILURE</code></para></entry>
 	  <entry><para>If the thread table is full or if the operating system returns an error while starting the thread, this exception is thrown.</para></entry>
 	</row>
       </tbody>
@@ -4279,7 +4279,7 @@ language, either by an addition to this data type, or by adding another date typ
       </thead>
       <tbody>
 	<row>
-	  <entry><para>DIVISION-BY-ZERO</para></entry>
+	  <entry><para><code>DIVISION-BY-ZERO</code></para></entry>
 	  <entry><para>If the divisor expression evaluates to zero, this exception is thrown.</para></entry>
 	</row>
       </tbody>
@@ -5746,7 +5746,7 @@ $var[1].count++;
 	  </row>
 	  <row>
 	    <entry><para><link linkend="parseXML">parseXML()</link></para></entry>
-	    <entry>parses an XML string and returns a Qore hash structure.</entry>
+	    <entry><para>parses an XML string and returns a Qore hash structure.</para></entry>
 	  </row>
 	</tbody>
       </tgroup>
