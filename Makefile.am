@@ -173,7 +173,7 @@ EXTRA_DIST = .build next_build.sh WHATISQORE RELEASE-NOTES \
 	examples/worm.q \
 	docs/qore.html \
 	docs/roadmap.html \
-	qore-0.5.1-1.spec \
+	qore-0.5.2-1.spec \
 	CHANGELOG
 
 dist_man_MANS = qore.1

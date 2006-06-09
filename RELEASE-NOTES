@@ -1,91 +1,11 @@
-RELEASE NOTES for qore v0.5.1
+RELEASE NOTES for qore v0.5.2
 
 NOTE: for platform-specific notes and build instructions, please see the file BUILD
 
 *** LIST OF CHANGES IN THIS RELEASE ***
-*) PCRE (Perl-Compatible Regular Expression) support added
-All regular expression operations in Qore are now performed using the PCRE library, meaning that regular expressions in Qore should be much more perl compatible and finally consistent on all platforms.
-new flags for matching and substitution:
-	/i = ignore case
-	/s = makes a dot (.) match a newline character
-	/x = extended matching
-	/m = multiline matching
 
-Subpattern backreference substitutions are now supported, i.e.:
-	$str = "abc def";
-	$str =~ s/(\w+) +(\w+)/$2, $1/;
-	# now $str = "def, abc"
 
-Regular expressions are now parsed one time at parse time (in previous versions of Qore using POSIX regular expression support, the regular expressions were parsed every time they were executed which was very inefficient).
 
-*) UTF-8 multi-byte character support fixed - character offsets now used instead of byte offsets for multi-byte strings
-Qore now assumes character offsets instead of byte offsets for multi-byte characters in: substr(), splice operator with strings, index(), rindex(), length()
-NOTE: length() and strlen() will now return different values for strings with multi-byte characters.
-The ord() function still accepts only byte offsets and returns single-byte values.
-
-*) transliteration operator implemented, i.e.:
-	$str =~ tr/abc/123/;
-        $str =~ tr/a-z/A-Z/;
-note that this operator is not yet multi-byte charset aware for range specifications
-
-*) support for non-threading build of qore removed
-had been broken for a long time anyway.  from now on optimizations will be concentrated on the single multi-threaded version of qore
-
-*) rindex() semantics fixed
-The optional offset value works like perl's rindex offset - if present, it specifies the character offset from which the reverse search will begin - starting at that character to the beginning of the string.
-
-*) bindex() and brindex() functions added
-give byte offsets into strings when a match is found.
-
-*) new function "regex_subst()" added
-allows regular expression substitution to be performed with patterns potentially generated at run-time
-
-*) new constants added for regex() and regex_subst()
-	RE_Caseless  - sets caseless matching
-	RE_DotAll    - makes a dot (.) match a newline character
-	RE_Extended  - extended matching
-	RE_MultiLine - enables multiline matching
-
-*) libz-based compression function support added
-compress(), compress2(), uncompress_to_string(), and uncompress_to_binary() functions added to allow for compressing and uncompressing data
-
-*) the "elements" operator modified to work on binary and string types
-returns the number of bytes in a binary object
-returns the number of characters in a string
-
-*) the "-" and "-=" operators updated to delete keys from hashes
-ex: $hash - "string" or $hash -= "string"
-will remove the key "string" from the hash if it exists.  note that this will only dereference the value at that key, so if the value is an object and this is not the last reference to the object, the object will not be deleted.
-
-* implemented "instanceof" operator
-like Java's operator of the same name
-
-*) implemented %= (modula-equals), *= (multiply-equals), /= (divide-equals), ^= (xor-equals), <<= (shift-left-equals), and >>= (shift-right-equals) operators
-
-*) fixed bugs in the |=, &=, +=, and -= operators
-the precision was artificially restricted to 32 bits
-
-*) "shift" and "unshift" can now be used as function and method names
-
-*) Oracle driver fixed to not throw parse exceptions when the ":" character is not followed by an alphabetic character
-so ":=" is legal in SQL statements again :-)
-
-*) added VARCHAR, CLOB, BLOB, DATE constants
-to be used in Datasource::exec() and Datasource::vexec() calls to specify placeholder buffer types.
-
-*) modified Oracle driver to accept an integer as a placeholder bind argument
-To be used as an easy way to specify the length of a string buffer to bind - otherwise the maximum length is set by default to 512 bytes, which will cause a run-time exception to be thrown if a longer string is attempted to be bound to the buffer.
-
-*) optional timeout values in ms implemented for Queue::pop() and Queue::get() methods
-
-*) copy-on-write implemented for class definitions in subprograms
-performance & memory efficiency improvement when creating subprograms (Program objects)
-
-*) module subsystem enhacements
-any program can use "%requires" at any time.
-
-*) bug fixes and other miscellaneous enhancements
-see CHANGELOG for details
 
 ***********************
 *** LANGUAGE ISSUES ***
@@ -180,6 +100,93 @@ The documentation is far from complete; it's a work in progress...
 ---------------------
 RELEASE NOTES HISTORY
 ---------------------
+
+*******************************
+RELEASE SUMMARY for qore v0.5.1
+*******************************
+*) PCRE (Perl-Compatible Regular Expression) support added
+All regular expression operations in Qore are now performed using the PCRE library, meaning that regular expressions in Qore should be much more perl compatible and finally consistent on all platforms.
+new flags for matching and substitution:
+	/i = ignore case
+	/s = makes a dot (.) match a newline character
+	/x = extended matching
+	/m = multiline matching
+
+Subpattern backreference substitutions are now supported, i.e.:
+	$str = "abc def";
+	$str =~ s/(\w+) +(\w+)/$2, $1/;
+	# now $str = "def, abc"
+
+Regular expressions are now parsed one time at parse time (in previous versions of Qore using POSIX regular expression support, the regular expressions were parsed every time they were executed which was very inefficient).
+
+*) UTF-8 multi-byte character support fixed - character offsets now used instead of byte offsets for multi-byte strings
+Qore now assumes character offsets instead of byte offsets for multi-byte characters in: substr(), splice operator with strings, index(), rindex(), length()
+NOTE: length() and strlen() will now return different values for strings with multi-byte characters.
+The ord() function still accepts only byte offsets and returns single-byte values.
+
+*) transliteration operator implemented, i.e.:
+	$str =~ tr/abc/123/;
+        $str =~ tr/a-z/A-Z/;
+note that this operator is not yet multi-byte charset aware for range specifications
+
+*) support for non-threading build of qore removed
+had been broken for a long time anyway.  from now on optimizations will be concentrated on the single multi-threaded version of qore
+
+*) rindex() semantics fixed
+The optional offset value works like perl's rindex offset - if present, it specifies the character offset from which the reverse search will begin - starting at that character to the beginning of the string.
+
+*) bindex() and brindex() functions added
+give byte offsets into strings when a match is found.
+
+*) new function "regex_subst()" added
+allows regular expression substitution to be performed with patterns potentially generated at run-time
+
+*) new constants added for regex() and regex_subst()
+	RE_Caseless  - sets caseless matching
+	RE_DotAll    - makes a dot (.) match a newline character
+	RE_Extended  - extended matching
+	RE_MultiLine - enables multiline matching
+
+*) libz-based compression function support added
+compress(), compress2(), uncompress_to_string(), and uncompress_to_binary() functions added to allow for compressing and uncompressing data
+
+*) the "elements" operator modified to work on binary and string types
+returns the number of bytes in a binary object
+returns the number of characters in a string
+
+*) the "-" and "-=" operators updated to delete keys from hashes
+ex: $hash - "string" or $hash -= "string"
+will remove the key "string" from the hash if it exists.  note that this will only dereference the value at that key, so if the value is an object and this is not the last reference to the object, the object will not be deleted.
+
+* implemented "instanceof" operator
+like Java's operator of the same name
+
+*) implemented %= (modula-equals), *= (multiply-equals), /= (divide-equals), ^= (xor-equals), <<= (shift-left-equals), and >>= (shift-right-equals) operators
+
+*) fixed bugs in the |=, &=, +=, and -= operators
+the precision was artificially restricted to 32 bits
+
+*) "shift" and "unshift" can now be used as function and method names
+
+*) Oracle driver fixed to not throw parse exceptions when the ":" character is not followed by an alphabetic character
+so ":=" is legal in SQL statements again :-)
+
+*) added VARCHAR, CLOB, BLOB, DATE constants
+to be used in Datasource::exec() and Datasource::vexec() calls to specify placeholder buffer types.
+
+*) modified Oracle driver to accept an integer as a placeholder bind argument
+To be used as an easy way to specify the length of a string buffer to bind - otherwise the maximum length is set by default to 512 bytes, which will cause a run-time exception to be thrown if a longer string is attempted to be bound to the buffer.
+
+*) optional timeout values in ms implemented for Queue::pop() and Queue::get() methods
+
+*) copy-on-write implemented for class definitions in subprograms
+performance & memory efficiency improvement when creating subprograms (Program objects)
+
+*) module subsystem enhacements
+any program can use "%requires" at any time.
+
+*) bug fixes and other miscellaneous enhancements
+see CHANGELOG for details
 
 *******************************
 RELEASE SUMMARY for qore v0.5.0
