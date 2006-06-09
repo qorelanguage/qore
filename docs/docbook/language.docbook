@@ -18,7 +18,7 @@
     
     <para>All elements of Qore are designed to work together seamlessly: <link linkend="Qore::SQL::Datasource_Class">database access</link>, <link linkend="XML_Integration">XML transformations</link>, <link linkend="Qore_Socket_Class">socket communication</link>, <link linkend="Qore_Program_Class">embedding logic</link> in subprograms, <link linkend="Regular_Expressions">regular expressions</link>, <link linkend="Operators">operators</link>, <link linkend="Function_Library">functions</link>, and all other elements are thread-safe and built on an execution engine that was designed for SMP scalability.</para>
 
-    <para>Qore automatically converts data types when necessary when evaluating operators. The goal is to provide the expected result for the programmer without requiring the programmer to explicitly convert data types. Please see section <link linkend='Operators'>Operators</link> for more information.</para>
+    <para>Qore automatically converts data types when necessary when evaluating operators. The goal is to provide the expected result for the programmer without requiring the programmer to explicitly convert data types. Please see <link linkend='Operators'>Operators</link> for more information.</para>
 
     <para>UNIX operating systems allow an executable script to specify their interpreter. This is done by setting the first line in the program to a special string indicating the location of the Qore binary. For the purposes of this document, the location for the Qore binary is assumed to be <code>/usr/bin/qore</code>. The first line of Qore scripts in this case should look as follows:</para>
 
@@ -61,7 +61,7 @@
 	</row>
 	<row>
 	  <entry><para><code>QORE_CHARSET</code></para></entry>
-	  <entry><para>If this variable is set, then the default character set name for the process will be the value of this variable.  This variable takes precedence over the <code>LANG</code> variable, but can be overridden by the command line using option <code>--charset</code> (see Section <link linkend='Qore_Strings_and_Character_Set_Encoding'>Qore Strings and Character Set Encoding</link> for more information on this option)</para></entry>
+	  <entry><para>If this variable is set, then the default character set name for the process will be the value of this variable.  This variable takes precedence over the <code>LANG</code> variable, but can be overridden by the command line using option <code>--charset</code> (see <link linkend='Qore_Strings_and_Character_Set_Encoding'>Qore Strings and Character Set Encoding</link> for more information on this option)</para></entry>
 	</row>
 	<row>
 	  <entry><para><code>LANG</code></para></entry>
@@ -225,7 +225,7 @@
 	    <entry><para><code>$argv</code></para></entry>
 	    <entry><para>Local</para></entry>
 	    <entry><para>List</para></entry>
-	    <entry><para>automatically assigned local variable containing the list of subroutine or method arguments that were not assigned to parameter variables (see section <link linkend='Subroutines'>Subroutines</link> for more information)</para></entry>
+	    <entry><para>automatically assigned local variable containing the list of subroutine or method arguments that were not assigned to parameter variables (see <link linkend='Subroutines'>Subroutines</link> for more information)</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><code>$ARGV</code></para></entry>
@@ -316,7 +316,7 @@ print("global a = $a\n"); </programlisting>
   </row>
   <row>
     <entry><para><link linkend="String">String</link></para></entry>
-    <entry><para>A sequence of ASCII characters</para></entry>
+    <entry><para>A sequence of characters</para></entry>
     <entry><code>"string"</code></entry>
     <entry><para>Empty string</para></entry>
   </row>
@@ -372,7 +372,7 @@ print("global a = $a\n"); </programlisting>
 
   <para>Strings are assumed by default to have the encoding given by the <code>QORE_CHARSET</code> or the <code>LANG</code> environment variable. If neither of these variables is set, then all strings will be assumed to have UTF-8 encoding.</para>
 
-  <para>For detailed information on Qore character set handling, please see section <link linkend="Qore_Strings_and_Character_Set_Encoding">Qore Strings and Character Set Encoding</link>.</para>
+  <para>For detailed information on Qore character set handling, please see <link linkend="Qore_Strings_and_Character_Set_Encoding">Qore Strings and Character Set Encoding</link>.</para>
 </sect2>
 
 <sect2 id="Integer">
@@ -465,7 +465,7 @@ print("global a = $a\n"); </programlisting>
   </tgroup>
 </table>
 
-<para>Relative dates are normally used for date addition and subtraction.  See section <link linkend='Date_Arithmetic'>Date Arithmetic</link> for more information.</para>
+<para>Relative dates are normally used for date addition and subtraction.  See <link linkend='Date_Arithmetic'>Date Arithmetic</link> for more information.</para>
 
 <note>
   <para>Currently there is no time-zone component in Qore dates.  Timezone support may be added in future versions of the Qore 
@@ -623,15 +623,15 @@ language, either by an addition to this data type, or by adding another date typ
 
 <para>Character set encodings can be explicitly performed with the <link linkend="convert_encoding">convert_encoding()</link> function, and the encoding attached to a string can be checked with the <link linkend="get_encoding">get_encoding()</link> function. </para>
 
-<para>The TibcoAdapter class will automatically convert all strings to UTF-8 encoding if necessary before transmitting any messages, as required by the TIBCO SDK. See section <link linkend='Qore_TibcoAdapter_Class'>TibcoAdapter Class</link> for more information.</para>
+<para>The TibcoAdapter class will automatically convert all strings to UTF-8 encoding if necessary before transmitting any messages, as required by the TIBCO SDK. See <link linkend='Qore_TibcoAdapter_Class'>TibcoAdapter Class</link> for more information.</para>
 
-<para>Datasource objects will translate character set encoding to the encoding required by the database if necessary as well (this is actually the responsibility of the DBI driver for the database in question).  See section <link linkend='Qore::SQL::Datasource_Class'>Datasource Class</link> for more information.</para>
+<para>Datasource objects will translate character set encoding to the encoding required by the database if necessary as well (this is actually the responsibility of the DBI driver for the database in question).  See <link linkend='Qore::SQL::Datasource_Class'>Datasource Class</link> for more information.</para>
 
-<para>Socket objects will translate character set encoding to encoding specified for the Socket, if any has been set.  See section <link linkend='Qore_Socket_Class'>Socket Class</link> for more information.</para>
+<para>Socket objects will translate character set encoding to encoding specified for the Socket, if any has been set.  See <link linkend='Qore_Socket_Class'>Socket Class</link> for more information.</para>
 
-<para>File objects will also automatically convert any string to the encoding specified for the File, if any has been set.  See section <link linkend='Qore_File_Class'>File Class</link> for more information.</para>
+<para>File objects will also automatically convert any string to the encoding specified for the File, if any has been set.  See <link linkend='Qore_File_Class'>File Class</link> for more information.</para>
 
-<para>Additionally you can serialize a Qore hash to an XML string and specify the character set encoding to use. If the target encoding is different than the source encoding conversions are automatically performed. See section <link linkend="XML_Integration">XML Integration</link> for more information about XML handling.</para>
+<para>Additionally you can serialize a Qore hash to an XML string and specify the character set encoding to use. If the target encoding is different than the source encoding conversions are automatically performed. See <link linkend="XML_Integration">XML Integration</link> for more information about XML handling.</para>
 
 </sect1>
 
@@ -653,7 +653,7 @@ language, either by an addition to this data type, or by adding another date typ
 	<tbody>
 	  <row>
 	    <entry><para>An immediate value</para></entry>
-	    <entry><para>Qore values that can be expressed directly (see section <link linkend="Basic_Data_Types">Basic Data Types</link> for more information)</para></entry>
+	    <entry><para>Qore values that can be expressed directly (see <link linkend="Basic_Data_Types">Basic Data Types</link> for more information)</para></entry>
 	    <entry>
 	      <programlisting>True
 152
@@ -669,33 +669,32 @@ language, either by an addition to this data type, or by adding another date typ
 	  <row>
 	    <entry><para>A variable reference</para></entry>
 	    <entry><para>Qore variables (see <link linkend="Variables">Variables</link> for more information)</para></entry>
-	    <entry><code>$var</code></entry>
+	    <entry><programlisting>$var</programlisting></entry>
 	  </row>
 	  <row>
 	    <entry><para>A variable or variable expression assignment</para></entry>
 	    <entry><para>Assigns a value to a lvalue (see <link linkend="Assignment_Operator">Assignment Operator</link> for more information)</para></entry>
 	    <entry>
-	      <para><code>$var = 1</code></para>
-	      <para><code>($a, $b, $c, $date) = (1, "two", 3.3, 2005-10-28)</code></para>
+	      <para><programlisting>$var = 1
+($a, $b, $c, $date) = (1, "two", 3.3, 2005-10-28)</programlisting></para>
 	    </entry>
 	  </row>
 	  <row>
 	    <entry><para>A subroutine/function call</para></entry>
 	    <entry><para>Qore subroutine calls (see <link linkend="Subroutines">Subroutines</link> for more information)</para></entry>
-	    <entry><code>calculate($var1, $var2, "string", 4)</code>
-	    </entry>
+	    <entry><programlisting>calculate($var1, $var2, "string", 4)</programlisting></entry>
 	  </row>
 	  <row>
 	    <entry><para>A method call</para></entry>
 	    <entry><para>Qore object method calls (see <link linkend="Objects">Objects</link> for more information)</para></entry>
-	    <entry><code>$object.method("argument")</code></entry>
+	    <entry><programlisting>$object.method("argument")</programlisting></entry>
 	  </row>
 	  <row>
 	    <entry><para>Expressions with operators</para></entry>
 	    <entry><para>Use of Qore operators (see <link linkend='Operators'>Operators</link> for more information)</para></entry>
 	    <entry>
-	      <para><code>1 + 2</code></para>
-	      <para><code>$a || $b</code></para>
+	      <para><programlisting>1 + 2
+$a || $b</programlisting></para>
 	      <para><code><command>background</command> my_function()</code></para>
 	    </entry>
 	  </row>
@@ -703,42 +702,42 @@ language, either by an addition to this data type, or by adding another date typ
 	    <entry><para>An expression in parentheses</para></entry>
 	    <entry><para>Use of parentheses for clarity or to specify evaluation precedence.</para></entry>
 	    <entry>
-	      <para><code>(1 + 2)</code></para>
-	      <para><code>(2 * (3 + 1))</code></para>
+	      <para><programlisting>(1 + 2)
+(2 * (3 + 1))</programlisting></para>
 	    </entry>
 	  </row>
 	  <row>
 	    <entry><para>A list</para></entry>
 	    <entry><para>a list of values (see <link linkend="Lists">Lists</link> for more information)</para></entry>
-	    <entry><code>1, 2, 3, "four", 5.0</code></entry>
+	    <entry><programlisting>1, 2, 3, "four", 5.0</programlisting></entry>
 	  </row>
 	  <row>
 	    <entry><para>A hash</para></entry>
 	    <entry><para>a hash (associative/keyed array) value container (see <link linkend="Hashes">Hashes</link> for more information)</para></entry>
-	    <entry><code>( "key1" : 1, "key2" : "two" )</code>
+	    <entry><programlisting>( "key1" : 1, "key2" : "two" )</programlisting>
 	    </entry>
 	  </row>
 	  <row>
 	    <entry><para>A <command>find</command> expression</para></entry>
 	    <entry><para>Finds a value or values in a hash of lists, such as returned by the <link linkend="Qore::SQL::Datasource::select">Datasource::select() method</link> (see <link linkend="find_Expressions">find expressions</link> for more information)</para></entry>
 	    <entry>
-	      <code><command>find</command> %name, %id <command>in</command> $data <command>where</command> (%name =~ /Smith/);</code>
+	      <programlisting><command>find</command> %name, %id <command>in</command> $data <command>where</command> (%name =~ /Smith/);</programlisting>
 	    </entry>
 	  </row>
 	  <row>
 	    <entry><para>A context identifier (<code>%column</code>)</para></entry>
 	    <entry><para>A contextual reference to the value of a key of a complex data structure within the current row being iterated by a <link linkend="context_Statements"><command>context</command></link>, <link linkend="summarize_Statements"><command>summarize</command></link>, <link linkend="subcontext_Statements"><command>subcontext</command></link> statement, or a  <link linkend="find_Expressions"><command>find</command> expression</link>.</para></entry>
-	    <entry><code>%name</code></entry>
+	    <entry><programlisting>%name</programlisting></entry>
 	  </row>
 	  <row>
 	    <entry><para>A context row identifier (<code>%%</code>)</para></entry>
 	    <entry><para>A contextual reference to the current row of complex data structure being iterated by a <link linkend="context_Statements"><command>context</command></link>, <link linkend="summarize_Statements"><command>summarize</command></link>, <link linkend="subcontext_Statements"><command>subcontext</command></link> statement, or a <link linkend="find_Expressions"><command>find</command> expression</link>.  This expression will return a hash of the current row.</para></entry>
-	    <entry><code>%%</code></entry>
+	    <entry><programlisting>%%</programlisting></entry>
 	  </row>
 	  <row>
 	    <entry><para>A backquote expression</para></entry>
 	    <entry><para>Executes a UNIX process and returns the stdout as a string</para></entry>
-	    <entry><code>'ls -l'</code></entry>
+	    <entry><programlisting>'ls -l'</programlisting></entry>
 	  </row>
 	</tbody>
       </tgroup>
@@ -2406,7 +2405,7 @@ language, either by an addition to this data type, or by adding another date typ
 	</row>
 	<row>
 	  <entry><para>Date</para></entry>
-	  <entry><para>Gives the result of adding dates (see section <link linkend='Date_Arithmetic'>Date Arithmetic</link>)</para></entry>
+	  <entry><para>Gives the result of adding dates (see <link linkend='Date_Arithmetic'>Date Arithmetic</link>)</para></entry>
 	</row>
 	<row>
 	  <entry><para>Float</para></entry>
