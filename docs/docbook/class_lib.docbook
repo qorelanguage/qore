@@ -884,7 +884,7 @@
 	  <tbody>
 	    <row>
 	      <entry><para>String</para></entry>
-	      <entry><para>The single character read form the file.</para></entry>
+	      <entry><para>The single character read from the file.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -1235,7 +1235,7 @@
 	  <tbody>
 	    <row>
 	      <entry><para>String</para></entry>
-	      <entry><para>The data read form the file, returned as a string.</para></entry>
+	      <entry><para>The data read from the file, returned as a string.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
