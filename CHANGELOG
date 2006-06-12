@@ -1,4 +1,7 @@
-
+2006.05.12: David Nichols
+	* improved XML string serialization to output short empty elements (i.e.
+	  <node/>) if the hash has no real members, even if it has 
+	  ^attributes^ and/or ^value^ keys, with or without actual values
 
 *** v0.5.1 *** RELEASE
 

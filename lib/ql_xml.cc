@@ -242,11 +242,22 @@ static void addXMLElement(char *key, QoreString *str, QoreNode *n, int indent, c
 
       if (n->type == NT_HASH)
       {
-	 QoreNode *value = n->val.hash->getKeyValue("^value^");
-	 
-	 QoreNode *attrib;
+	 // inc = ignore node counter, see if special keys exists and increment counter even if they have no value
+	 int inc = 0;
+	 QoreNode *value = n->val.hash->getKeyValueExistence("^value^");
+	 if (value == (QoreNode *)-1)
+	    value = NULL;
+	 else
+	    inc++;
+
+	 QoreNode *attrib = n->val.hash->getKeyValueExistence("^attributes^");
+	 if (attrib == (QoreNode *)-1)
+	    attrib = NULL;
+	 else
+	    inc++;
+
 	 // add attributes for objects
-	 if ((attrib = n->val.hash->getKeyValue("^attributes^")) && attrib->type == NT_HASH)
+	 if (attrib && attrib->type == NT_HASH)
 	 {
 	    // add attributes to node
 	    HashIterator *hi = attrib->val.hash->newIterator();
@@ -268,13 +279,13 @@ static void addXMLElement(char *key, QoreString *str, QoreNode *n, int indent, c
 	       str->concat('\"');
 	    }
 	    delete hi;
-	    
-	    // if there are no more elements, close node immediately
-	    if (n->val.hash->size() == 1)
-	    {
-	       str->concat("/>");
-	       return;
-	    }
+	 }
+
+	 // if there are no more elements, close node immediately
+	 if (n->val.hash->size() == inc)
+	 {
+	    str->concat("/>");
+	    return;
 	 }
 
 	 // close node
