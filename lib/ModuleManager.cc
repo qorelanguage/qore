@@ -61,6 +61,19 @@ class ModuleManager MM;
 # endif
 #endif
 
+inline ModuleInfo::ModuleInfo(char *n)
+{
+   filename = "- builtin -";
+   name = n;
+   api_major = QORE_MODULE_API_MAJOR;
+   api_minor = QORE_MODULE_API_MINOR;
+   module_init = NULL;
+   module_ns_init = NULL;
+   module_delete = NULL;
+   version = desc = author = url = NULL;
+   dlptr = NULL;
+}
+
 ModuleManager::ModuleManager()
 {
    head = NULL;
@@ -84,15 +97,19 @@ void ModuleManager::init(bool se)
 #ifdef QORE_MONOLITHIC
 # ifdef NCURSES
    ncurses_module_init();
+   ANSL.add(ncurses_module_ns_init);
 # endif
 # ifdef ORACLE
    oracle_module_init();     // init Oracle DBI driver
+   ANSL.add(oracle_module_ns_init);
 # endif
 # ifdef QORE_MYSQL
    qore_mysql_module_init(); // init MySQL DBI driver
+   ANSL.add(qore_mysql_module_ns_init);
 # endif
 # ifdef TIBCO
    tibco_module_init();      // init TIBCO module
+   ANSL.add(tibco_module_ns_init);
 # endif
    // autoload modules
 #else
@@ -320,7 +337,8 @@ class List *ModuleManager::getModuleList()
    class ModuleInfo *w = head;
    while (w)
    {
-      l->push(new QoreNode(w->getHash()));
+      if (w->getFileName())
+	 l->push(new QoreNode(w->getHash()));
       w = w->next;
    }
    return l;
@@ -328,13 +346,16 @@ class List *ModuleManager::getModuleList()
 
 ModuleInfo::~ModuleInfo()
 {
-   printd(5, "ModuleInfo::~ModuleInfo() '%s': %s (%08x) calling module_delete=%08x\n", name, filename, dlptr, module_delete);
-   module_delete();
+   if (module_delete)
+   {
+      printd(5, "ModuleInfo::~ModuleInfo() '%s': %s (%08x) calling module_delete=%08x\n", name, filename, dlptr, module_delete);
+      module_delete();
 #ifndef DEBUG
-   // do not close modules when debugging
-   dlclose(dlptr);
+      // do not close modules when debugging
+      dlclose(dlptr);
 #endif
-   free(filename);
+      free(filename);
+   }
 }
 
 class Hash *ModuleInfo::getHash()

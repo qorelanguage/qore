@@ -205,10 +205,10 @@ inline class List *QoreRegex::extractSubstrings(class QoreString *target, class 
 	    l->push(nothing());
 	    continue;
 	 }
-	 class QoreString *str = new QoreString();
+	 class QoreString *tstr = new QoreString();
 	 //printd(5, "substring %d: %d - %d (len %d)\n", x, ovector[pos], ovector[pos + 1], ovector[pos + 1] - ovector[pos]);
-	 str->concat(t->getBuffer() + ovector[pos], ovector[pos + 1] - ovector[pos]);
-	 l->push(new QoreNode(str));
+	 tstr->concat(t->getBuffer() + ovector[pos], ovector[pos + 1] - ovector[pos]);
+	 l->push(new QoreNode(tstr));
       }
    }
 

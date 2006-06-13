@@ -61,6 +61,8 @@ class ModuleInfo {
 	 url = u;
 	 dlptr = p;
       }
+      // for "builtin" modules
+      inline ModuleInfo(char *feature);
       ~ModuleInfo();
       inline char *getName()
       {

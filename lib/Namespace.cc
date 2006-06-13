@@ -49,22 +49,6 @@
 
 #include <qore/QoreFile.h>
 
-#ifdef QORE_MONOLITHIC
-// for non-shared builds of the qore library, initialize all optional components here
-# ifdef TIBCO
-#  include "../modules/TIBCO/tibco-module.h"
-# endif
-# ifdef ORACLE
-#  include "../modules/oracle/oracle-module.h"
-# endif
-# ifdef QORE_MYSQL
-#  include "../modules/mysql/qore-mysql-module.h"
-# endif
-# ifdef NCURSES
-# include "../modules/ncurses/ncurses-module.h"
-# endif
-#endif
-
 #include <string.h>
 #include <stdlib.h>
 #include <pcre.h>
@@ -1087,21 +1071,6 @@ class Namespace *getRootNamespace(class Namespace **QoreNS)
 
    class Namespace *rns = new Namespace("");
    rns->addInitialNamespace(qns);
-
-#ifdef QORE_MONOLITHIC
-# ifdef NCURSES
-   ncurses_module_ns_init(rns, qns);
-# endif
-# ifdef ORACLE
-   oracle_module_ns_init(rns, qns);     // init Oracle DBI driver
-# endif
-# ifdef QORE_MYSQL
-   qore_mysql_module_ns_init(rns, qns); // init MySQL DBI driver
-# endif
-# ifdef TIBCO
-   tibco_module_ns_init(rns, qns);      // init TIBCO module
-# endif
-#endif
 
    // add all changes in loaded modules
    ANSL.init(rns, qns);
