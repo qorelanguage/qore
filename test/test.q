@@ -638,6 +638,10 @@ sub string_tests()
     test_value($str =~ tr/a-z/A-Z/, "HELLO THERE", "second range transliteration");
     test_value($str =~ tr/A-Z/a-z/, "hello there", "third range transliteration");
 
+    # regex subpattern extraction operator tests
+    test_value("xmlns:wsdl" =~ x/(\w+):(\w+)/, ("xmlns", "wsdl"), "regex subpattern extraction");
+    test_value("xmlns-wsdl" =~ x/(\w+):(\w+)/, NOTHING, "negative regex subpattern extraction");
+
     # regex operator tests
     test_value("hello" =~ /^hel*/, True, "regular expression positive match");
     test_value("hello" =~ m/123*/, False, "regular expression negative match");
@@ -654,6 +658,8 @@ sub string_tests()
     test_value("testäöüß" =~ /aouB/, False, "regular expression UTF-8 negative match");
     test_value("hello" !~ /hel*/, False, "negative regular expression negative match");
     test_value("hello" !~ /123*/, True, "negative regular expression positive match");
+
+    # regex substitution operator tests
     my $l = ( "hello bar hi bar", "bar hello bar hi bar", "hello bar hi" );
     test_value($l[0] =~ s/bar/foo/, "hello foo hi bar", "first non-global regular expression substitution");
     test_value($l[1] =~ s/bar/foo/, "foo hello bar hi bar", "second non-global regular expression substitution");
@@ -679,7 +685,7 @@ sub string_tests()
     test_value(regex("test\nx123", "^x123/"), False, "regex() multiline negative match");
     test_value(regex("testäöüß", "\äöüß"), True, "regex() UTF-8 match");
     test_value(regex("testäöüß", "aouB"), False, "regex() UTF-8 negative match");
-    
+
     # regex_subst() tests
     $l = ( "hello bar hi bar", "bar hello bar hi bar", "hello bar hi" );
     test_value(regex_subst($l[0], "bar", "foo"), "hello foo hi bar", "first non-global regular expression substitution");
