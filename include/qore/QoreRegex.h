@@ -50,6 +50,7 @@ class QoreRegex : public QoreRegexBase
       inline void parse();
       inline void parseRT(class QoreString *pattern, class ExceptionSink *xsink);
       inline bool exec(class QoreString *target, class ExceptionSink *xsink);
+      inline class List *extractSubstrings(class QoreString *target, class ExceptionSink *xsink);
       inline class QoreString *getString() 
       {
 	 class QoreString *rs = str;
@@ -162,6 +163,59 @@ inline bool QoreRegex::exec(class QoreString *target, class ExceptionSink *xsink
       delete t;
 
    return rc >= 0;
+}
+
+#define OVEC_LATELEM 20
+inline class List *QoreRegex::extractSubstrings(class QoreString *target, class ExceptionSink *xsink)
+{
+   class QoreString *t;
+
+   // convert to UTF-8 if necessary
+   if (target->getEncoding() && target->getEncoding() != QCS_UTF8)
+   {
+      t = target->convertEncoding(QCS_UTF8, xsink);
+      if (xsink->isEvent())
+	 return false;
+   }
+   else 
+      t = target;
+
+   // FIXME: rc = 0 means that not enough space was available in ovector!
+
+   // the PCRE docs say that if we don't send an ovector here the library may have to malloc
+   // memory, so, even though we don't need the results, we include the vector to avoid 
+   // extraneous malloc()s
+   int ovector[OVECCOUNT];
+   int rc = pcre_exec(p, NULL, t->getBuffer(), t->strlen(), 0, 0, ovector, OVECCOUNT);
+   //printd(0, "QoreRegex::exec(%s =~ /%s/ = %d\n", target->getBuffer(), str->getBuffer(), rc);
+
+   if (rc < 1)
+      return NULL;
+
+   class List *l = new List();
+
+   if (rc > 1)
+   {
+      int x = 0;
+      while (++x < rc)
+      {
+	 int pos = x * 2;
+	 if (ovector[pos] == -1)
+	 {
+	    l->push(nothing());
+	    continue;
+	 }
+	 class QoreString *str = new QoreString();
+	 //printd(5, "substring %d: %d - %d (len %d)\n", x, ovector[pos], ovector[pos + 1], ovector[pos + 1] - ovector[pos]);
+	 str->concat(t->getBuffer() + ovector[pos], ovector[pos + 1] - ovector[pos]);
+	 l->push(new QoreNode(str));
+      }
+   }
+
+   if (t != target)
+      delete t;
+
+   return l;
 }
 
 #endif // _QORE_QOREREGEX_H

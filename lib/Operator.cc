@@ -57,7 +57,7 @@ class Operator *OP_ASSIGNMENT, *OP_LOG_AND, *OP_LOG_OR, *OP_LOG_LT,
    *OP_SINGLE_ASSIGN, *OP_UNSHIFT, *OP_REGEX_SUBST, *OP_LIST_ASSIGNMENT,
    *OP_SPLICE, *OP_MODULA_EQUALS, *OP_MULTIPLY_EQUALS, *OP_DIVIDE_EQUALS,
    *OP_XOR_EQUALS, *OP_SHIFT_LEFT_EQUALS, *OP_SHIFT_RIGHT_EQUALS, *OP_INSTANCEOF,
-   *OP_REGEX_TRANS;
+   *OP_REGEX_TRANS, *OP_REGEX_EXTRACT;
 
 const int month_lengths[] = { 0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 
@@ -2257,6 +2257,14 @@ static QoreNode *op_minus_hash_string(class QoreNode *h, class QoreNode *s, Exce
    return x;
 }
 
+static class QoreNode *op_regex_extract(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+{
+   class List *l = right->val.regex->extractSubstrings(left->val.String, xsink);
+   if (!l)
+      return NULL;
+   return new QoreNode(l);
+}
+
 void Operator::init()
 {
    if (!evalArgs || numFunctions == 1)
@@ -2509,6 +2517,9 @@ void operatorsInit()
 
    OP_REGEX_TRANS = oplist.add(new Operator(1, "transliteration", "transliteration", 0, true, true));
    OP_REGEX_TRANS->addFunction(NT_ALL, NT_REGEX_TRANS, op_regex_trans);
+
+   OP_REGEX_EXTRACT = oplist.add(new Operator(2, "regular expression subpattern extraction", "regular expression subpattern extraction", 1, false));
+   OP_REGEX_EXTRACT->addFunction(NT_STRING, NT_REGEX, op_regex_extract);
 
    // initialize all operators
    class Operator *w = oplist.getHead();

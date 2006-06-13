@@ -113,7 +113,7 @@ class QoreString *QoreString::convertEncoding(class QoreEncoding *nccs, Exceptio
    }
    iconv_close(c);
    QoreString *str = new QoreString();
-   str->take(nccs, nbuf);
+   str->take(nbuf, nccs);
    return str;
 }
 
@@ -493,7 +493,7 @@ class QoreString *QoreString::substr_simple(int offset, int length)
    }
    else if (length > (len - offset))
       length = len - offset;
-   QoreString *ns = new QoreString(charset, "");
+   QoreString *ns = new QoreString(charset);
    ns->concat(buf + offset, length);
    traceout("QoreString::substr_simple(offset, length)");
    return ns;
@@ -511,7 +511,7 @@ class QoreString *QoreString::substr_simple(int offset)
       traceout("QoreString::substr_simple(offset, length)");
       return NULL;
    }
-   QoreString *ns = new QoreString(charset, "");
+   QoreString *ns = new QoreString(charset);
    ns->concat(buf + offset);
    traceout("QoreString::substr_simple(offset)");
    return ns;
@@ -544,7 +544,7 @@ class QoreString *QoreString::substr_complex(int offset, int length)
    }
    int end = charset->getByteLen(buf + start, length);
 
-   QoreString *ns = new QoreString(charset, "");
+   QoreString *ns = new QoreString(charset);
 
    ns->concat(buf + start, end);
    return ns;
@@ -574,7 +574,7 @@ class QoreString *QoreString::substr_complex(int offset)
    }
 
    // calculate byte offset
-   QoreString *ns = new QoreString(charset, "");
+   QoreString *ns = new QoreString(charset);
    ns->concat(buf + start);
    return ns;
 }

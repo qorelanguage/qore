@@ -82,7 +82,7 @@ static int process_opt(QoreString *cstr, char *param, class QoreNode *node, int 
    class QoreNode *arg = node;
    int length;
    char fmt[20], *f;
-   QoreString tbuf(cstr->getEncoding(), "");
+   QoreString tbuf(cstr->getEncoding());
 
    printd(3, "process_opt(): param=%s type=%d node=%08x node->type=%s refs=%d\n",
 	  param, type, node, node ? node->type->name : "(null)", node ? node->reference_count() : -1);
@@ -244,7 +244,7 @@ class QoreString *q_sprintf(class QoreNode *params, int field, int offset, class
    if (!(p = test_param(params, NT_STRING, offset)))
       return new QoreString();
 
-   QoreString *buf = new QoreString(p->val.String->getEncoding(), "");
+   QoreString *buf = new QoreString(p->val.String->getEncoding());
 
    j = 1 + offset;
    l = strlen(p->val.String->getBuffer());
@@ -275,7 +275,7 @@ class QoreString *q_vsprintf(class QoreNode *params, int field, int offset, clas
 
    args = get_param(params, offset + 1);
 
-   QoreString *buf = new QoreString(fmt->val.String->getEncoding(), "");
+   QoreString *buf = new QoreString(fmt->val.String->getEncoding());
    int j = 0;
    int l = fmt->val.String->strlen();
    for (int i = 0; i < l; i++)

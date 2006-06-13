@@ -68,7 +68,8 @@ class QoreString {
       inline QoreString();
       inline QoreString(bool b);
       inline QoreString(char *);
-      inline QoreString(class QoreEncoding *new_qorecharset, char *str);
+      inline QoreString(char *str, class QoreEncoding *new_qorecharset);
+      inline QoreString(class QoreEncoding *new_qorecharset);
       inline QoreString(char *str, int len, class QoreEncoding *new_qorecharset = QCS_DEFAULT);
       inline QoreString(char);
       inline QoreString(QoreString *str);
@@ -109,8 +110,8 @@ class QoreString {
       int vsprintf(const char *fmt, va_list args);
       int vsnprintf(int size, const char *fmt, va_list args);
       inline void take(char *);
-      inline void take(class QoreEncoding *new_charset, char *);
-      inline void take(class QoreString *str);
+      inline void take(char *, class QoreEncoding *new_charset);
+      //inline void take(class QoreString *str);
       inline class QoreEncoding *getEncoding() { return charset; }
       class QoreString *convertEncoding(class QoreEncoding *nccs, class ExceptionSink *xsink);
       inline class QoreString *copy();
@@ -179,7 +180,7 @@ inline QoreString::QoreString(char *str)
 }
 
 // FIXME: this is not very efficient with the array offsets...
-inline QoreString::QoreString(class QoreEncoding *new_qorecharset, char *str)
+inline QoreString::QoreString(char *str, class QoreEncoding *new_qorecharset)
 {
    len = 0;
    allocated = STR_CLASS_BLOCK;
@@ -197,6 +198,15 @@ inline QoreString::QoreString(class QoreEncoding *new_qorecharset, char *str)
    }
    else
       buf[0] = '\0';
+   charset = new_qorecharset;
+}
+
+inline QoreString::QoreString(class QoreEncoding *new_qorecharset)
+{
+   len = 0;
+   allocated = STR_CLASS_BLOCK;
+   buf = (char *)malloc(allocated * sizeof(char));
+   buf[0] = '\0';
    charset = new_qorecharset;
 }
 
@@ -379,12 +389,13 @@ inline void QoreString::take(char *str)
    }
 }
 
-inline void QoreString::take(class QoreEncoding *new_qorecharset, char *str)
+inline void QoreString::take(char *str, class QoreEncoding *new_qorecharset)
 {
    take(str);
    charset = new_qorecharset;
 }
 
+/*
 inline void QoreString::take(class QoreString *str)
 {
    if (buf)
@@ -396,6 +407,7 @@ inline void QoreString::take(class QoreString *str)
    str->allocated = 0;
    str->len = 0;
 }
+*/
 
 inline class QoreString *QoreString::copy()
 {

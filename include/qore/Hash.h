@@ -417,7 +417,7 @@ inline class QoreString *HashIterator::getKeyString()
    if (!ptr)
       return NULL;
 
-   return new QoreString(QCS_DEFAULT, ptr->key);
+   return new QoreString(ptr->key, QCS_DEFAULT);
 }
 
 /*

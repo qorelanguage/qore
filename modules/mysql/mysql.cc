@@ -393,7 +393,7 @@ class MyResult {
 	 else if (bindbuf[i].buffer_type == MYSQL_TYPE_STRING)
 	 {
 	    //printf("string (%d): '%s'\n", mlen[i], (char *)bindbuf[i].buffer);
-	    n = new QoreNode(new QoreString(csid, (char *)bindbuf[i].buffer));
+	    n = new QoreNode(new QoreString((char *)bindbuf[i].buffer, csid));
 	 }
 	 else if (bindbuf[i].buffer_type == MYSQL_TYPE_DATETIME)
 	 {

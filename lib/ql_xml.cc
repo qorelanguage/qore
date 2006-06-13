@@ -424,7 +424,7 @@ static class QoreNode *f_makeXMLString(class QoreNode *params, ExceptionSink *xs
    else
       ccs = QCS_UTF8;
 
-   QoreString *str = new QoreString(ccs, "");
+   QoreString *str = new QoreString(ccs);
    str->sprintf("<?xml version=\"1.0\" encoding=\"%s\"?>", ccs->code);
    if (pstr)
    {
@@ -473,7 +473,7 @@ static class QoreNode *f_makeFormattedXMLString(class QoreNode *params, Exceptio
    else
       ccs = QCS_UTF8;
 
-   QoreString *str = new QoreString(ccs, "");
+   QoreString *str = new QoreString(ccs);
    str->sprintf("<?xml version=\"1.0\" encoding=\"%s\"?>\n", ccs->code);
    if (pstr)
    {
@@ -735,7 +735,7 @@ static class QoreNode *f_makeXMLRPCCallString(class QoreNode *params, ExceptionS
       return NULL;
    }
 
-   QoreString *str = new QoreString(ccs, "");
+   QoreString *str = new QoreString(ccs);
    str->sprintf("<?xml version=\"1.0\" encoding=\"%s\"?><methodCall><methodName>", ccs->code);
    str->concatAndHTMLEncode(p0->val.String->getBuffer());
    str->concat("</methodName>");
@@ -781,7 +781,7 @@ static class QoreNode *f_makeXMLRPCCallStringArgs(class QoreNode *params, Except
       return NULL;
    }
 
-   QoreString *str = new QoreString(ccs, "");
+   QoreString *str = new QoreString(ccs);
    str->sprintf("<?xml version=\"1.0\" encoding=\"%s\"?><methodCall><methodName>", ccs->code);
    str->concatAndHTMLEncode(p0->val.String->getBuffer());
    str->concat("</methodName>"); 
@@ -824,10 +824,10 @@ static inline class QoreString *getXmlString(xmlTextReader *reader, class QoreEn
 {
    class QoreString *rv;
    if (id == QCS_UTF8)
-      rv = new QoreString(QCS_UTF8, (char *)xmlTextReaderConstValue(reader));
+      rv = new QoreString((char *)xmlTextReaderConstValue(reader), QCS_UTF8);
    else
    {
-      class QoreString temp(QCS_UTF8, (char *)xmlTextReaderConstValue(reader));
+      class QoreString temp((char *)xmlTextReaderConstValue(reader), QCS_UTF8);
       rv = temp.convertEncoding(id, xsink);
    }
    return rv;
@@ -1035,7 +1035,7 @@ static void getXMLRPCStruct(xmlTextReader *reader, class XmlRpcValue *v, class Q
       }
 
       QoreString member(member_name);
-      // printd(5, "got member name '%s'\n", member_name);
+      //printd(5, "got member name '%s'\n", member_name);
 
       if (qore_xmlRead(reader, xsink))
 	 return;
@@ -1080,10 +1080,10 @@ static void getXMLRPCStruct(xmlTextReader *reader, class XmlRpcValue *v, class Q
 	       
 	    getXMLRPCValueData(reader, v, data_ccsid, true, xsink);
 	    
-	    //printd(5, "struct member='%s', finished parsing value node\n", member_name);
-	    
 	    if (xsink->isEvent())
 	       return;
+
+	    //printd(5, "struct member='%s', finished parsing value node\n", member.getBuffer());
 	    
 	    /*
 	    if (qore_xmlRead(reader, xsink))
@@ -1094,6 +1094,7 @@ static void getXMLRPCStruct(xmlTextReader *reader, class XmlRpcValue *v, class Q
 	       return;
 	    if (nt != XML_READER_TYPE_END_ELEMENT)
 	    {
+	       //printd(5, "EXCEPTION close /value: %d: %s\n", nt, (char *)xmlTextReaderConstName(reader));
 	       xsink->raiseException("XML-RPC-PARSE-VALUE-ERROR", "error parsing XML string, expecting value close element");
 	       return;
 	    }
@@ -1144,11 +1145,14 @@ static void getXMLRPCArray(xmlTextReader *reader, class XmlRpcValue *v, class Qo
    if (qore_xmlCheckName(reader, "data", xsink))
       return;
 
+   //printd(5, "getXMLRPCArray() before str=%s\n", (char *)xmlTextReaderConstName(reader));
+
    // get next value tag or data close tag
    if (qore_xmlRead(reader, xsink))
       return;
 
    int value_depth = xmlTextReaderDepth(reader);
+
    // if we just read an empty tag, then don't try to read to data close tag
    if (value_depth > array_depth)
    {
@@ -1207,6 +1211,8 @@ static void getXMLRPCArray(xmlTextReader *reader, class XmlRpcValue *v, class Qo
       if (qore_xmlRead(reader, "error reading array close tag", xsink))
 	 return;
    }
+   else if (value_depth == array_depth && qore_xmlRead(reader, xsink))
+      return;
 
    // check for array close tag
    if ((nt = xmlTextReaderNodeType(reader)) != XML_READER_TYPE_END_ELEMENT)
@@ -1613,6 +1619,8 @@ static void getXMLRPCValueData(xmlTextReader *reader, class XmlRpcValue *v, clas
       }
       
       printd(5, "getXMLRPCValueData() finished parsing type '%s' element depth=%d\n", name, depth);
+      if (xsink->isEvent())
+	 return;
    }
    else if (nt == XML_READER_TYPE_TEXT)  // without type defaults to string
    {
@@ -1960,7 +1968,7 @@ class QoreString *makeXMLQoreString(QoreNode *pstr, QoreNode *pobj, int format, 
    xmlFreeTextWriter(writer);
 
    QoreString *str = new QoreString();
-   str->take(ccsid, (char *)buf->content);
+   str->take((char *)buf->content, ccsid);
 
    buf->content = NULL;
    buf->size = 0;
@@ -2433,7 +2441,7 @@ static class QoreNode *f_makeXMLRPCCallStringNew(class QoreNode *params, Excepti
    xmlFreeTextWriter(writer);
 
    QoreString *str = new QoreString();
-   str->take(ccs, (char *)buf->content);
+   str->take((char *)buf->content, ccs);
 
    buf->content = NULL;
    buf->size = 0;
@@ -2461,7 +2469,7 @@ static class QoreNode *f_makeXMLRPCFaultResponseString(class QoreNode *params, E
       ccsid = QCS_DEFAULT;
 
    // for speed, the XML is created directly here
-   QoreString *str = new QoreString("");
+   QoreString *str = new QoreString(ccsid);
    str->sprintf("<?xml version=\"1.0\" encoding=\"%s\"?>\n<methodResponse><fault><value><struct><member><name>faultCode</name><value><int>%d</int></value></member><member><name>faultString</name><value><string>",
 		ccsid->code, code);
    str->concatAndHTMLEncode(p1->val.String->getBuffer());
@@ -2488,7 +2496,7 @@ static class QoreNode *f_makeFormattedXMLRPCFaultResponseString(class QoreNode *
       ccsid = QCS_DEFAULT;
 
    // for speed, the XML is created directly here
-   QoreString *str = new QoreString("");
+   QoreString *str = new QoreString(ccsid);
    str->sprintf("<?xml version=\"1.0\" encoding=\"%s\"?>\n<methodResponse>\n  <fault>\n    <value>\n      <struct>\n        <member>\n          <name>faultCode</name>\n          <value><int>%d</int></value>\n        </member>\n        <member>\n          <name>faultString</name>\n          <value><string>",
 		ccsid->code, code);
    str->concatAndHTMLEncode(p1->val.String->getBuffer());
@@ -2511,7 +2519,7 @@ static class QoreNode *f_makeXMLRPCResponseString(class QoreNode *params, Except
       return NULL;
    }
 
-   QoreString *str = new QoreString("");
+   QoreString *str = new QoreString(ccs);
    str->sprintf("<?xml version=\"1.0\" encoding=\"%s\"?><methodResponse><params>", ccs->code);
 
    // now loop through the params
@@ -2544,7 +2552,7 @@ static class QoreNode *f_makeXMLRPCValueString(class QoreNode *params, Exception
       return NULL;
    }
 
-   QoreString *str = new QoreString("");
+   QoreString *str = new QoreString(ccs);
    addXMLRPCValueIntern(str, p, 0, ccs, 0, xsink);
 
    traceout("f_makeXMLRPCValueString()");
@@ -2566,7 +2574,7 @@ static class QoreNode *f_makeFormattedXMLRPCCallStringArgs(class QoreNode *param
       return NULL;
    }
 
-   QoreString *str = new QoreString(ccs, "");
+   QoreString *str = new QoreString(ccs);
    str->sprintf("<?xml version=\"1.0\" encoding=\"%s\"?>\n<methodCall>\n  <methodName>", ccs->code);
    str->concatAndHTMLEncode(p0->val.String->getBuffer());
    str->concat("</methodName>\n  <params>\n");
@@ -2618,7 +2626,7 @@ static class QoreNode *f_makeFormattedXMLRPCCallString(class QoreNode *params, E
       return NULL;
    }
 
-   QoreString *str = new QoreString(ccs, "");
+   QoreString *str = new QoreString(ccs);
    str->sprintf("<?xml version=\"1.0\" encoding=\"%s\"?>\n<methodCall>\n  <methodName>", ccs->code);
    str->concatAndHTMLEncode(p0->val.String->getBuffer());
    str->concat("</methodName>\n  <params>\n");
@@ -2656,7 +2664,7 @@ static class QoreNode *f_makeFormattedXMLRPCResponseString(class QoreNode *param
    }
 
    QoreNode *rv = new QoreNode(NT_STRING);
-   rv->val.String = new QoreString("");
+   rv->val.String = new QoreString(ccs);
    rv->val.String->sprintf("<?xml version=\"1.0\" encoding=\"%s\"?>\n<methodResponse>\n  <params>\n", ccs->code);
 
    // now loop through the params
@@ -2689,7 +2697,7 @@ static class QoreNode *f_makeFormattedXMLRPCValueString(class QoreNode *params, 
       return NULL;
    }
 
-   QoreString *str = new QoreString("");
+   QoreString *str = new QoreString(ccs);
    addXMLRPCValue(str, p, 0, ccs, 1, xsink);
 
    traceout("f_makeFormattedXMLRPCValueString()");

@@ -225,7 +225,7 @@ static inline bool isRegexSubstModifier(class RegexSubst *qr, int c)
 %option reentrant bison-bridge
 %option stack
 
-%x str_state regex_state incl check_regex regex_subst1 regex_subst2 line_comment exec_class requires regex_trans1 regex_trans2
+%x str_state regex_state incl check_regex regex_subst1 regex_subst2 line_comment exec_class requires regex_trans1 regex_trans2 regex_extract_state
 
 HEX_CONST       0x[0-9A-Fa-f]+
 OCTAL_CONST     \\[0-7]{1,3}
@@ -451,6 +451,7 @@ MSEC            [0-9]{2}
 <check_regex>{
       {WS}+                             // ignore 
       s\/                               yylval->RegexSubst = new RegexSubst(); BEGIN(regex_subst1);
+      x\/                               yylval->Regex = new QoreRegex(); BEGIN(regex_extract_state);
       m\/                               yylval->Regex = new QoreRegex(); BEGIN(regex_state);
       \/                                yylval->Regex = new QoreRegex(); BEGIN(regex_state);
       tr\/                              yylval->RegexTrans = new RegexTrans(); BEGIN(regex_trans1);
@@ -467,6 +468,30 @@ MSEC            [0-9]{2}
 					   BEGIN(INITIAL); 
 					   yylval->Regex->parse(); 
 					   return REGEX;
+                                        }
+      \n				{
+	                                   increment_pgm_counter();
+					   yylval->Regex->concat('\n');
+                                        }
+      \\\/                              yylval->Regex->concat('/');
+      \\.                               { yylval->Regex->concat('\\'); yylval->Regex->concat(yytext[1]); }
+      [^\n\\/]+			        {
+					   char *yptr = yytext;
+					   while (*yptr)
+					      yylval->Regex->concat(*(yptr++));
+					}
+}
+<regex_extract_state>{
+      \/				{
+                                           // get regex modifiers
+	                                   int c;
+	                                   do {
+					      c = yyinput(yyscanner);
+					   } while (isRegexModifier(yylval->Regex, c));
+					   unput(c);
+					   BEGIN(INITIAL); 
+					   yylval->Regex->parse(); 
+					   return REGEX_EXTRACT;
                                         }
       \n				{
 	                                   increment_pgm_counter();

@@ -91,41 +91,42 @@
      REGEX_TRANS = 317,
      BASE_CLASS_CALL = 318,
      REGEX = 319,
-     IFX = 320,
-     TOK_ELSE = 321,
-     SHIFT_RIGHT_EQUALS = 322,
-     SHIFT_LEFT_EQUALS = 323,
-     XOR_EQUALS = 324,
-     DIVIDE_EQUALS = 325,
-     MULTIPLY_EQUALS = 326,
-     MODULA_EQUALS = 327,
-     OR_EQUALS = 328,
-     AND_EQUALS = 329,
-     MINUS_EQUALS = 330,
-     PLUS_EQUALS = 331,
-     TOK_SPLICE = 332,
-     TOK_PUSH = 333,
-     TOK_UNSHIFT = 334,
-     LOGICAL_OR = 335,
-     LOGICAL_AND = 336,
-     REGEX_NMATCH = 337,
-     REGEX_MATCH = 338,
-     ABSOLUTE_NE = 339,
-     ABSOLUTE_EQ = 340,
-     LOGICAL_CMP = 341,
-     LOGICAL_GE = 342,
-     LOGICAL_LE = 343,
-     LOGICAL_NE = 344,
-     LOGICAL_EQ = 345,
-     TOK_INSTANCEOF = 346,
-     TOK_EXISTS = 347,
-     SHIFT_LEFT = 348,
-     SHIFT_RIGHT = 349,
-     TOK_KEYS = 350,
-     TOK_ELEMENTS = 351,
-     TOK_POP = 352,
-     TOK_SHIFT = 353,
-     NEG = 354
+     REGEX_EXTRACT = 320,
+     IFX = 321,
+     TOK_ELSE = 322,
+     SHIFT_RIGHT_EQUALS = 323,
+     SHIFT_LEFT_EQUALS = 324,
+     XOR_EQUALS = 325,
+     DIVIDE_EQUALS = 326,
+     MULTIPLY_EQUALS = 327,
+     MODULA_EQUALS = 328,
+     OR_EQUALS = 329,
+     AND_EQUALS = 330,
+     MINUS_EQUALS = 331,
+     PLUS_EQUALS = 332,
+     TOK_SPLICE = 333,
+     TOK_PUSH = 334,
+     TOK_UNSHIFT = 335,
+     LOGICAL_OR = 336,
+     LOGICAL_AND = 337,
+     REGEX_NMATCH = 338,
+     REGEX_MATCH = 339,
+     ABSOLUTE_NE = 340,
+     ABSOLUTE_EQ = 341,
+     LOGICAL_CMP = 342,
+     LOGICAL_GE = 343,
+     LOGICAL_LE = 344,
+     LOGICAL_NE = 345,
+     LOGICAL_EQ = 346,
+     TOK_INSTANCEOF = 347,
+     TOK_EXISTS = 348,
+     SHIFT_LEFT = 349,
+     SHIFT_RIGHT = 350,
+     TOK_KEYS = 351,
+     TOK_ELEMENTS = 352,
+     TOK_POP = 353,
+     TOK_SHIFT = 354,
+     NEG = 355
    };
 #endif
 /* Tokens.  */
@@ -191,41 +192,42 @@
 #define REGEX_TRANS 317
 #define BASE_CLASS_CALL 318
 #define REGEX 319
-#define IFX 320
-#define TOK_ELSE 321
-#define SHIFT_RIGHT_EQUALS 322
-#define SHIFT_LEFT_EQUALS 323
-#define XOR_EQUALS 324
-#define DIVIDE_EQUALS 325
-#define MULTIPLY_EQUALS 326
-#define MODULA_EQUALS 327
-#define OR_EQUALS 328
-#define AND_EQUALS 329
-#define MINUS_EQUALS 330
-#define PLUS_EQUALS 331
-#define TOK_SPLICE 332
-#define TOK_PUSH 333
-#define TOK_UNSHIFT 334
-#define LOGICAL_OR 335
-#define LOGICAL_AND 336
-#define REGEX_NMATCH 337
-#define REGEX_MATCH 338
-#define ABSOLUTE_NE 339
-#define ABSOLUTE_EQ 340
-#define LOGICAL_CMP 341
-#define LOGICAL_GE 342
-#define LOGICAL_LE 343
-#define LOGICAL_NE 344
-#define LOGICAL_EQ 345
-#define TOK_INSTANCEOF 346
-#define TOK_EXISTS 347
-#define SHIFT_LEFT 348
-#define SHIFT_RIGHT 349
-#define TOK_KEYS 350
-#define TOK_ELEMENTS 351
-#define TOK_POP 352
-#define TOK_SHIFT 353
-#define NEG 354
+#define REGEX_EXTRACT 320
+#define IFX 321
+#define TOK_ELSE 322
+#define SHIFT_RIGHT_EQUALS 323
+#define SHIFT_LEFT_EQUALS 324
+#define XOR_EQUALS 325
+#define DIVIDE_EQUALS 326
+#define MULTIPLY_EQUALS 327
+#define MODULA_EQUALS 328
+#define OR_EQUALS 329
+#define AND_EQUALS 330
+#define MINUS_EQUALS 331
+#define PLUS_EQUALS 332
+#define TOK_SPLICE 333
+#define TOK_PUSH 334
+#define TOK_UNSHIFT 335
+#define LOGICAL_OR 336
+#define LOGICAL_AND 337
+#define REGEX_NMATCH 338
+#define REGEX_MATCH 339
+#define ABSOLUTE_NE 340
+#define ABSOLUTE_EQ 341
+#define LOGICAL_CMP 342
+#define LOGICAL_GE 343
+#define LOGICAL_LE 344
+#define LOGICAL_NE 345
+#define LOGICAL_EQ 346
+#define TOK_INSTANCEOF 347
+#define TOK_EXISTS 348
+#define SHIFT_LEFT 349
+#define SHIFT_RIGHT 350
+#define TOK_KEYS 351
+#define TOK_ELEMENTS 352
+#define TOK_POP 353
+#define TOK_SHIFT 354
+#define NEG 355
 
 
 
@@ -265,7 +267,7 @@ typedef union YYSTYPE {
       class QoreRegex *Regex;
 } YYSTYPE;
 /* Line 1447 of yacc.c.  */
-#line 269 "parser.h"
+#line 271 "parser.h"
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
 # define YYSTYPE_IS_TRIVIAL 1

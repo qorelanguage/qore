@@ -64,7 +64,7 @@ bool string_Compare(class QoreNode *l, class QoreNode *r)
 
 class QoreString *string_MakeString(class QoreNode *n, int format, class ExceptionSink *xsink)
 {
-   QoreString *rv = new QoreString(n->val.String->getEncoding(), "");
+   QoreString *rv = new QoreString(n->val.String->getEncoding());
    rv->sprintf("\"%s\"", n->val.String->getBuffer());
    return rv;
 }

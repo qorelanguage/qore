@@ -457,7 +457,7 @@ static class QoreNode *f_split(class QoreNode *params, ExceptionSink *xsink)
    }
    // add last field
    if (*str)
-      rv->val.list->push(new QoreNode(new QoreString(p1->val.String->getEncoding(), str)));
+      rv->val.list->push(new QoreNode(new QoreString(str, p1->val.String->getEncoding())));
    return rv;
 }
 
@@ -538,7 +538,7 @@ static class QoreNode *f_replace(class QoreNode *params, ExceptionSink *xsink)
       return NULL;
    class QoreEncoding *ccs = p0->val.String->getEncoding();
 
-   QoreString *nstr = new QoreString(ccs, "");
+   QoreString *nstr = new QoreString(ccs);
    
    QoreString *t1, *t2;
 

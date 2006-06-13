@@ -314,7 +314,7 @@ class QoreNode *Column::getValue(class Datasource *ds, class ExceptionSink *xsin
       ub4 amt = 0;
       if (dtype == SQLT_CLOB)
       {
-	 class QoreString *str = new QoreString(ds->qorecharset, "");
+	 class QoreString *str = new QoreString(ds->qorecharset);
 	 // read LOB data in streaming callback mode
 	 ora_checkerr(d_ora->errhp,
 		      OCILobRead(d_ora->svchp, d_ora->errhp, (OCILobLocator *)val.ptr, &amt, 1, buf, LOB_BLOCK_SIZE,
@@ -342,7 +342,7 @@ class QoreNode *Column::getValue(class Datasource *ds, class ExceptionSink *xsin
 
    // must be string data
    remove_trailing_blanks((char *)val.ptr);
-   return new QoreNode(new QoreString(ds->qorecharset, (char *)val.ptr));
+   return new QoreNode(new QoreString((char *)val.ptr, ds->qorecharset));
 }
 
 #define DEFAULT_STR_LEN 512
@@ -1039,7 +1039,7 @@ class QoreNode *BindNode::getValue(class Datasource *ds, class ExceptionSink *xs
       // must be string data
       remove_trailing_blanks((char *)buf.ptr);
       class QoreString *str = new QoreString();
-      str->take(ds->qorecharset, (char *)buf.ptr);
+      str->take((char *)buf.ptr, ds->qorecharset);
       buf.ptr = NULL;
       return new QoreNode(str);
    }
@@ -1067,7 +1067,7 @@ class QoreNode *BindNode::getValue(class Datasource *ds, class ExceptionSink *xs
       ub4 amt = 0;
       if (buftype == SQLT_CLOB)
       {
-	 class QoreString *str = new QoreString(ds->qorecharset, "");
+	 class QoreString *str = new QoreString(ds->qorecharset);
 	 // read LOB data in streaming callback mode
 	 ora_checkerr(d_ora->errhp,
 		      OCILobRead(d_ora->svchp, d_ora->errhp, (OCILobLocator *)buf.ptr, &amt, 1, bbuf, LOB_BLOCK_SIZE,

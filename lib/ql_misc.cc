@@ -177,7 +177,7 @@ static class QoreNode *f_html_encode(class QoreNode *params, ExceptionSink *xsin
    if (!(p0 = test_param(params, NT_STRING, 0)))
       return NULL;
 
-   class QoreString *ns = new QoreString(p0->val.String->getEncoding(), "");
+   class QoreString *ns = new QoreString(p0->val.String->getEncoding());
    char *str = p0->val.String->getBuffer();
    for (int i = 0; i < p0->val.String->strlen(); i++)
    {
@@ -201,7 +201,7 @@ static class QoreNode *f_html_decode(class QoreNode *params, ExceptionSink *xsin
    if (!(p0 = test_param(params, NT_STRING, 0)))
       return NULL;
 
-   QoreString *ns = new QoreString(p0->val.String->getEncoding(), "");
+   QoreString *ns = new QoreString(p0->val.String->getEncoding());
    char *str = p0->val.String->getBuffer();
    int i = 0;
    int len = p0->val.String->strlen();

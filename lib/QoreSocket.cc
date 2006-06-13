@@ -608,7 +608,7 @@ class QoreString *QoreSocket::recv(int bufsize, int timeout, int *rc)
 
    int bs = bufsize > 0 && bufsize < DEFAULT_SOCKET_BUFSIZE ? bufsize : DEFAULT_SOCKET_BUFSIZE;
 
-   class QoreString *str = new QoreString(charsetid, "");
+   class QoreString *str = new QoreString(charsetid);
 
    char *buf = (char *)malloc(sizeof(char) * bs);
 
@@ -654,7 +654,7 @@ class QoreString *QoreSocket::recv(int timeout, int *rc)
    }
 
    buf[*rc] = '\0';
-   QoreString *msg = new QoreString(charsetid, "");
+   QoreString *msg = new QoreString(charsetid);
    msg->take(buf);
    return msg;
 }

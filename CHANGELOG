@@ -1,4 +1,12 @@
-2006.05.12: David Nichols
+2006.06.13: David Nichols
+	* sanitized QoreString constructor order when specifying an encoding,
+	  added an additional constructor to accept simply specifying the 
+	  encoding without giving an initial string value
+	* added regex substring extraction operator: =~ x/.../ - returns a list
+	  of matched substrings
+	* fixed a bug parsing empty data elements in an XML-RPC array
+
+2006.06.12: David Nichols
 	* improved XML string serialization to output short empty elements (i.e.
 	  <node/>) if the hash has no real members, even if it has 
 	  ^attributes^ and/or ^value^ keys, with or without actual values

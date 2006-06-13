@@ -189,7 +189,7 @@ inline class QoreString *QoreFile::readLine(class ExceptionSink *xsink)
    }
 
    int ch;
-   class QoreString *str = new QoreString(charset, NULL);
+   class QoreString *str = new QoreString(charset);
    while ((ch = readChar()) >= 0)
    {
       char c = ch;
@@ -229,7 +229,7 @@ inline class QoreString *QoreFile::getchar()
    int c = readChar();
    if (c < 0)
       return NULL;
-   QoreString *str = new QoreString(charset, NULL);
+   QoreString *str = new QoreString(charset);
    str->concat((char)c);
    return str;
 }
@@ -293,7 +293,7 @@ inline class QoreString *QoreFile::read(int size, class ExceptionSink *xsink)
    int bs = size > 0 && size < DEFAULT_FILE_BUFSIZE ? size : DEFAULT_FILE_BUFSIZE;
    int br = 0;
    char *buf = (char *)malloc(sizeof(char) * bs);
-   QoreString *str = new QoreString(charset, "");
+   QoreString *str = new QoreString(charset);
 
    while (true)
    {
