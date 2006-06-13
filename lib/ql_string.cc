@@ -183,7 +183,7 @@ static class QoreNode *f_index(class QoreNode *params, ExceptionSink *xsink)
    class QoreString *hs = t0->val.String;
 
    int ind;
-   if (p0 != t0 || !hs->getEncoding()->isMultiByte())
+   if (p0 != t0 || !hs->getEncoding() || !hs->getEncoding()->isMultiByte())
    {
       if (pos >= hs->strlen())
 	 ind = -1;
@@ -349,7 +349,7 @@ static class QoreNode *f_rindex(class QoreNode *params, ExceptionSink *xsink)
    class QoreString *hs = t0->val.String;
 
    int ind;
-   if (p0 != t0 || !hs->getEncoding()->isMultiByte())
+   if (p0 != t0 || !hs->getEncoding() || !hs->getEncoding()->isMultiByte())
    {
       if (pos == -1)
 	 pos = hs->strlen() - 1;
@@ -542,7 +542,7 @@ static class QoreNode *f_replace(class QoreNode *params, ExceptionSink *xsink)
    
    QoreString *t1, *t2;
 
-   if (ccs >= 0)
+   if (ccs)
    {
       if (p1->val.String->getEncoding() != ccs
 	  && p1->val.String->getEncoding())
