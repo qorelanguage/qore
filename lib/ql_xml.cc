@@ -247,7 +247,7 @@ static void addXMLElement(char *key, QoreString *str, QoreNode *n, int indent, c
 	 QoreNode *value = n->val.hash->getKeyValueExistence("^value^");
 	 if (value == (QoreNode *)-1)
 	    value = NULL;
-	 else
+	 else if (!value)
 	    inc++;
 
 	 QoreNode *attrib = n->val.hash->getKeyValueExistence("^attributes^");

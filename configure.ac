@@ -317,6 +317,11 @@ if test "${enable_tibco}" = yes; then
 	       TIBCO_INCLUDES="$TIBCO_INCLUDES -I${SDK_ROOT}/include/sdk"
 	       AC_DEFINE(TIBCO_SDK, 5, [define for TIBCO SDK 5.*])
 	       ;;
+        5.3.*) TIBCO_LIBS="-L${SDK_ROOT}/lib -L${TPCL_ROOT}/lib -lmaverick53 -lrepowww532 -lxerces-c2_1 -lssl -lcrypto -L${RV_ROOT}/lib -ltibrv -ltibrvcm -ltibrvcmq -ltibrvcpp -ltibrvft -ltibrvsd -licuuc -ldl -lpthread"
+               TIBCO_CFLAGS=-DLINUX24 
+	       TIBCO_INCLUDES="$TIBCO_INCLUDES -I${SDK_ROOT}/include/sdk"
+	       AC_DEFINE(TIBCO_SDK, 5, [define for TIBCO SDK 5.*])
+	       ;;
         *)     AC_MSG_ERROR(Unsupported TIBCO SDK Version) ;;
      esac
      # check if C++ compiler can link with TIBCO libs

@@ -29,6 +29,11 @@
 
 #include <unistd.h>
 
+#ifdef TIBCO_MDT_BUG
+#include <qore/LockedObject.h>
+class LockedObject l_mdate_time;
+#endif
+
 class MData *QoreApp::instantiate_class(QoreNode *v, const MBaseClassDescription *mbcd, ExceptionSink *xsink)
 {
    tracein("QoreApp::instantiate_class()");

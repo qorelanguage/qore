@@ -1,6 +1,7 @@
 2006.06.14: David Nichols
 	* updated the tibco module to use a more efficient MDate constructors, 
 	  without the need to convert the date info to a string first
+	* changes to allow qore to compile with TIBCO SDK 5.3.*
 
 2006.06.13: David Nichols
 	* sanitized QoreString constructor order when specifying an encoding,
