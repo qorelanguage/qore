@@ -1,3 +1,8 @@
+2006.06.14: David Nichols
+	* updated the tibco module to use more efficient MDate and MDateTime
+	  constructors, without the need to convert the date info to a string
+	  first
+
 2006.06.13: David Nichols
 	* sanitized QoreString constructor order when specifying an encoding,
 	  added an additional constructor to accept simply specifying the 

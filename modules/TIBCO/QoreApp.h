@@ -39,6 +39,7 @@
 #include "tibco.h"
 
 #include <Maverick.h>
+#include <time.h>
 
 class QoreApp : public MApp, public ReferenceObject
 {
@@ -392,6 +393,7 @@ inline MData *QoreApp::do_primitive_type(const MPrimitiveClassDescription *pcd, 
       const char *type = pcd->getShortName().c_str();
       if (!strcmp(type, "dateTime") || !strcmp(type, "any"))
       {
+#if 0
 	 char *str = (char *)malloc(sizeof(char) * 32);
 	 sprintf(str, "%04d-%02d-%02dT%02d:%02d:%02d",
 		 v->val.date_time->year, v->val.date_time->month,
@@ -400,9 +402,16 @@ inline MData *QoreApp::do_primitive_type(const MPrimitiveClassDescription *pcd, 
 	 //printd(5, "QoreApp::do_primitive_type() creating date \"%s\"\n", str);
 	 md = new MDateTime(str);
 	 free(str);
+#else
+	 struct tm stm;
+	 v->val.date_time->getTM(&stm);
+	 time_t t = mktime(&stm);
+	 md = new MDateTime(t);
+#endif
       }
       else if (!strcmp(type, "date"))
       {
+#if 0
 	 char *str = (char *)malloc(sizeof(char) * 32);
 	 sprintf(str, "%04d-%02d-%02d",
 		 v->val.date_time->year, v->val.date_time->month,
@@ -410,6 +419,9 @@ inline MData *QoreApp::do_primitive_type(const MPrimitiveClassDescription *pcd, 
 	 //printd(5, "QoreApp::do_primitive_type() creating date \"%s\"\n", str);
 	 md = new MDate(str);
 	 free(str);
+#else
+	 md = new MDate(v->val.date_time->year, v->val.date_time->month, v->val.date_time->day);
+#endif
       }
       else
       {
