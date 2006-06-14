@@ -111,7 +111,6 @@ class QoreString {
       int vsnprintf(int size, const char *fmt, va_list args);
       inline void take(char *);
       inline void take(char *, class QoreEncoding *new_charset);
-      //inline void take(class QoreString *str);
       inline class QoreEncoding *getEncoding() { return charset; }
       class QoreString *convertEncoding(class QoreEncoding *nccs, class ExceptionSink *xsink);
       inline class QoreString *copy();
@@ -394,20 +393,6 @@ inline void QoreString::take(char *str, class QoreEncoding *new_qorecharset)
    take(str);
    charset = new_qorecharset;
 }
-
-/*
-inline void QoreString::take(class QoreString *str)
-{
-   if (buf)
-      free(buf);
-   buf = str->buf;
-   len = str->len;
-   allocated = str->allocated;
-   str->buf = NULL;
-   str->allocated = 0;
-   str->len = 0;
-}
-*/
 
 inline class QoreString *QoreString::copy()
 {

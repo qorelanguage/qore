@@ -643,7 +643,7 @@ static class Hash *get_result_set(class Datasource *ds, MYSQL_RES *res)
 	    
 	    // the rest defaults to string
 	    default:
-	       n = new QoreNode(new QoreString(ds->qorecharset, row[i]));
+	       n = new QoreNode(new QoreString(row[i], ds->qorecharset));
 	       break;
 	 }
 	 //printd(5, "get_result_set() row %d col %d: %s (type=%d)=\"%s\"\n", rn, i, field[i].name, field[i].type, row[i]);
