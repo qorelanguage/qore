@@ -43,90 +43,6 @@ AM_PROG_LIBTOOL
 AC_PROG_INSTALL
 AC_PROG_RANLIB
 
-# see if we can figure out where the pcre library is
-AC_ARG_WITH([pcre-libs],
-  [AC_HELP_STRING([--with-pcre-libs@<:@=DIR@:>@],
-                  [PCRE library directory])],
-  [if test ! -d "${with_pcre_libs}"; then AC_MSG_ERROR(bad value ${with_pcre_libs} for --with-pcre-libs); unset with_pcre_libs; fi])
-
-AC_MSG_CHECKING([for pcre library])
-if test -n "$with_pcre_libs"; then
-   if test ! -e "$with_pcre_libs/libpcre.a"; then
-      AC_MSG_ERROR([can't find pcre library in $with_pcre_libs])
-   else
-      AC_MSG_RESULT([$with_pcre_libs])
-      if test "$with_pcre_libs" = "/usr/lib"; then
-         with_pcre_libs=
-      fi
-   fi
-else
-   if test -f /usr/lib/libpcre.a ; then
-      AC_MSG_RESULT([/usr/lib])
-   elif test -f /opt/pcre/lib/libpcre.a; then
-      AC_MSG_RESULT([/opt/pcre/lib])
-      with_pcre_libs=/opt/pcre/lib
-   elif test -f /usr/pcre/libpcre.a; then
-      AC_MSG_RESULT([/usr/pcre/lib])
-      with_pcre_libs=/usr/pcre/lib
-   elif test -f /sw/lib/libpcre.a; then
-      AC_MSG_RESULT([/sw/lib])
-      with_pcre_libs=/sw/lib
-   elif test -f /opt/local/lib/libpcre.a; then
-      AC_MSG_RESULT([/opt/local/lib])
-      with_pcre_libs=/opt/local/lib
-   else
-      AC_MSG_ERROR([no PCRE library found])
-   fi
-fi
-
-if test -n "$with_pcre_libs"; then
-   PCRE_LDFLAGS="-L$with_pcre_libs -lpcre"
-else
-   PCRE_LDFLAGS=-lpcre
-fi
-AC_SUBST(PCRE_LDFLAGS)
-
-# see if we can figure out where the pcre header file is
-AC_ARG_WITH([pcre-includes],
-  [AC_HELP_STRING([--with-pcre-includes@<:@=DIR@:>@],
-                  [PCRE include file directory])],
-  [if test ! -d "${with_pcre_includes}"; then AC_MSG_ERROR(bad value ${with_pcre_includes} for --with-pcre-includes); unset with_pcre_includes; fi])
-
-AC_MSG_CHECKING([for pcre.h])
-if test -n "$with_pcre_includes"; then
-   if test ! -e "$with_pcre_includes/pcre.h"; then
-      AC_MSG_ERROR([can't find pcre.h in $with_pcre_includes])
-   else
-      AC_MSG_RESULT([$with_pcre_includes])
-      if test "$with_pcre_includes" = "/usr/include"; then
-         with_pcre_includes=
-      fi
-   fi
-else
-   if test -f /usr/include/pcre.h ; then
-      AC_MSG_RESULT([/usr/include])
-   elif test -f /opt/pcre/include/pcre.h; then
-      AC_MSG_RESULT([/opt/pcre/include])
-      with_pcre_includes=/opt/pcre/include
-   elif test -f /usr/pcre/include/pcre.h; then
-      AC_MSG_RESULT([/usr/pcre/include])
-      with_pcre_includes=/usr/pcre/include
-   elif test -f /sw/include/pcre.h; then
-      AC_MSG_RESULT([/sw/include])
-      with_pcre_includes=/sw/include
-   elif test -f /opt/local/include/pcre.h; then
-      AC_MSG_RESULT([/opt/local/include])
-      with_pcre_includes=/opt/local/include
-   else
-      AC_MSG_ERROR([no pcre.h header file found])
-   fi
-fi
-
-if test -n "$with_pcre_includes"; then
-   PCRE_CPPFLAGS="${CPPFLAGS} -I$with_pcre_includes" 
-fi
-AC_SUBST(PCRE_CPPFLAGS)
-
 # check if socklen_t is needed
 TYPE_SOCKLEN_T
 
@@ -184,6 +100,180 @@ if test -z "$MODULE_SUFFIX" ; then
    MODULE_SUFFIX=$SHLIB_SUFFIX
 fi
 AC_SUBST(MODULE_SUFFIX)
+
+# see if we can figure out where the openssl library is
+AC_ARG_WITH([openssl-libs],
+  [AC_HELP_STRING([--with-openssl-libs@<:@=DIR@:>@],
+                  [openssl library directory])],
+  [if test ! -d "${with_openssl_libs}"; then AC_MSG_ERROR(bad value ${with_openssl_libs} for --with-openssl-libs); unset with_openssl_libs; fi])
+
+AC_MSG_CHECKING([for openssl library])
+if test -n "$with_openssl_libs"; then
+   if test ! -f "$with_openssl_libs/libssl.a" -a ! -f "$with_openssl_libs/libssl.$SHLIB_SUFFIX"; then
+      AC_MSG_ERROR([can't find openssl library in $with_openssl_libs])
+   else
+      AC_MSG_RESULT([$with_openssl_libs])
+      if test "$with_openssl_libs" = "/usr/lib"; then
+         with_openssl_libs=
+      fi
+   fi
+else
+   if test -n "$OPENSSL_DIR" -a \( -f $OPENSSL_DIR/lib/libssl.a -o -f "$OPENSSL_DIR/lib/libssl.$SHLIB_SUFFIX" \); then
+      AC_MSG_RESULT([$OPENSSL_DIR/lib])
+      with_openssl_libs=$OPENOPENSSL_DIR/lib
+   elif test -f /usr/lib/libssl.a -o -f /usr/lib/libssl.$SHLIB_SUFFIX; then
+      AC_MSG_RESULT([/usr/lib])
+   elif test -f /opt/openssl/lib/libssl.a -o -f /opt/openssl/lib/libssl.$SHLIB_SUFFIX; then
+      AC_MSG_RESULT([/opt/openssl/lib])
+      with_openssl_libs=/opt/openssl/lib
+   elif test -f /sw/lib/libssl.a -o -f /sw/lib/libssl.$SHLIB_SUFFIX; then
+      AC_MSG_RESULT([/sw/lib])
+      with_openssl_libs=/sw/lib
+   elif test -f /opt/local/lib/libssl.a -o -f /opt/local/lib/libssl.$SHLIB_SUFFIX; then
+      AC_MSG_RESULT([/opt/local/lib])
+      with_openssl_libs=/opt/local/lib
+   else
+      AC_MSG_ERROR([no openssl library found])
+   fi
+fi
+
+if test -n "$with_openssl_libs"; then
+   OPENSSL_LDFLAGS="-L$with_openssl_libs -lssl"
+else
+   OPENSSL_LDFLAGS=-lssl
+fi
+AC_SUBST(OPENSSL_LDFLAGS)
+
+# see if we can figure out where the ssl header file is
+AC_ARG_WITH([openssl-includes],
+  [AC_HELP_STRING([--with-openssl-includes@<:@=DIR@:>@],
+                  [SSL include file directory])],
+  [if test ! -d "${with_openssl_includes}"; then AC_MSG_ERROR(bad value ${with_openssl_includes} for --with-openssl-includes); unset with_openssl_includes; fi])
+
+AC_MSG_CHECKING([for openssl/ssl.h])
+if test -n "$with_openssl_includes"; then
+   if test ! -f "$with_openssl_includes/openssl/ssl.h"; then
+      AC_MSG_ERROR([can't find openssl/ssl.h in $with_openssl_includes])
+   else
+      AC_MSG_RESULT([$with_openssl_includes])
+      if test "$with_openssl_includes" = "/usr/include"; then
+         with_openssl_includes=
+      fi
+   fi
+else
+   if test -n "$OPENSSL_DIR" -a -f $OPENSSL_DIR/include/openssl/ssl.h ; then
+      AC_MSG_RESULT([$OPENSSL_DIR/include])
+      with_openssl_includes=$OPENSSL_DIR/include
+   elif test -f /usr/include/openssl/ssl.h ; then
+      AC_MSG_RESULT([/usr/include])
+   elif test -f /opt/openssl/include/openssl/ssl.h; then
+      AC_MSG_RESULT([/opt/openssl/include])
+      with_openssl_includes=/opt/openssl/include
+   elif test -f /sw/include/openssl/ssl.h; then
+      AC_MSG_RESULT([/sw/include])
+      with_openssl_includes=/sw/include
+   elif test -f /opt/local/include/openssl/ssl.h; then
+      AC_MSG_RESULT([/opt/local/include])
+      with_openssl_includes=/opt/local/include
+   else
+      AC_MSG_ERROR([no ssl.h header file found])
+   fi
+fi
+
+if test -n "$with_openssl_includes"; then
+   OPENSSL_CPPFLAGS=-I$with_openssl_includes
+fi
+AC_SUBST(OPENSSL_CPPFLAGS)
+
+# see if we can figure out where the pcre library is
+AC_ARG_WITH([pcre-libs],
+  [AC_HELP_STRING([--with-pcre-libs@<:@=DIR@:>@],
+                  [PCRE library directory])],
+  [if test ! -d "${with_pcre_libs}"; then AC_MSG_ERROR(bad value ${with_pcre_libs} for --with-pcre-libs); unset with_pcre_libs; fi])
+
+AC_MSG_CHECKING([for pcre library])
+if test -n "$with_pcre_libs"; then
+   if test ! -f "$with_pcre_libs/libpcre.a" -a ! -f "$with_pcre_libs/libpcre.$SHLIB_SUFFIX"; then
+      AC_MSG_ERROR([can't find pcre library in $with_pcre_libs])
+   else
+      AC_MSG_RESULT([$with_pcre_libs])
+      if test "$with_pcre_libs" = "/usr/lib"; then
+         with_pcre_libs=
+      fi
+   fi
+else
+   if test -n "$PCRE_DIR" -a \( -f $PCRE_DIR/lib/libpcre.a -o -f "$PCRE_DIR/lib/libpcre.$SHLIB_SUFFIX" \); then
+      AC_MSG_RESULT([$PCRE_DIR/lib])
+      with_pcre_libs=$PCRE_DIR/lib
+   elif test -f /usr/lib/libpcre.a -o -f /usr/lib/libpcre.$SHLIB_SUFFIX; then
+      AC_MSG_RESULT([/usr/lib])
+   elif test -f /opt/pcre/lib/libpcre.a -o -f /opt/pcre/lib/libpcre.$SHLIB_SUFFIX; then
+      AC_MSG_RESULT([/opt/pcre/lib])
+      with_pcre_libs=/opt/pcre/lib
+   elif test -f /usr/pcre/lib/libpcre.a -o -f /usr/pcre/lib/libpcre.$SHLIB_SUFFIX; then
+      AC_MSG_RESULT([/usr/pcre/lib])
+      with_pcre_libs=/usr/pcre/lib
+   elif test -f /sw/lib/libpcre.a -o -f /sw/lib/libpcre.$SHLIB_SUFFIX; then
+      AC_MSG_RESULT([/sw/lib])
+      with_pcre_libs=/sw/lib
+   elif test -f /opt/local/lib/libpcre.a -o -f /opt/local/lib/libpcre.$SHLIB_SUFFIX; then
+      AC_MSG_RESULT([/opt/local/lib])
+      with_pcre_libs=/opt/local/lib
+   else
+      AC_MSG_ERROR([no PCRE library found])
+   fi
+fi
+
+if test -n "$with_pcre_libs"; then
+   PCRE_LDFLAGS="-L$with_pcre_libs -lpcre"
+else
+   PCRE_LDFLAGS=-lpcre
+fi
+AC_SUBST(PCRE_LDFLAGS)
+
+# see if we can figure out where the pcre header file is
+AC_ARG_WITH([pcre-includes],
+  [AC_HELP_STRING([--with-pcre-includes@<:@=DIR@:>@],
+                  [PCRE include file directory])],
+  [if test ! -d "${with_pcre_includes}"; then AC_MSG_ERROR(bad value ${with_pcre_includes} for --with-pcre-includes); unset with_pcre_includes; fi])
+
+AC_MSG_CHECKING([for pcre.h])
+if test -n "$with_pcre_includes"; then
+   if test ! -e "$with_pcre_includes/pcre.h"; then
+      AC_MSG_ERROR([can't find pcre.h in $with_pcre_includes])
+   else
+      AC_MSG_RESULT([$with_pcre_includes])
+      if test "$with_pcre_includes" = "/usr/include"; then
+         with_pcre_includes=
+      fi
+   fi
+else
+   if test -n "$PCRE_DIR" -a -f $PCRE_DIR/include/pcre.h ; then
+      AC_MSG_RESULT([$PCRE_DIR/include])
+      with_pcre_includes=$PCRE_DIR/include
+   elif test -f /usr/include/pcre.h ; then
+      AC_MSG_RESULT([/usr/include])
+   elif test -f /opt/pcre/include/pcre.h; then
+      AC_MSG_RESULT([/opt/pcre/include])
+      with_pcre_includes=/opt/pcre/include
+   elif test -f /usr/pcre/include/pcre.h; then
+      AC_MSG_RESULT([/usr/pcre/include])
+      with_pcre_includes=/usr/pcre/include
+   elif test -f /sw/include/pcre.h; then
+      AC_MSG_RESULT([/sw/include])
+      with_pcre_includes=/sw/include
+   elif test -f /opt/local/include/pcre.h; then
+      AC_MSG_RESULT([/opt/local/include])
+      with_pcre_includes=/opt/local/include
+   else
+      AC_MSG_ERROR([no pcre.h header file found])
+   fi
+fi
+
+if test -n "$with_pcre_includes"; then
+   PCRE_CPPFLAGS=-I$with_pcre_includes
+fi
+AC_SUBST(PCRE_CPPFLAGS)
 
 AC_ARG_ENABLE([profile],
      [AC_HELP_STRING([--enable-profile],

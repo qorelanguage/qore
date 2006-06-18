@@ -86,7 +86,7 @@ int QoreSocket::acceptInternal(QoreString *source)
 }
 
 // hardcoded to SOCK_STREAM (tcp only)
-int QoreSocket::connectINET(char *host, int prt)
+int QoreSocket::connectINET(char *host, int prt, class ExceptionSink *xsink)
 {
    tracein("QoreSocket::connectINET()");
 
@@ -102,6 +102,8 @@ int QoreSocket::connectINET(char *host, int prt)
 
    if (q_gethostbyname(host, &addr_p.sin_addr))
    {
+      if (xsink)
+	 xsink->raiseException("SOCKET-CONNECT-ERROR", "cannot resolve hostname '%s'", host);
       traceout("QoreSocket::connectINET()");
       return -1;
    }
@@ -109,12 +111,18 @@ int QoreSocket::connectINET(char *host, int prt)
    if ((sock = socket(AF_INET, SOCK_STREAM, 0)) == -1)
    {
       sock = 0;
+      if (xsink)
+	 xsink->raiseException("SOCKET-CONNECT-ERROR", strerror(errno));
+      traceout("QoreSocket::connectINET()");
       return -1;
    }
+
    if ((::connect(sock, (const sockaddr *)&addr_p, sizeof(struct sockaddr_in))) == -1)
    {
       ::close(sock);
       sock = 0;
+      if (xsink)
+	 xsink->raiseException("SOCKET-CONNECT-ERROR", strerror(errno));
       traceout("QoreSocket::connectINET()");
       return -1;
    }
@@ -125,7 +133,7 @@ int QoreSocket::connectINET(char *host, int prt)
    return 0;
 }
 
-int QoreSocket::connectUNIX(char *p)
+int QoreSocket::connectUNIX(char *p, class ExceptionSink *xsink)
 {
    tracein("connectUNIX()");
 
@@ -143,6 +151,8 @@ int QoreSocket::connectUNIX(char *p)
    if ((sock = socket(AF_UNIX, SOCK_STREAM, 0)) == -1)
    {
       sock = 0;
+      if (xsink)
+	 xsink->raiseException("SOCKET-CONNECT-ERROR", strerror(errno));
       traceout("connectUNIX()");
       return -1;
    }
@@ -150,6 +160,8 @@ int QoreSocket::connectUNIX(char *p)
    {
       ::close(sock);
       sock = 0;
+      if (xsink)
+	 xsink->raiseException("SOCKET-CONNECT-ERROR", strerror(errno));
       traceout("connectUNIX()");
       return -1;
    }

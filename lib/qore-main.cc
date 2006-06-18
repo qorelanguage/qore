@@ -45,12 +45,21 @@
 
 #include <libxml/parser.h>
 
+#include <openssl/ssl.h>
+#include <openssl/err.h>
+
+
 extern char **environ;
 
 void qore_init(char *def_charset, bool show_module_errors)
 {
    // initialize libxml2 library
    LIBXML_TEST_VERSION
+
+   // initialize openssl library
+   SSL_load_error_strings();
+   SSL_library_init();
+   // seed PRNG
 
    // init threading infrastructure
    init_qore_threads();

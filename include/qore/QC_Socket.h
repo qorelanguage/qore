@@ -56,26 +56,50 @@ class mySocket : public ReferenceObject, public LockedObject
 	 socket = new QoreSocket();
       }
       
-      inline int connect(char *name)
+      inline int connect(char *name, class ExceptionSink *xsink = NULL)
       {
 	 lock();
-	 int rc = socket->connect(name);
+	 int rc = socket->connect(name, xsink);
 	 unlock();
 	 return rc;
       }
 
-      inline int connectINET(char *host, int port)
+      inline int connectINET(char *host, int port, class ExceptionSink *xsink = NULL)
       {
 	 lock();
-	 int rc = socket->connectINET(host, port);
+	 int rc = socket->connectINET(host, port, xsink);
 	 unlock();
 	 return rc;
       }
 
-      inline int connectUNIX(char *p)
+      inline int connectUNIX(char *p, class ExceptionSink *xsink = NULL)
       {
 	 lock();
-	 int rc = socket->connectUNIX(p);
+	 int rc = socket->connectUNIX(p, xsink);
+	 unlock();
+	 return rc;
+      }
+
+      inline int connectSSL(char *name, class ExceptionSink *xsink)
+      {
+	 lock();
+	 int rc = socket->connectSSL(name, xsink);
+	 unlock();
+	 return rc;
+      }
+
+      inline int connectINETSSL(char *host, int port, class ExceptionSink *xsink)
+      {
+	 lock();
+	 int rc = socket->connectINETSSL(host, port, xsink);
+	 unlock();
+	 return rc;
+      }
+
+      inline int connectUNIXSSL(char *p, class ExceptionSink *xsink)
+      {
+	 lock();
+	 int rc = socket->connectUNIXSSL(p, xsink);
 	 unlock();
 	 return rc;
       }
@@ -116,10 +140,20 @@ class mySocket : public ReferenceObject, public LockedObject
 	 return rc;
       }
 
-      inline class mySocket *accept(class QoreString *source)
+      inline class mySocket *accept(class QoreString *source, class ExceptionSink *xsink = NULL)
       {
 	 lock();
-	 QoreSocket *s = socket->accept(source);
+	 QoreSocket *s = socket->accept(source, xsink);
+	 unlock();
+	 if (s)
+	    return new mySocket(s);
+	 return NULL;
+      }
+
+      inline class mySocket *acceptSSL(class QoreString *source, class ExceptionSink *xsink)
+      {
+	 lock();
+	 QoreSocket *s = socket->acceptSSL(source, xsink);
 	 unlock();
 	 if (s)
 	    return new mySocket(s);
@@ -379,6 +413,14 @@ class mySocket : public ReferenceObject, public LockedObject
       { 
 	 lock();
 	 int rc = socket->shutdown();
+	 unlock();
+	 return rc;
+      }
+
+      inline int shutdownSSL(class ExceptionSink *xsink) 
+      { 
+	 lock();
+	 int rc = socket->shutdownSSL(xsink);
 	 unlock();
 	 return rc;
       }

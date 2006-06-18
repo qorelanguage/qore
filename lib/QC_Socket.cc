@@ -67,24 +67,49 @@ static QoreNode *SOCKET_connect(class Object *self, class QoreNode *params, Exce
    if (!(p0 = test_param(params, NT_STRING, 0)))
    {
       xsink->raiseException("SOCKET-CONNECT-PARAMETER-ERROR",
-		     "expecting string parameter (INET: 'hostname:port', UNIX: 'path/filename') for Socket::connect() call");
+			    "expecting string parameter (INET: 'hostname:port', UNIX: 'path/filename') for Socket::connect() call");
       return NULL;
    }
 
    class mySocket *s = (mySocket *)self->getReferencedPrivateData(CID_SOCKET);
-   QoreNode *rv;
 
    if (s)
    {
-      rv = new QoreNode(NT_INT, s->connect(p0->val.String->getBuffer()));
+      s->connect(p0->val.String->getBuffer(), xsink);
       s->deref();
    }
    else
-   {
-      rv = NULL;
       alreadyDeleted(xsink, "Socket::connect");
+   return NULL;
+}
+
+// currently hardcoded to SOCK_STREAM
+// opens and connects to a remote socket and negotiates an SSL connection
+// for AF_INET sockets:
+// * connectSSL("hostname:<port_number>");
+// for AF_UNIX sockets:
+// * connectSSL("filename");
+static QoreNode *SOCKET_connectSSL(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p0;
+   // if parameters are not correct
+   if (!(p0 = test_param(params, NT_STRING, 0)))
+   {
+      xsink->raiseException("SOCKET-CONNECTSSL-PARAMETER-ERROR",
+		     "expecting string parameter (INET: 'hostname:port', UNIX: 'path/filename') for Socket::connectSSL() call");
+      return NULL;
    }
-   return rv;
+
+   class mySocket *s = (mySocket *)self->getReferencedPrivateData(CID_SOCKET);
+
+   if (s)
+   {
+      s->connectSSL(p0->val.String->getBuffer(), xsink);
+      s->deref();
+   }
+   else
+      alreadyDeleted(xsink, "Socket::connectSSL");
+   return NULL;
 }
 
 // currently hardcoded to SOCK_STREAM
@@ -148,7 +173,7 @@ static QoreNode *SOCKET_accept(class Object *self, class QoreNode *params, Excep
       else
       {
 	 QoreString *source = new QoreString();
-	 mySocket *n = s->accept(source);
+	 mySocket *n = s->accept(source, xsink);
 	 if (!n)
 	 {
 	    delete source;
@@ -170,6 +195,50 @@ static QoreNode *SOCKET_accept(class Object *self, class QoreNode *params, Excep
    {
       rv = NULL;
       alreadyDeleted(xsink, "Socket::accept");
+   }
+   return rv;
+}
+
+// Socket::acceptSSL()
+// accepts a new connection, negotiates an SSL connection, and returns the new socket
+// the connection source string is in the "$.source" member of new object
+static QoreNode *SOCKET_acceptSSL(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+{
+   class mySocket *s = (mySocket *)self->getReferencedPrivateData(CID_SOCKET);
+   QoreNode *rv;
+
+   if (s)
+   {
+      if (!s->getSocket())
+      {
+	 xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened and in listening state before Socket::acceptSSL() call");
+	 rv = NULL;
+      }
+      else
+      {
+	 QoreString *source = new QoreString();
+	 mySocket *n = s->acceptSSL(source, xsink);
+	 if (!n)
+	 {
+	    delete source;
+	    rv = NULL;
+	 }
+	 else
+	 {
+	    // ensure that a socket object is returned (and not a subclass)
+	    Object *ns = new Object(self->getClass(CID_SOCKET), getProgram());
+	    ns->setPrivate(CID_SOCKET, n, getSocket);
+	    ns->setValue("source", new QoreNode(source), xsink);
+
+	    rv = new QoreNode(ns);
+	 }
+      }
+      s->deref();
+   }
+   else
+   {
+      rv = NULL;
+      alreadyDeleted(xsink, "Socket::acceptSSL");
    }
    return rv;
 }
@@ -1180,7 +1249,25 @@ static QoreNode *SOCKET_shutdown(class Object *self, class QoreNode *params, Exc
    else
    {
       rv = NULL;
-      alreadyDeleted(xsink, "Socket::close");
+      alreadyDeleted(xsink, "Socket::shutdown");
+   }
+   return rv;
+}
+
+static QoreNode *SOCKET_shutdownSSL(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+{
+   class mySocket *s = (mySocket *)self->getReferencedPrivateData(CID_SOCKET);
+   QoreNode *rv;
+
+   if (s)
+   {
+      rv = new QoreNode((int64)s->shutdownSSL(xsink));
+      s->deref();
+   }
+   else
+   {
+      rv = NULL;
+      alreadyDeleted(xsink, "Socket::shutdownSSL");
    }
    return rv;
 }
@@ -1383,8 +1470,10 @@ class QoreClass *initSocketClass()
    QC_SOCKET->addMethod("destructor",       SOCKET_destructor);
    QC_SOCKET->addMethod("copy",             SOCKET_constructor);
    QC_SOCKET->addMethod("connect",          SOCKET_connect);
+   QC_SOCKET->addMethod("connectSSL",       SOCKET_connectSSL);
    QC_SOCKET->addMethod("bind",             SOCKET_bind);
    QC_SOCKET->addMethod("accept",           SOCKET_accept);
+   QC_SOCKET->addMethod("acceptSSL",        SOCKET_acceptSSL);
    QC_SOCKET->addMethod("listen",           SOCKET_listen);
    QC_SOCKET->addMethod("send",             SOCKET_send);
    QC_SOCKET->addMethod("sendBinary",       SOCKET_sendBinary);
@@ -1410,6 +1499,7 @@ class QoreClass *initSocketClass()
    QC_SOCKET->addMethod("getPort",          SOCKET_getPort);
    QC_SOCKET->addMethod("close",            SOCKET_close);
    QC_SOCKET->addMethod("shutdown",         SOCKET_shutdown);
+   QC_SOCKET->addMethod("shutdownSSL",      SOCKET_shutdownSSL);
    QC_SOCKET->addMethod("getSocket",        SOCKET_getSocket);
    QC_SOCKET->addMethod("setSendTimeout",   SOCKET_setSendTimeout);
    QC_SOCKET->addMethod("setRecvTimeout",   SOCKET_setRecvTimeout);

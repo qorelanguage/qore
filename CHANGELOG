@@ -1,7 +1,20 @@
+2006.06.18: David Nichols
+	* added openssl checks to configure.ac as a required component
+	* improved library detection for pcre and openssl to check for OS-
+	  specific shared libraries as well as static libraries, in case
+	  the static libraries are not installed.
+	* implemented new Socket methods: ::connectSSL(), ::acceptSSL(), and
+	  SSL session handling, reading and writing in SSL connections for the 
+	  qore Socket class
+	* now Socket::connect() and Socket::accept() will throw exceptions if
+	  they fail (before they would just return -1) - this is to be 
+	  consistent with connectSSL() and acceptSSL() which will throw 
+	  exceptions if SSL negotiation fails
+
 2006.06.14: David Nichols
-	* updated the tibco module to use a more efficient MDate constructors, 
+	* updated the tibco module to use a more efficient MDate constructor, 
 	  without the need to convert the date info to a string first
-	* changes to allow qore to compile with TIBCO SDK 5.3.*
+	* changes to allow qore to compile and link with TIBCO SDK 5.3.*
 
 2006.06.13: David Nichols
 	* sanitized QoreString constructor order when specifying an encoding,

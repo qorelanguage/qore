@@ -79,9 +79,9 @@ libqore_la_SOURCES = \
 	QC_Sequence.cc \
 	QC_Counter.cc
 
-libqore_la_LDFLAGS = -version-info 0:0:0 ${XML_LIBS} $(PCRE_LDFLAGS)
+libqore_la_LDFLAGS = -version-info 0:0:0 ${XML_LIBS} $(PCRE_LDFLAGS) $(OPENSSL_LDFLAGS)
 libqore_la_LIBADD = -ldl ${PTHREAD_LIBS}
-AM_CPPFLAGS = -DMODULE_DIR=\"$(pkglibdir)\" $(PCRE_CPPFLAGS)
+AM_CPPFLAGS = -DMODULE_DIR=\"$(pkglibdir)\" $(PCRE_CPPFLAGS) $(OPENSSL_CPPFLAGS)
 AM_CXXFLAGS = ${XML_CFLAGS} ${PTHREAD_CFLAGS}
 
 if COND_DEBUG
