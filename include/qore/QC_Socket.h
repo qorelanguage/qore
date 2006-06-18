@@ -425,6 +425,30 @@ class mySocket : public ReferenceObject, public LockedObject
 	 return rc;
       }
 
+      inline const char *getSSLCipherName() 
+      { 
+	 lock();
+	 const char *str = socket->getSSLCipherName();
+	 unlock();
+	 return str;
+      }
+
+      inline const char *getSSLCipherVersion() 
+      { 
+	 lock();
+	 const char *str = socket->getSSLCipherVersion();
+	 unlock();
+	 return str;
+      }
+
+      inline bool isSecure()
+      {
+	 lock();
+	 bool rc = socket->isSecure();
+	 unlock();
+	 return rc;
+      }
+
       inline int getSocket()
       {
 	 lock();

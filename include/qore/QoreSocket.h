@@ -193,6 +193,16 @@ class SSLSocketHelper
       {
 	 return SSL_write(ssl, buf, size);
       }
+
+      inline const char *getCipherName()
+      {
+	 return SSL_get_cipher_name(ssl);
+      }
+
+      inline const char *getCipherVersion()
+      {
+	 return SSL_get_cipher_version(ssl);
+      }
 };
 
 class QoreSocket 
@@ -350,6 +360,25 @@ class QoreSocket
       inline class QoreEncoding *getEncoding() { return charsetid; }
       inline void setEncoding(class QoreEncoding *id) { charsetid = id; } 
       bool isDataAvailable(int timeout = 0);
+
+      inline const char *getSSLCipherName()
+      {
+	 if (!ssl)
+	    return NULL;
+	 return ssl->getCipherName();
+      }
+
+      inline const char *getSSLCipherVersion()
+      {
+	 if (!ssl)
+	    return NULL;
+	 return ssl->getCipherVersion();
+      }
+
+      inline bool isSecure()
+      {
+	 return (bool)ssl;
+      }
 };
 
 inline void QoreSocket::init()

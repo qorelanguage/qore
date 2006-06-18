@@ -1,25 +1,30 @@
 # HTTPClient class definition
 #
 # authors: Petr Matejka, David Nichols
+# v0.3.1: added SSL support, https protocol recognition
 
 namespace HTTPClient {
 
     const DEFAULT_METHODS = ("OPTIONS", "GET", "HEAD", "POST", "PUT", "DELETE", "TRACE", "CONNECT");
 
+    # the following headers will be included in every message but can be overridden
     const DEFAULT_HEADERS = 
-	( "Accept"       : "text/xml",
-	  "Content-Type" : "text/xml",
+	( "Accept"       : "text/html",
+	  "Content-Type" : "text/html",
 	  "User-Agent"   : "Qore HTTP Client v" + Version,
 	  "Connection"   : "Keep-Alive" );
 
+    # the following headers will be overridden by HTTPClient objects if set
     const DEFAULT_HEADER_IGNORE = ("Host","User-Agent","Content-Length");
-
-    const DEFAULT_PROTOCOLS = "http";
+    
+    # hash of known protocols and default connection parameters
+    const DEFAULT_PROTOCOLS = ( "http"  : ( "port" : 80,  "ssl" : False ),
+				"https" : ( "port" : 443, "ssl" : True ) );
 
     const DEFAULT_HTTP_VERSION = "1.1";
     const allowed_versions = ( "1.0", "1.1" );
 
-    const Version = "0.3";
+    const Version = "0.3.1";
 
     # default timeout set to 5 minutes
     const defaultTimeout = 300000;
@@ -27,17 +32,16 @@ namespace HTTPClient {
 
 class HTTPClient::HTTPClient inherits private Qore::Socket, private Qore::Thread::Mutex
 {
-    private $.timeout, $.http_version;
+    private $.timeout, $.http_version, $.ssl, $.protocollist;
 
     constructor($opts)
     {
         my $h;
 
-	# ensure that protocol list is a list
-	$.protocollist = list(HTTPClient::DEFAULT_PROTOCOLS);
+	$.protocols = HTTPClient::DEFAULT_PROTOCOLS;
 
 	if (exists $opts.protocols)
-	    $.protocollist += $opts.protocols;
+	    $.protocols += $opts.protocols;
 
         if (exists $opts.url)
         {
@@ -48,11 +52,17 @@ class HTTPClient::HTTPClient inherits private Qore::Socket, private Qore::Thread
 		delete $self;
 		throw "HTTP-CLIENT-PARAMETER-ERROR", "url could not be parsed";
 	    }
-	    if (exists $h.protocol && !inlist($h.protocol, $.protocollist))
-	    {
-		delete $self;
-		throw "HTTP-CLIENT-PARAMETER-ERROR", sprintf("protocol '%s' not supported (expecting: %n)", $h.protocol, $.protocollist);
-	    }
+	    if (exists $h.protocol)
+		if (!inlist($h.protocol, keys $.protocols))
+	        {
+		    delete $self;
+		    throw "HTTP-CLIENT-PARAMETER-ERROR", sprintf("protocol '%s' not supported (expecting: %n)", $h.protocol, keys $.protocols);
+		}
+	        else 
+		{
+		    $.ssl   = $.protocols.($h.protocol).ssl;
+		    $h.port = $.protocols.($h.protocol).port;
+		}
         }
 
         # check if host is really a local port
@@ -65,6 +75,7 @@ class HTTPClient::HTTPClient inherits private Qore::Socket, private Qore::Thread
         if (!exists $h.host)
 	    $h.host = "localhost";
 
+	# set the port number if it's not already given
         if (!exists $h.port)
 	    $h.port = exists $opts.default_port ? $opts.default_port : 80;
 
@@ -100,15 +111,36 @@ class HTTPClient::HTTPClient inherits private Qore::Socket, private Qore::Thread
 	return $.http_version;
     }
 
+    isSecure()
+    {
+	return Socket::$.isSecure();
+    }
+
+    getSSLCipherName()
+    {
+	return Socket::$.getSSLCipherName();
+    }
+
+    getSSLCipherVersion()
+    {
+	return Socket::$.getSSLCipherVersion();
+    }
+
     connect()
     {
         $.lock();
         if (!$.connected)
         {
-	    if (Qore::Socket::$.connect($.socketpath) == -1)
+	    try {
+		if ($.ssl)
+		    Qore::Socket::$.connectSSL($.socketpath);
+		else
+		    Qore::Socket::$.connect($.socketpath);
+	    }
+	    catch ()
 	    {
 		$.unlock();
-		throw "HTTP-CLIENT-CONNECT-ERROR", sprintf("cannot connect to socket \"%s\": %s", $.socketpath, strerror(errno()));
+		rethrow;
 	    }
         }
         $.connected = True;
@@ -138,17 +170,6 @@ class HTTPClient::HTTPClient inherits private Qore::Socket, private Qore::Thread
     send($data, $method, $path, $headers)
     {
         $.connect();
-
-        #POST /RPC2 HTTP/1.0
-        #User-Agent: Frontier/5.1.2 (WinNT)
-        #Host: betty.userland.com
-        #Content-Type: text/xml
-        #Content-length: 181
-
-        # Accept-Charset: ISO-8859-1,UTF-8
-        # Accept-Encoding: gzip,deflate
-        # Keep-Alive: <seconds>
-        # Connection: keep-alive
 
         if (!inlist($method, HTTPClient::DEFAULT_METHODS))
             throw "HTTP-CLIENT-METHOD-ERROR", sprintf("HTTP method (%n) not recognized.", $method);

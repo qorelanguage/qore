@@ -10,6 +10,10 @@
 	  they fail (before they would just return -1) - this is to be 
 	  consistent with connectSSL() and acceptSSL() which will throw 
 	  exceptions if SSL negotiation fails
+	* added Socket::getSSLCipherName(), Socket::getSSLCipherVersion(), and
+	  Socket::isSecure() methods
+	* update HTTPClient class in examples/HTTPClient.qc to recognize the 
+	  https protocol and use SSL
 
 2006.06.14: David Nichols
 	* updated the tibco module to use a more efficient MDate constructor, 
