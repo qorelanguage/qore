@@ -1,12 +1,47 @@
 #!/usr/bin/env qore
 
+%require-our
+
 #$sp = "/tmp/sock-test";
 #$cp = "/tmp/sock-test";
 
-if (!($sp = int(shift $ARGV)))
-    $sp = 9001;
+our ($o, $sp, $cp, $q);
 
-$cp = sprintf("localhost:%d", $sp);
+const opts = 
+    ( "help" : "h,help",
+      "ssl"  : "s,ssl",
+      "key"  : "p,private-key=s",
+      "cert" : "c,cert=s" );
+
+sub usage()
+{
+    printf("usage: %s -[options] [port]
+  -h,--help             this help text
+  -s,--ssl              use secure connections
+  -c,--cert=arg         set SSL x509 certificate
+  -p,--private-key=arg  set SSL private key\n", basename($ENV."_"));
+    exit();
+}
+
+sub process_command_line()
+{
+    my $g = new GetOpt(opts);
+    $o = $g.parse(\$ARGV);
+
+    if (exists $o{"_ERRORS_"})
+    {
+        printf("%s\n", $o{"_ERRORS_"}[0]);
+        exit(1);
+    }
+
+    if ($o.help)
+	usage();
+
+    if (!($sp = int(shift $ARGV)))
+	$sp = 9001;
+
+    $cp = sprintf("localhost:%d", $sp);
+}
 
 const i1 = 10;
 const i2 = 5121;
@@ -15,7 +50,7 @@ const i4 = 2393921;
 sub server_thread()
 {
     my $s = new Socket();
-    if ($s.bind($sp) == -1)
+    if ($s.bind($sp, True) == -1)
     {
 	printf("server_thread: error opening socket! (%s)\n", strerror(errno()));
 	exit(2);
@@ -29,10 +64,34 @@ sub server_thread()
     
     # socket created, now wake up client
     $q.push("hi");
-    my $r = $s.accept();
+    my $r;
+    try {
+	if ($o.ssl)
+	{
+	    if (strlen($o.cert))
+	    {
+		$s.setCertificate($o.cert);
+		if (!strlen($o.key))
+		    $s.setPrivateKey($o.cert);
+	    }
+	    if (strlen($o.key))
+		$s.setPrivateKey($o.key);
+
+	    $r = $s.acceptSSL();
+	    printf("secure connection: %s %s\n", $r.getSSLCipherName(), $r.getSSLCipherVersion());
+	}
+	else
+	    $r = $s.accept();
+    }
+    catch ($ex)
+    {
+	printf("server error: %s: %s\n", $ex.err, $ex.desc);
+	exit(1);
+    }
+
     printf("connection from %s\n", $r.source);
     
-    $m = $r.recv();
+    my $m = $r.recv();
     if ($m == -1)
     {
 	printf("recv error (%s)\n", strerror(errno()));
@@ -67,11 +126,18 @@ sub client_thread()
     $q.get();
     my $s = new Socket();
 
-    if ($s.connect($cp) == -1)
+    try {
+	if ($o.ssl)
+	    $s.connectSSL($cp);
+	else
+	    $s.connect($cp);
+    }
+    catch ($ex)
     {
-	printf("client_thread: error opening socket! (%s)\n", strerror(errno()));
+	printf("client error: %s: %s\n", $ex.err, $ex.desc);
 	exit(1);
     }
+
     $s.send("Hi there!!!");
     my $m = $s.recv();
     if ($m == -1)
@@ -87,8 +153,14 @@ sub client_thread()
     $s.send("goodbye!");
 }
 
-$q = new Queue();
+sub main()
+{
+    process_command_line();
 
-background server_thread();
-background client_thread();
+    $q = new Queue();
 
+    background server_thread();
+    background client_thread();   
+}
+
+main();

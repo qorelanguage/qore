@@ -123,6 +123,7 @@ class QoreNode : public ReferenceObject
       inline QoreNode(class QoreType *t);
       inline QoreNode(class QoreType *t, int64 v);
       inline QoreNode(int64 v);
+      inline QoreNode(long v);
       inline QoreNode(bool v);
       inline QoreNode(char *str);
       inline QoreNode(const char *str);
@@ -511,6 +512,15 @@ inline QoreNode::QoreNode(int64 v)
 { 
    type = NT_INT;
    val.intval = v; 
+#if TRACK_REFS
+   printd(5, "QoreNode::ref() %08x type=%s (0->1)\n", this, type->name);
+#endif
+}
+
+inline QoreNode::QoreNode(long v) 
+{ 
+   type = NT_INT;
+   val.intval = (int64)v; 
 #if TRACK_REFS
    printd(5, "QoreNode::ref() %08x type=%s (0->1)\n", this, type->name);
 #endif

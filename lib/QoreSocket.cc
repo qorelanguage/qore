@@ -231,7 +231,8 @@ int QoreSocket::sendi1(char i)
    if (!sock)
       return -1;
 
-   int rc = ::send(sock, &i, 1, 0);
+   int rc = send(&i, 1);
+
    if (!rc || rc < 0)
       return -1;
 
@@ -251,7 +252,7 @@ int QoreSocket::sendi2(short i)
    int bs = 0;
    while (1)
    {
-      int rc = ::send(sock, buf + bs, 2 - bs, 0);
+      int rc = send(buf + bs, 2 - bs);
       if (!rc || rc < 0)
 	 return -1;
       bs += rc;
@@ -274,7 +275,7 @@ int QoreSocket::sendi4(int i)
    int bs = 0;
    while (1)
    {
-      int rc = ::send(sock, buf + bs, 4 - bs, 0);
+      int rc = send(buf + bs, 4 - bs);
       if (!rc || rc < 0)
 	 return -1;
       bs += rc;
@@ -296,7 +297,7 @@ int QoreSocket::sendi8(int64 i)
    int bs = 0;
    while (1)
    {
-      int rc = ::send(sock, buf + bs, 8 - bs, 0);
+      int rc = send(buf + bs, 8 - bs);
       if (!rc || rc < 0)
 	 return -1;
       bs += rc;
@@ -318,7 +319,7 @@ int QoreSocket::sendi2LSB(short i)
    int bs = 0;
    while (1)
    {
-      int rc = ::send(sock, buf + bs, 2 - bs, 0);
+      int rc = send(buf + bs, 2 - bs);
       if (!rc || rc < 0)
 	 return -1;
       bs += rc;
@@ -341,7 +342,7 @@ int QoreSocket::sendi4LSB(int i)
    int bs = 0;
    while (1)
    {
-      int rc = ::send(sock, buf + bs, 4 - bs, 0);
+      int rc = send(buf + bs, 4 - bs);
       if (!rc || rc < 0)
 	 return -1;
       bs += rc;
@@ -363,7 +364,7 @@ int QoreSocket::sendi8LSB(int64 i)
    int bs = 0;
    while (1)
    {
-      int rc = ::send(sock, buf + bs, 8 - bs, 0);
+      int rc = send(buf + bs, 8 - bs);
       if (!rc || rc < 0)
 	 return -1;
       bs += rc;
@@ -561,7 +562,7 @@ int QoreSocket::send(int fd, int size)
       }
 
       // send buffer
-      rc = ::send(sock, buf, rc, 0);
+      rc = send(buf, rc);
       if (rc < 0)
       {
 	 printd(5, "QoreSocket::send() send error: %s\n", strerror(errno));

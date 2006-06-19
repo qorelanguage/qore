@@ -38,22 +38,29 @@ class mySocket : public ReferenceObject, public LockedObject
 {
    private:
       class QoreSocket *socket;
+      class QoreSSLCertificate *cert;
+      class QoreSSLPrivateKey *pk;
+
+      inline void init()
+      {
+	 cert = NULL;
+	 pk = NULL;
+      }
 
       inline mySocket(class QoreSocket *s)
       {
 	 socket = s;
+	 init();
       }
 
    protected:
-      inline ~mySocket()
-      {
-	 delete socket;
-      }
+      inline ~mySocket();
 
    public:
       inline mySocket()
       {
 	 socket = new QoreSocket();
+	 init();
       }
       
       inline int connect(char *name, class ExceptionSink *xsink = NULL)
@@ -150,15 +157,7 @@ class mySocket : public ReferenceObject, public LockedObject
 	 return NULL;
       }
 
-      inline class mySocket *acceptSSL(class QoreString *source, class ExceptionSink *xsink)
-      {
-	 lock();
-	 QoreSocket *s = socket->acceptSSL(source, xsink);
-	 unlock();
-	 if (s)
-	    return new mySocket(s);
-	 return NULL;
-      }
+      inline class mySocket *acceptSSL(class QoreString *source, class ExceptionSink *xsink);
 
       inline int listen()
       {
@@ -449,6 +448,14 @@ class mySocket : public ReferenceObject, public LockedObject
 	 return rc;
       }
 
+      inline long verifyPeerCertificate()
+      {
+	 lock();
+	 long rc = socket->verifyPeerCertificate();
+	 unlock();
+	 return rc;
+      }
+
       inline int getSocket()
       {
 	 lock();
@@ -475,8 +482,59 @@ class mySocket : public ReferenceObject, public LockedObject
 	 return b;
       }
 
+      // c must be already referenced before this call
+      inline void setCertificate(class QoreSSLCertificate *c);
+
+      // p must be already referenced before this call
+      inline void setPrivateKey(class QoreSSLPrivateKey *p);
+
       inline void deref();
 };
+
+#include <qore/QC_SSLCertificate.h>
+#include <qore/QC_SSLPrivateKey.h>
+
+inline mySocket::~mySocket()
+{
+   if (cert)
+      cert->deref();
+   if (pk)
+      pk->deref();
+   
+   delete socket;
+}
+
+inline class mySocket *mySocket::acceptSSL(class QoreString *source, class ExceptionSink *xsink)
+{
+   lock();
+   QoreSocket *s = socket->acceptSSL(source,
+				     cert ? cert->getData() : NULL, 
+				     pk ? pk->getData() : NULL, xsink);
+   unlock();
+   if (s)
+      return new mySocket(s);
+   return NULL;
+}
+
+// c must be already referenced before this call
+inline void mySocket::setCertificate(class QoreSSLCertificate *c)
+{
+   lock();
+   if (cert)
+      cert->deref();
+   cert = c;
+   unlock();
+}
+
+// p must be already referenced before this call
+inline void mySocket::setPrivateKey(class QoreSSLPrivateKey *p)
+{
+   lock();
+   if (pk)
+      pk->deref();
+   pk = p;
+   unlock();
+}
 
 inline void mySocket::deref()
 {

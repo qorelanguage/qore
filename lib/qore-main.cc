@@ -109,6 +109,9 @@ void qore_cleanup()
    // delete object structures
    deleteObjects();
 
+   // cleanup openssl library
+   ERR_free_strings();
+
    // cleanup libxml2 library
    xmlCleanupParser();
 }

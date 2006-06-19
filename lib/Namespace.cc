@@ -39,9 +39,12 @@
 #include <qore/QoreRegexBase.h>
 #include <qore/DBI.h>
 #include <qore/AutoNamespaceList.h>
+#include <qore/ssl_constants.h>
 
 // include files for default object classes
 #include <qore/QC_Socket.h>
+#include <qore/QC_SSLCertificate.h>
+#include <qore/QC_SSLPrivateKey.h>
 #include <qore/QC_Program.h>
 #include <qore/QC_File.h>
 #include <qore/QC_GetOpt.h>
@@ -1013,12 +1016,17 @@ class Namespace *getRootNamespace(class Namespace **QoreNS)
    class QoreClass *File;
    // add system object types
    qns->addSystemClass(initSocketClass());
+   qns->addSystemClass(initSSLCertificateClass());
+   qns->addSystemClass(initSSLPrivateKeyClass());
    qns->addSystemClass(initProgramClass());
    qns->addSystemClass(File = initFileClass());
    qns->addSystemClass(initGetOptClass());
    qns->addSystemClass(initFtpClientClass());
 
    qns->addInitialNamespace(get_thread_ns());
+
+   // add ssl socket constants
+   addSSLConstants(qns);
 
    // add boolean constants for true and false
    qns->addConstant("True",          boolean_true());

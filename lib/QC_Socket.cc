@@ -201,7 +201,7 @@ static QoreNode *SOCKET_accept(class Object *self, class QoreNode *params, Excep
    return rv;
 }
 
-// Socket::acceptSSL()
+// Socket::acceptSSL([certificate, private key])
 // accepts a new connection, negotiates an SSL connection, and returns the new socket
 // the connection source string is in the "$.source" member of new object
 static QoreNode *SOCKET_acceptSSL(class Object *self, class QoreNode *params, ExceptionSink *xsink)
@@ -1518,57 +1518,153 @@ static QoreNode *SOCKET_isSecure(class Object *self, class QoreNode *params, Exc
    return rv;
 }
 
+static QoreNode *SOCKET_verifyPeerCertificate(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+{
+   class mySocket *s = (mySocket *)self->getReferencedPrivateData(CID_SOCKET);
+   QoreNode *rv;
+
+   if (s)
+   {
+      rv = new QoreNode(s->verifyPeerCertificate());
+      s->deref();
+   }
+   else
+   {
+      rv = NULL;
+      alreadyDeleted(xsink, "Socket::verifyPeerCertificate");
+   }
+   return rv;
+}
+
+static QoreNode *SOCKET_setCertificate(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+{
+   // first check parameters
+   QoreNode *p0 = get_param(params, 0);
+   class QoreSSLCertificate *cert;
+
+   if (p0 && p0->type == NT_STRING)
+   {
+      // try and create object
+      cert = new QoreSSLCertificate(p0->val.String->getBuffer(), xsink);
+      if (xsink->isEvent())
+      {
+	 cert->deref();
+	 return NULL;
+      }
+   }
+   else if (!p0 || p0->type != NT_OBJECT || !(cert = (QoreSSLCertificate *)p0->val.object->getReferencedPrivateData(CID_SSLCERTIFICATE)))
+   {
+      xsink->raiseException("SOCKET-SETCERTIFICATE-ERROR", "expecting SSLCertificate object parameter");
+      return NULL;
+   }
+
+   class mySocket *s = (mySocket *)self->getReferencedPrivateData(CID_SOCKET);
+
+   if (s)
+   {
+      s->setCertificate(cert);
+      s->deref();
+   }
+   else
+   {
+      cert->deref();
+      alreadyDeleted(xsink, "Socket::setCertificate");
+   }
+   return NULL;
+}
+
+// syntax: object|string
+static QoreNode *SOCKET_setPrivateKey(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+{
+   // first check parameters
+   QoreNode *p0 = get_param(params, 0);
+   class QoreSSLPrivateKey *pk;
+
+   if (p0 && p0->type == NT_STRING)
+   {
+      // try and create object
+      pk = new QoreSSLPrivateKey(p0->val.String->getBuffer(), xsink);
+      if (xsink->isEvent())
+      {
+	 pk->deref();
+	 return NULL;
+      }
+   }
+   else if (!p0 || (p0->type != NT_OBJECT) || !(pk = (QoreSSLPrivateKey *)p0->val.object->getReferencedPrivateData(CID_SSLPRIVATEKEY)))
+   {
+      xsink->raiseException("SOCKET-SETPRIVATEKEY-ERROR", "expecting SSLPrivateKey object parameter");
+      return NULL;
+   }
+
+   class mySocket *s = (mySocket *)self->getReferencedPrivateData(CID_SOCKET);
+
+   if (s)
+   {
+      s->setPrivateKey(pk);
+      s->deref();
+   }
+   else
+   {
+      pk->deref();
+      alreadyDeleted(xsink, "Socket::setPrivateKey");
+   }
+   return NULL;
+}
+
 class QoreClass *initSocketClass()
 {
    tracein("initSocketClass()");
 
    class QoreClass *QC_SOCKET = new QoreClass(strdup("Socket"));
    CID_SOCKET = QC_SOCKET->getID();
-   QC_SOCKET->addMethod("constructor",         SOCKET_constructor);
-   QC_SOCKET->addMethod("destructor",          SOCKET_destructor);
-   QC_SOCKET->addMethod("copy",                SOCKET_constructor);
-   QC_SOCKET->addMethod("connect",             SOCKET_connect);
-   QC_SOCKET->addMethod("connectSSL",          SOCKET_connectSSL);
-   QC_SOCKET->addMethod("bind",                SOCKET_bind);
-   QC_SOCKET->addMethod("accept",              SOCKET_accept);
-   QC_SOCKET->addMethod("acceptSSL",           SOCKET_acceptSSL);
-   QC_SOCKET->addMethod("listen",              SOCKET_listen);
-   QC_SOCKET->addMethod("send",                SOCKET_send);
-   QC_SOCKET->addMethod("sendBinary",          SOCKET_sendBinary);
-   QC_SOCKET->addMethod("sendi1",              SOCKET_sendi1);
-   QC_SOCKET->addMethod("sendi2",              SOCKET_sendi2);
-   QC_SOCKET->addMethod("sendi4",              SOCKET_sendi4);
-   QC_SOCKET->addMethod("sendi8",              SOCKET_sendi8);
-   QC_SOCKET->addMethod("sendi2LSB",           SOCKET_sendi2LSB);
-   QC_SOCKET->addMethod("sendi4LSB",           SOCKET_sendi4LSB);
-   QC_SOCKET->addMethod("sendi8LSB",           SOCKET_sendi8LSB);
-   QC_SOCKET->addMethod("recv",                SOCKET_recv);
-   QC_SOCKET->addMethod("recvBinary",          SOCKET_recvBinary);
-   QC_SOCKET->addMethod("recvi1",              SOCKET_recvi1);
-   QC_SOCKET->addMethod("recvi2",              SOCKET_recvi2);
-   QC_SOCKET->addMethod("recvi4",              SOCKET_recvi4);
-   QC_SOCKET->addMethod("recvi8",              SOCKET_recvi8);
-   QC_SOCKET->addMethod("recvi2LSB",           SOCKET_recvi2LSB);
-   QC_SOCKET->addMethod("recvi4LSB",           SOCKET_recvi4LSB);
-   QC_SOCKET->addMethod("recvi8LSB",           SOCKET_recvi8LSB);
-   QC_SOCKET->addMethod("sendHTTPMessage",     SOCKET_sendHTTPMessage);
-   QC_SOCKET->addMethod("sendHTTPResponse",    SOCKET_sendHTTPResponse);
-   QC_SOCKET->addMethod("readHTTPHeader",      SOCKET_readHTTPHeader);
-   QC_SOCKET->addMethod("getPort",             SOCKET_getPort);
-   QC_SOCKET->addMethod("close",               SOCKET_close);
-   QC_SOCKET->addMethod("shutdown",            SOCKET_shutdown);
-   QC_SOCKET->addMethod("shutdownSSL",         SOCKET_shutdownSSL);
-   QC_SOCKET->addMethod("getSocket",           SOCKET_getSocket);
-   QC_SOCKET->addMethod("setSendTimeout",      SOCKET_setSendTimeout);
-   QC_SOCKET->addMethod("setRecvTimeout",      SOCKET_setRecvTimeout);
-   QC_SOCKET->addMethod("getSendTimeout",      SOCKET_getSendTimeout);
-   QC_SOCKET->addMethod("getRecvTimeout",      SOCKET_getRecvTimeout);
-   QC_SOCKET->addMethod("getCharset",          SOCKET_getCharset);
-   QC_SOCKET->addMethod("setCharset",          SOCKET_setCharset);
-   QC_SOCKET->addMethod("isDataAvailable",     SOCKET_isDataAvailable);
-   QC_SOCKET->addMethod("getSSLCipherName",    SOCKET_getSSLCipherName);
-   QC_SOCKET->addMethod("getSSLCipherVersion", SOCKET_getSSLCipherVersion);
-   QC_SOCKET->addMethod("isSecure",            SOCKET_isSecure);
+   QC_SOCKET->addMethod("constructor",           SOCKET_constructor);
+   QC_SOCKET->addMethod("destructor",            SOCKET_destructor);
+   QC_SOCKET->addMethod("copy",                  SOCKET_constructor);
+   QC_SOCKET->addMethod("connect",               SOCKET_connect);
+   QC_SOCKET->addMethod("connectSSL",            SOCKET_connectSSL);
+   QC_SOCKET->addMethod("bind",                  SOCKET_bind);
+   QC_SOCKET->addMethod("accept",                SOCKET_accept);
+   QC_SOCKET->addMethod("acceptSSL",             SOCKET_acceptSSL);
+   QC_SOCKET->addMethod("listen",                SOCKET_listen);
+   QC_SOCKET->addMethod("send",                  SOCKET_send);
+   QC_SOCKET->addMethod("sendBinary",            SOCKET_sendBinary);
+   QC_SOCKET->addMethod("sendi1",                SOCKET_sendi1);
+   QC_SOCKET->addMethod("sendi2",                SOCKET_sendi2);
+   QC_SOCKET->addMethod("sendi4",                SOCKET_sendi4);
+   QC_SOCKET->addMethod("sendi8",                SOCKET_sendi8);
+   QC_SOCKET->addMethod("sendi2LSB",             SOCKET_sendi2LSB);
+   QC_SOCKET->addMethod("sendi4LSB",             SOCKET_sendi4LSB);
+   QC_SOCKET->addMethod("sendi8LSB",             SOCKET_sendi8LSB);
+   QC_SOCKET->addMethod("recv",                  SOCKET_recv);
+   QC_SOCKET->addMethod("recvBinary",            SOCKET_recvBinary);
+   QC_SOCKET->addMethod("recvi1",                SOCKET_recvi1);
+   QC_SOCKET->addMethod("recvi2",                SOCKET_recvi2);
+   QC_SOCKET->addMethod("recvi4",                SOCKET_recvi4);
+   QC_SOCKET->addMethod("recvi8",                SOCKET_recvi8);
+   QC_SOCKET->addMethod("recvi2LSB",             SOCKET_recvi2LSB);
+   QC_SOCKET->addMethod("recvi4LSB",             SOCKET_recvi4LSB);
+   QC_SOCKET->addMethod("recvi8LSB",             SOCKET_recvi8LSB);
+   QC_SOCKET->addMethod("sendHTTPMessage",       SOCKET_sendHTTPMessage);
+   QC_SOCKET->addMethod("sendHTTPResponse",      SOCKET_sendHTTPResponse);
+   QC_SOCKET->addMethod("readHTTPHeader",        SOCKET_readHTTPHeader);
+   QC_SOCKET->addMethod("getPort",               SOCKET_getPort);
+   QC_SOCKET->addMethod("close",                 SOCKET_close);
+   QC_SOCKET->addMethod("shutdown",              SOCKET_shutdown);
+   QC_SOCKET->addMethod("shutdownSSL",           SOCKET_shutdownSSL);
+   QC_SOCKET->addMethod("getSocket",             SOCKET_getSocket);
+   QC_SOCKET->addMethod("setSendTimeout",        SOCKET_setSendTimeout);
+   QC_SOCKET->addMethod("setRecvTimeout",        SOCKET_setRecvTimeout);
+   QC_SOCKET->addMethod("getSendTimeout",        SOCKET_getSendTimeout);
+   QC_SOCKET->addMethod("getRecvTimeout",        SOCKET_getRecvTimeout);
+   QC_SOCKET->addMethod("getCharset",            SOCKET_getCharset);
+   QC_SOCKET->addMethod("setCharset",            SOCKET_setCharset);
+   QC_SOCKET->addMethod("isDataAvailable",       SOCKET_isDataAvailable);
+   QC_SOCKET->addMethod("getSSLCipherName",      SOCKET_getSSLCipherName);
+   QC_SOCKET->addMethod("getSSLCipherVersion",   SOCKET_getSSLCipherVersion);
+   QC_SOCKET->addMethod("isSecure",              SOCKET_isSecure);
+   QC_SOCKET->addMethod("verifyPeerCertificate", SOCKET_verifyPeerCertificate);
+   QC_SOCKET->addMethod("setCertificate",        SOCKET_setCertificate);
+   QC_SOCKET->addMethod("setPrivateKey",         SOCKET_setPrivateKey);
 
    traceout("initSocketClass()");
    return QC_SOCKET;

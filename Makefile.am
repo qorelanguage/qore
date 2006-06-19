@@ -78,6 +78,7 @@ noinst_HEADERS = \
 	include/qore/QoreGetOpt.h \
 	include/qore/FtpClient.h \
 	include/qore/StringList.h \
+	include/qore/ssl_constants.h \
 	include/qore/QT_NOTHING.h \
 	include/qore/QT_bigint.h \
 	include/qore/QT_float.h \
@@ -118,6 +119,8 @@ noinst_HEADERS = \
 	include/qore/QC_Datasource.h \
 	include/qore/QC_GetOpt.h \
 	include/qore/QC_FtpClient.h \
+	include/qore/QC_SSLCertificate.h \
+	include/qore/QC_SSLPrivateKey.h \
 	include/qore/DBI.h \
 	modules/oracle/oracle-config.h \
 	modules/oracle/oracle.h \

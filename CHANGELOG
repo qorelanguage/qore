@@ -1,11 +1,24 @@
+2006.06.19: David Nichols
+	* added constants for X509 certificate validation for SSL connections
+	* added Socket::verifyPeerCertificate() method for SSL connections
+	* added getSSLCertVerificationCodeString() to return a string code for
+	  Socket::verifyPeerCertificate() return values
+	* added Qore::X509_VerificationReasons constant to map from verification
+	  code strings as returned by getSSLCertVerificationCodeString() to text
+	  descriptions.
+	* added Socket::setCertificate() and Socket::setPrivateKey() methods to
+	  set SSL parameters for server processes
+	* created SSLCertificate and SSLPrivateKey classes for persistently
+	  storing X509 certificates and private keys
+	* added SSL server support to test/socket-test.q
+
 2006.06.18: David Nichols
 	* added openssl checks to configure.ac as a required component
 	* improved library detection for pcre and openssl to check for OS-
 	  specific shared libraries as well as static libraries, in case
 	  the static libraries are not installed.
 	* implemented new Socket methods: ::connectSSL(), ::acceptSSL(), and
-	  SSL session handling, reading and writing in SSL connections for the 
-	  qore Socket class
+	  SSL session handling, reading and writing in SSL connections
 	* now Socket::connect() and Socket::accept() will throw exceptions if
 	  they fail (before they would just return -1) - this is to be 
 	  consistent with connectSSL() and acceptSSL() which will throw 

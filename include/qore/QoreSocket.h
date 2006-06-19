@@ -111,7 +111,7 @@ class SSLSocketHelper
 	 return 0;
       }
 
-      inline int setServer(int sd, class ExceptionSink *xsink)
+      inline int setServer(int sd, X509* cert, EVP_PKEY *pk, class ExceptionSink *xsink)
       {
 	 meth = SSLv23_server_method();
 	 ctx  = SSL_CTX_new(meth);
@@ -120,6 +120,23 @@ class SSLSocketHelper
 	    sslError(xsink);
 	    return -1;
 	 }
+	 if (cert)
+	 {
+	    if (!SSL_CTX_use_certificate(ctx, cert))
+	    {
+	       sslError(xsink);
+	       return -1;
+	    }
+	 }
+	 if (pk)
+	 {
+	    if (!SSL_CTX_use_PrivateKey(ctx, pk))
+	    {
+	       sslError(xsink);
+	       return -1;
+	    }
+	 }
+
 	 ssl = SSL_new(ctx);
 	 if (!ssl)
 	 {
@@ -203,6 +220,23 @@ class SSLSocketHelper
       {
 	 return SSL_get_cipher_version(ssl);
       }
+
+      inline X509 *getPeerCertificate()
+      {
+	 return SSL_get_peer_certificate(ssl);
+      }
+
+      inline long verifyPeerCertificate()
+      {	 
+	 X509 *cert = SSL_get_peer_certificate(ssl);
+
+	 if (!cert)
+	    return -1;
+
+	 long rc = SSL_get_verify_result(ssl);
+	 X509_free(cert);
+	 return rc;
+      }
 };
 
 class QoreSocket 
@@ -281,7 +315,7 @@ class QoreSocket
       // to find out our port number
       inline int getPort();
       inline class QoreSocket *accept(class QoreString *source, class ExceptionSink *xsink = NULL);
-      inline class QoreSocket *acceptSSL(class QoreString *source, class ExceptionSink *xsink);
+      inline class QoreSocket *acceptSSL(class QoreString *source, X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink);
       inline int acceptAndReplace(class QoreString *source);
       inline int listen();
       // send a buffer of a particular size
@@ -360,6 +394,7 @@ class QoreSocket
       inline class QoreEncoding *getEncoding() { return charsetid; }
       inline void setEncoding(class QoreEncoding *id) { charsetid = id; } 
       bool isDataAvailable(int timeout = 0);
+      bool isOpen() { return (bool)sock; }
 
       inline const char *getSSLCipherName()
       {
@@ -379,19 +414,26 @@ class QoreSocket
       {
 	 return (bool)ssl;
       }
+
+      inline long verifyPeerCertificate()
+      {
+	 if (!ssl)
+	    return -1;
+	 return ssl->verifyPeerCertificate();
+      }
 };
 
 inline void QoreSocket::init()
 {
+   del = false;
    sendTimeout = recvTimeout = port = -1;
    socketname = NULL;
    charsetid = QCS_DEFAULT;
+   ssl = NULL;
 }
 
 inline QoreSocket::QoreSocket()
 {
-   ssl = NULL;
-   del = false;
    type = AF_UNSPEC;
    sock = 0;
    init();
@@ -399,8 +441,6 @@ inline QoreSocket::QoreSocket()
 
 inline QoreSocket::QoreSocket(int s, int t)
 {
-   ssl = NULL;
-   del = false;
    type = t;
    sock = s;
    init();
@@ -658,14 +698,14 @@ inline QoreSocket *QoreSocket::accept(QoreString *source, class ExceptionSink *x
 
 // QoreSocket::acceptSSL()
 // accepts a new connection, negotiates an SSL connection, and returns the new socket
-inline QoreSocket *QoreSocket::acceptSSL(QoreString *source, class ExceptionSink *xsink)
+inline QoreSocket *QoreSocket::acceptSSL(QoreString *source, X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink)
 {
    class QoreSocket *s = accept(source, xsink);
    if (!s)
       return NULL;
 
    s->ssl = new SSLSocketHelper();
-   if (s->ssl->setServer(s->sock, xsink))
+   if (s->ssl->setServer(s->sock, cert, pkey, xsink))
    {
       delete s;
       return NULL;
