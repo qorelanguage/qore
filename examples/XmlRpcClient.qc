@@ -5,14 +5,16 @@
 
 namespace XmlRpcClient
 {
-    const Version = "0.2.1";
+    const Version = "0.2.2";
     const DefaultPath = "RPC2";
+    const P_XmlRpc = ( "xmlrpc"  : ( "port" : 8100, "ssl" : False ),
+		       "xmlrpcs" : ( "port" : 8100, "ssl" : True ) );
 }
 
 class XmlRpcClient::XmlRpcClient inherits HTTPClient::HTTPClient
 {
     # calls the base class HTTPClient constructor, overrides the "protocols" key to "xmlrpc"
-    constructor($opts) : HTTPClient::HTTPClient($opts + ( "protocols" : "xmlrpc" ))
+    constructor($opts) : HTTPClient::HTTPClient($opts + ( "protocols" : P_XmlRpc ))
     {
 	$.path = $.default_path;
 	if (!exists $.path)
@@ -34,8 +36,10 @@ class XmlRpcClient::XmlRpcClient inherits HTTPClient::HTTPClient
 	
 	# create outgoing message in XmlRpc Call format
 	my $msg = makeXMLRPCCallStringArgs($method, $args);
+	#printf("msg=%N\n", $msg);
 	# send the message to the server and get the response as an XML string
 	my $ans = $.post($.path, $msg, $.headers);
+	#printf("ans=%N\n", $ans);
 	# parse the response and return a qore data structure
 	return parseXMLRPCResponse($ans);
     }

@@ -132,7 +132,7 @@ class QoreNode *QoreApp::sendWithSyncReply(char *function_name, QoreNode *value,
 }
 
 // this version will create a new publisher and send the message with the subject name passed
-class QoreNode *QoreApp::sendWithSyncReply(char *subject, char *function_name, QoreNode *value, int timeout, ExceptionSink *xsink)
+class QoreNode *QoreApp::sendWithSyncReply(char *subj, char *function_name, QoreNode *value, int timeout, ExceptionSink *xsink)
 {
    MTree *msg = make_MTree(function_name, value, xsink);
    if (xsink->isEvent())
@@ -156,7 +156,7 @@ class QoreNode *QoreApp::sendWithSyncReply(char *subject, char *function_name, Q
    {
       QoreString s;
       s.sprintf("temp-publisher-%d", gettid());
-      if (!(tp = new MPublisher(this, s.getBuffer(), session_name, M_RV, subject, Mfalse)))
+      if (!(tp = new MPublisher(this, s.getBuffer(), session_name, M_RV, subj, Mfalse)))
 	 throw MException("error", "could not create publisher!");
    }
    catch(MException &tib_e)
@@ -207,7 +207,7 @@ void QoreApp::send(char *function_name, QoreNode *value, ExceptionSink *xsink)
    //something more to delete here?
 }
 
-void QoreApp::send(char *subject, char *function_name, QoreNode *value, ExceptionSink *xsink)
+void QoreApp::send(char *subj, char *function_name, QoreNode *value, ExceptionSink *xsink)
 {
    MTree *msg = make_MTree(function_name, value, xsink);
    if (xsink->isEvent())
@@ -229,7 +229,7 @@ void QoreApp::send(char *subject, char *function_name, QoreNode *value, Exceptio
    {
       QoreString s;
       s.sprintf("temp-publisher-%d", gettid());
-      if (!(tp = new MPublisher(this, s.getBuffer(), session_name, M_RV, subject, Mfalse)))
+      if (!(tp = new MPublisher(this, s.getBuffer(), session_name, M_RV, subj, Mfalse)))
 	 throw MException("error", "could not create publisher!");
    }
    catch(MException &tib_e)
@@ -249,7 +249,7 @@ void QoreApp::send(char *subject, char *function_name, QoreNode *value, Exceptio
    //something more to delete here?
 }
 
-class QoreNode *QoreApp::receive(char *subject, unsigned long timeout, ExceptionSink *xsink)
+class QoreNode *QoreApp::receive(char *subj, unsigned long timeout, ExceptionSink *xsink)
 {
    QoreNode *rv = NULL;
 
@@ -257,9 +257,9 @@ class QoreNode *QoreApp::receive(char *subject, unsigned long timeout, Exception
    try {
       rcv_lock.lock();
       try {
-	 if (mySubscriber && strcmp(subject, rcv_subject))
+	 if (mySubscriber && strcmp(subj, rcv_subject))
 	 {
-	    printd(5, "QoreApp::receive() new subject=\"%s\", destroying listener for \"%s\"\n", subject, rcv_subject);
+	    printd(5, "QoreApp::receive() new subject=\"%s\", destroying listener for \"%s\"\n", subj, rcv_subject);
 	    mySubscriber->removeListener(myEventHandler);
 	    delete myEventHandler;
 	    delete mySubscriber;
@@ -268,9 +268,9 @@ class QoreNode *QoreApp::receive(char *subject, unsigned long timeout, Exception
 	 }
 	 if (!mySubscriber)
 	 {
-	    rcv_subject = strdup(subject);
-	    printd(5, "QoreApp::receive() creating Subscriber for subject \"%s\"\n", subject);
-	    mySubscriber = new MSubscriber(this, "subscriber", session_name, M_RV, subject, 0, true);
+	    rcv_subject = strdup(subj);
+	    printd(5, "QoreApp::receive() creating Subscriber for subject \"%s\"\n", subj);
+	    mySubscriber = new MSubscriber(this, "subscriber", session_name, M_RV, subj, 0, true);
 	    printd(5, "QoreApp::receive() creating event handler for this subscriber\n");
 	    myEventHandler = new QoreEventHandler(this);
 	    printd(5, "QoreApp::receive() event handler created, adding listener\n");

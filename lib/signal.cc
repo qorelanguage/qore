@@ -35,7 +35,7 @@ static inline void sig_leave(int rc)
    leave(rc);
 }
 
-void sighandler(int sig)
+extern "C" void sighandler(int sig)
 {
    static volatile int reenter = 0;
 

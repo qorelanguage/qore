@@ -55,13 +55,16 @@ class HTTPClient::HTTPClient inherits private Qore::Socket, private Qore::Thread
 	    if (exists $h.protocol)
 		if (!inlist($h.protocol, keys $.protocols))
 	        {
+		    my $p = $h.protocol;
+		    my $l = keys $.protocols;
 		    delete $self;
-		    throw "HTTP-CLIENT-PARAMETER-ERROR", sprintf("protocol '%s' not supported (expecting: %n)", $h.protocol, keys $.protocols);
+		    throw "HTTP-CLIENT-PARAMETER-ERROR", sprintf("protocol '%s' not supported (expecting: %n)", $p, $l);
 		}
 	        else 
 		{
 		    $.ssl   = $.protocols.($h.protocol).ssl;
-		    $h.port = $.protocols.($h.protocol).port;
+		    if (!exists $h.port)
+			$h.port = $.protocols.($h.protocol).port;
 		}
         }
 
@@ -109,6 +112,11 @@ class HTTPClient::HTTPClient inherits private Qore::Socket, private Qore::Thread
     getHTTPVersion()
     {
 	return $.http_version;
+    }
+
+    setSecure($opt)
+    {
+	$.ssl = $opt;
     }
 
     isSecure()
