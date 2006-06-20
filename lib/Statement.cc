@@ -986,7 +986,7 @@ static int process_node(class QoreNode **node, lvh_t oflag, int pflag)
    int current_pflag = pflag;
    pflag &= ~PF_REFERENCE_OK;  // unset "reference ok" for next call
 
-   printd(4, "process_node() %08x type=%s\n", *node, *node ? (*node)->type->name : "(null)");
+   printd(4, "process_node() %08x type=%s cp=%d, p=%d\n", *node, *node ? (*node)->type->name : "(null)", current_pflag, pflag);
    if (!(*node))
       return 0;
 
@@ -1603,7 +1603,13 @@ void StatementBlock::parseInit(class Paramlist *params, class BCList *bcl)
       while (w)
       {
 	 if (w->args)
-	    tlvids += process_node(&w->args, oflag, 0);
+	 {
+	    for (int i = 0; i < w->args->val.list->size(); i++)
+	    {
+	       class QoreNode **n = w->args->val.list->get_entry_ptr(i);
+	       tlvids += process_node(n, oflag, PF_REFERENCE_OK);
+	    }
+	 }
 	 w = w->next;
       }
       if (tlvids)
