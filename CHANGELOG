@@ -1,6 +1,8 @@
 2006.06.20: David Nichols
 	* updated examples/HTTPServer.qc to support SSL (https) services and
 	  modular/multiple listeners on one server
+	* fixed it so that base class constructor arguments in derived classes
+	  can use references to constructor arguments
 
 2006.06.19: David Nichols
 	* added constants for X509 certificate validation for SSL connections
