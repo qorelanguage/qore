@@ -10,7 +10,7 @@ our ($o, $sp, $cp, $q);
 const opts = 
     ( "help" : "h,help",
       "ssl"  : "s,ssl",
-      "key"  : "p,private-key=s",
+      "key"  : "k,private-key=s",
       "cert" : "c,cert=s" );
 
 sub usage()
@@ -19,7 +19,7 @@ sub usage()
   -h,--help             this help text
   -s,--ssl              use secure connections
   -c,--cert=arg         set SSL x509 certificate
-  -p,--private-key=arg  set SSL private key\n", basename($ENV."_"));
+  -k,--private-key=arg  set SSL private key\n", basename($ENV."_"));
     exit();
 }
 
@@ -78,18 +78,19 @@ sub server_thread()
 		$s.setPrivateKey($o.key);
 
 	    $r = $s.acceptSSL();
-	    printf("secure connection: %s %s\n", $r.getSSLCipherName(), $r.getSSLCipherVersion());
+	    printf("secure connection (%s %s) from %s\n", $r.getSSLCipherName(), $r.getSSLCipherVersion(), $r.source);
 	}
 	else
+	{
 	    $r = $s.accept();
+	    printf("normal socket connection from %s\n", $r.source);
+	}
     }
     catch ($ex)
     {
 	printf("server error: %s: %s\n", $ex.err, $ex.desc);
 	exit(1);
     }
-
-    printf("connection from %s\n", $r.source);
     
     my $m = $r.recv();
     if ($m == -1)

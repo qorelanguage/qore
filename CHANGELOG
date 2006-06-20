@@ -1,3 +1,7 @@
+2006.06.20: David Nichols
+	* updated examples/HTTPServer.qc to support SSL (https) services and
+	  modular/multiple listeners on one server
+
 2006.06.19: David Nichols
 	* added constants for X509 certificate validation for SSL connections
 	* added Socket::verifyPeerCertificate() method for SSL connections
