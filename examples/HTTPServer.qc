@@ -1,13 +1,17 @@
 # HTTP multi-threaded server class definition
-# note that this server suffers from the following limitations:
+# note that this server suffers from the following limitations, among others:
 # *) not really HTTP 1.1 compliant
-# *) can only listen on one port
+# *) no real content-type handling
+
+# changes for v0.2.0: 
+# * modular/multiple listener support added
+# * https support added
 
 namespace HTTPServer
 {
-    const Version = "0.1.4";
+    const Version = "0.2.0";
 
-    const ReadTimeout = 30000;  # recvs timeout after 60 seconds
+    const ReadTimeout = 30000;  # recvs timeout after 30 seconds
     const PollTimeout = 5000;   # check for exit every 5 seconds while waiting
 
     # logging options
@@ -70,15 +74,307 @@ namespace HTTPServer
 	  );
 }
 
-class HTTPServer::HTTPServer inherits private Qore::Socket {
-    private $.socket, $.logfunc, $.errlogfunc, $.cThreads, $.exit, $.seqSessions,
-            $.httpserverstring, $.orig, $.tid, $.stopped, $.handlers, $.defaultHandler;
+# Listener will be assigned to private members of the HTTPServer, so it does not need to declare private members, etc
+class HTTPServer::Listener inherits Qore::Socket {
+    
+    # params: server, socket, [cert, key]
+    constructor($server, $ss, $sock, $cert, $key)
+    {
+	# save a reference to the server object
+	$.serv = $server;
+	$.ss = $ss;
 
-    constructor($sock, $logfunc, $errlogfunc, $loglevel)
+	# convert socket argument to an integer if it's a port number so a UNIX domain socket will not be opened
+	if (int($sock) == $sock)
+	    $sock = int($sock);
+
+	# create SSL certificate and private key objects from PEM files if passed
+	if (strlen($cert))
+	{
+	    $.cert = new SSLCertificate($cert);
+	    $.setCertificate($.cert);
+	    if (strlen($key))
+		$.key = new SSLPrivateKey($key);
+	    else
+		$.key = new SSLPrivateKey($cert);
+	    $.setPrivateKey($.key);
+	    $.ssl = True;
+	}
+	else if (strlen($key))
+	    throw "LISTENER-CONSTRUCTOR-ERROR", "a certificate PEM file must be given if a private key file is passed";
+
+	# bind to socket and reuse address
+	$.bind($sock, True);
+
+	# save socket port/path
+	$.socket = $sock;
+	
+	# connection counter
+	$.cThreads = new Counter();
+	
+	# set listening state on socket
+	if ($.listen())
+	    throw "HTTP-LISTEN-ERROR", sprintf("listen error on socket %s", $sock);
+
+	# start main listener thread
+	$.cThreads.inc();
+	$.tid = background $.mainThread();
+    }
+
+    copy()
+    {
+	throw "COPY-ERROR", "this object cannot be copied";
+    }
+
+    destructor()
+    {
+	$.stop();
+    }
+    
+    synchronized stop()
+    {
+	if (!exists $.cThreads || $.stopped)
+	    return;
+
+	$.exit = True;
+	# wake up main listener thread
+	try {
+	    my $s = new Socket();
+	    if (type($.socket) == Type::Int)
+		$s.connect("localhost:" + $.socket);
+	    else
+		$s.connect($.socket);
+	    $s.send("quit");
+	}
+	catch ($ex)
+	{
+	    printf("LISTENER-SHUTDOWN-ERROR: %s: %s\n", $ex.err, $ex.desc);
+	}
+	
+	# wait for all connection threads to terminate
+	$.cThreads.waitForZero();
+	
+	$.stopped = True;
+	$.log("stopped listener");
+    }
+
+    private log()
+    {
+	$argv[0] = sprintf("listener(%s): %s", $.socket, $argv[0]);
+	$.serv.logArgs($argv);
+    }
+    
+    private logError()
+    {
+	$argv[0] = sprintf("listener(%s): %s", $.socket, $argv[0]);
+	$.serv.logErrorArgs($argv);
+    }
+    
+    private mainThread()
+    {
+	# start listening
+	while (True)
+	{
+	    my $r;
+	    try
+	    {
+		if ($.ssl)
+		{
+		    $r = $.acceptSSL();
+		    $.log("secure connection (%s %s) from %s", $r.getSSLCipherName(), $r.getSSLCipherVersion(), $r.source);
+		}
+		else
+		    $r = $.accept();
+	    }
+	    catch ()
+		delete $r;
+
+	    if ($.exit)
+		break;
+	    
+	    if (!exists $r)
+		continue;
+
+	    # DEBUG
+	    #printf("listener(%s): accepting HTTP connection from %s (%s)\n", $.socket, $r.source);
+	    #$.log("accepting HTTP connection from %s", $r.source);
+	    
+	    $.cThreads.inc();
+	    background $.connectionThread($r);
+	}
+	#printf("Listener::mainThread() closing socket %s\n", $.socket);
+	$.shutdown();
+	$.close();
+	$.cThreads.dec();
+	#printf("Listener::mainThread() TID %d terminating\n", gettid());
+    }
+
+    # thread for handling communication per connection
+    private connectionThread($s)
+    {
+	my $context = 
+	    ( "source"     : $s.source,
+	      "socket"     : $.socket,
+	      "id"         : $.ss.next() );
+	
+	my ($hdr, $body);
+	
+	try {
+	    while (True)
+	    {
+		if ($.exit)
+		    break;
+		
+		delete $body;
+		delete $hdr;
+
+		if (!$s.isDataAvailable(HTTPServer::PollTimeout))
+		    continue;
+		
+		try {
+		    $hdr = $s.readHTTPHeader(HTTPServer::ReadTimeout);
+		}
+		catch ($ex)
+		{
+		    # according to RFC 2616, sec 8.1.2.1 clients claiming http 1.1 protocol compatibility
+		    # SHOULD only close the connection after sending a "connection: close" header, but in 
+		    # case they don't, we simply close the connection silently
+		    if ($ex.err == "SOCKET-CLOSED")
+			break;
+		    my $etxt = sprintf("ERROR reading HTTP header: %s: %s", $ex.err, $ex.desc);
+		    my $str = sprintf("%s: received from %s via %s", $etxt, $s.source, $.socket);
+		    $.logError($str);
+		    break;
+		}
+
+		# log error and close connection on timeout
+		if (!exists $hdr)
+		{
+		    my $err = sprintf("timed out reading HTTP header after %d ms", HTTPServer::ReadTimeout);
+		    my $str = sprintf("%s from %s via %s", $err, $s.source, $.socket);
+		    $.logError($str);
+		    $.serv.sendHTTPError($s, 400, $err, True);
+		    break;
+		}
+		#printf("HTTP DEBUG: id: %d, hdr=%n\n", $context.id, $hdr);
+
+		if (type($hdr) != Type::Hash)
+		{
+		    my $err = "malformed HTTP header received";
+		    my $str = sprintf("%s from %s via %s", $err, $s.source, $.socket);
+		    $.logError($str);
+		    $.serv.sendHTTPError($s, 400, $err);
+		    continue;
+		}
+		
+		# remove leading / if present in path
+		if ($hdr.path =~ /^\//)
+		    $hdr.path = substr($hdr.path, 1);
+
+		# split content-type fields
+		my $ct = split(";", $hdr."content-type");
+		foreach my $c in (\$ct)
+		{
+		    trim(\$c);
+		    if ($c =~ /charset=/)
+		    {
+			$c =~ s/charset=//;
+			$s.setCharset($c);
+		    }
+		    else
+			$hdr."content-type" = $c;
+		}
+
+		# check if we need to close the connection
+		my $conn = split(",", tolower($hdr.connection));
+		# remove leading and trailing whitespace
+		foreach my $c in (\$conn)
+		    trim(\$c);
+
+		my $close = (inlist("close", $conn) || ($hdr.http_version != "1.1" && !inlist("keep-alive", $conn)));
+		#printf("conn=%n, close=%n\n", $conn, $close);
+
+		# if we need to get a body
+		switch ($hdr.method)
+		{
+		case "HEAD":
+		    $.serv.handleRequest($s, $context, $hdr, NOTHING, \$close, True);
+		    break;
+
+		case "GET":
+		    $.serv.handleRequest($s, $context, $hdr, NOTHING, \$close);
+		    break;
+		
+		case "POST":
+		    if (!$hdr."content-length")
+		    {
+			my $err = "missing 'Content-Length' header";
+			my $str = sprintf("%s: received from %s via %s (header=%n)", $err, $s.source, $.socket, $hdr);
+			$.logError($str);
+			$.serv.sendHTTPError($s, 411, $err);
+			break;
+		    }
+		    try {
+			$body = $s.recv($hdr."content-length", HTTPServer::ReadTimeout);
+			if (!exists $body)
+			    throw "SOCKET-TIMEOUT", sprintf("expected %d bytes, got timeout", $hdr."content-length");
+		    }
+		    catch ($ex)
+		    {
+			my $etxt = sprintf("error reading body in POST: %s: %s", $ex.err, $ex.desc);
+			my $str = sprintf("%s: received from %s via %s (header=%n)", $etxt, $s.source, $.socket, $hdr);
+			$.logError($str);
+			$.serv.sendHTTPError($s, 400, $ex.err, True);
+			$close = True;
+		    }
+	            $.serv.handleRequest($s, $context, $hdr, $body, \$close);
+	            break;
+
+  	        default:
+		    my $err = sprintf("unknown HTTP method %n", $hdr.method);
+		    my $str = sprintf("%s: received from %s via %s", $err, $s.source, $.socket);
+		    $.logError($str);
+		    $.serv.sendHTTPError($s, 501, $err);
+		    break;
+	        }
+
+		if ($close)
+		    break;
+	    }
+	}
+	catch ($ex)
+	{
+	    my $etxt = sprintf("%s: %s", $ex.err, $ex.desc);
+	    my $str = sprintf("%s: received from %s via %s", $etxt, $s.source, $.socket);
+	    $.logError($str);
+	    $.logError(sprintf("hdr=%n", $hdr));
+	    $.logError(sprintf("msg=%n", $body));
+	}
+	
+	$s.close();
+	$.cThreads.dec();
+    }
+}
+
+class HTTPServer::HTTPServer {
+    private 
+	$.logfunc, 
+	$.errlogfunc, 
+	$.cThreads, 
+	$.exit, 
+	$.seqSessions,
+	$.httpserverstring, 
+	$.stopped, 
+	$.handlers, 
+	$.defaultHandler,
+	$.listeners, 
+	$.seqListeners, 
+	$.lm;                   # listener mutex
+
+    constructor($logfunc, $errlogfunc)
     {
 	$.logfunc = $logfunc;
 	$.errlogfunc = $errlogfunc;
-	$.loglevel = $loglevel; # + 20;
 	
 	if (exists $logfunc && !existsFunction($logfunc))
 	{
@@ -92,44 +388,31 @@ class HTTPServer::HTTPServer inherits private Qore::Socket {
 	    throw "HTTP-SERVER-ERROR", sprintf("error function '%s' does not exist", $errlogfunc);
 	}
 	
-	# convert socket argument to an integer if it's a port number so a
-	# UNIX domain socket will not be opened
-	if (int($sock) == $sock)
-	    $sock = int($sock);
-	
-	# bind to socket and reuse address
-	if (($.bind($sock, True)) == -1)
-	{
-	    #printf("can't bind to socket: %s\n", strerror(errno()));fflush();
-	    delete $self;
-	    throw "HTTP-SERVER-ERROR", 
-	    sprintf("could not bind to socket '%s': %s", $sock,
-		    strerror(errno()));
-	}
-	#printf("bound to socket %s\n", $sock);
-
-	# save socket port/path
-	$.socket = $sock;
-	
 	# quit server flag
 	$.exit = False;
 	
-	# connection counter
-	$.cThreads = new Counter();
-	
-	# set listening state on socket
-	if ($.listen())
-	{
-	    delete $self;
-	    throw "HTTP-LISTEN-ERROR",
-	    sprintf("socket_thread: listen error on socket %s", $sock);
-	}
 	$.httpserverstring = sprintf("Qore HTTP Server v%s", HTTPServer::Version);
-	$.seqSessions = new Sequence();
-	
-	$.orig = 1;
-	$.cThreads.inc();
-	$.tid = background $.mainThread();
+	$.seqSessions  = new Sequence();
+	$.seqListeners = new Sequence();
+	$.lm = new Mutex();
+    }
+
+    addListener($sock, $cert, $key)
+    {
+	my $l;
+	$.lm.lock();
+	try
+	    $l = new Listener($self, $.seqSessions, $sock, $cert, $key);
+	catch ()
+	{
+	    $.lm.unlock();
+	    rethrow;
+	}
+	my $id = $.seqListeners.next();
+	$l.id = $id;
+	$.listeners.$id = $l;
+	$.lm.unlock();
+	return $id;
     }
 
     copy()
@@ -137,38 +420,32 @@ class HTTPServer::HTTPServer inherits private Qore::Socket {
 	throw "COPY-ERROR", "this object cannot be copied";
     }
 
-    synchronized stop()
+    stop()
     {
-	if (!exists $.cThreads)
-	    return;
+	# shutdown all listeners
+	$.lm.lock();
+	foreach my $id in (keys $.listeners)
+	    $.listeners.$id.stop();
+	$.lm.unlock();
+    }
 
-	$.exit = True;
-	# wake up server thread
-	try {
-	    my $s = new Socket();
-	    if (type($.socket) == Type::Int)
-		$s.connect("localhost:" + $.socket);
-	    else
-		$s.connect($.socket);
-	    $s.send("quit");
-	}
-	catch ($ex)
-	{
-	    # DEBUG
-	    printf("%N\n", $ex);
-	}
-	
-	# wait for all connection threads to terminate
-	$.cThreads.waitForZero();
-	
-	$.stopped = True;
-    }
-    
-    getTID()
+    stopListener($id)
     {
-	return $.tid;
+	my $rc;
+	$.lm.lock();
+	if (!exists $.listeners.$id)
+	    $rc = -1;
+	else
+	    $.listeners.$id.stop();
+	$.lm.unlock();
+	return $rc;
     }
-    
+
+    getListenerTID($id)
+    {
+	return $.listeners.$id.tid;
+    }
+
     destructor()
     {
 	$.stop();
@@ -206,6 +483,24 @@ class HTTPServer::HTTPServer inherits private Qore::Socket {
 	}
     }
     
+    logArgs($args)
+    {
+	if (exists $.logfunc)
+	{
+	    $args[0] = "HTTPServer: " + $args[0];
+	    call_function_args($.logfunc, $args);
+	}
+    }
+    
+    logErrorArgs($args)
+    {
+	if (exists $.errlogfunc)
+	{
+	    $args[0] = "HTTPServer: " + $args[0];
+	    call_function_args($.errlogfunc, $args);
+	}
+    }
+    
     private defaultHandler($context, $hdr, $body, $close)
     {
 	my $str = "";
@@ -224,7 +519,7 @@ class HTTPServer::HTTPServer inherits private Qore::Socket {
 		 "body" : "no handler has been registered for this request" );
     }
     
-    private sendHTTPError($s, $code, $msg, $close)
+    sendHTTPError($s, $code, $msg, $close)
     {
 	my $str = sprintf("<html><head><title>%s %s</title></head><body><h1>%s</h1>%s<p><hr><address>%s on %s</address></body></html>",
 			  $code, HTTPServer::HTTPCodes.$code, HTTPServer::HTTPCodes.$code, html_encode($msg), $.httpserverstring, $.socket);
@@ -239,8 +534,13 @@ class HTTPServer::HTTPServer inherits private Qore::Socket {
 	$s.sendHTTPResponse($code, HTTPServer::HTTPCodes.$code, "1.1", $hdr, $str);
     }
 
-    private handleRequest($s, $context, $hdr, $body, $close, $head)
+    handleRequest($s, $context, $hdr, $body, $close, $head)
     {
+	# add logging functions
+	$context += 
+	    ( "logfunc"    : $.logfunc,
+	      "errlogfunc" : $.errlogfunc );
+
 	# find a handler for the request
 	my $m;
 	
@@ -323,179 +623,10 @@ class HTTPServer::HTTPServer inherits private Qore::Socket {
 	}
 	catch ($ex)
 	{
-	    my $str = sprintf("%s:%d: %s: %s", $ex.file, $ex.line, $ex.err, $ex.desc);
+	    my $str = sprintf("handler: %s: %s:%d: %s: %s", $m, $ex.file, $ex.line, $ex.err, $ex.desc);
 	    $.sendHTTPError($s, 500, $str);
 	    $.logError($str);
 	}
     }
 
-    private mainThread()
-    {
-	# start listening
-	while (True)
-	{
-	    my $r = $.accept();
-
-	    if ($.exit)
-		break;
-	    
-	    if (!exists $r)
-		continue;
-
-	    # DEBUG
-	    #$.log("accepting HTTP connection from %s (%s)", $r.source, $.socket);
-	    
-	    $.cThreads.inc();
-	    background $.connectionThread($r);
-	}
-	#printf("HTTPServer::mainThread() closing socket %s\n", $.socket);
-	$.shutdown();
-	$.close();
-	$.cThreads.dec();
-	#printf("HTTPServer::mainThread() TID %d terminating\n", gettid());
-    }
-
-    # thread for handling communication per connection
-    private connectionThread($s)
-    {
-	my $context.source = $s.source;
-	$context.id = $.seqSessions.next();
-	
-	my ($hdr, $body);
-	
-	try {
-	    while (True)
-	    {
-		if ($.exit)
-		    break;
-		
-		delete $body;
-		delete $hdr;
-
-		if (!$s.isDataAvailable(HTTPServer::PollTimeout))
-		    continue;
-		
-		try {
-		    $hdr = $s.readHTTPHeader(HTTPServer::ReadTimeout);
-		}
-		catch ($ex)
-		{
-		    # according to RFC 2616, sec 8.1.2.1 clients claiming http 1.1 protocol compatibility
-		    # SHOULD only close the connection after sending a "connection: close" header, but in 
-		    # case they don't, we simply close the connection silently
-		    if ($ex.err == "SOCKET-CLOSED")
-			break;
-		    my $etxt = sprintf("ERROR reading HTTP header: %s: %s", $ex.err, $ex.desc);
-		    my $str = sprintf("%s: received from %s via %s", $etxt, $s.source, $.socket);
-		    $.logError($str);
-		    break;
-		}
-
-		# log error and close connection on timeout
-		if (!exists $hdr)
-		{
-		    my $err = sprintf("timed out reading HTTP header after %d ms", HTTPServer::ReadTimeout);
-		    my $str = sprintf("%s from %s via %s", $err, $s.source, $.socket);
-		    $.logError($str);
-		    $.sendHTTPError($s, 400, $err, True);
-		    break;
-		}
-		#printf("id: %d, hdr=%n\n", $context.id, $hdr);
-
-		if (type($hdr) != Type::Hash)
-		{
-		    my $err = "malformed HTTP header received";
-		    my $str = sprintf("%s from %s via %s", $err, $s.source, $.socket);
-		    $.logError($str);
-		    $.sendHTTPError($s, 400, $err);
-		    continue;
-		}
-		
-		# remove leading / if present in path
-		if ($hdr.path =~ /^\//)
-		    $hdr.path = substr($hdr.path, 1);
-
-		# split content-type fields
-		my $ct = split(";", $hdr."content-type");
-		foreach my $c in (\$ct)
-		{
-		    trim(\$c);
-		    if ($c =~ /charset=/)
-		    {
-			$c =~ s/charset=//;
-			$s.setCharset($c);
-		    }
-		    else
-			$hdr."content-type" = $c;
-		}
-
-		# check if we need to close the connection
-		my $conn = split(",", tolower($hdr.connection));
-		# remove leading and trailing whitespace
-		foreach my $c in (\$conn)
-		    trim(\$c);
-
-		my $close = (inlist("close", $conn) || ($hdr.http_version != "1.1" && !inlist("keep-alive", $conn)));
-		#printf("conn=%n, close=%n\n", $conn, $close);
-
-		# if we need to get a body
-		switch ($hdr.method)
-		{
-		case "HEAD":
-		    $.handleRequest($s, $context, $hdr, NOTHING, \$close, True);
-		    break;
-
-		case "GET":
-		    $.handleRequest($s, $context, $hdr, NOTHING, \$close);
-		    break;
-		
-		case "POST":
-		    if (!$hdr."content-length")
-		    {
-			my $err = "missing 'Content-Length' header";
-			my $str = sprintf("%s: received from %s via %s (header=%n)", $err, $s.source, $.socket, $hdr);
-			$.logError($str);
-			$.sendHTTPError($s, 411, $err);
-			break;
-		    }
-		    try {
-			$body = $s.recv($hdr."content-length", HTTPServer::ReadTimeout);
-			if (!exists $body)
-			    throw "SOCKET-TIMEOUT", sprintf("expected %d bytes, got timeout", $hdr."content-length");
-		    }
-		    catch ($ex)
-		    {
-			my $etxt = sprintf("error reading body in POST: %s: %s", $ex.err, $ex.desc);
-			my $str = sprintf("%s: received from %s via %s (header=%n)", $etxt, $s.source, $.socket, $hdr);
-			$.logError($str);
-			$.sendHTTPError($s, 400, $ex.err, True);
-			$close = True;
-		    }
-	            $.handleRequest($s, $context, $hdr, $body, \$close);
-	            break;
-
-  	        default:
-		    my $err = sprintf("unknown HTTP method %n", $hdr.method);
-		    my $str = sprintf("%s: received from %s via %s", $err, $s.source, $.socket);
-		    $.logError($str);
-		    $.sendHTTPError($s, 501, $err);
-		    break;
-	        }
-
-		if ($close)
-		    break;
-	    }
-	}
-	catch ($ex)
-	{
-	    my $etxt = sprintf("%s: %s", $ex.err, $ex.desc);
-	    my $str = sprintf("%s: received from %s via %s", $etxt, $s.source, $.socket);
-	    $.logError($str);
-	    $.logError(sprintf("hdr=%n", $hdr));
-	    $.logError(sprintf("msg=%n", $body));
-	}
-	
-	$s.close();
-	$.cThreads.dec();
-    }
 }

@@ -7,8 +7,8 @@ namespace XmlRpcClient
 {
     const Version = "0.2.2";
     const DefaultPath = "RPC2";
-    const P_XmlRpc = ( "xmlrpc"  : ( "port" : 8100, "ssl" : False ),
-		       "xmlrpcs" : ( "port" : 8100, "ssl" : True ) );
+    const P_XmlRpc = ( "xmlrpc"  : ( "port" : 80,  "ssl" : False ),
+		       "xmlrpcs" : ( "port" : 443, "ssl" : True ) );
 }
 
 class XmlRpcClient::XmlRpcClient inherits HTTPClient::HTTPClient

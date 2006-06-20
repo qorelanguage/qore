@@ -171,7 +171,8 @@ sub main()
     process_command_line();
 
     # start HTTP server
-    $http_server = new HTTPServer($o.port, "log", "log");
+    $http_server = new HTTPServer("log", "log");
+    $http_server.addListener($o.port);
 
     # create XML-RPC handler
     $xml_rpc_handler = new XmlRpcHandler(XmlRpcMethods);
