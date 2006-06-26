@@ -22,6 +22,8 @@ for the XML subsystem - note that this is no longer an optional component of Qor
 for Perl-Compatible Regular Expressions, Qore now uses the pcre library for regular expression support instead of relying on POSIX regex functions.  tested with pcre 6.3 & 6.6
 	http://www.pcre.org
 
+NOTE that --enable-builtin-modules will only work with libtool 1.5.22 or better, which you have to copy to the root build directory by hand before you build the modules, otherwise libtool doesn't build the static libraries properly
+
 ========= to build optional modules ==========
 
 *) Oracle 9i or better for the Oracle DBI module

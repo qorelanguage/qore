@@ -62,7 +62,7 @@ class ModuleInfo {
 	 dlptr = p;
       }
       // for "builtin" modules
-      inline ModuleInfo(char *feature);
+      inline ModuleInfo(char *feature, qore_module_delete_t del);
       ~ModuleInfo();
       inline char *getName()
       {
@@ -96,6 +96,10 @@ class ModuleInfo {
       {
 	 module_ns_init(rns, qns);
       }
+      inline bool isBuiltin()
+      {
+	 return !dlptr;
+      }
       class Hash *getHash();
 };
 
@@ -108,12 +112,17 @@ class ModuleManager : public LockedObject
       class StringList autoDirList, moduleDirList;
 
       inline void *getsym(char *path, void *ptr, char *sym);
+      inline void addInternal(ModuleInfo *m)
+      {
+	 m->next = head;
+	 head = m;
+      }
+      inline void addBuiltin(char *fn, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del);
       inline class ModuleInfo *add(char *fn, char *n, int major, int minor, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del, char *d, char *v, char *a, char *u, void *p)
       {
 	 class ModuleInfo *m = new ModuleInfo(fn, n, major, minor, init, ns_init, del, d, v, a, u, p);
 	 lock();
-	 m->next = head;
-	 head = m;
+	 addInternal(m);
 	 num++;
 	 unlock();
 	 return m;

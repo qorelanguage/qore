@@ -61,23 +61,61 @@ class ModuleManager MM;
 # endif
 #endif
 
-inline ModuleInfo::ModuleInfo(char *n)
+// builtin module info node - when features are compiled into the library
+inline ModuleInfo::ModuleInfo(char *fn, qore_module_delete_t del)
 {
-   filename = "- builtin -";
-   name = n;
+   filename = "<builtin>";
+   name = fn;
    api_major = QORE_MODULE_API_MAJOR;
    api_minor = QORE_MODULE_API_MINOR;
    module_init = NULL;
    module_ns_init = NULL;
-   module_delete = NULL;
+   module_delete = del;
    version = desc = author = url = NULL;
    dlptr = NULL;
+}
+
+ModuleInfo::~ModuleInfo()
+{
+   printd(5, "ModuleInfo::~ModuleInfo() '%s': %s calling module_delete=%08x\n", name, filename, module_delete);
+   module_delete();
+   if (dlptr)
+   {
+      printd(5, "calling dlclose(%08x)\n", dlptr);
+#ifndef DEBUG
+      // do not close modules when debugging
+      dlclose(dlptr);
+#endif
+      free(filename);
+   }
+}
+
+class Hash *ModuleInfo::getHash()
+{
+   class Hash *h = new Hash();
+   h->setKeyValue("filename", new QoreNode(filename), NULL);
+   h->setKeyValue("name", new QoreNode(name), NULL);
+   h->setKeyValue("desc", new QoreNode(desc), NULL);
+   h->setKeyValue("version", new QoreNode(version), NULL);
+   h->setKeyValue("author", new QoreNode(author), NULL);
+   h->setKeyValue("api_major", new QoreNode((int64)api_major), NULL);
+   h->setKeyValue("api_minor", new QoreNode((int64)api_minor), NULL);
+   if (url)
+      h->setKeyValue("url", new QoreNode(url), NULL);
+   return h;
 }
 
 ModuleManager::ModuleManager()
 {
    head = NULL;
    num = 0;
+}
+
+inline void ModuleManager::addBuiltin(char *fn, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del)
+{
+   init();
+   addInternal(new ModuleInfo(fn, del));
+   ANSL.add(ns_init);
 }
 
 void ModuleManager::init(bool se)
@@ -96,23 +134,19 @@ void ModuleManager::init(bool se)
 
 #ifdef QORE_MONOLITHIC
 # ifdef NCURSES
-   ncurses_module_init();
-   ANSL.add(ncurses_module_ns_init);
+   addBuiltin("ncurses", ncurses_module_init, ncurses_module_ns_init, ncurses_module_delete);
 # endif
 # ifdef ORACLE
-   oracle_module_init();     // init Oracle DBI driver
-   ANSL.add(oracle_module_ns_init);
+   addBuiltin("oracle", oracle_module_init, oracle_module_ns_init, oracle_module_delete);
 # endif
 # ifdef QORE_MYSQL
-   qore_mysql_module_init(); // init MySQL DBI driver
-   ANSL.add(qore_mysql_module_ns_init);
+   addBuiltin("mysql", qore_mysql_module_init, qore_mysql_module_ns_init, qore_mysql_module_delete);
 # endif
 # ifdef TIBCO
-   tibco_module_init();      // init TIBCO module
-   ANSL.add(tibco_module_ns_init);
+   addBuiltin("tibco", tibco_module_init, tibco_module_ns_init, tibco_module_delete);
 # endif
+#endif
    // autoload modules
-#else
    // try to load all modules in each directory in the autoDirList
    QoreString gstr;
 
@@ -135,10 +169,8 @@ void ModuleManager::init(bool se)
       globfree(&globbuf);
       w = w->next;
    }
-#endif
 }
 
-#ifndef QORE_MONOLITHIC
 inline void *ModuleManager::getsym(char *path, void *ptr, char *sym)
 {
    void *sp = dlsym(ptr, sym);
@@ -151,7 +183,6 @@ inline void *ModuleManager::getsym(char *path, void *ptr, char *sym)
    }
    return sp;
 }
-#endif
 
 int ModuleManager::loadModule(char *name, class QoreProgram *pgm)
 {
@@ -171,7 +202,6 @@ int ModuleManager::loadModule(char *name, class QoreProgram *pgm)
       return 0;
    }
 
-#ifndef QORE_MONOLITHIC
    // otherwise, try to find module in the module path
    QoreString str;
    struct stat sb;
@@ -198,11 +228,9 @@ int ModuleManager::loadModule(char *name, class QoreProgram *pgm)
       }
       w = w->next;
    }
-#endif
    return -1;
 }
 
-#ifndef QORE_MONOLITHIC
 class ModuleInfo *ModuleManager::loadModuleFromPath(char *path)
 {
    void *ptr = dlopen(path, RTLD_LAZY);
@@ -295,13 +323,10 @@ class ModuleInfo *ModuleManager::loadModuleFromPath(char *path)
    printd(5, "ModuleManager::loadModuleFromPath(%s) registered '%s'\n", path, name);
    return mi;
 }
-#endif
 
 void ModuleManager::cleanup()
 {
    tracein("ModuleManager::cleanup()");
-
-#ifndef QORE_MONOLITHIC
 
    while (head)
    {
@@ -310,65 +335,21 @@ void ModuleManager::cleanup()
       head = w;
    }
 
-#else
-# ifdef TIBCO
-   tibco_module_delete();       // delete tibco module
-# endif
-# ifdef ORACLE
-   oracle_module_delete();      // delete oracle DBI driver
-# endif
-# ifdef QORE_MYSQL
-   qore_mysql_module_delete();  // delete MySQL DBI driver
-# endif
-# ifdef NCURSES
-   ncurses_module_delete();
-# endif
-#endif    // QORE_MONOLITHIC
-
    traceout("ModuleManager::cleanup()");
 }
 
 class List *ModuleManager::getModuleList()
 {
-   if (!head)
+   if (!num)
       return NULL;
 
    class List *l = new List();
    class ModuleInfo *w = head;
    while (w)
    {
-      if (w->getFileName())
+      if (!w->isBuiltin())
 	 l->push(new QoreNode(w->getHash()));
       w = w->next;
    }
    return l;
-}
-
-ModuleInfo::~ModuleInfo()
-{
-   if (module_delete)
-   {
-      printd(5, "ModuleInfo::~ModuleInfo() '%s': %s (%08x) calling module_delete=%08x\n", name, filename, dlptr, module_delete);
-      module_delete();
-#ifndef DEBUG
-      // do not close modules when debugging
-      dlclose(dlptr);
-#endif
-      free(filename);
-   }
-}
-
-class Hash *ModuleInfo::getHash()
-{
-   class Hash *h = new Hash();
-   h->setKeyValue("filename", new QoreNode(filename), NULL);
-   h->setKeyValue("name", new QoreNode(name), NULL);
-   h->setKeyValue("desc", new QoreNode(desc), NULL);
-   h->setKeyValue("version", new QoreNode(version), NULL);
-   h->setKeyValue("author", new QoreNode(author), NULL);
-   h->setKeyValue("api_major", new QoreNode((int64)api_major), NULL);
-   h->setKeyValue("api_minor", new QoreNode((int64)api_minor), NULL);
-   if (url)
-      h->setKeyValue("url", new QoreNode(url), NULL);
-   return h;
 }

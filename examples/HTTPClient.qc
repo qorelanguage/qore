@@ -124,6 +124,11 @@ class HTTPClient::HTTPClient inherits private Qore::Socket, private Qore::Thread
 	return Socket::$.isSecure();
     }
 
+    verifyPeerCertificate()
+    {
+	return Socket::$.verifyPeerCertificate();
+    }
+
     getSSLCipherName()
     {
 	return Socket::$.getSSLCipherName();
@@ -167,40 +172,21 @@ class HTTPClient::HTTPClient inherits private Qore::Socket, private Qore::Thread
 
     get($path, $headers)
     {
-	return $.send(NOTHING, "GET", $path, $headers);
+	return $.send(NOTHING, "GET", $path, $headers, True).body;
+    }
+    
+    head($path, $headers)
+    {
+	return $.send(NOTHING, "GET", $path, $headers, False);
     }
 
     post($path, $data, $headers)
     {
-	return $.send($data, "POST", $path, $headers);
+	return $.send($data, "POST", $path, $headers, True).body;
     }
 
-    send($data, $method, $path, $headers)
+    private getResponse()
     {
-        $.connect();
-
-        if (!inlist($method, HTTPClient::DEFAULT_METHODS))
-            throw "HTTP-CLIENT-METHOD-ERROR", sprintf("HTTP method (%n) not recognized.", $method);
-
-        my $hdrs = ( "Host" : gethostname() );
-
-        foreach my $defkey in (keys HTTPClient::DEFAULT_HEADERS) {
-            if (exists $headers.$defkey)
-                $hdrs.$defkey = $headers.$defkey;
-            else
-                $hdrs.$defkey = HTTPClient::DEFAULT_HEADERS.$defkey;
-        }
-
-        foreach my $headerkey in (keys $headers) {
-            if ((!inlist($headerkey, keys HTTPClient::DEFAULT_HEADERS))
-                && (!inlist($headerkey, HTTPClient::DEFAULT_HEADER_IGNORE))) {
-                $hdrs.$headerkey = $headers.$headerkey;
-            }
-        }
-        #printf("path=%s, hdr=%N", $path, $hdrs);
-
-        $.sendHTTPMessage($method, $path, $.http_version, $hdrs, $data);
-
         my $ans= $.readHTTPHeader($.timeout);
 	
 	# if there was a timeout
@@ -252,29 +238,50 @@ class HTTPClient::HTTPClient inherits private Qore::Socket, private Qore::Thread
 
         #printf("HTTP-Header: %n\n", $ans);
 
-        my $msg;
-        if (exists $ans.body)
-	{
-	    $msg = $ans.body;
-	    #printf("%03d: BODY!!! %n\n", gettid(), $ans.body);
-	}
-        else
-        {
-	    # ignore if content-length is not present
-	    $msg = $.recv($ans."content-length", $.timeout);
-	    if ($msg == -1)
-		throw "HTTP-CLIENT-RECEIVE-ERROR",
-		sprintf("socket error while receiving xml body from socket \"%s\": %s",
-			$.socketpath, strerror(errno()));
-	    #printf("got body=%n\n", $msg);
-        }
+	if ($ans."content-length")
+	    $ans.body = $.recv($ans."content-length", $.timeout);
 
 	# close the connection if the server tells us to
 	if (tolower($ans.connection) == "close")
 	    $.disconnect();
 
         #printf("%03d: HTTP: %s\n", gettid(), $msg);
-        return $msg;
+        return $ans;
+    }
+
+    private send($data, $method, $path, $headers, $getbody)
+    {
+        $.connect();
+
+        if (!inlist($method, HTTPClient::DEFAULT_METHODS))
+            throw "HTTP-CLIENT-METHOD-ERROR", sprintf("HTTP method (%n) not recognized.", $method);
+
+        my $hdrs = ( "Host" : gethostname() );
+
+        foreach my $defkey in (keys HTTPClient::DEFAULT_HEADERS) {
+            if (exists $headers.$defkey)
+                $hdrs.$defkey = $headers.$defkey;
+            else
+                $hdrs.$defkey = HTTPClient::DEFAULT_HEADERS.$defkey;
+        }
+
+        foreach my $headerkey in (keys $headers) {
+            if ((!inlist($headerkey, keys HTTPClient::DEFAULT_HEADERS))
+                && (!inlist($headerkey, HTTPClient::DEFAULT_HEADER_IGNORE))) {
+                $hdrs.$headerkey = $headers.$headerkey;
+            }
+        }
+        #printf("path=%s, hdr=%N", $path, $hdrs);
+
+        $.sendHTTPMessage($method, $path, $.http_version, $hdrs, $data);
+
+	my $ans = $.getResponse();
+
+	# if no "content-length" header was present and we need a body
+	if ($getbody && !exists $ans.body)
+	    $ans.body = $.recv(0, $.timeout);
+
+	return $ans;
     }
 
     setTimeout($t)
