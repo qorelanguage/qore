@@ -44,7 +44,6 @@ class QoreFile {
       int fd;
       bool is_open;
       bool special_file;
-      int flags;
       class QoreEncoding *charset;
       char *filename;
 

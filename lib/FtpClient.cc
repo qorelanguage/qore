@@ -250,16 +250,16 @@ int FtpClient::connectDataPassive(class ExceptionSink *xsink)
       num[i] = atoi(s);
       s = comma + 1;
    }
-   int port = (num[4] << 8) + atoi(s);
+   int dataport = (num[4] << 8) + atoi(s);
    class QoreString ip;
    ip.sprintf("%d.%d.%d.%d", num[0], num[1], num[2], num[3]);
-   printd(FTPDEBUG,"FtpClient::connectPassive() address: %s:%d\n", ip.getBuffer(), port);
+   printd(FTPDEBUG,"FtpClient::connectPassive() address: %s:%d\n", ip.getBuffer(), dataport);
 
    delete resp;
-   if (data.connectINET(ip.getBuffer(), port))
+   if (data.connectINET(ip.getBuffer(), dataport))
    {
       xsink->raiseException("FTP-CONNECT-ERROR", "could not connect to passive data port (%s:%d): %s", 
-		     ip.getBuffer(), port, strerror(errno));
+		     ip.getBuffer(), dataport, strerror(errno));
       return -1;
    }
 
@@ -289,7 +289,7 @@ int FtpClient::connectDataPort(class ExceptionSink *xsink)
       return -1;
    }
    // get port number
-   int port = data.getPort();
+   int dataport = data.getPort();
 
    // get ip address
    char ifname[80];
@@ -300,14 +300,14 @@ int FtpClient::connectDataPort(class ExceptionSink *xsink)
 		     strerror(errno));
       return -1;
    }
-   printd(FTPDEBUG, "FtpClient::connectDataPort() requesting connection to %s:%d\n", ifname, port);
+   printd(FTPDEBUG, "FtpClient::connectDataPort() requesting connection to %s:%d\n", ifname, dataport);
    // change dots to commas for PORT message
    for (int i = 0; ifname[i]; i++)
       if (ifname[i] == '.')
 	 ifname[i] = ',';
 
    QoreString pconn;
-   pconn.sprintf("%s,%d,%d", ifname, port >> 8, port & 255);
+   pconn.sprintf("%s,%d,%d", ifname, dataport >> 8, dataport & 255);
    QoreString *resp = sendMsg("PORT", pconn.getBuffer(), xsink);
    if (xsink->isEvent())
    {
@@ -331,7 +331,7 @@ int FtpClient::connectDataPort(class ExceptionSink *xsink)
 		     strerror(errno));
       return -1;
    }
-   printd(FTPDEBUG, "FtpClient::connectDataPort() listening on port %d\n", port);
+   printd(FTPDEBUG, "FtpClient::connectDataPort() listening on port %d\n", dataport);
 
    mode = FTP_MODE_PORT;
    return 0;

@@ -307,10 +307,10 @@ inline void QoreClassList::assimilate(class QoreClassList *n)
    {
       QCNode *nx = w->next;
 
-      class QoreClass *c;
 #ifdef DEBUG
-      if ((c = find(w->getID())))
-	 run_time_error("QoreClassList::assimilate() this=%08x DUPLICATE CLASS %08x (%s)\n", this, nx, nx->name);
+      class QoreClass *c;
+      if ((c = find(w->c->getID())))
+	 run_time_error("QoreClassList::assimilate() this=%08x DUPLICATE CLASS %08x (%s)\n", this, c, c->name);
 #endif
       printd(5, "QoreClassList::assimilate() this=%08x adding=%08x (%s)\n", this, w->c, w->c->name);
       w->next = NULL;
