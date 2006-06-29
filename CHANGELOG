@@ -1,3 +1,6 @@
+2006.06.29: David Nichols
+	* fixed a bug in examples/HTTPClient.qc
+
 2006.06.26: David Nichols
 	* fixed a bug compiling on Solaris without hash_map support with DEBUG
 	  enabled

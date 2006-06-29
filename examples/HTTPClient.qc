@@ -172,17 +172,17 @@ class HTTPClient::HTTPClient inherits private Qore::Socket, private Qore::Thread
 
     get($path, $headers)
     {
-	return $.send(NOTHING, "GET", $path, $headers, True).body;
+	return $.sendInternal(NOTHING, "GET", $path, $headers, True).body;
     }
     
     head($path, $headers)
     {
-	return $.send(NOTHING, "GET", $path, $headers, False);
+	return $.sendInternal(NOTHING, "GET", $path, $headers, False);
     }
 
     post($path, $data, $headers)
     {
-	return $.send($data, "POST", $path, $headers, True).body;
+	return $.sendInternal($data, "POST", $path, $headers, True).body;
     }
 
     private getResponse()
@@ -241,15 +241,16 @@ class HTTPClient::HTTPClient inherits private Qore::Socket, private Qore::Thread
 	if ($ans."content-length")
 	    $ans.body = $.recv($ans."content-length", $.timeout);
 
-	# close the connection if the server tells us to
-	if (tolower($ans.connection) == "close")
-	    $.disconnect();
-
         #printf("%03d: HTTP: %s\n", gettid(), $msg);
         return $ans;
     }
 
-    private send($data, $method, $path, $headers, $getbody)
+    send($data, $method, $path, $headers, $getbody)
+    {
+	return $.sendInternal($data, $method, $path, $headers, $getbody).body;
+    }
+
+    private sendInternal($data, $method, $path, $headers, $getbody)
     {
         $.connect();
 
@@ -280,6 +281,10 @@ class HTTPClient::HTTPClient inherits private Qore::Socket, private Qore::Thread
 	# if no "content-length" header was present and we need a body
 	if ($getbody && !exists $ans.body)
 	    $ans.body = $.recv(0, $.timeout);
+
+	# close the connection if the server tells us to
+	if (tolower($ans.connection) == "close")
+	    $.disconnect();
 
 	return $ans;
     }
