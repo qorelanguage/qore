@@ -550,6 +550,54 @@ static class QoreNode *f_getSSLCertVerificationCodeString(class QoreNode *params
    return new QoreNode(code);
 }
 
+// same as splice operator, but operates on a copy of the list
+static class QoreNode *f_splice(class QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p0 = get_param(params, 0);
+   if (!p0)
+      return NULL;
+   QoreNode *p1, *p2, *p3, *rv;
+   p1 = get_param(params, 1);
+   p2 = get_param(params, 2);
+   p3 = get_param(params, 3);
+   int start = p1->getAsInt();
+   if (p0->type == NT_LIST)
+   {
+      List *l = p0->val.list->copyList();
+
+      if (is_nothing(p3))
+	 if (is_nothing(p2))
+	    l->splice(start, xsink);
+	 else
+	    l->splice(start, p2->getAsInt(), xsink);
+      else
+	 l->splice(start, p2->getAsInt(), p3, xsink);
+      rv = new QoreNode(l);
+   }
+   else if (p0->type == NT_STRING)
+   {
+      QoreString *str = p0->val.String->copy();
+
+      if (!p3 || p3->type != NT_STRING)
+	 if (is_nothing(p2))
+	    str->splice(start, xsink);
+	 else
+	    str->splice(start, p2->getAsInt(), xsink);
+      else
+	 str->splice(start, p2->getAsInt(), p3, xsink);
+      rv = new QoreNode(str);
+   }
+   else
+      return NULL;
+
+   if (xsink->isEvent())
+   {
+      rv->deref(xsink);
+      return NULL;
+   }
+   return rv;
+}
+
 void init_misc_functions()
 {
    // set lengths of HTML codes
@@ -581,4 +629,5 @@ void init_misc_functions()
    builtinFunctions.add("uncompress_to_binary", f_uncompress_to_binary);
    builtinFunctions.add("getByte", f_getByte);
    builtinFunctions.add("getSSLCertVerificationCodeString", f_getSSLCertVerificationCodeString);
+   builtinFunctions.add("splice", f_splice);
 }

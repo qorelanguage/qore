@@ -62,6 +62,7 @@ class List {
       inline class QoreNode *eval(class ExceptionSink *xsink);
       inline class QoreNode *evalFrom(int offset, class ExceptionSink *xsink);
       inline class QoreNode *copy();
+      inline class List *copyList();
       inline class List *copyListFrom(int offset);
       class QoreNode *sort();
       class QoreNode *sortDescending();
@@ -323,6 +324,15 @@ inline class List *List::copyListFrom(int offset)
 {
    class List *nl = new List();
    for (int i = offset; i < length; i++)
+      nl->push(entry[i] ? entry[i]->RefSelf() : NULL);
+
+   return nl;
+}
+
+inline class List *List::copyList()
+{
+   class List *nl = new List();
+   for (int i = 0; i < length; i++)
       nl->push(entry[i] ? entry[i]->RefSelf() : NULL);
 
    return nl;

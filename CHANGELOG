@@ -1,3 +1,7 @@
+2006.06.30: David Nichols
+	* implemented a splice() function, which works the same as the splice
+	  operator, except on a copy of the list or string
+
 2006.06.29: David Nichols
 	* fixed a bug in examples/HTTPClient.qc
 

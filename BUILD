@@ -21,6 +21,12 @@ for the XML subsystem - note that this is no longer an optional component of Qor
 *) PCRE 6 or higher (earlier versions will probably work as well)
 for Perl-Compatible Regular Expressions, Qore now uses the pcre library for regular expression support instead of relying on POSIX regex functions.  tested with pcre 6.3 & 6.6
 	http://www.pcre.org
+if you have the PCRE headers and libraries in a location the configure script cannot find, then you can either use the --with-pcre-libs and --with-pcre-libraries options, or set the PCRE_DIR environment variable before running configure
+
+*) openssl 0.9.8 or higher (earlier versions will probably work as well)
+for ssl support in the Socket class
+	http://www.openssl.org
+if you have the open headers and libraries in a location the configure script cannot find, then you can either use the --with-openssl-libs and --with-openssl-libraries options, or set the OPENSSL_DIR environment variable before running configure
 
 NOTE that --enable-builtin-modules will only work with libtool 1.5.22 or better, which you have to copy to the root build directory by hand before you build the modules, otherwise libtool doesn't build the static libraries properly
 

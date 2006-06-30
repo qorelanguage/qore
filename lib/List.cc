@@ -152,16 +152,7 @@ void List::splice_intern(int offset, int len, class QoreNode *l, class Exception
    for (int i = offset; i < end; i++)
       if (entry[i])
 	 entry[i]->deref(xsink);
-/*
-$l = [0]=11, [1]=12, [2]=*6, [3]=*1, [4]=2, [5]=3
-splice $l, 2, 2, 9;
-= 11, 12, 9, 2, 3
-length = 6
-offset = 2
-len = 2, new list = 9
-end = 4
-n = 1
-*/
+
    // get number of entries to insert
    int n;
    if (!l)
