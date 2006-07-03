@@ -1,7 +1,7 @@
 /*
-  ql_xml.h
+  ql_crypto.h
 
-  libxml2-based XML functions
+  libcrypto-based cryptographic functions
 
   Qore Programming Language
 
@@ -22,10 +22,10 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _QORE_QL_XML_H
+#ifndef _QORE_QL_CRYPTO_H
 
-#define _QORE_QL_XML_H
+#define _QORE_QL_CRYPTO_H
 
-void init_xml_functions();
+void init_crypto_functions();
 
-#endif // _QORE_QL_XML_H
+#endif // _QORE_QL_CRYPTO_H

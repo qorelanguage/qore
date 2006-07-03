@@ -1,3 +1,7 @@
+2006.07.03: David Nichols
+	* added lib/ql_crypto.cc with new functions: blowfish_encrypt_cbc(),
+	  blowfish_decrypt_cbc() and blowfish_decrypt_cbc_to_string()
+
 2006.06.30: David Nichols
 	* implemented a splice() function, which works the same as the splice
 	  operator, except on a copy of the list or string
