@@ -42,30 +42,34 @@ class QoreNode *Object::getMemberValue(class QoreNode *member, class VLock *vl, 
    // if the member does not exist, then try the memberGate method
    if (rv == (QoreNode *)-1)
    {
-      // to run memberGate function possibly to create member
-      // we need to unlock all locks
-      ref();
-      g.exit();
-      vl->del();
-      discard(type->evalMemberGate(this, member, xsink), xsink);
-      if (xsink->isEvent())
+      if (type->hasMemberGate())
       {
-	 dereference(xsink);
-	 return NULL;
-      }
-
-      // now check again
-      g.enter();
-      if (status == OS_DELETED)
-      {
+	 // run memberGate method to get member value, in case the method is very slow, we run with locks
+	 // disabled: reference, unlock gate, run method, dereference, check return value, require lock, check object status
+	 ref();
 	 g.exit();
+	 //vl->del();
+	 rv = type->evalMemberGate(this, member, xsink);
 	 dereference(xsink);
-	 return NULL;
+	 if (!rv)
+	    return NULL;
+	 if (xsink->isEvent())
+	 {
+	    rv->deref(xsink);
+	    return NULL;
+	 }
+
+	 // now grab lock again
+	 g.enter();
+	 if (status == OS_DELETED)
+	 {
+	    g.exit();
+	    rv->deref(xsink);
+	    return NULL;
+	 }
       }
-      // since we have not been deleted, the original reference will
-      // still be valid, therefore it's safe to dereference here
-      dereference(xsink);
-      rv = data->getKeyValue(member->val.String->getBuffer());
+      else
+	 rv = NULL;
    }
    if (!rv)
    {
@@ -120,7 +124,7 @@ class QoreNode *Object::evalMember(class QoreNode *member, class ExceptionSink *
 	 rv = data->evalKeyExistence(mem, xsink);
 	 g.exit();
 	 
-	 // execute memberGate function for objects where no member exists
+	 // execute memberGate method for objects where no member exists
 	 if (rv == (QoreNode *)-1)
 	    rv = type->evalMemberGate(this, member, xsink);
       }

@@ -42,6 +42,7 @@ static inline char *get_pgm_file();
 static inline void update_pgm_stmt();
 static inline void update_pgm_counter_pgm_file(int p, char *f);
 static inline void increment_pgm_counter();
+static inline bool inMethod(char *name, class Object *o);
 static inline void pushCall(char *f, int type, class Object *o = NULL);
 static inline void popCall(class ExceptionSink *xsink = NULL);
 static inline class List *getCallStack();
@@ -345,6 +346,11 @@ static inline void increment_pgm_counter()
 static inline char *get_pgm_file()
 {
    return ((ThreadData *)pthread_getspecific(thread_data_key))->pgm_file;
+}
+
+static inline bool inMethod(char *name, class Object *o)
+{
+   return thread_list[gettid()].callStack->inMethod(name, o);
 }
 
 static inline void pushCall(char *f, int type, class Object *o)

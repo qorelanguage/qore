@@ -70,6 +70,12 @@ class CallStack {
 	 tail->obj = o;
 	 return ro;
       }
+      inline bool inMethod(char *name, class Object *o)
+      {
+	 if (!tail)
+	    return NULL;
+	 return tail->func == name && tail->obj == o;
+      }
 };
 
 #include <qore/thread.h>

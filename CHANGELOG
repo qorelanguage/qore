@@ -1,3 +1,9 @@
+2006.07.04: David Nichols
+	* fixed a rare race condition & a memory leak in lib/Object.cc
+	* changed ::memberGate() methods and ::methodGate() methods to not 
+	  execute when we are already in the method - to avoid silly infinite
+	  loops
+
 2006.07.03: David Nichols
 	* added lib/ql_crypto.cc with new functions: blowfish_encrypt_cbc(),
 	  blowfish_decrypt_cbc() and blowfish_decrypt_cbc_to_string()

@@ -317,7 +317,7 @@ class QoreNode *QoreClass::evalMethod(Object *self, char *nme, QoreNode *args, c
    bool priv = false;
    if (!(w = findMethod(nme, &priv)))
    {
-      if (methodGate) // call methodGate with unknown method name and arguments
+      if (methodGate && !methodGate->inMethod(self)) // call methodGate with unknown method name and arguments
 	 return evalMethodGate(self, nme, args, xsink);
       // otherwise return an exception
       xsink->raiseException("METHOD-DOES-NOT-EXIST", "no method %s::%s() has been defined", name, nme);

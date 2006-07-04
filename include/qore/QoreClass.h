@@ -63,6 +63,7 @@ class Method {
       inline Method(class UserFunction *u, int p, class BCAList *b);
       inline Method(class BuiltinMethod *b);
       inline ~Method();
+      inline bool inMethod(class Object *self);
       class QoreNode *eval(class Object *self, class QoreNode *args, class ExceptionSink *xsink);
       class QoreNode *evalConstructor(class Object *self, class QoreNode *args, class BCList *bcl, class BCEAList *bceal, class ExceptionSink *xsink);
       inline class QoreNode *evalSystemConstructor(class Object *self, class QoreNode *args, class BCList *bcl, class BCEAList *bceal, class ExceptionSink *xsink);
@@ -1287,7 +1288,8 @@ inline class QoreNode *QoreClass::evalMemberGate(class Object *self, class QoreN
 {
    tracein("QoreClass::evalMembeGatre()");
    printd(5, "QoreClass::evalMemberGate() member=%s\n", nme->val.String->getBuffer());
-   if (!memberGate)
+   // do not run memberGate method if we are already in it...
+   if (!memberGate || memberGate->inMethod(self))
    {
       traceout("QoreClass::evalMemberGate()");
       return NULL;
@@ -1609,6 +1611,13 @@ inline Method::~Method()
       func.builtin->deref();
    if (bcal)
       bcal->deref();
+}
+
+inline bool Method::inMethod(class Object *self)
+{
+   if (type == OTF_USER)
+      return ::inMethod(func.userFunc->name, self);
+   return ::inMethod(func.builtin->name, self);
 }
 
 inline class QoreNode *Method::evalSystemConstructor(Object *self, QoreNode *args, class BCList *bcl, class BCEAList *bceal, ExceptionSink *xsink)
