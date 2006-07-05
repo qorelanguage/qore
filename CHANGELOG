@@ -1,8 +1,23 @@
+2006.07.05: David Nichols
+	* changed XML generation and XML parsing to be able to parse and
+	  properly generate XML with mixed elements and text.  When multiple 
+	  text nodes are present, hash keys are created with the format: 
+	  ^value#^, where # is an increasing number.  When elements are	
+	  duplicated, then, if the last element does not have the same name,
+	  a new hash key is used with the following format: name^#, in the same
+	  manner as value nodes.  When serializing Qore data to XML strings, the
+	  reverse ruls are used - ^value* nodes are output as text, and if an
+	  element name is suffixed with ^# the suffix is removed before the
+	  element name is output.  This should allow mixed data and text to be 
+	  properly parsed and generated while maintaining backward-compatibility
+	  with the previous functionality.
+
 2006.07.04: David Nichols
 	* fixed a rare race condition & a memory leak in lib/Object.cc
 	* changed ::memberGate() methods and ::methodGate() methods to not 
 	  execute when we are already in the method - to avoid silly infinite
 	  loops
+	* fixed a memory leak in some exception handling code in lib/ql_xml.cc
 
 2006.07.03: David Nichols
 	* added lib/ql_crypto.cc with new functions: blowfish_encrypt_cbc(),

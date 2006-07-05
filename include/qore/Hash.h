@@ -105,7 +105,8 @@ class Hash
       //inline class QoreNode *getKeyValue(class QoreString *key);
       //inline class QoreNode *getFirstKeyValue();
 
-      inline char *getFirstKey() { if (member_list) return member_list->key; return NULL; }
+      inline char *getFirstKey() { return member_list ? member_list->key :NULL; }
+      inline char *getLastKey() { return tail ? tail->key : NULL; }
       inline class QoreNode *getKeyValueExistence(char *key);
       inline class QoreNode *getKeyValueExistence(class QoreString *key, class ExceptionSink *xsink);
       inline class QoreNode *getKeyValue(class QoreString *key, class ExceptionSink *xsink);

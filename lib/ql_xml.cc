@@ -117,59 +117,82 @@ class xml_node {
       QoreNode **node;
       xml_node *next;
       int depth;
+      int vcount;
 
       xml_node(QoreNode **n, int d) 
       {
 	 node = n;
 	 depth = d;
+	 vcount = 0;
       }
 };
 
-static inline void deleteXMLStack(xml_node *stackp)
+class xml_stack {
+   private:
+      class xml_node *tail;
+      class QoreNode *val;
+      
+   public:
+      inline xml_stack();
+      
+      inline ~xml_stack()
+      {
+	 if (val)
+	    val->deref(NULL);
+
+	 while (tail)
+	 {
+	    //printd(5, "xml_stack::~xml_stack(): deleting=%08x (%d), next=%08x\n", tail, tail->depth, tail->next);
+	    xml_node *n = tail->next;
+	    delete tail;
+	    tail = n;
+	 }
+      }
+      inline void checkDepth(int depth)
+      {
+	 while (tail && depth && tail->depth >= depth)
+	 {
+	    //printd(5, "xml_stack::checkDepth(%d): deleting=%08x (%d), new tail=%08x\n", depth, tail, tail->depth, tail->next);
+	    xml_node *n = tail->next;
+	    delete tail;
+	    tail = n;
+	 }
+      }
+      inline void push(QoreNode **node, int depth)
+      {
+	 xml_node *sn = new xml_node(node, depth);
+	 sn->next = tail;
+	 tail = sn;
+      }
+      inline class QoreNode *getNode()
+      {
+	 return *tail->node;
+      }
+      inline void setNode(class QoreNode *n)
+      {
+	 (*tail->node) = n;
+      }
+      inline class QoreNode *getVal()
+      {
+	 class QoreNode *rv = val;
+	 val = NULL;
+	 return rv;
+      }
+      inline int getValueCount()
+      {
+	 return tail->vcount;
+      }
+      inline void incValueCount()
+      {
+	 tail->vcount++;
+      }
+};
+
+inline xml_stack::xml_stack()
 {
-   tracein("deleteXMLStack()");
-   while (stackp)
-   {
-      //printd(5, "deleteXMLStack(): deleting=%08x (%d), next=%08x\n", stackp, stackp->depth, stackp->next);
-      xml_node *n = stackp->next;
-      delete stackp;
-      stackp = n;
-   }
-   traceout("deleteXMLStack()");
-}
-
-static inline void checkDepth(xml_node *&stackp, int depth)
-{
-   while (stackp && depth && stackp->depth >= depth)
-   {
-      //printd(5, "checkDepth(%d): deleting=%08x (%d), new stackp=%08x\n", depth, stackp, stackp->depth, stackp->next);
-      xml_node *n = stackp->next;
-      delete stackp;
-      stackp = n;
-   }
-}
-
-static inline void pushXML(xml_node *&stackp, QoreNode **node, int depth)
-{
-   //tracein("pushXML()");
-
-   //printd(5, "pushXML() depth=%d\n", depth);
-
-   xml_node *sn = new xml_node(node, depth);
-
-   sn->next = stackp;
-   stackp = sn;
-
-   //printd(5, "pushXML() depth=%d stackp=%08x, next=%08x\n", depth, stackp, stackp->next);
-
-   //traceout("pushXML()");
-}
-
-static inline int whitespace(char c)
-{
-   if (c == ' ' || c == '\t' || c == '\n' || c == '\r')
-      return 1;
-   return 0;
+   tail = NULL;
+   val = NULL;
+   push(&val, -1);
 }
 
 static void makeXMLString(QoreString *str, Hash *h, int indent, class QoreEncoding *ccs, int format, class ExceptionSink *xsink);
@@ -244,11 +267,31 @@ static void addXMLElement(char *key, QoreString *str, QoreNode *n, int indent, c
       {
 	 // inc = ignore node counter, see if special keys exists and increment counter even if they have no value
 	 int inc = 0;
+	 int vn = 0;
 	 QoreNode *value = n->val.hash->getKeyValueExistence("^value^");
 	 if (value == (QoreNode *)-1)
 	    value = NULL;
-	 else if (!value)
-	    inc++;
+	 else
+	 {
+	    vn++;
+	    if (is_nothing(value))
+	       inc++;
+	    // find all ^value*^ nodes
+	    QoreString val;
+	    while (true)
+	    {
+	       val.sprintf("^value%d^", vn);
+	       value = n->val.hash->getKeyValueExistence(val.getBuffer());
+	       if (value == (QoreNode *)-1)
+	       {
+		  value = NULL;
+		  break;
+	       }
+	       else if (is_nothing(value)) // if the node exists but there is no value, then skip
+		  inc++;
+	       vn++;
+	    }
+	 }
 
 	 QoreNode *attrib = n->val.hash->getKeyValueExistence("^attributes^");
 	 if (attrib == (QoreNode *)-1)
@@ -281,6 +324,8 @@ static void addXMLElement(char *key, QoreString *str, QoreNode *n, int indent, c
 	    delete hi;
 	 }
 
+	 //printd(5, "inc=%d vn=%d\n", inc, vn);
+
 	 // if there are no more elements, close node immediately
 	 if (n->val.hash->size() == inc)
 	 {
@@ -291,18 +336,16 @@ static void addXMLElement(char *key, QoreString *str, QoreNode *n, int indent, c
 	 // close node
 	 str->concat('>');
 
-	 if (value)
+	 if (!is_nothing(value) && n->val.hash->size() == (inc + 1))
 	    concatSimpleValue(str, value, xsink);
-
-	 // add additional elements and formatting only if the additional elements exist 
-	 if (n->val.hash->size() - (value ? 1 : 0) - (attrib ? 1 : 0))
+	 else // add additional elements and formatting only if the additional elements exist 
 	 {
-	    if (format)
+	    if (format && !vn)
 	       str->concat('\n');
 
-	    makeXMLString(str, n->val.hash, indent + 2, ccs, format, xsink);
+	    makeXMLString(str, n->val.hash, indent + 2, ccs, !vn ? format : 0, xsink);
 	    // indent closing entry
-	    if (format)
+	    if (format && !vn)
 	    {
 	       str->concat('\n');
 	       for (int j = 0; j < indent; j++)
@@ -365,9 +408,16 @@ static void makeXMLString(QoreString *str, Hash *h, int indent, class QoreEncodi
       }
 
       char *key = keyStr->getBuffer();
-      if (!strcmp(key, "^attributes^") || !strcmp(key, "^value^"))
+      if (!strcmp(key, "^attributes^"))
       {
 	 delete keyStr;
+	 continue;
+      }
+
+      if (!strncmp(key, "^value", 6))
+      {
+	 delete keyStr;
+	 concatSimpleValue(str, hi->getValue(), xsink);
 	 continue;
       }
 
@@ -378,6 +428,15 @@ static void makeXMLString(QoreString *str, Hash *h, int indent, class QoreEncodi
 	 delete keyStr;
 	 break;
       }
+
+      // process key name - remove ^# from end of key name if present
+      int l = keyStr->strlen() - 1;
+      while (isdigit(key[l]))
+	 l--;
+
+      if (l != (keyStr->strlen() - 1) && key[l] == '^')
+	 keyStr->terminate(l);
+
       // indent entry
       if (format)
       {
@@ -833,7 +892,7 @@ static inline class QoreString *getXmlString(xmlTextReader *reader, class QoreEn
    return rv;
 }
 
-static int getXMLData(xmlTextReader *reader, xml_node *&stackp, class QoreEncoding *data_ccsid, ExceptionSink *xsink)
+static int getXMLData(xmlTextReader *reader, xml_stack *xstack, class QoreEncoding *data_ccsid, ExceptionSink *xsink)
 {
    tracein("getXMLData()");
    int rc = 1;
@@ -848,44 +907,70 @@ static int getXMLData(xmlTextReader *reader, xml_node *&stackp, class QoreEncodi
 
       if (nt == -1) // ERROR
 	 break;
-      else if (nt == XML_READER_TYPE_ELEMENT)
+
+      if (nt == XML_READER_TYPE_ELEMENT)
       {
 	 int depth = xmlTextReaderDepth(reader);
-	 checkDepth(stackp, depth);
+	 xstack->checkDepth(depth);
 
+	 class QoreNode *n = xstack->getNode();
 	 // if there is no node pointer, then make a hash
-	 if (!(*stackp->node))
+	 if (!n)
 	 {
-	    (*stackp->node) = new QoreNode(new Hash());
-	    pushXML(stackp, (*stackp->node)->val.hash->getKeyValuePtr(name), depth);
+	    class Hash *h = new Hash();
+	    xstack->setNode(new QoreNode(h));
+	    xstack->push(h->getKeyValuePtr(name), depth);
 	 }
 	 else // node ptr already exists
 	 {
-	    if ((*stackp->node)->type != NT_HASH)
+	    if (n->type != NT_HASH)
 	    {
-	       QoreNode *v = (*stackp->node);
-	       (*stackp->node) = new QoreNode(new Hash());
-	       (*stackp->node)->val.hash->setKeyValue("^value^", v, NULL);
+	       class Hash *h = new Hash();
+	       xstack->setNode(new QoreNode(h));
+	       h->setKeyValue("^value^", n, NULL);
+	       xstack->incValueCount();
+	       xstack->push(h->getKeyValuePtr(name), depth);
 	    }
-	    // see if key already exists
-	    QoreNode *v;
-	    if (!(v = (*stackp->node)->val.hash->getKeyValue(name)))
-	       pushXML(stackp, (*stackp->node)->val.hash->getKeyValuePtr(name), depth);
-	    else 
+	    else
 	    {
-	       // if it's not a list, then make into a list with current value as first entry
-	       if (v->type != NT_LIST)
-	       {
-		  QoreNode **vp = (*stackp->node)->val.hash->getKeyValuePtr(name);
-		  (*vp) = new QoreNode(NT_LIST);
-		  (*vp)->val.list = new List();
-		  (*vp)->val.list->push(v);
-		  pushXML(stackp, (*vp)->val.list->get_entry_ptr((*vp)->val.list->size()), depth);
-		  /* printd(5, "getXMLData() adding first node %08x (%d %s) to list\n",
-		     v, v->type, v->type->name); */
-	       }
+	       // see if key already exists
+	       QoreNode *v;
+	       if (!(v = n->val.hash->getKeyValue(name)))
+		  xstack->push(n->val.hash->getKeyValuePtr(name), depth);
 	       else
-		  pushXML(stackp, v->val.list->get_entry_ptr(v->val.list->size()), depth);
+	       {
+		  // see if last key was the same, if so make a list if it's not
+		  char *lk = n->val.hash->getLastKey();
+		  if (!strncmp(lk, name, strlen(name)))
+		  {
+		     // if it's not a list, then make into a list with current value as first entry
+		     if (v->type != NT_LIST)
+		     {
+			QoreNode **vp = n->val.hash->getKeyValuePtr(lk);
+			(*vp) = new QoreNode(NT_LIST);
+			(*vp)->val.list = new List();
+			(*vp)->val.list->push(v);
+			xstack->push((*vp)->val.list->get_entry_ptr((*vp)->val.list->size()), depth);
+		     }
+		     else
+			xstack->push(v->val.list->get_entry_ptr(v->val.list->size()), depth);
+		  }
+		  else
+		  {
+		     QoreString ns;
+		     int c = 1;
+		     while (true)
+		     {
+			ns.sprintf("%s^%d", name, c);
+			class QoreNode *et = n->val.hash->getKeyValue(ns.getBuffer());
+			if (!et)
+			   break;
+			c++;
+			ns.terminate(0);
+		     }
+		     xstack->push(n->val.hash->getKeyValuePtr(ns.getBuffer()), depth);
+		  }
+	       }
 	    }
 	 }
 	 // add attributes to structure if possible
@@ -897,16 +982,26 @@ static int getXMLData(xmlTextReader *reader, xml_node *&stackp, class QoreEncodi
 	       char *name = (char *)xmlTextReaderConstName(reader);
 	       class QoreString *value = getXmlString(reader, data_ccsid, xsink);
 	       if (!value)
+	       {
+		  h->dereference(xsink);
+		  delete h;
 		  return 0;
+	       }
 	       h->setKeyValue(name, new QoreNode(value), xsink);
 	    }
-	    (*stackp->node) = new QoreNode(new Hash());
-	    (*stackp->node)->val.hash->setKeyValue("^attributes^", new QoreNode(h), xsink);
+
+	    // make new new a hash and assign "^attributes^" key
+	    class Hash *nv = new Hash();
+	    nv->setKeyValue("^attributes^", new QoreNode(h), xsink);
+	    xstack->setNode(new QoreNode(nv));
 	 }
 	 //printd(5, "%s: type=%d, hasValue=%d, empty=%d, depth=%d\n", name, nt, xmlTextReaderHasValue(reader), xmlTextReaderIsEmptyElement(reader), depth);
       }
       else if (nt == XML_READER_TYPE_TEXT)
       {
+	 int depth = xmlTextReaderDepth(reader);
+	 xstack->checkDepth(depth);
+
 	 char *str = (char *)xmlTextReaderConstValue(reader);
 	 if (str)
 	 {
@@ -914,10 +1009,36 @@ static int getXMLData(xmlTextReader *reader, xml_node *&stackp, class QoreEncodi
 	    if (!qstr)
 	       return 0;
 
-	    if ((*stackp->node) && (*stackp->node)->type == NT_HASH)
-	       (*stackp->node)->val.hash->setKeyValue("^value^", new QoreNode(qstr), xsink);
+	    // FIXME: this is wrong
+	    class QoreNode *n = xstack->getNode();
+	    if (n)
+	    {
+	       if (n->type == NT_HASH)
+	       {
+		  if (!xstack->getValueCount())
+		     n->val.hash->setKeyValue("^value^", new QoreNode(qstr), xsink);
+		  else
+		  {
+		     QoreString val;
+		     val.sprintf("^value%d^", xstack->getValueCount());
+		     n->val.hash->setKeyValue(val.getBuffer(), new QoreNode(qstr), xsink);
+		  }		  
+	       }
+	       else // convert value to hash and save value node
+	       {
+		  class Hash *h = new Hash();
+		  xstack->setNode(new QoreNode(h));
+		  h->setKeyValue("^value^", n, NULL);
+		  xstack->incValueCount();
+
+		  QoreString val;
+		  val.sprintf("^value%d^", 1);
+		  h->setKeyValue(val.getBuffer(), new QoreNode(qstr), xsink);
+	       }
+	       xstack->incValueCount();
+	    }
 	    else
-	       (*stackp->node) = new QoreNode(qstr);
+	       xstack->setNode(new QoreNode(qstr));
 	 }
       }
       rc = xmlTextReaderRead(reader);
@@ -1805,7 +1926,7 @@ static void makeXMLStringNew(xmlTextWriterPtr writer, Hash *h, class ExceptionSi
       }
 
       char *key = keyStr->getBuffer();
-      if (!strcmp(key, "^attributes^") || !strcmp(key, "^value^"))
+      if (!strcmp(key, "^attributes^") || !strncmp(key, "^value", 6))
       {
 	 delete keyStr;
 	 continue;
@@ -1879,25 +2000,19 @@ static class QoreNode *f_parseXML(class QoreNode *params, ExceptionSink *xsink)
       xsink->raiseException("PARSE-XML-EXCEPTION", "cannot parse XML string");
       return NULL;
    }
-   QoreNode *rv = NULL;
-   xml_node *stackp = NULL;
-   pushXML(stackp, &rv, -1);
-   rc = getXMLData(reader, stackp, ccsid, xsink);
+   xml_stack xstack;
+   rc = getXMLData(reader, &xstack, ccsid, xsink);
 
    xmlFreeTextReader(reader);
-
-   deleteXMLStack(stackp);
 
    if (rc) 
    {
       xsink->raiseException("PARSE-XML-EXCEPTION", "parse error parsing XML string");
-      if (rv)
-	 rv->deref(xsink);
       return NULL;
    }
 
    traceout("f_parseXML()");
-   return rv;
+   return xstack.getVal();
 }
 
 class QoreString *makeXMLQoreString(QoreNode *pstr, QoreNode *pobj, int format, class QoreEncoding *ccsid, bool fragment, class ExceptionSink *xsink)
