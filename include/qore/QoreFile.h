@@ -48,6 +48,8 @@ class QoreFile {
       char *filename;
 
       inline int readChar();
+      // reads a buffer of the given size
+      char *readBlock(int &size);
      
    public:
       inline QoreFile(class QoreEncoding *cs)
@@ -278,6 +280,7 @@ inline int QoreFile::write(class BinaryObject *b, class ExceptionSink *xsink)
 #ifndef DEFAULT_FILE_BUFSIZE
 #define DEFAULT_FILE_BUFSIZE 4096
 #endif
+
 inline class QoreString *QoreFile::read(int size, class ExceptionSink *xsink)
 {
    if (!size)
@@ -289,33 +292,19 @@ inline class QoreString *QoreFile::read(int size, class ExceptionSink *xsink)
       return NULL;
    }
 
-   int bs = size > 0 && size < DEFAULT_FILE_BUFSIZE ? size : DEFAULT_FILE_BUFSIZE;
-   int br = 0;
-   char *buf = (char *)malloc(sizeof(char) * bs);
-   QoreString *str = new QoreString(charset);
-
-   while (true)
-   {
-      int rc = ::read(fd, buf, bs);
-      if (rc <= 0)
-	 break;
-      str->concat(buf, rc);
-      br += rc;
-
-      if (size > 0)
-      {
-	 if (size - br < bs)
-	    bs = size - br;
-	 if (br >= size)
-	    break;
-      }
-   }
-   free(buf);
-   if (!br)
-   {
-      delete str;
+   char *buf = readBlock(size);
+   if (!buf)
       return NULL;
+
+   class QoreString *str = new QoreString(charset);
+   if (buf[size - 1] == '\0')
+      str->take(buf, size - 1);
+   else
+   {
+      buf[size] = '\0';
+      str->take(buf, size);
    }
+
    return str;
 }
 
@@ -330,38 +319,11 @@ inline class BinaryObject *QoreFile::readBinary(int size, class ExceptionSink *x
       return NULL;
    }
 
-   int bs = size > 0 && size < DEFAULT_FILE_BUFSIZE ? size : DEFAULT_FILE_BUFSIZE;
-   int br = 0;
-   char *buf = (char *)malloc(sizeof(char) * bs);
-   char *bbuf = NULL;
-
-   while (true)
-   {
-      int rc = ::read(fd, buf, bs);
-      if (rc <= 0)
-	 break;
-      // enlarge bbuf
-      bbuf = (char *)realloc(bbuf, br + rc);
-      // append buffer to bbuf
-      memcpy(bbuf + br, buf, rc);
-      br += rc;
-
-      if (size > 0)
-      {
-	 if (size - br < bs)
-	    bs = size - br;
-	 if (br >= size)
-	    break;
-      }
-   }
-   free(buf);
-   if (!br)
-   {
-      if (bbuf)
-	 free(bbuf);
+   char *buf = readBlock(size);
+   if (!buf)
       return NULL;
-   }
-   return new BinaryObject(bbuf, br);
+
+   return new BinaryObject(buf, size);
 }
 
 inline int QoreFile::writei1(char i, class ExceptionSink *xsink)

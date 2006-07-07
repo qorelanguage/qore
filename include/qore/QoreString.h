@@ -111,6 +111,7 @@ class QoreString {
       int vsnprintf(int size, const char *fmt, va_list args);
       inline void take(char *);
       inline void take(char *, class QoreEncoding *new_charset);
+      inline void take(char *, int size);
       inline class QoreEncoding *getEncoding() { return charset; }
       class QoreString *convertEncoding(class QoreEncoding *nccs, class ExceptionSink *xsink);
       inline class QoreString *copy();
@@ -394,12 +395,21 @@ inline void QoreString::take(char *str, class QoreEncoding *new_qorecharset)
    charset = new_qorecharset;
 }
 
+inline void QoreString::take(char *str, int size)
+{
+   if (buf)
+      free(buf);
+   buf = str;
+   len = size;
+   allocated = size + 1;
+}
+
 inline class QoreString *QoreString::copy()
 {
    return new QoreString(this);
 }
 
-// NOTE: could be dangerous if someone refers to the buffer after this
+// NOTE: could be dangerous if we refer to the buffer after this
 // call and it's NULL (the only way the buffer can become NULL)
 inline char *QoreString::giveBuffer()
 {

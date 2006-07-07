@@ -48,7 +48,6 @@
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 
-
 extern char **environ;
 
 void qore_init(char *def_charset, bool show_module_errors)
@@ -58,6 +57,7 @@ void qore_init(char *def_charset, bool show_module_errors)
 
    // initialize openssl library
    SSL_load_error_strings();
+   OpenSSL_add_all_algorithms();
    SSL_library_init();
    // seed PRNG
 
@@ -110,6 +110,7 @@ void qore_cleanup()
    deleteObjects();
 
    // cleanup openssl library
+   EVP_cleanup();
    ERR_free_strings();
 
    // cleanup libxml2 library

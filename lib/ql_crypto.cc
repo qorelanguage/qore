@@ -29,290 +29,688 @@
 #include <qore/BuiltinFunctionList.h>
 
 #include <openssl/evp.h>
+#include <openssl/des.h>
 
 #include <stdio.h>
 #include <stdlib.h>
 
+#define QC_DECRYPT 0
+#define QC_ENCRYPT 1
+
+// NOTE: the trailing null character is included when encrypting strings, but not when calculating digests
+
+// default initialization vector
 static unsigned char def_iv[] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 
-static unsigned char *encrypt_intern(const EVP_CIPHER *type, char *cipher, class QoreNode *params, int *size, ExceptionSink *xsink)
+class BaseHelper {
+   protected:
+      unsigned char *input;
+      int input_len;
+
+      int getInput(char *err, class QoreNode *params, class ExceptionSink *xsink, bool include_null = true)
+      {
+	 class QoreNode *pt = get_param(params, 0);
+
+	 if (is_nothing(pt))
+	 {
+	    xsink->raiseException("PARAMETER-ERROR", "missing data (string or binary) parameter to function");
+	    return -1;
+	 }
+	 if (pt->type == NT_STRING)
+	 {
+	    input = (unsigned char *)pt->val.String->getBuffer();
+	    input_len = pt->val.String->strlen() + include_null;
+	    return 0;
+	 }	 
+	 if (pt->type == NT_BINARY)
+	 {
+	    input = (unsigned char *)pt->val.bin->getPtr();
+	    input_len = pt->val.bin->size();
+	    return 0;
+	 }
+	 
+	 xsink->raiseException("PARAMETER-ERROR", "don't know how to process type '%s' (expecing string or binary)", pt->type->name);
+	 return -1;
+      }      
+};
+
+class DigestHelper : public BaseHelper
 {
-   unsigned char *buf = NULL;
-   int len = 0;
+   private:
+      unsigned char md_value[EVP_MAX_MD_SIZE];
+      unsigned int md_len;
 
-   class QoreNode *pt = get_param(params, 0);
-   if (pt)
-      if (pt->type == NT_STRING)
+   public:
+      inline int getData(char *err, class QoreNode *params, class ExceptionSink *xsink)
       {
-	 buf = (unsigned char *)pt->val.String->getBuffer();
-	 len = pt->val.String->strlen() + 1;
+	 return getInput(err, params, xsink, false);
       }
-      else if (pt->type == NT_BINARY)
+      
+      int doDigest(const EVP_MD *md, char *name, class ExceptionSink *xsink)
       {
-	 buf = (unsigned char *)pt->val.bin->getPtr();
-	 len = pt->val.bin->size();
-      }
-   
-   if (!buf || !len)
-      return NULL;
+	 EVP_MD_CTX mdctx;
+	 EVP_MD_CTX_init(&mdctx);
+	 
+	 EVP_DigestInit_ex(&mdctx, md, NULL);
 
-   // get key and IV
-   unsigned char *key;
-   int keylen = 0;
-   pt = get_param(params, 1);
-   if (!is_nothing(pt))
-   {
-      if (pt->type == NT_STRING)
-      {
-	 key = (unsigned char *)pt->val.String->getBuffer();
-	 keylen = pt->val.String->strlen();
-      }
-      else if (pt->type == NT_BINARY)
-      {
-	 key = (unsigned char *)pt->val.bin->getPtr();
-	 keylen = pt->val.bin->size();
-      }
-      else
-      {
-	 xsink->raiseException("ENCRYPT-ERROR", "can't use type '%s' as a key value for the %s cipher", pt->type->name, cipher);
-	 return NULL;
-      }
-   }
-   else
-   {
-      xsink->raiseException("ENCRYPT-ERROR", "missing key parameter for %s cipher", cipher);
-      return NULL;
-   }
-
-   unsigned char *iv;
-   pt = get_param(params, 2);
-   if (!is_nothing(pt))
-   {
-      if (pt->type == NT_STRING)
-      {
-	 if (pt->val.String->strlen() < 8)
+	 if (!EVP_DigestUpdate(&mdctx, input, input_len) || !EVP_DigestFinal_ex(&mdctx, md_value, &md_len))
 	 {
-	    xsink->raiseException("ENCRYPT-ERROR", "%s input vector must be at least 8 bytes long (%d)", cipher, pt->val.String->strlen());
-	    return NULL;
+	    EVP_MD_CTX_cleanup(&mdctx);
+	    xsink->raiseException("DIGEST-ERROR", "error calculating %s digest", name);
+	    return -1;
 	 }
-	 iv = (unsigned char *)pt->val.String->getBuffer();
+
+	 EVP_MD_CTX_cleanup(&mdctx);
+	 return 0;
       }
-      else if (pt->type == NT_BINARY)
+
+      class QoreString *getString()
       {
-	 if (pt->val.bin->size() < 16)
-	 {
-	    xsink->raiseException("ENCRYPT-ERROR", "%s input vector must be at least 8 bytes long (%d)", cipher, pt->val.bin->size());
-	    return NULL;
-	 }
-	 iv = (unsigned char *)pt->val.bin->getPtr();	 
+	 class QoreString *str = new QoreString();
+	 for (unsigned i = 0; i < md_len; i++)
+	    str->sprintf("%02x", md_value[i]);
+
+	 return str;
       }
-      else
-      {
-	 xsink->raiseException("ENCRYPT-ERROR", "can't use type '%s' as an input vector value for the %s cipher", pt->type->name, cipher);
-	 return NULL;
-      }
-   }
-   else
-      iv = def_iv;
+};
 
-   EVP_CIPHER_CTX ctx;
-   EVP_CIPHER_CTX_init(&ctx);
-   EVP_EncryptInit_ex(&ctx, type, NULL, NULL, NULL);
-   if (key)
-   {
-      if (keylen > EVP_MAX_KEY_LENGTH)
-	 keylen = EVP_MAX_KEY_LENGTH;
-
-      if (!EVP_CIPHER_CTX_set_key_length(&ctx, keylen) || !EVP_EncryptInit_ex(&ctx, NULL, NULL, key, iv))
-      {
-	 xsink->raiseException("ENCRYPT-ERROR", "%s: error setting key length=%d", cipher, keylen);
-	 EVP_CIPHER_CTX_cleanup(&ctx);
-	 return NULL;
-      }
-   }
-
-   int clen = len + (EVP_MAX_BLOCK_LENGTH * 2) - 1;
-   unsigned char *cbuf = (unsigned char *)malloc(sizeof(char) * clen);
-   
-   if (!EVP_EncryptUpdate(&ctx, cbuf, &clen, buf, len))
-   {
-      xsink->raiseException("ENCRYPT-ERROR", "%s encryption error", cipher);
-      EVP_CIPHER_CTX_cleanup(&ctx);
-      free(cbuf);
-      return NULL;
-   }
-
-   int tmplen;
-   // Buffer passed to EVP_EncryptFinal() must be after data just encrypted to avoid overwriting it.
-   if (!EVP_EncryptFinal_ex(&ctx, cbuf + clen, &tmplen))
-   {
-      xsink->raiseException("ENCRYPT-ERROR", "%s encryption error", cipher);
-      EVP_CIPHER_CTX_cleanup(&ctx);
-      free(cbuf);
-      return NULL;
-   }
-
-   EVP_CIPHER_CTX_cleanup(&ctx);
-   (*size) = clen + tmplen;
-   //printd(5, "encrypt %s: in=%08x (%d) out=%08x (%d)\n", cipher, buf, len, cbuf, *size);
-   return cbuf;
-}
-
-static unsigned char *decrypt_intern(const EVP_CIPHER *type, char *cipher, class QoreNode *params, int *size, ExceptionSink *xsink)
+class CryptoHelper : public BaseHelper
 {
-   unsigned char *buf = NULL;
-   int len = 0;
-   
-   class QoreNode *pt = get_param(params, 0);
-   if (pt)
-      if (pt->type == NT_STRING)
-      {
-	 buf = (unsigned char *)pt->val.String->getBuffer();
-	 len = pt->val.String->strlen() + 1;
-      }
-      else if (pt->type == NT_BINARY)
-      {
-	 buf = (unsigned char *)pt->val.bin->getPtr();
-	 len = pt->val.bin->size();
-      }
-   
-   if (!buf || !len)
-      return NULL;
+   private:
+      unsigned char *iv, *output;
+      int output_len;
 
-   // get key and IV
-   unsigned char *key = NULL;
-   int keylen = 0;
-   pt = get_param(params, 1);
-   if (!is_nothing(pt))
-   {
-      if (pt->type == NT_STRING)
+      const char *getOrdinal(int n)
       {
-	 key = (unsigned char *)pt->val.String->getBuffer();
-	 keylen = pt->val.String->strlen();
+	 return n == 1 ? "first" : (n == 2 ? "second" : "third");
       }
-      else if (pt->type == NT_BINARY)
-      {
-	 key = (unsigned char *)pt->val.bin->getPtr();
-	 keylen = pt->val.bin->size();
-      }
-      else
-      {
-	 xsink->raiseException("DECRYPT-ERROR", "can't use type '%s' as a key value for the %s cipher", pt->type->name, cipher);
-	 return NULL;
-      }
-   }
-   else
-   {
-      xsink->raiseException("ENCRYPT-ERROR", "missing key parameter for %s cipher", cipher);
-      return NULL;
-   }
 
-   unsigned char *iv;
-   pt = get_param(params, 2);
-   if (!is_nothing(pt))
-   {
-      if (pt->type == NT_STRING)
+      int getKey(char *err, class QoreNode *params, int n, class ExceptionSink *xsink)
       {
-	 if (pt->val.String->strlen() < 8)
+	 class QoreNode *pt = get_param(params, n);
+
+	 if (is_nothing(pt))
 	 {
-	    xsink->raiseException("DECRYPT-ERROR", "%s input vector must be at least 8 bytes long (%d)", cipher, pt->val.String->strlen());
-	    return NULL;
+	    xsink->raiseException(err, "missing %s key parameter", getOrdinal(n));
+	    return -1;
 	 }
-	 iv = (unsigned char *)pt->val.String->getBuffer();
-      }
-      else if (pt->type == NT_BINARY)
-      {
-	 if (pt->val.bin->size() < 16)
+
+	 if (pt->type == NT_STRING)
 	 {
-	    xsink->raiseException("DECRYPT-ERROR", "%s input vector must be at least 8 bytes long (%d)", cipher, pt->val.bin->size());
-	    return NULL;
+	    key[n - 1] = (unsigned char *)pt->val.String->getBuffer();
+	    keylen[n - 1] = pt->val.String->strlen();
+	    return 0;
 	 }
-	 iv = (unsigned char *)pt->val.bin->getPtr();	 
-      }
-      else
-      {
-	 xsink->raiseException("DECRYPT-ERROR", "can't use type '%s' as an input vector value for the %s cipher", pt->type->name, cipher);
-	 return NULL;
-      }
-   }
-   else
-      iv = def_iv;
+	 
+	 if (pt->type == NT_BINARY)
+	 {
+	    key[n - 1] = (unsigned char *)pt->val.bin->getPtr();
+	    keylen[n - 1] = pt->val.bin->size();
+	    return 0;
+	 }
 
-   EVP_CIPHER_CTX ctx;
-   EVP_CIPHER_CTX_init(&ctx);
-   EVP_DecryptInit_ex(&ctx, type, NULL, NULL, NULL);
-   if (key)
-   {
-      if (keylen > EVP_MAX_KEY_LENGTH)
-	 keylen = EVP_MAX_KEY_LENGTH;
+	 xsink->raiseException(err, "can't use type '%s' for %s key value", pt->type->name, getOrdinal(n));
+	 return -1;
+      }
 
-      if (!EVP_CIPHER_CTX_set_key_length(&ctx, keylen) || !EVP_DecryptInit_ex(&ctx, NULL, NULL, key, iv))
+      // get initialization vector
+      int getIV(class QoreNode *params, int n, class ExceptionSink *xsink)
       {
-	 xsink->raiseException("DECRYPT-ERROR", "%s: error setting key length=%d", cipher, keylen);
+	 class QoreNode *pt = get_param(params, n);
+	 if (is_nothing(pt))
+	 {
+	    iv = def_iv;
+	    return 0;
+	 }
+
+	 if (pt->type == NT_STRING)
+	 {
+	    if (pt->val.String->strlen() < 8)
+	    {
+	       xsink->raiseException("ENCRYPT-ERROR", "the input vector must be at least 8 bytes long (%d bytes passed)", pt->val.String->strlen());
+	       return -1;
+	    }
+	    iv = (unsigned char *)pt->val.String->getBuffer();
+	    return 0;
+	 }
+
+	 if (pt->type == NT_BINARY)
+	 {
+	    if (pt->val.bin->size() < 16)
+	    {
+	       xsink->raiseException("ENCRYPT-ERROR", "the input vector must be at least 8 bytes long (%d bytes passed)", pt->val.bin->size());
+	       return -1;
+	    }
+	    iv = (unsigned char *)pt->val.bin->getPtr();
+	    return 0;
+	 }
+
+	 xsink->raiseException("ENCRYPT-ERROR", "can't use type '%s' as an input vector", pt->type->name);
+	 return -1;
+      }
+
+   public:
+      unsigned char *key[3];
+      int keylen[3];
+
+      inline CryptoHelper()
+      {
+	 output = NULL;
+      }
+
+      inline ~CryptoHelper()
+      {
+	 if (output)
+	    free(output);
+      }
+
+      inline class BinaryObject *getBinary()
+      {
+	 class BinaryObject *b = new BinaryObject(output, output_len);
+	 output = NULL;
+	 return b;
+      }
+
+      inline class QoreString *getString()
+      {
+	 class QoreString *str = new QoreString();
+	 // terminate string only if necessary
+	 if (output[output_len - 1] == '\0')
+	    str->take((char *)output, output_len - 1);
+	 else
+	 {
+	    output[output_len] = '\0';
+	    str->take((char *)output, output_len);
+	 }
+	 output = NULL;
+	 return str;
+      }
+
+      int getSingleKey(char *err, class QoreNode *params, class ExceptionSink *xsink)
+      {
+	 if (getInput(err, params, xsink) || getKey(err, params, 1, xsink) || getIV(params, 2, xsink))
+	    return -1;
+	 return 0;
+      }
+
+      int getTwoKeys(char *err, class QoreNode *params, class ExceptionSink *xsink)
+      {
+	 if (getInput(err, params, xsink) || getKey(err, params, 1, xsink) || getKey(err, params, 2, xsink) || getIV(params, 3, xsink))
+	    return -1;
+	 return 0;
+      }
+
+      int getThreeKeys(char *err, class QoreNode *params, class ExceptionSink *xsink)
+      {
+	 if (getInput(err, params, xsink) || getKey(err, params, 1, xsink) || getKey(err, params, 2, xsink) || getKey(err, params, 3, xsink) || getIV(params, 4, xsink))
+	    return -1;
+	 return 0;
+      }
+
+      int doCipher(const EVP_CIPHER *type, char *cipher, int do_crypt, ExceptionSink *xsink)
+      {
+	 char *err = (char *)(do_crypt ? "ENCRYPT-ERROR" : "DECRYPT-ERROR");
+
+	 EVP_CIPHER_CTX ctx;
+	 EVP_CIPHER_CTX_init(&ctx);
+	 EVP_CipherInit_ex(&ctx, type, NULL, NULL, NULL, do_crypt);
+	 if (key[0])
+	 {
+	    if (keylen[0] > EVP_MAX_KEY_LENGTH)
+	       keylen[0] = EVP_MAX_KEY_LENGTH;
+
+	    if (!EVP_CIPHER_CTX_set_key_length(&ctx, keylen[0]) || !EVP_CipherInit_ex(&ctx, NULL, NULL, key[0], iv, -1))
+	    {
+	       xsink->raiseException(err, "error setting %s key length=%d", cipher, keylen[0]);
+	       EVP_CIPHER_CTX_cleanup(&ctx);
+	       return -1;
+	    }
+	 }
+
+	 // we allocate 1 byte more than we need in case we return as a string so we can terminate it
+	 output = (unsigned char *)malloc(sizeof(char) * (input_len + (EVP_MAX_BLOCK_LENGTH * 2)));
+   
+	 if (!EVP_CipherUpdate(&ctx, output, &output_len, input, input_len))
+	 {
+	    xsink->raiseException(err, "error %scrypting %s block", do_crypt ? "en" : "de", cipher);
+	    EVP_CIPHER_CTX_cleanup(&ctx);
+	    return -1;
+	 }
+
+	 int tmplen;
+	 // Buffer passed to EVP_EncryptFinal() must be after data just encrypted to avoid overwriting it.
+	 if (!EVP_CipherFinal_ex(&ctx, output + output_len, &tmplen))
+	 {
+	    xsink->raiseException(err, "error %scrypting final %s block", do_crypt ? "en" : "de", cipher);
+	    EVP_CIPHER_CTX_cleanup(&ctx);
+	    return -1;
+	 }
+
 	 EVP_CIPHER_CTX_cleanup(&ctx);
-	 return NULL;
+	 output_len += tmplen;
+	 //printd(5, "cipher_intern() %s: in=%08x (%d) out=%08x (%d)\n", cipher, buf, len, cbuf, *size);
+	 return 0;
       }
-   }
 
-   int clen = len + (EVP_MAX_BLOCK_LENGTH * 2);
-   unsigned char *cbuf = (unsigned char *)malloc(sizeof(char) * clen);
+      inline int checkKeyLen(char *err, int n, int len, class ExceptionSink *xsink)
+      {
+	 if (keylen[n] < len)
+	 {
+	    xsink->raiseException(err, "key length is not %d bytes long (%d bytes)", len, keylen[n]);
+	    return -1;
+	 }
+	 keylen[n] = len;
+	 return 0;
+      }
 
-   if (!EVP_DecryptUpdate(&ctx, cbuf, &clen, buf, len))
-   {
-      xsink->raiseException("DECRYPT-ERROR", "error decrypting %s data", cipher);
-      EVP_CIPHER_CTX_cleanup(&ctx);
-      free(cbuf);
-      return NULL;
-   }
+      int setDESKey(int n, class ExceptionSink *xsink)
+      {
 
-   int tmplen = 0;
-   // Buffer passed to EVP_DecryptFinal() must be after data just decrypted to avoid overwriting it.
-   if (!EVP_DecryptFinal_ex(&ctx, cbuf + clen, &tmplen))
-   {
-      xsink->raiseException("DECRYPT-ERROR", "error decrypting %s data", cipher);
-      EVP_CIPHER_CTX_cleanup(&ctx);
-      free(cbuf);
-      return NULL;
-   }
+	 // force odd parity 
+	 //DES_set_odd_parity((DES_cblock *)key[n]);
+	 // populate the schedule structure
+	 //DES_set_key_unchecked((DES_cblock *)key[n], schedule);
+	 //key[n] = (unsigned char *)schedule;
+	 return 0;
+      }
 
-   EVP_CIPHER_CTX_cleanup(&ctx);
-   (*size) = clen + tmplen;
-   //printd(5, "decrypt %s: in=%08x (%d) out=%08x (%d)\n", cipher, buf, len, cbuf, *size);
-   return cbuf;
-}
+};
 
-
-// params (data, [key, [input_vector]])
 static class QoreNode *f_blowfish_encrypt_cbc(class QoreNode *params, ExceptionSink *xsink)
 {
-   int size;
-   unsigned char *buf = encrypt_intern(EVP_bf_cbc(), "blowfish", params, &size, xsink);
-   if (!buf)
+   class CryptoHelper ch;
+
+   if (ch.getSingleKey("BLOWFISH-ENCRYPT-PARAM-ERROR", params, xsink)
+       || ch.doCipher(EVP_bf_cbc(), "blowfish", QC_ENCRYPT, xsink))
       return NULL;
 
-   return new QoreNode(new BinaryObject(buf, size));
+   return new QoreNode(ch.getBinary());
 }
 
 static class QoreNode *f_blowfish_decrypt_cbc(class QoreNode *params, ExceptionSink *xsink)
 {
-   int size;
-   unsigned char *buf = decrypt_intern(EVP_bf_cbc(), "blowfish", params, &size, xsink);
-   if (!buf)
+   class CryptoHelper ch;
+
+   if (ch.getSingleKey("BLOWFISH-DECRYPT-PARAM-ERROR", params, xsink)
+       || ch.doCipher(EVP_bf_cbc(), "blowfish", QC_DECRYPT, xsink))
       return NULL;
 
-   return new QoreNode(new BinaryObject(buf, size));
+   return new QoreNode(ch.getBinary());
 }
 
 static class QoreNode *f_blowfish_decrypt_cbc_to_string(class QoreNode *params, ExceptionSink *xsink)
 {
-   int size;
-   unsigned char *buf = decrypt_intern(EVP_bf_cbc(), "blowfish", params, &size, xsink);
-   if (!buf)
+   class CryptoHelper ch;
+
+   if (ch.getSingleKey("BLOWFISH-DECRYPT-PARAM-ERROR", params, xsink)
+       || ch.doCipher(EVP_bf_cbc(), "blowfish", QC_DECRYPT, xsink))
       return NULL;
 
-   class QoreString *str = new QoreString();
-   str->take((char *)buf);
-   return new QoreNode(str);
+   return new QoreNode(ch.getString());
+}
+
+static class QoreNode *f_des_encrypt_cbc(class QoreNode *params, ExceptionSink *xsink)
+{
+   class CryptoHelper ch;
+
+   if (ch.getSingleKey("DES-ENCRYPT-PARAM-ERROR", params, xsink) 
+       || ch.checkKeyLen("DES-KEY-ERROR", 0, 8, xsink)
+       || ch.doCipher(EVP_des_cbc(), "DES", QC_ENCRYPT, xsink))
+	    return NULL;
+
+   return new QoreNode(ch.getBinary());
+}
+
+static class QoreNode *f_des_decrypt_cbc(class QoreNode *params, ExceptionSink *xsink)
+{
+   class CryptoHelper ch;
+
+   if (ch.getSingleKey("DES-DECRYPT-PARAM-ERROR", params, xsink) 
+       || ch.checkKeyLen("DES-KEY-ERROR", 0, 8, xsink)
+       || ch.doCipher(EVP_des_cbc(), "DES", QC_DECRYPT, xsink))
+	    return NULL;
+
+   return new QoreNode(ch.getBinary());
+}
+
+static class QoreNode *f_des_decrypt_cbc_to_string(class QoreNode *params, ExceptionSink *xsink)
+{
+   class CryptoHelper ch;
+
+   if (ch.getSingleKey("DES-DECRYPT-PARAM-ERROR", params, xsink) 
+       || ch.checkKeyLen("DES-KEY-ERROR", 0, 8, xsink)
+       || ch.doCipher(EVP_des_cbc(), "DES", QC_DECRYPT, xsink))
+	    return NULL;
+
+   return new QoreNode(ch.getString());
+}
+
+// params (data, [key, [input_vector]])
+static class QoreNode *f_des_ede_encrypt_cbc(class QoreNode *params, ExceptionSink *xsink)
+{
+   class CryptoHelper ch;
+
+   if (ch.getSingleKey("DES-ENCRYPT-PARAM-ERROR", params, xsink) 
+       || ch.checkKeyLen("DES-KEY-ERROR", 0, 16, xsink)
+       || ch.doCipher(EVP_des_ede_cbc(), "DES", QC_ENCRYPT, xsink))
+      return NULL;
+
+   return new QoreNode(ch.getBinary());
+}
+
+static class QoreNode *f_des_ede_decrypt_cbc(class QoreNode *params, ExceptionSink *xsink)
+{
+   class CryptoHelper ch;
+
+   if (ch.getSingleKey("DES-DECRYPT-PARAM-ERROR", params, xsink) 
+       || ch.checkKeyLen("DES-KEY-ERROR", 0, 16, xsink)
+       || ch.doCipher(EVP_des_ede_cbc(), "DES", QC_DECRYPT, xsink))
+      return NULL;
+
+   return new QoreNode(ch.getBinary());
+}
+
+static class QoreNode *f_des_ede_decrypt_cbc_to_string(class QoreNode *params, ExceptionSink *xsink)
+{
+   class CryptoHelper ch;
+
+   if (ch.getSingleKey("DES-DECRYPT-PARAM-ERROR", params, xsink) 
+       || ch.checkKeyLen("DES-KEY-ERROR", 0, 16, xsink)
+       || ch.doCipher(EVP_des_ede_cbc(), "DES", QC_DECRYPT, xsink))
+      return NULL;
+
+   return new QoreNode(ch.getString());
+}
+
+// params (data, [key, [input_vector]])
+static class QoreNode *f_des_ede3_encrypt_cbc(class QoreNode *params, ExceptionSink *xsink)
+{
+   class CryptoHelper ch;
+
+   if (ch.getSingleKey("DES-ENCRYPT-PARAM-ERROR", params, xsink) 
+       || ch.checkKeyLen("DES-KEY-ERROR", 0, 24, xsink)
+       || ch.doCipher(EVP_des_ede3_cbc(), "DES", QC_ENCRYPT, xsink))
+      return NULL;
+
+   return new QoreNode(ch.getBinary());
+}
+
+static class QoreNode *f_des_ede3_decrypt_cbc(class QoreNode *params, ExceptionSink *xsink)
+{
+   class CryptoHelper ch;
+
+   if (ch.getSingleKey("DES-DECRYPT-PARAM-ERROR", params, xsink) 
+       || ch.checkKeyLen("DES-KEY-ERROR", 0, 24, xsink)
+       || ch.doCipher(EVP_des_ede3_cbc(), "DES", QC_DECRYPT, xsink))
+      return NULL;
+
+   return new QoreNode(ch.getBinary());
+}
+
+static class QoreNode *f_des_ede3_decrypt_cbc_to_string(class QoreNode *params, ExceptionSink *xsink)
+{
+   class CryptoHelper ch;
+
+   if (ch.getSingleKey("DES-DECRYPT-PARAM-ERROR", params, xsink) 
+       || ch.checkKeyLen("DES-KEY-ERROR", 0, 24, xsink)
+       || ch.doCipher(EVP_des_ede3_cbc(), "DES", QC_DECRYPT, xsink))
+      return NULL;
+
+   return new QoreNode(ch.getString());
+}
+
+// params (data, key, [input_vector])
+static class QoreNode *f_desx_encrypt_cbc(class QoreNode *params, ExceptionSink *xsink)
+{
+   class CryptoHelper ch;
+
+   if (ch.getSingleKey("DESX-ENCRYPT-PARAM-ERROR", params, xsink) 
+       || ch.checkKeyLen("DESX-KEY-ERROR", 0, 24, xsink)
+       || ch.doCipher(EVP_desx_cbc(), "DESX", QC_ENCRYPT, xsink))
+      return NULL;
+
+   return new QoreNode(ch.getBinary());
+}
+
+static class QoreNode *f_desx_decrypt_cbc(class QoreNode *params, ExceptionSink *xsink)
+{
+   class CryptoHelper ch;
+
+   if (ch.getSingleKey("DESX-DECRYPT-PARAM-ERROR", params, xsink) 
+       || ch.checkKeyLen("DESX-KEY-ERROR", 0, 24, xsink)
+       || ch.doCipher(EVP_desx_cbc(), "DESX", QC_DECRYPT, xsink))
+      return NULL;
+
+   return new QoreNode(ch.getBinary());
+}
+
+static class QoreNode *f_desx_decrypt_cbc_to_string(class QoreNode *params, ExceptionSink *xsink)
+{
+   class CryptoHelper ch;
+
+   if (ch.getSingleKey("DESX-DECRYPT-PARAM-ERROR", params, xsink) 
+       || ch.checkKeyLen("DESX-KEY-ERROR", 0, 24, xsink)
+       || ch.doCipher(EVP_desx_cbc(), "DESX", QC_DECRYPT, xsink))
+      return NULL;
+
+   return new QoreNode(ch.getString());
+}
+
+static class QoreNode *f_rc4_encrypt(class QoreNode *params, ExceptionSink *xsink)
+{
+   class CryptoHelper ch;
+
+   if (ch.getSingleKey("RC4-ENCRYPT-PARAM-ERROR", params, xsink)
+       || ch.doCipher(EVP_rc4(), "rc4", QC_ENCRYPT, xsink))
+      return NULL;
+
+   return new QoreNode(ch.getBinary());
+}
+
+static class QoreNode *f_rc4_decrypt(class QoreNode *params, ExceptionSink *xsink)
+{
+   class CryptoHelper ch;
+
+   if (ch.getSingleKey("RC4-DECRYPT-PARAM-ERROR", params, xsink)
+       || ch.doCipher(EVP_rc4(), "rc4", QC_DECRYPT, xsink))
+      return NULL;
+
+   return new QoreNode(ch.getBinary());
+}
+
+static class QoreNode *f_rc4_decrypt_to_string(class QoreNode *params, ExceptionSink *xsink)
+{
+   class CryptoHelper ch;
+
+   if (ch.getSingleKey("RC4-DECRYPT-PARAM-ERROR", params, xsink)
+       || ch.doCipher(EVP_rc4(), "rc4", QC_DECRYPT, xsink))
+      return NULL;
+
+   return new QoreNode(ch.getString());
+}
+
+static class QoreNode *f_rc2_encrypt_cbc(class QoreNode *params, ExceptionSink *xsink)
+{
+   class CryptoHelper ch;
+
+   if (ch.getSingleKey("RC2-ENCRYPT-PARAM-ERROR", params, xsink)
+       || ch.doCipher(EVP_rc2_cbc(), "rc2", QC_ENCRYPT, xsink))
+      return NULL;
+
+   return new QoreNode(ch.getBinary());
+}
+
+static class QoreNode *f_rc2_decrypt_cbc(class QoreNode *params, ExceptionSink *xsink)
+{
+   class CryptoHelper ch;
+
+   if (ch.getSingleKey("RC2-DECRYPT-PARAM-ERROR", params, xsink)
+       || ch.doCipher(EVP_rc2_cbc(), "rc2", QC_DECRYPT, xsink))
+      return NULL;
+
+   return new QoreNode(ch.getBinary());
+}
+
+static class QoreNode *f_rc2_decrypt_cbc_to_string(class QoreNode *params, ExceptionSink *xsink)
+{
+   class CryptoHelper ch;
+
+   if (ch.getSingleKey("RC2-DECRYPT-PARAM-ERROR", params, xsink)
+       || ch.doCipher(EVP_rc2_cbc(), "rc2", QC_DECRYPT, xsink))
+      return NULL;
+
+   return new QoreNode(ch.getString());
+}
+
+static class QoreNode *f_cast5_encrypt_cbc(class QoreNode *params, ExceptionSink *xsink)
+{
+   class CryptoHelper ch;
+
+   if (ch.getSingleKey("CAST5-ENCRYPT-PARAM-ERROR", params, xsink)
+       || ch.doCipher(EVP_cast5_cbc(), "CAST5", QC_ENCRYPT, xsink))
+      return NULL;
+
+   return new QoreNode(ch.getBinary());
+}
+
+static class QoreNode *f_cast5_decrypt_cbc(class QoreNode *params, ExceptionSink *xsink)
+{
+   class CryptoHelper ch;
+
+   if (ch.getSingleKey("CAST5-DECRYPT-PARAM-ERROR", params, xsink)
+       || ch.doCipher(EVP_cast5_cbc(), "CAST5", QC_DECRYPT, xsink))
+      return NULL;
+
+   return new QoreNode(ch.getBinary());
+}
+
+static class QoreNode *f_cast5_decrypt_cbc_to_string(class QoreNode *params, ExceptionSink *xsink)
+{
+   class CryptoHelper ch;
+
+   if (ch.getSingleKey("CAST5-DECRYPT-PARAM-ERROR", params, xsink)
+       || ch.doCipher(EVP_cast5_cbc(), "CAST5", QC_DECRYPT, xsink))
+      return NULL;
+
+   return new QoreNode(ch.getString());
+}
+
+#ifndef OPENSSL_NO_RC5
+static class QoreNode *f_rc5_encrypt_cbc(class QoreNode *params, ExceptionSink *xsink)
+{
+   class CryptoHelper ch;
+
+   if (ch.getSingleKey("RC5-ENCRYPT-PARAM-ERROR", params, xsink)
+       || ch.doCipher(EVP_rc5_32_12_16_cbc(), "rc5", QC_ENCRYPT, xsink))
+      return NULL;
+
+   return new QoreNode(ch.getBinary());
+}
+
+static class QoreNode *f_rc5_decrypt_cbc(class QoreNode *params, ExceptionSink *xsink)
+{
+   class CryptoHelper ch;
+
+   if (ch.getSingleKey("RC5-DECRYPT-PARAM-ERROR", params, xsink)
+       || ch.doCipher(EVP_rc5_32_12_16_cbc(), "rc5", QC_DECRYPT, xsink))
+      return NULL;
+
+   return new QoreNode(ch.getBinary());
+}
+
+static class QoreNode *f_rc5_decrypt_cbc_to_string(class QoreNode *params, ExceptionSink *xsink)
+{
+   class CryptoHelper ch;
+
+   if (ch.getSingleKey("RC5-DECRYPT-PARAM-ERROR", params, xsink)
+       || ch.doCipher(EVP_rc5_32_12_16_cbc(), "rc5", QC_DECRYPT, xsink))
+      return NULL;
+
+   return new QoreNode(ch.getString());
+}
+#endif
+
+static class QoreNode *f_MD2(class QoreNode *params, ExceptionSink *xsink)
+{
+   class DigestHelper dh;
+   if (dh.getData("MD2-DIGEST-ERROR", params, xsink) || dh.doDigest(EVP_md2(), "MD2", xsink))
+      return NULL;
+
+   return new QoreNode(dh.getString());
+}
+
+static class QoreNode *f_MD4(class QoreNode *params, ExceptionSink *xsink)
+{
+   class DigestHelper dh;
+   if (dh.getData("MD4-DIGEST-ERROR", params, xsink) || dh.doDigest(EVP_md4(), "MD4", xsink))
+      return NULL;
+
+   return new QoreNode(dh.getString());
+}
+
+static class QoreNode *f_MD5(class QoreNode *params, ExceptionSink *xsink)
+{
+   class DigestHelper dh;
+   if (dh.getData("MD5-DIGEST-ERROR", params, xsink) || dh.doDigest(EVP_md5(), "MD5", xsink))
+      return NULL;
+
+   return new QoreNode(dh.getString());
+}
+
+static class QoreNode *f_SHA(class QoreNode *params, ExceptionSink *xsink)
+{
+   class DigestHelper dh;
+   if (dh.getData("SHA-DIGEST-ERROR", params, xsink) || dh.doDigest(EVP_sha(), "SHA", xsink))
+      return NULL;
+
+   return new QoreNode(dh.getString());
+}
+
+static class QoreNode *f_SHA1(class QoreNode *params, ExceptionSink *xsink)
+{
+   class DigestHelper dh;
+   if (dh.getData("SHA1-DIGEST-ERROR", params, xsink) || dh.doDigest(EVP_sha1(), "SHA1", xsink))
+      return NULL;
+
+   return new QoreNode(dh.getString());
+}
+
+static class QoreNode *f_DSS(class QoreNode *params, ExceptionSink *xsink)
+{
+   class DigestHelper dh;
+   if (dh.getData("DSS-DIGEST-ERROR", params, xsink) || dh.doDigest(EVP_dss(), "DSS", xsink))
+      return NULL;
+
+   return new QoreNode(dh.getString());
+}
+
+static class QoreNode *f_DSS1(class QoreNode *params, ExceptionSink *xsink)
+{
+   class DigestHelper dh;
+   if (dh.getData("DSS1-DIGEST-ERROR", params, xsink) || dh.doDigest(EVP_dss1(), "DSS1", xsink))
+      return NULL;
+
+   return new QoreNode(dh.getString());
+}
+
+#ifndef OPENSSL_NO_MDC2
+static class QoreNode *f_MDC2(class QoreNode *params, ExceptionSink *xsink)
+{
+   class DigestHelper dh;
+   if (dh.getData("MDC2-DIGEST-ERROR", params, xsink) || dh.doDigest(EVP_mdc2(), "MDC2", xsink))
+      return NULL;
+
+   return new QoreNode(dh.getString());
+}
+#endif
+
+static class QoreNode *f_RIPEMD160(class QoreNode *params, ExceptionSink *xsink)
+{
+   class DigestHelper dh;
+   if (dh.getData("RIPEMD160-DIGEST-ERROR", params, xsink) || dh.doDigest(EVP_ripemd160(), "RIPEMD160", xsink))
+      return NULL;
+
+   return new QoreNode(dh.getString());
 }
 
 void init_crypto_functions()
@@ -320,4 +718,51 @@ void init_crypto_functions()
    builtinFunctions.add("blowfish_encrypt_cbc", f_blowfish_encrypt_cbc);
    builtinFunctions.add("blowfish_decrypt_cbc", f_blowfish_decrypt_cbc);
    builtinFunctions.add("blowfish_decrypt_cbc_to_string", f_blowfish_decrypt_cbc_to_string);
+
+   builtinFunctions.add("des_encrypt_cbc", f_des_encrypt_cbc);
+   builtinFunctions.add("des_decrypt_cbc", f_des_decrypt_cbc);
+   builtinFunctions.add("des_decrypt_cbc_to_string", f_des_decrypt_cbc_to_string);
+
+   builtinFunctions.add("des_ede_encrypt_cbc", f_des_ede_encrypt_cbc);
+   builtinFunctions.add("des_ede_decrypt_cbc", f_des_ede_decrypt_cbc);
+   builtinFunctions.add("des_ede_decrypt_cbc_to_string", f_des_ede_decrypt_cbc_to_string);
+
+   builtinFunctions.add("des_ede3_encrypt_cbc", f_des_ede3_encrypt_cbc);
+   builtinFunctions.add("des_ede3_decrypt_cbc", f_des_ede3_decrypt_cbc);
+   builtinFunctions.add("des_ede3_decrypt_cbc_to_string", f_des_ede3_decrypt_cbc_to_string);
+
+   builtinFunctions.add("desx_encrypt_cbc", f_desx_encrypt_cbc);
+   builtinFunctions.add("desx_decrypt_cbc", f_desx_decrypt_cbc);
+   builtinFunctions.add("desx_decrypt_cbc_to_string", f_desx_decrypt_cbc_to_string);
+
+   builtinFunctions.add("rc4_encrypt", f_rc4_encrypt);
+   builtinFunctions.add("rc4_decrypt", f_rc4_decrypt);
+   builtinFunctions.add("rc4_decrypt_to_string", f_rc4_decrypt_to_string);
+
+   builtinFunctions.add("rc2_encrypt_cbc", f_rc2_encrypt_cbc);
+   builtinFunctions.add("rc2_decrypt_cbc", f_rc2_decrypt_cbc);
+   builtinFunctions.add("rc2_decrypt_cbc_to_string", f_rc2_decrypt_cbc_to_string);
+
+   builtinFunctions.add("cast5_encrypt_cbc", f_cast5_encrypt_cbc);
+   builtinFunctions.add("cast5_decrypt_cbc", f_cast5_decrypt_cbc);
+   builtinFunctions.add("cast5_decrypt_cbc_to_string", f_cast5_decrypt_cbc_to_string);
+
+#ifndef OPENSSL_NO_RC5
+   builtinFunctions.add("rc5_encrypt_cbc", f_rc5_encrypt_cbc);
+   builtinFunctions.add("rc5_decrypt_cbc", f_rc5_decrypt_cbc);
+   builtinFunctions.add("rc5_decrypt_cbc_to_string", f_rc5_decrypt_cbc_to_string);
+#endif
+
+   // digest functions
+   builtinFunctions.add("MD2",       f_MD2);
+   builtinFunctions.add("MD4",       f_MD4);
+   builtinFunctions.add("MD5",       f_MD5);
+   builtinFunctions.add("SHA",       f_SHA);
+   builtinFunctions.add("SHA1",      f_SHA1);
+   builtinFunctions.add("DSS",       f_DSS);
+   builtinFunctions.add("DSS1",      f_DSS1);
+#ifndef OPENSSL_NO_MDC2
+   builtinFunctions.add("MSC2",      f_MDC2);
+#endif
+   builtinFunctions.add("RIPEMD160", f_RIPEMD160);
 }
