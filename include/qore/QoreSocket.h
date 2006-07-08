@@ -294,7 +294,27 @@ class QoreSocket
 	 setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(int));
       }
       inline int recv(char *buf, int bs, int flags, int timeout);
+      inline int upgradeClientToSSLIntern(class ExceptionSink *xsink)
+      {
+	 ssl = new SSLSocketHelper();
+	 int rc;
+	 if ((rc = ssl->setClient(sock, xsink)) || ssl->connect(xsink))
+	 {
+	    delete ssl;
+	    ssl = NULL;
+	    return rc;
+	 }
+	 return 0;
+      }
 
+      inline int upgradeServerToSSLIntern(X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink)
+      {
+	 ssl = new SSLSocketHelper();
+	 if (ssl->setServer(sock, cert, pkey, xsink) || ssl->accept(xsink))
+	    return -1;
+	 return 0;
+      }
+	   
    public:
       inline QoreSocket();
       inline ~QoreSocket();
@@ -421,6 +441,8 @@ class QoreSocket
 	    return -1;
 	 return ssl->verifyPeerCertificate();
       }
+      inline int upgradeClientToSSL(class ExceptionSink *xsink);
+      inline int upgradeServerToSSL(X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink);
 };
 
 inline void QoreSocket::init()
@@ -519,14 +541,7 @@ inline int QoreSocket::connectINETSSL(char *host, int prt, class ExceptionSink *
    int rc = connectINET(host, prt, xsink);
    if (rc)
       return rc;
-   ssl = new SSLSocketHelper();
-   if ((rc = ssl->setClient(sock, xsink)) || ssl->connect(xsink))
-   {
-      delete ssl;
-      ssl = NULL;
-      return rc;
-   }
-   return 0;
+   return upgradeClientToSSLIntern(xsink);
 }
 
 inline int QoreSocket::connectUNIXSSL(char *p, class ExceptionSink *xsink)
@@ -534,14 +549,25 @@ inline int QoreSocket::connectUNIXSSL(char *p, class ExceptionSink *xsink)
    int rc = connectUNIX(p, xsink);
    if (rc)
       return rc;
-   ssl = new SSLSocketHelper();
-   if ((rc = ssl->setClient(sock, xsink)) || ssl->connect(xsink))
-   {
-      delete ssl;
-      ssl = NULL;
-      return rc;
-   }
-   return 0;
+   return upgradeClientToSSLIntern(xsink);
+}
+
+inline int QoreSocket::upgradeClientToSSL(class ExceptionSink *xsink)
+{
+   if (!sock)
+      return -1;
+   if (ssl)
+      return 0;
+   return upgradeClientToSSLIntern(xsink);
+}
+
+inline int QoreSocket::upgradeServerToSSL(X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink)
+{
+   if (!sock)
+      return -1;
+   if (ssl)
+      return 0;
+   return upgradeServerToSSLIntern(cert, pkey, xsink);
 }
 
 // returns 0 = success, -1 = error
@@ -704,17 +730,12 @@ inline QoreSocket *QoreSocket::acceptSSL(QoreString *source, X509 *cert, EVP_PKE
    if (!s)
       return NULL;
 
-   s->ssl = new SSLSocketHelper();
-   if (s->ssl->setServer(s->sock, cert, pkey, xsink))
+   if (s->upgradeServerToSSLIntern(cert, pkey, xsink))
    {
       delete s;
       return NULL;
    }
-   if (s->ssl->accept(xsink))
-   {
-      delete s;
-      return NULL;
-   }
+   
    return s;
 }
 

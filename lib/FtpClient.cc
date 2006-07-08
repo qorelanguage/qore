@@ -7,6 +7,14 @@
   
   Copyright (C) 2003, 2004, 2005, 2006 David Nichols
 
+  RFC-959: FTP
+  RFC-2428: EPSV mode only (no IPv6 yet)
+  RFC-2228 and RFC-4217: 
+   * AUTH TLS secure logins
+   * PBSZ 0 and PROT P (RFC-4217) secure data connections
+ 
+  !RFC-1639: LPSV mode not implemented
+
   defaults to EPSV mode, then tries PASV, then PORT
 
   This library is free software; you can redistribute it and/or
@@ -36,6 +44,7 @@ FtpClient::FtpClient(class QoreString *url, class ExceptionSink *xsink)
    transfer_mode = "I";
    port = DEFAULT_FTP_CONTROL_PORT;
    user = pass = host = NULL;
+   secure = secure_data = false;
 
    if (url)
       setURLInternal(url, xsink);
@@ -53,9 +62,11 @@ void FtpClient::setURLInternal(class QoreString *url, class ExceptionSink *xsink
    QoreNode *n = h->getKeyValue("protocol");
    if (n)
    {
-      if (strcmp(n->val.String->getBuffer(), "ftp"))
+      if (!strcmp(n->val.String->getBuffer(), "ftps"))
+	 secure = secure_data = true;
+      else if (strcmp(n->val.String->getBuffer(), "ftp"))
       {
-	 xsink->raiseException("UNSUPPORTED-PROTOCOL", "\"%s\" not supported (expected \"ftp\")", n->val.String->getBuffer());
+	 xsink->raiseException("UNSUPPORTED-PROTOCOL", "'%s' not supported (expected 'ftp' or 'ftps')", n->val.String->getBuffer());
 	 h->dereference(NULL);
 	 delete h;
 	 return;
@@ -77,7 +88,7 @@ void FtpClient::setURLInternal(class QoreString *url, class ExceptionSink *xsink
    if (n)
       host = strdup(n->val.String->getBuffer());
    else
-      xsink->raiseException("FTP-URL-ERROR", "no hostname given in URL \"%s\"", url->getBuffer());
+      xsink->raiseException("FTP-URL-ERROR", "no hostname given in URL '%s'", url->getBuffer());
 
    // set port
    n = h->getKeyValue("port");
@@ -171,43 +182,37 @@ int FtpClient::connectDataLongPassive(class ExceptionSink *xsink)
 int FtpClient::connectDataExtendedPassive(class ExceptionSink *xsink)
 {
    // try extended passive mode
-   class QoreString *resp = sendMsg("EPSV", NULL, xsink);
-   if ((getFTPCode(resp) / 100) != 2)
-   {
-      delete resp;
+   class FtpResp resp(sendMsg("EPSV", NULL, xsink));
+   if ((resp.getCode() / 100) != 2)
       return -1;
-   }
 
    // ex: 229 Entering Extended Passive Mode (|||63519|)
    // get port for data connection
-   char *s = strstr(resp->getBuffer(), "|||");
+   char *s = strstr(resp.getBuffer(), "|||");
    if (!s)
    {
-      stripEOL(resp);
-      xsink->raiseException("FTP-RESPONSE-ERROR", "cannot find port in EPSV response: %s", resp->getBuffer());
-      delete resp;
+      resp.stripEOL();
+      xsink->raiseException("FTP-RESPONSE-ERROR", "cannot find port in EPSV response: %s", resp.getBuffer());
       return -1;
    }
    s += 3;
    char *end = strchr(s, '|');
    if (!end)
    {
-      stripEOL(resp);
-      xsink->raiseException("FTP-RESPONSE-ERROR", "cannot find port in EPSV response: %s", resp->getBuffer());
-      delete resp;
+      resp.stripEOL();
+      xsink->raiseException("FTP-RESPONSE-ERROR", "cannot find port in EPSV response: %s", resp.getBuffer());
       return -1;
    }
    *end = '\0';
 
    int data_port = atoi(s);
-   delete resp;
-   //printd(FTPDEBUG, "EPSV connecting to data port %s:%d\n", url, data_port);
    if (data.connectINET(host, data_port))
    {
       xsink->raiseException("FTP-CONNECT-ERROR", "could not connect to passive data port (%s:%d): %s", host, data_port,
 		     strerror(errno));
       return -1;
    }
+   printd(FTPDEBUG, "EPSV connected to %s:%d\n", host, data_port);
 
    mode = FTP_MODE_EPSV;
    return 0;
@@ -217,21 +222,18 @@ int FtpClient::connectDataExtendedPassive(class ExceptionSink *xsink)
 int FtpClient::connectDataPassive(class ExceptionSink *xsink)
 {
    // try passive mode
-   class QoreString *resp = sendMsg("PASV", NULL, xsink);
-   if ((getFTPCode(resp) / 100) != 2)
-   {
-      delete resp;
+   class FtpResp resp;
+   resp.assign(sendMsg("PASV", NULL, xsink));
+   if ((resp.getCode() / 100) != 2)
       return -1;
-   }
 
    // reply ex: 227 Entering passive mode (127,0,0,1,28,46)  
    // get port for data connection
-   char *s = strstr(resp->getBuffer(), "(");
+   char *s = strstr(resp.getBuffer(), "(");
    if (!s)
    {
-      stripEOL(resp);
-      xsink->raiseException("FTP-RESPONSE-ERROR", "cannot parse PASV response: %s", resp->getBuffer());
-      delete resp;
+      resp.stripEOL();
+      xsink->raiseException("FTP-RESPONSE-ERROR", "cannot parse PASV response: %s", resp.getBuffer());
       return -1;
    }
    int num[5];
@@ -242,9 +244,8 @@ int FtpClient::connectDataPassive(class ExceptionSink *xsink)
       comma = strchr(s, ',');
       if (!comma)
       {
-	 stripEOL(resp);
-	 xsink->raiseException("FTP-RESPONSE-ERROR", "cannot parse PASV response: %s", resp->getBuffer());
-	 delete resp;
+	 resp.stripEOL();
+	 xsink->raiseException("FTP-RESPONSE-ERROR", "cannot parse PASV response: %s", resp.getBuffer());
 	 return -1;
       }
       num[i] = atoi(s);
@@ -255,13 +256,15 @@ int FtpClient::connectDataPassive(class ExceptionSink *xsink)
    ip.sprintf("%d.%d.%d.%d", num[0], num[1], num[2], num[3]);
    printd(FTPDEBUG,"FtpClient::connectPassive() address: %s:%d\n", ip.getBuffer(), dataport);
 
-   delete resp;
    if (data.connectINET(ip.getBuffer(), dataport))
    {
       xsink->raiseException("FTP-CONNECT-ERROR", "could not connect to passive data port (%s:%d): %s", 
-		     ip.getBuffer(), dataport, strerror(errno));
+			    ip.getBuffer(), dataport, strerror(errno));
       return -1;
    }
+
+   if (secure_data && data.upgradeClientToSSL(xsink))
+      return -1;      
 
    mode = FTP_MODE_PASV;
    return 0;
@@ -308,7 +311,7 @@ int FtpClient::connectDataPort(class ExceptionSink *xsink)
 
    QoreString pconn;
    pconn.sprintf("%s,%d,%d", ifname, dataport >> 8, dataport & 255);
-   QoreString *resp = sendMsg("PORT", pconn.getBuffer(), xsink);
+   FtpResp resp(sendMsg("PORT", pconn.getBuffer(), xsink));
    if (xsink->isEvent())
    {
       data.close();
@@ -316,24 +319,118 @@ int FtpClient::connectDataPort(class ExceptionSink *xsink)
    }
 
    // ex: 200 PORT command successful.
-   if ((getFTPCode(resp) / 100) != 2)
+   if ((resp.getCode() / 100) != 2)
    {
       data.close();
-      delete resp;
       return -1;
    }
-   delete resp;
    
    if (data.listen())
    {
       data.close();
       xsink->raiseException("FTP-CONNECT-ERROR", "error listening on data connection: %s", 
-		     strerror(errno));
+			    strerror(errno));
       return -1;
    }
    printd(FTPDEBUG, "FtpClient::connectDataPort() listening on port %d\n", dataport);
 
    mode = FTP_MODE_PORT;
+   return 0;
+}
+
+// private unlocked
+inline int FtpClient::connectIntern(class FtpResp *resp, class ExceptionSink *xsink)
+{
+   // connect to FTP port on remote machine
+   if (control.connectINET(host, port))
+   {
+      if (port != DEFAULT_FTP_CONTROL_PORT)
+	 xsink->raiseException("FTP-CONNECT-ERROR", "could not connect to ftp%s://%s:%d", secure ? "s" : "", host, port);
+      else
+	 xsink->raiseException("FTP-CONNECT-ERROR", "could not connect to ftp%s://%s", secure ? "s" : "", host);
+
+      return -1;
+   }
+
+   control_connected = 1;
+
+   int rc;
+   resp->assign(control.recv(-1, &rc));
+   if (xsink->isEvent())
+      return -1;
+
+   printd(FTPDEBUG, "FtpClient::connectIntern() %s", resp->getBuffer());
+
+   // ex: 220 (vsFTPd 2.0.1)
+   // ex: 220 localhost FTP server (tnftpd 20040810) ready.
+   // etc
+   if ((resp->getCode() / 100) != 2)
+   {
+      resp->stripEOL();
+      xsink->raiseException("FTP-CONNECT-ERROR", "FTP server reported the following error: %s",
+			    resp->getBuffer());
+      return -1;
+   }
+
+   return 0;
+}
+
+// do PBSZ and PROT commands
+inline int FtpClient::doProt(class FtpResp *resp, class ExceptionSink *xsink)
+{
+   // RFC-4217: PBSZ 0 for streaming data
+   resp->assign(sendMsg("PBSZ", "0", xsink));
+   if (xsink->isEvent())
+      return -1;
+   int code = resp->getCode();
+   if (code != 200)
+   {
+      resp->stripEOL();
+      xsink->raiseException("FTPS-SECURE-DATA-ERROR", "response from FTP server to PBSZ 0 command: %s", resp->getBuffer());
+      return -1;
+   }
+
+   resp->assign(sendMsg("PROT", "P", xsink));
+   if (xsink->isEvent())
+      return -1;
+   code = resp->getCode();
+   if (code != 200)
+   {
+      resp->stripEOL();
+      xsink->raiseException("FTPS-SECURE-DATA-ERROR", "response from FTP server to PROT P command: %s", resp->getBuffer());
+      return -1;
+   }
+
+   return 0;
+}
+
+// private unlocked
+inline int FtpClient::doAuth(class FtpResp *resp, class ExceptionSink *xsink)
+{
+   resp->assign(sendMsg("AUTH", "TLS", xsink));
+   if (xsink->isEvent())
+      return -1;
+   int code = resp->getCode();
+
+   if (code != 234)
+   {
+      // RFC-2228 ADAT exchange not supported
+      if (code == 334)
+	 xsink->raiseException("FTPS-AUTH-ERROR", "server requires unsupported ADAT exchange");
+      else
+      {
+	 resp->stripEOL();
+	 xsink->raiseException("FTPS-AUTH-ERROR", "response from FTP server: %s", resp->getBuffer());
+      }
+      return -1;
+   }
+   
+   if (control.upgradeClientToSSL(xsink))
+      return -1;
+
+   if (secure_data)
+      return doProt(resp, xsink);
+
    return 0;
 }
 
@@ -351,50 +448,26 @@ int FtpClient::connect(class ExceptionSink *xsink)
       return -1;
    }
 
-   // connect to FTP port on remote machine
-   if (control.connectINET(host, port))
+   FtpResp resp;
+   if (connectIntern(&resp, xsink))
    {
       unlock();
-      if (port != DEFAULT_FTP_CONTROL_PORT)
-	 xsink->raiseException("FTP-CONNECT-ERROR", "could not connect to ftp://%s:%d", host, port);
-      else
-	 xsink->raiseException("FTP-CONNECT-ERROR", "could not connect to ftp://%s", host);
-
       return -1;
    }
 
-   control_connected = 1;
+   if (secure && doAuth(&resp, xsink))
+   {
+      unlock();
+      return -1;
+   }
 
-   int rc;
-   QoreString *resp = control.recv(-1, &rc);
+   resp.assign(sendMsg("USER", user ? user : (char *)DEFAULT_USERNAME, xsink));
    if (xsink->isEvent())
    {
       unlock();
       return -1;
    }
-
-   printd(FTPDEBUG, "FtpClient::connect() %s", resp->getBuffer());
-
-   // ex: 220 (vsFTPd 2.0.1)
-   // ex: 220 localhost FTP server (tnftpd 20040810) ready.
-   // etc
-   if ((getFTPCode(resp) / 100) != 2)
-   {
-      unlock();
-      xsink->raiseException("FTP-CONNECT-ERROR", "FTP server reported the following error: %s",
-		     resp->getBuffer());
-      delete resp;
-      return -1;
-   }
-   delete resp;
-
-   resp = sendMsg("USER", user ? user : (char *)DEFAULT_USERNAME, xsink);
-   if (xsink->isEvent())
-   {
-      unlock();
-      return -1;
-   }
-   int code = getFTPCode(resp);
+   int code = resp.getCode();
 
    // if user not logged in immediately, continue
    if ((code / 100) != 2)
@@ -403,31 +476,27 @@ int FtpClient::connect(class ExceptionSink *xsink)
       if (code != 331)
       {
 	 unlock();
-	 stripEOL(resp);
-	 xsink->raiseException("FTP-LOGIN-ERROR", "response from FTP server: %s", resp->getBuffer());
-	 delete resp;
+	 resp.stripEOL();
+	 xsink->raiseException("FTP-LOGIN-ERROR", "response from FTP server: %s", resp.getBuffer());
 	 return -1;
       }
-      delete resp;
 
       // send password
-      resp = sendMsg("PASS", pass ? pass : (char *)DEFAULT_PASSWORD, xsink);
+      resp.assign(sendMsg("PASS", pass ? pass : (char *)DEFAULT_PASSWORD, xsink));
       if (xsink->isEvent())
 	 return -1;
 
-      code = getFTPCode(resp);
+      code = resp.getCode();
 
       // if user not logged in for whatever reason, then exit
       if ((code / 100) != 2)
       {
 	 unlock();
-	 stripEOL(resp);
-	 xsink->raiseException("FTP-LOGIN-ERROR", "response from FTP server: %s", resp->getBuffer());
-	 delete resp;
+	 resp.stripEOL();
+	 xsink->raiseException("FTP-LOGIN-ERROR", "response from FTP server: %s", resp.getBuffer());
 	 return -1;
       }
    }
-   delete resp;
 
    loggedin = true;
 
@@ -453,21 +522,20 @@ class QoreString *FtpClient::list(char *path, bool long_list, class ExceptionSin
       return NULL;
    }
 
-   QoreString *resp = sendMsg((char *)(long_list ? "LIST" : "NLST"), path, xsink);
+   FtpResp resp(sendMsg((char *)(long_list ? "LIST" : "NLST"), path, xsink));
    if (xsink->isEvent())
    {
       unlock();
       return NULL;
    }
 
-   int code = getFTPCode(resp);
+   int code = resp.getCode();
    //printf("LIST: %s", resp->getBuffer());
    // file not found or similar
    if ((code / 100 == 5))
    {
       unlock();
       data.close();
-      delete resp;
       return NULL;
    }
 
@@ -475,13 +543,11 @@ class QoreString *FtpClient::list(char *path, bool long_list, class ExceptionSin
    {
       unlock();
       data.close();
-      stripEOL(resp);
+      resp.stripEOL();
       xsink->raiseException("FTP-LIST-ERROR", "FTP server returned an error to the %s command: %s",
-		     (long_list ? "LIST" : "NLST"), resp->getBuffer());
-      delete resp;
+			    (long_list ? "LIST" : "NLST"), resp.getBuffer());
       return NULL;
    }
-   delete resp;
 
    if ((mode == FTP_MODE_PORT && acceptDataConnection(xsink)) || xsink->isEvent())
    {
@@ -489,6 +555,8 @@ class QoreString *FtpClient::list(char *path, bool long_list, class ExceptionSin
       data.close();
       return NULL;
    }
+   else if (secure_data && data.upgradeClientToSSL(xsink))
+      return NULL;
 
    QoreString *l = new QoreString();
 
@@ -496,32 +564,28 @@ class QoreString *FtpClient::list(char *path, bool long_list, class ExceptionSin
    while (1)
    {
       int rc;
-      resp = data.recv(-1, &rc);
-      if (!resp)
+      if (!resp.assign(data.recv(-1, &rc)))
 	 break;
       //printf("%s", resp->getBuffer());
-      l->concat(resp);
-      delete resp;
+      l->concat(resp.getStr());
    }
    data.close();
-   resp = getResponse(xsink);
+   resp.assign(getResponse(xsink));
    unlock();
    if (xsink->isEvent())
       return NULL;
 
-   code = getFTPCode(resp);
+   code = resp.getCode();
 
    //printf("LIST: %s", resp->getBuffer());
    if ((code / 100 != 2))
    {
-      stripEOL(resp);
+      resp.stripEOL();
       xsink->raiseException("FTP-LIST-ERROR", "FTP server returned an error to the %s command: %s", 
-		     (long_list ? "LIST" : "NLST"), resp->getBuffer());
-      delete resp;
+		     (long_list ? "LIST" : "NLST"), resp.getBuffer());
       delete l;
       return NULL;
    }
-   delete resp;
    return l;
 }
 
@@ -572,7 +636,7 @@ int FtpClient::put(char *localpath, char *remotename, class ExceptionSink *xsink
       rn = q_basename(localpath);
 
    // transfer file
-   QoreString *resp = sendMsg("STOR", rn, xsink);
+   FtpResp resp(sendMsg("STOR", rn, xsink));
    if (rn != remotename)
       free(rn);
    if (xsink->isEvent())
@@ -584,18 +648,16 @@ int FtpClient::put(char *localpath, char *remotename, class ExceptionSink *xsink
    }
    //printf("%s", resp->getBuffer());
 
-   if ((getFTPCode(resp) / 100) != 1)
+   if ((resp.getCode() / 100) != 1)
    {
       unlock();
       data.close();
-      stripEOL(resp);
+      resp.stripEOL();
       xsink->raiseException("FTP-PUT-ERROR", "could not put file, FTP server replied: %s", 
-		     resp->getBuffer());
-      delete resp;
+			    resp.getBuffer());
       close(fd);
       return -1;
    }
-   delete resp;
 
    if ((mode == FTP_MODE_PORT && acceptDataConnection(xsink)) || xsink->isEvent())
    {
@@ -604,25 +666,25 @@ int FtpClient::put(char *localpath, char *remotename, class ExceptionSink *xsink
       close(fd);
       return -1;
    }
+   else if (secure_data && data.upgradeClientToSSL(xsink))
+      return -1;      
 
    int rc = data.send(fd, file_info.st_size ? file_info.st_size : -1);
    data.close();
    close(fd);
 
-   resp = getResponse(xsink);
+   resp.assign(getResponse(xsink));
    unlock();
    if (xsink->isEvent())
       return -1;
 
    //printf("PUT: %s", resp->getBuffer());
-   if ((getFTPCode(resp) / 100 != 2))
+   if ((resp.getCode() / 100 != 2))
    {
-      stripEOL(resp);
-      xsink->raiseException("FTP-PUT-ERROR", "FTP server returned an error to the PUT command: %s", resp->getBuffer());
-      delete resp;
+      resp.stripEOL();
+      xsink->raiseException("FTP-PUT-ERROR", "FTP server returned an error to the PUT command: %s", resp.getBuffer());
       return -1;
    }   
-   delete resp;
 
    if (rc)
    {
@@ -677,7 +739,7 @@ int FtpClient::get(char *remotepath, char *localname, class ExceptionSink *xsink
    }
 
    // transfer file
-   QoreString *resp = sendMsg("RETR", remotepath, xsink);
+   FtpResp resp(sendMsg("RETR", remotepath, xsink));
    if (xsink->isEvent())
    {
       unlock();
@@ -691,7 +753,7 @@ int FtpClient::get(char *remotepath, char *localname, class ExceptionSink *xsink
    }
    //printf("%s", resp->getBuffer());
 
-   if ((getFTPCode(resp) / 100) != 1)
+   if ((resp.getCode() / 100) != 1)
    {
       unlock();
       // delete temporary file
@@ -700,14 +762,11 @@ int FtpClient::get(char *remotepath, char *localname, class ExceptionSink *xsink
 	 free(ln);
       data.close();
       close(fd);
-      stripEOL(resp);
+      resp.stripEOL();
       xsink->raiseException("FTP-GET-ERROR", "could not retrieve file, FTP server replied: %s", 
-		     resp->getBuffer());
-      delete resp;
+			    resp.getBuffer());
       return -1;
    }
-
-   delete resp;
 
    if ((mode == FTP_MODE_PORT && acceptDataConnection(xsink)) || xsink->isEvent())
    {
@@ -720,6 +779,8 @@ int FtpClient::get(char *remotepath, char *localname, class ExceptionSink *xsink
       close(fd);
       return -1;
    }
+   else if (secure_data && data.upgradeClientToSSL(xsink))
+      return -1;      
 
    if (ln != localname)
       free(ln);
@@ -728,20 +789,19 @@ int FtpClient::get(char *remotepath, char *localname, class ExceptionSink *xsink
    data.close();
    close(fd);
 
-   resp = getResponse(xsink);
+   resp.assign(getResponse(xsink));
    unlock();
    if (xsink->isEvent())
       return -1;
 
    //printf("PUT: %s", resp->getBuffer());
-   if ((getFTPCode(resp) / 100 != 2))
+   if ((resp.getCode() / 100 != 2))
    {
-      stripEOL(resp);
-      xsink->raiseException("FTP-GET-ERROR", "FTP server returned an error to the RETR command: %s", resp->getBuffer());
-      delete resp;
+      resp.stripEOL();
+      xsink->raiseException("FTP-GET-ERROR", "FTP server returned an error to the RETR command: %s", 
+			    resp.getBuffer());
       return -1;
    }
-   delete resp;
    return 0;
 }
 

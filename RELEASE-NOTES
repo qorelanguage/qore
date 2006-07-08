@@ -4,7 +4,12 @@ NOTE: for platform-specific notes and build instructions, please see the file BU
 
 *** LIST OF CHANGES IN THIS RELEASE ***
 
+*) SSL support, digest support
 
+note that when the digest functions are run on strings, the trailing null character is not included in the digest calculation.  however, when the cryptographic functions are run on strings, the trailing null is included.
+
+*) improved XML serialization and deserialization
+mixed elements and text can now be serialized and deserialized without data loss (except whitespace is still not retained).
 
 
 ***********************

@@ -17,6 +17,7 @@
   tested with:
   * tnftpd 20040810 (Darwin/OS X 10.3.8) EPSV, PASV, PORT
   * vsFTPd 2.0.1 (Fedora Core 3) EPSV
+  * proFTPd 1.3.0 (Darwin/OS X 10.4.7) EPSV, AUTH TLS
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -68,6 +69,62 @@
 #define DEFAULT_USERNAME "anonymous"
 #define DEFAULT_PASSWORD "qore@nohost.com"
 
+class FtpResp
+{
+   private:
+      class QoreString *str;
+
+   public:
+      inline FtpResp() : str(NULL) {}
+      inline FtpResp(class QoreString *s)
+      {
+	 str = s;
+      }
+      inline ~FtpResp()
+      {
+	 if (str)
+	    delete str;
+      }
+      inline class QoreString *assign(class QoreString *s)
+      {
+	 if (str)
+	    delete str;
+	 str = s;
+	 return s;
+      }
+      inline char *getBuffer()
+      {
+	 return str->getBuffer();
+      }
+      inline class QoreString *getStr()
+      {
+	 return str;
+      }
+      
+      inline int getCode()
+      {
+	 if (!str || str->strlen() < 3)
+	    return -1;
+
+	 char buf[4];
+	 buf[0] = str->getBuffer()[0];
+	 buf[1] = str->getBuffer()[1];
+	 buf[2] = str->getBuffer()[2];
+	 buf[3] = '\0';
+	 return atoi(buf);
+      }
+
+      inline void stripEOL()
+      {
+	 if (!str || !str->strlen())
+	    return;
+	 if (str->getBuffer()[str->strlen() - 1] == '\n')
+	    str->terminate(str->strlen() - 1);
+	 if (str->getBuffer()[str->strlen() - 1] == '\r')
+	    str->terminate(str->strlen() - 1);
+      }
+};
+
 class FtpClient : public LockedObject
 {
    private:
@@ -77,6 +134,7 @@ class FtpClient : public LockedObject
       char *host, *user, *pass, *transfer_mode;
       bool control_connected, loggedin;
       int mode, port;
+      bool secure, secure_data;
 
       class QoreString *getResponse(class ExceptionSink *xsink);
       inline class QoreString *sendMsg(char *cmd, char *arg, class ExceptionSink *xsink);
@@ -90,6 +148,9 @@ class FtpClient : public LockedObject
       inline int setBinaryMode(bool t, class ExceptionSink *xsink);
       inline int disconnectInternal();
       void setURLInternal(class QoreString *url, class ExceptionSink *xsink);
+      inline int connectIntern(class FtpResp *resp, class ExceptionSink *xsink);
+      inline int doAuth(class FtpResp *resp, class ExceptionSink *xsink);
+      inline int doProt(class FtpResp *resp, class ExceptionSink *xsink);
 
    public:
       FtpClient(class QoreString *url, class ExceptionSink *xsink);
@@ -156,6 +217,95 @@ class FtpClient : public LockedObject
 	 if (host) 
 	    free(host); 
 	 host = h ? strdup(h) : NULL;
+	 unlock();
+      }
+      inline int setSecure()
+      {
+	 lock();
+	 if (control_connected)
+	 {
+	    unlock();
+	    return -1;
+	 }
+	 secure = secure_data = true;
+	 unlock();
+	 return 0;
+      }
+      inline int setInsecure()
+      {
+	 lock();
+	 if (control_connected)
+	 {
+	    unlock();
+	    return -1;
+	 }
+	 secure = secure_data = false;
+	 unlock();
+	 return 0;
+      }
+      inline int setInsecureData()
+      {
+	 lock();
+	 if (control_connected)
+	 {
+	    unlock();
+	    return -1;
+	 }
+	 secure_data = false;
+	 unlock();
+	 return 0;
+      }
+      // returns true if the control connection can only be established with a secure connection
+      inline bool isSecure()
+      {
+	 return secure;
+      }
+      // returns true if data connections can only be established with a secure connection
+      inline bool isDataSecure()
+      {
+	 return secure_data;
+      }
+
+      inline const char *getSSLCipherName()
+      {
+	 return control.getSSLCipherName();
+      }
+
+      inline const char *getSSLCipherVersion()
+      {
+	 return control.getSSLCipherVersion();
+      }
+
+      inline long verifyPeerCertificate()
+      {
+	 return control.verifyPeerCertificate();
+      }	 
+
+      inline void setModeAuto()
+      {
+	 lock();
+	 mode = FTP_MODE_UNKNOWN;
+	 unlock();
+      }
+
+      inline void setModeEPSV()
+      {
+	 lock();
+	 mode = FTP_MODE_EPSV;
+	 unlock();
+      }
+
+      inline void setModePASV()
+      {
+	 lock();
+	 mode = FTP_MODE_PASV;
+	 unlock();
+      }
+
+      inline void setModePORT()
+      {
+	 lock();
+	 mode = FTP_MODE_PORT;
 	 unlock();
       }
 };
@@ -243,7 +393,15 @@ inline int FtpClient::acceptDataConnection(class ExceptionSink *xsink)
       xsink->raiseException("FTP-CONNECT-ERROR", "error accepting data connection: %s", 
 		     strerror(errno));
       return -1;
-   }   
+   }
+#ifdef DEBUG
+   if (secure_data)
+      printd(FTPDEBUG, "FtpClient::connectDataPort() negotiating client SSL connection\n");
+#endif
+
+   if (secure_data && data.upgradeClientToSSL(xsink))
+      return -1;      
+
    printd(FTPDEBUG, "FtpClient::acceptDataConnection() accepted PORT data connection\n");
    return 0;
 }

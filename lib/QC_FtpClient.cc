@@ -38,7 +38,7 @@ static inline void *getFtpClient(void *obj)
    return obj;
 }
 
-class QoreNode *FC_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *FC_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
    class QoreNode *p0 = test_param(params, NT_STRING, 0);
    class QoreString *url;
@@ -54,7 +54,7 @@ class QoreNode *FC_constructor(class Object *self, class QoreNode *params, Excep
    return NULL;
 }
 
-class QoreNode *FC_destructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *FC_destructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
    class QoreFtpClient *f = (QoreFtpClient *)self->getAndClearPrivateData(CID_FTPCLIENT);
    if (f)
@@ -62,13 +62,13 @@ class QoreNode *FC_destructor(class Object *self, class QoreNode *params, Except
    return NULL;
 }
 
-class QoreNode *FC_copy(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *FC_copy(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
    xsink->raiseException("FTPCLIENT-COPY-ERROR", "FtpClient objects cannot be copied.");
    return NULL;
 }
 
-class QoreNode *FC_connect(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *FC_connect(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
    class QoreFtpClient *f = (QoreFtpClient *)self->getReferencedPrivateData(CID_FTPCLIENT);
    class QoreNode *rv;
@@ -89,7 +89,7 @@ class QoreNode *FC_connect(class Object *self, class QoreNode *params, Exception
    return rv;
 }
 
-class QoreNode *FC_disconnect(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *FC_disconnect(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
    class QoreFtpClient *f = (QoreFtpClient *)self->getReferencedPrivateData(CID_FTPCLIENT);
    QoreNode *rv;
@@ -110,7 +110,7 @@ class QoreNode *FC_disconnect(class Object *self, class QoreNode *params, Except
    return rv;
 }
 
-class QoreNode *FC_list(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *FC_list(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
    char *path;
    QoreNode *p0 = test_param(params, NT_STRING, 0);
@@ -138,7 +138,7 @@ class QoreNode *FC_list(class Object *self, class QoreNode *params, ExceptionSin
    return rv;
 }
 
-class QoreNode *FC_nlst(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *FC_nlst(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
    char *path;
    QoreNode *p0 = test_param(params, NT_STRING, 0);
@@ -166,7 +166,7 @@ class QoreNode *FC_nlst(class Object *self, class QoreNode *params, ExceptionSin
    return rv;
 }
 
-class QoreNode *FC_pwd(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *FC_pwd(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
    class QoreFtpClient *f = (QoreFtpClient *)self->getReferencedPrivateData(CID_FTPCLIENT);
    QoreNode *rv;
@@ -187,7 +187,7 @@ class QoreNode *FC_pwd(class Object *self, class QoreNode *params, ExceptionSink
    return rv;
 }
 
-class QoreNode *FC_cwd(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *FC_cwd(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = test_param(params, NT_STRING, 0);
    if (!p0 || !p0->val.String->strlen())
@@ -215,7 +215,7 @@ class QoreNode *FC_cwd(class Object *self, class QoreNode *params, ExceptionSink
    return rv;
 }
 
-class QoreNode *FC_put(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *FC_put(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = test_param(params, NT_STRING, 0);
    if (!p0 || !p0->val.String->strlen())
@@ -249,7 +249,7 @@ class QoreNode *FC_put(class Object *self, class QoreNode *params, ExceptionSink
    return rv;
 }
 
-class QoreNode *FC_get(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *FC_get(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = test_param(params, NT_STRING, 0);
    if (!p0 || !p0->val.String->strlen())
@@ -283,7 +283,7 @@ class QoreNode *FC_get(class Object *self, class QoreNode *params, ExceptionSink
    return rv;
 }
 
-class QoreNode *FC_del(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *FC_del(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = test_param(params, NT_STRING, 0);
    if (!p0 || !p0->val.String->strlen())
@@ -311,7 +311,7 @@ class QoreNode *FC_del(class Object *self, class QoreNode *params, ExceptionSink
    return rv;
 }
 
-class QoreNode *FC_setUserName(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *FC_setUserName(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = test_param(params, NT_STRING, 0);
    if (!p0)
@@ -330,7 +330,7 @@ class QoreNode *FC_setUserName(class Object *self, class QoreNode *params, Excep
    return NULL;
 }
 
-class QoreNode *FC_setPassword(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *FC_setPassword(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = test_param(params, NT_STRING, 0);
    if (!p0)
@@ -349,7 +349,7 @@ class QoreNode *FC_setPassword(class Object *self, class QoreNode *params, Excep
    return NULL;
 }
 
-class QoreNode *FC_setHostName(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *FC_setHostName(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = test_param(params, NT_STRING, 0);
    if (!p0)
@@ -368,7 +368,7 @@ class QoreNode *FC_setHostName(class Object *self, class QoreNode *params, Excep
    return NULL;
 }
 
-class QoreNode *FC_setPort(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *FC_setPort(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = get_param(params, 0);
    int port;
@@ -392,7 +392,7 @@ class QoreNode *FC_setPort(class Object *self, class QoreNode *params, Exception
    return NULL;
 }
 
-class QoreNode *FC_setURL(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *FC_setURL(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = test_param(params, NT_STRING, 0);
    if (!p0)
@@ -411,7 +411,7 @@ class QoreNode *FC_setURL(class Object *self, class QoreNode *params, ExceptionS
    return NULL;
 }
 
-class QoreNode *FC_getUserName(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *FC_getUserName(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
    class QoreFtpClient *f = (QoreFtpClient *)self->getReferencedPrivateData(CID_FTPCLIENT);
    QoreNode *rv;
@@ -432,7 +432,7 @@ class QoreNode *FC_getUserName(class Object *self, class QoreNode *params, Excep
    return rv;
 }
 
-class QoreNode *FC_getPassword(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *FC_getPassword(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
    class QoreFtpClient *f = (QoreFtpClient *)self->getReferencedPrivateData(CID_FTPCLIENT);
    QoreNode *rv;
@@ -453,7 +453,7 @@ class QoreNode *FC_getPassword(class Object *self, class QoreNode *params, Excep
    return rv;
 }
 
-class QoreNode *FC_getHostName(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *FC_getHostName(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
    class QoreFtpClient *f = (QoreFtpClient *)self->getReferencedPrivateData(CID_FTPCLIENT);
    QoreNode *rv;
@@ -474,7 +474,7 @@ class QoreNode *FC_getHostName(class Object *self, class QoreNode *params, Excep
    return rv;
 }
 
-class QoreNode *FC_getPort(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *FC_getPort(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
    class QoreFtpClient *f = (QoreFtpClient *)self->getReferencedPrivateData(CID_FTPCLIENT);
    QoreNode *rv;
@@ -491,7 +491,7 @@ class QoreNode *FC_getPort(class Object *self, class QoreNode *params, Exception
    return rv;
 }
 
-class QoreNode *FC_getURL(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *FC_getURL(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
    class QoreFtpClient *f = (QoreFtpClient *)self->getReferencedPrivateData(CID_FTPCLIENT);
    QoreNode *rv;
@@ -510,6 +510,187 @@ class QoreNode *FC_getURL(class Object *self, class QoreNode *params, ExceptionS
       alreadyDeleted(xsink, "FtpClient::getURL");
    }
    return rv;
+}
+
+static class QoreNode *FC_setSecure(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+{
+   class QoreFtpClient *f = (QoreFtpClient *)self->getReferencedPrivateData(CID_FTPCLIENT);
+   if (f)
+   {
+      if (f->setSecure())
+	 xsink->raiseException("SET-SECURE-ERROR", "this method cannot be called while the control connection is established");
+      f->deref();
+   }
+   else
+      alreadyDeleted(xsink, "FtpClient::setSecure");
+   return NULL;
+}
+
+static class QoreNode *FC_setInsecure(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+{
+   class QoreFtpClient *f = (QoreFtpClient *)self->getReferencedPrivateData(CID_FTPCLIENT);
+   if (f)
+   {
+      if (f->setInsecure())
+	 xsink->raiseException("SET-INSECURE-ERROR", "this method cannot be called while the control connection is established");
+      f->deref();
+   }
+   else
+      alreadyDeleted(xsink, "FtpClient::setInsecure");
+   return NULL;
+}
+
+static class QoreNode *FC_setInsecureData(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+{
+   class QoreFtpClient *f = (QoreFtpClient *)self->getReferencedPrivateData(CID_FTPCLIENT);
+   if (f)
+   {
+      if (f->setInsecureData())
+	 xsink->raiseException("SET-INSECUREDATA-ERROR", "this method cannot be called while the control connection is established");
+      f->deref();
+   }
+   else
+      alreadyDeleted(xsink, "FtpClient::setInsecureData");
+   return NULL;
+}
+
+static class QoreNode *FC_isSecure(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+{
+   class QoreFtpClient *f = (QoreFtpClient *)self->getReferencedPrivateData(CID_FTPCLIENT);
+   class QoreNode *rv;
+   if (f)
+   {
+      rv = new QoreNode(f->isSecure());
+      f->deref();
+   }
+   else
+   {
+      rv = NULL;
+      alreadyDeleted(xsink, "FtpClient::isSecure");
+   }
+   return rv;
+}
+
+static class QoreNode *FC_isDataSecure(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+{
+   class QoreFtpClient *f = (QoreFtpClient *)self->getReferencedPrivateData(CID_FTPCLIENT);
+   class QoreNode *rv;
+   if (f)
+   {
+      rv = new QoreNode(f->isDataSecure());
+      f->deref();
+   }
+   else
+   {
+      rv = NULL;
+      alreadyDeleted(xsink, "FtpClient::isDataSecure");
+   }
+   return rv;
+}
+
+static class QoreNode *FC_getSSLCipherName(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+{
+   class QoreFtpClient *f = (QoreFtpClient *)self->getReferencedPrivateData(CID_FTPCLIENT);
+   class QoreNode *rv;
+   if (f)
+   {
+      const char *str = f->getSSLCipherName();
+      rv = str ? new QoreNode(str) : NULL;
+      f->deref();
+   }
+   else
+   {
+      rv = NULL;
+      alreadyDeleted(xsink, "FtpClient::getSSLCipherName");
+   }
+   return rv;
+}
+
+static class QoreNode *FC_getSSLCipherVersion(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+{
+   class QoreFtpClient *f = (QoreFtpClient *)self->getReferencedPrivateData(CID_FTPCLIENT);
+   class QoreNode *rv;
+   if (f)
+   {
+      const char *str = f->getSSLCipherVersion();
+      rv = str ? new QoreNode(str) : NULL;
+      f->deref();
+   }
+   else
+   {
+      rv = NULL;
+      alreadyDeleted(xsink, "FtpClient::getSSLCipherVersion");
+   }
+   return rv;
+}
+
+static class QoreNode *FC_verifyPeerCertificate(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+{
+   class QoreFtpClient *f = (QoreFtpClient *)self->getReferencedPrivateData(CID_FTPCLIENT);
+   class QoreNode *rv;
+   if (f)
+   {
+      rv = new QoreNode(f->verifyPeerCertificate());
+      f->deref();
+   }
+   else
+   {
+      rv = NULL;
+      alreadyDeleted(xsink, "FtpClient::verifyPeerCertificate");
+   }
+   return rv;
+}
+
+static class QoreNode *FC_setModeAuto(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+{
+   class QoreFtpClient *f = (QoreFtpClient *)self->getReferencedPrivateData(CID_FTPCLIENT);
+   if (f)
+   {
+      f->setModeAuto();
+      f->deref();
+   }
+   else
+      alreadyDeleted(xsink, "FtpClient::setModeAuto");
+   return NULL;
+}
+
+static class QoreNode *FC_setModeEPSV(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+{
+   class QoreFtpClient *f = (QoreFtpClient *)self->getReferencedPrivateData(CID_FTPCLIENT);
+   if (f)
+   {
+      f->setModeEPSV();
+      f->deref();
+   }
+   else
+      alreadyDeleted(xsink, "FtpClient::setModeEPSV");
+   return NULL;
+}
+
+static class QoreNode *FC_setModePASV(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+{
+   class QoreFtpClient *f = (QoreFtpClient *)self->getReferencedPrivateData(CID_FTPCLIENT);
+   if (f)
+   {
+      f->setModePASV();
+      f->deref();
+   }
+   else
+      alreadyDeleted(xsink, "FtpClient::setModePASV");
+   return NULL;
+}
+
+static class QoreNode *FC_setModePORT(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+{
+   class QoreFtpClient *f = (QoreFtpClient *)self->getReferencedPrivateData(CID_FTPCLIENT);
+   if (f)
+   {
+      f->setModePORT();
+      f->deref();
+   }
+   else
+      alreadyDeleted(xsink, "FtpClient::setModePORT");
+   return NULL;
 }
 
 class QoreClass *initFtpClientClass()
@@ -540,6 +721,18 @@ class QoreClass *initFtpClientClass()
    QC_FTPCLIENT->addMethod("getHostName",   FC_getHostName);
    QC_FTPCLIENT->addMethod("getPort",       FC_getPort);
    QC_FTPCLIENT->addMethod("getURL",        FC_getURL);
+   QC_FTPCLIENT->addMethod("setSecure",             FC_setSecure );
+   QC_FTPCLIENT->addMethod("setInsecure",           FC_setInsecure ); 
+   QC_FTPCLIENT->addMethod("setInsecureData",       FC_setInsecureData );
+   QC_FTPCLIENT->addMethod("isSecure",              FC_isSecure ); 
+   QC_FTPCLIENT->addMethod("isDataSecure",          FC_isDataSecure );
+   QC_FTPCLIENT->addMethod("getSSLCipherName",      FC_getSSLCipherName );
+   QC_FTPCLIENT->addMethod("getSSLCipherVersion",   FC_getSSLCipherVersion );
+   QC_FTPCLIENT->addMethod("verifyPeerCertificate", FC_verifyPeerCertificate );
+   QC_FTPCLIENT->addMethod("setModeAuto",           FC_setModeAuto );
+   QC_FTPCLIENT->addMethod("setModeEPSV",           FC_setModeEPSV );
+   QC_FTPCLIENT->addMethod("setModePASV",           FC_setModePASV );
+   QC_FTPCLIENT->addMethod("setModePORT",           FC_setModePORT );
 
    traceout("initFtpClientClass()");
    return QC_FTPCLIENT;

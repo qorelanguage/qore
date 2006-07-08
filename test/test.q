@@ -959,6 +959,58 @@ sub xml_tests()
     test_value(parseXMLRPCResponse($str), $fr, "second makeXMLRPCResponse() and parseXMLRPCResponse()");
 }
 
+sub digest_tests()
+{
+    my $str = "Hello There This is a Test - 1234567890";
+
+    test_value(MD2($str), "349ea9f6c9681278cf86955dabd72d31", "MD2 digest");
+    test_value(MD4($str), "675d84fbf5d63e0d68c04577c3298fdc", "MD4 digest");
+    test_value(MD5($str), "bcbece19c1fe41d8c9e2e6134665ba5b", "MD5 digest");
+    test_value(DSS($str), "f4bc2c85698aae8961d626e2c590852b2d081199", "DSS digest");
+    test_value(DSS1($str), "f4bc2c85698aae8961d626e2c590852b2d081199", "DSS1 digest");
+    test_value(SHA($str), "99910d63f10286e8dda3c4a57801996f48f25b4b", "SHA digest");
+    test_value(SHA1($str), "f4bc2c85698aae8961d626e2c590852b2d081199", "SHA1 digest");
+    test_value(RIPEMD160($str), "8f32702e0146d5db6145f36271a4ddf249c087ae", "RIPEMD-160 digest");
+}
+
+sub crypt_tests()
+{
+    my $str = "Hello There This is a Test - 1234567890";
+
+    my $key = "1234567812345abcabcdefgh";
+    my $x = des_ede_encrypt_cbc($str, $key);
+    my $xstr = des_ede_decrypt_cbc_to_string($x, $key);
+    test_value($str, $xstr, "triple DES 2 key encrypt-decrypt");
+
+    $x = des_ede3_encrypt_cbc($str, $key);
+    $xstr = des_ede3_decrypt_cbc_to_string($x, $key);
+    test_value($str, $xstr, "triple DES 3 key encrypt-decrypt");
+
+    $x = des_encrypt_cbc($str, $key);
+    $xstr = des_decrypt_cbc_to_string($x, $key);
+    test_value($str, $xstr, "DES single key encrypt-decrypt");
+
+    $x = desx_encrypt_cbc($str, $key);
+    $xstr = desx_decrypt_cbc_to_string($x, $key);
+    test_value($str, $xstr, "DESX encrypt-decrypt");
+
+    $x = blowfish_encrypt_cbc($str, $key);
+    $xstr = blowfish_decrypt_cbc_to_string($x, $key);
+    test_value($str, $xstr, "blowfish encrypt-decrypt");
+
+    $x = rc4_encrypt($str, $key);
+    $xstr = rc4_decrypt_to_string($x, $key);
+    test_value($str, $xstr, "rc4 encrypt-decrypt");
+
+    $x = rc2_encrypt_cbc($str, $key);
+    $xstr = rc2_decrypt_cbc_to_string($x, $key);
+    test_value($str, $xstr, "rc2 encrypt-decrypt");
+
+    $x = cast5_encrypt_cbc($str, $key);
+    $xstr = cast5_decrypt_cbc_to_string($x, $key);
+    test_value($str, $xstr, "CAST5 encrypt-decrypt");
+}
+
 sub do_tests()
 {
     for (my $i = 0; $i < $o.iters; $i++)
@@ -977,6 +1029,8 @@ sub do_tests()
 	context_tests();
 	constant_tests();	
 	xml_tests();
+	crypt_tests();
+	digest_tests();
 	if ($o.bq)
 	    backquote_tests();
     }
