@@ -29,31 +29,23 @@
 #include <string.h>
 #include <ctype.h>
 
-class Hash *parseURL(class QoreString *url)
+void QoreURL::parseIntern(char *buf)
 {
-   if (!url || !url->strlen())
-      return NULL;
+   if (!buf || !buf[0])
+      return;
 
-   printd(5, "parseURL(%s)\n", url->getBuffer());
+   printd(5, "QoreURL::parseIntern(%s)\n", buf);
 
-   Hash *h = new Hash();
-   char *buf = url->getBuffer();
    char *p = strstr(buf, "://");
    char *pos;
 
    // get protocol
    if (p)
    {
-      QoreString *prot = url->substr(0, p - buf);
+      protocol = new QoreString(buf, p - buf);
       // convert to lower case
-      char *c = prot->getBuffer();
-      while (*c)
-      {
-	 *c = tolower(*c);
-	 c++;
-      }
-      printd(5, "parseURL() protocol=%s\n", prot->getBuffer());
-      h->setKeyValue("protocol", new QoreNode(prot), NULL);
+      protocol->tolwr();
+      printd(5, "QoreURL::parseIntern protocol=%s\n", protocol->getBuffer());
       pos = p + 3;
    }
    else
@@ -67,9 +59,8 @@ class Hash *parseURL(class QoreString *url)
       // get pathname if not at EOS
       if (p[1] != '\0')
       {
-	 class QoreString *path = new QoreString(p + 1);
-	 printd(5, "parseURL() path=%s\n", path->getBuffer());
-	 h->setKeyValue("path", new QoreNode(path), NULL);
+	 path = new QoreString(p + 1);
+	 printd(5, "QoreURL::parseIntern path=%s\n", path->getBuffer());
       }
       // get copy of hostname string for localized searching and invasive parsing
       nbuf = (char *)malloc(sizeof(char) * (p - pos + 1));
@@ -87,13 +78,13 @@ class Hash *parseURL(class QoreString *url)
       // see if there's a password
       if ((p = strchr(nbuf, ':')))
       {
-	 printd(5, "parseURL() password=%s\n", p + 1);
-	 h->setKeyValue("password", new QoreNode(p + 1), NULL);
+	 printd(5, "QoreURL::parseIntern password=%s\n", p + 1);
+	 password = new QoreString(p + 1);
 	 *p = '\0';
       }
       // set username
-      printd(5, "parseURL() username=%s\n", nbuf);
-      h->setKeyValue("username", new QoreNode(nbuf), NULL);
+      printd(5, "QoreURL::parseIntern username=%s\n", nbuf);
+      username = new QoreString(nbuf);
    }
    else
       pos = nbuf;
@@ -102,15 +93,11 @@ class Hash *parseURL(class QoreString *url)
    if ((p = strchr(pos, ':')))
    {
       *p = '\0';
-      int port = atoi(p + 1);
-      printd(5, "parseURL() port=%d\n", port);
-      h->setKeyValue("port", new QoreNode(NT_INT, port), NULL);
+      port = atoi(p + 1);
+      printd(5, "QoreURL::parseIntern port=%d\n", port);
    }
    // set hostname
-   printd(5, "parseURL() host=%s\n", pos);
-   h->setKeyValue("host", new QoreNode(pos), NULL);
+   printd(5, "QoreURL::parseIntern host=%s\n", pos);
+   host = new QoreString(pos);
    free(nbuf);
-
-   return h;
 }
-

@@ -87,29 +87,10 @@ class mySocket : public ReferenceObject, public LockedObject
 	 return rc;
       }
 
-      inline int connectSSL(char *name, class ExceptionSink *xsink)
-      {
-	 lock();
-	 int rc = socket->connectSSL(name, xsink);
-	 unlock();
-	 return rc;
-      }
+      inline int connectSSL(char *name, class ExceptionSink *xsink);
 
-      inline int connectINETSSL(char *host, int port, class ExceptionSink *xsink)
-      {
-	 lock();
-	 int rc = socket->connectINETSSL(host, port, xsink);
-	 unlock();
-	 return rc;
-      }
-
-      inline int connectUNIXSSL(char *p, class ExceptionSink *xsink)
-      {
-	 lock();
-	 int rc = socket->connectUNIXSSL(p, xsink);
-	 unlock();
-	 return rc;
-      }
+      inline int connectINETSSL(char *host, int port, class ExceptionSink *xsink);
+      inline int connectUNIXSSL(char *p, class ExceptionSink *xsink);
 
       // to bind to either a UNIX socket or an INET interface:port
       inline int bind(char *name, bool reuseaddr = false)
@@ -147,7 +128,7 @@ class mySocket : public ReferenceObject, public LockedObject
 	 return rc;
       }
 
-      inline class mySocket *accept(class QoreString *source, class ExceptionSink *xsink = NULL)
+      inline class mySocket *accept(class SocketSource *source, class ExceptionSink *xsink)
       {
 	 lock();
 	 QoreSocket *s = socket->accept(source, xsink);
@@ -157,7 +138,7 @@ class mySocket : public ReferenceObject, public LockedObject
 	 return NULL;
       }
 
-      inline class mySocket *acceptSSL(class QoreString *source, class ExceptionSink *xsink);
+      inline class mySocket *acceptSSL(class SocketSource *source, class ExceptionSink *xsink);
 
       inline int listen()
       {
@@ -504,7 +485,40 @@ inline mySocket::~mySocket()
    delete socket;
 }
 
-inline class mySocket *mySocket::acceptSSL(class QoreString *source, class ExceptionSink *xsink)
+inline int mySocket::connectINETSSL(char *host, int port, class ExceptionSink *xsink)
+{
+   lock();
+   int rc = socket->connectINETSSL(host, port, 
+				   cert ? cert->getData() : NULL,
+				   pk ? pk->getData() : NULL,
+				   xsink);
+   unlock();
+   return rc;
+}
+
+inline int mySocket::connectUNIXSSL(char *p, class ExceptionSink *xsink)
+{
+   lock();
+   int rc = socket->connectUNIXSSL(p, 
+				   cert ? cert->getData() : NULL,
+				   pk ? pk->getData() : NULL,
+				   xsink);
+   unlock();
+   return rc;
+}
+
+inline int mySocket::connectSSL(char *name, class ExceptionSink *xsink)
+{
+   lock();
+   int rc = socket->connectSSL(name, 
+			       cert ? cert->getData() : NULL,
+			       pk ? pk->getData() : NULL,
+			       xsink);
+   unlock();
+   return rc;
+}
+
+inline class mySocket *mySocket::acceptSSL(class SocketSource *source, class ExceptionSink *xsink)
 {
    lock();
    QoreSocket *s = socket->acceptSSL(source,

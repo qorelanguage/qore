@@ -36,10 +36,10 @@
 
 // QoreSocket::accept()
 // returns a new socket
-int QoreSocket::acceptInternal(QoreString *source)
+int QoreSocket::acceptInternal(class SocketSource *source)
 {
    if (!sock)
-      return -1;
+      return -2;
 
    int rc;
    if (type == AF_UNIX)
@@ -51,7 +51,12 @@ int QoreSocket::acceptInternal(QoreString *source)
       //printd(1, "QoreSocket::accept() %d bytes returned\n", size);
       
       if (rc > 0 && source)
-	 source->concat("UNIX socket");
+      {
+	 class QoreString *addr = new QoreString();
+	 addr->sprintf("UNIX socket: %s", socketname);
+	 source->setAddress(addr);
+	 source->setHostName("localhost");
+      }
    }
    else if (type == AF_INET)
    {
@@ -66,18 +71,15 @@ int QoreSocket::acceptInternal(QoreString *source)
 	 char *host;
 	 if ((host = q_gethostbyaddr((const char *)&addr_in.sin_addr.s_addr, sizeof(addr_in.sin_addr.s_addr), AF_INET)))
 	 {
-	    source->concat(host);
-	    free(host);
+	    class QoreString *hostname = new QoreString();
+	    hostname->take(host);
+	    source->setHostName(hostname);
 	 }
-         else
-	 {
-	    // else get IP address
-	    char ifname[80];
-	    if (!inet_ntop(AF_INET, &addr_in.sin_addr, ifname, sizeof(ifname)))
-	       source->concat("<unknown>");
-	    else
-	       source->concat(ifname);
-	 }
+
+	 // get IP address
+	 char ifname[80];
+	 if (inet_ntop(AF_INET, &addr_in.sin_addr, ifname, sizeof(ifname)))
+	    source->setAddress(ifname);
       }
    }
    else
@@ -617,7 +619,10 @@ class BinaryObject *QoreSocket::recvBinary(int bufsize, int timeout, int *rc)
 class QoreString *QoreSocket::recv(int bufsize, int timeout, int *rc)
 {
    if (!sock)
+   {
+      *rc = -3;
       return NULL;
+   }
 
    int bs = bufsize > 0 && bufsize < DEFAULT_SOCKET_BUFSIZE ? bufsize : DEFAULT_SOCKET_BUFSIZE;
 
@@ -656,7 +661,10 @@ class QoreString *QoreSocket::recv(int bufsize, int timeout, int *rc)
 class QoreString *QoreSocket::recv(int timeout, int *rc)
 {
    if (!sock)
+   {
+      *rc = -3;
       return NULL;
+   }
 
    char *buf = (char *)malloc(sizeof(char) * (DEFAULT_SOCKET_BUFSIZE + 1));
    *rc = recv(buf, DEFAULT_SOCKET_BUFSIZE, 0, timeout);
@@ -800,11 +808,15 @@ int QoreSocket::sendHTTPResponse(int code, char *desc, char *http_version, class
 // rc is:
 //    0 for remote end shutdown
 //   -1 for socket error
-//   -2 for timeout
+//   -2 for socket not open
+//   -3 for timeout
 class QoreNode *QoreSocket::readHTTPHeader(int timeout, int *rc)
 {
    if (!sock)
+   {
+      *rc = -2;
       return NULL;
+   }
 
    // read in HHTP header until \r\n\r\n or \n\n from socket
 

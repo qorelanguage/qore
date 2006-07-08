@@ -65,55 +65,8 @@ class SSLSocketHelper
       SSL_CTX *ctx;
       SSL *ssl;
 
-   public:
-      inline SSLSocketHelper()
+      inline int setIntern(int sd, X509* cert, EVP_PKEY *pk, class ExceptionSink *xsink)
       {
-	 meth = NULL;
-	 ctx = NULL;
-	 ssl = NULL;
-      }
-
-      inline ~SSLSocketHelper()
-      {
-	 if (ssl)
-	    SSL_free(ssl);
-	 if (ctx)
-	    SSL_CTX_free(ctx);
-      }
-
-      inline void sslError(class ExceptionSink *xsink)
-      {
-	 long e;
-	 char buf[121];
-	 while ((e = ERR_get_error()))
-	 {
-	    ERR_error_string(e, buf);
-	    xsink->raiseException("SOCKET-SSL-ERROR", buf);
-	 }
-      }
-
-      inline int setClient(int sd, class ExceptionSink *xsink)
-      {
-	 meth = SSLv23_client_method();
-	 ctx  = SSL_CTX_new(meth);
-	 if (!ctx)
-	 {
-	    sslError(xsink);
-	    return -1;
-	 }
-	 ssl = SSL_new(ctx);
-	 if (!ssl)
-	 {
-	    sslError(xsink);
-	    return -1;
-	 }
-	 SSL_set_fd(ssl, sd);
-	 return 0;
-      }
-
-      inline int setServer(int sd, X509* cert, EVP_PKEY *pk, class ExceptionSink *xsink)
-      {
-	 meth = SSLv23_server_method();
 	 ctx  = SSL_CTX_new(meth);
 	 if (!ctx)
 	 {
@@ -145,6 +98,45 @@ class SSLSocketHelper
 	 }
 	 SSL_set_fd(ssl, sd);
 	 return 0;
+      }
+
+   public:
+      inline SSLSocketHelper()
+      {
+	 meth = NULL;
+	 ctx = NULL;
+	 ssl = NULL;
+      }
+
+      inline ~SSLSocketHelper()
+      {
+	 if (ssl)
+	    SSL_free(ssl);
+	 if (ctx)
+	    SSL_CTX_free(ctx);
+      }
+
+      inline void sslError(class ExceptionSink *xsink)
+      {
+	 long e;
+	 char buf[121];
+	 while ((e = ERR_get_error()))
+	 {
+	    ERR_error_string(e, buf);
+	    xsink->raiseException("SOCKET-SSL-ERROR", buf);
+	 }
+      }
+
+      inline int setClient(int sd, X509* cert, EVP_PKEY *pk, class ExceptionSink *xsink)
+      {
+	 meth = SSLv23_client_method();
+	 return setIntern(sd, cert, pk, xsink);
+      }
+
+      inline int setServer(int sd, X509* cert, EVP_PKEY *pk, class ExceptionSink *xsink)
+      {
+	 meth = SSLv23_server_method();
+	 return setIntern(sd, cert, pk, xsink);
       }
 
       // returns 0 for success
@@ -239,6 +231,66 @@ class SSLSocketHelper
       }
 };
 
+class SocketSource {
+   private:
+      class QoreString *address;
+      class QoreString *hostname;      
+
+   public:
+      inline SocketSource()
+      {
+	 address = hostname = NULL;
+      }
+      inline ~SocketSource()
+      {
+	 if (address)
+	    delete address;
+	 if (hostname)
+	    delete hostname;
+      }
+      inline void setAddress(class QoreString *addr)
+      {
+	 address = addr;
+      }
+      inline void setAddress(char *addr)
+      {
+	 address = new QoreString(addr);
+      }
+      inline void setHostName(char *host)
+      {
+	 hostname = new QoreString(host);
+      }
+      inline void setHostName(class QoreString *host)
+      {
+	 hostname = host;
+      }
+      inline class QoreString *takeAddress()
+      {
+	 class QoreString *addr = address;
+	 address = NULL;
+	 return addr;
+      }
+      inline class QoreString *takeHostName()
+      {
+	 class QoreString *host = hostname;
+	 hostname = NULL;
+	 return host;
+      }
+      inline void setAll(class Object *o, class ExceptionSink *xsink)
+      {
+	 if (address)
+	 {
+	    o->setValue("source", new QoreNode(address), xsink);
+	    address = NULL;
+	 }
+	 if (hostname)
+	 {
+	    o->setValue("source_host", new QoreNode(hostname), xsink);
+	    hostname = NULL;
+	 }
+      }
+};
+
 class QoreSocket 
 {
    private:
@@ -256,7 +308,7 @@ class QoreSocket
       // opens a UNIX socket
       inline int openUNIX();
       // accepts a connection and returns the new socket
-      int acceptInternal(QoreString *source);
+      int acceptInternal(class SocketSource *source);
       // closes a socket but does not reset type
       inline int closeInternal() 
       {
@@ -294,11 +346,11 @@ class QoreSocket
 	 setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(int));
       }
       inline int recv(char *buf, int bs, int flags, int timeout);
-      inline int upgradeClientToSSLIntern(class ExceptionSink *xsink)
+      inline int upgradeClientToSSLIntern(X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink)
       {
 	 ssl = new SSLSocketHelper();
 	 int rc;
-	 if ((rc = ssl->setClient(sock, xsink)) || ssl->connect(xsink))
+	 if ((rc = ssl->setClient(sock, cert, pkey, xsink)) || ssl->connect(xsink))
 	 {
 	    delete ssl;
 	    ssl = NULL;
@@ -321,9 +373,9 @@ class QoreSocket
       inline int connect(char *name, class ExceptionSink *xsink = NULL);
       int connectINET(char *host, int prt, class ExceptionSink *xsink = NULL);
       int connectUNIX(char *p, class ExceptionSink *xsink = NULL);
-      inline int connectSSL(char *name, class ExceptionSink *xsink);
-      inline int connectINETSSL(char *host, int prt, class ExceptionSink *xsink);
-      inline int connectUNIXSSL(char *p, class ExceptionSink *xsink);
+      inline int connectSSL(char *name, X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink);
+      inline int connectINETSSL(char *host, int prt, X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink);
+      inline int connectUNIXSSL(char *p, X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink);
       // to bind to a UNIX domain socket or INET interface:port
       int bind(char *name, bool reuseaddr = false);
       // to bind to an INET tcp port on all interfaces
@@ -334,9 +386,9 @@ class QoreSocket
       inline int bind(struct sockaddr *addr, int size);
       // to find out our port number
       inline int getPort();
-      inline class QoreSocket *accept(class QoreString *source, class ExceptionSink *xsink = NULL);
-      inline class QoreSocket *acceptSSL(class QoreString *source, X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink);
-      inline int acceptAndReplace(class QoreString *source);
+      inline class QoreSocket *accept(class SocketSource *source, class ExceptionSink *xsink);
+      inline class QoreSocket *acceptSSL(class SocketSource *source, X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink);
+      inline int acceptAndReplace(class SocketSource *source);
       inline int listen();
       // send a buffer of a particular size
       inline int send(char *buf, int size);
@@ -441,7 +493,7 @@ class QoreSocket
 	    return -1;
 	 return ssl->verifyPeerCertificate();
       }
-      inline int upgradeClientToSSL(class ExceptionSink *xsink);
+      inline int upgradeClientToSSL(X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink);
       inline int upgradeServerToSSL(X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink);
 };
 
@@ -483,7 +535,7 @@ inline int QoreSocket::recv(char *buf, int bs, int flags, int timeout)
    }
 
    if (!isDataAvailable(timeout))
-      return -2;
+      return -3;
 
    if (ssl)
       return ssl->read(buf, bs);
@@ -519,7 +571,7 @@ inline int QoreSocket::connect(char *name, class ExceptionSink *xsink)
 // * QoreSocket::connectSSL("hostname:<port_number>");
 // for AF_UNIX sockets:
 // * QoreSocket::connectSSL("filename");
-inline int QoreSocket::connectSSL(char *name, class ExceptionSink *xsink)
+inline int QoreSocket::connectSSL(char *name, X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink)
 {
    char *p;
    if ((p = index(name, ':')))
@@ -528,37 +580,37 @@ inline int QoreSocket::connectSSL(char *name, class ExceptionSink *xsink)
       strncpy(host, name, p - name);
       host[p - name] = '\0';
       int prt = strtol(p + 1, NULL, 10);
-      int rc = connectINETSSL(host, prt, xsink);
+      int rc = connectINETSSL(host, prt, cert, pkey, xsink);
       free(host);
       return rc;
    }
    // else assume it's a file name for a UNIX domain socket
-   return connectUNIXSSL(name, xsink);
+   return connectUNIXSSL(name, cert, pkey, xsink);
 }
 
-inline int QoreSocket::connectINETSSL(char *host, int prt, class ExceptionSink *xsink)
+inline int QoreSocket::connectINETSSL(char *host, int prt, X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink)
 {
    int rc = connectINET(host, prt, xsink);
    if (rc)
       return rc;
-   return upgradeClientToSSLIntern(xsink);
+   return upgradeClientToSSLIntern(cert, pkey, xsink);
 }
 
-inline int QoreSocket::connectUNIXSSL(char *p, class ExceptionSink *xsink)
+inline int QoreSocket::connectUNIXSSL(char *p, X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink)
 {
    int rc = connectUNIX(p, xsink);
    if (rc)
       return rc;
-   return upgradeClientToSSLIntern(xsink);
+   return upgradeClientToSSLIntern(cert, pkey, xsink);
 }
 
-inline int QoreSocket::upgradeClientToSSL(class ExceptionSink *xsink)
+inline int QoreSocket::upgradeClientToSSL(X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink)
 {
    if (!sock)
       return -1;
    if (ssl)
       return 0;
-   return upgradeClientToSSLIntern(xsink);
+   return upgradeClientToSSLIntern(cert, pkey, xsink);
 }
 
 inline int QoreSocket::upgradeServerToSSL(X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink)
@@ -709,13 +761,17 @@ inline int QoreSocket::getPort()
 
 // QoreSocket::accept()
 // returns a new socket
-inline QoreSocket *QoreSocket::accept(QoreString *source, class ExceptionSink *xsink)
+inline QoreSocket *QoreSocket::accept(class SocketSource *source, class ExceptionSink *xsink)
 {
-   int rc = acceptInternal(source);
-   if (rc == -1)
+   if (!sock)
    {
-      if (xsink)
-	 xsink->raiseException("SOCKET-ACCEPT-ERROR", strerror(errno));
+      xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened and in listening state before Socket::accept() call");
+      return NULL;
+   }
+   int rc = acceptInternal(source);
+   if (rc < 0)
+   {
+      xsink->raiseException("SOCKET-ACCEPT-ERROR", "error in accept: ", strerror(errno));
       return NULL;
    }
 
@@ -724,7 +780,7 @@ inline QoreSocket *QoreSocket::accept(QoreString *source, class ExceptionSink *x
 
 // QoreSocket::acceptSSL()
 // accepts a new connection, negotiates an SSL connection, and returns the new socket
-inline QoreSocket *QoreSocket::acceptSSL(QoreString *source, X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink)
+inline QoreSocket *QoreSocket::acceptSSL(class SocketSource *source, X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink)
 {
    class QoreSocket *s = accept(source, xsink);
    if (!s)
@@ -740,7 +796,7 @@ inline QoreSocket *QoreSocket::acceptSSL(QoreString *source, X509 *cert, EVP_PKE
 }
 
 // accept a connection and replace the socket with the new connection
-int QoreSocket::acceptAndReplace(class QoreString *source)
+int QoreSocket::acceptAndReplace(class SocketSource *source)
 {
    tracein("QoreSocket::acceptAndReplace()");
    int rc = acceptInternal(source);
@@ -758,7 +814,7 @@ int QoreSocket::acceptAndReplace(class QoreString *source)
 inline int QoreSocket::listen()
 {
    if (!sock)
-      return -1;
+      return -2;
    return ::listen(sock, 5);
 }
 
@@ -774,7 +830,7 @@ static inline void add_to_buffer(char **buf, int *len, void *data, int size)
 inline int QoreSocket::send(char *buf, int size)
 {
    if (!sock)
-      return -1;
+      return -2;
 
    int bs = 0;
    while (1)

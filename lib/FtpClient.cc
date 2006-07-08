@@ -7,16 +7,6 @@
   
   Copyright (C) 2003, 2004, 2005, 2006 David Nichols
 
-  RFC-959: FTP
-  RFC-2428: EPSV mode only (no IPv6 yet)
-  RFC-2228 and RFC-4217: 
-   * AUTH TLS secure logins
-   * PBSZ 0 and PROT P (RFC-4217) secure data connections
- 
-  !RFC-1639: LPSV mode not implemented
-
-  defaults to EPSV mode, then tries PASV, then PORT
-
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
   License as published by the Free Software Foundation; either
@@ -51,52 +41,34 @@ FtpClient::FtpClient(class QoreString *url, class ExceptionSink *xsink)
 }
 
 // private unlocked
-void FtpClient::setURLInternal(class QoreString *url, class ExceptionSink *xsink)
+void FtpClient::setURLInternal(class QoreString *url_str, class ExceptionSink *xsink)
 {
-   // parse URL
-   class Hash *h = parseURL(url);
-   if (!h)
+   QoreURL url(url_str);
+   if (!url.isValid())
+   {
+      xsink->raiseException("FTP-URL-ERROR", "no hostname given in URL '%s'", url_str->getBuffer());
       return;
+   }
 
    // verify protocol
-   QoreNode *n = h->getKeyValue("protocol");
-   if (n)
+   if (url.protocol)
    {
-      if (!strcmp(n->val.String->getBuffer(), "ftps"))
+      if (!url.protocol->compare("ftps"))
 	 secure = secure_data = true;
-      else if (strcmp(n->val.String->getBuffer(), "ftp"))
+      else if (url.protocol->compare("ftp"))
       {
-	 xsink->raiseException("UNSUPPORTED-PROTOCOL", "'%s' not supported (expected 'ftp' or 'ftps')", n->val.String->getBuffer());
-	 h->dereference(NULL);
-	 delete h;
+	 xsink->raiseException("UNSUPPORTED-PROTOCOL", "'%s' not supported (expected 'ftp' or 'ftps')", url.protocol->getBuffer());
 	 return;
       }
    }
 
    // set username
-   n = h->getKeyValue("username");
-   if (n)
-      user = strdup(n->val.String->getBuffer());
-   
+   user = url.username ? url.username->giveBuffer() : NULL;   
    // set password
-   n = h->getKeyValue("password");
-   if (n)
-      pass = strdup(n->val.String->getBuffer());
-
+   pass = url.password ? url.password->giveBuffer() : NULL;
    // set host
-   n = h->getKeyValue("host");
-   if (n)
-      host = strdup(n->val.String->getBuffer());
-   else
-      xsink->raiseException("FTP-URL-ERROR", "no hostname given in URL '%s'", url->getBuffer());
-
-   // set port
-   n = h->getKeyValue("port");
-   if (n)
-      port = n->getAsInt();
-
-   h->dereference(NULL);
-   delete h;
+   host = url.host ? url.host->giveBuffer() : NULL;
+   port = url.port ? url.port : DEFAULT_FTP_CONTROL_PORT;
 }
 
 // private unlocked
@@ -263,7 +235,7 @@ int FtpClient::connectDataPassive(class ExceptionSink *xsink)
       return -1;
    }
 
-   if (secure_data && data.upgradeClientToSSL(xsink))
+   if (secure_data && data.upgradeClientToSSL(NULL, NULL, xsink))
       return -1;      
 
    mode = FTP_MODE_PASV;
@@ -425,7 +397,7 @@ inline int FtpClient::doAuth(class FtpResp *resp, class ExceptionSink *xsink)
       return -1;
    }
    
-   if (control.upgradeClientToSSL(xsink))
+   if (control.upgradeClientToSSL(NULL, NULL, xsink))
       return -1;
 
    if (secure_data)
@@ -555,7 +527,7 @@ class QoreString *FtpClient::list(char *path, bool long_list, class ExceptionSin
       data.close();
       return NULL;
    }
-   else if (secure_data && data.upgradeClientToSSL(xsink))
+   else if (secure_data && data.upgradeClientToSSL(NULL, NULL, xsink))
       return NULL;
 
    QoreString *l = new QoreString();
@@ -666,7 +638,7 @@ int FtpClient::put(char *localpath, char *remotename, class ExceptionSink *xsink
       close(fd);
       return -1;
    }
-   else if (secure_data && data.upgradeClientToSSL(xsink))
+   else if (secure_data && data.upgradeClientToSSL(NULL, NULL, xsink))
       return -1;      
 
    int rc = data.send(fd, file_info.st_size ? file_info.st_size : -1);
@@ -779,7 +751,7 @@ int FtpClient::get(char *remotepath, char *localname, class ExceptionSink *xsink
       close(fd);
       return -1;
    }
-   else if (secure_data && data.upgradeClientToSSL(xsink))
+   else if (secure_data && data.upgradeClientToSSL(NULL, NULL, xsink))
       return -1;      
 
    if (ln != localname)

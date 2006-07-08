@@ -7,17 +7,24 @@
   
   Copyright (C) 2003, 2004, 2005, 2006 David Nichols
 
-  tries the following data connection modes in order:
+  is "auto" mode, tries the following data modes in order:
   * EPSV mode (RFC 2428) 
   * PASV mode (RFC 959)
   * then PORT 
 
-  NOTE: LPSV (RFC 1639) not supported
+  references: 
+  RFC-959: FTP
+  RFC-2428: EPSV mode only (no IPv6 support yet)
+  RFC-4217 (supercedes RFC-2228):
+   * AUTH TLS: secure authentication
+   * PBSZ 0 and PROT P: secure data connections
+ 
+  (!RFC-1639: LPSV mode not implemented yet)
 
   tested with:
   * tnftpd 20040810 (Darwin/OS X 10.3.8) EPSV, PASV, PORT
   * vsFTPd 2.0.1 (Fedora Core 3) EPSV
-  * proFTPd 1.3.0 (Darwin/OS X 10.4.7) EPSV, AUTH TLS
+  * proFTPd 1.3.0 (Darwin/OS X 10.4.7) EPSV, PORT, AUTH TLS, PBSZ 0, PROT P
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -399,7 +406,7 @@ inline int FtpClient::acceptDataConnection(class ExceptionSink *xsink)
       printd(FTPDEBUG, "FtpClient::connectDataPort() negotiating client SSL connection\n");
 #endif
 
-   if (secure_data && data.upgradeClientToSSL(xsink))
+   if (secure_data && data.upgradeClientToSSL(NULL, NULL, xsink))
       return -1;      
 
    printd(FTPDEBUG, "FtpClient::acceptDataConnection() accepted PORT data connection\n");

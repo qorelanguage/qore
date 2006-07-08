@@ -46,7 +46,101 @@ extern class LockedObject lck_gethostbyaddr;
 #define UNIX_PATH_MAX    108
 #define BUFSIZE          512
 
-class Hash *parseURL(class QoreString *url);
+class QoreURL {
+   private:
+      inline void zero()
+      {
+	 protocol = path = username = password = host = NULL;
+	 port = 0;
+      }
+      inline void reset()
+      {
+	 if (protocol)
+	    delete protocol;
+	 if (path)
+	    delete path;
+	 if (username)
+	    delete username;
+	 if (password)
+	    delete password;
+	 if (host)
+	    delete host;
+      }
+      void parseIntern(char *url);
+
+   public:
+      class QoreString *protocol, *path, *username, *password, *host;
+      int port;
+      
+      inline QoreURL() 
+      {
+	 zero();
+      }
+      inline QoreURL(char *url)
+      {
+	 zero();
+	 parse(url);
+      }
+      inline QoreURL(class QoreString *url)
+      {
+	 zero();
+	 parse(url->getBuffer());
+      }
+      inline ~QoreURL()
+      {
+	 reset();
+      }
+      inline int parse(char *url)
+      {
+	 reset();
+	 zero();
+	 parseIntern(url);
+	 return isValid() ? 0 : -1;
+      }
+      inline int parse(class QoreString *url)
+      {
+	 reset();
+	 zero();
+	 parseIntern(url->getBuffer());
+	 return isValid() ? 0 : -1;
+      }
+      inline bool isValid()
+      {
+	 return host && host->strlen();
+      }
+      inline class Hash *getHash()
+      {
+	 class Hash *h = new Hash();
+	 if (protocol)
+	 {
+	    h->setKeyValue("protocol", new QoreNode(protocol), NULL);
+	    protocol = NULL;
+	 }
+	 if (path)
+	 {
+	    h->setKeyValue("path", new QoreNode(path), NULL);
+	    path = NULL;
+	 }
+	 if (username)
+	 {
+	    h->setKeyValue("username", new QoreNode(username), NULL);
+	    username = NULL;
+	 }
+	 if (password)
+	 {
+	    h->setKeyValue("password", new QoreNode(password), NULL);
+	    password = NULL;
+	 }
+	 if (host)
+	 {
+	    h->setKeyValue("host", new QoreNode(host), NULL);
+	    host = NULL;
+	 }
+	 return h;
+      }
+};
+
+//class Hash *parseURL(class QoreString *url);
 
 // thread-safe gethostbyname (0 = success, !0 = error)
 // FIXME: check err?

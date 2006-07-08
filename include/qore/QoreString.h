@@ -27,7 +27,9 @@
 #define _QORE_QORESTRING_H
 
 #include <qore/common.h>
+
 #include <stdarg.h>
+#include <ctype.h>
 
 #define MAX_INT_STRING_LEN    48
 #define MAX_BIGINT_STRING_LEN 48
@@ -125,6 +127,24 @@ class QoreString {
       inline void splice(int offset, int length, class QoreNode *strn, class ExceptionSink *xsink);
       inline class QoreString *substr(int offset);
       inline class QoreString *substr(int offset, int length);
+      inline void tolwr()
+      {
+	 char *c = buf;
+	 while (*c)
+	 {
+	    *c = ::tolower(*c);
+	    c++;
+	 }
+      }
+      inline void toupr()
+      {
+	 char *c = buf;
+	 while (*c)
+	 {
+	    *c = ::toupper(*c);
+	    c++;
+	 }
+      }
 };
 
 #include <qore/support.h>

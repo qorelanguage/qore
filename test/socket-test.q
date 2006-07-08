@@ -5,21 +5,38 @@
 #$sp = "/tmp/sock-test";
 #$cp = "/tmp/sock-test";
 
-our ($o, $sp, $cp, $q);
+our ($o, $sp, $cp, $q, $errors);
 
 const opts = 
-    ( "help" : "h,help",
-      "ssl"  : "s,ssl",
-      "key"  : "k,private-key=s",
-      "cert" : "c,cert=s" );
+    ( "help"       : "h,help",
+      "ssl"        : "s,ssl",
+      "key"        : "k,private-key=s",
+      "cert"       : "c,cert=s",
+      "clientkey"  : "K,client-private-key=s",
+      "clientcert" : "C,client-cert=s",
+      "verbose"    : "v,verbose" );
+
+sub test_value($v1, $v2, $msg)
+{
+    if ($v1 === $v2)
+	printf("OK: %s test\n", $msg);
+    else
+    {
+        printf("ERROR: %s test failed! (%n != %n)\n", $msg, $v1, $v2);
+        $errors++;
+    }
+}
 
 sub usage()
 {
     printf("usage: %s -[options] [port]
-  -h,--help             this help text
-  -s,--ssl              use secure connections
-  -c,--cert=arg         set SSL x509 certificate
-  -k,--private-key=arg  set SSL private key\n", basename($ENV."_"));
+  -h,--help                    this help text
+  -s,--ssl                     use secure connections
+  -c,--cert=arg                set server SSL x509 certificate
+  -k,--private-key=arg         set server SSL private key
+  -C,--client-cert=arg         set client SSL x509 certificate
+  -K,--client-private-key=arg  set client SSL private key
+", basename($ENV."_"));
     exit();
 }
 
@@ -46,6 +63,7 @@ sub process_command_line()
 const i1 = 10;
 const i2 = 5121;
 const i4 = 2393921;
+const i8 = 12309309203932;
 
 sub server_thread()
 {
@@ -68,22 +86,30 @@ sub server_thread()
     try {
 	if ($o.ssl)
 	{
-	    if (strlen($o.cert))
+	    if (strlen($o.clientcert))
 	    {
-		$s.setCertificate($o.cert);
-		if (!strlen($o.key))
-		    $s.setPrivateKey($o.cert);
+		$s.setCertificate($o.clientcert);
+		if (!strlen($o.clientkey))
+		    $s.setPrivateKey($o.clientcert);
 	    }
-	    if (strlen($o.key))
-		$s.setPrivateKey($o.key);
+	    if (strlen($o.clientkey))
+		$s.setPrivateKey($o.clientkey);
 
 	    $r = $s.acceptSSL();
-	    printf("secure connection (%s %s) from %s\n", $r.getSSLCipherName(), $r.getSSLCipherVersion(), $r.source);
+	    printf("server: secure connection (%s %s) from %s (%s)\n", $r.getSSLCipherName(), $r.getSSLCipherVersion(), $r.source, $r.source_host);
+	    my $code = $r.verifyPeerCertificate();
+	    if ($code == -1)
+		printf("server: client certificate could not be verified\n");
+	    else
+	    {
+		my $str = getSSLCertVerificationCodeString($code);
+		printf("server: client certificate: %n %s: %s\n", $str, X509_VerificationReasons.$str);
+	    }
 	}
 	else
 	{
 	    $r = $s.accept();
-	    printf("normal socket connection from %s\n", $r.source);
+	    printf("server: normal socket connection from %s (%s)\n", $r.source, $r.source_host);
 	}
     }
     catch ($ex)
@@ -103,11 +129,20 @@ sub server_thread()
     $r.send("OK");
 
     my $i = $r.recvi1();
-    printf("Socket::sendi1(), Socket::recvi1() test: %s\n", $i == i1 ? "PASSED" : "FAILED");
+    test_value($i, i1, "sendi1");
     $i = $r.recvi2();
-    printf("Socket::sendi2(), Socket::recvi2() test: %s\n", $i == i2 ? "PASSED" : "FAILED");
+    test_value($i, i2, "sendi2");
     $i = $r.recvi4();
-    printf("Socket::sendi4(), Socket::recvi4() test: %s\n", $i == i4 ? "PASSED" : "FAILED");
+    test_value($i, i4, "sendi4");
+    $i = $r.recvi8();
+    test_value($i, i8, "sendi8");
+
+    $i = $r.recvi2LSB();
+    test_value($i, i2, "sendi2LSB");
+    $i = $r.recvi4LSB();
+    test_value($i, i4, "sendi4LSB");
+    $i = $r.recvi8LSB();
+    test_value($i, i8, "sendi8LSB");
 
     $m = $r.recv();
     if ($m == -1)
@@ -129,7 +164,21 @@ sub client_thread()
 
     try {
 	if ($o.ssl)
+	{
+	    if (strlen($o.cert))
+	    {
+		$s.setCertificate($o.cert);
+		if (!strlen($o.key))
+		    $s.setPrivateKey($o.cert);
+	    }
+	    if (strlen($o.key))
+		$s.setPrivateKey($o.key);
 	    $s.connectSSL($cp);
+
+	    my $code = $s.verifyPeerCertificate();
+	    my $str = getSSLCertVerificationCodeString($code);
+	    printf("client: server certificate: %s: %s\n", $str, X509_VerificationReasons.$str);
+	}
 	else
 	    $s.connect($cp);
     }
@@ -151,6 +200,11 @@ sub client_thread()
     $s.sendi1(i1);
     $s.sendi2(i2);
     $s.sendi4(i4);
+    $s.sendi8(i8);
+
+    $s.sendi2LSB(i2);
+    $s.sendi4LSB(i4);
+    $s.sendi8LSB(i8);
     $s.send("goodbye!");
 }
 

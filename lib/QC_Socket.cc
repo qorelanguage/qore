@@ -20,8 +20,6 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-// FIXME: fix stupid race condition with the getSocket() calls
-
 #include <qore/config.h>
 #include <qore/common.h>
 #include <qore/QC_Socket.h>
@@ -35,6 +33,26 @@
 #include <string.h>
 
 int CID_SOCKET;
+
+static inline void doException(int rc, char *method_name, class ExceptionSink *xsink)
+{
+   if (!rc)             // remote end has closed the connection
+      xsink->raiseException("SOCKET-CLOSED", "remote end has closed the connection");
+   else if (rc == -1)   // recv() error
+      xsink->raiseException("SOCKET-RECV-ERROR", strerror(errno));
+   else if (rc == -2)   // TIMEOUT returns NOTHING
+      xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened before Socket::%s() call", method_name);
+}
+
+static inline class QoreNode *doReadResult(int rc, int64 val, char *method_name, class ExceptionSink *xsink)
+{
+   class QoreNode *rv = NULL;
+   if (rc <= 0)
+      doException(rc, method_name, xsink);
+   else
+      rv = new QoreNode(val);
+   return rv;
+}
 
 static inline void *getSocket(void *obj)
 {
@@ -144,9 +162,9 @@ static QoreNode *SOCKET_bind(class Object *self, class QoreNode *params, Excepti
    {
       // create and bind tcp socket to all interfaces on port given
       if (p0->type == NT_INT)
-	 rv = new QoreNode(NT_INT, s->bind(p0->val.intval, rua));
+	 rv = new QoreNode((int64)s->bind(p0->val.intval, rua));
       else
-	 rv = new QoreNode(NT_INT, s->bind(p0->val.String->getBuffer(), rua));
+	 rv = new QoreNode((int64)s->bind(p0->val.String->getBuffer(), rua));
       s->deref();
    }
    else
@@ -158,8 +176,8 @@ static QoreNode *SOCKET_bind(class Object *self, class QoreNode *params, Excepti
 }
 
 // Socket::accept()
-// returns a new Socket object, connection source string is in $.source
-// member of new object
+// returns a new Socket object, connection source address is in $.source
+// member of new object, hostname in $.source_host
 static QoreNode *SOCKET_accept(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
    class mySocket *s = (mySocket *)self->getReferencedPrivateData(CID_SOCKET);
@@ -167,29 +185,18 @@ static QoreNode *SOCKET_accept(class Object *self, class QoreNode *params, Excep
 
    if (s)
    {
-      if (!s->getSocket())
-      {
-	 xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened and in listening state before Socket::accept() call");
+      class SocketSource source;
+      mySocket *n = s->accept(&source, xsink);
+      if (xsink->isEvent())
 	 rv = NULL;
-      }
       else
       {
-	 QoreString *source = new QoreString();
-	 mySocket *n = s->accept(source, xsink);
-	 if (!n)
-	 {
-	    delete source;
-	    rv = NULL;
-	 }
-	 else
-	 {
-	    // ensure that a socket object is returned (and not a subclass)
-	    Object *ns = new Object(self->getClass(CID_SOCKET), getProgram());
-	    ns->setPrivate(CID_SOCKET, n, getSocket);
-	    ns->setValue("source", new QoreNode(source), xsink);
-
-	    rv = new QoreNode(ns);
-	 }
+	 // ensure that a socket object is returned (and not a subclass)
+	 Object *ns = new Object(self->getClass(CID_SOCKET), getProgram());
+	 ns->setPrivate(CID_SOCKET, n, getSocket);
+	 source.setAll(ns, xsink);
+	 
+	 rv = new QoreNode(ns);
       }
       s->deref();
    }
@@ -201,9 +208,10 @@ static QoreNode *SOCKET_accept(class Object *self, class QoreNode *params, Excep
    return rv;
 }
 
-// Socket::acceptSSL([certificate, private key])
+// Socket::acceptSSL()
 // accepts a new connection, negotiates an SSL connection, and returns the new socket
-// the connection source string is in the "$.source" member of new object
+// the connection source string is in the "$.source" member of new object,
+// hostname in "$.source_host"
 static QoreNode *SOCKET_acceptSSL(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
    class mySocket *s = (mySocket *)self->getReferencedPrivateData(CID_SOCKET);
@@ -211,29 +219,18 @@ static QoreNode *SOCKET_acceptSSL(class Object *self, class QoreNode *params, Ex
 
    if (s)
    {
-      if (!s->getSocket())
-      {
-	 xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened and in listening state before Socket::acceptSSL() call");
+      class SocketSource source;
+      mySocket *n = s->acceptSSL(&source, xsink);
+      if (xsink->isEvent())
 	 rv = NULL;
-      }
       else
       {
-	 QoreString *source = new QoreString();
-	 mySocket *n = s->acceptSSL(source, xsink);
-	 if (!n)
-	 {
-	    delete source;
-	    rv = NULL;
-	 }
-	 else
-	 {
-	    // ensure that a socket object is returned (and not a subclass)
-	    Object *ns = new Object(self->getClass(CID_SOCKET), getProgram());
-	    ns->setPrivate(CID_SOCKET, n, getSocket);
-	    ns->setValue("source", new QoreNode(source), xsink);
+	 // ensure that a socket object is returned (and not a subclass)
+	 Object *ns = new Object(self->getClass(CID_SOCKET), getProgram());
+	 ns->setPrivate(CID_SOCKET, n, getSocket);
+	 source.setAll(ns, xsink);
 
-	    rv = new QoreNode(ns);
-	 }
+	 rv = new QoreNode(ns);
       }
       s->deref();
    }
@@ -252,13 +249,15 @@ static QoreNode *SOCKET_listen(class Object *self, class QoreNode *params, Excep
 
    if (s)
    {
-      if (!s->getSocket())
+      int rc = s->listen();
+
+      if (rc == -2)
       {
 	 xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened before Socket::listen() call");
 	 rv = NULL;
       }
       else
-	 rv = new QoreNode(NT_INT, s->listen());
+	 rv = new QoreNode((int64)rc);
 
       s->deref();
    }
@@ -284,18 +283,21 @@ static QoreNode *SOCKET_send(class Object *self, class QoreNode *params, Excepti
 
    if (s)
    {
-      if (!s->getSocket())
+      int rc;
+
+      if (p0->type == NT_STRING)
+	 rc = s->send(p0->val.String, xsink);
+      else
+	 rc = s->send(p0->val.bin);
+      
+      if (rc == -2)
       {
 	 xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened before Socket::send() call");
 	 rv = NULL;
       }
       else
-      {
-	 if (p0->type == NT_STRING)
-	    rv = new QoreNode(NT_INT, s->send(p0->val.String, xsink));
-	 else
-	    rv = new QoreNode(NT_INT, s->send(p0->val.bin));
-      }
+	 rv = new QoreNode((int64)rc);
+
       s->deref();
    }
    else
@@ -320,18 +322,22 @@ static QoreNode *SOCKET_sendBinary(class Object *self, class QoreNode *params, E
 
    if (s)
    {
-      if (!s->getSocket())
+      int rc = 0;
+
+      // send strings with no conversions
+      if (p0->type == NT_STRING)
+	 rc = s->send(p0->val.String->getBuffer(), p0->val.String->strlen());
+      else
+	 rc = s->send(p0->val.bin);
+
+      if (rc == -2)
       {
 	 xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened before Socket::sendBinary() call");
 	 rv = NULL;
       }
       else
-      {
-	 if (p0->type == NT_STRING)
-	    rv = new QoreNode(NT_INT, s->send(p0->val.String->getBuffer(), p0->val.String->strlen()));
-	 else
-	    rv = new QoreNode(NT_INT, s->send(p0->val.bin));
-      }
+	 rv = new QoreNode((int64)rc);
+
       s->deref();
    }
    else
@@ -356,13 +362,16 @@ static QoreNode *SOCKET_sendi1(class Object *self, class QoreNode *params, Excep
 
    if (s)
    {
-      if (!s->getSocket())
+      int rc = s->sendi1(i);
+
+      if (rc == -2)
       {
-	 xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened before Socket::send() call");
+	 xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened before Socket::sendi1() call");
 	 rv = NULL;
       }
       else
-	 rv = new QoreNode(NT_INT, s->sendi1(i));
+	 rv = new QoreNode((int64)rc);
+
       s->deref();
    }
    else
@@ -387,13 +396,16 @@ static QoreNode *SOCKET_sendi2(class Object *self, class QoreNode *params, Excep
 
    if (s)
    {
-      if (!s->getSocket())
+      int rc = s->sendi2(i);
+
+      if (rc == -2)
       {
 	 xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened before Socket::sendi2() call");
 	 rv = NULL;
       }
       else
-	 rv = new QoreNode(NT_INT, s->sendi2(i));
+	 rv = new QoreNode((int64)rc);
+
       s->deref();
    }
    else
@@ -418,13 +430,16 @@ static QoreNode *SOCKET_sendi4(class Object *self, class QoreNode *params, Excep
 
    if (s)
    {
-      if (!s->getSocket())
+      int rc = s->sendi4(i);
+
+      if (rc == -2)
       {
 	 xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened before Socket::sendi4() call");
 	 rv = NULL;
       }
       else
-	 rv = new QoreNode(NT_INT, s->sendi4(i));
+	 rv = new QoreNode((int64)rc);
+
       s->deref();
    }
    else
@@ -449,13 +464,16 @@ static QoreNode *SOCKET_sendi8(class Object *self, class QoreNode *params, Excep
 
    if (s)
    {
-      if (!s->getSocket())
+      int rc = s->sendi8(i);
+
+      if (rc == -2)
       {
 	 xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened before Socket::sendi8() call");
 	 rv = NULL;
       }
       else
-	 rv = new QoreNode(NT_INT, s->sendi8(i));
+	 rv = new QoreNode((int64)rc);
+
       s->deref();
    }
    else
@@ -480,13 +498,16 @@ static QoreNode *SOCKET_sendi2LSB(class Object *self, class QoreNode *params, Ex
 
    if (s)
    {
-      if (!s->getSocket())
+      int rc = s->sendi2LSB(i);
+
+      if (rc == -2)
       {
 	 xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened before Socket::sendi2LSB() call");
 	 rv = NULL;
       }
       else
-	 rv = new QoreNode(NT_INT, s->sendi2LSB(i));
+	 rv = new QoreNode((int64)rc);
+
       s->deref();
    }
    else
@@ -511,13 +532,16 @@ static QoreNode *SOCKET_sendi4LSB(class Object *self, class QoreNode *params, Ex
 
    if (s)
    {
-      if (!s->getSocket())
+      int rc = s->sendi4LSB(i);
+
+      if (rc == -2)
       {
 	 xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened before Socket::sendi4LSB() call");
 	 rv = NULL;
       }
       else
-	 rv = new QoreNode(NT_INT, s->sendi4LSB(i));
+	 rv = new QoreNode((int64)rc);
+
       s->deref();
    }
    else
@@ -542,13 +566,16 @@ static QoreNode *SOCKET_sendi8LSB(class Object *self, class QoreNode *params, Ex
 
    if (s)
    {
-      if (!s->getSocket())
+      int rc = s->sendi8LSB(i);
+
+      if (rc == -2)
       {
 	 xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened before Socket::sendi8LSB() call");
 	 rv = NULL;
       }
       else
-	 rv = new QoreNode(NT_INT, s->sendi8LSB(i));
+	 rv = new QoreNode((int64)rc);
+
       s->deref();
    }
    else
@@ -577,47 +604,27 @@ static QoreNode *SOCKET_recv(class Object *self, class QoreNode *params, Excepti
       timeout = -1;
 
    class mySocket *s = (mySocket *)self->getReferencedPrivateData(CID_SOCKET);
-   QoreNode *rv;
+   QoreNode *rv = NULL;
 
    if (s)
    {
-      if (!s->getSocket())
-      {
-	 xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened before Socket::recv() call");
-	 rv = NULL;
-      }
-      else
-      {
-	 int rc;
-	 QoreString *msg;
+      int rc;
+      QoreString *msg;
 
-	 if (bs)
-	    msg = s->recv(bs, timeout, &rc);
-	 else
-	    msg = s->recv(timeout, &rc);
+      if (bs)
+	 msg = s->recv(bs, timeout, &rc);
+      else
+	 msg = s->recv(timeout, &rc);
 	 
-	 if (!rc)             // remote end has closed the connection
-	 {
-	    xsink->raiseException("SOCKET-CLOSED", "remote end has closed the connection");
-	    rv = NULL;
-	 }
-	 else if (rc == -1)   // recv() error
-	 {
-	    xsink->raiseException("SOCKET-RECV-ERROR", strerror(errno));
-	    rv = NULL;
-	 }
-	 else if (rc == -2)   // TIMEOUT returns NOTHING
-	    rv = NULL;
-	 else                 // the value read
-	    rv = new QoreNode(msg);
-      }
+      if (rc <= 0)
+	 doException(rc, "recv", xsink);
+      else
+	 rv = new QoreNode(msg);
       s->deref();
    }
    else
-   {
-      rv = NULL;
       alreadyDeleted(xsink, "Socket::recv");
-   }
+
    return rv;
 }
 
@@ -632,41 +639,18 @@ static QoreNode *SOCKET_recvi1(class Object *self, class QoreNode *params, Excep
       timeout = -1;
 
    class mySocket *s = (mySocket *)self->getReferencedPrivateData(CID_SOCKET);
-   QoreNode *rv;
+   QoreNode *rv = NULL;
 
    if (s)
    {
-      if (!s->getSocket())
-      {
-	 xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened before Socket::recv() call");
-	 rv = NULL;
-      }
-      else
-      {
-	 char b;
-	 int rc = s->recvi1(timeout, &b);
-	 if (!rc)
-	 {
-	    xsink->raiseException("SOCKET-CLOSED", "remote end has closed the connection");
-	    rv = NULL;
-	 }
-	 else if (rc == -1)
-	 {
-	    xsink->raiseException("SOCKET-RECV-ERROR", strerror(errno));
-	    rv = NULL;
-	 }
-	 else if (rc == -2)   // TIMEOUT
-	    rv = NULL;
-	 else                 // the value read
-	    rv = new QoreNode((int64)b);
-      }
+      char b;
+      int rc = s->recvi1(timeout, &b);
+      rv = doReadResult(rc, (int64)b, "recvi1", xsink);
       s->deref();
    }
    else
-   {
-      rv = NULL;
       alreadyDeleted(xsink, "Socket::revci1");
-   }
+
    return rv;
 }
 
@@ -681,41 +665,18 @@ static QoreNode *SOCKET_recvi2(class Object *self, class QoreNode *params, Excep
       timeout = -1;
 
    class mySocket *s = (mySocket *)self->getReferencedPrivateData(CID_SOCKET);
-   QoreNode *rv;
+   QoreNode *rv = NULL;
 
    if (s)
    {
-      if (!s->getSocket())
-      {
-	 xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened before Socket::recv() call");
-	 rv = NULL;
-      }
-      else
-      {
-	 short b;
-	 int rc = s->recvi2(timeout, &b); 
-	 if (!rc)             // remote end has closed the connection
-	 {
-	    xsink->raiseException("SOCKET-CLOSED", "remote end has closed the connection");
-	    rv = NULL;
-	 }
-	 else if (rc == -1)   // recv() error
-	 {
-	    xsink->raiseException("SOCKET-RECV-ERROR", strerror(errno));
-	    rv = NULL;
-	 }
-	 else if (rc == -2)   // TIMEOUT returns NOTHING
-	    rv = NULL;
-	 else                 // the value read
-	    rv = new QoreNode((int64)b);
-      }
+      short b;
+      int rc = s->recvi2(timeout, &b);
+      rv = doReadResult(rc, (int64)b, "recvi2", xsink);
       s->deref();
    }
    else
-   {
-      rv = NULL;
       alreadyDeleted(xsink, "Socket::recvi2");
-   }
+
    return rv;
 }
 
@@ -730,41 +691,18 @@ static QoreNode *SOCKET_recvi4(class Object *self, class QoreNode *params, Excep
       timeout = -1;
 
    class mySocket *s = (mySocket *)self->getReferencedPrivateData(CID_SOCKET);
-   QoreNode *rv;
+   QoreNode *rv = NULL;
 
    if (s)
    {
-      if (!s->getSocket())
-      {
-	 xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened before Socket::recv() call");
-	 rv = NULL;
-      }
-      else
-      {
-	 int b;
-	 int rc = s->recvi4(timeout, &b);
-	 if (!rc)             // remote end has closed the connection
-	 {
-	    xsink->raiseException("SOCKET-CLOSED", "remote end has closed the connection");
-	    rv = NULL;
-	 }
-	 else if (rc == -1)   // recv() error
-	 {
-	    xsink->raiseException("SOCKET-RECV-ERROR", strerror(errno));
-	    rv = NULL;
-	 }
-	 else if (rc == -2)   // TIMEOUT returns NOTHING
-	    rv = NULL;
-	 else                 // the value read
-	    rv = new QoreNode((int64)b);
-      }
+      int b;
+      int rc = s->recvi4(timeout, &b);
+      rv = doReadResult(rc, (int64)b, "recvi4", xsink);
       s->deref();
    }
    else
-   {
-      rv = NULL;
       alreadyDeleted(xsink, "Socket::recvi4");
-   }
+
    return rv;
 }
 
@@ -779,41 +717,18 @@ static QoreNode *SOCKET_recvi8(class Object *self, class QoreNode *params, Excep
       timeout = -1;
 
    class mySocket *s = (mySocket *)self->getReferencedPrivateData(CID_SOCKET);
-   QoreNode *rv;
+   QoreNode *rv = NULL;
 
    if (s)
    {
-      if (!s->getSocket())
-      {
-	 xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened before Socket::recvi8() call");
-	 rv = NULL;
-      }
-      else
-      {
-	 int64 b;
-	 int rc = s->recvi8(timeout, &b);
-	 if (!rc)             // remote end has closed the connection
-	 {
-	    xsink->raiseException("SOCKET-CLOSED", "remote end has closed the connection");
-	    rv = NULL;
-	 }
-	 else if (rc == -1)   // recv() error
-	 {
-	    xsink->raiseException("SOCKET-RECV-ERROR", strerror(errno));
-	    rv = NULL;
-	 }
-	 else if (rc == -2)   // TIMEOUT returns NOTHING
-	    rv = NULL;
-	 else                 // the value read
-	    rv = new QoreNode(b);
-      }
+      int64 b;
+      int rc = s->recvi8(timeout, &b);
+      rv = doReadResult(rc, b, "recvi8", xsink);
       s->deref();
    }
    else
-   {
-      rv = NULL;
       alreadyDeleted(xsink, "Socket::recvi8");
-   }
+
    return rv;
 }
 
@@ -828,41 +743,18 @@ static QoreNode *SOCKET_recvi2LSB(class Object *self, class QoreNode *params, Ex
       timeout = -1;
 
    class mySocket *s = (mySocket *)self->getReferencedPrivateData(CID_SOCKET);
-   QoreNode *rv;
+   QoreNode *rv = NULL;
 
    if (s)
    {
-      if (!s->getSocket())
-      {
-	 xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened before Socket::recv() call");
-	 rv = NULL;
-      }
-      else
-      {
-	 short b;
-	 int rc = s->recvi2LSB(timeout, &b); 
-	 if (!rc)             // remote end has closed the connection
-	 {
-	    xsink->raiseException("SOCKET-CLOSED", "remote end has closed the connection");
-	    rv = NULL;
-	 }
-	 else if (rc == -1)   // recv() error
-	 {
-	    xsink->raiseException("SOCKET-RECV-ERROR", strerror(errno));
-	    rv = NULL;
-	 }
-	 else if (rc == -2)   // TIMEOUT returns NOTHING
-	    rv = NULL;
-	 else                 // the value read
-	    rv = new QoreNode((int64)b);
-      }
+      short b;
+      int rc = s->recvi2LSB(timeout, &b);
+      rv = doReadResult(rc, (int64)b, "recvi2LSB", xsink);
       s->deref();
    }
    else
-   {
-      rv = NULL;
       alreadyDeleted(xsink, "Socket::recvi2LSB");
-   }
+
    return rv;
 }
 
@@ -881,30 +773,9 @@ static QoreNode *SOCKET_recvi4LSB(class Object *self, class QoreNode *params, Ex
 
    if (s)
    {
-      if (!s->getSocket())
-      {
-	 xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened before Socket::recv() call");
-	 rv = NULL;
-      }
-      else
-      {
-	 int b;
-	 int rc = s->recvi4LSB(timeout, &b);
-	 if (!rc)             // remote end has closed the connection
-	 {
-	    xsink->raiseException("SOCKET-CLOSED", "remote end has closed the connection");
-	    rv = NULL;
-	 }
-	 else if (rc == -1)   // recv() error
-	 {
-	    xsink->raiseException("SOCKET-RECV-ERROR", strerror(errno));
-	    rv = NULL;
-	 }
-	 else if (rc == -2)   // TIMEOUT returns NOTHING
-	    rv = NULL;
-	 else                 // the value read
-	    rv = new QoreNode((int64)b);
-      }
+      int b;
+      int rc = s->recvi4LSB(timeout, &b);
+      rv = doReadResult(rc, (int64)b, "recvi4LSB", xsink);
       s->deref();
    }
    else
@@ -930,30 +801,9 @@ static QoreNode *SOCKET_recvi8LSB(class Object *self, class QoreNode *params, Ex
 
    if (s)
    {
-      if (!s->getSocket())
-      {
-	 xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened before Socket::recvi8LSB() call");
-	 rv = NULL;
-      }
-      else
-      {
-	 int64 b;
-	 int rc = s->recvi8LSB(timeout, &b);
-	 if (!rc)             // remote end has closed the connection
-	 {
-	    xsink->raiseException("SOCKET-CLOSED", "remote end has closed the connection");
-	    rv = NULL;
-	 }
-	 else if (rc == -1)   // recv() error
-	 {
-	    xsink->raiseException("SOCKET-RECV-ERROR", strerror(errno));
-	    rv = NULL;
-	 }
-	 else if (rc == -2)   // TIMEOUT returns NOTHING
-	    rv = NULL;
-	 else                 // the value read
-	    rv = new QoreNode(b);
-      }
+      int64 b;
+      int rc = s->recvi8LSB(timeout, &b);
+      rv = doReadResult(rc, b, "recvi8LSB", xsink);
       s->deref();
    }
    else
@@ -985,41 +835,22 @@ static QoreNode *SOCKET_recvBinary(class Object *self, class QoreNode *params, E
       timeout = -1;
 
    class mySocket *s = (mySocket *)self->getReferencedPrivateData(CID_SOCKET);
-   QoreNode *rv;
+   QoreNode *rv = NULL;
 
    if (s)
    {
-      if (!s->getSocket())
-      {
-	 xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened before Socket::recvBinary() call");
-	 rv = NULL;
-      }
+      int rc;
+      BinaryObject *b = s->recvBinary(bs, timeout, &rc);
+
+      if (rc <= 0)
+	 doException(rc, "recvBinary", xsink);
       else
-      {
-	 int rc;
-	 BinaryObject *b = s->recvBinary(bs, timeout, &rc);
-	 if (!rc)             // remote end has closed the connection
-	 {
-	    xsink->raiseException("SOCKET-CLOSED", "remote end has closed the connection");
-	    rv = NULL;
-	 }
-	 else if (rc == -1)   // recv() error
-	 {
-	    xsink->raiseException("SOCKET-RECV-ERROR", strerror(errno));
-	    rv = NULL;
-	 }
-	 else if (rc == -2)   // TIMEOUT returns NOTHING
-	    rv = NULL;
-	 else                 // the value read
-	    rv = new QoreNode(b);
-      }
+	 rv = new QoreNode(b);
       s->deref();
    }
    else
-   {
-      rv = NULL;
       alreadyDeleted(xsink, "Socket::recvBinary");
-   }
+
    return rv;
 }
 
@@ -1082,14 +913,11 @@ static QoreNode *SOCKET_sendHTTPMessage(class Object *self, class QoreNode *para
 
    if (s)
    {
-      if (!s->getSocket())
+      int rc = s->sendHTTPMessage(method, path, http_version, headers, ptr, size);
+      if (rc == -2)
 	 xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened before Socket::sendHTTPMessage() call");
-      else
-      {
-	 int rc;
-	 if ((rc = s->sendHTTPMessage(method, path, http_version, headers, ptr, size)))
-	    xsink->raiseException("SOCKET-SEND-ERROR", "send failed with error code %d: %s", rc, strerror(errno));
-      }
+      else if (rc)
+	 xsink->raiseException("SOCKET-SEND-ERROR", "send failed with error code %d: %s", rc, strerror(errno));
       s->deref();
    }
    else
@@ -1162,14 +990,11 @@ static QoreNode *SOCKET_sendHTTPResponse(class Object *self, class QoreNode *par
 
    if (s)
    {
-      if (!s->getSocket())
+      int rc = s->sendHTTPResponse(status_code, status_desc, http_version, headers, ptr, size);
+      if (rc == -2)
 	 xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened before Socket::sendHTTPResponse() call");
-      else
-      {
-	 int rc;
-	 if ((rc = s->sendHTTPResponse(status_code, status_desc, http_version, headers, ptr, size)))
-	    xsink->raiseException("SOCKET-SEND-ERROR", "send failed with error code %d: %s", rc, strerror(errno));
-      }
+      else if (rc)
+	 xsink->raiseException("SOCKET-SEND-ERROR", "send failed with error code %d: %s", rc, strerror(errno));
       s->deref();
    }
    else
@@ -1188,35 +1013,24 @@ static QoreNode *SOCKET_readHTTPHeader(class Object *self, class QoreNode *param
       timeout = -1;
 
    class mySocket *s = (mySocket *)self->getReferencedPrivateData(CID_SOCKET);
-   QoreNode *rv;
+   QoreNode *rv = NULL;
 
    if (s)
    {
-      if (!s->getSocket())
-      {
-	 xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened before Socket::readHTTPHeader() call");
-	 rv = NULL;
-      }
-      else
-      {
-	 int rc;
+      xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened before Socket::readHTTPHeader() call");
+      int rc;
 
-	 // when rc = -2 it's a timeout, but rv will be NULL anyway, so we do nothing
-	 rv = s->readHTTPHeader(timeout, &rc);
-
-	 if (!rc)             // remote end has closed the connection
-	    xsink->raiseException("SOCKET-CLOSED", "remote end has closed the connection");
-	 else if (rc == -1)   // recv() error
-	    xsink->raiseException("SOCKET-RECV-ERROR", strerror(errno));
-      }
+      // when rc = -2 it's a timeout, but rv will be NULL anyway, so we do nothing
+      rv = s->readHTTPHeader(timeout, &rc);
+      
+      if (rc <= 0)
+	 doException(rc, "readHTTPHeader", xsink);
 
       s->deref();
    }
    else
-   {
-      rv = NULL;
       alreadyDeleted(xsink, "Socket::readHTTPHeader");
-   }
+
    return rv;
 }
 
@@ -1227,7 +1041,7 @@ static QoreNode *SOCKET_close(class Object *self, class QoreNode *params, Except
 
    if (s)
    {
-      rv = new QoreNode(NT_INT, s->close());
+      rv = new QoreNode((int64)s->close());
       s->deref();
    }
    else
@@ -1281,7 +1095,7 @@ static QoreNode *SOCKET_getPort(class Object *self, class QoreNode *params, Exce
 
    if (s)
    {
-      rv = new QoreNode(NT_INT, s->getPort());
+      rv = new QoreNode((int64)s->getPort());
       s->deref();
    }
    else
@@ -1299,7 +1113,7 @@ static QoreNode *SOCKET_getSocket(class Object *self, class QoreNode *params, Ex
 
    if (s)
    {
-      rv = new QoreNode(NT_INT, s->getSocket());
+      rv = new QoreNode((int64)s->getSocket());
       s->deref();
    }
    else
@@ -1324,7 +1138,7 @@ static QoreNode *SOCKET_setSendTimeout(class Object *self, class QoreNode *param
 
    if (s)
    {
-      rv = new QoreNode(NT_INT, s->setSendTimeout(p0->getAsInt()));
+      rv = new QoreNode((int64)s->setSendTimeout(p0->getAsInt()));
       s->deref();
    }
    else
@@ -1349,7 +1163,7 @@ static QoreNode *SOCKET_setRecvTimeout(class Object *self, class QoreNode *param
 
    if (s)
    {
-      rv = new QoreNode(NT_INT, s->setRecvTimeout(p0->getAsInt()));
+      rv = new QoreNode((int64)s->setRecvTimeout(p0->getAsInt()));
       s->deref();
    }
    else
@@ -1367,7 +1181,7 @@ static QoreNode *SOCKET_getSendTimeout(class Object *self, class QoreNode *param
 
    if (s)
    {
-      rv = new QoreNode(NT_INT, s->getSendTimeout());
+      rv = new QoreNode((int64)s->getSendTimeout());
       s->deref();
    }
    else
@@ -1385,7 +1199,7 @@ static QoreNode *SOCKET_getRecvTimeout(class Object *self, class QoreNode *param
 
    if (s)
    {
-      rv = new QoreNode(NT_INT, s->getRecvTimeout());
+      rv = new QoreNode((int64)s->getRecvTimeout());
       s->deref();
    }
    else

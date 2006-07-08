@@ -16,6 +16,10 @@
 	  + FtpClient::setModeEPSV()
 	  + FtpClient::setModePASV()
 	  + FtpClient::setModePORT()
+	* added digest and crypto tests to test/test.q
+	* corrected regular expressions for XML-RPC method names in 
+	  examples/XmlRpcServerValidation.q
+	* eliminated rare but stupid race condition in the Socket class
 
 2006.07.07: David Nichols
 	* added MD2(), MD4(), MD5(), SHA(), SHA1(), DSS(), DSS1(), RIPEMD160()

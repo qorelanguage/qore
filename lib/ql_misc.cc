@@ -266,10 +266,11 @@ static class QoreNode *f_parseURL(class QoreNode *params, ExceptionSink *xsink)
    if (!p0)
       return NULL;
 
-   Hash *h = parseURL(p0->val.String);
-   if (!h)
-      return NULL;
-   return new QoreNode(h);
+   QoreURL url(p0->val.String);
+   if (url.isValid())
+      return new QoreNode(url.getHash());
+
+   return NULL;
 }
 
 static class QoreNode *f_backquote(class QoreNode *params, ExceptionSink *xsink)
