@@ -122,7 +122,7 @@ inline void RegexSubst::parseRT(class QoreString *pstr, class ExceptionSink *xsi
 {
    // convert to UTF-8 if necessary
    class QoreString *t;
-   if (pstr->getEncoding() && pstr->getEncoding() != QCS_UTF8)
+   if (pstr->getEncoding() != QCS_UTF8)
    {
       t = pstr->convertEncoding(QCS_UTF8, xsink);
       if (xsink->isEvent())
@@ -185,7 +185,7 @@ inline class QoreString *RegexSubst::exec(class QoreString *target, class QoreSt
    class QoreString *t;
 
    // convert to UTF-8 if necessary
-   if (target->getEncoding() && target->getEncoding() != QCS_UTF8)
+   if (target->getEncoding() != QCS_UTF8)
    {
       t = target->convertEncoding(QCS_UTF8, xsink);
       if (xsink->isEvent())

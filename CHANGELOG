@@ -20,6 +20,9 @@
 	* corrected regular expressions for XML-RPC method names in 
 	  examples/XmlRpcServerValidation.q
 	* eliminated rare but stupid race condition in the Socket class
+	* added des_random_key() function to lib/ql_crypto.cc
+	* removed all code checking if a QoreString has no encoding - all 
+	  QoreStrings must have an encoding set
 
 2006.07.07: David Nichols
 	* added MD2(), MD4(), MD5(), SHA(), SHA1(), DSS(), DSS1(), RIPEMD160()

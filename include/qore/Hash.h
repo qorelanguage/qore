@@ -182,7 +182,7 @@ inline void Hash::internDeleteKey(class HashMember *om, class ExceptionSink *xsi
 
 inline class QoreNode **Hash::getKeyValuePtr(QoreString *key, class ExceptionSink *xsink)
 {
-   if (key->getEncoding() && key->getEncoding() != QCS_DEFAULT)
+   if (key->getEncoding() != QCS_DEFAULT)
    {
       QoreString *ns = key->convertEncoding(QCS_DEFAULT, xsink);
       if (xsink->isEvent())
@@ -196,7 +196,7 @@ inline class QoreNode **Hash::getKeyValuePtr(QoreString *key, class ExceptionSin
 
 inline void Hash::deleteKey(QoreString *key, ExceptionSink *xsink)
 {
-   if (key->getEncoding() && key->getEncoding() != QCS_DEFAULT)
+   if (key->getEncoding() != QCS_DEFAULT)
    {
       QoreString *ns = key->convertEncoding(QCS_DEFAULT, xsink);
       if (xsink->isEvent())
@@ -210,7 +210,7 @@ inline void Hash::deleteKey(QoreString *key, ExceptionSink *xsink)
 
 inline class QoreNode *Hash::getKeyValueExistence(QoreString *key, class ExceptionSink *xsink)
 {
-   if (key->getEncoding() && key->getEncoding() != QCS_DEFAULT)
+   if (key->getEncoding() != QCS_DEFAULT)
    {
       QoreString *ns = key->convertEncoding(QCS_DEFAULT, xsink);
       if (xsink->isEvent())
@@ -224,7 +224,7 @@ inline class QoreNode *Hash::getKeyValueExistence(QoreString *key, class Excepti
 
 inline void Hash::setKeyValue(QoreString *key, class QoreNode *value, ExceptionSink *xsink)
 {
-   if (key->getEncoding() && key->getEncoding() != QCS_DEFAULT)
+   if (key->getEncoding() != QCS_DEFAULT)
    {
       QoreString *ns = key->convertEncoding(QCS_DEFAULT, xsink);
       if (xsink->isEvent())
@@ -249,7 +249,7 @@ inline void Hash::setKeyValue(char *key, class QoreNode *value, ExceptionSink *x
 
 inline class QoreNode **Hash::getExistingValuePtr(QoreString *key, class ExceptionSink *xsink)
 {
-   if (key->getEncoding() && key->getEncoding() != QCS_DEFAULT)
+   if (key->getEncoding() != QCS_DEFAULT)
    {
       QoreString *ns = key->convertEncoding(QCS_DEFAULT, xsink);
       if (xsink->isEvent())
@@ -263,7 +263,7 @@ inline class QoreNode **Hash::getExistingValuePtr(QoreString *key, class Excepti
 
 inline class QoreNode *Hash::getKeyValue(QoreString *key, class ExceptionSink *xsink)
 {
-   if (key->getEncoding() && key->getEncoding() != QCS_DEFAULT)
+   if (key->getEncoding() != QCS_DEFAULT)
    {
       QoreString *ns = key->convertEncoding(QCS_DEFAULT, xsink);
       if (xsink->isEvent())

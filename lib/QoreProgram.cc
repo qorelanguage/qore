@@ -245,7 +245,7 @@ void QoreProgram::parse(class QoreString *str, class QoreString *lstr, class Exc
    class QoreString *tstr, *tlstr;
 
    // ensure code string has correct character set encoding
-   if (str->getEncoding() && str->getEncoding() != QCS_DEFAULT)
+   if (str->getEncoding() != QCS_DEFAULT)
    {
       tstr = str->convertEncoding(QCS_DEFAULT, xsink);
       if (xsink->isEvent())
@@ -255,7 +255,7 @@ void QoreProgram::parse(class QoreString *str, class QoreString *lstr, class Exc
       tstr = str;
 
    // ensure label string has correct character set encoding
-   if (lstr->getEncoding() && lstr->getEncoding() != QCS_DEFAULT)
+   if (lstr->getEncoding() != QCS_DEFAULT)
    {
       tlstr = lstr->convertEncoding(QCS_DEFAULT, xsink);
       if (xsink->isEvent())
@@ -411,7 +411,7 @@ void QoreProgram::parsePending(class QoreString *str, class QoreString *lstr, cl
    class QoreString *tstr, *tlstr;
 
    // ensure code string has correct character set
-   if (str->getEncoding() && str->getEncoding() != QCS_DEFAULT)
+   if (str->getEncoding() != QCS_DEFAULT)
    {
       tstr = str->convertEncoding(QCS_DEFAULT, xsink);
       if (xsink->isEvent())
@@ -421,7 +421,7 @@ void QoreProgram::parsePending(class QoreString *str, class QoreString *lstr, cl
       tstr = str;
 
    // ensure label string has correct character set
-   if (lstr->getEncoding() && lstr->getEncoding() != QCS_DEFAULT)
+   if (lstr->getEncoding() != QCS_DEFAULT)
    {
       tlstr = lstr->convertEncoding(QCS_DEFAULT, xsink);
       if (xsink->isEvent())

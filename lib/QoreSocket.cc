@@ -52,7 +52,7 @@ int QoreSocket::acceptInternal(class SocketSource *source)
       
       if (rc > 0 && source)
       {
-	 class QoreString *addr = new QoreString();
+	 class QoreString *addr = new QoreString(charsetid);
 	 addr->sprintf("UNIX socket: %s", socketname);
 	 source->setAddress(addr);
 	 source->setHostName("localhost");
@@ -71,7 +71,7 @@ int QoreSocket::acceptInternal(class SocketSource *source)
 	 char *host;
 	 if ((host = q_gethostbyaddr((const char *)&addr_in.sin_addr.s_addr, sizeof(addr_in.sin_addr.s_addr), AF_INET)))
 	 {
-	    class QoreString *hostname = new QoreString();
+	    class QoreString *hostname = new QoreString(charsetid);
 	    hostname->take(host);
 	    source->setHostName(hostname);
 	 }
@@ -726,7 +726,7 @@ int QoreSocket::recv(int fd, int size, int timeout)
 int QoreSocket::sendHTTPMessage(char *method, char *path, char *http_version, class Hash *headers, void *data, int size)
 {
    // prepare header string
-   QoreString hdr;
+   QoreString hdr(charsetid);
 
    hdr.sprintf("%s %s HTTP/%s\r\n", method, path, http_version);
    if (headers)
@@ -767,7 +767,7 @@ int QoreSocket::sendHTTPMessage(char *method, char *path, char *http_version, cl
 int QoreSocket::sendHTTPResponse(int code, char *desc, char *http_version, class Hash *headers, void *data, int size)
 {
    // prepare header string
-   QoreString hdr;
+   QoreString hdr(charsetid);
 
    hdr.sprintf("HTTP/%s %03d %s\r\n", http_version, code, desc);
    if (headers)
@@ -827,7 +827,7 @@ class QoreNode *QoreSocket::readHTTPHeader(int timeout, int *rc)
    //   3 = '\n' received
    int state = -1;
 
-   QoreString *hdr = new QoreString();
+   QoreString *hdr = new QoreString(charsetid);
    while (true)
    {
       char c;
@@ -909,7 +909,7 @@ class QoreNode *QoreSocket::readHTTPHeader(int timeout, int *rc)
 #endif
 
    // get version
-   h->setKeyValue("http_version", new QoreNode(new QoreString(t1 + 5, 3)), NULL);
+   h->setKeyValue("http_version", new QoreNode(new QoreString(t1 + 5, 3, charsetid)), NULL);
 
    // if we are getting a response
    if (t1 == buf)

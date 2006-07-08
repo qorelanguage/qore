@@ -183,7 +183,7 @@ static class QoreNode *f_index(class QoreNode *params, ExceptionSink *xsink)
    class QoreString *hs = t0->val.String;
 
    int ind;
-   if (p0 != t0 || !hs->getEncoding() || !hs->getEncoding()->isMultiByte())
+   if (p0 != t0 || !hs->getEncoding()->isMultiByte())
    {
       if (pos >= hs->strlen())
 	 ind = -1;
@@ -349,7 +349,7 @@ static class QoreNode *f_rindex(class QoreNode *params, ExceptionSink *xsink)
    class QoreString *hs = t0->val.String;
 
    int ind;
-   if (p0 != t0 || !hs->getEncoding() || !hs->getEncoding()->isMultiByte())
+   if (p0 != t0 || !hs->getEncoding()->isMultiByte())
    {
       if (pos == -1)
 	 pos = hs->strlen() - 1;
@@ -466,7 +466,7 @@ static class QoreNode *f_get_encoding(class QoreNode *params, ExceptionSink *xsi
    QoreNode *p0 = test_param(params, NT_STRING, 0);
    if (!p0)
       return NULL;
-   return new QoreNode(new QoreString(p0->val.String->getEncoding() ? p0->val.String->getEncoding()->code : "(unknown)"));
+   return new QoreNode(new QoreString(p0->val.String->getEncoding()->code));
 }
 
 // usage: convert_encoding(string, new_encoding);
@@ -536,43 +536,32 @@ static class QoreNode *f_replace(class QoreNode *params, ExceptionSink *xsink)
        !(p1 = test_param(params, NT_STRING, 1)) ||
        !(p2 = test_param(params, NT_STRING, 2)))
       return NULL;
-   class QoreEncoding *ccs = p0->val.String->getEncoding();
 
-   QoreString *nstr = new QoreString(ccs);
-   
+   class QoreEncoding *ccs = p0->val.String->getEncoding();
+   QoreString *nstr = new QoreString(ccs);   
    QoreString *t1, *t2;
 
-   if (ccs)
+   if (p1->val.String->getEncoding() != ccs)
    {
-      if (p1->val.String->getEncoding() != ccs
-	  && p1->val.String->getEncoding())
-      {
-	 t1 = p1->val.String->convertEncoding(ccs, xsink);
-	 if (xsink->isEvent())
-	    return NULL;
-      }
-      else
-	 t1 = p1->val.String;
-
-      if (p2->val.String->getEncoding() != ccs
-	  && p2->val.String->getEncoding())
-      {
-	 t2 = p2->val.String->convertEncoding(ccs, xsink);
-	 if (xsink->isEvent())
-	 {
-	    if (t1 != p1->val.String)
-	       delete t1;
-	    return NULL;
-	 }
-      }
-      else
-	 t2 = p2->val.String;
+      t1 = p1->val.String->convertEncoding(ccs, xsink);
+      if (xsink->isEvent())
+	 return NULL;
    }
    else
-   {
       t1 = p1->val.String;
-      t2 = p2->val.String;
+   
+   if (p2->val.String->getEncoding() != ccs)
+   {
+      t2 = p2->val.String->convertEncoding(ccs, xsink);
+      if (xsink->isEvent())
+      {
+	 if (t1 != p1->val.String)
+	    delete t1;
+	 return NULL;
+      }
    }
+   else
+      t2 = p2->val.String;
 
    char *str, *pattern;
    str = p0->val.String->getBuffer();

@@ -1239,7 +1239,7 @@ static QoreNode *SOCKET_getCharset(class Object *self, class QoreNode *params, E
 
    if (s)
    {
-      rv = new QoreNode(s->getEncoding() ? s->getEncoding()->code : "(unknown)");
+      rv = new QoreNode(s->getEncoding()->code);
       s->deref();
    }
    else

@@ -85,7 +85,7 @@ class QoreNode *Object::evalMember(class QoreNode *member, class ExceptionSink *
 {
    // make sure to convert string encoding if necessary to default character set
    class QoreString *tstr = member->val.String;
-   if (tstr->getEncoding() && tstr->getEncoding() != QCS_DEFAULT)
+   if (tstr->getEncoding() != QCS_DEFAULT)
    {
       tstr = tstr->convertEncoding(QCS_DEFAULT, xsink);
       if (xsink->isEvent())

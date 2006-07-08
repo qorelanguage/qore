@@ -854,7 +854,7 @@ inline int QoreSocket::send(char *buf, int size)
 inline int QoreSocket::send(class QoreString *msg, class ExceptionSink *xsink)
 {
    class QoreString *tstr;
-   if (msg->getEncoding() && charsetid && msg->getEncoding() != charsetid)
+   if (msg->getEncoding() != charsetid)
    {
       tstr = msg->convertEncoding(charsetid, xsink);
       if (xsink->isEvent())

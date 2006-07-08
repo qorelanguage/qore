@@ -52,7 +52,7 @@ class QoreFile {
       char *readBlock(int &size);
      
    public:
-      inline QoreFile(class QoreEncoding *cs)
+      inline QoreFile(class QoreEncoding *cs = QCS_DEFAULT)
       {
 	 is_open = false;
 	 filename = NULL;
@@ -247,7 +247,7 @@ inline int QoreFile::write(class QoreString *str, class ExceptionSink *xsink)
       return 0;
 
    QoreString *wstr;
-   if (str->getEncoding() != charset && charset && str->getEncoding())
+   if (str->getEncoding() != charset)
    {
       wstr = str->convertEncoding(charset, xsink);
       if (xsink->isEvent())

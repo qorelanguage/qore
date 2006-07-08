@@ -412,7 +412,7 @@ static class QoreNode *qore_mysql_do_sql(class Datasource *ds, QoreString *qstr,
    // convert string if necessary
    class QoreString *tqstr;
 
-   if (qstr->getEncoding() && qstr->getEncoding() != ds->qorecharset && ds->qorecharset)
+   if (qstr->getEncoding() != ds->qorecharset)
    {
       tqstr = qstr->convertEncoding(ds->qorecharset, xsink);
       if (xsink->isEvent())
@@ -485,7 +485,7 @@ static class QoreNode *qore_mysql_do_sql_horizontal(class Datasource *ds, QoreSt
    // convert string if necessary
    class QoreString *tqstr;
 
-   if (qstr->getEncoding() && qstr->getEncoding() != ds->qorecharset  && ds->qorecharset)
+   if (qstr->getEncoding() != ds->qorecharset)
    {
       tqstr = qstr->convertEncoding(ds->qorecharset, xsink);
       if (xsink->isEvent())
@@ -661,7 +661,7 @@ static class QoreNode *qore_mysql_do_sql(class Datasource *ds, QoreString *qstr,
    // convert string if necessary
    class QoreString *tqstr;
 
-   if (qstr->getEncoding() && qstr->getEncoding() != ds->qorecharset && ds->qorecharset)
+   if (qstr->getEncoding() != ds->qorecharset)
    {
       tqstr = qstr->convertEncoding(ds->qorecharset, xsink);
       if (xsink->isEvent())

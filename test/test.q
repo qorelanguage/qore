@@ -973,7 +973,7 @@ sub digest_tests()
     test_value(RIPEMD160($str), "8f32702e0146d5db6145f36271a4ddf249c087ae", "RIPEMD-160 digest");
 }
 
-sub crypt_tests()
+sub crypto_tests()
 {
     my $str = "Hello There This is a Test - 1234567890";
 
@@ -985,10 +985,6 @@ sub crypt_tests()
     $x = des_ede3_encrypt_cbc($str, $key);
     $xstr = des_ede3_decrypt_cbc_to_string($x, $key);
     test_value($str, $xstr, "triple DES 3 key encrypt-decrypt");
-
-    $x = des_encrypt_cbc($str, $key);
-    $xstr = des_decrypt_cbc_to_string($x, $key);
-    test_value($str, $xstr, "DES single key encrypt-decrypt");
 
     $x = desx_encrypt_cbc($str, $key);
     $xstr = desx_decrypt_cbc_to_string($x, $key);
@@ -1009,6 +1005,11 @@ sub crypt_tests()
     $x = cast5_encrypt_cbc($str, $key);
     $xstr = cast5_decrypt_cbc_to_string($x, $key);
     test_value($str, $xstr, "CAST5 encrypt-decrypt");
+
+    $key = des_random_key();
+    $x = des_encrypt_cbc($str, $key);
+    $xstr = des_decrypt_cbc_to_string($x, $key);
+    test_value($str, $xstr, "DES random single key encrypt-decrypt");
 }
 
 sub do_tests()
@@ -1029,7 +1030,7 @@ sub do_tests()
 	context_tests();
 	constant_tests();	
 	xml_tests();
-	crypt_tests();
+	crypto_tests();
 	digest_tests();
 	if ($o.bq)
 	    backquote_tests();

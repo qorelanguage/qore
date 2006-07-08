@@ -713,6 +713,13 @@ static class QoreNode *f_RIPEMD160(class QoreNode *params, ExceptionSink *xsink)
    return new QoreNode(dh.getString());
 }
 
+static class QoreNode *f_des_random_key(class QoreNode *params, ExceptionSink *xsink)
+{
+   DES_cblock *db = (DES_cblock *)malloc(sizeof(DES_cblock));
+   DES_random_key(db);
+   return new QoreNode(new BinaryObject(db, sizeof(DES_cblock)));
+}
+
 void init_crypto_functions()
 {
    builtinFunctions.add("blowfish_encrypt_cbc", f_blowfish_encrypt_cbc);
@@ -765,4 +772,8 @@ void init_crypto_functions()
    builtinFunctions.add("MSC2",      f_MDC2);
 #endif
    builtinFunctions.add("RIPEMD160", f_RIPEMD160);
+
+   // other functions
+   builtinFunctions.add("des_random_key", f_des_random_key);
+
 }

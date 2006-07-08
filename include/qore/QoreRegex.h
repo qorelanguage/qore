@@ -108,7 +108,7 @@ inline void QoreRegex::parseRT(class QoreString *pattern, class ExceptionSink *x
 
    // convert to UTF-8 if necessary
    class QoreString *t;
-   if (pattern->getEncoding() && pattern->getEncoding() != QCS_UTF8)
+   if (pattern->getEncoding() != QCS_UTF8)
    {
       t = pattern->convertEncoding(QCS_UTF8, xsink);
       if (xsink->isEvent())
@@ -143,7 +143,7 @@ inline bool QoreRegex::exec(class QoreString *target, class ExceptionSink *xsink
    class QoreString *t;
 
    // convert to UTF-8 if necessary
-   if (target->getEncoding() && target->getEncoding() != QCS_UTF8)
+   if (target->getEncoding() != QCS_UTF8)
    {
       t = target->convertEncoding(QCS_UTF8, xsink);
       if (xsink->isEvent())
@@ -171,7 +171,7 @@ inline class List *QoreRegex::extractSubstrings(class QoreString *target, class 
    class QoreString *t;
 
    // convert to UTF-8 if necessary
-   if (target->getEncoding() && target->getEncoding() != QCS_UTF8)
+   if (target->getEncoding() != QCS_UTF8)
    {
       t = target->convertEncoding(QCS_UTF8, xsink);
       if (xsink->isEvent())

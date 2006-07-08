@@ -350,14 +350,11 @@ class QoreString *dni(class QoreString *s, class QoreNode *n, int indent, class 
       s->sprintf("val=%f\n", n->val.floatval);
 
    else if (n->type == NT_STRING)
-   {
-      class QoreEncoding *ccs = n->val.String->getEncoding();
       s->sprintf("val=(enc=%s, %d:%d) \"%s\"\n", 
-                 ccs ? ccs->code : "null",
+                 n->val.String->getEncoding()->code,
                  n->val.String->length(),
                  n->val.String->strlen(),
                  n->val.String->getBuffer());
-   }
 
    else if (n->type ==  NT_LIST)
    {

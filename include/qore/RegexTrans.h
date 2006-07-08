@@ -129,7 +129,7 @@ inline class QoreString *RegexTrans::exec(class QoreString *str, class Exception
 {
    //printd(5, "source='%s' target='%s' ('%s')\n", source->getBuffer(), target->getBuffer(), str->getBuffer());
    class QoreString *tstr;
-   if (str->getEncoding() && str->getEncoding() != QCS_DEFAULT)
+   if (str->getEncoding() != QCS_DEFAULT)
    {
       tstr = str->convertEncoding(QCS_DEFAULT, xsink);
       if (!tstr)

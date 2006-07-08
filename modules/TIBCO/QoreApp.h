@@ -368,7 +368,7 @@ inline MData *QoreApp::do_primitive_type(const MPrimitiveClassDescription *pcd, 
       // furthermore, it appears that we have to trick the SDK into thinking that the data is ASCII, so
       // no conversions are attempted
       QoreString *t = v->val.String;
-      if (t->getEncoding() && t->getEncoding() != QCS_UTF8)
+      if (t->getEncoding() != QCS_UTF8)
       {
 	 t = t->convertEncoding(QCS_UTF8, xsink);
 	 if (xsink->isEvent())

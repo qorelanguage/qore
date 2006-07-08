@@ -395,7 +395,7 @@ static void makeXMLString(QoreString *str, Hash *h, int indent, class QoreEncodi
    {
       QoreString *keyStr = hi->getKeyString();
       // convert string if needed
-      if (ccs && keyStr->getEncoding() && keyStr->getEncoding() != ccs)
+      if (keyStr->getEncoding() != ccs)
       {
 	 QoreString *ns = keyStr->convertEncoding(ccs, xsink);
 	 if (xsink->isEvent())
@@ -606,7 +606,7 @@ static inline void addXMLRPCValueInternHash(QoreString *str, Hash *h, int indent
    {
       QoreString *member = hi->getKeyString();
       // convert string if needed
-      if (ccs && member->getEncoding() && member->getEncoding() != ccs)
+      if (member->getEncoding() != ccs)
       {
 	 QoreString *ns = member->convertEncoding(ccs, xsink);
 	 if (xsink->isEvent())
@@ -1771,7 +1771,7 @@ static void addXMLElementNew(xmlTextWriterPtr writer, QoreNode *n, xmlChar *key,
 	 if (v)
 	 {
 	    QoreString *akey = hi->getKeyString();
-	    if (akey->getEncoding() && akey->getEncoding() != QCS_UTF8)
+	    if (akey->getEncoding() != QCS_UTF8)
 	    {
 	       QoreString *t = akey->convertEncoding(QCS_UTF8, xsink);
 	       delete akey;
@@ -1790,7 +1790,7 @@ static void addXMLElementNew(xmlTextWriterPtr writer, QoreNode *n, xmlChar *key,
 	       t = v->convert(NT_STRING);
 	    
 	    QoreString *val;
-	    if (t->val.String->getEncoding() && t->val.String->getEncoding() != QCS_UTF8)
+	    if (t->val.String->getEncoding() != QCS_UTF8)
 	    {
 	       val = t->val.String->convertEncoding(QCS_UTF8, xsink);
 	       if (xsink->isEvent())
@@ -1865,7 +1865,7 @@ static void addXMLElementNew(xmlTextWriterPtr writer, QoreNode *n, xmlChar *key,
    if (n->type == NT_STRING)
    {
       QoreString *t = n->val.String;
-      if (t->getEncoding() && t->getEncoding() != QCS_UTF8)
+      if (t->getEncoding() != QCS_UTF8)
       {
 	 t = t->convertEncoding(QCS_UTF8, xsink);
 	 if (xsink->isEvent())
@@ -1913,7 +1913,7 @@ static void makeXMLStringNew(xmlTextWriterPtr writer, Hash *h, class ExceptionSi
    {
       QoreString *keyStr = hi->getKeyString();
       // convert string if needed
-      if (keyStr->getEncoding() && keyStr->getEncoding() != QCS_UTF8)
+      if (keyStr->getEncoding() != QCS_UTF8)
       {
 	 QoreString *ns = keyStr->convertEncoding(QCS_UTF8, xsink);
 	 if (xsink->isEvent())
@@ -2192,7 +2192,7 @@ static inline void addXMLRPCValueInternHashNew(xmlTextWriterPtr writer, Hash *h,
    {
       QoreString *member = hi->getKeyString();
       // convert string if needed
-      if (member->getEncoding() && member->getEncoding() != QCS_UTF8)
+      if (member->getEncoding() != QCS_UTF8)
       {
 	 QoreString *ns = member->convertEncoding(QCS_UTF8, xsink);
 	 if (xsink->isEvent())
@@ -2274,7 +2274,7 @@ static void addXMLRPCValueInternNew(xmlTextWriterPtr writer, QoreNode *n, class 
    if (n->type == NT_STRING)
    {
       QoreString *t;
-      if (n->val.String->getEncoding() && n->val.String->getEncoding() != QCS_UTF8)
+      if (n->val.String->getEncoding() != QCS_UTF8)
       {
 	 t = n->val.String->convertEncoding(QCS_UTF8, xsink);
 	 if (xsink->isEvent())
@@ -2461,7 +2461,7 @@ static class QoreNode *f_makeXMLRPCCallStringNew(class QoreNode *params, Excepti
    }
 
    class QoreString *t;
-   if (p0->val.String->getEncoding() && p0->val.String->getEncoding() != QCS_UTF8)
+   if (p0->val.String->getEncoding() != QCS_UTF8)
    {
       t = p0->val.String->convertEncoding(QCS_UTF8, xsink);
       if (xsink->isEvent())
@@ -2580,8 +2580,6 @@ static class QoreNode *f_makeXMLRPCFaultResponseString(class QoreNode *params, E
    }
    int code = p0 ? p0->getAsInt() : 0;
    class QoreEncoding *ccsid = p1->val.String->getEncoding();
-   if (!ccsid)
-      ccsid = QCS_DEFAULT;
 
    // for speed, the XML is created directly here
    QoreString *str = new QoreString(ccsid);
@@ -2607,8 +2605,6 @@ static class QoreNode *f_makeFormattedXMLRPCFaultResponseString(class QoreNode *
    }
    int code = p0 ? p0->getAsInt() : 0;
    class QoreEncoding *ccsid = p1->val.String->getEncoding();
-   if (!ccsid)
-      ccsid = QCS_DEFAULT;
 
    // for speed, the XML is created directly here
    QoreString *str = new QoreString(ccsid);

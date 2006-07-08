@@ -37,7 +37,7 @@ static inline size_t iconv_adapter (size_t (*iconv_f) (iconv_t, T, size_t *, cha
 
 class QoreString *QoreString::convertEncoding(class QoreEncoding *nccs, ExceptionSink *xsink)
 {
-   if (!charset || !nccs || nccs == charset || !len)
+   if (nccs == charset || !len)
    {
       QoreString *str = copy();
       str->charset = nccs;
@@ -182,16 +182,12 @@ void QoreString::concatAndHTMLEncode(QoreString *str, class ExceptionSink *xsink
    if (str && str->len)
    {
       QoreString *cstr = str;
-      if (charset != str->charset && charset && str->charset)
+      if (charset != str->charset)
       {
 	 cstr = str->convertEncoding(charset, xsink);
 	 if (xsink->isEvent())
 	    return;
       }
-      // otherwise if the source string has no character set and the 
-      // new one does, take the new character set
-      else if (!charset && str->charset)
-	 charset = str->charset;
 
       for (int i = 0; i < cstr->len; i++)
       {
@@ -367,16 +363,12 @@ void QoreString::concat(QoreString *str, class ExceptionSink *xsink)
    if (str && str->len)
    {
       QoreString *cstr = str;
-      if (charset != str->charset && charset && str->charset)
+      if (charset != str->charset)
       {
 	 cstr = str->convertEncoding(charset, xsink);
 	 if (xsink->isEvent())
 	    return;
       }
-      // otherwise if the source string has no character set and the 
-      // new one does, take the new character set
-      else if (!charset && str->charset)
-	 charset = str->charset;
 
       // if buffer needs to be resized
       check_char(cstr->len + len);
@@ -396,19 +388,15 @@ void QoreString::concat(QoreString *str, int size, class ExceptionSink *xsink)
    if (str && str->len)
    {
       QoreString *cstr = str;
-      if (charset != str->charset && charset && str->charset)
+      if (charset != str->charset)
       {
 	 cstr = str->convertEncoding(charset, xsink);
 	 if (xsink->isEvent())
 	    return;
-      } 
-      // otherwise if the source string has no character set and the 
-      // new one does, take the new character set
-      else if (!charset && str->charset)
-	 charset = str->charset;
+      }
 
       // adjust size for number of characters if this is a multi-byte character set
-      if (charset && charset->isMultiByte())
+      if (charset->isMultiByte())
 	 size = charset->getByteLen(cstr->buf, size);
 
       // if buffer needs to be resized
@@ -768,7 +756,7 @@ int QoreString::compareSoft(QoreString *str, class ExceptionSink *xsink)
       else
 	 return 1;
    // convert charsets if necessary
-   if (charset && str->charset && charset != str->charset)
+   if (charset != str->charset)
    {
       class QoreString *t = str->convertEncoding(charset, xsink);
       if (xsink->isEvent())

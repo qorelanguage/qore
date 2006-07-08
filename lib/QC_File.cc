@@ -676,9 +676,8 @@ static class QoreNode *FILE_getCharset(class Object *self, class QoreNode *param
    File *f = (File *)self->getReferencedPrivateData(CID_FILE);
    if (f)
    {
-      class QoreEncoding *ccs = f->getEncoding();
       f->deref();
-      rv = new QoreNode(ccs ? ccs->code : "(unknown)");
+      rv = new QoreNode(f->getEncoding()->code);
    }
    else
    {

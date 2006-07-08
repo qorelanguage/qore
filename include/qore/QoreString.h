@@ -147,6 +147,8 @@ class QoreString {
       }
 };
 
+inline class QoreString *checkEncoding(class QoreString *str, class QoreEncoding *enc, class ExceptionSink *xsink);
+
 #include <qore/support.h>
 #include <qore/DateTime.h>
 #include <qore/Exception.h>
@@ -330,7 +332,7 @@ inline QoreString::~QoreString()
 // FIXME: (should) return the number of characters for all supported character sets
 inline int QoreString::length()
 {
-   if (charset && charset->isMultiByte() && buf)
+   if (charset->isMultiByte() && buf)
       return charset->getLength(buf);
    return len;
 }
@@ -537,7 +539,7 @@ inline void QoreString::check_offset(int &offset, int &num)
 
 void QoreString::splice(int offset, class ExceptionSink *xsink)
 {
-   if (!charset || !charset->isMultiByte())
+   if (!charset->isMultiByte())
    {
       check_offset(offset);
       if (offset == len)
@@ -551,7 +553,7 @@ void QoreString::splice(int offset, class ExceptionSink *xsink)
 
 void QoreString::splice(int offset, int num, class ExceptionSink *xsink)
 {
-   if (!charset || !charset->isMultiByte())
+   if (!charset->isMultiByte())
    {
       check_offset(offset, num);
       if (offset == len || !num)
@@ -571,7 +573,7 @@ void QoreString::splice(int offset, int num, class QoreNode *strn, class Excepti
       return;
    }
 
-   if (!charset || !charset->isMultiByte())
+   if (!charset->isMultiByte())
    {
       check_offset(offset, num);
       if (offset == len)
@@ -588,7 +590,7 @@ void QoreString::splice(int offset, int num, class QoreNode *strn, class Excepti
 
 inline class QoreString *QoreString::substr(int offset)
 {
-   if (!charset || !charset->isMultiByte())
+   if (!charset->isMultiByte())
       return substr_simple(offset);
 
    return substr_complex(offset);
@@ -596,10 +598,17 @@ inline class QoreString *QoreString::substr(int offset)
 
 inline class QoreString *QoreString::substr(int offset, int length)
 {
-   if (!charset || !charset->isMultiByte())
+   if (!charset->isMultiByte())
       return substr_simple(offset, length);
 
    return substr_complex(offset, length);
+}
+
+inline class QoreString *checkEncoding(class QoreString *str, class QoreEncoding *enc, class ExceptionSink *xsink)
+{
+   if (str->getEncoding() != enc)
+      return str->convertEncoding(enc, xsink);
+   return str;
 }
 
 #endif
