@@ -1,3 +1,9 @@
+2006.07.09: David Nichols
+	* added TibrvListener class to the tibco module for TIBCO Rendezvous 
+	  listening
+	* changed DateTime <-> integer conversions to be based on the number of
+	  seconds from January 1, 1970 (the UNIX epoch)
+
 2006.07.08: David Nichols
 	* FtpClient updated to understand the "ftps://" protocol as per RFC-2228
 	  and RFC-4217: for AUTH TLS secure logins implemented

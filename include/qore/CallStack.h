@@ -73,7 +73,7 @@ class CallStack {
       inline bool inMethod(char *name, class Object *o)
       {
 	 if (!tail)
-	    return NULL;
+	    return false;
 	 return tail->func == name && tail->obj == o;
       }
 };

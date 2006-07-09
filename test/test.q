@@ -487,6 +487,11 @@ sub sd($d)
     return format_date("YYYY-MM-DD HH:mm:SS", $d);
 }
 
+sub test_date($d, $i)
+{
+    test_value($d, date(int($d)), sprintf("date conversion %d", $i++));
+}
+
 sub time_tests()
 {
     my $date  = 2004-02-01-12:30:00;
@@ -521,7 +526,26 @@ sub time_tests()
     test_value($ndate - 30D, $date, "third date day subtraction");
     test_value($date + 23M, 2006-01-01-12:30:00, "third date month addition");
     test_value($date - 4M, 2003-10-01-12:30:00, "third date month subtraction");
-    test_value($date, date(20040201123000), "date function");
+    test_value($date, date("20040201123000"), "date function");
+
+    # date <-> seconds conversion tests
+    my $i = 1;
+    test_date(1970-01-01-00:00:00, \$i);
+    test_date(1970-12-01-00:00:00, \$i);
+    test_date(1972-01-01-00:00:00, \$i);
+    test_date(2006-01-01-00:00:00, \$i);
+    test_date(2006-12-01-00:00:00, \$i);
+    test_date(2016-12-01-00:00:00, \$i);
+    test_date(2026-08-22-00:00:00, \$i);
+    test_date(2036-04-30-00:00:00, \$i);
+    test_date(2970-01-01-00:00:00, \$i);
+    test_date(2400-12-01-00:00:00, \$i);
+    test_date(9999-12-31-00:00:00, \$i);
+    test_date(9999-12-31-23:59:59, \$i);
+    test_date(1969-12-31-23:59:59, \$i);
+    test_date(1969-12-31-00:00:00, \$i);
+    test_date(1969-01-01-00:00:00, \$i);
+    test_date(1068-01-01-00:00:00, \$i);
 }
 
 sub binary_tests()

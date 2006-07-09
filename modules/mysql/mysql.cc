@@ -778,7 +778,7 @@ static int qore_mysql_close_datasource(class Datasource *ds)
    return 0;
 }
 
-char *qore_mysql_module_init()
+int qore_mysql_module_init()
 {
    tracein("qore_mysql_module_init()");
 
@@ -801,7 +801,7 @@ char *qore_mysql_module_init()
    DBID_MYSQL = DBI.registerDriver("mysql", ddf, mysql_caps);
 
    traceout("qore_mysql_module_init()");
-   return NULL;
+   return 0;
 }
 
 void qore_mysql_module_ns_init(class Namespace *rns, class Namespace *qns)

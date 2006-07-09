@@ -30,7 +30,7 @@
 #include <stdio.h>
 #include <string.h>
 
-typedef char *(*qore_module_init_t)();
+typedef int (*qore_module_init_t)();
 typedef void (*qore_module_ns_init_t)(class Namespace *, class Namespace *);
 typedef void (*qore_module_delete_t)();
 

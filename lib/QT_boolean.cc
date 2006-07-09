@@ -35,28 +35,13 @@ class QoreNode *boolean_ConvertTo(class QoreNode *n, class ExceptionSink *xsink)
    class QoreNode *rv;
 
    if (n->type == NT_INT)
-      if (n->val.intval)
-	 rv = boolean_true();
-      else
-	 rv = boolean_false();
+      rv = n->val.intval ? boolean_true() : boolean_false();
    else if (n->type == NT_FLOAT)
-      if (n->val.floatval)
-	 rv = boolean_true();
-      else
-	 rv = boolean_false();
+      rv = n->val.floatval ? boolean_true() : boolean_false();
    else if (n->type == NT_STRING)
-      if (strtoll(n->val.String->getBuffer(), NULL, 10))
-	 rv = boolean_true();
-      else
-	 rv = boolean_false();
+      rv = strtoll(n->val.String->getBuffer(), NULL, 10) ? boolean_true() : boolean_false();
    else if (n->type == NT_DATE)
-      if (!(n->val.date_time->year | n->val.date_time->month |
-	    n->val.date_time->day | n->val.date_time->hour |
-	    n->val.date_time->minute | n->val.date_time->second |
-	    n->val.date_time->millisecond))
-	 rv = boolean_false();
-      else
-	 rv = boolean_true();
+      rv = n->val.date_time->getSeconds() ? boolean_true() : boolean_false();
    else
       rv = boolean_false();
 

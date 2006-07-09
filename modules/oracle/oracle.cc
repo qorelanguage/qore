@@ -1348,7 +1348,7 @@ static int oracle_close(class Datasource *ds)
    return 0;
 }
 
-char *oracle_module_init()
+int oracle_module_init()
 {
    tracein("oracle_module_init()");
 
@@ -1365,7 +1365,7 @@ char *oracle_module_init()
    DBID_ORACLE = DBI.registerDriver("oracle", ddf, DBI_ORACLE_CAPS);
 
    traceout("oracle_module_init()");
-   return NULL;
+   return 0;
 }
 
 void oracle_module_ns_init(class Namespace *rns, class Namespace *qns)

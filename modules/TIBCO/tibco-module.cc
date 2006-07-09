@@ -29,6 +29,7 @@
 #include <qore/module.h>
 #include <qore/ModuleManager.h>
 
+#include "QC_TibrvListener.h"
 #include "tibco-module.h"
 #include "tibco.h"
 
@@ -47,12 +48,16 @@ qore_module_ns_init_t qore_module_ns_init = tibco_module_ns_init;
 qore_module_delete_t qore_module_delete = tibco_module_delete;
 #endif
 
-char *tibco_module_init()
+int tibco_module_init()
 {
-   tracein("tibco_module_init()");
-   // nothing to do
-   traceout("tibco_module_init()");
-   return NULL;
+   // initialize rendezvous
+   TibrvStatus status = Tibrv::open();
+   if (status != TIBRV_OK)
+   {
+       fprintf(stderr, "ERROR: cannot open TIB/RV: status=%d: %s\n", (int)status, status.getText());
+       return 1;
+   }
+   return 0;
 }
 
 void tibco_module_ns_init(class Namespace *rns, class Namespace *qns)
@@ -60,13 +65,16 @@ void tibco_module_ns_init(class Namespace *rns, class Namespace *qns)
    tracein("tibco_module_ns_init()");
    class Namespace *tibns = new Namespace("TIBCO");
    tibns->addSystemClass(initTibcoAdapterClass());
+   tibns->addSystemClass(initTibrvListenerClass());
    qns->addInitialNamespace(tibns);
+
    traceout("tibco_module_nsinit()");
 }
 
 void tibco_module_delete()
 {
    tracein("tibco_module_delete()");
+   Tibrv::close();
    traceout("tibco_module_delete()");
 }
 

@@ -115,6 +115,12 @@ class QoreEncodingManager : public LockedObject
 	    delete head;
 	    head = tail;
 	 }
+	 while (ahead)
+	 {
+	    atail = ahead->next;
+	    delete ahead;
+	    ahead = atail;
+	 }
       }
       inline struct QoreEncoding *add(const char *code, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, const char *desc)
       {

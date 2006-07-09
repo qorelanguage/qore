@@ -85,6 +85,10 @@ static struct days_s {
    { "Saturday", "Sat" }
 };
 
+// for calculating the days passed in a year
+static int positive_months[] = { 0,  31,  59,  90,  120,  151,  181,  212,  243,  273,  304,  334,  365 };
+static int negative_months[] = { 0, -31, -61, -92, -122, -153, -184, -214, -245, -275, -303, -334, -365 };
+
 static inline int ampm(int hour)
 {
    int i;
@@ -295,7 +299,183 @@ class QoreString *DateTime::format(char *fmt)
    return str;
 }
 
-void DateTime::setDate(int64 date)
+int DateTime::getJulianDate()
+{
+   int tm = (month > 12) ? 11 : month - 1;
+   int jd = positive_months[tm];
+   if (month > 2 && isLeapYear(year))
+      jd++;
+   return jd;
+}
+
+// set the date from the number of seconds since January 1, 1970 (UNIX epoch)
+void DateTime::setDate(int64 seconds)
+{
+   millisecond = year = 0;
+   // there are 97 leap days every 400 years (12622780800 seconds)
+   int64 ty = seconds/12622780800ll;
+   if (ty)
+   {
+      year += ty * 400;
+      seconds -= ty * 12622780800ll;
+   }
+   // there are 24 leap days every 100 years (3155673600 seconds)
+   ty = seconds/3155673600ll;
+   if (ty)
+   {
+      year += ty * 100;
+      seconds -= ty * 3155673600ll;
+   }
+   // then there are leap days every 4 years (126230400 seconds)
+   ty = seconds/126230400;
+   if (ty)
+   {
+      year += ty * 4;
+      seconds -= ty * 126230400;
+   }
+   //printd(0, "seconds: %lld year: %d\n", seconds, year);
+   if (seconds >= 0)
+   {
+      // there is a leap day on 1972.02.29 (ends 68256000 seconds)
+      if (seconds >= 68256000)
+	 seconds -= 86400;
+
+      ty = seconds / 31536000;
+      if (ty)
+      {
+	 year += ty;
+	 seconds -= ty * 31536000;
+      }
+      year += 1970;
+
+      day = seconds / 86400;
+      seconds -= day * 86400;
+      //printd(5, "seconds=%lld year=%d day=%d\n", seconds, year, day);
+      for (int i = 1; ;i++)
+	 if (positive_months[i] > day)
+	 {
+	    //printd(5, "pm[%d]=%d pm[%d]=%d month=%d day=%d (%d)\n", i, positive_months[i], i - 1, positive_months[i - 1], i, day, day - positive_months[i - 1] + 1);
+	    month = i;
+	    day = day - positive_months[i - 1] + 1;
+	    break;
+	 }
+
+      hour = seconds / 3600;
+      seconds -= hour * 3600;
+      minute = seconds / 60;
+      second = seconds - minute * 60;
+      return;
+   }
+
+   // there is a leap day on 1968.02.29 (ends -58060800 seconds)
+   if (seconds <= -58060800)
+      seconds += 86400;
+
+   ty = seconds / 31536000;
+   if (ty)
+   {
+      year += ty;
+      seconds -= ty * 31536000;
+   }
+   year += 1969;
+   if (!seconds)
+   {
+      year++;
+      month = 1;
+      day = 1;
+      hour = 00;
+      minute = 00;
+      second = 00;
+      return;
+   }
+
+   //printd(5, "1: seconds=%lld\n", seconds);
+   day = seconds / 86400;
+   seconds -= day * 86400;
+   // move back a day if there is further time to subtract
+   if (seconds)
+      day--;
+   //printd(5, "1.1: seconds=%lld day=%d\n", seconds, day);
+   for (int i = 1; ; i++)
+      if (negative_months[i] < day)
+      {
+	 //printd(5, "nm[%d]=%d nm[%d]=%d mon=%d len=%d day=%d (%d)\n", i, negative_months[i], i - 1, negative_months[i - 1], 13 - i, month_lengths[13 - i], day, month_lengths[13 - i] + day - negative_months[i - 1] + 1);
+	 month = 13 - i;
+	 day = month_lengths[month] + day - negative_months[i - 1] + 1;
+	 break;
+      }
+   //printd(5, "2: seconds=%lld\n", seconds);
+   hour = seconds / 3600;
+   seconds -= hour * 3600;
+   minute = seconds / 60;
+   seconds -= minute * 60;
+   if ((second = seconds))
+   {
+      second += 60;
+      minute--;
+   }
+   if (minute) 
+   {
+      minute += 60;
+      hour--;
+   }
+   if (hour) hour += 24;
+}
+
+static inline int negative_leap_years(int year, int month, int date)
+{
+   if (month >= 3 && isLeapYear(year))
+      year++;
+
+   year = 1970 - year;
+
+   if (year <= 0)
+      return 0;
+
+   year += 2;
+
+   return -year/4 + year/100 - year/400;
+}
+
+static inline int positive_leap_years(int year, int month, int date)
+{
+   if ((month < 2 || (month == 2 && date < 29)) && isLeapYear(year))
+      year--;
+
+   year -= 1970;
+
+   if (year <= 0)
+      return 0;
+
+   year += 2;
+   
+   return year/4 - year/100 + year/400;
+}
+
+// get the number of seconds before or after January 1, 1970 (UNIX epoch)
+int64 DateTime::getSeconds()
+{
+   //printd(0, "%04d-%02d-%02d %02d:%02d:%02d\n", year, month, day, hour, minute, second);
+   int tm = month;
+   if (month < 0) tm = 1;
+   else if (month > 12) tm = 12;
+
+   if (year >= 1970)
+      return ((int64)year - 1970) * 31536000ll
+	 + (positive_months[tm - 1] + day - 1 + positive_leap_years(year, month, day)) * 86400
+	 + hour * 3600
+	 + minute * 60
+	 + second;	 
+
+   //printd(5, "DBG: %d %lld\n", year, ((int64)year - 1969) * 31536000ll);
+   return ((int64)year - 1969) * 31536000ll
+      + (negative_months[12 - tm] + (day - month_lengths[tm]) + negative_leap_years(year, month, day)) * 86400
+      + (hour - 23) * 3600
+      + (minute - 59) * 60
+      + (second - 60);	 
+}
+
+void DateTime::setDateLiteral(int64 date)
 {
    year = date / 10000000000ll;
    date -= year * 10000000000ll;
@@ -374,7 +554,7 @@ class DateTime *DateTime::addAbsoluteToRelative(class DateTime *dt)
    nd->day = day;
    // check for leap years
    if (nd->month == 2 && nd->day > 28)
-      nd->day = getLastDayOfFebrary(nd->year);
+      nd->day = isLeapYear(nd->year) ? 29 : 28;
    // otherwise set day to last day of month if necessary
    else if (nd->day > month_lengths[nd->month])
       nd->day = month_lengths[nd->month];
@@ -443,7 +623,7 @@ class DateTime *DateTime::subtractAbsoluteByRelative(class DateTime *dt)
    nd->day = day;
    // check for leap years
    if (nd->month == 2 && nd->day > 28)
-      nd->day = getLastDayOfFebrary(nd->year);
+      nd->day = isLeapYear(nd->year) ? 29 : 28;
    // otherwise set day to last day of month if necessary
    else if (nd->day > month_lengths[nd->month])
       nd->day = month_lengths[nd->month];

@@ -1,9 +1,11 @@
 /*
-  modules/ncurses/ncurses.h
+  modules/TIBCO/qore-rv.h
+
+  TIBCO Rendezvous integration to QORE
 
   Qore Programming Language
 
-  Copyright (C) 2004, 2005, 2006 David Nichols
+  Copyright (C) 2003, 2004, 2005, 2006 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -20,14 +22,16 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _QORE_NCURSES_MODULE_H
+#ifndef _QORE_TIBCO_QORE_RV_H
 
-#define _QORE_NCURSES_MODULE_H
+#define _QORE_TIBCO_QORE_RV_H
 
-int ncurses_module_init();
-void ncurses_module_ns_init(class Namespace *rns, class Namespace *qns);
-void ncurses_module_delete();
+#include <qore/common.h>
+#include <qore/support.h>
+#include <qore/Exception.h>
 
-void qore_ncurses_init();
+#include <tibrv/tibrvcpp.h>
 
-#endif // _QORE_NCURSES_MODULE_H
+class Hash *tibrvmsg_to_hash(TibrvMsg *msg, class ExceptionSink *xsink);
+
+#endif

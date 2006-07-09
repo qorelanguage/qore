@@ -27,7 +27,8 @@
 #include <qore/common.h>
 #include <qore/QoreNode.h>
 
-void tuxedo_module_init();
+int tuxedo_module_init();
+void tuxedo_module_ns_init(class Namespace *, class Namespace *);
 void tuxedo_module_delete();
 
 #endif

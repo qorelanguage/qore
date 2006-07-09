@@ -39,12 +39,7 @@ class QoreNode *float_ConvertTo(class QoreNode *n, class ExceptionSink *xsink)
    else if (n->type == NT_INT)
       f = (double)n->val.intval;
    else if (n->type == NT_DATE)
-      f = (double)(n->val.date_time->year * 10000000000ll + 
-		   n->val.date_time->month * 100000000ll +
-		   n->val.date_time->day * 1000000ll + 
-		   n->val.date_time->hour * 10000ll +
-		   n->val.date_time->minute * 100ll +
-		   n->val.date_time->second);
+      f = (double)n->val.date_time->getSeconds();
    else if (n->type == NT_BOOLEAN)
       f = (double)n->val.boolval;
    else

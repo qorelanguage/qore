@@ -24,7 +24,7 @@
 
 #define _QORE_ORACLE_MODULE_H
 
-char *oracle_module_init();
+int oracle_module_init();
 void oracle_module_ns_init(class Namespace *rns, class Namespace *qns);
 void oracle_module_delete();
 

@@ -130,6 +130,10 @@ noinst_HEADERS = \
 	modules/TIBCO/tibco-module.h \
 	modules/TIBCO/QoreApp.h \
 	modules/TIBCO/tibco.h \
+	modules/TIBCO/QoreTibrvMsgCallback.h \
+	modules/TIBCO/QoreTibrvListener.h \
+	modules/TIBCO/QC_TibrvListener.h \
+	modules/TIBCO/qore-rv.h \
 	modules/ncurses/QC_Window.h \
 	modules/ncurses/QC_Panel.h \
 	modules/ncurses/ncurses-module.h \

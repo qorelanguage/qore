@@ -48,7 +48,7 @@ class ExceptionSink {
       inline void handleExceptions();
       inline bool isEvent()
       {
-	 return thread_exit || head;
+	 return head || thread_exit;
       }
       inline bool isThreadExit()
       {
@@ -169,7 +169,10 @@ inline void ExceptionSink::rethrow(class Exception *old)
 inline void ExceptionSink::assimilate(class ExceptionSink *xs)
 {
    if (xs->thread_exit)
+   {
       thread_exit = xs->thread_exit;
+      xs->thread_exit = false;
+   }
    if (xs->tail)
    {
       if (tail)

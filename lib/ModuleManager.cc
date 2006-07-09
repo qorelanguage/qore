@@ -307,13 +307,13 @@ class ModuleInfo *ModuleManager::loadModuleFromPath(char *path)
 
    printd(5, "ModuleManager::loadModuleFromPath(%s) %s: calling module_init@%08x\n", path, name, *module_init);
 
-   char *err;
+   int err;
    // run initialization
    if ((err = (*module_init)()))
    {
       if (show_errors)
-	 printf("error initializing qore module '%s' registering '%s': %s\n", path, name, err);
-      printd(5, "ModuleManager::loadModuleFromPath(%s): '%s': qore_module_init returned error: %s", path, name, err);
+	 printf("error initializing qore module '%s' registering '%s': error code %d\n", path, name, err);
+      printd(5, "ModuleManager::loadModuleFromPath(%s): '%s': qore_module_init returned error code %d", path, name, err);
       return NULL;
    }
 

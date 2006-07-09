@@ -1,6 +1,6 @@
 pkglibdir = $(libdir)/@PACKAGE@-@VERSION@
-#
-TIBCO_SOURCES = QoreApp.cc tibco.cc tibco-module.cc
+
+TIBCO_SOURCES = QoreApp.cc tibco.cc tibco-module.cc QoreTibrvListener.cc QC_TibrvListener.cc qore-rv.cc
 
 if COND_MONOLITHIC
 noinst_LTLIBRARIES = libtibco.la

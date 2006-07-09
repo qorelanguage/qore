@@ -37,14 +37,9 @@ class QoreNode *bigint_ConvertTo(class QoreNode *n, class ExceptionSink *xsink)
    if (n->type == NT_STRING)
       i = strtoll(n->val.String->getBuffer(), NULL, 10);
    else if (n->type == NT_FLOAT)
-      i = (long long)n->val.floatval;
+      i = (int64)n->val.floatval;
    else if (n->type == NT_DATE)
-      i = n->val.date_time->year * 10000000000ll + 
-	 n->val.date_time->month * 100000000ll +
-	 n->val.date_time->day * 1000000ll + 
-	 n->val.date_time->hour * 10000ll +
-	 n->val.date_time->minute * 100ll +
-	 n->val.date_time->second;
+      i = n->val.date_time->getSeconds();
    else if (n->type == NT_BOOLEAN)
       i = n->val.boolval;
    else

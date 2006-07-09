@@ -63,17 +63,20 @@ class DateTime {
 	 relative = false;
       }
       inline DateTime(int y, int mo, int d, int h, int mi, int s, int ms = 0);
-      inline DateTime(int64 date);
+      inline DateTime(int64 seconds);
       inline DateTime(char *date);
       inline DateTime(struct tm *tms);
 
       inline void getTM(struct tm *tms);
-      void setDate(int64 date);
+      void setDateLiteral(int64 date);
+      void setDate(int64 seconds);
       inline void setDate(char *str);
       inline void setDate(struct tm *tms);
       inline bool isEqual(class DateTime *dt);
       inline class DateTime *add(class DateTime *dt);
       inline class DateTime *subtractBy(class DateTime *dt);
+      int64 getSeconds();
+      int getJulianDate();
       
       class QoreString *format(char *fmt);
 };
@@ -99,9 +102,9 @@ inline DateTime::DateTime(struct tm *tms)
    setDate(tms);
 }
 
-inline DateTime::DateTime(int64 date)
+inline DateTime::DateTime(int64 seconds)
 {
-   setDate(date);
+   setDate(seconds);
 }
 
 inline DateTime::DateTime(char *str)
@@ -125,24 +128,24 @@ inline void DateTime::getTM(struct tm *tms)
 
 // in 45 BC Julius Ceasar initiated the Julian calendar
 // in 1582 AD Pope Gregory initiated the Gregorian calendar
-static inline int getLastDayOfFebrary(int year)
+static inline bool isLeapYear(int year)
 {
    if (year <= -45)
-      return 28;
+      return false;
    if (year < 1582)
-      return (year % 4) ? 28 : 29;
+      return (year % 4) ? false : true;
    if (!(year % 400))
-      return 29;
+      return true;
    if (!(year % 100))
-      return 28;
-   return (year % 4) ? 28 : 29;
+      return false;
+   return (year % 4) ? false : true;
 }
 
 static inline int getLastDayOfMonth(int month, int year)
 {
    if (month != 2)
       return month_lengths[month];
-   return getLastDayOfFebrary(year);
+   return isLeapYear(year) ? 29 : 28;
 }
 
 inline void DateTime::setDate(struct tm *tms)
@@ -166,7 +169,7 @@ inline void DateTime::setDate(char *str)
 #endif
    if (strlen(str) == 8)
       date *= 1000000LL;
-   setDate(date);
+   setDateLiteral(date);
 }
 
 inline bool DateTime::isEqual(class DateTime *dt)

@@ -39,15 +39,25 @@ char qore_module_version[] = "0.1";
 char qore_module_description[] = "Tuxedo integration module";
 char qore_module_author[] = "David Nichols";
 char qore_module_url[] = "http://qore.sourceforge.net";
+int qore_module_api_major = QORE_MODULE_API_MAJOR;
+int qore_module_api_minor = QORE_MODULE_API_MINOR;
+qore_module_init_t qore_module_init = tuxedo_module_init;
+qore_module_ns_init_t qore_module_ns_init = tuxedo_module_ns_init;
+qore_module_delete_t qore_module_delete = tuxedo_module_delete;
 #endif
 
-void tuxedo_module_init(class QoreProgram *pgm)
+int tuxedo_module_init(class QoreProgram *pgm)
 {
    tracein("tuxedo_module_init()");
+   traceout("tuxedo_module_init()");
+   return 0;
+}
+
+void tuxedo_module_ns_init(class Namespace *rns, class Namespace *qns)
+{
    class Namespace *tuxns = new Namespace("Tuxedo");
    tuxns->addSystemClass(initTuxedoClientClass());
-   pgm->getQoreNS()->addInitialNamespace(tuxns);
-   traceout("tuxedo_module_init()");
+   qns()->addInitialNamespace(tuxns);
 }
 
 void tuxedo_module_delete()
