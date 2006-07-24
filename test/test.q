@@ -1038,26 +1038,33 @@ sub crypto_tests()
 
 sub do_tests()
 {
-    for (my $i = 0; $i < $o.iters; $i++)
+    try {
+	for (my $i = 0; $i < $o.iters; $i++)
+	{
+	    if ($o.verbose)
+		printf("TID %d: iteration %d\n", gettid(), $i);
+	    local_operator_test();
+	    array_tests();
+	    hash_tests();
+	    logic_tests();
+	    statement_tests();
+	    recursive_function_test();
+	    parameter_tests();
+	    class_library_tests();
+	    function_library_test();
+	    context_tests();
+	    constant_tests();	
+	    xml_tests();
+	    crypto_tests();
+	    digest_tests();
+	    if ($o.bq)
+		backquote_tests();
+	}
+    }
+    catch ()
     {
-	if ($o.verbose)
-	    printf("TID %d: iteration %d\n", gettid(), $i);
-	local_operator_test();
-	array_tests();
-	hash_tests();
-	logic_tests();
-	statement_tests();
-	recursive_function_test();
-	parameter_tests();
-	class_library_tests();
-	function_library_test();
-	context_tests();
-	constant_tests();	
-	xml_tests();
-	crypto_tests();
-	digest_tests();
-	if ($o.bq)
-	    backquote_tests();
+	$counter.dec();
+	rethrow;	
     }
     $counter.dec();
 }

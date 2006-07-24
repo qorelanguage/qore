@@ -101,6 +101,36 @@ if test -z "$MODULE_SUFFIX" ; then
 fi
 AC_SUBST(MODULE_SUFFIX)
 
+AC_ARG_ENABLE([64bit],
+  [AC_HELP_STRING([--enable-64bit],
+		  [enable 64bit support (default: off)])],
+  [case "${enable_64bit}" in
+       on)     enable_64bit=yes ;;
+       off)    enable_64bit=no  ;;
+       yes|no) ;;
+       *)      AC_MSG_ERROR(bad value ${enable_64bit} for --enable-64bit) ;;
+      esac],
+  [enable_64bit=no])
+
+# see if we know how to set flags properly for different hosts and architectures
+if test "$enable_64bit" = "yes"; then
+   case "${host_os}" in
+     *linux*)	if test "$ac_cv_prog_gxx" = "yes"; then
+		CXXFLAGS="$CXXFLAGS -m64"
+		LIBSUFFIX=64
+		AC_SUBST(LIBSUFFIX)
+		fi
+		;;
+   esac
+else
+   case "${host_os}" in
+     *linux*)	if test "$ac_cv_prog_gxx" = "yes"; then
+		CXXFLAGS="$CXXFLAGS -m64"
+		fi
+		;;
+   esac
+fi
+
 # see if we can figure out where the openssl library is
 AC_ARG_WITH([openssl-libs],
   [AC_HELP_STRING([--with-openssl-libs@<:@=DIR@:>@],
@@ -113,25 +143,29 @@ if test -n "$with_openssl_libs"; then
       AC_MSG_ERROR([can't find openssl library in $with_openssl_libs])
    else
       AC_MSG_RESULT([$with_openssl_libs])
-      if test "$with_openssl_libs" = "/usr/lib"; then
+      if test "$with_openssl_libs" = "/usr/lib${LIBSUFFIX}"; then
+         with_openssl_libs=
+      elif test "$with_openssl_libs" = "/lib${LIBSUFFIX}"; then
          with_openssl_libs=
       fi
    fi
 else
-   if test -n "$OPENSSL_DIR" -a \( -f $OPENSSL_DIR/lib/libssl.a -o -f "$OPENSSL_DIR/lib/libssl.$SHLIB_SUFFIX" \); then
-      AC_MSG_RESULT([$OPENSSL_DIR/lib])
-      with_openssl_libs=$OPENOPENSSL_DIR/lib
-   elif test -f /usr/lib/libssl.a -o -f /usr/lib/libssl.$SHLIB_SUFFIX; then
-      AC_MSG_RESULT([/usr/lib])
-   elif test -f /opt/openssl/lib/libssl.a -o -f /opt/openssl/lib/libssl.$SHLIB_SUFFIX; then
-      AC_MSG_RESULT([/opt/openssl/lib])
-      with_openssl_libs=/opt/openssl/lib
+   if test -n "$OPENSSL_DIR" -a \( -f $OPENSSL_DIR/lib${LIBSUFFIX}/libssl.a -o -f "$OPENSSL_DIR/lib${LIBSUFFIX}/libssl.$SHLIB_SUFFIX" \); then
+      AC_MSG_RESULT([$OPENSSL_DIR/lib${LIBSUFFIX}])
+      with_openssl_libs=$OPENOPENSSL_DIR/lib${LIBSUFFIX}
+   elif test -f /usr/lib${LIBSUFFIX}/libssl.a -o -f /usr/lib${LIBSUFFIX}/libssl.$SHLIB_SUFFIX; then
+      AC_MSG_RESULT([/usr/lib${LIBSUFFIX}])
+   elif test -f /lib${LIBSUFFIX}/libssl.a -o -f /lib${LIBSUFFIX}/libssl.$SHLIB_SUFFIX; then
+      AC_MSG_RESULT([/lib${LIBSUFFIX}])
+   elif test -f /opt/openssl/lib${LIBSUFFIX}/libssl.a -o -f /opt/openssl/lib${LIBSUFFIX}/libssl.$SHLIB_SUFFIX; then
+      AC_MSG_RESULT([/opt/openssl/lib${LIBSUFFIX}])
+      with_openssl_libs=/opt/openssl/lib${LIBSUFFIX}
    elif test -f /sw/lib/libssl.a -o -f /sw/lib/libssl.$SHLIB_SUFFIX; then
       AC_MSG_RESULT([/sw/lib])
       with_openssl_libs=/sw/lib
-   elif test -f /opt/local/lib/libssl.a -o -f /opt/local/lib/libssl.$SHLIB_SUFFIX; then
-      AC_MSG_RESULT([/opt/local/lib])
-      with_openssl_libs=/opt/local/lib
+   elif test -f /opt/local/lib${LIBSUFFIX}/libssl.a -o -f /opt/local/lib${LIBSUFFIX}/libssl.$SHLIB_SUFFIX; then
+      AC_MSG_RESULT([/opt/local/lib${LIBSUFFIX}])
+      with_openssl_libs=/opt/local/lib${LIBSUFFIX}
    else
       AC_MSG_ERROR([no openssl library found])
    fi
@@ -197,28 +231,28 @@ if test -n "$with_pcre_libs"; then
       AC_MSG_ERROR([can't find pcre library in $with_pcre_libs])
    else
       AC_MSG_RESULT([$with_pcre_libs])
-      if test "$with_pcre_libs" = "/usr/lib"; then
+      if test "$with_pcre_libs" = "/usr/lib${LIBSUFFIX}"; then
          with_pcre_libs=
       fi
    fi
 else
-   if test -n "$PCRE_DIR" -a \( -f $PCRE_DIR/lib/libpcre.a -o -f "$PCRE_DIR/lib/libpcre.$SHLIB_SUFFIX" \); then
-      AC_MSG_RESULT([$PCRE_DIR/lib])
-      with_pcre_libs=$PCRE_DIR/lib
-   elif test -f /usr/lib/libpcre.a -o -f /usr/lib/libpcre.$SHLIB_SUFFIX; then
-      AC_MSG_RESULT([/usr/lib])
-   elif test -f /opt/pcre/lib/libpcre.a -o -f /opt/pcre/lib/libpcre.$SHLIB_SUFFIX; then
-      AC_MSG_RESULT([/opt/pcre/lib])
-      with_pcre_libs=/opt/pcre/lib
-   elif test -f /usr/pcre/lib/libpcre.a -o -f /usr/pcre/lib/libpcre.$SHLIB_SUFFIX; then
-      AC_MSG_RESULT([/usr/pcre/lib])
-      with_pcre_libs=/usr/pcre/lib
+   if test -n "$PCRE_DIR" -a \( -f $PCRE_DIR/lib${LIBSUFFIX}/libpcre.a -o -f "$PCRE_DIR/lib${LIBSUFFIX}/libpcre.$SHLIB_SUFFIX" \); then
+      AC_MSG_RESULT([$PCRE_DIR/lib${LIBSUFFIX}])
+      with_pcre_libs=$PCRE_DIR/lib${LIBSUFFIX}
+   elif test -f /usr/lib${LIBSUFFIX}/libpcre.a -o -f /usr/lib${LIBSUFFIX}/libpcre.$SHLIB_SUFFIX; then
+      AC_MSG_RESULT([/usr/lib${LIBSUFFIX}])
+   elif test -f /opt/pcre/lib${LIBSUFFIX}/libpcre.a -o -f /opt/pcre/lib${LIBSUFFIX}/libpcre.$SHLIB_SUFFIX; then
+      AC_MSG_RESULT([/opt/pcre/lib${LIBSUFFIX}])
+      with_pcre_libs=/opt/pcre/lib${LIBSUFFIX}
+   elif test -f /usr/pcre/lib${LIBSUFFIX}/libpcre.a -o -f /usr/pcre/lib${LIBSUFFIX}/libpcre.$SHLIB_SUFFIX; then
+      AC_MSG_RESULT([/usr/pcre/lib${LIBSUFFIX}])
+      with_pcre_libs=/usr/pcre/lib${LIBSUFFIX}
    elif test -f /sw/lib/libpcre.a -o -f /sw/lib/libpcre.$SHLIB_SUFFIX; then
       AC_MSG_RESULT([/sw/lib])
       with_pcre_libs=/sw/lib
-   elif test -f /opt/local/lib/libpcre.a -o -f /opt/local/lib/libpcre.$SHLIB_SUFFIX; then
-      AC_MSG_RESULT([/opt/local/lib])
-      with_pcre_libs=/opt/local/lib
+   elif test -f /opt/local/lib${LIBSUFFIX}/libpcre.a -o -f /opt/local/lib${LIBSUFFIX}/libpcre.$SHLIB_SUFFIX; then
+      AC_MSG_RESULT([/opt/local/lib${LIBSUFFIX}])
+      with_pcre_libs=/opt/local/lib${LIBSUFFIX}
    else
       AC_MSG_ERROR([no PCRE library found])
    fi
@@ -858,7 +892,8 @@ VERSION_SUB=`echo $PACKAGE_VERSION | cut -f3 -d\  | sed s/\"//g | cut -f3 -d.`
 AC_DEFINE_UNQUOTED([VERSION_MAJOR], $VERSION_MAJOR, [major version number])
 AC_DEFINE_UNQUOTED([VERSION_MINOR], $VERSION_MINOR, [minor version number])
 AC_DEFINE_UNQUOTED([VERSION_SUB], $VERSION_SUB, [sub version number])
-AC_DEFINE_UNQUOTED([TARGET_ARCH], "`uname -s`", [host type])
+AC_DEFINE_UNQUOTED([TARGET_ARCH], "`uname -m`", [host type])
+AC_DEFINE_UNQUOTED([TARGET_OS], "`uname -s`", [host type])
 AC_DEFINE_UNQUOTED([BUILD], `./next_build.sh`, [build number])
 
 VERSION_STRING=$PACKAGE_VERSION-`cat .build`

@@ -88,7 +88,7 @@ class Exception {
       class Exception *next;
 
       inline Exception(char *e, char *fmt, ...);
-      inline Exception(char *e, int sline, const char *fmt, va_list args);
+      inline Exception(char *e, int sline, class QoreString *desc);
       Exception(class QoreNode *l);
       Exception(class Exception *old, class ExceptionSink *xsink);
 
@@ -143,12 +143,19 @@ inline void ExceptionSink::insert(class Exception *e)
 
 inline void ExceptionSink::raiseException(char *err, char *fmt, ...)
 {
-   va_list args;
-   va_start(args, fmt);
-   class Exception *e = new Exception(err, 0, (const char *)fmt, args);
-   va_end(args);
+   class QoreString *desc = new QoreString();
 
-   insert(e);
+   va_list args;
+
+   while (true)
+   {
+      va_start(args, fmt);
+      int rc = desc->sprintf(fmt, args);
+      va_end(args);
+      if (!rc)
+	 break;
+   }
+   insert(new Exception(err, 0, desc));
 }
 
 inline void ExceptionSink::raiseException(class Exception *e)
@@ -194,12 +201,8 @@ inline void ExceptionSink::del(class Exception *e)
    }
 }
 
-inline Exception::Exception(char *e, int sline, const char *fmt, va_list args)
+inline Exception::Exception(char *e, int sline, class QoreString *d)
 {
-   QoreString *str = new QoreString();
-   str->vsprintf(fmt, args);
-
-   type = ET_SYSTEM;
    if (sline)
       line = sline;
    else
@@ -210,7 +213,7 @@ inline Exception::Exception(char *e, int sline, const char *fmt, va_list args)
    callStack = new QoreNode(getCallStack());
 
    err = new QoreNode(e);
-   desc = new QoreNode(str);
+   desc = new QoreNode(d);
    arg = NULL;
 
    next = NULL;
@@ -220,9 +223,15 @@ inline Exception::Exception(char *e, char *fmt, ...)
 {
    QoreString *str = new QoreString();
    va_list args;
-   va_start(args, fmt);
-   str->vsprintf(fmt, args);
-   va_end(args);
+
+   while (true)
+   {
+      va_start(args, fmt);
+      int rc = str->vsprintf(fmt, args);
+      va_end(args);
+      if (!rc)
+	 break;
+   }
 
    type = ET_SYSTEM;
    line = get_pgm_counter();

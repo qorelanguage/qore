@@ -2605,6 +2605,7 @@ static class QoreNode *f_makeFormattedXMLRPCFaultResponseString(class QoreNode *
    }
    int code = p0 ? p0->getAsInt() : 0;
    class QoreEncoding *ccsid = p1->val.String->getEncoding();
+   //printd(0, "ccsid=%016x (%s) (%s) code=%d\n", ccsid, ccsid->code, p1->val.String->getBuffer(), code);
 
    // for speed, the XML is created directly here
    QoreString *str = new QoreString(ccsid);

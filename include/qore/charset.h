@@ -166,7 +166,7 @@ class QoreEncodingManager : public LockedObject
 	 lock();
 	 rv = find(name);
 	 if (!rv)
-	    rv = add(name, NULL, NULL, NULL, NULL);
+	    rv = addUnlocked(name, NULL, NULL, NULL, NULL);
 	 unlock();
 	 return rv;
       }

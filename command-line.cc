@@ -169,7 +169,7 @@ static void do_lock_options(char *arg)
 
 static void do_version(char *arg)
 {
-   printf("QORE for %s, Copyright (C) 2003 - 2006 David Nichols\nversion %s", qore_target_arch, qore_version_string);
+   printf("QORE for %s %s, Copyright (C) 2003 - 2006 David Nichols\nversion %s", qore_target_os, qore_target_arch, qore_version_string);
    class charPtrNode *w = qoreFeatureList.getHead();
    if (w)
    {

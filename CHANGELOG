@@ -1,3 +1,13 @@
+2006.07.24: David Nichols
+	* started adding 64-bit support
+	* fixed a stupid bug in generating parse exceptions (how did that ever
+	  work before???)
+	* fixed a deadlock in adding new (unknown) character encodings in
+	  include/qore/charset.h
+	* fixed a bug in the QoreString::vsprintf() design and usage (retries
+	  when the buffer was too small would cause a segfault)
+	* set library and module dir to use lib64 for 64-bit builds on Linux
+
 2006.07.09: David Nichols
 	* added TibrvListener class to the tibco module for TIBCO Rendezvous 
 	  listening

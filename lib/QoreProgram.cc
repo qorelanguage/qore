@@ -148,7 +148,7 @@ void QoreProgram::resolveFunction(class FunctionCall *f)
 {
    tracein("QoreProgram::resolveFunction()");
    char *fname = f->f.c_str;
-
+   
    class UserFunction *ufc;
    if ((ufc = findUserFunction(fname)))
    {
@@ -189,7 +189,6 @@ void QoreProgram::resolveFunction(class FunctionCall *f)
    }
 
    // cannot find function, throw exception
-   //printd(0, "QoreProgram::unresolvedFunctionEval() this=%08x\n", this);
    parse_error("function '%s()' cannot be found", fname);
    traceout("QoreProgram::resolveFunction()");
 }

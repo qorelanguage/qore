@@ -46,7 +46,7 @@ class Object *CallStack::getPrevStackObject()
 
 static class QoreNode *f_dbg_get_object_ptr(class QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)(unsigned)thread_list[gettid()].callStack->getPrevStackObject());
+   return new QoreNode((int64)(unsigned long)thread_list[gettid()].callStack->getPrevStackObject());
 }
 
 //static 

@@ -1,3 +1,4 @@
+libdir = ${exec_prefix}/lib${LIBSUFFIX}
 pkglibdir = $(libdir)/@PACKAGE@-@VERSION@
 
 NCURSES_SOURCES = ncurses.cc QC_Window.cc QC_Panel.cc

@@ -1,3 +1,4 @@
+libdir = ${exec_prefix}/lib${LIBSUFFIX}
 pkglibdir = $(libdir)/@PACKAGE@-@VERSION@
 
 TIBCO_SOURCES = QoreApp.cc tibco.cc tibco-module.cc QoreTibrvListener.cc QC_TibrvListener.cc qore-rv.cc

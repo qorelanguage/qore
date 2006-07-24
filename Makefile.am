@@ -1,3 +1,4 @@
+libdir = ${exec_prefix}/lib${LIBSUFFIX}
 pkglibdir = $(libdir)/@PACKAGE@-@VERSION@
 
 ## use automake to create the Makefile.in for configure

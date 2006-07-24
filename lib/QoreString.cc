@@ -272,12 +272,14 @@ void QoreString::concatAndHTMLDecode(QoreString *str)
    }
 }
 
+// return 0 for success
 int QoreString::vsprintf(const char *fmt, va_list args)
 {
+   int fmtlen = ::strlen(fmt);
    // ensure minimum space is free
-   if ((allocated - len) < MIN_SPRINTF_BUFSIZE)
+   if ((allocated - len - fmtlen) < MIN_SPRINTF_BUFSIZE)
    {
-      allocated += MIN_SPRINTF_BUFSIZE;
+      allocated += fmtlen + MIN_SPRINTF_BUFSIZE;
       // resize buffer
       buf = (char *)realloc(buf, allocated * sizeof(char));
    }
@@ -287,15 +289,18 @@ int QoreString::vsprintf(const char *fmt, va_list args)
    // copy formatted string to buffer
    int i = ::vsnprintf(buf + len, free, fmt, args);
 
-   // check for lost data, reallocate buffer and retry if necessary
    if (i >= free)
    {
-      allocated = i + len + STR_CLASS_EXTRA;
-      buf = (char *)realloc(buf, allocated * sizeof(char));
-      ::vsprintf(buf + len, fmt, args);
+      //printd(0, "vsnprintf() failed: i=%d allocated=%d len=%d buf=%08x fmtlen=%d\n", i, allocated, len, buf, fmtlen);
+      // resize buffer
+      allocated = i + STR_CLASS_EXTRA;
+      buf = (char *)realloc(buf, sizeof(char) * allocated);
+      *(buf + len) = '\0';
+      return -1;
    }
+
    len += i;
-   return i;
+   return 0;
 }
 
 void QoreString::concat(char *str)
@@ -443,13 +448,19 @@ int QoreString::vsnprintf(int size, const char *fmt, va_list args)
    return i;
 }
 
+// returns 0 for success
 int QoreString::sprintf(const char *fmt, ...)
 {
    va_list args;
-   va_start(args, fmt);
-   int i = vsprintf(fmt, args);
-   va_end(args); 
-   return i;
+   while (true)
+   {
+      va_start(args, fmt);
+      int rc = vsprintf(fmt, args);
+      va_end(args);
+      if (!rc)
+	 break;
+   }
+   return 0;
 }
 
 int QoreString::snprintf(int size, const char *fmt, ...)

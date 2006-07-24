@@ -175,7 +175,8 @@ class QoreProgram : public ReferenceObject, private UserFunctionList, private Im
       inline void deref();
       inline class Var *checkVar(char *name);
       inline class Var *createVar(char *name);
-      inline void makeParseException(const char *fmt, va_list args);
+      //inline void makeParseException(const char *fmt, va_list args);
+      inline void makeParseException(class QoreString *desc);
       inline void addParseException(class ExceptionSink *xsink);
       inline class Namespace *getRootNS() { return RootNS; }
       inline int getParseOptions() { return parse_options; }
@@ -577,11 +578,22 @@ inline class Var *QoreProgram::createVar(char *name)
    return rv;
 }
 
+/*
 inline void QoreProgram::makeParseException(const char *fmt, va_list args)
 {
    tracein("QoreProgram::makeParseException()");
 
    class Exception *ne = new Exception("PARSE-EXCEPTION", get_pgm_stmt(), (const char *)fmt, args);
+   parseSink->raiseException(ne);
+   traceout("QoreProgram::makeParseException()");
+}
+*/
+
+inline void QoreProgram::makeParseException(class QoreString *desc)
+{
+   tracein("QoreProgram::makeParseException()");
+
+   class Exception *ne = new Exception("PARSE-EXCEPTION", get_pgm_stmt(), desc);
    parseSink->raiseException(ne);
    traceout("QoreProgram::makeParseException()");
 }

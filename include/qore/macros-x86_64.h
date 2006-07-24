@@ -1,6 +1,4 @@
 /*
-  Qore.h
-
   Qore Programming Language
 
   Copyright (C) 2003, 2004, 2005, 2006 David Nichols
@@ -20,25 +18,31 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _QORE_QORE_H
+#ifndef _QORE_MACHINE_MACROS_H
 
-#define _QORE_QORE_H
+#define _QORE_MACHINE_MACROS_H
 
-#include <qore/config.h>
-#include <qore/common.h>
-#include <qore/QoreProgram.h>
-#include <qore/List.h>
-#include <qore/ModuleManager.h>
+#define HAVE_ATOMIC_MACROS
 
-extern char qore_version_string[];
-extern int qore_version_major;
-extern int qore_version_minor;
-extern int qore_version_sub;
-extern int qore_build_number;
-extern char qore_target_os[];
-extern char qore_target_arch[];
+// returns 1 when counter reaches zero, 0 if not
+static inline int atomic_dec(volatile int *a)
+{
+   unsigned char rc;
 
-void qore_init(char *def_charset = NULL, bool show_module_errors = false);
-void qore_cleanup();
+   __asm(
+        "lock; decl %0; sete %1"
+        : "=m" (*a), "=qm" (rc)
+	: "m" (*a) : "memory"
+      );
+   return rc != 0;
+}
 
-#endif  // _QORE_QORE_H
+static inline void atomic_inc(volatile int *a)
+{
+   __asm(
+        "lock; incl %0"
+        : "=m" (*a)
+   );
+}
+
+#endif

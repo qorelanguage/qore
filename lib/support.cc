@@ -50,14 +50,19 @@ int printe(const char *fmt, ...)
 {
    va_list args;
    QoreString buf;
-   int i;
 
-   va_start(args, fmt);
-   i = buf.vsprintf(fmt, args);
-   va_end(args);
+   while (true)
+   {
+      va_start(args, fmt);
+      int rc = buf.vsprintf(fmt, args);
+      va_end(args);
+      if (!rc)
+	 break;
+   }
+		    
    fputs(buf.getBuffer(), stderr);
    fflush(stderr);
-   return i;
+   return 0;
 }
 
 #ifdef DEBUG
@@ -68,16 +73,20 @@ int printd(int level, const char *fmt, ...)
 
    va_list args;
    QoreString buf;
-   int i;
 
-   va_start(args, fmt);
-   
-   i = buf.vsprintf(fmt, args);
-   va_end(args);
+   while (true)
+   {
+      va_start(args, fmt);
+      int rc = buf.vsprintf(fmt, args);
+      va_end(args);
+      if (!rc)
+	 break;
+   }
+
    if (threads_initialized) fprintf(stderr, "TID %d: ", gettid());
    fputs(buf.getBuffer(), stderr);
    fflush(stderr);
-   return i;
+   return 0;
 }
 
 void trace_function(int code, char *funcname)
@@ -131,12 +140,16 @@ void run_time_error(const char *fmt, ...)
 {
    va_list args;
    QoreString buf;
-   int i;
 
-   va_start(args, fmt);
-   
-   i = buf.vsprintf(fmt, args);
-   va_end(args);
+   while (true)
+   {
+      va_start(args, fmt);
+      int rc = buf.vsprintf(fmt, args);
+      va_end(args);
+      if (!rc)
+	 break;
+   }
+
    printe("run-time error in line %d of file \"%s\": ", get_pgm_counter(), get_pgm_file());
    fputs(buf.getBuffer(), stderr);
    fputc('\n', stderr);
@@ -149,17 +162,19 @@ void run_time_error(const char *fmt, ...)
 
 void parse_error(const char *fmt, ...)
 {
-   va_list args;
-   QoreString buf;
-   int i;
-
    printd(5, "parse_error(\"%s\", ...) called\n", fmt);
 
-   va_start(args, fmt);
-   i = buf.vsprintf(fmt, args);
-   va_end(args);
-
-   getProgram()->makeParseException(fmt, args);
+   class QoreString *desc = new QoreString();
+   while (true)
+   {
+      va_list args;
+      va_start(args, fmt);
+      int rc = desc->vsprintf(fmt, args);
+      va_end(args);
+      if (!rc)
+	 break;
+   }
+   getProgram()->makeParseException(desc);
 }
 
 // returns 1 for success
