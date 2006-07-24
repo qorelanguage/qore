@@ -7,6 +7,7 @@
 	* fixed a bug in the QoreString::vsprintf() design and usage (retries
 	  when the buffer was too small would cause a segfault)
 	* set library and module dir to use lib64 for 64-bit builds on Linux
+	* changes to allow mysql to be compiled in for Linux x86_64
 
 2006.07.09: David Nichols
 	* added TibrvListener class to the tibco module for TIBCO Rendezvous 

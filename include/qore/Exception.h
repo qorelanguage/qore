@@ -150,11 +150,12 @@ inline void ExceptionSink::raiseException(char *err, char *fmt, ...)
    while (true)
    {
       va_start(args, fmt);
-      int rc = desc->sprintf(fmt, args);
+      int rc = desc->vsprintf(fmt, args);
       va_end(args);
       if (!rc)
 	 break;
    }
+   printd(5, "ExceptionSink::raiseException(%s, %s)\n", err, desc->getBuffer());
    insert(new Exception(err, 0, desc));
 }
 

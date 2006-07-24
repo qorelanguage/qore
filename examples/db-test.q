@@ -6,13 +6,16 @@
 # 2) oracle-test-db.sql 
 # has been installed
 
-$type = SQL::DSMySQL;
-# comment-out the above line and uncomment the next if the oracle schema was installed
-#$type = SQL::DSOracle;
-$user = "";
-$pass = "";
-$db   = "test";
-$host = "";
+%require-our
+our $o;
+
+const opts = 
+    ( "help"   : "h,help",
+      "host"   : "H,host=s",
+      "pass"   : "p,pass=s",
+      "db"     : "d,db=s",
+      "user"   : "u,user=s",
+      "oracle" : "o,oracle" );
 
 # add a convenient method to the Datasource class 
 Datasource::selectRow($sql)
@@ -21,11 +24,38 @@ Datasource::selectRow($sql)
         return %%;
 }
 
+sub usage()
+{
+    printf("usage: %s [options]
+ -h,--help         this help text
+ -u,--user=ARG     set username
+ -p,--pass=ARG     set password
+ -d,--db=ARG       set database name
+ -H,--host=ARG     set hostname (for MySQL connections)
+ -o,--oracle       connect to an Oracle datasource\n",
+	   basename($ENV."_"));
+    exit();
+}
+
+sub parse_command_line()
+{
+    my $g = new GetOpt(opts);
+    $o = $g.parse(\$ARGV);
+    if ($o.help)
+	usage();
+
+    if (!strlen($o.db))
+    {
+	stderr.printf("set the login parameters with -u,-p,-d, etc (-h for help)\n");
+	exit();
+    }
+}
+
 sub getDS()
 {
-    my $ds = new Datasource($type, $user, $pass, $db);
-    if (strlen($host))
-	$ds.setHostName($host);
+    my $ds = new Datasource($o.oracle ? DSOracle : DSMySQL, $o.user, $o.pass, $o.db);
+    if (strlen($o.host))
+	$ds.setHostName($o.host);
     return $ds;
 }
 
@@ -33,11 +63,11 @@ sub doit($db)
 {
     # frist we select all the data from the tables and then use context statements to order the output hierarchically
 
-    $people = $db.select("select * from people");
+    my $people = $db.select("select * from people");
 
-    $attributes = $db.select("select * from attributes");
+    my $attributes = $db.select("select * from attributes");
 
-    $today = format_date("YYYYMMDD", now());
+    my $today = format_date("YYYYMMDD", now());
 
     context family ($db.select("select * from family"))
     {
@@ -53,7 +83,7 @@ sub doit($db)
 
 sub transaction_test($db)
 {
-    $ndb = getDS();
+    my $ndb = getDS();
     printf("db.autocommit=%N, ndb.autocommit=%N\n", $db.getAutoCommit(), $ndb.getAutoCommit());
 
     # first, we insert a new row into "family" but do not commit it
@@ -95,6 +125,7 @@ sub transaction_test($db)
 
 sub main()
 {
+    parse_command_line();
     my $db = getDS();
 
     doit($db);

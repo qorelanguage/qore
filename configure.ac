@@ -560,32 +560,32 @@ if test "${enable_mysql}" != "no"; then
    if test -d /usr/local/mysql; then
       AC_MSG_RESULT([/usr/local/mysql])
       with_mysql_includes=/usr/local/mysql/include
-      with_mysql_libs=/usr/local/mysql/lib
+      with_mysql_libs=/usr/local/mysql/lib${LIBSUFFIX}
       enable_mysql=yes
    elif test -d /opt/mysql; then
       AC_MSG_RESULT([/opt/mysql])
       with_mysql_includes=/opt/mysql/include
-      with_mysql_libs=/opt/mysql/lib
+      with_mysql_libs=/opt/mysql/lib${LIBSUFFIX}
       enable_mysql=yes
    elif test -d /usr/mysql; then
       AC_MSG_RESULT([/usr/mysql])
       with_mysql_includes=/usr/mysql/include
-      with_mysql_libs=/usr/mysql/lib
+      with_mysql_libs=/usr/mysql/lib${LIBSUFFIX}
       enable_mysql=yes
-   elif test -d /usr/include/mysql -a -d /usr/lib/mysql; then
-      AC_MSG_RESULT([/usr/include/mysql and /usr/lib/mysql])
+   elif test -d /usr/include/mysql -a -d /usr/lib${LIBSUFFIX}/mysql; then
+      AC_MSG_RESULT([/usr/include/mysql and /usr/lib${LIBSUFFIX}/mysql])
       with_mysql_includes=/usr/include/mysql
-      with_mysql_libs=/usr/lib/mysql
+      with_mysql_libs=/usr/lib${LIBSUFFIX}/mysql
       enable_mysql=yes
    elif test -d /sw/include/mysql -a -d /sw/lib/mysql; then
       AC_MSG_RESULT([/sw/include/mysql and /sw/lib/mysql])
       with_mysql_includes=/sw/include/mysql
       with_mysql_libs=/sw/lib/mysql
       enable_mysql=yes
-   elif test -d /opt/local/include/mysql -a -d /opt/local/lib/mysql; then
-      AC_MSG_RESULT([/opt/local/include/mysql and /opt/local/lib/mysql])
+   elif test -d /opt/local/include/mysql -a -d /opt/local/lib${LIBSUFFIX}/mysql; then
+      AC_MSG_RESULT([/opt/local/include/mysql and /opt/local/lib${LIBSUFFIX}/mysql])
       with_mysql_includes=/opt/local/include/mysql
-      with_mysql_libs=/opt/local/lib/mysql
+      with_mysql_libs=/opt/local/lib${LIBSUFFIX}/mysql
       enable_mysql=yes
    else
       AC_MSG_RESULT([no])
