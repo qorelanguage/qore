@@ -291,9 +291,9 @@ int QoreString::vsprintf(const char *fmt, va_list args)
 
    if (i >= free)
    {
-      //printd(0, "vsnprintf() failed: i=%d allocated=%d len=%d buf=%08x fmtlen=%d\n", i, allocated, len, buf, fmtlen);
+      //printd(5, "vsnprintf() failed: i=%d allocated=%d len=%d buf=%08x fmtlen=%d (new=i+%d = %d)\n", i, allocated, len, buf, fmtlen, STR_CLASS_EXTRA, i + STR_CLASS_EXTRA);
       // resize buffer
-      allocated = i + STR_CLASS_EXTRA;
+      allocated = len + i + STR_CLASS_EXTRA;
       buf = (char *)realloc(buf, sizeof(char) * allocated);
       *(buf + len) = '\0';
       return -1;

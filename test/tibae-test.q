@@ -2,7 +2,8 @@
 
 %requires tibae
 
-const Subject = "Qore.Test.QORETest";
+#const Subject = "Qore.Test.QORETest";
+const Subject = "test";
 
 $iters = int(shift $ARGV);
 if (!$iters)
@@ -136,7 +137,7 @@ sub newTest()
 
     my $function = "Test";
     my $msg = ( "STRING"   : $string,
-		"INTEGER"  : $seq.next(),
+		"INTEGER"  : 39239,
 		"DATE"     : now(),
 		"DATETIME" : 9999-12-31-23:59:59,
 		"BOOLEAN"  : True,
@@ -146,6 +147,6 @@ sub newTest()
     $adapter.sendSubjectWithSyncReply($subject, $function, $msg, 1);
 }
 
-#doTest();
+doTest();
 
-newTest();
+#newTest();

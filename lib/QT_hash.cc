@@ -74,10 +74,10 @@ class QoreString *hash_MakeString(class QoreNode *n, int foff, class ExceptionSi
       else
 	 rv->concat('(');
 
-      class HashIterator *hi = n->val.hash->newIterator();
+      class HashIterator hi(n->val.hash);
       //class List *l = n->val.hash->getKeys();                                                                                                                       
       bool first = false;
-      while (hi->next())
+      while (hi.next())
       {
 	 if (first)
 	    if (foff != FMT_NONE)
@@ -90,12 +90,11 @@ class QoreString *hash_MakeString(class QoreNode *n, int foff, class ExceptionSi
 	 if (foff != FMT_NONE)
 	    indent(rv, foff + 2);
 
-	 QoreString *elem = hi->getValue()->getAsString(foff != FMT_NONE ? foff + 2 : foff, xsink);
-	 rv->sprintf("%s : %s", hi->getKey(), elem->getBuffer());
+	 QoreString *elem = hi.getValue()->getAsString(foff != FMT_NONE ? foff + 2 : foff, xsink);
+	 rv->sprintf("%s : %s", hi.getKey(), elem->getBuffer());
 	 delete elem;
       }
 	 
-      delete hi;
       if (foff == FMT_NONE)
 	 rv->concat(')');
    }

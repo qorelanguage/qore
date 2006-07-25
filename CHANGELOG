@@ -1,5 +1,6 @@
 2006.07.25: David Nichols
 	* added initial TibrvSender class
+	* fixed a bug in the QoreString::vsprintf() resize logic
 
 2006.07.24: David Nichols
 	* started adding 64-bit support

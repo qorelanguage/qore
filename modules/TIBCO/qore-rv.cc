@@ -70,6 +70,14 @@ class QoreNode *tibrvmsg_field_to_node(TibrvMsgField *field, class ExceptionSink
 	 val = new QoreNode((int64)data.u64);
 	 break;
 
+      case TIBRVMSG_F32:
+	 val = new QoreNode((double)data.f32);
+	 break;
+
+      case TIBRVMSG_F64:
+	 val = new QoreNode(data.f64);
+	 break;
+
       case TIBRVMSG_BOOL:
 	 val = new QoreNode((bool)data.boolean);
 	 break;
@@ -117,6 +125,12 @@ class Hash *tibrvmsg_to_hash(TibrvMsg *msg, class ExceptionSink *xsink)
       }
 
       class QoreNode *val = tibrvmsg_field_to_node(&field, xsink);
+      if (xsink->isException())
+      {
+	 h->dereference(xsink);
+	 delete h;	 
+	 return NULL;
+      }
       class QoreNode *ev = h->getKeyValueExistence((char *)field.name);
       if (ev != (QoreNode *)-1)
       {
@@ -162,7 +176,7 @@ void hash_to_tibrvmsg(TibrvMsg *msg, class Hash *hash, class ExceptionSink *xsin
       else if (v->type == NT_HASH)
       {
 	 TibrvMsg m;
-	 hash_to_tibrvmsg(msg, v->val.hash, xsink);
+	 hash_to_tibrvmsg(&m, v->val.hash, xsink);
 	 if (xsink->isException())
 	    return;
 	 msg->updateMsg(key, m);
