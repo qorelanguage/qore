@@ -27,8 +27,8 @@
 #include <qore/common.h>
 #include <qore/QoreNode.h>
 
-int tibco_module_init();
-void tibco_module_ns_init(class Namespace *rns, class Namespace *qns);
-void tibco_module_delete();
+int tibae_module_init();
+void tibae_module_ns_init(class Namespace *rns, class Namespace *qns);
+void tibae_module_delete();
 
 #endif

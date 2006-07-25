@@ -1,5 +1,5 @@
 /*
-  tibco.h
+  tibae.h
 
   TIBCO integration to QORE
 
@@ -20,15 +20,15 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef QORE_TIBCO_H
+#ifndef QORE_TIBAE_H
 
-#define QORE_TIBCO_H
+#define QORE_TIBAE_H
 #include <Maverick.h>
 
 #define TIBCO_EXPLICIT_CREATE_SESSION 1
 #define DEFAULT_SUBJECT "QORE.MESSAGE"
 
-extern class QoreClass *QC_TIBCO;
+extern class QoreClass *QC_TIBAE;
 
 class QoreNode *map_mdata_to_node(MData *md, class ExceptionSink *xsink);
 class QoreClass *initTibcoAdapterClass();

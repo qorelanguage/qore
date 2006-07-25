@@ -1,7 +1,7 @@
 /*
-  TIBCO/tibco.cc
+  TIBCO/tibae.cc
 
-  TIBCO integration to QORE
+  TIBCO Active Enterprise integration to QORE
 
   Copyright (C) 2003, 2004, 2005, 2006 David Nichols
 
@@ -30,10 +30,10 @@
 #include <qore/params.h>
 #include <qore/QoreClass.h>
 
-#include "tibco.h"
+#include "tibae.h"
 #include "QoreApp.h"
 
-int CID_TIBCO;
+int CID_TIBAE;
 
 static inline class QoreNode *map_minstance_to_node(const MInstance *min, ExceptionSink *xsink)
 {
@@ -248,10 +248,10 @@ static inline void *getTA(void *obj)
    return obj;
 }
 
-// usage: new Tibco(session-name, properties, classlist, [, service, network, daemon])
-class QoreNode *TIBCO_constructor(class Object *self, class QoreNode *params, class ExceptionSink *xsink)
+// usage: new TibcoAdapter(session-name, properties, classlist, [, service, network, daemon])
+class QoreNode *TIBAE_constructor(class Object *self, class QoreNode *params, class ExceptionSink *xsink)
 {
-   tracein("TIBCO_constructor");
+   tracein("TIBAE_constructor");
 
    char *session_name, *service = NULL, *network = NULL, *daemon = NULL;
    QoreNode *p0, *p1, *p2, *p;
@@ -262,7 +262,7 @@ class QoreNode *TIBCO_constructor(class Object *self, class QoreNode *params, cl
       xsink->raiseException("TIBCO-PARAMETER-ERROR", "invalid parameters passed to Tibco() constructor, expecting session name (string), properties (object), [classlist (object), service (string), network (string), daemon (string)]");
       // "de-type" self
       self->doDeleteNoDestructor(xsink);
-      traceout("TIBCO_constructor");
+      traceout("TIBAE_constructor");
       return NULL;
    }
 
@@ -286,7 +286,7 @@ class QoreNode *TIBCO_constructor(class Object *self, class QoreNode *params, cl
       daemon = p->val.String->getBuffer();
 
    // create adapter instance
-   printd(1, "TIBCO_constructor() session=%s service=%s network=%s daemon=%s\n",
+   printd(1, "TIBAE_constructor() session=%s service=%s network=%s daemon=%s\n",
 	  session_name, 
 	  service ? service : "(null)", 
 	  network ? network : "(null)", 
@@ -332,35 +332,35 @@ class QoreNode *TIBCO_constructor(class Object *self, class QoreNode *params, cl
 	 delete myQoreApp;
       // "de-type" self
       self->doDeleteNoDestructor(xsink);
-      traceout("TIBCO_constructor");
+      traceout("TIBAE_constructor");
       return NULL;
    }
-   if (self->setPrivate(CID_TIBCO, myQoreApp, getTA))
+   if (self->setPrivate(CID_TIBAE, myQoreApp, getTA))
       myQoreApp->deref(xsink);
-   printd(5, "TIBCO_constructor() this=%08x myQoreApp=%08x\n", self, myQoreApp);
-   traceout("TIBCO_constructor");
+   printd(5, "TIBAE_constructor() this=%08x myQoreApp=%08x\n", self, myQoreApp);
+   traceout("TIBAE_constructor");
    return NULL;
 }
 
-class QoreNode *TIBCO_destructor(class Object *self, class QoreNode *params, class ExceptionSink *xsink)
+class QoreNode *TIBAE_destructor(class Object *self, class QoreNode *params, class ExceptionSink *xsink)
 {
-   tracein("TIBCO_destructor()");
+   tracein("TIBAE_destructor()");
    // set adapter paramter
-   QoreApp *myQoreApp = (QoreApp *)self->getAndClearPrivateData(CID_TIBCO);
+   QoreApp *myQoreApp = (QoreApp *)self->getAndClearPrivateData(CID_TIBAE);
    if (myQoreApp)
       myQoreApp->deref(xsink);
-   traceout("TIBCO_destructor()");
+   traceout("TIBAE_destructor()");
    return NULL;
 }
 
-static QoreNode *TIBCO_copy(class Object *self, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *TIBAE_copy(class Object *self, QoreNode *params, ExceptionSink *xsink)
 {
    xsink->raiseException("TIBCO-ADAPTER-COPY-ERROR", "copying TibcoAdapter objects is curently not supported");
    return NULL;
 }
 
 // usage: Tibco::sendWithSyncReply(function_name, message[, timeout])
-class QoreNode *TIBCO_sendWithSyncReply(class Object *self, class QoreNode *params, class ExceptionSink *xsink)
+class QoreNode *TIBAE_sendWithSyncReply(class Object *self, class QoreNode *params, class ExceptionSink *xsink)
 {
    int timeout = 0;
    class QoreNode *rv = NULL, *p0, *p1, *p2;
@@ -381,7 +381,7 @@ class QoreNode *TIBCO_sendWithSyncReply(class Object *self, class QoreNode *para
       timeout = p2->getAsInt();
 
    // set adapter paramter
-   QoreApp *myQoreApp = (QoreApp *)self->getReferencedPrivateData(CID_TIBCO);
+   QoreApp *myQoreApp = (QoreApp *)self->getReferencedPrivateData(CID_TIBAE);
 
    if (myQoreApp)
    {
@@ -404,8 +404,8 @@ class QoreNode *TIBCO_sendWithSyncReply(class Object *self, class QoreNode *para
    return rv;
 }
 
-// usage: TIBCO_send(function_name, message)
-class QoreNode *TIBCO_send(class Object *self, class QoreNode *params, class ExceptionSink *xsink)
+// usage: TIBAE_send(function_name, message)
+class QoreNode *TIBAE_send(class Object *self, class QoreNode *params, class ExceptionSink *xsink)
 {
    char *fname;
    class QoreNode *p0, *p1;
@@ -421,7 +421,7 @@ class QoreNode *TIBCO_send(class Object *self, class QoreNode *params, class Exc
    fname = p0->val.String->getBuffer();
 
    // set adapter paramter
-   QoreApp *myQoreApp = (QoreApp *)self->getReferencedPrivateData(CID_TIBCO);
+   QoreApp *myQoreApp = (QoreApp *)self->getReferencedPrivateData(CID_TIBAE);
 
    if (myQoreApp)
    {
@@ -443,8 +443,8 @@ class QoreNode *TIBCO_send(class Object *self, class QoreNode *params, class Exc
    return NULL;
 }
 
-// usage: TIBCO_sendSubject(subject, function_name, message)
-class QoreNode *TIBCO_sendSubject(class Object *self, class QoreNode *params, class ExceptionSink *xsink)
+// usage: TIBAE_sendSubject(subject, function_name, message)
+class QoreNode *TIBAE_sendSubject(class Object *self, class QoreNode *params, class ExceptionSink *xsink)
 {
    class QoreNode *p0, *p1, *p2;
 
@@ -461,7 +461,7 @@ class QoreNode *TIBCO_sendSubject(class Object *self, class QoreNode *params, cl
    char *fname = p1->val.String->getBuffer();
 
    // set adapter paramter
-   QoreApp *myQoreApp = (QoreApp *)self->getReferencedPrivateData(CID_TIBCO);
+   QoreApp *myQoreApp = (QoreApp *)self->getReferencedPrivateData(CID_TIBAE);
 
    if (myQoreApp)
    {
@@ -483,8 +483,8 @@ class QoreNode *TIBCO_sendSubject(class Object *self, class QoreNode *params, cl
    return NULL;
 }
 
-// usage: TIBCO_setSubjectName(subject);
-class QoreNode *TIBCO_setSubjectName(class Object *self, class QoreNode *params, class ExceptionSink *xsink)
+// usage: TIBAE_setSubjectName(subject);
+class QoreNode *TIBAE_setSubjectName(class Object *self, class QoreNode *params, class ExceptionSink *xsink)
 {
    QoreNode *p0;
 
@@ -497,7 +497,7 @@ class QoreNode *TIBCO_setSubjectName(class Object *self, class QoreNode *params,
 	  p0->val.String->getBuffer());
 
    // set adapter paramter
-   QoreApp *myQoreApp = (QoreApp *)self->getReferencedPrivateData(CID_TIBCO);
+   QoreApp *myQoreApp = (QoreApp *)self->getReferencedPrivateData(CID_TIBAE);
    if (myQoreApp)
    {
       myQoreApp->set_subject_name(p0->val.String->getBuffer());
@@ -510,7 +510,7 @@ class QoreNode *TIBCO_setSubjectName(class Object *self, class QoreNode *params,
 }
 
 // usage: Tibco::sendSubjectWithSyncReply(subject, function_name, message[, timeout])
-class QoreNode *TIBCO_sendSubjectWithSyncReply(class Object *self, class QoreNode *params, class ExceptionSink *xsink)
+class QoreNode *TIBAE_sendSubjectWithSyncReply(class Object *self, class QoreNode *params, class ExceptionSink *xsink)
 {
    int timeout = 0;
    class QoreNode *rv = NULL, *p0, *p1, *p2, *p3;
@@ -532,14 +532,14 @@ class QoreNode *TIBCO_sendSubjectWithSyncReply(class Object *self, class QoreNod
       timeout = p3->getAsInt();
 
    // set adapter paramter
-   QoreApp *myQoreApp = (QoreApp *)self->getReferencedPrivateData(CID_TIBCO);
+   QoreApp *myQoreApp = (QoreApp *)self->getReferencedPrivateData(CID_TIBAE);
 
    if (myQoreApp)
    {
       // try to send message
       try
       {
-	 printd(2, "TIBCO_sendSubjectWithSyncReply() calling sendWithSyncReply()\n");
+	 printd(2, "TIBAE_sendSubjectWithSyncReply() calling sendWithSyncReply()\n");
 	 rv = myQoreApp->sendWithSyncReply(p0->val.String->getBuffer(), fname, p2, timeout, xsink);
       }
       catch(MException &te)
@@ -556,7 +556,7 @@ class QoreNode *TIBCO_sendSubjectWithSyncReply(class Object *self, class QoreNod
 }
 
 // Tibco::receive(subject, [timeout])
-class QoreNode *TIBCO_receive(class Object *self, class QoreNode *params, class ExceptionSink *xsink)
+class QoreNode *TIBAE_receive(class Object *self, class QoreNode *params, class ExceptionSink *xsink)
 {
    unsigned long timeout = 0;
    QoreNode *p0, *p1;
@@ -572,7 +572,7 @@ class QoreNode *TIBCO_receive(class Object *self, class QoreNode *params, class 
       timeout = p1->getAsInt();
 
    // set adapter paramter
-   QoreApp *myQoreApp = (QoreApp *)self->getReferencedPrivateData(CID_TIBCO);
+   QoreApp *myQoreApp = (QoreApp *)self->getReferencedPrivateData(CID_TIBAE);
    QoreNode *rv = NULL;
 
    if (myQoreApp)
@@ -589,17 +589,17 @@ class QoreClass *initTibcoAdapterClass()
 {
    tracein("initTibcoAdapterClass()");
 
-   class QoreClass *QC_TIBCO = new QoreClass(strdup("TibcoAdapter"));
-   CID_TIBCO = QC_TIBCO->getID();
-   QC_TIBCO->addMethod("constructor",              TIBCO_constructor);
-   QC_TIBCO->addMethod("destructor",               TIBCO_destructor);
-   QC_TIBCO->addMethod("copy",                     TIBCO_copy);
-   QC_TIBCO->addMethod("receive",                  TIBCO_receive);
-   //QC_TIBCO->addMethod("send",                     TIBCO_send);
-   QC_TIBCO->addMethod("sendSubject",              TIBCO_sendSubject);
-   //QC_TIBCO->addMethod("sendWithSyncReply",        TIBCO_sendWithSyncReply);
-   QC_TIBCO->addMethod("sendSubjectWithSyncReply", TIBCO_sendSubjectWithSyncReply);
-   //QC_TIBCO->addMethod("setSubjectName",           TIBCO_setSubjectName);
+   class QoreClass *QC_TIBAE = new QoreClass(strdup("TibcoAdapter"));
+   CID_TIBAE = QC_TIBAE->getID();
+   QC_TIBAE->addMethod("constructor",              TIBAE_constructor);
+   QC_TIBAE->addMethod("destructor",               TIBAE_destructor);
+   QC_TIBAE->addMethod("copy",                     TIBAE_copy);
+   QC_TIBAE->addMethod("receive",                  TIBAE_receive);
+   //QC_TIBAE->addMethod("send",                     TIBAE_send);
+   QC_TIBAE->addMethod("sendSubject",              TIBAE_sendSubject);
+   //QC_TIBAE->addMethod("sendWithSyncReply",        TIBAE_sendWithSyncReply);
+   QC_TIBAE->addMethod("sendSubjectWithSyncReply", TIBAE_sendSubjectWithSyncReply);
+   //QC_TIBAE->addMethod("setSubjectName",           TIBAE_setSubjectName);
    traceout("initTibcoAdapterClass()");
-   return QC_TIBCO;
+   return QC_TIBAE;
 }

@@ -36,7 +36,7 @@
 #include <qore/LockedObject.h>
 #include <qore/Hash.h>
 
-#include "tibco.h"
+#include "tibae.h"
 
 #include <Maverick.h>
 #include <time.h>
