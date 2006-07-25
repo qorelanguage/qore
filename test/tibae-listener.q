@@ -1,6 +1,6 @@
 #!/usr/bin/env qore
 
-%requires tibco
+%requires tibae
 
 sub getAdapter()
 {
