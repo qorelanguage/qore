@@ -1,1 +1,1 @@
-macros-x86_64.h
+macros-i386.h

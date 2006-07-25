@@ -105,8 +105,6 @@ AC_ARG_ENABLE([64bit],
   [AC_HELP_STRING([--enable-64bit],
 		  [enable 64bit support (default: off)])],
   [case "${enable_64bit}" in
-       on)     enable_64bit=yes ;;
-       off)    enable_64bit=no  ;;
        yes|no) ;;
        *)      AC_MSG_ERROR(bad value ${enable_64bit} for --enable-64bit) ;;
       esac],
@@ -125,7 +123,7 @@ if test "$enable_64bit" = "yes"; then
 else
    case "${host_os}" in
      *linux*)	if test "$ac_cv_prog_gxx" = "yes"; then
-		CXXFLAGS="$CXXFLAGS -m64"
+		CXXFLAGS="$CXXFLAGS -m32"
 		fi
 		;;
    esac
