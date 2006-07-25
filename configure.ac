@@ -450,7 +450,7 @@ fi
 
 if test -n "$with_tibae"; then
    # check if we need TPCL (third-party libraries)
-   if test `echo $TIBCO_SDK_VERSION|cut -b1` > 4; then
+   if test `echo $TIBCO_SDK_VERSION|cut -b1` -gt 4; then
       AC_ARG_WITH([tibae-tpcl],
         [AC_HELP_STRING([--with-tibae-tpcl@<:@=DIR@:>@],
 		        [TIBCO Active Enterprise TPCL directory (defaults to $TPCL_ROOT)])],
@@ -478,7 +478,6 @@ if test -n "$with_tibae"; then
 fi
 
 if test -n "$with_tibae"; then
-   echo checking SDK $TIBCO_SDK_VERSION
    case "$TIBCO_SDK_VERSION" in
 	4.1.2) TIBAE_LIBS="-L${with_tibae}/lib -lmaverick41 -ldl -lpthread"
 	       TIBAE_CPPFLAGS="-I${with_tibae}/include"
@@ -503,7 +502,7 @@ if test -n "$with_tibae"; then
    # check if C++ compiler can link with TIBCO libs
    SAVE_CPPFLAGS="$CPPFLAGS"
    SAVE_LDFLAGS="$LDFLAGS"
-   CPPFLAGS="$CPPFLAGS $TIBAE_CPPFLAGS"
+   CPPFLAGS="$CPPFLAGS $TIBAE_CPPFLAGS $TIBRV_CPPFLAGS"
    LDFLAGS="$LDFLAGS $TIBRV_LIBS $TIBAE_LIBS"
    AC_MSG_CHECKING([if we can link to the TIBCO AE SDK])
    AC_TRY_LINK([
