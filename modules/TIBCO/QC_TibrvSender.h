@@ -1,7 +1,7 @@
 /*
-  modules/TIBCO/qore-rv.h
+  modules/TIBCO/QC_TibrvSender.h
 
-  TIBCO Rendezvous integration to QORE
+  TIBCO integration to QORE
 
   Qore Programming Language
 
@@ -22,17 +22,18 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _QORE_TIBCO_QORE_RV_H
+#ifndef _QORE_TIBCO_QC_TIBRVSENDER_H
 
-#define _QORE_TIBCO_QORE_RV_H
+#define _QORE_TIBCO_QC_TIBRVSENDER_H
 
 #include <qore/common.h>
 #include <qore/support.h>
+#include <qore/ReferenceObject.h>
 #include <qore/Exception.h>
 
-#include <tibrv/tibrvcpp.h>
+#include "QoreTibrvSender.h"
 
-class Hash *tibrvmsg_to_hash(TibrvMsg *msg, class ExceptionSink *xsink);
-void hash_to_tibrvmsg(TibrvMsg *msg, class Hash *hash, class ExceptionSink *xsink);
+extern int CID_TIBRVSENDER;
+extern class QoreClass *initTibrvSenderClass();
 
 #endif

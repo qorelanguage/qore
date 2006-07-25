@@ -1,3 +1,6 @@
+2006.07.25: David Nichols
+	* added initial TibrvSender class
+
 2006.07.24: David Nichols
 	* started adding 64-bit support
 	* fixed a stupid bug in generating parse exceptions (how did that ever

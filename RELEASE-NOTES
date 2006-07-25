@@ -4,6 +4,10 @@ NOTE: for platform-specific notes and build instructions, please see the file BU
 
 *** LIST OF CHANGES IN THIS RELEASE ***
 
+*) tibco module renamed tibae, new tibrv module
+the tibrv module provides direct Rendezvous messaging support with the TibrvListener class and the **** class
+the tibco module was renamed tibae to be consistent with the tibrv module
+
 *) SSL support, digest support
 
 note that when the digest functions are run on strings, the trailing null character is not included in the digest calculation.  however, when the cryptographic functions are run on strings, the trailing null is included.

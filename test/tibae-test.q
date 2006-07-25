@@ -128,17 +128,17 @@ sub doTest()
 
 sub newTest()
 {
-    my $subject = "DEV.GB.Hutchison3G.QORETest.1";
+    my $subject = Subject + ".1";
 
     $string = "hello: äüöß";
     $string = convert_encoding($string, "ISO-8859-1");
-    print(dbg_node_info($string));
+    #print(dbg_node_info($string));
 
     my $function = "Test";
     my $msg = ( "STRING"   : $string,
 		"INTEGER"  : $seq.next(),
 		"DATE"     : now(),
-		"DATETIME" : now(), #9999-12-31,
+		"DATETIME" : 9999-12-31-23:59:59,
 		"BOOLEAN"  : True,
 		"FLOAT"    : 123.23443 );
 
@@ -146,6 +146,6 @@ sub newTest()
     $adapter.sendSubjectWithSyncReply($subject, $function, $msg, 1);
 }
 
-doTest();
+#doTest();
 
-#newTest();
+newTest();

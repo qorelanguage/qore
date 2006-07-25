@@ -30,6 +30,7 @@
 #include <qore/ModuleManager.h>
 
 #include "QC_TibrvListener.h"
+#include "QC_TibrvSender.h"
 #include "tibrv-module.h"
 
 #include <string.h>
@@ -64,6 +65,7 @@ void tibrv_module_ns_init(class Namespace *rns, class Namespace *qns)
    tracein("tibrv_module_ns_init()");
    class Namespace *tibns = new Namespace("TIBRV");
    tibns->addSystemClass(initTibrvListenerClass());
+   tibns->addSystemClass(initTibrvSenderClass());
    qns->addInitialNamespace(tibns);
 
    traceout("tibrv_module_nsinit()");

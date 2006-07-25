@@ -83,6 +83,7 @@ class QoreNode *tibrvmsg_field_to_node(TibrvMsgField *field, class ExceptionSink
 
       case TIBRVMSG_DATETIME:
 	 val = new QoreNode(new DateTime(data.date.sec));
+	 break;
 
       default:
 	 xsink->raiseException("TIBRV-DEMARSHALLING-ERROR", "don't know how to convert type %d", field->getType());
@@ -134,4 +135,44 @@ class Hash *tibrvmsg_to_hash(TibrvMsg *msg, class ExceptionSink *xsink)
    }
 
    return h;
+}
+
+void hash_to_tibrvmsg(TibrvMsg *msg, class Hash *hash, class ExceptionSink *xsink)
+{
+   class HashIterator hi(hash);
+   
+   while (hi.next())
+   {
+      char *key = hi.getKey();
+      class QoreNode *v = hi.getValue();
+      if (!v)
+	 msg->updateString(key, NULL);
+      else if (v->type == NT_STRING)
+	 msg->updateString(key, v->val.String->getBuffer());
+      else if (v->type == NT_INT)
+	 msg->updateI64(key, v->val.intval);
+      else if (v->type == NT_FLOAT)
+	 msg->updateF64(key, v->val.floatval);
+      else if (v->type == NT_DATE)
+      {
+	 TibrvMsgDateTime dt;
+	 dt.sec = v->val.date_time->getSeconds();
+	 msg->updateDateTime(key, dt);
+      }
+      else if (v->type == NT_HASH)
+      {
+	 TibrvMsg m;
+	 hash_to_tibrvmsg(msg, v->val.hash, xsink);
+	 if (xsink->isException())
+	    return;
+	 msg->updateMsg(key, m);
+      }
+      else if (v->type == NT_BOOLEAN)
+	 msg->updateBool(key, (tibrv_bool)v->val.boolval);
+      else
+      {
+	 xsink->raiseException("TIBRV-MARSHALLING-ERROR", "can't serialize type '%s'", v->type->name);
+	 return;
+      }
+   }
 }

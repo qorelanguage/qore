@@ -47,6 +47,8 @@ class HashIterator
 
    public:
       inline HashIterator(class HashMember *h) { ptr = NULL; head = h; }
+      inline HashIterator(class Hash *h);
+
       inline class HashMember *next() 
       { 
 	 if (ptr) 
@@ -82,6 +84,8 @@ class HashIterator
 
 class Hash
 {
+      friend class HashIterator;
+
    private:
       class HashMember *member_list;
       class HashMember *tail;
@@ -151,6 +155,12 @@ class Hash
 
 #include <string.h>
 #include <stdlib.h>
+
+inline HashIterator::HashIterator(class Hash *h) 
+{ 
+   ptr = NULL;
+   head = h->member_list; 
+}
 
 inline void Hash::internDeleteKey(class HashMember *om, class ExceptionSink *xsink)
 {
