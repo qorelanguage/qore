@@ -47,8 +47,11 @@ class ModuleManager MM;
 
 #ifdef QORE_MONOLITHIC
 // for non-shared builds of the qore library, initialize all optional components here
-# ifdef TIBCO
-#  include "../modules/TIBCO/tibco-module.h"
+# ifdef TIBRV
+#  include "../modules/TIBCO/tibrv-module.h"
+# endif
+# ifdef TIBAE
+#  include "../modules/TIBCO/tibae-module.h"
 # endif
 # ifdef ORACLE
 #  include "../modules/oracle/oracle-module.h"

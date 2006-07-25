@@ -128,9 +128,10 @@ noinst_HEADERS = \
 	modules/oracle/oracle.h \
 	modules/oracle/oracle-module.h \
 	modules/mysql/qore-mysql-module.h \
-	modules/TIBCO/tibco-module.h \
+	modules/TIBCO/tibae-module.h \
+	modules/TIBCO/tibrv-module.h \
 	modules/TIBCO/QoreApp.h \
-	modules/TIBCO/tibco.h \
+	modules/TIBCO/tibae.h \
 	modules/TIBCO/QoreTibrvMsgCallback.h \
 	modules/TIBCO/QoreTibrvListener.h \
 	modules/TIBCO/QC_TibrvListener.h \

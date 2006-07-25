@@ -1,20 +1,40 @@
 libdir = ${exec_prefix}/lib${LIBSUFFIX}
 pkglibdir = $(libdir)/@PACKAGE@-@VERSION@
 
-TIBCO_SOURCES = QoreApp.cc tibco.cc tibco-module.cc QoreTibrvListener.cc QC_TibrvListener.cc qore-rv.cc
+TIBRV_SOURCES = QoreTibrvListener.cc QC_TibrvListener.cc qore-rv.cc tibrv-module.cc
+TIBAE_SOURCES = QoreApp.cc tibae.cc tibae-module.cc 
 
 if COND_MONOLITHIC
-noinst_LTLIBRARIES = libtibco.la
-libtibco_la_SOURCES = $(TIBCO_SOURCES)
-libtibco_la_LDFLAGS = ${TIBCO_LIBS} -static
-else
-pkglib_LTLIBRARIES = tibco.la
-tibco_la_SOURCES = $(TIBCO_SOURCES)
-tibco_la_LDFLAGS = -module -avoid-version ${TIBCO_LIBS}
+noinst_LTLIBRARIES = libtibrv.la
+libtibrv_la_SOURCES = $(TIBRV_SOURCES)
+libtibrv_la_LDFLAGS = ${TIBRV_LIBS} -static
+libtibrv_la_CPPFLAGS = $(TIBRV_CPPFLAGS)
+
+if COND_TIBAE
+noinst_LTLIBRARIES += libtibae.la 
+libtibae_la_SOURCES = $(TIBAE_SOURCES)
+libtibae_la_LDFLAGS = $(TIBRV_LIBS) ${TIBAE_LIBS} -static
+libtibae_la_CPPFLAGS = $(TIBRV_CPPFLAGS) $(TIBAE_CPPFLAGS)
 endif
 
-AM_CXXFLAGS = ${TIBCO_CFLAGS} ${PTHREAD_CFLAGS}
-INCLUDES = -I$(top_srcdir)/include ${TIBCO_INCLUDES}
+else
+pkglib_LTLIBRARIES = tibrv.la
+tibrv_la_SOURCES = $(TIBRV_SOURCES)
+tibrv_la_LDFLAGS = -module -avoid-version $(TIBRV_LIBS)
+tibrv_la_CPPFLAGS = $(TIBRV_CPPFLAGS)
+
+if COND_TIBAE
+pkglib_LTLIBRARIES += tibae.la
+tibae_la_SOURCES = $(TIBAE_SOURCES)
+tibae_la_LDFLAGS = -module -avoid-version $(TIBRV_LIBS) ${TIBAE_LIBS}
+tibae_la_CPPFLAGS = $(TIBRV_CPPFLAGS) $(TIBAE_CPPFLAGS)
+endif
+
+endif
+
+AM_CPPFLAGS = ${PTHREAD_CFLAGS}
+INCLUDES = -I$(top_srcdir)/include
+AM_CXXFLAGS =
 
 if COND_DEBUG
 AM_CXXFLAGS += -g
@@ -26,7 +46,12 @@ endif
 
 if !COND_MONOLITHIC
 install-exec-hook:
-	mv $(pkglibdir)/tibco.$(MODULE_SUFFIX) $(pkglibdir)/tibco.qmod
-	rm -f $(pkglibdir)/tibco.la $(pkglibdir)/tibco.a
+	mv $(pkglibdir)/tibrv.$(MODULE_SUFFIX) $(pkglibdir)/tibrv.qmod
+	rm -f $(pkglibdir)/tibrv.la $(pkglibdir)/tibrv.a
+if COND_TIBAE
+	mv $(pkglibdir)/tibae.$(MODULE_SUFFIX) $(pkglibdir)/tibae.qmod
+	rm -f $(pkglibdir)/tibae.la $(pkglibdir)/tibae.a
+endif
+
 endif
 

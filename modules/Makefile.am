@@ -19,6 +19,6 @@ if COND_MYSQL
 SUBDIRS += mysql
 endif
 
-if COND_TIBCO
+if COND_TIBRV
 SUBDIRS += TIBCO
 endif

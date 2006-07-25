@@ -8,6 +8,14 @@
 	  when the buffer was too small would cause a segfault)
 	* set library and module dir to use lib64 for 64-bit builds on Linux
 	* changes to allow mysql to be compiled in for Linux x86_64
+	* renamed tibco module to tibae
+	* moved TIBCO Rendezvous functionality to separate tibrv module
+	* separated detection for rendezvous and tibco AE SDK so tibrv can be
+	  compiled even if no SDK is present (or the SDK cannot be linked with
+	  this compiler for some reason)
+	* make rendezbous and tibco ae sdk detection more automatic with more
+	  verbose messages in the configure script
+	* added support to link with 64-bit rendezvous libraries
 
 2006.07.09: David Nichols
 	* added TibrvListener class to the tibco module for TIBCO Rendezvous 

@@ -359,101 +359,156 @@ if test "${enable_threads}" = yes; then
     fi
 fi
 
-AC_ARG_ENABLE([tibco],
-     [AC_HELP_STRING([--enable-tibco],
-		     [enable tibco support (default=yes)])],
-     [case "${enable_tibco}" in
-       yes|no) ;;
-       *)      AC_MSG_ERROR(bad value ${enable_tibco} for --enable-tibco) ;;
-      esac],
-     [enable_tibco=yes])
+AC_ARG_WITH([tibrv],
+  [AC_HELP_STRING([--with-tibrv@<:@=DIR@:>@],
+		  [TIBCO Rendezvous directory (defaults to $RV_ROOT)])],
+  [if test ! -d "${with_tibrv}"; then AC_MSG_ERROR(bad value ${with_tibrv} for --with-tibrv); unset with_tibrv; fi])
 
-if test "${enable_tibco}" = yes; then
-  AC_ARG_WITH([tibco_rv],
-    [AC_HELP_STRING([--with-tibco-rv@<:@=DIR@:>@],
-                    [directory for TIBCO Rendezvous (defaults to $RV_ROOT)])],
-    [case "${with_tibco_rv}" in
-         yes|no) ;;
-         *)      if test ! -d "${with_tibco_rv}"; then AC_MSG_ERROR(bad value ${with_tibco_rv} for --with-tibco-rv); fi ;;
-     esac],
-    [with_tibco_rv=auto])
+AC_MSG_CHECKING([TIBCO Rendezvous])
+if test -n "$with_tibrv"; then
+   if test ! -e "$with_tibrv/tibrv/tibrv.h"; then
+      AC_MSG_ERROR([can't find tibrv.h in $with_tibrv/tibrv])
+   elif test ! -e "$with_tibrv/lib/libtibrv.a"; then
+      AC_MSG_ERROR([can't find libtibrv.a in $with_tibrv/lib])
+   else
+      AC_MSG_RESULT([$with_tibrv])
+   fi
+else
+   if test -n "$RV_ROOT" -a -f "$RV_ROOT/include/tibrv/tibrv.h" -a -e "$with_tibrv/lib/libtibrv.a"; then
+      AC_MSG_RESULT([$RV_ROOT])
+      with_tibrv=$RV_ROOT
+   elif test -f /opt/tibrv/include/tibrv/tibrv.h -a -f /opt/tibrv/lib/libtibrv.a; then
+      AC_MSG_RESULT([/opt/tibrv])
+      with_tibrv=/opt/tibrv
+   elif test -f /opt/tibco/tibrv/include/tibrv/tibrv.h -a -f /opt/tibco/tibrv/lib/libtibrv.a; then
+      AC_MSG_RESULT([/opt/tibco/tibrv])
+      with_tibrv=/opt/tibco/tibrv
+   elif test -f /usr/tibrv/include/tibrv/tibrv.h -a -f /usr/tibrv/lib/libtibrv.a; then
+      AC_MSG_RESULT([/usr/tibrv])
+      with_tibrv=/usr/tibrv
+   elif test -f /usr/tibco/tibrv/include/tibrv/tibrv.h -a -f /usr/tibco/tibrv/lib/libtibrv.a; then
+      AC_MSG_RESULT([/usr/tibco/tibrv])
+      with_tibrv=/usr/tibco/tibrv
+   else
+      AC_MSG_RESULT([not found])
+      unset with_tibrv
+   fi
+fi
 
-  if test "$with_tibco_rv" = "auto"; then
-     if test -n "$RV_ROOT"; then
-        with_tibco_rv=yes
-     else
-        with_tibco_rv=no
-     fi
-  fi
+if test -n "$with_tibrv"; then
+   TIBRV_CPPFLAGS="-I${with_tibrv}/include"
+   TIBRV_LIBS="-L${with_tibrv}/lib -ltibrv${LIBSUFFIX} -ltibrvcm${LIBSUFFIX} -ltibrvcmq${LIBSUFFIX} -ltibrvcpp${LIBSUFFIX} -ltibrvft${LIBSUFFIX} -ltibrvsd${LIBSUFFIX}"
+   AC_SUBST(TIBRV_CPPFLAGS)
+   AC_SUBST(TIBRV_LIBS)
+   AC_DEFINE(TIBRV, 1, Define if TIBCO Rendezvous support should be included)
+   with_tibrv=yes
+fi
 
-  case "$with_tibco_rv" in
-    yes) RV_DIR=$RV_ROOT ;;
-    no) ;;
-    *) RV_DIR=$with_tibco_rv; with_tibco_rv=yes ;;
-  esac
+AC_ARG_WITH([tibae],
+  [AC_HELP_STRING([--with-tibae@<:@=DIR@:>@],
+		  [TIBCO Active Enterprise SDK directory (defaults to $SDK_ROOT)])],
+  [if test ! -d "${with_tibae}"; then AC_MSG_ERROR(bad value ${with_tibae} for --with-tibae); unset with_tibae; fi])
 
-  AC_ARG_WITH([tibco_sdk],
-    [AC_HELP_STRING([--with-tibco-sdk@<:@=DIR@:>@],
-                    [directory for TIBCO SDK (defaults to $SDK_ROOT)])],
-     , 
-    [with_tibco_sdk=auto])
+AC_MSG_CHECKING([TIBCO Active Enterprise SDK])
+if test -n "$with_tibae"; then
+   if test ! -e "$with_tibae/include/sdk/Maverick.h"; then
+      AC_MSG_ERROR([can't find Maverick.h in $with_tibae/include/sdk])
+   elif test -z "`ls $with_tibae/lib/libmaverick*.${SHLIB_SUFFIX} 2>/dev/null`"; then
+      AC_MSG_ERROR([can't find libmaverick*.${SHLIB_SUFFIX} in $with_tibae/lib])
+   else
+      AC_MSG_RESULT([$with_tibae])
+   fi
+else
+   if test -n "$SDK_ROOT" -a -f "$SDK_ROOT/include/sdk/Maverick.h" -a -n "`ls $SDK_ROOT/lib/libmaverick*.${SHLIB_SUFFIX} 2>/dev/null`"; then
+      AC_MSG_RESULT([$SDK_ROOT])
+      with_tibae=$SDK_ROOT
+   else
+      AC_MSG_RESULT([not found])
+      unset with_tibae
+   fi
+fi
 
-  if test "$with_tibco_sdk" = "auto"; then
-     if test -n "$SDK_ROOT"; then
-        with_tibco_sdk=yes
-     else
-        with_tibco_sdk=no
-     fi
-  fi
+if test -n "$with_tibae"; then
+   if test -z "$with_tibrv"; then
+      AC_MSG_WARN([TIBCO Active Enterprise SDK found, but no Rendezvous found, disabling tibae support])
+      unset with_tibae
+   else
+      AC_MSG_CHECKING([TIBCO Active Enterprise SDK version])
+      if test -e "$with_tibae"/prodinfo; then
+	 TIBCO_SDK_VERSION=`grep SDK "$with_tibae"/prodinfo|head -1|cut -f2`
+      elif test -e "$with_tibae"/version.txt; then
+         TIBCO_SDK_VERSION=`grep SDK "$with_tibae"/version.txt|head -1|cut -b25- | cut -f1 -d\ `
+      else
+         AC_MSG_RESULT([unable to determine TIBCO Active Enterprise SDK version, disabling tibae support])
+         unset with_tibae
+      fi
 
-  case "$with_tibco_sdk" in
-    yes) SDK_DIR=$SDK_ROOT ;;
-    no) ;;
-    *) SDK_DIR=$with_tibco_sdk; with_tibco_sdk=yes ;;
-  esac
+      if test -n "$TIBCO_SDK_VERSION"; then
+         AC_MSG_RESULT($TIBCO_SDK_VERSION)
+      fi
+      # exit this structure otherwise the nesting gets too deep :-)
+   fi
+fi
 
-  if test "$with_tibco_sdk" = "yes" -a "$with_tibco_rv" = "yes"; then
-     if test -d "$RV_DIR"/include; then
-        TIBCO_INCLUDES="-I$RV_DIR/include"
-     fi
-     if test -d "$SDK_DIR"/include; then
-        TIBCO_INCLUDES="$TIBCO_INCLUDES -I$SDK_DIR/include"
-     fi
-     if test -d "$SDK_DIR"/include/sdk; then
-        TIBCO_INCLUDES="$TIBCO_INCLUDES -I$SDK_DIR/include/sdk"
-     fi
-     AC_SUBST(TIBCO_INCLUDES)
-   
-     AC_TIBCO_SDK_VERSION
-     TIBCO_INCLUDES=-I${RV_ROOT}/include
-     case "$TIBCO_SDK_VERSION" in
-        4.1.2) TIBCO_LIBS="-L${SDK_ROOT}/lib -L${RV_ROOT}/lib -lmaverick41 -ltibrvft -ltibrvcmq -ltibrvcm -ltibrv -ldl -lpthread"
-	       TIBCO_INCLUDES="$TIBCO_INCLUDES -I${SDK_ROOT}/include"
+if test -n "$with_tibae"; then
+   # check if we need TPCL (third-party libraries)
+   if test `echo $TIBCO_SDK_VERSION|cut -b1` > 4; then
+      AC_ARG_WITH([tibae-tpcl],
+        [AC_HELP_STRING([--with-tibae-tpcl@<:@=DIR@:>@],
+		        [TIBCO Active Enterprise TPCL directory (defaults to $TPCL_ROOT)])],
+			[if test ! -d "${with_tibae_tpcl}"; then AC_MSG_ERROR(bad value ${with_tibae_tpcl} for --with-tibae-tpcl); unset with_tibae_tpcl; fi])
+      AC_MSG_CHECKING([TIBCO Active Enterprise TPCL])
+      if test -n "$with_tibae_tpcl"; then
+	 if test ! -e "$with_tibae_tpcl/lib/libssl.a"; then
+	    AC_MSG_RESULT([can't find libssl.a in $with_tibae_tpcl/lib, disabling tibae support])
+	    unset with_tibae_tpcl
+	    unset with_tibae
+	 else
+	    AC_MSG_RESULT([$with_tibae_tpcl])
+	 fi
+      else
+	 if test -n "$TPCL_ROOT" -a -f "$TPCL_ROOT/lib/libssl.a"; then
+	    AC_MSG_RESULT([$TPCL_ROOT])
+	    with_tibae_tpcl=$TPCL_ROOT
+	 else
+	    AC_MSG_RESULT([not found, disabling tibae support])
+	    unset with_tibae_tpcl
+	    unset with_tibae
+	 fi
+      fi
+   fi
+fi
+
+if test -n "$with_tibae"; then
+   echo checking SDK $TIBCO_SDK_VERSION
+   case "$TIBCO_SDK_VERSION" in
+	4.1.2) TIBAE_LIBS="-L${with_tibae}/lib -lmaverick41 -ldl -lpthread"
+	       TIBAE_CPPFLAGS="-I${with_tibae}/include"
 	       AC_DEFINE(TIBCO_SDK, 4, [define for TIBCO SDK 4.*])
-               ;;
-        4.1.3) TIBCO_LIBS="-L${SDK_ROOT}/lib -L${RV_ROOT}/lib -lmaverick41 -ltibrvft -ltibrvcmq -ltibrvcm -ltibrv -ldl -lpthread"
-               TIBCO_CFLAGS=-DLINUX24
-	       TIBCO_INCLUDES="$TIBCO_INCLUDES -I${SDK_ROOT}/include"
+	       ;;
+	4.1.3) TIBAE_LIBS="-L${with_tibae}/lib -lmaverick41 -ldl -lpthread"
+	       TIBAE_CPPFLAGS="-DLINUX24 -I${with_tibae}/include"
 	       AC_DEFINE(TIBCO_SDK, 4, [define for TIBCO SDK 4.*])
-               ;;
-        5.0.*) TIBCO_LIBS="-L${SDK_ROOT}/lib -L${TPCL_ROOT}/lib -lmaverick50 -lrepowww532 -lxerces-c2_1 -lssl -lcrypto -L${RV_ROOT}/lib -ltibrv -ltibrvcm -ltibrvcmq -ltibrvcpp -ltibrvft -ltibrvsd -ldl -lpthread"
-               TIBCO_CFLAGS=-DLINUX24 
-	       TIBCO_INCLUDES="$TIBCO_INCLUDES -I${SDK_ROOT}/include/sdk"
+	       ;;
+        5.0.*) TIBAE_LIBS="-L${with_tibae}/lib -L${with_tibae_tpcl}/lib -lmaverick50 -lrepowww532 -lxerces-c2_1 -lssl -lcrypto -ldl -lpthread"
+	       TIBAE_CPPFLAGS="-DLINUX24 -I${with_tibae}/include/sdk"
 	       AC_DEFINE(TIBCO_SDK, 5, [define for TIBCO SDK 5.*])
 	       ;;
-        5.3.*) TIBCO_LIBS="-L${SDK_ROOT}/lib -L${TPCL_ROOT}/lib -lmaverick53 -lrepowww532 -lxerces-c2_1 -lssl -lcrypto -L${RV_ROOT}/lib -ltibrv -ltibrvcm -ltibrvcmq -ltibrvcpp -ltibrvft -ltibrvsd -licuuc -ldl -lpthread"
-               TIBCO_CFLAGS=-DLINUX24 
-	       TIBCO_INCLUDES="$TIBCO_INCLUDES -I${SDK_ROOT}/include/sdk"
+        5.3.*) TIBAE_LIBS="-L${with_tibae}/lib -L${with_tibae_tpcl}/lib -lmaverick53 -lrepowww532 -lxerces-c2_1 -lssl -lcrypto -licuuc -ldl -lpthread"
+	       TIBAE_CPPFLAGS="-DLINUX24 -I${with_tibae}/include/sdk"
 	       AC_DEFINE(TIBCO_SDK, 5, [define for TIBCO SDK 5.*])
 	       ;;
-        *)     AC_MSG_ERROR(Unsupported TIBCO SDK Version) ;;
-     esac
-     # check if C++ compiler can link with TIBCO libs
-     SAVE_CXXFLAGS="$CXXFLAGS"
-     SAVE_LDFLAGS="$LDFLAGS"
-     CXXFLAGS="$CXXFLAGS $TIBCO_CFLAGS $TIBCO_INCLUDES"
-     LDFLAGS="$LDFLAGS $TIBCO_LIBS"   
-     AC_TRY_LINK([
+	*)     AC_MSG_ERROR(Unsupported TIBCO SDK Version) 
+	       ;;
+   esac
+
+   # check if C++ compiler can link with TIBCO libs
+   SAVE_CPPFLAGS="$CPPFLAGS"
+   SAVE_LDFLAGS="$LDFLAGS"
+   CPPFLAGS="$CPPFLAGS $TIBAE_CPPFLAGS"
+   LDFLAGS="$LDFLAGS $TIBRV_LIBS $TIBAE_LIBS"
+   AC_MSG_CHECKING([if we can link to the TIBCO AE SDK])
+   AC_TRY_LINK([
 #include <Maverick.h>
 class TApp : public MApp
 {
@@ -465,29 +520,21 @@ class TApp : public MApp
 
 	 ],[
 TApp ma(NULL);
-	],tibco_sdk_links=yes, tibco_sdk_links=no)
+	],tibae_sdk_links=yes, tibae_sdk_links=no)
 
-     CXXFLAGS="$SAVE_CXXFLAGS"
-     LDFLAGS="$SAVE_LDFLAGS"
+   CPPFLAGS="$SAVE_CPPFLAGS"
+   LDFLAGS="$SAVE_LDFLAGS"
 
-     if test "$tibco_sdk_links" = "no"; then
-        AC_MSG_ERROR([could not link the TIBCO SDK with this C++ compiler, try CXX=<comp> configure])
-     else
-        AC_SUBST(TIBCO_LIBS)
-	AC_SUBST(TIBCO_CFLAGS)
-	AC_DEFINE(TIBCO, 1, Define if TIBCO support should be included)
-        with_tibco=yes
-     fi
-  elif test "$with_tibco_sdk" = "yes"; then
-     AC_MSG_WARN([TIBCO SDK found, but not Rendezvous, disabling TIBCO support])
-     with_tibco=no
-  elif test "$with_tibco_rv" = "yes"; then
-     AC_MSG_WARN([TIBCO Rendezvous found, but not SDK, disabling TIBCO support])
-     with_tibco=no
-  else
-     AC_MSG_WARN([no TIBCO SDK or Rendezvous found, disabling TIBCO support])
-     with_tibco=no
-  fi
+   if test "$tibae_sdk_links" = "no"; then
+      AC_MSG_RESULT([failed with this C++ compiler, try CXX=<comp> configure, disabling tibae support])
+      unset with_tibae
+   else
+      AC_MSG_RESULT([ok])
+      AC_SUBST(TIBAE_LIBS)
+      AC_SUBST(TIBAE_CPPFLAGS)
+      AC_DEFINE(TIBAE, 1, [Define if TIBCO Active Enterprise support should be included])
+      with_tibae=yes
+   fi
 fi
 
 AC_ARG_WITH([oracle],
@@ -904,7 +951,8 @@ AM_CONDITIONAL([COND_DEBUG],      [test "$enable_debug" = yes])
 AM_CONDITIONAL([COND_PROFILE],    [test "$enable_profile" = yes])
 AM_CONDITIONAL([COND_ORACLE],     [test "$with_oracle" = yes])
 AM_CONDITIONAL([COND_MYSQL],      [test "$with_mysql" = yes])
-AM_CONDITIONAL([COND_TIBCO],      [test "$with_tibco" = yes])
+AM_CONDITIONAL([COND_TIBRV],      [test "$with_tibrv" = yes])
+AM_CONDITIONAL([COND_TIBAE],      [test "$with_tibae" = yes])
 AM_CONDITIONAL([COND_MONOLITHIC], [test "$enable_shared" = no -o "$enable_builtin_modules" = "yes"])
 
 AC_CONFIG_FILES([Makefile lib/Makefile modules/Makefile modules/ncurses/Makefile modules/TIBCO/Makefile modules/mysql/Makefile modules/oracle/Makefile])
@@ -950,8 +998,15 @@ else
    echo disabled
 fi
 
-printf "tibco    : "
-if test "$with_tibco" = "yes"; then
+printf "tibrv    : "
+if test "$with_tibrv" = "yes"; then
+   echo yes
+else
+   echo disabled
+fi
+
+printf "tibae    : "
+if test "$with_tibae" = "yes"; then
    echo yes
 else
    echo disabled
