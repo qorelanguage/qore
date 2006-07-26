@@ -294,12 +294,6 @@ class QoreNode *TIBAE_constructor(class Object *self, class QoreNode *params, cl
    class QoreApp *myQoreApp = NULL;
 
    MAppProperties *appProps = new MAppProperties();
-
-   //appProps->setAppName("coreDAS");
-   //appProps->setAppVersion("1.0");
-   //appProps->setAppInfo("hi");
-   //appProps->setRepoURL("/home/david/src/qore/src/small.dat");
-   //appProps->setConfigURL("/tibco/private/adapter/coreDAS");
    set_properties(appProps, p1->val.hash, xsink); 
 
    if (xsink->isEvent())
