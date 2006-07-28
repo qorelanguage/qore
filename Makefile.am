@@ -161,8 +161,8 @@ EXTRA_DIST = .build next_build.sh WHATISQORE RELEASE-NOTES \
         test/test.q \
         test/Test.qc \
         test/thread-test.q \
-        test/tibco-listener.q \
-        test/tibco-test.q \
+        test/tibae-listener.q \
+        test/tibae-test.q \
         test/unlocked-thread-test.q \
 	examples/HTTPClient.qc \
 	examples/HTTPServer.qc \

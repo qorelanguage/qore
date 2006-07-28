@@ -1,3 +1,12 @@
+2006.07.27: David Nichols
+	* implemented list handling in the tibrv module
+	* added a character set encoding value to the QoreTibrvListener and
+	  QoreTibrvSender classes to do automatic conversions and tagging where
+	  appropriate with RV messaging
+	* added OPAQUE <-> binary handling in tibrv module
+
+2006.07.26: David Nichols
+
 2006.07.25: David Nichols
 	* added initial TibrvSender class
 	* fixed a bug in the QoreString::vsprintf() resize logic
