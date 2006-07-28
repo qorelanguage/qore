@@ -145,8 +145,11 @@ void ModuleManager::init(bool se)
 # ifdef QORE_MYSQL
    addBuiltin("mysql", qore_mysql_module_init, qore_mysql_module_ns_init, qore_mysql_module_delete);
 # endif
-# ifdef TIBCO
-   addBuiltin("tibco", tibco_module_init, tibco_module_ns_init, tibco_module_delete);
+# ifdef TIBRV
+   addBuiltin("tibrv", tibrv_module_init, tibrv_module_ns_init, tibrv_module_delete);
+# endif
+# ifdef TIBAE
+   addBuiltin("tibae", tibae_module_init, tibae_module_ns_init, tibae_module_delete);
 # endif
 #endif
    // autoload modules
