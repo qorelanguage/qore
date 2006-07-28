@@ -227,8 +227,11 @@ class featureList : public charPtrList
 # ifdef QORE_MYSQL
 	 append("mysql");
 # endif
-# ifdef TIBCO
-	 append("tibco");
+# ifdef TIBRV
+	 append("tibrv");
+# endif
+# ifdef TIBAE
+	 append("tibae");
 # endif
 #endif
       }
