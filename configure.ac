@@ -372,7 +372,7 @@ if test -n "$with_tibrv"; then
       AC_MSG_RESULT([$with_tibrv])
    fi
 else
-   if test -n "$RV_ROOT" -a -f "$RV_ROOT/include/tibrv/tibrv.h" -a -e "$with_tibrv/lib/libtibrv.a"; then
+   if test -n "$RV_ROOT" -a -f "$RV_ROOT/include/tibrv/tibrv.h" -a -e "$RV_ROOT/lib/libtibrv.a"; then
       AC_MSG_RESULT([$RV_ROOT])
       with_tibrv=$RV_ROOT
    elif test -f /opt/tibrv/include/tibrv/tibrv.h -a -f /opt/tibrv/lib/libtibrv.a; then
