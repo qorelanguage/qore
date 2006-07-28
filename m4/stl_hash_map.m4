@@ -50,7 +50,7 @@ AC_DEFUN([AC_CXX_STL_HASH],
       AC_TRY_COMPILE([#include <hash_map>],
                      [stdext::hash_map<int, int> t; return 0;],
                      ac_cv_cxx_stl_hash=stdext_hash_map)
-      if test "$with_tibco" != "yes"; then
+      if test "$with_tibae" != "yes"; then
 	SAVE_CXXFLAGS="$CXXFLAGS"
       	SAVE_LDFLAGS="$LDFLAGS"
       	CXXFLAGS="$CXXFLAGS -library=stlport4"
@@ -95,7 +95,7 @@ AC_DEFUN([AC_CXX_STL_HASH],
       ac_cv_cxx_hash_namespace="stdext"
    fi
    if test "$ac_cv_cxx_stl_hash" = solaris_std_hash_map; then
-      if test "$with_tibco" = "yes"; then
+      if test "$with_tibae" = "yes"; then
 	AC_MSG_WARN(disabling stlport hash_map support because it conflicts with std iostream needed by the TIBCO module)
       else
         AC_DEFINE(HAVE_HASH_MAP, 1, [define if the compiler has hash_map])
