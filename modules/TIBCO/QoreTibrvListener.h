@@ -32,19 +32,14 @@
 #include <qore/Exception.h>
 #include <qore/charset.h>
 
-#include <tibrv/tibrvcpp.h>
+#include "QoreTibrvTransport.h"
 
-class QoreTibrvListener : public ReferenceObject
+class QoreTibrvListener : public ReferenceObject, public QoreTibrvTransport
 {
    private:
-      class TibrvNetTransport transport;
       class TibrvListener listener;
       class TibrvQueue queue;
       class QoreTibrvMsgCallback *callback;
-      class QoreEncoding *enc;
-
-      class QoreNode *fieldToNode(TibrvMsgField *field, class ExceptionSink *xsink);
-      class QoreNode *listToNode(TibrvMsgField *field, class ExceptionSink *xsink);
 
    protected:
       inline ~QoreTibrvListener();
@@ -79,18 +74,6 @@ class QoreTibrvListener : public ReferenceObject
 	 }
 	 return new QoreString(name);
       }
-
-      inline void setStringEncoding(class QoreEncoding *e)
-      {
-	 enc = e;
-      }
-
-      inline class QoreEncoding *getStringEncoding()
-      {
-	 return enc;
-      }
-
-      class Hash *msgToHash(TibrvMsg *msg, class ExceptionSink *xsink);
 
       inline void deref()
       {

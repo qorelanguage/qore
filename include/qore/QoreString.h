@@ -106,6 +106,7 @@ class QoreString {
       int compareSoft(QoreString *, class ExceptionSink *);
       inline int compare(QoreString *);
       inline int compare(char *);
+      inline void allocate(int);
       inline void terminate(int);
       int sprintf(const char *fmt, ...);
       int snprintf(int size, const char *fmt, ...);
@@ -382,6 +383,13 @@ inline int QoreString::compare(char *str)
       else
 	 return 1;
    return strcmp(buf, str);
+}
+
+inline void QoreString::allocate(int size)
+{
+   check_char(size);
+   len = size;
+   buf[size] = '\0';
 }
 
 inline void QoreString::terminate(int size)

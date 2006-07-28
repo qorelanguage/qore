@@ -32,32 +32,20 @@
 #include <qore/Exception.h>
 #include <qore/charset.h>
 
-#include <tibrv/tibrvcpp.h>
+#include "QoreTibrvTransport.h"
 
-class QoreTibrvSender : public ReferenceObject
+class QoreTibrvSender : public ReferenceObject, public QoreTibrvTransport
 {
    private:
-      class TibrvNetTransport transport;
-      class QoreEncoding *enc;
-      
-      int hashToMsg(TibrvMsg *msg, class Hash *hash, class ExceptionSink *xsink);
-      int valueToField(char *key, class QoreNode *v, TibrvMsg *msg, class ExceptionSink *xsink);
 
    protected:
       ~QoreTibrvSender() {}
 
    public:
-      QoreTibrvSender(char *service, char *network, char *daemon, char *desc, class ExceptionSink *xsink);
+      inline QoreTibrvSender(char *service, char *network, char *daemon, char *desc, class ExceptionSink *xsink) : QoreTibrvTransport(service, network, daemon, desc, xsink)
+      { }
 
       void sendSubject(char *subject, class Hash *data, class ExceptionSink *xsink);
-      inline void setStringEncoding(class QoreEncoding *e)
-      {
-	 enc = e;
-      }
-      inline class QoreEncoding *getStringEncoding()
-      {
-	 return enc;
-      }
 
       inline void deref()
       {
