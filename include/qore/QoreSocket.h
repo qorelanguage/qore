@@ -300,7 +300,7 @@ class QoreSocket
       char *socketname;
       class SSLSocketHelper *ssl;
 
-      inline QoreSocket(int s, int t);
+      inline QoreSocket(int s, int t, class QoreEncoding *csid);
       // code common to all constructors
       inline void init();
       // opens an INET socket
@@ -502,7 +502,6 @@ inline void QoreSocket::init()
    del = false;
    sendTimeout = recvTimeout = port = -1;
    socketname = NULL;
-   charsetid = QCS_DEFAULT;
    ssl = NULL;
 }
 
@@ -510,14 +509,16 @@ inline QoreSocket::QoreSocket()
 {
    type = AF_UNSPEC;
    sock = 0;
+   charsetid = QCS_DEFAULT;
    init();
 }
 
-inline QoreSocket::QoreSocket(int s, int t)
+inline QoreSocket::QoreSocket(int s, int t, class QoreEncoding *csid)
 {
    type = t;
    sock = s;
    init();
+   charsetid = csid;
 }
 
 inline QoreSocket::~QoreSocket()
@@ -775,7 +776,7 @@ inline QoreSocket *QoreSocket::accept(class SocketSource *source, class Exceptio
       return NULL;
    }
 
-   return new QoreSocket(rc, type);
+   return new QoreSocket(rc, type, charsetid);
 }
 
 // QoreSocket::acceptSSL()

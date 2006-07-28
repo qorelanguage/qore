@@ -146,18 +146,60 @@ static QoreNode *TIBRVLISTENER_createInboxName(class Object *self, QoreNode *par
    return rv;
 }
 
+class QoreNode *TIBRVLISTENER_setStringEncoding(class Object *self, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreTibrvListener *trvl = (QoreTibrvListener *)self->getReferencedPrivateData(CID_TIBRVLISTENER);
+
+   if (trvl)
+   {
+      class QoreNode *pt = test_param(params, NT_STRING, 0);
+      if (!pt)
+      {
+	 xsink->raiseException("TIBRVLISTENER-SETSTRINGENCODING-ERROR", "missing string encoding as first parameter to method");
+	 return NULL;
+      }
+      class QoreEncoding *enc = QEM.findCreate(pt->val.String->getBuffer());
+
+      trvl->setStringEncoding(enc);
+      trvl->deref();
+   }
+   else
+      alreadyDeleted(xsink, "TibrvListener::setStringEncoding");
+
+   return NULL;
+}
+
+class QoreNode *TIBRVLISTENER_getStringEncoding(class Object *self, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreTibrvListener *trvl = (QoreTibrvListener *)self->getReferencedPrivateData(CID_TIBRVLISTENER);
+   class QoreNode *rv = NULL;
+
+   if (trvl)
+   {
+      class QoreEncoding *enc = trvl->getStringEncoding();
+      trvl->deref();
+      rv = new QoreNode(enc->code);
+   }
+   else
+      alreadyDeleted(xsink, "TibrvListener::getStringEncoding");
+
+   return rv;
+}
+
 class QoreClass *initTibrvListenerClass()
 {
    tracein("initTibrvListenerClass()");
 
    class QoreClass *QC_TIBRVLISTENER = new QoreClass(strdup("TibrvListener"));
    CID_TIBRVLISTENER = QC_TIBRVLISTENER->getID();
-   QC_TIBRVLISTENER->addMethod("constructor",     TIBRVLISTENER_constructor);
-   QC_TIBRVLISTENER->addMethod("destructor",      TIBRVLISTENER_destructor);
-   QC_TIBRVLISTENER->addMethod("copy",            TIBRVLISTENER_copy);
-   QC_TIBRVLISTENER->addMethod("getQueueSize",    TIBRVLISTENER_getQueueSize);
-   QC_TIBRVLISTENER->addMethod("getMessage",      TIBRVLISTENER_getMessage);
-   QC_TIBRVLISTENER->addMethod("createInboxName", TIBRVLISTENER_createInboxName);
+   QC_TIBRVLISTENER->addMethod("constructor",        TIBRVLISTENER_constructor);
+   QC_TIBRVLISTENER->addMethod("destructor",         TIBRVLISTENER_destructor);
+   QC_TIBRVLISTENER->addMethod("copy",               TIBRVLISTENER_copy);
+   QC_TIBRVLISTENER->addMethod("getQueueSize",       TIBRVLISTENER_getQueueSize);
+   QC_TIBRVLISTENER->addMethod("getMessage",         TIBRVLISTENER_getMessage);
+   QC_TIBRVLISTENER->addMethod("createInboxName",    TIBRVLISTENER_createInboxName);
+   QC_TIBRVLISTENER->addMethod("setStringEncoding",  TIBRVLISTENER_setStringEncoding);
+   QC_TIBRVLISTENER->addMethod("getStringEncoding",  TIBRVLISTENER_getStringEncoding);
 
    traceout("initTibrvListenerClass()");
    return QC_TIBRVLISTENER;

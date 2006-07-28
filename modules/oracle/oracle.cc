@@ -612,7 +612,7 @@ static class Hash *oracle_describe(class Datasource *ds, char *table_name, Excep
    if (xsink->isEvent())
       return NULL;
 
-   QoreString qstr("select * from ");
+   QoreString qstr("select * from ", ds->qorecharset);
    qstr.concat(table_name);
 
    ora_checkerr(d_ora->errhp, 
@@ -703,7 +703,6 @@ BindGroup::BindGroup(class Datasource *ods, class QoreString *ostr, class List *
       pos++;
       w = w->next;
    }
-
 }
 
 #ifdef ORA_EXEC_COMPAT
@@ -802,7 +801,7 @@ void BindGroup::parseQuery(class List *args, class ExceptionSink *xsink)
 	 class QoreNode *v = args->retrieve_entry(len);
 
 	 // replace value marker with generated name
-	 QoreString tn;
+	 QoreString tn(ds->qorecharset);
 	 tn.sprintf(":qdodvrs___%d", len);
 	 int offset = p - str->getBuffer() - 2;
 	 str->replace(offset, 2, &tn);
@@ -936,7 +935,7 @@ void BindNode::bindValue(class Datasource *ds, OCIStmt *stmthp, int pos, class E
       {
 	 buftype = SQLT_STR;
 
-	 QoreString *tstr = new QoreString();
+	 QoreString *tstr = new QoreString(ds->qorecharset);
 	 tstr->sprintf("%lld", data.v.value->val.intval);
 	 data.v.tstr = tstr;
 

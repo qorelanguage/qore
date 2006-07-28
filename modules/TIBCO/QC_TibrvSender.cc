@@ -25,6 +25,7 @@
 #include <qore/common.h>
 #include <qore/support.h>
 #include <qore/params.h>
+#include <qore/charset.h>
 
 #include "QC_TibrvSender.h"
 
@@ -110,16 +111,58 @@ static QoreNode *TIBRVSENDER_sendSubject(class Object *self, QoreNode *params, E
    return NULL;
 }
 
+class QoreNode *TIBRVSENDER_setStringEncoding(class Object *self, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreTibrvSender *trvl = (QoreTibrvSender *)self->getReferencedPrivateData(CID_TIBRVSENDER);
+
+   if (trvl)
+   {
+      class QoreNode *pt = test_param(params, NT_STRING, 0);
+      if (!pt)
+      {
+	 xsink->raiseException("TIBRVSENDER-SETSTRINGENCODING-ERROR", "missing string encoding as first parameter to method");
+	 return NULL;
+      }
+      class QoreEncoding *enc = QEM.findCreate(pt->val.String->getBuffer());
+
+      trvl->setStringEncoding(enc);
+      trvl->deref();
+   }
+   else
+      alreadyDeleted(xsink, "TibrvSender::setStringEncoding");
+
+   return NULL;
+}
+
+class QoreNode *TIBRVSENDER_getStringEncoding(class Object *self, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreTibrvSender *trvl = (QoreTibrvSender *)self->getReferencedPrivateData(CID_TIBRVSENDER);
+   class QoreNode *rv = NULL;
+
+   if (trvl)
+   {
+      class QoreEncoding *enc = trvl->getStringEncoding();
+      trvl->deref();
+      rv = new QoreNode(enc->code);
+   }
+   else
+      alreadyDeleted(xsink, "TibrvSender::getStringEncoding");
+
+   return rv;
+}
+
 class QoreClass *initTibrvSenderClass()
 {
    tracein("initTibrvSenderClass()");
 
    class QoreClass *QC_TIBRVSENDER = new QoreClass(strdup("TibrvSender"));
    CID_TIBRVSENDER = QC_TIBRVSENDER->getID();
-   QC_TIBRVSENDER->addMethod("constructor",     TIBRVSENDER_constructor);
-   QC_TIBRVSENDER->addMethod("destructor",      TIBRVSENDER_destructor);
-   QC_TIBRVSENDER->addMethod("copy",            TIBRVSENDER_copy);
-   QC_TIBRVSENDER->addMethod("sendSubject",     TIBRVSENDER_sendSubject);
+   QC_TIBRVSENDER->addMethod("constructor",        TIBRVSENDER_constructor);
+   QC_TIBRVSENDER->addMethod("destructor",         TIBRVSENDER_destructor);
+   QC_TIBRVSENDER->addMethod("copy",               TIBRVSENDER_copy);
+   QC_TIBRVSENDER->addMethod("sendSubject",        TIBRVSENDER_sendSubject);
+   QC_TIBRVSENDER->addMethod("setStringEncoding",  TIBRVSENDER_setStringEncoding);
+   QC_TIBRVSENDER->addMethod("getStringEncoding",  TIBRVSENDER_getStringEncoding);
 
    traceout("initTibrvSenderClass()");
    return QC_TIBRVSENDER;

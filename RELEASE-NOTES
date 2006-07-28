@@ -4,16 +4,33 @@ NOTE: for platform-specific notes and build instructions, please see the file BU
 
 *** LIST OF CHANGES IN THIS RELEASE ***
 
-*) tibco module renamed tibae, new tibrv module
-the tibrv module provides direct Rendezvous messaging support with the TibrvListener class and the **** class
-the tibco module was renamed tibae to be consistent with the tibrv module
+*) "tibco" module renamed "tibae"
+the "tibco" module was renamed "tibae" to be consistent with the new "tibrv" module - see below
+programs requiring the old "tibco" module should now use "%requires tibae"
+
+*) New direct TIBCO Rendezvous support
+Direct TIBCO Rendezvous sending and listening is now supported with the new "tibrv" module - as of this version it's now possible to biuld in tibrv support without tibae support (tibrv is also supported on OS X ppc and intel now as well)
+
+NOTE: we do not send TibRv arrays - we use the old styls "multiple fields with the same name" approach to make an array so that we can have arrays of all data types and we can support arrays with different types in each element (like Qore).  however we can receive and decode Tibrv arrays properly.
+
+type mapping:
+  TIBRVMSG_BOOL <-> boolean
+  TIBRVMSG_I8,U8,I16,U16,I32,U32,I64,U64 -> int (note there is a loss of precision with the U64 -> int conversion)
+  int -> TIBRVMSG_I64
+  TIBRVMSG_F32,F64 -> float
+  float -> TIBRVMSG_F64
+  TIBRVMSG_DATETIME <-> date
+  TIBRVMSG_OPAQUE <-> binary
+  TIBRVMSG_STRING -> string (strings are marked with the default encoding for the object)
+  string -> TIBRVMSG_STRING (encoding conversions are made if necessary to the encoding set for the object)
 
 *) SSL support, digest support
 
 note that when the digest functions are run on strings, the trailing null character is not included in the digest calculation.  however, when the cryptographic functions are run on strings, the trailing null is included.
 
 *) improved XML serialization and deserialization
-mixed elements and text can now be serialized and deserialized without data loss (except whitespace is still not retained).
+mixed elements and text can now be serialized and deserialized without data loss (except whitespace is still not retained) - for example, now it's possible to deserialize (parse) a docbook xml file and then reserialize it (generate the XML from the Qore data structure) without losing information.
+
 
 
 ***********************

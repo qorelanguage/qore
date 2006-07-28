@@ -30,8 +30,7 @@
 #include <qore/support.h>
 #include <qore/ReferenceObject.h>
 #include <qore/Exception.h>
-
-#include "QoreTibrvMsgCallback.h"
+#include <qore/charset.h>
 
 #include <tibrv/tibrvcpp.h>
 
@@ -41,10 +40,14 @@ class QoreTibrvListener : public ReferenceObject
       class TibrvNetTransport transport;
       class TibrvListener listener;
       class TibrvQueue queue;
-      class QoreTibrvMsgCallback callback;
+      class QoreTibrvMsgCallback *callback;
+      class QoreEncoding *enc;
+
+      class QoreNode *fieldToNode(TibrvMsgField *field, class ExceptionSink *xsink);
+      class QoreNode *listToNode(TibrvMsgField *field, class ExceptionSink *xsink);
 
    protected:
-      ~QoreTibrvListener() {}
+      inline ~QoreTibrvListener();
 
    public:
       QoreTibrvListener(char *subject, char *service, char *network, char *daemon, char *desc, class ExceptionSink *xsink);
@@ -77,11 +80,91 @@ class QoreTibrvListener : public ReferenceObject
 	 return new QoreString(name);
       }
 
+      inline void setStringEncoding(class QoreEncoding *e)
+      {
+	 enc = e;
+      }
+
+      inline class QoreEncoding *getStringEncoding()
+      {
+	 return enc;
+      }
+
+      class Hash *msgToHash(TibrvMsg *msg, class ExceptionSink *xsink);
+
       inline void deref()
       {
 	 if (ROdereference())
 	    delete this;
       }
 };
+
+// each dispatched event calling onMsg() must be followed by a getMessage() call
+class QoreTibrvMsgCallback : public TibrvMsgCallback
+{
+   private:
+      class QoreTibrvListener *ql;
+      class ExceptionSink xsink;
+      class Hash *h;
+
+      virtual void onMsg(TibrvListener *listener, TibrvMsg &msg)
+      {
+	 class Hash *data = ql->msgToHash(&msg, &xsink);
+	 if (xsink.isException())
+	 {
+	    if (data)
+	    {
+	       data->dereference(&xsink);
+	       delete data;
+	    }
+	    return;
+	 }
+	 
+	 h = new Hash();
+	 h->setKeyValue("msg", new QoreNode(data), NULL);
+   
+	 const char *str;
+	 TibrvStatus status = msg.getReplySubject(str);
+	 if (status == TIBRV_OK)
+	    h->setKeyValue("replySubject", new QoreNode(str), &xsink);
+   
+	 status = msg.getSendSubject(str);
+	 if (status == TIBRV_OK)
+	    h->setKeyValue("subject", new QoreNode(str), &xsink);
+      }
+
+   public:
+      inline QoreTibrvMsgCallback(class QoreTibrvListener *l)
+      {
+	 ql = l;
+	 h = NULL;
+      }
+
+      virtual ~QoreTibrvMsgCallback()
+      {
+	 if (h)
+	 {
+	    h->dereference(&xsink);
+	    delete h;
+	 }
+      }
+
+      inline class Hash *getMessage(class ExceptionSink *xs)
+      {
+	 if (xsink.isException())
+	 {
+	    xs->assimilate(&xsink);
+	    return NULL;
+	 }
+	 class Hash *rv = h;
+	 h = NULL;
+	 return rv;
+      }
+};
+
+inline QoreTibrvListener::~QoreTibrvListener() 
+{ 
+   delete callback; 
+}
 
 #endif

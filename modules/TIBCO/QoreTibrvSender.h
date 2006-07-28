@@ -30,6 +30,7 @@
 #include <qore/support.h>
 #include <qore/ReferenceObject.h>
 #include <qore/Exception.h>
+#include <qore/charset.h>
 
 #include <tibrv/tibrvcpp.h>
 
@@ -37,6 +38,10 @@ class QoreTibrvSender : public ReferenceObject
 {
    private:
       class TibrvNetTransport transport;
+      class QoreEncoding *enc;
+      
+      int hashToMsg(TibrvMsg *msg, class Hash *hash, class ExceptionSink *xsink);
+      int valueToField(char *key, class QoreNode *v, TibrvMsg *msg, class ExceptionSink *xsink);
 
    protected:
       ~QoreTibrvSender() {}
@@ -45,6 +50,14 @@ class QoreTibrvSender : public ReferenceObject
       QoreTibrvSender(char *service, char *network, char *daemon, char *desc, class ExceptionSink *xsink);
 
       void sendSubject(char *subject, class Hash *data, class ExceptionSink *xsink);
+      inline void setStringEncoding(class QoreEncoding *e)
+      {
+	 enc = e;
+      }
+      inline class QoreEncoding *getStringEncoding()
+      {
+	 return enc;
+      }
 
       inline void deref()
       {

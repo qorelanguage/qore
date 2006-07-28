@@ -77,4 +77,3 @@ void tibrv_module_delete()
    Tibrv::close();
    traceout("tibrv_module_delete()");
 }
-
