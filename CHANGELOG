@@ -4,6 +4,7 @@
 	  QoreTibrvSender classes to do automatic conversions and tagging where
 	  appropriate with RV messaging
 	* added OPAQUE <-> binary handling in tibrv module
+	* monolithic and Solaris build fixes
 
 2006.07.26: David Nichols
 
