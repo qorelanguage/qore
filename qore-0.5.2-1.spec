@@ -1,6 +1,6 @@
 Summary: Qore Programming Language
 Name: qore
-Version: 0.5.1
+Version: 0.5.2
 Release: 1
 License: LGPL
 Group: Development/Languages
@@ -19,7 +19,7 @@ Group: Development/Languages
 Oracle DBI driver module for the Qore Programming Language. The Oracle driver is character set aware, supports multithreading, transaction management, stored prodedure and function execution, etc.
 
 %files oracle
-/usr/lib/qore-0.5.1/auto/oracle.qmod
+/usr/lib/qore-0.5.2/auto/oracle.qmod
 
 %package mysql
 Summary: MySQL module for Qore
@@ -29,17 +29,27 @@ Group: Development/Languages
 MySQL DBI driver module for the Qore Programming Language. The MySQL driver is character set aware and supports multithreading and transaction management. Currently stored procedure execution is not supported.
 
 %files mysql
-/usr/lib/qore-0.5.1/auto/mysql.qmod
+/usr/lib/qore-0.5.2/auto/mysql.qmod
 
-%package tibco
+%package tibae
 Summary: TIBCO Active Enterprise integration module for Qore
 Group: Development/Languages
 
-%description tibco
+%description tibae
 This module provides the TibcoAdapter class, which enables qore scripts/programs to communicate with (or implement) TIBCO Active Enterprise adapters.
 
-%files tibco
-/usr/lib/qore-0.5.1/tibco.qmod
+%files tibae
+/usr/lib/qore-0.5.2/tibrv.qmod
+
+%package tibrv
+Summary: TIBCO Rendezvous integration module for Qore
+Group: Development/Languages
+
+%description tibrv
+This module provides class enabling qore scripts/programs to communicate using TIBCO Rendezvous publish-subscribe messaging.
+
+%files tibrv
+/usr/lib/qore-0.5.2/tibrv.qmod
 
 %prep
 %setup -q
@@ -69,7 +79,7 @@ rm -rf $RPM_BUILD_ROOT
 /usr/lib/libqore.so.0
 /usr/lib/libqore.so
 /usr/lib/libqore.la
-/usr/lib/qore-0.5.1/ncurses.qmod
+/usr/lib/qore-0.5.2/ncurses.qmod
 /usr/man/man1/qore.1.gz
 
 %changelog
