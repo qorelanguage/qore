@@ -43,7 +43,7 @@ QoreTibrvFtMember::QoreTibrvFtMember(char *groupname, int weight, int activeGoal
       return;
    }
 
-   callback = new QoreTibrvFtMemberCallback(&qoreq);
+   callback = new QoreTibrvFtMemberCallback();
 
    // convert integer millisecond values to floating-point seconds
    tibrv_f64 heartbeat   = (tibrv_f64)hb / 1000;

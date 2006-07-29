@@ -93,9 +93,23 @@ class QoreNode *TIBRVFTMEMBER_constructor(class Object *self, class QoreNode *pa
    
    if (activation < heartbeat)
    {
-      xsink->raiseException("TIBRVFTMEMBER-CONSTRUCTOR-ERROR", "activation interval (%lld) must be greater than the heartbeat interval (%d)", activation, heartbeat);
+      xsink->raiseException("TIBRVFTMEMBER-CONSTRUCTOR-ERROR", "activation interval (%lld) must be greater than the heartbeat interval (%lld)", activation, heartbeat);
       return NULL;      
    }
+   if (prep)
+   {
+      if (prep < heartbeat)
+      {
+	 xsink->raiseException("TIBRVFTMEMBER-CONSTRUCTOR-ERROR", "preparation interval (%lld) must be greater than the heartbeat interval (%lld)", prep, heartbeat);
+	 return NULL;      
+      }
+      if (prep > activation)
+      {
+	 xsink->raiseException("TIBRVFTMEMBER-CONSTRUCTOR-ERROR", "preparation interval (%lld) must be less than the activation interval (%lld)", prep, activation);
+	 return NULL;
+      }
+   }
+      
 
    char *service = NULL, *network = NULL, *daemon = NULL, *desc = NULL;
    pt = test_param(params, NT_STRING, 6);
@@ -146,10 +160,7 @@ static QoreNode *TIBRVFTMEMBER_getEvent(class Object *self, QoreNode *params, Ex
    if (ftm)
    {
       class QoreNode *pt = get_param(params, 0);
-      if (pt)
-	 rv = ftm->getEvent(pt->getAsInt());
-      else
-	 rv = ftm->getEvent();
+      rv = ftm->getEvent(pt ? pt->getAsInt() : -1LL, xsink);
 
       ftm->deref();
    }

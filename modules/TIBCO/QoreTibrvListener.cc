@@ -55,8 +55,9 @@ QoreTibrvListener::QoreTibrvListener(char *subject, char *service, char *network
    }  
 }
 
-class Hash *QoreTibrvListener::getMessage(int64 timeout, class ExceptionSink *xsink)
+class Hash *QoreTibrvListener::getMessage(int64 timeout_ms, class ExceptionSink *xsink)
 {
+   tibrv_f64 timeout = (tibrv_f64)timeout_ms / 1000.0;
    TibrvStatus status = queue.timedDispatch(timeout);
 
    if (status == TIBRV_TIMEOUT)
