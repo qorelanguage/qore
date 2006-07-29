@@ -45,7 +45,10 @@ class QoreTibrvSender : public ReferenceObject, public QoreTibrvTransport
       inline QoreTibrvSender(char *service, char *network, char *daemon, char *desc, class ExceptionSink *xsink) : QoreTibrvTransport(service, network, daemon, desc, xsink)
       { }
 
-      void sendSubject(char *subject, class Hash *data, class ExceptionSink *xsink);
+      void sendSubject(char *subject, class Hash *data, char *replySubject, class ExceptionSink *xsink);
+      
+      // timout in ms
+      class Hash *sendSubjectWithSyncReply(char *subject, class Hash *data, int64 timeout, class ExceptionSink *xsink);
 
       inline void deref()
       {

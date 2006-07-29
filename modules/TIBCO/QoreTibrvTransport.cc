@@ -28,6 +28,8 @@
 
 #include "QoreTibrvTransport.h"
 
+#include <arpa/inet.h>
+
 QoreTibrvTransport::QoreTibrvTransport(char *service, char *network, char *daemon, char *desc, class ExceptionSink *xsink)
 {
    enc = QCS_DEFAULT;
@@ -117,6 +119,34 @@ int QoreTibrvTransport::valueToField(char *key, class QoreNode *v, TibrvMsg *msg
    }
 
    return 0;
+}
+
+class Hash *QoreTibrvTransport::parseMsg(TibrvMsg *msg, class ExceptionSink *xsink)
+{
+   class Hash *data = msgToHash(msg, xsink);
+   if (xsink->isException())
+   {
+      if (data)
+      {
+	 data->dereference(xsink);
+	 delete data;
+      }
+      return NULL;
+   }
+   
+   class Hash *h = new Hash();
+   h->setKeyValue("msg", new QoreNode(data), NULL);
+   
+   const char *str;
+   TibrvStatus status = msg->getReplySubject(str);
+   if (status == TIBRV_OK)
+      h->setKeyValue("replySubject", new QoreNode(str), xsink);
+   
+   status = msg->getSendSubject(str);
+   if (status == TIBRV_OK)
+      h->setKeyValue("subject", new QoreNode(str), xsink);
+
+   return h;
 }
 
 class Hash *QoreTibrvTransport::msgToHash(TibrvMsg *msg, class ExceptionSink *xsink)

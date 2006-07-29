@@ -1,3 +1,7 @@
+2006.07.29: David Nichols
+	* added TibrvFtMember class to tibrv module to allow joining a 
+	  Rendezvous fault-tolerant group
+
 2006.07.27: David Nichols
 	* implemented list handling in the tibrv module
 	* added a character set encoding value to the QoreTibrvListener and

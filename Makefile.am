@@ -80,6 +80,7 @@ noinst_HEADERS = \
 	include/qore/FtpClient.h \
 	include/qore/StringList.h \
 	include/qore/ssl_constants.h \
+	include/qore/QoreQueue.h \
 	include/qore/QT_NOTHING.h \
 	include/qore/QT_bigint.h \
 	include/qore/QT_float.h \
@@ -135,8 +136,10 @@ noinst_HEADERS = \
 	modules/TIBCO/QoreTibrvTransport.h \
 	modules/TIBCO/QoreTibrvListener.h \
 	modules/TIBCO/QoreTibrvSender.h \
+	modules/TIBCO/QoreTibrvFtMember.h \
 	modules/TIBCO/QC_TibrvListener.h \
 	modules/TIBCO/QC_TibrvSender.h \
+	modules/TIBCO/QC_TibrvFtMember.h \
 	modules/ncurses/QC_Window.h \
 	modules/ncurses/QC_Panel.h \
 	modules/ncurses/ncurses-module.h \

@@ -84,25 +84,28 @@ static QoreNode *TIBRVSENDER_copy(class Object *self, QoreNode *params, Exceptio
 
 static QoreNode *TIBRVSENDER_sendSubject(class Object *self, QoreNode *params, ExceptionSink *xsink)
 {
+   class QoreNode *pt = test_param(params, NT_STRING, 0);
+   if (!pt)
+   {
+      xsink->raiseException("TIBRVSENDER-SENDSUBJECT-ERROR", "missing subject string as first parameter to method");
+      return NULL;
+   }
+   char *subject = pt->val.String->getBuffer();
+   pt = test_param(params, NT_HASH, 1);
+   if (!pt)
+   {
+      xsink->raiseException("TIBRVSENDER-SENDSUBJECT-ERROR", "missing data hash as second parameter to method");
+      return NULL;
+   }
+   class Hash *h = pt->val.hash;
+   pt = test_param(params, NT_STRING, 2);
+   char *replySubject = pt ? pt->val.String->getBuffer() : NULL;
+
    QoreTibrvSender *trvl = (QoreTibrvSender *)self->getReferencedPrivateData(CID_TIBRVSENDER);
 
    if (trvl)
    {
-      class QoreNode *pt = test_param(params, NT_STRING, 0);
-      if (!pt)
-      {
-	 xsink->raiseException("TIBRVSENDER-SENDSUBJECT-ERROR", "missing subject string as first parameter to method");
-	 return NULL;
-      }
-      char *subject = pt->val.String->getBuffer();
-      pt = test_param(params, NT_HASH, 1);
-      if (!pt)
-      {
-	 xsink->raiseException("TIBRVSENDER-SENDSUBJECT-ERROR", "missing data hash as second parameter to method");
-	 return NULL;
-      }
-
-      trvl->sendSubject(subject, pt->val.hash, xsink);
+      trvl->sendSubject(subject, h, replySubject, xsink);
       trvl->deref();
    }
    else
@@ -111,18 +114,54 @@ static QoreNode *TIBRVSENDER_sendSubject(class Object *self, QoreNode *params, E
    return NULL;
 }
 
+static QoreNode *TIBRVSENDER_sendSubjectWithSyncReply(class Object *self, QoreNode *params, ExceptionSink *xsink)
+{
+   class QoreNode *pt = test_param(params, NT_STRING, 0);
+   if (!pt)
+   {
+      xsink->raiseException("TIBRVSENDER-SENDSUBJECTWITHSYNCREPLY-ERROR", "missing subject string as first parameter to method");
+      return NULL;
+   }
+   char *subject = pt->val.String->getBuffer();
+   pt = test_param(params, NT_HASH, 1);
+   if (!pt)
+   {
+      xsink->raiseException("TIBRVSENDER-SENDSUBJECTWITHSYNCREPLY-ERROR", "missing data hash as second parameter to method");
+      return NULL;
+   }
+   class Hash *h = pt->val.hash;
+   pt = get_param(params, 2);
+   int64 timeout = pt ? pt->getAsBigInt() : -1;
+
+   QoreTibrvSender *trvl = (QoreTibrvSender *)self->getReferencedPrivateData(CID_TIBRVSENDER);
+   class QoreNode *rv = NULL;
+
+   if (trvl)
+   {
+      h = trvl->sendSubjectWithSyncReply(subject, h, timeout, xsink);
+      if (h)
+	 rv = new QoreNode(h);
+      trvl->deref();
+   }
+   else
+      alreadyDeleted(xsink, "TibrvSender::sendSubjectWithSyncReply");
+
+   return rv;
+}
+
 class QoreNode *TIBRVSENDER_setStringEncoding(class Object *self, QoreNode *params, ExceptionSink *xsink)
 {
+   class QoreNode *pt = test_param(params, NT_STRING, 0);
+   if (!pt)
+   {
+      xsink->raiseException("TIBRVSENDER-SETSTRINGENCODING-ERROR", "missing string encoding as first parameter to method");
+      return NULL;
+   }
+
    QoreTibrvSender *trvl = (QoreTibrvSender *)self->getReferencedPrivateData(CID_TIBRVSENDER);
 
    if (trvl)
    {
-      class QoreNode *pt = test_param(params, NT_STRING, 0);
-      if (!pt)
-      {
-	 xsink->raiseException("TIBRVSENDER-SETSTRINGENCODING-ERROR", "missing string encoding as first parameter to method");
-	 return NULL;
-      }
       class QoreEncoding *enc = QEM.findCreate(pt->val.String->getBuffer());
 
       trvl->setStringEncoding(enc);
@@ -157,12 +196,13 @@ class QoreClass *initTibrvSenderClass()
 
    class QoreClass *QC_TIBRVSENDER = new QoreClass(strdup("TibrvSender"));
    CID_TIBRVSENDER = QC_TIBRVSENDER->getID();
-   QC_TIBRVSENDER->addMethod("constructor",        TIBRVSENDER_constructor);
-   QC_TIBRVSENDER->addMethod("destructor",         TIBRVSENDER_destructor);
-   QC_TIBRVSENDER->addMethod("copy",               TIBRVSENDER_copy);
-   QC_TIBRVSENDER->addMethod("sendSubject",        TIBRVSENDER_sendSubject);
-   QC_TIBRVSENDER->addMethod("setStringEncoding",  TIBRVSENDER_setStringEncoding);
-   QC_TIBRVSENDER->addMethod("getStringEncoding",  TIBRVSENDER_getStringEncoding);
+   QC_TIBRVSENDER->addMethod("constructor",               TIBRVSENDER_constructor);
+   QC_TIBRVSENDER->addMethod("destructor",                TIBRVSENDER_destructor);
+   QC_TIBRVSENDER->addMethod("copy",                      TIBRVSENDER_copy);
+   QC_TIBRVSENDER->addMethod("sendSubject",               TIBRVSENDER_sendSubject);
+   QC_TIBRVSENDER->addMethod("sendSubjectWithSyncReply",  TIBRVSENDER_sendSubjectWithSyncReply);
+   QC_TIBRVSENDER->addMethod("setStringEncoding",         TIBRVSENDER_setStringEncoding);
+   QC_TIBRVSENDER->addMethod("getStringEncoding",         TIBRVSENDER_getStringEncoding);
 
    traceout("initTibrvSenderClass()");
    return QC_TIBRVSENDER;

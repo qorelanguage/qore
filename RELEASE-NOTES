@@ -11,7 +11,7 @@ programs requiring the old "tibco" module should now use "%requires tibae"
 *) New direct TIBCO Rendezvous support
 Direct TIBCO Rendezvous sending and listening is now supported with the new "tibrv" module - as of this version it's now possible to biuld in tibrv support without tibae support (tibrv is also supported on OS X ppc and intel now as well)
 
-NOTE: we do not send TibRv arrays - we use the old styls "multiple fields with the same name" approach to make an array so that we can have arrays of all data types and we can support arrays with different types in each element (like Qore).  however we can receive and decode Tibrv arrays properly.
+NOTE: we do not send native Rendezvous arrays - we use the old style "multiple fields with the same name" approach to have more flexible arrays (different datatype in each element, etc).   Native Tibrv arrays are decoded properly when received.
 
 type mapping:
   TIBRVMSG_BOOL <-> boolean
@@ -56,12 +56,40 @@ Parsing
 *** MODULE INFORMATION ***
 **************************
 
-TIBCO
+TIBRV
 -----
-The TIBCO module provides Active Enterprise support; it allows qore programs to send and receive TIBCO AE messages based on an external repository.  
-The TibcoAdapter class is provided by this module.  Note that Qore must be built with the compiler required by the TIBCO SDK in order for the TIBCO module to be built.  
-Note that it's currently not possible to write an apapter that sends synchronous replies - if anyone needs this let me know and I will implement it.
-On Linux, I use the SDK version 5.2.1 that requires g++ 3.2 (this also fixes a lot of bugs compared to SDK 4.1.* including some big memory leaks).  All other versions I've found for Linux require g++ 2.96, which is an unsupported RedHat-only version.  On Solaris, Qore must be compiled with the SunPro CC compiler in order to be able to use the TIBCO module.  On Darwin (OS X) there is no TIBCO support as far as I know.  I spoke with a TIBCO consultant about this who told me that NeXT was supported in the past, so maybe there will be a version for OS X in the future...
+The "tibrv" module provides direct TIBCO Rendezvous support, allowing qore programs to send and receive Rendezvous messages directly.
+* Linux: supported on 32-bit and 64-bit builds of qore
+* Solaris: supported on 32-bit builds (FIXME: add 64-bit solaris build support)
+* OS X: supported on 32-bit builds (FIXME: add 64-bit darwin build support)
+
+TIBAE
+-----
+The "tibae" module provides Active Enterprise support; it allows qore programs to send and receive TIBCO AE messages based on an external repository.  
+The TibcoAdapter class is provided by this module.  Note that Qore must be built with the compiler required by the TIBCO SDK in order for the TIBCO module to be built.
+Note that previous versions of these release notes stated that it was not possible to make an adapter that sent synchronous replies - this is incorrect, just set the subject to the replySubject key of the incoming message hash which should be an inbox (point-to-point) subject name.
+* Linux: I use the SDK version 5.3.2 that requires g++ 3.2 (this also fixes a lot of bugs compared to SDK 4.1.* including some big memory leaks).  All other versions I've found for Linux require g++ 2.96, which is an unsupported RedHat-only version.   Note that as far as I know there is no AE SDK support for x86_64 Linux
+* Solaris: qore must be compiled with the SunPro CC compiler in order to be able to use the "tibae" module.   
+* OS X: There is finally Rendezvous support for OS X, so hopefully they will support the AE SDK in the next version
+
+ORACLE
+------
+The "oracle" DBI driver has been well tested and is in heavy production use.
+*) transaction management is supported
+*) automatic transparent character set conversion is supported when necessary
+*) threading support
+*) it's possible to call functions and procedures
+*) all NUMBER fields are loaded as strings in selects in order to not lose any data.  Qore would need an arbitrary-precision Number type in order handle this case better.
+*) it's possible to bind and retrieve *LOB values
+
+MYSQL
+-----
+The "mysql" DBI driver has not been as extensively tested as the Oracle driver, but now supports all features of the Oracle driver except stored procedure execution.
+*) transaction management is supported
+*) automatic transparent character set conversion is supported when necessary
+*) threading support
+*) no stored procedure support
+
 
 *********************
 *** SQL Subsystem ***
@@ -71,23 +99,6 @@ On Linux, I use the SDK version 5.2.1 that requires g++ 3.2 (this also fixes a l
 *) Known Design Bug: the Datasource::describe() method should not be used until the design and implementation are reworked.  This method has been disabled in the top-level Qore class for the time being.
 *) autocommits should probably be moved to the Datasource class to make DBI driver implementation a little easier
 
-Oracle DBI Driver Module
-------------------------
-The Oracle DBI driver has been well tested and is in heavy production use.
-*) transaction management is supported
-*) automatic transparent character set conversion is supported when necessary
-*) threading support
-*) it's possible to call functions and procedures
-*) all NUMBER fields are loaded as strings in selects in order to not lose any data.  Qore would need an arbitrary-precision Number type in order handle this case better.
-*) it's possible to bind and retrieve *LOB values
-
-MySQL DBI Driver Module
------------------------
-The MySQL DBI driver has not been as extensively tested as the Oracle driver, but now supports all features of the Oracle driver except stored procedure execution.
-*) transaction management is supported
-*) automatic transparent character set conversion is supported when necessary
-*) threading support
-*) no stored procedure support
 
 **************************************
 *** Current and Future Development ***

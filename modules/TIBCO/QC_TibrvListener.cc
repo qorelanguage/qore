@@ -148,16 +148,17 @@ static QoreNode *TIBRVLISTENER_createInboxName(class Object *self, QoreNode *par
 
 class QoreNode *TIBRVLISTENER_setStringEncoding(class Object *self, QoreNode *params, ExceptionSink *xsink)
 {
+   class QoreNode *pt = test_param(params, NT_STRING, 0);
+   if (!pt)
+   {
+      xsink->raiseException("TIBRVLISTENER-SETSTRINGENCODING-ERROR", "missing string encoding as first parameter to method");
+      return NULL;
+   }
+
    QoreTibrvListener *trvl = (QoreTibrvListener *)self->getReferencedPrivateData(CID_TIBRVLISTENER);
 
    if (trvl)
    {
-      class QoreNode *pt = test_param(params, NT_STRING, 0);
-      if (!pt)
-      {
-	 xsink->raiseException("TIBRVLISTENER-SETSTRINGENCODING-ERROR", "missing string encoding as first parameter to method");
-	 return NULL;
-      }
       class QoreEncoding *enc = QEM.findCreate(pt->val.String->getBuffer());
 
       trvl->setStringEncoding(enc);

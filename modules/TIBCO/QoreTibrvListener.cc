@@ -31,7 +31,10 @@
 QoreTibrvListener::QoreTibrvListener(char *subject, char *service, char *network, char *daemon, char *desc, class ExceptionSink *xsink) : QoreTibrvTransport(service, network, daemon, desc, xsink)
 {
    if (xsink->isException())
+   {
+      callback = NULL;
       return;
+   }
 
    callback = new QoreTibrvMsgCallback(this);
 
@@ -42,15 +45,6 @@ QoreTibrvListener::QoreTibrvListener(char *subject, char *service, char *network
       xsink->raiseException("TIBRVLISTENER-CONSTRUCTOR-ERROR", "cannot create queue: %s", status.getText());
       return;
    }
-   
-   // create transport (connect to rvd daemon)
-   status = transport.create(service, network, daemon);
-   if (status != TIBRV_OK)
-   {
-      xsink->raiseException("TIBRVLISTENER-CONSTRUCTOR-ERROR", "cannot create Rendezvous transport: %s", status.getText());
-      return;
-   }
-   transport.setDescription(desc);
    
    // create listener
    status = listener.create(&queue, callback, &transport, subject);

@@ -52,17 +52,37 @@ class QoreTibrvTransport
 	 return enc;
       }
 
-      inline int send(TibrvMsg msg, class ExceptionSink *xsink)
+      // return -1 for error, 0 for success
+      inline int send(TibrvMsg *msg, class ExceptionSink *xsink)
       {
-	 TibrvStatus status = transport.send(msg);
+	 TibrvStatus status = transport.send(*msg);
 	 if (status != TIBRV_OK)
 	 {
-	    xsink->raiseException("TIBRVSENDER-ERROR", "%s", (char *)status.getText());
+	    xsink->raiseException("TIBRV-SEND-ERROR", "%s", (char *)status.getText());
 	    return -1;
 	 }
 	 return 0;
       }
 
+      // returns 1 for timeout, -1 for error, 0 for success
+      inline int sendRequest(TibrvMsg *msg, TibrvMsg *reply, int64 to, class ExceptionSink *xsink)
+      {
+	 // convert integer milliseconds value to float seconds value with remainder
+	 tibrv_f64 timeout = (tibrv_f64)to / 1000;
+
+	 TibrvStatus status = transport.sendRequest(*msg, *reply, timeout);
+	 if (status == TIBRV_TIMEOUT)
+	    return 1;
+
+	 if (status != TIBRV_OK)
+	 {
+	    xsink->raiseException("TIBRV-SENDREQUEST-ERROR", "%s", (char *)status.getText());
+	    return -1;
+	 }
+	 return 0;
+      }
+
+      class Hash *parseMsg(TibrvMsg *msg, class ExceptionSink *xsink);
       class Hash *msgToHash(TibrvMsg *msg, class ExceptionSink *xsink);
       int hashToMsg(TibrvMsg *msg, class Hash *hash, class ExceptionSink *xsink);
       int valueToField(char *key, class QoreNode *v, TibrvMsg *msg, class ExceptionSink *xsink);

@@ -36,14 +36,15 @@ static inline int num_params(QoreNode *n)
 static inline QoreNode *get_param(QoreNode *n, int i)
 {
    if (!n) return NULL;
-   return n->val.list->retrieve_entry(i);
+   class QoreNode *p = n->val.list->retrieve_entry(i);
+   return is_nothing(p) ? NULL : p;
 }
 
 static inline QoreNode *test_param(QoreNode *n, class QoreType *type, int i)
 {
    if (!n) return NULL;
    QoreNode *p = n->val.list->retrieve_entry(i);
-   if (!p) return NULL;
+   if (is_nothing(p)) return NULL;
    return (p->type == type) ? p : NULL;
 }
 

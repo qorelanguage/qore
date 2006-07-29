@@ -92,28 +92,7 @@ class QoreTibrvMsgCallback : public TibrvMsgCallback
 
       virtual void onMsg(TibrvListener *listener, TibrvMsg &msg)
       {
-	 class Hash *data = ql->msgToHash(&msg, &xsink);
-	 if (xsink.isException())
-	 {
-	    if (data)
-	    {
-	       data->dereference(&xsink);
-	       delete data;
-	    }
-	    return;
-	 }
-	 
-	 h = new Hash();
-	 h->setKeyValue("msg", new QoreNode(data), NULL);
-   
-	 const char *str;
-	 TibrvStatus status = msg.getReplySubject(str);
-	 if (status == TIBRV_OK)
-	    h->setKeyValue("replySubject", new QoreNode(str), &xsink);
-   
-	 status = msg.getSendSubject(str);
-	 if (status == TIBRV_OK)
-	    h->setKeyValue("subject", new QoreNode(str), &xsink);
+	 h = ql->parseMsg(&msg, &xsink);
       }
 
    public:
@@ -147,7 +126,8 @@ class QoreTibrvMsgCallback : public TibrvMsgCallback
 
 inline QoreTibrvListener::~QoreTibrvListener() 
 { 
-   delete callback; 
+   if (callback)
+      delete callback; 
 }
 
 #endif
