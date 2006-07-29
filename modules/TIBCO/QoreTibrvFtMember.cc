@@ -50,7 +50,7 @@ QoreTibrvFtMember::QoreTibrvFtMember(char *groupname, int weight, int activeGoal
    tibrv_f64 preparation = (tibrv_f64)prep / 1000;
    tibrv_f64 activation  = (tibrv_f64)act / 1000;
 
-   printd(0, "QoreTibrvFtMember::QoreTibrvFtMember() group=%s weight=%d activeGoal=%d heartbeat=%g preparation=%g activation=%g\n", groupname, weight, activeGoal, heartbeat, preparation, activation);
+   //printd(5, "QoreTibrvFtMember::QoreTibrvFtMember() group=%s weight=%d activeGoal=%d heartbeat=%g preparation=%g activation=%g\n", groupname, weight, activeGoal, heartbeat, preparation, activation);
 
    status = ftMember.create(&queue, callback, &transport, groupname, (tibrv_u16)weight, (tibrv_u16)activeGoal, heartbeat, preparation, activation, NULL);
    if (status != TIBRV_OK)

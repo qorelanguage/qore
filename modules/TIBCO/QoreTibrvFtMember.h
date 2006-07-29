@@ -52,7 +52,7 @@ class QoreTibrvFtMember : public ReferenceObject, public QoreTibrvTransport
 			char *service, char *network, char *daemon, char *desc, 
 			class ExceptionSink *xsink);
 
-      inline QoreNode *getEvent(int64 timeout_ms, class ExceptionSink *xsink);
+      inline QoreNode *getEvent(class ExceptionSink *xsink);
 
       inline void stop()
       {
@@ -104,7 +104,7 @@ class QoreTibrvFtMemberCallback : public TibrvFtMemberCallback
 
       virtual void onFtAction(TibrvFtMember *ftMember, const char *groupName, tibrvftAction action)
       {
-	 printd(0, "onFtAction %s: %d\n", groupName, action);
+	 //printd(0, "onFtAction %s: %d\n", groupName, action);
 	 h = new Hash();
 	 h->setKeyValue("action", new QoreNode((int64)action), NULL);
 	 h->setKeyValue("group", new QoreNode(groupName), NULL);
@@ -140,14 +140,11 @@ inline QoreTibrvFtMember::~QoreTibrvFtMember()
       delete callback;
 }
 
-inline QoreNode *QoreTibrvFtMember::getEvent(int64 timeout_ms, class ExceptionSink *xsink)
+inline QoreNode *QoreTibrvFtMember::getEvent(class ExceptionSink *xsink)
 {
-   tibrv_f64 timeout = (tibrv_f64)timeout_ms / 1000.0;
-   //printd(0, "ms=%lld, timeout=%g\n", timeout_ms, timeout);
-
    while (true)
    {
-      TibrvStatus status = queue.timedDispatch(timeout);
+      TibrvStatus status = queue.dispatch();
    
       if (status == TIBRV_TIMEOUT)
 	 return NULL;

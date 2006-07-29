@@ -1,7 +1,7 @@
 libdir = ${exec_prefix}/lib${LIBSUFFIX}
 pkglibdir = $(libdir)/@PACKAGE@-@VERSION@
 
-TIBRV_SOURCES = QoreTibrvTransport.cc QoreTibrvSender.cc QoreTibrvListener.cc QoreTibrvFtMember.cc QC_TibrvSender.cc QC_TibrvListener.cc QC_TibrvFtMember.cc tibrv-module.cc
+TIBRV_SOURCES = QoreTibrvTransport.cc QoreTibrvSender.cc QoreTibrvListener.cc QoreTibrvFtMember.cc QoreTibrvFtMonitor.cc QC_TibrvSender.cc QC_TibrvListener.cc QC_TibrvFtMember.cc QC_TibrvFtMonitor.cc tibrv-module.cc
 TIBAE_SOURCES = QoreApp.cc tibae.cc tibae-module.cc 
 
 if COND_MONOLITHIC

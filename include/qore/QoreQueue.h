@@ -49,6 +49,7 @@ class QoreQueueNode
       {
 	 if (node)
 	    node->deref(xsink);
+	 delete this;
       }
 };
 
@@ -96,6 +97,7 @@ inline QoreQueue::QoreQueue(QoreNode *n)
 inline QoreQueue::~QoreQueue()
 {
    tracein("QoreQueue::~QoreQueue()");
+   //printd(5, "QoreQueue %08x has head=%08x tail=%08x len=%d\n", this, head, tail, len);
    pthread_cond_destroy(&qcond);
    pthread_mutex_destroy(&qmutex);
    traceout("QoreQueue::~QoreQueue()");
@@ -254,6 +256,9 @@ inline void QoreQueue::del(class ExceptionSink *xsink)
       head->del(xsink);
       head = w;
    }
+   head = NULL;
+   tail = NULL;
+   len = 0;
 }
 
 #endif // _QORE_QOREQUEUE_H

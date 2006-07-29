@@ -32,6 +32,7 @@
 #include "QC_TibrvListener.h"
 #include "QC_TibrvSender.h"
 #include "QC_TibrvFtMember.h"
+#include "QC_TibrvFtMonitor.h"
 #include "tibrv-module.h"
 
 #include <tibrv/ftcpp.h>
@@ -70,6 +71,7 @@ void tibrv_module_ns_init(class Namespace *rns, class Namespace *qns)
    tibns->addSystemClass(initTibrvListenerClass());
    tibns->addSystemClass(initTibrvSenderClass());
    tibns->addSystemClass(initTibrvFtMemberClass());
+   tibns->addSystemClass(initTibrvFtMonitorClass());
 
    // add constants for fault tolerant events
    tibns->addConstant("TIBRVFT_PREPARE_TO_ACTIVATE", new QoreNode((int64)TIBRVFT_PREPARE_TO_ACTIVATE));

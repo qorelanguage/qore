@@ -159,8 +159,7 @@ static QoreNode *TIBRVFTMEMBER_getEvent(class Object *self, QoreNode *params, Ex
 
    if (ftm)
    {
-      class QoreNode *pt = get_param(params, 0);
-      rv = ftm->getEvent(pt ? pt->getAsInt() : -1LL, xsink);
+      rv = ftm->getEvent(xsink);
 
       ftm->deref();
    }
