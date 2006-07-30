@@ -59,22 +59,21 @@ class QoreNode *TIBRVCMSENDER_constructor(class Object *self, class QoreNode *pa
    pt = get_param(params, 3);
    syncLedger = pt ? pt->getAsBool() : false;
 
-   pt = test_param(params, NT_STRING, 3);
+   pt = test_param(params, NT_STRING, 4);
    if (pt)
       relayAgent = pt->val.String->getBuffer();
-   
 
    char *service = NULL, *network = NULL, *daemon = NULL, *desc = NULL;
-   pt = test_param(params, NT_STRING, 0);
+   pt = test_param(params, NT_STRING, 5);
    if (pt)
       desc = pt->val.String->getBuffer();
-   pt = test_param(params, NT_STRING, 1);
+   pt = test_param(params, NT_STRING, 6);
    if (pt)
       service = pt->val.String->getBuffer();
-   pt = test_param(params, NT_STRING, 2);
+   pt = test_param(params, NT_STRING, 7);
    if (pt)
       network = pt->val.String->getBuffer();
-   pt = test_param(params, NT_STRING, 3);
+   pt = test_param(params, NT_STRING, 8);
    if (pt)
       daemon = pt->val.String->getBuffer();
 

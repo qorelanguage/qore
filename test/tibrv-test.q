@@ -3,6 +3,8 @@
 ## include TIBCO Rendezvous functionality
 %requires tibrv
 
+%require-our
+
 const Subject = "test";
 
 ## fault tolerant params
@@ -43,8 +45,15 @@ sub listener($q)
     usleep(500000);
     $q.push();
 
-    $msg = $listener.getMessage();
-    printf("%N\n", $msg);
+    my $msg;
+    while (True)
+    {
+	$msg = $listener.getMessage();
+	printf("RELIABLE LISTENER: %N\n", $msg);
+	if (exists $msg.msg.test)
+	    break;
+    }
+
     my $sender = new TibrvSender();
     $sender.sendSubject($msg.replySubject, ( "answer" : "hello" ));
 }
@@ -56,6 +65,42 @@ sub send()
     $q.get();
     my $sender = new TibrvSender();
     my $ans = $sender.sendSubjectWithSyncReply(Subject + ".1", ( "test" : 9999-12-31-23:59:59 ), 5000);
+    printf("reply=%N\n", $ans);
+}		
+
+sub cm_listener($q)
+{
+    my $subject = Subject + ".>";
+    my $listener = new TibrvCmListener($subject);
+    printf("listening on %s\n", $subject);
+
+    # it takes a little time until RV actually starts listening in the listening thread
+    # so we sleep for .5 seconds before we notify the sending thread that the listener
+    # has started
+    usleep(500000);
+    $q.push();
+    
+    my $msg;
+    while (True)
+    {
+	$msg = $listener.getMessage();
+	printf("CERTIFIED LISTENER: %N\n", $msg);
+	if (exists $msg.msg.test)
+	    break;
+    }
+    my $sender = new TibrvSender();
+    $sender.sendSubject($msg.replySubject, ( "answer" : "hello" ));
+}
+
+sub cm_send()
+{
+    my $q = new Queue();
+    background cm_listener($q);
+    $q.get();
+    my $sender = new TibrvCmSender();
+    my $ans;
+    $ans = $sender.sendSubjectWithSyncReply(Subject + ".1", ( "date" : 9999-12-31-23:59:59 ), 5000);
+    $ans = $sender.sendSubjectWithSyncReply(Subject + ".1", ( "test" : 9999-12-31-23:59:59 ), 5000);
     printf("reply=%N\n", $ans);
 }		
 
@@ -123,5 +168,5 @@ sub ft_test()
 #printf("%N\n", getModuleList());
 
 send();
-#listen_forever();
+cm_send();
 ft_test();

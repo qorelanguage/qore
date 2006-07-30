@@ -38,8 +38,6 @@
 class QoreTibrvCmTransport : public QoreTibrvTransport
 {
    private:
-      TibrvCmTransport cmTransport;
-
       inline int setTimeLimit(TibrvMsg *msg, int64 time_limit, class ExceptionSink *xsink)
       {
 	 tibrv_f64 tl = (tibrv_f64)time_limit / 1000.0;
@@ -53,6 +51,8 @@ class QoreTibrvCmTransport : public QoreTibrvTransport
       }
 
    public:
+      TibrvCmTransport cmTransport;
+
       QoreTibrvCmTransport(char *cmName, bool requestOld, char *ledgerName, bool syncLedger, char *relayAgent, 
 			   char *desc, char *service, char *network, char *daemon, class ExceptionSink *xsink); 
       //~QoreTibrvCmTransport() {}
@@ -151,6 +151,7 @@ class QoreTibrvCmTransport : public QoreTibrvTransport
             xsink->raiseException("TIBRV-SET-DEFAULT-TIME-LIMIT-ERROR", "%s", (char *)status.getText());
             return -1;
          }
+	 return 0;
       }
 
       inline class QoreNode *reviewLedger(char *subject, class ExceptionSink *xsink);

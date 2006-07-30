@@ -1,6 +1,8 @@
 2006.07.30: David Nichols
 	* added TibrvCmSender class to the "tibrv" module for sending certified
 	  Rendezvous messages
+	* added TibrvCmListener class to the "tibrv" module for listening to
+	  certified Rendezvous events
 
 2006.07.29: David Nichols
 	* added TibrvFtMember class to tibrv module to allow joining a 

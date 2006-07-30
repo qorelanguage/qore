@@ -8,11 +8,13 @@ TIBRV_SOURCES = QoreTibrvTransport.cc \
 	QoreTibrvFtMonitor.cc \
 	QoreTibrvCmTransport.cc \
 	QoreTibrvCmSender.cc \
+	QoreTibrvCmListener.cc \
 	QC_TibrvSender.cc \
 	QC_TibrvListener.cc \
 	QC_TibrvFtMember.cc \
 	QC_TibrvFtMonitor.cc \
 	QC_TibrvCmSender.cc \
+	QC_TibrvCmListener.cc \
 	tibrv-module.cc
 TIBAE_SOURCES = QoreApp.cc tibae.cc tibae-module.cc 
 

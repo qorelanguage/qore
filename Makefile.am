@@ -140,11 +140,13 @@ noinst_HEADERS = \
 	modules/TIBCO/QoreTibrvFtMonitor.h \
 	modules/TIBCO/QoreTibrvCmTransport.h \
 	modules/TIBCO/QoreTibrvCmSender.h \
+	modules/TIBCO/QoreTibrvCmListener.h \
 	modules/TIBCO/QC_TibrvListener.h \
 	modules/TIBCO/QC_TibrvSender.h \
 	modules/TIBCO/QC_TibrvFtMember.h \
 	modules/TIBCO/QC_TibrvFtMonitor.h \
 	modules/TIBCO/QC_TibrvCmSender.h \
+	modules/TIBCO/QC_TibrvCmListener.h \
 	modules/ncurses/QC_Window.h \
 	modules/ncurses/QC_Panel.h \
 	modules/ncurses/ncurses-module.h \
