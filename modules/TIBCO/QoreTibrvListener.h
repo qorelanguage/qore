@@ -45,7 +45,7 @@ class QoreTibrvListener : public ReferenceObject, public QoreTibrvTransport
       inline ~QoreTibrvListener();
 
    public:
-      QoreTibrvListener(char *subject, char *service, char *network, char *daemon, char *desc, class ExceptionSink *xsink);
+      QoreTibrvListener(char *subject, char *desc, char *service, char *network, char *daemon, class ExceptionSink *xsink);
 
       inline int getQueueSize(class ExceptionSink *xsink)
       {

@@ -109,7 +109,6 @@ class QoreNode *TIBRVFTMEMBER_constructor(class Object *self, class QoreNode *pa
 	 return NULL;
       }
    }
-      
 
    char *service = NULL, *network = NULL, *daemon = NULL, *desc = NULL;
    pt = test_param(params, NT_STRING, 6);
@@ -141,7 +140,10 @@ class QoreNode *TIBRVFTMEMBER_destructor(class Object *self, class QoreNode *par
    // set adapter paramter
    QoreTibrvFtMember *ftm = (QoreTibrvFtMember *)self->getAndClearPrivateData(CID_TIBRVFTMEMBER);
    if (ftm)
+   {
+      ftm->stop();
       ftm->deref();
+   }
    traceout("TIBRVFTMEMBER_destructor()");
    return NULL;
 }

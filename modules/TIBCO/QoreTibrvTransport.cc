@@ -30,7 +30,7 @@
 
 #include <arpa/inet.h>
 
-QoreTibrvTransport::QoreTibrvTransport(char *service, char *network, char *daemon, char *desc, class ExceptionSink *xsink)
+QoreTibrvTransport::QoreTibrvTransport(char *desc, char *service, char *network, char *daemon, class ExceptionSink *xsink)
 {
    enc = QCS_DEFAULT;
    // create transport (connect to rvd daemon)

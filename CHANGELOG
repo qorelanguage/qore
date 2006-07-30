@@ -1,5 +1,11 @@
+2006.07.30: David Nichols
+	* added TibrvCmSender class to the "tibrv" module for sending certified
+	  Rendezvous messages
+
 2006.07.29: David Nichols
 	* added TibrvFtMember class to tibrv module to allow joining a 
+	  Rendezvous fault-tolerant group
+	* added TibrvFtMonitor class to tibrv module to allow monitoring a
 	  Rendezvous fault-tolerant group
 	* added tibrv test program: test/tibrv-test.q
 
@@ -10,8 +16,6 @@
 	  appropriate with RV messaging
 	* added OPAQUE <-> binary handling in tibrv module
 	* monolithic and Solaris build fixes
-
-2006.07.26: David Nichols
 
 2006.07.25: David Nichols
 	* added initial TibrvSender class

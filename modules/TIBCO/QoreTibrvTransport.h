@@ -39,9 +39,7 @@ class QoreTibrvTransport
       class TibrvNetTransport transport;
       class QoreEncoding *enc;
 
-      QoreTibrvTransport(char *service, char *network, char *daemon, char *desc, class ExceptionSink *xsink);
-
-      void sendSubject(char *subject, class Hash *data, class ExceptionSink *xsink);
+      QoreTibrvTransport(char *desc, char *service, char *network, char *daemon, class ExceptionSink *xsink);
 
       inline void setStringEncoding(class QoreEncoding *e)
       {

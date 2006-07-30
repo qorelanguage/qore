@@ -96,6 +96,8 @@ sub ft_test()
     my $mon = new TibrvFtMonitor(FaultTolerantGroupName, ActivationInterval);
     background do_ft_mon($mon);
 
+    ## it is an error for the same program to join the same fault-tolerant group more than once, 
+    ## but we do it here just for testing purposes (if $num > 1)
     my $num = 1;
     my $f;
     for (my $i = 0; $i < $num; $i++)
@@ -106,6 +108,11 @@ sub ft_test()
     }  
 
     sleep(5);
+
+    # we have to stop the event loops in the other threads manually (we could 
+    # also call delete to do this), because if there is an active method call 
+    # in another thread, the object will not go out of scope even though the 
+    # local variable containing the object is going out of scope
 
     for (my $i = 0; $i < $num; $i++)
 	$f[$i].stop();  

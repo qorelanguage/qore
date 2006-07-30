@@ -49,7 +49,7 @@ class QoreTibrvFtMember : public ReferenceObject, public QoreTibrvTransport
 
    public:
       QoreTibrvFtMember(char *groupname, int weight, int activeGoal, int64 heartbeat, int64 prep, int64 activation,
-			char *service, char *network, char *daemon, char *desc, 
+			char *desc, char *service, char *network, char *daemon, 
 			class ExceptionSink *xsink);
 
       inline QoreNode *getEvent(class ExceptionSink *xsink);

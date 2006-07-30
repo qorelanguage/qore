@@ -1,5 +1,5 @@
 /*
-  modules/TIBCO/QoreTibrvSender.h
+  modules/TIBCO/QoreTibrvCmSender.h
 
   TIBCO Rendezvous integration to QORE
 
@@ -22,9 +22,9 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _QORE_TIBCO_QORETIBRVSENDER_H
+#ifndef _QORE_TIBCO_QORETIBRVCMSENDER_H
 
-#define _QORE_TIBCO_QORETIBRVSENDER_H
+#define _QORE_TIBCO_QORETIBRVCMSENDER_H
 
 #include <qore/common.h>
 #include <qore/support.h>
@@ -32,23 +32,25 @@
 #include <qore/Exception.h>
 #include <qore/charset.h>
 
-#include "QoreTibrvTransport.h"
+#include "QoreTibrvCmTransport.h"
 
-class QoreTibrvSender : public ReferenceObject, public QoreTibrvTransport
+class QoreTibrvCmSender : public ReferenceObject, public QoreTibrvCmTransport
 {
    private:
 
    protected:
-      ~QoreTibrvSender() {}
+      ~QoreTibrvCmSender() {}
 
    public:
-      inline QoreTibrvSender(char *desc, char *service, char *network, char *daemon, class ExceptionSink *xsink) : QoreTibrvTransport(desc, service, network, daemon, xsink)
-      { }
+      inline QoreTibrvCmSender(char *cmName, bool requestOld, char *ledgerName, bool syncLedger, char *relayAgent, 
+			       char *desc, char *service, char *network, char *daemon, class ExceptionSink *xsink) 
+	 : QoreTibrvCmTransport(cmName, requestOld, ledgerName, syncLedger, relayAgent, desc, service, network, daemon, xsink)  { }
 
-      void sendSubject(char *subject, class Hash *data, char *replySubject, class ExceptionSink *xsink);
-      
-      // timout in ms
-      class Hash *sendSubjectWithSyncReply(char *subject, class Hash *data, int64 timeout, class ExceptionSink *xsink);
+      // time_limit for certified delivery in ms
+      void sendSubject(char *subject, class Hash *data, char *replySubject, int64 time_limit, class ExceptionSink *xsink);
+
+      // timeout and time_limit for certified delivery in ms
+      class Hash *sendSubjectWithSyncReply(char *subject, class Hash *data, int64 timeout, int64 time_limit, class ExceptionSink *xsink);
 
       inline void deref()
       {

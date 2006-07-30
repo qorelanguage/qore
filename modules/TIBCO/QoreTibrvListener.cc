@@ -28,7 +28,7 @@
 
 #include "QoreTibrvListener.h"
 
-QoreTibrvListener::QoreTibrvListener(char *subject, char *service, char *network, char *daemon, char *desc, class ExceptionSink *xsink) : QoreTibrvTransport(service, network, daemon, desc, xsink)
+QoreTibrvListener::QoreTibrvListener(char *subject, char *desc, char *service, char *network, char *daemon, class ExceptionSink *xsink) : QoreTibrvTransport(desc, service, network, daemon, xsink)
 {
    if (xsink->isException())
    {
