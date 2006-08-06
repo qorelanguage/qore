@@ -440,7 +440,6 @@ class QoreSocket
       {
 	 int rc = closeInternal();
 	 type = AF_UNSPEC;
-	 sock = 0;
 
 	 return rc;
       }

@@ -1017,10 +1017,9 @@ static QoreNode *SOCKET_readHTTPHeader(class Object *self, class QoreNode *param
 
    if (s)
    {
-      xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened before Socket::readHTTPHeader() call");
       int rc;
 
-      // when rc = -2 it's a timeout, but rv will be NULL anyway, so we do nothing
+      // when rc = -3 it's a timeout, but rv will be NULL anyway, so we do nothing
       rv = s->readHTTPHeader(timeout, &rc);
       
       if (rc <= 0)
@@ -1276,6 +1275,22 @@ static QoreNode *SOCKET_isDataAvailable(class Object *self, class QoreNode *para
    return rv;
 }
 
+static QoreNode *SOCKET_isOpen(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+{
+   class mySocket *s = (mySocket *)self->getReferencedPrivateData(CID_SOCKET);
+   QoreNode *rv = NULL;
+
+   if (s)
+   {
+      rv = new QoreNode(s->isOpen());
+      s->deref();
+   }
+   else
+      alreadyDeleted(xsink, "Socket::isOpen");
+
+   return rv;
+}
+
 static QoreNode *SOCKET_getSSLCipherName(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
    class mySocket *s = (mySocket *)self->getReferencedPrivateData(CID_SOCKET);
@@ -1479,6 +1494,7 @@ class QoreClass *initSocketClass()
    QC_SOCKET->addMethod("verifyPeerCertificate", SOCKET_verifyPeerCertificate);
    QC_SOCKET->addMethod("setCertificate",        SOCKET_setCertificate);
    QC_SOCKET->addMethod("setPrivateKey",         SOCKET_setPrivateKey);
+   QC_SOCKET->addMethod("isOpen",                SOCKET_isOpen);
 
    traceout("initSocketClass()");
    return QC_SOCKET;

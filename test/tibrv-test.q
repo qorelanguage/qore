@@ -80,16 +80,18 @@ sub cm_listener($q)
     usleep(500000);
     $q.push();
     
-    my $msg;
+    my $sender = new TibrvSender();
+
     while (True)
     {
-	$msg = $listener.getMessage();
+	my $msg = $listener.getMessage();
+	if (!exists $msg)
+	    continue;
 	printf("CERTIFIED LISTENER: %N\n", $msg);
+	$sender.sendSubject($msg.replySubject, ( "answer" : "hello" ));
 	if (exists $msg.msg.test)
 	    break;
     }
-    my $sender = new TibrvSender();
-    $sender.sendSubject($msg.replySubject, ( "answer" : "hello" ));
 }
 
 sub cm_send()
@@ -102,7 +104,7 @@ sub cm_send()
     $ans = $sender.sendSubjectWithSyncReply(Subject + ".1", ( "date" : 9999-12-31-23:59:59 ), 5000);
     $ans = $sender.sendSubjectWithSyncReply(Subject + ".1", ( "test" : 9999-12-31-23:59:59 ), 5000);
     printf("reply=%N\n", $ans);
-}		
+}
 
 sub do_ft_msg($f)
 {

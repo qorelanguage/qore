@@ -463,6 +463,11 @@ class mySocket : public ReferenceObject, public LockedObject
 	 return b;
       }
 
+      inline bool isOpen()
+      {
+	 return socket->isOpen();
+      }
+
       // c must be already referenced before this call
       inline void setCertificate(class QoreSSLCertificate *c);
 

@@ -136,6 +136,9 @@ class QoreURL {
 	    h->setKeyValue("host", new QoreNode(host), NULL);
 	    host = NULL;
 	 }
+	 if (port)
+	    h->setKeyValue("port", new QoreNode((int64)port), NULL);
+
 	 return h;
       }
 };
