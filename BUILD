@@ -36,10 +36,16 @@ NOTE that --enable-builtin-modules will only work with libtool 1.5.22 or better,
 If you have Oracle 9i or higher you can build in Oracle integration.  Make sure your ORACLE_HOME is set before calling configure (otherwise use the --with-oracle configure option).  Header files and libraries must be available in the standard locations.  Oracle support is good.  See below for information on limitations of the Oracle driver.
 
 *) MySQL 3.3 or better for the MySQL DBI module
-If you have MySQL 3.3+ or better you can build in MySQL support.  With MySQL 4.1+ you can get transaction support and qore will use the more efficient prepared statement interface.
+If you have MySQL 3.3+ or better you can build in MySQL support.  With MySQL 4.1+ you can get transaction support and the module will use the more efficient prepared statement interface.
 
-*) TIBCO SDK 5.2.1 or better for the TIBCO module
-If you have TIBCO Rendezvous and the AE SDK installed, and the supported C++ compiler, you can build in TIBCO AE integration.  Make sure that the RV_ROOT and SDK_ROOT environment variables are pointing to your Rendezvous and SDK directories respectively.  Otherwise you can use the --with-tibco-rv and --with-tibco-sdk configure options.  The TIBCO module will compile with SDK 4.* versions, but there are so many bugs in this version of the SDK (including some horrible dynamic memory leaks) that it doesn't make sense to use anything before 5.2.1...
+*) TIBCO Rendezvous for the "tibrv" module
+Set the RV_ROOT environment variable to the Rendezvous directory (or use the --with-tibrv configure option) to build the "tibrv" module for direct Rendezvous support.  Note that to build this module the libtibrvcpp library must be present; on some platforms you have to rebuild this yourself from the sources provided by TIBCO in order for it to link with the C++ compiler you are using - the sources are normally present in $RV_ROOT/src/librvcpp, normally you have to edit the Makefile provided there and then type "make" to rebuild.  I had to include "ranlib libtibrvcpp.a" on the libraries I rebuilt for OS X.
+
+*) TIBCO SDK 5.2.1 or better for the "tibae" module
+If you have TIBCO Rendezvous and the AE SDK installed, and the supported C++ compiler, you can build in TIBCO AE integration.  Make sure that the RV_ROOT, SDK_ROOT, and TPCL_ROOT environment variables are pointing to your Rendezvous, SDK, and TPCL directories respectively.  Otherwise you can use the --with-tibrv, --with-tibae, and with-tibae-tpcl configure options.  The TIBCO module will compile with SDK 4.* versions, but there are so many bugs in this version of the SDK (including some horrible dynamic memory leaks) that it doesn't make sense to use anything before 5.2.1...
+
+*) ncurses for the "ncurses" module
+note that this module is still experimental due to the fact that I'm not sure if it's possible to safely enable threading without putting a big lock around every curses call.  Right now Solaris curses is not properly detected by the configure script although if it were it will actually build the module - I have to fix this in configure.ac
 
 To build qore, run the following commands:
 

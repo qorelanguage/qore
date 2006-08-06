@@ -208,6 +208,21 @@ class QoreNode *TIBRVCMLISTENER_getStringEncoding(class Object *self, QoreNode *
    return rv;
 }
 
+class QoreNode *TIBRVCMLISTENER_syncLedger(class Object *self, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreTibrvCmListener *trvl = (QoreTibrvCmListener *)self->getReferencedPrivateData(CID_TIBRVCMLISTENER);
+
+   if (trvl)
+   {
+      trvl->syncLedger(xsink);
+      trvl->deref();
+   }
+   else
+      alreadyDeleted(xsink, "TibrvCmListener::syncLedger");
+
+   return NULL;
+}
+
 class QoreClass *initTibrvCmListenerClass()
 {
    tracein("initTibrvCmListenerClass()");
@@ -222,6 +237,7 @@ class QoreClass *initTibrvCmListenerClass()
    QC_TIBRVCMLISTENER->addMethod("createInboxName",    TIBRVCMLISTENER_createInboxName);
    QC_TIBRVCMLISTENER->addMethod("setStringEncoding",  TIBRVCMLISTENER_setStringEncoding);
    QC_TIBRVCMLISTENER->addMethod("getStringEncoding",  TIBRVCMLISTENER_getStringEncoding);
+   QC_TIBRVCMLISTENER->addMethod("syncLedger",         TIBRVCMLISTENER_syncLedger);
 
    traceout("initTibrvCmListenerClass()");
    return QC_TIBRVCMLISTENER;

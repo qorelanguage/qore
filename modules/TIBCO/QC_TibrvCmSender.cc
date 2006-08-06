@@ -358,6 +358,21 @@ class QoreNode *TIBRVCMSENDER_removeSendState(class Object *self, QoreNode *para
    return NULL;
 }
 
+class QoreNode *TIBRVCMSENDER_syncLedger(class Object *self, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreTibrvCmSender *trvl = (QoreTibrvCmSender *)self->getReferencedPrivateData(CID_TIBRVCMSENDER);
+
+   if (trvl)
+   {
+      trvl->syncLedger(xsink);
+      trvl->deref();
+   }
+   else
+      alreadyDeleted(xsink, "TibrvCmSender::syncLedger");
+
+   return NULL;
+}
+
 class QoreClass *initTibrvCmSenderClass()
 {
    tracein("initTibrvCmSenderClass()");
@@ -379,6 +394,7 @@ class QoreClass *initTibrvCmSenderClass()
    QC_TIBRVCMSENDER->addMethod("setDefaultTimeLimit",       TIBRVCMSENDER_setDefaultTimeLimit);
    QC_TIBRVCMSENDER->addMethod("reviewLedger",              TIBRVCMSENDER_reviewLedger);
    QC_TIBRVCMSENDER->addMethod("removeSendState",           TIBRVCMSENDER_removeSendState);
+   QC_TIBRVCMSENDER->addMethod("syncLedger",                TIBRVCMSENDER_syncLedger);
 
    traceout("initTibrvCmSenderClass()");
    return QC_TIBRVCMSENDER;

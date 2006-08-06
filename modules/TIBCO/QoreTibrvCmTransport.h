@@ -55,7 +55,7 @@ class QoreTibrvCmTransport : public QoreTibrvTransport
 
       QoreTibrvCmTransport(char *cmName, bool requestOld, char *ledgerName, bool syncLedger, char *relayAgent, 
 			   char *desc, char *service, char *network, char *daemon, class ExceptionSink *xsink); 
-      //~QoreTibrvCmTransport() {}
+      ~QoreTibrvCmTransport() {}
 
       // return -1 for error, 0 for success
       inline int send(TibrvMsg *msg, int64 time_limit, class ExceptionSink *xsink)
@@ -166,6 +166,17 @@ class QoreTibrvCmTransport : public QoreTibrvTransport
          }
 	 return 0;	 
       }
+
+      inline int syncLedger(class ExceptionSink *xsink)
+      {
+         TibrvStatus status = cmTransport.syncLedger();
+         if (status != TIBRV_OK)
+         {
+            xsink->raiseException("TIBRV-SYNC-LEDGER-ERROR", "%s", (char *)status.getText());
+            return -1;
+         }
+	 return 0;	 
+      }
 };
 
 class QoreTibrvCmReviewCallback : public TibrvCmReviewCallback
@@ -181,7 +192,7 @@ class QoreTibrvCmReviewCallback : public TibrvCmReviewCallback
 	 if (!l)
 	    l = new List();
 
-	 class Hash *h = cmt->parseMsg(&msg, &xsink);
+	 class Hash *h = cmt->msgToHash(&msg, &xsink);
 	 if (xsink.isException())
 	 {
 	    if (h)
@@ -218,7 +229,9 @@ class QoreTibrvCmReviewCallback : public TibrvCmReviewCallback
             return NULL;
          }
 
-	 return l ? new QoreNode(l) : NULL;
+	 class QoreNode *rv = l ? new QoreNode(l) : NULL;
+	 l = NULL;
+	 return rv;
       }
 };
 
@@ -229,6 +242,5 @@ inline class QoreNode *QoreTibrvCmTransport::reviewLedger(char *subject, class E
 
    return cb.getLedger(xsink);
 }
-
 
 #endif

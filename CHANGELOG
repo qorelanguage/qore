@@ -1,6 +1,11 @@
 2006.08.06: David Nichols
 	* fixed a copy-and-paste bug in lib/QC_Socket.cc
 	* included port number in output hash in QoreURL class
+	* fixed a core dump in the QoreTibrvCmTransport::reviewLedger() call in
+	  the "tibrv" module
+	* added TibrvCmListener::syncLedger() and TibrvCmSender::syncLedger()
+	  calls in the "tibrv" module
+	* updated test/tibrv-test.q
 
 2006.07.30: David Nichols
 	* added TibrvCmSender class to the "tibrv" module for sending certified
