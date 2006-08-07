@@ -116,8 +116,12 @@ static QoreNode *TIBRVLISTENER_getMessage(class Object *self, QoreNode *params, 
    {
       class QoreNode *p0 = get_param(params, 0);
       int64 timeout = is_nothing(p0) ? -1LL : p0->getAsBigInt();
-
-      class Hash *h = trvl->getMessage(timeout, xsink);
+      class Hash *h;
+      // if timeout is < 0, then do not time out
+      if (timeout < 0)
+	  h = trvl->getMessage(xsink);
+      else
+	  h = trvl->getMessage(timeout, xsink);
       if (h)
 	 rv = new QoreNode(h);
       trvl->deref();

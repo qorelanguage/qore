@@ -6,7 +6,13 @@
 %require-our
 %exec-class tibrv_test
 
-const Subject = "test";
+const Subject = "qore.test";
+const CmSubject = "qore.cmtest";
+
+## some defaults
+const defaultIterations = 2000;
+const defaultTimeout = 5000;        # default timeout for reliable messaging is 5 seconds
+const defaultCmTimeout = 20000;     # default timeout for certified messaging is 20 seconds
 
 ## fault tolerant params
 const HeartbeatInterval = 1000;    # heartbeat interval is 1000 ms = 1s
@@ -14,7 +20,7 @@ const ActivationInterval = 2000;   # activation interval is 2s
 const PreparationInterval = 3000;  # preparation interval is 3s
 const Weight = 1;
 const ActiveGoal = 2;
-const FaultTolerantGroupName = "TEST.FT_GROUP.1";
+const FaultTolerantGroupName = "QORE.TEST.FT_GROUP.1";
 
 const FT_MSG_HASH = 
     ( TIBRVFT_PREPARE_TO_ACTIVATE : "TIBRVFT_PREPARE_TO_ACTIVATE",
@@ -22,106 +28,211 @@ const FT_MSG_HASH =
       TIBRVFT_DEACTIVATE          : "TIBRVFT_DEACTIVATE",
       TIBRVFT_QORE_STOP           : "TIBRVFT_QORE_STOP" );
 
-# objects of this class will run in the background and report rendezvous advisory messages until deleted
-class AdvisoryListener {
-    private 
-	$.run,  # flag for stopping the object
-	$.q;    # blocking confirmation that the object has stopped
-
-    constructor()
-    {
-	$.q = new Queue();
-	$.run = True;
-	# start the listening thread
-	background $.listen();
-    }
-
-    destructor()
-    {
-	$.stop();
-    }
-
-    stop()
-    {
-	if ($.run)
-	{
-	    $.run = False;
-	    $.q.get();
-	}
-    }
-
-    private listen()
-    {
-	my $listener = new TibrvListener("_RV.>");
-	while ($.run)
-	{
-	    my $msg = $listener.getMessage(1000);
-	    if (!exists $msg)
-		continue;
-	    printf("ADVISORY LISTENER: %s: %s\n", $msg.msg.ADV_CLASS, $msg.msg.ADV_NAME);
-	    #printf("ADVISORY LISTENER: %n\n", $msg);
-	}    
-	$.q.push();
-    }
-}
+const opts = 
+    ( "verbose"   : "verbose,v:i+",
+      "timeout"   : "timeout,t=i",
+      "cmtimeout" : "cmtimeout,c=i",
+      "advisory"  : "advisory,a",
+      "iters"     : "iters,i=i",
+      "send"      : "send-only,s",
+      "recv"      : "receive-only,r",
+      "help"      : "help,h"
+     );
 
 class tibrv_test {
 
     constructor()
     {
-	my $al = new AdvisoryListener();
-	$.reliable_send_test();
-	$.cm_send();
+	$.parse_command_line();
+
+	# setup test message
+	$.test_msg = 
+	    ( "string" : "this is a string",
+	      "int"    : 43991883840175,
+	      "float"  : 2.95743823,
+	      "bool"   : True,
+	      "binary" : binary("hello there"),
+	      "date"   : now(),
+	      "list"   : ( 1, "two", 3.0, 1998-09-11, False, 4, 2, "string" ),
+	      "hash"   : ( "key" : "value", "key2" : 400.1 ) );
+
+	$.answer = 
+	    ( "string" : "this is another string",
+	      "int"    : 81923405,
+	      "float"  : 3431.123983,
+	      "bool"   : False,
+	      "binary" : binary("strings are nice"),
+	      "date"   : 9999-12-31-23:59:59,
+	      "list"   : ( "one", 2.0, 3, 2001-12-28, 2005-03-11, True, ( "hash" : "value", "key" : 39293 )),
+	      "hash"   : ( "key1" : "value1", "key-two" : 5001, "list" : (1, 2, 4, 5, 6) ) );
+
+	my $al;
+	if ($.o.advisory)
+	    $al = new AdvisoryListener();
+
+	$.lq = new Queue();
+	if (!$.o.send)
+	{
+	    background $.reliable_listener();
+	    background $.cm_listener();
+	}
+
+	if (!$.o.recv)
+	{
+	    # if we are not just sending only, then wait for the listener to start
+	    if (!$.o.send)
+		$.lq.get();
+	    $.reliable_sender();
+	    $.cm_sender();
+	}
+
 	$.ft_test();
-	delete $al;
+	
+	if ($.o.advisory)
+	    delete $al;
+
+	#printf("%N\n", getAllThreadCallStacks());
     }
 
-    private reliable_send_test()
+    private usage()
     {
-	my $q = new Queue();
-	background $.listener($q);
-	$q.get();
-	my $sender = new TibrvSender();
-	my $ans = $sender.sendSubjectWithSyncReply(Subject + ".1", ( "test" : 9999-12-31-23:59:59 ), 5000);
-	printf("RELIABLE SENDER: reply=%N\n", $ans);
+	printf(
+"usage: %s -[options]
+  -h,--help           this help text
+  -t,--timeout=ARG    timeout in ms (default %d ms)
+  -i,--iters=ARG      send ARG messages for each iterated test
+  -a,--advisory       show advisory messages
+  -v,--verbose        display messages sent and received
+", basename($ENV."_"), defaultTimeout);
+	exit();
     }
 
-    private listener($q)
+    private printf($msg)
+    {
+	stdout.vprintf($msg, $argv);
+	stdout.sync();
+    }
+
+    private parse_command_line()
+    {
+	my $g = new GetOpt(opts);
+	$.o = $g.parse(\$ARGV);
+
+	if (exists $.o."_ERRORS_")
+	{
+	    printf("%s\n", $.o."_ERRORS_"[0]);
+	    exit(1);
+	}
+
+	if ($.o.help)
+	    $.usage();
+
+	if ($.o.send && $.o.recv)
+	{
+	    print("ERROR: both send-only and receive-only arguments given (-h for help)\n");
+	    exit(1);
+	}
+	    
+	if (!$.o.iters)
+	    $.o.iters = defaultIterations;
+
+	if (!$.o.timeout)
+	    $.o.timeout = defaultTimeout;
+
+	if (!$.o.cmtimeout)
+	    $.o.cmtimeout = defaultCmTimeout;
+    }
+
+    private compareMessage($msg, $type)
+    {
+	if ($msg.msg != $.test_msg)
+	{
+	    printf("%s MESSAGING ERROR: msg=%n != test_msg=%n\n", $type, $msg.msg, $.test_msg);
+	    exit(1);
+	}
+    }
+
+    private compareAnswer($ans, $type, $to)
+    {
+	if (!exists $ans)
+	{
+	    printf("TIMEOUT: no answer received from %s LISTENER in timeout period (%d ms)\n", $type, $to);
+	    exit(1);
+	}
+	if ($ans.msg != $.answer)
+	{
+	    printf("%s MESSAGING ERROR: ans=%n != answer=%n\n", $type, $ans.msg, $.answer);
+	    exit(1);    
+	}
+	if ($.o.verbose)
+	    printf("%s SENDER: RESPONSE: %N\n", $type, $ans);
+    }
+
+    private reliable_sender()
+    {
+	$.printf("RELIABLE SENDER: sending on %s\n", Subject + ".1");
+	if (!$.o.verbose)
+	    $.printf("RELIABLE MESSAGING: ");
+
+	my $sender = new TibrvSender();
+	my $ans;
+	for (my $i = 0; $i < $.o.iters; $i++)
+	{
+	    if (!$.o.verbose && !($i % 100))
+		$.printf(".");
+	    $ans = $sender.sendSubjectWithSyncReply(Subject + ".1", $.test_msg, $.o.timeout);
+	    $.compareAnswer($ans, "RELIABLE", $.o.timeout);
+	}
+	if ($.o.verbose)
+	    $.printf("RELIABLE TESTS");
+	$.printf(" OK (%d message%s)\n", $.o.iters, $.o.iters == 1 ? "" : "s");
+    }
+
+    private reliable_listener()
     {
 	my $subject = Subject + ".>";
 	my $listener = new TibrvListener($subject);
 	printf("RELIABLE LISTENER: listening on %s\n", $subject);
+	if ($.o.verbose)
+	    printf("RELIABLE LISTENER: listening on %s\n", $subject);
 
-	# it takes a little time until RV actually starts listening in the listening thread
-	# so we sleep for .5 seconds before we notify the sending thread that the listener
-	# has started
-	usleep(500000);
-	$q.push();
+	# if we are not just receiving, then wait for the listening thread to start
+	# and signal the sending thread to begin
+	if (!$.o.recv)
+	{
+	    # sleep for 1/2 second
+	    usleep(500000);
+	    $.lq.push();
+	}
 
 	my $msg;
-	while (True)
-	{
-	    $msg = $listener.getMessage();
-	    printf("RELIABLE LISTENER: %N\n", $msg);
-	    if (exists $msg.msg.test)
-		break;
-	}
-	
 	my $sender = new TibrvSender();
-	$sender.sendSubject($msg.replySubject, ( "answer" : "hello" ));
+	
+	for (my $i = 0; $i < $.o.iters; $i++)
+	{
+	    #printf("rl %d/%d\n", $i, $.o.iters); stdout.sync();
+	    $msg = $listener.getMessage();
+	    $.compareMessage($msg, "RELIABLE");
+	    if ($.o.verbose)
+		printf("RELIABLE LISTENER: %N\n", $msg);
+	    $sender.sendSubject($msg.replySubject, $.answer);
+	}
     }
 
     private wait_for_cm_complete($o)
     {
 	while (True)
 	{
-	    printf("CERTIFIED SENDER: checking ledger: %N\n", $o.reviewLedger(">"));
+	    if ($.o.verbose)
+		printf("CERTIFIED SENDER: checking ledger: %N\n", $o.reviewLedger(">"));
+
 	    my $count = 0;
 	    foreach my $entry in ($o.reviewLedger(">"))
 		$count += $entry.total_msgs;
 	    if (!$count)
 	    {
-		printf("CERTIFIED SENDER: ledger OK\n");
+		if ($.o.verbose)
+		    printf("CERTIFIED SENDER: ledger OK\n");
 		break;
 	    }
 	    # sleep for 1/2 second and check again
@@ -129,48 +240,53 @@ class tibrv_test {
 	}
     }
 
-    private cm_listener($q)
+    private cm_listener()
     {
-	my $subject = Subject + ".>";
+	my $subject = CmSubject + ".>";
 	my $listener = new TibrvCmListener($subject);
-	printf("CERTIFIED LISTENER: listening on %s\n", $subject);
-	
-	# it takes a little time until RV actually starts listening in the listening thread
-	# so we sleep for .5 seconds before we notify the sending thread that the listener
-	# has started
-	usleep(500000);
-	$q.push();
-	
+	printf("CERTIFIED LISTENER (%s): listening on %s\n", $listener.getName(), $subject);
+
 	my $sender = new TibrvCmSender();
 	
-	while (True)
+	for (my $i = 0; $i < $.o.iters; $i++)
 	{
+	    #printf("cm %d/%d\n", $i, $.o.iters); stdout.sync();
 	    my $msg = $listener.getMessage();
-	    if (!exists $msg)
-		continue;
-	    printf("CERTIFIED LISTENER: %N\n", $msg);
-	    $sender.sendSubject($msg.replySubject, ( "answer" : "hello" ));
-	    if (exists $msg.msg.test)
-		break;
+	    $.compareMessage($msg, "CERTIFIED");
+	    if ($.o.verbose)
+		printf("CERTIFIED LISTENER: %N\n", $msg);
+	    $sender.sendSubject($msg.replySubject, $.answer );
 	}
-	# if we don't sleep here, the sending thread will normally not receive the 2nd message, why?
+	#printf("1: CERTIFIED SENDER: checking ledger: %N\n", $sender.reviewLedger(">"));
+
+	# if we don't sleep here, the cm_sender thread will normally not receive the 2nd message (why?)
 	# for some reason the ledger does not show if the messages have been received or not
 	usleep(500000);
+
+	#printf("2: CERTIFIED SENDER: checking ledger: %N\n", $sender.reviewLedger(">"));
     }
 
-    private cm_send()
+    private cm_sender()
     {
-	my $q = new Queue();
-	background $.cm_listener($q);
-	$q.get();
 	my $sender = new TibrvCmSender();
+	$.printf("CERTIFIED SENDER (%s): sending on %s\n", $sender.getName(), CmSubject + ".1");
+	if (!$.o.verbose)
+	    $.printf("CERTIFIED MESSAGING: ");
+
 	my $ans;
-	$ans = $sender.sendSubjectWithSyncReply(Subject + ".1", ( "date" : 9999-12-31-23:59:59 ), 5000);
-	printf("CERTIFIED SENDER: 1st reply=%N\n", $ans);
-	$ans = $sender.sendSubjectWithSyncReply(Subject + ".1", ( "test" : 9999-12-31-23:59:59 ), 5000);
-	printf("CERTIFIED SENDER: 2nd reply=%N\n", $ans);
+	for (my $i = 0; $i < $.o.iters; $i++)
+	{
+	    if (!$.o.verbose && !($i % 100))
+		$.printf(".");
+	    $ans = $sender.sendSubjectWithSyncReply(CmSubject + ".1", $.test_msg, $.o.cmtimeout);
+	    $.compareAnswer($ans, "CERTIFIED", $.o.cmtimeout);
+	}
 	# here we can check the ledger that all messages have been received
 	$.wait_for_cm_complete($sender);
+
+	if ($.o.verbose)
+	    $.printf("CERTIFIED TESTS");
+	$.printf(" OK (%d message%s)\n", $.o.iters, $.o.iters == 1 ? "" : "s");
     }
 
     private do_ft_msg($f)
@@ -235,3 +351,47 @@ class tibrv_test {
 	$mon.stop();
     }
 }
+
+# objects of this class will run in the background and report rendezvous advisory messages until deleted
+class AdvisoryListener {
+    private 
+	$.run,  # flag for stopping the object
+	$.q;    # blocking confirmation that the object has stopped
+
+    constructor($cm)
+    {
+	$.q = new Queue();
+	$.run = True;
+	# start the listening thread
+	background $.listen($cm);
+    }
+
+    destructor()
+    {
+	$.stop();
+    }
+
+    stop()
+    {
+	if ($.run)
+	{
+	    $.run = False;
+	    $.q.get();
+	}
+    }
+
+    private listen($cm)
+    {
+	my $listener = $cm ? new TibrvCmListener("_RV.INFO.RVCM.>") : new TibrvListener("_RV.>");
+	while ($.run)
+	{
+	    my $msg = $listener.getMessage(1000);
+	    if (!exists $msg)
+		continue;
+	    printf("ADVISORY LISTENER: %s: %s\n", $msg.msg.ADV_CLASS, $msg.msg.ADV_NAME);
+	    #printf("ADVISORY LISTENER: %n\n", $msg);
+	}    
+	$.q.push();
+    }
+}
+

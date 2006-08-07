@@ -61,6 +61,7 @@ class QoreTibrvCmListener : public ReferenceObject, public QoreTibrvCmTransport
 	 return count;
       }
 
+      class Hash *getMessage(class ExceptionSink *xsink);
       class Hash *getMessage(int64 timeout, class ExceptionSink *xsink);
 
       class QoreString *createInboxName(class ExceptionSink *xsink)

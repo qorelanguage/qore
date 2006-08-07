@@ -138,7 +138,12 @@ static QoreNode *TIBRVCMLISTENER_getMessage(class Object *self, QoreNode *params
       class QoreNode *p0 = get_param(params, 0);
       int64 timeout = is_nothing(p0) ? -1LL : p0->getAsBigInt();
 
-      class Hash *h = trvl->getMessage(timeout, xsink);
+      class Hash *h;
+      // do not time out and guarantee to return data (or an error) if timeout is negative
+      if (timeout < 0)
+	 h = trvl->getMessage(xsink);
+      else
+	 h = trvl->getMessage(timeout, xsink);
       if (h)
 	 rv = new QoreNode(h);
       trvl->deref();
@@ -223,6 +228,24 @@ class QoreNode *TIBRVCMLISTENER_syncLedger(class Object *self, QoreNode *params,
    return NULL;
 }
 
+static QoreNode *TIBRVCMLISTENER_getName(class Object *self, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreTibrvCmListener *trvl = (QoreTibrvCmListener *)self->getReferencedPrivateData(CID_TIBRVCMLISTENER);
+   class QoreNode *rv = NULL;
+
+   if (trvl)
+   {
+      char *name = trvl->getName(xsink);
+      if (!xsink->isException())
+	 rv = new QoreNode(name);
+      trvl->deref();
+   }
+   else
+      alreadyDeleted(xsink, "TibrvCmListener::getName");
+
+   return rv;
+}
+
 class QoreClass *initTibrvCmListenerClass()
 {
    tracein("initTibrvCmListenerClass()");
@@ -238,6 +261,7 @@ class QoreClass *initTibrvCmListenerClass()
    QC_TIBRVCMLISTENER->addMethod("setStringEncoding",  TIBRVCMLISTENER_setStringEncoding);
    QC_TIBRVCMLISTENER->addMethod("getStringEncoding",  TIBRVCMLISTENER_getStringEncoding);
    QC_TIBRVCMLISTENER->addMethod("syncLedger",         TIBRVCMLISTENER_syncLedger);
+   QC_TIBRVCMLISTENER->addMethod("getName",            TIBRVCMLISTENER_getName);
 
    traceout("initTibrvCmListenerClass()");
    return QC_TIBRVCMLISTENER;

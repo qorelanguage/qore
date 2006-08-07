@@ -193,6 +193,17 @@ EXTRA_DIST = .build next_build.sh WHATISQORE RELEASE-NOTES \
 	examples/getopt.q \
 	examples/worm.q \
 	docs/qore.html \
+	docs/qore-style.css \
+	docs/img/acrobat_a.gif \
+	docs/img/acrobat.gif \
+	docs/img/disk.gif \
+	docs/img/qbullet-note_a.gif \
+	docs/img/qbullet-note.gif \
+	docs/img/remote_a.gif \
+	docs/img/remote.gif \
+	docs/img/scrollup_a.gif \
+	docs/img/scrollup.gif \
+	docs/img/word.gif \
 	docs/roadmap.html \
 	qore-0.5.2-1.spec \
 	CHANGELOG

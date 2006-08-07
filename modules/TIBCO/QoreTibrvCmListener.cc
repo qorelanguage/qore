@@ -57,6 +57,26 @@ QoreTibrvCmListener::QoreTibrvCmListener(char *subject, char *cmName, bool reque
    }  
 }
 
+class Hash *QoreTibrvCmListener::getMessage(class ExceptionSink *xsink)
+{
+   class Hash *h;
+
+   while (true)
+   {
+      TibrvStatus status = queue.dispatch();
+
+      if (status != TIBRV_OK)
+      {
+	 xsink->raiseException("TIBRVCMLISTENER-GETMESSAGE-ERROR", (char *)status.getText());
+	 return NULL;
+      }
+      if ((h = callback->getMessage(xsink)))
+	 return h;
+   }
+
+   return NULL;
+}
+
 class Hash *QoreTibrvCmListener::getMessage(int64 timeout_ms, class ExceptionSink *xsink)
 {
    tibrv_f64 timeout = (tibrv_f64)timeout_ms / 1000.0;

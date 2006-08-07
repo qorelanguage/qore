@@ -275,6 +275,24 @@ class QoreNode *TIBRVCMSENDER_expireMessages(class Object *self, QoreNode *param
    return NULL;
 }
 
+class QoreNode *TIBRVCMSENDER_getName(class Object *self, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreTibrvCmSender *trvl = (QoreTibrvCmSender *)self->getReferencedPrivateData(CID_TIBRVCMSENDER);
+   class QoreNode *rv = NULL;
+
+   if (trvl)
+   {
+      char *name = trvl->getName(xsink);
+      if (!xsink->isException())
+	 rv = new QoreNode(name);
+      trvl->deref();
+   }
+   else
+      alreadyDeleted(xsink, "TibrvCmSender::getName");
+
+   return rv;
+}
+
 class QoreNode *TIBRVCMSENDER_getDefaultTimeLimit(class Object *self, QoreNode *params, ExceptionSink *xsink)
 {
    QoreTibrvCmSender *trvl = (QoreTibrvCmSender *)self->getReferencedPrivateData(CID_TIBRVCMSENDER);
@@ -390,6 +408,7 @@ class QoreClass *initTibrvCmSenderClass()
    QC_TIBRVCMSENDER->addMethod("connectToRelayAgent",       TIBRVCMSENDER_connectToRelayAgent);
    QC_TIBRVCMSENDER->addMethod("disconnectFromRelayAgent",  TIBRVCMSENDER_disconnectFromRelayAgent);
    QC_TIBRVCMSENDER->addMethod("expireMssages",             TIBRVCMSENDER_expireMessages);
+   QC_TIBRVCMSENDER->addMethod("getName",                   TIBRVCMSENDER_getName);
    QC_TIBRVCMSENDER->addMethod("getDefaultTimeLimit",       TIBRVCMSENDER_getDefaultTimeLimit);
    QC_TIBRVCMSENDER->addMethod("setDefaultTimeLimit",       TIBRVCMSENDER_setDefaultTimeLimit);
    QC_TIBRVCMSENDER->addMethod("reviewLedger",              TIBRVCMSENDER_reviewLedger);

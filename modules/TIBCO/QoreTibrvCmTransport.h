@@ -127,6 +127,20 @@ class QoreTibrvCmTransport : public QoreTibrvTransport
       }
 
       // returns the default time limit in milliseconds
+      inline char *getName(class ExceptionSink *xsink)
+      {
+	 const char *name;
+	 
+	 TibrvStatus status = cmTransport.getName(name);
+         if (status != TIBRV_OK)
+         {
+            xsink->raiseException("TIBRV-GET-NAME-ERROR", "%s", (char *)status.getText());
+            return NULL;
+         }
+	 return (char *)name;
+      }
+
+      // returns the default time limit in milliseconds
       inline int64 getDefaultTimeLimit(class ExceptionSink *xsink)
       {
 	 tibrv_f64 tl;

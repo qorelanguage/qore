@@ -191,7 +191,7 @@ class Hash *QoreTibrvTransport::msgToHash(TibrvMsg *msg, class ExceptionSink *xs
 	 class QoreNode **evp = h->getKeyValuePtr(key);
 	 if (ev->type != NT_LIST)
 	 {
-	    printf("making list\n");
+	    //printd(0, "QoreTibrvTransport::msgToHash() making list\n");
 	    class List *l = new List();
 	    l->push(ev);
 	    ev = new QoreNode(l);
