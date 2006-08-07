@@ -52,7 +52,7 @@ class tibrv_test {
 	      "float"  : 2.95743823,
 	      "bool"   : True,
 	      "binary" : binary("hello there"),
-	      "date"   : now(),
+	      "date"   : 2006-08-07-17:04:52,
 	      "list"   : ( 1, "two", 3.0, 1998-09-11, False, 4, 2, "string" ),
 	      "hash"   : ( "key" : "value", "key2" : 400.1 ) );
 
