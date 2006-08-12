@@ -49,7 +49,7 @@ class QoreSSLPrivateKey : public ReferenceObject
 
    public:
       //inline QoreSSLPrivateKey(EVP_PKEY *p) : pk(p) {}
-      inline QoreSSLPrivateKey(char *fn, char *pp = NULL, class ExceptionSink *xsink)
+      inline QoreSSLPrivateKey(char *fn, char *pp, class ExceptionSink *xsink)
       {
 	 pk = NULL;
 	 FILE *fp = fopen(fn, "r");
