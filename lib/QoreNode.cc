@@ -50,10 +50,9 @@ static inline QoreNode *crlr_hash_copy(QoreNode *n, ExceptionSink *xsink)
       return n->RefSelf();
 
    Hash *h = new Hash(1);
-   HashIterator *hi = n->val.hash->newIterator();
-   while (hi->next())
-      h->setKeyValue(hi->getKey(), copy_and_resolve_lvar_refs(hi->getValue(), xsink), xsink);
-   delete hi;
+   HashIterator hi(n->val.hash);
+   while (hi.next())
+      h->setKeyValue(hi.getKey(), copy_and_resolve_lvar_refs(hi.getValue(), xsink), xsink);
    return new QoreNode(h);
 }
 

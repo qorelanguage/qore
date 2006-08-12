@@ -81,6 +81,7 @@ noinst_HEADERS = \
 	include/qore/StringList.h \
 	include/qore/ssl_constants.h \
 	include/qore/QoreQueue.h \
+	include/qore/QoreSSLBase.h \
 	include/qore/QT_NOTHING.h \
 	include/qore/QT_bigint.h \
 	include/qore/QT_float.h \
@@ -131,6 +132,7 @@ noinst_HEADERS = \
 	modules/mysql/qore-mysql-module.h \
 	modules/TIBCO/tibae-module.h \
 	modules/TIBCO/tibrv-module.h \
+	modules/TIBCO/tibrv.h \
 	modules/TIBCO/QoreApp.h \
 	modules/TIBCO/tibae.h \
 	modules/TIBCO/QoreTibrvTransport.h \

@@ -36,7 +36,7 @@ Qore has TIBCO ActiveEnterprise integration, making it very easy to write script
 
 On the future roadmap:
 * improve mysql driver to support stored procedures
-* improve pcre support, add variable substitution, direct subpattern match extraction capabilities
+* improve pcre support by adding variable substitution
 * add optional strong typing to the language + strongly typed data structures
 * add PostgresSQL and Sybase drivers to the DBI layer
 * add integration with other messaging technologies
@@ -75,6 +75,7 @@ Qore's syntax superficially appears to be a mixture of C and perl with some uniq
 * Qore's operators can change lvalues without references, in Qore a function can change an lvalue only if a reference is passed
 * there is currently no generic equivalent to perl's references.  It is only possible to pass values by reference in Qore if the subroutine includes a local variable argument list
 * Qore does not support enclosures or lamba functions, however Qore's Program class provides a powerful mechanism for embedding logic in a program or even for self-modifying programs
-* Qore does not yet support variable substitution or direct subpattern extraction from regular expressions, but this will change in a future release
+* Qore does not yet support variable substitution from regular expressions, but this will change in a future release
 * Qore does not yet support signal handling; this is planned for a future release (before 1.0)
-* Perl still has more powerful regular expression support, Qore does not yet support subpattern extraction outside the regular expression or variable substitution (this is coming in a future release of Qore), or any of the new advanced features coming up in perl6
+* Qore supports subpattern extraction from a regular expression when the x// operator is used (i.e. $list = "xmlns:wsdl" =~ x/(\w+):(\w+)/ will result in $list = ("xmlns", "wsdl") ) whereas perl uses the $1, $2 automatic variables
+* Perl still has more powerful regular expression support, Qore does not yet support variable substitution (this is coming in a future release of Qore), or any of the new advanced features coming up in perl6

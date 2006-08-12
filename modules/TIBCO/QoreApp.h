@@ -540,14 +540,14 @@ inline MData *QoreApp::instantiate_modeledclass(const MModeledClassDescription *
    //printd(5, "QoreApp::instantiate_modeledclass() %s=%s\n", mcd->getShortName().c_str(), ma->getName().c_str());
    
    // get list of hash elements for object
-   HashIterator *hi = h->newIterator();
+   HashIterator hi(h);
 
    try {
       // instantiate each member
-      while (hi->next())
+      while (hi.next())
       {
-	 char *key = hi->getKey();
-	 QoreNode *t = hi->getValue();
+	 char *key = hi.getKey();
+	 QoreNode *t = hi.getValue();
 	 
 	 const MAttributeDescription *mad;
 	 if (!(mad = mcd->getAttribute(key)))
@@ -555,7 +555,6 @@ inline MData *QoreApp::instantiate_modeledclass(const MModeledClassDescription *
 	    xsink->raiseException("TIBCO-HASH-KEY-INVALID", 
 			   "error instantiating TIBCO class \"%s\", hash key \"%s\" is not an attribute of this class",
 			   mcd->getFullName().c_str(), key);
-	    delete hi;
 	    delete ma;
 	    traceout("QoreApp::instantiate_modeledclass()");
 	    return NULL;
@@ -579,13 +578,11 @@ inline MData *QoreApp::instantiate_modeledclass(const MModeledClassDescription *
    }
    catch (MException &te)
    {
-      delete hi;
       delete ma;
       traceout("QoreApp::instantiate_modeledclass()");
       throw te;
    }
 
-   delete hi;
    traceout("QoreApp::instantiate_modeledclass()");
    return ma;
 }
@@ -625,11 +622,11 @@ inline MData *QoreApp::instantiate_union(const MUnionDescription *mud, QoreNode 
    MUnion *mu = new MUnion(mcr, mud->getFullName());
    if (h->size())
    {
-      HashIterator *hi = h->newIterator();
+      HashIterator hi(h);
       // get the first entry
-      hi->next();
-      char *key = hi->getKey();
-      QoreNode *t = hi->getValue();
+      hi.next();
+      char *key = hi.getKey();
+      QoreNode *t = hi.getValue();
 
       const MMemberDescription *mmd;
       if (!(mmd = mud->getMember(key)))
@@ -637,7 +634,6 @@ inline MData *QoreApp::instantiate_union(const MUnionDescription *mud, QoreNode 
 	 xsink->raiseException("TIBCO-INVALID-KEY", 
 			    "error instantiating TIBCO union \"%s\", hash key \"%s\" is not a member of this union",
 			mud->getFullName().c_str(), key ? key : "(null)");
-	 delete hi;
 	 delete mu;
 	 return NULL;
       }
@@ -647,7 +643,6 @@ inline MData *QoreApp::instantiate_union(const MUnionDescription *mud, QoreNode 
       mu->set(key, md = instantiate_class(t, mmd->getMemberClassDescription(), xsink));
       if (md)
 	 delete md;
-      delete hi;
    }
    
    traceout("QoreApp::instantiate_union()");

@@ -731,22 +731,21 @@ int QoreSocket::sendHTTPMessage(char *method, char *path, char *http_version, cl
    hdr.sprintf("%s %s HTTP/%s\r\n", method, path, http_version);
    if (headers)
    {
-      class HashIterator *hi = headers->newIterator();
+      class HashIterator hi(headers);
 
-      while (hi->next())
+      while (hi.next())
       {
-	 class QoreNode *v = hi->getValue();
+	 class QoreNode *v = hi.getValue();
 	 if (v)
 	 {
 	    if (v->type == NT_STRING)
-	       hdr.sprintf("%s: %s\r\n", hi->getKey(), v->val.String->getBuffer());
+	       hdr.sprintf("%s: %s\r\n", hi.getKey(), v->val.String->getBuffer());
 	    else if (v->type == NT_INT)
-	       hdr.sprintf("%s: %lld\r\n", hi->getKey(), v->val.intval);
+	       hdr.sprintf("%s: %lld\r\n", hi.getKey(), v->val.intval);
 	    else if (v->type == NT_FLOAT)
-	       hdr.sprintf("%s: %f\r\n", hi->getKey(), v->val.floatval);
+	       hdr.sprintf("%s: %f\r\n", hi.getKey(), v->val.floatval);
 	 }
       }
-      delete hi;
    }
    // add data and content-length header if necessary
    if (size && data)
@@ -772,22 +771,21 @@ int QoreSocket::sendHTTPResponse(int code, char *desc, char *http_version, class
    hdr.sprintf("HTTP/%s %03d %s\r\n", http_version, code, desc);
    if (headers)
    {
-      class HashIterator *hi = headers->newIterator();
+      class HashIterator hi(headers);
 
-      while (hi->next())
+      while (hi.next())
       {
-	 class QoreNode *v = hi->getValue();
+	 class QoreNode *v = hi.getValue();
 	 if (v)
 	 {
 	    if (v->type == NT_STRING)
-	       hdr.sprintf("%s: %s\r\n", hi->getKey(), v->val.String->getBuffer());
+	       hdr.sprintf("%s: %s\r\n", hi.getKey(), v->val.String->getBuffer());
 	    else if (v->type == NT_INT)
-	       hdr.sprintf("%s: %lld\r\n", hi->getKey(), v->val.intval);
+	       hdr.sprintf("%s: %lld\r\n", hi.getKey(), v->val.intval);
 	    else if (v->type == NT_FLOAT)
-	       hdr.sprintf("%s: %f\r\n", hi->getKey(), v->val.floatval);
+	       hdr.sprintf("%s: %f\r\n", hi.getKey(), v->val.floatval);
 	 }
       }
-      delete hi;
    }
    // add data and content-length header if necessary
    if (size && data)

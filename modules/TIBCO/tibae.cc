@@ -189,27 +189,25 @@ static inline void set_properties(MAppProperties *appProperties, Hash *h, Except
 {
    tracein("set_properties()");
 
-   HashIterator *hi = h->newIterator();
-   while (hi->next())
+   HashIterator hi(h);
+   while (hi.next())
    {
-      char *key = hi->getKey();
-      if (!hi->getValue())
+      char *key = hi.getKey();
+      if (!hi.getValue())
       {
 	 xsink->raiseException("TIBCO-INVALID-PROPERTIES-HASH", 
 			"properties hash key \"%s\" has value = NOTHING",
 			key);
-	 delete hi;
 	 return;
       }
-      else if (hi->getValue()->type != NT_STRING)
+      else if (hi.getValue()->type != NT_STRING)
       {
 	 xsink->raiseException("TIBCO-INVALID-PROPERTIES-HASH",
 			"properties hash has invalid type \"%s\" for key \"%s\" (must be string)",
-			hi->getValue()->type->name, key);
-	 delete hi;
+			hi.getValue()->type->name, key);
 	 return;
       }
-      char *val = hi->getValue()->val.String->getBuffer();
+      char *val = hi.getValue()->val.String->getBuffer();
 
       if (!strcmp(key, "AppVersion"))
 	 appProperties->setAppVersion(val);
@@ -225,7 +223,6 @@ static inline void set_properties(MAppProperties *appProperties, Hash *h, Except
       else printe("ignoring properties member %s=%s\n", key, val);
 #endif
    }
-   delete hi;
 
    appProperties->setMultiThreaded(); 
    //appProperties->setDefaultStringEncoding(MEncoding::M_ASCII);

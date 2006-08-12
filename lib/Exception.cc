@@ -28,6 +28,27 @@
 #include <qore/Object.h>
 #include <qore/CallStack.h>
 
+void ExceptionSink::outOfMemory()
+{
+#ifdef QORE_OOM
+   // get pre-allocated out of memory exception for this thread
+   class Exception *ex = getOutOfMemoryException();
+   // if it's already been used then return
+   if (!ex)
+      return;
+   // set line and file in exception
+   ex->line = get_pgm_counter();
+   char *f = get_pgm_file();
+   ex->file = f ? strdup(f) : NULL;
+   // there is no callstack in an out-of-memory exception
+   // add exception to list
+   insert(ex);
+#else
+   printf("OUT OF MEMORY: aborting\n");
+   exit(1);
+#endif
+}
+
 Exception::Exception(class QoreNode *n)
 {
    type = ET_USER;

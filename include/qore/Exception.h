@@ -74,6 +74,7 @@ class ExceptionSink {
       }
       inline void assimilate(class ExceptionSink *xs);
       inline void del(class Exception *e);
+      void outOfMemory();
 };
 
 class Exception {

@@ -48,8 +48,8 @@ class QoreSSLPrivateKey : public ReferenceObject
       }
 
    public:
-      inline QoreSSLPrivateKey(EVP_PKEY *p) : pk(p) {}
-      inline QoreSSLPrivateKey(char *fn, class ExceptionSink *xsink)
+      //inline QoreSSLPrivateKey(EVP_PKEY *p) : pk(p) {}
+      inline QoreSSLPrivateKey(char *fn, char *pp = NULL, class ExceptionSink *xsink)
       {
 	 pk = NULL;
 	 FILE *fp = fopen(fn, "r");
@@ -58,12 +58,107 @@ class QoreSSLPrivateKey : public ReferenceObject
 	    xsink->raiseException("SSLPRIVATEKEY-CONSTRUCTOR-ERROR", "'%s': %s", fn, strerror(errno));
 	    return;
 	 }
-	 PEM_read_PrivateKey(fp, &pk, NULL, NULL);
+	 PEM_read_PrivateKey(fp, &pk, NULL, pp ? pp : (void *)"_none_");
 	 fclose(fp);
 	 if (!pk)
 	    xsink->raiseException("SSLPRIVATEKEY-CONSTRUCTOR-ERROR", "error parsing private key file '%s'", fn);
       }
       inline EVP_PKEY *getData() { return pk; }
+      inline class QoreString *getPEM(class ExceptionSink *xsink)
+      {
+	 BIO *bp = BIO_new(BIO_s_mem());
+	 if (!PEM_write_bio_PrivateKey(bp, pk, NULL, NULL, 0, NULL, NULL))
+	 {
+	    BIO_free(bp);
+	    xsink->raiseException("X509-ERROR", "could not create PEM string from private key data");
+	    return NULL;
+	 }
+	 char *buf;
+	 long len = BIO_get_mem_data(bp, &buf);
+
+	 class QoreString *str = new QoreString(buf, (int)len);
+	 BIO_free(bp);
+	 return str;
+      }
+      inline char *getType()
+      {
+	 switch (EVP_PKEY_type(pk->type))
+	 {
+#ifndef OPENSSL_NO_RSA
+	    case EVP_PKEY_RSA:
+	       return "RSA";
+	    case EVP_PKEY_RSA2:
+	       return "RSA2";
+#endif
+#ifndef OPENSSL_NO_DSA
+	    case EVP_PKEY_DSA:
+	       return "DSA";
+	    case EVP_PKEY_DSA1:
+	       return "DSA1";
+	    case EVP_PKEY_DSA2:
+	       return "DSA2";
+	    case EVP_PKEY_DSA3:
+	       return "DSA3";
+	    case EVP_PKEY_DSA4:
+	       return "DSA4";
+#endif
+#ifndef OPENSSL_NO_DH
+	    case EVP_PKEY_DH:
+	       return "DH";
+#endif
+	    default:
+	       return "unknown";
+	 }
+      }
+      inline int64 getVersion()
+      {
+	 switch (EVP_PKEY_type(pk->type))
+	 {
+#ifndef OPENSSL_NO_RSA
+	    case EVP_PKEY_RSA:
+	       return (int64)pk->pkey.rsa->version + 1;
+#endif
+#ifndef OPENSSL_NO_DSA
+	    case EVP_PKEY_DSA:
+	       return (int64)pk->pkey.dsa->version + 1;
+#endif
+#ifndef OPENSSL_NO_DH
+	    case EVP_PKEY_DH:
+	       return (int64)pk->pkey.dh->version + 1;
+#endif
+	    default:
+	       return 0;
+	 }
+      }
+      // returns the length in bits
+      inline int64 getBitLength()
+      {
+	 switch (EVP_PKEY_type(pk->type))
+	 {
+#ifndef OPENSSL_NO_RSA
+	    case EVP_PKEY_RSA:
+	       return (int64)RSA_size(pk->pkey.rsa) * 8;
+#endif
+#ifndef OPENSSL_NO_DSA
+	    case EVP_PKEY_DSA:
+	       return (int64)DSA_size(pk->pkey.dsa) * 8;
+#endif
+#ifndef OPENSSL_NO_DH
+	    case EVP_PKEY_DH:
+	       return (int64)DH_size(pk->pkey.dh) * 8;
+#endif
+	    default:
+	       return 0;
+	 }
+      }
+      inline class Hash *getInfo()
+      {
+	 class Hash *h = new Hash();
+	 h->setKeyValue("type", new QoreNode(getType()), NULL);
+	 h->setKeyValue("version", new QoreNode(getVersion()), NULL);
+	 h->setKeyValue("bitLength", new QoreNode(getBitLength()), NULL);
+	 return h;
+      }
       inline void deref()
       {
 	 if (ROdereference())

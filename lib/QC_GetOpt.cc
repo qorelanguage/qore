@@ -135,18 +135,18 @@ class QoreNode *GETOPT_constructor(class Object *self, class QoreNode *params, E
    class GetOpt *g = new GetOpt();
    self->setPrivate(CID_GETOPT, g, getGetOpt);
 
-   class HashIterator *hi = p0->val.hash->newIterator();
+   class HashIterator hi(p0->val.hash);
    class QoreString vstr;
-   while (hi->next())
+   while (hi.next())
    {
-      char *k = hi->getKey();
+      char *k = hi.getKey();
       if (!strcmp(k, "_ERRORS_"))
       {
 	 xsink->raiseException("GETOPT-PARAMETER-ERROR", "option key '%s' is reserved for errors in the output hash", k);
 	 break;
       }
 
-      class QoreNode *v = hi->getValue();
+      class QoreNode *v = hi.getValue();
       if (!v || v->type != NT_STRING)
       {
 	 xsink->raiseException("GETOPT-PARAMETER-ERROR", "value of option key '%s' is not a string (%s)", k,
@@ -226,7 +226,6 @@ class QoreNode *GETOPT_constructor(class Object *self, class QoreNode *params, E
 	 break;
       }
    }
-   delete hi;
    return NULL;
 }
 

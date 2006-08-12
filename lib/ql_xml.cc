@@ -303,12 +303,12 @@ static void addXMLElement(char *key, QoreString *str, QoreNode *n, int indent, c
 	 if (attrib && attrib->type == NT_HASH)
 	 {
 	    // add attributes to node
-	    HashIterator *hi = attrib->val.hash->newIterator();
-	    while (hi->next())
+	    HashIterator hi(attrib->val.hash);
+	    while (hi.next())
 	    {
-	       char *key = hi->getKey();
+	       char *key = hi.getKey();
 	       str->sprintf(" %s=\"", key);
-	       class QoreNode *v = hi->getValue();
+	       class QoreNode *v = hi.getValue();
 	       if (v)
 		  if (v->type == NT_STRING)
 		     str->concatAndHTMLEncode(v->val.String, xsink);
@@ -321,7 +321,6 @@ static void addXMLElement(char *key, QoreString *str, QoreNode *n, int indent, c
 	       
 	       str->concat('\"');
 	    }
-	    delete hi;
 	 }
 
 	 //printd(5, "inc=%d vn=%d\n", inc, vn);
@@ -389,11 +388,11 @@ static void addXMLElement(char *key, QoreString *str, QoreNode *n, int indent, c
 static void makeXMLString(QoreString *str, Hash *h, int indent, class QoreEncoding *ccs, int format, class ExceptionSink *xsink)
 {
    tracein("makeXMLString()");
-   HashIterator *hi = h->newIterator();
+   HashIterator hi(h);
    bool done = false;
-   while (hi->next())
+   while (hi.next())
    {
-      QoreString *keyStr = hi->getKeyString();
+      QoreString *keyStr = hi.getKeyString();
       // convert string if needed
       if (keyStr->getEncoding() != ccs)
       {
@@ -417,7 +416,7 @@ static void makeXMLString(QoreString *str, Hash *h, int indent, class QoreEncodi
       if (!strncmp(key, "^value", 6))
       {
 	 delete keyStr;
-	 concatSimpleValue(str, hi->getValue(), xsink);
+	 concatSimpleValue(str, hi.getValue(), xsink);
 	 continue;
       }
 
@@ -446,11 +445,10 @@ static void makeXMLString(QoreString *str, Hash *h, int indent, class QoreEncodi
 	    str->concat(' ');
       }
       //printd(5, "makeXMLString() level %d adding member %s\n", indent / 2, node->getBuffer());
-      addXMLElement(key, str, hi->getValue(), indent, key, ccs, format, xsink);
+      addXMLElement(key, str, hi.getValue(), indent, key, ccs, format, xsink);
       done = true;
       delete keyStr;
    }
-   delete hi;
    traceout("makeXMLString()");
 }
 
@@ -601,17 +599,16 @@ static inline void addXMLRPCValueInternHash(QoreString *str, Hash *h, int indent
 {
    str->concat("<struct>");
    if (format) str->concat('\n');
-   HashIterator *hi = h->newIterator();
-   while (hi->next())
+   HashIterator hi(h);
+   while (hi.next())
    {
-      QoreString *member = hi->getKeyString();
+      QoreString *member = hi.getKeyString();
       // convert string if needed
       if (member->getEncoding() != ccs)
       {
 	 QoreString *ns = member->convertEncoding(ccs, xsink);
 	 if (xsink->isEvent())
 	 {
-	    delete hi;
 	    delete member;
 	    return;	    
 	 }
@@ -637,7 +634,7 @@ static inline void addXMLRPCValueInternHash(QoreString *str, Hash *h, int indent
       delete member;
       str->concat("</name>");
       if (format) str->concat('\n');
-      QoreNode *val = hi->getValue();
+      QoreNode *val = hi.getValue();
       addXMLRPCValue(str, val, indent + 6, ccs, format, xsink);
       // indent
       if (format)
@@ -646,7 +643,6 @@ static inline void addXMLRPCValueInternHash(QoreString *str, Hash *h, int indent
       str->concat("</member>");
       if (format) str->concat('\n');
    }
-   delete hi;
    // indent
    if (format)
       for (int j = 0; j < indent + 2; j++)
@@ -1764,22 +1760,19 @@ static void addXMLElementNew(xmlTextWriterPtr writer, QoreNode *n, xmlChar *key,
    if (n->type == NT_HASH && (attrib = n->val.hash->getKeyValue("^attributes^")) && attrib->type == NT_HASH)
    {
       // add attributes to node
-      HashIterator *hi = attrib->val.hash->newIterator();
-      while (hi->next())
+      HashIterator hi(attrib->val.hash);
+      while (hi.next())
       {
-	 class QoreNode *v = hi->getValue();
+	 class QoreNode *v = hi.getValue();
 	 if (v)
 	 {
-	    QoreString *akey = hi->getKeyString();
+	    QoreString *akey = hi.getKeyString();
 	    if (akey->getEncoding() != QCS_UTF8)
 	    {
 	       QoreString *t = akey->convertEncoding(QCS_UTF8, xsink);
 	       delete akey;
 	       if (xsink->isEvent())
-	       {
-		  delete hi;
 		  return;
-	       }
 	       akey = t;
 	    }
 
@@ -1796,7 +1789,6 @@ static void addXMLElementNew(xmlTextWriterPtr writer, QoreNode *n, xmlChar *key,
 	       if (xsink->isEvent())
 	       {
 		  delete akey;
-		  delete hi;
 		  if (t != v)
 		     t->deref(xsink);
 		  return;
@@ -1808,7 +1800,6 @@ static void addXMLElementNew(xmlTextWriterPtr writer, QoreNode *n, xmlChar *key,
 	    if (xmlTextWriterWriteAttribute(writer, (xmlChar *)akey->getBuffer(), (xmlChar *)val->getBuffer()) < 0)
 	    {
 	       delete akey;
-	       delete hi;
 	       if (val != t->val.String)
 		  delete val;
 	       if (t != v)
@@ -1824,7 +1815,6 @@ static void addXMLElementNew(xmlTextWriterPtr writer, QoreNode *n, xmlChar *key,
 	       t->deref(xsink);
 	 }
       }
-      delete hi;
    }
 
    if (n->type == NT_HASH)
@@ -1908,10 +1898,10 @@ static void addXMLElementNew(xmlTextWriterPtr writer, QoreNode *n, xmlChar *key,
 static void makeXMLStringNew(xmlTextWriterPtr writer, Hash *h, class ExceptionSink *xsink)
 {
    tracein("makeXMLStringNew()");
-   HashIterator *hi = h->newIterator();
-   while (hi->next())
+   HashIterator hi(h);
+   while (hi.next())
    {
-      QoreString *keyStr = hi->getKeyString();
+      QoreString *keyStr = hi.getKeyString();
       // convert string if needed
       if (keyStr->getEncoding() != QCS_UTF8)
       {
@@ -1941,7 +1931,7 @@ static void makeXMLStringNew(xmlTextWriterPtr writer, Hash *h, class ExceptionSi
 	 break;
       }
 
-      QoreNode *value = hi->getValue();
+      QoreNode *value = hi.getValue();
       if (xmlTextWriterStartElement(writer, (xmlChar *)key) < 0)
       {
 	 xsink->raiseException("XML-WRITER-ERROR", "xmlTextWriterStartElement() returned an error");
@@ -1961,7 +1951,6 @@ static void makeXMLStringNew(xmlTextWriterPtr writer, Hash *h, class ExceptionSi
 
       delete keyStr;
    }
-   delete hi;
    traceout("makeXMLStringNew()");
 }
 
@@ -2187,17 +2176,16 @@ static inline void addXMLRPCValueInternHashNew(xmlTextWriterPtr writer, Hash *h,
       return;
    }
 
-   HashIterator *hi = h->newIterator();
-   while (hi->next())
+   HashIterator hi(h);
+   while (hi.next())
    {
-      QoreString *member = hi->getKeyString();
+      QoreString *member = hi.getKeyString();
       // convert string if needed
       if (member->getEncoding() != QCS_UTF8)
       {
 	 QoreString *ns = member->convertEncoding(QCS_UTF8, xsink);
 	 if (xsink->isEvent())
 	 {
-	    delete hi;
 	    delete member;
 	    return;	    
 	 }
@@ -2208,21 +2196,18 @@ static inline void addXMLRPCValueInternHashNew(xmlTextWriterPtr writer, Hash *h,
       //else printd(0, "addXMLRPCValueInternHash() not converting %s \"%s\"\n", member->getEncoding()->code, member->getBuffer());
       if (xmlTextWriterStartElement(writer, (xmlChar *)"member") < 0)
       {
-	 delete hi;
 	 delete member;
 	 xsink->raiseException("XML-WRITER-ERROR", "xmlTextWriterStartElement() returned an error");
 	 return;
       }
       if (xmlTextWriterStartElement(writer, (xmlChar *)"name") < 0)
       {
-	 delete hi;
 	 delete member;
 	 xsink->raiseException("XML-WRITER-ERROR", "xmlTextWriterStartElement() returned an error");
 	 return;
       }
       if (xmlTextWriterWriteString(writer, (xmlChar *)member->getBuffer()) < 0)
       {
-	 delete hi;
 	 delete member;
 	 xsink->raiseException("XML-WRITER-ERROR", "xmlTextWriterWriteString() returned an error");
 	 return;
@@ -2232,22 +2217,19 @@ static inline void addXMLRPCValueInternHashNew(xmlTextWriterPtr writer, Hash *h,
       // close "name"
       if (xmlTextWriterEndElement(writer) < 0)
       {
-	 delete hi;
 	 xsink->raiseException("XML-WRITER-ERROR", "xmlTextWriterEndElement() returned an error");
 	 return;
       }
-      QoreNode *val = hi->getValue();
+      QoreNode *val = hi.getValue();
       addXMLRPCValueNew(writer, val, xsink);
 
       // close "member"
       if (xmlTextWriterEndElement(writer) < 0)
       {
-	 delete hi;
 	 xsink->raiseException("XML-WRITER-ERROR", "xmlTextWriterEndElement() returned an error");
 	 return;
       }
    }
-   delete hi;
    // close "struct"
    if (xmlTextWriterEndElement(writer) < 0)
       xsink->raiseException("XML-WRITER-ERROR", "xmlTextWriterEndElement() returned an error");

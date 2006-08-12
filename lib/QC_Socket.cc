@@ -1411,8 +1411,11 @@ static QoreNode *SOCKET_setPrivateKey(class Object *self, class QoreNode *params
 
    if (p0 && p0->type == NT_STRING)
    {
-      // try and create object
-      pk = new QoreSSLPrivateKey(p0->val.String->getBuffer(), xsink);
+      // get passphrase if present
+      QoreNode *p1 = test_param(params, NT_STRING, 1);
+      char *pp = p1 ? p1->val.String->getBuffer() : NULL;
+      // Try and create object
+      pk = new QoreSSLPrivateKey(p0->val.String->getBuffer(), pp, xsink);
       if (xsink->isEvent())
       {
 	 pk->deref();

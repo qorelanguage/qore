@@ -30,21 +30,38 @@ if you have the open headers and libraries in a location the configure script ca
 
 NOTE that --enable-builtin-modules will only work with libtool 1.5.22 or better, which you have to copy to the root build directory by hand before you build the modules, otherwise libtool doesn't build the static libraries properly
 
+"configure" Option Overview
+---------------------------
+--enable-64bit                 : to build a 64-bit binary (currently only supported on x86_64 architectures) - the default is to build a 32-bit binary even on 64-bit platforms
+--disable-debug                : to disable debugging code - if you are not planning on debugging the qore language itselfm then it is highly advised to include this flag, as enableing debugging in qore slows down the language a great deal
+--prefix=<dir>                 : default=/usr/local = qore in /usr/local/bin, libraries in /usr/local/lib, modules in /usr/local/lib/qore-<ver>/
+--enable-builtin-modules       : will include code for all modules included in the source distrcibution directly in the shared library - note that this requires a recent version of libtool otherwise it will fail - normally this option should not be used
+--with-openssl-libs=<dir>      : directory for openssl library
+--with-openssl-includes=<dir>  : directory for openssl include files
+--with-pcre-libs=<dir>         : directory for pcre library
+--with-pcre-includes=<dir>     : directory for pcre includes
+--with-tibrv=<dir>             : directory for TIBCO Rendezvous installation ("tibrv" module)
+--with-tibae=<dir>             : directory for TIBCO AE SDK ("tibae" module)
+--with-tibae-tpcl=<dir>        : directory for TIBCO AE TPCL installation ("tibae" module)
+--with-oracle=<dir>            : directory for Oracle installation ("oracle" module)
+--with-mysql-includes=<dir>    : directory for MySQL includes ("mysql" module)
+--with-mysql-libs=<dir>        : directory for MySQL libraries ("mysql" module)
+
 ========= to build optional modules ==========
 
-*) Oracle 9i or better for the Oracle DBI module
+*) "oracle": Oracle DBI module requires Oracle 9i or better
 If you have Oracle 9i or higher you can build in Oracle integration.  Make sure your ORACLE_HOME is set before calling configure (otherwise use the --with-oracle configure option).  Header files and libraries must be available in the standard locations.  Oracle support is good.  See below for information on limitations of the Oracle driver.
 
-*) MySQL 3.3 or better for the MySQL DBI module
+*) "mysql": MySQL DBI module requires MySQL 3.3 or better
 If you have MySQL 3.3+ or better you can build in MySQL support.  With MySQL 4.1+ you can get transaction support and the module will use the more efficient prepared statement interface.
 
-*) TIBCO Rendezvous for the "tibrv" module
+*) "tibrv": TIBCO Rendezvous module
 Set the RV_ROOT environment variable to the Rendezvous directory (or use the --with-tibrv configure option) to build the "tibrv" module for direct Rendezvous support.  Note that to build this module the libtibrvcpp library must be present; on some platforms you have to rebuild this yourself from the sources provided by TIBCO in order for it to link with the C++ compiler you are using - the sources are normally present in $RV_ROOT/src/librvcpp, normally you have to edit the Makefile provided there and then type "make" to rebuild.  I had to include "ranlib libtibrvcpp.a" on the libraries I rebuilt for OS X.
 
-*) TIBCO SDK 5.2.1 or better for the "tibae" module
+*) "tibae": TIBCO AE module requires TIBCO SDK 5.2.1 or better
 If you have TIBCO Rendezvous and the AE SDK installed, and the supported C++ compiler, you can build in TIBCO AE integration.  Make sure that the RV_ROOT, SDK_ROOT, and TPCL_ROOT environment variables are pointing to your Rendezvous, SDK, and TPCL directories respectively.  Otherwise you can use the --with-tibrv, --with-tibae, and with-tibae-tpcl configure options.  The TIBCO module will compile with SDK 4.* versions, but there are so many bugs in this version of the SDK (including some horrible dynamic memory leaks) that it doesn't make sense to use anything before 5.2.1...
 
-*) ncurses for the "ncurses" module
+*) "ncurses": ncurses module
 note that this module is still experimental due to the fact that I'm not sure if it's possible to safely enable threading without putting a big lock around every curses call.  Right now Solaris curses is not properly detected by the configure script although if it were it will actually build the module - I have to fix this in configure.ac
 
 To build qore, run the following commands:
@@ -63,7 +80,7 @@ by default the program will be installed in /usr/local/bin and libraries in /usr
 OS-Specific Issues
 ------------------
 *) Linux:
-there are no particular issues on Linux, this is the main development platform.  
+there are no particular issues on Linux, this is the main development platform.
 Various distributions have been tested: FC3, FC4, FC5, Gentoo, Ubuntu, ARCH, etc
 
 *) Darwin - OS/X
@@ -71,7 +88,7 @@ I use fink to provide libtool 1.5.10 (libtool14 package), which works for me to 
 Older builds worked fine with 10.3.8, currently the new version with shared libraries & modules has been tested only on 10.4.[234] with g++ 4.0.0 (with some fink components)
 
 *) Solaris:
-The g++ builds work fine (tested with g++ 4.0.1).  With CC (which I use to get the TIBCO SDK to link) I build a monolithic binary for easier deployment on our production site.  hash_map is detected and supported with CC 5.5 and stlport4 as well, however it is disabled if the TIBCO module is compiled in, because stlport4 clashes with the iostream library already linked in to the TIBCO SDK, therefore hash lookups will be slower on Solaris if the TIBCO module is used :-(
+The g++ builds work fine (tested with g++ 4.0.1).  With CC (which I use to get the TIBCO AE SDK to link) I build a monolithic binary for easier deployment on our production site.  hash_map is detected and supported with CC 5.5 and stlport4 as well, however it is disabled if the "tibae" module is compiled in, because stlport4 clashes with the iostream library already linked in to the TIBCO AE SDK, therefore hash lookups will be slower on Solaris if the "tibae" module is used :-(
 
 *) FreeBSD
 I have heard that qore builds fine, but I have not actually seen it myself, nor do I have access to a FreeBSD platform for testing :-(

@@ -394,14 +394,13 @@ class QoreString *dni(class QoreString *s, class QoreNode *n, int indent, class 
       s->sprintf("elements=%d\n", n->val.hash->size());
       {
          int i = 0;
-         HashIterator *hi = n->val.hash->newIterator();
-         while (hi->next())
+         HashIterator hi(n->val.hash);
+         while (hi.next())
          {
             strindent(s, indent);
-            s->sprintf("key %d/%d \"%s\" = ", i++, n->val.hash->size(), hi->getKey());
-            dni(s, hi->getValue(), indent + 3, xsink);
+            s->sprintf("key %d/%d \"%s\" = ", i++, n->val.hash->size(), hi.getKey());
+            dni(s, hi.getValue(), indent + 3, xsink);
          }
-         delete hi;
       }
    }
 

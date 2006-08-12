@@ -29,8 +29,7 @@ type mapping:
 note that when the digest functions are run on strings, the trailing null character is not included in the digest calculation.  however, when the cryptographic functions are run on strings, the trailing null is included.
 
 *) improved XML serialization and deserialization
-mixed elements and text can now be serialized and deserialized without data loss (except whitespace is still not retained) - for example, now it's possible to deserialize (parse) a docbook xml file and then reserialize it (generate the XML from the Qore data structure) without losing information.
-
+mixed elements and text can now be serialized and deserialized without data loss (except whitespace is still not retained) - for example, now it's possible to deserialize (parse) a docbook xml file and then reserialize it (generate the XML from the Qore data structure) without losing information (this was not possible with previous versions of qore).
 
 
 ***********************
@@ -66,7 +65,7 @@ The "tibrv" module provides direct TIBCO Rendezvous support, allowing qore progr
 TIBAE
 -----
 The "tibae" module provides Active Enterprise support; it allows qore programs to send and receive TIBCO AE messages based on an external repository.  
-The TibcoAdapter class is provided by this module.  Note that Qore must be built with the compiler required by the TIBCO SDK in order for the TIBCO module to be built.
+The TibcoAdapter class is provided by this module.  Note that Qore must be built with the compiler required by the TIBCO AE SDK in order for the "tibae" module to be built.
 Note that previous versions of these release notes stated that it was not possible to make an adapter that sent synchronous replies - this is incorrect, just set the subject to the replySubject key of the incoming message hash which should be an inbox (point-to-point) subject name.
 * Linux: I use the SDK version 5.3.2 that requires g++ 3.2 (this also fixes a lot of bugs compared to SDK 4.1.* including some big memory leaks).  All other versions I've found for Linux require g++ 2.96, which is an unsupported RedHat-only version.   Note that as far as I know there is no AE SDK support for x86_64 Linux
 * Solaris: qore must be compiled with the SunPro CC compiler in order to be able to use the "tibae" module.   
@@ -90,6 +89,9 @@ The "mysql" DBI driver has not been as extensively tested as the Oracle driver, 
 *) threading support
 *) no stored procedure support
 
+NCURSES
+-------
+experimental: provides the "Panel" and "Window" classes along with many functions and constants - see test/ncurses.q and examples/hanio.q and examples/worms.q for more information. 
 
 *********************
 *** SQL Subsystem ***

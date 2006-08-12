@@ -29,6 +29,7 @@
 #include <qore/module.h>
 #include <qore/ModuleManager.h>
 
+#include "tibrv.h"
 #include "QC_TibrvListener.h"
 #include "QC_TibrvSender.h"
 #include "QC_TibrvFtMember.h"
@@ -63,6 +64,7 @@ int tibrv_module_init()
        fprintf(stderr, "ERROR: cannot open TIB/RV: status=%d: %s\n", (int)status, status.getText());
        return 1;
    }
+   init_tibrv_functions();
    return 0;
 }
 

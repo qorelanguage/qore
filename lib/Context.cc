@@ -105,17 +105,16 @@ class QoreNode *Context::getRow(class ExceptionSink *xsink)
 
    class Hash *h = new Hash();
 
-   class HashIterator *hi = value->val.hash->newIterator();
-   while (hi->next())
+   class HashIterator hi(value->val.hash);
+   while (hi.next())
    {
-      char *key = hi->getKey();
+      char *key = hi.getKey();
       //char *key = l->retrieve_entry(i)->val.String->getBuffer();
       printd(5, "Context::getRow() key=%s\n", key);
       // get list from hash
-      class QoreNode *v = hi->eval(xsink);
+      class QoreNode *v = hi.eval(xsink);
       if (xsink->isEvent())
       {
-	 delete hi;
 	 h->dereference(xsink);
 	 delete h;
 	 return NULL;
@@ -125,7 +124,6 @@ class QoreNode *Context::getRow(class ExceptionSink *xsink)
       v->deref(xsink);
    }
    
-   delete hi;
    return new QoreNode(h);
 }
 
@@ -274,6 +272,11 @@ Context::Context(char *nme, ExceptionSink *xsink, class QoreNode *exp, class Qor
       if (max_pos)
       {
 	 row_list = (int *)malloc(sizeof(int) * max_pos);
+	 if (!row_list)
+	 {
+	    xsink->outOfMemory();
+	    return;
+	 }
 	 memcpy(row_list, next->row_list, sizeof(int) * max_pos);
 	 printd(5, "Context::Context() subcontext: max_pos=%d row_list=%08x\n", max_pos, row_list);
       }
@@ -300,8 +303,15 @@ Context::Context(char *nme, ExceptionSink *xsink, class QoreNode *exp, class Qor
 
       if (fkv && fkv->type == NT_LIST)
       {
-	 max_pos = fkv->val.list->size();
 	 row_list = (int *)malloc(sizeof(int) * max_pos);
+	 if (!row_list)
+	 {
+	    xsink->outOfMemory();
+	    if (fkv)
+	       fkv->deref(xsink);
+	    return;
+	 }
+	 max_pos = fkv->val.list->size();
 
 	 for (int i = 0; i < max_pos; i++)
 	    row_list[i] = i;
@@ -342,6 +352,12 @@ Context::Context(char *nme, ExceptionSink *xsink, class QoreNode *exp, class Qor
    {
       // use master_row_list to hold the new row_list
       master_row_list = (int *)malloc(sizeof(int) * max_pos);
+      if (!master_row_list)
+      {
+	 xsink->outOfMemory();
+	 return;
+      }
+
       // iterate each row in results
       for (pos = 0; pos < max_pos; pos++)
       {
@@ -463,8 +479,13 @@ Context::Context(char *nme, ExceptionSink *xsink, class QoreNode *exp, class Qor
 	 group_values[max_group_pos].node = node;
 	 group_values[max_group_pos].num_rows = 1;
 	 group_values[max_group_pos].allocated = ROW_BLOCK;
-	 group_values[max_group_pos].row_list = 
-	    (int *)malloc(sizeof(int) * ROW_BLOCK);
+	 group_values[max_group_pos].row_list = (int *)malloc(sizeof(int) * ROW_BLOCK);
+	 if (!group_values[max_group_pos].row_list)
+	 {
+	    xsink->outOfMemory();
+	    return;
+	 }
+
 	 printd(5, "%d: start row_list: %08x\n", max_group_pos, 
 		group_values[max_group_pos].row_list);
 	 group_values[max_group_pos].row_list[0] = 

@@ -133,14 +133,10 @@ bool needsEval(class QoreNode *n)
 
    if (n->type == NT_HASH)
    {
-      class HashIterator *hi = n->val.hash->newIterator();
-      while (hi->next())
-	 if (needsEval(hi->getValue()))
-	 {
-	    delete hi;
+      class HashIterator hi(n->val.hash);
+      while (hi.next())
+	 if (needsEval(hi.getValue()))
 	    return true;
-	 }
-      delete hi;
       // here we set needs_eval to false so the hash won't be evaluated again
       n->val.hash->needs_eval = false;
       return false;

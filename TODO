@@ -1,5 +1,4 @@
 see docs/roadmap.html
 
 * add signal constants
-* fix XML parsing, generation, ex: <para>hello(<replaceable>int</replaceable>)</para>
 * add parse-time argument checks (instead of just run-time exceptions)

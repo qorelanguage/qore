@@ -393,9 +393,14 @@ else
    fi
 fi
 
+# FIXME: add check for rendezvous linking and SD support
 if test -n "$with_tibrv"; then
    TIBRV_CPPFLAGS="-I${with_tibrv}/include"
    TIBRV_LIBS="-L${with_tibrv}/lib -ltibrv${LIBSUFFIX} -ltibrvcm${LIBSUFFIX} -ltibrvcmq${LIBSUFFIX} -ltibrvcpp${LIBSUFFIX} -ltibrvft${LIBSUFFIX} -ltibrvsd${LIBSUFFIX}"
+   if test -n "$with_tibrv_sd"; then
+      TIBRV_LIBS="$TIBRV_LIBS -lcrypto"
+      AC_DEFINE(TIBRV_SD, 1, Define if TIBCO Rendezvous secure daemon support should be included)
+   fi
    AC_SUBST(TIBRV_CPPFLAGS)
    AC_SUBST(TIBRV_LIBS)
    AC_DEFINE(TIBRV, 1, Define if TIBCO Rendezvous support should be included)

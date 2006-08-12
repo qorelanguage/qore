@@ -135,10 +135,12 @@ class Hash
       inline bool compareSoft(class Hash *h, class ExceptionSink *xsink);
       inline bool compareHard(class Hash *h);
       inline class QoreNode *evalFirstKeyValue(class ExceptionSink *xsink);
+      /*
       inline class HashIterator *newIterator()
       {
 	 return new HashIterator(member_list);
       }
+      */
 #ifdef HAVE_QORE_HASH_MAP
       inline int size() { return hm.size(); }
 #else

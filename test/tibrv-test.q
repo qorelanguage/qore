@@ -66,6 +66,8 @@ class tibrv_test {
 	      "list"   : ( "one", 2.0, 3, 2001-12-28, 2005-03-11, True, ( "hash" : "value", "key" : 39293 )),
 	      "hash"   : ( "key1" : "value1", "key-two" : 5001, "list" : (1, 2, 4, 5, 6) ) );
 
+	printf("Rendezvous version is: %s\n", tibrvGetVersion());
+
 	my $al;
 	if ($.o.advisory)
 	    $al = new AdvisoryListener();

@@ -340,11 +340,10 @@ static class QoreNode *f_hash_values(class QoreNode *params, ExceptionSink *xsin
       return NULL;
 
    class List *l = new List();
-   class HashIterator *hi = p0->val.hash->newIterator();
-   while (hi->next() && !xsink->isEvent())
-      l->push(hi->eval(xsink));
+   class HashIterator hi(p0->val.hash);
+   while (hi.next() && !xsink->isEvent())
+      l->push(hi.eval(xsink));
 
-   delete hi;
    if (xsink->isEvent())
    {
       l->dereference(xsink);
