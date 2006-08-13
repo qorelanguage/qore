@@ -115,6 +115,81 @@ static class QoreNode *f_tibrvSetUserCertWithKey(class QoreNode *params, class E
 }
 #endif
 
+static class QoreNode *tibrv_hash_helper(char *key, class QoreNode *val)
+{
+   class Hash *h = new Hash();
+   if (val)
+      val->ref();
+   h->setKeyValue("^type^", new QoreNode(key), NULL);
+   h->setKeyValue("^value^", val, NULL);
+   return new QoreNode(h);
+}
+
+static class QoreNode *f_tibrv_i8(class QoreNode *params, class ExceptionSink *xsink)
+{
+   return tibrv_hash_helper("i8", get_param(params, 0));
+}
+
+static class QoreNode *f_tibrv_u8(class QoreNode *params, class ExceptionSink *xsink)
+{
+   return tibrv_hash_helper("u8", get_param(params, 0));
+}
+
+static class QoreNode *f_tibrv_i16(class QoreNode *params, class ExceptionSink *xsink)
+{
+   return tibrv_hash_helper("i16", get_param(params, 0));
+}
+
+static class QoreNode *f_tibrv_u16(class QoreNode *params, class ExceptionSink *xsink)
+{
+   return tibrv_hash_helper("u16", get_param(params, 0));
+}
+
+static class QoreNode *f_tibrv_i32(class QoreNode *params, class ExceptionSink *xsink)
+{
+   return tibrv_hash_helper("i32", get_param(params, 0));
+}
+
+static class QoreNode *f_tibrv_u32(class QoreNode *params, class ExceptionSink *xsink)
+{
+   return tibrv_hash_helper("u32", get_param(params, 0));
+}
+
+static class QoreNode *f_tibrv_i64(class QoreNode *params, class ExceptionSink *xsink)
+{
+   return tibrv_hash_helper("i64", get_param(params, 0));
+}
+
+static class QoreNode *f_tibrv_u64(class QoreNode *params, class ExceptionSink *xsink)
+{
+   return tibrv_hash_helper("u64", get_param(params, 0));
+}
+
+static class QoreNode *f_tibrv_f32(class QoreNode *params, class ExceptionSink *xsink)
+{
+   return tibrv_hash_helper("f32", get_param(params, 0));
+}
+
+static class QoreNode *f_tibrv_f64(class QoreNode *params, class ExceptionSink *xsink)
+{
+   return tibrv_hash_helper("f64", get_param(params, 0));
+}
+
+static class QoreNode *f_tibrv_ipport16(class QoreNode *params, class ExceptionSink *xsink)
+{
+   return tibrv_hash_helper("ipport16", get_param(params, 0));
+}
+
+static class QoreNode *f_tibrv_ipaddr32(class QoreNode *params, class ExceptionSink *xsink)
+{
+   return tibrv_hash_helper("ipaddr32", get_param(params, 0));
+}
+
+static class QoreNode *f_tibrv_xml(class QoreNode *params, class ExceptionSink *xsink)
+{
+   return tibrv_hash_helper("xml", get_param(params, 0));
+}
+
 static class QoreNode *f_tibrvGetVersion(class QoreNode *params, class ExceptionSink *xsink)
 {
    return new QoreNode(Tibrv::version());
@@ -127,4 +202,17 @@ void init_tibrv_functions()
    builtinFunctions.add("tibrvSetUserCertWithKey", f_tibrvSetUserCertWithKey);
 #endif
    builtinFunctions.add("tibrvGetVersion", f_tibrvGetVersion);
+   builtinFunctions.add("tibrv_i8",        f_tibrv_i8);
+   builtinFunctions.add("tibrv_u8",        f_tibrv_u8);
+   builtinFunctions.add("tibrv_i16",       f_tibrv_i16);
+   builtinFunctions.add("tibrv_u16",       f_tibrv_u16);
+   builtinFunctions.add("tibrv_i32",       f_tibrv_i32);
+   builtinFunctions.add("tibrv_u32",       f_tibrv_u32);
+   builtinFunctions.add("tibrv_i64",       f_tibrv_i64);
+   builtinFunctions.add("tibrv_u64",       f_tibrv_u64);
+   builtinFunctions.add("tibrv_f32",       f_tibrv_f32);
+   builtinFunctions.add("tibrv_f64",       f_tibrv_f64);
+   builtinFunctions.add("tibrv_ipport16",  f_tibrv_ipport16);
+   builtinFunctions.add("tibrv_ipaddr32",  f_tibrv_ipaddr32);
+   builtinFunctions.add("tibrv_xml",       f_tibrv_xml);
 }

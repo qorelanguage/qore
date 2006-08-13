@@ -47,14 +47,29 @@ class tibrv_test {
 
 	# setup test message
 	$.test_msg = 
-	    ( "string" : "this is a string",
-	      "int"    : 43991883840175,
-	      "float"  : 2.95743823,
-	      "bool"   : True,
-	      "binary" : binary("hello there"),
-	      "date"   : 2006-08-07-17:04:52,
-	      "list"   : ( 1, "two", 3.0, 1998-09-11, False, 4, 2, "string" ),
-	      "hash"   : ( "key" : "value", "key2" : 400.1 ) );
+	    ( "string"     : "this is a string",
+	      "int"        : 43991883840175,
+	      "float"      : 2.95743823,
+	      "bool"       : True,
+	      "binary"     : binary("hello there"),
+	      "date"       : 2006-08-07-17:04:52,
+	      "list"       : ( 1, "two", 3.0, 1998-09-11, False, 4, 2, "string" ),
+	      "hash"       : ( "key" : "value", "key2" : 400.1 ),
+	      "i8"         : tibrv_i8(-10),
+	      "u8"         : tibrv_u8(234),
+	      "i16"        : tibrv_i16(23049),
+	      "u16"        : tibrv_u16(65530),
+	      "i32"        : tibrv_i32(23493922),
+	      "u32"        : tibrv_u32(233929394),
+	      "i64"        : tibrv_i64(34203480324802342),
+	      "u64"        : tibrv_u64(99123939291923212),
+	      "f32"        : tibrv_f32(3949.5),
+	      "f64"        : tibrv_f64(-34993.12353491),
+	      "ipport16"   : tibrv_ipport16(25),
+	      "ipaddr32"   : tibrv_ipaddr32("192.168.0.1"),
+	      "xml"        : tibrv_xml(makeXMLString(( "hello" : "val" ))) );
+
+	$.test_msg_compare = $.make_comparison_hash($.test_msg);
 
 	$.answer = 
 	    ( "string" : "this is another string",
@@ -109,6 +124,19 @@ class tibrv_test {
 	exit();
     }
 
+    private make_comparison_hash($h)
+    {
+	my $nh;
+	foreach my $key in (keys $h)
+	{
+	    if (exists $h.$key."^type^")
+		$nh.$key = $h.$key."^value^";
+	    else
+		$nh.$key = $h.$key;
+	}
+	return $nh;
+    }
+
     private printf($msg)
     {
 	stdout.vprintf($msg, $argv);
@@ -147,9 +175,9 @@ class tibrv_test {
 
     private compareMessage($msg, $type)
     {
-	if ($msg.msg != $.test_msg)
+	if ($msg.msg != $.test_msg_compare)
 	{
-	    printf("%s MESSAGING ERROR: msg=%n != test_msg=%n\n", $type, $msg.msg, $.test_msg);
+	    printf("%s MESSAGING ERROR: msg=%n != test_msg=%n\n", $type, $msg.msg, $.test_msg_compare);
 	    exit(1);
 	}
     }

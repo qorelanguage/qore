@@ -80,13 +80,13 @@ class QoreTibrvTransport
 	 return 0;
       }
 
+      int doEncodedType(TibrvMsg *msg, char *key, char *type, class QoreNode *val, class ExceptionSink *xsink);
       class Hash *parseMsg(TibrvMsg *msg, class ExceptionSink *xsink);
       class Hash *msgToHash(TibrvMsg *msg, class ExceptionSink *xsink);
       int hashToMsg(TibrvMsg *msg, class Hash *hash, class ExceptionSink *xsink);
       int valueToField(char *key, class QoreNode *v, TibrvMsg *msg, class ExceptionSink *xsink);
       class QoreNode *fieldToNode(TibrvMsgField *field, class ExceptionSink *xsink);
       class QoreNode *listToNode(TibrvMsgField *field, class ExceptionSink *xsink);
-
 };
 
 #endif

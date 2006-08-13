@@ -29,6 +29,7 @@
 #include "QoreTibrvTransport.h"
 
 #include <arpa/inet.h>
+#include <stdlib.h>
 
 QoreTibrvTransport::QoreTibrvTransport(char *desc, char *service, char *network, char *daemon, class ExceptionSink *xsink)
 {
@@ -102,11 +103,19 @@ int QoreTibrvTransport::valueToField(char *key, class QoreNode *v, TibrvMsg *msg
    }
    else if (v->type == NT_HASH)
    {
-      TibrvMsg m;
-      hashToMsg(&m, v->val.hash, xsink);
-      if (xsink->isException())
-	 return -1;
-      msg->addMsg(key, m);
+      Hash *h = v->val.hash;
+      //check if it's a type-encoded hash
+      class QoreNode *t;
+      if (h->size() == 2 && (t = h->getKeyValue("^type^")) && (t->type == NT_STRING))
+	 doEncodedType(msg, key, t->val.String->getBuffer(), h->getKeyValue("^value^"), xsink);
+      else
+      {
+	 TibrvMsg m;
+	 hashToMsg(&m, h, xsink);
+	 if (xsink->isException())
+	    return -1;
+	 msg->addMsg(key, m);
+      }
    }
    else if (v->type == NT_BOOLEAN)
       msg->addBool(key, (tibrv_bool)v->val.boolval);
@@ -191,7 +200,7 @@ class Hash *QoreTibrvTransport::msgToHash(TibrvMsg *msg, class ExceptionSink *xs
 	 class QoreNode **evp = h->getKeyValuePtr(key);
 	 if (ev->type != NT_LIST)
 	 {
-	    //printd(0, "QoreTibrvTransport::msgToHash() making list\n");
+	    //printd(5, "QoreTibrvTransport::msgToHash() making list\n");
 	    class List *l = new List();
 	    l->push(ev);
 	    ev = new QoreNode(l);
@@ -214,10 +223,11 @@ class QoreNode *QoreTibrvTransport::fieldToNode(TibrvMsgField *field, class Exce
    class QoreNode *val;
    tibrvLocalData data = field->getData();
 
+   //printd(5, "QoreTibrvTransport::fieldToNode() type=%d\n", field->getType());
+
    switch (field->getType())
    {
       case TIBRVMSG_STRING:
-	 //printd(5, "data.str=%08x\n", data.str);
 	 val = new QoreNode(new QoreString((char *)data.str, enc));
 	 break;
 
@@ -269,8 +279,10 @@ class QoreNode *QoreTibrvTransport::fieldToNode(TibrvMsgField *field, class Exce
       {
 	 class QoreString *addr = new QoreString(enc);
 	 unsigned int ia = ntohl(data.ipaddr32);
+	 //printd(0, "ipaddr32: data=%u conv=%u\n", data.ipaddr32, ia);
 	 unsigned char *uc = (unsigned char*)&ia;
-	 addr->sprintf("%d.%d.%d.%d", uc[0], uc[1], uc[2], uc[3]);
+	 addr->sprintf("%d.%d.%d.%d", (int)uc[3], (int)uc[2], (int)uc[1], (int)uc[0]);
+	 //printd(5, "addr=%s\n", addr->getBuffer());
 	 val = new QoreNode(addr);
 	 break;
       }
@@ -302,8 +314,12 @@ class QoreNode *QoreTibrvTransport::fieldToNode(TibrvMsgField *field, class Exce
       case TIBRVMSG_XML:
       {
 	 class QoreString *str = new QoreString(enc);
-	 str->allocate(field->size + 1);
-	 memcpy(str->getBuffer(), data.buf, field->size);
+	 // ensure that xml string is terminated with a null character in case it wasn't sent
+	 int len = field->size;
+	 if (!((char *)data.buf)[len - 1])
+	    len--;
+	 str->allocate(len);
+	 memcpy(str->getBuffer(), data.buf, len);
 	 val = new QoreNode(str);
 	 break;
       }
@@ -408,4 +424,126 @@ class QoreNode *QoreTibrvTransport::listToNode(TibrvMsgField *field, class Excep
 	 return NULL;
    }
    return new QoreNode(l);
+}
+
+int QoreTibrvTransport::doEncodedType(TibrvMsg *msg, char *key, char *type, class QoreNode *val, class ExceptionSink *xsink)
+{
+   if (type[0] == 'i')
+   {
+      type++;
+      if (!strcmp(type, "8"))
+      {
+	 msg->addI8(key, val ? val->getAsInt() : 0);
+	 return 0;
+      }
+      if (!strcmp(type, "16"))
+      {
+	 msg->addI16(key, val ? val->getAsInt() : 0);
+	 return 0;
+      }
+      if (!strcmp(type, "32"))
+      {
+	 msg->addI32(key, val ? val->getAsInt() : 0);
+	 return 0;
+      }
+      if (!strcmp(type, "64"))
+      {
+	 msg->addI64(key, val ? val->getAsBigInt() : 0);
+	 return 0;
+      }
+      else if (!strcmp(type, "pport16"))
+      {
+	 msg->addIPPort16(key, htons(val ? val->getAsInt() : 0));
+	 return 0;
+      }
+      else if (!strcmp(type, "paddr32"))
+      {
+	 if (val && val->type == NT_STRING)  // assuming format "#.#.#.#"
+	 {
+	    int addr[4] = { 0, 0, 0, 0 };
+	    int i = 0;
+	    char *c;
+	    char *buf = val->val.String->getBuffer();
+	    QoreString str;
+	    while ((c = strchr(buf, '.')))
+	    {
+	       str.terminate(0);
+	       str.concat(buf, c - buf);
+	       addr[i] = atoi(str.getBuffer());
+	       //printd(5, "addr[%d]=%d\n", i, addr[i]);
+	       i++;
+	       if (i == 3)
+	       {
+		  addr[i] = atoi(c + 1);
+		  //printd(5, "addr[%d]=%d\n", i, addr[i]);
+		  break;
+	       }
+	       buf = c + 1;
+	    }
+	    // put it network byte order directly
+	    i = addr[0] | addr[1] << 8 | addr[2] << 16 | addr[3] << 24;
+	    msg->addIPAddr32(key, i);
+	    
+	    return 0;
+	 }
+	 xsink->raiseException("TIBRV-MARSHALLING-ERROR", "can't serialize tibrv type 'ipaddr32' from qore type '%s' (need int, float, or string)", val ? val->type->name : "NOTHING");
+	 return -1;
+      }	 
+   }
+   else if (type[0] == 'u')
+   {   
+      type++;
+      if (!strcmp(type, "8"))
+      {
+	 msg->addU8(key, val ? val->getAsInt() : 0);
+	 return 0;
+      }
+      
+      if (!strcmp(type, "16"))
+      {
+	 msg->addU16(key, val ? val->getAsInt() : 0);
+	 return 0;
+      }
+      
+      if (!strcmp(type, "32"))
+      {
+	 msg->addU32(key, val ? val->getAsInt() : 0);
+	 return 0;
+      }
+      
+      if (!strcmp(type, "64"))
+      {
+	 msg->addU64(key, val ? val->getAsBigInt() : 0);
+	 return 0;
+      }
+   }
+   else if (type[0] == 'f')
+   {
+      type++;
+      if (!strcmp(type, "32"))
+      {
+	 msg->addF32(key, val ? val->getAsFloat() : 0.0);
+	 return 0;
+      }
+      
+      if (!strcmp(type, "64"))
+      {
+	 msg->addF64(key, val ? val->getAsFloat() : 0.0);
+	 return 0;
+      }
+   }
+   else if (!strcmp(type, "xml"))
+   {
+      if (!val || val->type != NT_STRING)
+      {
+	 xsink->raiseException("TIBRV-MARSHALLING-ERROR", "can't serialize tibrv type 'xml' from qore type '%s' (need string)", val ? val->type->name : "NOTHING");
+	 return -1;
+      }
+
+      msg->addXml(key, val->val.String->getBuffer(), val->val.String->strlen() + 1);
+      return 0;
+   }
+
+   xsink->raiseException("TIBRV-MARSHALLING-ERROR", "don't know how to serialize tibrv type '%s'", type);
+   return -1;
 }
