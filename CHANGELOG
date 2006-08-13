@@ -1,5 +1,23 @@
 2006.08.13: David Nichols
-	* fixed ipaddr32 and ipport16 sending and receiving
+	* "tibrv" module: fixed ipaddr32 and ipport16 sending and receiving
+	* "tibrv" module: added explicit type-encoded hash support for "bool"
+	* "tibrv" module: added the following helper functions to create type-
+	  encoded hashes to explicitly declare the serialization type for 
+	  Rendezvous messages:
+	  - tibrv_i8()
+	  - tibrv_u8()
+	  - tibrv_i16()
+	  - tibrv_u16()
+	  - tibrv_i32()
+	  - tibrv_u32()
+	  - tibrv_i64()
+	  - tibrv_u64()
+	  - tibrv_f32()
+	  - tibrv_f64()
+	  - tibrv_ipport16()
+	  - tibrv_ipaddr32()
+	  - tibrv_xml()
+	  - tibrv_bool()
 
 2006.08.12: David Nichols
 	* removed default argument value in constructor in QC_SSLPrivateKey 

@@ -532,6 +532,11 @@ int QoreTibrvTransport::doEncodedType(TibrvMsg *msg, char *key, char *type, clas
 	 return 0;
       }
    }
+   else if (!strcmp(type, "bool"))
+   {
+      msg->addBool(key, (tibrv_bool)(val ? val->getAsBool() : false));
+      return 0;
+   }
    else if (!strcmp(type, "xml"))
    {
       if (!val || val->type != NT_STRING)

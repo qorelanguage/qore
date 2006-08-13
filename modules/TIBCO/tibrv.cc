@@ -190,6 +190,11 @@ static class QoreNode *f_tibrv_xml(class QoreNode *params, class ExceptionSink *
    return tibrv_hash_helper("xml", get_param(params, 0));
 }
 
+static class QoreNode *f_tibrv_bool(class QoreNode *params, class ExceptionSink *xsink)
+{
+   return tibrv_hash_helper("bool", get_param(params, 0));
+}
+
 static class QoreNode *f_tibrvGetVersion(class QoreNode *params, class ExceptionSink *xsink)
 {
    return new QoreNode(Tibrv::version());
@@ -215,4 +220,5 @@ void init_tibrv_functions()
    builtinFunctions.add("tibrv_ipport16",  f_tibrv_ipport16);
    builtinFunctions.add("tibrv_ipaddr32",  f_tibrv_ipaddr32);
    builtinFunctions.add("tibrv_xml",       f_tibrv_xml);
+   builtinFunctions.add("tibrv_bool",      f_tibrv_bool);
 }
