@@ -55,6 +55,7 @@ class tibrv_test {
 	      "date"       : 2006-08-07-17:04:52,
 	      "list"       : ( 1, "two", 3.0, 1998-09-11, False, 4, 2, "string" ),
 	      "hash"       : ( "key" : "value", "key2" : 400.1 ),
+	      # test sending values with explicit types
 	      "i8"         : tibrv_i8(-10),
 	      "u8"         : tibrv_u8(234),
 	      "i16"        : tibrv_i16(23049),
