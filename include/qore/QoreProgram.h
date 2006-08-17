@@ -173,6 +173,7 @@ class QoreProgram : public ReferenceObject, private UserFunctionList, private Im
       inline void addStatement(class Statement *s);
       inline bool existsFunction(char *name);
       inline void deref();
+      inline class Var *findVar(char *name);
       inline class Var *checkVar(char *name);
       inline class Var *createVar(char *name);
       //inline void makeParseException(const char *fmt, va_list args);
@@ -547,6 +548,11 @@ class List *GlobalVariableList::getVarList()
    return l;
 }
 #endif
+
+inline class Var *QoreProgram::findVar(char *name)
+{
+   return GlobalVariableList::findVar(name);
+}
 
 inline class Var *QoreProgram::checkVar(char *name)
 {

@@ -32,9 +32,10 @@
 #include <qore/QC_SSLPrivateKey.h>
 
 #include <tibrv/tibrvcpp.h>
-#include <tibrv/sdcpp.h>
 
 #ifdef TIBRV_SD
+#include <tibrv/sdcpp.h>
+
 // params: name, certificate
 static class QoreNode *f_tibrvSetDaemonCert(class QoreNode *params, class ExceptionSink *xsink)
 {

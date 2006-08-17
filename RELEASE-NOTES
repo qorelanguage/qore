@@ -9,11 +9,11 @@ the "tibco" module was renamed "tibae" to be consistent with the new "tibrv" mod
 programs requiring the old "tibco" module should now use "%requires tibae"
 
 *) New direct TIBCO Rendezvous support
-Direct TIBCO Rendezvous sending and listening is now supported with the new "tibrv" module - as of this version it's now possible to biuld in tibrv support without tibae support (tibrv is also supported on OS X ppc and intel now as well)
+Direct TIBCO Rendezvous sending and listening is now supported with the new "tibrv" module - as of this version it's now possible to build in tibrv support without tibae support (tibrv is also supported on OS X ppc and intel now as well)
 
 NOTE: we do not send native Rendezvous arrays - we use the old style "multiple fields with the same name" approach to have more flexible arrays (different datatype in each element, etc).   Native Tibrv arrays are decoded properly when received.
 
-type mapping:
+automatic type mapping:
   TIBRVMSG_BOOL <-> boolean
   TIBRVMSG_I8,U8,I16,U16,I32,U32,I64,U64 -> int (note there is a loss of precision with the U64 -> int conversion)
   int -> TIBRVMSG_I64
@@ -23,6 +23,23 @@ type mapping:
   TIBRVMSG_OPAQUE <-> binary
   TIBRVMSG_STRING -> string (strings are marked with the default encoding for the object)
   string -> TIBRVMSG_STRING (encoding conversions are made if necessary to the encoding set for the object)
+  TIBRVMSG_XML -> string
+
+to do explicit qore->tibrv type mapping, use the following helper functions supplied by the module:
+  tibrv_i8()
+  tibrv_u8()
+  tibrv_i16()
+  tibrv_u16()
+  tibrv_i32()
+  tibrv_u32()
+  tibrv_i64()
+  tibrv_u64()
+  tibrv_f32()
+  tibrv_f64()
+  tibrv_ipport()
+  tibrv_ipaddr32()  - note: takes a string argument like "192.168.1.1"
+  tibrv_xml()
+  tibrv_bool()
 
 *) SSL support, digest support
 

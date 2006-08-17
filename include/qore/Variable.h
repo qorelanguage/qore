@@ -92,8 +92,6 @@ class Var : public ReferenceObject
 	    } ivar;
       } v;
 
-      //class QoreNode *value;
-      //class Var *refptr;
       class RMutex gate;
 
    protected:
@@ -107,11 +105,10 @@ class Var : public ReferenceObject
       inline void setValue(class QoreNode *val, class ExceptionSink *xsink);
       inline void makeReference(class Var *v, class ExceptionSink *xsink, bool ro = false);
       inline void deref();
-      inline class QoreNode *eval(class ExceptionSink *xsink);
+      inline class QoreNode *eval();
 
       inline class QoreNode **getValuePtr(class VLock *vl, class ExceptionSink *xsink);
       inline class QoreNode *getValue(class VLock *vl);
-      //inline class QoreNode *getValue();
 };
 
 class VarRef {
@@ -126,6 +123,8 @@ class VarRef {
       inline VarRef() {}
       inline ~VarRef();
       inline void resolve();
+      // returns -1 if the variable did not already exist
+      int resolveExisting();
       inline class VarRef *copy();
       inline class QoreNode *eval(class ExceptionSink *xsink);
       inline void setValue(class QoreNode *val, class ExceptionSink *xsink);
@@ -291,18 +290,18 @@ inline class QoreNode *Var::getValue()
 }
 */
 
-inline class QoreNode *Var::eval(class ExceptionSink *xsink)
+inline class QoreNode *Var::eval()
 {
    class QoreNode *rv;
 
    gate.enter();
    if (type == GV_IMPORT)
-      rv = v.ivar.refptr->eval(xsink);
+      rv = v.ivar.refptr->eval();
    else
    {
       rv = v.val.value;
       if (rv)
-	 rv = rv->eval(xsink);
+	 rv->ref();
    }
    gate.exit();
    return rv;
@@ -424,7 +423,7 @@ inline class QoreNode *LVar::eval(class ExceptionSink *xsink)
 	 substituteObject(o);
    }
    else
-      rv = value ? value->eval(xsink) : NULL;
+      rv = value ? value->RefSelf() : NULL;
 
    return rv;
 }
@@ -658,7 +657,7 @@ inline class QoreNode *VarRef::eval(class ExceptionSink *xsink)
       return find_lvar(ref.id)->eval(xsink);
    }
    printd(5, "VarRef::eval() global var=%08x\n", ref.var);
-   return ref.var->eval(xsink);
+   return ref.var->eval();
 }
 
 inline class QoreNode **VarRef::getValuePtr(class VLock *vl, class ExceptionSink *xsink)

@@ -141,6 +141,14 @@ class Hash *parseDatasource(char *ds, class ExceptionSink *xsink)
    return h;
 }
 
+void datasource_thread_lock_cleanup(void *ptr, class ExceptionSink *xsink)
+{
+   //printd(5, "datasource_thread_lock_cleanup(ds=%08x)\n", ptr);
+   xsink->raiseException("DATASOURCE-LOCK-EXCEPTION", "TID %d terminated while in a transaction; transaction will be automatically rolled back and the lock released", gettid());
+   class Datasource *ds = (Datasource *)ptr;
+   ds->rollback(xsink);
+}
+
 class QoreNode *f_parseDatasource(class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0;

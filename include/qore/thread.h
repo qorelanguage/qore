@@ -25,7 +25,14 @@
 #ifndef _QORE_THREAD_H
 #define _QORE_THREAD_H
 
+#include <qore/LockedObject.h>
+
 #include <stdio.h>
+#include <pthread.h>
+
+// pointer to a qore thread destructor function
+typedef void (*qtdest_t)(void *);
+typedef void (*qtrdest_t)(void *, class ExceptionSink *);
 
 extern class Operator *OP_BACKGROUND;
 
@@ -82,10 +89,45 @@ class ProgramLocation {
       }
 };
 
-#include <pthread.h>
+class ThreadResourceNode
+{
+   public:
+      void *key;
+      qtrdest_t func;
+      int tid;
+      class ThreadResourceNode *next, *prev;
 
-// pointer to a qore thread destructor function
-typedef void (*qtdest_t) (void *);
+      inline ThreadResourceNode(void *k, qtrdest_t f) : key(k), func(f), tid(gettid()), prev(NULL)
+      {
+      }
+
+      void call(class ExceptionSink *xsink)
+      {
+	 func(key, xsink);
+      }
+};
+
+class ThreadResourceList : public LockedObject {
+   private:
+      class ThreadResourceNode *head;
+
+      inline class ThreadResourceNode *find(void *key);
+      inline void removeIntern(class ThreadResourceNode *w);
+      void setIntern(class ThreadResourceNode *n);
+
+   public:
+      inline ThreadResourceList()
+      {
+	 head = NULL;
+      }
+      inline ~ThreadResourceList();
+
+      void set(void *key, qtrdest_t func);
+      //returns 0 if not already set, 1 if already set
+      int setOnce(void *key, qtrdest_t func);
+      void remove(void *key);
+      inline void purgeTID(int tid, class ExceptionSink *xsink);
+};
 
 // this structure holds all thread-specific data
 class ThreadData 
@@ -119,12 +161,13 @@ class tid_node {
       inline ~tid_node();
 };
 
-// this structure holds all thread data
+// this structure holds all thread data that can be addressed with the qore tid
 class ThreadEntry {
    public:
       pthread_t ptid;
       class tid_node *tidnode;
       class CallStack *callStack;
+      class ThreadResourceList *trlist;
 
       inline void cleanup();
 };
@@ -140,7 +183,6 @@ class ThreadParams {
 	 tid = t;
 	 pgm = getProgram();
       } 
-
 };
 
 class BGThreadParams {
@@ -168,10 +210,8 @@ class ThreadCleanupList {
       class ThreadCleanupNode *head;
 
    public:
-      ThreadCleanupList();
-      ~ThreadCleanupList();
-      void push(qtdest_t func, void *arg);
-      void pop(int exec = 0);
+      inline ThreadCleanupList();
+      inline ~ThreadCleanupList();
       inline void exec()
       {
 	 class ThreadCleanupNode *w = head;
@@ -181,9 +221,13 @@ class ThreadCleanupList {
 	    w = w->next;
 	 }
       }
+
+      void push(qtdest_t func, void *arg);
+      void pop(int exec = 0);
 };
 
 extern ThreadCleanupList tclist;
+extern ThreadResourceList trlist;
 
 void init_qore_threads();
 class Namespace *get_thread_ns();
@@ -207,6 +251,15 @@ extern class tid_node *tid_head, *tid_tail;
 #include <qore/QoreProgramStack.h>
 #include <qore/QoreProgram.h>
 #include <qore/Statement.h>
+#include <qore/support.h>
+
+inline ThreadResourceList::~ThreadResourceList()
+{
+#ifdef DEBUG
+   if (head)
+      run_time_error("trlist not empty, head = %08x", head);
+#endif
+}
 
 inline void ThreadEntry::cleanup()
 {

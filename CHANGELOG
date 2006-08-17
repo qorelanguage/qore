@@ -1,3 +1,14 @@
+2006.08.16: David Nichols
+	* infrastructure changes to allow thread-specific resources to be 
+	  registered with a destructor function to be run on the data if the
+	  resource is not cleared before the thread terminates
+	* Datasource class updated to use the new thread resource registration
+	  support to throw an exception and call Datasource::rollback() on the
+	  transaction
+
+2006.08.14: David Nichols
+	* fixed configure.ac to quit with an error if xml2-config is not found
+
 2006.08.13: David Nichols
 	* "tibrv" module: fixed ipaddr32 and ipport16 sending and receiving
 	* "tibrv" module: added explicit type-encoded hash support for "bool"

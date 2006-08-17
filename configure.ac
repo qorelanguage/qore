@@ -393,18 +393,70 @@ else
    fi
 fi
 
-# FIXME: add check for rendezvous linking and SD support
 if test -n "$with_tibrv"; then
+
+   # setup tibrv compile and link vars
    TIBRV_CPPFLAGS="-I${with_tibrv}/include"
    TIBRV_LIBS="-L${with_tibrv}/lib -ltibrv${LIBSUFFIX} -ltibrvcm${LIBSUFFIX} -ltibrvcmq${LIBSUFFIX} -ltibrvcpp${LIBSUFFIX} -ltibrvft${LIBSUFFIX} -ltibrvsd${LIBSUFFIX}"
-   if test -n "$with_tibrv_sd"; then
-      TIBRV_LIBS="$TIBRV_LIBS -lcrypto"
-      AC_DEFINE(TIBRV_SD, 1, Define if TIBCO Rendezvous secure daemon support should be included)
-   fi
-   AC_SUBST(TIBRV_CPPFLAGS)
-   AC_SUBST(TIBRV_LIBS)
-   AC_DEFINE(TIBRV, 1, Define if TIBCO Rendezvous support should be included)
-   with_tibrv=yes
+
+   # check if C++ compiler can link with TIBCO Rendezvous c++ libs
+
+# NOTE: AC_TRY_COMPILE and AC_TRY_LINK are not working on my AMD64 box due to what looks like a bug in gcc (g++)
+# trying to compile and link in one step results in "undefined reference to `Tibrv::open()'", however if I perform the operations by
+# hand and save the intermediate files, and compile and link in 2 steps, everything works.  I can reproduce the error reliably when 
+# trying to compile and link in one step.  therefore this code is commented out for now
+
+#   SAVE_CPPFLAGS="$CPPFLAGS"
+#   SAVE_LDFLAGS="$LDFLAGS"
+#   CPPFLAGS="$CPPFLAGS $TIBRV_CPPFLAGS"
+#   LDFLAGS="$LDFLAGS $TIBRV_LIBS $OPENSSL_LDFLAGS -lssl"
+#
+#   AC_MSG_CHECKING([if we can link to the TIBCO Rendezvous C++ library])
+#   AC_TRY_LINK([
+##include <tibrv/tibrvcpp.h>
+#	 ],[
+#Tibrv::open();
+#Tibrv::close();
+#	],tibrv_links=yes, tibrv_links=no)
+#
+#   CPPFLAGS="$SAVE_CPPFLAGS"
+#   LDFLAGS="$SAVE_LDFLAGS"
+#
+#   if test ${tibrv_links} = "no"; then
+#      AC_MSG_RESULT([error: cannot link with the Rendezvous libtibrvcpp library - please recompile using this c++ compiler ($CXX) and run configure again - disabling tibrv module support])
+#      unset with_tibrv
+#      unset TIBRV_CPPFLAGS
+#      unset TIBRV_LIBS
+#   else
+#      AC_MSG_RESULT([ok])
+#      # check if secure daemon support was enabled in libtibrvcpp
+#      SAVE_CPPFLAGS="$CPPFLAGS"
+#      SAVE_LDFLAGS="$LDFLAGS"
+#      CPPFLAGS="$CPPFLAGS $TIBRV_CPPFLAGS"
+#      LDFLAGS="$LDFLAGS $TIBRV_LIBS"
+#
+#      AC_MSG_CHECKING([if secure daemon support was enabled in libtibrvcpp])
+#      AC_TRY_COMPILE([
+##include <tibrv/tibrvcpp.h>
+#	 ],[
+#TibrvSdContext:setDaemonCert(TIBRV_SECURE_DAEMON_ANY_NAME, TIBRV_SECURE_DAEMON_ANY_CERT);
+#	],tibrvsd_links=yes, tibrvsd_links=no)
+#
+#      CPPFLAGS="$SAVE_CPPFLAGS"
+#      LDFLAGS="$SAVE_LDFLAGS"
+#
+#      if test "${tibrvsd_links}" = "yes"; then
+#         AC_MSG_RESULT([ok])
+#	 TIBRV_LIBS="$TIBRV_LIBS -lcrypto"
+#	 AC_DEFINE(TIBRV_SD, 1, Define if TIBCO Rendezvous secure daemon support should be included)
+#      else
+#         AC_MSG_RESULT([error: disabling secure daemon support in the tibrv module.  if you want secure daemon support in the qore module, rebuild libtibrvcpp with secure daemon support (remove comments the SD_MODULE line in $with_tibrv/src/librvcpp/Makefile] and rerun configure)
+#      fi
+      AC_SUBST(TIBRV_CPPFLAGS)
+      AC_SUBST(TIBRV_LIBS)
+      AC_DEFINE(TIBRV, 1, Define if TIBCO Rendezvous support should be included)
+      with_tibrv=yes
+#   fi
 fi
 
 AC_ARG_WITH([tibae],
@@ -739,7 +791,7 @@ PKG_CHECK_MODULES(XML, libxml-2.0 >= 2.4.22,,[
 	AC_MSG_ERROR([libxml2 2.4.22 or higher is needed; found version $full])
       fi
     else
-      AC_MSG_WARN([libxml2 2.4.22 or higher is needed; xml2-config not found])      
+      AC_MSG_ERROR([libxml2 2.4.22 or higher is needed; xml2-config not found])      
     fi])
 
 # Checks for header files.

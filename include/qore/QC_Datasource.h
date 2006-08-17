@@ -54,6 +54,8 @@ extern int CID_DATASOURCE;
 
 class QoreClass *initDatasourceClass();
 
+void datasource_thread_lock_cleanup(void *ptr, class ExceptionSink *xsink);
+
 class Datasource : private ReferenceObject, private LockedObject
 {
    private:
@@ -77,6 +79,40 @@ class Datasource : private ReferenceObject, private LockedObject
       inline int openUnlocked(ExceptionSink *xsink);
       inline void freeConnectionValues();
       inline void setConnectionValues();
+
+      // returns 0 for OK, -1 for error
+      inline int grabLockIntern(class ExceptionSink *xsink)
+      {	 
+	 if (tGate.enter(tl_timeout))
+	 {
+	    endDBAction();
+	    xsink->raiseException("TRANSACTION-TIMEOUT", "timed out on datasource \"%s@%s\" after waiting %d second%s on transaction lock held by TID %d", 
+				  username, dbname, tl_timeout, tl_timeout == 1 ? "" : "s", tGate.getLockTID());
+	    return -1;
+	 }
+	 return 0;
+      }
+      inline void releaseLockIntern()
+      {
+	 tGate.exit();
+      }
+
+
+      // returns 0 for OK, -1 for error
+      inline int grabLock(class ExceptionSink *xsink)
+      {	 
+	 if (grabLockIntern(xsink))
+	    return -1;
+	 if (!in_transaction)
+	    trlist.set(this, datasource_thread_lock_cleanup);
+	 return 0;
+      }
+      inline void releaseLock()
+      {
+	 tGate.exit();
+	 trlist.remove(this);
+      }
+
 
    protected:
       inline ~Datasource();
@@ -216,7 +252,6 @@ inline void Datasource::setConnectionValues()
    hostname = p_hostname ? strdup(p_hostname) : NULL;
 }
 
-// must be called in the SingleExitGate lock
 inline int Datasource::startDBAction(class ExceptionSink *xsink)
 {
    int rc = 0;
@@ -303,21 +338,15 @@ inline QoreNode *Datasource::exec(class QoreString *query_str, class List *args,
 
    if (!startDBAction(xsink))
    {
-      if (!autocommit)
-	 if (tGate.enter(tl_timeout))
-	 {
-	    endDBAction();
-	    xsink->raiseException("TRANSACTION-TIMEOUT", "timed out on datasource \"%s@%s\" after waiting %d second%s on transaction lock held by TID %d", 
-			   username, dbname, tl_timeout, tl_timeout == 1 ? "" : "s", tGate.getLockTID());
-	    return NULL;
-	 }
+      if (!autocommit && grabLock(xsink))
+	 return NULL;
 
       rv = dsl->execSQL(this, query_str, args, xsink);
 
       // exit the transaction lock if autocommit enabled & exception has occurred & we weren't already in a transaction
       if (!autocommit && !in_transaction)
 	 if (xsink->isEvent())
-	    tGate.exit();
+	    releaseLock();
 	 else
 	    in_transaction = true;
 
@@ -356,13 +385,9 @@ inline void Datasource::beginTransaction(class ExceptionSink *xsink)
 	 return;
       }
 
-      if (tGate.enter(tl_timeout))
-      {
-	 endDBAction();
-	 xsink->raiseException("TRANSACTION-TIMEOUT", "timed out on datasource \"%s@%s\" after waiting %d second%s on transaction lock held by TID %d", 
-			username, dbname, tl_timeout, tl_timeout == 1 ? "" : "s", tGate.getLockTID());
+      if (grabLock(xsink))
 	 return;
-      }
+
       in_transaction = true;
 
       endDBAction();
@@ -375,19 +400,16 @@ inline int Datasource::commit(ExceptionSink *xsink)
 
    if (!startDBAction(xsink))
    {
-      if (!autocommit && tGate.enter(tl_timeout))
-      {
-	 endDBAction();
-	 xsink->raiseException("TRANSACTION-TIMEOUT", "timed out on datasource \"%s@%s\" after waiting %d second%s on transaction lock held by TID %d", 
-			username, dbname, tl_timeout, tl_timeout == 1 ? "" : "s", tGate.getLockTID());
+      if (!autocommit && grabLock(xsink))
 	 return -1;
-      }
 
       rc = dsl->commit(this, xsink);
 
       in_transaction = false;
+
       // transaction is complete, exit the lock
-      if (!autocommit) tGate.exit();
+      if (!autocommit) 
+	 releaseLock();
 
       endDBAction();
    }
@@ -403,19 +425,16 @@ inline int Datasource::rollback(ExceptionSink *xsink)
 
    if (!startDBAction(xsink))
    {
-      if (!autocommit && tGate.enter(tl_timeout))
-      {
-	 endDBAction();
-	 xsink->raiseException("TRANSACTION-TIMEOUT", "timed out on datasource \"%s@%s\" after waiting %d second%s on transaction lock held by TID %d", 
-			username, dbname, tl_timeout, tl_timeout == 1 ? "" : "s", tGate.getLockTID());
+      if (!autocommit && grabLock(xsink))
 	 return -1;
-      }
 
       rc = dsl->rollback(this, xsink);
 
       in_transaction = false;
+
       // transaction is complete, exit the lock
-      if (!autocommit) tGate.exit();
+      if (!autocommit)
+	 releaseLock();
 
       endDBAction();
    }
@@ -471,7 +490,16 @@ inline int Datasource::close()
 
       // close any open transaction
       in_transaction = false;
-      tGate.forceExit();
+
+      // see if the transaction lock is held and, if so, break it
+      int tid;
+      if ((tid = tGate.getLockTID()) != -1)
+      {
+	 // remove the thread resource 
+	 trlist.remove(this);
+	 // force-exit the transaction lock if it's held
+	 tGate.forceExit();
+      }
 
       // in case there are other close calls waiting
       cStatus.signal();

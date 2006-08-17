@@ -927,6 +927,24 @@ inline void VarRef::resolve()
    }
 }
 
+// returns 0 for OK, 1 for would be a new variable
+int VarRef::resolveExisting()
+{
+   lvh_t id;
+   if ((id = find_local_var(name)))
+   {
+      type = VT_LOCAL;
+      ref.id = id;
+      printd(5, "VarRef::resolveExisting(): local var %s resolved (id=%08x)\n", name, ref.id);
+      return 0;
+   }
+
+   ref.var = getProgram()->findVar(name);
+   type = VT_GLOBAL;
+   printd(5, "VarRef::resolveExisting(): global var %s resolved (var=%08x)\n", name, ref.var);
+   return !ref.var;
+}
+
 // checks for illegal $self assignments in an object context
 static inline void checkSelf(class QoreNode *n, lvh_t selfid)
 {
