@@ -142,7 +142,7 @@ void QoreProgram::del(class ExceptionSink *xsink)
 
       // delete thread local storage key
       pthread_key_delete(thread_local_storage);
-      base_object = NULL;
+      base_object = false;
    }
 }
 

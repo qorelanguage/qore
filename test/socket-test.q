@@ -9,11 +9,13 @@ our ($o, $sp, $cp, $q, $errors);
 
 const opts = 
     ( "help"       : "h,help",
+      "server"     : "S,server=s",
+      "servonly"   : "O,server-only",
       "ssl"        : "s,ssl",
-      "key"        : "k,private-key=s",
-      "cert"       : "c,cert=s",
-      "clientkey"  : "K,client-private-key=s",
-      "clientcert" : "C,client-cert=s",
+      "key"        : "private-key=s",
+      "cert"       : "cert=s",
+      "clientkey"  : "client-private-key=s",
+      "clientcert" : "client-cert=s",
       "verbose"    : "v,verbose" );
 
 sub test_value($v1, $v2, $msg)
@@ -31,6 +33,8 @@ sub usage()
 {
     printf("usage: %s -[options] [port]
   -h,--help                    this help text
+  -S,--server=ip:port          no server thread; connect to remote server
+  -O,--server-only             no client thread; wait for remote clients
   -s,--ssl                     use secure connections
   -c,--cert=arg                set server SSL x509 certificate
   -k,--private-key=arg         set server SSL private key
@@ -54,10 +58,23 @@ sub process_command_line()
     if ($o.help)
 	usage();
 
+    if (exists $o.server && $o.servonly)
+    {
+	printf("server only flag set and remote server option=%n set - aborting\n", $o.server);
+	exit(1);
+    }
+
     if (!($sp = int(shift $ARGV)))
 	$sp = 9001;
 
-    $cp = sprintf("localhost:%d", $sp);
+    if (exists $o.server)
+    {
+	$cp = $o.server;
+	if ($cp == int($cp))
+	    $cp = "localhost:" + $cp;
+    }
+    else
+	$cp = sprintf("localhost:%d", $sp);
 }
 
 const i1 = 10;
@@ -67,6 +84,7 @@ const i8 = 12309309203932;
 
 sub server_thread()
 {
+    printf("listening for incoming connections on %s\n", $sp);
     my $s = new Socket();
     if ($s.bind($sp, True) == -1)
     {
@@ -109,7 +127,7 @@ sub server_thread()
 	else
 	{
 	    $r = $s.accept();
-	    printf("server: normal socket connection from %s (%s)\n", $r.source, $r.source_host);
+	    printf("server: non-encrypted socket connection from %s (%s)\n", $r.source, $r.source_host);
 	}
     }
     catch ($ex)
@@ -159,7 +177,8 @@ sub server_thread()
 
 sub client_thread()
 {
-    $q.get();
+    if (!exists $o.server)
+	$q.get();
     my $s = new Socket();
 
     try {
@@ -214,8 +233,11 @@ sub main()
 
     $q = new Queue();
 
-    background server_thread();
-    background client_thread();   
+    if (!exists $o.server)
+	background server_thread();
+
+    if (!$o.servonly)
+	background client_thread();   
 }
 
 main();

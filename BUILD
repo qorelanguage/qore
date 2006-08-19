@@ -47,6 +47,9 @@ NOTE that --enable-builtin-modules will only work with libtool 1.5.22 or better,
 --with-mysql-includes=<dir>    : directory for MySQL includes ("mysql" module)
 --with-mysql-libs=<dir>        : directory for MySQL libraries ("mysql" module)
 
+recommended configure arguments: configure --disable-static --disable-debug --prefix=/usr   ( add --enable-64bit on x86_64 platforms for 64-bit builds)
+
+
 ========= to build optional modules ==========
 
 *) "oracle": Oracle DBI module requires Oracle 9i or better
@@ -66,7 +69,7 @@ note that this module is still experimental due to the fact that I'm not sure if
 
 To build qore, run the following commands:
 
-   ./configure [options]  (for non-debugging builds I recommend: configure --disable-static --disable-debug)
+   ./configure [options]  (for non-debugging builds I recommend: configure --disable-static --disable-debug --prefix=/usr)
    make
 
 Installing Qore
