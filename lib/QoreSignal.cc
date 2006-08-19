@@ -1,5 +1,5 @@
 /*
-  signal.cc
+  QoreSignal.cc
 
   Qore programming language
 
@@ -21,25 +21,15 @@
 */
 
 #include <qore/config.h>
-#include <qore/mysignal.h>
+#include <qore/QoreSignal.h>
 #include <qore/support.h>
 #include <qore/thread.h>
 
 #include <stdlib.h>
-#include <signal.h>
 
-static inline void sig_leave(int rc)
+extern "C" void sighandler(int sig, siginfo_t *info, ucontext_t *uap)
 {
-   printe("TID %d: QORE program exiting after signal received (return status %d)\n",
-	  gettid(), rc);
-   leave(rc);
-}
-
-extern "C" void sighandler(int sig)
-{
-   static volatile int reenter = 0;
-
-   reenter++;
+/*
    switch (sig)
    {
       case SIGINT:
@@ -109,12 +99,7 @@ extern "C" void sighandler(int sig)
          printe("SIGWINCH: Window Resized\n");
          break;
    }
-   reenter--;
-   if (reenter)
-   {
-      printe("signal received while processing another signal... immediate exit\n");
-      exit(-1);
-   }
+*/
 }
 
 void init_signals(void)

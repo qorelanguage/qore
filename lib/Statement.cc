@@ -459,7 +459,7 @@ inline int TryStatement::exec(class QoreNode **return_value, class ExceptionSink
       else
 	 rc = 0;
 
-      xsink->del(except);
+      xsink->deleteExceptionChain(except);
    }
    /*
    if (finally)

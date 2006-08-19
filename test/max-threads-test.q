@@ -10,12 +10,17 @@ sub t()
 
 try 
 {
-    while (1)
+    while (True)
    	background t();
 }
 catch ($ex)
 {
-    printf("%s threads\n", num_threads());
+    #printf("%s threads\n", num_threads());
     $q.push(1);
     printf("%s: %s\n", $ex.err, $ex.desc);
+}
+while (True)
+{
+    sleep(5);
+    printf("size=%d, threads=%d\n", $q.size(), num_threads());
 }

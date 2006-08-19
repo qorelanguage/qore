@@ -54,6 +54,9 @@
 // not more than this number of threads can be running at the same time
 #define MAX_THREADS 0x1000
 
+// new thread entry positions will be allocated in blocks of this size
+#define THREAD_LIST_BLOCK 0x80
+
 #ifdef DEBUG
 bool threads_initialized = false;
 #endif
@@ -84,56 +87,105 @@ class LockedObject lck_gethostbyname;
 class LockedObject lck_gethostbyaddr;
 #endif
 
-// condition var for num_threads (uses lThreadList mutex)
-pthread_cond_t  ptc_num_threads;
-int             num_threads = 0;
+// total number of threads running
+int num_threads = 0;
 
 tid_node *tid_head = NULL, *tid_tail = NULL;
 
-#define THREAD_LIST_BLOCK 100
+class BGThreadParams {
+   public:
+      class Object *obj;
+      class Object *callobj;
+      class QoreNode *fc;
+      class QoreProgram *pgm;
+      int tid;
+      int line;
+      char *file;
+      bool method_reference;
 
-inline ThreadCleanupList::ThreadCleanupList()
+      inline BGThreadParams(class QoreNode *f, int t, class ExceptionSink *xsink)
+      { 
+	 tid = t;
+	 fc = f;
+	 pgm = getProgram();
+	 line = get_pgm_counter();
+	 file = get_pgm_file();
+
+	 obj = NULL;
+	 // get and reference the current stack object, if any, for the new call stack
+	 callobj = getStackObject();
+
+	 if (callobj && fc->type == NT_FUNCTION_CALL && fc->val.fcall->type == FC_SELF)
+	 {
+	    // we reference the object so it won't go out of scope while the thread is running
+	    obj = callobj;
+	    obj->ref();
+	 }
+	 else if (fc->type == NT_TREE && fc->val.tree.op == OP_OBJECT_FUNC_REF)
+	 {
+	    // evaluate object
+	    class QoreNode *n = fc->val.tree.left->eval(xsink);
+	    if (!n || xsink->isEvent())
+	       return;
+	    
+	    fc->val.tree.left->deref(xsink);
+	    fc->val.tree.left = n;
+	    if (n->type == NT_OBJECT)
+	    {
+	       obj = n->val.object;
+	       obj->ref();
+	    }
+	 }
+ 
+	 if (callobj)
+	    callobj->tRef();
+
+	 // increment the program's thread counter
+	 pgm->tcount.inc();
+      }
+      inline ~BGThreadParams()
+      {
+	 // decrement program's thread count
+	 pgm->tcount.dec();
+      }
+      void cleanup(class ExceptionSink *xsink)
+      {
+	 if (fc) fc->deref(xsink);
+	 derefObj(xsink);
+	 derefCallObj();
+      }
+      inline void derefCallObj()
+      {
+	 // dereference call object if present
+	 if (callobj)
+	 {
+	    callobj->tDeref();
+	    callobj = NULL;
+	 }
+      }
+      inline void derefObj(class ExceptionSink *xsink)
+      {
+	 if (obj)
+	 {
+	    obj->dereference(xsink);
+	    obj = NULL;
+	 }
+      }
+      inline class QoreNode *exec(class ExceptionSink *xsink)
+      {
+	 class QoreNode *rv = fc->eval(xsink);
+	 fc->deref(xsink);
+	 fc = NULL;
+	 return rv;
+      }
+};
+
+inline ThreadResourceList::~ThreadResourceList()
 {
-   //printf("ThreadCleanupList::ThreadCleanupList() head=NULL\n");
-
-   head = NULL;
-}
-
-inline ThreadCleanupList::~ThreadCleanupList()
-{
-   //printf("ThreadCleanupList::~ThreadCleanupList() head=%08x\n", head);
-
-   while (head)
-   {
-      class ThreadCleanupNode *w = head->next;
-      delete head;
-      head = w;
-   }
-}
-
-void ThreadCleanupList::push(qtdest_t func, void *arg)
-{
-   class ThreadCleanupNode *w = new ThreadCleanupNode;
-   w->next = head;
-   w->func = func;
-   w->arg = arg;
-   head = w;
-   //printf("TCL::push() this=%08x, &head=%08x, head=%08x, head->next=%08x\n", this, &head, head, head->next);
-}
-
-void ThreadCleanupList::pop(int exec)
-{
-   //printf("TCL::pop() this=%08x, &head=%08x, head=%08x\n", this, &head, head);
-   // NOTE: if exit() is called, then somehow head = NULL !!!
-   // I can't explain it, but that's why the if statement is there... :-(
+#ifdef DEBUG
    if (head)
-   {
-      if (exec)
-	 head->func(head->arg);
-      class ThreadCleanupNode *w = head->next;
-      delete head;
-      head = w;
-   }
+      run_time_error("ThreadResourceList %08x not empty, head = %08x", this, head);
+#endif
 }
 
 inline class ThreadResourceNode *ThreadResourceList::find(void *key)
@@ -189,7 +241,7 @@ inline void ThreadResourceList::removeIntern(class ThreadResourceNode *w)
    //printd(5, "removeIntern(%08x) done (head=%08x)\n", w, head);
 }
 
-inline void ThreadResourceList::purgeTID(int tid, class ExceptionSink *xsink)
+void ThreadResourceList::purgeTID(int tid, class ExceptionSink *xsink)
 {
    // we put all the nodes in a temporary list and then run them from there
    class ThreadResourceList trl;
@@ -249,10 +301,56 @@ void ThreadResourceList::remove(void *key)
    unlock();
 }
 
+inline ThreadCleanupList::ThreadCleanupList()
+{
+   //printf("ThreadCleanupList::ThreadCleanupList() head=NULL\n");
+
+   head = NULL;
+}
+
+inline ThreadCleanupList::~ThreadCleanupList()
+{
+   //printf("ThreadCleanupList::~ThreadCleanupList() head=%08x\n", head);
+
+   while (head)
+   {
+      class ThreadCleanupNode *w = head->next;
+      delete head;
+      head = w;
+   }
+}
+
+void ThreadCleanupList::push(qtdest_t func, void *arg)
+{
+   class ThreadCleanupNode *w = new ThreadCleanupNode;
+   w->next = head;
+   w->func = func;
+   w->arg = arg;
+   head = w;
+   //printf("TCL::push() this=%08x, &head=%08x, head=%08x, head->next=%08x\n", this, &head, head, head->next);
+}
+
+void ThreadCleanupList::pop(int exec)
+{
+   //printf("TCL::pop() this=%08x, &head=%08x, head=%08x\n", this, &head, head);
+   // NOTE: if exit() is called, then somehow head = NULL !!!
+   // I can't explain it, but that's why the if statement is there... :-(
+   if (head)
+   {
+      if (exec)
+	 head->func(head->arg);
+      class ThreadCleanupNode *w = head->next;
+      delete head;
+      head = w;
+   }
+}
+
 static inline void grow_thread_list()
 {
    int start = max_thread_list;
    max_thread_list += THREAD_LIST_BLOCK;
+   if (max_thread_list > MAX_THREADS)
+      max_thread_list = MAX_THREADS;
    thread_list = (ThreadEntry *)realloc(thread_list, sizeof(ThreadEntry) * max_thread_list);
    // zero out new entries
    for (int i = start; i < max_thread_list; i++)
@@ -260,7 +358,7 @@ static inline void grow_thread_list()
 }
 
 // returns tid allocated for thread
-int get_thread_entry()
+static int get_thread_entry()
 {
    int tid;
 
@@ -303,17 +401,13 @@ int get_thread_entry()
    return tid;
 }
 
-void deregister_thread(int tid)
+static void deregister_thread(int tid)
 {
    // NOTE: cannot safely call printd here, because normally the thread_data has been deleted
-
    lThreadList.lock();
 
    thread_list[tid].cleanup();
-
-   // signal num_threads cond var if last thread exiting
-   if (--num_threads == 1)
-      pthread_cond_signal(&ptc_num_threads);
+   num_threads--;
 
    lThreadList.unlock();
 }
@@ -323,163 +417,66 @@ static inline void delete_thread_data()
    delete (ThreadData *)pthread_getspecific(thread_data_key);
 }
 
-/*
-static void thread_data_cleanup(void *vtd)
-{
-   ThreadData *td = (ThreadData *)vtd;
-   class Exception *e = NULL;
-   td->dereference(&e);
-   if (e && e != (Exception *)1)
-   {
-      defaultExceptionHandler(xsink);
-      delete e;
-   }
-
-   delete td;
-}
-*/
-
-void wait_for_all_threads_to_terminate()
-{
-   tracein("wait_for_all_threads_to_terminate()");
-   lThreadList.lock();
-#ifdef DEBUG
-   // if debugging, then print out a message every 5 seconds
-   // when waiting for threads to terminate
-   while (num_threads != 1)
-   {
-      struct timeval now;
-      struct timespec timeout;
-
-      gettimeofday(&now, NULL);
-      timeout.tv_sec = now.tv_sec + 5;
-      timeout.tv_nsec = now.tv_usec * 1000;
-
-      if (!pthread_cond_timedwait(&ptc_num_threads, &lThreadList.ptm_lock, &timeout))
-	 break;
-      printd(1, "waiting for %d thread%s to terminate\n", num_threads - 1,
-	     num_threads == 2 ? "" : "s");
-
-      lThreadList.unlock();
-      List *l = get_thread_list();
-      for (int i = 0; i < l->size(); i++)
-	 printd(1, "  TID %d is still running\n", l->retrieve_entry(i)->val.intval);
-      if (l)
-	 delete l;
-      lThreadList.lock();
-   }
-#else
-   if (num_threads != 1)
-      pthread_cond_wait(&ptc_num_threads, &lThreadList.ptm_lock);
-#endif
-   lThreadList.unlock();
-   traceout("wait_for_all_threads_to_terminate()");
-}
-
 static void *op_background_thread(void *vtp)
 {
-   class QoreNode *exp  = ((BGThreadParams *)vtp)->fc;
-   int tid              = ((BGThreadParams *)vtp)->tid;
-   class Object *co     = ((BGThreadParams *)vtp)->callobj;
-   class Object *o      = ((BGThreadParams *)vtp)->obj;
-   class QoreProgram *p = ((BGThreadParams *)vtp)->pgm;
-   int line             = ((BGThreadParams *)vtp)->line;
-   char *file           = ((BGThreadParams *)vtp)->file;
-
+   class BGThreadParams *btp = (BGThreadParams *)vtp;
+    
    // register thread
-   register_thread(tid, pthread_self(), p);
+   register_thread(btp->tid, pthread_self(), btp->pgm);
+   printd(5, "op_background_thread() started");
 
-   p->startThread();
-
-   update_pgm_counter_pgm_file(line, file);
+   if (!thread_list[btp->tid].callStack)
+      printf("TID %d: callstack = NULL\n", btp->tid);
+   // create thread-local data for this thread in the program object
+   btp->pgm->startThread();
+   // set program counter for new thread
+   update_pgm_counter_pgm_file(btp->line, btp->file);
 
    // push this call on the thread stack
-   pushCall("background operator", CT_NEWTHREAD, co);
+   pushCall("background operator", CT_NEWTHREAD, btp->callobj);
 
    // dereference call object if present
-   if (co)
-      co->tDeref();
-
-   //update_pgm_counter_pgm_file(line, file);
+   btp->derefCallObj();
 
    class ExceptionSink xsink;
 
-   class QoreNode *rv = exp->eval(&xsink);
+   // run thread expression
+   class QoreNode *rv = btp->exec(&xsink);
 
    // if there is an object, we dereference the extra reference here
-   if (o)
-      o->dereference(&xsink);
+   btp->derefObj(&xsink);
 
+   // pop the call from the stack
    popCall(&xsink);
 
+   // dereference any return value from the background expression
    if (rv)
       rv->deref(&xsink);
 
-   exp->deref(&xsink);
-
    // delete any thread data
-   p->endThread(&xsink);
+   btp->pgm->endThread(&xsink);
    
    // cleanup thread resources
-   trlist.purgeTID(tid, &xsink);
+   trlist.purgeTID(btp->tid, &xsink);
 
    xsink.handleExceptions();
 
+   printd(4, "thread terminating");
+
+   // delete internal thread data structure
    delete_thread_data();
 
-   delete (BGThreadParams *)vtp;
    // deregister_thread
-   deregister_thread(tid);
+   deregister_thread(btp->tid);
+
    // run any cleanup functions
    tclist.exec();
 
-   // decrement program's thread count
-   p->tcount.dec();
+   delete btp;
 
    pthread_exit(NULL);
    return NULL;
 }
-
-inline BGThreadParams::BGThreadParams(class QoreNode *f, int t, class ExceptionSink *xsink)
-{ 
-   tid = t;
-   fc = f;
-   pgm = getProgram();
-   line = get_pgm_counter();
-   file = get_pgm_file();
-
-   obj = NULL;
-   // get and reference the current stack object, if any, for the new call stack
-   callobj = getStackObject();
-
-   if (callobj && fc->type == NT_FUNCTION_CALL && fc->val.fcall->type == FC_SELF)
-   {
-      // we reference the object so it won't go out of scope while the thread is running
-      obj = callobj;
-      obj->ref();
-   }
-   else if (fc->type == NT_TREE && fc->val.tree.op == OP_OBJECT_FUNC_REF)
-   {
-      // evaluate object
-      class QoreNode *n = fc->val.tree.left->eval(xsink);
-      if (!n || xsink->isEvent())
-	 return;
-
-      fc->val.tree.left->deref(xsink);
-      fc->val.tree.left = n;
-      if (n->type == NT_OBJECT)
-      {
-	 obj = n->val.object;
-	 obj->ref();
-      }
-   }
-
-   // increment the program's thread counter
-   pgm->tcount.inc();
-
-   if (callobj)
-      callobj->tRef();
-} 
 
 static class QoreNode *op_background(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
 {
@@ -498,8 +495,6 @@ static class QoreNode *op_background(class QoreNode *left, class QoreNode *right
       return NULL;
 
    // now we are ready to create the new thread
-   pthread_t ptid;
-   int rc;
 
    // get thread entry
    //printd(2, "calling get_thread_entry()\n");
@@ -523,23 +518,23 @@ static class QoreNode *op_background(class QoreNode *left, class QoreNode *right
       return NULL;
    }
    //printd(2, "tp = %08x\n", tp);
-   //printd(2, "calling pthread_create(%08x, %08x, %08x, %08x)\n", &ptid, &ta_default, op_background_thread, tp);
    // create thread
+   pthread_t ptid;
+   int rc;
+   //printd(2, "calling pthread_create(%08x, %08x, %08x, %08x)\n", &ptid, &ta_default, op_background_thread, tp);
    if ((rc = pthread_create(&ptid, &ta_default, op_background_thread, tp)))
    {
-      if (nl) nl->deref(xsink);
-
-      // decrement program's thread count
-      getProgram()->tcount.dec();
+      tp->cleanup(xsink);
+      delete tp;
 
       deregister_thread(tid);
       xsink->raiseException("THREAD-CREATION-FAILURE", "could not create thread: %s", strerror(errno));
       return NULL;
    }
-   //printd(2, "pthread_create() returned %d\n", rc);
+   printd(5, "pthread_create() new thread TID %d, pthread_create() returned %d\n", tid, rc);
 
    printd(5, "create_thread() created thread with TID %d\n", ptid);
-   return new QoreNode(NT_INT, tid);
+   return new QoreNode((int64)tid);
 }
 
 void init_qore_threads()
@@ -548,9 +543,6 @@ void init_qore_threads()
 
    // init thread list
    grow_thread_list();
-
-   // init num_threads cond var
-   pthread_cond_init(&ptc_num_threads, NULL);
 
    // init thread data key
    pthread_key_create(&thread_data_key, NULL); //thread_data_cleanup);
@@ -580,7 +572,7 @@ void init_qore_threads()
 
 class Namespace *get_thread_ns()
 {
-      // create Qore::Thread namespace
+   // create Qore::Thread namespace
    class Namespace *Thread = new Namespace("Thread");
 
    Thread->addSystemClass(initQueueClass());
@@ -603,24 +595,17 @@ void delete_qore_threads()
 #endif
    tracein("delete_qore_threads()");
 
+   ExceptionSink xsink;
+   trlist.purgeTID(0, &xsink);
+   xsink.handleExceptions();
+
    pthread_mutexattr_destroy(&ma_recursive);
 
    //printd(2, "calling pthread_attr_destroy(%08x)\n", &ta_default);
    pthread_attr_destroy(&ta_default);
    //printd(2, "returned from pthread_attr_destroy(%08x)\n", &ta_default);
 
-   class ExceptionSink xsink;
-   // cleanup thread resources
-   trlist.purgeTID(0, &xsink);
-   xsink.handleExceptions();
-
-   // delete ThreadData for parent thread
-   //thread_data_cleanup(pthread_getspecific(thread_data_key));
-
    delete_thread_data();
-
-   // destroy last thread condition var
-   pthread_cond_destroy(&ptc_num_threads);
 
    thread_list[0].cleanup();
 

@@ -58,8 +58,6 @@ static inline void popProgram();
 static inline class QoreProgram *getProgram();
 static inline class Namespace *getRootNS();
 static inline int getParseOptions();
-static inline class ProgramLocation *getPLStack();
-static inline void updatePLStack(class ProgramLocation *pl);
 static inline void beginParsing(char *file, void *ps = NULL);
 static inline void *endParsing();
 static inline void updateCVarStack(class CVNode *ncvs);
@@ -126,7 +124,7 @@ class ThreadResourceList : public LockedObject {
       //returns 0 if not already set, 1 if already set
       int setOnce(void *key, qtrdest_t func);
       void remove(void *key);
-      inline void purgeTID(int tid, class ExceptionSink *xsink);
+      void purgeTID(int tid, class ExceptionSink *xsink);
 };
 
 // this structure holds all thread-specific data
@@ -143,7 +141,7 @@ class ThreadData
       int pgm_counter;
       char *pgm_file;
       void *parseState;
-      class VNode *vstack;
+      class VNode *vstack;  // used during parsing (local variable stack)
       class CVNode *cvarstack;
       class QoreClass *parseClass;
       class Exception *catchException;
@@ -167,7 +165,6 @@ class ThreadEntry {
       pthread_t ptid;
       class tid_node *tidnode;
       class CallStack *callStack;
-      class ThreadResourceList *trlist;
 
       inline void cleanup();
 };
@@ -183,19 +180,6 @@ class ThreadParams {
 	 tid = t;
 	 pgm = getProgram();
       } 
-};
-
-class BGThreadParams {
-   public:
-      class Object *obj;
-      class Object *callobj;
-      class QoreNode *fc;
-      class QoreProgram *pgm;
-      int tid;
-      int line;
-      char *file;
-      bool method_reference;
-      inline BGThreadParams(class QoreNode *f, int t, class ExceptionSink *xsink);
 };
 
 class ThreadCleanupNode {
@@ -232,9 +216,6 @@ extern ThreadResourceList trlist;
 void init_qore_threads();
 class Namespace *get_thread_ns();
 void delete_qore_threads();
-int get_thread_entry();
-void deregister_thread(int tid);
-void wait_for_all_threads_to_terminate();
 class List *get_thread_list();
 class Hash *getAllCallStacks();
 
@@ -252,14 +233,6 @@ extern class tid_node *tid_head, *tid_tail;
 #include <qore/QoreProgram.h>
 #include <qore/Statement.h>
 #include <qore/support.h>
-
-inline ThreadResourceList::~ThreadResourceList()
-{
-#ifdef DEBUG
-   if (head)
-      run_time_error("trlist not empty, head = %08x", head);
-#endif
-}
 
 inline void ThreadEntry::cleanup()
 {
@@ -329,7 +302,6 @@ static inline int gettid()
 
 static inline class LVar *get_thread_stack()
 {
-
    return ((ThreadData *)pthread_getspecific(thread_data_key))->lvstack;
 }
 
@@ -463,18 +435,6 @@ static inline void register_thread(int tid, pthread_t ptid, class QoreProgram *p
    pthread_setspecific(thread_data_key, (void *)(new ThreadData(tid, p)));
 }
 
-static inline class ProgramLocation *getPLStack()
-{
-   return ((ThreadData *)pthread_getspecific(thread_data_key))->plStack;
-}
-
-static inline void updatePLStack(class ProgramLocation *pl)
-{
-   ThreadData *td = (ThreadData *)pthread_getspecific(thread_data_key);
-   td->plStack = pl;
-   pthread_setspecific(thread_data_key, td);
-}
-
 // new file name, current parse state
 static inline void beginParsing(char *file, void *ps)
 {
@@ -577,12 +537,14 @@ static inline class Object *substituteObject(class Object *o)
    return thread_list[gettid()].callStack->substituteObject(o);
 }
 
+// to save the exception for "rethrow"
 static inline void catchSaveException(class Exception *e)
 {
    ThreadData *td = (ThreadData *)pthread_getspecific(thread_data_key);
    td->catchException = e;
 }
 
+// for "rethrow"
 static inline class Exception *catchGetException()
 {
    ThreadData *td = (ThreadData *)pthread_getspecific(thread_data_key);

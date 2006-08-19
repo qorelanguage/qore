@@ -36,6 +36,7 @@ extern class Hash *ENV;
 void QoreProgram::init()
 {
    parseSink = new ExceptionSink();
+   requires_exception = false;
    sb_head = sb_tail = NULL;
    nextSB();
 
@@ -109,31 +110,40 @@ QoreProgram::QoreProgram(class QoreProgram *pgm, int po, bool ec, char *ecn)
    pgm->featureList.populate(&featureList);
 }
 
-QoreProgram::~QoreProgram()
+void QoreProgram::del(class ExceptionSink *xsink)
 {
    // wait for all threads to terminate
    tcount.waitForZero();
 
-   if (base_object)
-   {
-      class ExceptionSink xsink;
-      endThread(&xsink);
-
-      // delete thread local storage key
-      pthread_key_delete(thread_local_storage);
-   }
-
    delete parseSink;
 
    // have to delete global variables first because of destructors
-   delete_all();
+   // method call can be repeated
+   delete_all(xsink);
 
-   delete RootNS;
-
+   // method call can be repeated
    deleteSBList();
 
    if (exec_class_name)
+   {
       free(exec_class_name);
+      exec_class_name = NULL;
+   }
+
+   if (RootNS)
+   {
+      delete RootNS;
+      RootNS = NULL;
+   }
+
+   if (base_object)
+   {
+      endThread(xsink);
+
+      // delete thread local storage key
+      pthread_key_delete(thread_local_storage);
+      base_object = NULL;
+   }
 }
 
 void QoreProgram::endThread(class ExceptionSink *xsink)
@@ -348,6 +358,7 @@ int QoreProgram::internParsePending(char *code, char *label, class ExceptionSink
       rc = -1;
       printd(5, "QoreProgram::internParsePending() parse exception: calling parseRollback()\n");
       internParseRollback();
+      requires_exception = false;
       xsink->assimilate(parseSink);
    }
 
@@ -386,6 +397,7 @@ void QoreProgram::internParseCommit(class ExceptionSink *xsink)
    if (parseSink->isEvent())
    {
       internParseRollback();
+      requires_exception = false;
       xsink->assimilate(parseSink);
    }
    else // otherwise commit them
@@ -667,18 +679,6 @@ void QoreProgram::parseAndRun(FILE *fp, char *name)
       }
    }
 }
-
-/*
-void QoreProgram::parseAndRun(class QoreString *str, class QoreString *name)
-{
-   ExceptionSink xsink;
-
-   parse(str, name, &xsink);
-
-   if (!xsink.isEvent())
-      run(&xsink);
-}
-*/
 
 void QoreProgram::parseAndRun(char *str, char *name)
 {

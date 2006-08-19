@@ -94,8 +94,11 @@ class Var : public ReferenceObject
 
       class RMutex gate;
 
+      inline void del(class ExceptionSink *xsink);
+
    protected:
-      inline ~Var();
+      inline ~Var() {}
+
    public:
       class Var *next;
 
@@ -104,7 +107,7 @@ class Var : public ReferenceObject
       inline char *getName();
       inline void setValue(class QoreNode *val, class ExceptionSink *xsink);
       inline void makeReference(class Var *v, class ExceptionSink *xsink, bool ro = false);
-      inline void deref();
+      inline void deref(class ExceptionSink *xsink);
       inline class QoreNode *eval();
 
       inline class QoreNode **getValuePtr(class VLock *vl, class ExceptionSink *xsink);
@@ -249,15 +252,13 @@ inline Var::Var(class Var *ref, bool ro)
 #include <qore/QoreType.h>
 #endif
 
-// deleting a global variable needs a dereference that could
-// cause an exception, so there's an exception handler included
-// here
-inline Var::~Var()
+inline void Var::del(class ExceptionSink *xsink)
 {
    if (type == GV_IMPORT)
    {
       printd(5, "Var::~Var() refptr=%08x\n", v.ivar.refptr);
-      v.ivar.refptr->deref();
+      v.ivar.refptr->deref(xsink);
+      // clear type so no further deleting will be done
    }
    else
    {
@@ -265,12 +266,11 @@ inline Var::~Var()
 	     v.val.value, v.val.value ? v.val.value->type->name : "null", 
 	     v.val.value ? v.val.value->reference_count() : 0);
    
-      ExceptionSink xsink;
-      
       if (v.val.name)
 	 free(v.val.name);
       if (v.val.value)
-	 v.val.value->deref(&xsink);
+	 v.val.value->deref(xsink);
+      // clear type so no further deleting will be done
    }
 }
 
@@ -367,7 +367,7 @@ inline void Var::makeReference(class Var *pvar, class ExceptionSink *xsink, bool
 {
    gate.enter();
    if (type == GV_IMPORT)
-      v.ivar.refptr->deref();
+      v.ivar.refptr->deref(xsink);
    else
    {
       if (v.val.value)
@@ -382,10 +382,13 @@ inline void Var::makeReference(class Var *pvar, class ExceptionSink *xsink, bool
    gate.exit();
 }
 
-inline void Var::deref()
+inline void Var::deref(class ExceptionSink *xsink)
 {
    if (ROdereference())
+   {
+      del(xsink);
       delete this;
+   }
 }
 
 inline LVar::LVar(lvh_t nid, QoreNode *nvalue) 

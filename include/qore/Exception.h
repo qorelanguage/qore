@@ -37,6 +37,7 @@ class ExceptionSink {
       class Exception *head, *tail;
 
       inline void insert(class Exception *e);
+      inline void clearIntern();
 
    public:
       inline ExceptionSink()
@@ -73,8 +74,9 @@ class ExceptionSink {
 	 return e;
       }
       inline void assimilate(class ExceptionSink *xs);
-      inline void del(class Exception *e);
+      inline void deleteExceptionChain(class Exception *e);
       void outOfMemory();
+      inline void clear();
 };
 
 class Exception {
@@ -122,14 +124,25 @@ inline void ExceptionSink::handleExceptions()
    if (head)
    {
       defaultExceptionHandler(head);
-      // delete all exceptions
-      while (head)
-      {
-	 tail = head->next;
-	 head->del();
-	 head = tail;
-      }
+      clearIntern();
    }
+}
+
+inline void ExceptionSink::clearIntern()
+{
+   // delete all exceptions
+   while (head)
+   {
+      tail = head->next;
+      head->del();
+      head = tail;
+   }
+}
+
+inline void ExceptionSink::clear()
+{
+   clearIntern();
+   head = tail = NULL;
 }
 
 inline void ExceptionSink::insert(class Exception *e)
@@ -193,7 +206,7 @@ inline void ExceptionSink::assimilate(class ExceptionSink *xs)
    xs->head = xs->tail = NULL;
 }
 
-inline void ExceptionSink::del(class Exception *e)
+inline void ExceptionSink::deleteExceptionChain(class Exception *e)
 {
    while (e)
    {
@@ -205,6 +218,8 @@ inline void ExceptionSink::del(class Exception *e)
 
 inline Exception::Exception(char *e, int sline, class QoreString *d)
 {
+   type = ET_SYSTEM;
+
    if (sline)
       line = sline;
    else

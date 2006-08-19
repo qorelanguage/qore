@@ -42,14 +42,14 @@ class QoreNode *Object::getMemberValue(class QoreNode *member, class VLock *vl, 
    // if the member does not exist, then try the memberGate method
    if (rv == (QoreNode *)-1)
    {
-      if (type->hasMemberGate())
+      if (myclass->hasMemberGate())
       {
 	 // run memberGate method to get member value, in case the method is very slow, we run with locks
 	 // disabled: reference, unlock gate, run method, dereference, check return value, require lock, check object status
 	 ref();
 	 g.exit();
 	 //vl->del();
-	 rv = type->evalMemberGate(this, member, xsink);
+	 rv = myclass->evalMemberGate(this, member, xsink);
 	 dereference(xsink);
 	 if (!rv)
 	    return NULL;
@@ -95,19 +95,19 @@ class QoreNode *Object::evalMember(class QoreNode *member, class ExceptionSink *
    class QoreNode *rv;
    char *mem = tstr->getBuffer();
    
-   //printd(5, "Object::evalMember() find_key(%s)=%08x type=%s\n", mem, find_key(mem), type ? type->name : "NONE");
+   //printd(5, "Object::evalMember() find_key(%s)=%08x myclass=%s\n", mem, find_key(mem), myclass ? myclass->name : "NONE");
    // if accessed outside the class and the member is a private member 
    class Object *obj = getStackObject();
-   printd(5, "Object::evalMember(%s) obj=%08x class=%s ID=%d stack obj=%08x class=%s ID=%d isPrivateMember=%s\n", mem, this, this->type->name, this->type->getID(), obj, obj ? obj->type->name : "(null)", obj ? obj->type->getID() : -1, this->type->isPrivateMember(mem) ? "true" : "false");
+   printd(5, "Object::evalMember(%s) obj=%08x class=%s ID=%d stack obj=%08x class=%s ID=%d isPrivateMember=%s\n", mem, this, myclass->name, myclass->getID(), obj, obj ? obj->myclass->name : "(null)", obj ? obj->myclass->getID() : -1, myclass->isPrivateMember(mem) ? "true" : "false");
 	  
    // if accessed outside the class and the member is a private member 
-   if ((!obj || (obj && obj->type->getID() != type->getID())) && type->isPrivateMember(mem))
+   if ((!obj || (obj && obj->myclass->getID() != myclass->getID())) && myclass->isPrivateMember(mem))
    {
-      if (type->hasMemberGate()) // execute the member gate if it exists for private members
-	 rv = type->evalMemberGate(this, member, xsink);
+      if (myclass->hasMemberGate()) // execute the member gate if it exists for private members
+	 rv = myclass->evalMemberGate(this, member, xsink);
       else
       {
-	 xsink->raiseException("PRIVATE-MEMBER", "'%s' is a private member of class '%s'", mem, type->name);
+	 xsink->raiseException("PRIVATE-MEMBER", "'%s' is a private member of class '%s'", mem, myclass->name);
 	 rv = NULL;
       }
    }
@@ -126,7 +126,7 @@ class QoreNode *Object::evalMember(class QoreNode *member, class ExceptionSink *
 	 
 	 // execute memberGate method for objects where no member exists
 	 if (rv == (QoreNode *)-1)
-	    rv = type->evalMemberGate(this, member, xsink);
+	    rv = myclass->evalMemberGate(this, member, xsink);
       }
    }
    if (tstr != member->val.String)
@@ -138,11 +138,11 @@ class QoreNode *Object::evalMember(class QoreNode *member, class ExceptionSink *
 // does a deep dereference and execs destructor if necessary
 void Object::dereference(ExceptionSink *xsink)
 {
-   printd(5, "Object::dereference(this=%08x) class=%s %d->%d\n", this, type->name, references, references - 1);
+   printd(5, "Object::dereference(this=%08x) class=%s %d->%d\n", this, myclass->name, references, references - 1);
    if (ROdereference())
    {
       // no need to lock here; we are the last one to access this object
-      printd(5, "Object::dereference() class=%s deleting this=%08x\n", type->name, this);
+      printd(5, "Object::dereference() class=%s deleting this=%08x\n", myclass->name, this);
       if (status == OS_OK)
       {
 	 // reference for destructor
@@ -161,7 +161,7 @@ void Object::dereference(ExceptionSink *xsink)
 // 0 = equal, 1 = not equal
 bool Object::compareSoft(class Object *obj, class ExceptionSink *xsink)
 {
-   if (obj->type != type)
+   if (obj->myclass != myclass)
       return 1;
 
    // to avoid deadlocks when an object is compared with itself
@@ -197,7 +197,7 @@ bool Object::compareSoft(class Object *obj, class ExceptionSink *xsink)
 // 0 = equal, 1 = not equal
 bool Object::compareHard(class Object *obj)
 {
-   if (obj->type != type)
+   if (obj->myclass != myclass)
       return 1;
 
    // to avoid deadlocks when an object is compared with itself
@@ -249,7 +249,7 @@ void Object::doDelete(class ExceptionSink *xsink)
    g.exit();
    printd(5, "Object::doDelete(this=%08x) calling destructor()\n", this);
 
-   type->execDestructor(this, xsink);
+   myclass->execDestructor(this, xsink);
 
    g.enter();
    status = OS_DELETED;

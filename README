@@ -1,9 +1,13 @@
 Qore README
 
 author: David Nichols <david_nichols@users.sourceforge.net>
-updated: 2006.06.04
+updated: 2006.08.19
 
 This document contains some general information on the Qore language.  Please refer to the following files/locations for specific information:
+
+WHATISQORE
+----------
+a general description of the Qore programming language
 
 RELEASE-NOTES
 -------------
@@ -11,15 +15,16 @@ for release notes, known issues, etc
 
 BUILD
 -----
-for information on how to build and install qore
-NOTE: qore requires at least flex 2.5.31 (most distributions have flex 2.5.4) in order to compile a multithreaded parser; you can get this version at 
+for information on how to build and install qore from sources - some quick information here:
+ * only UNIX-like platforms are currently supported
+ * requires POSIX threading support
+ * requires at least flex 2.5.31 (most distributions have flex 2.5.4) in order to compile the multithreaded parser; you can get this version at 
 	http://sourceforge.net/projects/lex
-NOTE: qore also requires libxml2 headers and libraries for the build; libxml2 support is no longer optional
-NOTE: qore now requires pcre headers and libraries for the build, POSIX regex support is no longer used
-
-WHATISQORE
-----------
-a general description of the Qore programming language
+ * requires libxml2 headers and libraries; libxml2 support is no longer optional
+ * requires pcre headers and libraries for perl5-compatible regex support; POSIX regex support is no longer used
+ * requires openssl headers and libraries as of v0.5.2
+ * optionally support for Oracle, MySQL, ncurses, TIBCO Rendezvous, and TIBCO ActiveEnterprise can be built
+(see BUILD for details)
 
 docs/qore.html
 ---------------------------------------------
@@ -38,18 +43,28 @@ examples/
 ---------
 some example Qore scripts/programs.
 
+
 ***************
 *** HISTORY ***
 ***************
 
+Qore development was originally sponsored by Hutchison 3G in Vienna, Austria in order to provide the logic engine for the OM/Qore Workflow/EAI System.
+Qore development is now sponsored by Qore Technologies s.r.o. in Prague, Czech Republic.
+
 OM/Qore Workflow and EAI System
 -------------------------------
-The primary vehicle for qore language development up to now has been the OM/Qore Workflow/EAI system, which is a highly multi-threaded, Oracle-integrated workflow and service platform with a multithreaded XML-RPC server, where user (and some system) logic is stored in an Oracle database and run in Qore Program objects with restricted capabilities.  This system is entirely written in the Qore language, and is currently a proprietary product.
+The OM/Qore Workflow/EAI system is a framework for the development and operations of reliable (fault-tolerant) interfaces supporting "Guaranteed Recoverability".
 
-Basically the qore language was developed in order to make it possible to write this application, however, solutions to various challenges in the OM/Qore system design were implemented in the most generic way possible in order to make qore as useful in as many similar contexts as possible.
+The system is a highly multi-threaded, Oracle- and TIBCO ActiveEnterprise-integrated workflow and SOA platform where user (and some system) logic is run-time loaded/refreshed from an Oracle database and executed in a controlled fashion in Qore Program objects with restricted capabilities by the system in order to support user-defined workflows and services.
 
-OM/Qore is in commercial use by Hutchison 3G Austria, and is the primary enterprise application integration system now for the only pure 3G telecommunications & multimedia provider in Austria.  OM/Qore has replaced java-based workflows and ECMA-script based integration logic in TIBCO InConcert and Integration Manager and has proved to both a much cheaper development platform and a much more reliable and tracable operational platform with respect to the old TIBCO solutions. 
+Basically the qore language was developed in order to make it possible to write this application, however solutions to various challenges in the OM/Qore language/library design were implemented in the most generic and flexible way possible in order to make qore as useful in as many contexts as possible.
 
-HP is the worldwide integration partner for OM/Qore.
+The requirements for the language were:
+*) clean threading model
+*) efficient resource sharing
+*) support cleanly embedding logic in automomous objects with variable restricted capabilities (= Program class)
+*) good network/socket API (= Socket class)
+*) FTP, HTTP, XML, XML-RPC, TIBCO AE, Oracle integration (HTTP and XML-RPC functionality is currently provided by Qore-language classes at the moment)
+*) total system stability (particularly regarding race conditions) and memory cleanliness
 
-If you would like more information on the features and capbilities of OM/Qore, please send me an email.
+While qore excels as an embedded application scripting library, it has also been designed to be a fully-functional standalone language.

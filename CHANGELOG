@@ -1,3 +1,37 @@
+2006.08.19: David Nichols
+	* removed some unused functions in lib/thread.cc
+	* added the QoreProgram::cannotProvideFeature() function to raise a
+	  special parse exception that will cause all other parse exceptions to
+	  be ignored so that when features cannot be provided the only error 
+	  messages that will be reported via exceptions are the facts that the
+	  features could not be provided.  lib/scanner.ll was modified to use 
+	  this new method
+
+2006.08.18: David Nichols
+	* fixed the qore binary's command-line handling when the first option 
+	  takes an argument with spaces
+	* if the -e or --exec options are given then no file name is set from
+	  the command-line, instead all such options are passed directly into
+	  $ARGV
+
+2006.08.17: David Nichols
+	* fixed some errors and memory leaks when a thread start error occurs
+	* changed Program::destructor() to immediately run the object's
+	  underlying destructor with an ExceptionSink object to allow 
+	  exceptions to be caught by the parent code instead of just 
+	  decrementing the counter and running the default exception handler on
+	  any exceptions - this allows exceptions thrown when deleting global 
+	  variables and thread data to be caught and handled (before they could
+	  not be caught and the default exception handler would be run)
+	* added throwThreadResourceExceptions() function to explicitly throw
+	  thread resource exceptions
+	* changed objects to reference their parent QoreProgram object instead
+	  of the parent class because the class is contained by the program
+	  anyway, and the class may have a method that calls a function in the
+	  program - otherwise in the case that an object exported from a
+	  program is deleted before the object and that object's class has a
+	  method that calls a function in the program, a core dump would result
+
 2006.08.16: David Nichols
 	* infrastructure changes to allow thread-specific resources to be 
 	  registered with a destructor function to be run on the data if the

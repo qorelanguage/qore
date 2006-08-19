@@ -258,7 +258,7 @@ MSEC            [0-9]{2}
                                            char *cn = trim(yytext);
 					   //printd(5, "scanner requesting feature: '%s'\n", cn);
 					   if (MM.loadModule(cn, getProgram()))
-					      parse_error("cannot provide feature '%s'", cn);
+					      getProgram()->cannotProvideFeature(cn);
 					   free(cn);
 					   BEGIN(INITIAL);
                                         }

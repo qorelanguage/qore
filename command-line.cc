@@ -11,12 +11,14 @@
 */
 
 #include <qore/Qore.h>
+
 #include "command-line.h"
 
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <libgen.h>
+#include <ctype.h>
 
 // global parse_option
 int parse_options = 0;
@@ -313,10 +315,28 @@ static char *get_arg(char *argv[], unsigned *i, unsigned *j, unsigned argc)
    return &argv[*i][*j];
 }
 
+static void process_str_opt(char *argv[], unsigned *i, unsigned j, unsigned argc);
+
 // *i is the argument position, *j is the index in the string
-static int process_char_opt(char *argv[], unsigned *i, unsigned *j, int argc)
+static int process_char_opt(char *argv[], unsigned *i, unsigned *j, unsigned argc)
 {
    unsigned x;
+
+   if (isblank(argv[*i][*j]))
+   {
+      do 
+	 (*j)++;
+      while (isblank(argv[*i][*j]));
+      if (argv[*i][*j] == '-')
+	 if (argv[*i][*j] == '-')
+	 {
+	    process_str_opt(argv, i, *j + 1, argc);
+	    return 1;
+	 }
+	 else
+	    (*j)++;
+   }
+
    char c = argv[*i][*j];
 
    for (x = 0; x < NUM_OPTS; x++)
@@ -348,10 +368,10 @@ static int process_char_opt(char *argv[], unsigned *i, unsigned *j, int argc)
 }
 
 // *i is the argument position
-static void process_str_opt(char *argv[], unsigned *i, unsigned argc)
+static void process_str_opt(char *argv[], unsigned *i, unsigned j, unsigned argc)
 {
    unsigned x, option_present = 0;
-   char *opt = &argv[*i][2];
+   char *opt = &argv[*i][j];
    
    // find option string (left side of string if there is an assignment char)
    for (x = 2; x < strlen(argv[*i]); x++)
@@ -408,52 +428,6 @@ static void process_str_opt(char *argv[], unsigned *i, unsigned argc)
       free(opt);
 }
 
-static char **get_new_argv(unsigned *argc, char *argv[])
-{
-   // if the first argument is the file name, then
-   // do nothing
-   if ((*argc) < 2 || argv[1][0] != '-' || !argv[1][1])
-      return argv;
-
-   unsigned delim = 0;
-   unsigned i = 0;
-   while (argv[1][i])
-   {
-      if (argv[1][i] == ' ')
-	 delim++;
-      i++;
-   }
-   //printf("delim=%d\n", delim); fflush(stdout);
-   if (!delim)
-      return argv;
-
-   (*argc) += delim;
-   char **rv = new char *[*argc];
-   char *l = argv[1];
-   for (i = 0; i < delim; i++)
-   {
-      char *p = strchr(l, ' ');
-      rv[i + 1] = (char *)malloc(sizeof(char) * (p - l + 1));
-      strncpy(rv[i + 1], l, p - l);
-      //printd(5, "get_new_argv() adding %s\n", rv[i + 1]);
-      rv[i + 1][p - l] = '\0';
-      l = p + 1;
-   }
-   //printd(5, "get_new_argv() adding %s\n", l);
-   rv[i + 1] = strdup(l);
-
-   for (i = delim + 2; i < (*argc); i++)
-      rv[i] = strdup(argv[i - delim]);
-   return rv;
-}
-
-static void delete_new_argv(char **nargv, int argc)
-{
-   for (int i = 1; i < argc; i++)
-      free(nargv[i]);
-   delete [] nargv;
-}
-
 // returns either NULL or a string that must be freed with free()
 // also sets up the global ARGV argument list
 char *parse_command_line(unsigned argc, char *argv[])
@@ -465,52 +439,50 @@ char *parse_command_line(unsigned argc, char *argv[])
 
    unsigned i = 1;
 
-   char **cargv = get_new_argv(&argc, argv);
-
    // check all arguments
    for (; i < argc; i++)
    {
-      printd(5, "parse_command_line() %d/%d=%s\n", i, argc, cargv[i]);
-      if (cargv[i][0] == '-')
+      printd(5, "parse_command_line() %d/%d=%s\n", i, argc, argv[i]);
+      if (argv[i][0] == '-')
       {
-	 if (!cargv[i][1])
+	 if (!argv[i][1])
 	 {
 	    i++;
 	    break;
 	 }
 	 else
 	 {
-	    if (cargv[i][1] == '-')
+	    if (argv[i][1] == '-')
 	    {
-	       if (!cargv[i][2])
+	       if (!argv[i][2])
 	       {
 		  i++;
 		  break;
 	       }
-	       process_str_opt(cargv, &i, argc);
+	       process_str_opt(argv, &i, 2, argc);
 	    }
 	    else
 	    {
 	       unsigned j;
 
-	       for (j = 1; j < strlen(cargv[i]); j++)
-		  if (process_char_opt(cargv, &i, &j, argc))
+	       for (j = 1; j < strlen(argv[i]); j++)		  
+		  if (process_char_opt(argv, &i, &j, argc))
 		     break;
 	    }
 	 }
       }
       else
       {
-	 fn = strdup(cargv[i++]);
+	 // only set the file name if the --exec option has not been set
+	 if (!cl_pgm)
+	    fn = strdup(argv[i++]);
 	 break;
       }
    }
 
    if (i < argc)
-      qore_setup_argv(i, argc, cargv);
+      qore_setup_argv(i, argc, argv);
 
-   if (cargv != argv)
-      delete_new_argv(cargv, argc);
    if (opt_errors)
    {
       printe(suggest, pn);

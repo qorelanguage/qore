@@ -143,6 +143,12 @@ class QoreNode *f_getAllThreadCallStacks(class QoreNode *params, ExceptionSink *
    return new QoreNode(getAllCallStacks());
 }
 
+class QoreNode *f_throwThreadResourceExceptions(class QoreNode *params, ExceptionSink *xsink)
+{
+   trlist.purgeTID(gettid(), xsink);
+   return NULL;
+}
+
 void init_thread_functions()
 {
    builtinFunctions.add("gettid", f_gettid);
@@ -154,4 +160,5 @@ void init_thread_functions()
    builtinFunctions.add("delete_thread_data", f_delete_thread_data, FC_THREAD);
    builtinFunctions.add("delete_all_thread_data", f_delete_all_thread_data, FC_THREAD);
    builtinFunctions.add("getAllThreadCallStacks", f_getAllThreadCallStacks, FC_THREAD);
+   builtinFunctions.add("throwThreadResourceExceptions", f_throwThreadResourceExceptions, FC_THREAD);
 }

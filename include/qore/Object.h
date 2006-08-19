@@ -74,7 +74,7 @@ class keyList {
 class Object : public ReferenceObject
 {
    private:
-      class QoreClass *type;
+      class QoreClass *myclass;
       int status;
       class RMutex g;
       class keyList *privateData;
@@ -124,7 +124,7 @@ class Object : public ReferenceObject
 
       void doDelete(class ExceptionSink *xsink);
       inline void doDeleteNoDestructor(class ExceptionSink *xsink);
-      inline class QoreClass *getClass() { return type; }
+      inline class QoreClass *getClass() { return myclass; }
       inline class QoreClass *getClass(int cid);
       inline int getStatus() { return status; }
       inline int isValid() { return status == OS_OK; }
@@ -171,6 +171,7 @@ static inline void alreadyDeleted(class ExceptionSink *xsink, char *cmeth);
 #include <qore/ReferenceObject.h>
 #include <qore/Variable.h>
 #include <qore/Exception.h>
+#include <qore/QoreProgram.h>
 
 #include <stdlib.h>
 
@@ -289,9 +290,15 @@ inline void Object::init(class QoreClass *oc, class QoreProgram *p)
 {
    status = OS_OK;
 
-   type = oc; 
-   type->ref();
+   myclass = oc; 
+   //oc->ref();
    pgm = p;
+   // instead of referencing the class, we reference the program, because the
+   // program contains the namespace that contains the class, and the class'
+   // methods may call functions in the program as well that could otherwise
+   // disappear when the program is deleted
+   if (p)
+      p->ref();
    privateData = NULL;
 }
 
@@ -309,7 +316,9 @@ inline Object::Object(class QoreClass *oc, class QoreProgram *p, class Hash *h)
 
 inline Object::~Object()
 {
-   type->deref();
+   if (pgm)
+      pgm->deref();
+   //myclass->deref();
    //tracein("Object::~Object()");
    printd(5, "Object::~Object(this=%08x)\n", this);
 #ifdef DEBUG
@@ -370,7 +379,7 @@ inline class QoreNode *Object::getMemberValueNoMethod(QoreString *key, class VLo
    if (status == OS_DELETED)
    {
       g.exit();
-      makeAccessDeletedObjectException(xsink, key->getBuffer(), type->name);
+      makeAccessDeletedObjectException(xsink, key->getBuffer(), myclass->name);
       return NULL;
    }
 
@@ -389,7 +398,7 @@ inline class QoreNode *Object::getMemberValueNoMethod(char *key, class VLock *vl
    if (status == OS_DELETED)
    {
       g.exit();
-      makeAccessDeletedObjectException(xsink, key, type->name);
+      makeAccessDeletedObjectException(xsink, key, myclass->name);
       return NULL;
    }
 
@@ -407,7 +416,7 @@ inline void Object::deleteMemberValue(QoreString *key, ExceptionSink *xsink)
    if (status == OS_DELETED)
    {
       g.exit();
-      makeAccessDeletedObjectException(xsink, key->getBuffer(), type->name);
+      makeAccessDeletedObjectException(xsink, key->getBuffer(), myclass->name);
       return;
    }
 
@@ -421,7 +430,7 @@ inline void Object::deleteMemberValue(char *key, ExceptionSink *xsink)
    if (status == OS_DELETED)
    {
       g.exit();
-      makeAccessDeletedObjectException(xsink, key, type->name);
+      makeAccessDeletedObjectException(xsink, key, myclass->name);
       return;
    }
 
@@ -436,7 +445,7 @@ inline class List *Object::getMemberList(class ExceptionSink *xsink)
    if (status == OS_DELETED)
    {
       g.exit();
-      makeAccessDeletedObjectException(xsink, type->name);
+      makeAccessDeletedObjectException(xsink, myclass->name);
       return NULL;
    }
    lst = data->getKeys();
@@ -450,7 +459,7 @@ inline void Object::setValue(char *key, class QoreNode *value, ExceptionSink *xs
    if (status == OS_DELETED)
    {
       g.exit();
-      makeAccessDeletedObjectException(xsink, key, type->name);
+      makeAccessDeletedObjectException(xsink, key, myclass->name);
       return;
    }
    data->setKeyValue(key, value, xsink);
@@ -465,7 +474,7 @@ inline void Object::setValue(class QoreString *key, class QoreNode *value, Excep
    if (status == OS_DELETED)
    {
       g.exit();
-      makeAccessDeletedObjectException(xsink, key->getBuffer(), type->name);
+      makeAccessDeletedObjectException(xsink, key->getBuffer(), myclass->name);
       return;
    }
    data->setKeyValue(key->getBuffer(), value, xsink);
@@ -494,7 +503,7 @@ inline void Object::merge(class Hash *h, ExceptionSink *xsink)
    if (status == OS_DELETED)
    {
       g.exit();
-      makeAccessDeletedObjectException(xsink, type->name);
+      makeAccessDeletedObjectException(xsink, myclass->name);
       return;
    }
    data->merge(h, xsink);
@@ -509,7 +518,7 @@ inline void Object::assimilate(class Hash *h, class ExceptionSink *xsink)
    if (status == OS_DELETED)
    {
       g.exit();
-      makeAccessDeletedObjectException(xsink, type->name);
+      makeAccessDeletedObjectException(xsink, myclass->name);
       return;
    }
    data->assimilate(h, xsink);
@@ -536,7 +545,7 @@ inline class QoreNode *Object::evalFirstKeyValue(class ExceptionSink *xsink)
    if (status == OS_DELETED)
    {
       g.exit();
-      makeAccessDeletedObjectException(xsink, type->name);
+      makeAccessDeletedObjectException(xsink, myclass->name);
       return NULL;
    }
    class QoreNode *rv = data->evalFirstKeyValue(xsink);
@@ -552,7 +561,7 @@ inline class QoreNode *Object::evalMemberNoMethod(char *mem, class ExceptionSink
    if (status == OS_DELETED)
    {
       g.exit();
-      makeAccessDeletedObjectException(xsink, mem, type->name);
+      makeAccessDeletedObjectException(xsink, mem, myclass->name);
       return NULL;
    }
    class QoreNode *rv = data->evalKey(mem, xsink);
@@ -567,7 +576,7 @@ inline class QoreNode *Object::evalMemberExistence(char *mem, class ExceptionSin
    if (status == OS_DELETED)
    {
       g.exit();
-      makeAccessDeletedObjectException(xsink, mem, type->name);
+      makeAccessDeletedObjectException(xsink, mem, myclass->name);
       return NULL;
    }
    class QoreNode *rv = data->evalKeyExistence(mem, xsink);
@@ -597,7 +606,7 @@ inline class QoreNode **Object::getExistingValuePtr(class QoreString *mem, class
    if (status == OS_DELETED)
    {
       g.exit();
-      makeAccessDeletedObjectException(xsink, mem->getBuffer(), type->name);
+      makeAccessDeletedObjectException(xsink, mem->getBuffer(), myclass->name);
       return NULL;
    }
    class QoreNode **rv = data->getExistingValuePtr(mem, xsink);
@@ -616,7 +625,7 @@ inline class QoreNode **Object::getExistingValuePtr(char *mem, class VLock *vl, 
    if (status == OS_DELETED)
    {
       g.exit();
-      makeAccessDeletedObjectException(xsink, mem, type->name);
+      makeAccessDeletedObjectException(xsink, mem, myclass->name);
       return NULL;
    }
    class QoreNode **rv = data->getExistingValuePtr(mem);
@@ -632,7 +641,7 @@ inline bool Object::validInstanceOf(int cid)
    if (status == OS_DELETED)
       return 0;
 
-   return type->getClass(cid);
+   return myclass->getClass(cid);
 }
 
 inline void *Object::getReferencedPrivateData(int key) 
@@ -702,15 +711,15 @@ inline void Object::addPrivateDataToString(class QoreString *str)
 
 inline class QoreNode *Object::evalMethod(class QoreString *name, class QoreNode *args, class ExceptionSink *xsink)
 {
-   return type->evalMethod(this, name->getBuffer(), args, xsink);
+   return myclass->evalMethod(this, name->getBuffer(), args, xsink);
 }
 
 inline class QoreClass *Object::getClass(int cid) 
 {
 
-   if (cid == type->getID())
-      return type;
-   return type->getClass(cid);
+   if (cid == myclass->getID())
+      return myclass;
+   return myclass->getClass(cid);
 }
 
 #endif

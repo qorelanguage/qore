@@ -11,7 +11,6 @@ INCLUDES = -I$(top_srcdir)/include
 
 noinst_HEADERS = \
 	include/qore/AutoNamespaceList.h \
-	include/qore/mysignal.h \
 	include/qore/types/Number.h \
 	include/qore/Context.h \
 	include/qore/thread.h \
@@ -79,7 +78,9 @@ noinst_HEADERS = \
 	include/qore/QoreGetOpt.h \
 	include/qore/FtpClient.h \
 	include/qore/StringList.h \
+	include/qore/QoreSignal.h \
 	include/qore/ssl_constants.h \
+	include/qore/signal_constants.h \
 	include/qore/QoreQueue.h \
 	include/qore/QoreSSLBase.h \
 	include/qore/QT_NOTHING.h \

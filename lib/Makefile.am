@@ -17,7 +17,7 @@ libqore_la_SOURCES = \
 	Statement.cc \
 	Variable.cc \
 	support.cc \
-	signal.cc \
+	QoreSignal.cc \
 	QoreType.cc \
 	ModuleManager.cc \
 	Exception.cc \

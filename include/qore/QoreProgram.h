@@ -109,7 +109,7 @@ class GlobalVariableList : public LockedObject
    public:
       inline GlobalVariableList();
       inline ~GlobalVariableList();
-      inline void delete_all();
+      inline void delete_all(class ExceptionSink *xsink);
       inline void importGlobalVariable(class Var *var, class ExceptionSink *xsink, bool readonly = false);
       inline class Var *newVar(char *name);
       inline class Var *findVar(char *name);
@@ -130,7 +130,7 @@ class QoreProgram : public ReferenceObject, private UserFunctionList, private Im
       class Namespace *RootNS, *QoreNS;
 
       int parse_options;
-      bool po_locked, exec_class, base_object;
+      bool po_locked, exec_class, base_object, requires_exception;
       char *exec_class_name;
       pthread_key_t thread_local_storage;
 
@@ -145,7 +145,7 @@ class QoreProgram : public ReferenceObject, private UserFunctionList, private Im
       int internParsePending(char *code, char *label, class ExceptionSink *xsink);
 
    protected:
-      ~QoreProgram();
+      inline ~QoreProgram();
 
    public:
       // for the thread counter
@@ -172,13 +172,22 @@ class QoreProgram : public ReferenceObject, private UserFunctionList, private Im
       inline void addGlobalVarDef(char *name);
       inline void addStatement(class Statement *s);
       inline bool existsFunction(char *name);
-      inline void deref();
+      inline void ref()
+      {
+	 ROreference();
+      }
+      inline void deref()
+      {
+	 if (ROdereference())
+	    delete this;
+      }
+
       inline class Var *findVar(char *name);
       inline class Var *checkVar(char *name);
       inline class Var *createVar(char *name);
-      //inline void makeParseException(const char *fmt, va_list args);
       inline void makeParseException(class QoreString *desc);
       inline void addParseException(class ExceptionSink *xsink);
+      inline void cannotProvideFeature(char *feature);
       inline class Namespace *getRootNS() { return RootNS; }
       inline int getParseOptions() { return parse_options; }
       inline void exportUserFunction(char *name, class QoreProgram *p, class ExceptionSink *xsink);
@@ -217,6 +226,7 @@ class QoreProgram : public ReferenceObject, private UserFunctionList, private Im
       void parseFileAndRunClass(char *filename, char *classname);
       void parseAndRunClass(FILE *, char *name, char *classname);
       void parseAndRunClass(char *str, char *name, char *classname);
+      void del(class ExceptionSink *xsink);
 };
 
 #include <qore/Function.h>
@@ -227,6 +237,12 @@ class QoreProgram : public ReferenceObject, private UserFunctionList, private Im
 #include <qore/Variable.h>
 #include <qore/Namespace.h>
 #include <qore/charset.h>
+
+inline QoreProgram::~QoreProgram()
+{
+   class ExceptionSink xsink;
+   del(&xsink);
+}
 
 static inline void addProgramConstants(class Namespace *ns)
 {
@@ -469,7 +485,7 @@ inline GlobalVariableList::~GlobalVariableList()
 #endif
 }
 
-inline void GlobalVariableList::delete_all()
+inline void GlobalVariableList::delete_all(class ExceptionSink *xsink)
 {
    class Var *var = head;
 
@@ -477,7 +493,7 @@ inline void GlobalVariableList::delete_all()
    {
       printd(5, "GlobalVariableList::delete_all() deleting \"%s\"\n", var->getName());
       head = var->next;
-      var->deref();
+      var->deref(xsink);
       var = head;
    }
 }
@@ -584,29 +600,40 @@ inline class Var *QoreProgram::createVar(char *name)
    return rv;
 }
 
-/*
-inline void QoreProgram::makeParseException(const char *fmt, va_list args)
-{
-   tracein("QoreProgram::makeParseException()");
-
-   class Exception *ne = new Exception("PARSE-EXCEPTION", get_pgm_stmt(), (const char *)fmt, args);
-   parseSink->raiseException(ne);
-   traceout("QoreProgram::makeParseException()");
-}
-*/
-
 inline void QoreProgram::makeParseException(class QoreString *desc)
 {
    tracein("QoreProgram::makeParseException()");
-
-   class Exception *ne = new Exception("PARSE-EXCEPTION", get_pgm_stmt(), desc);
-   parseSink->raiseException(ne);
+   if (!requires_exception)
+   {
+      class Exception *ne = new Exception("PARSE-EXCEPTION", get_pgm_stmt(), desc);
+      parseSink->raiseException(ne);
+   }
    traceout("QoreProgram::makeParseException()");
 }
 
 inline void QoreProgram::addParseException(class ExceptionSink *xsink)
 {
+   if (requires_exception)
+   {
+      delete xsink;
+      return;
+   }
    parseSink->assimilate(xsink);
+}
+
+inline void QoreProgram::cannotProvideFeature(char *feature)
+{
+   tracein("QoreProgram::cannotProvideFeature()");
+   
+   if (!requires_exception)
+   {
+      parseSink->clear();
+      requires_exception = true;
+   }
+   class Exception *ne = new Exception("CANNOT-PROVIDE-FEATURE", "feature '%s' is not built in and no module with this name can be found", feature);
+   parseSink->raiseException(ne);
+   
+   traceout("QoreProgram::cannotProvideFeature()");
 }
 
 inline void QoreProgram::exportUserFunction(char *name, class QoreProgram *p, class ExceptionSink *xsink)
@@ -745,12 +772,6 @@ inline void QoreProgram::disableParseOptions(int po, class ExceptionSink *xsink)
       return;
    }
    parse_options &= (~po);
-}
-
-inline void QoreProgram::deref()
-{
-   if (ROdereference())
-      delete this;
 }
 
 inline void QoreProgram::parsePending(char *code, char *label, class ExceptionSink *xsink)

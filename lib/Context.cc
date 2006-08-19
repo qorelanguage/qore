@@ -303,6 +303,7 @@ Context::Context(char *nme, ExceptionSink *xsink, class QoreNode *exp, class Qor
 
       if (fkv && fkv->type == NT_LIST)
       {
+	 max_pos = fkv->val.list->size();
 	 row_list = (int *)malloc(sizeof(int) * max_pos);
 	 if (!row_list)
 	 {
@@ -311,7 +312,6 @@ Context::Context(char *nme, ExceptionSink *xsink, class QoreNode *exp, class Qor
 	       fkv->deref(xsink);
 	    return;
 	 }
-	 max_pos = fkv->val.list->size();
 
 	 for (int i = 0; i < max_pos; i++)
 	    row_list[i] = i;

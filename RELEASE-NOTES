@@ -11,6 +11,16 @@ programs requiring the old "tibco" module should now use "%requires tibae"
 *) New direct TIBCO Rendezvous support
 Direct TIBCO Rendezvous sending and listening is now supported with the new "tibrv" module - as of this version it's now possible to build in tibrv support without tibae support (tibrv is also supported on OS X ppc and intel now as well)
 
+To use the new TIBCO Rendezvous support use the "%use tibrv" directive to ensure that the functionality is loaded
+
+Classes supplied by this module:
+ + TibrvListener    - for listening to reliable messages
+ + TibrvSender      - for sending reliable messages
+ + TibrvCmListener  - for listening to certified messages
+ + TibrvCmSender    - for sending certified messages
+ + TibrvFtMember    - to implement a fault-tolerant node
+ + TibrvFtMonitor   - to monitor a fault-tolerant group
+
 NOTE: we do not send native Rendezvous arrays - we use the old style "multiple fields with the same name" approach to have more flexible arrays (different datatype in each element, etc).   Native Tibrv arrays are decoded properly when received.
 
 automatic type mapping:
@@ -41,12 +51,87 @@ to do explicit qore->tibrv type mapping, use the following helper functions supp
   tibrv_xml()
   tibrv_bool()
 
-*) SSL support, digest support
+*) strong encryption and digest support
+added SSLCertificate and SSLPrivateKey classes - the constructors for these classes expect a text file in PEM format defining the appropriate object.  Detailed information about the objects can be retrieved using member functions, see the updated qore v0.5.2 documentation for details.
 
-note that when the digest functions are run on strings, the trailing null character is not included in the digest calculation.  however, when the cryptographic functions are run on strings, the trailing null is included.
+Added new functions supporting strong cryptography:
+ *** BLOWFISH 
+   + blowfish_encrypt_cbc()
+   + blocfish_decrypt_cbc()
+   + blowfish_decrypt_cbc_to_string()
+ *** DES and DESX (including multiple-key algorithms)
+   + des_encrypt_cbc()
+   + des_decrypt_cbc()
+   + des_decrypt_cbc_to_string()
+   + des_ede_encrypt_cbc()
+   + des_ede_decrypt_cbc()
+   + des_ede_decrypt_cbc_to_string()
+   + des_ede3_encrypt_cbc()
+   + des_ede3_decrypt_cbc()
+   + des_ede3_decrypt_cbc_to_string()
+   + desx_encrypt_cbc()
+   + desx_decrypt_cbc()
+   + desx_decrypt_cbc_to_string()
+ *** RC4
+   + rc4_encrypt()
+   + rc4_decrypt()
+   + rc4_decrypt_to_string()
+ *** RC2
+   + rc2_encrypt_cbc()
+   + rc2_decrypt_cbc()
+   + rc2_decrypt_cbc_to_string()
+ *** CAST5
+   + cast5_encrypt_cbc()
+   + cast5_decrypt_cbc()
+   + cast5_decrypt_cbc_to_string()
+ *** RC5
+   + rc5_encrypt_cbc()
+   + rc5_decrypt_cbc()
+   + rc5_decrypt_cbc_to_string()
+
+added digest functions: MD2(), MD4(), MD5(), SHA(), SHA1(), DSS(), DSS1(), RIPEMD160(), MDC2()
+
+NOTE: when the digest functions are run on strings, the trailing null character is not included in the digest calculation.  however, when the cryptographic functions are run on strings, the trailing null is included, so that strings can be decrypted with the trailing null.
+
+*) new Socket methods supporting TLS/SSL communication with strong encryption
+making or accepting TLS/SSL connections is nearly transparent with the new Socket class changes.  Instead of Socket::connect() you would use Socket::connectSSL().  Instead of Socket::accept() you use Socket::acceptSSL() (requires setting a certificate and private key using the SSLCertificate and SSLPrivateKey classes and the Socket::setCertificate() and Socket::setPrivateKey() classes)
+
+Once a TLS/SSL connection has been established on a socket, subsequent reads and writes using the standard Socket methods will be done using the equivalent SSL functions in a manner transparent to the programmer.
+
+new methods:
+  + Socket::connectSSL()              - makes a TLS/ SSL connection to a remote socket
+  + Socket::acceptSSL()               - accepts a connection on a socket and negotiates a TLS/SSL session
+  + Socket::shutdownSSL()             - shuts down an active TLS/SSH session by sending the "close notify" shutdown alert to the peer
+  + Socket::setCertificate()          - associates a certificate with a socket
+  + Socket::setPrivateKey()           - associates a private key with a socket
+  + Socket::verifyPeerCertificate()   - returns a verification code describing the state of the peer's certificate
+  + Socket::isSecure()                - returns True if a secure connection has been established
+  + Socket::isOpen()                  - returns True if the socket is open
+  + Socket::getSSLCipherName()        - returns the name of the encryption algorithm for secure connection
+  + Socket::getSSLCipherVersion()     - returns the version of the encryption algorithm for secure connection
+
+*) the FtpClient class has been modified to support the ftps protocol according to RFC-4217
+a RFC-4217 compliant secure connection will be made if the protocol in the URL is set to "ftps" or if the setSecure() method is called before connect()
+
+new FtpClient methods:
+  + FtpClient::setSecure()                - will try to make an RFC-4217 compliant secure control and data connections to the server
+  + FtpClient::setInsecure()              - will try to make unencrypted connections to the server
+  + FtpClient::setInsecureData()          - will try to make unencrypted data connections to the server even if the control connection is secure
+  + FtpClient::isSecure()                 - returns True if a secure control connection has been established
+  + FtpClient::isDataSecure()             - returns True if the data connection is secure
+  + FtpClient::getSSLCipherName()         - returns the name of the encryption algorithm for ftps connections
+  + FtpClient::getSSLCipherVersion()      - returns the version of the encryption algorithm for ftps connections
+  + FtpClient::verifyPeerCertificate()    - verifies the peer's certificate for ftps connections
+  + FtpClient::setModeAuto()              - sets the object to automatically try EPSV, PASV, and PORT for the data connection
+  + FtpClient::setModeEPSV()              - sets the object to only try EPSV mode for the data connection
+  + FtpClient::setModePASV()              - sets the object to only try PASV mode for the data connection
+  + FtpClient::setModePORT()              - sets the object to only try PORT mode for the data connection
 
 *) improved XML serialization and deserialization
 mixed elements and text can now be serialized and deserialized without data loss (except whitespace is still not retained) - for example, now it's possible to deserialize (parse) a docbook xml file and then reserialize it (generate the XML from the Qore data structure) without losing information (this was not possible with previous versions of qore).
+
+*) 64-bit build support on x86_64 (AMD64, etc)
+native 64-bit binaries can now be built on Linux x86_64 - the build system has been modified to be able to correctly find paths and set directory names for 64-bit libraries if the --enable-64bit configure option is used.  By default 32-bit builds are made unless the --enable-64bit option is passed to configure.
 
 
 ***********************
@@ -55,7 +140,7 @@ mixed elements and text can now be serialized and deserialized without data loss
 
 Out of Memory Errors
 --------------------
-*) BUG: out of memory conditions are not handled with the c++ new operator... I need a good solution for that.  Generally the Qore program will crash if the new operator cannot allocate the memory it needs 
+*) BUG: out of memory conditions are not handled with the c++ new operator... I need a good solution for that.  Generally the Qore program will crash if the new operator cannot allocate the memory it needs, however work has begun on handling out of memory errors starting in v0.5.2
 
 References, Copying, Passing by Value
 -------------------------------------
@@ -67,6 +152,7 @@ Parsing
 *) Parsing happens in 2 stages - 1) parse to pending data structures, and 2) commit the pending data structures to the Qore Program object.  References are resolved in the second stage, which allows flexible referencing of functions, constants, classes, etc before they are declared.  Any parse errors at any stage will cause all the uncomitted parsing to be rolled back.  The Qore Program class allows the programmer control over the 2 stages of parsing with the Program::parsePending(), Program::parseCommit(), and Program::parseRollback() methods.
 *) BUG: error reporting needs to be improved when parse errors happen: when a parse error happens at the start of a block, the line number is normally reported at the end of the block (or right after the end of the block) - this is very annoying
 *) error reporting is not very user friendly in many cases - parser needs to be improved
+
 
 **************************
 *** MODULE INFORMATION ***
@@ -110,12 +196,13 @@ NCURSES
 -------
 experimental: provides the "Panel" and "Window" classes along with many functions and constants - see test/ncurses.q and examples/hanio.q and examples/worms.q for more information. 
 
+
 *********************
 *** SQL Subsystem ***
 *********************
 
 *) NOTE that there is a transaction lock on the Datasource class (above the DBI driver level) that is automatically enabled if autocommit is off on the Datasource that prohibits two or more threads from being in a transaction at the same time on the same datasource.  To best use this feature when starting a transaction with a Datasource::select() (like a "select for update"), call Datasource::beginTransaction() before the "select for update".  You notify qore that the transaction has completed by calling Datasource::commit() or Datasource::rollback().  Note that this must be done in the same thread that started the transaction.  Currently there is no way in qore to execute SQL in separate threads simultaneously on the same datasource if autocommit is off and one of the threads has started a transaction (either by calling Datasource::beginTransaction() or Datasource::exec()).
-*) Known Design Bug: the Datasource::describe() method should not be used until the design and implementation are reworked.  This method has been disabled in the top-level Qore class for the time being.
+*) NOTE the Datasource::describe() method should not be used until the design and implementation are reworked.  This method has been disabled in the top-level Qore class for the time being.
 *) autocommits should probably be moved to the Datasource class to make DBI driver implementation a little easier
 
 
@@ -130,6 +217,7 @@ The file docs/roadmap.html contains line-by-line feature information.  Generally
 *) have more robust DBI drivers (PostgresSQL, Sybase should be added)
 *) binding and fetching has been implemented with explicit APIs so Qore programs can handle data sets larger than available memory
 *) parser issues with line number reporting have been resolved
+
 
 *********************
 *** General Notes ***

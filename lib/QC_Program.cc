@@ -56,7 +56,18 @@ static QoreNode *PROGRAM_destructor(class Object *self, class QoreNode *params, 
 {
    QoreProgram *p = (QoreProgram *)self->getAndClearPrivateData(CID_PROGRAM);
    if (p)
-      p->deref();
+   {
+      // if there are no other calls in progress, then delete everything now
+      if (p->reference_count() == 1)
+      {
+	 p->del(xsink);
+	 p->deref();
+      }
+      else
+	 p->waitForTerminationAndDeref();
+   }
+   else
+      alreadyDeleted(xsink, "Program::destructor");
    return NULL;
 }
 

@@ -25,7 +25,6 @@
 #include <qore/Statement.h>
 #include <qore/support.h>
 #include <qore/BuiltinFunctionList.h>
-#include <qore/mysignal.h>
 #include <qore/QoreType.h>
 #include <qore/ModuleManager.h>
 #include <qore/Variable.h>
@@ -59,7 +58,7 @@ void qore_init(char *def_charset, bool show_module_errors)
    SSL_load_error_strings();
    OpenSSL_add_all_algorithms();
    SSL_library_init();
-   // seed PRNG
+   // FIXME: seed PRNG or add function to do the same
 
    // init threading infrastructure
    init_qore_threads();
@@ -68,9 +67,6 @@ void qore_init(char *def_charset, bool show_module_errors)
 
    // initialize charset encoding support
    QEM.init(def_charset);
-
-   // initialize signal handling
-   init_signals();
 
    // set up core operators
    operatorsInit();
