@@ -111,9 +111,49 @@ static inline char *strchrs(char *str, char *chars)
 class QoreString *q_sprintf(class QoreNode *params, int field, int offset, class ExceptionSink *xsink);
 class QoreString *q_vsprintf(class QoreNode *params, int field, int offset, class ExceptionSink *xsink);
 
+static inline int64 swapi8(int64 i)
+{ 
+   char obuf[8];
+   char *ibuf = (char *)&i;
+   obuf[7] = ibuf[0];
+   obuf[6] = ibuf[1];
+   obuf[5] = ibuf[2];
+   obuf[4] = ibuf[3];
+   obuf[3] = ibuf[4];
+   obuf[2] = ibuf[5];
+   obuf[1] = ibuf[6];
+   obuf[0] = ibuf[7];
+
+   return *((int64 *)obuf);
+}
+
+static inline int swapi4(int i)
+{ 
+   char obuf[4];
+   char *ibuf = (char *)&i;
+   obuf[3] = ibuf[0];
+   obuf[2] = ibuf[1];
+   obuf[1] = ibuf[2];
+   obuf[0] = ibuf[3];
+
+   return *((int *)obuf);
+}
+
+static inline short swapi2(short i)
+{ 
+   char obuf[2];
+   char *ibuf = (char *)&i;
+   obuf[1] = ibuf[0];
+   obuf[0] = ibuf[1];
+
+   return *((short *)obuf);
+}
+
 #ifdef WORDS_BIGENDIAN
 static inline int64 i8LSB(int64 i)
 {
+   return swapi8(i);
+/*
    int64 j;
    char *buf = (char *)j;
    buf[0] = i & 0xff;
@@ -125,10 +165,13 @@ static inline int64 i8LSB(int64 i)
    buf[6] = (i >> 48) & 0xff;
    buf[7] = (i >> 56) & 0xff;
    return j;
+*/
 }
 
 static inline int i4LSB(int i)
 {
+   return swapi4(i);
+/*
    int j;
    char *buf = (char *)j;
    buf[0] = i & 0xff;
@@ -136,21 +179,27 @@ static inline int i4LSB(int i)
    buf[2] = (i >> 16) & 0xff;
    buf[3] = (i >> 24) & 0xff;
    return j;
+*/
 }
 
 static inline short i2LSB(short i)
 {
+   return swapi2(i);
+/* 
    short j;
    char *buf = (char *)j;
    buf[0] = i & 0xff;
    buf[1] = (i >> 8) & 0xff;
    return j;
+*/
 }
 
 static inline int64 LSBi8(int64 i)
 { 
+   return swapi8(i);
+/*
    int64 j;
-   char *buf = (char *)j;
+   char *obuf = (char *)j;
    buf[7] = i & 0xff;
    buf[6] = (i >> 8) & 0xff;
    buf[5] = (i >> 16) & 0xff;
@@ -160,10 +209,13 @@ static inline int64 LSBi8(int64 i)
    buf[1] = (i >> 48) & 0xff;
    buf[0] = (i >> 56) & 0xff;
    return j;
+*/
 }
 
 static inline int LSBi4(int i)
 {
+   return swapi4(i);
+/*
    int j;
    char *buf = (char *)j;
    buf[0] = (i >> 24) & 0xff;
@@ -171,15 +223,19 @@ static inline int LSBi4(int i)
    buf[2] = (i >> 8) & 0xff;
    buf[3] = i & 0xff;
    return j;
+*/
 }
 
 static inline short LSBi2(short i)
 { 
+   return swapi2(i);
+/*
    short j;
    char *buf = (char *)j;
    buf[0] = (i >> 8) & 0xff;
    buf[1] = i & 0xff;
    return j;
+*/
 }
 
 static inline int64 i8MSB(int64 i) { return i; }
@@ -195,12 +251,25 @@ static inline short LSBi2(short i) { return i; }
 
 static inline int64 i8MSB(int64 i)
 { 
-   return LSBi8(i); 
+   return swapi8(i);
+/*
+   int64 j;
+   char *buf = (char *)j;
+   buf[7] = i & 0xff;
+   buf[6] = (i >> 8) & 0xff;
+   buf[5] = (i >> 16) & 0xff;
+   buf[4] = (i >> 24) & 0xff;
+   buf[3] = (i >> 32) & 0xff;
+   buf[2] = (i >> 40) & 0xff;
+   buf[1] = (i >> 48) & 0xff;
+   buf[0] = (i >> 56) & 0xff;
+   return j;
+*/
 }
 
 static inline int64 MSBi8(int64 i) 
 { 
-   return LSBi8(i); 
+   return swapi8(i);
 }
 
 #endif

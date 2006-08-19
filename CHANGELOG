@@ -6,6 +6,7 @@
 	  messages that will be reported via exceptions are the facts that the
 	  features could not be provided.  lib/scanner.ll was modified to use 
 	  this new method
+	* fixed buggy the Socket::*i8() methods
 
 2006.08.18: David Nichols
 	* fixed the qore binary's command-line handling when the first option 
