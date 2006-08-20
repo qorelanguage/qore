@@ -1,11 +1,7 @@
 #!/usr/bin/env qore
 
 %require-our
-
-#$sp = "/tmp/sock-test";
-#$cp = "/tmp/sock-test";
-
-our ($o, $sp, $cp, $q, $errors);
+%exec-class socket_test
 
 const opts = 
     ( "help"       : "h,help",
@@ -18,20 +14,210 @@ const opts =
       "clientcert" : "client-cert=s",
       "verbose"    : "v,verbose" );
 
-sub test_value($v1, $v2, $msg)
-{
-    if ($v1 === $v2)
-	printf("OK: %s test\n", $msg);
-    else
-    {
-        printf("ERROR: %s test failed! (%n != %n)\n", $msg, $v1, $v2);
-        $errors++;
-    }
-}
+const i1 = 10;
+const i2 = 5121;
+const i4 = 2393921;
+const i8 = 12309309203932;
 
-sub usage()
-{
-    printf("usage: %s -[options] [port]
+class socket_test {
+
+    constructor()
+    {
+	$.process_command_line();
+
+	$.string = "This is a binary string";
+	$.binary = binary($.string);
+
+	$.q = new Queue();
+
+	if (!exists $.o.server)
+	    background $.server_thread();
+
+	if (!$.o.servonly)
+	    background $.client_thread();   
+    }
+
+    private server_thread()
+    {
+	printf("listening for incoming connections on %s\n", $.server_port);
+	my $s = new Socket();
+	if ($s.bind($.server_port, True) == -1)
+	{
+	    printf("server_thread: error opening socket! (%s)\n", strerror(errno()));
+	    exit(2);
+	}
+	
+	if ($s.listen())
+	{
+	    printf("listen error (%s)\n", strerror(errno()));
+	    exit(2);
+	}
+    
+	# socket created, now wake up client
+	$.q.push("hi");
+	my $r;
+	try {
+	    if ($.o.ssl)
+	    {
+		if (strlen($.o.clientcert))
+		{
+		    $s.setCertificate($.o.clientcert);
+		    if (!strlen($.o.clientkey))
+			$s.setPrivateKey($.o.clientcert);
+		}
+		if (strlen($.o.clientkey))
+		    $s.setPrivateKey($.o.clientkey);
+		
+		$s = $s.acceptSSL();
+		printf("server: secure connection (%s %s) from %s (%s)\n", $r.getSSLCipherName(), $r.getSSLCipherVersion(), $r.source, $r.source_host);
+		my $code = $r.verifyPeerCertificate();
+		if ($code == -1)
+		    printf("server: client certificate could not be verified\n");
+		else
+		{
+		    my $str = getSSLCertVerificationCodeString($code);
+		    printf("server: client certificate: %n %s: %s\n", $str, X509_VerificationReasons.$str);
+		}
+	    }
+	    else
+	    {
+		$s = $s.accept();
+		printf("server: non-encrypted socket connection from %s (%s)\n", $s.source, $s.source_host);
+	    }
+	}
+	catch ($ex)
+	{
+	    printf("server error: %s: %s\n", $ex.err, $ex.desc);
+	    exit(1);
+	}
+	
+	$.receive_messages($s, "server");
+	$.send_messages($s);
+
+	$s.close();
+    }
+
+    private client_thread()
+    {
+	if (!exists $.o.server)
+	    $.q.get();
+	my $s = new Socket();
+	
+	try {
+	    if ($.o.ssl)
+	    {
+		if (strlen($.o.cert))
+		{
+		    $s.setCertificate($.o.cert);
+		    if (!strlen($.o.key))
+			$s.setPrivateKey($.o.cert);
+		}
+		if (strlen($.o.key))
+		    $s.setPrivateKey($.o.key);
+		$s.connectSSL($.client_port);
+		
+		my $code = $s.verifyPeerCertificate();
+		my $str = getSSLCertVerificationCodeString($code);
+		printf("client: server certificate: %s: %s\n", $str, X509_VerificationReasons.$str);
+	    }
+	    else
+		$s.connect($.client_port);
+	}
+	catch ($ex)
+	{
+	    printf("client error: %s: %s\n", $ex.err, $ex.desc);
+	    exit(1);
+	}
+
+	$.send_messages($s);
+	$.receive_messages($s, "client");
+    }
+
+    private receive_messages($s, $who)
+    {
+	my $m = $s.recv();
+	$.test_value($who, $.string, $m, "string");
+	$s.send("OK");
+
+	$m = binary($s.recv());
+	$.test_value($who, $.binary, $m, "binary");
+	$s.send("OK");
+
+	$m = $s.recvi1();
+	$.test_value($who, $m, i1, "sendi1");
+	$s.send("OK");
+
+	$m = $s.recvi2();
+	$.test_value($who, $m, i2, "sendi2");
+	$s.send("OK");
+
+	$m = $s.recvi4();
+	$.test_value($who, $m, i4, "sendi4");
+	$s.send("OK");
+
+	$m = $s.recvi8();
+	$.test_value($who, $m, i8, "sendi8");
+	$s.send("OK");
+
+	$m = $s.recvi2LSB();
+	$.test_value($who, $m, i2, "sendi2LSB");
+	$s.send("OK");
+
+	$m = $s.recvi4LSB();
+	$.test_value($who, $m, i4, "sendi4LSB");
+	$s.send("OK");
+
+	$m = $s.recvi8LSB();
+	$.test_value($who, $m, i8, "sendi8LSB");
+	$s.send("OK");
+    }
+    
+    private send_messages($s)
+    {
+	$s.send($.string);
+	$.get_response($s);
+
+	$s.send($.binary);
+	$.get_response($s);
+
+	$s.sendi1(i1);
+	$.get_response($s);
+	$s.sendi2(i2);
+	$.get_response($s);
+	$s.sendi4(i4);
+	$.get_response($s);
+	$s.sendi8(i8);
+	$.get_response($s);
+	
+	$s.sendi2LSB(i2);
+	$.get_response($s);
+	$s.sendi4LSB(i4);
+	$.get_response($s);
+	$s.sendi8LSB(i8);
+	$.get_response($s);
+    }
+
+    private get_response($s)
+    {
+	my $m = $s.recv();
+	if ($m != "OK")
+	    throw "RESPONSE-ERROR", sprintf("expecting 'OK', got: %N", $m);
+    }
+
+    private test_value($who, $v1, $v2, $msg)
+    {
+	if ($v1 === $v2)
+	    printf("%s: OK: %s test\n", $who, $msg);
+	else
+	{
+	    printf("%s: ERROR: %s test failed! (%n != %n)\n", $who, $msg, $v1, $v2);
+	    $.errors++;
+	}
+    }
+
+    private usage()
+    {
+	printf("usage: %s -[options] [port]
   -h,--help                    this help text
   -S,--server=ip:port          no server thread; connect to remote server
   -O,--server-only             no client thread; wait for remote clients
@@ -41,203 +227,39 @@ sub usage()
   -C,--client-cert=arg         set client SSL x509 certificate
   -K,--client-private-key=arg  set client SSL private key
 ", basename($ENV."_"));
-    exit();
-}
-
-sub process_command_line()
-{
-    my $g = new GetOpt(opts);
-    $o = $g.parse(\$ARGV);
-
-    if (exists $o{"_ERRORS_"})
-    {
-        printf("%s\n", $o{"_ERRORS_"}[0]);
-        exit(1);
+	exit();
     }
 
-    if ($o.help)
-	usage();
-
-    if (exists $o.server && $o.servonly)
+    private process_command_line()
     {
-	printf("server only flag set and remote server option=%n set - aborting\n", $o.server);
-	exit(1);
-    }
-
-    if (!($sp = int(shift $ARGV)))
-	$sp = 9001;
-
-    if (exists $o.server)
-    {
-	$cp = $o.server;
-	if ($cp == int($cp))
-	    $cp = "localhost:" + $cp;
-    }
-    else
-	$cp = sprintf("localhost:%d", $sp);
-}
-
-const i1 = 10;
-const i2 = 5121;
-const i4 = 2393921;
-const i8 = 12309309203932;
-
-sub server_thread()
-{
-    printf("listening for incoming connections on %s\n", $sp);
-    my $s = new Socket();
-    if ($s.bind($sp, True) == -1)
-    {
-	printf("server_thread: error opening socket! (%s)\n", strerror(errno()));
-	exit(2);
-    }
-    
-    if ($s.listen())
-    {
-	printf("listen error (%s)\n", strerror(errno()));
-	exit(2);
-    }
-    
-    # socket created, now wake up client
-    $q.push("hi");
-    my $r;
-    try {
-	if ($o.ssl)
+	my $g = new GetOpt(opts);
+	$.o = $g.parse(\$ARGV);
+	
+	if (exists $.o{"_ERRORS_"})
 	{
-	    if (strlen($o.clientcert))
-	    {
-		$s.setCertificate($o.clientcert);
-		if (!strlen($o.clientkey))
-		    $s.setPrivateKey($o.clientcert);
-	    }
-	    if (strlen($o.clientkey))
-		$s.setPrivateKey($o.clientkey);
-
-	    $r = $s.acceptSSL();
-	    printf("server: secure connection (%s %s) from %s (%s)\n", $r.getSSLCipherName(), $r.getSSLCipherVersion(), $r.source, $r.source_host);
-	    my $code = $r.verifyPeerCertificate();
-	    if ($code == -1)
-		printf("server: client certificate could not be verified\n");
-	    else
-	    {
-		my $str = getSSLCertVerificationCodeString($code);
-		printf("server: client certificate: %n %s: %s\n", $str, X509_VerificationReasons.$str);
-	    }
+	    printf("%s\n", $.o{"_ERRORS_"}[0]);
+	    exit(1);
+	}
+	
+	if ($.o.help)
+	    $.usage();
+	
+	if (exists $.o.server && $.o.servonly)
+	{
+	    printf("server only flag set and remote server option=%n set - aborting\n", $.o.server);
+	    exit(1);
+	}
+	
+	if (!($.server_port = int(shift $ARGV)))
+	    $.server_port = 9001;
+	
+	if (exists $.o.server)
+	{
+	    $.client_port = $.o.server;
+	    if ($.client_port == int($.client_port))
+		$.client_port = "localhost:" + $.client_port;
 	}
 	else
-	{
-	    $r = $s.accept();
-	    printf("server: non-encrypted socket connection from %s (%s)\n", $r.source, $r.source_host);
-	}
+	    $.client_port = sprintf("localhost:%d", $.server_port);
     }
-    catch ($ex)
-    {
-	printf("server error: %s: %s\n", $ex.err, $ex.desc);
-	exit(1);
-    }
-    
-    my $m = $r.recv();
-    if ($m == -1)
-    {
-	printf("recv error (%s)\n", strerror(errno()));
-	exit(2);
-    }
-    
-    printf("server: message from client: %s (%s)\n", $m, typename($m));
-    $r.send("OK");
-
-    my $i = $r.recvi1();
-    test_value($i, i1, "sendi1");
-    $i = $r.recvi2();
-    test_value($i, i2, "sendi2");
-    $i = $r.recvi4();
-    test_value($i, i4, "sendi4");
-    $i = $r.recvi8();
-    test_value($i, i8, "sendi8");
-
-    $i = $r.recvi2LSB();
-    test_value($i, i2, "sendi2LSB");
-    $i = $r.recvi4LSB();
-    test_value($i, i4, "sendi4LSB");
-    $i = $r.recvi8LSB();
-    test_value($i, i8, "sendi8LSB");
-
-    $m = $r.recv();
-    if ($m == -1)
-    {
-	printf("recv error (%s)\n", strerror(errno()));
-	exit(2);
-    }
-    
-    printf("server: message from client: %s (%s)\n", $m, typename($m));
-
-    $r.close();
-    $s.close();
 }
-
-sub client_thread()
-{
-    if (!exists $o.server)
-	$q.get();
-    my $s = new Socket();
-
-    try {
-	if ($o.ssl)
-	{
-	    if (strlen($o.cert))
-	    {
-		$s.setCertificate($o.cert);
-		if (!strlen($o.key))
-		    $s.setPrivateKey($o.cert);
-	    }
-	    if (strlen($o.key))
-		$s.setPrivateKey($o.key);
-	    $s.connectSSL($cp);
-
-	    my $code = $s.verifyPeerCertificate();
-	    my $str = getSSLCertVerificationCodeString($code);
-	    printf("client: server certificate: %s: %s\n", $str, X509_VerificationReasons.$str);
-	}
-	else
-	    $s.connect($cp);
-    }
-    catch ($ex)
-    {
-	printf("client error: %s: %s\n", $ex.err, $ex.desc);
-	exit(1);
-    }
-
-    $s.send("Hi there!!!");
-    my $m = $s.recv();
-    if ($m == -1)
-    {
-	printf("recv error (%s)\n", strerror(errno()));
-	exit(2);
-    }
-    
-    printf("client: message from server: %s (%s)\n", $m, typename($m));
-    $s.sendi1(i1);
-    $s.sendi2(i2);
-    $s.sendi4(i4);
-    $s.sendi8(i8);
-
-    $s.sendi2LSB(i2);
-    $s.sendi4LSB(i4);
-    $s.sendi8LSB(i8);
-    $s.send("goodbye!");
-}
-
-sub main()
-{
-    process_command_line();
-
-    $q = new Queue();
-
-    if (!exists $o.server)
-	background server_thread();
-
-    if (!$o.servonly)
-	background client_thread();   
-}
-
-main();

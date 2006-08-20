@@ -153,89 +153,31 @@ static inline short swapi2(short i)
 static inline int64 i8LSB(int64 i)
 {
    return swapi8(i);
-/*
-   int64 j;
-   char *buf = (char *)j;
-   buf[0] = i & 0xff;
-   buf[1] = (i >> 8) & 0xff;
-   buf[2] = (i >> 16) & 0xff;
-   buf[3] = (i >> 24) & 0xff;
-   buf[4] = (i >> 32) & 0xff;
-   buf[5] = (i >> 40) & 0xff;
-   buf[6] = (i >> 48) & 0xff;
-   buf[7] = (i >> 56) & 0xff;
-   return j;
-*/
 }
 
 static inline int i4LSB(int i)
 {
    return swapi4(i);
-/*
-   int j;
-   char *buf = (char *)j;
-   buf[0] = i & 0xff;
-   buf[1] = (i >> 8) & 0xff;
-   buf[2] = (i >> 16) & 0xff;
-   buf[3] = (i >> 24) & 0xff;
-   return j;
-*/
 }
 
 static inline short i2LSB(short i)
 {
    return swapi2(i);
-/* 
-   short j;
-   char *buf = (char *)j;
-   buf[0] = i & 0xff;
-   buf[1] = (i >> 8) & 0xff;
-   return j;
-*/
 }
 
 static inline int64 LSBi8(int64 i)
 { 
    return swapi8(i);
-/*
-   int64 j;
-   char *obuf = (char *)j;
-   buf[7] = i & 0xff;
-   buf[6] = (i >> 8) & 0xff;
-   buf[5] = (i >> 16) & 0xff;
-   buf[4] = (i >> 24) & 0xff;
-   buf[3] = (i >> 32) & 0xff;
-   buf[2] = (i >> 40) & 0xff;
-   buf[1] = (i >> 48) & 0xff;
-   buf[0] = (i >> 56) & 0xff;
-   return j;
-*/
 }
 
 static inline int LSBi4(int i)
 {
    return swapi4(i);
-/*
-   int j;
-   char *buf = (char *)j;
-   buf[0] = (i >> 24) & 0xff;
-   buf[1] = (i >> 16) & 0xff;
-   buf[2] = (i >> 8) & 0xff;
-   buf[3] = i & 0xff;
-   return j;
-*/
 }
 
 static inline short LSBi2(short i)
 { 
    return swapi2(i);
-/*
-   short j;
-   char *buf = (char *)j;
-   buf[0] = (i >> 8) & 0xff;
-   buf[1] = i & 0xff;
-   return j;
-*/
 }
 
 static inline int64 i8MSB(int64 i) { return i; }
@@ -252,19 +194,6 @@ static inline short LSBi2(short i) { return i; }
 static inline int64 i8MSB(int64 i)
 { 
    return swapi8(i);
-/*
-   int64 j;
-   char *buf = (char *)j;
-   buf[7] = i & 0xff;
-   buf[6] = (i >> 8) & 0xff;
-   buf[5] = (i >> 16) & 0xff;
-   buf[4] = (i >> 24) & 0xff;
-   buf[3] = (i >> 32) & 0xff;
-   buf[2] = (i >> 40) & 0xff;
-   buf[1] = (i >> 48) & 0xff;
-   buf[0] = (i >> 56) & 0xff;
-   return j;
-*/
 }
 
 static inline int64 MSBi8(int64 i) 

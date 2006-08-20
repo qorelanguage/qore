@@ -1,3 +1,9 @@
+2006.08.20: David Nichols
+	* updated test/socket-test.q to be an object-oriented script and to 
+	  do all tests in both directions (client->server and server->client),
+	  also it's now possible to run socket-test only as a client or only as
+	  a server in order to run the tests between two different machines
+
 2006.08.19: David Nichols
 	* removed some unused functions in lib/thread.cc
 	* added the QoreProgram::cannotProvideFeature() function to raise a

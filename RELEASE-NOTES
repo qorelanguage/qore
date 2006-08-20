@@ -133,6 +133,8 @@ mixed elements and text can now be serialized and deserialized without data loss
 *) 64-bit build support on x86_64 (AMD64, etc)
 native 64-bit binaries can now be built on Linux x86_64 - the build system has been modified to be able to correctly find paths and set directory names for 64-bit libraries if the --enable-64bit configure option is used.  By default 32-bit builds are made unless the --enable-64bit option is passed to configure.
 
+*) lots of bug fixes, etc
+see CHANGELOG for details
 
 ***********************
 *** LANGUAGE ISSUES ***
