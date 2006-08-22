@@ -51,6 +51,8 @@ to do explicit qore->tibrv type mapping, use the following helper functions supp
   tibrv_xml()
   tibrv_bool()
 
+set certificates for secure daemons using tibrvSetDaemonCert() and tibrvSetUserCertWithKey() using the SSLCertificate and SSLPrivateKey classes.  Note that these functions are only available if your tibrvcpp library was compiled with secure daemon support.  See BUILD for more information.
+
 *) strong encryption and digest support
 added SSLCertificate and SSLPrivateKey classes - the constructors for these classes expect a text file in PEM format defining the appropriate object.  Detailed information about the objects can be retrieved using member functions, see the updated qore v0.5.2 documentation for details.
 
@@ -132,6 +134,9 @@ mixed elements and text can now be serialized and deserialized without data loss
 
 *) 64-bit build support on x86_64 (AMD64, etc)
 native 64-bit binaries can now be built on Linux x86_64 - the build system has been modified to be able to correctly find paths and set directory names for 64-bit libraries if the --enable-64bit configure option is used.  By default 32-bit builds are made unless the --enable-64bit option is passed to configure.
+
+*) %requires error reporting improved
+if any requested features cannot be loaded, then only exceptions related to missing features will be reported.  this avoids possibly hundreds (or more) exceptions in large programs where features cannot be loaded (i.e. unresolved classes, functions, etc)
 
 *) lots of bug fixes, etc
 see CHANGELOG for details

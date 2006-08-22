@@ -3,6 +3,9 @@
 	  do all tests in both directions (client->server and server->client),
 	  also it's now possible to run socket-test only as a client or only as
 	  a server in order to run the tests between two different machines
+	* "tibrv" module: fixed Rendezvous library link detection and secure 
+	  daemon presence in configure
+	* "tibrv" module: enabled secure daemon code
 
 2006.08.19: David Nichols
 	* removed some unused functions in lib/thread.cc
