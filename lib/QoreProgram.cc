@@ -115,7 +115,11 @@ void QoreProgram::del(class ExceptionSink *xsink)
    // wait for all threads to terminate
    tcount.waitForZero();
 
-   delete parseSink;
+   if (parseSink)
+   {
+      delete parseSink;
+      parseSink = NULL;
+   }
 
    // have to delete global variables first because of destructors
    // method call can be repeated

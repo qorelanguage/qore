@@ -1,3 +1,7 @@
+2006.08.30: David Nichols
+	* fixed a bug in the QoreProgram destructor when the ::del() method had
+	  already been called.
+
 2006.08.20: David Nichols
 	* updated test/socket-test.q to be an object-oriented script and to 
 	  do all tests in both directions (client->server and server->client),
