@@ -170,9 +170,9 @@ else
 fi
 
 if test -n "$with_openssl_libs"; then
-   OPENSSL_LDFLAGS="-L$with_openssl_libs -lssl"
+   OPENSSL_LDFLAGS="-L$with_openssl_libs -lssl -lcrypto"
 else
-   OPENSSL_LDFLAGS=-lssl
+   OPENSSL_LDFLAGS="-lssl -lcrypto"
 fi
 AC_SUBST(OPENSSL_LDFLAGS)
 
