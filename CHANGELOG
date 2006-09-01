@@ -1,3 +1,9 @@
+2006.08.31: David Nichols
+	* "tibrv" module: added the TibrvDistributedQueue class to allow qore
+	  programs to be members of a Rendezvous distributed queue using a 
+	  certified transport object
+	* added -ssl to the TIBRV_LIBS when secure daemon support is included
+
 2006.08.30: David Nichols
 	* fixed a bug in the QoreProgram destructor when the ::del() method had
 	  already been called.

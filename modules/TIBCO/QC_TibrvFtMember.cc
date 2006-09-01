@@ -68,7 +68,7 @@ class QoreNode *TIBRVFTMEMBER_constructor(class Object *self, class QoreNode *pa
    
    int64 heartbeat, prep, activation;
    pt = get_param(params, 3);
-   heartbeat = pt ? pt->getAsInt() : 0;
+   heartbeat = pt ? pt->getAsBigInt() : 0;
    if (heartbeat <= 0)
    {
       xsink->raiseException("TIBRVFTMEMBER-CONSTRUCTOR-ERROR", "heartbeat interval must be greater than zero (value passed: %d)", heartbeat);

@@ -450,7 +450,7 @@ TibrvSdContext::setDaemonCert(TIBRV_SECURE_DAEMON_ANY_NAME, TIBRV_SECURE_DAEMON_
 
       if test "${tibrvsd_links}" = "yes"; then
          AC_MSG_RESULT([ok])
-	 TIBRV_LIBS="$TIBRV_LIBS -lcrypto"
+	 TIBRV_LIBS="$TIBRV_LIBS -lssl -lcrypto"
 	 AC_DEFINE(TIBRV_SD, 1, Define if TIBCO Rendezvous secure daemon support should be included)
       else
          AC_MSG_RESULT([failed: if you want secure daemon support in the tibrv module, rebuild libtibrvcpp with secure daemon support (remove comments from the SD_MODULE line in $with_tibrv/src/librvcpp/Makefile), rebuild the library and install in $with_tibrv/lib and rerun configure])

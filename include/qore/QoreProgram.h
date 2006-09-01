@@ -630,7 +630,7 @@ inline void QoreProgram::cannotProvideFeature(char *feature)
       parseSink->clear();
       requires_exception = true;
    }
-   class Exception *ne = new Exception("CANNOT-PROVIDE-FEATURE", "feature '%s' is not built in and no module with this name can be found", feature);
+   class Exception *ne = new Exception("CANNOT-PROVIDE-FEATURE", "feature '%s' is not builtin and no module with this name can be loaded", feature);
    parseSink->raiseException(ne);
    
    traceout("QoreProgram::cannotProvideFeature()");
