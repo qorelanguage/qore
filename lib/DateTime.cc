@@ -57,7 +57,7 @@
 const int DateTime::month_lengths[] = { 0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 
 const int DateTime::positive_months[] = { 0,  31,  59,  90,  120,  151,  181,  212,  243,  273,  304,  334,  365 };
-const int DateTime::negative_months[] = { 0, -31, -61, -92, -122, -153, -184, -214, -245, -275, -303, -334, -365 };
+const int DateTime::negative_months[] = { 0, -31, -61, -92, -122, -153, -184, -214, -245, -275, -306, -334, -365 };
 
 const struct date_s DateTime::months[] = {
    { "January", "Jan" },
@@ -323,7 +323,8 @@ void DateTime::setDate(int64 seconds)
    if (seconds >= 0)
    {
       // there is a leap day on 1972.02.29 (ends 68256000 seconds)
-      if (seconds >= 68256000)
+      // however we adjust if the year is greater than or equal to 1973 (starts 94694400 seconds)
+      if (seconds >= 94694400)
 	 seconds -= 86400;
 
       ty = seconds / 31536000;
@@ -337,14 +338,18 @@ void DateTime::setDate(int64 seconds)
       day = seconds / 86400;
       seconds -= day * 86400;
       //printd(5, "seconds=%lld year=%d day=%d\n", seconds, year, day);
+      bool ly = isLeapYear(year);
       for (int i = 1; ;i++)
-	 if (positive_months[i] > day)
+      {
+	 //printd(5, "day=%d, positive_months[%d]=%d, adjusted=%d\n", day, i, positive_months[i], (positive_months[i] + (ly && i > 1 ? 1 : 0)));
+         if ((positive_months[i] + (ly && i > 1 ? 1 : 0)) > day)
 	 {
 	    //printd(5, "pm[%d]=%d pm[%d]=%d month=%d day=%d (%d)\n", i, positive_months[i], i - 1, positive_months[i - 1], i, day, day - positive_months[i - 1] + 1);
 	    month = i;
-	    day = day - positive_months[i - 1] + 1;
+	    day = day - positive_months[i - 1] + (ly && i > 2 ? 0 : 1);
 	    break;
 	 }
+      }
 
       hour = seconds / 3600;
       seconds -= hour * 3600;
@@ -354,7 +359,9 @@ void DateTime::setDate(int64 seconds)
    }
 
    // there is a leap day on 1968.02.29 (ends -58060800 seconds)
-   if (seconds <= -58060800)
+   // however we adjust if the year is equal or less than 1968, starting -63158400 seconds
+   if (seconds <= -63158400)
+      //if (seconds <= -58060800)
       seconds += 86400;
 
    ty = seconds / 31536000;
@@ -382,14 +389,24 @@ void DateTime::setDate(int64 seconds)
    if (seconds)
       day--;
    //printd(5, "1.1: seconds=%lld day=%d\n", seconds, day);
+   bool ly = isLeapYear(year);
    for (int i = 1; ; i++)
-      if (negative_months[i] < day)
+   {
+#if 0
+      printd(0, "nm[%d]=%d nm[%d]=%d adj=%d len=%d adj=%d day=%d (mon=%d day=%d)\n", i, negative_months[i], i - 1, 
+	     negative_months[i - 1], (negative_months[i - 1] - (ly && i == 12 ? 1 : 0)),
+	     month_lengths[13 - i], month_lengths[13 - i] + (ly && (13 - i) == 2 ? 1 : 0),
+	     day, 13 - i,
+	     month_lengths[13 - i] + (ly && (13 - i) == 2) + day - negative_months[i - 1] + (ly && i == 12 ? 0 : 1));
+#endif
+      //month_lengths[13 - i] + day - negative_months[i - 1] + 1);
+      if ((negative_months[i] - (ly && i > 10 ? 1 : 0)) <= day)
       {
-	 //printd(5, "nm[%d]=%d nm[%d]=%d mon=%d len=%d day=%d (%d)\n", i, negative_months[i], i - 1, negative_months[i - 1], 13 - i, month_lengths[13 - i], day, month_lengths[13 - i] + day - negative_months[i - 1] + 1);
 	 month = 13 - i;
-	 day = month_lengths[month] + day - negative_months[i - 1] + 1;
+	 day = month_lengths[month] + (ly && month == 2 ? 1 : 0) + day - negative_months[i - 1] + (ly && i == 12 ? 0 : 1);
 	 break;
       }
+   }
    //printd(5, "2: seconds=%lld\n", seconds);
    hour = seconds / 3600;
    seconds -= hour * 3600;
@@ -408,24 +425,22 @@ void DateTime::setDate(int64 seconds)
    if (hour) hour += 24;
 }
 
-inline int DateTime::negative_leap_years(int year, int month, int date)
+inline int DateTime::negative_leap_years(int year)
 {
-   if (month >= 3 && isLeapYear(year))
-      year++;
-
-   year = 1970 - year;
-
+   year = 1970 - year - 1;
+   
    if (year <= 0)
       return 0;
-
+   
    year += 2;
-
+   
    return -year/4 + year/100 - year/400;
 }
 
-inline int DateTime::positive_leap_years(int year, int month, int date)
+
+inline int DateTime::positive_leap_years(int year, int month)
 {
-   if ((month < 2 || (month == 2 && date < 29)) && isLeapYear(year))
+   if (month < 3 && isLeapYear(year))
       year--;
 
    year -= 1970;
@@ -449,11 +464,13 @@ inline int64 DateTime::getEpochSeconds(int year, int month, int day)
    
    if (year >= 1970)
       return ((int64)year - 1970) * 31536000ll
-	 + (positive_months[tm - 1] + day - 1 + positive_leap_years(year, month, day)) * 86400;
-   
+	 + (positive_months[tm - 1] + day - 1 + positive_leap_years(year, month)) * 86400;
+
+   bool ly = isLeapYear(year);
    //printd(5, "DBG: %d %lld\n", year, ((int64)year - 1969) * 31536000ll);
    return ((int64)year - 1969) * 31536000ll
-      + (negative_months[12 - tm] + (day - month_lengths[tm]) + negative_leap_years(year, month, day) - 1) * 86400;
+      + (negative_months[12 - tm] - (ly && tm < 2 ? 1 : 0) + (day - (month_lengths[tm] + (ly && tm == 2 ? 1 : 0))) 
+      + negative_leap_years(year) - 1) * 86400;
 }
 
 // get the number of seconds before or after January 1, 1970 (UNIX epoch)
@@ -466,14 +483,25 @@ int64 DateTime::getEpochSeconds()
 
    if (year >= 1970)
       return ((int64)year - 1970) * 31536000ll
-	 + (positive_months[tm - 1] + day - 1 + positive_leap_years(year, month, day)) * 86400
+	 + (positive_months[tm - 1] + day - 1 + positive_leap_years(year, month)) * 86400
 	 + hour * 3600
 	 + minute * 60
-	 + second;	 
+	 + second;
 
+   bool ly = isLeapYear(year);
    //printd(5, "DBG: %d %lld\n", year, ((int64)year - 1969) * 31536000ll);
+
+#if 0
+   printd(5, "tm=%d neg_mon[%d]=%d adj=%d day=%d mon_len[%d]=%d adj=%d nly=%d (%d) day=%d\n", tm, 12 - tm, negative_months[12 - tm], 
+	  negative_months[12 - tm] - (ly && tm < 3 ? 1 : 0), day, tm, month_lengths[tm],
+	  month_lengths[tm] + (ly && tm == 2 ? 1 : 0), negative_leap_years(year), negative_leap_years(year) * 86400,
+	  (negative_months[12 - tm] - (ly && tm < 2 ? 1 : 0) + (day - (month_lengths[tm] + (ly && tm == 2 ? 1 : 0))) 
+	   + negative_leap_years(year)) - 1
+	  );
+#endif
    return ((int64)year - 1969) * 31536000ll
-      + (negative_months[12 - tm] + (day - month_lengths[tm]) + negative_leap_years(year, month, day)) * 86400
+      + (negative_months[12 - tm] - (ly && tm < 2 ? 1 : 0) + (day - (month_lengths[tm] + (ly && tm == 2 ? 1 : 0))) 
+      + negative_leap_years(year)) * 86400
       + (hour - 23) * 3600
       + (minute - 59) * 60
       + (second - 60);	 
@@ -529,8 +557,23 @@ void DateTime::setDateLiteral(int64 date)
 	 }
       }
    }
-
    relative = false;
+}
+
+void DateTime::setRelativeDateLiteral(int64 date)
+{
+   year = date / 10000000000ll;
+   date -= year * 10000000000ll;
+   month = date / 100000000ll;
+   date -= month * 100000000ll;
+   day = date / 1000000ll;
+   date -= day * 1000000ll;
+   hour = date / 10000ll; 
+   date -= hour * 10000ll;
+   minute = date / 100ll;
+   second = date - minute * 100ll;
+   millisecond = 0;   
+   relative = true;
 }
 
 class DateTime *DateTime::addAbsoluteToRelative(class DateTime *dt)
@@ -563,50 +606,48 @@ class DateTime *DateTime::addAbsoluteToRelative(class DateTime *dt)
    else if (nd->day > month_lengths[nd->month])
       nd->day = month_lengths[nd->month];
 
+#ifdef QORE_DST_AWARE
    // first add days
    if (dt->day)
    {
-      struct tm nt;
-
       // set the time to 12 noon to avoid problems with dst
       nd->hour = 12;
-
-      nd->getTM(&nt);
-      time_t t = mktime(&nt) + (3600 * 24 * dt->day);
-
-      struct tm tms;
-      nd->setDate(q_localtime(&t, &tms));
+      nd->setDate(nd->getEpochSeconds() + 86400 * dt->day);
    }
-
+#endif
+   
    // now add time, first write over the time possibly set above
    nd->hour = hour;
    nd->minute = minute;
    nd->second = second;
+
+   int ms = millisecond + dt->millisecond;
    // calculate milliseconds and additional seconds to add
-   nd->millisecond += dt->millisecond;
-   if (nd->millisecond >= 1000)
+   if (ms >= 1000)
    {
-      dt->second += (nd->millisecond / 1000);
-      nd->millisecond %= 1000;
+      nd->second += (ms / 1000);
+      ms %= 1000;
    }
-   if (dt->hour || dt->minute || dt->second)
-   {
-      struct tm nt;
-
-      nd->getTM(&nt);
-      time_t t = mktime(&nt) + (3600 * dt->hour) + (60 * dt->minute) + dt->second;
-
-      struct tm tms;
-      nd->setDate(q_localtime(&t, &tms));
-   }
+   
+   if (dt->hour || dt->minute || dt->second
+#ifndef QORE_DST_AWARE
+       || dt->day
+#endif
+       )
+      nd->setDate(nd->getEpochSeconds() 
+#ifndef QORE_DST_AWARE
+		  + (86400 * dt->day)
+#endif
+		  + (3600 * dt->hour) + (60 * dt->minute) + dt->second);
+   nd->millisecond = ms;
+   
    return nd;   
 }
 
 class DateTime *DateTime::subtractAbsoluteByRelative(class DateTime *dt)
 {
    class DateTime *nd = new DateTime();
-   nd->relative = false;
-
+   
    // subtract years
    nd->year = year - dt->year;
 
@@ -632,49 +673,50 @@ class DateTime *DateTime::subtractAbsoluteByRelative(class DateTime *dt)
    else if (nd->day > month_lengths[nd->month])
       nd->day = month_lengths[nd->month];
 
+#ifdef QORE_DST_AWARE
    // subtract days and time
    if (dt->day)
    {
-      struct tm nt;
-
       // set the time to 12 noon to avoid problems with dst
       nd->hour = 12;
-
-      nd->getTM(&nt);
-      time_t t = mktime(&nt) - (3600 * 24 * dt->day);
-
-      struct tm tms;
-      nd->setDate(q_localtime(&t, &tms));
+      // there are 86400 seconds in an average day
+      nd->setDate(nd->getEpochSeconds() - (86400 * dt->day));
    }
-
+#endif
+   
    // now subtract time, first write over the time possibly set above
    nd->hour = hour;
    nd->minute = minute;
    nd->second = second;
+   int ms;
    // calculate milliseconds and additional seconds to subtract
    if (dt->millisecond > 1000)
    {
-      dt->second += (dt->millisecond / 1000);
-      dt->millisecond = dt->millisecond % 1000;
+      nd->second += (dt->millisecond / 1000);
+      ms = dt->millisecond % 1000;
    }
-   int ms = millisecond - dt->millisecond;
+   else
+      ms = dt->millisecond;
+   ms = millisecond - ms;
+   int sec = dt->second;
    if (ms < 0)
    {
       ms += 1000;
-      dt->second++;
+      sec++;
    }
-   if (dt->hour || dt->minute || dt->second)
-   {
-      struct tm nt;
+   if (dt->hour || dt->minute || sec
+#ifndef QORE_DST_AWARE
+       || dt->day
+#endif
+       )
+      nd->setDate(nd->getEpochSeconds() 
+#ifndef QORE_DST_AWARE
+		  - (86400 * dt->day)
+#endif
+		  - (3600 * dt->hour) - (60 * dt->minute) - sec);
 
-      nd->getTM(&nt);
-      time_t t = mktime(&nt) - (3600 * dt->hour) - (60 * dt->minute) - dt->second;
-
-      struct tm tms;
-      nd->setDate(q_localtime(&t, &tms), ms);
-   }
-   else
-      nd->millisecond = ms;
+   nd->millisecond = ms;
+   
    return nd;   
 }
 

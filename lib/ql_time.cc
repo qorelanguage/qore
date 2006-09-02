@@ -367,8 +367,9 @@ static class QoreNode *f_getDayOfWeek(class QoreNode *params, ExceptionSink *xsi
    class QoreNode *p0 = test_param(params, NT_DATE, 0);
    if (!p0)
       return NULL;
-   
-   return new QoreNode((int64)p0->val.date_time->getDayOfWeek());
+
+   int d = p0->val.date_time->getDayOfWeek();
+   return new QoreNode((int64)(!d ? 7 : d));
 }
 
 // returns a hash giving the ISO-8601 values for the year and calendar week for the date passed

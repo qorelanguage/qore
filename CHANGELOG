@@ -1,4 +1,9 @@
 2006.09.02: David Nichols
+	* fixed some bugs in DateTime::getEpochSeconds()
+	* fixed some bugs in DateTime::setDate(int64)
+	* added additional date tests to test/test.q for border conditions
+	* changed the getDayOfWeek() function to return 1-7 with 1=Mon to
+	  correspond to ISO-8601 specifications
 	* added getDateFromISOWeek() to return a date/time value from the ISO-
 	  8601 year, week and optional day values
 	* added tests for new date functions in test/test.q

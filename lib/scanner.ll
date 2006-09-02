@@ -129,9 +129,8 @@ static inline class DateTime *makeMilliseconds(int ms)
 
 //2005-03-29-10:19:27
 //0123456789012345678
-static inline class DateTime *makeDateTime(char *str)
+static inline void do_date_time_str(char *str)
 {
-   // move string to middle to form date string
    // move day to middle
    memmove(str+9, str+8, 2);
    // move month to middle
@@ -140,53 +139,77 @@ static inline class DateTime *makeDateTime(char *str)
    memmove(str+3, str, 4);
    // move minute to middle
    memmove(str+13, str+14, 2);
-   // move second and null to middle
-   memmove(str+15, str+17, 3);
-   //printf("new date: %s\n", str + 3);
-   return new DateTime(str + 3);
-}
-
-static inline class DateTime *makeDateTimeWithMs(char *str)
-{
-   // move string to middle to form date string
-   // move day to middle
-   memmove(str+9, str+8, 2);
-   // move month to middle
-   memmove(str+7, str+5, 2);
-   // move year to middle
-   memmove(str+3, str, 4);
-   // move minute to middle
-   memmove(str+13, str+14, 2);
-   // move seconds, milliseconds, and null to middle
+   // move seconds and the rest + null char to middle
    memmove(str+15, str+17, strlen(str+17) + 1);
-   //printf("new date: %s\n", str + 3);
-   return new DateTime(str + 3);
 }
 
 //2005-03-29
 //0123456789
-static inline class DateTime *makeDate(char *str)
+static inline void do_date_str(char *str)
 {
    // move month
    memmove(str+4, str+5, 2);
    // move day and null
    memmove(str+6, str+8, 3);
-   //printf("new date: %d:%s\n", strlen(str), str);
-   return new DateTime(str);
 }
 
 //16:03:29
 //01234567
-static inline class DateTime *makeTime(char *str)
+static inline void do_time_str(char *str)
 {
    // move minute back
    memmove(str+2, str+3, 2);
-   // move seconds and null
-   memmove(str+4, str+6, 3);
+   // move seconds and rest + null char
+   memmove(str+4, str+6, strlen(str+6) + 1);
+}
+
+static inline class DateTime *makeDateTime(char *str)
+{
+   // move string to middle to form date string
+   do_date_time_str(str);
+   //printf("new date: %s\n", str + 3);
+   return new DateTime(str + 3);
+}
+
+static inline class DateTime *makeDate(char *str)
+{
+   do_date_str(str);
+   //printf("new date: %d:%s\n", strlen(str), str);
+   return new DateTime(str);
+}
+
+static inline class DateTime *makeTime(char *str)
+{
+   do_time_str(str);
    //printf("new time: %d:%s\n", strlen(str), str);
-   class DateTime *dt = new DateTime(str);
-   if (!dt->year)
-      dt->year = 1970;
+   return new DateTime(str);
+}
+
+static inline class DateTime *makeRelativeDateTime(char *str)
+{
+   // move string to middle to form date string
+   do_date_time_str(str);
+   //printf("new date: %s\n", str + 3);
+   class DateTime *dt = new DateTime();
+   dt->setRelativeDate(str + 3);
+   return dt;
+}
+
+static inline class DateTime *makeRelativeDate(char *str)
+{
+   do_date_str(str);
+   //printf("new date: %d:%s\n", strlen(str), str);
+   class DateTime *dt = new DateTime();
+   dt->setRelativeDate(str);
+   return dt;
+}
+
+static inline class DateTime *makeRelativeTime(char *str)
+{
+   do_time_str(str);
+   //printf("new time: %d:%s\n", strlen(str), str);
+   class DateTime *dt = new DateTime();
+   dt->setRelativeDate(str);
    return dt;
 }
 
@@ -263,6 +286,7 @@ DAY             ((0[1-9])|([12][0-9])|(3[01]))
 HOUR            ([01][0-9])|(2[0-3])
 MSEC            [0-5][0-9]
 MS              [0-9]{3}
+D2              [0-9]{2}
 
 %%
 ^%no-global-vars{WS}*$                  getProgram()->parseSetParseOptions(PO_NO_GLOBAL_VARS);
@@ -590,10 +614,13 @@ pop{WS}*\(                              yylval->string = strdup("pop"); return K
 splice{WS}*\(                           yylval->string = strdup("splice"); return KW_IDENTIFIER_OPENPAREN;
 shift{WS}*\(                            yylval->string = strdup("shift"); return KW_IDENTIFIER_OPENPAREN;
 unshift{WS}*\(                          yylval->string = strdup("unshift"); return KW_IDENTIFIER_OPENPAREN;
-{YEAR}-{MONTH}-{DAY}-{HOUR}:{MSEC}:{MSEC}.{MS} yylval->datetime = makeDateTimeWithMs(yytext); return DATETIME;
-{YEAR}-{MONTH}-{DAY}-{HOUR}:{MSEC}:{MSEC} yylval->datetime = makeDateTime(yytext); return DATETIME;
+{YEAR}-{MONTH}-{DAY}[T-]{HOUR}:{MSEC}:{MSEC}(\.{MS})?   yylval->datetime = makeDateTime(yytext); return DATETIME;
 {YEAR}-{MONTH}-{DAY}                    yylval->datetime = makeDate(yytext); return DATETIME;
-{HOUR}:{MSEC}:{MSEC}                    yylval->datetime = makeTime(yytext); return DATETIME;
+{HOUR}:{MSEC}:{MSEC}(\.{MS})?           yylval->datetime = makeTime(yytext); return DATETIME;
+P{YEAR}-{D2}-{D2}T{D2}:{D2}:{D2}(\.{MS})?   yylval->datetime = makeRelativeDateTime(yytext+1); return DATETIME;
+P{YEAR}-{D2}-{D2}                       yylval->datetime = makeRelativeDate(yytext+1); return DATETIME;
+PT{D2}:{D2}:{D2}(\.{MS})?               yylval->datetime = makeRelativeTime(yytext+2); return DATETIME;
+P{D2}:{D2}:{D2}(\.{MS})?                yylval->datetime = makeRelativeTime(yytext+1); return DATETIME;
 ({WORD}::)+{WORD}                       yylval->string = strdup(yytext); return SCOPED_REF;
 ({WORD}::)+\$\.{WORD}                   yylval->nscope = new NamedScope(strdup(yytext)); yylval->nscope->fixBCCall(); return BASE_CLASS_CALL;
 {DIGIT}+"."{DIGIT}+			yylval->decimal = strtod(yytext, NULL); return FLOAT;

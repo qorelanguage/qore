@@ -50,11 +50,14 @@ class DateTime {
 
       class DateTime *subtractAbsoluteByRelative(class DateTime *dt);
       inline class DateTime *subtractRelativeByRelative(class DateTime *dt);
+      void setDateLiteral(int64 date);
+      void setRelativeDateLiteral(int64 date);
 
       // static private methods
-      static inline int positive_leap_years(int year, int month, int date);
-      static inline int negative_leap_years(int year, int month, int date);
+      static inline int positive_leap_years(int year, int month);
+      static inline int negative_leap_years(int year);
 
+      // returns 0 - 6, 0 = Sunday
       static inline int getDayOfWeek(int year, int month, int day)
       {
 	 int a = (14 - month) / 12;
@@ -91,9 +94,9 @@ class DateTime {
       inline DateTime(struct tm *tms);
 
       inline void getTM(struct tm *tms);
-      void setDateLiteral(int64 date);
       void setDate(int64 seconds);
       inline void setDate(char *str);
+      inline void setRelativeDate(char *str);
       inline void setDate(struct tm *tms, int ms = 0);
       inline bool isEqual(class DateTime *dt);
       inline class DateTime *add(class DateTime *dt);
@@ -103,7 +106,7 @@ class DateTime {
       {
 	 return positive_months[(month < 13 ? month : 12) - 1] + day + (month > 2 && isLeapYear(year) ? 1 : 0);
       }
-      // returns 0 - 6, 0 = Sunday
+
       inline int getDayOfWeek()
       {
 	 return getDayOfWeek(year, month, day);
@@ -247,9 +250,31 @@ inline void DateTime::setDate(char *str)
 #else
    int64 date = atoll(str);
 #endif
-   if (strlen(str) == 8)
-      date *= 1000000LL;
+   int l = strlen(str);
+   // for date-only strings, move the date up to the right position
+   if (l == 8)
+      date *= 1000000;
+   else if (l == 6 || l == 10) // for time-only strings
+      date += 19700101000000LL;
    setDateLiteral(date);
+   // check for ms
+   char *p = strchr(str, '.');
+   if (!p)
+      return;
+   millisecond = atoi(p + 1);
+}
+
+inline void DateTime::setRelativeDate(char *str)
+{
+#ifdef HAVE_STRTOLL
+   int64 date = strtoll(str, NULL, 10);
+#else
+   int64 date = atoll(str);
+#endif
+   // for date-only strings, move the date up to the right position
+   if (strlen(str) == 8)
+      date *= 1000000;
+   setRelativeDateLiteral(date);
    // check for ms
    char *p = strchr(str, '.');
    if (!p)
