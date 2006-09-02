@@ -54,10 +54,12 @@
  * p: am or pm
  */
 
-static struct months_s {
-      char *long_name;
-      char *abbr;
-} months[] = {
+const int DateTime::month_lengths[] = { 0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+
+const int DateTime::positive_months[] = { 0,  31,  59,  90,  120,  151,  181,  212,  243,  273,  304,  334,  365 };
+const int DateTime::negative_months[] = { 0, -31, -61, -92, -122, -153, -184, -214, -245, -275, -303, -334, -365 };
+
+const struct date_s DateTime::months[] = {
    { "January", "Jan" },
    { "February", "Feb" },
    { "March", "Mar" },
@@ -72,10 +74,7 @@ static struct months_s {
    { "December", "Dec" }
 };
 
-static struct days_s {
-      char *long_name;
-      char *abbr;
-} days[] = {
+const struct date_s DateTime::days[] = {
    { "Sunday", "Sun" },
    { "Monday", "Mon" },
    { "Tuesday", "Tue" },
@@ -84,10 +83,6 @@ static struct days_s {
    { "Friday", "Fri" },
    { "Saturday", "Sat" }
 };
-
-// for calculating the days passed in a year
-static int positive_months[] = { 0,  31,  59,  90,  120,  151,  181,  212,  243,  273,  304,  334,  365 };
-static int negative_months[] = { 0, -31, -61, -92, -122, -153, -184, -214, -245, -275, -303, -334, -365 };
 
 static inline int ampm(int hour)
 {
@@ -299,15 +294,6 @@ class QoreString *DateTime::format(char *fmt)
    return str;
 }
 
-int DateTime::getJulianDate()
-{
-   int tm = (month > 12) ? 11 : month - 1;
-   int jd = positive_months[tm];
-   if (month > 2 && isLeapYear(year))
-      jd++;
-   return jd;
-}
-
 // set the date from the number of seconds since January 1, 1970 (UNIX epoch)
 void DateTime::setDate(int64 seconds)
 {
@@ -422,7 +408,7 @@ void DateTime::setDate(int64 seconds)
    if (hour) hour += 24;
 }
 
-static inline int negative_leap_years(int year, int month, int date)
+inline int DateTime::negative_leap_years(int year, int month, int date)
 {
    if (month >= 3 && isLeapYear(year))
       year++;
@@ -437,7 +423,7 @@ static inline int negative_leap_years(int year, int month, int date)
    return -year/4 + year/100 - year/400;
 }
 
-static inline int positive_leap_years(int year, int month, int date)
+inline int DateTime::positive_leap_years(int year, int month, int date)
 {
    if ((month < 2 || (month == 2 && date < 29)) && isLeapYear(year))
       year--;
@@ -452,8 +438,26 @@ static inline int positive_leap_years(int year, int month, int date)
    return year/4 - year/100 + year/400;
 }
 
+// get the number of seconds before or after January 1, 1970 (UNIX epoch) for a particular date
+// private static method
+inline int64 DateTime::getEpochSeconds(int year, int month, int day)
+{
+   //printd(0, "%04d-%02d-%02d %02d:%02d:%02d\n", year, month, day, hour, minute, second);
+   int tm = month;
+   if (month < 0) tm = 1;
+   else if (month > 12) tm = 12;
+   
+   if (year >= 1970)
+      return ((int64)year - 1970) * 31536000ll
+	 + (positive_months[tm - 1] + day - 1 + positive_leap_years(year, month, day)) * 86400;
+   
+   //printd(5, "DBG: %d %lld\n", year, ((int64)year - 1969) * 31536000ll);
+   return ((int64)year - 1969) * 31536000ll
+      + (negative_months[12 - tm] + (day - month_lengths[tm]) + negative_leap_years(year, month, day) - 1) * 86400;
+}
+
 // get the number of seconds before or after January 1, 1970 (UNIX epoch)
-int64 DateTime::getSeconds()
+int64 DateTime::getEpochSeconds()
 {
    //printd(0, "%04d-%02d-%02d %02d:%02d:%02d\n", year, month, day, hour, minute, second);
    int tm = month;
@@ -653,10 +657,10 @@ class DateTime *DateTime::subtractAbsoluteByRelative(class DateTime *dt)
       dt->second += (dt->millisecond / 1000);
       dt->millisecond = dt->millisecond % 1000;
    }
-   nd->millisecond = millisecond - dt->millisecond;
-   if (nd->millisecond < 0)
+   int ms = millisecond - dt->millisecond;
+   if (ms < 0)
    {
-      nd->millisecond += 1000;
+      ms += 1000;
       dt->second++;
    }
    if (dt->hour || dt->minute || dt->second)
@@ -667,9 +671,110 @@ class DateTime *DateTime::subtractAbsoluteByRelative(class DateTime *dt)
       time_t t = mktime(&nt) - (3600 * dt->hour) - (60 * dt->minute) - dt->second;
 
       struct tm tms;
-      nd->setDate(q_localtime(&t, &tms));
+      nd->setDate(q_localtime(&t, &tms), ms);
    }
+   else
+      nd->millisecond = ms;
    return nd;   
+}
+
+// return the ISO-8601 calendar week information - note that the ISO-8601 calendar year may be different than the actual year
+void DateTime::getISOWeek(int &yr, int &week, int &day)
+{
+   // get day of week of jan 1 of this year
+   int jan1 = getDayOfWeek(year, 1, 1);
+
+   // calculate day in calendar week
+   int dn = getDayNumber();
+   int dow = (dn + jan1 - 1) % 7;
+   day = !dow ? 7 : dow;
+   
+   //printd(5, "getISOWeek() year=%d, start=%d, daw=%d dn=%d offset=%d\n", year, jan1, dow, dn, (jan1 > 4 ? 9 - jan1 : 2 - jan1));
+   if ((!jan1 && dn == 1) || (jan1 == 5 && dn < 4) || (jan1 == 6 && dn < 3))
+   {
+      yr = year - 1;
+      jan1 = getDayOfWeek(yr, 1, 1);
+      //printd(5, "getISOWeek() previous year=%d, start=%d, leap=%d\n", yr, jan1, isLeapYear(yr));
+      if ((jan1 == 4 && !isLeapYear(yr)) || (jan1 == 3 && isLeapYear(yr)))
+	 week = 53;
+      else
+	 week = 52;
+      return;
+   }
+   yr = year;
+   
+   int offset = jan1 > 4 ? jan1 - 9 : jan1 - 2;
+   week = ((dn + offset) / 7) + 1;
+   if (week == 53)
+      if ((jan1 == 4 && !isLeapYear(yr)) || (jan1 == 3 && isLeapYear(yr)))
+	 return;
+      else
+      {
+	 yr++;
+	 week = 1;
+      }
+}
+
+// note that ISO-8601 week days go from 1 - 7 = Mon - Sun
+// a NULL return value means an exception was raised
+// static method
+class DateTime *DateTime::getDateFromISOWeek(int year, int week, int day, class ExceptionSink *xsink)
+{
+   if (week <= 0)
+   {
+      xsink->raiseException("ISO-8601-INVALID-WEEK", "week numbers must be positive (value passed: %d)", week);
+      return NULL;
+   }
+
+   // get day of week of jan 1 of this year
+   int jan1 = getDayOfWeek(year, 1, 1);
+
+   if (week > 52)
+   {
+      // get maximum week number in this year
+      int mw = 52 + ((jan1 == 4 && !isLeapYear(year)) || (jan1 == 3 && isLeapYear(year)));
+      if (week > mw)
+      {
+	 xsink->raiseException("ISO-8601-INVALID-WEEK", "there are only %d calendar weeks in year %d (week value passed: %d)", mw, year, week);
+	 return NULL;
+      }
+   }
+   
+   if (day < 1 || day > 7)
+   {
+      xsink->raiseException("ISO-8601-INVALID-DAY", "calendar week days must be between 1 and 7 for Mon - Sun (day value passed: %f)", day);
+      return NULL;
+   }
+
+   // get year, month, day for start of iso-8601 calendar year
+   int y, m, d;
+   // if jan1 is mon, then the iso-8601 year starts with the normal year
+   if (jan1 == 1)
+   {
+      y = year;
+      m = 1;
+      d = 1;
+   }
+   // if jan1 is tue - thurs, iso-8601 year starts in dec of previous real year
+   else if (jan1 > 1 && jan1 < 5)
+   {
+      y = year - 1;
+      m = 12;
+      d = 33 - jan1;
+   }
+   else
+   {
+      y = year;
+      m = 1;
+      // jan1 is fri or saturday
+      if (jan1)
+	 d = 9 - jan1;
+      else // jan1 is sunday
+	 d = 2;
+   }
+   
+   // get seconds for date of start of iso-8601 calendar year, add seconds for day offset and create new time
+   return new DateTime(getEpochSeconds(y, m, d) + ((week - 1) * 7 + (day - 1)) * 86400);
 }
 
 int compareDates(class DateTime *left, class DateTime *right)

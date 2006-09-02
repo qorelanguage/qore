@@ -20,8 +20,6 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-// FIXME: implement absolute date subtraction
-
 #ifndef QORE_DATETIME_H
 
 #define QORE_DATETIME_H
@@ -31,16 +29,41 @@
 #include <time.h>
 #include <string.h>
 
-extern const int month_lengths[];
+struct date_s {
+   char *long_name;
+   char *abbr;
+};
 
 class DateTime {
    private:
+      // static constants
+      static const int month_lengths[];
+      // for calculating the days passed in a year
+      static const int positive_months[];
+      static const int negative_months[];
+      // month and day names (in English)
+      static const struct date_s months[];
+      static const struct date_s days[];
+      
       class DateTime *addAbsoluteToRelative(class DateTime *dt);
       inline class DateTime *addRelativeToRelative(class DateTime *dt);
 
       class DateTime *subtractAbsoluteByRelative(class DateTime *dt);
       inline class DateTime *subtractRelativeByRelative(class DateTime *dt);
 
+      // static private methods
+      static inline int positive_leap_years(int year, int month, int date);
+      static inline int negative_leap_years(int year, int month, int date);
+
+      static inline int getDayOfWeek(int year, int month, int day)
+      {
+	 int a = (14 - month) / 12;
+	 int y = year - a;
+	 int m = month + 12 * a - 2;
+	 return (day + y + y / 4 - y / 100 + y / 400 + (31 * m / 12)) % 7;
+      }
+      static inline int64 getEpochSeconds(int year, int month, int day);
+      
    public:
       short year;
       int month;
@@ -71,14 +94,93 @@ class DateTime {
       void setDateLiteral(int64 date);
       void setDate(int64 seconds);
       inline void setDate(char *str);
-      inline void setDate(struct tm *tms);
+      inline void setDate(struct tm *tms, int ms = 0);
       inline bool isEqual(class DateTime *dt);
       inline class DateTime *add(class DateTime *dt);
       inline class DateTime *subtractBy(class DateTime *dt);
-      int64 getSeconds();
-      int getJulianDate();
+      int64 getEpochSeconds();
+      inline int getDayNumber()
+      {
+	 return positive_months[(month < 13 ? month : 12) - 1] + day + (month > 2 && isLeapYear(year) ? 1 : 0);
+      }
+      // returns 0 - 6, 0 = Sunday
+      inline int getDayOfWeek()
+      {
+	 return getDayOfWeek(year, month, day);
+      }
       
+      // returns the ISO-8601 week number (year may be different)
+      void getISOWeek(int &year, int &week, int &day);
+
       class QoreString *format(char *fmt);
+
+      inline bool isRelative()
+      {
+	 return relative;
+      }
+      inline bool isAbsolute()
+      {
+	 return !relative;
+      }
+      inline short getYear()
+      {
+	 return year;
+      }
+      inline int getMonth()
+      {
+	 return month;
+      }
+      inline int getDay()
+      {
+	 return day;
+      }
+      inline int getHour()
+      {
+	 return hour;
+      }
+      inline int getMinute()
+      {
+	 return minute;
+      }
+      inline int getSecond()
+      {
+	 return second;
+      }
+      inline int getMillisecond()
+      {
+	 return millisecond;
+      }
+      
+      // static methods
+      static inline bool isLeapYear(int year)
+      {
+#if NO_PROLEPTIC_GREGORIAN_CALENDAR
+	 // in 45 BC Julius Ceasar initiated the Julian calendar
+	 if (year <= -45)
+	    return false;
+	 // in 1582 AD Pope Gregory initiated the Gregorian calendar
+	 // although it was not universally adopted in Europe at that time
+	 if (year < 1582)
+	    return (year % 4) ? false : true;
+#endif
+	 if (!(year % 100))
+	    if (!(year % 400))
+	       return true;
+	    else
+	       return false;
+	 return (year % 4) ? false : true;
+      }
+      
+      static inline int getLastDayOfMonth(int month, int year)
+      {
+	 if (month != 2)
+	    return month_lengths[month];
+	 return isLeapYear(year) ? 29 : 28;
+      }
+
+      // note that ISO-8601 week days go from 1 - 7 = Mon - Sun
+      // a NULL return value means an exception was raised
+      static class DateTime *getDateFromISOWeek(int year, int week, int day, class ExceptionSink *xsink);
 };
 
 int compareDates(class DateTime *left, class DateTime *right);
@@ -126,29 +228,7 @@ inline void DateTime::getTM(struct tm *tms)
    tms->tm_isdst = -1;
 }
 
-// in 45 BC Julius Ceasar initiated the Julian calendar
-// in 1582 AD Pope Gregory initiated the Gregorian calendar
-static inline bool isLeapYear(int year)
-{
-   if (year <= -45)
-      return false;
-   if (year < 1582)
-      return (year % 4) ? false : true;
-   if (!(year % 400))
-      return true;
-   if (!(year % 100))
-      return false;
-   return (year % 4) ? false : true;
-}
-
-static inline int getLastDayOfMonth(int month, int year)
-{
-   if (month != 2)
-      return month_lengths[month];
-   return isLeapYear(year) ? 29 : 28;
-}
-
-inline void DateTime::setDate(struct tm *tms)
+inline void DateTime::setDate(struct tm *tms, int ms)
 {
    year = 1900 + tms->tm_year;
    month = tms->tm_mon + 1;
@@ -156,7 +236,7 @@ inline void DateTime::setDate(struct tm *tms)
    hour = tms->tm_hour;
    minute = tms->tm_min;
    second = tms->tm_sec;
-   millisecond = 0;
+   millisecond = ms;
    relative = false;
 }
 
@@ -170,6 +250,11 @@ inline void DateTime::setDate(char *str)
    if (strlen(str) == 8)
       date *= 1000000LL;
    setDateLiteral(date);
+   // check for ms
+   char *p = strchr(str, '.');
+   if (!p)
+      return;
+   millisecond = atoi(p + 1);
 }
 
 inline bool DateTime::isEqual(class DateTime *dt)

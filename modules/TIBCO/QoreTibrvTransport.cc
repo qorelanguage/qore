@@ -98,7 +98,7 @@ int QoreTibrvTransport::valueToField(char *key, class QoreNode *v, TibrvMsg *msg
    else if (v->type == NT_DATE)
    {
       TibrvMsgDateTime dt;
-      dt.sec = v->val.date_time->getSeconds();
+      dt.sec = v->val.date_time->getEpochSeconds();
       msg->addDateTime(key, dt);
    }
    else if (v->type == NT_HASH)

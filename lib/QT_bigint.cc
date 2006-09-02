@@ -39,7 +39,7 @@ class QoreNode *bigint_ConvertTo(class QoreNode *n, class ExceptionSink *xsink)
    else if (n->type == NT_FLOAT)
       i = (int64)n->val.floatval;
    else if (n->type == NT_DATE)
-      i = n->val.date_time->getSeconds();
+      i = n->val.date_time->getEpochSeconds();
    else if (n->type == NT_BOOLEAN)
       i = n->val.boolval;
    else

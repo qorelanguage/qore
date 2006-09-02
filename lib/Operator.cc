@@ -59,8 +59,6 @@ class Operator *OP_ASSIGNMENT, *OP_LOG_AND, *OP_LOG_OR, *OP_LOG_LT,
    *OP_XOR_EQUALS, *OP_SHIFT_LEFT_EQUALS, *OP_SHIFT_RIGHT_EQUALS, *OP_INSTANCEOF,
    *OP_REGEX_TRANS, *OP_REGEX_EXTRACT;
 
-const int month_lengths[] = { 0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
-
 // Operator::eval(): return value requires a deref(xsink) afterwards
 // there are 3 main cases which have been split into 3 sections as a speed optimization
 // 1: evalArgs 1 argument

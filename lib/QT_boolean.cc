@@ -41,7 +41,7 @@ class QoreNode *boolean_ConvertTo(class QoreNode *n, class ExceptionSink *xsink)
    else if (n->type == NT_STRING)
       rv = strtoll(n->val.String->getBuffer(), NULL, 10) ? boolean_true() : boolean_false();
    else if (n->type == NT_DATE)
-      rv = n->val.date_time->getSeconds() ? boolean_true() : boolean_false();
+      rv = n->val.date_time->getEpochSeconds() ? boolean_true() : boolean_false();
    else
       rv = boolean_false();
 

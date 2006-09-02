@@ -281,6 +281,148 @@ static class QoreNode *f_milliseconds(class QoreNode *params, ExceptionSink *xsi
    return new QoreNode(dt);
 }
 
+// returns an integer corresponding to the year value in the date
+static class QoreNode *f_get_years(class QoreNode *params, ExceptionSink *xsink)
+{
+   class QoreNode *p0 = test_param(params, NT_DATE, 0);
+   if (!p0)
+      return NULL;
+   
+   return new QoreNode((int64)p0->val.date_time->year);
+}
+
+// returns an integer corresponding to the month value in the date
+static class QoreNode *f_get_months(class QoreNode *params, ExceptionSink *xsink)
+{
+   class QoreNode *p0 = test_param(params, NT_DATE, 0);
+   if (!p0)
+      return NULL;
+   
+   return new QoreNode((int64)p0->val.date_time->month);
+}
+
+// returns an integer corresponding to the day value in the date
+static class QoreNode *f_get_days(class QoreNode *params, ExceptionSink *xsink)
+{
+   class QoreNode *p0 = test_param(params, NT_DATE, 0);
+   if (!p0)
+      return NULL;
+   
+   return new QoreNode((int64)p0->val.date_time->day);
+}
+
+// returns an integer corresponding to the hour value in the date
+static class QoreNode *f_get_hours(class QoreNode *params, ExceptionSink *xsink)
+{
+   class QoreNode *p0 = test_param(params, NT_DATE, 0);
+   if (!p0)
+      return NULL;
+   
+   return new QoreNode((int64)p0->val.date_time->hour);
+}
+
+// returns an integer corresponding to the minute value in the date
+static class QoreNode *f_get_minutes(class QoreNode *params, ExceptionSink *xsink)
+{
+   class QoreNode *p0 = test_param(params, NT_DATE, 0);
+   if (!p0)
+      return NULL;
+   
+   return new QoreNode((int64)p0->val.date_time->minute);
+}
+
+// returns an integer corresponding to the second value in the date
+static class QoreNode *f_get_seconds(class QoreNode *params, ExceptionSink *xsink)
+{
+   class QoreNode *p0 = test_param(params, NT_DATE, 0);
+   if (!p0)
+      return NULL;
+   
+   return new QoreNode((int64)p0->val.date_time->second);
+}
+
+// returns an integer corresponding to the millisecond value in the date
+static class QoreNode *f_get_milliseconds(class QoreNode *params, ExceptionSink *xsink)
+{
+   class QoreNode *p0 = test_param(params, NT_DATE, 0);
+   if (!p0)
+      return NULL;
+   
+   return new QoreNode((int64)p0->val.date_time->millisecond);
+}
+
+// returns an integer corresponding to the number of the day in the year
+static class QoreNode *f_getDayNumber(class QoreNode *params, ExceptionSink *xsink)
+{
+   class QoreNode *p0 = test_param(params, NT_DATE, 0);
+   if (!p0)
+      return NULL;
+   
+   return new QoreNode((int64)p0->val.date_time->getDayNumber());
+}
+
+// returns an integer corresponding to the number of the day in the year
+static class QoreNode *f_getDayOfWeek(class QoreNode *params, ExceptionSink *xsink)
+{
+   class QoreNode *p0 = test_param(params, NT_DATE, 0);
+   if (!p0)
+      return NULL;
+   
+   return new QoreNode((int64)p0->val.date_time->getDayOfWeek());
+}
+
+// returns a hash giving the ISO-8601 values for the year and calendar week for the date passed
+static class QoreNode *f_getISOWeekHash(class QoreNode *params, ExceptionSink *xsink)
+{
+   class QoreNode *p0 = test_param(params, NT_DATE, 0);
+   if (!p0)
+      return NULL;
+
+   int year, week, day;
+   p0->val.date_time->getISOWeek(year, week, day);
+   class Hash *h = new Hash();
+   h->setKeyValue("year", new QoreNode((int64)year), NULL);
+   h->setKeyValue("week", new QoreNode((int64)week), NULL);
+   h->setKeyValue("day", new QoreNode((int64)day), NULL);
+   
+   return new QoreNode(h);
+}
+
+// returns a string corresponding to the ISO-8601 year and calendar week for the date passed
+static class QoreNode *f_getISOWeekString(class QoreNode *params, ExceptionSink *xsink)
+{
+   class QoreNode *p0 = test_param(params, NT_DATE, 0);
+   if (!p0)
+      return NULL;
+   
+   int year, week, day;
+   p0->val.date_time->getISOWeek(year, week, day);
+   class QoreString *str = new QoreString();
+   str->sprintf("%04d-W%02d-%d", year, week, day);
+
+   return new QoreNode(str);
+}
+
+// returns a date corresponding to the ISO-8601 calendar week information passed
+// args: year, week #, [day #]
+// note that ISO-8601 week days go from 1 - 7 = Mon - Sun
+static class QoreNode *f_getDateFromISOWeek(class QoreNode *params, ExceptionSink *xsink)
+{
+   class QoreNode *pt = get_param(params, 0);
+   int year = pt ? pt->getAsInt() : 0;
+
+   pt = get_param(params, 1);
+   int week = pt ? pt->getAsInt() : 0;
+
+   // day number defaults to 1 = Monday, start of the week (7 = Sun)
+   pt = get_param(params, 2);
+   int day = pt ? pt->getAsInt() : 1;
+
+   class DateTime *dt = DateTime::getDateFromISOWeek(year, week, day, xsink);
+   if (!dt)
+      return NULL;
+   return new QoreNode(dt);
+}
 
 /**
  * f_clock_getmillis(class QoreNode *params, ExceptionSink *xsink)
@@ -331,15 +473,29 @@ void init_time_functions()
    builtinFunctions.add("timegm", f_timegm);
 #endif
 
-   builtinFunctions.add("years",           f_years);
-   builtinFunctions.add("months",          f_months);
-   builtinFunctions.add("days",            f_days);
-   builtinFunctions.add("hours",           f_hours);
-   builtinFunctions.add("minutes",         f_minutes);
-   builtinFunctions.add("seconds",         f_seconds);
-   builtinFunctions.add("milliseconds",    f_milliseconds);
+   builtinFunctions.add("years",               f_years);
+   builtinFunctions.add("months",              f_months);
+   builtinFunctions.add("days",                f_days);
+   builtinFunctions.add("hours",               f_hours);
+   builtinFunctions.add("minutes",             f_minutes);
+   builtinFunctions.add("seconds",             f_seconds);
+   builtinFunctions.add("milliseconds",        f_milliseconds);
 
-   builtinFunctions.add("clock_getmillis", f_clock_getmillis);
-   builtinFunctions.add("clock_getnanos",  f_clock_getnanos);
-   builtinFunctions.add("clock_getmicros", f_clock_getmicros);
+   builtinFunctions.add("get_years",           f_get_years);
+   builtinFunctions.add("get_months",          f_get_months);
+   builtinFunctions.add("get_days",            f_get_days);
+   builtinFunctions.add("get_hours",           f_get_hours);
+   builtinFunctions.add("get_minutes",         f_get_minutes);
+   builtinFunctions.add("get_seconds",         f_get_seconds);
+   builtinFunctions.add("get_milliseconds",    f_get_milliseconds);
+
+   builtinFunctions.add("getDayNumber",        f_getDayNumber);
+   builtinFunctions.add("getDayOfWeek",        f_getDayOfWeek);
+   builtinFunctions.add("getISOWeekHash",      f_getISOWeekHash);
+   builtinFunctions.add("getISOWeekString",    f_getISOWeekString);
+   builtinFunctions.add("getDateFromISOWeek",  f_getDateFromISOWeek);
+   
+   builtinFunctions.add("clock_getmillis",     f_clock_getmillis);
+   builtinFunctions.add("clock_getnanos",      f_clock_getnanos);
+   builtinFunctions.add("clock_getmicros",     f_clock_getmicros);
 }

@@ -8,6 +8,8 @@ our $to = new Test("program-test.q");
 our $ro = new Test("readonly");
 our ($o, $errors, $counter);
 
+my $x[10] = 1;
+
 sub get_program_name()
 {
     my $l = split("/", $ENV."_");
@@ -492,6 +494,18 @@ sub test_date($d, $i)
     test_value($d, date(int($d)), sprintf("date conversion %d", $i++));
 }
 
+sub test_date_functions($d, $y, $w, $day, $wd, $n, $i)
+{
+    my $str = sprintf("%04d-W%02d-%d", $y, $w, $day);
+    my $h = ( "year" : $y, "week" : $w, "day" : $day );
+    test_value(getISOWeekString($d), $str, "getISOWeekString() " + $i);
+    test_value(getISOWeekHash($d), $h, "getISOWeekHash() " + $i);
+    test_value(getDayOfWeek($d), $wd, "getDayOfWeek() " + $i);
+    test_value(getDayNumber($d), $n, "getDayNumber() " + $i);
+    test_value(getDateFromISOWeek($y, $w, $day), $d, "getDateFromISOWeek() " + $i);
+    $i++;
+}
+
 sub time_tests()
 {
     my $date  = 2004-02-01-12:30:00;
@@ -503,24 +517,28 @@ sub time_tests()
     test_value($date - 1h, 2004-02-01-11:30:00, "first date hour subtraction");
     test_value($date - 1m, 2004-02-01-12:29:00, "first date minute subtraction");
     test_value($date - 1s, 2004-02-01-12:29:59, "first date second subtraction");
+    test_value($date - 251ms, 2004-02-01-12:29:59.749, "first date millisecond subtraction");
     test_value($date + 1Y, 2005-02-01-12:30:00, "first date year addition");
     test_value($date + 1M, 2004-03-01-12:30:00, "first date month addition");
     test_value($date + 1D, 2004-02-02-12:30:00, "first date day addition");
     test_value($date + 1h, 2004-02-01-13:30:00, "first date hour addition");
     test_value($date + 1m, 2004-02-01-12:31:00, "first date minute addition");
     test_value($date + 1s, 2004-02-01-12:30:01, "first date second addition");
+    test_value($date + 251ms, 2004-02-01-12:30:00.251, "first date millisecond addition");
     test_value($date - years(1),   2003-02-01-12:30:00, "second date year subtraction");
     test_value($date - months(1),  2004-01-01-12:30:00, "second date month subtraction");
     test_value($date - days(1),    2004-01-31-12:30:00, "second date day subtraction");
     test_value($date - hours(1),   2004-02-01-11:30:00, "second date hour subtraction");
     test_value($date - minutes(1), 2004-02-01-12:29:00, "second date minute subtraction");
     test_value($date - seconds(1), 2004-02-01-12:29:59, "second date second subtraction");
+    test_value($date - milliseconds(500), 2004-02-01-12:29:59.500, "second date millisecond subtraction");
     test_value($date + years(1),   2005-02-01-12:30:00, "second date year addition");
     test_value($date + months(1),  2004-03-01-12:30:00, "second date month addition");
     test_value($date + days(1),    2004-02-02-12:30:00, "second date day addition");
     test_value($date + hours(1),   2004-02-01-13:30:00, "second date hour addition");
     test_value($date + minutes(1), 2004-02-01-12:31:00, "second date minute addition");
     test_value($date + seconds(1), 2004-02-01-12:30:01, "second date second addition");
+    test_value($date + milliseconds(578), 2004-02-01-12:30:00.578, "second date millisecond addition");
     test_value($date, localtime(mktime($date)), "localtime() and mktime()");
     test_value($date + 30D, $ndate, "third date day addition");
     test_value($ndate - 30D, $date, "third date day subtraction");
@@ -546,6 +564,37 @@ sub time_tests()
     test_date(1969-12-31-00:00:00, \$i);
     test_date(1969-01-01-00:00:00, \$i);
     test_date(1068-01-01-00:00:00, \$i);
+
+    # test date and time functions
+    $i = 1;
+    test_date_functions(1783-09-18, 1783, 38, 4, 4, 261, \$i);
+    test_date_functions(2006-01-01, 2005, 52, 7, 0, 1, \$i);
+    test_date_functions(2006-09-01, 2006, 35, 5, 5, 244, \$i);
+    test_date_functions(2007-12-30, 2007, 52, 7, 0, 364, \$i);
+    test_date_functions(2007-12-31, 2008, 1, 1, 1, 365, \$i);
+    test_date_functions(2008-01-01, 2008, 1, 2, 2, 1, \$i);
+    test_date_functions(2008-01-02, 2008, 1, 3, 3, 2, \$i);
+    test_date_functions(2008-01-03, 2008, 1, 4, 4, 3, \$i);
+    test_date_functions(2008-01-04, 2008, 1, 5, 5, 4, \$i);
+    test_date_functions(2008-01-05, 2008, 1, 6, 6, 5, \$i);
+    test_date_functions(2008-01-06, 2008, 1, 7, 0, 6, \$i);
+    test_date_functions(2008-01-07, 2008, 2, 1, 1, 7, \$i);
+    test_date_functions(2008-01-08, 2008, 2, 2, 2, 8, \$i);
+    test_date_functions(2008-01-09, 2008, 2, 3, 3, 9, \$i);
+    test_date_functions(2008-01-10, 2008, 2, 4, 4, 10, \$i);
+    test_date_functions(2008-12-28, 2008, 52, 7, 0, 363, \$i);
+    test_date_functions(2008-12-29, 2009, 1, 1, 1, 364, \$i);
+    test_date_functions(2008-12-30, 2009, 1, 2, 2, 365, \$i);
+    test_date_functions(2010-01-03, 2009, 53, 7, 0, 3, \$i);
+    test_date_functions(2010-01-04, 2010, 1, 1, 1, 4, \$i);
+    test_date_functions(2010-01-05, 2010, 1, 2, 2, 5, \$i);
+    test_date_functions(2010-01-06, 2010, 1, 3, 3, 6, \$i);
+    test_date_functions(2010-01-07, 2010, 1, 4, 4, 7, \$i);
+    test_date_functions(2010-01-08, 2010, 1, 5, 5, 8, \$i);
+    test_date_functions(2010-01-09, 2010, 1, 6, 6, 9, \$i);
+    test_date_functions(2010-01-10, 2010, 1, 7, 0, 10, \$i);
+    test_date_functions(2010-01-11, 2010, 2, 1, 1, 11, \$i);
+    test_date_functions(2054-06-19, 2054, 25, 5, 5, 170, \$i);
 }
 
 sub binary_tests()

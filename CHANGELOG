@@ -1,3 +1,31 @@
+2006.09.02: David Nichols
+	* added getDateFromISOWeek() to return a date/time value from the ISO-
+	  8601 year, week and optional day values
+	* added tests for new date functions in test/test.q
+	* added millisecond addition and subtraction tests to test/test.q
+	* corrected DateTime class to make millisecond subtraction work
+	* changed scanner.ll and DateTime string constructor to allow for 
+	  millisecond specification for dates: i.e. 2006-01-01-10:00:00.502 for
+	  502 milliseconds after Jan 1 2006 10 am
+	* changed scanner.ll to only accept valid month, day, hour, minute,
+	  second, and millisecond values in dates
+
+2006.09.01: David Nichols
+	* added getISOWeekHash() to return the ISO-8601 calendar year, week, 
+	  and day from a date value
+	* added getISOWeekString() to return the ISO-8601 calender info for a
+	  particular date value in the following format: "####-W##-#" for
+	  year-week-day info
+	* added getDayNumber() to return the ordinal number of the day in the
+	  year of a date value (sometimes erroneously called the Julian date)
+	* added getDayOfWeek() to return a value from 0 - 6 corresponding to
+	  Sun - Sat for a date value
+	* added get_years(), get_months(), get_days(), get_hours(), 
+	  get_minutes(), get_seconds(), get_milliseconds() calls to ql_time.cc
+	* added support for specifying relative millisecond values in scanner.ll
+	  as <int>ms: i.e. "$date -= 250ms" will subtract 250 milliseconds from
+	  the date value in $date  
+
 2006.08.31: David Nichols
 	* "tibrv" module: added the TibrvDistributedQueue class to allow qore
 	  programs to be members of a Rendezvous distributed queue using a 

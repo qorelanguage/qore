@@ -12,7 +12,7 @@ programs requiring the old "tibco" module should now use "%requires tibae"
 previously int <-> date conversions were done with a not-very-useful direct conversion, like this:
   int(2006-01-01) => 20060101000000   (and vice-versa)
 
-as of v0.5.2 integers converted to a date and dates converted to an integer will be based on the offset in seconds from January 1, 1970 (the UNIX epoch).   This is done with a 64-bit number so dates far in the past and future are supported.  Note that leap years are still assumed before the actual adoption of the Gregorian calendar in 1582, so date calculations before 1582 may not match with historical records.  Hopefully this will not cause anyone any problems...
+as of v0.5.2 integers converted to a date and dates converted to an integer will be based on the offset in seconds from January 1, 1970 (the UNIX epoch).   This is done with a 64-bit number so dates far in the past and future are supported.  Note that the date algorithms implement a "proleptic gregorian calendar"; that is; leap years are still assumed before the actual adoption of the Gregorian calendar in 1582, so date calculations before 1582 may not match with historical records (when the Julian calendar was used in Europe).  Hopefully this will not cause anyone any problems...
 
 Date differences are now much easier to calculate, for example:
 # calculate the number of seconds different between two dates:

@@ -119,6 +119,14 @@ static inline class DateTime *makeSeconds(int seconds)
    return dt;
 }
 
+static inline class DateTime *makeMilliseconds(int ms)
+{
+   class DateTime *dt = new DateTime();
+   dt->millisecond = ms;
+   dt->relative = 1;
+   return dt;
+}
+
 //2005-03-29-10:19:27
 //0123456789012345678
 static inline class DateTime *makeDateTime(char *str)
@@ -134,6 +142,23 @@ static inline class DateTime *makeDateTime(char *str)
    memmove(str+13, str+14, 2);
    // move second and null to middle
    memmove(str+15, str+17, 3);
+   //printf("new date: %s\n", str + 3);
+   return new DateTime(str + 3);
+}
+
+static inline class DateTime *makeDateTimeWithMs(char *str)
+{
+   // move string to middle to form date string
+   // move day to middle
+   memmove(str+9, str+8, 2);
+   // move month to middle
+   memmove(str+7, str+5, 2);
+   // move year to middle
+   memmove(str+3, str, 4);
+   // move minute to middle
+   memmove(str+13, str+14, 2);
+   // move seconds, milliseconds, and null to middle
+   memmove(str+15, str+17, strlen(str+17) + 1);
    //printf("new date: %s\n", str + 3);
    return new DateTime(str + 3);
 }
@@ -233,10 +258,11 @@ DIGIT		[0-9]
 WORD		[a-zA-Z][a-zA-Z0-9_]*
 WS		[ \t\r]
 YEAR            [0-9]{4}
-MONTH           [0-9]{2}
-DAY             [0-9]{2}
-HOUR            [0-9]{2}
-MSEC            [0-9]{2}
+MONTH           (0[1-9])|(1[012])
+DAY             ((0[1-9])|([12][0-9])|(3[01]))
+HOUR            ([01][0-9])|(2[0-3])
+MSEC            [0-5][0-9]
+MS              [0-9]{3}
 
 %%
 ^%no-global-vars{WS}*$                  getProgram()->parseSetParseOptions(PO_NO_GLOBAL_VARS);
@@ -564,6 +590,7 @@ pop{WS}*\(                              yylval->string = strdup("pop"); return K
 splice{WS}*\(                           yylval->string = strdup("splice"); return KW_IDENTIFIER_OPENPAREN;
 shift{WS}*\(                            yylval->string = strdup("shift"); return KW_IDENTIFIER_OPENPAREN;
 unshift{WS}*\(                          yylval->string = strdup("unshift"); return KW_IDENTIFIER_OPENPAREN;
+{YEAR}-{MONTH}-{DAY}-{HOUR}:{MSEC}:{MSEC}.{MS} yylval->datetime = makeDateTimeWithMs(yytext); return DATETIME;
 {YEAR}-{MONTH}-{DAY}-{HOUR}:{MSEC}:{MSEC} yylval->datetime = makeDateTime(yytext); return DATETIME;
 {YEAR}-{MONTH}-{DAY}                    yylval->datetime = makeDate(yytext); return DATETIME;
 {HOUR}:{MSEC}:{MSEC}                    yylval->datetime = makeTime(yytext); return DATETIME;
@@ -576,6 +603,7 @@ unshift{WS}*\(                          yylval->string = strdup("unshift"); retu
 {DIGIT}+M                               yylval->datetime = makeMonths(strtol(yytext, NULL, 10));  return DATETIME;
 {DIGIT}+D                               yylval->datetime = makeDays(strtol(yytext, NULL, 10));    return DATETIME;
 {DIGIT}+h                               yylval->datetime = makeHours(strtol(yytext, NULL, 10));   return DATETIME;
+{DIGIT}+ms                              yylval->datetime = makeMilliseconds(strtol(yytext, NULL, 10)); return DATETIME;
 {DIGIT}+m                               yylval->datetime = makeMinutes(strtol(yytext, NULL, 10)); return DATETIME;
 {DIGIT}+s                               yylval->datetime = makeSeconds(strtol(yytext, NULL, 10)); return DATETIME;
 {HEX_CONST}				yylval->integer = strtoll(yytext, NULL, 16); return INTEGER;
