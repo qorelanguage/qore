@@ -12,7 +12,7 @@ programs requiring the old "tibco" module should now use "%requires tibae"
 previously int <-> date conversions were done with a not-very-useful direct conversion, like this:
   int(2006-01-01) => 20060101000000   (and vice-versa)
 
-as of v0.5.2 integers converted to a date and dates converted to an integer will be based on the offset in seconds from January 1, 1970 (the UNIX epoch).   This is done with a 64-bit number so dates far in the past and future are supported.  Note that the date algorithms implement a "proleptic gregorian calendar"; that is; leap years are still assumed before the actual adoption of the Gregorian calendar in 1582, so date calculations before 1582 may not match with historical records (when the Julian calendar was used in Europe).  Hopefully this will not cause anyone any problems...
+as of v0.5.2 integers converted to a date and dates converted to an integer will be based on the offset in seconds from January 1, 1970 (the UNIX epoch).   This is done with a 64-bit number so dates far in the past and future are supported.  Note that the date algorithms implement a "proleptic gregorian calendar"; that is; leap years are still calculated according to the Gregorian formula before the actual adoption of the Gregorian calendar in 1582 (in parts of Europe anyway), so date calculations before 1582 may not match with historical records (when the Julian calendar was used in Europe).
 
 Date differences are now much easier to calculate, for example:
 # calculate the number of seconds different between two dates:
@@ -21,6 +21,15 @@ $diff = int(2006-01-01) - int(2005-12-31);
 this gives 86400 seconds = 1 day.  previsouly you had to use mktime() which would only work with 32-bit offsets, so dates far in the past or future would give erroneous answers.
 
 While this could in theory introduce incompatibilies in qore scripts, I expect that it will not in practice.  The only time where this conversion was useful was for specifying dates, i.e.: $date = date(20060101000000), however this should be changed to the clearer format: $date = 2006-01-01 (or $date = 2006-01-01-00:00:00), or for the lazy, the string <-> date conversion logic remains unchanged, so this could still be written as: $date = date("20060101000000") (just add quotes around the integer dates);
+
+Additionally, the scanner has been modified to only accept valid month, day, hour, minute, and second values (i.e. dates like 2006-13-45-34:78:89 will throw parse exceptions)
+
+Other date changes (not expected to cause compatibility problems) are:
+* millisecond subtraction fixed
+* dates can be specified with an optional millisecond value, i.e.: 2006-01-01-10:00:00.502 for 502 seconds after Jan 1 2006 10:00 am
+* relative milliseconds can be directly specified with <num>ms: i.e.: $date + 250ms;
+* dates printed with the %n or %N *printf format specification that include a millisecond value will be output with the millisecond value like "2006-01-01 10:00:00.502"
+* new date functions & support for calculating ISO-8601 calendar week information: getISOWeekHash(), getISOWeekString(), getDateFromISOWeek(), getDayNumber(), getDayOfWeek(), get_years(), get_months(), get_days(), get_hours(), get_minutes(), get_seconds(), get_milliseconds()
 
 *) New direct TIBCO Rendezvous support
 Direct TIBCO Rendezvous sending and listening is now supported with the new "tibrv" module - as of this version it's now possible to build in tibrv support without tibae support (tibrv is also supported on OS X ppc and intel now as well)
