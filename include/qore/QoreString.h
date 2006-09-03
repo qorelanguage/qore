@@ -309,9 +309,8 @@ inline QoreString::QoreString(class DateTime *d)
 {
    allocated = 15;
    buf = (char *)malloc(sizeof(char) * allocated);
-   len = ::sprintf(buf, "%04d%02d%02d%02d%02d%02d",
-		   d->year, d->month, d->day,
-		   d->hour, d->minute, d->second);
+   len = ::sprintf(buf, "%04d%02d%02d%02d%02d%02d", d->getYear(), d->getMonth(), d->getDay(),
+		   d->getHour(), d->getMinute(), d->getSecond());
    charset = QCS_DEFAULT;
 }
 
@@ -351,12 +350,12 @@ inline char *QoreString::getBuffer()
 
 inline void QoreString::concat(class DateTime *d)
 {
-   sprintf("%04d%02d%02d%02d%02d%02d", d->year, d->month, d->day, d->hour, d->minute, d->second);
+   sprintf("%04d%02d%02d%02d%02d%02d", d->getYear(), d->getMonth(), d->getDay(), d->getHour(), d->getMinute(), d->getSecond());
 }
 
 inline void QoreString::concatISO8601DateTime(class DateTime *d)
 {
-   sprintf("%04d%02d%02dT%02d:%02d:%02d", d->year, d->month, d->day, d->hour, d->minute, d->second);
+   sprintf("%04d%02d%02dT%02d:%02d:%02d", d->getYear(), d->getMonth(), d->getDay(), d->getHour(), d->getMinute(), d->getSecond());
 }
 
 // NULL values sorted at end

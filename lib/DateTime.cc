@@ -322,23 +322,33 @@ void DateTime::setDate(int64 seconds)
    //printd(0, "seconds: %lld year: %d\n", seconds, year);
    if (seconds >= 0)
    {
+      // now we have taken care of all the seconds after 1974 - we now have
+      // to deal with the time period from 1970 - 1974
+      
       // there is a leap day on 1972.02.29 (ends 68256000 seconds)
-      // however we adjust if the year is greater than or equal to 1973 (starts 94694400 seconds)
-      if (seconds >= 94694400)
+      // to calculate the year with accuracy, we subtract this leap day from 
+      // the second total if the date is after (or exactly equal to) Dec 31
+      // 1972 (at 94608000 seconds) - this way we can assume years of equal
+      // length = 31536000 seconds
+
+      if (seconds >= 94608000)
+	 ty = (seconds - 86400) / 31536000;
+      else
+	 ty = seconds / 31536000;
+      // now that we have the year, we take out the seconds for the years we just calculated
+      seconds -= ty * 31536000;
+      // if we are after 1972, then we take the leap day in 1972 out so it doesn't mess up the day calculations
+      if (ty > 2)
 	 seconds -= 86400;
 
-      ty = seconds / 31536000;
-      if (ty)
-      {
-	 year += ty;
-	 seconds -= ty * 31536000;
-      }
-      year += 1970;
-
+      // now we calculate the actual year of our date
+      year += ty + 1970;
+      
       day = seconds / 86400;
       seconds -= day * 86400;
       //printd(5, "seconds=%lld year=%d day=%d\n", seconds, year, day);
       bool ly = isLeapYear(year);
+      // FIXME: this is inefficient - needs to be optimized
       for (int i = 1; ;i++)
       {
 	 //printd(5, "day=%d, positive_months[%d]=%d, adjusted=%d\n", day, i, positive_months[i], (positive_months[i] + (ly && i > 1 ? 1 : 0)));
@@ -358,21 +368,34 @@ void DateTime::setDate(int64 seconds)
       return;
    }
 
-   // there is a leap day on 1968.02.29 (ends -58060800 seconds)
-   // however we adjust if the year is equal or less than 1968, starting -63158400 seconds
-   if (seconds <= -63158400)
-      //if (seconds <= -58060800)
+   // now we have taken care of all the seconds before 1966 - we now have
+   // to deal with the time period from 1970 - 1966
+   
+   // there is a leap day on 1968-02-29 (ends -58060800 seconds)
+   // to calculate the year with accuracy, we subtract this leap day from 
+   // the second total if the date is before (or exactly equal to) Jan 2
+   // 1968 (at -63072000 seconds) - this way we can assume years of equal
+   // length = 31536000 seconds
+   
+   if (seconds <= -63072000)
+      ty = (seconds + 86400) / 31536000;
+   else
+      ty = seconds / 31536000;
+   // now that we have the year, we take out the seconds for the years we just calculated
+   seconds -= ty * 31536000;
+   // if we are before 1968, then we take the leap day in 1968 out so it doesn't mess up the day calculations
+   if (ty < -1)
       seconds += 86400;
 
-   ty = seconds / 31536000;
-   if (ty)
-   {
-      year += ty;
-      seconds -= ty * 31536000;
-   }
-   year += 1969;
+   //printd(5, "ty=%lld\n", ty);
+   // now we calculate the actual year of our date (unless there are no seconds to take us further back,
+   // in this case we are one off, which we correct below 
+   year += ty + 1969;
+
+   //printf("year:%d\n", year);
    if (!seconds)
    {
+      // calculate actual year
       year++;
       month = 1;
       day = 1;
@@ -382,28 +405,29 @@ void DateTime::setDate(int64 seconds)
       return;
    }
 
-   //printd(5, "1: seconds=%lld\n", seconds);
+   //printd(5, "1: year=%d seconds=%lld\n", year, seconds);
    day = seconds / 86400;
    seconds -= day * 86400;
    // move back a day if there is further time to subtract
    if (seconds)
       day--;
-   //printd(5, "1.1: seconds=%lld day=%d\n", seconds, day);
    bool ly = isLeapYear(year);
+   //printd(5, "1.1: seconds=%lld day=%d ly=%s\n", seconds, day, ly ? "true" : "false");
+   // FIXME: this is inefficient - needs to be optimized
    for (int i = 1; ; i++)
    {
 #if 0
-      printd(0, "nm[%d]=%d nm[%d]=%d adj=%d len=%d adj=%d day=%d (mon=%d day=%d)\n", i, negative_months[i], i - 1, 
+      printd(5, "nm[%d]=%d nm[%d]=%d adj=%d len=%d adj=%d day=%d (mon=%d day=%d)\n", i, negative_months[i], i - 1, 
 	     negative_months[i - 1], (negative_months[i - 1] - (ly && i == 12 ? 1 : 0)),
 	     month_lengths[13 - i], month_lengths[13 - i] + (ly && (13 - i) == 2 ? 1 : 0),
 	     day, 13 - i,
 	     month_lengths[13 - i] + (ly && (13 - i) == 2) + day - negative_months[i - 1] + (ly && i == 12 ? 0 : 1));
 #endif
-      //month_lengths[13 - i] + day - negative_months[i - 1] + 1);
+      // check to find out what month we're in - add extra days for jan & feb if it's a leap year
       if ((negative_months[i] - (ly && i > 10 ? 1 : 0)) <= day)
       {
 	 month = 13 - i;
-	 day = month_lengths[month] + (ly && month == 2 ? 1 : 0) + day - negative_months[i - 1] + (ly && i == 12 ? 0 : 1);
+	 day = month_lengths[month] + (ly && month == 2 ? 1 : 0) + day - negative_months[i - 1] + (ly && i == 12 ? 2 : 1);
 	 break;
       }
    }
@@ -578,27 +602,26 @@ void DateTime::setRelativeDateLiteral(int64 date)
 
 class DateTime *DateTime::addAbsoluteToRelative(class DateTime *dt)
 {
-   class DateTime *nd = new DateTime();
-   nd->relative = false;
+   // copy the current date/time
+   class DateTime *nd = new DateTime(*this);
 
    // add years
-   nd->year = year + dt->year;
+   nd->year += dt->year;
 
    // add months
    if (dt->month >= 12)
    {
       nd->year += (dt->month / 12);
-      nd->month = month + (dt->month % 12);
+      nd->month += (dt->month % 12);
    }
    else
-      nd->month = month + dt->month;
+      nd->month += dt->month;
    if (nd->month > 12)
    {
       nd->year++;
       nd->month -= 12;
    }
    // fix days if necessary
-   nd->day = day;
    // check for leap years
    if (nd->month == 2 && nd->day > 28)
       nd->day = isLeapYear(nd->year) ? 29 : 28;
@@ -613,23 +636,20 @@ class DateTime *DateTime::addAbsoluteToRelative(class DateTime *dt)
       // set the time to 12 noon to avoid problems with dst
       nd->hour = 12;
       nd->setDate(nd->getEpochSeconds() + 86400 * dt->day);
+      nd->hour = hour;
    }
 #endif
    
-   // now add time, first write over the time possibly set above
-   nd->hour = hour;
-   nd->minute = minute;
-   nd->second = second;
-
    int ms = millisecond + dt->millisecond;
+   int sec = dt->second;
    // calculate milliseconds and additional seconds to add
    if (ms >= 1000)
    {
-      nd->second += (ms / 1000);
+      sec += (ms / 1000);
       ms %= 1000;
    }
    
-   if (dt->hour || dt->minute || dt->second
+   if (dt->hour || dt->minute || sec
 #ifndef QORE_DST_AWARE
        || dt->day
 #endif
@@ -638,7 +658,7 @@ class DateTime *DateTime::addAbsoluteToRelative(class DateTime *dt)
 #ifndef QORE_DST_AWARE
 		  + (86400 * dt->day)
 #endif
-		  + (3600 * dt->hour) + (60 * dt->minute) + dt->second);
+		  + (3600 * dt->hour) + (60 * dt->minute) + sec);
    nd->millisecond = ms;
    
    return nd;   
@@ -646,26 +666,26 @@ class DateTime *DateTime::addAbsoluteToRelative(class DateTime *dt)
 
 class DateTime *DateTime::subtractAbsoluteByRelative(class DateTime *dt)
 {
-   class DateTime *nd = new DateTime();
+   // copy the current date/time
+   class DateTime *nd = new DateTime(*this);
    
    // subtract years
-   nd->year = year - dt->year;
+   nd->year -= dt->year;
 
    // subtract months
    if (dt->month >= 12)
    {
       nd->year -= (dt->month / 12);
-      nd->month = month - (dt->month % 12);
+      nd->month -= (dt->month % 12);
    }
    else
-      nd->month = month - dt->month;
+      nd->month -= dt->month;
    if (nd->month < 1)
    {
       nd->year--;
       nd->month += 12;
    }
    // fix days if necessary
-   nd->day = day;
    // check for leap years
    if (nd->month == 2 && nd->day > 28)
       nd->day = isLeapYear(nd->year) ? 29 : 28;
@@ -681,29 +701,23 @@ class DateTime *DateTime::subtractAbsoluteByRelative(class DateTime *dt)
       nd->hour = 12;
       // there are 86400 seconds in an average day
       nd->setDate(nd->getEpochSeconds() - (86400 * dt->day));
+      nd->hour = hour;
    }
 #endif
    
-   // now subtract time, first write over the time possibly set above
-   nd->hour = hour;
-   nd->minute = minute;
-   nd->second = second;
-   int ms;
+   // now subtract time
+   int ms = millisecond - dt->millisecond;
    // calculate milliseconds and additional seconds to subtract
-   if (dt->millisecond > 1000)
-   {
-      nd->second += (dt->millisecond / 1000);
-      ms = dt->millisecond % 1000;
-   }
-   else
-      ms = dt->millisecond;
-   ms = millisecond - ms;
    int sec = dt->second;
    if (ms < 0)
    {
-      ms += 1000;
-      sec++;
+      // ensure ms is greater than 0; add seconds to sec
+      int sd = (ms / 1000) - 1;
+      // increase seconds (subtract a negative number)
+      sec -= sd;
+      ms -= sd * 1000;
    }
+
    if (dt->hour || dt->minute || sec
 #ifndef QORE_DST_AWARE
        || dt->day
@@ -819,7 +833,7 @@ class DateTime *DateTime::getDateFromISOWeek(int year, int week, int day, class 
    return new DateTime(getEpochSeconds(y, m, d) + ((week - 1) * 7 + (day - 1)) * 86400);
 }
 
-int compareDates(class DateTime *left, class DateTime *right)
+int DateTime::compareDates(class DateTime *left, class DateTime *right)
 {
    if (left->year > right->year)
       return 1;
@@ -852,3 +866,97 @@ int compareDates(class DateTime *left, class DateTime *right)
    return 0;
 }
 
+// returns a relative date value in days, hours, minutes, seconds, and milliseconds
+class DateTime *DateTime::calcDifference(class DateTime *dt)
+{
+   int64 sec = getEpochSeconds() - dt->getEpochSeconds();
+   int ms = millisecond - dt->millisecond;
+   //printd(5, "DT:cD() sec=%lld ms=%d\n", sec, ms);
+
+   // normalize milliseconds   
+   if (ms <= -1000 || ms >= 1000)
+   {
+      int ns = ms / 1000;
+      sec += ns;
+      ms -= ns * 1000;
+   }
+   // further normalize ms
+   if (sec >= 0)
+   {
+      if (ms < 0)
+      {
+	 ms += 1000;
+	 sec--;
+      }
+   }
+   else if (ms > 0)
+   {
+      ms -= 1000;
+      sec++;
+   }
+   
+   class DateTime *nd = new DateTime();
+   nd->millisecond = ms;
+   nd->relative = true;
+
+   // first extract days
+   if (sec <= -86400 || sec >= 86400)
+   {
+      int nv = sec / 86400;
+      nd->day = nv;
+      sec -= nv * 86400LL;
+   }
+
+   // now extract hours
+   if (sec <= 3600 || sec >= 3600)
+   {
+      int nh = sec / 3600;
+      nd->hour = nh;
+      sec -= nh * 3600;
+   }
+
+   // extract minutes
+   if (sec <= 60 || sec >= 60)
+   {
+      int nm = sec / 60;
+      nd->minute = nm;
+      sec -= nm * 60;
+   }
+   nd->second = sec;
+   
+   return nd;
+}
+
+#define PL(n) (n == 1 ? "" : "s")
+
+class QoreString *DateTime::getString()
+{
+   class QoreString *str;
+   if (relative)
+   {
+      int f = 0;
+      str = new QoreString("<time:");
+      if (year)
+	 str->sprintf(" %d year%s", year, PL(year)), f++;
+      if (month)
+	 str->sprintf(" %d month%s", month, PL(month)), f++;
+      if (day)
+	 str->sprintf(" %d day%s", day, PL(day)), f++;
+      if (hour)
+	 str->sprintf(" %d hour%s", hour, PL(hour)), f++;
+      if (minute)
+	 str->sprintf(" %d minute%s", minute, PL(minute)), f++;
+      if (second || (!f && !millisecond))
+	 str->sprintf(" %d second%s", second, PL(second));
+      if (millisecond)
+	 str->sprintf(" %d millisecond%s", millisecond, PL(millisecond));
+      str->concat('>');
+   }
+   else
+   {
+      str = format("YYYY-MM-DD HH:mm:SS");
+      if (millisecond)
+	 str->sprintf(".%03d", millisecond);
+   }
+   return str;
+}   

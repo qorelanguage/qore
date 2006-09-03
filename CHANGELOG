@@ -1,3 +1,21 @@
+2006.09.03: David Nichols
+	* added a new format for printing relative dates with *printf %n & %N
+	  formats: <time: x years x months ...etc >
+	* implemented absolute date difference algorithm that produces relative
+	  dates normalized to day,hour,minute,second,ms 
+	  (i.e. 2006-01-02 - 2006-01-01 = 1D), previously this would produce a
+	  nonsense result 
+	* fixed another bug with generating dates on year boundries 2 years 
+	  before and after the epoch from epoch offsets
+	* made time information members of the DateTime class private to isolate
+	  the implementation from the interface to prepare for a better 
+	  (hopefully more efficient) implementation
+	* changed getDayOfWeek() (again) to return 0-6 for sun-sat (useful for
+	  array lookups)
+	* added getISODayOfWeek() to return 1-7 for mon-sun
+	* updated date tests in test/test.q and added more tests for more 
+	  boundry conditions
+
 2006.09.02: David Nichols
 	* fixed some bugs in DateTime::getEpochSeconds()
 	* fixed some bugs in DateTime::setDate(int64)
@@ -12,6 +30,8 @@
 	* changed scanner.ll and DateTime string constructor to allow for 
 	  millisecond specification for dates: i.e. 2006-01-01-10:00:00.502 for
 	  502 milliseconds after Jan 1 2006 10 am
+	* changed scanner.ll to accept date/time values in a ISO 8601 standard
+	  format: 2006-01-01T10:00:00 (without the time zone component) 
 	* changed scanner.ll to only accept valid month, day, hour, minute,
 	  second, and millisecond values in dates
 

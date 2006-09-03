@@ -44,8 +44,15 @@ sub parse_command_line()
         printf("%s\n", $o."_ERRORS_"[0]);
         exit(1);
     }
+    if ($o.help)
+	usage();
 
     $o.iters = shift $ARGV;
+    if (elements $ARGV)
+    {
+	printf("error, excess arguments on command-line\n");
+	usage();
+    }
 
     if (!$o.iters)
 	$o.iters = 1;
@@ -489,21 +496,25 @@ sub sd($d)
     return format_date("YYYY-MM-DD HH:mm:SS", $d);
 }
 
-sub test_date($d, $i)
-{
-    test_value($d, date(int($d)), sprintf("date conversion %d", $i++));
-}
-
-sub test_date_functions($d, $y, $w, $day, $wd, $n, $i)
+sub test_date($d, $y, $w, $day, $n, $i)
 {
     my $str = sprintf("%04d-W%02d-%d", $y, $w, $day);
     my $h = ( "year" : $y, "week" : $w, "day" : $day );
-    test_value(getISOWeekString($d),             $str, "getISOWeekString() " + $i);
-    test_value(getISOWeekHash($d),               $h,   "getISOWeekHash() " + $i);
-    test_value(getDayOfWeek($d),                 $wd,  "getDayOfWeek() " + $i);
-    test_value(getDayNumber($d),                 $n,   "getDayNumber() " + $i);
-    test_value(getDateFromISOWeek($y, $w, $day), $d,   "getDateFromISOWeek() " + $i);
-    if ($d >= 1970-01-01 && $d < 2038-01-01)
+    my $d1;
+    # subtract milliseconds from date to compare with timegm value
+    if (my $ms = get_milliseconds($d))
+	$d1 = $d - milliseconds($ms);
+    else
+	$d1 = $d;
+
+    test_value($d1,                              date(int($d)),    "date conversion " + $i);
+    test_value(getISOWeekString($d),             $str,             "getISOWeekString() " + $i);
+    test_value(getISOWeekHash($d),               $h,               "getISOWeekHash() " + $i);
+    test_value(getISODayOfWeek($d),              $day,             "getDayOfWeek() " + $i);
+    test_value(getDayNumber($d),                 $n,               "getDayNumber() " + $i);
+    test_value(getDateFromISOWeek($y, $w, $day), get_midnight($d), "getDateFromISOWeek() " + $i);
+    # not all architectures support the timegm() system call
+    if ($d >= 1970-01-01 && $d < 2038-01-19)
 	test_value(timegm($d), int($d), "qore epoch conversion " + $i);
     $i++;
 }
@@ -513,57 +524,62 @@ sub date_time_tests()
     # here are the two formats for directly specifying date/time values:
     # ISO-8601 format (without timezone specification, currently qore does not support time zones)
     my $date  = 2004-02-01T12:30:00;
-    # qore-specific date/time specification format ('-' instead of 'T' - slightly more readable)
+    # qore-specific date/time specification format ('-' instead of 'T' - more readable but non-standard)
     my $ndate = 2004-03-02-12:30:00;
     test_value(format_date("YYYY-MM-DD HH:mm:SS", $date), "2004-02-01 12:30:00", "format_date()");
-    test_value($date - 1Y,                2003-02-01T12:30:00, "first date year subtraction");
-    test_value($date - 1M,                2004-01-01T12:30:00, "first date month subtraction");
-    test_value($date - 1D,                2004-01-31T12:30:00, "first date day subtraction");
-    test_value($date - 1h,                2004-02-01T11:30:00, "first date hour subtraction");
-    test_value($date - 1m,                2004-02-01T12:29:00, "first date minute subtraction");
-    test_value($date - 1s,                2004-02-01T12:29:59, "first date second subtraction");
+    test_value($date - 5Y,                1999-02-01T12:30:00, "first date year subtraction");
+    test_value($date - 5M,                2003-09-01T12:30:00, "first date month subtraction");
+    test_value($date - 10D,               2004-01-22T12:30:00, "first date day subtraction");
+    test_value($date - 2h,                2004-02-01T10:30:00, "first date hour subtraction");
+    test_value($date - 25m,               2004-02-01T12:05:00, "first date minute subtraction");
+    test_value($date - 11s,               2004-02-01T12:29:49, "first date second subtraction");
     test_value($date - 251ms,             2004-02-01T12:29:59.749, "first date millisecond subtraction");
 
-    test_value($date + 1Y,                2005-02-01-12:30:00, "first date year addition");
-    test_value($date + 1M,                2004-03-01-12:30:00, "first date month addition");
-    test_value($date + 1D,                2004-02-02-12:30:00, "first date day addition");
-    test_value($date + 1h,                2004-02-01-13:30:00, "first date hour addition");
-    test_value($date + 1m,                2004-02-01-12:31:00, "first date minute addition");
-    test_value($date + 1s,                2004-02-01-12:30:01, "first date second addition");
-    test_value($date + 251ms,             2004-02-01-12:30:00.251, "first date millisecond addition");
+    test_value($date + 2Y,                2006-02-01T12:30:00, "first date year addition");
+    test_value($date + 5M,                2004-07-01T12:30:00, "first date month addition");
+    test_value($date + 10D,               2004-02-11T12:30:00, "first date day addition");
+    test_value($date + 2h,                2004-02-01T14:30:00, "first date hour addition");
+    test_value($date + 25m,               2004-02-01T12:55:00, "first date minute addition");
+    test_value($date + 11s,               2004-02-01T12:30:11, "first date second addition");
+    test_value($date + 251ms,             2004-02-01T12:30:00.251, "first date millisecond addition");
 
-    test_value($date - years(1),          2003-02-01-12:30:00, "second date year subtraction");
-    test_value($date - months(1),         2004-01-01-12:30:00, "second date month subtraction");
-    test_value($date - days(1),           2004-01-31-12:30:00, "second date day subtraction");
-    test_value($date - hours(1),          2004-02-01-11:30:00, "second date hour subtraction");
-    test_value($date - minutes(1),        2004-02-01-12:29:00, "second date minute subtraction");
-    test_value($date - seconds(1),        2004-02-01-12:29:59, "second date second subtraction");
+    test_value($date - years(5),          1999-02-01-12:30:00, "second date year subtraction");
+    test_value($date - months(5),         2003-09-01-12:30:00, "second date month subtraction");
+    test_value($date - days(10),          2004-01-22-12:30:00, "second date day subtraction");
+    test_value($date - hours(2),          2004-02-01-10:30:00, "second date hour subtraction");
+    test_value($date - minutes(25),       2004-02-01-12:05:00, "second date minute subtraction");
+    test_value($date - seconds(11),       2004-02-01-12:29:49, "second date second subtraction");
     test_value($date - milliseconds(500), 2004-02-01-12:29:59.500, "second date millisecond subtraction");
 
-    test_value($date + years(1),          2005-02-01-12:30:00, "second date year addition");
-    test_value($date + months(1),         2004-03-01-12:30:00, "second date month addition");
-    test_value($date + days(1),           2004-02-02-12:30:00, "second date day addition");
-    test_value($date + hours(1),          2004-02-01-13:30:00, "second date hour addition");
-    test_value($date + minutes(1),        2004-02-01-12:31:00, "second date minute addition");
-    test_value($date + seconds(1),        2004-02-01-12:30:01, "second date second addition");
+    test_value($date + years(2),          2006-02-01-12:30:00, "second date year addition");
+    test_value($date + months(5),         2004-07-01-12:30:00, "second date month addition");
+    test_value($date + days(10),          2004-02-11-12:30:00, "second date day addition");
+    test_value($date + hours(2),          2004-02-01-14:30:00, "second date hour addition");
+    test_value($date + minutes(25),       2004-02-01-12:55:00, "second date minute addition");
+    test_value($date + seconds(11),       2004-02-01-12:30:11, "second date second addition");
     test_value($date + milliseconds(578), 2004-02-01-12:30:00.578, "second date millisecond addition");
 
     # testing ISO-8601 alternate period syntax (which is not very readable... :-( )
-    test_value($date - P0001-00-00, 2003-02-01T12:30:00, "third date year subtraction");
-    test_value($date - P0000-01-00, 2004-01-01T12:30:00, "third date month subtraction");
-    test_value($date - P0000-00-01, 2004-01-31T12:30:00, "third date day subtraction");
-    test_value($date - PT01:00:00,  2004-02-01T11:30:00, "third date hour subtraction");
-    test_value($date - P00:01:00,   2004-02-01T12:29:00, "third date minute subtraction");
-    test_value($date - PT00:00:01,  2004-02-01T12:29:59, "third date second subtraction");
-    test_value($date + P0001-00-00, 2005-02-01T12:30:00, "third date year addition");
-    test_value($date + P0000-01-00, 2004-03-01T12:30:00, "third date month addition");
-    test_value($date + P0000-00-01, 2004-02-02T12:30:00, "third date day addition");
-    test_value($date + P01:00:00,   2004-02-01T13:30:00, "third date hour addition");
-    test_value($date + PT00:01:00,  2004-02-01T12:31:00, "third date minute addition");
-    test_value($date + P00:00:01,   2004-02-01T12:30:01, "third date second addition");
+    # date periods
+    test_value($date - P0001-00-00T00:00:00, 2003-02-01T12:30:00, "third date year subtraction");
+    test_value($date - P0000-01-00,          2004-01-01T12:30:00, "third date month subtraction");
+    test_value($date - P0000-00-01,          2004-01-31T12:30:00, "third date day subtraction");
+    test_value($date + P0001-00-00,          2005-02-01T12:30:00, "third date year addition");
+    test_value($date + P0000-01-00,          2004-03-01T12:30:00, "third date month addition");
+    test_value($date + P0000-00-01,          2004-02-02T12:30:00, "third date day addition");
 
-    test_value(2006-01-01-10:00:01.112, 2006-01-01-10:00:00.800 + 312ms, "third millisecond addition");
-    test_value(2006-01-01-10:00:01.800, 2006-01-01-10:00:02.112 - 312ms, "third millisecond subtraction");
+    # time periods
+    test_value($date - P0000-00-00T01:00:00, 2004-02-01T11:30:00, "third date hour subtraction");
+    test_value($date - P00:01:00,            2004-02-01T12:29:00, "third date minute subtraction");
+    test_value($date - PT00:00:01,           2004-02-01T12:29:59, "third date second subtraction");
+    test_value($date + P01:00:00,            2004-02-01T13:30:00, "third date hour addition");
+    test_value($date + PT00:01:00,           2004-02-01T12:31:00, "third date minute addition");
+    test_value($date + P00:00:01,            2004-02-01T12:30:01, "third date second addition");
+
+    # arithmetic on dates with ms overflow
+    test_value(2006-01-02T00:00:00.112, 2006-01-01T23:59:59.800 + 312ms, "third millisecond addition");
+    test_value(2006-01-01T23:59:59.800, 2006-01-02T00:00:00.112 - 312ms, "third millisecond subtraction");
+
     test_value($date,        localtime(mktime($date)), "localtime() and mktime()");
     test_value($date + 30D,  $ndate,                   "fourth date day addition");
     test_value($ndate - 30D, $date,                    "fourth date day subtraction");
@@ -574,62 +590,58 @@ sub date_time_tests()
     # times without a date are assumed to be on Jan 1, 1970
     test_value(11:25:27, 1970-01-01T11:25:27.000, "direct hour");
 
-    # date <-> seconds conversion tests
+    # test date conversion/calculation functions against known values
     my $i = 1;
-    # use old format here - it is easier to read than the ISO-8601 format
-    test_date(1970-01-01-00:00:00, \$i);
+    test_date(1068-01-01,              1068, 1, 3, 1,    \$i);
+    test_date(1783-09-18,              1783, 38, 4, 261, \$i);
+    test_date(1864-02-29,              1864, 9,  1, 60,  \$i);
+    test_date(1864-03-01,              1864, 9,  2, 61,  \$i);
+    test_date(1968-01-01T11:01:20,     1968, 1,  1, 1,   \$i);
+    test_date(1968-02-29,              1968, 9,  4, 60,  \$i);
+    test_date(1968-03-01,              1968, 9,  5, 61,  \$i);
+    test_date(1969-12-31T23:59:59.999, 1970, 1,  3, 365, \$i);
+    test_date(1969-12-31T00:00:00.100, 1970, 1,  3, 365, \$i);
+    test_date(1969-01-01T17:25:31.380, 1969, 1,  3, 1,   \$i);
+    test_date(1970-01-01,              1970, 1,  4, 1,   \$i);
+    test_date(1970-12-01T00:00:00,     1970, 49, 2, 335, \$i);
+    test_date(1972-01-01,              1971, 52, 6, 1,   \$i);
+    test_date(1972-12-30,              1972, 52, 6, 365, \$i);
+    test_date(1972-12-31,              1972, 52, 7, 366, \$i);
+    test_date(2004-02-28,              2004, 9,  6, 59,  \$i);
+    test_date(2004-02-29,              2004, 9,  7, 60,  \$i);
+    test_date(2004-03-01,              2004, 10, 1, 61,  \$i);
+    test_date(2004-03-28,              2004, 13, 7, 88,  \$i);
+    test_date(2006-01-01,              2005, 52, 7, 1,   \$i);
+    test_date(2006-09-01,              2006, 35, 5, 244, \$i);
+    test_date(2006-12-01,              2006, 48, 5, 335, \$i);
+    test_date(2007-12-30,              2007, 52, 7, 364, \$i);
+    test_date(2007-12-31,              2008, 1,  1, 365, \$i);
+    test_date(2008-01-01,              2008, 1,  2, 1,   \$i);
+    test_date(2008-01-06,              2008, 1,  7, 6,   \$i);
+    test_date(2008-01-07,              2008, 2,  1, 7,   \$i);
+    test_date(2008-01-08,              2008, 2,  2, 8,   \$i);
+    test_date(2008-01-09,              2008, 2,  3, 9,   \$i);
+    test_date(2008-01-10,              2008, 2,  4, 10,  \$i);
+    test_date(2008-12-28,              2008, 52, 7, 363, \$i);
+    test_date(2008-12-29,              2009, 1,  1, 364, \$i);
+    test_date(2008-12-30,              2009, 1,  2, 365, \$i);
+    test_date(2010-01-03,              2009, 53, 7, 3,   \$i);
+    test_date(2010-01-04,              2010, 1,  1, 4,   \$i);
+    test_date(2010-01-09,              2010, 1,  6, 9,   \$i);
+    test_date(2010-01-10,              2010, 1,  7, 10,  \$i);
+    test_date(2010-01-11,              2010, 2,  1, 11,  \$i);
+    test_date(2016-12-01,              2016, 48, 4, 336, \$i);
+    test_date(2026-08-22,              2026, 34, 6, 234, \$i);
+    test_date(2036-04-30,              2036, 18, 3, 121, \$i);
+    test_date(2054-06-19,              2054, 25, 5, 170, \$i);
+    test_date(2400-12-01,              2400, 48, 5, 336, \$i);
+    test_date(2970-01-01,              2970, 1,  1, 1,   \$i);
+    test_date(9999-12-31,              9999, 52, 5, 365, \$i);
+    test_date(9999-12-31T23:59:59.999, 9999, 52, 5, 365, \$i);
 
-    test_date(1970-12-01-00:00:00, \$i);
-    test_date(1972-01-01-00:00:00, \$i);
-    test_date(2006-01-01-00:00:00, \$i);
-    test_date(2006-12-01-00:00:00, \$i);
-    test_date(2016-12-01-00:00:00, \$i);
-    test_date(2026-08-22-00:00:00, \$i);
-    test_date(2036-04-30-00:00:00, \$i);
-    test_date(2970-01-01-00:00:00, \$i);
-    test_date(2400-12-01-00:00:00, \$i);
-    test_date(9999-12-31-00:00:00, \$i);
-    test_date(9999-12-31-23:59:59, \$i);
-    test_date(1969-12-31-23:59:59, \$i);
-    test_date(1969-12-31-00:00:00, \$i);
-    test_date(1969-01-01-00:00:00, \$i);
-    test_date(1068-01-01-00:00:00, \$i);
-
-    # test date conversion/calculation functions against known dates and values
-    $i = 1;
-    test_date_functions(1783-09-18, 1783, 38, 4, 4, 261, \$i);
-    test_date_functions(1968-03-01, 1968, 9, 5, 5, 61, \$i);
-    test_date_functions(2004-02-28, 2004, 9, 6, 6, 59, \$i);
-    test_date_functions(2004-02-29, 2004, 9, 7, 7, 60, \$i);
-    test_date_functions(2004-03-01, 2004, 10, 1, 1, 61, \$i);
-    test_date_functions(2004-03-28, 2004, 13, 7, 7, 88, \$i);
-    test_date_functions(2006-01-01, 2005, 52, 7, 7, 1, \$i);
-    test_date_functions(2006-09-01, 2006, 35, 5, 5, 244, \$i);
-    test_date_functions(2007-12-30, 2007, 52, 7, 7, 364, \$i);
-    test_date_functions(2007-12-31, 2008, 1, 1, 1, 365, \$i);
-    test_date_functions(2008-01-01, 2008, 1, 2, 2, 1, \$i);
-    test_date_functions(2008-01-02, 2008, 1, 3, 3, 2, \$i);
-    test_date_functions(2008-01-03, 2008, 1, 4, 4, 3, \$i);
-    test_date_functions(2008-01-04, 2008, 1, 5, 5, 4, \$i);
-    test_date_functions(2008-01-05, 2008, 1, 6, 6, 5, \$i);
-    test_date_functions(2008-01-06, 2008, 1, 7, 7, 6, \$i);
-    test_date_functions(2008-01-07, 2008, 2, 1, 1, 7, \$i);
-    test_date_functions(2008-01-08, 2008, 2, 2, 2, 8, \$i);
-    test_date_functions(2008-01-09, 2008, 2, 3, 3, 9, \$i);
-    test_date_functions(2008-01-10, 2008, 2, 4, 4, 10, \$i);
-    test_date_functions(2008-12-28, 2008, 52, 7, 7, 363, \$i);
-    test_date_functions(2008-12-29, 2009, 1, 1, 1, 364, \$i);
-    test_date_functions(2008-12-30, 2009, 1, 2, 2, 365, \$i);
-    test_date_functions(2010-01-03, 2009, 53, 7, 7, 3, \$i);
-    test_date_functions(2010-01-04, 2010, 1, 1, 1, 4, \$i);
-    test_date_functions(2010-01-05, 2010, 1, 2, 2, 5, \$i);
-    test_date_functions(2010-01-06, 2010, 1, 3, 3, 6, \$i);
-    test_date_functions(2010-01-07, 2010, 1, 4, 4, 7, \$i);
-    test_date_functions(2010-01-08, 2010, 1, 5, 5, 8, \$i);
-    test_date_functions(2010-01-09, 2010, 1, 6, 6, 9, \$i);
-    test_date_functions(2010-01-10, 2010, 1, 7, 7, 10, \$i);
-    test_date_functions(2010-01-11, 2010, 2, 1, 1, 11, \$i);
-    test_date_functions(2054-06-19, 2054, 25, 5, 5, 170, \$i);
+    # absolute date difference tests
+    test_value(2006-01-02T11:34:28.344 - 2006-01-01,              1D + 11h + 34m + 28s +344ms,       "date difference 1");
+    test_value(2099-04-21T19:20:02.106 - 1804-03-04T20:45:19.956, 107793D + 22h + 34m + 42s + 150ms, "date difference 2");
 }
 
 sub binary_tests()

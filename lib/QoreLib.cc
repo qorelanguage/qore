@@ -405,15 +405,15 @@ class QoreString *dni(class QoreString *s, class QoreNode *n, int indent, class 
    }
 
    else if (n->type == NT_DATE)
-      s->sprintf("%04d-%02d-%02d %02d:%02d:%02d.%d (rel=%s)\n", 
-                 n->val.date_time->year,
-                 n->val.date_time->month,
-                 n->val.date_time->day,
-                 n->val.date_time->hour,
-                 n->val.date_time->minute,
-                 n->val.date_time->second,
-                 n->val.date_time->millisecond,
-                 n->val.date_time->relative ? "True" : "False");
+      s->sprintf("%04d-%02d-%02d %02d:%02d:%02d.%03d (rel=%s)\n", 
+                 n->val.date_time->getYear(),
+                 n->val.date_time->getMonth(),
+                 n->val.date_time->getDay(),
+                 n->val.date_time->getHour(),
+                 n->val.date_time->getMinute(),
+                 n->val.date_time->getSecond(),
+                 n->val.date_time->getMillisecond(),
+                 n->val.date_time->isRelative() ? "True" : "False");
    else
       s->sprintf("don't know how to print value :-(\n");
 

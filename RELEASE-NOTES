@@ -8,7 +8,8 @@ NOTE: for platform-specific notes and build instructions, please see the file BU
 the "tibco" module was renamed "tibae" to be consistent with the new "tibrv" module - see below
 programs requiring the old "tibco" module should now use "%requires tibae"
 
-*) ***CHANGE***: COMPATIBILITY WARNING: int <-> date conversions done with 64-bit offset from Jan 1, 1970 00:00:00
+*) ***CHANGE***: COMPATIBILITY WARNING: date/time handling changes
+**WARNING**: int <-> date conversions are now done with 64-bit offset from Jan 1, 1970 00:00:00
 previously int <-> date conversions were done with a not-very-useful direct conversion, like this:
   int(2006-01-01) => 20060101000000   (and vice-versa)
 
@@ -22,14 +23,25 @@ this gives 86400 seconds = 1 day.  previsouly you had to use mktime() which woul
 
 While this could in theory introduce incompatibilies in qore scripts, I expect that it will not in practice.  The only time where this conversion was useful was for specifying dates, i.e.: $date = date(20060101000000), however this should be changed to the clearer format: $date = 2006-01-01 (or $date = 2006-01-01-00:00:00), or for the lazy, the string <-> date conversion logic remains unchanged, so this could still be written as: $date = date("20060101000000") (just add quotes around the integer dates);
 
+**WARNING**: date/time arithmetic no longer takes daylight savings time into consideration
+this is because the internal 64-bit algorithm is not time-zone/DST aware - the old algorithm used mktime().  If you need to do date arithmetic possibly over DST changes and it's important to take these changes into account, and your dates are within the UNIX epoch (before Jan 19 2038), then use qore's mktime() function instead.
+
+**FIX**: subtracting one absolute date by another will now give a relative date giving the time difference, 
+i.e.: $d = 2006-01-02 - 2006-01-01 = 1D
+the resulting relative date is normalized to days, hours, minutes, seconds, and milliseconds (months and years are not of fixed length - the units below can be reliably interconverted)
+
 Additionally, the scanner has been modified to only accept valid month, day, hour, minute, and second values (i.e. dates like 2006-13-45-34:78:89 will throw parse exceptions)
 
 Other date changes (not expected to cause compatibility problems) are:
 * millisecond subtraction fixed
-* dates can be specified with an optional millisecond value, i.e.: 2006-01-01-10:00:00.502 for 502 seconds after Jan 1 2006 10:00 am
+* ISO 8601 date formats like 2006-01-01T10:00:00 are accepted (without the time zone component) as well as qore's format: 2006-01-01-10:00:00
+* ISO 8601 relative date formats like P0001-02-01T01:01:01 are accepted (however qore's relative date format is arguably more readable)
+* dates can be specified with an optional millisecond value, i.e.: 2006-01-01T10:00:00.502 for 502 seconds after Jan 1 2006 10:00 am
 * relative milliseconds can be directly specified with <num>ms: i.e.: $date + 250ms;
-* dates printed with the %n or %N *printf format specification that include a millisecond value will be output with the millisecond value like "2006-01-01 10:00:00.502"
-* new date functions & support for calculating ISO-8601 calendar week information: getISOWeekHash(), getISOWeekString(), getDateFromISOWeek(), getDayNumber(), getDayOfWeek(), get_years(), get_months(), get_days(), get_hours(), get_minutes(), get_seconds(), get_milliseconds()
+* absolute dates printed with the %n or %N *printf format specification that include a millisecond value will be output with the millisecond value like "2006-01-01 10:00:00.502"
+* relative dates printed with the %n or %N *printf format specification will take the following format: <time: x years x months x days x hours x minutes x seconds x milliseconds>
+  units that are zero are not printed, unless all units are zero and then only <time: 0 seconds> is printed
+* new date functions & support for calculating ISO-8601 calendar week information: getISOWeekHash(), getISOWeekString(), getDateFromISOWeek(), getDayNumber(), getDayOfWeek(), getISODayOfWeek(), get_years(), get_months(), get_days(), get_hours(), get_minutes(), get_seconds(), get_milliseconds()
 
 *) New direct TIBCO Rendezvous support
 Direct TIBCO Rendezvous sending and listening is now supported with the new "tibrv" module - as of this version it's now possible to build in tibrv support without tibae support (tibrv is also supported on OS X ppc and intel now as well)

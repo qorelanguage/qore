@@ -73,58 +73,37 @@ static inline char *remove_quotes(char *str)
 
 static inline class DateTime *makeYears(int years)
 {
-   class DateTime *dt = new DateTime();
-   dt->year = years;
-   dt->relative = 1;
-   return dt;
+   return new DateTime(years, 0, 0, 0, 0, 0, 0, true);
 }
 
 static inline class DateTime *makeMonths(int months)
 {
-   class DateTime *dt = new DateTime();
-   dt->month = months;
-   dt->relative = 1;
-   return dt;
+   return new DateTime(0, months, 0, 0, 0, 0, 0, true);
 }
 
 static inline class DateTime *makeDays(int days)
 {
-   class DateTime *dt = new DateTime();
-   dt->day = days;
-   dt->relative = 1;
-   return dt;
+   return new DateTime(0, 0, days, 0, 0, 0, 0, true);
 }
 
 static inline class DateTime *makeHours(int hours)
 {
-   class DateTime *dt = new DateTime();
-   dt->hour = hours;
-   dt->relative = 1;
-   return dt;
+   return new DateTime(0, 0, 0, hours, 0, 0, 0, true);
 }
 
 static inline class DateTime *makeMinutes(int minutes)
 {
-   class DateTime *dt = new DateTime();
-   dt->minute = minutes;
-   dt->relative = 1;
-   return dt;
+   return new DateTime(0, 0, 0, 0, minutes, 0, 0, true);
 }
 
 static inline class DateTime *makeSeconds(int seconds)
 {
-   class DateTime *dt = new DateTime();
-   dt->second = seconds;
-   dt->relative = 1;
-   return dt;
+   return new DateTime(0, 0, 0, 0, 0, seconds, 0, true);
 }
 
 static inline class DateTime *makeMilliseconds(int ms)
 {
-   class DateTime *dt = new DateTime();
-   dt->millisecond = ms;
-   dt->relative = 1;
-   return dt;
+   return new DateTime(0, 0, 0, 0, 0, 0, ms, true);
 }
 
 //2005-03-29-10:19:27

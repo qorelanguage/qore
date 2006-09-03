@@ -302,27 +302,27 @@ static class QoreNode *op_log_eq_date(class QoreNode *left, class QoreNode *righ
 
 static class QoreNode *op_log_gt_date(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
 {
-   return new QoreNode((bool)(compareDates(left->val.date_time, right->val.date_time) > 0));
+   return new QoreNode((bool)(DateTime::compareDates(left->val.date_time, right->val.date_time) > 0));
 }
 
 static class QoreNode *op_log_ge_date(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
 {
-   return new QoreNode((bool)(compareDates(left->val.date_time, right->val.date_time) >= 0));
+   return new QoreNode((bool)(DateTime::compareDates(left->val.date_time, right->val.date_time) >= 0));
 }
 
 static class QoreNode *op_log_lt_date(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
 {
-   return new QoreNode((bool)(compareDates(left->val.date_time, right->val.date_time) < 0));
+   return new QoreNode((bool)(DateTime::compareDates(left->val.date_time, right->val.date_time) < 0));
 }
 
 static class QoreNode *op_log_le_date(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
 {
-   return new QoreNode((bool)(compareDates(left->val.date_time, right->val.date_time) <= 0));
+   return new QoreNode((bool)(DateTime::compareDates(left->val.date_time, right->val.date_time) <= 0));
 }
 
 static class QoreNode *op_cmp_date(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
 {
-   return new QoreNode(NT_INT, compareDates(left->val.date_time, right->val.date_time));
+   return new QoreNode(NT_INT, DateTime::compareDates(left->val.date_time, right->val.date_time));
 }
 
 static class QoreNode *op_log_ne_date(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)

@@ -44,12 +44,23 @@ class DateTime {
       // month and day names (in English)
       static const struct date_s months[];
       static const struct date_s days[];
+
+      // private date data - most are ints so relative dates can hold a lot of data
+      int year;
+      int month;
+      int day;
+      int hour;
+      int minute;
+      int second;
+      short millisecond;
+      bool relative;
       
       class DateTime *addAbsoluteToRelative(class DateTime *dt);
       inline class DateTime *addRelativeToRelative(class DateTime *dt);
 
       class DateTime *subtractAbsoluteByRelative(class DateTime *dt);
       inline class DateTime *subtractRelativeByRelative(class DateTime *dt);
+      class DateTime *calcDifference(class DateTime *dt);
       void setDateLiteral(int64 date);
       void setRelativeDateLiteral(int64 date);
 
@@ -68,14 +79,6 @@ class DateTime {
       static inline int64 getEpochSeconds(int year, int month, int day);
       
    public:
-      short year;
-      int month;
-      int day;
-      int hour;
-      int minute;
-      int second;
-      int millisecond;
-      bool relative;
 
       inline DateTime() 
       { 
@@ -88,7 +91,7 @@ class DateTime {
 	 millisecond = 0; 
 	 relative = false;
       }
-      inline DateTime(int y, int mo, int d, int h, int mi, int s, int ms = 0);
+      inline DateTime(int y, int mo, int d, int h, int mi, int s, short ms = 0, bool r = false);
       inline DateTime(int64 seconds);
       inline DateTime(char *date);
       inline DateTime(struct tm *tms);
@@ -97,7 +100,14 @@ class DateTime {
       void setDate(int64 seconds);
       inline void setDate(char *str);
       inline void setRelativeDate(char *str);
-      inline void setDate(struct tm *tms, int ms = 0);
+      inline void setDate(struct tm *tms, short ms = 0);
+      inline void setTime(int h, int m, int s, short ms = 0)
+      {
+	 hour = h;
+	 minute = m;
+	 second = s;
+	 millisecond = ms;
+      }
       inline bool isEqual(class DateTime *dt);
       inline class DateTime *add(class DateTime *dt);
       inline class DateTime *subtractBy(class DateTime *dt);
@@ -116,7 +126,8 @@ class DateTime {
       void getISOWeek(int &year, int &week, int &day);
 
       class QoreString *format(char *fmt);
-
+      class QoreString *getString();
+      
       inline bool isRelative()
       {
 	 return relative;
@@ -184,13 +195,13 @@ class DateTime {
       // note that ISO-8601 week days go from 1 - 7 = Mon - Sun
       // a NULL return value means an exception was raised
       static class DateTime *getDateFromISOWeek(int year, int week, int day, class ExceptionSink *xsink);
-};
 
-int compareDates(class DateTime *left, class DateTime *right);
+      static int compareDates(class DateTime *left, class DateTime *right);
+};
 
 #include <qore/QoreLib.h>
 
-inline DateTime::DateTime(int y, int mo, int d, int h, int mi, int s, int ms)
+inline DateTime::DateTime(int y, int mo, int d, int h, int mi, int s, short ms, bool r)
 {
    year = y;
    month = mo;
@@ -199,7 +210,7 @@ inline DateTime::DateTime(int y, int mo, int d, int h, int mi, int s, int ms)
    minute = mi;
    second = s;
    millisecond = ms;
-   relative = false;
+   relative = r;
 }
 
 inline DateTime::DateTime(struct tm *tms)
@@ -231,7 +242,7 @@ inline void DateTime::getTM(struct tm *tms)
    tms->tm_isdst = -1;
 }
 
-inline void DateTime::setDate(struct tm *tms, int ms)
+inline void DateTime::setDate(struct tm *tms, short ms)
 {
    year = 1900 + tms->tm_year;
    month = tms->tm_mon + 1;
@@ -342,7 +353,11 @@ inline class DateTime *DateTime::subtractRelativeByRelative(class DateTime *dt)
 inline class DateTime *DateTime::subtractBy(class DateTime *dt)
 {
    if (!relative)
-      return subtractAbsoluteByRelative(dt);
+   {
+      if (dt->relative)
+	 return subtractAbsoluteByRelative(dt);
+      return calcDifference(dt);
+   }
    if (!dt->relative)
       return dt->subtractAbsoluteByRelative(this);
    return subtractRelativeByRelative(dt);
