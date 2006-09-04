@@ -1,3 +1,6 @@
+2006.09.04: David Nichols
+	* "oracle" module: fixed access to private DateTime members 
+
 2006.09.03: David Nichols
 	* "oracle" module: renamed classes to be oracle-specific
 	* added a new format for printing relative dates with *printf %n & %N

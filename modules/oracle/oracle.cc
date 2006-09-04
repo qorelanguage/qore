@@ -243,34 +243,28 @@ void OraColumns::define(OCIStmt *stmthp, class Datasource *ds, char *str, Except
 
 static class DateTime *convert_date_time(unsigned char *str)
 {
-   DateTime *dt = new DateTime;
+   int year;
    if ((str[0] < 100) || (str[1] < 100))
-      dt->year = 9999; 
+      year = 9999; 
    else
-      dt->year = (str[0] - 100) * 100 + (str[1] - 100);
-   dt->month       = str[2];
-   dt->day         = str[3];
-   dt->hour        = str[4] - 1;
-   dt->minute      = str[5] - 1;
-   dt->second      = str[6] - 1;
-   dt->millisecond = 0;
-   dt->relative    = 0;
-   printd(1, "convert_date_time(): %d %d = %04d-%02d-%02d %02d:%02d:%02d\n", str[0], str[1], dt->year, dt->month, dt->day, dt->hour, dt->minute, dt->second);
-   return dt;
+      year = (str[0] - 100) * 100 + (str[1] - 100);
+
+   //printd(5, "convert_date_time(): %d %d = %04d-%02d-%02d %02d:%02d:%02d\n", str[0], str[1], dt->year, dt->month, dt->day, dt->hour, dt->minute, dt->second);
+   return new DateTime(year, str[2], str[3], str[4] - 1, str[5] - 1, str[6] - 1);
 }
 
 static void *make_oracle_date_time(class DateTime *d)
 {
    char *buf = (char *)malloc(7 * sizeof(char));
 
-   buf[0] = d->year / 100 + 100;
-   buf[1] = d->year % 100 + 100;
-   buf[2] = d->month;
-   buf[3] = d->day;
-   buf[4] = d->hour + 1;
-   buf[5] = d->minute + 1;
-   buf[6] = d->second + 1;
-   printd(1, "make_oracle_date_time(): %04d-%02d-%02d %02d:%02d:%02d = %d %d\n", d->year, d->month, d->day, d->hour, d->minute, d->second, buf[0], buf[1]);
+   buf[0] = d->getYear() / 100 + 100;
+   buf[1] = d->getYear() % 100 + 100;
+   buf[2] = d->getMonth();
+   buf[3] = d->getDay();
+   buf[4] = d->getHour() + 1;
+   buf[5] = d->getMinute() + 1;
+   buf[6] = d->getSecond() + 1;
+   //printd(5, "make_oracle_date_time(): %04d-%02d-%02d %02d:%02d:%02d = %d %d\n", d->year, d->month, d->day, d->hour, d->minute, d->second, buf[0], buf[1]);
    return buf;
 }
 
