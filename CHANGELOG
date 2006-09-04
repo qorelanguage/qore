@@ -1,4 +1,5 @@
 2006.09.03: David Nichols
+	* "oracle" module: renamed classes to be oracle-specific
 	* added a new format for printing relative dates with *printf %n & %N
 	  formats: <time: x years x months ...etc >
 	* implemented absolute date difference algorithm that produces relative
