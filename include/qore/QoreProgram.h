@@ -32,6 +32,7 @@
 #include <qore/Restrictions.h>
 #include <qore/QoreCounter.h>
 #include <qore/StringList.h>
+#include <qore/support.h>
 
 #include <stdio.h>
 #include <errno.h>
@@ -119,11 +120,19 @@ class GlobalVariableList : public LockedObject
 #endif
 };
 
+// the two-layered reference counting is to eliminate problems from circular references
+// when a program has a global variable that contains an object that references the program...
+// objects now reference the dependency counter, so when the object's counter reaches zero and
+// the global variable list is deleted, then the variables will in turn dereference the program
+// so it can be deleted...
+
 class QoreProgram : public ReferenceObject, private UserFunctionList, private ImportedFunctionList, public GlobalVariableList
 {
    private:
       // parse lock, making parsing actions atomic and thread-safe
       class LockedObject plock;
+      // depedency counter, when this hits zero, the object is deleted
+      class ReferenceObject dc;
 
       class SBNode *sb_head, *sb_tail;
       class ExceptionSink *parseSink;
@@ -174,12 +183,19 @@ class QoreProgram : public ReferenceObject, private UserFunctionList, private Im
       inline bool existsFunction(char *name);
       inline void ref()
       {
+	 //printd(5, "QoreProgram::ref() this=%08p %d->%d\n", this, reference_count(), reference_count() + 1);
 	 ROreference();
       }
-      inline void deref()
+      inline void deref();
+      inline void deref(class ExceptionSink *xsink)
       {
+	 //printd(5, "QoreProgram::deref() this=%08p %d->%d\n", this, reference_count(), reference_count() - 1);
 	 if (ROdereference())
-	    delete this;
+	 {
+	    // delete all global variables
+	    delete_all(xsink);
+	    depDeref(xsink);
+	 }
       }
 
       inline class Var *findVar(char *name);
@@ -226,6 +242,18 @@ class QoreProgram : public ReferenceObject, private UserFunctionList, private Im
       void parseFileAndRunClass(char *filename, char *classname);
       void parseAndRunClass(FILE *, char *name, char *classname);
       void parseAndRunClass(char *str, char *name, char *classname);
+      void depRef()
+      {
+	 dc.ROreference();
+      }
+      void depDeref(class ExceptionSink *xsink)
+      {
+	 if (dc.ROdereference())
+	 {
+	    del(xsink);
+	    delete this;
+	 }
+      }
       void del(class ExceptionSink *xsink);
 };
 
@@ -240,8 +268,19 @@ class QoreProgram : public ReferenceObject, private UserFunctionList, private Im
 
 inline QoreProgram::~QoreProgram()
 {
-   class ExceptionSink xsink;
-   del(&xsink);
+   printd(5, "QoreProgram::~QoreProgram() this=%08p\n", this);
+}
+
+inline void QoreProgram::deref()
+{
+   //printd(5, "QoreProgram::deref() this=%08p %d->%d\n", this, reference_count(), reference_count() - 1);
+   if (ROdereference())
+   {
+      // delete all global variables with default exception handler
+      ExceptionSink xsink;
+      delete_all(&xsink);
+      depDeref(&xsink);
+   }
 }
 
 static inline void addProgramConstants(class Namespace *ns)
@@ -405,7 +444,7 @@ inline class UserFunction *UserFunctionList::findUserFunction(char *name)
       w = w->next;
    }
 
-   printd(5, "UserFunctionList::findUserFunction(%s) returning %08x\n", name, w);
+   printd(5, "UserFunctionList::findUserFunction(%s) returning %08p\n", name, w);
    return w;
 }
 
@@ -473,7 +512,7 @@ inline void UserFunctionList::deletePendingUserFunctions()
 inline GlobalVariableList::GlobalVariableList()
 {
    head = tail = NULL;
-   printd(5, "GlobalVariableList::GlobalVariableList() %08x (%08x %08x)\n",
+   printd(5, "GlobalVariableList::GlobalVariableList() %08p (%08p %08p)\n",
 	  this, head, tail);
 }
 
@@ -481,7 +520,7 @@ inline GlobalVariableList::~GlobalVariableList()
 {
 #ifdef DEBUG
    if (head)
-      run_time_error("~GlobalVariableList(): FIXME: head = %08x", head);
+      run_time_error("~GlobalVariableList(): FIXME: head = %08p", head);
 #endif
 }
 
@@ -508,7 +547,7 @@ inline class Var *GlobalVariableList::newVar(char *name)
       head = var;
    tail = var;
 
-   printd(5, "GlobalVariableList::newVar(): %s (%08x) added (head=%08x, tail=%08x\n", name, var, head, tail);
+   printd(5, "GlobalVariableList::newVar(): %s (%08p) added (head=%08p, tail=%08p\n", name, var, head, tail);
    return var;
 }
 
@@ -520,13 +559,13 @@ inline class Var *GlobalVariableList::findVar(char *name)
 
    while (var)
    {
-      //printd(5, "GlobalVariableList::findVar() head=%08x var=%08x (%s == %s)\n", head, var, var->getName(), name);
+      //printd(5, "GlobalVariableList::findVar() head=%08p var=%08p (%s == %s)\n", head, var, var->getName(), name);
       if (!strcmp(var->getName(), name))
 	 break;
       var = var->next;
    }
    //if (var)
-   //   printf("GlobalVariableList::findVar(): var %s found (addr=%08x)\n", name, var);
+   //   printf("GlobalVariableList::findVar(): var %s found (addr=%08p)\n", name, var);
    traceout("GlobalVariableList::findVar()");
    return var;
 }

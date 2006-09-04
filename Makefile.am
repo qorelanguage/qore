@@ -131,6 +131,7 @@ noinst_HEADERS = \
 	modules/oracle/oracle.h \
 	modules/oracle/oracle-module.h \
 	modules/mysql/qore-mysql-module.h \
+	modules/mysql/qore-mysql.h \
 	modules/TIBCO/tibae-module.h \
 	modules/TIBCO/tibrv-module.h \
 	modules/TIBCO/tibrv.h \

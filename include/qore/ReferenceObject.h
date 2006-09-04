@@ -47,6 +47,7 @@ class ReferenceObject {
       }
 #endif
       inline int reference_count() { return references; }
+      inline bool is_unique() { return references == 1; }
       inline void ROreference();
       inline int ROdereference();
 };

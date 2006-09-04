@@ -213,7 +213,7 @@ inline void keyList::addToString(class QoreString *str)
    keyNode *w = head;
    while (w)
    {
-      str->sprintf("%d=<0x%08x>, ", w->key, w->ptr);
+      str->sprintf("%d=<0x%08p>, ", w->key, w->ptr);
       w = w->next;
    }
 }
@@ -298,7 +298,7 @@ inline void Object::init(class QoreClass *oc, class QoreProgram *p)
    // methods may call functions in the program as well that could otherwise
    // disappear when the program is deleted
    if (p)
-      p->ref();
+      p->depRef();
    privateData = NULL;
 }
 
@@ -316,19 +316,17 @@ inline Object::Object(class QoreClass *oc, class QoreProgram *p, class Hash *h)
 
 inline Object::~Object()
 {
-   if (pgm)
-      pgm->deref();
-   //myclass->deref();
    //tracein("Object::~Object()");
-   printd(5, "Object::~Object(this=%08x)\n", this);
+   printd(5, "Object::~Object() this=%08p, pgm=%08p\n", this, pgm);
+   //myclass->deref();
 #ifdef DEBUG
-   if (data && data->size())
-      run_time_error("Object::~Object() still has data members (%d)", data->size());
-#endif
-   if (privateData)
-      delete privateData;
+   if (pgm)
+      run_time_error("Object::~Object() still has pgm=%08p", pgm);
    if (data)
-      delete data;
+      run_time_error("Object::~Object() still has data=%08p", data);
+   if (privateData)
+      run_time_error("Object::~Object() still has privateData=%08p", privateData);
+#endif
    //traceout("Object::~Object()");
 }
 
@@ -534,9 +532,9 @@ inline void Object::doDeleteNoDestructor(class ExceptionSink *xsink)
 
 inline void Object::ref()
 {
-   printd(5, "Object::ref(this=%08x) %d->%d\n", this, references, references + 1);
-   tRef();          // increment total references
-   ROreference();   // incremebet destructor-relevant references
+   printd(5, "Object::ref(this=%08p) %d->%d\n", this, references, references + 1);
+   //tRef();          // increment total references
+   ROreference();   // increment destructor-relevant references
 }
 
 inline class QoreNode *Object::evalFirstKeyValue(class ExceptionSink *xsink)
@@ -555,7 +553,7 @@ inline class QoreNode *Object::evalFirstKeyValue(class ExceptionSink *xsink)
 
 inline class QoreNode *Object::evalMemberNoMethod(char *mem, class ExceptionSink *xsink)
 {
-   printd(5, "Object::evalMemberNoMethod(this=%08x, mem=%08x (%s), xsink=%08x, data->size()=%d)\n",
+   printd(5, "Object::evalMemberNoMethod(this=%08p, mem=%08p (%s), xsink=%08p, data->size()=%d)\n",
 	  this, mem, mem, xsink, data ? data->size() : -1);
    g.enter();
    if (status == OS_DELETED)

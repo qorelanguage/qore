@@ -35,6 +35,7 @@ extern class Hash *ENV;
 
 void QoreProgram::init()
 {
+   //printd(5, "QoreProgram::init() this=%08p\n", this);
    parseSink = new ExceptionSink();
    requires_exception = false;
    sb_head = sb_tail = NULL;
@@ -177,7 +178,7 @@ void QoreProgram::resolveFunction(class FunctionCall *f)
    class ImportedFunctionNode *ifn;
    if ((ifn = findImportedFunctionNode(fname)))
    {
-      printd(5, "resolved imported function call to %s (pgm=%08x, func=%08x)\n",
+      printd(5, "resolved imported function call to %s (pgm=%08p, func=%08p)\n",
 	     fname, ifn->pgm, ifn->func);
       f->type = FC_IMPORTED;
       f->f.ifunc = new ImportedFunctionCall(ifn->pgm, ifn->func);
@@ -209,14 +210,14 @@ void QoreProgram::resolveFunction(class FunctionCall *f)
 
 void QoreProgram::parse(FILE *fp, char *name, class ExceptionSink *xsink)
 {
-   printd(5, "QoreProgram::parse(fp=%08x, name=%s)\n", fp, name);
+   printd(5, "QoreProgram::parse(fp=%08p, name=%s)\n", fp, name);
 
    // if already at the end of file, then return
    // try to get one character from file
    int c = fgetc(fp);
    if (feof(fp))
    {
-      printd(5, "QoreProgram::parse(fp=%08x, name=%s) EOF\n", fp, name);
+      printd(5, "QoreProgram::parse(fp=%08p, name=%s) EOF\n", fp, name);
       return;
    }
    // push back read character
@@ -330,7 +331,7 @@ void QoreProgram::parseFile(char *filename, class ExceptionSink *xsink)
 // call must push the current program on the stack and pop it afterwards
 int QoreProgram::internParsePending(char *code, char *label, class ExceptionSink *xsink)
 {
-   printd(5, "QoreProgram::internParsePending(code=%08x, label=%s)\n", code, label);
+   printd(5, "QoreProgram::internParsePending(code=%08p, label=%s)\n", code, label);
 
    if (!(*code))
       return 0;
@@ -347,7 +348,7 @@ int QoreProgram::internParsePending(char *code, char *label, class ExceptionSink
 
    // no need to save buffer, because it's deleted automatically in lexer
 
-   printd(5, "QoreProgram::internParsePending() parsing tag=%s (%08x): '%s'\n", label, label, code);
+   printd(5, "QoreProgram::internParsePending() parsing tag=%s (%08p): '%s'\n", label, label, code);
 
    yyscan_t lexer;
    yylex_init(&lexer);
@@ -376,7 +377,7 @@ int QoreProgram::internParsePending(char *code, char *label, class ExceptionSink
 void QoreProgram::internParseCommit(class ExceptionSink *xsink)
 {
    tracein("QoreProgram::internParseCommit()");
-   printd(5, "QoreProgram::internParseCommit() this=%08x isEvent=%d\n", this, parseSink->isEvent());
+   printd(5, "QoreProgram::internParseCommit() this=%08p isEvent=%d\n", this, parseSink->isEvent());
    // if the first stage of parsing has already failed, 
    // then don't go forward
    if (!parseSink->isEvent())
@@ -388,7 +389,7 @@ void QoreProgram::internParseCommit(class ExceptionSink *xsink)
       if (sb_tail->statements)
 	 sb_tail->statements->parseInit((lvh_t)0);
 
-      printd(5, "QoreProgram::internParseCommit() this=%08x RootNS=%08x\n", this, RootNS);
+      printd(5, "QoreProgram::internParseCommit() this=%08p RootNS=%08p\n", this, RootNS);
       // initialize new objects, etc in namespaces
       RootNS->parseInit();
 

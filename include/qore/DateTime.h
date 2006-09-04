@@ -80,16 +80,25 @@ class DateTime {
       
    public:
 
-      inline DateTime() 
-      { 
-	 year = 0; 
-	 month = 0; 
-	 day = 0; 
+      inline DateTime(bool r = false) 
+      {
+	 if (r)
+	 {
+	    year = 0; 
+	    month = 0; 
+	    day = 0; 
+	 }
+	 else
+	 {
+	    year = 1970; 
+	    month = 1; 
+	    day = 1; 
+	 }
 	 hour = 0; 
 	 minute = 0; 
 	 second = 0; 
 	 millisecond = 0; 
-	 relative = false;
+	 relative = r;
       }
       inline DateTime(int y, int mo, int d, int h, int mi, int s, short ms = 0, bool r = false);
       inline DateTime(int64 seconds);
@@ -108,6 +117,7 @@ class DateTime {
 	 second = s;
 	 millisecond = ms;
       }
+      bool checkValidity();
       inline bool isEqual(class DateTime *dt);
       inline class DateTime *add(class DateTime *dt);
       inline class DateTime *subtractBy(class DateTime *dt);
@@ -203,9 +213,18 @@ class DateTime {
 
 inline DateTime::DateTime(int y, int mo, int d, int h, int mi, int s, short ms, bool r)
 {
-   year = y;
-   month = mo;
-   day = d;
+   if (!r && !y && !mo && !d)
+   {
+      year = 1970;
+      month = 1;
+      day = 1;
+   }
+   else
+   {
+      year = y;
+      month = mo;
+      day = d;
+   }
    hour = h;
    minute = mi;
    second = s;

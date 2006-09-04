@@ -895,7 +895,7 @@ class DateTime *DateTime::calcDifference(class DateTime *dt)
       sec++;
    }
    
-   class DateTime *nd = new DateTime();
+   class DateTime *nd = new DateTime(true);
    nd->millisecond = ms;
    nd->relative = true;
 
@@ -960,3 +960,9 @@ class QoreString *DateTime::getString()
    }
    return str;
 }   
+
+// FIXME: implement and use
+bool DateTime::checkValidity()
+{
+   return true;
+}

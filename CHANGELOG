@@ -1,5 +1,13 @@
 2006.09.04: David Nichols
-	* "oracle" module: fixed access to private DateTime members 
+	* fixed circular reference count issue between objects->programs->
+	  global variable list->objects by implementing 2 phase references for
+	  program objects
+	* streamlined 2 phase objects referencess
+	* "mysql" module: started implementing value and placeholder binding
+	  functionality
+	* "oracle" module: fixed access to private DateTime members
+	* changed the creation of "0 dates" (i.e. 0000-00-00 - an illegal date) 
+	  to default to 1970-01-01
 
 2006.09.03: David Nichols
 	* "oracle" module: renamed classes to be oracle-specific

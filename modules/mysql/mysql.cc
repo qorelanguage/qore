@@ -42,6 +42,7 @@
 #include <qore/module.h>
 #include <qore/ModuleManager.h>
 
+#include "qore-mysql.h"
 #include "qore-mysql-module.h"
 
 #include <string.h>
@@ -49,8 +50,6 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <strings.h>
-
-#include <mysql.h>
 
 #ifndef QORE_MONOLITHIC
 char qore_module_name[] = "mysql";
@@ -278,132 +277,105 @@ static int qore_mysql_rollback(class Datasource *ds, ExceptionSink *xsink)
 }
 
 #ifdef HAVE_MYSQL_STMT
-class MyResult {
-   private:
-      MYSQL_FIELD *field;
-      int num_fields;
-      int type;
-      MYSQL_BIND *bindbuf;
-      struct bindInfo {
-	    my_bool mnull;
-	    long unsigned int mlen;
-      } *bi;
+void MyResult::bind(MYSQL_STMT *stmt)
+{
+   bindbuf = new MYSQL_BIND[num_fields];
+   bi      = new bindInfo[num_fields];
 
-   public:
-      inline MyResult(MYSQL_RES *res)
+   // zero out bind memory
+   memset(bindbuf, 0, sizeof(MYSQL_BIND) * num_fields);
+
+   for (int i = 0; i < num_fields; i++)
+   {
+      // setup bind structure
+      switch (field[i].type)
       {
-	 field = mysql_fetch_fields(res);
-	 num_fields = mysql_num_fields(res);
-	 mysql_free_result(res);
-
-	 bindbuf = NULL;
-      }
-
-      inline ~MyResult()
-      {
-	 if (bindbuf)
-	 {
-	    // delete buffer
-	    for (int i = 0; i < num_fields; i++)
-	       if (bindbuf[i].buffer_type == MYSQL_TYPE_DOUBLE || bindbuf[i].buffer_type == MYSQL_TYPE_LONGLONG)
-		  free(bindbuf[i].buffer);
-	       else if (bindbuf[i].buffer_type == MYSQL_TYPE_STRING)
-		  delete [] (char *)bindbuf[i].buffer;
-	       else if (bindbuf[i].buffer_type == MYSQL_TYPE_DATETIME)
-		  delete (MYSQL_TIME *)bindbuf[i].buffer;
-	    delete [] bindbuf;
-	 }
-      }
-
-      inline char *getFieldName(int i)
-      {
-	 return field[i].name;
-      }
-
-      inline int getNumFields()
-      {
-	 return num_fields;
-      }
-
-      void bind(MYSQL_STMT *stmt)
-      {
-	 bindbuf = new MYSQL_BIND[num_fields];
-	 bi      = new bindInfo[num_fields];
-
-	 // zero out bind memory
-	 memset(bindbuf, 0, sizeof(MYSQL_BIND) * num_fields);
-
-	 for (int i = 0; i < num_fields; i++)
-	 {
-	    // setup bind structure
-	    switch (field[i].type)
-	    {
-	       // for integer values
-	       case FIELD_TYPE_DECIMAL:
-	       case FIELD_TYPE_SHORT:
-	       case FIELD_TYPE_LONG:
-	       case FIELD_TYPE_LONGLONG:
-	       case FIELD_TYPE_INT24:
-	       case FIELD_TYPE_TINY:
-		  bindbuf[i].buffer_type = MYSQL_TYPE_LONGLONG;
-		  bindbuf[i].buffer = malloc(sizeof(int64));
-		  break;
+	 // for integer values
+	 case FIELD_TYPE_DECIMAL:
+	 case FIELD_TYPE_SHORT:
+	 case FIELD_TYPE_LONG:
+	 case FIELD_TYPE_LONGLONG:
+	 case FIELD_TYPE_INT24:
+	 case FIELD_TYPE_TINY:
+	    bindbuf[i].buffer_type = MYSQL_TYPE_LONGLONG;
+	    bindbuf[i].buffer = malloc(sizeof(int64));
+	    break;
+	    
+	    // for floating point values
+	 case FIELD_TYPE_FLOAT:
+	 case FIELD_TYPE_DOUBLE:
+	    bindbuf[i].buffer_type = MYSQL_TYPE_DOUBLE;
+	    bindbuf[i].buffer = malloc(sizeof(double));
+	    break;
 		  
-		  // for floating point values
-	       case FIELD_TYPE_FLOAT:
-	       case FIELD_TYPE_DOUBLE:
-		  bindbuf[i].buffer_type = MYSQL_TYPE_DOUBLE;
-		  bindbuf[i].buffer = malloc(sizeof(double));
-		  break;
-		  
-		  // for datetime values
-	       case FIELD_TYPE_DATETIME:
-	       case FIELD_TYPE_DATE:
-	       case FIELD_TYPE_TIME:
-	       case FIELD_TYPE_TIMESTAMP:
-		  bindbuf[i].buffer_type = MYSQL_TYPE_DATETIME;
-		  bindbuf[i].buffer = new MYSQL_TIME;
-		  break;
-		  
-		  // for all other types (treated as string)
-	       default:
-		  bindbuf[i].buffer_type = MYSQL_TYPE_STRING;
-		  bindbuf[i].buffer = new char[field[i].length + 1];
-		  bindbuf[i].buffer_length = field[i].length + 1;
-		  break;
-	    }
-	    bindbuf[i].is_null = &bi[i].mnull;
-	    bindbuf[i].length = &bi[i].mlen;
-	 }
-
-	 // FIXME: check for errors here
-	 mysql_stmt_bind_result(stmt, bindbuf);
+	    // for datetime values
+	 case FIELD_TYPE_DATETIME:
+	 case FIELD_TYPE_DATE:
+	 case FIELD_TYPE_TIME:
+	 case FIELD_TYPE_TIMESTAMP:
+	    bindbuf[i].buffer_type = MYSQL_TYPE_DATETIME;
+	    bindbuf[i].buffer = new MYSQL_TIME;
+	    break;
+	    
+	    // for all other types (treated as string)
+	 default:
+	    bindbuf[i].buffer_type = MYSQL_TYPE_STRING;
+	    bindbuf[i].buffer = new char[field[i].length + 1];
+	    bindbuf[i].buffer_length = field[i].length + 1;
+	    break;
       }
+      bindbuf[i].is_null = &bi[i].mnull;
+      bindbuf[i].length = &bi[i].mlen;
+   }
 
-      class QoreNode *getBoundColumnValue(class QoreEncoding *csid, int i)
-      {
-	 class QoreNode *n = NULL;
-	 
-	 if (bi[i].mnull)
-	    n = null();
-	 else if (bindbuf[i].buffer_type == MYSQL_TYPE_LONGLONG)
-	    n = new QoreNode(*((int64 *)bindbuf[i].buffer));
-	 else if (bindbuf[i].buffer_type == MYSQL_TYPE_DOUBLE)
-	    n = new QoreNode(*((double *)bindbuf[i].buffer));
-	 else if (bindbuf[i].buffer_type == MYSQL_TYPE_STRING)
-	 {
-	    //printf("string (%d): '%s'\n", mlen[i], (char *)bindbuf[i].buffer);
-	    n = new QoreNode(new QoreString((char *)bindbuf[i].buffer, csid));
-	 }
-	 else if (bindbuf[i].buffer_type == MYSQL_TYPE_DATETIME)
-	 {
-	    MYSQL_TIME *t = (MYSQL_TIME *)bindbuf[i].buffer;
-	    n = new QoreNode(new DateTime(t->year, t->month, t->day, t->hour, t->minute, t->second));
-	 }
-	 
-	 return n;
-      }
-};
+   // FIXME: check for errors here
+   mysql_stmt_bind_result(stmt, bindbuf);
+}
+
+class QoreNode *MyResult::getBoundColumnValue(class QoreEncoding *csid, int i)
+{
+   class QoreNode *n = NULL;
+   
+   if (bi[i].mnull)
+      n = null();
+   else if (bindbuf[i].buffer_type == MYSQL_TYPE_LONGLONG)
+      n = new QoreNode(*((int64 *)bindbuf[i].buffer));
+   else if (bindbuf[i].buffer_type == MYSQL_TYPE_DOUBLE)
+      n = new QoreNode(*((double *)bindbuf[i].buffer));
+   else if (bindbuf[i].buffer_type == MYSQL_TYPE_STRING)
+   {
+      //printf("string (%d): '%s'\n", mlen[i], (char *)bindbuf[i].buffer);
+      n = new QoreNode(new QoreString((char *)bindbuf[i].buffer, csid));
+   }
+   else if (bindbuf[i].buffer_type == MYSQL_TYPE_DATETIME)
+   {
+      MYSQL_TIME *t = (MYSQL_TIME *)bindbuf[i].buffer;
+      n = new QoreNode(new DateTime(t->year, t->month, t->day, t->hour, t->minute, t->second));
+   }
+   
+   return n;
+}
+
+inline int MyBindGroup::parse(class List *args, class ExceptionSink *xsink)
+{
+   return 0;
+}
+
+MyBindGroup::MyBindGroup(class Datasource *ods, class QoreString *ostr, class List *args, class ExceptionSink *xsink)
+{
+   head = tail = NULL;
+
+   // create copy of string and convert encoding if necessary
+   str = ostr->convertEncoding(ods->qorecharset, xsink);
+   if (!str)
+      return;
+
+   // parse query and bind variables/placeholders, return on error
+   if (parse(args, xsink))
+      return;
+
+   
+}
 
 static class QoreNode *qore_mysql_do_sql(class Datasource *ds, QoreString *qstr, ExceptionSink *xsink)
 {
@@ -595,45 +567,31 @@ static class Hash *get_result_set(class Datasource *ds, MYSQL_RES *res)
 	       // for datetime values
 	    case FIELD_TYPE_DATETIME:
 	    {
-	       class DateTime *d = new DateTime();
 	       row[i][4]  = '\0';
 	       row[i][7]  = '\0';
 	       row[i][10] = '\0';
 	       row[i][13] = '\0';
 	       row[i][16] = '\0';
-	       d->year    = atoi(row[i]);
-	       d->month   = atoi(row[i] + 5);
-	       d->day     = atoi(row[i] + 8);
-	       d->hour    = atoi(row[i] + 11);
-	       d->minute  = atoi(row[i] + 14);
-	       d->second  = atoi(row[i] + 17);
-	       n = new QoreNode(d);
+
+	       n = new QoreNode(new DateTime(atoi(row[i]), atoi(row[i] + 5), atoi(row[i] + 8), atoi(row[i] + 11), atoi(row[i] + 14), atoi(row[i] + 17)));
 	       break;
 	    }
 
 	    // for date values
 	    case FIELD_TYPE_DATE:
 	    {
-	       class DateTime *d = new DateTime();
 	       row[i][4] = '\0';
 	       row[i][7] = '\0';
-	       d->year   = atoi(row[i]);
-	       d->month  = atoi(row[i] + 5);
-	       d->day    = atoi(row[i] + 8);
-	       n = new QoreNode(d);
+	       n = new QoreNode(new DateTime(atoi(row[i]), atoi(row[i] + 5), atoi(row[i] + 8), 0, 0, 0));
 	       break;
 	    }
 	    
 	    // for time values
 	    case FIELD_TYPE_TIME:
 	    {
-	       class DateTime *d = new DateTime();
 	       row[i][2] = '\0';
 	       row[i][5] = '\0';
-	       d->hour   = atoi(row[i]);
-	       d->minute = atoi(row[i] + 3);
-	       d->second = atoi(row[i] + 6);
-	       n = new QoreNode(d);
+	       n = new QoreNode(new DateTime(0, 0, 0, atoi(row[i]), atoi(row[i] + 3), atoi(row[i] + 6)));
 	       break;
 	    }
 

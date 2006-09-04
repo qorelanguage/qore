@@ -154,8 +154,8 @@ void Object::dereference(ExceptionSink *xsink)
       {
 	 printd(5, "Object::dereference() %08x data=%08x status=%d\n", this, data, status);
       }
+      tDeref();
    }
-   tDeref();
 }
 
 // 0 = equal, 1 = not equal
@@ -256,6 +256,23 @@ void Object::doDelete(class ExceptionSink *xsink)
    Hash *td = data;
    data = NULL;
    g.exit();
+
+   if (privateData)
+   {
+      delete privateData;
+#ifdef DEBUG
+      privateData = NULL;
+#endif
+   }
+
+   if (pgm)
+   {
+      pgm->depDeref(xsink);
+#ifdef DEBUG
+      pgm = NULL;
+#endif
+   }
+
    td->dereference(xsink);
    delete td;
 }

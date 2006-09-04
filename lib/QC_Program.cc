@@ -34,7 +34,7 @@ int CID_PROGRAM;
 
 static inline void *getProgram(void *obj)
 {
-   ((QoreProgram *)obj)->ROreference();
+   ((QoreProgram *)obj)->ref();
    return obj;
 }
 
@@ -56,16 +56,7 @@ static QoreNode *PROGRAM_destructor(class Object *self, class QoreNode *params, 
 {
    QoreProgram *p = (QoreProgram *)self->getAndClearPrivateData(CID_PROGRAM);
    if (p)
-   {
-      // if there are no other calls in progress, then delete everything now
-      if (p->reference_count() == 1)
-      {
-	 p->del(xsink);
-	 p->deref();
-      }
-      else
-	 p->waitForTerminationAndDeref();
-   }
+      p->deref(xsink);
    else
       alreadyDeleted(xsink, "Program::destructor");
    return NULL;
