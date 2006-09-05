@@ -1,3 +1,7 @@
+2006.09.05: David Nichols
+	* made QoreProgram first set all program-local (non-imported) global
+	  variables to NULL and then delete
+
 2006.09.04: David Nichols
 	* fixed circular reference count issue between objects->programs->
 	  global variable list->objects by implementing 2 phase references for

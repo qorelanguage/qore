@@ -107,6 +107,10 @@ class Var : public ReferenceObject
       inline char *getName();
       inline void setValue(class QoreNode *val, class ExceptionSink *xsink);
       inline void makeReference(class Var *v, class ExceptionSink *xsink, bool ro = false);
+      inline bool isImported()
+      {
+	 return type == GV_IMPORT;
+      }
       inline void deref(class ExceptionSink *xsink);
       inline class QoreNode *eval();
 

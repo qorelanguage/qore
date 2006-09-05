@@ -111,6 +111,7 @@ class GlobalVariableList : public LockedObject
       inline GlobalVariableList();
       inline ~GlobalVariableList();
       inline void delete_all(class ExceptionSink *xsink);
+      inline void clear_all(class ExceptionSink *xsink);
       inline void importGlobalVariable(class Var *var, class ExceptionSink *xsink, bool readonly = false);
       inline class Var *newVar(char *name);
       inline class Var *findVar(char *name);
@@ -193,7 +194,7 @@ class QoreProgram : public ReferenceObject, private UserFunctionList, private Im
 	 if (ROdereference())
 	 {
 	    // delete all global variables
-	    delete_all(xsink);
+	    clear_all(xsink);
 	    depDeref(xsink);
 	 }
       }
@@ -278,7 +279,7 @@ inline void QoreProgram::deref()
    {
       // delete all global variables with default exception handler
       ExceptionSink xsink;
-      delete_all(&xsink);
+      clear_all(&xsink);
       depDeref(&xsink);
    }
 }
@@ -522,6 +523,25 @@ inline GlobalVariableList::~GlobalVariableList()
    if (head)
       run_time_error("~GlobalVariableList(): FIXME: head = %08p", head);
 #endif
+}
+
+// sets all non-imported variables to NULL (dereferences contents if any)
+inline void GlobalVariableList::clear_all(class ExceptionSink *xsink)
+{
+   class Var *var = head;
+
+   while (var)
+   {
+      if (!var->isImported())
+      {
+	 printd(5, "GlobalVariableList::clear_all() clearing '%s' (%08p)\n", var->getName(), var);
+	 var->setValue(NULL, xsink);
+      }
+#ifdef DEBUG
+      else printd(5, "GlobalVariableList::clear_all() skipping imported var '%s' (%08p)\n", var->getName(), var);
+#endif
+      var = var->next;
+   }
 }
 
 inline void GlobalVariableList::delete_all(class ExceptionSink *xsink)
