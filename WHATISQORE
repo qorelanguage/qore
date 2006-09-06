@@ -32,11 +32,10 @@ Qore has libxml2 integration, allowing simple, automatic, and transparent serial
 
 Qore uses the PCRE library to provide Perl-compatible regular expression support.
 
-Qore has TIBCO ActiveEnterprise integration, making it very easy to write scripts/programs making use of TIBCO ActiveEnterprise components.  Serializing/deserializing to/from TIBCO messages and to/from Qore data structures is simple, automatic, and transparent to the programmer.
+Qore has TIBCO ActiveEnterprise ("tibae" module) and direct Rendezvous ("tibrv" module) integration, making it very easy to write scripts/programs making use of TIBCO messaging.  Serializing/deserializing to/from TIBCO messages and to/from Qore data structures is simple, automatic, and transparent to the programmer.
 
 On the future roadmap:
 * improve mysql driver to support stored procedures
-* improve pcre support by adding variable substitution
 * add optional strong typing to the language + strongly typed data structures
 * add PostgresSQL and Sybase drivers to the DBI layer
 * add integration with other messaging technologies
@@ -75,7 +74,6 @@ Qore's syntax superficially appears to be a mixture of C and perl with some uniq
 * Qore's operators can change lvalues without references, in Qore a function can change an lvalue only if a reference is passed
 * there is currently no generic equivalent to perl's references.  It is only possible to pass values by reference in Qore if the subroutine includes a local variable argument list
 * Qore does not support enclosures or lamba functions, however Qore's Program class provides a powerful mechanism for embedding logic in a program or even for self-modifying programs
-* Qore does not yet support variable substitution from regular expressions, but this will change in a future release
+* Qore does not support variable substitution from regular expressions, in qore you need to construct the regex strings manually and use the regex() or regex_subst() functions
 * Qore does not yet support signal handling; this is planned for a future release (before 1.0)
-* Qore supports subpattern extraction from a regular expression when the x// operator is used (i.e. $list = "xmlns:wsdl" =~ x/(\w+):(\w+)/ will result in $list = ("xmlns", "wsdl") ) whereas perl uses the $1, $2 automatic variables
-* Perl still has more powerful regular expression support, Qore does not yet support variable substitution (this is coming in a future release of Qore), or any of the new advanced features coming up in perl6
+* Qore supports subpattern extraction from a regular expression when the x// operator is used (i.e. $list = "xmlns:wsdl" =~ x/(\w+):(\w+)/ will result in $list = ("xmlns", "wsdl") ) whereas perl uses the $1, $2, ... automatic variables

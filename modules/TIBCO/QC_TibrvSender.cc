@@ -31,14 +31,18 @@
 
 int CID_TIBRVSENDER;
 
-static inline void *getTRVS(void *obj)
+static inline void getTRVS(void *obj)
 {
    ((QoreTibrvSender *)obj)->ROreference();
-   return obj;
+}
+
+static inline void releaseTRVS(void *obj)
+{
+   ((QoreTibrvSender *)obj)->deref();
 }
 
 // syntax: [desc, service, network, daemon] 
-class QoreNode *TIBRVSENDER_constructor(class Object *self, class QoreNode *params, class ExceptionSink *xsink)
+void TIBRVSENDER_constructor(class Object *self, class QoreNode *params, class ExceptionSink *xsink)
 {
    tracein("TIBRVSENDER_constructor");
 
@@ -58,31 +62,27 @@ class QoreNode *TIBRVSENDER_constructor(class Object *self, class QoreNode *para
 
    class QoreTibrvSender *qsender = new QoreTibrvSender(desc, service, network, daemon, xsink);
 
-   if (xsink->isException() || self->setPrivate(CID_TIBRVSENDER, qsender, getTRVS))
+   if (xsink->isException())
       qsender->deref();
+   else
+      self->setPrivate(CID_TIBRVSENDER, qsender, getTRVS, releaseTRVS);
 
    traceout("TIBRVSENDER_constructor");
-   return NULL;
 }
 
-class QoreNode *TIBRVSENDER_destructor(class Object *self, class QoreNode *params, class ExceptionSink *xsink)
+void TIBRVSENDER_destructor(class Object *self, class QoreTibrvSender *trvs, class ExceptionSink *xsink)
 {
    tracein("TIBRVSENDER_destructor()");
-   // set adapter paramter
-   QoreTibrvSender *trvl = (QoreTibrvSender *)self->getAndClearPrivateData(CID_TIBRVSENDER);
-   if (trvl)
-      trvl->deref();
+   trvs->deref();
    traceout("TIBRVSENDER_destructor()");
-   return NULL;
 }
 
-static QoreNode *TIBRVSENDER_copy(class Object *self, QoreNode *params, ExceptionSink *xsink)
+void TIBRVSENDER_copy(class Object *self, class Object *old, class QoreTibrvSender *trvs, ExceptionSink *xsink)
 {
    xsink->raiseException("TIBRVSENDER-COPY-ERROR", "copying TibrvSender objects is curently not supported");
-   return NULL;
 }
 
-static QoreNode *TIBRVSENDER_sendSubject(class Object *self, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *TIBRVSENDER_sendSubject(class Object *self, class QoreTibrvSender *trvs, QoreNode *params, ExceptionSink *xsink)
 {
    class QoreNode *pt = test_param(params, NT_STRING, 0);
    if (!pt)
@@ -101,20 +101,11 @@ static QoreNode *TIBRVSENDER_sendSubject(class Object *self, QoreNode *params, E
    pt = test_param(params, NT_STRING, 2);
    char *replySubject = pt ? pt->val.String->getBuffer() : NULL;
 
-   QoreTibrvSender *trvl = (QoreTibrvSender *)self->getReferencedPrivateData(CID_TIBRVSENDER);
-
-   if (trvl)
-   {
-      trvl->sendSubject(subject, h, replySubject, xsink);
-      trvl->deref();
-   }
-   else
-      alreadyDeleted(xsink, "TibrvSender::sendSubject");
-
+   trvs->sendSubject(subject, h, replySubject, xsink);
    return NULL;
 }
 
-static QoreNode *TIBRVSENDER_sendSubjectWithSyncReply(class Object *self, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *TIBRVSENDER_sendSubjectWithSyncReply(class Object *self, class QoreTibrvSender *trvs, QoreNode *params, ExceptionSink *xsink)
 {
    class QoreNode *pt = test_param(params, NT_STRING, 0);
    if (!pt)
@@ -133,23 +124,13 @@ static QoreNode *TIBRVSENDER_sendSubjectWithSyncReply(class Object *self, QoreNo
    pt = get_param(params, 2);
    int64 timeout = pt ? pt->getAsBigInt() : -1;
 
-   QoreTibrvSender *trvl = (QoreTibrvSender *)self->getReferencedPrivateData(CID_TIBRVSENDER);
-   class QoreNode *rv = NULL;
-
-   if (trvl)
-   {
-      h = trvl->sendSubjectWithSyncReply(subject, h, timeout, xsink);
-      if (h)
-	 rv = new QoreNode(h);
-      trvl->deref();
-   }
-   else
-      alreadyDeleted(xsink, "TibrvSender::sendSubjectWithSyncReply");
-
-   return rv;
+   h = trvs->sendSubjectWithSyncReply(subject, h, timeout, xsink);
+   if (h)
+      return new QoreNode(h);
+   return NULL;
 }
 
-class QoreNode *TIBRVSENDER_setStringEncoding(class Object *self, QoreNode *params, ExceptionSink *xsink)
+class QoreNode *TIBRVSENDER_setStringEncoding(class Object *self, class QoreTibrvSender *trvs, QoreNode *params, ExceptionSink *xsink)
 {
    class QoreNode *pt = test_param(params, NT_STRING, 0);
    if (!pt)
@@ -158,36 +139,14 @@ class QoreNode *TIBRVSENDER_setStringEncoding(class Object *self, QoreNode *para
       return NULL;
    }
 
-   QoreTibrvSender *trvl = (QoreTibrvSender *)self->getReferencedPrivateData(CID_TIBRVSENDER);
-
-   if (trvl)
-   {
-      class QoreEncoding *enc = QEM.findCreate(pt->val.String->getBuffer());
-
-      trvl->setStringEncoding(enc);
-      trvl->deref();
-   }
-   else
-      alreadyDeleted(xsink, "TibrvSender::setStringEncoding");
-
+   class QoreEncoding *enc = QEM.findCreate(pt->val.String->getBuffer());
+   trvs->setStringEncoding(enc);
    return NULL;
 }
 
-class QoreNode *TIBRVSENDER_getStringEncoding(class Object *self, QoreNode *params, ExceptionSink *xsink)
+class QoreNode *TIBRVSENDER_getStringEncoding(class Object *self, class QoreTibrvSender *trvs, QoreNode *params, ExceptionSink *xsink)
 {
-   QoreTibrvSender *trvl = (QoreTibrvSender *)self->getReferencedPrivateData(CID_TIBRVSENDER);
-   class QoreNode *rv = NULL;
-
-   if (trvl)
-   {
-      class QoreEncoding *enc = trvl->getStringEncoding();
-      trvl->deref();
-      rv = new QoreNode(enc->code);
-   }
-   else
-      alreadyDeleted(xsink, "TibrvSender::getStringEncoding");
-
-   return rv;
+   return new QoreNode(trvs->getStringEncoding()->code);
 }
 
 class QoreClass *initTibrvSenderClass()
@@ -196,13 +155,13 @@ class QoreClass *initTibrvSenderClass()
 
    class QoreClass *QC_TIBRVSENDER = new QoreClass(strdup("TibrvSender"));
    CID_TIBRVSENDER = QC_TIBRVSENDER->getID();
-   QC_TIBRVSENDER->addMethod("constructor",               TIBRVSENDER_constructor);
-   QC_TIBRVSENDER->addMethod("destructor",                TIBRVSENDER_destructor);
-   QC_TIBRVSENDER->addMethod("copy",                      TIBRVSENDER_copy);
-   QC_TIBRVSENDER->addMethod("sendSubject",               TIBRVSENDER_sendSubject);
-   QC_TIBRVSENDER->addMethod("sendSubjectWithSyncReply",  TIBRVSENDER_sendSubjectWithSyncReply);
-   QC_TIBRVSENDER->addMethod("setStringEncoding",         TIBRVSENDER_setStringEncoding);
-   QC_TIBRVSENDER->addMethod("getStringEncoding",         TIBRVSENDER_getStringEncoding);
+   QC_TIBRVSENDER->setConstructor(TIBRVSENDER_constructor);
+   QC_TIBRVSENDER->setDestructor((q_destructor_t)TIBRVSENDER_destructor);
+   QC_TIBRVSENDER->setCopy((q_copy_t)TIBRVSENDER_copy);
+   QC_TIBRVSENDER->addMethod("sendSubject",               (q_method_t)TIBRVSENDER_sendSubject);
+   QC_TIBRVSENDER->addMethod("sendSubjectWithSyncReply",  (q_method_t)TIBRVSENDER_sendSubjectWithSyncReply);
+   QC_TIBRVSENDER->addMethod("setStringEncoding",         (q_method_t)TIBRVSENDER_setStringEncoding);
+   QC_TIBRVSENDER->addMethod("getStringEncoding",         (q_method_t)TIBRVSENDER_getStringEncoding);
 
    traceout("initTibrvSenderClass()");
    return QC_TIBRVSENDER;

@@ -30,10 +30,14 @@
 
 int CID_GETOPT;
 
-static inline void *getGetOpt(void *obj)
+static void getGetOpt(void *obj)
 {
    ((GetOpt *)obj)->ROreference();
-   return obj;
+}
+
+static void releaseGetOpt(void *obj)
+{
+   ((GetOpt *)obj)->deref();
 }
 
 static inline int process_type(char *key, int &attributes, char *opt, class QoreType *&at, class ExceptionSink *xsink)
@@ -123,17 +127,16 @@ static inline int process_type(char *key, int &attributes, char *opt, class Qore
    return -1;
 }
 
-class QoreNode *GETOPT_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static void GETOPT_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = test_param(params, NT_HASH, 0);
    if (!p0)
    {
       xsink->raiseException("GETOPT-PARAMETER-ERROR", "expecting hash as first argument to GetOpt::constructor()");
-      return NULL;
+      return;
    }
 
    class GetOpt *g = new GetOpt();
-   self->setPrivate(CID_GETOPT, g, getGetOpt);
 
    class HashIterator hi(p0->val.hash);
    class QoreString vstr;
@@ -226,24 +229,23 @@ class QoreNode *GETOPT_constructor(class Object *self, class QoreNode *params, E
 	 break;
       }
    }
-   return NULL;
-}
-
-class QoreNode *GETOPT_destructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
-{
-   GetOpt *g = (GetOpt *)self->getAndClearPrivateData(CID_GETOPT);
-   if (g)
+   if (!xsink->isException())
+      self->setPrivate(CID_GETOPT, g, getGetOpt, releaseGetOpt);
+   else
       g->deref();
-   return NULL;
 }
 
-class QoreNode *GETOPT_copy(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static void GETOPT_destructor(class Object *self, class GetOpt *g, ExceptionSink *xsink)
+{
+   g->deref();
+}
+
+static void GETOPT_copy(class Object *self, class Object *old, class GetOpt *g, class ExceptionSink *xsink)
 {
    xsink->raiseException("GETOPT-COPY-ERROR", "copying GetOpt objects is not supported");
-   return NULL;
 }
 
-class QoreNode *GETOPT_parse(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+class QoreNode *GETOPT_parse(class Object *self, class GetOpt *g, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = get_param(params, 0);
    if (!p0)
@@ -271,20 +273,11 @@ class QoreNode *GETOPT_parse(class Object *self, class QoreNode *params, Excepti
    else
       return NULL;
 
-   GetOpt *g = (GetOpt *)self->getReferencedPrivateData(CID_GETOPT);
-   
-   class QoreNode *rv = NULL;
-   if (g)
-   {
-      class Hash *h = g->parse(l, modify, xsink);
-      g->deref();
-      if (h)
-	 rv = new QoreNode(h);
-   }
-   else
-      alreadyDeleted(xsink, "GetOpt::parse");
-   //printd(5, "GETOPT_parse() returning rv=%08x %s\n", rv, rv ? rv->type->name : "NOTHING");
-   return rv;
+   class Hash *h = g->parse(l, modify, xsink);
+   if (h)
+      return new QoreNode(h);
+
+   return NULL;
 }
 
 class QoreClass *initGetOptClass()
@@ -293,10 +286,10 @@ class QoreClass *initGetOptClass()
 
    class QoreClass *QC_GETOPT = new QoreClass(strdup("GetOpt"));
    CID_GETOPT = QC_GETOPT->getID();
-   QC_GETOPT->addMethod("constructor",   GETOPT_constructor);
-   QC_GETOPT->addMethod("destructor",    GETOPT_destructor);
-   QC_GETOPT->addMethod("copy",          GETOPT_copy);
-   QC_GETOPT->addMethod("parse",         GETOPT_parse);
+   QC_GETOPT->setConstructor(GETOPT_constructor);
+   QC_GETOPT->setDestructor((q_destructor_t)GETOPT_destructor);
+   QC_GETOPT->setCopy((q_copy_t)GETOPT_copy);
+   QC_GETOPT->addMethod("parse",         (q_method_t)GETOPT_parse);
 
    traceout("initGetOptClass()");
    return QC_GETOPT;

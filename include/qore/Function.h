@@ -82,12 +82,13 @@ class ImportedFunctionCall {
       inline class QoreNode *eval(class QoreNode *args, class ExceptionSink *xsink);
 };
 
-#define FC_UNRESOLVED 1
-#define FC_USER       2
-#define FC_BUILTIN    3
-#define FC_SELF       4
-#define FC_IMPORTED   5
-#define FC_METHOD     6
+// constructors and destructors can never be explicitly called so we don't need FunctionCall constants for them
+#define FC_UNRESOLVED     1
+#define FC_USER           2
+#define FC_BUILTIN        3
+#define FC_SELF           4
+#define FC_IMPORTED       5
+#define FC_METHOD         6
 
 class FunctionCall {
    public:
@@ -128,14 +129,25 @@ class BuiltinFunction
       char *name;
       class BuiltinFunction *next;
       union {
-	    class QoreNode *(*func)(class QoreNode *params, class ExceptionSink *xsink);
-	    class QoreNode *(*method)(class Object *self, class QoreNode *params, class ExceptionSink *xsink);
+	    q_func_t func;
+	    q_method_t method;
+	    q_constructor_t constructor;
+	    q_destructor_t destructor;
+	    q_copy_t copy;
       } code;
 
-      inline BuiltinFunction(char *nme, class QoreNode *(*f)(class QoreNode *, class ExceptionSink *xsink), int typ);
-      inline BuiltinFunction(char *nme, class QoreNode *(*m)(class Object *, class QoreNode *, class ExceptionSink *xsink), int typ);
-      inline class QoreNode *evalSystemMethod(class Object *self, class QoreNode *args, class ExceptionSink *xsink);
-      inline class QoreNode *evalMethodWithArgs(class Object *self, class QoreNode *args, class ExceptionSink *xsink);
+      inline BuiltinFunction(char *nme, q_func_t f, int typ);
+      inline BuiltinFunction(char *nme, q_method_t m, int typ);
+      inline BuiltinFunction(q_constructor_t m, int typ);
+      inline BuiltinFunction(q_destructor_t m, int typ);
+      inline BuiltinFunction(q_copy_t m, int typ);
+      //inline class QoreNode *evalSystemMethod(class Object *self, class QoreNode *args, class ExceptionSink *xsink);
+      inline class QoreNode *evalMethod(class Object *self, void *private_data, class QoreNode *args, class ExceptionSink *xsink);
+      inline void evalConstructor(class Object *self, class QoreNode *args, class ExceptionSink *xsink);
+      inline void evalDestructor(class Object *self, void *private_data, class ExceptionSink *xsink);
+      inline void evalCopy(class Object *self, class Object *old, void *private_data, class ExceptionSink *xsink);
+      inline void evalSystemConstructor(class Object *self, class QoreNode *args, class ExceptionSink *xsink);
+      inline void evalSystemDestructor(class Object *self, void *private_data, class ExceptionSink *xsink);
       inline class QoreNode *evalWithArgs(class Object *self, class QoreNode *args, class ExceptionSink *xsink);
       inline class QoreNode *eval(class QoreNode *args, class ExceptionSink *xsink);
       inline int getType() { return type; }
@@ -402,7 +414,7 @@ static inline void pop_argv()
    //traceout("pop_argv()");
 }
 
-inline BuiltinFunction::BuiltinFunction(char *nme, QoreNode *(*f)(QoreNode *, ExceptionSink *xsink), int typ)
+inline BuiltinFunction::BuiltinFunction(char *nme, q_func_t f, int typ)
 {
    type = typ;
    name = nme;
@@ -410,7 +422,7 @@ inline BuiltinFunction::BuiltinFunction(char *nme, QoreNode *(*f)(QoreNode *, Ex
    next = NULL;
 }
 
-inline BuiltinFunction::BuiltinFunction(char *nme, QoreNode *(*m)(Object *, QoreNode *, ExceptionSink *xsink), int typ)
+inline BuiltinFunction::BuiltinFunction(char *nme, q_method_t m, int typ)
 {
    type = typ;
    name = nme;
@@ -418,10 +430,36 @@ inline BuiltinFunction::BuiltinFunction(char *nme, QoreNode *(*m)(Object *, Qore
    next = NULL;
 }
 
+inline BuiltinFunction::BuiltinFunction(q_constructor_t m, int typ)
+{
+   type = typ;
+   name = "constructor";
+   code.constructor = m;
+   next = NULL;
+}
+
+inline BuiltinFunction::BuiltinFunction(q_destructor_t m, int typ)
+{
+   type = typ;
+   name = "destructor";
+   code.destructor = m;
+   next = NULL;
+}
+
+inline BuiltinFunction::BuiltinFunction(q_copy_t m, int typ)
+{
+   type = typ;
+   name = "copy";
+   code.copy = m;
+   next = NULL;
+}
+
+/*
 inline QoreNode *BuiltinFunction::evalSystemMethod(class Object *self, class QoreNode *args, class ExceptionSink *xsink)
 {
    return code.method(self, args, xsink);
 }
+*/
 
 inline QoreNode *BuiltinFunction::evalWithArgs(class Object *self, class QoreNode *args, class ExceptionSink *xsink)
 {
@@ -439,20 +477,72 @@ inline QoreNode *BuiltinFunction::evalWithArgs(class Object *self, class QoreNod
    return rv;
 }
 
-inline QoreNode *BuiltinFunction::evalMethodWithArgs(class Object *self, class QoreNode *args, class ExceptionSink *xsink)
+inline QoreNode *BuiltinFunction::evalMethod(class Object *self, void *private_data, class QoreNode *args, class ExceptionSink *xsink)
 {
-   tracein("BuiltinFunction::evalMethodWithArgs()");
-   printd(2, "BuiltinFunction::evalMethodWithArgs() calling builtin function \"%s\"\n", name);
+   tracein("BuiltinFunction::evalMethod()");
+   printd(2, "BuiltinFunction::evalMethod() calling builtin function '%s' obj=%08p data=%08p\n", name, self, private_data);
    
    // push call on call stack
    pushCall(name, CT_BUILTIN, self);
 
-   QoreNode *rv = code.method(self, args, xsink);
+   QoreNode *rv = code.method(self, private_data, args, xsink);
 
    popCall(xsink);
 
    traceout("BuiltinFunction::evalWithArgs()");
    return rv;
+}
+
+inline void BuiltinFunction::evalConstructor(class Object *self, class QoreNode *args, class ExceptionSink *xsink)
+{
+   tracein("BuiltinFunction::evalConstructor()");
+   
+   // push call on call stack
+   pushCall("constructor", CT_BUILTIN, self);
+
+   code.constructor(self, args, xsink);
+
+   popCall(xsink);
+
+   traceout("BuiltinFunction::evalWithArgs()");
+}
+
+inline void BuiltinFunction::evalDestructor(class Object *self, void *private_data, class ExceptionSink *xsink)
+{
+   tracein("BuiltinFunction::evalDestructor()");
+   
+   // push call on call stack
+   pushCall("destructor", CT_BUILTIN, self);
+
+   code.destructor(self, private_data, xsink);
+
+   popCall(xsink);
+
+   traceout("BuiltinFunction::destructor()");
+}
+
+inline void BuiltinFunction::evalCopy(class Object *self, class Object *old, void *private_data, class ExceptionSink *xsink)
+{
+   tracein("BuiltinFunction::evalCopy()");
+   
+   // push call on call stack
+   pushCall("copy", CT_BUILTIN, self);
+
+   code.copy(self, old, private_data, xsink);
+
+   popCall(xsink);
+
+   traceout("BuiltinFunction::evalCopy()");
+}
+
+inline void BuiltinFunction::evalSystemConstructor(class Object *self, class QoreNode *args, class ExceptionSink *xsink)
+{
+   code.constructor(self, args, xsink);
+}
+
+inline void BuiltinFunction::evalSystemDestructor(class Object *self, void *private_data, class ExceptionSink *xsink)
+{
+   code.destructor(self, private_data, xsink);
 }
 
 inline QoreNode *BuiltinFunction::eval(QoreNode *args, ExceptionSink *xsink)

@@ -30,14 +30,18 @@
 
 int CID_TIBRVDQ;
 
-static inline void *getDQ(void *obj)
+static inline void getDQ(void *obj)
 {
    ((QoreTibrvDistributedQueue *)obj)->ROreference();
-   return obj;
+}
+
+static inline void releaseDQ(void *obj)
+{
+   ((QoreTibrvDistributedQueue *)obj)->deref();
 }
 
 // syntax: name, [desc, service, network, daemon] 
-class QoreNode *TIBRVDQ_constructor(class Object *self, class QoreNode *params, class ExceptionSink *xsink)
+void TIBRVDQ_constructor(class Object *self, class QoreNode *params, class ExceptionSink *xsink)
 {
    tracein("TIBRVDQ_constructor");
 
@@ -45,7 +49,7 @@ class QoreNode *TIBRVDQ_constructor(class Object *self, class QoreNode *params, 
    if (!pt)
    {
       xsink->raiseException("TIBRV-DISTRIBUTEDQUEUE-CONSTRUCTOR-ERROR", "missing fault-tolerant group name as first parameter to TibrvDistributedQueue::constructor()");
-      return NULL;
+      return;
    }
    char *cmName = pt->val.String->getBuffer();
 
@@ -55,7 +59,7 @@ class QoreNode *TIBRVDQ_constructor(class Object *self, class QoreNode *params, 
    if (t < 0)
    {
       xsink->raiseException("TIBRV-DISTRIBUTEDQUEUE-CONSTRUCTOR-ERROR", "workerWeight cannot be negative (value passed: %d)", t);
-      return NULL;
+      return;
    }
    workerWeight = t;
    
@@ -64,7 +68,7 @@ class QoreNode *TIBRVDQ_constructor(class Object *self, class QoreNode *params, 
    if (t <= 0)
    {
       xsink->raiseException("TIBRV-DISTRIBUTEDQUEUE-CONSTRUCTOR-ERROR", "workerTasks must be greater than zero (value passed: %d)", t);
-      return NULL;
+      return;
    }
    workerTasks = t;
    
@@ -74,7 +78,7 @@ class QoreNode *TIBRVDQ_constructor(class Object *self, class QoreNode *params, 
    if (t < 0)
    {
       xsink->raiseException("TIBRV-DISTRIBUTEDQUEUE-CONSTRUCTOR-ERROR", "schedulerWeight must be greater than or equal to zero (value passed: %d)", t);
-      return NULL;
+      return;
    }
    schedulerWeight = t;
    
@@ -84,7 +88,7 @@ class QoreNode *TIBRVDQ_constructor(class Object *self, class QoreNode *params, 
    if (schedulerHeartbeat < 0)
    {
       xsink->raiseException("TIBRV-DISTRIBUTEDQUEUE-CONSTRUCTOR-ERROR", "schedulerHeartbeat must not be negative (value passed: %lld)", schedulerHeartbeat);
-      return NULL;
+      return;
    }
 
    pt = get_param(params, 5);
@@ -92,7 +96,7 @@ class QoreNode *TIBRVDQ_constructor(class Object *self, class QoreNode *params, 
    if (schedulerActivation <= 0)
    {
       xsink->raiseException("TIBRV-DISTRIBUTEDQUEUE-CONSTRUCTOR-ERROR", "schedulerActivation must be greater than 0 (value passed: %lld)", schedulerActivation);
-      return NULL;
+      return;
    }
    
    char *service = NULL, *network = NULL, *daemon = NULL, *desc = NULL;
@@ -113,105 +117,66 @@ class QoreNode *TIBRVDQ_constructor(class Object *self, class QoreNode *params, 
 									schedulerWeight, schedulerHeartbeat, schedulerActivation, 
 									service, network, daemon, desc, xsink);
 
-   if (xsink->isException() || self->setPrivate(CID_TIBRVDQ, qdq, getDQ))
+   if (xsink->isException())
       qdq->deref();
+   else
+      self->setPrivate(CID_TIBRVDQ, qdq, getDQ, releaseDQ);
 
    traceout("TIBRVDQ_constructor");
-   return NULL;
 }
 
-class QoreNode *TIBRVDQ_destructor(class Object *self, class QoreNode *params, class ExceptionSink *xsink)
+void TIBRVDQ_destructor(class Object *self, class QoreTibrvDistributedQueue *dq, class ExceptionSink *xsink)
 {
    tracein("TIBRVDQ_destructor()");
-   // set adapter paramter
-   QoreTibrvDistributedQueue *ftm = (QoreTibrvDistributedQueue *)self->getAndClearPrivateData(CID_TIBRVDQ);
-   if (ftm)
-      ftm->deref();
-
+   dq->deref();
    traceout("TIBRVDQ_destructor()");
-   return NULL;
 }
 
-static QoreNode *TIBRVDQ_copy(class Object *self, QoreNode *params, ExceptionSink *xsink)
+void TIBRVDQ_copy(class Object *self, class Object *old, class QoreTibrvDistributedQueue *dq, ExceptionSink *xsink)
 {
    xsink->raiseException("TIBRV-DISTRIBUTEDQUEUE-COPY-ERROR", "copying TibrvDistributedQueue objects is curently not supported");
-   return NULL;
 }
 
-class QoreNode *TIBRVDQ_setWorkerWeight(class Object *self, QoreNode *params, ExceptionSink *xsink)
+class QoreNode *TIBRVDQ_setWorkerWeight(class Object *self, class QoreTibrvDistributedQueue *dq, QoreNode *params, ExceptionSink *xsink)
 {
-   QoreTibrvDistributedQueue *ftm = (QoreTibrvDistributedQueue *)self->getReferencedPrivateData(CID_TIBRVDQ);
-
-   if (ftm)
-   {
-      class QoreNode *pt = get_param(params, 0);
-      int64 weight = pt ? pt->getAsBigInt() : 0;
-      if (weight < 0)
-	 xsink->raiseException("TIBRV-DISTRIBUTEDQUEUE-SETWEIGHT-ERROR", "workerWeight cannot be negative (value passed: %d)", weight);
-      else
-	 ftm->setWorkerWeight((unsigned)weight, xsink);
-      ftm->deref();
-   }
+   class QoreNode *pt = get_param(params, 0);
+   int64 weight = pt ? pt->getAsBigInt() : 0;
+   if (weight < 0)
+      xsink->raiseException("TIBRV-DISTRIBUTEDQUEUE-SETWEIGHT-ERROR", "workerWeight cannot be negative (value passed: %d)", weight);
    else
-      alreadyDeleted(xsink, "TibrvDistributedQueue::setWorkerWeight");
+      dq->setWorkerWeight((unsigned)weight, xsink);
 
    return NULL;
 }
 
-class QoreNode *TIBRVDQ_setWorkerTasks(class Object *self, QoreNode *params, ExceptionSink *xsink)
+class QoreNode *TIBRVDQ_setWorkerTasks(class Object *self, class QoreTibrvDistributedQueue *dq, QoreNode *params, ExceptionSink *xsink)
 {
-   QoreTibrvDistributedQueue *ftm = (QoreTibrvDistributedQueue *)self->getReferencedPrivateData(CID_TIBRVDQ);
-   
-   if (ftm)
-   {
-      class QoreNode *pt = get_param(params, 0);
-      int64 tasks = pt ? pt->getAsBigInt() : 0;
-      if (tasks <= 0)
-	 xsink->raiseException("TIBRV-DISTRIBUTEDQUEUE-SETWEIGHT-ERROR", "workerTasks must be positive (value passed: %d)", tasks);
-      else
-	 ftm->setWorkerTasks((unsigned)tasks, xsink);
-      ftm->deref();
-   }
+   class QoreNode *pt = get_param(params, 0);
+   int64 tasks = pt ? pt->getAsBigInt() : 0;
+   if (tasks <= 0)
+      xsink->raiseException("TIBRV-DISTRIBUTEDQUEUE-SETWEIGHT-ERROR", "workerTasks must be positive (value passed: %d)", tasks);
    else
-      alreadyDeleted(xsink, "TibrvDistributedQueue::setWorkerTasks");
+      dq->setWorkerTasks((unsigned)tasks, xsink);
    
    return NULL;
 }
 
-class QoreNode *TIBRVDQ_getWorkerWeight(class Object *self, QoreNode *params, ExceptionSink *xsink)
+class QoreNode *TIBRVDQ_getWorkerWeight(class Object *self, class QoreTibrvDistributedQueue *dq, QoreNode *params, ExceptionSink *xsink)
 {
-   QoreTibrvDistributedQueue *ftm = (QoreTibrvDistributedQueue *)self->getReferencedPrivateData(CID_TIBRVDQ);
-   class QoreNode *rv = NULL;
+   int64 weight = dq->getWorkerWeight(xsink);
+   if (!xsink->isException())
+      return new QoreNode(weight);
    
-   if (ftm)
-   {
-      int64 weight = ftm->getWorkerWeight(xsink);
-      if (!xsink->isException())
-	 rv = new QoreNode(weight);
-      ftm->deref();
-   }
-   else
-      alreadyDeleted(xsink, "TibrvDistributedQueue::getWorkerWeight");
-   
-   return rv;
+   return NULL;
 }
 
-class QoreNode *TIBRVDQ_getWorkerTasks(class Object *self, QoreNode *params, ExceptionSink *xsink)
+class QoreNode *TIBRVDQ_getWorkerTasks(class Object *self, class QoreTibrvDistributedQueue *dq, QoreNode *params, ExceptionSink *xsink)
 {
-   QoreTibrvDistributedQueue *ftm = (QoreTibrvDistributedQueue *)self->getReferencedPrivateData(CID_TIBRVDQ);
-   class QoreNode *rv = NULL;
-   
-   if (ftm)
-   {
-      int64 tasks = ftm->getWorkerTasks(xsink);
-      if (!xsink->isException())
-	 rv = new QoreNode(tasks);
-      ftm->deref();
-   }
-   else
-      alreadyDeleted(xsink, "TibrvDistributedQueue::getWorkerTasks");
-   
-   return rv;
+   int64 tasks = dq->getWorkerTasks(xsink);
+   if (!xsink->isException())
+      return new QoreNode(tasks);
+
+   return NULL;
 }
 
 class QoreClass *initTibrvDistributedQueueClass()
@@ -220,13 +185,13 @@ class QoreClass *initTibrvDistributedQueueClass()
 
    class QoreClass *QC_TIBRVDQ = new QoreClass(strdup("TibrvDistributedQueue"));
    CID_TIBRVDQ = QC_TIBRVDQ->getID();
-   QC_TIBRVDQ->addMethod("constructor",      TIBRVDQ_constructor);
-   QC_TIBRVDQ->addMethod("destructor",       TIBRVDQ_destructor);
-   QC_TIBRVDQ->addMethod("copy",             TIBRVDQ_copy);
-   QC_TIBRVDQ->addMethod("setWorkerWeight",  TIBRVDQ_setWorkerWeight);
-   QC_TIBRVDQ->addMethod("setWorkerTasks",   TIBRVDQ_setWorkerTasks);
-   QC_TIBRVDQ->addMethod("getWorkerWeight",  TIBRVDQ_getWorkerWeight);
-   QC_TIBRVDQ->addMethod("getWorkerTasks",   TIBRVDQ_getWorkerTasks);
+   QC_TIBRVDQ->setConstructor(TIBRVDQ_constructor);
+   QC_TIBRVDQ->setDestructor((q_destructor_t)TIBRVDQ_destructor);
+   QC_TIBRVDQ->setCopy((q_copy_t)TIBRVDQ_copy);
+   QC_TIBRVDQ->addMethod("setWorkerWeight",  (q_method_t)TIBRVDQ_setWorkerWeight);
+   QC_TIBRVDQ->addMethod("setWorkerTasks",   (q_method_t)TIBRVDQ_setWorkerTasks);
+   QC_TIBRVDQ->addMethod("getWorkerWeight",  (q_method_t)TIBRVDQ_getWorkerWeight);
+   QC_TIBRVDQ->addMethod("getWorkerTasks",   (q_method_t)TIBRVDQ_getWorkerTasks);
 
    traceout("initTibrvDistributedQueueClass()");
    return QC_TIBRVDQ;

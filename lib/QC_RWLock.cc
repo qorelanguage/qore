@@ -30,145 +30,74 @@
 
 int CID_RWLOCK;
 
-static inline void *getRWLock(void *obj)
+static void getRWLock(void *obj)
 {
    ((RWLock *)obj)->ROreference();
-   return obj;
 }
 
-class QoreNode *RWLOCK_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static void releaseRWLock(void *obj)
 {
-   self->setPrivate(CID_RWLOCK, new RWLock(), getRWLock);
+   ((RWLock *)obj)->deref();
+}
+
+static void RWLOCK_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+{
+   self->setPrivate(CID_RWLOCK, new RWLock(), getRWLock, releaseRWLock);
+}
+
+static void RWLOCK_destructor(class Object *self, class RWLock *rwl, ExceptionSink *xsink)
+{
+   rwl->deref();
+}
+
+static void RWLOCK_copy(class Object *self, class Object *old, class RWLock *rwl, ExceptionSink *xsink)
+{
+   self->setPrivate(CID_RWLOCK, new RWLock(), getRWLock, releaseRWLock);
+}
+
+static class QoreNode *RWLOCK_readLock(class Object *self, class RWLock *rwl, class QoreNode *params, ExceptionSink *xsink)
+{
+   rwl->readLock();
    return NULL;
 }
 
-class QoreNode *RWLOCK_destructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *RWLOCK_readUnlock(class Object *self, class RWLock *rwl, class QoreNode *params, ExceptionSink *xsink)
 {
-   RWLock *m = (RWLock *)self->getAndClearPrivateData(CID_RWLOCK);
-   if (m)
-      m->deref();
+   rwl->readUnlock();
    return NULL;
 }
 
-class QoreNode *RWLOCK_readLock(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *RWLOCK_writeLock(class Object *self, class RWLock *rwl, class QoreNode *params, ExceptionSink *xsink)
 {
-   RWLock *rwl = (RWLock *)self->getReferencedPrivateData(CID_RWLOCK);
-   if (rwl)
-   {
-      rwl->readLock();
-      rwl->deref();
-   }
-   else
-      alreadyDeleted(xsink, "RWLock::readLock");
+   rwl->writeLock();
    return NULL;
 }
 
-class QoreNode *RWLOCK_readUnlock(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *RWLOCK_writeUnlock(class Object *self, class RWLock *rwl, class QoreNode *params, ExceptionSink *xsink)
 {
-   RWLock *rwl = (RWLock *)self->getReferencedPrivateData(CID_RWLOCK);
-   if (rwl)
-   {
-      rwl->readUnlock();
-      rwl->deref();
-   }
-   else
-      alreadyDeleted(xsink, "RWLock::readUnlock");
+   rwl->writeUnlock();
    return NULL;
 }
 
-class QoreNode *RWLOCK_writeLock(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *RWLOCK_tryReadLock(class Object *self, class RWLock *rwl, class QoreNode *params, ExceptionSink *xsink)
 {
-   RWLock *rwl = (RWLock *)self->getReferencedPrivateData(CID_RWLOCK);
-   if (rwl)
-   {
-      rwl->writeLock();
-      rwl->deref();
-   }
-   else
-      alreadyDeleted(xsink, "RWLock::writeLock");
-   return NULL;
+   return new QoreNode((int64)rwl->tryReadLock());
 }
 
-class QoreNode *RWLOCK_writeUnlock(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *RWLOCK_tryWriteLock(class Object *self, class RWLock *rwl, class QoreNode *params, ExceptionSink *xsink)
 {
-   RWLock *rwl = (RWLock *)self->getReferencedPrivateData(CID_RWLOCK);
-   if (rwl)
-   {
-      rwl->writeUnlock();
-      rwl->deref();
-   }
-   else
-      alreadyDeleted(xsink, "RWLock::writeUnlock");
-   return NULL;
+   return new QoreNode((int64)rwl->tryWriteLock());
 }
 
-class QoreNode *RWLOCK_tryReadLock(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *RWLOCK_numReaders(class Object *self, class RWLock *rwl, class QoreNode *params, ExceptionSink *xsink)
 {
-   RWLock *rwl = (RWLock *)self->getReferencedPrivateData(CID_RWLOCK);
-   QoreNode *rv;
-   if (rwl)
-   {
-      rv = new QoreNode(NT_INT, rwl->tryReadLock());
-      rwl->deref();
-   }
-   else
-   {
-      rv = NULL;
-      alreadyDeleted(xsink, "RWLock::tryReadLock");
-   }
-   return rv;
-}
-
-class QoreNode *RWLOCK_tryWriteLock(class Object *self, class QoreNode *params, ExceptionSink *xsink)
-{
-   RWLock *rwl = (RWLock *)self->getReferencedPrivateData(CID_RWLOCK);
-   QoreNode *rv;
-   if (rwl)
-   {
-      rv = new QoreNode(NT_INT, rwl->tryWriteLock());
-      rwl->deref();
-   }
-   else
-   {
-      rv = NULL;
-      alreadyDeleted(xsink, "RWLock::tryWriteLock");
-   }
-   return rv;
-}
-
-class QoreNode *RWLOCK_numReaders(class Object *self, class QoreNode *params, ExceptionSink *xsink)
-{
-   RWLock *rwl = (RWLock *)self->getReferencedPrivateData(CID_RWLOCK);
-   QoreNode *rv;
-   if (rwl)
-   {
-      rv = new QoreNode(NT_INT, rwl->numReaders());
-      rwl->deref();
-   }
-   else
-   {
-      rv = NULL;
-      alreadyDeleted(xsink, "RWLock::numReaders");
-   }
-   return rv;
+   return new QoreNode((int64)rwl->numReaders());
 }
 
 #ifdef DEBUG
-class QoreNode *RWLOCK_numWriters(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *RWLOCK_numWriters(class Object *self, class RWLock *rwl, class QoreNode *params, ExceptionSink *xsink)
 {
-   RWLock *rwl = (RWLock *)self->getReferencedPrivateData(CID_RWLOCK);
-   QoreNode *rv;
-   if (rwl)
-   {
-      rv = new QoreNode(NT_INT, rwl->numWriters());
-      rwl->deref();
-   }
-   else
-   {
-      rv = NULL;
-      alreadyDeleted(xsink, "RWLock::numWriters");
-   }
-   return rv;
+   return new QoreNode((int64)rwl->numWriters());
 }
 #endif
 
@@ -178,18 +107,18 @@ class QoreClass *initRWLockClass()
 
    class QoreClass *QC_RWLOCK = new QoreClass(strdup("RWLock"));
    CID_RWLOCK = QC_RWLOCK->getID();
-   QC_RWLOCK->addMethod("constructor",   RWLOCK_constructor);
-   QC_RWLOCK->addMethod("destructor",    RWLOCK_destructor);
-   QC_RWLOCK->addMethod("copy",          RWLOCK_constructor);
-   QC_RWLOCK->addMethod("readLock",      RWLOCK_readLock);
-   QC_RWLOCK->addMethod("writeLock",     RWLOCK_writeLock);
-   QC_RWLOCK->addMethod("readUnlock",    RWLOCK_readUnlock);
-   QC_RWLOCK->addMethod("writeUnlock",   RWLOCK_writeUnlock);
-   QC_RWLOCK->addMethod("tryReadLock",   RWLOCK_tryReadLock);
-   QC_RWLOCK->addMethod("tryWriteLock",  RWLOCK_tryWriteLock);
-   QC_RWLOCK->addMethod("numReaders",    RWLOCK_numReaders);
+   QC_RWLOCK->setConstructor(RWLOCK_constructor);
+   QC_RWLOCK->setDestructor((q_destructor_t)RWLOCK_destructor);
+   QC_RWLOCK->setCopy((q_copy_t)RWLOCK_copy);
+   QC_RWLOCK->addMethod("readLock",      (q_method_t)RWLOCK_readLock);
+   QC_RWLOCK->addMethod("writeLock",     (q_method_t)RWLOCK_writeLock);
+   QC_RWLOCK->addMethod("readUnlock",    (q_method_t)RWLOCK_readUnlock);
+   QC_RWLOCK->addMethod("writeUnlock",   (q_method_t)RWLOCK_writeUnlock);
+   QC_RWLOCK->addMethod("tryReadLock",   (q_method_t)RWLOCK_tryReadLock);
+   QC_RWLOCK->addMethod("tryWriteLock",  (q_method_t)RWLOCK_tryWriteLock);
+   QC_RWLOCK->addMethod("numReaders",    (q_method_t)RWLOCK_numReaders);
 #ifdef DEBUG
-   QC_RWLOCK->addMethod("numWriters",    RWLOCK_numWriters);
+   QC_RWLOCK->addMethod("numWriters",    (q_method_t)RWLOCK_numWriters);
 #endif
 
    traceout("initRWLockClass()");

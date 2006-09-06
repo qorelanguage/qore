@@ -39,19 +39,47 @@
 #define OS_BEING_DELETED 2
 //#define OS_IN_COPY       4
 
+typedef void (* q_private_t)(void *);
+
 class keyNode {
-   public:
+   private:
       int key;
       void *ptr;
-      void *(* getReferencedPrivateDataFunction)(void *);
+
+   public:
+      q_private_t ref, deref;
       class keyNode *next;
 
-      inline keyNode(int k, void *p, void *(* grpdf)(void *))
+      inline keyNode(int k, void *p, q_private_t r, q_private_t d)
       {
 	 key = k;
 	 ptr = p;
-	 getReferencedPrivateDataFunction = grpdf;
+	 ref = r;
+	 deref = d;
 	 next = NULL;
+      }
+      inline int getKey()
+      {
+	 return key;
+      }
+      inline void *getPtr()
+      {
+	 return ptr;
+      }
+      inline void *getAndClearPtr()
+      {
+	 void *rv = ptr;
+	 ptr = NULL;
+	 ref = NULL;
+	 deref = NULL;
+	 return rv;
+      }
+      inline void *refPtr()
+      {
+	 if (!ptr)
+	    return NULL;
+	 ref(ptr);
+	 return ptr;
       }
 };
 
@@ -64,9 +92,15 @@ class keyList {
       inline keyList();
       inline ~keyList();
       inline class keyNode *find(int k);
-      inline int insert(int k, void *ptr, void *(* grpdf)(void *));
-      inline void *getReferencedPrivateData(int key);
-      inline void *getPrivateData(int key);
+      inline void insert(int k, void *ptr, q_private_t ref, q_private_t deref);
+      inline class keyNode *getPrivateDataNode(int key);
+      inline void *getReferencedPrivateData(int key)
+      {
+	 class keyNode *kn = find(key);
+	 if (!kn)
+	    return NULL;
+	 return kn->refPtr();
+      }
       inline void addToString(class QoreString *str);
       //inline bool compare(class KeyList *k);
 };
@@ -129,9 +163,9 @@ class Object : public ReferenceObject
       inline int getStatus() { return status; }
       inline int isValid() { return status == OS_OK; }
 
-      inline int setPrivate(int key, void *pd, void *(* grpdf)(void *));
+      inline void setPrivate(int key, void *pd, q_private_t pdref, q_private_t pdderef);
+      inline class keyNode *getPrivateDataNode(int key);
       inline void *getReferencedPrivateData(int key);
-      inline void *getPrivateData(int key);
       inline void *getAndClearPrivateData(int key);
       inline void addPrivateDataToString(class QoreString *str);
 
@@ -201,7 +235,7 @@ inline class keyNode *keyList::find(int k)
    keyNode *w = head;
    while (w)
    {
-      if (w->key == k)
+      if (w->getKey() == k)
 	 break;
       w = w->next;
    }
@@ -213,25 +247,26 @@ inline void keyList::addToString(class QoreString *str)
    keyNode *w = head;
    while (w)
    {
-      str->sprintf("%d=<0x%08p>, ", w->key, w->ptr);
+      str->sprintf("%d=<0x%08p>, ", w->getKey(), w->getPtr());
       w = w->next;
    }
 }
 
-inline int keyList::insert(int k, void *ptr, void *(* grpdf)(void *))
+inline void keyList::insert(int k, void *ptr, q_private_t ref, q_private_t deref)
 {
-   // see if key exists first, and return -1 if so
+#ifdef DEBUG
+   // see if key exists - should never happen
    if (find(k))
-      return -1;
+      run_time_error("keyList::insert duplicate key=%d ptr=%08p", k, ptr);
+#endif
 
-   class keyNode *n = new keyNode(k, ptr, grpdf);
+   class keyNode *n = new keyNode(k, ptr, ref, deref);
    if (tail)
       tail->next = n;
    else
       head = n;
    tail = n;
    len++;
-   return 0;
 }
 
 /*
@@ -259,21 +294,13 @@ inline bool keyList::compare(class KeyList *k)
 }
 */
 
-inline void *keyList::getReferencedPrivateData(int key)
+inline class keyNode *keyList::getPrivateDataNode(int key)
 {
    class keyNode *kn = find(key);
-   if (!kn || !kn->getReferencedPrivateDataFunction || !kn->ptr)
+   if (!kn || !kn->ref || !kn->getPtr())
       return NULL;
 
-   return kn->getReferencedPrivateDataFunction(kn->ptr);
-}
-
-inline void *keyList::getPrivateData(int key)
-{
-   class keyNode *kn = find(key);
-   if (!kn)
-      return NULL;
-   return kn->ptr;
+   return kn;
 }
 
 static inline void makeAccessDeletedObjectException(class ExceptionSink *xsink, char *mem, char *cname)
@@ -642,7 +669,18 @@ inline bool Object::validInstanceOf(int cid)
    return myclass->getClass(cid);
 }
 
-inline void *Object::getReferencedPrivateData(int key) 
+inline class keyNode *Object::getPrivateDataNode(int key) 
+{ 
+   class keyNode *rv = NULL;
+
+   g.enter();
+   if (status != OS_DELETED && privateData)
+      rv = privateData->getPrivateDataNode(key);
+   g.exit();
+   return rv;
+}
+
+inline void *Object::getReferencedPrivateData(int key)
 { 
    void *rv = NULL;
 
@@ -650,18 +688,7 @@ inline void *Object::getReferencedPrivateData(int key)
    if (status != OS_DELETED && privateData)
       rv = privateData->getReferencedPrivateData(key);
    g.exit();
-   return rv;
-}
 
-inline void *Object::getPrivateData(int key)
-{ 
-   void *rv;
-   g.enter();
-   if (privateData)
-      rv = privateData->getPrivateData(key);
-   else
-      rv = NULL;
-   g.exit();
    return rv;
 }
 
@@ -673,23 +700,19 @@ inline void *Object::getAndClearPrivateData(int key)
    {
       class keyNode *kn = privateData->find(key);
       if (kn)
-      {
-	 rv = kn->ptr;
-	 kn->ptr = NULL;
-      }
+	 rv = kn->getAndClearPtr();
    }
    g.exit(); 
    return rv;
 }
 
-inline int Object::setPrivate(int key, void *pd, void *(*grpdf)(void *))
+inline void Object::setPrivate(int key, void *pd, q_private_t pdref, q_private_t pdderef)
 { 
    g.enter();
    if (!privateData)
       privateData = new keyList();
-   int rc = privateData->insert(key, pd, grpdf);
+   privateData->insert(key, pd, pdref, pdderef);
    g.exit();
-   return rc;
 }
 
 inline void Object::addPrivateDataToString(class QoreString *str)

@@ -25,7 +25,7 @@
 #define _QORE_MODULE_H
 
 #define QORE_MODULE_API_MAJOR 0
-#define QORE_MODULE_API_MINOR 0
+#define QORE_MODULE_API_MINOR 1
 
 // NOTE: do not use MODULE_INIT and MODULE_DELETE anymore, define 
 

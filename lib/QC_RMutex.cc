@@ -30,75 +30,44 @@
 
 int CID_RMUTEX;
 
-static inline void *getQoreRMutex(void *obj)
+static void getQoreRMutex(void *obj)
 {
    ((QoreRMutex *)obj)->ROreference();
-   return obj;
 }
 
-class QoreNode *RMUTEX_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static void releaseQoreRMutex(void *obj)
 {
-   self->setPrivate(CID_RMUTEX, new QoreRMutex(), getQoreRMutex);
-   return NULL;
+   ((QoreRMutex *)obj)->deref();
 }
 
-class QoreNode *RMUTEX_destructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static void RMUTEX_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
-   QoreRMutex *m = (QoreRMutex *)self->getAndClearPrivateData(CID_RMUTEX);
-   if (m)
-      m->deref();
-   return NULL;
+   self->setPrivate(CID_RMUTEX, new QoreRMutex(), getQoreRMutex, releaseQoreRMutex);
 }
 
-class QoreNode *RMUTEX_enter(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static void RMUTEX_destructor(class Object *self, class QoreRMutex *m, ExceptionSink *xsink)
 {
-   QoreRMutex *m = (QoreRMutex *)self->getReferencedPrivateData(CID_RMUTEX);
-   QoreNode *rv;
-   if (m)
-   {
-      rv = new QoreNode((int64)m->enter());
-      m->deref();
-   }
-   else
-   {
-      rv = NULL;
-      alreadyDeleted(xsink, "RMutex::enter");
-   }
-   return rv;
+   m->deref();
 }
 
-class QoreNode *RMUTEX_tryEnter(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static void RMUTEX_copy(class Object *self, class Object *old, class QoreRMutex *m, ExceptionSink *xsink)
 {
-   QoreRMutex *m = (QoreRMutex *)self->getReferencedPrivateData(CID_RMUTEX);
-   QoreNode *rv;
-   if (m)
-   {
-      rv = new QoreNode((int64)m->tryEnter()); 
-      m->deref();
-   }
-   else
-   {
-      rv = NULL;
-      alreadyDeleted(xsink, "RMutex::tryEnter");
-   }
-   return rv;
+   self->setPrivate(CID_RMUTEX, new QoreRMutex(), getQoreRMutex, releaseQoreRMutex);
 }
 
-class QoreNode *RMUTEX_exit(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+class QoreNode *RMUTEX_enter(class Object *self, class QoreRMutex *m, class QoreNode *params, ExceptionSink *xsink)
 {
-   QoreRMutex *m = (QoreRMutex *)self->getReferencedPrivateData(CID_RMUTEX);
-   QoreNode *rv;
-   if (m)
-   {
-      rv = new QoreNode((int64)m->exit());
-      m->deref();
-   }
-   else
-   {
-      rv = NULL;
-      alreadyDeleted(xsink, "RMutex::exit");
-   }
-   return rv;
+   return new QoreNode((int64)m->enter());
+}
+
+class QoreNode *RMUTEX_tryEnter(class Object *self, class QoreRMutex *m, class QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((int64)m->tryEnter()); 
+}
+
+class QoreNode *RMUTEX_exit(class Object *self, class QoreRMutex *m, class QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((int64)m->exit());
 }
 
 class QoreClass *initRMutexClass()
@@ -107,12 +76,12 @@ class QoreClass *initRMutexClass()
 
    class QoreClass *QC_RMUTEX = new QoreClass(strdup("RMutex"));
    CID_RMUTEX = QC_RMUTEX->getID();
-   QC_RMUTEX->addMethod("constructor",   RMUTEX_constructor);
-   QC_RMUTEX->addMethod("destructor",    RMUTEX_destructor);
-   QC_RMUTEX->addMethod("copy",          RMUTEX_constructor);
-   QC_RMUTEX->addMethod("enter",         RMUTEX_enter);
-   QC_RMUTEX->addMethod("tryEnter",      RMUTEX_tryEnter);
-   QC_RMUTEX->addMethod("exit",          RMUTEX_exit);
+   QC_RMUTEX->setConstructor(RMUTEX_constructor);
+   QC_RMUTEX->setDestructor((q_destructor_t)RMUTEX_destructor);
+   QC_RMUTEX->setCopy((q_copy_t)RMUTEX_copy);
+   QC_RMUTEX->addMethod("enter",         (q_method_t)RMUTEX_enter);
+   QC_RMUTEX->addMethod("tryEnter",      (q_method_t)RMUTEX_tryEnter);
+   QC_RMUTEX->addMethod("exit",          (q_method_t)RMUTEX_exit);
 
    traceout("initRMutexClass()");
    return QC_RMUTEX;

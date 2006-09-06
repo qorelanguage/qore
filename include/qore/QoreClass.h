@@ -65,8 +65,9 @@ class Method {
       inline ~Method();
       inline bool inMethod(class Object *self);
       class QoreNode *eval(class Object *self, class QoreNode *args, class ExceptionSink *xsink);
-      class QoreNode *evalConstructor(class Object *self, class QoreNode *args, class BCList *bcl, class BCEAList *bceal, class ExceptionSink *xsink);
-      inline class QoreNode *evalSystemConstructor(class Object *self, class QoreNode *args, class BCList *bcl, class BCEAList *bceal, class ExceptionSink *xsink);
+      void evalConstructor(class Object *self, class QoreNode *args, class BCList *bcl, class BCEAList *bceal, class ExceptionSink *xsink);
+      void evalDestructor(class Object *self, class ExceptionSink *xsink);
+      inline void evalSystemConstructor(class Object *self, class QoreNode *args, class BCList *bcl, class BCEAList *bceal, class ExceptionSink *xsink);
       inline void evalSystemDestructor(class Object *self, class ExceptionSink *xsink);
       void evalCopy(class Object *self, class Object *old, class ExceptionSink *xsink);
       inline class Method *copy();
@@ -467,6 +468,9 @@ class QoreClass : public ReferenceObject //, public LockedObject
       inline void init(char *nme);
       inline class Method *parseFindMethod(char *name);
       void insertMethod(class Method *o);
+      // checks for all special methods except constructor & destructor
+      inline void checkSpecialIntern(class Method *m);
+      // checks for all special methods
       inline void checkSpecial(class Method *m);
       class QoreNode *evalMethodGate(class Object *self, char *nme, class QoreNode *args, class ExceptionSink *xsink);
 
@@ -482,7 +486,10 @@ class QoreClass : public ReferenceObject //, public LockedObject
       inline QoreClass(char *nme, int id);
 
       inline void addMethod(class Method *f);
-      inline void addMethod(char *nme, class QoreNode *(*m)(class Object *, class QoreNode *, class ExceptionSink *xsink));
+      inline void addMethod(char *nme, q_method_t m);
+      inline void setDestructor(q_destructor_t m);
+      inline void setConstructor(q_constructor_t m);
+      inline void setCopy(q_copy_t m);
 
       inline void addPrivateMember(char *name);
       inline void mergePrivateMembers(class MemberList *n);
@@ -506,7 +513,7 @@ class QoreClass : public ReferenceObject //, public LockedObject
       inline class Method *resolveSelfMethodIntern(char *nme);
       inline class Method *resolveSelfMethod(char *nme);
       inline class Method *resolveSelfMethod(class NamedScope *nme);
-      inline void setSystemConstructor(class QoreNode *(*m)(class Object *, class QoreNode *, class ExceptionSink *xsink));
+      inline void setSystemConstructor(q_constructor_t m);
       inline class List *getMethodList();
       inline int numMethods() 
       {
@@ -547,7 +554,7 @@ class QoreClass : public ReferenceObject //, public LockedObject
       inline void nderef();
       inline bool is_unique()
       {
-	 return (nref.reference_count() == 1);
+	 return nref.is_unique();
       }
       //inline void merge(class QoreClass *oc);
 };
@@ -934,11 +941,16 @@ inline bool BCList::isPrivateMember(char *str)
 
 class BuiltinMethod : public BuiltinFunction, public ReferenceObject
 {
-  protected:
+   protected:
       inline ~BuiltinMethod() {}
 
    public:
-      inline BuiltinMethod(char *nme, class QoreNode *(*m)(class Object *, class QoreNode *, class ExceptionSink *xsink), int typ = FC_DEFAULT) : BuiltinFunction(nme, m, typ) {}
+      class QoreClass *myclass;
+
+      inline BuiltinMethod(class QoreClass *c, char *nme, q_method_t m, int typ = FC_DEFAULT) : BuiltinFunction(nme, m, typ), myclass(c) {}
+      inline BuiltinMethod(class QoreClass *c, q_constructor_t m, int typ = FC_DEFAULT) : BuiltinFunction(m, typ), myclass(c) {}
+      inline BuiltinMethod(class QoreClass *c, q_destructor_t m, int typ = FC_DEFAULT) : BuiltinFunction(m, typ), myclass(c) {}
+      inline BuiltinMethod(class QoreClass *c, q_copy_t m, int typ = FC_DEFAULT) : BuiltinFunction(m, typ), myclass(c) {}
       inline void deref();
 };
 
@@ -1033,9 +1045,9 @@ inline QoreClass::~QoreClass()
       delete system_constructor;
 }
 
-inline void QoreClass::setSystemConstructor(class QoreNode *(*m)(class Object *, class QoreNode *, class ExceptionSink *xsink))
+inline void QoreClass::setSystemConstructor(q_constructor_t m)
 {
-   system_constructor = new Method(new BuiltinMethod(NULL, m));
+   system_constructor = new Method(new BuiltinMethod(this, m));
 }
 
 inline void QoreClass::addBaseClassesToSubclass(class QoreClass *sc)
@@ -1049,6 +1061,15 @@ inline void QoreClass::addBaseClassesToSubclass(class QoreClass *sc)
    sc->scl->sml.add(sc, this);
 }
 
+inline void QoreClass::checkSpecialIntern(class Method *m)
+{
+   // set quick pointers
+   if (!methodGate && !strcmp(m->name, "methodGate"))
+      methodGate = m;
+   else if (!memberGate && !strcmp(m->name, "memberGate"))
+      memberGate = m;
+}
+
 inline void QoreClass::checkSpecial(class Method *m)
 {
    // set quick pointers
@@ -1058,10 +1079,8 @@ inline void QoreClass::checkSpecial(class Method *m)
       destructor = m;
    else if (!copyMethod && !strcmp(m->name, "copy"))
       copyMethod = m;
-   else if (!methodGate && !strcmp(m->name, "methodGate"))
-      methodGate = m;
-   else if (!memberGate && !strcmp(m->name, "memberGate"))
-      memberGate = m;
+   else 
+      checkSpecialIntern(m);
 }
 
 inline class Method *QoreClass::findLocalMethod(char *nme)
@@ -1275,13 +1294,46 @@ inline void QoreClass::addMethod(Method *m)
 }
 
 // adds a builtin method to the class - no duplicate checking is made
-inline void QoreClass::addMethod(char *nme, QoreNode *(*m)(Object *, QoreNode *, ExceptionSink *xsink))
+inline void QoreClass::addMethod(char *nme, q_method_t m)
 {
+#ifdef DEBUG
+   if (!strcmp(nme, "constructor") || !strcmp(nme, "destructor") || !strcmp(nme, "copy"))
+      run_time_error("cannot call QoreClass::addMethod('%s')  use setConstructor() setDestructor() setCopy() instead", nme);
+#endif
+
    sys = true;
-   BuiltinMethod *b = new BuiltinMethod(nme, m);
+   BuiltinMethod *b = new BuiltinMethod(this, nme, m);
    Method *o = new Method(b);
    insertMethod(o);
-   checkSpecial(o);
+   // check for special methods (except constructor and destructor)
+   checkSpecialIntern(o);
+}
+
+// sets a builtin function as class constructor - no duplicate checking is made
+inline void QoreClass::setConstructor(q_constructor_t m)
+{
+   sys = true;
+   Method *o = new Method(new BuiltinMethod(this, m));
+   insertMethod(o);
+   constructor = o;
+}
+
+// sets a builtin function as class destructor - no duplicate checking is made
+inline void QoreClass::setDestructor(q_destructor_t m)
+{
+   sys = true;
+   Method *o = new Method(new BuiltinMethod(this, m));
+   insertMethod(o);
+   destructor = o;
+}
+
+// sets a builtin function as class copy constructor - no duplicate checking is made
+inline void QoreClass::setCopy(q_copy_t m)
+{
+   sys = true;
+   Method *o = new Method(new BuiltinMethod(this, m));
+   insertMethod(o);
+   copyMethod = o;
 }
 
 inline class QoreNode *QoreClass::evalMemberGate(class Object *self, class QoreNode *nme, class ExceptionSink *xsink)
@@ -1320,7 +1372,7 @@ inline class QoreNode *QoreClass::execConstructor(QoreNode *args, ExceptionSink 
 	 scl->execConstructors(o, bceal, xsink);
    }
    else // no lock is sent with constructor, because no variable has been assigned yet
-      discard(constructor->evalConstructor(o, args, scl, bceal, xsink), xsink);
+      constructor->evalConstructor(o, args, scl, bceal, xsink);
 
    if (bceal)
       bceal->deref(xsink);
@@ -1355,7 +1407,7 @@ inline class QoreNode *QoreClass::execSystemConstructor(QoreNode *args, class Ex
 	 scl->execSystemConstructors(o, bceal, xsink);
    }
    else // no lock is sent with constructor, because no variable has been assigned yet
-      discard(system_constructor->evalSystemConstructor(o, args, scl, bceal, xsink), xsink);
+      system_constructor->evalSystemConstructor(o, args, scl, bceal, xsink);
 
    if (bceal)
       bceal->deref(xsink);
@@ -1387,7 +1439,7 @@ inline void QoreClass::execSubclassConstructor(class Object *self, class BCEALis
       bool already_executed;
       class QoreNode *args = bceal->findArgs(this, &already_executed);
       if (!already_executed)
-	 discard(constructor->evalConstructor(self, args, scl, bceal, xsink), xsink);
+	 constructor->evalConstructor(self, args, scl, bceal, xsink);
    }
 }
 
@@ -1425,7 +1477,7 @@ inline void QoreClass::execDestructor(Object *self, ExceptionSink *xsink)
    else
    {
       if (destructor)
-	 discard(destructor->eval(self, NULL, &de), &de);
+	 destructor->evalDestructor(self, &de);
 
       // execute superclass destructors
       if (scl)
@@ -1439,7 +1491,7 @@ inline void QoreClass::execSubclassDestructor(Object *self, ExceptionSink *xsink
 {
    class ExceptionSink de;
    if (destructor)
-      discard(destructor->eval(self, NULL, &de), &de);
+      destructor->evalDestructor(self, &de);
 
    xsink->assimilate(&de);
 }
@@ -1530,6 +1582,7 @@ inline void QoreClass::parseCommit()
    while (w)
    {
       insertMethod(w);
+      checkSpecial(w);
       w = w->next;
    }
 
@@ -1591,7 +1644,7 @@ inline Method::Method(UserFunction *u, int p, BCAList *b)
 
 inline Method::Method(BuiltinMethod *b)
 {
-   name = b->name ? strdup(b->name) : NULL;
+   name = b->name;
    type = OTF_BUILTIN;
    func.builtin = b;
    priv = 0;
@@ -1603,7 +1656,7 @@ inline Method::Method(BuiltinMethod *b)
 
 inline Method::~Method()
 {
-   if (name)
+   if (name && type != OTF_BUILTIN)
       free(name);
    if (type == OTF_USER)
       func.userFunc->deref();
@@ -1620,15 +1673,16 @@ inline bool Method::inMethod(class Object *self)
    return ::inMethod(func.builtin->name, self);
 }
 
-inline class QoreNode *Method::evalSystemConstructor(Object *self, QoreNode *args, class BCList *bcl, class BCEAList *bceal, ExceptionSink *xsink)
+inline void Method::evalSystemConstructor(Object *self, QoreNode *args, class BCList *bcl, class BCEAList *bceal, ExceptionSink *xsink)
 {
    // type must be OTF_BUILTIN
-   return func.builtin->evalSystemMethod(self, args, xsink);
+   func.builtin->evalSystemConstructor(self, args, xsink);
 }
 
 inline void Method::evalSystemDestructor(class Object *self, class ExceptionSink *xsink)
 {
-   func.builtin->evalSystemMethod(self, NULL, xsink);
+   void *ptr = self->getAndClearPrivateData(func.builtin->myclass->getID());
+   func.builtin->evalSystemDestructor(self, ptr, xsink);
 }
 
 inline void Method::parseInit()

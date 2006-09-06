@@ -30,114 +30,82 @@
 
 int CID_QUEUE;
 
-static inline void *getQueue(void *obj)
+static inline void getQueue(void *obj)
 {
    ((Queue *)obj)->ROreference();
-   return obj;
 }
 
-class QoreNode *QUEUE_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static inline void releaseQueue(void *obj)
 {
-   self->setPrivate(CID_QUEUE, new Queue(), getQueue);
-   return NULL;
+   class ExceptionSink xsink;
+   ((Queue *)obj)->deref(&xsink);
 }
 
-class QoreNode *QUEUE_destructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static void QUEUE_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
-   Queue *tq = (Queue *)self->getAndClearPrivateData(CID_QUEUE);
-   if (tq)
-      tq->deref(xsink);
-   return NULL;
+   self->setPrivate(CID_QUEUE, new Queue(), getQueue, releaseQueue);
 }
 
-class QoreNode *QUEUE_push(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static void QUEUE_destructor(class Object *self, class Queue *tq, ExceptionSink *xsink)
 {
-   Queue *tq = (Queue *)self->getReferencedPrivateData(CID_QUEUE);
-   if (tq)
-   {
-      tq->push(get_param(params, 0));
-      tq->deref(xsink);
-   }
-   else
-      alreadyDeleted(xsink, "Queue::push");
+   tq->deref(xsink);
+}
+
+static void QUEUE_copy(class Object *self, class Object *old, class Queue *tq, ExceptionSink *xsink)
+{
+   self->setPrivate(CID_QUEUE, new Queue(), getQueue, releaseQueue);
+}
+
+class QoreNode *QUEUE_push(class Object *self, class Queue *tq, class QoreNode *params, ExceptionSink *xsink)
+{
+   tq->push(get_param(params, 0));
    return NULL;
 }
 
 // can't use shift because it's a reserved word
-class QoreNode *QUEUE_get(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+class QoreNode *QUEUE_get(class Object *self, class Queue *tq, class QoreNode *params, ExceptionSink *xsink)
 {
-   Queue *tq = (Queue *)self->getReferencedPrivateData(CID_QUEUE);
    QoreNode *rv;
 
    class QoreNode *p0 = get_param(params, 0);
    int timeout = p0 ? p0->getAsInt() : 0;
 
-   if (tq)
+   if (timeout)
    {
-      if (timeout)
-      {
-	 bool to;
-	 rv = tq->shift(timeout, &to);
-	 if (to)
-	    xsink->raiseException("QUEUE-TIMEOUT", "timed out after %d ms", timeout);
-      }
-      else
-	 rv = tq->shift();
-      tq->deref(xsink);
+      bool to;
+      rv = tq->shift(timeout, &to);
+      if (to)
+	 xsink->raiseException("QUEUE-TIMEOUT", "timed out after %d ms", timeout);
    }
    else
-   {
-      alreadyDeleted(xsink, "Queue::get");
-      rv = NULL;
-   }
+      rv = tq->shift();
+
    return rv;
 }
 
-class QoreNode *QUEUE_pop(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+class QoreNode *QUEUE_pop(class Object *self, class Queue *tq, class QoreNode *params, ExceptionSink *xsink)
 {
-   Queue *tq = (Queue *)self->getReferencedPrivateData(CID_QUEUE);
    QoreNode *rv;
 
    class QoreNode *p0 = get_param(params, 0);
    int timeout = p0 ? p0->getAsInt() : 0;
 
-   if (tq)
+   if (timeout)
    {
-      if (timeout)
-      {
-	 bool to;
-	 rv = tq->pop(timeout, &to);
-	 if (to)
-	    xsink->raiseException("QUEUE-TIMEOUT", "timed out after %d ms", timeout);
-      }
-      else
-	 rv = tq->pop();
-      tq->deref(xsink);
+      bool to;
+      rv = tq->pop(timeout, &to);
+      if (to)
+	 xsink->raiseException("QUEUE-TIMEOUT", "timed out after %d ms", timeout);
    }
    else
-   {
-      alreadyDeleted(xsink, "Queue::pop");
-      rv = NULL;
-   }
+      rv = tq->pop();
+
    return rv;
 }
 
-class QoreNode *QUEUE_size(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+class QoreNode *QUEUE_size(class Object *self, class Queue *tq, class QoreNode *params, ExceptionSink *xsink)
 {
-   Queue *tq = (Queue *)self->getReferencedPrivateData(CID_QUEUE);
-   QoreNode *rv;
-
-   if (tq)
-   {
-      rv = new QoreNode(NT_INT, tq->size());
-      tq->deref(xsink);
-   }
-   else
-   {
-      alreadyDeleted(xsink, "Queue::size");
-      rv = NULL;
-   }
-   return rv;
+   return new QoreNode((int64)tq->size());
 }
 
 class QoreClass *initQueueClass()
@@ -146,13 +114,13 @@ class QoreClass *initQueueClass()
 
    class QoreClass *QC_QUEUE = new QoreClass(strdup("Queue"));
    CID_QUEUE = QC_QUEUE->getID();
-   QC_QUEUE->addMethod("constructor",   QUEUE_constructor);
-   QC_QUEUE->addMethod("destructor",    QUEUE_destructor);
-   QC_QUEUE->addMethod("copy",          QUEUE_constructor);
-   QC_QUEUE->addMethod("push",          QUEUE_push);
-   QC_QUEUE->addMethod("get",           QUEUE_get);
-   QC_QUEUE->addMethod("pop",           QUEUE_pop);
-   QC_QUEUE->addMethod("size",          QUEUE_size);
+   QC_QUEUE->setConstructor(QUEUE_constructor);
+   QC_QUEUE->setDestructor((q_destructor_t)QUEUE_destructor);
+   QC_QUEUE->setCopy((q_copy_t)QUEUE_copy);
+   QC_QUEUE->addMethod("push",          (q_method_t)QUEUE_push);
+   QC_QUEUE->addMethod("get",           (q_method_t)QUEUE_get);
+   QC_QUEUE->addMethod("pop",           (q_method_t)QUEUE_pop);
+   QC_QUEUE->addMethod("size",          (q_method_t)QUEUE_size);
 
    traceout("initQueueClass()");
    return QC_QUEUE;

@@ -39,8 +39,8 @@ class QoreNode *Method::eval(Object *self, QoreNode *args, ExceptionSink *xsink)
    tracein("Method::eval()");
 #ifdef DEBUG
    char *oname = self->getClass()->name;
-   printd(5, "Method::eval() %s::%s() (object=%08x, privateData=%08x, pgm=%08x)\n", 
-	  oname, name, self, self->getPrivateData(self->getClass()->getID()), self->getProgram());
+   printd(5, "Method::eval() %s::%s() (object=%08x, privateDataNode=%08x, pgm=%08x)\n", 
+	  oname, name, self, self->getPrivateDataNode(self->getClass()->getID()), self->getProgram());
 #endif
 
    int need_deref = 0;
@@ -85,7 +85,24 @@ class QoreNode *Method::eval(Object *self, QoreNode *args, ExceptionSink *xsink)
    if (type == OTF_USER)
       rv = func.userFunc->eval(new_args, self, xsink);
    else
-      rv = func.builtin->evalMethodWithArgs(self, new_args, xsink);
+   {
+      // get referenced object
+      class keyNode *kn = self->getPrivateDataNode(func.builtin->myclass->getID());
+
+      if (kn)
+      {
+	 kn->ref(kn->getPtr());
+	 rv = func.builtin->evalMethod(self, kn->getPtr(), new_args, xsink);
+	 kn->deref(kn->getPtr());
+      }
+      else
+      {
+	 if (self->getClass() == func.builtin->myclass)
+	    xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::%s() cannot be executed because the object has already been deleted", self->getClass()->name, name);
+	 else
+	    xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::%s() (base class of object's class '%s') cannot be executed because the object has already been deleted", func.builtin->myclass->name, name, self->getClass()->name);
+      }
+   }
 
    // switch back to original program if necessary
    if (opgm && cpgm != opgm)
@@ -101,15 +118,13 @@ class QoreNode *Method::eval(Object *self, QoreNode *args, ExceptionSink *xsink)
    return rv;
 }
 
-class QoreNode *Method::evalConstructor(Object *self, QoreNode *args, class BCList *bcl, class BCEAList *bceal, ExceptionSink *xsink)
+void Method::evalConstructor(Object *self, QoreNode *args, class BCList *bcl, class BCEAList *bceal, ExceptionSink *xsink)
 {
-   QoreNode *rv;
-
    tracein("Method::evalConstructor()");
 #ifdef DEBUG
    char *oname = self->getClass()->name;
-   printd(5, "Method::evalConstructor() %s::%s() (object=%08x, privateData=%08x, pgm=%08x)\n", 
-	  oname, name, self, self->getPrivateData(self->getClass()->getID()), self->getProgram());
+   printd(5, "Method::evalConstructor() %s::%s() (object=%08x, privateDataNode=%08x, pgm=%08x)\n", 
+	  oname, name, self, self->getPrivateDataNode(self->getClass()->getID()), self->getProgram());
 #endif
 
    int need_deref = 0;
@@ -129,7 +144,7 @@ class QoreNode *Method::evalConstructor(Object *self, QoreNode *args, class BCLi
 	    if (new_args)
 	       new_args->deref(xsink);
 	    traceout("Method::evalConstructor()");
-	    return NULL;
+	    return;
 	 }
 	 need_deref = 1;
       }
@@ -142,7 +157,11 @@ class QoreNode *Method::evalConstructor(Object *self, QoreNode *args, class BCLi
    if (!xsink->isEvent())
    {
       if (type == OTF_USER)
-	 rv = func.userFunc->evalConstructor(new_args, self, bcl, bceal, xsink);
+      {
+	 class QoreNode *rv = func.userFunc->evalConstructor(new_args, self, bcl, bceal, xsink);
+	 if (rv)
+	    rv->deref(xsink);
+      }
       else
       {
 	 // switch to new program for imported objects
@@ -157,24 +176,20 @@ class QoreNode *Method::evalConstructor(Object *self, QoreNode *args, class BCLi
 	 else
 	    cpgm = NULL;
 
-	 rv = func.builtin->evalMethodWithArgs(self, new_args, xsink);
+	 func.builtin->evalConstructor(self, new_args, xsink);
 
 	 // switch back to original program if necessary
 	 if (opgm && cpgm != opgm)
 	    popProgram();
       }
    }
-   else
-      rv = NULL;
 
    if (new_args && need_deref)
       new_args->deref(xsink);
 #ifdef DEBUG
-   printd(5, "Method::evalConstructor() %s::%s() returning %08x (type=%s, refs=%d)\n",
-	  oname, name, rv, rv ? rv->type->name : "(null)", rv ? rv->reference_count() : 0);
+   printd(5, "Method::evalConstructor() %s::%s() done\n", oname, name);
 #endif
    traceout("Method::evalConstructor()");
-   return rv;
 }
 
 void Method::evalCopy(Object *self, Object *old, ExceptionSink *xsink)
@@ -195,14 +210,57 @@ void Method::evalCopy(Object *self, Object *old, ExceptionSink *xsink)
       func.userFunc->evalCopy(old, self, xsink);
    else // builtin function
    {
-      old->ref();
-      List *lst = new List();
-      lst->push(new QoreNode(old));
-      QoreNode *args = new QoreNode(lst);
- 
-      discard(func.builtin->evalMethodWithArgs(self, args, xsink), xsink);
+      // get referenced object
+      class keyNode *kn = old->getPrivateDataNode(func.builtin->myclass->getID());
 
-      args->deref(NULL);
+      if (kn)
+      {
+	 kn->ref(kn->getPtr());
+	 func.builtin->evalCopy(self, old, kn->getPtr(), xsink);
+	 kn->deref(kn->getPtr());
+      }
+      else
+      {
+	 if (self->getClass() == func.builtin->myclass)
+	    xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::copy() cannot be executed because the object has already been deleted", self->getClass()->name);
+	 else
+	    xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::copy() (base class of '%s') cannot be executed because the object has already been deleted", func.builtin->myclass->name, self->getClass()->name);
+      }
+   }
+
+   // switch back to original program if necessary
+   if (opgm && cpgm != opgm)
+      popProgram();
+}
+
+void Method::evalDestructor(Object *self, ExceptionSink *xsink)
+{
+   // switch to new program for imported objects
+   QoreProgram *cpgm;
+   QoreProgram *opgm = self->getProgram();
+   if (opgm)
+   {
+      cpgm = getProgram();
+      if (opgm && cpgm != opgm)
+	 pushProgram(opgm);
+   }
+   else
+      cpgm = NULL;
+
+   if (type == OTF_USER)
+      func.userFunc->eval(NULL, self, xsink);
+   else // builtin function
+   {
+      void *ptr = self->getAndClearPrivateData(func.builtin->myclass->getID());
+      if (ptr)
+	 func.builtin->evalDestructor(self, ptr, xsink);
+      else
+      {
+	 if (self->getClass() == func.builtin->myclass)
+	    xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::destructor() cannot be executed because the object has already been deleted", self->getClass()->name);
+	 else
+	    xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::destructor() (base class of '%s') cannot be executed because the object has already been deleted", func.builtin->myclass->name, self->getClass()->name);
+      }
    }
 
    // switch back to original program if necessary
@@ -298,7 +356,6 @@ void QoreClass::insertMethod(Method *o)
       methodlist_head = o;
    methodlist_tail = o;
 #endif
-   checkSpecial(o);
 }      
 
 class QoreNode *QoreClass::evalMethod(Object *self, char *nme, QoreNode *args, class ExceptionSink *xsink)

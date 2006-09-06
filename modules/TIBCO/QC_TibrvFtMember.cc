@@ -30,14 +30,18 @@
 
 int CID_TIBRVFTMEMBER;
 
-static inline void *getFTM(void *obj)
+static inline void getFTM(void *obj)
 {
    ((QoreTibrvFtMember *)obj)->ROreference();
-   return obj;
+}
+
+static inline void releaseFTM(void *obj)
+{
+   ((QoreTibrvFtMember *)obj)->deref();
 }
 
 // syntax: subject, [desc, service, network, daemon] 
-class QoreNode *TIBRVFTMEMBER_constructor(class Object *self, class QoreNode *params, class ExceptionSink *xsink)
+static void TIBRVFTMEMBER_constructor(class Object *self, class QoreNode *params, class ExceptionSink *xsink)
 {
    tracein("TIBRVFTMEMBER_constructor");
 
@@ -45,7 +49,7 @@ class QoreNode *TIBRVFTMEMBER_constructor(class Object *self, class QoreNode *pa
    if (!pt)
    {
       xsink->raiseException("TIBRVFTMEMBER-CONSTRUCTOR-ERROR", "missing fault-tolerant group name as first parameter to TibrvFtMember::constructor()");
-      return NULL;
+      return;
    }
    char *groupName = pt->val.String->getBuffer();
 
@@ -55,7 +59,7 @@ class QoreNode *TIBRVFTMEMBER_constructor(class Object *self, class QoreNode *pa
    if (weight <= 0)
    {
       xsink->raiseException("TIBRVFTMEMBER-CONSTRUCTOR-ERROR", "weight must be greater than zero (value passed: %d)", weight);
-      return NULL;
+      return;
    }
 
    pt = get_param(params, 2);
@@ -63,7 +67,7 @@ class QoreNode *TIBRVFTMEMBER_constructor(class Object *self, class QoreNode *pa
    if (activeGoal <= 0)
    {
       xsink->raiseException("TIBRVFTMEMBER-CONSTRUCTOR-ERROR", "activeGoal must be greater than zero (value passed: %d)", activeGoal);
-      return NULL;
+      return;
    }
    
    int64 heartbeat, prep, activation;
@@ -72,7 +76,7 @@ class QoreNode *TIBRVFTMEMBER_constructor(class Object *self, class QoreNode *pa
    if (heartbeat <= 0)
    {
       xsink->raiseException("TIBRVFTMEMBER-CONSTRUCTOR-ERROR", "heartbeat interval must be greater than zero (value passed: %d)", heartbeat);
-      return NULL;
+      return;
    }
    
    pt = get_param(params, 4);
@@ -80,7 +84,7 @@ class QoreNode *TIBRVFTMEMBER_constructor(class Object *self, class QoreNode *pa
    if (prep < 0)
    {
       xsink->raiseException("TIBRVFTMEMBER-CONSTRUCTOR-ERROR", "preparation interval must not be negative (value passed: %lld)", prep);
-      return NULL;
+      return;
    }
 
    pt = get_param(params, 5);
@@ -88,25 +92,25 @@ class QoreNode *TIBRVFTMEMBER_constructor(class Object *self, class QoreNode *pa
    if (prep <= 0)
    {
       xsink->raiseException("TIBRVFTMEMBER-CONSTRUCTOR-ERROR", "activation interval must be greater than 0 (value passed: %lld)", activation);
-      return NULL;
+      return;
    }
    
    if (activation < heartbeat)
    {
       xsink->raiseException("TIBRVFTMEMBER-CONSTRUCTOR-ERROR", "activation interval (%lld) must be greater than the heartbeat interval (%lld)", activation, heartbeat);
-      return NULL;      
+      return;      
    }
    if (prep)
    {
       if (prep < heartbeat)
       {
 	 xsink->raiseException("TIBRVFTMEMBER-CONSTRUCTOR-ERROR", "preparation interval (%lld) must be greater than the heartbeat interval (%lld)", prep, heartbeat);
-	 return NULL;      
+	 return;      
       }
       if (prep > activation)
       {
 	 xsink->raiseException("TIBRVFTMEMBER-CONSTRUCTOR-ERROR", "preparation interval (%lld) must be less than the activation interval (%lld)", prep, activation);
-	 return NULL;
+	 return;
       }
    }
 
@@ -127,99 +131,55 @@ class QoreNode *TIBRVFTMEMBER_constructor(class Object *self, class QoreNode *pa
    class QoreTibrvFtMember *qftmember = new QoreTibrvFtMember(groupName, weight, activeGoal, heartbeat, prep, activation, 
 							      service, network, daemon, desc, xsink);
 
-   if (xsink->isException() || self->setPrivate(CID_TIBRVFTMEMBER, qftmember, getFTM))
+   if (xsink->isException())
       qftmember->deref();
+   else
+      self->setPrivate(CID_TIBRVFTMEMBER, qftmember, getFTM, releaseFTM);
 
    traceout("TIBRVFTMEMBER_constructor");
-   return NULL;
 }
 
-class QoreNode *TIBRVFTMEMBER_destructor(class Object *self, class QoreNode *params, class ExceptionSink *xsink)
+static void TIBRVFTMEMBER_destructor(class Object *self, class QoreTibrvFtMember *ftm, class ExceptionSink *xsink)
 {
    tracein("TIBRVFTMEMBER_destructor()");
-   // set adapter paramter
-   QoreTibrvFtMember *ftm = (QoreTibrvFtMember *)self->getAndClearPrivateData(CID_TIBRVFTMEMBER);
-   if (ftm)
-   {
-      ftm->stop();
-      ftm->deref();
-   }
+   ftm->stop();
+   ftm->deref();
    traceout("TIBRVFTMEMBER_destructor()");
-   return NULL;
 }
 
-static QoreNode *TIBRVFTMEMBER_copy(class Object *self, QoreNode *params, ExceptionSink *xsink)
+static void TIBRVFTMEMBER_copy(class Object *self, class Object *old, class QoreTibrvFtMember *ftm, ExceptionSink *xsink)
 {
    xsink->raiseException("TIBRVFTMEMBER-COPY-ERROR", "copying TibrvFtMember objects is curently not supported");
+}
+
+static QoreNode *TIBRVFTMEMBER_getEvent(class Object *self, class QoreTibrvFtMember *ftm, QoreNode *params, ExceptionSink *xsink)
+{
+   return ftm->getEvent(xsink);
+}
+
+static QoreNode *TIBRVFTMEMBER_stop(class Object *self, class QoreTibrvFtMember *ftm, QoreNode *params, ExceptionSink *xsink)
+{
+   ftm->stop();
    return NULL;
 }
 
-static QoreNode *TIBRVFTMEMBER_getEvent(class Object *self, QoreNode *params, ExceptionSink *xsink)
+class QoreNode *TIBRVFTMEMBER_getGroupName(class Object *self, class QoreTibrvFtMember *ftm, QoreNode *params, ExceptionSink *xsink)
 {
-   QoreTibrvFtMember *ftm = (QoreTibrvFtMember *)self->getReferencedPrivateData(CID_TIBRVFTMEMBER);
-   class QoreNode *rv = NULL;
-
-   if (ftm)
-   {
-      rv = ftm->getEvent(xsink);
-
-      ftm->deref();
-   }
-   else
-      alreadyDeleted(xsink, "TibrvFtMember::getEvent");
-
-   return rv;
-}
-
-static QoreNode *TIBRVFTMEMBER_stop(class Object *self, QoreNode *params, ExceptionSink *xsink)
-{
-   QoreTibrvFtMember *ftm = (QoreTibrvFtMember *)self->getReferencedPrivateData(CID_TIBRVFTMEMBER);
-
-   if (ftm)
-   {
-      ftm->stop();
-      ftm->deref();
-   }
-   else
-      alreadyDeleted(xsink, "TibrvFtMember::stop");
+   const char *name = ftm->getGroupName();
+   if (name)
+      return new QoreNode((char *)name);
 
    return NULL;
 }
 
-class QoreNode *TIBRVFTMEMBER_getGroupName(class Object *self, QoreNode *params, ExceptionSink *xsink)
+class QoreNode *TIBRVFTMEMBER_setWeight(class Object *self, class QoreTibrvFtMember *ftm, QoreNode *params, ExceptionSink *xsink)
 {
-   QoreTibrvFtMember *ftm = (QoreTibrvFtMember *)self->getReferencedPrivateData(CID_TIBRVFTMEMBER);
-   class QoreNode *rv = NULL;
-
-   if (ftm)
-   {
-      const char *name = ftm->getGroupName();
-      ftm->deref();
-      if (name)
-	 rv = new QoreNode((char *)name);
-   }
+   class QoreNode *pt = get_param(params, 0);
+   int weight = pt ? pt->getAsInt() : 0;
+   if (weight <= 0)
+      xsink->raiseException("TIBRVFTMEMBER-SETWEIGHT-ERROR", "weight must be greater than zero (value passed: %d)", weight);
    else
-      alreadyDeleted(xsink, "TibrvFtMember::getGroupName");
-
-   return rv;
-}
-
-class QoreNode *TIBRVFTMEMBER_setWeight(class Object *self, QoreNode *params, ExceptionSink *xsink)
-{
-   QoreTibrvFtMember *ftm = (QoreTibrvFtMember *)self->getReferencedPrivateData(CID_TIBRVFTMEMBER);
-
-   if (ftm)
-   {
-      class QoreNode *pt = get_param(params, 0);
-      int weight = pt ? pt->getAsInt() : 0;
-      if (weight <= 0)
-	 xsink->raiseException("TIBRVFTMEMBER-SETWEIGHT-ERROR", "weight must be greater than zero (value passed: %d)", weight);
-      else
-	 ftm->setWeight(weight, xsink);
-      ftm->deref();
-   }
-   else
-      alreadyDeleted(xsink, "TibrvFtMember::setWeight");
+      ftm->setWeight(weight, xsink);
 
    return NULL;
 }
@@ -230,13 +190,13 @@ class QoreClass *initTibrvFtMemberClass()
 
    class QoreClass *QC_TIBRVFTMEMBER = new QoreClass(strdup("TibrvFtMember"));
    CID_TIBRVFTMEMBER = QC_TIBRVFTMEMBER->getID();
-   QC_TIBRVFTMEMBER->addMethod("constructor",   TIBRVFTMEMBER_constructor);
-   QC_TIBRVFTMEMBER->addMethod("destructor",    TIBRVFTMEMBER_destructor);
-   QC_TIBRVFTMEMBER->addMethod("copy",          TIBRVFTMEMBER_copy);
-   QC_TIBRVFTMEMBER->addMethod("getEvent",      TIBRVFTMEMBER_getEvent);
-   QC_TIBRVFTMEMBER->addMethod("stop",          TIBRVFTMEMBER_stop);
-   QC_TIBRVFTMEMBER->addMethod("getGroupName",  TIBRVFTMEMBER_getGroupName);
-   QC_TIBRVFTMEMBER->addMethod("setWeight",     TIBRVFTMEMBER_setWeight);
+   QC_TIBRVFTMEMBER->setConstructor(TIBRVFTMEMBER_constructor);
+   QC_TIBRVFTMEMBER->setDestructor((q_destructor_t)TIBRVFTMEMBER_destructor);
+   QC_TIBRVFTMEMBER->setCopy((q_copy_t)TIBRVFTMEMBER_copy);
+   QC_TIBRVFTMEMBER->addMethod("getEvent",      (q_method_t)TIBRVFTMEMBER_getEvent);
+   QC_TIBRVFTMEMBER->addMethod("stop",          (q_method_t)TIBRVFTMEMBER_stop);
+   QC_TIBRVFTMEMBER->addMethod("getGroupName",  (q_method_t)TIBRVFTMEMBER_getGroupName);
+   QC_TIBRVFTMEMBER->addMethod("setWeight",     (q_method_t)TIBRVFTMEMBER_setWeight);
 
    traceout("initTibrvFtMemberClass()");
    return QC_TIBRVFTMEMBER;

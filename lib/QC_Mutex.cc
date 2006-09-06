@@ -30,66 +30,45 @@
 
 int CID_MUTEX;
 
-static inline void *getMutex(void *obj)
+static inline void getMutex(void *obj)
 {
    ((Mutex *)obj)->ROreference();
-   return obj;
 }
 
-class QoreNode *MUTEX_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static inline void releaseMutex(void *obj)
 {
-   self->setPrivate(CID_MUTEX, new Mutex(), getMutex);
+   ((Mutex *)obj)->deref();
+}
+
+static void MUTEX_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+{
+   self->setPrivate(CID_MUTEX, new Mutex(), getMutex, releaseMutex);
+}
+
+static void MUTEX_destructor(class Object *self, class Mutex *m, ExceptionSink *xsink)
+{
+   m->deref();
+}
+
+static void MUTEX_copy(class Object *self, class Object *old, class Mutex *m, ExceptionSink *xsink)
+{
+   self->setPrivate(CID_MUTEX, new Mutex(), getMutex, releaseMutex);
+}
+
+class QoreNode *MUTEX_lock(class Object *self, class Mutex *m, class QoreNode *params, ExceptionSink *xsink)
+{
+   m->lock();
    return NULL;
 }
 
-class QoreNode *MUTEX_destructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+class QoreNode *MUTEX_trylock(class Object *self, class Mutex *m, class QoreNode *params, ExceptionSink *xsink)
 {
-   Mutex *m = (Mutex *)self->getAndClearPrivateData(CID_MUTEX);
-   if (m)
-      m->deref();
-   return NULL;
+   return new QoreNode((int64)m->trylock()); 
 }
 
-class QoreNode *MUTEX_lock(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+class QoreNode *MUTEX_unlock(class Object *self, class Mutex *m, class QoreNode *params, ExceptionSink *xsink)
 {
-   Mutex *m = (Mutex *)self->getReferencedPrivateData(CID_MUTEX);
-   if (m)
-   {
-      m->lock();
-      m->deref();
-   }
-   else
-      alreadyDeleted(xsink, "Mutex::lock");
-   return NULL;
-}
-
-class QoreNode *MUTEX_trylock(class Object *self, class QoreNode *params, ExceptionSink *xsink)
-{
-   Mutex *m = (Mutex *)self->getReferencedPrivateData(CID_MUTEX);
-   QoreNode *rv;
-   if (m)
-   {
-      rv = new QoreNode(NT_INT, m->trylock()); 
-      m->deref();
-   }
-   else
-   {
-      rv = NULL;
-      alreadyDeleted(xsink, "Mutex::trylock");
-   }
-   return rv;
-}
-
-class QoreNode *MUTEX_unlock(class Object *self, class QoreNode *params, ExceptionSink *xsink)
-{
-   Mutex *m = (Mutex *)self->getReferencedPrivateData(CID_MUTEX);
-   if (m)
-   {
-      m->unlock();
-      m->deref();
-   }
-   else
-      alreadyDeleted(xsink, "Mutex::unlock");
+   m->unlock();
    return NULL;
 }
 
@@ -99,12 +78,12 @@ class QoreClass *initMutexClass()
 
    class QoreClass *QC_MUTEX = new QoreClass(strdup("Mutex"));
    CID_MUTEX = QC_MUTEX->getID();
-   QC_MUTEX->addMethod("constructor",   MUTEX_constructor);
-   QC_MUTEX->addMethod("destructor",    MUTEX_destructor);
-   QC_MUTEX->addMethod("copy",          MUTEX_constructor);
-   QC_MUTEX->addMethod("lock",          MUTEX_lock);
-   QC_MUTEX->addMethod("trylock",       MUTEX_trylock);
-   QC_MUTEX->addMethod("unlock",        MUTEX_unlock);
+   QC_MUTEX->setConstructor(MUTEX_constructor);
+   QC_MUTEX->setDestructor((q_destructor_t)MUTEX_destructor);
+   QC_MUTEX->setCopy((q_copy_t)MUTEX_copy);
+   QC_MUTEX->addMethod("lock",          (q_method_t)MUTEX_lock);
+   QC_MUTEX->addMethod("trylock",       (q_method_t)MUTEX_trylock);
+   QC_MUTEX->addMethod("unlock",        (q_method_t)MUTEX_unlock);
 
    traceout("initMutexClass()");
    return QC_MUTEX;

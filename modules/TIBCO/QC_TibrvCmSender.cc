@@ -31,14 +31,18 @@
 
 int CID_TIBRVCMSENDER;
 
-static inline void *getTRVS(void *obj)
+static inline void getCMS(void *obj)
 {
    ((QoreTibrvCmSender *)obj)->ROreference();
-   return obj;
+}
+
+static inline void releaseCMS(void *obj)
+{
+   ((QoreTibrvCmSender *)obj)->deref();
 }
 
 // syntax: [cmName, requestOld, ledgerName, syncLedger, relayAgent, desc, service, network, daemon] 
-class QoreNode *TIBRVCMSENDER_constructor(class Object *self, class QoreNode *params, class ExceptionSink *xsink)
+void TIBRVCMSENDER_constructor(class Object *self, class QoreNode *params, class ExceptionSink *xsink)
 {
    tracein("TIBRVCMSENDER_constructor");
 
@@ -79,31 +83,27 @@ class QoreNode *TIBRVCMSENDER_constructor(class Object *self, class QoreNode *pa
 
    class QoreTibrvCmSender *qcmsender = new QoreTibrvCmSender(cmName, requestOld, ledgerName, syncLedger,relayAgent, desc, service, network, daemon, xsink);
 
-   if (xsink->isException() || self->setPrivate(CID_TIBRVCMSENDER, qcmsender, getTRVS))
+   if (xsink->isException())
       qcmsender->deref();
+   else
+      self->setPrivate(CID_TIBRVCMSENDER, qcmsender, getCMS, releaseCMS);
 
    traceout("TIBRVCMSENDER_constructor");
-   return NULL;
 }
 
-class QoreNode *TIBRVCMSENDER_destructor(class Object *self, class QoreNode *params, class ExceptionSink *xsink)
+void TIBRVCMSENDER_destructor(class Object *self, class QoreTibrvCmSender *cms, class ExceptionSink *xsink)
 {
    tracein("TIBRVCMSENDER_destructor()");
-   // set adapter paramter
-   QoreTibrvCmSender *trvl = (QoreTibrvCmSender *)self->getAndClearPrivateData(CID_TIBRVCMSENDER);
-   if (trvl)
-      trvl->deref();
+   cms->deref();
    traceout("TIBRVCMSENDER_destructor()");
-   return NULL;
 }
 
-static QoreNode *TIBRVCMSENDER_copy(class Object *self, QoreNode *params, ExceptionSink *xsink)
+void TIBRVCMSENDER_copy(class Object *self, class Object *old, class QoreTibrvCmSender *cms, ExceptionSink *xsink)
 {
    xsink->raiseException("TIBRVCMSENDER-COPY-ERROR", "copying TibrvCmSender objects is curently not supported");
-   return NULL;
 }
 
-static QoreNode *TIBRVCMSENDER_sendSubject(class Object *self, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *TIBRVCMSENDER_sendSubject(class Object *self, class QoreTibrvCmSender *cms, QoreNode *params, ExceptionSink *xsink)
 {
    class QoreNode *pt = test_param(params, NT_STRING, 0);
    if (!pt)
@@ -126,20 +126,12 @@ static QoreNode *TIBRVCMSENDER_sendSubject(class Object *self, QoreNode *params,
    pt = get_param(params, 3);
    int64 time_limit = pt ? pt->getAsBigInt() : 0;
 
-   QoreTibrvCmSender *trvl = (QoreTibrvCmSender *)self->getReferencedPrivateData(CID_TIBRVCMSENDER);
-
-   if (trvl)
-   {
-      trvl->sendSubject(subject, h, replySubject, time_limit, xsink);
-      trvl->deref();
-   }
-   else
-      alreadyDeleted(xsink, "TibrvCmSender::sendSubject");
+   cms->sendSubject(subject, h, replySubject, time_limit, xsink);
 
    return NULL;
 }
 
-static QoreNode *TIBRVCMSENDER_sendSubjectWithSyncReply(class Object *self, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *TIBRVCMSENDER_sendSubjectWithSyncReply(class Object *self, class QoreTibrvCmSender *cms, QoreNode *params, ExceptionSink *xsink)
 {
    class QoreNode *pt = test_param(params, NT_STRING, 0);
    if (!pt)
@@ -162,23 +154,14 @@ static QoreNode *TIBRVCMSENDER_sendSubjectWithSyncReply(class Object *self, Qore
    pt = get_param(params, 3);
    int64 time_limit = pt ? pt->getAsBigInt() : 0;
 
-   QoreTibrvCmSender *trvl = (QoreTibrvCmSender *)self->getReferencedPrivateData(CID_TIBRVCMSENDER);
-   class QoreNode *rv = NULL;
+   h = cms->sendSubjectWithSyncReply(subject, h, timeout, time_limit, xsink);
+   if (h)
+      return new QoreNode(h);
 
-   if (trvl)
-   {
-      h = trvl->sendSubjectWithSyncReply(subject, h, timeout, time_limit, xsink);
-      if (h)
-	 rv = new QoreNode(h);
-      trvl->deref();
-   }
-   else
-      alreadyDeleted(xsink, "TibrvCmSender::sendSubjectWithSyncReply");
-
-   return rv;
+   return NULL;
 }
 
-class QoreNode *TIBRVCMSENDER_setStringEncoding(class Object *self, QoreNode *params, ExceptionSink *xsink)
+class QoreNode *TIBRVCMSENDER_setStringEncoding(class Object *self, class QoreTibrvCmSender *cms, QoreNode *params, ExceptionSink *xsink)
 {
    class QoreNode *pt = test_param(params, NT_STRING, 0);
    if (!pt)
@@ -187,69 +170,30 @@ class QoreNode *TIBRVCMSENDER_setStringEncoding(class Object *self, QoreNode *pa
       return NULL;
    }
 
-   QoreTibrvCmSender *trvl = (QoreTibrvCmSender *)self->getReferencedPrivateData(CID_TIBRVCMSENDER);
-
-   if (trvl)
-   {
-      class QoreEncoding *enc = QEM.findCreate(pt->val.String->getBuffer());
-
-      trvl->setStringEncoding(enc);
-      trvl->deref();
-   }
-   else
-      alreadyDeleted(xsink, "TibrvCmSender::setStringEncoding");
+   class QoreEncoding *enc = QEM.findCreate(pt->val.String->getBuffer());
+   cms->setStringEncoding(enc);
 
    return NULL;
 }
 
-class QoreNode *TIBRVCMSENDER_getStringEncoding(class Object *self, QoreNode *params, ExceptionSink *xsink)
+class QoreNode *TIBRVCMSENDER_getStringEncoding(class Object *self, class QoreTibrvCmSender *cms, QoreNode *params, ExceptionSink *xsink)
 {
-   QoreTibrvCmSender *trvl = (QoreTibrvCmSender *)self->getReferencedPrivateData(CID_TIBRVCMSENDER);
-   class QoreNode *rv = NULL;
-
-   if (trvl)
-   {
-      class QoreEncoding *enc = trvl->getStringEncoding();
-      trvl->deref();
-      rv = new QoreNode(enc->code);
-   }
-   else
-      alreadyDeleted(xsink, "TibrvCmSender::getStringEncoding");
-
-   return rv;
+   return new QoreNode(cms->getStringEncoding()->code);
 }
 
-class QoreNode *TIBRVCMSENDER_connectToRelayAgent(class Object *self, QoreNode *params, ExceptionSink *xsink)
+class QoreNode *TIBRVCMSENDER_connectToRelayAgent(class Object *self, class QoreTibrvCmSender *cms, QoreNode *params, ExceptionSink *xsink)
 {
-   QoreTibrvCmSender *trvl = (QoreTibrvCmSender *)self->getReferencedPrivateData(CID_TIBRVCMSENDER);
-
-   if (trvl)
-   {
-      trvl->connectToRelayAgent(xsink);
-      trvl->deref();
-   }
-   else
-      alreadyDeleted(xsink, "TibrvCmSender::connectToRelayAgent");
-
+   cms->connectToRelayAgent(xsink);
    return NULL;
 }
 
-class QoreNode *TIBRVCMSENDER_disconnectFromRelayAgent(class Object *self, QoreNode *params, ExceptionSink *xsink)
+class QoreNode *TIBRVCMSENDER_disconnectFromRelayAgent(class Object *self, class QoreTibrvCmSender *cms, QoreNode *params, ExceptionSink *xsink)
 {
-   QoreTibrvCmSender *trvl = (QoreTibrvCmSender *)self->getReferencedPrivateData(CID_TIBRVCMSENDER);
-
-   if (trvl)
-   {
-      trvl->disconnectFromRelayAgent(xsink);
-      trvl->deref();
-   }
-   else
-      alreadyDeleted(xsink, "TibrvCmSender::disconnectFromRelayAgent");
-
+   cms->disconnectFromRelayAgent(xsink);
    return NULL;
 }
 
-class QoreNode *TIBRVCMSENDER_expireMessages(class Object *self, QoreNode *params, ExceptionSink *xsink)
+class QoreNode *TIBRVCMSENDER_expireMessages(class Object *self, class QoreTibrvCmSender *cms, QoreNode *params, ExceptionSink *xsink)
 {
    class QoreNode *pt = test_param(params, NT_STRING, 0);
    if (!pt)
@@ -262,74 +206,38 @@ class QoreNode *TIBRVCMSENDER_expireMessages(class Object *self, QoreNode *param
    pt = get_param(params, 1);
    int64 seqNum = pt ? pt->getAsBigInt() : 0;
 
-   QoreTibrvCmSender *trvl = (QoreTibrvCmSender *)self->getReferencedPrivateData(CID_TIBRVCMSENDER);
+   cms->expireMessages(subj, seqNum, xsink);
+   return NULL;
+}
 
-   if (trvl)
-   {
-      trvl->expireMessages(subj, seqNum, xsink);
-      trvl->deref();
-   }
-   else
-      alreadyDeleted(xsink, "TibrvCmSender::expireMessages");
+class QoreNode *TIBRVCMSENDER_getName(class Object *self, class QoreTibrvCmSender *cms, QoreNode *params, ExceptionSink *xsink)
+{
+   char *name = cms->getName(xsink);
+   if (!xsink->isException())
+      return new QoreNode(name);
 
    return NULL;
 }
 
-class QoreNode *TIBRVCMSENDER_getName(class Object *self, QoreNode *params, ExceptionSink *xsink)
+class QoreNode *TIBRVCMSENDER_getDefaultTimeLimit(class Object *self, class QoreTibrvCmSender *cms, QoreNode *params, ExceptionSink *xsink)
 {
-   QoreTibrvCmSender *trvl = (QoreTibrvCmSender *)self->getReferencedPrivateData(CID_TIBRVCMSENDER);
-   class QoreNode *rv = NULL;
+   int64 tl = cms->getDefaultTimeLimit(xsink);
+   if (!xsink->isException())
+      return new QoreNode(tl);
 
-   if (trvl)
-   {
-      char *name = trvl->getName(xsink);
-      if (!xsink->isException())
-	 rv = new QoreNode(name);
-      trvl->deref();
-   }
-   else
-      alreadyDeleted(xsink, "TibrvCmSender::getName");
-
-   return rv;
+   return NULL;
 }
 
-class QoreNode *TIBRVCMSENDER_getDefaultTimeLimit(class Object *self, QoreNode *params, ExceptionSink *xsink)
-{
-   QoreTibrvCmSender *trvl = (QoreTibrvCmSender *)self->getReferencedPrivateData(CID_TIBRVCMSENDER);
-   class QoreNode *rv = NULL;
-
-   if (trvl)
-   {
-      int64 tl = trvl->getDefaultTimeLimit(xsink);
-      if (!xsink->isException())
-	 rv = new QoreNode(tl);
-      trvl->deref();
-   }
-   else
-      alreadyDeleted(xsink, "TibrvCmSender::getDefaultTimeLimit");
-
-   return rv;
-}
-
-class QoreNode *TIBRVCMSENDER_setDefaultTimeLimit(class Object *self, QoreNode *params, ExceptionSink *xsink)
+class QoreNode *TIBRVCMSENDER_setDefaultTimeLimit(class Object *self, class QoreTibrvCmSender *cms, QoreNode *params, ExceptionSink *xsink)
 {
    class QoreNode *pt = get_param(params, 0);
    int64 tl = pt ? pt->getAsBigInt() : 0;
 
-   QoreTibrvCmSender *trvl = (QoreTibrvCmSender *)self->getReferencedPrivateData(CID_TIBRVCMSENDER);
-
-   if (trvl)
-   {
-      trvl->setDefaultTimeLimit(tl, xsink);
-      trvl->deref();
-   }
-   else
-      alreadyDeleted(xsink, "TibrvCmSender::setDefaultTimeLimit");
-
+   cms->setDefaultTimeLimit(tl, xsink);
    return NULL;
 }
 
-class QoreNode *TIBRVCMSENDER_reviewLedger(class Object *self, QoreNode *params, ExceptionSink *xsink)
+class QoreNode *TIBRVCMSENDER_reviewLedger(class Object *self, class QoreTibrvCmSender *cms, QoreNode *params, ExceptionSink *xsink)
 {
    class QoreNode *pt = test_param(params, NT_STRING, 0);
    if (!pt)
@@ -339,21 +247,10 @@ class QoreNode *TIBRVCMSENDER_reviewLedger(class Object *self, QoreNode *params,
    }
    char *subj = pt->val.String->getBuffer();
 
-   QoreTibrvCmSender *trvl = (QoreTibrvCmSender *)self->getReferencedPrivateData(CID_TIBRVCMSENDER);
-   class QoreNode *rv = NULL;
-
-   if (trvl)
-   {
-      rv = trvl->reviewLedger(subj, xsink);
-      trvl->deref();
-   }
-   else
-      alreadyDeleted(xsink, "TibrvCmSender::reviewLedger");
-
-   return rv;
+   return cms->reviewLedger(subj, xsink);
 }
 
-class QoreNode *TIBRVCMSENDER_removeSendState(class Object *self, QoreNode *params, ExceptionSink *xsink)
+class QoreNode *TIBRVCMSENDER_removeSendState(class Object *self, class QoreTibrvCmSender *cms, QoreNode *params, ExceptionSink *xsink)
 {
    class QoreNode *pt = test_param(params, NT_STRING, 0);
    if (!pt)
@@ -363,31 +260,13 @@ class QoreNode *TIBRVCMSENDER_removeSendState(class Object *self, QoreNode *para
    }
    char *subj = pt->val.String->getBuffer();
 
-   QoreTibrvCmSender *trvl = (QoreTibrvCmSender *)self->getReferencedPrivateData(CID_TIBRVCMSENDER);
-
-   if (trvl)
-   {
-      trvl->removeSendState(subj, xsink);
-      trvl->deref();
-   }
-   else
-      alreadyDeleted(xsink, "TibrvCmSender::removeSendState");
-
+   cms->removeSendState(subj, xsink);
    return NULL;
 }
 
-class QoreNode *TIBRVCMSENDER_syncLedger(class Object *self, QoreNode *params, ExceptionSink *xsink)
+class QoreNode *TIBRVCMSENDER_syncLedger(class Object *self, class QoreTibrvCmSender *cms, QoreNode *params, ExceptionSink *xsink)
 {
-   QoreTibrvCmSender *trvl = (QoreTibrvCmSender *)self->getReferencedPrivateData(CID_TIBRVCMSENDER);
-
-   if (trvl)
-   {
-      trvl->syncLedger(xsink);
-      trvl->deref();
-   }
-   else
-      alreadyDeleted(xsink, "TibrvCmSender::syncLedger");
-
+   cms->syncLedger(xsink);
    return NULL;
 }
 
@@ -397,23 +276,23 @@ class QoreClass *initTibrvCmSenderClass()
 
    class QoreClass *QC_TIBRVCMSENDER = new QoreClass(strdup("TibrvCmSender"));
    CID_TIBRVCMSENDER = QC_TIBRVCMSENDER->getID();
-   QC_TIBRVCMSENDER->addMethod("constructor",               TIBRVCMSENDER_constructor);
-   QC_TIBRVCMSENDER->addMethod("destructor",                TIBRVCMSENDER_destructor);
-   QC_TIBRVCMSENDER->addMethod("copy",                      TIBRVCMSENDER_copy);
-   QC_TIBRVCMSENDER->addMethod("sendSubject",               TIBRVCMSENDER_sendSubject);
-   QC_TIBRVCMSENDER->addMethod("sendSubjectWithSyncReply",  TIBRVCMSENDER_sendSubjectWithSyncReply);
-   QC_TIBRVCMSENDER->addMethod("setStringEncoding",         TIBRVCMSENDER_setStringEncoding);
-   QC_TIBRVCMSENDER->addMethod("getStringEncoding",         TIBRVCMSENDER_getStringEncoding);
+   QC_TIBRVCMSENDER->setConstructor(TIBRVCMSENDER_constructor);
+   QC_TIBRVCMSENDER->setDestructor((q_destructor_t)TIBRVCMSENDER_destructor);
+   QC_TIBRVCMSENDER->setCopy((q_copy_t)TIBRVCMSENDER_copy);
+   QC_TIBRVCMSENDER->addMethod("sendSubject",               (q_method_t)TIBRVCMSENDER_sendSubject);
+   QC_TIBRVCMSENDER->addMethod("sendSubjectWithSyncReply",  (q_method_t)TIBRVCMSENDER_sendSubjectWithSyncReply);
+   QC_TIBRVCMSENDER->addMethod("setStringEncoding",         (q_method_t)TIBRVCMSENDER_setStringEncoding);
+   QC_TIBRVCMSENDER->addMethod("getStringEncoding",         (q_method_t)TIBRVCMSENDER_getStringEncoding);
 
-   QC_TIBRVCMSENDER->addMethod("connectToRelayAgent",       TIBRVCMSENDER_connectToRelayAgent);
-   QC_TIBRVCMSENDER->addMethod("disconnectFromRelayAgent",  TIBRVCMSENDER_disconnectFromRelayAgent);
-   QC_TIBRVCMSENDER->addMethod("expireMssages",             TIBRVCMSENDER_expireMessages);
-   QC_TIBRVCMSENDER->addMethod("getName",                   TIBRVCMSENDER_getName);
-   QC_TIBRVCMSENDER->addMethod("getDefaultTimeLimit",       TIBRVCMSENDER_getDefaultTimeLimit);
-   QC_TIBRVCMSENDER->addMethod("setDefaultTimeLimit",       TIBRVCMSENDER_setDefaultTimeLimit);
-   QC_TIBRVCMSENDER->addMethod("reviewLedger",              TIBRVCMSENDER_reviewLedger);
-   QC_TIBRVCMSENDER->addMethod("removeSendState",           TIBRVCMSENDER_removeSendState);
-   QC_TIBRVCMSENDER->addMethod("syncLedger",                TIBRVCMSENDER_syncLedger);
+   QC_TIBRVCMSENDER->addMethod("connectToRelayAgent",       (q_method_t)TIBRVCMSENDER_connectToRelayAgent);
+   QC_TIBRVCMSENDER->addMethod("disconnectFromRelayAgent",  (q_method_t)TIBRVCMSENDER_disconnectFromRelayAgent);
+   QC_TIBRVCMSENDER->addMethod("expireMssages",             (q_method_t)TIBRVCMSENDER_expireMessages);
+   QC_TIBRVCMSENDER->addMethod("getName",                   (q_method_t)TIBRVCMSENDER_getName);
+   QC_TIBRVCMSENDER->addMethod("getDefaultTimeLimit",       (q_method_t)TIBRVCMSENDER_getDefaultTimeLimit);
+   QC_TIBRVCMSENDER->addMethod("setDefaultTimeLimit",       (q_method_t)TIBRVCMSENDER_setDefaultTimeLimit);
+   QC_TIBRVCMSENDER->addMethod("reviewLedger",              (q_method_t)TIBRVCMSENDER_reviewLedger);
+   QC_TIBRVCMSENDER->addMethod("removeSendState",           (q_method_t)TIBRVCMSENDER_removeSendState);
+   QC_TIBRVCMSENDER->addMethod("syncLedger",                (q_method_t)TIBRVCMSENDER_syncLedger);
 
    traceout("initTibrvCmSenderClass()");
    return QC_TIBRVCMSENDER;

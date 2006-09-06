@@ -74,9 +74,9 @@ class QoreClass *initTuxedoClientClass()
 
    class QoreClass *QC_TUXEDOCLIENT = new QoreClass(strdup("TuxedoClient"));
    CID_TUXEOCLIENT = QC_TUXEOCLIENT->getID();
-   QC_TUXEDOCLIENT->addMethod("constructor", TUXEDOCLIENT_constructor);
-   QC_TUXEDOCLIENT->addMethod("destructor",  TUXEDOCLIENT_destructor);
-   //QC_TUXEDOCLIENT->addMethod("copy",        TUXEDOCLIENT_copy);
+   QC_TUXEDOCLIENT->setConstructor(TUXEDOCLIENT_constructor);
+   QC_TUXEDOCLIENT->setDestructor( TUXEDOCLIENT_destructor);
+   //QC_TUXEDOCLIENT->setCopy(TUXEDOCLIENT_copy);
 
    traceout("initTuxedoClientClass()");
    return QC_TUXEDOCLIENT;

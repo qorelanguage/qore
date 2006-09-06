@@ -1,3 +1,12 @@
+2006.09.06: David Nichols
+	* changed the internal c++ qore object API to handle references
+	  internally, greatly simplifying the job of implementing qore classes
+	  in c++ - fixed some reference-counting bugs at the same time
+	* made special function templates for class constructors, destructors,
+	  and copy methods for the most efficient execution, a pointer to the
+	  private object is now passed to each method that could need it (all
+	  methods except the constructor)
+
 2006.09.05: David Nichols
 	* made QoreProgram first set all program-local (non-imported) global
 	  variables to NULL and then delete

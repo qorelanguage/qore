@@ -30,14 +30,18 @@
 
 int CID_TIBRVLISTENER;
 
-static inline void *getTRVL(void *obj)
+static void getTRVL(void *obj)
 {
    ((QoreTibrvListener *)obj)->ROreference();
-   return obj;
+}
+
+static void releaseTRVL(void *obj)
+{
+   ((QoreTibrvListener *)obj)->deref();
 }
 
 // syntax: subject, [desc, service, network, daemon] 
-class QoreNode *TIBRVLISTENER_constructor(class Object *self, class QoreNode *params, class ExceptionSink *xsink)
+void TIBRVLISTENER_constructor(class Object *self, class QoreNode *params, class ExceptionSink *xsink)
 {
    tracein("TIBRVLISTENER_constructor");
 
@@ -45,7 +49,7 @@ class QoreNode *TIBRVLISTENER_constructor(class Object *self, class QoreNode *pa
    if (!pt)
    {
       xsink->raiseException("TIBRVLISTENER-CONSTRUCTOR-ERROR", "missing subject string");
-      return NULL;
+      return;
    }      
    char *subject = pt->val.String->getBuffer();   
 
@@ -65,92 +69,61 @@ class QoreNode *TIBRVLISTENER_constructor(class Object *self, class QoreNode *pa
 
    class QoreTibrvListener *qlistener = new QoreTibrvListener(subject, desc, service, network, daemon, xsink);
 
-   if (xsink->isException() || self->setPrivate(CID_TIBRVLISTENER, qlistener, getTRVL))
+   if (xsink->isException())
       qlistener->deref();
+   else
+      self->setPrivate(CID_TIBRVLISTENER, qlistener, getTRVL, releaseTRVL);
 
    traceout("TIBRVLISTENER_constructor");
-   return NULL;
 }
 
-class QoreNode *TIBRVLISTENER_destructor(class Object *self, class QoreNode *params, class ExceptionSink *xsink)
+void TIBRVLISTENER_destructor(class Object *self, class QoreTibrvListener *trvl, class ExceptionSink *xsink)
 {
    tracein("TIBRVLISTENER_destructor()");
-   // set adapter paramter
-   QoreTibrvListener *trvl = (QoreTibrvListener *)self->getAndClearPrivateData(CID_TIBRVLISTENER);
-   if (trvl)
-      trvl->deref();
+   trvl->deref();
    traceout("TIBRVLISTENER_destructor()");
-   return NULL;
 }
 
-static QoreNode *TIBRVLISTENER_copy(class Object *self, QoreNode *params, ExceptionSink *xsink)
+void TIBRVLISTENER_copy(class Object *self, class Object *old, class QoreTibrvListener *trvl, ExceptionSink *xsink)
 {
    xsink->raiseException("TIBRVLISTENER-COPY-ERROR", "copying TibrvListener objects is curently not supported");
+}
+
+static QoreNode *TIBRVLISTENER_getQueueSize(class Object *self, class QoreTibrvListener *trvl, QoreNode *params, ExceptionSink *xsink)
+{
+   int c = trvl->getQueueSize(xsink);
+   if (!xsink->isException())
+      return new QoreNode((int64)c);
+
    return NULL;
 }
 
-static QoreNode *TIBRVLISTENER_getQueueSize(class Object *self, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *TIBRVLISTENER_getMessage(class Object *self, class QoreTibrvListener *trvl, QoreNode *params, ExceptionSink *xsink)
 {
-   QoreTibrvListener *trvl = (QoreTibrvListener *)self->getReferencedPrivateData(CID_TIBRVLISTENER);
-   class QoreNode *rv = NULL;
-
-   if (trvl)
-   {
-      int c = trvl->getQueueSize(xsink);
-      if (!xsink->isException())
-	 rv = new QoreNode((int64)c);
-      trvl->deref();
-   }
+   class QoreNode *p0 = get_param(params, 0);
+   int64 timeout = is_nothing(p0) ? -1LL : p0->getAsBigInt();
+   class Hash *h;
+   // if timeout is < 0, then do not time out
+   if (timeout < 0)
+      h = trvl->getMessage(xsink);
    else
-      alreadyDeleted(xsink, "TibrvListener::getQueueSize");
+      h = trvl->getMessage(timeout, xsink);
+   if (h)
+      return new QoreNode(h);
 
-   return rv;
+   return NULL;
 }
 
-static QoreNode *TIBRVLISTENER_getMessage(class Object *self, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *TIBRVLISTENER_createInboxName(class Object *self, class QoreTibrvListener *trvl, QoreNode *params, ExceptionSink *xsink)
 {
-   QoreTibrvListener *trvl = (QoreTibrvListener *)self->getReferencedPrivateData(CID_TIBRVLISTENER);
-   class QoreNode *rv = NULL;
+   class QoreString *str = trvl->createInboxName(xsink);
+   if (str)
+      return new QoreNode(str);
 
-   if (trvl)
-   {
-      class QoreNode *p0 = get_param(params, 0);
-      int64 timeout = is_nothing(p0) ? -1LL : p0->getAsBigInt();
-      class Hash *h;
-      // if timeout is < 0, then do not time out
-      if (timeout < 0)
-	  h = trvl->getMessage(xsink);
-      else
-	  h = trvl->getMessage(timeout, xsink);
-      if (h)
-	 rv = new QoreNode(h);
-      trvl->deref();
-   }
-   else
-      alreadyDeleted(xsink, "TibrvListener::getMessage");
-
-   return rv;
+   return NULL;
 }
 
-static QoreNode *TIBRVLISTENER_createInboxName(class Object *self, QoreNode *params, ExceptionSink *xsink)
-{
-   QoreTibrvListener *trvl = (QoreTibrvListener *)self->getReferencedPrivateData(CID_TIBRVLISTENER);
-   class QoreNode *rv = NULL;
-
-   if (trvl)
-   {
-      class QoreString *str = trvl->createInboxName(xsink);
-      if (str)
-	 rv = new QoreNode(str);
-      trvl->deref();
-   }
-   else
-      alreadyDeleted(xsink, "TibrvListener::createInboxName");
-
-   return rv;
-}
-
-class QoreNode *TIBRVLISTENER_setStringEncoding(class Object *self, QoreNode *params, ExceptionSink *xsink)
+class QoreNode *TIBRVLISTENER_setStringEncoding(class Object *self, class QoreTibrvListener *trvl, QoreNode *params, ExceptionSink *xsink)
 {
    class QoreNode *pt = test_param(params, NT_STRING, 0);
    if (!pt)
@@ -159,36 +132,15 @@ class QoreNode *TIBRVLISTENER_setStringEncoding(class Object *self, QoreNode *pa
       return NULL;
    }
 
-   QoreTibrvListener *trvl = (QoreTibrvListener *)self->getReferencedPrivateData(CID_TIBRVLISTENER);
+   class QoreEncoding *enc = QEM.findCreate(pt->val.String->getBuffer());
 
-   if (trvl)
-   {
-      class QoreEncoding *enc = QEM.findCreate(pt->val.String->getBuffer());
-
-      trvl->setStringEncoding(enc);
-      trvl->deref();
-   }
-   else
-      alreadyDeleted(xsink, "TibrvListener::setStringEncoding");
-
+   trvl->setStringEncoding(enc);
    return NULL;
 }
 
-class QoreNode *TIBRVLISTENER_getStringEncoding(class Object *self, QoreNode *params, ExceptionSink *xsink)
+class QoreNode *TIBRVLISTENER_getStringEncoding(class Object *self, class QoreTibrvListener *trvl, QoreNode *params, ExceptionSink *xsink)
 {
-   QoreTibrvListener *trvl = (QoreTibrvListener *)self->getReferencedPrivateData(CID_TIBRVLISTENER);
-   class QoreNode *rv = NULL;
-
-   if (trvl)
-   {
-      class QoreEncoding *enc = trvl->getStringEncoding();
-      trvl->deref();
-      rv = new QoreNode(enc->code);
-   }
-   else
-      alreadyDeleted(xsink, "TibrvListener::getStringEncoding");
-
-   return rv;
+   return new QoreNode(trvl->getStringEncoding()->code);
 }
 
 class QoreClass *initTibrvListenerClass()
@@ -197,14 +149,14 @@ class QoreClass *initTibrvListenerClass()
 
    class QoreClass *QC_TIBRVLISTENER = new QoreClass(strdup("TibrvListener"));
    CID_TIBRVLISTENER = QC_TIBRVLISTENER->getID();
-   QC_TIBRVLISTENER->addMethod("constructor",        TIBRVLISTENER_constructor);
-   QC_TIBRVLISTENER->addMethod("destructor",         TIBRVLISTENER_destructor);
-   QC_TIBRVLISTENER->addMethod("copy",               TIBRVLISTENER_copy);
-   QC_TIBRVLISTENER->addMethod("getQueueSize",       TIBRVLISTENER_getQueueSize);
-   QC_TIBRVLISTENER->addMethod("getMessage",         TIBRVLISTENER_getMessage);
-   QC_TIBRVLISTENER->addMethod("createInboxName",    TIBRVLISTENER_createInboxName);
-   QC_TIBRVLISTENER->addMethod("setStringEncoding",  TIBRVLISTENER_setStringEncoding);
-   QC_TIBRVLISTENER->addMethod("getStringEncoding",  TIBRVLISTENER_getStringEncoding);
+   QC_TIBRVLISTENER->setConstructor(TIBRVLISTENER_constructor);
+   QC_TIBRVLISTENER->setDestructor((q_destructor_t)TIBRVLISTENER_destructor);
+   QC_TIBRVLISTENER->setCopy((q_copy_t)TIBRVLISTENER_copy);
+   QC_TIBRVLISTENER->addMethod("getQueueSize",       (q_method_t)TIBRVLISTENER_getQueueSize);
+   QC_TIBRVLISTENER->addMethod("getMessage",         (q_method_t)TIBRVLISTENER_getMessage);
+   QC_TIBRVLISTENER->addMethod("createInboxName",    (q_method_t)TIBRVLISTENER_createInboxName);
+   QC_TIBRVLISTENER->addMethod("setStringEncoding",  (q_method_t)TIBRVLISTENER_setStringEncoding);
+   QC_TIBRVLISTENER->addMethod("getStringEncoding",  (q_method_t)TIBRVLISTENER_getStringEncoding);
 
    traceout("initTibrvListenerClass()");
    return QC_TIBRVLISTENER;

@@ -32,13 +32,18 @@
 
 int CID_PROGRAM;
 
-static inline void *getProgram(void *obj)
+static void getProgram(void *obj)
 {
    ((QoreProgram *)obj)->ref();
-   return obj;
 }
 
-static QoreNode *PROGRAM_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static void releaseProgram(void *obj)
+{
+   class ExceptionSink xsink;
+   ((QoreProgram *)obj)->deref(&xsink);
+}
+
+static void PROGRAM_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
    class QoreNode *p0;
    int parse_opt;
@@ -48,27 +53,20 @@ static QoreNode *PROGRAM_constructor(class Object *self, class QoreNode *params,
    else
       parse_opt = 0;
 
-   self->setPrivate(CID_PROGRAM, new QoreProgram(getProgram(), parse_opt), getProgram);
-   return NULL;
+   self->setPrivate(CID_PROGRAM, new QoreProgram(getProgram(), parse_opt), getProgram, releaseProgram);
 }
 
-static QoreNode *PROGRAM_destructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static void PROGRAM_destructor(class Object *self, class QoreProgram *p, ExceptionSink *xsink)
 {
-   QoreProgram *p = (QoreProgram *)self->getAndClearPrivateData(CID_PROGRAM);
-   if (p)
-      p->deref(xsink);
-   else
-      alreadyDeleted(xsink, "Program::destructor");
-   return NULL;
+   p->deref(xsink);
 }
 
-static QoreNode *PROGRAM_copy(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static void PROGRAM_copy(class Object *self, class Object *old, class QoreProgram *p, class ExceptionSink *xsink)
 {
    xsink->raiseException("PROGRAM-COPY-ERROR", "copying Program objects is currently unsupported");
-   return NULL;
 }
 
-static QoreNode *PROGRAM_parse(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static QoreNode *PROGRAM_parse(class Object *self, class QoreProgram *p, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0, *p1;
 
@@ -79,18 +77,11 @@ static QoreNode *PROGRAM_parse(class Object *self, class QoreNode *params, Excep
       return NULL;
    }
 
-   QoreProgram *p = (QoreProgram *)self->getReferencedPrivateData(CID_PROGRAM);
-   if (p)
-   {
-      p->parse(p0->val.String, p1->val.String, xsink);
-      p->deref();
-   }
-   else
-      alreadyDeleted(xsink, "Program::parse");
+   p->parse(p0->val.String, p1->val.String, xsink);
    return NULL;
 }
 
-static QoreNode *PROGRAM_parsePending(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static QoreNode *PROGRAM_parsePending(class Object *self, class QoreProgram *p, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0, *p1;
 
@@ -101,46 +92,23 @@ static QoreNode *PROGRAM_parsePending(class Object *self, class QoreNode *params
       return NULL;
    }
 
-   QoreProgram *p = (QoreProgram *)self->getReferencedPrivateData(CID_PROGRAM);
-   if (p)
-   {
-      p->parsePending(p0->val.String, p1->val.String, xsink);
-      p->deref();
-   }
-   else
-      alreadyDeleted(xsink, "Program::parsePending");
+   p->parsePending(p0->val.String, p1->val.String, xsink);
    return NULL;
 }
 
-static QoreNode *PROGRAM_parseCommit(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static QoreNode *PROGRAM_parseCommit(class Object *self, class QoreProgram *p, class QoreNode *params, ExceptionSink *xsink)
 {
-   QoreProgram *p = (QoreProgram *)self->getReferencedPrivateData(CID_PROGRAM);
-   
-   if (p)
-   {
-      p->parseCommit(xsink);
-      p->deref();
-   }
-   else
-      alreadyDeleted(xsink, "Program::parseCommit");
-    return NULL;
+   p->parseCommit(xsink);
+   return NULL;
 }
 
-static QoreNode *PROGRAM_parseRollback(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static QoreNode *PROGRAM_parseRollback(class Object *self, class QoreProgram *p, class QoreNode *params, ExceptionSink *xsink)
 {
-   QoreProgram *p = (QoreProgram *)self->getReferencedPrivateData(CID_PROGRAM);
-   
-   if (p)
-   {
-      p->parseRollback();
-      p->deref();
-   }
-   else
-       alreadyDeleted(xsink, "Program::parseRollback");
-    return NULL;
+   p->parseRollback();
+   return NULL;
 }
 
-static QoreNode *PROGRAM_callFunction(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static QoreNode *PROGRAM_callFunction(class Object *self, class QoreProgram *p, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0;
 
@@ -149,6 +117,7 @@ static QoreNode *PROGRAM_callFunction(class Object *self, class QoreNode *params
       xsink->raiseException("PROGRAM-PARAMETER-ERROR", "expecting function-name(string) as argument to QoreProgram::callFunction()");
       return NULL;
    }
+
    QoreNode *args;
    if (params->val.list->size() > 1)
    {
@@ -163,23 +132,15 @@ static QoreNode *PROGRAM_callFunction(class Object *self, class QoreNode *params
    else
       args = NULL;
 
-   QoreProgram *p = (QoreProgram *)self->getReferencedPrivateData(CID_PROGRAM);
-   QoreNode *rv = NULL;
-
-   if (p)
-   {
-      rv = p->callFunction(p0->val.String->getBuffer(), args, xsink);
-      p->deref();
-   }
-   else
-      alreadyDeleted(xsink, "Program::callFunction");
+   class QoreNode *rv = p->callFunction(p0->val.String->getBuffer(), args, xsink);
 
    if (args)
       args->deref(xsink);
+
    return rv;
 }
 
-static QoreNode *PROGRAM_callFunctionArgs(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static QoreNode *PROGRAM_callFunctionArgs(class Object *self, class QoreProgram *p, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0, *p1;
 
@@ -200,16 +161,7 @@ static QoreNode *PROGRAM_callFunctionArgs(class Object *self, class QoreNode *pa
       args->val.list->push(p1);      
    }
 
-   QoreProgram *p = (QoreProgram *)self->getReferencedPrivateData(CID_PROGRAM);
-   QoreNode *rv = NULL;
-
-   if (p)
-   {
-      rv = p->callFunction(p0->val.String->getBuffer(), args, xsink);
-      p->deref();
-   }
-   else
-      alreadyDeleted(xsink, "Program::callFunctionArgs");
+   QoreNode *rv = p->callFunction(p0->val.String->getBuffer(), args, xsink);
    
    if (args && p1 != args)
    {
@@ -220,48 +172,22 @@ static QoreNode *PROGRAM_callFunctionArgs(class Object *self, class QoreNode *pa
    return rv;
 }
 
-static QoreNode *PROGRAM_existsFunction(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static QoreNode *PROGRAM_existsFunction(class Object *self, class QoreProgram *p, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0;
 
    if (!(p0 = test_param(params, NT_STRING, 0)))
       return NULL;
 
-   QoreProgram *p = (QoreProgram *)self->getReferencedPrivateData(CID_PROGRAM);
-   QoreNode *rv;
-   
-   if (p)
-   {
-      rv = new QoreNode(NT_INT,  p->existsFunction(p0->val.String->getBuffer()));
-      p->deref();
-   }
-   else
-   {
-      rv = NULL;
-      alreadyDeleted(xsink, "Program::existsFunction");
-   }
-   return rv;
+   return new QoreNode(p->existsFunction(p0->val.String->getBuffer()));
 }
 
-static QoreNode *PROGRAM_run(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static QoreNode *PROGRAM_run(class Object *self, class QoreProgram *p, class QoreNode *params, ExceptionSink *xsink)
 {
-   QoreProgram *p = (QoreProgram *)self->getReferencedPrivateData(CID_PROGRAM);
-   QoreNode *rv;
-   
-   if (p)
-   {
-      rv = p->run(xsink);
-      p->deref();
-   }
-   else
-   {
-      rv = NULL;
-      alreadyDeleted(xsink, "Program::run");
-   }
-   return rv;
+   return p->run(xsink);
 }
 
-static QoreNode *PROGRAM_importFunction(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static QoreNode *PROGRAM_importFunction(class Object *self, class QoreProgram *p, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0;
 
@@ -271,18 +197,12 @@ static QoreNode *PROGRAM_importFunction(class Object *self, class QoreNode *para
       return NULL;
    }
    char *func = p0->val.String->getBuffer();
-   QoreProgram *p = (QoreProgram *)self->getReferencedPrivateData(CID_PROGRAM);
-   if (p)
-   {
-      getProgram()->exportUserFunction(func, p, xsink);
-      p->deref();
-   }
-   else
-      alreadyDeleted(xsink, "Program::importFunction");
+
+   getProgram()->exportUserFunction(func, p, xsink);
    return NULL;
 }
 
-static QoreNode *PROGRAM_importGlobalVariable(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static QoreNode *PROGRAM_importGlobalVariable(class Object *self, class QoreProgram *p, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0, *p1;
    bool readonly;
@@ -300,40 +220,18 @@ static QoreNode *PROGRAM_importGlobalVariable(class Object *self, class QoreNode
       
    class Var *var = getProgram()->findVar(p0->val.String->getBuffer());
    if (var)
-   {
-      class QoreProgram *p = (QoreProgram *)self->getReferencedPrivateData(CID_PROGRAM);
-      if (p)
-      {
-	 p->importGlobalVariable(var, xsink, readonly);
-	 p->deref();
-      }
-      else
-	 alreadyDeleted(xsink, "Program::importGlobalVariable");
-   }
+      p->importGlobalVariable(var, xsink, readonly);
    else
       xsink->raiseException("PROGRAM-IMPORTGLOBALVARIABLE-EXCEPTION", "there is no global variable \"%s\"", p0->val.String->getBuffer());
    return NULL;
 }
 
-static QoreNode *PROGRAM_getUserFunctionList(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static QoreNode *PROGRAM_getUserFunctionList(class Object *self, class QoreProgram *p, class QoreNode *params, ExceptionSink *xsink)
 {
-   QoreProgram *p = (QoreProgram *)self->getReferencedPrivateData(CID_PROGRAM);
-   QoreNode *rv;
-   
-   if (p)
-   {
-      rv = new QoreNode(p->getUserFunctionList());
-      p->deref();
-   }
-   else
-   {
-      rv = NULL;
-      alreadyDeleted(xsink, "Program::getUserFunctionList");
-   }
-   return rv;
+   return new QoreNode(p->getUserFunctionList());
 }
 
-class QoreClass *PROGRAM_setParseOptions(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+class QoreClass *PROGRAM_setParseOptions(class Object *self, class QoreProgram *p, class QoreNode *params, ExceptionSink *xsink)
 {
    int opt;
    QoreNode *p0 = get_param(params, 0);
@@ -342,20 +240,11 @@ class QoreClass *PROGRAM_setParseOptions(class Object *self, class QoreNode *par
    else
       opt = 0;
 
-   QoreProgram *p = (QoreProgram *)self->getReferencedPrivateData(CID_PROGRAM);
-   
-   if (p)
-   {
-      p->setParseOptions(opt, xsink);
-      p->deref();
-   }
-   else
-      alreadyDeleted(xsink, "Program::setParseOptions");
-
+   p->setParseOptions(opt, xsink);
    return NULL;
 }
 
-class QoreClass *PROGRAM_disableParseOptions(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+class QoreClass *PROGRAM_disableParseOptions(class Object *self, class QoreProgram *p, class QoreNode *params, ExceptionSink *xsink)
 {
    int opt;
    QoreNode *p0 = get_param(params, 0);
@@ -364,16 +253,7 @@ class QoreClass *PROGRAM_disableParseOptions(class Object *self, class QoreNode 
    else
       opt = 0;
 
-   QoreProgram *p = (QoreProgram *)self->getReferencedPrivateData(CID_PROGRAM);
-   
-   if (p)
-   {
-      p->disableParseOptions(opt, xsink);
-      p->deref();
-   }
-   else
-      alreadyDeleted(xsink, "Program::disableParseOptions");
-
+   p->disableParseOptions(opt, xsink);
    return NULL;
 }
 
@@ -383,20 +263,20 @@ class QoreClass *initProgramClass()
 
    class QoreClass *QC_PROGRAM = new QoreClass(strdup("Program"));
    CID_PROGRAM = QC_PROGRAM->getID();
-   QC_PROGRAM->addMethod("constructor",          PROGRAM_constructor);
-   QC_PROGRAM->addMethod("destructor",           PROGRAM_destructor);
-   QC_PROGRAM->addMethod("copy",                 PROGRAM_copy);
-   QC_PROGRAM->addMethod("parse",                PROGRAM_parse);
-   QC_PROGRAM->addMethod("parsePending",         PROGRAM_parsePending);
-   QC_PROGRAM->addMethod("parseRollback",        PROGRAM_parseRollback);
-   QC_PROGRAM->addMethod("parseCommit",          PROGRAM_parseCommit);
-   QC_PROGRAM->addMethod("callFunction",         PROGRAM_callFunction);
-   QC_PROGRAM->addMethod("callFunctionArgs",     PROGRAM_callFunctionArgs);
-   QC_PROGRAM->addMethod("existsFunction",       PROGRAM_existsFunction);
-   QC_PROGRAM->addMethod("run",                  PROGRAM_run);
-   QC_PROGRAM->addMethod("importFunction",       PROGRAM_importFunction);
-   QC_PROGRAM->addMethod("importGlobalVariable", PROGRAM_importGlobalVariable);
-   QC_PROGRAM->addMethod("getUserFunctionList",  PROGRAM_getUserFunctionList);
+   QC_PROGRAM->setConstructor(PROGRAM_constructor);
+   QC_PROGRAM->setDestructor((q_destructor_t)PROGRAM_destructor);
+   QC_PROGRAM->setCopy((q_copy_t)PROGRAM_copy);
+   QC_PROGRAM->addMethod("parse",                (q_method_t)PROGRAM_parse);
+   QC_PROGRAM->addMethod("parsePending",         (q_method_t)PROGRAM_parsePending);
+   QC_PROGRAM->addMethod("parseRollback",        (q_method_t)PROGRAM_parseRollback);
+   QC_PROGRAM->addMethod("parseCommit",          (q_method_t)PROGRAM_parseCommit);
+   QC_PROGRAM->addMethod("callFunction",         (q_method_t)PROGRAM_callFunction);
+   QC_PROGRAM->addMethod("callFunctionArgs",     (q_method_t)PROGRAM_callFunctionArgs);
+   QC_PROGRAM->addMethod("existsFunction",       (q_method_t)PROGRAM_existsFunction);
+   QC_PROGRAM->addMethod("run",                  (q_method_t)PROGRAM_run);
+   QC_PROGRAM->addMethod("importFunction",       (q_method_t)PROGRAM_importFunction);
+   QC_PROGRAM->addMethod("importGlobalVariable", (q_method_t)PROGRAM_importGlobalVariable);
+   QC_PROGRAM->addMethod("getUserFunctionList",  (q_method_t)PROGRAM_getUserFunctionList);
 
    traceout("initProgramClass()");
    return QC_PROGRAM;

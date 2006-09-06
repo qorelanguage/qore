@@ -30,13 +30,17 @@
 
 int CID_SEQUENCE;
 
-static inline void *getSequence(void *obj)
+static inline void getSequence(void *obj)
 {
    ((QoreSequence *)obj)->ROreference();
-   return obj;
 }
 
-static class QoreNode *SEQUENCE_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static inline void releaseSequence(void *obj)
+{
+   ((QoreSequence *)obj)->deref();
+}
+
+static void SEQUENCE_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
    int start;
    class QoreNode *p0 = get_param(params, 0);
@@ -44,64 +48,27 @@ static class QoreNode *SEQUENCE_constructor(class Object *self, class QoreNode *
       start = p0->getAsInt();
    else
       start = 0;
-   self->setPrivate(CID_SEQUENCE, new QoreSequence(start), getSequence);
-   return NULL;
+   self->setPrivate(CID_SEQUENCE, new QoreSequence(start), getSequence, releaseSequence);
 }
 
-static class QoreNode *SEQUENCE_destructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static void SEQUENCE_destructor(class Object *self, class QoreSequence *s, ExceptionSink *xsink)
 {
-   class QoreSequence *s = (QoreSequence *)self->getAndClearPrivateData(CID_SEQUENCE);
-   if (s)
-      s->deref();
-   return NULL;
+   s->deref();
 }
 
-static class QoreNode *SEQUENCE_copy(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static void SEQUENCE_copy(class Object *self, class Object *old, class QoreSequence *s, class ExceptionSink *xsink)
 {
-   class QoreSequence *s = (QoreSequence *)get_param(params, 0)->val.object->getReferencedPrivateData(CID_SEQUENCE);
-   if (s)
-   {
-      self->setPrivate(CID_SEQUENCE, new QoreSequence(s->getCurrent()), getSequence);
-      s->deref();
-   }
-   else
-      alreadyDeleted(xsink, "Sequence::copy");
-
-   return NULL;
+   self->setPrivate(CID_SEQUENCE, new QoreSequence(s->getCurrent()), getSequence, releaseSequence);
 }
 
-static class QoreNode *SEQUENCE_next(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *SEQUENCE_next(class Object *self, class QoreSequence *s, class QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreSequence *s = (QoreSequence *)self->getReferencedPrivateData(CID_SEQUENCE);
-   class QoreNode *rv;
-   if (s)
-   {
-      rv = new QoreNode(NT_INT, s->next());
-      s->deref();
-   }
-   else
-   {
-      alreadyDeleted(xsink, "Sequence::next");
-      rv = NULL;
-   }
-   return rv;
+   return new QoreNode((int64)s->next());
 }
 
-static class QoreNode *SEQUENCE_getCurrent(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *SEQUENCE_getCurrent(class Object *self, class QoreSequence *s, class QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreSequence *s = (QoreSequence *)self->getReferencedPrivateData(CID_SEQUENCE);
-   QoreNode *rv;
-   if (s)
-   {
-      rv = new QoreNode(NT_INT, s->getCurrent()); 
-      s->deref();
-   }
-   else
-   {
-      rv = NULL;
-      alreadyDeleted(xsink, "Sequence::getCurrent");
-   }
-   return rv;
+   return new QoreNode((int64)s->getCurrent()); 
 }
 
 class QoreClass *initSequenceClass()
@@ -110,11 +77,11 @@ class QoreClass *initSequenceClass()
 
    class QoreClass *QC_SEQUENCE = new QoreClass(strdup("Sequence"));
    CID_SEQUENCE = QC_SEQUENCE->getID();
-   QC_SEQUENCE->addMethod("constructor",   SEQUENCE_constructor);
-   QC_SEQUENCE->addMethod("destructor",    SEQUENCE_destructor);
-   QC_SEQUENCE->addMethod("copy",          SEQUENCE_copy);
-   QC_SEQUENCE->addMethod("next",          SEQUENCE_next);
-   QC_SEQUENCE->addMethod("getCurrent",    SEQUENCE_getCurrent);
+   QC_SEQUENCE->setConstructor(SEQUENCE_constructor);
+   QC_SEQUENCE->setDestructor((q_destructor_t)SEQUENCE_destructor);
+   QC_SEQUENCE->setCopy((q_copy_t)SEQUENCE_copy);
+   QC_SEQUENCE->addMethod("next",          (q_method_t)SEQUENCE_next);
+   QC_SEQUENCE->addMethod("getCurrent",    (q_method_t)SEQUENCE_getCurrent);
 
    traceout("initSequenceClass()");
    return QC_SEQUENCE;

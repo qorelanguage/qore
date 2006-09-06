@@ -32,64 +32,51 @@
 
 int CID_CONDITION;
 
-static inline void *getCond(void *obj)
+static void getCond(void *obj)
 {
    ((Condition *)obj)->ROreference();
-   return obj;
 }
 
-class QoreNode *CONDITION_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static void releaseCond(void *obj)
 {
-   self->setPrivate(CID_CONDITION, new Condition(), getCond);
+   ((Condition *)obj)->deref();
+}
+
+static void CONDITION_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+{
+   self->setPrivate(CID_CONDITION, new Condition(), getCond, releaseCond);
+}
+
+static void CONDITION_destructor(class Object *self, class Condition *c, ExceptionSink *xsink)
+{
+   c->deref();
+}
+
+static void CONDITION_copy(class Object *self, class Object *old, class Condition *c, ExceptionSink *xsink)
+{
+   self->setPrivate(CID_CONDITION, new Condition(), getCond, releaseCond);
+}
+
+class QoreNode *CONDITION_signal(class Object *self, class Condition *c, class QoreNode *params, ExceptionSink *xsink)
+{
+   if (c->signal())
+      xsink->raiseException("CONDITION-SIGNAL-ERROR", strerror(errno)); 
+
    return NULL;
 }
 
-class QoreNode *CONDITION_destructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+class QoreNode *CONDITION_broadcast(class Object *self, class Condition *c, class QoreNode *params, ExceptionSink *xsink)
 {
-   Condition *c = (Condition *)self->getAndClearPrivateData(CID_CONDITION);
-   if (c)
-      c->deref();
+   if (c->broadcast())
+      xsink->raiseException("CONDITION-BROADCAST-ERROR", strerror(errno));
+
    return NULL;
 }
 
-class QoreNode *CONDITION_signal(class Object *self, class QoreNode *params, ExceptionSink *xsink)
-{
-   Condition *c = (Condition *)self->getReferencedPrivateData(CID_CONDITION);
-   if (c)
-   {
-      int rc = c->signal();
-      c->deref();
-      if (rc)
-	 xsink->raiseException("CONDITION-SIGNAL-ERROR", strerror(errno)); 
-   }
-   else
-      alreadyDeleted(xsink, "Condition::signal");
-   return NULL;
-}
-
-class QoreNode *CONDITION_broadcast(class Object *self, class QoreNode *params, ExceptionSink *xsink)
-{
-   Condition *c = (Condition *)self->getReferencedPrivateData(CID_CONDITION);
-   if (c)
-   {
-      int rc = c->broadcast();
-      c->deref();
-      if (rc)
-	 xsink->raiseException("CONDITION-BROADCAST-ERROR", strerror(errno));
-   }
-   else
-      alreadyDeleted(xsink, "Condition::broadcast");
-   return NULL;
-}
-
-class QoreNode *CONDITION_wait(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+class QoreNode *CONDITION_wait(class Object *self, class Condition *c, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = test_param(params, NT_OBJECT, 0);
-   Mutex *m;
-   if (p0)
-      m = (Mutex *)p0->val.object->getReferencedPrivateData(CID_MUTEX);
-   else
-      m = NULL;
+   Mutex *m = p0 ? (Mutex *)p0->val.object->getReferencedPrivateData(CID_MUTEX) : NULL;
    if (!p0 || !m)
    {
       xsink->raiseException("CONDITION-WAIT-PARAMETER-EXCEPTION", "expecting a Mutex object as parameter to Condition::wait()");
@@ -100,28 +87,20 @@ class QoreNode *CONDITION_wait(class Object *self, class QoreNode *params, Excep
    int timeout = p1 ? p1->getAsInt() : 0;
    QoreNode *rv;
 
-   Condition *c = (Condition *)self->getReferencedPrivateData(CID_CONDITION);
-   if (c)
-   {
-      int rc;
-      if (timeout)
-	 rc = c->wait(&m->ptm_lock, timeout);
-      else
-	 rc = c->wait(&m->ptm_lock);
-      c->deref();
-      if (rc && rc != ETIMEDOUT)
-      {
-	 xsink->raiseException("CONDITION-WAIT-ERROR", strerror(errno));
-	 rv = NULL;
-      }
-      else
-	 rv = new QoreNode((int64)rc);
-   }
+   int rc;
+   if (timeout)
+      rc = c->wait(&m->ptm_lock, timeout);
    else
+      rc = c->wait(&m->ptm_lock);
+
+   if (rc && rc != ETIMEDOUT)
    {
-      alreadyDeleted(xsink, "Condition::wait");
+      xsink->raiseException("CONDITION-WAIT-ERROR", strerror(errno));
       rv = NULL;
    }
+   else
+      rv = new QoreNode((int64)rc);
+
    m->deref();
    return rv;
 }
@@ -133,12 +112,12 @@ class QoreClass *initConditionClass()
    class QoreClass *QC_CONDITION = new QoreClass(strdup("Condition"));
    CID_CONDITION = QC_CONDITION->getID();
 
-   QC_CONDITION->addMethod("constructor",   CONDITION_constructor);
-   QC_CONDITION->addMethod("destructor",    CONDITION_destructor);
-   QC_CONDITION->addMethod("copy",          CONDITION_constructor);
-   QC_CONDITION->addMethod("signal",        CONDITION_signal);
-   QC_CONDITION->addMethod("broadcast",     CONDITION_broadcast);
-   QC_CONDITION->addMethod("wait",          CONDITION_wait);
+   QC_CONDITION->setConstructor(CONDITION_constructor);
+   QC_CONDITION->setDestructor((q_destructor_t)CONDITION_destructor);
+   QC_CONDITION->setCopy((q_copy_t)CONDITION_copy);
+   QC_CONDITION->addMethod("signal",        (q_method_t)CONDITION_signal);
+   QC_CONDITION->addMethod("broadcast",     (q_method_t)CONDITION_broadcast);
+   QC_CONDITION->addMethod("wait",          (q_method_t)CONDITION_wait);
 
    traceout("initConditionClass()");
    return QC_CONDITION;

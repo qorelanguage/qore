@@ -29,6 +29,12 @@
 typedef long long int64;
 typedef char *lvh_t;
 
+typedef class QoreNode *(*q_func_t)(class QoreNode *, class ExceptionSink *);
+typedef class QoreNode *(*q_method_t)(class Object *, void *, class QoreNode *, class ExceptionSink *);
+typedef void (*q_constructor_t)(class Object *, class QoreNode *, class ExceptionSink *);
+typedef void (*q_destructor_t)(class Object *, void *, class ExceptionSink *);
+typedef void (*q_copy_t)(class Object *, class Object *, void *, class ExceptionSink *);
+
 #include <stdlib.h>
 
 #ifndef HAVE_ATOLL
