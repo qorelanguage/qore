@@ -69,7 +69,7 @@ class QoreNode *Operator::eval(class QoreNode *left, class QoreNode *right, Exce
    class QoreNode *result;
 
    tracein("Operator::eval()");
-   printd(5, "evaluating operator %s (0x%08x 0x%08x)\n", description, left, right);
+   printd(5, "evaluating operator %s (0x%08p 0x%08p)\n", description, left, right);
    if (evalArgs)
    {
       if (args == 1)
@@ -395,8 +395,8 @@ static class QoreNode *op_log_eq_string(class QoreNode *left, class QoreNode *ri
 {
 //   tracein("op_log_eq_string()");
 /*
-   printd(5, "OLES() %08x %08x\n", left, right);
-   printd(5, "OLES() %d %d %08x %08x\n", //\"%s\" == \"%s\"\n", 
+   printd(5, "OLES() %08p %08p\n", left, right);
+   printd(5, "OLES() %d %d %08p %08p\n", //\"%s\" == \"%s\"\n", 
 	  left->type, right->type, left->val.c_str, right->val.c_str);
 */
 //   traceout("op_log_eq_string()");
@@ -643,7 +643,7 @@ static class QoreNode *op_list_ref(class QoreNode *left, class QoreNode *index, 
    class QoreNode *rv;
    if ((rv = lp->val.list->retrieve_entry(index->integerEval(xsink))))
       rv->ref();
-   //printd(5, "op_list_ref() index=%d, rv=%08x\n", ind, rv);
+   //printd(5, "op_list_ref() index=%d, rv=%08p\n", ind, rv);
    if (lp) lp->deref(xsink);
    return rv;
 }
@@ -695,7 +695,7 @@ static class QoreNode *op_object_ref(class QoreNode *left, class QoreNode *membe
       Object *obj = op->val.object;
       obj->ref();
       vl.del();
-      //printd(5, "op_object_ref() %08x (%s)\n", *op, member->val.String->getBuffer());
+      //printd(5, "op_object_ref() %08p (%s)\n", *op, member->val.String->getBuffer());
       //printd(5, "size=%d mem=\"%s\"\n", (*op)->val.object->size(), member->val.String->getBuffer());
       // retrieve value and reference for return if there
       //class QoreNode *rv = op->val.object->retrieve_value(member->val.String->getBuffer());
@@ -735,7 +735,7 @@ static class QoreNode *op_object_method_call(class QoreNode *left, class QoreNod
    }
    Object *obj = op->val.object;
    obj->ref();
-   printd(5, "op_object_method_call() %s:%s() op=%08x, op->val.object=%08x obj=%08x class=%08x (stack=%08x)\n",
+   printd(5, "op_object_method_call() %s:%s() op=%08p, op->val.object=%08p obj=%08p class=%08p (stack=%08p)\n",
 	  obj->getClass()->name, func->val.fcall->f.c_str, op, op->val.object, obj, obj->getClass(), getStackClass());
    vl.del();
    QoreNode *rv = obj->getClass()->evalMethod(obj, func->val.fcall->f.c_str, func->val.fcall->args, xsink);
@@ -751,7 +751,7 @@ static class QoreNode *op_new_object(class QoreNode *left, class QoreNode *x, Ex
    tracein("op_new_object()");
 
    class QoreNode *rv = left->val.socall->oc->execConstructor(left->val.socall->args, xsink);
-   printd(5, "op_new_object() returning node=%08x (type=%s)\n", rv, left->val.socall->oc->name);
+   printd(5, "op_new_object() returning node=%08p (type=%s)\n", rv, left->val.socall->oc->name);
    // if there's an exception, the constructor will delete the object without the destructor
    traceout("op_new_object()");
    return rv;
@@ -800,7 +800,7 @@ static class QoreNode *op_assignment(class QoreNode *left, class QoreNode *right
    vl.del();
 
 #if 0
-   printd(5, "op_assignment() *%08x=%08x (type=%s refs=%d)\n",
+   printd(5, "op_assignment() *%08p=%08p (type=%s refs=%d)\n",
 	  v, new_value, 
 	  new_value ? new_value->type->name : "(null)",
 	  new_value ? new_value->reference_count() : 0 );
@@ -1872,7 +1872,7 @@ static class QoreNode *op_post_dec(class QoreNode *left, class QoreNode *right, 
 
    class VLock vl;
    n = get_var_value_ptr(left, &vl, xsink);
-   //printd(5, "op_post_dec() n=%08x, *n=%08x\n", n, *n);
+   //printd(5, "op_post_dec() n=%08p, *n=%08p\n", n, *n);
    if (xsink->isEvent())
       return NULL;
 
@@ -1907,7 +1907,7 @@ static class QoreNode *op_post_dec(class QoreNode *left, class QoreNode *right, 
    // decrement value
    (*n)->val.intval--;
 
-   //printd(5, "op_post_dec(): n=%08x, *n=%08x\n", n, *n);
+   //printd(5, "op_post_dec(): n=%08p, *n=%08p\n", n, *n);
    // traceout("op_post_dec()");
    // return original value (may be null or non-integer)
    return rv;
@@ -1997,7 +1997,7 @@ static class QoreNode *op_pre_dec(class QoreNode *left, class QoreNode *right, E
 static QoreNode *op_unshift(class QoreNode *left, class QoreNode *elem, ExceptionSink *xsink)
 {
    //tracein("op_unshift()");
-   printd(5, "op_unshift(%08x, %08x, isEvent=%d)\n", left, elem, xsink->isEvent());
+   printd(5, "op_unshift(%08p, %08p, isEvent=%d)\n", left, elem, xsink->isEvent());
 
    class VLock vl;
    QoreNode **val = get_var_value_ptr(left, &vl, xsink);
@@ -2010,8 +2010,8 @@ static QoreNode *op_unshift(class QoreNode *left, class QoreNode *elem, Exceptio
 
    ensure_unique(val, xsink);
 
-   printd(5, "op_unshift() *val=%08x (%s)\n", *val, *val ? (*val)->type->name : "(none)");
-   printd(5, "op_unshift() about to call unshift() on list node %08x (%d) with element %08x\n", (*val), (*val)->val.list->size(), elem);
+   printd(5, "op_unshift() *val=%08p (%s)\n", *val, *val ? (*val)->type->name : "(none)");
+   printd(5, "op_unshift() about to call unshift() on list node %08p (%d) with element %08p\n", (*val), (*val)->val.list->size(), elem);
 
    if (elem)
    {
@@ -2035,7 +2035,7 @@ static QoreNode *op_unshift(class QoreNode *left, class QoreNode *elem, Exceptio
 static QoreNode *op_shift(class QoreNode *left, class QoreNode *x, ExceptionSink *xsink)
 {
    //tracein("op_shift()");
-   printd(5, "op_shift(%08x, %08x, isEvent=%d)\n", left, x, xsink->isEvent());
+   printd(5, "op_shift(%08p, %08p, isEvent=%d)\n", left, x, xsink->isEvent());
 
    class VLock vl;
    QoreNode **val = get_var_value_ptr(left, &vl, xsink);
@@ -2044,12 +2044,12 @@ static QoreNode *op_shift(class QoreNode *left, class QoreNode *x, ExceptionSink
 
    ensure_unique(val, xsink);
 
-   printd(5, "op_shift() *val=%08x (%s)\n", *val, *val ? (*val)->type->name : "(none)");
-   printd(5, "op_shift() about to call List::shift() on list node %08x (%d)\n", (*val), (*val)->val.list->size());
+   printd(5, "op_shift() *val=%08p (%s)\n", *val, *val ? (*val)->type->name : "(none)");
+   printd(5, "op_shift() about to call List::shift() on list node %08p (%d)\n", (*val), (*val)->val.list->size());
 
    QoreNode *rv = (*val)->val.list->shift();
 
-   printd(5, "op_shift() got node %08x (%s)\n", rv, rv ? rv->type->name : "(none)");
+   printd(5, "op_shift() got node %08p (%s)\n", rv, rv ? rv->type->name : "(none)");
    // the list reference will now be the reference for return value
    // therefore no need to reference again
 
@@ -2060,7 +2060,7 @@ static QoreNode *op_shift(class QoreNode *left, class QoreNode *x, ExceptionSink
 static QoreNode *op_pop(class QoreNode *left, class QoreNode *x, ExceptionSink *xsink)
 {
    //tracein("op_pop()");
-   printd(5, "op_pop(%08x, %08x, isEvent=%d)\n", left, x, xsink->isEvent());
+   printd(5, "op_pop(%08p, %08p, isEvent=%d)\n", left, x, xsink->isEvent());
 
    class VLock vl;
    QoreNode **val = get_var_value_ptr(left, &vl, xsink);
@@ -2069,12 +2069,12 @@ static QoreNode *op_pop(class QoreNode *left, class QoreNode *x, ExceptionSink *
 
    ensure_unique(val, xsink);
 
-   printd(5, "op_pop() *val=%08x (%s)\n", *val, *val ? (*val)->type->name : "(none)");
-   printd(5, "op_pop() about to call List::pop() on list node %08x (%d)\n", (*val), (*val)->val.list->size());
+   printd(5, "op_pop() *val=%08p (%s)\n", *val, *val ? (*val)->type->name : "(none)");
+   printd(5, "op_pop() about to call List::pop() on list node %08p (%d)\n", (*val), (*val)->val.list->size());
 
    QoreNode *rv = (*val)->val.list->pop();
 
-   printd(5, "op_pop() got node %08x (%s)\n", rv, rv ? rv->type->name : "(none)");
+   printd(5, "op_pop() got node %08p (%s)\n", rv, rv ? rv->type->name : "(none)");
    // the list reference will now be the reference for return value
    // therefore no need to reference again
 
@@ -2085,7 +2085,7 @@ static QoreNode *op_pop(class QoreNode *left, class QoreNode *x, ExceptionSink *
 static QoreNode *op_push(class QoreNode *left, class QoreNode *elem, ExceptionSink *xsink)
 {
    //tracein("op_push()");
-   printd(5, "op_push(%08x, %08x, isEvent=%d)\n", left, elem, xsink->isEvent());
+   printd(5, "op_push(%08p, %08p, isEvent=%d)\n", left, elem, xsink->isEvent());
 
    class VLock vl;
    QoreNode **val = get_var_value_ptr(left, &vl, xsink);
@@ -2098,7 +2098,7 @@ static QoreNode *op_push(class QoreNode *left, class QoreNode *elem, ExceptionSi
 
    ensure_unique(val, xsink);
 
-   printd(5, "op_push() about to call push() on list node %08x (%d) with element %08x\n", (*val), (*val)->val.list->size(), elem);
+   printd(5, "op_push() about to call push() on list node %08p (%d) with element %08p\n", (*val), (*val)->val.list->size(), elem);
 
    if (elem)
    {
@@ -2123,7 +2123,7 @@ static QoreNode *op_push(class QoreNode *left, class QoreNode *elem, ExceptionSi
 static QoreNode *op_splice(class QoreNode *left, class QoreNode *l, ExceptionSink *xsink)
 {
    //tracein("op_splice()");
-   printd(5, "op_splice(%08x, %08x, isEvent=%d)\n", left, l, xsink->isEvent());
+   printd(5, "op_splice(%08p, %08p, isEvent=%d)\n", left, l, xsink->isEvent());
 
    class VLock vl;
    QoreNode **val = get_var_value_ptr(left, &vl, xsink);
@@ -2151,7 +2151,7 @@ static QoreNode *op_splice(class QoreNode *left, class QoreNode *l, ExceptionSin
    int size = l->val.list->size();
    int offset = l->val.list->getEntryAsInt(0);
 
-   printd(5, "op_splice() val=%08x (size=%d) list=%08x (size=%d) offset=%d\n", (*val), (*val)->val.list->size(), l, size, offset);
+   printd(5, "op_splice() val=%08p (size=%d) list=%08p (size=%d) offset=%d\n", (*val), (*val)->val.list->size(), l, size, offset);
 
    if ((*val)->type == NT_LIST)
    {

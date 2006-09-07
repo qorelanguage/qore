@@ -37,7 +37,7 @@ class LockedObject l_mdate_time;
 class MData *QoreApp::instantiate_class(QoreNode *v, const MBaseClassDescription *mbcd, ExceptionSink *xsink)
 {
    tracein("QoreApp::instantiate_class()");
-   printd(5, "QoreApp::instantiate_class() mbcd=%08x %s: %08x (%s)\n", mbcd, mbcd->getFullName().c_str(), v, v ? v->type->name : "(null)");
+   printd(5, "QoreApp::instantiate_class() mbcd=%08p %s: %08p (%s)\n", mbcd, mbcd->getFullName().c_str(), v, v ? v->type->name : "(null)");
 
    const MPrimitiveClassDescription *pcd;
    const MModeledClassDescription *mcd;
@@ -51,7 +51,7 @@ class MData *QoreApp::instantiate_class(QoreNode *v, const MBaseClassDescription
       rv = do_primitive_type(pcd, v, xsink);
    else if ((mcd = MModeledClassDescription::downCast(mbcd)))
    {
-      //printd(0, "QoreApp::instantiate_class() mbcd=%08x mcd=%08x\n", mbcd, mcd);
+      //printd(0, "QoreApp::instantiate_class() mbcd=%08p mcd=%08p\n", mbcd, mcd);
       rv = instantiate_modeledclass(mcd, v, xsink);
    }
    else if ((msd = MSequenceClassDescription::downCast(mbcd)))
@@ -275,7 +275,7 @@ class QoreNode *QoreApp::receive(char *subj, unsigned long timeout, ExceptionSin
 	    myEventHandler = new QoreEventHandler(this);
 	    printd(5, "QoreApp::receive() event handler created, adding listener\n");
 	    mySubscriber->addListener(myEventHandler);
-	    printd(5, "QoreApp::receive() listener added (mySession=%08x)\n", mySession);
+	    printd(5, "QoreApp::receive() listener added (mySession=%08p)\n", mySession);
 	 }
       }
       catch(MException &tib_e)
@@ -303,7 +303,7 @@ class QoreNode *QoreApp::receive(char *subj, unsigned long timeout, ExceptionSin
 	 // build return value
 	 Hash *h = new Hash();
 	 
-	 printd(5, "QoreApp::receive() msgNode=%08x\n", myEventHandler->msgNode);
+	 printd(5, "QoreApp::receive() msgNode=%08p\n", myEventHandler->msgNode);
 	 // assign "msg" member
 	 h->setKeyValue("msg", myEventHandler->msgNode, NULL);
 	 myEventHandler->msgNode = NULL;

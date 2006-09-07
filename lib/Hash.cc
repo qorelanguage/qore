@@ -29,7 +29,7 @@ void Hash::dereference(class ExceptionSink *xsink)
    while (where)
    {
 #if 0
-      printd(5, "Hash::dereference() %s=%08x type=%s references=%d\n",
+      printd(5, "Hash::dereference() %s=%08p type=%s references=%d\n",
 	     where->key ? where->key : "(null)",
 	     where->node,
 	     where->node ? where->node->type->name : "(null)",

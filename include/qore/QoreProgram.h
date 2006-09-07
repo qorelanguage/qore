@@ -91,6 +91,7 @@ class UserFunctionList
    public:
       inline UserFunctionList();
       inline ~UserFunctionList();
+      inline void deleteUserFunctions();
       inline class UserFunction *findUserFunction(char *name);
       inline void addUserFunction(class UserFunction *func);
       inline void parseInitUserFunctions();
@@ -147,7 +148,6 @@ class QoreProgram : public ReferenceObject, private UserFunctionList, private Im
       void init();
       inline void nextSB();
       inline void deleteSBList();
-      inline void deleteUserFunctions();
       void internParseCommit(class ExceptionSink *xsink);
       inline void initGlobalVars();
       void importUserFunction(class QoreProgram *p, class UserFunction *uf, class ExceptionSink *xsink);
@@ -394,6 +394,11 @@ inline UserFunctionList::UserFunctionList()
 inline UserFunctionList::~UserFunctionList()
 {
    deletePendingUserFunctions();
+   deleteUserFunctions();
+}
+
+inline void UserFunctionList::deleteUserFunctions()
+{
    while (head)
    {
       tail = head->next;

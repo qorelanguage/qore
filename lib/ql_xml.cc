@@ -142,7 +142,7 @@ class xml_stack {
 
 	 while (tail)
 	 {
-	    //printd(5, "xml_stack::~xml_stack(): deleting=%08x (%d), next=%08x\n", tail, tail->depth, tail->next);
+	    //printd(5, "xml_stack::~xml_stack(): deleting=%08p (%d), next=%08p\n", tail, tail->depth, tail->next);
 	    xml_node *n = tail->next;
 	    delete tail;
 	    tail = n;
@@ -152,7 +152,7 @@ class xml_stack {
       {
 	 while (tail && depth && tail->depth >= depth)
 	 {
-	    //printd(5, "xml_stack::checkDepth(%d): deleting=%08x (%d), new tail=%08x\n", depth, tail, tail->depth, tail->next);
+	    //printd(5, "xml_stack::checkDepth(%d): deleting=%08p (%d), new tail=%08p\n", depth, tail, tail->depth, tail->next);
 	    xml_node *n = tail->next;
 	    delete tail;
 	    tail = n;
@@ -199,7 +199,7 @@ static void makeXMLString(QoreString *str, Hash *h, int indent, class QoreEncodi
 
 static void concatSimpleValue(QoreString *str, QoreNode *n, class ExceptionSink *xsink)
 {
-   //printd(0, "concatSimpleValue() n=%08x (%s) %s\n", n, n->type->name, n->type == NT_STRING ? n->val.String->getBuffer() : "unknown");
+   //printd(0, "concatSimpleValue() n=%08p (%s) %s\n", n, n->type->name, n->type == NT_STRING ? n->val.String->getBuffer() : "unknown");
 
    if (n->type == NT_STRING)
       str->concatAndHTMLEncode(n->val.String, xsink);

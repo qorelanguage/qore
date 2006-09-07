@@ -67,7 +67,7 @@ int resolveSimpleConstant(class QoreNode **node, int level)
    if (!rv)
       return -1;
 
-   printd(5, "resolveSimpleConstant(%s, %d) %08x %s-> %08x %s\n", 
+   printd(5, "resolveSimpleConstant(%s, %d) %08p %s-> %08p %s\n", 
 	  (*node)->val.c_str, level, *node, (*node)->type->name, rv, rv->type->name);
    
    (*node)->deref(NULL);
@@ -273,9 +273,9 @@ class QoreNode *NamespaceList::parseFindConstantValue(char *cname)
 /*
 static inline void showNSL(class NamespaceList *nsl)
 {
-   printd(5, "showNSL() dumping %08x\n", nsl);
+   printd(5, "showNSL() dumping %08p\n", nsl);
    for (int i = 0; i < nsl->num_namespaces; i++)
-      printd(5, "showNSL()  %d: %08x %s (list: %08x)\n", i, nsl->nslist[i], nsl->nslist[i]->name, nsl->nslist[i]->nsl);
+      printd(5, "showNSL()  %d: %08p %s (list: %08p)\n", i, nsl->nslist[i], nsl->nslist[i]->name, nsl->nslist[i]->nsl);
 }
 */
 
@@ -287,7 +287,7 @@ class QoreNode *NamespaceList::parseFindScopedConstantValue(class NamedScope *na
    class QoreNode *rv = NULL;
 
    tracein("NamespaceList::parseFindScopedConstantValue()");
-   printd(5, "NamespaceList::parseFindScopedConstantValue(this=%08x) target: %s\n", this, name->ostr);
+   printd(5, "NamespaceList::parseFindScopedConstantValue(this=%08p) target: %s\n", this, name->ostr);
 
    //showNSL(this);
    // see if a complete match can be found at the first level
@@ -626,7 +626,7 @@ class QoreClass *parseFindScopedClass(class NamedScope *name)
 	    parse_error(err.getBuffer());
 	 }
    }
-   printd(5, "parseFindScopedClass('%s') returning %08x\n", name->ostr, oc);
+   printd(5, "parseFindScopedClass('%s') returning %08p\n", name->ostr, oc);
    return oc;
 }
 
@@ -655,7 +655,7 @@ class QoreClass *parseFindScopedClassWithMethod(class NamedScope *name)
 	 parse_error(err.getBuffer());
       }
    
-   printd(5, "parseFindScopedClassWithMethod('%s') returning %08x\n", name->ostr, oc);
+   printd(5, "parseFindScopedClassWithMethod('%s') returning %08p\n", name->ostr, oc);
    return oc;
 }
 
@@ -712,7 +712,7 @@ class QoreNode *findConstantValue(class NamedScope *name, int level)
 void Namespace::addClass(class QoreClass *oc)
 {
    tracein("Namespace::addClass()");
-   //printd(5, "Namespace::addClass() adding str=%s (%08x)\n", oc->name, oc);
+   //printd(5, "Namespace::addClass() adding str=%s (%08p)\n", oc->name, oc);
    // raise an exception if object name collides with a namespace
    if (nsl->find(oc->name))
    {
@@ -838,7 +838,7 @@ NamedScope::NamedScope(char *str)
 /*
 class QoreClass *Namespace::parseMatchScopedClassWithMethod(class NamedScope *nscope, int *matched, class QoreClassList **plist, bool *is_pending)
 {
-   printd(5, "Namespace::parseMatchScopedClassWithMethod(this=%08x) %s class=%s (%s)\n", this, name, nscope->strlist[nscope->elements - 2], nscope->ostr);
+   printd(5, "Namespace::parseMatchScopedClassWithMethod(this=%08p) %s class=%s (%s)\n", this, name, nscope->strlist[nscope->elements - 2], nscope->ostr);
 
    Namespace *ns = this;
    // if we need to follow the namespaces, then do so
@@ -879,7 +879,7 @@ class QoreClass *Namespace::parseMatchScopedClassWithMethod(class NamedScope *ns
 
 class QoreClass *Namespace::parseMatchScopedClassWithMethod(class NamedScope *nscope, int *matched)
 {
-   printd(5, "Namespace::parseMatchScopedClassWithMethod(this=%08x) %s class=%s (%s)\n", this, name, nscope->strlist[nscope->elements - 2], nscope->ostr);
+   printd(5, "Namespace::parseMatchScopedClassWithMethod(this=%08p) %s class=%s (%s)\n", this, name, nscope->strlist[nscope->elements - 2], nscope->ostr);
 
    Namespace *ns = this;
    // if we need to follow the namespaces, then do so
@@ -945,7 +945,7 @@ class QoreClass *Namespace::parseMatchScopedClass(class NamedScope *nscope, int 
 
 class QoreNode *Namespace::parseMatchScopedConstantValue(class NamedScope *nscope, int *matched)
 {
-   printd(5, "Namespace::parseMatchScopedConstantValue() trying to find %s in %s (%08x)\n", 
+   printd(5, "Namespace::parseMatchScopedConstantValue() trying to find %s in %s (%08p)\n", 
 	  nscope->getIdentifier(), name, getConstantValue(nscope->getIdentifier()));
 
    if (strcmp(nscope->strlist[0], name))

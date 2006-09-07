@@ -440,7 +440,7 @@ inline int TryStatement::exec(class QoreNode **return_value, class ExceptionSink
    class Exception *except = xsink->catchException();
    if (except)
    {
-      printd(5, "TryStatement::exec() entering catch handler, e=%08x\n", except);
+      printd(5, "TryStatement::exec() entering catch handler, e=%08p\n", except);
 
       if (catch_block)
       {
@@ -917,13 +917,13 @@ inline void VarRef::resolve()
    {
       type = VT_LOCAL;
       ref.id = id;
-      printd(5, "VarRef::resolve(): local var %s resolved (id=%08x)\n", name, ref.id);
+      printd(5, "VarRef::resolve(): local var %s resolved (id=%08p)\n", name, ref.id);
    }
    else
    {
       ref.var = getProgram()->checkVar(name);
       type = VT_GLOBAL;
-      printd(5, "VarRef::resolve(): global var %s resolved (var=%08x)\n", name, ref.var);
+      printd(5, "VarRef::resolve(): global var %s resolved (var=%08p)\n", name, ref.var);
    }
 }
 
@@ -935,13 +935,13 @@ int VarRef::resolveExisting()
    {
       type = VT_LOCAL;
       ref.id = id;
-      printd(5, "VarRef::resolveExisting(): local var %s resolved (id=%08x)\n", name, ref.id);
+      printd(5, "VarRef::resolveExisting(): local var %s resolved (id=%08p)\n", name, ref.id);
       return 0;
    }
 
    ref.var = getProgram()->findVar(name);
    type = VT_GLOBAL;
-   printd(5, "VarRef::resolveExisting(): global var %s resolved (var=%08x)\n", name, ref.var);
+   printd(5, "VarRef::resolveExisting(): global var %s resolved (var=%08p)\n", name, ref.var);
    return !ref.var;
 }
 
@@ -1004,7 +1004,7 @@ static int process_node(class QoreNode **node, lvh_t oflag, int pflag)
    int current_pflag = pflag;
    pflag &= ~PF_REFERENCE_OK;  // unset "reference ok" for next call
 
-   printd(4, "process_node() %08x type=%s cp=%d, p=%d\n", *node, *node ? (*node)->type->name : "(null)", current_pflag, pflag);
+   printd(4, "process_node() %08p type=%s cp=%d, p=%d\n", *node, *node ? (*node)->type->name : "(null)", current_pflag, pflag);
    if (!(*node))
       return 0;
 
@@ -1038,7 +1038,7 @@ static int process_node(class QoreNode **node, lvh_t oflag, int pflag)
       {
 	 (*node)->val.vref->ref.id = push_local_var((*node)->val.vref->name);
 	 lvids++;
-	 //printd(5, "process_node(): local var %s declared (id=%08x)\n", (*node)->val.vref->name, (*node)->val.vref->ref.id);
+	 //printd(5, "process_node(): local var %s declared (id=%08p)\n", (*node)->val.vref->name, (*node)->val.vref->ref.id);
       }
       else if ((*node)->val.vref->type == VT_GLOBAL)
 	 (*node)->val.vref->ref.var = getProgram()->createVar((*node)->val.vref->name);
@@ -1281,7 +1281,7 @@ inline void ContextStatement::parseInit(lvh_t oflag, int pflag)
       ContextMod *w = mods->getHead();
       while (w)
       {
-	 //printd(0, "%08x: i=%d/%d\n", this, i, mods->num_mods);
+	 //printd(0, "%08p: i=%d/%d\n", this, i, mods->num_mods);
 	 switch (w->type)
 	 {
 	    case CM_SORT_ASCENDING:
@@ -1408,7 +1408,7 @@ inline void TryStatement::parseInit(lvh_t oflag, int pflag)
    if (param)
    {
       id = push_local_var(param);
-      printd(3, "TryStatement::parseInit() reg. local var %s (id=%08x)\n", param, id);
+      printd(3, "TryStatement::parseInit() reg. local var %s (id=%08p)\n", param, id);
    }
    else
       id = NULL;
@@ -1474,7 +1474,7 @@ int Statement::parseInit(lvh_t oflag, int pflag)
    int lvids = 0;
 
    tracein("Statement::parseInit()");
-   printd(2, "Statement::parseInit() %08x type=%d line %d file %s\n", this, Type, LineNumber, FileName);
+   printd(2, "Statement::parseInit() %08p type=%d line %d file %s\n", this, Type, LineNumber, FileName);
    // set pgm position in case of errors
    update_pgm_counter_pgm_file(LineNumber, FileName);
    switch (Type)
@@ -1535,7 +1535,7 @@ void StatementBlock::parseInit(lvh_t oflag, int pflag)
    int lvids = 0;
 
    tracein("StatementBlock::parseInit()");
-   printd(4, "StatementBlock::parseInit(b=%08x, oflag=%d) head=%08x tail=%08x\n", this, oflag, head, tail);
+   printd(4, "StatementBlock::parseInit(b=%08p, oflag=%d) head=%08p tail=%08p\n", this, oflag, head, tail);
 
    class Statement *where = head;
    while (where)
@@ -1548,7 +1548,7 @@ void StatementBlock::parseInit(lvh_t oflag, int pflag)
    for (int i = 0; i < lvids; i++)
       lvars->ids[i] = pop_local_var();
 
-   printd(4, "StatementBlock::parseInit(): done (lvars = %d, vstack = %08x)\n", lvids, getVStack());
+   printd(4, "StatementBlock::parseInit(): done (lvars = %d, vstack = %08p)\n", lvids, getVStack());
    traceout("StatementBlock::parseInit()");
 }
 
@@ -1563,13 +1563,13 @@ void StatementBlock::parseInit(class Paramlist *params)
 
    // push $argv var on stack and save id
    params->argvid = push_local_var("argv");
-   printd(5, "StatementBlock::parseInit() params=%08x argvid=%08x\n", params, params->argvid);
+   printd(5, "StatementBlock::parseInit() params=%08p argvid=%08p\n", params, params->argvid);
 
    // init param ids and push local param vars on stack
    for (int i = 0; i < params->num_params; i++)
    {
       params->ids[i] = push_local_var(params->names[i]);
-      printd(3, "StatementBlock::parseInit() reg. local var %s (id=%08x)\n", 
+      printd(3, "StatementBlock::parseInit() reg. local var %s (id=%08p)\n", 
 	     params->names[i], params->ids[i]);
    }
 
@@ -1603,13 +1603,13 @@ void StatementBlock::parseInit(class Paramlist *params, class BCList *bcl)
 
    // push $argv var on stack and save id
    params->argvid = push_local_var("argv");
-   printd(5, "StatementBlock::parseInit() params=%08x argvid=%08x\n", params, params->argvid);
+   printd(5, "StatementBlock::parseInit() params=%08p argvid=%08p\n", params, params->argvid);
 
    // init param ids and push local param vars on stack
    for (int i = 0; i < params->num_params; i++)
    {
       params->ids[i] = push_local_var(params->names[i]);
-      printd(3, "StatementBlock::parseInit() reg. local var %s (id=%08x)\n", 
+      printd(3, "StatementBlock::parseInit() reg. local var %s (id=%08p)\n", 
 	     params->names[i], params->ids[i]);
    }
 

@@ -178,7 +178,7 @@ static bool hasEffect(class QoreNode *n)
       return n->val.tree.op->hasEffect();
    }
 
-   //printd(5, "hasEffect() node %08x type=%s op=%d ok=%d\n", n, n->type->name, n->type == NT_TREE ? n->val.tree.op : -1, ok);
+   //printd(5, "hasEffect() node %08p type=%s op=%d ok=%d\n", n, n->type->name, n->type == NT_TREE ? n->val.tree.op : -1, ok);
    return false;
 }
 
@@ -1113,7 +1113,7 @@ exp:    scalar
         { 
 	   $$ = new QoreNode(NT_CONTEXTREF); 
 	   $$->val.c_str = $1;
-	   //printd(5, "context ref, %s, %08x, %08x, create\n", $1, $$, $1);
+	   //printd(5, "context ref, %s, %08p, %08p, create\n", $1, $$, $1);
 	}
         | TOK_CONTEXT_ROW
         { $$ = new QoreNode(NT_CONTEXT_ROW); }

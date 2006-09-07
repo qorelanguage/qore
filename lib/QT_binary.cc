@@ -33,7 +33,7 @@ bool binary_Compare(class QoreNode *l, class QoreNode *r)
 class QoreString *binary_MakeString(class QoreNode *n, int format, class ExceptionSink *xsink)
 {
    QoreString *rv = new QoreString();
-   rv->sprintf("binary object %08x (%d byte%s)", n->val.bin->getPtr(), n->val.bin->size(), n->val.bin->size() == 1 ? "" : "s");
+   rv->sprintf("binary object %08p (%d byte%s)", n->val.bin->getPtr(), n->val.bin->size(), n->val.bin->size() == 1 ? "" : "s");
    return rv;
 }
 

@@ -131,10 +131,10 @@ class Datasource : private ReferenceObject, private LockedObject
 	 *hostname;  // for MySQL
 
       inline Datasource(DBIDriver *);
-      inline class QoreNode *select(class QoreString *query_str, ExceptionSink *xsink);
-      inline class QoreNode *selectRows(class QoreString *query_str, ExceptionSink *xsink);
+      inline class QoreNode *select(class QoreString *query_str, class List *args, ExceptionSink *xsink);
+      inline class QoreNode *selectRows(class QoreString *query_str, class List *args, ExceptionSink *xsink);
       inline class QoreNode *exec(class QoreString *query_str, class List *args, ExceptionSink *xsink);
-      inline class Hash *describe(char *table_name, ExceptionSink *xsink);
+      //inline class Hash *describe(char *table_name, ExceptionSink *xsink);
       inline int commit(ExceptionSink *xsink);
       inline int rollback(ExceptionSink *xsink);
       inline int open(ExceptionSink *xsink);
@@ -302,13 +302,13 @@ inline void Datasource::setAutoCommit(bool ac)
    unlock();
 }
 
-inline QoreNode *Datasource::select(class QoreString *query_str, ExceptionSink *xsink)
+inline QoreNode *Datasource::select(class QoreString *query_str, class List *args, ExceptionSink *xsink)
 {
    class QoreNode *rv;
 
    if (!startDBAction(xsink))
    {
-      rv = dsl->select(this, query_str, xsink);
+      rv = dsl->select(this, query_str, args, xsink);
       endDBAction();
    }
    else
@@ -317,13 +317,13 @@ inline QoreNode *Datasource::select(class QoreString *query_str, ExceptionSink *
    return rv;
 }
 
-inline QoreNode *Datasource::selectRows(class QoreString *query_str, ExceptionSink *xsink)
+inline QoreNode *Datasource::selectRows(class QoreString *query_str, class List *args, ExceptionSink *xsink)
 {
    class QoreNode *rv;
 
    if (!startDBAction(xsink))
    {
-      rv = dsl->selectRows(this, query_str, xsink);
+      rv = dsl->selectRows(this, query_str, args, xsink);
       endDBAction();
    }
    else
@@ -350,21 +350,6 @@ inline QoreNode *Datasource::exec(class QoreString *query_str, class List *args,
 	 else
 	    in_transaction = true;
 
-      endDBAction();
-   }
-   else
-      rv = NULL;
-
-   return rv;
-}
-
-inline class Hash *Datasource::describe(char *table_name, ExceptionSink *xsink)
-{
-   class Hash *rv;
-
-   if (!startDBAction(xsink))
-   {
-      rv = dsl->describe(this, table_name, xsink);
       endDBAction();
    }
    else

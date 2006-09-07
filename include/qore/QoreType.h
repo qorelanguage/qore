@@ -197,7 +197,7 @@ inline class QoreString *QoreType::getAsString(class QoreNode *n, int format, cl
       return f_make_string(n, format, xsink);
 
    QoreString *rv = new QoreString();
-   rv->sprintf("%s (0x%08x)", name, n);
+   rv->sprintf("%s (0x%08p)", name, n);
    return rv;
 }
 

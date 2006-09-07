@@ -260,13 +260,13 @@ inline void Var::del(class ExceptionSink *xsink)
 {
    if (type == GV_IMPORT)
    {
-      printd(5, "Var::~Var() refptr=%08x\n", v.ivar.refptr);
+      printd(5, "Var::~Var() refptr=%08p\n", v.ivar.refptr);
       v.ivar.refptr->deref(xsink);
       // clear type so no further deleting will be done
    }
    else
    {
-      printd(5, "Var::~Var() name=%s value=%08x type=%s refs=%d\n", v.val.name ? v.val.name : "(null)",
+      printd(5, "Var::~Var() name=%s value=%08p type=%s refs=%d\n", v.val.name ? v.val.name : "(null)",
 	     v.val.value, v.val.value ? v.val.value->type->name : "null", 
 	     v.val.value ? v.val.value->reference_count() : 0);
    
@@ -424,7 +424,7 @@ inline class QoreNode *LVar::eval(class ExceptionSink *xsink)
       lvh_t save = id;
       id = NULL;
       rv = vexp->eval(xsink);
-      //printd(5, "LVar::eval() this=%08x obj=%08x (%s) reference expression %08x (%s) evaluated to %08x (%s)\n", this, obj, obj ? obj->getClass()->name : "NULL", vexp, vexp->type->name, rv, rv ? rv->type->name : "NULL");
+      //printd(5, "LVar::eval() this=%08p obj=%08p (%s) reference expression %08p (%s) evaluated to %08p (%s)\n", this, obj, obj ? obj->getClass()->name : "NULL", vexp, vexp->type->name, rv, rv ? rv->type->name : "NULL");
       id = save;
       if (obj)
 	 substituteObject(o);
@@ -552,7 +552,7 @@ static inline void uninstantiateLVar(class ExceptionSink *xsink)
 // pushes local variable on stack by value
 static inline class LVar *instantiateLVar(lvh_t id, class QoreNode *value)
 {
-   printd(3, "instantiating lvar '%s' by value (val=%08x)\n", id, value);
+   printd(3, "instantiating lvar '%s' by value (val=%08p)\n", id, value);
    // allocate new local variable structure
    class LVar *lvar = new LVar(id, value);
    // push on stack
@@ -566,7 +566,7 @@ static inline class LVar *instantiateLVar(lvh_t id, class QoreNode *ve, class Ob
 {
    class LVar *lvar;
 
-   printd(3, "instantiating lvar %08x '%s' by reference (ve=%08x, o=%08x)\n", id, id, ve, o);
+   printd(3, "instantiating lvar %08p '%s' by reference (ve=%08p, o=%08p)\n", id, id, ve, o);
    // if we're instantiating the same variable recursively, then don't instantiate it at all
    // allocate new local variable structure
    lvar = new LVar(id, ve, o);
@@ -583,7 +583,7 @@ static inline class LVar *instantiateLVar(lvh_t id, class QoreNode *ve, class Ob
 // pushes local variable on stack by reference
 static inline class LVar *instantiateLVarRef(lvh_t id, class QoreNode **ptr, class RMutex *eg)
 {
-   printd(3, "instantiating lvar \"%s\" by reference (ptr=%08x val=%08x)\n", id, ptr, *ptr);
+   printd(3, "instantiating lvar \"%s\" by reference (ptr=%08p val=%08p)\n", id, ptr, *ptr);
    // allocate new local variable structure
    class LVar *lvar = new LVar(id, ptr, eg);
    // push on stack
@@ -604,7 +604,7 @@ static inline void show_lvstack()
    {
       VLock vl;
       QoreNode *n = lvar->getValue(&vl, NULL);
-      printd(0, "\t%08x: \"%s\" value=%08x (type=%s)\n", lvar, lvar->id, n, n ? n->type->name : "<NOTHING>");
+      printd(0, "\t%08p: \"%s\" value=%08p (type=%s)\n", lvar, lvar->id, n, n ? n->type->name : "<NOTHING>");
       vl.del();
       lvar = lvar->next;
    }
@@ -618,7 +618,7 @@ static inline class LVar *find_lvar(lvh_t id)
 
    while (lvar)
    {
-      //printd(5, "find_lvar(%s) 0x%08x \"%s\" (%08x == %08x) (0x%08x %s) (next=0x%08x)\n", id, lvar, lvar->id, lvar->id, id, lvar->getValue(), lvar->getValue() ? lvar->getValue()->type->name : "(null)", lvar->next);
+      //printd(5, "find_lvar(%s) 0x%08p \"%s\" (%08p == %08p) (0x%08p %s) (next=0x%08p)\n", id, lvar, lvar->id, lvar->id, id, lvar->getValue(), lvar->getValue() ? lvar->getValue()->type->name : "(null)", lvar->next);
       if (lvar->id == id)
          break;
       lvar = lvar->next;
@@ -627,7 +627,7 @@ static inline class LVar *find_lvar(lvh_t id)
    if (!lvar)
    {
       show_lvstack();
-      run_time_error("find_lvar(): local variable %08x (%s) not found on stack!", id, id);
+      run_time_error("find_lvar(): local variable %08p (%s) not found on stack!", id, id);
    }
 #endif
    return lvar;
@@ -643,7 +643,7 @@ inline VarRef::~VarRef()
 {
    if (name)
    {
-      printd(3, "deleting variable reference %08x %s\n", name, name);
+      printd(3, "deleting variable reference %08p %s\n", name, name);
       free(name);
    }
 }
@@ -660,10 +660,10 @@ inline class QoreNode *VarRef::eval(class ExceptionSink *xsink)
 {
    if (type == VT_LOCAL)
    {
-      printd(5, "VarRef::eval() lvar %08x (%s)\n", ref.id, ref.id);
+      printd(5, "VarRef::eval() lvar %08p (%s)\n", ref.id, ref.id);
       return find_lvar(ref.id)->eval(xsink);
    }
-   printd(5, "VarRef::eval() global var=%08x\n", ref.var);
+   printd(5, "VarRef::eval() global var=%08p\n", ref.var);
    return ref.var->eval();
 }
 
@@ -714,7 +714,7 @@ static inline class LVar *findLVar(char *name)
 
    while (lvar)
    {
-      //printd(5, "findLVar(%s) %08x %s\n", name, lvar->id, lvar->id);
+      //printd(5, "findLVar(%s) %08p %s\n", name, lvar->id, lvar->id);
       if (!strcmp(lvar->id, name))
 	 break;
       lvar = lvar->next;

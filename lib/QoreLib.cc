@@ -85,10 +85,10 @@ static int process_opt(QoreString *cstr, char *param, class QoreNode *node, int 
    char fmt[20], *f;
    QoreString tbuf(cstr->getEncoding());
 
-   printd(3, "process_opt(): param=%s type=%d node=%08x node->type=%s refs=%d\n",
+   printd(3, "process_opt(): param=%s type=%d node=%08p node->type=%s refs=%d\n",
 	  param, type, node, node ? node->type->name : "(null)", node ? node->reference_count() : -1);
    if (node && node->type == NT_STRING)
-      printd(4, "process_opt() %08x (%d) \"%s\"\n",
+      printd(4, "process_opt() %08p (%d) \"%s\"\n",
 	     node->val.String->getBuffer(), node->val.String->strlen(), node->val.String->getBuffer());
   loop:
    switch (*(++param))
@@ -108,6 +108,7 @@ static int process_opt(QoreString *cstr, char *param, class QoreNode *node, int 
    if (decimals < 0)
       decimals = 0;
 
+   char p = *param;
    switch (*param)
    {
       case 's':
@@ -144,6 +145,8 @@ static int process_opt(QoreString *cstr, char *param, class QoreNode *node, int 
 	    }
 	 }
 	 break;
+      case 'p':
+	 p = 'x';
       case 'd':
       case 'o':
       case 'x':
@@ -172,7 +175,7 @@ static int process_opt(QoreString *cstr, char *param, class QoreNode *node, int 
 	 }
 	 *(f++) = 'l';
 	 *(f++) = 'l';
-	 *(f++) = *param; // 'd', etc;
+	 *(f++) = p; // 'd', etc;
 	 *f = '\0';
 	 tbuf.sprintf(fmt, val);
 	 if (type && (width != -1))
@@ -333,7 +336,7 @@ class QoreString *dni(class QoreString *s, class QoreNode *n, int indent, class 
       return s;
    }
 
-   s->sprintf("node=%08x refs=%d type=%s ", n, n->reference_count(), n->type->name);
+   s->sprintf("node=%08p refs=%d type=%s ", n, n->reference_count(), n->type->name);
 
    if (n->type == NT_BOOLEAN)
       s->sprintf("val=%s\n", n->val.boolval ? "True" : "False");

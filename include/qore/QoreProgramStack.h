@@ -65,7 +65,7 @@ inline QoreProgramStack::~QoreProgramStack()
 inline void QoreProgramStack::push(class QoreProgram *p)
 {
    tracein("QoreProgramStack::push()");
-   printd(5, "QoreProgramStack::push(%08x)\n", p);
+   printd(5, "QoreProgramStack::push(%08p)\n", p);
 #ifdef DEBUG
    if (!p)
    {

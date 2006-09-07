@@ -97,7 +97,7 @@ inline QoreQueue::QoreQueue(QoreNode *n)
 inline QoreQueue::~QoreQueue()
 {
    tracein("QoreQueue::~QoreQueue()");
-   //printd(5, "QoreQueue %08x has head=%08x tail=%08x len=%d\n", this, head, tail, len);
+   //printd(5, "QoreQueue %08p has head=%08p tail=%08p len=%d\n", this, head, tail, len);
    pthread_cond_destroy(&qcond);
    pthread_mutex_destroy(&qmutex);
    traceout("QoreQueue::~QoreQueue()");
@@ -107,7 +107,7 @@ inline void QoreQueue::push(QoreNode *n)
 {
    if (n) 
       n->ref();
-   printd(5, "QoreQueue::push(%08x)\n", n);
+   printd(5, "QoreQueue::push(%08p)\n", n);
    pthread_mutex_lock(&qmutex);
    if (!head)
    {
@@ -141,7 +141,7 @@ inline QoreNode *QoreQueue::shift()
    QoreNode *rv = n->node;
    n->node = NULL;
    n->del(NULL);
-   printd(5, "QoreQueue::shift() %08x\n", n);
+   printd(5, "QoreQueue::shift() %08p\n", n);
    return rv;
 }
 
@@ -181,7 +181,7 @@ inline QoreNode *QoreQueue::shift(int timeout_ms, bool *to)
    QoreNode *rv = n->node;
    n->node = NULL;
    n->del(NULL);
-   printd(5, "QoreQueue::shift() %08x\n", n);
+   printd(5, "QoreQueue::shift() %08p\n", n);
    return rv;
 }
 
@@ -201,7 +201,7 @@ inline QoreNode *QoreQueue::pop()
    QoreNode *rv = n->node;
    n->node = NULL;
    n->del(NULL);
-   printd(5, "QoreQueue::shift() %08x\n", n);
+   printd(5, "QoreQueue::shift() %08p\n", n);
    return rv;
 }
 
@@ -242,7 +242,7 @@ inline QoreNode *QoreQueue::pop(int timeout_ms, bool *to)
    QoreNode *rv = n->node;
    n->node = NULL;
    n->del(NULL);
-   printd(5, "QoreQueue::shift() %08x\n", n);
+   printd(5, "QoreQueue::shift() %08p\n", n);
    return rv;
 }
 
@@ -250,7 +250,7 @@ inline void QoreQueue::del(class ExceptionSink *xsink)
 {
    while (head)
    {
-      printd(5, "QoreQueue::~QoreQueue() deleting %08x (node %08x type %s)\n",
+      printd(5, "QoreQueue::~QoreQueue() deleting %08p (node %08p type %s)\n",
 	     head, head->node, head->node ? head->node->type->name : "(null)");
       QoreQueueNode *w = head->next;
       head->del(xsink);

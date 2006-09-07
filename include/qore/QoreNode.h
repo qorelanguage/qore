@@ -358,11 +358,11 @@ inline void QoreNode::ref()
 {
 #ifdef DEBUG
 #if TRACK_REFS
-   printd(5, "QoreNode::ref() %08x type=%s (%d->%d)\n", this, type->name, references, references + 1);
+   printd(5, "QoreNode::ref() %08p type=%s (%d->%d)\n", this, type->name, references, references + 1);
 #endif
 /*
    if (type == NT_OBJECT)
-      run_time_error("QoreNode::ref(this=%08x) is an object (class=%s, rc=%d)!", this, val.object->getClass()->name, reference_count());
+      run_time_error("QoreNode::ref(this=%08p) is an object (class=%s, rc=%d)!", this, val.object->getClass()->name, reference_count());
 */
 #endif
    ROreference();
@@ -379,20 +379,20 @@ inline void QoreNode::deref(ExceptionSink *xsink)
    //tracein("QoreNode::deref()");
 #ifdef DEBUG
 #if TRACK_REFS
-   printd(5, "QoreNode::deref() %08x type=%s (%d->%d)\n", this, type->name, references, references - 1);
+   printd(5, "QoreNode::deref() %08p type=%s (%d->%d)\n", this, type->name, references, references - 1);
 #endif
    if (references <= 0)
-      run_time_error("QoreNode::deref(): %08x has references = %d (type=%s)!",
+      run_time_error("QoreNode::deref(): %08p has references = %d (type=%s)!",
 		     this, references, type->name);
    if (references > 51200)
       if (type == NT_INT)
-	 printd(0, "QoreNode::deref() WARNING, node %08x references=%d (type=%s) (val=%d)\n",
+	 printd(0, "QoreNode::deref() WARNING, node %08p references=%d (type=%s) (val=%d)\n",
 		this, references, type->name, val.intval);
       else if (type == NT_STRING)
-	 printd(0, "QoreNode::deref() WARNING, node %08x references=%d (type=%s) (val=\"%s\")\n",
+	 printd(0, "QoreNode::deref() WARNING, node %08p references=%d (type=%s) (val=\"%s\")\n",
 		this, references, type->name, val.String->getBuffer());
       else
-	 printd(0, "QoreNode::deref() WARNING, node %08x references=%d (type=%s)\n",
+	 printd(0, "QoreNode::deref() WARNING, node %08p references=%d (type=%s)\n",
 		this, references, type->name);
 #endif
    // get snapshot of reference count to avoid race conditions
@@ -496,7 +496,7 @@ inline bool QoreNode::boolEval(ExceptionSink *xsink)
 inline QoreNode::QoreNode() 
 {
 #if TRACK_REFS
-   printd(5, "QoreNode::ref() %08x type=unknown (0->1)\n", this);
+   printd(5, "QoreNode::ref() %08p type=unknown (0->1)\n", this);
 #endif
 }
 
@@ -504,7 +504,7 @@ inline QoreNode::QoreNode(class QoreType *t)
 {
    type = t; 
 #if TRACK_REFS
-   printd(5, "QoreNode::ref() %08x type=%s (0->1)\n", this, type->name);
+   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, type->name);
 #endif
 }
 
@@ -513,7 +513,7 @@ inline QoreNode::QoreNode(int64 v)
    type = NT_INT;
    val.intval = v; 
 #if TRACK_REFS
-   printd(5, "QoreNode::ref() %08x type=%s (0->1)\n", this, type->name);
+   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, type->name);
 #endif
 }
 
@@ -522,7 +522,7 @@ inline QoreNode::QoreNode(long v)
    type = NT_INT;
    val.intval = (int64)v; 
 #if TRACK_REFS
-   printd(5, "QoreNode::ref() %08x type=%s (0->1)\n", this, type->name);
+   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, type->name);
 #endif
 }
 
@@ -531,7 +531,7 @@ inline QoreNode::QoreNode(class QoreType *t, int64 v)
    type = t;
    val.intval = v; 
 #if TRACK_REFS
-   printd(5, "QoreNode::ref() %08x type=%s (0->1)\n", this, type->name);
+   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, type->name);
 #endif
 }
 
@@ -540,7 +540,7 @@ inline QoreNode::QoreNode(bool v)
    type = NT_BOOLEAN;
    val.boolval = v;
 #if TRACK_REFS
-   printd(5, "QoreNode::ref() %08x type=%s (0->1)\n", this, type->name);
+   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, type->name);
 #endif
 }
 
@@ -549,7 +549,7 @@ inline QoreNode::QoreNode(class Hash *h)
    type = NT_HASH;
    val.hash = h;
 #if TRACK_REFS
-   printd(5, "QoreNode::ref() %08x type=%s (0->1)\n", this, type->name);
+   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, type->name);
 #endif
 }
 
@@ -558,7 +558,7 @@ inline QoreNode::QoreNode(Object *o)
    type = NT_OBJECT;
    val.object = o;
 #if TRACK_REFS
-   printd(5, "QoreNode::ref() %08x type=%s (0->1)\n", this, type->name);
+   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, type->name);
 #endif
 }
 
@@ -567,7 +567,7 @@ inline QoreNode::QoreNode(List *l)
    type = NT_LIST;
    val.list = l;
 #if TRACK_REFS
-   printd(5, "QoreNode::ref() %08x type=%s (0->1)\n", this, type->name);
+   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, type->name);
 #endif
 }
 
@@ -576,7 +576,7 @@ inline QoreNode::QoreNode(double f)
    type = NT_FLOAT;
    val.floatval = f;
 #if TRACK_REFS
-   printd(5, "QoreNode::ref() %08x type=%s (0->1)\n", this, type->name);
+   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, type->name);
 #endif
 }
 
@@ -585,7 +585,7 @@ inline QoreNode::QoreNode(class BinaryObject *b)
    type = NT_BINARY;
    val.bin = b;
 #if TRACK_REFS
-   printd(5, "QoreNode::ref() %08x type=%s (0->1)\n", this, type->name);
+   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, type->name);
 #endif
 }
 
@@ -594,7 +594,7 @@ inline QoreNode::QoreNode(DateTime *dt)
    type = NT_DATE;
    val.date_time = dt;
 #if TRACK_REFS
-   printd(5, "QoreNode::ref() %08x type=%s (0->1)\n", this, type->name);
+   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, type->name);
 #endif
 }
 
@@ -603,7 +603,7 @@ inline QoreNode::QoreNode(class QoreString *str)
    type = NT_STRING;
    val.String = str;
 #if TRACK_REFS
-   printd(5, "QoreNode::ref() %08x type=%s (0->1)\n", this, type->name);
+   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, type->name);
 #endif
 }
 
@@ -613,7 +613,7 @@ inline QoreNode::QoreNode(char *str)
    type = NT_STRING;
    val.String = new QoreString(str);
 #if TRACK_REFS
-   printd(5, "QoreNode::ref() %08x type=%s (0->1)\n", this, type->name);
+   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, type->name);
 #endif
 }
 
@@ -623,7 +623,7 @@ inline QoreNode::QoreNode(const char *str)
    type = NT_STRING;
    val.String = new QoreString((char *)str);
 #if TRACK_REFS
-   printd(5, "QoreNode::ref() %08x type=%s (0->1)\n", this, type->name);
+   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, type->name);
 #endif
 }
 
@@ -632,7 +632,7 @@ inline QoreNode::QoreNode(char *name, class QoreNode *a)
    type = NT_FUNCTION_CALL;
    val.fcall = new FunctionCall(name, a);
 #if TRACK_REFS
-   printd(5, "QoreNode::ref() %08x type=%s (0->1)\n", this, type->name);
+   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, type->name);
 #endif
 }
 
@@ -642,7 +642,7 @@ inline QoreNode::QoreNode(class QoreNode *a, char *name)
    type = NT_FUNCTION_CALL;
    val.fcall = new FunctionCall(a, name);
 #if TRACK_REFS
-   printd(5, "QoreNode::ref() %08x type=%s (0->1)\n", this, type->name);
+   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, type->name);
 #endif
 }
 
@@ -652,7 +652,7 @@ inline QoreNode::QoreNode(class QoreNode *a, class NamedScope *n)
    type = NT_FUNCTION_CALL;
    val.fcall = new FunctionCall(a, n);
 #if TRACK_REFS
-   printd(5, "QoreNode::ref() %08x type=%s (0->1)\n", this, type->name);
+   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, type->name);
 #endif
 }
 
@@ -661,7 +661,7 @@ inline QoreNode::QoreNode(class UserFunction *u, class QoreNode *a)
    type = NT_FUNCTION_CALL;
    val.fcall = new FunctionCall(u, a);
 #if TRACK_REFS
-   printd(5, "QoreNode::ref() %08x type=%s (0->1)\n", this, type->name);
+   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, type->name);
 #endif
 }
 
@@ -670,7 +670,7 @@ inline QoreNode::QoreNode(class BuiltinFunction *b, class QoreNode *a)
    type = NT_FUNCTION_CALL;
    val.fcall = new FunctionCall(b, a);
 #if TRACK_REFS
-   printd(5, "QoreNode::ref() %08x type=%s (0->1)\n", this, type->name);
+   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, type->name);
 #endif
 }
 
@@ -679,7 +679,7 @@ inline QoreNode::QoreNode(class NamedScope *n, class QoreNode *a)
    type = NT_SCOPE_REF;
    val.socall = new ScopedObjectCall(n, a);
 #if TRACK_REFS
-   printd(5, "QoreNode::ref() %08x type=%s (0->1)\n", this, type->name);
+   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, type->name);
 #endif
 }
 
@@ -688,7 +688,7 @@ inline QoreNode::QoreNode(class NamedScope *n)
    type = NT_CONSTANT;
    val.scoped_ref = n;
 #if TRACK_REFS
-   printd(5, "QoreNode::ref() %08x type=%s (0->1)\n", this, type->name);
+   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, type->name);
 #endif
 }
 
@@ -697,7 +697,7 @@ inline QoreNode::QoreNode(class ClassRef *c)
    type = NT_CLASSREF;
    val.classref = c;
 #if TRACK_REFS
-   printd(5, "QoreNode::ref() %08x type=%s (0->1)\n", this, type->name);
+   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, type->name);
 #endif
 }
 
@@ -706,7 +706,7 @@ inline QoreNode::QoreNode(class VarRef *v)
    type = NT_VARREF;
    val.vref = v;
 #if TRACK_REFS
-   printd(5, "QoreNode::ref() %08x type=%s (0->1)\n", this, type->name);
+   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, type->name);
 #endif
 }
 
@@ -717,7 +717,7 @@ inline QoreNode::QoreNode(class QoreNode *l, class Operator *o, class QoreNode *
    val.tree.op = o;
    val.tree.right = r;
 #if TRACK_REFS
-   printd(5, "QoreNode::ref() %08x type=%s (0->1)\n", this, type->name);
+   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, type->name);
 #endif
 }
 
@@ -726,7 +726,7 @@ inline QoreNode::QoreNode(class RegexSubst *rs)
    type = NT_REGEX_SUBST;
    val.resub = rs;
 #if TRACK_REFS
-   printd(5, "QoreNode::ref() %08x type=%s (0->1)\n", this, type->name);
+   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, type->name);
 #endif
 }
 
@@ -735,7 +735,7 @@ inline QoreNode::QoreNode(class RegexTrans *rt)
    type = NT_REGEX_TRANS;
    val.retrans = rt;
 #if TRACK_REFS
-   printd(5, "QoreNode::ref() %08x type=%s (0->1)\n", this, type->name);
+   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, type->name);
 #endif
 }
 
@@ -744,7 +744,7 @@ inline QoreNode::QoreNode(class QoreRegex *r)
    type = NT_REGEX;
    val.regex = r;
 #if TRACK_REFS
-   printd(5, "QoreNode::ref() %08x type=%s (0->1)\n", this, type->name);
+   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, type->name);
 #endif
 }
 
@@ -753,7 +753,7 @@ inline QoreNode::QoreNode(class ComplexContextRef *ccref)
    type = NT_COMPLEXCONTEXTREF;
    val.complex_cref = ccref;
 #if TRACK_REFS
-   printd(5, "QoreNode::ref() %08x type=%s (0->1)\n", this, type->name);
+   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, type->name);
 #endif
 }
 

@@ -130,7 +130,7 @@ int QoreSocket::connectINET(char *host, int prt, class ExceptionSink *xsink)
    }
    type = AF_INET;
    port = prt;
-   printd(5, "QoreSocket::connectINET(this=%08x, host='%s', port=%d) success, sock=%d\n", this, host, port, sock);
+   printd(5, "QoreSocket::connectINET(this=%08p, host='%s', port=%d) success, sock=%d\n", this, host, port, sock);
    traceout("QoreSocket::connectINET()");
    return 0;
 }

@@ -100,7 +100,7 @@ inline CallNode::CallNode(char *f, int t, class Object *o)
       obj->ref();
 #ifdef DEBUG
    if (obj)
-      printd(5, "CallNode::CallNode() pushing class=%s obj=%08x\n", obj->getClass()->name, obj);
+      printd(5, "CallNode::CallNode() pushing class=%s obj=%08p\n", obj->getClass()->name, obj);
 #endif
 }
 
@@ -108,7 +108,7 @@ inline void CallNode::objectDeref(class ExceptionSink *xsink)
 {
    if (obj)
    {
-      printd(5, "CallNode::~CallNode() popping class=%s obj=%08x\n", obj->getClass()->name, obj);
+      printd(5, "CallNode::~CallNode() popping class=%s obj=%08p\n", obj->getClass()->name, obj);
       // deref object
       obj->dereference(xsink);
    }

@@ -126,6 +126,10 @@ void QoreProgram::del(class ExceptionSink *xsink)
    // method call can be repeated
    delete_all(xsink);
 
+   // delete user functions in case there are constant objects which are 
+   // instances of classes that may be deleted below (call can be repeated)
+   deleteUserFunctions();
+
    // method call can be repeated
    deleteSBList();
 

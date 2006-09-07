@@ -404,7 +404,7 @@ inline Hash::~Hash()
 {
 #ifdef DEBUG
    if (member_list)
-      run_time_error("Hash::~Hash() %08x not empty! elements=%d member_list=%08x\n", this, size(), member_list);
+      run_time_error("Hash::~Hash() %08p not empty! elements=%d member_list=%08p\n", this, size(), member_list);
 #endif
 }
 
@@ -578,12 +578,12 @@ inline class HashMember *Hash::findKey(char *key)
 
    while (where)
    {
-      //printd(5, "Hash::findKey(%s) == %s? (where=%08x, next=%08x)\n", key, where->key, where, where->next);
+      //printd(5, "Hash::findKey(%s) == %s? (where=%08p, next=%08p)\n", key, where->key, where, where->next);
       if (!strcmp(where->key, key))
 	 break;
       where = where->next;
    }
-   //printd(5, "O:fk() where=%08x\n", where);
+   //printd(5, "O:fk() where=%08p\n", where);
    return where;
 }
 

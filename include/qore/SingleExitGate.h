@@ -66,7 +66,7 @@ inline int SingleExitGate::enter(int timeout)
 {
    int ctid = gettid();
 
-   //fprintf(stderr, "SingleExitGate::enter(%d) %08x\n", c, this);
+   //fprintf(stderr, "SingleExitGate::enter(%d) %08p\n", c, this);
    pthread_mutex_lock(&m);
 
    while (tid != -1 && tid != ctid)
@@ -86,7 +86,7 @@ inline int SingleExitGate::enter(int timeout)
 	       break;
 
 	    // lock has timed out, return -1
-	    printd(1, "SingleExitGate %08x timed out after %ds waiting for tid %d to release lock\n", timeout, tid);
+	    printd(1, "SingleExitGate %08p timed out after %ds waiting for tid %d to release lock\n", timeout, tid);
 	    return -1;
 	 }
       else
@@ -104,7 +104,7 @@ inline int SingleExitGate::exit()
 {
    int ctid = gettid();
 
-   //fprintf(stderr, "SingleExitGate::exit() %08x\n", this);
+   //fprintf(stderr, "SingleExitGate::exit() %08p\n", this);
    pthread_mutex_lock(&m);
 
    // if the lock is not locked by this thread, then return an error
@@ -126,7 +126,7 @@ inline int SingleExitGate::exit()
 
 inline int SingleExitGate::forceExit()
 {
-   //fprintf(stderr, "SingleExitGate::exit() %08x\n", this);
+   //fprintf(stderr, "SingleExitGate::exit() %08p\n", this);
    pthread_mutex_lock(&m);
 
    // if the lock is not locked, then return

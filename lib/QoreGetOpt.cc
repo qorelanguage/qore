@@ -33,7 +33,7 @@ int QoreGetOpt::add(char *name, char short_opt, char *long_opt, class QoreType *
    if (!short_opt && (!long_opt || !long_opt[0]))
       return QGO_ERR_NO_OPTION;
 
-   //printf("QoreGetOpt::add(%s, %03d (%c), %s, %08x, %d)\n", name, short_opt, short_opt ? short_opt : '-', long_opt, argtype, option);
+   //printf("QoreGetOpt::add(%s, %03d (%c), %s, %08p, %d)\n", name, short_opt, short_opt ? short_opt : '-', long_opt, argtype, option);
    // look for duplicate entries
    class QoreGetOptNode *n = head;
    while (n)
@@ -238,7 +238,7 @@ int QoreGetOpt::processShortArg(char *arg, class List *l, class Hash *h, int &i,
    doOption(w, h, val);
    if (do_modify)
       l->pop_entry(--i, NULL);
-   //printd(5, "processShortArg(%c) val=%08x %s returning %d\n", opt, val, val, !j);
+   //printd(5, "processShortArg(%c) val=%08p %s returning %d\n", opt, val, val, !j);
    return !j;
 }
 
@@ -277,6 +277,6 @@ class Hash *QoreGetOpt::parse(class List *l, bool modify, class ExceptionSink *x
 	 l->pop_entry(i--, NULL);
       }
    }
-   //printd(5, "QoreGetOpt::parse() returning h=%08x (size %d)\n", h, h->size());
+   //printd(5, "QoreGetOpt::parse() returning h=%08p (size %d)\n", h, h->size());
    return h;
 }

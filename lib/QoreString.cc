@@ -122,7 +122,7 @@ class QoreString *QoreString::convertEncoding(class QoreEncoding *nccs, Exceptio
 //       would likely be endian-aware and operate directly on 32-bit words
 void QoreString::concatBase64(char *buf, int size)
 {
-   //printf("buf=%08x, size=%d\n", buf, size);
+   //printf("buf=%08p, size=%d\n", buf, size);
    if (!size)
       return;
 
@@ -291,7 +291,7 @@ int QoreString::vsprintf(const char *fmt, va_list args)
 
    if (i >= free)
    {
-      //printd(5, "vsnprintf() failed: i=%d allocated=%d len=%d buf=%08x fmtlen=%d (new=i+%d = %d)\n", i, allocated, len, buf, fmtlen, STR_CLASS_EXTRA, i + STR_CLASS_EXTRA);
+      //printd(5, "vsnprintf() failed: i=%d allocated=%d len=%d buf=%08p fmtlen=%d (new=i+%d = %d)\n", i, allocated, len, buf, fmtlen, STR_CLASS_EXTRA, i + STR_CLASS_EXTRA);
       // resize buffer
       allocated = len + i + STR_CLASS_EXTRA;
       buf = (char *)realloc(buf, sizeof(char) * allocated);
@@ -475,7 +475,7 @@ int QoreString::snprintf(int size, const char *fmt, ...)
 class QoreString *QoreString::substr_simple(int offset, int length)
 {
    tracein("QoreString::substr_simple(offset, length)");
-   printd(5, "QoreString::substr_simple(offset=%d, length=%d) string=\"%s\" (this=%08x len=%d)\n", 
+   printd(5, "QoreString::substr_simple(offset=%d, length=%d) string=\"%s\" (this=%08p len=%d)\n", 
 	  offset, length, buf, this, len);
    if (offset < 0)
       offset = len + offset;
@@ -501,7 +501,7 @@ class QoreString *QoreString::substr_simple(int offset, int length)
 class QoreString *QoreString::substr_simple(int offset)
 {
    tracein("QoreString::substr_simple(offset)");
-   printd(5, "QoreString::substr_simple(offset=%d) string=\"%s\" (this=%08x len=%d)\n", 
+   printd(5, "QoreString::substr_simple(offset=%d) string=\"%s\" (this=%08p len=%d)\n", 
 	  offset, buf, this, len);
    if (offset < 0)
       offset = len + offset;
@@ -519,7 +519,7 @@ class QoreString *QoreString::substr_simple(int offset)
 class QoreString *QoreString::substr_complex(int offset, int length)
 {
    tracein("QoreString::substr_complex(offset, length)");
-   printd(5, "QoreString::substr_complex(offset=%d, length=%d) string=\"%s\" (this=%08x len=%d)\n", 
+   printd(5, "QoreString::substr_complex(offset=%d, length=%d) string=\"%s\" (this=%08p len=%d)\n", 
 	  offset, length, buf, this, len);
 
    if (offset < 0)
@@ -551,7 +551,7 @@ class QoreString *QoreString::substr_complex(int offset, int length)
 
 class QoreString *QoreString::substr_complex(int offset)
 {
-   //printd(5, "QoreString::substr_complex(offset=%d) string=\"%s\" (this=%08x len=%d)\n", offset, buf, this, len);
+   //printd(5, "QoreString::substr_complex(offset=%d) string=\"%s\" (this=%08p len=%d)\n", offset, buf, this, len);
    if (offset < 0)
    {
       int clength = charset->getLength(buf);
@@ -559,7 +559,7 @@ class QoreString *QoreString::substr_complex(int offset)
 
       if ((offset < 0) || (offset >= clength))  // if offset outside of string, return nothing
       {
-	 //printd(5, "this=%08x, len=%d, offset=%d, clength=%d, buf=%s\n", this, len, offset, clength, buf);
+	 //printd(5, "this=%08p, len=%d, offset=%d, clength=%d, buf=%s\n", this, len, offset, clength, buf);
 	 return NULL;
       }
    }
@@ -568,7 +568,7 @@ class QoreString *QoreString::substr_complex(int offset)
    //printd(5, "offset=%d, start=%d\n", offset, start);
    if (start == len)
    {
-      //printd(5, "this=%08x, len=%d, offset=%d, buf=%08x, start=d, %s\n", this, len, offset, buf, start, buf);
+      //printd(5, "this=%08p, len=%d, offset=%d, buf=%08p, start=d, %s\n", this, len, offset, buf, start, buf);
       return NULL;
    }
 

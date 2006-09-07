@@ -68,7 +68,7 @@ inline Gate::~Gate()
 
 inline int Gate::enter(int c)
 {
-   //fprintf(stderr, "Gate::enter(%d) %08x\n", c, this);
+   //fprintf(stderr, "Gate::enter(%d) %08p\n", c, this);
    pthread_mutex_lock(&m);
    if (c == G_NOBODY)
    {
@@ -89,7 +89,7 @@ inline int Gate::enter(int c)
 
 inline int Gate::exit()
 {
-   //fprintf(stderr, "Gate::exit() %08x\n", this);
+   //fprintf(stderr, "Gate::exit() %08p\n", this);
    pthread_mutex_lock(&m);
    // if the lock is not locked, then return an error
    if (!count)

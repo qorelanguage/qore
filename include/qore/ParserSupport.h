@@ -64,12 +64,12 @@ static class QoreNode *makeTree(class Operator *op, class QoreNode *left, class 
    ExceptionSink xsink;
 
    //tracein("makeTree()");
-   //printd(5, "makeTree(): l=%08x, r=%08x, op=%d\n", left, right, op);
+   //printd(5, "makeTree(): l=%08p, r=%08p, op=%d\n", left, right, op);
    // if both nodes are constants, then evaluate immediately */
    if (is_value(left) && (!right || is_value(right)))
    {
       class QoreNode *n_node = op->eval(left, right, &xsink);
-      //printd(5, "makeTree(): l=%08x (%s), r=%08x, op=%s, returning %08x\n", left, left->type->name, right, op->name, n_node);
+      //printd(5, "makeTree(): l=%08p (%s), r=%08p, op=%s, returning %08p\n", left, left->type->name, right, op->name, n_node);
       left->deref(NULL);
       if (right)
 	 right->deref(NULL);

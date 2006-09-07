@@ -81,7 +81,7 @@ Paramlist::Paramlist(class QoreNode *params)
 class QoreNode *UserFunction::eval(QoreNode *args, Object *self, class ExceptionSink *xsink)
 {
    tracein("UserFunction::eval()");
-   printd(2, "UserFunction::eval(): function='%s' args=%08x (size=%d)\n", 
+   printd(2, "UserFunction::eval(): function='%s' args=%08p (size=%d)\n", 
           name, args, args ? args->val.list->size() : 0);
 
    int i = 0;
@@ -98,14 +98,14 @@ class QoreNode *UserFunction::eval(QoreNode *args, Object *self, class Exception
    for (i = 0; i < num_params; i++)
    {
       QoreNode *n = args ? args->val.list->retrieve_entry(i) : NULL;
-      printd(4, "UserFunction::eval() %d: instantiating param lvar %d (%08x %s)\n", i, params->ids[i], n, n ? n->type->name : "(null)");
+      printd(4, "UserFunction::eval() %d: instantiating param lvar %d (%08p %s)\n", i, params->ids[i], n, n ? n->type->name : "(null)");
       if (n)
       {
          if (n->type == NT_REFERENCE)
          {
 	    bool is_self_ref = false;
             n = doPartialEval(n->val.lvexp, &is_self_ref, xsink);
-	    //printd(5, "UserFunction::eval() ref self_ref=%d, self=%08x (%s) so=%08x (%s)\n", is_self_ref, self, self ? self->getClass()->name : "NULL", getStackObject(), getStackObject() ? getStackObject()->getClass()->name : "NULL");
+	    //printd(5, "UserFunction::eval() ref self_ref=%d, self=%08p (%s) so=%08p (%s)\n", is_self_ref, self, self ? self->getClass()->name : "NULL", getStackObject(), getStackObject() ? getStackObject()->getClass()->name : "NULL");
             if (!xsink->isEvent())
 	       instantiateLVar(params->ids[i], n, is_self_ref ? getStackObject() : NULL);
          }
@@ -217,7 +217,7 @@ class QoreNode *UserFunction::eval(QoreNode *args, Object *self, class Exception
 void UserFunction::evalCopy(Object *oold, Object *self, ExceptionSink *xsink)
 {
    tracein("UserFunction::evalCopy()");
-   printd(2, "UserFunction::evalCopy(): function='%s', num_params=%d, oldobj=%08x\n", name, params->num_params, oold);
+   printd(2, "UserFunction::evalCopy(): function='%s', num_params=%d, oldobj=%08p\n", name, params->num_params, oold);
 
    // create QoreNode for "old" for either param or argv list
    oold->ref();
@@ -227,7 +227,7 @@ void UserFunction::evalCopy(Object *oold, Object *self, ExceptionSink *xsink)
    for (int i = 0; i < params->num_params; i++)
    {
       class QoreNode *n = (i ? NULL : old);
-      printd(5, "UserFunction::evalCopy(): instantiating param lvar %d (%08x)\n", i, params->ids[i], n);
+      printd(5, "UserFunction::evalCopy(): instantiating param lvar %d (%08p)\n", i, params->ids[i], n);
       instantiateLVar(params->ids[i], n);
    }
 
@@ -285,7 +285,7 @@ void UserFunction::evalCopy(Object *oold, Object *self, ExceptionSink *xsink)
 class QoreNode *UserFunction::evalConstructor(QoreNode *args, Object *self, class BCList *bcl, class BCEAList *bceal, class ExceptionSink *xsink)
 {
    tracein("UserFunction::evalConstructor()");
-   printd(2, "UserFunction::evalConstructor(): method='%s:%s' args=%08x (size=%d)\n", 
+   printd(2, "UserFunction::evalConstructor(): method='%s:%s' args=%08p (size=%d)\n", 
           self->getClass()->name, name, args, args ? args->val.list->size() : 0);
 
    int i = 0;
@@ -302,7 +302,7 @@ class QoreNode *UserFunction::evalConstructor(QoreNode *args, Object *self, clas
    for (i = 0; i < num_params; i++)
    {
       QoreNode *n = args ? args->val.list->retrieve_entry(i) : NULL;
-      printd(4, "UserFunction::evalConstructor() %d: instantiating param lvar %d (%08x)\n", i, params->ids[i], n);
+      printd(4, "UserFunction::evalConstructor() %d: instantiating param lvar %d (%08p)\n", i, params->ids[i], n);
       if (n)
       {
          if (n->type == NT_REFERENCE)
@@ -490,7 +490,7 @@ void print_node(FILE *fp, class QoreNode *node)
 {
    class QoreNode *n_node;
 
-   printd(5, "print_node() node=%08x (%s)\n", node, node ? node->type->name : "(null)");
+   printd(5, "print_node() node=%08p (%s)\n", node, node ? node->type->name : "(null)");
    if (!node)
       return;
    if (node->type != NT_STRING)

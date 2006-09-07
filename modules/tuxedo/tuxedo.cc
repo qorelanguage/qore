@@ -42,7 +42,7 @@ class QoreNode *TUXEDOCLIENT_constructor(class QoreNode *params, ExceptionSink *
    Object *self = getStackObject();
 
    //self->private_data = (void *) ... ;
-   //printd(5, "TUXEDOCLIENT_constructor() this=%08x myQoreApp=%08x\n", self, myQoreApp);
+   //printd(5, "TUXEDOCLIENT_constructor() this=%08p myQoreApp=%08p\n", self, myQoreApp);
    traceout("TUXEDOCLIENT_constructor");
    return NULL;
 }

@@ -224,7 +224,7 @@ inline void Operator::removeFunction(int lt, int rt, class QoreNode *(*f)(class 
 	 memmove(&functions[i], &functions[i+1], sizeof(OperatorFunction) * (numFunctions - i));
       }
 #ifdef DEBUG
-   run_time_error("Operator(%s)::removeFunction(%d, %d, %08x) cannot be found in the list!",
+   run_time_error("Operator(%s)::removeFunction(%d, %d, %08p) cannot be found in the list!",
 	  description, lt, rt, f);
 #endif
 }

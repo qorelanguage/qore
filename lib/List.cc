@@ -29,7 +29,7 @@ using namespace std;
 
 static int compareListEntries(class QoreNode *l, class QoreNode *r)
 {
-   //printd(5, "compareListEntries(%08x, %08x) (%s %s)\n", l, r, l->type == NT_STRING ? l->val.String->getBuffer() : "?", r->type == NT_STRING ? r->val.String->getBuffer() : "?");
+   //printd(5, "compareListEntries(%08p, %08p) (%s %s)\n", l, r, l->type == NT_STRING ? l->val.String->getBuffer() : "?", r->type == NT_STRING ? r->val.String->getBuffer() : "?");
 
    // sort non-existant values last
    if (is_nothing(l))
@@ -53,7 +53,7 @@ static int compareListEntriesDescending(class QoreNode *l, class QoreNode *r)
 class QoreNode *List::sort()
 {
    class QoreNode *rv = copy();
-   //printd(5, "List::sort() entry=%08x length=%d\n", rv->val.list->entry, length);
+   //printd(5, "List::sort() entry=%08p length=%d\n", rv->val.list->entry, length);
    std::sort(rv->val.list->entry, rv->val.list->entry + length, compareListEntries);
    return rv;
 }
@@ -61,7 +61,7 @@ class QoreNode *List::sort()
 class QoreNode *List::sortDescending()
 {
    class QoreNode *rv = copy();
-   //printd(5, "List::sort() entry=%08x length=%d\n", rv->val.list->entry, length);
+   //printd(5, "List::sort() entry=%08p length=%d\n", rv->val.list->entry, length);
    std::sort(rv->val.list->entry, rv->val.list->entry + length, compareListEntriesDescending);
    return rv;
 }

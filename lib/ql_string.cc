@@ -107,7 +107,7 @@ static class QoreNode *f_toupper(class QoreNode *params, ExceptionSink *xsink)
       return NULL;
 
    QoreNode *rv = new QoreNode(new QoreString(p0->val.String));
-   printd(5, "f_toupper() p0->val.String=%08x (buf=%08x) rv->val.String=%08x (buf=%08x)\n",
+   printd(5, "f_toupper() p0->val.String=%08p (buf=%08p) rv->val.String=%08p (buf=%08p)\n",
 	  p0->val.String, p0->val.String->getBuffer(),
 	  rv->val.String, rv->val.String->getBuffer());
    p = rv->val.String->getBuffer();
@@ -451,7 +451,7 @@ static class QoreNode *f_split(class QoreNode *params, ExceptionSink *xsink)
    rv->val.list = new List();
    while (char *p = strstr(str, pattern))
    {
-      //printd(5, "str=%08x p=%08x \"%s\" \"%s\"\n", str, p, str, pattern);
+      //printd(5, "str=%08p p=%08p \"%s\" \"%s\"\n", str, p, str, pattern);
       rv->val.list->push(new QoreNode(new QoreString(str, p - str, p1->val.String->getEncoding())));
       str = p + strlen(pattern);
    }
@@ -570,7 +570,7 @@ static class QoreNode *f_replace(class QoreNode *params, ExceptionSink *xsink)
 
    while (char *p = strstr(str, pattern))
    {
-      //printd(5, "str=%08x p=%08x '%s' '%s'->'%s'\n", str, p, str, pattern, t1->getBuffer());
+      //printd(5, "str=%08p p=%08p '%s' '%s'->'%s'\n", str, p, str, pattern, t1->getBuffer());
       if (p != str)
 	 nstr->concat(str, p - str);
       nstr->concat(t2);

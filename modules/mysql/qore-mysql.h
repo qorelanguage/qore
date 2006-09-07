@@ -27,6 +27,7 @@
 #include <qore/config.h>
 #include <qore/Exception.h>
 #include <qore/QoreString.h>
+#include <qore/StringList.h>
 
 #include <mysql.h>
 
@@ -50,6 +51,7 @@ class MyResult {
 	 mysql_free_result(res);
 
 	 bindbuf = NULL;
+	 bi = NULL;
       }
 
       inline ~MyResult()
@@ -66,6 +68,8 @@ class MyResult {
 		  delete (MYSQL_TIME *)bindbuf[i].buffer;
 	    delete [] bindbuf;
 	 }
+	 if (bi)
+	    delete [] bi;
       }
 
       void bind(MYSQL_STMT *stmt);
@@ -83,24 +87,96 @@ class MyResult {
 
 };
 
+// FIXME: do not assume byte widths
+union my_val {
+      MYSQL_TIME time;
+      int i4;
+      int64 i8;
+      double f8;
+      void *ptr;
+
+      void assign(class DateTime *d)
+      {
+	 time.year = d->getYear();
+	 time.month = d->getMonth();
+	 time.day = d->getDay();
+	 time.hour = d->getHour();
+	 time.minute = d->getMinute();
+	 time.second = d->getSecond();
+	 time.neg = false;
+      }
+};
+
 class MyBindNode {
+   private:
+
    public:
+      int bindtype;
+      unsigned long len;
+
+      struct {
+	    class QoreNode *value;   // value to be bound
+	    class QoreString *tstr;   // temporary string to be deleted
+      } data;
+
+      union my_val vbuf;
       class MyBindNode *next;
 
+      // for value nodes
+      inline MyBindNode(class QoreNode *v)
+      {
+	 bindtype = BN_VALUE;
+	 data.value = v;
+	 data.tstr = NULL;
+	 next = NULL;
+      }
+
+      inline ~MyBindNode()
+      {
+	 if (data.tstr)
+	    delete data.tstr;
+      }
+     
+      int bindValue(class QoreEncoding *enc, MYSQL_BIND *buf, class ExceptionSink *xsink);
 };
 
 class MyBindGroup {
    private:
       MyBindNode *head, *tail;
       QoreString *str;
+      MYSQL_STMT *stmt;
+      bool hasOutput;
+      MYSQL_BIND *bind;
+      MYSQL *db;
+      Datasource *ds;
+      int len;
+      class StringList phl;
 
       // returns -1 for error, 0 for OK
       inline int parse(class List *args, class ExceptionSink *xsink);
+      inline void add(class MyBindNode *c)
+      {
+	 len++;
+	 if (!tail)
+	    head = c;
+	 else
+	    tail->next = c;
+	 tail = c;
+      }
+
+      inline class QoreNode *getOutputHash(class ExceptionSink *xsink);
+      class QoreNode *execIntern(class ExceptionSink *xsink);
 
    public:
       MyBindGroup(class Datasource *ods, class QoreString *ostr, class List *args, class ExceptionSink *xsink);
       inline ~MyBindGroup()
       {
+	 if (bind)
+	    delete [] bind;
+
+	 if (stmt)
+	    mysql_stmt_close(stmt);
+
 	 if (str)
 	    delete str;
 
@@ -112,6 +188,22 @@ class MyBindGroup {
 	    w = head;
 	 }
       }
+
+      inline void add(class QoreNode *v)
+      {
+	 add(new MyBindNode(v));
+	 printd(5, "MyBindGroup::add() value=%08p\n", v);
+      }
+
+      inline void add(char *name)
+      {
+	 phl.append(name);
+	 printd(5, "MyBindGroup::add() placeholder '%s' %d %s\n", name);
+	 hasOutput = true;
+      }
+      class QoreNode *exec(class ExceptionSink *xsink);
+      class QoreNode *select(class ExceptionSink *xsink);
+      class QoreNode *selectRows(class ExceptionSink *xsink);
 };
 
 

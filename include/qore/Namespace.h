@@ -271,7 +271,7 @@ inline class QoreNode *Namespace::rootFindConstantValue(char *cname)
 // public method
 inline class Namespace *Namespace::copy(int po)
 {
-   //printd(0, "Namespace::copy() %s: %08x\n", name, this);
+   //printd(0, "Namespace::copy() %s: %08p\n", name, this);
    return new Namespace(name, classList->copy(po), constant->copy(), nsl->copy(po));
 }
 
@@ -281,7 +281,7 @@ inline void Namespace::addSystemClass(class QoreClass *oc)
    tracein("Namespace::addSystemClass()");
 #ifdef DEBUG
    if (classList->add(oc))
-      run_time_error("Namespace::addSystemClass() %s %08x already exists in %s", oc->name, oc, name);
+      run_time_error("Namespace::addSystemClass() %s %08p already exists in %s", oc->name, oc, name);
 #else
    classList->add(oc);
 #endif
@@ -291,7 +291,7 @@ inline void Namespace::addSystemClass(class QoreClass *oc)
 // public, only called when parsing for unattached namespaces
 inline void Namespace::addClass(class NamedScope *n, class QoreClass *oc)
 {
-   //printd(5, "Namespace::addClass() adding ns=%s (%s, %08x)\n", n->ostr, oc->name, oc);
+   //printd(5, "Namespace::addClass() adding ns=%s (%s, %08p)\n", n->ostr, oc->name, oc);
    class Namespace *sns = resolveNameScope(n);
    if (!sns)
       oc->deref();
@@ -317,7 +317,7 @@ inline void Namespace::rootAddClass(class NamedScope *nscope, class QoreClass *o
 
    if (sns)
    {
-      printd(5, "Namespace::rootAddClass() '%s' adding %s:%08x to %s:%08x\n", nscope->ostr, 
+      printd(5, "Namespace::rootAddClass() '%s' adding %s:%08p to %s:%08p\n", nscope->ostr, 
 	     oc->name, oc, sns->name, sns);
       sns->addClass(oc);
    }
@@ -333,7 +333,7 @@ inline void Namespace::rootAddConstant(class NamedScope *nscope, class QoreNode 
 
    if (sns)
    {
-      printd(5, "Namespace::rootAddConstant() %s: adding %s to %s (value=%08x type=%s)\n", nscope->ostr, 
+      printd(5, "Namespace::rootAddConstant() %s: adding %s to %s (value=%08p type=%s)\n", nscope->ostr, 
 	     nscope->getIdentifier(), sns->name, value, value ? value->type->name : "(none)");
       sns->pendConstant->add(nscope->strlist[nscope->elements - 1], value);
    }
@@ -423,7 +423,7 @@ inline void Namespace::parseInitConstants()
 
 inline void Namespace::parseInit()
 {
-   printd(5, "Namespace::parseInit() this=%08x\n", this);
+   printd(5, "Namespace::parseInit() this=%08p\n", this);
 
    // do 2nd stage parse initialization on committed classes
    classList->parseInit();
@@ -452,7 +452,7 @@ inline void Namespace::parseCommit()
 
 inline void Namespace::parseRollback()
 {
-   printd(5, "Namespace::parseRollback() %s %08x\n", name, this);
+   printd(5, "Namespace::parseRollback() %s %08p\n", name, this);
 
    // delete pending constant list
    pendConstant->reset();
@@ -541,7 +541,7 @@ inline class Namespace *NamespaceList::find(char *name)
       w = w->next;
    }
 
-   printd(5, "NamespaceList::find(%s) returning %08x\n", name, w);
+   printd(5, "NamespaceList::find(%s) returning %08p\n", name, w);
    traceout("NamespaceList::find()");
    return w;
 }

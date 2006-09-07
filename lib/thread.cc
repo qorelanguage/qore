@@ -184,7 +184,7 @@ inline ThreadResourceList::~ThreadResourceList()
 {
 #ifdef DEBUG
    if (head)
-      run_time_error("ThreadResourceList %08x not empty, head = %08x", this, head);
+      run_time_error("ThreadResourceList %08p not empty, head = %08p", this, head);
 #endif
 }
 
@@ -202,7 +202,7 @@ inline class ThreadResourceNode *ThreadResourceList::find(void *key)
 
 void ThreadResourceList::setIntern(class ThreadResourceNode *n)
 {
-   //printd(5, "TRL::setIntern(key=%08x, func=%08x)\n", n->key, n->func);
+   //printd(5, "TRL::setIntern(key=%08p, func=%08p)\n", n->key, n->func);
    n->next = head;
    if (head)
       head->prev = n;
@@ -231,14 +231,14 @@ inline int ThreadResourceList::setOnce(void *key, qtrdest_t func)
 
 inline void ThreadResourceList::removeIntern(class ThreadResourceNode *w)
 {
-   //printd(5, "removeIntern(%08x) starting (head=%08x)\n", w, head);
+   //printd(5, "removeIntern(%08p) starting (head=%08p)\n", w, head);
    if (w->prev)
       w->prev->next = w->next;
    else
       head = w->next;
    if (w->next)
       w->next->prev = w->prev;
-   //printd(5, "removeIntern(%08x) done (head=%08x)\n", w, head);
+   //printd(5, "removeIntern(%08p) done (head=%08p)\n", w, head);
 }
 
 void ThreadResourceList::purgeTID(int tid, class ExceptionSink *xsink)
@@ -250,7 +250,7 @@ void ThreadResourceList::purgeTID(int tid, class ExceptionSink *xsink)
    class ThreadResourceNode *w = head;
    while (w)
    {
-      //printd(5, "TRL::purgeTID(%d) w->tid=%d, w->key=%08x, w->next=%08x\n", tid,w->tid, w->key, w->next);
+      //printd(5, "TRL::purgeTID(%d) w->tid=%d, w->key=%08p, w->next=%08p\n", tid,w->tid, w->key, w->next);
       if (w->tid == tid)
       {
 	 class ThreadResourceNode *n = w->next;
@@ -290,7 +290,7 @@ void ThreadResourceList::purgeTID(int tid, class ExceptionSink *xsink)
 
 void ThreadResourceList::remove(void *key)
 {
-   //printd(5, "TRL::remove(key=%08x)\n", key);
+   //printd(5, "TRL::remove(key=%08p)\n", key);
    lock();
    class ThreadResourceNode *w = find(key);
    if (w)
@@ -310,7 +310,7 @@ inline ThreadCleanupList::ThreadCleanupList()
 
 inline ThreadCleanupList::~ThreadCleanupList()
 {
-   //printf("ThreadCleanupList::~ThreadCleanupList() head=%08x\n", head);
+   //printf("ThreadCleanupList::~ThreadCleanupList() head=%08p\n", head);
 
    while (head)
    {
@@ -327,12 +327,12 @@ void ThreadCleanupList::push(qtdest_t func, void *arg)
    w->func = func;
    w->arg = arg;
    head = w;
-   //printf("TCL::push() this=%08x, &head=%08x, head=%08x, head->next=%08x\n", this, &head, head, head->next);
+   //printf("TCL::push() this=%08p, &head=%08p, head=%08p, head->next=%08p\n", this, &head, head, head->next);
 }
 
 void ThreadCleanupList::pop(int exec)
 {
-   //printf("TCL::pop() this=%08x, &head=%08x, head=%08x\n", this, &head, head);
+   //printf("TCL::pop() this=%08p, &head=%08p, head=%08p\n", this, &head, head);
    // NOTE: if exit() is called, then somehow head = NULL !!!
    // I can't explain it, but that's why the if statement is there... :-(
    if (head)
@@ -483,9 +483,9 @@ static class QoreNode *op_background(class QoreNode *left, class QoreNode *right
    if (!left)
       return NULL;
 
-   //printd(2, "op_background() before crlr left = %08x\n", left);
+   //printd(2, "op_background() before crlr left = %08p\n", left);
    QoreNode *nl = copy_and_resolve_lvar_refs(left, xsink);
-   //printd(2, "op_background() after crlr nl = %08x\n", nl);
+   //printd(2, "op_background() after crlr nl = %08p\n", nl);
    if (xsink->isEvent())
    {
       if (nl) nl->deref(xsink);
@@ -509,7 +509,7 @@ static class QoreNode *op_background(class QoreNode *left, class QoreNode *right
       return NULL;
    }
 
-   //printd(2, "creating BGThreadParams(%08x, %d)\n", nl, tid);
+   //printd(2, "creating BGThreadParams(%08p, %d)\n", nl, tid);
    BGThreadParams *tp = new BGThreadParams(nl, tid, xsink);
    if (xsink->isEvent())
    {
@@ -517,11 +517,11 @@ static class QoreNode *op_background(class QoreNode *left, class QoreNode *right
       deregister_thread(tid);
       return NULL;
    }
-   //printd(2, "tp = %08x\n", tp);
+   //printd(2, "tp = %08p\n", tp);
    // create thread
    pthread_t ptid;
    int rc;
-   //printd(2, "calling pthread_create(%08x, %08x, %08x, %08x)\n", &ptid, &ta_default, op_background_thread, tp);
+   //printd(2, "calling pthread_create(%08p, %08p, %08p, %08p)\n", &ptid, &ta_default, op_background_thread, tp);
    if ((rc = pthread_create(&ptid, &ta_default, op_background_thread, tp)))
    {
       tp->cleanup(xsink);
@@ -601,9 +601,9 @@ void delete_qore_threads()
 
    pthread_mutexattr_destroy(&ma_recursive);
 
-   //printd(2, "calling pthread_attr_destroy(%08x)\n", &ta_default);
+   //printd(2, "calling pthread_attr_destroy(%08p)\n", &ta_default);
    pthread_attr_destroy(&ta_default);
-   //printd(2, "returned from pthread_attr_destroy(%08x)\n", &ta_default);
+   //printd(2, "returned from pthread_attr_destroy(%08p)\n", &ta_default);
 
    delete_thread_data();
 

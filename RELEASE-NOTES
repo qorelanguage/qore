@@ -165,6 +165,26 @@ new FtpClient methods:
   + FtpClient::setModePASV()              - sets the object to only try PASV mode for the data connection
   + FtpClient::setModePORT()              - sets the object to only try PORT mode for the data connection
 
+*) "oracle" driver improvements
+the select() and selectRows() methods both support binding data directly in queries with the same syntax as with exec()
+for example:
+my $result = $oradb.select("select * from table where value = %v", $value);
+
+*) "mysql" driver improvements
+The "mysql" module now supports directly binding data and retrieving values from queries in the qore DBI syntax (already supported by the "oracle" module) - also the select() and selectRows() DBI methods support value binding as well
+for example, using the test database as given in examples/mysql-test-db.sql and the following stored procedure:
+delimiter //
+create procedure get_family (in id int, out fname varchar(32))
+begin
+   select name into fname from family where family_id = id;
+end;
+//
+
+executing:
+$h = $mysqldb.exec("call get_family(%v, :name)", 1);
+
+will return ( "name" : "Smith" )
+
 *) improved XML serialization and deserialization
 mixed elements and text can now be serialized and deserialized without data loss (except whitespace is still not retained) - for example, now it's possible to deserialize (parse) a docbook xml file and then reserialize it (generate the XML from the Qore data structure) without losing information (this was not possible with previous versions of qore).
 
@@ -173,6 +193,9 @@ native 64-bit binaries can now be built on Linux x86_64 - the build system has b
 
 *) %requires error reporting improved
 if any requested features cannot be loaded, then only exceptions related to missing features will be reported.  this avoids possibly hundreds (or more) exceptions in large programs where features cannot be loaded (i.e. unresolved classes, functions, etc)
+
+*) internal qore class API significantly simplified and streamlined
+it is now much easier to develop qore classes in c++ with the new API
 
 *) lots of bug fixes, etc
 see CHANGELOG for details
@@ -234,7 +257,7 @@ The "mysql" DBI driver has not been as extensively tested as the Oracle driver, 
 *) transaction management is supported
 *) automatic transparent character set conversion is supported when necessary
 *) threading support
-*) no stored procedure support
+*) stored procedure support with direct binding and retrieving values
 
 NCURSES
 -------

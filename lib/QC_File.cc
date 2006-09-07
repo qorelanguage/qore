@@ -44,18 +44,8 @@ static void releaseFile(void *obj)
 
 static void FILE_system_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
-   // get character set name if available
-   class QoreEncoding *cs;
-   QoreNode *p0 = test_param(params, NT_STRING, 0);
-   if (p0)
-   {
-      cs = QEM.findCreate(p0->val.String);
-      //printd(0, "FILE_constructor() str=%s, cs=%08x\n", p0->val.String->getBuffer(), cs);
-   }
-   else
-      cs = QCS_DEFAULT;
-
-   self->setPrivate(CID_FILE, new File(cs), getFile, releaseFile);
+   //printd(5, "FILE_constructor() self=%08p, params=%08p\n", self, params);
+   self->setPrivate(CID_FILE, new File(QCS_DEFAULT), getFile, releaseFile);
 }
 
 static void FILE_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
@@ -66,7 +56,7 @@ static void FILE_constructor(class Object *self, class QoreNode *params, Excepti
    if (p0)
    {
       cs = QEM.findCreate(p0->val.String);
-      //printd(0, "FILE_constructor() str=%s, cs=%08x\n", p0->val.String->getBuffer(), cs);
+      //printd(0, "FILE_constructor() str=%s, cs=%08p\n", p0->val.String->getBuffer(), cs);
    }
    else
       cs = QCS_DEFAULT;
@@ -76,6 +66,7 @@ static void FILE_constructor(class Object *self, class QoreNode *params, Excepti
 
 static void FILE_destructor(class Object *self, class File *f, ExceptionSink *xsink)
 {
+   //printd(5, "FILE_destructor() self=%08p, f=%08p\n", self, f);
    f->deref();
 }
 

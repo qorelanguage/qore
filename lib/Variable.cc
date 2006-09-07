@@ -60,7 +60,7 @@ static inline class QoreNode **do_list_val_ptr(Tree *tree, class VLock *vlp, Exc
       return NULL;
 
    // if the variable's value is not already a list, then make it one
-   // printd(0, "index=%d val=%08x (%s)\n", ind, *val, *val ? (*val)->type->name : "(null)");
+   // printd(0, "index=%d val=%08p (%s)\n", ind, *val, *val ? (*val)->type->name : "(null)");
    if (!(*val))
    {
       (*val) = new QoreNode(NT_LIST);
@@ -104,7 +104,7 @@ static inline class QoreNode **do_object_val_ptr(Tree *tree, class VLock *vlp, E
    }
 
    // if the variable's value is not already a hash or an object, then make it a hash
-   //printd(0, "index=%d val=%08x (%s)\n", ind, *val, *val ? (*val)->type->name : "(null)");
+   //printd(0, "index=%d val=%08p (%s)\n", ind, *val, *val ? (*val)->type->name : "(null)");
    if (!(*val))
       (*val) = new QoreNode(new Hash());
    else if ((*val)->type != NT_OBJECT && (*val)->type != NT_HASH)
@@ -145,10 +145,10 @@ static inline class QoreNode **do_object_val_ptr(Tree *tree, class VLock *vlp, E
 // this function will change the lvalue to the right type if needed (used for assignments)
 class QoreNode **get_var_value_ptr(class QoreNode *n, class VLock *vlp, class ExceptionSink *xsink)
 {
-   //printd(5, "get_var_value_ptr(%08x) %s\n", n, n->type->name);
+   //printd(5, "get_var_value_ptr(%08p) %s\n", n, n->type->name);
    if (n->type == NT_VARREF)
    {
-      //printd(5, "get_var_value_ptr(): vref=%s (%08x)\n", n->val.vref->name, n->val.vref);
+      //printd(5, "get_var_value_ptr(): vref=%s (%08p)\n", n->val.vref->name, n->val.vref);
       return n->val.vref->getValuePtr(vlp, xsink);
    }
    else if (n->type == NT_SELF_VARREF)
@@ -171,7 +171,7 @@ class QoreNode **get_var_value_ptr(class QoreNode *n, class VLock *vlp, class Ex
 // object references, exceptions could be thrown
 class QoreNode *getNoEvalVarValue(class QoreNode *n, class VLock *vl, class ExceptionSink *xsink)
 {
-   printd(5, "getNoEvalVarValue(%08x) %s\n", n, n->type->name);
+   printd(5, "getNoEvalVarValue(%08p) %s\n", n, n->type->name);
    if (n->type == NT_VARREF)
       return n->val.vref->getValue(vl, xsink);
 
@@ -235,7 +235,7 @@ class QoreNode *getNoEvalVarValue(class QoreNode *n, class VLock *vl, class Exce
 // will *not* execute memberGate methods
 class QoreNode *getExistingVarValue(class QoreNode *n, ExceptionSink *xsink, class VLock *vl, class TempNode **pt)
 {
-   printd(5, "getExistingVarValue(%08x) %s\n", n, n->type->name);
+   printd(5, "getExistingVarValue(%08p) %s\n", n, n->type->name);
    if (n->type == NT_VARREF)
       return n->val.vref->getValue(vl, xsink);
 
@@ -307,7 +307,7 @@ class QoreNode *getExistingVarValue(class QoreNode *n, ExceptionSink *xsink, cla
 // will execute memberGate methods (except for in-object references i.e. $.member)
 class QoreNode *getExistingVarValueWithMethod(class QoreNode *n, ExceptionSink *xsink, class VLock *vl, class TempNode **pt)
 {
-   printd(5, "getExistingVarValue(%08x) %s\n", n, n->type->name);
+   printd(5, "getExistingVarValue(%08p) %s\n", n, n->type->name);
    if (n->type == NT_VARREF)
       return n->val.vref->getValue(vl, xsink);
 
@@ -378,7 +378,7 @@ class QoreNode *getExistingVarValueWithMethod(class QoreNode *n, ExceptionSink *
 // needed for deletes
 static class QoreNode **getUniqueExistingVarValuePtr(class QoreNode *n, ExceptionSink *xsink, class VLock *vl, class TempNode **pt)
 {
-   printd(5, "getUniqueExistingVarValuePtr(%08x) %s\n", n, n->type->name);
+   printd(5, "getUniqueExistingVarValuePtr(%08p) %s\n", n, n->type->name);
    if (n->type == NT_VARREF)
       return n->val.vref->getValuePtr(vl, xsink);
 
@@ -469,7 +469,7 @@ void delete_var_node(class QoreNode *lvalue, ExceptionSink *xsink)
       val = lvalue->val.vref->getValuePtr(&vl, xsink);
       if (val && *val)
       {
-	 printd(5, "delete_var_node() setting ptr %08x (val=%08x) to NULL\n", val, (*val));
+	 printd(5, "delete_var_node() setting ptr %08p (val=%08p) to NULL\n", val, (*val));
 	 if ((*val)->type == NT_OBJECT)
 	 {
 	    if ((*val)->val.object->isSystemObject())

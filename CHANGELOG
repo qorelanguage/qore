@@ -1,4 +1,19 @@
+2006.09.07: David Nichols
+	* "mysql" module: fixed placeholder binding to work properly with the
+	  Qore DBI syntax
+	* removed the "describe" method from the DBI module
+	* added a list argument parameter to the DBI select and select_rows
+	  methods so that value binding can also be supported for select
+	  statements
+	* "mysql" module: enabled value binding for select statements
+	* "oracle" module: enabled value binding for select statements
+	* fixed a object destruction ordering issue in QoreProgram.h
+	* changed all references to "%08x" to "%08p" so 64-bit pointers won't
+	  throw off arguments in printf format strings
+
 2006.09.06: David Nichols
+	* "mysql" module: implemented bind by value and placeholder binding
+	* "oracle" module: streamlined some internal functions
 	* changed the internal c++ qore object API to handle references
 	  internally, greatly simplifying the job of implementing qore classes
 	  in c++ - fixed some reference-counting bugs at the same time

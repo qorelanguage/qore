@@ -230,7 +230,7 @@ inline void SelfFunctionCall::resolve()
    else 
       printd(5, "SelfFunctionCall:resolve() resolving '%s'\n", name ? name : "(null)");
    if (func)
-      run_time_error("SelfFunctionCall:resolve() already resolved %s (%08x)", func->name, func);
+      run_time_error("SelfFunctionCall:resolve() already resolved %s (%08p)", func->name, func);
 #endif
    if (name)
    {
@@ -250,7 +250,7 @@ inline void SelfFunctionCall::resolve()
       func = getParseClass()->resolveSelfMethod(ns);
    if (func)
    {
-      printd(5, "SelfFunctionCall:resolve() resolved '%s' to %08x\n", func->name, func);
+      printd(5, "SelfFunctionCall:resolve() resolved '%s' to %08p\n", func->name, func);
       if (name)
       {
 	 free(name);
@@ -285,7 +285,7 @@ inline FunctionCall::FunctionCall(class BuiltinFunction *b, class QoreNode *a)
 
 inline FunctionCall::FunctionCall(class QoreNode *a, char *name)
 {
-   printd(5, "FunctionCall::FunctionCall(a=%08x, name=%s) FC_SELF this=%08x\n", a, name, this);
+   printd(5, "FunctionCall::FunctionCall(a=%08p, name=%s) FC_SELF this=%08p\n", a, name, this);
    type = FC_SELF;
    f.sfunc = new SelfFunctionCall(name);
    args = a;
@@ -293,7 +293,7 @@ inline FunctionCall::FunctionCall(class QoreNode *a, char *name)
 
 inline FunctionCall::FunctionCall(class QoreNode *a, class NamedScope *n)
 {
-   printd(5, "FunctionCall::FunctionCall(a=%08x, n=%s) FC_SELF this=%08x\n", a, n->ostr, this);
+   printd(5, "FunctionCall::FunctionCall(a=%08p, n=%s) FC_SELF this=%08p\n", a, n->ostr, this);
    type = FC_SELF;
    f.sfunc = new SelfFunctionCall(n);
    args = a;
@@ -301,7 +301,7 @@ inline FunctionCall::FunctionCall(class QoreNode *a, class NamedScope *n)
 
 inline FunctionCall::FunctionCall(class Method *m, class QoreNode *a)
 {
-   printd(5, "FunctionCall::FunctionCall(a=%08x, method=%08x %s) FC_SELF this=%08x\n", a, m, m->name, this);
+   printd(5, "FunctionCall::FunctionCall(a=%08p, method=%08p %s) FC_SELF this=%08p\n", a, m, m->name, this);
    type = FC_SELF;
    f.sfunc = new SelfFunctionCall(m);
    args = a;
@@ -323,7 +323,7 @@ inline FunctionCall::FunctionCall(class QoreProgram *p, class UserFunction *u, c
 
 inline FunctionCall::~FunctionCall()
 {
-   printd(5, "FunctionCall::~FunctionCall(): type=%d args=%08x (%s)\n",
+   printd(5, "FunctionCall::~FunctionCall(): type=%d args=%08p (%s)\n",
 	  type, args, (type == FC_UNRESOLVED && f.c_str) ? f.c_str : "(null)");
    // there could be object here in the case of a background expression
 
@@ -553,14 +553,14 @@ inline QoreNode *BuiltinFunction::eval(QoreNode *args, ExceptionSink *xsink)
    tracein("BuiltinFunction::eval(Node)");
    printd(3, "BuiltinFunction::eval(Node) calling builtin function \"%s\"\n", name);
    
-   //printd(5, "BuiltinFunction::eval(Node) args=%08x %s\n", args, args ? args->type->name : "(null)");
+   //printd(5, "BuiltinFunction::eval(Node) args=%08p %s\n", args, args ? args->type->name : "(null)");
 
    if (args)
       tmp = args->eval(&newsink);
    else
       tmp = NULL;
 
-   //printd(5, "BuiltinFunction::eval(Node) after eval tmp args=%08x %s\n", tmp, tmp ? tmp->type->name : "(null)");
+   //printd(5, "BuiltinFunction::eval(Node) after eval tmp args=%08p %s\n", tmp, tmp ? tmp->type->name : "(null)");
 
    // push call on call stack
    pushCall(name, CT_BUILTIN);

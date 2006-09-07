@@ -31,6 +31,7 @@
 #include <qore/common.h>
 #include <qore/ReferenceObject.h>
 #include <qore/RMutex.h>
+#include <qore/support.h>
 
 #include <stdio.h>
 
@@ -41,22 +42,23 @@
 
 typedef void (* q_private_t)(void *);
 
-class keyNode {
+class KeyNode {
    private:
       int key;
       void *ptr;
+      q_private_t f_ref, f_deref;
 
    public:
-      q_private_t ref, deref;
-      class keyNode *next;
+      class KeyNode *next;
 
-      inline keyNode(int k, void *p, q_private_t r, q_private_t d)
+      inline KeyNode(int k, void *p, q_private_t r, q_private_t d)
       {
 	 key = k;
 	 ptr = p;
-	 ref = r;
-	 deref = d;
+	 f_ref = r;
+	 f_deref = d;
 	 next = NULL;
+	 //printd(5, "KeyNode::KeyNode() this=%08p, key=%d, p=%08p\n", this, key, ptr);
       }
       inline int getKey()
       {
@@ -68,38 +70,54 @@ class keyNode {
       }
       inline void *getAndClearPtr()
       {
+	 //printd(5, "KeyNode::getAndClearPtr() this=%08p, key=%d, p=%08p\n", this, key, ptr);
 	 void *rv = ptr;
 	 ptr = NULL;
-	 ref = NULL;
-	 deref = NULL;
+#ifdef DEBUG
+	 f_ref = NULL;
+	 f_deref = NULL;
+#endif
 	 return rv;
+      }
+      inline class KeyNode *refNode()
+      {
+	 if (!ptr)
+	    return NULL;
+	 f_ref(ptr);
+	 return this;
+      }
+      inline void deref()
+      {
+	 f_deref(ptr);
       }
       inline void *refPtr()
       {
 	 if (!ptr)
 	    return NULL;
-	 ref(ptr);
+	 f_ref(ptr);
 	 return ptr;
+      }
+      inline void derefPtr()
+      {
+	 f_deref(ptr);
       }
 };
 
 // for objects with multiple classes, private data has to be keyed
-class keyList {
-      class keyNode *head, *tail;
+class KeyList {
+      class KeyNode *head, *tail;
       int len;
 
    public:
-      inline keyList();
-      inline ~keyList();
-      inline class keyNode *find(int k);
+      inline KeyList();
+      inline ~KeyList();
+      inline class KeyNode *find(int k);
       inline void insert(int k, void *ptr, q_private_t ref, q_private_t deref);
-      inline class keyNode *getPrivateDataNode(int key);
+      inline class KeyNode *getReferencedPrivateDataNode(int key);
       inline void *getReferencedPrivateData(int key)
       {
-	 class keyNode *kn = find(key);
-	 if (!kn)
-	    return NULL;
-	 return kn->refPtr();
+	 class KeyNode *kn = find(key);
+	 return kn ? kn->refPtr() : NULL;
       }
       inline void addToString(class QoreString *str);
       //inline bool compare(class KeyList *k);
@@ -111,7 +129,7 @@ class Object : public ReferenceObject
       class QoreClass *myclass;
       int status;
       class RMutex g;
-      class keyList *privateData;
+      class KeyList *privateData;
       class ReferenceObject tRefs;  // reference-references
       // FIXME: the only reason this is a pointer is because of include file conflicts :-(
       class Hash *data;
@@ -164,7 +182,7 @@ class Object : public ReferenceObject
       inline int isValid() { return status == OS_OK; }
 
       inline void setPrivate(int key, void *pd, q_private_t pdref, q_private_t pdderef);
-      inline class keyNode *getPrivateDataNode(int key);
+      inline class KeyNode *getReferencedPrivateDataNode(int key);
       inline void *getReferencedPrivateData(int key);
       inline void *getAndClearPrivateData(int key);
       inline void addPrivateDataToString(class QoreString *str);
@@ -214,13 +232,13 @@ static inline void alreadyDeleted(class ExceptionSink *xsink, char *cmeth)
    xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s() cannot be executed because the object has already been deleted", cmeth);
 }
 
-inline keyList::keyList()
+inline KeyList::KeyList()
 {
    head = tail = NULL;
    len = 0;
 }
 
-inline keyList::~keyList()
+inline KeyList::~KeyList()
 {
    while (head)
    {
@@ -230,9 +248,9 @@ inline keyList::~keyList()
    }
 }
 
-inline class keyNode *keyList::find(int k)
+inline class KeyNode *KeyList::find(int k)
 {
-   keyNode *w = head;
+   KeyNode *w = head;
    while (w)
    {
       if (w->getKey() == k)
@@ -242,9 +260,9 @@ inline class keyNode *keyList::find(int k)
    return w;
 }
 
-inline void keyList::addToString(class QoreString *str)
+inline void KeyList::addToString(class QoreString *str)
 {
-   keyNode *w = head;
+   KeyNode *w = head;
    while (w)
    {
       str->sprintf("%d=<0x%08p>, ", w->getKey(), w->getPtr());
@@ -252,15 +270,15 @@ inline void keyList::addToString(class QoreString *str)
    }
 }
 
-inline void keyList::insert(int k, void *ptr, q_private_t ref, q_private_t deref)
+inline void KeyList::insert(int k, void *ptr, q_private_t ref, q_private_t deref)
 {
 #ifdef DEBUG
    // see if key exists - should never happen
    if (find(k))
-      run_time_error("keyList::insert duplicate key=%d ptr=%08p", k, ptr);
+      run_time_error("KeyList::insert duplicate key=%d ptr=%08p", k, ptr);
 #endif
 
-   class keyNode *n = new keyNode(k, ptr, ref, deref);
+   class KeyNode *n = new KeyNode(k, ptr, ref, deref);
    if (tail)
       tail->next = n;
    else
@@ -269,37 +287,12 @@ inline void keyList::insert(int k, void *ptr, q_private_t ref, q_private_t deref
    len++;
 }
 
-/*
-// 0 = equal, 1 = not equal
-inline bool keyList::compare(class KeyList *k)
+inline class KeyNode *KeyList::getReferencedPrivateDataNode(int key)
 {
-   if (len != k->len)
-      return 1;
-
-   bool rc = 0;
-
-   keyNode *w = head;
-   while (w)
-   {
-      keyNode *kn = k->find(w->key);
-      if (!kn || kn->ptr != w->ptr)
-      {
-	 rc = 1;
-	 break;
-      }
-
-      w = w->next;
-   }
-   return rc;
-}
-*/
-
-inline class keyNode *keyList::getPrivateDataNode(int key)
-{
-   class keyNode *kn = find(key);
-   if (!kn || !kn->ref || !kn->getPtr())
+   class KeyNode *kn = find(key);
+   if (!kn)
       return NULL;
-
+   kn->refPtr();
    return kn;
 }
 
@@ -318,7 +311,6 @@ inline void Object::init(class QoreClass *oc, class QoreProgram *p)
    status = OS_OK;
 
    myclass = oc; 
-   //oc->ref();
    pgm = p;
    // instead of referencing the class, we reference the program, because the
    // program contains the namespace that contains the class, and the class'
@@ -669,13 +661,13 @@ inline bool Object::validInstanceOf(int cid)
    return myclass->getClass(cid);
 }
 
-inline class keyNode *Object::getPrivateDataNode(int key) 
+inline class KeyNode *Object::getReferencedPrivateDataNode(int key) 
 { 
-   class keyNode *rv = NULL;
+   class KeyNode *rv = NULL;
 
    g.enter();
    if (status != OS_DELETED && privateData)
-      rv = privateData->getPrivateDataNode(key);
+      rv = privateData->getReferencedPrivateDataNode(key);
    g.exit();
    return rv;
 }
@@ -698,7 +690,7 @@ inline void *Object::getAndClearPrivateData(int key)
    g.enter();
    if (privateData)
    {
-      class keyNode *kn = privateData->find(key);
+      class KeyNode *kn = privateData->find(key);
       if (kn)
 	 rv = kn->getAndClearPtr();
    }
@@ -710,7 +702,7 @@ inline void Object::setPrivate(int key, void *pd, q_private_t pdref, q_private_t
 { 
    g.enter();
    if (!privateData)
-      privateData = new keyList();
+      privateData = new KeyList();
    privateData->insert(key, pd, pdref, pdderef);
    g.exit();
 }

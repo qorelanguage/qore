@@ -84,7 +84,7 @@ class QueryList : public LockedObject
       inline ~QueryList()
       {
 	 if (head)
-	    run_time_error("QueryList still has members (head=%08x, tail=%08x)", head, tail);
+	    run_time_error("QueryList still has members (head=%08p, tail=%08p)", head, tail);
       }
 #endif
       inline int register(class Query *q)
@@ -117,7 +117,7 @@ class QueryList : public LockedObject
 	 class QueryNode *qn = findUnlocked(q);
 #ifdef DEBUG
 	 if (!qn)
-	    run_time_error("can't deregister unknown query %08x \"%s\"", q, q->name);
+	    run_time_error("can't deregister unknown query %08p \"%s\"", q, q->name);
 #endif
 	 if (qn->prev)
 	    qn->prev->next = qn->next;
@@ -603,7 +603,7 @@ inline QoreString *QPartList::getSQL(ExceptionSink *xsink, int dyn)
 inline Query::Query(char *nme, class Datasource *ds, char *qstr, int stc, ExceptionSink *xsink)
 {
    tracein("Query::Query()");
-   printd(5, "Query::Query(\"%s\", %08x, %08x=%s)\n", nme, ds, qstr, qstr);
+   printd(5, "Query::Query(\"%s\", %08p, %08p=%s)\n", nme, ds, qstr, qstr);
    name = nme ? strdup(nme) : NULL;
    regustered = 0;
    datasource = ds;

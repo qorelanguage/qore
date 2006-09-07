@@ -39,8 +39,8 @@ class QoreNode *Method::eval(Object *self, QoreNode *args, ExceptionSink *xsink)
    tracein("Method::eval()");
 #ifdef DEBUG
    char *oname = self->getClass()->name;
-   printd(5, "Method::eval() %s::%s() (object=%08x, privateDataNode=%08x, pgm=%08x)\n", 
-	  oname, name, self, self->getPrivateDataNode(self->getClass()->getID()), self->getProgram());
+   printd(5, "Method::eval() %s::%s() (object=%08p, pgm=%08p)\n", 
+	  oname, name, self, self->getProgram());
 #endif
 
    int need_deref = 0;
@@ -51,9 +51,9 @@ class QoreNode *Method::eval(Object *self, QoreNode *args, ExceptionSink *xsink)
    {
       if (args->val.list->needs_eval)
       {
-	 printd(5, "Method::eval() about to evaluate args=%08x (%s)\n", args, args->type->name);
+	 printd(5, "Method::eval() about to evaluate args=%08p (%s)\n", args, args->type->name);
 	 new_args = args->eval(xsink);
-	 printd(5, "Method::eval() args=%08x (%s) new_args=%08x (%s)\n",
+	 printd(5, "Method::eval() args=%08p (%s) new_args=%08p (%s)\n",
 		args, args->type->name, new_args, new_args ? new_args->type->name : "NONE");
 	 if (xsink->isEvent())
 	 {
@@ -87,13 +87,12 @@ class QoreNode *Method::eval(Object *self, QoreNode *args, ExceptionSink *xsink)
    else
    {
       // get referenced object
-      class keyNode *kn = self->getPrivateDataNode(func.builtin->myclass->getID());
+      class KeyNode *kn = self->getReferencedPrivateDataNode(func.builtin->myclass->getID());
 
       if (kn)
       {
-	 kn->ref(kn->getPtr());
 	 rv = func.builtin->evalMethod(self, kn->getPtr(), new_args, xsink);
-	 kn->deref(kn->getPtr());
+	 kn->deref();
       }
       else
       {
@@ -111,7 +110,7 @@ class QoreNode *Method::eval(Object *self, QoreNode *args, ExceptionSink *xsink)
    if (new_args && need_deref)
       new_args->deref(xsink);
 #ifdef DEBUG
-   printd(5, "Method::eval() %s::%s() returning %08x (type=%s, refs=%d)\n",
+   printd(5, "Method::eval() %s::%s() returning %08p (type=%s, refs=%d)\n",
 	  oname, name, rv, rv ? rv->type->name : "(null)", rv ? rv->reference_count() : 0);
 #endif
    traceout("Method::eval()");
@@ -123,8 +122,8 @@ void Method::evalConstructor(Object *self, QoreNode *args, class BCList *bcl, cl
    tracein("Method::evalConstructor()");
 #ifdef DEBUG
    char *oname = self->getClass()->name;
-   printd(5, "Method::evalConstructor() %s::%s() (object=%08x, privateDataNode=%08x, pgm=%08x)\n", 
-	  oname, name, self, self->getPrivateDataNode(self->getClass()->getID()), self->getProgram());
+   printd(5, "Method::evalConstructor() %s::%s() (object=%08p, pgm=%08p)\n", 
+	  oname, name, self, self->getProgram());
 #endif
 
    int need_deref = 0;
@@ -135,9 +134,9 @@ void Method::evalConstructor(Object *self, QoreNode *args, class BCList *bcl, cl
    {
       if (args->val.list->needs_eval)
       {
-	 printd(5, "Method::evalConstructor() about to evaluate args=%08x (%s)\n", args, args->type->name);
+	 printd(5, "Method::evalConstructor() about to evaluate args=%08p (%s)\n", args, args->type->name);
 	 new_args = args->eval(xsink);
-	 printd(5, "Method::evalConstructor() args=%08x (%s) new_args=%08x (%s)\n",
+	 printd(5, "Method::evalConstructor() args=%08p (%s) new_args=%08p (%s)\n",
 		args, args->type->name, new_args, new_args ? new_args->type->name : "NONE");
 	 if (xsink->isEvent())
 	 {
@@ -211,13 +210,12 @@ void Method::evalCopy(Object *self, Object *old, ExceptionSink *xsink)
    else // builtin function
    {
       // get referenced object
-      class keyNode *kn = old->getPrivateDataNode(func.builtin->myclass->getID());
+      class KeyNode *kn = old->getReferencedPrivateDataNode(func.builtin->myclass->getID());
 
       if (kn)
       {
-	 kn->ref(kn->getPtr());
 	 func.builtin->evalCopy(self, old, kn->getPtr(), xsink);
-	 kn->deref(kn->getPtr());
+	 kn->deref();
       }
       else
       {
@@ -273,7 +271,7 @@ class QoreClass *QoreClass::copyAndDeref()
    tracein("QoreClass::copyAndDeref");
    class QoreClass *noc = new QoreClass(name, classID);
 
-   printd(0, "QoreClass::copyAndDeref() name=%s (%08x) new name=%s (%08x)\n", name, name, noc->name, noc->name);
+   printd(0, "QoreClass::copyAndDeref() name=%s (%08p) new name=%s (%08p)\n", name, name, noc->name, noc->name);
 
    // set up function list
 
@@ -410,7 +408,7 @@ class QoreNode *QoreClass::evalMethod(Object *self, char *nme, QoreNode *args, c
 class QoreNode *QoreClass::evalMethodGate(Object *self, char *nme, QoreNode *args, ExceptionSink *xsink)
 {
    tracein("QoreClass::evalMethodGate()");
-   printd(5, "QoreClass::evalMethodGate() method=%s args=%08x\n", nme, args);
+   printd(5, "QoreClass::evalMethodGate() method=%s args=%08p\n", nme, args);
    // build new argument list
    if (args)
    {

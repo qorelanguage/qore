@@ -80,11 +80,11 @@ inline ModuleInfo::ModuleInfo(char *fn, qore_module_delete_t del)
 
 ModuleInfo::~ModuleInfo()
 {
-   printd(5, "ModuleInfo::~ModuleInfo() '%s': %s calling module_delete=%08x\n", name, filename, module_delete);
+   printd(5, "ModuleInfo::~ModuleInfo() '%s': %s calling module_delete=%08p\n", name, filename, module_delete);
    module_delete();
    if (dlptr)
    {
-      printd(5, "calling dlclose(%08x)\n", dlptr);
+      printd(5, "calling dlclose(%08p)\n", dlptr);
 #ifndef DEBUG
       // do not close modules when debugging
       dlclose(dlptr);
@@ -311,7 +311,7 @@ class ModuleInfo *ModuleManager::loadModuleFromPath(char *path)
    // get qore module URL (optional)
    char *url = (char *)getsym(path, ptr, "qore_module_url");
 
-   printd(5, "ModuleManager::loadModuleFromPath(%s) %s: calling module_init@%08x\n", path, name, *module_init);
+   printd(5, "ModuleManager::loadModuleFromPath(%s) %s: calling module_init@%08p\n", path, name, *module_init);
 
    int err;
    // run initialization

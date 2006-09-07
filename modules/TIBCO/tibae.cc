@@ -234,7 +234,7 @@ static inline void set_properties(MAppProperties *appProperties, Hash *h, Except
 /*
 const char *MStringData::data(char const *type, unsigned int *p) const
 {
-   printd(0, "MStringData::data(%s, %08x) returning %s\n", type ? type : "(NULL)", p, "hello");
+   printd(0, "MStringData::data(%s, %08p) returning %s\n", type ? type : "(NULL)", p, "hello");
    return "hello";
 }
 */
@@ -314,7 +314,7 @@ void TIBAE_constructor(class Object *self, class QoreNode *params, class Excepti
       printd(4, "before QoreApp constructor\n");
       myQoreApp =
          new QoreApp(appProps, session_name, classlist, service, network, daemon);
-      printd(4, "after QoreApp constructor (%08x)\n", myQoreApp);
+      printd(4, "after QoreApp constructor (%08p)\n", myQoreApp);
 
       printd(4, "before start()\n");
       myQoreApp->start(Mfalse);
@@ -333,7 +333,7 @@ void TIBAE_constructor(class Object *self, class QoreNode *params, class Excepti
    }
    if (self->setPrivate(CID_TIBAE, myQoreApp, getTA, releaseTA))
       myQoreApp->deref(xsink);
-   printd(5, "TIBAE_constructor() this=%08x myQoreApp=%08x\n", self, myQoreApp);
+   printd(5, "TIBAE_constructor() this=%08p myQoreApp=%08p\n", self, myQoreApp);
    traceout("TIBAE_constructor");
 }
 

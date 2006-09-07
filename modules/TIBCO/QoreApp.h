@@ -360,7 +360,7 @@ inline MData *QoreApp::do_primitive_type(const MPrimitiveClassDescription *pcd, 
 
    if (v->type == NT_STRING)
    {
-      printd(3, "data=%08x val=\"%s\"\n", v->val.String->getBuffer(), v->val.String->getBuffer());
+      printd(3, "data=%08p val=\"%s\"\n", v->val.String->getBuffer(), v->val.String->getBuffer());
 #if (TIBCO_SDK == 4)
       return new MStringData(v->val.String->getBuffer());
 #else
@@ -559,10 +559,10 @@ inline MData *QoreApp::instantiate_modeledclass(const MModeledClassDescription *
 	    traceout("QoreApp::instantiate_modeledclass()");
 	    return NULL;
 	 }
-	 printd(5, "QoreApp::instantiate_modeledclass(): instantiating %s member %s (%08x %s)\n", 
+	 printd(5, "QoreApp::instantiate_modeledclass(): instantiating %s member %s (%08p %s)\n", 
 		mcd->getFullName().c_str(), key, t, t ? t->type->name : "(null)");
 	 MData *md = instantiate_class(t, mad->getAttributeClassDescription(), xsink);
-	 printd(5, "QoreApp::instantiate_modeledclass(): setting key=%s to md=%08x\n", key, md); 
+	 printd(5, "QoreApp::instantiate_modeledclass(): setting key=%s to md=%08p\n", key, md); 
 	 try {
 	    ma->set(key, md);
 	 }
@@ -637,7 +637,7 @@ inline MData *QoreApp::instantiate_union(const MUnionDescription *mud, QoreNode 
 	 delete mu;
 	 return NULL;
       }
-      printd(3, "QoreApp::instantiate_union(): instantiating %s member %s (%08x %s)\n", 
+      printd(3, "QoreApp::instantiate_union(): instantiating %s member %s (%08p %s)\n", 
 	     mud->getFullName().c_str(), key, t, t ? t->type->name : "(null)");
       MData *md;
       mu->set(key, md = instantiate_class(t, mmd->getMemberClassDescription(), xsink));
@@ -708,9 +708,9 @@ inline class QoreNode *QoreApp::map_mtree_to_node(MTree *msg, ExceptionSink *xsi
    MDataFactory mdf(mcr);
    if (msg)
    {
-      //printd(5, "msg=%08x name=%s data=%s\n", msg, msg->getName().c_str(), msg->toString().c_str());
+      //printd(5, "msg=%08p name=%s data=%s\n", msg, msg->getName().c_str(), msg->toString().c_str());
       MData *md = mdf.create(*msg);
-      //printd(5, "md=%08x\n", md);
+      //printd(5, "md=%08p\n", md);
       rv = map_mdata_to_node(md, xsink);
       delete md;
    }
@@ -727,11 +727,11 @@ inline void QoreApp::deref(ExceptionSink *xsink)
    if (ROdereference())
    {
       try {
-	 //printd(5, "QoreApp::deref() %08x: about to call stop()\n", this);
+	 //printd(5, "QoreApp::deref() %08p: about to call stop()\n", this);
 	 stop();
-	 //printd(5, "QoreApp::deref() %08x: about to delete\n", this);
+	 //printd(5, "QoreApp::deref() %08p: about to delete\n", this);
 	 delete this;
-	 //printd(5, "QoreApp::deref() %08x: returned from delete\n", this);
+	 //printd(5, "QoreApp::deref() %08p: returned from delete\n", this);
       }
       catch (MException &te)
       {

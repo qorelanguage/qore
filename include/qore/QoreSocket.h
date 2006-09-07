@@ -312,7 +312,7 @@ class QoreSocket
       // closes a socket but does not reset type
       inline int closeInternal() 
       {
-	 //printd(5, "QoreSocket::closeInternal(this=%08x) sock=%d\n", this, sock);
+	 //printd(5, "QoreSocket::closeInternal(this=%08p) sock=%d\n", this, sock);
 	 if (sock)
 	 {
 	    // if an SSL connection has been established, shut it down first
@@ -333,7 +333,7 @@ class QoreSocket
 	    del = false;
 	    port = -1;
 	    int rc = ::close(sock); 
-	    //printd(5, "QoreSocket::closeInternal(this=%08x) close(%d) returned %d\n", this, sock, rc);
+	    //printd(5, "QoreSocket::closeInternal(this=%08p) close(%d) returned %d\n", this, sock, rc);
 	    sock = 0;
 	    return rc;
 	 }

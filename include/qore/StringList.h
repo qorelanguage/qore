@@ -48,10 +48,36 @@ class charPtrNode {
       inline charPtrNode(char *s) { str = s; }
 };
 
+class StringListIterator {
+   private:
+      class StringNode *head, *ptr;
+
+   public:
+      inline StringListIterator(class StringList *l);
+
+      inline class StringNode *next()
+      {
+	 if (ptr)
+	    ptr = ptr->next;
+	 else
+	    ptr = head;
+	 return ptr;
+      }
+      inline char *getString()
+      {
+	 if (!ptr)
+	    return NULL;
+
+	 return ptr->str;
+      }
+};
+
 // double-ended string list - append at the start or end
 // frees all strings on deletion
 class StringList
 {
+   friend class StringListIterator;
+
    private:
       class StringNode *head, *tail;
 
@@ -212,5 +238,11 @@ class charPtrList
 	 }
       }
 };
+
+inline StringListIterator::StringListIterator(class StringList *l)
+{
+   ptr = NULL;
+   head = l->head;
+}
 
 #endif

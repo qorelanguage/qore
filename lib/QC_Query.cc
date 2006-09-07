@@ -123,7 +123,7 @@ static void Q_constructor(class Object *self, class QoreNode *params, ExceptionS
    {
 #ifdef DEBUG
       QoreNode *n = params->val.list->retrieve_entry(1);
-      printd(0, "Q_constructor() params[0]=%08x type=%s class=%s id=%d (CID_DATASOURCE=%d)\n",
+      printd(0, "Q_constructor() params[0]=%08p type=%s class=%s id=%d (CID_DATASOURCE=%d)\n",
 	     n, n->type->name, n->val.object->getClass(), n->val.object->getClass()->getID(), CID_DATASOURCE);
 #endif
       xsink->raiseException("QUERY-PARAMETER-ERROR", "expecting datasource as first parameter of Query() constructor");

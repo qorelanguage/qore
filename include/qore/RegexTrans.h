@@ -57,7 +57,7 @@ class RegexTrans
 // constructor used when parsing
 inline RegexTrans::RegexTrans()
 {
-   //printd(5, "RegexTrans::RegexTrans() this=%08x\n", this);
+   //printd(5, "RegexTrans::RegexTrans() this=%08p\n", this);
    source = new QoreString();
    target = new QoreString();
    sr = tr = false;
@@ -65,7 +65,7 @@ inline RegexTrans::RegexTrans()
 
 inline RegexTrans::~RegexTrans()
 {
-   //printd(5, "RegexTrans::~RegexTrans() this=%08x\n", this);
+   //printd(5, "RegexTrans::~RegexTrans() this=%08p\n", this);
    if (source)
       delete source;
    if (target)

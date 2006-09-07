@@ -146,7 +146,7 @@ inline class QoreClass *QoreClassList::find(char *name)
 
    while (w)
    {
-      //printd(5, "QoreClassList::find() this=%08x arg=%s %s\n", this, name, w->name);
+      //printd(5, "QoreClassList::find() this=%08p arg=%s %s\n", this, name, w->name);
       if (!strcmp(name, w->c->name))
 	 return w->c;
       w = w->next;
@@ -179,7 +179,7 @@ inline class QoreClass *QoreClassList::findChange(char *name)
 
    while (w)
    {
-      //printd(5, "QoreClassList::find() this=%08x arg=%s %s\n", this, name, w->name);
+      //printd(5, "QoreClassList::find() this=%08p arg=%s %s\n", this, name, w->name);
       if (!strcmp(name, w->c->name))
       {
 	 if (!w->c->is_unique())
@@ -199,7 +199,7 @@ inline class QoreClass *QoreClassList::find(int cid)
 
    while (w)
    {
-      //printd(5, "QoreClassList::find() this=%08x arg=%s %s\n", this, name, w->name);
+      //printd(5, "QoreClassList::find() this=%08p arg=%s %s\n", this, name, w->name);
       if (cid == w->c->getID())
 	 return w->c;
       w = w->next;
@@ -295,9 +295,9 @@ inline void QoreClassList::assimilate(class QoreClassList *n)
 #ifdef DEBUG
       class QoreClass *c;
       if ((c = find(nc->name)))
-	 run_time_error("QoreClassList::assimilate() this=%08x DUPLICATE CLASS %08x (%s)\n", this, nc, nc->name);
+	 run_time_error("QoreClassList::assimilate() this=%08p DUPLICATE CLASS %08p (%s)\n", this, nc, nc->name);
 #endif
-      printd(5, "QoreClassList::assimilate() this=%08x adding=%08x (%s)\n", this, nc, nc->name);
+      printd(5, "QoreClassList::assimilate() this=%08p adding=%08p (%s)\n", this, nc, nc->name);
       add(nc);
    }
 #else
@@ -310,9 +310,9 @@ inline void QoreClassList::assimilate(class QoreClassList *n)
 #ifdef DEBUG
       class QoreClass *c;
       if ((c = find(w->c->getID())))
-	 run_time_error("QoreClassList::assimilate() this=%08x DUPLICATE CLASS %08x (%s)\n", this, c, c->name);
+	 run_time_error("QoreClassList::assimilate() this=%08p DUPLICATE CLASS %08p (%s)\n", this, c, c->name);
 #endif
-      printd(5, "QoreClassList::assimilate() this=%08x adding=%08x (%s)\n", this, w->c, w->c->name);
+      printd(5, "QoreClassList::assimilate() this=%08p adding=%08p (%s)\n", this, w->c, w->c->name);
       w->next = NULL;
       add(w->c);
 

@@ -184,7 +184,7 @@ static void GETOPT_constructor(class Object *self, class QoreNode *params, Excep
       // get option names
       if (!val[0])
       {
-	 //printd(5, "making exception key='%s' tok=%08x val=%08x val='%s'\n", k, tok, val, val);
+	 //printd(5, "making exception key='%s' tok=%08p val=%08p val='%s'\n", k, tok, val, val);
 	 xsink->raiseException("GETOPT-PARAMETER-ERROR", "value of option key '%s' has no option specifiers", k);
 	 break;
       }

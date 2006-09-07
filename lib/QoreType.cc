@@ -87,7 +87,7 @@ static void simpleStringDelete(class QoreNode *n)
 
 static void temp_crefDelete(class QoreNode *n)
 {
-   //printd(5, "context ref, %s, %08x, %08x, delete\n", n->val.c_str, n, n->val.c_str);
+   //printd(5, "context ref, %s, %08p, %08p, delete\n", n->val.c_str, n, n->val.c_str);
    if (n->val.c_str)
       free(n->val.c_str);
 }

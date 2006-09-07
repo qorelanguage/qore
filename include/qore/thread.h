@@ -470,7 +470,7 @@ static inline void *endParsing()
    ThreadData *td = (ThreadData *)pthread_getspecific(thread_data_key);
    void *rv = td->parseState;
 
-   printd(5, "endParsing() ending parsing of \"%s\", returning %08x\n",
+   printd(5, "endParsing() ending parsing of \"%s\", returning %08p\n",
 	  td->pgm_file, rv);
    if (td->plStack)
    {

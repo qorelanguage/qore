@@ -129,7 +129,7 @@ class QoreTibrvFtMemberCallback : public TibrvFtMemberCallback
       {
 	 class Hash *rv = h;
 	 h = NULL;
-	 //printd(0, "callback getEvent() returning %08x\n", rv);
+	 //printd(0, "callback getEvent() returning %08p\n", rv);
 	 return rv;
       }
 };

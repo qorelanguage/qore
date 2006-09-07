@@ -126,10 +126,13 @@ static QoreNode *DS_exec(class Object *self, class Datasource *ds, class QoreNod
    if (!(p0 = test_param(params, NT_STRING, 0)))
       return NULL;
 
-   List *args = params->val.list->copyListFrom(1);
+   List *args = params->val.list->size() > 1 ? params->val.list->copyListFrom(1) : NULL;
    class QoreNode *rv = ds->exec(p0->val.String, args, xsink);
-   args->dereference(xsink);
-   delete args;
+   if (args)
+   {
+      args->dereference(xsink);
+      delete args;
+   }
    return rv;
 }
 
@@ -150,7 +153,14 @@ static QoreNode *DS_select(class Object *self, class Datasource *ds, class QoreN
    if (!p)
       return NULL;
 
-   return ds->select(p->val.String, xsink);
+   List *args = params->val.list->size() > 1 ? params->val.list->copyListFrom(1) : NULL;
+   class QoreNode *rv = ds->select(p->val.String, args, xsink);
+   if (args)
+   {
+      args->dereference(xsink);
+      delete args;
+   }
+   return rv;
 }
 
 static QoreNode *DS_selectRows(class Object *self, class Datasource *ds, class QoreNode *params, ExceptionSink *xsink)
@@ -159,7 +169,14 @@ static QoreNode *DS_selectRows(class Object *self, class Datasource *ds, class Q
    if (!p)
       return NULL;
 
-   return ds->selectRows(p->val.String, xsink);
+   List *args = params->val.list->size() > 1 ? params->val.list->copyListFrom(1) : NULL;
+   class QoreNode *rv = ds->selectRows(p->val.String, args, xsink);
+   if (args)
+   {
+      args->dereference(xsink);
+      delete args;
+   }
+   return rv;
 }
 
 /*

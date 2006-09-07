@@ -54,7 +54,7 @@ void QoreTibrvSender::sendSubject(char *subject, class Hash *data, char *replySu
 
    //printd(5, "subject='%s' replySubject='%s'\n", subject, replySubject ? replySubject : "not set");
    send(&msg, xsink);
-   //printd(0, "subject: %s msg=%08x sent OK\n", subject, data);
+   //printd(0, "subject: %s msg=%08p sent OK\n", subject, data);
 }
 
 class Hash *QoreTibrvSender::sendSubjectWithSyncReply(char *subject, class Hash *data, int64 timeout, class ExceptionSink *xsink)

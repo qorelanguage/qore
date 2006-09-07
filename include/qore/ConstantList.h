@@ -194,7 +194,7 @@ inline void ConstantList::parseInit()
    {
       printd(5, "ConstantList::parseInit() %s\n", i->first);
       parseInitConstantValue(&i->second, 0);
-      printd(5, "ConstantList::parseInit() constant %s resolved to %08x %s\n", 
+      printd(5, "ConstantList::parseInit() constant %s resolved to %08p %s\n", 
 	     i->first, i->second, i->second ? i->second->type->name : "NULL");
       if (!i->second)
 	 i->second = nothing();
@@ -347,14 +347,14 @@ inline void ConstantList::assimilate(class ConstantList *n, class ConstantList *
 
 inline void ConstantList::parseInit()
 {
-   //printd(5, "ConstantList::parseInit() head=%08x\n", head);
+   //printd(5, "ConstantList::parseInit() head=%08p\n", head);
    class CNode *w = head;
 
    while (w)
    {
       printd(5, "ConstantList::parseInit() %s\n", w->name);
       parseInitConstantValue(&w->val, 0);
-      printd(5, "ConstantList::parseInit() constant %s resolved to %08x %s\n", 
+      printd(5, "ConstantList::parseInit() constant %s resolved to %08p %s\n", 
 	     w->name, w->val, w->val ? w->val->type->name : "NULL");
       if (!w->val)
 	 w->val = nothing();

@@ -95,10 +95,10 @@ class QoreNode *Object::evalMember(class QoreNode *member, class ExceptionSink *
    class QoreNode *rv;
    char *mem = tstr->getBuffer();
    
-   //printd(5, "Object::evalMember() find_key(%s)=%08x myclass=%s\n", mem, find_key(mem), myclass ? myclass->name : "NONE");
+   //printd(5, "Object::evalMember() find_key(%s)=%08p myclass=%s\n", mem, find_key(mem), myclass ? myclass->name : "NONE");
    // if accessed outside the class and the member is a private member 
    class Object *obj = getStackObject();
-   printd(5, "Object::evalMember(%s) obj=%08x class=%s ID=%d stack obj=%08x class=%s ID=%d isPrivateMember=%s\n", mem, this, myclass->name, myclass->getID(), obj, obj ? obj->myclass->name : "(null)", obj ? obj->myclass->getID() : -1, myclass->isPrivateMember(mem) ? "true" : "false");
+   printd(5, "Object::evalMember(%s) obj=%08p class=%s ID=%d stack obj=%08p class=%s ID=%d isPrivateMember=%s\n", mem, this, myclass->name, myclass->getID(), obj, obj ? obj->myclass->name : "(null)", obj ? obj->myclass->getID() : -1, myclass->isPrivateMember(mem) ? "true" : "false");
 	  
    // if accessed outside the class and the member is a private member 
    if ((!obj || (obj && obj->myclass->getID() != myclass->getID())) && myclass->isPrivateMember(mem))
@@ -138,11 +138,11 @@ class QoreNode *Object::evalMember(class QoreNode *member, class ExceptionSink *
 // does a deep dereference and execs destructor if necessary
 void Object::dereference(ExceptionSink *xsink)
 {
-   printd(5, "Object::dereference(this=%08x) class=%s %d->%d\n", this, myclass->name, references, references - 1);
+   printd(5, "Object::dereference(this=%08p) class=%s %d->%d\n", this, myclass->name, references, references - 1);
    if (ROdereference())
    {
       // no need to lock here; we are the last one to access this object
-      printd(5, "Object::dereference() class=%s deleting this=%08x\n", myclass->name, this);
+      printd(5, "Object::dereference() class=%s deleting this=%08p\n", myclass->name, this);
       if (status == OS_OK)
       {
 	 // reference for destructor
@@ -152,7 +152,7 @@ void Object::dereference(ExceptionSink *xsink)
       }
       else
       {
-	 printd(5, "Object::dereference() %08x data=%08x status=%d\n", this, data, status);
+	 printd(5, "Object::dereference() %08p data=%08p status=%d\n", this, data, status);
       }
       tDeref();
    }
@@ -247,7 +247,7 @@ void Object::doDelete(class ExceptionSink *xsink)
    }
    status = OS_BEING_DELETED;
    g.exit();
-   printd(5, "Object::doDelete(this=%08x) calling destructor()\n", this);
+   printd(5, "Object::doDelete(this=%08p) calling destructor()\n", this);
 
    myclass->execDestructor(this, xsink);
 

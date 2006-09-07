@@ -288,7 +288,7 @@ class CryptoHelper : public BaseHelper
 
 	 EVP_CIPHER_CTX_cleanup(&ctx);
 	 output_len += tmplen;
-	 //printd(5, "cipher_intern() %s: in=%08x (%d) out=%08x (%d)\n", cipher, buf, len, cbuf, *size);
+	 //printd(5, "cipher_intern() %s: in=%08p (%d) out=%08p (%d)\n", cipher, buf, len, cbuf, *size);
 	 return 0;
       }
 

@@ -42,6 +42,11 @@
 
 #define NUM_DBI_CAPS 4
 
+#define BN_PLACEHOLDER  0
+#define BN_VALUE        1
+
+#define DBI_DEFAULT_STR_LEN 512
+
 void init_dbi_functions();
 class Namespace *getSQLNamespace();
 
@@ -55,31 +60,32 @@ extern struct dbi_cap_hash dbi_cap_list[];
 
 class Hash *parseDatasource(char *ds, class ExceptionSink *xsink);
 
+typedef int (*q_dbi_init_t)(class Datasource *, class ExceptionSink *xsink);
+typedef int (*q_dbi_close_t)(class Datasource *);
+typedef class QoreNode *(*q_dbi_select_t)(class Datasource *, class QoreString *, class List *, class ExceptionSink *xsink);
+typedef class QoreNode *(*q_dbi_select_rows_t)(class Datasource *, class QoreString *, class List *, class ExceptionSink *xsink);
+typedef class QoreNode *(*q_dbi_exec_t)(class Datasource *, class QoreString *, class List *args, class ExceptionSink *xsink);
+typedef int (*q_dbi_commit_t)(class Datasource *, class ExceptionSink *xsink);
+typedef int (*q_dbi_rollback_t)(class Datasource *, class ExceptionSink *xsink);
+
 class DBIDriverFunctions {
    public:
-      int (*init)(class Datasource *, class ExceptionSink *xsink);
-      int (*close)(class Datasource *);
-      class QoreNode *(*select)(class Datasource *, class QoreString *, class ExceptionSink *xsink);
-      class QoreNode *(*selectRows)(class Datasource *, class QoreString *, class ExceptionSink *xsink);
-      class QoreNode *(*execSQL)(class Datasource *, class QoreString *, class List *args, class ExceptionSink *xsink);
-      class Hash *(*describe)(class Datasource *, char *, class ExceptionSink *xsink);
-      int (*commit)(class Datasource *, class ExceptionSink *xsink);
-      int (*rollback)(class Datasource *, class ExceptionSink *xsink);
-      DBIDriverFunctions(int (*p_init)(class Datasource *, class ExceptionSink *xsink),
-			 int (*p_close)(class Datasource *),
-			 class QoreNode *(*p_select)(class Datasource *, class QoreString *, class ExceptionSink *xsink),
-			 class QoreNode *(*p_selectRows)(class Datasource *, class QoreString *, class ExceptionSink *xsink),
-			 class QoreNode *(*p_execSQL)(class Datasource *, class QoreString *, class List *args, class ExceptionSink *xsink),
-			 class Hash *(*p_describe)(class Datasource *, char *, class ExceptionSink *xsink),
-			 int (*p_commit)(class Datasource *, class ExceptionSink *xsink),
-			 int (*p_rollback)(class Datasource *, class ExceptionSink *xsink))
+      q_dbi_init_t init;
+      q_dbi_close_t close;
+      q_dbi_select_t select;
+      q_dbi_select_rows_t selectRows;
+      q_dbi_exec_t execSQL;
+      q_dbi_commit_t commit;
+      q_dbi_rollback_t rollback;
+
+      DBIDriverFunctions(q_dbi_init_t p_init, q_dbi_close_t p_close, q_dbi_select_t p_select, q_dbi_select_rows_t p_selectRows,
+			 q_dbi_exec_t p_execSQL, q_dbi_commit_t p_commit, q_dbi_rollback_t p_rollback)
       {
 	 init = p_init;
 	 close = p_close;
 	 select = p_select;
 	 selectRows = p_selectRows;
 	 execSQL = p_execSQL;
-	 describe = p_describe;
 	 commit = p_commit;
 	 rollback = p_rollback;
       }
@@ -96,10 +102,9 @@ class DBIDriver {
       inline ~DBIDriver();
       inline int init(class Datasource *ds, class ExceptionSink *xsink);
       inline int close(class Datasource *ds);
-      inline class QoreNode *select(class Datasource *ds, class QoreString *sql, class ExceptionSink *xsink);
-      inline class QoreNode *selectRows(class Datasource *ds, class QoreString *sql, class ExceptionSink *xsink);
+      inline class QoreNode *select(class Datasource *ds, class QoreString *sql, class List *args, class ExceptionSink *xsink);
+      inline class QoreNode *selectRows(class Datasource *ds, class QoreString *sql, class List *args, class ExceptionSink *xsink);
       inline class QoreNode *execSQL(class Datasource *ds, class QoreString *sql, class List *args, class ExceptionSink *xsink);
-      inline class Hash *describe(class Datasource *ds, char *sql, class ExceptionSink *xsink);
       inline int commit(class Datasource *, class ExceptionSink *xsink);
       inline int rollback(class Datasource *, class ExceptionSink *xsink);
       inline int getCaps()
@@ -142,7 +147,7 @@ class DBIDriverList {
 	 
 	 while (w)
 	 {
-	    //printd(5, "find(%s) %08x=%s (next=%08x)\n", name, w, w->name, w->next); 
+	    //printd(5, "find(%s) %08p=%s (next=%08p)\n", name, w, w->name, w->next); 
 	    if (!strcmp(name, w->name))
 	       break;
 	    w = w->next;
@@ -203,24 +208,19 @@ inline int DBIDriver::close(class Datasource *ds)
    return f->close(ds);
 }
 
-inline class QoreNode *DBIDriver::select(class Datasource *ds, class QoreString *sql, class ExceptionSink *xsink)
+inline class QoreNode *DBIDriver::select(class Datasource *ds, class QoreString *sql, class List *args, class ExceptionSink *xsink)
 {
-   return f->select(ds, sql, xsink);
+   return f->select(ds, sql, args, xsink);
 }
 
-inline class QoreNode *DBIDriver::selectRows(class Datasource *ds, class QoreString *sql, class ExceptionSink *xsink)
+inline class QoreNode *DBIDriver::selectRows(class Datasource *ds, class QoreString *sql, class List *args, class ExceptionSink *xsink)
 {
-   return f->selectRows(ds, sql, xsink);
+   return f->selectRows(ds, sql, args, xsink);
 }
 
 inline class QoreNode *DBIDriver::execSQL(class Datasource *ds, class QoreString *sql, class List *args, class ExceptionSink *xsink)
 {
    return f->execSQL(ds, sql, args, xsink);
-}
-
-inline class Hash *DBIDriver::describe(class Datasource *ds, char *sql, class ExceptionSink *xsink)
-{
-   return f->describe(ds, sql, xsink);
 }
 
 inline int DBIDriver::commit(class Datasource *ds, class ExceptionSink *xsink)

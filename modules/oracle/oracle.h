@@ -44,7 +44,7 @@
 
 #define MAXINT32 2147483647   // 2^^32 - 1
 
-//FIXME not correct on 64-bit platforms
+// FIXME: do not hardcode byte widths - could be incorrect on some platforms
 union ora_value {
       void *ptr;
       int i4;
@@ -158,9 +158,6 @@ union ora_bind {
       } v;
 };
 
-#define BV_PLACEHOLDER  0
-#define BV_VALUE        1
-
 class OraBindNode {
    public:
       int bindtype;
@@ -172,7 +169,7 @@ class OraBindNode {
 
       inline OraBindNode(class QoreNode *v) // for value nodes
       {
-	 bindtype = BV_VALUE;
+	 bindtype = BN_VALUE;
 	 data.v.value = v;
 	 data.v.tstr = NULL;
 	 buftype = 0;
@@ -180,7 +177,7 @@ class OraBindNode {
       }
       inline OraBindNode(char *name, int size, char *typ)
       {
-	 bindtype = BV_PLACEHOLDER;
+	 bindtype = BN_PLACEHOLDER;
 	 data.ph.name = name;
 	 data.ph.maxsize = size;
 	 data.ph.type = typ;
@@ -189,7 +186,7 @@ class OraBindNode {
       }
       inline ~OraBindNode()
       {
-	 if (bindtype == BV_PLACEHOLDER)
+	 if (bindtype == BN_PLACEHOLDER)
 	 {
 	    if (data.ph.name)
 	       free(data.ph.name);
@@ -260,13 +257,13 @@ class OraBindGroup {
 	    w = head;
 	 }
       }
-      inline void add(class QoreNode *v, class ExceptionSink *xsink)
+      inline void add(class QoreNode *v)
       {
 	 class OraBindNode *c = new OraBindNode(v);
 	 add(c);
 	 printd(5, "OraBindGroup::add()\n");
       }
-      inline void add(char *name, int size, char *type, class ExceptionSink *xsink)
+      inline void add(char *name, int size, char *type)
       {
 	 class OraBindNode *c = new OraBindNode(name, size, type);
 	 add(c);
@@ -275,6 +272,8 @@ class OraBindGroup {
       }
 
       class QoreNode *exec(class ExceptionSink *xsink);
+      class QoreNode *select(class ExceptionSink *xsink);
+      class QoreNode *selectRows(class ExceptionSink *xsink);
 };
 
 #endif

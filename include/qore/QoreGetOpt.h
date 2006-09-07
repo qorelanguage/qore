@@ -84,7 +84,7 @@ class QoreGetOpt {
 	 class QoreGetOptNode *w = head;
 	 while (w)
 	 {
-	    //printd(5, "QGO::find(%c) w=%08x %c next=%08x\n", opt, w, w->short_opt, w->next);
+	    //printd(5, "QGO::find(%c) w=%08p %c next=%08p\n", opt, w, w->short_opt, w->next);
 	    if (w->short_opt == opt)
 	       return w;
 	    w = w->next;
