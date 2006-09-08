@@ -27,7 +27,7 @@
 #include <qore/common.h>
 #include <qore/QoreNode.h>
 
-int tibae_module_init();
+class QoreString *tibae_module_init();
 void tibae_module_ns_init(class Namespace *rns, class Namespace *qns);
 void tibae_module_delete();
 

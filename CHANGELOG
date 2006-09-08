@@ -1,3 +1,15 @@
+2006.09.08: David Nichols
+	* doc updates
+	* removed include/qore/module.h - modules should only include 
+	  qore/ModuleManager.h
+	* module API changes: module_init routines should return a QoreString *
+	  with an error message when errors occur
+	* more descriptive errors are reported when module loading errors are
+	  encountered
+	* if a module provides a feature other than the one requested (when
+	  modules are loaded based on the required feature name) an error is
+	  raised and the module is not loaded
+
 2006.09.07: David Nichols
 	* "mysql" module: fixed placeholder binding to work properly with the
 	  Qore DBI syntax

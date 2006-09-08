@@ -67,9 +67,11 @@ automatic type mapping:
   float -> TIBRVMSG_F64
   TIBRVMSG_DATETIME <-> date
   TIBRVMSG_OPAQUE <-> binary
-  TIBRVMSG_STRING -> string (strings are marked with the default encoding for the object)
-  string -> TIBRVMSG_STRING (encoding conversions are made if necessary to the encoding set for the object)
-  TIBRVMSG_XML -> string
+  TIBRVMSG_STRING -> string     (strings are marked with the default encoding for the object)
+  string -> TIBRVMSG_STRING     (encoding conversions are made if necessary to the encoding set for the object)
+  TIBRVMSG_XML -> string        (to explicitly send this type, use the tibrv_xml() function)
+  TIBRVMSG_IPPORT16 -> int      (to explicitly send this type, use the tibrv_ipport16() function)
+  TIBRVMSG_IPADDR32 -> string   (produces a string like "192.168.1.1" - to explicitly send this type, use the tibrv_ipaddr32() function)
 
 to do explicit qore->tibrv type mapping, use the following helper functions supplied by the module:
   tibrv_i8()
@@ -82,7 +84,7 @@ to do explicit qore->tibrv type mapping, use the following helper functions supp
   tibrv_u64()
   tibrv_f32()
   tibrv_f64()
-  tibrv_ipport()
+  tibrv_ipport16()
   tibrv_ipaddr32()  - note: takes a string argument like "192.168.1.1"
   tibrv_xml()
   tibrv_bool()

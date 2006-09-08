@@ -26,7 +26,6 @@
 #include <qore/common.h>
 #include <qore/support.h>
 #include <qore/Namespace.h>
-#include <qore/module.h>
 
 #include "tuxedo-module.h"
 #include "tuxedo.h"

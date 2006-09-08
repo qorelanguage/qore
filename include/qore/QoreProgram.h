@@ -204,7 +204,7 @@ class QoreProgram : public ReferenceObject, private UserFunctionList, private Im
       inline class Var *createVar(char *name);
       inline void makeParseException(class QoreString *desc);
       inline void addParseException(class ExceptionSink *xsink);
-      inline void cannotProvideFeature(char *feature);
+      inline void cannotProvideFeature(class QoreString *desc);
       inline class Namespace *getRootNS() { return RootNS; }
       inline int getParseOptions() { return parse_options; }
       inline void exportUserFunction(char *name, class QoreProgram *p, class ExceptionSink *xsink);
@@ -685,7 +685,7 @@ inline void QoreProgram::addParseException(class ExceptionSink *xsink)
    parseSink->assimilate(xsink);
 }
 
-inline void QoreProgram::cannotProvideFeature(char *feature)
+inline void QoreProgram::cannotProvideFeature(class QoreString *desc)
 {
    tracein("QoreProgram::cannotProvideFeature()");
    
@@ -694,7 +694,8 @@ inline void QoreProgram::cannotProvideFeature(char *feature)
       parseSink->clear();
       requires_exception = true;
    }
-   class Exception *ne = new Exception("CANNOT-PROVIDE-FEATURE", "feature '%s' is not builtin and no module with this name can be loaded", feature);
+
+   class Exception *ne = new Exception("CANNOT-PROVIDE-FEATURE", desc);
    parseSink->raiseException(ne);
    
    traceout("QoreProgram::cannotProvideFeature()");

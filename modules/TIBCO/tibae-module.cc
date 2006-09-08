@@ -26,7 +26,6 @@
 #include <qore/common.h>
 #include <qore/support.h>
 #include <qore/Namespace.h>
-#include <qore/module.h>
 #include <qore/ModuleManager.h>
 
 #include "tibae-module.h"
@@ -47,9 +46,9 @@ qore_module_ns_init_t qore_module_ns_init = tibae_module_ns_init;
 qore_module_delete_t qore_module_delete = tibae_module_delete;
 #endif
 
-int tibae_module_init()
+class QoreString *tibae_module_init()
 {
-   return 0;
+   return NULL;
 }
 
 void tibae_module_ns_init(class Namespace *rns, class Namespace *qns)

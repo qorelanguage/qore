@@ -39,7 +39,6 @@
 #include <qore/LockedObject.h>
 #include <qore/QC_Datasource.h>
 #include <qore/DBI.h>
-#include <qore/module.h>
 #include <qore/ModuleManager.h>
 
 #include "qore-mysql.h"
@@ -1136,7 +1135,7 @@ static int qore_mysql_close_datasource(class Datasource *ds)
    return 0;
 }
 
-int qore_mysql_module_init()
+class QoreString *qore_mysql_module_init()
 {
    tracein("qore_mysql_module_init()");
 
@@ -1158,7 +1157,7 @@ int qore_mysql_module_init()
    DBID_MYSQL = DBI.registerDriver("mysql", ddf, mysql_caps);
 
    traceout("qore_mysql_module_init()");
-   return 0;
+   return NULL;
 }
 
 void qore_mysql_module_ns_init(class Namespace *rns, class Namespace *qns)

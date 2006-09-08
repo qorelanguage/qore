@@ -30,7 +30,10 @@
 #include <stdio.h>
 #include <string.h>
 
-typedef int (*qore_module_init_t)();
+#define QORE_MODULE_API_MAJOR 0
+#define QORE_MODULE_API_MINOR 1
+
+typedef class QoreString *(*qore_module_init_t)();
 typedef void (*qore_module_ns_init_t)(class Namespace *, class Namespace *);
 typedef void (*qore_module_delete_t)();
 
@@ -111,7 +114,6 @@ class ModuleManager : public LockedObject
       bool show_errors;
       class StringList autoDirList, moduleDirList;
 
-      inline void *getsym(char *path, void *ptr, char *sym);
       inline void addInternal(ModuleInfo *m)
       {
 	 m->next = head;
@@ -127,7 +129,7 @@ class ModuleManager : public LockedObject
 	 unlock();
 	 return m;
       }
-      class ModuleInfo *loadModuleFromPath(char *path);
+      class QoreString *loadModuleFromPath(char *path, char *feature = NULL, class ModuleInfo **mi = NULL);
       inline class ModuleInfo *find(char *name)
       {
 	 class ModuleInfo *w = head;
@@ -149,7 +151,7 @@ class ModuleManager : public LockedObject
       // retuns a list of module information hashes
       class List *getModuleList();
       // loads the named module, returns -1 for error
-      int loadModule(char *name, class QoreProgram *pgm = NULL);
+      class QoreString *loadModule(char *name, class QoreProgram *pgm = NULL);
 };
 
 extern class ModuleManager MM;

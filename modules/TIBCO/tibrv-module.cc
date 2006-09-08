@@ -26,7 +26,6 @@
 #include <qore/common.h>
 #include <qore/support.h>
 #include <qore/Namespace.h>
-#include <qore/module.h>
 #include <qore/ModuleManager.h>
 
 #include "tibrv.h"
@@ -56,17 +55,18 @@ qore_module_ns_init_t qore_module_ns_init = tibrv_module_ns_init;
 qore_module_delete_t qore_module_delete = tibrv_module_delete;
 #endif
 
-int tibrv_module_init()
+class QoreString *tibrv_module_init()
 {
    // initialize rendezvous
    TibrvStatus status = Tibrv::open();
    if (status != TIBRV_OK)
    {
-       fprintf(stderr, "ERROR: cannot open TIB/RV: status=%d: %s\n", (int)status, status.getText());
-       return 1;
+      class QoreString *err = new QoreString;
+      err->sprintf("cannot initialize TIB/RV library: status=%d: %s\n", (int)status, status.getText());
+      return err;
    }
    init_tibrv_functions();
-   return 0;
+   return NULL;
 }
 
 void tibrv_module_ns_init(class Namespace *rns, class Namespace *qns)

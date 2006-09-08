@@ -23,7 +23,6 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/module.h>
 #include <qore/BuiltinFunctionList.h>
 #include <qore/params.h>
 #include <qore/ModuleManager.h>
@@ -651,7 +650,7 @@ static class QoreNode *f_getmouse(class QoreNode *params, class ExceptionSink *x
 }
 #endif // NCURSES_MOUSE_VERSION
 
-int ncurses_module_init()
+class QoreString *ncurses_module_init()
 {
    tracein("ncurses_module_init()");
 
@@ -718,7 +717,7 @@ int ncurses_module_init()
 #endif // NCURSES_MOUSE_VERSION
 
    traceout("ncurses_module_init()");
-   return 0;
+   return NULL;
 }
 
 void ncurses_module_ns_init(class Namespace *rns, class Namespace *qns)

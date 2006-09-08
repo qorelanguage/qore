@@ -286,8 +286,9 @@ D2              [0-9]{2}
 <requires>[^\t\n\r]+                    {
                                            char *cn = trim(yytext);
 					   //printd(5, "scanner requesting feature: '%s'\n", cn);
-					   if (MM.loadModule(cn, getProgram()))
-					      getProgram()->cannotProvideFeature(cn);
+					   QoreString *err = MM.loadModule(cn, getProgram());
+					   if (err)
+					      getProgram()->cannotProvideFeature(err);
 					   free(cn);
 					   BEGIN(INITIAL);
                                         }

@@ -29,7 +29,6 @@
 #include <qore/params.h>
 #include <qore/charset.h>
 #include <qore/BinaryObject.h>
-#include <qore/module.h>
 #include <qore/BuiltinFunctionList.h>
 #include <qore/ql_xml.h>
 

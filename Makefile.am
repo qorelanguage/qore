@@ -69,7 +69,6 @@ noinst_HEADERS = \
 	include/qore/SingleExitGate.h \
 	include/qore/RegexSubst.h \
 	include/qore/RegexTrans.h \
-	include/qore/module.h \
 	include/qore/hash_map.h \
 	include/qore/ExecArgList.h \
 	include/qore/SwitchStatement.h \

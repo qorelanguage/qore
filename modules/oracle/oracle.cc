@@ -33,7 +33,6 @@
 #include <qore/charset.h>
 #include <qore/QC_Datasource.h>
 #include <qore/DBI.h>
-#include <qore/module.h>
 #include <qore/ModuleManager.h>
 
 #include "oracle.h"
@@ -1219,7 +1218,7 @@ static int oracle_close(class Datasource *ds)
    return 0;
 }
 
-int oracle_module_init()
+class QoreString *oracle_module_init()
 {
    tracein("oracle_module_init()");
 
@@ -1235,7 +1234,7 @@ int oracle_module_init()
    DBID_ORACLE = DBI.registerDriver("oracle", ddf, DBI_ORACLE_CAPS);
 
    traceout("oracle_module_init()");
-   return 0;
+   return NULL;
 }
 
 void oracle_module_ns_init(class Namespace *rns, class Namespace *qns)

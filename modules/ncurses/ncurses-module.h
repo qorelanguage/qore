@@ -24,7 +24,7 @@
 
 #define _QORE_NCURSES_MODULE_H
 
-int ncurses_module_init();
+class QoreString *ncurses_module_init();
 void ncurses_module_ns_init(class Namespace *rns, class Namespace *qns);
 void ncurses_module_delete();
 

@@ -91,6 +91,7 @@ class Exception {
       class Exception *next;
 
       inline Exception(char *e, char *fmt, ...);
+      inline Exception(char *e, class QoreString *desc);
       inline Exception(char *e, int sline, class QoreString *desc);
       Exception(class QoreNode *l);
       Exception(class Exception *old, class ExceptionSink *xsink);
@@ -224,6 +225,23 @@ inline Exception::Exception(char *e, int sline, class QoreString *d)
       line = sline;
    else
       line = get_pgm_counter();
+   
+   char *f = get_pgm_file();
+   file = f ? strdup(f) : NULL;
+   callStack = new QoreNode(getCallStack());
+
+   err = new QoreNode(e);
+   desc = new QoreNode(d);
+   arg = NULL;
+
+   next = NULL;
+}
+
+inline Exception::Exception(char *e, class QoreString *d)
+{
+   type = ET_SYSTEM;
+
+   line = get_pgm_counter();
    
    char *f = get_pgm_file();
    file = f ? strdup(f) : NULL;
