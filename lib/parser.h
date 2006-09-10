@@ -124,9 +124,10 @@
      SHIFT_RIGHT = 350,
      TOK_KEYS = 351,
      TOK_ELEMENTS = 352,
-     TOK_POP = 353,
-     TOK_SHIFT = 354,
-     NEG = 355
+     TOK_CHOMP = 353,
+     TOK_POP = 354,
+     TOK_SHIFT = 355,
+     NEG = 356
    };
 #endif
 /* Tokens.  */
@@ -225,9 +226,10 @@
 #define SHIFT_RIGHT 350
 #define TOK_KEYS 351
 #define TOK_ELEMENTS 352
-#define TOK_POP 353
-#define TOK_SHIFT 354
-#define NEG 355
+#define TOK_CHOMP 353
+#define TOK_POP 354
+#define TOK_SHIFT 355
+#define NEG 356
 
 
 
@@ -267,7 +269,7 @@ typedef union YYSTYPE {
       class QoreRegex *Regex;
 } YYSTYPE;
 /* Line 1447 of yacc.c.  */
-#line 271 "parser.h"
+#line 273 "parser.h"
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
 # define YYSTYPE_IS_TRIVIAL 1

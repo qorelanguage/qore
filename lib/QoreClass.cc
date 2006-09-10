@@ -389,7 +389,7 @@ class QoreNode *QoreClass::evalMethod(Object *self, char *nme, QoreNode *args, c
    }
 
    if (external)
-      if (w->priv)
+      if (w->isPrivate())
       {
 	 xsink->raiseException("METHOD-IS-PRIVATE", "%s::%s() is private and cannot be accessed externally", name, nme);
 	 traceout("QoreClass::evalMethod()");

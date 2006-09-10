@@ -149,9 +149,9 @@ void defaultExceptionHandler(Exception *e)
 
    while (e)
    {
-      class List *cs = e->callStack->val.list;
-
       printe("unhandled QORE %s exception thrown", e->type == ET_USER ? "User" : "System");
+
+      class List *cs = e->callStack->val.list;
       bool found = false;
       if (cs->size())
       {
@@ -268,5 +268,27 @@ void defaultExceptionHandler(Exception *e)
       e = e->next;
       if (e)
 	 printe("chained exception:\n");
+   }
+}
+
+void defaultWarningHandler(Exception *e)
+{
+   class ExceptionSink xsink;
+
+   while (e)
+   {
+      printe("warning encountered ");
+
+      if (e->file)
+	 printe("at %s:%d", e->file, e->line);
+      else if (e->line)
+	 printe("on line %d", e->line);
+      printe("\n");
+      
+      printe("%s: %s\n", e->err->val.String->getBuffer(), e->desc->val.String->getBuffer());
+
+      e = e->next;
+      if (e)
+	 printe("next warning:\n");
    }
 }

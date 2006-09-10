@@ -58,14 +58,11 @@ void PC_constructor(class Object *self, class QoreNode *params, ExceptionSink *x
    int y       = p2 ? p2->getAsInt() : 0;
    int x       = p3 ? p3->getAsInt() : 0;
 
+   qore_ncurses_init();
    class Panel *p = new Panel(lines, columns, y, x, xsink);
    if (xsink->isException())
       p->deref();
-   else
-   {
-      qore_ncurses_init();
-      self->setPrivate(CID_PANEL, p, getPanel, releasePanel);
-   }
+   self->setPrivate(CID_PANEL, p, getPanel, releasePanel);
 }
 
 void PC_destructor(class Object *self, class Panel *p, ExceptionSink *xsink)

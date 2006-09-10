@@ -49,16 +49,12 @@ static void DS_constructor(class Object *self, class QoreNode *params, Exception
    if (!p)
    {
       xsink->raiseException("DATASOURCE-PARAMETER-ERROR", "expecting database type as first parameter of Datasource() constructor");
-      // "de-type" self
-      self->doDeleteNoDestructor(xsink);
       return;
    }
    DBIDriver *db_driver = DBI.find(p->val.String->getBuffer());
    if (!db_driver)
    {
       xsink->raiseException("DATASOURCE-UNSUPPORTED-DATABASE", "no DBI driver can be found for database type \"%s\"", p->val.String->getBuffer());
-      // "de-type" self
-      self->doDeleteNoDestructor(xsink);
       return;
    }
    class Datasource *ds = new Datasource(db_driver);
@@ -298,8 +294,7 @@ static QoreNode *DS_getHostName(class Object *self, class Datasource *ds, class 
 
 static QoreNode *DS_setTransactionLockTimeout(class Object *self, class Datasource *ds, class QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0 = get_param(params, 0);
-   ds->setTransactionLockTimeout(p0 ? p0->getAsInt() : 0);
+   ds->setTransactionLockTimeout(getSecZeroInt(get_param(params, 0)));
    return NULL;
 }
 
@@ -312,7 +307,7 @@ class QoreClass *initDatasourceClass()
 {
    tracein("initDatasourceClass()");
 
-   class QoreClass *QC_DATASOURCE = new QoreClass(strdup("Datasource"));
+   class QoreClass *QC_DATASOURCE = new QoreClass(QDOM_DATABASE, strdup("Datasource"));
    CID_DATASOURCE = QC_DATASOURCE->getID();
    QC_DATASOURCE->setConstructor(DS_constructor);
    QC_DATASOURCE->setDestructor((q_destructor_t)DS_destructor);

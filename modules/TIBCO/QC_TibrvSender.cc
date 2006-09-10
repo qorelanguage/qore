@@ -121,8 +121,7 @@ static QoreNode *TIBRVSENDER_sendSubjectWithSyncReply(class Object *self, class 
       return NULL;
    }
    class Hash *h = pt->val.hash;
-   pt = get_param(params, 2);
-   int64 timeout = pt ? pt->getAsBigInt() : -1;
+   int64 timeout = getMsMinusOneBigInt(get_param(params, 2));
 
    h = trvs->sendSubjectWithSyncReply(subject, h, timeout, xsink);
    if (h)
@@ -153,7 +152,7 @@ class QoreClass *initTibrvSenderClass()
 {
    tracein("initTibrvSenderClass()");
 
-   class QoreClass *QC_TIBRVSENDER = new QoreClass(strdup("TibrvSender"));
+   class QoreClass *QC_TIBRVSENDER = new QoreClass(QDOM_NETWORK, strdup("TibrvSender"));
    CID_TIBRVSENDER = QC_TIBRVSENDER->getID();
    QC_TIBRVSENDER->setConstructor(TIBRVSENDER_constructor);
    QC_TIBRVSENDER->setDestructor((q_destructor_t)TIBRVSENDER_destructor);

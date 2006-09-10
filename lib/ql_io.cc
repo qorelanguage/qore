@@ -100,6 +100,12 @@ static class QoreNode *f_vprintf(class QoreNode *params, ExceptionSink *xsink)
    return node;
 }
 
+static class QoreNode *f_flush(class QoreNode *params, ExceptionSink *xsink)
+{
+   fflush(stdout);
+   return NULL;
+}
+
 void init_io_functions()
 {
    builtinFunctions.add("print", f_print);
@@ -109,4 +115,5 @@ void init_io_functions()
    builtinFunctions.add("f_printf", f_f_printf);
    builtinFunctions.add("vprintf", f_vprintf);
    builtinFunctions.add("vsprintf", f_vsprintf);
+   builtinFunctions.add("flush", f_flush);
 }

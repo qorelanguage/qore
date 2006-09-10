@@ -26,7 +26,7 @@
 
 #define _QORE_LIST_H
 
-class List {
+class List {   
       class QoreNode **entry;
       int length;
       int allocated;
@@ -69,6 +69,48 @@ class List {
       inline void splice(int offset, class ExceptionSink *xsink);
       inline void splice(int offset, int length, class ExceptionSink *xsink);
       inline void splice(int offset, int length, class QoreNode *l, class ExceptionSink *xsink);
+};
+
+#include <stdio.h>
+
+class ListIterator
+{
+private:
+   int pos;
+   class List *l;
+   
+public:
+   inline ListIterator(class List *lst) { l = lst; pos = -1; }
+   
+   inline bool next() 
+   { 
+      if (pos < 0)
+      {
+	 if (l->size())
+	    pos = 0;
+      }
+      else
+      {
+	 if (++pos == l->size())
+	    pos = -1;
+      }
+      return pos >= 0;
+   }
+   inline class QoreNode *getValue()
+   {
+      if (pos < 0)
+	 return NULL;
+      return l->retrieve_entry(pos);
+   }
+   inline class QoreNode **getValuePtr()
+   {
+      if (pos < 0)
+	 return NULL;
+      return l->get_entry_ptr(pos);
+   }
+   inline class QoreNode *eval(class ExceptionSink *xsink);
+   //inline bool last() { return (bool)(ptr ? !ptr->next : false); } 
+   //inline void setValue(class QoreNode *val, class ExceptionSink *xsink);
 };
 
 #include <qore/common.h>
@@ -382,6 +424,12 @@ void List::splice(int offset, int len, class QoreNode *l, class ExceptionSink *x
 {
    check_offset(offset, len);
    splice_intern(offset, len, l, xsink);
+}
+
+inline class QoreNode *ListIterator::eval(class ExceptionSink *xsink)
+{
+   // List::eval_entry() checks if the offset is < 0 already
+   return l->eval_entry(pos, xsink);
 }
 
 #endif

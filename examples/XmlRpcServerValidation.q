@@ -2,6 +2,7 @@
 
 # require global variables to be declared with "our" before use
 %require-our
+%enable-all-warnings
 
 %include xmlrpc.ql
 %include HTTPServer.qc

@@ -149,31 +149,9 @@ class QoreNode *map_mdata_to_node(MData *md, ExceptionSink *xsink)
    else if ((mr = MReal::downCast(md)))
       return new QoreNode(mr->getAsDouble());
    else if ((mdt = MDateTime::downCast(md)))
-   {
-      DateTime *dt = new DateTime;
-      dt->year        = mdt->getYear();
-      dt->month       = mdt->getMonth();
-      dt->day         = mdt->getDay();
-      dt->hour        = mdt->getHour();
-      dt->minute      = mdt->getMinute();
-      dt->second      = mdt->getSecond();
-      dt->millisecond = mdt->getMicroSeconds() / 1000;
-      dt->relative    = 0;
-      return new QoreNode(dt);
-   }
+      return new QoreNode(new DateTime(mdt->getYear(), mdt->getMonth(), mdt->getDay(), mdt->getHour(), mdt->getMinute(), mdt->getSecond(), mdt->getMicroSeconds() / 1000));
    else if ((mdate = MDate::downCast(md)))
-   {
-      DateTime *dt = new DateTime;
-      dt->year        = mdate->getYear();
-      dt->month       = mdate->getMonth();
-      dt->day         = mdate->getDay();
-      dt->hour        = 0;
-      dt->minute      = 0;
-      dt->second      = 0;
-      dt->millisecond = 0;
-      dt->relative    = 0;
-      return new QoreNode(dt);
-   }
+      return new QoreNode(new DateTime(mdate->getYear(), mdate->getMonth(), mdate->getDay()));
    else if ((mb = MBool::downCast(md)))
    {
       QoreNode *rv = new QoreNode(NT_BOOLEAN);
@@ -262,8 +240,6 @@ void TIBAE_constructor(class Object *self, class QoreNode *params, class Excepti
        !(p1 = test_param(params, NT_HASH, 1)))
    {
       xsink->raiseException("TIBCO-PARAMETER-ERROR", "invalid parameters passed to Tibco() constructor, expecting session name (string), properties (object), [classlist (object), service (string), network (string), daemon (string)]");
-      // "de-type" self
-      self->doDeleteNoDestructor(xsink);
       traceout("TIBAE_constructor");
       return;
    }
@@ -305,8 +281,6 @@ void TIBAE_constructor(class Object *self, class QoreNode *params, class Excepti
 	 classlist->dereference(xsink);
 	 delete classlist;
       }
-      // "de-type" self
-      self->doDeleteNoDestructor(xsink);
       return;
    }
    try 
@@ -326,13 +300,10 @@ void TIBAE_constructor(class Object *self, class QoreNode *params, class Excepti
 			 te.getType().c_str(), te.getDescription().c_str());
       if (myQoreApp)
 	 delete myQoreApp;
-      // "de-type" self
-      self->doDeleteNoDestructor(xsink);
       traceout("TIBAE_constructor");
       return;
    }
-   if (self->setPrivate(CID_TIBAE, myQoreApp, getTA, releaseTA))
-      myQoreApp->deref(xsink);
+   self->setPrivate(CID_TIBAE, myQoreApp, getTA, releaseTA);
    printd(5, "TIBAE_constructor() this=%08p myQoreApp=%08p\n", self, myQoreApp);
    traceout("TIBAE_constructor");
 }
@@ -443,7 +414,7 @@ class QoreClass *initTibcoAdapterClass()
 {
    tracein("initTibcoAdapterClass()");
 
-   class QoreClass *QC_TIBAE = new QoreClass(strdup("TibcoAdapter"));
+   class QoreClass *QC_TIBAE = new QoreClass(QDOM_NETWORK, strdup("TibcoAdapter"));
    CID_TIBAE = QC_TIBAE->getID();
    QC_TIBAE->setConstructor(TIBAE_constructor);
    QC_TIBAE->setDestructor((q_destructor_t)TIBAE_destructor);

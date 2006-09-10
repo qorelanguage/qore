@@ -1,5 +1,8 @@
 #!/usr/bin/env qore
 
+%require-our
+%enable-all-warnings
+
 class GateTest {
     constructor()
     {
@@ -38,20 +41,20 @@ class GateTest {
     }
 }
 
-$delay       = int(shift $ARGV);
-$num_threads = int(shift $ARGV);
-$iters       = int(shift $ARGV);
-$overall     = int(shift $ARGV);
+our $delay       = int(shift $ARGV);
+our $num_threads = int(shift $ARGV);
+our $iters       = int(shift $ARGV);
+our $overall     = int(shift $ARGV);
 
 printf("delay   = %d\n", $delay);
 printf("threads = %d\n", $num_threads);
 printf("iters   = %d\n", $iters);
 printf("overall = %d\n", $overall); 
 
-$obj1 = new GateTest();
-$obj2 = new GateTest();
+our $obj1 = new GateTest();
+our $obj2 = new GateTest();
 
-$queue = new Queue();
+our $queue = new Queue();
 
 sub delay($val)
 {
@@ -78,13 +81,6 @@ sub delay($val)
 
 sub gee($arg)
 {
-    my $ds;
-
-    if ($arg == "geronimo")
-	$ds = $s2;
-    else
-	$ds = $s1;
-
     for (my $i = 0; $i < $iters; $i++)
     {
 	$queue.push(sprintf("TID %3d (%3d/%3d) %s\n", gettid(), $i, $iters, $arg));
@@ -105,13 +101,13 @@ sub output()
 }
 
 # start message thread
-$otid = background output();
+our $otid = background output();
 
 #printf("thread 1 TID: %d\n", background gee("geronimo", $delay));
 for (my $i = 1; $i <= $num_threads; $i++)
     $queue.push(sprintf("thread %d TID: %d\n", $i, background gee(sprintf("thread %d", $i))));
 
-$o = $num_threads;
+our $o = $num_threads;
 try 
 {
     while (1)
@@ -152,7 +148,7 @@ catch ($ex)
         $ex.type, $ex.line, $ex.file, $ex.err, $ex.desc);
 }
 
-$queue.push(sprintf("key1=%s key2=%s mutex=%s\n", $obj.key1, $obj.key2, typename($obj.m)));
+$queue.push(sprintf("key1=%s key2=%s mutex=%s\n", $obj1.key1, $obj1.key2, typename($obj1.g)));
 
 # tell output thread to terminate
 $queue.push("exit");

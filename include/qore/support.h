@@ -77,6 +77,7 @@ static inline char *strtoupper(char *str)
 // the following functions are only referenced from C++ source
 void print_error_pos(char *type);
 void parse_error(const char *fmt, ...);
+void parseException(char *err, const char *fmt, ...);
 class QoreString *findFileInEnvPath(char *file, char *varname);
 
 #ifdef DEBUG

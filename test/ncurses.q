@@ -3,6 +3,7 @@
 %requires ncurses
 
 %no-global-vars
+%enable-all-warnings
 %exec-class ncurses_test
 
 Panel::myBox($y, $x, $lines, $cols)

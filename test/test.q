@@ -1,6 +1,10 @@
 #!/usr/bin/env qore 
 
+# require all global variables to be declared with "our"
 %require-our
+# enable all warnings
+%enable-all-warnings
+# child programs do not inherit parent's restrictions
 %no-child-restrictions
 
 # global variables needed for tests
@@ -439,7 +443,7 @@ sub statement_tests()
     test_value($a, 3, "do while");
     # for test
     my $b = 0;
-    for (my $a = 0; $a < 3; $a++)
+    for (my $i = 0; $i < 3; $i++)
 	$b++;
     test_value($a, 3, "for");
     test_value($b, 3, "for exec");    
@@ -452,15 +456,15 @@ sub statement_tests()
     test_value($b, 3, "foreach exec");
 
     my $list = my $x;
-    foreach my $x in (\$list) $x = "test";
+    foreach my $y in (\$list) $y = "test";
     test_value($list, NOTHING, "first foreach reference");
     
     $list = (1, 2, 3);
-    foreach my $x in (\$list) $x = "test";
+    foreach my $y in (\$list) $y = "test";
     test_value($list, ("test", "test", "test"), "second foreach reference");
     
     $list = 1;
-    foreach my $x in (\$list) $x = "test";
+    foreach my $y in (\$list) $y = "test";
     test_value($list, "test", "third foreach reference");
 
     # switch tests
@@ -780,11 +784,11 @@ sub string_tests()
     test_value("hello" !~ /123*/, True, "negative regular expression positive match");
 
     # regex substitution operator tests
-    my $l = ( "hello bar hi bar", "bar hello bar hi bar", "hello bar hi" );
+    $l = ( "hello bar hi bar", "bar hello bar hi bar", "hello bar hi" );
     test_value($l[0] =~ s/bar/foo/, "hello foo hi bar", "first non-global regular expression substitution");
     test_value($l[1] =~ s/bar/foo/, "foo hello bar hi bar", "second non-global regular expression substitution");
     test_value($l[2] =~ s/BAR/foo/i, "hello foo hi", "case-insensitive non-global regular expression substitution");
-    my $l = ( "hello bar hi bar", "bar hello bar hi bar", "hello bar hi" );
+    $l = ( "hello bar hi bar", "bar hello bar hi bar", "hello bar hi" );
     test_value($l[0] =~ s/bar/foo/g, "hello foo hi foo", "first global regular expression substitution");
     test_value($l[1] =~ s/bar/foo/g, "foo hello foo hi foo", "second global regular expression substitution");
     test_value($l[2] =~ s/BAR/foo/ig, "hello foo hi", "case-insensitive global regular expression substitution");
@@ -820,6 +824,20 @@ sub string_tests()
     test_value(regex_subst($a, "(\\w+) +(\\w+)", "$2, $1"), "def, abc", "first regular expression subpattern substitution");
     # here we use single-quotes, so the escape characters do not have to be escaped
     test_value(regex_subst($a, '(\w+) +(\w+)', "$2, $1"), "def, abc", "second regular expression subpattern substitution");
+
+    # chomp tests
+    $str = "hello\n";
+    chomp $str;
+    test_value($str, "hello", "first string chomp");
+    $str += "\r\n";
+    chomp $str;
+    test_value($str, "hello", "second string chomp");
+    $l = ( 1, "hello\n", 3.0, True, "test\r\n" );
+    chomp $l;
+    test_value($l, ( 1, "hello", 3.0, True, "test" ), "list chomp");
+    my $h = ( "key1" : "hello\n", "key2" : 2045, "key3": "test\r\n", "key4" : 302.223 );
+    chomp $h;
+    test_value($h, ( "key1" : "hello", "key2" : 2045, "key3": "test", "key4" : 302.223 ), "hash chomp");
 }
 
 sub pwd_tests()

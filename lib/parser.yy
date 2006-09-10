@@ -309,7 +309,7 @@ void yyerror(yyscan_t scanner, const char *str)
 %left '%'		      // modula
 %left '*' '/'		      // arithmetic multiply and divide
 %right TOK_ELEMENTS TOK_KEYS
-%nonassoc TOK_SHIFT TOK_POP 
+%nonassoc TOK_SHIFT TOK_POP TOK_CHOMP
 %left NEG		      // unary minus, defined for precedence
 %right '~' '\\'               // binary not, reference operator
 %left '!'		      // logical not
@@ -1332,6 +1332,16 @@ exp:    scalar
 	   }
 	   else
 	      $$ = makeTree(OP_POP, $2, NULL); 
+	}
+	| TOK_CHOMP exp
+	{
+	   if (check_lvalue($2))
+	   {
+	      parse_error("argument to chomp operator is not an lvalue");
+	      $$ = makeErrorTree(OP_CHOMP, $2, NULL); 
+	   }
+	   else
+	      $$ = makeTree(OP_CHOMP, $2, NULL); 
 	}
         | TOK_SPLICE exp  // splice lvalue-list, offset, [length, list]
         {

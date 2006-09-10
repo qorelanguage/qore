@@ -1,6 +1,6 @@
 #!/usr/bin/env qore
 
-$q = new Queue();
+our $q = new Queue();
 
 sub t()
 {
@@ -15,12 +15,13 @@ try
 }
 catch ($ex)
 {
-    #printf("%s threads\n", num_threads());
+    printf("%s threads\n", num_threads());
     $q.push(1);
     printf("%s: %s\n", $ex.err, $ex.desc);
 }
-while (True)
+while (num_threads() > 1)
 {
-    sleep(5);
-    printf("size=%d, threads=%d\n", $q.size(), num_threads());
+    printf("size=%d, threads=%d, sleeping for 0.5 seconds\n", $q.size(), num_threads());
+    usleep(500ms);
 }
+printf("done\n");

@@ -81,18 +81,22 @@ case "${host_os}" in
 # set compile flags for Linux
 CPPFLAGS="${CPPFLAGS} -D_GNU_SOURCE" 
 		SHLIB_SUFFIX=so
+		AC_DEFINE(LINUX, 1, if compiling on Linux)
 		;;
      *solaris*) # set compile flags for Solaris
 CPPFLAGS="${CPPFLAGS} -D_POSIX_C_SOURCE=199506L -D_XPG4_2 -D_XPG5 -D__EXTENSIONS__"
 # for checking for some network functions on Solaris
 LDFLAGS="-lnsl -norunpath"
+		AC_DEFINE(SOLARIS, 1, if compiling on Solaris)
 	        ;;
      *darwin*)  SHLIB_SUFFIX=dylib
 		# libtool 1.5.10 is creating modules on Darwin 8.2.0 (OS/X 10.4.2) with a .so suffix for some reason
 		MODULE_SUFFIX=so
+		AC_DEFINE(DARWIN, 1, if compiling on Darwin)
 		;;
      *hpux*)    SHLIB_SUFFIX=sl 
 		AC_DEFINE(SHLIB_SUFFIX, "sl", shared library suffix)
+		AC_DEFINE(HPUX, 1, if compiling on HP-UX)
 		;;
 esac
 AC_SUBST(SHLIB_SUFFIX)

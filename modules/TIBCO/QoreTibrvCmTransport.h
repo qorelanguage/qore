@@ -234,6 +234,15 @@ class QoreTibrvCmReviewCallback : public TibrvCmReviewCallback
 	 if (l)
 	    delete l;
       }
+
+      inline void cleanup()
+      {
+	 if (l)
+	 {
+	    delete l;
+	    l = NULL;
+	 }
+      }
       
       inline class QoreNode *getLedger(class ExceptionSink *xs)
       {
@@ -253,6 +262,11 @@ inline class QoreNode *QoreTibrvCmTransport::reviewLedger(char *subject, class E
 {
    class QoreTibrvCmReviewCallback cb;
    TibrvStatus status = cmTransport.reviewLedger(&cb, (const char *)subject, this);
+   if (status != TIBRV_OK)
+   {
+      xsink->raiseException("TIBRV-REVIEW-LEDGER-ERROR", "%s", (char *)status.getText());
+      return NULL;
+   }
 
    return cb.getLedger(xsink);
 }

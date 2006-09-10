@@ -35,6 +35,7 @@
 #include <qore/Exception.h>
 #include <qore/ParserSupport.h>
 #include <qore/QoreClass.h>
+#include <qore/QoreWarnings.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -875,6 +876,21 @@ static inline lvh_t push_local_var(char *name)
 {
    class VNode *vnode;
 
+   // check stack for duplicate entries
+   if (getProgram()->checkWarning(QP_WARN_DUPLICATE_LOCAL_VARS))
+   {
+      vnode = getVStack();
+      while (vnode)
+      {
+	 if (!strcmp(vnode->name, name))
+	 {
+	    getProgram()->makeParseWarning(QP_WARN_DUPLICATE_LOCAL_VARS, "DUPLICATE-LOCAL-VARIABLE", "local variable '%s' was already declared in this lexical scope", name);
+	    break;
+	 }
+	 vnode = vnode->next;
+      }
+   }
+   
    //printd(5, "push_local_var(): pushing var %s\n", name);
    vnode = new class VNode(name);
    vnode->next = getVStack();
@@ -1159,11 +1175,16 @@ static int process_node(class QoreNode **node, lvh_t oflag, int pflag)
       return lvids;
    }
 
-   // for "new" calls
+   // for the "new" operator
    if ((*node)->type == NT_SCOPE_REF)
    {
       // find object class
-      (*node)->val.socall->oc = parseFindScopedClass((*node)->val.socall->name);
+      if (((*node)->val.socall->oc = parseFindScopedClass((*node)->val.socall->name)))
+      {
+	 // check if parse options allow access to this class
+	 if ((*node)->val.socall->oc->getDomain() & getProgram()->getParseOptions())
+	    parseException("ILLEGAL-CLASS-INSTANTIATION", "parse options do not allow access to the '%s' class", (*node)->val.socall->oc->name);
+      }
       delete (*node)->val.socall->name;
       (*node)->val.socall->name = NULL;
       if ((*node)->val.socall->args)

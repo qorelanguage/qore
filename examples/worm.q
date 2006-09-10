@@ -2,6 +2,9 @@
 
 %requires ncurses
 
+%require-our
+%enable-all-warnings
+
 # ported to qore by David Nichols
 
 /*
@@ -47,8 +50,8 @@ our $flavor = ( ord('O'), ord('*'), ord('#'), ord('$'), ord('%'), ord('0'), ord(
 
 our $colors = ( COLOR_GREEN, COLOR_RED, COLOR_CYAN, COLOR_WHITE, COLOR_MAGENTA, COLOR_BLUE, COLOR_YELLOW);
 
-$xinc = (  1, 1, 1, 0, -1, -1, -1, 0);
-$yinc = ( -1, 0, 1, 1, 1, 0, -1, -1);
+our $xinc = (  1, 1, 1, 0, -1, -1, -1, 0);
+our $yinc = ( -1, 0, 1, 1, 1, 0, -1, -1);
 
 our $field;
 our $length = 16;
@@ -269,7 +272,7 @@ sub doSomething1($w)
 	$w.ypos[$y] = -1;
 }
 
-sub doSomething2($w, $n)
+sub doSomething2($w, $ref, $n)
 {
     my ($x, $y, $h);
 
@@ -323,7 +326,7 @@ sub doSomething2($w, $n)
 
 sub main()
 {
-    my ($ref, $x, $y, $n, $w, $h);
+    my ($ref, $x, $y, $n, $w, $h, $worm);
 
     my $g = new GetOpt(worm_opts);
     my $o = $g.parse(\$ARGV);
@@ -359,9 +362,9 @@ sub main()
     initscr();
     nonl();
     curs_set(0);
-    $win = new Window();
-    $bottom = $win.getLines() - 1;
-    $last = $win.getColumns() - 1;
+    our $win = new Window();
+    our $bottom = $win.getLines() - 1;
+    our $last = $win.getColumns() - 1;
 
     if (has_colors()) {
     	for (my $i = 0; $i < num_colors(); $i++)
@@ -428,7 +431,7 @@ sub main()
 	$w = 0;
 	for ($n = 0; $n < $number; $n++)
 	{
-	    doSomething2(\$worm[$w], $n);
+	    doSomething2(\$worm[$w], \$ref, $n);
 	    $w++;
 	}
 	usleep(10000);

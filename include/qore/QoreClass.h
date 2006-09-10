@@ -26,6 +26,7 @@
 
 //#include <qore/LockedObject.h>
 #include <qore/ReferenceObject.h>
+#include <qore/support.h>
 
 #include <stdlib.h>
 #include <string.h>
@@ -48,6 +49,7 @@ class Method {
 	    class UserFunction *userFunc;
 	    class BuiltinMethod *builtin;
       } func;
+      bool priv;
 
       inline Method() { bcal = NULL; }
       inline void userInit(UserFunction *u, int p);
@@ -56,7 +58,6 @@ class Method {
 
    public:
       char *name;
-      int priv;
       class Method *next;
       class BCAList *bcal; // for subclass constructors only
 
@@ -74,6 +75,9 @@ class Method {
       inline void parseInit();
       inline void parseInitConstructor(class BCList *bcl);
       inline int getType() { return type; }
+      inline bool isPrivate() { return priv; }
+      // only called when method is user
+      inline bool isSynchronized();
 };
 
 /*
@@ -463,9 +467,10 @@ class QoreClass : public ReferenceObject //, public LockedObject
       class Method *constructor, *destructor, *copyMethod, *methodGate, *memberGate;
       int classID;
       bool sys;
+      int domain;            // capabilities of builtin class to use in the context of parse restrictions
       class ReferenceObject nref;  // namespace references
 
-      inline void init(char *nme);
+      inline void init(char *nme, int dom = 0);
       inline class Method *parseFindMethod(char *name);
       void insertMethod(class Method *o);
       // checks for all special methods except constructor & destructor
@@ -473,6 +478,20 @@ class QoreClass : public ReferenceObject //, public LockedObject
       // checks for all special methods
       inline void checkSpecial(class Method *m);
       class QoreNode *evalMethodGate(class Object *self, char *nme, class QoreNode *args, class ExceptionSink *xsink);
+      inline void delete_pending_methods()
+      {
+	 Method *w = pending_head;
+
+	 printd(5, "QoreClass::delete_pending_methods() %s this=%08p start=%08p\n", name, this, w);
+	 while (w)
+	 {
+	    class Method *n = w->next;
+	    delete w;
+	    w = n;
+	 }
+
+	 pending_head = NULL;
+      }
 
    protected:
       inline ~QoreClass();
@@ -482,6 +501,7 @@ class QoreClass : public ReferenceObject //, public LockedObject
       class BCAList *bcal;         // base class constructor argument list
       class BCList *scl;           // base class list
 
+      inline QoreClass(int dom, char *nme);
       inline QoreClass(char *nme = 0);
       inline QoreClass(char *nme, int id);
 
@@ -555,6 +575,14 @@ class QoreClass : public ReferenceObject //, public LockedObject
       inline bool is_unique()
       {
 	 return nref.is_unique();
+      }
+      inline void addDomain(int dom)
+      {
+	 domain |= dom;
+      }
+      inline int getDomain()
+      {
+	 return domain;
       }
       //inline void merge(class QoreClass *oc);
 };
@@ -815,7 +843,11 @@ inline void BCList::parseInit(class QoreClass *cls, class BCAList *bcal)
       }
       // recursively add base classes to special method list
       if (w->sclass)
+      {
          w->sclass->addBaseClassesToSubclass(cls);
+	 // include all subclass domains in this class' domain
+	 cls->addDomain(w->sclass->getDomain());
+      }
 
       w = w->next;
    }
@@ -947,10 +979,10 @@ class BuiltinMethod : public BuiltinFunction, public ReferenceObject
    public:
       class QoreClass *myclass;
 
-      inline BuiltinMethod(class QoreClass *c, char *nme, q_method_t m, int typ = FC_DEFAULT) : BuiltinFunction(nme, m, typ), myclass(c) {}
-      inline BuiltinMethod(class QoreClass *c, q_constructor_t m, int typ = FC_DEFAULT) : BuiltinFunction(m, typ), myclass(c) {}
-      inline BuiltinMethod(class QoreClass *c, q_destructor_t m, int typ = FC_DEFAULT) : BuiltinFunction(m, typ), myclass(c) {}
-      inline BuiltinMethod(class QoreClass *c, q_copy_t m, int typ = FC_DEFAULT) : BuiltinFunction(m, typ), myclass(c) {}
+      inline BuiltinMethod(class QoreClass *c, char *nme, q_method_t m) : BuiltinFunction(nme, m, QDOM_DEFAULT), myclass(c) {}
+      inline BuiltinMethod(class QoreClass *c, q_constructor_t m) : BuiltinFunction(m, QDOM_DEFAULT), myclass(c) {}
+      inline BuiltinMethod(class QoreClass *c, q_destructor_t m) : BuiltinFunction(m, QDOM_DEFAULT), myclass(c) {}
+      inline BuiltinMethod(class QoreClass *c, q_copy_t m) : BuiltinFunction(m, QDOM_DEFAULT), myclass(c) {}
       inline void deref();
 };
 
@@ -960,8 +992,9 @@ inline void BuiltinMethod::deref()
       delete this;
 }
 
-inline void QoreClass::init(char *nme)
+inline void QoreClass::init(char *nme, int dom)
 {
+   domain = dom;
    scl = NULL;
    name = nme;
    sys  = false;
@@ -983,6 +1016,14 @@ inline void QoreClass::init(char *nme)
    memberGate  = NULL;
 
    system_constructor = NULL;
+}
+
+inline QoreClass::QoreClass(int dom, char *nme)
+{
+   init(nme, dom);
+
+   classID = classIDSeq.next();
+   printd(5, "QoreClass::QoreClass() creating '%s' ID:%d (this=%08p)\n", name, classID, this);
 }
 
 inline QoreClass::QoreClass(char *nme)
@@ -1009,6 +1050,7 @@ inline QoreClass::~QoreClass()
    while ((i = hm.begin()) != hm.end())
    {
       class Method *m = i->second;
+      //printd(5, "QoreClass::~QoreClass() deleting method %08p %s::%s()\n", m, name, m->name);
       hm.erase(i);
       delete m;
    }   
@@ -1038,6 +1080,8 @@ inline QoreClass::~QoreClass()
    delete privateMemberList;
    delete pending_privateMemberList;
 #endif
+   // delete any pending methods
+   delete_pending_methods();
    free(name);
    if (scl)
       scl->deref();
@@ -1265,6 +1309,15 @@ inline void QoreClass::addMethod(Method *m)
 {
    printd(5, "QoreClass::addMethod(%08p) %s.%s() (this=%08p)\n", m, name ? name : "<pending>", m->name, this);
 
+   // check for illegal private constructor or destructor
+   if (!strcmp(m->name, "constructor") || !strcmp(m->name, "destructor"))
+   {
+      if (m->isPrivate())
+	 parseException("ILLEGAL-PRIVATE-METHOD", "%s methods cannot be private", m->name);
+      if (m->isSynchronized())
+	 getProgram()->makeParseWarning(QP_WARN_SYNCHRONIZATION_IGNORED, "SYNCHRONIZATION-IGNORED", "the 'synchronized' keyword is ignored with %s methods", m->name);
+   }
+
    if (parseFindMethod(m->name))
    {
       parse_error("method '%s::%s()' has already been defined", name, m->name);
@@ -1380,7 +1433,9 @@ inline class QoreNode *QoreClass::execConstructor(QoreNode *args, ExceptionSink 
 
    if (xsink->isEvent())
    {
-      o->dereference(xsink);
+      // instead of executing the destructors for the superclasses that were already executed we call Object::obliterate()
+      // which will clear out all the private data by running their dereference methods which should generally be OK
+      o->obliterate(xsink);
       printd(5, "QoreClass::execConstructor() %s::constructor() o=%08p, exception in constructor, dereferencing object and returning NULL\n", name, o);
       return NULL;
    }
@@ -1545,7 +1600,7 @@ inline List *QoreClass::getMethodList()
 
    while (w)
    {
-      if (!w->priv)
+      if (!w->isPrivate())
 	 l->push(new QoreNode(w->name));
       w = w->next;
    }   
@@ -1562,6 +1617,9 @@ inline void QoreClass::parseInit()
    printd(5, "QoreClass::parseInit() %s this=%08p start=%08p\n", name, this, w);
    if (scl)
       scl->parseInit(this, bcal);
+
+   if (!sys && domain & getProgram()->getParseOptions())
+      parseException("ILLEGAL-CLASS-DEFINITION", "class '%s' inherits functionality from base classes that is restricted by current parse options", name);
 
    while (w)
    {
@@ -1613,17 +1671,7 @@ inline void QoreClass::parseCommit()
 // deletes all pending user methods
 inline void QoreClass::parseRollback()
 {
-   Method *w = pending_head;
-
-   printd(5, "QoreClass::parseRollback() %s this=%08p start=%08p\n", name, this, w);
-   while (w)
-   {
-      class Method *n = w->next;
-      delete w;
-      w = n;
-   }
-
-   pending_head = NULL;
+   delete_pending_methods();
 }
 
 inline void Method::userInit(UserFunction *u, int p)
@@ -1665,6 +1713,13 @@ inline Method::~Method()
       func.builtin->deref();
    if (bcal)
       bcal->deref();
+}
+
+inline bool Method::isSynchronized() 
+{
+   if (type == OTF_BUILTIN)
+      return false;
+   return func.userFunc->isSynchronized();
 }
 
 inline bool Method::inMethod(class Object *self)

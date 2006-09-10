@@ -2,6 +2,9 @@
 
 %requires ncurses
 
+%require-our
+%enable-all-warnings
+
 # ncurses example program ported to qore by David Nichols
 
 #/*
@@ -22,6 +25,9 @@
 # *
 # * $Id: hanoi.q,v 1.3 2006/04/27 06:04:00 david_nichols Exp $
 # */
+
+# global window variable
+our $w;
 
 # half-second delay
 const delay        = 500000;

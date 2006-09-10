@@ -404,7 +404,7 @@ class QoreClass *initFtpClientClass()
 {
    tracein("initFtpClientClass()");
 
-   class QoreClass *QC_FTPCLIENT = new QoreClass(strdup("FtpClient"));
+   class QoreClass *QC_FTPCLIENT = new QoreClass(QDOM_NETWORK, strdup("FtpClient"));
    CID_FTPCLIENT = QC_FTPCLIENT->getID();
    QC_FTPCLIENT->setConstructor(FC_constructor);
    QC_FTPCLIENT->setDestructor((q_destructor_t)FC_destructor);

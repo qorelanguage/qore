@@ -137,24 +137,20 @@ static class QoreNode *f_getegid(class QoreNode *params, ExceptionSink *xsink)
 
 static class QoreNode *f_sleep(class QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0;
-
-   if (!(p0 = get_param(params, 0)))
+   int timeout = getSecZeroInt(get_param(params, 0));
+   if (!timeout)
       return NULL;
-
-   int v = p0->getAsInt();
-   return new QoreNode((int64)sleep(v));
+   
+   return new QoreNode((int64)sleep(timeout));
 }
 
 static class QoreNode *f_usleep(class QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0;
-
-   if (!(p0 = get_param(params, 0)))
+   int timeout = getMicroSecZeroInt(get_param(params, 0));
+   if (!timeout)
       return NULL;
 
-   int v = p0->getAsInt();
-   return new QoreNode((int64)usleep(v));
+   return new QoreNode((int64)usleep(timeout));
 }
 
 static class QoreNode *f_getpid(class QoreNode *params, ExceptionSink *xsink)
@@ -470,38 +466,38 @@ static class QoreNode *f_mkfifo(class QoreNode *params, ExceptionSink *xsink)
 
 void init_lib_functions()
 {
-   builtinFunctions.add("exit",        f_exit, FC_PROCESS);
-   builtinFunctions.add("abort",       f_abort, FC_PROCESS);
-   builtinFunctions.add("system",      f_system, FC_EXTERNAL_PROCESS);
+   builtinFunctions.add("exit",        f_exit, QDOM_PROCESS);
+   builtinFunctions.add("abort",       f_abort, QDOM_PROCESS);
+   builtinFunctions.add("system",      f_system, QDOM_EXTERNAL_PROCESS);
    builtinFunctions.add("getuid",      f_getuid);
    builtinFunctions.add("geteuid",     f_geteuid);
    builtinFunctions.add("getgid",      f_getgid);
    builtinFunctions.add("getegid",     f_getegid);
-   builtinFunctions.add("sleep",       f_sleep, FC_PROCESS);
-   builtinFunctions.add("usleep",      f_usleep, FC_PROCESS);
+   builtinFunctions.add("sleep",       f_sleep, QDOM_PROCESS);
+   builtinFunctions.add("usleep",      f_usleep, QDOM_PROCESS);
    builtinFunctions.add("getpid",      f_getpid);
    builtinFunctions.add("getppid",     f_getppid);
-   builtinFunctions.add("fork",        f_fork, FC_PROCESS);
-   builtinFunctions.add("kill",        f_kill, FC_EXTERNAL_PROCESS | FC_PROCESS);
+   builtinFunctions.add("fork",        f_fork, QDOM_PROCESS);
+   builtinFunctions.add("kill",        f_kill, QDOM_EXTERNAL_PROCESS | QDOM_PROCESS);
    // builtinFunctions.add("wait",        f_wait);
    // builtinFunctions.add("waitpid",     f_waitpid);
    builtinFunctions.add("stat",        f_stat);
    builtinFunctions.add("lstat",       f_lstat);
    builtinFunctions.add("glob",        f_glob);
-   builtinFunctions.add("unlink",      f_unlink, FC_FILESYSTEM);
-   builtinFunctions.add("umask",       f_umask, FC_FILESYSTEM);
+   builtinFunctions.add("unlink",      f_unlink, QDOM_FILESYSTEM);
+   builtinFunctions.add("umask",       f_umask, QDOM_FILESYSTEM);
    builtinFunctions.add("rand",        f_rand);
    builtinFunctions.add("srand",       f_srand);
    builtinFunctions.add("gethostname", f_gethostname);
    builtinFunctions.add("errno",       f_errno);
    builtinFunctions.add("strerror",    f_strerror);
    builtinFunctions.add("basename",    f_basename);
-   builtinFunctions.add("mkdir",       f_mkdir, FC_FILESYSTEM);
-   builtinFunctions.add("rmdir",       f_rmdir, FC_FILESYSTEM);
-   builtinFunctions.add("chmod",       f_chmod, FC_FILESYSTEM);
-   builtinFunctions.add("chdir",       f_chdir, FC_FILESYSTEM);
-   // builtinFunctions.add("mknod",       f_mknod, FC_FILESYSTEM);
+   builtinFunctions.add("mkdir",       f_mkdir, QDOM_FILESYSTEM);
+   builtinFunctions.add("rmdir",       f_rmdir, QDOM_FILESYSTEM);
+   builtinFunctions.add("chmod",       f_chmod, QDOM_FILESYSTEM);
+   builtinFunctions.add("chdir",       f_chdir, QDOM_FILESYSTEM);
+   // builtinFunctions.add("mknod",       f_mknod, QDOM_FILESYSTEM);
    builtinFunctions.add("mkfifo", f_mkfifo);
-   builtinFunctions.add("exec",        f_exec, FC_EXTERNAL_PROCESS | FC_PROCESS);
+   builtinFunctions.add("exec",        f_exec, QDOM_EXTERNAL_PROCESS | QDOM_PROCESS);
 }
 

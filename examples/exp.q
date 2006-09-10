@@ -1,5 +1,8 @@
 #!/usr/bin/env qore
 
+%enable-all-warnings
+%disable-warning undeclared-var
+
 # examples of qore expressions
 
 # some basic types

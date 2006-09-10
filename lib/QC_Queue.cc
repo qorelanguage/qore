@@ -67,9 +67,7 @@ class QoreNode *QUEUE_get(class Object *self, class Queue *tq, class QoreNode *p
 {
    QoreNode *rv;
 
-   class QoreNode *p0 = get_param(params, 0);
-   int timeout = p0 ? p0->getAsInt() : 0;
-
+   int timeout = getMsZeroInt(get_param(params, 0));
    if (timeout)
    {
       bool to;
@@ -87,9 +85,7 @@ class QoreNode *QUEUE_pop(class Object *self, class Queue *tq, class QoreNode *p
 {
    QoreNode *rv;
 
-   class QoreNode *p0 = get_param(params, 0);
-   int timeout = p0 ? p0->getAsInt() : 0;
-
+   int timeout = getMsZeroInt(get_param(params, 0));
    if (timeout)
    {
       bool to;
@@ -112,7 +108,7 @@ class QoreClass *initQueueClass()
 {
    tracein("initQueueClass()");
 
-   class QoreClass *QC_QUEUE = new QoreClass(strdup("Queue"));
+   class QoreClass *QC_QUEUE = new QoreClass(QDOM_THREAD, strdup("Queue"));
    CID_QUEUE = QC_QUEUE->getID();
    QC_QUEUE->setConstructor(QUEUE_constructor);
    QC_QUEUE->setDestructor((q_destructor_t)QUEUE_destructor);

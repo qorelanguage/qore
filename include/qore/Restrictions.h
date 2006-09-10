@@ -42,14 +42,20 @@
 #define PO_NO_PROCESS_CONTROL        (1 << 14)  // do not allow fork(), exec(), abort(). etc
 #define PO_NO_NETWORK                (1 << 15)  // do not allow any network access (objs & subroutines)
 #define PO_NO_FILESYSTEM             (1 << 16)  // do not allow any file access (objects & subroutines)
-//#define PO_NO_BUILTIN_SUBROUTINES    (1 << 17)  // do not allow any calls to builtin functions
+#define PO_LOCK_WARNINGS             (1 << 17)  // do not allow programs to change the warning mask
+#define PO_NO_DATABASE               (1 << 18)  // do not allow database access
+//#define PO_NO_BUILTIN_SUBROUTINES    (1 << 18)  // do not allow any calls to builtin functions
 
-// classification for builtin functions and classes
-#define FC_DEFAULT           PO_DEFAULT
-#define FC_PROCESS           PO_NO_PROCESS_CONTROL
-#define FC_NETWORK           PO_NO_NETWORK
-#define FC_EXTERNAL_PROCESS  PO_NO_EXTERNAL_PROCESS
-#define FC_FILESYSTEM        PO_NO_FILESYSTEM
-#define FC_THREAD            PO_NO_THREADS
+// the following options allow for more freedom
+#define PO_POSITIVE_OPTIONS (PO_NO_CHILD_PO_RESTRICTIONS)
+
+// functional domains for builtin functions and classes
+#define QDOM_DEFAULT           PO_DEFAULT
+#define QDOM_PROCESS           PO_NO_PROCESS_CONTROL
+#define QDOM_NETWORK           PO_NO_NETWORK
+#define QDOM_EXTERNAL_PROCESS  PO_NO_EXTERNAL_PROCESS
+#define QDOM_FILESYSTEM        PO_NO_FILESYSTEM
+#define QDOM_THREAD            PO_NO_THREADS
+#define QDOM_DATABASE          PO_NO_DATABASE
 
 #endif //_QORE_RESTRICTIONS_H

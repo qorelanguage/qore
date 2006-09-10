@@ -165,7 +165,7 @@ inline QoreNode *QoreQueue::shift(int timeout_ms, bool *to)
 	    break;
 
 	 // lock has timed out, return -1
-	 printd(0, "QoreQueue::shift() timed out after %dms waiting on another thread to release the lock\n", timeout_ms);
+	 printd(5, "QoreQueue::shift() timed out after %dms waiting on another thread to release the lock\n", ts * 1000 + timeout_ms);
 	 *to = true;
 	 return NULL;
       }
@@ -226,7 +226,7 @@ inline QoreNode *QoreQueue::pop(int timeout_ms, bool *to)
 	    break;
 
 	 // lock has timed out, return -1
-	 printd(0, "rc = %d: QoreQueue::pop() timed out after %dms waiting on another thread to release the lock\n", rc, timeout_ms);
+	 printd(5, "rc = %d: QoreQueue::pop() timed out after %dms waiting on another thread to release the lock\n", rc, ts * 1000 + timeout_ms);
 	 *to = true;
 	 return NULL;
       }

@@ -135,29 +135,6 @@ class QoreNode *Object::evalMember(class QoreNode *member, class ExceptionSink *
    return rv;
 }
 
-// does a deep dereference and execs destructor if necessary
-void Object::dereference(ExceptionSink *xsink)
-{
-   printd(5, "Object::dereference(this=%08p) class=%s %d->%d\n", this, myclass->name, references, references - 1);
-   if (ROdereference())
-   {
-      // no need to lock here; we are the last one to access this object
-      printd(5, "Object::dereference() class=%s deleting this=%08p\n", myclass->name, this);
-      if (status == OS_OK)
-      {
-	 // reference for destructor
-	 ROreference();
-	 doDelete(xsink);
-	 ROdereference();
-      }
-      else
-      {
-	 printd(5, "Object::dereference() %08p data=%08p status=%d\n", this, data, status);
-      }
-      tDeref();
-   }
-}
-
 // 0 = equal, 1 = not equal
 bool Object::compareSoft(class Object *obj, class ExceptionSink *xsink)
 {
@@ -231,9 +208,62 @@ bool Object::compareHard(class Object *obj)
    return rc;
 }
 
-void Object::doDelete(class ExceptionSink *xsink)
+// does a deep dereference and execs destructor if necessary
+void Object::dereference(ExceptionSink *xsink)
 {
-   g.enter();
+   printd(5, "Object::dereference(this=%08p) class=%s %d->%d\n", this, myclass->name, references, references - 1);
+   if (ROdereference())
+   {
+      g.enter();
+      printd(5, "Object::dereference() class=%s deleting this=%08p\n", myclass->name, this);
+      if (status == OS_OK)
+      {
+	 // reference for destructor
+	 ROreference();
+	 doDeleteIntern(xsink);
+	 ROdereference();
+      }
+      else
+      {
+	 g.exit();
+	 printd(5, "Object::dereference() %08p data=%08p status=%d\n", this, data, status);
+      }
+      tDeref();
+   }
+}
+
+// this method is called when there is an exception in a constructor and the object should be deleted
+void Object::obliterate(ExceptionSink *xsink)
+{
+   printd(5, "Object::obliterate(this=%08p) class=%s %d->%d\n", this, myclass->name, references, references - 1);
+   if (ROdereference())
+   {
+      g.enter();
+      printd(5, "Object::obliterate() class=%s deleting this=%08p\n", myclass->name, this);
+      if (status == OS_OK)
+      {
+	 status = OS_DELETED;
+	 Hash *td = data;
+	 data = NULL;
+	 g.exit();
+
+	 if (privateData)
+	    privateData->derefAll();
+
+	 cleanup(xsink, td);
+      }
+      else
+      {
+	 g.exit();
+	 printd(5, "Object::obliterate() %08p data=%08p status=%d\n", this, data, status);
+      }
+      tDeref();
+   }
+}
+
+// gate is already held
+void Object::doDeleteIntern(class ExceptionSink *xsink)
+{
    if (status == OS_DELETED)
    {
       g.exit();
@@ -247,34 +277,15 @@ void Object::doDelete(class ExceptionSink *xsink)
    }
    status = OS_BEING_DELETED;
    g.exit();
-   printd(5, "Object::doDelete(this=%08p) calling destructor()\n", this);
-
+   
+   printd(5, "Object::doDelete(this=%08p) calling destructor()\n", this);   
    myclass->execDestructor(this, xsink);
-
+   
    g.enter();
    status = OS_DELETED;
    Hash *td = data;
    data = NULL;
    g.exit();
 
-   if (privateData)
-   {
-      delete privateData;
-#ifdef DEBUG
-      privateData = NULL;
-#endif
-   }
-
-   if (pgm)
-   {
-      pgm->depDeref(xsink);
-#ifdef DEBUG
-      pgm = NULL;
-#endif
-   }
-
-   td->dereference(xsink);
-   delete td;
+   cleanup(xsink, td);
 }
-
-

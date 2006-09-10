@@ -45,6 +45,7 @@
 
 # require global variables to be declared with "our" before use
 %require-our
+%enable-all-warnings
 
 # Base1 will be a base class
 class Base1 {

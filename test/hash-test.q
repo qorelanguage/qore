@@ -46,6 +46,8 @@ sub hash_test()
 
     my $h;
 
+    print("working: "); flush();
+    my $start = clock_getmillis();
     for (my $i = 0; $i < $size; $i++)
 	$h{getKey($i)} = True;
 
@@ -53,7 +55,7 @@ sub hash_test()
     for (my $i = 0; $i < $size / 10; $i++)
 	my $v = $h.($l[$i]);
 
-    #printf("l=%N\n", $l);
+    printf("time: %dms\n", clock_getmillis() - $start);
 }
 
 hash_test();

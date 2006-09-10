@@ -55,7 +55,7 @@ class BuiltinFunctionList // public LockedObject
 
       ~BuiltinFunctionList();
       
-      void add(char *name, class QoreNode *(*f)(class QoreNode *, class ExceptionSink *xsink), int typ = FC_DEFAULT);
+      void add(char *name, class QoreNode *(*f)(class QoreNode *, class ExceptionSink *xsink), int typ = QDOM_DEFAULT);
 
       inline class BuiltinFunction *find(char *name);
 

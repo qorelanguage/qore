@@ -120,6 +120,7 @@ class KeyList {
 	 return kn ? kn->refPtr() : NULL;
       }
       inline void addToString(class QoreString *str);
+      inline void derefAll();
       //inline bool compare(class KeyList *k);
 };
 
@@ -136,7 +137,11 @@ class Object : public ReferenceObject
       class QoreProgram *pgm;
 
       inline void init(class QoreClass *oc, class QoreProgram *p);
-
+      // must only be called when inside the gate
+      void doDeleteIntern(class ExceptionSink *xsink);
+      //inline void doDeleteNoDestructor(class ExceptionSink *xsink);
+      inline void cleanup(class ExceptionSink *xsink, class Hash *td);
+      
    protected:
       inline ~Object();
 
@@ -174,8 +179,6 @@ class Object : public ReferenceObject
       inline class QoreNode *evalMemberExistence(char *mem, class ExceptionSink *xsink);
       inline class Hash *evalData(class ExceptionSink *xsink);
 
-      void doDelete(class ExceptionSink *xsink);
-      inline void doDeleteNoDestructor(class ExceptionSink *xsink);
       inline class QoreClass *getClass() { return myclass; }
       inline class QoreClass *getClass(int cid);
       inline int getStatus() { return status; }
@@ -188,6 +191,7 @@ class Object : public ReferenceObject
       inline void addPrivateDataToString(class QoreString *str);
 
       inline class QoreNode *evalMethod(class QoreString *name, class QoreNode *args, class ExceptionSink *xsink);
+      inline void doDelete(class ExceptionSink *xsink);
 
       inline class QoreProgram *getProgram()
       {
@@ -200,7 +204,8 @@ class Object : public ReferenceObject
 
       inline void ref();
       void dereference(class ExceptionSink *xsink);
-
+      void obliterate(class ExceptionSink *xsink);
+      
       inline void tRef()
       {
 	 tRefs.ROreference();
@@ -245,6 +250,16 @@ inline KeyList::~KeyList()
       tail = head->next;
       delete head;
       head = tail;
+   }
+}
+
+inline void KeyList::derefAll()
+{
+   KeyNode *w = head;
+   while (w)
+   {
+      w->deref();
+      w = w->next;
    }
 }
 
@@ -542,12 +557,14 @@ inline void Object::assimilate(class Hash *h, class ExceptionSink *xsink)
    g.exit();
 }
 
+/*
 // to be called only in builtin constructors - no locking necessary
 inline void Object::doDeleteNoDestructor(class ExceptionSink *xsink)
 {
    status = OS_DELETED;
    data->dereference(xsink);
 }
+*/
 
 inline void Object::ref()
 {
@@ -733,6 +750,34 @@ inline class QoreClass *Object::getClass(int cid)
    if (cid == myclass->getID())
       return myclass;
    return myclass->getClass(cid);
+}
+
+inline void Object::doDelete(class ExceptionSink *xsink)
+{
+   g.enter();
+   doDeleteIntern(xsink);
+}
+
+inline void Object::cleanup(class ExceptionSink *xsink, class Hash *td)
+{
+   if (privateData)
+   {
+      delete privateData;
+#ifdef DEBUG
+      privateData = NULL;
+#endif
+   }
+   
+   if (pgm)
+   {
+      pgm->depDeref(xsink);
+#ifdef DEBUG
+      pgm = NULL;
+#endif
+   }
+   
+   td->dereference(xsink);
+   delete td;   
 }
 
 #endif

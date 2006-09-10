@@ -52,7 +52,7 @@ class DateTime {
       int hour;
       int minute;
       int second;
-      short millisecond;
+      int millisecond;
       bool relative;
       
       class DateTime *addAbsoluteToRelative(class DateTime *dt);
@@ -100,7 +100,7 @@ class DateTime {
 	 millisecond = 0; 
 	 relative = r;
       }
-      inline DateTime(int y, int mo, int d, int h, int mi, int s, short ms = 0, bool r = false);
+      inline DateTime(int y, int mo, int d, int h = 0, int mi = 0, int s = 0, short ms = 0, bool r = false);
       inline DateTime(int64 seconds);
       inline DateTime(char *date);
       inline DateTime(struct tm *tms);
@@ -174,6 +174,8 @@ class DateTime {
       {
 	 return millisecond;
       }
+      int64 getRelativeSeconds();
+      int64 getRelativeMilliseconds();
       
       // static methods
       static inline bool isLeapYear(int year)

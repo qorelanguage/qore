@@ -74,7 +74,7 @@ class QoreClass *initRMutexClass()
 {
    tracein("initRMutexClass()");
 
-   class QoreClass *QC_RMUTEX = new QoreClass(strdup("RMutex"));
+   class QoreClass *QC_RMUTEX = new QoreClass(QDOM_THREAD, strdup("RMutex"));
    CID_RMUTEX = QC_RMUTEX->getID();
    QC_RMUTEX->setConstructor(RMUTEX_constructor);
    QC_RMUTEX->setDestructor((q_destructor_t)RMUTEX_destructor);

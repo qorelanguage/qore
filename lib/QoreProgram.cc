@@ -33,10 +33,32 @@
 extern class List *ARGV, *QORE_ARGV;
 extern class Hash *ENV;
 
+// note the number and order of the warnings has to correspond to those in QoreProgram.h
+const char *qore_warnings[] = { 
+   "warning-mask-unchanged",
+   "duplicate-local-vars",
+   "unknown-warning",
+   "undeclared-var",
+   "duplicate-global-vars",
+   "synchonization-ignored",
+};
+#define NUM_WARNINGS (sizeof(qore_warnings)/sizeof(char *))
+
+int get_warning_code(char *str)
+{
+   for (unsigned i = 0; i < NUM_WARNINGS; i++)
+      if (!strcasecmp((const char *)str, qore_warnings[i]))
+         return 1 << i;
+   return 0;
+}
+
 void QoreProgram::init()
 {
    //printd(5, "QoreProgram::init() this=%08p\n", this);
-   parseSink = new ExceptionSink();
+#ifdef DEBUG
+   parseSink = NULL;
+#endif
+   warnSink = NULL;
    requires_exception = false;
    sb_head = sb_tail = NULL;
    nextSB();
@@ -90,9 +112,10 @@ QoreProgram::QoreProgram(class QoreProgram *pgm, int po, bool ec, char *ecn)
    {
       // lock child parse options
       po_locked = true;
+      // turn on all restrictions in the child that are set in the parent
       parse_options |= pgm->parse_options;
-      // make sure "NO_CHILD_PO_RESTRICTIONS" is turned off
-      parse_options &= ~PO_NO_CHILD_PO_RESTRICTIONS;
+      // make sure all options that give more freedom and are off in the parent program are turned off in the child
+      parse_options &= (pgm->parse_options | ~PO_POSITIVE_OPTIONS);
    }
    else
       po_locked = false;
@@ -115,12 +138,6 @@ void QoreProgram::del(class ExceptionSink *xsink)
 {
    // wait for all threads to terminate
    tcount.waitForZero();
-
-   if (parseSink)
-   {
-      delete parseSink;
-      parseSink = NULL;
-   }
 
    // have to delete global variables first because of destructors
    // method call can be repeated
@@ -167,7 +184,7 @@ void QoreProgram::resolveFunction(class FunctionCall *f)
 {
    tracein("QoreProgram::resolveFunction()");
    char *fname = f->f.c_str;
-   
+
    class UserFunction *ufc;
    if ((ufc = findUserFunction(fname)))
    {
@@ -212,9 +229,9 @@ void QoreProgram::resolveFunction(class FunctionCall *f)
    traceout("QoreProgram::resolveFunction()");
 }
 
-void QoreProgram::parse(FILE *fp, char *name, class ExceptionSink *xsink)
+void QoreProgram::parse(FILE *fp, char *name, class ExceptionSink *xsink, class ExceptionSink *wS, int wm)
 {
-   printd(5, "QoreProgram::parse(fp=%08p, name=%s)\n", fp, name);
+   printd(5, "QoreProgram::parse(fp=%08p, name=%s, xsink=%08p, wS=%08p, wm=%d)\n", fp, name, xsink, wS, wm);
 
    // if already at the end of file, then return
    // try to get one character from file
@@ -229,7 +246,10 @@ void QoreProgram::parse(FILE *fp, char *name, class ExceptionSink *xsink)
 
    // grab program-level parse lock
    plock.lock();
-
+   warnSink = wS;
+   warn_mask = wm;
+   parseSink = xsink;
+   
    // save this file name for storage in the parse tree and deletion
    // when the QoreProgram object is deleted
    char *sname = strdup(name);
@@ -245,8 +265,12 @@ void QoreProgram::parse(FILE *fp, char *name, class ExceptionSink *xsink)
    // yyparse() will call endParsing() and restore old pgm position
 
    // finalize parsing, back out or commit all changes
-   internParseCommit(xsink);
+   internParseCommit();
 
+#ifdef DEBUG
+   parseSink = NULL;
+#endif
+   warnSink = NULL;
    // release program-level parse lock
    plock.unlock();
 
@@ -255,7 +279,7 @@ void QoreProgram::parse(FILE *fp, char *name, class ExceptionSink *xsink)
    popProgram();
 }
 
-void QoreProgram::parse(class QoreString *str, class QoreString *lstr, class ExceptionSink *xsink)
+void QoreProgram::parse(class QoreString *str, class QoreString *lstr, class ExceptionSink *xsink, class ExceptionSink *wS, int wm)
 {
    if (!str->strlen())
       return;
@@ -282,7 +306,7 @@ void QoreProgram::parse(class QoreString *str, class QoreString *lstr, class Exc
    else
       tlstr = lstr;
 
-   parse(tstr->getBuffer(), tlstr->getBuffer(), xsink);
+   parse(tstr->getBuffer(), tlstr->getBuffer(), xsink, wS, wm);
 
    // cleanup temporary strings
    if (tstr != str)
@@ -291,27 +315,34 @@ void QoreProgram::parse(class QoreString *str, class QoreString *lstr, class Exc
       delete tlstr;
 }
 
-void QoreProgram::parse(char *code, char *label, class ExceptionSink *xsink)
+void QoreProgram::parse(char *code, char *label, class ExceptionSink *xsink, class ExceptionSink *wS, int wm)
 {
    if (!(*code))
       return;
 
    pushProgram(this);
-
+   
    // grab program-level parse lock
    plock.lock();
-
+   warnSink = wS;
+   warn_mask = wm;
+   parseSink = xsink;
+   
    // parse text given
-   if (!internParsePending(code, label, xsink))
-      internParseCommit(xsink);   // finalize parsing, back out or commit all changes
+   if (!internParsePending(code, label))
+      internParseCommit();   // finalize parsing, back out or commit all changes
 
+#ifdef DEBUG
+   parseSink = NULL;
+#endif
+   warnSink = NULL;
    // release program-level parse lock
    plock.unlock();
 
    popProgram();
 }
 
-void QoreProgram::parseFile(char *filename, class ExceptionSink *xsink)
+void QoreProgram::parseFile(char *filename, class ExceptionSink *xsink, class ExceptionSink *wS, int wm)
 {
    tracein("QoreProgram::parseFile()");
 
@@ -325,7 +356,7 @@ void QoreProgram::parseFile(char *filename, class ExceptionSink *xsink)
       return;
    }
 
-   parse(fp, filename, xsink);
+   parse(fp, filename, xsink, wS, wm);
 
    fclose(fp);
 
@@ -333,7 +364,7 @@ void QoreProgram::parseFile(char *filename, class ExceptionSink *xsink)
 }
 
 // call must push the current program on the stack and pop it afterwards
-int QoreProgram::internParsePending(char *code, char *label, class ExceptionSink *xsink)
+int QoreProgram::internParsePending(char *code, char *label)
 {
    printd(5, "QoreProgram::internParsePending(code=%08p, label=%s)\n", code, label);
 
@@ -362,13 +393,12 @@ int QoreProgram::internParsePending(char *code, char *label, class ExceptionSink
 
    printd(5, "QoreProgram::internParsePending() returned from yyparse()\n");
    int rc = 0;
-   if (parseSink->isEvent())
+   if (parseSink->isException())
    {
       rc = -1;
       printd(5, "QoreProgram::internParsePending() parse exception: calling parseRollback()\n");
       internParseRollback();
       requires_exception = false;
-      xsink->assimilate(parseSink);
    }
 
    printd(5, "QoreProgram::internParsePending() about to call yylex_destroy()\n");
@@ -378,7 +408,7 @@ int QoreProgram::internParsePending(char *code, char *label, class ExceptionSink
 }
 
 // caller must have grabbed the lock and put the current program on the program stack
-void QoreProgram::internParseCommit(class ExceptionSink *xsink)
+void QoreProgram::internParseCommit()
 {
    tracein("QoreProgram::internParseCommit()");
    printd(5, "QoreProgram::internParseCommit() this=%08p isEvent=%d\n", this, parseSink->isEvent());
@@ -407,7 +437,6 @@ void QoreProgram::internParseCommit(class ExceptionSink *xsink)
    {
       internParseRollback();
       requires_exception = false;
-      xsink->assimilate(parseSink);
    }
    else // otherwise commit them
    {
@@ -423,7 +452,7 @@ void QoreProgram::internParseCommit(class ExceptionSink *xsink)
    traceout("QoreProgram::internParseCommit()");
 }
 
-void QoreProgram::parsePending(class QoreString *str, class QoreString *lstr, class ExceptionSink *xsink)
+void QoreProgram::parsePending(class QoreString *str, class QoreString *lstr, class ExceptionSink *xsink, class ExceptionSink *wS, int wm)
 {
    if (!str->strlen())
       return;
@@ -450,7 +479,7 @@ void QoreProgram::parsePending(class QoreString *str, class QoreString *lstr, cl
    else
       tlstr = lstr;
 
-   parsePending(tstr->getBuffer(), tlstr->getBuffer(), xsink);
+   parsePending(tstr->getBuffer(), tlstr->getBuffer(), xsink, wS, wm);
 
    // cleanup temporary strings
    if (tstr != str)
@@ -459,7 +488,7 @@ void QoreProgram::parsePending(class QoreString *str, class QoreString *lstr, cl
       delete tlstr;
 }
 
-class QoreNode *QoreProgram::run(class ExceptionSink *xsink)
+class QoreNode *QoreProgram::runTopLevel(class ExceptionSink *xsink)
 {
    tcount.inc();
 
@@ -552,16 +581,23 @@ void QoreProgram::importUserFunction(class QoreProgram *p, class UserFunction *u
    plock.unlock();
 }
 
-void QoreProgram::parseCommit(class ExceptionSink *xsink)
+void QoreProgram::parseCommit(class ExceptionSink *xsink, class ExceptionSink *wS, int wm)
 {
    pushProgram(this);
 
    // grab program-level parse lock
    plock.lock();
+   warnSink = wS;
+   warn_mask = wm;
+   parseSink = xsink;
    
    // finalize parsing, back out or commit all changes
-   internParseCommit(xsink);
+   internParseCommit();
 
+#ifdef DEBUG
+   parseSink = NULL;
+#endif   
+   warnSink = NULL;
    // release program-level parse lock
    plock.unlock();
 
@@ -680,12 +716,7 @@ void QoreProgram::parseAndRun(FILE *fp, char *name)
       parse(fp, name, &xsink);
 
       if (!xsink.isEvent())
-      {
-	 if (exec_class)
-	    runClass(exec_class_name, &xsink);
-	 else
-	    run(&xsink);
-      }
+	 run(&xsink);
    }
 }
 
@@ -700,12 +731,7 @@ void QoreProgram::parseAndRun(char *str, char *name)
       parse(str, name, &xsink);
 
       if (!xsink.isEvent())
-      {
-	 if (exec_class)
-	    runClass(exec_class_name, &xsink);
-	 else
-	    run(&xsink);
-      }
+	 run(&xsink);
    }
 }
 

@@ -110,7 +110,7 @@ class QoreClass *initGateClass()
 {
    tracein("initGateClass()");
 
-   class QoreClass *QC_GATE = new QoreClass(strdup("Gate"));
+   class QoreClass *QC_GATE = new QoreClass(QDOM_THREAD, strdup("Gate"));
    CID_GATE = QC_GATE->getID();
    QC_GATE->setConstructor(GATE_constructor);
    QC_GATE->setDestructor((q_destructor_t)GATE_destructor);

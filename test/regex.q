@@ -1,6 +1,9 @@
 #!/usr/bin/env qore
 
-# examples of qore regular expressions
+%enable-all-warnings
+%disable-warning undeclared-var
+
+# Examples of qore regular expressions
 # initially written and tested for qore 0.4.0 (Oct 2005)
 # by Helmut Wollmersdorfer
 

@@ -959,10 +959,44 @@ class QoreString *DateTime::getString()
 	 str->sprintf(".%03d", millisecond);
    }
    return str;
-}   
+}
 
 // FIXME: implement and use
 bool DateTime::checkValidity()
 {
    return true;
+}
+
+int64 DateTime::getRelativeSeconds()
+{
+   if (relative)
+      return millisecond/1000 + second + minute * 60 + hour * 3600ll + day * 86400ll 
+	 + (month ? month * 2592000ll : 0)
+	 + (year ? year * 31536000ll : 0);
+   
+   // find the difference between localtime and now
+   time_t ct = time(NULL);
+   struct tm tms;
+   DateTime od(q_localtime(&ct, &tms));
+   int64 diff = od.getEpochSeconds() - getEpochSeconds();
+   if (diff < 0)
+      return 0;
+   return diff;   
+}
+
+int64 DateTime::getRelativeMilliseconds()
+{
+   if (relative)
+      return millisecond + second * 1000ll + minute * 60000ll + hour * 3600000ll + day * 86400000ll 
+	 + (month ? month * 2592000000ll : 0)
+	 + (year ? year * 31536000000ll : 0);
+   
+   // find the difference between localtime and now
+   time_t ct = time(NULL);
+   struct tm tms;
+   DateTime od(q_localtime(&ct, &tms));
+   int64 diff = (od.getEpochSeconds() - getEpochSeconds()) * 1000 + od.millisecond - millisecond;
+   if (diff < 0)
+      return 0;
+   return diff;   
 }

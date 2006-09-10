@@ -123,8 +123,7 @@ static QoreNode *TIBRVCMSENDER_sendSubject(class Object *self, class QoreTibrvCm
    char *replySubject = pt ? pt->val.String->getBuffer() : NULL;
 
    // get certified delivery time limit
-   pt = get_param(params, 3);
-   int64 time_limit = pt ? pt->getAsBigInt() : 0;
+   int64 time_limit = getMsZeroBigInt(get_param(params, 3));
 
    cms->sendSubject(subject, h, replySubject, time_limit, xsink);
 
@@ -148,7 +147,7 @@ static QoreNode *TIBRVCMSENDER_sendSubjectWithSyncReply(class Object *self, clas
    }
    class Hash *h = pt->val.hash;
    pt = get_param(params, 2);
-   int64 timeout = pt ? pt->getAsBigInt() : -1;
+   int64 timeout = getMsMinusOneBigInt(pt);
 
    // get certified delivery time limit
    pt = get_param(params, 3);
@@ -274,7 +273,7 @@ class QoreClass *initTibrvCmSenderClass()
 {
    tracein("initTibrvCmSenderClass()");
 
-   class QoreClass *QC_TIBRVCMSENDER = new QoreClass(strdup("TibrvCmSender"));
+   class QoreClass *QC_TIBRVCMSENDER = new QoreClass(QDOM_NETWORK, strdup("TibrvCmSender"));
    CID_TIBRVCMSENDER = QC_TIBRVCMSENDER->getID();
    QC_TIBRVCMSENDER->setConstructor(TIBRVCMSENDER_constructor);
    QC_TIBRVCMSENDER->setDestructor((q_destructor_t)TIBRVCMSENDER_destructor);

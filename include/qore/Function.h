@@ -168,7 +168,7 @@ class Paramlist {
 class UserFunction : public ReferenceObject
 {
    private:
-      int synchronized;
+      bool synchronized;
       // for "synchronized" functions
       class RMutex *gate;
 
@@ -181,10 +181,11 @@ class UserFunction : public ReferenceObject
       class Paramlist *params;
       class StatementBlock *statements;
 
-      inline UserFunction(char *nme, class Paramlist *parms, class StatementBlock *states, int synced = 0);
+      inline UserFunction(char *nme, class Paramlist *parms, class StatementBlock *states, bool synced = false);
       class QoreNode *eval(class QoreNode *args, class Object *self, class ExceptionSink *xsink);
       class QoreNode *evalConstructor(class QoreNode *args, class Object *self, class BCList *bcl, class BCEAList *scbceal, class ExceptionSink *xsink);
       void evalCopy(class Object *old, class Object *self, class ExceptionSink *xsink);
+      inline bool isSynchronized() { return synchronized; }
       inline void deref();
 };
 
@@ -598,7 +599,7 @@ inline Paramlist::~Paramlist()
       delete [] ids;
 }
 
-inline UserFunction::UserFunction(char *nme, class Paramlist *parms, class StatementBlock *b, int synced)
+inline UserFunction::UserFunction(char *nme, class Paramlist *parms, class StatementBlock *b, bool synced)
 {
    next = NULL;
    synchronized = synced;

@@ -402,12 +402,7 @@ static QoreNode *SOCKET_recv(class Object *self, class mySocket *s, class QoreNo
       bs = 0;
    
    // get timeout
-   QoreNode *p1 = get_param(params, 1);
-   int timeout;
-   if (p1)
-      timeout = p1->getAsInt();
-   else
-      timeout = -1;
+   int timeout = getMsMinusOneInt(get_param(params, 1));
 
    int rc;
    QoreString *msg;
@@ -427,12 +422,7 @@ static QoreNode *SOCKET_recv(class Object *self, class mySocket *s, class QoreNo
 static QoreNode *SOCKET_recvi1(class Object *self, class mySocket *s, class QoreNode *params, ExceptionSink *xsink)
 {
    // get timeout
-   QoreNode *p0 = get_param(params, 0);
-   int timeout;
-   if (p0)
-      timeout = p0->getAsInt();
-   else
-      timeout = -1;
+   int timeout = getMsMinusOneInt(get_param(params, 0));
 
    char b;
    int rc = s->recvi1(timeout, &b);
@@ -442,12 +432,7 @@ static QoreNode *SOCKET_recvi1(class Object *self, class mySocket *s, class Qore
 static QoreNode *SOCKET_recvi2(class Object *self, class mySocket *s, class QoreNode *params, ExceptionSink *xsink)
 {
    // get timeout
-   QoreNode *p0 = get_param(params, 0);
-   int timeout;
-   if (p0)
-      timeout = p0->getAsInt();
-   else
-      timeout = -1;
+   int timeout = getMsMinusOneInt(get_param(params, 0));
 
    short b;
    int rc = s->recvi2(timeout, &b);
@@ -457,12 +442,7 @@ static QoreNode *SOCKET_recvi2(class Object *self, class mySocket *s, class Qore
 static QoreNode *SOCKET_recvi4(class Object *self, class mySocket *s, class QoreNode *params, ExceptionSink *xsink)
 {
    // get timeout
-   QoreNode *p0 = get_param(params, 0);
-   int timeout;
-   if (p0)
-      timeout = p0->getAsInt();
-   else
-      timeout = -1;
+   int timeout = getMsMinusOneInt(get_param(params, 0));
 
    int b;
    int rc = s->recvi4(timeout, &b);
@@ -472,12 +452,7 @@ static QoreNode *SOCKET_recvi4(class Object *self, class mySocket *s, class Qore
 static QoreNode *SOCKET_recvi8(class Object *self, class mySocket *s, class QoreNode *params, ExceptionSink *xsink)
 {
    // get timeout
-   QoreNode *p0 = get_param(params, 0);
-   int timeout;
-   if (p0)
-      timeout = p0->getAsInt();
-   else
-      timeout = -1;
+   int timeout = getMsMinusOneInt(get_param(params, 0));
 
    int64 b;
    int rc = s->recvi8(timeout, &b);
@@ -487,12 +462,7 @@ static QoreNode *SOCKET_recvi8(class Object *self, class mySocket *s, class Qore
 static QoreNode *SOCKET_recvi2LSB(class Object *self, class mySocket *s, class QoreNode *params, ExceptionSink *xsink)
 {
    // get timeout
-   QoreNode *p0 = get_param(params, 0);
-   int timeout;
-   if (p0)
-      timeout = p0->getAsInt();
-   else
-      timeout = -1;
+   int timeout = getMsMinusOneInt(get_param(params, 0));
 
    short b;
    int rc = s->recvi2LSB(timeout, &b);
@@ -502,12 +472,7 @@ static QoreNode *SOCKET_recvi2LSB(class Object *self, class mySocket *s, class Q
 static QoreNode *SOCKET_recvi4LSB(class Object *self, class mySocket *s, class QoreNode *params, ExceptionSink *xsink)
 {
    // get timeout
-   QoreNode *p0 = get_param(params, 0);
-   int timeout;
-   if (p0)
-      timeout = p0->getAsInt();
-   else
-      timeout = -1;
+   int timeout = getMsMinusOneInt(get_param(params, 0));
 
    int b;
    int rc = s->recvi4LSB(timeout, &b);
@@ -517,12 +482,7 @@ static QoreNode *SOCKET_recvi4LSB(class Object *self, class mySocket *s, class Q
 static QoreNode *SOCKET_recvi8LSB(class Object *self, class mySocket *s, class QoreNode *params, ExceptionSink *xsink)
 {
    // get timeout
-   QoreNode *p0 = get_param(params, 0);
-   int timeout;
-   if (p0)
-      timeout = p0->getAsInt();
-   else
-      timeout = -1;
+   int timeout = getMsMinusOneInt(get_param(params, 0));
 
    int64 b;
    int rc = s->recvi8LSB(timeout, &b);
@@ -542,12 +502,7 @@ static QoreNode *SOCKET_recvBinary(class Object *self, class mySocket *s, class 
    }
 
    // get timeout
-   QoreNode *p1 = get_param(params, 1);
-   int timeout;
-   if (p1)
-      timeout = p1->getAsInt();
-   else
-      timeout = -1;
+   int timeout = getMsMinusOneInt(get_param(params, 1));
 
    int rc;
    BinaryObject *b = s->recvBinary(bs, timeout, &rc);
@@ -694,13 +649,7 @@ static QoreNode *SOCKET_sendHTTPResponse(class Object *self, class mySocket *s, 
 
 static QoreNode *SOCKET_readHTTPHeader(class Object *self, class mySocket *s, class QoreNode *params, ExceptionSink *xsink)
 {
-   int timeout;
-   QoreNode *p0 = get_param(params, 0);
-   if (p0)
-      timeout = p0->getAsInt();
-   else
-      timeout = -1;
-
+   int timeout = getMsMinusOneInt(get_param(params, 0));
    int rc;
 
    // when rc = -3 it's a timeout, but rv will be NULL anyway, so we do nothing
@@ -891,7 +840,7 @@ class QoreClass *initSocketClass()
 {
    tracein("initSocketClass()");
 
-   class QoreClass *QC_SOCKET = new QoreClass(strdup("Socket"));
+   class QoreClass *QC_SOCKET = new QoreClass(QDOM_NETWORK, strdup("Socket"));
    CID_SOCKET = QC_SOCKET->getID();
    QC_SOCKET->setConstructor(SOCKET_constructor);
    QC_SOCKET->setDestructor(SOCKET_destructor);

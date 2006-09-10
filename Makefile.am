@@ -82,6 +82,7 @@ noinst_HEADERS = \
 	include/qore/signal_constants.h \
 	include/qore/QoreQueue.h \
 	include/qore/QoreSSLBase.h \
+	include/qore/QoreWarnings.h \
 	include/qore/QT_NOTHING.h \
 	include/qore/QT_bigint.h \
 	include/qore/QT_float.h \
@@ -159,7 +160,7 @@ noinst_HEADERS = \
 	include/qore/Qore.h
 
 EXTRA_DIST = .build next_build.sh WHATISQORE RELEASE-NOTES \
-        test/counter-test.q \
+        test/thread-object-test.q \
         test/create-iso-8859-1-file.q \
         test/empty.q \
         test/file-test.q \
@@ -176,10 +177,11 @@ EXTRA_DIST = .build next_build.sh WHATISQORE RELEASE-NOTES \
         test/test-exception.q \
         test/test.q \
         test/Test.qc \
-        test/thread-test.q \
         test/tibae-listener.q \
         test/tibae-test.q \
+	test/tibrv-test.q \
         test/unlocked-thread-test.q \
+	test/regex.q \
 	examples/HTTPClient.qc \
 	examples/HTTPServer.qc \
 	examples/XmlRpcClient.qc \
@@ -194,7 +196,6 @@ EXTRA_DIST = .build next_build.sh WHATISQORE RELEASE-NOTES \
 	examples/clisrv.q \
 	examples/xml-rpc-client.q \
 	examples/inherit.q \
-	examples/regex.q \
 	examples/getopt.q \
 	examples/worm.q \
 	docs/qore.html \

@@ -146,6 +146,20 @@ class QoreString {
 	    c++;
 	 }
       }
+      inline int chomp()
+      {
+	 if (len && buf[len - 1] == '\n')
+	 {
+	    terminate(len - 1);
+	    if (buf[len - 1] == '\r')
+	    {
+	       terminate(len - 1);
+	       return 2;
+	    }
+	    return 1;
+	 }
+	 return 0;
+      }
 };
 
 inline class QoreString *checkEncoding(class QoreString *str, class QoreEncoding *enc, class ExceptionSink *xsink);

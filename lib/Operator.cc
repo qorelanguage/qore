@@ -57,7 +57,7 @@ class Operator *OP_ASSIGNMENT, *OP_LOG_AND, *OP_LOG_OR, *OP_LOG_LT,
    *OP_SINGLE_ASSIGN, *OP_UNSHIFT, *OP_REGEX_SUBST, *OP_LIST_ASSIGNMENT,
    *OP_SPLICE, *OP_MODULA_EQUALS, *OP_MULTIPLY_EQUALS, *OP_DIVIDE_EQUALS,
    *OP_XOR_EQUALS, *OP_SHIFT_LEFT_EQUALS, *OP_SHIFT_RIGHT_EQUALS, *OP_INSTANCEOF,
-   *OP_REGEX_TRANS, *OP_REGEX_EXTRACT;
+   *OP_REGEX_TRANS, *OP_REGEX_EXTRACT, *OP_CHOMP;
 
 // Operator::eval(): return value requires a deref(xsink) afterwards
 // there are 3 main cases which have been split into 3 sections as a speed optimization
@@ -2127,10 +2127,10 @@ static QoreNode *op_splice(class QoreNode *left, class QoreNode *l, ExceptionSin
 
    class VLock vl;
    QoreNode **val = get_var_value_ptr(left, &vl, xsink);
-   // value is not a list, so throw exception
    if (xsink->isEvent())
       return NULL;
 
+   // if value is not a list or string, throw exception
    if (!(*val) || ((*val)->type != NT_LIST && (*val)->type != NT_STRING))
    {
       xsink->raiseException("SPLICE-ERROR", "first argument to splice is not a list or a string");
@@ -2186,6 +2186,57 @@ static QoreNode *op_splice(class QoreNode *left, class QoreNode *l, ExceptionSin
 
    //traceout("op_splice()");
    return (*val);
+}
+
+static QoreNode *op_chomp(class QoreNode *arg, class QoreNode *x, ExceptionSink *xsink)
+{
+   //tracein("op_chomp()");
+   
+   class VLock vl;
+   QoreNode **val = get_var_value_ptr(arg, &vl, xsink);
+   if (xsink->isEvent())
+      return NULL;
+   
+   if (!(*val) || ((*val)->type != NT_STRING && (*val)->type != NT_LIST && (*val)->type != NT_HASH))
+   {
+      xsink->raiseException("CHOMP-ERROR", "argument to chomp is not a string, list or hash");
+      return NULL;
+   }
+   int count = 0;
+   
+   // note that no exception can happen here
+   ensure_unique(val, xsink);
+   if ((*val)->type == NT_STRING)
+      count += (*val)->val.String->chomp();
+   else if ((*val)->type == NT_LIST)
+   {
+      ListIterator li((*val)->val.list);
+      while (li.next())
+      {
+	 class QoreNode **v = li.getValuePtr();
+	 if (*v && (*v)->type == NT_STRING)
+	 {
+	    // note that no exception can happen here
+	    ensure_unique(v, xsink);
+	    count += (*v)->val.String->chomp();
+	 }
+      }      
+   }
+   else // is a hash
+   {
+      HashIterator hi((*val)->val.hash);
+      while (hi.next())
+      {
+	 class QoreNode **v = hi.getValuePtr();
+	 if (*v && (*v)->type == NT_STRING)
+	 {
+	    // note that no exception can happen here
+	    ensure_unique(v, xsink);
+	    count += (*v)->val.String->chomp();
+	 }
+      }
+   }
+   return new QoreNode((int64)count);
 }
 
 static QoreNode *op_exists(class QoreNode *left, class QoreNode *x, ExceptionSink *xsink)
@@ -2518,6 +2569,9 @@ void operatorsInit()
 
    OP_REGEX_EXTRACT = oplist.add(new Operator(2, "regular expression subpattern extraction", "regular expression subpattern extraction", 1, false));
    OP_REGEX_EXTRACT->addFunction(NT_STRING, NT_REGEX, op_regex_extract);
+
+   OP_CHOMP = oplist.add(new Operator(1, "chomp", "chomp EOL marker from lvalue", 0, true, true));
+   OP_CHOMP->addFunction(NT_ALL, NT_NONE, op_chomp);
 
    // initialize all operators
    class Operator *w = oplist.getHead();

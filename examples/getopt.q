@@ -2,6 +2,7 @@
 
 # require global variables to be declared
 %require-our
+%enable-all-warnings
 
 sub get_program_name()
 {

@@ -121,8 +121,7 @@ static QoreNode *TIBRVCMLISTENER_getQueueSize(class Object *self, class QoreTibr
 
 static QoreNode *TIBRVCMLISTENER_getMessage(class Object *self, class QoreTibrvCmListener *cml, QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0 = get_param(params, 0);
-   int64 timeout = is_nothing(p0) ? -1LL : p0->getAsBigInt();
+   int64 timeout = getMsMinusOneBigInt(get_param(params, 0));
 
    class Hash *h;
    // do not time out and guarantee to return data (or an error) if timeout is negative
@@ -184,7 +183,7 @@ class QoreClass *initTibrvCmListenerClass()
 {
    tracein("initTibrvCmListenerClass()");
 
-   class QoreClass *QC_TIBRVCMLISTENER = new QoreClass(strdup("TibrvCmListener"));
+   class QoreClass *QC_TIBRVCMLISTENER = new QoreClass(QDOM_NETWORK, strdup("TibrvCmListener"));
    CID_TIBRVCMLISTENER = QC_TIBRVCMLISTENER->getID();
    QC_TIBRVCMLISTENER->setConstructor(TIBRVCMLISTENER_constructor);
    QC_TIBRVCMLISTENER->setDestructor((q_destructor_t)TIBRVCMLISTENER_destructor);

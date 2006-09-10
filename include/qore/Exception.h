@@ -47,6 +47,7 @@ class ExceptionSink {
       }
       inline ~ExceptionSink();
       inline void handleExceptions();
+      inline void handleWarnings();
       inline bool isEvent()
       {
 	 return head || thread_exit;
@@ -101,6 +102,7 @@ class Exception {
 };
 
 void defaultExceptionHandler(class Exception *e);
+void defaultWarningHandler(class Exception *e);
 class QoreNode *makeExceptionObject(class Exception *e);
 /*
 inline void make_exception(class ExceptionSink *xsink, class QoreNode *l);
@@ -125,6 +127,15 @@ inline void ExceptionSink::handleExceptions()
    if (head)
    {
       defaultExceptionHandler(head);
+      clearIntern();
+   }
+}
+
+inline void ExceptionSink::handleWarnings()
+{
+   if (head)
+   {
+      defaultWarningHandler(head);
       clearIntern();
    }
 }

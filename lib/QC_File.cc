@@ -446,7 +446,7 @@ class QoreClass *initFileClass()
 {
    tracein("initFileClass()");
 
-   class QoreClass *QC_FILE = new QoreClass(strdup("File"));
+   class QoreClass *QC_FILE = new QoreClass(QDOM_FILESYSTEM, strdup("File"));
    CID_FILE = QC_FILE->getID();
    QC_FILE->setSystemConstructor(FILE_system_constructor);
    QC_FILE->setConstructor(FILE_constructor);

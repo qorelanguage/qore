@@ -1,5 +1,9 @@
 #!/usr/bin/env qore
 
+%require-our
+%enable-all-warnings
+
+our $home;
 if (gethostname() =~ /^ren/)
     $home = 1;
 
@@ -53,7 +57,7 @@ sub et($t)
     #throw("gee");
 }
 
-$t = new Test(1, 2, 3);
+our $t = new Test(1, 2, 3);
 new Test(3, 4, 5).hello();
 #$t.p1();
 #$t.p2();

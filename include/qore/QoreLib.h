@@ -107,6 +107,9 @@ static inline char *strchrs(char *str, char *chars)
    return NULL;
 }
 
+// function to try and make a class name out of a file path, returns a new string that must be free()ed
+char *make_class_name(char *fn);
+
 // some string formatting functions that work with Qore data structures
 class QoreString *q_sprintf(class QoreNode *params, int field, int offset, class ExceptionSink *xsink);
 class QoreString *q_vsprintf(class QoreNode *params, int field, int offset, class ExceptionSink *xsink);

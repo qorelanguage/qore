@@ -50,15 +50,14 @@
 #include <pthread.h>
 #include <sys/time.h>
 
-// FIXME: move to config.h or something like that
-// not more than this number of threads can be running at the same time
-#define MAX_THREADS 0x1000
-
-// new thread entry positions will be allocated in blocks of this size
-#define THREAD_LIST_BLOCK 0x80
-
 #ifdef DEBUG
 bool threads_initialized = false;
+#endif
+
+#if defined(DARWIN) && MAX_QORE_THREADS > 2560
+#warning Darwin cannot support more than 2560 threads, MAX_QORE_THREADS set to 2560
+#undef MAX_QORE_THREADS
+#define MAX_QORE_THREADS 2560
 #endif
 
 class Operator *OP_BACKGROUND;
@@ -74,9 +73,8 @@ static pthread_attr_t ta_default;
 // recursive mutex attribute
 pthread_mutexattr_t ma_recursive;
 
-static int      max_thread_list = 0;
 static int      current_tid = 0;
-ThreadEntry    *thread_list = NULL;
+ThreadEntry     thread_list[MAX_QORE_THREADS];
 pthread_key_t   thread_data_key;
 
 #ifndef HAVE_GETHOSTBYNAME_R
@@ -345,60 +343,46 @@ void ThreadCleanupList::pop(int exec)
    }
 }
 
-static inline void grow_thread_list()
-{
-   int start = max_thread_list;
-   max_thread_list += THREAD_LIST_BLOCK;
-   if (max_thread_list > MAX_THREADS)
-      max_thread_list = MAX_THREADS;
-   thread_list = (ThreadEntry *)realloc(thread_list, sizeof(ThreadEntry) * max_thread_list);
-   // zero out new entries
-   for (int i = start; i < max_thread_list; i++)
-      thread_list[i].ptid = 0L;
-}
-
 // returns tid allocated for thread
 static int get_thread_entry()
 {
    int tid;
 
    lThreadList.lock();
-   if (current_tid == max_thread_list)
+   if (current_tid == MAX_QORE_THREADS)
    {
-      if (max_thread_list < MAX_THREADS)
+      int i;
+      // scan thread_list for free entry
+      for (i = 0; i < MAX_QORE_THREADS; i++)
       {
-	 grow_thread_list();
-	 tid = current_tid++;
-      }
-      else
-      {
-	 int i;
-	 // scan thread_list for free entry
-	 for (i = 0; i < max_thread_list; i++)
+	 if (!thread_list[i].ptid)
 	 {
-	    if (!thread_list[i].ptid)
-	    {
-	       tid = i;
-	       break;
-	    }
+	    tid = i;
+	    break;
 	 }
-	 if (i == max_thread_list)
-	    tid = -1;
+      }
+      if (i == MAX_QORE_THREADS)
+      {
+	 lThreadList.unlock();
+	 return -1;
       }
    }
    else
       tid = current_tid++;
    
-   if (tid != -1)
-   {
-      thread_list[tid].ptid = (pthread_t)-1L;
-      thread_list[tid].tidnode = new tid_node(tid);
-      thread_list[tid].callStack = NULL;
-
-      num_threads++;
-   }
+   thread_list[tid].ptid = (pthread_t)-1L;
+   thread_list[tid].tidnode = new tid_node(tid);
+   thread_list[tid].callStack = NULL;
    lThreadList.unlock();
+   //printf("t%d cs=0\n", tid);
+
+   num_threads++;
    return tid;
+}
+
+static inline void delete_thread_data()
+{
+   delete (ThreadData *)pthread_getspecific(thread_data_key);
 }
 
 static void deregister_thread(int tid)
@@ -412,21 +396,35 @@ static void deregister_thread(int tid)
    lThreadList.unlock();
 }
 
-static inline void delete_thread_data()
+// should only be called from new thread
+static inline void register_thread(int tid, pthread_t ptid, class QoreProgram *p)
 {
-   delete (ThreadData *)pthread_getspecific(thread_data_key);
+   thread_list[tid].ptid = ptid;
+#ifdef DEBUG
+   class CallStack *cs = new CallStack();
+   thread_list[tid].callStack = cs;
+   if (!thread_list[tid].callStack)
+      printf("ERROR: TID %d: callStack is NULL (%p), thread_list=%p, cs = %p\n", tid, thread_list[tid].callStack, thread_list, cs);
+#else
+   thread_list[tid].callStack = new CallStack();
+#endif
+   pthread_setspecific(thread_data_key, (void *)(new ThreadData(tid, p)));
 }
 
-static void *op_background_thread(void *vtp)
-{
-   class BGThreadParams *btp = (BGThreadParams *)vtp;
-    
+static void *op_background_thread(class BGThreadParams *btp)
+{    
    // register thread
    register_thread(btp->tid, pthread_self(), btp->pgm);
-   printd(5, "op_background_thread() started");
+   printd(5, "op_background_thread() btp=%08p TID %d started\n", btp, btp->tid);
+   //printf("op_background_thread() btp=%08p TID %d started\n", btp, btp->tid);
 
+#ifdef DEBUG
    if (!thread_list[btp->tid].callStack)
-      printf("TID %d: callstack = NULL\n", btp->tid);
+   {
+      printf("TID %d: btp=%p, callstack = NULL, retry\n", btp->tid, btp);
+      abort();
+   }
+#endif
    // create thread-local data for this thread in the program object
    btp->pgm->startThread();
    // set program counter for new thread
@@ -505,7 +503,7 @@ static class QoreNode *op_background(class QoreNode *left, class QoreNode *right
    if (tid == -1)
    {
       if (nl) nl->deref(xsink);
-      xsink->raiseException("THREAD-CREATION-FAILURE", "thread list is full with %d threads", max_thread_list);
+      xsink->raiseException("THREAD-CREATION-FAILURE", "thread list is full with %d threads", MAX_QORE_THREADS);
       return NULL;
    }
 
@@ -522,7 +520,7 @@ static class QoreNode *op_background(class QoreNode *left, class QoreNode *right
    pthread_t ptid;
    int rc;
    //printd(2, "calling pthread_create(%08p, %08p, %08p, %08p)\n", &ptid, &ta_default, op_background_thread, tp);
-   if ((rc = pthread_create(&ptid, &ta_default, op_background_thread, tp)))
+   if ((rc = pthread_create(&ptid, &ta_default, (void *(*)(void *))op_background_thread, tp)))
    {
       tp->cleanup(xsink);
       delete tp;
@@ -540,9 +538,6 @@ static class QoreNode *op_background(class QoreNode *left, class QoreNode *right
 void init_qore_threads()
 {
    tracein("qore_init_threads()");
-
-   // init thread list
-   grow_thread_list();
 
    // init thread data key
    pthread_key_create(&thread_data_key, NULL); //thread_data_cleanup);
@@ -611,11 +606,6 @@ void delete_qore_threads()
 
    // delete key
    pthread_key_delete(thread_data_key);
-
-   // delete thread list
-   free(thread_list);
-
-   max_thread_list = 0;
 
    traceout("delete_qore_threads()");
 }

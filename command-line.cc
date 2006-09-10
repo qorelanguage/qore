@@ -22,6 +22,7 @@
 
 // global parse_option
 int parse_options = 0;
+int warnings = 0;
 
 // lock options
 bool lock_options = false;
@@ -37,6 +38,9 @@ bool show_mod_errs = false;
 
 // execute class
 bool exec_class = false;
+
+// treat warnings as errors
+bool warnings_are_errors = false;
 
 // program text given on the command-line
 char *cl_pgm = NULL;
@@ -63,22 +67,26 @@ static char helpstr[] =
 "  -c, --charset=arg            sets default character set encoding\n" \
 "      --show-charsets          displays the list of known character sets\n" \
 "      --show-aliases           displays the list of character sets aliases\n" \
+"  -r, --warnings-are-errors    treat warnings as errors\n" \
+"  -W, --warn                   turn on all warnings (recommended)\n" \
 "  -V, --version                show program version information and quit\n" \
 "\n" \
 " PARSE OPTIONS:\n" \
-"  -G, --no-global-vars         makes global variable definitions illegal\n" \
-"  -S, --no-subroutine-def      makes subroutine definitions illegal\n" \
-"  -T, --no-threads             makes thread operations illegal\n" \
-"  -L, --no-top-level           makes top-level statements illegal\n" \
-"  -C, --no-class-defs          makes class definitions illegal\n" \
-"  -D, --no-namespace-defs      makes namespace declarations illegal\n" \
-"  -E, --no-external-process    makes access to external processes illegal\n" \
-"  -K, --lock-options           disables changes to parse options in program\n" \
-"  -P, --no-process-control     makes process control illegal (fork(), exit(), etc)\n" \
-"  -F, --no-constant-defs       makes constant definitions illegal\n" \
-"  -N, --no-new                 makes using the 'new' operator illegal\n" \
+"  -A, --lock-warnings          do not allow changes in warning levels\n" \
+"  -B, --no-database            do not allow any database access\n" \
+"  -G, --no-global-vars         make global variable definitions illegal\n" \
+"  -S, --no-subroutine-def      make subroutine definitions illegal\n" \
+"  -T, --no-threads             make thread operations illegal\n" \
+"  -L, --no-top-level           make top-level statements illegal\n" \
+"  -C, --no-class-defs          make class definitions illegal\n" \
+"  -D, --no-namespace-defs      make namespace declarations illegal\n" \
+"  -E, --no-external-process    make access to external processes illegal\n" \
+"  -K, --lock-options           disable changes to parse options in program\n" \
+"  -P, --no-process-control     make process control illegal (fork(), exit(), etc)\n" \
+"  -F, --no-constant-defs       make constant definitions illegal\n" \
+"  -N, --no-new                 make using the 'new' operator illegal\n" \
 "  -I, --no-child-restrictions  do not restrict subprograms' parse options\n" \
-"  -O, --require-our            requires global variables to be declared with 'our'\n";
+"  -O, --require-our            require 'our' with global variables (recommended)\n";
 
 static inline void show_usage()
 {
@@ -102,6 +110,26 @@ static void do_help(char *arg)
    show_usage();
    printf(helpstr);
    leave(0);
+}
+
+static void warn_to_err(char *arg)
+{
+   warnings_are_errors = true;
+}
+
+static void enable_warnings(char *arg)
+{
+   warnings = -1;
+}
+
+static void do_no_database(char *arg)
+{
+   parse_options |= PO_NO_DATABASE;
+}
+
+static void do_lock_warnings(char *arg)
+{
+   parse_options |= PO_LOCK_WARNINGS;
 }
 
 static void do_no_global_vars(char *arg)
@@ -242,6 +270,10 @@ static struct opt_struct_s {
    { 'm', "show-module-errors",    ARG_NONE, show_module_errors },
    { '\0', "show-charsets",        ARG_NONE, show_charsets },
    { '\0', "show-aliases",         ARG_NONE, show_charset_aliases },
+   { 'r', "warnings-are-errors",   ARG_NONE, warn_to_err },
+   { 'W', "enable-warnings",       ARG_NONE, enable_warnings },
+   { 'A', "lock-warnings",         ARG_NONE, do_lock_warnings },
+   { 'B', "no-database",           ARG_NONE, do_no_database },
    { 'G', "no-global-vars",        ARG_NONE, do_no_global_vars },
    { 'S', "no-subroutine-defs",    ARG_NONE, do_no_subroutine_defs },
    { 'T', "no-threads",            ARG_NONE, do_no_threads },

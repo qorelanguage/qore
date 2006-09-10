@@ -83,8 +83,7 @@ class QoreNode *CONDITION_wait(class Object *self, class Condition *c, class Qor
       return NULL;
    }
 
-   QoreNode *p1 = get_param(params, 1);
-   int timeout = p1 ? p1->getAsInt() : 0;
+   int timeout = getMsZeroInt(get_param(params, 1));
    QoreNode *rv;
 
    int rc;
@@ -109,7 +108,7 @@ class QoreClass *initConditionClass()
 {
    tracein("initConditionClass()");
 
-   class QoreClass *QC_CONDITION = new QoreClass(strdup("Condition"));
+   class QoreClass *QC_CONDITION = new QoreClass(QDOM_THREAD, strdup("Condition"));
    CID_CONDITION = QC_CONDITION->getID();
 
    QC_CONDITION->setConstructor(CONDITION_constructor);

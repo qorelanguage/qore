@@ -30,6 +30,12 @@
 #include <stdio.h>
 #include <pthread.h>
 
+// FIXME: move to config.h or something like that
+// not more than this number of threads can be running at the same time
+#ifndef MAX_QORE_THREADS
+#define MAX_QORE_THREADS 0x1000
+#endif
+
 // pointer to a qore thread destructor function
 typedef void (*qtdest_t)(void *);
 typedef void (*qtrdest_t)(void *, class ExceptionSink *);
@@ -220,7 +226,7 @@ class List *get_thread_list();
 class Hash *getAllCallStacks();
 
 extern pthread_key_t thread_data_key;
-extern class ThreadEntry *thread_list;
+extern class ThreadEntry thread_list[];
 extern class tid_node *tid_head, *tid_tail;
 
 #include <qore/CallStack.h>
@@ -247,7 +253,7 @@ inline void ThreadEntry::cleanup()
    ptid = 0L;
 }
 
-// this constructor must only be called in the ptm_thread_list mutex
+// this constructor must only be called with the lThreadList lock held
 inline tid_node::tid_node(int ntid)
 {
    tid = ntid;
@@ -260,7 +266,7 @@ inline tid_node::tid_node(int ntid)
    tid_tail = this;
 }
 
-// this destructor must only be called in the ptm_thread_list mutex
+// this destructor must only be called with the lThreadList lock held
 inline tid_node::~tid_node()
 {
    if (prev)
@@ -425,14 +431,6 @@ static inline class Namespace *getRootNS()
 static inline int getParseOptions()
 {
    return ((ThreadData *)pthread_getspecific(thread_data_key))->pgmStack->getProgram()->getParseOptions();
-}
-
-// should only be called from new thread
-static inline void register_thread(int tid, pthread_t ptid, class QoreProgram *p)
-{
-   thread_list[tid].ptid = ptid;
-   thread_list[tid].callStack = new CallStack();
-   pthread_setspecific(thread_data_key, (void *)(new ThreadData(tid, p)));
 }
 
 // new file name, current parse state

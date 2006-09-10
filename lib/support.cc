@@ -177,6 +177,23 @@ void parse_error(const char *fmt, ...)
    getProgram()->makeParseException(desc);
 }
 
+void parseException(char *err, const char *fmt, ...)
+{
+   printd(5, "parseException(%s. '%s', ...) called\n", err, fmt);
+
+   class QoreString *desc = new QoreString();
+   while (true)
+   {
+      va_list args;
+      va_start(args, fmt);
+      int rc = desc->vsprintf(fmt, args);
+      va_end(args);
+      if (!rc)
+	 break;
+   }
+   getProgram()->makeParseException(err, desc);
+}
+
 // returns 1 for success
 static inline int tryIncludeDir(class QoreString *dir, char *file)
 {

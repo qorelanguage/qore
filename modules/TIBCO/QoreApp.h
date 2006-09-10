@@ -400,9 +400,9 @@ inline MData *QoreApp::do_primitive_type(const MPrimitiveClassDescription *pcd, 
 	 // we have to use a string here in case the date is too large for a time_t value
 	 QoreString str;
 	 str.sprintf("%04d-%02d-%02dT%02d:%02d:%02d",
-		     v->val.date_time->year, v->val.date_time->month,
-		     v->val.date_time->day, v->val.date_time->hour,
-		     v->val.date_time->minute, v->val.date_time->second);
+		     v->val.date_time->getYear(), v->val.date_time->getMonth(),
+		     v->val.date_time->getDay(), v->val.date_time->getHour(),
+		     v->val.date_time->getMinute(), v->val.date_time->getSecond());
 	 //printd(5, "QoreApp::do_primitive_type() creating date \"%s\"\n", str);
 #ifdef TIBCO_MDT_BUG
 	 l_mdate_time.lock();
@@ -417,19 +417,19 @@ inline MData *QoreApp::do_primitive_type(const MPrimitiveClassDescription *pcd, 
 #if 0
 	 char *str = (char *)malloc(sizeof(char) * 32);
 	 sprintf(str, "%04d-%02d-%02d",
-		 v->val.date_time->year, v->val.date_time->month,
-		 v->val.date_time->day);
+		 v->val.date_time->getYear(), v->val.date_time->getMonth(),
+		 v->val.date_time->getDay());
 	 //printd(5, "QoreApp::do_primitive_type() creating date \"%s\"\n", str);
 	 md = new MDate(str);
 	 free(str);
 #else
-	 md = new MDate(v->val.date_time->year, v->val.date_time->month, v->val.date_time->day);
+	 md = new MDate(v->val.date_time->getYear(), v->val.date_time->getMonth(), v->val.date_time->getDay());
 #endif
       }
       else
       {
 	 xsink->raiseException("TIBCO-DATE-INSTANTIATION-ERROR", "cannot map from QORE type \"date\" to TIBCO type \"%s\"", 
-			pcd->getShortName().c_str());
+			       pcd->getShortName().c_str());
 	 return NULL;
       }
       return md;

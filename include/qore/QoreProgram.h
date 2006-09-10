@@ -33,11 +33,13 @@
 #include <qore/QoreCounter.h>
 #include <qore/StringList.h>
 #include <qore/support.h>
+#include <qore/QoreWarnings.h>
 
 #include <stdio.h>
 #include <errno.h>
 #include <stdarg.h>
 #include <stdlib.h>
+#include <strings.h>
 
 #ifndef CP_UFUNC_BLOCK
 #define CP_UFUNC_BLOCK 200
@@ -135,12 +137,11 @@ class QoreProgram : public ReferenceObject, private UserFunctionList, private Im
       class LockedObject plock;
       // depedency counter, when this hits zero, the object is deleted
       class ReferenceObject dc;
-
       class SBNode *sb_head, *sb_tail;
-      class ExceptionSink *parseSink;
+      class ExceptionSink *parseSink, *warnSink;
       class Namespace *RootNS, *QoreNS;
 
-      int parse_options;
+      int parse_options, warn_mask;
       bool po_locked, exec_class, base_object, requires_exception;
       char *exec_class_name;
       pthread_key_t thread_local_storage;
@@ -148,11 +149,11 @@ class QoreProgram : public ReferenceObject, private UserFunctionList, private Im
       void init();
       inline void nextSB();
       inline void deleteSBList();
-      void internParseCommit(class ExceptionSink *xsink);
+      void internParseCommit();
       inline void initGlobalVars();
       void importUserFunction(class QoreProgram *p, class UserFunction *uf, class ExceptionSink *xsink);
       inline void internParseRollback();
-      int internParsePending(char *code, char *label, class ExceptionSink *xsink);
+      int internParsePending(char *code, char *label);
 
    protected:
       inline ~QoreProgram();
@@ -170,14 +171,25 @@ class QoreProgram : public ReferenceObject, private UserFunctionList, private Im
       class QoreNode *callFunction(char *name, class QoreNode *args, class ExceptionSink *xsink);
       class QoreNode *callFunction(class UserFunction *func, class QoreNode *args, class ExceptionSink *xsink);
       void resolveFunction(class FunctionCall *f);
-      class QoreNode *run(class ExceptionSink *xsink);
-      void parse(FILE *, char *name, class ExceptionSink *);
-      void parse(class QoreString *str, class QoreString *lstr, class ExceptionSink *);
-      void parse(char *str, char *lstr, class ExceptionSink *);
-      void parseFile(char *filename, class ExceptionSink *);
-      inline void parsePending(char *code, char *label, class ExceptionSink *xsink);
-      void parsePending(class QoreString *str, class QoreString *lstr, class ExceptionSink *xsink);
-      void parseCommit(class ExceptionSink *xsink);
+
+      inline class QoreNode *run(class ExceptionSink *xsink);
+      class QoreNode *runTopLevel(class ExceptionSink *xsink);
+      void parseFileAndRun(char *filename);
+      void parseAndRun(FILE *, char *name);
+      //void parseAndRun(class QoreString *str, class QoreString *name);
+      void parseAndRun(char *str, char *name);
+      void runClass(char *classname, class ExceptionSink *xsink);
+      void parseFileAndRunClass(char *filename, char *classname);
+      void parseAndRunClass(FILE *, char *name, char *classname);
+      void parseAndRunClass(char *str, char *name, char *classname);
+      
+      void parse(FILE *, char *name, class ExceptionSink *, class ExceptionSink *warnSink = NULL, int warn_mask = -1);
+      void parse(class QoreString *str, class QoreString *lstr, class ExceptionSink *, class ExceptionSink *warnSink = NULL, int warn_mask = -1);
+      void parse(char *str, char *lstr, class ExceptionSink *, class ExceptionSink *warnSink = NULL, int warn_mask = -1);
+      void parseFile(char *filename, class ExceptionSink *, class ExceptionSink *warnSink = NULL, int warn_mask = -1);
+      inline void parsePending(char *code, char *label, class ExceptionSink *xsink, class ExceptionSink *warnSink = NULL, int warn_mask = -1);
+      void parsePending(class QoreString *str, class QoreString *lstr, class ExceptionSink *xsink, class ExceptionSink *warnSink = NULL, int warn_mask = -1);
+      void parseCommit(class ExceptionSink *xsink, class ExceptionSink *warnSink = NULL, int warn_mask = -1);
       void parseRollback();
       inline void addGlobalVarDef(char *name);
       inline void addStatement(class Statement *s);
@@ -202,17 +214,30 @@ class QoreProgram : public ReferenceObject, private UserFunctionList, private Im
       inline class Var *findVar(char *name);
       inline class Var *checkVar(char *name);
       inline class Var *createVar(char *name);
+      inline void makeParseException(char *err, class QoreString *desc);
       inline void makeParseException(class QoreString *desc);
       inline void addParseException(class ExceptionSink *xsink);
+      inline void makeParseWarning(int code, char *warn, const char *fmt, ...);
+      inline void addParseWarning(int code, class ExceptionSink *xsink);
+      // returns 0 for success, -1 for error
+      inline int setWarningMask(int wm) { if (!(parse_options & PO_LOCK_WARNINGS)) { warn_mask = wm; return 0; } return -1; }
+      // returns 0 for success, -1 for error
+      inline int enableWarning(int code) { if (!(parse_options & PO_LOCK_WARNINGS)) { warn_mask |= code; return 0; } return -1; }
+      // returns 0 for success, -1 for error
+      inline int disableWarning(int code) { if (!(parse_options & PO_LOCK_WARNINGS)) { warn_mask &= ~code; return 0; } return -1; }
       inline void cannotProvideFeature(class QoreString *desc);
       inline class Namespace *getRootNS() { return RootNS; }
       inline int getParseOptions() { return parse_options; }
       inline void exportUserFunction(char *name, class QoreProgram *p, class ExceptionSink *xsink);
       inline class List *getUserFunctionList() { return getUFList(); }
-      inline void waitForTerminationAndDeref()
+      inline void waitForTermination()
       {
 	 tcount.waitForZero();
-	 deref();
+      }
+      inline void waitForTerminationAndDeref(class ExceptionSink *xsink)
+      {
+	 tcount.waitForZero();
+	 deref(xsink);
       }
       inline void parseSetParseOptions(int po);
       inline void setParseOptions(int po, class ExceptionSink *xsink);
@@ -234,15 +259,6 @@ class QoreProgram : public ReferenceObject, private UserFunctionList, private Im
       inline void startThread();
       inline class Hash *getThreadData();
 
-      void parseFileAndRun(char *filename);
-      void parseAndRun(FILE *, char *name);
-      //void parseAndRun(class QoreString *str, class QoreString *name);
-      void parseAndRun(char *str, char *name);
-
-      void runClass(char *classname, class ExceptionSink *xsink);
-      void parseFileAndRunClass(char *filename, char *classname);
-      void parseAndRunClass(FILE *, char *name, char *classname);
-      void parseAndRunClass(char *str, char *name, char *classname);
       void depRef()
       {
 	 dc.ROreference();
@@ -256,6 +272,8 @@ class QoreProgram : public ReferenceObject, private UserFunctionList, private Im
 	 }
       }
       void del(class ExceptionSink *xsink);
+      bool checkWarning(int code) { return warnSink && (code & warn_mask); }
+      int getWarningMask() { return warnSink ? warn_mask : 0; }
 };
 
 #include <qore/Function.h>
@@ -286,23 +304,24 @@ inline void QoreProgram::deref()
 
 static inline void addProgramConstants(class Namespace *ns)
 {
-   ns->addConstant("PO_DEFAULT",                  new QoreNode(NT_INT, PO_DEFAULT));
-   ns->addConstant("PO_NO_GLOBAL_VARS",           new QoreNode(NT_INT, PO_NO_GLOBAL_VARS));
-   ns->addConstant("PO_NO_SUBROUTINE_DEFS",       new QoreNode(NT_INT, PO_NO_SUBROUTINE_DEFS));  
-   ns->addConstant("PO_NO_THREADS",               new QoreNode(NT_INT, PO_NO_THREADS));
-   ns->addConstant("PO_NO_TOP_LEVEL_STATEMENTS",  new QoreNode(NT_INT, PO_NO_TOP_LEVEL_STATEMENTS));  
-   ns->addConstant("PO_NO_CLASS_DEFS",            new QoreNode(NT_INT, PO_NO_CLASS_DEFS));
-   ns->addConstant("PO_NO_NAMESPACE_DEFS",        new QoreNode(NT_INT, PO_NO_NAMESPACE_DEFS));
-   ns->addConstant("PO_NO_CONSTANT_DEFS",         new QoreNode(NT_INT, PO_NO_CONSTANT_DEFS));
-   ns->addConstant("PO_NO_NEW",                   new QoreNode(NT_INT, PO_NO_NEW));
-   ns->addConstant("PO_NO_SYSTEM_CLASSES",        new QoreNode(NT_INT, PO_NO_SYSTEM_CLASSES));
-   ns->addConstant("PO_NO_USER_CLASSES",          new QoreNode(NT_INT, PO_NO_USER_CLASSES));
-   ns->addConstant("PO_NO_CHILD_PO_RESTRICTIONS", new QoreNode(NT_INT, PO_NO_CHILD_PO_RESTRICTIONS));
-   ns->addConstant("PO_NO_EXTERNAL_PROCESS",      new QoreNode(NT_INT, PO_NO_EXTERNAL_PROCESS));
-   ns->addConstant("PO_REQUIRE_OUR",              new QoreNode(NT_INT, PO_REQUIRE_OUR));
-   ns->addConstant("PO_NO_PROCESS_CONTROL",       new QoreNode(NT_INT, PO_NO_PROCESS_CONTROL));
-   ns->addConstant("PO_NO_NETWORK",               new QoreNode(NT_INT, PO_NO_NETWORK));
-   ns->addConstant("PO_NO_FILESYSTEM",            new QoreNode(NT_INT, PO_NO_FILESYSTEM));
+   ns->addConstant("PO_DEFAULT",                  new QoreNode((int64)PO_DEFAULT));
+   ns->addConstant("PO_NO_GLOBAL_VARS",           new QoreNode((int64)PO_NO_GLOBAL_VARS));
+   ns->addConstant("PO_NO_SUBROUTINE_DEFS",       new QoreNode((int64)PO_NO_SUBROUTINE_DEFS));  
+   ns->addConstant("PO_NO_THREADS",               new QoreNode((int64)PO_NO_THREADS));
+   ns->addConstant("PO_NO_TOP_LEVEL_STATEMENTS",  new QoreNode((int64)PO_NO_TOP_LEVEL_STATEMENTS));  
+   ns->addConstant("PO_NO_CLASS_DEFS",            new QoreNode((int64)PO_NO_CLASS_DEFS));
+   ns->addConstant("PO_NO_NAMESPACE_DEFS",        new QoreNode((int64)PO_NO_NAMESPACE_DEFS));
+   ns->addConstant("PO_NO_CONSTANT_DEFS",         new QoreNode((int64)PO_NO_CONSTANT_DEFS));
+   ns->addConstant("PO_NO_NEW",                   new QoreNode((int64)PO_NO_NEW));
+   ns->addConstant("PO_NO_SYSTEM_CLASSES",        new QoreNode((int64)PO_NO_SYSTEM_CLASSES));
+   ns->addConstant("PO_NO_USER_CLASSES",          new QoreNode((int64)PO_NO_USER_CLASSES));
+   ns->addConstant("PO_NO_CHILD_PO_RESTRICTIONS", new QoreNode((int64)PO_NO_CHILD_PO_RESTRICTIONS));
+   ns->addConstant("PO_NO_EXTERNAL_PROCESS",      new QoreNode((int64)PO_NO_EXTERNAL_PROCESS));
+   ns->addConstant("PO_REQUIRE_OUR",              new QoreNode((int64)PO_REQUIRE_OUR));
+   ns->addConstant("PO_NO_PROCESS_CONTROL",       new QoreNode((int64)PO_NO_PROCESS_CONTROL));
+   ns->addConstant("PO_NO_NETWORK",               new QoreNode((int64)PO_NO_NETWORK));
+   ns->addConstant("PO_NO_FILESYSTEM",            new QoreNode((int64)PO_NO_FILESYSTEM));
+   ns->addConstant("PO_LOCK_WARNINGS",            new QoreNode((int64)PO_LOCK_WARNINGS));
 }
 
 inline int checkParseOption(int o)
@@ -643,10 +662,12 @@ inline class Var *QoreProgram::checkVar(char *name)
       printd(5, "QoreProgram::checkVar() new global var \"%s\" found\n", name);
       // check if unflagged global vars are allowed
       if (parse_options & PO_REQUIRE_OUR)
-	 parse_error("global variable \"%s\" must first be declared with \"our\" (conflicts with parse option REQUIRE_OUR)", name);
+	 parseException("UNDECLARED-GLOBAL-VARIABLE", "global variable '%s' must first be declared with 'our' (conflicts with parse option REQUIRE_OUR)", name);
       // check if new global variables are allowed to be created at all
       else if (parse_options & PO_NO_GLOBAL_VARS)
-	 parse_error("illegal reference to new global variable \"%s\" (conflicts with parse option NO_GLOBAL_VARS)", name);
+	 parseException("ILLEGAL-GLOBAL-VARIABLE", "illegal reference to new global variable '%s' (conflicts with parse option NO_GLOBAL_VARS)", name);
+      else if (new_var)
+	 makeParseWarning(QP_WARN_UNDECLARED_VAR, "UNDECLARED-GLOBAL-VARIABLE", "global variable '%s' should be declared with 'our'", name);
    }
    return rv;
 }
@@ -664,6 +685,39 @@ inline class Var *QoreProgram::createVar(char *name)
    return rv;
 }
 
+// if this global variable definition is illegal, then
+// it will be flagged in the parseCommit stage
+inline void QoreProgram::addGlobalVarDef(char *name)
+{
+   int new_var = 0;
+   GlobalVariableList::checkVar(name, &new_var);
+   if (!new_var)
+      makeParseWarning(QP_WARN_DUPLICATE_GLOBAL_VARS, "DUPLICATE-GLOBAL-VARIABLE", "global variable '%s' has already been declared", name);
+}
+/*
+inline void QoreProgram::addGlobalVarDef(char *name)
+{
+   class Statement *s = new Statement(S_EXPRESSION, new QoreNode(new VarRef(name, VT_GLOBAL)));
+   if (!sb_tail->statements)
+      sb_tail->statements = new StatementBlock(s);
+   else
+      sb_tail->statements->addStatement(s);
+}
+*/
+
+inline void QoreProgram::makeParseException(char *err, class QoreString *desc)
+{
+   tracein("QoreProgram::makeParseException()");
+   if (!requires_exception)
+   {
+      class Exception *ne = new Exception(err, get_pgm_stmt(), desc);
+      parseSink->raiseException(ne);
+   }
+   else
+      delete desc;
+   traceout("QoreProgram::makeParseException()");
+}
+
 inline void QoreProgram::makeParseException(class QoreString *desc)
 {
    tracein("QoreProgram::makeParseException()");
@@ -672,6 +726,8 @@ inline void QoreProgram::makeParseException(class QoreString *desc)
       class Exception *ne = new Exception("PARSE-EXCEPTION", get_pgm_stmt(), desc);
       parseSink->raiseException(ne);
    }
+   else
+      delete desc;
    traceout("QoreProgram::makeParseException()");
 }
 
@@ -683,6 +739,34 @@ inline void QoreProgram::addParseException(class ExceptionSink *xsink)
       return;
    }
    parseSink->assimilate(xsink);
+}
+
+inline void QoreProgram::makeParseWarning(int code, char *warn, const char *fmt, ...)
+{
+   //printd(5, "QP::mPW(code=%d, warn='%s', fmt='%s') warn_mask=%d warnSink=%08p %s\n", code, warn, fmt, warn_mask, warnSink, warnSink && (code & warn_mask) ? "OK" : "SKIPPED");
+   if (!warnSink || !(code & warn_mask))
+      return;
+   tracein("QoreProgram::makeParseWarning()");
+   class QoreString *desc = new QoreString();
+   while (true)
+   {
+      va_list args;
+      va_start(args, fmt);
+      int rc = desc->vsprintf(fmt, args);
+      va_end(args);
+      if (!rc)
+         break;
+   }
+   class Exception *ne = new Exception(warn, get_pgm_stmt(), desc);
+   warnSink->raiseException(ne);
+   traceout("QoreProgram::makeParseWarning()");
+}
+
+inline void QoreProgram::addParseWarning(int code, class ExceptionSink *xsink)
+{
+   if (!warnSink || !(code & warn_mask))
+      return;
+   warnSink->assimilate(xsink);
 }
 
 inline void QoreProgram::cannotProvideFeature(class QoreString *desc)
@@ -781,17 +865,6 @@ inline void QoreProgram::nextSB()
    sb_tail = sbn;
 }
 
-// if this global variable definition is illegal, then
-// it will be flagged in the parseCommit stage
-inline void QoreProgram::addGlobalVarDef(char *name)
-{
-   class Statement *s = new Statement(S_EXPRESSION, new QoreNode(new VarRef(name, VT_GLOBAL)));
-   if (!sb_tail->statements)
-      sb_tail->statements = new StatementBlock(s);
-   else
-      sb_tail->statements->addStatement(s);
-}
-
 inline void QoreProgram::addStatement(class Statement *s)
 {
    if (!sb_tail->statements)
@@ -839,7 +912,7 @@ inline void QoreProgram::disableParseOptions(int po, class ExceptionSink *xsink)
    parse_options &= (~po);
 }
 
-inline void QoreProgram::parsePending(char *code, char *label, class ExceptionSink *xsink)
+inline void QoreProgram::parsePending(char *code, char *label, class ExceptionSink *xsink, class ExceptionSink *wS, int wm)
 {
    if (!code || !code[0])
       return;
@@ -848,9 +921,15 @@ inline void QoreProgram::parsePending(char *code, char *label, class ExceptionSi
 
    // grab program-level parse lock
    plock.lock();
+   warnSink = wS;
+   warn_mask = wm;
 
-   internParsePending(code, label, xsink);
-
+   parseSink = xsink;
+   internParsePending(code, label);
+   warnSink = NULL;
+#ifdef DEBUG
+   parseSink = NULL;
+#endif
    // release program-level parse lock
    plock.unlock();
 
@@ -865,6 +944,16 @@ inline void QoreProgram::startThread()
 inline class Hash *QoreProgram::getThreadData()
 {
    return (class Hash *)pthread_getspecific(thread_local_storage);
+}
+
+inline class QoreNode *QoreProgram::run(class ExceptionSink *xsink)
+{
+   if (exec_class_name)
+   {
+      runClass(exec_class_name, xsink);
+      return NULL;
+   }
+   return runTopLevel(xsink);
 }
 
 #endif // _QORE_QOREPROGRAM_H

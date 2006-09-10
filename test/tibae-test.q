@@ -1,21 +1,23 @@
 #!/usr/bin/env qore
 
 %requires tibae
+%require-our
+%enable-all-warnings
 
 #const Subject = "Qore.Test.QORETest";
 const Subject = "test";
 
-$iters = int(shift $ARGV);
+our $iters = int(shift $ARGV);
 if (!$iters)
     $iters = 100;
 
-$threads = int(shift $ARGV);
+our $threads = int(shift $ARGV);
 if (!$threads)
     $threads = 1;
 
 printf("%d iteration(s) %d thread(s)\n", $iters, $threads);
 
-$seq = new Sequence();
+our $seq = new Sequence();
 
 class Waiter {
     constructor() { $.c = new Condition(); $.m = new Mutex(); $.t = False; }
@@ -107,7 +109,7 @@ sub receive($adapter, $subject)
     printf("\n%d messages received\n", $cnt);
 }
 
-$go = new Waiter();
+our $go = new Waiter();
 
 sub doTest()
 {
@@ -131,7 +133,7 @@ sub newTest()
 {
     my $subject = Subject + ".1";
 
-    $string = "hello: äüöß";
+    my $string = "hello: Ã¤Ã¼Ã¶Ã";
     $string = convert_encoding($string, "ISO-8859-1");
     #print(dbg_node_info($string));
 

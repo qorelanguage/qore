@@ -56,14 +56,11 @@ void WC_constructor(class Object *self, class QoreNode *params, ExceptionSink *x
    int y       = p2 ? p2->getAsInt() : 0;
    int x       = p3 ? p3->getAsInt() : 0;
 
+   qore_ncurses_init();
    class Window *w = new Window(lines, columns, y, x, xsink);
    if (xsink->isException())
       w->deref();
-   else
-   {
-      qore_ncurses_init();
-      self->setPrivate(CID_WINDOW, w, getWindow, releaseWindow);      
-   }
+   self->setPrivate(CID_WINDOW, w, getWindow, releaseWindow);      
 }
 
 void WC_destructor(class Object *self, class Window *w, ExceptionSink *xsink)

@@ -1,6 +1,7 @@
 #!/usr/bin/env qore
 
 %require-our
+%enable-all-warnings
 %exec-class socket_test
 
 const opts = 
@@ -82,7 +83,7 @@ class socket_test {
 	    else
 	    {
 		$s = $s.accept();
-		printf("server: non-encrypted socket connection from %s (%s)\n", $s.source, $s.source_host);
+		printf("server: cleartext connection from %s (%s)\n", $s.source, $s.source_host);
 	    }
 	}
 	catch ($ex)
@@ -199,7 +200,7 @@ class socket_test {
 
     private get_response($s)
     {
-	my $m = $s.recv();
+	my $m = $s.recv(2);
 	if ($m != "OK")
 	    throw "RESPONSE-ERROR", sprintf("expecting 'OK', got: %N", $m);
     }

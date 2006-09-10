@@ -499,3 +499,19 @@ class BinaryObject *parseBase64(char *buf, int len, class ExceptionSink *xsink)
    }
    return new BinaryObject(binbuf, blen);
 }
+
+char *make_class_name(char *str)
+{
+   char *cn = q_basename(str);
+   char *p = rindex(cn, '.');
+   if (p && p != cn)
+      *p = '\0';
+   p = cn;
+   while (*p)
+   {
+      if (*p == '-')
+	 *p = '_';
+      p++;
+   }
+   return cn;
+}

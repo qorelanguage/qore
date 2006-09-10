@@ -1,4 +1,65 @@
+2006.09.10: David Nichols
+	* "tibrv" module: fixed exception handling in QoreTibrvCmTransport
+	* "tibae" module: updated to new internal API
+	* fixed a memory leak when deleting qore classes that have pending 
+	  method additions (affected builds with and without STL hash_map
+	  support)
+	* fixed class execution when %exec-class is not used
+	* implemented the "-A" command-line option to disallow changes to the
+	  warning level
+	* added domain tags to builtin classes to allow for enforcing parse 
+	  restrictions on class access
+	* implemented logic to verify function domains of classes when using the
+	  "new" operator and when declaring base classes with "inherits" - if
+	  a class provides functionality restricted by the current parse options
+	  an exception is thrown
+	* implemented -B command-line option to disallow database access
+	* implemented warning: undeclared-var
+	* implemented defaultWarningHandler() to print out warnings in a user-
+	  friendly way
+	* implemented warning: duplicate-global-var
+	* made it illegal to declare constructor and destructor methods as 
+	  private
+	* implemented warning: synchronization-ignored
+	* fixed error detection and reporting in scanner.ll when a required
+	  argument was not given to a parse directive (like %exec-class)
+	* implemented "flush()" function to flush standard output as printed by
+	  print(), printf(), etc
+	* combined some thread tests into test/thread-object-test.q
+
+2006.09.09: David Nichols
+	* fixed a race condition in thread.cc where the thread list was 
+	  accessed outside the thread lock but could be dynamically reallocated
+	  -- now the thread list is static 
+	* "ncurses" module: changed the Window and Panel classes to call
+	  qore_ncurses_init() before creating the objects instead of afterwards
+	  which fixed a segfault in examples/hanoi.q
+	* fixed a problem when a builtin class would throw an exception in the
+	  constructor and if Object::doDeleteNoDestructor() was not called
+	  (which has been removed as a part of this patch) the destructor
+	  would be run after the object had been deleted which would cause
+	  another exception to be thrown.  Without this function call, builtin 
+	  classes in class hierarchies would not have their private data 
+	  dereferenced.  Now all builtin constructors throwing exceptions have
+	  to do is to throw the exception and then Object::obliterate() is 
+	  called, taking care of all private data and Object destruction.
+	* implemented a flexible parse warning framework and 3 warnings: 
+	  duplicate-local-vars, warning-mask-unchanged, unknown-warning
+	* implemented the following parse directives: %enable-all-warnings,
+	  %disable-all-warnings, %enable-warning <arg>, %disable-warning <arg>
+	* implented the -W flag to enable all warnings and the PO_LOCK_WARNINGS
+	  parse restriction
+	* implemented the -r command-line flag to treat warnings as errors
+	* changed all functions and methods taking timeout values to accept both
+	  integers, relative times (i.e. 150ms), or absolute times (in which
+	  case the timeout will be automatically calculated from the current 
+	  time)
+	* updated QoreQueue::pop() and shift() debugging statements to only 
+	  output when debugging
+
 2006.09.08: David Nichols
+	* implemented the "chomp" operator similar to perl's, added tests to 
+	  test/test.q
 	* doc updates
 	* removed include/qore/module.h - modules should only include 
 	  qore/ModuleManager.h

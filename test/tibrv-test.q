@@ -4,6 +4,7 @@
 %requires tibrv
 
 %require-our
+%enable-all-warnings
 %exec-class tibrv_test
 
 const Subject = "qore.test";

@@ -191,6 +191,16 @@ static inline bool is_nothing(class QoreNode *n);
 static inline bool is_null(class QoreNode *n);
 static inline bool is_value(class QoreNode *node);
 
+// for getting relative time values or integer values
+static inline int getSecZeroInt(class QoreNode *a);
+static inline int getSecZeroBigInt(class QoreNode *a);
+static inline int getSecMinusOneInt(class QoreNode *a);
+static inline int getSecMinusOneBigInt(class QoreNode *a);
+static inline int getMsZeroInt(class QoreNode *a);
+static inline int getMsZeroBigInt(class QoreNode *a);
+static inline int getMsMinusOneInt(class QoreNode *a);
+static inline int getMsMinusOneBigInt(class QoreNode *a);
+
 #include <qore/support.h>
 #include <qore/config.h>
 #include <qore/Hash.h>
@@ -842,6 +852,82 @@ inline void ensure_type(class QoreNode **v, class QoreType *type, class Exceptio
       (*v)->deref(xsink);
       (*v) = n;
    }
+}
+
+// for getting relative time values or integer values
+static inline int getSecZeroInt(class QoreNode *a)
+{
+   if (is_nothing(a))
+      return 0;
+   if (a->type == NT_DATE)
+      return (int)a->val.date_time->getRelativeSeconds();
+   return a->getAsInt();
+}
+static inline int getSecZeroBigInt(class QoreNode *a)
+{
+   if (is_nothing(a))
+      return 0;
+   if (a->type == NT_DATE)
+      return a->val.date_time->getRelativeSeconds();
+   return a->getAsBigInt();
+}
+// for getting relative time values or integer values
+static inline int getSecMinusOneInt(class QoreNode *a)
+{
+   if (is_nothing(a))
+      return -1;
+   if (a->type == NT_DATE)
+      return (int)a->val.date_time->getRelativeSeconds();
+   return a->getAsInt();
+}
+static inline int getSecMinusOneBigInt(class QoreNode *a)
+{
+   if (is_nothing(a))
+      return -1;
+   if (a->type == NT_DATE)
+      return a->val.date_time->getRelativeSeconds();
+   return a->getAsBigInt();
+}
+static inline int getMsZeroInt(class QoreNode *a)
+{
+   if (is_nothing(a))
+      return 0;
+   if (a->type == NT_DATE)
+      return (int)a->val.date_time->getRelativeMilliseconds();
+   return a->getAsInt();
+}
+static inline int getMsZeroBigInt(class QoreNode *a)
+{
+   if (is_nothing(a))
+      return 0;
+   if (a->type == NT_DATE)
+      return a->val.date_time->getRelativeMilliseconds();
+   return a->getAsBigInt();
+}
+// for getting relative time values or integer values
+static inline int getMsMinusOneInt(class QoreNode *a)
+{
+   if (is_nothing(a))
+      return -1;
+   if (a->type == NT_DATE)
+      return (int)a->val.date_time->getRelativeMilliseconds();
+   return a->getAsInt();
+}
+static inline int getMsMinusOneBigInt(class QoreNode *a)
+{
+   if (is_nothing(a))
+      return -1;
+   if (a->type == NT_DATE)
+      return a->val.date_time->getRelativeMilliseconds();
+   return a->getAsBigInt();
+}
+static inline int getMicroSecZeroInt(class QoreNode *a)
+{
+   if (is_nothing(a))
+      return 0;
+   if (a->type == NT_DATE)
+      return (int)a->val.date_time->getRelativeMilliseconds() * 1000;
+   return a->getAsInt();
 }
 
 #endif

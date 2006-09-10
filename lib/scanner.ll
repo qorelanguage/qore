@@ -42,6 +42,7 @@
 #include <qore/RegexTrans.h>
 #include <qore/ModuleManager.h>
 #include <qore/QoreRegex.h>
+#include <qore/QoreWarnings.h>
 
 #include "parser.h"
 
@@ -252,7 +253,7 @@ static inline bool isRegexSubstModifier(class RegexSubst *qr, int c)
 %option reentrant bison-bridge
 %option stack
 
-%x str_state regex_state incl check_regex regex_subst1 regex_subst2 line_comment exec_class requires regex_trans1 regex_trans2 regex_extract_state
+%x str_state regex_state incl check_regex regex_subst1 regex_subst2 line_comment exec_class requires regex_trans1 regex_trans2 regex_extract_state disable_warning enable_warning
 
 HEX_CONST       0x[0-9A-Fa-f]+
 OCTAL_CONST     \\[0-7]{1,3}
@@ -280,8 +281,44 @@ D2              [0-9]{2}
 ^%no-constant-defs{WS}*$                getProgram()->parseSetParseOptions(PO_NO_CONSTANT_DEFS);
 ^%no-new{WS}*$                          getProgram()->parseSetParseOptions(PO_NO_NEW);
 ^%no-child-restrictions{WS}*$           getProgram()->parseSetParseOptions(PO_NO_CHILD_PO_RESTRICTIONS);
+^%no-database{WS}*$                     getProgram()->parseSetParseOptions(PO_NO_DATABASE);
 ^%require-our{WS}*$                     getProgram()->parseSetParseOptions(PO_REQUIRE_OUR);
-^%exec-class                            BEGIN(exec_class);
+^%enable-all-warnings{WS}*$             { 
+                                           if (getProgram()->setWarningMask(-1))
+					      getProgram()->makeParseWarning(QP_WARN_WARNING_MASK_UNCHANGED, "CANNOT-UPDATE-WARNING-MASK", "this program has its warning mask locked; cannot enable all warnings");
+			                }
+^%disable-all-warnings{WS}*$            { 
+                                           if (getProgram()->setWarningMask(0))
+					      getProgram()->makeParseWarning(QP_WARN_WARNING_MASK_UNCHANGED, "CANNOT-UPDATE-WARNING-MASK", "this program has its warning mask locked; cannot disable all warnings");
+			                }
+^%disable-warning{WS}*$                 { parse_error("missing argument to %%disable-warning"); }
+^%disable-warning{WS}+                  BEGIN(disable_warning);
+<disable_warning>[^\t\n\r]+             {
+                                           char *cn = trim(yytext);
+					   //printd(5, "scanner: disable warning '%s'\n", cn);
+					   int code = get_warning_code(cn);
+					   if (!code)
+					      getProgram()->makeParseWarning(QP_WARN_UNKNOWN_WARNING, "UNKNOWN-WARNING", "cannot disable unknown warning '%s'", cn);
+					   else if (getProgram()->disableWarning(code))
+					      getProgram()->makeParseWarning(QP_WARN_WARNING_MASK_UNCHANGED, "CANNOT-UPDATE-WARNING-MASK", "this program has its warning mask locked; cannot disable warning '%s'", cn);
+					   free(cn);
+					   BEGIN(INITIAL);
+                                        }
+^%ensable-warning{WS}*$                 { parse_error("missing argument to %%enable-warning"); }
+^%enable-warning{WS}+                   BEGIN(enable_warning);
+<enable_warning>[^\t\n\r]+              {
+                                           char *cn = trim(yytext);
+					   //printd(5, "scanner: enable warning '%s'\n", cn);
+					   int code = get_warning_code(cn);
+					   if (!code)
+					      getProgram()->makeParseWarning(QP_WARN_UNKNOWN_WARNING, "UNKNOWN-WARNING", "cannot enable unknown warning '%s'", cn);
+					   else if (getProgram()->enableWarning(code))
+					      getProgram()->makeParseWarning(QP_WARN_WARNING_MASK_UNCHANGED, "CANNOT-UPDATE-WARNING-MASK", "this program has its warning mask locked; cannot enable warning '%s'", cn);
+					   free(cn);
+					   BEGIN(INITIAL);
+                                        }
+^%exec-class{WS}*$                      { parse_error("missing argument to %%exec-class"); }
+^%exec-class{WS}*                       BEGIN(exec_class);
 ^%requires                              BEGIN(requires);
 <requires>[^\t\n\r]+                    {
                                            char *cn = trim(yytext);
@@ -292,14 +329,17 @@ D2              [0-9]{2}
 					   free(cn);
 					   BEGIN(INITIAL);
                                         }
+^%include{WS}*$                         { parse_error("missing argument to %%include"); }
 ^%include{WS}+				BEGIN(incl);
-<exec_class>[^\t\n\r]+			{
+<exec_class>{
+   [^\t\n\r]+$   	                {
                                            char *cn = trim(yytext);
 					   //printf("setting class name to: '%s'\n", cn);
-					   getProgram()->setExecClass(cn);
+	 				   getProgram()->setExecClass(cn);
 					   free(cn);
 					   BEGIN(INITIAL);
                                         }
+}
 <incl>{WS}*				// ignore white space
 <incl>[^\t\n\r]+			{
                                            FILE *save_yyin = yyin;
@@ -589,11 +629,13 @@ push                                    return TOK_PUSH;
 pop                                     return TOK_POP;
 splice                                  return TOK_SPLICE;
 instanceof                              return TOK_INSTANCEOF;
-push{WS}*\(                             yylval->string = strdup("push"); return KW_IDENTIFIER_OPENPAREN;
-pop{WS}*\(                              yylval->string = strdup("pop"); return KW_IDENTIFIER_OPENPAREN;
-splice{WS}*\(                           yylval->string = strdup("splice"); return KW_IDENTIFIER_OPENPAREN;
-shift{WS}*\(                            yylval->string = strdup("shift"); return KW_IDENTIFIER_OPENPAREN;
-unshift{WS}*\(                          yylval->string = strdup("unshift"); return KW_IDENTIFIER_OPENPAREN;
+chomp					return TOK_CHOMP;
+chomp\(                            yylval->string = strdup("chomp"); return KW_IDENTIFIER_OPENPAREN;
+push\(                             yylval->string = strdup("push"); return KW_IDENTIFIER_OPENPAREN;
+pop\(                              yylval->string = strdup("pop"); return KW_IDENTIFIER_OPENPAREN;
+splice\(                           yylval->string = strdup("splice"); return KW_IDENTIFIER_OPENPAREN;
+shift\(                            yylval->string = strdup("shift"); return KW_IDENTIFIER_OPENPAREN;
+unshift\(                          yylval->string = strdup("unshift"); return KW_IDENTIFIER_OPENPAREN;
 {YEAR}-{MONTH}-{DAY}[T-]{HOUR}:{MSEC}:{MSEC}(\.{MS})?   yylval->datetime = makeDateTime(yytext); return DATETIME;
 {YEAR}-{MONTH}-{DAY}                    yylval->datetime = makeDate(yytext); return DATETIME;
 {HOUR}:{MSEC}:{MSEC}(\.{MS})?           yylval->datetime = makeTime(yytext); return DATETIME;

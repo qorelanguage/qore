@@ -7,6 +7,7 @@
 # has been installed
 
 %require-our
+%enable-all-warnings
 our $o;
 
 const opts = 
