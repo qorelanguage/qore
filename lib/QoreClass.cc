@@ -34,7 +34,7 @@ class Sequence classIDSeq;
 
 class QoreNode *Method::eval(Object *self, QoreNode *args, ExceptionSink *xsink)
 {
-   QoreNode *rv;
+   QoreNode *rv = NULL;
 
    tracein("Method::eval()");
 #ifdef DEBUG

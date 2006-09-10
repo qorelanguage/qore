@@ -346,7 +346,7 @@ void ThreadCleanupList::pop(int exec)
 // returns tid allocated for thread
 static int get_thread_entry()
 {
-   int tid;
+   int tid = -1;
 
    lThreadList.lock();
    if (current_tid == MAX_QORE_THREADS)
@@ -358,7 +358,7 @@ static int get_thread_entry()
 	 if (!thread_list[i].ptid)
 	 {
 	    tid = i;
-	    break;
+	    goto finish;
 	 }
       }
       if (i == MAX_QORE_THREADS)
@@ -369,7 +369,8 @@ static int get_thread_entry()
    }
    else
       tid = current_tid++;
-   
+
+  finish:   
    thread_list[tid].ptid = (pthread_t)-1L;
    thread_list[tid].tidnode = new tid_node(tid);
    thread_list[tid].callStack = NULL;
