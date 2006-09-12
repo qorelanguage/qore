@@ -8,15 +8,15 @@ try
 }
 catch ($ex)
 {
-    printf("QORE %s Exception in line %d of file %s: %s: %s\n", $ex.type, $ex.line, $ex.file, $ex.err, $ex.desc);
+    printf("%s\n", $ex.err == "testing" && $ex.desc == "123" && $ex.arg == "test" ? "OK" : "ERROR");
 }
 try
 {
     $e.open();
 }
-catch ()
+catch ($ex)
 {
-    print("gee\n");
+    printf("%s\n", $ex.err == "DATASOURCE-MISSING-DBNAME" && !exists $ex.arg ? "OK" : "ERROR");
 }
 try
 {
@@ -28,8 +28,8 @@ try
 	}
 	catch ($ex)
 	{
-	    printf("QORE %s Exception in line %d of file %s: %s: %s\n", 
-		   $ex.type, $ex.line, $ex.file, $ex.err, $ex.desc);
+	    printf("%s\n", $ex.err == "OBJECT-METHOD-EVAL-ON-NON-OBJECT" && !exists $ex.arg ? "OK" : "ERROR");
+
 	    try
 	    {
 		try
@@ -48,16 +48,14 @@ try
 	    }
 	    catch ($ex) 
 	    {
-		printf("QORE %s Exception in line %d of file %s: %s: %s\n", 
-		       $ex.type, $ex.line, $ex.file, $ex.err, $ex.desc);
-		throw "oh no";
+		printf("%s\n", $ex.err == "OBJECT-METHOD-EVAL-ON-NON-OBJECT" && !exists $ex.arg ? "OK" : "ERROR");
+		throw "TEST";
 	    }
 	}
     }
     catch ($ex)
     {
-	printf("QORE %s Exception in line %d of file %s: %s: %s\n", 
-	       $ex.type, $ex.line, $ex.file, $ex.err, $ex.desc);
+	printf("%s\n", $ex.err == "TEST" && !exists $ex.arg ? "OK" : "ERROR");
     }
 }
 catch ($ex)
@@ -68,11 +66,17 @@ catch ($ex)
 	printf("%s\n", %dsfdf);
 }
 
-try
-{
-    throw "TEST-ERROR", "this is a test";
+try {
+    try
+    {
+	throw "TEST-ERROR", "this is a test";
+    }
+    catch ()
+    {
+	rethrow;
+    }
 }
-catch ()
+catch ($ex)
 {
-    rethrow;
+    printf("%s\n", $ex.err == "TEST-ERROR" && $ex.callstack[0].type == "rethrow" ? "OK" : "ERROR");
 }

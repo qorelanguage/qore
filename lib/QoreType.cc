@@ -225,6 +225,12 @@ QoreTypeManager::QoreTypeManager()
    // from now on, assign IDs in the user space 
    lastid = QTM_USER_START;
 
+   traceout("QoreTypeManager::QoreTypeManager()");
+}
+
+// at least the NullString must be created after the default character encoding is set
+void QoreTypeManager::init()
+{
    // initialize global default values
    False       = new QoreNode(false);
    True        = new QoreNode(true);
@@ -234,11 +240,9 @@ QoreTypeManager::QoreTypeManager()
    ZeroFloat   = new QoreNode(0.0);
    NullString  = new QoreNode("");
    ZeroDate    = new QoreNode(new DateTime(0ll));
-
+   
    emptyList   = new QoreNode(new List());
    emptyHash   = new QoreNode(new Hash());
-
-   traceout("QoreTypeManager::QoreTypeManager()");
 }
 
 QoreTypeManager::~QoreTypeManager()

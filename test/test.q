@@ -964,6 +964,7 @@ sub class_test_Program()
 sub class_test_File()
 {
     return;
+/*
     # File test
     my $f = new File();
     $f.open($ENV."_");
@@ -972,6 +973,7 @@ sub class_test_File()
     $f.setPos(0);
     test_value($l, $f.readLine(), "File::readLine() and File::setPos()");
     test_value($p, $f.getPos(), "File::getPos()");
+*/
 }
 
 sub class_library_tests()

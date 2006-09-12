@@ -68,6 +68,9 @@ void qore_init(char *def_charset, bool show_module_errors)
    // initialize charset encoding support
    QEM.init(def_charset);
 
+   // create default type values
+   QTM.init();
+
    // set up core operators
    operatorsInit();
 

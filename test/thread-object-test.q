@@ -219,7 +219,7 @@ class thread_object_test {
 
     private usage()
     {
-        printf("usage: %s -[options] [port]
+        printf("usage: %s -[options] [iterations [threads]]
   -h,--help           this help text
   -v,--verbose        more information
 ", basename($ENV."_"));

@@ -8,6 +8,10 @@
 	* made QoreClass::name private
 	* divided PO_NO_THREADS into PO_NO_THREAD_CONTROL (-R) and 
 	  PO_NO_THREAD_CLASSES (-X) and respective command-line options
+	* delayed QoreTypeManager initialization of default values until after
+	  the default character set is set in order to ensure that NullString
+	  is marked with a character set encoding
+	* minor improvements to some test scripts
 
 2006.09.10: David Nichols
 	* "tibrv" module: fixed exception handling in QoreTibrvCmTransport
