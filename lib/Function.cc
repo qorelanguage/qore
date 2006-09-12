@@ -286,7 +286,7 @@ class QoreNode *UserFunction::evalConstructor(QoreNode *args, Object *self, clas
 {
    tracein("UserFunction::evalConstructor()");
    printd(2, "UserFunction::evalConstructor(): method='%s:%s' args=%08p (size=%d)\n", 
-          self->getClass()->name, name, args, args ? args->val.list->size() : 0);
+          self->getClass()->getName(), name, args, args ? args->val.list->size() : 0);
 
    int i = 0;
    class QoreNode *val = NULL;

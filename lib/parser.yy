@@ -377,7 +377,7 @@ top_level_command:
 	   // see if class definitions are allowed
 	   if (checkParseOption(PO_NO_CLASS_DEFS))
 	      parse_error("illegal class definition \"%s\" (conflicts with parse option NO_CLASS_DEFS)",
-			  $1->oc->name);
+			  $1->oc->getName());
 	   delete $1;
 	}
 	| scoped_const_decl 
@@ -470,7 +470,7 @@ namespace_decl:
 	   // see if class definitions are allowed
 	   if (checkParseOption(PO_NO_CLASS_DEFS))
 	      parse_error("illegal class definition \"%s\" (conflicts with parse option NO_CLASS_DEFS)",
-			  $1->oc->name);
+			  $1->oc->getName());
 	}
 	| top_namespace_decl  
         { 
@@ -613,8 +613,8 @@ statement:
         | TOK_THREAD_EXIT ';'  
 	{ 
 	   // see if thread exit is allowed
-	   if (checkParseOption(PO_NO_THREADS))
-	      parse_error("illegal use of \"thread_exit\" (conflicts with parse option NO_THREADS)");
+	   if (checkParseOption(PO_NO_THREAD_CONTROL))
+	      parse_error("illegal use of \"thread_exit\" (conflicts with parse option NO_THREAD_CONTROL)");
 
 	   $$ = new Statement(S_THREAD_EXIT); 
 	}
@@ -744,13 +744,13 @@ object_def:
 	TOK_CLASS IDENTIFIER inheritance_list '{' class_attributes '}'
         {
 	   $$ = new ObjClassDef($2, $5); 
-	   $5->name = strdup($2);
+	   $5->setName(strdup($2));
 	   $5->scl = $3;
 	}
         | TOK_CLASS SCOPED_REF inheritance_list '{' class_attributes '}'
         { 
 	   $$ = new ObjClassDef($2, $5); 
-	   $5->name = strdup($$->name->getIdentifier()); 
+	   $5->setName(strdup($$->name->getIdentifier())); 
 	   $5->scl = $3;
 	}
 	| TOK_CLASS IDENTIFIER inheritance_list ';'
@@ -763,7 +763,7 @@ object_def:
         { 
 	   class QoreClass *qc = new QoreClass();
 	   $$ = new ObjClassDef($2, qc);
-	   qc->name = strdup($$->name->getIdentifier());
+	   qc->setName(strdup($$->name->getIdentifier()));
 	   qc->scl = $3;
 	}
 	| TOK_CLASS IDENTIFIER inheritance_list '{' '}'
@@ -776,7 +776,7 @@ object_def:
         { 
 	   class QoreClass *qc = new QoreClass();
 	   $$ = new ObjClassDef($2, qc);
-	   qc->name = strdup($$->name->getIdentifier());
+	   qc->setName(strdup($$->name->getIdentifier()));
 	   qc->scl = $3;
 	}
 	;
@@ -1510,8 +1510,8 @@ exp:    scalar
 	{
 	   $$ = makeTree(OP_BACKGROUND, $2, NULL);
 	   // check to see if the expression is legal
-	   if (checkParseOption(PO_NO_THREADS))
-	      parse_error("illegal use of \"background\" operator (conflicts with parse option NO_THREADS)");
+	   if (checkParseOption(PO_NO_THREAD_CONTROL))
+	      parse_error("illegal use of \"background\" operator (conflicts with parse option NO_THREAD_CONTROL)");
 	   else if (!hasEffect($2))
 	      parse_error("argument to background operator has no effect");
 	}

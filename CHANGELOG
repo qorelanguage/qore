@@ -1,3 +1,14 @@
+2006.09.12: David Nichols
+	* implemented the "unreachable-code" warning
+	* implemented the ability to return parse warnings if a parse mask is
+	  passed to Program::parse(), ::parsePending(), or ::parseCommit() as 
+	  the last argument to each respective method
+	* changed parseDatasource() to correctly parse a datasource string
+	  without a username or password
+	* made QoreClass::name private
+	* divided PO_NO_THREADS into PO_NO_THREAD_CONTROL (-R) and 
+	  PO_NO_THREAD_CLASSES (-X) and respective command-line options
+
 2006.09.10: David Nichols
 	* "tibrv" module: fixed exception handling in QoreTibrvCmTransport
 	* "tibae" module: updated to new internal API

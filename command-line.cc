@@ -68,25 +68,28 @@ static char helpstr[] =
 "      --show-charsets          displays the list of known character sets\n" \
 "      --show-aliases           displays the list of character sets aliases\n" \
 "  -r, --warnings-are-errors    treat warnings as errors\n" \
-"  -W, --warn                   turn on all warnings (recommended)\n" \
 "  -V, --version                show program version information and quit\n" \
+"  -W, --warn                   turn on all warnings (recommended)\n" \
 "\n" \
 " PARSE OPTIONS:\n" \
 "  -A, --lock-warnings          do not allow changes in warning levels\n" \
 "  -B, --no-database            do not allow any database access\n" \
-"  -G, --no-global-vars         make global variable definitions illegal\n" \
-"  -S, --no-subroutine-def      make subroutine definitions illegal\n" \
-"  -T, --no-threads             make thread operations illegal\n" \
-"  -L, --no-top-level           make top-level statements illegal\n" \
 "  -C, --no-class-defs          make class definitions illegal\n" \
 "  -D, --no-namespace-defs      make namespace declarations illegal\n" \
 "  -E, --no-external-process    make access to external processes illegal\n" \
-"  -K, --lock-options           disable changes to parse options in program\n" \
-"  -P, --no-process-control     make process control illegal (fork(), exit(), etc)\n" \
 "  -F, --no-constant-defs       make constant definitions illegal\n" \
-"  -N, --no-new                 make using the 'new' operator illegal\n" \
+"  -G, --no-global-vars         make global variable definitions illegal\n" \
 "  -I, --no-child-restrictions  do not restrict subprograms' parse options\n" \
-"  -O, --require-our            require 'our' with global variables (recommended)\n";
+"  -K, --lock-options           disable changes to parse options in program\n" \
+"  -L, --no-top-level           make top-level statements illegal\n" \
+"  -N, --no-new                 make using the 'new' operator illegal\n" \
+"  -O, --require-our            require 'our' with global variables (recommended)\n" \
+"  -P, --no-process-control     make process control illegal (fork(), exit(), etc)\n" \
+"  -R, --no-thread-control      make thread control operations illegal\n" \
+"  -S, --no-subroutine-def      make subroutine definitions illegal\n" \
+"  -T, --no-threads             disallow thread access and control\n" \
+"  -X, --no-thread-classes      disallow access to thread classes\n" 
+   ;
 
 static inline void show_usage()
 {
@@ -145,6 +148,16 @@ static void do_no_subroutine_defs(char *arg)
 static void do_no_threads(char *arg)
 {
    parse_options |= PO_NO_THREADS;
+}
+
+static void do_no_thread_control(char *arg)
+{
+   parse_options |= PO_NO_THREAD_CONTROL;
+}
+
+static void do_no_thread_classes(char *arg)
+{
+   parse_options |= PO_NO_THREAD_CLASSES;
 }
 
 static void do_no_top_level(char *arg)
@@ -277,6 +290,8 @@ static struct opt_struct_s {
    { 'G', "no-global-vars",        ARG_NONE, do_no_global_vars },
    { 'S', "no-subroutine-defs",    ARG_NONE, do_no_subroutine_defs },
    { 'T', "no-threads",            ARG_NONE, do_no_threads },
+   { 'R', "no-thread-control",     ARG_NONE, do_no_thread_control },
+   { 'X', "no-thread-classes",     ARG_NONE, do_no_thread_classes },
    { 'L', "no-top-level",          ARG_NONE, do_no_top_level },
    { 'C', "no-class-defs",         ARG_NONE, do_no_class_defs },
    { 'D', "no-namespace-defs",     ARG_NONE, do_no_namespace_defs },

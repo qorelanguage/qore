@@ -272,6 +272,8 @@ D2              [0-9]{2}
 ^%no-global-vars{WS}*$                  getProgram()->parseSetParseOptions(PO_NO_GLOBAL_VARS);
 ^%no-subroutine-defs{WS}*$              getProgram()->parseSetParseOptions(PO_NO_SUBROUTINE_DEFS);
 ^%no-threads{WS}*$                      getProgram()->parseSetParseOptions(PO_NO_THREADS);
+^%no-thread-control{WS}*$               getProgram()->parseSetParseOptions(PO_NO_THREAD_CONTROL);
+^%no-thread-classes{WS}*$               getProgram()->parseSetParseOptions(PO_NO_THREAD_CLASSES);
 ^%no-top-level{WS}*$                    getProgram()->parseSetParseOptions(PO_NO_TOP_LEVEL_STATEMENTS);
 ^%no-class-defs{WS}*$                   getProgram()->parseSetParseOptions(PO_NO_CLASS_DEFS);
 ^%no-namespace-defs{WS}*$               getProgram()->parseSetParseOptions(PO_NO_NAMESPACE_DEFS);

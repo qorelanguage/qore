@@ -57,7 +57,7 @@ class QoreString *object_MakeString(class QoreNode *n, int foff, class Exception
       }
    }
    QoreString *rv = new QoreString();
-   rv->sprintf("class %s: ", n->val.object->getClass()->name);
+   rv->sprintf("class %s: ", n->val.object->getClass()->getName());
 
    if (foff != FMT_NONE)
    {

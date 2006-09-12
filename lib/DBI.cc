@@ -72,32 +72,34 @@ class Hash *parseDatasource(char *ds, class ExceptionSink *xsink)
       str = p + 1;
    }
 
+   bool has_pass = false;
    p = strchr(str, '/');
-   if (!p)
+   if (p)
    {
-      free(ostr);
-      xsink->raiseException("DATASOURCE-PARSE-ERROR", "missing user name delimited by '/' in '%s'", ds);
-      h->dereference(xsink);
-      delete h;
-      return NULL;
+      *p = '\0';
+      h->setKeyValue("user", new QoreNode(str), NULL);
+      str = p + 1;
+      has_pass = true;
    }
 
-   *p = '\0';
-   h->setKeyValue("user", new QoreNode(str), NULL);
-   str = p + 1;
-   
    p = strchr(str, '@');
    if (!p)
    {
       free(ostr);
-      xsink->raiseException("DATASOURCE-PARSE-ERROR", "missing password delimited by '@' in '%s'", ds);
+      xsink->raiseException("DATASOURCE-PARSE-ERROR", "missing database name delimited by '@' in '%s'", ds);
       h->dereference(xsink);
       delete h;
       return NULL;
    }
 
    *p = '\0';
-   h->setKeyValue("pass", new QoreNode(str), NULL);
+   if (p != str)
+   {
+      if (has_pass)
+	 h->setKeyValue("pass", new QoreNode(str), NULL);
+      else
+	 h->setKeyValue("user", new QoreNode(str), NULL);
+   }
    str = p + 1;
 
    char *db = str;

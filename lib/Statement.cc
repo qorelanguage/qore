@@ -1183,7 +1183,7 @@ static int process_node(class QoreNode **node, lvh_t oflag, int pflag)
       {
 	 // check if parse options allow access to this class
 	 if ((*node)->val.socall->oc->getDomain() & getProgram()->getParseOptions())
-	    parseException("ILLEGAL-CLASS-INSTANTIATION", "parse options do not allow access to the '%s' class", (*node)->val.socall->oc->name);
+	    parseException("ILLEGAL-CLASS-INSTANTIATION", "parse options do not allow access to the '%s' class", (*node)->val.socall->oc->getName());
       }
       delete (*node)->val.socall->name;
       (*node)->val.socall->name = NULL;
@@ -1558,10 +1558,16 @@ void StatementBlock::parseInit(lvh_t oflag, int pflag)
    tracein("StatementBlock::parseInit()");
    printd(4, "StatementBlock::parseInit(b=%08p, oflag=%d) head=%08p tail=%08p\n", this, oflag, head, tail);
 
-   class Statement *where = head;
+   class Statement *where = head, *ret = NULL;
    while (where)
    {
       lvids += where->parseInit(oflag, pflag);
+      if (!ret && where->next && where->Type == S_RETURN)
+      {
+	 // return statement not found at end of block
+	 getProgram()->makeParseWarning(QP_WARN_UNREACHABLE_CODE, "UNREACHABLE-CODE", "code after this statement can never be reached");
+	 ret = where;
+      }
       where = where->next;
    }
 

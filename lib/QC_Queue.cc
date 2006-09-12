@@ -108,7 +108,7 @@ class QoreClass *initQueueClass()
 {
    tracein("initQueueClass()");
 
-   class QoreClass *QC_QUEUE = new QoreClass(QDOM_THREAD, strdup("Queue"));
+   class QoreClass *QC_QUEUE = new QoreClass(QDOM_THREAD_CLASS, strdup("Queue"));
    CID_QUEUE = QC_QUEUE->getID();
    QC_QUEUE->setConstructor(QUEUE_constructor);
    QC_QUEUE->setDestructor((q_destructor_t)QUEUE_destructor);

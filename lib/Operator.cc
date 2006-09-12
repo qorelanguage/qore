@@ -736,7 +736,7 @@ static class QoreNode *op_object_method_call(class QoreNode *left, class QoreNod
    Object *obj = op->val.object;
    obj->ref();
    printd(5, "op_object_method_call() %s:%s() op=%08p, op->val.object=%08p obj=%08p class=%08p (stack=%08p)\n",
-	  obj->getClass()->name, func->val.fcall->f.c_str, op, op->val.object, obj, obj->getClass(), getStackClass());
+	  obj->getClass()->getName(), func->val.fcall->f.c_str, op, op->val.object, obj, obj->getClass(), getStackClass());
    vl.del();
    QoreNode *rv = obj->getClass()->evalMethod(obj, func->val.fcall->f.c_str, func->val.fcall->args, xsink);
    obj->dereference(xsink);
@@ -751,7 +751,7 @@ static class QoreNode *op_new_object(class QoreNode *left, class QoreNode *x, Ex
    tracein("op_new_object()");
 
    class QoreNode *rv = left->val.socall->oc->execConstructor(left->val.socall->args, xsink);
-   printd(5, "op_new_object() returning node=%08p (type=%s)\n", rv, left->val.socall->oc->name);
+   printd(5, "op_new_object() returning node=%08p (type=%s)\n", rv, left->val.socall->oc->getName());
    // if there's an exception, the constructor will delete the object without the destructor
    traceout("op_new_object()");
    return rv;

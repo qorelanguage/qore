@@ -95,10 +95,10 @@ class QoreNode *Object::evalMember(class QoreNode *member, class ExceptionSink *
    class QoreNode *rv;
    char *mem = tstr->getBuffer();
    
-   //printd(5, "Object::evalMember() find_key(%s)=%08p myclass=%s\n", mem, find_key(mem), myclass ? myclass->name : "NONE");
+   //printd(5, "Object::evalMember() find_key(%s)=%08p myclass=%s\n", mem, find_key(mem), myclass ? myclass->getName() : "NONE");
    // if accessed outside the class and the member is a private member 
    class Object *obj = getStackObject();
-   printd(5, "Object::evalMember(%s) obj=%08p class=%s ID=%d stack obj=%08p class=%s ID=%d isPrivateMember=%s\n", mem, this, myclass->name, myclass->getID(), obj, obj ? obj->myclass->name : "(null)", obj ? obj->myclass->getID() : -1, myclass->isPrivateMember(mem) ? "true" : "false");
+   printd(5, "Object::evalMember(%s) obj=%08p class=%s ID=%d stack obj=%08p class=%s ID=%d isPrivateMember=%s\n", mem, this, myclass->getName(), myclass->getID(), obj, obj ? obj->myclass->getName() : "(null)", obj ? obj->myclass->getID() : -1, myclass->isPrivateMember(mem) ? "true" : "false");
 	  
    // if accessed outside the class and the member is a private member 
    if ((!obj || (obj && obj->myclass->getID() != myclass->getID())) && myclass->isPrivateMember(mem))
@@ -107,7 +107,7 @@ class QoreNode *Object::evalMember(class QoreNode *member, class ExceptionSink *
 	 rv = myclass->evalMemberGate(this, member, xsink);
       else
       {
-	 xsink->raiseException("PRIVATE-MEMBER", "'%s' is a private member of class '%s'", mem, myclass->name);
+	 xsink->raiseException("PRIVATE-MEMBER", "'%s' is a private member of class '%s'", mem, myclass->getName());
 	 rv = NULL;
       }
    }
@@ -211,11 +211,11 @@ bool Object::compareHard(class Object *obj)
 // does a deep dereference and execs destructor if necessary
 void Object::dereference(ExceptionSink *xsink)
 {
-   printd(5, "Object::dereference(this=%08p) class=%s %d->%d\n", this, myclass->name, references, references - 1);
+   printd(5, "Object::dereference(this=%08p) class=%s %d->%d\n", this, myclass->getName(), references, references - 1);
    if (ROdereference())
    {
       g.enter();
-      printd(5, "Object::dereference() class=%s deleting this=%08p\n", myclass->name, this);
+      printd(5, "Object::dereference() class=%s deleting this=%08p\n", myclass->getName(), this);
       if (status == OS_OK)
       {
 	 // reference for destructor
@@ -235,11 +235,11 @@ void Object::dereference(ExceptionSink *xsink)
 // this method is called when there is an exception in a constructor and the object should be deleted
 void Object::obliterate(ExceptionSink *xsink)
 {
-   printd(5, "Object::obliterate(this=%08p) class=%s %d->%d\n", this, myclass->name, references, references - 1);
+   printd(5, "Object::obliterate(this=%08p) class=%s %d->%d\n", this, myclass->getName(), references, references - 1);
    if (ROdereference())
    {
       g.enter();
-      printd(5, "Object::obliterate() class=%s deleting this=%08p\n", myclass->name, this);
+      printd(5, "Object::obliterate() class=%s deleting this=%08p\n", myclass->getName(), this);
       if (status == OS_OK)
       {
 	 status = OS_DELETED;

@@ -281,7 +281,7 @@ inline void Namespace::addSystemClass(class QoreClass *oc)
    tracein("Namespace::addSystemClass()");
 #ifdef DEBUG
    if (classList->add(oc))
-      run_time_error("Namespace::addSystemClass() %s %08p already exists in %s", oc->name, oc, name);
+      run_time_error("Namespace::addSystemClass() %s %08p already exists in %s", oc->getName(), oc, name);
 #else
    classList->add(oc);
 #endif
@@ -291,19 +291,19 @@ inline void Namespace::addSystemClass(class QoreClass *oc)
 // public, only called when parsing for unattached namespaces
 inline void Namespace::addClass(class NamedScope *n, class QoreClass *oc)
 {
-   //printd(5, "Namespace::addClass() adding ns=%s (%s, %08p)\n", n->ostr, oc->name, oc);
+   //printd(5, "Namespace::addClass() adding ns=%s (%s, %08p)\n", n->ostr, oc->getName(), oc);
    class Namespace *sns = resolveNameScope(n);
    if (!sns)
       oc->deref();
    else
-      if (sns->classList->find(oc->name))
+      if (sns->classList->find(oc->getName()))
       {
-	 parse_error("class '%s' already exists in namespace '%s'", oc->name, name);
+	 parse_error("class '%s' already exists in namespace '%s'", oc->getName(), name);
 	 oc->deref();
       }
       else if (sns->pendClassList->add(oc))
       {
-	 parse_error("class '%s' is already pending in namespace '%s'", oc->name, name);
+	 parse_error("class '%s' is already pending in namespace '%s'", oc->getName(), name);
 	 oc->deref();
       }
 }
@@ -318,7 +318,7 @@ inline void Namespace::rootAddClass(class NamedScope *nscope, class QoreClass *o
    if (sns)
    {
       printd(5, "Namespace::rootAddClass() '%s' adding %s:%08p to %s:%08p\n", nscope->ostr, 
-	     oc->name, oc, sns->name, sns);
+	     oc->getName(), oc, sns->name, sns);
       sns->addClass(oc);
    }
    else

@@ -100,7 +100,7 @@ inline CallNode::CallNode(char *f, int t, class Object *o)
       obj->ref();
 #ifdef DEBUG
    if (obj)
-      printd(5, "CallNode::CallNode() pushing class=%s obj=%08p\n", obj->getClass()->name, obj);
+      printd(5, "CallNode::CallNode() pushing class=%08p '%s' (name=%08p) obj=%08p\n", obj->getClass(), obj->getClass()->getName(), obj->getClass()->getName(), obj);
 #endif
 }
 
@@ -108,7 +108,7 @@ inline void CallNode::objectDeref(class ExceptionSink *xsink)
 {
    if (obj)
    {
-      printd(5, "CallNode::~CallNode() popping class=%s obj=%08p\n", obj->getClass()->name, obj);
+      printd(5, "CallNode::~CallNode() popping class=%s obj=%08p\n", obj->getClass()->getName(), obj);
       // deref object
       obj->dereference(xsink);
    }
@@ -122,7 +122,7 @@ inline class Hash *CallNode::getInfo()
    class QoreString *str = new QoreString();
    if (obj)
    {
-      str->concat(obj->getClass()->name);
+      str->concat(obj->getClass()->getName());
       str->concat("::");
    }
    str->concat(func);

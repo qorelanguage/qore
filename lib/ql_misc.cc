@@ -257,7 +257,7 @@ static class QoreNode *f_getClassName(class QoreNode *params, ExceptionSink *xsi
    if (!p0)
       return NULL;
 
-   return new QoreNode(p0->val.object->getClass()->name);
+   return new QoreNode(p0->val.object->getClass()->getName());
 }
 
 static class QoreNode *f_parseURL(class QoreNode *params, ExceptionSink *xsink)

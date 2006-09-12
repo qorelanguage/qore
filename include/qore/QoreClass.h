@@ -76,6 +76,7 @@ class Method {
       inline void parseInitConstructor(class BCList *bcl);
       inline int getType() { return type; }
       inline bool isPrivate() { return priv; }
+      inline char *getName() { return name; }
       // only called when method is user
       inline bool isSynchronized();
 };
@@ -455,6 +456,7 @@ class MemberList {
 class QoreClass : public ReferenceObject //, public LockedObject
 {
    private:
+      char *name;
 #ifdef HAVE_QORE_HASH_MAP
       hm_method_t hm;
       hm_qn_t pmm, pending_pmm;
@@ -466,7 +468,7 @@ class QoreClass : public ReferenceObject //, public LockedObject
       class Method *pending_head, *system_constructor;
       class Method *constructor, *destructor, *copyMethod, *methodGate, *memberGate;
       int classID;
-      bool sys;
+      bool sys, initialized;
       int domain;            // capabilities of builtin class to use in the context of parse restrictions
       class ReferenceObject nref;  // namespace references
 
@@ -497,7 +499,6 @@ class QoreClass : public ReferenceObject //, public LockedObject
       inline ~QoreClass();
 
    public:
-      char *name;
       class BCAList *bcal;         // base class constructor argument list
       class BCList *scl;           // base class list
 
@@ -557,17 +558,19 @@ class QoreClass : public ReferenceObject //, public LockedObject
 	    return this;
 	 return scl ? scl->sml.getClass(cid) : NULL;
       }
-      inline void ref()
-      {
-	 ROreference();
-      }
       inline void deref();
       inline bool hasMemberGate()
       {
 	 return memberGate != NULL;
       }
+      inline void ref()
+      {
+	 //printd(5, "QoreClass::ref() %08x %s %d -> %d\n", this, name, reference_count(), reference_count() + 1);
+	 ROreference();
+      }
       inline class QoreClass *getReference()
       {
+	 //printd(5, "QoreClass::getReference() %08x %s %d -> %d\n", this, name, nref.reference_count(), nref.reference_count() + 1);
 	 nref.ROreference();
 	 return this;
       }
@@ -583,6 +586,15 @@ class QoreClass : public ReferenceObject //, public LockedObject
       inline int getDomain()
       {
 	 return domain;
+      }
+      inline char *getName() { return name; }
+      inline void setName(char *n)
+      {
+#ifdef DEBUG
+	 if (name)
+	    run_time_error("QoreClass::setName(%08p '%s') name already set to %08p '%s'", n, n, name, name);
+#endif
+	 name = n;
       }
       //inline void merge(class QoreClass *oc);
 };
@@ -691,7 +703,7 @@ inline void BCSMList::add(class QoreClass *thisclass, class QoreClass *qc)
 {
    if (thisclass == qc)
    {
-      parse_error("class '%s' cannot inherit itself", qc->name);
+      parse_error("class '%s' cannot inherit itself", qc->getName());
       return;
    }
    // see if class already exists in list
@@ -702,7 +714,7 @@ inline void BCSMList::add(class QoreClass *thisclass, class QoreClass *qc)
          return;
       if (w->sclass == thisclass)
       {
-      	 parse_error("circular reference in class hierarchy, '%s' is an ancestor of itself", thisclass->name);
+      	 parse_error("circular reference in class hierarchy, '%s' is an ancestor of itself", thisclass->getName());
       	 return;
       }
       w = w->next;
@@ -724,7 +736,7 @@ inline void BCSMList::execConstructors(class Object *o, class BCEAList *bceal, c
    while (w)
    {
       class QoreNode *args = bceal->findArgs(w->sclass);
-      printd(5, "BCSMList::execConstructors() %s (%08p) base class %s args=%08p\n", o->getClass()->name, o, w->sclass->name, args);
+      printd(5, "BCSMList::execConstructors() %s (%08p) base class %s args=%08p\n", o->getClass()->getName(), o, w->sclass->getName(), args);
       w->sclass->execSubclassConstructor(o, args, xsink);
       if (xsink->isEvent())
 	 break;
@@ -738,7 +750,7 @@ inline void BCSMList::execDestructors(class Object *o, class ExceptionSink *xsin
    class BCSMNode *w = tail;
    while (w)
    {
-      printd(5, "BCSMList::execDestructors() %s::destructor() o=%08p (subclass %s)\n", w->sclass->name, o, o->getClass()->name);
+      printd(5, "BCSMList::execDestructors() %s::destructor() o=%08p (subclass %s)\n", w->sclass->getName(), o, o->getClass()->getName());
       w->sclass->execSubclassDestructor(o, xsink);
       w = w->prev;
    }
@@ -749,7 +761,7 @@ inline void BCSMList::execSystemDestructors(class Object *o, class ExceptionSink
    class BCSMNode *w = tail;
    while (w)
    {
-      printd(5, "BCSMList::execSystemDestructors() %s::destructor() o=%08p (subclass %s)\n", w->sclass->name, o, o->getClass()->name);
+      printd(5, "BCSMList::execSystemDestructors() %s::destructor() o=%08p (subclass %s)\n", w->sclass->getName(), o, o->getClass()->getName());
       w->sclass->execSubclassSystemDestructor(o, xsink);
       w = w->prev;
    }
@@ -794,7 +806,7 @@ inline void BCList::execConstructors(class Object *o, class BCEAList *bceal, cla
    class BCNode *w = head;
    while (w)
    {
-      printd(5, "BCList::execConstructors() %s::constructor() o=%08p (for subclass %s)\n", w->sclass->name, o, o->getClass()->name); 
+      printd(5, "BCList::execConstructors() %s::constructor() o=%08p (for subclass %s)\n", w->sclass->getName(), o, o->getClass()->getName()); 
       w->sclass->execSubclassConstructor(o, bceal, xsink);
       if (xsink->isEvent())
 	 break;
@@ -807,7 +819,7 @@ inline void BCList::execSystemConstructors(class Object *o, class BCEAList *bcea
    class BCNode *w = head;
    while (w)
    {
-      printd(5, "BCList::execSystemConstructors() %s::constructor() o=%08p (for subclass %s)\n", w->sclass->name, o, o->getClass()->name); 
+      printd(5, "BCList::execSystemConstructors() %s::constructor() o=%08p (for subclass %s)\n", w->sclass->getName(), o, o->getClass()->getName()); 
       w->sclass->execSubclassSystemConstructor(o, bceal, xsink);
       if (xsink->isEvent())
 	 break;
@@ -834,12 +846,12 @@ inline void BCList::parseInit(class QoreClass *cls, class BCAList *bcal)
       if (w->cname)
       {
 	 w->sclass = parseFindScopedClass(w->cname);
-	 printd(5, "BCList::parseInit() %s inheriting %s (%08p)\n", cls->name, w->cname->ostr, w->sclass);
+	 printd(5, "BCList::parseInit() %s inheriting %s (%08p)\n", cls->getName(), w->cname->ostr, w->sclass);
       }
       else
       {
 	 w->sclass = parseFindClass(w->cstr);
-	 printd(5, "BCList::parseInit() %s inheriting %s (%08p)\n", cls->name, w->cstr, w->sclass);
+	 printd(5, "BCList::parseInit() %s inheriting %s (%08p)\n", cls->getName(), w->cstr, w->sclass);
       }
       // recursively add base classes to special method list
       if (w->sclass)
@@ -862,7 +874,7 @@ inline void BCList::parseInit(class QoreClass *cls, class BCAList *bcal)
 	 while (n)
 	 {
 	    if (w->sclass == n->sclass)
-	       parse_error("class '%s' cannot inherit '%s' more than once", cls->name, w->sclass->name);
+	       parse_error("class '%s' cannot inherit '%s' more than once", cls->getName(), w->sclass->getName());
 
 	    n = n->next;
 	 }
@@ -879,7 +891,7 @@ inline void BCList::parseInit(class QoreClass *cls, class BCAList *bcal)
       {
 	 w->resolve();
 	 if (w->sclass && !match(w))
-	    parse_error("%s in base class constructor argument list is not a base class of %s", w->sclass->name, cls->name);
+	    parse_error("%s in base class constructor argument list is not a base class of %s", w->sclass->getName(), cls->getName());
 	 w = w->next;
       }
    }
@@ -994,6 +1006,7 @@ inline void BuiltinMethod::deref()
 
 inline void QoreClass::init(char *nme, int dom)
 {
+   initialized = false;
    domain = dom;
    scl = NULL;
    name = nme;
@@ -1263,7 +1276,7 @@ inline Method *QoreClass::resolveSelfMethod(class NamedScope *nme)
    // see if class is base class of this class
    if (qc != this && !scl->sml.isBaseClass(qc))
    {
-      parse_error("'%s' is not a base class of '%s'", qc->name, name);
+      parse_error("'%s' is not a base class of '%s'", qc->getName(), name);
       return NULL;
    }
 
@@ -1300,7 +1313,7 @@ inline Method *QoreClass::resolveSelfMethod(class NamedScope *nme)
       m = NULL;
    }
    else if (!m)
-      parse_error("no method %s::%s() has been defined", qc->name, nstr);
+      parse_error("no method %s::%s() has been defined", qc->getName(), nstr);
 
    return m;
 }
@@ -1612,15 +1625,18 @@ inline List *QoreClass::getMethodList()
 inline void QoreClass::parseInit()
 {
    setParseClass(this);
+   if (!initialized)
+   {
+      printd(5, "QoreClass::parseInit() %s this=%08p start=%08p\n", name, this, pending_head);
+      if (scl)
+	 scl->parseInit(this, bcal);
+
+      if (!sys && domain & getProgram()->getParseOptions())
+	 parseException("ILLEGAL-CLASS-DEFINITION", "class '%s' inherits functionality from base classes that is restricted by current parse options", name);
+      initialized = true;
+   }
+
    class Method *w = pending_head;
-   
-   printd(5, "QoreClass::parseInit() %s this=%08p start=%08p\n", name, this, w);
-   if (scl)
-      scl->parseInit(this, bcal);
-
-   if (!sys && domain & getProgram()->getParseOptions())
-      parseException("ILLEGAL-CLASS-DEFINITION", "class '%s' inherits functionality from base classes that is restricted by current parse options", name);
-
    while (w)
    {
       // initialize method
@@ -1739,7 +1755,7 @@ inline void Method::evalSystemDestructor(class Object *self, class ExceptionSink
 {
    // get pointer to private data object from class ID of base type
    void *ptr = self->getAndClearPrivateData(func.builtin->myclass->getID());
-   //printd(5, "Method::evalSystemDestructor() class=%s (%08p) id=%d ptr=%08p\n", func.builtin->myclass->name, func.builtin->myclass, func.builtin->myclass->getID(), ptr);
+   //printd(5, "Method::evalSystemDestructor() class=%s (%08p) id=%d ptr=%08p\n", func.builtin->myclass->getName(), func.builtin->myclass, func.builtin->myclass->getID(), ptr);
    func.builtin->evalSystemDestructor(self, ptr, xsink);
 }
 
@@ -1814,7 +1830,7 @@ static inline class QoreNode *evalStackObjectValue(char *name, class ExceptionSi
    if (!o)
       run_time_error("evalStackObjectalue(%s) object context is NULL", name);
 #endif
-   printd(5, "evalStackObjectValue() o=%08p (%s)\n", o, o->getClass()->name);
+   printd(5, "evalStackObjectValue() o=%08p (%s)\n", o, o->getClass()->getName());
    rv = o->evalMemberNoMethod(name, xsink);
    traceout("evalStackObjectValue()");
    return rv;

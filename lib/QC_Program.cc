@@ -77,8 +77,24 @@ static QoreNode *PROGRAM_parse(class Object *self, class QoreProgram *p, class Q
       return NULL;
    }
 
-   p->parse(p0->val.String, p1->val.String, xsink);
-   return NULL;
+   // see if a warning mask was passed
+   QoreNode *p2 = get_param(params, 2);
+   int warning_mask = p2 ? p2->getAsInt() : 0;
+
+   if (!warning_mask)
+   {
+      p->parse(p0->val.String, p1->val.String, xsink);
+      return NULL;
+   }
+   ExceptionSink wsink;
+   p->parse(p0->val.String, p1->val.String, xsink, &wsink, warning_mask);
+   if (!wsink.isException())
+      return NULL;
+
+   class Exception *e = wsink.catchException();
+   class QoreNode *rv = makeExceptionObject(e);
+   e->del(xsink);
+   return rv;
 }
 
 static QoreNode *PROGRAM_parsePending(class Object *self, class QoreProgram *p, class QoreNode *params, ExceptionSink *xsink)
@@ -92,14 +108,46 @@ static QoreNode *PROGRAM_parsePending(class Object *self, class QoreProgram *p, 
       return NULL;
    }
 
-   p->parsePending(p0->val.String, p1->val.String, xsink);
-   return NULL;
+   // see if a warning mask was passed
+   QoreNode *p2 = get_param(params, 2);
+   int warning_mask = p2 ? p2->getAsInt() : 0;
+
+   if (!warning_mask)
+   {
+      p->parsePending(p0->val.String, p1->val.String, xsink);
+      return NULL;
+   }
+   ExceptionSink wsink;
+   p->parsePending(p0->val.String, p1->val.String, xsink, &wsink, warning_mask);
+   if (!wsink.isException())
+      return NULL;
+
+   class Exception *e = wsink.catchException();
+   class QoreNode *rv = makeExceptionObject(e);
+   e->del(xsink);
+   return rv;
 }
 
 static QoreNode *PROGRAM_parseCommit(class Object *self, class QoreProgram *p, class QoreNode *params, ExceptionSink *xsink)
 {
-   p->parseCommit(xsink);
-   return NULL;
+   // see if a warning mask was passed
+   QoreNode *pt = get_param(params, 0);
+   int warning_mask = pt ? pt->getAsInt() : 0;
+
+   if (!warning_mask)
+   {
+      p->parseCommit(xsink);
+      return NULL;
+   }
+   ExceptionSink wsink;
+   p->parseCommit(xsink, &wsink, warning_mask);
+   if (!wsink.isException())
+      return NULL;
+
+   class Exception *e = wsink.catchException();
+   class QoreNode *rv = makeExceptionObject(e);
+   e->del(xsink);
+   return rv;
 }
 
 static QoreNode *PROGRAM_parseRollback(class Object *self, class QoreProgram *p, class QoreNode *params, ExceptionSink *xsink)

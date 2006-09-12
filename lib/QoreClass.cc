@@ -38,7 +38,7 @@ class QoreNode *Method::eval(Object *self, QoreNode *args, ExceptionSink *xsink)
 
    tracein("Method::eval()");
 #ifdef DEBUG
-   char *oname = self->getClass()->name;
+   char *oname = self->getClass()->getName();
    printd(5, "Method::eval() %s::%s() (object=%08p, pgm=%08p)\n", 
 	  oname, name, self, self->getProgram());
 #endif
@@ -97,9 +97,9 @@ class QoreNode *Method::eval(Object *self, QoreNode *args, ExceptionSink *xsink)
       else
       {
 	 if (self->getClass() == func.builtin->myclass)
-	    xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::%s() cannot be executed because the object has already been deleted", self->getClass()->name, name);
+	    xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::%s() cannot be executed because the object has already been deleted", self->getClass()->getName(), name);
 	 else
-	    xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::%s() (base class of object's class '%s') cannot be executed because the object has already been deleted", func.builtin->myclass->name, name, self->getClass()->name);
+	    xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::%s() (base class of object's class '%s') cannot be executed because the object has already been deleted", func.builtin->myclass->getName(), name, self->getClass()->getName());
       }
    }
 
@@ -121,7 +121,7 @@ void Method::evalConstructor(Object *self, QoreNode *args, class BCList *bcl, cl
 {
    tracein("Method::evalConstructor()");
 #ifdef DEBUG
-   char *oname = self->getClass()->name;
+   char *oname = self->getClass()->getName();
    printd(5, "Method::evalConstructor() %s::%s() (object=%08p, pgm=%08p)\n", 
 	  oname, name, self, self->getProgram());
 #endif
@@ -220,9 +220,9 @@ void Method::evalCopy(Object *self, Object *old, ExceptionSink *xsink)
       else
       {
 	 if (self->getClass() == func.builtin->myclass)
-	    xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::copy() cannot be executed because the object has already been deleted", self->getClass()->name);
+	    xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::copy() cannot be executed because the object has already been deleted", self->getClass()->getName());
 	 else
-	    xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::copy() (base class of '%s') cannot be executed because the object has already been deleted", func.builtin->myclass->name, self->getClass()->name);
+	    xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::copy() (base class of '%s') cannot be executed because the object has already been deleted", func.builtin->myclass->getName(), self->getClass()->getName());
       }
    }
 
@@ -255,9 +255,9 @@ void Method::evalDestructor(Object *self, ExceptionSink *xsink)
       else
       {
 	 if (self->getClass() == func.builtin->myclass)
-	    xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::destructor() cannot be executed because the object has already been deleted", self->getClass()->name);
+	    xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::destructor() cannot be executed because the object has already been deleted", self->getClass()->getName());
 	 else
-	    xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::destructor() (base class of '%s') cannot be executed because the object has already been deleted", func.builtin->myclass->name, self->getClass()->name);
+	    xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::destructor() (base class of '%s') cannot be executed because the object has already been deleted", func.builtin->myclass->getName(), self->getClass()->getName());
       }
    }
 

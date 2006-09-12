@@ -634,6 +634,16 @@ static class QoreNode *f_join(class QoreNode *params, ExceptionSink *xsink)
    return new QoreNode(str);
 }
 
+static class QoreNode *f_chomp(class QoreNode *params, ExceptionSink *xsink)
+{
+   class QoreNode *p = test_param(params, NT_STRING, 0);
+   if (!p)
+      return NULL;
+   class QoreString *str = p->val.String->copy();
+   str->chomp();
+   return new QoreNode(str);
+}
+
 void init_string_functions()
 {
    builtinFunctions.add("length", f_length);
@@ -654,4 +664,5 @@ void init_string_functions()
    builtinFunctions.add("regex_subst", f_regex_subst);
    builtinFunctions.add("replace", f_replace);
    builtinFunctions.add("join", f_join);
+   builtinFunctions.add("chomp", f_chomp);
 }

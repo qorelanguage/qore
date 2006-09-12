@@ -154,11 +154,11 @@ void init_thread_functions()
    builtinFunctions.add("gettid", f_gettid);
    builtinFunctions.add("num_threads", f_num_threads);
    builtinFunctions.add("thread_list", f_thread_list);
-   builtinFunctions.add("get_thread_data", f_get_thread_data, QDOM_THREAD);
-   builtinFunctions.add("get_all_thread_data", f_get_all_thread_data, QDOM_THREAD);
-   builtinFunctions.add("save_thread_data", f_save_thread_data, QDOM_THREAD);
-   builtinFunctions.add("delete_thread_data", f_delete_thread_data, QDOM_THREAD);
-   builtinFunctions.add("delete_all_thread_data", f_delete_all_thread_data, QDOM_THREAD);
-   builtinFunctions.add("getAllThreadCallStacks", f_getAllThreadCallStacks, QDOM_THREAD);
-   builtinFunctions.add("throwThreadResourceExceptions", f_throwThreadResourceExceptions, QDOM_THREAD);
+   builtinFunctions.add("get_thread_data", f_get_thread_data, QDOM_THREAD_CONTROL);
+   builtinFunctions.add("get_all_thread_data", f_get_all_thread_data, QDOM_THREAD_CONTROL);
+   builtinFunctions.add("save_thread_data", f_save_thread_data, QDOM_THREAD_CONTROL);
+   builtinFunctions.add("delete_thread_data", f_delete_thread_data, QDOM_THREAD_CONTROL);
+   builtinFunctions.add("delete_all_thread_data", f_delete_all_thread_data, QDOM_THREAD_CONTROL);
+   builtinFunctions.add("getAllThreadCallStacks", f_getAllThreadCallStacks, QDOM_THREAD_CONTROL);
+   builtinFunctions.add("throwThreadResourceExceptions", f_throwThreadResourceExceptions, QDOM_THREAD_CONTROL);
 }

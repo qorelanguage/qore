@@ -108,7 +108,7 @@ class QoreClass *initConditionClass()
 {
    tracein("initConditionClass()");
 
-   class QoreClass *QC_CONDITION = new QoreClass(QDOM_THREAD, strdup("Condition"));
+   class QoreClass *QC_CONDITION = new QoreClass(QDOM_THREAD_CLASS, strdup("Condition"));
    CID_CONDITION = QC_CONDITION->getID();
 
    QC_CONDITION->setConstructor(CONDITION_constructor);

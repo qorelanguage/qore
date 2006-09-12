@@ -59,6 +59,7 @@ class QoreClassList
       inline void remove(hm_qc_t::iterator i)
       {
 	 class QoreClass *qc = i->second;
+	 //printd(5, "QCL::remove() this=%08p '%s' (%08p)\n", this, qc->getName(), qc);
          hm.erase(i);
 	 qc->nderef();
       }
@@ -99,7 +100,6 @@ inline void QoreClassList::deleteAll()
    hm_qc_t::iterator i;
    while ((i = hm.begin()) != hm.end())
       remove(i);
-
 #else
    while (head)
    {
@@ -117,11 +117,13 @@ inline QoreClassList::~QoreClassList()
 
 inline int QoreClassList::add(class QoreClass *oc)
 {
-   if (find(oc->name))
+   if (find(oc->getName()))
       return 1;
 
+   //printd(5, "QCL::add() this=%08p '%s' (%08p)\n", this, oc->getName(), oc);
+
 #ifdef HAVE_QORE_HASH_MAP
-   hm[oc->name] = oc;
+   hm[oc->getName()] = oc;
 #else
    class QCNode *w = new QCNode(oc);
    if (tail)
@@ -146,8 +148,8 @@ inline class QoreClass *QoreClassList::find(char *name)
 
    while (w)
    {
-      //printd(5, "QoreClassList::find() this=%08p arg=%s %s\n", this, name, w->name);
-      if (!strcmp(name, w->c->name))
+      //printd(5, "QoreClassList::find() this=%08p arg=%s %s\n", this, name, w->getName());
+      if (!strcmp(name, w->c->getName()))
 	 return w->c;
       w = w->next;
    }
@@ -167,7 +169,7 @@ inline class QoreClass *QoreClassList::findChange(char *name)
 	 nc = i->second;
 	 hm.erase(i);
 	 nc = nc->copyAndDeref();
-	 hm[nc->name] = nc;
+	 hm[nc->getName()] = nc;
       }
       else
 	 nc = i->second;
@@ -179,8 +181,8 @@ inline class QoreClass *QoreClassList::findChange(char *name)
 
    while (w)
    {
-      //printd(5, "QoreClassList::find() this=%08p arg=%s %s\n", this, name, w->name);
-      if (!strcmp(name, w->c->name))
+      //printd(5, "QoreClassList::find() this=%08p arg=%s %s\n", this, name, w->getName());
+      if (!strcmp(name, w->c->getName()))
       {
 	 if (!w->c->is_unique())
 	    w->c = w->c->copyAndDeref();
@@ -199,7 +201,7 @@ inline class QoreClass *QoreClassList::find(int cid)
 
    while (w)
    {
-      //printd(5, "QoreClassList::find() this=%08p arg=%s %s\n", this, name, w->name);
+      //printd(5, "QoreClassList::find() this=%08p arg=%s %s\n", this, name, w->getName());
       if (cid == w->c->getID())
 	 return w->c;
       w = w->next;
@@ -294,10 +296,10 @@ inline void QoreClassList::assimilate(class QoreClassList *n)
       n->hm.erase(i);      
 #ifdef DEBUG
       class QoreClass *c;
-      if ((c = find(nc->name)))
-	 run_time_error("QoreClassList::assimilate() this=%08p DUPLICATE CLASS %08p (%s)\n", this, nc, nc->name);
+      if ((c = find(nc->getName())))
+	 run_time_error("QoreClassList::assimilate() this=%08p DUPLICATE CLASS %08p (%s)\n", this, nc, nc->getName());
 #endif
-      printd(5, "QoreClassList::assimilate() this=%08p adding=%08p (%s)\n", this, nc, nc->name);
+      printd(5, "QoreClassList::assimilate() this=%08p adding=%08p (%s)\n", this, nc, nc->getName());
       add(nc);
    }
 #else
@@ -310,9 +312,9 @@ inline void QoreClassList::assimilate(class QoreClassList *n)
 #ifdef DEBUG
       class QoreClass *c;
       if ((c = find(w->c->getID())))
-	 run_time_error("QoreClassList::assimilate() this=%08p DUPLICATE CLASS %08p (%s)\n", this, c, c->name);
+	 run_time_error("QoreClassList::assimilate() this=%08p DUPLICATE CLASS %08p (%s)\n", this, c, c->getName());
 #endif
-      printd(5, "QoreClassList::assimilate() this=%08p adding=%08p (%s)\n", this, w->c, w->c->name);
+      printd(5, "QoreClassList::assimilate() this=%08p adding=%08p (%s)\n", this, w->c, w->c->getName());
       w->next = NULL;
       add(w->c);
 
@@ -364,14 +366,14 @@ inline void QoreClassList::assimilate(QoreClassList *n, QoreClassList *otherlist
 
    while (w)
    {
-      if (otherlist->find(w->c->name))
-	 parse_error("class '%s' has already been defined in namespace '%s'", w->c->name, nsname);
-      else if (find(w->c->name))
-	 parse_error("class '%s' is already pending in namespace '%s'", w->c->name, nsname);
-      else if (nsl->find(w->c->name))
-	  parse_error("cannot add class '%s' to existing namespace '%s' because a subnamespace has already been defined with this name", w->c->name, nsname);
-       else if (pendNSL->find(w->c->name))
-	 parse_error("cannot add class '%s' to existing namespace '%s' because a pending subnamespace has already been defined with this name", w->c->name, nsname);
+      if (otherlist->find(w->c->getName()))
+	 parse_error("class '%s' has already been defined in namespace '%s'", w->c->getName(), nsname);
+      else if (find(w->c->getName()))
+	 parse_error("class '%s' is already pending in namespace '%s'", w->c->getName(), nsname);
+      else if (nsl->find(w->c->getName()))
+	  parse_error("cannot add class '%s' to existing namespace '%s' because a subnamespace has already been defined with this name", w->c->getName(), nsname);
+       else if (pendNSL->find(w->c->getName()))
+	 parse_error("cannot add class '%s' to existing namespace '%s' because a pending subnamespace has already been defined with this name", w->c->getName(), nsname);
       w = w->next;
    }
    // if there are any errors the list will be deleted anyway
@@ -389,7 +391,7 @@ inline class Hash *QoreClassList::getInfo()
    class QCNode *w = head;
    while (w)
    {
-      h->setKeyValue(w->c->name, new QoreNode(w->c->getMethodList()), NULL);
+      h->setKeyValue(w->c->getName(), new QoreNode(w->c->getMethodList()), NULL);
       w = w->next;
    }
 

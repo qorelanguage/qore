@@ -105,7 +105,7 @@ class QoreClass *initRWLockClass()
 {
    tracein("initRWLockClass()");
 
-   class QoreClass *QC_RWLOCK = new QoreClass(QDOM_THREAD, strdup("RWLock"));
+   class QoreClass *QC_RWLOCK = new QoreClass(QDOM_THREAD_CLASS, strdup("RWLock"));
    CID_RWLOCK = QC_RWLOCK->getID();
    QC_RWLOCK->setConstructor(RWLOCK_constructor);
    QC_RWLOCK->setDestructor((q_destructor_t)RWLOCK_destructor);

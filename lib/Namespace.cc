@@ -714,24 +714,24 @@ void Namespace::addClass(class QoreClass *oc)
    tracein("Namespace::addClass()");
    //printd(5, "Namespace::addClass() adding str=%s (%08p)\n", oc->name, oc);
    // raise an exception if object name collides with a namespace
-   if (nsl->find(oc->name))
+   if (nsl->find(oc->getName()))
    {
-      parse_error("class name '%s' collides with previously-defined namespace '%s'", oc->name, oc->name);
+      parse_error("class name '%s' collides with previously-defined namespace '%s'", oc->getName(), oc->getName());
       oc->deref();
    }
-   else if (pendNSL->find(oc->name))
+   else if (pendNSL->find(oc->getName()))
    {
-      parse_error("class name '%s' collides with pending namespace '%s'", oc->name, oc->name);
+      parse_error("class name '%s' collides with pending namespace '%s'", oc->getName(), oc->getName());
       oc->deref();
    }
-   else if (classList->find(oc->name))
+   else if (classList->find(oc->getName()))
    {
-      parse_error("class '%s' already exists in namespace '%s'", oc->name, name);
+      parse_error("class '%s' already exists in namespace '%s'", oc->getName(), name);
       oc->deref();
    }
    else if (pendClassList->add(oc))
    {
-      parse_error("class '%s' is already pending in namespace '%s'", oc->name, name);
+      parse_error("class '%s' is already pending in namespace '%s'", oc->getName(), name);
       oc->deref();
    }
    traceout("Namespace::addClass()");
