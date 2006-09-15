@@ -12,7 +12,7 @@
 
   <para>The following are special keywords, in that they may be used as function or method names if they are followed by an open parenthesis:</para>
 
-  <para><code>splice, pop, push, shift, unshift</code></para>
+  <para><code>splice, pop, push, shift, unshift, chomp</code></para>
 
 </chapter>
 

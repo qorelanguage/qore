@@ -72,6 +72,9 @@ static int mysql_caps = DBI_CAP_NONE
 #ifdef HAVE_MYSQL_SET_CHARACTER_SET
    | DBI_CAP_CHARSET_SUPPORT
 #endif
+#ifdef HAVE_MYSQL_STMT
+   | DBI_CAP_STORED_PROCEDURES | DBI_CAP_LOB_SUPPORT
+#endif
 ;
 
 class DBIDriver *DBID_MYSQL = NULL;

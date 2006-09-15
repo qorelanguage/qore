@@ -160,6 +160,57 @@
             <para>Returns the byte position of a substring within a string and takes an optional starting offset</para>
           </entry>
         </row>
+
+      <row>
+        <entry>
+          <para>
+            <link linkend="blowfish_encrypt_cbc">blowfish_encrypt_cbc()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Binary</para>
+        </entry>
+        <entry>
+          <para>Y</para>
+        </entry>
+        <entry>
+          <para>Encrypts data using the Cipher Block Chaining function for the <ulink url="http://www.counterpane.com/blowfish.html">blowfish</ulink> algorithm.</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="blowfish_decrypt_cbc">blowfish_decrypt_cbc()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Binary</para>
+        </entry>
+        <entry>
+          <para>Y</para>
+        </entry>
+        <entry>
+          <para>Decrypts data using the Cipher Block Chaining function for the <ulink url="http://www.counterpane.com/blowfish.html">blowfish</ulink> algorithm.</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="blowfish_decrypt_cbc_to_string">blowfish_decrypt_cbc_to_string()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>String</para>
+        </entry>
+        <entry>
+          <para>Y</para>
+        </entry>
+        <entry>
+          <para>Decrypts data to a string using the Cipher Block Chaining function for the <ulink url="http://www.counterpane.com/blowfish.html">blowfish</ulink> algorithm.</para>
+        </entry>
+      </row>
+
+
         <row>
           <entry>
             <para>
@@ -198,7 +249,7 @@
               <link linkend="call_function">call_function()</link>
             </para>
           </entry>
-          <entry>any</entry>
+          <entry><para>any</para></entry>
           <entry>
             <para>Y</para>
           </entry>
@@ -212,7 +263,7 @@
               <link linkend="call_function_args">call_function_args()</link>
             </para>
           </entry>
-          <entry>any</entry>
+          <entry><para>any</para></entry>
           <entry>
             <para>Y</para>
           </entry>
@@ -252,6 +303,56 @@
             <para>calls a method given by a string of the object passed, using the argument after the method name as the list of arguments to pass to the method</para>
           </entry>
         </row>
+
+      <row>
+        <entry>
+          <para>
+            <link linkend="cast5_encrypt_cbc">cast5_encrypt_cbc()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Binary</para>
+        </entry>
+        <entry>
+          <para>Y</para>
+        </entry>
+        <entry>
+          <para>Encrypts data using the Cipher Block Chaining function for the <ulink url="http://en.wikipedia.org/wiki/CAST5">CAST5</ulink> algorithm.</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="cast5_decrypt_cbc">cast5_decrypt_cbc()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Binary</para>
+        </entry>
+        <entry>
+          <para>Y</para>
+        </entry>
+        <entry>
+          <para>Decrypts data using the Cipher Block Chaining function for the <ulink url="http://en.wikipedia.org/wiki/CAST5">CAST5</ulink> algorithm.</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="cast5_decrypt_cbc_to_string">cast5_decrypt_cbc_to_string()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>String</para>
+        </entry>
+        <entry>
+          <para>Y</para>
+        </entry>
+        <entry>
+          <para>Decrypts data to a string using the Cipher Block Chaining function for the <ulink url="http://en.wikipedia.org/wiki/CAST5">CAST5</ulink> algorithm.</para>
+        </entry>
+      </row>
+
         <row>
           <entry>
             <para>
@@ -296,6 +397,12 @@
           <entry><para>Integer</para></entry>
           <entry><para>Y</para></entry>
           <entry><para>Changes the mode of a file.</para></entry>
+        </row>
+        <row>
+          <entry><para><link linkend="chomp">chomp()</link></para></entry>
+          <entry><para>String</para></entry>
+          <entry><para>N</para></entry>
+          <entry><para>Removes the trailing end-of-line indicator from a string and returns the new string (also see the <link linkend="Chomp_Operator">chomp</link> operator).</para></entry>
         </row>
         <row>
           <entry><para><link linkend="chr">chr()</link></para></entry>
@@ -495,6 +602,233 @@
             <para>Deletes the data associated to one or more keys in the thread-local data hash.</para>
           </entry>
         </row>
+
+      <row>
+        <entry>
+          <para>
+            <link linkend="des_encrypt_cbc">des_encrypt_cbc()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Binary</para>
+        </entry>
+        <entry>
+          <para>Y</para>
+        </entry>
+        <entry>
+          <para>Encrypts data using the Cipher Block Chaining function for the <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm.</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="des_decrypt_cbc">des_decrypt_cbc()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Binary</para>
+        </entry>
+        <entry>
+          <para>Y</para>
+        </entry>
+        <entry>
+          <para>Decrypts data using the Cipher Block Chaining function for the <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm.</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="des_decrypt_cbc_to_string">des_decrypt_cbc_to_string()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>String</para>
+        </entry>
+        <entry>
+          <para>Y</para>
+        </entry>
+        <entry>
+          <para>Decrypts data using the Cipher Block Chaining function for the <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm.</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="des_ede_encrypt_cbc">des_ede_encrypt_cbc()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Binary</para>
+        </entry>
+        <entry>
+          <para>Y</para>
+        </entry>
+        <entry>
+          <para>Encrypts data using the Cipher Block Chaining function for the two-key triple <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm.</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="des_ede_decrypt_cbc">des_ede_decrypt_cbc()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Binary</para>
+        </entry>
+        <entry>
+          <para>Y</para>
+        </entry>
+        <entry>
+          <para>Decrypts data using the Cipher Block Chaining function for the two-key triple <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm.</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="des_ede_decrypt_cbc_to_string">des_ede_decrypt_cbc_to_string()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>String</para>
+        </entry>
+        <entry>
+          <para>Y</para>
+        </entry>
+        <entry>
+          <para>Decrypts data to a string using the Cipher Block Chaining function for the two-key triple <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm.</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="des_ede3_encrypt_cbc">des_ede3_encrypt_cbc()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Binary</para>
+        </entry>
+        <entry>
+          <para>Y</para>
+        </entry>
+        <entry>
+          <para>Encrypts data using the Cipher Block Chaining function for the three-key triple <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm.</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="des_ede3_decrypt_cbc">des_ede3_decrypt_cbc()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Binary</para>
+        </entry>
+        <entry>
+          <para>Y</para>
+        </entry>
+        <entry>
+          <para>Decrypts data using the Cipher Block Chaining function for the three-key triple <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm.</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="des_ede3_decrypt_cbc_to_string">des_ede3_decrypt_cbc_to_string()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>String</para>
+        </entry>
+        <entry>
+          <para>Y</para>
+        </entry>
+        <entry>
+          <para>Decrypts data to a string using the Cipher Block Chaining function for the three-key triple <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm.</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="desx_encrypt_cbc">desx_encrypt_cbc()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Binary</para>
+        </entry>
+        <entry>
+          <para>Y</para>
+        </entry>
+        <entry>
+          <para>Encrypts data using the Cipher Block Chaining function for RSA's <ulink url="http://www.rsasecurity.com/">DESX</ulink> algorithm.</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="desx_decrypt_cbc">desx_decrypt_cbc()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Binary</para>
+        </entry>
+        <entry>
+          <para>Y</para>
+        </entry>
+        <entry>
+          <para>Encrypts data using the Cipher Block Chaining function for RSA's <ulink url="http://www.rsasecurity.com/">DESX</ulink> algorithm.</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="desx_decrypt_cbc_to_string">desx_decrypt_cbc_to_string()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>String</para>
+        </entry>
+        <entry>
+          <para>Y</para>
+        </entry>
+        <entry>
+          <para>Encrypts data to a string using the Cipher Block Chaining function for RSA's <ulink url="http://www.rsasecurity.com/">DESX</ulink> algorithm.</para>
+        </entry>
+      </row>
+
+      <row>
+        <entry>
+          <para>
+            <link linkend="DSS">DSS()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>String</para>
+        </entry>
+        <entry>
+          <para>Y</para>
+        </entry>
+        <entry>
+          <para>Returns the DSS message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="DSS1">DSS1()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>String</para>
+        </entry>
+        <entry>
+          <para>Y</para>
+        </entry>
+        <entry>
+          <para>Returns the DSS1 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
+        </entry>
+      </row>
+
         <row>
           <entry><para><link linkend="errno">errno()</link></para></entry>
           <entry><para>Integer</para></entry>
@@ -652,6 +986,12 @@
           </entry>
         </row>
         <row>
+          <entry><para><link linkend="flush">flush()</link></para></entry>
+          <entry><para>n/a</para></entry>
+	  <entry><para>N</para></entry>
+          <entry><para>Flushes output to the console output with <link linkend="print">print()</link>, <link linkend="printf">printf()</link>, etc</para></entry>
+        </row>
+        <row>
           <entry>
             <para>
               <link linkend="fork">fork()</link>
@@ -672,7 +1012,7 @@
           <entry>
             <para>String</para>
           </entry>
-          <entry>N</entry>
+          <entry><para>N</para></entry>
           <entry>
             <para>Allows dates to be formatted</para>
           </entry>
@@ -683,8 +1023,8 @@
               <link linkend="format_number">format_number()</link>
             </para>
           </entry>
-          <entry>String</entry>
-          <entry>N</entry>
+          <entry><para>String</para></entry>
+          <entry><para>N</para></entry>
           <entry>
             <para>Allows numbers to be formatted with more options than sprintf()</para>
           </entry>
@@ -721,6 +1061,25 @@
             <para>Returns the entire thread data hash.</para>
           </entry>
         </row>
+
+      <row>
+        <entry>
+          <para>
+            <link linkend="get_days">get_days()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Integer</para>
+        </entry>
+        <entry>
+          <para>N</para>
+        </entry>
+        <entry>
+          <para>Returns an integer value representing the days value of the date passed (can be either a relative or absolute date).</para>
+        </entry>
+      </row>
+
+
         <row>
           <entry>
             <para>
@@ -753,6 +1112,105 @@
             <para>Returns a string describing the character encoding of the string passed.</para>
           </entry>
         </row>
+
+      <row>
+        <entry>
+          <para>
+            <link linkend="get_hours">get_hours()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Integer</para>
+        </entry>
+        <entry>
+          <para>N</para>
+        </entry>
+        <entry>
+          <para>Returns an integer value representing the hours value of the date passed (can be either a relative or absolute date).</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="get_midnight">get_midnight()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Date</para>
+        </entry>
+        <entry>
+          <para>N</para>
+        </entry>
+        <entry>
+          <para>Returns a date/time value representing midnight on the date passed (strips the time from the date passed and returns the new value)</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="get_milliseconds">get_milliseconds()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Integer</para>
+        </entry>
+        <entry>
+          <para>N</para>
+        </entry>
+        <entry>
+          <para>Returns an integer value representing the milliseconds value of the date passed (can be either a relative or absolute date).</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="get_minutes">get_minutes()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Integer</para>
+        </entry>
+        <entry>
+          <para>N</para>
+        </entry>
+        <entry>
+          <para>Returns an integer value representing the minutes value of the date passed (can be either a relative or absolute date).</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="get_months">get_months()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Integer</para>
+        </entry>
+        <entry>
+          <para>N</para>
+        </entry>
+        <entry>
+          <para>Returns an integer value representing the months value of the date passed (can be either a relative or absolute date).</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="get_seconds">get_seconds()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Integer</para>
+        </entry>
+        <entry>
+          <para>N</para>
+        </entry>
+        <entry>
+          <para>Returns an integer value representing the seconds value of the date passed (can be either a relative or absolute date).</para>
+        </entry>
+      </row>
+
+
         <row>
           <entry>
             <para>
@@ -769,6 +1227,25 @@
             <para>Returns the value of the thread-local data attached to the key passed</para>
           </entry>
         </row>
+
+      <row>
+        <entry>
+          <para>
+            <link linkend="get_years">get_years()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Integer</para>
+        </entry>
+        <entry>
+          <para>N</para>
+        </entry>
+        <entry>
+          <para>Returns an integer value representing the years value of the date passed (can be either a relative or absolute date).</para>
+        </entry>
+      </row>
+
+
         <row>
           <entry>
             <para>
@@ -791,6 +1268,57 @@
           <entry><para>N</para></entry>
           <entry><para>Returns the class name of the object passed.</para></entry>
         </row>
+
+      <row>
+        <entry>
+          <para>
+            <link linkend="getDateFromISOWeek">getDateFromISOWeek()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Date</para>
+        </entry>
+        <entry>
+          <para>N</para>
+        </entry>
+        <entry>
+          <para>Retuns an absolute date value for the ISO-8601 calendar week information passed (year, week number, optional: day)</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="getDayOfWeek">getDayOfWeek()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Integer</para>
+        </entry>
+        <entry>
+          <para>N</para>
+        </entry>
+        <entry>
+          <para>Returns an integer representing the day of the week for the absolute date passed (0=Sunday, 6=Saturday)</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="getDayNumber">getDayNumber()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Integer</para>
+        </entry>
+        <entry>
+          <para>N</para>
+        </entry>
+        <entry>
+          <para>Returns an integer representing the ordinal day number in the year for the absolute date passed</para>
+        </entry>
+      </row>
+
+
         <row>
           <entry><para><link linkend="getDBIDriverCapabilities">getDBIDriverCapabilities()</link></para></entry>
           <entry><para>Integer</para></entry>
@@ -899,11 +1427,61 @@
           <entry>
             <para>String</para>
           </entry>
-          <entry>N</entry>
+          <entry><para>N</para></entry>
           <entry>
             <para>Returns the hostname of the system</para>
           </entry>
         </row>
+
+      <row>
+        <entry>
+          <para>
+            <link linkend="getISODayOfWeek">getISODayOfWeek()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Integer</para>
+        </entry>
+        <entry>
+          <para>N</para>
+        </entry>
+        <entry>
+          <para>Returns an integer representing the ISO-8601 day of the week for the absolute date passed (1=Monday, 7=Sunday)</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="getISOWeekHash">getISOWeekHash()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Hash</para>
+        </entry>
+        <entry>
+          <para>N</para>
+        </entry>
+        <entry>
+          <para>Returns a hash representing the ISO-8601 calendar week information for the absolute date passed (hash keys: year, week, day)</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="getISOWeekString">getISOWeekString()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>String</para>
+        </entry>
+        <entry>
+          <para>N</para>
+        </entry>
+        <entry>
+          <para>Returns a string representing the ISO-8601 calendar week information for the absolute date passed (ex: 2006-01-01 = &quot;2005-W52-7&quot;)</para>
+        </entry>
+      </row>
+
         <row>
           <entry>
             <para>
@@ -1041,7 +1619,7 @@
           <entry>
             <para>Date</para>
           </entry>
-          <entry>N</entry>
+          <entry><para>N</para></entry>
           <entry>
             <para>Returns a date value in GMT based on the value of the 
       argument passed, which must be the number of seconds after Jan 1, 1970, 
@@ -1562,6 +2140,56 @@
             <para>Serializes a hash into a complete XML string with an XML header and without formatting.</para>
           </entry>
         </row>
+
+      <row>
+        <entry>
+          <para>
+            <link linkend="MD2">MD2()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>String</para>
+        </entry>
+        <entry>
+          <para>Y</para>
+        </entry>
+        <entry>
+          <para>Returns the MD2 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="MD4">MD4()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>String</para>
+        </entry>
+        <entry>
+          <para>Y</para>
+        </entry>
+        <entry>
+          <para>Returns the MD4 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="MD5">MD5()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>String</para>
+        </entry>
+        <entry>
+          <para>Y</para>
+        </entry>
+        <entry>
+          <para>Returns the MD5 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
+        </entry>
+      </row>
+
         <row>
           <entry><para><link linkend="milliseconds">milliseconds()</link></para></entry>
 	  <entry><para>Date</para></entry>
@@ -1625,7 +2253,7 @@
           <entry>
             <para>Int</para>
           </entry>
-          <entry>N</entry>
+          <entry><para>N</para></entry>
           <entry>
             <para>Returns the number of seconds after Jan 1, 1970, 00:00:00, assuming that the date passed is in local time</para>
           </entry>
@@ -1636,6 +2264,24 @@
           <entry><para>N</para></entry>
           <entry><para>Returns a relative date in months to be used in date arithmetic.</para></entry>
         </row>
+
+      <row>
+        <entry>
+          <para>
+            <link linkend="MSC2">MSC2()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>String</para>
+        </entry>
+        <entry>
+          <para>Y</para>
+        </entry>
+        <entry>
+          <para>Returns the MSC2 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
+        </entry>
+      </row>
+
         <row>
           <entry><para><link linkend="nlog">nlog()</link></para></entry>
           <entry><para>Float</para></entry>
@@ -1863,6 +2509,152 @@
             <para>Returns a random integer number.</para>
           </entry>
         </row>
+
+      <row>
+        <entry>
+          <para>
+            <link linkend="rc2_encrypt_cbc">rc2_encrypt_cbc()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Binary</para>
+        </entry>
+        <entry>
+          <para>Y</para>
+        </entry>
+        <entry>
+          <para>Encrypts data using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC2(tm) algorithm.</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="rc2_decrypt_cbc">rc2_decrypt_cbc()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Binary</para>
+        </entry>
+        <entry>
+          <para>Y</para>
+        </entry>
+        <entry>
+          <para>Decrypts data using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC2(tm) algorithm.</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="rc2_decrypt_cbc_to_string">rc2_decrypt_cbc_to_string()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>String</para>
+        </entry>
+        <entry>
+          <para>Y</para>
+        </entry>
+        <entry>
+          <para>Decrypts data to a string using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC2(tm) algorithm.</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="rc4_encrypt">rc4_encrypt()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Binary</para>
+        </entry>
+        <entry>
+          <para>Y</para>
+        </entry>
+        <entry>
+          <para>Encrypts data using the Alleged RC4 cipher algorithm, which should be compatible with <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC4(tm) algorithm.</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="rc4_decrypt">rc4_decrypt()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Binary</para>
+        </entry>
+        <entry>
+          <para>Y</para>
+        </entry>
+        <entry>
+          <para>Decrypts data using the Alleged RC4 cipher algorithm, which should be compatible with <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC4(tm) algorithm.</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="rc4_decrypt_to_string">rc4_decrypt_to_string()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>String</para>
+        </entry>
+        <entry>
+          <para>Y</para>
+        </entry>
+        <entry>
+          <para>Decrypts data to a string using the Alleged RC4 cipher algorithm, which should be compatible with <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC4(tm) algorithm.</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="rc5_encrypt_cbc">rc5_encrypt_cbc()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Binary</para>
+        </entry>
+        <entry>
+          <para>Y</para>
+        </entry>
+        <entry>
+          <para>Encrypts data using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC5(tm) algorithm.</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="rc5_decrypt_cbc">rc5_decrypt_cbc()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Binary</para>
+        </entry>
+        <entry>
+          <para>Y</para>
+        </entry>
+        <entry>
+          <para>Decrypts data using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC5(tm) algorithm.</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="rc5_decrypt_cbc_to_string">rc5_decrypt_cbc_to_string()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>String</para>
+        </entry>
+        <entry>
+          <para>Y</para>
+        </entry>
+        <entry>
+          <para>Decrypts data to a string using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC5(tm) algorithm.</para>
+        </entry>
+      </row>
+
         <row>
           <entry><para><link linkend="regex">regex()</link></para></entry>
 	  <entry><para>Boolean</para></entry>
@@ -1891,6 +2683,25 @@
             <para>Replaces all occurrances of a substring in a string with another string.</para>
           </entry>
         </row>
+
+      <row>
+        <entry>
+          <para>
+            <link linkend="RIPEMD160">RIPEMD160()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>String</para>
+        </entry>
+        <entry>
+          <para>Y</para>
+        </entry>
+        <entry>
+          <para>Returns the RIPEMD160 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
+        </entry>
+      </row>
+
+
         <row>
           <entry>
             <para>
@@ -1961,6 +2772,40 @@
             <para>Sets the value of an environment variable</para>
           </entry>
         </row>
+
+      <row>
+        <entry>
+          <para>
+            <link linkend="SHA">SHA()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>String</para>
+        </entry>
+        <entry>
+          <para>Y</para>
+        </entry>
+        <entry>
+          <para>Returns the SHA message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="SHA1">SHA1()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>String</para>
+        </entry>
+        <entry>
+          <para>Y</para>
+        </entry>
+        <entry>
+          <para>Returns the SHA1 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
+        </entry>
+      </row>
+
         <row>
           <entry>
             <para>
@@ -3274,13 +4119,12 @@
     <entry><para>Float</para></entry>
     <entry><para>Float</para></entry>
     <entry><para>Returns the natural logarithm of the value passed.</para></entry>
-  </row>
-
-  <para>This function does not throw any exceptions.</para>
-  
+  </row>  
 </tbody>
 </tgroup>
 </table>
+
+  <para>This function does not throw any exceptions.</para>
 
 </sect2>
 
@@ -3650,6 +4494,46 @@
   <para>This function does not throw any exceptions.</para>
 
 </sect2>
+
+  <sect2 id="flush">
+  <title>flush()</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Flushes output to the console output with <link linkend="print">print()</link>, <link linkend="printf">printf()</link>, etc.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+	<programlisting>flush()</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+  <table><title>Arguments and Return Values for flush()</title>
+  <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+    <thead>
+      <row>
+	<entry><para>Arguments</para></entry>
+	<entry><para>Return Type</para></entry>
+	<entry><para>Description</para></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+	<entry><para>n/a</para></entry>
+	<entry><para>n/a</para></entry>
+	<entry><para>Thie function takes no arguments.</para></entry>
+      </row>
+    </tbody>
+  </tgroup>
+  </table>
+  <para>This function does not throw any exceptions.</para>
+</sect2>
+
 
 <sect2 id="print">
 <title>print()</title>
@@ -4270,6 +5154,682 @@
   <para>All other text is output directly in the output text unchanged.</para>
 
 </sect2>
+
+  <sect2 id="get_years">
+    <title>get_years()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Returns an integer value representing the years value of the date passed (can be either a relative or absolute date).</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>get_years(<replaceable>date</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for get_years()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Date</para>
+            </entry>
+            <entry>
+              <para>Integer</para>
+            </entry>
+            <entry>
+              <para>Returns an integer value representing the years value of the date passed (can be either a relative or absolute date).</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="get_months">
+    <title>get_months()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Returns an integer value representing the months value of the date passed (can be either a relative or absolute date).</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>get_months(<replaceable>date</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for get_months()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Date</para>
+            </entry>
+            <entry>
+              <para>Integer</para>
+            </entry>
+            <entry>
+              <para>Returns an integer value representing the months value of the date passed (can be either a relative or absolute date).</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="get_days">
+    <title>get_days()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Returns an integer value representing the days value of the date passed (can be either a relative or absolute date).</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>get_days(<replaceable>date</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for get_days()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Date</para>
+            </entry>
+            <entry>
+              <para>Integer</para>
+            </entry>
+            <entry>
+              <para>Returns an integer value representing the days value of the date passed (can be either a relative or absolute date).</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="get_hours">
+    <title>get_hours()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Returns an integer value representing the hours value of the date passed (can be either a relative or absolute date).</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>get_hours(<replaceable>date</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for get_hours()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Date</para>
+            </entry>
+            <entry>
+              <para>Integer</para>
+            </entry>
+            <entry>
+              <para>Returns an integer value representing the hours value of the date passed (can be either a relative or absolute date).</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="get_minutes">
+    <title>get_minutes()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Returns an integer value representing the minutes value of the date passed (can be either a relative or absolute date).</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>get_minutes(<replaceable>date</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for get_minutes()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Date</para>
+            </entry>
+            <entry>
+              <para>Integer</para>
+            </entry>
+            <entry>
+              <para>Returns an integer value representing the minutes value of the date passed (can be either a relative or absolute date).</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="get_seconds">
+    <title>get_seconds()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Returns an integer value representing the seconds value of the date passed (can be either a relative or absolute date).</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>get_seconds(<replaceable>date</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for get_seconds()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Date</para>
+            </entry>
+            <entry>
+              <para>Integer</para>
+            </entry>
+            <entry>
+              <para>Returns an integer value representing the seconds value of the date passed (can be either a relative or absolute date).</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="get_milliseconds">
+    <title>get_milliseconds()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Returns an integer value representing the milliseconds value of the date passed (can be either a relative or absolute date).</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>get_milliseconds(<replaceable>date</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for get_milliseconds()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Date</para>
+            </entry>
+            <entry>
+              <para>Integer</para>
+            </entry>
+            <entry>
+              <para>Returns an integer value representing the milliseconds value of the date passed (can be either a relative or absolute date).</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="get_midnight">
+    <title>get_midnight()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Returns a date/time value representing midnight on the date passed (strips the time from the date passed and returns the new value)</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>get_midnight(<replaceable>date</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for get_midnight()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Date</para>
+            </entry>
+            <entry>
+              <para>Date</para>
+            </entry>
+            <entry>
+              <para>Returns a date/time value representing midnight on the date passed (strips the time from the date passed and returns the new value)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="getDateFromISOWeek">
+    <title>getDateFromISOWeek()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Retuns an absolute date value for the ISO-8601 calendar week information passed (year, week number, optional: weekday, where 1=Monday, 7=Sunday).  If the weekday is omitted, Monday (1) is assumed.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>getDateFromISOWeek(<replaceable>integer, integer, optional:integer</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for getDateFromISOWeek()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Integer, Integer, Optional:integer</para>
+            </entry>
+            <entry>
+              <para>Date</para>
+            </entry>
+            <entry>
+              <para>Retuns an absolute date value for the ISO-8601 calendar week information passed (year, week number, optional: day)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="getDayOfWeek">
+    <title>getDayOfWeek()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Returns an integer representing the day of the week for the absolute date passed (0=Sunday, 6=Saturday)</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>getDayOfWeek(<replaceable>date</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for getDayOfWeek()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Date</para>
+            </entry>
+            <entry>
+              <para>Integer</para>
+            </entry>
+            <entry>
+              <para>Returns an integer representing the day of the week for the absolute date passed (0=Sunday, 6=Saturday)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="getDayNumber">
+    <title>getDayNumber()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Returns an integer representing the ordinal day number in the year for the absolute date passed</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>getDayNumber(<replaceable>date</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for getDayNumber()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Date</para>
+            </entry>
+            <entry>
+              <para>Integer</para>
+            </entry>
+            <entry>
+              <para>Returns an integer representing the ordinal day number in the year for the absolute date passed</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="getISODayOfWeek">
+    <title>getISODayOfWeek()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Returns an integer representing the ISO-8601 day of the week for the absolute date passed (1=Monday, 7=Sunday)</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>getISODayOfWeek(<replaceable>date</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for getISODayOfWeek()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Date</para>
+            </entry>
+            <entry>
+              <para>Integer</para>
+            </entry>
+            <entry>
+              <para>Returns an integer representing the ISO-8601 day of the week for the absolute date passed (1=Monday, 7=Sunday)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="getISOWeekHash">
+    <title>getISOWeekHash()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Returns a hash representing the ISO-8601 calendar week information for the absolute date passed (hash keys: year, week, day).  Note that the ISO-8601 year does not always correspond with the calendar year at the end and the begin
+ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: year=2005, week=52, day=7)</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>getISOWeekHash(<replaceable>date</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for getISOWeekHash()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Date</para>
+            </entry>
+            <entry>
+              <para>Hash</para>
+            </entry>
+            <entry>
+              <para>Returns a hash representing the ISO-8601 calendar week information for the absolute date passed (hash keys: year, week, day)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="getISOWeekString">
+    <title>getISOWeekString()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Returns a string representing the ISO-8601 calendar week information for the absolute date passed (ex: 2006-01-01 = &quot;2005-W52-7&quot;).  Note that the ISO-8601 year does not always correspond with the calendar year at the en
+d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: year=2005, week=52, day=7)</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>getISOWeekString(<replaceable>date</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for getISOWeekString()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Date</para>
+            </entry>
+            <entry>
+              <para>String</para>
+            </entry>
+            <entry>
+              <para>Returns a string representing the ISO-8601 calendar week information for the absolute date passed (ex: 2006-01-01 = &quot;2005-W52-7&quot;)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+
 
 <sect2 id="gmtime">
 <title>gmtime()</title>
@@ -5313,6 +6873,7 @@
 </sect2>
 
 </sect1>
+
 <sect1 id="Environment_Functions">
 <title>Environment Functions</title>
 
@@ -5525,6 +7086,48 @@
       </table>
       <para>This function does not throw any exceptions.</para>
     </sect2>
+
+<sect2 id="chomp">
+<title>chomp()</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Removes the trailing end-of-line indicator ('\n' or '\r\n') from a string and returns the new string (also see the <link linkend="Chomp_Operator">chomp</link> operator).  If no EOL indicator is present in the string, this function simply returns the original string unmodified.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+	<programlisting>chomp(<replaceable>string</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+      <table>
+        <title>Arguments and Return Values for chomp()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry><para>Argument Type</para></entry>
+              <entry><para>Return Type</para></entry>
+              <entry><para>Description</para></entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+	      <entry><para>String</para></entry>
+              <entry><para>String</para></entry>
+              <entry><para>Returns the new string with any end-of-line indicator removed.</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+
+  <para>This function does not throw any exceptions.</para>
+
+</sect2>
 
 <sect2 id="chr">
 <title>chr()</title>
@@ -7615,6 +9218,3079 @@
 
 </sect1>
 
+  <sect1 id="Cryptographic_Functions">
+    <title>Cryptographic Functions</title>
+
+  <sect2 id="blowfish_encrypt_cbc">
+    <title>blowfish_encrypt_cbc()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Encrypts data using the Cipher Block Chaining function for the <ulink url="http://www.counterpane.com/blowfish.html">blowfish</ulink> algorithm.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>blowfish_encrypt_cbc(<replaceable>string | binary</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for blowfish_encrypt_cbc()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>String | binary</para>
+            </entry>
+            <entry>
+              <para>Binary</para>
+            </entry>
+            <entry>
+              <para>Encrypts data using the Cipher Block Chaining function for the <ulink url="http://www.counterpane.com/blowfish.html">blowfish</ulink> algorithm.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table>
+      <title>Exceptions thrown by blowfish_encrypt_cbc()</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>err</para>
+            </entry>
+            <entry>
+              <para>desc</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <code>PARAMETER-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing data (string or binary) parameter to function, invalid data type (expecing string or binary)</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <code>BLOWFISH-ENCRYPT-PARAM-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing or invalid key parameter (ex: invalid size) or invalid input vector (less than 8 bytes, only raised if input vector present)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="blowfish_decrypt_cbc">
+    <title>blowfish_decrypt_cbc()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Decrypts data using the Cipher Block Chaining function for the <ulink url="http://www.counterpane.com/blowfish.html">blowfish</ulink> algorithm.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>blowfish_decrypt_cbc(<replaceable>binary, key, [iv]</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for blowfish_decrypt_cbc()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Binary, Key, [iv]</para>
+            </entry>
+            <entry>
+              <para>Binary</para>
+            </entry>
+            <entry>
+              <para>Decrypts data using the Cipher Block Chaining function for the <ulink url="http://www.counterpane.com/blowfish.html">blowfish</ulink> algorithm.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table>
+      <title>Exceptions thrown by blowfish_decrypt_cbc()</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>err</para>
+            </entry>
+            <entry>
+              <para>desc</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <code>PARAMETER-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing data (string or binary) parameter to function, invalid data type (expecing string or binary)</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <code>BLOWFISH-DECRYPT-PARAM-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing or invalid key parameter (ex: invalid size) or invalid input vector (less than 8 bytes, only raised if input vector present)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="blowfish_decrypt_cbc_to_string">
+    <title>blowfish_decrypt_cbc_to_string()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Decrypts data to a string using the Cipher Block Chaining function for the <ulink url="http://www.counterpane.com/blowfish.html">blowfish</ulink> algorithm.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>blowfish_decrypt_cbc_to_string(<replaceable>binary, key, [iv]</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for blowfish_decrypt_cbc_to_string()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Binary, Key, [iv]</para>
+            </entry>
+            <entry>
+              <para>String</para>
+            </entry>
+            <entry>
+              <para>Decrypts data to a string using the Cipher Block Chaining function for the <ulink url="http://www.counterpane.com/blowfish.html">blowfish</ulink> algorithm.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table>
+      <title>Exceptions thrown by blowfish_decrypt_cbc_to_string()</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>err</para>
+            </entry>
+            <entry>
+              <para>desc</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <code>PARAMETER-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing data (string or binary) parameter to function, invalid data type (expecing string or binary)</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <code>BLOWFISH-DECRYPT-PARAM-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing or invalid key parameter (ex: invalid size) or invalid input vector (less than 8 bytes, only raised if input vector present)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+
+  <sect2 id="des_encrypt_cbc">
+    <title>des_encrypt_cbc()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Encrypts data using the Cipher Block Chaining function for the <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>des_encrypt_cbc(<replaceable>string | binary</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for des_encrypt_cbc()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>String | binary</para>
+            </entry>
+            <entry>
+              <para>Binary</para>
+            </entry>
+            <entry>
+              <para>Encrypts data using the Cipher Block Chaining function for the <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table>
+      <title>Exceptions thrown by des_encrypt_cbc()</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>err</para>
+            </entry>
+            <entry>
+              <para>desc</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <code>PARAMETER-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing data (string or binary) parameter to function, invalid data type (expecing string or binary)</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <code>DES-ENCRYPT-PARAM-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing or invalid key parameter (ex: invalid size) or invalid input vector (less than 8 bytes, only raised if input vector present)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="des_decrypt_cbc">
+    <title>des_decrypt_cbc()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Decrypts data using the Cipher Block Chaining function for the <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>des_decrypt_cbc(<replaceable>binary, key, [iv]</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for des_decrypt_cbc()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Binary, Key, [iv]</para>
+            </entry>
+            <entry>
+              <para>Binary</para>
+            </entry>
+            <entry>
+              <para>Decrypts data using the Cipher Block Chaining function for the <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm.</para>
+            </entry>
+          </row>
+        </tbody>
+     </tgroup>
+    </table>
+    <table>
+      <title>Exceptions thrown by des_decrypt_cbc()</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>err</para>
+            </entry>
+            <entry>
+              <para>desc</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <code>PARAMETER-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing data (string or binary) parameter to function, invalid data type (expecing string or binary)</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <code>DES-DECRYPT-PARAM-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing or invalid key parameter (ex: invalid size) or invalid input vector (less than 8 bytes, only raised if input vector present)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="des_decrypt_cbc_to_string">
+    <title>des_decrypt_cbc_to_string()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Decrypts data using the Cipher Block Chaining function for the <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>des_decrypt_cbc_to_string(<replaceable>binary, key, [iv]</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for des_decrypt_cbc_to_string()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Binary, Key, [iv]</para>
+            </entry>
+            <entry>
+              <para>String</para>
+            </entry>
+            <entry>
+              <para>Decrypts data using the Cipher Block Chaining function for the <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table>
+      <title>Exceptions thrown by des_decrypt_cbc_to_string()</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>err</para>
+            </entry>
+            <entry>
+              <para>desc</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <code>PARAMETER-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing data (string or binary) parameter to function, invalid data type (expecing string or binary)</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <code>DES-DECRYPT-PARAM-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing or invalid key parameter (ex: invalid size) or invalid input vector (less than 8 bytes, only raised if input vector present)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="des_ede_encrypt_cbc">
+    <title>des_ede_encrypt_cbc()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Encrypts data using the Cipher Block Chaining function for the two-key triple <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>des_ede_encrypt_cbc(<replaceable>string | binary</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for des_ede_encrypt_cbc()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>String | binary</para>
+            </entry>
+            <entry>
+              <para>Binary</para>
+            </entry>
+            <entry>
+              <para>Encrypts data using the Cipher Block Chaining function for the two-key triple <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table>
+      <title>Exceptions thrown by des_ede_encrypt_cbc()</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>err</para>
+            </entry>
+            <entry>
+              <para>desc</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <code>PARAMETER-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing data (string or binary) parameter to function, invalid data type (expecing string or binary)</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <code>DES-ENCRYPT-PARAM-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing or invalid key parameter (ex: invalid size) or invalid input vector (less than 8 bytes, only raised if input vector present)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="des_ede_decrypt_cbc">
+    <title>des_ede_decrypt_cbc()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Decrypts data using the Cipher Block Chaining function for the two-key triple <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>des_ede_decrypt_cbc(<replaceable>binary, key, [iv]</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for des_ede_decrypt_cbc()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Binary, Key, [iv]</para>
+            </entry>
+            <entry>
+              <para>Binary</para>
+            </entry>
+            <entry>
+              <para>Decrypts data using the Cipher Block Chaining function for the two-key triple <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table>
+      <title>Exceptions thrown by des_ede_decrypt_cbc()</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>err</para>
+            </entry>
+            <entry>
+              <para>desc</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <code>PARAMETER-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing data (string or binary) parameter to function, invalid data type (expecing string or binary)</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <code>DES-DECRYPT-PARAM-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing or invalid key parameter (ex: invalid size) or invalid input vector (less than 8 bytes, only raised if input vector present)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="des_ede_decrypt_cbc_to_string">
+    <title>des_ede_decrypt_cbc_to_string()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Decrypts data to a string using the Cipher Block Chaining function for the two-key triple <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>des_ede_decrypt_cbc_to_string(<replaceable>binary, key, [iv]</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for des_ede_decrypt_cbc_to_string()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Binary, Key, [iv]</para>
+            </entry>
+            <entry>
+              <para>String</para>
+            </entry>
+            <entry>
+              <para>Decrypts data to a string using the Cipher Block Chaining function for the two-key triple <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table>
+      <title>Exceptions thrown by des_ede_decrypt_cbc_to_string()</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>err</para>
+            </entry>
+            <entry>
+              <para>desc</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <code>PARAMETER-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing data (string or binary) parameter to function, invalid data type (expecing string or binary)</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <code>DES-DECRYPT-PARAM-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing or invalid key parameter (ex: invalid size) or invalid input vector (less than 8 bytes, only raised if input vector present)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="des_ede3_encrypt_cbc">
+    <title>des_ede3_encrypt_cbc()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Encrypts data using the Cipher Block Chaining function for the three-key triple <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>des_ede3_encrypt_cbc(<replaceable>string | binary</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for des_ede3_encrypt_cbc()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>String | binary</para>
+            </entry>
+            <entry>
+              <para>Binary</para>
+            </entry>
+            <entry>
+              <para>Encrypts data using the Cipher Block Chaining function for the three-key triple <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table>
+      <title>Exceptions thrown by des_ede3_encrypt_cbc()</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>err</para>
+            </entry>
+            <entry>
+              <para>desc</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <code>PARAMETER-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing data (string or binary) parameter to function, invalid data type (expecing string or binary)</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <code>DES-ENCRYPT-PARAM-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing or invalid key parameter (ex: invalid size) or invalid input vector (less than 8 bytes, only raised if input vector present)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="des_ede3_decrypt_cbc">
+    <title>des_ede3_decrypt_cbc()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Decrypts data using the Cipher Block Chaining function for the three-key triple <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>des_ede3_decrypt_cbc(<replaceable>binary, key, [iv]</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for des_ede3_decrypt_cbc()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Binary, Key, [iv]</para>
+            </entry>
+            <entry>
+              <para>Binary</para>
+            </entry>
+            <entry>
+              <para>Decrypts data using the Cipher Block Chaining function for the three-key triple <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table>
+      <title>Exceptions thrown by des_ede3_decrypt_cbc()</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>err</para>
+            </entry>
+            <entry>
+              <para>desc</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <code>PARAMETER-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing data (string or binary) parameter to function, invalid data type (expecing string or binary)</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <code>DES-DECRYPT-PARAM-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing or invalid key parameter (ex: invalid size) or invalid input vector (less than 8 bytes, only raised if input vector present)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="des_ede3_decrypt_cbc_to_string">
+    <title>des_ede3_decrypt_cbc_to_string()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Decrypts data to a string using the Cipher Block Chaining function for the three-key triple <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>des_ede3_decrypt_cbc_to_string(<replaceable>binary, key, [iv]</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for des_ede3_decrypt_cbc_to_string()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Binary, Key, [iv]</para>
+            </entry>
+            <entry>
+              <para>String</para>
+            </entry>
+            <entry>
+              <para>Decrypts data to a string using the Cipher Block Chaining function for the three-key triple <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table>
+      <title>Exceptions thrown by des_ede3_decrypt_cbc_to_string()</title>
+     <tgroup cols="2" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>err</para>
+            </entry>
+            <entry>
+              <para>desc</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <code>PARAMETER-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing data (string or binary) parameter to function, invalid data type (expecing string or binary)</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <code>DES-DECRYPT-PARAM-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing or invalid key parameter (ex: invalid size) or invalid input vector (less than 8 bytes, only raised if input vector present)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="desx_encrypt_cbc">
+    <title>desx_encrypt_cbc()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Encrypts data using the Cipher Block Chaining function for RSA's <ulink url="http://www.rsasecurity.com/">DESX</ulink> algorithm.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>desx_encrypt_cbc(<replaceable>string | binary</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for desx_encrypt_cbc()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>String | binary</para>
+            </entry>
+            <entry>
+              <para>Binary</para>
+            </entry>
+            <entry>
+              <para>Encrypts data using the Cipher Block Chaining function for RSA's <ulink url="http://www.rsasecurity.com/">DESX</ulink> algorithm.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table>
+      <title>Exceptions thrown by desx_encrypt_cbc()</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>err</para>
+            </entry>
+            <entry>
+              <para>desc</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <code>PARAMETER-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing data (string or binary) parameter to function, invalid data type (expecing string or binary)</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <code>DESX-ENCRYPT-PARAM-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing or invalid key parameter (ex: invalid size) or invalid input vector (less than 8 bytes, only raised if input vector present)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="desx_decrypt_cbc">
+    <title>desx_decrypt_cbc()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Encrypts data using the Cipher Block Chaining function for RSA's <ulink url="http://www.rsasecurity.com/">DESX</ulink> algorithm.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>desx_decrypt_cbc(<replaceable>binary, key, [iv]</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for desx_decrypt_cbc()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Binary, Key, [iv]</para>
+            </entry>
+            <entry>
+              <para>Binary</para>
+            </entry>
+            <entry>
+              <para>Encrypts data using the Cipher Block Chaining function for RSA's <ulink url="http://www.rsasecurity.com/">DESX</ulink> algorithm.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table>
+      <title>Exceptions thrown by desx_decrypt_cbc()</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>err</para>
+            </entry>
+            <entry>
+              <para>desc</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <code>PARAMETER-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing data (string or binary) parameter to function, invalid data type (expecing string or binary)</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <code>DESX-DECRYPT-PARAM-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing or invalid key parameter (ex: invalid size) or invalid input vector (less than 8 bytes, only raised if input vector present)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="desx_decrypt_cbc_to_string">
+    <title>desx_decrypt_cbc_to_string()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Encrypts data to a string using the Cipher Block Chaining function for RSA's <ulink url="http://www.rsasecurity.com/">DESX</ulink> algorithm.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>desx_decrypt_cbc_to_string(<replaceable>binary, key, [iv]</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for desx_decrypt_cbc_to_string()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Binary, Key, [iv]</para>
+            </entry>
+            <entry>
+              <para>String</para>
+            </entry>
+            <entry>
+              <para>Encrypts data to a string using the Cipher Block Chaining function for RSA's <ulink url="http://www.rsasecurity.com/">DESX</ulink> algorithm.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table>
+      <title>Exceptions thrown by desx_decrypt_cbc_to_string()</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>err</para>
+            </entry>
+            <entry>
+              <para>desc</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <code>PARAMETER-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing data (string or binary) parameter to function, invalid data type (expecing string or binary)</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <code>DESX-DECRYPT-PARAM-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing or invalid key parameter (ex: invalid size) or invalid input vector (less than 8 bytes, only raised if input vector present)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="rc2_encrypt_cbc">
+    <title>rc2_encrypt_cbc()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Encrypts data using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC2(tm) algorithm.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>rc2_encrypt_cbc(<replaceable>string | binary</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for rc2_encrypt_cbc()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>String | binary</para>
+            </entry>
+            <entry>
+              <para>Binary</para>
+            </entry>
+            <entry>
+              <para>Encrypts data using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC2(tm) algorithm.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table>
+      <title>Exceptions thrown by rc2_encrypt_cbc()</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>err</para>
+            </entry>
+            <entry>
+              <para>desc</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <code>PARAMETER-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing data (string or binary) parameter to function, invalid data type (expecing string or binary)</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <code>BLOWFISH-ENCRYPT-PARAM-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing or invalid key parameter (ex: invalid size) or invalid input vector (less than 8 bytes, only raised if input vector present)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="cast5_encrypt_cbc">
+    <title>cast5_encrypt_cbc()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Encrypts data using the Cipher Block Chaining function for the <ulink url="http://en.wikipedia.org/wiki/CAST5">CAST5</ulink> algorithm.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>cast5_encrypt_cbc(<replaceable>string | binary</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for cast5_encrypt_cbc()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>String | binary</para>
+            </entry>
+            <entry>
+              <para>Binary</para>
+            </entry>
+            <entry>
+              <para>Encrypts data using the Cipher Block Chaining function for the <ulink url="http://en.wikipedia.org/wiki/CAST5">CAST5</ulink> algorithm.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table>
+      <title>Exceptions thrown by cast5_encrypt_cbc()</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>err</para>
+            </entry>
+            <entry>
+              <para>desc</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <code>PARAMETER-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing data (string or binary) parameter to function, invalid data type (expecing string or binary)</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <code>CAST5-ENCRYPT-PARAM-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing or invalid key parameter (ex: invalid size) or invalid input vector (less than 8 bytes, only raised if input vector present)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="cast5_decrypt_cbc">
+    <title>cast5_decrypt_cbc()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Decrypts data using the Cipher Block Chaining function for the <ulink url="http://en.wikipedia.org/wiki/CAST5">CAST5</ulink> algorithm.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>cast5_decrypt_cbc(<replaceable>binary, key, [iv]</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for cast5_decrypt_cbc()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Binary, Key, [iv]</para>
+            </entry>
+            <entry>
+              <para>Binary</para>
+            </entry>
+            <entry>
+              <para>Decrypts data using the Cipher Block Chaining function for the <ulink url="http://en.wikipedia.org/wiki/CAST5">CAST5</ulink> algorithm.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table>
+      <title>Exceptions thrown by cast5_decrypt_cbc()</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>err</para>
+            </entry>
+            <entry>
+              <para>desc</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <code>PARAMETER-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing data (string or binary) parameter to function, invalid data type (expecing string or binary)</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <code>CAST5-DECRYPT-PARAM-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing or invalid key parameter (ex: invalid size) or invalid input vector (less than 8 bytes, only raised if input vector present)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="cast5_decrypt_cbc_to_string">
+    <title>cast5_decrypt_cbc_to_string()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Decrypts data to a string using the Cipher Block Chaining function for the <ulink url="http://en.wikipedia.org/wiki/CAST5">CAST5</ulink> algorithm.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>cast5_decrypt_cbc_to_string(<replaceable>binary, key, [iv]</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for cast5_decrypt_cbc_to_string()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Binary, Key, [iv]</para>
+            </entry>
+            <entry>
+              <para>String</para>
+            </entry>
+            <entry>
+              <para>Decrypts data to a string using the Cipher Block Chaining function for the <ulink url="http://en.wikipedia.org/wiki/CAST5">CAST5</ulink> algorithm.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table>
+      <title>Exceptions thrown by cast5_decrypt_cbc_to_string()</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>err</para>
+            </entry>
+            <entry>
+              <para>desc</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <code>PARAMETER-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing data (string or binary) parameter to function, invalid data type (expecing string or binary)</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <code>CAST5-DECRYPT-PARAM-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing or invalid key parameter (ex: invalid size) or invalid input vector (less than 8 bytes, only raised if input vector present)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="rc2_decrypt_cbc">
+    <title>rc2_decrypt_cbc()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Decrypts data using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC2(tm) algorithm.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>rc2_decrypt_cbc(<replaceable>binary, key, [iv]</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for rc2_decrypt_cbc()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Binary, Key, [iv]</para>
+            </entry>
+            <entry>
+              <para>Binary</para>
+            </entry>
+            <entry>
+              <para>Decrypts data using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC2(tm) algorithm.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table>
+      <title>Exceptions thrown by rc2_decrypt_cbc()</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>err</para>
+            </entry>
+            <entry>
+              <para>desc</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <code>PARAMETER-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing data (string or binary) parameter to function, invalid data type (expecing string or binary)</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <code>RC2-DECRYPT-PARAM-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing or invalid key parameter (ex: invalid size) or invalid input vector (less than 8 bytes, only raised if input vector present)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="rc2_decrypt_cbc_to_string">
+    <title>rc2_decrypt_cbc_to_string()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Decrypts data to a string using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC2(tm) algorithm.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>rc2_decrypt_cbc_to_string(<replaceable>binary, key, [iv]</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for rc2_decrypt_cbc_to_string()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Binary, Key, [iv]</para>
+            </entry>
+            <entry>
+              <para>String</para>
+            </entry>
+            <entry>
+              <para>Decrypts data to a string using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC2(tm) algorithm.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table>
+      <title>Exceptions thrown by rc2_decrypt_cbc_to_string()</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>err</para>
+            </entry>
+            <entry>
+              <para>desc</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <code>PARAMETER-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing data (string or binary) parameter to function, invalid data type (expecing string or binary)</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <code>RC4-DECRYPT-PARAM-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing or invalid key parameter (ex: invalid size) or invalid input vector (less than 8 bytes, only raised if input vector present)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="rc4_encrypt">
+    <title>rc4_encrypt()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Encrypts data using the Alleged RC4 cipher algorithm, which should be compatible with <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC4(tm) algorithm.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>rc4_encrypt(<replaceable>string | binary</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for rc4_encrypt()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>String | binary</para>
+            </entry>
+            <entry>
+              <para>Binary</para>
+            </entry>
+            <entry>
+              <para>Encrypts data using the Alleged RC4 cipher algorithm, which should be compatible with <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC4(tm) algorithm.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table>
+      <title>Exceptions thrown by rc4_encrypt()</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>err</para>
+            </entry>
+            <entry>
+              <para>desc</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <code>PARAMETER-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing data (string or binary) parameter to function, invalid data type (expecing string or binary)</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <code>RC4-ENCRYPT-PARAM-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing or invalid key parameter (ex: invalid size) or invalid input vector (less than 8 bytes, only raised if input vector present)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="rc4_decrypt">
+    <title>rc4_decrypt()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Decrypts data using the Alleged RC4 cipher algorithm, which should be compatible with <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC4(tm) algorithm.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>rc4_decrypt(<replaceable>binary, key, [iv]</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for rc4_decrypt()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Binary, Key, [iv]</para>
+            </entry>
+            <entry>
+              <para>Binary</para>
+            </entry>
+            <entry>
+              <para>Decrypts data using the Alleged RC4 cipher algorithm, which should be compatible with <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC4(tm) algorithm.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table>
+      <title>Exceptions thrown by rc4_decrypt()</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>err</para>
+            </entry>
+            <entry>
+              <para>desc</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <code>PARAMETER-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing data (string or binary) parameter to function, invalid data type (expecing string or binary)</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <code>RC4-DECRYPT-PARAM-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing or invalid key parameter (ex: invalid size) or invalid input vector (less than 8 bytes, only raised if input vector present)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="rc4_decrypt_to_string">
+    <title>rc4_decrypt_to_string()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Decrypts data to a string using the Alleged RC4 cipher algorithm, which should be compatible with <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC4(tm) algorithm.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>rc4_decrypt_to_string(<replaceable>binary, key, [iv]</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for rc4_decrypt_to_string()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Binary, Key, [iv]</para>
+            </entry>
+            <entry>
+              <para>String</para>
+            </entry>
+            <entry>
+              <para>Decrypts data to a string using the Alleged RC4 cipher algorithm, which should be compatible with <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC4(tm) algorithm.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table>
+      <title>Exceptions thrown by rc4_decrypt_to_string()</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>err</para>
+            </entry>
+            <entry>
+              <para>desc</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <code>PARAMETER-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing data (string or binary) parameter to function, invalid data type (expecing string or binary)</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <code>RC4-DECRYPT-PARAM-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing or invalid key parameter (ex: invalid size) or invalid input vector (less than 8 bytes, only raised if input vector present)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="rc5_encrypt_cbc">
+    <title>rc5_encrypt_cbc()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Encrypts data using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC5(tm) algorithm.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>rc5_encrypt_cbc(<replaceable>string | binary</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for rc5_encrypt_cbc()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>String | binary</para>
+            </entry>
+            <entry>
+              <para>Binary</para>
+            </entry>
+            <entry>
+              <para>Encrypts data using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC5(tm) algorithm.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table>
+      <title>Exceptions thrown by rc5_encrypt_cbc()</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>err</para>
+            </entry>
+            <entry>
+              <para>desc</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <code>PARAMETER-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing data (string or binary) parameter to function, invalid data type (expecing string or binary)</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <code>RC5-ENCRYPT-PARAM-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing or invalid key parameter (ex: invalid size) or invalid input vector (less than 8 bytes, only raised if input vector present)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="rc5_decrypt_cbc">
+    <title>rc5_decrypt_cbc()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Decrypts data using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC5(tm) algorithm.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>rc5_decrypt_cbc(<replaceable>binary, key, [iv]</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for rc5_decrypt_cbc()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Binary, Key, [iv]</para>
+            </entry>
+            <entry>
+              <para>Binary</para>
+            </entry>
+            <entry>
+              <para>Decrypts data using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC5(tm) algorithm.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table>
+      <title>Exceptions thrown by rc5_decrypt_cbc()</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>err</para>
+            </entry>
+            <entry>
+              <para>desc</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <code>PARAMETER-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing data (string or binary) parameter to function, invalid data type (expecing string or binary)</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <code>RC5-DECRYPT-PARAM-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing or invalid key parameter (ex: invalid size) or invalid input vector (less than 8 bytes, only raised if input vector present)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="rc5_decrypt_cbc_to_string">
+    <title>rc5_decrypt_cbc_to_string()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Decrypts data to a string using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC5(tm) algorithm.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>rc5_decrypt_cbc_to_string(<replaceable>binary, key, [iv]</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for rc5_decrypt_cbc_to_string()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Binary, Key, [iv]</para>
+            </entry>
+            <entry>
+              <para>String</para>
+            </entry>
+            <entry>
+              <para>Decrypts data to a string using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC5(tm) algorithm.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table>
+      <title>Exceptions thrown by rc5_decrypt_cbc_to_string()</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>err</para>
+            </entry>
+            <entry>
+              <para>desc</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <code>PARAMETER-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing data (string or binary) parameter to function, invalid data type (expecing string or binary)</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <code>RC5-DECRYPT-PARAM-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing or invalid key parameter (ex: invalid size) or invalid input vector (less than 8 bytes, only raised if input vector present)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+
+  </sect1>
+
+  <sect1 id="Digest_Functions">
+    <title>Digest Functions</title>
+
+  <sect2 id="DSS">
+    <title>DSS()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Returns the DSS message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>DSS(<replaceable>string | binary</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for DSS()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>String | binary</para>
+            </entry>
+            <entry>
+              <para>String</para>
+            </entry>
+            <entry>
+              <para>Returns the DSS message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table>
+      <title>Exceptions thrown by DSS()</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>err</para>
+            </entry>
+            <entry>
+              <para>desc</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <code>DSS-DIGEST-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing data parameter, invalid data parameter (expecing string or binary)</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <code>DIGEST-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>error calculating digest</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="DSS1">
+    <title>DSS1()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Returns the DSS1 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>DSS1(<replaceable>string | binary</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for DSS1()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>String | binary</para>
+            </entry>
+            <entry>
+              <para>String</para>
+            </entry>
+            <entry>
+              <para>Returns the DSS1 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table>
+      <title>Exceptions thrown by DSS1()</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>err</para>
+            </entry>
+            <entry>
+              <para>desc</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <code>DSS1-DIGEST-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing data parameter, invalid data parameter (expecing string or binary)</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <code>DIGEST-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>error calculating digest</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="MD2">
+    <title>MD2()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Returns the MD2 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>MD2(<replaceable>string | binary</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for MD2()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>String | binary</para>
+            </entry>
+            <entry>
+              <para>String</para>
+            </entry>
+            <entry>
+              <para>Returns the MD2 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table>
+      <title>Exceptions thrown by MD2()</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>err</para>
+            </entry>
+            <entry>
+              <para>desc</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <code>MD2-DIGEST-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing data parameter, invalid data parameter (expecing string or binary)</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <code>DIGEST-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>error calculating digest</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="MD4">
+    <title>MD4()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Returns the MD4 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>MD4(<replaceable>string | binary</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for MD4()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>String | binary</para>
+            </entry>
+            <entry>
+              <para>String</para>
+            </entry>
+            <entry>
+              <para>Returns the MD4 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table>
+      <title>Exceptions thrown by MD4()</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>err</para>
+            </entry>
+            <entry>
+              <para>desc</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <code>MD4-DIGEST-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing data parameter, invalid data parameter (expecing string or binary)</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <code>DIGEST-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>error calculating digest</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="MD5">
+    <title>MD5()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Returns the MD5 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>MD5(<replaceable>string | binary</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for MD5()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>String | binary</para>
+            </entry>
+            <entry>
+              <para>String</para>
+            </entry>
+            <entry>
+              <para>Returns the MD5 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table>
+      <title>Exceptions thrown by MD5()</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>err</para>
+            </entry>
+            <entry>
+              <para>desc</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <code>MD5-DIGEST-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing data parameter, invalid data parameter (expecing string or binary)</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <code>DIGEST-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>error calculating digest</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="MSC2">
+    <title>MSC2()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Returns the MSC2 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>MSC2(<replaceable>string | binary</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for MSC2()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>String | binary</para>
+            </entry>
+            <entry>
+              <para>String</para>
+            </entry>
+            <entry>
+              <para>Returns the MSC2 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table>
+      <title>Exceptions thrown by MSC2()</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>err</para>
+            </entry>
+            <entry>
+              <para>desc</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <code>MSC2-DIGEST-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing data parameter, invalid data parameter (expecing string or binary)</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <code>DIGEST-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>error calculating digest</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="RIPEMD160">
+    <title>RIPEMD160()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Returns the RIPEMD160 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>RIPEMD160(<replaceable>string | binary</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for RIPEMD160()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>String | binary</para>
+            </entry>
+            <entry>
+              <para>String</para>
+            </entry>
+            <entry>
+              <para>Returns the RIPEMD160 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table>
+      <title>Exceptions thrown by RIPEMD160()</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>err</para>
+            </entry>
+            <entry>
+              <para>desc</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <code>RIPEMD160-DIGEST-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing data parameter, invalid data parameter (expecing string or binary)</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <code>DIGEST-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>error calculating digest</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="SHA">
+    <title>SHA()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Returns the SHA message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>SHA(<replaceable>string | binary</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for SHA()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>String | binary</para>
+            </entry>
+            <entry>
+              <para>String</para>
+            </entry>
+            <entry>
+              <para>Returns the SHA message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table>
+      <title>Exceptions thrown by SHA()</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>err</para>
+            </entry>
+            <entry>
+              <para>desc</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <code>SHA-DIGEST-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing data parameter, invalid data parameter (expecing string or binary)</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <code>DIGEST-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>error calculating digest</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="SHA1">
+    <title>SHA1()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Returns the SHA1 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>SHA1(<replaceable>string | binary</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for SHA1()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>String | binary</para>
+            </entry>
+            <entry>
+              <para>String</para>
+            </entry>
+            <entry>
+              <para>Returns the SHA1 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table>
+      <title>Exceptions thrown by SHA1()</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>err</para>
+            </entry>
+            <entry>
+              <para>desc</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <code>SHA1-DIGEST-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing data parameter, invalid data parameter (expecing string or binary)</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <code>DIGEST-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>error calculating digest</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+
+  </sect1>
+
 <sect1 id="Miscellaneous_Functions">
 <title>Miscellaneous Functions</title>
 <para></para>
@@ -9060,7 +13736,6 @@
     </table>
     <para>This function does not throw any exceptions.</para>
   </sect2>
-</sect1>
 
 <sect2 id="srand">
   <title>srand()</title>
@@ -9218,6 +13893,7 @@
   </table>
 
 </sect2>
+</sect1>
 
 <sect1 id="Threading_Functions">
   <title>Threading Functions</title>

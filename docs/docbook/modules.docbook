@@ -12,13 +12,944 @@
 
   </sect1>
 
-  <sect1 id="tibco_Module">
-    <title>tibco Module</title>
+  <sect1 id="tibrv_Module">
+    <title>tibrv Module</title>
+
+    <para>The tibrv module provides direct TIBCO Rendezvous functionality, including support for reliable and certified messaging, secure daemon support, fault tolerant group membership and monitoring, and distributed queues.</para>
+
+ <table>
+    <title>Functions provided by the tibrv module</title>
+    <tgroup cols="4" align="left" colsep="1" rowsep="1">
+      <thead>
+        <row>
+          <entry>
+            <para>Function Name</para>
+          </entry>
+          <entry>
+            <para>Ret Type</para>
+          </entry>
+          <entry>
+            <para>Exception</para>
+          </entry>
+          <entry>
+            <para>Brief Description</para>
+          </entry>
+        </row>
+      </thead>
+    <tbody>
+      <row>
+        <entry>
+          <para>
+            <link linkend="tibrv_i8">tibrv_i8()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Hash</para>
+        </entry>
+        <entry>
+          <para>N</para>
+        </entry>
+        <entry>
+          <para>Creates a hash structure to ensure that qore data is serialized as Rendezvous TIBRV_I8 data.</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="tibrv_u8">tibrv_u8()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Hash</para>
+        </entry>
+        <entry>
+          <para>N</para>
+        </entry>
+        <entry>
+          <para>Creates a hash structure to ensure that qore data is serialized as Rendezvous TIBRV_U8 data.</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="tibrv_i16">tibrv_i16()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Hash</para>
+        </entry>
+        <entry>
+          <para>N</para>
+        </entry>
+        <entry>
+          <para>Creates a hash structure to ensure that qore data is serialized as Rendezvous TIBRV_I16 data.</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="tibrv_u16">tibrv_u16()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Hash</para>
+        </entry>
+        <entry>
+          <para>N</para>
+        </entry>
+        <entry>
+          <para>Creates a hash structure to ensure that qore data is serialized as Rendezvous TIBRV_U16 data.</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="tibrv_i32">tibrv_i32()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Hash</para>
+        </entry>
+        <entry>
+          <para>N</para>
+        </entry>
+        <entry>
+          <para>Creates a hash structure to ensure that qore data is serialized as Rendezvous TIBRV_I32 data.</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="tibrv_u32">tibrv_u32()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Hash</para>
+        </entry>
+        <entry>
+          <para>N</para>
+        </entry>
+        <entry>
+          <para>Creates a hash structure to ensure that qore data is serialized as Rendezvous TIBRV_U32 data.</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="tibrv_i64">tibrv_i64()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Hash</para>
+        </entry>
+        <entry>
+          <para>N</para>
+        </entry>
+        <entry>
+          <para>Creates a hash structure to ensure that qore data is serialized as Rendezvous TIBRV_I64 data.</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="tibrv_u64">tibrv_u64()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Hash</para>
+        </entry>
+        <entry>
+          <para>N</para>
+        </entry>
+        <entry>
+          <para>Creates a hash structure to ensure that qore data is serialized as Rendezvous TIBRV_U64 data.</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="tibrv_f32">tibrv_f32()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Hash</para>
+        </entry>
+        <entry>
+          <para>N</para>
+        </entry>
+        <entry>
+          <para>Creates a hash structure to ensure that qore data is serialized as Rendezvous TIBRV_F32 data.</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="tibrv_f64">tibrv_f64()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Hash</para>
+        </entry>
+        <entry>
+          <para>N</para>
+        </entry>
+        <entry>
+          <para>Creates a hash structure to ensure that qore data is serialized as Rendezvous TIBRV_F64 data.</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="tibrv_ipport16">tibrv_ipport16()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Hash</para>
+        </entry>
+        <entry>
+          <para>N</para>
+        </entry>
+        <entry>
+          <para>Creates a hash structure to ensure that qore data is serialized as Rendezvous TIBRV_IPPORT16 data.</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="tibrv_ipaddr32">tibrv_ipaddr32()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Hash</para>
+        </entry>
+        <entry>
+          <para>N</para>
+        </entry>
+        <entry>
+          <para>Creates a hash structure to ensure that a qore string (ex. &quot;192.168.1.1&quot;) is serialized as Rendezvous TIBRV_IPADDR32 data.</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="tibrv_xml">tibrv_xml()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Hash</para>
+        </entry>
+        <entry>
+          <para>N</para>
+        </entry>
+        <entry>
+          <para>Creates a hash structure to ensure that qore data is serialized as Rendezvous TIBRV_XML data.</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="tibrv_bool">tibrv_bool()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Hash</para>
+        </entry>
+        <entry>
+          <para>N</para>
+        </entry>
+        <entry>
+          <para>Creates a hash structure to ensure that qore data is serialized as Rendezvous TIBRV_BOOL data.</para>
+        </entry>
+      </row>
+    </tbody>
+   </tgroup>
+  </table>
+
+  <sect2 id="tibrv_i8">
+    <title>tibrv_i8()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Creates a hash structure to ensure that qore data is serialized as Rendezvous TIBRV_I8 data.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>tibrv_i8(<replaceable>integer</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for tibrv_i8()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Integer</para>
+            </entry>
+            <entry>
+              <para>Hash</para>
+            </entry>
+            <entry>
+              <para>Creates a hash structure to ensure that qore data is serialized as Rendezvous TIBRV_I8 data.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="tibrv_u8">
+    <title>tibrv_u8()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Creates a hash structure to ensure that qore data is serialized as Rendezvous TIBRV_U8 data.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>tibrv_u8(<replaceable>integer</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for tibrv_u8()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Integer</para>
+            </entry>
+            <entry>
+              <para>Hash</para>
+            </entry>
+            <entry>
+              <para>Creates a hash structure to ensure that qore data is serialized as Rendezvous TIBRV_U8 data.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="tibrv_i16">
+    <title>tibrv_i16()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Creates a hash structure to ensure that qore data is serialized as Rendezvous TIBRV_I16 data.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>tibrv_i16(<replaceable>integer</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for tibrv_i16()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Integer</para>
+            </entry>
+            <entry>
+              <para>Hash</para>
+            </entry>
+            <entry>
+              <para>Creates a hash structure to ensure that qore data is serialized as Rendezvous TIBRV_I16 data.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="tibrv_u16">
+    <title>tibrv_u16()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Creates a hash structure to ensure that qore data is serialized as Rendezvous TIBRV_U16 data.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>tibrv_u16(<replaceable>integer</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for tibrv_u16()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Integer</para>
+            </entry>
+            <entry>
+              <para>Hash</para>
+            </entry>
+            <entry>
+              <para>Creates a hash structure to ensure that qore data is serialized as Rendezvous TIBRV_U16 data.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="tibrv_i32">
+    <title>tibrv_i32()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Creates a hash structure to ensure that qore data is serialized as Rendezvous TIBRV_I32 data.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>tibrv_i32(<replaceable>integer</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for tibrv_i32()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Integer</para>
+            </entry>
+            <entry>
+              <para>Hash</para>
+            </entry>
+            <entry>
+              <para>Creates a hash structure to ensure that qore data is serialized as Rendezvous TIBRV_I32 data.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="tibrv_u32">
+    <title>tibrv_u32()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Creates a hash structure to ensure that qore data is serialized as Rendezvous TIBRV_U32 data.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>tibrv_u32(<replaceable>integer</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for tibrv_u32()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Integer</para>
+            </entry>
+            <entry>
+              <para>Hash</para>
+            </entry>
+            <entry>
+              <para>Creates a hash structure to ensure that qore data is serialized as Rendezvous TIBRV_U32 data.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="tibrv_i64">
+    <title>tibrv_i64()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Creates a hash structure to ensure that qore data is serialized as Rendezvous TIBRV_I64 data.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>tibrv_i64(<replaceable>integer</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for tibrv_i64()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Integer</para>
+            </entry>
+            <entry>
+              <para>Hash</para>
+            </entry>
+            <entry>
+              <para>Creates a hash structure to ensure that qore data is serialized as Rendezvous TIBRV_I64 data.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="tibrv_u64">
+    <title>tibrv_u64()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Creates a hash structure to ensure that qore data is serialized as Rendezvous TIBRV_U64 data.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>tibrv_u64(<replaceable>integer</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for tibrv_u64()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Integer</para>
+            </entry>
+            <entry>
+              <para>Hash</para>
+            </entry>
+            <entry>
+              <para>Creates a hash structure to ensure that qore data is serialized as Rendezvous TIBRV_U64 data.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="tibrv_f32">
+    <title>tibrv_f32()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Creates a hash structure to ensure that qore data is serialized as Rendezvous TIBRV_F32 data.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>tibrv_f32(<replaceable>float</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for tibrv_f32()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Float</para>
+            </entry>
+            <entry>
+              <para>Hash</para>
+            </entry>
+            <entry>
+              <para>Creates a hash structure to ensure that qore data is serialized as Rendezvous TIBRV_F32 data.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="tibrv_f64">
+    <title>tibrv_f64()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Creates a hash structure to ensure that qore data is serialized as Rendezvous TIBRV_F64 data.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>tibrv_f64(<replaceable>float</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for tibrv_f64()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Float</para>
+            </entry>
+            <entry>
+              <para>Hash</para>
+            </entry>
+            <entry>
+              <para>Creates a hash structure to ensure that qore data is serialized as Rendezvous TIBRV_F64 data.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="tibrv_ipport16">
+    <title>tibrv_ipport16()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Creates a hash structure to ensure that qore data is serialized as Rendezvous TIBRV_IPPORT16 data.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>tibrv_ipport16(<replaceable>integer</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for tibrv_ipport16()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Integer</para>
+            </entry>
+            <entry>
+              <para>Hash</para>
+            </entry>
+            <entry>
+              <para>Creates a hash structure to ensure that qore data is serialized as Rendezvous TIBRV_IPPORT16 data.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="tibrv_ipaddr32">
+    <title>tibrv_ipaddr32()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Creates a hash structure to ensure that a qore string (ex. &quot;192.168.1.1&quot;) is serialized as Rendezvous TIBRV_IPADDR32 data.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>tibrv_ipaddr32(<replaceable>string</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for tibrv_ipaddr32()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>String</para>
+            </entry>
+            <entry>
+              <para>Hash</para>
+            </entry>
+            <entry>
+              <para>Creates a hash structure to ensure that a qore string (ex. &quot;192.168.1.1&quot;) is serialized as Rendezvous TIBRV_IPADDR32 data.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="tibrv_xml">
+    <title>tibrv_xml()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Creates a hash structure to ensure that qore data is serialized as Rendezvous TIBRV_XML data.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>tibrv_xml(<replaceable>string</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for tibrv_xml()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>String</para>
+            </entry>
+            <entry>
+              <para>Hash</para>
+            </entry>
+            <entry>
+              <para>Creates a hash structure to ensure that qore data is serialized as Rendezvous TIBRV_XML data.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="tibrv_bool">
+    <title>tibrv_bool()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Creates a hash structure to ensure that qore data is serialized as Rendezvous TIBRV_BOOL data.  Note that qore boolean values are automatically serialized as TIBRV_
+BOOL values, so boolean() could be called as well with the same effect</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>tibrv_bool(<replaceable>integer</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for tibrv_bool()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Integer</para>
+            </entry>
+            <entry>
+              <para>Hash</para>
+            </entry>
+            <entry>
+              <para>Creates a hash structure to ensure that qore data is serialized as Rendezvous TIBRV_BOOL data.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+
+  </sect1>
+
+  <sect1 id="tibae_Module">
+    <title>tibae Module</title>
+
+    <note><para>This module was previously called &quot;tibco&quot;, however it was renamed to avoid confusion with the <link linkend="tibrv_Module">tibrv module</link></para></note>
 
     <sect2 id="Qore_TibcoAdapter_Class">
       <title>Qore::TibcoAdapter Class</title>
 
-      <para>TibcoAdapter objects allow Qore programs to communicate with other TIBCO Active Enterprise components over the TIBCO bus. </para>
+      <para>TibcoAdapter objects allow Qore programs to communicate with other TIBCO Active Enterprise components over the TIBCO message bus.</para>
 
       <para>Use of this class requires a valid TIBCO repository with an adapter configuration (can be empty) and any ActiveEnterprise class definitions for outgoing messages and responses.</para>
 
@@ -643,11 +1574,13 @@
   <sect1 id="mysql_Module">
     <title>mysql Module</title>
 
-    <para>The oracle module provides a MySQL driver to Qore's DBI system, allowing Qore programs to access MySQL databases through the <link linkend="Qore::SQL::Datasource_Class">Datasource Class</link>.</para>
+    <para>The mysql module provides a MySQL driver to Qore's DBI system, allowing Qore programs to access MySQL databases through the <link linkend="Qore::SQL::Datasource_Class">Datasource Class</link>.</para>
 
-    <para>This driver supports the following DBI capabilities when compiled against MySQL 4 or 5: <code>DBI_CAP_TRANSACTION_MANAGEMENT, DBI_CAP_CHARSET_SUPPORT</code>.</para>
+    <para>This driver supports the following DBI capabilities when compiled against MySQL 4 or better: <code>DBI_CAP_TRANSACTION_MANAGEMENT, DBI_CAP_CHARSET_SUPPORT, DBI_CAP_LOB_SUPPORT</code>.</para>
 
-    <para>The driver uses MySQL's prepared statement interface when it is available (at least with MySQL 4 and 5).</para>
+    <para>When compiled against MySQL 5, the following additional capabilities are available: <code>DBI_CAP_STORED_PROCEDURES</code>.</para>
+
+    <para>The driver uses MySQL's prepared statement interface when it is available (with MySQL 4 or better).</para>
 
     <para>Like all Qore components, the MySQL DBI driver is thread-safe.</para>
 

@@ -77,7 +77,7 @@
   <sect1 id="Qore_Modules">
     <title>Qore Modules</title>
     <para>Qore modules allow the Qore language to be extended at run-time.  Qore modules must conform to the Qore Module API and have the file extension <command><code>*.qmod</code></command>.</para>
-    <para>Modules shipping with Qore include <link linkend="oracle_Module"><code>oracle</code></link>, <link linkend="mysql_Module"><code>mysql</code></link>, <link linkend="ncurses_Module"><code>ncurses</code></link>, and <link linkend="tibco_Module"><code>tibco</code></link>.</para>
+    <para>Modules shipping with Qore include <link linkend="oracle_Module"><code>oracle</code></link>, <link linkend="mysql_Module"><code>mysql</code></link>, <link linkend="ncurses_Module"><code>ncurses</code></link>, <link linkend="tibrv_Module"><code>tibrv</code></link>, and <link linkend="tibae_Module"><code>tibae</code></link>.</para>
     <para>To load a module, use the <code>%requires</code> parse directive. If the named feature is not already present in Qore, Qore looks for a module with this name in the directories listed in the <code>QORE_MODULE_DIR</code> environment variable.</para>
   </sect1>
   
@@ -334,7 +334,7 @@ print("global a = $a\n"); </programlisting>
   </row>
   <row>
     <entry><para><link linkend="Date">Date</link></para></entry>
-    <entry><para>A date with an optional time component, with resolution to the second.</para></entry>
+    <entry><para>A date with an optional time component, with resolution to the millisecond.</para></entry>
     <entry><code>2005-07-20</code></entry>
     <entry><para>0000-00-00 00:00:00</para></entry>
   </row>
@@ -389,25 +389,29 @@ print("global a = $a\n"); </programlisting>
   <title>Date</title>
   <para>Qore dates have a time component and can be either absolute or relative. Absolute dates are normal dates, such as January 1, 2005 10:35:00 and can be specified with a special syntax as follows:</para>
 
-  <para><code>&lt;4d-year&gt;-&lt;2d-month&gt;-&lt;2d-day&gt;-&lt;2d-hour&gt;:&lt;2d-minute&gt;:&lt;2d-second&gt;</code></para>
+  <para><code>&lt;4d-year&gt;-&lt;2d-month&gt;-&lt;2d-day&gt;[-&lt;2d-hour&gt;:&lt;2d-minute&gt;:&lt;2d-second&gt;[.&lt;3d-millisecond&gt;]]</code></para>
 
-  <para>or, for just the date, without a time component:</para>
+  <para>or, an almost-ISO-8601-compliant format (without the ISO-8601 time zone component but including an optional millisecond component)</para>
+
+  <para><code>&lt;4d-year&gt;-&lt;2d-month&gt;-&lt;2d-day&gt;[T&lt;2d-hour&gt;:&lt;2d-minute&gt;:&lt;2d-second&gt;[.&lt;3d-millisecond&gt;]]</code></para>
+
+  <para>for example, for just the date, without a time component:</para>
 
   <para><code>&lt;4d-year&gt;-&lt;2d-month&gt;-&lt;2d-day&gt;</code></para>
 
   <para>or, for just the time, without a date component (note that in this case the date component will be set to Jan 1, 1970, in order for time arithmetic to function properly):</para>
 
-  <para><code>&lt;2d-hour&gt;:&lt;2d-minute&gt;:&lt;2d-second&gt;</code></para>
+  <para><code>&lt;2d-hour&gt;:&lt;2d-minute&gt;:&lt;2d-second&gt;[.&lt;3d-millisecond&gt;]]</code></para>
 
   <para>For example:</para>
 
   <para><code>2005-03-29-18:12:25</code> represents: March 29, 2005 6:12:25 pm</para>
-  <para><code>0512-01-01-01:49:59</code> represents: January 1, 512 1:49:59 am</para>
+  <para><code>0512-01-01T01:49:59.213</code> represents: January 1, 512 1:49:59 am and 213 milliseconds</para>
 
   <para><code>2005-03-29</code> represents: March 29, 2005 00:00:00</para>
   <para><code>18:35:26</code> represents: 6:35:26 pm</para>
 
-  <para>The year must be a four-digit number, and all other values must be two-digit numbers.  Pad the numbers with leading zeros if the numbers are smaller than the required number of spaces.  The hour component must be in 24-hour time format. Except for the month and day values, all other values start with 0 (hour = 00 - 23, minute and second: 00 - 59).  Any deviation from this format will cause a parse exception.</para>
+  <para>The year must be a four-digit number, and all other values except milliseconds must be two-digit numbers.  If milliseconds are present, 3 digits are required after the decimal point.  Pad the numbers with leading zeros if the numbers are smaller than the required number of spaces.  The hour component must be in 24-hour time format. Except for the month and day values, all other values start with 0 (hour = 00 - 23, minute and second: 00 - 59).  Any deviation from this format will cause a parse exception.</para>
 
   <para>Relative dates are specified as follows:</para>
 
@@ -461,6 +465,12 @@ print("global a = $a\n"); </programlisting>
 	<entry><code>19s</code></entry>
 	<entry><para>19 seconds</para></entry>
       </row>
+      <row>
+	<entry><para>ms</para></entry>
+	<entry><para>Milliseconds</para></entry>
+	<entry><code>250ms</code></entry>
+	<entry><para>250 milliseconds</para></entry>
+      </row>
     </tbody>
   </tgroup>
 </table>
@@ -502,11 +512,13 @@ language, either by an addition to this data type, or by adding another date typ
 
 <sect2 id="Conversions">
   <title>Conversions</title>
-  <para>Boolean, string, integer, date, and floating point data types can be freely converted from one type to the other, although data loss is possible depending on the conversion.</para>
+  <para>Boolean, string, integer, date, and floating point data types can be freely converted from one type to the other, although data loss is possible depending on the conversion (particularly when converting to the boolan type as only two possible values are supported).</para>
 
   <para>The special types <command>NULL</command> and <command>NOTHING</command> are not equivalent and cannot be converted to or from any other type.</para>
 
-  <para>When date types are converted to/from strings, integers, and floating-point numbers, the following format must be used: "YYYYMMDDHHmmSS".</para>
+  <para>When date types are converted to/from strings, the following format must be used: "YYYYMMDDHHmmSS".</para>
+
+  <para>When dates are converted to and from integer values, the a 64-bit second offset from January 1, 1970 is used for the conversion.  For example <code>int(2006-01-01)</code> gives <code>1136073600</code>.</para>
 
   <para>When an expression requires a certain data type and the source data type cannot be converted to the desired data type, the default value for the desired data type will be used.  The default values are given <link linkend="Basic_Data_Types">here</link>.</para>
 </sect2>
@@ -833,13 +845,13 @@ $a || $b</programlisting></para>
     <entry><para>++</para></entry>
     <entry><para>2</para></entry>
     <entry><para><link linkend='Pre_Increment_Operator'>pre-increment operator</link>, <link linkend='Post_Increment_Operator'>post-increment operator</link></para></entry>
-    <entry><code>$a++</code></entry>
+    <entry><code>++$a, $a++</code></entry>
   </row>
   <row>
     <entry><para>--</para></entry>
     <entry><para>2</para></entry>
-    <entry><para><link linkend='Pre_Increment_Operator'>pre-increment operator</link>, <link linkend='Post_Increment_Operator'>post-increment operator</link></para></entry>
-    <entry><code>$a--</code></entry>
+    <entry><para><link linkend='Pre_Decrement_Operator'>pre-decrement operator</link>, <link linkend='Post_Decrement_Operator'>post-decrement operator</link></para></entry>
+    <entry><code>--$a, $a--</code></entry>
   </row>
   <row>
     <entry><para><command>new</command></para></entry>
@@ -882,6 +894,12 @@ $a || $b</programlisting></para>
     <entry><para>7</para></entry>
     <entry><para><link linkend='Pop_Operator'>pop list element operator</link></para></entry>
     <entry><code><command>pop</command> $list</code></entry>
+  </row>
+  <row>
+    <entry><para><command>chomp</command></para></entry>
+    <entry><para>7</para></entry>
+    <entry><para><link linkend='Chomp_Operator'>chomp end-of-line character operator</link></para></entry>
+    <entry><code><command>chomp</command> $string</code></entry>
   </row>
   <row>
     <entry><para><command>elements</command></para></entry>
@@ -1599,99 +1617,6 @@ $a || $b</programlisting></para>
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>increments an lvalue and returns the value before the increment.</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-      <term>Syntax</term>
-      <listitem>
-	<programlisting><replaceable>lvalue++</replaceable></programlisting>
-      </listitem>
-    </varlistentry>
-
-    <varlistentry>
-      <term>Example</term>
-      <listitem>
-	<programlisting>$i++;</programlisting>
-      </listitem>
-    </varlistentry>
-  </variablelist>
-
-  <table>
-    <title>Arguments Processed By Post-Increment ++</title>
-    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
-      <thead>
-	<row>
-	  <entry><para>Argument</para></entry>
-	  <entry><para>Processing</para></entry>
-	</row>
-      </thead>
-      <tbody>
-	<row>
-	  <entry><para>Integer</para></entry>
-	  <entry><para>First converts the value of <replaceable>lvalue</replaceable> to an integer if necessary, then saves this value as the result, then increments the lvalue, then returns the saved original value of <replaceable>lvalue</replaceable> (after conversion to an integer if necessary)</para></entry>
-	</row>
-      </tbody>
-    </tgroup>
-  </table>
-  
-  <para>This operator does not throw any exceptions.</para>
-
-</sect2>
-
-<sect2 id="Pre_Decrement_Operator">
-  <title>Integer Pre-Decrement Operator (--)</title>
-
-  <variablelist>
-    <varlistentry>
-      <term>Synopsis</term>
-      <listitem>
-	<para>decrements an lvalue and returns the decremented value.</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-      <term>Syntax</term>
-      <listitem>
-	<programlisting><replaceable>--lvalue</replaceable></programlisting>
-      </listitem>
-    </varlistentry>
-    <varlistentry>
-      <term>Example</term>
-      <listitem>
-	<programlisting>--$i;</programlisting>
-      </listitem>
-    </varlistentry>
-  </variablelist>
-
-  <table>
-    <title>Arguments Processed By Pre-Decrement --</title>
-    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
-      <thead>
-	<row>
-	  <entry><para>Argument</para></entry>
-	  <entry><para>Processing</para></entry>
-	</row>
-      </thead>
-      <tbody>
-	<row>
-	  <entry><para>Integer</para></entry>
-	  <entry><para>First converts the value of <replaceable>lvalue</replaceable> to an integer if necessary, then decrements it and returns the result.</para></entry>
-	</row>
-      </tbody>
-    </tgroup>
-  </table>
-
-  <para>This operator does not throw any exceptions.</para>
-
-</sect2>
-
-<sect2 id="Post_Decrement_Operator">
-  <title>Integer Post-Decrement Operator (--)</title>
-
-  <variablelist>
-    <varlistentry>
-      <term>Synopsis</term>
-      <listitem>
 	<para>decrements an lvalue and returns the value before the decrement.</para>
      </listitem>
     </varlistentry>
@@ -1701,6 +1626,7 @@ $a || $b</programlisting></para>
 	<programlisting><replaceable>lvalue--</replaceable></programlisting>
       </listitem>
     </varlistentry>
+
     <varlistentry>
       <term>Example</term>
       <listitem>
@@ -1721,12 +1647,12 @@ $a || $b</programlisting></para>
       <tbody>
 	<row>
 	  <entry><para>Integer</para></entry>
-	  <entry><para>First converts <replaceable>lvalue</replaceable> to an integer if necessary, then saves this value as the result, then decrements the value, then returns the saved original value of <replaceable>lvalue</replaceable> (after conversion to an integer if necessary)</para></entry>
+	  <entry><para>First converts the value of <replaceable>lvalue</replaceable> to an integer if necessary, then saves this value as the result, then decrements the lvalue, then returns the saved original value of <replaceable>lvalue</replaceable> (after conversion to an integer if necessary)</para></entry>
 	</row>
       </tbody>
     </tgroup>
   </table>
-
+  
   <para>This operator does not throw any exceptions.</para>
 
 </sect2>
@@ -2107,6 +2033,61 @@ $a || $b</programlisting></para>
 
 </sect2>
 
+<sect2 id="Chomp_Operator">
+  <title>Chomp Operator (chomp)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Removes the end-of-line marker(s) ('\n' or '\r\n') from a string, or each string element in a list, or each hash key value in a hash (if the value is a string) and returns the number of characters removed.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><command>chomp</command> <replaceable>lvalue</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting><command>chomp</command> $str;</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+  <table>
+    <title>Arguments Processed By chomp</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument</para></entry>
+	  <entry><para>Processing</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><replaceable>lvalue</replaceable>: String</para></entry>
+	  <entry><para>Removes any EOL characters from a string and returns the number of characters removed.</para></entry>
+	</row>
+	<row>
+	  <entry><para><replaceable>lvalue</replaceable>: List</para></entry>
+	  <entry><para>Removes any EOL characters from each string element of the list passed and returns the number of characters removed.</para></entry>
+	</row>
+	<row>
+	  <entry><para><replaceable>lvalue</replaceable>: Hash</para></entry>
+	  <entry><para>Removes any EOL characters from each hash key's value (where the value is a string) and returns the number of characters removed.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+
+  <para>This operator does not throw any exceptions.</para>
+
+</sect2>
+
 <sect2 id="Elements_Operator">
   <title>Elements Operator (elements)</title>
 
@@ -2364,7 +2345,7 @@ $a || $b</programlisting></para>
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	Numeric addition, list, string, and hash concatenation operator.
+	<para>Numeric addition, list, string, and hash concatenation operator.</para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -2745,7 +2726,7 @@ $a || $b</programlisting></para>
     <varlistentry>
       <term>Syntax</term>
       <listitem>
-
+	<programlisting><replaceable>expression1</replaceable> &gt; <replaceable>expression2</replaceable></programlisting>
       </listitem>
     </varlistentry>
 

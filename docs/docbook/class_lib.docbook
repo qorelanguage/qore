@@ -8489,7 +8489,7 @@
 	      <entry><para><code>TRANSACTION-TIMEOUT</code></para></entry>
 	      <entry><para>Timeout trying to acquire the transaction lock.</para></entry>
 	    </row>
-´	  </tbody>
+	  </tbody>
 	</tgroup>
       </table>
     </sect2>
@@ -8564,7 +8564,7 @@
 	      <entry><para>depends on DBI driver</para></entry>
 	      <entry><para>See documentation for the DBI driver for driver-specific exceptions.</para></entry>
 	    </row>
-´	  </tbody>
+	  </tbody>
 	</tgroup>
       </table>
     </sect2>
@@ -8701,7 +8701,7 @@
 	      <entry><para>depends on DBI driver</para></entry>
 	      <entry><para>See documentation for the DBI driver for driver-specific exceptions.</para></entry>
 	    </row>
-´	  </tbody>
+	  </tbody>
 	</tgroup>
       </table>
     </sect2>
@@ -8780,7 +8780,7 @@
 	      <entry><para>depends on DBI driver</para></entry>
 	      <entry><para>See documentation for the DBI driver for driver-specific exceptions.</para></entry>
 	    </row>
-´	  </tbody>
+	  </tbody>
 	</tgroup>
       </table>
     </sect2>
@@ -8922,7 +8922,7 @@
 	      <entry><para>depends on DBI driver</para></entry>
 	      <entry><para>See documentation for the DBI driver for driver-specific exceptions.</para></entry>
 	    </row>
-´	  </tbody>
+	  </tbody>
 	</tgroup>
       </table>
     </sect2>
@@ -8997,7 +8997,7 @@
 	      <entry><para>depends on DBI driver</para></entry>
 	      <entry><para>See documentation for the DBI driver for driver-specific exceptions.</para></entry>
 	    </row>
-´	  </tbody>
+	  </tbody>
 	</tgroup>
       </table>
     </sect2>
@@ -9072,7 +9072,7 @@
 	      <entry><para>depends on DBI driver</para></entry>
 	      <entry><para>See documentation for the DBI driver for driver-specific exceptions.</para></entry>
 	    </row>
-´	  </tbody>
+	  </tbody>
 	</tgroup>
       </table>
     </sect2>
@@ -10152,7 +10152,7 @@
 	      <entry><para><code>CONDITION-BROADCAST-ERROR</code></para></entry>
 	      <entry><para>This exception should never be thrown - it indicates a low-level error in executing the method.</para></entry>
 	    </row>
-´	  </tbody>
+	  </tbody>
 	</tgroup>
       </table>
     </sect2>
@@ -10227,7 +10227,7 @@
 	      <entry><para><code>CONDITION-WAIT-ERROR</code></para></entry>
 	      <entry><para>This exception should never be thrown - it indicates a low-level error in executing the method.</para></entry>
 	    </row>
-´	  </tbody>
+	  </tbody>
 	</tgroup>
       </table>
     </sect2>
@@ -10910,7 +10910,7 @@
 	      <entry><para><code>QUEUE-TIMEOUT</code></para></entry>
 	      <entry><para>The timeout value was exceeded.</para></entry>
 	    </row>
-´	  </tbody>
+	  </tbody>
 	</tgroup>
       </table>
     </sect2>
@@ -10985,7 +10985,7 @@
 	      <entry><para><code>QUEUE-TIMEOUT</code></para></entry>
 	      <entry><para>The timeout value was exceeded.</para></entry>
 	    </row>
-´	  </tbody>
+	  </tbody>
 	</tgroup>
       </table>
     </sect2>
@@ -12919,7 +12919,7 @@
 	      <entry><para><code>GATE-ENTER-PARAMETER-EXCEPTION</code></para></entry>
 	      <entry><para>-1 is an illegal key for this object.</para></entry>
 	    </row>
-´	  </tbody>
+	  </tbody>
 	</tgroup>
       </table>
   </sect2>
@@ -12993,7 +12993,7 @@
 	      <entry><para><code>GATE-TRYENTER-PARAMETER-EXCEPTION</code></para></entry>
 	      <entry><para>-1 is an illegal key for this object.</para></entry>
 	    </row>
-´	  </tbody>
+	  </tbody>
 	</tgroup>
       </table>
   </sect2>

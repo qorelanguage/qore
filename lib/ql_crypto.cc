@@ -53,7 +53,7 @@ class BaseHelper {
 
 	 if (is_nothing(pt))
 	 {
-	    xsink->raiseException("PARAMETER-ERROR", "missing data (string or binary) parameter to function");
+	    xsink->raiseException(err, "missing data (string or binary) parameter to function");
 	    return -1;
 	 }
 	 if (pt->type == NT_STRING)
@@ -69,7 +69,7 @@ class BaseHelper {
 	    return 0;
 	 }
 	 
-	 xsink->raiseException("PARAMETER-ERROR", "don't know how to process type '%s' (expecing string or binary)", pt->type->name);
+	 xsink->raiseException(err, "don't know how to process type '%s' (expecing string or binary)", pt->type->name);
 	 return -1;
       }      
 };
@@ -154,7 +154,7 @@ class CryptoHelper : public BaseHelper
       }
 
       // get initialization vector
-      int getIV(class QoreNode *params, int n, class ExceptionSink *xsink)
+      int getIV(char *err, class QoreNode *params, int n, class ExceptionSink *xsink)
       {
 	 class QoreNode *pt = get_param(params, n);
 	 if (is_nothing(pt))
@@ -167,7 +167,7 @@ class CryptoHelper : public BaseHelper
 	 {
 	    if (pt->val.String->strlen() < 8)
 	    {
-	       xsink->raiseException("ENCRYPT-ERROR", "the input vector must be at least 8 bytes long (%d bytes passed)", pt->val.String->strlen());
+	       xsink->raiseException(err, "the input vector must be at least 8 bytes long (%d bytes passed)", pt->val.String->strlen());
 	       return -1;
 	    }
 	    iv = (unsigned char *)pt->val.String->getBuffer();
@@ -176,16 +176,16 @@ class CryptoHelper : public BaseHelper
 
 	 if (pt->type == NT_BINARY)
 	 {
-	    if (pt->val.bin->size() < 16)
+	    if (pt->val.bin->size() < 8)
 	    {
-	       xsink->raiseException("ENCRYPT-ERROR", "the input vector must be at least 8 bytes long (%d bytes passed)", pt->val.bin->size());
+	       xsink->raiseException(err, "the input vector must be at least 8 bytes long (%d bytes passed)", pt->val.bin->size());
 	       return -1;
 	    }
 	    iv = (unsigned char *)pt->val.bin->getPtr();
 	    return 0;
 	 }
 
-	 xsink->raiseException("ENCRYPT-ERROR", "can't use type '%s' as an input vector", pt->type->name);
+	 xsink->raiseException(err, "can't use type '%s' as an input vector", pt->type->name);
 	 return -1;
       }
 
@@ -228,21 +228,21 @@ class CryptoHelper : public BaseHelper
 
       int getSingleKey(char *err, class QoreNode *params, class ExceptionSink *xsink)
       {
-	 if (getInput(err, params, xsink) || getKey(err, params, 1, xsink) || getIV(params, 2, xsink))
+	 if (getInput(err, params, xsink) || getKey(err, params, 1, xsink) || getIV(err, params, 2, xsink))
 	    return -1;
 	 return 0;
       }
 
       int getTwoKeys(char *err, class QoreNode *params, class ExceptionSink *xsink)
       {
-	 if (getInput(err, params, xsink) || getKey(err, params, 1, xsink) || getKey(err, params, 2, xsink) || getIV(params, 3, xsink))
+	 if (getInput(err, params, xsink) || getKey(err, params, 1, xsink) || getKey(err, params, 2, xsink) || getIV(err, params, 3, xsink))
 	    return -1;
 	 return 0;
       }
 
       int getThreeKeys(char *err, class QoreNode *params, class ExceptionSink *xsink)
       {
-	 if (getInput(err, params, xsink) || getKey(err, params, 1, xsink) || getKey(err, params, 2, xsink) || getKey(err, params, 3, xsink) || getIV(params, 4, xsink))
+	 if (getInput(err, params, xsink) || getKey(err, params, 1, xsink) || getKey(err, params, 2, xsink) || getKey(err, params, 3, xsink) || getIV(err, params, 4, xsink))
 	    return -1;
 	 return 0;
       }
