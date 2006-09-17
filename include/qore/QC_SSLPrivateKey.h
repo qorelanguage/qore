@@ -70,7 +70,7 @@ class QoreSSLPrivateKey : public ReferenceObject
 	 if (!PEM_write_bio_PrivateKey(bp, pk, NULL, NULL, 0, NULL, NULL))
 	 {
 	    BIO_free(bp);
-	    xsink->raiseException("X509-ERROR", "could not create PEM string from private key data");
+	    xsink->raiseException("SSLPRIVATEKEY-ERROR", "could not create PEM string from private key data");
 	    return NULL;
 	 }
 	 char *buf;

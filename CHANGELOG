@@ -1,3 +1,8 @@
+2006.09.16: David Nichols
+	* doc updates
+	* "tibrv" module: renamed namespace to "Tibrv"
+	* "tibae" module: renamed namespace to "Tibae"
+
 2006.09.12: David Nichols
 	* implemented the "unreachable-code" warning
 	* implemented the ability to return parse warnings if a parse mask is

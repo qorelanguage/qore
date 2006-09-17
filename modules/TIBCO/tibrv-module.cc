@@ -72,7 +72,7 @@ class QoreString *tibrv_module_init()
 void tibrv_module_ns_init(class Namespace *rns, class Namespace *qns)
 {
    tracein("tibrv_module_ns_init()");
-   class Namespace *tibns = new Namespace("TIBRV");
+   class Namespace *tibns = new Namespace("Tibrv");
    tibns->addSystemClass(initTibrvListenerClass());
    tibns->addSystemClass(initTibrvSenderClass());
    tibns->addSystemClass(initTibrvFtMemberClass());

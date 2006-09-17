@@ -387,7 +387,7 @@ print("global a = $a\n"); </programlisting>
 
 <sect2 id="Date">
   <title>Date</title>
-  <para>Qore dates have a time component and can be either absolute or relative. Absolute dates are normal dates, such as January 1, 2005 10:35:00 and can be specified with a special syntax as follows:</para>
+  <para>Qore dates have a time component supporting a resolution to the millisecond and can be either absolute or relative.  Absolute dates are normal dates, such as January 1, 2005 10:35:00 and can be specified with a special syntax as follows:</para>
 
   <para><code>&lt;4d-year&gt;-&lt;2d-month&gt;-&lt;2d-day&gt;[-&lt;2d-hour&gt;:&lt;2d-minute&gt;:&lt;2d-second&gt;[.&lt;3d-millisecond&gt;]]</code></para>
 
@@ -475,25 +475,26 @@ print("global a = $a\n"); </programlisting>
   </tgroup>
 </table>
 
-<para>Relative dates are normally used for date addition and subtraction.  See <link linkend='Date_Arithmetic'>Date Arithmetic</link> for more information.</para>
+<para>Relative dates are normally used for date addition and subtraction.  See <link linkend='Date_Time_Arithmetic'>Date/Time Arithmetic</link> for more information.</para>
 
 <note>
   <para>Currently there is no time-zone component in Qore dates.  Timezone support may be added in future versions of the Qore 
-language, either by an addition to this data type, or by adding another date type including a time zone component.</para>
+language, either by an addition to this data type, or by adding another date type including a time zone component.  Specifically, ISO-8601 time zone components are not accepted by the qore parser and will cause a parse exception to be thrown.</para>
 </note>
 
 </sect2>
 <sect2 id="Binary">
   <title>Binary</title>
 
-  <para>The binary data type is used to hold binary arbitrary binary data. Internally 
-  it is represented by a memory pointer and a size indicator. </para>
+  <para>The binary data type is used to hold binary arbitrary binary data. Internally it is represented by a memory pointer and a size indicator. </para>
 
-  <para>This data can be manipulated by being written and read from File, Socket, and Datasource objects, or converted and parsed to/from base64 encoded strings using the <link linkend="makeBase64String">makeBase64String()</link> and <link linkend="parseBase64String">parseBase64String()</link> functions, or compressed and decompressed using the <link linkend="compress">compress()</link>, <link linkend="compress2">compress2()</link>, <link linkend="uncompress_to_binary">uncompress_to_binary()</link> functions, among others.</para>
+  <para>This data can be manipulated by being written and read from File, Socket, and Datasource objects, or converted and parsed to/from base64 encoded strings using the <link linkend="makeBase64String">makeBase64String()</link> and <link linkend="parseBase64String">parseBase64String()</link> functions, or compressed and decompressed using the <link linkend="compress">compress()</link>, <link linkend="compress2">compress2()</link>, <link linkend="uncompress_to_binary">uncompress_to_binary()</link> functions, and processed by most <link linkend="Cryptographic_Functions">cryptographic funtions</link>, among others.</para>
 
   <para>Binary objects can be read from a File object using the <link linkend="Qore_File_readBinary">File::readBinary()</link> method and can be written using the <link linkend="Qore_File_write">File::write()</link> method.  Please see the <link linkend='Qore_File_Class'>File Class</link> for more information.</para>
   
   <para>Binary objects can be read from a Socket object using the <link linkend="Qore_Socket_recvBinary">Socket::recvBinary()</link> method and can be written using the <link linkend="Qore_Socket_send">Socket::send()</link> method. Please see the <link linkend="Qore_Socket_Class">Socket Class</link> for more information.</para>
+
+  <para>Binary objects can be sent and received using classes provided by the <link linkend="tibrv_Module">tibrv module</link> as well.</para>
 
   <para>The <link linkend="Qore::SQL::Datasource_Class">Datasource Class</link> can also be used to read and write Binary objects as BLOBs.</para>
 
@@ -635,13 +636,15 @@ language, either by an addition to this data type, or by adding another date typ
 
 <para>Character set encodings can be explicitly performed with the <link linkend="convert_encoding">convert_encoding()</link> function, and the encoding attached to a string can be checked with the <link linkend="get_encoding">get_encoding()</link> function. </para>
 
-<para>The TibcoAdapter class will automatically convert all strings to UTF-8 encoding if necessary before transmitting any messages, as required by the TIBCO SDK. See <link linkend='Qore_TibcoAdapter_Class'>TibcoAdapter Class</link> for more information.</para>
+<para>The TibcoAdapter class will automatically convert all strings to UTF-8 encoding if necessary before transmitting any messages, as required by the TIBCO SDK. See <link linkend='Tibae_TibcoAdapter_Class'>TibcoAdapter Class</link> for more information.</para>
+
+<para>The <link linkend='TibrvSender_Class'>TibrvSender Class</link>, <link linkend='TibrvListener_Class'>TibrvListener Class</link>, <link linkend='TibrvCmSender_Class'>TibrvCmSender Class</link>, and the <link linkend='TibrvCmListener_Class'>TibrvCmListener Class</link> will convert and tag strings to the encoding set for instantiated objects of these classes.</para>
 
 <para>Datasource objects will translate character set encoding to the encoding required by the database if necessary as well (this is actually the responsibility of the DBI driver for the database in question).  See <link linkend='Qore::SQL::Datasource_Class'>Datasource Class</link> for more information.</para>
 
-<para>Socket objects will translate character set encoding to encoding specified for the Socket, if any has been set.  See <link linkend='Qore_Socket_Class'>Socket Class</link> for more information.</para>
+<para>Socket objects will translate character set encodings to the encoding specified for the Socket, if any has been set, as well as tagging strings received with the object's encoding.  See <link linkend='Qore_Socket_Class'>Socket Class</link> for more information.</para>
 
-<para>File objects will also automatically convert any string to the encoding specified for the File, if any has been set.  See <link linkend='Qore_File_Class'>File Class</link> for more information.</para>
+<para>File objects will also automatically convert any string to the encoding specified for the File, if any has been set, as well as tagging strings read with the object's encoding.  See <link linkend='Qore_File_Class'>File Class</link> for more information.</para>
 
 <para>Additionally you can serialize a Qore hash to an XML string and specify the character set encoding to use. If the target encoding is different than the source encoding conversions are automatically performed. See <link linkend="XML_Integration">XML Integration</link> for more information about XML handling.</para>
 
@@ -2386,7 +2389,7 @@ $a || $b</programlisting></para>
 	</row>
 	<row>
 	  <entry><para>Date</para></entry>
-	  <entry><para>Gives the result of adding dates (see <link linkend='Date_Arithmetic'>Date Arithmetic</link>)</para></entry>
+	  <entry><para>Gives the result of adding date/time values (see <link linkend='Date_Time_Arithmetic'>Date/Time Arithmetic</link>)</para></entry>
 	</row>
 	<row>
 	  <entry><para>Float</para></entry>
@@ -4432,10 +4435,10 @@ $a || $b</programlisting></para>
     </table>
   </sect1>
 
-  <sect1 id="Date_Arithmetic">
-    <title>Date Arithmetic</title>
+  <sect1 id="Date_Time_Arithmetic">
+    <title>Date/Time Arithmetic</title>
 
-    <para>Date arithmetic is relatively straightforward and should normally produce the expected results.  However with leap years and months with different lengths, the situation can be confusing; this section will clarify how Qore does date arithmetic considering these special cases.</para>
+    <para>Date/time arithmetic is relatively straightforward and should normally produce the expected results.  However with leap years and months with different lengths, the situation can be confusing; this section will clarify how Qore does date arithmetic considering these special cases.</para>
 
     <sect2 id="Addding_And_Subtracting_Years_And_Monts">
       <title>Adding and Subtracting Years and Months</title>
@@ -4445,16 +4448,34 @@ $a || $b</programlisting></para>
       <programlisting>2004-02-29 - 1Y = 2003-02-28</programlisting>
     </sect2>
 
-    <sect2 id="Addding_And_Subtracting_Days">
+    <sect2 id="Adding_And_Subtracting_Days">
       <title>Adding and Subtracting Days</title>
-      <para>Adding or subtracting days does not mean adding or subtracting 24h periods.  In most cases, one day represents 24 hours, but in the case of daylight savings time changes, a day can be 23 or 25 hours.</para>
+      <para>Adding or subtracting days means adding or subtracting 24h periods; i.e. you will get the same time in the result of subtracting days, for example:</para>
+
+      <programlisting>2004-02-29T10:15:00 - 10D = 2004-02-19T10:15:00</programlisting>
+    </sect2>
+    
+    <sect2 id="Date_Differences">
+      <title>Finding the Difference Between Two Dates</title>
+      <para>Subtracing one absolulte date from another will result in a relative date, normalized to the day value (that is, milliseconds over 999 are converted to seconds, seconds over 59 to minutes, minutes to hours, hours to days.  For example:</para>
+	<programlisting>$diff = 2004-02-29T10:15:03.255 - 2004-02-29T10:14:02.100;
+printf("%n\n", $diff)</programlisting>
+      <para>Results in:</para>
+	<programlisting>&lt;time: 1 minute 1 second 155 milliseconds&gt;</programlisting>
+
+      <para>To find the difference in seconds between two dates then convert each date value to an integer as folows:</para>
+	<programlisting>int(2004-02-29) - int(2004-02-28) = 86400</programlisting>
     </sect2>
     
     <sect2 id="Timezones_And_Daylight_Savings_Time">
       <title>Timezones and Daylight Savings Time </title>
-      <para>Unless otherwise documented, all times are assumed to be in the timezone set for the system.  Daylight Savings Time is taken into effect for date addition and subtraction.</para>
+      <para>Qore has no time zone support and therefore all date/time values are timezone agnostic.  In particular, Daylight Savings Time is not taken into effect with date arithmetic.</para>
     </sect2>
-    
+
+    <sect2 id="Leap_Years_and_the_Gregorian_Calendar">
+      <title>Leap Years and the Gregorian Calendar</title>
+      <para>Qore is capable of repsenting and performing calculations on dates before the adoption of the Gregorian calendar (proposed in 1582 and adopted at various times in Europe after this point).  However all calculations are made as if the Gregorian calendar were always in effect (Qore implements a proleptic Gregorian calendar).</para>
+    </sect2>
   </sect1>
   
   <sect1 id="Statements">

@@ -109,7 +109,7 @@ class QoreTibrvCmTransport : public QoreTibrvTransport
          TibrvStatus status = cmTransport.disconnectFromRelayAgent();
          if (status != TIBRV_OK)
          {
-            xsink->raiseException("TIBRV-CONNECT-TO-RELAY-AGENT-ERROR", "%s", (char *)status.getText());
+            xsink->raiseException("TIBRV-DISCONNECT-FROM-RELAY-AGENT-ERROR", "%s", (char *)status.getText());
             return -1;
          }
 	 return 0;

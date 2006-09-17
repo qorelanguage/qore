@@ -54,7 +54,7 @@ class QoreString *tibae_module_init()
 void tibae_module_ns_init(class Namespace *rns, class Namespace *qns)
 {
    tracein("tibae_module_ns_init()");
-   class Namespace *tibns = new Namespace("TIBAE");
+   class Namespace *tibns = new Namespace("Tibae");
    tibns->addSystemClass(initTibcoAdapterClass());
    qns->addInitialNamespace(tibns);
 
