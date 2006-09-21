@@ -4,6 +4,7 @@
 	* fixed a bug where auto-loaded modules were not registering their
 	  provided features so module code could be loaded more than once if a
 	  "%requires" directive for that module was parsed
+	* fixed a parse-related static memory leak in lib/parser.yy
 
 2006.09.16: David Nichols
 	* doc updates

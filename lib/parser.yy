@@ -1088,7 +1088,7 @@ exp:    scalar
 	}
         | TOK_OUR VAR_REF
         {
-	   getProgram()->addGlobalVarDef(strdup($2));
+	   getProgram()->addGlobalVarDef($2);
 	   $$ = new QoreNode(new VarRef($2, VT_GLOBAL)); 
 	}
         | TOK_OUR '(' list ')'
@@ -1102,7 +1102,7 @@ exp:    scalar
 	      else
 	      {
 		 n->val.vref->type = VT_GLOBAL;
-		 getProgram()->addGlobalVarDef(strdup(n->val.vref->name));
+		 getProgram()->addGlobalVarDef(n->val.vref->name);
 	      }
 	   }
 	   $$ = $3;
