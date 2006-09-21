@@ -50,6 +50,9 @@ class ReferenceObject {
       inline bool is_unique() { return references == 1; }
       inline void ROreference();
       inline int ROdereference();
+#ifdef DEBUG
+      //virtual void test() {}
+#endif
 };
 
 inline ReferenceObject::ReferenceObject()

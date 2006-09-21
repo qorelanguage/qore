@@ -112,7 +112,8 @@ class QoreTypeManager {
 
       QoreTypeManager();
       ~QoreTypeManager();
-      void init();
+      static void init();
+      static void del();
       inline void add(class QoreType *t)
       {
 	 if (lastid < NUM_VALUE_TYPES)

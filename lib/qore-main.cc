@@ -108,6 +108,9 @@ void qore_cleanup()
    // delete object structures
    deleteObjects();
 
+   // delete default type values
+   QTM.del();
+
    // cleanup openssl library
    EVP_cleanup();
    ERR_free_strings();

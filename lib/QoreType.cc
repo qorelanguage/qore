@@ -245,10 +245,8 @@ void QoreTypeManager::init()
    emptyHash   = new QoreNode(new Hash());
 }
 
-QoreTypeManager::~QoreTypeManager()
+void QoreTypeManager::del()
 {
-   tracein("QoreTypeManager::~QoreTypeManager()");
-
    // dereference global default values
    True->deref(NULL);
    False->deref(NULL);
@@ -260,6 +258,11 @@ QoreTypeManager::~QoreTypeManager()
    ZeroDate->deref(NULL);
    emptyList->deref(NULL);
    emptyHash->deref(NULL);
+}
+
+QoreTypeManager::~QoreTypeManager()
+{
+   tracein("QoreTypeManager::~QoreTypeManager()");
 
    // delete all stored types
    while (head)
