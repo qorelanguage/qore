@@ -5,7 +5,7 @@ AC_INIT([qore], [0.5.2],
         [David Nichols <nicholsman@gmail.com>],
         [qore])
 AM_INIT_AUTOMAKE
-AM_CONFIG_HEADER(include/qore/config.h)
+AM_CONFIG_HEADER(include/qore/unix-config.h)
 
 AC_PROG_LEX
 ##AC_PROG_MAKE_SET

@@ -87,13 +87,22 @@ inline struct tm *q_gmtime(const time_t *clock, struct tm *tms)
    return tms;
 }
 
-// thread-safe basename function                                                                                                         
+// thread-safe basename function (resulting pointer must be free()ed)
 static inline char *q_basename(char *path)
 {
-   char *p = rindex(path, '/');
+   char *p = strrchr(path, '/');
    if (!p)
       return strdup(path);
    return strdup(p + 1);
+}
+
+// returns a pointer within the same string
+static inline char *q_basenameptr(char *path)
+{
+   char *p = strrchr(path, '/');
+   if (!p)
+      return path;
+   return p + 1;   
 }
 
 static inline char *strchrs(char *str, char *chars)

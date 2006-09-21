@@ -27,8 +27,7 @@
 #include <qore/QoreProgramStack.h>
 #include <qore/support.h>
 #include <qore/BuiltinFunctionList.h>
-
-#include <libgen.h>
+#include <qore/QoreLib.h>
 
 extern class List *ARGV, *QORE_ARGV;
 extern class Hash *ENV;
@@ -690,8 +689,8 @@ void QoreProgram::parseFileAndRun(char *filename)
 	    runClass(exec_class_name, &xsink);
 	 else
 	 {
-	    char *c, *bn = basename(filename);
-	    if (!(c = rindex(bn, '.')))
+	    char *c, *bn = q_basenameptr(filename);
+	    if (!(c = strrchr(bn, '.')))
 	       runClass(filename, &xsink);
 	    else
 	    {

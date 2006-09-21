@@ -1,3 +1,6 @@
+2006.09.21: David Nichols
+	* changes to make a win32 port possible
+
 2006.09.16: David Nichols
 	* doc updates
 	* "tibrv" module: renamed namespace to "Tibrv"

@@ -36,6 +36,7 @@ noinst_HEADERS = \
 	include/qore/Reference.h \
 	include/qore/Statement.h \
 	include/qore/common.h \
+	include/qore/config.h \
 	include/qore/proto.h \
 	include/qore/ConstantList.h \
 	include/qore/charset.h \

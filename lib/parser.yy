@@ -281,7 +281,7 @@ void yyerror(yyscan_t scanner, const char *str)
 %token TOK_SWITCH TOK_CASE TOK_DEFAULT TOK_INHERITS
 
 %token <integer> INTEGER
-%token <decimal> FLOAT
+%token <decimal> QFLOAT
 %token <string> IDENTIFIER VAR_REF BACKQUOTE SELF_REF KW_IDENTIFIER_OPENPAREN
 %token <string> SCOPED_REF CONTEXT_REF COMPLEX_CONTEXT_REF
 %token <datetime> DATETIME
@@ -1538,7 +1538,7 @@ exp:    scalar
 	;
 
 scalar:
-	FLOAT         { $$ = new QoreNode(NT_FLOAT); $$->val.floatval = $1; }
+	QFLOAT         { $$ = new QoreNode(NT_FLOAT); $$->val.floatval = $1; }
 	| INTEGER     { $$ = new QoreNode(NT_INT); $$->val.intval = $1; }
         | QUOTED_WORD { $$ = new QoreNode($1); }
         | DATETIME    { $$ = new QoreNode($1); }

@@ -25,6 +25,8 @@
 #include <qore/List.h>
 #include <qore/Exception.h>
 
+#include <string.h>
+
 int QoreGetOpt::add(char *name, char short_opt, char *long_opt, class QoreType *argtype, int option)
 {
    // check input for validity
@@ -167,7 +169,7 @@ void QoreGetOpt::processLongArg(char *arg, class List *l, class Hash *h, int &i,
    arg = vstr.getBuffer();
 
    // see if there is an assignment character
-   char *tok = index(arg, '=');
+   char *tok = strchr(arg, '=');
    if (tok)
    {
       (*tok) = '\0';

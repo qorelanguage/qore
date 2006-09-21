@@ -28,6 +28,8 @@
 #include <qore/params.h>
 #include <qore/support.h>
 
+#include <string.h>
+
 int CID_GETOPT;
 
 static void getGetOpt(void *obj)
@@ -188,7 +190,7 @@ static void GETOPT_constructor(class Object *self, class QoreNode *params, Excep
 	 xsink->raiseException("GETOPT-PARAMETER-ERROR", "value of option key '%s' has no option specifiers", k);
 	 break;
       }
-      tok = index(val, ',');
+      tok = strchr(val, ',');
       if (tok)
       {
 	 if (tok == (val + 1))

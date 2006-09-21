@@ -28,6 +28,8 @@
 #include <qore/params.h>
 #include <qore/StringList.h>
 
+#include <string.h>
+
 class featureList qoreFeatureList;
 
 // global library variables
@@ -503,7 +505,7 @@ class BinaryObject *parseBase64(char *buf, int len, class ExceptionSink *xsink)
 char *make_class_name(char *str)
 {
    char *cn = q_basename(str);
-   char *p = rindex(cn, '.');
+   char *p = strrchr(cn, '.');
    if (p && p != cn)
       *p = '\0';
    p = cn;

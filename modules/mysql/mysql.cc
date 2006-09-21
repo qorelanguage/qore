@@ -139,7 +139,7 @@ static class QoreEncoding *get_qore_cs(char *cs)
 {
    int end;
    // get end of charset name
-   char *p = index(cs, '_');
+   char *p = strchr(cs, '_');
    if (p)
       end = p - cs;
    else

@@ -201,9 +201,9 @@ void QoreEncodingManager::init(char *def)
       {
 	 estr = getenv("LANG");
 	 char *p;
-	 if (estr && ((p = rindex(estr, '.'))))
+	 if (estr && ((p = strrchr(estr, '.'))))
 	 {
-	    char *o = index(p + 1, '@');
+	    char *o = strchr(p + 1, '@');
 	    if (!o)
 	       QCS_DEFAULT = findCreate(p + 1);
 	    else

@@ -76,7 +76,7 @@
      TOK_DEFAULT = 302,
      TOK_INHERITS = 303,
      INTEGER = 304,
-     FLOAT = 305,
+     QFLOAT = 305,
      IDENTIFIER = 306,
      VAR_REF = 307,
      BACKQUOTE = 308,
@@ -178,7 +178,7 @@
 #define TOK_DEFAULT 302
 #define TOK_INHERITS 303
 #define INTEGER 304
-#define FLOAT 305
+#define QFLOAT 305
 #define IDENTIFIER 306
 #define VAR_REF 307
 #define BACKQUOTE 308

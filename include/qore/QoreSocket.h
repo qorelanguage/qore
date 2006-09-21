@@ -551,7 +551,7 @@ inline int QoreSocket::recv(char *buf, int bs, int flags, int timeout)
 inline int QoreSocket::connect(char *name, class ExceptionSink *xsink)
 {
    char *p;
-   if ((p = index(name, ':')))
+   if ((p = strchr(name, ':')))
    {
       char *host = (char *)malloc(sizeof(char) * (p - name + 1));
       strncpy(host, name, p - name);
@@ -574,7 +574,7 @@ inline int QoreSocket::connect(char *name, class ExceptionSink *xsink)
 inline int QoreSocket::connectSSL(char *name, X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink)
 {
    char *p;
-   if ((p = index(name, ':')))
+   if ((p = strchr(name, ':')))
    {
       char *host = (char *)malloc(sizeof(char) * (p - name + 1));
       strncpy(host, name, p - name);
