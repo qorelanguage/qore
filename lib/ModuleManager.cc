@@ -174,8 +174,11 @@ void ModuleManager::init(bool se)
       {
 	 for (int i = 0; i < (int)globbuf.gl_pathc; i++)
 	 {
-	    class QoreString *errstr = loadModuleFromPath(globbuf.gl_pathv[i]);
-	    if (errstr)
+	    char *name = q_basenameptr(globbuf.gl_pathv[i]);
+	    class QoreString *errstr = loadModuleFromPath(globbuf.gl_pathv[i], name);
+	    if (!errstr)
+	       qoreFeatureList.append(name);
+	    else
 	    {
 	       if (show_errors)
 		  fprintf(stderr, "error loading %s\n", errstr->getBuffer());
@@ -277,7 +280,7 @@ class QoreString *ModuleManager::loadModuleFromPath(char *path, char *feature, c
       return str;
    }
 
-// see if a module with this name is already registered
+   // see if a module with this name is already registered
    if ((mi = find(name)))
    {
       str = new QoreString();
