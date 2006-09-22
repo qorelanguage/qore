@@ -1,0 +1,34 @@
+libdir = ${exec_prefix}/lib${LIBSUFFIX}
+pkglibdir = $(libdir)/@PACKAGE@-@VERSION@
+
+TUXEDO_SOURCES = tuxedo.cc TuxedoTest.cc
+
+if COND_MONOLITHIC
+noinst_LTLIBRARIES = libtuxedo.la
+libtuxedo_la_SOURCES = $(TUXEDO_SOURCES)
+libtuxedo_la_LDFLAGS = ${TUXEDO_LIBS} -static
+else
+automoddir = $(pkglibdir)/auto
+pkglib_LTLIBRARIES = tuxedo.la
+tuxedo_la_SOURCES = $(TUXEDO_SOURCES)
+tuxedo_la_LDFLAGS = -module -avoid-version ${TUXEDO_LIBS} -L/opt/bea/tuxedo9.1/lib -ltux -lbuft -lfml -lfml32 -lengine
+endif
+
+INCLUDES = -I$(top_srcdir)/include $(TUXEDO_INCLUDES) -I/opt/bea/tuxedo9.1/include 
+
+AM_CXXFLAGS = ${PTHREAD_CFLAGS}
+
+if COND_DEBUG
+AM_CXXFLAGS += -g
+else
+if COND_PROFILE
+AM_CXXFLAGS += -g -pg
+endif
+endif
+
+if !COND_MONOLITHIC
+install-exec-hook:
+	mv $(pkglibdir)/tuxedo.$(MODULE_SUFFIX) $(pkglibdir)/tuxedo.qmod
+	rm -f $(pkglibdir)/tuxedo.la $(pkglibdir)/tuxedo.a
+endif
+
