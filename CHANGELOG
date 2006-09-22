@@ -1,3 +1,9 @@
+2006.09.22: David Nichols
+	* error-handling fix in ModuleManager.cc
+
+2006.09.22: Pavel Vozenilek
+	* committed initial tuxedo module support
+
 2006.09.21: David Nichols
 	* changes to make a win32 port possible
 	* fixed type manager destruction when no program is executed

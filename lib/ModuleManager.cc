@@ -400,9 +400,9 @@ class QoreString *ModuleManager::loadModuleFromPath(char *path, char *feature, c
    if (str) 
    {
       printd(5, "ModuleManager::loadModuleFromPath(%s): '%s': qore_module_init returned error: %s", path, name, str->getBuffer());
-      dlclose(ptr);
       QoreString desc;
       desc.sprintf("module '%s': feature '%s': ", path, name);
+      dlclose(ptr);
       // insert text at beginning of string
       str->replace(0, 0, desc.getBuffer());
       return str;
