@@ -121,4 +121,7 @@ endif
 if COND_NCURSES
 libqore_la_LIBADD += ../modules/ncurses/libncurses.la
 endif
+if COND_TUXEDO
+libqore_la_LIBADD += ../modules/Tuxedo/libtuxedo.la
+endif
 endif

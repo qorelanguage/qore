@@ -22,3 +22,8 @@ endif
 if COND_TIBRV
 SUBDIRS += TIBCO
 endif
+
+if COND_TUXEDO
+SUBDIRS += Tuxedo
+endif
+
