@@ -46,7 +46,6 @@ qore_module_ns_init_t qore_module_ns_init = ncurses_module_ns_init;
 qore_module_delete_t qore_module_delete = ncurses_module_delete;
 #endif
 
-static class LockedObject lInit;
 class LockedObject lUpdate, lGetch;
 
 static bool init = false;
@@ -220,10 +219,10 @@ static inline void init_constants(class Namespace *ns)
 #endif // NCURSES_MOUSE_VERSION
 }
 
-void qore_ncurses_init()
+void q_nc_init_class::init_intern()
 {
-   lInit.lock();
-   if (!init)
+   l.lock();
+   if (!initialized)
    {
       initscr();
       start_color();
@@ -231,20 +230,20 @@ void qore_ncurses_init()
       cbreak();
       keypad(stdscr, true);
       noecho();
-      init = true;
+      initialized = true;
    }
-   lInit.unlock();
+   l.unlock();
 }
 
-static void qore_ncurses_close()
+void q_nc_init_class::close()
 {
-   lInit.lock();
-   if (init)
+   l.lock();
+   if (initialized)
    {
       endwin();
-      init = false;
+      initialized = false;
    }
-   lInit.unlock();
+   l.unlock();
 }
 
 #define check_init(a, b) if (!init) return lib_init_error((a), (b))
@@ -257,7 +256,7 @@ static class QoreNode *lib_init_error(char *func, class ExceptionSink *xsink)
 
 static class QoreNode *f_initscr(class QoreNode *params, class ExceptionSink *xsink)
 {
-   qore_ncurses_init();
+   q_nc_init.init();
    return NULL;
 }
 
@@ -306,7 +305,7 @@ static class QoreNode *f_endwin(class QoreNode *params, class ExceptionSink *xsi
 {
    check_init("endwin", xsink);
 
-   qore_ncurses_close();
+   q_nc_init.close();
    return NULL;
 }
 
@@ -733,6 +732,6 @@ void ncurses_module_ns_init(class Namespace *rns, class Namespace *qns)
 void ncurses_module_delete()
 {
    tracein("ncurses_module_delete()");
-   qore_ncurses_close();
+   q_nc_init.close();
    traceout("ncurses_module_delete()");
 }

@@ -58,7 +58,8 @@ void PC_constructor(class Object *self, class QoreNode *params, ExceptionSink *x
    int y       = p2 ? p2->getAsInt() : 0;
    int x       = p3 ? p3->getAsInt() : 0;
 
-   qore_ncurses_init();
+   // ensure that the curses library has been initialized
+   q_nc_init.init();
    class Panel *p = new Panel(lines, columns, y, x, xsink);
    if (xsink->isException())
       p->deref();

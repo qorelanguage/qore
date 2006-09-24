@@ -1014,7 +1014,7 @@ AM_CONDITIONAL([COND_ORACLE],     [test "$with_oracle" = yes])
 AM_CONDITIONAL([COND_MYSQL],      [test "$with_mysql" = yes])
 AM_CONDITIONAL([COND_TIBRV],      [test "$with_tibrv" = yes])
 AM_CONDITIONAL([COND_TIBAE],      [test "$with_tibae" = yes])
-AM_CONDITIONAL([COND_TUXEDO],     [test "$with_tuxedo"=yes])
+AM_CONDITIONAL([COND_TUXEDO],     [test "$with_tuxedo" = yes])
 AM_CONDITIONAL([COND_MONOLITHIC], [test "$enable_shared" = no -o "$enable_builtin_modules" = "yes"])
 
 AC_CONFIG_FILES([Makefile lib/Makefile modules/Makefile modules/ncurses/Makefile modules/TIBCO/Makefile modules/mysql/Makefile modules/oracle/Makefile modules/Tuxedo/Makefile])
@@ -1069,6 +1069,13 @@ fi
 
 printf "tibae    : "
 if test "$with_tibae" = "yes"; then
+   echo yes
+else
+   echo disabled
+fi
+
+printf "tuxedo   : "
+if test "$with_tuxedo" = "yes"; then
    echo yes
 else
    echo disabled

@@ -28,6 +28,32 @@ class QoreString *ncurses_module_init();
 void ncurses_module_ns_init(class Namespace *rns, class Namespace *qns);
 void ncurses_module_delete();
 
-void qore_ncurses_init();
+#include <qore/LockedObject.h>
+
+class q_nc_init_class {
+   private:
+      bool initialized;
+      class LockedObject l;
+
+      void init_intern();
+
+   public:
+      inline q_nc_init_class() : initialized(false) {}
+      void close();
+      inline void init()
+      {
+	 // the "init" variable can only be set once, so we check
+	 // it outside the lock, and only if it's then do we grab the lock and 
+	 // recheck and initialize if necessary.  This should avoid unnecessary
+	 // locking and unlocking (cache syncs, etc) the vast majority of the 
+	 // time and still remain thread-safe
+	 if (initialized)
+	    return;
+	 init_intern();
+      }
+};
+
+extern class q_nc_init_class q_nc_init;
+
 
 #endif // _QORE_NCURSES_MODULE_H
