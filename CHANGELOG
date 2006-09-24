@@ -4,6 +4,8 @@
 	  (then it's checked again) - this is because the lock is only set once
 	  (normally) so this should eliminate excessive mutexes (=performance
 	  improvement)
+	* removed the "synchronization-ignored" warning - synchronization is 
+	  global and therefore could make sense on constructors and destructors
 
 2006.09.22: David Nichols
 	* error-handling fix in ModuleManager.cc

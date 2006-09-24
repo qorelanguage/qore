@@ -1327,8 +1327,6 @@ inline void QoreClass::addMethod(Method *m)
    {
       if (m->isPrivate())
 	 parseException("ILLEGAL-PRIVATE-METHOD", "%s methods cannot be private", m->name);
-      if (m->isSynchronized())
-	 getProgram()->makeParseWarning(QP_WARN_SYNCHRONIZATION_IGNORED, "SYNCHRONIZATION-IGNORED", "the 'synchronized' keyword is ignored with %s methods", m->name);
    }
 
    if (parseFindMethod(m->name))

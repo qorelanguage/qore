@@ -30,8 +30,7 @@
 #define QP_WARN_UNKNOWN_WARNING          (1 << 2)
 #define QP_WARN_UNDECLARED_VAR           (1 << 3)
 #define QP_WARN_DUPLICATE_GLOBAL_VARS    (1 << 4)
-#define QP_WARN_SYNCHRONIZATION_IGNORED  (1 << 5)
-#define QP_WARN_UNREACHABLE_CODE         (1 << 6)
+#define QP_WARN_UNREACHABLE_CODE         (1 << 5)
 
 // defined in QoreProgram.cc
 extern const char *qore_warnings[];

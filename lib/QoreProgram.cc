@@ -39,7 +39,6 @@ const char *qore_warnings[] = {
    "unknown-warning",
    "undeclared-var",
    "duplicate-global-vars",
-   "synchonization-ignored",
    "unreachable-code"
 };
 #define NUM_WARNINGS (sizeof(qore_warnings)/sizeof(char *))
