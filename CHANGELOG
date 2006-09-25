@@ -1,3 +1,6 @@
+2006.09.25: David Nichols
+	* fixed feature name registration for automatically-loaded modules
+
 2006.09.24: David Nichols
 	* changed ncurses module initialization to only acquire the 
 	  initialization lock after checking that it's not set outside the lock

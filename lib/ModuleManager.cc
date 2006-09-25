@@ -174,7 +174,11 @@ void ModuleManager::init(bool se)
       {
 	 for (int i = 0; i < (int)globbuf.gl_pathc; i++)
 	 {
-	    char *name = q_basenameptr(globbuf.gl_pathv[i]);
+	    char *name = q_basename(globbuf.gl_pathv[i]);
+	    // delete ".qmod" from module name for feature matching
+	    char *p = strrchr(name, '.');
+	    if (p)
+	      *p = '\0';
 	    class QoreString *errstr = loadModuleFromPath(globbuf.gl_pathv[i], name);
 	    if (!errstr)
 	       qoreFeatureList.append(name);
@@ -184,6 +188,7 @@ void ModuleManager::init(bool se)
 		  fprintf(stderr, "error loading %s\n", errstr->getBuffer());
 	       delete errstr;
 	    }
+	    free(name);
 	 }
       }
       else
