@@ -534,7 +534,7 @@ static class QoreNode *f_getByte(class QoreNode *params, ExceptionSink *xsink)
       return NULL;
    QoreNode *p1 = get_param(params, 1);
    int offset = p1 ? p1->getAsInt() : 0;
-   if (!ptr || offset >= size)
+   if (!ptr || offset >= size || offset < 0)
       return NULL;
 
    return new QoreNode((int64)ptr[offset]);  

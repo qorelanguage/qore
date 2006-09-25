@@ -1263,6 +1263,12 @@
           </entry>
         </row>
         <row>
+          <entry><para><link linkend="getByte">getByte()</link></para></entry>
+          <entry><para>Integer</para></entry>
+          <entry><para>N</para></entry>
+          <entry><para>Returns the byte value withing the string or binary object passed.</para></entry>
+        </row>
+        <row>
           <entry><para><link linkend="getClassName">getClassName()</link></para></entry>
           <entry><para>String</para></entry>
           <entry><para>N</para></entry>
@@ -1531,20 +1537,10 @@
           </entry>
         </row>
         <row>
-          <entry>
-            <para>
-              <link linkend="getppid">getppid()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>Int</para>
-          </entry>
-          <entry>
-            <para>N</para>
-          </entry>
-          <entry>
-            <para>Returns the parent PID of the current process.</para>
-          </entry>
+          <entry><para><link linkend="getppid">getppid()</link></para></entry>
+          <entry><para>Int</para></entry>
+          <entry><para>N</para></entry>
+          <entry><para>Returns the parent PID of the current process.</para></entry>
         </row>
         <row>
           <entry>
@@ -1561,6 +1557,12 @@
           <entry>
             <para>Returns a hash representing the user information of the user ID passed.</para>
           </entry>
+        </row>
+        <row>
+          <entry><para><link linkend="getSSLCertVerificationCodeString">getSSLCertVerificationCodeString()</link></para></entry>
+          <entry><para>String</para></entry>
+          <entry><para>N</para></entry>
+          <entry><para>Returns the verification code string corresponding to the integer code passed.</para></entry>
         </row>
         <row>
           <entry>
@@ -11591,17 +11593,7 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
               </para>
             </entry>
             <entry>
-              <para>missing data parameter, invalid data parameter (expecing string or binary)</para>
-            </entry>
-          </row>
-          <row>
-            <entry>
-              <para>
-                <code>DIGEST-ERROR</code>
-              </para>
-            </entry>
-            <entry>
-              <para>error calculating digest</para>
+              <para>missing data parameter, invalid data parameter (expecing string or binary), error calculating digest</para>
             </entry>
           </row>
         </tbody>
@@ -11676,17 +11668,7 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
               </para>
             </entry>
             <entry>
-              <para>missing data parameter, invalid data parameter (expecing string or binary)</para>
-            </entry>
-          </row>
-          <row>
-            <entry>
-              <para>
-                <code>DIGEST-ERROR</code>
-              </para>
-            </entry>
-            <entry>
-              <para>error calculating digest</para>
+              <para>missing data parameter, invalid data parameter (expecing string or binary), error calculating digest</para>
             </entry>
           </row>
         </tbody>
@@ -11761,17 +11743,7 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
               </para>
             </entry>
             <entry>
-              <para>missing data parameter, invalid data parameter (expecing string or binary)</para>
-            </entry>
-          </row>
-          <row>
-            <entry>
-              <para>
-                <code>DIGEST-ERROR</code>
-              </para>
-            </entry>
-            <entry>
-              <para>error calculating digest</para>
+              <para>missing data parameter, invalid data parameter (expecing string or binary), error calculating digest</para>
             </entry>
           </row>
         </tbody>
@@ -11846,17 +11818,7 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
               </para>
             </entry>
             <entry>
-              <para>missing data parameter, invalid data parameter (expecing string or binary)</para>
-            </entry>
-          </row>
-          <row>
-            <entry>
-              <para>
-                <code>DIGEST-ERROR</code>
-              </para>
-            </entry>
-            <entry>
-              <para>error calculating digest</para>
+              <para>missing data parameter, invalid data parameter (expecing string or binary), error calculating digest</para>
             </entry>
           </row>
         </tbody>
@@ -11931,17 +11893,7 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
               </para>
             </entry>
             <entry>
-              <para>missing data parameter, invalid data parameter (expecing string or binary)</para>
-            </entry>
-          </row>
-          <row>
-            <entry>
-              <para>
-                <code>DIGEST-ERROR</code>
-              </para>
-            </entry>
-            <entry>
-              <para>error calculating digest</para>
+              <para>missing data parameter, invalid data parameter (expecing string or binary), error calculating digest</para>
             </entry>
           </row>
         </tbody>
@@ -12016,17 +11968,7 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
               </para>
             </entry>
             <entry>
-              <para>missing data parameter, invalid data parameter (expecing string or binary)</para>
-            </entry>
-          </row>
-          <row>
-            <entry>
-              <para>
-                <code>DIGEST-ERROR</code>
-              </para>
-            </entry>
-            <entry>
-              <para>error calculating digest</para>
+              <para>missing data parameter, invalid data parameter (expecing string or binary), error calculating digest</para>
             </entry>
           </row>
         </tbody>
@@ -12101,17 +12043,7 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
               </para>
             </entry>
             <entry>
-              <para>missing data parameter, invalid data parameter (expecing string or binary)</para>
-            </entry>
-          </row>
-          <row>
-            <entry>
-              <para>
-                <code>DIGEST-ERROR</code>
-              </para>
-            </entry>
-            <entry>
-              <para>error calculating digest</para>
+              <para>missing data parameter, invalid data parameter (expecing string or binary), error calculating digest</para>
             </entry>
           </row>
         </tbody>
@@ -12186,17 +12118,7 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
               </para>
             </entry>
             <entry>
-              <para>missing data parameter, invalid data parameter (expecing string or binary)</para>
-            </entry>
-          </row>
-          <row>
-            <entry>
-              <para>
-                <code>DIGEST-ERROR</code>
-              </para>
-            </entry>
-            <entry>
-              <para>error calculating digest</para>
+              <para>missing data parameter, invalid data parameter (expecing string or binary), error calculating digest</para>
             </entry>
           </row>
         </tbody>
@@ -12271,17 +12193,7 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
               </para>
             </entry>
             <entry>
-              <para>missing data parameter, invalid data parameter (expecing string or binary)</para>
-            </entry>
-          </row>
-          <row>
-            <entry>
-              <para>
-                <code>DIGEST-ERROR</code>
-              </para>
-            </entry>
-            <entry>
-              <para>error calculating digest</para>
+              <para>missing data parameter, invalid data parameter (expecing string or binary), error calculating digest</para>
             </entry>
           </row>
         </tbody>
@@ -12841,6 +12753,49 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
 
 </sect2>
 
+<sect2 id="getByte">
+<title>getByte()</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Returns the byte value of the offset in the object passed.  Of no offset is passed, then the value of the first byte is returned.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+	<programlisting>getByte(<replaceable>expr, [offset]</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+
+<table><title>Arguments and Return Values for getByte()</title>
+<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+
+  <thead>
+  <row>
+    <entry><para>Arguments</para></entry>
+    <entry><para>Return Type</para></entry>
+    <entry><para>Description</para></entry>
+  </row>
+  </thead>
+
+<tbody>
+  <row>
+    <entry><para><replaceable>expr, [offset]</replaceable></para></entry>
+    <entry><para>Integer</para></entry>
+    <entry><para>The value of the byte at the offset in the string or binary object.  If no offset is passed, then the first byte is returned.  If the object is empty or the offset is larger than the object's size, then no value is returned.</para></entry>
+  </row>
+
+</tbody>
+</tgroup>
+</table>
+
+</sect2>
+
 <sect2 id="getClassName">
   <title>getClassName()</title>
 
@@ -13225,6 +13180,58 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
               </entry>
               <entry>
                 <para>Returns a hash representing the user information for the user ID passed.  If the uid does not exist, NOTHING is returned.  Otherwise the hash has the following keys: pw_name, pw_passwd, pw_gecos, pw_dir, pw_shell, pw_uid, pw_gid.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <para>This function does not throw any exceptions.</para>
+    </sect2>
+
+    <sect2 id="getSSLCertVerificationCodeString">
+      <title>getSSLCertVerificationCodeString()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns a string corresponding to the integer verification code passed.  Such a code is returned from the <link linkend="Socket_verifyPeerCertificate">Socket::verifyPeerCertificate()</link> and the <link linkend="FtpClient_verifyPeerCertificate">FtpClient::verifyPeerCertificate()</link> methods.  The string returned from this function can be used with the <link linkend="X509_VerificationReasons_Hash">X509_VerificationReasons
+</link> </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>getSSLCertVerificationCodeString(<replaceable>code</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      
+      <table>
+        <title>Arguments and Return Values for getSSLCertVerificationCodeString()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument Type</para>
+              </entry>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>Integer</para>
+              </entry>
+              <entry>
+                <para>String</para>
+              </entry>
+              <entry>
+                <para>Returns a string corresponding to the verification code passed.  If the code is not valid, no value is returned.</para>
               </entry>
             </row>
           </tbody>

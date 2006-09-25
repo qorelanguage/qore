@@ -4572,7 +4572,7 @@ $var[1].count++;
   <row>
     <entry><para>A return statement</para></entry>
     <entry><programlisting><command>return</command> <replaceable>expression</replaceable>;</programlisting></entry>
-    <entry><para><link linkend='Subroutines'>Subroutines</link></para></entry>
+    <entry><para><link linkend='return_Statements'>return Statements</link></para></entry>
   </row>
   <row>
     <entry><para>A local variable declaration</para></entry>
@@ -5005,7 +5005,7 @@ $var[1].count++;
 	<varlistentry>
 	  <term>Description</term>
 	  <listitem>
-	    <para>The rethrown exception will be either passed to the next higher-level catch block, or to the system default exception handler, as with a <command>throw</command> statement.</para>
+	    <para>The rethrown exception will be either passed to the next higher-level catch block, or to the system default exception handler, as with a <command>throw</command> statement.  Note that it is an error to call <command>rethrow</command> outside of a <command>catch</command> block.</para>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -5194,6 +5194,43 @@ $var[1].count++;
     </varlistentry>
   </variablelist>
 </sect2>
+
+    <sect2 id="return_Statements">
+      <title>return Statements</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para><command>return</command> statements causes the flow of execution of the subroutine, method or program to stop immediately and return to the caller.  This statement can take an optional expression to return a value to the caller as well.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Syntax</term>
+	  <listitem>
+	    <programlisting><command>return</command> [<replaceable>expression</replaceable>];</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Description</term>
+	  <listitem>
+	    <para>This statement causes execution of the current subroutine, method, or program to cease and optionalls returns a value to the caller.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting><command>sub</command> getName()
+{
+   <command>return</command> "Barney";
+}
+
+$name = getName();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+    </sect2>
+
 </sect1>
 
 <sect1 id="Subroutines">

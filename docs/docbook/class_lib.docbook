@@ -162,6 +162,191 @@
       </tgroup>
     </table>
 
+    <table id="Qore_SSL_Constants">
+      <title>SSL Constants in the Qore Namespace</title>
+      <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>Name</para></entry>
+	    <entry><para>Type</para></entry>
+	    <entry><para>Description</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+          <row>
+            <entry><para><code>X509_V_OK</code></para></entry>
+            <entry><para>Integer</para></entry>
+            <entry><para><code>OK</code></para></entry>
+          </row>
+          <row>
+            <entry><para><code>X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT</code></para></entry>
+            <entry><para>Integer</para></entry>
+            <entry><para>Unable to get issuer certificate</para></entry>
+          </row>
+          <row>
+            <entry><para><code>X509_V_ERR_UNABLE_TO_GET_CRL</code></para></entry>
+            <entry><para>Integer</para></entry>
+            <entry><para>Unable to get certificate CRL</para></entry>
+          </row>
+          <row>
+            <entry><para><code>X509_V_ERR_UNABLE_TO_DECRYPT_CERT_SIGNATURE</code></para></entry>
+            <entry><para>Integer</para></entry>
+            <entry><para>Unable to decrypt certificate's signature. This means that the actual signature value could not be determined rather than it not matching the expected value; this is only meaningful for RSA</para></entry>
+          </row>
+          <row>
+            <entry><para><code>X509_V_ERR_UNABLE_TO_DECRYPT_CRL_SIGNATURE</code></para></entry>
+            <entry><para>Integer</para></entry>
+            <entry><para>Unable to decrypt CRL's signature</para></entry>
+          </row>
+          <row>
+            <entry><para><code>X509_V_ERR_UNABLE_TO_DECODE_ISSUER_PUBLIC_KEY</code></para></entry>
+            <entry><para>Integer</para></entry>
+            <entry><para>Unable to decode issuer public key (SubjectPublicKeyInfo)</para></entry>
+          </row>
+          <row>
+            <entry><para><code>X509_V_ERR_CERT_SIGNATURE_FAILURE</code></para></entry>
+            <entry><para>Integer</para></entry>
+            <entry><para>Certificate signature failure; the signature of the certificate is invalid</para></entry>
+          </row>
+          <row>
+            <entry><para><code>X509_V_ERR_CRL_SIGNATURE_FAILURE</code></para></entry>
+            <entry><para>Integer</para></entry>
+            <entry><para>CRL signature failure; the signature of the certificate is invalid</para></entry>
+          </row>
+          <row>
+            <entry><para><code>X509_V_ERR_CERT_NOT_YET_VALID</code></para></entry>
+            <entry><para>Integer</para></entry>
+            <entry><para>Certificate is not yet valid</para></entry>
+          </row>
+          <row>
+            <entry><para><code>X509_V_ERR_CERT_HAS_EXPIRED</code></para></entry>
+            <entry><para>Integer</para></entry>
+            <entry><para>Certificate has expired</para></entry>
+          </row>
+          <row>
+            <entry><para><code>X509_V_ERR_CRL_NOT_YET_VALID</code></para></entry>
+            <entry><para>Integer</para></entry>
+            <entry><para>CRL is not yet valid</para></entry>
+          </row>
+          <row>
+            <entry><para><code>X509_V_ERR_CRL_HAS_EXPIRED</code></para></entry>
+            <entry><para>Integer</para></entry>
+            <entry><para>CRL has expired</para></entry>
+          </row>
+          <row>
+            <entry><para><code>X509_V_ERR_ERROR_IN_CERT_NOT_BEFORE_FIELD</code></para></entry>
+            <entry><para>Integer</para></entry>
+            <entry><para>Format error in certificate's notBefore field (invalid time)</para></entry>
+          </row>
+          <row>
+            <entry><para><code>X509_V_ERR_ERROR_IN_CERT_NOT_AFTER_FIELD</code></para></entry>
+            <entry><para>Integer</para></entry>
+            <entry><para>Format error in certificate's notAfter field (invalid time)</para></entry>
+          </row>
+          <row>
+            <entry><para><code>X509_V_ERR_ERROR_IN_CRL_LAST_UPDATE_FIELD</code></para></entry>
+            <entry><para>Integer</para></entry>
+            <entry><para>Format error in CRL's lastUpdate field (invalid time)</para></entry>
+          </row>
+          <row>
+            <entry><para><code>X509_V_ERR_ERROR_IN_CRL_NEXT_UPDATE_FIELD</code></para></entry>
+            <entry><para>Integer</para></entry>
+            <entry><para>Format error in CRL's nextUpdate field (invalid time)</para></entry>
+          </row>
+          <row>
+            <entry><para><code>X509_V_ERR_OUT_OF_MEM</code></para></entry>
+            <entry><para>Integer</para></entry>
+            <entry><para>Out of memory error</para></entry>
+          </row>
+          <row>
+            <entry><para><code>X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT</code></para></entry>
+            <entry><para>Integer</para></entry>
+            <entry><para>Certificate is self-signed and cannot be found in the trusted list</para></entry>
+          </row>
+          <row>
+            <entry><para><code>X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN</code></para></entry>
+            <entry><para>Integer</para></entry>
+            <entry><para>Self signed certificate in certificate chain</para></entry>
+          </row>
+          <row>
+            <entry><para><code>X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT_LOCALLY</code></para></entry>
+            <entry><para>Integer</para></entry>
+            <entry><para>Unable to get local issuer certificate. This normally means the list of trusted certificates is not complete</para></entry>
+          </row>
+          <row>
+            <entry><para><code>X509_V_ERR_UNABLE_TO_VERIFY_LEAF_SIGNATURE</code></para></entry>
+            <entry><para>Integer</para></entry>
+            <entry><para>Unable to verify the first certificate</para></entry>
+          </row>
+          <row>
+            <entry><para><code>X509_V_ERR_CERT_CHAIN_TOO_LONG</code></para></entry>
+            <entry><para>Integer</para></entry>
+            <entry><para>Certificate chain too long</para></entry>
+          </row>
+          <row>
+            <entry><para><code>X509_V_ERR_CERT_REVOKED</code></para></entry>
+            <entry><para>Integer</para></entry>
+            <entry><para>Certificate has been revoked</para></entry>
+          </row>
+          <row>
+            <entry><para><code>X509_V_ERR_INVALID_CA</code></para></entry>
+            <entry><para>Integer</para></entry>
+            <entry><para>Invalid CA certificate</para></entry>
+          </row>
+          <row>
+            <entry><para><code>X509_V_ERR_PATH_LENGTH_EXCEEDED</code></para></entry>
+            <entry><para>Integer</para></entry>
+            <entry><para>The basicConstraints pathlength parameter has been exceeded</para></entry>
+          </row>
+          <row>
+            <entry><para><code>X509_V_ERR_INVALID_PURPOSE</code></para></entry>
+            <entry><para>Integer</para></entry>
+            <entry><para>The certificate cannot be used for the specified purpose</para></entry>
+          </row>
+          <row>
+            <entry><para><code>X509_V_ERR_CERT_UNTRUSTED</code></para></entry>
+            <entry><para>Integer</para></entry>
+            <entry><para>Root CA is not marked as trusted for the specified purpose</para></entry>
+          </row>
+          <row>
+            <entry><para><code>X509_V_ERR_CERT_REJECTED</code></para></entry>
+            <entry><para>Integer</para></entry>
+            <entry><para>Root CA is marked to reject the specified purpose</para></entry>
+          </row>
+          <row>
+            <entry><para><code>X509_V_ERR_SUBJECT_ISSUER_MISMATCH</code></para></entry>
+            <entry><para>Integer</para></entry>
+            <entry><para>The current candidate issuer certificate was rejected because its subject name did not match the issuer name of the current certificate</para></entry>
+          </row>
+          <row>
+            <entry><para><code>X509_V_ERR_AKID_SKID_MISMATCH</code></para></entry>
+            <entry><para>Integer</para></entry>
+            <entry><para>The current candidate issuer certificate was rejected because its subject key identifier was present and did not match the authority key identifier of the current certificate</para></entry>
+          </row>
+          <row>
+            <entry><para><code>X509_V_ERR_AKID_ISSUER_SERIAL_MISMATCH</code></para></entry>
+            <entry><para>Integer</para></entry>
+            <entry><para>Issuer name and serial number of candidate certificate do not match the authority key identifier of the current certificate</para></entry>
+          </row>
+          <row>
+            <entry><para><code>X509_V_ERR_KEYUSAGE_NO_CERTSIGN</code></para></entry>
+            <entry><para>Integer</para></entry>
+            <entry><para>The keyUsage extension does not permit certificate signing</para></entry>
+          </row>
+          <row>
+            <entry><para><code>X509_V_ERR_APPLICATION_VERIFICATION</code></para></entry>
+            <entry><para>Integer</para></entry>
+            <entry><para>Verification failure</para></entry>
+          </row>
+          <row id="X509_VerificationReasons_Hash">
+            <entry><para><code>X509_VerificationReasons</code></para></entry>
+            <entry><para>Hash</para></entry>
+            <entry><para>Maps from code strings to verification text for displaying or logging purposes.  See the <link linkend="getSSLCertVerificationCodeString">getSSLCertVerificationCodeString()</link> function to map from integer codes to code strings.</para></entry>
+          </row>
+	</tbody>
+      </tgroup>
+    </table>
+
     <para>The Qore::Err namespace contains error constants, returned by the <link linkend="errno">errno()</link> function.</para>
 
     <table id="Qore_Error_Constants">
@@ -4117,7 +4302,7 @@
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns an integer code giving the result of verifying the remote certificate.</para>
+            <para>Returns an integer code giving the result of verifying the remote certificate.  Return value are described in <link linkend="Qore_SSL_Constants">SSL Constants</link>; to get a text description of the return value of this method, use the <link linkend="X509_VerificationReasons_Hash">X509_VerificationReasons hash constant</link> with the return value of the <link linkend="getSSLCertVerificationCodeString">getSSLCertVerificationCodeString()</link> function as the key, passing the return value of this function to getSSLCertVerificationCodeString().</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -8297,7 +8482,7 @@
                 </para>
               </entry>
               <entry>
-                <para>SSLCertificate Object</para>
+                <para><link linkend="SSLCertificate_Class">SSLCertificate</link> Object</para>
               </entry>
               <entry>
                 <para>This must be an SSL Certificate object.</para>
@@ -8372,7 +8557,7 @@
                 </para>
               </entry>
               <entry>
-                <para>SSLPrivateKey Object</para>
+                <para><link linkend="SSLPrivateKey_Class">SSLPrivateKey</link> Object</para>
               </entry>
               <entry>
                 <para>The private key for the certificate..</para>
@@ -8413,7 +8598,7 @@
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns an integer code giving the result of verifying the remote certificate.</para>
+            <para>Returns an integer code giving the result of verifying the remote certificate.  Return value are described in <link linkend="Qore_SSL_Constants">SSL Constants</link>; to get a text description of the return value of this method, use the <link linkend="X509_VerificationReasons_Hash">X509_VerificationReasons hash constant</link> with the return value of the <link linkend="getSSLCertVerificationCodeString">getSSLCertVerificationCodeString()</link> function as the key, passing the return value of this function to getSSLCertVerificationCodeString().</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -10526,7 +10711,7 @@
   </sect1>
 
   <sect1 id="SSLPrivateKey_Class">
-    <title>SSLPrivateKey Class</title>
+    <title>Qore::SSLPrivateKey Class</title>
     <para>SSLPrivateKey objects are containers for private key data.</para>
     <table>
       <title>SSLPrivateKey Class Method Overview</title>
@@ -11160,7 +11345,7 @@
   </sect1>
 
   <sect1 id="SSLCertificate_Class">
-    <title>SSLCertificate Class</title>
+    <title>Qore::SSLCertificate Class</title>
     <para>SSLCertificate objects are designed to work with X.509 certificate data.</para>
     <table>
       <title>SSLCertificate Class Method Overview</title>

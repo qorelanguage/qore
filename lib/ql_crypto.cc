@@ -86,7 +86,7 @@ class DigestHelper : public BaseHelper
 	 return getInput(err, params, xsink, false);
       }
       
-      int doDigest(const EVP_MD *md, char *name, class ExceptionSink *xsink)
+      int doDigest(char *err, const EVP_MD *md, class ExceptionSink *xsink)
       {
 	 EVP_MD_CTX mdctx;
 	 EVP_MD_CTX_init(&mdctx);
@@ -96,7 +96,7 @@ class DigestHelper : public BaseHelper
 	 if (!EVP_DigestUpdate(&mdctx, input, input_len) || !EVP_DigestFinal_ex(&mdctx, md_value, &md_len))
 	 {
 	    EVP_MD_CTX_cleanup(&mdctx);
-	    xsink->raiseException("DIGEST-ERROR", "error calculating %s digest", name);
+	    xsink->raiseException(err, "error calculating digest");
 	    return -1;
 	 }
 
@@ -630,84 +630,93 @@ static class QoreNode *f_rc5_decrypt_cbc_to_string(class QoreNode *params, Excep
 }
 #endif
 
+#define MD2_ERR "MD2-DIGEST-ERROR"
 static class QoreNode *f_MD2(class QoreNode *params, ExceptionSink *xsink)
 {
    class DigestHelper dh;
-   if (dh.getData("MD2-DIGEST-ERROR", params, xsink) || dh.doDigest(EVP_md2(), "MD2", xsink))
+   if (dh.getData(MD2_ERR, params, xsink) || dh.doDigest(MD2_ERR, EVP_md2(), xsink))
       return NULL;
 
    return new QoreNode(dh.getString());
 }
 
+#define MD4_ERR "MD4-DIGEST-ERROR"
 static class QoreNode *f_MD4(class QoreNode *params, ExceptionSink *xsink)
 {
    class DigestHelper dh;
-   if (dh.getData("MD4-DIGEST-ERROR", params, xsink) || dh.doDigest(EVP_md4(), "MD4", xsink))
+   if (dh.getData(MD4_ERR, params, xsink) || dh.doDigest(MD4_ERR, EVP_md4(), xsink))
       return NULL;
 
    return new QoreNode(dh.getString());
 }
 
+#define MD5_ERR "MD5-DIGEST-ERROR"
 static class QoreNode *f_MD5(class QoreNode *params, ExceptionSink *xsink)
 {
    class DigestHelper dh;
-   if (dh.getData("MD5-DIGEST-ERROR", params, xsink) || dh.doDigest(EVP_md5(), "MD5", xsink))
+   if (dh.getData(MD5_ERR, params, xsink) || dh.doDigest(MD5_ERR, EVP_md5(), xsink))
       return NULL;
 
    return new QoreNode(dh.getString());
 }
 
+#define SHA_ERR "SHA-DIGEST-ERROR"
 static class QoreNode *f_SHA(class QoreNode *params, ExceptionSink *xsink)
 {
    class DigestHelper dh;
-   if (dh.getData("SHA-DIGEST-ERROR", params, xsink) || dh.doDigest(EVP_sha(), "SHA", xsink))
+   if (dh.getData(SHA_ERR, params, xsink) || dh.doDigest(SHA_ERR, EVP_sha(), xsink))
       return NULL;
 
    return new QoreNode(dh.getString());
 }
 
+#define SHA1_ERR "SHA1-DIGEST-ERROR"
 static class QoreNode *f_SHA1(class QoreNode *params, ExceptionSink *xsink)
 {
    class DigestHelper dh;
-   if (dh.getData("SHA1-DIGEST-ERROR", params, xsink) || dh.doDigest(EVP_sha1(), "SHA1", xsink))
+   if (dh.getData(SHA1_ERR, params, xsink) || dh.doDigest(SHA1_ERR, EVP_sha1(), xsink))
       return NULL;
 
    return new QoreNode(dh.getString());
 }
 
+#define DSS_ERR "DSS-DIGEST-ERROR"
 static class QoreNode *f_DSS(class QoreNode *params, ExceptionSink *xsink)
 {
    class DigestHelper dh;
-   if (dh.getData("DSS-DIGEST-ERROR", params, xsink) || dh.doDigest(EVP_dss(), "DSS", xsink))
+   if (dh.getData(DSS_ERR, params, xsink) || dh.doDigest(DSS_ERR, EVP_dss(), xsink))
       return NULL;
 
    return new QoreNode(dh.getString());
 }
 
+#define DSS1_ERR "DSS1-DIGEST-ERROR"
 static class QoreNode *f_DSS1(class QoreNode *params, ExceptionSink *xsink)
 {
    class DigestHelper dh;
-   if (dh.getData("DSS1-DIGEST-ERROR", params, xsink) || dh.doDigest(EVP_dss1(), "DSS1", xsink))
+   if (dh.getData(DSS1_ERR, params, xsink) || dh.doDigest(DSS1_ERR, EVP_dss1(), xsink))
       return NULL;
 
    return new QoreNode(dh.getString());
 }
 
 #ifndef OPENSSL_NO_MDC2
+#define MDC2_ERR "MDC2-DIGEST-ERROR"
 static class QoreNode *f_MDC2(class QoreNode *params, ExceptionSink *xsink)
 {
    class DigestHelper dh;
-   if (dh.getData("MDC2-DIGEST-ERROR", params, xsink) || dh.doDigest(EVP_mdc2(), "MDC2", xsink))
+   if (dh.getData(MDC2_ERR, params, xsink) || dh.doDigest(MDC2_ERR, EVP_mdc2(), xsink))
       return NULL;
 
    return new QoreNode(dh.getString());
 }
 #endif
 
+#define RIPEMD160_ERR "RIPEMD160-DIGEST-ERROR"
 static class QoreNode *f_RIPEMD160(class QoreNode *params, ExceptionSink *xsink)
 {
    class DigestHelper dh;
-   if (dh.getData("RIPEMD160-DIGEST-ERROR", params, xsink) || dh.doDigest(EVP_ripemd160(), "RIPEMD160", xsink))
+   if (dh.getData(RIPEMD160_ERR, params, xsink) || dh.doDigest(RIPEMD160_ERR, EVP_ripemd160(), xsink))
       return NULL;
 
    return new QoreNode(dh.getString());
