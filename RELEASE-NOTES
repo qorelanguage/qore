@@ -205,14 +205,15 @@ initial warnings are:
    unknown-warning
    undeclared-var
    duplicate-global-vars
-   synchonization-ignored
+   unreachable-code
 
 Other new command-line flags related to warnings: -r: treat warnings as errors, -A: lock warnings
 The %lock-warnings parse directive and the PO_LOCK_WARNINGS parse option were implemented in order to ensure that warning levels can't be changed when this option is set
 
 *) parse restrictions enforced for classes
 all classes tagged with capabilities and the capabilities are checked against the parse options when the new operator is parsed and when inherited classes are declared
-new parse restruction: PO_NO_DATABASE (parse directive: %no-database)
+new parse restrictions: PO_NO_DATABASE (parse directive: %no-database), PO_NO_THREAD_CONTROL (%no-thread-control), PO_NO_THREAD_CLASSES (%no-thread-classes)
+note that PO_NO_THREADS is now equivalent to PO_NO_THREAD_CONTROL | PO_NO_THREAD_CLASSES
 
 *) internal qore class API significantly simplified and streamlined
 it is now much easier to develop qore classes in c++ with the new API
