@@ -1,7 +1,8 @@
 libdir = ${exec_prefix}/lib${LIBSUFFIX}
 pkglibdir = $(libdir)/@PACKAGE@-@VERSION@
 
-TUXEDO_SOURCES = tuxedo.cc TuxedoTest.cc
+TUXEDO_SOURCES =  tuxedo.cc \
+  TuxedoTest.cc 
 
 if COND_MONOLITHIC
 noinst_LTLIBRARIES = libtuxedo.la
@@ -28,7 +29,7 @@ endif
 
 if !COND_MONOLITHIC
 install-exec-hook:
-	mv $(pkglibdir)/tuxedo.$(MODULE_SUFFIX) $(pkglibdir)/tuxedo.qmod
+	mv $(pkglibdir)/tuxedo.$(MODULE_SUFFIX) $(pkglibdir)/Tuxedo.qmod
 	rm -f $(pkglibdir)/tuxedo.la $(pkglibdir)/tuxedo.a
 endif
 
