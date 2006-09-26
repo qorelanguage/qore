@@ -11,8 +11,6 @@
 #include "TuxedoTest.h" // to be deleted later
 
 #include "QC_TuxedoConnection.h"
-#include "QC_TuxedoTypedBuffer.h"
-
 
 #include "atmi.h"
 
@@ -47,17 +45,17 @@ static class QoreNode* f_authentification_required_by_Tuxedo(class QoreNode* par
     // Tuxedo error
     switch (tperrno) {
     case TPESYSTEM: 
-      xsink->raiseException("authentification_required_by_Tuxedo()", "tpchkauth() failed due to Tuxedo system error. See Tuxedo log file for details.\n");
+      xsink->raiseException("authentification_required_by_Tuxedo()", "tpchkauth() failed due to Tuxedo system error. See Tuxedo log file for details.");
       break;
     case TPEOS:
-      xsink->raiseException("authentification_required_by_Tuxedo()", "tpchkauth() failed due to OS error.\n");
+      xsink->raiseException("authentification_required_by_Tuxedo()", "tpchkauth() failed due to OS error.");
       break;
     default:
-      xsink->raiseException("authentification_required_by_Tuxedo()", "tpchkauth() failed due to unknown reason.\n");
+      xsink->raiseException("authentification_required_by_Tuxedo()", "tpchkauth() failed due to unknown reason.");
     }
   } else {
     // undocumented return value
-    xsink->raiseException("authentification_required_by_Tuxedo()", "tpchkauth() returned unexpected result %d", res);
+    xsink->raiseException("authentification_required_by_Tuxedo()", "tpchkauth() returned unexpected result %d.", res);
   }
   return 0;
 }
@@ -66,6 +64,7 @@ static class QoreNode* f_authentification_required_by_Tuxedo(class QoreNode* par
 class QoreString* tuxedo_module_init()
 {
   tracein("tuxedo_module_init");
+/*
   printf("INITIALISING TUXEDO\n");
 
   if (tpinit((TPINIT*)0) == -1) { // to be deleted later
@@ -75,7 +74,7 @@ printf("TUXEDO INIT failed\n");
     return err;
   }
   printf("TUXEDO initializsed OK\n");
-
+*/
   traceout("tuxedo_module_init");
   return NULL;
 }
@@ -89,7 +88,7 @@ void tuxedo_module_ns_init(class Namespace* rns, class Namespace* qns)
   class Namespace* tuxedons = new Namespace("Tuxedo");
   
   tuxedons->addSystemClass(initTuxedoTestClass()); // to be deleted later
-//  tuxedons->addSystemClass(initTuxedoTypedBufferClass());
+  tuxedons->addSystemClass(initTuxedoConnectionClass());
  
   qns->addInitialNamespace(tuxedons);
 
@@ -100,7 +99,7 @@ void tuxedo_module_ns_init(class Namespace* rns, class Namespace* qns)
 void tuxedo_module_delete()
 {
   tracein("tuxedo_module_delete");
-  tpterm(); // to be deleted later
+//  tpterm(); // to be deleted later
   traceout("tuxedo_module_delete");
 }
 

@@ -2,6 +2,8 @@ libdir = ${exec_prefix}/lib${LIBSUFFIX}
 pkglibdir = $(libdir)/@PACKAGE@-@VERSION@
 
 TUXEDO_SOURCES =  tuxedo.cc \
+  QC_TuxedoConnection.cc \
+  QoreTuxedoConnection.cc \
   TuxedoTest.cc 
 
 if COND_MONOLITHIC
