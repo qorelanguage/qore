@@ -34,6 +34,21 @@ QoreTuxedoConnection::QoreTuxedoConnection(const char* name, ExceptionSink* xsin
 : m_name(name),
   m_was_closed(true)
 {
+#ifdef DEBUG
+  if (name) {
+    if (strstr(name, "test-fail-close") == name) {
+      return;
+    }
+    if (strstr(name, "test-fail-open") == name) {
+      xsink->raiseException("QORE-TUXEDO-CONNECTION-CONSTRUCTOR", "[%s] object that fails in constructor", name);
+      return;
+    }
+    if (strstr(name, "test-") == name || !strcmp(name, "test")) {
+      return;
+    }
+  }
+#endif
+
   if (m_name.empty()) {
     m_name = "<unnamed>";
   }
@@ -49,6 +64,14 @@ printf("CONNECTION IS OPENED\n");
 //------------------------------------------------------------------------------
 QoreTuxedoConnection::~QoreTuxedoConnection()
 {
+#ifdef DEBUG
+  if (!m_name.empty()) {
+    if (m_name == "test" || m_name.find_first_of("test-") == 0) {
+      return;
+    }
+  }
+#endif
+
   if (!m_was_closed) {
     close_connection(0);
   }
@@ -59,15 +82,15 @@ void QoreTuxedoConnection::handle_tpinit_error(ExceptionSink* xsink) const
 {
   switch (tperrno) {
   case TPEINVAL: 
-    xsink->raiseException("QORE-CONNECTION-CONSTRUCTOR", 
+    xsink->raiseException("QORE-TUXEDO-CONNECTION-CONSTRUCTOR", 
        "connection named [%s]: tpinit(NULL) failed with TPEINVAL result (invalid arguments).", m_name.c_str());
     break;
   case TPENOENT: 
-    xsink->raiseException("QORE-CONNECTION-CONSTRUCTOR", 
+    xsink->raiseException("QORE-TUXEDO-CONNECTION-CONSTRUCTOR", 
       "connection named [%s]: tpinit(NULL) failed with TPENOENT result (space limitations).", m_name.c_str());
     break;
   case TPEPERM: 
-    xsink->raiseException("QORE-CONNECTION-CONSTRUCTOR",
+    xsink->raiseException("QORE-TUXEDO-CONNECTION-CONSTRUCTOR",
       "connection named [%s]: tpinit(NULL) failed with TPEPERM (permission denied). Authentification result = %d.",
       m_name.c_str(), tpurcode);
     break;
@@ -77,15 +100,15 @@ void QoreTuxedoConnection::handle_tpinit_error(ExceptionSink* xsink) const
       m_name.c_str());
     break;
   case TPESYSTEM:
-    xsink->raiseException("QORE-CONNECTION-CONSTRUCTOR",
+    xsink->raiseException("QORE-TUXEDO-CONNECTION-CONSTRUCTOR",
       "connection named [%s]: tpinit(NULL) failed with TPESYSTEM (Tuxedo error). See Tuxedo log file for details.", m_name.c_str());
     break;
   case TPEOS:
-    xsink->raiseException("QORE-CONNECTION-CONSTRUCTOR",
+    xsink->raiseException("QORE-TUXEDO-CONNECTION-CONSTRUCTOR",
       "connection named [%s]: tpinit(NULL) failed with TPEOS (OS error). errno = %d.", m_name.c_str(), errno);
     break;
   default:
-    xsink->raiseException("QORE-CONNECTION-CONSTRUCTOR",
+    xsink->raiseException("QORE-TUXEDO-CONNECTION-CONSTRUCTOR",
       "connection named [%s]: tpinit(NULL) failed with unrecognized error code %d.", m_name.c_str(), tperrno);
     break;
   }
@@ -96,19 +119,19 @@ void QoreTuxedoConnection::handle_tpterm_error(ExceptionSink* xsink) const
 {
   switch (tperrno) {
   case TPEPROTO:
-    xsink->raiseException("QORE-CONNECTION-DESTRUCTOR",
+    xsink->raiseException("QORE-TUXEDO-CONNECTION-DESTRUCTOR",
       "connection named [%s]: tpterm() failed with error TPEPROTO (improper context).", m_name.c_str());
     break;
   case TPESYSTEM:
-    xsink->raiseException("QORE-CONNECTION-DESTRUCTOR",
+    xsink->raiseException("QORE-TUXEDO-CONNECTION-DESTRUCTOR",
       "connection named [%s]: tpterm() failed with error TPESYSTEM (Tuxedo error). See Tuxedo log for details.", m_name.c_str());
     break;
   case TPEOS:
-    xsink->raiseException("QORE-CONNECTION-DESTRUCTOR", 
+    xsink->raiseException("QORE-TUXEDO-CONNECTION-DESTRUCTOR", 
       "connection named [%s]: tpterm() failed with error TPEOS (OS error). errno = %d.", m_name.c_str(), errno);
     break;
   default:
-    xsink->raiseException("QORE-CONNECTION-DESTRUCTOR",
+    xsink->raiseException("QORE-TUXEDO-CONNECTION-DESTRUCTOR",
       "connection named [%s]: tpterm() failed with unrecognised error %d.", tperrno);
     break;
   }
@@ -117,6 +140,19 @@ void QoreTuxedoConnection::handle_tpterm_error(ExceptionSink* xsink) const
 //------------------------------------------------------------------------------
 void QoreTuxedoConnection::close_connection(ExceptionSink* xsink)
 {
+#ifdef DEBUG
+  if (!m_name.empty()) {
+    if (m_name.find_first_of("test-fail-close") == 0) {
+      xsink->raiseException("QORE-TUXEDO-CONNECTION-DESTRUCTOR",
+        "[%s] object that fails in destructor.", m_name.c_str());
+      return;
+    }
+    if (m_name == "test" || m_name.find_first_of("test-") == 0) {
+      return;
+    }
+  }
+#endif
+
   int res = tpterm();
   if (res == -1) {
     if (xsink) {

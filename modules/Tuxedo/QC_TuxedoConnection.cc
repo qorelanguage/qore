@@ -55,10 +55,28 @@ static void releaseTuxedoConnection(void* obj)
 }
 
 //------------------------------------------------------------------------------
+// []
+// [string-name]
+// [string-name, parameters-hash]
 static void TUXEDOCONNECTION_constructor(class Object *self, class QoreNode *params, class ExceptionSink *xsink)
 {
   tracein("TUXEDOCONNECTION _constructor");
-  QoreTuxedoConnection* conn = new QoreTuxedoConnection("", xsink);
+  
+  const char* connection_name = 0;
+
+  if (get_param(params, 0)) {
+    QoreNode* pt = test_param(params, NT_STRING, 0);
+    if (pt) {
+      connection_name = pt->val.String->getBuffer();
+    } else {
+      xsink->raiseException("QORE-TUXEDO-CONNECTION-CONSTRUCTOR",
+        "The first parameter of Tuxedo::Connection (if any) needs to be a string (could be empty). "
+        "The string is symbolic name of the connection.");
+      return;
+    }
+  }
+
+  QoreTuxedoConnection* conn = new QoreTuxedoConnection(connection_name, xsink);
   if (xsink->isException()) {
     conn->deref();
   } else {
@@ -79,7 +97,7 @@ static void TUXEDOCONNECTION_destructor(class Object *self, class QoreTuxedoConn
 //------------------------------------------------------------------------------
 static void TUXEDOCONNECTION_copy(class Object *self, class Object *old, class QoreTuxedoConnection* conn, ExceptionSink *xsink)
 {
-  xsink->raiseException("TUXEDOCONNECTION-COPY-ERROR", "copying Tuxedo::Connection objects is not supported.");
+  xsink->raiseException("QORE-TUXEDO-CONNECTION-COPY", "copying Tuxedo::Connection objects is not supported.");
 }
 
 //------------------------------------------------------------------------------

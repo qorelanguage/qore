@@ -45,17 +45,17 @@ static class QoreNode* f_authentification_required_by_Tuxedo(class QoreNode* par
     // Tuxedo error
     switch (tperrno) {
     case TPESYSTEM: 
-      xsink->raiseException("authentification_required_by_Tuxedo()", "tpchkauth() failed due to Tuxedo system error. See Tuxedo log file for details.");
+      xsink->raiseException("authentification_required_by_Tuxedo", "tpchkauth() failed due to Tuxedo system error. See Tuxedo log file for details.");
       break;
     case TPEOS:
-      xsink->raiseException("authentification_required_by_Tuxedo()", "tpchkauth() failed due to OS error.");
+      xsink->raiseException("authentification_required_by_Tuxedo", "tpchkauth() failed due to OS error.");
       break;
     default:
-      xsink->raiseException("authentification_required_by_Tuxedo()", "tpchkauth() failed due to unknown reason.");
+      xsink->raiseException("authentification_required_by_Tuxedo", "tpchkauth() failed due to unknown reason.");
     }
   } else {
     // undocumented return value
-    xsink->raiseException("authentification_required_by_Tuxedo()", "tpchkauth() returned unexpected result %d.", res);
+    xsink->raiseException("authentification_required_by_Tuxedo", "tpchkauth() returned unexpected result %d.", res);
   }
   return 0;
 }
