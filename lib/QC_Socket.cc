@@ -28,6 +28,7 @@
 #include <qore/Exception.h>
 #include <qore/support.h>
 #include <qore/Object.h>
+#include <qore/ssl_constants.h>
 
 #include <errno.h>
 #include <string.h>
@@ -777,7 +778,8 @@ static QoreNode *SOCKET_isSecure(class Object *self, class mySocket *s, class Qo
 
 static QoreNode *SOCKET_verifyPeerCertificate(class Object *self, class mySocket *s, class QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(s->verifyPeerCertificate());
+   char *c = getSSLCVCode(s->verifyPeerCertificate());
+   return c ? new QoreNode(c) : NULL;
 }
 
 static QoreNode *SOCKET_setCertificate(class Object *self, class mySocket *s, class QoreNode *params, ExceptionSink *xsink)

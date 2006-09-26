@@ -562,7 +562,7 @@ language, either by an addition to this data type, or by adding another date typ
 
     <para>Hashes are containers that associate values to a string key.</para>
 
-    <note><para>Note that Qore hashes preserve the insertion order in order to be able to guarantee the order of keys when hashes are serialized to XML strings, therefore the <command>keys</command> operator will always return the hash keys in insertion/creation order.</para></note>
+    <note><para>Note that Qore hashes preserve the insertion order in order to be able to guarantee the order of keys when hashes are serialized to XML strings (see <link linkend="XML_Integration">XML Integration</link>), therefore the <command>keys</command> operator will always return the hash keys in insertion/creation order.</para></note>
     
     <para>Hashes are specified using the following syntax:</para>
     
@@ -5754,8 +5754,88 @@ $name = getName();</programlisting>
 
     <para>XML provides an excellent way to describe hierarchical data, and thanks to libxml2, Qore can allow for easy serialization and deserialization between XML strings and Qore data structures.</para>
 
-    <para>Note that XML attributes are represented in Qore data structures in a hash key named <code>^attributes^</code>.  The value of this key should be a hash, and each member of this hash will represent an attribute-value pair.</para>
-    
+    <para>XML serialization (conversion from Qore data structures to XML strings) in Qore relies on the fact that Qore <link linkend="Hashes">hashes</link> retain insertion order, which means that conversion to and from Qore data structures and XML strings can be done without data loss and without reordering the XML elements.  In general, XML serialization is relatively straighforward, but there are a few issues to be aware of, particularly regarding element attributes and lists.  These issues are described in the following paragraphs.</para>
+
+    <para>First, a straightforward example:</para>
+
+    <programlisting>$h = ( "record" : ( "name" : ( "first" : "Fred", "last" : "Smith" ) ) );
+printf("%s\n", makeFormattedXMLString($h));</programlisting>
+
+    <para>This produces the following result</para>
+
+    <programlisting>&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;record&gt;
+  &lt;name&gt;
+    &lt;first&gt;Fred&lt;/first&gt;
+    &lt;last&gt;Smith&lt;/last&gt;
+  &lt;/name&gt;
+&lt;/record&gt;</programlisting>
+
+    <para>To set XML attributes, the Qore value must be a hash and the attributes are stored in another hash in the key <code>^attributes^</code>.  That is; the value of the <code>^attributes^</code> key must be a hash, and each member of this hash will represent an attribute-value pair.</para>
+
+    <para>For example:</para>
+
+    <programlisting>$h = ( "record" : ( "^attributes^" : ( "type" : "customer" ) , 
+	            "name" : ( "first" : "Fred", "last" : "Smith" ) ) );
+printf("%s\n", makeFormattedXMLString($h));</programlisting>
+
+    <para>This produces the following results:</para>
+
+    <programlisting>&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;record type="customer"&gt;
+  &lt;name&gt;
+    &lt;first&gt;Fred&lt;/first&gt;
+    &lt;last&gt;Smith&lt;/last&gt;
+  &lt;/name&gt;
+&lt;/record&gt;</programlisting>
+
+    <para>If instead we wanted to have text instead of child data under the "record" node, we must set the <code>^value^</code> key of the hash along with the <code>^attributes^</code> key as follows: </para>
+
+    <programlisting>$h = ( "record" : ( "^attributes^" : ( "type" : "customer" ) , 
+	            "^value^" : "NO-RECORD" ) );
+printf("%s\n", makeFormattedXMLString($h));</programlisting>
+
+    <para>Giving the following results:</para>
+
+    <programlisting>&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;record type="customer"&gt;NO-RECORD&lt;/record&gt;</programlisting>
+
+    <para>Arrays are serialized with repeating node names as follows:</para>
+
+    <programlisting>$h = ( "record" : ( "part" : ( "part-02-05", "part-99-23", "part-34-28" ) ) );
+printf("%s\n", makeFormattedXMLString($h));</programlisting>
+
+    <para>Producing the following results:</para>
+
+    <programlisting>&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;record type="customer"&gt;
+  &lt;part&gt;part-02-05&lt;/part&gt;
+  &lt;part&gt;part-99-23&lt;/part&gt;
+  &lt;part&gt;part-34-28&lt;/part&gt;
+&lt;/record&gt;
+</programlisting>
+
+   <para>It gets a little trickier when a key should repeated at the same level in an XML string, but other keys come between, for example, take the following XML string:</para>
+
+   <programlisting>&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;para&gt;Keywords: &lt;code&gt;this&lt;/code&gt;, &lt;code&gt;that&lt;/code&gt;, and &lt;code&gt;the_other&lt;/code&gt;.&lt;/para&gt;</programlisting>
+
+   <para>It's not possible to use a list, because text is required in between.  As described earlier, the <code>^value^</code> hash key can be used to serialize text in an XML string.  In this case, we need to have several text nodes and several <code>code</code> nodes in a mixed-up order to give us the XML string we want.  Because qore hases have unique keys (we can't use the same key twice in the same hash), we resort to a key naming trick that allows us to virtually duplicate our key names and therefore arrive at the XML string we want.  We do this by appending a '^' character to the end of the key name and then some unique text.  When serializing hash keys, any text after (and including) the '^' character is ignored.  For the special key name <code>^value^</code>, we do not need to duplicate the final '^' character.  Instead we just add unique text to ensure that our hash can contain all the data we want and that it will be serialized in the right order to the XML string as follows:</para>
+
+    <programlisting>
+$h = ( "para" : ( "^value^" : "Keywords: ", 
+                  "code" : "this", 
+                  "^value^1" : ", ", 
+                  "code^1" : "that", 
+                  "^value^2" : ", and ", 
+                  "code^2" : "the_other", 
+                  "^value^3" : "." ) );
+printf("%s\n", makeFormattedXMLString($h));</programlisting>
+
+    <para>By ignoring the text after the '^' character, the above code will serialize to the XML string we want.  In general, by using this convention, we can properly serialize multiple out-of-order keys without losing data and still have unique names for our hash keys.</para>
+
+   <para>Note than when deserializing XML strings to Qore data structures, the above rules are applied in reverse.  If any out-of-order duplicate keys are detected, Qore will automatically generate unique hash key names based on the above rules.</para>
+
     <table>
       <title>Functions For XML Serialization and Deserialization</title>
       <tgroup cols='2' align='left' colsep='1' rowsep='1'>

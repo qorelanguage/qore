@@ -9,10 +9,10 @@ const opts =
       "server"     : "S,server=s",
       "servonly"   : "O,server-only",
       "ssl"        : "s,ssl",
-      "key"        : "private-key=s",
-      "cert"       : "cert=s",
-      "clientkey"  : "client-private-key=s",
-      "clientcert" : "client-cert=s",
+      "key"        : "k,private-key=s",
+      "cert"       : "c,cert=s",
+      "clientkey"  : "K,client-private-key=s",
+      "clientcert" : "C,client-cert=s",
       "verbose"    : "v,verbose" );
 
 const i1 = 10;
@@ -45,40 +45,36 @@ class socket_test {
 	if ($s.bind($.server_port, True) == -1)
 	{
 	    printf("server_thread: error opening socket! (%s)\n", strerror(errno()));
-	    exit(2);
+	    thread_exit;
 	}
 	
 	if ($s.listen())
 	{
 	    printf("listen error (%s)\n", strerror(errno()));
-	    exit(2);
+	    thread_exit;
 	}
     
 	# socket created, now wake up client
 	$.q.push("hi");
-	my $r;
 	try {
 	    if ($.o.ssl)
 	    {
-		if (strlen($.o.clientcert))
+		if (strlen($.o.cert))
 		{
-		    $s.setCertificate($.o.clientcert);
-		    if (!strlen($.o.clientkey))
-			$s.setPrivateKey($.o.clientcert);
+		    $s.setCertificate($.o.cert);
+		    if (!strlen($.o.key))
+			$s.setPrivateKey($.o.cert);
 		}
-		if (strlen($.o.clientkey))
-		    $s.setPrivateKey($.o.clientkey);
+		if (strlen($.o.key))
+		    $s.setPrivateKey($.o.key);
 		
 		$s = $s.acceptSSL();
-		printf("server: secure connection (%s %s) from %s (%s)\n", $r.getSSLCipherName(), $r.getSSLCipherVersion(), $r.source, $r.source_host);
-		my $code = $r.verifyPeerCertificate();
-		if ($code == -1)
-		    printf("server: client certificate could not be verified\n");
+		printf("server: secure connection (%s %s) from %s (%s)\n", $s.getSSLCipherName(), $s.getSSLCipherVersion(), $s.source, $s.source_host);
+		my $str = $s.verifyPeerCertificate();
+		if (!exists $str)
+		    printf("server: no client certificate\n");
 		else
-		{
-		    my $str = getSSLCertVerificationCodeString($code);
 		    printf("server: client certificate: %n %s: %s\n", $str, X509_VerificationReasons.$str);
-		}
 	    }
 	    else
 	    {
@@ -89,7 +85,7 @@ class socket_test {
 	catch ($ex)
 	{
 	    printf("server error: %s: %s\n", $ex.err, $ex.desc);
-	    exit(1);
+	    thread_exit;
 	}
 	
 	$.receive_messages($s, "server");
@@ -107,18 +103,17 @@ class socket_test {
 	try {
 	    if ($.o.ssl)
 	    {
-		if (strlen($.o.cert))
+		if (strlen($.o.clientcert))
 		{
-		    $s.setCertificate($.o.cert);
-		    if (!strlen($.o.key))
-			$s.setPrivateKey($.o.cert);
+		    $s.setCertificate($.o.clientcert);
+		    if (!strlen($.o.clientkey))
+			$s.setPrivateKey($.o.clientcert);
 		}
-		if (strlen($.o.key))
-		    $s.setPrivateKey($.o.key);
+		if (strlen($.o.clientkey))
+		    $s.setPrivateKey($.o.clientkey);
 		$s.connectSSL($.client_port);
 		
-		my $code = $s.verifyPeerCertificate();
-		my $str = getSSLCertVerificationCodeString($code);
+		my $str = $s.verifyPeerCertificate();
 		printf("client: server certificate: %s: %s\n", $str, X509_VerificationReasons.$str);
 	    }
 	    else
@@ -127,7 +122,7 @@ class socket_test {
 	catch ($ex)
 	{
 	    printf("client error: %s: %s\n", $ex.err, $ex.desc);
-	    exit(1);
+	    thread_exit;
 	}
 
 	$.send_messages($s);

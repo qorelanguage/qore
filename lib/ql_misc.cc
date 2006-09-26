@@ -540,16 +540,6 @@ static class QoreNode *f_getByte(class QoreNode *params, ExceptionSink *xsink)
    return new QoreNode((int64)ptr[offset]);  
 }
 
-// map SSL verification codes to strings
-static class QoreNode *f_getSSLCertVerificationCodeString(class QoreNode *params, ExceptionSink *xsink)
-{
-   QoreNode *p0 = get_param(params, 0);
-   char *code = getSSLCVCode(p0 ? p0->getAsInt() : 0);
-   if (!code)
-      return NULL;
-   return new QoreNode(code);
-}
-
 // same as splice operator, but operates on a copy of the list
 static class QoreNode *f_splice(class QoreNode *params, ExceptionSink *xsink)
 {
@@ -628,6 +618,5 @@ void init_misc_functions()
    builtinFunctions.add("uncompress_to_string", f_uncompress_to_string);
    builtinFunctions.add("uncompress_to_binary", f_uncompress_to_binary);
    builtinFunctions.add("getByte", f_getByte);
-   builtinFunctions.add("getSSLCertVerificationCodeString", f_getSSLCertVerificationCodeString);
    builtinFunctions.add("splice", f_splice);
 }

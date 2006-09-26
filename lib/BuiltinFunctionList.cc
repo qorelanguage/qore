@@ -59,6 +59,7 @@ void BuiltinFunctionList::add(char *name, class QoreNode *(*f)(class QoreNode *,
 
 BuiltinFunctionList::~BuiltinFunctionList()
 {
+   //printd(5, "BuiltinFunctionList::~BuiltinFunctionList() this=%08p\n", this);
 #ifdef HAVE_QORE_HASH_MAP
 
    hm_bf_t::iterator i;

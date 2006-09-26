@@ -27,6 +27,7 @@
 #include <qore/params.h>
 #include <qore/support.h>
 #include <qore/Exception.h>
+#include <qore/ssl_constants.h>
 
 #include "QC_FtpClient.h"
 
@@ -373,7 +374,8 @@ static class QoreNode *FC_getSSLCipherVersion(class Object *self, class QoreFtpC
 
 static class QoreNode *FC_verifyPeerCertificate(class Object *self, class QoreFtpClient *f, class QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(f->verifyPeerCertificate());
+   char *c = getSSLCVCode(f->verifyPeerCertificate());
+   return c ? new QoreNode(c) : NULL;
 }
 
 static class QoreNode *FC_setModeAuto(class Object *self, class QoreFtpClient *f, class QoreNode *params, ExceptionSink *xsink)

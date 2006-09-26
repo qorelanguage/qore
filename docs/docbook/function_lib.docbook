@@ -3,7 +3,32 @@
 <chapter id="Function_Library">
   <title>Function Library</title>
 
-  <para>This section describes the built-in subroutines in the Qore language making up the system function library.</para>
+  <para>This section describes the built-in subroutines in the Qore language making up the system function library.  Following is a list of function categories, and below there is an alphabetically-ordered list of all Qore built-in functions.</para>
+
+  <table>
+    <title>System Function Category List</title>
+    <tgroup cols="1" align="left" colsep="1" rowsep="1">
+      <thead>
+        <row>
+          <entry><para>Category</para></entry>
+        </row>
+      </thead>
+      <tbody>
+        <row><entry><para><link linkend="Math_Functions">Math Functions</link></para></entry></row>
+        <row><entry><para><link linkend="Output_Functions">Output Functions</link></para></entry></row>
+        <row><entry><para><link linkend="Date_and_Time_Functions">Date and Time Functions</link></para></entry></row>
+        <row><entry><para><link linkend="Qore_Type_Functions">Type Functions</link></para></entry></row>
+        <row><entry><para><link linkend="Environment_Functions">Environment Functions</link></para></entry></row>
+        <row><entry><para><link linkend="String_Functions">String Functions</link></para></entry></row>
+        <row><entry><para><link linkend="Operating_System_Functions">Operating System Functions</link></para></entry></row>
+        <row><entry><para><link linkend="Cryptographic_Functions">Cryptographic Functions</link></para></entry></row>
+        <row><entry><para><link linkend="Digest_Functions">Digest Functions</link></para></entry></row>
+        <row><entry><para><link linkend="Miscellaneous_Functions">Miscellaneous Functions</link></para></entry></row>
+        <row><entry><para><link linkend="Threading_Functions">Threading Functions</link></para></entry></row>
+        <row><entry><para><link linkend="XML_Functions">XML Functions</link></para></entry></row>
+      </tbody>
+    </tgroup>
+  </table>
 
   <table>
     <title>System Function Library</title>
@@ -1557,12 +1582,6 @@
           <entry>
             <para>Returns a hash representing the user information of the user ID passed.</para>
           </entry>
-        </row>
-        <row>
-          <entry><para><link linkend="getSSLCertVerificationCodeString">getSSLCertVerificationCodeString()</link></para></entry>
-          <entry><para>String</para></entry>
-          <entry><para>N</para></entry>
-          <entry><para>Returns the verification code string corresponding to the integer code passed.</para></entry>
         </row>
         <row>
           <entry>
@@ -3284,22 +3303,6 @@
           </entry>
           <entry>
             <para>Formats a string based on a variable number of arguments given in a list after the format string and returns this formatted string.</para>
-          </entry>
-        </row>
-        <row>
-          <entry>
-            <para>
-              <link linkend="wstrlen">wstrlen()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>Int</para>
-          </entry>
-          <entry>
-            <para>N</para>
-          </entry>
-          <entry>
-            <para>deprecated: use <link linkend="strlen">strlen()</link> instead.</para>
           </entry>
         </row>
         <row>
@@ -7840,50 +7843,6 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
 </tgroup>
 </table>
   <para>This function does not throw any exceptions.</para>
-</sect2>
-
-<sect2 id="wstrlen">
-<title>wstrlen()</title>
-
-  <variablelist>
-    <varlistentry>
-      <term>Synopsis</term>
-      <listitem>
-	<para>deprecated: use <link linkend="strlen">strlen()</link> instead.</para>
-      </listitem>
-    </varlistentry>
-    <varlistentry>
-      <term>Usage</term>
-      <listitem>
-	<programlisting>wstrlen(<replaceable>string</replaceable>)</programlisting>
-      </listitem>
-    </varlistentry>
-  </variablelist>
-
-      <table>
-        <title>Arguments and Return Values for wstrlen()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry><para>Argument Type</para></entry>
-              <entry><para>Return Type</para></entry>
-              <entry><para>Description</para></entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-	      <entry><para>String</para></entry>
-              <entry><para>Integer</para></entry>
-              <entry><para>deprecated: use <link linkend="strlen">strlen()</link> instead.</para></entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-
-  <para>This function does not throw any exceptions.</para>
-
-  <note><para>This function will be removed in a future version of Qore.</para></note>
-
 </sect2>
 
 </sect1>
@@ -13180,58 +13139,6 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
               </entry>
               <entry>
                 <para>Returns a hash representing the user information for the user ID passed.  If the uid does not exist, NOTHING is returned.  Otherwise the hash has the following keys: pw_name, pw_passwd, pw_gecos, pw_dir, pw_shell, pw_uid, pw_gid.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-      <para>This function does not throw any exceptions.</para>
-    </sect2>
-
-    <sect2 id="getSSLCertVerificationCodeString">
-      <title>getSSLCertVerificationCodeString()</title>
-      <variablelist>
-        <varlistentry>
-          <term>Synopsis</term>
-          <listitem>
-            <para>Returns a string corresponding to the integer verification code passed.  Such a code is returned from the <link linkend="Socket_verifyPeerCertificate">Socket::verifyPeerCertificate()</link> and the <link linkend="FtpClient_verifyPeerCertificate">FtpClient::verifyPeerCertificate()</link> methods.  The string returned from this function can be used with the <link linkend="X509_VerificationReasons_Hash">X509_VerificationReasons
-</link> </para>
-          </listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>Usage</term>
-          <listitem>
-            <programlisting>getSSLCertVerificationCodeString(<replaceable>code</replaceable>)</programlisting>
-          </listitem>
-        </varlistentry>
-      </variablelist>
-      
-      <table>
-        <title>Arguments and Return Values for getSSLCertVerificationCodeString()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument Type</para>
-              </entry>
-              <entry>
-                <para>Return Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>Integer</para>
-              </entry>
-              <entry>
-                <para>String</para>
-              </entry>
-              <entry>
-                <para>Returns a string corresponding to the verification code passed.  If the code is not valid, no value is returned.</para>
               </entry>
             </row>
           </tbody>

@@ -57,8 +57,16 @@ nbm 	<row>
 	  <entry><para>Disallows subroutine (function) definitions.  Equivalent to parse option <code>PO_NO_SUBROUTINE_DEFS</code> and the <code>--no-subroutine-defs</code> command-line option.</para></entry>
 	</row>
 	<row>
+	  <entry><para><code>%no-thread-control</code></para></entry>
+	  <entry><para>Disallows access to thread control operations (background operator and thre_exit statement, for example).  Equivalent to parse option <code>PO_NO_THREAD_CONTROL</code> and the <code>--no-thread-control</code> command-line option.</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>%no-thread-classes</code></para></entry>
+	  <entry><para>Disallows access to thread classes for example, the <link linkend="Qore::Thread::Mutex_Class">Thread::Mutex Class</link>, <link linkend="Qore::Thread::Gate_Class">Thread::Gate Class</link>, <link linkend="Qore::Thread::Queue_Class">Thread::Queue Class</link>, etc).  Equivalent to parse option <code>PO_NO_THREAD_CLASSES</code> and the <code>--no-thread-classes</code> command-line option.</para></entry>
+	</row>
+	<row>
 	  <entry><para><code>%no-threads</code></para></entry>
-	  <entry><para>Disallows any thread operations (background operator and thre_exit statement, for example).  Equivalent to parse option <code>PO_NO_THREADS</code> and the <code>--no-threads</code> command-line option.</para></entry>
+	  <entry><para>Disallows access to all thread control operations and thread classes (equivalent to --no-thread-control and --no-thread-classes together).  Equivalent to parse option <code>PO_NO_THREADS</code> and the <code>--no-threads</code> command-line option.</para></entry>
 	</row>
 	<row>
 	  <entry><para><code>%no-top-level</code></para></entry>
@@ -99,6 +107,10 @@ nbm 	<row>
 	<row>
 	  <entry><para><code>%lock-options</code></para></entry>
 	  <entry><para>Prohibits further changes to parse options (equivalent to the --lock-options command-line option).</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>%lock-warnings</code></para></entry>
+	  <entry><para>Prohibits further changes to the warning mask (equivalent to the --lock-warnings command-line option).</para></entry>
 	</row>
       </tbody>
     </tgroup>

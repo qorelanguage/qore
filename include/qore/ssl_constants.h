@@ -109,7 +109,7 @@ inline char *getSSLCVCode(int code)
       case 2:
 	 return "X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT";
       case 3:
-	 return "X509_V_ERR_UNABLE_TO_GET_CRL unable to get certificate CRL";
+	 return "X509_V_ERR_UNABLE_TO_GET_CRL";
       case 4:
 	 return "X509_V_ERR_UNABLE_TO_DECRYPT_CERT_SIGNATURE";
       case 5:

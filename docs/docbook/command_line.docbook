@@ -30,9 +30,19 @@
     <entry><para>Disallows subroutine (function) definitions.  Equivalent to parse option <code>PO_NO_SUBROUTINE_DEFS</code> and the <code>%no-subroutine-defs</code> directive.</para></entry>
   </row>
   <row>
+    <entry><para><code>--no-thread-control</code></para></entry>
+    <entry><para><code>-R</code></para></entry>
+    <entry><para>Disallows any thread control operations (<link linkend="Background_Operator"><command>background</command> operator</link> and <link linkend="thread_exit_Statements"><command>thread_exit</command> statement</link>, for example).  Equivalent to parse option <code>PO_NO_THREAD_CONTROL</code> and the <code>%no-thread-control</code> directive.</para></entry>
+  </row>
+  <row>
+    <entry><para><code>--no-thread-classes</code></para></entry>
+    <entry><para><code>-X</code></para></entry>
+    <entry><para>Disallows access to thread classes (for example, the <link linkend="Qore::Thread::Mutex_Class">Thread::Mutex Class</link>, <link linkend="Qore::Thread::Gate_Class">Thread::Gate Class</link>, <link linkend="Qore::Thread::Queue_Class">Thread::Queue Class</link>, etc).  Equivalent to parse option <code>PO_NO_THREAD_CLASSES</code> and the <code>%no-thread-classes</code> directive.</para></entry>
+  </row>
+  <row>
     <entry><para><code>--no-threads</code></para></entry>
-    <entry><para><code>-B</code></para></entry>
-    <entry><para>Disallows any thread operations (<link linkend="Background_Operator"><command>background</command> operator</link> and <link linkend="thread_exit_Statements"><command>thread_exit</command> statement</link>, for example).  Equivalent to parse option <code>PO_NO_THREADS</code> and the <code>%no-threads</code> directive.</para></entry>
+    <entry><para><code>-T</code></para></entry>
+    <entry><para>Disallows access to both thread control and thread classes (equivalent to the --no-thread-control and --no-thread-classes options documented above).  Equivalent to parse option <code>PO_NO_THREADS</code> and the <code>%no-threads</code> directive.</para></entry>
   </row>
   <row>
     <entry><para><code>--no-top-level</code></para></entry>
@@ -70,6 +80,11 @@
     <entry><para>Disallows use of the <command>new</command> operator.  Equivalent to parse option <code>PO_NO_NEW</code> and the <code>%no-new</code> directive.</para></entry>
   </row>
   <row>
+    <entry><para><code>--no-database</code></para></entry>
+    <entry><para><code>-B</code></para></entry>
+    <entry><para>Disallows use of database functionality.  Equivalent to parse option <code>PO_NO_DATABASE</code> and the <code>%no-database</code> directive.</para></entry>
+  </row>
+  <row>
     <entry><para><code>--no-child-restrictions</code></para></entry>
     <entry><para><code>-I</code></para></entry>
     <entry><para>Allows child program objects to have parse option restrictions that are not a strict subset of the parents.  Equivalent to parse option <code>PO_NO_CHILD_RESTRICTIONS</code> and the <code>%no-child-restrictions</code> directive.</para></entry>
@@ -83,6 +98,11 @@
     <entry><para><code>--lock-options</code></para></entry>
     <entry><para><code>-K</code></para></entry>
     <entry><para>Prohibits further changes to parse options (equivalent to the <code>%lock-options</code> directive).</para></entry>
+  </row>
+  <row>
+    <entry><para><code>--lock-warnings</code></para></entry>
+    <entry><para><code>-A</code></para></entry>
+    <entry><para>Prohibits further changes to the warning mask.  Equivalent to parse option <code>PO_LOCK_WARNINGS</code> and the <code>%lock-warnings</code> directive.</para></entry>
   </row>
 
 </tbody>

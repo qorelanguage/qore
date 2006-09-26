@@ -1,3 +1,10 @@
+2006.09.26: David Nichols
+	* removed getSSLCertVerficationCodeString() function and changed
+	  Socket::verifyPeerCertificate() and FtpClient::verifyPeerCertificate()
+	  to directly return the string code instead of a numeric code.
+	* bug fixes to test/socket-test.q
+	* doc updates
+
 2006.09.25: David Nichols
 	* fixed feature name registration for automatically-loaded modules
 	* fixed getByte() to no longer try to use negative offsets

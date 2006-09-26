@@ -279,6 +279,7 @@ D2              [0-9]{2}
 ^%no-namespace-defs{WS}*$               getProgram()->parseSetParseOptions(PO_NO_NAMESPACE_DEFS);
 ^%no-external-process{WS}*$             getProgram()->parseSetParseOptions(PO_NO_EXTERNAL_PROCESS);
 ^%lock-options{WS}*$                    getProgram()->lockOptions();
+^%lock-warnings{WS}*$                   getProgram()->parseSetParseOptions(PO_LOCK_WARNINGS);
 ^%no-process-control{WS}*$              getProgram()->parseSetParseOptions(PO_NO_PROCESS_CONTROL);
 ^%no-constant-defs{WS}*$                getProgram()->parseSetParseOptions(PO_NO_CONSTANT_DEFS);
 ^%no-new{WS}*$                          getProgram()->parseSetParseOptions(PO_NO_NEW);
