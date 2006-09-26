@@ -100,7 +100,7 @@ inline void addSSLConstants(class Namespace *ns)
    ns->addConstant("X509_VerificationReasons", new QoreNode(h));
 }
 
-inline char *getSSLCVCode(int code)
+static inline char *getSSLCVCode(int code)
 {
    switch (code)
    {

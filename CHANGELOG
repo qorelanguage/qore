@@ -1,4 +1,10 @@
 2006.09.26: David Nichols
+	* fixed a bug in QoreTibrvTransport.cc
+	* fixed a bug in ssl_constants.h on g++32
+
+*** v0.5.2 *** RELEASE
+
+2006.09.26: David Nichols
 	* removed getSSLCertVerficationCodeString() function and changed
 	  Socket::verifyPeerCertificate() and FtpClient::verifyPeerCertificate()
 	  to directly return the string code instead of a numeric code.

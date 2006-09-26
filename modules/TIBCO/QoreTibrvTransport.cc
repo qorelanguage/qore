@@ -326,6 +326,7 @@ class QoreNode *QoreTibrvTransport::fieldToNode(TibrvMsgField *field, class Exce
 
       default:
 	 xsink->raiseException("TIBRV-DEMARSHALLING-ERROR", "don't know how to convert type %d", field->getType());
+	 val = NULL;
 	 break;
    }
    return val;
