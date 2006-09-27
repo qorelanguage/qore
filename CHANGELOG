@@ -1,5 +1,6 @@
 2006.09.27: David Nichols
 	* updated version number to 0.6.0
+	* added bea tuxedo checks to configure
 
 2006.09.26: Pavel Vozenilek
 	* Module name is now Tuxedo.qmod.

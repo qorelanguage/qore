@@ -598,6 +598,91 @@ TApp ma(NULL);
    fi
 fi
 
+# function to help find the tuxedo directory
+find_tux()
+{
+    d=`ls -d $1/bea/tuxedo* 2>/dev/null | tail -1`;
+    if test -n "$d" -a -d "$d"; then
+        tux_dir="$d"
+	return
+    fi
+    d=`ls -d $1/tuxedo* 2>/dev/null | tail -1`;
+    if test -n "$d" -a -d "$d"; then
+        tux_dir="$d"
+    fi
+}
+
+AC_ARG_WITH([tuxedo],
+  [AC_HELP_STRING([--with-tuxedo@<:@=DIR@:>@],
+		  [BEA Tuxedo directory (defaults to $TUX_DIR)])],
+  [if test ! -d "${with_tuxedo}"; then AC_MSG_ERROR(bad value ${with_tuxedo} for --with-tuxedo); unset with_tuxedo; fi])
+
+
+AC_MSG_CHECKING([BEA Tuxedo])
+if test -n "$with_tuxedo"; then
+   if test ! -e "$with_tuxedo/include/atmi.h"; then
+      AC_MSG_ERROR([can't find atmi.h in $with_tuxedo/include])
+   elif test ! -e "$with_tuxedo/lib/libtux.a"; then
+      AC_MSG_ERROR([can't find libtux.a in $with_tuxedo/lib])
+   else
+      AC_MSG_RESULT([$with_tuxedo])
+   fi
+else
+   if test -n "$TUX_DIR" -a -f "$TUX_DIR/include/atmi.h" -a -e "$TUX_DIR/lib/libtux.a"; then
+      with_tuxedo=$TUX_DIR
+   else
+      for dir in /opt /usr /usr/local /apps; do
+         find_tux $dir
+	 if test -n "$tux_dir" -a -f "$tux_dir/include/atmi.h" -a -e "$tux_dir/lib/libtux.a"; then
+	    with_tuxedo="$tux_dir"
+	    break;
+	 fi
+      done
+   fi
+   if test -n "$with_tuxedo"; then
+      AC_MSG_RESULT([$with_tuxedo])
+   else
+      AC_MSG_RESULT([not found])
+      unset with_tuxedo
+   fi
+fi
+
+if test -n "$with_tuxedo"; then
+   # setup tuxedo compile and link vars
+   TUXEDO_CPPFLAGS="-I${with_tuxedo}/include"
+   TUXEDO_LIBS="-L${with_tuxedo}/lib -ltux -lbuft -lfml -lfml32 -lengine"   
+
+   # check if C++ compiler can link with TIBCO Rendezvous c++ libs
+   SAVE_CPPFLAGS="$CPPFLAGS"
+   SAVE_LDFLAGS="$LDFLAGS"
+   CPPFLAGS="$CPPFLAGS $TUXEDO_CPPFLAGS"
+   LDFLAGS="$LDFLAGS $TUXEDO_LIBS $OPENSSL_LDFLAGS -lgiconv -lusort -lutrace"
+
+   AC_MSG_CHECKING([if we can link to the Tuxedo libraries])
+   AC_TRY_LINK([
+#include <atmi.h>
+	 ],[
+tpinit((TPINIT*)0);
+	],tuxedo_links=yes, tuxedo_links=no)
+
+   CPPFLAGS="$SAVE_CPPFLAGS"
+   LDFLAGS="$SAVE_LDFLAGS"
+   LIBS="$SAVE_LIBS"
+
+   if test ${tuxedo_links} = "no"; then
+      AC_MSG_RESULT([failed: cannot link with the Tuxedo libraries in ${with_tuxedo}/lib, skipping support for the tuxedo module])
+      unset with_tuxedo
+      unset TUXEDO_CPPFLAGS
+      unset TUXEDO_LIBS
+   else
+      AC_MSG_RESULT([ok])
+      AC_SUBST(TUXEDO_CPPFLAGS)
+      AC_SUBST(TUXEDO_LIBS)
+      AC_DEFINE(TUXEDO, 1, Define if Tuxedo support should be included)
+      with_tuxedo=yes
+   fi
+fi
+
 AC_ARG_WITH([oracle],
   [AC_HELP_STRING([--with-oracle@<:@=DIR@:>@],
                   [directory for Oracle support (defaults to $ORACLE_HOME)])],
