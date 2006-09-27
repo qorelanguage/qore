@@ -1,11 +1,10 @@
+2006.09.27: David Nichols
+	* updated version number to 0.6.0
+
 2006.09.26: Pavel Vozenilek
 	* Module name is now Tuxedo.qmod.
 	* Tuxedo module: added standalone function authentification_required_by_Tuxedo().
         * TuxedoModule: added Tuxedo::Connection class (initial version).
-
-2006.09.26: David Nichols
-	* fixed a bug in QoreTibrvTransport.cc
-	* fixed a bug in ssl_constants.h on g++32
 
 *** v0.5.2 *** RELEASE
 
@@ -15,6 +14,8 @@
 	  to directly return the string code instead of a numeric code.
 	* bug fixes to test/socket-test.q
 	* doc updates
+	* fixed a bug in QoreTibrvTransport.cc
+	* fixed a bug in ssl_constants.h on g++32
 
 2006.09.25: David Nichols
 	* fixed feature name registration for automatically-loaded modules

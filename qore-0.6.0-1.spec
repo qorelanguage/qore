@@ -1,6 +1,6 @@
 Summary: Qore Programming Language
 Name: qore
-Version: 0.5.2
+Version: 0.6.0
 Release: 1.FC5
 License: LGPL
 Group: Development/Languages
@@ -20,10 +20,10 @@ Oracle DBI driver module for the Qore Programming Language. The Oracle driver is
 
 %files oracle-module
 %ifarch i386
-/usr/lib/qore-0.5.2/auto/oracle.qmod
+/usr/lib/qore-0.6.0/auto/oracle.qmod
 %endif
 %ifarch x86_64
-/usr/lib64/qore-0.5.2/auto/oracle.qmod
+/usr/lib64/qore-0.6.0/auto/oracle.qmod
 %endif
 
 %package mysql-module
@@ -35,10 +35,10 @@ MySQL DBI driver module for the Qore Programming Language. The MySQL driver is c
 
 %files mysql-module
 %ifarch i386
-/usr/lib/qore-0.5.2/auto/mysql.qmod
+/usr/lib/qore-0.6.0/auto/mysql.qmod
 %endif
 %ifarch x86_64
-/usr/lib64/qore-0.5.2/auto/mysql.qmod
+/usr/lib64/qore-0.6.0/auto/mysql.qmod
 %endif
 
 %ifarch i386
@@ -50,7 +50,7 @@ Group: Development/Languages
 This module provides the TibcoAdapter class, which enables qore scripts/programs to communicate with (or implement) TIBCO Active Enterprise adapters.
 
 %files tibae-module
-/usr/lib/qore-0.5.2/tibae.qmod
+/usr/lib/qore-0.6.0/tibae.qmod
 %endif
 
 %package tibrv-module
@@ -62,10 +62,10 @@ This module provides functionality enabling qore scripts/programs to communicate
 
 %files tibrv-module
 %ifarch i386
-/usr/lib/qore-0.5.2/tibrv.qmod
+/usr/lib/qore-0.6.0/tibrv.qmod
 %endif
 %ifarch x86_64
-/usr/lib64/qore-0.5.2/tibrv.qmod
+/usr/lib64/qore-0.6.0/tibrv.qmod
 %endif
 
 %prep
@@ -87,12 +87,12 @@ make -j4
 rm -rf $RPM_BUILD_ROOT
 mkdir -p $RPM_BUILD_ROOT/usr/bin
 %ifarch i386
-mkdir -p $RPM_BUILD_ROOT/usr/lib/qore-0.5.2
-mkdir -p $RPM_BUILD_ROOT/usr/lib/qore-0.5.2/auto
+mkdir -p $RPM_BUILD_ROOT/usr/lib/qore-0.6.0
+mkdir -p $RPM_BUILD_ROOT/usr/lib/qore-0.6.0/auto
 %endif
 %ifarch x86_64
-mkdir -p $RPM_BUILD_ROOT/usr/lib64/qore-0.5.2
-mkdir -p $RPM_BUILD_ROOT/usr/lib64/qore-0.5.2/auto
+mkdir -p $RPM_BUILD_ROOT/usr/lib64/qore-0.6.0
+mkdir -p $RPM_BUILD_ROOT/usr/lib64/qore-0.6.0/auto
 %endif
 mkdir -p $RPM_BUILD_ROOT/usr/man/man1
 mkdir -p $RPM_BUILD_ROOT/usr/share/doc/qore/examples
@@ -112,14 +112,14 @@ rm -rf $RPM_BUILD_ROOT
 /usr/lib/libqore.so.0
 /usr/lib/libqore.so
 /usr/lib/libqore.la
-/usr/lib/qore-0.5.2/ncurses.qmod
+/usr/lib/qore-0.6.0/ncurses.qmod
 %endif
 %ifarch x86_64
 /usr/lib64/libqore.so.0.0.0
 /usr/lib64/libqore.so.0
 /usr/lib64/libqore.so
 /usr/lib64/libqore.la
-/usr/lib64/qore-0.5.2/ncurses.qmod
+/usr/lib64/qore-0.6.0/ncurses.qmod
 %endif
 /usr/man/man1/qore.1.gz
 
