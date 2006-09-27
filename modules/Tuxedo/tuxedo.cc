@@ -1,3 +1,27 @@
+/*
+  modules/Tuxedo/tuxedo.cc
+
+  Tuxedo integration to QORE
+
+  Qore Programming Language
+
+  Copyright (C) 2006 Qore Technologies
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
 #include <qore/config.h>
 #include <qore/support.h>
 #include <qore/QoreString.h>
@@ -15,7 +39,7 @@
 #include "atmi.h"
 
 #ifndef QORE_MONOLITHIC
-char qore_module_name[] = "Tuxedo";
+char qore_module_name[] = "tuxedo";
 char qore_module_version[] = "0.1";
 char qore_module_description[] = "Conection to Tuxedo 9.1";
 char qore_module_author[] = "Pavel Vozenilek";
@@ -28,34 +52,41 @@ qore_module_delete_t qore_module_delete = tuxedo_module_delete;
 #endif
 
 //------------------------------------------------------------------------------
-// Find out what kind of authentification Tuxedo requires. Return strings
-// "none", "system-only", "system-and-app" or throw exception on error.
-// 
-// Standalone function to be used before Tuxedo::Connection is created.
+// values returned by Qore function tpchkauth()
+const int64 NO_AUTHENTICATION             = 1;
+const int64 SYSTEM_AUTHENTICATION         = 2;
+const int64 SYSTEM_AND_APP_AUTHENTICATION = 3;
+
+//------------------------------------------------------------------------------
+// Find out what kind of authentication Tuxedo requires. 
+// Returns constants Tuxedo::NO_AUTHENTICATION, Tuxedo::SYSTEM_AUTHENTICATION
+// or Tuxedo::SYSTEM_AND_APP_AUTHENTICATION. On error it throws.
 //
-static class QoreNode* f_authentification_required_by_Tuxedo(class QoreNode* params, class ExceptionSink* xsink)
+// See Tuxedo tpchkauth() documentation for more: http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c28.htm#1040017
+//
+static class QoreNode* f_authentication_required_by_Tuxedo(class QoreNode* params, class ExceptionSink* xsink)
 {
   int res = tpchkauth();
   switch (res) {
-  case TPNOAUTH: return new QoreNode("none");
-  case TPSYSAUTH: return new QoreNode("system-only");
-  case TPAPPAUTH: return new QoreNode("system-and-app");
+  case TPNOAUTH: return new QoreNode(NO_AUTHENTICATION);
+  case TPSYSAUTH: return new QoreNode(SYSTEM_AUTHENTICATION);
+  case TPAPPAUTH: return new QoreNode(SYSTEM_AND_APP_AUTHENTICATION);
   }
   if (res == -1) {
     // Tuxedo error
     switch (tperrno) {
     case TPESYSTEM: 
-      xsink->raiseException("authentification_required_by_Tuxedo", "tpchkauth() failed due to Tuxedo system error. See Tuxedo log file for details.");
+      xsink->raiseException("TPCHKAUTH", "Tuxedo tpchkauth() failed due to Tuxedo system error. See Tuxedo log file for details.");
       break;
     case TPEOS:
-      xsink->raiseException("authentification_required_by_Tuxedo", "tpchkauth() failed due to OS error.");
+      xsink->raiseException("TPCHKAUTH", "Tuxedo tpchkauth() failed due to OS error.");
       break;
     default:
-      xsink->raiseException("authentification_required_by_Tuxedo", "tpchkauth() failed due to unknown reason.");
+      xsink->raiseException("TPCHKAUTH", "Tuxedo tpchkauth() failed due to unknown reason.");
     }
   } else {
     // undocumented return value
-    xsink->raiseException("authentification_required_by_Tuxedo", "tpchkauth() returned unexpected result %d.", res);
+    xsink->raiseException("TPCHKAUTH", "Tuxedo tpchkauth() returned unexpected result %d.", res);
   }
   return 0;
 }
@@ -64,17 +95,6 @@ static class QoreNode* f_authentification_required_by_Tuxedo(class QoreNode* par
 class QoreString* tuxedo_module_init()
 {
   tracein("tuxedo_module_init");
-/*
-  printf("INITIALISING TUXEDO\n");
-
-  if (tpinit((TPINIT*)0) == -1) { // to be deleted later
-printf("TUXEDO INIT failed\n");
-    QoreString* err = new QoreString();
-    err->sprintf("Failed to initialize Tibco, tpinit(NULL) returned -1\n");
-    return err;
-  }
-  printf("TUXEDO initializsed OK\n");
-*/
   traceout("tuxedo_module_init");
   return NULL;
 }
@@ -83,11 +103,21 @@ printf("TUXEDO INIT failed\n");
 void tuxedo_module_ns_init(class Namespace* rns, class Namespace* qns)
 {
   tracein("tuxedo_module_ns_init");
-  builtinFunctions.add("authentification_required_by_Tuxedo", f_authentification_required_by_Tuxedo, QDOM_NETWORK);
-  
+
   class Namespace* tuxedons = new Namespace("Tuxedo");
+
+  // Standalone method tpchkauth() returning info what kind
+  // of authentication is required.
+  //
+  builtinFunctions.add("tpchkauth", f_authentication_required_by_Tuxedo, QDOM_NETWORK);
+  // returned values
+  tuxedons->addConstant("NO_AUTHENTICATION", new QoreNode(NO_AUTHENTICATION));
+  tuxedons->addConstant("SYSTEM_AUTHENTICATION", new QoreNode(SYSTEM_AUTHENTICATION));
+  tuxedons->addConstant("SYSTEM_AND_APP_AUTHENTICATION", new QoreNode(SYSTEM_AND_APP_AUTHENTICATION));
   
-  tuxedons->addSystemClass(initTuxedoTestClass()); // to be deleted later
+  
+  tuxedons->addSystemClass(initTuxedoTestClass()); // to be deleted latera
+  // Tuxedo::Connection class
   tuxedons->addSystemClass(initTuxedoConnectionClass());
  
   qns->addInitialNamespace(tuxedons);
@@ -99,7 +129,6 @@ void tuxedo_module_ns_init(class Namespace* rns, class Namespace* qns)
 void tuxedo_module_delete()
 {
   tracein("tuxedo_module_delete");
-//  tpterm(); // to be deleted later
   traceout("tuxedo_module_delete");
 }
 

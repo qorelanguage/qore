@@ -1,14 +1,11 @@
-#ifndef QORE_TUXEDO_CONNECTION_IMPL_H_
-#define QORE_TUXEDO_CONNECTION_IMPL_H_
-
 /*
-  modules/Tuxedo/QoreTuxedoConnection.h
+  modules/Tuxedo/connection_parameters_helper.h
 
   Tuxedo integration to QORE
 
   Qore Programming Language
 
-  Copyright (C) 2006 Pavel Vozenilek
+  Copyright (C) 2006 Qore Technologies
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -25,36 +22,37 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+#ifndef QORE_TUXEDO_CONNECTION_PARAMETERS_HELPER_H_
+#define QORE_TUXEDO_CONNECTION_PARAMETERS_HELPER_H_
+
 #include <qore/common.h>
 #include <qore/support.h>
-#include <qore/ReferenceObject.h>
+#include <qore/RMutex.h>
+#include <atmi.h>
+#include <vector>
 #include <string>
+#include <utility>
 
 class ExceptionSink;
-class Tuxedo_connection_parameters;
+class Hash;
 
 //------------------------------------------------------------------------------
-class QoreTuxedoConnection : public ReferenceObject
+class Tuxedo_connection_parameters
 {
-  std::string m_name; // identification of the connection, could be empty
-  bool m_was_closed;
+  static RMutex m_mutex; // must be static
+  bool m_mutex_locked;
+  TPINIT* m_tpinit_data;
+  std::vector<std::pair<std::string, std::string> > m_old_environment;
 
-  void handle_tpinit_error(Tuxedo_connection_parameters& params, ExceptionSink* xsink) const;
-  void handle_tpterm_error(ExceptionSink* xsink) const;
+  bool set_environment_variable(char* name, Hash* params, ExceptionSink* xsink);
+  bool set_flag(char* name, unsigned flag, Hash* params, ExceptionSink* xsink, long& flags);
+  bool set_string(char* name, Hash* params, ExceptionSink* xsink, std::string& str);
+
 public:
-  // no parameters for tpinit() constructor
-  QoreTuxedoConnection(const char* name, Tuxedo_connection_parameters& params, ExceptionSink* xsink);
-  ~QoreTuxedoConnection();
-
-  // if not already done close the Tuxedo 
-  // connection by calling tpterm();
-  void close_connection(ExceptionSink* xsink);
-
-  void deref() { 
-    if (ROdereference()) {
-      delete this;
-    }
-  }
+  Tuxedo_connection_parameters();
+  ~Tuxedo_connection_parameters();
+  void process_parameters(QoreNode* params, ExceptionSink* xsink); // parses hash with all parameters for Tuxedo tpinit()
+  TPINIT* get_tpinit_data() { return m_tpinit_data; }
 };
 
 #endif

@@ -4,6 +4,8 @@ pkglibdir = $(libdir)/@PACKAGE@-@VERSION@
 TUXEDO_SOURCES =  tuxedo.cc \
   QC_TuxedoConnection.cc \
   QoreTuxedoConnection.cc \
+  connection_parameters_helper.cc \
+  tpalloc_helper.cc \
   TuxedoTest.cc 
 
 if COND_MONOLITHIC
@@ -14,12 +16,12 @@ else
 automoddir = $(pkglibdir)/auto
 pkglib_LTLIBRARIES = tuxedo.la
 tuxedo_la_SOURCES = $(TUXEDO_SOURCES)
-tuxedo_la_LDFLAGS = -module -avoid-version ${TUXEDO_LIBS} -L/opt/bea/tuxedo9.1/lib -ltux -lbuft -lfml -lfml32 -lengine
+tuxedo_la_LDFLAGS = -module -avoid-version ${TUXEDO_LIBS} 
 endif
 
-INCLUDES = -I$(top_srcdir)/include $(TUXEDO_INCLUDES) -I/opt/bea/tuxedo9.1/include 
+INCLUDES = -I$(top_srcdir)/include $(TUXEDO_INCLUDES) 
 
-AM_CXXFLAGS = ${PTHREAD_CFLAGS}
+AM_CXXFLAGS = $(TUXEDO_CPPFLAGS) ${PTHREAD_CFLAGS}
 
 if COND_DEBUG
 AM_CXXFLAGS += -g
@@ -31,7 +33,7 @@ endif
 
 if !COND_MONOLITHIC
 install-exec-hook:
-	mv $(pkglibdir)/tuxedo.$(MODULE_SUFFIX) $(pkglibdir)/Tuxedo.qmod
+	mv $(pkglibdir)/tuxedo.$(MODULE_SUFFIX) $(pkglibdir)/tuxedo.qmod
 	rm -f $(pkglibdir)/tuxedo.la $(pkglibdir)/tuxedo.a
 endif
 

@@ -28,36 +28,31 @@
 #include <atmi.h>
 
 #include "QoreTuxedoConnection.h"
+#include "connection_parameters_helper.h"
 
 //------------------------------------------------------------------------------
-QoreTuxedoConnection::QoreTuxedoConnection(const char* name, ExceptionSink* xsink)
-: m_name(name),
+QoreTuxedoConnection::QoreTuxedoConnection(const char* name, Tuxedo_connection_parameters& params, ExceptionSink* xsink)
+: m_name(name && name[0] ? name : "<unnamed>"),
   m_was_closed(true)
 {
 #ifdef DEBUG
-  if (name) {
-    if (strstr(name, "test-fail-close") == name) {
-      return;
-    }
-    if (strstr(name, "test-fail-open") == name) {
-      xsink->raiseException("QORE-TUXEDO-CONNECTION-CONSTRUCTOR", "[%s] object that fails in constructor", name);
-      return;
-    }
-    if (strstr(name, "test-") == name || !strcmp(name, "test")) {
-      return;
-    }
+  if (strstr(name, "test-fail-close") == name) {
+    return;
+  }
+  if (strstr(name, "test-fail-open") == name) {
+    xsink->raiseException("QORE-TUXEDO-CONNECTION-CONSTRUCTOR", "[%s] object that fails in constructor", name);
+    return;
+  }
+  if (strstr(name, "test-") == name || !strcmp(name, "test")) {
+    return;
   }
 #endif
 
-  if (m_name.empty()) {
-    m_name = "<unnamed>";
-  }
-  int res = tpinit(0);
+  int res = tpinit(params.get_tpinit_data());
   if (res == -1) {
-    handle_tpinit_error(xsink);
+    handle_tpinit_error(params, xsink);
   } else {
     m_was_closed = false;
-printf("CONNECTION IS OPENED\n");
   }
 }
 
@@ -71,45 +66,44 @@ QoreTuxedoConnection::~QoreTuxedoConnection()
     }
   }
 #endif
-
   if (!m_was_closed) {
     close_connection(0);
   }
 }
 
 //------------------------------------------------------------------------------
-void QoreTuxedoConnection::handle_tpinit_error(ExceptionSink* xsink) const
+void QoreTuxedoConnection::handle_tpinit_error(Tuxedo_connection_parameters& params, ExceptionSink* xsink) const
 {
   switch (tperrno) {
   case TPEINVAL: 
     xsink->raiseException("QORE-TUXEDO-CONNECTION-CONSTRUCTOR", 
-       "connection named [%s]: tpinit(NULL) failed with TPEINVAL result (invalid arguments).", m_name.c_str());
+       "connection named [%s]: tpinit() failed with TPEINVAL result (invalid arguments).", m_name.c_str());
     break;
   case TPENOENT: 
     xsink->raiseException("QORE-TUXEDO-CONNECTION-CONSTRUCTOR", 
-      "connection named [%s]: tpinit(NULL) failed with TPENOENT result (space limitations).", m_name.c_str());
+      "connection named [%s]: tpinit() failed with TPENOENT result (space limitations).", m_name.c_str());
     break;
   case TPEPERM: 
     xsink->raiseException("QORE-TUXEDO-CONNECTION-CONSTRUCTOR",
-      "connection named [%s]: tpinit(NULL) failed with TPEPERM (permission denied). Authentification result = %d.",
+      "connection named [%s]: tpinit() failed with TPEPERM (permission denied). Authentification result = %d.",
       m_name.c_str(), tpurcode);
     break;
   case TPEPROTO:
     xsink->raiseException("QORE-CONNECTION-CONSTRUCTOR",
-      "connection named [%s]: tpinit(NULL) failed with TPEPROTO (called improperly). See tpinit() documentation for more.",
+      "connection named [%s]: tpinit() failed with TPEPROTO (called improperly). See tpinit() documentation for more.",
       m_name.c_str());
     break;
   case TPESYSTEM:
     xsink->raiseException("QORE-TUXEDO-CONNECTION-CONSTRUCTOR",
-      "connection named [%s]: tpinit(NULL) failed with TPESYSTEM (Tuxedo error). See Tuxedo log file for details.", m_name.c_str());
+      "connection named [%s]: tpinit() failed with TPESYSTEM (Tuxedo error). See Tuxedo log file for details.", m_name.c_str());
     break;
   case TPEOS:
     xsink->raiseException("QORE-TUXEDO-CONNECTION-CONSTRUCTOR",
-      "connection named [%s]: tpinit(NULL) failed with TPEOS (OS error). errno = %d.", m_name.c_str(), errno);
+      "connection named [%s]: tpinit() failed with TPEOS (OS error). errno = %d.", m_name.c_str(), errno);
     break;
   default:
     xsink->raiseException("QORE-TUXEDO-CONNECTION-CONSTRUCTOR",
-      "connection named [%s]: tpinit(NULL) failed with unrecognized error code %d.", m_name.c_str(), tperrno);
+      "connection named [%s]: tpinit() failed with unrecognized error code %d.", m_name.c_str(), tperrno);
     break;
   }
 }
@@ -160,7 +154,6 @@ void QoreTuxedoConnection::close_connection(ExceptionSink* xsink)
     }
   } else {
     m_was_closed = true;
-printf("###CONNECTION IS CLOSED\n");
   }
 }
 

@@ -1,8 +1,8 @@
-#ifndef QC_TUXEDO_CONNECTION_H_
-#define QC_TUXEDO_CONNECTION_H_
+#ifndef QORE_TUXEDO_TPALLOC_HELPER_H_
+#define QORE_TUXEDO_TPALLOC_HELPER_H_
 
 /*
-  modules/Tuxedo/QC_TuxedoConnection.h
+  modules/Tuxedo/tpalloc_helper.h
 
   Tuxedo integration to QORE
 
@@ -25,11 +25,11 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <qore/common.h>
-#include <qore/support.h>
+class ExceptionSink;
 
-extern int CID_TUXEDOCONNECTION;
-extern class QoreClass* initTuxedoConnectionClass();
+// tpalloc() functionality, on error sets the exception 
+extern char* tpalloc_helper(char* type, char* subtype, unsigned size, 
+  char* exception_name, ExceptionSink* xsink);
 
 #endif
 

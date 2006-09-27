@@ -5,7 +5,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2006 Pavel Vozenilek
+  Copyright (C) 2006 Qore Technologies
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -29,6 +29,7 @@
 
 #include "QC_TuxedoConnection.h"
 #include "QoreTuxedoConnection.h"
+#include "connection_parameters_helper.h"
 
 // Provides a class that allows a client to connect to a Tuxedo enabled server(s).
 // Every thread could instantiate single instance of this class.
@@ -61,8 +62,9 @@ static void releaseTuxedoConnection(void* obj)
 static void TUXEDOCONNECTION_constructor(class Object *self, class QoreNode *params, class ExceptionSink *xsink)
 {
   tracein("TUXEDOCONNECTION _constructor");
-  
+
   const char* connection_name = 0;
+  Tuxedo_connection_parameters Tuxedo_params;
 
   if (get_param(params, 0)) {
     QoreNode* pt = test_param(params, NT_STRING, 0);
@@ -70,18 +72,35 @@ static void TUXEDOCONNECTION_constructor(class Object *self, class QoreNode *par
       connection_name = pt->val.String->getBuffer();
     } else {
       xsink->raiseException("QORE-TUXEDO-CONNECTION-CONSTRUCTOR",
-        "The first parameter of Tuxedo::Connection (if any) needs to be a string (could be empty). "
+        "The first parameter of Tuxedo::Connection constructor (if any) needs to be a string (could be empty). "
         "The string is symbolic name of the connection.");
       return;
     }
   }
-
-  QoreTuxedoConnection* conn = new QoreTuxedoConnection(connection_name, xsink);
+  if (get_param(params, 1)) {
+    QoreNode* pt = test_param(params, NT_HASH, 1);
+    if (pt) {
+      Tuxedo_params.process_parameters(pt, xsink);
+      if (xsink->isException()) {
+        return;
+      }
+    } else {
+      xsink->raiseException("QORE-TUXEDO-CONNECTION-CONSTRUCTOR",
+        "The second parameter of Tuxedo::Connection constructor (if any) needs to be hash of connection parameters. "
+        "See documentation for details on this hash.");
+    }
+  }
+  if (get_param(params, 2)) {
+    xsink->raiseException("QORE-TUXEDO-CONNECTION-CONSTRUCTOR",
+      "Tuxedo::Connection constructor could have maximally two parameters.");
+  }
+  QoreTuxedoConnection* conn = new QoreTuxedoConnection(connection_name, Tuxedo_params, xsink);
   if (xsink->isException()) {
     conn->deref();
   } else {
     self->setPrivate(CID_TUXEDOCONNECTION, conn, getTuxedoConnection, releaseTuxedoConnection);
   }
+
   traceout("TUXEDOCONNECTION _constructor");
 }
 
@@ -89,6 +108,7 @@ static void TUXEDOCONNECTION_constructor(class Object *self, class QoreNode *par
 static void TUXEDOCONNECTION_destructor(class Object *self, class QoreTuxedoConnection* conn, class ExceptionSink *xsink)
 {
   tracein("TUXEDOCONNECTION_destructor");
+  // clumsy, used to keep the deref() the same as in other modules
   conn->close_connection(xsink);
   conn->deref();
   traceout("TUXEDOCONNECTION_destructor");

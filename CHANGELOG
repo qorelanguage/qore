@@ -1,3 +1,7 @@
+2006.09.28: Pavel Vozenilek
+	* authentification_required_by_Tuxedo renamed to tpchkauth().
+	* Finished Tuxedo::Connection class
+
 2006.09.27: David Nichols
 	* updated version number to 0.6.0
 	* added bea tuxedo checks to configure
