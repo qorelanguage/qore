@@ -39,16 +39,17 @@
 // environment variables is not MT safe.
 //
 
-
-RMutex Tuxedo_connection_parameters::m_mutex;
+// Connections to Tuxedo are serialized to avoid problems
+// with changes in environment made by the other threads.
+LockedObject Tuxedo_connection_parameters::m_mutex;
 
 const int foff = 1; // not really sure what is this good for
 
 //------------------------------------------------------------------------------
 Tuxedo_connection_parameters::Tuxedo_connection_parameters()
-: m_mutex_locked(false),
-  m_tpinit_data(0)
+: m_tpinit_data(0)
 {
+  m_mutex.lock(); 
 }
 
 //------------------------------------------------------------------------------
@@ -62,9 +63,8 @@ Tuxedo_connection_parameters::~Tuxedo_connection_parameters()
       setenv(m_old_environment[i].first.c_str(), m_old_environment[i].second.c_str(), 1);
     }
   }
-  if (m_mutex_locked) {
-    m_mutex.exit();
-  }
+  m_mutex.unlock();
+
   if (m_tpinit_data) {
     tpfree((char*)m_tpinit_data);
   }
@@ -73,11 +73,6 @@ Tuxedo_connection_parameters::~Tuxedo_connection_parameters()
 //------------------------------------------------------------------------------
 void Tuxedo_connection_parameters::process_parameters(QoreNode* params, ExceptionSink* xsink)
 {
-  if (!m_mutex_locked) {
-    m_mutex.enter(); // avoid several threads making changes to the environment at the same moment
-    m_mutex_locked = true;
-  }
-
   // inspect all relevant parameters
   std::string username, clientname, password, groupname;
   long flags = 0;
@@ -166,10 +161,10 @@ void Tuxedo_connection_parameters::process_parameters(QoreNode* params, Exceptio
     if (xsink->isException()) {
       return;
     }
-    strcpy(m_tpinit_data->usrname, username.c_str());
-    strcpy(m_tpinit_data->cltname, clientname.c_str());
-    strcpy(m_tpinit_data->passwd, password.c_str());
-    strcpy(m_tpinit_data->grpname, groupname.c_str());
+    strcpy(m_tpinit_data->usrname, username.c_str() ? username.c_str() : "" );
+    strcpy(m_tpinit_data->cltname, clientname.c_str() ? clientname.c_str() : "" );
+    strcpy(m_tpinit_data->passwd, password.c_str() ? password.c_str() : "");
+    strcpy(m_tpinit_data->grpname, groupname.c_str() ? groupname.c_str() : "");
     m_tpinit_data->flags = flags;
     m_tpinit_data->datalen = 0;
     m_tpinit_data->data = 0;

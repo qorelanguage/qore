@@ -27,7 +27,7 @@
 
 #include <qore/common.h>
 #include <qore/support.h>
-#include <qore/RMutex.h>
+#include <qore/LockedObject.h>
 #include <atmi.h>
 #include <vector>
 #include <string>
@@ -39,8 +39,7 @@ class Hash;
 //------------------------------------------------------------------------------
 class Tuxedo_connection_parameters
 {
-  static RMutex m_mutex; // must be static
-  bool m_mutex_locked;
+  static  LockedObject m_mutex; // must be static
   TPINIT* m_tpinit_data;
   std::vector<std::pair<std::string, std::string> > m_old_environment;
 
