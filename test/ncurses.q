@@ -186,19 +186,19 @@ class ncurses_test {
     constructor()
     {
 	srand(now());
-
 	initscr();
+
 	# enable all mouse events
 	mousemask(ALL_MOUSE_EVENTS);
 	
 	# create a panel covering the entire screen except the bottom line
 	$.w = new Panel(getLines() - 1, getColumns(), 0, 0);
 	$.w.decorate("Qore NCurses Test Program", COLOR_RED, COLOR_WHITE);
-
+	
 	$.c = new Counter();
 	$.c.inc();
 	background $.status();
-
+	
 	$.menu();
 	
 	$.w.setColor(COLOR_WHITE, COLOR_BLUE);
