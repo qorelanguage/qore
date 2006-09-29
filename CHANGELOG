@@ -1,5 +1,18 @@
+2006.09.29: David Nichols
+	* implemented makeHexString() and parseHexString() functions to generate
+	  hex strings from binary data and vice-versa
+	* implemented support for directly specifying binary constant values in
+	  the scanner using a hex format surrounded by angle brackets 
+	  (ex: <34bef4>)
+	* fixed a bug in the chomp operator when chomping a newline at the 
+	  beginning of the string
+	* fixed a bug in the Queue class; a timeout in ::get() or ::pop() would
+	  cause a deadlock on the next call to ::get() or ::pop()
+
 2006.09.28: David Nichols
 	* fixed broken ncurses module, made calls to initscr() optional
+	* added the hstat() and hlstat() functions to return a hash of the 
+	  result of stat() and lstat(), respectively
 
 2006.09.28: Pavel Vozenilek
 	* authentification_required_by_Tuxedo renamed to tpchkauth().

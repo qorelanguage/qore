@@ -588,6 +588,33 @@ static class QoreNode *f_splice(class QoreNode *params, ExceptionSink *xsink)
    return rv;
 }
 
+static class QoreNode *f_makeHexString(class QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p0 = get_param(params, 0);
+   if (!p0 || (p0->type != NT_BINARY && p0->type != NT_STRING))
+      return NULL;
+
+   class QoreString *str = new QoreString();
+   if (p0->type == NT_STRING)
+     str->concatHex(p0->val.String);
+   else
+     str->concatHex(p0->val.bin);
+   return new QoreNode(str);
+}
+
+static class QoreNode *f_parseHexString(class QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p0 = test_param(params, NT_STRING, 0);
+   if (!p0)
+      return NULL;
+
+   class BinaryObject *b = p0->val.String->parseHex(xsink);
+   if (!b)
+      return NULL;
+   return new QoreNode(b);
+}
+
+
 void init_misc_functions()
 {
    // set lengths of HTML codes
@@ -610,6 +637,8 @@ void init_misc_functions()
    builtinFunctions.add("sortDescending", f_sortDescending);
    builtinFunctions.add("parseBase64String", f_parseBase64String);
    builtinFunctions.add("makeBase64String", f_makeBase64String);
+   builtinFunctions.add("parseHexString", f_parseHexString);
+   builtinFunctions.add("makeHexString", f_makeHexString);
    builtinFunctions.add("getModuleList", f_getModuleList);
    builtinFunctions.add("getFeatureList", f_getFeatureList);
    builtinFunctions.add("hash_values", f_hash_values);

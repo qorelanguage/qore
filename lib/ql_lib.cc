@@ -193,7 +193,7 @@ static class QoreNode *f_waitpid(class QoreNode *params, ExceptionSink *xsink)
 }
 */
 
-static inline List *map_sbuf_to_list(struct stat *sbuf)
+static List *map_sbuf_to_list(struct stat *sbuf)
 {
    List *l = new List();
 
@@ -220,6 +220,56 @@ static inline List *map_sbuf_to_list(struct stat *sbuf)
    l->push(new QoreNode((int64)sbuf->st_blocks));
 
    return l;
+}
+
+static class Hash *map_sbuf_to_hash(struct stat *sbuf)
+{
+   Hash *h = new Hash();
+
+   h->setKeyValue("dev",     new QoreNode((int64)sbuf->st_dev), NULL);
+   h->setKeyValue("inode",   new QoreNode((int64)sbuf->st_ino), NULL);
+   h->setKeyValue("mode",    new QoreNode((int64)sbuf->st_mode), NULL);
+   h->setKeyValue("nlink",   new QoreNode((int64)sbuf->st_nlink), NULL);
+   h->setKeyValue("uid",     new QoreNode((int64)sbuf->st_uid), NULL);
+   h->setKeyValue("gid",     new QoreNode((int64)sbuf->st_gid), NULL);
+   h->setKeyValue("rdev",    new QoreNode((int64)sbuf->st_rdev), NULL);
+   h->setKeyValue("size",    new QoreNode((int64)sbuf->st_size), NULL);
+   
+   struct tm tms;
+   DateTime *adt = new DateTime(q_localtime(&sbuf->st_atime, &tms));
+   h->setKeyValue("atime",   new QoreNode(adt), NULL);
+
+   DateTime *mdt = new DateTime(q_localtime(&sbuf->st_mtime, &tms));
+   h->setKeyValue("mtime",   new QoreNode(mdt), NULL);
+
+   DateTime *cdt = new DateTime(q_localtime(&sbuf->st_ctime, &tms));
+   h->setKeyValue("ctime",   new QoreNode(cdt), NULL);
+
+   h->setKeyValue("blksize", new QoreNode((int64)sbuf->st_blksize), NULL);
+   h->setKeyValue("blocks",  new QoreNode((int64)sbuf->st_blocks), NULL);
+
+   char *type;
+   if (S_ISBLK(sbuf->st_mode))
+      type = "BLOCK-DEVICE";
+   else if (S_ISDIR(sbuf->st_mode))
+      type = "DIRECTORY";
+   else if (S_ISCHR(sbuf->st_mode))
+      type = "CHARACTER-DEVICE";
+   else if (S_ISFIFO(sbuf->st_mode))
+      type = "FIFO";
+   else if (S_ISLNK(sbuf->st_mode))
+      type = "SYMBOLIC-LINK";
+   else if (S_ISSOCK(sbuf->st_mode))
+      type = "SOCKET";
+   else if (S_ISCHR(sbuf->st_mode))
+      type = "CHARACTER-DEVICE";
+   else if (S_ISREG(sbuf->st_mode))
+      type = "REGULAR";
+   else
+      type = "UNKNOWN";
+
+   h->setKeyValue("type",  new QoreNode(type), NULL);
+   return h;
 }
 
 static class QoreNode *f_stat(class QoreNode *params, ExceptionSink *xsink)
@@ -254,6 +304,40 @@ static class QoreNode *f_lstat(class QoreNode *params, ExceptionSink *xsink)
 
    traceout("f_lstat()");
    return new QoreNode(map_sbuf_to_list(&sbuf));
+}
+
+static class QoreNode *f_hstat(class QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p0;
+   if (!(p0 = test_param(params, NT_STRING, 0)))
+      return NULL;
+
+   tracein("f_hstat()");
+   struct stat sbuf;
+   int rc;
+
+   if ((rc = stat(p0->val.String->getBuffer(), &sbuf)))
+      return NULL;
+
+   traceout("f_hstat()");
+   return new QoreNode(map_sbuf_to_hash(&sbuf));
+}
+
+static class QoreNode *f_hlstat(class QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p0;
+   if (!(p0 = test_param(params, NT_STRING, 0)))
+      return NULL;
+
+   tracein("f_hlstat()");
+   struct stat sbuf;
+   int rc;
+
+   if ((rc = lstat(p0->val.String->getBuffer(), &sbuf)))
+      return NULL;
+
+   traceout("f_hstat()");
+   return new QoreNode(map_sbuf_to_hash(&sbuf));
 }
 
 static class QoreNode *f_glob(class QoreNode *params, ExceptionSink *xsink)
@@ -498,6 +582,7 @@ void init_lib_functions()
    builtinFunctions.add("chdir",       f_chdir, QDOM_FILESYSTEM);
    // builtinFunctions.add("mknod",       f_mknod, QDOM_FILESYSTEM);
    builtinFunctions.add("mkfifo", f_mkfifo);
+   builtinFunctions.add("hstat",       f_hstat);
+   builtinFunctions.add("hlstat",      f_hlstat);
    builtinFunctions.add("exec",        f_exec, QDOM_EXTERNAL_PROCESS | QDOM_PROCESS);
 }
-

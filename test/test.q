@@ -704,10 +704,12 @@ sub string_tests()
     test_value(length($nstr), 7, "length() with ISO-8859-1 special characters");
     test_value(strlen($nstr), 7, "strlen() with ISO-8859-1 special characters");
     test_value($str, convert_encoding($nstr, "UTF-8"), "convert_encoding()");
-    $str += "hello there";
-    my $x = binary($str);
+    # assign binary object
+    my $x = <0abf83e8ca72d32c>;
     my $b64 = makeBase64String($x);
     test_value($x, parseBase64String($b64), "first base64");
+    my $hex = makeHexString($x);
+    test_value($x, parseHexString($hex), "first hex");
 
     # UTF-8 string splice tests
     $str = "äbcdéf";
@@ -877,6 +879,7 @@ sub math_tests()
 sub lib_tests()
 {
     test_value(stat($ENV."_")[2], 0100755, "stat()");
+    test_value(hstat($ENV."_").type, "REGULAR", "hstat()");
     if (exists $ENV.HOSTNAME)
 	test_value(gethostname(), $ENV.HOSTNAME, "gethostname()");
     else

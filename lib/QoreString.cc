@@ -175,6 +175,26 @@ void QoreString::concatBase64(char *buf, int size)
    }
 }
 
+#define DO_HEX_CHAR(b) ((b) + (((b) > 9) ? 87 : 48))
+
+void QoreString::concatHex(char *buf, int size)
+{
+   //printf("buf=%08p, size=%d\n", buf, size);
+   if (!size)
+      return;
+
+   unsigned char *p = (unsigned char *)buf;
+   unsigned char *endbuf = p + size;
+   while (p < endbuf)
+   {
+     char c = (*p & 0xf0) >> 4;
+     concat(DO_HEX_CHAR(c));
+     c = *p & 0x0f;
+     concat(DO_HEX_CHAR(c));
+     p++;
+   }
+}
+
 // FIXME: this is slow, each concatenated character gets terminated as well
 void QoreString::concatAndHTMLEncode(QoreString *str, class ExceptionSink *xsink)
 {

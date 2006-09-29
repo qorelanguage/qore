@@ -258,6 +258,7 @@ static inline bool isRegexSubstModifier(class RegexSubst *qr, int c)
 HEX_CONST       0x[0-9A-Fa-f]+
 OCTAL_CONST     \\[0-7]{1,3}
 DIGIT		[0-9]
+HEX_DIGIT       [0-9A-Fa-f]
 WORD		[a-zA-Z][a-zA-Z0-9_]*
 WS		[ \t\r]
 YEAR            [0-9]{4}
@@ -267,6 +268,7 @@ HOUR            ([01][0-9])|(2[0-3])
 MSEC            [0-5][0-9]
 MS              [0-9]{3}
 D2              [0-9]{2}
+BINARY          <({HEX_DIGIT}{HEX_DIGIT})+>
 
 %%
 ^%no-global-vars{WS}*$                  getProgram()->parseSetParseOptions(PO_NO_GLOBAL_VARS);
@@ -659,6 +661,7 @@ P{D2}:{D2}:{D2}(\.{MS})?                yylval->datetime = makeRelativeTime(yyte
 {DIGIT}+m                               yylval->datetime = makeMinutes(strtol(yytext, NULL, 10)); return DATETIME;
 {DIGIT}+s                               yylval->datetime = makeSeconds(strtol(yytext, NULL, 10)); return DATETIME;
 {HEX_CONST}				yylval->integer = strtoll(yytext, NULL, 16); return INTEGER;
+{BINARY}                                yylval->binary = parseHex(yytext + 1, strlen(yytext + 1) - 1); return BINARY;
 \$\.{WORD}                              yylval->string = strdup(yytext + 2); return SELF_REF;
 \${WORD}				yylval->string = strdup(yytext + 1); return VAR_REF;
 {WORD}					yylval->string = strdup(yytext); return IDENTIFIER;

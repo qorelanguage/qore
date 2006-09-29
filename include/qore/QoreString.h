@@ -96,10 +96,17 @@ class QoreString {
       void concat(QoreString *, int size, class ExceptionSink *xsink);
 
       void concatBase64(char *buf, int size);
-      void concatBase64(class BinaryObject *bin);
+      inline void concatBase64(class BinaryObject *bin);
       inline void concatBase64(class QoreString *str);
-      inline void concatISO8601DateTime(class DateTime *d);
+      inline class BinaryObject *parseBase64(class ExceptionSink *xsink);
+
+      void concatHex(char *buf, int size);
+      inline void concatHex(class BinaryObject *bin);
+      inline void concatHex(class QoreString *str);
+      inline class BinaryObject *parseHex(class ExceptionSink *xsink);
+
       inline void concat(class DateTime *d);
+      inline void concatISO8601DateTime(class DateTime *d);
       void concat(char *);
       void concat(char *, int size);
       void concat(char);
@@ -120,7 +127,6 @@ class QoreString {
       inline class QoreString *copy();
       inline char *giveBuffer();
       inline void clear();
-      inline class BinaryObject *parseBase64(class ExceptionSink *xsink);
       inline void replace(int offset, int len, char *str);
       inline void replace(int offset, int len, class QoreString *str);
       inline void splice(int offset, class ExceptionSink *xsink);
@@ -151,7 +157,7 @@ class QoreString {
 	 if (len && buf[len - 1] == '\n')
 	 {
 	    terminate(len - 1);
-	    if (buf[len - 1] == '\r')
+	    if (len && buf[len - 1] == '\r')
 	    {
 	       terminate(len - 1);
 	       return 2;
@@ -500,6 +506,16 @@ inline void QoreString::concatBase64(class QoreString *str)
    concatBase64(str->buf, str->len);
 }
 
+inline void QoreString::concatHex(class BinaryObject *b)
+{
+   concatHex((char *)b->getPtr(), b->size());
+}
+
+inline void QoreString::concatHex(class QoreString *str)
+{
+   concatHex(str->buf, str->len);
+}
+
 inline void QoreString::replace(int offset, int dlen, char *str)
 {
    int nl = str ? ::strlen(str) : 0;
@@ -533,6 +549,11 @@ inline void QoreString::replace(int offset, int dlen, class QoreString *str)
 inline class BinaryObject *QoreString::parseBase64(class ExceptionSink *xsink)
 {
    return ::parseBase64(buf, len, xsink);
+}
+
+inline class BinaryObject *QoreString::parseHex(class ExceptionSink *xsink)
+{
+   return ::parseHex(buf, len, xsink);
 }
 
 inline void QoreString::check_offset(int &offset)

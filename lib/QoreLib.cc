@@ -419,6 +419,8 @@ class QoreString *dni(class QoreString *s, class QoreNode *n, int indent, class 
                  n->val.date_time->getSecond(),
                  n->val.date_time->getMillisecond(),
                  n->val.date_time->isRelative() ? "True" : "False");
+   else if (n->type == NT_BINARY)
+      s->sprintf("ptr=%08p len=%d\n", n->val.bin->getPtr(), n->val.bin->size());
    else
       s->sprintf("don't know how to print value :-(\n");
 
@@ -498,6 +500,110 @@ class BinaryObject *parseBase64(char *buf, int len, class ExceptionSink *xsink)
 
       binbuf[blen++] = b | c;
       pos += 4;
+   }
+   return new BinaryObject(binbuf, blen);
+}
+
+static inline int get_nibble(char c, class ExceptionSink *xsink)
+{
+   if (isdigit(c))
+      return c - 48;
+   if (c >= 'A' && c <= 'F')
+      return c - 55;
+   if (c >= 'a' && c <= 'f')
+      return c - 87;
+
+   xsink->raiseException("PARSE-HEX-ERROR", "invalid hex digit found '%c'", c);
+   return -1;
+}
+
+class BinaryObject *parseHex(char *buf, int len, class ExceptionSink *xsink)
+{
+   if (!len)
+      return new BinaryObject();
+
+   if ((len / 2 * 2) != len)
+   {
+      xsink->raiseException("PARSE-HEX-ERROR", "cannot parse an odd number of hex digits (%d digit%s)", len, len == 1 ? "" : "s");
+      return NULL;
+   }
+
+   char *binbuf = (char *)malloc(sizeof(char) * (len / 2));
+   int blen = 0;
+
+   char *end = buf + len;
+   while (buf < end)
+   {
+      int b = get_nibble(*buf, xsink);
+      if (b < 0)
+      {
+	 free(binbuf);
+	 return NULL;
+      }
+      buf++;
+      int l = get_nibble(*buf, xsink);
+      if (l < 0)
+      {
+	 free(binbuf);
+	 return NULL;
+      }
+      buf++;
+      binbuf[blen++] = b << 4 | l;
+   }
+   return new BinaryObject(binbuf, blen);
+}
+
+static inline int parse_get_nibble(char c)
+{
+   if (isdigit(c))
+      return c - 48;
+   if (c >= 'A' && c <= 'F')
+      return c - 55;
+   if (c >= 'a' && c <= 'f')
+      return c - 87;
+
+   parseException("PARSE-HEX-ERROR", "invalid hex digit found '%c'", c);
+   return -1;
+}
+
+
+// for use while parsing - parses a null-terminated string and raises parse exceptions for errors
+class BinaryObject *parseHex(char *buf, int len)
+{
+   if (!buf || !(*buf))
+      return new BinaryObject();
+
+   char *binbuf = (char *)malloc(sizeof(char) * (len / 2));
+   int blen = 0;
+
+   char *end = buf + len;
+   while (buf < end)
+   {
+      int b = parse_get_nibble(*buf);
+      if (b < 0)
+      {
+	 free(binbuf);
+	 return NULL;
+      }
+      buf++;
+#if 0
+      // this can never happen; the parser guarantees an even number of digits
+      if (!(*buf))
+      {
+	 free(binbuf);
+	 parseError("PARSE-HEX-ERROR", "cannot parse an odd number of hex digits (%d digit%s)", len, len == 1 ? "" : "s");
+	 return NULL;
+      }
+#endif
+
+      int l = parse_get_nibble(*buf);
+      if (l < 0)
+      {
+	 free(binbuf);
+	 return NULL;
+      }
+      buf++;
+      binbuf[blen++] = b << 4 | l;
    }
    return new BinaryObject(binbuf, blen);
 }

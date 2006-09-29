@@ -41,6 +41,7 @@
 #include <qore/RegexSubst.h>
 #include <qore/QoreRegex.h>
 #include <qore/RegexTrans.h>
+#include <qore/BinaryObject.h>
 
 #include "parser.h"
 
@@ -223,6 +224,7 @@ static inline void tryAddMethod(int mod, char *n, QoreNode *params, BCAList *bca
       double decimal;
       class QoreString *String;
       char *string;
+      class BinaryObject *binary;
       class QoreNode *node;
       class Statement *statement;
       class StatementBlock *sblock;
@@ -286,6 +288,7 @@ void yyerror(yyscan_t scanner, const char *str)
 %token <string> SCOPED_REF CONTEXT_REF COMPLEX_CONTEXT_REF
 %token <datetime> DATETIME
 %token <String> QUOTED_WORD
+%token <binary> BINARY
 %token <RegexSubst> REGEX_SUBST
 %token <RegexTrans> REGEX_TRANS
 %token <nscope> BASE_CLASS_CALL
@@ -358,7 +361,7 @@ void yyerror(yyscan_t scanner, const char *str)
 %type <bcanode>     base_constructor
 
  // destructor actions for elements that need deleting when parse errors occur
-%destructor { if ($$) delete $$; } DATETIME QUOTED_WORD REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod method_definition object_def top_namespace_decl namespace_decls namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor private_member_list member_list
+%destructor { if ($$) delete $$; } BINARY DATETIME QUOTED_WORD REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod method_definition object_def top_namespace_decl namespace_decls namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor private_member_list member_list
 %destructor { if ($$) $$->deref(); } base_constructor_list base_constructors superclass_list inheritance_list class_attributes
 %destructor { if ($$) $$->deref(NULL); } exp myexp scalar function_call scoped_object_call self_function_call hash list
 %destructor { free($$); } IDENTIFIER VAR_REF SELF_REF CONTEXT_REF COMPLEX_CONTEXT_REF BACKQUOTE SCOPED_REF KW_IDENTIFIER_OPENPAREN optname
@@ -1059,6 +1062,8 @@ hash_element:
 
 exp:    scalar
         { $$ = $1; }
+        | BINARY
+        { $$ = new QoreNode($1); }
         | list
         { $$ = $1; }
 	| '(' hash ')'

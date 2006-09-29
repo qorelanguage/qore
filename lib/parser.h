@@ -87,47 +87,48 @@
      COMPLEX_CONTEXT_REF = 313,
      DATETIME = 314,
      QUOTED_WORD = 315,
-     REGEX_SUBST = 316,
-     REGEX_TRANS = 317,
-     BASE_CLASS_CALL = 318,
-     REGEX = 319,
-     REGEX_EXTRACT = 320,
-     IFX = 321,
-     TOK_ELSE = 322,
-     SHIFT_RIGHT_EQUALS = 323,
-     SHIFT_LEFT_EQUALS = 324,
-     XOR_EQUALS = 325,
-     DIVIDE_EQUALS = 326,
-     MULTIPLY_EQUALS = 327,
-     MODULA_EQUALS = 328,
-     OR_EQUALS = 329,
-     AND_EQUALS = 330,
-     MINUS_EQUALS = 331,
-     PLUS_EQUALS = 332,
-     TOK_SPLICE = 333,
-     TOK_PUSH = 334,
-     TOK_UNSHIFT = 335,
-     LOGICAL_OR = 336,
-     LOGICAL_AND = 337,
-     REGEX_NMATCH = 338,
-     REGEX_MATCH = 339,
-     ABSOLUTE_NE = 340,
-     ABSOLUTE_EQ = 341,
-     LOGICAL_CMP = 342,
-     LOGICAL_GE = 343,
-     LOGICAL_LE = 344,
-     LOGICAL_NE = 345,
-     LOGICAL_EQ = 346,
-     TOK_INSTANCEOF = 347,
-     TOK_EXISTS = 348,
-     SHIFT_LEFT = 349,
-     SHIFT_RIGHT = 350,
-     TOK_KEYS = 351,
-     TOK_ELEMENTS = 352,
-     TOK_CHOMP = 353,
-     TOK_POP = 354,
-     TOK_SHIFT = 355,
-     NEG = 356
+     BINARY = 316,
+     REGEX_SUBST = 317,
+     REGEX_TRANS = 318,
+     BASE_CLASS_CALL = 319,
+     REGEX = 320,
+     REGEX_EXTRACT = 321,
+     IFX = 322,
+     TOK_ELSE = 323,
+     SHIFT_RIGHT_EQUALS = 324,
+     SHIFT_LEFT_EQUALS = 325,
+     XOR_EQUALS = 326,
+     DIVIDE_EQUALS = 327,
+     MULTIPLY_EQUALS = 328,
+     MODULA_EQUALS = 329,
+     OR_EQUALS = 330,
+     AND_EQUALS = 331,
+     MINUS_EQUALS = 332,
+     PLUS_EQUALS = 333,
+     TOK_SPLICE = 334,
+     TOK_PUSH = 335,
+     TOK_UNSHIFT = 336,
+     LOGICAL_OR = 337,
+     LOGICAL_AND = 338,
+     REGEX_NMATCH = 339,
+     REGEX_MATCH = 340,
+     ABSOLUTE_NE = 341,
+     ABSOLUTE_EQ = 342,
+     LOGICAL_CMP = 343,
+     LOGICAL_GE = 344,
+     LOGICAL_LE = 345,
+     LOGICAL_NE = 346,
+     LOGICAL_EQ = 347,
+     TOK_INSTANCEOF = 348,
+     TOK_EXISTS = 349,
+     SHIFT_LEFT = 350,
+     SHIFT_RIGHT = 351,
+     TOK_KEYS = 352,
+     TOK_ELEMENTS = 353,
+     TOK_CHOMP = 354,
+     TOK_POP = 355,
+     TOK_SHIFT = 356,
+     NEG = 357
    };
 #endif
 /* Tokens.  */
@@ -189,59 +190,61 @@
 #define COMPLEX_CONTEXT_REF 313
 #define DATETIME 314
 #define QUOTED_WORD 315
-#define REGEX_SUBST 316
-#define REGEX_TRANS 317
-#define BASE_CLASS_CALL 318
-#define REGEX 319
-#define REGEX_EXTRACT 320
-#define IFX 321
-#define TOK_ELSE 322
-#define SHIFT_RIGHT_EQUALS 323
-#define SHIFT_LEFT_EQUALS 324
-#define XOR_EQUALS 325
-#define DIVIDE_EQUALS 326
-#define MULTIPLY_EQUALS 327
-#define MODULA_EQUALS 328
-#define OR_EQUALS 329
-#define AND_EQUALS 330
-#define MINUS_EQUALS 331
-#define PLUS_EQUALS 332
-#define TOK_SPLICE 333
-#define TOK_PUSH 334
-#define TOK_UNSHIFT 335
-#define LOGICAL_OR 336
-#define LOGICAL_AND 337
-#define REGEX_NMATCH 338
-#define REGEX_MATCH 339
-#define ABSOLUTE_NE 340
-#define ABSOLUTE_EQ 341
-#define LOGICAL_CMP 342
-#define LOGICAL_GE 343
-#define LOGICAL_LE 344
-#define LOGICAL_NE 345
-#define LOGICAL_EQ 346
-#define TOK_INSTANCEOF 347
-#define TOK_EXISTS 348
-#define SHIFT_LEFT 349
-#define SHIFT_RIGHT 350
-#define TOK_KEYS 351
-#define TOK_ELEMENTS 352
-#define TOK_CHOMP 353
-#define TOK_POP 354
-#define TOK_SHIFT 355
-#define NEG 356
+#define BINARY 316
+#define REGEX_SUBST 317
+#define REGEX_TRANS 318
+#define BASE_CLASS_CALL 319
+#define REGEX 320
+#define REGEX_EXTRACT 321
+#define IFX 322
+#define TOK_ELSE 323
+#define SHIFT_RIGHT_EQUALS 324
+#define SHIFT_LEFT_EQUALS 325
+#define XOR_EQUALS 326
+#define DIVIDE_EQUALS 327
+#define MULTIPLY_EQUALS 328
+#define MODULA_EQUALS 329
+#define OR_EQUALS 330
+#define AND_EQUALS 331
+#define MINUS_EQUALS 332
+#define PLUS_EQUALS 333
+#define TOK_SPLICE 334
+#define TOK_PUSH 335
+#define TOK_UNSHIFT 336
+#define LOGICAL_OR 337
+#define LOGICAL_AND 338
+#define REGEX_NMATCH 339
+#define REGEX_MATCH 340
+#define ABSOLUTE_NE 341
+#define ABSOLUTE_EQ 342
+#define LOGICAL_CMP 343
+#define LOGICAL_GE 344
+#define LOGICAL_LE 345
+#define LOGICAL_NE 346
+#define LOGICAL_EQ 347
+#define TOK_INSTANCEOF 348
+#define TOK_EXISTS 349
+#define SHIFT_LEFT 350
+#define SHIFT_RIGHT 351
+#define TOK_KEYS 352
+#define TOK_ELEMENTS 353
+#define TOK_CHOMP 354
+#define TOK_POP 355
+#define TOK_SHIFT 356
+#define NEG 357
 
 
 
 
 #if ! defined (YYSTYPE) && ! defined (YYSTYPE_IS_DECLARED)
-#line 220 "parser.yy"
+#line 221 "parser.yy"
 typedef union YYSTYPE {
       int i4;
       int64 integer;
       double decimal;
       class QoreString *String;
       char *string;
+      class BinaryObject *binary;
       class QoreNode *node;
       class Statement *statement;
       class StatementBlock *sblock;
@@ -269,7 +272,7 @@ typedef union YYSTYPE {
       class QoreRegex *Regex;
 } YYSTYPE;
 /* Line 1447 of yacc.c.  */
-#line 273 "parser.h"
+#line 276 "parser.h"
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
 # define YYSTYPE_IS_TRIVIAL 1

@@ -164,7 +164,8 @@ inline QoreNode *QoreQueue::shift(int timeout_ms, bool *to)
 	 if (!pthread_cond_timedwait(&qcond, &qmutex, &tmout))
 	    break;
 
-	 // lock has timed out, return -1
+	 // lock has timed out, unlock and return -1
+	 pthread_mutex_unlock(&qmutex);
 	 printd(5, "QoreQueue::shift() timed out after %dms waiting on another thread to release the lock\n", ts * 1000 + timeout_ms);
 	 *to = true;
 	 return NULL;
@@ -225,7 +226,8 @@ inline QoreNode *QoreQueue::pop(int timeout_ms, bool *to)
 	 if (!(rc = pthread_cond_timedwait(&qcond, &qmutex, &tmout)))
 	    break;
 
-	 // lock has timed out, return -1
+	 // lock has timed out, unlock and return -1
+	 pthread_mutex_unlock(&qmutex);
 	 printd(5, "rc = %d: QoreQueue::pop() timed out after %dms waiting on another thread to release the lock\n", rc, ts * 1000 + timeout_ms);
 	 *to = true;
 	 return NULL;

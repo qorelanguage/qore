@@ -1,4 +1,5 @@
 see docs/roadmap.html
 
+* clean thread table after a fork()!
 * add signal constants
 * add parse-time argument checks (instead of just run-time exceptions)

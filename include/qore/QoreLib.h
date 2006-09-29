@@ -56,6 +56,8 @@ extern class LockedObject lck_gmtime;
 extern char table64[64];
 
 class BinaryObject *parseBase64(char *buf, int len, class ExceptionSink *xsink);
+class BinaryObject *parseHex(char *buf, int len, class ExceptionSink *xsink);
+class BinaryObject *parseHex(char *buf, int len);
 
 #ifdef DEBUG
 class QoreString *dni(class QoreString *s, class QoreNode *n, int indent, class ExceptionSink *xsink);

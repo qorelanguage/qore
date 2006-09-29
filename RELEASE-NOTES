@@ -5,6 +5,8 @@ NOTE: for platform-specific notes and build instructions, please see the file BU
 *** LIST OF CHANGES IN THIS RELEASE ***
 
 -- under construction --
+* new functions
+  + hstat(), hlstat() - perform a "stat()" on a file/directory/etc and return a hash instead of a list - much easier to use output, including a "type" key, which gives the file type
 
 
 ***********************
