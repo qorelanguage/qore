@@ -275,7 +275,6 @@ class QoreClass *QoreClass::copyAndDeref()
 
    // set up function list
 
-#ifdef HAVE_QORE_HASH_MAP
    for (hm_method_t::iterator i = hm.begin(); i != hm.end(); i++)
    {
       class Method *nf = i->second->copy();
@@ -295,36 +294,7 @@ class QoreClass *QoreClass::copyAndDeref()
    // copy private member list
    for (hm_qn_t::iterator i = pmm.begin(); i != pmm.end(); i++)
       noc->pmm[strdup(i->first)] = NULL;
-#else
-   class Method *where = methodlist_head;
-   while (where)
-   {
-      class Method *nf = where->copy();
-      if (!noc->methodlist_tail)
-	 noc->methodlist_head = nf;
-      else
-	 noc->methodlist_tail->next = nf;
-      noc->methodlist_tail = nf;
 
-      if (where == constructor)
-	 noc->constructor  = nf;
-      else if (where == destructor)
-	 noc->destructor   = nf;
-      else if (where == copyMethod)
-	 noc->copyMethod   = nf;
-      else if (where == methodGate)
-	 noc->methodGate   = nf;
-      else if (where == memberGate)
-	 noc->memberGate   = nf;
-
-      where = where->next;
-
-   }
-   noc->numFuncs = numFuncs;
-   // copy private member list
-   delete noc->privateMemberList;
-   noc->privateMemberList = privateMemberList->copy();
-#endif
    // note that if there is a base class argument list, it
    // is referenced when the constructor is copied
    noc->bcal = bcal;
@@ -343,17 +313,7 @@ void QoreClass::insertMethod(Method *o)
 {
    //printd(5, "QoreClass::insertMethod() %s::%s() size=%d\n", name, o->name, numMethods());
 
-#ifdef HAVE_QORE_HASH_MAP
    hm[o->name] = o;
-#else
-   numFuncs++;
-   // insert in methodlist_head
-   if (methodlist_tail)
-      methodlist_tail->next = o;
-   else
-      methodlist_head = o;
-   methodlist_tail = o;
-#endif
 }      
 
 class QoreNode *QoreClass::evalMethod(Object *self, char *nme, QoreNode *args, class ExceptionSink *xsink)
@@ -435,14 +395,10 @@ class QoreNode *QoreClass::evalMethodGate(Object *self, char *nme, QoreNode *arg
 
 bool QoreClass::isPrivateMember(char *str)
 {
-#ifdef HAVE_QORE_HASH_MAP
    hm_qn_t::iterator i = pmm.find(str);
    if (i != pmm.end())
       return true;
-#else
-   if (privateMemberList->inlist(str))
-      return true;
-#endif   
+
    if (scl)
       return scl->isPrivateMember(str);
    return false;

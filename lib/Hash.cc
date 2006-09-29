@@ -46,14 +46,8 @@ void Hash::dereference(class ExceptionSink *xsink)
    member_list = NULL;
    tail = NULL;
 
-#ifdef HAVE_QORE_HASH_MAP
    hm.clear();
-#else
-   num_elements = 0;
-#endif
 }
-
-#ifdef HAVE_QORE_HASH_MAP
 
 void Hash::deleteKey(char *key, ExceptionSink *xsink)
 {
@@ -70,20 +64,3 @@ void Hash::deleteKey(char *key, ExceptionSink *xsink)
    hm.erase(i);
    internDeleteKey(m, xsink);
 }
-
-#else  // HAVE_QORE_HASH_MAP
-
-void Hash::deleteKey(char *key, ExceptionSink *xsink)
-{
-#ifdef DEBUG
-   if (!key) run_time_error("Hash::deleteKey() key=NULL\n");
-#endif
-   class HashMember *om;
-
-   if (!(om = findKey(key)))
-      return;
-
-   internDeleteKey(om, xsink);
-}
-
-#endif  // HAVE_QORE_HASH_MAP

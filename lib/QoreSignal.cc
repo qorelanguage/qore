@@ -24,8 +24,11 @@
 #include <qore/QoreSignal.h>
 #include <qore/support.h>
 #include <qore/thread.h>
+#include <qore/Function.h>
 
 #include <stdlib.h>
+
+class QoreSignalManager QSM;
 
 extern "C" void sighandler(int sig, siginfo_t *info, ucontext_t *uap)
 {

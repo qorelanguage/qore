@@ -44,24 +44,12 @@ class BuiltinFunctionList builtinFunctions;
 
 void BuiltinFunctionList::add(char *name, class QoreNode *(*f)(class QoreNode *, class ExceptionSink *xsink), int typ)
 {
-#ifdef HAVE_QORE_HASH_MAP
    hm[strdup(name)] = new BuiltinFunction(name, f, typ);
-#else
-   len++;
-   class BuiltinFunction *b = new BuiltinFunction(name, f, typ);
-   if (!tail)
-      head = b;
-   else
-      tail->next = b;
-   tail = b;
-#endif
 }
 
 BuiltinFunctionList::~BuiltinFunctionList()
 {
    //printd(5, "BuiltinFunctionList::~BuiltinFunctionList() this=%08p\n", this);
-#ifdef HAVE_QORE_HASH_MAP
-
    hm_bf_t::iterator i;
    while ((i = hm.begin()) != hm.end())
    {
@@ -77,15 +65,6 @@ BuiltinFunctionList::~BuiltinFunctionList()
       // delete function
       free(c);
    }
-
-#else
-   while (head)
-   {
-      class BuiltinFunction *w = head->next;
-      delete head;
-      head = w;
-   }
-#endif
 }
 
 void BuiltinFunctionList::init()

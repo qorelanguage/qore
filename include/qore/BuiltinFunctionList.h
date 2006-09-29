@@ -27,31 +27,17 @@
 #include <qore/config.h>
 #include <qore/hash_map.h>
 #include <qore/Restrictions.h>
+#include <qore/hash_map.h>
 
 #include <string.h>
-
-#ifdef HAVE_QORE_HASH_MAP
-#include <qore/hash_map.h>
-#endif
 
 class BuiltinFunctionList // public LockedObject
 {
    private:
-#ifdef HAVE_QORE_HASH_MAP
       hm_bf_t hm;
-#else
-      int len;
-      class BuiltinFunction *head, *tail;
-#endif
 
    public:
-      inline BuiltinFunctionList()
-      {
-#ifndef HAVE_QORE_HASH_MAP
-	 head = tail = NULL;
-	 len = 0;
-#endif
-      }
+      inline BuiltinFunctionList() {}
 
       ~BuiltinFunctionList();
       
@@ -61,11 +47,7 @@ class BuiltinFunctionList // public LockedObject
 
       inline int size()
       {
-#ifdef HAVE_QORE_HASH_MAP
 	 return hm.size();
-#else
-	 return len;
-#endif
       }
 
       void init();
@@ -80,19 +62,9 @@ void init_builtin_functions();
 
 inline class BuiltinFunction *BuiltinFunctionList::find(char *name)
 {
-#ifdef HAVE_QORE_HASH_MAP
    hm_bf_t::iterator i = hm.find(name);
    if (i != hm.end())
       return i->second;
-#else
-   class BuiltinFunction *w = head;
-   while (w)
-   {
-      if (!strcmp(name, w->name))
-	 return w;
-      w = w->next;
-   }
-#endif
    return NULL;
 }
 

@@ -40,14 +40,11 @@
 #include <string.h>
 #include <stdlib.h>
 
-#ifdef HAVE_QORE_HASH_MAP
 #include <qore/hash_map.h>
-#endif
 
 class ConstantList
 {
    private:
-#ifdef HAVE_QORE_HASH_MAP
       hm_qn_t hm;
 
       inline void remove(hm_qn_t::iterator i)
@@ -59,17 +56,10 @@ class ConstantList
 	 hm.erase(i);
 	 free(c);	 
       }
-#endif
 
       inline void deleteAll();
 
    public:
-#ifndef HAVE_QORE_HASH_MAP
-      class CNode *head, *tail;
-
-      inline ConstantList();
-#endif
-
       inline ~ConstantList();
       inline void add(char *name, class QoreNode *value);
       inline class QoreNode *find(char *name);
@@ -87,8 +77,6 @@ inline ConstantList::~ConstantList()
    deleteAll();
    //traceout("ConstantList::~ConstantList()");
 }
-
-#ifdef HAVE_QORE_HASH_MAP
 
 //  NOTE: since constants cannot hold objects (only immediate values)
 //  there is no need for an exception handler with the dereference
@@ -210,172 +198,5 @@ inline Hash *ConstantList::getInfo()
 
    return h;
 }
-
-#else
-class CNode
-{
-   public:
-      char *name;
-      class QoreNode *val;
-      class CNode *next;
-
-      inline CNode(char *n, class QoreNode *v)
-      {
-	 name = strdup(n);
-	 val = v;
-	 next = NULL;
-      }
-      inline ~CNode();
-};
-
-/*
-  NOTE: since constants cannot hold objects (only immediate values)
-  there is no need for an exception handler with the dereference
- */
-inline CNode::~CNode()
-{
-   free(name);
-   if (val)
-      val->deref(NULL);
-}
-
-inline ConstantList::ConstantList()
-{
-   head = tail = NULL;
-}
-
-inline void ConstantList::deleteAll()
-{
-   while (head)
-   {
-      tail = head->next;
-      delete head;
-      head = tail;
-   }
-}
-
-inline void ConstantList::reset()
-{
-   deleteAll();
-   head = tail = NULL;
-}
-
-inline void ConstantList::add(char *name, class QoreNode *value)
-{
-   // first check if the constant has already been defined
-   if (find(name))
-   {
-      parse_error("constant \"%s\" has already been defined", name);
-      value->deref(NULL);
-      return;
-   }
-
-   CNode *c = new CNode(name, value);
-   if (tail)
-      tail->next = c;
-   else
-      head = c;
-   tail = c;
-}
-
-inline class QoreNode *ConstantList::find(char *name)
-{
-   class CNode *w = head;
-
-   while (w)
-   {
-      if (!strcmp(name, w->name))
-	 return w->val;
-      w = w->next;
-   }
-
-   return NULL;
-}
-
-inline class ConstantList *ConstantList::copy()
-{
-   class ConstantList *ncl = new ConstantList();
-
-   class CNode *w = head;
-
-   while (w)
-   {
-      // reference value for new constant definition
-      if (w->val)
-	 w->val->ref();
-      ncl->add(w->name, w->val);
-
-      w = w->next;
-   }
-
-   return ncl;
-}
-
-inline void ConstantList::assimilate(class ConstantList *n)
-{
-   // assimilate target list
-   if (tail)
-      tail->next = n->head;
-   else
-      head = n->head;
-   if (n->tail)
-      tail = n->tail;
-   
-   // "zero" target list
-   n->head = n->tail = NULL;
-}
-
-inline void ConstantList::assimilate(class ConstantList *n, class ConstantList *otherlist, char *nsname)
-{
-   CNode *cw = n->head;
-   while (cw)
-   {
-      // throw parse exception if constant already defined
-      if (otherlist->find(cw->name))
-	 parse_error("constant \"%s\" has already been defined in namespace \"%s\"",
-		     cw->name, nsname);
-      else if (find(cw->name))
-	 parse_error("constant \"%s\" is already pending for namespace \"%s\"",
-		     cw->name, nsname);
-      cw = cw->next;
-   }
-
-   assimilate(n);
-}
-
-#include <qore/QoreType.h>
-
-inline void ConstantList::parseInit()
-{
-   //printd(5, "ConstantList::parseInit() head=%08p\n", head);
-   class CNode *w = head;
-
-   while (w)
-   {
-      printd(5, "ConstantList::parseInit() %s\n", w->name);
-      parseInitConstantValue(&w->val, 0);
-      printd(5, "ConstantList::parseInit() constant %s resolved to %08p %s\n", 
-	     w->name, w->val, w->val ? w->val->type->name : "NULL");
-      if (!w->val)
-	 w->val = nothing();
-      w = w->next;
-   }
-}
-
-inline Hash *ConstantList::getInfo()
-{
-   class Hash *h = new Hash();
-
-   class CNode *w = head;
-   while (w)
-   {
-      h->setKeyValue(w->name, w->val->RefSelf(), NULL);
-      w = w->next;
-   }
-
-   return h;
-}
-
-#endif // HAVE_QORE_HASH_MAP
 
 #endif // _QORE_CONSTANTLIST_H

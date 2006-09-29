@@ -8,6 +8,9 @@
 	  beginning of the string
 	* fixed a bug in the Queue class; a timeout in ::get() or ::pop() would
 	  cause a deadlock on the next call to ::get() or ::pop()
+	* throw an exception when fork() is called and more than one thread is 
+          running
+	* changes to use std::map when hash_map not available
 
 2006.09.28: David Nichols
 	* fixed broken ncurses module, made calls to initscr() optional

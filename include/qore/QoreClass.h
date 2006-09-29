@@ -31,9 +31,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifdef HAVE_QORE_HASH_MAP
 #include <qore/hash_map.h>
-#endif
 
 #define OTF_USER    0
 #define OTF_BUILTIN 1
@@ -457,14 +455,8 @@ class QoreClass : public ReferenceObject //, public LockedObject
 {
    private:
       char *name;
-#ifdef HAVE_QORE_HASH_MAP
       hm_method_t hm;
       hm_qn_t pmm, pending_pmm;
-#else
-      class MemberList *privateMemberList, *pending_privateMemberList;
-      class Method *methodlist_head, *methodlist_tail;
-      int numFuncs;
-#endif
       class Method *pending_head, *system_constructor;
       class Method *constructor, *destructor, *copyMethod, *methodGate, *memberGate;
       int classID;
@@ -538,11 +530,7 @@ class QoreClass : public ReferenceObject //, public LockedObject
       inline class List *getMethodList();
       inline int numMethods() 
       {
-#ifdef HAVE_QORE_HASH_MAP
 	 return hm.size();
-#else
-	 return numFuncs;
-#endif
       }
       inline int hasCopy() { return copyMethod ? 1 : 0; }
       class QoreClass *copyAndDeref();
@@ -1013,13 +1001,6 @@ inline void QoreClass::init(char *nme, int dom)
    sys  = false;
    pending_head = NULL;
    bcal = NULL;
-#ifndef HAVE_QORE_HASH_MAP
-   methodlist_head = NULL;
-   methodlist_tail = NULL;
-   numFuncs = 0;
-   privateMemberList = new MemberList();
-   pending_privateMemberList = new MemberList();
-#endif
 
    // quick pointers
    constructor = NULL;
@@ -1058,7 +1039,6 @@ inline QoreClass::QoreClass(char *nme, int id)
 inline QoreClass::~QoreClass()
 {
    //printd(5, "QoreClass::~QoreClass() deleting %08p %s\n", this, name);
-#ifdef HAVE_QORE_HASH_MAP
    hm_method_t::iterator i;
    while ((i = hm.begin()) != hm.end())
    {
@@ -1081,18 +1061,6 @@ inline QoreClass::~QoreClass()
       pending_pmm.erase(j);
       free(n);
    }
-#else
-   while (methodlist_head)
-   {
-      Method *w = methodlist_head;
-      methodlist_head = methodlist_head->next;
-      printd(5, "QoreClass::~QoreClass() this=%08p normal list: deleting %s.%s()\n", this, name, w->name);
-      delete w;
-   }
-   // delete private member list
-   delete privateMemberList;
-   delete pending_privateMemberList;
-#endif
    // delete any pending methods
    delete_pending_methods();
    free(name);
@@ -1137,22 +1105,10 @@ inline void QoreClass::checkSpecial(class Method *m)
 
 inline class Method *QoreClass::findLocalMethod(char *nme)
 {
-#ifdef HAVE_QORE_HASH_MAP
    hm_method_t::iterator i = hm.find(nme);
    if (i != hm.end())
       return i->second;
 
-#else
-   class Method *w = methodlist_head;
-
-   while (w)
-   {
-      printd(5, "QoreClass::findLocalMethod(%s) == %s (class %s)\n", nme, w->name, name);
-      if (!strcmp(nme, w->name))
-	 return w;
-      w = w->next;
-   }
-#endif
    return NULL;
 }
 
@@ -1603,19 +1559,8 @@ inline List *QoreClass::getMethodList()
 {
    List *l = new List();
 
-#ifdef HAVE_QORE_HASH_MAP
    for (hm_method_t::iterator i = hm.begin(); i != hm.end(); i++)
       l->push(new QoreNode(i->first));
-#else
-   Method *w = methodlist_head;
-
-   while (w)
-   {
-      if (!w->isPrivate())
-	 l->push(new QoreNode(w->name));
-      w = w->next;
-   }   
-#endif
    return l;
 }
 
@@ -1660,7 +1605,6 @@ inline void QoreClass::parseCommit()
    }
 
    // add all pending private members
-#ifdef HAVE_QORE_HASH_MAP
    hm_qn_t::iterator i;
    while ((i = pending_pmm.begin()) != pending_pmm.end())
    { 
@@ -1668,16 +1612,6 @@ inline void QoreClass::parseCommit()
       pmm[i->first] = NULL;
       pending_pmm.erase(i);
    }
-#else
-   Member *mw = pending_privateMemberList->head;
-   while (mw)
-   {
-      class Member *n = mw->next;
-      privateMemberList->add(mw);
-      mw = n;
-   }
-   pending_privateMemberList->head = NULL;
-#endif
 
    pending_head = NULL;
 }
@@ -1694,9 +1628,6 @@ inline void Method::userInit(UserFunction *u, int p)
    type = OTF_USER;
    func.userFunc = u;
    priv = p;
-#ifndef HAVE_QORE_HASH_MAP
-   next = NULL;
-#endif
 }
 
 inline Method::Method(UserFunction *u, int p, BCAList *b)
@@ -1712,9 +1643,6 @@ inline Method::Method(BuiltinMethod *b)
    func.builtin = b;
    priv = 0;
    bcal = NULL;
-#ifndef HAVE_QORE_HASH_MAP
-   next = NULL;
-#endif
 }
 
 inline Method::~Method()
@@ -1850,7 +1778,6 @@ static inline QoreClass *getStackClass()
 
 inline void QoreClass::addPrivateMember(char *nme)
 {
-#ifdef HAVE_QORE_HASH_MAP
    hm_qn_t::iterator i;
    if ((i = pmm.find(nme)) == pmm.end())
    {
@@ -1860,11 +1787,6 @@ inline void QoreClass::addPrivateMember(char *nme)
 	 pending_pmm[nme] = NULL;
       }
       else
-#else
-   if (!privateMemberList->inlist(nme))
-   {
-      if (pending_privateMemberList->add(nme))
-#endif
       {
 	 if (name)
 	    parse_error("private member '%s' already pending in class %s", nme, name);

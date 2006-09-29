@@ -89,13 +89,7 @@ class Hash
    private:
       class HashMember *member_list;
       class HashMember *tail;
-#ifdef HAVE_QORE_HASH_MAP
       hm_hm_t hm;
-#else
-      int num_elements;
-
-      inline class HashMember *findKey(char *key);
-#endif
       inline class QoreNode **newKeyValue(char *key, class QoreNode *value);
       inline void internDeleteKey(class HashMember *m, class ExceptionSink *xsink);
 
@@ -141,11 +135,7 @@ class Hash
 	 return new HashIterator(member_list);
       }
       */
-#ifdef HAVE_QORE_HASH_MAP
       inline int size() { return hm.size(); }
-#else
-      inline int size() { return num_elements; }
-#endif
       void dereference(class ExceptionSink *xsink);
 };
 
@@ -186,10 +176,6 @@ inline void Hash::internDeleteKey(class HashMember *om, class ExceptionSink *xsi
    free(om->key);
    // free om memory
    delete om;
-
-#ifndef HAVE_QORE_HASH_MAP
-   num_elements--;
-#endif
 }
 
 inline class QoreNode **Hash::getKeyValuePtr(QoreString *key, class ExceptionSink *xsink)
@@ -305,11 +291,7 @@ inline class QoreNode **Hash::newKeyValue(char *key, class QoreNode *value)
       member_list = om;
    tail = om;
 
-#ifdef HAVE_QORE_HASH_MAP
    hm[om->key] = om;
-#else
-   num_elements++;
-#endif
 
    return &om->node;
 }
@@ -413,9 +395,6 @@ inline Hash::Hash(bool ne)
    needs_eval = ne; 
    member_list = NULL; 
    tail = NULL; 
-#ifndef HAVE_QORE_HASH_MAP
-   num_elements = 0; 
-#endif
 }
 
 inline class QoreNode *HashIterator::eval(class ExceptionSink *xsink)
@@ -445,7 +424,6 @@ inline void HashIterator::setValue(class QoreNode *val, class ExceptionSink *xsi
 }
 */
 
-#ifdef HAVE_QORE_HASH_MAP
 inline class QoreNode *Hash::evalKey(char *key, class ExceptionSink *xsink)
 {
 #ifdef DEBUG
@@ -566,161 +544,5 @@ inline class QoreNode **Hash::getExistingValuePtr(char *key)
    
    return NULL;
 }
-
-#else // HAVE_QORE_HASH_MAP is not defined (no hash_map)
-
-inline class HashMember *Hash::findKey(char *key)
-{
-#ifdef DEBUG
-   if (!key) run_time_error("Hash::findKey() key=NULL\n");
-#endif
-   class HashMember *where = member_list;
-
-   while (where)
-   {
-      //printd(5, "Hash::findKey(%s) == %s? (where=%08p, next=%08p)\n", key, where->key, where, where->next);
-      if (!strcmp(where->key, key))
-	 break;
-      where = where->next;
-   }
-   //printd(5, "O:fk() where=%08p\n", where);
-   return where;
-}
-
-inline class QoreNode *Hash::evalKey(char *key, class ExceptionSink *xsink)
-{
-#ifdef DEBUG
-   if (!key) run_time_error("Hash::evalKey() key=NULL\n");
-#endif
-   class HashMember *om;
-
-   //printd(5, "Hash::evalKey(%s)\n", key);
-   if ((om = findKey(key)))
-   {
-      if (om->node)
-	 return om->node->eval(xsink);
-      return NULL;
-   }
-   return NULL;
-}
-
-inline class QoreNode *Hash::evalKeyExistence(char *key, class ExceptionSink *xsink)
-{
-#ifdef DEBUG
-   if (!key) run_time_error("Hash::evalKeyExistence() key=NULL\n");
-#endif
-   class HashMember *om;
-
-   //printd(5, "Hash::getKeyValue(%s)\n", key);
-   if ((om = findKey(key)))
-   {
-      if (om->node)
-	 return om->node->eval(xsink);
-      return NULL;
-   }
-   return (QoreNode *)-1;
-}
-
-inline class QoreNode **Hash::getKeyValuePtr(char *key)
-{
-#ifdef DEBUG
-   if (!key) run_time_error("Hash::getKeyValuePtr() key=NULL\n");
-#endif
-   class HashMember *om;
-
-   if ((om = findKey(key)))
-      return &om->node;
-   return newKeyValue(key, NULL);
-}
-
-inline class QoreNode *Hash::getKeyValue(char *key)
-{
-#ifdef DEBUG
-   if (!key) run_time_error("Hash::getKeyValue() key=NULL\n");
-#endif
-   class HashMember *om;
-
-   //printd(5, "Hash::getKeyValue(%s)\n", key);
-   if ((om = findKey(key)))
-      return om->node;
-   return NULL;
-}
-
-/*
-inline class QoreNode *Hash::getKeyValue(class QoreString *key)
-{
-   return getKeyValue(key->getBuffer());
-}
-
-inline class QoreNode *Hash::getFirstKeyValue()
-{
-   if (!member_list)
-      return NULL;
-   return member_list->node;
-}
-*/
-
-inline class QoreNode *Hash::getKeyValueExistence(char *key)
-{
-#ifdef DEBUG
-   if (!key) run_time_error("Hash::getKeyValueExistence() key=NULL\n");
-#endif
-   class HashMember *om;
-
-   //printd(5, "Hash::getKeyValueExistence(%s)\n", key);
-   if ((om = findKey(key)))
-      return om->node;
-   return (QoreNode *)-1;
-}
-
-// does a "soft" compare (values of different types are converted if necessary and then compared)
-// 0 = equal, 1 = not equal
-inline bool Hash::compareSoft(class Hash *h, class ExceptionSink *xsink)
-{
-   if (h->num_elements != num_elements)
-      return 1;
-   class HashMember *where = member_list;
-   while (where)
-   {
-      class QoreNode *n = h->getKeyValueExistence(where->key);
-      if (n == (QoreNode *)-1)
-	 return 1;
-      if (::compareSoft(where->node, n, xsink))
-	 return 1;
-      where = where->next;
-   }
-   return 0;
-}
-
-// does a "hard" compare (types must be exactly the same)
-// 0 = equal, 1 = not equal
-inline bool Hash::compareHard(class Hash *h)
-{
-   if (h->num_elements != num_elements)
-      return 1;
-   class HashMember *where = member_list;
-   while (where)
-   {
-      class QoreNode *n = h->getKeyValueExistence(where->key);
-      if (n == (QoreNode *)-1)
-	 return 1;
-      if (::compareHard(where->node, n))
-	 return 1;
-      where = where->next;
-   }
-   return 0;
-}
-
-inline class QoreNode **Hash::getExistingValuePtr(char *key)
-{
-   class HashMember *om;
-
-   if ((om = findKey(key)))
-      return &om->node;
-   
-   return NULL;
-}
-
-#endif // HAVE_QORE_HASH_MAP
 
 #endif // _QORE_HASH_H

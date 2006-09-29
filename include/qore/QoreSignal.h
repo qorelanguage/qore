@@ -27,43 +27,39 @@
 #include <signal.h>
 #include <stdio.h>
 
+#include <map>
+
 // maximum number of signals
 #define QORE_SIGNAL_MAX 128
 
-class QoreSignalHandler {
-   public:
-      int sig;
-      class Function *func;
-      class QoreSignalHandler *next;
-      
-      QoreSignalHandler(int s, class Function *f)
-      {
-	 sig = s;
-	 func = f;
-      }
-};
+using namespace std;
+typedef map<int, class Function *> m_int_func_t;
 
 class QoreSignalManager {
    private:
-      class QoreSignalHandler *head;
-
+      m_int_func_t smap;
+   
    public:
-      inline QoreSignalManager() : head(NULL)
-      {
-      }
+      inline QoreSignalManager() {}
       inline ~QoreSignalManager()
       {
-	 class QoreSignalHandler *w = head;
-	 while (w)
-	 {
-	    head = w->next;
-	    delete w;
-	    w = head;
-	 }
+	 smap.clear();
       }
-      int setHandler(int sig, class Function *f);
-      int removeHandler(int sig);
-      class Function *getHandler(int sig);
+      inline void setHandler(int sig, class Function *f)
+      {
+	 smap[sig] = f;
+      }
+      inline void removeHandler(int sig)
+      {
+	 smap.erase(sig);
+      }
+      inline class Function *getHandler(int sig)
+      {
+	 m_int_func_t::iterator i = smap.find(sig);
+	 if (i == smap.end())
+	    return NULL;
+	 return i->second;
+      }
       void handleSignal(int sig);
 };
 
