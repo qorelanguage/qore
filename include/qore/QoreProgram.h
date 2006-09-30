@@ -35,6 +35,8 @@
 #include <qore/support.h>
 #include <qore/QoreWarnings.h>
 
+#include <qore/hash_map.h>
+
 #include <stdio.h>
 #include <errno.h>
 #include <stdarg.h>
@@ -72,7 +74,7 @@ class ImportedFunctionNode
       }
 };
 
-class ImportedFunctionList
+class ImportedFunctionList 
 {
    private:
       class ImportedFunctionNode *head, *tail;
@@ -88,10 +90,10 @@ class ImportedFunctionList
 class UserFunctionList
 {
    private:
-      class UserFunction *head, *tail, *phead, *ptail;
+      hm_uf_t fmap, pmap;   // maps of functions for quick lookups
 
    public:
-      inline UserFunctionList();
+      inline UserFunctionList() {}
       inline ~UserFunctionList();
       inline void deleteUserFunctions();
       inline class UserFunction *findUserFunction(char *name);
@@ -107,16 +109,23 @@ class UserFunctionList
 class GlobalVariableList : public LockedObject
 {
    private:
-      class Var *head;
-      class Var *tail;
+      hm_var_t vmap;
 
    public:
-      inline GlobalVariableList();
-      inline ~GlobalVariableList();
+      inline GlobalVariableList() {}
+#ifdef DEBUG
+      inline ~GlobalVariableList()
+      {
+	 if (vmap.size())
+	    run_time_error("~GlobalVariableList(): FIXME: size = %d", vmap.size());
+      }
+#endif
+      
       inline void delete_all(class ExceptionSink *xsink);
       inline void clear_all(class ExceptionSink *xsink);
       inline void importGlobalVariable(class Var *var, class ExceptionSink *xsink, bool readonly = false);
       inline class Var *newVar(char *name);
+      inline class Var *newVar(class Var *v, bool readonly);
       inline class Var *findVar(char *name);
       inline class Var *checkVar(char *name, int *new_vars);
 #ifdef DEBUG
@@ -407,11 +416,6 @@ inline class UserFunction *ImportedFunctionList::findImportedFunction(char *name
    return NULL;
 }
 
-inline UserFunctionList::UserFunctionList()
-{
-   head = tail = phead = ptail = NULL;
-}
-
 inline UserFunctionList::~UserFunctionList()
 {
    deletePendingUserFunctions();
@@ -420,11 +424,12 @@ inline UserFunctionList::~UserFunctionList()
 
 inline void UserFunctionList::deleteUserFunctions()
 {
-   while (head)
+   hm_uf_t::iterator i;
+   while ((i = fmap.begin()) != fmap.end())
    {
-      tail = head->next;
-      head->deref();
-      head = tail;
+      class UserFunction *uf = i->second;
+      fmap.erase(i);
+      uf->deref();
    }
 }
 
@@ -435,13 +440,7 @@ inline void UserFunctionList::addUserFunction(class UserFunction *func)
    if (findUserFunction(func->name))
       parse_error("user function \"%s\" has already been defined", func->name);
    else
-   {
-      if (ptail)
-	 ptail->next = func;
-      else
-	 phead = func;
-      ptail = func;
-   }
+      pmap[func->name] = func;
 
    traceout("UserFunctionList::addUserFunction()");
 }
@@ -450,29 +449,16 @@ inline class UserFunction *UserFunctionList::findUserFunction(char *name)
 {
    printd(5, "UserFunctionList::findUserFunction(%s)\n", name);
    // first look in pending functions
-   class UserFunction *w = phead;
+   hm_uf_t::iterator i = pmap.find(name);
+   if (i != pmap.end())
+      return i->second;
+   
+   i = fmap.find(name);
+   if (i != fmap.end())
+      return i->second;
 
-   while (w)
-   {
-      if (!strcmp(w->name, name))
-	 break;
-      w = w->next;
-   }
-
-   if (w)
-      return w;
-
-   w = head;
-
-   while (w)
-   {
-      if (!strcmp(w->name, name))
-	 break;
-      w = w->next;
-   }
-
-   printd(5, "UserFunctionList::findUserFunction(%s) returning %08p\n", name, w);
-   return w;
+   //printd(5, "UserFunctionList::findUserFunction(%s) returning %08p\n", name, w);
+   return NULL;
 }
 
 inline class List *UserFunctionList::getUFList()
@@ -480,12 +466,11 @@ inline class List *UserFunctionList::getUFList()
    tracein("UserFunctionList::getUFList()");
 
    class List *l = new List();
-
-   class UserFunction *w = head;
-   while (w)
+   hm_uf_t::iterator i = fmap.begin();
+   while (i != fmap.end())
    {
-      l->push(new QoreNode(w->name));
-      w = w->next;
+      l->push(new QoreNode(i->first));      
+      i++;
    }
 
    traceout("UserFunctionList::getUFList()");
@@ -497,12 +482,12 @@ inline void UserFunctionList::parseInitUserFunctions()
 {
    tracein("UserFunctionList::parseInitUserFunctions()");
 
-   class UserFunction *w = phead;
-   while (w)
+   hm_uf_t::iterator i = pmap.begin();
+   while (i != pmap.end())
    {
       // can (and must) be called if if w->statements is NULL
-      w->statements->parseInit(w->params);
-      w = w->next;
+      i->second->statements->parseInit(i->second->params);
+      i++;
    }
 
    traceout("UserFunctionList::parseInitUserFunctions()");
@@ -511,14 +496,11 @@ inline void UserFunctionList::parseInitUserFunctions()
 // unlocked
 inline void UserFunctionList::mergePendingUserFunctions()
 {
-   if (tail)
-      tail->next = phead;
-   else
-      head = phead;
-   if (ptail)
+   hm_uf_t::iterator i;
+   while ((i = pmap.begin()) != pmap.end())
    {
-      tail = ptail;
-      ptail = phead = NULL;
+      fmap[i->first] = i->second;
+      pmap.erase(i);
    }
 }
 
@@ -526,94 +508,70 @@ inline void UserFunctionList::mergePendingUserFunctions()
 inline void UserFunctionList::deletePendingUserFunctions()
 {
    tracein("UserFunctionList::deletePendingUserFunctions()");
-   while (phead)
+   hm_uf_t::iterator i;
+   while ((i = pmap.begin()) != pmap.end())
    {
-      ptail = phead->next;
-      phead->deref();
-      phead = ptail;
+      class UserFunction *uf = i->second;
+      pmap.erase(i);
+      uf->deref();
    }
-   phead = ptail = NULL;
    traceout("UserFunctionList::deletePendingUserFunctions()");
-}
-
-inline GlobalVariableList::GlobalVariableList()
-{
-   head = tail = NULL;
-   printd(5, "GlobalVariableList::GlobalVariableList() %08p (%08p %08p)\n",
-	  this, head, tail);
-}
-
-inline GlobalVariableList::~GlobalVariableList()
-{
-#ifdef DEBUG
-   if (head)
-      run_time_error("~GlobalVariableList(): FIXME: head = %08p", head);
-#endif
 }
 
 // sets all non-imported variables to NULL (dereferences contents if any)
 inline void GlobalVariableList::clear_all(class ExceptionSink *xsink)
 {
-   class Var *var = head;
+   hm_var_t::iterator i = vmap.begin();
 
-   while (var)
+   while (i != vmap.end())
    {
-      if (!var->isImported())
+      if (!i->second->isImported())
       {
-	 printd(5, "GlobalVariableList::clear_all() clearing '%s' (%08p)\n", var->getName(), var);
-	 var->setValue(NULL, xsink);
+	 printd(5, "GlobalVariableList::clear_all() clearing '%s' (%08p)\n", i->first, i->second);
+	 i->second->setValue(NULL, xsink);
       }
 #ifdef DEBUG
-      else printd(5, "GlobalVariableList::clear_all() skipping imported var '%s' (%08p)\n", var->getName(), var);
+      else printd(5, "GlobalVariableList::clear_all() skipping imported var '%s' (%08p)\n", i->first, i->second);
 #endif
-      var = var->next;
+      i++;
    }
 }
 
 inline void GlobalVariableList::delete_all(class ExceptionSink *xsink)
 {
-   class Var *var = head;
-
-   while (var)
+   hm_var_t::iterator i;
+   while ((i = vmap.begin()) != vmap.end())
    {
-      printd(5, "GlobalVariableList::delete_all() deleting \"%s\"\n", var->getName());
-      head = var->next;
-      var->deref(xsink);
-      var = head;
+      class Var *v = i->second;
+      vmap.erase(i);
+      v->deref(xsink);
    }
 }
 
 inline class Var *GlobalVariableList::newVar(char *name)
 {
    class Var *var = new Var(name);
+   vmap[var->getName()] = var;
+   
+   printd(5, "GlobalVariableList::newVar(): %s (%08p) added\n", name, var);
+   return var;
+}
 
-   if (tail)
-      tail->next = var;
-   else
-      head = var;
-   tail = var;
-
-   printd(5, "GlobalVariableList::newVar(): %s (%08p) added (head=%08p, tail=%08p\n", name, var, head, tail);
+inline class Var *GlobalVariableList::newVar(class Var *v, bool readonly)
+{
+   class Var *var = new Var(v, readonly);
+   vmap[var->getName()] = var;
+   
+   printd(5, "GlobalVariableList::newVar(): reference to %s (%08p) added\n", v->getName(), var);
    return var;
 }
 
 inline class Var *GlobalVariableList::findVar(char *name)
 {
-   tracein("GlobalVariableList::findVar()");
-
-   class Var *var = head;
-
-   while (var)
-   {
-      //printd(5, "GlobalVariableList::findVar() head=%08p var=%08p (%s == %s)\n", head, var, var->getName(), name);
-      if (!strcmp(var->getName(), name))
-	 break;
-      var = var->next;
-   }
-   //if (var)
-   //   printf("GlobalVariableList::findVar(): var %s found (addr=%08p)\n", name, var);
-   traceout("GlobalVariableList::findVar()");
-   return var;
+   hm_var_t::iterator i = vmap.find(name);
+   if (i != vmap.end())
+      return i->second;
+   return NULL;
 }
 
 // used for resolving unflagged global variables
@@ -638,14 +596,13 @@ class List *GlobalVariableList::getVarList()
 {
    List *l = new List();
 
-   class Var *var = head;
-
-   while (var)
+   hm_var_t::iterator i = vmap.begin();
+   while (i != vmap.end())
    {
-      //printd(5, "name=%s\n", var->name);
-      l->push(new QoreNode(var->getName()));
-      var = var->next;
+      l->push(new QoreNode(i->first));
+      i++;
    }
+   
    return l;
 }
 #endif
@@ -816,12 +773,18 @@ inline void GlobalVariableList::importGlobalVariable(class Var *var, class Excep
 {
    lock();
 
-   class Var *nvar = findVar(var->getName());
-   if (!nvar)
-      nvar = newVar(var->getName());
-
+   hm_var_t::iterator i = vmap.find(var->getName());
+   if (i == vmap.end())
+      newVar(var, readonly);
+   else
+   {
+      class Var *v = i->second;
+      vmap.erase(i);
+      v->makeReference(var, xsink, readonly);
+      vmap[v->getName()] = v;
+   }
+   
    unlock();
-   nvar->makeReference(var, xsink, readonly);
 }
 
 // called during parsing (plock already grabbed)

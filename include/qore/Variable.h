@@ -100,7 +100,7 @@ class Var : public ReferenceObject
       inline ~Var() {}
 
    public:
-      class Var *next;
+      //class Var *next;
 
       inline Var(char *nme, class QoreNode *val = NULL);
       inline Var(class Var *ref, bool ro = false);
@@ -240,7 +240,7 @@ inline Var::Var(char *nme, QoreNode *val)
    type = GV_VALUE;
    v.val.value = val;
    v.val.name = strdup(nme);
-   next = NULL;
+   //next = NULL;
 }
 
 inline Var::Var(class Var *ref, bool ro)
@@ -249,7 +249,7 @@ inline Var::Var(class Var *ref, bool ro)
    v.ivar.refptr = ref;
    v.ivar.readonly = ro;
    ref->ROreference();
-   next = NULL;
+   //next = NULL;
 }
 
 #ifdef DEBUG

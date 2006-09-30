@@ -2,6 +2,7 @@
 	* changed all StringList classes to be based on STL container 
 	  functionality
 	* added detection of "slist" container support
+	* added hash_map/map support for more lists for quick lookups
 
 2006.09.29: David Nichols
 	* implemented makeHexString() and parseHexString() functions to generate

@@ -47,6 +47,8 @@ typedef hash_map<char*, class HashMember *, hash<char *>, class eqstr> hm_hm_t;
 typedef hash_map<char*, class Method *, hash<char *>, class eqstr> hm_method_t;
 typedef hash_map<char*, class BuiltinFunction *, hash<char *>, class eqstr> hm_bf_t;
 typedef hash_map<char*, class QoreClass *, hash<char *>, class eqstr> hm_qc_t;
+typedef hash_map<char*, class UserFunction *, hash<char *>, class eqstr> hm_uf_t;
+typedef hash_map<char*, class Var *, hash<char *>, class eqstr> hm_var_t;
 
 #else // HAVE_QORE_HASH_MAP
 #include <map>
@@ -66,6 +68,8 @@ typedef map<char*, class HashMember *, class ltstr> hm_hm_t;
 typedef map<char*, class Method *, class ltstr> hm_method_t;
 typedef map<char*, class BuiltinFunction *, class ltstr> hm_bf_t;
 typedef map<char*, class QoreClass *, class ltstr> hm_qc_t;
+typedef map<char*, class UserFunction *, class ltstr> hm_uf_t;
+typedef map<char*, class Var *, class ltstr> hm_var_t;
 
 #endif // HAVE_QORE_HASH_MAP
 
