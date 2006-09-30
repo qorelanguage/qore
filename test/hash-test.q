@@ -1,7 +1,6 @@
 #!/usr/bin/env qore
 
 # little script to test random hash accesses on a large hash
-# test with "time hash-test.q"
 # by David Nichols
 
 $size = int(shift $ARGV);
@@ -47,15 +46,18 @@ sub hash_test()
     my $h;
 
     print("working: "); flush();
-    my $start = clock_getmillis();
+    my $start = clock_getmicros();
     for (my $i = 0; $i < $size; $i++)
 	$h{getKey($i)} = True;
 
+    printf("%d unique keys, insert time: %d us", elements $h, clock_getmicros() - $start); flush();
+    my $search = clock_getmicros();
     my $l = keys $h;
     for (my $i = 0; $i < $size / 10; $i++)
 	my $v = $h.($l[$i]);
 
-    printf("time: %dms\n", clock_getmillis() - $start);
+    my $et = clock_getmicros();
+    printf(", done: search time: %d us, total time: %d us\n", $et - $search, $et - $start);
 }
 
 hash_test();
