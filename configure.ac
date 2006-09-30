@@ -907,6 +907,9 @@ AC_C_VOLATILE
 # checks for an STL hash_map template
 AC_CXX_MAKE_HASH_MAP_H([include/qore/hash_map_include.h])
 
+# checks for an STL slist template
+AC_CXX_MAKE_SLIST_H([include/qore/slist_include.h])
+
 # Checks for library functions.
 AC_FUNC_FORK
 AC_FUNC_LSTAT

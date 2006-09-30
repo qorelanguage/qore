@@ -26,223 +26,79 @@
 
 #define _QORE_STRINGLIST_H
 
+#include <qore/config.h>
+
 #include <stdlib.h>
 #include <string.h>
 
-// frees all strings on deletion
-class StringNode {
-   public:
-      char *str;
-      class StringNode *next;
+#include <algorithm>
+#include <functional>
+//#include <list>
+#include <deque>
 
-      inline StringNode(char *s) { str = s; }
-      inline ~StringNode() { free(str); }
-};
+// STL is currently missing "slist"
 
-// does not free anything on deletion
-class charPtrNode {
-   public:
-      char *str;
-      class charPtrNode *next;
+#ifdef HAVE_QORE_SLIST
+#include <qore/slist_include.h>
 
-      inline charPtrNode(char *s) { str = s; }
-};
+typedef slist<char *> strslist_t;
+#else
+typedef std::list<char *> strslist_t;
+#endif
 
-class StringListIterator {
-   private:
-      class StringNode *head, *ptr;
+// there doesn't seem to be any singly-linked list with constant-time inserts at the beginning and end
+// ("head" and "tail" pointers) meaning that if I want to use STL (or almost-STL) containers, then to get
+// this I have to use "list", which is wasteful of space (because it's doubly-linked) :-(
+// anyway a deque should require fewer memory allocations compared to a linked list, so we'll go with the
+// deque for now..
 
-   public:
-      inline StringListIterator(class StringList *l);
+typedef std::deque<char *> strlist_t;
 
-      inline class StringNode *next()
-      {
-	 if (ptr)
-	    ptr = ptr->next;
-	 else
-	    ptr = head;
-	 return ptr;
-      }
-      inline char *getString()
-      {
-	 if (!ptr)
-	    return NULL;
-
-	 return ptr->str;
-      }
-};
-
-// double-ended string list - append at the start or end
-// frees all strings on deletion
-class StringList
+template <typename T> struct free_ptr : std::unary_function <T*, void>
 {
-   friend class StringListIterator;
+   void operator()(T *ptr)
+   {
+      free(ptr);
+   }
+};
 
-   private:
-      class StringNode *head, *tail;
-
+class StringList : public strlist_t
+{
    public:
-      inline StringList()
-      {
-         head = tail = NULL;
-      }
-
       inline ~StringList()
       {
-         class StringNode *w = head;
-         
-         while (w)
-         {
-            class StringNode *n = w->next;
-            delete w;
-            w = n;
-         }
+	 std::for_each(begin(), end(), free_ptr<char>());
       }
-
-      inline void append(char *s)
-      {
-         class StringNode *n = new StringNode(s);
-         n->next = NULL;
-	 if (tail)
-	    tail->next = n;
-	 else
-	    head = n;
-         tail = n;
-      }
-
-      inline void insert(char *s)
-      {
-         class StringNode *n = new StringNode(s);
-         n->next = head;
-         head = n;
-	 if (!tail)
-	    tail = n;
-      }
-
-      inline class StringNode *getHead()
-      {
-	 return head;
-      }
-
-      // adds directories in the format <dir1>:<dir2>:... to the list
       void addDirList(char *str);
 };
 
-// "head first" string list
-// append at the head, only one pointer necessary
-class HFStringList
+class charPtrList : public strlist_t
 {
-   private:
-      class StringNode *head;
-
-   public:
-      inline HFStringList()
-      {
-         head = NULL;
-      }
-
-      inline ~HFStringList()
-      {
-         class StringNode *w = head;
-         
-         while (w)
-         {
-            class StringNode *n = w->next;
-            delete w;
-            w = n;
-         }
-      }
-
-      inline void insert(char *s)
-      {
-         class StringNode *n = new StringNode(s);
-         n->next = head;
-         head = n;
-      }
-
-      inline class StringNode *getHead()
-      {
-	 return head;
-      }
-};
-
-// charPtr list (no deletion)
-class charPtrList
-{
-   private:
-   class charPtrNode *head, *tail;
-
-   public:
-      inline charPtrList()
-      {
-         head = tail = NULL;
-      }
-
-      inline ~charPtrList()
-      {
-         class charPtrNode *w = head;
-         
-         while (w)
-         {
-            class charPtrNode *n = w->next;
-            delete w;
-            w = n;
-         }
-      }
-
-      inline void insert(char *s)
-      {
-         class charPtrNode *n = new charPtrNode(s);
-         n->next = head;
-         head = n;
-	 if (!tail)
-	    tail = n;
-      }
-
-      inline void append(char *s)
-      {
-         class charPtrNode *n = new charPtrNode(s);
-         n->next = NULL;
-	 if (tail)
-	    tail->next = n;
-	 else
-	    head = n;
-         tail = n;
-      }
-
-      inline class charPtrNode *getHead()
-      {
-	 return head;
-      }
-
+   public:   
       // returns 0 for found, -1 for not found
+      // FIXME: use STL find algorithm
       inline int find(char *str)
       {
-	 class charPtrNode *w = head;
-	 while (w)
+	 charPtrList::iterator i = begin();
+	 while (i != end())
 	 {
-	    if (!strcmp(w->str, str))
+	    if (!strcmp(*i, str))
 	       return 0;
-	    w = w->next;
+	    i++;
 	 }
+
 	 return -1;
       }
-
+   
       inline void populate(class charPtrList *l)
       {
-	 class charPtrNode *w = head;
-	 while (w)
+	 charPtrList::iterator i = begin();
+	 while (i != end())
 	 {
-	    l->append(w->str);
-	    w = w->next;
+	    l->push_back(*i);
+	    i++;
 	 }
       }
 };
-
-inline StringListIterator::StringListIterator(class StringList *l)
-{
-   ptr = NULL;
-   head = l->head;
-}
 
 #endif

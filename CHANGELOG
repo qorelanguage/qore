@@ -1,3 +1,8 @@
+2006.09.30: David Nichols
+	* changed all StringList classes to be based on STL container 
+	  functionality
+	* added detection of "slist" container support
+
 2006.09.29: David Nichols
 	* implemented makeHexString() and parseHexString() functions to generate
 	  hex strings from binary data and vice-versa

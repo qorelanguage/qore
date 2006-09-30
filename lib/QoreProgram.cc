@@ -252,7 +252,7 @@ void QoreProgram::parse(FILE *fp, char *name, class ExceptionSink *xsink, class 
    // save this file name for storage in the parse tree and deletion
    // when the QoreProgram object is deleted
    char *sname = strdup(name);
-   fileList.insert(sname);
+   fileList.push_front(sname);
    beginParsing(sname);
 
    pushProgram(this);
@@ -377,7 +377,7 @@ int QoreProgram::internParsePending(char *code, char *label)
    // save this file name for storage in the parse tree and deletion
    // when the QoreProgram object is deleted
    char *sname = strdup(s.getBuffer());
-   fileList.insert(sname);
+   fileList.push_front(sname);
    beginParsing(sname);
 
    // no need to save buffer, because it's deleted automatically in lexer

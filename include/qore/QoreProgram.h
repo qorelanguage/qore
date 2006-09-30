@@ -161,7 +161,7 @@ class QoreProgram : public ReferenceObject, private UserFunctionList, private Im
    public:
       // for the thread counter
       class QoreCounter tcount;
-      class HFStringList fileList;
+      class StringList fileList;
 
       class charPtrList featureList;
       // QoreProgram() NOTE: ecn is the exec_class_name and will be copied if it exists

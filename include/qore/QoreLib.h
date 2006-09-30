@@ -223,39 +223,29 @@ class featureList : public charPtrList
       featureList()
       {
 	 // register default features
-	 append("sql");
-	 append("threads");
-	 append("xml");
+	 push_back("sql");
+	 push_back("threads");
+	 push_back("xml");
 #ifdef QORE_DEBUG
-	 append("debug");
+	 push_back("debug");
 #endif
 #ifdef QORE_MONOLITHIC
 # ifdef NCURSES
-	 append("ncurses");
+	 push_back("ncurses");
 # endif
 # ifdef ORACLE
-	 append("oracle");
+	 push_back("oracle");
 # endif
 # ifdef QORE_MYSQL
-	 append("mysql");
+	 push_back("mysql");
 # endif
 # ifdef TIBRV
-	 append("tibrv");
+	 push_back("tibrv");
 # endif
 # ifdef TIBAE
-	 append("tibae");
+	 push_back("tibae");
 # endif
 #endif
-      }
-
-      inline void populate(class charPtrList *l)
-      {
-	 class charPtrNode *w = getHead();
-	 while (w)
-	 {
-	    l->append(w->str);
-	    w = w->next;
-	 }
       }
 };
 

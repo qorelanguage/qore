@@ -323,11 +323,12 @@ static class QoreNode *f_getFeatureList(class QoreNode *params, ExceptionSink *x
 {
    class List *l = new List();
 
-   class charPtrNode *w = getProgram()->featureList.getHead();
-   while (w)
+   charPtrList::iterator i = getProgram()->featureList.begin();
+   charPtrList::iterator end = getProgram()->featureList.end();
+   while (i != end)
    {
-      l->push(new QoreNode(w->str));
-      w = w->next;
+      l->push(new QoreNode(*i));
+      i++;
    }
 
    return new QoreNode(l);

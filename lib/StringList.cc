@@ -42,12 +42,12 @@ void StringList::addDirList(char *str)
       {
 	 *p = '\0';
 	 // add string to list
-	 append(strdup(str));
+	 push_back(strdup(str));
       }
       str = p + 1;
    }
 
    // add last directory
    if (*str)
-      append(strdup(str));
+      push_back(strdup(str));
 }

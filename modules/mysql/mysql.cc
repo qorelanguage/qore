@@ -496,15 +496,15 @@ inline class QoreNode *MyBindGroup::getOutputHash(class ExceptionSink *xsink)
 {
    class Hash *h = new Hash();
 
-   StringListIterator sli(&phl);
-   while (sli.next())
+   StringList::iterator sli = phl.begin();
+   while (sli != phl.end())
    {
       // prepare statement to retrieve values
       mysql_stmt_close(stmt);
       stmt = mysql_stmt_init(db);
 
       QoreString qstr;
-      qstr.sprintf("select @%s", sli.getString());
+      qstr.sprintf("select @%s", *sli);
 
       // prepare the statement for execution
       if (mysql_stmt_prepare(stmt, qstr.getBuffer(), qstr.strlen()))
@@ -550,7 +550,8 @@ inline class QoreNode *MyBindGroup::getOutputHash(class ExceptionSink *xsink)
 	 }
       }
 
-      h->setKeyValue(sli.getString(), v, NULL);
+      h->setKeyValue(*sli, v, NULL);
+      sli++;
    }
    return new QoreNode(h);
 }

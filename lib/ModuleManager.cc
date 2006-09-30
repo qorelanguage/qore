@@ -137,8 +137,8 @@ void ModuleManager::init(bool se)
    moduleDirList.addDirList(getenv("QORE_MODULE_DIR"));
 
    // append standard directories to the end of the list
-   autoDirList.append(strdup(AUTO_MODULE_DIR));
-   moduleDirList.append(strdup(MODULE_DIR));
+   autoDirList.push_back(strdup(AUTO_MODULE_DIR));
+   moduleDirList.push_back(strdup(MODULE_DIR));
 
 #ifdef QORE_MONOLITHIC
 # ifdef NCURSES
@@ -161,12 +161,12 @@ void ModuleManager::init(bool se)
    // try to load all modules in each directory in the autoDirList
    QoreString gstr;
 
-   class StringNode *w = autoDirList.getHead();
-   while (w)
+   StringList::iterator w = autoDirList.begin();
+   while (w != autoDirList.end())
    {
       // make new string for glob
       gstr.terminate(0);
-      gstr.concat(w->str);
+      gstr.concat(*w);
       gstr.concat("/*.qmod");
 
       glob_t globbuf;
@@ -181,7 +181,7 @@ void ModuleManager::init(bool se)
 	      *p = '\0';
 	    class QoreString *errstr = loadModuleFromPath(globbuf.gl_pathv[i], name);
 	    if (!errstr)
-	       qoreFeatureList.append(name);
+	       qoreFeatureList.push_back(name);
 	    else
 	    {
 	       if (show_errors)
@@ -194,7 +194,7 @@ void ModuleManager::init(bool se)
       else
 	 printd(1, "ModuleManager::init(): glob returned an error: %s\n", strerror(errno));
       globfree(&globbuf);
-      w = w->next;
+      w++;
    }
 }
 
@@ -211,7 +211,7 @@ class QoreString *ModuleManager::loadModule(char *name, class QoreProgram *pgm)
       if (pgm)
       {
 	 mi->ns_init(pgm->getRootNS(), pgm->getQoreNS());
-	 pgm->featureList.append(mi->getName());
+	 pgm->featureList.push_back(mi->getName());
       }
       return NULL;
    }
@@ -221,11 +221,11 @@ class QoreString *ModuleManager::loadModule(char *name, class QoreProgram *pgm)
    struct stat sb;
    class QoreString *errstr;
 
-   class StringNode *w = moduleDirList.getHead();
-   while (w)
+   StringList::iterator w = moduleDirList.begin();
+   while (w != moduleDirList.end())
    {
       str.terminate(0);
-      str.sprintf("%s/%s.qmod", w->str, name);
+      str.sprintf("%s/%s.qmod", *w, name);
       //printd(5, "ModuleManager::loadModule(%s) trying %s\n", name, str.getBuffer());
 
       if (!stat(str.getBuffer(), &sb))
@@ -238,11 +238,11 @@ class QoreString *ModuleManager::loadModule(char *name, class QoreProgram *pgm)
 	 if (pgm)
 	 {
 	    mi->ns_init(pgm->getRootNS(), pgm->getQoreNS());
-	    pgm->featureList.append(mi->getName());
+	    pgm->featureList.push_back(mi->getName());
 	 }
 	 return NULL;
       }
-      w = w->next;
+      w++;
    }
 
    errstr = new QoreString;

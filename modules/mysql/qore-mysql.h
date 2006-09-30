@@ -197,7 +197,7 @@ class MyBindGroup {
 
       inline void add(char *name)
       {
-	 phl.append(name);
+	 phl.push_back(name);
 	 printd(5, "MyBindGroup::add() placeholder '%s' %d %s\n", name);
 	 hasOutput = true;
       }
