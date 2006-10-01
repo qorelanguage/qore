@@ -37,10 +37,6 @@ class QoreClassList
    private:
       inline void deleteAll();
       inline void assimilate(QoreClassList *n);
-
-   public:
-      hm_qc_t hm;        // hash_map for name lookups
-      
       inline void remove(hm_qc_t::iterator i)
       {
 	 class QoreClass *qc = i->second;
@@ -48,7 +44,10 @@ class QoreClassList
          hm.erase(i);
 	 qc->nderef();
       }
-
+            
+   public:
+      hm_qc_t hm;        // hash_map for name lookups
+      
       inline QoreClassList() {}
       inline ~QoreClassList();
       inline int add(class QoreClass *ot);

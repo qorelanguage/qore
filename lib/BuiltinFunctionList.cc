@@ -42,9 +42,20 @@
 
 class BuiltinFunctionList builtinFunctions;
 
+inline void BuiltinFunctionList::add_locked(char *name, class QoreNode *(*f)(class QoreNode *, class ExceptionSink *xsink), int typ)
+{
+   lock();
+   hm[strdup(name)] = new BuiltinFunction(name, f, typ);
+   unlock();
+}
+
+
 void BuiltinFunctionList::add(char *name, class QoreNode *(*f)(class QoreNode *, class ExceptionSink *xsink), int typ)
 {
-   hm[strdup(name)] = new BuiltinFunction(name, f, typ);
+   if (init_done)
+      add_locked(name, f, typ);
+   else
+      hm[strdup(name)] = new BuiltinFunction(name, f, typ);
 }
 
 BuiltinFunctionList::~BuiltinFunctionList()
@@ -87,6 +98,7 @@ void BuiltinFunctionList::init()
 #ifdef DEBUG
    init_debug_functions();
 #endif
+   init_done = true;
 
    traceout("BuiltinFunctionList::init()");
 }

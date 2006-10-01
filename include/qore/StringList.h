@@ -33,7 +33,7 @@
 
 #include <algorithm>
 #include <functional>
-//#include <list>
+#include <list>
 #include <deque>
 
 // STL is currently missing "slist"
@@ -46,13 +46,9 @@ typedef slist<char *> strslist_t;
 typedef std::list<char *> strslist_t;
 #endif
 
-// there doesn't seem to be any singly-linked list with constant-time inserts at the beginning and end
-// ("head" and "tail" pointers) meaning that if I want to use STL (or almost-STL) containers, then to get
-// this I have to use "list", which is wasteful of space (because it's doubly-linked) :-(
-// anyway a deque should require fewer memory allocations compared to a linked list, so we'll go with the
-// deque for now..
+typedef std::list<char *> strlist_t;
 
-typedef std::deque<char *> strlist_t;
+typedef std::deque<char *> strdeque_t;
 
 template <typename T> struct free_ptr : std::unary_function <T*, void>
 {
@@ -62,7 +58,10 @@ template <typename T> struct free_ptr : std::unary_function <T*, void>
    }
 };
 
-class StringList : public strlist_t
+// non-thread-safe list
+// a deque should require fewer memory allocations compared to a linked list, so we'll go with the
+// deque for now for this list
+class StringList : public strdeque_t
 {
    public:
       inline ~StringList()
@@ -72,32 +71,114 @@ class StringList : public strlist_t
       void addDirList(char *str);
 };
 
-class charPtrList : public strlist_t
+// there doesn't seem to be any singly-linked list with constant-time inserts at the beginning and end
+// ("head" and "tail" pointers) meaning that if I want to use STL (or almost-STL) containers, then to get
+// this I have to use "list", which is wasteful of space (because it's doubly-linked) :-(
+// the safe_dslist defined below is a singly-linked list with constant time inserts at the beginning and
+// at the end.  Also it can be read multiple times during inserts - only insers need to be atomic
+// Only a subset of the list methods are defined.  
+
+template<typename T> struct _qore_list_node
 {
-   public:   
+      typedef struct _qore_list_node self_t;
+      self_t *next;
+      T data;
+   
+      inline _qore_list_node(T d, self_t *n) { next = n; data = d; }
+      inline _qore_list_node(T d) { next = NULL; data = d; }
+};
+
+template<typename T> struct _qore_list_iterator
+{
+      typedef struct _qore_list_node<T> node_t;
+      typedef struct _qore_list_iterator<T> self_t;
+   
+      // data for the node
+      node_t *node;
+
+      inline _qore_list_iterator(node_t *n) { node = n; }
+      inline void operator++(int) { node = node->next; }
+      inline T operator*() { return node->data; }
+      inline bool operator!=(const self_t &n) { return n.node != node; }
+      inline bool operator==(const self_t &n) { return n.node == node; }
+};
+
+template<typename T> class safe_dslist
+{  
+   public:
+      typedef struct _qore_list_iterator<T> iterator;
+      typedef struct _qore_list_node<T> node_t;
+      typedef class safe_dslist<T> self_t;
+      
+   private:
+      node_t *head, *tail;
+
+   public: 
+      inline safe_dslist() : head(NULL), tail(NULL) {}
+   
+      inline iterator begin()
+      {
+	 return head;
+      }
+      inline iterator end()
+      {
+	 return NULL;
+      }
+      void push_front(T data)
+      {
+	 node_t *n = new node_t(data, head);
+	 if (!tail)
+	    tail = n;
+	 head = n;
+      }
+      
+      void push_back(T data)
+      {
+	 node_t *n = new node_t(data);
+	 if (tail)
+	    tail->next = n;
+	 else
+	    head = n;
+	 tail = n;
+      }
+   
+      inline void populate(self_t &other)
+      {
+	 iterator i = begin();
+	 while (i != end())
+	 {
+	    other.push_back(*i);
+	    i++;
+	 }
+      }
+
+      inline void populate(self_t *other)
+      {
+	 iterator i = begin();
+	 while (i != end())
+	 {
+	    other->push_back(*i);
+	    i++;
+	 }
+      }
+};
+
+class charPtrList : public safe_dslist<char *>
+{
+   public:
       // returns 0 for found, -1 for not found
       // FIXME: use STL find algorithm
       inline int find(char *str)
       {
-	 charPtrList::iterator i = begin();
+	 iterator i = begin();
 	 while (i != end())
 	 {
 	    if (!strcmp(*i, str))
 	       return 0;
 	    i++;
 	 }
-
-	 return -1;
-      }
    
-      inline void populate(class charPtrList *l)
-      {
-	 charPtrList::iterator i = begin();
-	 while (i != end())
-	 {
-	    l->push_back(*i);
-	    i++;
-	 }
+	 return -1;
       }
 };
 

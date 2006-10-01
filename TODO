@@ -1,4 +1,5 @@
 see docs/roadmap.html
 
+* add argument info to functions, throw errors if arguments are not correct
 * add signal constants
 * add parse-time argument checks (instead of just run-time exceptions)

@@ -114,7 +114,7 @@ class ModuleManager : public LockedObject
       bool show_errors;
       class StringList autoDirList, moduleDirList;
 
-      inline void addInternal(ModuleInfo *m)
+      inline void add(ModuleInfo *m)
       {
 	 m->next = head;
 	 head = m;
@@ -123,10 +123,8 @@ class ModuleManager : public LockedObject
       inline class ModuleInfo *add(char *fn, char *n, int major, int minor, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del, char *d, char *v, char *a, char *u, void *p)
       {
 	 class ModuleInfo *m = new ModuleInfo(fn, n, major, minor, init, ns_init, del, d, v, a, u, p);
-	 lock();
-	 addInternal(m);
+	 add(m);
 	 num++;
-	 unlock();
 	 return m;
       }
       class QoreString *loadModuleFromPath(char *path, char *feature = NULL, class ModuleInfo **mi = NULL);

@@ -101,7 +101,7 @@ static class QoreNode *f_call_function_args(class QoreNode *params, ExceptionSin
    if (!(p0 = test_param(params, NT_STRING, 0)))
    {
       xsink->raiseException("CALL-FUNCTION-ARGS-PARAMETER-ERROR",
-			 "invalid arguments passed to call_function(), must be either function name or function name plus argument list");
+			    "invalid arguments passed to call_function_args(), must be either function name or function name plus argument list");
       return NULL;
    }
    fname = p0->val.String->getBuffer();

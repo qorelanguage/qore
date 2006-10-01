@@ -28,16 +28,20 @@
 #include <qore/hash_map.h>
 #include <qore/Restrictions.h>
 #include <qore/hash_map.h>
+#include <qore/LockedObject.h>
 
 #include <string.h>
 
-class BuiltinFunctionList // public LockedObject
+class BuiltinFunctionList : public LockedObject
 {
    private:
+      bool init_done;
       hm_bf_t hm;
-
+   
+      inline void add_locked(char *name, class QoreNode *(*f)(class QoreNode *, class ExceptionSink *xsink), int typ);
+      
    public:
-      inline BuiltinFunctionList() {}
+      inline BuiltinFunctionList() : init_done(false) {}
 
       ~BuiltinFunctionList();
       
@@ -62,10 +66,15 @@ void init_builtin_functions();
 
 inline class BuiltinFunction *BuiltinFunctionList::find(char *name)
 {
+   class BuiltinFunction *rv = NULL;
+   if (init_done)
+      lock();
    hm_bf_t::iterator i = hm.find(name);
    if (i != hm.end())
-      return i->second;
-   return NULL;
+      rv = i->second;
+   if (init_done)
+      unlock();
+   return rv;
 }
 
 #endif // _QORE_BUILTINFUNCTIONLIST_H

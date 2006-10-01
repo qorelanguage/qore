@@ -87,6 +87,7 @@ class ImportedFunctionList
       inline class ImportedFunctionNode *findImportedFunctionNode(char *name);
 };
 
+// all read and write access to this list is done within the program object's parse lock
 class UserFunctionList
 {
    private:
@@ -104,12 +105,12 @@ class UserFunctionList
       inline class List *getUFList();
 };
 
-// this is a "grow-only" linked list, so locking is only done on additions
-// locking is necessary because of the importGlobalVariable() function
-class GlobalVariableList : public LockedObject
+// this is a "grow-only" container
+// all reading and writing is done withing the parse lock on the contining program object
+class GlobalVariableList
 {
    private:
-      hm_var_t vmap;
+      hm_var_t vmap; // iterators are not invalidated on inserts
 
    public:
       inline GlobalVariableList() {}
@@ -223,6 +224,12 @@ class QoreProgram : public ReferenceObject, private UserFunctionList, private Im
       inline class Var *findVar(char *name);
       inline class Var *checkVar(char *name);
       inline class Var *createVar(char *name);
+      inline void importGlobalVariable(class Var *var, class ExceptionSink *xsink, bool readonly)
+      {
+	 plock.lock();
+	 GlobalVariableList::importGlobalVariable(var, xsink, readonly);
+	 plock.unlock();
+      }
       inline void makeParseException(char *err, class QoreString *desc);
       inline void makeParseException(class QoreString *desc);
       inline void addParseException(class ExceptionSink *xsink);
@@ -580,13 +587,11 @@ inline class Var *GlobalVariableList::checkVar(char *name, int *new_var)
    tracein("GlobalVariableList::checkVar()");
    class Var *var;
 
-   lock();
    if (!(var = findVar(name)))
    {
       *new_var = 1;
       var = newVar(name);
    }
-   unlock();
    traceout("GlobalVariableList::checkVar()");
    return var;
 }
@@ -771,8 +776,6 @@ inline void QoreProgram::deleteSBList()
 
 inline void GlobalVariableList::importGlobalVariable(class Var *var, class ExceptionSink *xsink, bool readonly)
 {
-   lock();
-
    hm_var_t::iterator i = vmap.find(var->getName());
    if (i == vmap.end())
       newVar(var, readonly);
@@ -783,8 +786,6 @@ inline void GlobalVariableList::importGlobalVariable(class Var *var, class Excep
       v->makeReference(var, xsink, readonly);
       vmap[v->getName()] = v;
    }
-   
-   unlock();
 }
 
 // called during parsing (plock already grabbed)
@@ -844,7 +845,11 @@ inline void QoreProgram::addStatement(class Statement *s)
 
 inline bool QoreProgram::existsFunction(char *name)
 {
-   return (bool)(findUserFunction(name) != NULL);
+   // need to grab the parse lock for safe access to the user function map
+   plock.lock();
+   bool b = (bool)(findUserFunction(name) != NULL);
+   plock.unlock();
+   return b;
 }
 
 inline void QoreProgram::parseSetParseOptions(int po)

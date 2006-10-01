@@ -515,7 +515,12 @@ class QoreNode *QoreProgram::callFunction(char *name, class QoreNode *args, clas
    QoreNode *fc;
 
    printd(5, "QoreProgram::callFunction() creating function call to %s()\n", name);
-   if ((ufc = findUserFunction(name)) || (ufc = findImportedFunction(name)))
+   // need to grab parse lock for safe acces to the user function map
+   plock.lock();
+   ufc = findUserFunction(name);
+   plock.unlock();
+
+   if (ufc || (ufc = findImportedFunction(name)))
       fc = new QoreNode(ufc, args);
    else
    {
@@ -532,8 +537,7 @@ class QoreNode *QoreProgram::callFunction(char *name, class QoreNode *args, clas
       }
       else
       {
-	 xsink->raiseException("NO-FUNCTION", "function name '%s' does not exist",
-			name);
+	 xsink->raiseException("NO-FUNCTION", "function name '%s' does not exist", name);
 	 return NULL;
       }
    }

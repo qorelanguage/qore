@@ -122,7 +122,8 @@ inline void ModuleManager::addBuiltin(char *fn, qore_module_init_t init, qore_mo
       delete str;
       return;
    }
-   addInternal(new ModuleInfo(fn, del));
+   // "num" is not incremented here - only incremented for real modules
+   add(new ModuleInfo(fn, del));
    ANSL.add(ns_init);
 }
 
@@ -205,6 +206,7 @@ class QoreString *ModuleManager::loadModule(char *name, class QoreProgram *pgm)
       return NULL;
 
    // if the feature already exists, then load the namespace changes into this program and register the feature
+   lock(); // make sure checking and loading are atomic
    class ModuleInfo *mi = find(name);
    if (mi)
    {
@@ -213,6 +215,7 @@ class QoreString *ModuleManager::loadModule(char *name, class QoreProgram *pgm)
 	 mi->ns_init(pgm->getRootNS(), pgm->getQoreNS());
 	 pgm->featureList.push_back(mi->getName());
       }
+      unlock();
       return NULL;
    }
 
@@ -231,6 +234,7 @@ class QoreString *ModuleManager::loadModule(char *name, class QoreProgram *pgm)
       if (!stat(str.getBuffer(), &sb))
       {
 	 errstr = loadModuleFromPath(str.getBuffer(), name, &mi);
+	 unlock();
 	 
 	 if (errstr)
 	    return errstr;
@@ -244,7 +248,8 @@ class QoreString *ModuleManager::loadModule(char *name, class QoreProgram *pgm)
       }
       w++;
    }
-
+   unlock();
+   
    errstr = new QoreString;
    errstr->sprintf("feature '%s' is not builtin and no module with this name could be found in the module path", name);
    return errstr;

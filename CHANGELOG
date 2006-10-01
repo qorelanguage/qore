@@ -1,3 +1,14 @@
+2006.09.31: David Nichols
+	* corrected the atomicity of module initialization
+	* reviewed use of new STL containers for thread-concurrency problems
+	* removed GlobalVariableList lock and ensured that all reads and 
+	  writes take place under the parse lock on the containing program 
+	  object
+	* ensured that all run-time accesses to the UserFunctionList map under
+	  QoreProgram objects takes place in the parse lock
+	* write templated safe_dslist for a singly-linked list with constant-
+	  time inserts at the beginning and end
+
 2006.09.30: David Nichols
 	* changed all StringList classes to be based on STL container 
 	  functionality

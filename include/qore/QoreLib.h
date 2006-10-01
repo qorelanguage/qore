@@ -249,6 +249,15 @@ class featureList : public charPtrList
       }
 };
 
+// for grabbing a lock and releasing it when the object goes out of scope
+class TransientLock {
+   private:
+      LockedObject *lock;
+   public:
+      TransientLock(LockedObject *l) { lock = l; l->lock(); }
+      ~TransientLock() { lock->unlock(); }
+};
+
 // list of qore features
 extern featureList qoreFeatureList;
 
