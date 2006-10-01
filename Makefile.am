@@ -226,13 +226,13 @@ qore_LDADD = lib/libqore.la ${PTHREAD_LIBS}
 
 AM_CXXFLAGS = ${PTHREAD_CFLAGS}
 
-if COND_DEBUG
-AM_CXXFLAGS += -g
-qore_LDFLAGS=-g
-else
 if COND_PROFILE
 AM_CXXFLAGS += -g -pg
 qore_LDFLAGS=-g -pg
+else
+if COND_DEBUG
+AM_CXXFLAGS += -g
+qore_LDFLAGS=-g
 else
 ##qore_LDFLAGS=-s
 endif

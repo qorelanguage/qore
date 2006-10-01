@@ -53,11 +53,11 @@ AM_CPPFLAGS = ${PTHREAD_CFLAGS}
 INCLUDES = -I$(top_srcdir)/include
 AM_CXXFLAGS =
 
-if COND_DEBUG
-AM_CXXFLAGS += -g
-else
 if COND_PROFILE
 AM_CXXFLAGS += -g -pg
+else
+if COND_DEBUG
+AM_CXXFLAGS += -g
 endif
 endif
 

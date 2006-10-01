@@ -89,16 +89,16 @@ libqore_la_LIBADD = -ldl ${PTHREAD_LIBS}
 AM_CPPFLAGS = -DMODULE_DIR=\"$(pkglibdir)\" $(PCRE_CPPFLAGS) $(OPENSSL_CPPFLAGS)
 AM_CXXFLAGS = ${XML_CFLAGS} ${PTHREAD_CFLAGS}
 
+if COND_PROFILE
+BUILD_TYPE=prof
+AM_CXXFLAGS += -g -pg
+libqore_la_LDFLAGS += -g -pg
+else
 if COND_DEBUG
 libqore_la_SOURCES += ql_debug.cc
 BUILD_TYPE=dev
 AM_CXXFLAGS += -g
 libqore_la_LDFLAGS += -g
-else
-if COND_PROFILE
-BUILD_TYPE=prof
-AM_CXXFLAGS += -g -pg
-libqore_la_LDFLAGS += -g -pg
 else
 BUILD_TYPE=prod
 ##qore_LDFLAGS=-s

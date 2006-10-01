@@ -8,6 +8,8 @@
 	  QoreProgram objects takes place in the parse lock
 	* write templated safe_dslist for a singly-linked list with constant-
 	  time inserts at the beginning and end
+	* updated all Makefile.am files in SVN so that profiling will be enabled 
+	  even if --enable-debug is also chosen in configure
 
 2006.09.30: David Nichols
 	* changed all StringList classes to be based on STL container 
