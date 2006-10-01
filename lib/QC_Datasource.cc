@@ -34,12 +34,12 @@ int CID_DATASOURCE;
 
 static void getDS(void *obj)
 {
-   ((Datasource *)obj)->ref();
+   ((ManagedDatasource *)obj)->ref();
 }
 
 static void releaseDS(void *obj)
 {
-   ((Datasource *)obj)->deref();
+   ((ManagedDatasource *)obj)->deref();
 }
 
 // usage: Datasource(db name, [username, password, dbname])
@@ -48,7 +48,7 @@ static void DS_constructor(class Object *self, class QoreNode *params, Exception
    QoreNode *p = test_param(params, NT_STRING, 0);
    if (!p)
    {
-      xsink->raiseException("DATASOURCE-PARAMETER-ERROR", "expecting database type as first parameter of Datasource() constructor");
+      xsink->raiseException("DATASOURCE-PARAMETER-ERROR", "expecting database type as first parameter of ManagedDatasource() constructor");
       return;
    }
    DBIDriver *db_driver = DBI.find(p->val.String->getBuffer());
@@ -57,7 +57,7 @@ static void DS_constructor(class Object *self, class QoreNode *params, Exception
       xsink->raiseException("DATASOURCE-UNSUPPORTED-DATABASE", "no DBI driver can be found for database type \"%s\"", p->val.String->getBuffer());
       return;
    }
-   class Datasource *ds = new Datasource(db_driver);
+   class ManagedDatasource *ds = new ManagedDatasource(db_driver);
 
    if ((p = test_param(params, NT_STRING, 1)))
       ds->setUsername(p->val.String->getBuffer());
@@ -74,49 +74,49 @@ static void DS_constructor(class Object *self, class QoreNode *params, Exception
    self->setPrivate(CID_DATASOURCE, ds, getDS, releaseDS);
 }
 
-static void DS_destructor(class Object *self, class Datasource *ds, ExceptionSink *xsink)
+static void DS_destructor(class Object *self, class ManagedDatasource *ds, ExceptionSink *xsink)
 {
    ds->deref();
 }
 
-static void DS_copy(class Object *self, class Object *old, class Datasource *ods, class ExceptionSink *xsink)
+static void DS_copy(class Object *self, class Object *old, class ManagedDatasource *ods, class ExceptionSink *xsink)
 {
    self->setPrivate(CID_DATASOURCE, ods->copy(), getDS, releaseDS);
 }
 
-static QoreNode *DS_open(class Object *self, class Datasource *ds, class QoreNode *params, ExceptionSink *xsink)
+static QoreNode *DS_open(class Object *self, class ManagedDatasource *ds, class QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)ds->open(xsink));
 }
 
-static QoreNode *DS_close(class Object *self, class Datasource *ds, class QoreNode *params, ExceptionSink *xsink)
+static QoreNode *DS_close(class Object *self, class ManagedDatasource *ds, class QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)ds->close());
 }
 
-static QoreNode *DS_commit(class Object *self, class Datasource *ds, class QoreNode *params, ExceptionSink *xsink)
+static QoreNode *DS_commit(class Object *self, class ManagedDatasource *ds, class QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)ds->commit(xsink));
 }
 
-static QoreNode *DS_rollback(class Object *self, class Datasource *ds, class QoreNode *params, ExceptionSink *xsink)
+static QoreNode *DS_rollback(class Object *self, class ManagedDatasource *ds, class QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)ds->rollback(xsink));
 }
 
-static QoreNode *DS_setAutoCommit(class Object *self, class Datasource *ds, class QoreNode *params, ExceptionSink *xsink)
+static QoreNode *DS_setAutoCommit(class Object *self, class ManagedDatasource *ds, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    ds->setAutoCommit(p ? p->getAsBool() : true);
    return NULL;
 }
 
-static QoreNode *DS_getAutoCommit(class Object *self, class Datasource *ds, class QoreNode *params, ExceptionSink *xsink)
+static QoreNode *DS_getAutoCommit(class Object *self, class ManagedDatasource *ds, class QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(ds->getAutoCommit());
 }
 
-static QoreNode *DS_exec(class Object *self, class Datasource *ds, class QoreNode *params, ExceptionSink *xsink)
+static QoreNode *DS_exec(class Object *self, class ManagedDatasource *ds, class QoreNode *params, ExceptionSink *xsink)
 {
    class QoreNode *p0;
    if (!(p0 = test_param(params, NT_STRING, 0)))
@@ -132,7 +132,7 @@ static QoreNode *DS_exec(class Object *self, class Datasource *ds, class QoreNod
    return rv;
 }
 
-static QoreNode *DS_vexec(class Object *self, class Datasource *ds, class QoreNode *params, ExceptionSink *xsink)
+static QoreNode *DS_vexec(class Object *self, class ManagedDatasource *ds, class QoreNode *params, ExceptionSink *xsink)
 {
    class QoreNode *p0;
    if (!(p0 = test_param(params, NT_STRING, 0)))
@@ -143,7 +143,7 @@ static QoreNode *DS_vexec(class Object *self, class Datasource *ds, class QoreNo
    return ds->exec(p0->val.String, args, xsink);
 }
 
-static QoreNode *DS_select(class Object *self, class Datasource *ds, class QoreNode *params, ExceptionSink *xsink)
+static QoreNode *DS_select(class Object *self, class ManagedDatasource *ds, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = test_param(params, NT_STRING, 0);
    if (!p)
@@ -159,7 +159,7 @@ static QoreNode *DS_select(class Object *self, class Datasource *ds, class QoreN
    return rv;
 }
 
-static QoreNode *DS_selectRows(class Object *self, class Datasource *ds, class QoreNode *params, ExceptionSink *xsink)
+static QoreNode *DS_selectRows(class Object *self, class ManagedDatasource *ds, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = test_param(params, NT_STRING, 0);
    if (!p)
@@ -176,7 +176,7 @@ static QoreNode *DS_selectRows(class Object *self, class Datasource *ds, class Q
 }
 
 /*
-static QoreNode *DS_describe(class Object *self, class Datasource *ds, class QoreNode *params, ExceptionSink *xsink)
+static QoreNode *DS_describe(class Object *self, class ManagedDatasource *ds, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = test_param(params, NT_STRING, 0);
    if (!p)
@@ -190,29 +190,29 @@ static QoreNode *DS_describe(class Object *self, class Datasource *ds, class Qor
 }
 */
 
-static QoreNode *DS_beginTransaction(class Object *self, class Datasource *ds, class QoreNode *params, ExceptionSink *xsink)
+static QoreNode *DS_beginTransaction(class Object *self, class ManagedDatasource *ds, class QoreNode *params, ExceptionSink *xsink)
 {
    ds->beginTransaction(xsink);
    return NULL;
 }
 
-static QoreNode *DS_reset(class Object *self, class Datasource *ds, class QoreNode *params, ExceptionSink *xsink)
+static QoreNode *DS_reset(class Object *self, class ManagedDatasource *ds, class QoreNode *params, ExceptionSink *xsink)
 {
    ds->reset(xsink);
    return NULL;
 }
 
-static QoreNode *DS_getCapabilities(class Object *self, class Datasource *ds, class QoreNode *params, ExceptionSink *xsink)
+static QoreNode *DS_getCapabilities(class Object *self, class ManagedDatasource *ds, class QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)ds->getCapabilities());
 }
 
-static QoreNode *DS_getCapabilityList(class Object *self, class Datasource *ds, class QoreNode *params, ExceptionSink *xsink)
+static QoreNode *DS_getCapabilityList(class Object *self, class ManagedDatasource *ds, class QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(ds->getCapabilityList());
 }
 
-static QoreNode *DS_setUserName(class Object *self, class Datasource *ds, class QoreNode *params, ExceptionSink *xsink)
+static QoreNode *DS_setUserName(class Object *self, class ManagedDatasource *ds, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = test_param(params, NT_STRING, 0);
    if (!p)
@@ -222,7 +222,7 @@ static QoreNode *DS_setUserName(class Object *self, class Datasource *ds, class 
    return NULL;
 }
 
-static QoreNode *DS_setPassword(class Object *self, class Datasource *ds, class QoreNode *params, ExceptionSink *xsink)
+static QoreNode *DS_setPassword(class Object *self, class ManagedDatasource *ds, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = test_param(params, NT_STRING, 0);
    if (!p)
@@ -232,7 +232,7 @@ static QoreNode *DS_setPassword(class Object *self, class Datasource *ds, class 
    return NULL;
 }
 
-static QoreNode *DS_setDBName(class Object *self, class Datasource *ds, class QoreNode *params, ExceptionSink *xsink)
+static QoreNode *DS_setDBName(class Object *self, class ManagedDatasource *ds, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = test_param(params, NT_STRING, 0);
    if (!p)
@@ -242,7 +242,7 @@ static QoreNode *DS_setDBName(class Object *self, class Datasource *ds, class Qo
    return NULL;
 }
 
-static QoreNode *DS_setDBCharset(class Object *self, class Datasource *ds, class QoreNode *params, ExceptionSink *xsink)
+static QoreNode *DS_setDBCharset(class Object *self, class ManagedDatasource *ds, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = test_param(params, NT_STRING, 0);
    if (!p)
@@ -252,7 +252,7 @@ static QoreNode *DS_setDBCharset(class Object *self, class Datasource *ds, class
    return NULL;
 }
 
-static QoreNode *DS_setHostName(class Object *self, class Datasource *ds, class QoreNode *params, ExceptionSink *xsink)
+static QoreNode *DS_setHostName(class Object *self, class ManagedDatasource *ds, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = test_param(params, NT_STRING, 0);
    if (!p)
@@ -262,43 +262,43 @@ static QoreNode *DS_setHostName(class Object *self, class Datasource *ds, class 
    return NULL;
 }
 
-static QoreNode *DS_getUserName(class Object *self, class Datasource *ds, class QoreNode *params, ExceptionSink *xsink)
+static QoreNode *DS_getUserName(class Object *self, class ManagedDatasource *ds, class QoreNode *params, ExceptionSink *xsink)
 {
    return ds->getUsername();
 }
 
-static QoreNode *DS_getPassword(class Object *self, class Datasource *ds, class QoreNode *params, ExceptionSink *xsink)
+static QoreNode *DS_getPassword(class Object *self, class ManagedDatasource *ds, class QoreNode *params, ExceptionSink *xsink)
 {
    return ds->getPassword();
 }
 
-static QoreNode *DS_getDBName(class Object *self, class Datasource *ds, class QoreNode *params, ExceptionSink *xsink)
+static QoreNode *DS_getDBName(class Object *self, class ManagedDatasource *ds, class QoreNode *params, ExceptionSink *xsink)
 {
    return ds->getDBName();
 }
 
-static QoreNode *DS_getDBCharset(class Object *self, class Datasource *ds, class QoreNode *params, ExceptionSink *xsink)
+static QoreNode *DS_getDBCharset(class Object *self, class ManagedDatasource *ds, class QoreNode *params, ExceptionSink *xsink)
 {
    return ds->getCharset();
 }
 
-static QoreNode *DS_getOSCharset(class Object *self, class Datasource *ds, class QoreNode *params, ExceptionSink *xsink)
+static QoreNode *DS_getOSCharset(class Object *self, class ManagedDatasource *ds, class QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(ds->qorecharset ? ds->qorecharset->code : "(unknown)");
 }
 
-static QoreNode *DS_getHostName(class Object *self, class Datasource *ds, class QoreNode *params, ExceptionSink *xsink)
+static QoreNode *DS_getHostName(class Object *self, class ManagedDatasource *ds, class QoreNode *params, ExceptionSink *xsink)
 {
    return ds->getHostName();
 }
 
-static QoreNode *DS_setTransactionLockTimeout(class Object *self, class Datasource *ds, class QoreNode *params, ExceptionSink *xsink)
+static QoreNode *DS_setTransactionLockTimeout(class Object *self, class ManagedDatasource *ds, class QoreNode *params, ExceptionSink *xsink)
 {
    ds->setTransactionLockTimeout(getSecZeroInt(get_param(params, 0)));
    return NULL;
 }
 
-static QoreNode *DS_getTransactionLockTimeout(class Object *self, class Datasource *ds, class QoreNode *params, ExceptionSink *xsink)
+static QoreNode *DS_getTransactionLockTimeout(class Object *self, class ManagedDatasource *ds, class QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)ds->getTransactionLockTimeout());
 }

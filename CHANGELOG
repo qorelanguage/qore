@@ -1,4 +1,4 @@
-2006.09.31: David Nichols
+2006.10.01: David Nichols
 	* corrected the atomicity of module initialization
 	* reviewed use of new STL containers for thread-concurrency problems
 	* removed GlobalVariableList lock and ensured that all reads and 
@@ -10,6 +10,15 @@
 	  time inserts at the beginning and end
 	* updated all Makefile.am files in SVN so that profiling will be enabled 
 	  even if --enable-debug is also chosen in configure
+	* fixed some bugs in the Datasource class introduced in 0.5.2 where a 
+	  timeout grabbing the transaction lock would cause a deadlock on future
+	  operations on the datasource (with some Datasource methods)
+	* separated the qore Datasource class into a DatasourceBase clas and a
+	  Datasource class
+	* fixed a bug in the SingleExitGate class where a timeout would cause a
+	  deadlock the next time ::enter() was called (also affected the 
+	  Datasource class)
+	* updated examples/db-test.q to test datasource lock timeouts
 
 2006.09.30: David Nichols
 	* changed all StringList classes to be based on STL container 

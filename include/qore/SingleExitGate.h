@@ -85,7 +85,8 @@ inline int SingleExitGate::enter(int timeout)
 	    if (!pthread_cond_timedwait(&cwait, &m, &tmout))
 	       break;
 
-	    // lock has timed out, return -1
+	    // lock has timed out, unlock and return -1
+	    pthread_mutex_unlock(&m);
 	    printd(1, "SingleExitGate %08p timed out after %ds waiting for tid %d to release lock\n", timeout, tid);
 	    return -1;
 	 }

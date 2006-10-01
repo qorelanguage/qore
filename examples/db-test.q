@@ -82,6 +82,21 @@ sub doit($db)
     }
 }
 
+sub test_timeout($db, $q)
+{
+    $db.setTransactionLockTimeout(1s);
+    try {
+	# this should cause an exception to be thrown
+	$db.exec("insert into family values (3, 'Test')\n");
+	printf("FAILED TRANSACTION LOCK TEST\n");
+    }
+    catch ($ex)
+    {
+	printf("TRANSACTION LOCK TEST OK (%N)\n", $ex.err);
+    }
+    $q.push();
+}
+
 sub transaction_test($db)
 {
     my $ndb = getDS();
@@ -105,6 +120,12 @@ sub transaction_test($db)
     else
 	printf("TRANSACTION TEST OK (name=%N)\n", $r);
 
+    # test datasource timeout
+    my $q = new Queue();
+    background test_timeout($db, $q);
+
+    $q.get();
+    
     # now, we commit the transaction
     $db.commit();
 
