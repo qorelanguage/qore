@@ -5,7 +5,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2006 Pavel Vozenilek
+  Copyright (C) 2006 Qore Technologies
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public

@@ -6,6 +6,8 @@ TUXEDO_SOURCES =  tuxedo.cc \
   QoreTuxedoConnection.cc \
   connection_parameters_helper.cc \
   tpalloc_helper.cc \
+  QC_TuxedoAdapter.cc \
+  QoreTuxedoAdapter.cc \
   TuxedoTest.cc 
 
 if COND_MONOLITHIC

@@ -35,6 +35,7 @@
 #include "TuxedoTest.h" // to be deleted later
 
 #include "QC_TuxedoConnection.h"
+#include "QC_TuxedoAdapter.h"
 
 #include "atmi.h"
 
@@ -119,6 +120,15 @@ void tuxedo_module_ns_init(class Namespace* rns, class Namespace* qns)
   tuxedons->addSystemClass(initTuxedoTestClass()); // to be deleted latera
   // Tuxedo::Connection class
   tuxedons->addSystemClass(initTuxedoConnectionClass());
+  // Tuxedo:Adapter class
+  tuxedons->addSystemClass(initTuxedoAdapterClass());
+  
+  // tpcall() constants
+  tuxedons->addConstant("TPNOTRAN", new QoreNode((int64)TPNOTRAN));
+  tuxedons->addConstant("TPNOCHANGE", new QoreNode((int64)TPNOCHANGE));
+  tuxedons->addConstant("TPNOBLOCK", new QoreNode((int64)TPNOBLOCK));
+  tuxedons->addConstant("TPNOTIME", new QoreNode((int64)TPNOTIME));
+  tuxedons->addConstant("TPSIGRSTRT", new QoreNode((int64)TPSIGRSTRT));
  
   qns->addInitialNamespace(tuxedons);
 

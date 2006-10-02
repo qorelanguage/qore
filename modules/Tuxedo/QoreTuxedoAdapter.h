@@ -1,8 +1,8 @@
-#ifndef QORE_TUXEDO_CONNECTION_IMPL_H_
-#define QORE_TUXEDO_CONNECTION_IMPL_H_
+#ifndef QORE_TUXEDO_ADAPTER_IMPL_H_
+#define QORE_TUXEDO_ADAPTER_IMPL_H_
 
 /*
-  modules/Tuxedo/QoreTuxedoConnection.h
+  modules/Tuxedo/QoreTuxedoAdapter.h
 
   Tuxedo integration to QORE
 
@@ -29,25 +29,30 @@
 #include <qore/support.h>
 #include <qore/ReferenceObject.h>
 #include <string>
+#include <list>
 
 class ExceptionSink;
-class Tuxedo_connection_parameters;
 
 //------------------------------------------------------------------------------
-class QoreTuxedoConnection : public ReferenceObject
+class QoreTuxedoAdapter : public ReferenceObject
 {
   std::string m_name; // identification of the connection, could be empty
-  bool m_was_closed;
+  std::list<int> m_pending_async_requests;
 
-  void handle_tpinit_error(Tuxedo_connection_parameters& params, ExceptionSink* xsink) const;
-  void handle_tpterm_error(ExceptionSink* xsink) const;
+  void handle_tpcancel_error(char* err, int tperrnum, int handle, ExceptionSink* xsink);
+  char* hash2buffer(Hash* hash, ExceptionSink* xsink);
+  Hash* buffer2hash(char* buffer, ExceptionSink* xsink);
+
 public:
-  QoreTuxedoConnection(const char* name, Tuxedo_connection_parameters& params, ExceptionSink* xsink);
-  ~QoreTuxedoConnection();
+  QoreTuxedoAdapter(const char* name, Hash* params, ExceptionSink* xsink);
+  ~QoreTuxedoAdapter();
+  const char* name() const { return m_name.c_str(); }
+  void close_adapter(ExceptionSink* xsink);
 
-  // if not already done close the Tuxedo 
-  // connection by calling tpterm();
-  void close_connection(ExceptionSink* xsink);
+  Hash* call(char* service_name, Hash* params, long flags, ExceptionSink* xsink);
+  int async_call(char* service_name, Hash* params, long flags, ExceptionSink* xsink);
+  void cancel_async(int handle, ExceptionSink* xsink);
+  Hash* get_async_result(int handle, Hash* out, long flags, ExceptionSink* xsink);
 
   void deref() { 
     if (ROdereference()) {

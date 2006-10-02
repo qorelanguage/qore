@@ -59,9 +59,9 @@ static void releaseTuxedoConnection(void* obj)
 // []
 // [string-name]
 // [string-name, parameters-hash]
-static void TUXEDOCONNECTION_constructor(class Object *self, class QoreNode *params, class ExceptionSink *xsink)
+static void TUXEDOCONNECTION_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
 {
-  tracein("TUXEDOCONNECTION _constructor");
+  tracein("TUXEDOCONNECTION_constructor");
 
   const char* connection_name = 0;
   Tuxedo_connection_parameters Tuxedo_params;
@@ -88,11 +88,13 @@ static void TUXEDOCONNECTION_constructor(class Object *self, class QoreNode *par
       xsink->raiseException("QORE-TUXEDO-CONNECTION-CONSTRUCTOR",
         "The second parameter of Tuxedo::Connection constructor (if any) needs to be hash of connection parameters. "
         "See documentation for details on this hash.");
+      return;
     }
   }
   if (get_param(params, 2)) {
     xsink->raiseException("QORE-TUXEDO-CONNECTION-CONSTRUCTOR",
       "Tuxedo::Connection constructor could have maximally two parameters.");
+    return;
   }
   QoreTuxedoConnection* conn = new QoreTuxedoConnection(connection_name, Tuxedo_params, xsink);
   if (xsink->isException()) {
@@ -101,11 +103,11 @@ static void TUXEDOCONNECTION_constructor(class Object *self, class QoreNode *par
     self->setPrivate(CID_TUXEDOCONNECTION, conn, getTuxedoConnection, releaseTuxedoConnection);
   }
 
-  traceout("TUXEDOCONNECTION _constructor");
+  traceout("TUXEDOCONNECTION_constructor");
 }
 
 //------------------------------------------------------------------------------
-static void TUXEDOCONNECTION_destructor(class Object *self, class QoreTuxedoConnection* conn, class ExceptionSink *xsink)
+static void TUXEDOCONNECTION_destructor(Object *self, QoreTuxedoConnection* conn, ExceptionSink *xsink)
 {
   tracein("TUXEDOCONNECTION_destructor");
   // clumsy, used to keep the deref() the same as in other modules
@@ -115,7 +117,7 @@ static void TUXEDOCONNECTION_destructor(class Object *self, class QoreTuxedoConn
 }
 
 //------------------------------------------------------------------------------
-static void TUXEDOCONNECTION_copy(class Object *self, class Object *old, class QoreTuxedoConnection* conn, ExceptionSink *xsink)
+static void TUXEDOCONNECTION_copy(Object *self, Object *old, QoreTuxedoConnection* conn, ExceptionSink *xsink)
 {
   xsink->raiseException("QORE-TUXEDO-CONNECTION-COPY", "copying Tuxedo::Connection objects is not supported.");
 }
