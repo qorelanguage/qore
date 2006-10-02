@@ -290,8 +290,8 @@ void ThreadResourceList::remove(void *key)
 {
    //printd(5, "TRL::remove(key=%08p)\n", key);
    lock();
-   class ThreadResourceNode *w = find(key);
-   if (w)
+   class ThreadResourceNode *w;
+   while ((w = find(key)))
    {
       removeIntern(w);
       delete w;

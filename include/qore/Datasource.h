@@ -35,6 +35,7 @@
 #include <qore/config.h>
 #include <qore/Exception.h>
 #include <qore/DBI.h>
+#include <qore/thread.h>
 
 #include <stdlib.h>
 #include <string.h>
@@ -121,10 +122,11 @@ class Datasource
 	 class Datasource *nds = new Datasource(dsl);
 	 
 	 nds->p_username = p_username ? strdup(p_username) : NULL;
-	 nds->password   = p_password ? strdup(p_password) : NULL;
-	 nds->dbname     = p_dbname   ? strdup(p_dbname)   : NULL;
-	 nds->charset    = p_charset  ? strdup(p_charset)  : NULL;
-	 nds->hostname   = p_hostname ? strdup(p_hostname) : NULL;
+	 nds->p_password = p_password ? strdup(p_password) : NULL;
+	 nds->p_dbname   = p_dbname   ? strdup(p_dbname)   : NULL;
+	 nds->p_charset  = p_charset  ? strdup(p_charset)  : NULL;
+	 nds->p_hostname = p_hostname ? strdup(p_hostname) : NULL;
+	 nds->autocommit = autocommit;
 	 return nds;
       }
 };
