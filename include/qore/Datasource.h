@@ -55,7 +55,6 @@ class Datasource
 
       inline void freeConnectionValues();
       inline void setConnectionValues();
-      inline ~Datasource();
 
    public:
       class QoreEncoding *qorecharset;
@@ -70,6 +69,7 @@ class Datasource
 	 *hostname;  // for MySQL
 
       inline Datasource(DBIDriver *);
+      inline ~Datasource();
       inline class QoreNode *select(class QoreString *query_str, class List *args, ExceptionSink *xsink);
       inline class QoreNode *selectRows(class QoreString *query_str, class List *args, ExceptionSink *xsink);
       inline class QoreNode *exec(class QoreString *query_str, class List *args, ExceptionSink *xsink);

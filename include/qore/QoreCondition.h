@@ -27,6 +27,8 @@
 #include <pthread.h>
 #include <sys/time.h>
 
+#include <qore/LockedObject.h>
+
 class QoreCondition
 {
    private:
@@ -39,6 +41,8 @@ class QoreCondition
       inline int broadcast();
       inline int wait(pthread_mutex_t *m);
       inline int wait(pthread_mutex_t *m, int timeout); // timeout in seconds
+      inline int wait(LockedObject *l) { wait(&l->ptm_lock); }
+      inline int wait(LockedObject *l, int timeout) { wait(&l->ptm_lock, timeout); } // timeout in seconds
 };
 
 inline QoreCondition::QoreCondition()
