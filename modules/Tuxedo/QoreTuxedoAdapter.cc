@@ -39,7 +39,7 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(const char* name, Hash* params, ExceptionSi
 QoreTuxedoAdapter::~QoreTuxedoAdapter()
 {
   ExceptionSink dummy;
-  close_adapter(&dumy);
+  close_adapter(&dummy);
 }
 
 //------------------------------------------------------------------------------
