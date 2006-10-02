@@ -30,6 +30,7 @@
 #include <qore/ReferenceObject.h>
 #include <string>
 #include <list>
+#include <utility>
 
 class ExceptionSink;
 
@@ -40,8 +41,8 @@ class QoreTuxedoAdapter : public ReferenceObject
   std::list<int> m_pending_async_requests;
 
   void handle_tpcancel_error(char* err, int tperrnum, int handle, ExceptionSink* xsink);
-  char* hash2buffer(Hash* hash, ExceptionSink* xsink);
-  Hash* buffer2hash(char* buffer, ExceptionSink* xsink);
+  std::pair<char*, long> hash2buffer(Hash* hash, ExceptionSink* xsink);
+  Hash* buffer2hash(char* buffer, long size, ExceptionSink* xsink);
 
 public:
   QoreTuxedoAdapter(const char* name, Hash* params, ExceptionSink* xsink);
