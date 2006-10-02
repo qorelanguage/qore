@@ -49,9 +49,8 @@ endif
 
 endif
 
-AM_CPPFLAGS = ${PTHREAD_CFLAGS}
 INCLUDES = -I$(top_srcdir)/include
-AM_CXXFLAGS =
+AM_CXXFLAGS = ${PTHREAD_CFLAGS}
 
 if COND_PROFILE
 AM_CXXFLAGS += -g -pg

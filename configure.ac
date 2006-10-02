@@ -615,12 +615,19 @@ find_tux()
 AC_ARG_WITH([tuxedo],
   [AC_HELP_STRING([--with-tuxedo@<:@=DIR@:>@],
 		  [BEA Tuxedo directory (defaults to $TUX_DIR)])],
-  [if test ! -d "${with_tuxedo}"; then AC_MSG_ERROR(bad value ${with_tuxedo} for --with-tuxedo); unset with_tuxedo; fi])
+  [case "${with_tuxedo}" in 
+     yes) with_tuxedo="" ;;
+     no) ;;
+     *) if test ! -d "${with_tuxedo}"; then AC_MSG_ERROR(bad value ${with_tuxedo} for --with-tuxedo); unset with_tuxedo; fi
+   esac])
 
 
 AC_MSG_CHECKING([BEA Tuxedo])
 if test -n "$with_tuxedo"; then
-   if test ! -e "$with_tuxedo/include/atmi.h"; then
+   if test "$with_tuxedo" = "no"; then
+      AC_MSG_RESULT([skipping check])
+      unset with_tuxedo
+   elif test ! -e "$with_tuxedo/include/atmi.h"; then
       AC_MSG_ERROR([can't find atmi.h in $with_tuxedo/include])
    elif test ! -e "$with_tuxedo/lib/libtux.a"; then
       AC_MSG_ERROR([can't find libtux.a in $with_tuxedo/lib])

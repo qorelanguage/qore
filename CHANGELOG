@@ -1,3 +1,8 @@
+2006.10.02: David Nichols
+	* fixed modules/TIBCO/Makefile.am to include flags for pthread
+	* fixed --without-tuxedo logic in configure.ac
+	* added forgotten destructor in safe_dslist template
+
 2006.10.01: David Nichols
 	* corrected the atomicity of module initialization
 	* reviewed use of new STL containers for thread-concurrency problems

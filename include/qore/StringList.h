@@ -1,11 +1,9 @@
 /*
   StringList.h
 
-  is a singly-linked list where inserts can be made at either end
-
   Qore Programming Language
 
-  Copyright (C) 2003,2004,2005 David Nichols
+  Copyright (C) 2003,2004,2005,2006 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -115,7 +113,17 @@ template<typename T> class safe_dslist
 
    public: 
       inline safe_dslist() : head(NULL), tail(NULL) {}
-   
+      inline ~safe_dslist()
+      {
+	 node_t *w = head;
+	 while (w)
+	 {
+	    node_t *n = w->next;
+	    delete w;
+	    w = n;
+	 }
+      }
+
       inline iterator begin()
       {
 	 return head;
