@@ -5,6 +5,7 @@
 	* renamed include/qore/thread.h to include/qore/qore_thread.h to avoid
 	  conflicts with system include files
 	* more Solaris compile fixes
+	* Solaris shared object link fixes
 
 2006.10.02: David Nichols
 	* fixed modules/TIBCO/Makefile.am to include flags for pthread
