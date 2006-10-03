@@ -28,7 +28,7 @@
 #include <qore/Exception.h>
 #include <qore/QoreType.h>
 #include <qore/support.h>
-#include <qore/thread.h>
+#include <qore/qore_thread.h>
 #include <qore/Object.h>
 #include <qore/params.h>
 #include <qore/QoreProgram.h>

@@ -28,7 +28,7 @@
 #include <qore/Object.h>
 #include <qore/Operator.h>
 #include <qore/QoreString.h>
-#include <qore/thread.h>
+#include <qore/qore_thread.h>
 #include <qore/Function.h>
 #include <qore/QoreProgram.h>
 

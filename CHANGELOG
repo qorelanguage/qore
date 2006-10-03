@@ -2,6 +2,8 @@
 	* improved GetOpt class date parsing to accept ISO-8601 and qore date/
 	  time specifications (i.e. 2006-01-01 or 2006-01-01T10:00:00, etc) as
 	  well as the old format (20060101, 20060101100000)
+	* renamed include/qore/thread.h to include/qore/qore_thread.h to avoid
+	  conflicts with system include files
 
 2006.10.02: David Nichols
 	* fixed modules/TIBCO/Makefile.am to include flags for pthread

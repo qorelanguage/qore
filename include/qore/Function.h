@@ -195,7 +195,7 @@ class UserFunction : public ReferenceObject
 #include <qore/Variable.h>
 #include <qore/Statement.h>
 #include <qore/common.h>
-#include <qore/thread.h>
+#include <qore/qore_thread.h>
 #include <qore/ArgvStack.h>
 #include <qore/QoreType.h>
 #include <qore/Exception.h>

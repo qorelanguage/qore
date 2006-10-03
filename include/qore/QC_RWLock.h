@@ -27,7 +27,7 @@
 #define _QORE_CLASS_RWLOCK
 
 #include <qore/common.h>
-#include <qore/thread.h>
+#include <qore/qore_thread.h>
 #include <qore/support.h>
 #include <qore/ReferenceObject.h>
 

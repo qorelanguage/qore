@@ -54,6 +54,8 @@ typedef hash_map<char*, class Var *, hash<char *>, class eqstr> hm_var_t;
 #include <map>
 using namespace std;
 
+#include <string.h>
+
 class ltstr
 {
    public:

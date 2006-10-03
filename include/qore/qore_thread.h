@@ -1,5 +1,5 @@
 /*
-  thread.h
+  qore_thread.h
 
   POSIX thread library for Qore
 
@@ -22,8 +22,8 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _QORE_THREAD_H
-#define _QORE_THREAD_H
+#ifndef _QORE_QORE_THREAD_H
+#define _QORE_QORE_THREAD_H
 
 #include <qore/LockedObject.h>
 

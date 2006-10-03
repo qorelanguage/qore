@@ -24,7 +24,7 @@
 
 #include <qore/config.h>
 #include <qore/support.h>
-#include <qore/thread.h>
+#include <qore/qore_thread.h>
 #include <qore/LockedObject.h>
 #include <qore/params.h>
 #include <qore/Namespace.h>

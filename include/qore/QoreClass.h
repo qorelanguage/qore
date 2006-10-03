@@ -594,7 +594,7 @@ static inline class QoreNode *getStackObjectValue(char *name, class VLock *vl, E
 
 #include <qore/common.h>
 #include <qore/Exception.h>
-#include <qore/thread.h>
+#include <qore/qore_thread.h>
 #include <qore/Function.h>
 #include <qore/List.h>
 #include <qore/Statement.h>

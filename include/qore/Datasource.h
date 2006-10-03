@@ -35,7 +35,7 @@
 #include <qore/config.h>
 #include <qore/Exception.h>
 #include <qore/DBI.h>
-#include <qore/thread.h>
+#include <qore/qore_thread.h>
 
 #include <stdlib.h>
 #include <string.h>

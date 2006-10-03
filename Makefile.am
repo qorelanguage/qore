@@ -13,7 +13,7 @@ noinst_HEADERS = \
 	include/qore/AutoNamespaceList.h \
 	include/qore/types/Number.h \
 	include/qore/Context.h \
-	include/qore/thread.h \
+	include/qore/qore_thread.h \
 	include/qore/QoreProgram.h \
 	include/qore/ReferenceObject.h \
 	include/qore/QoreType.h \

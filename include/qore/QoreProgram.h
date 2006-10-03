@@ -293,7 +293,7 @@ class QoreProgram : public ReferenceObject, private UserFunctionList, private Im
 };
 
 #include <qore/Function.h>
-#include <qore/thread.h>
+#include <qore/qore_thread.h>
 #include <qore/support.h>
 #include <qore/Exception.h>
 #include <qore/Statement.h>

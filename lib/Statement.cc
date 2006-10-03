@@ -31,7 +31,7 @@
 #include <qore/Operator.h>
 #include <qore/Object.h>
 #include <qore/QoreString.h>
-#include <qore/thread.h>
+#include <qore/qore_thread.h>
 #include <qore/Exception.h>
 #include <qore/ParserSupport.h>
 #include <qore/QoreClass.h>

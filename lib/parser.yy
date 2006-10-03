@@ -32,7 +32,7 @@
 #include <qore/Object.h>
 #include <qore/QoreString.h>
 #include <qore/QoreClass.h>
-#include <qore/thread.h>
+#include <qore/qore_thread.h>
 #include <qore/QoreProgram.h>
 #include <qore/Find.h>
 #include <qore/Namespace.h>

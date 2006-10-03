@@ -22,7 +22,7 @@
 
 #include <qore/config.h>
 #include <qore/common.h>
-#include <qore/thread.h>
+#include <qore/qore_thread.h>
 #include <qore/QC_Condition.h>
 #include <qore/QC_Mutex.h>
 #include <qore/QoreClass.h>

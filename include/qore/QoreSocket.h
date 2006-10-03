@@ -35,7 +35,7 @@
 #include <qore/config.h>
 #include <qore/support.h>
 #include <qore/QoreString.h>
-#include <qore/thread.h>
+#include <qore/qore_thread.h>
 #include <qore/Object.h>
 #include <qore/QoreNet.h>
 #include <qore/BinaryObject.h>

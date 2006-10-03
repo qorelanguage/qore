@@ -29,7 +29,7 @@
 #include <qore/ModuleManager.h>
 #include <qore/Variable.h>
 #include <qore/Operator.h>
-#include <qore/thread.h>
+#include <qore/qore_thread.h>
 #include <qore/Namespace.h>
 #include <qore/charset.h>
 #include <qore/QoreProgram.h>

@@ -26,7 +26,7 @@
 #include <qore/support.h>
 #include <qore/Operator.h>
 #include <qore/Exception.h>
-#include <qore/thread.h>
+#include <qore/qore_thread.h>
 #include <qore/Variable.h>
 #include <qore/LockedObject.h>
 

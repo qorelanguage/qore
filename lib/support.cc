@@ -23,7 +23,7 @@
 #include <qore/config.h>
 #include <qore/support.h>
 #include <qore/QoreString.h>
-#include <qore/thread.h>
+#include <qore/qore_thread.h>
 #include <qore/QoreProgram.h>
 
 #include <stdio.h>
@@ -36,7 +36,7 @@
 #ifdef DEBUG
 int qore_trace = 0;
 int debug = 0;
-#include <qore/thread.h>
+#include <qore/qore_thread.h>
 extern int threads_initialized;
 #endif
 

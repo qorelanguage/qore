@@ -27,7 +27,7 @@
 #include <qore/common.h>
 #include <qore/QoreClass.h>
 #include <qore/Object.h>
-#include <qore/thread.h>
+#include <qore/qore_thread.h>
 #include <qore/params.h>
 #include <qore/Namespace.h>
 #include <qore/ErrnoConstants.h>

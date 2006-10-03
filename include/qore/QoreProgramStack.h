@@ -43,7 +43,7 @@ class QoreProgramStack {
       class QoreProgram *getProgram() { return tail->pgm; }
 };
 
-#include <qore/thread.h>
+#include <qore/qore_thread.h>
 #include <qore/support.h>
 
 inline QoreProgramStack::QoreProgramStack(class QoreProgram *p)

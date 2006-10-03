@@ -203,7 +203,7 @@ static inline void uninstantiateLVar(class ExceptionSink *xsink);
 #include <qore/QoreNode.h>
 #include <qore/Exception.h>
 #include <qore/support.h>
-#include <qore/thread.h>
+#include <qore/qore_thread.h>
 #include <qore/QoreProgram.h>
 #include <qore/Object.h>
 

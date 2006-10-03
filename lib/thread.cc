@@ -25,7 +25,7 @@
 #include <qore/config.h>
 #include <qore/support.h>
 #include <qore/common.h>
-#include <qore/thread.h>
+#include <qore/qore_thread.h>
 #include <qore/QoreNode.h>
 #include <qore/QoreType.h>
 #include <qore/List.h>

@@ -111,7 +111,7 @@ inline void make_exception(ExceptionSink *xsink, Exception *ne);
 
 #include <qore/common.h>
 #include <qore/List.h>
-#include <qore/thread.h>
+#include <qore/qore_thread.h>
 #include <qore/QoreNode.h>
 #include <qore/QoreString.h>
 #include <qore/Object.h>

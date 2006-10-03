@@ -149,7 +149,7 @@ class NamespaceList
 #include <qore/QoreClassList.h>
 #include <qore/ConstantList.h>
 #include <qore/support.h>
-#include <qore/thread.h>
+#include <qore/qore_thread.h>
 #include <qore/QoreProgram.h>
 
 inline void Namespace::init(char *n)

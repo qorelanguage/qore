@@ -78,7 +78,7 @@ class CallStack {
       }
 };
 
-#include <qore/thread.h>
+#include <qore/qore_thread.h>
 #include <qore/QoreType.h>
 #include <qore/QoreString.h>
 #include <qore/List.h>

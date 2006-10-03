@@ -23,7 +23,7 @@
 #include <qore/config.h>
 #include <qore/QoreSignal.h>
 #include <qore/support.h>
-#include <qore/thread.h>
+#include <qore/qore_thread.h>
 #include <qore/Function.h>
 
 #include <stdlib.h>

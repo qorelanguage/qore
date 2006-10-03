@@ -26,7 +26,7 @@
 #include <qore/Statement.h>
 #include <qore/Variable.h>
 #include <qore/support.h>
-#include <qore/thread.h>
+#include <qore/qore_thread.h>
 #include <qore/Exception.h>
 #include <qore/params.h>
 #include <qore/CallStack.h>

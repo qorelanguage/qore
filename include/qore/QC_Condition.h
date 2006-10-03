@@ -25,7 +25,7 @@
 #define _QORE_CLASS_CONDITION_H
 
 #include <qore/common.h>
-#include <qore/thread.h>
+#include <qore/qore_thread.h>
 #include <qore/support.h>
 #include <qore/QoreCondition.h>
 #include <qore/ReferenceObject.h>
