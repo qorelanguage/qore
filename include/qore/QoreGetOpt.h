@@ -66,6 +66,7 @@ class QoreGetOpt {
    private:
       class QoreGetOptNode *head;
       
+      class QoreNode *parseDate(char *val);
       void processLongArg(char *arg, class List *l, class Hash *h, int &i, bool modify);
       int processShortArg(char *arg, class List *l, class Hash *h, int &i, int &j, bool modify);
       inline QoreGetOptNode *find(char *opt)

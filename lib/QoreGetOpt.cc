@@ -24,6 +24,7 @@
 #include <qore/Hash.h>
 #include <qore/List.h>
 #include <qore/Exception.h>
+#include <qore/QoreString.h>
 
 #include <string.h>
 
@@ -59,6 +60,40 @@ static void inline addError(class Hash *h, QoreString *err)
    if (!(*v))
       (*v) = new QoreNode(new List());
    (*v)->val.list->push(new QoreNode(err));
+}
+
+class QoreNode *QoreGetOpt::parseDate(char *val)
+{
+   // check for ISO-8601 or qore date formats 
+   // 2006-01-01              (10)
+   // 2006-01-01T10:00:00     (19)
+   // 2006-01-01T10:00:00.000 (23)
+   int len = strlen(val);
+   
+   if (len >= 10)
+   {
+      char *c = strchr(val, '-');
+      if (c == (val + 4))
+      {
+	 QoreString str(val, 4);
+	 str.concat(val + 5, 2);
+	 str.concat(val + 8, 2);
+
+	 // if time component is there
+	 if (len >= 19 && (val[10] == 'T' || val[10] == '-'))
+	 {
+	    str.concat(val + 11, 2);
+	    str.concat(val + 14, 2);
+	    str.concat(val + 17, 2);
+	    if (len == 23)
+	       str.concat(val + 19);
+	 }
+	 return new QoreNode(new DateTime(str.getBuffer()));
+      }
+      // fall through to default date parse below
+   }
+
+   return new QoreNode(new DateTime(val));
 }
 
 void QoreGetOpt::doOption(class QoreGetOptNode *n, class Hash *h, char *val)
@@ -104,7 +139,7 @@ void QoreGetOpt::doOption(class QoreGetOptNode *n, class Hash *h, char *val)
    else if (n->argtype == NT_FLOAT)
       v = new QoreNode(strtod(val, NULL));
    else if (n->argtype == NT_DATE)
-      v = new QoreNode(new DateTime(val));
+      v = parseDate(val);
    else if (n->argtype == NT_BOOLEAN)
       v = new QoreNode((bool)strtol(val, NULL, 10));
    else // default string
