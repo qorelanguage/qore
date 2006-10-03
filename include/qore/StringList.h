@@ -78,7 +78,7 @@ class StringList : public strdeque_t
 
 template<typename T> struct _qore_list_node
 {
-      typedef struct _qore_list_node self_t;
+      typedef _qore_list_node self_t;
       self_t *next;
       T data;
    
@@ -88,8 +88,8 @@ template<typename T> struct _qore_list_node
 
 template<typename T> struct _qore_list_iterator
 {
-      typedef struct _qore_list_node<T> node_t;
-      typedef struct _qore_list_iterator<T> self_t;
+      typedef _qore_list_node<T> node_t;
+      typedef _qore_list_iterator<T> self_t;
    
       // data for the node
       node_t *node;
@@ -104,9 +104,9 @@ template<typename T> struct _qore_list_iterator
 template<typename T> class safe_dslist
 {  
    public:
-      typedef struct _qore_list_iterator<T> iterator;
-      typedef struct _qore_list_node<T> node_t;
-      typedef class safe_dslist<T> self_t;
+      typedef _qore_list_iterator<T> iterator;
+      typedef _qore_list_node<T> node_t;
+      typedef safe_dslist<T> self_t;
       
    private:
       node_t *head, *tail;
