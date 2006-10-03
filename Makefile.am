@@ -136,7 +136,7 @@ noinst_HEADERS = \
 	modules/mysql/qore-mysql.h \
 	modules/TIBCO/tibae-module.h \
 	modules/TIBCO/tibrv-module.h \
-	modules/TIBCO/tibrv.h \
+	modules/TIBCO/qore_tibrv.h \
 	modules/TIBCO/QoreApp.h \
 	modules/TIBCO/tibae.h \
 	modules/TIBCO/QoreTibrvTransport.h \

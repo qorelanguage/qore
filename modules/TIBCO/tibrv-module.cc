@@ -28,7 +28,7 @@
 #include <qore/Namespace.h>
 #include <qore/ModuleManager.h>
 
-#include "tibrv.h"
+#include "qore_tibrv.h"
 #include "QC_TibrvListener.h"
 #include "QC_TibrvSender.h"
 #include "QC_TibrvFtMember.h"
