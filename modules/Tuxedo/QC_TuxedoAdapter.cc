@@ -133,7 +133,7 @@ static QoreNode* call_impl(Object* self, QoreTuxedoAdapter* adapter, QoreNode *p
       return new QoreNode(true);
     }    
     if (strcmp(n, "test-success-int") == 0) {
-      return 123;
+      return new QoreNode((int64)123);
     }
     if (strcmp(n, "test-success-string") == 0) {
       return new QoreNode("test result");
@@ -236,7 +236,7 @@ static QoreNode* TUXEDOADAPTER_get_async_result(Object* self, QoreTuxedoAdapter*
       return new QoreNode(true);
     }
     if (strcmp(n, "test-success-int") == 0) {
-      return 123;
+      return new QoreNode((int64)123);
     }
     if (strcmp(n, "test-success-string") == 0) {
       return new QoreNode("test result");

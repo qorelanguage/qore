@@ -43,9 +43,25 @@ QoreTuxedoAdapter::~QoreTuxedoAdapter()
 }
 
 //------------------------------------------------------------------------------
+// Try to cancel all pending requests. Provide error details 
+// on the last failed one.
 void QoreTuxedoAdapter::close_adapter(ExceptionSink* xsink)
 {
-  // TBD
+  bool some_cancel_failed = false;
+  int tperrnum;
+  int handle;
+  for (std::list<int>::const_iterator it = m_pending_async_requests.begin(), end = m_pending_async_requests.end(); it != end; ++it) {
+    int res = tpcancel(*it);
+    if (res == -1) {
+      some_cancel_failed = true;
+      tperrnum = tperrno;
+      handle = *it;
+    }
+  }
+  m_pending_async_requests.clear();
+  if (some_cancel_failed) {
+    handle_tpcancel_error("QORE-TUXEDO-ADAPTER-DESTRUCTOR", tperrnum, handle, xsink);
+  }
 }
 
 //------------------------------------------------------------------------------
