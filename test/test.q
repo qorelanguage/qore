@@ -518,8 +518,8 @@ sub test_date($d, $y, $w, $day, $n, $i)
     test_value(getDayNumber($d),                 $n,               "getDayNumber() " + $i);
     test_value(getDateFromISOWeek($y, $w, $day), get_midnight($d), "getDateFromISOWeek() " + $i);
     # not all architectures support the timegm() system call
-    if ($d >= 1970-01-01 && $d < 2038-01-19)
-	test_value(timegm($d), int($d), "qore epoch conversion " + $i);
+    #if ($d >= 1970-01-01 && $d < 2038-01-19)
+	#test_value(timegm($d), int($d), "qore epoch conversion " + $i);
     $i++;
 }
 
