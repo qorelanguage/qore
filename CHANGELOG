@@ -3,6 +3,7 @@
 	  that must be free()'ed
 	* changed ModuleManager to ignore QORE_AUTO_MODULE_DIR and 
 	  QORE_MODULE_DIR if directories were added in advance
+	* improved mysql checks in configure
 
 2006.10.03: David Nichols
 	* improved GetOpt class date parsing to accept ISO-8601 and qore date/

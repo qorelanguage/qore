@@ -754,58 +754,87 @@ AC_ARG_ENABLE([mysql],
       esac],
      [enable_mysql=auto])
 
+AC_ARG_WITH([mysql-includes],
+    [AC_HELP_STRING([--with-mysql-includes@<:@=DIR@:>@],
+                    [MySQL include file directory])],
+    [if test ! -d "${with_mysql_includes}"; then AC_MSG_ERROR(bad value ${with_mysql_includes} for --with-mysql-includes); unset with_mysql_includes; fi])
+
+AC_ARG_WITH([mysql-libs],
+    [AC_HELP_STRING([--with-mysql-libs@<:@=DIR@:>@],
+                    [directory for MySQL libraries (default: /usr/lib/mysql)])],
+    [if test ! -d "${with_mysql_libs}"; then AC_MSG_ERROR(bad value ${with_mysql_libs} for --with-mysql-libs); unset with_mysql_libs; fi])
+
+check_mysql_include()
+{
+    if test -f "$1/mysql.h"; then
+       mysql_include_dir=$1
+    fi
+}
+
 # see if we can figure out where the mysql files are
 if test "${enable_mysql}" != "no"; then
-   AC_MSG_CHECKING([for mysql files])
-   if test -d /usr/local/mysql; then
-      AC_MSG_RESULT([/usr/local/mysql])
-      with_mysql_includes=/usr/local/mysql/include
-      with_mysql_libs=/usr/local/mysql/lib${LIBSUFFIX}
-      enable_mysql=yes
-   elif test -d /opt/mysql; then
-      AC_MSG_RESULT([/opt/mysql])
-      with_mysql_includes=/opt/mysql/include
-      with_mysql_libs=/opt/mysql/lib${LIBSUFFIX}
-      enable_mysql=yes
-   elif test -d /usr/mysql; then
-      AC_MSG_RESULT([/usr/mysql])
-      with_mysql_includes=/usr/mysql/include
-      with_mysql_libs=/usr/mysql/lib${LIBSUFFIX}
-      enable_mysql=yes
-   elif test -d /usr/include/mysql -a -d /usr/lib${LIBSUFFIX}/mysql; then
-      AC_MSG_RESULT([/usr/include/mysql and /usr/lib${LIBSUFFIX}/mysql])
-      with_mysql_includes=/usr/include/mysql
-      with_mysql_libs=/usr/lib${LIBSUFFIX}/mysql
-      enable_mysql=yes
-   elif test -d /sw/include/mysql -a -d /sw/lib/mysql; then
-      AC_MSG_RESULT([/sw/include/mysql and /sw/lib/mysql])
-      with_mysql_includes=/sw/include/mysql
-      with_mysql_libs=/sw/lib/mysql
-      enable_mysql=yes
-   elif test -d /opt/local/include/mysql -a -d /opt/local/lib${LIBSUFFIX}/mysql; then
-      AC_MSG_RESULT([/opt/local/include/mysql and /opt/local/lib${LIBSUFFIX}/mysql])
-      with_mysql_includes=/opt/local/include/mysql
-      with_mysql_libs=/opt/local/lib${LIBSUFFIX}/mysql
-      enable_mysql=yes
+   AC_MSG_CHECKING([for mysql includes])
+   if test -n "$with_mysql_includes"; then 
+      if test -f "$with_mysql_includes/mysql.h"; then
+      	 AC_MSG_RESULT([$with_mysql_includes])
+	 enable_mysql=yes
+      else
+	 AC_MSG_RESULT([error: $with_mysql_includes does not contain mysql.h])
+	 unset with_mysql_includes
+	 enable_mysql=no
+      fi
    else
-      AC_MSG_RESULT([no])
-      enable_mysql=no
+      for dir in "$MYSQL_DIR/include" /usr/local/mysql/include /opt/mysql/include /usr/mysql/include /usr/include/mysql /sw/include/mysql /opt/local/include/mysql; do
+      	  check_mysql_include $dir
+      	  if test -n "$mysql_include_dir"; then
+	     AC_MSG_RESULT([$mysql_include_dir])
+	     with_mysql_includes="$mysql_include_dir"
+	     enable_mysql=yes
+	     break;
+	  fi
+      done
+      if test -z "$mysql_include_dir"; then
+          AC_MSG_RESULT([not found])
+	  unset with_mysql_includes
+      fi
+   fi
+fi
+
+check_mysql_lib()
+{
+    if test -f "$1/libmysqlclient_r.a" -o -f "$1/libmysqlclient_r.${SHLIB_SUFFIX}"; then
+       mysql_lib_dir=$1
+    fi
+}
+
+if test "${enable_mysql}" != "no"; then
+   AC_MSG_CHECKING([for mysql libraries])
+   if test -n "$with_mysql_libs"; then 
+      if test -f "$with_mysql_libs/libmysqlclient_r.a"; then
+      	 AC_MSG_RESULT([$with_mysql_libs])
+	 enable_mysql=yes
+      else
+	 AC_MSG_RESULT([error: $with_mysql_libs does not contain libmysqlclient])
+	 unset with_mysql_libs
+      fi
+   else
+      for dir in "$MYSQL_DIR/lib${LIBSUFFIX}" /usr/local/mysql/lib${LIBSUFFIX} /opt/mysql/lib${LIBSUFFIX} /usr/mysql/lib${LIBSUFFIX} /usr/lib${LIBSUFFIX}/mysql /sw/lib/mysql /opt/local/lib${LIBSUFFIX} ;do
+      	  check_mysql_lib $dir
+      	  if test -n "$mysql_lib_dir"; then
+	     AC_MSG_RESULT([$mysql_lib_dir])
+	     with_mysql_libs="$mysql_lib_dir"
+	     enable_mysql=yes
+	     break;
+	  fi
+      done
+      if test -z "$mysql_lib_dir"; then
+          AC_MSG_RESULT([not found])
+	  unset with_mysql_libs
+      fi
    fi
 fi
 
 if test "${enable_mysql}" = yes; then
-  AC_ARG_WITH([mysql-includes],
-    [AC_HELP_STRING([--with-mysql-includes@<:@=DIR@:>@],
-                    [MySQL include file directory])],
-    [if test ! -d "${with_mysql_includes}"; then AC_MSG_ERROR(bad value ${with_mysql_includes} for --with-mysql-includes); unset with_mysql_includes; fi],
-    [with_mysql_includes=/usr/include/mysql])
-
-  AC_ARG_WITH([mysql-libs],
-    [AC_HELP_STRING([--with-mysql-libs@<:@=DIR@:>@],
-                    [directory for MySQL libraries (default: /usr/lib/mysql)])],
-    [if test ! -d "${with_mysql_libs}"; then AC_MSG_ERROR(bad value ${with_mysql_libs} for --with-mysql-libs); unset with_mysql_libs; fi],
-    [with_mysql_libs=/usr/lib/mysql])
-
   if test -n "$with_mysql_includes" -a -n "$with_mysql_libs"; then
      MYSQL_INCLUDES="-I$with_mysql_includes"
      MYSQL_LIBS="-L$with_mysql_libs -lmysqlclient_r"
