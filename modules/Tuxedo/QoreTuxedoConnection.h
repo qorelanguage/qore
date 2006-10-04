@@ -44,6 +44,7 @@ class QoreTuxedoConnection : public ReferenceObject
 public:
   QoreTuxedoConnection(const char* name, Tuxedo_connection_parameters& params, ExceptionSink* xsink);
   ~QoreTuxedoConnection();
+  const char* get_name() const { return m_name.c_str(); }
 
   // if not already done close the Tuxedo 
   // connection by calling tpterm();

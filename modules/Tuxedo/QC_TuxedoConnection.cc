@@ -26,6 +26,7 @@
 #include <qore/support.h>
 #include <qore/QoreClass.h>
 #include <qore/params.h>
+#include <string>
 
 #include "QC_TuxedoConnection.h"
 #include "QoreTuxedoConnection.h"
@@ -110,9 +111,21 @@ static void TUXEDOCONNECTION_constructor(Object *self, QoreNode *params, Excepti
 static void TUXEDOCONNECTION_destructor(Object *self, QoreTuxedoConnection* conn, ExceptionSink *xsink)
 {
   tracein("TUXEDOCONNECTION_destructor");
+#ifdef DEBUG
+  std::string name = conn->get_name();
+#endif
+
   // clumsy, used to keep the deref() the same as in other modules
   conn->close_connection(xsink);
   conn->deref();
+
+#ifdef DEBUG
+  if (name.find("test-fail-close") == 0) {
+    xsink->raiseException("QORE-TUXEDO-CONNECTION-DESTRUCTOR",
+      "Test object: exception asked to be thrown.");
+  }
+#endif
+
   traceout("TUXEDOCONNECTION_destructor");
 }
 

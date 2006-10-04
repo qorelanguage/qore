@@ -32,7 +32,6 @@
 #include <qore/BuiltinFunctionList.h>
 
 #include "tuxedo_module.h"
-#include "TuxedoTest.h" // to be deleted later
 
 #include "QC_TuxedoConnection.h"
 #include "QC_TuxedoAdapter.h"
@@ -117,7 +116,6 @@ void tuxedo_module_ns_init(class Namespace* rns, class Namespace* qns)
   tuxedons->addConstant("SYSTEM_AND_APP_AUTHENTICATION", new QoreNode(SYSTEM_AND_APP_AUTHENTICATION));
   
   
-  tuxedons->addSystemClass(initTuxedoTestClass()); // to be deleted latera
   // Tuxedo::Connection class
   tuxedons->addSystemClass(initTuxedoConnectionClass());
   // Tuxedo:Adapter class
