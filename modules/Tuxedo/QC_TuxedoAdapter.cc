@@ -66,8 +66,15 @@ static void TUXEDOADAPTER_constructor(Object *self, QoreNode *params, ExceptionS
   }
 
 #ifdef DEBUG
-  if (connection_name && strstr(connection_name, "test") == connection_name) {
-    goto create_object;
+  if (connection_name) {
+    if (strcmp(connection_name, "test-fail-open") == 0) {
+      xsink->raiseException("QORE-TUXEDO-ADAPTER-CONSTRUCTOR",
+        "Dymm adaptor asked to fail in constructor.");
+      return;
+    }
+    if (strstr(connection_name, "test") == connection_name) {
+      goto create_object;
+    }
   }
 #endif
 
@@ -103,8 +110,20 @@ create_object:
 static void TUXEDOADAPTER_destructor(Object *self, QoreTuxedoAdapter* adapter, ExceptionSink *xsink)
 {
   tracein("TUXEDOADAPTER_destructor");
+#ifdef DEBUG
+  std::string name = adapter->get_name();
+#endif
+
   adapter->close_adapter(xsink);
   adapter->deref();
+
+#ifdef DEBUG
+  if (name == "test-fail-close") {
+    xsink->raiseException("QORE-TUXEDO-ADAPTER-DESTRUCTOR",
+      "Dummy object asked to fail in destructor.");
+  }
+#endif
+
   traceout("TUXEDOADAPTER_destructor");
 }
 
@@ -120,9 +139,9 @@ static QoreNode* call_impl(Object* self, QoreTuxedoAdapter* adapter, QoreNode *p
    char* err = (char*)(async ? "QORE-TUXEDO-ADAPTER-ASYNC_CALL" : "QORE-TUXEDO-ADAPTER-CALL");
 
 #ifdef DEBUG
-  const char* n = adapter->name();
+  const char* n = adapter->get_name();
   if (strstr(n, "test") == n) {
-    if (strstr(n, "test-fail") == n) {
+    if (strstr(n, "test-fail-call") == n) {
       xsink->raiseException(err, "Test: dummy adapter failed.");
       return 0;
     }
@@ -226,12 +245,14 @@ static QoreNode* TUXEDOADAPTER_get_async_result(Object* self, QoreTuxedoAdapter*
   char* err = "QORE-TUXEDO-ADAPTER-GET_ASYNC_RESULT";
 
 #ifdef DEBUG
-  const char* n = adapter->name();
+  const char* n = adapter->get_name();
   if (strstr(n, "test") == n) {
+
     if (strstr(n, "test-fail") == n) {
       xsink->raiseException(err, "Test: dummy adapter failed.");
       return 0;
     }
+
     if (strcmp(n, "test-success-bool") == 0) {
       return new QoreNode(true);
     }
@@ -302,9 +323,9 @@ static QoreNode* TUXEDOADAPTER_get_async_result(Object* self, QoreTuxedoAdapter*
 static QoreNode* TUXEDOADAPTER_cancel_async(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
 {
 #ifdef DEBUG
-  const char* n = adapter->name();
+  const char* n = adapter->get_name();
   if (strstr(n, "test") == n) {
-    if (strstr(n, "test-fail") == n) {
+    if (strstr(n, "test-fail-cancel") == n) {
       xsink->raiseException("QORE-TUXEDO-ADAPTER-CANCEL_ASYNC", "Test: dummy failure.");
     }
     return 0;

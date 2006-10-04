@@ -83,7 +83,9 @@ int QoreTuxedoAdapter::async_call(char* service_name, Hash* params, long flags, 
     tpfree(buffer.first);
   }
   if (res != -1) {
-    m_pending_async_requests.push_back(res);
+    if (res) { // 0 means no response 
+      m_pending_async_requests.push_back(res);
+    }
     return res;
   }
   char* err = "QORE-TUXEDO-ADAPTER-ASYNC_CALL";
@@ -179,6 +181,7 @@ Hash* QoreTuxedoAdapter::get_async_result(int handle, Hash* out, long flags, Exc
 //-----------------------------------------------------------------------------
 std::pair<char*, long> QoreTuxedoAdapter::hash2buffer(Hash* hash, ExceptionSink* xsink)
 {
+  
   // TBD
   return std::make_pair((char*)0, 0);
 }

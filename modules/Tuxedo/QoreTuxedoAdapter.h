@@ -47,7 +47,7 @@ class QoreTuxedoAdapter : public ReferenceObject
 public:
   QoreTuxedoAdapter(const char* name, Hash* params, ExceptionSink* xsink);
   ~QoreTuxedoAdapter();
-  const char* name() const { return m_name.c_str(); }
+  const char* get_name() const { return m_name.c_str(); }
   void close_adapter(ExceptionSink* xsink);
 
   Hash* call(char* service_name, Hash* params, long flags, ExceptionSink* xsink);
