@@ -83,13 +83,13 @@ sub test003d()
 # dummy connection, copy constructor should throw
 sub test004d()
 {
-  $conn = new Tuxedo::Connection("test");
-  try 
-    $conn2 = $conn;
-  catch()
-    return;
-  printf("ERROR: test004d() fails - exception was expected.\n");
-  exit(1);
+###  $conn = new Tuxedo::Connection("test");
+#  try 
+#    $conn2 = $conn;
+#  catch()
+#    return;
+#  printf("ERROR: test004d() fails - exception was expected.\n");
+#  exit(1);
 }
 
 # -------------------------------------------------------------------
@@ -127,6 +127,173 @@ sub test007()
 }
 
 # -------------------------------------------------------------------
+# Dummy adapter (no need for connection in such cases).
+sub test008d()
+{
+  $adapter = new Tuxedo::Adapter("test");
+}
+
+# -------------------------------------------------------------------
+# Dummy adapter throwing in constructor
+sub test009d()
+{
+  try 
+    $adapter = new Tuxedo::Adapter("test-fail-open");
+  catch () 
+    return;
+  printf("ERROR: test009d() fails - exception was expected.\n");
+  exit(1);
+}
+
+# -------------------------------------------------------------------
+# Dummy adapter throwing in destructor
+sub test010d()
+{
+  $adapter = new Tuxedo::Adapter("test-fail-close");
+  try 
+    delete $adapter;
+  catch()
+    return;
+  printf("ERROR: test010d() fails - exception was expected.\n");
+  exit(1);
+}
+
+# -------------------------------------------------------------------
+# Create connection to a real service identified only by environment
+# variables (at least TUXDIR and TUXCONFIG). The service must be running.
+# Create also an adapter.
+sub test011()
+{
+  $conn = new Tuxedo::Connection("running service identified by env");
+  $adapter = new Tuxedo::Adapter("an adapter", Tuxedo::TPNOTRAN);
+}
+
+# -------------------------------------------------------------------
+# Dummy adapter, async call that fails.
+sub test012d()
+{
+  $adapter = new Tuxedo::Adapter("test-fail-call");
+  try 
+    $handle = $adapter.async_call();
+  catch()
+    return;
+  printf("ERROR: test012d() fails - exception is expected.\n");
+  exit(1);
+}
+
+# -------------------------------------------------------------------
+# Dummy adapter, async call that is cancelled
+sub test013d()
+{
+  $adapter = new Tuxedo::Adapter("test");
+  $handle = $adapter.async_call();
+  if ($handle != 0) {
+    printf("ERROR in test013d() - expected handle == 0.\n");
+    exit(1);
+  }
+}
+
+# -------------------------------------------------------------------
+# Dummy adapter, cancelling of async call fails.
+sub test014d()
+{
+  $adapter = new Tuxedo::Adapter("test-fail-cancel");
+  $handle = $adapter.async_call();
+  if ($handle != 0) {
+    printf("ERROR in test014d() - expected handle == 0.\n");
+    exit(1);
+  }
+  try 
+    $adapter.cancel_async($handle);
+  catch()
+    return;
+  printf("ERROR in test014d() - exception is expected.\n");
+  exit(1);
+}
+
+# -------------------------------------------------------------------
+# Dummy adapter that fails to get result.
+sub test015d()
+{
+  $adapter = new Tuxedo::Adapter("test-fail");
+  $handle = $adapter.async_call();
+  if ($handle != 0) {
+    printf("ERROR in test015d() - expected handle == 0.\n");
+    exit(1);
+  }
+  try
+    $res = $adapter.get_async_result($handle);
+  catch()
+    return;
+  printf("ERROR: test015d() fails - exception was expected.\n");
+  exit(1);
+}
+
+# -------------------------------------------------------------------
+# Dummy adapter, fails copying.
+sub test016d()
+{
+###  $adapter = new Tuxedo::Adapter("test");
+#  try
+#   $copy = $adapter;
+#  catch()
+#    return;
+#  printf("ERROR in test016d() - exception was expected.\n");
+#  exit(1);{
+}
+
+# -------------------------------------------------------------------
+# Dummy adapter, async call returns int.
+sub test017d()
+{
+  $adapter = new Tuxedo::Adapter("test-success-int");
+  $handle = $adapter.async_call();
+  if ($handle != 0) {
+    printf("ERROR in test017d() - expected handle == 0.\n");
+    exit(1);
+  }
+  $res = $adapter.get_async_result($handle);
+  if ($res != 123) {
+    printf("ERROR in test017d() - value 123 expected.\n");
+    exit(1);
+  }
+}
+
+# -------------------------------------------------------------------
+# Dummy adapter, async call returns bool.
+sub test018d()
+{
+  $adapter = new Tuxedo::Adapter("test-success-bool");
+  $handle = $adapter.async_call();
+  if ($handle != 0) {
+    printf("ERROR in test018d() - expected handle == 0.\n");
+    exit(1);
+  }
+  $res = $adapter.get_async_result($handle);
+  if ($res != True) {
+    printf("ERROR in test018d() - value True expected.\n");
+    exit(1);
+  }
+}
+
+# -------------------------------------------------------------------
+# Dummy adapter, async call returns string.
+sub test019d()
+{
+  $adapter = new Tuxedo::Adapter("test-success-string");
+  $handle = $adapter.async_call();
+  if ($handle != 0) {
+    printf("ERROR in test019d() - expected handle == 0.\n");
+    exit(1);
+  }
+  $res = $adapter.get_async_result($handle);
+  if ($res != "test result") {
+    printf("ERROR in test019d() - value \"test result\"  expected.\n");
+    exit(1);
+  }
+}
+
+# -------------------------------------------------------------------
 sub run_all()
 {
   test000d();
@@ -137,6 +304,18 @@ sub run_all()
   test005d();
   test006();
   test007();
+  test008d();
+  test009d();
+  test010d();
+  test011();
+  test012d();
+  test013d();
+  test014d();
+  test015d();
+  test016d();
+  test017d();
+  test018d();
+  test019d();
 }
 
 # -------------------------------------------------------------------
@@ -148,6 +327,17 @@ sub run_debug()
   test003d();
   test004d();
   test005d();
+  test008d();
+  test009d();
+  test010d();
+  test012d();
+  test013d();
+  test014d();
+  test015d();
+  test016d();
+  test017d();
+  test018d();
+  test019d();
 }
 
 # -------------------------------------------------------------------
@@ -162,6 +352,18 @@ sub run_single_test($N)
   case "5": test005d(); break;
   case "6": test006(); break;
   case "7": test007(); break;
+  case "8": test008d(); break;
+  case "9": test009d(); break;
+  case "10": test010d(); break;
+  case "11": test011(); break;
+  case "12": test012d(); break;
+  case "13": test013d(); break;
+  case "14": test014d(); break;
+  case "15": test015d(); break;
+  case "16": test016d(); break;
+  case "17": test017d(); break;
+  case "18": test018d(); break;
+  case "19": test019d(); break;
   default: printf("ERROR: function [%s] not found.\n", $N);
   }
 }
