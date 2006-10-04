@@ -2043,7 +2043,7 @@ $a || $b</programlisting></para>
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Removes the end-of-line marker(s) ('\n' or '\r\n') from a string, or each string element in a list, or each hash key value in a hash (if the value is a string) and returns the number of characters removed.</para>
+	<para>Removes the end-of-line marker(s) ('\n' or '\r\n') from a string, or each string element in a list, or each hash key value in a hash (if the value is a string) and returns the number of characters removed.</para><para>To perform this operation on a non-lvalue expression, see the <link linkend="chomp">chomp() function</link>.</para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -2168,7 +2168,7 @@ $a || $b</programlisting></para>
     <varlistentry>
       <term>Example</term>
       <listitem>
-	<programlisting><command>foreach</command> <command>my</command> $key in (<command>keys</command> $hash)
+	<programlisting><command>foreach</command> <command>my</command> $key <command>in</command> (<command>keys</command> $hash)
     printf("%s = %s\n", $key, $hash.$key);</programlisting>
       </listitem>
     </varlistentry>

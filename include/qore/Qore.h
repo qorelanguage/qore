@@ -26,8 +26,8 @@
 
 #include <qore/config.h>
 #include <qore/common.h>
-#include <qore/QoreProgram.h>
 #include <qore/List.h>
+#include <qore/QoreProgram.h>
 #include <qore/ModuleManager.h>
 
 extern char qore_version_string[];

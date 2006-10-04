@@ -107,6 +107,24 @@ static inline char *q_basenameptr(char *path)
    return p + 1;   
 }
 
+// thread-safe basename function (resulting pointer must be free()ed)
+static inline char *q_dirname(char *path)
+{
+   char *p = strrchr(path, '/');
+   if (!p || p == path)
+   {
+      char *x = (char *)malloc(sizeof(char) * 2);
+      x[0] = !p ? '.' : '/';
+      x[1] = '\0';
+      return x;
+   }
+   char *x = (char *)malloc(sizeof(char) * (p - path + 1));
+   strncpy(x, path, p - path);
+   x[p - path] = '\0';
+   return x;
+}
+
+
 static inline char *strchrs(char *str, char *chars)
 {
    while (*str)

@@ -7099,7 +7099,7 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Removes the trailing end-of-line indicator ('\n' or '\r\n') from a string and returns the new string (also see the <link linkend="Chomp_Operator">chomp</link> operator).  If no EOL indicator is present in the string, this function simply returns the original string unmodified.</para>
+	<para>Removes the trailing end-of-line indicator ('\n' or '\r\n') from a string and returns the new string (also see the <link linkend="Chomp_Operator">chomp operator</link>).  If no EOL indicator is present in the string, this function simply returns the original string unmodified.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -7124,7 +7124,7 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
             <row>
 	      <entry><para>String</para></entry>
               <entry><para>String</para></entry>
-              <entry><para>Returns the new string with any end-of-line indicator removed.</para></entry>
+              <entry><para>Returns the new string with any end-of-line character(s) removed.</para></entry>
             </row>
           </tbody>
         </tgroup>

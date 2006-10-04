@@ -1,3 +1,7 @@
+2006.10.04: David Nichols
+	* added internal q_dirname() function to QoreLib.h returning a string
+	  that must be free()'ed
+
 2006.10.03: David Nichols
 	* improved GetOpt class date parsing to accept ISO-8601 and qore date/
 	  time specifications (i.e. 2006-01-01 or 2006-01-01T10:00:00, etc) as

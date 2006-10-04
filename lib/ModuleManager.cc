@@ -127,6 +127,18 @@ inline void ModuleManager::addBuiltin(char *fn, qore_module_init_t init, qore_mo
    ANSL.add(ns_init);
 }
 
+// to add a directory to the QORE_MODULE_DIR list, can only be called before init()
+void ModuleManager::addModuleDir(char *dir)
+{
+   moduleDirList.push_back(strdup(dir));
+}
+
+// to add a directory to the QORE_AUTO_MODULE_DIR list, can only be called before init()
+void ModuleManager::addAutoModuleDir(char *dir)
+{
+   autoDirList.push_back(strdup(dir));
+}
+
 void ModuleManager::init(bool se)
 {
    show_errors = se;
