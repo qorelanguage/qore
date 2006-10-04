@@ -157,15 +157,19 @@ void ModuleManager::init(bool se)
 
    // set up auto-load list from QORE_AUTO_MODULE_DIR (if it hasn't already been manually set up)
    if (autoDirList.empty())
+   {
       autoDirList.addDirList(getenv("QORE_AUTO_MODULE_DIR"));
+      // append standard directories to the end of the list
+      autoDirList.push_back(strdup(AUTO_MODULE_DIR));
+   }
 
    // setup module directory list from QORE_MODULE_DIR (if it hasn't already been manually set up)
    if (moduleDirList.empty())
+   {
       moduleDirList.addDirList(getenv("QORE_MODULE_DIR"));
-
-   // append standard directories to the end of the list
-   autoDirList.push_back(strdup(AUTO_MODULE_DIR));
-   moduleDirList.push_back(strdup(MODULE_DIR));
+      // append standard directories to the end of the list
+      moduleDirList.push_back(strdup(MODULE_DIR));
+   }
 
 #ifdef QORE_MONOLITHIC
 # ifdef NCURSES
