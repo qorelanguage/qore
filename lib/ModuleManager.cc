@@ -127,27 +127,41 @@ inline void ModuleManager::addBuiltin(char *fn, qore_module_init_t init, qore_mo
    ANSL.add(ns_init);
 }
 
-// to add a directory to the QORE_MODULE_DIR list, can only be called before init()
+// to add a directory to the module directory search list, can only be called before init()
 void ModuleManager::addModuleDir(char *dir)
 {
    moduleDirList.push_back(strdup(dir));
 }
 
-// to add a directory to the QORE_AUTO_MODULE_DIR list, can only be called before init()
+// to add a directory to the auto module directory search list, can only be called before init()
 void ModuleManager::addAutoModuleDir(char *dir)
 {
    autoDirList.push_back(strdup(dir));
+}
+
+// to add a list of directories to the module directory search list, can only be called before init()
+void ModuleManager::addModuleDirList(char *strlist)
+{
+   moduleDirList.addDirList(strlist);
+}
+
+// to add a list of directories to the auto module directory search list, can only be called before init()
+void ModuleManager::addAutoModuleDirList(char *strlist)
+{
+   autoDirList.addDirList(strlist);
 }
 
 void ModuleManager::init(bool se)
 {
    show_errors = se;
 
-   // set up auto-load list from QORE_AUTO_MODULE_DIR
-   autoDirList.addDirList(getenv("QORE_AUTO_MODULE_DIR"));
+   // set up auto-load list from QORE_AUTO_MODULE_DIR (if it hasn't already been manually set up)
+   if (autoDirList.empty())
+      autoDirList.addDirList(getenv("QORE_AUTO_MODULE_DIR"));
 
-   // setup module directory list from QORE_MODULE_DIR
-   moduleDirList.addDirList(getenv("QORE_MODULE_DIR"));
+   // setup module directory list from QORE_MODULE_DIR (if it hasn't already been manually set up)
+   if (moduleDirList.empty())
+      moduleDirList.addDirList(getenv("QORE_MODULE_DIR"));
 
    // append standard directories to the end of the list
    autoDirList.push_back(strdup(AUTO_MODULE_DIR));

@@ -146,6 +146,10 @@ class ModuleManager : public LockedObject
       void addModuleDir(char *dir);
       // to add a directory to the QORE_AUTO_MODULE_DIR list, can only be called before init()
       void addAutoModuleDir(char *dir);
+      // to add a directory to the QORE_MODULE_DIR list, can only be called before init()
+      void addModuleDirList(char *strlist);
+      // to add a directory to the QORE_AUTO_MODULE_DIR list, can only be called before init()
+      void addAutoModuleDirList(char *strlist);
       // explicit initialization and autoloading
       void init(bool se);
       // explicit cleanup
