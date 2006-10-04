@@ -34,9 +34,168 @@
 #
 # -------------------------------------------------------------------
 
-%requires tuxedo;
+%requires tuxedo
 
-print("Finished.\n");
+# change these as needed
+$TUXDIR = "/opt/bea/tuxedo9.1";
+$TUXCONFIG_BASE = `/bin/echo -n $HOME` + "/tuxedo_tests/";
+
+# ------------------------------------------------------------------
+# dummy test
+sub test000d()
+{
+}
+
+# -------------------------------------------------------------------
+# dummy connection, should not throw
+sub test001d()
+{
+  $conn = new Tuxedo::Connection("test");
+}
+
+# -------------------------------------------------------------------
+# dummy connection, should throw in constructor
+sub test002d()
+{
+  try 
+    $conn = new Tuxedo::Connection("test-fail-open");
+  catch() 
+    return;
+  printf("ERROR: test002d() fails - exception was expected.\n");
+  exit(1);
+  
+}
+
+# -------------------------------------------------------------------
+# dummy connection, should throw in destructor
+sub test003d()
+{
+  $conn = new Tuxedo::Connection("test-fail-close");
+  try
+    delete $conn;
+  catch()
+    return;
+  printf("ERROR: test003d() fails - exception was expected.\n");
+  exit(1);
+}
+
+# -------------------------------------------------------------------
+# dummy connection, copy constructor should throw
+sub test004d()
+{
+  $conn = new Tuxedo::Connection("test");
+  try 
+    $conn2 = $conn;
+  catch()
+    return;
+  printf("ERROR: test004d() fails - exception was expected.\n");
+  exit(1);
+}
+
+# -------------------------------------------------------------------
+# real connection, non-existent service, should throw even
+# environment points to valid running service
+sub test005d()
+{
+  try 
+    $conn = new Tuxedo::Connection("nonexistent",
+      ( "TUXDIR" : $TUXDIR,
+        "TUXCONFIG" : "/nonexistent/tuxdir" )); # <- invalid config file
+  catch ()
+    return;
+  printf("ERROR: test005d() fails - exception was expected.\n");
+  exit(1);
+}
+
+# -------------------------------------------------------------------
+# Create connection to a real service identified only by environment
+# variables (at least TUXDIR and TUXCONFIG). The service must be running.
+sub test006()
+{
+  $conn = new Tuxedo::Connection("running service identified by env");
+}
+
+# ------------------------------------------------------------------
+# Create connection to the service identified by parameters.
+# The service must be running from given directory,
+# it may be the simplest sample (simpapp) or whatever else.
+sub test007()
+{
+  $conn = new Tuxedo::Connection("a service",
+    ( "TUXDIR" : $TUXDIR,
+      "TUXCONFIG" : $TUXCONFIG_BASE + "tuxedo_simple_app/tuxconfig" ));
+}
+
+# -------------------------------------------------------------------
+sub run_all()
+{
+  test000d();
+  test001d();
+  test002d();
+  test003d();
+  test004d();
+  test005d();
+  test006();
+  test007();
+}
+
+# -------------------------------------------------------------------
+sub run_debug()
+{
+  test000d();
+  test001d();
+  test002d();
+  test003d();
+  test004d();
+  test005d();
+}
+
+# -------------------------------------------------------------------
+sub run_single_test($N)
+{
+  switch ($N) {
+  case "0": test000d(); break;
+  case "1": test001d(); break;
+  case "2": test002d(); break;
+  case "3": test003d(); break;
+  case "4": test004d(); break;
+  case "5": test005d(); break;
+  case "6": test006(); break;
+  case "7": test007(); break;
+  default: printf("ERROR: function [%s] not found.\n", $N);
+  }
+}
+
+# -------------------------------------------------------------------
+sub main()
+{
+  try  {
+
+  if (elements $ARGV == 0) {
+    printf("All test will be run.\n");
+    run_all();
+  } else
+  if (elements $ARGV != 1) {
+    printf("Usage: tuxedo_test.q [{debug|N}]\n");
+  } else {
+    if ($ARGV[0] == "debug") {
+      printf("Running debug tests.\n");
+      run_debug();
+    } else {
+      printf("Running single test.\n");
+      run_single_test($ARGV[0]);      
+    }
+  }
+
+  printf("Finished\n");
+
+  } catch () {
+   printf("\n\n");
+   rethrow;
+  }
+}
+
+main();
 
 # EOF
 
