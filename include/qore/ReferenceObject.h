@@ -28,24 +28,19 @@
 #include <qore/macros.h>
 
 #if !defined(HAVE_ATOMIC_MACROS)
-#include <pthread.h>
+#include <qore/LockedObject.h>
 #endif
 
-class ReferenceObject {
+class ReferenceObject 
 #if !defined(HAVE_ATOMIC_MACROS)
-      // for atomic reference updates
-      pthread_mutex_t ref_mutex;
+   // for atomic reference updates
+   : protected LockedObject
 #endif
+{
    protected:
       int references;
    public:
       inline ReferenceObject();
-#if !defined(HAVE_ATOMIC_MACROS)
-      inline ~ReferenceObject()
-      {
-	 pthread_mutex_destroy(&ref_mutex);
-      }
-#endif
       inline int reference_count() { return references; }
       inline bool is_unique() { return references == 1; }
       inline void ROreference();
@@ -58,9 +53,6 @@ class ReferenceObject {
 inline ReferenceObject::ReferenceObject()
 {
    references = 1;
-#if !defined(HAVE_ATOMIC_MACROS)
-   pthread_mutex_init(&ref_mutex, NULL);
-#endif
 }
 
 inline void ReferenceObject::ROreference()
@@ -68,9 +60,9 @@ inline void ReferenceObject::ROreference()
 #ifdef HAVE_ATOMIC_MACROS
    atomic_inc(&references);
 #else
-   pthread_mutex_lock(&ref_mutex);
+   lock();
    ++references; 
-   pthread_mutex_unlock(&ref_mutex);
+   unlock();
 #endif
 }
 
@@ -83,9 +75,9 @@ inline bool ReferenceObject::ROdereference()
 #ifdef HAVE_ATOMIC_MACROS
    return atomic_dec(&references);
 #else
-   pthread_mutex_lock(&ref_mutex);
+   lock();
    int rc = --references;
-   pthread_mutex_unlock(&ref_mutex);
+   unlock();
    return !rc;
 #endif
 }
