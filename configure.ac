@@ -621,7 +621,6 @@ AC_ARG_WITH([tuxedo],
      *) if test ! -d "${with_tuxedo}"; then AC_MSG_ERROR(bad value ${with_tuxedo} for --with-tuxedo); unset with_tuxedo; fi
    esac])
 
-
 AC_MSG_CHECKING([BEA Tuxedo])
 if test -n "$with_tuxedo"; then
    if test "$with_tuxedo" = "no"; then
@@ -654,16 +653,36 @@ else
    fi
 fi
 
+get_tux_version()
+{
+    # try to get tuxedo vesion from the directory name
+    tux_ver=`echo $with_tuxedo | sed 's/.*tuxedo//'  | sed 's/\///'`
+    if test -z "$tux_ver"; then
+        tux_ver="unknown"
+    fi
+}
+
 if test -n "$with_tuxedo"; then
+   AC_MSG_CHECKING([BEA Tuxedo version])
+   get_tux_version
+   AC_MSG_RESULT([$tux_ver])
+   
    # setup tuxedo compile and link vars
    TUXEDO_CPPFLAGS="-I${with_tuxedo}/include"
    TUXEDO_LIBS="-L${with_tuxedo}/lib -ltux -lbuft -lfml -lfml32 -lengine"   
 
-   # check if C++ compiler can link with TIBCO Rendezvous c++ libs
+   # check if C++ compiler can link with tuxedo libs
    SAVE_CPPFLAGS="$CPPFLAGS"
    SAVE_LDFLAGS="$LDFLAGS"
    CPPFLAGS="$CPPFLAGS $TUXEDO_CPPFLAGS"
-   LDFLAGS="$LDFLAGS $TUXEDO_LIBS $OPENSSL_LDFLAGS -lgiconv -lusort -lutrace"
+
+   case "$tux_ver" in
+      8.1) LDFLAGS="$LDFLAGS $TUXEDO_LIBS $OPENSSL_LDFLAGS -lgiconv -lusort" 
+	   ;;
+      9.1|unknown|*)
+           LDFLAGS="$LDFLAGS $TUXEDO_LIBS $OPENSSL_LDFLAGS -lgiconv -lusort -lutrace"
+	   ;;
+   esac
 
    AC_MSG_CHECKING([if we can link to the Tuxedo libraries])
    AC_TRY_LINK([
