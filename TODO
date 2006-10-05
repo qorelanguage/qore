@@ -1,5 +1,6 @@
 see docs/roadmap.html
 
+* do not allow global variable initialization at the top level if NO_TOP_LEVEL is set
 * add argument info to functions, throw errors if arguments are not correct
 * add constant execution flat to functions, to allow execution in constant expressions
 * add signal constants/infrastructure
