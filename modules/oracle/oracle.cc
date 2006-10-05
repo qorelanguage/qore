@@ -267,14 +267,14 @@ static void *make_oracle_date_time(class DateTime *d)
    return buf;
 }
 
-extern "C" static sb4 read_clob_callback(void *sp, CONST dvoid *bufp, ub4 len, ub1 piece)
+extern "C" sb4 read_clob_callback(void *sp, CONST dvoid *bufp, ub4 len, ub1 piece)
 {
    printd(5, "read_clob_callback(%08p, %08p, %d, %d)\n", sp, bufp, len, piece);
    ((class QoreString *)sp)->concat((char *)bufp, len);
    return OCI_CONTINUE;
 }
 
-extern "C" static sb4 read_blob_callback(void *bp, CONST dvoid *bufp, ub4 len, ub1 piece)
+extern "C" sb4 read_blob_callback(void *bp, CONST dvoid *bufp, ub4 len, ub1 piece)
 {
    printd(5, "read_blob_callback(%08p, %08p, %d, %d)\n", bp, bufp, len, piece);
    ((class BinaryObject *)bp)->append((char *)bufp, len);

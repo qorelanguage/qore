@@ -677,9 +677,9 @@ if test -n "$with_tuxedo"; then
    CPPFLAGS="$CPPFLAGS $TUXEDO_CPPFLAGS"
 
    case "$tux_ver" in
-      8.1) LDFLAGS="$LDFLAGS $TUXEDO_LIBS $OPENSSL_LDFLAGS -lgiconv -lusort" 
+      8.*) LDFLAGS="$LDFLAGS $TUXEDO_LIBS $OPENSSL_LDFLAGS -lgiconv -lusort" 
 	   ;;
-      9.1|unknown|*)
+      9.*|unknown|*)
            LDFLAGS="$LDFLAGS $TUXEDO_LIBS $OPENSSL_LDFLAGS -lgiconv -lusort -lutrace"
 	   ;;
    esac

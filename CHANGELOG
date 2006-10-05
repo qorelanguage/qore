@@ -7,7 +7,8 @@
 	  never go over a reference count of 1 will never cause any cache 
 	  synchronization on SMP systems.
 	* updated configure to try to detect tuxedo version and set configure
-	  link flags appropriately (currently only for 8.1 and 9.1)
+	  link flags appropriately (currently only for 8.* and 9.*)
+	* removed extraneous "static" from 2 callback functions in oracle module
 
 2006.10.04: David Nichols
 	* added internal q_dirname() function to QoreLib.h returning a string
