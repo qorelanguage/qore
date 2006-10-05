@@ -1,3 +1,12 @@
+2006.10.05: David Nichols
+	* fixed ReferenceObject to no longer to a cache sync (or at worst a
+	  mutex lock and unlock on platforms without definitions for atomic 
+	  operations like sparc, pa-risc, etc) when decrementing and the
+	  reference_count is 1.  This should result in an overall execution 
+	  speed improvement.  this means that temporary shared objects that 
+	  never go over a reference count of 1 will never cause any cache 
+	  synchronization on SMP systems.
+
 2006.10.04: David Nichols
 	* added internal q_dirname() function to QoreLib.h returning a string
 	  that must be free()'ed

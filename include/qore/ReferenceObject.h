@@ -49,7 +49,7 @@ class ReferenceObject {
       inline int reference_count() { return references; }
       inline bool is_unique() { return references == 1; }
       inline void ROreference();
-      inline int ROdereference();
+      inline bool ROdereference();
 #ifdef DEBUG
       //virtual void test() {}
 #endif
@@ -74,9 +74,12 @@ inline void ReferenceObject::ROreference()
 #endif
 }
 
-// returns 1 when references reach zero
-inline int ReferenceObject::ROdereference()
+// returns true when references reach zero
+inline bool ReferenceObject::ROdereference()
 {
+   // do not do a cache sync (or at worst a mutex lock and unlock) if references == 1
+   if (references == 1)
+      return true;
 #ifdef HAVE_ATOMIC_MACROS
    return atomic_dec(&references);
 #else
