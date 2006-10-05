@@ -83,13 +83,13 @@ sub test003d()
 # dummy connection, copy constructor should throw
 sub test004d()
 {
-###  $conn = new Tuxedo::Connection("test");
-#  try 
-#    $conn2 = $conn;
-#  catch()
-#    return;
-#  printf("ERROR: test004d() fails - exception was expected.\n");
-#  exit(1);
+  $conn = new Tuxedo::Connection("test");
+  try 
+    $conn2 = $conn.copy();
+  catch()
+    return;
+  printf("ERROR: test004d() fails - exception was expected.\n");
+  exit(1);
 }
 
 # -------------------------------------------------------------------
@@ -233,13 +233,13 @@ sub test015d()
 # Dummy adapter, fails copying.
 sub test016d()
 {
-###  $adapter = new Tuxedo::Adapter("test");
-#  try
-#   $copy = $adapter;
-#  catch()
-#    return;
-#  printf("ERROR in test016d() - exception was expected.\n");
-#  exit(1);{
+  $adapter = new Tuxedo::Adapter("test");
+  try
+   $copy = $adapter.copy();
+  catch()
+    return;
+  printf("ERROR in test016d() - exception was expected.\n");
+  exit(1);{
 }
 
 # -------------------------------------------------------------------
