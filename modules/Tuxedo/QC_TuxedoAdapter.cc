@@ -178,7 +178,6 @@ static QoreNode* call_impl(Object* self, QoreTuxedoAdapter* adapter, QoreNode *p
       xsink->raiseException(err, "The first parameter (service name) should not be empty.");
       return 0;
     }
-printf("### service name = %s\n", service_name);
   } else {
     xsink->raiseException(err, all_params, __FILE__, __LINE__);
     return 0;
@@ -192,7 +191,6 @@ printf("### service name = %s\n", service_name);
     }
     params_list = pt->val.list;
   } else {
-printf("### type = %s.\n", get_param(params, 2)->type->name);
     xsink->raiseException(err, all_params, __FILE__, __LINE__);
     return 0;
   }

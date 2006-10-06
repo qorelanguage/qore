@@ -88,14 +88,12 @@ List* QoreTuxedoAdapter::call(char* service_name, List* params, long flags, Exce
     }
     return 0;
   }
-printf("### calling tpcall() now\n");
   int res = tpcall(service_name, in_buffer.first, in_buffer.second, &out_buffer, &out_size, flags);
   if (in_buffer.first) {
     tpfree(in_buffer.first);
   }
 
   if (res != -1) {
-printf("### some data retrieved\n");
     List* result = buffer2list(out_buffer, out_size, err, xsink);
     if (out_buffer) {
       tpfree(out_buffer);
@@ -168,7 +166,6 @@ int QoreTuxedoAdapter::async_call(char* service_name, List* params, long flags, 
     if (res) { // 0 means no response 
       m_pending_async_requests.push_back(res);
     }
-printf("#### tpacall returns handle %d.\n", res);
     return res;
   }
 
@@ -273,11 +270,15 @@ List* QoreTuxedoAdapter::get_async_result(int handle, long flags, ExceptionSink*
     }
     return 0;
   }
-printf("### buffer = %p\n", out_buffer);
+  // remove the handle from those to be cabceled when the object gets destroyed
+  for (std::list<int>::iterator it = m_pending_async_requests.begin(), end = m_pending_async_requests.end(); it != end; ++it) {
+    if (*it == handle) {
+      m_pending_async_requests.erase(it);
+    } 
+  }
+
+
   int res = tpgetrply(&handle, &out_buffer, &size, flags);
-printf("##### tpgetrply returned %d, tperrno = %d\n", res, tperrno);
-printf("#### detail = %d\n", tperrordetail(0));
-printf("### handle = %d\n", handle);
   if (res != -1) {
     List* result = buffer2list(out_buffer, size, err, xsink);
     if (out_buffer) {
@@ -415,7 +416,6 @@ List* QoreTuxedoAdapter::buffer2list(char* buffer, long size, char* err, Excepti
   // handle each type
 
   if (strcmp(type, "STRING") == 0) {
-printf("### string read [%s]\n", buffer);
     QoreNode* head = new QoreNode("string");
     QoreString* s = new QoreString(buffer, size, QCS_DEFAULT);
     QoreNode* tail = new QoreNode(s);
