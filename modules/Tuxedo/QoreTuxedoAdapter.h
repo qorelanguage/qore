@@ -41,8 +41,11 @@ class QoreTuxedoAdapter : public ReferenceObject
   std::list<int> m_pending_async_requests;
 
   void handle_tpcancel_error(char* err, int tperrnum, int handle, ExceptionSink* xsink);
-  std::pair<char*, long> hash2buffer(Hash* hash, ExceptionSink* xsink);
-  Hash* buffer2hash(char* buffer, long size, ExceptionSink* xsink);
+
+  std::pair<char*, long> list2buffer(List* list, char* err, ExceptionSink* xsink);
+  std::pair<char*, long> string_list2buffer(List* list, char* err, ExceptionSink* xsink);
+
+  List* buffer2list(char* buffer, long size, char* err, ExceptionSink* xsink);
 
 public:
   QoreTuxedoAdapter(const char* name, Hash* params, ExceptionSink* xsink);
@@ -50,10 +53,10 @@ public:
   const char* get_name() const { return m_name.c_str(); }
   void close_adapter(ExceptionSink* xsink);
 
-  Hash* call(char* service_name, Hash* params, long flags, ExceptionSink* xsink);
-  int async_call(char* service_name, Hash* params, long flags, ExceptionSink* xsink);
+  List* call(char* service_name, List* params, long flags, ExceptionSink* xsink);
+  int async_call(char* service_name, List* params, long flags, ExceptionSink* xsink);
   void cancel_async(int handle, ExceptionSink* xsink);
-  Hash* get_async_result(int handle, Hash* out, long flags, ExceptionSink* xsink);
+  List* get_async_result(int handle, long flags, ExceptionSink* xsink);
 
   void deref() { 
     if (ROdereference()) {

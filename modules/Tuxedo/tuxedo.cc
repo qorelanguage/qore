@@ -121,13 +121,14 @@ void tuxedo_module_ns_init(class Namespace* rns, class Namespace* qns)
   // Tuxedo:Adapter class
   tuxedons->addSystemClass(initTuxedoAdapterClass());
   
-  // tpcall() and tpacall() constants
+  // tpcall(), tpacall() and tpgetrply() constants
   tuxedons->addConstant("TPNOTRAN", new QoreNode((int64)TPNOTRAN));
   tuxedons->addConstant("TPNOCHANGE", new QoreNode((int64)TPNOCHANGE));
   tuxedons->addConstant("TPNOBLOCK", new QoreNode((int64)TPNOBLOCK));
   tuxedons->addConstant("TPNOTIME", new QoreNode((int64)TPNOTIME));
   tuxedons->addConstant("TPSIGRSTRT", new QoreNode((int64)TPSIGRSTRT));
   tuxedons->addConstant("TPNOREPLY", new QoreNode((int64)TPNOREPLY));
+  tuxedons->addConstant("TPGETANY", new QoreNode((int64)TPGETANY));
  
   qns->addInitialNamespace(tuxedons);
 

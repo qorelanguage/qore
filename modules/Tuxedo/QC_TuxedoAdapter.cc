@@ -163,9 +163,9 @@ static QoreNode* call_impl(Object* self, QoreTuxedoAdapter* adapter, QoreNode *p
 #endif
 
    char* service_name = 0;
-   Hash* params_hash = 0;
+   List* params_list = 0;
    long flags = 0;
-   char* all_params = "Three parameters expected: service name (string), parameters (hash), flags (integer).";
+   char* all_params = "Three parameters expected: service name (string), parameters (list), flags (integer). File %s[%d].";
 
   if (get_param(params, 0)) {
     QoreNode* pt = test_param(params, NT_STRING, 0);
@@ -178,20 +178,22 @@ static QoreNode* call_impl(Object* self, QoreTuxedoAdapter* adapter, QoreNode *p
       xsink->raiseException(err, "The first parameter (service name) should not be empty.");
       return 0;
     }
+printf("### service name = %s\n", service_name);
   } else {
-    xsink->raiseException(err, all_params);
+    xsink->raiseException(err, all_params, __FILE__, __LINE__);
     return 0;
   }
   
   if (get_param(params, 1)) {
-    QoreNode* pt = test_param(params, NT_HASH, 1);
+    QoreNode* pt = test_param(params, NT_LIST, 1);
     if (!pt) {
-      xsink->raiseException(err, "The second parameter (call arguments) needs to be a hash.");
+      xsink->raiseException(err, "The second parameter (call arguments) needs to be a list.");
       return 0;
     }
-    params_hash = pt->val.hash;
+    params_list = pt->val.list;
   } else {
-    xsink->raiseException(err, all_params);
+printf("### type = %s.\n", get_param(params, 2)->type->name);
+    xsink->raiseException(err, all_params, __FILE__, __LINE__);
     return 0;
   }
 
@@ -203,18 +205,18 @@ static QoreNode* call_impl(Object* self, QoreTuxedoAdapter* adapter, QoreNode *p
     }
     flags = (long)pt->val.intval;
   } else {
-    xsink->raiseException(err, all_params);
+    xsink->raiseException(err, all_params, __FILE__, __LINE__);
     return 0;
   }
 
   if (async) {
-    int handle = adapter->async_call(service_name, params_hash, flags, xsink);
+    int handle = adapter->async_call(service_name, params_list, flags, xsink);
     if (xsink->isException()) {
       return 0;
     }
     return new QoreNode((int64)handle);
   } else {
-    Hash* result = adapter->call(service_name, params_hash, flags, xsink);
+    List* result = adapter->call(service_name, params_list, flags, xsink);
     if (xsink->isException()) {
        delete result;
        return 0;
@@ -224,14 +226,14 @@ static QoreNode* call_impl(Object* self, QoreTuxedoAdapter* adapter, QoreNode *p
 }
 
 //------------------------------------------------------------------------------
-// [service-name, parameters-hash, flags], returns hash with result or exception
+// [service-name, parameters-list, flags], returns list with result or exception
 static QoreNode* TUXEDOADAPTER_call(Object* self, QoreTuxedoAdapter* adapter, QoreNode *params, ExceptionSink *xsink)
 {
   return call_impl(self, adapter, params, xsink, false);
 }
 
 //------------------------------------------------------------------------------
-// [service-name, parameters-hash, flags], returns integer handle or exception
+// [service-name, parameters-list, flags], returns integer handle or exception
 static QoreNode* TUXEDOADAPTER_async_call(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
 {
   return call_impl(self, adapter, params, xsink, true);
@@ -239,7 +241,6 @@ static QoreNode* TUXEDOADAPTER_async_call(Object* self, QoreTuxedoAdapter* adapt
 
 //------------------------------------------------------------------------------
 // [handle, flags]
-// [handle, flags, out-hash]
 static QoreNode* TUXEDOADAPTER_get_async_result(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
 {
   char* err = "QORE-TUXEDO-ADAPTER-GET_ASYNC_RESULT";
@@ -269,8 +270,8 @@ static QoreNode* TUXEDOADAPTER_get_async_result(Object* self, QoreTuxedoAdapter*
 
   int handle = 0;
   long flags = 0;
-  Hash* params_hash = 0;
-  char* all_params = "The function get_async_result() expects 2 or 3 parameters (handle, flags, suggested output).";
+  std::string suggested_output;
+  char* all_params = "The function get_async_result() expects two parameters (handle, flags).";
 
   if (get_param(params, 0)) {
     QoreNode* pt = test_param(params, NT_INT, 0);
@@ -296,21 +297,12 @@ static QoreNode* TUXEDOADAPTER_get_async_result(Object* self, QoreTuxedoAdapter*
     return 0;
   }
   
-  if (get_param(params, 2)) {
-    QoreNode* pt = test_param(params, NT_HASH, 2);
-    if (!pt) {
-      xsink->raiseException(err, "The third parameter (suggested output) is expected to be hash.");
-      return 0;
-    }
-    params_hash = pt->val.hash;
-    
-    if (get_param(params, 3)) {
-      xsink->raiseException(err, all_params);
-      return 0;
-    }
+  if (get_param(params, 3)) {
+    xsink->raiseException(err, all_params);
+    return 0;
   }
 
-  Hash* result = adapter->get_async_result(handle, params_hash, flags, xsink);
+  List* result = adapter->get_async_result(handle, flags, xsink);
   if (xsink->isException()) {
     delete result;
     return 0;
