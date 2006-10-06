@@ -239,7 +239,7 @@ sub test016d()
   catch()
     return;
   printf("ERROR in test016d() - exception was expected.\n");
-  exit(1);{
+  exit(1);
 }
 
 # -------------------------------------------------------------------
@@ -294,6 +294,68 @@ sub test019d()
 }
 
 # -------------------------------------------------------------------
+# Calls "TOUPPER" service provided by simpapp ATMI sample
+sub test020()
+{
+  $conn = new Tuxedo::Connection("a service",
+    ( "TUXDIR" : $TUXDIR,
+      "TUXCONFIG" : $TUXCONFIG_BASE + "tuxedo_simple_app/tuxconfig" ));
+
+  $adapter = new Tuxedo::Adapter("TOUPPER service");
+
+  $list = ("string", "test data");
+  $result = $adapter.call("TOUPPER", $list, Tuxedo::TPNOTRAN);
+
+  if ($result[0] != "string") {
+    printf("ERROR in test020() - invalid data type returned.\n");
+    exit(1);
+  }
+  if ($result[1] != "TEST DATA") {
+    printf("ERROR in test020() - invalid result returned.\n");
+  }
+}
+
+# -------------------------------------------------------------------
+# The same as test020 but starting as async call and then canceling.
+sub test021()
+{
+  $conn = new Tuxedo::Connection("a service",
+    ( "TUXDIR" : $TUXDIR,
+      "TUXCONFIG" : $TUXCONFIG_BASE + "tuxedo_simple_app/tuxconfig" ));
+
+  $adapter = new Tuxedo::Adapter("TOUPPER service");
+
+  $list = ("string", "test data");
+  $handle = $adapter.async_call("TOUPPER", $list, 0);
+  $adapter.cancel_async($handle);
+}
+
+# -------------------------------------------------------------------
+# The same as in test020() but using asynchronous call.
+sub test022()
+{
+  $conn = new Tuxedo::Connection("a service",
+    ( "TUXDIR" : $TUXDIR,
+      "TUXCONFIG" : $TUXCONFIG_BASE + "tuxedo_simple_app/tuxconfig" ));
+
+  $adapter = new Tuxedo::Adapter("TOUPPER service");
+
+  $list = ("string", "test data");
+  $handle = $adapter.async_call("TOUPPER", $list, 0);
+
+  $result = $adapter.get_async_result($handle, Tuxedo::TPNOBLOCK);
+
+  if ($result[0] != "string") {
+    printf("ERROR in test022() - invalid data type returned.\n");
+    exit(1);
+  }
+  if ($result[1] != "TEST DATA") {
+    printf("ERROR in test022() - invalid result returned.\n");
+  }
+
+}
+
+# -------------------------------------------------------------------
 sub run_all()
 {
   test000d();
@@ -316,6 +378,9 @@ sub run_all()
   test017d();
   test018d();
   test019d();
+  test020();
+  test021();
+  test022();
 }
 
 # -------------------------------------------------------------------
@@ -364,6 +429,9 @@ sub run_single_test($N)
   case "17": test017d(); break;
   case "18": test018d(); break;
   case "19": test019d(); break;
+  case "20": test020(); break;
+  case "21": test021(); break;
+  case "22": test022(); break;
   default: printf("ERROR: function [%s] not found.\n", $N);
   }
 }
