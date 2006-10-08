@@ -102,6 +102,11 @@ class HTTPClient::HTTPClient inherits private Qore::Socket, private Qore::Thread
         $.socketpath = sprintf("%s:%s", $h.host, $h.port);
     }
 
+    copy()
+    {
+	$.connected = False;
+    }
+	
     setHTTPVersion($v)
     {
 	if (type($v) != Type::String || !inlist($v, HTTPClient::allowed_versions))
