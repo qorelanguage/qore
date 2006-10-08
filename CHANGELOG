@@ -1,5 +1,6 @@
 2006.10.08: David Nichols
-	* implemented copy constructor for the HTTPClient object
+	* implemented copy constructor for the HTTPClient object, made object
+	  safe to share among multiple threads
 
 2006.10.05: David Nichols
 	* fixed ReferenceObject to no longer do a cache sync (or at worst a

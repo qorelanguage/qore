@@ -1,5 +1,7 @@
 # HTTPClient class definition
 #
+# Qorus Integration System, Copyright (C) 2006 Qore Technologies, s.r.o.
+#
 # authors: Petr Matejka, David Nichols
 # v0.3.1: added SSL support, https protocol recognition
 
@@ -24,9 +26,9 @@ namespace HTTPClient {
     const DEFAULT_HTTP_VERSION = "1.1";
     const allowed_versions = ( "1.0", "1.1" );
 
-    const Version = "0.3.1";
+    const Version = "0.3.2";
 
-    # default timeout set to 5 minutes
+    # default timeout set to 5 minutes (override with setTimeout())
     const defaultTimeout = 300000;
 }
 
@@ -106,7 +108,7 @@ class HTTPClient::HTTPClient inherits private Qore::Socket, private Qore::Thread
     {
 	$.connected = False;
     }
-	
+
     setHTTPVersion($v)
     {
 	if (type($v) != Type::String || !inlist($v, HTTPClient::allowed_versions))
@@ -144,34 +146,44 @@ class HTTPClient::HTTPClient inherits private Qore::Socket, private Qore::Thread
 	return Socket::$.getSSLCipherVersion();
     }
 
+    private connectInternal()
+    {
+        if (!$.connected)
+        {
+	    if ($.ssl)
+		Qore::Socket::$.connectSSL($.socketpath);
+	    else
+		Qore::Socket::$.connect($.socketpath);
+	}
+        $.connected = True;
+    }
+
     connect()
     {
         $.lock();
-        if (!$.connected)
-        {
-	    try {
-		if ($.ssl)
-		    Qore::Socket::$.connectSSL($.socketpath);
-		else
-		    Qore::Socket::$.connect($.socketpath);
-	    }
-	    catch ()
-	    {
-		$.unlock();
-		rethrow;
-	    }
-        }
-        $.connected = True;
-        $.unlock();
+	try {
+	    $.connectInternal();
+	}
+	catch ()
+	{
+	    $.unlock();
+	    rethrow;
+	}
+	$.unlock();
     }
     
-    disconnect()
+    private disconnectInternal()
     {
-        $.lock();
         if ($.connected)
 	    $.close();
 
         $.connected = False;
+    }
+
+    disconnect()
+    {
+        $.lock();
+	$.disconnectInternal();
         $.unlock();
     }
 
@@ -203,7 +215,6 @@ class HTTPClient::HTTPClient inherits private Qore::Socket, private Qore::Thread
 	    throw "HTTP-CLIENT-RECEIVE-ERROR",
 	    sprintf("error receiving message on socket %n: %s",
 		    $.socketpath, strerror(errno()));
-
 	
 	#printf("ans=%N\n", $ans);
         if (type($ans) != Type::Hash)
@@ -257,40 +268,49 @@ class HTTPClient::HTTPClient inherits private Qore::Socket, private Qore::Thread
 
     private sendInternal($data, $method, $path, $headers, $getbody)
     {
-        $.connect();
+	if (!inlist($method, HTTPClient::DEFAULT_METHODS))
+	    throw "HTTP-CLIENT-METHOD-ERROR", sprintf("HTTP method (%n) not recognized.", $method);
 
-        if (!inlist($method, HTTPClient::DEFAULT_METHODS))
-            throw "HTTP-CLIENT-METHOD-ERROR", sprintf("HTTP method (%n) not recognized.", $method);
+	my $ans;
+	$.lock();
+	try {
+	    $.connectInternal();
 
-        my $hdrs = ( "Host" : gethostname() );
+	    my $hdrs = ( "Host" : gethostname() );
 
-        foreach my $defkey in (keys HTTPClient::DEFAULT_HEADERS) {
-            if (exists $headers.$defkey)
-                $hdrs.$defkey = $headers.$defkey;
-            else
-                $hdrs.$defkey = HTTPClient::DEFAULT_HEADERS.$defkey;
-        }
+	    foreach my $defkey in (keys HTTPClient::DEFAULT_HEADERS) {
+		if (exists $headers.$defkey)
+		    $hdrs.$defkey = $headers.$defkey;
+		else
+		    $hdrs.$defkey = HTTPClient::DEFAULT_HEADERS.$defkey;
+	    }
 
-        foreach my $headerkey in (keys $headers) {
-            if ((!inlist($headerkey, keys HTTPClient::DEFAULT_HEADERS))
-                && (!inlist($headerkey, HTTPClient::DEFAULT_HEADER_IGNORE))) {
-                $hdrs.$headerkey = $headers.$headerkey;
-            }
-        }
-        #printf("path=%s, hdr=%N", $path, $hdrs);
+	    foreach my $headerkey in (keys $headers) {
+		if ((!inlist($headerkey, keys HTTPClient::DEFAULT_HEADERS))
+		    && (!inlist($headerkey, HTTPClient::DEFAULT_HEADER_IGNORE))) {
+		    $hdrs.$headerkey = $headers.$headerkey;
+		}
+	    }
+	    #printf("path=%s, hdr=%N", $path, $hdrs);
 
-        $.sendHTTPMessage($method, $path, $.http_version, $hdrs, $data);
+	    $.sendHTTPMessage($method, $path, $.http_version, $hdrs, $data);
 
-	my $ans = $.getResponse();
+	    $ans = $.getResponse();
 
-	# if no "content-length" header was present and we need a body
-	if ($getbody && !exists $ans.body)
-	    $ans.body = $.recv(0, $.timeout);
+	    # if no "content-length" header was present and we need a body
+	    if ($getbody && !exists $ans.body)
+		$ans.body = $.recv(0, $.timeout);
 
-	# close the connection if the server tells us to
-	if (tolower($ans.connection) == "close")
-	    $.disconnect();
-
+	    # close the connection if the server tells us to
+	    if (tolower($ans.connection) == "close")
+		$.disconnectInternal();
+	}
+	catch ($ex)
+	{
+	    $.unlock();
+	    rethrow;
+	}
+	$.unlock();
 	return $ans;
     }
 
