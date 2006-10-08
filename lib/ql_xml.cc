@@ -3069,7 +3069,7 @@ static class QoreNode *f_parseXMLRPCResponse(class QoreNode *params, ExceptionSi
    }
 
    if ((nt = xmlTextReaderNodeType(reader)) != XML_READER_TYPE_ELEMENT)
-      return qore_xml_exception(reader, "PARSE-XML-RPC-CALL-ERROR", "expecting 'params' or 'fault' element", xsink);
+      return qore_xml_exception(reader, "PARSE-XML-RPC-RESPONSE-ERROR", "expecting 'params' or 'fault' element", xsink);
 
    char *name = (char *)xmlTextReaderConstName(reader);
    if (!name)
@@ -3106,7 +3106,7 @@ static class QoreNode *f_parseXMLRPCResponse(class QoreNode *params, ExceptionSi
 	 if (nt != XML_READER_TYPE_END_ELEMENT)
 	 {
 	    if (nt != XML_READER_TYPE_ELEMENT)
-	       return qore_xml_exception(reader, "PARSE-XML-RPC-CALL-ERROR", "expecting 'param' element", xsink);
+	       return qore_xml_exception(reader, "PARSE-XML-RPC-RESPONSE-ERROR", "expecting 'param' element", xsink);
 	       
 	    if (qore_xmlCheckName(reader, "param", xsink))
 	    {
@@ -3134,7 +3134,7 @@ static class QoreNode *f_parseXMLRPCResponse(class QoreNode *params, ExceptionSi
 	       if (nt != XML_READER_TYPE_END_ELEMENT)
 	       {
 		  if (nt != XML_READER_TYPE_ELEMENT)
-		     return qore_xml_exception(reader, "PARSE-XML-RPC-CALL-ERROR", "expecting 'value' element", xsink);
+		     return qore_xml_exception(reader, "PARSE-XML-RPC-RESPONSE-ERROR", "expecting 'value' element", xsink);
 	       
 		  if (qore_xmlCheckName(reader, "value", xsink))
 		  {
@@ -3169,7 +3169,7 @@ static class QoreNode *f_parseXMLRPCResponse(class QoreNode *params, ExceptionSi
 		     */
 		  }
 		  if ((nt = xmlTextReaderNodeType(reader)) != XML_READER_TYPE_END_ELEMENT)
-		     return qore_xml_exception(reader, "PARSE-XML-RPC-CALL-ERROR", "expecting 'param' end element", xsink);
+		     return qore_xml_exception(reader, "PARSE-XML-RPC-RESPONSE-ERROR", "expecting 'param' end element", xsink);
 	       }
 
 	       // get "params" end element
@@ -3180,7 +3180,7 @@ static class QoreNode *f_parseXMLRPCResponse(class QoreNode *params, ExceptionSi
 	       }
 	    }
 	    if ((nt = xmlTextReaderNodeType(reader)) != XML_READER_TYPE_END_ELEMENT)
-	       return qore_xml_exception(reader, "PARSE-XML-RPC-CALL-ERROR", "expecting 'params' end element", xsink);
+	       return qore_xml_exception(reader, "PARSE-XML-RPC-RESPONSE-ERROR", "expecting 'params' end element", xsink);
 	 }
 	 // get "methodResponse" end element
 	 if (qore_xmlRead(reader, "expecting 'methodResponse' end element", xsink))
@@ -3202,7 +3202,7 @@ static class QoreNode *f_parseXMLRPCResponse(class QoreNode *params, ExceptionSi
       }
       
       if ((nt = xmlTextReaderNodeType(reader)) != XML_READER_TYPE_ELEMENT)
-	 return qore_xml_exception(reader, "PARSE-XML-RPC-CALL-ERROR", "expecting fault 'value' element", xsink);
+	 return qore_xml_exception(reader, "PARSE-XML-RPC-RESPONSE-ERROR", "expecting fault 'value' element", xsink);
 
       if (qore_xmlCheckName(reader, "value", xsink))
       {
@@ -3236,7 +3236,7 @@ static class QoreNode *f_parseXMLRPCResponse(class QoreNode *params, ExceptionSi
       */
       
       if ((nt = xmlTextReaderNodeType(reader)) != XML_READER_TYPE_END_ELEMENT)
-	 return qore_xml_exception(reader, "PARSE-XML-RPC-CALL-ERROR", "expecting 'fault' end element", xsink);
+	 return qore_xml_exception(reader, "PARSE-XML-RPC-RESPONSE-ERROR", "expecting 'fault' end element", xsink);
 
       // get "methodResponse" end element
       if (qore_xmlRead(reader, "expecting 'methodResponse' end element", xsink))
