@@ -343,7 +343,7 @@ sub test022()
   $list = ("string", "test data");
   $handle = $adapter.async_call("TOUPPER", $list, 0);
 
-  $result = $adapter.get_async_result($handle, Tuxedo::TPNOBLOCK);
+  $result = $adapter.get_async_result($handle, 0);
 
   if ($result[0] != "string") {
     printf("ERROR in test022() - invalid data type returned.\n");
@@ -352,7 +352,6 @@ sub test022()
   if ($result[1] != "TEST DATA") {
     printf("ERROR in test022() - invalid result returned.\n");
   }
-
 }
 
 # -------------------------------------------------------------------
