@@ -1,13 +1,35 @@
-RELEASE NOTES for qore v0.6.0
+RELEASE NOTES for qore v0.5.3
 
 NOTE: for platform-specific notes and build instructions, please see the file BUILD
 
 *** LIST OF CHANGES IN THIS RELEASE ***
 
--- under construction --
+NOTE: this is mainly a bug-fix release due to several important features being broken in 0.5.2
+
+* scanner and parser modified to accept direct specification of opaque binary objects using hexadecimal digits enclosed in angle brackets: 
+	ex: const bin = <a4b7297b>;
+
+must be an even number of digits or a parse error will result
+
 * new functions
   + hstat(), hlstat() - perform a "stat()" on a file/directory/etc and return a hash instead of a list - much easier to use output, including a "type" key, which gives the file type
+  + makeHexString(), parseHexString() - to covert from a binary object to a hex string and vice versa
 
+* performance improvements
+temporary objects no longer cause a cache sync on deletion, use STL map when hash_map is not available, more use of STL map in other data structures for quicker lookups
+
+* Solaris shared library fix
+finally Solaris shared-library builds are working properly
+
+* GetOpt class date parsing improvements
+all Qore formats should also be parsable by the GetOpt class
+
+* lots of bug fixes
+deadlocks in several classes were fixed that happened after timeouts (Datasource, SingleExitGate classes)
+bug in Datasource copy constructor
+broken ncurses module fixed, initscr() is now optional
+
+see CHANGELOG for details
 
 ***********************
 *** LANGUAGE ISSUES ***
@@ -69,8 +91,7 @@ The "mysql" DBI driver has not been as extensively tested as the Oracle driver, 
 
 NCURSES
 -------
-experimental: provides the "Panel" and "Window" classes along with many functions and constants - see test/ncurses.q and examples/hanio.q and examples/worms.q for more information. 
-
+experimental: provides the "Panel" and "Window" classes along with many functions and constants - see test/ncurses.q and examples/hanio.q and examples/worms.q for more information.
 
 *********************
 *** SQL Subsystem ***

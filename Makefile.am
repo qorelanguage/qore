@@ -158,12 +158,6 @@ noinst_HEADERS = \
 	modules/ncurses/QC_Window.h \
 	modules/ncurses/QC_Panel.h \
 	modules/ncurses/ncurses-module.h \
-	modules/Tuxedo/tuxedo_module.h \
-	modules/Tuxedo/QC_TuxedoConnection.h \
-	modules/Tuxedo/QoreTuxedoConnection.h \
-	modules/Tuxedo/connection_parameters_helper.h \
-	modules/Tuxedo/tpalloc_helper.h \
-	modules/Tuxedo/handle_error.h \
 	command-line.h \
 	include/qore/Qore.h
 
