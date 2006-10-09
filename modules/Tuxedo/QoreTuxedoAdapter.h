@@ -48,15 +48,20 @@ class QoreTuxedoAdapter : public ReferenceObject
   List* buffer2list(char* buffer, long size, char* err, ExceptionSink* xsink);
 
 public:
-  QoreTuxedoAdapter(const char* name, Hash* params, ExceptionSink* xsink);
+  QoreTuxedoAdapter(const char* name, Hash* params, char* err, ExceptionSink* xsink);
   ~QoreTuxedoAdapter();
   const char* get_name() const { return m_name.c_str(); }
-  void close_adapter(ExceptionSink* xsink);
+  void close_adapter(char* err, ExceptionSink* xsink);
 
-  List* call(char* service_name, List* params, long flags, ExceptionSink* xsink);
-  int async_call(char* service_name, List* params, long flags, ExceptionSink* xsink);
-  void cancel_async(int handle, ExceptionSink* xsink);
-  List* get_async_result(int handle, long flags, ExceptionSink* xsink);
+  List* call(char* service_name, List* params, long flags, char* err, ExceptionSink* xsink);
+  int async_call(char* service_name, List* params, long flags, char* err, ExceptionSink* xsink);
+  void cancel_async(int handle, char* err, ExceptionSink* xsink);
+  List* get_async_result(int handle, long flags, char* err, ExceptionSink* xsink);
+
+  int connect(char* service_name, List* initial_data, long flags, char* err, ExceptionSink* xsink);
+  void forced_disconnect(int handle, char* err, ExceptionSink* xsink);
+  void send(int handle, List* data, long flags, char* err, ExceptionSink* xsink);
+  List* recv(int handle, long flags, char* err, ExceptionSink* xsink);
 
   void deref() { 
     if (ROdereference()) {

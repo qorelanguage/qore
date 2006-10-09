@@ -94,7 +94,7 @@ static void TUXEDOADAPTER_constructor(Object *self, QoreNode *params, ExceptionS
 #ifdef DEBUG
 create_object:
 #endif
-  QoreTuxedoAdapter* adapter = new QoreTuxedoAdapter(connection_name, params_hash, xsink);
+  QoreTuxedoAdapter* adapter = new QoreTuxedoAdapter(connection_name, params_hash, err, xsink);
   if (xsink->isException()) {
     adapter->deref();
   } else {
@@ -108,17 +108,17 @@ create_object:
 static void TUXEDOADAPTER_destructor(Object *self, QoreTuxedoAdapter* adapter, ExceptionSink *xsink)
 {
   tracein("TUXEDOADAPTER_destructor");
+  char* err = "QORE-TUXEDO-ADAPTER-DESTRUCTOR";
 #ifdef DEBUG
   std::string name = adapter->get_name();
 #endif
 
-  adapter->close_adapter(xsink);
+  adapter->close_adapter(err, xsink);
   adapter->deref();
 
 #ifdef DEBUG
   if (name == "test-fail-close") {
-    xsink->raiseException("QORE-TUXEDO-ADAPTER-DESTRUCTOR",
-      "Dummy object asked to fail in destructor.");
+    xsink->raiseException(err, "Dummy object asked to fail in destructor.");
   }
 #endif
 
@@ -206,13 +206,13 @@ static QoreNode* call_impl(Object* self, QoreTuxedoAdapter* adapter, QoreNode *p
   }
 
   if (async) {
-    int handle = adapter->async_call(service_name, params_list, flags, xsink);
+    int handle = adapter->async_call(service_name, params_list, flags, err, xsink);
     if (xsink->isException()) {
       return 0;
     }
     return new QoreNode((int64)handle);
   } else {
-    List* result = adapter->call(service_name, params_list, flags, xsink);
+    List* result = adapter->call(service_name, params_list, flags, err, xsink);
     if (xsink->isException()) {
        delete result;
        return 0;
@@ -250,6 +250,7 @@ static QoreNode* TUXEDOADAPTER_get_async_result(Object* self, QoreTuxedoAdapter*
       return 0;
     }
 
+    // does not return list but for testing this should be OK
     if (strcmp(n, "test-success-bool") == 0) {
       return new QoreNode(true);
     }
@@ -298,7 +299,7 @@ static QoreNode* TUXEDOADAPTER_get_async_result(Object* self, QoreTuxedoAdapter*
     return 0;
   }
 
-  List* result = adapter->get_async_result(handle, flags, xsink);
+  List* result = adapter->get_async_result(handle, flags, err, xsink);
   if (xsink->isException()) {
     delete result;
     return 0;
@@ -339,7 +340,7 @@ static QoreNode* TUXEDOADAPTER_cancel_async(Object* self, QoreTuxedoAdapter* ada
     return 0;
   }
  
-  adapter->cancel_async(handle, xsink);
+  adapter->cancel_async(handle, err, xsink);
   return 0; 
 }
 
@@ -378,11 +379,13 @@ static QoreNode* TUXEDOADAPTER_connect(Object* self, QoreTuxedoAdapter* adapter,
     xsink->raiseException(err, all_params);
     return 0;
   }
-  
+ 
+  int read_params_count = 1; 
   if (get_param(params, 1)) {
     QoreNode* pt = test_param(params, NT_INT, 1);
     if (pt) {
       flags = (long)pt->val.intval;
+      read_params_count = 2;
     } else {
       pt = test_param(params, NT_LIST, 1);
       if (!pt) {
@@ -400,6 +403,7 @@ static QoreNode* TUXEDOADAPTER_connect(Object* self, QoreTuxedoAdapter* adapter,
           xsink->raiseException(err, "The third parameter (flags) needs to be an integer.");
         }
         flags = (long)pt->val.intval;
+        read_params_count = 3;
       }
     }
   } else {
@@ -407,33 +411,197 @@ static QoreNode* TUXEDOADAPTER_connect(Object* self, QoreTuxedoAdapter* adapter,
     return 0;
   }
 
+  if (get_param(params, read_params_count - 1)) {
+    xsink->raiseException(err, all_params);
+    return 0;
+  }
 
-  // TBD
-  return 0;
+  int res = adapter->connect(service_name, params_list, flags, err, xsink);
+  if (xsink->isException()) {
+    return 0;
+  }
+
+  return new QoreNode((int64)res);
 }
 
 //------------------------------------------------------------------------------
 // [handle]
 static QoreNode* TUXEDOADAPTER_forced_disconnect(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
 {
-  // TBD
+  char* err = "QORE-TUXEDO-ADAPTER-FORCED_DISCONNECT";
+#ifdef DEBUG
+  const char* n = adapter->get_name();
+  if (strstr(n, "test") == n) {
+    if (strcmp(n, "test-fail-forced_connect") == 0) {
+      xsink->raiseException(err, "forced_connect() requested to fail.");
+      return 0;
+    }
+    return new QoreNode();
+  }
+#endif
+
+  int handle = 0;
+  char* all_params = "One integer parameter (the handle) is expected.";
+
+  if (get_param(params, 0)) {
+    QoreNode* pt = test_param(params, NT_INT, 0);
+    if (!pt) {
+      xsink->raiseException(err, "The first parameter (handle) should be integer.");
+      return 0;
+    }
+    handle = pt->val.intval;
+
+  } else {
+    xsink->raiseException(err, all_params);
+    return 0;
+  }
+
+  if (get_param(params, 1)) {
+    xsink->raiseException(err, all_params);
+    return 0;
+  }
+
+  adapter->forced_disconnect(handle, err, xsink);
   return 0;
 }
 
 //------------------------------------------------------------------------------
-// [handle, parameters-list, flags], returns integer event or throws on error
+// [handle, parameters-list, flags]
 static QoreNode* TUXEDOADAPTER_send(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
 {
-  // TBD
+  char* err = "QORE-TUXEDO-ADAPTER-SEND";
+#ifdef DEBUG
+  const char* n = adapter->get_name();
+  if (strstr(n, "test") == n) {
+    if (strcmp(n, "test-send-fail") == 0) {
+      xsink->raiseException(err, "send() requested to fail.");
+      return 0;
+    }
+    return new QoreNode();
+  }
+#endif
+
+  int handle = 0;
+  List* param_list = 0;
+  long flags = 0;
+
+  char* all_params = "Three parameters expected: handle (integer), data (list), flags (integer).";
+
+  if (get_param(params, 0)) {
+    QoreNode* pt = test_param(params, NT_INT, 0);
+    if (!pt) {
+      xsink->raiseException(err, "The first parameted (handle) needs to be an integer.");
+      return 0;
+    }
+    handle = (int)pt->val.intval;
+  } else {
+    xsink->raiseException(err, all_params);
+    return 0;
+  }
+
+  if (get_param(params, 1)) {
+    QoreNode* pt = test_param(params, NT_LIST, 1);
+    if (!pt) {
+      xsink->raiseException(err, "The second parameter (data) needs to be a list.");
+      return 0;
+    }
+    param_list = pt->val.list;
+
+  } else {
+    xsink->raiseException(err, all_params);
+    return 0;
+  }
+  
+  if (get_param(params, 2)) {
+    QoreNode* pt = test_param(params, NT_INT, 2);
+    if (!pt) {
+      xsink->raiseException(err, "The third parameter (flags) needs to be an integer.");
+      return 0;
+    }
+    flags = (long)pt->val.intval;
+
+  } else {
+    xsink->raiseException(err, all_params);
+    return 0;
+  }
+
+  if (get_param(params, 3)) {
+    xsink->raiseException(err, all_params);
+    return 0;
+  }
+
+  adapter->send(handle, param_list, flags, err, xsink);
   return 0;
 }
 
 //------------------------------------------------------------------------------
-// [handle, flags], returns data-list, integer event or throws on error
+// [handle, flags], returns data-list
 static QoreNode* TUXEDOADAPTER_recv(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
 {
-  // TBD
-  return 0;
+  char* err = "QORE-TUXEDO_ADAPTER-RECV";
+#ifdef DEBUG
+  const char* n = adapter->get_name();
+  if (strstr(n, "test") == n) {
+    if (strcmp(n, "test-fail-recv") == 0) {
+      xsink->raiseException(err, "recv() required to fail.");
+      return 0;
+    }
+
+    // does not return list but for testing this should be OK
+    if (strcmp(n, "test-success-bool") == 0) {
+      return new QoreNode(true);
+    }
+    if (strcmp(n, "test-success-int") == 0) {
+      return new QoreNode((int64)123);
+    }
+    if (strcmp(n, "test-success-string") == 0) {
+      return new QoreNode("test result");
+    }
+    assert(false);
+    return new QoreNode();
+  }
+#endif
+  int handle = 0;
+  long flags = 0;
+  char* all_params = "Two parameters are expected: hande (integer), flags (integer).";
+
+  if (get_param(params, 0)) {
+    QoreNode* pt = test_param(params, NT_INT, 0);
+    if (!pt) {
+      xsink->raiseException(err, "The first parameter (handle) needs to be an int.");
+      return 0;
+    }
+    handle = (int)pt->val.intval;
+
+  } else {
+    xsink->raiseException(err, all_params);
+    return 0;
+  }
+
+  if (get_param(params, 1)) {
+    QoreNode* pt = test_param(params, NT_INT, 1);
+    if (!pt) {
+      xsink->raiseException(err, "The second parameter (flags) needs to be an integer.");
+      return 0;
+    }
+    flags = (long)pt->val.intval;
+
+  } else {
+    xsink->raiseException(err, all_params);
+    return 0;
+  }
+
+  if (get_param(params, 2)) {
+    xsink->raiseException(err, all_params);
+    return 0;
+  }
+
+  List* result = adapter->recv(handle, flags, err, xsink);
+  if (xsink->isException()) {
+    delete result;
+    return 0;
+  }
+  return new QoreNode(result);
 }
 
 //------------------------------------------------------------------------------

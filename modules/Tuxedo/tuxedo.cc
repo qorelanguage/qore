@@ -122,12 +122,6 @@ void tuxedo_module_ns_init(class Namespace* rns, class Namespace* qns)
   tuxedons->addConstant("TPGETANY", new QoreNode((int64)TPGETANY));
   tuxedons->addConstant("TPSENDONLY", new QoreNode((int64)TPSENDONLY));
   tuxedons->addConstant("TPRECVONLY", new QoreNode((int64)TPRECVONLY));
-  tuxedons->addConstant("TPEV_DISCONIMM", new QoreNode((int64)TPEV_DISCONIMM));
-  tuxedons->addConstant("TPEV_SCVFAIL", new QoreNode((int64)TPEV_SVCFAIL));
-  tuxedons->addConstant("TPEV_SVCERR", new QoreNode((int64)TPEV_SVCERR)); 
-  tuxedons->addConstant("TPESVCERR", new QoreNode((int64)TPESVCERR));
-  tuxedons->addConstant("TPEV_SVCSUCC", new QoreNode((int64)TPEV_SVCSUCC));
-  tuxedons->addConstant("TPEV_SENDONLY", new QoreNode((int64)TPEV_SENDONLY));
  
   qns->addInitialNamespace(tuxedons);
 

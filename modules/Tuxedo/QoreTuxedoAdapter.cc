@@ -32,7 +32,7 @@
 #include "handle_error.h"
 
 //------------------------------------------------------------------------------
-QoreTuxedoAdapter::QoreTuxedoAdapter(const char* name, Hash* params, ExceptionSink* xsink)
+QoreTuxedoAdapter::QoreTuxedoAdapter(const char* name, Hash* params, char* err, ExceptionSink* xsink)
 : m_name(name && name[0] ? name : "<unnamed>")
 {
 }
@@ -41,13 +41,13 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(const char* name, Hash* params, ExceptionSi
 QoreTuxedoAdapter::~QoreTuxedoAdapter()
 {
   ExceptionSink dummy;
-  close_adapter(&dummy);
+  close_adapter("", &dummy);
 }
 
 //------------------------------------------------------------------------------
 // Try to cancel all pending requests. Provide error details 
 // on the last failed one.
-void QoreTuxedoAdapter::close_adapter(ExceptionSink* xsink)
+void QoreTuxedoAdapter::close_adapter(char* err, ExceptionSink* xsink)
 {
   bool some_cancel_failed = false;
   int tperrnum;
@@ -62,15 +62,13 @@ void QoreTuxedoAdapter::close_adapter(ExceptionSink* xsink)
   }
   m_pending_async_requests.clear();
   if (some_cancel_failed) {
-    handle_tpcancel_error("QORE-TUXEDO-ADAPTER-DESTRUCTOR", tperrnum, handle, xsink);
+    handle_tpcancel_error(err, tperrnum, handle, xsink);
   }
 }
 
 //------------------------------------------------------------------------------
-List* QoreTuxedoAdapter::call(char* service_name, List* params, long flags, ExceptionSink* xsink)
+List* QoreTuxedoAdapter::call(char* service_name, List* params, long flags, char* err, ExceptionSink* xsink)
 {
-  
-  char* err = "QORE-TUXEDO-ADAPTER-CALL";
   std::pair<char*, long> in_buffer = list2buffer(params, err, xsink);
   if (xsink->isException()) {
     if (in_buffer.first) {
@@ -110,9 +108,8 @@ List* QoreTuxedoAdapter::call(char* service_name, List* params, long flags, Exce
 }
 
 //------------------------------------------------------------------------------
-int QoreTuxedoAdapter::async_call(char* service_name, List* params, long flags, ExceptionSink* xsink)
+int QoreTuxedoAdapter::async_call(char* service_name, List* params, long flags, char* err, ExceptionSink* xsink)
 {
-  char* err = "QORE-TUXEDO-ADAPTER-ASYNC_CALL";
   std::pair<char*, long> buffer = list2buffer(params, err, xsink);
   if (xsink->isException()) {
     return 0;
@@ -138,9 +135,8 @@ int QoreTuxedoAdapter::async_call(char* service_name, List* params, long flags, 
 }
 
 //------------------------------------------------------------------------------
-void QoreTuxedoAdapter::cancel_async(int handle, ExceptionSink* xsink)
+void QoreTuxedoAdapter::cancel_async(int handle, char* err, ExceptionSink* xsink)
 {
-  char* err = "QORE-TUXEDO-ADAPTER-CANCEL_ASYNC";
   for (std::list<int>::iterator it = m_pending_async_requests.begin(), end = m_pending_async_requests.end(); it != end; ++it) {
     if (*it == handle) {
       m_pending_async_requests.erase(it);
@@ -163,9 +159,8 @@ void QoreTuxedoAdapter::handle_tpcancel_error(char* err, int tperrnum, int handl
 }
 
 //------------------------------------------------------------------------------
-List* QoreTuxedoAdapter::get_async_result(int handle, long flags, ExceptionSink* xsink)
+List* QoreTuxedoAdapter::get_async_result(int handle, long flags, char* err, ExceptionSink* xsink)
 {
-  char* err = "QORE-TUXEDO-ADAPTER-GET_ASYNC_RESULT";
   long size = 4096;
   char* out_buffer = tpalloc_helper("STRING", 0, size, err, xsink);
   if (xsink->isException()) {
@@ -203,6 +198,32 @@ List* QoreTuxedoAdapter::get_async_result(int handle, long flags, ExceptionSink*
   if (out_buffer) {
     tpfree(out_buffer);
   }
+  return 0;
+}
+
+//-----------------------------------------------------------------------------
+int QoreTuxedoAdapter::connect(char* service_name, List* initial_data, long flags, char* err, ExceptionSink* xsink)
+{
+  // TBD
+  return 0;
+}
+
+//-----------------------------------------------------------------------------
+void QoreTuxedoAdapter::forced_disconnect(int handle, char* err, ExceptionSink* xsink)
+{
+  // TBD
+}
+
+//-----------------------------------------------------------------------------
+void QoreTuxedoAdapter::send(int handle, List* data, long flags, char* err, ExceptionSink* xsink)
+{
+  // TBD
+}
+
+//-----------------------------------------------------------------------------
+List* QoreTuxedoAdapter::recv(int handle, long flags, char* err, ExceptionSink* xsink)
+{
+  // TBD
   return 0;
 }
 
