@@ -32,13 +32,13 @@
 #endif
 
 class ReferenceObject 
-#if !defined(HAVE_ATOMIC_MACROS)
-   // for atomic reference updates
-   : protected LockedObject
-#endif
 {
    protected:
       int references;
+#if !defined(HAVE_ATOMIC_MACROS)
+   // for atomic reference updates
+      class LockedObject m;
+#endif
    public:
       inline ReferenceObject();
       inline int reference_count() { return references; }
@@ -60,9 +60,9 @@ inline void ReferenceObject::ROreference()
 #ifdef HAVE_ATOMIC_MACROS
    atomic_inc(&references);
 #else
-   lock();
+   m.lock();
    ++references; 
-   unlock();
+   m.unlock();
 #endif
 }
 
@@ -75,9 +75,9 @@ inline bool ReferenceObject::ROdereference()
 #ifdef HAVE_ATOMIC_MACROS
    return atomic_dec(&references);
 #else
-   lock();
+   m.lock();
    int rc = --references;
-   unlock();
+   m.unlock();
    return !rc;
 #endif
 }
