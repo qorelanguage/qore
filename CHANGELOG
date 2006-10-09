@@ -1,6 +1,9 @@
+*** v0.5.3 *** RELEASE
+
 2006.10.09: David Nichols
 	* made LockedObject a protected member in ReferenceObject so that
 	  classes inheriting both classes would not conflict
+	* made a snapshot for 0.5.3 bugfix release
 
 2006.10.08: David Nichols
 	* implemented copy constructor for the HTTPClient object, made object
