@@ -39,13 +39,14 @@ class QoreTuxedoAdapter : public ReferenceObject
 {
   std::string m_name; // identification of the connection, could be empty
   std::list<int> m_pending_async_requests;
-
-  void handle_tpcancel_error(char* err, int tperrnum, int handle, ExceptionSink* xsink);
+  std::list<int> m_active_conversations;
 
   std::pair<char*, long> list2buffer(List* list, char* err, ExceptionSink* xsink);
   std::pair<char*, long> string_list2buffer(List* list, char* err, ExceptionSink* xsink);
 
   List* buffer2list(char* buffer, long size, char* err, ExceptionSink* xsink);
+
+  std::string conversation_event2string(long event);
 
 public:
   QoreTuxedoAdapter(const char* name, Hash* params, char* err, ExceptionSink* xsink);
@@ -60,8 +61,10 @@ public:
 
   int connect(char* service_name, List* initial_data, long flags, char* err, ExceptionSink* xsink);
   void forced_disconnect(int handle, char* err, ExceptionSink* xsink);
-  void send(int handle, List* data, long flags, char* err, ExceptionSink* xsink);
-  List* recv(int handle, long flags, char* err, ExceptionSink* xsink);
+  // if true is returned then the conversation ended 
+  bool send(int handle, List* data, long flags, char* err, ExceptionSink* xsink);
+  // if the first item is true then the conversation ended, second item is received data (as list)
+  std::pair<bool, List*> recv(int handle, long flags, char* err, ExceptionSink* xsink);
 
   void deref() { 
     if (ROdereference()) {

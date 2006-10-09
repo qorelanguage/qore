@@ -466,7 +466,7 @@ static QoreNode* TUXEDOADAPTER_forced_disconnect(Object* self, QoreTuxedoAdapter
 }
 
 //------------------------------------------------------------------------------
-// [handle, parameters-list, flags]
+// [handle, parameters-list, flags], returns True if finished, False if not yet finished
 static QoreNode* TUXEDOADAPTER_send(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
 {
   char* err = "QORE-TUXEDO-ADAPTER-SEND";
@@ -530,12 +530,12 @@ static QoreNode* TUXEDOADAPTER_send(Object* self, QoreTuxedoAdapter* adapter, Qo
     return 0;
   }
 
-  adapter->send(handle, param_list, flags, err, xsink);
-  return 0;
+  bool res = adapter->send(handle, param_list, flags, err, xsink);
+  return new QoreNode(res);
 }
 
 //------------------------------------------------------------------------------
-// [handle, flags], returns data-list
+// [handle, flags], returns list with two items: bool (True if finished) + data list
 static QoreNode* TUXEDOADAPTER_recv(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
 {
   char* err = "QORE-TUXEDO_ADAPTER-RECV";
@@ -596,12 +596,15 @@ static QoreNode* TUXEDOADAPTER_recv(Object* self, QoreTuxedoAdapter* adapter, Qo
     return 0;
   }
 
-  List* result = adapter->recv(handle, flags, err, xsink);
+  std::pair<bool, List*> result = adapter->recv(handle, flags, err, xsink);
   if (xsink->isException()) {
-    delete result;
+    delete result.second;
     return 0;
   }
-  return new QoreNode(result);
+  List* full_list = new List();
+  full_list->push(new QoreNode(result.first));
+  full_list->merge(result.second);
+  return new QoreNode(full_list);
 }
 
 //------------------------------------------------------------------------------

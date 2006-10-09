@@ -49,21 +49,47 @@ QoreTuxedoAdapter::~QoreTuxedoAdapter()
 // on the last failed one.
 void QoreTuxedoAdapter::close_adapter(char* err, ExceptionSink* xsink)
 {
-  bool some_cancel_failed = false;
-  int tperrnum;
-  int handle;
+  unsigned failed_operations = 0;
+  // discard all remaining asynchronous requests
+  int async_tperrnum = 0;
   for (std::list<int>::const_iterator it = m_pending_async_requests.begin(), end = m_pending_async_requests.end(); it != end; ++it) {
     int res = tpcancel(*it);
     if (res == -1) {
-      some_cancel_failed = true;
-      tperrnum = tperrno;
-      handle = *it;
+      async_tperrnum = tperrno;
+      ++failed_operations;
     }
   }
   m_pending_async_requests.clear();
-  if (some_cancel_failed) {
-    handle_tpcancel_error(err, tperrnum, handle, xsink);
+
+  // forcibly close all opened conversations
+  int conversation_tperrnum = 0;
+  for (std::list<int>::const_iterator it = m_active_conversations.begin(), end = m_active_conversations.end(); it != end; ++it) {
+    int res = tpdiscon(*it);
+    if (res == -1) {
+      conversation_tperrnum = tperrno;
+      ++failed_operations;
+    }
   }
+  m_active_conversations.clear();
+
+  if (!failed_operations) {
+    return;
+  }
+
+  std::string func_name;
+  if (async_tperrnum) {
+    func_name = "tpcancel() of connection [";
+  } else {
+    func_name = "tpdiscon() of connection [";
+  }
+  func_name += m_name;
+  func_name += "] (total number of failures = ";
+  {
+    char buffer[10];
+    sprintf(buffer, "%u)", failed_operations);
+    func_name += buffer;
+  }
+  handle_error(async_tperrnum ? async_tperrnum : conversation_tperrnum, err, func_name.c_str(), xsink);
 }
 
 //------------------------------------------------------------------------------
@@ -143,19 +169,14 @@ void QoreTuxedoAdapter::cancel_async(int handle, char* err, ExceptionSink* xsink
       if (tpcancel(handle) != -1) {
         return;
       }
-      handle_tpcancel_error(err, tperrno, handle, xsink);
+      std::string func_name = "tpcancel() of connection [";
+      func_name += m_name;
+      func_name += "]";
+      handle_error(tperrno, err, func_name.c_str(), xsink);
+      return;
     }
   }
   xsink->raiseException(err, "Invalid handle value for cancel_async().");
-}
-
-//------------------------------------------------------------------------------
-void QoreTuxedoAdapter::handle_tpcancel_error(char* err, int tperrnum, int handle, ExceptionSink* xsink)
-{
-  std::string func_name = "tpcancel() of connection [";
-  func_name += m_name;
-  func_name += "]";
-  handle_error(tperrnum, err, func_name.c_str(), xsink);
 }
 
 //------------------------------------------------------------------------------
@@ -204,27 +225,100 @@ List* QoreTuxedoAdapter::get_async_result(int handle, long flags, char* err, Exc
 //-----------------------------------------------------------------------------
 int QoreTuxedoAdapter::connect(char* service_name, List* initial_data, long flags, char* err, ExceptionSink* xsink)
 {
-  // TBD
-  return 0;
+  std::pair<char*, long> buffer = std::make_pair((char*)0, 0);
+  if (initial_data) {
+    buffer = list2buffer(initial_data, err, xsink);
+    if (xsink->isException()) {
+      return 0;
+    }
+  }
+  int res = tpconnect(service_name, buffer.first, buffer.second, flags);
+  if (res == -1) {
+    std::string func_name = "tpconnect(\"";
+    func_name += service_name ? service_name : "";
+    func_name += "\") of connection [";
+    func_name += m_name;
+    func_name += "]";
+    handle_error(tperrno, err, func_name.c_str(), xsink);
+    return 0;
+  }
+
+  m_active_conversations.push_back(res);
+  return res;
 }
 
 //-----------------------------------------------------------------------------
 void QoreTuxedoAdapter::forced_disconnect(int handle, char* err, ExceptionSink* xsink)
 {
-  // TBD
+  for (std::list<int>::iterator it = m_active_conversations.begin(), end = m_active_conversations.end(); it != end; ++it) {
+    if (*it == handle) {
+      m_active_conversations.erase(it);
+      break;
+    }
+  }
+  int res = tpdiscon(handle);
+  if (res != -1) {
+     return;
+  }
+  handle_error(tperrno, err, "tpdicson()", xsink);
 }
 
 //-----------------------------------------------------------------------------
-void QoreTuxedoAdapter::send(int handle, List* data, long flags, char* err, ExceptionSink* xsink)
+std::string QoreTuxedoAdapter::conversation_event2string(long event)
 {
-  // TBD
+  switch (event) {
+  case 0: return std::string();
+  case TPEV_DISCONIMM: return "(event TPEV_DISCONIMM - server disconnected abruptly)";
+  case TPEV_SVCERR: return "(event TPEV_SVCERR - server error)";
+  case TPEV_SVCFAIL: return "(event TPEV_SVCFAIL - server failure)";
+  case TPEV_SVCSUCC: return "(event TPEV_SVCSUCC - conversation closed OK)";
+  case TPEV_SENDONLY: return "(event TPEV_SENDONLY - not in receive mode)";
+  default:
+    {
+      char buffer[100];
+      sprintf(buffer, "(unknwon event %ld)", event);
+      return std::string(buffer);
+    }
+    break;
+  }
+}
+//-----------------------------------------------------------------------------
+bool QoreTuxedoAdapter::send(int handle, List* data, long flags, char* err, ExceptionSink* xsink)
+{
+  std::pair<char*, long> buffer = list2buffer(data, err, xsink);
+  if (xsink->isException()) {
+    if (buffer.first) {
+      tpfree(buffer.first);
+    }
+    return true;
+  }
+  long event = 0;
+  int res = tpsend(handle, buffer.first, buffer.second, flags, &event);
+  int tperrnum = tperrno;
+  if (buffer.first) {
+    tpfree(buffer.first);
+  }
+
+  if (res != -1 && (event == 0 || event == TPEV_SVCSUCC)) {
+    return event == TPEV_SVCSUCC;
+  }
+  
+  std::string func_name = "tpsend()";
+  if (event != 0) {
+    func_name += conversation_event2string(event);
+  }
+  func_name += " of connection [";
+  func_name += m_name;
+  func_name += "]";
+  handle_error(tperrnum, err, func_name.c_str(), xsink);
+  return true;
 }
 
 //-----------------------------------------------------------------------------
-List* QoreTuxedoAdapter::recv(int handle, long flags, char* err, ExceptionSink* xsink)
+std::pair<bool, List*> QoreTuxedoAdapter::recv(int handle, long flags, char* err, ExceptionSink* xsink)
 {
   // TBD
-  return 0;
+  return std::make_pair(false, (List*)0);
 }
 
 //-----------------------------------------------------------------------------
