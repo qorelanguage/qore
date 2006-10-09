@@ -30,6 +30,7 @@
 #include "QoreTuxedoAdapter.h"
 #include "tpalloc_helper.h"
 #include "handle_error.h"
+#include <assert.h>
 
 //------------------------------------------------------------------------------
 QoreTuxedoAdapter::QoreTuxedoAdapter(const char* name, Hash* params, char* err, ExceptionSink* xsink)
@@ -282,6 +283,21 @@ std::string QoreTuxedoAdapter::conversation_event2string(long event)
     break;
   }
 }
+
+//-----------------------------------------------------------------------------
+void QoreTuxedoAdapter::remove_active_conversation(int handle)
+{
+  tpdiscon(handle); // just make sure it goes down
+
+  for (std::list<int>::iterator it = m_active_conversations.begin(), end = m_active_conversations.end(); it != end; ++it) {
+    if (*it == handle) {
+      m_active_conversations.erase(it);
+      return;
+    }
+  }
+  assert(false); // error in layer above Qore?
+}
+
 //-----------------------------------------------------------------------------
 bool QoreTuxedoAdapter::send(int handle, List* data, long flags, char* err, ExceptionSink* xsink)
 {
@@ -299,9 +315,14 @@ bool QoreTuxedoAdapter::send(int handle, List* data, long flags, char* err, Exce
     tpfree(buffer.first);
   }
 
-  if (res != -1 && (event == 0 || event == TPEV_SVCSUCC)) {
-    return event == TPEV_SVCSUCC;
+  if (res != -1 && (event == 0 || event == TPEV_SVCSUCC)) { // the docs isn't very clear here
+    if (event == TPEV_SVCSUCC) {
+      remove_active_conversation(handle);
+      return true;
+    }
+    return false;
   }
+  remove_active_conversation(handle);
   
   std::string func_name = "tpsend()";
   if (event != 0) {
@@ -317,8 +338,62 @@ bool QoreTuxedoAdapter::send(int handle, List* data, long flags, char* err, Exce
 //-----------------------------------------------------------------------------
 std::pair<bool, List*> QoreTuxedoAdapter::recv(int handle, long flags, char* err, ExceptionSink* xsink)
 {
-  // TBD
-  return std::make_pair(false, (List*)0);
+  long size = 4096;
+  char* buffer = tpalloc_helper("STRING", 0, size, err, xsink);
+  if (xsink->isException()) {
+    if (buffer) tpfree(buffer);
+    return std::make_pair(true, (List*)0);
+  }
+  
+  long event = 0;
+  int res = tprecv(handle, &buffer, &size, flags, &event);
+  int tperrnum = tperrno;
+
+  if (res == -1 && tperrnum != TPEEVENT) {
+    // classical error, no data received
+    if (buffer) tpfree(buffer);
+    remove_active_conversation(handle);
+    handle_error(tperrnum, err, "tprecv()", xsink);
+    return std::make_pair(true, (List*)0);
+  }
+  if (res != -1 && tperrnum != TPEEVENT) {
+    // something received, all is OK, not finished
+    List* l = buffer2list(buffer, size, err, xsink);
+    if (xsink->isException()) {
+      if (buffer) tpfree(buffer);
+      delete l;
+      remove_active_conversation(handle);
+      return std::make_pair(true, (List*)0);
+    }
+    return std::make_pair(false, l);
+  }
+  // an event was received
+
+  if (event == TPEV_SVCSUCC) {
+    // finished, all OK
+    List* l = buffer2list(buffer, size, err, xsink);
+    if (xsink->isException()) {
+      if (buffer) tpfree(buffer);
+      delete l;
+      remove_active_conversation(handle);
+      return std::make_pair(true, (List*)0);
+    }
+    remove_active_conversation(handle);
+    return std::make_pair(true, l);
+  }
+  // An event indicating failure. Possible data discarded
+  // as it is unlikely to recover (that should happen Qorus level).
+  //
+  remove_active_conversation(handle);
+  if (buffer) tpfree(buffer);
+
+  std::string func_name = "tprecv() " + conversation_event2string(event);
+  func_name += " on connection [";
+  func_name += m_name;
+  func_name += "]";
+
+  handle_error(tperrnum, err, func_name.c_str(), xsink);
+  return std::make_pair(true, (List*)0);
 }
 
 //-----------------------------------------------------------------------------

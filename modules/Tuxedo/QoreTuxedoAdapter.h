@@ -47,6 +47,7 @@ class QoreTuxedoAdapter : public ReferenceObject
   List* buffer2list(char* buffer, long size, char* err, ExceptionSink* xsink);
 
   std::string conversation_event2string(long event);
+  void remove_active_conversation(int handle);
 
 public:
   QoreTuxedoAdapter(const char* name, Hash* params, char* err, ExceptionSink* xsink);
