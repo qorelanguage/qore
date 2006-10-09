@@ -54,11 +54,12 @@ static void TUXEDOADAPTER_constructor(Object *self, QoreNode *params, ExceptionS
 
   const char* connection_name = 0;
   Hash* params_hash = 0;
+  char* err = "QORE-TUXEDO-ADAPTER-CONNECTION";
 
   if (get_param(params, 0)) {
     QoreNode* pt = test_param(params, NT_STRING, 0);
     if (!pt) {
-      xsink->raiseException("QORE-TUXEDO-ADAPTER-CONNECTION",
+      xsink->raiseException(err, 
         "The first parameter (if any) needs to be a string (symbolic name). It could be empty.");
       return;
     }
@@ -68,8 +69,7 @@ static void TUXEDOADAPTER_constructor(Object *self, QoreNode *params, ExceptionS
 #ifdef DEBUG
   if (connection_name) {
     if (strcmp(connection_name, "test-fail-open") == 0) {
-      xsink->raiseException("QORE-TUXEDO-ADAPTER-CONSTRUCTOR",
-        "Dymm adaptor asked to fail in constructor.");
+      xsink->raiseException(err, "Dummy adaptor asked to fail in constructor.");
       return;
     }
     if (strstr(connection_name, "test") == connection_name) {
@@ -81,15 +81,13 @@ static void TUXEDOADAPTER_constructor(Object *self, QoreNode *params, ExceptionS
   if (get_param(params, 1)) {
     QoreNode* pt = test_param(params, NT_HASH, 1);
     if (!pt) {
-      xsink->raiseException("QORE-TUXEDO-ADAPTER-CONSTRUCTOR",
-        "The second parameter (object settings) needs to be a hash.");
+      xsink->raiseException(err, "The second parameter (object settings) needs to be a hash.");
       return;
     }
   }
 
   if (get_param(params, 2)) {
-    xsink->raiseException("QORE-TUXEDO-ADAPTER-CONSTRUCTOR",
-      "The Tuxedo::Adapter constructor can have up to two parameters.");
+    xsink->raiseException(err, "The Tuxedo::Adapter constructor can have up to two parameters.");
     return;
   }
 
@@ -284,7 +282,7 @@ static QoreNode* TUXEDOADAPTER_get_async_result(Object* self, QoreTuxedoAdapter*
   }
   
   if (get_param(params, 1)) {
-    QoreNode* pt = test_param(params, NT_INT, 0);
+    QoreNode* pt = test_param(params, NT_INT, 1);
     if (!pt) {
       xsink->raiseException(err, "The second parameter (flags) needs to be an integer.");
       return 0;
@@ -295,7 +293,7 @@ static QoreNode* TUXEDOADAPTER_get_async_result(Object* self, QoreTuxedoAdapter*
     return 0;
   }
   
-  if (get_param(params, 3)) {
+  if (get_param(params, 2)) {
     xsink->raiseException(err, all_params);
     return 0;
   }
@@ -312,11 +310,12 @@ static QoreNode* TUXEDOADAPTER_get_async_result(Object* self, QoreTuxedoAdapter*
 // [handle]
 static QoreNode* TUXEDOADAPTER_cancel_async(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
 {
+  char* err = "QORE-TUXEDO-ADAPTER-CANCEL_ASYNC";
 #ifdef DEBUG
   const char* n = adapter->get_name();
   if (strstr(n, "test") == n) {
     if (strstr(n, "test-fail-cancel") == n) {
-      xsink->raiseException("QORE-TUXEDO-ADAPTER-CANCEL_ASYNC", "Test: dummy failure.");
+      xsink->raiseException(err, "Test: dummy failure.");
     }
     return 0;
   }
@@ -326,25 +325,115 @@ static QoreNode* TUXEDOADAPTER_cancel_async(Object* self, QoreTuxedoAdapter* ada
   if (get_param(params, 0)) {
     QoreNode* pt = test_param(params, NT_INT, 0);
     if (!pt) {
-      xsink->raiseException("QORE-TUXEDO-ADAPTER-CANCEL_ASYNC",
-        "The parameter must be integer (the handle).");
+      xsink->raiseException(err, "The parameter must be integer (the handle).");
       return 0;
     }
     handle = (int)pt->val.intval;
   } else {
-    xsink->raiseException("QORE-TUXEDO-ADAPTER-CANCEL_ASYNC",
-      "Integer parameter (the handle) must be supplied.");
+    xsink->raiseException(err, "Integer parameter (the handle) must be supplied.");
     return 0;
   }
 
   if (get_param(params, 1)) {
-    xsink->raiseException("QORE-TUXEDO-ADAPTER-CANCEL_ASYNC",
-      "Only one parameter (the handle) is allowed.");
+    xsink->raiseException(err, "Only one parameter (the handle) is allowed.");
     return 0;
   }
  
   adapter->cancel_async(handle, xsink);
   return 0; 
+}
+
+//------------------------------------------------------------------------------
+// [service-name, data-list, flags]
+// [service-name, flags] for no data
+static QoreNode* TUXEDOADAPTER_connect(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
+{
+  char* err = "QORE-TUXEDO-ADAPTER-CONNECT";
+#ifdef DEBUG
+  const char* n = adapter->get_name();
+  if (strstr(n, "test") == n) {
+    if (strcmp(n, "test-fail-connect") == 0) {
+      xsink->raiseException(err, "connect() requested to fail.");
+      return 0;
+    }
+    return new QoreNode((int64)0);
+  }
+#endif
+
+  char* service_name = 0;
+  List* params_list;
+  long flags = 0;
+
+  char* all_params = "Two or three parameters expected: service-name-string, [data-list], flags.";
+
+  if (get_param(params, 0)) {
+    QoreNode* pt = test_param(params, NT_STRING, 0);
+    if (!pt) {
+      xsink->raiseException(err, "The first parameter (service name) should be string.");
+      return 0;
+    }
+    service_name = pt->val.String->getBuffer();
+
+  } else {
+    xsink->raiseException(err, all_params);
+    return 0;
+  }
+  
+  if (get_param(params, 1)) {
+    QoreNode* pt = test_param(params, NT_INT, 1);
+    if (pt) {
+      flags = (long)pt->val.intval;
+    } else {
+      pt = test_param(params, NT_LIST, 1);
+      if (!pt) {
+        xsink->raiseException(err, "The second parameter should be either integer (flags) or a list (data).");
+        return 0;
+      } else {
+        params_list = pt->val.list;
+
+        if (!get_param(params, 2)) {
+          xsink->raiseException(err, "Third parameter (flags) is missing.");
+          return 0;
+        }
+        pt = test_param(params, NT_INT, 2);
+        if (!pt) {
+          xsink->raiseException(err, "The third parameter (flags) needs to be an integer.");
+        }
+        flags = (long)pt->val.intval;
+      }
+    }
+  } else {
+    xsink->raiseException(err, all_params);
+    return 0;
+  }
+
+
+  // TBD
+  return 0;
+}
+
+//------------------------------------------------------------------------------
+// [handle]
+static QoreNode* TUXEDOADAPTER_forced_disconnect(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
+{
+  // TBD
+  return 0;
+}
+
+//------------------------------------------------------------------------------
+// [handle, parameters-list, flags], returns integer event or throws on error
+static QoreNode* TUXEDOADAPTER_send(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
+{
+  // TBD
+  return 0;
+}
+
+//------------------------------------------------------------------------------
+// [handle, flags], returns data-list, integer event or throws on error
+static QoreNode* TUXEDOADAPTER_recv(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
+{
+  // TBD
+  return 0;
 }
 
 //------------------------------------------------------------------------------
@@ -357,11 +446,18 @@ class QoreClass* initTuxedoAdapterClass()
   adapter->setConstructor((q_constructor_t)TUXEDOADAPTER_constructor);
   adapter->setDestructor((q_destructor_t)TUXEDOADAPTER_destructor);
   adapter->setCopy((q_copy_t)TUXEDOADAPTER_copy);
+  // synchronous request/response
   adapter->addMethod("call", (q_method_t)TUXEDOADAPTER_call);
+  // asynchronous request/response
   adapter->addMethod("async_call", (q_method_t)TUXEDOADAPTER_async_call);
   adapter->addMethod("get_async_result", (q_method_t)TUXEDOADAPTER_get_async_result);
   adapter->addMethod("cancel_async", (q_method_t)TUXEDOADAPTER_cancel_async);
-
+  // conversation service
+  adapter->addMethod("connect", (q_method_t)TUXEDOADAPTER_connect);
+  adapter->addMethod("forced_disconnect", (q_method_t)TUXEDOADAPTER_forced_disconnect);
+  adapter->addMethod("send", (q_method_t)TUXEDOADAPTER_send);
+  adapter->addMethod("recv", (q_method_t)TUXEDOADAPTER_recv);
+  
   traceout("initTuxedoAdapterClass");
   return adapter;
 }

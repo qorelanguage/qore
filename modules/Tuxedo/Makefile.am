@@ -7,7 +7,8 @@ TUXEDO_SOURCES =  tuxedo.cc \
   connection_parameters_helper.cc \
   tpalloc_helper.cc \
   QC_TuxedoAdapter.cc \
-  QoreTuxedoAdapter.cc 
+  QoreTuxedoAdapter.cc \
+  handle_error.cc
 
 if COND_MONOLITHIC
 noinst_LTLIBRARIES = libtuxedo.la

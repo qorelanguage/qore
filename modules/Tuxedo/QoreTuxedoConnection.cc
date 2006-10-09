@@ -29,6 +29,8 @@
 
 #include "QoreTuxedoConnection.h"
 #include "connection_parameters_helper.h"
+#include <string>
+#include "handle_error.h"
 
 //------------------------------------------------------------------------------
 QoreTuxedoConnection::QoreTuxedoConnection(const char* name, Tuxedo_connection_parameters& params, ExceptionSink* xsink)
@@ -75,61 +77,24 @@ QoreTuxedoConnection::~QoreTuxedoConnection()
 //------------------------------------------------------------------------------
 void QoreTuxedoConnection::handle_tpinit_error(Tuxedo_connection_parameters& params, ExceptionSink* xsink) const
 {
-  switch (tperrno) {
-  case TPEINVAL: 
-    xsink->raiseException("QORE-TUXEDO-CONNECTION-CONSTRUCTOR", 
-       "connection named [%s]: tpinit() failed with TPEINVAL result (invalid arguments).", m_name.c_str());
-    break;
-  case TPENOENT: 
-    xsink->raiseException("QORE-TUXEDO-CONNECTION-CONSTRUCTOR", 
-      "connection named [%s]: tpinit() failed with TPENOENT result (space limitations).", m_name.c_str());
-    break;
-  case TPEPERM: 
-    xsink->raiseException("QORE-TUXEDO-CONNECTION-CONSTRUCTOR",
-      "connection named [%s]: tpinit() failed with TPEPERM (permission denied). Authentification result = %d.",
-      m_name.c_str(), tpurcode);
-    break;
-  case TPEPROTO:
-    xsink->raiseException("QORE-CONNECTION-CONSTRUCTOR",
-      "connection named [%s]: tpinit() failed with TPEPROTO (called improperly). See tpinit() documentation for more.",
-      m_name.c_str());
-    break;
-  case TPESYSTEM:
-    xsink->raiseException("QORE-TUXEDO-CONNECTION-CONSTRUCTOR",
-      "connection named [%s]: tpinit() failed with TPESYSTEM (Tuxedo error). See Tuxedo log file for details.", m_name.c_str());
-    break;
-  case TPEOS:
-    xsink->raiseException("QORE-TUXEDO-CONNECTION-CONSTRUCTOR",
-      "connection named [%s]: tpinit() failed with TPEOS (OS error). errno = %d.", m_name.c_str(), errno);
-    break;
-  default:
-    xsink->raiseException("QORE-TUXEDO-CONNECTION-CONSTRUCTOR",
-      "connection named [%s]: tpinit() failed with unrecognized error code %d.", m_name.c_str(), tperrno);
-    break;
+  std::string func_name = "tpinit() of connection [";
+  func_name += m_name;
+  func_name += "]";
+  if (tperrno == TPEPERM) {
+    char buffer[100];
+    sprintf(buffer, ". Authentification result = %ld", tpurcode);
+    func_name += buffer;
   }
+  handle_error(tperrno, "QORE-TUXEDO-CONNECTION-CONSTRUCTOR", func_name.c_str(), xsink);
 }
 
 //------------------------------------------------------------------------------
 void QoreTuxedoConnection::handle_tpterm_error(ExceptionSink* xsink) const
 {
-  switch (tperrno) {
-  case TPEPROTO:
-    xsink->raiseException("QORE-TUXEDO-CONNECTION-DESTRUCTOR",
-      "connection named [%s]: tpterm() failed with error TPEPROTO (improper context).", m_name.c_str());
-    break;
-  case TPESYSTEM:
-    xsink->raiseException("QORE-TUXEDO-CONNECTION-DESTRUCTOR",
-      "connection named [%s]: tpterm() failed with error TPESYSTEM (Tuxedo error). See Tuxedo log for details.", m_name.c_str());
-    break;
-  case TPEOS:
-    xsink->raiseException("QORE-TUXEDO-CONNECTION-DESTRUCTOR", 
-      "connection named [%s]: tpterm() failed with error TPEOS (OS error). errno = %d.", m_name.c_str(), errno);
-    break;
-  default:
-    xsink->raiseException("QORE-TUXEDO-CONNECTION-DESTRUCTOR",
-      "connection named [%s]: tpterm() failed with unrecognised error %d.", tperrno);
-    break;
-  }
+  std::string func_name = "tpterm() of connection [";
+  func_name += m_name;
+  func_name += "]";
+  handle_error(tperrno, "QORE-TUXEDO-CONNECTION_DESTRUCTOR", func_name.c_str(), xsink);
 }
 
 //------------------------------------------------------------------------------

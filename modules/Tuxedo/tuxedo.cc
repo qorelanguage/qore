@@ -36,7 +36,8 @@
 #include "QC_TuxedoConnection.h"
 #include "QC_TuxedoAdapter.h"
 
-#include "atmi.h"
+#include <atmi.h>
+#include "handle_error.h"
 
 #ifndef QORE_MONOLITHIC
 char qore_module_name[] = "tuxedo";
@@ -73,17 +74,7 @@ static class QoreNode* f_authentication_required_by_Tuxedo(class QoreNode* param
   case TPAPPAUTH: return new QoreNode(SYSTEM_AND_APP_AUTHENTICATION);
   }
   if (res == -1) {
-    // Tuxedo error
-    switch (tperrno) {
-    case TPESYSTEM: 
-      xsink->raiseException("TPCHKAUTH", "Tuxedo tpchkauth() failed due to Tuxedo system error. See Tuxedo log file for details.");
-      break;
-    case TPEOS:
-      xsink->raiseException("TPCHKAUTH", "Tuxedo tpchkauth() failed due to OS error.");
-      break;
-    default:
-      xsink->raiseException("TPCHKAUTH", "Tuxedo tpchkauth() failed due to unknown reason.");
-    }
+    handle_error(tperrno, "TPCHKAUTH", "tpchkauth()", xsink);
   } else {
     // undocumented return value
     xsink->raiseException("TPCHKAUTH", "Tuxedo tpchkauth() returned unexpected result %d.", res);
@@ -121,7 +112,7 @@ void tuxedo_module_ns_init(class Namespace* rns, class Namespace* qns)
   // Tuxedo:Adapter class
   tuxedons->addSystemClass(initTuxedoAdapterClass());
   
-  // tpcall(), tpacall() and tpgetrply() constants
+  // misc Tuxedo constants
   tuxedons->addConstant("TPNOTRAN", new QoreNode((int64)TPNOTRAN));
   tuxedons->addConstant("TPNOCHANGE", new QoreNode((int64)TPNOCHANGE));
   tuxedons->addConstant("TPNOBLOCK", new QoreNode((int64)TPNOBLOCK));
@@ -129,6 +120,14 @@ void tuxedo_module_ns_init(class Namespace* rns, class Namespace* qns)
   tuxedons->addConstant("TPSIGRSTRT", new QoreNode((int64)TPSIGRSTRT));
   tuxedons->addConstant("TPNOREPLY", new QoreNode((int64)TPNOREPLY));
   tuxedons->addConstant("TPGETANY", new QoreNode((int64)TPGETANY));
+  tuxedons->addConstant("TPSENDONLY", new QoreNode((int64)TPSENDONLY));
+  tuxedons->addConstant("TPRECVONLY", new QoreNode((int64)TPRECVONLY));
+  tuxedons->addConstant("TPEV_DISCONIMM", new QoreNode((int64)TPEV_DISCONIMM));
+  tuxedons->addConstant("TPEV_SCVFAIL", new QoreNode((int64)TPEV_SVCFAIL));
+  tuxedons->addConstant("TPEV_SVCERR", new QoreNode((int64)TPEV_SVCERR)); 
+  tuxedons->addConstant("TPESVCERR", new QoreNode((int64)TPESVCERR));
+  tuxedons->addConstant("TPEV_SVCSUCC", new QoreNode((int64)TPEV_SVCSUCC));
+  tuxedons->addConstant("TPEV_SENDONLY", new QoreNode((int64)TPEV_SENDONLY));
  
   qns->addInitialNamespace(tuxedons);
 

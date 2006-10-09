@@ -1,5 +1,8 @@
+#ifndef QORE_TUXEDO_HANDLE_ERROR_H_
+#define QORE_TUXEDO_HANDLE_ERROR_H_
+
 /*
-  modules/Tuxedo/tpalloc_helper.cc
+  modules/Tuxedo/handle_error.h
 
   Tuxedo integration to QORE
 
@@ -22,28 +25,12 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <qore/common.h>
-#include <qore/support.h>
-#include <qore/Exception.h>
-#include <string>
+class ExceptionSink;
 
-#include <atmi.h>
-#include "tpalloc_helper.h"
-#include "handle_error.h"
+// Throw Qore exception for given Tuxedo error
+extern void handle_error(int tperrnum, char* err, const char* func, ExceptionSink* xsink);
 
-//------------------------------------------------------------------------------
-// See tpalloc() documentation on http://edocs.bea.com/tux91/rf3c/rf3c23.htm#1021676
-//
-char* tpalloc_helper(char* type, char* subtype, unsigned size, 
-  char* exception_name, ExceptionSink* xsink)
-{
-  char* res = tpalloc(type, subtype, size);
-  if (res) {
-    return res;
-  }
-  handle_error(tperrno, exception_name, "tpalloc()", xsink);
-  return 0;
-}
+#endif
 
 // EOF
 

@@ -29,6 +29,7 @@
 
 #include "QoreTuxedoAdapter.h"
 #include "tpalloc_helper.h"
+#include "handle_error.h"
 
 //------------------------------------------------------------------------------
 QoreTuxedoAdapter::QoreTuxedoAdapter(const char* name, Hash* params, ExceptionSink* xsink)
@@ -101,58 +102,18 @@ List* QoreTuxedoAdapter::call(char* service_name, List* params, long flags, Exce
     return result;
   }
   // an error ocured
-  switch (tperrno) {
-  case TPEINVAL:
-    xsink->raiseException(err, "tpcall() returned TPEINVAL (invalid arguments).");
-    break;
-  case TPENOENT:
-    xsink->raiseException(err, "tpcall() returned TPENOENT (invalid or non-existent service).");
-    break;
-  case TPEITYPE:
-    xsink->raiseException(err, "tpcall() returned TPEITYPE (invalid input type or subtype).");
-    break;
-  case TPEOTYPE:
-    xsink->raiseException(err, "tpcall() returned TPEOTYPE (invalid output type or subtype).");
-    break;
-  case TPETRAN:
-    xsink->raiseException(err, "tpcall() returned TPETRAN (transaction not supported).");
-    break;
-  case TPETIME:
-    xsink->raiseException(err, "tpcall() returned TPETIME (timeout or transcation rolled back).");
-    break;
-  case TPESVCFAIL:
-    xsink->raiseException(err, "tpcall() returned TPESVCFAIL (service failed).");
-    break;
-  case TPESVCERR:
-    xsink->raiseException(err, "tpcall() returned TPESVCERR (service error).");
-    break;
-  case TPEBLOCK:
-    xsink->raiseException(err, "tpcall() returned TPEBLOCK (blocking condition).");
-    break;
-  case TPGOTSIG:
-    xsink->raiseException(err, "tpcall() returned TPGOTSIG (signal received).");
-    break;
-  case TPEPROTO:
-    xsink->raiseException(err, "tpcall() returned TPEPROTO (called improperly).");
-    break;
-  case TPESYSTEM:
-    xsink->raiseException(err, "tpcall() returned TPESYSTEM (Tuxedo error, see Tuxedo log for details).");
-    break;
-  case TPEOS:
-    xsink->raiseException(err, "tpcall() returned TPEOS (OS error). errno = %d.", errno);
-    break;
-  default:
-    xsink->raiseException(err, "tpcall() returned unknown error %d.", tperrno);
-    break;
-  }
-
+  std::string func_name = "tpcall() of connection [";
+  func_name += m_name;
+  func_name += "]";
+  handle_error(tperrno, err, func_name.c_str(), xsink);
   return 0;
 }
 
 //------------------------------------------------------------------------------
 int QoreTuxedoAdapter::async_call(char* service_name, List* params, long flags, ExceptionSink* xsink)
 {
-  std::pair<char*, long> buffer = list2buffer(params, "QORE-TUXEDO-ADAPTER-ASYNC_CALL", xsink);
+  char* err = "QORE-TUXEDO-ADAPTER-ASYNC_CALL";
+  std::pair<char*, long> buffer = list2buffer(params, err, xsink);
   if (xsink->isException()) {
     return 0;
   }
@@ -168,51 +129,11 @@ int QoreTuxedoAdapter::async_call(char* service_name, List* params, long flags, 
     }
     return res;
   }
-
-  char* err = "QORE-TUXEDO-ADAPTER-ASYNC_CALL";
-  switch (tperrno) {
-  case TPEINVAL:
-    xsink->raiseException(err, "tpacall() returned TPEINVAL error: invalid arguments.");
-    break;
-  case TPENOENT:
-    xsink->raiseException(err, "tpacall() returned TPENOENT error: non-existent or conversational service.");
-    break;
-  case TPEITYPE:
-    xsink->raiseException(err, "tpacall() returned TPEITYPE error: invalid type or subtype");
-    break;
-  case TPELIMIT:
-    xsink->raiseException(err, "tpacall() returned TPELIMIT error: too many outstanding async requests.");
-    break;
-  case TPETRAN:
-    xsink->raiseException(err, "tpacall() returned TPETRAN error: service doesn't support transactions.");
-    break;
-  case TPETIME:
-    xsink->raiseException(err,"tpacall() returned TPETIME error: timeout or transaction already rolled back.");
-    break;
-  case TPEBLOCK:
-    xsink->raiseException(err, "tpacall() returned TPEBLOCK error: the call would block.");
-    break;
-  case TPGOTSIG:
-    xsink->raiseException(err, "tpacall() returned TPGOTSIG error: a signal was received.");
-    break;
-  case TPEPROTO:
-    xsink->raiseException(err, "tpacall() returned TPEPROTO error: called improperly.");
-    break;
-  case TPESYSTEM:
-    xsink->raiseException(err, "tpacall() returned TPESYSTEM error: Tuxedo problem, check Tuxedo log for details.");
-    break;
-  case TPEOS:
-    xsink->raiseException(err, "tpacall() returned TPEOS error: OS problem, errno = %d.", errno);
-    break;
-  default:
-    xsink->raiseException(err, "tpacall() returned unrecognized error %d.", tperrno);
-    break;
-  }
-
-  if (buffer.first) {
-    tpfree(buffer.first);
-  }
-
+  // error occured
+  std::string func_name = "tpacall() of connection [";
+  func_name += m_name;
+  func_name += "]";
+  handle_error(tperrno, err, func_name.c_str(), xsink);
   return 0;
 }
 
@@ -220,7 +141,6 @@ int QoreTuxedoAdapter::async_call(char* service_name, List* params, long flags, 
 void QoreTuxedoAdapter::cancel_async(int handle, ExceptionSink* xsink)
 {
   char* err = "QORE-TUXEDO-ADAPTER-CANCEL_ASYNC";
-
   for (std::list<int>::iterator it = m_pending_async_requests.begin(), end = m_pending_async_requests.end(); it != end; ++it) {
     if (*it == handle) {
       m_pending_async_requests.erase(it);
@@ -230,32 +150,16 @@ void QoreTuxedoAdapter::cancel_async(int handle, ExceptionSink* xsink)
       handle_tpcancel_error(err, tperrno, handle, xsink);
     }
   }
-  xsink->raiseException(err, "Invalid handle value.");
+  xsink->raiseException(err, "Invalid handle value for cancel_async().");
 }
 
 //------------------------------------------------------------------------------
 void QoreTuxedoAdapter::handle_tpcancel_error(char* err, int tperrnum, int handle, ExceptionSink* xsink)
 {
-  switch (tperrnum) {
-  case TPEBADDESC:
-    xsink->raiseException(err, "tpcancel() returned TPEBADDESC error. Value %d is not valid handle.", handle);
-    return;
-  case TPETRAN:
-    xsink->raiseException(err, "tpcancel() returned TPETRAC error: the handle is associated with Tuxedo transaction.");
-    return;
-  case TPEPROTO:
-    xsink->raiseException(err, "tpcancel() returned TPEPROTO error: called improperly.");
-    return;
-  case TPESYSTEM:
-    xsink->raiseException(err, "tpcancel() returned TPESYSTEM error: Tuxedo problem, see Tuxedo log for details.");
-    return;
-  case TPEOS:
-    xsink->raiseException(err, "tpcancel() returned TPEOS error: operating system error, errno = %d", errno);
-    return;
-  default:
-    xsink->raiseException(err, "tpcancel() returned unknown error %d.", tperrnum);
-    return;
-  }
+  std::string func_name = "tpcancel() of connection [";
+  func_name += m_name;
+  func_name += "]";
+  handle_error(tperrnum, err, func_name.c_str(), xsink);
 }
 
 //------------------------------------------------------------------------------
@@ -274,9 +178,9 @@ List* QoreTuxedoAdapter::get_async_result(int handle, long flags, ExceptionSink*
   for (std::list<int>::iterator it = m_pending_async_requests.begin(), end = m_pending_async_requests.end(); it != end; ++it) {
     if (*it == handle) {
       m_pending_async_requests.erase(it);
+      break;
     } 
   }
-
 
   int res = tpgetrply(&handle, &out_buffer, &size, flags);
   if (res != -1) {
@@ -290,51 +194,15 @@ List* QoreTuxedoAdapter::get_async_result(int handle, long flags, ExceptionSink*
     }
     return result;
   }
+  // error occured
+  std::string func_name = "tpgetrply() of connection [";
+  func_name += m_name;
+  func_name += "]";
+  handle_error(tperrno, err, func_name.c_str(), xsink);
 
-  switch (tperrno) {
-  case TPEINVAL: 
-    xsink->raiseException(err, "tpgetrply() returned TPEINVAL (invalid arguments).");
-    break;
-  case TPEOTYPE:
-    xsink->raiseException(err, "tpgetrply() returned TPEOTYPE (invalid type or subtype).");
-    break;
-  case TPEBADDESC:
-    xsink->raiseException(err, "tpgetrply() returned TPEBADDESC (invalid handle).");
-    break;
-  case TPETIME:
-    xsink->raiseException(err, "tpgetrply() returned TPETIME (timeout or transaction rolled back).");
-    break;
-  case TPESVCFAIL:
-    xsink->raiseException(err, "tpgetrply() returned TPESVCFAIL (service failed).");
-    break;
-  case TPESVCERR:
-    xsink->raiseException(err, "tpgetrply() returned TPESVCERR (service error).");
-    break;
-  case TPEBLOCK:
-    xsink->raiseException(err, "tpgetrply() returned TPEBLOCK (blocking condition).");
-    break;
-  case TPGOTSIG:
-    xsink->raiseException(err, "tpgetrply() returned TPGOTSIG (signal received).");
-    break; 
-  case TPEPROTO:
-    xsink->raiseException(err, "tpgetrply() returned TPEPROTO (called improperly).");
-    break;
-  case TPESYSTEM:
-    xsink->raiseException(err, "tpgetrply() returned TPESYSTEM (Tuxedo error, see Tuxedo log for details).");
-    break;
-  case TPEOS:
-    xsink->raiseException(err, "tpgetrply() returned TPEOS (OR error). errno = %d.", errno);
-    break;
-  default:
-    xsink->raiseException(err, "tpgetrply() returned unknown error %d.", tperrno);
-    break;
-  }
-
- // an error occured
   if (out_buffer) {
     tpfree(out_buffer);
   }
-
   return 0;
 }
 
