@@ -85,7 +85,7 @@ libqore_la_SOURCES = \
 	QC_SSLPrivateKey.cc
 
 libqore_la_LDFLAGS = -version-info 0:0:0 ${XML_LIBS} $(PCRE_LDFLAGS) $(OPENSSL_LDFLAGS) $(LDFLAGS)
-libqore_la_LIBADD = -ldl ${PTHREAD_LIBS}
+libqore_la_LIBADD = -ldl ${PTHREAD_LIBS} -lpthread
 AM_CPPFLAGS = -DMODULE_DIR=\"$(pkglibdir)\" $(PCRE_CPPFLAGS) $(OPENSSL_CPPFLAGS)
 AM_CXXFLAGS = ${XML_CFLAGS} ${PTHREAD_CFLAGS}
 

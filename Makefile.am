@@ -163,6 +163,7 @@ noinst_HEADERS = \
 	modules/Tuxedo/QoreTuxedoConnection.h \
 	modules/Tuxedo/connection_parameters_helper.h \
 	modules/Tuxedo/tpalloc_helper.h \
+	modules/Tuxedo/handle_error.h \
 	command-line.h \
 	include/qore/Qore.h
 
