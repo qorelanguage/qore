@@ -274,10 +274,10 @@
     # $a, $b, and $c are local variables, 
     # the use of which will not affect the 
     # global variables of the same name
-    print("local a = $a\n"); 
+    print("local a = %d\n", $a); 
 }
 
-print("global a = $a\n"); </programlisting>
+print("global a = %d\n", $a); </programlisting>
 
 <para>The first print() statement will output:</para>
 
