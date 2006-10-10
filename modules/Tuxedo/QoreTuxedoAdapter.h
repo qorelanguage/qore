@@ -46,10 +46,11 @@ class QoreTuxedoAdapter : public ReferenceObject
   std::pair<char*, long> binary_list2buffer(List* list, char* err, ExceptionSink* xsink);
   std::pair<char*, long> xml_list2buffer(List* list, char* err, ExceptionSink* xsink);
 
-  List* buffer2list(char* buffer, long size, char* err, ExceptionSink* xsink);
+  List* buffer2list(char* buffer, long size, char* err, ExceptionSink* xsink, char* suggested_out_type = 0);
 
   std::string conversation_event2string(long event);
   void remove_active_conversation(int handle);
+  std::string suggested_type_name2type_name(const char* suggested_type_name);
 
 public:
   QoreTuxedoAdapter(const char* name, Hash* params, char* err, ExceptionSink* xsink);
@@ -60,14 +61,15 @@ public:
   List* call(char* service_name, List* params, long flags, char* err, ExceptionSink* xsink);
   int async_call(char* service_name, List* params, long flags, char* err, ExceptionSink* xsink);
   void cancel_async(int handle, char* err, ExceptionSink* xsink);
-  List* get_async_result(int handle, long flags, char* err, ExceptionSink* xsink);
+  List* get_async_result(int handle, long flags, char* err, ExceptionSink* xsink, char* suggested_out_type = 0);
 
   int connect(char* service_name, List* initial_data, long flags, char* err, ExceptionSink* xsink);
   void forced_disconnect(int handle, char* err, ExceptionSink* xsink);
   // if true is returned then the conversation ended 
   bool send(int handle, List* data, long flags, char* err, ExceptionSink* xsink);
-  // if the first item is true then the conversation ended, second item is received data (as list)
-  std::pair<bool, List*> recv(int handle, long flags, char* err, ExceptionSink* xsink);
+  // If the first item is true then the conversation ended, second item is received data (as list).
+  // The last parameter may be useful for the FML to XMl conversion.
+  std::pair<bool, List*> recv(int handle, long flags, char* err, ExceptionSink* xsink, char* suggested_out_type = 0);
 
   void deref() { 
     if (ROdereference()) {

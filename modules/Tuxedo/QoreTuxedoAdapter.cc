@@ -181,10 +181,10 @@ void QoreTuxedoAdapter::cancel_async(int handle, char* err, ExceptionSink* xsink
 }
 
 //------------------------------------------------------------------------------
-List* QoreTuxedoAdapter::get_async_result(int handle, long flags, char* err, ExceptionSink* xsink)
+List* QoreTuxedoAdapter::get_async_result(int handle, long flags, char* err, ExceptionSink* xsink, char* suggested_out_type)
 {
   long size = 4096;
-  char* out_buffer = tpalloc_helper("STRING", 0, size, err, xsink);
+  char* out_buffer = tpalloc_helper((char*)suggested_type_name2type_name(suggested_out_type).c_str(), 0, size, err, xsink);
   if (xsink->isException()) {
     if (out_buffer) {
       tpfree(out_buffer);
@@ -201,7 +201,7 @@ List* QoreTuxedoAdapter::get_async_result(int handle, long flags, char* err, Exc
 
   int res = tpgetrply(&handle, &out_buffer, &size, flags);
   if (res != -1) {
-    List* result = buffer2list(out_buffer, size, err, xsink);
+    List* result = buffer2list(out_buffer, size, err, xsink, suggested_out_type);
     if (out_buffer) {
       tpfree(out_buffer);
     }
@@ -336,10 +336,34 @@ bool QoreTuxedoAdapter::send(int handle, List* data, long flags, char* err, Exce
 }
 
 //-----------------------------------------------------------------------------
-std::pair<bool, List*> QoreTuxedoAdapter::recv(int handle, long flags, char* err, ExceptionSink* xsink)
+std::string QoreTuxedoAdapter::suggested_type_name2type_name(const char* suggested_out_type)
+{
+  std::string result_type = "STRING";
+
+  if (!suggested_out_type || !suggested_out_type[0]) {
+    return result_type;
+  }
+
+  if (!strcasecmp(suggested_out_type, "BINARY") || !strcasecmp(suggested_out_type, "X_OCTET")) {
+    result_type = "BINARY";
+  } else
+  if (!strcasecmp(suggested_out_type, "XML")) {
+    result_type = "XML";
+  } else
+  if (!strcasecmp(suggested_out_type, "FMLtoXML")) {
+    result_type = "FML";
+  } else
+  if (!strcasecmp(suggested_out_type, "FML32toXML")) {
+    result_type = "FML32";
+  }
+  return result_type;
+}
+
+//-----------------------------------------------------------------------------
+std::pair<bool, List*> QoreTuxedoAdapter::recv(int handle, long flags, char* err, ExceptionSink* xsink, char* suggested_out_type)
 {
   long size = 4096;
-  char* buffer = tpalloc_helper("STRING", 0, size, err, xsink);
+  char* buffer = tpalloc_helper((char*)suggested_type_name2type_name(suggested_out_type).c_str(), 0, size, err, xsink);
   if (xsink->isException()) {
     if (buffer) tpfree(buffer);
     return std::make_pair(true, (List*)0);
@@ -371,7 +395,8 @@ std::pair<bool, List*> QoreTuxedoAdapter::recv(int handle, long flags, char* err
 
   if (event == TPEV_SVCSUCC) {
     // finished, all OK
-    List* l = buffer2list(buffer, size, err, xsink);
+
+    List* l = buffer2list(buffer, size, err, xsink, suggested_out_type);
     if (xsink->isException()) {
       if (buffer) tpfree(buffer);
       delete l;
@@ -546,7 +571,7 @@ std::pair<char*, long> QoreTuxedoAdapter::xml_list2buffer(List* list, char* err,
 }
 
 //------------------------------------------------------------------------------
-List* QoreTuxedoAdapter::buffer2list(char* buffer, long size, char* err, ExceptionSink* xsink)
+List* QoreTuxedoAdapter::buffer2list(char* buffer, long size, char* err, ExceptionSink* xsink, char* suggested_out_type)
 {
   char type[20];
   char subtype[20];

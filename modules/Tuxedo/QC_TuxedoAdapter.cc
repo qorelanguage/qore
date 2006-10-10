@@ -536,6 +536,7 @@ static QoreNode* TUXEDOADAPTER_send(Object* self, QoreTuxedoAdapter* adapter, Qo
 
 //------------------------------------------------------------------------------
 // [handle, flags], returns list with two items: bool (True if finished) + data list
+// [handle, flags, suggested-out-type-string] (useful for FML2XML)
 static QoreNode* TUXEDOADAPTER_recv(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
 {
   char* err = "QORE-TUXEDO_ADAPTER-RECV";
@@ -563,7 +564,8 @@ static QoreNode* TUXEDOADAPTER_recv(Object* self, QoreTuxedoAdapter* adapter, Qo
 #endif
   int handle = 0;
   long flags = 0;
-  char* all_params = "Two parameters are expected: hande (integer), flags (integer).";
+  char* suggested_out_type = 0;
+  char* all_params = "Two or three parameters are expected: hande (integer), flags (integer), optionally suggested output type.";
 
   if (get_param(params, 0)) {
     QoreNode* pt = test_param(params, NT_INT, 0);
@@ -592,11 +594,20 @@ static QoreNode* TUXEDOADAPTER_recv(Object* self, QoreTuxedoAdapter* adapter, Qo
   }
 
   if (get_param(params, 2)) {
-    xsink->raiseException(err, all_params);
-    return 0;
-  }
+    QoreNode* pt = test_param(params, NT_STRING, 2);
+    if (!pt) {
+      xsink->raiseException(err, "The third parameter (suggested output type) needs to be a string.");
+      return 0;
+    }
+    suggested_out_type = pt->val.String->getBuffer();
 
-  std::pair<bool, List*> result = adapter->recv(handle, flags, err, xsink);
+    if (get_param(params, 3)) {
+      xsink->raiseException(err, all_params);
+      return 0;
+    }
+  } 
+
+  std::pair<bool, List*> result = adapter->recv(handle, flags, err, xsink, suggested_out_type);
   if (xsink->isException()) {
     delete result.second;
     return 0;
