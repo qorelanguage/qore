@@ -30,5 +30,5 @@ while (True)
     printf("listening on %s\n", $subject);
     my $msg = $a.receive($subject);
     printf("%n: ", now());
-    print(dbg_node_info($msg));
+    print("%N\n", $msg);
 }
