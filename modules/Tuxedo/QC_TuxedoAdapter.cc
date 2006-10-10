@@ -611,7 +611,7 @@ static QoreNode* TUXEDOADAPTER_recv(Object* self, QoreTuxedoAdapter* adapter, Qo
 class QoreClass* initTuxedoAdapterClass()
 {
   tracein("initTuxedoAdapterClass");
-  QoreClass* adapter = new QoreClass(QDOM_NETWORK, strdup("Adapter"));
+  QoreClass* adapter = new QoreClass(QDOM_NETWORK, strdup("TuxedoAdapter"));
   CID_TUXEDOADAPTER = adapter->getID();  
 
   adapter->setConstructor((q_constructor_t)TUXEDOADAPTER_constructor);

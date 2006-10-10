@@ -139,7 +139,7 @@ static void TUXEDOCONNECTION_copy(Object *self, Object *old, QoreTuxedoConnectio
 class QoreClass* initTuxedoConnectionClass()
 {
   tracein("initTuxedoConnectionClass");
-  QoreClass* tuxedo_connection = new QoreClass(QDOM_NETWORK, strdup("Connection"));
+  QoreClass* tuxedo_connection = new QoreClass(QDOM_NETWORK, strdup("TuxedoConnection"));
   CID_TUXEDOCONNECTION = tuxedo_connection->getID();  
 
   tuxedo_connection->setConstructor((q_constructor_t)TUXEDOCONNECTION_constructor);

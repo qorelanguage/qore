@@ -50,7 +50,7 @@ sub test000d()
 # dummy connection, should not throw
 sub test001d()
 {
-  $conn = new Tuxedo::Connection("test");
+  $conn = new Tuxedo::TuxedoConnection("test");
 }
 
 # -------------------------------------------------------------------
@@ -58,7 +58,7 @@ sub test001d()
 sub test002d()
 {
   try 
-    $conn = new Tuxedo::Connection("test-fail-open");
+    $conn = new Tuxedo::TuxedoConnection("test-fail-open");
   catch() 
     return;
   printf("ERROR: test002d() fails - exception was expected.\n");
@@ -70,7 +70,7 @@ sub test002d()
 # dummy connection, should throw in destructor
 sub test003d()
 {
-  $conn = new Tuxedo::Connection("test-fail-close");
+  $conn = new Tuxedo::TuxedoConnection("test-fail-close");
   try
     delete $conn;
   catch()
@@ -83,7 +83,7 @@ sub test003d()
 # dummy connection, copy constructor should throw
 sub test004d()
 {
-  $conn = new Tuxedo::Connection("test");
+  $conn = new Tuxedo::TuxedoConnection("test");
   try 
     $conn2 = $conn.copy();
   catch()
@@ -98,7 +98,7 @@ sub test004d()
 sub test005d()
 {
   try 
-    $conn = new Tuxedo::Connection("nonexistent",
+    $conn = new Tuxedo::TuxedoConnection("nonexistent",
       ( "TUXDIR" : $TUXDIR,
         "TUXCONFIG" : "/nonexistent/tuxdir" )); # <- invalid config file
   catch ()
@@ -112,7 +112,7 @@ sub test005d()
 # variables (at least TUXDIR and TUXCONFIG). The service must be running.
 sub test006()
 {
-  $conn = new Tuxedo::Connection("running service identified by env");
+  $conn = new Tuxedo::TuxedoConnection("running service identified by env");
 }
 
 # ------------------------------------------------------------------
@@ -121,7 +121,7 @@ sub test006()
 # it may be the simplest sample (simpapp) or whatever else.
 sub test007()
 {
-  $conn = new Tuxedo::Connection("a service",
+  $conn = new Tuxedo::TuxedoConnection("a service",
     ( "TUXDIR" : $TUXDIR,
       "TUXCONFIG" : $TUXCONFIG_BASE + "tuxedo_simple_app/tuxconfig" ));
 }
@@ -130,7 +130,7 @@ sub test007()
 # Dummy adapter (no need for connection in such cases).
 sub test008d()
 {
-  $adapter = new Tuxedo::Adapter("test");
+  $adapter = new Tuxedo::TuxedoAdapter("test");
 }
 
 # -------------------------------------------------------------------
@@ -138,7 +138,7 @@ sub test008d()
 sub test009d()
 {
   try 
-    $adapter = new Tuxedo::Adapter("test-fail-open");
+    $adapter = new Tuxedo::TuxedoAdapter("test-fail-open");
   catch () 
     return;
   printf("ERROR: test009d() fails - exception was expected.\n");
@@ -149,7 +149,7 @@ sub test009d()
 # Dummy adapter throwing in destructor
 sub test010d()
 {
-  $adapter = new Tuxedo::Adapter("test-fail-close");
+  $adapter = new Tuxedo::TuxedoAdapter("test-fail-close");
   try 
     delete $adapter;
   catch()
@@ -164,15 +164,15 @@ sub test010d()
 # Create also an adapter.
 sub test011()
 {
-  $conn = new Tuxedo::Connection("running service identified by env");
-  $adapter = new Tuxedo::Adapter("an adapter", Tuxedo::TPNOTRAN);
+  $conn = new Tuxedo::TuxedoConnection("running service identified by env");
+  $adapter = new Tuxedo::TuxedoAdapter("an adapter", Tuxedo::TPNOTRAN);
 }
 
 # -------------------------------------------------------------------
 # Dummy adapter, async call that fails.
 sub test012d()
 {
-  $adapter = new Tuxedo::Adapter("test-fail-call");
+  $adapter = new Tuxedo::TuxedoAdapter("test-fail-call");
   try 
     $handle = $adapter.async_call();
   catch()
@@ -185,7 +185,7 @@ sub test012d()
 # Dummy adapter, async call that is cancelled
 sub test013d()
 {
-  $adapter = new Tuxedo::Adapter("test");
+  $adapter = new Tuxedo::TuxedoAdapter("test");
   $handle = $adapter.async_call();
   if ($handle != 0) {
     printf("ERROR in test013d() - expected handle == 0.\n");
@@ -197,7 +197,7 @@ sub test013d()
 # Dummy adapter, cancelling of async call fails.
 sub test014d()
 {
-  $adapter = new Tuxedo::Adapter("test-fail-cancel");
+  $adapter = new Tuxedo::TuxedoAdapter("test-fail-cancel");
   $handle = $adapter.async_call();
   if ($handle != 0) {
     printf("ERROR in test014d() - expected handle == 0.\n");
@@ -215,7 +215,7 @@ sub test014d()
 # Dummy adapter that fails to get result.
 sub test015d()
 {
-  $adapter = new Tuxedo::Adapter("test-fail");
+  $adapter = new Tuxedo::TuxedoAdapter("test-fail");
   $handle = $adapter.async_call();
   if ($handle != 0) {
     printf("ERROR in test015d() - expected handle == 0.\n");
@@ -233,7 +233,7 @@ sub test015d()
 # Dummy adapter, fails copying.
 sub test016d()
 {
-  $adapter = new Tuxedo::Adapter("test");
+  $adapter = new Tuxedo::TuxedoAdapter("test");
   try
    $copy = $adapter.copy();
   catch()
@@ -246,7 +246,7 @@ sub test016d()
 # Dummy adapter, async call returns int.
 sub test017d()
 {
-  $adapter = new Tuxedo::Adapter("test-success-int");
+  $adapter = new Tuxedo::TuxedoAdapter("test-success-int");
   $handle = $adapter.async_call();
   if ($handle != 0) {
     printf("ERROR in test017d() - expected handle == 0.\n");
@@ -263,7 +263,7 @@ sub test017d()
 # Dummy adapter, async call returns bool.
 sub test018d()
 {
-  $adapter = new Tuxedo::Adapter("test-success-bool");
+  $adapter = new Tuxedo::TuxedoAdapter("test-success-bool");
   $handle = $adapter.async_call();
   if ($handle != 0) {
     printf("ERROR in test018d() - expected handle == 0.\n");
@@ -280,7 +280,7 @@ sub test018d()
 # Dummy adapter, async call returns string.
 sub test019d()
 {
-  $adapter = new Tuxedo::Adapter("test-success-string");
+  $adapter = new Tuxedo::TuxedoAdapter("test-success-string");
   $handle = $adapter.async_call();
   if ($handle != 0) {
     printf("ERROR in test019d() - expected handle == 0.\n");
@@ -297,11 +297,11 @@ sub test019d()
 # Calls "TOUPPER" service provided by simpapp ATMI sample
 sub test020()
 {
-  $conn = new Tuxedo::Connection("a service",
+  $conn = new Tuxedo::TuxedoConnection("a service",
     ( "TUXDIR" : $TUXDIR,
       "TUXCONFIG" : $TUXCONFIG_BASE + "tuxedo_simple_app/tuxconfig" ));
 
-  $adapter = new Tuxedo::Adapter("TOUPPER service");
+  $adapter = new Tuxedo::TuxedoAdapter("TOUPPER service");
 
   $list = ("string", "test data");
   $result = $adapter.call("TOUPPER", $list, Tuxedo::TPNOTRAN);
@@ -319,11 +319,11 @@ sub test020()
 # The same as test020 but starting as async call and then canceling.
 sub test021()
 {
-  $conn = new Tuxedo::Connection("a service",
+  $conn = new Tuxedo::TuxedoConnection("a service",
     ( "TUXDIR" : $TUXDIR,
       "TUXCONFIG" : $TUXCONFIG_BASE + "tuxedo_simple_app/tuxconfig" ));
 
-  $adapter = new Tuxedo::Adapter("TOUPPER service");
+  $adapter = new Tuxedo::TuxedoAdapter("TOUPPER service");
 
   $list = ("string", "test data");
   $handle = $adapter.async_call("TOUPPER", $list, 0);
@@ -334,11 +334,11 @@ sub test021()
 # The same as in test020() but using asynchronous call.
 sub test022()
 {
-  $conn = new Tuxedo::Connection("a service",
+  $conn = new Tuxedo::TuxedoConnection("a service",
     ( "TUXDIR" : $TUXDIR,
       "TUXCONFIG" : $TUXCONFIG_BASE + "tuxedo_simple_app/tuxconfig" ));
 
-  $adapter = new Tuxedo::Adapter("TOUPPER service");
+  $adapter = new Tuxedo::TuxedoAdapter("TOUPPER service");
 
   $list = ("string", "test data");
   $handle = $adapter.async_call("TOUPPER", $list, 0);

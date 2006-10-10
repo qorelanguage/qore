@@ -42,7 +42,7 @@
 #ifndef QORE_MONOLITHIC
 char qore_module_name[] = "tuxedo";
 char qore_module_version[] = "0.1";
-char qore_module_description[] = "Conection to Tuxedo 9.1";
+char qore_module_description[] = "Connection to Tuxedo 9.1 (should be compatible with solder versions)";
 char qore_module_author[] = "Pavel Vozenilek";
 char qore_module_url[] = "http://qore.sourceforge.net";
 int qore_module_api_major = QORE_MODULE_API_MAJOR;
@@ -86,6 +86,12 @@ static class QoreNode* f_authentication_required_by_Tuxedo(class QoreNode* param
 class QoreString* tuxedo_module_init()
 {
   tracein("tuxedo_module_init");
+
+  // Standalone method tpchkauth() returning info what kind
+  // of authentication is required.
+  //
+  builtinFunctions.add("tpchkauth", f_authentication_required_by_Tuxedo, QDOM_NETWORK);
+
   traceout("tuxedo_module_init");
   return NULL;
 }
@@ -97,11 +103,7 @@ void tuxedo_module_ns_init(class Namespace* rns, class Namespace* qns)
 
   class Namespace* tuxedons = new Namespace("Tuxedo");
 
-  // Standalone method tpchkauth() returning info what kind
-  // of authentication is required.
-  //
-  builtinFunctions.add("tpchkauth", f_authentication_required_by_Tuxedo, QDOM_NETWORK);
-  // returned values
+  // returned values of tpchkauth()
   tuxedons->addConstant("NO_AUTHENTICATION", new QoreNode(NO_AUTHENTICATION));
   tuxedons->addConstant("SYSTEM_AUTHENTICATION", new QoreNode(SYSTEM_AUTHENTICATION));
   tuxedons->addConstant("SYSTEM_AND_APP_AUTHENTICATION", new QoreNode(SYSTEM_AND_APP_AUTHENTICATION));
