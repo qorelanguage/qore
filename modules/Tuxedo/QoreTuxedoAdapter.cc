@@ -415,6 +415,12 @@ std::pair<char*, long> QoreTuxedoAdapter::list2buffer(List* list, char* err, Exc
   if (name == "string") {
     return string_list2buffer(list, err, xsink);
   }
+  if (name == "binary") {
+    return binary_list2buffer(list, err, xsink);
+  }
+  if (name == "XML" || name == "xml") {
+    return xml_list2buffer(list, err, xsink);
+  }
   
   xsink->raiseException(err, "Uknown type of data (the first parameter): [%s].", name.c_str() ? name.c_str() : "");  
   return result;
@@ -441,7 +447,7 @@ std::pair<char*, long> QoreTuxedoAdapter::string_list2buffer(List* list, char* e
     len = pdata->val.bin->size();
     data = (char*)pdata->val.bin->getPtr();
   } else {
-    xsink->raiseException(err, "The second parameter needs tobe either string or binary.");
+    xsink->raiseException(err, "The second parameter needs to be either string or binary.");
     return result;
   }
 
@@ -460,6 +466,85 @@ std::pair<char*, long> QoreTuxedoAdapter::string_list2buffer(List* list, char* e
   return result;
 }
 
+//-----------------------------------------------------------------------------
+std::pair<char*, long> QoreTuxedoAdapter::binary_list2buffer(List* list, char* err, ExceptionSink* xsink)
+{
+  std::pair<char*, long> result = std::make_pair((char*)0, 0);
+  int sz = list->size();
+  if (sz != 2) {
+    xsink->raiseException(err, "Parameter list with binary type must have exactly two parameters.");
+    return result;
+  }
+  int len = 0;
+  char* data = 0;
+
+  QoreNode* pdata = list->retrieve_entry(1);
+  if (pdata->type == NT_BINARY) {
+    len = pdata->val.bin->size();
+    data = (char*)pdata->val.bin->getPtr();
+  } else {
+    xsink->raiseException(err, "The second parameter needs to be binary.");
+    return result;
+  }
+
+  char* out_buffer = tpalloc_helper("CARRAY", 0, len, err, xsink);
+  if (xsink->isException()) {
+    if (out_buffer) {
+      tpfree(out_buffer);
+    }
+    return result;
+  }
+  memcpy(out_buffer, data, len);
+
+  result.first = out_buffer;
+  result.second = len;
+
+  return result;
+
+}
+
+//------------------------------------------------------------------------------
+std::pair<char*, long> QoreTuxedoAdapter::xml_list2buffer(List* list, char* err, ExceptionSink* xsink)
+{
+  std::pair<char*, long> result = std::make_pair((char*)0, 0);
+  int sz = list->size();
+  if (sz != 2) {
+    xsink->raiseException(err, "Parameter list with XML type must have exactly two parameters.");
+    return result;
+  }
+  int len = 0;
+  char* data = 0;
+
+  QoreNode* pdata = list->retrieve_entry(1);
+  if (pdata->type == NT_STRING) {
+    // the trailing NULL should not be sent, see http://edocs.bea.com/alsb/docs25/interoptux/tuxbuffer.html
+    len = pdata->val.String->strlen();
+    data = pdata->val.String->getBuffer();
+  } else
+  if (pdata->type == NT_BINARY) {
+    len = pdata->val.bin->size();
+    data = (char*)pdata->val.bin->getPtr();
+  } else {
+    xsink->raiseException(err, "The second parameter needs to be either string or binary.");
+    return result;
+  }
+
+  char* out_buffer = tpalloc_helper("XML", 0, len, err, xsink);
+  if (xsink->isException()) {
+    if (out_buffer) {
+      tpfree(out_buffer);
+    }
+    return result;
+  }
+  memcpy(out_buffer, data, len);
+
+  result.first = out_buffer;
+  result.second = len;
+
+  return result;
+
+}
+
 //------------------------------------------------------------------------------
 List* QoreTuxedoAdapter::buffer2list(char* buffer, long size, char* err, ExceptionSink* xsink)
 {
@@ -472,19 +557,40 @@ List* QoreTuxedoAdapter::buffer2list(char* buffer, long size, char* err, Excepti
   }
 
   // handle each type
+  QoreNode* head = 0;
+  QoreNode* tail = 0;
 
-  if (strcmp(type, "STRING") == 0) {
-    QoreNode* head = new QoreNode("string");
+  if (!strcmp(type, "STRING")) {
+    head = new QoreNode("string");
     QoreString* s = new QoreString(buffer, size, QCS_DEFAULT);
-    QoreNode* tail = new QoreNode(s);
-    List* result = new List();
-    result->push(head);
-    result->push(tail);
-    return result;
+    tail = new QoreNode(s);
+  } else
+
+  if (!strcmp(type, "CARRAY") || !strcmp(type, "X_OCTET")) {
+    head = new QoreNode("binary");
+    BinaryObject* bin = new BinaryObject(buffer, size);
+    tail = new QoreNode(bin);
+  } else
+
+  if (!strcmp(type, "XML")) {
+    head = new QoreNode("XML");
+
+    // add trailing zero (XML transfer mode does not support it)
+    char* copy = (char*)malloc(size + 1);
+    memcpy(copy, buffer, size);
+    copy[size] = 0;
+    QoreString* s = new QoreString(copy);
+    free(copy);
+    tail = new QoreNode(s);
+  } else {
+    xsink->raiseException(err, "Received data type [%s] is not handled.\n", type);
+    return 0;
   }
 
-  xsink->raiseException(err, "Received data type [%s] is not handled.\n", type);
-  return 0;
+  List* result = new List();
+  result->push(head);
+  result->push(tail);
+  return result;
 }
 
 // EOF

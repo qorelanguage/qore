@@ -43,6 +43,8 @@ class QoreTuxedoAdapter : public ReferenceObject
 
   std::pair<char*, long> list2buffer(List* list, char* err, ExceptionSink* xsink);
   std::pair<char*, long> string_list2buffer(List* list, char* err, ExceptionSink* xsink);
+  std::pair<char*, long> binary_list2buffer(List* list, char* err, ExceptionSink* xsink);
+  std::pair<char*, long> xml_list2buffer(List* list, char* err, ExceptionSink* xsink);
 
   List* buffer2list(char* buffer, long size, char* err, ExceptionSink* xsink);
 
