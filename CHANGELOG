@@ -4,6 +4,7 @@
 
 2006.10.09: Pavel Vozenilek
 	* Tuxedo classes now have'Tuxedo' prefix
+	* Added low level interface.
 
 *** v0.5.3 *** RELEASE
 

@@ -167,6 +167,8 @@ noinst_HEADERS = \
 	modules/Tuxedo/QC_TuxedoTypedBuffer.h \
 	modules/Tuxedo/QoreTuxedoTypedBuffer.h \
 	modules/Tuxedo/low_level_api.h \
+	modules/Tuxedo/QC_TuxedoQueueControlParams.h \
+	modules/Tuxedo/QoreTuxedoQueueControlParams.h \
 	command-line.h \
 	include/qore/Qore.h
 

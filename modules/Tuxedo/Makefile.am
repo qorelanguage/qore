@@ -11,7 +11,10 @@ TUXEDO_SOURCES =  tuxedo.cc \
   handle_error.cc \
   QC_TuxedoTypedBuffer.cc \
   QoreTuxedoTypedBuffer.cc \
-  low_level_api.cc
+  low_level_api.cc \
+  QC_TuxedoQueueControlParams.cc \
+  QoreTuxedoQueueControlParams.cc 
+
 
 if COND_MONOLITHIC
 noinst_LTLIBRARIES = libtuxedo.la
