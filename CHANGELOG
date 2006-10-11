@@ -1,3 +1,7 @@
+2006.10.11: David Nichols
+	* changed configure to look for $TUXDIR instead of $TUX_DIR when
+	  looking for Tuxedo support
+
 2006.10.09: Pavel Vozenilek
 	* Tuxedo classes now have'Tuxedo' prefix
 

@@ -614,7 +614,7 @@ find_tux()
 
 AC_ARG_WITH([tuxedo],
   [AC_HELP_STRING([--with-tuxedo@<:@=DIR@:>@],
-		  [BEA Tuxedo directory (defaults to $TUX_DIR)])],
+		  [BEA Tuxedo directory (defaults to $TUXDIR)])],
   [case "${with_tuxedo}" in 
      yes) with_tuxedo="" ;;
      no) ;;
@@ -634,8 +634,8 @@ if test -n "$with_tuxedo"; then
       AC_MSG_RESULT([$with_tuxedo])
    fi
 else
-   if test -n "$TUX_DIR" -a -f "$TUX_DIR/include/atmi.h" -a -e "$TUX_DIR/lib/libtux.a"; then
-      with_tuxedo=$TUX_DIR
+   if test -n "$TUXDIR" -a -f "$TUXDIR/include/atmi.h" -a -e "$TUXDIR/lib/libtux.a"; then
+      with_tuxedo=$TUXDIR
    else
       for dir in /opt /usr /usr/local /apps; do
          find_tux $dir
