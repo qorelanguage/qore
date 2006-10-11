@@ -41,6 +41,8 @@ public:
   QoreTuxedoTypedBuffer();
   ~QoreTuxedoTypedBuffer(); 
 
+  void clear();
+
   void deref() { 
     if (ROdereference()) {
       delete this;

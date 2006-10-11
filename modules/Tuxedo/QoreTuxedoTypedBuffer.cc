@@ -39,7 +39,17 @@ QoreTuxedoTypedBuffer::QoreTuxedoTypedBuffer()
 //------------------------------------------------------------------------------
 QoreTuxedoTypedBuffer::~QoreTuxedoTypedBuffer()
 {
-  if (buffer) tpfree(buffer);
+  clear();
+}
+
+//-----------------------------------------------------------------------------
+void QoreTuxedoTypedBuffer::clear()
+{
+  if (buffer) {
+    tpfree(buffer);
+    buffer = 0;
+  }
+  if (size) size = 0;
 }
 
 // EOF

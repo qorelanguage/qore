@@ -74,6 +74,16 @@ static void TUXEDOTYPEDBUFFER_copy(Object *self, Object *old, QoreTuxedoTypedBuf
   xsink->raiseException("TUXEDO-TYPED_BUFFER-COPY", "copying Tuxedo::TuxedoTypedBuffer objects is not supported.");
 }
 
+//-----------------------------------------------------------------------------
+static QoreNode* TUXEDOTYPEDBUFFER_clear(Object* self, QoreTuxedoTypedBuffer* buff, QoreNode* params, ExceptionSink* xsink)
+{
+  if (get_param(params, 1)) {
+    xsink->raiseException("TuxedoTypedBuffer::clear()", "No parameter expected.");
+    return 0;
+  }
+  buff->clear();
+}
+
 //------------------------------------------------------------------------------
 class QoreClass* initTuxedoTypedBufferClass()
 {
@@ -84,6 +94,7 @@ class QoreClass* initTuxedoTypedBufferClass()
   buff->setConstructor((q_constructor_t)TUXEDOTYPEDBUFFER_constructor);
   buff->setDestructor((q_destructor_t)TUXEDOTYPEDBUFFER_destructor);
   buff->setCopy((q_copy_t)TUXEDOTYPEDBUFFER_copy);
+  buff->addMethod("clear", (q_method_t)TUXEDOTYPEDBUFFER_clear);
 
   traceout("initTuxedoTypedBufferClass");
   return buff;
