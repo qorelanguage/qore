@@ -412,8 +412,135 @@ static QoreNode* f_tpcall(QoreNode* params, ExceptionSink* xsink)
 // * output handle (integer)
 static QoreNode* f_tpacall(QoreNode* params, ExceptionSink* xsink)
 {
-  // TBD
-  return 0;
+  for (int i = 0; i <= 4; ++i) {
+    bool ok;
+    if (i == 4) ok = !get_param(params, i);
+    else ok = get_param(params, i);
+    if (!ok) {
+      xsink->raiseException("tpacall", "Four parameters expected: service name string, input data TuxedoTypedBuffer, flags integer, handle integer passed by reference.");
+      return 0;
+    }
+  }
+
+  QoreNode* n = test_param(params, NT_STRING, 0);
+  if (!n) {
+    xsink->raiseException("tpacall", "The first parameter, service name, needs to be a string.");
+    return 0;
+  }
+  char* service_name = n->val.String->getBuffer();
+
+  n = test_param(params, NT_OBJECT, 1);
+  if (!n) {
+    xsink->raiseException("tpacall", "The second parameter, input data, needs to be instance of Tuxedo::TuxedoTypedBuffer.");
+    return 0;
+  }
+  QoreTuxedoTypedBuffer* buff = node2typed_buffer(n, "tpacall", xsink);
+  if (xsink->isException()) {
+    return 0;
+  }
+  
+  n = test_param(params, NT_INT, 2);
+  if (!n) {
+    xsink->raiseException("tpacall", "The third parameter, flags, needs to be an integer.");
+    return 0;
+  }
+  long flags = n->val.intval;
+
+  n = test_param(params, NT_INT, 3);
+  if (!n) {
+    xsink->raiseException("tpacall", "The fourth parameter, out handle, needs to be be an integer passed by reference.");
+    return 0;
+  }
+  int64* out_handle = &n->val.intval;
+
+  int res = tpacall(service_name, buff->buffer, buff->size, flags);
+  if (res == -1) {
+    return new QoreNode((int64)tperrno);
+  }
+  
+  *out_handle = res;
+  return new QoreNode(OK);
+}
+
+//------------------------------------------------------------------------------
+// http://edocs.bea.com/tuxedo/tux91/Rf3c/rf3c27.htm#1039772
+static QoreNode* f_tpcancel(QoreNode* params, ExceptionSink* xsink)
+{
+  for (int i = 0; i <= 1; ++i) {
+    bool ok;
+    if (i == 1) ok = !get_param(params, i); 
+    else ok = get_param(params, i);
+    if (!ok) {
+      xsink->raiseException("tpcancel", "One parameter, integer handle, is expected.");
+      return 0;
+    }
+  }
+
+  QoreNode* n = test_param(params, NT_INT, 0);
+  if (!n) {
+    xsink->raiseException("tpcancel", "The first parameter, handle, needs to be an integer.");
+    return 0;
+  }
+  int handle = (int)n->val.intval;
+
+  if (tpcancel(handle) == -1) {
+    return new QoreNode((int64)tperrno);
+  } else {
+    return new QoreNode(OK);
+  }
+}
+
+//------------------------------------------------------------------------------
+// http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c52.htm#1021885
+// Parameters:
+// * integer handle, passed by reference
+// * out-data TuxedoTypedBuffer passed by reference
+// * flags integer
+static QoreNode* f_tpgetrply(QoreNode* params, ExceptionSink* xsink)
+{
+  for (int i = 0; i <= 3; ++i) {
+    bool ok;
+    if (i == 3) ok = !get_param(params, i);
+    else ok = get_param(params, i);
+    if (!ok) {
+      xsink->raiseException("tpgetrply", "Three parameters are expected: handle integer by reference, out data TuxedoTypedBuffer by reference, integer flags.");
+      return 0;
+    }
+  }
+
+  QoreNode* n = test_param(params, NT_INT, 0);
+  if (!n) {
+    xsink->raiseException("tpgetrply", "The first parameter, handle, needs to be an inteher passed by reference.");
+    return 0;
+  }
+  int handle = (int)n->val.intval;
+  int64* phandle = &n->val.intval;
+
+  n = test_param(params, NT_OBJECT, 1);
+  if (!n) {
+    xsink->raiseException("tpgetrply", "The second parameter, output data, needs to be Tuxedo::TuxedoTypedClass passed by reference.");
+    return 0;
+  }
+  QoreTuxedoTypedBuffer* buff = node2typed_buffer(n, "tpgetrply", xsink);
+  if (xsink->isException()) {
+    return 0;
+  }
+
+  n = test_param(params, NT_INT, 2);
+  if (!n) {
+    xsink->raiseException("tpgetrply", "The third parameter, flags, needs to be an integer.");
+    return 0;
+  }
+  long flags = (long)n->val.intval;
+
+  int res = tpgetrply(&handle, &buff->buffer, &buff->size, flags);
+  *phandle = handle;
+  
+  if (res == -1) {
+    return new QoreNode((int64)tperrno);
+  } else {
+    return new QoreNode(OK);
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -427,12 +554,15 @@ void tuxedo_low_level_init()
   builtinFunctions.add("tptypes", f_tptypes, QDOM_NETWORK);
   builtinFunctions.add("tpcall", f_tpcall, QDOM_NETWORK);
   builtinFunctions.add("tpacall", f_tpacall, QDOM_NETWORK);
+  builtinFunctions.add("tpcancel", f_tpcancel, QDOM_NETWORK);
+  builtinFunctions.add("tpgetrply", f_tpgetrply, QDOM_NETWORK);
 }
 
 //-----------------------------------------------------------------------------
 void tuxedo_low_level_ns_init(Namespace* ns)
 {
   ns->addConstant("TPAPPAUTH", new QoreNode((int64)TPAPPAUTH));
+  ns->addConstant("TPEBADDESC", new QoreNode((int64)TPEBADDESC));
   ns->addConstant("TPEBLOCK", new QoreNode((int64)TPEBLOCK));
   ns->addConstant("TPEINVAL", new QoreNode((int64)TPEINVAL));
   ns->addConstant("TPEITYPE", new QoreNode((int64)TPEITYPE));
@@ -446,6 +576,7 @@ void tuxedo_low_level_ns_init(Namespace* ns)
   ns->addConstant("TPESYSTEM", new QoreNode((int64)TPESYSTEM));
   ns->addConstant("TPETIME", new QoreNode((int64)TPETIME));
   ns->addConstant("TPETRAN", new QoreNode((int64)TPETRAN));
+  ns->addConstant("TPGETANY", new QoreNode((int64)TPGETANY));
   ns->addConstant("TPGOTSIG", new QoreNode((int64)TPGOTSIG));
   ns->addConstant("TPMULTICONTEXTS", new QoreNode((int64)TPMULTICONTEXTS));
   ns->addConstant("TPNOAUTH", new QoreNode((int64)TPNOAUTH));
