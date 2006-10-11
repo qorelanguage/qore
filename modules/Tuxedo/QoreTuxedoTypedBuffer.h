@@ -27,7 +27,7 @@
 
 #include <qore/common.h>
 #include <qore/support.h>
-#include <qore/ReferenceObject.h>
+#include <qore/Object.h>
 
 class ExceptionSink;
 
@@ -39,7 +39,7 @@ public:
   long size;
 
   QoreTuxedoTypedBuffer();
-  virtual ~QoreTuxedoTypedBuffer(); // virtual is to have RTTI
+  ~QoreTuxedoTypedBuffer(); 
 
   void deref() { 
     if (ROdereference()) {
