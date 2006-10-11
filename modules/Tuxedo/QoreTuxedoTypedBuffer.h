@@ -1,16 +1,16 @@
-#ifndef QORE_TUXEDO_HANDLE_ERROR_H_
-#define QORE_TUXEDO_HANDLE_ERROR_H_
+#ifndef QORE_TUXEDO_TYPED_BUFFER_IMPL_H_
+#define QORE_TUXEDO_TYPED_BUFFER_IMPL_H_
 
 /*
-  modules/Tuxedo/handle_error.h
+  modules/Tuxedo/QoreTuxedoTypedBuffer.h
 
   Tuxedo integration to QORE
 
   Qore Programming Language
 
-  Copyright (C) 2006 Qore Technologies
+  Copyright (C) 2006 QoreTechnologies
 
-   This library is free software; you can redistribute it and/or
+  This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
   License as published by the Free Software Foundation; either
   version 2.1 of the License, or (at your option) any later version.
@@ -25,16 +25,28 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+#include <qore/common.h>
+#include <qore/support.h>
+#include <qore/ReferenceObject.h>
+
 class ExceptionSink;
 
-// Throw Qore exception for given Tuxedo error. 
-// Provide text description of the error.
-extern void handle_error(
-  int tperrnum,          // value of tperrno (Tuxedo error)
-  char* name,            // the first string passed to ExceptionSink::raiseException()
-  const char* func_name, // name of function that failed, possibly some more info
-  ExceptionSink* xsink
-  );
+//------------------------------------------------------------------------------
+class QoreTuxedoTypedBuffer : public ReferenceObject
+{
+public:
+  char* buffer;
+  long size;
+
+  QoreTuxedoTypedBuffer();
+  virtual ~QoreTuxedoTypedBuffer(); // virtual is to have RTTI
+
+  void deref() { 
+    if (ROdereference()) {
+      delete this;
+    }
+  }
+};
 
 #endif
 

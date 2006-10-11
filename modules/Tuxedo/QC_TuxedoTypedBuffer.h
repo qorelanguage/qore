@@ -1,8 +1,8 @@
-#ifndef QORE_TUXEDO_HANDLE_ERROR_H_
-#define QORE_TUXEDO_HANDLE_ERROR_H_
+#ifndef QC_TUXEDO_TYPED_BUFFER_H_
+#define QC_TUXEDO_TYPED_BUFFER_H_
 
 /*
-  modules/Tuxedo/handle_error.h
+  modules/Tuxedo/QC_TuxedoTypedBuffer.h
 
   Tuxedo integration to QORE
 
@@ -25,16 +25,11 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-class ExceptionSink;
+#include <qore/common.h>
+#include <qore/support.h>
 
-// Throw Qore exception for given Tuxedo error. 
-// Provide text description of the error.
-extern void handle_error(
-  int tperrnum,          // value of tperrno (Tuxedo error)
-  char* name,            // the first string passed to ExceptionSink::raiseException()
-  const char* func_name, // name of function that failed, possibly some more info
-  ExceptionSink* xsink
-  );
+extern int CID_TUXEDOTYPEDBUFFER;
+extern class QoreClass* initTuxedoTypedBufferClass();
 
 #endif
 

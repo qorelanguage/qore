@@ -30,56 +30,56 @@
 #include <atmi.h>
 
 //------------------------------------------------------------------------------
-void handle_error(int tperrnum, char* err, const char* func, ExceptionSink* xsink)
+void handle_error(int tperrnum, char*name,  const char* func_name, ExceptionSink* xsink)
 {
   switch (tperrnum) {
   case TPEINVAL:
-    xsink->raiseException(err, "%s fails with error TPEINVAL (invalid arguments).", func);
+    xsink->raiseException(name, "%s fails with error TPEINVAL (invalid arguments).", func_name);
     break;
   case TPENOENT:
-    xsink->raiseException(err, "%s failed with error TPENOENT (no match for the type or subtype).", func);
+    xsink->raiseException(name, "%s failed with error TPENOENT (no match for the type or subtype).", func_name);
     break;
   case TPEPROTO:
-    xsink->raiseException(err, "%s failed with error TPEPROTO (called improperly).", func);
+    xsink->raiseException(name, "%s failed with error TPEPROTO (called improperly).", func_name);
     break;
   case TPESYSTEM:
-    xsink->raiseException(err, "%s failed with error TPESYSTEM (Tuxedo error, see Tuxedo log).", func);
+    xsink->raiseException(name, "%s failed with error TPESYSTEM (Tuxedo error, see Tuxedo log).", func_name);
     break;
   case TPEOS:
-    xsink->raiseException(err, "%s failed with error TPEOS (OS error, errno = %d).", func, errno);
+    xsink->raiseException(name, "%s failed with error TPEOS (OS error, errno = %d).", func_name, errno);
     break;
   case TPEPERM:
-    xsink->raiseException(err, "%s failed with error TPEPERM (permission denied).", func);
+    xsink->raiseException(name, "%s failed with error TPEPERM (permission denied).", func_name);
     break;
   case TPEITYPE:
-    xsink->raiseException(err, "%s returned TPEITYPE (invalid input type or subtype).", func);
+    xsink->raiseException(name, "%s returned TPEITYPE (invalid input type or subtype).", func_name);
     break;
   case TPEOTYPE:
-    xsink->raiseException(err, "%s returned TPEOTYPE (invalid output type or subtype).", func);
+    xsink->raiseException(name, "%s returned TPEOTYPE (invalid output type or subtype).", func_name);
     break;
   case TPETRAN:
-    xsink->raiseException(err, "%s returned TPETRAN (transaction not supported).", func);
+    xsink->raiseException(name, "%s returned TPETRAN (transaction not supported).", func_name);
     break;
   case TPETIME:
-    xsink->raiseException(err, "%s returned TPETIME (timeout or transcation rolled back).", func);
+    xsink->raiseException(name, "%s returned TPETIME (timeout or transcation rolled back).", func_name);
     break;
   case TPESVCFAIL:
-    xsink->raiseException(err, "%s returned TPESVCFAIL (service failed).", func);
+    xsink->raiseException(name, "%s returned TPESVCFAIL (service failed).", func_name);
     break;
   case TPESVCERR:
-    xsink->raiseException(err, "%s returned TPESVCERR (service error).", func);
+    xsink->raiseException(name, "%s returned TPESVCERR (service error).", func_name);
     break;
   case TPEBLOCK:
-    xsink->raiseException(err, "%s returned TPEBLOCK (blocking condition).", func);
+    xsink->raiseException(name, "%s returned TPEBLOCK (blocking condition).", func_name);
     break;
   case TPGOTSIG:
-    xsink->raiseException(err, "%s returned TPGOTSIG (signal received).", func);
+    xsink->raiseException(name, "%s returned TPGOTSIG (signal received).", func_name);
     break;
   case TPEBADDESC:
-    xsink->raiseException(err, "%s returned TPEBADDESC (invalid descriptor).", func);
+    xsink->raiseException(name, "%s returned TPEBADDESC (invalid descriptor).", func_name);
     return;
   default:
-    xsink->raiseException(err, "%s failed with unknown error %d", tperrnum);
+    xsink->raiseException(name, "%s failed with unknown error %d", tperrnum);
     break;
   }
 }

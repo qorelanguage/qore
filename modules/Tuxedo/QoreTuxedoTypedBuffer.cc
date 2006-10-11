@@ -1,8 +1,5 @@
-#ifndef QORE_TUXEDO_HANDLE_ERROR_H_
-#define QORE_TUXEDO_HANDLE_ERROR_H_
-
 /*
-  modules/Tuxedo/handle_error.h
+  modules/Tuxedo/QoreTuxedoTypedBuffer.cc
 
   Tuxedo integration to QORE
 
@@ -10,7 +7,7 @@
 
   Copyright (C) 2006 Qore Technologies
 
-   This library is free software; you can redistribute it and/or
+  This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
   License as published by the Free Software Foundation; either
   version 2.1 of the License, or (at your option) any later version.
@@ -25,18 +22,25 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-class ExceptionSink;
+#include <qore/common.h>
+#include <qore/support.h>
+#include <qore/Exception.h>
+#include <atmi.h>
 
-// Throw Qore exception for given Tuxedo error. 
-// Provide text description of the error.
-extern void handle_error(
-  int tperrnum,          // value of tperrno (Tuxedo error)
-  char* name,            // the first string passed to ExceptionSink::raiseException()
-  const char* func_name, // name of function that failed, possibly some more info
-  ExceptionSink* xsink
-  );
+#include "QoreTuxedoTypedBuffer.h"
+#include "handle_error.h"
 
-#endif
+//------------------------------------------------------------------------------
+QoreTuxedoTypedBuffer::QoreTuxedoTypedBuffer()
+: buffer(0), size(0)
+{
+}
+
+//------------------------------------------------------------------------------
+QoreTuxedoTypedBuffer::~QoreTuxedoTypedBuffer()
+{
+  if (buffer) tpfree(buffer);
+}
 
 // EOF
 

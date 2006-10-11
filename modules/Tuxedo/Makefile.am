@@ -8,7 +8,10 @@ TUXEDO_SOURCES =  tuxedo.cc \
   tpalloc_helper.cc \
   QC_TuxedoAdapter.cc \
   QoreTuxedoAdapter.cc \
-  handle_error.cc
+  handle_error.cc \
+  QC_TuxedoTypedBuffer.cc \
+  QoreTuxedoTypedBuffer.cc \
+  low_level_api.cc
 
 if COND_MONOLITHIC
 noinst_LTLIBRARIES = libtuxedo.la
