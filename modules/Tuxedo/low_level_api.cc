@@ -35,16 +35,38 @@
 
 #include <atmi.h>
 
+const int64 OK = 0;
+
+//------------------------------------------------------------------------------
+// n - known as object
+static QoreTuxedoTypedBuffer* node2typed_buffer(QoreNode* n, char* func_name, ExceptionSink* xsink)
+{
+  if (!n->val.object) {
+    xsink->raiseException(func_name, "Expected instance of Tuxedo::TuxedoTypedBuffer, NULL found.");
+    return 0;
+  }
+  if (n->val.object->getClass()->getID() != CID_TUXEDOTYPEDBUFFER) {
+    xsink->raiseException(func_name, "Type mismatch: expected instance of Tuxedo::TuxedoTypedBuffer class.");
+    return 0;
+  }
+  // this should be safe now
+  QoreTuxedoTypedBuffer* buff = (QoreTuxedoTypedBuffer*)(n->val.object);
+  return buff;
+}
+
 //------------------------------------------------------------------------------
 // http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c28.htm#1040017
 static QoreNode* f_tpchkauth(QoreNode* params, ExceptionSink* xsink)
 {
   if (get_param(params, 0)) {
-    xsink->raiseException("tpchkauth", "tpchkauth() has no parameters.");
+    xsink->raiseException("tpchkauth", "No parameters expected.");
     return 0;
   }
-  int res = tpchkauth();
-  return new QoreNode((int64)res);
+  if (tpchkauth() == -1) {
+    return new QoreNode((int64)tperrno);
+  } else {
+    return new QoreNode(OK);
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -54,7 +76,7 @@ static QoreNode* f_tpchkauth(QoreNode* params, ExceptionSink* xsink)
 // Returns 0 if all is OK or tperrno code.
 static QoreNode* f_tpalloc(QoreNode* params, ExceptionSink* xsink)
 {
-  char* all_params_err = "tpalloc() requires four parameters (type, subtype, size, typed-buffer).";
+  char* all_params_err = "Four parameters expected (type, subtype, size, typed-buffer).";
 
   if (!get_param(params, 0)) {
     xsink->raiseException("tpalloc", all_params_err);
@@ -62,7 +84,7 @@ static QoreNode* f_tpalloc(QoreNode* params, ExceptionSink* xsink)
   }
   QoreNode* n = test_param(params, NT_STRING, 0);
   if (!n) {
-    xsink->raiseException("tpalloc", "The first parameter of tpalloc(), type, needs to be a string.");
+    xsink->raiseException("tpalloc", "The first parameter, type, needs to be a string.");
     return 0;
   }
   char* type = n->val.String->getBuffer();
@@ -73,7 +95,7 @@ static QoreNode* f_tpalloc(QoreNode* params, ExceptionSink* xsink)
   }
   n = test_param(params, NT_STRING, 1);
   if (!n) {
-    xsink->raiseException("tpalloc", "The second parameter of tpalloc(), the subtype, needs to be a string, possibly empty.");
+    xsink->raiseException("tpalloc", "The second parameter, the subtype, needs to be a string, possibly empty.");
     return 0;
   }  
   char* subtype = n->val.String->getBuffer();
@@ -84,7 +106,7 @@ static QoreNode* f_tpalloc(QoreNode* params, ExceptionSink* xsink)
   }
   n = test_param(params, NT_INT, 2);
   if (!n) {
-    xsink->raiseException("tpalloc", "The third parameter of tpalloc(), size, needs to be an integer.");
+    xsink->raiseException("tpalloc", "The third parameter, size, needs to be an integer.");
     return 0;
   }
   long size = (long)n->val.intval;
@@ -95,18 +117,10 @@ static QoreNode* f_tpalloc(QoreNode* params, ExceptionSink* xsink)
   }
   n = test_param(params, NT_OBJECT, 3);
   if (!n) {
-    xsink->raiseException("tpalloc", "The fourth parameter of tpalloc(), typed buffer, needs to be an object.");
+    xsink->raiseException("tpalloc", "The fourth parameter, typed buffer, needs to be an object.");
     return 0;
   }  
-  if (!n->val.object) {
-    xsink->raiseException("tpalloc", "The fourth parameter of tpalloc(), typed buffer, is NULL.");
-  }
-  if (n->val.object->getClass()->getID() != CID_TUXEDOTYPEDBUFFER) {
-    xsink->raiseException("tpcall", "The fourth parameter of tpalloc() is not Tuxedo::TuxedoTypedBuffer instance.");
-    return 0;
-  }
-  // this should be safe now
-  QoreTuxedoTypedBuffer* buff = (QoreTuxedoTypedBuffer*)(n->val.object);
+  QoreTuxedoTypedBuffer* buff = node2typed_buffer(n, "tpalloc", xsink);
   
   char* res = tpalloc(type, subtype, size);
   if (!res) {
@@ -118,7 +132,7 @@ static QoreNode* f_tpalloc(QoreNode* params, ExceptionSink* xsink)
   }  
   buff->buffer = res;
   buff->size = size;
-  return new QoreNode((int64)0);
+  return new QoreNode(OK);
 }
 
 //------------------------------------------------------------------------------
@@ -126,8 +140,135 @@ static QoreNode* f_tpalloc(QoreNode* params, ExceptionSink* xsink)
 // Variant w/o parameters (tpinfo == 0)
 static QoreNode* f_tpinit(QoreNode* params, ExceptionSink* xsink)
 {
-  int res = tpinit(0);
-  return new QoreNode((int64)res);
+  if (get_param(params, 0)) {
+    xsink->raiseException("tpinit", "No parameters expected. Use tpinit_params().");
+    return 0;
+  }
+  if (tpinit(0) == -1) {
+    return new QoreNode((int64)tperrno);
+  } else {
+    return new QoreNode(OK);
+  }
+}
+
+//------------------------------------------------------------------------------
+// tpinit() with all parameters:
+// * user name (string, max 30 chars)
+// * client name (string, max 30 chars)
+// * password (string, max 30 chars)
+// * group name (string, max 30 chars)
+// * flags (integer)
+// * additional data (could be empty)
+static QoreNode* f_tpinit_params(QoreNode* params, ExceptionSink* xsink)
+{
+  for (int i = 0; i < 6; ++i) {
+    if (!get_param(params, i)) {
+      xsink->raiseException("tpinit", "Six parameters expected: user name, client name, password, group name, flags, additional data.");
+      return 0;
+    }
+  }
+
+  QoreNode* n = test_param(params, NT_STRING, 0);
+  if (!n) {
+    xsink->raiseException("tpinit", "The first parameter, user name, needs to be a string.");
+    return 0;
+  }
+  char* user_name = n->val.String->getBuffer();
+  if (!user_name) user_name = "";
+  if (strlen(user_name) > MAXTIDENT) {
+    xsink->raiseException("tpinit", "The first parameter, user name string, could have max %d characters. It has %d.", MAXTIDENT, strlen(user_name));
+    return 0;
+  }
+
+  n = test_param(params, NT_STRING, 1);
+  if (!n) {
+    xsink->raiseException("tpinit", "The second parameter, client name, needs to be a string.");
+    return 0;
+  }
+  char* client_name = n->val.String->getBuffer();
+  if (!client_name) client_name = "";
+  if (strlen(client_name) > MAXTIDENT) {
+    xsink->raiseException("tpinit", "The second parameter, client name string, could have max %d characters. It has %d.", MAXTIDENT, strlen(client_name));
+    return 0;
+  }
+
+  n = test_param(params, NT_STRING, 2);
+  if (!n) {
+    xsink->raiseException("tpinit", "The third parameter, password, needs to be a string.");
+    return 0;
+  }
+  char* password = n->val.String->getBuffer();
+  if (!password) password = "";
+  if (strlen(password) > MAXTIDENT) {
+    xsink->raiseException("tpinit", "The third parameter, password string, could have max %d characters. It has %d.", MAXTIDENT, strlen(password));
+    return 0;
+  }
+
+  n = test_param(params, NT_STRING, 3);
+  if (!n) {
+    xsink->raiseException("tpinit", "The fourth parameter, group name, needs to be a string.");
+    return 0;
+  }
+  char* group_name = n->val.String->getBuffer();
+  if (!group_name) group_name = "";
+  if (strlen(group_name) > MAXTIDENT) {
+    xsink->raiseException("tpinit", "The fourth parameter, group name string, could have max %d characters. It has %d.", MAXTIDENT, strlen(group_name));
+    return 0;
+  }
+
+  n = test_param(params, NT_INT, 4);
+  if (!n) {
+    xsink->raiseException("tpinit", "The fifth parameter, flags, needs to be an integer.");
+    return 0;
+  }
+  long flags = (long)n->val.intval;
+
+  n = test_param(params, NT_BINARY, 5);
+  if (!n) {
+    xsink->raiseException("tpinit", "The sixth parameter, additional data, needs to be a binary (could be empty).");
+    return 0;
+  }
+  void* data = n->val.bin->getPtr();
+  int data_size = n->val.bin->size();
+
+  long result_size = sizeof(TPINIT) + data_size;
+  TPINIT* buffer = (TPINIT*)tpalloc("TPINIT", 0, result_size);
+  if (!buffer) {
+    return new QoreNode((int64)tperrno);
+  }
+  strcpy(buffer->usrname, user_name);
+  strcpy(buffer->cltname, client_name);
+  strcpy(buffer->grpname, group_name);
+  strcpy(buffer->passwd, password);
+  buffer->flags = flags;
+  buffer->datalen = data_size;
+  if (data_size) {
+    memcpy(&buffer->data, data, data_size);
+  }
+
+  int64 retval;
+  if (tpinit(buffer) == -1) {
+    retval = tperrno;
+  } else {
+    retval = OK;
+  }
+  tpfree((char*)buffer);
+  return new QoreNode(retval);
+}
+
+//------------------------------------------------------------------------------
+// http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c86.htm#1219084
+static QoreNode* f_tpterm(QoreNode* params, ExceptionSink* xsink)
+{
+  if (get_param(params, 0)) {
+    xsink->raiseException("tpterm", "No parameter expected.");
+    return 0;
+  }
+  if (tpterm() == -1) {
+    return new QoreNode((int64)tperrno);
+  } else {
+    return new QoreNode(OK);
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -136,6 +277,8 @@ void tuxedo_low_level_init()
   builtinFunctions.add("tpchkauth", f_tpchkauth, QDOM_NETWORK);
   builtinFunctions.add("tpalloc", f_tpalloc, QDOM_NETWORK);
   builtinFunctions.add("tpinit", f_tpinit, QDOM_NETWORK);
+  builtinFunctions.add("tpinitParams", f_tpinit_params, QDOM_NETWORK);
+  builtinFunctions.add("tpterm", f_tpterm, QDOM_NETWORK);
 }
 
 //-----------------------------------------------------------------------------
