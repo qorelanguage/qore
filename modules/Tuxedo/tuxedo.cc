@@ -80,6 +80,7 @@ void tuxedo_module_ns_init(class Namespace* rns, class Namespace* qns)
   tuxedons->addSystemClass(initTuxedoAdapterClass());
   
   // misc Tuxedo constants
+/*
   tuxedons->addConstant("TPNOTRAN", new QoreNode((int64)TPNOTRAN));
   tuxedons->addConstant("TPNOCHANGE", new QoreNode((int64)TPNOCHANGE));
   tuxedons->addConstant("TPNOBLOCK", new QoreNode((int64)TPNOBLOCK));
@@ -89,6 +90,7 @@ void tuxedo_module_ns_init(class Namespace* rns, class Namespace* qns)
   tuxedons->addConstant("TPGETANY", new QoreNode((int64)TPGETANY));
   tuxedons->addConstant("TPSENDONLY", new QoreNode((int64)TPSENDONLY));
   tuxedons->addConstant("TPRECVONLY", new QoreNode((int64)TPRECVONLY));
+*/
  
   qns->addInitialNamespace(tuxedons);
 

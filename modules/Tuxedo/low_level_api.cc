@@ -544,6 +544,62 @@ static QoreNode* f_tpgetrply(QoreNode* params, ExceptionSink* xsink)
 }
 
 //------------------------------------------------------------------------------
+// http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c37.htm#1042150
+static QoreNode* f_tpdiscon(QoreNode* params, ExceptionSink* xsink)
+{
+  for (int i = 0; i <= 1; ++i) {
+    bool ok;
+    if (i == 1) ok = !get_param(params, i);
+    else ok = get_param(params, i);
+    if (!ok) {
+      xsink->raiseException("tpdiscon", "One parameter is expected, the integer handle.");
+      return 0;
+    }
+  }
+
+  QoreNode* n = test_param(params, NT_INT, 0);
+  if (!n) {
+    xsink->raiseException("tpdiscon", "The first parameter, handle, needs to be an integer.");
+    return 0;
+  }
+  int handle = (int)n->val.intval;
+
+  if (tpdiscon(handle) == -1) {
+    return new QoreNode((int64)tperrno);
+  } else {
+    return new QoreNode(OK);
+  }
+}
+
+//------------------------------------------------------------------------------
+// http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c19.htm#1036832
+static QoreNode* f_tpabort(QoreNode* params, ExceptionSink* xsink)
+{
+  for (int i = 0; i <= 1; ++i) {
+    bool ok;
+    if (i == 1) ok = !get_param(params, i);
+    else ok = get_param(params, i);
+    if (!ok) {
+      xsink->raiseException("tpabort", "One parameter is expected, the integer flags.");
+      return 0;
+    }
+  }
+
+  QoreNode* n = test_param(params, NT_INT, 0);
+  if (!n) {
+    xsink->raiseException("tpabort", "The first parameter, flags, needs to be an integer.");
+    return 0;
+  }
+  long flags = (long)n->val.intval;
+
+  if (tpabort(flags) == -1) {
+    return new QoreNode((int64)tperrno);
+  } else {
+    return new QoreNode(OK);
+  }
+}
+
+//------------------------------------------------------------------------------
 void tuxedo_low_level_init()
 {
   builtinFunctions.add("tpchkauth", f_tpchkauth, QDOM_NETWORK);
@@ -556,6 +612,8 @@ void tuxedo_low_level_init()
   builtinFunctions.add("tpacall", f_tpacall, QDOM_NETWORK);
   builtinFunctions.add("tpcancel", f_tpcancel, QDOM_NETWORK);
   builtinFunctions.add("tpgetrply", f_tpgetrply, QDOM_NETWORK);
+  builtinFunctions.add("tpdiscon", f_tpdiscon, QDOM_NETWORK);
+  builtinFunctions.add("tpabort", f_tpabort, QDOM_NETWORK);
 }
 
 //-----------------------------------------------------------------------------
@@ -564,6 +622,8 @@ void tuxedo_low_level_ns_init(Namespace* ns)
   ns->addConstant("TPAPPAUTH", new QoreNode((int64)TPAPPAUTH));
   ns->addConstant("TPEBADDESC", new QoreNode((int64)TPEBADDESC));
   ns->addConstant("TPEBLOCK", new QoreNode((int64)TPEBLOCK));
+  ns->addConstant("TPEHAZARD", new QoreNode((int64)TPEHAZARD));
+  ns->addConstant("TPEHEURISTIC", new QoreNode((int64)TPEHEURISTIC));
   ns->addConstant("TPEINVAL", new QoreNode((int64)TPEINVAL));
   ns->addConstant("TPEITYPE", new QoreNode((int64)TPEITYPE));
   ns->addConstant("TPENOENT", new QoreNode((int64)TPENOENT));
