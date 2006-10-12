@@ -1,5 +1,8 @@
 *** v0.5.3 *** RELEASE
 
+2006.10.12: David Nichols
+        * fixed a bug in new character set creation
+
 2006.10.09: David Nichols
 	* made LockedObject a protected member in ReferenceObject so that
 	  classes inheriting both classes would not conflict
