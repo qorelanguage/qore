@@ -28,6 +28,7 @@
 #include <qore/common.h>
 #include <qore/support.h>
 #include <qore/Object.h>
+#include <atmi.h>
 
 class ExceptionSink;
 
@@ -35,6 +36,7 @@ class ExceptionSink;
 class QoreTuxedoQueueControlParams : public ReferenceObject
 {
 public:
+  TPQCTL ctl;
 
   QoreTuxedoQueueControlParams();
   ~QoreTuxedoQueueControlParams(); 

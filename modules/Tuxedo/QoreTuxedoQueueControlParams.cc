@@ -33,6 +33,8 @@
 //------------------------------------------------------------------------------
 QoreTuxedoQueueControlParams::QoreTuxedoQueueControlParams()
 {
+  memset(&ctl, 0, sizeof(ctl));
+  ctl.flags = TPNOFLAGS;
 }
 
 //------------------------------------------------------------------------------
