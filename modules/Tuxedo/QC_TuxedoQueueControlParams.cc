@@ -320,6 +320,78 @@ static QoreNode* TUXEDOQCTL_getDeliveryQOS(Object* self, QoreTuxedoQueueControlP
 }
 
 //------------------------------------------------------------------------------
+static QoreNode* TUXEDOQCTL_setAppkey(Object* self, QoreTuxedoQueueControlParams* ctl, QoreNode* params, ExceptionSink* xsink) 
+{
+  for (int i = 0; i <= 1; ++i) {
+    bool ok;
+    if (i == 1) ok = !get_param(params, i);
+    else ok = get_param(params, i);
+    if (!ok) {
+      xsink->raiseException("TuxedoQueueCtl::setAppkey", "One parameter (appkey) is required.");
+      return 0;
+    }
+  }
+
+  QoreNode* n = test_param(params, NT_INT, 0);
+  if (!n) {
+    xsink->raiseException("TuxedoQueueCtl::setAppkey", "The parameter (appkey) needs to be an integer.");
+    return 0;
+  }
+  long appkey = (long)n->val.intval;
+
+  ctl->ctl.appkey = appkey;
+  return 0;
+}
+
+//------------------------------------------------------------------------------
+static QoreNode* TUXEDOQCTL_getAppkey(Object* self, QoreTuxedoQueueControlParams* ctl, QoreNode* params, ExceptionSink* xsink)
+{
+  if (get_param(params, 0)) {
+    xsink->raiseException("TuxedoQueueCtl::getAppkey", "No parameter expected.");
+    return 0;
+  }
+
+  return new QoreNode((int64)ctl->ctl.appkey);
+}
+
+//------------------------------------------------------------------------------
+static QoreNode* TUXEDOQCTL_setUrcode(Object* self, QoreTuxedoQueueControlParams* ctl, QoreNode* params, ExceptionSink* xsink
+)
+{
+  for (int i = 0; i <= 1; ++i) {
+    bool ok;
+    if (i == 1) ok = !get_param(params, i);
+    else ok = get_param(params, i);
+    if (!ok) {
+      xsink->raiseException("TuxedoQueueCtl::setUrcode", "One parameter (return user code) is required.");
+      return 0;
+    }
+  }
+
+  QoreNode* n = test_param(params, NT_INT, 0);
+  if (!n) {
+    xsink->raiseException("TuxedoQueueCtl::setUrcode", "The parameter (return user code) needs to be an integer.");
+    return 0;
+  }
+  long urcode = (long)n->val.intval;
+
+  ctl->ctl.urcode = urcode;
+  return 0;
+}
+
+//------------------------------------------------------------------------------
+static QoreNode* TUXEDOQCTL_getUrcode(Object* self, QoreTuxedoQueueControlParams* ctl, QoreNode* params, ExceptionSink* xsink
+)
+{
+  if (get_param(params, 0)) {
+    xsink->raiseException("TuxedoQueueCtl::getUrcode", "No parameter expected.");
+    return 0;
+  }
+
+  return new QoreNode((int64)ctl->ctl.urcode);
+}
+
+//------------------------------------------------------------------------------
 class QoreClass* initTuxedoQueueControlParamsClass()
 {
   tracein("initTuxedoQueueControlParamsClass");
@@ -345,6 +417,10 @@ class QoreClass* initTuxedoQueueControlParamsClass()
   ctl->addMethod("setReplyQOS", (q_method_t)TUXEDOQCTL_setReplyQOS);
   ctl->addMethod("getDeliveryQOS", (q_method_t)TUXEDOQCTL_getDeliveryQOS);
   ctl->addMethod("setDeliveryQOS", (q_method_t)TUXEDOQCTL_setDeliveryQOS);
+  ctl->addMethod("getAppkey", (q_method_t)TUXEDOQCTL_getAppkey);
+  ctl->addMethod("setAppkey", (q_method_t)TUXEDOQCTL_setAppkey);
+  ctl->addMethod("getUrcode", (q_method_t)TUXEDOQCTL_getUrcode);
+  ctl->addMethod("setUrcode", (q_method_t)TUXEDOQCTL_setUrcode);
 
   traceout("initTuxedoQueueControlParamsClass");
   return ctl;
