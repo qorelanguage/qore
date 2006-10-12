@@ -37,21 +37,27 @@ typedef int (*mbcs_end_t)(char *, int);
 typedef int (*mbcs_pos_t)(char *, char *);
 
 struct QoreEncoding {
-      const char *code;
+      char *code;
       mbcs_length_t flength;
       mbcs_end_t fend;
       mbcs_pos_t fpos;
-      const char *desc;
+      char *desc;
       struct QoreEncoding *next;
 
-      inline QoreEncoding(const char *c, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, const char *d)
+      inline QoreEncoding(char *c, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, char *d)
       {
-	 code = c;
+	 code = c ? strdup(c) : NULL;
 	 flength = l;
 	 fend = e;
 	 fpos = p;
-	 desc = d;
+	 desc = d ? strdup(d) : NULL;
 	 next = NULL;
+      }
+      inline ~QoreEncoding()
+      {
+	 free(code);
+	 if (desc)
+	    free(desc);
       }
       inline int getLength(char *p)
       {
@@ -98,7 +104,7 @@ class QoreEncodingManager : public LockedObject
 	    head = qcs;
 	 tail = qcs;
       }
-      inline struct QoreEncoding *addUnlocked(const char *code, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, const char *desc)
+      inline struct QoreEncoding *addUnlocked(char *code, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, char *desc)
       {
 	 struct QoreEncoding *qcs = new QoreEncoding(code, l, e, p, desc);
 	 addUnlocked(qcs);
@@ -122,7 +128,7 @@ class QoreEncodingManager : public LockedObject
 	    ahead = atail;
 	 }
       }
-      inline struct QoreEncoding *add(const char *code, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, const char *desc)
+      inline struct QoreEncoding *add(char *code, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, char *desc)
       {
 	 struct QoreEncoding *qcs = new QoreEncoding(code, l, e, p, desc);
 	 lock();
