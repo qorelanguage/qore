@@ -29,6 +29,7 @@ noinst_HEADERS = \
 	include/qore/CallStack.h \
 	include/qore/LockedObject.h \
 	include/qore/RMutex.h \
+	include/qore/VRMutex.h \
 	include/qore/QoreClass.h \
 	include/qore/Operator.h \
 	include/qore/QoreClassList.h \
