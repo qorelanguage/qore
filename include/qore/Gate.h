@@ -34,6 +34,8 @@ static inline int gettid();
 
 class Gate
 {
+      friend class VRMutex;
+
    private:
       int code;
       int count;

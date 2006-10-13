@@ -928,7 +928,7 @@ class Test inherits Socket {
     }
     memberGate($m)
     {
-        return $m;
+        return "memberGate-" + $m;
     }
 }
 
@@ -953,7 +953,7 @@ sub class_test_Program()
     test_value($a.callFunctionArgs("t2", list(int(2))), 4, "program imported function");
     test_value($a.callFunction("et", 1), 2, "program imported function");
     test_value($a.callFunction("tot", 1), "Test", "program imported object variable");
-    test_value($to.member, "member", "program imported object member gate");
+    test_value($to.member, "memberGate-member", "program imported object member gate");
     test_value($to.method(), "method", "program imported object method gate");
     try
 	$a.callFunction("deleteException");
@@ -984,7 +984,7 @@ sub class_library_tests()
     my $t = new Test(1, "gee", 2);
     test_value($t.getData(1), "gee", "first object");
     test_value(exists $t.testing, False, "memberGate() existence");
-    test_value($t.testing, "testing", "memberGate() value");
+    test_value($t.testing, "memberGate-testing", "memberGate() value");
     test_value($t.test(), "test", "methodGate() value");
     test_value($t instanceof Test, True, "first instanceof");
     test_value($t instanceof Qore::Socket, True, "second instanceof");

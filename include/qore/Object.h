@@ -30,7 +30,7 @@
 
 #include <qore/common.h>
 #include <qore/ReferenceObject.h>
-#include <qore/RMutex.h>
+#include <qore/VRMutex.h>
 #include <qore/support.h>
 
 #include <stdio.h>
@@ -129,7 +129,7 @@ class Object : public ReferenceObject
    private:
       class QoreClass *myclass;
       int status;
-      class RMutex g;
+      class VRMutex g;
       class KeyList *privateData;
       class ReferenceObject tRefs;  // reference-references
       // FIXME: the only reason this is a pointer is because of include file conflicts :-(
@@ -378,8 +378,9 @@ inline void Object::uninstantiateLVar(class ExceptionSink *xsink)
 // NOTE: caller must unlock
 inline class QoreNode **Object::getMemberValuePtr(char *key, class VLock *vl, class ExceptionSink *xsink)
 {
+   if (g.enter(vl, xsink))
+      return NULL;
 
-   g.enter();
    if (status == OS_DELETED)
    {
       g.exit();
@@ -393,7 +394,9 @@ inline class QoreNode **Object::getMemberValuePtr(char *key, class VLock *vl, cl
 // NOTE: caller must unlock
 inline class QoreNode **Object::getMemberValuePtr(QoreString *key, class VLock *vl, class ExceptionSink *xsink)
 {
-   g.enter();
+   if (g.enter(vl, xsink))
+      return NULL;
+
    if (status == OS_DELETED)
    {
       g.exit();
@@ -407,7 +410,9 @@ inline class QoreNode **Object::getMemberValuePtr(QoreString *key, class VLock *
 // NOTE: caller must unlock
 inline class QoreNode *Object::getMemberValueNoMethod(QoreString *key, class VLock *vl, class ExceptionSink *xsink)
 {
-   g.enter();
+   if (g.enter(vl, xsink))
+      return NULL;
+
    if (status == OS_DELETED)
    {
       g.exit();
@@ -426,7 +431,9 @@ inline class QoreNode *Object::getMemberValueNoMethod(QoreString *key, class VLo
 // NOTE: caller must unlock
 inline class QoreNode *Object::getMemberValueNoMethod(char *key, class VLock *vl, class ExceptionSink *xsink)
 {
-   g.enter();
+   if (g.enter(vl, xsink))
+      return NULL;
+
    if (status == OS_DELETED)
    {
       g.exit();
@@ -636,7 +643,9 @@ inline class Hash *Object::evalData(class ExceptionSink *xsink)
 // we check if the object is already locked
 inline class QoreNode **Object::getExistingValuePtr(class QoreString *mem, class VLock *vl, class ExceptionSink *xsink)
 {
-   g.enter();
+   if (g.enter(vl, xsink))
+      return NULL;
+
    if (status == OS_DELETED)
    {
       g.exit();
@@ -655,7 +664,9 @@ inline class QoreNode **Object::getExistingValuePtr(class QoreString *mem, class
 // we check if the object is already locked
 inline class QoreNode **Object::getExistingValuePtr(char *mem, class VLock *vl, class ExceptionSink *xsink)
 {
-   g.enter();
+   if (g.enter(vl, xsink))
+      return NULL;
+
    if (status == OS_DELETED)
    {
       g.exit();

@@ -131,9 +131,14 @@ static inline class QoreNode **do_object_val_ptr(Tree *tree, class VLock *vlp, E
       // if object has been deleted, then dereference, make into a hash, and get hash pointer
       if (!(rv = (*val)->val.object->getMemberValuePtr(member->val.String, vlp, xsink)))
       {
-	 (*val)->deref(xsink);
-	 (*val) = new QoreNode(new Hash());
-	 rv = (*val)->val.hash->getKeyValuePtr(member->val.String, xsink);
+	 if (xsink->isException())
+	    rv = NULL;
+	 else
+	 {
+	    (*val)->deref(xsink);
+	    (*val) = new QoreNode(new Hash());
+	    rv = (*val)->val.hash->getKeyValuePtr(member->val.String, xsink);
+	 }
       }
    }
    //printd(5, "do_object_val_ptr() member=%s\n", member->val.String->getBuffer());
@@ -155,7 +160,7 @@ class QoreNode **get_var_value_ptr(class QoreNode *n, class VLock *vlp, class Ex
    {
       // need to check for deleted objects
       QoreNode **rv = getStackObjectValuePtr(n->val.c_str, vlp, xsink);
-      if (!rv)
+      if (!rv && !xsink->isException())
 	 xsink->raiseException("OBJECT-ALREADY-DELETED", "write attempted to member \"%s\" in an already-deleted object", n->val.c_str);
       return rv;
    }
@@ -303,7 +308,7 @@ class QoreNode *getExistingVarValue(class QoreNode *n, ExceptionSink *xsink, cla
    return (*pt)->val;
 }
 
-// finds object value pointers without making any changes to the referenced structures
+// finds object values without making any changes to the referenced structures
 // will execute memberGate methods (except for in-object references i.e. $.member)
 class QoreNode *getExistingVarValueWithMethod(class QoreNode *n, ExceptionSink *xsink, class VLock *vl, class TempNode **pt)
 {

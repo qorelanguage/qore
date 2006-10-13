@@ -41,6 +41,7 @@ libqore_la_SOURCES = \
 	DBI.cc \
 	StringList.cc \
 	thread.cc \
+	VRMutex.cc \
 	QT_NOTHING.cc \
 	QT_bigint.cc \
 	QT_float.cc \

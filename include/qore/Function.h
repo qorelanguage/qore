@@ -170,7 +170,7 @@ class UserFunction : public ReferenceObject
    private:
       bool synchronized;
       // for "synchronized" functions
-      class RMutex *gate;
+      class VRMutex *gate;
 
    protected:
       inline ~UserFunction();
@@ -200,7 +200,7 @@ class UserFunction : public ReferenceObject
 #include <qore/QoreType.h>
 #include <qore/Exception.h>
 #include <qore/QoreProgram.h>
-#include <qore/RMutex.h>
+#include <qore/VRMutex.h>
 #include <qore/Operator.h>
 #include <qore/Object.h>
 #include <qore/NamedScope.h>
@@ -604,7 +604,7 @@ inline UserFunction::UserFunction(char *nme, class Paramlist *parms, class State
    next = NULL;
    synchronized = synced;
    if (synced)
-      gate = new RMutex();
+      gate = new VRMutex();
 # ifdef DEBUG
    else
       gate = NULL;

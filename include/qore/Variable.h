@@ -32,7 +32,7 @@
 #include <qore/common.h>
 #include <qore/ReferenceObject.h>
 #include <qore/LockedObject.h>
-#include <qore/RMutex.h>
+#include <qore/VRMutex.h>
 
 #include <string.h>
 #include <stdlib.h>
@@ -92,7 +92,7 @@ class Var : public ReferenceObject
 	    } ivar;
       } v;
 
-      class RMutex gate;
+      class VRMutex gate;
 
       inline void del(class ExceptionSink *xsink);
 
@@ -115,7 +115,7 @@ class Var : public ReferenceObject
       inline class QoreNode *eval();
 
       inline class QoreNode **getValuePtr(class VLock *vl, class ExceptionSink *xsink);
-      inline class QoreNode *getValue(class VLock *vl);
+      inline class QoreNode *getValue(class VLock *vl, class ExceptionSink *xsink);
 };
 
 class VarRef {
@@ -137,48 +137,6 @@ class VarRef {
       inline void setValue(class QoreNode *val, class ExceptionSink *xsink);
       inline class QoreNode **getValuePtr(class VLock *vl, class ExceptionSink *xsink);
       inline class QoreNode *getValue(class VLock *vl, class ExceptionSink *xsink);
-};
-
-// VLNode and VLock are for nested locks when updating variables and objects
-class VLNode {
-   public:
-      class RMutex *g;
-      class VLNode *next;
-
-      inline VLNode(class RMutex *gate) 
-      {
-	 g = gate;
-	 next = NULL;
-      }
-};
-
-// for locking
-class VLock {
-   private:
-      class VLNode *head;
-      class VLNode *tail;
-
-   public:
-      inline VLock()
-      {
-	 head = NULL;
-	 tail = NULL;
-      }
-      inline ~VLock()
-      {
-	 del();
-      }
-      inline void add(class RMutex *g);
-      inline void del()
-      {
-	 while (head)
-	 {
-	    tail = head->next;
-	    head->g->exit();
-	    delete head;
-	    head = tail;
-	 }
-      }
 };
 
 void qore_setup_argv(int pos, int argc, char *argv[]);
@@ -207,7 +165,7 @@ static inline void uninstantiateLVar(class ExceptionSink *xsink);
 #include <qore/QoreProgram.h>
 #include <qore/Object.h>
 
-inline void VLock::add(class RMutex *g)
+inline void VLock::add(class VRMutex *g)
 {
    class VLNode *n = new VLNode(g);
    if (tail)
@@ -314,7 +272,9 @@ inline class QoreNode *Var::eval()
 // note: the caller must exit the gate!
 inline class QoreNode **Var::getValuePtr(class VLock *vl, class ExceptionSink *xsink)
 {
-   gate.enter();
+   if (gate.enter(vl, xsink))
+      return NULL;
+
    if (type == GV_IMPORT)
    {
       if (v.ivar.readonly)
@@ -332,12 +292,14 @@ inline class QoreNode **Var::getValuePtr(class VLock *vl, class ExceptionSink *x
 }
 
 // note: the caller must exit the gate!
-inline class QoreNode *Var::getValue(class VLock *vl)
+inline class QoreNode *Var::getValue(class VLock *vl, class ExceptionSink *xsink)
 {
-   gate.enter();
+   if (gate.enter(vl, xsink))
+      return NULL;
+
    if (type == GV_IMPORT)
    {
-      class QoreNode *rv = v.ivar.refptr->getValue(vl);
+      class QoreNode *rv = v.ivar.refptr->getValue(vl, xsink);
       gate.exit();
       return rv;
    }
@@ -581,7 +543,7 @@ static inline class LVar *instantiateLVar(lvh_t id, class QoreNode *ve, class Ob
 
 /*
 // pushes local variable on stack by reference
-static inline class LVar *instantiateLVarRef(lvh_t id, class QoreNode **ptr, class RMutex *eg)
+static inline class LVar *instantiateLVarRef(lvh_t id, class QoreNode **ptr, class VRMutex *eg)
 {
    printd(3, "instantiating lvar \"%s\" by reference (ptr=%08p val=%08p)\n", id, ptr, *ptr);
    // allocate new local variable structure
@@ -678,7 +640,7 @@ inline class QoreNode *VarRef::getValue(class VLock *vl, class ExceptionSink *xs
 {
    if (type == VT_LOCAL)
       return find_lvar(ref.id)->getValue(vl, xsink);
-   return ref.var->getValue(vl);
+   return ref.var->getValue(vl, xsink);
 }
 
 inline void VarRef::setValue(class QoreNode *val, class ExceptionSink *xsink)

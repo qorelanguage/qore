@@ -1,4 +1,5 @@
-*** v0.5.3 *** RELEASE
+2006.10.13: David Nichols
+	* started woring on deadlock detection
 
 2006.10.12: David Nichols
 	* fixed a bug in new character set creation
