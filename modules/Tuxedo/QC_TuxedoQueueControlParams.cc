@@ -439,6 +439,180 @@ static QoreNode* TUXEDOQCTL_getClientID(Object* self, QoreTuxedoQueueControlPara
 }
 
 //------------------------------------------------------------------------------
+static QoreNode* TUXEDOQCTL_setReplyQueue(Object* self, QoreTuxedoQueueControlParams* ctl, QoreNode* params, ExceptionSink* xsink)
+{
+  for (int i = 0; i <= 1; ++i) {
+    bool ok;
+    if (i == 1) ok = !get_param(params, i);
+    else ok = get_param(params, i);
+    if (!ok) {
+      xsink->raiseException("TuxedoQueueCtl::setReplyQueue", "One parameter (reply queue string) is required.");
+      return 0;
+    }
+  }
+
+  QoreNode* n = test_param(params, NT_STRING, 0);
+  if (!n) {
+    xsink->raiseException("TuxedoQueueCtl::setReplyQueue", "The parameter (reply queue) needs to be an string.");
+    return 0;
+  }
+  char* reply_queue = n->val.String->getBuffer();
+  if (!reply_queue) reply_queue = "";
+  if (strlen(reply_queue) > TMQNAMELEN) {
+    xsink->raiseException("TuxedoQueueCtl::setReplyQueue", "The parameter (reply queue) needs to be an string with max %d characters. It has %d.", TMQNAMELEN, strlen(reply_queue));
+    return 0;
+  }
+
+  strcpy(ctl->ctl.replyqueue, reply_queue);
+  return 0;
+}
+
+//------------------------------------------------------------------------------
+static QoreNode* TUXEDOQCTL_getReplyQueue(Object* self, QoreTuxedoQueueControlParams* ctl, QoreNode* params, ExceptionSink* xsink
+)
+{
+  if (get_param(params, 0)) {
+    xsink->raiseException("TuxedoQueueCtl::getReplyQueue", "No parameter expected.");
+    return 0;
+  }
+  char* reply_queue = ctl->ctl.replyqueue;
+  return new QoreNode(reply_queue);
+}
+
+//------------------------------------------------------------------------------
+static QoreNode* TUXEDOQCTL_setFailureQueue(Object* self, QoreTuxedoQueueControlParams* ctl, QoreNode* params, ExceptionSink* xsink)
+{
+  for (int i = 0; i <= 1; ++i) {
+    bool ok;
+    if (i == 1) ok = !get_param(params, i);
+    else ok = get_param(params, i);
+    if (!ok) {
+      xsink->raiseException("TuxedoQueueCtl::setFailureQueue", "One parameter (failure queue string) is required.");
+      return 0;
+    }
+  }
+
+  QoreNode* n = test_param(params, NT_STRING, 0);
+  if (!n) {
+    xsink->raiseException("TuxedoQueueCtl::setFailureQueue", "The parameter (failure queue) needs to be an string.");
+    return 0;
+  }
+  char* failure_queue = n->val.String->getBuffer();
+  if (!failure_queue) failure_queue = "";
+  if (strlen(failure_queue) > TMQNAMELEN) {
+    xsink->raiseException("TuxedoQueueCtl::setFailureQueue", "The parameter (failure queue) needs to be an string with max %d characters. It has %d.", TMQNAMELEN, strlen(failure_queue));
+    return 0;
+  }
+
+  strcpy(ctl->ctl.failurequeue, failure_queue);
+  return 0;
+}
+
+//------------------------------------------------------------------------------
+static QoreNode* TUXEDOQCTL_getFailureQueue(Object* self, QoreTuxedoQueueControlParams* ctl, QoreNode* params, ExceptionSink* xsink
+)
+{
+  if (get_param(params, 0)) {
+    xsink->raiseException("TuxedoQueueCtl::getFailureQueue", "No parameter expected.");
+    return 0;
+  }
+  char* failure_queue = ctl->ctl.failurequeue;
+  return new QoreNode(failure_queue);
+}
+
+//------------------------------------------------------------------------------
+static QoreNode* TUXEDOQCTL_setMsgID(Object* self, QoreTuxedoQueueControlParams* ctl, QoreNode* params, ExceptionSink* xsink)
+{
+  for (int i = 0; i <= 1; ++i) {
+    bool ok;
+    if (i == 1) ok = !get_param(params, i);
+    else ok = get_param(params, i);
+    if (!ok) {
+      xsink->raiseException("TuxedoQueueCtl::setMsgID", "One parameter (message ID, binary of size %d B) is required.", TMMSGIDLEN);
+      return 0;
+    }
+  }
+
+  QoreNode* n = test_param(params, NT_BINARY, 0);
+  if (!n) {
+    xsink->raiseException("TuxedoQueueCtl::setMsgID", "The first parameter (message ID) needs to be a binary with size %d B", TMMSGIDLEN);
+    return 0;
+  }
+  BinaryObject* bin = n->val.bin;
+  int size = 0;
+  if (bin) size = bin->size();
+
+  if (size != TMMSGIDLEN) {
+    xsink->raiseException("TuxedoQueueCtl::setMsgID", "The first parameter (message ID) needs to be a binary with size %d B, it has %d B.", TMMSGIDLEN, size);
+    return 0;
+  }
+
+  memcpy(&ctl->ctl.msgid, bin->getPtr(), size);
+  return 0;
+}
+
+//------------------------------------------------------------------------------
+static QoreNode* TUXEDOQCTL_getMsgID(Object* self, QoreTuxedoQueueControlParams* ctl, QoreNode* params, ExceptionSink* xsink)
+{
+  if (get_param(params, 0)) {
+    xsink->raiseException("TuxedoQueueCtl::getMsgID", "No parameter expected.");
+    return 0;
+  }
+  void* buff = malloc(sizeof(TMMSGIDLEN));
+  memcpy(buff, &ctl->ctl.msgid, sizeof(TMMSGIDLEN));
+
+  BinaryObject* bin = new BinaryObject(buff, sizeof(TMMSGIDLEN));
+
+  return new QoreNode(bin);
+}
+
+//------------------------------------------------------------------------------
+static QoreNode* TUXEDOQCTL_setCorrID(Object* self, QoreTuxedoQueueControlParams* ctl, QoreNode* params, ExceptionSink* xsink)
+{
+  for (int i = 0; i <= 1; ++i) {
+    bool ok;
+    if (i == 1) ok = !get_param(params, i);
+    else ok = get_param(params, i);
+    if (!ok) {
+      xsink->raiseException("TuxedoQueueCtl::setCorrID", "One parameter (correlation ID, binary of size %d B) is required.", TMCORRIDLEN);
+      return 0;
+    }
+  }
+
+  QoreNode* n = test_param(params, NT_BINARY, 0);
+  if (!n) {
+    xsink->raiseException("TuxedoQueueCtl::setCorrID", "The first parameter (correlation ID) needs to be a binary with size %d B", TMCORRIDLEN);
+    return 0;
+  }
+  BinaryObject* bin = n->val.bin;
+  int size = 0;
+  if (bin) size = bin->size();
+
+  if (size != TMCORRIDLEN) {
+    xsink->raiseException("TuxedoQueueCtl::setCorrID", "The first parameter (correlation ID) needs to be a binary with size %d B, it has %d B.", TMCORRIDLEN, size);
+    return 0;
+  }
+
+  memcpy(&ctl->ctl.corrid, bin->getPtr(), size);
+  return 0;
+}
+
+//------------------------------------------------------------------------------
+static QoreNode* TUXEDOQCTL_getCorrID(Object* self, QoreTuxedoQueueControlParams* ctl, QoreNode* params, ExceptionSink* xsink)
+{
+  if (get_param(params, 0)) {
+    xsink->raiseException("TuxedoQueueCtl::getCorrID", "No parameter expected.");
+    return 0;
+  }
+  void* buff = malloc(sizeof(TMCORRIDLEN));
+  memcpy(buff, &ctl->ctl.corrid, sizeof(TMCORRIDLEN));
+
+  BinaryObject* bin = new BinaryObject(buff, sizeof(TMCORRIDLEN));
+
+  return new QoreNode(bin);
+}
+
+//------------------------------------------------------------------------------
 class QoreClass* initTuxedoQueueControlParamsClass()
 {
   tracein("initTuxedoQueueControlParamsClass");
@@ -470,7 +644,14 @@ class QoreClass* initTuxedoQueueControlParamsClass()
   ctl->addMethod("setUrcode", (q_method_t)TUXEDOQCTL_setUrcode);
   ctl->addMethod("getClientID", (q_method_t)TUXEDOQCTL_getClientID);
   ctl->addMethod("setClientID", (q_method_t)TUXEDOQCTL_setClientID);
-
+  ctl->addMethod("getReplyQueue", (q_method_t)TUXEDOQCTL_getReplyQueue);
+  ctl->addMethod("setReplyQueue", (q_method_t)TUXEDOQCTL_setReplyQueue);
+  ctl->addMethod("getFailureQueue",  (q_method_t)TUXEDOQCTL_getFailureQueue);
+  ctl->addMethod("setFailureQueue", (q_method_t)TUXEDOQCTL_setFailureQueue);
+  ctl->addMethod("getMsgID", (q_method_t)TUXEDOQCTL_getMsgID);
+  ctl->addMethod("setMsgID", (q_method_t)TUXEDOQCTL_setMsgID);
+  ctl->addMethod("getCorrID", (q_method_t)TUXEDOQCTL_getCorrID);
+  ctl->addMethod("setCorrID", (q_method_t)TUXEDOQCTL_setCorrID);
 
   traceout("initTuxedoQueueControlParamsClass");
   return ctl;
