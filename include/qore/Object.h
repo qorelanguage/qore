@@ -154,7 +154,6 @@ class Object : public ReferenceObject
 
       inline class QoreNode **getMemberValuePtr(class QoreString *key, class VLock *vl, class ExceptionSink *xsink);
       inline class QoreNode **getMemberValuePtr(char *key, class VLock *vl, class ExceptionSink *xsink);
-      class QoreNode *getMemberValue(class QoreNode *member, class VLock *vl, class ExceptionSink *xsink);
 
       inline class QoreNode *getMemberValueNoMethod(class QoreString *key, class VLock *vl, class ExceptionSink *xsink);
       inline class QoreNode *getMemberValueNoMethod(char *key, class VLock *vl, class ExceptionSink *xsink);

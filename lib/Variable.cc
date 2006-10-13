@@ -131,9 +131,14 @@ static inline class QoreNode **do_object_val_ptr(Tree *tree, class VLock *vlp, E
       // if object has been deleted, then dereference, make into a hash, and get hash pointer
       if (!(rv = (*val)->val.object->getMemberValuePtr(member->val.String, vlp, xsink)))
       {
-	 (*val)->deref(xsink);
-	 (*val) = new QoreNode(new Hash());
-	 rv = (*val)->val.hash->getKeyValuePtr(member->val.String, xsink);
+	 if (xsink->isException())
+	    rv = NULL;
+	 else
+	 {
+	    (*val)->deref(xsink);
+	    (*val) = new QoreNode(new Hash());
+	    rv = (*val)->val.hash->getKeyValuePtr(member->val.String, xsink);
+	 }
       }
    }
    //printd(5, "do_object_val_ptr() member=%s\n", member->val.String->getBuffer());
@@ -155,7 +160,7 @@ class QoreNode **get_var_value_ptr(class QoreNode *n, class VLock *vlp, class Ex
    {
       // need to check for deleted objects
       QoreNode **rv = getStackObjectValuePtr(n->val.c_str, vlp, xsink);
-      if (!rv)
+      if (!rv && !xsink->isException())
 	 xsink->raiseException("OBJECT-ALREADY-DELETED", "write attempted to member \"%s\" in an already-deleted object", n->val.c_str);
       return rv;
    }
@@ -286,78 +291,6 @@ class QoreNode *getExistingVarValue(class QoreNode *n, ExceptionSink *xsink, cla
 	 member->deref(xsink);
 	 
 	 //traceout("getExistingVarValue()");
-	 return rv;
-      }
-   }
-   
-   // otherwise need to evaluate
-   class QoreNode *t = n->eval(xsink);
-   if (xsink->isEvent())
-   {
-      if (t)
-	 (t)->deref(xsink);
-      return NULL;
-   }
-
-   *pt = new TempNode(t);
-   return (*pt)->val;
-}
-
-// finds object value pointers without making any changes to the referenced structures
-// will execute memberGate methods (except for in-object references i.e. $.member)
-class QoreNode *getExistingVarValueWithMethod(class QoreNode *n, ExceptionSink *xsink, class VLock *vl, class TempNode **pt)
-{
-   printd(5, "getExistingVarValue(%08p) %s\n", n, n->type->name);
-   if (n->type == NT_VARREF)
-      return n->val.vref->getValue(vl, xsink);
-
-   if (n->type == NT_SELF_VARREF)
-      return getStackObjectValue(n->val.c_str, vl, xsink);
-
-   // it's a variable reference tree
-   if (n->type == NT_TREE && (n->val.tree.op == OP_LIST_REF || n->val.tree.op == OP_OBJECT_REF))
-   {
-      class QoreNode *val = getExistingVarValueWithMethod(n->val.tree.left, xsink, vl, pt);
-      if (!val)
-	 return NULL;
-
-      // if it's a list reference
-      if (n->val.tree.op == OP_LIST_REF)
-      {
-	 // if it's not a list then return NULL
-	 if (val->type != NT_LIST)
-	    return NULL;
-
-	 // otherwise return value
-	 return val->val.list->retrieve_entry(n->val.tree.right->integerEval(xsink));
-      }
-      
-      // if it's an object reference
-      if (n->val.tree.op == OP_OBJECT_REF)
-      {
-	 // if not an object or a hash, return NULL
-	 if (val->type != NT_OBJECT && val->type != NT_HASH)
-	    return NULL;
-	 
-	 // otherwise evaluate member
-	 class QoreNode *member;
-	 if (!(member = n->val.tree.right->eval(xsink)))
-	    member = null_string();
-	 else if (member->type != NT_STRING)
-	 {
-	    class QoreNode *nm = member->convert(NT_STRING);
-	    member->deref(xsink);
-	    member = nm;
-	 }
-	 
-	 class QoreNode *rv;
-	 if (val->type == NT_HASH)
-	    rv = val->val.hash->getKeyValue(member->val.String, xsink);
-	 else
-	    rv = val->val.object->getMemberValue(member, vl, xsink);
-	 member->deref(xsink);
-	 
-	 //traceout("getExistingVarValueWithMethod()");
 	 return rv;
       }
    }

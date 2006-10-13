@@ -27,60 +27,6 @@
 #include <qore/config.h>
 #include <qore/Object.h>
 
-// NOTE: caller must unlock
-class QoreNode *Object::getMemberValue(class QoreNode *member, class VLock *vl, class ExceptionSink *xsink)
-{
-   g.enter();
-   if (status == OS_DELETED)
-   {
-      g.exit();
-      return NULL;
-   }
-
-   class QoreNode *rv = data->getKeyValueExistence(member->val.String, xsink);
-
-   // if the member does not exist, then try the memberGate method
-   if (rv == (QoreNode *)-1)
-   {
-      if (myclass->hasMemberGate())
-      {
-	 // run memberGate method to get member value, in case the method is very slow, we run with locks
-	 // disabled: reference, unlock gate, run method, dereference, check return value, require lock, check object status
-	 ref();
-	 g.exit();
-	 //vl->del();
-	 rv = myclass->evalMemberGate(this, member, xsink);
-	 dereference(xsink);
-	 if (!rv)
-	    return NULL;
-	 if (xsink->isEvent())
-	 {
-	    rv->deref(xsink);
-	    return NULL;
-	 }
-
-	 // now grab lock again
-	 g.enter();
-	 if (status == OS_DELETED)
-	 {
-	    g.exit();
-	    rv->deref(xsink);
-	    return NULL;
-	 }
-      }
-      else
-	 rv = NULL;
-   }
-   if (!rv)
-   {
-      g.exit();
-      return NULL;
-   }
-
-   vl->add(&g);
-   return rv;
-}
-
 class QoreNode *Object::evalMember(class QoreNode *member, class ExceptionSink *xsink)
 {
    // make sure to convert string encoding if necessary to default character set
