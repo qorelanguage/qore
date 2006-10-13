@@ -652,16 +652,15 @@ static class QoreNode *op_list_ref(class QoreNode *left, class QoreNode *index, 
 // be converted.  The null string can also be used
 static class QoreNode *op_object_ref(class QoreNode *left, class QoreNode *member, ExceptionSink *xsink)
 {
-
-   TempNode *tn = NULL;
-   class VLock vl;
-   QoreNode *op = getExistingVarValueWithMethod(left, xsink, &vl, &tn);
+   QoreNode *op = left->eval(xsink);
 
    // return NULL if left side is not an object (or exception)
-   if (xsink->isEvent() || !op || (op->type != NT_OBJECT && op->type != NT_HASH))
+   if (!op)
+      return NULL;
+
+   if (xsink->isEvent() || (op->type != NT_OBJECT && op->type != NT_HASH))
    {
-      vl.del();
-      if (tn) tn->del(xsink);
+      op->deref(xsink);
       return NULL;
    }
 
@@ -670,8 +669,7 @@ static class QoreNode *op_object_ref(class QoreNode *left, class QoreNode *membe
    {
       if (xsink->isEvent())
       {
-	 vl.del();
-	 if (tn) tn->del(xsink);
+	 op->deref(xsink);
 	 return NULL;
       }
       member = null_string();
@@ -686,23 +684,11 @@ static class QoreNode *op_object_ref(class QoreNode *left, class QoreNode *membe
    class QoreNode *rv;
 
    if (op->type == NT_HASH)
-   {
       rv = op->val.hash->evalKey(member->val.String->getBuffer(), xsink);
-      vl.del();
-   }
    else
-   {
-      Object *obj = op->val.object;
-      obj->ref();
-      vl.del();
-      //printd(5, "op_object_ref() %08p (%s)\n", *op, member->val.String->getBuffer());
-      //printd(5, "size=%d mem=\"%s\"\n", (*op)->val.object->size(), member->val.String->getBuffer());
-      // retrieve value and reference for return if there
-      //class QoreNode *rv = op->val.object->retrieve_value(member->val.String->getBuffer());
-      rv = obj->evalMember(member, xsink);
-      obj->dereference(xsink);
-   }
-   if (tn) tn->del(xsink);
+      rv = op->val.object->evalMember(member, xsink);
+
+   op->deref(xsink);
    member->deref(xsink);
    return rv;
 }
@@ -710,38 +696,29 @@ static class QoreNode *op_object_ref(class QoreNode *left, class QoreNode *membe
 static class QoreNode *op_object_method_call(class QoreNode *left, class QoreNode *func, ExceptionSink *xsink)
 {
    tracein("op_object_method_call()");
-   TempNode *tn = NULL;
 
-   class VLock vl;
-   QoreNode *op = getExistingVarValueWithMethod(left, xsink, &vl, &tn);
+   QoreNode *op = left->eval(xsink);
+   if (!op)
+      return NULL;
 
-   // return if an exception happened
    if (xsink->isEvent())
    {
-      vl.del();
-      if (tn) tn->del(xsink);
+      op->deref(xsink);
       traceout("op_object_method_call()");
       return NULL;
    }
 
-   if (!op || op->type != NT_OBJECT)
+   if (op->type != NT_OBJECT)
    {
       xsink->raiseException("OBJECT-METHOD-EVAL-ON-NON-OBJECT", "member function \"%s\" called on type \"%s\"", 
-		     func->val.fcall->f.c_str, op ? op->type->name : "NOTHING" );
-      vl.del();
-      if (tn) tn->del(xsink);
+			    func->val.fcall->f.c_str, op ? op->type->name : "NOTHING" );
+      op->deref(xsink);
       traceout("op_object_method_call()");
       return NULL;
    }
-   Object *obj = op->val.object;
-   obj->ref();
-   printd(5, "op_object_method_call() %s:%s() op=%08p, op->val.object=%08p obj=%08p class=%08p (stack=%08p)\n",
-	  obj->getClass()->getName(), func->val.fcall->f.c_str, op, op->val.object, obj, obj->getClass(), getStackClass());
-   vl.del();
-   QoreNode *rv = obj->getClass()->evalMethod(obj, func->val.fcall->f.c_str, func->val.fcall->args, xsink);
-   obj->dereference(xsink);
+   QoreNode *rv = op->val.object->getClass()->evalMethod(op->val.object, func->val.fcall->f.c_str, func->val.fcall->args, xsink);
+   op->deref(xsink);
 
-   if (tn) tn->del(xsink);
    traceout("op_object_method_call()");
    return rv;
 }
