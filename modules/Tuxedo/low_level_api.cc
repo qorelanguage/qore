@@ -1041,6 +1041,72 @@ static QoreNode* f_userlog(QoreNode* params, ExceptionSink* xsink)
 }
 
 //-----------------------------------------------------------------------------
+// http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c77.htm#1045232
+static QoreNode* f_tpsprio(QoreNode* params, ExceptionSink* xsink)
+{
+  for (int i = 0; i <= 2; ++i) {
+    bool ok;
+    if (i == 2) ok = !get_param(params, i);
+    else ok = get_param(params, i);
+    if (!ok) {
+      xsink->raiseException("tpsprio", "Two parameters expected: integer priority, integer flags.");
+      return 0;
+    }
+  }
+  
+  QoreNode* n = test_param(params, NT_INT, 0);
+  if (!n) {
+    xsink->raiseException("tpsprio", "The first parameter, priority, needs to be an integer.");
+    return 0;
+  }
+  int priority = (int)n->val.intval;
+
+  n = test_param(params, NT_INT, 1);
+  if (!n) {
+    xsink->raiseException("tpsprio", "The second parameter, flags, needs to be an integer.");
+    return 0;
+  }
+  long flags = (long)n->val.intval;
+
+  if (tpsprio(priority, flags) == -1) {
+    return new QoreNode((int64)tperrno);
+  } else {
+    return new QoreNode(OK);
+  }
+}
+
+//-----------------------------------------------------------------------------
+// http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c53.htm#1042995
+// Parameters:
+// * out: integer with retrieved priority
+static QoreNode* f_tpgprio(QoreNode* params, ExceptionSink* xsink)
+{
+  for (int i = 0; i <= 1; ++i) {
+    bool ok;
+    if (i == 1) ok = !get_param(params, i);
+    else ok = get_param(params, i);
+    if (!ok) {
+      xsink->raiseException("tpgprio", "One parameter expected: out priority integer passed by reference.");
+      return 0;
+    }
+  }
+
+  QoreNode* n = test_param(params, NT_INT, 0);
+  if (!n) {
+    xsink->raiseException("tpgprio", "The first parameters, retrieved priority, needs to be an integer passed by reference.");
+    return 0;
+  }
+  int64* ppriority = &n->val.intval;
+
+  int res = tpgprio();
+  if (res == -1) {
+    return new QoreNode((int64)tperrno);
+  }
+  *ppriority = res;
+  return new QoreNode(OK);
+}
+
+//-----------------------------------------------------------------------------
 void tuxedo_low_level_init()
 {
   builtinFunctions.add("tpchkauth", f_tpchkauth, QDOM_NETWORK);
@@ -1066,10 +1132,11 @@ void tuxedo_low_level_init()
   builtinFunctions.add("tpdequeue", f_tpdeque, QDOM_NETWORK);
   builtinFunctions.add("tperrordetail", f_tperrordetail, QDOM_NETWORK);
   builtinFunctions.add("TuxedoUserlog", f_userlog, QDOM_NETWORK);
+  builtinFunctions.add("tpsprio", f_tpsprio, QDOM_NETWORK);
+  builtinFunctions.add("tpgprio", f_tpgprio, QDOM_NETWORK);
 
-  // tpsuspend, tpresume, tpscmt, tpgetlev. tpsprio, tpgprio, tpopne, tpclose, tppost, tpstrerror
+  // tpsuspend, tpresume, tpscmt, tpgetlev. tppost, tpstrerror
   // XML <-> FML
-  // tuxputenv, tuxgetenv
   // tx_*
 }
 
@@ -1125,6 +1192,7 @@ void tuxedo_low_level_ns_init(Namespace* ns)
   ns->addConstant("TPEOTYPE", new QoreNode((int64)TPEOTYPE));
   ns->addConstant("TPEPERM", new QoreNode((int64)TPEPERM));
   ns->addConstant("TPEPROTO", new QoreNode((int64)TPEPROTO));
+  ns->addConstant("TPERMERR", new QoreNode((int64)TPERMERR));
   ns->addConstant("TPESVCFAIL", new QoreNode((int64)TPESVCFAIL));
   ns->addConstant("TPESVCERR", new QoreNode((int64)TPESVCERR));
   ns->addConstant("TPESYSTEM", new QoreNode((int64)TPESYSTEM));

@@ -392,6 +392,53 @@ static QoreNode* TUXEDOQCTL_getUrcode(Object* self, QoreTuxedoQueueControlParams
 }
 
 //------------------------------------------------------------------------------
+static QoreNode* TUXEDOQCTL_setClientID(Object* self, QoreTuxedoQueueControlParams* ctl, QoreNode* params, ExceptionSink* xsink
+)
+{
+  for (int i = 0; i <= 1; ++i) {
+    bool ok;
+    if (i == 1) ok = !get_param(params, i);
+    else ok = get_param(params, i);
+    if (!ok) {
+      xsink->raiseException("TuxedoQueueCtl::setClientID", "One parameter (client ID, binary of size %d B) is required.", sizeof(CLIENTID));
+      return 0;
+    }
+  }
+
+  QoreNode* n = test_param(params, NT_BINARY, 0);
+  if (!n) {
+    xsink->raiseException("TuxedoQueueCtl::setClientID", "The first parameter (client ID) needs to be a binary with size %d B.", sizeof(CLIENTID));
+    return 0;
+  }
+  BinaryObject* bin = n->val.bin;
+  int size = 0;
+  if (bin) size = bin->size();
+
+  if (size != sizeof(CLIENTID)) {
+    xsink->raiseException("TuxedoQueueCtl::setClientID", "The first parameter (client ID) needs to be a binary with size %d B, it has %d B", sizeof(CLIENTID), size);
+    return 0;
+  }
+
+  memcpy(&ctl->ctl.cltid, bin->getPtr(), size);
+  return 0;
+}
+
+//------------------------------------------------------------------------------
+static QoreNode* TUXEDOQCTL_getClientID(Object* self, QoreTuxedoQueueControlParams* ctl, QoreNode* params, ExceptionSink* xsink)
+{
+  if (get_param(params, 0)) {
+    xsink->raiseException("TuxedoQueueCtl::getClientID", "No parameter expected.");
+    return 0;
+  }
+  void* buff = malloc(sizeof(CLIENTID));
+  memcpy(buff, &ctl->ctl.cltid, sizeof(CLIENTID));
+
+  BinaryObject* bin = new BinaryObject(buff, sizeof(CLIENTID));
+ 
+  return new QoreNode(bin);
+}
+
+//------------------------------------------------------------------------------
 class QoreClass* initTuxedoQueueControlParamsClass()
 {
   tracein("initTuxedoQueueControlParamsClass");
@@ -421,6 +468,9 @@ class QoreClass* initTuxedoQueueControlParamsClass()
   ctl->addMethod("setAppkey", (q_method_t)TUXEDOQCTL_setAppkey);
   ctl->addMethod("getUrcode", (q_method_t)TUXEDOQCTL_getUrcode);
   ctl->addMethod("setUrcode", (q_method_t)TUXEDOQCTL_setUrcode);
+  ctl->addMethod("getClientID", (q_method_t)TUXEDOQCTL_getClientID);
+  ctl->addMethod("setClientID", (q_method_t)TUXEDOQCTL_setClientID);
+
 
   traceout("initTuxedoQueueControlParamsClass");
   return ctl;
