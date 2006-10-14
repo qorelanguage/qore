@@ -1065,9 +1065,28 @@ static inline int qore_xmlRead(xmlTextReader *reader, char *info, class Exceptio
    return 0;
 }
 
+// ignores significant whitespace
+static inline int qore_xmlTextReaderNodeType(xmlTextReader *reader)
+{
+   int nt;
+   while (true)
+   {
+      nt = xmlTextReaderNodeType(reader);
+      if (nt == XML_READER_TYPE_SIGNIFICANT_WHITESPACE)
+      {
+	 // get next element
+	 if (xmlTextReaderRead(reader) != 1)
+	    return -1;
+	 continue;
+      }
+      break;
+   }
+   return nt;
+}
+
 static inline int qore_xmlReadNode(xmlTextReader *reader, class ExceptionSink *xsink)
 {
-   int nt = xmlTextReaderNodeType(reader);
+   int nt = qore_xmlTextReaderNodeType(reader);
    if (nt == -1)
       xsink->raiseException("XML-RPC-PARSE-VALUE-ERROR", "error parsing XML string");
    return nt;
@@ -1108,7 +1127,7 @@ static void getXMLRPCStruct(xmlTextReader *reader, class XmlRpcValue *v, class Q
 
       if (nt != XML_READER_TYPE_ELEMENT)
       {
-	 xsink->raiseException("XML-RPC-PARSE-VALUE-ERROR", "error parsing XML string, expecting 'member' element");
+	 xsink->raiseException("XML-RPC-PARSE-VALUE-ERROR", "error parsing XML string, expecting 'member' element (XXX %d)", nt);
 	 return;
       }
 
@@ -1121,7 +1140,7 @@ static void getXMLRPCStruct(xmlTextReader *reader, class XmlRpcValue *v, class Q
 	 return;
 
       char *member_name;
-      if ((nt = xmlTextReaderNodeType(reader)) != XML_READER_TYPE_ELEMENT)
+      if ((nt = qore_xmlTextReaderNodeType(reader)) != XML_READER_TYPE_ELEMENT)
       {
 	 xsink->raiseException("XML-RPC-PARSE-VALUE-ERROR", "error parsing XML string, expecting struct 'name'");
 	 return;
@@ -1331,7 +1350,7 @@ static void getXMLRPCArray(xmlTextReader *reader, class XmlRpcValue *v, class Qo
       return;
 
    // check for array close tag
-   if ((nt = xmlTextReaderNodeType(reader)) != XML_READER_TYPE_END_ELEMENT)
+   if ((nt = qore_xmlTextReaderNodeType(reader)) != XML_READER_TYPE_END_ELEMENT)
       xsink->raiseException("XML-RPC-PARSE-ARRAY-ERROR", "extra data in array, expecting array close tag");
 }
 
@@ -1420,7 +1439,7 @@ static void getXMLRPCParams(xmlTextReader *reader, class XmlRpcValue *v, class Q
 		  return;
 	    }
 
-	    if ((nt = xmlTextReaderNodeType(reader)) != XML_READER_TYPE_END_ELEMENT)
+	    if ((nt = qore_xmlTextReaderNodeType(reader)) != XML_READER_TYPE_END_ELEMENT)
 	    {
 	       xsink->raiseException("XML-RPC-PARSE-VALUE-ERROR", "extra data in params, expecting param close tag");
 	       return;
@@ -1674,7 +1693,7 @@ static void doEmptyValue(class XmlRpcValue *v, char *name, int depth, class Exce
 
 static void getXMLRPCValueData(xmlTextReader *reader, class XmlRpcValue *v, class QoreEncoding *data_ccsid, bool read_next, ExceptionSink *xsink)
 {
-   int nt = xmlTextReaderNodeType(reader);
+   int nt = qore_xmlTextReaderNodeType(reader);
    if (nt == -1)
    {
       xsink->raiseException("XML-RPC-PARSE-VALUE-ERROR", "error parsing XML string");
@@ -2910,7 +2929,7 @@ static class QoreNode *f_parseXMLRPCCall(class QoreNode *params, ExceptionSink *
 
    int nt;
    // get "methodCall" element
-   if ((nt = xmlTextReaderNodeType(reader)) != XML_READER_TYPE_ELEMENT)
+   if ((nt = qore_xmlTextReaderNodeType(reader)) != XML_READER_TYPE_ELEMENT)
       return qore_xml_exception(reader, "PARSE-XML-RPC-CALL-ERROR", "expecting 'methodCall' element", xsink);
 
    if (qore_xmlCheckName(reader, "methodCall", xsink))
@@ -2926,7 +2945,7 @@ static class QoreNode *f_parseXMLRPCCall(class QoreNode *params, ExceptionSink *
       return NULL;
    }
 
-   if ((nt = xmlTextReaderNodeType(reader)) != XML_READER_TYPE_ELEMENT)
+   if ((nt = qore_xmlTextReaderNodeType(reader)) != XML_READER_TYPE_ELEMENT)
       return qore_xml_exception(reader, "PARSE-XML-RPC-CALL-ERROR", "expecting 'methodName' element", xsink);
 
    if (qore_xmlCheckName(reader, "methodName", xsink))
@@ -2942,7 +2961,7 @@ static class QoreNode *f_parseXMLRPCCall(class QoreNode *params, ExceptionSink *
       return NULL;
    }
 
-   if ((nt = xmlTextReaderNodeType(reader)) != XML_READER_TYPE_TEXT)
+   if ((nt = qore_xmlTextReaderNodeType(reader)) != XML_READER_TYPE_TEXT)
       return qore_xml_exception(reader, "PARSE-XML-RPC-CALL-ERROR", "expecting method name", xsink);
 
    char *method_name = (char *)xmlTextReaderConstValue(reader);
@@ -2959,7 +2978,7 @@ static class QoreNode *f_parseXMLRPCCall(class QoreNode *params, ExceptionSink *
       return NULL;
    }
 
-   if ((nt = xmlTextReaderNodeType(reader)) != XML_READER_TYPE_END_ELEMENT)
+   if ((nt = qore_xmlTextReaderNodeType(reader)) != XML_READER_TYPE_END_ELEMENT)
       return qore_xml_exception(reader, "PARSE-XML-RPC-CALL-ERROR", "expecting 'methodName' close element", xsink);
 
    // get "params" element
@@ -2975,7 +2994,7 @@ static class QoreNode *f_parseXMLRPCCall(class QoreNode *params, ExceptionSink *
    // if the methodCall end element was not found
    if (nt != XML_READER_TYPE_END_ELEMENT)
    {
-      if ((nt = xmlTextReaderNodeType(reader)) != XML_READER_TYPE_ELEMENT)
+      if ((nt = qore_xmlTextReaderNodeType(reader)) != XML_READER_TYPE_ELEMENT)
 	 return qore_xml_exception(reader, "PARSE-XML-RPC-CALL-ERROR", "expecting 'params' element", xsink);
 
       if (qore_xmlCheckName(reader, "params", xsink))
@@ -3019,7 +3038,7 @@ static class QoreNode *f_parseXMLRPCCall(class QoreNode *params, ExceptionSink *
 	 }
       }
 
-      if ((nt = xmlTextReaderNodeType(reader)) != XML_READER_TYPE_END_ELEMENT)
+      if ((nt = qore_xmlTextReaderNodeType(reader)) != XML_READER_TYPE_END_ELEMENT)
 	 return qore_xml_exception(reader, "PARSE-XML-RPC-CALL-ERROR", "expecting 'methodCall' close element", xsink);
 
       h.setKeyValue("params", v.getValue());
@@ -3052,7 +3071,7 @@ static class QoreNode *f_parseXMLRPCResponse(class QoreNode *params, ExceptionSi
 
    int nt;
    // get "methodResponse" element
-   if ((nt = xmlTextReaderNodeType(reader)) != XML_READER_TYPE_ELEMENT)
+   if ((nt = qore_xmlTextReaderNodeType(reader)) != XML_READER_TYPE_ELEMENT)
       return qore_xml_exception(reader, "PARSE-XML-RPC-RESPONSE-ERROR", "expecting 'methodResponse' element", xsink);
 
    if (qore_xmlCheckName(reader, "methodResponse", xsink))
@@ -3068,7 +3087,7 @@ static class QoreNode *f_parseXMLRPCResponse(class QoreNode *params, ExceptionSi
       return NULL;
    }
 
-   if ((nt = xmlTextReaderNodeType(reader)) != XML_READER_TYPE_ELEMENT)
+   if ((nt = qore_xmlTextReaderNodeType(reader)) != XML_READER_TYPE_ELEMENT)
       return qore_xml_exception(reader, "PARSE-XML-RPC-RESPONSE-ERROR", "expecting 'params' or 'fault' element", xsink);
 
    char *name = (char *)xmlTextReaderConstName(reader);
@@ -3168,7 +3187,7 @@ static class QoreNode *f_parseXMLRPCResponse(class QoreNode *params, ExceptionSi
 		     }
 		     */
 		  }
-		  if ((nt = xmlTextReaderNodeType(reader)) != XML_READER_TYPE_END_ELEMENT)
+		  if ((nt = qore_xmlTextReaderNodeType(reader)) != XML_READER_TYPE_END_ELEMENT)
 		     return qore_xml_exception(reader, "PARSE-XML-RPC-RESPONSE-ERROR", "expecting 'param' end element", xsink);
 	       }
 
@@ -3179,7 +3198,7 @@ static class QoreNode *f_parseXMLRPCResponse(class QoreNode *params, ExceptionSi
 		  return NULL;
 	       }
 	    }
-	    if ((nt = xmlTextReaderNodeType(reader)) != XML_READER_TYPE_END_ELEMENT)
+	    if ((nt = qore_xmlTextReaderNodeType(reader)) != XML_READER_TYPE_END_ELEMENT)
 	       return qore_xml_exception(reader, "PARSE-XML-RPC-RESPONSE-ERROR", "expecting 'params' end element", xsink);
 	 }
 	 // get "methodResponse" end element
@@ -3201,7 +3220,7 @@ static class QoreNode *f_parseXMLRPCResponse(class QoreNode *params, ExceptionSi
 	 return NULL;
       }
       
-      if ((nt = xmlTextReaderNodeType(reader)) != XML_READER_TYPE_ELEMENT)
+      if ((nt = qore_xmlTextReaderNodeType(reader)) != XML_READER_TYPE_ELEMENT)
 	 return qore_xml_exception(reader, "PARSE-XML-RPC-RESPONSE-ERROR", "expecting fault 'value' element", xsink);
 
       if (qore_xmlCheckName(reader, "value", xsink))
@@ -3235,7 +3254,7 @@ static class QoreNode *f_parseXMLRPCResponse(class QoreNode *params, ExceptionSi
       }
       */
       
-      if ((nt = xmlTextReaderNodeType(reader)) != XML_READER_TYPE_END_ELEMENT)
+      if ((nt = qore_xmlTextReaderNodeType(reader)) != XML_READER_TYPE_END_ELEMENT)
 	 return qore_xml_exception(reader, "PARSE-XML-RPC-RESPONSE-ERROR", "expecting 'fault' end element", xsink);
 
       // get "methodResponse" end element
@@ -3252,7 +3271,7 @@ static class QoreNode *f_parseXMLRPCResponse(class QoreNode *params, ExceptionSi
       return NULL;      
    }
 
-   if ((nt = xmlTextReaderNodeType(reader)) != XML_READER_TYPE_END_ELEMENT)
+   if ((nt = qore_xmlTextReaderNodeType(reader)) != XML_READER_TYPE_END_ELEMENT)
       return qore_xml_exception(reader, "PARSE-XML-RPC-CALL-ERROR", "expecting 'methodResponse' end element", xsink);
 
    xmlFreeTextReader(reader);

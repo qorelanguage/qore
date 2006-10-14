@@ -1,3 +1,6 @@
+2006.10.14: David Nichols
+	* make all parseXMLRPC* functions ignore significant whitespace
+
 2006.10.13: David Nichols
 	* started woring on deadlock detection
 	* removed broken Object::getMemberValue() method and no-longer necessary
