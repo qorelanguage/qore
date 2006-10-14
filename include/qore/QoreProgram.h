@@ -164,6 +164,7 @@ class QoreProgram : public ReferenceObject, private UserFunctionList, private Im
       void importUserFunction(class QoreProgram *p, class UserFunction *uf, class ExceptionSink *xsink);
       inline void internParseRollback();
       int internParsePending(char *code, char *label);
+      inline class Hash *clearThreadData(class ExceptionSink *xsink);
 
    protected:
       inline ~QoreProgram();
@@ -217,6 +218,9 @@ class QoreProgram : public ReferenceObject, private UserFunctionList, private Im
 	 {
 	    // delete all global variables
 	    clear_all(xsink);
+	    // clear thread data if base object
+	    if (base_object)
+	       clearThreadData(xsink);
 	    depDeref(xsink);
 	 }
       }
@@ -277,10 +281,12 @@ class QoreProgram : public ReferenceObject, private UserFunctionList, private Im
 
       void depRef()
       {
+	 //printd(5, "QoreProgram::depRef() this=%08p %d->%d\n", this, dc.reference_count(), dc.reference_count() + 1);
 	 dc.ROreference();
       }
       void depDeref(class ExceptionSink *xsink)
       {
+	 //printd(5, "QoreProgram::depDeref() this=%08p %d->%d\n", this, dc.reference_count(), dc.reference_count() - 1);
 	 if (dc.ROdereference())
 	 {
 	    del(xsink);
@@ -314,6 +320,9 @@ inline void QoreProgram::deref()
       // delete all global variables with default exception handler
       ExceptionSink xsink;
       clear_all(&xsink);
+      // clear thread data if base object
+      if (base_object)
+	 clearThreadData(&xsink);
       depDeref(&xsink);
    }
 }
@@ -528,6 +537,7 @@ inline void UserFunctionList::deletePendingUserFunctions()
 // sets all non-imported variables to NULL (dereferences contents if any)
 inline void GlobalVariableList::clear_all(class ExceptionSink *xsink)
 {
+   //printd(5, "GlobalVariableList::clear_all() this=%08p (size=%d)\n", this, vmap.size());
    hm_var_t::iterator i = vmap.begin();
 
    while (i != vmap.end())
@@ -924,6 +934,14 @@ inline class QoreNode *QoreProgram::run(class ExceptionSink *xsink)
       return NULL;
    }
    return runTopLevel(xsink);
+}
+
+inline class Hash *QoreProgram::clearThreadData(class ExceptionSink *xsink)
+{
+   class Hash *h = (class Hash *)pthread_getspecific(thread_local_storage);
+   printd(5, "QoreProgram::clearThreadData() this=%08p h=%08p (size=%d)\n", this, h, h->size());
+   h->dereference(xsink);
+   return h;
 }
 
 #endif // _QORE_QOREPROGRAM_H

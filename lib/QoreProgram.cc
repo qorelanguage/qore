@@ -135,10 +135,11 @@ QoreProgram::QoreProgram(class QoreProgram *pgm, int po, bool ec, char *ecn)
 
 void QoreProgram::del(class ExceptionSink *xsink)
 {
+   printd(5, "QoreProgram::del() this=%08p (base_object=%d)\n", this, base_object);
    // wait for all threads to terminate
    tcount.waitForZero();
 
-   // have to delete global variables first because of destructors
+   // have to delete global variables first because of destructors.
    // method call can be repeated
    delete_all(xsink);
 
@@ -174,8 +175,7 @@ void QoreProgram::del(class ExceptionSink *xsink)
 void QoreProgram::endThread(class ExceptionSink *xsink)
 {
    // delete thread local storage data
-   class Hash *h = (class Hash *)pthread_getspecific(thread_local_storage);
-   h->dereference(xsink);
+   class Hash *h = clearThreadData(xsink);
    delete h;
 }
 

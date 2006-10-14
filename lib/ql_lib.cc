@@ -439,7 +439,9 @@ static class QoreNode *f_basename(class QoreNode *params, ExceptionSink *xsink)
    if (!p0)
       return NULL;
 
-   return new QoreNode(q_basename(p0->val.String->getBuffer()));
+   class QoreString *str = new QoreString();
+   str->take(q_basename(p0->val.String->getBuffer()), p0->val.String->getEncoding());
+   return new QoreNode(str);
 }
 
 static class QoreNode *f_mkdir(class QoreNode *params, ExceptionSink *xsink)

@@ -294,6 +294,7 @@ inline void DateTime::setDate(char *str)
    if (!p)
       return;
    millisecond = atoi(p + 1);
+   relative = false;
 }
 
 inline void DateTime::setRelativeDate(char *str)

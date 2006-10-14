@@ -2,6 +2,12 @@
 
 2006.10.14: David Nichols
         * make all parseXMLRPC* functions ignore significant whitespace
+        * set relative=false in methods where an absolute date is assigned in
+          the DateTime class
+        * fixed a memory leak with the qore basename() function
+        * fixed a circular reference count issue with thread data and the
+          QoreProgram class
+        * fixed a linked-list problem when using QoreQueue objects as a stack
 
 2006.10.13: David Nichols
         * removed broken Object::getMemberValue() method and no-longer necessary

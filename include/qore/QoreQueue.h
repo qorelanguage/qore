@@ -89,7 +89,7 @@ inline QoreQueue::QoreQueue(QoreNode *n)
    pthread_cond_init(&qcond, NULL);
    head = new QoreQueueNode(n, NULL);
    tail = head;
-   len  = 0;
+   len  = 1;
 }
 
 // queues should not be deleted when other threads might
@@ -121,6 +121,7 @@ inline void QoreQueue::push(QoreNode *n)
       tail->next = new QoreQueueNode(n, tail);
       tail = tail->next;
    }
+
    len++;
    pthread_mutex_unlock(&qmutex);
 }
@@ -135,6 +136,8 @@ inline QoreNode *QoreQueue::shift()
    head = head->next;
    if (!head)
       tail = NULL;
+   else
+      head->prev = NULL;
 
    len--;
    pthread_mutex_unlock(&qmutex);
@@ -176,6 +179,8 @@ inline QoreNode *QoreQueue::shift(int timeout_ms, bool *to)
    head = head->next;
    if (!head)
       tail = NULL;
+   else
+      head->prev = NULL;
 
    len--;
    pthread_mutex_unlock(&qmutex);
@@ -196,6 +201,8 @@ inline QoreNode *QoreQueue::pop()
    tail = tail->prev;
    if (!tail)
       head = NULL;
+   else
+      tail->next = NULL;
 
    len--;
    pthread_mutex_unlock(&qmutex);
@@ -238,6 +245,8 @@ inline QoreNode *QoreQueue::pop(int timeout_ms, bool *to)
    tail = tail->prev;
    if (!tail)
       head = NULL;
+   else
+      tail->next = NULL;
 
    len--;
    pthread_mutex_unlock(&qmutex);
