@@ -331,7 +331,10 @@ inline void Object::init(class QoreClass *oc, class QoreProgram *p)
    // methods may call functions in the program as well that could otherwise
    // disappear when the program is deleted
    if (p)
+   {
+      printd(5, "Object::init() this=%08p (%s) calling QoreProgram::depRef() (%08p)\n", this, myclass->getName(), p);
       p->depRef();
+   }
    privateData = NULL;
 }
 
@@ -780,6 +783,7 @@ inline void Object::cleanup(class ExceptionSink *xsink, class Hash *td)
    
    if (pgm)
    {
+      printd(5, "Object::cleaup() this=%08p (%s) calling QoreProgram::depDeref() (%08p)\n", this, myclass->getName(), pgm);
       pgm->depDeref(xsink);
 #ifdef DEBUG
       pgm = NULL;

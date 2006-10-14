@@ -67,7 +67,10 @@ class QueueTest {
 	}
 	my $c = $threads * $iters;
 	while ($c--)
-	    $.q.pop();
+	    if (rand() % 2)
+	        $.q.pop();
+	    else
+		$.q.get();
 
 	$.x.waitForZero();
 	if (!$.q.size())

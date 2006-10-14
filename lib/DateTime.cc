@@ -297,6 +297,7 @@ class QoreString *DateTime::format(char *fmt)
 // set the date from the number of seconds since January 1, 1970 (UNIX epoch)
 void DateTime::setDate(int64 seconds)
 {
+   relative = false;
    millisecond = year = 0;
    // there are 97 leap days every 400 years (12622780800 seconds)
    int64 ty = seconds/12622780800ll;

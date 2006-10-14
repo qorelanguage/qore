@@ -28,7 +28,7 @@
 #ifdef DEBUG
 inline void show_vl(class VLock *vl, class VLock *nvl)
 {
-   printd(1, "VRMutex::enter() vl=%08p, nvl=%08p vl->waiting_on=%08p (in nvl=%08p)\n", vl, nvl, vl->waiting_on, nvl ? nvl->find(vl->waiting_on) : NULL);
+   printd(5, "VRMutex::enter() vl=%08p, nvl=%08p vl->waiting_on=%08p (in nvl=%08p)\n", vl, nvl, vl ? vl->waiting_on : NULL, (nvl && vl) ? nvl->find(vl->waiting_on) : NULL);
 }
 #endif
 
@@ -41,22 +41,22 @@ void VRMutex::enter()
    while (tid != -1 && tid != mtid)
    {
       waiting++;
-      printd(1, "VRMutex::enter() this=%08p about to block on VRMutex owned by TID %d\n", this, tid);
+      printd(5, "VRMutex::enter() this=%08p about to block on VRMutex owned by TID %d\n", this, tid);
 #ifdef DEBUG
       show_vl(vl, NULL);
 #endif
       wait((LockedObject *)this);
-      printd(1, "VRMutex::enter() this=%08p grabbed VRMutex\n", this);
+      printd(5, "VRMutex::enter() this=%08p grabbed VRMutex\n", this);
       waiting--;
    }
    tid = mtid;
 #ifdef DEBUG
-   printd(1, "VRMutex::enter() this=%p count: %d->%d\n", this, count, count + 1);
+   printd(5, "VRMutex::enter() this=%p count: %d->%d\n", this, count, count + 1);
 #endif
    count++;
 #ifdef DEBUG
    if (count == 1)
-      printd(1, "VRMutex::enter() this=%08p grabbed lock (vl=%08p)\n", this, vl);
+      printd(5, "VRMutex::enter() this=%08p grabbed lock (vl=%08p)\n", this, vl);
 #endif
    unlock();
 }
@@ -80,19 +80,19 @@ int VRMutex::enter(class VLock *nvl, class ExceptionSink *xsink)
       waiting++;
       nvl->waiting_on = this;
       nvl->tid = mtid;
-      printd(1, "VRMutex::enter() this=%08p about to block on VRMutex owned by TID %d\n", this, tid);
+      printd(5, "VRMutex::enter() this=%08p about to block on VRMutex owned by TID %d\n", this, tid);
 #ifdef DEBUG
       show_vl(vl, nvl);
 #endif
       wait((LockedObject *)this);
-      printd(1, "VRMutex::enter() this=%08p grabbed VRMutex\n", this);
+      printd(5, "VRMutex::enter() this=%08p grabbed VRMutex\n", this);
       nvl->waiting_on = NULL;
       waiting--;
    }
    tid = mtid;
 
 #ifdef DEBUG
-   printd(1, "VRMutex::enter() this=%p count: %d->%d\n", this, count, count + 1);
+   printd(5, "VRMutex::enter() this=%p count: %d->%d\n", this, count, count + 1);
 #endif
 
    count++;
@@ -102,7 +102,7 @@ int VRMutex::enter(class VLock *nvl, class ExceptionSink *xsink)
 
 #ifdef DEBUG
    if (count == 1)
-      printd(1, "VRMutex::enter() this=%08p grabbed lock (vl=%08p nvl=%08p)\n", this, vl, nvl);
+      printd(5, "VRMutex::enter() this=%08p grabbed lock (vl=%08p nvl=%08p)\n", this, vl, nvl);
 #endif
 
    unlock();
@@ -125,7 +125,7 @@ int VRMutex::exit()
       return -1;
    }
 #ifdef DEBUG
-   printd(1, "VRMutex::exit() this=%p count: %d->%d\n", this, count, count - 1);
+   printd(5, "VRMutex::exit() this=%p count: %d->%d\n", this, count, count - 1);
 #endif
 
    count--;
@@ -134,7 +134,7 @@ int VRMutex::exit()
    if (!count)
    {
 #ifdef DEBUG
-      printd(1, "VRMutex::exit() this=%p releasing lock (vl=%08p)\n", this, vl);
+      printd(5, "VRMutex::exit() this=%p releasing lock (vl=%08p)\n", this, vl);
 #endif
       tid = -1;
       vl = NULL;
