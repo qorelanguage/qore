@@ -37,6 +37,8 @@
 
 #include "QC_TuxedoTypedBuffer.h"
 #include "low_level_api.h"
+#include "QC_TuxedoTransactionId.h"
+#include "QC_TuxedoQueueControlParams.h"
 
 #include <atmi.h>
 #include "handle_error.h"
@@ -73,25 +75,15 @@ void tuxedo_module_ns_init(class Namespace* rns, class Namespace* qns)
 
   // Tuxedo::TuxedoTypedBuffer class
   tuxedons->addSystemClass(initTuxedoTypedBufferClass());
+  // Tuxedo:TuxedoQueueCtl class
+  tuxedons->addSystemClass(initTuxedoQueueControlParamsClass());
+  // Tuxedo:TuxedoTransactionId class
+  tuxedons->addSystemClass(initTuxedoTransactionIdClass());
 
   // Tuxedo::TuxedoConnection class
   tuxedons->addSystemClass(initTuxedoConnectionClass());
   // Tuxedo:TuxedoAdapter class
   tuxedons->addSystemClass(initTuxedoAdapterClass());
-  
-  // misc Tuxedo constants
-/*
-  tuxedons->addConstant("TPNOTRAN", new QoreNode((int64)TPNOTRAN));
-  tuxedons->addConstant("TPNOCHANGE", new QoreNode((int64)TPNOCHANGE));
-  tuxedons->addConstant("TPNOBLOCK", new QoreNode((int64)TPNOBLOCK));
-  tuxedons->addConstant("TPNOTIME", new QoreNode((int64)TPNOTIME));
-  tuxedons->addConstant("TPSIGRSTRT", new QoreNode((int64)TPSIGRSTRT));
-  tuxedons->addConstant("TPNOREPLY", new QoreNode((int64)TPNOREPLY));
-  tuxedons->addConstant("TPGETANY", new QoreNode((int64)TPGETANY));
-  tuxedons->addConstant("TPSENDONLY", new QoreNode((int64)TPSENDONLY));
-  tuxedons->addConstant("TPRECVONLY", new QoreNode((int64)TPRECVONLY));
-*/
- 
   qns->addInitialNamespace(tuxedons);
 
   traceout("tuxedo_module_ns_init");

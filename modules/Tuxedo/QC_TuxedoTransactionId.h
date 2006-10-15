@@ -1,8 +1,8 @@
-#ifndef QC_TUXEDO_QUEUE_CONTROL_PARAMS_H_
-#define QC_TUXEDO_QUEUE_CONTROL_PARAMS_H_
+#ifndef QC_TUXEDO_TRANSACTION_ID_H_
+#define QC_TUXEDO_TRANSACTION_ID_H_
 
 /*
-  modules/Tuxedo/QC_TuxedoQueueControlParams.h
+  modules/Tuxedo/QC_TuxedoQueueTransactionId.h
 
   Tuxedo integration to QORE
 
@@ -28,21 +28,17 @@
 #include <qore/common.h>
 #include <qore/support.h>
 
-// Instances of class Tuxedo::TuxedoQueueCtl are used as in/out parameters
-// for functions tpenqueue() and tpdequeue(), as a Qore replacement
-// of TPQCTL structure from atmi.h.
-//
-// Newly constructed object is zeroed, the flags item has value TPNOFLAGS.
-// Getters and setters for all items in the structure are provided.
+// Instances of class Tuxedo::TuxedoTransactionTd are used
+// for calls tpsuspend() and tpresume().
+// Thesy serve as opaque structures and provide no member methods.
 //
 // For more details see documentaion:
-// * http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c38.htm
-// * http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c36.htm
-// * $TUXDIR/include/atmi.h
+// * http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c65.htm
+// * http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c81.htm
 
 
-extern int CID_TUXEDOQUEUECONTROLPARAMS;
-extern class QoreClass* initTuxedoQueueControlParamsClass();
+extern int CID_TUXEDOTRANSACTIOONID;
+extern class QoreClass* initTuxedoTransactionIdClass();
 
 #endif
 

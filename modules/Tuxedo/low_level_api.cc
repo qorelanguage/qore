@@ -28,15 +28,22 @@
 #include <qore/Namespace.h>
 #include <qore/BuiltinFunctionList.h>
 #include <qore/params.h>
+#include <qore/QoreString.h>
 
 #include "low_level_api.h"
 #include "QoreTuxedoTypedBuffer.h"
 #include "QC_TuxedoTypedBuffer.h"
 #include "QC_TuxedoQueueControlParams.h"
 #include "QoreTuxedoQueueControlParams.h"
+#include "QC_TuxedoTransactionId.h"
+#include "QoreTuxedoTransactionId.h"
+#include "connection_parameters_helper.h"
 
 #include <atmi.h>
 #include <userlog.h>
+#include <tx.h>
+#include <fml.h>
+#include <fml32.h>
 
 const int64 OK = 0;
 
@@ -65,7 +72,7 @@ static QoreTuxedoQueueControlParams* node2queue_control_params(QoreNode* n, char
     xsink->raiseException(func_name, "Expected instance of Tuxedo::TuxedoQueueControlParams class.");
     return 0;
   }
-  if (n->val.object->getClass()->getID() != CID_TUXEDOQUEUECONTROLPARAMS) {
+  if (n->val.object->getClass()->getID() != CID_TUXEDOTRANSACTIOONID) {
     xsink->raiseException(func_name, "Type mismatch: expected instance of Tuxedo::TuxedoQueueControlParams class.");
     return 0;
   }
@@ -73,6 +80,24 @@ static QoreTuxedoQueueControlParams* node2queue_control_params(QoreNode* n, char
   QoreTuxedoQueueControlParams* ctl = (QoreTuxedoQueueControlParams*)(n->val.object);
   return ctl;
 }
+
+//------------------------------------------------------------------------------
+// n - known as an object
+static QoreTuxedoTransactionId* node2transaction_id(QoreNode* n, char* func_name, ExceptionSink* xsink)
+{
+  if (!n->val.object) {
+    xsink->raiseException(func_name, "Expected instance of Tuxedo::TuxedoTransactionId class.");
+    return 0;
+  }
+  if (n->val.object->getClass()->getID() != CID_TUXEDOTRANSACTIOONID) {
+    xsink->raiseException(func_name, "Type mismatch: expected instance of Tuxedo::TuxedoTransactionId class.");
+    return 0;
+  }
+  // this should be safe now
+  QoreTuxedoTransactionId* trid = (QoreTuxedoTransactionId*)(n->val.object);
+  return trid;
+}
+
 
 //------------------------------------------------------------------------------
 // http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c28.htm#1040017
@@ -165,14 +190,32 @@ static QoreNode* f_tpalloc(QoreNode* params, ExceptionSink* xsink)
 
 //------------------------------------------------------------------------------
 // http://edocs.bea.com/tux91/rf3c/rf3c55.htm#1022852
-// Variant w/o parameters (tpinfo == 0)
+// Variant with tpinfo == 0
+// Parameters:
+// * optional hash with environment variables
 static QoreNode* f_tpinit(QoreNode* params, ExceptionSink* xsink)
 {
+  Tuxedo_connection_parameters conn_params;
+
   if (get_param(params, 0)) {
-    xsink->raiseException("tpinit", "No parameters expected. Use tpinit_params().");
-    return 0;
+    QoreNode* n = test_param(params, NT_HASH, 0);
+    if (!n) {
+      xsink->raiseException("tpinit", "The first parameter needs to be a hash with environment variables to set.");
+      return 0;
+    }
+    conn_params.process_parameters(n, xsink);
+    if (xsink->isException()) {
+      return 0;
+    }
+
+    if (get_param(params, 1)) {
+      xsink->raiseException("tpinit", "Up to one parameter expected (hash with environment variables).");
+      return 0;
+    }
   }
-  if (tpinit(0) == -1) {
+  
+  int res = tpinit(conn_params.get_tpinit_data());
+  if (res == -1) {
     return new QoreNode((int64)tperrno);
   } else {
     return new QoreNode(OK);
@@ -187,11 +230,14 @@ static QoreNode* f_tpinit(QoreNode* params, ExceptionSink* xsink)
 // * group name (string, max 30 chars)
 // * flags (integer)
 // * additional data (could be empty), optional
+// * optional hash with environment variable to be set
 static QoreNode* f_tpinit_params(QoreNode* params, ExceptionSink* xsink)
 {
+  char* all_params_err = "Five to seven parameters expected: user name, client name, password, group name, flags, additional data (binary, optional), environment variables (hash, optional).";
+
   for (int i = 0; i < 6; ++i) {
     if (!get_param(params, i)) {
-      xsink->raiseException("tpinit", "File or six parameters expected: user name, client name, password, group name, flags, additional data (binary, optional).");
+      xsink->raiseException("tpinit", all_params_err);
       return 0;
     }
   }
@@ -254,6 +300,7 @@ static QoreNode* f_tpinit_params(QoreNode* params, ExceptionSink* xsink)
   void* data = 0;
   int data_size = 0;
 
+  int next_index = 5;
   if (get_param(params, 5)) {
     n = test_param(params, NT_BINARY, 5);
     if (!n) {
@@ -262,6 +309,26 @@ static QoreNode* f_tpinit_params(QoreNode* params, ExceptionSink* xsink)
     }
     data = n->val.bin->getPtr();
     data_size = n->val.bin->size();
+    ++next_index;
+  }
+
+  Tuxedo_connection_parameters conn_params;
+  if (get_param(params, next_index)) {
+    n = test_param(params, NT_HASH, next_index);
+    if (!n) {
+      xsink->raiseException("tpinit", "The sixth or seventh parameter, environment variables, needs to be a hash.");
+      return 0;
+    }
+    conn_params.process_parameters(n, xsink);
+    if (xsink->isException()) {
+      return 0;
+    }
+    ++next_index;
+  } 
+  
+  if (get_param(params, next_index)) {
+    xsink->raiseException("tpinit", all_params_err);
+    return 0;
   }
 
   long result_size = sizeof(TPINIT) + data_size;
@@ -1107,6 +1174,302 @@ static QoreNode* f_tpgprio(QoreNode* params, ExceptionSink* xsink)
 }
 
 //-----------------------------------------------------------------------------
+// http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c81.htm#1045633
+static QoreNode* f_tpsuspend(QoreNode* params, ExceptionSink* xsink)
+{
+  for (int i = 0; i <= 2; ++i) {
+    bool ok;
+    if (i == 2) ok = !get_param(params, i);
+    else ok = get_param(params, i);
+    if (!ok) {
+      xsink->raiseException("tpsuspend", "Two parameters expected: instance of TuxedoTranscationId passed by  reference and integer flags.");
+      return 0;
+    }
+  }
+  
+  QoreNode* n = test_param(params, NT_OBJECT, 0);
+  if (!n) {
+    xsink->raiseException("tpsuspend", "The first parameter, transaction ID, needs to be instance of TuxedoTransactionId passed by reference.");
+    return 0;
+  }
+  QoreTuxedoTransactionId* trid = node2transaction_id(n, "tpsuspend", xsink);
+  if (xsink->isException()) {
+    return 0;
+  }
+
+  n = test_param(params, NT_INT, 1);
+  if (!n) {
+    xsink->raiseException("tpsuspend", "The second parameter, flags, needs to be an integer.");
+    return 0;
+  }
+  long flags = (long)n->val.intval;
+
+  if (tpsuspend(&trid->trid, flags) == -1) {
+    return new QoreNode((int64)tperrno);
+  } else {
+    return new QoreNode(OK);
+  }
+}
+
+//-----------------------------------------------------------------------------
+// http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c65.htm#1044625
+static QoreNode* f_tpresume(QoreNode* params, ExceptionSink* xsink)
+{
+  for (int i = 0; i <= 2; ++i) {
+    bool ok;
+    if (i == 2) ok = !get_param(params, i);
+    else ok = get_param(params, i);
+    if (!ok) {
+      xsink->raiseException("tpresume", "Two parameters expected: instance of TuxedoTranscationId passed by  reference and integer flags.");
+      return 0;
+    }
+  }
+
+  QoreNode* n = test_param(params, NT_OBJECT, 0);
+  if (!n) {
+    xsink->raiseException("tpresume", "The first parameter, transaction ID, needs to be instance of TuxedoTransactionId passed by reference.");
+    return 0;
+  }
+  QoreTuxedoTransactionId* trid = node2transaction_id(n, "tpresume", xsink);
+  if (xsink->isException()) {
+    return 0;
+  }
+
+  n = test_param(params, NT_INT, 1);
+  if (!n) {
+    xsink->raiseException("tpresume", "The second parameter, flags, needs to be an integer.");
+    return 0;
+  }
+  long flags = (long)n->val.intval;
+
+  if (tpresume(&trid->trid, flags) == -1) {
+    return new QoreNode((int64)tperrno);
+  } else {
+    return new QoreNode(OK);
+  }
+}
+
+//-----------------------------------------------------------------------------
+// http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c68.htm#1044795
+static QoreNode* f_tpscmt(QoreNode* params, ExceptionSink* xsink)
+{
+  for (int i = 0; i <= 1; ++i) {
+    bool ok;
+    if (i == 1) ok = !get_param(params, i);
+    else ok = get_param(params, i);
+    if (!ok) {
+      xsink->raiseException("tpscmt", "One parameter expected: integer flags.");
+      return 0;
+    }
+  }
+
+  QoreNode* n = test_param(params, NT_INT, 0);
+  if (!n) {
+    xsink->raiseException("tpscmt", "The first parameter, flags, needs to be an integer.");
+    return 0;
+  }
+  long flags = (long)n->val.intval;
+
+  if (tpscmt(flags) == -1) {
+    return new QoreNode((int64)tperrno);
+  } else {
+    return new QoreNode(OK);
+  }
+}
+
+//-----------------------------------------------------------------------------
+// http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c49.htm#122812
+static QoreNode* f_tpgetlev(QoreNode* params, ExceptionSink* xsink)
+{
+  for (int i = 0; i <= 1; ++i) {
+    bool ok;
+    if (i == 1) ok = !get_param(params, i);
+    else ok = get_param(params, i);
+    if (!ok) {
+      xsink->raiseException("tpgetlev", "One parameter expected, transaction indicator as  integer passed by reference.");
+      return 0;
+    }
+  }
+
+  QoreNode* n = test_param(params, NT_INT, 0);
+  if (!n) {
+    xsink->raiseException("tpgetlev", "The first parameter, transaction indicator, needs to be an integer passed by reference.");
+    return 0;
+  }
+  int64* pindicator = &n->val.intval;
+
+  int res = tpgetlev();
+  if (res == -1) {
+    return new QoreNode((int64)tperrno);
+  }
+
+  *pindicator = res;
+  return new QoreNode(OK);
+}
+
+//-----------------------------------------------------------------------------
+// http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c78.htm#1023204
+static QoreNode* f_tpstrerror(QoreNode* params, ExceptionSink* xsink)
+{
+  for (int i = 0; i <= 2; ++i) {
+    bool ok;
+    if (i == 2) ok = !get_param(params, i);
+    else ok = get_param(params, i);
+    if (!ok) {
+      xsink->raiseException("tpstrerror", "Two parameters expected, integer, error  out string passed by reference.");
+      return 0;
+    }
+  }
+
+  QoreNode* n = test_param(params, NT_INT, 0);
+  if (!n) {
+    xsink->raiseException("tpstrerror", "The first parameter, erro, needs to be an integer.");
+    return 0;
+  }
+  int err = (int)n->val.intval;
+
+  n = test_param(params, NT_STRING, 1);
+  if (!n) {
+    xsink->raiseException("tpstrerror", "The second parameter, out error text, needs to be an string passed by reference.");
+    return 0;
+  }
+  QoreString* s = n->val.String;
+
+  char* out = tpstrerror(err);
+  if (!out || !out[0]) {
+    return new QoreNode((int64)TPEINVAL); // no tperrno set
+  }
+  if (s) s->set(out);
+  return new QoreNode(OK);
+}
+
+//-----------------------------------------------------------------------------
+// http://edocs.bea.com/tuxedo/tux91/rf3c/rfc362.htm#1044210
+static QoreNode* f_tppost(QoreNode* params, ExceptionSink* xsink)
+{
+  for (int i = 0; i <= 3; ++i) {
+    bool ok;
+    if (i == 3) ok = !get_param(params, i);
+    else ok = get_param(params, i);
+    if (!ok) {
+      xsink->raiseException("tppost", "Three parameters expected, string event name, data in TuxedoTypedBuffer instance passed by reference, integer flags.");
+      return 0;
+    }
+  }
+  
+  QoreNode* n = test_param(params, NT_STRING, 0);
+  if (!n) {
+    xsink->raiseException("tppost", "The first parameter, event name,  needs to be a string.");
+    return 0;
+  }
+  char* event_name = n->val.String->getBuffer();
+  if (!event_name) event_name = "";
+
+  n = test_param(params, NT_OBJECT, 1);
+  if (!n) {
+    xsink->raiseException("tppost", "The second parameter, event data, needs to instance of TuxedoQueueControlParams passed by reference.");
+    return 0;
+  }
+  QoreTuxedoTypedBuffer* data = node2typed_buffer(n, "tppost", xsink);
+  if (xsink->isException()) {
+    return 0;
+  }
+
+  n = test_param(params, NT_INT, 2);
+  if (!n) {
+    xsink->raiseException("tppost", "The third parameter, flags, needs to be an integer.");
+    return 0;
+  }
+  long flags = (long)n->val.intval;
+
+  if (tppost(event_name, data->buffer, data->size, flags) == -1) {
+    return new QoreNode((int64)tperrno);
+  } else {
+    return new QoreNode(OK);
+  }
+}
+
+//-----------------------------------------------------------------------------
+// http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c101.htm#1046168
+static QoreNode* f_tx_begin(QoreNode* params, ExceptionSink* xsink)
+{
+  if (get_param(params, 0)) {
+    xsink->raiseException("tx_begin", "No parameters expected.");
+    return 0;
+  }
+
+  int res = tx_begin();
+  if (res == TX_OK) {
+    return new QoreNode(OK);
+  }
+  return new QoreNode((int64)res);
+}
+
+//-----------------------------------------------------------------------------
+// http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c102.htm#1046217
+static QoreNode* f_tx_close(QoreNode* params, ExceptionSink* xsink)
+{
+  if (get_param(params, 0)) {
+    xsink->raiseException("tx_close", "No parameters expected.");
+    return 0;
+  }
+
+  int res = tx_close();
+  if (res == TX_OK) {
+    return new QoreNode(OK);
+  }
+  return new QoreNode((int64)res);
+}
+
+//-----------------------------------------------------------------------------
+// http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c103.htm#1046266
+static QoreNode* f_tx_commit(QoreNode* params, ExceptionSink* xsink)
+{
+  if (get_param(params, 0)) {
+    xsink->raiseException("tx_commit", "No parameters expected.");
+    return 0;
+  }
+
+  int res = tx_commit();
+  if (res == TX_OK) {
+    return new QoreNode(OK);
+  }
+  return new QoreNode((int64)res);
+}
+
+//-----------------------------------------------------------------------------
+// http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c105.htm#1046379
+static QoreNode* f_tx_open(QoreNode* params, ExceptionSink* xsink)
+{
+  if (get_param(params, 0)) {
+    xsink->raiseException("tx_open", "No parameters expected.");
+    return 0;
+  }
+
+  int res = tx_open();
+  if (res == TX_OK) {
+    return new QoreNode(OK);
+  }
+  return new QoreNode((int64)res);
+}
+
+//-----------------------------------------------------------------------------
+// http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c106.htm#1046426
+static QoreNode* f_tx_rollback(QoreNode* params, ExceptionSink* xsink)
+{
+  if (get_param(params, 0)) {
+    xsink->raiseException("tx_rollback", "No parameters expected.");
+    return 0;
+  }
+
+  int res = tx_rollback();
+  if (res == TX_OK) {
+    return new QoreNode(OK);
+  }
+  return new QoreNode((int64)res);
+}
+
+//-----------------------------------------------------------------------------
 void tuxedo_low_level_init()
 {
   builtinFunctions.add("tpchkauth", f_tpchkauth, QDOM_NETWORK);
@@ -1134,10 +1497,19 @@ void tuxedo_low_level_init()
   builtinFunctions.add("TuxedoUserlog", f_userlog, QDOM_NETWORK);
   builtinFunctions.add("tpsprio", f_tpsprio, QDOM_NETWORK);
   builtinFunctions.add("tpgprio", f_tpgprio, QDOM_NETWORK);
+  builtinFunctions.add("tpsuspend", f_tpsuspend, QDOM_NETWORK);
+  builtinFunctions.add("tpresume", f_tpresume, QDOM_NETWORK);
+  builtinFunctions.add("tpscmt", f_tpscmt, QDOM_NETWORK);
+  builtinFunctions.add("tpgetlev", f_tpgetlev, QDOM_NETWORK);
+  builtinFunctions.add("tpstrerror", f_tpstrerror, QDOM_NETWORK);
+  builtinFunctions.add("tppost", f_tppost, QDOM_NETWORK);
+  builtinFunctions.add("tx_begin", f_tx_begin, QDOM_NETWORK);
+  builtinFunctions.add("tx_close", f_tx_close, QDOM_NETWORK);
+  builtinFunctions.add("tx_commit", f_tx_commit, QDOM_NETWORK);
+  builtinFunctions.add("tx_open", f_tx_open, QDOM_NETWORK);
+  builtinFunctions.add("tx_rollback", f_tx_rollback, QDOM_NETWORK);
 
-  // tpsuspend, tpresume, tpscmt, tpgetlev. tppost, tpstrerror
   // XML <-> FML
-  // tx_*
 }
 
 //-----------------------------------------------------------------------------
@@ -1240,6 +1612,21 @@ void tuxedo_low_level_ns_init(Namespace* ns)
   ns->addConstant("TPU_IGN", new QoreNode((int64)TPU_IGN));
   ns->addConstant("TPU_SIG", new QoreNode((int64)TPU_SIG));
   ns->addConstant("TPU_THREAD", new QoreNode((int64)TPU_THREAD));
+
+  ns->addConstant("TX_COMMITTED", new QoreNode((int64)TX_COMMITTED));
+  ns->addConstant("TX_COMMITTED_NO_BEGIN", new QoreNode((int64)TX_COMMITTED_NO_BEGIN));
+  ns->addConstant("TX_ERROR", new QoreNode((int64)TX_ERROR));
+  ns->addConstant("TX_FAIL", new QoreNode((int64)TX_FAIL));
+  ns->addConstant("TX_HAZARD", new QoreNode((int64)TX_HAZARD));
+  ns->addConstant("TX_HAZARD_NO_BEGIN", new QoreNode((int64)TX_HAZARD_NO_BEGIN));
+  ns->addConstant("TX_MIXED", new QoreNode((int64)TX_MIXED));
+  ns->addConstant("TX_MIXED_NO_BEGIN", new QoreNode((int64)TX_MIXED_NO_BEGIN));
+  ns->addConstant("TX_NO_BEGIN", new QoreNode((int64)TX_NO_BEGIN));
+  ns->addConstant("TX_OK", new QoreNode((int64)TX_OK));
+  ns->addConstant("TX_OUTSIDE", new QoreNode((int64)TX_OUTSIDE));
+  ns->addConstant("TX_PROTOCOL_ERROR", new QoreNode((int64)TX_PROTOCOL_ERROR));
+  ns->addConstant("TX_ROLLBACK", new QoreNode((int64)TX_ROLLBACK));
+  ns->addConstant("TX_ROLLBACK_NO_BEGIN", new QoreNode((int64)TX_ROLLBACK_NO_BEGIN));
 }
 
 // EOF

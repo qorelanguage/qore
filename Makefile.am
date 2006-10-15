@@ -170,6 +170,8 @@ noinst_HEADERS = \
 	modules/Tuxedo/low_level_api.h \
 	modules/Tuxedo/QC_TuxedoQueueControlParams.h \
 	modules/Tuxedo/QoreTuxedoQueueControlParams.h \
+        modules/Tuxedo/QC_TuxedoTransactionId.h \
+        modules/Tuxedo/QoreTransactionId.h \
 	command-line.h \
 	include/qore/Qore.h
 
