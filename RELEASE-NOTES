@@ -28,6 +28,7 @@ all Qore formats should also be parsable by the GetOpt class
 deadlocks in several classes were fixed that happened after timeouts (Datasource, SingleExitGate classes)
 bug in Datasource copy constructor
 broken ncurses module fixed, initscr() is now optional
+lots of other bugs fixed, see CHANGELOG for details
 
 see CHANGELOG for details
 
