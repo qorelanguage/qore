@@ -189,6 +189,50 @@ static QoreNode* f_tpalloc(QoreNode* params, ExceptionSink* xsink)
 }
 
 //------------------------------------------------------------------------------
+// http://edocs.bea.com/tuxedo/tux91/rf3c/rfc363.htm#1044439
+// Parameters:
+// * TuxedoTypedBuffer instance passed by reference
+// * new size integer
+static QoreNode* f_tprealloc(QoreNode* params, ExceptionSink* xsink)
+{
+  for (int i = 0; i <= 2; ++i) {
+    if (!get_param(params, i)) {
+      xsink->raiseException("tprealloc", "Two parameters expected: TuxedoTypedBuffer instance passed by reference, new size integer.");
+      return 0;
+    }
+  }
+
+  QoreNode* n = test_param(params, NT_OBJECT, 0);
+  if (!n) {
+    xsink->raiseException("tprealloc", "The first parameter needs to be a TuxedoTypedBuffer instance passed by reference.");
+    return 0;
+  }
+  QoreTuxedoTypedBuffer* buff = node2typed_buffer(n, "tprealloc", xsink);
+  if (xsink->isException()) {
+    return 0;
+  }
+  if (!buff->buffer) {
+    xsink->raiseException("tprealloc", "TuxedoTypedBuffer instance is not yet allocated.");
+    return 0;
+  }
+
+  n = test_param(params, NT_INT, 1);
+  if (!n) {
+    xsink->raiseException("tprealloc", "The second parameter, size, needs to be an integer.");
+    return 0;
+  }
+  long size = (long)n->val.intval;
+
+  char* res = tprealloc(buff->buffer, size);
+  if (!res) {
+    return new QoreNode((int64)tperrno);
+  }
+  buff->buffer = res;
+  buff->size = size;
+  return new QoreNode(OK);
+}
+
+//------------------------------------------------------------------------------
 // http://edocs.bea.com/tux91/rf3c/rf3c55.htm#1022852
 // Variant with tpinfo == 0
 // Parameters:
@@ -1474,6 +1518,7 @@ void tuxedo_low_level_init()
 {
   builtinFunctions.add("tpchkauth", f_tpchkauth, QDOM_NETWORK);
   builtinFunctions.add("tpalloc", f_tpalloc, QDOM_NETWORK);
+  builtinFunctions.add("tprealloc", f_tprealloc, QDOM_NETWORK);
   builtinFunctions.add("tpinit", f_tpinit, QDOM_NETWORK);
   builtinFunctions.add("tpinitParams", f_tpinit_params, QDOM_NETWORK);
   builtinFunctions.add("tpterm", f_tpterm, QDOM_NETWORK);
