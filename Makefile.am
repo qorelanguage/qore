@@ -176,6 +176,10 @@ noinst_HEADERS = \
 	modules/Tuxedo/QoreTuxedoFmlBuffer.h \
 	modules/Tuxedo/QC_TuxedoFml32Buffer.h \
 	modules/Tuxedo/QoreTuxedoFml32Buffer.h \
+	modules/Tuxedo/QC_TuxedoFmlId.h \
+	modules/Tuxedo/QC_TuxedoFml32Id.h \
+	modules/Tuxedo/QoreTuxedoFmlId.h \
+	modules/Tuxedo/QoreTuxedoFml32Id.h \
 	command-line.h \
 	include/qore/Qore.h
 

@@ -1,5 +1,5 @@
 /*
-  modules/Tuxedo/QoreTuxedoFml32Buffer.cc
+  modules/Tuxedo/QoreTuxedoFmlId.cc
 
   Tuxedo integration to QORE
 
@@ -26,18 +26,18 @@
 #include <qore/support.h>
 #include <qore/Exception.h>
 #include <atmi.h>
-#include <fml32.h>
+#include <fml.h>
 
-#include "QoreTuxedoFml32Buffer.h"
+#include "QoreTuxedoFmlId.h"
 #include "handle_error.h"
 
 //------------------------------------------------------------------------------
-QoreTuxedoFml32Buffer::QoreTuxedoFml32Buffer()
+QoreTuxedoFmlId::QoreTuxedoFmlId()
 {
 }
 
 //------------------------------------------------------------------------------
-QoreTuxedoFml32Buffer::~QoreTuxedoFml32Buffer()
+QoreTuxedoFmlId::~QoreTuxedoFmlId()
 {
 }
 

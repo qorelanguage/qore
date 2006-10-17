@@ -1,11 +1,14 @@
+#ifndef QORE_TUXEDO_FML32_ID_IMPL_H_
+#define QORE_TUXEDO_FML32_ID_IMPL_H_
+
 /*
-  modules/Tuxedo/QoreTuxedoFml32Buffer.cc
+  modules/Tuxedo/QoreTuxedoFml32Id.h
 
   Tuxedo integration to QORE
 
   Qore Programming Language
 
-  Copyright (C) 2006 Qore Technologies
+  Copyright (C) 2006 QoreTechnologies
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -24,22 +27,26 @@
 
 #include <qore/common.h>
 #include <qore/support.h>
-#include <qore/Exception.h>
-#include <atmi.h>
-#include <fml32.h>
+#include <qore/Object.h>
 
-#include "QoreTuxedoFml32Buffer.h"
-#include "handle_error.h"
+class ExceptionSink;
 
 //------------------------------------------------------------------------------
-QoreTuxedoFml32Buffer::QoreTuxedoFml32Buffer()
+class QoreTuxedoFml32Id : public ReferenceObject
 {
-}
+public:
 
-//------------------------------------------------------------------------------
-QoreTuxedoFml32Buffer::~QoreTuxedoFml32Buffer()
-{
-}
+  QoreTuxedoFml32Id();
+  ~QoreTuxedoFml32Id(); 
+
+  void deref() { 
+    if (ROdereference()) {
+      delete this;
+    }
+  }
+};
+
+#endif
 
 // EOF
 

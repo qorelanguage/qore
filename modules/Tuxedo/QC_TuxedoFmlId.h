@@ -1,5 +1,8 @@
+#ifndef QC_TUXEDO_FML_ID_H_
+#define QC_TUXEDO_FML_ID_H_
+
 /*
-  modules/Tuxedo/QoreTuxedoFml32Buffer.cc
+  modules/Tuxedo/QC_TuxedoFmlId.h
 
   Tuxedo integration to QORE
 
@@ -7,7 +10,7 @@
 
   Copyright (C) 2006 Qore Technologies
 
-  This library is free software; you can redistribute it and/or
+   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
   License as published by the Free Software Foundation; either
   version 2.1 of the License, or (at your option) any later version.
@@ -24,22 +27,11 @@
 
 #include <qore/common.h>
 #include <qore/support.h>
-#include <qore/Exception.h>
-#include <atmi.h>
-#include <fml32.h>
 
-#include "QoreTuxedoFml32Buffer.h"
-#include "handle_error.h"
+extern int CID_TUXEDOFMLID;
+extern class QoreClass* initTuxedoFmlIdClass();
 
-//------------------------------------------------------------------------------
-QoreTuxedoFml32Buffer::QoreTuxedoFml32Buffer()
-{
-}
-
-//------------------------------------------------------------------------------
-QoreTuxedoFml32Buffer::~QoreTuxedoFml32Buffer()
-{
-}
+#endif
 
 // EOF
 

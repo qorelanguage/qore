@@ -18,7 +18,11 @@ TUXEDO_SOURCES =  tuxedo.cc \
   QC_TuxedoFmlBuffer.cc \
   QoreTuxedoFmlBuffer.cc \
   QC_TuxedoFml32Buffer.cc \
-  QoreTuxedoFml32Buffer.cc
+  QoreTuxedoFml32Buffer.cc \
+  QC_TuxedoFmlId.cc \
+  QC_TuxedoFml32Id.cc \
+  QoreTuxedoFmlId.cc \
+  QoreTuxedoFml32Id.cc
 
 
 if COND_MONOLITHIC
