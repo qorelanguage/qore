@@ -28,6 +28,7 @@
 #include <qore/common.h>
 #include <qore/support.h>
 #include <qore/Object.h>
+#include <fml32.h>
 
 class ExceptionSink;
 
@@ -35,10 +36,13 @@ class ExceptionSink;
 class QoreTuxedoFml32Buffer : public ReferenceObject
 {
 public:
+  FBFR32* buffer;
+  long size;
 
   QoreTuxedoFml32Buffer();
   ~QoreTuxedoFml32Buffer(); 
 
+  void clear();
   void deref() { 
     if (ROdereference()) {
       delete this;

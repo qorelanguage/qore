@@ -33,12 +33,24 @@
 
 //------------------------------------------------------------------------------
 QoreTuxedoFml32Buffer::QoreTuxedoFml32Buffer()
+: buffer(0), size(0)
 {
 }
 
 //------------------------------------------------------------------------------
 QoreTuxedoFml32Buffer::~QoreTuxedoFml32Buffer()
 {
+  clear();
+}
+
+//-----------------------------------------------------------------------------
+void QoreTuxedoFml32Buffer::clear()
+{
+  if (buffer) {
+    tpfree((char*)buffer);
+    buffer = 0;
+  }
+  if (size) size = 0;
 }
 
 // EOF

@@ -28,6 +28,7 @@
 #include <qore/common.h>
 #include <qore/support.h>
 #include <qore/Object.h>
+#include <fml32.h>
 
 class ExceptionSink;
 
@@ -35,6 +36,7 @@ class ExceptionSink;
 class QoreTuxedoFml32Id : public ReferenceObject
 {
 public:
+  FLDID32 id;
 
   QoreTuxedoFml32Id();
   ~QoreTuxedoFml32Id(); 

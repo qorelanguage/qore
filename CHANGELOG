@@ -1,5 +1,3 @@
-2006.10.17: Pavel Vozenilek
-	* added classes for FML and FML32 buffers and IDs
 2006.10.14: David Nichols
 	* make all parseXMLRPC* functions ignore significant whitespace
 	* set relative=false in methods where an absolute date is assigned in

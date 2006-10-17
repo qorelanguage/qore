@@ -14,15 +14,7 @@ TUXEDO_SOURCES =  tuxedo.cc \
   low_level_api.cc \
   QC_TuxedoQueueControlParams.cc \
   QoreTuxedoQueueControlParams.cc \
-  QC_TuxedoTransactionId.cc \
-  QC_TuxedoFmlBuffer.cc \
-  QoreTuxedoFmlBuffer.cc \
-  QC_TuxedoFml32Buffer.cc \
-  QoreTuxedoFml32Buffer.cc \
-  QC_TuxedoFmlId.cc \
-  QC_TuxedoFml32Id.cc \
-  QoreTuxedoFmlId.cc \
-  QoreTuxedoFml32Id.cc
+  QC_TuxedoTransactionId.cc 
 
 
 if COND_MONOLITHIC

@@ -42,8 +42,6 @@
 #include <atmi.h>
 #include <userlog.h>
 #include <tx.h>
-#include <fml.h>
-#include <fml32.h>
 
 const int64 OK = 0;
 
@@ -97,7 +95,6 @@ static QoreTuxedoTransactionId* node2transaction_id(QoreNode* n, char* func_name
   QoreTuxedoTransactionId* trid = (QoreTuxedoTransactionId*)(n->val.object);
   return trid;
 }
-
 
 //------------------------------------------------------------------------------
 // http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c28.htm#1040017
@@ -1554,7 +1551,7 @@ void tuxedo_low_level_init()
   builtinFunctions.add("tx_open", f_tx_open, QDOM_NETWORK);
   builtinFunctions.add("tx_rollback", f_tx_rollback, QDOM_NETWORK);
 
-  // XML <-> FML
+  // TBD - XML <-> FML
 }
 
 //-----------------------------------------------------------------------------

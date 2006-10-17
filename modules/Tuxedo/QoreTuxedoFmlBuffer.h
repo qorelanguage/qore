@@ -28,22 +28,14 @@
 #include <qore/common.h>
 #include <qore/support.h>
 #include <qore/Object.h>
-
-class ExceptionSink;
+#include "QoreTuxedoTypedBuffer.h"
 
 //------------------------------------------------------------------------------
-class QoreTuxedoFmlBuffer : public ReferenceObject
+class QoreTuxedoFmlBuffer : public QoreTuxedoTypedBuffer
 {
 public:
-
   QoreTuxedoFmlBuffer();
   ~QoreTuxedoFmlBuffer(); 
-
-  void deref() { 
-    if (ROdereference()) {
-      delete this;
-    }
-  }
 };
 
 #endif
