@@ -39,6 +39,8 @@
 #include "low_level_api.h"
 #include "QC_TuxedoTransactionId.h"
 #include "QC_TuxedoQueueControlParams.h"
+#include "QC_TuxedoFmlBuffer.h"
+#include "QC_TuxedoFml32Buffer.h"
 
 #include <atmi.h>
 #include "handle_error.h"
@@ -79,6 +81,10 @@ void tuxedo_module_ns_init(class Namespace* rns, class Namespace* qns)
   tuxedons->addSystemClass(initTuxedoQueueControlParamsClass());
   // Tuxedo:TuxedoTransactionId class
   tuxedons->addSystemClass(initTuxedoTransactionIdClass());
+  // Tuxedo::TuxedoFmlBuffer class
+  tuxedons->addSystemClass(initTuxedoFmlBufferClass());
+  // Tuxedo::TuxedoFml32Buffer class
+  tuxedons->addSystemClass(initTuxedoFml32BufferClass());
 
   // Tuxedo::TuxedoConnection class
   tuxedons->addSystemClass(initTuxedoConnectionClass());

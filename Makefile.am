@@ -171,7 +171,11 @@ noinst_HEADERS = \
 	modules/Tuxedo/QC_TuxedoQueueControlParams.h \
 	modules/Tuxedo/QoreTuxedoQueueControlParams.h \
         modules/Tuxedo/QC_TuxedoTransactionId.h \
-        modules/Tuxedo/QoreTransactionId.h \
+        modules/Tuxedo/QoreTuxedoTransactionId.h \
+	modules/Tuxedo/QC_TuxedoFmlBuffer.h \
+	modules/Tuxedo/QoreTuxedoFmlBuffer.h \
+	modules/Tuxedo/QC_TuxedoFml32Buffer.h \
+	modules/Tuxedo/QoreTuxedoFml32Buffer.h \
 	command-line.h \
 	include/qore/Qore.h
 
