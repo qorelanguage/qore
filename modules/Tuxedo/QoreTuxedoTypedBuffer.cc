@@ -25,18 +25,21 @@
 #include <qore/common.h>
 #include <qore/support.h>
 #include <qore/Exception.h>
+#include <qore/charset.h>
+
 #include <atmi.h>
 
 #include "QoreTuxedoTypedBuffer.h"
 #include "handle_error.h"
+#include "tpalloc_helper.h"
 
 //------------------------------------------------------------------------------
 QoreTuxedoTypedBuffer::QoreTuxedoTypedBuffer()
-: buffer(0), size(0)
+: buffer(0), size(0), string_encoding(QCS_DEFAULT)
 {
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 QoreTuxedoTypedBuffer::~QoreTuxedoTypedBuffer()
 {
   clear();
@@ -50,6 +53,42 @@ void QoreTuxedoTypedBuffer::clear()
     buffer = 0;
   }
   if (size) size = 0;
+}
+
+//-----------------------------------------------------------------------------
+void QoreTuxedoTypedBuffer::setStringEncoding(QoreEncoding *enc)
+{
+  string_encoding = enc;
+}
+
+//-----------------------------------------------------------------------------
+void QoreTuxedoTypedBuffer::setBinary(BinaryObject* bin, char* type, char* subtype, ExceptionSink* xsink)
+{
+  clear();
+  
+  void* dt = bin->getPtr();
+  unsigned sz = bin->size();
+  if (!sz) {
+    return;
+  }
+  buffer = tpalloc_helper(type, subtype, sz, "TuxedoTypedBuffer::setBinary()", xsink);
+  if (xsink->isException()) {
+    return;
+  }
+  size = sz;
+  memcpy(buffer, dt, sz);
+}
+
+//-----------------------------------------------------------------------------
+void QoreTuxedoTypedBuffer::setString(char* str, char* type, char* subtype, ExceptionSink* xsink)
+{
+  int sz = strlen(str) + 1;
+  buffer = tpalloc_helper(type, subtype, sz, "TuxedoTypedBuffer::setBinary()", xsink);
+  if (xsink->isException()) {
+    return;
+  }
+  strcpy(buffer, str);
+  size = sz;
 }
 
 // EOF

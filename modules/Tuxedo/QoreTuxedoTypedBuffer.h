@@ -30,6 +30,8 @@
 #include <qore/Object.h>
 
 class ExceptionSink;
+class BinaryObject;
+class QoreEncoding;
 
 //------------------------------------------------------------------------------
 class QoreTuxedoTypedBuffer : public ReferenceObject
@@ -37,11 +39,15 @@ class QoreTuxedoTypedBuffer : public ReferenceObject
 public:
   char* buffer;
   long size;
+  QoreEncoding* string_encoding;
 
   QoreTuxedoTypedBuffer();
   ~QoreTuxedoTypedBuffer(); 
 
   void clear();
+  void setStringEncoding(QoreEncoding *enc);
+  void setBinary(BinaryObject* bin, char* type, char* subtype, ExceptionSink* xsink);
+  void setString(char* str, char* type, char* subtype, ExceptionSink* xsink);
 
   void deref() { 
     if (ROdereference()) {
