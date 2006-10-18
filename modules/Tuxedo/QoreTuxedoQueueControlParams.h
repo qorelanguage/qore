@@ -38,8 +38,12 @@ class QoreTuxedoQueueControlParams : public ReferenceObject
 public:
   TPQCTL ctl;
 
-  QoreTuxedoQueueControlParams();
-  ~QoreTuxedoQueueControlParams(); 
+  QoreTuxedoQueueControlParams() {
+    memset(&ctl, 0, sizeof(ctl));
+    ctl.flags = TPNOFLAGS;
+  }
+
+  ~QoreTuxedoQueueControlParams() {}
 
   void deref() { 
     if (ROdereference()) {

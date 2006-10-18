@@ -30,8 +30,6 @@
 #include <atmi.h>
 
 #include "QoreTuxedoTypedBuffer.h"
-#include "handle_error.h"
-#include "tpalloc_helper.h"
 
 //------------------------------------------------------------------------------
 QoreTuxedoTypedBuffer::QoreTuxedoTypedBuffer()
@@ -71,10 +69,12 @@ void QoreTuxedoTypedBuffer::setBinary(BinaryObject* bin, char* type, char* subty
   if (!sz) {
     return;
   }
-  buffer = tpalloc_helper(type, subtype, sz, "TuxedoTypedBuffer::setBinary()", xsink);
-  if (xsink->isException()) {
+  buffer = tpalloc(type, subtype, sz);
+  if (!buffer) {
+    xsink->raiseException("TuxedoTypedBuffer::setBinary()", "tpalloc() failed with error code %d.", tperrno);
     return;
   }
+
   size = sz;
   memcpy(buffer, dt, sz);
 }
@@ -83,10 +83,12 @@ void QoreTuxedoTypedBuffer::setBinary(BinaryObject* bin, char* type, char* subty
 void QoreTuxedoTypedBuffer::setString(char* str, char* type, char* subtype, ExceptionSink* xsink)
 {
   int sz = strlen(str) + 1;
-  buffer = tpalloc_helper(type, subtype, sz, "TuxedoTypedBuffer::setBinary()", xsink);
-  if (xsink->isException()) {
+  buffer = tpalloc(type, subtype, sz);
+  if (!buffer) {
+    xsink->raiseException("TuxedoTypedBuffer::setString()", "tpalloc() failed with error code %d.", tperrno);
     return;
   }
+
   strcpy(buffer, str);
   size = sz;
 }

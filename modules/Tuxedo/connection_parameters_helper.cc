@@ -29,7 +29,6 @@
 #include <memory>
 
 #include "connection_parameters_helper.h"
-#include "tpalloc_helper.h"
 
 // The tast of Tuxedo_connection_parameters is to process
 // has used to pass parameters, set environment variables
@@ -157,10 +156,12 @@ void Tuxedo_connection_parameters::process_parameters(QoreNode* params, Exceptio
   // does the TPINIT structure need to be allocated?
   // (keep this at the end of the function)
   if (flags || username.size() || clientname.size() || password.size() || groupname.size()) {
-    m_tpinit_data = (tpinfo_t*)tpalloc_helper("TPINIT", 0, sizeof(tpinfo_t), "QORE-TUXEDO-CONNECTION-CONSTRUCTOR", xsink);
-    if (xsink->isException()) {
+    m_tpinit_data = (tpinfo_t*)tpalloc("TPINIT", 0, sizeof(tpinfo_t));
+    if (!m_tpinit_data) {
+      xsink->raiseException("tpalloc()", "tpalloc() failed with error %d.", tperrno);
       return;
     }
+
     strcpy(m_tpinit_data->usrname, username.c_str() ? username.c_str() : "" );
     strcpy(m_tpinit_data->cltname, clientname.c_str() ? clientname.c_str() : "" );
     strcpy(m_tpinit_data->passwd, password.c_str() ? password.c_str() : "");

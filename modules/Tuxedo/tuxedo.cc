@@ -32,16 +32,12 @@
 
 #include "tuxedo_module.h"
 
-#include "QC_TuxedoConnection.h"
-#include "QC_TuxedoAdapter.h"
-
 #include "QC_TuxedoTypedBuffer.h"
 #include "low_level_api.h"
 #include "QC_TuxedoTransactionId.h"
 #include "QC_TuxedoQueueControlParams.h"
 
 #include <atmi.h>
-#include "handle_error.h"
 
 #ifndef QORE_MONOLITHIC
 char qore_module_name[] = "tuxedo";
@@ -79,12 +75,6 @@ void tuxedo_module_ns_init(class Namespace* rns, class Namespace* qns)
   tuxedons->addSystemClass(initTuxedoQueueControlParamsClass());
   // Tuxedo:TuxedoTransactionId class
   tuxedons->addSystemClass(initTuxedoTransactionIdClass());
-
-  // Tuxedo::TuxedoConnection class
-  tuxedons->addSystemClass(initTuxedoConnectionClass());
-  // Tuxedo:TuxedoAdapter class
-  tuxedons->addSystemClass(initTuxedoAdapterClass());
-  qns->addInitialNamespace(tuxedons);
 
   traceout("tuxedo_module_ns_init");
 }
