@@ -82,6 +82,7 @@ void QoreTuxedoTypedBuffer::setBinary(BinaryObject* bin, char* type, char* subty
 //-----------------------------------------------------------------------------
 void QoreTuxedoTypedBuffer::setString(char* str, char* type, char* subtype, ExceptionSink* xsink)
 {
+  if (!str) str = "";
   int sz = strlen(str) + 1;
   buffer = tpalloc(type, subtype, sz);
   if (!buffer) {

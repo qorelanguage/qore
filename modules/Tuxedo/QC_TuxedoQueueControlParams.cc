@@ -642,16 +642,16 @@ class QoreClass* initTuxedoQueueControlParamsClass()
   ctl->addMethod("setAppkey", (q_method_t)TUXEDOQCTL_setAppkey);
   ctl->addMethod("getUrcode", (q_method_t)TUXEDOQCTL_getUrcode);
   ctl->addMethod("setUrcode", (q_method_t)TUXEDOQCTL_setUrcode);
-  ctl->addMethod("getClientID", (q_method_t)TUXEDOQCTL_getClientID);
-  ctl->addMethod("setClientID", (q_method_t)TUXEDOQCTL_setClientID);
+  ctl->addMethod("getClientId", (q_method_t)TUXEDOQCTL_getClientID);
+  ctl->addMethod("setClientId", (q_method_t)TUXEDOQCTL_setClientID);
   ctl->addMethod("getReplyQueue", (q_method_t)TUXEDOQCTL_getReplyQueue);
   ctl->addMethod("setReplyQueue", (q_method_t)TUXEDOQCTL_setReplyQueue);
   ctl->addMethod("getFailureQueue",  (q_method_t)TUXEDOQCTL_getFailureQueue);
   ctl->addMethod("setFailureQueue", (q_method_t)TUXEDOQCTL_setFailureQueue);
-  ctl->addMethod("getMsgID", (q_method_t)TUXEDOQCTL_getMsgID);
-  ctl->addMethod("setMsgID", (q_method_t)TUXEDOQCTL_setMsgID);
-  ctl->addMethod("getCorrID", (q_method_t)TUXEDOQCTL_getCorrID);
-  ctl->addMethod("setCorrID", (q_method_t)TUXEDOQCTL_setCorrID);
+  ctl->addMethod("getMsgId", (q_method_t)TUXEDOQCTL_getMsgID);
+  ctl->addMethod("setMsgId", (q_method_t)TUXEDOQCTL_setMsgID);
+  ctl->addMethod("getCorrId", (q_method_t)TUXEDOQCTL_getCorrID);
+  ctl->addMethod("setCorrId", (q_method_t)TUXEDOQCTL_setCorrID);
 
   traceout("initTuxedoQueueControlParamsClass");
   return ctl;

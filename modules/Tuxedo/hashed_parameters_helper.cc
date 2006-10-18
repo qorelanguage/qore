@@ -1,5 +1,5 @@
 /*
-  modules/Tuxedo/connection_parameters_helper.cc
+  modules/Tuxedo/hashed_parameters_helper.cc
 
   Tuxedo integration to QORE
 
@@ -28,31 +28,31 @@
 #include <qore/Hash.h>
 #include <memory>
 
-#include "connection_parameters_helper.h"
+#include "hashed_parameters_helper.h"
 
-// The tast of Tuxedo_connection_parameters is to process
-// has used to pass parameters, set environment variables
+// The task of Tuxedo_hashed_parameters is to process
+// has used to passed hash, set environment variables
 // and later reset them back and provide TPINIT structure
 // for tpinit() call. All this should be MT safe since
 // several threads may want to join Tuxedo and setting
 // environment variables is not MT safe.
 //
 
-// Connections to Tuxedo are serialized to avoid problems
-// with changes in environment made by the other threads.
-LockedObject Tuxedo_connection_parameters::m_mutex;
+// Changed to the environment are serialized to avoid problems
+// with changes made by the other threads.
+LockedObject Tuxedo_hashed_parameters::m_mutex;
 
 const int foff = 1; // not really sure what is this good for
 
 //------------------------------------------------------------------------------
-Tuxedo_connection_parameters::Tuxedo_connection_parameters()
+Tuxedo_hashed_parameters::Tuxedo_hashed_parameters()
 : m_tpinit_data(0)
 {
   m_mutex.lock(); 
 }
 
 //------------------------------------------------------------------------------
-Tuxedo_connection_parameters::~Tuxedo_connection_parameters()
+Tuxedo_hashed_parameters::~Tuxedo_hashed_parameters()
 {
   // restore previous environment
   for (unsigned i = 0, n = m_old_environment.size(); i != n; ++i) {
@@ -70,7 +70,7 @@ Tuxedo_connection_parameters::~Tuxedo_connection_parameters()
 }
 
 //------------------------------------------------------------------------------
-void Tuxedo_connection_parameters::process_parameters(QoreNode* params, ExceptionSink* xsink)
+void Tuxedo_hashed_parameters::process_hash(QoreNode* params, ExceptionSink* xsink)
 {
   // inspect all relevant parameters
   std::string username, clientname, password, groupname;
@@ -173,7 +173,7 @@ void Tuxedo_connection_parameters::process_parameters(QoreNode* params, Exceptio
 }
 
 //------------------------------------------------------------------------------
-bool Tuxedo_connection_parameters::set_environment_variable(char* name, Hash* params, ExceptionSink* xsink)
+bool Tuxedo_hashed_parameters::set_environment_variable(char* name, Hash* params, ExceptionSink* xsink)
 {
   QoreNode* n = params->getKeyValue(name);
   if (!n) return true;
@@ -205,7 +205,7 @@ bool Tuxedo_connection_parameters::set_environment_variable(char* name, Hash* pa
 }
 
 //------------------------------------------------------------------------------
-bool Tuxedo_connection_parameters::set_flag(char* name, unsigned flag, Hash* params, ExceptionSink* xsink, long& flags)
+bool Tuxedo_hashed_parameters::set_flag(char* name, unsigned flag, Hash* params, ExceptionSink* xsink, long& flags)
 {
   QoreNode* n = params->getKeyValue(name);
   if (!n) return true;
@@ -223,7 +223,7 @@ bool Tuxedo_connection_parameters::set_flag(char* name, unsigned flag, Hash* par
 }
 
 //------------------------------------------------------------------------------
-bool Tuxedo_connection_parameters::set_string(char* name, Hash* params, ExceptionSink* xsink, std::string& str)
+bool Tuxedo_hashed_parameters::set_string(char* name, Hash* params, ExceptionSink* xsink, std::string& str)
 {
   QoreNode*  n = params->getKeyValue(name);
   if (!n) return true;

@@ -160,7 +160,7 @@ noinst_HEADERS = \
 	modules/ncurses/QC_Panel.h \
 	modules/ncurses/ncurses-module.h \
 	modules/Tuxedo/tuxedo_module.h \
-	modules/Tuxedo/connection_parameters_helper.h \
+	modules/Tuxedo/hashed_parameters_helper.h \
 	modules/Tuxedo/QC_TuxedoTypedBuffer.h \
 	modules/Tuxedo/QoreTuxedoTypedBuffer.h \
 	modules/Tuxedo/low_level_api.h \

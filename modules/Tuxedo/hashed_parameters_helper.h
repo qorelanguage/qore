@@ -1,5 +1,5 @@
 /*
-  modules/Tuxedo/connection_parameters_helper.h
+  modules/Tuxedo/hashed_parameters_helper.h
 
   Tuxedo integration to QORE
 
@@ -22,8 +22,8 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef QORE_TUXEDO_CONNECTION_PARAMETERS_HELPER_H_
-#define QORE_TUXEDO_CONNECTION_PARAMETERS_HELPER_H_
+#ifndef QORE_TUXEDO_HASHED_PARAMETERS_HELPER_H_
+#define QORE_TUXEDO_HASHED_PARAMETERS_HELPER_H_
 
 #include <qore/common.h>
 #include <qore/support.h>
@@ -36,8 +36,14 @@
 class ExceptionSink;
 class Hash;
 
+// Class used to:
+// * avoid need to set environment variables (instead they are passed in a hash)
+// * pass tpinit() parameters in hash form
+//
+// The class is multithreaded safe.
+
 //------------------------------------------------------------------------------
-class Tuxedo_connection_parameters
+class Tuxedo_hashed_parameters
 {
   static  LockedObject m_mutex; // must be static
   TPINIT* m_tpinit_data;
@@ -48,9 +54,11 @@ class Tuxedo_connection_parameters
   bool set_string(char* name, Hash* params, ExceptionSink* xsink, std::string& str);
 
 public:
-  Tuxedo_connection_parameters();
-  ~Tuxedo_connection_parameters();
-  void process_parameters(QoreNode* params, ExceptionSink* xsink); // parses hash with all parameters for Tuxedo tpinit()
+  Tuxedo_hashed_parameters();
+  ~Tuxedo_hashed_parameters();
+  // Takes hash, sets environment variables from it, stores tpinit() data for later
+  void process_hash(QoreNode* params, ExceptionSink* xsink); 
+  // Get tpinit() data from processed hash. Returns 0 if there were none.
   TPINIT* get_tpinit_data() { return m_tpinit_data; }
 };
 

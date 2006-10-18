@@ -37,7 +37,7 @@
 #include "QoreTuxedoQueueControlParams.h"
 #include "QC_TuxedoTransactionId.h"
 #include "QoreTuxedoTransactionId.h"
-#include "connection_parameters_helper.h"
+#include "hashed_parameters_helper.h"
 
 #include <atmi.h>
 #include <userlog.h>
@@ -236,7 +236,7 @@ static QoreNode* f_tprealloc(QoreNode* params, ExceptionSink* xsink)
 // * optional hash with environment variables
 static QoreNode* f_tpinit(QoreNode* params, ExceptionSink* xsink)
 {
-  Tuxedo_connection_parameters conn_params;
+  Tuxedo_hashed_parameters conn_params;
 
   if (get_param(params, 0)) {
     QoreNode* n = test_param(params, NT_HASH, 0);
@@ -244,7 +244,7 @@ static QoreNode* f_tpinit(QoreNode* params, ExceptionSink* xsink)
       xsink->raiseException("tpinit", "The first parameter needs to be a hash with environment variables to set.");
       return 0;
     }
-    conn_params.process_parameters(n, xsink);
+    conn_params.process_hash(n, xsink);
     if (xsink->isException()) {
       return 0;
     }
@@ -353,14 +353,14 @@ static QoreNode* f_tpinit_params(QoreNode* params, ExceptionSink* xsink)
     ++next_index;
   }
 
-  Tuxedo_connection_parameters conn_params;
+  Tuxedo_hashed_parameters conn_params;
   if (get_param(params, next_index)) {
     n = test_param(params, NT_HASH, next_index);
     if (!n) {
       xsink->raiseException("tpinit", "The sixth or seventh parameter, environment variables, needs to be a hash.");
       return 0;
     }
-    conn_params.process_parameters(n, xsink);
+    conn_params.process_hash(n, xsink);
     if (xsink->isException()) {
       return 0;
     }

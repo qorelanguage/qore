@@ -2,7 +2,7 @@ libdir = ${exec_prefix}/lib${LIBSUFFIX}
 pkglibdir = $(libdir)/@PACKAGE@-@VERSION@
 
 TUXEDO_SOURCES =  tuxedo.cc \
-  connection_parameters_helper.cc \
+  hashed_parameters_helper.cc \
   QC_TuxedoTypedBuffer.cc \
   QoreTuxedoTypedBuffer.cc \
   low_level_api.cc \
