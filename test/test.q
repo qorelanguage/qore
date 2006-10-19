@@ -854,6 +854,14 @@ sub simple_shift()
 
 sub misc_tests()
 {
+    my $dh = ( "user"    : "user",
+	       "pass"    : "123pass@word",
+	       "db"      : "dbname",
+	       "charset" : "utf8",
+	       "host"    : "hostname" );
+    my $ds = "user/123pass@word@dbname(utf8)%hostname";
+    test_value($dh, parseDatasource($ds), "first parseDatasource()"); 
+
     test_value(call_function("simple_shift", 1), 1, "call_function()");
     test_value(existsFunction("simple_shift"), True, "existsFunction()");
     test_value(functionType("simple_shift"), "user", "functionType() user");

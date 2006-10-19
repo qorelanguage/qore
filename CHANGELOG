@@ -1,3 +1,7 @@
+2006.10.19: David Nichols
+	* fixed datasource parsing to find the last occurrence of '@' in the
+	  string so that passwords can contain '@' characters
+
 2006.10.14: David Nichols
 	* make all parseXMLRPC* functions ignore significant whitespace
 	* set relative=false in methods where an absolute date is assigned in

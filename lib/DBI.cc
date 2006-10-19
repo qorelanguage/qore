@@ -82,7 +82,7 @@ class Hash *parseDatasource(char *ds, class ExceptionSink *xsink)
       has_pass = true;
    }
 
-   p = strchr(str, '@');
+   p = strrchr(str, '@');
    if (!p)
    {
       free(ostr);
