@@ -100,14 +100,9 @@ static QoreTuxedoTransactionId* node2transaction_id(QoreNode* n, char* func_name
 // http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c28.htm#1040017
 static QoreNode* f_tpchkauth(QoreNode* params, ExceptionSink* xsink)
 {
-  for (int i = 0; i <= 1; ++i) {
-    bool ok;
-    if (i == 1) ok = !get_param(params, i);
-    else ok = get_param(params, i);
-    if (!ok) {
-      xsink->raiseException("tpchkauth", "One parameter expected: required authentification integer passed by reference.");
-      return 0;
-    }
+  if (!get_param(params, 0)) {
+    xsink->raiseException("tpchkauth", "One or two parameters expected: required authentification integer passed by reference, optional hash with environment variables to be used.");
+    return 0;
   }
 
   QoreNode* n = test_param(params, NT_INT, 0);
@@ -115,6 +110,20 @@ static QoreNode* f_tpchkauth(QoreNode* params, ExceptionSink* xsink)
     xsink->raiseException("tpchauth", "The first parameter, required authentification, needs to be an integer passed by reference.");
   }
   int64* pauth = &n->val.intval;
+
+  Tuxedo_hashed_parameters conn_params;
+
+  if (get_param(params, 1)) {
+    n = test_param(params, NT_HASH, 1);
+    if (!n) {
+      xsink->raiseException("tpchkauth", "The second parameter, optional environment parameters to be used, needs to be a hash.");
+      return 0;
+    }
+    conn_params.process_hash(n, xsink);
+    if (xsink->isException()) {
+      return 0;
+    }
+  }
 
   int res = tpchkauth();
   if (res == -1) {
@@ -1045,7 +1054,7 @@ static QoreNode* f_tpenqueue(QoreNode* params, ExceptionSink* xsink)
 // * queue control parameters object TuxedoQueueControlParams passed as reference
 // * read data, TuxedoTypedBuffer instance passed by reference
 // * flags integer
-static QoreNode* f_tpdeque(QoreNode* params, ExceptionSink* xsink)
+static QoreNode* f_tpdequeue(QoreNode* params, ExceptionSink* xsink)
 {
   for (int i = 0; i <= 5; ++i) {
     bool ok;
@@ -1534,7 +1543,7 @@ void tuxedo_low_level_init()
   builtinFunctions.add("tpsend", f_tpsend, QDOM_NETWORK);
   builtinFunctions.add("tprecv", f_tprecv, QDOM_NETWORK);
   builtinFunctions.add("tpenqueue", f_tpenqueue, QDOM_NETWORK);
-  builtinFunctions.add("tpdequeue", f_tpdeque, QDOM_NETWORK);
+  builtinFunctions.add("tpdequeue", f_tpdequeue, QDOM_NETWORK);
   builtinFunctions.add("tperrordetail", f_tperrordetail, QDOM_NETWORK);
   builtinFunctions.add("TuxedoUserlog", f_userlog, QDOM_NETWORK);
   builtinFunctions.add("tpsprio", f_tpsprio, QDOM_NETWORK);
@@ -1551,7 +1560,7 @@ void tuxedo_low_level_init()
   builtinFunctions.add("tx_open", f_tx_open, QDOM_NETWORK);
   builtinFunctions.add("tx_rollback", f_tx_rollback, QDOM_NETWORK);
 
-  // TBD - XML <-> FML
+  // TBD - XML <-> FML, tpsetctx, tpgetctx
 }
 
 //-----------------------------------------------------------------------------
