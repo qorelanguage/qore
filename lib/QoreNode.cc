@@ -102,6 +102,14 @@ static inline QoreNode *crlr_fcall_copy(QoreNode *n, ExceptionSink *xsink)
    return nn;
 }
 
+static inline class QoreNode *eval_notnull(class QoreNode *n, ExceptionSink *xsink)
+{
+   n = n->eval(xsink);
+   if (!xsink->isEvent() && !n)
+      return nothing();
+   return n;
+}
+
 class QoreNode *copy_and_resolve_lvar_refs(class QoreNode *n, ExceptionSink *xsink)
 {
    if (!n) return NULL;
@@ -118,11 +126,12 @@ class QoreNode *copy_and_resolve_lvar_refs(class QoreNode *n, ExceptionSink *xsi
    if (n->type == NT_FUNCTION_CALL)
       return crlr_fcall_copy(n, xsink);
 
+   // must make sure to return a value here or it could cause a segfault - parse expressions expect non-NULL values for the operands
    if (n->type == NT_FIND || n->type == NT_SELF_VARREF)
-      return n->eval(xsink);
+      return eval_notnull(n, xsink);
 
    if (n->type == NT_VARREF && n->val.vref->type == VT_LOCAL)
-      return n->eval(xsink);
+      return eval_notnull(n, xsink);
 
    return n->RefSelf();
 }

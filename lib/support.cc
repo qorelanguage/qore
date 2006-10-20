@@ -33,9 +33,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#ifdef DEBUG
 int qore_trace = 0;
 int debug = 0;
+#ifdef DEBUG
 #include <qore/qore_thread.h>
 extern int threads_initialized;
 #endif
@@ -65,7 +65,6 @@ int printe(const char *fmt, ...)
    return 0;
 }
 
-#ifdef DEBUG
 int printd(int level, const char *fmt, ...)
 {
    if (level > debug)
@@ -98,7 +97,6 @@ void trace_function(int code, char *funcname)
    else
       printe("TID %d: %s exited\n", threads_initialized ? gettid() : 0, funcname);
 }
-#endif
 
 char *remove_trailing_newlines(char *str)
 {

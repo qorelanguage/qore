@@ -29,6 +29,11 @@
 void leave(int rc);
 int printe(const char *fmt, ...);
 
+// we supply debugging function also for non-debugging builds as library entry points
+// in case a debugging-enabled binary is linked against a non-debugging-enabled lib
+void trace_function(int code, char *funcname);
+int printd(int level, const char *fmt, ...);
+
 #ifdef DEBUG
 extern int qore_trace;
 extern int debug;
@@ -36,8 +41,7 @@ extern int debug;
 #define TRACE_IN   1
 #define TRACE_OUT  2
 
-int printd(int level, const char *fmt, ...);
-void trace_function(int code, char *funcname);
+//int printd(int level, const char *fmt, ...);
 #define tracein(a) trace_function(TRACE_IN, a)
 #define traceout(a) trace_function(TRACE_OUT, a)
 #else
