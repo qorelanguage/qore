@@ -1,5 +1,5 @@
 2006.10.23: Pavel Vozenilek
-	* added files for FML processing
+	* added files for FML processing and HTML file with Wiki-style documentation
 2006.10.20: David Nichols
 	* fixed a segfault in the background operator when a parse expression is
 	  evaluated to NULL

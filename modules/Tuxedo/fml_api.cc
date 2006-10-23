@@ -34,9 +34,10 @@
 #include "fml_api.h"
 #include <fml32.h> // must be before <fml.h>
 #include <fml.h>
+#include <atmi.h>
 #include "ScopeGuard.h"
 #include "QoreTuxedoTypedBuffer.h"
-
+#include "QC_TuxedoTypedBuffer.h"
 
 #include <ctype.h>
 #include <string>
@@ -49,6 +50,23 @@ using std::vector;
 using std::pair;
 using std::make_pair;
 using std::auto_ptr;
+
+//------------------------------------------------------------------------------
+// n - known as an object
+static QoreTuxedoTypedBuffer* node2typed_buffer(QoreNode* n, char* func_name, ExceptionSink* xsink)
+{
+  if (!n->val.object) {
+    xsink->raiseException(func_name, "Expected instance of Tuxedo::TuxedoTypedBuffer, NULL found.");
+    return 0;
+  }
+  if (n->val.object->getClass()->getID() != CID_TUXEDOTYPEDBUFFER) {
+    xsink->raiseException(func_name, "Type mismatch: expected instance of Tuxedo::TuxedoTypedBuffer class.");
+    return 0;
+  }
+  // this should be safe now
+  QoreTuxedoTypedBuffer* buff = (QoreTuxedoTypedBuffer*)(n->val.object);
+  return buff;
+}
 
 //-----------------------------------------------------------------------------
 // Returns previous value (empty if none)
@@ -269,14 +287,258 @@ static QoreNode* f_fml32_process_description_tables(QoreNode* params, ExceptionS
 }
 
 //-----------------------------------------------------------------------------
+static void extract_hashes(QoreNode* params, ExceptionSink* xsink, Hash*& fml_settings, Hash*& fml_values, 
+  QoreTuxedoTypedBuffer*& buffer, char* func_name)
+{
+  for (int i = 0; i <= 3; ++i) {
+    bool ok;
+    if (i == 2) ok = !get_param(params, i);
+    else ok = get_param(params, i);
+    if (!ok) {
+      xsink->raiseException(func_name, "Three paramaters (two hashes, instance of TuxedoTypedBuffer) expected: FML[32] settings and named values.");
+      return;
+    }
+  }
+
+  QoreNode* n = test_param(params, NT_HASH, 0);
+  if (!n) {
+    xsink->raiseException(func_name, "The first parameter, FML[32] settings, needs to be a hash.");
+    return;
+  }
+  fml_settings = n->val.hash;
+
+  n = test_param(params, NT_HASH, 1);
+  if (!n) {
+    xsink->raiseException(func_name, "The second parameter, FML[32] values, needs to be a hash.");
+    return;
+  }
+  fml_values = n->val.hash;
+
+  n = test_param(params, NT_OBJECT, 2);
+  if (!n) {
+    xsink->raiseException(func_name, "The third parameter needs to be  TuxedoTypedBuffer instance passed by reference.");
+    return;
+  }
+  buffer = node2typed_buffer(n, func_name, xsink);
+}
+
+//-----------------------------------------------------------------------------
+// Find out ID and type from FML name
+static pair<FLDID32, int> fml_name2id(const char* name, Hash* fml_settings, ExceptionSink* xsink, char* func_name)
+{
+  pair<FLDID32, int> result(0, 0);
+
+  QoreNode* n = fml_settings->getKeyValue((char*)name);
+  if (!n) {
+    xsink->raiseException(func_name, "Field [ %s ] does not exist in FML[32] settings. Please check possible typos.");
+    return result;
+  }
+  if (n->type != NT_LIST) {
+    xsink->raiseException(func_name, "Invalid FML[32] settings for [ %s ]: a list expected.");
+    return result;
+  }
+  List* l = n->val.list;
+  if (l->size() != 2) {
+    xsink->raiseException(func_name, "Invalid FML[32] settings for [ %s ]: a list with 2 items expected.");
+    return result;
+  }
+  n = l->retrieve_entry(0);
+  if (!n || n->type != NT_INT) {
+    xsink->raiseException(func_name, "Invalid FML[32] settings for [ %s ]: the first item in list needs to be an integer.");
+    return result;
+  }
+  result.first = (FLDID32)n->val.intval;
+  n = l->retrieve_entry(1);
+  if (!n || n->type != NT_INT) {
+    xsink->raiseException(func_name, "Invalid FML[32] settings for [ %s ]: the second item in list needs to be an integer.");
+    return result;
+  }
+  result.second = (int)n->val.intval;
+
+  return result;
+}
+
+//-----------------------------------------------------------------------------
+static void append_fml_short_in_buffer(bool is_fml32, char* field_name, QoreNode* field_value,
+  FLDID32 id, QoreTuxedoTypedBuffer* buff, char* func_name, ExceptionSink* xsink)
+{
+  // TBD
+}
+
+//-----------------------------------------------------------------------------
+static void append_fml_long_in_buffer(bool is_fml32, char* field_name, QoreNode* field_value,
+  FLDID32 id, QoreTuxedoTypedBuffer* buff, char* func_name, ExceptionSink* xsink)
+{
+  // TBD
+}
+
+//-----------------------------------------------------------------------------
+static void append_fml_char_in_buffer(bool is_fml32, char* field_name, QoreNode* field_value,
+  FLDID32 id, QoreTuxedoTypedBuffer* buff, char* func_name, ExceptionSink* xsink)
+{
+  // TBD
+}
+
+//-----------------------------------------------------------------------------
+static void append_fml_float_in_buffer(bool is_fml32, char* field_name, QoreNode* field_value,
+  FLDID32 id, QoreTuxedoTypedBuffer* buff, char* func_name, ExceptionSink* xsink)
+{
+  // TBD
+}
+
+//-----------------------------------------------------------------------------
+static void append_fml_double_in_buffer(bool is_fml32, char* field_name, QoreNode* field_value,
+  FLDID32 id, QoreTuxedoTypedBuffer* buff, char* func_name, ExceptionSink* xsink)
+{
+  // TBD
+}
+
+//-----------------------------------------------------------------------------
+static void append_fml_string_in_buffer(bool is_fml32, char* field_name, QoreNode* field_value,
+  FLDID32 id, QoreTuxedoTypedBuffer* buff, char* func_name, ExceptionSink* xsink)
+{
+  // TBD
+}
+
+//-----------------------------------------------------------------------------
+static void append_fml_binary_in_buffer(bool is_fml32, char* field_name, QoreNode* field_value,
+  FLDID32 id, QoreTuxedoTypedBuffer* buff, char* func_name, ExceptionSink* xsink)
+{
+  // TBD
+}
+
+//-----------------------------------------------------------------------------
+static void append_fml_fml32_in_buffer(char* field_name, QoreNode* field_value,
+  FLDID32 id, QoreTuxedoTypedBuffer* buff, char* func_name, ExceptionSink* xsink)
+{
+  // TBD
+}
+
+//-----------------------------------------------------------------------------
+static void append_fml_field_in_buffer(bool is_fml32, char* field_name, QoreNode* field_value, 
+  FLDID32 id, int type, QoreTuxedoTypedBuffer* buff, char* func_name, ExceptionSink* xsink)
+{
+  switch (type) {
+  case FLD_SHORT:
+    append_fml_short_in_buffer(is_fml32, field_name, field_value, id, buff, func_name, xsink);
+    break;
+  case FLD_LONG:
+    append_fml_long_in_buffer(is_fml32, field_name, field_value, id, buff, func_name, xsink);
+    break;
+  case FLD_CHAR:
+    append_fml_char_in_buffer(is_fml32, field_name, field_value, id, buff, func_name, xsink);
+    break;
+  case FLD_FLOAT:
+    append_fml_float_in_buffer(is_fml32, field_name, field_value, id, buff, func_name, xsink);
+    break;
+  case FLD_DOUBLE:
+    append_fml_double_in_buffer(is_fml32, field_name, field_value, id, buff, func_name, xsink);
+    break;
+  case FLD_STRING:
+    append_fml_string_in_buffer(is_fml32, field_name, field_value, id, buff, func_name, xsink);
+    break;
+  case FLD_CARRAY:
+    append_fml_binary_in_buffer(is_fml32, field_name, field_value, id, buff, func_name, xsink);
+    break;
+  case FLD_FML32:
+    if (!is_fml32) {
+      xsink->raiseException(func_name, "Field name [ %s ]: FML32 data cannot be added into FML buffer.", field_name);
+      break;
+    }
+    append_fml_fml32_in_buffer(field_name, field_value, id, buff, func_name, xsink);
+    break;
+
+  case FLD_PTR:
+  case FLD_VIEW32:
+  case FLD_MBSTRING:
+   xsink->raiseException(func_name, "Field name [ %s ]: type %d is not yet supported.", field_name, type);
+   break;
+  default:
+    xsink->raiseException(func_name, "Field name [ %s ] has unknown type %d.", field_name, type);
+    break;
+  }
+}
+
+//-----------------------------------------------------------------------------
 static QoreNode* write_into_buffer(QoreNode* params, ExceptionSink* xsink, bool is_fml32)
 {
-  return 0; // TBD
+  char* func_name = "putFML[32]InTypedBuffer";
+
+  Hash* fml_settings = 0;
+  Hash* fml_values = 0;
+  QoreTuxedoTypedBuffer* buff = 0;
+  extract_hashes(params, xsink, fml_settings, fml_values, buff, func_name);
+  if (xsink->isException()) {
+    return 0;
+  }
+
+  buff->clear();
+  const int InitialBufferSize = 4096;
+  char* type = (char*)(is_fml32 ? "FML32" : "FML");
+  buff->buffer = tpalloc(type, 0, InitialBufferSize);
+  if (!buff->buffer) {
+    xsink->raiseException(func_name, "tpalloc() failed with error%d.", tperrno);
+    return 0;
+  }
+  buff->size = InitialBufferSize;
+
+  int res;
+  if (is_fml32) {
+    res = Finit32((FBFR32*)buff->buffer, buff->size);
+  } else {
+    res = Finit((FBFR*)buff->buffer, buff->size);
+  }
+  if (res == -1) {
+    xsink->raiseException(func_name, "Fini[32] failed with error %d.", Ferror);
+    return 0;
+  }
+
+  // iterate through values and add them into the buffer
+  HashIterator it(fml_values);
+  int cnt = fml_values->size();
+  for (int i = 0; i < cnt; ++i) {
+   char* field_name = it.getKey();
+   QoreNode* field_value = it.getValue();
+
+    pair<FLDID32, int> id = fml_name2id(field_name, fml_settings, xsink, func_name);
+    if (xsink->isException()) {
+      return 0;
+    }
+    append_fml_field_in_buffer(is_fml32, field_name, field_value, id.first, id.second, buff, func_name, xsink);
+    if (xsink->isException()) {
+      return 0;
+    }
+
+    it.next();
+  }
+
+  // set up proper size as a check and to switch away from append mode
+  long result_size;
+  if (is_fml32) {
+    result_size = Fsizeof32((FBFR32*)buff->buffer);
+  } else {
+    result_size = Fsizeof((FBFR*)buff->buffer);
+  }
+  if (result_size == -1) {
+    xsink->raiseException(func_name, "Fsizeof[32] failed with error %d.", Ferror);
+    return 0;
+  }
+  buff->size = (int)result_size;
+
+  return 0;
 }
 
 //-----------------------------------------------------------------------------
 static QoreNode* get_from_buffer(QoreNode* params, ExceptionSink* xsink, bool is_fml32)
 {
+  Hash* fml_settings = 0;
+  Hash* fml_values = 0;
+  QoreTuxedoTypedBuffer* buff = 0;
+  extract_hashes(params, xsink, fml_settings, fml_values, buff, "getFML[32]FromTypedBuffer");
+  if (xsink->isException()) {
+    return 0;
+  }
+
   return 0; // TBD
 }
 
