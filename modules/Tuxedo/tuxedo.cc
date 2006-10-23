@@ -36,6 +36,7 @@
 #include "low_level_api.h"
 #include "QC_TuxedoTransactionId.h"
 #include "QC_TuxedoQueueControlParams.h"
+#include "fml_api.h"
 
 #include <atmi.h>
 
@@ -57,6 +58,7 @@ class QoreString* tuxedo_module_init()
 {
   tracein("tuxedo_module_init");
   tuxedo_low_level_init();
+  tuxedo_fml_init();
   traceout("tuxedo_module_init");
   return NULL;
 }
@@ -68,6 +70,7 @@ void tuxedo_module_ns_init(class Namespace* rns, class Namespace* qns)
 
   class Namespace* tuxedons = new Namespace("Tuxedo");
   tuxedo_low_level_ns_init(tuxedons);
+  tuxedo_fml_ns_init(tuxedons);
 
   // Tuxedo::TuxedoTypedBuffer class
   tuxedons->addSystemClass(initTuxedoTypedBufferClass());

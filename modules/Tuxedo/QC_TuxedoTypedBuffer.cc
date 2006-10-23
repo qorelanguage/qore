@@ -137,6 +137,10 @@ static QoreNode* TUXEDOTYPEDBUFFER_getBinary(Object* self, QoreTuxedoTypedBuffer
   long size = 0;
   if (buff->buffer) {
     copy = malloc(buff->size);
+    if (!copy) {
+      xsink->outOfMemory();
+      return 0;
+    }
     memcpy(copy, buff->buffer, buff->size);
     size = buff->size;
   }
@@ -225,6 +229,10 @@ static QoreNode* TUXEDOTYPEDBUFFER_getString(Object* self, QoreTuxedoTypedBuffer
     return new QoreNode("");
   }
   char* copy = (char*)malloc(buff->size + 1);
+  if (!copy) {
+    xsink->outOfMemory();
+    return 0;
+  }
   memcpy(copy, buff->buffer, buff->size);
   copy[buff->size] = 0;
   QoreString* s = new QoreString(copy, buff->string_encoding);

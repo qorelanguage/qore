@@ -1,0 +1,481 @@
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+
+<html>
+<head>
+<title>C/C++ Users Journal Web Site</title>
+
+
+<body>
+
+<H2 ALIGN="center"><FONT COLOR="#800000">Generic&lt;Programming&gt;: Simplify Your Exception-Safe Code</FONT></H2>
+<H3 ALIGN="center"><FONT COLOR="#800000">Andrei Alexandrescu and Petru Marginean</FONT></H3>
+<P>
+<HR>
+<BLOCKQUOTE>
+
+<p>
+Call it overselling, but we'll tell you up front: we have good material for this article. This is only because I convinced my good friend Petru Marginean to co-author the article. Petru has developed a library facility that is of great help with exceptions. We streamlined the implementation together until we obtained a lean, mean library that in specific cases can help you write exception-safe code much more easily.<P>
+Let's face it, writing correct code in the presence of exceptions is a not an easy task. Exceptions establish a separate control flow that has little to do with the main control flow of the application. Figuring out the exception flow requires a different way of thinking, and, well, new tools.<P>
+
+<H3>Writing Exception-Safe Code Is Hard: An Example</H3><P>
+
+Let's say you are developing one of those trendy instant messaging servers. Users log on and off the system and can send messages to each other. You hold a server-side database of users, plus in-memory information for users who are logged on. Each user can have friends. The list of friends is also kept both in the database and in memory.<P>
+When a user adds or removes a friend, you need to do two things: update the database, and update the in-memory cache that you keep for that user. It's that simple.<P>
+Assuming you model per-user information in a class called <B>User</B>, and that you model the user database with a <B>UserDatabase</B> class, the code for adding a friend could look like below:<P>
+
+<pre>
+class User
+{
+    ...
+    string GetName();
+    void AddFriend(User&amp; newFriend);
+private:
+    typedef vector&lt;User*&gt; UserCont;
+    UserCont friends_;
+    UserDatabase* pDB_;
+};
+void User::AddFriend(User&amp; newFriend)
+{
+    // Add the new friend to the database
+    pDB_-&gt;AddFriend(GetName(), newFriend.GetName());
+    // Add the new friend to the vector of friends
+    friends_.push_back(&amp;newFriend);
+}
+</pre><P>
+
+Surprisingly, the two-liner <B>User::AddFriend</B> hides a pernicious bug. In an out-of memory condition, <B>vector::push_back</B> can fail by throwing an exception. In that case, you will end up having the friend added to the database, but not to the in-memory information.<P>
+Now we've got a problem, haven't we? In any circumstance, this lack of consistency of information is dangerous. It is likely that many parts of your application are based on the assumption that the database is in sync with the in-memory information.<P>
+A simple approach to the problem is to think of switching the two lines of code:<P>
+
+<pre>
+void User::AddFriend(User&amp; newFriend)
+{
+    // Add the new friend to the vector of friends
+    // If this throws, the friend is not added to
+    //     the vector, nor the database
+    friends_.push_back(&amp;newFriend);
+    // Add the new friend to the database
+    pDB_-&gt;AddFriend(GetName(), newFriend.GetName());
+}
+</pre><P>
+
+This definitely saves consistency in the case of <B>vector::push_back</B> failing. Unfortunately, as you consult <B>UserDatabase::AddFriend</B>'s documentation, you find out with annoyance that <I>it</I> can throw an exception, too! Now you might end up putting the friend into the vector, but not in the database!<P>
+It's time you interrogate the database folks: &quot;Why don't you guys return an error code instead of throwing an exception?&quot; &quot;Well,&quot; they say, &quot;we're using a highly reliable cluster of XYZ database servers on a TZN network, so failure is extremely rare. Being this rare, we thought it's best to model failure with an exception, because exceptions appear only in exceptional conditions, right?&quot;<P>
+It makes sense, but you still need to address failure. You don't want a database failure to drag the whole system toward chaos. This way you can fix the database without having to shut down the whole server.<P>
+In essence, you must do two operations, any of which can fail. If any of them fails, you must undo the whole thing. Let's see how this can be done.<P>
+
+<H3>Solution 1: Brute Force</H3><P>
+A simple solution is to throw in (sic!) a <B>try</B>-<B>catch</B> block:<P>
+
+<pre>
+void User::AddFriend(User&amp; newFriend)
+{
+    friends_.push_back(&amp;newFriend);
+    try
+    {
+        pDB_-&gt;AddFriend(GetName(), newFriend.GetName());
+    }
+    catch (...)
+    {
+        friends_.pop_back();
+        throw;
+    }
+}
+</pre><P>
+
+If <B>vector::push_back</B> fails, that's okay because <B>UserDatabase::AddFriend</B> is never reached. If <B>UserDatabase::AddFriend</B> fails, you catch the exception (no matter what it is), you undo the <B>push_back</B> operation with a call to <B>vector::pop_back</B>, and nicely re-throw the exact same exception.<P>
+The code works, but at the cost of increased size and clumsiness. The two-liner just became a six-liner. The technique isn't quite appealing; imagine littering all of your code with such try-catch statements.<P>
+Moreover, the technique doesn't scale well. Imagine you have a <I>third</I> operation to do. In that case, things suddenly become much clumsier. You can choose between equally awkward solutions: nested <B>try</B> statements or a more complicated control flow featuring additional flags. These solutions raise code bloating issues, efficiency issues, and most important, severe understandability and maintenance issues.<P>
+
+<H3>Solution 2: The Politically Correct Approach</H3><P>
+
+Show the above to any C++ expert, and you're likely to hear: &quot;Nah, that's no good. You must use the <I>resource acquisition is initialization</I> idiom <a href="alexandr.htm#1">[1]</a> and leverage destructors for automatic resource deallocation in case of failure.&quot;<P>
+Okay, let's go down that path. For each operation that you must undo, there's a corresponding class. The constructor of that class &quot;does&quot; the operation and the destructor rolls that operation back, unless you call a &quot;commit&quot; function in which case the destructor does nothing.<P>
+Some code will make all this crystal-clear. For the <B>push_back</B> operation, let's put together a <B>VectorInserter</B> class like so:<P>
+
+<pre>
+class VectorInserter
+{
+public:
+    VectorInserter(std::vector&lt;User*&gt;&amp; v, User&amp; u)
+    : container_(v), user_(u), commit_(false)
+    {
+        container_.push_back(&amp;u);
+    }
+    void Commit() throw()
+    {
+        commit_ = true;
+    }
+    ~VectorInserter()
+    {
+        if (!commit_) container_.pop_back();
+    }
+private:
+    std::vector&lt;User*&gt;&amp; container_;
+    User&amp; user_;
+    bool commit_;
+};
+</pre><P>
+
+Maybe the most important thing in the code above is the <B>throw()</B> specification next to <B>Commit</B>. It documents the reality that <B>Commit</B> always succeeds, because you already did the work &#151; <B>Commit</B> just tells <B>VectorInserter</B>: &quot;Everything's fine, don't roll back anything.&quot;<P>
+You use the whole machinery like this:<P>
+
+<pre>
+void User::AddFriend(User&amp; newFriend)
+{
+    VectorInserter ins(friends_, &amp;newFriend);
+    pDB_-&gt;AddFriend(GetName(), newFriend.GetName());
+    // Everything went fine, commit the vector insertion
+    ins.Commit();
+}
+</pre><P>
+<B>AddFriend</B> now has two distinct parts: the <I>activity</I> phase, in which the operations occur, and the <I>commitment</I> phase, which doesn't throw &#151; it only stops the undo from happening.<P>
+The way <B>AddFriend</B> works is simple: if any operation fails, the commit point is not reached and the whole operation is called off. The <B>VectorInserter</B> <B>pop_back</B>s the data entered, so the program remains in the state it was in before calling <B>AddFriend</B>.<P>
+The idiom works nicely in all cases. If, for example, the <B>vector</B> insertion fails, the destructor of <B>ins</B> is not called, because <B>ins</B> isn't constructed.<P>
+This approach works just fine, but in the real world, it turns out not to be that neat. You must write a bunch of little classes to support this idiom. Extra classes mean extra code to write, intellectual overhead, and additional entries to your class browser. Moreover, it turns out there are lots of spots in which you must deal with exception safety. Let's face it, adding a new class every so often just for undoing an arbitrary operation in its destructor is not the brightest idea of productivity.<P>
+Oh, and by the way, <B>VectorInserter</B> has a bug. Did you notice it? The implicitly generated copy constructor can easily lead to errors: if the copied-from object is not yet committed, the destructors will later probably do too many <B>pop_back</B>s. Defining classes is hard; that's another reason for avoiding writing lots of them.<P>
+
+<H3>Solution 3: The Real Approach</H3><P>
+
+In the real world, when the programmer sits down to write <B>AddFriend</B>, either he's reviewed all the options above, or he didn't have time to care about them. At the end of the day, you know what the real result usually is? Of course you do:<P>
+
+<pre>
+void User::AddFriend(User&amp; newFriend)
+{
+    friends_.push_back(&amp;newFriend);
+    pDB_-&gt;AddFriend(GetName(), newFriend.GetName());
+}
+</pre><P>
+
+It's a solution based upon not-too=scientific arguments.<P>
+&quot;Who said memory's going to be exhausted? There's half a gig in this box!&quot;<P>
+&quot;Even if memory does become exhausted, the paging system will slow the program down to a crawl way before the program crashes.&quot;<P>
+&quot;The database folks said <B>AddFriend</B> cannot possibly fail. They're using XYZ and TZN!&quot;<P>
+&quot;It's not worth the trouble. We'll think of it at a later review.&quot;<P>
+Solutions that require a lot of discipline and grunt work are not very attractive. Under schedule pressure, a good but clumsy solution loses its utility. Everybody knows how things must be done by the book, but will consistently take the shortcut. The one true way is to provide reusable solutions that are correct <I>and</I> easy to use.<P>
+When you do take the shortcut, you check in the code with an unpleasant feeling of imperfection, but the feeling gradually peters out as all tests run just fine. As time goes on, the spots that can cause problems &quot;in theory&quot; start to crop up in practice.<P>
+You know you have a problem, however, and a big one: you have given up controlling the correctness of your application. Now when the server crashes, you don't have much of a clue on where to start: is it a hardware failure, a genuine bug, or an amok state due to an exception? Not only you are exposed to involuntary bugs, you have deliberately introduced them!<P>
+Even if things work okay for a while, life is change. The number of users can grow, stressing memory to its limits. Your network administrator might disable paging for the sake of performance. Your database might not be so infallible. And you are unprepared for any of these.<P>
+
+<H3>Solution 4: Petru's Approach</H3><P>
+
+Using the <B>ScopeGuard</B> tool &#151; which we'll detail in a minute &#151; you can easily write code that's simple, correct, and efficient:<P>
+
+<pre>
+void User::AddFriend(User&amp; newFriend)
+{
+    friends_.push_back(&amp;newFriend);
+    ScopeGuard guard = MakeObjGuard(
+        friends_, &amp;UserCont::pop_back);
+    pDB_-&gt;AddFriend(GetName(), newFriend.GetName());
+    guard.Dismiss();
+}
+</pre><P>
+
+The only job of <B>guard</B> above is to call <B>friends_.pop_back</B> when it exits its scope. That is, unless you <B>Dismiss</B> it. If you do that, <B>guard</B> doesn't do anything anymore.<P>
+<B>ScopeGuard</B> implements automatic calls to functions or member functions in its destructor. It can be helpful when you want to implement automatic undoing of atomic operations in the presence of exceptions.<P>
+You use <B>ScopeGuard</B> like so: if you need to do several operations in an &quot;all-or-nothing&quot; fashion, you put a <B>ScopeGuard</B> after each operation. The execution of that <B>ScopeGuard</B> nullifies the effect of the operation above it:<P>
+
+<pre>
+friends_.push_back(&amp;newFriend);
+ScopeGuard guard = MakeObjGuard(
+    friends_, &amp;UserCont::pop_back);
+</pre><P>
+
+<B>ScopeGuard</B> works with regular functions, too:<P>
+
+<pre>
+void* buffer = std::malloc(1024);
+ScopeGuard freeIt = MakeGuard(std::free, buffer);
+FILE* topSecret = std::fopen(&quot;cia.txt&quot;);
+ScopeGuard closeIt = MakeGuard(std::fclose, topSecret);
+</pre><P>
+
+If all atomic operations succeed, you <B>Dismiss</B> all guards. Otherwise, each constructed <B>ScopeGuard</B> will diligently call the function with which you initialized it.<P>
+With <B>ScopeGuard</B> you can easily arrange to undo various operations without having to write special classes for removing the last element of a vector, freeing some memory, and closing a file. This makes <B>ScopeGuard</B> a very useful reusable solution for writing exception-safe code, <I>easily</I>.<P>
+
+<H3>Implementing ScopeGuard</H3><P>
+
+<B>ScopeGuard</B> is a generalization of a typical implementation of the &quot;resource acquisition is initialization&quot; C++ idiom. The difference is that <B>ScopeGuard</B> focuses only on the cleanup part &#151; you do the resource acquisition, and <B>ScopeGuard</B> takes care of relinquishing the resource. (In fact, cleaning up is arguably the most important part of the idiom.)<P>
+There are different ways of cleaning up resources, such as calling a function, calling a functor, and calling a member function of an object. Each of these can require zero, one, or more arguments.<P>
+Naturally, we model these variations by building a class hierarchy. The destructors of the objects in the hierarchies do the actual job. The base of the hierarchy is the <B>ScopeGuardImplBase</B> class, shown below:<P>
+
+<pre>
+class ScopeGuardImplBase
+{
+public:
+    void Dismiss() const throw()
+    {    dismissed_ = true;    }
+protected:
+    ScopeGuardImplBase() : dismissed_(false)
+    {}
+    ScopeGuardImplBase(const ScopeGuardImplBase&amp; other)
+    : dismissed_(other.dismissed_)
+    {    other.Dismiss();    }
+    ~ScopeGuardImplBase() {} // nonvirtual (see below why)
+    mutable bool dismissed_;
+private:
+    // Disable assignment
+    ScopeGuardImplBase&amp; operator=(
+        const ScopeGuardImplBase&amp;);
+};
+</pre><P>
+
+<B>ScopeGuardImplBase</B> gathers the management of the <B>dismissed_</B> flag, which controls whether derived classes perform cleanup or not. If <B>dismissed_</B> is <B>true</B>, then derived classes will not do anything during their destruction.<P>
+This brings us to the missing <B>virtual</B> in the definition of <B>ScopeGuardImplBase</B>'s destructor. How would one expect polymorphic behavior of the destructor if it's not virtual? Well, just hold your curiosity for a second; we have an ace up our sleeve, with which we obtain polymorphic behavior without the overhead of <B>virtual</B> functions.<P>
+For now, let's see how to implement an object that calls a function or functor taking one argument in its destructor. If however, you call <B>Dismiss</B>, the function/functor is not invoked anymore.<P>
+
+<pre>
+template &lt;typename Fun, typename Parm&gt;
+class ScopeGuardImpl1 : public ScopeGuardImplBase
+{
+public:
+    ScopeGuardImpl1(const Fun&amp; fun, const Parm&amp; parm)
+    : fun_(fun), parm_(parm) 
+    {}
+    ~ScopeGuardImpl1()
+    {
+        if (!dismissed_) fun_(parm_);
+    }
+private:
+    Fun fun_;
+    const Parm parm_;
+};
+</pre><P>
+
+To make it easy to use <B>ScopeGuardImpl1</B>, let's write a helper function.<P>
+
+<pre>
+template &lt;typename Fun, typename Parm&gt;
+ScopeGuardImpl1&lt;Fun, Parm&gt;
+MakeGuard(const Fun&amp; fun, const Parm&amp; parm)
+{
+    return ScopeGuardImpl1&lt;Fun, Parm&gt;(fun, parm);
+}
+</pre><P>
+
+<B>MakeGuard</B> relies on compiler's ability to deduce template arguments for template functions. This way you don't need to specify the template arguments to <B>ScopeGuardImpl1</B> - actually, you don't need to explicitly create <B>ScopeGuardImpl1</B> objects. This trick is used by standard library functions such as <B>make_pair</B> and <B>bind1st</B>.<P>
+Still curious about how to achieve polymorphic behavior of the destructor, without a <B>virtual</B> destructor? Here is the definition of <B>ScopeGuard</B>, which, surprisingly, is a mere <B>typedef</B>:<P>
+
+<pre>typedef const ScopeGuardImplBase&amp; ScopeGuard;</pre><P>
+
+It's time for us to disclose the whole machinery. According to the C++ standard, a const reference initialized with a temporary value makes that temporary value live for the lifetime of the reference itself. Let's explain this with an example. If you write:<P>
+
+<pre>
+FILE* topSecret = std::fopen(&quot;cia.txt&quot;);
+ScopeGuard closeIt = MakeGuard(std::fclose, topSecret);
+</pre><P>
+
+then <B>MakeGuard</B> creates a temporary variable of type (deep breath here):<P>
+
+<pre>ScopeGuardImpl1&lt;int (&amp;)(FILE*), FILE*&gt;</pre><P>
+
+This is because the type of <B>std::fclose</B> is function taking a <B>FILE*</B> and returning an <B>int</B>. The temporary variable of the type above is assigned to the <B>const</B> reference <B>closeIt</B>. The language rule mentioned above is that the temporary lives at least as long as the reference &#151; and when it is destroyed, the correct destructor is called. In turn, the destructor closes the file.<P>
+<B>ScopeGuardImpl1</B> supports functions (or functors) taking one parameter. It is very simple to build classes that accept zero, two, or more parameters (<B>ScopeGuardImpl0</B>, <B>ScopeGuardImpl2</B>...). Once you have these, you can overload <B>MakeGuard</B> to achieve a nice, unified syntax:<P>
+
+<pre>
+template &lt;typename Fun&gt;
+ScopeGuardImpl0&lt;Fun&gt;
+MakeGuard(const Fun&amp; fun)
+{
+    return ScopeGuardImpl0&lt;Fun &gt;(fun);
+}
+..
+</pre><P>
+
+By now, we already have a powerful means of expressing automatic calls to functions. <B>MakeGuard</B> is an excellent tool, especially when it comes to interfacing with C APIs without having to write lots of wrapper classes.<P>
+What's even better is the preservation of efficiency, as there's no virtual call involved.<P>
+
+<H3>ScopeGuard for Objects and Member Functions</H3><P>
+
+So far, so good, but what about invoking member functions for objects? It's not hard at all. Let's implement <B>ObjScopeGuardImpl0</B>, a class template that can invoke a parameterless member function for an object.<P>
+
+<pre>
+template &lt;class Obj, typename MemFun&gt;
+class ObjScopeGuardImpl0 : public ScopeGuardImplBase
+{
+public:
+    ObjScopeGuardImpl0(Obj&amp; obj, MemFun memFun)
+    : obj_(obj), memFun_(memFun) 
+    {}
+    ~ObjScopeGuardImpl0()
+    {
+        if (!dismissed_) (obj_.*fun_)();
+    }
+private:
+    Obj&amp; obj_;
+    MemFun memFun_;
+};
+</pre><P>
+
+<B>ObjScopeGuardImpl0</B> is a bit more exotic because it uses the lesser-known pointers to member functions and <B>operator.*()</B>. To understand how it works, let's take a look at <B>MakeObjGuard</B>'s implementation. (We availed ourselves of <B>MakeObjGuard</B> in the opening section.)<P>
+
+<pre>
+template &lt;class Obj, typename MemFun&gt;
+ObjScopeGuardImpl0&lt;Obj, MemFun, Parm&gt;
+MakeObjGuard(Obj&amp; obj, Fun fun)
+{
+    return ObjScopeGuardImpl0&lt;Obj, MemFun&gt;(obj, fun);
+}
+</pre><P>
+
+Now if you call:<P>
+
+<pre>
+ScopeGuard guard = MakeObjGuard(
+    friends_, &amp;UserCont::pop_back);
+</pre><P>
+
+then an object of the following type is created:<P>
+
+<pre>
+ObjScopeGuardImpl0&lt;UserCont, void (UserCont::*)()&gt;
+</pre><P>
+
+Fortunately, <B>MakeObjGuard</B> shelters you from having to write types that look like uninspired emoticons. The mechanism is the same &#151; when <B>guard</B> leaves its scope, the destructor of the temporary object is called. The destructor invokes the member function via pointer to member. To achieve that, we use <B>operator.*</B>.<P>
+
+<H3>Error Handling</H3><P>
+
+If you have read Herb Sutter's work on exceptions <a href="alexandr.htm#2">[2]</a>, you know that it is essential that destructors must <I>not</I> throw an exception. A throwing destructor makes it impossible to write correct code, and can shut down your application without any warning. In C++, once an exception has been thrown, if a destructor called during stack unwinding emits another exception, the application terminates immediately.<P>
+The destructors of <B>ScopeGuardImplX</B> and <B>ObjScopeGuardImplX</B> call an unknown function or member function respectively, and that other function might throw. This would halt the program, because the guards's destructors are deliberately designed to call the unknown function precisely during stack unwinding when an exception is active! In theory, you should never pass functions that throw to <B>MakeGuard</B> or <B>MakeObjGuard</B>. In practice (as you can see in the downloadable code), the destructor is shielded from any exceptions:<P>
+
+<pre>
+template &lt;class Obj, typename MemFun&gt;
+class ObjScopeGuardImpl0 : public ScopeGuardImplBase
+{
+    ...
+public:
+    ~ScopeGuardImpl1()
+    {
+        if (!dismissed_)
+            try { (obj_.*fun_)(); }
+            catch(...) {}
+    }
+}
+</pre><P>
+
+Yes, the <B>catch(...)</B> block does not do anything at all. This is not a hack. It is fundamental that in the realm of exceptions, if your &quot;undo/recover&quot; action fails, there is pretty much nothing you can do. You attempt undoing, and you move on regardless whether the undo operation succeeds or not.<P>
+A possible sequence of actions in our instant messaging example is: you insert a friend in the database, you try to insert it in the <B>friends_</B> vector and fail, and consequently you try to delete the user from the database. There is a narrow chance that somehow the deletion from the database fails, too, which leads to a very unpleasant state of affairs.<P>
+In general, you should put guards on operations that you are sure you can undo successfully.<P>
+
+<H3>Supporting Parameters by Reference</H3><P>
+
+Petru and I were happily using <B>ScopeGuard</B> for a while, until we stumbled upon a problem. Consider the code below:<P>
+
+<pre>
+void Decrement(int&amp; x) { --x; }
+void UseResource(int refCount)
+{
+    ++refCount;
+    ScopeGuard guard = MakeGuard(Decrement, refCount);
+    ...
+}
+</pre><P>
+
+The <B>guard</B> object above ensures that the value of <B>refCount</B> is preserved upon exiting <B>UseResource</B>. (This idiom is useful in some resource sharing cases.)<P>
+In spite of its usefulness, the code above does not work. The problem is, <B>ScopeGuard</B> stores a <I>copy</I> of <B>refCount</B> (see the definition of <B>ScopeGuardImpl1</B>, member variable <B>parm_</B>) and not a reference to it. In this case, we need, however, to store a <I>reference</I> to <B>refCount</B>, so <B>Decrement</B> can operate on it.<P>
+One solution would be to implement additional classes such as <B>ScopeGuardImplRef</B> and <B>MakeGuardRef</B>. This is a lot of duplication and it gets nasty as you implement classes for multiple parameters.<P>
+The solution we settled on consists of a little helper class that transforms a reference into a value:<P>
+
+<pre>
+template &lt;class T&gt;
+class RefHolder
+{
+    T&amp; ref_;
+public:
+    RefHolder(T&amp; ref) : ref_(ref) {}
+    operator T&amp; () const
+    {
+        return ref_;
+    }
+};
+template &lt;class T&gt;
+inline RefHolder&lt;T&gt; ByRef(T&amp; t)
+{
+    return RefHolder&lt;T&gt;(t);
+}
+</pre><P>
+
+<B>RefHolder</B> and its companion helper function <B>ByRef</B> seamlessly adapt a reference to a value, and allow <B>ScopeGuardImpl1</B> to work with references without any modification. All you have to do is to wrap your references in calls to <B>ByRef</B>, like so:<P>
+
+<pre>
+void Decrement(int&amp; x) { --x; }
+void UseResource(int refCount)
+{
+    ++refCount;
+    ScopeGuard guard = MakeGuard(Decrement, ByRef(refCount));
+    ...
+}
+</pre><P>
+
+We find this solution to be pretty expressive and suggestive.<P>
+The nicest part of reference support is the <B>const</B> modifier used in <B>ScopeGuardImpl1</B>. Here's the relevant excerpt:<P>
+
+<pre>
+template &lt;typename Fun, typename Parm&gt;
+class ScopeGuardImpl1 : public ScopeGuardImplBase
+{
+    ...
+private:
+    Fun fun_;
+    <B>const </B>Parm parm_;
+};
+</pre><P>
+
+This little <B>const</B> is very important. It prevents code that uses non-const references from compiling and running incorrectly. In other words, if you forget to use <B>ByRef</B> with a function, the compiler will not allow incorrect code to compile.<P>
+
+<H3>But Wait, There's More</H3><P>
+
+By now, you have a good tool that helps you write correct code without having to agonize about it. Sometimes, however, you want the <B>ScopeGuard</B> to always execute when you exit the block. In this case, declaring a dummy variable of type <B>ScopeGuard</B> is awkward &#151; you only need a temporary, you don't need a <I>named</I> temporary.<P>
+The macro <B>ON_BLOCK_EXIT</B> does exactly what you want, and lets you write expressive code like below:<P>
+
+<pre>
+{
+    FILE* topSecret = fopen(&quot;cia.txt&quot;);
+    ON_BLOCK_EXIT(std::fclose, topSecret);
+    ... use topSecret ...
+} // topSecret automagically closed
+</pre><P>
+
+<B>ON_BLOCK_EXIT</B> says: &quot;I want this action to be performed when the current block exits.&quot; Similarly, <B>ON_BLOCK_EXIT_OBJ</B> implements the same feature for a member function call.<P>
+These macros use non-orthodox (albeit legal) macro wizardry, which shall go undisclosed. The curious can look it up in the code. (Due to a compiler bug, Microsoft VC++ users will have to disable the "Program Database for Edit and Continue" project setting for <B>ON_BLOCK_EXIT</B> to work.)<P>
+
+<H3>ScopeGuard in the Real World</H3><P>
+
+What we like about <B>ScopeGuard</B> is its ease of use and conceptual simplicity. This article detailed the whole implementation, but explaining <B>ScopeGuard</B>‘s usage only takes a couple of minutes. Among our colleagues, <B>ScopeGuard</B> spreads like wildfire. Everybody takes <B>ScopeGuard</B> for granted as a valuable tool that helps in various situations, from premature returns to exceptions. With <B>ScopeGuard</B>, you can write exception-safe code with reasonable ease, and understand and maintain it just as easily.<P>
+Every tool comes with a use recommendation, and <B>ScopeGuard</B> is no exception. You should use <B>ScopeGuard</B> as it was intended &#151; as an automatic variable in functions. You should not hold <B>ScopeGuard</B> objects as member variables or allocate them on the heap. For this purpose, the downloadable code contains a <B>Janitor</B> class, which does exactly what <B>ScopeGuard</B> does, but in a more general way &#151; at the expense of some efficiency.  Borland 5.5 users would need to use <b>Janitor</b> instead of <b>ScopeGuard</b> due to a compiler bug.
+<P>
+
+<H3>Conclusion</H3><P>
+We have presented some issues that appear in certain cases of writing exception-safe code. After discussing a couple of ways of achieving exception safety in such cases, we introduced a solution applicable when failure-proof (and nonthrowing) undo operations are easily available. <B>ScopeGuard</B> uses several generic programming techniques to let you prescribe function and member function calls to be performed when a <B>ScopeGuard</B> variable exits a scope. Optionally, you can dismiss the <B>ScopeGuard</B> object.<P>
+<B>ScopeGuard</B> is useful when you need to perform automatic cleanup of resources and can rely on failure-proof undo operations. This idiom is important when you want to assemble an operation out of several atomic operations, each of which could fail but can also be undone. There are cases for which this approach is not applicable.<P>
+
+<H3>Acknowledgements</H3><P>
+
+Herb Sutter provided an <I>exceptional</I> technical review of this article. The authors would also like to thank to Mihai Antonescu and Dan Pravat for making useful corrections and suggestions.<P>
+
+<H3>References</H3><P>
+
+<a name="1"></a>
+[1] Bjarne Stroustrup. <I>The C++ Programming Language, 3<SUP>rd</SUP> Edition</I> (Addison-Wesley, 1997), page 366.<P>
+<a name="2"></a>
+[2] Herb Sutter. <I>Exceptional C++: 47 Engineering Puzzles, Programming Problems, and Solutions (</I>Addison-Wesley. 2000).<P>
+
+<h3>Download the Code</H3><P><p>
+<a href="ftp://ftp.cuj.com/pub/2000/1812/alexandr.zip">alexandr.zip</a>
+<p>
+<HR>
+<p><h3>About the Authors</H3><P><p>
+<p><b>Andrei Alexandrescu</b> is a Development Manager at RealNetworks Inc. (<a HREF="http://www.realnetworks.com">www.realnetworks.com</a>), based in Seattle, WA, 
+and author of the acclaimed book <i>Modern C++ Design</i>. He may be contacted at <A HREF="mailto:andrei@metalanguage.com">andrei@metalanguage.com</a>.
+Andrei is also one of the featured instructors of The C++ Seminar (<a href="http://www.gotw.ca/cpp_seminar">www.gotw.ca/cpp_seminar</a>).</p>
+
+<p><b>Petru Marginean</b> is senior C++ developer for Plural, New York. 
+He can be reached at <A HREF="mailto:petrum@hotmail.com">petrum@hotmail.com</A>.</p>
+<p>
+<p>
+
+</body>
+</html>
+

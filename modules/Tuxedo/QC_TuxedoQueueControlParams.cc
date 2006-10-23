@@ -431,6 +431,10 @@ static QoreNode* TUXEDOQCTL_getClientID(Object* self, QoreTuxedoQueueControlPara
     return 0;
   }
   void* buff = malloc(sizeof(CLIENTID));
+  if (!buff) {
+    xsink->outOfMemory();
+    return 0;
+  }
   memcpy(buff, &ctl->ctl.cltid, sizeof(CLIENTID));
 
   BinaryObject* bin = new BinaryObject(buff, sizeof(CLIENTID));
@@ -559,6 +563,10 @@ static QoreNode* TUXEDOQCTL_getMsgID(Object* self, QoreTuxedoQueueControlParams*
     return 0;
   }
   void* buff = malloc(sizeof(TMMSGIDLEN));
+  if (!buff) {
+    xsink->outOfMemory();
+    return 0;
+  }
   memcpy(buff, &ctl->ctl.msgid, sizeof(TMMSGIDLEN));
 
   BinaryObject* bin = new BinaryObject(buff, sizeof(TMMSGIDLEN));
@@ -605,6 +613,10 @@ static QoreNode* TUXEDOQCTL_getCorrID(Object* self, QoreTuxedoQueueControlParams
     return 0;
   }
   void* buff = malloc(sizeof(TMCORRIDLEN));
+  if (!buff) {
+    xsink->outOfMemory();
+    return 0;
+  }
   memcpy(buff, &ctl->ctl.corrid, sizeof(TMCORRIDLEN));
 
   BinaryObject* bin = new BinaryObject(buff, sizeof(TMCORRIDLEN));

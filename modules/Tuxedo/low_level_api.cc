@@ -1366,14 +1366,14 @@ static QoreNode* f_tpstrerror(QoreNode* params, ExceptionSink* xsink)
     if (i == 2) ok = !get_param(params, i);
     else ok = get_param(params, i);
     if (!ok) {
-      xsink->raiseException("tpstrerror", "Two parameters expected, integer, error  out string passed by reference.");
+      xsink->raiseException("tpstrerror", "Two parameters expected, integer, error,  out string passed by reference.");
       return 0;
     }
   }
 
   QoreNode* n = test_param(params, NT_INT, 0);
   if (!n) {
-    xsink->raiseException("tpstrerror", "The first parameter, erro, needs to be an integer.");
+    xsink->raiseException("tpstrerror", "The first parameter, error, needs to be an integer.");
     return 0;
   }
   int err = (int)n->val.intval;
@@ -1566,6 +1566,7 @@ void tuxedo_low_level_init()
 //-----------------------------------------------------------------------------
 void tuxedo_low_level_ns_init(Namespace* ns)
 {
+  // Queueing errors and constants
   ns->addConstant("QMEABORTED", new QoreNode((int64)QMEABORTED));
   ns->addConstant("QMEBADQUEUE", new QoreNode((int64)QMEBADQUEUE));
   ns->addConstant("QMEBADRMID", new QoreNode((int64)QMEBADRMID));
@@ -1582,6 +1583,7 @@ void tuxedo_low_level_ns_init(Namespace* ns)
   ns->addConstant("QMESYSTEM", new QoreNode((int64)QMESYSTEM));
   ns->addConstant("QMETRAN", new QoreNode((int64)QMETRAN));
 
+  // ATMI errors and constants
   ns->addConstant("TP_CMT_COMPLETE", new QoreNode((int64)TP_CMT_COMPLETE));
   ns->addConstant("TP_CMT_LOGGED", new QoreNode((int64)TP_CMT_LOGGED));
   ns->addConstant("TPEV_DISCONIMM", new QoreNode((int64)TPEV_DISCONIMM));
@@ -1664,6 +1666,7 @@ void tuxedo_low_level_ns_init(Namespace* ns)
   ns->addConstant("TPU_SIG", new QoreNode((int64)TPU_SIG));
   ns->addConstant("TPU_THREAD", new QoreNode((int64)TPU_THREAD));
 
+  // X/Open errors and constants
   ns->addConstant("TX_COMMITTED", new QoreNode((int64)TX_COMMITTED));
   ns->addConstant("TX_COMMITTED_NO_BEGIN", new QoreNode((int64)TX_COMMITTED_NO_BEGIN));
   ns->addConstant("TX_ERROR", new QoreNode((int64)TX_ERROR));
