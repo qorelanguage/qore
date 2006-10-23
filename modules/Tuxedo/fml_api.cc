@@ -292,24 +292,24 @@ static void extract_hashes(QoreNode* params, ExceptionSink* xsink, Hash*& fml_se
 {
   for (int i = 0; i <= 3; ++i) {
     bool ok;
-    if (i == 2) ok = !get_param(params, i);
+    if (i == 3) ok = !get_param(params, i);
     else ok = get_param(params, i);
     if (!ok) {
-      xsink->raiseException(func_name, "Three paramaters (two hashes, instance of TuxedoTypedBuffer) expected: FML[32] settings and named values.");
+      xsink->raiseException(func_name, "Three paramaters (two hashes, instance of TuxedoTypedBuffer) expected: FML[32] settings, named values and out typed buffer passed by reference.");
       return;
     }
   }
 
   QoreNode* n = test_param(params, NT_HASH, 0);
   if (!n) {
-    xsink->raiseException(func_name, "The first parameter, FML[32] settings, needs to be a hash.");
+    xsink->raiseException(func_name, "The first parameter, FML[32] settings, needs to be a hash, possibly passed by reference.");
     return;
   }
   fml_settings = n->val.hash;
 
   n = test_param(params, NT_HASH, 1);
   if (!n) {
-    xsink->raiseException(func_name, "The second parameter, FML[32] values, needs to be a hash.");
+    xsink->raiseException(func_name, "The second parameter, FML[32] values, needs to be a hash, possibly passed by reference.");
     return;
   }
   fml_values = n->val.hash;
@@ -317,6 +317,35 @@ static void extract_hashes(QoreNode* params, ExceptionSink* xsink, Hash*& fml_se
   n = test_param(params, NT_OBJECT, 2);
   if (!n) {
     xsink->raiseException(func_name, "The third parameter needs to be  TuxedoTypedBuffer instance passed by reference.");
+    return;
+  }
+  buffer = node2typed_buffer(n, func_name, xsink);
+}
+
+//-----------------------------------------------------------------------------
+static void extract_hashes(QoreNode* params, ExceptionSink* xsink, Hash*& fml_settings, 
+  QoreTuxedoTypedBuffer*& buffer, char* func_name)
+{
+  for (int i = 0; i <= 2; ++i) {
+    bool ok;
+    if (i == 2) ok = !get_param(params, i);
+    else ok = get_param(params, i);
+    if (!ok) {
+      xsink->raiseException(func_name, "Two paramaters (hash, instance of TuxedoTypedBuffer) expected: FML[32] settings and the typed buffer.");
+      return;
+    }
+  }
+
+  QoreNode* n = test_param(params, NT_HASH, 0);
+  if (!n) {
+    xsink->raiseException(func_name, "The first parameter, FML[32] settings, needs to be a hash, possibly passed by reference.");
+    return;
+  }
+  fml_settings = n->val.hash;
+
+  n = test_param(params, NT_OBJECT, 1);
+  if (!n) {
+    xsink->raiseException(func_name, "The second parameter needs to be  TuxedoTypedBuffer instance possibly passed by reference.");
     return;
   }
   buffer = node2typed_buffer(n, func_name, xsink);
@@ -359,9 +388,44 @@ static pair<FLDID32, int> fml_name2id(const char* name, Hash* fml_settings, Exce
 }
 
 //-----------------------------------------------------------------------------
+static int64 node2int(char* field_name, QoreNode* node, char* func_name, ExceptionSink* xsink)
+{
+  if (node->type == NT_BOOLEAN) {
+    return node->val.boolval ? 1 : 0;
+  }
+  if (node->type == NT_INT) {
+    return node->val.intval;
+  }
+  xsink->raiseException(func_name, "Value [ %s ] cannot be converted to expected numeric value.");
+  return 0;
+}
+
+//-----------------------------------------------------------------------------
+static double node2double(char* field_name, QoreNode* node, char* func_name, ExceptionSink* xsink)
+{
+  if (node->type == NT_BOOLEAN) {
+    return node->val.boolval ? 1.0 : 0.0;
+  }
+  if (node->type == NT_INT) {
+    double d = node->val.intval;
+    return d;
+  }
+  if (node->type == NT_FLOAT) {
+    return node->val.floatval;
+  }
+  xsink->raiseException(func_name, "Value [ %s ] cannot be converted to expected floating point value.");
+  return 0;
+}
+
+//-----------------------------------------------------------------------------
 static void append_fml_short_in_buffer(bool is_fml32, char* field_name, QoreNode* field_value,
   FLDID32 id, QoreTuxedoTypedBuffer* buff, char* func_name, ExceptionSink* xsink)
 {
+  int64 val = node2int(field_name, field_value, func_name, xsink);
+  if (xsink->isException()) {
+    return;
+  }
+
   // TBD
 }
 
@@ -369,6 +433,11 @@ static void append_fml_short_in_buffer(bool is_fml32, char* field_name, QoreNode
 static void append_fml_long_in_buffer(bool is_fml32, char* field_name, QoreNode* field_value,
   FLDID32 id, QoreTuxedoTypedBuffer* buff, char* func_name, ExceptionSink* xsink)
 {
+  int64 val = node2int(field_name, field_value, func_name, xsink);
+  if (xsink->isException()) {
+    return;
+  }
+
   // TBD
 }
 
@@ -376,6 +445,11 @@ static void append_fml_long_in_buffer(bool is_fml32, char* field_name, QoreNode*
 static void append_fml_char_in_buffer(bool is_fml32, char* field_name, QoreNode* field_value,
   FLDID32 id, QoreTuxedoTypedBuffer* buff, char* func_name, ExceptionSink* xsink)
 {
+  int64 val = node2int(field_name, field_value, func_name, xsink);
+  if (xsink->isException()) {
+    return;
+  }
+
   // TBD
 }
 
@@ -383,6 +457,11 @@ static void append_fml_char_in_buffer(bool is_fml32, char* field_name, QoreNode*
 static void append_fml_float_in_buffer(bool is_fml32, char* field_name, QoreNode* field_value,
   FLDID32 id, QoreTuxedoTypedBuffer* buff, char* func_name, ExceptionSink* xsink)
 {
+  double val = node2double(field_name, field_value, func_name, xsink);
+  if (xsink->isException()) {
+    return;
+  }
+
   // TBD
 }
 
@@ -390,6 +469,11 @@ static void append_fml_float_in_buffer(bool is_fml32, char* field_name, QoreNode
 static void append_fml_double_in_buffer(bool is_fml32, char* field_name, QoreNode* field_value,
   FLDID32 id, QoreTuxedoTypedBuffer* buff, char* func_name, ExceptionSink* xsink)
 {
+  double val = node2double(field_name, field_value, func_name, xsink);
+  if (xsink->isException()) {
+    return;
+  }
+
   // TBD
 }
 
@@ -397,6 +481,7 @@ static void append_fml_double_in_buffer(bool is_fml32, char* field_name, QoreNod
 static void append_fml_string_in_buffer(bool is_fml32, char* field_name, QoreNode* field_value,
   FLDID32 id, QoreTuxedoTypedBuffer* buff, char* func_name, ExceptionSink* xsink)
 {
+
   // TBD
 }
 
@@ -532,9 +617,8 @@ static QoreNode* write_into_buffer(QoreNode* params, ExceptionSink* xsink, bool 
 static QoreNode* get_from_buffer(QoreNode* params, ExceptionSink* xsink, bool is_fml32)
 {
   Hash* fml_settings = 0;
-  Hash* fml_values = 0;
   QoreTuxedoTypedBuffer* buff = 0;
-  extract_hashes(params, xsink, fml_settings, fml_values, buff, "getFML[32]FromTypedBuffer");
+  extract_hashes(params, xsink, fml_settings, buff, "getFML[32]FromTypedBuffer");
   if (xsink->isException()) {
     return 0;
   }
