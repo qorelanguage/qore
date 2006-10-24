@@ -34,12 +34,12 @@ int printe(const char *fmt, ...);
 void trace_function(int code, char *funcname);
 int print_debug(int level, const char *fmt, ...);
 
+#define TRACE_IN   1
+#define TRACE_OUT  2
+
 #ifdef DEBUG
 extern int qore_trace;
 extern int debug;
-
-#define TRACE_IN   1
-#define TRACE_OUT  2
 
 //int printd(int level, const char *fmt, ...);
 #define printd print_debug

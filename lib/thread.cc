@@ -50,9 +50,7 @@
 #include <pthread.h>
 #include <sys/time.h>
 
-#ifdef DEBUG
 bool threads_initialized = false;
-#endif
 
 #if defined(DARWIN) && MAX_QORE_THREADS > 2560
 #warning Darwin cannot support more than 2560 threads, MAX_QORE_THREADS set to 2560

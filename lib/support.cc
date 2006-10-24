@@ -25,6 +25,7 @@
 #include <qore/QoreString.h>
 #include <qore/qore_thread.h>
 #include <qore/QoreProgram.h>
+#include <qore/qore_thread.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -35,10 +36,8 @@
 
 int qore_trace = 0;
 int debug = 0;
-#ifdef DEBUG
-#include <qore/qore_thread.h>
+
 extern int threads_initialized;
-#endif
 
 // function to use to exit the program
 void leave(int rc)
