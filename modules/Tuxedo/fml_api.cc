@@ -419,6 +419,41 @@ static double node2double(char* field_name, QoreNode* node, char* func_name, Exc
 }
 
 //-----------------------------------------------------------------------------
+static void append_value_in_buffer(bool is_fml32, char* field_name, char* value, 
+  int len, FLDID32 id, QoreTuxedoTypedBuffer* buff, char* func_name, ExceptionSink* xsink)
+{
+  for (;;) {
+    int res;
+    if (is_fml32) {
+      res = Fappend32((FBFR32*)buff->buffer, id, value, len);
+    } else {
+      res = Fappend((FBFR*)buff->buffer, id, value, len);
+    }
+    if (res != -1) {
+      break;
+    }
+    if (Ferror != FNOSPACE) {
+      xsink->raiseException(func_name, "Value [ %s ] cannot be appended into FML[32] buffer. Error %d.", field_name, Ferror);
+      return;
+    }
+    // the buffer needs to be resized
+    int increment = buff->size;
+    if (increment > 64 * 1024) {
+      increment = 64 * 1024; // do not resize too wildly
+    }
+    char* new_buffer = tprealloc(buff->buffer, buff->size + increment);
+    if (new_buffer) {
+      buff->buffer = new_buffer;
+      buff->size += increment;
+      continue;
+    }
+    xsink->raiseException(func_name, "Failed to reallocate typed buffer. Tuxedo error %d.", tperrno);
+    return;
+  }
+
+}
+
+//-----------------------------------------------------------------------------
 static void append_fml_short_in_buffer(bool is_fml32, char* field_name, QoreNode* field_value,
   FLDID32 id, QoreTuxedoTypedBuffer* buff, char* func_name, ExceptionSink* xsink)
 {
@@ -432,7 +467,7 @@ static void append_fml_short_in_buffer(bool is_fml32, char* field_name, QoreNode
   }
   short int si = (short int)val;
 
-  // TBD - Fappend[32]
+  append_value_in_buffer(is_fml32, field_name, (char*)&si, sizeof(si), id, buff, func_name, xsink);
 }
 
 //-----------------------------------------------------------------------------
@@ -449,7 +484,7 @@ static void append_fml_long_in_buffer(bool is_fml32, char* field_name, QoreNode*
   }
   long int li = (long int)val;
 
-  // TBD
+  append_value_in_buffer(is_fml32, field_name, (char*)&li, sizeof(li), id, buff, func_name, xsink);
 }
 
 //-----------------------------------------------------------------------------
@@ -466,7 +501,7 @@ static void append_fml_char_in_buffer(bool is_fml32, char* field_name, QoreNode*
   }
   char ch = (char)val;
 
-  // TBD
+  append_value_in_buffer(is_fml32, field_name, &ch, sizeof(ch), id, buff, func_name, xsink);
 }
 
 //-----------------------------------------------------------------------------
@@ -477,8 +512,9 @@ static void append_fml_float_in_buffer(bool is_fml32, char* field_name, QoreNode
   if (xsink->isException()) {
     return;
   }
+  float f = val;
 
-  // TBD
+  append_value_in_buffer(is_fml32, field_name, (char*)&f, sizeof(f), id, buff, func_name, xsink);
 }
 
 //-----------------------------------------------------------------------------
@@ -490,7 +526,7 @@ static void append_fml_double_in_buffer(bool is_fml32, char* field_name, QoreNod
     return;
   }
 
-  // TBD
+  append_value_in_buffer(is_fml32, field_name, (char*)&val, sizeof(val), id, buff, func_name, xsink);
 }
 
 //-----------------------------------------------------------------------------
