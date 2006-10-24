@@ -39,6 +39,7 @@
 #include "QoreTuxedoTypedBuffer.h"
 #include "QC_TuxedoTypedBuffer.h"
 
+#include <limits.h>
 #include <ctype.h>
 #include <string>
 #include <vector>
@@ -425,8 +426,13 @@ static void append_fml_short_in_buffer(bool is_fml32, char* field_name, QoreNode
   if (xsink->isException()) {
     return;
   }
+  if (val < SHRT_MIN || val > SHRT_MAX) {
+    xsink->raiseException(func_name, "The value [ %s ] is out of range for short int.", field_name);
+    return;
+  }
+  short int si = (short int)val;
 
-  // TBD
+  // TBD - Fappend[32]
 }
 
 //-----------------------------------------------------------------------------
@@ -437,6 +443,11 @@ static void append_fml_long_in_buffer(bool is_fml32, char* field_name, QoreNode*
   if (xsink->isException()) {
     return;
   }
+  if (val < LONG_MIN || val > LONG_MAX) {
+    xsink->raiseException(func_name, "The value [ %s ] is out of range for long int.", field_name);
+    return;
+  }
+  long int li = (long int)val;
 
   // TBD
 }
@@ -449,6 +460,11 @@ static void append_fml_char_in_buffer(bool is_fml32, char* field_name, QoreNode*
   if (xsink->isException()) {
     return;
   }
+  if (val < CHAR_MIN || val > CHAR_MAX) {
+    xsink->raiseException(func_name, "The value [ %s ] is out of range for character.", field_name);
+    return;
+  }
+  char ch = (char)val;
 
   // TBD
 }
@@ -616,10 +632,37 @@ static QoreNode* write_into_buffer(QoreNode* params, ExceptionSink* xsink, bool 
 //-----------------------------------------------------------------------------
 static QoreNode* get_from_buffer(QoreNode* params, ExceptionSink* xsink, bool is_fml32)
 {
+  char* func_name = "getFML[32]FromTypedBuffer";
   Hash* fml_settings = 0;
   QoreTuxedoTypedBuffer* buff = 0;
-  extract_hashes(params, xsink, fml_settings, buff, "getFML[32]FromTypedBuffer");
+  extract_hashes(params, xsink, fml_settings, buff, func_name);
   if (xsink->isException()) {
+    return 0;
+  }
+  if (!buff->buffer) {
+    xsink->raiseException(func_name, "The typed buffer is empty.");
+    return 0;
+  }
+  char type[20];
+  char subtype[20];
+  if (tptypes(buff->buffer, type, subtype) == -1) {
+    xsink->raiseException(func_name, "tptypes() of typed buffer failed with error %d.", tperrno);
+    return 0;
+  }
+  const char* expected_type = is_fml32 ? "FML32" : "FML";
+  if (strcmp(type, expected_type)) {
+    xsink->raiseException(func_name, "Unexpected type of data in typed buffer: %s expected, %s found.", expected_type, type);
+    return 0;
+  }
+  // is the buffer actually FML[32], i.e. fielded?
+  bool fielded;
+  if (is_fml32) {
+    fielded = Fielded32((FBFR32*)buff->buffer);
+  } else {
+    fielded = Fielded((FBFR*)buff->buffer);
+  }
+  if (!fielded) {
+    xsink->raiseException(func_name, "The typed buffer doesn't contain valid FML/FML32 data.");
     return 0;
   }
 
@@ -658,7 +701,7 @@ void tuxedo_fml_init()
  builtinFunctions.add("processFML32DescripionTables", f_fml32_process_description_tables, QDOM_NETWORK);
 
  builtinFunctions.add("putFMLInTypedBuffer", f_fml_write_into_buffer, QDOM_NETWORK);
- builtinFunctions.add("putFML32InTypedBuffer", f_fml_write_into_buffer, QDOM_NETWORK);
+ builtinFunctions.add("putFML32InTypedBuffer", f_fml32_write_into_buffer, QDOM_NETWORK);
  builtinFunctions.add("getFMLFromTypedBuffer", f_fml_get_from_buffer, QDOM_NETWORK);
  builtinFunctions.add("getFML32FromTypedBuffer", f_fml32_get_from_buffer, QDOM_NETWORK);
 }
