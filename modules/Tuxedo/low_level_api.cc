@@ -37,6 +37,8 @@
 #include "QoreTuxedoQueueControlParams.h"
 #include "QC_TuxedoTransactionId.h"
 #include "QoreTuxedoTransactionId.h"
+#include "QC_TuxedoContext.h"
+#include "QoreTuxedoContext.h"
 #include "hashed_parameters_helper.h"
 
 #include <atmi.h>
@@ -94,6 +96,23 @@ static QoreTuxedoTransactionId* node2transaction_id(QoreNode* n, char* func_name
   // this should be safe now
   QoreTuxedoTransactionId* trid = (QoreTuxedoTransactionId*)(n->val.object);
   return trid;
+}
+
+//------------------------------------------------------------------------------
+// n - known as an object
+static QoreTuxedoContext* node2conntext(QoreNode* n, char* func_name, ExceptionSink* xsink)
+{
+  if (!n->val.object) {
+    xsink->raiseException(func_name, "Expected instance of Tuxedo::TuxedoContext class.");
+    return 0;
+  }
+  if (n->val.object->getClass()->getID() != CID_TUXEDOCONTEXT) {
+    xsink->raiseException(func_name, "Type mismatch: expected instance of Tuxedo::TuxedoContext class.");
+    return 0;
+  }
+  // this should be safe now
+  QoreTuxedoContext* ctx = (QoreTuxedoContext*)(n->val.object);
+  return ctx;
 }
 
 //------------------------------------------------------------------------------

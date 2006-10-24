@@ -8,7 +8,8 @@ TUXEDO_SOURCES =  tuxedo.cc \
   low_level_api.cc \
   QC_TuxedoQueueControlParams.cc \
   QC_TuxedoTransactionId.cc \
-  fml_api.cc
+  fml_api.cc \
+  QC_TuxedoContext.cc
 
 
 if COND_MONOLITHIC

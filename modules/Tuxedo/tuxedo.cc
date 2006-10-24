@@ -36,6 +36,7 @@
 #include "low_level_api.h"
 #include "QC_TuxedoTransactionId.h"
 #include "QC_TuxedoQueueControlParams.h"
+#include "QC_TuxedoContext.h"
 #include "fml_api.h"
 
 #include <atmi.h>
@@ -78,6 +79,8 @@ void tuxedo_module_ns_init(class Namespace* rns, class Namespace* qns)
   tuxedons->addSystemClass(initTuxedoQueueControlParamsClass());
   // Tuxedo:TuxedoTransactionId class
   tuxedons->addSystemClass(initTuxedoTransactionIdClass());
+  // Tuxedo::TuxedoContext class
+  tuxedons->addSystemClass(initTuxedoContextClass());
 
   traceout("tuxedo_module_ns_init");
 }
