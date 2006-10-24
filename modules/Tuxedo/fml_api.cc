@@ -90,7 +90,7 @@ static vector<pair<string, string> > set_env_variables(const vector<pair<string,
   static LockedObject mutex;
   mutex.lock();
   ON_BLOCK_EXIT_OBJ(mutex, &LockedObject::unlock);
-
+  
   vector<pair<string, string> > result;
   for (unsigned i = 0; i < vars.size(); ++i) {
     string old = set_env_variable(vars[i].first.c_str(), vars[i].second.c_str());
