@@ -65,7 +65,7 @@ int printe(const char *fmt, ...)
    return 0;
 }
 
-int printd(int level, const char *fmt, ...)
+int print_debug(int level, const char *fmt, ...)
 {
    if (level > debug)
       return 0;
