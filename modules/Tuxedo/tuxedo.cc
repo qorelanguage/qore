@@ -1,3 +1,4 @@
+#if !((defined USE_ONE_TRANSLATION_UNIT) && !(defined SKIP_THIS_FILE))
 /*
   modules/Tuxedo/tuxedo.cc
 
@@ -92,5 +93,6 @@ void tuxedo_module_delete()
   traceout("tuxedo_module_delete");
 }
 
+#endif
 // EOF
 

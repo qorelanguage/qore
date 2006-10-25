@@ -1,3 +1,4 @@
+#if !((defined USE_ONE_TRANSLATION_UNIT) && !(defined SKIP_THIS_FILE))
 /*
   modules/Tuxedo/low_level_api.cc
 
@@ -100,7 +101,7 @@ static QoreTuxedoTransactionId* node2transaction_id(QoreNode* n, char* func_name
 
 //------------------------------------------------------------------------------
 // n - known as an object
-static QoreTuxedoContext* node2conntext(QoreNode* n, char* func_name, ExceptionSink* xsink)
+static QoreTuxedoContext* node2context(QoreNode* n, char* func_name, ExceptionSink* xsink)
 {
   if (!n->val.object) {
     xsink->raiseException(func_name, "Expected instance of Tuxedo::TuxedoContext class.");
@@ -1539,6 +1540,158 @@ static QoreNode* f_tx_rollback(QoreNode* params, ExceptionSink* xsink)
 }
 
 //-----------------------------------------------------------------------------
+// http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c48.htm#1226460
+static QoreNode* f_tpgetctxt(QoreNode* params, ExceptionSink* xsink)
+{
+  for (int i = 0; i <= 1; ++i) {
+    bool ok;
+    if (i == 1) ok = !get_param(params, i);
+    else ok = get_param(params, i);
+    if (!ok) {
+      xsink->raiseException("tpgetctxt", "One parameter expected, instance of TuxedoContext passed by reference.");
+      return 0;
+    }
+  }
+  
+  QoreNode* n = test_param(params, NT_OBJECT, 0);
+  if (!n) {
+    xsink->raiseException("tpgetctxt", "The first parameter needs to be instance of TuxedoContext passed by reference.");
+    return 0;
+  }
+  QoreTuxedoContext* ctx = node2context(n, "tpgetctxt", xsink);
+  if (xsink->isException()) {
+    return 0;
+  }
+  int res = tpgetctxt(&ctx->ctx, 0);
+  if (res == -1) {
+    return new QoreNode((int64)tperrno);
+  }
+  if (ctx->ctx == TPINVALIDCONTEXT) {
+    return new QoreNode((int64)TPINVALIDCONTEXT);
+  }
+  if (ctx->ctx == TPNULLCONTEXT) {
+    return new QoreNode((int64)TPNULLCONTEXT);
+  }
+
+  return new QoreNode(OK);
+}
+
+//-----------------------------------------------------------------------------
+// http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c72.htm#1223538
+static QoreNode* f_tpsetctxt(QoreNode* params, ExceptionSink* xsink)
+{
+  for (int i = 0; i <= 1; ++i) {
+    bool ok;
+    if (i == 1) ok = !get_param(params, i);
+    else ok = get_param(params, i);
+    if (!ok) {
+      xsink->raiseException("tpsetctxt", "One parameter expected, instance of TuxedoContext possibly by reference.");
+      return 0;
+    }
+  }
+
+  QoreNode* n = test_param(params, NT_OBJECT, 0);
+  if (!n) {
+    xsink->raiseException("tpsetctxt", "The first parameter needs to be instance of TuxedoContext possibly passed by reference.");
+    return 0;
+  }
+  QoreTuxedoContext* ctx = node2context(n, "tpsetctxt", xsink);
+  if (xsink->isException()) {
+    return 0;
+  }
+  
+  if (tpsetctxt(ctx->ctx, 0) == -1) {
+    return new QoreNode((int64)tperrno);
+  } else {
+    return new QoreNode(OK);
+  }
+}
+
+//-----------------------------------------------------------------------------
+// http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c107.htm#1046490
+static QoreNode* f_tx_set_commit_return(QoreNode* params, ExceptionSink* xsink)
+{
+  for (int i = 0; i <= 1; ++i) {
+    bool ok;
+    if (i == 1) ok = !get_param(params, i);
+    else ok = get_param(params, i);
+    if (!ok) {
+      xsink->raiseException("tx_set_commit_return", "One parameter expected, integer flags");
+      return 0;
+    }
+  }
+  
+  QoreNode* n = test_param(params, NT_INT, 0);
+  if (!n) {
+    xsink->raiseException("tx_set_commit_return", "The first parameter, flags, needs to be an integer.");
+    return 0;
+  }
+  long flags = (long)n->val.intval;
+
+  int res = tx_set_commit_return(flags);
+  if (res == TX_OK) {
+    return new QoreNode(OK);
+  }
+  return new QoreNode((int64)res);
+}
+
+//-----------------------------------------------------------------------------
+// http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c108.htm#1046542
+static QoreNode* f_tx_set_transaction_control(QoreNode* params, ExceptionSink* xsink)
+{
+  for (int i = 0; i <= 1; ++i) {
+    bool ok;
+    if (i == 1) ok = !get_param(params, i);
+    else ok = get_param(params, i);
+    if (!ok) {
+      xsink->raiseException("tx_set_transaction_control", "One parameter expected, integer flags");
+      return 0;
+    }
+  }
+
+  QoreNode* n = test_param(params, NT_INT, 0);
+  if (!n) {
+    xsink->raiseException("tx_set_transaction_control", "The first parameter, flags, needs to be an integer.");
+    return 0;
+  }
+  long flags = (long)n->val.intval;
+
+  int res = tx_set_transaction_control(flags);
+  if (res == TX_OK) {
+    return new QoreNode(OK);
+  }
+  return new QoreNode((int64)res);
+}
+
+//-----------------------------------------------------------------------------
+// http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c109.htm#1046597
+static QoreNode* f_tx_set_transaction_timeout(QoreNode* params, ExceptionSink* xsink)
+{
+  for (int i = 0; i <= 1; ++i) {
+    bool ok;
+    if (i == 1) ok = !get_param(params, i);
+    else ok = get_param(params, i);
+    if (!ok) {
+      xsink->raiseException("tx_set_transaction_timeout", "One parameter expected, integer timeout in seconds");
+      return 0;
+    }
+  }
+
+  QoreNode* n = test_param(params, NT_INT, 0);
+  if (!n) {
+    xsink->raiseException("tx_set_transaction_timeout", "The first parameter, timeout in seconds, needs to be an integer.");
+    return 0;
+  }
+  long timeout = (long)n->val.intval;
+
+  int res = tx_set_transaction_timeout(timeout);
+  if (res == TX_OK) {
+    return new QoreNode(OK);
+  }
+  return new QoreNode((int64)res);
+}
+
+//-----------------------------------------------------------------------------
 void tuxedo_low_level_init()
 {
   builtinFunctions.add("tpchkauth", f_tpchkauth, QDOM_NETWORK);
@@ -1578,8 +1731,11 @@ void tuxedo_low_level_init()
   builtinFunctions.add("tx_commit", f_tx_commit, QDOM_NETWORK);
   builtinFunctions.add("tx_open", f_tx_open, QDOM_NETWORK);
   builtinFunctions.add("tx_rollback", f_tx_rollback, QDOM_NETWORK);
-
-  // TBD - XML <-> FML, tpsetctx, tpgetctx
+  builtinFunctions.add("tpgetctxt", f_tpgetctxt, QDOM_NETWORK);
+  builtinFunctions.add("tpsetctxt", f_tpsetctxt, QDOM_NETWORK);
+  builtinFunctions.add("tx_set_commit_return", f_tx_set_commit_return, QDOM_NETWORK);
+  builtinFunctions.add("tx_set_transaction_control", f_tx_set_transaction_control, QDOM_NETWORK);
+  builtinFunctions.add("tx_set_transaction_timeout", f_tx_set_transaction_timeout, QDOM_NETWORK);
 }
 
 //-----------------------------------------------------------------------------
@@ -1686,8 +1842,12 @@ void tuxedo_low_level_ns_init(Namespace* ns)
   ns->addConstant("TPU_THREAD", new QoreNode((int64)TPU_THREAD));
 
   // X/Open errors and constants
+  ns->addConstant("TX_CHAINED", new QoreNode((int64)TX_CHAINED));
   ns->addConstant("TX_COMMITTED", new QoreNode((int64)TX_COMMITTED));
   ns->addConstant("TX_COMMITTED_NO_BEGIN", new QoreNode((int64)TX_COMMITTED_NO_BEGIN));
+  ns->addConstant("TX_COMMIT_COMPLETED", new QoreNode((int64)TX_COMMIT_COMPLETED));
+  ns->addConstant("TX_COMMIT_DECISION_LOGGED", new QoreNode((int64)TX_COMMIT_DECISION_LOGGED));
+  ns->addConstant("TX_EINVAL", new QoreNode((int64)TX_EINVAL));
   ns->addConstant("TX_ERROR", new QoreNode((int64)TX_ERROR));
   ns->addConstant("TX_FAIL", new QoreNode((int64)TX_FAIL));
   ns->addConstant("TX_HAZARD", new QoreNode((int64)TX_HAZARD));
@@ -1700,7 +1860,9 @@ void tuxedo_low_level_ns_init(Namespace* ns)
   ns->addConstant("TX_PROTOCOL_ERROR", new QoreNode((int64)TX_PROTOCOL_ERROR));
   ns->addConstant("TX_ROLLBACK", new QoreNode((int64)TX_ROLLBACK));
   ns->addConstant("TX_ROLLBACK_NO_BEGIN", new QoreNode((int64)TX_ROLLBACK_NO_BEGIN));
+  ns->addConstant("TX_UNCHAINED", new QoreNode((int64)TX_UNCHAINED));
 }
 
+#endif
 // EOF
 

@@ -1,3 +1,4 @@
+#if !((defined USE_ONE_TRANSLATION_UNIT) && !(defined SKIP_THIS_FILE))
 /*
   modules/Tuxedo/QC_TuxedoTypedBuffer.cc
 
@@ -27,6 +28,7 @@
 #include <qore/QoreClass.h>
 #include <qore/params.h>
 #include <qore/charset.h>
+#include <qore/ScopeGuard.h>
 
 #include "QC_TuxedoTypedBuffer.h"
 #include "QoreTuxedoTypedBuffer.h"
@@ -233,10 +235,11 @@ static QoreNode* TUXEDOTYPEDBUFFER_getString(Object* self, QoreTuxedoTypedBuffer
     xsink->outOfMemory();
     return 0;
   }
+  ON_BLOCK_EXIT(free, copy);
+
   memcpy(copy, buff->buffer, buff->size);
   copy[buff->size] = 0;
   QoreString* s = new QoreString(copy, buff->string_encoding);
-  free(copy);
 
   return new QoreNode(s);
 }
@@ -263,7 +266,7 @@ class QoreClass* initTuxedoTypedBufferClass()
   return buff;
 }
 
-
+#endif
 // EOF
 
 

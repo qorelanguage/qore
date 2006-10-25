@@ -1,3 +1,4 @@
+#if !((defined USE_ONE_TRANSLATION_UNIT) && !(defined SKIP_THIS_FILE))
 /*
   modules/Tuxedo/fml_api.cc
 
@@ -30,12 +31,12 @@
 #include <qore/params.h>
 #include <qore/QoreString.h>
 #include <qore/LockedObject.h>
+#include <qore/ScopeGuard.h>
 
 #include "fml_api.h"
 #include <fml32.h> // must be before <fml.h>
 #include <fml.h>
 #include <atmi.h>
-#include "ScopeGuard.h"
 #include "QoreTuxedoTypedBuffer.h"
 #include "QC_TuxedoTypedBuffer.h"
 
@@ -54,7 +55,7 @@ using std::auto_ptr;
 
 //------------------------------------------------------------------------------
 // n - known as an object
-static QoreTuxedoTypedBuffer* node2typed_buffer(QoreNode* n, char* func_name, ExceptionSink* xsink)
+static QoreTuxedoTypedBuffer* node2typed_buffer_helper(QoreNode* n, char* func_name, ExceptionSink* xsink)
 {
   if (!n->val.object) {
     xsink->raiseException(func_name, "Expected instance of Tuxedo::TuxedoTypedBuffer, NULL found.");
@@ -320,7 +321,7 @@ static void extract_hashes(QoreNode* params, ExceptionSink* xsink, Hash*& fml_se
     xsink->raiseException(func_name, "The third parameter needs to be  TuxedoTypedBuffer instance passed by reference.");
     return;
   }
-  buffer = node2typed_buffer(n, func_name, xsink);
+  buffer = node2typed_buffer_helper(n, func_name, xsink);
 }
 
 //-----------------------------------------------------------------------------
@@ -349,7 +350,7 @@ static void extract_hashes(QoreNode* params, ExceptionSink* xsink, Hash*& fml_se
     xsink->raiseException(func_name, "The second parameter needs to be  TuxedoTypedBuffer instance possibly passed by reference.");
     return;
   }
-  buffer = node2typed_buffer(n, func_name, xsink);
+  buffer = node2typed_buffer_helper(n, func_name, xsink);
 }
 
 //-----------------------------------------------------------------------------
@@ -533,22 +534,61 @@ static void append_fml_double_in_buffer(bool is_fml32, char* field_name, QoreNod
 static void append_fml_string_in_buffer(bool is_fml32, char* field_name, QoreNode* field_value,
   FLDID32 id, QoreTuxedoTypedBuffer* buff, char* func_name, ExceptionSink* xsink)
 {
+  if (field_value->type != NT_STRING) {
+    xsink->raiseException(func_name, "Value [ %s ] needs to be a string.", field_name);
+    return;
+  }
+  // convert the string
+  QoreString encoded_string(field_value->val.String->getBuffer(), buff->string_encoding);
+  char* s = encoded_string.getBuffer();
+  if (!s) s = "";
 
-  // TBD
+  append_value_in_buffer(is_fml32, field_name, s, strlen(s) + 1, id, buff, func_name, xsink);
 }
 
 //-----------------------------------------------------------------------------
 static void append_fml_binary_in_buffer(bool is_fml32, char* field_name, QoreNode* field_value,
   FLDID32 id, QoreTuxedoTypedBuffer* buff, char* func_name, ExceptionSink* xsink)
 {
-  // TBD
+  if (field_value->type != NT_BINARY) {
+    xsink->raiseException(func_name, "Value [ %s ] needs to be a binary.", field_name);
+    return;
+  }
+  char* data = (char*)field_value->val.bin->getPtr();
+  int size = field_value->val.bin->size();
+
+  append_value_in_buffer(is_fml32, field_name, data, size, id, buff, func_name, xsink);
 }
 
 //-----------------------------------------------------------------------------
 static void append_fml_fml32_in_buffer(char* field_name, QoreNode* field_value,
   FLDID32 id, QoreTuxedoTypedBuffer* buff, char* func_name, ExceptionSink* xsink)
 {
-  // TBD
+  if (field_value->type != NT_OBJECT) {
+    xsink->raiseException(func_name, "Value [ %s ] needs to be instance of TuxedoTypedBuffer with FML32 data inside.");
+    return;
+  }
+  QoreTuxedoTypedBuffer* typed_buff = node2typed_buffer_helper(field_value, func_name, xsink);
+  if (xsink->isException()) {
+    return;
+  }
+  if (!buff->buffer) {
+    xsink->raiseException(func_name, "Value [ %s ] requires instance of TuxedoTypedBuffer with data. Empty one is not allowed.");
+    return;
+  }
+  char type[20];
+  char subtype[20];
+  if (tptypes(buff->buffer, type, subtype) == -1) {
+    xsink->raiseException(func_name, "Typed buffer for value [ %s ] contains invalid data (tptypes() returned %d).", field_name, tperrno);
+    return;
+  }
+  if (strcmp(type, "FML32")) {
+    xsink->raiseException(func_name, "Typed buffer for value [ %s ] needs to contain FML32 data, now it has %s.", field_name, type);
+    return;
+  }
+
+  // I assume that the possible strings in the buffer were all encoded already
+  append_value_in_buffer(true, field_name, typed_buff->buffer, typed_buff->size, id, buff, func_name, xsink);
 }
 
 //-----------------------------------------------------------------------------
@@ -702,6 +742,8 @@ static QoreNode* get_from_buffer(QoreNode* params, ExceptionSink* xsink, bool is
     return 0;
   }
 
+  
+
   return 0; // TBD
 }
 
@@ -731,15 +773,68 @@ static QoreNode* f_fml32_get_from_buffer(QoreNode* params, ExceptionSink* xsink)
 }
 
 //-----------------------------------------------------------------------------
+// http://edovs.bea.com/tuxedo/tux91/rf3c/rf3c42.htm#1987733
+static QoreNode* f_tpfml32toxml(QoreNode* params, ExceptionSink* xsink)
+{
+  // TBD
+  return 0;
+}
+
+//-----------------------------------------------------------------------------
+// http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c43.htm#2178284
+static QoreNode* f_tpfmltoxml(QoreNode* params, ExceptionSink* xsink)
+{
+  // TBD
+  return 0;
+}
+
+//-----------------------------------------------------------------------------
+// http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c91.htm#2009111
+static QoreNode* f_tpxmltofml32(QoreNode* params, ExceptionSink* xsink)
+{
+  // TBD
+  return 0;
+}
+
+//-----------------------------------------------------------------------------
+// http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c92.htm#2011500
+static QoreNode* f_tpxmltofml(QoreNode* params, ExceptionSink* xsink)
+{
+  // TBD
+  return 0;
+}
+
+//-----------------------------------------------------------------------------
+static QoreNode* f_fmltofml32(QoreNode* params, ExceptionSink* xsink)
+{
+  // TBD
+  return 0;
+}
+
+//-----------------------------------------------------------------------------
+static QoreNode* f_fml32tofml(QoreNode* params, ExceptionSink* xsink)
+{
+  // TBD
+  return 0;
+}
+
+//-----------------------------------------------------------------------------
 void tuxedo_fml_init()
 {
- builtinFunctions.add("processFMLDescripionTables", f_fml_process_description_tables, QDOM_NETWORK);
- builtinFunctions.add("processFML32DescripionTables", f_fml32_process_description_tables, QDOM_NETWORK);
+  builtinFunctions.add("processFMLDescripionTables", f_fml_process_description_tables, QDOM_NETWORK);
+  builtinFunctions.add("processFML32DescripionTables", f_fml32_process_description_tables, QDOM_NETWORK);
 
- builtinFunctions.add("putFMLInTypedBuffer", f_fml_write_into_buffer, QDOM_NETWORK);
- builtinFunctions.add("putFML32InTypedBuffer", f_fml32_write_into_buffer, QDOM_NETWORK);
- builtinFunctions.add("getFMLFromTypedBuffer", f_fml_get_from_buffer, QDOM_NETWORK);
- builtinFunctions.add("getFML32FromTypedBuffer", f_fml32_get_from_buffer, QDOM_NETWORK);
+  builtinFunctions.add("putFMLInTypedBuffer", f_fml_write_into_buffer, QDOM_NETWORK);
+  builtinFunctions.add("putFML32InTypedBuffer", f_fml32_write_into_buffer, QDOM_NETWORK);
+  builtinFunctions.add("getFMLFromTypedBuffer", f_fml_get_from_buffer, QDOM_NETWORK);
+  builtinFunctions.add("getFML32FromTypedBuffer", f_fml32_get_from_buffer, QDOM_NETWORK);
+
+  builtinFunctions.add("tpfml32toxml", f_tpfml32toxml, QDOM_NETWORK);
+  builtinFunctions.add("tpfmltoxml", f_tpfmltoxml, QDOM_NETWORK);
+  builtinFunctions.add("tpxmltofml32", f_tpxmltofml32, QDOM_NETWORK);
+  builtinFunctions.add("tpxmltofml", f_tpxmltofml, QDOM_NETWORK);
+  builtinFunctions.add("fml32tofml", f_fml32tofml, QDOM_NETWORK);  
+  builtinFunctions.add("fmltofml32", f_fmltofml32, QDOM_NETWORK);
 }
 
 //-----------------------------------------------------------------------------
@@ -757,7 +852,21 @@ void tuxedo_fml_ns_init(Namespace* ns)
   ns->addConstant("FLD_FML32", new QoreNode((int64)FLD_FML32));
   ns->addConstant("FLD_VIEW32", new QoreNode((int64)FLD_VIEW32));
   ns->addConstant("FLD_MBSTRING", new QoreNode((int64)FLD_MBSTRING));
+
+  // XML parsing
+  ns->addConstant("TPXPARSNEVER", new QoreNode((int64)TPXPARSNEVER));
+  ns->addConstant("TPXPARSALWAYS", new QoreNode((int64)TPXPARSALWAYS));
+  ns->addConstant("TPXPARSSCHFULL", new QoreNode((int64)TPXPARSSCHFULL));
+  ns->addConstant("TPXPARSCONFATAL", new QoreNode((int64)TPXPARSCONFATAL));
+  ns->addConstant("TPXPARSNSPACE", new QoreNode((int64)TPXPARSNSPACE));
+  ns->addConstant("TPXPARSDOSCH", new QoreNode((int64)TPXPARSDOSCH));
+  ns->addConstant("TPXPARSEREFN", new QoreNode((int64)TPXPARSEREFN));
+  ns->addConstant("TPXPARSNOEXIT", new QoreNode((int64)TPXPARSNOEXIT));
+  ns->addConstant("TPXPARSNOINCWS", new QoreNode((int64)TPXPARSNOINCWS));
+  ns->addConstant("TPXPARSCACHERESET", new QoreNode((int64)TPXPARSCACHERESET));
+  ns->addConstant("TPXPARSCACHESET", new QoreNode((int64)TPXPARSCACHESET));
 }
 
+#endif
 // EOF
 

@@ -1,3 +1,4 @@
+#if !((defined USE_ONE_TRANSLATION_UNIT) && !(defined SKIP_THIS_FILE))
 /*
   modules/Tuxedo/QC_TuxedoContext.cc
 
@@ -75,6 +76,12 @@ static void TUXEDOCTX_copy(Object *self, Object *old, QoreTuxedoContext* ctx, Ex
 }
 
 //-----------------------------------------------------------------------------
+static QoreNode* TUXEDOCTX_is_null(Object* self, QoreTuxedoContext* ctx, QoreNode* params, ExceptionSink* xsink)
+{
+  return new QoreNode(ctx->ctx == TPNULLCONTEXT);
+}
+
+//-----------------------------------------------------------------------------
 class QoreClass* initTuxedoContextClass()
 {
   tracein("initTuxedoContextClass");
@@ -84,10 +91,12 @@ class QoreClass* initTuxedoContextClass()
   ctx->setConstructor((q_constructor_t)TUXEDOCTX_constructor);
   ctx->setDestructor((q_destructor_t)TUXEDOCTX_destructor);
   ctx->setCopy((q_copy_t)TUXEDOCTX_copy);
+  ctx->addMethod("isNullContext", (q_method_t)TUXEDOCTX_is_null);
 
   traceout("initTuxedoContextClass");
   return ctx;
 }
 
+#endif
 // EOF
 

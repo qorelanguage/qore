@@ -1,3 +1,4 @@
+#if !((defined USE_ONE_TRANSLATION_UNIT) && !(defined SKIP_THIS_FILE))
 /*
   modules/Tuxedo/QC_TuxedoQueueControlParams.cc
 
@@ -669,7 +670,7 @@ class QoreClass* initTuxedoQueueControlParamsClass()
   return ctl;
 }
 
-
+#endif
 // EOF
 
 

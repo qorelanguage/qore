@@ -130,6 +130,7 @@ noinst_HEADERS = \
 	include/qore/QC_SSLCertificate.h \
 	include/qore/QC_SSLPrivateKey.h \
 	include/qore/DBI.h \
+	include/qore/ScopeGuard.h \
 	modules/oracle/oracle-config.h \
 	modules/oracle/oracle.h \
 	modules/oracle/oracle-module.h \
@@ -169,7 +170,6 @@ noinst_HEADERS = \
         modules/Tuxedo/QC_TuxedoTransactionId.h \
         modules/Tuxedo/QoreTuxedoTransactionId.h \
 	modules/Tuxedo/fml_api.h \
-	modules/Tuxedo/ScopeGuard.h \
 	modules/Tuxedo/QC_TuxedoContext.h \
 	modules/Tuxedo/QoreTuxedoContext.h \
 	command-line.h \

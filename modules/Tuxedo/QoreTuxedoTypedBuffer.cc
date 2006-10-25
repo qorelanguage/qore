@@ -1,3 +1,4 @@
+#if !((defined USE_ONE_TRANSLATION_UNIT) && !(defined SKIP_THIS_FILE))
 /*
   modules/Tuxedo/QoreTuxedoTypedBuffer.cc
 
@@ -94,5 +95,6 @@ void QoreTuxedoTypedBuffer::setString(char* str, char* type, char* subtype, Exce
   size = sz;
 }
 
+#endif
 // EOF
 
