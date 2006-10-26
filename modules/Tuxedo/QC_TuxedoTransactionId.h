@@ -37,7 +37,7 @@
 // * http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c81.htm
 
 
-extern int CID_TUXEDOTRANSACTIOONID;
+extern int CID_TUXEDOTRANSACTIONID;
 extern class QoreClass* initTuxedoTransactionIdClass();
 
 #endif

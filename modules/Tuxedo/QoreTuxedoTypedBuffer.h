@@ -48,7 +48,6 @@ public:
   void setStringEncoding(QoreEncoding *enc);
   void setBinary(BinaryObject* bin, char* type, char* subtype, ExceptionSink* xsink);
   void setString(char* str, char* type, char* subtype, ExceptionSink* xsink);
-  // TBD - add FML -> FML32 conversion, xml <-> fml[32]
 
   void deref() { 
     if (ROdereference()) {

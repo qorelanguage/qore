@@ -73,7 +73,7 @@ static QoreTuxedoQueueControlParams* node2queue_control_params(QoreNode* n, char
     xsink->raiseException(func_name, "Expected instance of Tuxedo::TuxedoQueueControlParams class.");
     return 0;
   }
-  if (n->val.object->getClass()->getID() != CID_TUXEDOTRANSACTIOONID) {
+  if (n->val.object->getClass()->getID() != CID_TUXEDOTRANSACTIONID) {
     xsink->raiseException(func_name, "Type mismatch: expected instance of Tuxedo::TuxedoQueueControlParams class.");
     return 0;
   }
@@ -90,7 +90,7 @@ static QoreTuxedoTransactionId* node2transaction_id(QoreNode* n, char* func_name
     xsink->raiseException(func_name, "Expected instance of Tuxedo::TuxedoTransactionId class.");
     return 0;
   }
-  if (n->val.object->getClass()->getID() != CID_TUXEDOTRANSACTIOONID) {
+  if (n->val.object->getClass()->getID() != CID_TUXEDOTRANSACTIONID) {
     xsink->raiseException(func_name, "Type mismatch: expected instance of Tuxedo::TuxedoTransactionId class.");
     return 0;
   }

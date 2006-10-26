@@ -1,3 +1,6 @@
+2006.10.27: Pavel Vozenilek
+	* added unit test support (minitest.hpp)
+
 2006.10.26: Pavel Vozenilek
 	* ScopeGuard moved into include/
 	* added support for building as one translation unit

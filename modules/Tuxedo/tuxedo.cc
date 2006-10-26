@@ -30,6 +30,7 @@
 #include <qore/Namespace.h>
 #include <qore/ModuleManager.h>
 #include <qore/Object.h>
+#include <qore/minitest.hpp>
 
 #include "tuxedo_module.h"
 
@@ -56,11 +57,37 @@ qore_module_delete_t qore_module_delete = tuxedo_module_delete;
 #endif
 
 //------------------------------------------------------------------------------
+#ifdef DEBUG
+static QoreNode* f_run_tuxedo_tests(QoreNode* params, ExceptionSink* xsink)
+{
+  minitest::result res = minitest::execute_all_tests();
+  if (res.all_tests_succeeded) {
+    printf("Tuxedo module: %d tests succeeded\n", res.sucessful_tests_count);
+    return 0;
+  }
+  
+  xsink->raiseException("Tuxedo test failed", "Tuxedo test in file %s, line %d threw an exception.", 
+    res.failed_test_file, res.failed_test_line);
+  return 0;
+}
+
+TEST()
+{
+  // just an example of empty test
+}
+#endif
+
+//------------------------------------------------------------------------------
 class QoreString* tuxedo_module_init()
 {
   tracein("tuxedo_module_init");
   tuxedo_low_level_init();
   tuxedo_fml_init();
+
+#ifdef DEBUG
+  builtinFunctions.add("runTuxedoTests", f_run_tuxedo_tests, QDOM_NETWORK);
+#endif
+
   traceout("tuxedo_module_init");
   return NULL;
 }

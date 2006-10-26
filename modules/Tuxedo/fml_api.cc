@@ -289,7 +289,7 @@ static QoreNode* f_fml32_process_description_tables(QoreNode* params, ExceptionS
 }
 
 //-----------------------------------------------------------------------------
-static void extract_hashes(QoreNode* params, ExceptionSink* xsink, Hash*& fml_settings, Hash*& fml_values, 
+static void extract_fml_write_parameters(QoreNode* params, ExceptionSink* xsink, Hash*& fml_settings, List*& fml_values, 
   QoreTuxedoTypedBuffer*& buffer, char* func_name)
 {
   for (int i = 0; i <= 3; ++i) {
@@ -297,7 +297,7 @@ static void extract_hashes(QoreNode* params, ExceptionSink* xsink, Hash*& fml_se
     if (i == 3) ok = !get_param(params, i);
     else ok = get_param(params, i);
     if (!ok) {
-      xsink->raiseException(func_name, "Three paramaters (two hashes, instance of TuxedoTypedBuffer) expected: FML[32] settings, named values and out typed buffer passed by reference.");
+      xsink->raiseException(func_name, "Three paramaters (hash, list, instance of TuxedoTypedBuffer) expected: FML[32] settings, named values and out typed buffer passed by reference.");
       return;
     }
   }
@@ -309,12 +309,12 @@ static void extract_hashes(QoreNode* params, ExceptionSink* xsink, Hash*& fml_se
   }
   fml_settings = n->val.hash;
 
-  n = test_param(params, NT_HASH, 1);
+  n = test_param(params, NT_LIST, 1);
   if (!n) {
-    xsink->raiseException(func_name, "The second parameter, FML[32] values, needs to be a hash, possibly passed by reference.");
+    xsink->raiseException(func_name, "The second parameter, FML[32] values, needs to be a list, possibly passed by reference.");
     return;
   }
-  fml_values = n->val.hash;
+  fml_values = n->val.list;
 
   n = test_param(params, NT_OBJECT, 2);
   if (!n) {
@@ -325,7 +325,7 @@ static void extract_hashes(QoreNode* params, ExceptionSink* xsink, Hash*& fml_se
 }
 
 //-----------------------------------------------------------------------------
-static void extract_hashes(QoreNode* params, ExceptionSink* xsink, Hash*& fml_settings, 
+static void extract_fml_read_parameters(QoreNode* params, ExceptionSink* xsink, Hash*& fml_settings, 
   QoreTuxedoTypedBuffer*& buffer, char* func_name)
 {
   for (int i = 0; i <= 2; ++i) {
@@ -642,22 +642,12 @@ static QoreNode* write_into_buffer(QoreNode* params, ExceptionSink* xsink, bool 
   char* func_name = "putFML[32]InTypedBuffer";
 
   Hash* fml_settings = 0;
-  Hash* fml_values = 0;
+  List* fml_values = 0;
   QoreTuxedoTypedBuffer* buff = 0;
-  extract_hashes(params, xsink, fml_settings, fml_values, buff, func_name);
+  extract_fml_write_parameters(params, xsink, fml_settings, fml_values, buff, func_name);
   if (xsink->isException()) {
     return 0;
   }
-
-  buff->clear();
-  const int InitialBufferSize = 4096;
-  char* type = (char*)(is_fml32 ? "FML32" : "FML");
-  buff->buffer = tpalloc(type, 0, InitialBufferSize);
-  if (!buff->buffer) {
-    xsink->raiseException(func_name, "tpalloc() failed with error%d.", tperrno);
-    return 0;
-  }
-  buff->size = InitialBufferSize;
 
   int res;
   if (is_fml32) {
@@ -666,16 +656,32 @@ static QoreNode* write_into_buffer(QoreNode* params, ExceptionSink* xsink, bool 
     res = Finit((FBFR*)buff->buffer, buff->size);
   }
   if (res == -1) {
-    xsink->raiseException(func_name, "Fini[32] failed with error %d.", Ferror);
+    xsink->raiseException(func_name, "Finit[32] failed with error %d.", Ferror);
     return 0;
   }
 
-  // iterate through values and add them into the buffer
-  HashIterator it(fml_values);
   int cnt = fml_values->size();
   for (int i = 0; i < cnt; ++i) {
-   char* field_name = it.getKey();
-   QoreNode* field_value = it.getValue();
+    QoreNode* n = fml_values->retrieve_entry(i);
+    if (n->type != NT_LIST) {
+      xsink->raiseException(func_name, "Items of value list needs to be lists of (name, value). Item #%d is not.", i + 1);
+      return 0;
+    }
+    List* sublist = n->val.list;
+    int subcnt = sublist->size();
+    if (subcnt != 2) {
+      xsink->raiseException(func_name, "Sublists in values list need to have 2 items each. Sublist #%d has %d items.", i + 1, subcnt);
+      return 0;
+    }
+
+    n = sublist->retrieve_entry(0);
+    if (n->type != NT_STRING) {
+      xsink->raiseException(func_name, "First item of sublist #%d is not a string (the FML[32] field name).", i + 1);
+      return 0;
+    }
+     
+    char* field_name = n->val.String->getBuffer();
+    QoreNode* field_value = sublist->retrieve_entry(1);
 
     pair<FLDID32, int> id = fml_name2id(field_name, fml_settings, xsink, func_name);
     if (xsink->isException()) {
@@ -685,8 +691,6 @@ static QoreNode* write_into_buffer(QoreNode* params, ExceptionSink* xsink, bool 
     if (xsink->isException()) {
       return 0;
     }
-
-    it.next();
   }
 
   // set up proper size as a check and to switch away from append mode
@@ -711,7 +715,7 @@ static QoreNode* get_from_buffer(QoreNode* params, ExceptionSink* xsink, bool is
   char* func_name = "getFML[32]FromTypedBuffer";
   Hash* fml_settings = 0;
   QoreTuxedoTypedBuffer* buff = 0;
-  extract_hashes(params, xsink, fml_settings, buff, func_name);
+  extract_fml_read_parameters(params, xsink, fml_settings, buff, func_name);
   if (xsink->isException()) {
     return 0;
   }
@@ -776,46 +780,316 @@ static QoreNode* f_fml32_get_from_buffer(QoreNode* params, ExceptionSink* xsink)
 // http://edovs.bea.com/tuxedo/tux91/rf3c/rf3c42.htm#1987733
 static QoreNode* f_tpfml32toxml(QoreNode* params, ExceptionSink* xsink)
 {
-  // TBD
-  return 0;
+  for (int i = 0; i <= 3; ++i) {
+    bool ok;
+    if (i == 3) ok = !get_param(params, i);
+    else ok = get_param(params, i);
+    if (!ok) {
+      xsink->raiseException("tpfml32toxml", "Three parameters expected: input TuxedoTypedBuffer instance with FML32 data, out TuxedoTypedBuffer passed by reference, string name of top level XML tag (if empty default is <FML32>).");
+      return 0;
+    }
+  }
+
+  QoreNode* n = test_param(params, NT_OBJECT, 0);
+  if (!n) {
+    xsink->raiseException("tpfml32toxml", "The first parameter should be instance of TuxedoTypedBuffer with FML32 data.");
+    return 0;
+  }
+  QoreTuxedoTypedBuffer* in_buff = node2typed_buffer_helper(n, "tpfml32toxml", xsink);
+  if (xsink->isException()) {
+    return 0;
+  }
+
+  n = test_param(params, NT_OBJECT, 1);
+  if (!n) {
+    xsink->raiseException("tpfml32toxml", "The second parameter needs to be instance of TuxedoTypedBuffer passed by reference.");
+    return 0;
+  }
+  QoreTuxedoTypedBuffer* out_buff = node2typed_buffer_helper(n, "tpfml32toxml", xsink);
+  if (!out_buff) {
+    return 0;
+  }
+
+  n = test_param(params, NT_STRING, 2);
+  if (!n) {
+    xsink->raiseException("tpfml32toxml", "The third parameter, top level tag, needs to be a string (could be empty).");
+    return 0;
+  }
+  char* tag = n->val.String->getBuffer();
+  if (tag && !tag[0]) tag = 0;
+
+  if (tpfml32toxml((FBFR32*)in_buff->buffer, 0, tag, &out_buff->buffer, 0) == -1) {
+    return new QoreNode((int64)tperrno);
+  } else {
+    return new QoreNode((int64)0);
+  }
 }
 
 //-----------------------------------------------------------------------------
 // http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c43.htm#2178284
 static QoreNode* f_tpfmltoxml(QoreNode* params, ExceptionSink* xsink)
 {
-  // TBD
-  return 0;
+ for (int i = 0; i <= 3; ++i) {
+    bool ok;
+    if (i == 3) ok = !get_param(params, i);
+    else ok = get_param(params, i);
+    if (!ok) {
+      xsink->raiseException("tpfmltoxml", "Three parameters expected: input TuxedoTypedBuffer instance with FML data, out TuxedoTypedBuffer passed by reference, string name of top level XML tag (if empty default is <FML>).");
+      return 0;
+    }
+  }
+
+  QoreNode* n = test_param(params, NT_OBJECT, 0);
+  if (!n) {
+    xsink->raiseException("tpfmltoxml", "The first parameter should be instance of TuxedoTypedBuffer with FML data.");
+    return 0;
+  }
+  QoreTuxedoTypedBuffer* in_buff = node2typed_buffer_helper(n, "tpfmltoxml", xsink);
+  if (xsink->isException()) {
+    return 0;
+  }
+
+  n = test_param(params, NT_OBJECT, 1);
+  if (!n) {
+    xsink->raiseException("tpfmltoxml", "The second parameter needs to be instance of TuxedoTypedBuffer passed by reference.");
+    return 0;
+  }
+  QoreTuxedoTypedBuffer* out_buff = node2typed_buffer_helper(n, "tpfmltoxml", xsink);
+  if (!out_buff) {
+    return 0;
+  }
+
+  n = test_param(params, NT_STRING, 2);
+  if (!n) {
+    xsink->raiseException("tpfmltoxml", "The third parameter, top level tag, needs to be a string (could be empty).");
+    return 0;
+  }
+  char* tag = n->val.String->getBuffer();
+  if (tag && !tag[0]) tag = 0;
+
+  if (tpfmltoxml((FBFR*)in_buff->buffer, 0, tag, &out_buff->buffer, 0) == -1) {
+    return new QoreNode((int64)tperrno);
+  } else {
+    return new QoreNode((int64)0);
+  }
 }
 
 //-----------------------------------------------------------------------------
 // http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c91.htm#2009111
 static QoreNode* f_tpxmltofml32(QoreNode* params, ExceptionSink* xsink)
 {
-  // TBD
-  return 0;
+ for (int i = 0; i <= 4; ++i) {
+    bool ok;
+    if (i == 4) ok = !get_param(params, i);
+    else ok = get_param(params, i);
+    if (!ok) {
+      xsink->raiseException("tpxmltofml32", "Four parameters expected: input TuxedoTypedBuffer instance with XML data, string file name with XML schema (could be empty), out TuxedoTypedBuffer passed by reference, integer flags.");
+      return 0;
+    }
+  }
+
+  QoreNode* n = test_param(params, NT_OBJECT, 0);
+  if (!n) {
+    xsink->raiseException("tpxmltofml32", "The first parameter, XML data, needs to be instance of TuxedoTypedBuffer.");
+    return 0;
+  }
+  QoreTuxedoTypedBuffer* in_buff = node2typed_buffer_helper(n, "tpxmltofml32", xsink);
+  if (xsink->isException()) {
+    return 0;
+  }
+
+  n = test_param(params, NT_STRING, 1);
+  if (!n) {
+    xsink->raiseException("tpxmltofml32", "The second parameter, XML schema file, needs to be a string (could be empty).");
+    return 0;
+  }
+  char* xml_schema = n->val.String->getBuffer();
+  if (xml_schema && !xml_schema[0]) xml_schema = 0;
+
+  n = test_param(params, NT_OBJECT, 2);
+  if (!n) {
+    xsink->raiseException("tpxmltofml32", "The third parameter, out FML32 data, needs to be instance of TuxedoTypedBuffer passed by reference.");
+    return 0;
+  }
+  QoreTuxedoTypedBuffer* out_buff = node2typed_buffer_helper(n, "tpxmltofml32", xsink);
+  if (xsink->isException()) {
+    return 0;
+  }
+
+  n = test_param(params, NT_INT, 3);
+  if (!n) {
+    xsink->raiseException("tpxmltofml32", "The fourth parameter, flags, needs to be an integer.");
+    return 0;
+  }
+  long flags = (long)n->val.intval;
+
+  char** p = &out_buff->buffer;
+  if (tpxmltofml32(in_buff->buffer, xml_schema, (FBFR32**)p, 0, flags) == -1) {
+    return new QoreNode((int64)tperrno);
+  } else {
+    return new QoreNode((int64)0);
+  }
 }
 
 //-----------------------------------------------------------------------------
 // http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c92.htm#2011500
 static QoreNode* f_tpxmltofml(QoreNode* params, ExceptionSink* xsink)
 {
-  // TBD
-  return 0;
+ for (int i = 0; i <= 4; ++i) {
+    bool ok;
+    if (i == 4) ok = !get_param(params, i);
+    else ok = get_param(params, i);
+    if (!ok) {
+      xsink->raiseException("tpxmltofml", "Four parameters expected: input TuxedoTypedBuffer instance with XML data, string file name with XML schema (could be empty), out TuxedoTypedBuffer passed by reference, integer flags.");
+      return 0;
+    }
+  }
+
+  QoreNode* n = test_param(params, NT_OBJECT, 0);
+  if (!n) {
+    xsink->raiseException("tpxmltofml", "The first parameter, XML data, needs to be instance of TuxedoTypedBuffer.");
+    return 0;
+  }
+  QoreTuxedoTypedBuffer* in_buff = node2typed_buffer_helper(n, "tpxmltofml", xsink);
+  if (xsink->isException()) {
+    return 0;
+  }
+
+  n = test_param(params, NT_STRING, 1);
+  if (!n) {
+    xsink->raiseException("tpxmltofml", "The second parameter, XML schema file, needs to be a string (could be empty).");
+    return 0;
+  }
+  char* xml_schema = n->val.String->getBuffer();
+  if (xml_schema && !xml_schema[0]) xml_schema = 0;
+
+  n = test_param(params, NT_OBJECT, 2);
+  if (!n) {
+    xsink->raiseException("tpxmltofml", "The third parameter, out FML data, needs to be instance of TuxedoTypedBuffer passed by reference.");
+    return 0;
+  }
+  QoreTuxedoTypedBuffer* out_buff = node2typed_buffer_helper(n, "tpxmltofml", xsink);
+  if (xsink->isException()) {
+    return 0;
+  }
+
+  n = test_param(params, NT_INT, 3);
+  if (!n) {
+    xsink->raiseException("tpxmltofml", "The fourth parameter, flags, needs to be an integer.");
+    return 0;
+  }
+  long flags = (long)n->val.intval;
+
+  char** p = &out_buff->buffer;
+  if (tpxmltofml(in_buff->buffer, xml_schema, (FBFR**)p, 0, flags) == -1) {
+    return new QoreNode((int64)tperrno);
+  } else {
+    return new QoreNode((int64)0);
+  }
 }
 
 //-----------------------------------------------------------------------------
 static QoreNode* f_fmltofml32(QoreNode* params, ExceptionSink* xsink)
 {
-  // TBD
-  return 0;
+ for (int i = 0; i <= 2; ++i) {
+    bool ok;
+    if (i == 2) ok = !get_param(params, i);
+    else ok = get_param(params, i);
+    if (!ok) {
+      xsink->raiseException("fmltofml32", "Two parameters expected: input TuxedoTypedBuffer instance with FML data, out TuxedoTypedBuffer passed by reference.");
+      return 0;
+    }
+  }
+
+  QoreNode* n = test_param(params, NT_OBJECT, 0);
+  if (!n) {
+    xsink->raiseException("fmltofml32", "The first parameter, FML data, needs to be instance of TuxedoTypedBuffer.");
+    return 0;
+  }
+  QoreTuxedoTypedBuffer* in_buff = node2typed_buffer_helper(n, "fmltofml32", xsink);
+  if (xsink->isException()) {
+    return 0;
+  }
+
+  n = test_param(params, NT_OBJECT, 1);
+  if (!n) {
+    xsink->raiseException("fmltofml32", "The second parameter, out FML32 data, needs to be instance of TuxedoTypedBuffer passed by reference.");
+    return 0;
+  }
+  QoreTuxedoTypedBuffer* out_buff = node2typed_buffer_helper(n, "fmltofml32", xsink);
+  if (xsink->isException()) {
+    return 0;
+  }
+
+  for (int i = 0; i < 5; ++i) { // do not cycle forever to avoid possible problems
+    int res = F16to32((FBFR32*)out_buff->buffer, (FBFR*)in_buff->buffer);
+    if (res != -1) {
+      return new QoreNode((int64)0);
+    }
+    if (Ferror != FNOSPACE) {
+      return new QoreNode((int64)Ferror);
+    }
+    char* p = tprealloc(out_buff->buffer, 2 * out_buff->size);
+    if (!p) {
+      return new QoreNode((int64)tperrno);
+    }
+    out_buff->buffer = p;
+    out_buff->size *= 2;
+  }
+
+  return new QoreNode((int64)FNOSPACE);
 }
 
 //-----------------------------------------------------------------------------
 static QoreNode* f_fml32tofml(QoreNode* params, ExceptionSink* xsink)
 {
-  // TBD
-  return 0;
+ for (int i = 0; i <= 2; ++i) {
+    bool ok;
+    if (i == 2) ok = !get_param(params, i);
+    else ok = get_param(params, i);
+    if (!ok) {
+      xsink->raiseException("fml32tofml", "Two parameters expected: input TuxedoTypedBuffer instance with FML32 data, out TuxedoTypedBuffer passed by reference.");
+      return 0;
+    }
+  }
+
+  QoreNode* n = test_param(params, NT_OBJECT, 0);
+  if (!n) {
+    xsink->raiseException("fml32tofml", "The first parameter, FML32 data, needs to be instance of TuxedoTypedBuffer.");
+    return 0;
+  }
+  QoreTuxedoTypedBuffer* in_buff = node2typed_buffer_helper(n, "fml32tofml", xsink);
+  if (xsink->isException()) {
+    return 0;
+  }
+
+  n = test_param(params, NT_OBJECT, 1);
+  if (!n) {
+    xsink->raiseException("fml32tofml", "The second parameter, out FML data, needs to be instance of TuxedoTypedBuffer passed by reference.");
+    return 0;
+  }
+  QoreTuxedoTypedBuffer* out_buff = node2typed_buffer_helper(n, "fml32tofml", xsink);
+  if (xsink->isException()) {
+    return 0;
+  }
+
+  for (int i = 0; i < 5; ++i) { // do not cycle forever to avoid possible problems
+    int res = F32to16((FBFR*)out_buff->buffer, (FBFR32*)in_buff->buffer);
+    if (res != -1) {
+      return new QoreNode((int64)0);
+    }
+    if (Ferror != FNOSPACE) {
+      return new QoreNode((int64)Ferror);
+    }
+    char* p = tprealloc(out_buff->buffer, 2 * out_buff->size);
+    if (!p) {
+      return new QoreNode((int64)tperrno);
+    }
+    out_buff->buffer = p;
+    out_buff->size *= 2;
+  }
+
+  return new QoreNode((int64)FNOSPACE);
 }
 
 //-----------------------------------------------------------------------------
