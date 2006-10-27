@@ -58,7 +58,8 @@ qore_module_delete_t qore_module_delete = tuxedo_module_delete;
 
 //------------------------------------------------------------------------------
 #ifdef DEBUG
-static QoreNode* f_run_tuxedo_tests(QoreNode* params, ExceptionSink* xsink)
+// exported
+QoreNode* runTuxedoTests(QoreNode* params, ExceptionSink* xsink)
 {
   minitest::result res = minitest::execute_all_tests();
   if (res.all_tests_succeeded) {
@@ -85,7 +86,7 @@ class QoreString* tuxedo_module_init()
   tuxedo_fml_init();
 
 #ifdef DEBUG
-  builtinFunctions.add("runTuxedoTests", f_run_tuxedo_tests, QDOM_NETWORK);
+  builtinFunctions.add("runTuxedoTests", runTuxedoTests, QDOM_NETWORK);
 #endif
 
   traceout("tuxedo_module_init");

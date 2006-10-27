@@ -28,6 +28,7 @@
 #include <qore/params.h>
 #include <qore/charset.h>
 #include <qore/ScopeGuard.h>
+#include <qore/minitest.hpp>
 
 #include "QC_TuxedoTypedBuffer.h"
 #include "QoreTuxedoTypedBuffer.h"
@@ -79,7 +80,7 @@ static void TUXEDOTYPEDBUFFER_copy(Object *self, Object *old, QoreTuxedoTypedBuf
 //-----------------------------------------------------------------------------
 static QoreNode* TUXEDOTYPEDBUFFER_clear(Object* self, QoreTuxedoTypedBuffer* buff, QoreNode* params, ExceptionSink* xsink)
 {
-  if (get_param(params, 1)) {
+  if (get_param(params, 0)) {
     xsink->raiseException("TuxedoTypedBuffer::clear()", "No parameter expected.");
     return 0;
   }
@@ -167,7 +168,13 @@ static QoreNode* TUXEDOTYPEDBUFFER_setStringEncoding(Object* self, QoreTuxedoTyp
     xsink->raiseException("TuxedoTypedBuffer::setStringEncoding()", "The first parameter, string encoding, needs to be a string.");
     return 0;
   }
-  QoreEncoding *enc = QEM.findCreate(n->val.String->getBuffer());
+  char* s = n->val.String->getBuffer();
+  if (!s) s = "";
+  QoreEncoding *enc = QEM.findCreate(s);
+  if (!enc) {
+    xsink->raiseException("TuxedoTypedBuffer::setStringEncoding()", "Invalid encoding name [ %s ].", s);
+    return 0;
+  }
   buff->setStringEncoding(enc);
   return 0;
 }
@@ -264,6 +271,349 @@ class QoreClass* initTuxedoTypedBufferClass()
   traceout("initTuxedoTypedBufferClass");
   return buff;
 }
+
+//-----------------------------------------------------------------------------
+#ifdef DEBUG
+TEST()
+{
+  // test clear method
+  QoreTuxedoTypedBuffer buff;
+  ExceptionSink xsink;
+
+  List* l = new List();
+  QoreNode* params = new QoreNode(l);
+
+  QoreNode* res = TUXEDOTYPEDBUFFER_clear(0, &buff, params, &xsink);
+  assert(!res);
+  assert(!xsink.isException());
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+}
+
+TEST()
+{
+  // clear method with wrong parameters
+  QoreTuxedoTypedBuffer buff;
+  ExceptionSink xsink;
+
+  List* l = new List();
+  l->push(new QoreNode("aaa"));
+  QoreNode* params = new QoreNode(l);
+
+  QoreNode* res = TUXEDOTYPEDBUFFER_clear(0, &buff, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+}
+
+TEST()
+{
+  // test get/set binary
+  QoreTuxedoTypedBuffer buff;
+  ExceptionSink xsink;
+
+  List* l = new List();
+  BinaryObject* bin = new BinaryObject(strdup("abcd"), 5);
+  l->push(new QoreNode(bin));
+
+  QoreNode* params = new QoreNode(l);
+
+  QoreNode* res = TUXEDOTYPEDBUFFER_setBinary(0, &buff, params, &xsink);
+  assert(!res);
+  assert(!xsink.isException());
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+
+  params = new QoreNode(new List);
+  
+  res = TUXEDOTYPEDBUFFER_getBinary(0, &buff, params, &xsink);
+  assert(res);
+  assert(!xsink.isException());
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+
+  assert(res->type == NT_BINARY);
+  BinaryObject* bin2 = res->val.bin;
+  assert(bin2->size() == 5);
+  if (memcmp(bin2->getPtr(), "abcd", 5)) {
+    assert(0);
+  }
+
+  res->deref(&xsink);
+  assert(!xsink.isException());
+}
+
+TEST()
+{
+  // binary get/set - invalid argument type
+  QoreTuxedoTypedBuffer buff;
+  ExceptionSink xsink;
+
+  List* l = new List();
+  l->push(new QoreNode("aaa"));
+
+  QoreNode* params = new QoreNode(l);
+
+  QoreNode* res = TUXEDOTYPEDBUFFER_setBinary(0, &buff, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+
+  res = TUXEDOTYPEDBUFFER_getBinary(0, &buff, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+}
+
+TEST()
+{
+  // binary set/get - too many parameters
+  QoreTuxedoTypedBuffer buff;
+  ExceptionSink xsink;
+
+  List* l = new List();
+  l->push(new QoreNode("aaa"));
+  l->push(new QoreNode((int64)123));
+
+  QoreNode* params = new QoreNode(l);
+
+  QoreNode* res = TUXEDOTYPEDBUFFER_setBinary(0, &buff, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+
+  res = TUXEDOTYPEDBUFFER_getBinary(0, &buff, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+}
+
+TEST()
+{
+  // test get/set binary
+  QoreTuxedoTypedBuffer buff;
+  ExceptionSink xsink;
+
+  List* l = new List();
+  l->push(new QoreNode("abcdefgh"));
+
+  QoreNode* params = new QoreNode(l);
+
+  QoreNode* res = TUXEDOTYPEDBUFFER_setString(0, &buff, params, &xsink);
+  assert(!res);
+  assert(!xsink.isException());
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+
+  params = new QoreNode(new List);
+
+  res = TUXEDOTYPEDBUFFER_getString(0, &buff, params, &xsink);
+  assert(res);
+  assert(!xsink.isException());
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+
+  assert(res->type == NT_STRING);
+  char* s = res->val.String->getBuffer();
+  assert(s);
+  if (strcmp(s, "abcdefgh")) {
+    assert(false);
+  }
+
+  res->deref(&xsink);
+  assert(!xsink.isException());
+}
+
+TEST()
+{
+  // test string encoding set
+  QoreTuxedoTypedBuffer buff;
+  ExceptionSink xsink;
+  
+  List* l = new List();
+  l->push(new QoreNode("ISO-8859-5")); // Cyrilic
+
+  QoreNode* params = new QoreNode(l);
+
+  QoreNode* res = TUXEDOTYPEDBUFFER_setStringEncoding(0, &buff, params, &xsink);
+  assert(!res);
+  assert(!xsink.isException());
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+}
+
+TEST()
+{
+  // string encoding set - wrong number of parameters
+  QoreTuxedoTypedBuffer buff;
+  ExceptionSink xsink;
+
+  List* l = new List();
+  QoreNode* params = new QoreNode(l);
+
+  QoreNode* res = TUXEDOTYPEDBUFFER_setStringEncoding(0, &buff, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+}
+
+TEST()
+{
+  // string encoding set - wrong type
+  QoreTuxedoTypedBuffer buff;
+  ExceptionSink xsink;
+
+  List* l = new List();
+  l->push(new QoreNode((int64)123));
+  QoreNode* params = new QoreNode(l);
+
+  QoreNode* res = TUXEDOTYPEDBUFFER_setStringEncoding(0, &buff, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+}
+
+TEST()
+{
+/* this currently does not fail but IMHO it should
+  // string necoding set - invalid encoding name
+  QoreTuxedoTypedBuffer buff;
+  ExceptionSink xsink;
+
+  List* l = new List();
+  l->push(new QoreNode("nonexistent"));
+  QoreNode* params = new QoreNode(l);
+
+  QoreNode* res = TUXEDOTYPEDBUFFER_setStringEncoding(0, &buff, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+*/
+}
+
+TEST()
+{
+
+  // string get/set with an encoding
+  QoreTuxedoTypedBuffer buff;
+  ExceptionSink xsink;
+
+  List* l = new List();
+  l->push(new QoreNode("ISO-8859-6")); // Arabic
+  QoreNode* params = new QoreNode(l);
+  QoreNode* res = TUXEDOTYPEDBUFFER_setStringEncoding(0, &buff, params, &xsink);
+  assert(!res);
+  assert(!xsink.isException());
+  
+  params->deref(&xsink);
+  assert(!xsink.isException());
+
+
+  char in_string[] = "abcdefgh";
+  in_string[1] = 0xFF;
+  in_string[2] = 0xF2;
+  in_string[3] = 0xC7;
+
+  // set/get the string
+  l = new List();
+  l->push(new QoreNode(in_string));
+
+  params = new QoreNode(l);
+
+  res = TUXEDOTYPEDBUFFER_setString(0, &buff, params, &xsink);
+  assert(!res);
+  assert(!xsink.isException());
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+
+  params = new QoreNode(new List);
+
+  res = TUXEDOTYPEDBUFFER_getString(0, &buff, params, &xsink);
+  assert(res);
+  assert(!xsink.isException());
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+
+  assert(res->type == NT_STRING);
+  char* s = res->val.String->getBuffer();
+  assert(s);
+  if (strcmp(s, in_string)) {
+    assert(false);
+  }
+
+  res->deref(&xsink);
+  assert(!xsink.isException());
+
+  // change encoding
+  l = new List();
+  l->push(new QoreNode("UTF-8"));
+  params = new QoreNode(l);
+  res = TUXEDOTYPEDBUFFER_setStringEncoding(0, &buff, params, &xsink);
+  assert(!res);
+  assert(!xsink.isException());
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+
+  // set/get the string again
+  l = new List();
+  l->push(new QoreNode(in_string));
+
+  params = new QoreNode(l);
+
+  res = TUXEDOTYPEDBUFFER_setString(0, &buff, params, &xsink);
+  assert(!res);
+  assert(!xsink.isException());
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+
+  params = new QoreNode(new List);
+
+  res = TUXEDOTYPEDBUFFER_getString(0, &buff, params, &xsink);
+  assert(res);
+  assert(!xsink.isException());
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+
+  assert(res->type == NT_STRING);
+  s = res->val.String->getBuffer();
+  assert(s);
+  if (strcmp(s, in_string)) {
+    assert(false);
+  }
+
+  res->deref(&xsink);
+  assert(!xsink.isException());
+}
+#endif // DEBUG
 
 // EOF
 

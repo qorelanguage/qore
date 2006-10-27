@@ -118,6 +118,21 @@ TEST()
 
 TEST()
 {
+  // test string encoding
+  QoreTuxedoTypedBuffer buff;
+  ExceptionSink xsink;
+  
+  buff.setStringEncoding(QCS_ISO_8859_10);
+
+  char s[] = "abc";
+  s[1] = 0xFF;
+
+  buff.setString(s, "STRING", 0, &xsink);
+  assert(!xsink.isException());
+}
+
+TEST()
+{
   // test binary
   QoreTuxedoTypedBuffer buff;
   ExceptionSink xsink;
