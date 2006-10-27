@@ -9,8 +9,7 @@ TUXEDO_SOURCES =  tuxedo.cc \
   QC_TuxedoQueueControlParams.cc \
   QC_TuxedoTransactionId.cc \
   fml_api.cc \
-  QC_TuxedoContext.cc \
-  big_translation_unit.cc
+  QC_TuxedoContext.cc 
 
 
 if COND_MONOLITHIC
@@ -35,9 +34,6 @@ if COND_DEBUG
 AM_CXXFLAGS += -g
 endif
 endif
-
-# needs to be changed later
-AM_CXXFLAGS += -DUSE_ONE_TRANSLATION_UNIT
 
 if !COND_MONOLITHIC
 install-exec-hook:

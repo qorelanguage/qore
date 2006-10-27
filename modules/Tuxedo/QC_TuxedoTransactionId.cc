@@ -1,4 +1,3 @@
-#if !((defined USE_ONE_TRANSLATION_UNIT) && !(defined SKIP_THIS_FILE))
 /*
   modules/Tuxedo/QC_TuxedoQueueTransactionId.cc
 
@@ -27,6 +26,7 @@
 #include <qore/support.h>
 #include <qore/QoreClass.h>
 #include <qore/params.h>
+#include <qore/minitest.hpp>
 
 #include "QC_TuxedoTransactionId.h"
 #include "QoreTuxedoTransactionId.h"
@@ -100,7 +100,6 @@ TEST()
 }
 #endif
 
-#endif
 // EOF
 
 

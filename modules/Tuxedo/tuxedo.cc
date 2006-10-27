@@ -1,4 +1,3 @@
-#if !((defined USE_ONE_TRANSLATION_UNIT) && !(defined SKIP_THIS_FILE))
 /*
   modules/Tuxedo/tuxedo.cc
 
@@ -31,6 +30,7 @@
 #include <qore/ModuleManager.h>
 #include <qore/Object.h>
 #include <qore/minitest.hpp>
+#include <qore/BuiltinFunctionList.h>
 
 #include "tuxedo_module.h"
 
@@ -120,6 +120,5 @@ void tuxedo_module_delete()
   traceout("tuxedo_module_delete");
 }
 
-#endif
 // EOF
 

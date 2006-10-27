@@ -1,4 +1,3 @@
-#if !((defined USE_ONE_TRANSLATION_UNIT) && !(defined SKIP_THIS_FILE))
 /*
   modules/Tuxedo/QoreTuxedoTypedBuffer.cc
 
@@ -27,6 +26,7 @@
 #include <qore/support.h>
 #include <qore/Exception.h>
 #include <qore/charset.h>
+#include <qore/minitest.hpp>
 
 #include <atmi.h>
 
@@ -95,6 +95,38 @@ void QoreTuxedoTypedBuffer::setString(char* str, char* type, char* subtype, Exce
   size = sz;
 }
 
+//-----------------------------------------------------------------------------
+#ifdef DEBUG
+TEST()
+{
+  // test instantiantiaon
+  QoreTuxedoTypedBuffer buff;
+}
+
+TEST()
+{
+  // test string
+  QoreTuxedoTypedBuffer buff;
+  ExceptionSink xsink;
+  
+  buff.setString("abc", "STRING", 0, &xsink);
+  assert(!xsink.isException());
+  buff.clear();  
+  buff.setString(0, "STRING", 0, &xsink);
+  assert(!xsink.isException());
+}
+
+TEST()
+{
+  // test binary
+  QoreTuxedoTypedBuffer buff;
+  ExceptionSink xsink;
+
+  std::auto_ptr<BinaryObject> bin(new BinaryObject(strdup("abcd"), 5));
+  buff.setBinary(bin.get(), "CARRAY", 0, &xsink);
+  assert(!xsink.isException());
+}
 #endif
+
 // EOF
 

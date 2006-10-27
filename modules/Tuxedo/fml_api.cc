@@ -1,4 +1,3 @@
-#if !((defined USE_ONE_TRANSLATION_UNIT) && !(defined SKIP_THIS_FILE))
 /*
   modules/Tuxedo/fml_api.cc
 
@@ -1141,6 +1140,5 @@ void tuxedo_fml_ns_init(Namespace* ns)
   ns->addConstant("TPXPARSCACHESET", new QoreNode((int64)TPXPARSCACHESET));
 }
 
-#endif
 // EOF
 

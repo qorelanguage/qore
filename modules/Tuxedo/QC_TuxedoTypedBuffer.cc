@@ -1,4 +1,3 @@
-#if !((defined USE_ONE_TRANSLATION_UNIT) && !(defined SKIP_THIS_FILE))
 /*
   modules/Tuxedo/QC_TuxedoTypedBuffer.cc
 
@@ -266,7 +265,6 @@ class QoreClass* initTuxedoTypedBufferClass()
   return buff;
 }
 
-#endif
 // EOF
 
 

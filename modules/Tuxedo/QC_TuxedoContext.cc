@@ -1,4 +1,3 @@
-#if !((defined USE_ONE_TRANSLATION_UNIT) && !(defined SKIP_THIS_FILE))
 /*
   modules/Tuxedo/QC_TuxedoContext.cc
 
@@ -150,6 +149,5 @@ TEST()
 }
 #endif  // DEBUG
 
-#endif
 // EOF
 

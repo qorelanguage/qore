@@ -1,4 +1,3 @@
-#if !((defined USE_ONE_TRANSLATION_UNIT) && !(defined SKIP_THIS_FILE))
 /*
   modules/Tuxedo/hashed_parameters_helper.cc
 
@@ -259,6 +258,5 @@ bool Tuxedo_hashed_parameters::set_string(char* name, Hash* params, ExceptionSin
   return true;  
 }
 
-#endif
 // EOF
 

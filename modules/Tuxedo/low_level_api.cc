@@ -1,4 +1,3 @@
-#if !((defined USE_ONE_TRANSLATION_UNIT) && !(defined SKIP_THIS_FILE))
 /*
   modules/Tuxedo/low_level_api.cc
 
@@ -1863,6 +1862,5 @@ void tuxedo_low_level_ns_init(Namespace* ns)
   ns->addConstant("TX_UNCHAINED", new QoreNode((int64)TX_UNCHAINED));
 }
 
-#endif
 // EOF
 
