@@ -37,7 +37,7 @@ class QoreTuxedoContext : public ReferenceObject
 public:
   TPCONTEXT_T ctx;
 
-  QoreTuxedoContext() { memset(&ctx, 0, sizeof(ctx)); }
+  QoreTuxedoContext() { ctx = TPNULLCONTEXT; }
 
   void deref() { 
     if (ROdereference()) {

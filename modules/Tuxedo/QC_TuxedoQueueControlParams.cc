@@ -27,6 +27,8 @@
 #include <qore/support.h>
 #include <qore/QoreClass.h>
 #include <qore/params.h>
+#include <qore/minitest.hpp>
+#include <qore/ScopeGuard.h>
 
 #include "QC_TuxedoQueueControlParams.h"
 #include "QoreTuxedoQueueControlParams.h"
@@ -563,14 +565,14 @@ static QoreNode* TUXEDOQCTL_getMsgID(Object* self, QoreTuxedoQueueControlParams*
     xsink->raiseException("TuxedoQueueCtl::getMsgID", "No parameter expected.");
     return 0;
   }
-  void* buff = malloc(sizeof(TMMSGIDLEN));
+  void* buff = malloc(TMMSGIDLEN);
   if (!buff) {
     xsink->outOfMemory();
     return 0;
   }
-  memcpy(buff, &ctl->ctl.msgid, sizeof(TMMSGIDLEN));
+  memcpy(buff, &ctl->ctl.msgid, TMMSGIDLEN);
 
-  BinaryObject* bin = new BinaryObject(buff, sizeof(TMMSGIDLEN));
+  BinaryObject* bin = new BinaryObject(buff, TMMSGIDLEN);
 
   return new QoreNode(bin);
 }
@@ -613,14 +615,14 @@ static QoreNode* TUXEDOQCTL_getCorrID(Object* self, QoreTuxedoQueueControlParams
     xsink->raiseException("TuxedoQueueCtl::getCorrID", "No parameter expected.");
     return 0;
   }
-  void* buff = malloc(sizeof(TMCORRIDLEN));
+  void* buff = malloc(TMCORRIDLEN);
   if (!buff) {
     xsink->outOfMemory();
     return 0;
   }
-  memcpy(buff, &ctl->ctl.corrid, sizeof(TMCORRIDLEN));
+  memcpy(buff, &ctl->ctl.corrid, TMCORRIDLEN);
 
-  BinaryObject* bin = new BinaryObject(buff, sizeof(TMCORRIDLEN));
+  BinaryObject* bin = new BinaryObject(buff, TMCORRIDLEN);
 
   return new QoreNode(bin);
 }
@@ -669,6 +671,1211 @@ class QoreClass* initTuxedoQueueControlParamsClass()
   traceout("initTuxedoQueueControlParamsClass");
   return ctl;
 }
+
+//-----------------------------------------------------------------------------
+#ifdef DEBUG
+TEST()
+{
+  // just test instantiation
+  QoreTuxedoQueueControlParams ctl1;
+  QoreTuxedoQueueControlParams ctl2;
+}
+
+TEST()
+{
+  // test flags getter and setter
+  QoreTuxedoQueueControlParams ctl;
+  ExceptionSink xsink;
+
+  List* l = new List;
+  l->push(new QoreNode((int64)1234));  
+  QoreNode* params = new QoreNode(l);
+ 
+  QoreNode* res = TUXEDOQCTL_setFlags(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(!xsink.isException());
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+
+  params = new QoreNode();
+  res = TUXEDOQCTL_getFlags(0, &ctl, params, &xsink);
+  assert(!xsink.isException());
+  assert(res);
+  assert(res->type == NT_INT);
+  assert(res->val.intval == 1234);
+  
+  res->deref(&xsink);
+  assert(!xsink.isException());
+}
+
+TEST()
+{
+  // test flags getter and setter with invalid arguments (wrong type)
+  QoreTuxedoQueueControlParams ctl;
+  ExceptionSink xsink;
+
+  List* l = new List;
+  l->push(new QoreNode("aaa")); // string
+  QoreNode* params = new QoreNode(l);
+
+  QoreNode* res = TUXEDOQCTL_setFlags(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+  assert(!xsink.isException());
+
+  res = TUXEDOQCTL_getFlags(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+}
+
+TEST()
+{
+  // test flags getter and setter with invalid arguments (too many)
+  QoreTuxedoQueueControlParams ctl;
+  ExceptionSink xsink;
+
+  List* l = new List();
+  l->push(new QoreNode((int64)12));
+  l->push(new QoreNode((int64)34)); // 2 params
+  QoreNode* params = new QoreNode(l);
+
+  QoreNode* res = TUXEDOQCTL_setFlags(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+  assert(!xsink.isException());
+
+  res = TUXEDOQCTL_getFlags(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+}
+
+TEST()
+{
+  // test deque time getter and setter
+  QoreTuxedoQueueControlParams ctl;
+  ExceptionSink xsink;
+
+  List* l = new List;
+  l->push(new QoreNode((int64)10));
+  QoreNode* params = new QoreNode(l);
+
+  QoreNode* res = TUXEDOQCTL_setDeqTime(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(!xsink.isException());
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+
+  params = new QoreNode();
+  res = TUXEDOQCTL_getDeqTime(0, &ctl, params, &xsink);
+  assert(!xsink.isException());
+  assert(res);
+  assert(res->type == NT_INT);
+  assert(res->val.intval == 10);
+
+  res->deref(&xsink);
+  assert(!xsink.isException());
+}
+
+TEST()
+{
+  // test deque time getter and setter with invalid arguments (wrong type)
+  QoreTuxedoQueueControlParams ctl;
+  ExceptionSink xsink;
+
+  List* l = new List;
+  l->push(new QoreNode("aaa")); // string
+  QoreNode* params = new QoreNode(l);
+
+  QoreNode* res = TUXEDOQCTL_setDeqTime(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+  assert(!xsink.isException());
+
+  res = TUXEDOQCTL_getDeqTime(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+}
+
+TEST()
+{
+  // test deque time getter and setter with invalid arguments (too many)
+  QoreTuxedoQueueControlParams ctl;
+  ExceptionSink xsink;
+
+  List* l = new List();
+  l->push(new QoreNode((int64)12));
+  l->push(new QoreNode((int64)34)); // 2 params
+  QoreNode* params = new QoreNode(l);
+
+  QoreNode* res = TUXEDOQCTL_setDeqTime(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+  assert(!xsink.isException());
+
+  res = TUXEDOQCTL_getDeqTime(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+}
+
+TEST()
+{
+  // test priority getter and setter
+  QoreTuxedoQueueControlParams ctl;
+  ExceptionSink xsink;
+
+  List* l = new List;
+  l->push(new QoreNode((int64)-10));
+  QoreNode* params = new QoreNode(l);
+
+  QoreNode* res = TUXEDOQCTL_setPriority(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(!xsink.isException());
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+
+  params = new QoreNode();
+  res = TUXEDOQCTL_getPriority(0, &ctl, params, &xsink);
+  assert(!xsink.isException());
+  assert(res);
+  assert(res->type == NT_INT);
+  assert(res->val.intval == -10);
+
+  res->deref(&xsink);
+  assert(!xsink.isException());
+}
+
+TEST()
+{
+  // test priority getter and setter with invalid arguments (wrong type)
+  QoreTuxedoQueueControlParams ctl;
+  ExceptionSink xsink;
+
+  List* l = new List;
+  l->push(new QoreNode("aaa")); // string
+  QoreNode* params = new QoreNode(l);
+
+  QoreNode* res = TUXEDOQCTL_setPriority(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+  assert(!xsink.isException());
+
+  res = TUXEDOQCTL_getPriority(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+}
+
+TEST()
+{
+  // test priority getter and setter with invalid arguments (too many)
+  QoreTuxedoQueueControlParams ctl;
+  ExceptionSink xsink;
+
+  List* l = new List();
+  l->push(new QoreNode((int64)12));
+  l->push(new QoreNode((int64)34)); // 2 params
+  QoreNode* params = new QoreNode(l);
+
+  QoreNode* res = TUXEDOQCTL_setPriority(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+  assert(!xsink.isException());
+
+  res = TUXEDOQCTL_getPriority(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+}
+
+TEST()
+{
+  // test diagnostic getter and setter
+  QoreTuxedoQueueControlParams ctl;
+  ExceptionSink xsink;
+
+  List* l = new List;
+  l->push(new QoreNode((int64)222));
+  QoreNode* params = new QoreNode(l);
+
+  QoreNode* res = TUXEDOQCTL_setDiagnostic(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(!xsink.isException());
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+
+  params = new QoreNode();
+  res = TUXEDOQCTL_getDiagnostic(0, &ctl, params, &xsink);
+  assert(!xsink.isException());
+  assert(res);
+  assert(res->type == NT_INT);
+  assert(res->val.intval == 222);
+
+  res->deref(&xsink);
+  assert(!xsink.isException());
+}
+
+TEST()
+{
+  // test diagnostic getter and setter with invalid arguments (wrong type)
+  QoreTuxedoQueueControlParams ctl;
+  ExceptionSink xsink;
+
+  List* l = new List;
+  l->push(new QoreNode("aaa")); // string
+  QoreNode* params = new QoreNode(l);
+
+  QoreNode* res = TUXEDOQCTL_setDiagnostic(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+  assert(!xsink.isException());
+
+  res = TUXEDOQCTL_getDiagnostic(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+}
+
+TEST()
+{
+  // test diagnostic getter and setter with invalid arguments (too many)
+  QoreTuxedoQueueControlParams ctl;
+  ExceptionSink xsink;
+
+  List* l = new List();
+  l->push(new QoreNode((int64)12));
+  l->push(new QoreNode((int64)34)); // 2 params
+  QoreNode* params = new QoreNode(l);
+
+  QoreNode* res = TUXEDOQCTL_setDiagnostic(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+  assert(!xsink.isException());
+
+  res = TUXEDOQCTL_getDiagnostic(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+}
+
+TEST()
+{
+  // test expiration time getter and setter
+  QoreTuxedoQueueControlParams ctl;
+  ExceptionSink xsink;
+
+  List* l = new List;
+  l->push(new QoreNode((int64)222));
+  QoreNode* params = new QoreNode(l);
+
+  QoreNode* res = TUXEDOQCTL_setExpTime(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(!xsink.isException());
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+
+  params = new QoreNode();
+  res = TUXEDOQCTL_getExpTime(0, &ctl, params, &xsink);
+  assert(!xsink.isException());
+  assert(res);
+  assert(res->type == NT_INT);
+  assert(res->val.intval == 222);
+
+  res->deref(&xsink);
+  assert(!xsink.isException());
+}
+
+TEST()
+{
+  // test expiration time getter and setter with invalid arguments (wrong type)
+  QoreTuxedoQueueControlParams ctl;
+  ExceptionSink xsink;
+
+  List* l = new List;
+  l->push(new QoreNode("aaa")); // string
+  QoreNode* params = new QoreNode(l);
+
+  QoreNode* res = TUXEDOQCTL_setExpTime(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+  assert(!xsink.isException());
+
+  res = TUXEDOQCTL_getExpTime(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+}
+
+TEST()
+{
+  // test expiration time getter and setter with invalid arguments (too many)
+  QoreTuxedoQueueControlParams ctl;
+  ExceptionSink xsink;
+
+  List* l = new List();
+  l->push(new QoreNode((int64)12));
+  l->push(new QoreNode((int64)34)); // 2 params
+  QoreNode* params = new QoreNode(l);
+
+  QoreNode* res = TUXEDOQCTL_setExpTime(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+  assert(!xsink.isException());
+
+  res = TUXEDOQCTL_getExpTime(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+}
+
+TEST()
+{
+  // test reply QOS getter and setter
+  QoreTuxedoQueueControlParams ctl;
+  ExceptionSink xsink;
+
+  List* l = new List;
+  l->push(new QoreNode((int64)222));
+  QoreNode* params = new QoreNode(l);
+
+  QoreNode* res = TUXEDOQCTL_setReplyQOS(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(!xsink.isException());
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+
+  params = new QoreNode();
+  res = TUXEDOQCTL_getReplyQOS(0, &ctl, params, &xsink);
+  assert(!xsink.isException());
+  assert(res);
+  assert(res->type == NT_INT);
+  assert(res->val.intval == 222);
+
+  res->deref(&xsink);
+  assert(!xsink.isException());
+}
+
+TEST()
+{
+  // test reply QOS getter and setter with invalid arguments (wrong type)
+  QoreTuxedoQueueControlParams ctl;
+  ExceptionSink xsink;
+
+  List* l = new List;
+  l->push(new QoreNode("aaa")); // string
+  QoreNode* params = new QoreNode(l);
+
+  QoreNode* res = TUXEDOQCTL_setReplyQOS(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+  assert(!xsink.isException());
+
+  res = TUXEDOQCTL_getReplyQOS(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+}
+
+TEST()
+{
+  // test reply QOS getter and setter with invalid arguments (too many)
+  QoreTuxedoQueueControlParams ctl;
+  ExceptionSink xsink;
+
+  List* l = new List();
+  l->push(new QoreNode((int64)12));
+  l->push(new QoreNode((int64)34)); // 2 params
+  QoreNode* params = new QoreNode(l);
+
+  QoreNode* res = TUXEDOQCTL_setReplyQOS(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+  assert(!xsink.isException());
+
+  res = TUXEDOQCTL_getReplyQOS(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+}
+
+TEST()
+{
+  // test delivery QOS getter and setter
+  QoreTuxedoQueueControlParams ctl;
+  ExceptionSink xsink;
+
+  List* l = new List;
+  l->push(new QoreNode((int64)222));
+  QoreNode* params = new QoreNode(l);
+
+  QoreNode* res = TUXEDOQCTL_setDeliveryQOS(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(!xsink.isException());
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+
+  params = new QoreNode();
+  res = TUXEDOQCTL_getDeliveryQOS(0, &ctl, params, &xsink);
+  assert(!xsink.isException());
+  assert(res);
+  assert(res->type == NT_INT);
+  assert(res->val.intval == 222);
+
+  res->deref(&xsink);
+  assert(!xsink.isException());
+}
+
+TEST()
+{
+  // test delivery QOS getter and setter with invalid arguments (wrong type)
+  QoreTuxedoQueueControlParams ctl;
+  ExceptionSink xsink;
+
+  List* l = new List;
+  l->push(new QoreNode("aaa")); // string
+  QoreNode* params = new QoreNode(l);
+
+  QoreNode* res = TUXEDOQCTL_setDeliveryQOS(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+  assert(!xsink.isException());
+
+  res = TUXEDOQCTL_getDeliveryQOS(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+}
+
+TEST()
+{
+  // test delivery QOS getter and setter with invalid arguments (too many)
+  QoreTuxedoQueueControlParams ctl;
+  ExceptionSink xsink;
+
+  List* l = new List();
+  l->push(new QoreNode((int64)12));
+  l->push(new QoreNode((int64)34)); // 2 params
+  QoreNode* params = new QoreNode(l);
+
+  QoreNode* res = TUXEDOQCTL_setDeliveryQOS(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+  assert(!xsink.isException());
+
+  res = TUXEDOQCTL_getDeliveryQOS(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+}
+
+TEST()
+{
+  // test app key getter and setter
+  QoreTuxedoQueueControlParams ctl;
+  ExceptionSink xsink;
+
+  List* l = new List;
+  l->push(new QoreNode((int64)222));
+  QoreNode* params = new QoreNode(l);
+
+  QoreNode* res = TUXEDOQCTL_setAppkey(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(!xsink.isException());
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+
+  params = new QoreNode();
+  res = TUXEDOQCTL_getAppkey(0, &ctl, params, &xsink);
+  assert(!xsink.isException());
+  assert(res);
+  assert(res->type == NT_INT);
+  assert(res->val.intval == 222);
+
+  res->deref(&xsink);
+  assert(!xsink.isException());
+}
+
+TEST()
+{
+  // test app key getter and setter with invalid arguments (wrong type)
+  QoreTuxedoQueueControlParams ctl;
+  ExceptionSink xsink;
+
+  List* l = new List;
+  l->push(new QoreNode("aaa")); // string
+  QoreNode* params = new QoreNode(l);
+
+  QoreNode* res = TUXEDOQCTL_setAppkey(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+  assert(!xsink.isException());
+
+  res = TUXEDOQCTL_getAppkey(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+}
+
+TEST()
+{
+  // test app key getter and setter with invalid arguments (too many)
+  QoreTuxedoQueueControlParams ctl;
+  ExceptionSink xsink;
+
+  List* l = new List();
+  l->push(new QoreNode((int64)12));
+  l->push(new QoreNode((int64)34)); // 2 params
+  QoreNode* params = new QoreNode(l);
+
+  QoreNode* res = TUXEDOQCTL_setAppkey(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+  assert(!xsink.isException());
+
+  res = TUXEDOQCTL_getAppkey(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+}
+
+TEST()
+{
+  // test urcode getter and setter
+  QoreTuxedoQueueControlParams ctl;
+  ExceptionSink xsink;
+
+  List* l = new List;
+  l->push(new QoreNode((int64)222));
+  QoreNode* params = new QoreNode(l);
+
+  QoreNode* res = TUXEDOQCTL_setUrcode(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(!xsink.isException());
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+
+  params = new QoreNode();
+  res = TUXEDOQCTL_getUrcode(0, &ctl, params, &xsink);
+  assert(!xsink.isException());
+  assert(res);
+  assert(res->type == NT_INT);
+  assert(res->val.intval == 222);
+
+  res->deref(&xsink);
+  assert(!xsink.isException());
+}
+
+TEST()
+{
+  // test urcode getter and setter with invalid arguments (wrong type)
+  QoreTuxedoQueueControlParams ctl;
+  ExceptionSink xsink;
+
+  List* l = new List;
+  l->push(new QoreNode("aaa")); // string
+  QoreNode* params = new QoreNode(l);
+
+  QoreNode* res = TUXEDOQCTL_setUrcode(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+  assert(!xsink.isException());
+
+  res = TUXEDOQCTL_getUrcode(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+}
+
+TEST()
+{
+  // test urcode getter and setter with invalid arguments (too many)
+  QoreTuxedoQueueControlParams ctl;
+  ExceptionSink xsink;
+
+  List* l = new List();
+  l->push(new QoreNode((int64)12));
+  l->push(new QoreNode((int64)34)); // 2 params
+  QoreNode* params = new QoreNode(l);
+
+  QoreNode* res = TUXEDOQCTL_setUrcode(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+  assert(!xsink.isException());
+
+  res = TUXEDOQCTL_getUrcode(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+}
+
+TEST()
+{
+  // test client ID getter and setter
+  QoreTuxedoQueueControlParams ctl;
+  ExceptionSink xsink;
+
+  List* l = new List;
+  void* data = malloc(sizeof(CLIENTID));
+  memset(data, 'a', sizeof(CLIENTID));
+  BinaryObject* bin = new BinaryObject(data, sizeof(CLIENTID));
+  l->push(new QoreNode(bin));
+  QoreNode* params = new QoreNode(l);
+
+  QoreNode* res = TUXEDOQCTL_setClientID(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(!xsink.isException());
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+
+  params = new QoreNode();
+  res = TUXEDOQCTL_getClientID(0, &ctl, params, &xsink);
+  assert(!xsink.isException());
+  assert(res);
+  assert(res->type == NT_BINARY);
+
+  BinaryObject* bin2 = res->val.bin;
+  assert(bin->size() == bin2->size());
+  if (memcmp(bin->getPtr(), bin2->getPtr(), bin->size())) {
+    assert(false);
+  }
+
+  res->deref(&xsink);
+  assert(!xsink.isException());
+}
+
+TEST()
+{
+  // test client ID setter - data with bad size
+  QoreTuxedoQueueControlParams ctl;
+  ExceptionSink xsink;
+
+  List* l = new List;
+  BinaryObject* bin = new BinaryObject(strdup("test"), strlen("test") + 1);
+  l->push(new QoreNode(bin));
+  QoreNode* params = new QoreNode(l);
+
+  QoreNode* res = TUXEDOQCTL_setClientID(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+}
+
+TEST()
+{
+  // test client ID getter and setter with invalid arguments (wrong type)
+  QoreTuxedoQueueControlParams ctl;
+  ExceptionSink xsink;
+
+  List* l = new List;
+  l->push(new QoreNode("aaa")); // string
+  QoreNode* params = new QoreNode(l);
+
+  QoreNode* res = TUXEDOQCTL_setClientID(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+  assert(!xsink.isException());
+
+  res = TUXEDOQCTL_getClientID(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+}
+
+TEST()
+{
+  // test client ID getter and setter with invalid arguments (too many)
+  QoreTuxedoQueueControlParams ctl;
+  ExceptionSink xsink;
+
+  List* l = new List();
+  l->push(new QoreNode((int64)12));
+  l->push(new QoreNode((int64)34)); // 2 params, wrong type too
+  QoreNode* params = new QoreNode(l);
+
+  QoreNode* res = TUXEDOQCTL_setClientID(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+  assert(!xsink.isException());
+
+  res = TUXEDOQCTL_getClientID(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+}
+
+TEST()
+{
+  // test reply queue getter and setter
+  QoreTuxedoQueueControlParams ctl;
+  ExceptionSink xsink;
+
+  List* l = new List;
+  l->push(new QoreNode(("xyz")));
+  QoreNode* params = new QoreNode(l);
+
+  QoreNode* res = TUXEDOQCTL_setReplyQueue(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(!xsink.isException());
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+
+  params = new QoreNode();
+  res = TUXEDOQCTL_getReplyQueue(0, &ctl, params, &xsink);
+  assert(!xsink.isException());
+  assert(res);
+  assert(res->type == NT_STRING);
+  if (strcmp(res->val.String->getBuffer(), "xyz")) {
+    assert(false);
+  }
+
+  res->deref(&xsink);
+  assert(!xsink.isException());
+}
+
+TEST()
+{
+  // test reply queue getter and setter with invalid arguments (wrong type)
+  QoreTuxedoQueueControlParams ctl;
+  ExceptionSink xsink;
+
+  List* l = new List;
+  l->push(new QoreNode((int64)789)); // int
+  QoreNode* params = new QoreNode(l);
+
+  QoreNode* res = TUXEDOQCTL_setReplyQueue(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+  assert(!xsink.isException());
+
+  res = TUXEDOQCTL_getReplyQueue(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+}
+
+TEST()
+{
+  // test reply queue getter and setter with invalid arguments (too many, wrong type)
+  QoreTuxedoQueueControlParams ctl;
+  ExceptionSink xsink;
+
+  List* l = new List();
+  l->push(new QoreNode((int64)12));
+  l->push(new QoreNode((int64)34)); // 2 params
+  QoreNode* params = new QoreNode(l);
+
+  QoreNode* res = TUXEDOQCTL_setReplyQueue(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+  assert(!xsink.isException());
+
+  res = TUXEDOQCTL_getReplyQueue(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+}
+
+TEST()
+{
+  // test failure queue getter and setter
+  QoreTuxedoQueueControlParams ctl;
+  ExceptionSink xsink;
+
+  List* l = new List;
+  l->push(new QoreNode(("xyzabcd")));
+  QoreNode* params = new QoreNode(l);
+
+  QoreNode* res = TUXEDOQCTL_setFailureQueue(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(!xsink.isException());
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+
+  params = new QoreNode();
+  res = TUXEDOQCTL_getFailureQueue(0, &ctl, params, &xsink);
+  assert(!xsink.isException());
+  assert(res);
+  assert(res->type == NT_STRING);
+  if (strcmp(res->val.String->getBuffer(), "xyzabcd")) {
+    assert(false);
+  }
+
+  res->deref(&xsink);
+  assert(!xsink.isException());
+}
+
+TEST()
+{
+  // test failure queue getter and setter with invalid arguments (wrong type)
+  QoreTuxedoQueueControlParams ctl;
+  ExceptionSink xsink;
+
+  List* l = new List;
+  l->push(new QoreNode((int64)789)); // int
+  QoreNode* params = new QoreNode(l);
+
+  QoreNode* res = TUXEDOQCTL_setFailureQueue(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+  assert(!xsink.isException());
+
+  res = TUXEDOQCTL_getFailureQueue(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+}
+
+TEST()
+{
+  // test failure queue getter and setter with invalid arguments (too many, wrong type)
+  QoreTuxedoQueueControlParams ctl;
+  ExceptionSink xsink;
+
+  List* l = new List();
+  l->push(new QoreNode((int64)12));
+  l->push(new QoreNode((int64)34)); // 2 params
+  QoreNode* params = new QoreNode(l);
+
+  QoreNode* res = TUXEDOQCTL_setFailureQueue(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+  assert(!xsink.isException());
+
+  res = TUXEDOQCTL_getFailureQueue(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+}
+
+TEST()
+{
+  // test msg ID getter and setter
+  QoreTuxedoQueueControlParams ctl;
+  ExceptionSink xsink;
+
+  List* l = new List;
+  void* data = malloc(TMMSGIDLEN);
+  memset(data, 'x', TMMSGIDLEN);
+  BinaryObject* bin = new BinaryObject(data, TMMSGIDLEN);
+  l->push(new QoreNode(bin));
+  QoreNode* params = new QoreNode(l);
+
+  QoreNode* res = TUXEDOQCTL_setMsgID(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(!xsink.isException());
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+
+  params = new QoreNode();
+  res = TUXEDOQCTL_getMsgID(0, &ctl, params, &xsink);
+  assert(!xsink.isException());
+  assert(res);
+  assert(res->type == NT_BINARY);
+
+  BinaryObject* bin2 = res->val.bin;
+  assert(bin->size() == bin2->size());
+  if (memcmp(bin->getPtr(), bin2->getPtr(), bin->size())) {
+    assert(false);
+  }
+
+  res->deref(&xsink);
+  assert(!xsink.isException());
+}
+
+TEST()
+{
+  // test msg ID setter - data with bad size
+  QoreTuxedoQueueControlParams ctl;
+  ExceptionSink xsink;
+
+  List* l = new List;
+  BinaryObject* bin = new BinaryObject(strdup("test"), strlen("test") + 1);
+  l->push(new QoreNode(bin));
+  QoreNode* params = new QoreNode(l);
+
+  QoreNode* res = TUXEDOQCTL_setMsgID(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+}
+
+TEST()
+{
+  // test msg ID getter and setter with invalid arguments (wrong type)
+  QoreTuxedoQueueControlParams ctl;
+  ExceptionSink xsink;
+
+  List* l = new List;
+  l->push(new QoreNode("aaa")); // string
+  QoreNode* params = new QoreNode(l);
+
+  QoreNode* res = TUXEDOQCTL_setMsgID(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+  assert(!xsink.isException());
+
+  res = TUXEDOQCTL_getMsgID(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+}
+
+TEST()
+{
+  // test msg ID getter and setter with invalid arguments (too many)
+  QoreTuxedoQueueControlParams ctl;
+  ExceptionSink xsink;
+
+  List* l = new List();
+  l->push(new QoreNode((int64)12));
+  l->push(new QoreNode((int64)34)); // 2 params, wrong type too
+  QoreNode* params = new QoreNode(l);
+
+  QoreNode* res = TUXEDOQCTL_setMsgID(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+  assert(!xsink.isException());
+
+  res = TUXEDOQCTL_getMsgID(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+}
+
+TEST()
+{
+  // test corr ID getter and setter
+  QoreTuxedoQueueControlParams ctl;
+  ExceptionSink xsink;
+
+  List* l = new List;
+  void* data = malloc(TMCORRIDLEN);
+  memset(data, 'x', TMCORRIDLEN);
+  BinaryObject* bin = new BinaryObject(data, TMCORRIDLEN);
+  l->push(new QoreNode(bin));
+  QoreNode* params = new QoreNode(l);
+
+  QoreNode* res = TUXEDOQCTL_setCorrID(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(!xsink.isException());
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+
+  params = new QoreNode();
+  res = TUXEDOQCTL_getCorrID(0, &ctl, params, &xsink);
+  assert(!xsink.isException());
+  assert(res);
+  assert(res->type == NT_BINARY);
+
+  BinaryObject* bin2 = res->val.bin;
+  assert(bin->size() == bin2->size());
+  if (memcmp(bin->getPtr(), bin2->getPtr(), bin->size())) {
+    assert(false);
+  }
+
+  res->deref(&xsink);
+  assert(!xsink.isException());
+}
+
+TEST()
+{
+  // test corr ID setter - data with bad size
+  QoreTuxedoQueueControlParams ctl;
+  ExceptionSink xsink;
+
+  List* l = new List;
+  BinaryObject* bin = new BinaryObject(strdup("test"), strlen("test") + 1);
+  l->push(new QoreNode(bin));
+  QoreNode* params = new QoreNode(l);
+
+  QoreNode* res = TUXEDOQCTL_setCorrID(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+}
+
+TEST()
+{
+  // test corr ID getter and setter with invalid arguments (wrong type)
+  QoreTuxedoQueueControlParams ctl;
+  ExceptionSink xsink;
+
+  List* l = new List;
+  l->push(new QoreNode("aaa")); // string
+  QoreNode* params = new QoreNode(l);
+
+  QoreNode* res = TUXEDOQCTL_setCorrID(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+  assert(!xsink.isException());
+
+  res = TUXEDOQCTL_getCorrID(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+}
+
+TEST()
+{
+  // test corr ID getter and setter with invalid arguments (too many)
+  QoreTuxedoQueueControlParams ctl;
+  ExceptionSink xsink;
+
+  List* l = new List();
+  l->push(new QoreNode((int64)12));
+  l->push(new QoreNode((int64)34)); // 2 params, wrong type too
+  QoreNode* params = new QoreNode(l);
+
+  QoreNode* res = TUXEDOQCTL_setCorrID(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+  assert(!xsink.isException());
+
+  res = TUXEDOQCTL_getCorrID(0, &ctl, params, &xsink);
+  assert(!res);
+  assert(xsink.isException());
+  xsink.clear();
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+}
+
+#endif // DEBUG
 
 #endif
 // EOF

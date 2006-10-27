@@ -90,6 +90,16 @@ class QoreClass* initTuxedoTransactionIdClass()
   return trid;
 }
 
+//----------------------------------------------------------------------------
+#ifdef DEBUG
+TEST()
+{
+  // just test that it could be instantiated
+  QoreTuxedoTransactionId id1;
+  QoreTuxedoTransactionId id2;
+}
+#endif
+
 #endif
 // EOF
 

@@ -27,6 +27,7 @@
 #include <qore/support.h>
 #include <qore/QoreClass.h>
 #include <qore/params.h>
+#include <qore/minitest.hpp>
 
 #include "QC_TuxedoContext.h"
 #include "QoreTuxedoContext.h"
@@ -78,6 +79,10 @@ static void TUXEDOCTX_copy(Object *self, Object *old, QoreTuxedoContext* ctx, Ex
 //-----------------------------------------------------------------------------
 static QoreNode* TUXEDOCTX_is_null(Object* self, QoreTuxedoContext* ctx, QoreNode* params, ExceptionSink* xsink)
 {
+  if (get_param(params, 0)) {
+    xsink->raiseException("TuxedoContext::isNullContext", "No parameters expected.");
+    return 0;
+  }
   return new QoreNode(ctx->ctx == TPNULLCONTEXT);
 }
 
@@ -96,6 +101,54 @@ class QoreClass* initTuxedoContextClass()
   traceout("initTuxedoContextClass");
   return ctx;
 }
+
+//-----------------------------------------------------------------------------
+#ifdef DEBUG
+TEST()
+{
+  // test it could be instantiated
+  QoreTuxedoContext ctx;
+}
+
+TEST()
+{
+  // test isNullContext
+  QoreTuxedoContext ctx;
+  ExceptionSink xsink;
+
+  List* l = new List();
+  QoreNode* params = new QoreNode(l);
+
+  QoreNode* res = TUXEDOCTX_is_null(0, &ctx, params, &xsink);
+  assert(!xsink.isException());
+  assert(res);
+  assert(res->type == NT_BOOLEAN);
+  assert(res->val.boolval);
+
+  res->deref(&xsink);
+  params->deref(&xsink);
+  assert(!xsink.isException());
+}
+
+TEST()
+{
+  // isNullContext with unexpected parameter
+  QoreTuxedoContext ctx;
+  ExceptionSink xsink;
+
+  List* l = new List();
+  l->push(new QoreNode("aaa"));
+  QoreNode* params = new QoreNode(l);
+
+  QoreNode* res = TUXEDOCTX_is_null(0, &ctx, params, &xsink);
+  assert(xsink.isException());
+  xsink.clear();
+  assert(!res);
+
+  params->deref(&xsink);
+  assert(!xsink.isException());
+}
+#endif  // DEBUG
 
 #endif
 // EOF
