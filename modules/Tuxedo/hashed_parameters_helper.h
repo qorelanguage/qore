@@ -45,13 +45,14 @@ class Hash;
 //------------------------------------------------------------------------------
 class Tuxedo_hashed_parameters
 {
+private:
   static  LockedObject m_mutex; // must be static
   TPINIT* m_tpinit_data;
   std::vector<std::pair<std::string, std::string> > m_old_environment;
 
-  bool set_environment_variable(char* name, Hash* params, ExceptionSink* xsink);
-  bool set_flag(char* name, unsigned flag, Hash* params, ExceptionSink* xsink, long& flags);
-  bool set_string(char* name, Hash* params, ExceptionSink* xsink, std::string& str);
+  void set_environment_variable(char* name, Hash* params, ExceptionSink* xsink);
+  void set_flag(char* name, unsigned flag, Hash* params, ExceptionSink* xsink, long& flags);
+  void set_string(char* name, Hash* params, ExceptionSink* xsink, std::string& str);
 
 public:
   Tuxedo_hashed_parameters();
