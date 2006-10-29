@@ -86,6 +86,9 @@ int main(int argc, char *argv[])
       rc = rv ? rv->getAsInt() : 0;
       if (rv)
 	 rv->deref(&xsink);
+      if (xsink.isException()) {
+         rc = 3; // uncaught exception in Qore
+      }
       xsink.handleExceptions();
       // wait for any other threads to terminate
       qpgm->waitForTermination();
