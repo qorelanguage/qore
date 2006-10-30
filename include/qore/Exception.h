@@ -60,6 +60,13 @@ class ExceptionSink {
       {
 	 return head;
       }
+      // Intended as a alternative to isException():
+      // ExceptionSink xsink;
+      // if (xsink) { .. }
+      operator bool () const
+      {
+         return head;
+      }
       inline void raiseException(char *err, char *fmt, ...);
       inline void raiseException(class Exception *e);
       inline void raiseException(class QoreNode *n);
