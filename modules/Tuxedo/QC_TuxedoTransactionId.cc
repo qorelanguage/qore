@@ -98,6 +98,20 @@ TEST()
   QoreTuxedoTransactionId id1;
   QoreTuxedoTransactionId id2;
 }
+
+TEST()
+{
+  // test from Qore
+  char* cmd =
+    "qore -e '%requires tuxedo\n"
+    "$a = new Tuxedo::TuxedoTransactionId();\n"
+    "exit(10);\n'";
+
+  int res = system(cmd);
+  res = WEXITSTATUS(res);
+  assert(res == 10);
+
+}
 #endif
 
 // EOF

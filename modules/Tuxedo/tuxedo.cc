@@ -104,12 +104,14 @@ void tuxedo_module_ns_init(class Namespace* rns, class Namespace* qns)
 
   // Tuxedo::TuxedoTypedBuffer class
   tuxedons->addSystemClass(initTuxedoTypedBufferClass());
-  // Tuxedo:TuxedoQueueCtl class
+  // Tuxedo::TuxedoQueueCtl class
   tuxedons->addSystemClass(initTuxedoQueueControlParamsClass());
-  // Tuxedo:TuxedoTransactionId class
+  // Tuxedo::TuxedoTransactionId class
   tuxedons->addSystemClass(initTuxedoTransactionIdClass());
   // Tuxedo::TuxedoContext class
   tuxedons->addSystemClass(initTuxedoContextClass());
+
+  qns->addInitialNamespace(tuxedons);
 
   traceout("tuxedo_module_ns_init");
 }

@@ -1874,6 +1874,64 @@ TEST()
   assert(!xsink.isException());
 }
 
+TEST()
+{
+  // test from Qore
+  char* cmd = 
+    "qore -e '%requires tuxedo\n"
+    "$a = new Tuxedo::TuxedoQueueCtl();\n"
+
+    "$a.setFlags(1234);\n"
+    "$val = $a.getFlags();\n"
+    "if ($val != 1234) exit(11);\n"
+
+    "$a.setDeqTime(123);\n"
+    "$val = $a.getDeqTime();\n"
+    "if ($val != 123) exit(11);\n"
+
+    "$a.setPriority(1);\n"
+    "$val = $a.getPriority();\n"
+    "if ($val != 1) exit(11);\n"
+
+    "$a.setDiagnostic(999);\n"
+    "$val = $a.getDiagnostic();\n"
+    "if ($val != 999) exit(11);\n"
+
+    "$a.setExpTime(88);\n"
+    "$val = $a.getExpTime();\n"
+    "if ($val != 88) exit(11);\n"
+
+    "$a.setReplyQOS(66);\n"
+    "$val = $a.getReplyQOS();\n"
+    "if ($val != 66) exit(11);\n"
+
+    "$a.setDeliveryQOS(11);\n"
+    "$val = $a.getDeliveryQOS();\n"
+    "if ($val != 11) exit(11);\n"
+
+    "$a.setAppkey(32);\n"
+    "$val = $a.getAppkey();\n"
+    "if ($val != 32) exit(11);\n"
+
+    "$a.setUrcode(43);\n"
+    "$val = $a.getUrcode();\n"
+    "if ($val != 43) exit(11);\n"
+
+    "$a.setReplyQueue(\"aaa\");\n"
+    "$val = $a.getReplyQueue();\n"
+    "if ($val != \"aaa\") exit(11);\n"
+
+    "$a.setFailureQueue(\"bbbb\");\n"
+    "$val = $a.getFailureQueue();\n"
+    "if ($val != \"bbbb\") exit(11);\n"
+    
+    "exit(10);'\n";
+
+  int res = system(cmd);
+  res = WEXITSTATUS(res);
+  assert(res == 10);
+}
+
 #endif // DEBUG
 
 // EOF

@@ -33,6 +33,8 @@
 #include "QC_TuxedoTypedBuffer.h"
 #include "QoreTuxedoTypedBuffer.h"
 
+#include <atmi.h>
+
 int CID_TUXEDOTYPEDBUFFER;
 
 //------------------------------------------------------------------------------
@@ -250,9 +252,121 @@ static QoreNode* TUXEDOTYPEDBUFFER_getString(Object* self, QoreTuxedoTypedBuffer
   return new QoreNode(s);
 }
 
+//------------------------------------------------------------------------------
+// http://edocs.bea.com/tuxedo91/rf3c/rf3c23.htm#1021676
+// Returns 0 if all is OK or tperrno code.
+// Any previous memory block is freed before.
+static QoreNode* TUXEDOTYPEDBUFFER_alloc(Object* self, QoreTuxedoTypedBuffer* buff, QoreNode* params, ExceptionSink* xsink)
+{
+  for (int i = 0; i <= 3; ++i) {
+    bool ok;
+    if (i == 3) ok = !get_param(params, i);
+    else ok = get_param(params, i);
+    if (!ok) {
+      xsink->raiseException("TuxedoTypedBuffer::alloc", "Three parameters expected (type, subtype, size).");
+      return 0;
+    }
+  }
+
+  QoreNode* n = test_param(params, NT_STRING, 0);
+  if (!n) {
+    xsink->raiseException("TuxedoTypedBuffer::alloc", "The first parameter, type, needs to be a string.");
+    return 0;
+  }
+  char* type = n->val.String->getBuffer();
+
+  n = test_param(params, NT_STRING, 1);
+  if (!n) {
+    xsink->raiseException("TuxedoTypedBuffer::alloc", "The second parameter, the subtype, needs to be a string, possibly empty.");
+    return 0;
+  }
+  char* subtype = n->val.String->getBuffer();
+  if (subtype && !subtype[0]) subtype = 0;
+
+  n = test_param(params, NT_INT, 2);
+  if (!n) {
+    xsink->raiseException("TuxedoTypedBuffer::alloc", "The third parameter, size, needs to be an integer.");
+    return 0;
+  }
+  long size = (long)n->val.intval;
+
+  char* res = tpalloc(type, subtype, size);
+  if (!res) {
+    return new QoreNode((int64)tperrno);
+  }
+  if (buff->buffer) {
+    tpfree(buff->buffer);
+  }
+  buff->buffer = res;
+  buff->size = size;
+  return new QoreNode((int64)0);
+}
 
 //------------------------------------------------------------------------------
-class QoreClass* initTuxedoTypedBufferClass()
+// http://edocs.bea.com/tuxedo/tux91/rf3c/rfc363.htm#1044439
+static QoreNode* TUXEDOTYPEDBUFFER_realloc(Object* self, QoreTuxedoTypedBuffer* buff, QoreNode* params, ExceptionSink* xsink)
+{
+  if (!get_param(params, 0)) {
+    xsink->raiseException("TuxedoTypedBuffer::realloc", "One parameter, new size, expected.");
+    return 0;
+  }
+  QoreNode* n = test_param(params, NT_INT, 0);
+  if (!n) {
+    xsink->raiseException("TuxedoTypedBuffer::realloc", "The parameter, new size, needs to be an integer.");
+    return 0;
+  }
+  long size = (long)n->val.intval;
+
+  if (get_param(params, 1)) {
+    xsink->raiseException("TuxedoTypedBuffer::realloc", "Only one parameter expected.");
+    return 0;
+  }
+  if (!buff->buffer) {
+    xsink->raiseException("TuxedoTypedBuffer::realloc", "There is no existing buffer to be reallocated.");
+    return 0;
+  }
+  char* res = tprealloc(buff->buffer, size);
+  if (!res) {
+    return new QoreNode((int64)tperrno);
+  }
+  buff->buffer = res;
+  buff->size = size;
+  return new QoreNode((int64)0);
+}
+
+//-----------------------------------------------------------------------------
+// http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c87.htm#1045809
+static QoreNode* TUXEDOTYPEDBUFFER_types(Object* self, QoreTuxedoTypedBuffer* buff, QoreNode* params, ExceptionSink* xsink)
+{
+  if (get_param(params, 0)) {
+    xsink->raiseException("TuxedoTypedBuffer::types", "No parameters expected");
+    return 0;
+  }
+
+  const int MaxTypeSize = 8;  // see docs
+  const int MaxSubtypeSize = 16;
+  char type[MaxTypeSize + 100];
+  char subtype[MaxSubtypeSize + 100];
+
+  long size =  tptypes(buff->buffer, type, subtype);
+
+  List* l = new List;
+  if (size == -1) {
+    l->push(new QoreNode((int64)tperrno));
+  } else {
+    type[MaxTypeSize] = 0;
+    subtype[MaxSubtypeSize] = 0;
+    l->push(new QoreNode((int64)0));
+    l->push(new QoreNode(type));
+    l->push(new QoreNode(subtype));
+    l->push(new QoreNode((int64)size));
+  }
+
+  return new QoreNode(l);
+}
+
+//------------------------------------------------------------------------------
+QoreClass* initTuxedoTypedBufferClass()
 {
   tracein("initTuxedoTypedBufferClass");
   QoreClass* buff = new QoreClass(QDOM_NETWORK, strdup("TuxedoTypedBuffer"));
@@ -267,6 +381,9 @@ class QoreClass* initTuxedoTypedBufferClass()
   buff->addMethod("getBinary", (q_method_t)TUXEDOTYPEDBUFFER_getBinary);
   buff->addMethod("setString", (q_method_t)TUXEDOTYPEDBUFFER_setString);
   buff->addMethod("getString", (q_method_t)TUXEDOTYPEDBUFFER_getString);
+  buff->addMethod("alloc", (q_method_t)TUXEDOTYPEDBUFFER_alloc);
+  buff->addMethod("realloc", (q_method_t)TUXEDOTYPEDBUFFER_realloc);
+  buff->addMethod("types", (q_method_t)TUXEDOTYPEDBUFFER_types);
 
   traceout("initTuxedoTypedBufferClass");
   return buff;
@@ -613,6 +730,136 @@ TEST()
   res->deref(&xsink);
   assert(!xsink.isException());
 }
+
+TEST()
+{
+  // test Qore code
+  char* cmd =
+    "qore -e '%requires tuxedo\n"
+    "$a = new Tuxedo::TuxedoTypedBuffer();\n"
+
+    "$a.setStringEncoding(\"UTF-8\");\n"
+    "$a.setString(\"xyz\");\n"
+    "$val = $a.getString();\n"
+    "if ($val != \"xyz\") exit(11);\n"
+
+    "$bin = $a.getBinary();\n" // get these data as binary
+    "$a.setBinary($bin);\n"
+
+    "$a.clear();\n"
+    "exit(10);\n'";
+
+  int res = system(cmd);
+  res = WEXITSTATUS(res);
+  assert(res == 10);
+}
+
+TEST()
+{
+  // alloc(), realloc(), types()
+  QoreTuxedoTypedBuffer buff;
+  ExceptionSink xsink;
+
+  List* l = new List;
+  l->push(new QoreNode("STRING"));
+  l->push(new QoreNode(""));
+  l->push(new QoreNode((int64)100));
+  QoreNode* params = new QoreNode(l);
+
+  QoreNode* res = TUXEDOTYPEDBUFFER_alloc(0, &buff, params, &xsink);
+  assert(!xsink);
+  assert(res);
+  assert(buff.buffer);
+  assert(buff.size == 100);
+  assert(res->type == NT_INT);
+  assert(res->val.intval == 0);
+
+  res->deref(&xsink);
+  assert(!xsink);
+
+  params->deref(&xsink);
+  assert(!xsink);
+
+  // realloc it
+  l = new List;
+  l->push(new QoreNode((int64)200));
+  params = new QoreNode(l);
+
+  res = TUXEDOTYPEDBUFFER_realloc(0, &buff, params, &xsink);
+  assert(!xsink);
+  assert(res);
+  assert(buff.buffer);
+  assert(buff.size == 200);
+  assert(res->type == NT_INT);
+  assert(res->val.intval == 0);
+
+  res->deref(&xsink);
+  assert(!xsink);
+
+  params->deref(&xsink);
+  assert(!xsink);
+
+  // use types() to find out
+  l = new List;
+  params = new QoreNode(l);
+  
+  res = TUXEDOTYPEDBUFFER_types(0, &buff, params, &xsink);
+  assert(!xsink);
+  assert(res);
+  assert(res->type == NT_LIST);
+
+  QoreNode* item = res->val.list->retrieve_entry(0);
+  assert(item);
+  assert(item->type == NT_INT);
+  assert(item->val.intval == 0);
+  assert(res->val.list->size() == 4);
+
+  item = res->val.list->retrieve_entry(1);
+  assert(item);
+  assert(item->type == NT_STRING);
+  char* s = item->val.String->getBuffer();
+  if (strcmp(s, "STRING")) {
+    assert(false);
+  }
+
+  item = res->val.list->retrieve_entry(2);
+  assert(item);
+  assert(item->type == NT_STRING);
+  char* ss = item->val.String->getBuffer();
+  assert(!ss || !ss[0]);
+
+  item = res->val.list->retrieve_entry(3);
+  assert(item);
+  assert(item->type == NT_INT);
+  // assert(item->val.intval == 200); - the actual value may be different from what was asked for, e.g. 512
+
+  res->deref(&xsink);
+  assert(!xsink);
+
+  params->deref(&xsink);
+  assert(!xsink);
+}
+
+TEST()
+{
+  // test alloc(), realloc(), types() members in Qore
+  char* cmd = "qore -e '%requires tuxedo\n"
+    "$a = new Tuxedo::TuxedoTypedBuffer();\n"
+    "$res = $a.alloc(\"STRING\", \"\", 100);\n"
+    "if ($res != 0) exit(11);\n"
+    "$res = $a.realloc(300);\n"
+    "if ($res != 0) exit(11);\n"
+    "$res = $a.types();\n"
+    "if ($res[0] != 0) exit(11);\n"
+    "if ($res[1] != \"STRING\") exit(11);\n"
+    "if ($res[2] != \"\") exit(11);\n"
+    "exit(10);'";
+
+  int res = system(cmd);
+  res = WEXITSTATUS(res);
+  assert(res == 10);
+}
+
 #endif // DEBUG
 
 // EOF

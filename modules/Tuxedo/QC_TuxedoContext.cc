@@ -147,6 +147,21 @@ TEST()
   params->deref(&xsink);
   assert(!xsink.isException());
 }
+
+TEST()
+{
+  // test from Qore
+  char* cmd = 
+    "qore -e '%requires tuxedo\n"
+    "$a = new Tuxedo::TuxedoContext();\n"
+    "$isnull = $a.isNullContext();\n"
+    "if ($isnull != True) exit(11);\n"
+    "exit(10);\n'";
+
+  int res = system(cmd); 
+  res = WEXITSTATUS(res); 
+  assert(res == 10);
+}
 #endif  // DEBUG
 
 // EOF

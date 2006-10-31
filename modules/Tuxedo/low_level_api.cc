@@ -29,6 +29,7 @@
 #include <qore/BuiltinFunctionList.h>
 #include <qore/params.h>
 #include <qore/QoreString.h>
+#include <qore/minitest.hpp>
 
 #include "low_level_api.h"
 #include "QoreTuxedoTypedBuffer.h"
@@ -119,142 +120,29 @@ static QoreTuxedoContext* node2context(QoreNode* n, char* func_name, ExceptionSi
 // http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c28.htm#1040017
 static QoreNode* f_tpchkauth(QoreNode* params, ExceptionSink* xsink)
 {
-  if (!get_param(params, 0)) {
-    xsink->raiseException("tpchkauth", "One or two parameters expected: required authentification integer passed by reference, optional hash with environment variables to be used.");
-    return 0;
-  }
-
-  QoreNode* n = test_param(params, NT_INT, 0);
-  if (!n) {
-    xsink->raiseException("tpchauth", "The first parameter, required authentification, needs to be an integer passed by reference.");
-  }
-  int64* pauth = &n->val.intval;
-
   Tuxedo_hashed_parameters conn_params;
 
   if (get_param(params, 1)) {
-    n = test_param(params, NT_HASH, 1);
+    QoreNode* n = test_param(params, NT_HASH, 1);
     if (!n) {
-      xsink->raiseException("tpchkauth", "The second parameter, optional environment parameters to be used, needs to be a hash.");
+      xsink->raiseException("tpchkauth", "The optional parameter, settings, needs to be a hash.");
       return 0;
     }
     conn_params.process_hash(n, xsink);
-    if (xsink->isException()) {
+    if (*xsink) {
       return 0;
     }
   }
-
   int res = tpchkauth();
+  List* l = new List;
+
   if (res == -1) {
-    return new QoreNode((int64)tperrno);
-  } 
-  
-  *pauth = res;
-  return new QoreNode(OK);
-}
-
-//-----------------------------------------------------------------------------
-// http://edocs.bea.com/tuxedo91/rf3c/rf3c23.htm#1021676
-// The difference is that instead of returning char* it 
-// fills instance of Tuxedo::TuxedoTypedBuffer in the last parameter.
-// Returns 0 if all is OK or tperrno code. The last parameter
-// needs to be passed by reference.
-static QoreNode* f_tpalloc(QoreNode* params, ExceptionSink* xsink)
-{
-  for (int i = 0; i <= 4; ++i) {
-    bool ok;
-    if (i == 4) ok = !get_param(params, i);
-    else ok = get_param(params, i);
-    if (!ok) {
-      xsink->raiseException("tpalloc", "Four parameters expected (type, subtype, size, out-typed-buffer).");
-      return 0;
-    }
+    l->push(new QoreNode((int64)tperrno));
+  } else {
+    l->push(new QoreNode(OK));
+    l->push(new QoreNode((int64)res));
   }
-
-  QoreNode* n = test_param(params, NT_STRING, 0);
-  if (!n) {
-    xsink->raiseException("tpalloc", "The first parameter, type, needs to be a string.");
-    return 0;
-  }
-  char* type = n->val.String->getBuffer();
-
-  n = test_param(params, NT_STRING, 1);
-  if (!n) {
-    xsink->raiseException("tpalloc", "The second parameter, the subtype, needs to be a string, possibly empty.");
-    return 0;
-  }  
-  char* subtype = n->val.String->getBuffer();
-  if (subtype && !subtype[0]) subtype = 0;
- 
-  n = test_param(params, NT_INT, 2);
-  if (!n) {
-    xsink->raiseException("tpalloc", "The third parameter, size, needs to be an integer.");
-    return 0;
-  }
-  long size = (long)n->val.intval;
-
-  n = test_param(params, NT_OBJECT, 3);
-  if (!n) {
-    xsink->raiseException("tpalloc", "The fourth parameter, typed buffer, needs to be an object.");
-    return 0;
-  }  
-  QoreTuxedoTypedBuffer* buff = node2typed_buffer(n, "tpalloc", xsink);
-  
-  char* res = tpalloc(type, subtype, size);
-  if (!res) {
-    return new QoreNode((int64)tperrno);
-  }
-  
-  if (buff->buffer) {
-    tpfree(buff->buffer);
-  }  
-  buff->buffer = res;
-  buff->size = size;
-  return new QoreNode(OK);
-}
-
-//------------------------------------------------------------------------------
-// http://edocs.bea.com/tuxedo/tux91/rf3c/rfc363.htm#1044439
-// Parameters:
-// * TuxedoTypedBuffer instance passed by reference
-// * new size integer
-static QoreNode* f_tprealloc(QoreNode* params, ExceptionSink* xsink)
-{
-  for (int i = 0; i <= 2; ++i) {
-    if (!get_param(params, i)) {
-      xsink->raiseException("tprealloc", "Two parameters expected: TuxedoTypedBuffer instance passed by reference, new size integer.");
-      return 0;
-    }
-  }
-
-  QoreNode* n = test_param(params, NT_OBJECT, 0);
-  if (!n) {
-    xsink->raiseException("tprealloc", "The first parameter needs to be a TuxedoTypedBuffer instance passed by reference.");
-    return 0;
-  }
-  QoreTuxedoTypedBuffer* buff = node2typed_buffer(n, "tprealloc", xsink);
-  if (xsink->isException()) {
-    return 0;
-  }
-  if (!buff->buffer) {
-    xsink->raiseException("tprealloc", "TuxedoTypedBuffer instance is not yet allocated.");
-    return 0;
-  }
-
-  n = test_param(params, NT_INT, 1);
-  if (!n) {
-    xsink->raiseException("tprealloc", "The second parameter, size, needs to be an integer.");
-    return 0;
-  }
-  long size = (long)n->val.intval;
-
-  char* res = tprealloc(buff->buffer, size);
-  if (!res) {
-    return new QoreNode((int64)tperrno);
-  }
-  buff->buffer = res;
-  buff->size = size;
-  return new QoreNode(OK);
+  return new QoreNode(l);
 }
 
 //------------------------------------------------------------------------------
@@ -269,7 +157,7 @@ static QoreNode* f_tpinit(QoreNode* params, ExceptionSink* xsink)
   if (get_param(params, 0)) {
     QoreNode* n = test_param(params, NT_HASH, 0);
     if (!n) {
-      xsink->raiseException("tpinit", "The first parameter needs to be a hash with environment variables to set.");
+      xsink->raiseException("tpinit", "The first optional parameter needs to be a hash with environment variables to set.");
       return 0;
     }
     conn_params.process_hash(n, xsink);
@@ -304,7 +192,7 @@ static QoreNode* f_tpinit_params(QoreNode* params, ExceptionSink* xsink)
 {
   char* all_params_err = "Five to seven parameters expected: user name, client name, password, group name, flags, additional data (binary, optional), environment variables (hash, optional).";
 
-  for (int i = 0; i < 6; ++i) {
+  for (int i = 0; i < 5; ++i) {
     if (!get_param(params, i)) {
       xsink->raiseException("tpinit", all_params_err);
       return 0;
@@ -372,20 +260,18 @@ static QoreNode* f_tpinit_params(QoreNode* params, ExceptionSink* xsink)
   int next_index = 5;
   if (get_param(params, 5)) {
     n = test_param(params, NT_BINARY, 5);
-    if (!n) {
-      xsink->raiseException("tpinit", "The sixth parameter, additional data, needs to be a binary (could be empty).");
-      return 0;
+    if (n) {
+      data = n->val.bin->getPtr();
+      data_size = n->val.bin->size();
+      ++next_index;
     }
-    data = n->val.bin->getPtr();
-    data_size = n->val.bin->size();
-    ++next_index;
   }
 
   Tuxedo_hashed_parameters conn_params;
   if (get_param(params, next_index)) {
     n = test_param(params, NT_HASH, next_index);
     if (!n) {
-      xsink->raiseException("tpinit", "The sixth or seventh parameter, environment variables, needs to be a hash.");
+      xsink->raiseException("tpinit", "The sixth or seventh parameter, connection settings, needs to be a hash.");
       return 0;
     }
     conn_params.process_hash(n, xsink);
@@ -440,81 +326,6 @@ static QoreNode* f_tpterm(QoreNode* params, ExceptionSink* xsink)
   }
 }
 
-//-----------------------------------------------------------------------------
-// http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c87.htm#1045809
-// Parameters:
-// * TuxedoTypedBuffer - in
-// * type string - out
-// * subtype string - out
-// * size - out
-// Returns either tperrno integer or list:
-//   size (integer), type (string), subtype(string)
-static QoreNode* f_tptypes(QoreNode* params, ExceptionSink* xsink)
-{
-  for (int i = 0; i <= 4; ++i) {
-    bool ok;
-    if (i == 4) ok = !get_param(params, i);
-    else ok = get_param(params, i);
-    if (!ok) {
-      xsink->raiseException("tptypes", "Four parameters required: typed-buffer-object passed by reference, out-type_string, out-subtype-string, out-size_integer).");
-      return 0;
-    }
-  }
-
-  QoreNode* n = test_param(params, NT_OBJECT, 0);
-  if (!n) {
-    xsink->raiseException("tptypes", "The first parameter, typed buffer to be checked, needs to be Tuxedo::TuxedoTypedBuffer object passed by reference.");
-    return 0;
-  }
-  QoreTuxedoTypedBuffer* buff = node2typed_buffer(n, "tptypes", xsink);
-  if (xsink->isException()) {
-    return 0;
-  }
-  if (!buff->buffer || !buff->size) {
-    // empty buffer is clearly invalid for getting a type
-    return new QoreNode((int64)TPEINVAL);
-  }
-
-  n = test_param(params, NT_STRING, 1);
-  if (!n) {
-    xsink->raiseException("tptypes", "The second parameter, type,  needs to be a string (used as out).");
-    return 0;
-  }
-  QoreString* out_type = n->val.String;
-
-  n = test_param(params, NT_STRING, 2);
-  if (!n) {
-    xsink->raiseException("tptypes", "The third parameter, subtype,  needs to be a string (used as out).");
-    return 0;
-  }
-  QoreString* out_subtype = n->val.String;
-
-  n = test_param(params, NT_INT, 3);
-  if (!n) {
-    xsink->raiseException("tptypes", "The fourth parameter, typed buffer size, needs to be an integer (used as out).");
-    return 0;
-  }
-  int64* out_size = &n->val.intval;
- 
-  const int MaxTypeSize = 8;  // see docs
-  const int MaxSubtypeSize = 16; 
-  char type[MaxTypeSize + 100];
-  char subtype[MaxSubtypeSize + 100];
-
-  long size =  tptypes(buff->buffer, type, subtype);
-  if (size == -1) {
-    return new QoreNode((int64)tperrno);
-  }
-  type[MaxTypeSize] = 0;
-  subtype[MaxSubtypeSize] = 0;
-
-  *out_size = size;
-  out_type->set(type);
-  out_subtype->set(subtype);
-
-  return new QoreNode(OK);
-}
-
 //------------------------------------------------------------------------------
 // http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c26.htm#1021731
 // Parameters:
@@ -543,14 +354,14 @@ static QoreNode* f_tpcall(QoreNode* params, ExceptionSink* xsink)
 
   n = test_param(params, NT_OBJECT, 1);
   if (!n) {
-    xsink->raiseException("tpcall", "The second parameter (input data) needs to be Tuxedo::TuxedoTypedBuffer instance, possibly passed by reference.");    
+    xsink->raiseException("tpcall", "The second parameter (input data) needs to be Tuxedo::TuxedoTypedBuffer instance, possibly passed by reference.");
     return 0;
   }
   QoreTuxedoTypedBuffer* in_buff = node2typed_buffer(n, "tpcall", xsink);
   if (xsink->isException()) {
     return 0;
   }
- 
+
   n = test_param(params, NT_OBJECT, 2);
   if (!n) {
     xsink->raiseException("tpcall", "The third parameter (output data) needs to be Tuxedo::TuxedoTypedBuffer instance passed by reference.");
@@ -560,7 +371,7 @@ static QoreNode* f_tpcall(QoreNode* params, ExceptionSink* xsink)
   if (xsink->isException()) {
     return 0;
   }
-  
+
   n = test_param(params, NT_INT, 3);
   if (!n) {
     xsink->raiseException("tpcall", "The fourth parameter, flags, needs to be an integer.");
@@ -1694,12 +1505,9 @@ static QoreNode* f_tx_set_transaction_timeout(QoreNode* params, ExceptionSink* x
 void tuxedo_low_level_init()
 {
   builtinFunctions.add("tpchkauth", f_tpchkauth, QDOM_NETWORK);
-  builtinFunctions.add("tpalloc", f_tpalloc, QDOM_NETWORK);
-  builtinFunctions.add("tprealloc", f_tprealloc, QDOM_NETWORK);
   builtinFunctions.add("tpinit", f_tpinit, QDOM_NETWORK);
   builtinFunctions.add("tpinitParams", f_tpinit_params, QDOM_NETWORK);
   builtinFunctions.add("tpterm", f_tpterm, QDOM_NETWORK);
-  builtinFunctions.add("tptypes", f_tptypes, QDOM_NETWORK);
   builtinFunctions.add("tpcall", f_tpcall, QDOM_NETWORK);
   builtinFunctions.add("tpacall", f_tpacall, QDOM_NETWORK);
   builtinFunctions.add("tpcancel", f_tpcancel, QDOM_NETWORK);
@@ -1861,6 +1669,131 @@ void tuxedo_low_level_ns_init(Namespace* ns)
   ns->addConstant("TX_ROLLBACK_NO_BEGIN", new QoreNode((int64)TX_ROLLBACK_NO_BEGIN));
   ns->addConstant("TX_UNCHAINED", new QoreNode((int64)TX_UNCHAINED));
 }
+
+//-----------------------------------------------------------------------------
+#ifdef DEBUG
+TEST()
+{
+  // Test tpchkauth() - assumes a server is running 
+  // and $TUXDIR and $TUXCONFIG set. 
+  // Should work for any test on server side.
+  char* tuxconfig = getenv("TUXCONFIG");
+  if (!tuxconfig || !tuxconfig[0]) {
+    return;
+  }
+
+  char* cmd = "qore -e '%requires tuxedo\n"
+    "$res = tpchkauth();\n"
+    "if ($res[0] != 0) exit(11);\n"
+    "switch ($res[1]) {\n"
+    "  case Tuxedo::TPNOAUTH:\n"
+    "  case Tuxedo::TPSYSAUTH:\n"
+    "  case Tuxedo::TPAPPAUTH:\n"
+    "    break;\n"
+    "  default: exit(11);\n"
+    "}\n"
+    "exit(10);'\n";
+
+  int res = system(cmd);
+  res = WEXITSTATUS(res);
+  assert(res == 10);
+
+  // test it with settings hash
+  char buffer[1024];
+  sprintf(buffer, "qore -e '%%requires tuxedo\n"
+    "$settings = (\"TUXCONFIG\" : \"%s\");\n"
+    "$res = tpchkauth($settings);\n"
+    "if ($res[0] != 0) exit(11);\n"
+    "switch ($res[1]) {\n"
+    "  case Tuxedo::TPNOAUTH:\n"
+    "  case Tuxedo::TPSYSAUTH:\n"
+    "  case Tuxedo::TPAPPAUTH:\n"
+    "    break;\n"
+    "  default: exit(11);\n"
+    "}\n"
+    "exit(10);'\n",
+    tuxconfig);
+
+  res = system(buffer);
+  res = WEXITSTATUS(res);
+  assert(res == 10);
+}
+
+TEST()
+{
+  // Test tpinit() - assumes a server is running
+  // and $TUXDIR and $TUXCONFIG set.
+  // Should work for any test on server side.
+  char* tuxconfig = getenv("TUXCONFIG");
+  if (!tuxconfig || !tuxconfig[0]) {
+    return;
+  }
+  
+  // use env. variables for everything
+  char* cmd = "qore -e '%requires tuxedo\n"
+    "$res = tpinit();\n"
+    "if ($res != 0) exit(11);\n"
+    "$res = tpterm();\n"
+    "if ($res != 0) exit(11);\n"
+    "exit(10);'\n";
+
+  int res = system(cmd);
+  res = WEXITSTATUS(res);
+  assert(res == 10);
+
+  // tpinit() with settings hash
+  char buffer[1024];
+  sprintf(buffer, "qore -e '%%requires tuxedo\n"
+    "$settings = (\"TUXCONFIG\" : \"%s\");\n"
+    "$res = tpinit($settings);\n"
+    "if ($res != 0) exit(11);\n"
+    "$res = tpterm();\n"
+    "if ($res != 0) exit(11);\n"
+    "exit(10);'\n",
+    tuxconfig);
+
+  res = system(buffer);
+  res = WEXITSTATUS(res);
+  assert(res == 10);
+}
+
+TEST()
+{
+  // Test tpinitParams() - assumes a server is running
+  // and $TUXDIR and $TUXCONFIG set.
+  // Should work for any test on server side.
+  char* tuxconfig = getenv("TUXCONFIG");
+  if (!tuxconfig || !tuxconfig[0]) {
+    return;
+  }
+  
+  char* cmd = "qore -e '%requires tuxedo\n"
+    "$res = tpinitParams(\"\", \"\", \"\", \"\", 0);\n"
+    "if ($res != 0) exit(11);\n"
+    "$res = tpterm();\n"
+    "if ($res != 0) exit(11);\n"
+    "exit(10);'\n";
+
+  int res = system(cmd);
+  res = WEXITSTATUS(res);
+  assert(res == 10);
+
+  // add settings hash
+  char buffer[1024];
+  sprintf(buffer, "qore -e '%%requires tuxedo\n"
+    "$settings = (\"TUXCONFIG\" : \"%s\");\n"
+    "$res = tpinitParams(\"\", \"\", \"\", \"\", 0, $settings);\n"
+    "if ($res != 0) exit(11);\n"
+    "$res = tpterm();\n"
+    "if ($res != 0) exit(11);\n"
+    "exit(10);'\n",
+     tuxconfig);
+
+  res = system(buffer);
+  res = WEXITSTATUS(res);
+  assert(res == 10);
+}
+#endif // DEBUG
 
 // EOF
 
