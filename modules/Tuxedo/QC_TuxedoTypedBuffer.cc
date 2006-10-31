@@ -366,6 +366,13 @@ static QoreNode* TUXEDOTYPEDBUFFER_types(Object* self, QoreTuxedoTypedBuffer* bu
 }
 
 //------------------------------------------------------------------------------
+static QoreNode* TUXEDOTYPEDBUFFER_dump(Object* self, QoreTuxedoTypedBuffer* buff, QoreNode* params, ExceptionSink* xsink)
+{
+  printf("TuxedoTypedBuffer %p, buffer %p, size %d\n", buff, buff->buffer, buff->size);
+  return 0;
+}
+
+//------------------------------------------------------------------------------
 QoreClass* initTuxedoTypedBufferClass()
 {
   tracein("initTuxedoTypedBufferClass");
@@ -384,6 +391,7 @@ QoreClass* initTuxedoTypedBufferClass()
   buff->addMethod("alloc", (q_method_t)TUXEDOTYPEDBUFFER_alloc);
   buff->addMethod("realloc", (q_method_t)TUXEDOTYPEDBUFFER_realloc);
   buff->addMethod("types", (q_method_t)TUXEDOTYPEDBUFFER_types);
+  buff->addMethod("dump", (q_method_t)TUXEDOTYPEDBUFFER_dump);
 
   traceout("initTuxedoTypedBufferClass");
   return buff;

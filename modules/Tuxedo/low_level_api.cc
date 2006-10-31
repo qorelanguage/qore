@@ -30,6 +30,8 @@
 #include <qore/params.h>
 #include <qore/QoreString.h>
 #include <qore/minitest.hpp>
+#include <qore/ScopeGuard.h>
+#include <qore/VRMutex.h>
 
 #include "low_level_api.h"
 #include "QoreTuxedoTypedBuffer.h"
@@ -354,7 +356,7 @@ static QoreNode* f_tpcall(QoreNode* params, ExceptionSink* xsink)
 
   n = test_param(params, NT_OBJECT, 1);
   if (!n) {
-    xsink->raiseException("tpcall", "The second parameter (input data) needs to be Tuxedo::TuxedoTypedBuffer instance, possibly passed by reference.");
+    xsink->raiseException("tpcall", "The second parameter (input data) needs to be Tuxedo::TuxedoTypedBuffer instance.");
     return 0;
   }
   QoreTuxedoTypedBuffer* in_buff = node2typed_buffer(n, "tpcall", xsink);
@@ -362,12 +364,24 @@ static QoreNode* f_tpcall(QoreNode* params, ExceptionSink* xsink)
     return 0;
   }
 
-  n = test_param(params, NT_OBJECT, 2);
+  char* par3_err = "The third parameter (output data) needs to be Tuxedo::TuxedoTypedBuffer instance passed by reference.";
+  n = test_param(params, NT_REFERENCE, 2);
   if (!n) {
-    xsink->raiseException("tpcall", "The third parameter (output data) needs to be Tuxedo::TuxedoTypedBuffer instance passed by reference.");
+    xsink->raiseException("tpcall", par3_err);
+    return 0;
+  } 
+  VLock vl;
+  QoreNode **vp = get_var_value_ptr(n->val.lvexp, &vl, xsink);
+  if (*xsink || !*vp) {
+    xsink->raiseException("tpcall", par3_err);
     return 0;
   }
-  QoreTuxedoTypedBuffer* out_buff = node2typed_buffer(n, "tpcall", xsink);
+  if ((*vp)->type != NT_OBJECT) {
+    xsink->raiseException("tpcall", par3_err);
+    return 0;
+  }
+  
+  QoreTuxedoTypedBuffer* out_buff = node2typed_buffer(*vp, "tpcall", xsink);
   if (xsink->isException()) {
     return 0;
   }
@@ -393,15 +407,14 @@ static QoreNode* f_tpcall(QoreNode* params, ExceptionSink* xsink)
 // * service name (string)
 // * input buffer (Tuxedo::TuxedoTypedBuffer object)
 // * flags (integer)
-// * output handle (integer)
 static QoreNode* f_tpacall(QoreNode* params, ExceptionSink* xsink)
 {
-  for (int i = 0; i <= 4; ++i) {
+  for (int i = 0; i <= 3; ++i) {
     bool ok;
-    if (i == 4) ok = !get_param(params, i);
+    if (i == 3) ok = !get_param(params, i);
     else ok = get_param(params, i);
     if (!ok) {
-      xsink->raiseException("tpacall", "Four parameters expected: service name string, input data TuxedoTypedBuffer, flags integer, handle integer passed by reference.");
+      xsink->raiseException("tpacall", "Three parameters expected: service name string, input data TuxedoTypedBuffer, flags integer.");
       return 0;
     }
   }
@@ -430,20 +443,16 @@ static QoreNode* f_tpacall(QoreNode* params, ExceptionSink* xsink)
   }
   long flags = n->val.intval;
 
-  n = test_param(params, NT_INT, 3);
-  if (!n) {
-    xsink->raiseException("tpacall", "The fourth parameter, out handle, needs to be be an integer passed by reference.");
-    return 0;
-  }
-  int64* out_handle = &n->val.intval;
-
+  List* l = new List;
   int res = tpacall(service_name, buff->buffer, buff->size, flags);
   if (res == -1) {
-    return new QoreNode((int64)tperrno);
+    l->push(new QoreNode((int64)tperrno));
+  } else {
+    l->push(new QoreNode((int64)0));
+    l->push(new QoreNode((int64)res));
   }
   
-  *out_handle = res;
-  return new QoreNode(OK);
+  return new QoreNode(l);
 }
 
 //------------------------------------------------------------------------------
@@ -1024,33 +1033,22 @@ static QoreNode* f_tpsprio(QoreNode* params, ExceptionSink* xsink)
 
 //-----------------------------------------------------------------------------
 // http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c53.htm#1042995
-// Parameters:
-// * out: integer with retrieved priority
 static QoreNode* f_tpgprio(QoreNode* params, ExceptionSink* xsink)
 {
-  for (int i = 0; i <= 1; ++i) {
-    bool ok;
-    if (i == 1) ok = !get_param(params, i);
-    else ok = get_param(params, i);
-    if (!ok) {
-      xsink->raiseException("tpgprio", "One parameter expected: out priority integer passed by reference.");
-      return 0;
-    }
-  }
-
-  QoreNode* n = test_param(params, NT_INT, 0);
-  if (!n) {
-    xsink->raiseException("tpgprio", "The first parameters, retrieved priority, needs to be an integer passed by reference.");
+  if (get_param(params, 0)) {
+    xsink->raiseException("tpgprio", "No parameter expected.");
     return 0;
   }
-  int64* ppriority = &n->val.intval;
 
   int res = tpgprio();
+  List* l = new List;
   if (res == -1) {
-    return new QoreNode((int64)tperrno);
+    l->push(new QoreNode((int64)tperrno));
+  } else {
+    l->push(new QoreNode((int64)0));
+    l->push(new QoreNode((int64)res));
   }
-  *ppriority = res;
-  return new QoreNode(OK);
+  return new QoreNode(l);
 }
 
 //-----------------------------------------------------------------------------
@@ -1572,6 +1570,7 @@ void tuxedo_low_level_ns_init(Namespace* ns)
   ns->addConstant("TPEV_SVCERR", new QoreNode((int64)TPEV_SVCERR));
   ns->addConstant("TPEV_SVCFAIL", new QoreNode((int64)TPEV_SVCFAIL));
   ns->addConstant("TPEV_SVCSUCC", new QoreNode((int64)TPEV_SVCSUCC));
+  ns->addConstant("TPABSOLUTE", new QoreNode((int64)TPABSOLUTE));
   ns->addConstant("TPAPPAUTH", new QoreNode((int64)TPAPPAUTH));
   ns->addConstant("TPEABORT", new QoreNode((int64)TPEABORT));
   ns->addConstant("TPEBADDESC", new QoreNode((int64)TPEBADDESC));
@@ -1793,6 +1792,76 @@ TEST()
   res = WEXITSTATUS(res);
   assert(res == 10);
 }
+
+TEST()
+{
+  // Test tpgprio() and tpsprio() - assumes a server is running
+  // and $TUXDIR and $TUXCONFIG set.
+  // Should work for any test on server side.
+  char* tuxconfig = getenv("TUXCONFIG");
+  if (!tuxconfig || !tuxconfig[0]) {
+    return;
+  }
+
+  if (tpinit(0) == -1) {
+    assert(false);
+  }
+  ON_BLOCK_EXIT(tpterm);
+
+  ExceptionSink xsink;
+  List* l = new List;
+  QoreNode* params = new QoreNode(l);
+
+  // this will FAIL as there's no tpacall() yet
+  QoreNode* res = f_tpgprio(params, &xsink);
+  assert(!xsink);
+  assert(res);
+  assert(res->type == NT_LIST);
+  assert(res->val.list->size() == 1); // the error
+
+  QoreNode* code = test_param(res, NT_INT, 0);
+  assert(code);
+  int errcode = (int)code->val.intval;
+  assert(errcode != 0); // an error code expected
+
+  res->deref(&xsink);
+  assert(!xsink);
+
+  params->deref(&xsink);
+  assert(!xsink);
+}
+
+TEST()
+{
+  // test tpgprio() and tpsprio() in Qore
+  char* tuxconfig = getenv("TUXCONFIG");
+  if (!tuxconfig || !tuxconfig[0]) {
+    return;
+  }
+/*###
+  char* cmd = "qore -e '%requires tuxedo\n"
+    "$res = tpinit();\n"
+    "if ($res != 0) {printf(\"tpinit err = %d\n\", $res); exit(11);}\n"
+    "$data = new Tuxedo::TuxedoTypedBuffer();\n"
+    "$data.setString(\"abcd\");\n"
+    "$res = tpacall(\"TOUPPER\", $data, Tuxedo::TPNOTRAN);\n" // the prior tpacall() is needed
+    "if ($res[0] != 0) {printf(\"tpacall err = %d\n\", $res[0]); exit(11);}\n"
+    "$handle = $res[1];\n"
+//    "$res = tpgprio();\n"
+//  "if ($res[0] != 0) exit(11);\n"   - this still returns TPENOENT. No idea what does it need.
+//    "$res = tpsprio(60, Tuxedo::TPABSOLUTE);\n"
+    "$res = tpcancel($handle);\n"
+    "if ($res != 0) {printf(\"tpcancel err = %d\n\", $res); exit(11);}\n"
+    "$res = tpterm();\n"
+    "if ($res != 0) {printf(\"tpterm err = %d\n\", $res); exit(10);}\n"
+    "exit(10);'\n";
+
+  int res = system(cmd);
+  res = WEXITSTATUS(res);
+  assert(res == 10);
+*/ 
+}
+
 #endif // DEBUG
 
 // EOF
