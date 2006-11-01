@@ -356,6 +356,82 @@ TEST()
 #endif
 
 //-----------------------------------------------------------------------------
+static QoreNode* setStringDataToSend(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
+{
+  char* err_name = "TuxedoAdapter::setStringDataToSend";
+  char* err_text = "One to three string parameters expected: data, optional type, optional subtype.";
+  QoreNode* n = test_param(params, NT_STRING, 0);
+  if (!n) return xsink->raiseException(err_name, err_text);
+  // TBD - convert etc
+  return 0;  
+}
+
+#ifdef DEBUg
+TEST()
+{
+  // TBD
+}
+#endif
+
+//-----------------------------------------------------------------------------
+static QoreNode* setBinaryDataToSend(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
+{
+  char* err_name = "TuxedoAdapter::setBinaryDataToSend";
+  char* err_text = "One to three parameters expected: binary data, optional string type, optional string subtype.";
+  QoreNode* n = test_param(params, NT_BINARY, 0);
+  if (!n) return xsink->raiseException(err_name, err_text);
+  // TBD 
+  return 0;
+}
+
+#ifdef DEBUg
+TEST()
+{
+  // TBD
+}
+#endif
+
+//-----------------------------------------------------------------------------
+static QoreNode* error2string(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
+{
+  QoreNode* n = test_param(params, NT_INT, 0);
+  if (!n) return xsink->raiseException("TuxedoAdapter::error2string", "One parameter expected: integer error code.");
+  int err = (int)n->val.intval;
+  char* str = strerror(err);
+  if (!str || !str[0]) str = "<uknown error>";
+  return new QoreNode(str);
+}
+
+#ifdef DEBUG
+TEST()
+{
+  char* cmd =
+    "qore -e '%requires tuxedo\n"
+    "$a = new Tuxedo::TuxedoAdapter();\n"
+    "$text = $a.error2string(4);\n" 
+    "exit(10);'\n";
+
+  int res = system(cmd);
+  res = WEXITSTATUS(res);
+  assert(res == 10);
+}
+#endif
+
+//-----------------------------------------------------------------------------
+static QoreNode* allocateReceiveBuffer(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
+{
+  // TBD
+  return 0;
+}
+
+#ifdef DEBUG
+TEST()
+{
+  // TBD
+}
+#endif
+
+//-----------------------------------------------------------------------------
 class QoreClass* initTuxedoAdapterClass()
 {
   tracein("initTuxedoAdapterClass");
@@ -375,6 +451,10 @@ class QoreClass* initTuxedoAdapterClass()
   adapter->addMethod("getNeededAuthentication", (q_method_t)getNeededAuthentication);
   adapter->addMethod("init", (q_method_t)init);
   adapter->addMethod("close", (q_method_t)closeAdapter);
+  adapter->addMethod("setStringDataToSend", (q_method_t)setStringDataToSend);
+  adapter->addMethod("setBinaryDataToSend", (q_method_t)setBinaryDataToSend);  
+  adapter->addMethod("allocateReceiveBuffer", (q_method_t)allocateReceiveBuffer);
+  adapter->addMethod("error2string", (q_method_t)error2string);
 
   traceout("initTuxedoAdapterClass");
   return adapter;
