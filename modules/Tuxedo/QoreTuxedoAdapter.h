@@ -66,6 +66,8 @@ public:
   ~QoreTuxedoAdapter();
 
   int getNeededAuthentication(int& out_auth) const;
+  int init() const;
+  int close() const;
 
   void deref() { 
     if (ROdereference()) {

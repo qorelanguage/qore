@@ -26,6 +26,8 @@
 #include <qore/support.h>
 #include <qore/Object.h>
 #include <qore/minitest.hpp>
+#include <qore/ScopeGuard.h>
+#include <qore/LockedObject.h>
 
 #include <atmi.h>
 
@@ -38,6 +40,7 @@ typedef std::vector<std::pair<std::string, std::string> > env_t;
 
 struct EnvironmentSetter
 {
+  static LockedObject m_mutex; // needs to be static
   env_t m_old_env;
   EnvironmentSetter(const env_t& new_env);
   ~EnvironmentSetter();
@@ -45,6 +48,8 @@ struct EnvironmentSetter
 
 EnvironmentSetter::EnvironmentSetter(const env_t& new_env)
 {
+  m_mutex.lock();
+
   for (env_t::const_iterator it = new_env.begin(), end = new_env.end(); it != end; ++it) {
     char* old = getenv(it->first.c_str());
     if (!old) old = "";
@@ -58,6 +63,8 @@ EnvironmentSetter::EnvironmentSetter(const env_t& new_env)
   }
 }
 
+LockedObject EnvironmentSetter::m_mutex;
+
 EnvironmentSetter::~EnvironmentSetter()
 {
   for (env_t::const_iterator it = m_old_env.begin(), end = m_old_env.end(); it != end; ++it) {
@@ -67,6 +74,8 @@ EnvironmentSetter::~EnvironmentSetter()
       setenv(it->first.c_str(), it->second.c_str(), 1);
     }
   }
+
+  m_mutex.unlock();
 }
 
 } // namespace
@@ -118,6 +127,41 @@ int QoreTuxedoAdapter::getNeededAuthentication(int& out_auth) const
   if (res == -1) return tperrno;
   out_auth = res;
   return 0;
+}
+
+//------------------------------------------------------------------------------
+int QoreTuxedoAdapter::init() const
+{
+  EnvironmentSetter setter(m_env_variables);
+
+  if (m_username.empty() && m_clientname.empty() && m_groupname.empty() &&
+      m_password.empty() && m_connection_flags == 0 && m_binary_data.empty()) {
+    return tpinit(0) == -1 ? tperrno : 0;
+  }
+  int size = sizeof(TPINIT) + m_binary_data.size();
+  TPINIT* buff = (TPINIT*)tpalloc("TPINIT", 0, size);
+  if (!buff) return tperrno;
+  ON_BLOCK_EXIT(tpfree, (char*)buff);
+
+  memset(buff, 0, size);
+  if (!m_username.empty())   strcpy(buff->usrname, m_username.c_str());
+  if (!m_clientname.empty()) strcpy(buff->cltname, m_clientname.c_str());
+  if (!m_groupname.empty())  strcpy(buff->grpname, m_groupname.c_str());
+  if (!m_password.empty())   strcpy(buff->passwd, m_password.c_str());
+  buff->flags = m_connection_flags;
+  buff->datalen = m_binary_data.size();
+  if (!m_binary_data.empty()) {
+    const void* data = &m_binary_data[0];
+    memcpy(&buff->data, data, m_binary_data.size());
+  }
+
+  return tpinit(buff) == -1 ? tperrno : 0;
+}
+
+//------------------------------------------------------------------------------
+int QoreTuxedoAdapter::close() const
+{
+  return (tpterm() == -1) ? tperrno : 0;
 }
 
 // EOF

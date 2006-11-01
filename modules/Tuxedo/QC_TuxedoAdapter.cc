@@ -324,6 +324,38 @@ TEST()
 #endif
 
 //-----------------------------------------------------------------------------
+static QoreNode* init(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
+{
+  return new QoreNode((int64)adapter->init());
+}
+
+//-----------------------------------------------------------------------------
+static QoreNode* closeAdapter(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
+{
+  return new QoreNode((int64)adapter->close());
+}
+
+#ifdef DEBUG
+TEST()
+{
+  char* cmd =
+    "qore -e '%requires tuxedo\n"
+    "$a = new Tuxedo::TuxedoAdapter();\n"
+    "$a.setEnvironmentVariable(\"TUXCONFIG\", \""  TUXCONFIG_SIMPLE "\");\n"
+    "$a.setEnvironmentVariable(\"TUXDIR\", \"" TUXDIR_SIMPLE "\");\n"
+    "$res = $a.init();\n"
+    "if ($res != 0) { printf(\"init failed with %d\n\", $res); exit(11); }\n"
+    "$res = $a.close();\n"
+    "if ($res != 0) { printf(\"close failed with %d\n\", $res); exit(11); }\n"
+    "exit(10);'\n";
+
+  int res = system(cmd);
+  res = WEXITSTATUS(res);
+  assert(res == 10);
+}
+#endif
+
+//-----------------------------------------------------------------------------
 class QoreClass* initTuxedoAdapterClass()
 {
   tracein("initTuxedoAdapterClass");
@@ -341,6 +373,8 @@ class QoreClass* initTuxedoAdapterClass()
   adapter->addMethod("setConnectionFlags", (q_method_t)setConnectionFlags);
   adapter->addMethod("setEnvironmentVariable", (q_method_t)setEnvironmentVariable);
   adapter->addMethod("getNeededAuthentication", (q_method_t)getNeededAuthentication);
+  adapter->addMethod("init", (q_method_t)init);
+  adapter->addMethod("close", (q_method_t)closeAdapter);
 
   traceout("initTuxedoAdapterClass");
   return adapter;
