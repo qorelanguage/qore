@@ -110,13 +110,19 @@ TEST()
 
 //------------------------------------------------------------------------------
 QoreTuxedoAdapter::QoreTuxedoAdapter()
-: m_connection_flags(0)
+: m_connection_flags(0),
+  m_receive_buffer(0),
+  m_receive_buffer_size(0)
 {
+  memset(&m_context, 0, sizeof(m_context));
 }
 
 //------------------------------------------------------------------------------
 QoreTuxedoAdapter::~QoreTuxedoAdapter()
 {
+  if (m_receive_buffer) {
+    tpfree(m_receive_buffer);
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -162,6 +168,30 @@ int QoreTuxedoAdapter::init() const
 int QoreTuxedoAdapter::close() const
 {
   return (tpterm() == -1) ? tperrno : 0;
+}
+
+//------------------------------------------------------------------------------
+int QoreTuxedoAdapter::saveContext()
+{
+  return tpgetctxt(&m_context, 0) == -1 ? tperrno : 0;
+}
+
+//------------------------------------------------------------------------------
+int QoreTuxedoAdapter::switchToSavedContext() const
+{
+  return tpsetctxt(m_context, 0) == -1 ? tperrno : 0;
+}
+
+//------------------------------------------------------------------------------
+int QoreTuxedoAdapter::allocateReceiveBuffer(char* type, char* subtype, long size)
+{
+  if (m_receive_buffer) {
+    tpfree(m_receive_buffer);
+  }
+  m_receive_buffer = tpalloc(type, subtype, size);
+  if (!m_receive_buffer) return tperrno;
+  m_receive_buffer_size = size;
+  return 0;
 }
 
 // EOF

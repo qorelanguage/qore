@@ -338,6 +338,7 @@ static QoreNode* closeAdapter(Object* self, QoreTuxedoAdapter* adapter, QoreNode
 #ifdef DEBUG
 TEST()
 {
+#ifdef TUXCONFIG_SIMPLE
   char* cmd =
     "qore -e '%requires tuxedo\n"
     "$a = new Tuxedo::TuxedoAdapter();\n"
@@ -352,6 +353,7 @@ TEST()
   int res = system(cmd);
   res = WEXITSTATUS(res);
   assert(res == 10);
+#endif
 }
 #endif
 
@@ -420,14 +422,78 @@ TEST()
 //-----------------------------------------------------------------------------
 static QoreNode* allocateReceiveBuffer(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
 {
-  // TBD
-  return 0;
+  char* err_name = "TuxedoAdapter::allocateReceiveBuffer";
+  char* err_text = "Three parameters expected: string type, string subtype (could be empty), integer size.";
+  QoreNode* n = test_param(params, NT_STRING, 0);
+  if (!n) return xsink->raiseException(err_name, err_text);
+  char* type = n->val.String->getBuffer();
+  if (!type) type = "";
+  n = test_param(params, NT_STRING, 1);
+  if (!n) return xsink->raiseException(err_name, err_text);
+  char* subtype = n->val.String->getBuffer();
+  if (subtype && !subtype[0]) subtype = 0;
+  n = test_param(params, NT_INT, 2);
+  if (!n) return xsink->raiseException(err_name, err_text);
+  long size = (long)n->val.intval;
+
+  return new QoreNode((int64)adapter->allocateReceiveBuffer(type, subtype, size));
 }
 
 #ifdef DEBUG
 TEST()
 {
-  // TBD
+#ifdef DEBUG
+  char* cmd =
+    "qore -e '%requires tuxedo\n"
+    "$a = new Tuxedo::TuxedoAdapter();\n"
+    "$res = $a.allocateReceiveBuffer(\"STRING\", \"\", 100);\n"
+    "if ($res != 0) { printf(\"allocateReceiveBuffer failed %d\n\", $res); exit(11); }\n"
+    "$res = $a.allocateReceiveBuffer(\"CARRAY\", \"\", 1000);\n"
+    "if ($res != 0) { printf(\"allocateReceiveBuffer failed %d\n\", $res); exit(11); }\n"
+    "exit(10);'\n";
+
+  int res = system(cmd);
+  res = WEXITSTATUS(res);
+  assert(res == 10);
+#endif
+}
+#endif
+
+//-----------------------------------------------------------------------------
+static QoreNode* saveContext(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
+{
+  return new QoreNode((int64)adapter->saveContext());
+}
+
+//-----------------------------------------------------------------------------
+static QoreNode* switchToSavedContext(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
+{
+  return new QoreNode((int64)adapter->switchToSavedContext());
+}
+
+#ifdef DEBUG
+TEST()
+{
+#ifdef TUXCONFIG_SIMPLE
+  char* cmd =
+    "qore -e '%requires tuxedo\n"
+    "$a = new Tuxedo::TuxedoAdapter();\n"
+    "$a.setEnvironmentVariable(\"TUXCONFIG\", \""  TUXCONFIG_SIMPLE "\");\n"
+    "$a.setEnvironmentVariable(\"TUXDIR\", \"" TUXDIR_SIMPLE "\");\n"
+    "$res = $a.init();\n"
+    "if ($res != 0) { printf(\"init failed with %d\n\", $res); exit(11); }\n"
+    "$res = $a.saveContext();\n"
+    "if ($res != 0) { printf(\"saveContext failed with %d\n\", $res); exit(11); }\n"
+    "$res = $a.switchToSavedContext();\n"
+    "if ($res != 0) { printf(\"switchToSavedContext failed with %d\n\", $res); exit(11); }\n"
+    "$res = $a.close();\n"
+    "if ($res != 0) { printf(\"close failed with %d\n\", $res); exit(11); }\n"
+    "exit(10);'\n";
+
+  int res = system(cmd);
+  res = WEXITSTATUS(res);
+  assert(res == 10);
+#endif
 }
 #endif
 
@@ -455,6 +521,8 @@ class QoreClass* initTuxedoAdapterClass()
   adapter->addMethod("setBinaryDataToSend", (q_method_t)setBinaryDataToSend);  
   adapter->addMethod("allocateReceiveBuffer", (q_method_t)allocateReceiveBuffer);
   adapter->addMethod("error2string", (q_method_t)error2string);
+  adapter->addMethod("saveContext", (q_method_t)saveContext);
+  adapter->addMethod("switchToSavedContext", (q_method_t)switchToSavedContext);
 
   traceout("initTuxedoAdapterClass");
   return adapter;

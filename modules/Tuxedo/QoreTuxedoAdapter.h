@@ -61,6 +61,11 @@ public:
   std::vector<char> m_binary_data;
   long m_connection_flags;
 
+  TPCONTEXT_T m_context;
+
+  char* m_receive_buffer;
+  long m_receive_buffer_size;
+
 public:
   QoreTuxedoAdapter();
   ~QoreTuxedoAdapter();
@@ -68,6 +73,9 @@ public:
   int getNeededAuthentication(int& out_auth) const;
   int init() const;
   int close() const;
+  int saveContext();
+  int switchToSavedContext() const;
+  int allocateReceiveBuffer(char* type, char* subtype, long size);
 
   void deref() { 
     if (ROdereference()) {
