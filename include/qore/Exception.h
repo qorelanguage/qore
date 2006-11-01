@@ -67,7 +67,8 @@ class ExceptionSink {
       {
          return head;
       }
-      inline void raiseException(char *err, char *fmt, ...);
+      // The QoreNode* returned value is always NULL. Used to simplify error handling code.
+      inline QoreNode*  raiseException(char *err, char *fmt, ...);
       inline void raiseException(class Exception *e);
       inline void raiseException(class QoreNode *n);
       inline void rethrow(class Exception *old);
@@ -174,7 +175,7 @@ inline void ExceptionSink::insert(class Exception *e)
    tail = e;
 }
 
-inline void ExceptionSink::raiseException(char *err, char *fmt, ...)
+inline QoreNode* ExceptionSink::raiseException(char *err, char *fmt, ...)
 {
    class QoreString *desc = new QoreString();
 
@@ -190,6 +191,7 @@ inline void ExceptionSink::raiseException(char *err, char *fmt, ...)
    }
    printd(5, "ExceptionSink::raiseException(%s, %s)\n", err, desc->getBuffer());
    insert(new Exception(err, 0, desc));
+   return NULL;
 }
 
 inline void ExceptionSink::raiseException(class Exception *e)

@@ -28,15 +28,44 @@
 #include <qore/common.h>
 #include <qore/support.h>
 #include <qore/Object.h>
+
+#include <string>
+#include <vector>
+#include <utility>
+
 #include <atmi.h>
 
+//------------------------------------------------------------------------------
+#ifdef DEBUG
+// Values to be used as environment variables, names and passwords for tests.
+// Undefine them to skip the tests that use them.
+//
+
+// The simplest test with TOUPPER service on strings
+#define TUXDIR_SIMPLE  "/opt/bea/tuxedo9.1"
+#define TUXCONFIG_SIMPLE "/home/pavel/tuxedo_tests/tuxedo_simple_app/tuxconfig"
+
+#endif
 
 //------------------------------------------------------------------------------
 class QoreTuxedoAdapter : public ReferenceObject
 {
 public:
+  // data used to connect Tuxedo server
+  std::string m_username;
+  std::string m_clientname;
+  std::string m_groupname;
+  std::string m_password;
+  typedef std::vector<std::pair<std::string, std::string> > env_var_t;
+  env_var_t m_env_variables;
+  std::vector<char> m_binary_data;
+  long m_connection_flags;
+
+public:
   QoreTuxedoAdapter();
   ~QoreTuxedoAdapter();
+
+  int getNeededAuthentication(int& out_auth) const;
 
   void deref() { 
     if (ROdereference()) {
