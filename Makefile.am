@@ -173,6 +173,8 @@ noinst_HEADERS = \
 	modules/Tuxedo/fml_api.h \
 	modules/Tuxedo/QC_TuxedoContext.h \
 	modules/Tuxedo/QoreTuxedoContext.h \
+	modules/Tuxedo/QC_TuxedoAdapter.h \
+	modules/Tuxedo/QoreTuxedoAdapter.h \
 	command-line.h \
 	include/qore/Qore.h
 

@@ -34,19 +34,19 @@
 
 #include "tuxedo_module.h"
 
+/*###
 #include "QC_TuxedoTypedBuffer.h"
 #include "low_level_api.h"
 #include "QC_TuxedoTransactionId.h"
 #include "QC_TuxedoQueueControlParams.h"
 #include "QC_TuxedoContext.h"
 #include "fml_api.h"
-
-#include <atmi.h>
+*/
 
 #ifndef QORE_MONOLITHIC
 char qore_module_name[] = "tuxedo";
 char qore_module_version[] = "0.1";
-char qore_module_description[] = "Connection to Tuxedo 9.1 (should be compatible with solder versions)";
+char qore_module_description[] = "Connection to Tuxedo 9.1 (should be compatible with older versions).";
 char qore_module_author[] = "Pavel Vozenilek";
 char qore_module_url[] = "http://qore.sourceforge.net";
 int qore_module_api_major = QORE_MODULE_API_MAJOR;
@@ -82,8 +82,10 @@ TEST()
 class QoreString* tuxedo_module_init()
 {
   tracein("tuxedo_module_init");
+/*###
   tuxedo_low_level_init();
   tuxedo_fml_init();
+*/
 
 #ifdef DEBUG
   builtinFunctions.add("runTuxedoTests", runTuxedoTests, QDOM_NETWORK);
@@ -99,6 +101,8 @@ void tuxedo_module_ns_init(class Namespace* rns, class Namespace* qns)
   tracein("tuxedo_module_ns_init");
 
   class Namespace* tuxedons = new Namespace("Tuxedo");
+
+/*###
   tuxedo_low_level_ns_init(tuxedons);
   tuxedo_fml_ns_init(tuxedons);
 
@@ -110,6 +114,7 @@ void tuxedo_module_ns_init(class Namespace* rns, class Namespace* qns)
   tuxedons->addSystemClass(initTuxedoTransactionIdClass());
   // Tuxedo::TuxedoContext class
   tuxedons->addSystemClass(initTuxedoContextClass());
+*/
 
   qns->addInitialNamespace(tuxedons);
 

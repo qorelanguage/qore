@@ -2,14 +2,8 @@ libdir = ${exec_prefix}/lib${LIBSUFFIX}
 pkglibdir = $(libdir)/@PACKAGE@-@VERSION@
 
 TUXEDO_SOURCES =  tuxedo.cc \
-  hashed_parameters_helper.cc \
-  QC_TuxedoTypedBuffer.cc \
-  QoreTuxedoTypedBuffer.cc \
-  low_level_api.cc \
-  QC_TuxedoQueueControlParams.cc \
-  QC_TuxedoTransactionId.cc \
-  fml_api.cc \
-  QC_TuxedoContext.cc 
+  QC_TuxedoAdapter.cc \
+  QoreTuxedoAdapter.cc 
 
 
 if COND_MONOLITHIC
