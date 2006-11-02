@@ -28,6 +28,7 @@
 #include <qore/minitest.hpp>
 #include <qore/ScopeGuard.h>
 #include <qore/LockedObject.h>
+#include <qore/charset.h>
 
 #include <atmi.h>
 
@@ -111,8 +112,11 @@ TEST()
 //------------------------------------------------------------------------------
 QoreTuxedoAdapter::QoreTuxedoAdapter()
 : m_connection_flags(0),
+  m_send_buffer(0),
+  m_send_buffer_size(0),
   m_receive_buffer(0),
-  m_receive_buffer_size(0)
+  m_receive_buffer_size(0),
+  m_string_encoding(QCS_DEFAULT)
 {
   memset(&m_context, 0, sizeof(m_context));
 }
@@ -120,9 +124,8 @@ QoreTuxedoAdapter::QoreTuxedoAdapter()
 //------------------------------------------------------------------------------
 QoreTuxedoAdapter::~QoreTuxedoAdapter()
 {
-  if (m_receive_buffer) {
-    tpfree(m_receive_buffer);
-  }
+  resetReceiveBuffer();
+  resetDataToSend();
 }
 
 //------------------------------------------------------------------------------
@@ -136,7 +139,7 @@ int QoreTuxedoAdapter::getNeededAuthentication(int& out_auth) const
 }
 
 //------------------------------------------------------------------------------
-int QoreTuxedoAdapter::init() const
+int QoreTuxedoAdapter::init() 
 {
   EnvironmentSetter setter(m_env_variables);
 
@@ -161,12 +164,17 @@ int QoreTuxedoAdapter::init() const
     memcpy(&buff->data, data, m_binary_data.size());
   }
 
-  return tpinit(buff) == -1 ? tperrno : 0;
+  if (tpinit(buff) == -1) return tperrno;
+  return saveContext();
 }
 
 //------------------------------------------------------------------------------
-int QoreTuxedoAdapter::close() const
+int QoreTuxedoAdapter::close() 
 {
+  // cancel all remaining async requests, if any
+  for (std::vector<int>::const_iterator it =  m_pending_async_calls.begin(), end = m_pending_async_calls.end(); it != end; ++it) {
+    tpcancel(*it);
+  }
   return (tpterm() == -1) ? tperrno : 0;
 }
 
@@ -185,13 +193,61 @@ int QoreTuxedoAdapter::switchToSavedContext() const
 //------------------------------------------------------------------------------
 int QoreTuxedoAdapter::allocateReceiveBuffer(char* type, char* subtype, long size)
 {
-  if (m_receive_buffer) {
-    tpfree(m_receive_buffer);
-  }
+  resetReceiveBuffer();
+
   m_receive_buffer = tpalloc(type, subtype, size);
   if (!m_receive_buffer) return tperrno;
   m_receive_buffer_size = size;
   return 0;
+}
+
+//------------------------------------------------------------------------------
+void QoreTuxedoAdapter::resetDataToSend()
+{
+  if (m_send_buffer) {
+    tpfree(m_send_buffer);
+    m_send_buffer = 0;
+  }
+  if (m_send_buffer_size) m_send_buffer_size = 0;
+}
+
+//------------------------------------------------------------------------------
+void QoreTuxedoAdapter::resetReceiveBuffer()
+{
+  if (m_receive_buffer) {
+    tpfree(m_receive_buffer);
+    m_receive_buffer = 0;
+  }
+  if (m_receive_buffer_size) m_receive_buffer_size = 0;
+}
+
+//------------------------------------------------------------------------------
+int QoreTuxedoAdapter::setDataToSend(void* data, int data_size, char* type, char* subtype)
+{
+  resetDataToSend();
+  m_send_buffer = tpalloc(type, subtype, data_size);
+  if (!m_send_buffer) return tperrno;
+  m_send_buffer_size = data_size;
+  memcpy(m_send_buffer, data, data_size);
+  return 0;
+}
+
+//------------------------------------------------------------------------------
+void QoreTuxedoAdapter::setStringEncoding(char* name)
+{
+  m_string_encoding = QEM.findCreate(name);
+  if (!m_string_encoding) m_string_encoding = QCS_DEFAULT;
+}
+
+//------------------------------------------------------------------------------
+void QoreTuxedoAdapter::remove_pending_async_call(int handle)
+{
+  for (std::vector<int>::iterator it = m_pending_async_calls.begin(), end = m_pending_async_calls.end(); it != end; ++it) {
+    if (*it == handle) {
+      m_pending_async_calls.erase(it);
+      break;
+    }
+  }
 }
 
 // EOF

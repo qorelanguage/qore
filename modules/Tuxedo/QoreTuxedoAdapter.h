@@ -35,6 +35,8 @@
 
 #include <atmi.h>
 
+class QoreEncoding;
+
 //------------------------------------------------------------------------------
 #ifdef DEBUG
 // Values to be used as environment variables, names and passwords for tests.
@@ -63,19 +65,31 @@ public:
 
   TPCONTEXT_T m_context;
 
+  // input and output buffers
+  char* m_send_buffer;
+  long m_send_buffer_size;
   char* m_receive_buffer;
   long m_receive_buffer_size;
 
+  QoreEncoding* m_string_encoding; // used to convert every string sent/received
+
+  std::vector<int> m_pending_async_calls;
+   
 public:
   QoreTuxedoAdapter();
   ~QoreTuxedoAdapter();
 
   int getNeededAuthentication(int& out_auth) const;
-  int init() const;
-  int close() const;
+  int init(); 
+  int close();
   int saveContext();
   int switchToSavedContext() const;
   int allocateReceiveBuffer(char* type, char* subtype, long size);
+  void resetDataToSend();
+  int setDataToSend(void* data, int data_size, char* type, char* subtype);
+  void resetReceiveBuffer();
+  void setStringEncoding(char* name);
+  void remove_pending_async_call(int handle);
 
   void deref() { 
     if (ROdereference()) {
