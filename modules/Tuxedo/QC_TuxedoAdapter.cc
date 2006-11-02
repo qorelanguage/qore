@@ -876,6 +876,32 @@ TEST()
 #endif
 
 //-----------------------------------------------------------------------------
+static QoreNode* connectConversation(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
+{
+  adapter->switchToSavedContext();
+
+  char* err_name = "TuxedoAdapter::connectConversation";
+  char* err_text = "Two parameters expected: string service name, integer flags.";
+  QoreNode* n = test_param(params , NT_STRING, 0);
+  if (!n) return xsink->raiseException(err_name, err_text);
+  char* service_name = n->val.String->getBuffer();
+  n = test_param(params, NT_INT, 1);
+  if (!n) return xsink->raiseException(err_name, err_text);
+  long flags = (long)n->val.intval;
+
+  int res = tpconnect(service_name, adapter->m_send_buffer, adapter->m_send_buffer_size, flags);
+
+  List* l = new List;
+  if (res == -1) {
+    l->push(new QoreNode((int64)tperrno));
+  } else {
+    l->push(new QoreNode((int64)0));
+    l->push(new QoreNode((int64)res));
+  } 
+  return new QoreNode(l);
+}
+
+//-----------------------------------------------------------------------------
 class QoreClass* initTuxedoAdapterClass()
 {
   tracein("initTuxedoAdapterClass");
@@ -885,6 +911,8 @@ class QoreClass* initTuxedoAdapterClass()
   adapter->setConstructor((q_constructor_t)TUXEDO_constructor);
   adapter->setDestructor((q_destructor_t)TUXEDO_destructor);
   adapter->setCopy((q_copy_t)TUXEDO_copy);
+
+  // init/close
   adapter->addMethod("setUserName", (q_method_t)setUserName);
   adapter->addMethod("setClientName", (q_method_t)setClientName);
   adapter->addMethod("setGroupName", (q_method_t)setGroupName);
@@ -895,22 +923,31 @@ class QoreClass* initTuxedoAdapterClass()
   adapter->addMethod("getNeededAuthentication", (q_method_t)getNeededAuthentication);
   adapter->addMethod("init", (q_method_t)init);
   adapter->addMethod("close", (q_method_t)closeAdapter);
+
+  // set/get data
   adapter->addMethod("setStringDataToSend", (q_method_t)setStringDataToSend);
   adapter->addMethod("setBinaryDataToSend", (q_method_t)setBinaryDataToSend);  
   adapter->addMethod("resetDataToSend", (q_method_t)resetDataToSend);
   adapter->addMethod("allocateReceiveBuffer", (q_method_t)allocateReceiveBuffer);
   adapter->addMethod("resetReceiveBuffer", (q_method_t)resetReceiveBuffer);
-  adapter->addMethod("error2string", (q_method_t)error2string);
-  adapter->addMethod("saveContext", (q_method_t)saveContext);
-  adapter->addMethod("switchToSavedContext", (q_method_t)switchToSavedContext);
   adapter->addMethod("setStringEncoding", (q_method_t)setStringEncoding);
   adapter->addMethod("getReceivedString", (q_method_t)getReceivedString);
   adapter->addMethod("getReceivedBinary", (q_method_t)getReceivedBinary);
   adapter->addMethod("getReceivedDataType", (q_method_t)getReceivedDataType);
+
+  // misc
+  adapter->addMethod("error2string", (q_method_t)error2string);
+  adapter->addMethod("saveContext", (q_method_t)saveContext);
+  adapter->addMethod("switchToSavedContext", (q_method_t)switchToSavedContext);
+
+  // request/response
   adapter->addMethod("call", (q_method_t)call);
   adapter->addMethod("asyncCall", (q_method_t)asyncCall);
   adapter->addMethod("cancelAsyncCall", (q_method_t)cancelAsyncCall);
   adapter->addMethod("waitForAsyncReply", (q_method_t)waitForAsyncReply);
+
+  // conversational mode
+  adapter->addMethod("connectConversation", (q_method_t)connectConversation);
 
   traceout("initTuxedoAdapterClass");
   return adapter;
