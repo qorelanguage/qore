@@ -88,10 +88,6 @@ TEST()
 QoreString* tuxedo_module_init()
 {
   tracein("tuxedo_module_init");
-/*###
-  tuxedo_low_level_init();
-  tuxedo_fml_init();
-*/
 
 #ifdef DEBUG
   builtinFunctions.add("runTuxedoTests", runTuxedoTests, QDOM_NETWORK);
@@ -188,7 +184,7 @@ static void add_constants(Namespace* ns)
   ns->addConstant("TPQQOSDEFAULTPERSIST", new QoreNode((int64)TPQQOSDEFAULTPERSIST));
   ns->addConstant("TPQQOSNONPERSISTENT", new QoreNode((int64)TPQQOSNONPERSISTENT));
   ns->addConstant("TPQQOSPERSISTENT", new QoreNode((int64)TPQQOSPERSISTENT));
-  ns->addConstant("TPREPLYQ", new QoreNode((int64)TPQREPLYQ));
+  ns->addConstant("TPQREPLYQ", new QoreNode((int64)TPQREPLYQ));
   ns->addConstant("TPQREPLYQOS", new QoreNode((int64)TPQREPLYQOS));
   ns->addConstant("TPQTIME_ABS", new QoreNode((int64)TPQTIME_ABS));
   ns->addConstant("TPQTIME_REL", new QoreNode((int64)TPQTIME_REL));
@@ -262,19 +258,6 @@ void tuxedo_module_ns_init(Namespace* rns, Namespace* qns)
 
   add_constants(tuxedons);
   tuxedons->addSystemClass(initTuxedoAdapterClass());
-/*###
-  tuxedo_low_level_ns_init(tuxedons);
-  tuxedo_fml_ns_init(tuxedons);
-
-  // Tuxedo::TuxedoTypedBuffer class
-  tuxedons->addSystemClass(initTuxedoTypedBufferClass());
-  // Tuxedo::TuxedoQueueCtl class
-  tuxedons->addSystemClass(initTuxedoQueueControlParamsClass());
-  // Tuxedo::TuxedoTransactionId class
-  tuxedons->addSystemClass(initTuxedoTransactionIdClass());
-  // Tuxedo::TuxedoContext class
-  tuxedons->addSystemClass(initTuxedoContextClass());
-*/
 
   qns->addInitialNamespace(tuxedons);
   traceout("tuxedo_module_ns_init");

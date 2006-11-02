@@ -36,6 +36,7 @@
 #include <atmi.h>
 
 class QoreEncoding;
+class Hash;
 
 //------------------------------------------------------------------------------
 #ifdef DEBUG
@@ -43,9 +44,13 @@ class QoreEncoding;
 // Undefine them to skip the tests that use them.
 //
 
+#define TUXDIR  "/opt/bea/tuxedo9.1"
+
 // The simplest test with TOUPPER service on strings
-#define TUXDIR_SIMPLE  "/opt/bea/tuxedo9.1"
 #define TUXCONFIG_SIMPLE "/home/pavel/tuxedo_tests/tuxedo_simple_app/tuxconfig"
+
+// Queue sample
+#define TUXCONFIG_QUEUE  "/home/pavel/tuxedo_tests/qsample/tuxconfig"
 
 #endif
 
@@ -74,6 +79,7 @@ public:
   QoreEncoding* m_string_encoding; // used to convert every string sent/received
 
   std::vector<int> m_pending_async_calls;
+  TPQCTL m_queue_settings;
    
 public:
   QoreTuxedoAdapter();
@@ -90,6 +96,8 @@ public:
   void resetReceiveBuffer();
   void setStringEncoding(char* name);
   void remove_pending_async_call(int handle);
+  int enqueue(char* queue_space, char* queue_name, long flags, Hash* settings, Hash*& out_settings);
+  int dequeue(char* queue_space, char* queue_name, long flags, Hash* settings, Hash*& out_settings);
 
   void deref() { 
     if (ROdereference()) {

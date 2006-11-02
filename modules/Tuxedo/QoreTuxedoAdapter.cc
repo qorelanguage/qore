@@ -29,8 +29,11 @@
 #include <qore/ScopeGuard.h>
 #include <qore/LockedObject.h>
 #include <qore/charset.h>
+#include <qore/QoreType.h>
+#include <qore/QoreNode.h>
 
 #include <atmi.h>
+#include <memory>
 
 #include "QoreTuxedoAdapter.h"
 
@@ -248,6 +251,141 @@ void QoreTuxedoAdapter::remove_pending_async_call(int handle)
       break;
     }
   }
+}
+
+//------------------------------------------------------------------------------
+static QoreNode* get_val(Hash* hash, char* name, QoreType* type)
+{
+  if (!hash) return 0;
+  QoreNode* n = hash->getKeyValueExistence(name);
+  if (!n || n == (QoreNode*)-1) return 0;  // -1 could be returned by the getKeyExistence() !!!
+  if (n->type != type) return 0;
+  return n;
+}
+
+//------------------------------------------------------------------------------
+int QoreTuxedoAdapter::enqueue(char* queue_space, char* queue_name, long flags, Hash* settings, Hash*& out_settings)
+{
+  memset(&m_queue_settings, 0, sizeof(m_queue_settings));
+  m_queue_settings.flags = TPNOFLAGS; // by default do not usea
+
+  // set queue control parameters
+  QoreNode* n = get_val(settings, "flags", NT_INT);
+  if (n) m_queue_settings.flags = (long)n->val.intval;
+  n = get_val(settings, "deq_time", NT_INT);
+  if (n) m_queue_settings.deq_time = (long)n->val.intval;
+  n = get_val(settings, "priority", NT_INT);
+  if (n) m_queue_settings.priority = (long)n->val.intval;
+  n = get_val(settings, "exp_time", NT_INT);
+  if (n) m_queue_settings.exp_time = (long)n->val.intval;
+  n = get_val(settings, "delivery_qos", NT_INT);
+  if (n) m_queue_settings.delivery_qos = (long)n->val.intval;
+  n = get_val(settings, "reply_qos", NT_INT);
+  if (n) m_queue_settings.reply_qos = (long)n->val.intval;
+  n = get_val(settings, "urcode", NT_INT);
+  if (n) m_queue_settings.urcode = (long)n->val.intval;
+  n = get_val(settings, "msgid", NT_BINARY);
+  if (n) {
+    BinaryObject* bin = n->val.bin;
+    int sz = sizeof(m_queue_settings.msgid);
+    if (bin->size() == sz) memcpy(&m_queue_settings.msgid, bin->getPtr(), sz);
+  }
+  n = get_val(settings, "corrid", NT_BINARY);
+  if (n) {
+    BinaryObject* bin = n->val.bin;
+    int sz = sizeof(m_queue_settings.corrid);
+    if (bin->size() == sz) memcpy(&m_queue_settings.corrid, bin->getPtr(), sz);
+  }
+  n = get_val(settings, "replyqueue", NT_STRING);
+  if (n) strcpy(m_queue_settings.replyqueue, n->val.String->getBuffer());
+  n = get_val(settings, "failurequeue", NT_STRING);
+  if (n) strcpy(m_queue_settings.failurequeue, n->val.String->getBuffer());
+
+  int res = tpenqueue(queue_space, queue_name, &m_queue_settings, m_send_buffer, m_send_buffer_size, flags);
+  if (res == -1) return tperrno;
+
+ // create hash with relevant out settings
+  ExceptionSink xsink;
+  std::auto_ptr<Hash> out(new Hash);
+  out->setKeyValue("flags", new QoreNode((int64)m_queue_settings.flags), &xsink);
+
+  int sz = sizeof(m_queue_settings.msgid);
+  void* copy = malloc(sz);
+  if (!copy) return TPEOS;
+  memcpy(copy, &m_queue_settings.msgid, sz);
+  BinaryObject* bin = new BinaryObject(copy, sz);
+  out->setKeyValue("msgid", new QoreNode(bin), &xsink);
+
+  out->setKeyValue("diagnostic", new QoreNode((int64)m_queue_settings.diagnostic), &xsink);
+
+  if (xsink) return TPEINVAL;
+  out_settings = out.release();
+  return 0;
+}
+
+//------------------------------------------------------------------------------
+int QoreTuxedoAdapter::dequeue(char* queue_space, char* queue_name, long flags, Hash* settings, Hash*& out_settings)
+{
+  memset(&m_queue_settings, 0, sizeof(m_queue_settings));
+  m_queue_settings.flags = TPNOFLAGS; // by default do not use
+
+  // set queue control parameters
+  QoreNode* n = get_val(settings, "flags", NT_INT);
+  if (n) m_queue_settings.flags = (long)n->val.intval;
+  n = get_val(settings, "msgid", NT_BINARY);
+  if (n) {
+    BinaryObject* bin = n->val.bin;
+    int sz = sizeof(m_queue_settings.msgid);
+    if (bin->size() == sz) memcpy(&m_queue_settings.msgid, bin->getPtr(), sz);
+  }
+  n = get_val(settings, "corrid", NT_BINARY);
+  if (n) {
+    BinaryObject* bin = n->val.bin;
+    int sz = sizeof(m_queue_settings.corrid);
+    if (bin->size() == sz) memcpy(&m_queue_settings.corrid, bin->getPtr(), sz);
+  }
+
+  int res = tpdequeue(queue_space, queue_name, &m_queue_settings, &m_receive_buffer, &m_receive_buffer_size, flags);
+  if (res == -1) return tperrno;
+
+  // create hash with relevant out settings
+  ExceptionSink xsink;
+  std::auto_ptr<Hash> out(new Hash);
+  out->setKeyValue("flags", new QoreNode((int64)m_queue_settings.flags), &xsink);
+  out->setKeyValue("priority", new QoreNode((int64)m_queue_settings.priority), &xsink);
+
+  int sz = sizeof(m_queue_settings.msgid);
+  void* copy = malloc(sz);
+  if (!copy) return TPEOS;
+  memcpy(copy, &m_queue_settings.msgid, sz);
+  BinaryObject* bin = new BinaryObject(copy, sz);
+  out->setKeyValue("msgid", new QoreNode(bin), &xsink);
+
+  sz = sizeof(m_queue_settings.corrid);
+  copy = malloc(sz);
+  if (!copy) return TPEOS;
+  memcpy(copy, &m_queue_settings.corrid, sz);
+  bin = new BinaryObject(copy, sz);
+  out->setKeyValue("corrid", new QoreNode(bin), &xsink);
+
+  out->setKeyValue("delivery_qos", new QoreNode((int64)m_queue_settings.delivery_qos), &xsink);
+  out->setKeyValue("reply_qos", new QoreNode((int64)m_queue_settings.reply_qos), &xsink);
+  out->setKeyValue("replyqueue", new QoreNode((char*)m_queue_settings.replyqueue), &xsink);
+  out->setKeyValue("failurequeue", new QoreNode((char*)m_queue_settings.failurequeue), &xsink);
+  out->setKeyValue("diagnostic", new QoreNode((int64)m_queue_settings.diagnostic), &xsink);
+  out->setKeyValue("appkey", new QoreNode((int64)m_queue_settings.appkey), &xsink);
+  out->setKeyValue("urcode", new QoreNode((int64)m_queue_settings.urcode), &xsink);
+ 
+  sz = sizeof(m_queue_settings.cltid);
+  copy = malloc(sz);
+  if (!copy) return TPEOS;
+  memcpy(copy, &m_queue_settings.cltid, sz);
+  bin = new BinaryObject(copy, sz);
+  out->setKeyValue("cltid", new QoreNode(bin), &xsink);
+
+  if (xsink) return TPEINVAL;
+  out_settings = out.release();
+  return 0;
 }
 
 // EOF

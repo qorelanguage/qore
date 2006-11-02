@@ -306,11 +306,14 @@ static QoreNode* getNeededAuthentication(Object* self, QoreTuxedoAdapter* adapte
 TEST()
 {
 #ifdef TUXCONFIG_SIMPLE
+  char* stop = getenv("TUXEDO_NO_SIMPLE_TEST");
+  if (stop && stop[0]) return;
+
   char* cmd =
     "qore -e '%requires tuxedo\n"
     "$a = new Tuxedo::TuxedoAdapter();\n"
     "$a.setEnvironmentVariable(\"TUXCONFIG\", \""  TUXCONFIG_SIMPLE "\");\n"
-    "$a.setEnvironmentVariable(\"TUXDIR\", \"" TUXDIR_SIMPLE "\");\n"
+    "$a.setEnvironmentVariable(\"TUXDIR\", \"" TUXDIR "\");\n"
     "$res = $a.getNeededAuthentication();\n"
     "if ($res != Tuxedo::TPNOAUTH) { printf(\"getNeededAuthentication() failed\n\"); exit(1); }\n"
     "exit(10);'\n";
@@ -339,11 +342,14 @@ static QoreNode* closeAdapter(Object* self, QoreTuxedoAdapter* adapter, QoreNode
 TEST()
 {
 #ifdef TUXCONFIG_SIMPLE
+  char* stop = getenv("TUXEDO_NO_SIMPLE_TEST");
+  if (stop && stop[0]) return;
+
   char* cmd =
     "qore -e '%requires tuxedo\n"
     "$a = new Tuxedo::TuxedoAdapter();\n"
     "$a.setEnvironmentVariable(\"TUXCONFIG\", \""  TUXCONFIG_SIMPLE "\");\n"
-    "$a.setEnvironmentVariable(\"TUXDIR\", \"" TUXDIR_SIMPLE "\");\n"
+    "$a.setEnvironmentVariable(\"TUXDIR\", \"" TUXDIR "\");\n"
     "$res = $a.init();\n"
     "if ($res != 0) { printf(\"init failed with %d\n\", $res); exit(11); }\n"
     "$res = $a.close();\n"
@@ -528,7 +534,6 @@ static QoreNode* allocateReceiveBuffer(Object* self, QoreTuxedoAdapter* adapter,
 #ifdef DEBUG
 TEST()
 {
-#ifdef DEBUG
   char* cmd =
     "qore -e '%requires tuxedo\n"
     "$a = new Tuxedo::TuxedoAdapter();\n"
@@ -541,7 +546,6 @@ TEST()
   int res = system(cmd);
   res = WEXITSTATUS(res);
   assert(res == 10);
-#endif
 }
 #endif
 
@@ -561,11 +565,14 @@ static QoreNode* switchToSavedContext(Object* self, QoreTuxedoAdapter* adapter, 
 TEST()
 {
 #ifdef TUXCONFIG_SIMPLE
-  char* cmd =
+  char* stop = getenv("TUXEDO_NO_SIMPLE_TEST");
+  if (stop && stop[0]) return;
+
+char* cmd =
     "qore -e '%requires tuxedo\n"
     "$a = new Tuxedo::TuxedoAdapter();\n"
     "$a.setEnvironmentVariable(\"TUXCONFIG\", \""  TUXCONFIG_SIMPLE "\");\n"
-    "$a.setEnvironmentVariable(\"TUXDIR\", \"" TUXDIR_SIMPLE "\");\n"
+    "$a.setEnvironmentVariable(\"TUXDIR\", \"" TUXDIR "\");\n"
     "$res = $a.init();\n"
     "if ($res != 0) { printf(\"init failed with %d\n\", $res); exit(11); }\n"
     "$res = $a.saveContext();\n"
@@ -600,7 +607,6 @@ static QoreNode* resetReceiveBuffer(Object* self, QoreTuxedoAdapter* adapter, Qo
 #ifdef DEBUG
 TEST()
 {
-#ifdef TUXCONFIG_SIMPLE
   char* cmd =
     "qore -e '%requires tuxedo\n"
     "$a = new Tuxedo::TuxedoAdapter();\n"
@@ -613,7 +619,6 @@ TEST()
   int res = system(cmd);
   res = WEXITSTATUS(res);
   assert(res == 10);
-#endif
 }
 #endif
 
@@ -715,11 +720,14 @@ static QoreNode* call(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params
 TEST()
 {
 #ifdef TUXCONFIG_SIMPLE
+  char* stop = getenv("TUXEDO_NO_SIMPLE_TEST");
+  if (stop && stop[0]) return;
+
   char* cmd =
     "qore -e '%requires tuxedo\n"
     "$a = new Tuxedo::TuxedoAdapter();\n"
     "$a.setEnvironmentVariable(\"TUXCONFIG\", \""  TUXCONFIG_SIMPLE "\");\n"
-    "$a.setEnvironmentVariable(\"TUXDIR\", \"" TUXDIR_SIMPLE "\");\n"
+    "$a.setEnvironmentVariable(\"TUXDIR\", \"" TUXDIR "\");\n"
     "$res = $a.init();\n"
     "if ($res != 0) { printf(\"init failed with %d\n\", $res); exit(11); }\n"
 
@@ -817,12 +825,15 @@ static QoreNode* waitForAsyncReply(Object* self, QoreTuxedoAdapter* adapter, Qor
 TEST()
 {
 #ifdef TUXCONFIG_SIMPLE
+  char* stop = getenv("TUXEDO_NO_SIMPLE_TEST");
+  if (stop && stop[0]) return;
+
   // send 3 requests asynchronously, cancel one
   char* cmd =
     "qore -e '%requires tuxedo\n"
     "$a = new Tuxedo::TuxedoAdapter();\n"
     "$a.setEnvironmentVariable(\"TUXCONFIG\", \""  TUXCONFIG_SIMPLE "\");\n"
-    "$a.setEnvironmentVariable(\"TUXDIR\", \"" TUXDIR_SIMPLE "\");\n"
+    "$a.setEnvironmentVariable(\"TUXDIR\", \"" TUXDIR "\");\n"
     "$res = $a.init();\n"
     "if ($res != 0) { printf(\"init failed with %d\n\", $res); exit(11); }\n"
 
@@ -901,6 +912,119 @@ static QoreNode* connectConversation(Object* self, QoreTuxedoAdapter* adapter, Q
   return new QoreNode(l);
 }
 
+#ifdef DEBUG
+// TBD
+#endif
+
+//-----------------------------------------------------------------------------
+static QoreNode* enqueue(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
+{
+  adapter->switchToSavedContext();
+
+  char* err_name = "TuxedoAdapter::enqueue";
+  char* err_text = "Three to four parameter expected: string queue space, string queue name, integer flags, optional hash with control parameters.";
+  QoreNode* n = test_param(params, NT_STRING, 0);
+  if (!n) return xsink->raiseException(err_name, err_text);
+  char* queue_space = n->val.String->getBuffer();
+  n = test_param(params, NT_STRING, 1);
+  if (!n) return xsink->raiseException(err_name, err_text);
+  char* queue_name = n->val.String->getBuffer();
+  n = test_param(params, NT_INT, 2);
+  if (!n) return xsink->raiseException(err_name, err_text);
+  long flags = (long)n->val.intval;
+  n = test_param(params, NT_HASH, 3);
+  Hash* settings = 0;
+  if (n) {
+    settings = n->val.hash;
+  }
+  Hash* out_settings = 0;
+  int res = adapter->enqueue(queue_space, queue_name, flags, settings, out_settings);
+
+  List* l = new List;
+  if (res == 0) {
+    l->push(new QoreNode((int64)0));
+    l->push(new QoreNode(out_settings));
+  } else {
+    l->push(new QoreNode((int64)res));
+  }
+  return new QoreNode(l);
+}
+
+//-----------------------------------------------------------------------------
+static QoreNode* dequeue(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
+{
+  adapter->switchToSavedContext();
+
+  char* err_name = "TuxedoAdapter::dequeue";
+  char* err_text = "Three to four parameter expected: string queue space, string queue name, integer flags, optional hash control parameters.";
+  QoreNode* n = test_param(params, NT_STRING, 0);
+  if (!n) return xsink->raiseException(err_name, err_text);
+  char* queue_space = n->val.String->getBuffer();
+  n = test_param(params, NT_STRING, 1);
+  if (!n) return xsink->raiseException(err_name, err_text);
+  char* queue_name = n->val.String->getBuffer();
+  n = test_param(params, NT_INT, 2);
+  if (!n) return xsink->raiseException(err_name, err_text);
+  long flags = (long)n->val.intval;
+  n = test_param(params, NT_HASH, 3);
+  Hash* settings = 0;
+  if (n) {
+    settings = n->val.hash;
+  }
+  Hash* out_settings = 0;
+  int res = adapter->dequeue(queue_space, queue_name, flags, settings, out_settings);
+
+  List* l = new List;
+  if (res == 0) {
+    l->push(new QoreNode((int64)0));
+    l->push(new QoreNode(out_settings));
+  } else {
+    l->push(new QoreNode((int64)res));
+  }
+  return new QoreNode(l);
+}
+
+#ifdef DEBUG
+TEST()
+{
+#ifdef TUXDIR_QUEUE
+  char* stop = getenv("TUXEDO_NO_QUEUE_TEST");
+  if (stop && stop[0]) return;
+
+  // test modeled by qsample from ATMI samples, uses its server  
+  char* cmd = "qore -e '%requires tuxedo\n"
+    "$a = new TuxedoAdapter();\n"
+    "$a.setEnvironmentVariable(\"TUXDIR\", \"" TUXDIR "\");\n"
+    "$a.setEnvironmentVariable(\"TUXCONFIG\", \"" TUXCONFIG_QUEUE "\");\n"
+    "$res = $a.init();\n"
+    "if ($res != 0) { printf(\"init failed!!!!\n\"); exit(11); }\n"
+
+    "$a.setStringDataToSend(\"test queue\");\n"
+    "$h = (\"flags\" : Tuxedo::TPQREPLYQ, \"replyqueue\" : \"RPLYQ\");\n"
+
+    "$res = $a.enqueue(\"QSPACE\", \"STRING\", 0, $h);\n"
+    "if ($res[0] != 0) { printf(\"enqueue failed\n\"); exit(11); }\n"
+
+    "$a.allocateReceiveBuffer(\"STRING\", \"\", 100);\n"
+    "$h = (\"flags\" : Tuxedo::TPQWAIT);\n"
+
+    "$res = $a.dequeue(\"QSPACE\", \"RPLYQ\", Tuxedo::TPNOTIME, $h);\n"
+    "if ($res[0] != 0) { printf(\"dequeue failed\n\"); exit(11); }\n"
+
+    "$res = $a.getReceivedString();\n"
+    "if ($res != \"TEST QUEUE\") { printf(\"service failed\n\"); exit(11); }\n"
+
+    "$a.close();\n"
+    "exit(10);'\n";
+
+
+  int res = system(cmd);
+  res = WEXITSTATUS(res);
+  assert(res == 10);
+#endif
+}
+#endif
+
 //-----------------------------------------------------------------------------
 class QoreClass* initTuxedoAdapterClass()
 {
@@ -948,6 +1072,10 @@ class QoreClass* initTuxedoAdapterClass()
 
   // conversational mode
   adapter->addMethod("connectConversation", (q_method_t)connectConversation);
+
+  // queueing
+  adapter->addMethod("enqueue", (q_method_t)enqueue);
+  adapter->addMethod("dequeue", (q_method_t)dequeue);
 
   traceout("initTuxedoAdapterClass");
   return adapter;
