@@ -28,6 +28,8 @@
 #include <qore/params.h>
 #include <qore/minitest.hpp>
 
+#include "userlog.h"
+
 #include "QC_TuxedoAdapter.h"
 #include "QoreTuxedoAdapter.h"
 
@@ -328,7 +330,13 @@ TEST()
 //-----------------------------------------------------------------------------
 static QoreNode* init(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
 {
-  return new QoreNode((int64)adapter->init());
+  adapter->m_connection_flags |= TPMULTICONTEXTS; // to allow the saveContext/switchToSavedContext trick
+  int res = adapter->init();
+  if (res == 0) {
+    res = adapter->saveContext();
+    if (res) tpterm();
+  }
+  return new QoreNode((int64)res);
 }
 
 //-----------------------------------------------------------------------------
@@ -887,11 +895,11 @@ TEST()
 #endif
 
 //-----------------------------------------------------------------------------
-static QoreNode* connectConversation(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
+static QoreNode* joinConversation(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
 {
   adapter->switchToSavedContext();
 
-  char* err_name = "TuxedoAdapter::connectConversation";
+  char* err_name = "TuxedoAdapter::joinConversation";
   char* err_text = "Two parameters expected: string service name, integer flags.";
   QoreNode* n = test_param(params , NT_STRING, 0);
   if (!n) return xsink->raiseException(err_name, err_text);
@@ -909,6 +917,72 @@ static QoreNode* connectConversation(Object* self, QoreTuxedoAdapter* adapter, Q
     l->push(new QoreNode((int64)0));
     l->push(new QoreNode((int64)res));
   } 
+  return new QoreNode(l);
+}
+
+//-----------------------------------------------------------------------------
+static QoreNode* breakConversation(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
+{
+  adapter->switchToSavedContext();
+
+  QoreNode* n = test_param(params, NT_INT, 0);
+  if (!n) return xsink->raiseException("TuxedoAdapter::breakConversation", "One parameter expected: conversation handle integer.");
+  int handle = (int)n->val.intval;
+
+  return new QoreNode((int64)(tpdiscon(handle) == -1 ? tperrno : 0));
+}
+
+//-----------------------------------------------------------------------------
+static QoreNode* sendConversationData(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
+{
+  adapter->switchToSavedContext();
+
+  char* err_name = "TuxedoAdapter::sendConversationData";
+  char* err_text = "Two integer parameters expected: handle to conversation and flags.";
+
+  QoreNode* n = test_param(params, NT_INT, 0);
+  if (!n) return xsink->raiseException(err_name, err_text);
+  int handle = (int)n->val.intval;
+  n = test_param(params, NT_INT, 1);
+  long flags = (long)n->val.intval;
+  
+  long event = TPEV_SVCSUCC;
+  int res = tpsend(handle, adapter->m_send_buffer, adapter->m_send_buffer_size, flags, &event);
+
+  List* l = new List;
+  if (res == -1) {
+    l->push(new QoreNode((int64)tperrno));    
+  } else {
+    l->push(new QoreNode((int64)0));
+  }
+  l->push(new QoreNode((int64)event));
+  return new QoreNode(l);
+}
+
+//-----------------------------------------------------------------------------
+static QoreNode* receiveConversationData(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
+{
+  adapter->switchToSavedContext();
+
+  char* err_name = "TuxedoAdapter::receiveConversationData";
+  char* err_text = "Two integer parameters expected: handle to conversation and flags.";
+
+  QoreNode* n = test_param(params, NT_INT, 0);
+  if (!n) return xsink->raiseException(err_name, err_text);
+  int handle = (int)n->val.intval;
+  n = test_param(params, NT_INT, 1);
+  long flags = (long)n->val.intval;
+
+  long event = TPEV_SVCSUCC;
+  int res = tprecv(handle, &adapter->m_receive_buffer, &adapter->m_receive_buffer_size, flags, &event);
+
+  List* l = new List;
+  if (res == -1) {
+    l->push(new QoreNode((int64)tperrno));
+  } else {
+    l->push(new QoreNode((int64)0));
+  }
+  l->push(new QoreNode((int64)event));
   return new QoreNode(l);
 }
 
@@ -1026,6 +1100,33 @@ TEST()
 #endif
 
 //-----------------------------------------------------------------------------
+static QoreNode* writeToLog(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
+{
+  adapter->switchToSavedContext();
+  
+  QoreNode* n = test_param(params, NT_STRING, 0);
+  if (!n) return xsink->raiseException("TuxedoAdapter::writeToLog", "One parameter expected - string to be written.");
+  char* text = n->val.String->getBuffer();
+  if (!text) text = "";
+  userlog("%s", text);
+  return 0;
+}
+
+#ifdef DEBUG
+TEST()
+{
+  char* cmd = "qore -e '%requires tuxedo\n"
+    "$a = new TuxedoAdapter();\n"
+    "$a.writeToLog(\"sample log from a test\");\n"
+    "exit(10);'\n";
+
+  int res = system(cmd);
+  res = WEXITSTATUS(res);
+  assert(res == 10);  
+}
+#endif
+
+//-----------------------------------------------------------------------------
 class QoreClass* initTuxedoAdapterClass()
 {
   tracein("initTuxedoAdapterClass");
@@ -1061,6 +1162,7 @@ class QoreClass* initTuxedoAdapterClass()
 
   // misc
   adapter->addMethod("error2string", (q_method_t)error2string);
+  adapter->addMethod("writeToLog", (q_method_t)writeToLog);
   adapter->addMethod("saveContext", (q_method_t)saveContext);
   adapter->addMethod("switchToSavedContext", (q_method_t)switchToSavedContext);
 
@@ -1071,7 +1173,10 @@ class QoreClass* initTuxedoAdapterClass()
   adapter->addMethod("waitForAsyncReply", (q_method_t)waitForAsyncReply);
 
   // conversational mode
-  adapter->addMethod("connectConversation", (q_method_t)connectConversation);
+  adapter->addMethod("joinConversation", (q_method_t)joinConversation);
+  adapter->addMethod("breakConversation", (q_method_t)breakConversation);
+  adapter->addMethod("sendConversationData", (q_method_t)sendConversationData);
+  adapter->addMethod("receiveConversationData", (q_method_t)receiveConversationData);
 
   // queueing
   adapter->addMethod("enqueue", (q_method_t)enqueue);
