@@ -47,10 +47,10 @@ class Hash;
 #define TUXDIR  "/opt/bea/tuxedo9.1"
 
 // The simplest test with TOUPPER service on strings
-#define TUXCONFIG_SIMPLE "/home/pavel/tuxedo_tests/tuxedo_simple_app/tuxconfig"
+#define TUXCONFIG_SIMPLE_TEST "tuxedo_tests/tuxedo_simple_app/tuxconfig"
 
 // Queue sample
-#define TUXCONFIG_QUEUE  "/home/pavel/tuxedo_tests/qsample/tuxconfig"
+#define TUXCONFIG_QUEUE_TEST  "tuxedo_tests/qsample/tuxconfig"
 
 #endif
 

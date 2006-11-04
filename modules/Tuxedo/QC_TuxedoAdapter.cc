@@ -29,11 +29,27 @@
 #include <qore/minitest.hpp>
 
 #include "userlog.h"
+#include <string>
 
 #include "QC_TuxedoAdapter.h"
 #include "QoreTuxedoAdapter.h"
 
 int CID_TUXEDOADAPTER;
+
+//------------------------------------------------------------------------------
+#ifdef DEBUG
+// helper to ease testing on different machines
+static const char* tuxfile(const char* file_name_part)
+{  
+  static std::string result;
+
+  result = getenv("HOME");
+  result += "/";
+  result += file_name_part;
+  
+  return result.c_str();
+}
+#endif
 
 //------------------------------------------------------------------------------
 static void getTuxedoAdapter(void* obj)
@@ -305,26 +321,29 @@ static QoreNode* getNeededAuthentication(Object* self, QoreTuxedoAdapter* adapte
 }
 
 #ifdef DEBUG
+#ifdef TUXCONFIG_SIMPLE_TEST
 TEST()
 {
-#ifdef TUXCONFIG_SIMPLE
   char* stop = getenv("TUXEDO_NO_SIMPLE_TEST");
   if (stop && stop[0]) return;
 
-  char* cmd =
-    "qore -e '%requires tuxedo\n"
+
+  char buffer[1024];
+  sprintf(buffer, "qore -e '%%requires tuxedo\n"
     "$a = new Tuxedo::TuxedoAdapter();\n"
-    "$a.setEnvironmentVariable(\"TUXCONFIG\", \""  TUXCONFIG_SIMPLE "\");\n"
+    "$a.setEnvironmentVariable(\"TUXCONFIG\", \"%s\");\n"
     "$a.setEnvironmentVariable(\"TUXDIR\", \"" TUXDIR "\");\n"
     "$res = $a.getNeededAuthentication();\n"
     "if ($res != Tuxedo::TPNOAUTH) { printf(\"getNeededAuthentication() failed\n\"); exit(1); }\n"
-    "exit(10);'\n";
+    "exit(10);'\n", 
+    tuxfile(TUXCONFIG_SIMPLE_TEST)
+  );
 
-  int res = system(cmd);
+  int res = system(buffer);
   res = WEXITSTATUS(res);
   assert(res == 10);
-#endif
 }
+#endif
 #endif
 
 //-----------------------------------------------------------------------------
@@ -347,28 +366,30 @@ static QoreNode* closeAdapter(Object* self, QoreTuxedoAdapter* adapter, QoreNode
 }
 
 #ifdef DEBUG
+#ifdef TUXCONFIG_SIMPLE_TEST
 TEST()
 {
-#ifdef TUXCONFIG_SIMPLE
   char* stop = getenv("TUXEDO_NO_SIMPLE_TEST");
   if (stop && stop[0]) return;
 
-  char* cmd =
-    "qore -e '%requires tuxedo\n"
+  char buffer[1024];
+  sprintf(buffer, "qore -e '%%requires tuxedo\n"
     "$a = new Tuxedo::TuxedoAdapter();\n"
-    "$a.setEnvironmentVariable(\"TUXCONFIG\", \""  TUXCONFIG_SIMPLE "\");\n"
+    "$a.setEnvironmentVariable(\"TUXCONFIG\", \"%s\");\n"
     "$a.setEnvironmentVariable(\"TUXDIR\", \"" TUXDIR "\");\n"
     "$res = $a.init();\n"
-    "if ($res != 0) { printf(\"init failed with %d\n\", $res); exit(11); }\n"
+    "if ($res != 0) { printf(\"init failed with %%d\n\", $res); exit(11); }\n"
     "$res = $a.close();\n"
-    "if ($res != 0) { printf(\"close failed with %d\n\", $res); exit(11); }\n"
-    "exit(10);'\n";
+    "if ($res != 0) { printf(\"close failed with %%d\n\", $res); exit(11); }\n"
+    "exit(10);'\n",
+    tuxfile(TUXCONFIG_SIMPLE_TEST)
+  );
 
-  int res = system(cmd);
+  int res = system(buffer);
   res = WEXITSTATUS(res);
   assert(res == 10);
-#endif
 }
+#endif
 #endif
 
 //-----------------------------------------------------------------------------
@@ -570,32 +591,34 @@ static QoreNode* switchToSavedContext(Object* self, QoreTuxedoAdapter* adapter, 
 }
 
 #ifdef DEBUG
+#ifdef TUXCONFIG_SIMPLE_TEST
 TEST()
 {
-#ifdef TUXCONFIG_SIMPLE
   char* stop = getenv("TUXEDO_NO_SIMPLE_TEST");
   if (stop && stop[0]) return;
 
-char* cmd =
-    "qore -e '%requires tuxedo\n"
+  char buffer[1024];
+  sprintf(buffer, "qore -e '%%requires tuxedo\n"
     "$a = new Tuxedo::TuxedoAdapter();\n"
-    "$a.setEnvironmentVariable(\"TUXCONFIG\", \""  TUXCONFIG_SIMPLE "\");\n"
+    "$a.setEnvironmentVariable(\"TUXCONFIG\", \"%s\");\n"
     "$a.setEnvironmentVariable(\"TUXDIR\", \"" TUXDIR "\");\n"
     "$res = $a.init();\n"
-    "if ($res != 0) { printf(\"init failed with %d\n\", $res); exit(11); }\n"
+    "if ($res != 0) { printf(\"init failed with %%d\n\", $res); exit(11); }\n"
     "$res = $a.saveContext();\n"
-    "if ($res != 0) { printf(\"saveContext failed with %d\n\", $res); exit(11); }\n"
+    "if ($res != 0) { printf(\"saveContext failed with %%d\n\", $res); exit(11); }\n"
     "$res = $a.switchToSavedContext();\n"
-    "if ($res != 0) { printf(\"switchToSavedContext failed with %d\n\", $res); exit(11); }\n"
+    "if ($res != 0) { printf(\"switchToSavedContext failed with %%d\n\", $res); exit(11); }\n"
     "$res = $a.close();\n"
-    "if ($res != 0) { printf(\"close failed with %d\n\", $res); exit(11); }\n"
-    "exit(10);'\n";
+    "if ($res != 0) { printf(\"close failed with %%d\n\", $res); exit(11); }\n"
+    "exit(10);'\n",
+    tuxfile(TUXCONFIG_SIMPLE_TEST)
+  );
 
-  int res = system(cmd);
+  int res = system(buffer);
   res = WEXITSTATUS(res);
   assert(res == 10);
-#endif
 }
+#endif
 #endif
 
 //-----------------------------------------------------------------------------
@@ -725,48 +748,50 @@ static QoreNode* call(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params
 }
 
 #ifdef DEBUG
+#ifdef TUXCONFIG_SIMPLE_TEST
 TEST()
 {
-#ifdef TUXCONFIG_SIMPLE
   char* stop = getenv("TUXEDO_NO_SIMPLE_TEST");
   if (stop && stop[0]) return;
 
-  char* cmd =
-    "qore -e '%requires tuxedo\n"
+  char buffer[2048];
+  sprintf(buffer, "qore -e '%%requires tuxedo\n"
     "$a = new Tuxedo::TuxedoAdapter();\n"
-    "$a.setEnvironmentVariable(\"TUXCONFIG\", \""  TUXCONFIG_SIMPLE "\");\n"
+    "$a.setEnvironmentVariable(\"TUXCONFIG\", \"%s\");\n"
     "$a.setEnvironmentVariable(\"TUXDIR\", \"" TUXDIR "\");\n"
     "$res = $a.init();\n"
-    "if ($res != 0) { printf(\"init failed with %d\n\", $res); exit(11); }\n"
+    "if ($res != 0) { printf(\"init failed with %%d\n\", $res); exit(11); }\n"
 
     "$res = $a.setStringDataToSend(\"abcd\");\n"
-    "if ($res != 0) { printf(\"setStringDataToSend failed %d\n\", $res); exit(11); }\n"
+    "if ($res != 0) { printf(\"setStringDataToSend failed %%d\n\", $res); exit(11); }\n"
     "$res = $a.allocateReceiveBuffer(\"STRING\", \"\", 100);\n"
-    "if ($res != 0) { printf(\"allocateReceiveBuffer failed %d\n\", $res); exit(11); }\n"
+    "if ($res != 0) { printf(\"allocateReceiveBuffer failed %%d\n\", $res); exit(11); }\n"
 
     "$res = $a.call(\"TOUPPER\", 0);\n"
-    "if ($res != 0) { printf(\"call failed %d\n\", $res); exit(11); }\n"
+    "if ($res != 0) { printf(\"call failed %%d\n\", $res); exit(11); }\n"
     "$out = $a.getReceivedString();\n"
     "if ($out != \"ABCD\") { printf(\"service failed\n\"); exit(11); }\n"
 
     // second call
     "$res = $a.setStringDataToSend(\"abcdefgh\");\n"
-    "if ($res != 0) { printf(\"setStringDataToSend failed %d\n\", $res); exit(11); }\n"
+    "if ($res != 0) { printf(\"setStringDataToSend failed %%d\n\", $res); exit(11); }\n"
 
     "$res = $a.call(\"TOUPPER\", 0);\n"
-    "if ($res != 0) { printf(\"call failed %d\n\", $res); exit(11); }\n"
+    "if ($res != 0) { printf(\"call failed %%d\n\", $res); exit(11); }\n"
     "$out = $a.getReceivedString();\n"
     "if ($out != \"ABCDEFGH\") { printf(\"service failed\n\"); exit(11); }\n"
 
     "$res = $a.close();\n"
-    "if ($res != 0) { printf(\"close failed with %d\n\", $res); exit(11); }\n"
-    "exit(10);'\n";
+    "if ($res != 0) { printf(\"close failed with %%d\n\", $res); exit(11); }\n"
+    "exit(10);'\n",
+    tuxfile(TUXCONFIG_SIMPLE_TEST)
+  );
 
-  int res = system(cmd);
+  int res = system(buffer);
   res = WEXITSTATUS(res);
   assert(res == 10);
-#endif
 }
+#endif
 #endif
 
 //-----------------------------------------------------------------------------
@@ -819,79 +844,134 @@ static QoreNode* waitForAsyncReply(Object* self, QoreTuxedoAdapter* adapter, Qor
   char* err_text = "Two integer parameters expected: async call handle and flags.";
   QoreNode* n = test_param(params, NT_INT, 0);
   if (!n) return xsink->raiseException(err_name, err_text);
+
   int handle = (int)n->val.intval;
   n = test_param(params, NT_INT, 1);
   if (!n) return xsink->raiseException(err_name, err_text);
   long flags = (long)n->val.intval;
 
-  adapter->remove_pending_async_call(handle);
+  adapter->remove_pending_async_call(handle); // remove it even if the tpgetrply() fails (I do not know better solution)
+
   int res = tpgetrply(&handle, &adapter->m_receive_buffer, &adapter->m_receive_buffer_size, flags);
+
+  if (res != -1 && (flags & TPGETANY)) { // special case
+    // see tpgetrply() what is TPGETANY good for
+    List* l = new List;
+    l->push(new QoreNode((int64)0));
+    l->push(new QoreNode((int64)handle));
+    return new QoreNode(l); // return list - client code needs to handle this
+  }
   return new QoreNode((int64)(res == -1 ? tperrno : 0));  
 }
 
 #ifdef DEBUG
+#ifdef TUXCONFIG_SIMPLE_TEST
 TEST()
 {
-#ifdef TUXCONFIG_SIMPLE
   char* stop = getenv("TUXEDO_NO_SIMPLE_TEST");
   if (stop && stop[0]) return;
 
   // send 3 requests asynchronously, cancel one
-  char* cmd =
-    "qore -e '%requires tuxedo\n"
+  char buffer[4096];
+  sprintf(buffer, "qore -e '%%requires tuxedo\n"
     "$a = new Tuxedo::TuxedoAdapter();\n"
-    "$a.setEnvironmentVariable(\"TUXCONFIG\", \""  TUXCONFIG_SIMPLE "\");\n"
+    "$a.setEnvironmentVariable(\"TUXCONFIG\", \"%s\");\n"
     "$a.setEnvironmentVariable(\"TUXDIR\", \"" TUXDIR "\");\n"
     "$res = $a.init();\n"
-    "if ($res != 0) { printf(\"init failed with %d\n\", $res); exit(11); }\n"
+    "if ($res != 0) { printf(\"init failed with %%d\n\", $res); exit(11); }\n"
 
      // req 1
     "$res = $a.setStringDataToSend(\"abcd\");\n"
-    "if ($res != 0) { printf(\"setStringDataToSend failed %d\n\", $res); exit(11); }\n"
+    "if ($res != 0) { printf(\"setStringDataToSend failed %%d\n\", $res); exit(11); }\n"
     "$res = $a.asyncCall(\"TOUPPER\", 0);\n"
-    "if ($res[0] != 0) { printf(\"call failed %d\n\", $res); exit(11); }\n"
+    "if ($res[0] != 0) { printf(\"call failed %%d\n\", $res); exit(11); }\n"
     "$handle1 = $res[1];\n"
 
     // req 2
     "$res = $a.setStringDataToSend(\"xyz\");\n"
-    "if ($res != 0) { printf(\"setStringDataToSend failed %d\n\", $res); exit(11); }\n"
+    "if ($res != 0) { printf(\"setStringDataToSend failed %%d\n\", $res); exit(11); }\n"
     "$res = $a.asyncCall(\"TOUPPER\", 0);\n"
-    "if ($res[0] != 0) { printf(\"call failed %d\n\", $res); exit(11); }\n"
+    "if ($res[0] != 0) { printf(\"call failed %%d\n\", $res); exit(11); }\n"
     "$handle2 = $res[1];\n"
 
     // req 3
     "$res = $a.setStringDataToSend(\"mnop\");\n"
-    "if ($res != 0) { printf(\"setStringDataToSend failed %d\n\", $res); exit(11); }\n"
+    "if ($res != 0) { printf(\"setStringDataToSend failed %%d\n\", $res); exit(11); }\n"
     "$res = $a.asyncCall(\"TOUPPER\", 0);\n"
-    "if ($res[0] != 0) { printf(\"call failed %d\n\", $res); exit(11); }\n"
+    "if ($res[0] != 0) { printf(\"call failed %%d\n\", $res); exit(11); }\n"
     "$handle3 = $res[1];\n"
 
     // cancel req 2
     "$res = $a.cancelAsyncCall($handle2);\n"
-    "if ($res != 0) { printf(\"cancelAsyncCall failed %d\n\", $res); exit(11); }\n"
+    "if ($res != 0) { printf(\"cancelAsyncCall failed %%d\n\", $res); exit(11); }\n"
 
     // read req 3 and 1
     "$a.allocateReceiveBuffer(\"STRING\", \"\", 100);\n"
 
     "$res = $a.waitForAsyncReply($handle3, Tuxedo::TPNOTIME);\n"
-    "if ($res != 0) { printf(\"waitForAsyncReply(%d) 3 failed %d\n\", $handle3, $res); exit(11); }\n"
+    "if ($res != 0) { printf(\"waitForAsyncReply(%%d) 3 failed %%d\n\", $handle3, $res); exit(11); }\n"
     "$out = $a.getReceivedString();\n"
     "if ($out != \"MNOP\") { printf(\"service failed\n\"); exit(11); }\n"
 
     "$res = $a.waitForAsyncReply($handle1, Tuxedo::TPNOTIME);\n"
-    "if ($res != 0) { printf(\"waitForAsyncReply 1 failed %d\n\", $res); exit(11); }\n"
+    "if ($res != 0) { printf(\"waitForAsyncReply 1 failed %%d\n\", $res); exit(11); }\n"
     "$out = $a.getReceivedString();\n"
     "if ($out != \"ABCD\") { printf(\"service failed\n\"); exit(11); }\n"
 
     "$res = $a.close();\n"
-    "if ($res != 0) { printf(\"close failed with %d\n\", $res); exit(11); }\n"
-    "exit(10);'\n";
+    "if ($res != 0) { printf(\"close failed with %%d\n\", $res); exit(11); }\n"
+    "exit(10);'\n",
+    tuxfile(TUXCONFIG_SIMPLE_TEST)
+  );
 
-  int res = system(cmd);
+  int res = system(buffer);
   res = WEXITSTATUS(res);
   assert(res == 10);
-#endif
 }
+
+TEST()
+{
+  // send asynchronous, read in an other thread
+  char* stop = getenv("TUXEDO_NO_SIMPLE_TEST");
+  if (stop && stop[0]) return;
+
+  char buffer[2048];
+  sprintf(buffer, "qore -e '%%requires tuxedo\n"
+    "our $a = new Tuxedo::TuxedoAdapter();\n"
+    "$a.setEnvironmentVariable(\"TUXCONFIG\", \"%s\");\n"
+    "$a.setEnvironmentVariable(\"TUXDIR\", \"" TUXDIR "\");\n"
+    "$res = $a.init();\n"
+    "if ($res != 0) { printf(\"init failed with %%d\n\", $res); exit(12); }\n"
+
+    "$res = $a.setStringDataToSend(\"abcd\");\n"
+    "if ($res != 0) { printf(\"setStringDataToSend failed %%d\n\", $res); exit(13); }\n"
+    "$res = $a.asyncCall(\"TOUPPER\", 0);\n"
+    "if ($res[0] != 0) { printf(\"call failed %%d\n\", $res); exit(14); }\n"
+    "our $handle1 = $res[1];\n"
+     
+    "sub bgthread($my_a, $my_handle) {\n"
+    "  $my_a.allocateReceiveBuffer(\"STRING\", \"\", 100);\n"
+
+    "  my $res = $a.waitForAsyncReply($my_handle, Tuxedo::TPNOTIME);\n"
+    "  if ($res != 0) { printf(\"waitForAsyncReply(%%d) 3 failed %%d\n\", $my_handle, $res); exit(15); }\n"
+    "  my $out = $a.getReceivedString();\n"
+    "  if ($out != \"ABCD\") { printf(\"service failed\n\"); exit(15); }\n"
+
+    "  $res = $my_a.close();\n"
+    "  if ($res != 0) { printf(\"close failed with %%d\n\", $res); exit(17); }\n"
+    "  exit(10);\n"
+    "}\n"
+    
+    "background bgthread($a, $handle1);\n"
+    "sleep(5);exit(18);'\n",
+    tuxfile(TUXCONFIG_SIMPLE_TEST)
+    );
+   
+  int res = system(buffer);
+  res = WEXITSTATUS(res);
+  assert(res == 10);
+}
+#endif
 #endif
 
 //-----------------------------------------------------------------------------
@@ -1059,17 +1139,18 @@ static QoreNode* dequeue(Object* self, QoreTuxedoAdapter* adapter, QoreNode* par
 }
 
 #ifdef DEBUG
+#ifdef TUXCONFIG_QUEUE_TEST
 TEST()
 {
-#ifdef TUXDIR_QUEUE
   char* stop = getenv("TUXEDO_NO_QUEUE_TEST");
   if (stop && stop[0]) return;
 
   // test modeled by qsample from ATMI samples, uses its server  
-  char* cmd = "qore -e '%requires tuxedo\n"
+  char buffer[2048];
+  sprintf(buffer, "qore -e '%%requires tuxedo\n"
     "$a = new TuxedoAdapter();\n"
     "$a.setEnvironmentVariable(\"TUXDIR\", \"" TUXDIR "\");\n"
-    "$a.setEnvironmentVariable(\"TUXCONFIG\", \"" TUXCONFIG_QUEUE "\");\n"
+    "$a.setEnvironmentVariable(\"TUXCONFIG\", \"%s\");\n"
     "$res = $a.init();\n"
     "if ($res != 0) { printf(\"init failed!!!!\n\"); exit(11); }\n"
 
@@ -1086,17 +1167,19 @@ TEST()
     "if ($res[0] != 0) { printf(\"dequeue failed\n\"); exit(11); }\n"
 
     "$res = $a.getReceivedString();\n"
-    "if ($res != \"TEST QUEUE\") { printf(\"service failed\n\"); exit(11); }\n"
+    "if ($res != \"TEST QUEUE\") { printf(\"service failed (%%s)\n\", $res); exit(11); }\n"
 
     "$a.close();\n"
-    "exit(10);'\n";
+    "exit(10);'\n",
+    tuxfile(TUXCONFIG_QUEUE_TEST)
+  );
 
 
-  int res = system(cmd);
+  int res = system(buffer);
   res = WEXITSTATUS(res);
   assert(res == 10);
-#endif
 }
+#endif
 #endif
 
 //-----------------------------------------------------------------------------
