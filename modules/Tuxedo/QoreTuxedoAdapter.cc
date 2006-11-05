@@ -119,7 +119,8 @@ QoreTuxedoAdapter::QoreTuxedoAdapter()
   m_send_buffer_size(0),
   m_receive_buffer(0),
   m_receive_buffer_size(0),
-  m_string_encoding(QCS_DEFAULT)
+  m_string_encoding(QCS_DEFAULT),
+  m_last_suspended_transaction_id(0)
 {
   memset(&m_context, 0, sizeof(m_context));
 }

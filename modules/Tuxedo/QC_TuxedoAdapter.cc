@@ -1210,6 +1210,146 @@ TEST()
 #endif
 
 //-----------------------------------------------------------------------------
+static QoreNode* openResourceManager(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
+{
+  adapter->switchToSavedContext();
+  return new QoreNode((int64)(tpopen() == -1 ? tperrno : 0));
+}
+
+//-----------------------------------------------------------------------------
+static QoreNode* closeResourceManager(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
+{
+  adapter->switchToSavedContext();
+  return new QoreNode((int64)(tpclose() == -1 ? tperrno : 0));
+}
+
+//-----------------------------------------------------------------------------
+static QoreNode* beginTransaction(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
+{
+  QoreNode* n = test_param(params, NT_INT, 0);
+  if (!n) return xsink->raiseException("TuxedoAdapter::beginTransaction", "One parameter: timeout integer, exception.");
+  long timeout = (long)n->val.intval;
+
+  adapter->switchToSavedContext();
+  return new QoreNode((int64)(tpbegin(timeout, 0) == -1 ? tperrno : 0));
+}
+
+//-----------------------------------------------------------------------------
+static QoreNode* commitTransaction(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
+{
+  adapter->switchToSavedContext();
+  return new QoreNode((int64)(tpcommit(0) == -1 ? tperrno : 0));
+}
+
+//-----------------------------------------------------------------------------
+static QoreNode* abortTransaction(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
+{
+  adapter->switchToSavedContext();
+  return new QoreNode((int64)(tpabort(0) == -1 ? tperrno : 0));
+}
+
+//-----------------------------------------------------------------------------
+static QoreNode* lastErrorDetails(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
+{
+  adapter->switchToSavedContext();
+  return new QoreNode((int64)tperrordetail(0));
+}
+
+//-----------------------------------------------------------------------------
+static QoreNode* setPriority(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
+{
+  QoreNode* n = test_param(params, NT_INT, 0);
+  if (!n) return xsink->raiseException("TuxedoAdapter::setPriority", "Integer priority parameter expected.");
+  int priority = (int)n->val.intval;
+
+  adapter->switchToSavedContext();
+  int res = tpsprio(priority, TPABSOLUTE);
+  return new QoreNode((int64)res);  
+}
+
+//-----------------------------------------------------------------------------
+static QoreNode* getPriority(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
+{
+  adapter->switchToSavedContext();
+  int res = tpgprio();
+  List* l = new List;
+  if (res == -1) {
+    l->push(new QoreNode((int64)tperrno));
+  } else {
+    l->push(new QoreNode((int64)0));
+    l->push(new QoreNode((int64)res));
+  }
+  return new QoreNode(l);
+}
+
+//-----------------------------------------------------------------------------
+static QoreNode* suspendTransaction(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
+{
+  adapter->switchToSavedContext();
+  int id = ++adapter->m_last_suspended_transaction_id;
+  TPTRANID tranid;
+  int res = tpsuspend(&tranid, 0);
+  List* l = new List;
+  if (res == -1) {
+    l->push(new QoreNode((int64)tperrno));
+  } else {
+    adapter->m_suspended_transactions[id] = tranid;
+    l->push(new QoreNode((int64)0));
+    l->push(new QoreNode((int64)id));
+  }
+  return new QoreNode(l);
+}
+
+//-----------------------------------------------------------------------------
+static QoreNode* resumeTransaction(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
+{
+  QoreNode* n = test_param(params, NT_INT, 0);
+  if (!n) return xsink->raiseException("TuxedoAdapter::resumeTransaction", "One parameter, suspended transaction ID expected.");
+  int id = (int)n->val.intval;
+
+  adapter->switchToSavedContext();
+  std::map<int, TPTRANID>::iterator it = adapter->m_suspended_transactions.find(id);
+  if (it == adapter->m_suspended_transactions.end()) {
+    return xsink->raiseException("TuxedoAdapter::resumeTransaction", "Invalid transcation ID.");
+  }
+  
+  int res = tpresume(&it->second, 0);
+  if (res == -1) return new QoreNode((int64)tperrno);
+
+  adapter->m_suspended_transactions.erase(it);
+  return new QoreNode((int64)0);
+}
+
+//-----------------------------------------------------------------------------
+static QoreNode* finishCommitAfterDataLogged(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
+{
+  adapter->switchToSavedContext();
+  return new QoreNode((int64)(tpscmt(TP_CMT_LOGGED) == -1 ? tperrno : 0));
+}
+
+//-----------------------------------------------------------------------------
+static QoreNode* finishCommitAfterTwoPhaseCompletes(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
+{
+  adapter->switchToSavedContext();
+  return new QoreNode((int64)(tpscmt(TP_CMT_COMPLETE) == -1 ? tperrno : 0));
+}
+
+//-----------------------------------------------------------------------------
+static QoreNode* isTransactionRunning(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
+{
+  adapter->switchToSavedContext();
+  int res = tpgetlev();
+  List* l = new List;
+  if (res == -1) {
+    l->push(new QoreNode((int64)tperrno));
+  } else {
+    l->push(new QoreNode((int64)0));
+    l->push(new QoreNode(res != 0));
+  }
+  return new QoreNode(l);
+}
+
+//-----------------------------------------------------------------------------
 class QoreClass* initTuxedoAdapterClass()
 {
   tracein("initTuxedoAdapterClass");
@@ -1246,8 +1386,11 @@ class QoreClass* initTuxedoAdapterClass()
   // misc
   adapter->addMethod("error2string", (q_method_t)error2string);
   adapter->addMethod("writeToLog", (q_method_t)writeToLog);
+  adapter->addMethod("lastErrorDetails", (q_method_t)lastErrorDetails);
   adapter->addMethod("saveContext", (q_method_t)saveContext);
   adapter->addMethod("switchToSavedContext", (q_method_t)switchToSavedContext);
+  adapter->addMethod("setPriority",(q_method_t)setPriority);
+  adapter->addMethod("getPriority", (q_method_t)getPriority);
 
   // request/response
   adapter->addMethod("call", (q_method_t)call);
@@ -1264,6 +1407,20 @@ class QoreClass* initTuxedoAdapterClass()
   // queueing
   adapter->addMethod("enqueue", (q_method_t)enqueue);
   adapter->addMethod("dequeue", (q_method_t)dequeue);
+
+  // resource manager
+  adapter->addMethod("openResourceManager", (q_method_t)openResourceManager);
+  adapter->addMethod("closeResourceManager", (q_method_t)closeResourceManager);
+
+  // transactions
+  adapter->addMethod("beginTransaction", (q_method_t)beginTransaction);
+  adapter->addMethod("commitTransaction", (q_method_t)commitTransaction);
+  adapter->addMethod("abortTransaction", (q_method_t)abortTransaction);
+  adapter->addMethod("suspendTransaction", (q_method_t)suspendTransaction);
+  adapter->addMethod("resumeTransaction", (q_method_t)resumeTransaction);
+  adapter->addMethod("isTransactionRunning", (q_method_t)isTransactionRunning);
+  adapter->addMethod("finishCommitAfterDataLogged", (q_method_t)finishCommitAfterDataLogged);
+  adapter->addMethod("finishCommitAfterTwoPhaseCompletes", (q_method_t)finishCommitAfterTwoPhaseCompletes);
 
   traceout("initTuxedoAdapterClass");
   return adapter;

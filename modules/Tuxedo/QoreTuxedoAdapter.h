@@ -32,6 +32,7 @@
 #include <string>
 #include <vector>
 #include <utility>
+#include <map>
 
 #include <atmi.h>
 
@@ -80,6 +81,9 @@ public:
 
   std::vector<int> m_pending_async_calls;
   TPQCTL m_queue_settings;
+
+  std::map<int, TPTRANID> m_suspended_transactions; // tpsuspend/tpresume, maps id -> transaction
+  int m_last_suspended_transaction_id; // used to generate unique handle for every suspended transcation in the map
    
 public:
   QoreTuxedoAdapter();
