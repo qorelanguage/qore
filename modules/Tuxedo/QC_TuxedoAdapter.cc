@@ -30,6 +30,7 @@
 
 #include "userlog.h"
 #include <string>
+#include <tx.h>
 
 #include "QC_TuxedoAdapter.h"
 #include "QoreTuxedoAdapter.h"
@@ -1350,6 +1351,107 @@ static QoreNode* isTransactionRunning(Object* self, QoreTuxedoAdapter* adapter, 
 }
 
 //-----------------------------------------------------------------------------
+static QoreNode* postEvent(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
+{
+  char* err_name = "TuxedoAdapter::postEvent";
+  char* err_text = "Two parameters expected: string event name, integer flags.";
+  QoreNode* n = test_param(params, NT_STRING, 0);
+  if (!n) return xsink->raiseException(err_name, err_text);
+  char* event_name = n->val.String->getBuffer();
+  n = test_param(params, NT_INT, 1);
+  if (!n) return xsink->raiseException(err_name, err_text);
+  long flags = (long)n->val.intval;
+
+  adapter->switchToSavedContext();
+  int res = tppost(event_name, adapter->m_send_buffer, adapter->m_send_buffer_size, flags);
+  return new QoreNode((int64)(res == -1 ? tperrno : 0));
+}
+
+//-----------------------------------------------------------------------------
+static QoreNode* beginTxTransaction(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
+{
+  adapter->switchToSavedContext();
+  int res = tx_begin();
+  return new QoreNode((int64)(res == TX_OK ? 0 : res));
+}
+
+//-----------------------------------------------------------------------------
+static QoreNode* commitTxTransaction(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
+{
+  adapter->switchToSavedContext();
+  int res = tx_commit();
+  return new QoreNode((int64)(res == TX_OK ? 0 : res));
+}
+
+//-----------------------------------------------------------------------------
+static QoreNode* abortTxTransaction(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
+{
+  adapter->switchToSavedContext();
+  int res = tx_rollback();
+  return new QoreNode((int64)(res == TX_OK ? 0 : res));
+}
+
+//-----------------------------------------------------------------------------
+static QoreNode* finishTxCommitAfterDataLogged(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
+{
+  adapter->switchToSavedContext();
+  int res = tx_set_commit_return(TX_COMMIT_DECISION_LOGGED);
+  return new QoreNode((int64)(res == TX_OK ? 0 : res));
+}
+
+//-----------------------------------------------------------------------------
+static QoreNode* finishTxCommitAfterTwoPhaseCompletes(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
+{
+  adapter->switchToSavedContext();
+  int res = tx_set_commit_return(TX_COMMIT_COMPLETED);
+  return new QoreNode((int64)(res == TX_OK ? 0 : res));
+}
+
+//-----------------------------------------------------------------------------
+static QoreNode* openTxResourceManager(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
+{
+  adapter->switchToSavedContext();
+  int res = tx_open();
+  return new QoreNode((int64)(res == TX_OK ? 0 : res));
+}
+
+//-----------------------------------------------------------------------------
+static QoreNode* closeTxResourceManager(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
+{
+  adapter->switchToSavedContext();
+  int res = tx_close();
+  return new QoreNode((int64)(res == TX_OK ? 0 : res));
+}
+
+//-----------------------------------------------------------------------------
+static QoreNode* setChainedTxTransactions(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
+{
+  adapter->switchToSavedContext();
+  int res = tx_set_transaction_control(TX_CHAINED);
+  return new QoreNode((int64)(res == TX_OK ? 0 : res));
+}
+
+//-----------------------------------------------------------------------------
+static QoreNode* setUnchainedTxTransactions(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
+{
+  adapter->switchToSavedContext();
+  int res = tx_set_transaction_control(TX_UNCHAINED);
+  return new QoreNode((int64)(res == TX_OK ? 0 : res));
+}
+
+//-----------------------------------------------------------------------------
+static QoreNode* setTxTransactionsTimeout(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
+{
+  QoreNode* n = test_param(params, NT_INT, 0);
+  if (!n) return xsink->raiseException("TuxedoAdapter::setTxTransactionTimeout", "Integer timeout in seconds expected.");
+  long timeout = (long)n->val.intval;
+
+  adapter->switchToSavedContext();
+  int res = tx_set_transaction_timeout(timeout);
+  return new QoreNode((int64)(res == TX_OK ? 0 : res));
+}
+
+//-----------------------------------------------------------------------------
 class QoreClass* initTuxedoAdapterClass()
 {
   tracein("initTuxedoAdapterClass");
@@ -1391,6 +1493,7 @@ class QoreClass* initTuxedoAdapterClass()
   adapter->addMethod("switchToSavedContext", (q_method_t)switchToSavedContext);
   adapter->addMethod("setPriority",(q_method_t)setPriority);
   adapter->addMethod("getPriority", (q_method_t)getPriority);
+  adapter->addMethod("postEvent", (q_method_t)postEvent);
 
   // request/response
   adapter->addMethod("call", (q_method_t)call);
@@ -1411,6 +1514,8 @@ class QoreClass* initTuxedoAdapterClass()
   // resource manager
   adapter->addMethod("openResourceManager", (q_method_t)openResourceManager);
   adapter->addMethod("closeResourceManager", (q_method_t)closeResourceManager);
+  adapter->addMethod("openTxResourceManager", (q_method_t)openTxResourceManager);
+  adapter->addMethod("closeTxResourceManager", (q_method_t)closeTxResourceManager);
 
   // transactions
   adapter->addMethod("beginTransaction", (q_method_t)beginTransaction);
@@ -1421,6 +1526,16 @@ class QoreClass* initTuxedoAdapterClass()
   adapter->addMethod("isTransactionRunning", (q_method_t)isTransactionRunning);
   adapter->addMethod("finishCommitAfterDataLogged", (q_method_t)finishCommitAfterDataLogged);
   adapter->addMethod("finishCommitAfterTwoPhaseCompletes", (q_method_t)finishCommitAfterTwoPhaseCompletes);
+
+  // TX transactions
+  adapter->addMethod("beginTxTransaction", (q_method_t)beginTxTransaction);
+  adapter->addMethod("commitTxTransaction", (q_method_t)commitTxTransaction);
+  adapter->addMethod("abortTxTransaction", (q_method_t)abortTxTransaction);
+  adapter->addMethod("finishTxCommitAfterDataLogged", (q_method_t)finishTxCommitAfterDataLogged);
+  adapter->addMethod("finishTxCommitAfterTwoPhaseCompletes", (q_method_t)finishTxCommitAfterTwoPhaseCompletes);
+  adapter->addMethod("setChainedTxTransactions", (q_method_t)setChainedTxTransactions);
+  adapter->addMethod("setUnchainedTxTransactions", (q_method_t)setUnchainedTxTransactions);
+  adapter->addMethod("setTxTransactionsTimeout", (q_method_t)setTxTransactionsTimeout);
 
   traceout("initTuxedoAdapterClass");
   return adapter;

@@ -120,9 +120,9 @@ QoreTuxedoAdapter::QoreTuxedoAdapter()
   m_receive_buffer(0),
   m_receive_buffer_size(0),
   m_string_encoding(QCS_DEFAULT),
-  m_last_suspended_transaction_id(0)
+  m_last_suspended_transaction_id(0),
+  m_context(0)
 {
-  memset(&m_context, 0, sizeof(m_context));
 }
 
 //------------------------------------------------------------------------------
@@ -185,7 +185,11 @@ int QoreTuxedoAdapter::close()
 //------------------------------------------------------------------------------
 int QoreTuxedoAdapter::saveContext()
 {
-  return tpgetctxt(&m_context, 0) == -1 ? tperrno : 0;
+  int res = tpgetctxt(&m_context, 0);
+  if (res == -1) return tperrno;
+  if (m_context == TPINVALIDCONTEXT) return TPINVALIDCONTEXT;
+  if (m_context == TPNULLCONTEXT) return TPNULLCONTEXT;
+  return 0;
 }
 
 //------------------------------------------------------------------------------
