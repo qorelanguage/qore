@@ -5,7 +5,7 @@ AC_INIT([qore], [0.6.0],
         [David Nichols <nicholsman@gmail.com>],
         [qore])
 AM_INIT_AUTOMAKE
-AM_CONFIG_HEADER(include/qore/unix-config.h)
+AC_CONFIG_HEADER(include/qore/unix-config.h)
 
 AC_PROG_LEX
 ##AC_PROG_MAKE_SET
@@ -106,7 +106,7 @@ fi
 AC_SUBST(MODULE_SUFFIX)
 
 AC_ARG_ENABLE([64bit],
-  [AC_HELP_STRING([--enable-64bit],
+  [AS_HELP_STRING([--enable-64bit],
 		  [enable 64bit support (default: off)])],
   [case "${enable_64bit}" in
        yes|no) ;;
@@ -117,7 +117,7 @@ AC_ARG_ENABLE([64bit],
 # see if we know how to set flags properly for different hosts and architectures
 if test "$enable_64bit" = "yes"; then
    case "${host_os}" in
-     *linux*)	if test "$ac_cv_prog_gxx" = "yes"; then
+     *linux*)	if test "$GXX" = "yes"; then
 		CXXFLAGS="$CXXFLAGS -m64"
 		LIBSUFFIX=64
 		AC_SUBST(LIBSUFFIX)
@@ -126,7 +126,7 @@ if test "$enable_64bit" = "yes"; then
    esac
 else
    case "${host_os}" in
-     *linux*)	if test "$ac_cv_prog_gxx" = "yes"; then
+     *linux*)	if test "$GXX" = "yes"; then
 		CXXFLAGS="$CXXFLAGS -m32"
 		fi
 		;;
@@ -135,7 +135,7 @@ fi
 
 # see if we can figure out where the openssl library is
 AC_ARG_WITH([openssl-libs],
-  [AC_HELP_STRING([--with-openssl-libs@<:@=DIR@:>@],
+  [AS_HELP_STRING([--with-openssl-libs@<:@=DIR@:>@],
                   [openssl library directory])],
   [if test ! -d "${with_openssl_libs}"; then AC_MSG_ERROR(bad value ${with_openssl_libs} for --with-openssl-libs); unset with_openssl_libs; fi])
 
@@ -182,7 +182,7 @@ AC_SUBST(OPENSSL_LDFLAGS)
 
 # see if we can figure out where the ssl header file is
 AC_ARG_WITH([openssl-includes],
-  [AC_HELP_STRING([--with-openssl-includes@<:@=DIR@:>@],
+  [AS_HELP_STRING([--with-openssl-includes@<:@=DIR@:>@],
                   [SSL include file directory])],
   [if test ! -d "${with_openssl_includes}"; then AC_MSG_ERROR(bad value ${with_openssl_includes} for --with-openssl-includes); unset with_openssl_includes; fi])
 
@@ -223,7 +223,7 @@ AC_SUBST(OPENSSL_CPPFLAGS)
 
 # see if we can figure out where the pcre library is
 AC_ARG_WITH([pcre-libs],
-  [AC_HELP_STRING([--with-pcre-libs@<:@=DIR@:>@],
+  [AS_HELP_STRING([--with-pcre-libs@<:@=DIR@:>@],
                   [PCRE library directory])],
   [if test ! -d "${with_pcre_libs}"; then AC_MSG_ERROR(bad value ${with_pcre_libs} for --with-pcre-libs); unset with_pcre_libs; fi])
 
@@ -269,7 +269,7 @@ AC_SUBST(PCRE_LDFLAGS)
 
 # see if we can figure out where the pcre header file is
 AC_ARG_WITH([pcre-includes],
-  [AC_HELP_STRING([--with-pcre-includes@<:@=DIR@:>@],
+  [AS_HELP_STRING([--with-pcre-includes@<:@=DIR@:>@],
                   [PCRE include file directory])],
   [if test ! -d "${with_pcre_includes}"; then AC_MSG_ERROR(bad value ${with_pcre_includes} for --with-pcre-includes); unset with_pcre_includes; fi])
 
@@ -312,7 +312,7 @@ fi
 AC_SUBST(PCRE_CPPFLAGS)
 
 AC_ARG_ENABLE([profile],
-     [AC_HELP_STRING([--enable-profile],
+     [AS_HELP_STRING([--enable-profile],
 		     [turn on profiling support (default=no)])],
      [case "${enable_profile}" in
        yes|no) ;;
@@ -321,7 +321,7 @@ AC_ARG_ENABLE([profile],
      [enable_profile=no])
 
 AC_ARG_ENABLE([debug],
-     [AC_HELP_STRING([--enable-debug],
+     [AS_HELP_STRING([--enable-debug],
 		     [turn on debugging (default=no)])],
      [case "${enable_debug}" in
        yes|no) ;;
@@ -336,7 +336,7 @@ CXXFLAGS=`echo $CXXFLAGS | sed 's/\-O2//'`
 fi
 
 AC_ARG_ENABLE([builtin-modules],
-     [AC_HELP_STRING([--enable-builtin-modules],
+     [AS_HELP_STRING([--enable-builtin-modules],
 		     [link in module code directly (default=no)])],
      [case "${enable_builtin_modules}" in
        yes|no) ;;
@@ -345,7 +345,7 @@ AC_ARG_ENABLE([builtin-modules],
      [enable_builtin_modules=no])
 
 AC_ARG_ENABLE([threads],
-  [AC_HELP_STRING([--enable-threads],
+  [AS_HELP_STRING([--enable-threads],
                   [include threading support (default=yes)])],
   [case "$enable_threads" in
       yes|no) ;;
@@ -362,7 +362,7 @@ if test "${enable_threads}" = yes; then
 fi
 
 AC_ARG_WITH([tibrv],
-  [AC_HELP_STRING([--with-tibrv@<:@=DIR@:>@],
+  [AS_HELP_STRING([--with-tibrv@<:@=DIR@:>@],
 		  [TIBCO Rendezvous directory (defaults to $RV_ROOT)])],
   [if test ! -d "${with_tibrv}"; then AC_MSG_ERROR(bad value ${with_tibrv} for --with-tibrv); unset with_tibrv; fi])
 
@@ -417,12 +417,12 @@ if test -n "$with_tibrv"; then
    LIBS="$LIBS -ltibrvcpp${LIBSUFFIX}"
 
    AC_MSG_CHECKING([if we can link to the TIBCO Rendezvous C++ library])
-   AC_TRY_LINK([
-#include <tibrv/tibrvcpp.h>
-	 ],[
+   AC_LINK_IFELSE([AC_LANG_PROGRAM(
+[[#include <tibrv/tibrvcpp.h>
+]],[[
 Tibrv::open();
 Tibrv::close();
-	],tibrv_links=yes, tibrv_links=no)
+	]])],tibrv_links=yes, tibrv_links=no)
 
    CPPFLAGS="$SAVE_CPPFLAGS"
    LDFLAGS="$SAVE_LDFLAGS"
@@ -442,12 +442,12 @@ Tibrv::close();
       LDFLAGS="$LDFLAGS $TIBRV_LIBS"
 
       AC_MSG_CHECKING([if secure daemon support was enabled in libtibrvcpp])
-      AC_TRY_COMPILE([
+      AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 #include <tibrv/tibrvcpp.h>
 #include <tibrv/sdcpp.h>
-	 ],[
+	 ]],[[
 TibrvSdContext::setDaemonCert(TIBRV_SECURE_DAEMON_ANY_NAME, TIBRV_SECURE_DAEMON_ANY_CERT);
-	],tibrvsd_links=yes, tibrvsd_links=no)
+	]])],tibrvsd_links=yes, tibrvsd_links=no)
 
       CPPFLAGS="$SAVE_CPPFLAGS"
       LDFLAGS="$SAVE_LDFLAGS"
@@ -467,7 +467,7 @@ TibrvSdContext::setDaemonCert(TIBRV_SECURE_DAEMON_ANY_NAME, TIBRV_SECURE_DAEMON_
 fi
 
 AC_ARG_WITH([tibae],
-  [AC_HELP_STRING([--with-tibae@<:@=DIR@:>@],
+  [AS_HELP_STRING([--with-tibae@<:@=DIR@:>@],
 		  [TIBCO Active Enterprise SDK directory (defaults to $SDK_ROOT)])],
   [if test ! -d "${with_tibae}"; then AC_MSG_ERROR(bad value ${with_tibae} for --with-tibae); unset with_tibae; fi])
 
@@ -516,7 +516,7 @@ if test -n "$with_tibae"; then
    # check if we need TPCL (third-party libraries)
    if test `echo $TIBCO_SDK_VERSION|cut -b1` -gt 4; then
       AC_ARG_WITH([tibae-tpcl],
-        [AC_HELP_STRING([--with-tibae-tpcl@<:@=DIR@:>@],
+        [AS_HELP_STRING([--with-tibae-tpcl@<:@=DIR@:>@],
 		        [TIBCO Active Enterprise TPCL directory (defaults to $TPCL_ROOT)])],
 			[if test ! -d "${with_tibae_tpcl}"; then AC_MSG_ERROR(bad value ${with_tibae_tpcl} for --with-tibae-tpcl); unset with_tibae_tpcl; fi])
       AC_MSG_CHECKING([TIBCO Active Enterprise TPCL])
@@ -569,7 +569,7 @@ if test -n "$with_tibae"; then
    CPPFLAGS="$CPPFLAGS $TIBAE_CPPFLAGS $TIBRV_CPPFLAGS"
    LDFLAGS="$LDFLAGS $TIBAE_LIBS $TIBRV_LIBS"
    AC_MSG_CHECKING([if we can link to the TIBCO AE SDK])
-   AC_TRY_LINK([
+   AC_LINK_IFELSE([AC_LANG_PROGRAM([[
 #include <Maverick.h>
 class TApp : public MApp
 {
@@ -579,9 +579,9 @@ class TApp : public MApp
       inline TApp(MAppProperties *pm) : MApp(pm) {}
 };
 
-	 ],[
+	 ]],[[
 TApp ma(NULL);
-	],tibae_sdk_links=yes, tibae_sdk_links=no)
+	]])], tibae_sdk_links=yes, tibae_sdk_links=no)
 
    CPPFLAGS="$SAVE_CPPFLAGS"
    LDFLAGS="$SAVE_LDFLAGS"
@@ -613,7 +613,7 @@ find_tux()
 }
 
 AC_ARG_WITH([tuxedo],
-  [AC_HELP_STRING([--with-tuxedo@<:@=DIR@:>@],
+  [AS_HELP_STRING([--with-tuxedo@<:@=DIR@:>@],
 		  [BEA Tuxedo directory (defaults to $TUXDIR)])],
   [case "${with_tuxedo}" in 
      yes) with_tuxedo="" ;;
@@ -685,11 +685,11 @@ if test -n "$with_tuxedo"; then
    esac
 
    AC_MSG_CHECKING([if we can link to the Tuxedo libraries])
-   AC_TRY_LINK([
+   AC_LINK_IFELSE([AC_LANG_PROGRAM([[
 #include <atmi.h>
-	 ],[
+	 ]],[[
 tpinit((TPINIT*)0);
-	],tuxedo_links=yes, tuxedo_links=no)
+	]])], tuxedo_links=yes, tuxedo_links=no)
 
    CPPFLAGS="$SAVE_CPPFLAGS"
    LDFLAGS="$SAVE_LDFLAGS"
@@ -710,7 +710,7 @@ tpinit((TPINIT*)0);
 fi
 
 AC_ARG_WITH([oracle],
-  [AC_HELP_STRING([--with-oracle@<:@=DIR@:>@],
+  [AS_HELP_STRING([--with-oracle@<:@=DIR@:>@],
                   [directory for Oracle support (defaults to $ORACLE_HOME)])],
    , 
    [with_oracle=auto])
@@ -756,16 +756,16 @@ if test "$with_oracle" = "yes"; then
    SAVE_LDFLAGS="$LDFLAGS"
    CXXFLAGS="$CXXFLAGS $ORACLE_INCLUDES"
    LDFLAGS="$LDFLAGS $ORACLE_LIBS"
-   AC_TRY_COMPILE([
+   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 #include <oci.h>
-         ],[
-        ], with_oracle=yes, AC_MSG_ERROR(file 'oci.h' not found in '$ORACLE_INCLUDES'))
+         ]],[[
+        ]])], with_oracle=yes, AC_MSG_ERROR(file 'oci.h' not found in '$ORACLE_INCLUDES'))
    CXXFLAGS="$SAVE_CXXFLAGS"
    LDFLAGS="$SAVE_LDFLAGS"
 fi
 
 AC_ARG_ENABLE([mysql],
-     [AC_HELP_STRING([--enable-mysql],
+     [AS_HELP_STRING([--enable-mysql],
 		     [enable mysql support (default=auto)])],
      [case "${enable_mysql}" in
        yes|no|auto) ;;
@@ -774,12 +774,12 @@ AC_ARG_ENABLE([mysql],
      [enable_mysql=auto])
 
 AC_ARG_WITH([mysql-includes],
-    [AC_HELP_STRING([--with-mysql-includes@<:@=DIR@:>@],
+    [AS_HELP_STRING([--with-mysql-includes@<:@=DIR@:>@],
                     [MySQL include file directory])],
     [if test ! -d "${with_mysql_includes}"; then AC_MSG_ERROR(bad value ${with_mysql_includes} for --with-mysql-includes); unset with_mysql_includes; fi])
 
 AC_ARG_WITH([mysql-libs],
-    [AC_HELP_STRING([--with-mysql-libs@<:@=DIR@:>@],
+    [AS_HELP_STRING([--with-mysql-libs@<:@=DIR@:>@],
                     [directory for MySQL libraries (default: /usr/lib/mysql)])],
     [if test ! -d "${with_mysql_libs}"; then AC_MSG_ERROR(bad value ${with_mysql_libs} for --with-mysql-libs); unset with_mysql_libs; fi])
 
@@ -861,12 +861,12 @@ if test "${enable_mysql}" = yes; then
      SAVE_CXXFLAGS="$CXXFLAGS"
      SAVE_LDFLAGS="$LDFLAGS"
      CXXFLAGS="$CXXFLAGS $MYSQL_INCLUDES"
-     LDFLAGS="$LDFLAGS $MYSQL_LIBS"   
-     AC_TRY_COMPILE([
+     LDFLAGS="$LDFLAGS $MYSQL_LIBS"
+     AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 #include <mysql.h>
-	 ],[
+	 ]],[[
 MYSQL mysql; mysql_init(&mysql);
-	],mysql_links=yes, mysql_links=no)
+	]])], mysql_links=yes, mysql_links=no)
 
      CXXFLAGS="$SAVE_CXXFLAGS"
      LDFLAGS="$SAVE_LDFLAGS"
@@ -900,7 +900,7 @@ MYSQL mysql; mysql_init(&mysql);
 fi
 
 AC_ARG_ENABLE([ncurses],
-  [AC_HELP_STRING([--disable-ncurses],
+  [AS_HELP_STRING([--disable-ncurses],
                   [do not include ncurses support])],
   [case "$enable_ncurses" in
       yes|no) ;;
@@ -995,21 +995,20 @@ inttypes_h_defines_strtoimax
 # Check definition of gethostbyaddr_r (glibc2 defines this with 8 arguments)
 ac_save_CXXFLAGS="$CXXFLAGS"
 AC_CACHE_CHECK([style of gethost* routines], qore_gethost_style,
-AC_LANG_SAVE
-AC_LANG_CPLUSPLUS
+AC_LANG_PUSH([C++])
 
 # Do not treat warnings as errors if we are linking against other libc
 # this is to work around gcc not being permissive on non-system includes
 # with respect to ANSI C++
 # We also remove the -fbranch-probabilities option as this will give warnings
 # about not profiled code, which confuses configure
-if test "$ac_cv_prog_gxx" = "yes" -a "$with_other_libc" = "no"
+if test "$GXX" = "yes" -a "$with_other_libc" = "no"
 then
   CXXFLAGS=`echo "$CXXFLAGS -Werror" | sed 's/-fbranch-probabilities//'`
 fi
 
-AC_TRY_COMPILE(
-[#undef inline
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+[[#undef inline
 #if !defined(SCO) && !defined(__osf__) && !defined(_REENTRANT)
 #define _REENTRANT
 #endif
@@ -1018,12 +1017,12 @@ AC_TRY_COMPILE(
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <netdb.h>],
-[int skr;
+#include <netdb.h>]],
+[[int skr;
  struct hostent *foo = gethostbyaddr_r((const char *) 0,
-  0, 0, (struct hostent *) 0, (char *) NULL,  0, &skr); return (foo == 0);],
+  0, 0, (struct hostent *) 0, (char *) NULL,  0, &skr); return (foo == 0);]])],
 qore_gethost_style=solaris, qore_gethost_style=other))
-AC_LANG_RESTORE
+AC_LANG_POP([C++])
 CXXFLAGS="$ac_save_CXXFLAGS"
 if test "$qore_gethost_style" = "solaris"
 then
@@ -1034,14 +1033,13 @@ fi
 # Check definition of gethostbyname_r (glibc2.0.100 is different from Solaris)
 ac_save_CXXFLAGS="$CXXFLAGS"
 AC_CACHE_CHECK([style of gethostname_r routines], qore_gethostname_style,
-AC_LANG_SAVE
-AC_LANG_CPLUSPLUS
-if test "$ac_cv_prog_gxx" = "yes" -a "$with_other_libc" = "no"
+AC_LANG_PUSH([C++])
+if test "$GXX" = "yes" -a "$with_other_libc" = "no"
 then
   CXXFLAGS=`echo "$CXXFLAGS -Werror" | sed 's/-fbranch-probabilities//'`
 fi
-AC_TRY_COMPILE(
-[#undef inline
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+[[#undef inline
 #if !defined(SCO) && !defined(__osf__) && !defined(_REENTRANT)
 #define _REENTRANT
 #endif
@@ -1050,13 +1048,13 @@ AC_TRY_COMPILE(
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <netdb.h>],
-[int skr;
+#include <netdb.h>]],
+[[int skr;
 
  skr = gethostbyname_r((const char *) 0,
-  (struct hostent*) 0, (char*) 0, 0, (struct hostent **) 0, &skr);],
+  (struct hostent*) 0, (char*) 0, 0, (struct hostent **) 0, &skr);]])],
 qore_gethostname_style=glibc2, qore_gethostname_style=other))
-AC_LANG_RESTORE
+AC_LANG_POP([C++])
 CXXFLAGS="$ac_save_CXXFLAGS"
 if test "$qore_gethostname_style" = "glibc2"
 then
@@ -1067,14 +1065,13 @@ fi
 # Check 3rd argument of getthostbyname_r
 ac_save_CXXFLAGS="$CXXFLAGS"
 AC_CACHE_CHECK([3 argument to gethostname_r routines], qore_gethostname_arg,
-AC_LANG_SAVE
-AC_LANG_CPLUSPLUS
-if test "$ac_cv_prog_gxx" = "yes" -a "$with_other_libc" = "no"
+AC_LANG_PUSH([C++])
+if test "$GXX" = "yes" -a "$with_other_libc" = "no"
 then
   CXXFLAGS=`echo "$CXXFLAGS -Werror" | sed 's/-fbranch-probabilities//'`
 fi
-AC_TRY_COMPILE(
-[#undef inline
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+[[#undef inline
 #if !defined(SCO) && !defined(__osf__) && !defined(_REENTRANT)
 #define _REENTRANT
 #endif
@@ -1083,11 +1080,11 @@ AC_TRY_COMPILE(
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <netdb.h>],
-[int skr;
- skr = gethostbyname_r((const char *) 0, (struct hostent*) 0, (struct hostent_data*) 0);],
+#include <netdb.h>]],
+[[int skr;
+ skr = gethostbyname_r((const char *) 0, (struct hostent*) 0, (struct hostent_data*) 0);]])],
 qore_gethostname_arg=hostent_data, qore_gethostname_arg=char))
-AC_LANG_RESTORE
+AC_LANG_POP([C++])
 CXXFLAGS="$ac_save_CXXFLAGS"
 if test "$qore_gethostname_arg" = "hostent_data"
 then
@@ -1106,7 +1103,7 @@ fi
 # turn on some build flags for non-debugging, non-profiling builds
 if test "$enable_debug" = "no" -a "$enable_profile" = "no"; then
    # turn on optimizations if we know how
-   if test "$ac_cv_prog_gxx" = "yes"; then
+   if test "$GXX" = "yes"; then
       CXXFLAGS="$CXXFLAGS -O3"  # gcc
    elif test "$CXX" = "CC" -a "`echo $host_os|cut -b-7`" = "solaris"; then
       CXXFLAGS="$CXXFLAGS -xO5" # Solaris CC
@@ -1125,7 +1122,7 @@ if test "$CXX" = "CC" -a "`echo $host_os|cut -b-7`" = "solaris"; then
 fi
 
 # turn on warnings if we know how
-if test "$ac_cv_prog_gxx" = "yes"; then
+if test "$GXX" = "yes"; then
    CXXFLAGS="$CXXFLAGS -Wall"  # gcc
 fi
 
@@ -1164,6 +1161,13 @@ AC_CONFIG_FILES([Makefile lib/Makefile modules/Makefile modules/ncurses/Makefile
 AC_OUTPUT
 
 echo "*** BUILTIN FEATURES ***"
+printf "library  : "
+if test "$enable_64bit" = "yes"; then
+   echo 64-bit
+else
+   echo 32-bit
+fi
+
 printf "debug    : "
 if test "$enable_debug" = "yes"; then
    echo yes

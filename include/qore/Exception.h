@@ -68,7 +68,7 @@ class ExceptionSink {
          return head;
       }
       // The QoreNode* returned value is always NULL. Used to simplify error handling code.
-      inline QoreNode*  raiseException(char *err, char *fmt, ...);
+      inline class QoreNode *raiseException(char *err, char *fmt, ...);
       inline void raiseException(class Exception *e);
       inline void raiseException(class QoreNode *n);
       inline void rethrow(class Exception *old);

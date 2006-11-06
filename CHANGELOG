@@ -1,3 +1,8 @@
+2006.11.06: David Nichols
+	* replaced obsolete autoconf/automake macros in configure.ac
+	* added "class" to declaration in Exception.h to enable compilation when
+	  "QoreNode.h" is not included before Exception.h
+
 2006.10.27: Pavel Vozenilek
 	* added unit test support (minitest.hpp)
 
