@@ -127,7 +127,7 @@ public:
 static vector<string> read_names_from_fml_description_file(const char* filename, ExceptionSink* xsink)
 {
    vector<string> result;
-  FILE* f = fopen(filename, "rt");
+  FILE* f = fopen(filename, "r");
   if (!f) {
     xsink->raiseException("FML[32]_process_description_tables", "read_names_from_fml_description_file(): the file [ %s ] cannot be opened.", filename);
     return result;
@@ -483,7 +483,6 @@ Hash* QoreTuxedoAdapter::loadFmlDescription(const vector<string>& files, bool is
 {
   vector<string> all_names = read_names_from_all_fml_description_files(files,xsink);
   if (*xsink) return 0;
-
   // before returning the old variables back free the tables from memory
   // (assumption: Fldid[32] is idempotent)
   ON_BLOCK_EXIT((is_fml32 ? &Fidnm_unload : &Fidnm_unload32));
@@ -511,9 +510,10 @@ Hash* QoreTuxedoAdapter::loadFmlDescription(const vector<string>& files, bool is
     } else {
       type = Fldtype(id);
     }
+
     List* list = new List();
-    list->insert(new QoreNode((int64)id));
-    list->insert(new QoreNode((int64)type));
+    list->push(new QoreNode((int64)id));
+    list->push(new QoreNode((int64)type));
     result->setKeyValue(name, new QoreNode(list), xsink);
     if (xsink->isException()) {
       return 0;
@@ -543,7 +543,7 @@ Hash* QoreTuxedoAdapter::generateFmlDescription(int base, Hash* typed_names, boo
     xsink->raiseException(err_name, "Failed to create temporary file. Please check directory for temporary files.");
     return 0;
   }
-  unlink(tmpfile);
+  ON_BLOCK_EXIT(unlink, tmpfile);
   ScopeGuard g = MakeGuard(fclose, f);
 
   if (base > 0) fprintf(f, "*base %d\n", base);
@@ -587,7 +587,7 @@ Hash* QoreTuxedoAdapter::generateFmlDescription(int base, Hash* typed_names, boo
 
 //------------------------------------------------------------------------------
 #ifdef DEBUG
-TEST()
+static void do_test(bool is_fml32)
 {
   ExceptionSink xsink;
   Hash typed_names;
@@ -601,11 +601,69 @@ TEST()
   typed_names.setKeyValue("a_carray", new QoreNode((int64)FLD_CARRAY), &xsink);
 
   QoreTuxedoAdapter adapter;
-  Hash* res = adapter.generateFmlDescription(500, &typed_names, true, &xsink);
-  assert(!xsink);
+  Hash* res = adapter.generateFmlDescription(500, &typed_names, is_fml32, &xsink);
+  if (xsink) {
+    Exception* e = xsink.catchException();
+    printf("File %s, line %d threw\n", e->file, e->line);
+  }
   assert(res);
 
+  HashIterator it(res);
+  int counter = 0;
+  while (it.next()) {
+    char* key = it.getKey();
+    QoreNode* val = it.getValue();
 
+    assert(val->type == NT_LIST);
+    List* l = val->val.list;
+    assert(l->size() == 2);
+    QoreNode* id = l->retrieve_entry(0);
+    assert(id->type == NT_INT);
+    FLDID32 id_val = (FLDID32)id->val.intval;
+    QoreNode* type = l->retrieve_entry(1);
+    assert(type->type == NT_INT);
+    int type_val = (int)type->val.intval;
+    
+    if (is_fml32) {
+      assert(Fldtype32(id_val) == type_val);
+    } else {
+      assert(Fldtype(id_val) == type_val);
+    }
+
+    switch (counter) {
+    case 0: 
+      assert(!strcmp(key, "a_short")); 
+      assert(type_val == FLD_SHORT);
+      break;
+    case 1: 
+      assert(!strcmp(key, "a_long")); 
+      assert(type_val == FLD_LONG);
+      break;
+    case 2: 
+      assert(!strcmp(key, "a_char")); 
+      assert(type_val == FLD_CHAR);
+      break;
+    case 3: 
+      assert(!strcmp(key, "a_float")); 
+      assert(type_val == FLD_FLOAT);
+      break;
+    case 4: 
+      assert(!strcmp(key, "a_double")); 
+      assert(type_val == FLD_DOUBLE);
+      break;
+    case 5: 
+      assert(!strcmp(key, "a_string")); 
+      assert(type_val == FLD_STRING);
+      break;
+    case 6: 
+      assert(!strcmp(key, "a_carray")); 
+      assert(type_val == FLD_CARRAY);
+      break;
+    default: assert(false);
+    }
+    ++counter;
+  }
+ 
   typed_names.deleteKey("a_short", &xsink);
   typed_names.deleteKey("a_long", &xsink);
   typed_names.deleteKey("a_char", &xsink);
@@ -614,6 +672,13 @@ TEST()
   typed_names.deleteKey("a_string", &xsink);
   typed_names.deleteKey("a_carray", &xsink);
 }
+
+TEST()
+{
+  do_test(false);
+  do_test(true);
+}
+
 #endif
 
 // EOF
