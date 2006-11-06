@@ -162,17 +162,6 @@ noinst_HEADERS = \
 	modules/ncurses/QC_Panel.h \
 	modules/ncurses/ncurses-module.h \
 	modules/Tuxedo/tuxedo_module.h \
-	modules/Tuxedo/hashed_parameters_helper.h \
-	modules/Tuxedo/QC_TuxedoTypedBuffer.h \
-	modules/Tuxedo/QoreTuxedoTypedBuffer.h \
-	modules/Tuxedo/low_level_api.h \
-	modules/Tuxedo/QC_TuxedoQueueControlParams.h \
-	modules/Tuxedo/QoreTuxedoQueueControlParams.h \
-        modules/Tuxedo/QC_TuxedoTransactionId.h \
-        modules/Tuxedo/QoreTuxedoTransactionId.h \
-	modules/Tuxedo/fml_api.h \
-	modules/Tuxedo/QC_TuxedoContext.h \
-	modules/Tuxedo/QoreTuxedoContext.h \
 	modules/Tuxedo/QC_TuxedoAdapter.h \
 	modules/Tuxedo/QoreTuxedoAdapter.h \
 	command-line.h \
