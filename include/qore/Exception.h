@@ -31,6 +31,8 @@
 #define ET_SYSTEM     0
 #define ET_USER       1
 
+class QoreNode;
+
 class ExceptionSink {
    private:
       bool thread_exit;
