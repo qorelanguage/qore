@@ -222,7 +222,7 @@ static void add_constants(Namespace* ns)
   ns->addConstant("TX_ROLLBACK_NO_BEGIN", new QoreNode((int64)TX_ROLLBACK_NO_BEGIN));
   ns->addConstant("TX_UNCHAINED", new QoreNode((int64)TX_UNCHAINED));
 
- // FML/FML32 types
+  // FML/FML32 types
   ns->addConstant("FLD_SHORT", new QoreNode((int64)FLD_SHORT));
   ns->addConstant("FLD_LONG", new QoreNode((int64)FLD_LONG));
   ns->addConstant("FLD_CHAR", new QoreNode((int64)FLD_CHAR));

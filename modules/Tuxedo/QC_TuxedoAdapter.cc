@@ -30,10 +30,17 @@
 
 #include "userlog.h"
 #include <string>
+#include <vector>
 #include <tx.h>
 
 #include "QC_TuxedoAdapter.h"
 #include "QoreTuxedoAdapter.h"
+
+using std::string;
+using std::vector;
+using std::pair;
+using std::make_pair;
+using std::map;
 
 int CID_TUXEDOADAPTER;
 
@@ -42,7 +49,7 @@ int CID_TUXEDOADAPTER;
 // helper to ease testing on different machines
 static const char* tuxfile(const char* file_name_part)
 {  
-  static std::string result;
+  static string result;
 
   result = getenv("HOME");
   result += "/";
@@ -290,7 +297,7 @@ static QoreNode* setEnvironmentVariable(Object* self, QoreTuxedoAdapter* adapter
       return 0;
     }
   }
-  if (value) adapter->m_env_variables.push_back(std::make_pair(name, value));
+  if (value) adapter->m_env_variables.push_back(make_pair(name, value));
   return 0;
 }
 
@@ -1067,10 +1074,6 @@ static QoreNode* receiveConversationData(Object* self, QoreTuxedoAdapter* adapte
   return new QoreNode(l);
 }
 
-#ifdef DEBUG
-// TBD
-#endif
-
 //-----------------------------------------------------------------------------
 static QoreNode* enqueue(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
 {
@@ -1309,7 +1312,7 @@ static QoreNode* resumeTransaction(Object* self, QoreTuxedoAdapter* adapter, Qor
   int id = (int)n->val.intval;
 
   adapter->switchToSavedContext();
-  std::map<int, TPTRANID>::iterator it = adapter->m_suspended_transactions.find(id);
+  map<int, TPTRANID>::iterator it = adapter->m_suspended_transactions.find(id);
   if (it == adapter->m_suspended_transactions.end()) {
     return xsink->raiseException("TuxedoAdapter::resumeTransaction", "Invalid transcation ID.");
   }
@@ -1452,6 +1455,74 @@ static QoreNode* setTxTransactionsTimeout(Object* self, QoreTuxedoAdapter* adapt
 }
 
 //-----------------------------------------------------------------------------
+static QoreNode* loadFmlDescriptionImpl(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, bool is_fml32, ExceptionSink* xsink)
+{
+  QoreNode* n = test_param(params, NT_STRING, 0);
+  if (n) { 
+    char* filename = n->val.String->getBuffer();
+    Hash* res = adapter->loadFmlDescription(filename, is_fml32, xsink);
+    if (*xsink) return 0;
+    return new QoreNode(res);
+  }
+  n = test_param(params, NT_HASH, 0);
+  if (!n) return xsink->raiseException("TuxedoAdapter::loadFmlDescription[32]", "Single filename string or list of filenames expected.");
+  List* list = n->val.list;
+  vector<string> all_files;
+
+  for (int i = 0, cnt = list->size(); i != cnt; ++i) {
+    n = list->retrieve_entry(i);
+    if (n->type != NT_STRING) return xsink->raiseException("TuxedoAdapter::loadFmlDescription[32]", "List of string filenames expected.");
+    all_files.push_back(n->val.String->getBuffer());
+  }
+  Hash* res = adapter->loadFmlDescription(all_files, is_fml32, xsink);
+  if (*xsink) return 0;
+  return new QoreNode(res);
+}
+
+//-----------------------------------------------------------------------------
+static QoreNode* loadFmlDescription(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
+{
+  return loadFmlDescriptionImpl(self, adapter, params, false, xsink);
+}
+
+//-----------------------------------------------------------------------------
+static QoreNode* loadFml32Description(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
+{
+  return loadFmlDescriptionImpl(self, adapter, params, true, xsink);
+}
+
+//-----------------------------------------------------------------------------
+static QoreNode* generateFmlDescriptionImpl(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, bool is_fml32, ExceptionSink* xsink)
+{
+  char* err_name = "TuxedoAdapter::generateFmlDescription[32]";
+  char* err_text = "Expected parameters: hash (string name -> integer type), optional integer base.";
+  QoreNode* n = test_param(params, NT_HASH, 0);
+  if (!n) return xsink->raiseException(err_name, err_text);
+  Hash* typed_names = n->val.hash;
+  int base = 0;
+  if (get_param(params, 1)) {
+    n = test_param(params, NT_INT, 1);
+    if (!n) return xsink->raiseException(err_name, err_text);
+    base = (int)n->val.intval;
+  }
+  Hash* res = adapter->generateFmlDescription(base, typed_names, is_fml32, xsink);
+  if (*xsink) return 0;
+  return new QoreNode(res);
+}
+
+//-----------------------------------------------------------------------------
+static QoreNode* generateFmlDescription(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, bool is_fml32, ExceptionSink* xsink)
+{
+  return generateFmlDescriptionImpl(self, adapter, params, false, xsink);
+}
+
+//-----------------------------------------------------------------------------
+static QoreNode* generateFml32Description(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, bool is_fml32, ExceptionSink* xsink)
+{
+  return generateFmlDescriptionImpl(self, adapter, params, true, xsink);
+}
+
+//-----------------------------------------------------------------------------
 class QoreClass* initTuxedoAdapterClass()
 {
   tracein("initTuxedoAdapterClass");
@@ -1536,6 +1607,12 @@ class QoreClass* initTuxedoAdapterClass()
   adapter->addMethod("setChainedTxTransactions", (q_method_t)setChainedTxTransactions);
   adapter->addMethod("setUnchainedTxTransactions", (q_method_t)setUnchainedTxTransactions);
   adapter->addMethod("setTxTransactionsTimeout", (q_method_t)setTxTransactionsTimeout);
+
+  // FML/FML32 table description (these functions could be standalone but I pick member)
+  adapter->addMethod("loadFmlDestriction", (q_method_t)loadFmlDescription);
+  adapter->addMethod("loadFml32Destriction", (q_method_t)loadFml32Description);
+  adapter->addMethod("generateFmlDescription", (q_method_t)generateFmlDescription);
+  adapter->addMethod("generateFml32Description", (q_method_t)generateFml32Description);
 
   traceout("initTuxedoAdapterClass");
   return adapter;

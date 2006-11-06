@@ -103,6 +103,11 @@ public:
   int enqueue(char* queue_space, char* queue_name, long flags, Hash* settings, Hash*& out_settings);
   int dequeue(char* queue_space, char* queue_name, long flags, Hash* settings, Hash*& out_settings);
 
+  // FML/FML32 - load the description from tables (possibly generate the tables temporarily)
+  Hash* loadFmlDescription(const std::vector<std::string>& files, bool is_fml32, ExceptionSink* xsink);
+  Hash* loadFmlDescription(const std::string& file, bool is_fml32, ExceptionSink* xsink);
+  Hash* generateFmlDescription(int base, Hash* typed_names, bool is_fml32, ExceptionSink* xsink);
+
   void deref() { 
     if (ROdereference()) {
       delete this;

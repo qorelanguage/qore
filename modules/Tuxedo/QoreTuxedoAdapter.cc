@@ -33,15 +33,25 @@
 #include <qore/QoreNode.h>
 
 #include <atmi.h>
+#include <fml32.h>
+#include <fml.h>
+
 #include <memory>
+#include <stdio.h>
 
 #include "QoreTuxedoAdapter.h"
 
-//------------------------------------------------------------------------------
+using std::string;
+using std::vector;
+using std::pair;
+using std::make_pair;
+using std::auto_ptr;
+
 namespace {
 
-typedef std::vector<std::pair<std::string, std::string> > env_t;
+typedef vector<pair<string, string> > env_t;
 
+//------------------------------------------------------------------------------
 struct EnvironmentSetter
 {
   static LockedObject m_mutex; // needs to be static
@@ -57,7 +67,7 @@ EnvironmentSetter::EnvironmentSetter(const env_t& new_env)
   for (env_t::const_iterator it = new_env.begin(), end = new_env.end(); it != end; ++it) {
     char* old = getenv(it->first.c_str());
     if (!old) old = "";
-    m_old_env.push_back(std::make_pair(it->first, old));
+    m_old_env.push_back(make_pair(it->first, old));
 
     if (it->second.empty()) {
       unsetenv(it->first.c_str());
@@ -80,6 +90,81 @@ EnvironmentSetter::~EnvironmentSetter()
   }
 
   m_mutex.unlock();
+}
+
+//------------------------------------------------------------------------------
+// Set environment variables needed to parse FML definitions.
+class FmlEnvironmentSetter
+{
+private:
+  auto_ptr<EnvironmentSetter> m_setter;
+
+  void set(const string& value, bool is_fml32) {
+    env_t new_env;
+    new_env.push_back(make_pair(is_fml32 ? "FIELDTBLS32" : "FIELDTBLS", value));
+    // all file names are expected to be absolute paths
+    new_env.push_back(make_pair(is_fml32 ? "FLDTBLDIR32" : "FLDTBLDIR", string())); 
+    m_setter.reset(new EnvironmentSetter(new_env));
+  }
+
+public:
+  FmlEnvironmentSetter(const vector<string>& files, bool is_fml32) {
+    string joined_files;
+    for (unsigned i = 0, n = files.size(); i != n; ++i) {
+      joined_files += files[i];
+      if (i + 1 != n) joined_files += ","; // that's the Tuxedo way
+    }
+    set(joined_files, is_fml32);
+  }
+  FmlEnvironmentSetter(const string& file, bool is_fml32) {
+    set(file, is_fml32);
+  }
+};
+
+//------------------------------------------------------------------------------
+// Extract all names from given table description file.
+// See http://edocs.bea.com/tuxedo/tux91/fml/fml04.htm#1010346
+static vector<string> read_names_from_fml_description_file(const char* filename, ExceptionSink* xsink)
+{
+   vector<string> result;
+  FILE* f = fopen(filename, "rt");
+  if (!f) {
+    xsink->raiseException("FML[32]_process_description_tables", "read_names_from_fml_description_file(): the file [ %s ] cannot be opened.", filename);
+    return result;
+  }
+  ON_BLOCK_EXIT(fclose, f);
+
+  char line[1024];
+  while (fgets(line, sizeof(line), f)) {
+    char* thumb = line;
+    while (isspace(*thumb)) ++thumb;
+    if (!*thumb) continue;
+    if (strstr(thumb, "*base") == thumb) continue;
+    if (*thumb == '#') continue;
+
+     char* name_end = thumb;
+     while (!isspace(*name_end) && *name_end) ++name_end;
+     *name_end = 0;
+
+     if (name_end == thumb) continue; // ???
+     result.push_back(thumb);
+  }
+  return result;
+}
+
+//-----------------------------------------------------------------------------
+// Extract all names from all given table description file.
+static vector<string> read_names_from_all_fml_description_files(const vector<string>& files, ExceptionSink* xsink)
+{
+   vector<string> result;
+   for (unsigned i = 0; i < files.size(); ++i) {
+     vector<string> aux = read_names_from_fml_description_file(files[i].c_str(), xsink);
+     if (xsink->isException()) {
+       return vector<string>();
+     }
+     result.insert(result.end(), aux.begin(), aux.end());
+   }
+   return result;
 }
 
 } // namespace
@@ -115,13 +200,13 @@ TEST()
 //------------------------------------------------------------------------------
 QoreTuxedoAdapter::QoreTuxedoAdapter()
 : m_connection_flags(0),
+  m_context(0),
   m_send_buffer(0),
   m_send_buffer_size(0),
   m_receive_buffer(0),
   m_receive_buffer_size(0),
   m_string_encoding(QCS_DEFAULT),
-  m_last_suspended_transaction_id(0),
-  m_context(0)
+  m_last_suspended_transaction_id(0)
 {
 }
 
@@ -176,7 +261,7 @@ int QoreTuxedoAdapter::init()
 int QoreTuxedoAdapter::close() 
 {
   // cancel all remaining async requests, if any
-  for (std::vector<int>::const_iterator it =  m_pending_async_calls.begin(), end = m_pending_async_calls.end(); it != end; ++it) {
+  for (vector<int>::const_iterator it =  m_pending_async_calls.begin(), end = m_pending_async_calls.end(); it != end; ++it) {
     tpcancel(*it);
   }
   return (tpterm() == -1) ? tperrno : 0;
@@ -250,7 +335,7 @@ void QoreTuxedoAdapter::setStringEncoding(char* name)
 //------------------------------------------------------------------------------
 void QoreTuxedoAdapter::remove_pending_async_call(int handle)
 {
-  for (std::vector<int>::iterator it = m_pending_async_calls.begin(), end = m_pending_async_calls.end(); it != end; ++it) {
+  for (vector<int>::iterator it = m_pending_async_calls.begin(), end = m_pending_async_calls.end(); it != end; ++it) {
     if (*it == handle) {
       m_pending_async_calls.erase(it);
       break;
@@ -311,7 +396,7 @@ int QoreTuxedoAdapter::enqueue(char* queue_space, char* queue_name, long flags, 
 
  // create hash with relevant out settings
   ExceptionSink xsink;
-  std::auto_ptr<Hash> out(new Hash);
+  auto_ptr<Hash> out(new Hash);
   out->setKeyValue("flags", new QoreNode((int64)m_queue_settings.flags), &xsink);
 
   int sz = sizeof(m_queue_settings.msgid);
@@ -355,7 +440,7 @@ int QoreTuxedoAdapter::dequeue(char* queue_space, char* queue_name, long flags, 
 
   // create hash with relevant out settings
   ExceptionSink xsink;
-  std::auto_ptr<Hash> out(new Hash);
+  auto_ptr<Hash> out(new Hash);
   out->setKeyValue("flags", new QoreNode((int64)m_queue_settings.flags), &xsink);
   out->setKeyValue("priority", new QoreNode((int64)m_queue_settings.priority), &xsink);
 
@@ -392,6 +477,144 @@ int QoreTuxedoAdapter::dequeue(char* queue_space, char* queue_name, long flags, 
   out_settings = out.release();
   return 0;
 }
+
+//------------------------------------------------------------------------------
+Hash* QoreTuxedoAdapter::loadFmlDescription(const vector<string>& files, bool is_fml32, ExceptionSink* xsink)
+{
+  vector<string> all_names = read_names_from_all_fml_description_files(files,xsink);
+  if (*xsink) return 0;
+
+  // before returning the old variables back free the tables from memory
+  // (assumption: Fldid[32] is idempotent)
+  ON_BLOCK_EXIT((is_fml32 ? &Fidnm_unload : &Fidnm_unload32));
+
+  FmlEnvironmentSetter setter(files, is_fml32);
+  char* err_name = "TuxedoAdapter::loadFml[32]Description";
+
+  auto_ptr<Hash> result(new Hash);
+
+  for (unsigned i = 0, n = all_names.size(); i != n; ++i) {
+    char* name = (char*)all_names[i].c_str();
+    FLDID32 id;
+    if (is_fml32) {
+      id = Fldid32(name);
+    } else {
+      id = Fldid(name);
+    }
+    if (id == BADFLDID) {
+      xsink->raiseException(err_name, "Fldid[32](\"%s\") failed. Ferror = %d.", name, Ferror);
+      return 0;
+    }
+    int type;
+    if (is_fml32) {
+      type = Fldtype32(id);
+    } else {
+      type = Fldtype(id);
+    }
+    List* list = new List();
+    list->insert(new QoreNode((int64)id));
+    list->insert(new QoreNode((int64)type));
+    result->setKeyValue(name, new QoreNode(list), xsink);
+    if (xsink->isException()) {
+      return 0;
+    }
+  }
+  return result.release();
+}
+
+//------------------------------------------------------------------------------
+Hash* QoreTuxedoAdapter::loadFmlDescription(const string& file, bool is_fml32, ExceptionSink* xsink)
+{
+  vector<string> files;
+  files.push_back(file);
+  return loadFmlDescription(files, is_fml32, xsink);
+}
+
+//------------------------------------------------------------------------------
+Hash* QoreTuxedoAdapter::generateFmlDescription(int base, Hash* typed_names, bool is_fml32, ExceptionSink* xsink)
+{
+  char* err_name = "TuxedoAdapter::generateFml[32]Description";
+
+  char buffer[256];
+  char* tmpfile = tmpnam(buffer);
+  FILE* f = fopen(tmpfile, "wt");
+  if (!f) {
+    unlink(tmpfile); // just in case
+    xsink->raiseException(err_name, "Failed to create temporary file. Please check directory for temporary files.");
+    return 0;
+  }
+  unlink(tmpfile);
+  ScopeGuard g = MakeGuard(fclose, f);
+
+  if (base > 0) fprintf(f, "*base %d\n", base);
+
+  HashIterator iter(typed_names);
+  int counter = 0;
+
+  while (iter.next()) {
+    char* name = iter.getKey();
+    QoreNode* value = iter.getValue();
+    if (value->type != NT_INT) (Hash*)xsink->raiseException(err_name, "Input hash: value of [ %s ] needs to be an integer.", name);
+    int type = (int)value->val.intval;
+    char* type_name;
+
+    switch (type) {
+    case FLD_SHORT: type_name = "short"; break;    
+    case FLD_LONG: type_name = "long"; break;
+    case FLD_CHAR: type_name = "char"; break;
+    case FLD_FLOAT: type_name = "float"; break;
+    case FLD_DOUBLE: type_name = "double"; break;
+    case FLD_STRING: type_name = "string"; break;
+    case FLD_CARRAY: type_name = "carray"; break;
+
+    case FLD_PTR:
+    case FLD_FML32:
+    case FLD_VIEW32:
+    case FLD_MBSTRING:
+      return (Hash*)xsink->raiseException(err_name, "Input hash: value of [ %s ], support for this type is not yet implemented.", name);
+    default:
+      return (Hash*)xsink->raiseException(err_name, "Input hash: value of [ %s ] is not recognized as a type.", name);
+    }
+
+    fprintf(f, "%s %d %s - \n", name, ++counter, type_name);
+  }
+  g.Dismiss();
+  if (fclose(f)) {
+    return (Hash*)xsink->raiseException(err_name, "Failed to create a temporary file.");
+  }
+  return loadFmlDescription(tmpfile, is_fml32, xsink);
+}
+
+//------------------------------------------------------------------------------
+#ifdef DEBUG
+TEST()
+{
+  ExceptionSink xsink;
+  Hash typed_names;
+
+  typed_names.setKeyValue("a_short", new QoreNode((int64)FLD_SHORT), &xsink);
+  typed_names.setKeyValue("a_long", new QoreNode((int64)FLD_LONG), &xsink);
+  typed_names.setKeyValue("a_char", new QoreNode((int64)FLD_CHAR), &xsink);
+  typed_names.setKeyValue("a_float", new QoreNode((int64)FLD_FLOAT), &xsink);
+  typed_names.setKeyValue("a_double", new QoreNode((int64)FLD_DOUBLE), &xsink);
+  typed_names.setKeyValue("a_string", new QoreNode((int64)FLD_STRING), &xsink);
+  typed_names.setKeyValue("a_carray", new QoreNode((int64)FLD_CARRAY), &xsink);
+
+  QoreTuxedoAdapter adapter;
+  Hash* res = adapter.generateFmlDescription(500, &typed_names, true, &xsink);
+  assert(!xsink);
+  assert(res);
+
+
+  typed_names.deleteKey("a_short", &xsink);
+  typed_names.deleteKey("a_long", &xsink);
+  typed_names.deleteKey("a_char", &xsink);
+  typed_names.deleteKey("a_float", &xsink);
+  typed_names.deleteKey("a_double", &xsink);
+  typed_names.deleteKey("a_string", &xsink);
+  typed_names.deleteKey("a_carray", &xsink);
+}
+#endif
 
 // EOF
 
