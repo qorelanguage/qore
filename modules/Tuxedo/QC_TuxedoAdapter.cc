@@ -109,6 +109,7 @@ static QoreNode* setUserName(Object* self, QoreTuxedoAdapter* adapter, QoreNode*
 #ifdef DEBUG
 TEST()
 {
+  printf("testing setUsername()\n");
   char* cmd =
     "qore -e '%requires tuxedo\n"
     "$a = new Tuxedo::TuxedoAdapter();\n"
@@ -144,6 +145,7 @@ static QoreNode* setClientName(Object* self, QoreTuxedoAdapter* adapter, QoreNod
 #ifdef DEBUG
 TEST()
 {
+  printf("testing setClientName()\n");
   char* cmd =
     "qore -e '%requires tuxedo\n"
     "$a = new Tuxedo::TuxedoAdapter();\n"
@@ -179,6 +181,7 @@ static QoreNode* setGroupName(Object* self, QoreTuxedoAdapter* adapter, QoreNode
 #ifdef DEBUG
 TEST()
 {
+  printf("testing setGroupName()\n");
   char* cmd =
     "qore -e '%requires tuxedo\n"
     "$a = new Tuxedo::TuxedoAdapter();\n"
@@ -214,6 +217,7 @@ static QoreNode* setPassword(Object* self, QoreTuxedoAdapter* adapter, QoreNode*
 #ifdef DEBUG
 TEST()
 {
+  printf("testing setPassword()\n");
   char* cmd =
     "qore -e '%requires tuxedo\n"
     "$a = new Tuxedo::TuxedoAdapter();\n"
@@ -260,6 +264,7 @@ static QoreNode* setConnectionFlags(Object* self, QoreTuxedoAdapter* adapter, Qo
 #ifdef DEBUG
 TEST()
 {
+  printf("testing setConnectionFlags()\n");
   char* cmd =
     "qore -e '%requires tuxedo\n"
     "$a = new Tuxedo::TuxedoAdapter();\n"
@@ -304,6 +309,7 @@ static QoreNode* setEnvironmentVariable(Object* self, QoreTuxedoAdapter* adapter
 #ifdef DEBUG
 TEST()
 {
+  printf("testing setEnvironmentVariable()\n");
   char* cmd =
     "qore -e '%requires tuxedo\n"
     "$a = new Tuxedo::TuxedoAdapter();\n"
@@ -334,7 +340,7 @@ TEST()
 {
   char* stop = getenv("TUXEDO_NO_SIMPLE_TEST");
   if (stop && stop[0]) return;
-
+  printf("testing getNeededAuthentification() - simple test server should run\n");
 
   char buffer[1024];
   sprintf(buffer, "qore -e '%%requires tuxedo\n"
@@ -379,6 +385,7 @@ TEST()
 {
   char* stop = getenv("TUXEDO_NO_SIMPLE_TEST");
   if (stop && stop[0]) return;
+  printf("testing init()/close() - simple test server should run\n");
 
   char buffer[1024];
   sprintf(buffer, "qore -e '%%requires tuxedo\n"
@@ -430,6 +437,7 @@ static QoreNode* setStringDataToSend(Object* self, QoreTuxedoAdapter* adapter, Q
 #ifdef DEBUG
 TEST()
 {
+  printf("testing setStringDataToSend()\n");
   char* cmd =
     "qore -e '%requires tuxedo\n"
     "$a = new Tuxedo::TuxedoAdapter();\n"
@@ -477,6 +485,7 @@ static QoreNode* setBinaryDataToSend(Object* self, QoreTuxedoAdapter* adapter, Q
 #ifdef DEBUG
 TEST()
 {
+  printf("testing setBinaryData() 1\n");
   QoreTuxedoAdapter adapter;
   ExceptionSink xsink;
  
@@ -499,6 +508,7 @@ TEST()
 
 TEST()
 {
+  printf("testing setBinaryData() 2\n");
   QoreTuxedoAdapter adapter;
   ExceptionSink xsink;
 
@@ -536,6 +546,7 @@ static QoreNode* error2string(Object* self, QoreTuxedoAdapter* adapter, QoreNode
 #ifdef DEBUG
 TEST()
 {
+  printf("testing setErrorString()\n");
   char* cmd =
     "qore -e '%requires tuxedo\n"
     "$a = new Tuxedo::TuxedoAdapter();\n"
@@ -571,6 +582,7 @@ static QoreNode* allocateReceiveBuffer(Object* self, QoreTuxedoAdapter* adapter,
 #ifdef DEBUG
 TEST()
 {
+  printf("testing allocateReceiveBuffer()\n");
   char* cmd =
     "qore -e '%requires tuxedo\n"
     "$a = new Tuxedo::TuxedoAdapter();\n"
@@ -604,6 +616,7 @@ TEST()
 {
   char* stop = getenv("TUXEDO_NO_SIMPLE_TEST");
   if (stop && stop[0]) return;
+  printf("testing saveContext()/switchToSavedContext() - simple test server should run\n");
 
   char buffer[1024];
   sprintf(buffer, "qore -e '%%requires tuxedo\n"
@@ -646,6 +659,7 @@ static QoreNode* resetReceiveBuffer(Object* self, QoreTuxedoAdapter* adapter, Qo
 #ifdef DEBUG
 TEST()
 {
+  printf("testing resetDataToSend() and resetReceiveBuffer()\n");
   char* cmd =
     "qore -e '%requires tuxedo\n"
     "$a = new Tuxedo::TuxedoAdapter();\n"
@@ -674,6 +688,7 @@ static QoreNode* setStringEncoding(Object* self, QoreTuxedoAdapter* adapter, Qor
 #ifdef DEBUG
 TEST()
 {
+  printf("testing setStringEncoding()\n");
   char* cmd =
     "qore -e '%requires tuxedo\n"
     "$a = new Tuxedo::TuxedoAdapter();\n"
@@ -761,6 +776,7 @@ TEST()
 {
   char* stop = getenv("TUXEDO_NO_SIMPLE_TEST");
   if (stop && stop[0]) return;
+  printf("testing call() - simple test server should run\n");
 
   char buffer[2048];
   sprintf(buffer, "qore -e '%%requires tuxedo\n"
@@ -878,6 +894,7 @@ TEST()
 {
   char* stop = getenv("TUXEDO_NO_SIMPLE_TEST");
   if (stop && stop[0]) return;
+  printf("testing asyncCall() - simple test server should run\n");
 
   // send 3 requests asynchronously, cancel one
   char buffer[4096];
@@ -942,6 +959,7 @@ TEST()
   // send asynchronous, read in an other thread
   char* stop = getenv("TUXEDO_NO_SIMPLE_TEST");
   if (stop && stop[0]) return;
+  printf("testing asyncCall() multithreaded - simple server should run\n");
 
   char buffer[2048];
   sprintf(buffer, "qore -e '%%requires tuxedo\n"
@@ -1148,6 +1166,7 @@ TEST()
 {
   char* stop = getenv("TUXEDO_NO_QUEUE_TEST");
   if (stop && stop[0]) return;
+  printf("testing enqueue() and dequeue() - queue test should run\n");
 
   // test modeled by qsample from ATMI samples, uses its server  
   char buffer[2048];
@@ -1202,6 +1221,7 @@ static QoreNode* writeToLog(Object* self, QoreTuxedoAdapter* adapter, QoreNode* 
 #ifdef DEBUG
 TEST()
 {
+  printf("testing writeToLog()\n");
   char* cmd = "qore -e '%requires tuxedo\n"
     "$a = new TuxedoAdapter();\n"
     "$a.writeToLog(\"sample log from a test\");\n"
@@ -1523,6 +1543,58 @@ static QoreNode* generateFml32Description(Object* self, QoreTuxedoAdapter* adapt
 }
 
 //-----------------------------------------------------------------------------
+static QoreNode* setFmlDataToSendImpl(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, bool is_fml32, ExceptionSink* xsink)
+{
+  char* err_name = "TuxedoAdapter::setFml[32]DataToSend";
+  char* err_text = "Two parameters expected: hash with FML description info, list with data to send.";
+  QoreNode* n = test_param(params, NT_HASH, 0);
+  if (!n) return xsink->raiseException(err_name, err_text);
+  Hash* description_info = n->val.hash;
+  n = test_param(params, NT_LIST, 1);
+  if (!n) return xsink->raiseException(err_name, err_text);
+  List* data = n->val.list;
+
+  // check validity of parameters
+  HashIterator it(description_info);
+  while (it.next()) {
+    n = it.getValue();
+    if (n->type != NT_LIST) return xsink->raiseException(err_name, "The FML description hash needs to have a list as values.");
+    List* l = n->val.list;
+    if (l->size() != 2) return xsink->raiseException(err_name, "The FML description hash needs to have a list with two integers as value.");
+    if (l->retrieve_entry(0)->type != NT_INT || l->retrieve_entry(1)->type != NT_INT) {
+      return xsink->raiseException(err_name, "The FML description hash needs to have a list with two integers as value.");
+    }
+  }
+
+  for (int i = 0, cnt = data->size(); i != cnt; ++i) {
+    n = data->retrieve_entry(i);
+    char* err_text2 = "The data needs to be list of (string name, int type, value) lists.";
+    if (n->type != NT_LIST) return xsink->raiseException(err_name, err_text2);
+    List* sublist = n->val.list;
+    if (sublist->size() != 3) return xsink->raiseException(err_name, err_text2);    
+    n = sublist->retrieve_entry(0);
+    if (n->type != NT_STRING) return xsink->raiseException(err_name, err_text2);
+    n = sublist->retrieve_entry(1);
+    if (n->type != NT_INT) return xsink->raiseException(err_name, err_text2);
+  }
+
+  int res = adapter->setFmlDataToSend(description_info, data, is_fml32, xsink);
+  return new QoreNode((int64)res);
+}
+
+//-----------------------------------------------------------------------------
+static QoreNode* setFmlDataToSend(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
+{
+  return setFmlDataToSendImpl(self, adapter, params, false, xsink);
+}
+
+//-----------------------------------------------------------------------------
+static QoreNode* setFml32DataToSend(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
+{
+  return setFmlDataToSendImpl(self, adapter, params, true, xsink);
+}
+
+//-----------------------------------------------------------------------------
 class QoreClass* initTuxedoAdapterClass()
 {
   tracein("initTuxedoAdapterClass");
@@ -1555,6 +1627,8 @@ class QoreClass* initTuxedoAdapterClass()
   adapter->addMethod("getReceivedString", (q_method_t)getReceivedString);
   adapter->addMethod("getReceivedBinary", (q_method_t)getReceivedBinary);
   adapter->addMethod("getReceivedDataType", (q_method_t)getReceivedDataType);
+  adapter->addMethod("setFmlDataToSend", (q_method_t)setFmlDataToSend);
+  adapter->addMethod("setFml32DataToSend", (q_method_t)setFml32DataToSend);
 
   // misc
   adapter->addMethod("error2string", (q_method_t)error2string);
@@ -1629,6 +1703,7 @@ TEST()
 
 TEST()
 {
+  printf("testing TuxedoAdapter instantiation\n");
   char* cmd =
     "qore -e '%requires tuxedo\n"
     "$a = new Tuxedo::TuxedoAdapter();\n"

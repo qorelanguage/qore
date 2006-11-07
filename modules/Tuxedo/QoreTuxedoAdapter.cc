@@ -32,6 +32,9 @@
 #include <qore/QoreType.h>
 #include <qore/QoreNode.h>
 
+#include <limits.h>
+#include <float.h>
+
 #include <atmi.h>
 #include <fml32.h>
 #include <fml.h>
@@ -52,6 +55,7 @@ namespace {
 typedef vector<pair<string, string> > env_t;
 
 //------------------------------------------------------------------------------
+// Set given environment variables and return back to original state in destructor.
 struct EnvironmentSetter
 {
   static LockedObject m_mutex; // needs to be static
@@ -93,7 +97,7 @@ EnvironmentSetter::~EnvironmentSetter()
 }
 
 //------------------------------------------------------------------------------
-// Set environment variables needed to parse FML definitions.
+// Set environment variables needed to parse FML definitions, return back to original in destructor.
 class FmlEnvironmentSetter
 {
 private:
@@ -172,7 +176,7 @@ static vector<string> read_names_from_all_fml_description_files(const vector<str
 #ifdef DEBUG
 TEST()
 {
-  using namespace std;
+  printf("testing EnvironmentSetter\n");
   vector<pair<string, string> > envs;
   envs.push_back(make_pair("test_aaa", "xyz"));
   envs.push_back(make_pair("test_bbb", ""));
@@ -194,6 +198,13 @@ TEST()
   s = getenv("test_bbb");
   assert(s);
   assert(!strcmp(s, "old bbb"));
+}
+
+TEST()
+{
+  printf("testing FmlEnvironmentSetter\n");
+  { FmlEnvironmentSetter setter1("aaa", true); }
+  { FmlEnvironmentSetter setter2("bbb", false); }
 }
 #endif
 
@@ -589,6 +600,7 @@ Hash* QoreTuxedoAdapter::generateFmlDescription(int base, Hash* typed_names, boo
 #ifdef DEBUG
 static void do_test(bool is_fml32)
 {
+  printf("testing generateFml[32]Description()\n");
   ExceptionSink xsink;
   Hash typed_names;
 
@@ -664,6 +676,9 @@ static void do_test(bool is_fml32)
     ++counter;
   }
  
+  QoreNode* aux = new QoreNode(res);
+  aux->deref(&xsink);
+
   typed_names.deleteKey("a_short", &xsink);
   typed_names.deleteKey("a_long", &xsink);
   typed_names.deleteKey("a_char", &xsink);
@@ -678,7 +693,338 @@ TEST()
   do_test(false);
   do_test(true);
 }
+#endif
 
+//------------------------------------------------------------------------------
+// helper
+static int reallocate_buffer(char** buffer, long* buffer_size, long new_size)
+{
+  char* res = tprealloc(*buffer, new_size);
+  if (!res) return tperrno;
+  *buffer = res;
+  *buffer_size = new_size;
+  return 0;
+}
+
+//-----------------------------------------------------------------------------
+// Find out ID + type from FML name, helper
+static pair<FLDID32, int>  fml_name2id(char* name, Hash* description_info, ExceptionSink* xsink, char* func_name)
+{
+  pair<FLDID32, int> result(0, 0);
+  QoreNode* n = description_info->getKeyValueExistence(name);
+  if (!n || n == (QoreNode*)-1) {
+    xsink->raiseException(func_name, "Field [ %s ] does not exist in FML[32] settings. Please check possible typos.");
+    return result;
+  }
+  // already known to be list with (int, int)
+  assert(n->type == NT_LIST);
+  List* l = n->val.list;
+  assert(l->size() == 2);
+  n = l->retrieve_entry(0);
+  result.first = (FLDID32)n->val.intval;
+  n = l->retrieve_entry(1);
+  result.second = (int)n->val.intval;
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// Find out type from FML name, helper
+static int fml_name2type(char* name, Hash* description_info, ExceptionSink* xsink, char* func_name)
+{
+  QoreNode* n = description_info->getKeyValue(name);
+  if (!n) {
+    xsink->raiseException(func_name, "Field [ %s ] does not exist in FML[32] settings. Please check possible typos.");
+    return 0;
+  }
+  // already known to be list with (int, int)
+  List* l = n->val.list;
+  n = l->retrieve_entry(1);
+  return (FLDID32)n->val.intval;
+}
+
+//------------------------------------------------------------------------------
+int QoreTuxedoAdapter::add_fml_value_into_send_buffer(char* value_name, FLDID32 id, int value_type, QoreNode* value, bool is_fml32, ExceptionSink* xsink)
+{
+  char* err_name = "TuxedoAdapter::setFml[32]DataToSend";
+
+  char* ptr_val;
+  FLDLEN32 value_length;
+
+  union {
+    short short_value;
+    long long_value;
+    char char_value;
+    float float_value;
+    double double_value;
+  };
+  
+  switch (value_type) {
+    case FLD_SHORT: 
+    {
+      if (value->type != NT_INT) {
+         xsink->raiseException(err_name, "Value [ %s ] needs to be integer.", value_name);
+        return 0;
+      }
+      int64 val = value->val.intval;
+      if (val < SHRT_MIN || val > SHRT_MAX) {
+        xsink->raiseException(err_name, "Value [ %s ] doesn't contain value fitting short type.", value_name);
+        return 0;
+      }
+      short_value = (short)val;
+      ptr_val = (char*)&short_value;
+      value_length = sizeof(short);
+      break;      
+    }
+
+    case FLD_LONG:
+    {
+      if (value->type != NT_INT) {
+        xsink->raiseException(err_name, "Value [ %s ] needs to be integer.", value_name);
+        return 0;
+      }
+      int64 val = value->val.intval;
+      if (val < LONG_MIN || val > LONG_MAX) {
+        xsink->raiseException(err_name, "Value [ %s ] doesn't contain value fitting long type.", value_name);
+        return 0;
+      }
+      long_value = (long)val;
+      ptr_val = (char*)&long_value;
+      value_length = sizeof(long);
+      break;
+    } 
+
+    case FLD_CHAR: 
+    {
+      if (value->type != NT_INT) {
+         xsink->raiseException(err_name, "Value [ %s ] needs to be integer.", value_name);
+        return 0;
+      }
+      int64 val = value->val.intval;
+      if (val < CHAR_MIN || val > CHAR_MAX) {
+        xsink->raiseException(err_name, "Value [ %s ] doesn't contain value fitting char type.", value_name);
+        return 0;
+      }
+      char_value = (char)val;
+      ptr_val = &char_value;
+      value_length = sizeof(char);
+      break;
+    }
+
+    case FLD_FLOAT: 
+    {
+      if (value->type != NT_FLOAT) {
+         xsink->raiseException(err_name, "Value [ %s ] needs to be float.", value_name);
+        return 0;
+      }
+      double val = value->val.floatval;
+      if (val < FLT_MIN || val > FLT_MAX) {
+        xsink->raiseException(err_name, "Value [ %s ] doesn't contain value fitting float type.", value_name);
+        return 0;
+      }
+      float_value = (float)val;
+      ptr_val = (char*)&float_value;
+      value_length = sizeof(float);
+      break;
+    }
+
+    case FLD_DOUBLE: 
+    {
+      if (value->type != NT_FLOAT) {
+         xsink->raiseException(err_name, "Value [ %s ] needs to be float.", value_name);
+        return 0;
+      }
+      double_value = value->val.floatval;
+      ptr_val = (char*)&double_value;
+      value_length = sizeof(double);
+      break;
+    }
+
+    case FLD_STRING:
+    {
+      if (value->type != NT_STRING) {
+        xsink->raiseException(err_name, "Value [ %s ] needs to be a string.", value_name);
+        return 0;
+      }
+      char* s = value->val.String->getBuffer();
+      if (!s) s = "";
+      ptr_val = s;
+      value_length = strlen(s) + 1; 
+      break;
+    } 
+
+    case FLD_CARRAY:
+    {
+      if (value->type != NT_BINARY) {
+        xsink->raiseException(err_name, "Value [ %s ] needs to be a binary.", value_name);
+        return 0;
+      }
+      BinaryObject* bin = value->val.bin;
+      ptr_val = (char*)bin->getPtr();
+      if (!ptr_val) ptr_val = "";
+      value_length = bin->size();
+      break;
+    }
+
+    case FLD_PTR:
+    case FLD_FML32:
+    case FLD_VIEW32:
+    case FLD_MBSTRING:
+    default:
+      xsink->raiseException(err_name, "Value [ %s ] has unrecognized type %d.", value_name, value_type);
+      return 0;
+  }
+
+  for (;;) {
+    int res;
+    if (is_fml32) {
+      res = Fappend32((FBFR32*)m_send_buffer, id, ptr_val, value_length);
+    } else {
+      res = Fappend((FBFR*)m_send_buffer, id, ptr_val, value_length);
+    }
+    if (res != -1) {
+      break;
+    }
+    if (Ferror != FNOSPACE) {
+      xsink->raiseException(err_name, "Value [ %s ] cannot be appended into FML[32] buffer. Error %d.", value_name, Ferror);
+      return 0;
+    }
+    // the buffer needs to be resized
+    int increment = m_send_buffer_size;
+    if (increment > 64 * 1024) {
+      increment = 64 * 1024; // guesed value
+    }
+    res = reallocate_buffer(&m_send_buffer, &m_send_buffer_size, m_send_buffer_size + increment);
+    if (res) return res;
+  }
+
+  return 0;
+}
+
+//------------------------------------------------------------------------------
+int QoreTuxedoAdapter::setFmlDataToSend(Hash* description_info, List* data, bool is_fml32, ExceptionSink* xsink)
+{
+  resetDataToSend();
+  char* err_name = "TuxedoAdapter::setFml[32]DataToSend";
+  
+  long buffer_size = 4096;
+  char* type = (char*)(is_fml32 ? "FML32" : "FML");
+  m_send_buffer = tpalloc(type, 0, buffer_size);
+  if (!m_send_buffer) return tperrno;
+  m_send_buffer_size = buffer_size;
+  int res;
+  if (is_fml32) {
+    res = Finit32((FBFR32*)m_send_buffer, m_send_buffer_size);
+  } else {
+    res = Finit((FBFR*)m_send_buffer, m_send_buffer_size);
+  }
+  if (res == -1) {
+    xsink->raiseException(err_name, "Finit[32] failed with error %d.", Ferror);
+    return 0;
+  }
+  // append every item in the buffer
+  for (int i = 0, cnt = data->size(); i != cnt; ++i) {
+    QoreNode* n = data->retrieve_entry(i); // known as list of (string type, value)
+    assert(n->type == NT_LIST);
+    List* l = n->val.list;
+    assert(l->size() == 2);    
+    n = l->retrieve_entry(0);
+    assert(n->type == NT_STRING);
+    char* name = n->val.String->getBuffer();
+    if (!name || !name[0]) {
+      xsink->raiseException(err_name, "Item name # %d is empty.", i + 1);
+      return 0;
+    }
+    pair<FLDID32, int> id_type = fml_name2id(name, description_info, xsink, err_name);
+    if (*xsink) {
+      return 0;
+    }
+    n = l->retrieve_entry(1);
+    int res = add_fml_value_into_send_buffer(name, id_type.first, id_type.second, n, is_fml32, xsink);
+    if (*xsink) return 0;
+    if (res) return res;    
+  }
+  // set up proper buffer size as a check and also switch off the  append mode
+  long result_size;
+  if (is_fml32) {
+    result_size = Fsizeof32((FBFR32*)m_send_buffer);
+  } else {
+    result_size = Fsizeof((FBFR*)m_send_buffer);
+  }
+  if (result_size == -1) {
+    xsink->raiseException(err_name, "Fsizeof[32] failed with error %d.", Ferror);
+    return 0;
+  }
+  m_send_buffer_size = (int)result_size;
+
+  return 0;
+}
+
+//------------------------------------------------------------------------------
+#ifdef DEBUG
+static void do_test2(bool is_fml32)
+{
+  printf("testing setFml[32]DataToSend()\n");
+  ExceptionSink xsink;
+  Hash typed_names;
+
+  typed_names.setKeyValue("a_short", new QoreNode((int64)FLD_SHORT), &xsink);
+  typed_names.setKeyValue("a_long", new QoreNode((int64)FLD_LONG), &xsink);
+  typed_names.setKeyValue("a_char", new QoreNode((int64)FLD_CHAR), &xsink);
+  typed_names.setKeyValue("a_float", new QoreNode((int64)FLD_FLOAT), &xsink);
+  typed_names.setKeyValue("a_double", new QoreNode((int64)FLD_DOUBLE), &xsink);
+  typed_names.setKeyValue("a_string", new QoreNode((int64)FLD_STRING), &xsink);
+  typed_names.setKeyValue("a_carray", new QoreNode((int64)FLD_CARRAY), &xsink);
+
+  QoreTuxedoAdapter adapter;
+  Hash* res = adapter.generateFmlDescription(500, &typed_names, is_fml32, &xsink);
+  if (xsink) {
+    Exception* e = xsink.catchException();
+    printf("File %s, line %d threw\n", e->file, e->line);
+  }
+  assert(res);
+
+  List* data = new List;
+  List* sublist = new List;
+  sublist->push(new QoreNode("a_long"));
+  sublist->push(new QoreNode((int64)12345678));
+  data->push(new QoreNode(sublist));
+  sublist = new List;
+  sublist->push(new QoreNode("a_string"));
+  sublist->push(new QoreNode("string1"));
+  data->push(new QoreNode(sublist));
+  sublist = new List;
+  sublist->push(new QoreNode("a_string"));
+  sublist->push(new QoreNode("string2"));
+  data->push(new QoreNode(sublist));
+
+  assert(!xsink.isException());
+  int x = adapter.setFmlDataToSend(res, data, is_fml32, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  assert(x == 0);
+
+  QoreNode* aux = new QoreNode(res);
+  aux->deref(&xsink);
+  aux = new QoreNode(data);
+  aux->deref(&xsink);
+
+  typed_names.deleteKey("a_short", &xsink);
+  typed_names.deleteKey("a_long", &xsink);
+  typed_names.deleteKey("a_char", &xsink);
+  typed_names.deleteKey("a_float", &xsink);
+  typed_names.deleteKey("a_double", &xsink);
+  typed_names.deleteKey("a_string", &xsink);
+  typed_names.deleteKey("a_carray", &xsink);
+}
+
+TEST()
+{
+  do_test2(false);
+  do_test2(true);
+  do_test2(false);
+  do_test2(true);
+}
 #endif
 
 // EOF

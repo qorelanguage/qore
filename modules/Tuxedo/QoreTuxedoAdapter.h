@@ -35,6 +35,7 @@
 #include <map>
 
 #include <atmi.h>
+#include <fml32.h>
 
 class QoreEncoding;
 class Hash;
@@ -84,6 +85,9 @@ public:
 
   std::map<int, TPTRANID> m_suspended_transactions; // tpsuspend/tpresume, maps id -> transaction
   int m_last_suspended_transaction_id; // used to generate unique handle for every suspended transcation in the map
+
+  int add_fml_value_into_send_buffer(char* value_name, FLDID32 id, int value_type, QoreNode* value, 
+    bool is_fml32, ExceptionSink* xsink);
    
 public:
   QoreTuxedoAdapter();
@@ -107,6 +111,8 @@ public:
   Hash* loadFmlDescription(const std::vector<std::string>& files, bool is_fml32, ExceptionSink* xsink);
   Hash* loadFmlDescription(const std::string& file, bool is_fml32, ExceptionSink* xsink);
   Hash* generateFmlDescription(int base, Hash* typed_names, bool is_fml32, ExceptionSink* xsink);
+
+  int setFmlDataToSend(Hash* description_info, List* data, bool is_fml32, ExceptionSink* xsink);
 
   void deref() { 
     if (ROdereference()) {
