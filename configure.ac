@@ -94,7 +94,8 @@ LDFLAGS="-lnsl -norunpath"
 		MODULE_SUFFIX=so
 		AC_DEFINE(DARWIN, 1, if compiling on Darwin)
 		;;
-     *hpux*)    SHLIB_SUFFIX=sl 
+     *hpux*)    SHLIB_SUFFIX=sl
+		CPPFLAGS="$CPPFLAGS -D__STDC_EXT__" 
 		AC_DEFINE(SHLIB_SUFFIX, "sl", shared library suffix)
 		AC_DEFINE(HPUX, 1, if compiling on HP-UX)
 		;;
@@ -991,14 +992,10 @@ AC_CHECK_FUNCS([bzero floor gethostbyaddr gethostbyaddr_r gethostbyname gethostb
 
 # try to find strtoimax on HPUX
 AC_MSG_CHECKING([for strtoimax])
-AC_EGREP_CPP([inttypes_h_defines_strtoimax], [
-#include <inttypes.h>
-#ifdef strtoimax
-inttypes_h_defines_strtoimax
-#endif
-], [AC_MSG_RESULT(yes)
-    AC_DEFINE(HAVE_STRTOIMAX, 1,
-	     [Define to 1 if you have strtoimax])], 
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+[[#include <inttypes.h>]], [[strtoimax("10", NULL, 10);]])], 
+   [AC_MSG_RESULT(yes)
+    AC_DEFINE(HAVE_STRTOIMAX, 1, [Define to 1 if you have strtoimax])], 
    [AC_MSG_RESULT(no)])
 
 # Check definition of gethostbyaddr_r (glibc2 defines this with 8 arguments)
@@ -1125,9 +1122,11 @@ if test "$enable_debug" = "no" -a "$enable_profile" = "no"; then
    fi	
 fi
 
-# set special compiler flags for SunPro C++ compiler to turn off annoying "String literal converted to char* ..." warnings
-if test "$CXX" = "CC" -a "`echo $host_os|cut -b-7`" = "solaris"; then
+# set special compiler flags for C++ compilers to turn off annoying "String literal converted to char* ..." warnings
+if test -n "`echo $CXX|grep CC`" -a "`echo $host_os|cut -b-7`" = "solaris"; then
    CXXFLAGS="$CXXFLAGS -erroff=badargtypel2w"
+elif test -n "`echo $CXX|grep aCC`"; then 
+   CXXFLAGS="$CXXFLAGS +W829"
 fi
 
 # turn on warnings if we know how
