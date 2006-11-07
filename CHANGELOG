@@ -1,3 +1,6 @@
+2006.11.07: David Nichols
+	* HP-UX configure fix in configure.ac
+
 2006.11.06: David Nichols
 	* replaced obsolete autoconf/automake macros in configure.ac
 	* added "class" to declaration in Exception.h to enable compilation when

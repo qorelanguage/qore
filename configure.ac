@@ -929,7 +929,7 @@ PKG_CHECK_MODULES(XML, libxml-2.0 >= 2.4.22,,[
     if xml2-config --libs > /dev/null 2>&1; then
       full=`xml2-config --version`
       vers=`xml2-config --version | \
-        awk 'BEGIN { FS = "."; } {print ($1 * 1000 + $2) * 1000 + $3;}'`
+        awk 'BEGIN { FS = "."; } {printf("%04d%03d\n", $1 * 1000 + $2, $3);}'`
       if test "$vers" -ge 2004022; then
 	AC_MSG_RESULT($full)
 	XML_CFLAGS="`xml2-config --cflags`"
