@@ -405,7 +405,12 @@ if test -n "$with_tibrv"; then
 
    # setup tibrv compile and link vars
    TIBRV_CPPFLAGS="-I${with_tibrv}/include"
-   TIBRV_LIBS="-L${with_tibrv}/lib -ltibrv${LIBSUFFIX} -ltibrvcm${LIBSUFFIX} -ltibrvcmq${LIBSUFFIX} -ltibrvcpp${LIBSUFFIX} -ltibrvft${LIBSUFFIX} -ltibrvsd${LIBSUFFIX}"   
+   # check for dynamic libtibrvcpp
+   if test -f "${with_tibrv}/lib/libtibrvcpp${LIBSUFFIX}.${SHLIB_SUFFIX}"; then
+      TIBRV_LIBS="-L${with_tibrv}/lib -ltibrv${LIBSUFFIX} -ltibrvcm${LIBSUFFIX} -ltibrvcmq${LIBSUFFIX} -ltibrvcpp${LIBSUFFIX} -ltibrvft${LIBSUFFIX} -ltibrvsd${LIBSUFFIX}"   
+   else
+      TIBRV_LIBS="-L${with_tibrv}/lib -ltibrv${LIBSUFFIX} -ltibrvcm${LIBSUFFIX} -ltibrvcmq${LIBSUFFIX} ${with_tibrv}/lib/libtibrvcpp${LIBSUFFIX}.a -ltibrvft${LIBSUFFIX} -ltibrvsd${LIBSUFFIX}"   
+   fi
 
    # check if C++ compiler can link with TIBCO Rendezvous c++ libs
    SAVE_CPPFLAGS="$CPPFLAGS"
@@ -831,16 +836,22 @@ fi
 
 check_mysql_lib()
 {
-    if test -f "$1/libmysqlclient_r.a" -o -f "$1/libmysqlclient_r.${SHLIB_SUFFIX}"; then
+    if test -f "$1/libmysqlclient_r.${SHLIB_SUFFIX}"; then
        mysql_lib_dir=$1
+       AC_MSG_RESULT([$1 (shared)])
+    elif test -f "$1/libmysqlclient_r.a"; then
+       mysql_lib_dir=$1
+       mysql_static=1
+       AC_MSG_RESULT([$1 (static)])
     fi
 }
 
 if test "${enable_mysql}" != "no"; then
    AC_MSG_CHECKING([for mysql libraries])
-   if test -n "$with_mysql_libs"; then 
-      if test -f "$with_mysql_libs/libmysqlclient_r.a"; then
-      	 AC_MSG_RESULT([$with_mysql_libs])
+   if test -n "$with_mysql_libs"; then
+      check_mysql_lib "$with_mysql_libs"
+
+      if test -n "$mysql_lib_dir"; then
 	 enable_mysql=yes
       else
 	 AC_MSG_RESULT([error: $with_mysql_libs does not contain libmysqlclient])
@@ -850,7 +861,6 @@ if test "${enable_mysql}" != "no"; then
       for dir in "$MYSQL_DIR/lib${LIBSUFFIX}" /usr/local/mysql/lib${LIBSUFFIX} /opt/mysql/lib${LIBSUFFIX} /usr/mysql/lib${LIBSUFFIX} /usr/lib${LIBSUFFIX}/mysql /sw/lib/mysql /opt/local/lib${LIBSUFFIX} ;do
       	  check_mysql_lib $dir
       	  if test -n "$mysql_lib_dir"; then
-	     AC_MSG_RESULT([$mysql_lib_dir])
 	     with_mysql_libs="$mysql_lib_dir"
 	     enable_mysql=yes
 	     break;
@@ -866,7 +876,11 @@ fi
 if test "${enable_mysql}" = yes; then
   if test -n "$with_mysql_includes" -a -n "$with_mysql_libs"; then
      MYSQL_INCLUDES="-I$with_mysql_includes"
-     MYSQL_LIBS="-L$with_mysql_libs -lmysqlclient_r"
+     if test -n "$mysql_static"; then
+          MYSQL_LIBS="$with_mysql_libs/libmysqlclient_r.a"
+     else
+          MYSQL_LIBS="-L$with_mysql_libs -lmysqlclient_r"
+     fi
      # check if C++ compiler can link with MYSQL libs
      SAVE_CXXFLAGS="$CXXFLAGS"
      SAVE_LDFLAGS="$LDFLAGS"

@@ -3,6 +3,9 @@
 	* fixed character set names to use only valid aliases on HP-UX
 	* configure updates to allow TIBCO AE SDK to be recognized on HP-UX
 	* HP-UX compile fixes
+	* detect static-only libraries in configure and make sure to set up link
+	  line to include full static library path, otherwise building modules
+	  fails on HP-UX
 
 2006.11.06: David Nichols
 	* replaced obsolete autoconf/automake macros in configure.ac

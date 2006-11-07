@@ -5,8 +5,6 @@ NOTE: for platform-specific notes and build instructions, please see the file BU
 *** LIST OF CHANGES IN THIS RELEASE ***
 
 -- under construction --
-* new functions
-  + hstat(), hlstat() - perform a "stat()" on a file/directory/etc and return a hash instead of a list - much easier to use output, including a "type" key, which gives the file type
 
 
 ***********************
@@ -120,6 +118,34 @@ The documentation is not entirely complete, but it's gotten much better in the l
 ---------------------
 RELEASE NOTES HISTORY
 ---------------------
+
+*******************************
+RELEASE SUMMARY for qore v0.5.3
+*******************************
+
+* scanner and parser modified to accept direct specification of opaque binary objects using hexadecimal digits enclosed in angle brackets:
+        ex: const bin = <a4b7297b>;
+
+must be an even number of digits or a parse error will result
+
+* new functions
+  + hstat(), hlstat() - perform a "stat()" on a file/directory/etc and return a hash instead of a list - much easier to use output, including a "type" key, which gives the file type
+  + makeHexString(), parseHexString() - to covert from a binary object to a hex string and vice versa
+
+* performance improvements
+temporary objects no longer cause a cache sync on deletion, use STL map when hash_map is not available, more use of STL map in other data structures for quicker lookups
+
+* Solaris shared library fix
+finally Solaris shared-library builds are working properly
+
+* GetOpt class date parsing improvements
+all Qore formats should also be parsable by the GetOpt class
+
+* lots of bug fixes
+deadlocks in several classes were fixed that happened after timeouts (Datasource, SingleExitGate classes)
+bug in Datasource copy constructor
+broken ncurses module fixed, initscr() is now optional
+
 
 *******************************
 RELEASE SUMMARY for qore v0.5.2
@@ -342,6 +368,7 @@ it is now much easier to develop qore classes in c++ with the new API
 *) lots of bug fixes, etc
 see CHANGELOG for details
 
+
 *******************************
 RELEASE SUMMARY for qore v0.5.1
 *******************************
@@ -428,6 +455,7 @@ any program can use "%requires" at any time.
 
 *) bug fixes and other miscellaneous enhancements
 see CHANGELOG for details
+
 
 *******************************
 RELEASE SUMMARY for qore v0.5.0
@@ -597,6 +625,7 @@ DBI drivers are still optionally-compiled, but it will no longer be possible to 
 *) other new functions, methods, backwards-compatible changes to existing methods, and lots of bug fixes
 see CHANGELOG for details
 
+
 *******************************
 RELEASE SUMMARY for qore v0.4.3
 *******************************
@@ -615,6 +644,7 @@ still not 100% out-of-the-box supported, but coming soon...
 
 *) core dump, memory leaks, Oracle stored proc execution fixes, and many other changes and fixes
 for details see the CHANGELOG
+
 
 *******************************
 RELEASE SUMMARY for qore v0.4.2 
@@ -657,6 +687,7 @@ use the Socket class instead...
 
 * many miscellaneous bug fixes
 see CHANGELOG for details
+
 
 *******************************
 RELEASE SUMMARY for qore v0.4.0
