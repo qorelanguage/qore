@@ -1,6 +1,7 @@
 2006.11.07: David Nichols
 	* HP-UX configure fix in configure.ac
 	* fixed character set names to use only valid aliases on HP-UX
+	* configure updates to allow TIBCO AE SDK to be recognized on HP-UX
 
 2006.11.06: David Nichols
 	* replaced obsolete autoconf/automake macros in configure.ac

@@ -543,24 +543,33 @@ fi
 
 if test -n "$with_tibae"; then
    case "$TIBCO_SDK_VERSION" in
-	4.1.2) TIBAE_LIBS="-L${with_tibae}/lib -lmaverick41 -ldl -lpthread"
+	4.1.2) TIBAE_LIBS="-L${with_tibae}/lib -lmaverick41 -lpthread"
 	       TIBAE_CPPFLAGS="-I${with_tibae}/include"
 	       AC_DEFINE(TIBCO_SDK, 4, [define for TIBCO SDK 4.*])
 	       ;;
-	4.1.3) TIBAE_LIBS="-L${with_tibae}/lib -lmaverick41 -ldl -lpthread"
-	       TIBAE_CPPFLAGS="-DLINUX24 -I${with_tibae}/include"
+	4.1.3) TIBAE_LIBS="-L${with_tibae}/lib -lmaverick41 -lpthread"
+	       TIBAE_CPPFLAGS="-I${with_tibae}/include"
 	       AC_DEFINE(TIBCO_SDK, 4, [define for TIBCO SDK 4.*])
 	       ;;
-        5.0.*) TIBAE_LIBS="-L${with_tibae}/lib -L${with_tibae_tpcl}/lib -lmaverick50 -lrepowww532 -lxerces-c2_1 -lssl -lcrypto -ldl -lpthread"
-	       TIBAE_CPPFLAGS="-DLINUX24 -I${with_tibae}/include/sdk"
+        5.0.*) TIBAE_LIBS="-L${with_tibae}/lib -L${with_tibae_tpcl}/lib -lmaverick50 -lrepowww532 -lxerces-c2_1 -lssl -lcrypto -lpthread"
+	       TIBAE_CPPFLAGS="-I${with_tibae}/include/sdk"
 	       AC_DEFINE(TIBCO_SDK, 5, [define for TIBCO SDK 5.*])
 	       ;;
-        5.3.*) TIBAE_LIBS="-L${with_tibae}/lib -L${with_tibae_tpcl}/lib -lmaverick53 -lrepowww532 -lxerces-c2_1 -lssl -lcrypto -licuuc -ldl -lpthread"
-	       TIBAE_CPPFLAGS="-DLINUX24 -I${with_tibae}/include/sdk"
+        5.3.*) TIBAE_LIBS="-L${with_tibae}/lib -L${with_tibae_tpcl}/lib -lmaverick53 -lrepowww532 -lxerces-c2_1 -lssl -lcrypto -licuuc -lpthread"
+	       TIBAE_CPPFLAGS="-I${with_tibae}/include/sdk"
 	       AC_DEFINE(TIBCO_SDK, 5, [define for TIBCO SDK 5.*])
 	       ;;
 	*)     AC_MSG_ERROR(Unsupported TIBCO SDK Version) 
 	       ;;
+   esac
+
+   case "${host_os}" in
+     *linux*)	TIBAE_CPPFLAGS="$TIBAE_CPPFLAGS -DLINUX24 -ldl"
+		;;
+     *hpux*)    TIBAE_CPPFLAGS="$TIBAE_CPPFLAGS -DHP_UX +DAportable"
+		;;
+     *)		TIBAE_CPPFLAGS="$TIBAE_CPPFLAGS -ldl"
+		;; 
    esac
 
    # check if C++ compiler can link with TIBCO libs
