@@ -794,7 +794,6 @@ if test "$with_oracle" = "yes"; then
    ,
   [with_oracle_instant_client=$ORACLE_INSTANT_CLIENT])
 
-  echo with_oracle_instant_client=$with_oracle_instant_client
    if test -n "$with_oracle_instant_client"; then
       AC_MSG_CHECKING([for Oracle instant client SDK])
       if test -f "$with_oracle_instant_client/sdk/include/oci.h"; then
