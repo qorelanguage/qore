@@ -881,7 +881,7 @@ if test "${enable_mysql}" != "no"; then
 	 enable_mysql=no
       fi
    else
-      for dir in "$MYSQL_DIR/include" /usr/local/mysql/include /opt/mysql/include /usr/mysql/include /usr/include/mysql /sw/include/mysql /opt/local/include/mysql; do
+      for dir in "$MYSQL_DIR/include" /usr/local/mysql/include /opt/mysql/include /usr/mysql/include /usr/include/mysql /sw/include/mysql /opt/local/include/mysql /opt/sfw/include/mysql /usr/sfw/include/mysql; do
       	  check_mysql_include $dir
       	  if test -n "$mysql_include_dir"; then
 	     AC_MSG_RESULT([$mysql_include_dir])
@@ -997,7 +997,7 @@ set_ncurses_lib()
    AC_SUBST(NCURSES_LIBS)
 }
 
-# checks for ncurses (or curses) and panel libraries and include files and sets NCURSES_LIBS and NCURSES_INCLUDES appropriately
+# checks for ncurses (or curses) and panel libraries and include files and sets NCURSES_LIBS and NCURSES_CPPFLAGS appropriately
 check_ncurses()
 {
     lib=$1/lib${LIBSUFFIX}
@@ -1013,10 +1013,12 @@ check_ncurses()
     elif test -f "$lib/libcurses.${SHLIB_SUFFIX}" -a -f "$lib/libpanel.${SHLIB_SUFFIX}"; then
        ncurses_dir=$1
        AC_MSG_RESULT([$lib (curses shared)])
+       NCURSES_CPPFLAGS="-DNOMACROS"
        set_ncurses_lib "$1" curses
     elif test -f "$lib/libcurses.a" -a -f "$lib/libpanel.a"; then
        ncurses_dir=$1
        AC_MSG_RESULT([$lib (curses static)])
+       NCURSES_CPPFLAGS="-DNOMACROS"
        NCURSES_LIBS="$lib/libcurses.a $lib/libpanel.a"
     fi
 
@@ -1026,19 +1028,19 @@ check_ncurses()
        if test -f "$1/include/curses.h" -a "$1/include/panel.h"; then
           AC_MSG_RESULT([found in $ncurses_dir])
 	  if test "$1" = "/usr"; then
-	     NCURSES_INCLUDES=
+	     NCURSES_CPPFLAGS="$NCURSES_CPPFLAGS"
 	  else
-	     NCURSES_INCLUDES="-I$1/include"
+	     NCURSES_CPPFLAGS="$NCURSES_CPPFLAGS -I$1/include"
 	  fi
-	  AC_SUBST(NCURSES_INCLUDES)
+	  AC_SUBST(NCURSES_CPPFLAGS)
        elif test -f "$1/include/ncurses/curses.h" -a "$1/include/ncurses/panel.h"; then
           AC_MSG_RESULT([found in $1/include/ncurses])
 	  if test "$1" = "/usr"; then
-	     NCURSES_INCLUDES="-I$1/include/ncurses"
+	     NCURSES_CPPFLAGS="$NCURSES_CPPFLAGS -I$1/include/ncurses"
 	  else
-	     NCURSES_INCLUDES="-I$1/include -I$1/include/ncurses"
+	     NCURSES_CPPFLAGS="$NCURSES_CPPFLAGS -I$1/include -I$1/include/ncurses"
 	  fi
-	  AC_SUBST(NCURSES_INCLUDES)
+	  AC_SUBST(NCURSES_CPPFLAGS)
        else
           AC_MSG_ERROR([not found!  use configure --disable-ncurses to skip ncurses checks])
        fi
@@ -1073,7 +1075,7 @@ if test "${enable_ncurses}" = yes; then
       # check for wresize function in library
       SAVE_CPPFLAGS="$CPPFLAGS"
       SAVE_LDFLAGS="$LDFLAGS"
-      CPPFLAGS="$CPPFLAGS $NCURSES_INCLUDES"
+      CPPFLAGS="$CPPFLAGS $NCURSES_CPPFLAGS"
       LDFLAGS="$LDFLAGS $NCURSES_LIBS"
 
       AC_MSG_CHECKING([for wresize function in ncurses library])

@@ -26,6 +26,7 @@
 #include <qore/BuiltinFunctionList.h>
 #include <qore/params.h>
 #include <qore/ModuleManager.h>
+#include <qore/Hash.h>
 
 #include "ncurses-module.h"
 #include "QC_Window.h"

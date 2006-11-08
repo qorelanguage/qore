@@ -5,6 +5,9 @@
 	  found
 	* more HP-UX build fixes
 	* Darwin "environ" fix (why was this working before?)
+	* Solaris build fix (include -lz and -lm on library link line)
+	* updated ltmain.sh
+	* fixed ncurses module compilation with Solaris curses library
 
 2006.11.07: David Nichols
 	* HP-UX configure fix in configure.ac
