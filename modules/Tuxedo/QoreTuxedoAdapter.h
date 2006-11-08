@@ -113,6 +113,8 @@ public:
   Hash* generateFmlDescription(int base, Hash* typed_names, bool is_fml32, ExceptionSink* xsink);
 
   int setFmlDataToSend(Hash* description_info, List* data, bool is_fml32, ExceptionSink* xsink);
+  List* getFmlDataFromBuffer(Hash* description_info, bool is_fml32, ExceptionSink* xsink, 
+    char* buffer, long buffer_size, char* err_name);
 
   void deref() { 
     if (ROdereference()) {

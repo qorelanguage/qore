@@ -1543,6 +1543,30 @@ static QoreNode* generateFml32Description(Object* self, QoreTuxedoAdapter* adapt
 }
 
 //-----------------------------------------------------------------------------
+static void check_fml_description_hash_validity(Hash* description_info, char* err_name, ExceptionSink* xsink)
+{
+  // check validity of parameters
+  HashIterator it(description_info);
+  while (it.next()) {
+    QoreNode* n = it.getValue();
+    if (n->type != NT_LIST) {
+      xsink->raiseException(err_name, "The FML description hash needs to have a list as values.");
+      return;
+   }
+
+    List* l = n->val.list;
+    if (l->size() != 2) {
+      xsink->raiseException(err_name, "The FML description hash needs to have a list with two integers as value.");
+      return;
+    }
+    if (l->retrieve_entry(0)->type != NT_INT || l->retrieve_entry(1)->type != NT_INT) {
+      xsink->raiseException(err_name, "The FML description hash needs to have a list with two integers as value.");
+      return;
+    }
+  }
+}
+
+//-----------------------------------------------------------------------------
 static QoreNode* setFmlDataToSendImpl(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, bool is_fml32, ExceptionSink* xsink)
 {
   char* err_name = "TuxedoAdapter::setFml[32]DataToSend";
@@ -1555,16 +1579,8 @@ static QoreNode* setFmlDataToSendImpl(Object* self, QoreTuxedoAdapter* adapter, 
   List* data = n->val.list;
 
   // check validity of parameters
-  HashIterator it(description_info);
-  while (it.next()) {
-    n = it.getValue();
-    if (n->type != NT_LIST) return xsink->raiseException(err_name, "The FML description hash needs to have a list as values.");
-    List* l = n->val.list;
-    if (l->size() != 2) return xsink->raiseException(err_name, "The FML description hash needs to have a list with two integers as value.");
-    if (l->retrieve_entry(0)->type != NT_INT || l->retrieve_entry(1)->type != NT_INT) {
-      return xsink->raiseException(err_name, "The FML description hash needs to have a list with two integers as value.");
-    }
-  }
+  check_fml_description_hash_validity(description_info, err_name, xsink);
+  if (*xsink) return 0;
 
   for (int i = 0, cnt = data->size(); i != cnt; ++i) {
     n = data->retrieve_entry(i);
@@ -1592,6 +1608,34 @@ static QoreNode* setFmlDataToSend(Object* self, QoreTuxedoAdapter* adapter, Qore
 static QoreNode* setFml32DataToSend(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
 {
   return setFmlDataToSendImpl(self, adapter, params, true, xsink);
+}
+
+//-----------------------------------------------------------------------------
+static QoreNode* getReceivedFmlDataImpl(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, bool is_fml32, ExceptionSink* xsink)
+{
+  char* err_name = "TuxedoAdapter::getReceivedFml[32]Data";
+  QoreNode* n = test_param(params, NT_HASH, 0);
+  if (!n) return xsink->raiseException(err_name, "Single parameter, FML[32] description hash expected.");
+  Hash* description_info = n->val.hash;
+
+  check_fml_description_hash_validity(description_info, err_name, xsink);
+  if (*xsink) return 0;
+
+  List* result = adapter->getFmlDataFromBuffer(description_info, is_fml32, xsink, adapter->m_receive_buffer, adapter->m_receive_buffer_size, err_name);
+  if (*xsink) return 0;
+  return new QoreNode(result);
+}
+
+//-----------------------------------------------------------------------------
+static QoreNode* getReceivedFmlData(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
+{
+  return getReceivedFmlDataImpl(self, adapter, params, false, xsink);
+}
+
+//-----------------------------------------------------------------------------
+static QoreNode* getReceivedFml32Data(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
+{
+  return getReceivedFmlDataImpl(self, adapter, params, true, xsink);
 }
 
 //-----------------------------------------------------------------------------
@@ -1629,6 +1673,8 @@ class QoreClass* initTuxedoAdapterClass()
   adapter->addMethod("getReceivedDataType", (q_method_t)getReceivedDataType);
   adapter->addMethod("setFmlDataToSend", (q_method_t)setFmlDataToSend);
   adapter->addMethod("setFml32DataToSend", (q_method_t)setFml32DataToSend);
+  adapter->addMethod("getReceivedFmlData", (q_method_t)getReceivedFmlData);
+  adapter->addMethod("getReceivedFml32Data", (q_method_t)getReceivedFml32Data);
 
   // misc
   adapter->addMethod("error2string", (q_method_t)error2string);
