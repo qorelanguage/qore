@@ -47,7 +47,12 @@
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 
+#ifdef DARWIN
+#include <crt_externs.h>
+#define environ (*_NSGetEnviron())
+#else
 extern char **environ;
+#endif
 
 void qore_init(char *def_charset, bool show_module_errors)
 {
