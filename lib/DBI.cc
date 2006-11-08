@@ -230,10 +230,10 @@ class Namespace *getSQLNamespace()
    SQLNS->addConstant("DSInformix", new QoreNode("informix"));
 
    // for DBI driver capabilities
-   SQLNS->addConstant("DBI_CAP_CHARSET_SUPPORT",        new QoreNode(NT_INT, DBI_CAP_CHARSET_SUPPORT));
-   SQLNS->addConstant("DBI_CAP_TRANSACTION_MANAGEMENT", new QoreNode(NT_INT, DBI_CAP_TRANSACTION_MANAGEMENT));
-   SQLNS->addConstant("DBI_CAP_STORED_PROCEDURES",      new QoreNode(NT_INT, DBI_CAP_STORED_PROCEDURES));
-   SQLNS->addConstant("DBI_CAP_LOB_SUPPORT",            new QoreNode(NT_INT, DBI_CAP_LOB_SUPPORT));
+   SQLNS->addConstant("DBI_CAP_CHARSET_SUPPORT",        new QoreNode((int64)DBI_CAP_CHARSET_SUPPORT));
+   SQLNS->addConstant("DBI_CAP_TRANSACTION_MANAGEMENT", new QoreNode((int64)DBI_CAP_TRANSACTION_MANAGEMENT));
+   SQLNS->addConstant("DBI_CAP_STORED_PROCEDURES",      new QoreNode((int64)DBI_CAP_STORED_PROCEDURES));
+   SQLNS->addConstant("DBI_CAP_LOB_SUPPORT",            new QoreNode((int64)DBI_CAP_LOB_SUPPORT));
 
    // for column types for binding
    SQLNS->addConstant("VARCHAR", new QoreNode("string"));

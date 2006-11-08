@@ -6,15 +6,16 @@ NCURSES_SOURCES = ncurses.cc QC_Window.cc QC_Panel.cc
 if COND_MONOLITHIC
 noinst_LTLIBRARIES = libncurses.la
 libncurses_la_SOURCES = $(NCURSES_SOURCES)
-libncurses_la_LDFLAGS = -lncurses -lpanel -static
+libncurses_la_LDFLAGS = -static ${NCURSES_LIBS}
 else
 pkglib_LTLIBRARIES = ncurses.la
 ncurses_la_SOURCES = $(NCURSES_SOURCES)
-ncurses_la_LDFLAGS = -module -avoid-version -lncurses -lpanel
+ncurses_la_LDFLAGS = -module -avoid-version ${NCURSES_LIBS}
 endif
 
 INCLUDES = -I$(top_srcdir)/include
 
+AM_CPPFLAGS= ${NCURSES_INCLUDES}
 AM_CXXFLAGS = ${PTHREAD_CFLAGS}
 
 if COND_PROFILE

@@ -78,8 +78,8 @@ SHLIB_SUFFIX=so
 #echo host_os=${host_os}
 case "${host_os}" in
      *linux*)   AC_DEFINE(NEED_ICONV_TRANSLIT, 1, Define to 1 if //TRANSLIT should be added to the destination character set code) 
-# set compile flags for Linux
-CPPFLAGS="${CPPFLAGS} -D_GNU_SOURCE"
+		# set compile flags for Linux
+		CPPFLAGS="${CPPFLAGS} -D_GNU_SOURCE"
 		SHLIB_SUFFIX=so
 		AC_DEFINE(LINUX, 1, if compiling on Linux)
 		;;
@@ -96,6 +96,10 @@ LDFLAGS="-lnsl -norunpath"
 		;;
      *hpux*)    SHLIB_SUFFIX=sl
 		CPPFLAGS="$CPPFLAGS -D__STDC_EXT__" 
+		# add "-AA" to aCC commandline to get access to STL
+		if test -n "`echo $CXX|grep aCC`"; then
+		   CXXFLAGS="$CXXFLAGS -AA"
+		fi
 		AC_DEFINE(SHLIB_SUFFIX, "sl", shared library suffix)
 		AC_DEFINE(HPUX, 1, if compiling on HP-UX)
 		;;
@@ -118,17 +122,29 @@ AC_ARG_ENABLE([64bit],
 # see if we know how to set flags properly for different hosts and architectures
 if test "$enable_64bit" = "yes"; then
    case "${host_os}" in
-     *linux*)	if test "$GXX" = "yes"; then
-		CXXFLAGS="$CXXFLAGS -m64"
-		LIBSUFFIX=64
-		AC_SUBST(LIBSUFFIX)
+      *linux*)	if test "$GXX" = "yes"; then
+		   CXXFLAGS="$CXXFLAGS -m64"
+		fi
+		;;
+      *hpux*)	if test "$GXX" = "yes"; then
+		   CXXFLAGS="$CXXFLAGS -m64"
+		elif test -n "`echo $CXX|grep aCC`"; then
+		   CXXFLAGS="$CXXFLAGS +DA2.0W"
 		fi
 		;;
    esac
+   LIBSUFFIX=64
+   AC_SUBST(LIBSUFFIX)
 else
    case "${host_os}" in
      *linux*)	if test "$GXX" = "yes"; then
-		CXXFLAGS="$CXXFLAGS -m32"
+		   CXXFLAGS="$CXXFLAGS -m32"
+		fi
+		;;
+      *hpux*)	if test "$GXX" = "yes"; then
+		   CXXFLAGS="$CXXFLAGS -m32"
+		elif test -n "`echo $CXX|grep aCC`"; then
+		   CXXFLAGS="$CXXFLAGS +DAportable"
 		fi
 		;;
    esac
@@ -708,7 +724,6 @@ tpinit((TPINIT*)0);
 
    CPPFLAGS="$SAVE_CPPFLAGS"
    LDFLAGS="$SAVE_LDFLAGS"
-   LIBS="$SAVE_LIBS"
 
    if test ${tuxedo_links} = "no"; then
       AC_MSG_RESULT([failed: cannot link with the Tuxedo libraries in ${with_tuxedo}/lib, skipping support for the tuxedo module])
@@ -731,12 +746,40 @@ AC_ARG_WITH([oracle],
    [with_oracle=auto])
 
 if test "$with_oracle" = "auto"; then
-   if test -n "$ORACLE_HOME"; then
+   if test -n "$ORACLE_HOME" -o -n "$ORACLE_INSTANT_CLIENT" -o "$with_oracle_instant_client"; then
       with_oracle=yes
    else
       with_oracle=no
    fi
 fi
+
+get_oracle_version()
+{
+  AC_MSG_CHECKING([Oracle version])
+  if test -n "$2" -a -s "$1/orainst/unix.rgs"; then
+    ORACLE_VERSION=`grep '"ocommon"' $1/orainst/unix.rgs | sed "s/[ ][ ]*/:/g" | cut -d: -f 6 | cut -c 2-4`
+    test -z "$ORACLE_VERSION" && ORACLE_VERSION=7.3
+  elif test -f $1/libclntsh.$SHLIB_SUFFIX.10.1; then
+    ORACLE_VERSION=10.1
+  elif test -f $1/libclntsh.$SHLIB_SUFFIX.10.0; then
+    ORACLE_VERSION=10.0
+  elif test -f $1/libclntsh.$SHLIB_SUFFIX.9.0; then
+    ORACLE_VERSION=9.0
+  elif test -f $1/libclntsh.$SHLIB_SUFFIX.8.0; then
+    ORACLE_VERSION=8.1
+  elif test -f $1/libclntsh.$SHLIB_SUFFIX.1.0; then
+    ORACLE_VERSION=8.0
+  elif test -f $1/libclntsh.a; then
+    if test -f $1/libcore4.a; then
+      ORACLE_VERSION=8.0
+    else
+      ORACLE_VERSION=8.1
+    fi
+  else
+    AC_MSG_ERROR([Oracle libraries not found, use --without-oracle to build without Oracle support])
+  fi
+  AC_MSG_RESULT($ORACLE_VERSION)
+}
 
 case "$with_oracle" in
   yes) ORACLE_DIR=$ORACLE_HOME ;;
@@ -745,23 +788,44 @@ case "$with_oracle" in
 esac
 
 if test "$with_oracle" = "yes"; then
-   if test -d "$ORACLE_DIR/rdbms/public"; then
-      ORACLE_INCLUDES="-I$ORACLE_DIR/rdbms/public"
+   AC_ARG_WITH([oracle-instant-client],
+  [AS_HELP_STRING([--with-oracle-instant-client@<:@=DIR@:>@],
+                  [directory for Oracle instant client files])],
+   ,
+  [with_oracle_instant_client=$ORACLE_INSTANT_CLIENT])
+
+  echo with_oracle_instant_client=$with_oracle_instant_client
+   if test -n "$with_oracle_instant_client"; then
+      AC_MSG_CHECKING([for Oracle instant client SDK])
+      if test -f "$with_oracle_instant_client/sdk/include/oci.h"; then
+	 AC_MSG_RESULT([ok])
+	 ORACLE_INCLUDES="-I$with_oracle_instant_client/sdk/include"
+	 oracle_lib_dir=$with_oracle_instant_client
+	 get_oracle_version $with_oracle_instant_client
+      else
+	 AC_MSG_ERROR([instant client SDK include files not found, use --without-oracle to build without Oracle support or install the instant client SDK])
+      fi
+   else
+      if test -d "$ORACLE_DIR/rdbms/public"; then
+         ORACLE_INCLUDES="-I$ORACLE_DIR/rdbms/public"
+      fi
+      if test -d "$ORACLE_DIR/rdbms/demo"; then
+	 ORACLE_INCLUDES="$ORACLE_INCLUDES -I$ORACLE_DIR/rdbms/demo"
+      fi
+      if test -d "$ORACLE_DIR/network/public"; then
+	 ORACLE_INCLUDES="$ORACLE_INCLUDES -I$ORACLE_DIR/network/public"
+      fi
+      if test -d "$ORACLE_DIR/plsql/public"; then
+	 ORACLE_INCLUDES="$ORACLE_INCLUDES -I$ORACLE_DIR/plsql/public"
+      fi
+      oracle_lib_dir="$ORACLE_DIR/lib"
+      get_oracle_version $ORACLE_DIR/lib $ORACLE_DIR
    fi
-   if test -d "$ORACLE_DIR/rdbms/demo"; then
-      ORACLE_INCLUDES="$ORACLE_INCLUDES -I$ORACLE_DIR/rdbms/demo"
-   fi
-   if test -d "$ORACLE_DIR/network/public"; then
-      ORACLE_INCLUDES="$ORACLE_INCLUDES -I$ORACLE_DIR/network/public"
-   fi
-   if test -d "$ORACLE_DIR/plsql/public"; then
-      ORACLE_INCLUDES="$ORACLE_INCLUDES -I$ORACLE_DIR/plsql/public"
-   fi
+
    AC_SUBST(ORACLE_INCLUDES)
 
-   AC_ORACLE_VERSION
    case "$ORACLE_VERSION" in
-      9*|10*) ORACLE_LIBS="-L$ORACLE_DIR/lib -lclntsh" ;; 
+      9*|10*) ORACLE_LIBS="-L$oracle_lib_dir -lclntsh" ;; 
       *)      AC_MSG_ERROR(Unsupported Oracle version) ;;
    esac
    AC_SUBST(ORACLE_LIBS)
@@ -858,7 +922,7 @@ if test "${enable_mysql}" != "no"; then
 	 unset with_mysql_libs
       fi
    else
-      for dir in "$MYSQL_DIR/lib${LIBSUFFIX}" /usr/local/mysql/lib${LIBSUFFIX} /opt/mysql/lib${LIBSUFFIX} /usr/mysql/lib${LIBSUFFIX} /usr/lib${LIBSUFFIX}/mysql /sw/lib/mysql /opt/local/lib${LIBSUFFIX} ;do
+      for dir in "$MYSQL_DIR/lib${LIBSUFFIX}" /usr/local/mysql/lib${LIBSUFFIX} /opt/mysql/lib${LIBSUFFIX} /usr/mysql/lib${LIBSUFFIX} /usr/lib${LIBSUFFIX}/mysql /sw/lib/mysql /opt/local/lib${LIBSUFFIX} /usr/sfw/lib${LIBSUFFIX} /opt/sfw/lib${LIBSUFFIX} ;do
       	  check_mysql_lib $dir
       	  if test -n "$mysql_lib_dir"; then
 	     with_mysql_libs="$mysql_lib_dir"
@@ -923,6 +987,65 @@ MYSQL mysql; mysql_init(&mysql);
   fi
 fi
 
+# don't add system directories to library path
+set_ncurses_lib()
+{
+   if test "$1" = "/usr" -a "$1" = "/"; then
+      NCURSES_LIBS="-l$2 -lpanel"
+   else
+      NCURSES_LIBS="-L$lib -l$2 -lpanel"
+   fi
+   AC_SUBST(NCURSES_LIBS)
+}
+
+# checks for ncurses (or curses) and panel libraries and include files and sets NCURSES_LIBS and NCURSES_INCLUDES appropriately
+check_ncurses()
+{
+    lib=$1/lib${LIBSUFFIX}
+
+    if test -f "$lib/libncurses.${SHLIB_SUFFIX}" -a -f "$lib/libpanel.${SHLIB_SUFFIX}"; then
+       ncurses_dir=$1
+       AC_MSG_RESULT([$lib (ncurses shared)])
+       set_ncurses_lib "$1" ncurses
+    elif test -f "$lib/libncurses.a" -a -f "$lib/libpanel.a"; then
+       ncurses_dir=$1
+       AC_MSG_RESULT([$lib (ncurses static)])
+       NCURSES_LIBS="$lib/libncurses.a $lib/libpanel.a"
+    elif test -f "$lib/libcurses.${SHLIB_SUFFIX}" -a -f "$lib/libpanel.${SHLIB_SUFFIX}"; then
+       ncurses_dir=$1
+       AC_MSG_RESULT([$lib (curses shared)])
+       set_ncurses_lib "$1" curses
+    elif test -f "$lib/libcurses.a" -a -f "$lib/libpanel.a"; then
+       ncurses_dir=$1
+       AC_MSG_RESULT([$lib (curses static)])
+       NCURSES_LIBS="$lib/libcurses.a $lib/libpanel.a"
+    fi
+
+    # make sure include files are in the expected place as well
+    if test -n "$ncurses_dir"; then
+       AC_MSG_CHECKING([for ncurses and panel include files])
+       if test -f "$1/include/curses.h" -a "$1/include/panel.h"; then
+          AC_MSG_RESULT([found in $ncurses_dir])
+	  if test "$1" = "/usr"; then
+	     NCURSES_INCLUDES=
+	  else
+	     NCURSES_INCLUDES="-I$1/include"
+	  fi
+	  AC_SUBST(NCURSES_INCLUDES)
+       elif test -f "$1/include/ncurses/curses.h" -a "$1/include/ncurses/panel.h"; then
+          AC_MSG_RESULT([found in $1/include/ncurses])
+	  if test "$1" = "/usr"; then
+	     NCURSES_INCLUDES="-I$1/include/ncurses"
+	  else
+	     NCURSES_INCLUDES="-I$1/include -I$1/include/ncurses"
+	  fi
+	  AC_SUBST(NCURSES_INCLUDES)
+       else
+          AC_MSG_ERROR([not found!  use configure --disable-ncurses to skip ncurses checks])
+       fi
+    fi
+}
+
 AC_ARG_ENABLE([ncurses],
   [AS_HELP_STRING([--disable-ncurses],
                   [do not include ncurses support])],
@@ -934,21 +1057,46 @@ AC_ARG_ENABLE([ncurses],
 
 if test "${enable_ncurses}" = yes; then
    enable_ncurses=no
-   PKG_CHECK_MODULES(NCURSES, ncurses,,[
-      AC_MSG_CHECKING([trying to find ncurses])
-         AC_CHECK_LIB(ncurses, initscr, enable_ncurses=yes)
-	 AC_CHECK_LIB(panel, update_panels, enable_panel=yes)
-	 AC_CHECK_LIB(ncurses, wresize, AC_DEFINE(HAVE_WRESIZE, 1, [define if the wresize function is available]))
-	 ])
-fi
+   AC_MSG_CHECKING([for ncurses and panel libraries])
 
-if test "${enable_ncurses}" = yes; then
-   if test "${enable_panel}" = yes; then
+   for dir in "$NCURSES_DIR" /usr /usr/local /usr/local/ncurses /opt/gnu /opt/ncurses /usr/ncurses /sw /opt/local /usr/sfw /opt/sfw; do
+       check_ncurses $dir
+       if test -n "$ncurses_dir"; then
+	  break;
+       fi
+   done
+   if test -z "$ncurses_dir"; then
+      AC_MSG_RESULT([not found])
+   else
+      enable_ncurses=yes
       AC_DEFINE(NCURSES, 1, Define if ncurses support should be included)
+
+      # check for wresize function in library
+      SAVE_CPPFLAGS="$CPPFLAGS"
+      SAVE_LDFLAGS="$LDFLAGS"
+      CPPFLAGS="$CPPFLAGS $NCURSES_INCLUDES"
+      LDFLAGS="$LDFLAGS $NCURSES_LIBS"
+
+      AC_MSG_CHECKING([for wresize function in ncurses library])
+      AC_LINK_IFELSE([AC_LANG_PROGRAM([[
+#include <curses.h>
+	 ]],[[
+wresize((WINDOW *)0, 0, 0);
+	 ]])], have_wresize=yes, have_wresize=no)
+
+      CPPFLAGS="$SAVE_CPPFLAGS"
+      LDFLAGS="$SAVE_LDFLAGS"
+
+      if test "$have_wresize" = "yes"; then
+	 AC_MSG_RESULT([yes])
+	 AC_DEFINE(HAVE_WRESIZE, 1, [define if the wresize function is available])
+      else
+	 AC_MSG_RESULT([no])
+      fi
    fi
 fi
 
-PKG_CHECK_MODULES(XML, libxml-2.0 >= 2.4.22,,[
+PKG_CHECK_MODULES(LIBXML2, libxml-2.0 >= 2.4.22,,[
   AC_MSG_CHECKING([trying xml2-config])
     if xml2-config --libs > /dev/null 2>&1; then
       full=`xml2-config --version`
@@ -1248,4 +1396,10 @@ if test "$with_tuxedo" = "yes"; then
    echo yes
 else
    echo disabled
+fi
+
+# hack to use our libtool if on HP-UX to enable static libs to be linked in to modules
+if test "`uname -s`" = "HP-UX"; then
+   #echo copying in HP-UX libtool 
+   cp hpux/libtool-hack libtool
 fi

@@ -1,3 +1,9 @@
+2006.11.08: David Nichols
+	* updated configure to find ncurses in non-standard locations and to use
+	  Solaris curses if found
+	* updated configure to detect and use oracle instant client libraries if
+	  found
+
 2006.11.07: David Nichols
 	* HP-UX configure fix in configure.ac
 	* fixed character set names to use only valid aliases on HP-UX
