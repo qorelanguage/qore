@@ -47,17 +47,16 @@ some example Qore scripts/programs.
 ***************
 *** HISTORY ***
 ***************
-
-Qore development was originally sponsored by Hutchison 3G in Vienna, Austria in order to provide the logic engine for the OM/Qore Workflow/EAI System.
+Qore development was originally sponsored by Hutchison 3G in Vienna, Austria in order to provide the logic engine for the Qorus Integration Engine (formerly OM/Qore Workflow/EAI System).
 Qore development is now sponsored by Qore Technologies s.r.o. in Prague, Czech Republic.
 
-OM/Qore Workflow and EAI System
--------------------------------
-The OM/Qore Workflow/EAI system is a framework for the development and operations of reliable (fault-tolerant) interfaces supporting "Guaranteed Recoverability".
+Qorus Integration Engine
+------------------------
+Qorus Integration Engine is a framework for the development and operation of reliable (fault-tolerant) interfaces supporting "Guaranteed Recoverability".
 
 The system is a highly multi-threaded, Oracle- and TIBCO ActiveEnterprise-integrated workflow and SOA platform where user (and some system) logic is run-time loaded/refreshed from an Oracle database and executed in a controlled fashion in Qore Program objects with restricted capabilities by the system in order to support user-defined workflows and services.
 
-Basically the qore language was developed in order to make it possible to write this application, however solutions to various challenges in the OM/Qore language/library design were implemented in the most generic and flexible way possible in order to make qore as useful in as many contexts as possible.
+Basically the qore language was developed in order to make it possible to write this application, however solutions to various challenges in the Qore language/library design were implemented in the most generic and flexible way possible in order to make qore as useful in as many contexts as possible.
 
 The requirements for the language were:
 *) clean threading model

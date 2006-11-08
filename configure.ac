@@ -1104,14 +1104,16 @@ PKG_CHECK_MODULES(LIBXML2, libxml-2.0 >= 2.4.22,,[
         awk 'BEGIN { FS = "."; } {printf("%04d%03d\n", $1 * 1000 + $2, $3);}'`
       if test "$vers" -ge 2004022; then
 	AC_MSG_RESULT($full)
-	XML_CFLAGS="`xml2-config --cflags`"
-	XML_LIBS="`xml2-config --libs`"
+	LIBXML2_CFLAGS="`xml2-config --cflags`"
+	LIBXML2_LIBS="`xml2-config --libs`"
+	AC_SUBST(LIBXML2_CFLAGS)
+	AC_SUBST(LIBXML2_LIBS)
       else
 	AC_MSG_ERROR([libxml2 2.4.22 or higher is needed; found version $full])
       fi
     else
       AC_MSG_ERROR([libxml2 2.4.22 or higher is needed; xml2-config not found])      
-    fi])
+    fi], AC_MSG_ERROR([no libxml2 found, please install and rerun configure]))
 
 # Checks for header files.
 AC_HEADER_STDC

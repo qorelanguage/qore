@@ -3,6 +3,7 @@
 	  Solaris curses if found
 	* updated configure to detect and use oracle instant client libraries if
 	  found
+	* more HP-UX build fixes
 
 2006.11.07: David Nichols
 	* HP-UX configure fix in configure.ac

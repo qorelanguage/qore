@@ -4,15 +4,15 @@
 
 Build Requirements
 ------------------
-*) flex 2.5.31 (or greater -- 2.5.4 or before will NOT work, sorry)
-qore requires this nonstandard version of flex in order to build a reentrant parser.  I was not able to build a reentrant parser with earler versions of flex (including 2.5.4).  most distributions come with flex 2.5.4; this version will not work and the configure script will exit an error message if only this version is found.  You can download flex 2.5.31 at:
-	 http://sourceforge.net/projects/lex
+*) flex 2.5.31 (or greater -- 2.5.4 or before will NOT work, sorry, flex 2.5.33 recommended)
+qore requires this nonstandard version of flex in order to build a reentrant parser.  I was not able to build a reentrant parser with earler versions of flex (including 2.5.4).  most distributions come with flex 2.5.4; this version will not work and the configure script will exit an error message if only this version is found.  You can download flex 2.5.33 at:
+	 http://sourceforge.net/projects/flex
 
 *) bison 1.85 (or better, 2.* versions are fine)
-qore requires bison 1.85 or greater to be able to interface properly with the scanner produced by flex 2.5.31
+qore requires bison 1.85 or greater to be able to interface properly with the scanner produced by flex 2.5.3[1-3]*
 
 *) POSIX threads
-Support for building single-threaded versions of Qore has been removed - POSIX thread functions are now required to build qore.
+OS-level POSIX thread support is required to build qore.
 
 *) libxml 2.4.22 or better
 for the XML subsystem - note that this is no longer an optional component of Qore
@@ -53,10 +53,13 @@ recommended configure arguments: configure --disable-static --disable-debug --pr
 ========= to build optional modules ==========
 
 *) "oracle": Oracle DBI module requires Oracle 9i or better
-If you have Oracle 9i or higher you can build in Oracle integration.  Make sure your ORACLE_HOME is set before calling configure (otherwise use the --with-oracle configure option).  Header files and libraries must be available in the standard locations.  Oracle support is good.  See below for information on limitations of the Oracle driver.
+Oracle DB installation: If you have Oracle 9i or higher you can build in Oracle integration.  Make sure your ORACLE_HOME is set before calling configure (otherwise use the --with-oracle configure option).  Header files and libraries must be available in the standard locations.  
+Oracle Instant Client installation: Make sure the ORACLE_INSTANT_CLIENT environment variable is set before you run configure.  On HP-UX, make sure that libclntsh.sl.* is symlinked to libclntsh.sl (I had to do this by hand), otherwise the HPUX linked cannot find the shared library.
+Oracle support is good.  See below for information on limitations of the Oracle driver.
 
 *) "mysql": MySQL DBI module requires MySQL 3.3 or better
 If you have MySQL 3.3+ or better you can build in MySQL support.  With MySQL 4.1+ you can get transaction support and the module will use the more efficient prepared statement interface.
+If your mysql installation is in a non-standard location, set the MYSQL_DIR environment variable to the location of the installation before running configure
 
 *) "tibrv": TIBCO Rendezvous module requires TIBCO Rendezvous 7.x (6 may work)
 Set the RV_ROOT environment variable to the Rendezvous directory before calling configure (or use the --with-tibrv configure option) to build the "tibrv" module for direct Rendezvous support.  Note that to build this module the libtibrvcpp library must be present; on some platforms you have to rebuild this yourself from the sources provided by TIBCO in order for it to link with the C++ compiler you are using - the sources are normally present in $RV_ROOT/src/librvcpp, normally you have to edit the Makefile provided there and then type "make" to rebuild.  I had to include "ranlib libtibrvcpp.a" on the libraries I rebuilt for OS X.  Secure daemon support is turned off by default in tibrvcpp, to enable secure daemon support edit $RV_ROOT/src/librvcpp/Makefile and uncomment the SD_MODULE line near the end of the file, rebuild, install the new library in $RV_ROOT/lib, and rerun qore's configure script
@@ -64,8 +67,11 @@ Set the RV_ROOT environment variable to the Rendezvous directory before calling 
 *) "tibae": TIBCO AE module requires TIBCO SDK 5.2.1 or better
 If you have TIBCO Rendezvous and the AE SDK installed, and the supported C++ compiler, you can build in TIBCO AE integration.  Make sure that the RV_ROOT, SDK_ROOT, and TPCL_ROOT environment variables are pointing to your Rendezvous, SDK, and TPCL directories respectively before calling configure.  Otherwise you can use the --with-tibrv, --with-tibae, and with-tibae-tpcl configure options.  The TIBCO module will compile with SDK 4.* versions, but there are so many bugs in this version of the SDK (including some horrible dynamic memory leaks) that it doesn't make sense to use anything before 5.2.1...
 
+*) "tuxedo": BEA Tuxedo support requores Tuxedo 8 or better
+~
 *) "ncurses": ncurses module
-note that this module is still experimental due to the fact that I'm not sure if it's possible to safely enable threading without putting a big lock around every curses call.  Right now Solaris curses is not properly detected by the configure script although if it were it the module can be built - I have to fix this in configure.ac
+note that this module is still experimental due to the fact that I'm not sure if it's possible to safely enable threading without putting a big lock around every curses call.
+if your ncurses is in a non-standard location, set the NCURSES_DIR environment variable before running configure
 
 To build qore, run the following commands:
 
@@ -92,18 +98,21 @@ Older builds worked fine with 10.3.8, currently the new version with shared libr
 NOTE that pthread_create() on Darwin 8.7.1 (OS X 10.4.7) returns 0 (no error) on i386 at least, even when it appears that thread resources are exhausted and the new thread is never started.  This happens after 2560 threads are started, so normally this will not be an issue for most programs.  To make sure that this doesn't happen, when qore is compiled on Darwin MAX_QORE_THREADS is automatically set to 2560 (otherwise the default is normally 4096)
 
 *) Solaris:
-The g++ builds work fine (tested with g++ 4.0.1).  With CC (which I use to get the TIBCO AE SDK to link) I build a monolithic binary for easier deployment on our production site.  hash_map is detected and supported with CC 5.5 and stlport4 as well, however it is disabled if the "tibae" module is compiled in, because stlport4 clashes with the iostream library already linked in to the TIBCO AE SDK, therefore hash lookups will be slower on Solaris if the "tibae" module is used :-(
+The g++ static and shared builds work fine (tested with g++ 4.0.1, 4.1.1, CC).  Note that the sunpro (CC) compiler is required to link with the TIBCO AE SDK.  hash_map is detected and supported with CC 5.5 and stlport4 as well, however it is disabled if the "tibae" module is compiled in, because stlport4 clashes with the iostream library already linked in to the TIBCO AE SDK.
 
 *) FreeBSD
 I have heard that qore builds fine, but I have not actually seen it myself, nor do I have access to a FreeBSD platform for testing :-(
 
 *) HP-UX
-HP-UX builds are still not working 100% out of the box, at least not for me.  I suspect that libtool is the problem; I can get it to build with g++, but only using --disable-shared and then performing some link steps by hand (adding -L/usr/local/lib -liconv -L/usr/lib -lz  ... I think).  
+HP-UX builds are finally working, however I had to hack libtool to get the modules to link with static libaries.  I am using HP-UX 11.23 (v2) on PA-RISC.
+By default PA-RISC 1.1 (32-bit) binaries are produced
 Qore now uses strtoimax() as a replacement for strtoll() on HP-UX.  
-Qore will not yet build with aCC without making some minor changes - aCC doesn't like to reuse local variables at the same lexical level (for example, in a for loop, like for (int i = 0; ,,,) {} - if you do this twice in a row the compiler will complain about variable i being declared twice even though it should be local to each loop - which means that the version of aCC I was using does not follow the C++ standard as far as I can tell) - the easy fix is to rename the additional occurrences of the variable in those functions...  I would be happy to hear from people who get qore working on HP platforms, and I would be even happier to get patches to support cleaner builds without the hand patching...
+It is possible that older versions of aCC will not work - I am using v3.75
+Currently there is no fast atomic reference count support on PA-RISC platforms
 
 *) Windows
 Windows is generally not supported, although I have built previous versions on Windows using a Cygwin environment, but the executable was so slow that it's not worth supporting.  Windows may be supported in the future if I get it to work without Cygwin (i.e. using native win32 apis)
+There have been numerous requests for this, so any (clean) patches would be appreciated!
 
 CPU Support
 -----------
