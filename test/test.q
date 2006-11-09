@@ -1077,9 +1077,12 @@ sub constant_tests()
 
 sub xml_tests()
 { 
-    my $o = ( "test" : 1, "gee" : "philly", "marguile" : 1.0392,
+    my $o = ( "test" : 1, 
+	      "gee" : "philly", 
+	      "marguile" : 1.0392,
 	      "list" : (1, 2, 3, ( "four" : 4 ), 5),
 	      "hash" : ( "howdy" : 123, "partner" : 456 ),
+	      "list^1" : "test",
 	      "bool" : True,
 	      "time" : now(),
 	      "bool^1" : False,
