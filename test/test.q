@@ -1082,6 +1082,7 @@ sub xml_tests()
 	      "hash" : ( "howdy" : 123, "partner" : 456 ),
 	      "bool" : True,
 	      "time" : now(),
+	      "bool^1" : False,
 	      "key"  : "this & that" );
     my $mo = ( "o" : $o );
     my $str = makeXMLString("o", $o);
