@@ -106,9 +106,9 @@ I have heard that qore builds fine, but I have not actually seen it myself, nor 
 
 *) HP-UX
 HP-UX builds are finally working, however I had to hack libtool to get the modules to link with static libaries.  I am using HP-UX 11.23 (v2) on PA-RISC.
-By default PA-RISC 1.1 (32-bit) binaries are produced
+PA-RISC 2.0 32-bit binaries are produced in 32-bit mode, with --enable-64-bit, PA-RISC 2.0 64-bit binaries are produced
 Qore now uses strtoimax() as a replacement for strtoll() on HP-UX.  
-It is possible that older versions of aCC will not work - I am using v3.75
+It is likely older versions of aCC will work - I am using v3.75
 Currently there is no fast atomic reference count support on PA-RISC platforms
 
 *) Windows

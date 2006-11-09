@@ -1,3 +1,9 @@
+2006.11.09: David Nichols
+	* updated configure to produce PA-RISC 2.0 32-bit binaries on HP-UX with
+	  a 32-bit compile instead of PA-RISC 1.1 to enable linking with 32-bit 
+	  Oracle libraries (where libnnz10.sl is a PA-RISC 2.0 library even 
+	  though all other Oracle 32-bit libraries are PA-RISC 1.1)
+
 2006.11.08: David Nichols
 	* updated configure to find ncurses in non-standard locations and to use
 	  Solaris curses if found

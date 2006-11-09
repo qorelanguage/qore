@@ -144,7 +144,7 @@ else
       *hpux*)	if test "$GXX" = "yes"; then
 		   CXXFLAGS="$CXXFLAGS -m32"
 		elif test -n "`echo $CXX|grep aCC`"; then
-		   CXXFLAGS="$CXXFLAGS +DAportable"
+		   CXXFLAGS="$CXXFLAGS +DA2.0N"
 		fi
 		;;
    esac
