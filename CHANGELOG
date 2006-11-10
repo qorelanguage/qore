@@ -1,3 +1,9 @@
+2006.11.10: David Nichols
+	* added initial HP-UX itanium support to configure
+	* improved openssl library and header file detection in configure; now
+	  the script checks for libcrypto and guarantees to get the header files
+	  associated with the libraries found
+
 2006.11.09: David Nichols
 	* updated configure to produce PA-RISC 2.0 32-bit binaries on HP-UX with
 	  a 32-bit compile instead of PA-RISC 1.1 to enable linking with 32-bit 

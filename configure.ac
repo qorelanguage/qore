@@ -17,7 +17,7 @@ if test -z "`echo $LEX | grep flex`"; then
         AC_MSG_ERROR([no flex version found])
 elif test -z "`$LEX --version | grep -e ' 2\.5\.3[[1-9]]' -e '2\.5\.[[4-9]][[0-9]]' -e '2\.\[[6-9]]\.'`" ; then
         flexver=`$LEX --version`
-	AC_MSG_ERROR([incompatible $flexver found - you can download flex 2.5.31 at http://sourceforge.net/projects/lex])
+	AC_MSG_ERROR([incompatible $flexver found - you can download flex 2.5.33 at http://sourceforge.net/projects/flex])
 else
 	AC_MSG_RESULT([yes])
 fi
@@ -90,17 +90,21 @@ LDFLAGS="-lnsl -norunpath"
 		AC_DEFINE(SOLARIS, 1, if compiling on Solaris)
 	        ;;
      *darwin*)  SHLIB_SUFFIX=dylib
-		# libtool 1.5.10 is creating modules on Darwin 8.2.0 (OS/X 10.4.2) with a .so suffix for some reason
+		# libtool 1.5.* is creating modules on Darwin 8.* (OS/X 10.4.*) with a .so suffix for some reason
 		MODULE_SUFFIX=so
 		AC_DEFINE(DARWIN, 1, if compiling on Darwin)
 		;;
-     *hpux*)    SHLIB_SUFFIX=sl
+     *hpux*)    if test "$host_cpu" = "ia64"; then
+     		   SHLIB_SUFFIX=so
+		else  # assume hppa (PA-RISC)
+     		   SHLIB_SUFFIX=sl
+		   AC_DEFINE(SHLIB_SUFFIX, "sl", shared library suffix)
+		fi
 		CPPFLAGS="$CPPFLAGS -D__STDC_EXT__" 
-		# add "-AA" to aCC commandline to get access to STL
+		# add "-AA" to aCC commandline to get access to STL (among other things)
 		if test -n "`echo $CXX|grep aCC`"; then
 		   CXXFLAGS="$CXXFLAGS -AA"
 		fi
-		AC_DEFINE(SHLIB_SUFFIX, "sl", shared library suffix)
 		AC_DEFINE(HPUX, 1, if compiling on HP-UX)
 		;;
 esac
@@ -119,6 +123,11 @@ AC_ARG_ENABLE([64bit],
       esac],
   [enable_64bit=no])
 
+# turn on 64-bit by default if compiling on itanium
+if test "$host_cpu" = "ia64"; then
+   enable_64bit=yes
+fi
+
 # see if we know how to set flags properly for different hosts and architectures
 if test "$enable_64bit" = "yes"; then
    case "${host_os}" in
@@ -128,7 +137,7 @@ if test "$enable_64bit" = "yes"; then
 		;;
       *hpux*)	if test "$GXX" = "yes"; then
 		   CXXFLAGS="$CXXFLAGS -m64"
-		elif test -n "`echo $CXX|grep aCC`"; then
+		elif test -n "`echo $CXX|grep aCC`" -a "$host_cpu" != "ia64"; then
 		   CXXFLAGS="$CXXFLAGS +DA2.0W"
 		fi
 		;;
@@ -141,14 +150,61 @@ else
 		   CXXFLAGS="$CXXFLAGS -m32"
 		fi
 		;;
-      *hpux*)	if test "$GXX" = "yes"; then
+     *hpux*)	if test "$GXX" = "yes"; then
 		   CXXFLAGS="$CXXFLAGS -m32"
-		elif test -n "`echo $CXX|grep aCC`"; then
-		   CXXFLAGS="$CXXFLAGS +DA2.0N"
+		elif test -n "`echo $CXX|grep aCC`" -a "$host_cpu" != "ia64"; then
+		   CXXFLAGS="$CXXFLAGS +DA2.0N"   # NOTE we compile for PA-RISC 2.0 32-bit, not PA-RISC 1.1
 		fi
 		;;
    esac
 fi
+
+set_openssl_cppflags()
+{
+    if test "$1" != "/usr/include"; then
+        OPENSSL_CPPFLAGS=-I$1
+    fi
+}
+
+find_openssl()
+{
+    lib=$1/lib${LIBSUFFIX}
+    # if we only want the static openssl libraries
+    if test -n "$openssl_static"; then
+    	if test -f "$lib/libssl.a" -a -f "$lib/libcrypto.a"; then
+	    OPENSSL_LDFLAGS="$lib/libssl.a $lib/libcrypto.a"
+       	    AC_MSG_RESULT([$lib (static)])
+    	fi
+    else
+        if test -f "$lib/libssl.${SHLIB_SUFFIX}" -a -f "$lib/libcrypto.${SHLIB_SUFFIX}"; then
+	    if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
+       	        OPENSSL_LDFLAGS="-L$lib"
+    	    fi
+	    OPENSSL_LDFLAGS="$OPENSSL_LDFLAGS -lssl -lcrypto"
+       	    AC_MSG_RESULT([$lib (shared)])
+    	elif test -f "$lib/libssl.a" -a -f "$lib/libcrypto.a"; then
+	    OPENSSL_LDFLAGS="$lib/libssl.a $lib/libcrypto.a"
+       	    AC_MSG_RESULT([$lib (static)])
+    	fi
+    fi
+    if test -z "$OPENSSL_LDFLAGS"; then
+        return
+    fi
+    AC_MSG_CHECKING([for openssl include files])
+    # try to find include files
+    if test "$1" = "/"; then
+        inc=/usr/include
+    else
+        inc=$1/include
+    fi
+    if test -f "$inc/openssl/ssl.h"; then
+        AC_MSG_RESULT([found: $inc/openssl])
+        set_openssl_cppflags $inc
+    else
+	AC_MSG_ERROR([not found])
+    fi
+    AC_SUBST(OPENSSL_CPPFLAGS)   
+}
 
 # see if we can figure out where the openssl library is
 AC_ARG_WITH([openssl-libs],
@@ -156,87 +212,16 @@ AC_ARG_WITH([openssl-libs],
                   [openssl library directory])],
   [if test ! -d "${with_openssl_libs}"; then AC_MSG_ERROR(bad value ${with_openssl_libs} for --with-openssl-libs); unset with_openssl_libs; fi])
 
-AC_MSG_CHECKING([for openssl library])
-if test -n "$with_openssl_libs"; then
-   if test ! -f "$with_openssl_libs/libssl.a" -a ! -f "$with_openssl_libs/libssl.$SHLIB_SUFFIX"; then
-      AC_MSG_ERROR([can't find openssl library in $with_openssl_libs])
-   else
-      AC_MSG_RESULT([$with_openssl_libs])
-      if test "$with_openssl_libs" = "/usr/lib${LIBSUFFIX}"; then
-         with_openssl_libs=
-      elif test "$with_openssl_libs" = "/lib${LIBSUFFIX}"; then
-         with_openssl_libs=
-      fi
-   fi
-else
-   if test -n "$OPENSSL_DIR" -a \( -f $OPENSSL_DIR/lib${LIBSUFFIX}/libssl.a -o -f "$OPENSSL_DIR/lib${LIBSUFFIX}/libssl.$SHLIB_SUFFIX" \); then
-      AC_MSG_RESULT([$OPENSSL_DIR/lib${LIBSUFFIX}])
-      with_openssl_libs=$OPENOPENSSL_DIR/lib${LIBSUFFIX}
-   elif test -f /usr/lib${LIBSUFFIX}/libssl.a -o -f /usr/lib${LIBSUFFIX}/libssl.$SHLIB_SUFFIX; then
-      AC_MSG_RESULT([/usr/lib${LIBSUFFIX}])
-   elif test -f /lib${LIBSUFFIX}/libssl.a -o -f /lib${LIBSUFFIX}/libssl.$SHLIB_SUFFIX; then
-      AC_MSG_RESULT([/lib${LIBSUFFIX}])
-   elif test -f /opt/openssl/lib${LIBSUFFIX}/libssl.a -o -f /opt/openssl/lib${LIBSUFFIX}/libssl.$SHLIB_SUFFIX; then
-      AC_MSG_RESULT([/opt/openssl/lib${LIBSUFFIX}])
-      with_openssl_libs=/opt/openssl/lib${LIBSUFFIX}
-   elif test -f /sw/lib/libssl.a -o -f /sw/lib/libssl.$SHLIB_SUFFIX; then
-      AC_MSG_RESULT([/sw/lib])
-      with_openssl_libs=/sw/lib
-   elif test -f /opt/local/lib${LIBSUFFIX}/libssl.a -o -f /opt/local/lib${LIBSUFFIX}/libssl.$SHLIB_SUFFIX; then
-      AC_MSG_RESULT([/opt/local/lib${LIBSUFFIX}])
-      with_openssl_libs=/opt/local/lib${LIBSUFFIX}
-   else
-      AC_MSG_ERROR([no openssl library found])
-   fi
+AC_MSG_CHECKING([for openssl libraries])
+for dir in "${with_openssl_libs}" /usr / /usr/local /opt/openssl /opt/local /sw /usr/sfw /opt/sfw; do
+    find_openssl $dir
+    if test -n "$OPENSSL_LDFLAGS"; then
+        break
+    fi
+done
+if test -z "$OPENSSL_LDFLAGS"; then
+    AC_MSG_ERROR([no openssl library found])
 fi
-
-if test -n "$with_openssl_libs"; then
-   OPENSSL_LDFLAGS="-L$with_openssl_libs -lssl -lcrypto"
-else
-   OPENSSL_LDFLAGS="-lssl -lcrypto"
-fi
-AC_SUBST(OPENSSL_LDFLAGS)
-
-# see if we can figure out where the ssl header file is
-AC_ARG_WITH([openssl-includes],
-  [AS_HELP_STRING([--with-openssl-includes@<:@=DIR@:>@],
-                  [SSL include file directory])],
-  [if test ! -d "${with_openssl_includes}"; then AC_MSG_ERROR(bad value ${with_openssl_includes} for --with-openssl-includes); unset with_openssl_includes; fi])
-
-AC_MSG_CHECKING([for openssl/ssl.h])
-if test -n "$with_openssl_includes"; then
-   if test ! -f "$with_openssl_includes/openssl/ssl.h"; then
-      AC_MSG_ERROR([can't find openssl/ssl.h in $with_openssl_includes])
-   else
-      AC_MSG_RESULT([$with_openssl_includes])
-      if test "$with_openssl_includes" = "/usr/include"; then
-         with_openssl_includes=
-      fi
-   fi
-else
-   if test -n "$OPENSSL_DIR" -a -f $OPENSSL_DIR/include/openssl/ssl.h ; then
-      AC_MSG_RESULT([$OPENSSL_DIR/include])
-      with_openssl_includes=$OPENSSL_DIR/include
-   elif test -f /usr/include/openssl/ssl.h ; then
-      AC_MSG_RESULT([/usr/include])
-   elif test -f /opt/openssl/include/openssl/ssl.h; then
-      AC_MSG_RESULT([/opt/openssl/include])
-      with_openssl_includes=/opt/openssl/include
-   elif test -f /sw/include/openssl/ssl.h; then
-      AC_MSG_RESULT([/sw/include])
-      with_openssl_includes=/sw/include
-   elif test -f /opt/local/include/openssl/ssl.h; then
-      AC_MSG_RESULT([/opt/local/include])
-      with_openssl_includes=/opt/local/include
-   else
-      AC_MSG_ERROR([no ssl.h header file found])
-   fi
-fi
-
-if test -n "$with_openssl_includes"; then
-   OPENSSL_CPPFLAGS=-I$with_openssl_includes
-fi
-AC_SUBST(OPENSSL_CPPFLAGS)
 
 # see if we can figure out where the pcre library is
 AC_ARG_WITH([pcre-libs],
