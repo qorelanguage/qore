@@ -750,7 +750,7 @@ inline int QoreSocket::getPort()
 
    // otherwise find out what port we're connected to
    struct sockaddr_in add;
-#ifdef HPUX
+#ifdef HPUX_ACC_SOCKLEN_HACK
    int socksize = sizeof(add);
 #else
    socklen_t socksize = sizeof(add);
@@ -898,7 +898,7 @@ inline int QoreSocket::setRecvTimeout(int ms)
 inline int QoreSocket::getSendTimeout()
 {
    struct timeval tv;
-#ifdef HPUX
+#ifdef HPUX_ACC_SOCKLEN_HACK
    int len = sizeof(struct timeval);
 #else
    socklen_t len = sizeof(struct timeval);
@@ -912,7 +912,7 @@ inline int QoreSocket::getSendTimeout()
 inline int QoreSocket::getRecvTimeout()
 {
    struct timeval tv;
-#ifdef HPUX
+#ifdef HPUX_ACC_SOCKLEN_HACK
    int len = sizeof(struct timeval);
 #else
    socklen_t len = sizeof(struct timeval);

@@ -46,7 +46,7 @@ int QoreSocket::acceptInternal(class SocketSource *source)
    {
       struct sockaddr_un addr_un;
 
-#ifdef HPUX
+#ifdef HPUX_ACC_SOCKLEN_HACK
       int size = sizeof(struct sockaddr_un);
 #else
       socklen_t size = sizeof(struct sockaddr_un);
@@ -65,7 +65,7 @@ int QoreSocket::acceptInternal(class SocketSource *source)
    else if (type == AF_INET)
    {
       struct sockaddr_in addr_in;
-#ifdef HPUX
+#ifdef HPUX_ACC_SOCKLEN_HACK
       int size = sizeof(struct sockaddr_in);
 #else
       socklen_t size = sizeof(struct sockaddr_in);

@@ -247,7 +247,7 @@ int FtpClient::connectDataPort(class ExceptionSink *xsink)
 {
    // get address for interface of control connection
    struct sockaddr_in add;
-#ifdef HPUX
+#ifdef HPUX_ACC_SOCKLEN_HACK
    int socksize = sizeof(struct sockaddr_in);
 #else
    socklen_t socksize = sizeof(struct sockaddr_in);

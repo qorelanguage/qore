@@ -107,6 +107,7 @@ case "${host_os}" in
 		# add "-AA" and -D__STDC_EXT__ to aCC commandline to enable a clean compile
 		if test -n "`echo $CXX|grep aCC`"; then
 		   CXXFLAGS="$CXXFLAGS -AA -D__STDC_EXT__"
+		   AC_DEFINE(HPUX_ACC_SOCKLEN_HACK, 1, if compiling on HP-UX with aCC and need to use int instead of socklen_t)
 		fi
 		AC_DEFINE(HPUX, 1, if compiling on HP-UX)
 		;;
