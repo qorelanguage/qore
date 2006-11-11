@@ -133,16 +133,19 @@ if test "$host_cpu" = "ia64"; then
 fi
 
 # see if we know how to set flags properly for different hosts and architectures
+# FIXME: add test on HP-UX if the compiler can generate the appropriate binaries
 if test "$enable_64bit" = "yes"; then
    case "${host_os}" in
       *linux*)	if test "$GXX" = "yes"; then
 		   CXXFLAGS="$CXXFLAGS -m64"
 		fi
 		;;
-      *hpux*)	if test "$GXX" = "yes"; then
-		   CXXFLAGS="$CXXFLAGS -m64"
-		elif test -n "`echo $CXX|grep aCC`" -a "$host_cpu" != "ia64"; then
-		   CXXFLAGS="$CXXFLAGS +DA2.0W"
+      *hpux*)	if test "$host_cpu" != "ia64"; then
+		    if test -n "`echo $CXX|grep aCC`"; then
+		        CXXFLAGS="$CXXFLAGS +DA2.0W"
+		    elif test "$GXX" = "yes"; then
+			CXXFLAGS="$CXXFLAGS -march=2.0"
+		    fi
 		fi
 		;;
    esac
@@ -154,10 +157,12 @@ else
 		   CXXFLAGS="$CXXFLAGS -m32"
 		fi
 		;;
-     *hpux*)	if test "$GXX" = "yes"; then
-		   CXXFLAGS="$CXXFLAGS -m32"
-		elif test -n "`echo $CXX|grep aCC`" -a "$host_cpu" != "ia64"; then
-		   CXXFLAGS="$CXXFLAGS +DA2.0N"   # NOTE we compile for PA-RISC 2.0 32-bit, not PA-RISC 1.1
+     *hpux*)	if test "$host_cpu" != "ia64"; then
+		    if test "$GXX" = "yes"; then
+		        CXXFLAGS="$CXXFLAGS -march=2.0"
+		    elif test -n "`echo $CXX|grep aCC`" -a "$host_cpu" != "ia64"; then
+		        CXXFLAGS="$CXXFLAGS +DA2.0N"   # NOTE we compile for PA-RISC 2.0 32-bit, not PA-RISC 1.1
+		    fi
 		fi
 		;;
    esac
