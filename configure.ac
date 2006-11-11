@@ -104,10 +104,9 @@ case "${host_os}" in
      		   SHLIB_SUFFIX=sl
 		   AC_DEFINE(SHLIB_SUFFIX, "sl", shared library suffix)
 		fi
-		CPPFLAGS="$CPPFLAGS -D__STDC_EXT__" 
-		# add "-AA" to aCC commandline to get access to STL (among other things)
+		# add "-AA" and -D__STDC_EXT__ to aCC commandline to enable a clean compile
 		if test -n "`echo $CXX|grep aCC`"; then
-		   CXXFLAGS="$CXXFLAGS -AA"
+		   CXXFLAGS="$CXXFLAGS -AA -D__STDC_EXT__"
 		fi
 		AC_DEFINE(HPUX, 1, if compiling on HP-UX)
 		;;
