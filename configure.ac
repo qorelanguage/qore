@@ -203,17 +203,19 @@ find_openssl()
     else
 	AC_MSG_ERROR([not found])
     fi
+    AC_SUBST(OPENSSL_LDFLAGS)
     AC_SUBST(OPENSSL_CPPFLAGS)   
 }
 
 # see if we can figure out where the openssl library is
-AC_ARG_WITH([openssl-libs],
-  [AS_HELP_STRING([--with-openssl-libs@<:@=DIR@:>@],
-                  [openssl library directory])],
-  [if test ! -d "${with_openssl_libs}"; then AC_MSG_ERROR(bad value ${with_openssl_libs} for --with-openssl-libs); unset with_openssl_libs; fi])
+AC_ARG_WITH([openssl-dir],
+  [AS_HELP_STRING([--with-openssl-dir@<:@=DIR@:>@],
+                  [openssl directory])],
+  [if test ! -d "${with_openssl_dir}"; then AC_MSG_ERROR(bad value ${with_openssl_dir} for --with-openssl-dir); unset with_openssl_dir; fi], 
+  [with_openssl_dir="$OPENSSL_DIR"])
 
-AC_MSG_CHECKING([for openssl libraries])
-for dir in "${with_openssl_libs}" /usr / /usr/local /opt/openssl /opt/local /sw /usr/sfw /opt/sfw; do
+AC_MSG_CHECKING([for openssl libraries and header files])
+for dir in "${with_openssl_dir}" /usr / /usr/local /opt/openssl /usr/local/openssl /opt/local /sw /usr/sfw /opt/sfw; do
     find_openssl $dir
     if test -n "$OPENSSL_LDFLAGS"; then
         break
@@ -223,95 +225,74 @@ if test -z "$OPENSSL_LDFLAGS"; then
     AC_MSG_ERROR([no openssl library found])
 fi
 
+set_pcre_cppflags()
+{
+    if test "$1" != "/usr/include"; then
+        PCRE_CPPFLAGS=-I$1
+    fi
+}
+
+find_pcre()
+{
+    lib=$1/lib${LIBSUFFIX}
+    # if we only want the static pcre libraries
+    if test -n "$pcre_static"; then
+    	if test -f "$lib/libpcre.a"; then
+	    PCRE_LDFLAGS="$lib/libpcre.a"
+       	    AC_MSG_RESULT([$lib (static)])
+    	fi
+    else
+        if test -f "$lib/libpcre.${SHLIB_SUFFIX}"; then
+	    if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
+       	        PCRE_LDFLAGS="-L$lib"
+    	    fi
+	    PCRE_LDFLAGS="$PCRE_LDFLAGS -lpcre"
+       	    AC_MSG_RESULT([$lib (shared)])
+    	elif test -f "$lib/libpcre.a"; then
+	    PCRE_LDFLAGS="$lib/libpcre.a"
+       	    AC_MSG_RESULT([$lib (static)])
+    	fi
+    fi
+    if test -z "$PCRE_LDFLAGS"; then
+        return
+    fi
+    AC_MSG_CHECKING([for pcre include files])
+    # try to find include files
+    if test "$1" = "/"; then
+        inc=/usr/include
+    else
+        inc=$1/include
+    fi
+    if test -f "$inc/pcre.h"; then
+        AC_MSG_RESULT([found: $inc])
+        set_pcre_cppflags $inc
+    elif test -f "$inc/pcre/pcre.h"; then
+        AC_MSG_RESULT([found: $inc/pcre])
+        set_pcre_cppflags $inc/pcre
+    else
+	AC_MSG_ERROR([not found])
+    fi
+    AC_SUBST(PCRE_LDFLAGS)
+    AC_SUBST(PCRE_CPPFLAGS)   
+}
+
 # see if we can figure out where the pcre library is
-AC_ARG_WITH([pcre-libs],
-  [AS_HELP_STRING([--with-pcre-libs@<:@=DIR@:>@],
-                  [PCRE library directory])],
-  [if test ! -d "${with_pcre_libs}"; then AC_MSG_ERROR(bad value ${with_pcre_libs} for --with-pcre-libs); unset with_pcre_libs; fi])
+AC_ARG_WITH([pcre-dir],
+  [AS_HELP_STRING([--with-pcre-dir@<:@=DIR@:>@],
+                  [PCRE directory])],
+  [if test ! -d "${with_pcre_dir}"; then AC_MSG_ERROR(bad value ${with_pcre_dir} for --with-pcre-dir); unset with_pcre_dir; fi],
+  [with_pcre_dir="$PCRE_DIR"])
 
-AC_MSG_CHECKING([for pcre library])
-if test -n "$with_pcre_libs"; then
-   if test ! -f "$with_pcre_libs/libpcre.a" -a ! -f "$with_pcre_libs/libpcre.$SHLIB_SUFFIX"; then
-      AC_MSG_ERROR([can't find pcre library in $with_pcre_libs])
-   else
-      AC_MSG_RESULT([$with_pcre_libs])
-      if test "$with_pcre_libs" = "/usr/lib${LIBSUFFIX}"; then
-         with_pcre_libs=
-      fi
-   fi
-else
-   if test -n "$PCRE_DIR" -a \( -f $PCRE_DIR/lib${LIBSUFFIX}/libpcre.a -o -f "$PCRE_DIR/lib${LIBSUFFIX}/libpcre.$SHLIB_SUFFIX" \); then
-      AC_MSG_RESULT([$PCRE_DIR/lib${LIBSUFFIX}])
-      with_pcre_libs=$PCRE_DIR/lib${LIBSUFFIX}
-   elif test -f /usr/lib${LIBSUFFIX}/libpcre.a -o -f /usr/lib${LIBSUFFIX}/libpcre.$SHLIB_SUFFIX; then
-      AC_MSG_RESULT([/usr/lib${LIBSUFFIX}])
-   elif test -f /opt/pcre/lib${LIBSUFFIX}/libpcre.a -o -f /opt/pcre/lib${LIBSUFFIX}/libpcre.$SHLIB_SUFFIX; then
-      AC_MSG_RESULT([/opt/pcre/lib${LIBSUFFIX}])
-      with_pcre_libs=/opt/pcre/lib${LIBSUFFIX}
-   elif test -f /usr/pcre/lib${LIBSUFFIX}/libpcre.a -o -f /usr/pcre/lib${LIBSUFFIX}/libpcre.$SHLIB_SUFFIX; then
-      AC_MSG_RESULT([/usr/pcre/lib${LIBSUFFIX}])
-      with_pcre_libs=/usr/pcre/lib${LIBSUFFIX}
-   elif test -f /sw/lib/libpcre.a -o -f /sw/lib/libpcre.$SHLIB_SUFFIX; then
-      AC_MSG_RESULT([/sw/lib])
-      with_pcre_libs=/sw/lib
-   elif test -f /opt/local/lib${LIBSUFFIX}/libpcre.a -o -f /opt/local/lib${LIBSUFFIX}/libpcre.$SHLIB_SUFFIX; then
-      AC_MSG_RESULT([/opt/local/lib${LIBSUFFIX}])
-      with_pcre_libs=/opt/local/lib${LIBSUFFIX}
-   else
-      AC_MSG_ERROR([no PCRE library found])
-   fi
+AC_MSG_CHECKING([for pcre libraries and header files])
+for dir in "${with_pcre_dir}" /usr / /usr/local /opt/pcre /usr/local/pcre /opt/local /sw /usr/sfw /opt/sfw; do
+    find_pcre $dir
+    if test -n "$PCRE_LDFLAGS"; then
+        break
+    fi
+done
+if test -z "$PCRE_LDFLAGS"; then
+    AC_MSG_ERROR([no pcre library found])
 fi
-
-if test -n "$with_pcre_libs"; then
-   PCRE_LDFLAGS="-L$with_pcre_libs -lpcre"
-else
-   PCRE_LDFLAGS=-lpcre
-fi
-AC_SUBST(PCRE_LDFLAGS)
-
-# see if we can figure out where the pcre header file is
-AC_ARG_WITH([pcre-includes],
-  [AS_HELP_STRING([--with-pcre-includes@<:@=DIR@:>@],
-                  [PCRE include file directory])],
-  [if test ! -d "${with_pcre_includes}"; then AC_MSG_ERROR(bad value ${with_pcre_includes} for --with-pcre-includes); unset with_pcre_includes; fi])
-
-AC_MSG_CHECKING([for pcre.h])
-if test -n "$with_pcre_includes"; then
-   if test ! -e "$with_pcre_includes/pcre.h"; then
-      AC_MSG_ERROR([can't find pcre.h in $with_pcre_includes])
-   else
-      AC_MSG_RESULT([$with_pcre_includes])
-      if test "$with_pcre_includes" = "/usr/include"; then
-         with_pcre_includes=
-      fi
-   fi
-else
-   if test -n "$PCRE_DIR" -a -f $PCRE_DIR/include/pcre.h ; then
-      AC_MSG_RESULT([$PCRE_DIR/include])
-      with_pcre_includes=$PCRE_DIR/include
-   elif test -f /usr/include/pcre.h ; then
-      AC_MSG_RESULT([/usr/include])
-   elif test -f /opt/pcre/include/pcre.h; then
-      AC_MSG_RESULT([/opt/pcre/include])
-      with_pcre_includes=/opt/pcre/include
-   elif test -f /usr/pcre/include/pcre.h; then
-      AC_MSG_RESULT([/usr/pcre/include])
-      with_pcre_includes=/usr/pcre/include
-   elif test -f /sw/include/pcre.h; then
-      AC_MSG_RESULT([/sw/include])
-      with_pcre_includes=/sw/include
-   elif test -f /opt/local/include/pcre.h; then
-      AC_MSG_RESULT([/opt/local/include])
-      with_pcre_includes=/opt/local/include
-   else
-      AC_MSG_ERROR([no pcre.h header file found])
-   fi
-fi
-
-if test -n "$with_pcre_includes"; then
-   PCRE_CPPFLAGS=-I$with_pcre_includes
-fi
-AC_SUBST(PCRE_CPPFLAGS)
 
 AC_ARG_ENABLE([profile],
      [AS_HELP_STRING([--enable-profile],

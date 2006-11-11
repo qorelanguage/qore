@@ -1,3 +1,8 @@
+2006.11.11: David Nichols
+	* readded OPENSSL_DIR detection in configure
+	* improved pcre library and header detection in the same was as the
+	  openssl configure code
+
 2006.11.10: David Nichols
 	* added initial HP-UX itanium support to configure
 	* improved openssl library and header file detection in configure; now
