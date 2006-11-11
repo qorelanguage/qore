@@ -224,7 +224,7 @@ AC_ARG_WITH([openssl-dir],
   [with_openssl_dir="$OPENSSL_DIR"])
 
 AC_MSG_CHECKING([for openssl libraries and header files])
-for dir in "${with_openssl_dir}" /usr / /usr/local /opt/openssl /usr/local/openssl /opt/local /sw /usr/sfw /opt/sfw; do
+for dir in "${with_openssl_dir}" /usr / /usr/local /opt/gnu /opt/openssl /usr/local/openssl /opt/local /sw /usr/sfw /opt/sfw; do
     find_openssl $dir
     if test -n "$OPENSSL_LDFLAGS"; then
         break
@@ -293,7 +293,7 @@ AC_ARG_WITH([pcre-dir],
   [with_pcre_dir="$PCRE_DIR"])
 
 AC_MSG_CHECKING([for pcre libraries and header files])
-for dir in "${with_pcre_dir}" /usr / /usr/local /opt/pcre /usr/local/pcre /opt/local /sw /usr/sfw /opt/sfw; do
+for dir in "${with_pcre_dir}" /usr / /usr/local /opt/gnu /opt/pcre /usr/local/pcre /opt/local /sw /usr/sfw /opt/sfw; do
     find_pcre $dir
     if test -n "$PCRE_LDFLAGS"; then
         break
@@ -794,6 +794,8 @@ if test "$with_oracle" = "yes"; then
       fi
       if test "$enable_64bit" != "yes" -a -d "$ORACLE_DIR/lib32"; then
          oracle_lib_dir="$ORACLE_DIR/lib32"
+      else
+         oracle_lib_dir="$ORACLE_DIR/lib"
       fi
       get_oracle_version $oracle_lib_dir $ORACLE_DIR
    fi
@@ -1383,6 +1385,4 @@ if test "`uname -s`" = "HP-UX"; then
    # remove references to -ldl in libtool
    sed "s/-ldl//g" libtool > libtool.tmp
    sed "s/valid_a_lib=no/valid_a_lib=yes/g" libtool.tmp > libtool
-   #echo copying in HP-UX libtool 
-   #cp hpux/libtool-hack libtool
 fi

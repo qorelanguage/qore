@@ -105,11 +105,11 @@ The g++ static and shared builds work fine (tested with g++ 4.0.1, 4.1.1, CC).  
 I have heard that qore builds fine, but I have not actually seen it myself, nor do I have access to a FreeBSD platform for testing :-(
 
 *) HP-UX
-HP-UX builds are finally working, however I had to hack libtool to get the modules to link with static libaries.  I am using HP-UX 11.23 (v2) on PA-RISC.
+HP-UX builds are finally working with g++ (tested 4.1.1 and aCC), however I had to hack libtool to get the modules to link with static libaries and to prohibit -ldl from being automatically included in the link lines.  I am using HP-UX 11.23 (v2) on PA-RISC.
 PA-RISC 2.0 32-bit binaries are produced in 32-bit mode, with --enable-64-bit, PA-RISC 2.0 64-bit binaries are produced
-Qore now uses strtoimax() as a replacement for strtoll() on HP-UX.  
-It is likely older versions of aCC will work - I am using v3.75
+Qore now uses strtoimax() as a replacement for strtoll() on HP-UX.   
 Currently there is no fast atomic reference count support on PA-RISC platforms
+Note that only PA-RISC builds have been tested.
 
 *) Windows
 Windows is generally not supported, although I have built previous versions on Windows using a Cygwin environment, but the executable was so slow that it's not worth supporting.  Windows may be supported in the future if I get it to work without Cygwin (i.e. using native win32 apis)
