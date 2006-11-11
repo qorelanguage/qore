@@ -1378,7 +1378,8 @@ fi
 # hack to use our libtool if on HP-UX to enable static libs to be linked in to modules
 if test "`uname -s`" = "HP-UX"; then
    # remove references to -ldl in libtool
-   sed "s/-ldl//g" libtool > libtool.tmp; mv libtool.tmp libtool
+   sed "s/-ldl//g" libtool > libtool.tmp
+   sed "s/valid_a_lib=no/valid_a_lib=yes/g" libtool.tmp > libtool
    #echo copying in HP-UX libtool 
    #cp hpux/libtool-hack libtool
 fi
