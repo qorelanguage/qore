@@ -4,6 +4,8 @@
 	  openssl configure code
 	* fixed 32-bit linking with 64-bit oracle installations (use 
 	  $ORACLE_HOME/lib32)
+	* changed libxml2 detection in configure to be like pcre and openssl 
+	  detection, removed dependence on pkg-config
 
 2006.11.10: David Nichols
 	* added initial HP-UX itanium support to configure

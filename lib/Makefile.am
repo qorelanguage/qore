@@ -85,10 +85,10 @@ libqore_la_SOURCES = \
 	QC_SSLCertificate.cc \
 	QC_SSLPrivateKey.cc
 
-libqore_la_LDFLAGS = -version-info 0:0:0 -no-undefined ${LIBXML2_LIBS} $(PCRE_LDFLAGS) $(OPENSSL_LDFLAGS) $(LDFLAGS) -lm -lz
+libqore_la_LDFLAGS = -version-info 0:0:0 -no-undefined ${LIBXML2_LDFLAGS} $(PCRE_LDFLAGS) $(OPENSSL_LDFLAGS) $(LDFLAGS) -lm -lz
 libqore_la_LIBADD = ${PTHREAD_LIBS} 
-AM_CPPFLAGS = -DMODULE_DIR=\"$(pkglibdir)\" $(PCRE_CPPFLAGS) $(OPENSSL_CPPFLAGS)
-AM_CXXFLAGS = ${LIBXML2_CFLAGS} ${PTHREAD_CFLAGS}
+AM_CPPFLAGS = -DMODULE_DIR=\"$(pkglibdir)\" $(PCRE_CPPFLAGS) $(OPENSSL_CPPFLAGS) $(LIBXML2_CPPFLAGS)
+AM_CXXFLAGS = ${PTHREAD_CFLAGS}
 
 if COND_DEBUG
 BUILD_TYPE=dev

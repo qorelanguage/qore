@@ -303,6 +303,86 @@ if test -z "$PCRE_LDFLAGS"; then
     AC_MSG_ERROR([no pcre library found])
 fi
 
+set_libxml2_cppflags()
+{
+    if test "$1" != "/usr/include"; then
+        LIBXML2_CPPFLAGS=-I$1
+    fi
+}
+
+find_libxml2()
+{
+    lib=$1/lib${LIBSUFFIX}
+    # if we only want the static libxml2 libraries
+    if test -n "$libxml2_static"; then
+    	if test -f "$lib/libxml2.a"; then
+	    LIBXML2_LDFLAGS="$lib/libxml2.a"
+       	    AC_MSG_RESULT([$lib (static)])
+    	fi
+    else
+        if test -f "$lib/libxml2.${SHLIB_SUFFIX}"; then
+	    if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
+       	        LIBXML2_LDFLAGS="-L$lib"
+    	    fi
+	    LIBXML2_LDFLAGS="$LIBXML2_LDFLAGS -llibxml2"
+       	    AC_MSG_RESULT([$lib (shared)])
+    	elif test -f "$lib/libxml2.a"; then
+	    LIBXML2_LDFLAGS="$lib/libxml2.a"
+       	    AC_MSG_RESULT([$lib (static)])
+    	fi
+    fi
+    if test -z "$LIBXML2_LDFLAGS"; then
+        return
+    fi
+    AC_MSG_CHECKING([for libxml2 include files])
+    # try to find include files
+    if test "$1" = "/"; then
+        inc=/usr/include
+    else
+        inc=$1/include
+    fi
+    if test -f "$inc/libxml/xmlversion.h"; then
+        AC_MSG_RESULT([found: $inc])
+        set_libxml2_cppflags $inc
+    elif test -f "$inc/libxml2/libxml/xmlversion.h"; then
+        AC_MSG_RESULT([found: $inc/libxml2])
+	inc=$inc/libxml2
+        set_libxml2_cppflags $inc
+    else
+	AC_MSG_ERROR([not found])
+    fi
+    AC_MSG_CHECKING([libxml2 version])
+    # check version
+    full=`grep define.*LIBXML_DOTTED_VERSION $inc/libxml/xmlversion.h | cut -f2 -d\"`
+    vers=`echo $full | awk 'BEGIN { FS = "."; } {printf("%04d%03d\n", $1 * 1000 + $2, $3);}'`
+    if test "$vers" -ge 2004022; then
+        AC_MSG_RESULT([$full (OK)])
+    else
+	AC_MSG_ERROR([libxml2 2.4.22 or higher is needed; found version $full])
+    fi
+
+    AC_SUBST(LIBXML2_LDFLAGS)
+    AC_SUBST(LIBXML2_CPPFLAGS)
+}
+
+# see if we can figure out where the libxml2 library is
+AC_ARG_WITH([libxml2-dir],
+  [AS_HELP_STRING([--with-libxml2-dir@<:@=DIR@:>@],
+                  [LIBXML2 directory])],
+  [if test ! -d "${with_libxml2_dir}"; then AC_MSG_ERROR(bad value ${with_libxml2_dir} for --with-libxml2-dir); unset with_libxml2_dir; fi],
+  [with_libxml2_dir="$LIBXML2_DIR"])
+
+AC_MSG_CHECKING([for libxml2 libraries and header files])
+for dir in "${with_libxml2_dir}" /usr / /usr/local /opt/gnu /opt/libxml2 /usr/local/libxml2 /opt/local /sw /usr/sfw /opt/sfw; do
+    find_libxml2 $dir
+    if test -n "$LIBXML2_LDFLAGS"; then
+        break
+    fi
+done
+if test -z "$LIBXML2_LDFLAGS"; then
+    AC_MSG_ERROR([no libxml2 library found])
+fi
+
 AC_ARG_ENABLE([profile],
      [AS_HELP_STRING([--enable-profile],
 		     [turn on profiling support (default=no)])],
@@ -1075,25 +1155,6 @@ wresize((WINDOW *)0, 0, 0);
       fi
    fi
 fi
-
-PKG_CHECK_MODULES(LIBXML2, libxml-2.0 >= 2.4.22,,[
-  AC_MSG_CHECKING([trying xml2-config])
-    if xml2-config --libs > /dev/null 2>&1; then
-      full=`xml2-config --version`
-      vers=`xml2-config --version | \
-        awk 'BEGIN { FS = "."; } {printf("%04d%03d\n", $1 * 1000 + $2, $3);}'`
-      if test "$vers" -ge 2004022; then
-	AC_MSG_RESULT($full)
-	LIBXML2_CFLAGS="`xml2-config --cflags`"
-	LIBXML2_LIBS="`xml2-config --libs`"
-	AC_SUBST(LIBXML2_CFLAGS)
-	AC_SUBST(LIBXML2_LIBS)
-      else
-	AC_MSG_ERROR([libxml2 2.4.22 or higher is needed; found version $full])
-      fi
-    else
-      AC_MSG_ERROR([libxml2 2.4.22 or higher is needed; xml2-config not found])      
-    fi], AC_MSG_ERROR([no libxml2 found, please install and rerun configure]))
 
 # Checks for header files.
 AC_HEADER_STDC
