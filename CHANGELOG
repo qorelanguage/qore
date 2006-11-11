@@ -2,6 +2,8 @@
 	* readded OPENSSL_DIR detection in configure
 	* improved pcre library and header detection in the same was as the
 	  openssl configure code
+	* fixed 32-bit linking with 64-bit oracle installations (use 
+	  $ORACLE_HOME/lib32)
 
 2006.11.10: David Nichols
 	* added initial HP-UX itanium support to configure

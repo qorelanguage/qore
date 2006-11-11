@@ -791,8 +791,10 @@ if test "$with_oracle" = "yes"; then
       if test -d "$ORACLE_DIR/plsql/public"; then
 	 ORACLE_INCLUDES="$ORACLE_INCLUDES -I$ORACLE_DIR/plsql/public"
       fi
-      oracle_lib_dir="$ORACLE_DIR/lib"
-      get_oracle_version $ORACLE_DIR/lib $ORACLE_DIR
+      if test "$enable_64bit" != "yes" -a -d "$ORACLE_DIR/lib32"; then
+         oracle_lib_dir="$ORACLE_DIR/lib32"
+      fi
+      get_oracle_version $oracle_lib_dir $ORACLE_DIR
    fi
 
    AC_SUBST(ORACLE_INCLUDES)
