@@ -54,8 +54,8 @@ recommended configure arguments: configure --disable-static --disable-debug --pr
 
 *) "oracle": Oracle DBI module requires Oracle 9i or better
 Oracle DB installation: If you have Oracle 9i or higher you can build in Oracle integration.  Make sure your ORACLE_HOME is set before calling configure (otherwise use the --with-oracle configure option).  Header files and libraries must be available in the standard locations.  
-Oracle Instant Client installation: Make sure the ORACLE_INSTANT_CLIENT environment variable is set before you run configure.  Note that on HPUX I have not found a working instant client for PA-RISC 1.1 (32-bit) - the two version sI had access to both had a 64-bit libnnz10.sl which obviously wouldn't work in a 32-bit binary.
-ALso note that on HPUX and Solaris I had to manually link the libclntsh.sl1.10.* (libclintsh.so.10.*) to libclintsh.sl (libclintsh.so) in order to link
+Oracle Instant Client installation: Make sure the ORACLE_INSTANT_CLIENT environment variable is set before you run configure.  Note that on HPUX I have not found a working instant client for 32-bit PA-RISC, for some reason libnnz10 would not link
+Also note that on HPUX and Solaris I had to manually link the libclntsh.sl1.10.* (libclintsh.so.10.*) to libclintsh.sl (libclintsh.so) in instant client installations in order to link.
 Oracle support in qore is good, very well tested.
 
 *) "mysql": MySQL DBI module requires MySQL 3.3 or better
