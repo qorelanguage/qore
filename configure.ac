@@ -324,7 +324,7 @@ find_libxml2()
 	    if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
        	        LIBXML2_LDFLAGS="-L$lib"
     	    fi
-	    LIBXML2_LDFLAGS="$LIBXML2_LDFLAGS -llibxml2"
+	    LIBXML2_LDFLAGS="$LIBXML2_LDFLAGS -lxml2"
        	    AC_MSG_RESULT([$lib (shared)])
     	elif test -f "$lib/libxml2.a"; then
 	    LIBXML2_LDFLAGS="$lib/libxml2.a"
