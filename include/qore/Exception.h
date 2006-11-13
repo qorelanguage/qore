@@ -71,6 +71,8 @@ class ExceptionSink {
       }
       // The QoreNode* returned value is always NULL. Used to simplify error handling code.
       inline class QoreNode *raiseException(char *err, char *fmt, ...);
+      // Raise exception with additional argument (the 'arg' member). Always returns 0.
+      inline QoreNode* raiseExceptionArg(char* err, QoreNode* arg, char* fmt, ...);
       inline void raiseException(class Exception *e);
       inline void raiseException(class QoreNode *n);
       inline void rethrow(class Exception *old);
@@ -193,6 +195,27 @@ inline QoreNode* ExceptionSink::raiseException(char *err, char *fmt, ...)
    }
    printd(5, "ExceptionSink::raiseException(%s, %s)\n", err, desc->getBuffer());
    insert(new Exception(err, 0, desc));
+   return NULL;
+}
+
+inline QoreNode* ExceptionSink::raiseExceptionArg(char* err, QoreNode* arg, char* fmt, ...)
+{
+   class QoreString *desc = new QoreString();
+
+   va_list args;
+
+   while (true)
+   {
+      va_start(args, fmt);
+      int rc = desc->vsprintf(fmt, args);
+      va_end(args);
+      if (!rc)
+         break;
+   }
+   printd(5, "ExceptionSink::raiseExceptionArg(%s, %s)\n", err, desc->getBuffer());
+   Exception* exc = new Exception(err, 0, desc);
+   exc->arg = arg;
+   insert(exc);
    return NULL;
 }
 
