@@ -168,6 +168,74 @@ else
    esac
 fi
 
+AC_ARG_ENABLE([static-openssl],
+     [AS_HELP_STRING([--enable-static-openssl],
+		     [statically link openssl libraries (default=auto)])],
+     [case "${enable_static_openssl}" in
+       yes|no) ;;
+       *)      AC_MSG_ERROR(bad value ${enable_static_openssl} for --enable-static-openssl) ;;
+      esac],
+     [enable_static_openssl=no])
+
+AC_ARG_ENABLE([static-libxml2],
+     [AS_HELP_STRING([--enable-static-libxml2],
+		     [statically link libxml2 libraries (default=auto)])],
+     [case "${enable_static_libxml2}" in
+       yes|no) ;;
+       *)      AC_MSG_ERROR(bad value ${enable_static_libxml2} for --enable-static-libxml2) ;;
+      esac],
+     [enable_static_libxml2=no])
+
+AC_ARG_ENABLE([static-pcre],
+     [AS_HELP_STRING([--enable-static-pcre],
+		     [statically link pcre libraries (default=auto)])],
+     [case "${enable_static_pcre}" in
+       yes|no) ;;
+       *)      AC_MSG_ERROR(bad value ${enable_static_pcre} for --enable-static-pcre) ;;
+      esac],
+     [enable_static_pcre=no])
+
+AC_ARG_ENABLE([static-ncurses],
+     [AS_HELP_STRING([--enable-static-ncurses],
+		     [statically link ncurses libraries (default=auto)])],
+     [case "${enable_static_ncurses}" in
+       yes|no) ;;
+       *)      AC_MSG_ERROR(bad value ${enable_static_ncurses} for --enable-static-ncurses) ;;
+      esac],
+     [enable_static_ncurses=no])
+
+AC_ARG_ENABLE([static-common],
+     [AS_HELP_STRING([--enable-static-common],
+		     [statically link openssl, libxml2, pcre, and ncurses libraries (default=auto)])],
+     [case "${enable_static_common}" in
+       yes|no) ;;
+       *)      AC_MSG_ERROR(bad value ${enable_static_common} for --enable-static-common) ;;
+      esac],
+     [enable_static_common=no])
+
+if test "$enable_static_openssl" = "yes"; then
+   openssl_static=yes
+fi
+
+if test "$enable_static_libxml2" = "yes"; then
+   libxml2_static=yes
+fi
+
+if test "$enable_static_pcre" = "yes"; then
+   pcre_static=yes
+fi
+
+if test "$enable_static_ncurses" = "yes"; then
+   pcre_static=yes
+fi
+
+if test "$enable_static_common" = "yes"; then
+   openssl_static=yes
+   libxml2_static=yes
+   pcre_static=yes
+   ncurses_static=yes
+fi
+
 set_openssl_cppflags()
 {
     if test "$1" != "/usr/include"; then
@@ -1061,7 +1129,17 @@ check_ncurses()
 {
     lib=$1/lib${LIBSUFFIX}
 
-    if test -f "$lib/libncurses.${SHLIB_SUFFIX}" -a -f "$lib/libpanel.${SHLIB_SUFFIX}"; then
+    if test -n "$ncurses_static"; then
+    	if test -f "$lib/libncurses.a" -a -f "$lib/libpanel.a"; then
+	    ncurses_dir=$1
+       	    AC_MSG_RESULT([$lib (ncurses static)])
+	    NCURSES_LIBS="$lib/libncurses.a $lib/libpanel.a"
+	elif test -f "$lib/libcurses.a" -a -f "$lib/libpanel.a"; then
+	    ncurses_dir=$1
+       	    AC_MSG_RESULT([$lib (curses static)])
+	    NCURSES_LIBS="$lib/libcurses.a $lib/libpanel.a"
+    	fi
+    elif test -f "$lib/libncurses.${SHLIB_SUFFIX}" -a -f "$lib/libpanel.${SHLIB_SUFFIX}"; then
        ncurses_dir=$1
        AC_MSG_RESULT([$lib (ncurses shared)])
        set_ncurses_lib "$1" ncurses
