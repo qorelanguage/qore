@@ -1,3 +1,8 @@
+2006.11.13: David Nichols
+	* added support for specifyingg stati linkage to libraries that may not
+	  be present on some systems (configure change)
+	* added some charset aliases for HP-UX character set abbreviations
+
 2006.11.11: David Nichols
 	* readded OPENSSL_DIR detection in configure
 	* improved pcre library and header detection in the same was as the
