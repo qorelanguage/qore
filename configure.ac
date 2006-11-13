@@ -1,11 +1,11 @@
 # Process this file with autoconf to produce a configure script.
 
 # AC_PREREQ(2.59)
-AC_INIT([qore], [0.5.3],
+AC_INIT([qore], [0.6.0],
         [David Nichols <nicholsman@gmail.com>],
         [qore])
 AM_INIT_AUTOMAKE
-AM_CONFIG_HEADER(include/qore/unix-config.h)
+AC_CONFIG_HEADER(include/qore/unix-config.h)
 
 AC_PROG_LEX
 ##AC_PROG_MAKE_SET
@@ -17,7 +17,7 @@ if test -z "`echo $LEX | grep flex`"; then
         AC_MSG_ERROR([no flex version found])
 elif test -z "`$LEX --version | grep -e ' 2\.5\.3[[1-9]]' -e '2\.5\.[[4-9]][[0-9]]' -e '2\.\[[6-9]]\.'`" ; then
         flexver=`$LEX --version`
-	AC_MSG_ERROR([incompatible $flexver found - you can download flex 2.5.31 at http://sourceforge.net/projects/lex])
+	AC_MSG_ERROR([incompatible $flexver found - you can download flex 2.5.33 at http://sourceforge.net/projects/flex])
 else
 	AC_MSG_RESULT([yes])
 fi
@@ -78,24 +78,37 @@ SHLIB_SUFFIX=so
 #echo host_os=${host_os}
 case "${host_os}" in
      *linux*)   AC_DEFINE(NEED_ICONV_TRANSLIT, 1, Define to 1 if //TRANSLIT should be added to the destination character set code) 
-# set compile flags for Linux
-CPPFLAGS="${CPPFLAGS} -D_GNU_SOURCE"
+		# set compile flags for Linux
+		CPPFLAGS="${CPPFLAGS} -D_GNU_SOURCE"
 		SHLIB_SUFFIX=so
 		AC_DEFINE(LINUX, 1, if compiling on Linux)
 		;;
      *solaris*) # set compile flags for Solaris
-CPPFLAGS="${CPPFLAGS} -D_POSIX_C_SOURCE=199506L -D_XPG4_2 -D_XPG5 -D__EXTENSIONS__"
-# for checking for some network functions on Solaris
-LDFLAGS="-lnsl -norunpath"
+		CPPFLAGS="${CPPFLAGS} -D_POSIX_C_SOURCE=199506L -D_XPG4_2 -D_XPG5 -D__EXTENSIONS__"
+		# for checking for some network functions on Solaris
+		LDFLAGS="$LDFLAGS -lnsl"
+		# assume we are using CC if not using g++, add -norunpath to link flags in this case
+		if test "$GXX" != "yes"; then
+		   LDFLAGS="$LDFLAGS -norunpath"
+		fi
 		AC_DEFINE(SOLARIS, 1, if compiling on Solaris)
 	        ;;
      *darwin*)  SHLIB_SUFFIX=dylib
-		# libtool 1.5.10 is creating modules on Darwin 8.2.0 (OS/X 10.4.2) with a .so suffix for some reason
+		# libtool 1.5.* is creating modules on Darwin 8.* (OS/X 10.4.*) with a .so suffix for some reason
 		MODULE_SUFFIX=so
 		AC_DEFINE(DARWIN, 1, if compiling on Darwin)
 		;;
-     *hpux*)    SHLIB_SUFFIX=sl 
-		AC_DEFINE(SHLIB_SUFFIX, "sl", shared library suffix)
+     *hpux*)    if test "$host_cpu" = "ia64"; then
+     		   SHLIB_SUFFIX=so
+		else  # assume hppa (PA-RISC)
+     		   SHLIB_SUFFIX=sl
+		   AC_DEFINE(SHLIB_SUFFIX, "sl", shared library suffix)
+		fi
+		# add "-AA" and -D__STDC_EXT__ to aCC commandline to enable a clean compile
+		if test -n "`echo $CXX|grep aCC`"; then
+		   CXXFLAGS="$CXXFLAGS -AA -D__STDC_EXT__"
+		   AC_DEFINE(HPUX_ACC_SOCKLEN_HACK, 1, if compiling on HP-UX with aCC and need to use int instead of socklen_t)
+		fi
 		AC_DEFINE(HPUX, 1, if compiling on HP-UX)
 		;;
 esac
@@ -106,7 +119,7 @@ fi
 AC_SUBST(MODULE_SUFFIX)
 
 AC_ARG_ENABLE([64bit],
-  [AC_HELP_STRING([--enable-64bit],
+  [AS_HELP_STRING([--enable-64bit],
 		  [enable 64bit support (default: off)])],
   [case "${enable_64bit}" in
        yes|no) ;;
@@ -114,205 +127,347 @@ AC_ARG_ENABLE([64bit],
       esac],
   [enable_64bit=no])
 
+# turn on 64-bit by default if compiling on itanium
+if test "$host_cpu" = "ia64"; then
+   enable_64bit=yes
+fi
+
 # see if we know how to set flags properly for different hosts and architectures
+# FIXME: add test on HP-UX if the compiler can generate the appropriate binaries
 if test "$enable_64bit" = "yes"; then
    case "${host_os}" in
-     *linux*)	if test "$ac_cv_prog_gxx" = "yes"; then
-		CXXFLAGS="$CXXFLAGS -m64"
-		LIBSUFFIX=64
-		AC_SUBST(LIBSUFFIX)
+      *linux*)	if test "$GXX" = "yes"; then
+		   CXXFLAGS="$CXXFLAGS -m64"
+		fi
+		;;
+      *hpux*)	if test "$host_cpu" != "ia64"; then
+		    if test -n "`echo $CXX|grep aCC`"; then
+		        CXXFLAGS="$CXXFLAGS +DA2.0W"
+		    elif test "$GXX" = "yes"; then
+			CXXFLAGS="$CXXFLAGS -march=2.0"
+		    fi
 		fi
 		;;
    esac
+   LIBSUFFIX=64
+   AC_SUBST(LIBSUFFIX)
 else
    case "${host_os}" in
-     *linux*)	if test "$ac_cv_prog_gxx" = "yes"; then
-		CXXFLAGS="$CXXFLAGS -m32"
+     *linux*)	if test "$GXX" = "yes"; then
+		   CXXFLAGS="$CXXFLAGS -m32"
+		fi
+		;;
+     *hpux*)	if test "$host_cpu" != "ia64"; then
+		    if test "$GXX" = "yes"; then
+		        CXXFLAGS="$CXXFLAGS -march=2.0"
+		    elif test -n "`echo $CXX|grep aCC`" -a "$host_cpu" != "ia64"; then
+		        CXXFLAGS="$CXXFLAGS +DA2.0N"   # NOTE we compile for PA-RISC 2.0 32-bit, not PA-RISC 1.1
+		    fi
 		fi
 		;;
    esac
 fi
 
+AC_ARG_ENABLE([static-openssl],
+     [AS_HELP_STRING([--enable-static-openssl],
+		     [statically link openssl libraries (default=auto)])],
+     [case "${enable_static_openssl}" in
+       yes|no) ;;
+       *)      AC_MSG_ERROR(bad value ${enable_static_openssl} for --enable-static-openssl) ;;
+      esac],
+     [enable_static_openssl=no])
+
+AC_ARG_ENABLE([static-libxml2],
+     [AS_HELP_STRING([--enable-static-libxml2],
+		     [statically link libxml2 libraries (default=auto)])],
+     [case "${enable_static_libxml2}" in
+       yes|no) ;;
+       *)      AC_MSG_ERROR(bad value ${enable_static_libxml2} for --enable-static-libxml2) ;;
+      esac],
+     [enable_static_libxml2=no])
+
+AC_ARG_ENABLE([static-pcre],
+     [AS_HELP_STRING([--enable-static-pcre],
+		     [statically link pcre libraries (default=auto)])],
+     [case "${enable_static_pcre}" in
+       yes|no) ;;
+       *)      AC_MSG_ERROR(bad value ${enable_static_pcre} for --enable-static-pcre) ;;
+      esac],
+     [enable_static_pcre=no])
+
+AC_ARG_ENABLE([static-ncurses],
+     [AS_HELP_STRING([--enable-static-ncurses],
+		     [statically link ncurses libraries (default=auto)])],
+     [case "${enable_static_ncurses}" in
+       yes|no) ;;
+       *)      AC_MSG_ERROR(bad value ${enable_static_ncurses} for --enable-static-ncurses) ;;
+      esac],
+     [enable_static_ncurses=no])
+
+AC_ARG_ENABLE([static-common],
+     [AS_HELP_STRING([--enable-static-common],
+		     [statically link openssl, libxml2, pcre, and ncurses libraries (default=auto)])],
+     [case "${enable_static_common}" in
+       yes|no) ;;
+       *)      AC_MSG_ERROR(bad value ${enable_static_common} for --enable-static-common) ;;
+      esac],
+     [enable_static_common=no])
+
+if test "$enable_static_openssl" = "yes"; then
+   openssl_static=yes
+fi
+
+if test "$enable_static_libxml2" = "yes"; then
+   libxml2_static=yes
+fi
+
+if test "$enable_static_pcre" = "yes"; then
+   pcre_static=yes
+fi
+
+if test "$enable_static_ncurses" = "yes"; then
+   ncurses_static=yes
+fi
+
+if test "$enable_static_common" = "yes"; then
+   openssl_static=yes
+   libxml2_static=yes
+   pcre_static=yes
+   ncurses_static=yes
+fi
+
+AC_ARG_WITH([static-libz-dir],
+     [AS_HELP_STRING([--with-static-libz-dir],
+		     [directory for libz.a library (default=auto)])],
+     [if test ! -d "${with_static_libz_dir}"; then AC_MSG_ERROR([bad value ${with_static_libz_dir} for --with-static_libz_dir]); fi])
+
+if test -n "$with_static_libz_dir"; then
+    if ! test -f "$with_static_libz_dir/libz.a"; then
+        AC_MSG_ERROR([no libz.a found in $with_static_libz_dir])
+    fi
+    ZLIB_LDFLAGS="$with_static_libz_dir/libz.a"
+else
+    ZLIB_LDFLAGS="-lz"
+fi
+AC_SUBST(ZLIB_LDFLAGS)
+
+set_openssl_cppflags()
+{
+    if test "$1" != "/usr/include"; then
+        OPENSSL_CPPFLAGS=-I$1
+    fi
+}
+
+find_openssl()
+{
+    lib=$1/lib${LIBSUFFIX}
+    # if we only want the static openssl libraries
+    if test -n "$openssl_static"; then
+    	if test -f "$lib/libssl.a" -a -f "$lib/libcrypto.a"; then
+	    OPENSSL_LDFLAGS="$lib/libssl.a $lib/libcrypto.a"
+       	    AC_MSG_RESULT([$lib (static)])
+    	fi
+    else
+        if test -f "$lib/libssl.${SHLIB_SUFFIX}" -a -f "$lib/libcrypto.${SHLIB_SUFFIX}"; then
+	    if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
+       	        OPENSSL_LDFLAGS="-L$lib"
+    	    fi
+	    OPENSSL_LDFLAGS="$OPENSSL_LDFLAGS -lssl -lcrypto"
+       	    AC_MSG_RESULT([$lib (shared)])
+    	elif test -f "$lib/libssl.a" -a -f "$lib/libcrypto.a"; then
+	    OPENSSL_LDFLAGS="$lib/libssl.a $lib/libcrypto.a"
+       	    AC_MSG_RESULT([$lib (static)])
+    	fi
+    fi
+    if test -z "$OPENSSL_LDFLAGS"; then
+        return
+    fi
+    AC_MSG_CHECKING([for openssl include files])
+    # try to find include files
+    if test "$1" = "/"; then
+        inc=/usr/include
+    else
+        inc=$1/include
+    fi
+    if test -f "$inc/openssl/ssl.h"; then
+        AC_MSG_RESULT([found: $inc/openssl])
+        set_openssl_cppflags $inc
+    else
+	AC_MSG_ERROR([not found])
+    fi
+    AC_SUBST(OPENSSL_LDFLAGS)
+    AC_SUBST(OPENSSL_CPPFLAGS)   
+}
+
 # see if we can figure out where the openssl library is
-AC_ARG_WITH([openssl-libs],
-  [AC_HELP_STRING([--with-openssl-libs@<:@=DIR@:>@],
-                  [openssl library directory])],
-  [if test ! -d "${with_openssl_libs}"; then AC_MSG_ERROR(bad value ${with_openssl_libs} for --with-openssl-libs); unset with_openssl_libs; fi])
+AC_ARG_WITH([openssl-dir],
+  [AS_HELP_STRING([--with-openssl-dir@<:@=DIR@:>@],
+                  [openssl directory])],
+  [if test ! -d "${with_openssl_dir}"; then AC_MSG_ERROR(bad value ${with_openssl_dir} for --with-openssl-dir); unset with_openssl_dir; fi], 
+  [with_openssl_dir="$OPENSSL_DIR"])
 
-AC_MSG_CHECKING([for openssl library])
-if test -n "$with_openssl_libs"; then
-   if test ! -f "$with_openssl_libs/libssl.a" -a ! -f "$with_openssl_libs/libssl.$SHLIB_SUFFIX"; then
-      AC_MSG_ERROR([can't find openssl library in $with_openssl_libs])
-   else
-      AC_MSG_RESULT([$with_openssl_libs])
-      if test "$with_openssl_libs" = "/usr/lib${LIBSUFFIX}"; then
-         with_openssl_libs=
-      elif test "$with_openssl_libs" = "/lib${LIBSUFFIX}"; then
-         with_openssl_libs=
-      fi
-   fi
-else
-   if test -n "$OPENSSL_DIR" -a \( -f $OPENSSL_DIR/lib${LIBSUFFIX}/libssl.a -o -f "$OPENSSL_DIR/lib${LIBSUFFIX}/libssl.$SHLIB_SUFFIX" \); then
-      AC_MSG_RESULT([$OPENSSL_DIR/lib${LIBSUFFIX}])
-      with_openssl_libs=$OPENOPENSSL_DIR/lib${LIBSUFFIX}
-   elif test -f /usr/lib${LIBSUFFIX}/libssl.a -o -f /usr/lib${LIBSUFFIX}/libssl.$SHLIB_SUFFIX; then
-      AC_MSG_RESULT([/usr/lib${LIBSUFFIX}])
-   elif test -f /lib${LIBSUFFIX}/libssl.a -o -f /lib${LIBSUFFIX}/libssl.$SHLIB_SUFFIX; then
-      AC_MSG_RESULT([/lib${LIBSUFFIX}])
-   elif test -f /opt/openssl/lib${LIBSUFFIX}/libssl.a -o -f /opt/openssl/lib${LIBSUFFIX}/libssl.$SHLIB_SUFFIX; then
-      AC_MSG_RESULT([/opt/openssl/lib${LIBSUFFIX}])
-      with_openssl_libs=/opt/openssl/lib${LIBSUFFIX}
-   elif test -f /sw/lib/libssl.a -o -f /sw/lib/libssl.$SHLIB_SUFFIX; then
-      AC_MSG_RESULT([/sw/lib])
-      with_openssl_libs=/sw/lib
-   elif test -f /opt/local/lib${LIBSUFFIX}/libssl.a -o -f /opt/local/lib${LIBSUFFIX}/libssl.$SHLIB_SUFFIX; then
-      AC_MSG_RESULT([/opt/local/lib${LIBSUFFIX}])
-      with_openssl_libs=/opt/local/lib${LIBSUFFIX}
-   else
-      AC_MSG_ERROR([no openssl library found])
-   fi
+AC_MSG_CHECKING([for openssl libraries and header files])
+for dir in "${with_openssl_dir}" /usr / /usr/local /opt/gnu /opt/openssl /usr/local/openssl /opt/local /sw /usr/sfw /opt/sfw; do
+    find_openssl $dir
+    if test -n "$OPENSSL_LDFLAGS"; then
+        break
+    fi
+done
+if test -z "$OPENSSL_LDFLAGS"; then
+    AC_MSG_ERROR([no openssl library found])
 fi
 
-if test -n "$with_openssl_libs"; then
-   OPENSSL_LDFLAGS="-L$with_openssl_libs -lssl -lcrypto"
-else
-   OPENSSL_LDFLAGS="-lssl -lcrypto"
-fi
-AC_SUBST(OPENSSL_LDFLAGS)
+set_pcre_cppflags()
+{
+    if test "$1" != "/usr/include"; then
+        PCRE_CPPFLAGS=-I$1
+    fi
+}
 
-# see if we can figure out where the ssl header file is
-AC_ARG_WITH([openssl-includes],
-  [AC_HELP_STRING([--with-openssl-includes@<:@=DIR@:>@],
-                  [SSL include file directory])],
-  [if test ! -d "${with_openssl_includes}"; then AC_MSG_ERROR(bad value ${with_openssl_includes} for --with-openssl-includes); unset with_openssl_includes; fi])
-
-AC_MSG_CHECKING([for openssl/ssl.h])
-if test -n "$with_openssl_includes"; then
-   if test ! -f "$with_openssl_includes/openssl/ssl.h"; then
-      AC_MSG_ERROR([can't find openssl/ssl.h in $with_openssl_includes])
-   else
-      AC_MSG_RESULT([$with_openssl_includes])
-      if test "$with_openssl_includes" = "/usr/include"; then
-         with_openssl_includes=
-      fi
-   fi
-else
-   if test -n "$OPENSSL_DIR" -a -f $OPENSSL_DIR/include/openssl/ssl.h ; then
-      AC_MSG_RESULT([$OPENSSL_DIR/include])
-      with_openssl_includes=$OPENSSL_DIR/include
-   elif test -f /usr/include/openssl/ssl.h ; then
-      AC_MSG_RESULT([/usr/include])
-   elif test -f /opt/openssl/include/openssl/ssl.h; then
-      AC_MSG_RESULT([/opt/openssl/include])
-      with_openssl_includes=/opt/openssl/include
-   elif test -f /sw/include/openssl/ssl.h; then
-      AC_MSG_RESULT([/sw/include])
-      with_openssl_includes=/sw/include
-   elif test -f /opt/local/include/openssl/ssl.h; then
-      AC_MSG_RESULT([/opt/local/include])
-      with_openssl_includes=/opt/local/include
-   else
-      AC_MSG_ERROR([no ssl.h header file found])
-   fi
-fi
-
-if test -n "$with_openssl_includes"; then
-   OPENSSL_CPPFLAGS=-I$with_openssl_includes
-fi
-AC_SUBST(OPENSSL_CPPFLAGS)
+find_pcre()
+{
+    lib=$1/lib${LIBSUFFIX}
+    # if we only want the static pcre libraries
+    if test -n "$pcre_static"; then
+    	if test -f "$lib/libpcre.a"; then
+	    PCRE_LDFLAGS="$lib/libpcre.a"
+       	    AC_MSG_RESULT([$lib (static)])
+    	fi
+    else
+        if test -f "$lib/libpcre.${SHLIB_SUFFIX}"; then
+	    if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
+       	        PCRE_LDFLAGS="-L$lib"
+    	    fi
+	    PCRE_LDFLAGS="$PCRE_LDFLAGS -lpcre"
+       	    AC_MSG_RESULT([$lib (shared)])
+    	elif test -f "$lib/libpcre.a"; then
+	    PCRE_LDFLAGS="$lib/libpcre.a"
+       	    AC_MSG_RESULT([$lib (static)])
+    	fi
+    fi
+    if test -z "$PCRE_LDFLAGS"; then
+        return
+    fi
+    AC_MSG_CHECKING([for pcre include files])
+    # try to find include files
+    if test "$1" = "/"; then
+        inc=/usr/include
+    else
+        inc=$1/include
+    fi
+    if test -f "$inc/pcre.h"; then
+        AC_MSG_RESULT([found: $inc])
+        set_pcre_cppflags $inc
+    elif test -f "$inc/pcre/pcre.h"; then
+        AC_MSG_RESULT([found: $inc/pcre])
+        set_pcre_cppflags $inc/pcre
+    else
+	AC_MSG_ERROR([not found])
+    fi
+    AC_SUBST(PCRE_LDFLAGS)
+    AC_SUBST(PCRE_CPPFLAGS)   
+}
 
 # see if we can figure out where the pcre library is
-AC_ARG_WITH([pcre-libs],
-  [AC_HELP_STRING([--with-pcre-libs@<:@=DIR@:>@],
-                  [PCRE library directory])],
-  [if test ! -d "${with_pcre_libs}"; then AC_MSG_ERROR(bad value ${with_pcre_libs} for --with-pcre-libs); unset with_pcre_libs; fi])
+AC_ARG_WITH([pcre-dir],
+  [AS_HELP_STRING([--with-pcre-dir@<:@=DIR@:>@],
+                  [PCRE directory])],
+  [if test ! -d "${with_pcre_dir}"; then AC_MSG_ERROR(bad value ${with_pcre_dir} for --with-pcre-dir); unset with_pcre_dir; fi],
+  [with_pcre_dir="$PCRE_DIR"])
 
-AC_MSG_CHECKING([for pcre library])
-if test -n "$with_pcre_libs"; then
-   if test ! -f "$with_pcre_libs/libpcre.a" -a ! -f "$with_pcre_libs/libpcre.$SHLIB_SUFFIX"; then
-      AC_MSG_ERROR([can't find pcre library in $with_pcre_libs])
-   else
-      AC_MSG_RESULT([$with_pcre_libs])
-      if test "$with_pcre_libs" = "/usr/lib${LIBSUFFIX}"; then
-         with_pcre_libs=
-      fi
-   fi
-else
-   if test -n "$PCRE_DIR" -a \( -f $PCRE_DIR/lib${LIBSUFFIX}/libpcre.a -o -f "$PCRE_DIR/lib${LIBSUFFIX}/libpcre.$SHLIB_SUFFIX" \); then
-      AC_MSG_RESULT([$PCRE_DIR/lib${LIBSUFFIX}])
-      with_pcre_libs=$PCRE_DIR/lib${LIBSUFFIX}
-   elif test -f /usr/lib${LIBSUFFIX}/libpcre.a -o -f /usr/lib${LIBSUFFIX}/libpcre.$SHLIB_SUFFIX; then
-      AC_MSG_RESULT([/usr/lib${LIBSUFFIX}])
-   elif test -f /opt/pcre/lib${LIBSUFFIX}/libpcre.a -o -f /opt/pcre/lib${LIBSUFFIX}/libpcre.$SHLIB_SUFFIX; then
-      AC_MSG_RESULT([/opt/pcre/lib${LIBSUFFIX}])
-      with_pcre_libs=/opt/pcre/lib${LIBSUFFIX}
-   elif test -f /usr/pcre/lib${LIBSUFFIX}/libpcre.a -o -f /usr/pcre/lib${LIBSUFFIX}/libpcre.$SHLIB_SUFFIX; then
-      AC_MSG_RESULT([/usr/pcre/lib${LIBSUFFIX}])
-      with_pcre_libs=/usr/pcre/lib${LIBSUFFIX}
-   elif test -f /sw/lib/libpcre.a -o -f /sw/lib/libpcre.$SHLIB_SUFFIX; then
-      AC_MSG_RESULT([/sw/lib])
-      with_pcre_libs=/sw/lib
-   elif test -f /opt/local/lib${LIBSUFFIX}/libpcre.a -o -f /opt/local/lib${LIBSUFFIX}/libpcre.$SHLIB_SUFFIX; then
-      AC_MSG_RESULT([/opt/local/lib${LIBSUFFIX}])
-      with_pcre_libs=/opt/local/lib${LIBSUFFIX}
-   else
-      AC_MSG_ERROR([no PCRE library found])
-   fi
+AC_MSG_CHECKING([for pcre libraries and header files])
+for dir in "${with_pcre_dir}" /usr / /usr/local /opt/gnu /opt/pcre /usr/local/pcre /opt/local /sw /usr/sfw /opt/sfw; do
+    find_pcre $dir
+    if test -n "$PCRE_LDFLAGS"; then
+        break
+    fi
+done
+if test -z "$PCRE_LDFLAGS"; then
+    AC_MSG_ERROR([no pcre library found])
 fi
 
-if test -n "$with_pcre_libs"; then
-   PCRE_LDFLAGS="-L$with_pcre_libs -lpcre"
-else
-   PCRE_LDFLAGS=-lpcre
-fi
-AC_SUBST(PCRE_LDFLAGS)
+set_libxml2_cppflags()
+{
+    if test "$1" != "/usr/include"; then
+        LIBXML2_CPPFLAGS=-I$1
+    fi
+}
 
-# see if we can figure out where the pcre header file is
-AC_ARG_WITH([pcre-includes],
-  [AC_HELP_STRING([--with-pcre-includes@<:@=DIR@:>@],
-                  [PCRE include file directory])],
-  [if test ! -d "${with_pcre_includes}"; then AC_MSG_ERROR(bad value ${with_pcre_includes} for --with-pcre-includes); unset with_pcre_includes; fi])
+find_libxml2()
+{
+    lib=$1/lib${LIBSUFFIX}
+    # if we only want the static libxml2 libraries
+    if test -n "$libxml2_static"; then
+    	if test -f "$lib/libxml2.a"; then
+	    LIBXML2_LDFLAGS="$lib/libxml2.a"
+       	    AC_MSG_RESULT([$lib (static)])
+    	fi
+    else
+        if test -f "$lib/libxml2.${SHLIB_SUFFIX}"; then
+	    if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
+       	        LIBXML2_LDFLAGS="-L$lib"
+    	    fi
+	    LIBXML2_LDFLAGS="$LIBXML2_LDFLAGS -lxml2"
+       	    AC_MSG_RESULT([$lib (shared)])
+    	elif test -f "$lib/libxml2.a"; then
+	    LIBXML2_LDFLAGS="$lib/libxml2.a"
+       	    AC_MSG_RESULT([$lib (static)])
+    	fi
+    fi
+    if test -z "$LIBXML2_LDFLAGS"; then
+        return
+    fi
+    AC_MSG_CHECKING([for libxml2 include files])
+    # try to find include files
+    if test "$1" = "/"; then
+        inc=/usr/include
+    else
+        inc=$1/include
+    fi
+    if test -f "$inc/libxml/xmlversion.h"; then
+        AC_MSG_RESULT([found: $inc])
+        set_libxml2_cppflags $inc
+    elif test -f "$inc/libxml2/libxml/xmlversion.h"; then
+        AC_MSG_RESULT([found: $inc/libxml2])
+	inc=$inc/libxml2
+        set_libxml2_cppflags $inc
+    else
+	AC_MSG_ERROR([not found])
+    fi
+    AC_MSG_CHECKING([libxml2 version])
+    # check version
+    full=`grep define.*LIBXML_DOTTED_VERSION $inc/libxml/xmlversion.h | cut -f2 -d\"`
+    vers=`echo $full | awk 'BEGIN { FS = "."; } {printf("%04d%03d\n", $1 * 1000 + $2, $3);}'`
+    if test "$vers" -ge 2004022; then
+        AC_MSG_RESULT([$full (OK)])
+    else
+	AC_MSG_ERROR([libxml2 2.4.22 or higher is needed; found version $full])
+    fi
 
-AC_MSG_CHECKING([for pcre.h])
-if test -n "$with_pcre_includes"; then
-   if test ! -e "$with_pcre_includes/pcre.h"; then
-      AC_MSG_ERROR([can't find pcre.h in $with_pcre_includes])
-   else
-      AC_MSG_RESULT([$with_pcre_includes])
-      if test "$with_pcre_includes" = "/usr/include"; then
-         with_pcre_includes=
-      fi
-   fi
-else
-   if test -n "$PCRE_DIR" -a -f $PCRE_DIR/include/pcre.h ; then
-      AC_MSG_RESULT([$PCRE_DIR/include])
-      with_pcre_includes=$PCRE_DIR/include
-   elif test -f /usr/include/pcre.h ; then
-      AC_MSG_RESULT([/usr/include])
-   elif test -f /opt/pcre/include/pcre.h; then
-      AC_MSG_RESULT([/opt/pcre/include])
-      with_pcre_includes=/opt/pcre/include
-   elif test -f /usr/pcre/include/pcre.h; then
-      AC_MSG_RESULT([/usr/pcre/include])
-      with_pcre_includes=/usr/pcre/include
-   elif test -f /sw/include/pcre.h; then
-      AC_MSG_RESULT([/sw/include])
-      with_pcre_includes=/sw/include
-   elif test -f /opt/local/include/pcre.h; then
-      AC_MSG_RESULT([/opt/local/include])
-      with_pcre_includes=/opt/local/include
-   else
-      AC_MSG_ERROR([no pcre.h header file found])
-   fi
-fi
+    AC_SUBST(LIBXML2_LDFLAGS)
+    AC_SUBST(LIBXML2_CPPFLAGS)
+}
 
-if test -n "$with_pcre_includes"; then
-   PCRE_CPPFLAGS=-I$with_pcre_includes
+# see if we can figure out where the libxml2 library is
+AC_ARG_WITH([libxml2-dir],
+  [AS_HELP_STRING([--with-libxml2-dir@<:@=DIR@:>@],
+                  [LIBXML2 directory])],
+  [if test ! -d "${with_libxml2_dir}"; then AC_MSG_ERROR(bad value ${with_libxml2_dir} for --with-libxml2-dir); unset with_libxml2_dir; fi],
+  [with_libxml2_dir="$LIBXML2_DIR"])
+
+AC_MSG_CHECKING([for libxml2 libraries and header files])
+for dir in "${with_libxml2_dir}" /usr / /usr/local /opt/gnu /opt/libxml2 /usr/local/libxml2 /opt/local /sw /usr/sfw /opt/sfw; do
+    find_libxml2 $dir
+    if test -n "$LIBXML2_LDFLAGS"; then
+        break
+    fi
+done
+if test -z "$LIBXML2_LDFLAGS"; then
+    AC_MSG_ERROR([no libxml2 library found])
 fi
-AC_SUBST(PCRE_CPPFLAGS)
 
 AC_ARG_ENABLE([profile],
-     [AC_HELP_STRING([--enable-profile],
+     [AS_HELP_STRING([--enable-profile],
 		     [turn on profiling support (default=no)])],
      [case "${enable_profile}" in
        yes|no) ;;
@@ -321,7 +476,7 @@ AC_ARG_ENABLE([profile],
      [enable_profile=no])
 
 AC_ARG_ENABLE([debug],
-     [AC_HELP_STRING([--enable-debug],
+     [AS_HELP_STRING([--enable-debug],
 		     [turn on debugging (default=no)])],
      [case "${enable_debug}" in
        yes|no) ;;
@@ -336,7 +491,7 @@ CXXFLAGS=`echo $CXXFLAGS | sed 's/\-O2//'`
 fi
 
 AC_ARG_ENABLE([builtin-modules],
-     [AC_HELP_STRING([--enable-builtin-modules],
+     [AS_HELP_STRING([--enable-builtin-modules],
 		     [link in module code directly (default=no)])],
      [case "${enable_builtin_modules}" in
        yes|no) ;;
@@ -345,7 +500,7 @@ AC_ARG_ENABLE([builtin-modules],
      [enable_builtin_modules=no])
 
 AC_ARG_ENABLE([threads],
-  [AC_HELP_STRING([--enable-threads],
+  [AS_HELP_STRING([--enable-threads],
                   [include threading support (default=yes)])],
   [case "$enable_threads" in
       yes|no) ;;
@@ -362,7 +517,7 @@ if test "${enable_threads}" = yes; then
 fi
 
 AC_ARG_WITH([tibrv],
-  [AC_HELP_STRING([--with-tibrv@<:@=DIR@:>@],
+  [AS_HELP_STRING([--with-tibrv@<:@=DIR@:>@],
 		  [TIBCO Rendezvous directory (defaults to $RV_ROOT)])],
   [if test ! -d "${with_tibrv}"; then AC_MSG_ERROR(bad value ${with_tibrv} for --with-tibrv); unset with_tibrv; fi])
 
@@ -404,7 +559,12 @@ if test -n "$with_tibrv"; then
 
    # setup tibrv compile and link vars
    TIBRV_CPPFLAGS="-I${with_tibrv}/include"
-   TIBRV_LIBS="-L${with_tibrv}/lib -ltibrv${LIBSUFFIX} -ltibrvcm${LIBSUFFIX} -ltibrvcmq${LIBSUFFIX} -ltibrvcpp${LIBSUFFIX} -ltibrvft${LIBSUFFIX} -ltibrvsd${LIBSUFFIX}"   
+   # check for dynamic libtibrvcpp
+   if test -f "${with_tibrv}/lib/libtibrvcpp${LIBSUFFIX}.${SHLIB_SUFFIX}"; then
+      TIBRV_LIBS="-L${with_tibrv}/lib -ltibrv${LIBSUFFIX} -ltibrvcm${LIBSUFFIX} -ltibrvcmq${LIBSUFFIX} -ltibrvcpp${LIBSUFFIX} -ltibrvft${LIBSUFFIX} -ltibrvsd${LIBSUFFIX}"   
+   else
+      TIBRV_LIBS="-L${with_tibrv}/lib -ltibrv${LIBSUFFIX} -ltibrvcm${LIBSUFFIX} -ltibrvcmq${LIBSUFFIX} ${with_tibrv}/lib/libtibrvcpp${LIBSUFFIX}.a -ltibrvft${LIBSUFFIX} -ltibrvsd${LIBSUFFIX}"   
+   fi
 
    # check if C++ compiler can link with TIBCO Rendezvous c++ libs
    SAVE_CPPFLAGS="$CPPFLAGS"
@@ -417,12 +577,12 @@ if test -n "$with_tibrv"; then
    LIBS="$LIBS -ltibrvcpp${LIBSUFFIX}"
 
    AC_MSG_CHECKING([if we can link to the TIBCO Rendezvous C++ library])
-   AC_TRY_LINK([
-#include <tibrv/tibrvcpp.h>
-	 ],[
+   AC_LINK_IFELSE([AC_LANG_PROGRAM(
+[[#include <tibrv/tibrvcpp.h>
+]],[[
 Tibrv::open();
 Tibrv::close();
-	],tibrv_links=yes, tibrv_links=no)
+	]])],tibrv_links=yes, tibrv_links=no)
 
    CPPFLAGS="$SAVE_CPPFLAGS"
    LDFLAGS="$SAVE_LDFLAGS"
@@ -442,12 +602,12 @@ Tibrv::close();
       LDFLAGS="$LDFLAGS $TIBRV_LIBS"
 
       AC_MSG_CHECKING([if secure daemon support was enabled in libtibrvcpp])
-      AC_TRY_COMPILE([
+      AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 #include <tibrv/tibrvcpp.h>
 #include <tibrv/sdcpp.h>
-	 ],[
+	 ]],[[
 TibrvSdContext::setDaemonCert(TIBRV_SECURE_DAEMON_ANY_NAME, TIBRV_SECURE_DAEMON_ANY_CERT);
-	],tibrvsd_links=yes, tibrvsd_links=no)
+	]])],tibrvsd_links=yes, tibrvsd_links=no)
 
       CPPFLAGS="$SAVE_CPPFLAGS"
       LDFLAGS="$SAVE_LDFLAGS"
@@ -467,7 +627,7 @@ TibrvSdContext::setDaemonCert(TIBRV_SECURE_DAEMON_ANY_NAME, TIBRV_SECURE_DAEMON_
 fi
 
 AC_ARG_WITH([tibae],
-  [AC_HELP_STRING([--with-tibae@<:@=DIR@:>@],
+  [AS_HELP_STRING([--with-tibae@<:@=DIR@:>@],
 		  [TIBCO Active Enterprise SDK directory (defaults to $SDK_ROOT)])],
   [if test ! -d "${with_tibae}"; then AC_MSG_ERROR(bad value ${with_tibae} for --with-tibae); unset with_tibae; fi])
 
@@ -516,7 +676,7 @@ if test -n "$with_tibae"; then
    # check if we need TPCL (third-party libraries)
    if test `echo $TIBCO_SDK_VERSION|cut -b1` -gt 4; then
       AC_ARG_WITH([tibae-tpcl],
-        [AC_HELP_STRING([--with-tibae-tpcl@<:@=DIR@:>@],
+        [AS_HELP_STRING([--with-tibae-tpcl@<:@=DIR@:>@],
 		        [TIBCO Active Enterprise TPCL directory (defaults to $TPCL_ROOT)])],
 			[if test ! -d "${with_tibae_tpcl}"; then AC_MSG_ERROR(bad value ${with_tibae_tpcl} for --with-tibae-tpcl); unset with_tibae_tpcl; fi])
       AC_MSG_CHECKING([TIBCO Active Enterprise TPCL])
@@ -543,24 +703,33 @@ fi
 
 if test -n "$with_tibae"; then
    case "$TIBCO_SDK_VERSION" in
-	4.1.2) TIBAE_LIBS="-L${with_tibae}/lib -lmaverick41 -ldl -lpthread"
+	4.1.2) TIBAE_LIBS="-L${with_tibae}/lib -lmaverick41 -lpthread"
 	       TIBAE_CPPFLAGS="-I${with_tibae}/include"
 	       AC_DEFINE(TIBCO_SDK, 4, [define for TIBCO SDK 4.*])
 	       ;;
-	4.1.3) TIBAE_LIBS="-L${with_tibae}/lib -lmaverick41 -ldl -lpthread"
-	       TIBAE_CPPFLAGS="-DLINUX24 -I${with_tibae}/include"
+	4.1.3) TIBAE_LIBS="-L${with_tibae}/lib -lmaverick41 -lpthread"
+	       TIBAE_CPPFLAGS="-I${with_tibae}/include"
 	       AC_DEFINE(TIBCO_SDK, 4, [define for TIBCO SDK 4.*])
 	       ;;
-        5.0.*) TIBAE_LIBS="-L${with_tibae}/lib -L${with_tibae_tpcl}/lib -lmaverick50 -lrepowww532 -lxerces-c2_1 -lssl -lcrypto -ldl -lpthread"
-	       TIBAE_CPPFLAGS="-DLINUX24 -I${with_tibae}/include/sdk"
+        5.0.*) TIBAE_LIBS="-L${with_tibae}/lib -L${with_tibae_tpcl}/lib -lmaverick50 -lrepowww532 -lxerces-c2_1 -lssl -lcrypto -lpthread"
+	       TIBAE_CPPFLAGS="-I${with_tibae}/include/sdk"
 	       AC_DEFINE(TIBCO_SDK, 5, [define for TIBCO SDK 5.*])
 	       ;;
-        5.3.*) TIBAE_LIBS="-L${with_tibae}/lib -L${with_tibae_tpcl}/lib -lmaverick53 -lrepowww532 -lxerces-c2_1 -lssl -lcrypto -licuuc -ldl -lpthread"
-	       TIBAE_CPPFLAGS="-DLINUX24 -I${with_tibae}/include/sdk"
+        5.3.*) TIBAE_LIBS="-L${with_tibae}/lib -L${with_tibae_tpcl}/lib -lmaverick53 -lrepowww532 -lxerces-c2_1 -lssl -lcrypto -licuuc -lpthread"
+	       TIBAE_CPPFLAGS="-I${with_tibae}/include/sdk"
 	       AC_DEFINE(TIBCO_SDK, 5, [define for TIBCO SDK 5.*])
 	       ;;
 	*)     AC_MSG_ERROR(Unsupported TIBCO SDK Version) 
 	       ;;
+   esac
+
+   case "${host_os}" in
+     *linux*)	TIBAE_CPPFLAGS="$TIBAE_CPPFLAGS -DLINUX24 -ldl"
+		;;
+     *hpux*)    TIBAE_CPPFLAGS="$TIBAE_CPPFLAGS -DHP_UX +DAportable"
+		;;
+     *)		TIBAE_CPPFLAGS="$TIBAE_CPPFLAGS -ldl"
+		;; 
    esac
 
    # check if C++ compiler can link with TIBCO libs
@@ -569,7 +738,7 @@ if test -n "$with_tibae"; then
    CPPFLAGS="$CPPFLAGS $TIBAE_CPPFLAGS $TIBRV_CPPFLAGS"
    LDFLAGS="$LDFLAGS $TIBAE_LIBS $TIBRV_LIBS"
    AC_MSG_CHECKING([if we can link to the TIBCO AE SDK])
-   AC_TRY_LINK([
+   AC_LINK_IFELSE([AC_LANG_PROGRAM([[
 #include <Maverick.h>
 class TApp : public MApp
 {
@@ -579,9 +748,9 @@ class TApp : public MApp
       inline TApp(MAppProperties *pm) : MApp(pm) {}
 };
 
-	 ],[
+	 ]],[[
 TApp ma(NULL);
-	],tibae_sdk_links=yes, tibae_sdk_links=no)
+	]])], tibae_sdk_links=yes, tibae_sdk_links=no)
 
    CPPFLAGS="$SAVE_CPPFLAGS"
    LDFLAGS="$SAVE_LDFLAGS"
@@ -599,18 +768,46 @@ TApp ma(NULL);
 fi
 
 AC_ARG_WITH([oracle],
-  [AC_HELP_STRING([--with-oracle@<:@=DIR@:>@],
+  [AS_HELP_STRING([--with-oracle@<:@=DIR@:>@],
                   [directory for Oracle support (defaults to $ORACLE_HOME)])],
    , 
    [with_oracle=auto])
 
 if test "$with_oracle" = "auto"; then
-   if test -n "$ORACLE_HOME"; then
+   if test -n "$ORACLE_HOME" -o -n "$ORACLE_INSTANT_CLIENT" -o "$with_oracle_instant_client"; then
       with_oracle=yes
    else
       with_oracle=no
    fi
 fi
+
+get_oracle_version()
+{
+  AC_MSG_CHECKING([Oracle version])
+  if test -n "$2" -a -s "$1/orainst/unix.rgs"; then
+    ORACLE_VERSION=`grep '"ocommon"' $1/orainst/unix.rgs | sed "s/[ ][ ]*/:/g" | cut -d: -f 6 | cut -c 2-4`
+    test -z "$ORACLE_VERSION" && ORACLE_VERSION=7.3
+  elif test -f $1/libclntsh.$SHLIB_SUFFIX.10.1; then
+    ORACLE_VERSION=10.1
+  elif test -f $1/libclntsh.$SHLIB_SUFFIX.10.0; then
+    ORACLE_VERSION=10.0
+  elif test -f $1/libclntsh.$SHLIB_SUFFIX.9.0; then
+    ORACLE_VERSION=9.0
+  elif test -f $1/libclntsh.$SHLIB_SUFFIX.8.0; then
+    ORACLE_VERSION=8.1
+  elif test -f $1/libclntsh.$SHLIB_SUFFIX.1.0; then
+    ORACLE_VERSION=8.0
+  elif test -f $1/libclntsh.a; then
+    if test -f $1/libcore4.a; then
+      ORACLE_VERSION=8.0
+    else
+      ORACLE_VERSION=8.1
+    fi
+  else
+    AC_MSG_ERROR([Oracle libraries not found, use --without-oracle to build without Oracle support])
+  fi
+  AC_MSG_RESULT($ORACLE_VERSION)
+}
 
 case "$with_oracle" in
   yes) ORACLE_DIR=$ORACLE_HOME ;;
@@ -619,23 +816,47 @@ case "$with_oracle" in
 esac
 
 if test "$with_oracle" = "yes"; then
-   if test -d "$ORACLE_DIR/rdbms/public"; then
-      ORACLE_INCLUDES="-I$ORACLE_DIR/rdbms/public"
+   AC_ARG_WITH([oracle-instant-client],
+  [AS_HELP_STRING([--with-oracle-instant-client@<:@=DIR@:>@],
+                  [directory for Oracle instant client files])],
+   ,
+  [with_oracle_instant_client=$ORACLE_INSTANT_CLIENT])
+
+   if test -n "$with_oracle_instant_client"; then
+      AC_MSG_CHECKING([for Oracle instant client SDK])
+      if test -f "$with_oracle_instant_client/sdk/include/oci.h"; then
+	 AC_MSG_RESULT([ok])
+	 ORACLE_INCLUDES="-I$with_oracle_instant_client/sdk/include"
+	 oracle_lib_dir=$with_oracle_instant_client
+	 get_oracle_version $with_oracle_instant_client
+      else
+	 AC_MSG_ERROR([instant client SDK include files not found, use --without-oracle to build without Oracle support or install the instant client SDK])
+      fi
+   else
+      if test -d "$ORACLE_DIR/rdbms/public"; then
+         ORACLE_INCLUDES="-I$ORACLE_DIR/rdbms/public"
+      fi
+      if test -d "$ORACLE_DIR/rdbms/demo"; then
+	 ORACLE_INCLUDES="$ORACLE_INCLUDES -I$ORACLE_DIR/rdbms/demo"
+      fi
+      if test -d "$ORACLE_DIR/network/public"; then
+	 ORACLE_INCLUDES="$ORACLE_INCLUDES -I$ORACLE_DIR/network/public"
+      fi
+      if test -d "$ORACLE_DIR/plsql/public"; then
+	 ORACLE_INCLUDES="$ORACLE_INCLUDES -I$ORACLE_DIR/plsql/public"
+      fi
+      if test "$enable_64bit" != "yes" -a -d "$ORACLE_DIR/lib32"; then
+         oracle_lib_dir="$ORACLE_DIR/lib32"
+      else
+         oracle_lib_dir="$ORACLE_DIR/lib"
+      fi
+      get_oracle_version $oracle_lib_dir $ORACLE_DIR
    fi
-   if test -d "$ORACLE_DIR/rdbms/demo"; then
-      ORACLE_INCLUDES="$ORACLE_INCLUDES -I$ORACLE_DIR/rdbms/demo"
-   fi
-   if test -d "$ORACLE_DIR/network/public"; then
-      ORACLE_INCLUDES="$ORACLE_INCLUDES -I$ORACLE_DIR/network/public"
-   fi
-   if test -d "$ORACLE_DIR/plsql/public"; then
-      ORACLE_INCLUDES="$ORACLE_INCLUDES -I$ORACLE_DIR/plsql/public"
-   fi
+
    AC_SUBST(ORACLE_INCLUDES)
 
-   AC_ORACLE_VERSION
    case "$ORACLE_VERSION" in
-      9*|10*) ORACLE_LIBS="-L$ORACLE_DIR/lib -lclntsh" ;; 
+      9*|10*) ORACLE_LIBS="-L$oracle_lib_dir -lclntsh" ;; 
       *)      AC_MSG_ERROR(Unsupported Oracle version) ;;
    esac
    AC_SUBST(ORACLE_LIBS)
@@ -645,16 +866,16 @@ if test "$with_oracle" = "yes"; then
    SAVE_LDFLAGS="$LDFLAGS"
    CXXFLAGS="$CXXFLAGS $ORACLE_INCLUDES"
    LDFLAGS="$LDFLAGS $ORACLE_LIBS"
-   AC_TRY_COMPILE([
+   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 #include <oci.h>
-         ],[
-        ], with_oracle=yes, AC_MSG_ERROR(file 'oci.h' not found in '$ORACLE_INCLUDES'))
+         ]],[[
+        ]])], with_oracle=yes, AC_MSG_ERROR(file 'oci.h' not found in '$ORACLE_INCLUDES'))
    CXXFLAGS="$SAVE_CXXFLAGS"
    LDFLAGS="$SAVE_LDFLAGS"
 fi
 
 AC_ARG_ENABLE([mysql],
-     [AC_HELP_STRING([--enable-mysql],
+     [AS_HELP_STRING([--enable-mysql],
 		     [enable mysql support (default=auto)])],
      [case "${enable_mysql}" in
        yes|no|auto) ;;
@@ -663,12 +884,12 @@ AC_ARG_ENABLE([mysql],
      [enable_mysql=auto])
 
 AC_ARG_WITH([mysql-includes],
-    [AC_HELP_STRING([--with-mysql-includes@<:@=DIR@:>@],
+    [AS_HELP_STRING([--with-mysql-includes@<:@=DIR@:>@],
                     [MySQL include file directory])],
     [if test ! -d "${with_mysql_includes}"; then AC_MSG_ERROR(bad value ${with_mysql_includes} for --with-mysql-includes); unset with_mysql_includes; fi])
 
 AC_ARG_WITH([mysql-libs],
-    [AC_HELP_STRING([--with-mysql-libs@<:@=DIR@:>@],
+    [AS_HELP_STRING([--with-mysql-libs@<:@=DIR@:>@],
                     [directory for MySQL libraries (default: /usr/lib/mysql)])],
     [if test ! -d "${with_mysql_libs}"; then AC_MSG_ERROR(bad value ${with_mysql_libs} for --with-mysql-libs); unset with_mysql_libs; fi])
 
@@ -692,7 +913,7 @@ if test "${enable_mysql}" != "no"; then
 	 enable_mysql=no
       fi
    else
-      for dir in "$MYSQL_DIR/include" /usr/local/mysql/include /opt/mysql/include /usr/mysql/include /usr/include/mysql /sw/include/mysql /opt/local/include/mysql; do
+      for dir in "$MYSQL_DIR/include" /usr/local/mysql/include /opt/mysql/include /usr/mysql/include /usr/include/mysql /sw/include/mysql /opt/local/include/mysql /opt/sfw/include/mysql /usr/sfw/include/mysql; do
       	  check_mysql_include $dir
       	  if test -n "$mysql_include_dir"; then
 	     AC_MSG_RESULT([$mysql_include_dir])
@@ -710,26 +931,31 @@ fi
 
 check_mysql_lib()
 {
-    if test -f "$1/libmysqlclient_r.a" -o -f "$1/libmysqlclient_r.${SHLIB_SUFFIX}"; then
+    if test -f "$1/libmysqlclient_r.${SHLIB_SUFFIX}"; then
        mysql_lib_dir=$1
+       AC_MSG_RESULT([$1 (shared)])
+    elif test -f "$1/libmysqlclient_r.a"; then
+       mysql_lib_dir=$1
+       mysql_static=1
+       AC_MSG_RESULT([$1 (static)])
     fi
 }
 
 if test "${enable_mysql}" != "no"; then
    AC_MSG_CHECKING([for mysql libraries])
-   if test -n "$with_mysql_libs"; then 
-      if test -f "$with_mysql_libs/libmysqlclient_r.a"; then
-      	 AC_MSG_RESULT([$with_mysql_libs])
+   if test -n "$with_mysql_libs"; then
+      check_mysql_lib "$with_mysql_libs"
+
+      if test -n "$mysql_lib_dir"; then
 	 enable_mysql=yes
       else
 	 AC_MSG_RESULT([error: $with_mysql_libs does not contain libmysqlclient])
 	 unset with_mysql_libs
       fi
    else
-      for dir in "$MYSQL_DIR/lib${LIBSUFFIX}" /usr/local/mysql/lib${LIBSUFFIX} /opt/mysql/lib${LIBSUFFIX} /usr/mysql/lib${LIBSUFFIX} /usr/lib${LIBSUFFIX}/mysql /sw/lib/mysql /opt/local/lib${LIBSUFFIX} ;do
+      for dir in "$MYSQL_DIR/lib${LIBSUFFIX}" /usr/local/mysql/lib${LIBSUFFIX} /opt/mysql/lib${LIBSUFFIX} /usr/mysql/lib${LIBSUFFIX} /usr/lib${LIBSUFFIX}/mysql /sw/lib/mysql /opt/local/lib${LIBSUFFIX} /usr/sfw/lib${LIBSUFFIX} /opt/sfw/lib${LIBSUFFIX} ;do
       	  check_mysql_lib $dir
       	  if test -n "$mysql_lib_dir"; then
-	     AC_MSG_RESULT([$mysql_lib_dir])
 	     with_mysql_libs="$mysql_lib_dir"
 	     enable_mysql=yes
 	     break;
@@ -745,17 +971,21 @@ fi
 if test "${enable_mysql}" = yes; then
   if test -n "$with_mysql_includes" -a -n "$with_mysql_libs"; then
      MYSQL_INCLUDES="-I$with_mysql_includes"
-     MYSQL_LIBS="-L$with_mysql_libs -lmysqlclient_r"
+     if test -n "$mysql_static"; then
+          MYSQL_LIBS="$with_mysql_libs/libmysqlclient_r.a"
+     else
+          MYSQL_LIBS="-L$with_mysql_libs -lmysqlclient_r"
+     fi
      # check if C++ compiler can link with MYSQL libs
      SAVE_CXXFLAGS="$CXXFLAGS"
      SAVE_LDFLAGS="$LDFLAGS"
      CXXFLAGS="$CXXFLAGS $MYSQL_INCLUDES"
-     LDFLAGS="$LDFLAGS $MYSQL_LIBS"   
-     AC_TRY_COMPILE([
+     LDFLAGS="$LDFLAGS $MYSQL_LIBS"
+     AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 #include <mysql.h>
-	 ],[
+	 ]],[[
 MYSQL mysql; mysql_init(&mysql);
-	],mysql_links=yes, mysql_links=no)
+	]])], mysql_links=yes, mysql_links=no)
 
      CXXFLAGS="$SAVE_CXXFLAGS"
      LDFLAGS="$SAVE_LDFLAGS"
@@ -788,8 +1018,79 @@ MYSQL mysql; mysql_init(&mysql);
   fi
 fi
 
+# don't add system directories to library path
+set_ncurses_lib()
+{
+   if test "$1" = "/usr" -a "$1" = "/"; then
+      NCURSES_LIBS="-l$2 -lpanel"
+   else
+      NCURSES_LIBS="-L$lib -l$2 -lpanel"
+   fi
+   AC_SUBST(NCURSES_LIBS)
+}
+
+# checks for ncurses (or curses) and panel libraries and include files and sets NCURSES_LIBS and NCURSES_CPPFLAGS appropriately
+check_ncurses()
+{
+    lib=$1/lib${LIBSUFFIX}
+
+    if test -n "$ncurses_static"; then
+    	if test -f "$lib/libncurses.a" -a -f "$lib/libpanel.a"; then
+	    ncurses_dir=$1
+       	    AC_MSG_RESULT([$lib (ncurses static)])
+	    NCURSES_LIBS="$lib/libncurses.a $lib/libpanel.a"
+	elif test -f "$lib/libcurses.a" -a -f "$lib/libpanel.a"; then
+	    ncurses_dir=$1
+       	    AC_MSG_RESULT([$lib (curses static)])
+	    NCURSES_LIBS="$lib/libcurses.a $lib/libpanel.a"
+    	fi
+    elif test -f "$lib/libncurses.${SHLIB_SUFFIX}" -a -f "$lib/libpanel.${SHLIB_SUFFIX}"; then
+       ncurses_dir=$1
+       AC_MSG_RESULT([$lib (ncurses shared)])
+       set_ncurses_lib "$1" ncurses
+    elif test -f "$lib/libncurses.a" -a -f "$lib/libpanel.a"; then
+       ncurses_dir=$1
+       AC_MSG_RESULT([$lib (ncurses static)])
+       NCURSES_LIBS="$lib/libncurses.a $lib/libpanel.a"
+    elif test -f "$lib/libcurses.${SHLIB_SUFFIX}" -a -f "$lib/libpanel.${SHLIB_SUFFIX}"; then
+       ncurses_dir=$1
+       AC_MSG_RESULT([$lib (curses shared)])
+       NCURSES_CPPFLAGS="-DNOMACROS"
+       set_ncurses_lib "$1" curses
+    elif test -f "$lib/libcurses.a" -a -f "$lib/libpanel.a"; then
+       ncurses_dir=$1
+       AC_MSG_RESULT([$lib (curses static)])
+       NCURSES_CPPFLAGS="-DNOMACROS"
+       NCURSES_LIBS="$lib/libcurses.a $lib/libpanel.a"
+    fi
+
+    # make sure include files are in the expected place as well
+    if test -n "$ncurses_dir"; then
+       AC_MSG_CHECKING([for ncurses and panel include files])
+       if test -f "$1/include/curses.h" -a "$1/include/panel.h"; then
+          AC_MSG_RESULT([found in $ncurses_dir])
+	  if test "$1" = "/usr"; then
+	     NCURSES_CPPFLAGS="$NCURSES_CPPFLAGS"
+	  else
+	     NCURSES_CPPFLAGS="$NCURSES_CPPFLAGS -I$1/include"
+	  fi
+	  AC_SUBST(NCURSES_CPPFLAGS)
+       elif test -f "$1/include/ncurses/curses.h" -a "$1/include/ncurses/panel.h"; then
+          AC_MSG_RESULT([found in $1/include/ncurses])
+	  if test "$1" = "/usr"; then
+	     NCURSES_CPPFLAGS="$NCURSES_CPPFLAGS -I$1/include/ncurses"
+	  else
+	     NCURSES_CPPFLAGS="$NCURSES_CPPFLAGS -I$1/include -I$1/include/ncurses"
+	  fi
+	  AC_SUBST(NCURSES_CPPFLAGS)
+       else
+          AC_MSG_ERROR([not found!  use configure --disable-ncurses to skip ncurses checks])
+       fi
+    fi
+}
+
 AC_ARG_ENABLE([ncurses],
-  [AC_HELP_STRING([--disable-ncurses],
+  [AS_HELP_STRING([--disable-ncurses],
                   [do not include ncurses support])],
   [case "$enable_ncurses" in
       yes|no) ;;
@@ -799,36 +1100,44 @@ AC_ARG_ENABLE([ncurses],
 
 if test "${enable_ncurses}" = yes; then
    enable_ncurses=no
-   PKG_CHECK_MODULES(NCURSES, ncurses,,[
-      AC_MSG_CHECKING([trying to find ncurses])
-         AC_CHECK_LIB(ncurses, initscr, enable_ncurses=yes)
-	 AC_CHECK_LIB(panel, update_panels, enable_panel=yes)
-	 AC_CHECK_LIB(ncurses, wresize, AC_DEFINE(HAVE_WRESIZE, 1, [define if the wresize function is available]))
-	 ])
-fi
+   AC_MSG_CHECKING([for ncurses and panel libraries])
 
-if test "${enable_ncurses}" = yes; then
-   if test "${enable_panel}" = yes; then
+   for dir in "$NCURSES_DIR" /usr /usr/local /usr/local/ncurses /opt/gnu /opt/ncurses /usr/ncurses /sw /opt/local /usr/sfw /opt/sfw; do
+       check_ncurses $dir
+       if test -n "$ncurses_dir"; then
+	  break;
+       fi
+   done
+   if test -z "$ncurses_dir"; then
+      AC_MSG_RESULT([not found])
+   else
+      enable_ncurses=yes
       AC_DEFINE(NCURSES, 1, Define if ncurses support should be included)
+
+      # check for wresize function in library
+      SAVE_CPPFLAGS="$CPPFLAGS"
+      SAVE_LDFLAGS="$LDFLAGS"
+      CPPFLAGS="$CPPFLAGS $NCURSES_CPPFLAGS"
+      LDFLAGS="$LDFLAGS $NCURSES_LIBS"
+
+      AC_MSG_CHECKING([for wresize function in ncurses library])
+      AC_LINK_IFELSE([AC_LANG_PROGRAM([[
+#include <curses.h>
+	 ]],[[
+wresize((WINDOW *)0, 0, 0);
+	 ]])], have_wresize=yes, have_wresize=no)
+
+      CPPFLAGS="$SAVE_CPPFLAGS"
+      LDFLAGS="$SAVE_LDFLAGS"
+
+      if test "$have_wresize" = "yes"; then
+	 AC_MSG_RESULT([yes])
+	 AC_DEFINE(HAVE_WRESIZE, 1, [define if the wresize function is available])
+      else
+	 AC_MSG_RESULT([no])
+      fi
    fi
 fi
-
-PKG_CHECK_MODULES(XML, libxml-2.0 >= 2.4.22,,[
-  AC_MSG_CHECKING([trying xml2-config])
-    if xml2-config --libs > /dev/null 2>&1; then
-      full=`xml2-config --version`
-      vers=`xml2-config --version | \
-        awk 'BEGIN { FS = "."; } {print ($1 * 1000 + $2) * 1000 + $3;}'`
-      if test "$vers" -ge 2004022; then
-	AC_MSG_RESULT($full)
-	XML_CFLAGS="`xml2-config --cflags`"
-	XML_LIBS="`xml2-config --libs`"
-      else
-	AC_MSG_ERROR([libxml2 2.4.22 or higher is needed; found version $full])
-      fi
-    else
-      AC_MSG_ERROR([libxml2 2.4.22 or higher is needed; xml2-config not found])      
-    fi])
 
 # Checks for header files.
 AC_HEADER_STDC
@@ -871,34 +1180,29 @@ AC_CHECK_FUNCS([bzero floor gethostbyaddr gethostbyaddr_r gethostbyname gethostb
 
 # try to find strtoimax on HPUX
 AC_MSG_CHECKING([for strtoimax])
-AC_EGREP_CPP([inttypes_h_defines_strtoimax], [
-#include <inttypes.h>
-#ifdef strtoimax
-inttypes_h_defines_strtoimax
-#endif
-], [AC_MSG_RESULT(yes)
-    AC_DEFINE(HAVE_STRTOIMAX, 1,
-	     [Define to 1 if you have strtoimax])], 
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+[[#include <inttypes.h>]], [[strtoimax("10", NULL, 10);]])], 
+   [AC_MSG_RESULT(yes)
+    AC_DEFINE(HAVE_STRTOIMAX, 1, [Define to 1 if you have strtoimax])], 
    [AC_MSG_RESULT(no)])
 
 # Check definition of gethostbyaddr_r (glibc2 defines this with 8 arguments)
 ac_save_CXXFLAGS="$CXXFLAGS"
 AC_CACHE_CHECK([style of gethost* routines], qore_gethost_style,
-AC_LANG_SAVE
-AC_LANG_CPLUSPLUS
+AC_LANG_PUSH([C++])
 
 # Do not treat warnings as errors if we are linking against other libc
 # this is to work around gcc not being permissive on non-system includes
 # with respect to ANSI C++
 # We also remove the -fbranch-probabilities option as this will give warnings
 # about not profiled code, which confuses configure
-if test "$ac_cv_prog_gxx" = "yes" -a "$with_other_libc" = "no"
+if test "$GXX" = "yes" -a "$with_other_libc" = "no"
 then
   CXXFLAGS=`echo "$CXXFLAGS -Werror" | sed 's/-fbranch-probabilities//'`
 fi
 
-AC_TRY_COMPILE(
-[#undef inline
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+[[#undef inline
 #if !defined(SCO) && !defined(__osf__) && !defined(_REENTRANT)
 #define _REENTRANT
 #endif
@@ -907,12 +1211,12 @@ AC_TRY_COMPILE(
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <netdb.h>],
-[int skr;
+#include <netdb.h>]],
+[[int skr;
  struct hostent *foo = gethostbyaddr_r((const char *) 0,
-  0, 0, (struct hostent *) 0, (char *) NULL,  0, &skr); return (foo == 0);],
+  0, 0, (struct hostent *) 0, (char *) NULL,  0, &skr); return (foo == 0);]])],
 qore_gethost_style=solaris, qore_gethost_style=other))
-AC_LANG_RESTORE
+AC_LANG_POP([C++])
 CXXFLAGS="$ac_save_CXXFLAGS"
 if test "$qore_gethost_style" = "solaris"
 then
@@ -923,14 +1227,13 @@ fi
 # Check definition of gethostbyname_r (glibc2.0.100 is different from Solaris)
 ac_save_CXXFLAGS="$CXXFLAGS"
 AC_CACHE_CHECK([style of gethostname_r routines], qore_gethostname_style,
-AC_LANG_SAVE
-AC_LANG_CPLUSPLUS
-if test "$ac_cv_prog_gxx" = "yes" -a "$with_other_libc" = "no"
+AC_LANG_PUSH([C++])
+if test "$GXX" = "yes" -a "$with_other_libc" = "no"
 then
   CXXFLAGS=`echo "$CXXFLAGS -Werror" | sed 's/-fbranch-probabilities//'`
 fi
-AC_TRY_COMPILE(
-[#undef inline
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+[[#undef inline
 #if !defined(SCO) && !defined(__osf__) && !defined(_REENTRANT)
 #define _REENTRANT
 #endif
@@ -939,13 +1242,13 @@ AC_TRY_COMPILE(
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <netdb.h>],
-[int skr;
+#include <netdb.h>]],
+[[int skr;
 
  skr = gethostbyname_r((const char *) 0,
-  (struct hostent*) 0, (char*) 0, 0, (struct hostent **) 0, &skr);],
+  (struct hostent*) 0, (char*) 0, 0, (struct hostent **) 0, &skr);]])],
 qore_gethostname_style=glibc2, qore_gethostname_style=other))
-AC_LANG_RESTORE
+AC_LANG_POP([C++])
 CXXFLAGS="$ac_save_CXXFLAGS"
 if test "$qore_gethostname_style" = "glibc2"
 then
@@ -956,14 +1259,13 @@ fi
 # Check 3rd argument of getthostbyname_r
 ac_save_CXXFLAGS="$CXXFLAGS"
 AC_CACHE_CHECK([3 argument to gethostname_r routines], qore_gethostname_arg,
-AC_LANG_SAVE
-AC_LANG_CPLUSPLUS
-if test "$ac_cv_prog_gxx" = "yes" -a "$with_other_libc" = "no"
+AC_LANG_PUSH([C++])
+if test "$GXX" = "yes" -a "$with_other_libc" = "no"
 then
   CXXFLAGS=`echo "$CXXFLAGS -Werror" | sed 's/-fbranch-probabilities//'`
 fi
-AC_TRY_COMPILE(
-[#undef inline
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+[[#undef inline
 #if !defined(SCO) && !defined(__osf__) && !defined(_REENTRANT)
 #define _REENTRANT
 #endif
@@ -972,11 +1274,11 @@ AC_TRY_COMPILE(
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <netdb.h>],
-[int skr;
- skr = gethostbyname_r((const char *) 0, (struct hostent*) 0, (struct hostent_data*) 0);],
+#include <netdb.h>]],
+[[int skr;
+ skr = gethostbyname_r((const char *) 0, (struct hostent*) 0, (struct hostent_data*) 0);]])],
 qore_gethostname_arg=hostent_data, qore_gethostname_arg=char))
-AC_LANG_RESTORE
+AC_LANG_POP([C++])
 CXXFLAGS="$ac_save_CXXFLAGS"
 if test "$qore_gethostname_arg" = "hostent_data"
 then
@@ -995,10 +1297,12 @@ fi
 # turn on some build flags for non-debugging, non-profiling builds
 if test "$enable_debug" = "no" -a "$enable_profile" = "no"; then
    # turn on optimizations if we know how
-   if test "$ac_cv_prog_gxx" = "yes"; then
-      CXXFLAGS="$CXXFLAGS -O3"  # gcc
+   if test "$GXX" = "yes"; then
+       CXXFLAGS="$CXXFLAGS -O3"  # gcc
    elif test "$CXX" = "CC" -a "`echo $host_os|cut -b-7`" = "solaris"; then
-      CXXFLAGS="$CXXFLAGS -xO5" # Solaris CC
+       CXXFLAGS="$CXXFLAGS -xO5" # Solaris CC
+   elif test -n "`echo $CXX|grep aCC`"; then 
+       CXXFLAGS="$CXXFLAGS +O2" # HP-UX aCC
    fi
    # strip binaries and libraries
    if test "`echo $host_os|cut -b-6`" = "darwin"; then
@@ -1008,13 +1312,15 @@ if test "$enable_debug" = "no" -a "$enable_profile" = "no"; then
    fi	
 fi
 
-# set special compiler flags for SunPro C++ compiler to turn off annoying "String literal converted to char* ..." warnings
-if test "$CXX" = "CC" -a "`echo $host_os|cut -b-7`" = "solaris"; then
+# set special compiler flags for C++ compilers to turn off annoying "String literal converted to char* ..." warnings
+if test -n "`echo $CXX|grep CC`" -a "`echo $host_os|cut -b-7`" = "solaris"; then
    CXXFLAGS="$CXXFLAGS -erroff=badargtypel2w"
+elif test -n "`echo $CXX|grep aCC`"; then 
+   CXXFLAGS="$CXXFLAGS +W829"
 fi
 
 # turn on warnings if we know how
-if test "$ac_cv_prog_gxx" = "yes"; then
+if test "$GXX" = "yes"; then
    CXXFLAGS="$CXXFLAGS -Wall"  # gcc
 fi
 
@@ -1052,6 +1358,13 @@ AC_CONFIG_FILES([Makefile lib/Makefile modules/Makefile modules/ncurses/Makefile
 AC_OUTPUT
 
 echo "*** BUILTIN FEATURES ***"
+printf "library  : "
+if test "$enable_64bit" = "yes"; then
+   echo 64-bit
+else
+   echo 32-bit
+fi
+
 printf "debug    : "
 if test "$enable_debug" = "yes"; then
    echo yes
@@ -1104,3 +1417,12 @@ if test "$with_tibae" = "yes"; then
 else
    echo disabled
 fi
+
+# hack to use our libtool if on HP-UX to enable static libs to be linked in to modules
+if test "`uname -s`" = "HP-UX"; then
+   # remove references to -ldl in libtool
+   sed "s/-ldl//g" libtool > libtool.tmp
+   sed "s/valid_a_lib=no/valid_a_lib=yes/g" libtool.tmp > libtool
+fi
+
+

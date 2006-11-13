@@ -1,6 +1,6 @@
-#include <ext/hash_map>
+#include 
 #ifndef HASH_NAMESPACE
-#define HASH_NAMESPACE __gnu_cxx
+#define HASH_NAMESPACE 
 #endif
 using HASH_NAMESPACE::hash_map;
 using HASH_NAMESPACE::hash;
