@@ -67,6 +67,7 @@ Set the RV_ROOT environment variable to the Rendezvous directory before calling 
 
 *) "tibae": TIBCO AE module requires TIBCO SDK 5.2.1 or better
 If you have TIBCO Rendezvous and the AE SDK installed, and the supported C++ compiler, you can build in TIBCO AE integration.  Make sure that the RV_ROOT, SDK_ROOT, and TPCL_ROOT environment variables are pointing to your Rendezvous, SDK, and TPCL directories respectively before calling configure.  Otherwise you can use the --with-tibrv, --with-tibae, and with-tibae-tpcl configure options.  The TIBCO module will compile with SDK 4.* versions, but there are so many bugs in this version of the SDK (including some horrible dynamic memory leaks) that it doesn't make sense to use anything before 5.2.1...
+Note that this module is not supported on HP-UX PA-RISC platforms due to the fact that the compiler requirements for the SDK are incompatible with compiling qore.
 
 *) "tuxedo": BEA Tuxedo support requores Tuxedo 8 or better
 ~
@@ -107,8 +108,9 @@ I have heard that qore builds fine, but I have not actually seen it myself, nor 
 *) HP-UX
 HP-UX builds are finally working with g++ (tested 4.1.1 and aCC), however the configure script include a hack to libtool to get the modules to link dynamic libraries with static libaries and to prohibit -ldl from being automatically included in the link lines.  I am using HP-UX 11.23 (v2) on PA-RISC.
 PA-RISC 2.0 32-bit binaries are produced in 32-bit mode, with --enable-64-bit, PA-RISC 2.0 64-bit binaries are produced
-Qore now uses strtoimax() as a replacement for strtoll() on HP-UX.   
-Currently there is no fast atomic reference count support on PA-RISC platforms
+Qore now uses strtoimax() as a replacement for strtoll() on HP-UX.
+The TIBCO ActiveEnterprise module (tibae) is not supported on PA-RISC because the compiler requirements are incompatible with compiling qore.
+Currently there is no fast atomic reference count support on PA-RISC platforms.
 Note that only PA-RISC builds have been tested; itanium builds are untested.
 
 *) Windows

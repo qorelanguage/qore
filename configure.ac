@@ -226,7 +226,7 @@ if test "$enable_static_pcre" = "yes"; then
 fi
 
 if test "$enable_static_ncurses" = "yes"; then
-   pcre_static=yes
+   ncurses_static=yes
 fi
 
 if test "$enable_static_common" = "yes"; then
@@ -235,6 +235,20 @@ if test "$enable_static_common" = "yes"; then
    pcre_static=yes
    ncurses_static=yes
 fi
+
+AC_ARG_WITH([static-libz-dir],
+	    [AS_HELP_STRING([--with-static-libz-dir], [directory for libz.a library (default=auto)])],
+	    [if test ! -d "${with_static_libz_dir}"; then AC_MSG_ERROR([bad value ${with_static_libz_dir} for --with-static_libz_dir]); fi])
+
+if test -n "$with_static_libz_dir"; then
+    if ! test -f "$with_static_libz_dir/libz.a"; then
+        AC_MSG_ERROR([no libz.a found in $with_static_libz_dir])
+    fi
+    ZLIB_LDFLAGS="$with_static_libz_dir/libz.a"
+else
+    ZLIB_LDFLAGS="-lz"
+fi
+AC_SUBST(ZLIB_LDFLAGS)
 
 set_openssl_cppflags()
 {
@@ -618,7 +632,10 @@ AC_ARG_WITH([tibae],
 
 AC_MSG_CHECKING([TIBCO Active Enterprise SDK])
 if test -n "$with_tibae"; then
-   if test ! -e "$with_tibae/include/sdk/Maverick.h"; then
+   # disable AE SDK on HP-UX PA-RISC, it requires compiling without the -AA flag which we don't support
+   if test -n "`echo $host_os | grep hpux`" -a "$host_cpu" != "ia64"; then
+      AC_MSG_WARNING([TIBCO ActiveEnterprise SDK not supported on HP-UX])
+   elif test ! -e "$with_tibae/include/sdk/Maverick.h"; then
       AC_MSG_ERROR([can't find Maverick.h in $with_tibae/include/sdk])
    elif test -z "`ls $with_tibae/lib/libmaverick*.${SHLIB_SUFFIX} 2>/dev/null`"; then
       AC_MSG_ERROR([can't find libmaverick*.${SHLIB_SUFFIX} in $with_tibae/lib])
@@ -1393,9 +1410,11 @@ fi
 if test "$enable_debug" = "no" -a "$enable_profile" = "no"; then
    # turn on optimizations if we know how
    if test "$GXX" = "yes"; then
-      CXXFLAGS="$CXXFLAGS -O3"  # gcc
+       CXXFLAGS="$CXXFLAGS -O3"  # gcc
    elif test "$CXX" = "CC" -a "`echo $host_os|cut -b-7`" = "solaris"; then
-      CXXFLAGS="$CXXFLAGS -xO5" # Solaris CC
+       CXXFLAGS="$CXXFLAGS -xO5" # Solaris CC
+   elif test -n "`echo $CXX|grep aCC`"; then 
+       CXXFLAGS="$CXXFLAGS +O2" # HP-UX aCC
    fi
    # strip binaries and libraries
    if test "`echo $host_os|cut -b-6`" = "darwin"; then
@@ -1525,3 +1544,5 @@ if test "`uname -s`" = "HP-UX"; then
    sed "s/-ldl//g" libtool > libtool.tmp
    sed "s/valid_a_lib=no/valid_a_lib=yes/g" libtool.tmp > libtool
 fi
+
+
