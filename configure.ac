@@ -1544,7 +1544,7 @@ fi
 # also to allow 64-bit PA-RISC libraries to be linked to modules
 if test "`uname -s`" = "HP-UX" -a "$host_os" != "ia64"; then
    # backup generated libtool
-   if [ ! -e libtool.orig ]; then
+   if test ! -e libtool.orig ; then
       cp libtool libtool.orig
    fi
    # remove references to -ldl in libtool
