@@ -166,6 +166,8 @@ class QoreString {
 	 }
 	 return 0;
       }
+      // May be useful to avoid needless conversions
+      QoreEncoding* getCharset() const { return charset; }
 };
 
 inline class QoreString *checkEncoding(class QoreString *str, class QoreEncoding *enc, class ExceptionSink *xsink);
