@@ -636,6 +636,7 @@ if test -n "$with_tibae"; then
    # disable AE SDK on HP-UX PA-RISC, it requires compiling without the -AA flag which we don't support
    if test -n "`echo $host_os | grep hpux`" -a "$host_cpu" != "ia64"; then
       AC_MSG_WARN([TIBCO ActiveEnterprise SDK not supported on HP-UX])
+      unset with_tibae
    elif test ! -e "$with_tibae/include/sdk/Maverick.h"; then
       AC_MSG_ERROR([can't find Maverick.h in $with_tibae/include/sdk])
    elif test -z "`ls $with_tibae/lib/libmaverick*.${SHLIB_SUFFIX} 2>/dev/null`"; then
