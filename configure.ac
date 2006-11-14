@@ -1552,7 +1552,7 @@ if test "`uname -s`" = "HP-UX" -a "$host_os" != "ia64"; then
    # ensure static libs can be linked to modules
    sed "s/valid_a_lib=no/valid_a_lib=yes/g" libtool.tmp > libtool.tmp.1
    # ensure that valid 64-bit libraries are not recognized as invalid
-   sed "s/deplibs_check_method=/deplibs_check_method=pass_all/g" libtool.tmp.1 > libtool
+   sed "s/deplibs_check_method=.*/deplibs_check_method=pass_all/g" libtool.tmp.1 > libtool
    # delete temporary files
    rm -f libtool.tmp libtool.tmp.1
 fi
