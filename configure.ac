@@ -151,6 +151,7 @@ if test "$enable_64bit" = "yes"; then
 		fi
 		;;
    esac
+   RVLIBSUFFIX=64
 else
    case "${host_os}" in
      *linux*)	if test "$GXX" = "yes"; then
@@ -559,10 +560,10 @@ if test -n "$with_tibrv"; then
    # setup tibrv compile and link vars
    TIBRV_CPPFLAGS="-I${with_tibrv}/include"
    # check for dynamic libtibrvcpp
-   if test -f "${with_tibrv}/lib/libtibrvcpp${LIBSUFFIX}.${SHLIB_SUFFIX}"; then
-      TIBRV_LIBS="-L${with_tibrv}/lib -ltibrv${LIBSUFFIX} -ltibrvcm${LIBSUFFIX} -ltibrvcmq${LIBSUFFIX} -ltibrvcpp${LIBSUFFIX} -ltibrvft${LIBSUFFIX} -ltibrvsd${LIBSUFFIX}"   
+   if test -f "${with_tibrv}/lib/libtibrvcpp${RVLIBSUFFIX}.${SHLIB_SUFFIX}"; then
+      TIBRV_LIBS="-L${with_tibrv}/lib -ltibrv${RVLIBSUFFIX} -ltibrvcm${RVLIBSUFFIX} -ltibrvcmq${RVLIBSUFFIX} -ltibrvcpp${RVLIBSUFFIX} -ltibrvft${RVLIBSUFFIX} -ltibrvsd${RVLIBSUFFIX}"   
    else
-      TIBRV_LIBS="-L${with_tibrv}/lib -ltibrv${LIBSUFFIX} -ltibrvcm${LIBSUFFIX} -ltibrvcmq${LIBSUFFIX} ${with_tibrv}/lib/libtibrvcpp${LIBSUFFIX}.a -ltibrvft${LIBSUFFIX} -ltibrvsd${LIBSUFFIX}"   
+      TIBRV_LIBS="-L${with_tibrv}/lib -ltibrv${RVLIBSUFFIX} -ltibrvcm${RVLIBSUFFIX} -ltibrvcmq${RVLIBSUFFIX} ${with_tibrv}/lib/libtibrvcpp${RVLIBSUFFIX}.a -ltibrvft${RVLIBSUFFIX} -ltibrvsd${RVLIBSUFFIX}"   
    fi
 
    # check if C++ compiler can link with TIBCO Rendezvous c++ libs
@@ -573,7 +574,7 @@ if test -n "$with_tibrv"; then
 
    # hack to work around a bug in 64-bit g++ on linux? - if libtibrvcpp is not last on the compile line the link will fail for some reason
    SAVE_LIBS="$LIBS"
-   LIBS="$LIBS -ltibrvcpp${LIBSUFFIX}"
+   LIBS="$LIBS -ltibrvcpp${RVLIBSUFFIX}"
 
    AC_MSG_CHECKING([if we can link to the TIBCO Rendezvous C++ library])
    AC_LINK_IFELSE([AC_LANG_PROGRAM(
