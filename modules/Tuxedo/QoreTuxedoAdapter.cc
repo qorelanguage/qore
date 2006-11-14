@@ -1086,7 +1086,7 @@ void QoreTuxedoAdapter::setSendBuffer(QoreNode* n, Hash* settings, char* err_nam
   if (n->type == NT_STRING) {
     char* s = n->val.String->getBuffer();
     if (!s || !s[0]) return;
-    if (n->val.String->getCharset() != m_string_encoding) {
+    if (n->val.String->getEncoding() != m_string_encoding) {
       QoreString aux(s, m_string_encoding);
       if (!allocate_send_buffer("STRING", strlen(aux.getBuffer()) + 1, err_name, xsink)) return;
       strcpy(m_send_buffer, aux.getBuffer());
@@ -1143,7 +1143,7 @@ QoreNode* QoreTuxedoAdapter::buffer2node(char* buffer, long buffer_size, char* e
 //------------------------------------------------------------------------------
 QoreNode* QoreTuxedoAdapter::call(char* service_name, Hash* call_settings, long* pflags, ExceptionSink* xsink)
 {
-  char* err_name = "TuxedoAdapter:;call";
+  char* err_name = "TuxedoAdapter::call";
   char type[20] = "";
   char subtype[20];
 
@@ -1183,7 +1183,7 @@ QoreNode* QoreTuxedoAdapter::call(char* service_name, Hash* call_settings, long*
 //------------------------------------------------------------------------------
 QoreNode* QoreTuxedoAdapter::acall(char* service_name, Hash* call_settings, long* pflags, ExceptionSink* xsink)
 {
-  char* err_name = "TuxedoAdapter::asycnCall";
+  char* err_name = "TuxedoAdapter::asyncCall";
   long flags = get_flags(call_settings, pflags, m_default_flags_for_acall, m_default_flags_for_acall_set, err_name, xsink);
   if (xsink->isException()) {
     return 0;
@@ -1204,13 +1204,31 @@ QoreNode* QoreTuxedoAdapter::acall(char* service_name, Hash* call_settings, long
 //-----------------------------------------------------------------------------
 QoreNode* QoreTuxedoAdapter::post_event(char* event_name, Hash* call_settings, long* pflags, ExceptionSink* xsink)
 {
-  // TBD
-  return 0;
+  char* err_name = "TuxedoAdapter::postEvent";
+  long flags = get_flags(call_settings, pflags, m_default_flags_for_post_event, m_default_flags_for_post_event_set, err_name, xsink);
+  if (xsink->isException()) {
+    return 0;
+  }
+
+  int res = tppost(event_name, m_send_buffer, m_send_buffer_size, flags);
+  if (res != -1) return 0;
+
+  Hash* h = new Hash;
+  h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
+  h->setKeyValue((char*)"Tuxedo call", new QoreNode("tppost"), xsink);
+  return xsink->raiseExceptionArg(err_name, new QoreNode(h), "tppost() failed with error %d.", tperrno);
 }
 
 //------------------------------------------------------------------------------
-QoreNode* QoreTuxedoAdapter::get_reply(int handle, long* pflags, ExceptionSink* xsink)
+QoreNode* QoreTuxedoAdapter::get_reply(int handle, Hash* call_settings, long* pflags, ExceptionSink* xsink)
 {
+  char* err_name = "TuxedoAdapter::waitForAsyncReply";
+
+  long flags = get_flags(call_settings, pflags, m_default_flags_for_getrply, m_default_flags_for_getrply_set, err_name, xsink);
+  if (xsink->isException()) {
+    return 0;
+  }
+
   // TBD
   return 0;
 }

@@ -332,16 +332,31 @@ static QoreNode* waitForAsyncReply(Object* self, QoreTuxedoAdapter* adapter, Qor
   if (!n) return xsink->raiseException(err_name, "The first parameter, the handle, needs to be an integer.");
   int handle = (int)n->val.intval;
 
-  long flags;
+  // optional settings are either (1) integer flags or (2) hash with flags and FML/FML32 selector
+  Hash* getrply_settings = 0;
+  long flags = 0;
   long* pflags = 0;
+
   if (get_param(params, 1)) {
-    n = test_param(params, NT_INT, 1);
-    if (!n) return xsink->raiseException(err_name, "The second, optional flags needs to be an integer.");
-    flags = (long)n->val.intval;
-    pflags = &flags;
+    n = test_param(params, NT_HASH, 1);
+    if (n) {
+      getrply_settings = n->val.hash;
+    } else {
+      n = test_param(params, NT_INT, 1);
+      if (n) {
+        flags = (long)n->val.intval;
+        pflags = &flags;
+      } else {
+       return xsink->raiseException(err_name, "The second (optional) parameter needs to be hash with settings or integer flags.");
+      }
+    }
+    if (get_param(params, 2)) {
+      return xsink->raiseException(err_name, "Up to two parameter are expected.");
+    }
   }
+
   adapter->remove_pending_async_call(handle); // remove it even if the tpgetrply() fails (I do not know better solution)
-  return adapter->get_reply(handle, pflags, xsink);
+  return adapter->get_reply(handle, getrply_settings, pflags, xsink);
 }
 
 //-----------------------------------------------------------------------------

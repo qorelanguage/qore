@@ -144,7 +144,7 @@ public:
 
   QoreNode* call(char* service_name, Hash* call_settings, long* pflags, ExceptionSink* xsink);
   QoreNode* acall(char* service_name, Hash* call_settings, long* pflags, ExceptionSink* xsink);
-  QoreNode* get_reply(int handle, long* pflags, ExceptionSink* xsink);
+  QoreNode* get_reply(int handle, Hash* call_settings, long* pflags, ExceptionSink* xsink);
   QoreNode* post_event(char* event_name, Hash* call_settings, long* pflags, ExceptionSink* xsink);
   QoreNode* connect(char* service_name, Hash* call_settings, long* pflags, ExceptionSink* xsink);
   QoreNode* send(int handle, Hash* call_settings, long* pflags, ExceptionSink* xsink);
