@@ -1541,10 +1541,20 @@ else
 fi
 
 # hack to use our libtool if on PA-RISC HP-UX to enable static libs to be linked in to modules
+# also to allow 64-bit PA-RISC libraries to be linked to modules
 if test "`uname -s`" = "HP-UX" -a "$host_os" != "ia64"; then
+   # backup generated libtool
+   if [ ! -e libtool.orig ]; then
+      cp libtool libtool.orig
+   fi
    # remove references to -ldl in libtool
    sed "s/-ldl//g" libtool > libtool.tmp
-   sed "s/valid_a_lib=no/valid_a_lib=yes/g" libtool.tmp > libtool
+   # ensure static libs can be linked to modules
+   sed "s/valid_a_lib=no/valid_a_lib=yes/g" libtool.tmp > libtool.tmp.1
+   # ensure that valid 64-bit libraries are not recognized as invalid
+   sed "s/deplibs_check_method=/deplibs_check_method=pass_all/g" libtool.tmp.1 > libtool
+   # delete temporary files
+   rm -f libtool.tmp libtool.tmp.1
 fi
 
 
