@@ -139,6 +139,8 @@ if test "$enable_64bit" = "yes"; then
       *linux*)	if test "$GXX" = "yes"; then
 		   CXXFLAGS="$CXXFLAGS -m64"
 		fi
+		LIBSUFFIX=64
+		AC_SUBST(LIBSUFFIX)
 		;;
       *hpux*)	if test "$host_cpu" != "ia64"; then
 		    if test -n "`echo $CXX|grep aCC`"; then
@@ -149,8 +151,6 @@ if test "$enable_64bit" = "yes"; then
 		fi
 		;;
    esac
-   LIBSUFFIX=64
-   AC_SUBST(LIBSUFFIX)
 else
    case "${host_os}" in
      *linux*)	if test "$GXX" = "yes"; then
