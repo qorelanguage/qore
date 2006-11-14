@@ -71,16 +71,55 @@ static void releaseTuxedoAdapter(void* obj)
 }
 
 //------------------------------------------------------------------------------
-// No parameters.
 static void TUXEDO_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
 {
-  tracein("TUXEDO_constructor");
+  char* err_name = "TuxedoAdapter::constructor";
+  tracein(err_name);
+  
+  QoreNode* n = test_param(params, NT_HASH, 0);
+  if (!n) {
+    xsink->raiseException(err_name, "Hash with Tuxedo settings expected.");
+    return;
+  }
+  Hash* h = n->val.hash;
 
-  QoreTuxedoAdapter* adapter = new QoreTuxedoAdapter();
+  if (get_param(params, 1)) {
+    xsink->raiseException(err_name, "Single parameter is expected.");
+    return;
+  }
+
+  QoreTuxedoAdapter* adapter = new QoreTuxedoAdapter(h, xsink);
+  if (*xsink) {    
+    delete adapter;
+    return;
+  }
   self->setPrivate(CID_TUXEDOADAPTER, adapter, getTuxedoAdapter, releaseTuxedoAdapter);
-
-  traceout("TUXEDO_constructor");
+  traceout(err_name);
 }
+
+#ifdef DEBUG
+#ifdef TUXCONFIG_SIMPLE_TEST
+TEST()
+{
+  char* stop = getenv("TUXEDO_NO_SIMPLE_TEST");
+  if (stop && stop[0]) return;
+  printf("testing construction - simple test server should run\n");
+
+  char buffer[1024];
+  sprintf(buffer, "qore -e '%%requires tuxedo\n"
+    "$settings = (\"TUXCONFIG\" : \"%s\", \"TUXDIR\" : \"" TUXDIR "\");\n"
+    "$a = new Tuxedo::TuxedoAdapter($settings);\n"
+    "delete $a;\n"
+    "exit(10);'\n",
+    tuxfile(TUXCONFIG_SIMPLE_TEST)
+  );
+
+  int res = system(buffer);
+  res = WEXITSTATUS(res);
+  assert(res == 10);
+}
+#endif
+#endif
 
 //------------------------------------------------------------------------------
 static void TUXEDO_destructor(Object *self, QoreTuxedoAdapter* adapter, ExceptionSink *xsink)
@@ -97,286 +136,51 @@ static void TUXEDO_copy(Object *self, Object *old, QoreTuxedoAdapter* adapter, E
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* setUserName(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
+static QoreNode* call(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
 {
+  char* err_name = "TuxedoAdapter::call";
   QoreNode* n = test_param(params, NT_STRING, 0);
-  if (!n) return xsink->raiseException("TuxedoAdapter::setUserName", "String parameter expected.");
-  char* s = n->val.String->getBuffer(); 
-  adapter->m_username = s ? s : "";
-  return 0;
-}
+  if (!n) return xsink->raiseException(err_name, "First parameter needs to be service string.");
+  char* service_name = n->val.String->getBuffer();
+  if (!service_name || !service_name[0]) {
+    return xsink->raiseException(err_name, "Service name string cannot be empty.");
+  }
+  QoreNode* data = get_param(params, 1);
+  if (!data) {
+    return xsink->raiseException(err_name, "Data expected as the second parameter.");    
+  }
+  if (!(data->type == NT_NOTHING || data->type == NT_STRING || data->type == NT_BINARY || data->type == NT_HASH)) {
+    return xsink->raiseException(err_name, "Allowed data: NOTHING, string, binary, hash (FML or FML32).");
+  }
 
-#ifdef DEBUG
-TEST()
-{
-  printf("testing setUsername()\n");
-  char* cmd =
-    "qore -e '%requires tuxedo\n"
-    "$a = new Tuxedo::TuxedoAdapter();\n"
-    "$a.setUserName(\"aaa\");\n"
-    "exit(10);\n'";
+  // optional settings are either (1) integer flags or (2) hash with flags, suggested out data type, FML/FML32 selector
+  Hash* call_settings = 0;
+  long flags = 0;
+  long* pflags = 0;
 
-  int res = system(cmd);
-  res = WEXITSTATUS(res);
-  assert(res == 10);
-
-  cmd =
-    "qore -e '%requires tuxedo\n"
-    "$a = new Tuxedo::TuxedoAdapter();\n"
-    "$a.setUserName(\"\");\n" // empty 
-    "exit(10);\n'";
-
-  res = system(cmd);
-  res = WEXITSTATUS(res);
-  assert(res == 10);
-}
-#endif
-
-//-----------------------------------------------------------------------------
-static QoreNode* setClientName(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
-{
-  QoreNode* n = test_param(params, NT_STRING, 0);
-  if (!n) return xsink->raiseException("TuxedoAdapter::setClientName", "String parameter expected.");
-  char* s = n->val.String->getBuffer();
-  adapter->m_clientname = s ? s : "";
-  return 0;
-}
-
-#ifdef DEBUG
-TEST()
-{
-  printf("testing setClientName()\n");
-  char* cmd =
-    "qore -e '%requires tuxedo\n"
-    "$a = new Tuxedo::TuxedoAdapter();\n"
-    "$a.setClientName(\"aaa\");\n"
-    "exit(10);\n'";
-
-  int res = system(cmd);
-  res = WEXITSTATUS(res);
-  assert(res == 10);
-
-  cmd =
-    "qore -e '%requires tuxedo\n"
-    "$a = new Tuxedo::TuxedoAdapter();\n"
-    "$a.setClientName(\"\");\n" // empty
-    "exit(10);\n'";
-
-  res = system(cmd);
-  res = WEXITSTATUS(res);
-  assert(res == 10);
-}
-#endif
-
-//-----------------------------------------------------------------------------
-static QoreNode* setGroupName(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
-{
-  QoreNode* n = test_param(params, NT_STRING, 0);
-  if (!n) return xsink->raiseException("TuxedoAdapter::setGroupName", "String parameter expected.");
-  char* s = n->val.String->getBuffer();
-  adapter->m_groupname = s ? s : "";
-  return 0;
-}
-
-#ifdef DEBUG
-TEST()
-{
-  printf("testing setGroupName()\n");
-  char* cmd =
-    "qore -e '%requires tuxedo\n"
-    "$a = new Tuxedo::TuxedoAdapter();\n"
-    "$a.setGroupName(\"aaa\");\n"
-    "exit(10);\n'";
-
-  int res = system(cmd);
-  res = WEXITSTATUS(res);
-  assert(res == 10);
-
-  cmd =
-    "qore -e '%requires tuxedo\n"
-    "$a = new Tuxedo::TuxedoAdapter();\n"
-    "$a.setGroupName(\"\");\n" // empty
-    "exit(10);\n'";
-
-  res = system(cmd);
-  res = WEXITSTATUS(res);
-  assert(res == 10);
-}
-#endif
-
-//-----------------------------------------------------------------------------
-static QoreNode* setPassword(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
-{
-  QoreNode* n = test_param(params, NT_STRING, 0);
-  if (!n) return xsink->raiseException("TuxedoAdapter::setPassword", "String parameter expected.");
-  char* s = n->val.String->getBuffer();
-  adapter->m_password = s ? s : "";
-  return 0;
-}
-
-#ifdef DEBUG
-TEST()
-{
-  printf("testing setPassword()\n");
-  char* cmd =
-    "qore -e '%requires tuxedo\n"
-    "$a = new Tuxedo::TuxedoAdapter();\n"
-    "$a.setPassword(\"aaa\");\n"
-    "exit(10);\n'";
-
-  int res = system(cmd);
-  res = WEXITSTATUS(res);
-  assert(res == 10);
-
-  cmd =
-    "qore -e '%requires tuxedo\n"
-    "$a = new Tuxedo::TuxedoAdapter();\n"
-    "$a.setPassword(\"\");\n" // empty
-    "exit(10);\n'";
-
-  res = system(cmd);
-  res = WEXITSTATUS(res);
-  assert(res == 10);
-}
-#endif
-
-//-----------------------------------------------------------------------------
-static QoreNode* setBinaryConnectionData(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
-{
-  QoreNode* n = test_param(params, NT_BINARY, 0);
-  if (!n) return xsink->raiseException("TuxedoAdapter::setBinaryConnectionData", "Binary parameter expected.");
-  char* data = (char*)n->val.bin->getPtr();
-  int size = n->val.bin->size();
-  adapter->m_binary_data.clear();
-  if (size) adapter->m_binary_data.insert(adapter->m_binary_data.begin(), data, data + size);
-  return 0;
-}
-
-//-----------------------------------------------------------------------------
-static QoreNode* setConnectionFlags(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
-{
-  QoreNode* n = test_param(params, NT_INT, 0);
-  if (!n) return xsink->raiseException("TuxedoAdapter::setConnectionFlags", "Integer parameter expected.");
-  adapter->m_connection_flags = (long)n->val.intval;
-  return 0;
-}
-
-#ifdef DEBUG
-TEST()
-{
-  printf("testing setConnectionFlags()\n");
-  char* cmd =
-    "qore -e '%requires tuxedo\n"
-    "$a = new Tuxedo::TuxedoAdapter();\n"
-    "$a.setConnectionFlags(123);\n"
-    "exit(10);\n'";
-
-  int res = system(cmd);
-  res = WEXITSTATUS(res);
-  assert(res == 10);
-}
-#endif
-
-//-----------------------------------------------------------------------------
-static QoreNode* setEnvironmentVariable(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
-{
-  char* err_name = "TuxedoAdapter::setEnvironmentVariable";
-  char* err_text = "Two string parameters needed: environment variable name and value.";
-  QoreNode* n = test_param(params, NT_STRING, 0);
-  if (!n) return xsink->raiseException(err_name, err_text);
-  char* name = n->val.String->getBuffer();
-  if (!name || !name[0]) return xsink->raiseException(err_name, err_text);
-  n = test_param(params, NT_STRING, 1);
-  if (!n) return xsink->raiseException(err_name, err_text);
-  char* value = n->val.String->getBuffer();
-  if (value && !value[0]) value = 0;
-
-  typedef QoreTuxedoAdapter::env_var_t env_t;
-  for (env_t::iterator it = adapter->m_env_variables.begin(), end = adapter->m_env_variables.end(); it != end; ++it) {
-    if (it->first == name) {
-      if (value) {
-        it->second = value; // replace previous env value
+  if (get_param(params, 2)) {
+    n = test_param(params, NT_HASH, 2);
+    if (n) {
+      call_settings = n->val.hash;
+    } else {
+      n = test_param(params, NT_INT, 2);
+      if (n) {
+        flags = (long)n->val.intval;
+        pflags = &flags;
       } else {
-        adapter->m_env_variables.erase(it);
+       return xsink->raiseException(err_name, "The third (optional) parameter needs to be hash with settings or integer flags.");
       }
-      return 0;
     }
+    if (get_param(params, 3)) {
+      return xsink->raiseException(err_name, "Up to three parameter are expected.");
+    }
+  } 
+  adapter->setSendBuffer(data, call_settings, err_name, xsink);
+  if (xsink->isException()) {
+    return xsink->raiseException(err_name, "Invalid parameter for call().");
   }
-  if (value) adapter->m_env_variables.push_back(make_pair(name, value));
-  return 0;
-}
-
-#ifdef DEBUG
-TEST()
-{
-  printf("testing setEnvironmentVariable()\n");
-  char* cmd =
-    "qore -e '%requires tuxedo\n"
-    "$a = new Tuxedo::TuxedoAdapter();\n"
-    "$a.setEnvironmentVariable(\"aaa\", \"a val\");\n"
-    "$a.setEnvironmentVariable(\"bbb\", \"b val\");\n"
-    "$a.setEnvironmentVariable(\"aaa\", \"x\");\n"
-    "$a.setEnvironmentVariable(\"bbb\", \"\");\n"
-    "exit(10);\n'";
-
-  int res = system(cmd);
-  res = WEXITSTATUS(res);
-  assert(res == 10);
-}
-#endif
-
-//-----------------------------------------------------------------------------
-static QoreNode* getNeededAuthentication(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
-{
-  int auth;
-  int err = adapter->getNeededAuthentication(auth);
-  if (err) return xsink->raiseException("TuxedoAdapter::getNeededAuthentication", "tpchkauth() failed:  %s.", strerror(err));
-  return new QoreNode((int64)auth);
-}
-
-#ifdef DEBUG
-#ifdef TUXCONFIG_SIMPLE_TEST
-TEST()
-{
-  char* stop = getenv("TUXEDO_NO_SIMPLE_TEST");
-  if (stop && stop[0]) return;
-  printf("testing getNeededAuthentification() - simple test server should run\n");
-
-  char buffer[1024];
-  sprintf(buffer, "qore -e '%%requires tuxedo\n"
-    "$a = new Tuxedo::TuxedoAdapter();\n"
-    "$a.setEnvironmentVariable(\"TUXCONFIG\", \"%s\");\n"
-    "$a.setEnvironmentVariable(\"TUXDIR\", \"" TUXDIR "\");\n"
-    "$res = $a.getNeededAuthentication();\n"
-    "if ($res != Tuxedo::TPNOAUTH) { printf(\"getNeededAuthentication() failed\n\"); exit(1); }\n"
-    "exit(10);'\n", 
-    tuxfile(TUXCONFIG_SIMPLE_TEST)
-  );
-
-  int res = system(buffer);
-  res = WEXITSTATUS(res);
-  assert(res == 10);
-}
-#endif
-#endif
-
-//-----------------------------------------------------------------------------
-static QoreNode* init(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
-{
-  adapter->m_connection_flags |= TPMULTICONTEXTS; // to allow the saveContext/switchToSavedContext trick
-  int res = adapter->init();
-  if (res == 0) {
-    res = adapter->saveContext();
-    if (res) tpterm();
-  }
-  return new QoreNode((int64)res);
-}
-
-//-----------------------------------------------------------------------------
-static QoreNode* closeAdapter(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
-{
   adapter->switchToSavedContext();
-  return new QoreNode((int64)adapter->close());
+  return adapter->call(service_name, call_settings, pflags, xsink);
 }
 
 #ifdef DEBUG
@@ -385,17 +189,17 @@ TEST()
 {
   char* stop = getenv("TUXEDO_NO_SIMPLE_TEST");
   if (stop && stop[0]) return;
-  printf("testing init()/close() - simple test server should run\n");
+  printf("testing synchronous call - simple test server should run\n");
 
   char buffer[1024];
   sprintf(buffer, "qore -e '%%requires tuxedo\n"
-    "$a = new Tuxedo::TuxedoAdapter();\n"
-    "$a.setEnvironmentVariable(\"TUXCONFIG\", \"%s\");\n"
-    "$a.setEnvironmentVariable(\"TUXDIR\", \"" TUXDIR "\");\n"
-    "$res = $a.init();\n"
-    "if ($res != 0) { printf(\"init failed with %%d\n\", $res); exit(11); }\n"
-    "$res = $a.close();\n"
-    "if ($res != 0) { printf(\"close failed with %%d\n\", $res); exit(11); }\n"
+    "$settings = (\"TUXCONFIG\" : \"%s\", \"TUXDIR\" : \"" TUXDIR "\");\n"
+    "$a = new Tuxedo::TuxedoAdapter($settings);\n"
+    "$res = $a.call(\"TOUPPER\", \"abcd\", 0);\n"
+    "if ($res != \"ABCD\") { printf(\"call() failed\n\"); exit(11); }\n"
+    "$res = $a.call(\"TOUPPER\", \"xyz\", 0);\n" // second call
+    "if ($res != \"XYZ\") { printf(\"call() failed\n\"); exit(11); }\n"
+    "delete $a;\n"
     "exit(10);'\n",
     tuxfile(TUXCONFIG_SIMPLE_TEST)
   );
@@ -405,274 +209,6 @@ TEST()
   assert(res == 10);
 }
 #endif
-#endif
-
-//-----------------------------------------------------------------------------
-static QoreNode* setStringDataToSend(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
-{
-  char* err_name = "TuxedoAdapter::setStringDataToSend";
-  char* err_text = "One to three string parameters expected: data, optional type, optional subtype.";
-  QoreNode* n = test_param(params, NT_STRING, 0);
-  if (!n) return xsink->raiseException(err_name, err_text);
-
-  QoreString encoded_string(n->val.String->getBuffer(), adapter->m_string_encoding);
-  char* s = encoded_string.getBuffer();
-  if (!s) s = "";
-
-  char* type = "STRING";
-  char* subtype = 0;
-  n = test_param(params, NT_STRING, 1);
-  if (n) {
-    type = n->val.String->getBuffer();
-    n = test_param(params, NT_STRING, 2);
-    if (n) {
-      subtype = n->val.String->getBuffer();
-      if (subtype && !subtype[0]) subtype = 0;
-    }
-  }
-
-  return new QoreNode((int64)adapter->setDataToSend(s, strlen(s) + 1, type, subtype));
-}
-
-#ifdef DEBUG
-TEST()
-{
-  printf("testing setStringDataToSend()\n");
-  char* cmd =
-    "qore -e '%requires tuxedo\n"
-    "$a = new Tuxedo::TuxedoAdapter();\n"
-    "$a.setStringEncoding(\"ISO-8859-5\");\n"  // Cyrilic
-    "$res = $a.setStringDataToSend(\"aaaaa\");\n"
-    "if ($res != 0) exit(11);\n"
-    "$res = $a.setStringDataToSend(\"\");\n"
-    "if ($res != 0) exit(11);\n"
-    "exit(10);'\n";
-
-  int res = system(cmd);
-  res = WEXITSTATUS(res);
-  assert(res == 10);
-}
-#endif
-
-//-----------------------------------------------------------------------------
-static QoreNode* setBinaryDataToSend(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
-{
-  char* err_name = "TuxedoAdapter::setBinaryDataToSend";
-  char* err_text = "One to three parameters expected: binary data, optional string type, optional string subtype.";
-  QoreNode* n = test_param(params, NT_BINARY, 0);
-  if (!n) return xsink->raiseException(err_name, err_text);
-  void* data = n->val.bin->getPtr();
-  int size = n->val.bin->size();
-  if (size == 0) {
-    adapter->resetDataToSend();
-    return new QoreNode((int64)0);
-  }
-  char* type = "CARRAY";
-  char* subtype = 0;
-  n = test_param(params, NT_STRING, 1);
-  if (n) {
-    type = n->val.String->getBuffer();
-    n = test_param(params, NT_STRING, 2);
-    if (n) {
-      subtype = n->val.String->getBuffer();
-      if (subtype && !subtype[0]) subtype = 0;
-    }
-  }
-
-  return new QoreNode((int64)adapter->setDataToSend(data, size, type, subtype));
-}
-
-#ifdef DEBUG
-TEST()
-{
-  printf("testing setBinaryData() 1\n");
-  QoreTuxedoAdapter adapter;
-  ExceptionSink xsink;
- 
-  // some binary data 
-  List* l = new List;
-  void* data = malloc(20);
-  l->push(new QoreNode(new BinaryObject(data, 20)));
-  QoreNode* params = new QoreNode(l);
-
-  QoreNode* res = setBinaryDataToSend(0, &adapter, params, &xsink);
-  assert(!xsink);
-  assert(res);
-  assert(res->type == NT_INT);
-  assert(res->val.intval == 0);
-
-  res->deref(&xsink);
-  params->deref(&xsink);
-  assert(!xsink);
-}
-
-TEST()
-{
-  printf("testing setBinaryData() 2\n");
-  QoreTuxedoAdapter adapter;
-  ExceptionSink xsink;
-
-  // empty binary data
-  List* l = new List;
-  l->push(new QoreNode(new BinaryObject));
-  l->push(new QoreNode("STRING"));
-  l->push(new QoreNode(""));
-  QoreNode* params = new QoreNode(l);
-
-  QoreNode* res = setBinaryDataToSend(0, &adapter, params, &xsink);
-  assert(!xsink);
-  assert(res);
-  assert(res->type == NT_INT);
-  assert(res->val.intval == 0);
-
-  res->deref(&xsink);
-  params->deref(&xsink);
-  assert(!xsink);
-
-}
-#endif
-
-//-----------------------------------------------------------------------------
-static QoreNode* error2string(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
-{
-  QoreNode* n = test_param(params, NT_INT, 0);
-  if (!n) return xsink->raiseException("TuxedoAdapter::error2string", "One parameter expected: integer error code.");
-  int err = (int)n->val.intval;
-  char* str = strerror(err);
-  if (!str || !str[0]) str = "<uknown error>";
-  return new QoreNode(str);
-}
-
-#ifdef DEBUG
-TEST()
-{
-  printf("testing setErrorString()\n");
-  char* cmd =
-    "qore -e '%requires tuxedo\n"
-    "$a = new Tuxedo::TuxedoAdapter();\n"
-    "$text = $a.error2string(4);\n" 
-    "exit(10);'\n";
-
-  int res = system(cmd);
-  res = WEXITSTATUS(res);
-  assert(res == 10);
-}
-#endif
-
-//-----------------------------------------------------------------------------
-static QoreNode* allocateReceiveBuffer(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
-{
-  char* err_name = "TuxedoAdapter::allocateReceiveBuffer";
-  char* err_text = "Three parameters expected: string type, string subtype (could be empty), integer size.";
-  QoreNode* n = test_param(params, NT_STRING, 0);
-  if (!n) return xsink->raiseException(err_name, err_text);
-  char* type = n->val.String->getBuffer();
-  if (!type) type = "";
-  n = test_param(params, NT_STRING, 1);
-  if (!n) return xsink->raiseException(err_name, err_text);
-  char* subtype = n->val.String->getBuffer();
-  if (subtype && !subtype[0]) subtype = 0;
-  n = test_param(params, NT_INT, 2);
-  if (!n) return xsink->raiseException(err_name, err_text);
-  long size = (long)n->val.intval;
-
-  return new QoreNode((int64)adapter->allocateReceiveBuffer(type, subtype, size));
-}
-
-#ifdef DEBUG
-TEST()
-{
-  printf("testing allocateReceiveBuffer()\n");
-  char* cmd =
-    "qore -e '%requires tuxedo\n"
-    "$a = new Tuxedo::TuxedoAdapter();\n"
-    "$res = $a.allocateReceiveBuffer(\"STRING\", \"\", 100);\n"
-    "if ($res != 0) { printf(\"allocateReceiveBuffer failed %d\n\", $res); exit(11); }\n"
-    "$res = $a.allocateReceiveBuffer(\"CARRAY\", \"\", 1000);\n"
-    "if ($res != 0) { printf(\"allocateReceiveBuffer failed %d\n\", $res); exit(11); }\n"
-    "exit(10);'\n";
-
-  int res = system(cmd);
-  res = WEXITSTATUS(res);
-  assert(res == 10);
-}
-#endif
-
-//-----------------------------------------------------------------------------
-static QoreNode* saveContext(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
-{
-  return new QoreNode((int64)adapter->saveContext());
-}
-
-//-----------------------------------------------------------------------------
-static QoreNode* switchToSavedContext(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
-{
-  return new QoreNode((int64)adapter->switchToSavedContext());
-}
-
-#ifdef DEBUG
-#ifdef TUXCONFIG_SIMPLE_TEST
-TEST()
-{
-  char* stop = getenv("TUXEDO_NO_SIMPLE_TEST");
-  if (stop && stop[0]) return;
-  printf("testing saveContext()/switchToSavedContext() - simple test server should run\n");
-
-  char buffer[1024];
-  sprintf(buffer, "qore -e '%%requires tuxedo\n"
-    "$a = new Tuxedo::TuxedoAdapter();\n"
-    "$a.setEnvironmentVariable(\"TUXCONFIG\", \"%s\");\n"
-    "$a.setEnvironmentVariable(\"TUXDIR\", \"" TUXDIR "\");\n"
-    "$res = $a.init();\n"
-    "if ($res != 0) { printf(\"init failed with %%d\n\", $res); exit(11); }\n"
-    "$res = $a.saveContext();\n"
-    "if ($res != 0) { printf(\"saveContext failed with %%d\n\", $res); exit(11); }\n"
-    "$res = $a.switchToSavedContext();\n"
-    "if ($res != 0) { printf(\"switchToSavedContext failed with %%d\n\", $res); exit(11); }\n"
-    "$res = $a.close();\n"
-    "if ($res != 0) { printf(\"close failed with %%d\n\", $res); exit(11); }\n"
-    "exit(10);'\n",
-    tuxfile(TUXCONFIG_SIMPLE_TEST)
-  );
-
-  int res = system(buffer);
-  res = WEXITSTATUS(res);
-  assert(res == 10);
-}
-#endif
-#endif
-
-//-----------------------------------------------------------------------------
-static QoreNode* resetDataToSend(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
-{
-  adapter->resetDataToSend();
-  return 0;
-}
-
-//-----------------------------------------------------------------------------
-static QoreNode* resetReceiveBuffer(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
-{
-  adapter->resetReceiveBuffer();
-  return 0;
-}
-
-#ifdef DEBUG
-TEST()
-{
-  printf("testing resetDataToSend() and resetReceiveBuffer()\n");
-  char* cmd =
-    "qore -e '%requires tuxedo\n"
-    "$a = new Tuxedo::TuxedoAdapter();\n"
-    "$a.setStringDataToSend(\"aaaaa\");\n"
-    "$a.allocateReceiveBuffer(\"CARRAY\",\"\", 1000);\n"
-    "$a.resetDataToSend();\n"
-    "$a.resetReceiveBuffer();\n"
-    "exit(10);'\n";
-
-  int res = system(cmd);
-  res = WEXITSTATUS(res);
-  assert(res == 10);
-}
 #endif
 
 //-----------------------------------------------------------------------------
@@ -685,207 +221,52 @@ static QoreNode* setStringEncoding(Object* self, QoreTuxedoAdapter* adapter, Qor
   return 0;
 }
 
-#ifdef DEBUG
-TEST()
-{
-  printf("testing setStringEncoding()\n");
-  char* cmd =
-    "qore -e '%requires tuxedo\n"
-    "$a = new Tuxedo::TuxedoAdapter();\n"
-    "$a.setStringEncoding(\"ISO-8859-5\");\n"  // Cyrilic
-    "$res = $a.setStringDataToSend(\"aaaaa\");\n"
-    "if ($res != 0) exit(11);\n"
-    "exit(10);'\n";
-
-  int res = system(cmd);
-  res = WEXITSTATUS(res);
-  assert(res == 10);
-}
-#endif
-
-//-----------------------------------------------------------------------------
-static QoreNode* getReceivedString(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
-{
-  if (!adapter->m_receive_buffer) {
-    return xsink->raiseException("TuxedoAdapter::getReceivedString", "No data in received buffer.");
-  }
-  char* s = adapter->m_receive_buffer;
-  if (!s[0]) return new QoreNode("");
-
-  QoreString encoded_string(s, adapter->m_string_encoding);
-  s = encoded_string.getBuffer();
-  return new QoreNode(s); 
-}
-
-//-----------------------------------------------------------------------------
-static QoreNode* getReceivedBinary(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
-{
-  if (!adapter->m_receive_buffer || !adapter->m_receive_buffer_size) {
-    return new QoreNode(new BinaryObject);
-  }
-  void* copy = malloc(adapter->m_receive_buffer_size);
-  if (!copy) {
-    xsink->outOfMemory();
-    return 0;
-  }
-  return new QoreNode(new BinaryObject(copy, adapter->m_receive_buffer_size));
-}
-
-//-----------------------------------------------------------------------------
-static QoreNode* getReceivedDataType(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
-{
-  List* l = new List;
-  if (!adapter->m_receive_buffer || !adapter->m_receive_buffer_size) {
-    l->push(new QoreNode((int64)TPEINVAL));
-  } else {
-    char type[20];
-    char subtype[20];
-    if (tptypes(adapter->m_receive_buffer, type, subtype) == -1) {
-      l->push(new QoreNode((int64)tperrno));
-    } else {
-      l->push(new QoreNode((int64)0));
-      l->push(new QoreNode(type));
-      l->push(new QoreNode(subtype));
-    }
-  }
-  return new QoreNode(l);
-}
-
-//-----------------------------------------------------------------------------
-static QoreNode* call(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
-{
-  adapter->switchToSavedContext();
-
-  char* err_name = "TuxedoAdapter::call";
-  char* err_text = "Two parameters expected: string service name, integer flags.";
-  QoreNode* n = test_param(params, NT_STRING, 0);
-  if (!n) return xsink->raiseException(err_name, err_text);
-  char* service = n->val.String->getBuffer();
-  n = test_param(params, NT_INT, 1);
-  if (!n) return xsink->raiseException(err_name, err_text);
-  long flags = (long)n->val.intval;
-
-  int res = tpcall(service, adapter->m_send_buffer, adapter->m_send_buffer_size,
-    &adapter->m_receive_buffer, &adapter->m_receive_buffer_size, flags);
-  return new QoreNode((int64)(res == -1 ? tperrno : 0));
-}
-
-#ifdef DEBUG
-#ifdef TUXCONFIG_SIMPLE_TEST
-TEST()
-{
-  char* stop = getenv("TUXEDO_NO_SIMPLE_TEST");
-  if (stop && stop[0]) return;
-  printf("testing call() - simple test server should run\n");
-
-  char buffer[2048];
-  sprintf(buffer, "qore -e '%%requires tuxedo\n"
-    "$a = new Tuxedo::TuxedoAdapter();\n"
-    "$a.setEnvironmentVariable(\"TUXCONFIG\", \"%s\");\n"
-    "$a.setEnvironmentVariable(\"TUXDIR\", \"" TUXDIR "\");\n"
-    "$res = $a.init();\n"
-    "if ($res != 0) { printf(\"init failed with %%d\n\", $res); exit(11); }\n"
-
-    "$res = $a.setStringDataToSend(\"abcd\");\n"
-    "if ($res != 0) { printf(\"setStringDataToSend failed %%d\n\", $res); exit(11); }\n"
-    "$res = $a.allocateReceiveBuffer(\"STRING\", \"\", 100);\n"
-    "if ($res != 0) { printf(\"allocateReceiveBuffer failed %%d\n\", $res); exit(11); }\n"
-
-    "$res = $a.call(\"TOUPPER\", 0);\n"
-    "if ($res != 0) { printf(\"call failed %%d\n\", $res); exit(11); }\n"
-    "$out = $a.getReceivedString();\n"
-    "if ($out != \"ABCD\") { printf(\"service failed\n\"); exit(11); }\n"
-
-    // second call
-    "$res = $a.setStringDataToSend(\"abcdefgh\");\n"
-    "if ($res != 0) { printf(\"setStringDataToSend failed %%d\n\", $res); exit(11); }\n"
-
-    "$res = $a.call(\"TOUPPER\", 0);\n"
-    "if ($res != 0) { printf(\"call failed %%d\n\", $res); exit(11); }\n"
-    "$out = $a.getReceivedString();\n"
-    "if ($out != \"ABCDEFGH\") { printf(\"service failed\n\"); exit(11); }\n"
-
-    "$res = $a.close();\n"
-    "if ($res != 0) { printf(\"close failed with %%d\n\", $res); exit(11); }\n"
-    "exit(10);'\n",
-    tuxfile(TUXCONFIG_SIMPLE_TEST)
-  );
-
-  int res = system(buffer);
-  res = WEXITSTATUS(res);
-  assert(res == 10);
-}
-#endif
-#endif
-
 //-----------------------------------------------------------------------------
 static QoreNode* asyncCall(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
 {
-  adapter->switchToSavedContext();
-
   char* err_name = "TuxedoAdapter::asyncCall";
-  char* err_text = "Two parameters expected: string service name, integer flags.";
   QoreNode* n = test_param(params, NT_STRING, 0);
-  if (!n) return xsink->raiseException(err_name, err_text);
-  char* service = n->val.String->getBuffer();
-  n = test_param(params, NT_INT, 1);
-  if (!n) return xsink->raiseException(err_name, err_text);
-  long flags = (long)n->val.intval;
+  if (!n) return xsink->raiseException(err_name, "First parameter needs to be service string.");
+  char* service_name = n->val.String->getBuffer();
+  if (!service_name || !service_name[0]) {
+    return xsink->raiseException(err_name, "Service name string cannot be empty.");
+  }
+  QoreNode* data = get_param(params, 1);
+  if (!data) {
+    return xsink->raiseException(err_name, "Data expected as the second parameter.");
+  }
+  if (!(data->type == NT_NOTHING || data->type == NT_STRING || data->type == NT_BINARY || data->type == NT_HASH)) {
+    return xsink->raiseException(err_name, "Allowed data: NOTHING, string, binary, hash (FML or FML32).");
+  }
 
-  int res = tpacall(service, adapter->m_send_buffer, adapter->m_send_buffer_size, flags);
+  // optional settings are either (1) integer flags or (2) hash with flags and FML/FML32 selector
+  Hash* acall_settings = 0;
+  long flags = 0;
+  long* pflags = 0;
 
-  List* l = new List;
-  if (res == -1) {
-    l->push(new QoreNode((int64)tperrno));
-  } else {
-    l->push(new QoreNode((int64)0));
-    l->push(new QoreNode((int64)res));
-    if (res != 0) { // 0 == no reply to be expected
-      adapter->m_pending_async_calls.push_back(res);
+  if (get_param(params, 2)) {
+    n = test_param(params, NT_HASH, 2);
+    if (n) {
+      acall_settings = n->val.hash;
+    } else {
+      n = test_param(params, NT_INT, 2);
+      if (n) {
+        flags = (long)n->val.intval;
+        pflags = &flags;
+      } else {
+       return xsink->raiseException(err_name, "The third (optional) parameter needs to be hash with settings or integer flags.");
+      }
+    }
+    if (get_param(params, 3)) {
+      return xsink->raiseException(err_name, "Up to three parameter are expected.");
     }
   }
-  return new QoreNode(l);
-}
-
-//-----------------------------------------------------------------------------
-static QoreNode* cancelAsyncCall(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
-{
-  adapter->switchToSavedContext();
-
-  QoreNode* n = test_param(params, NT_INT, 0);
-  if (!n) return xsink->raiseException("TuxedoAdapter::cancelAsyncCall", "One parameter, async call handle integer, expected.");
-  int handle = (int)n->val.intval;
-  adapter->remove_pending_async_call(handle);
-  return new QoreNode((int64)(tpcancel(handle) == -1 ? tperrno : 0));
-}
-
-//------------------------------------------------------------------------------
-static QoreNode* waitForAsyncReply(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
-{
-  adapter->switchToSavedContext();
-
-  char* err_name = "TuxedoAdapter::waitForAsyncReply";
-  char* err_text = "Two integer parameters expected: async call handle and flags.";
-  QoreNode* n = test_param(params, NT_INT, 0);
-  if (!n) return xsink->raiseException(err_name, err_text);
-
-  int handle = (int)n->val.intval;
-  n = test_param(params, NT_INT, 1);
-  if (!n) return xsink->raiseException(err_name, err_text);
-  long flags = (long)n->val.intval;
-
-  adapter->remove_pending_async_call(handle); // remove it even if the tpgetrply() fails (I do not know better solution)
-
-  int res = tpgetrply(&handle, &adapter->m_receive_buffer, &adapter->m_receive_buffer_size, flags);
-
-  if (res != -1 && (flags & TPGETANY)) { // special case
-    // see tpgetrply() what is TPGETANY good for
-    List* l = new List;
-    l->push(new QoreNode((int64)0));
-    l->push(new QoreNode((int64)handle));
-    return new QoreNode(l); // return list - client code needs to handle this
+  adapter->setSendBuffer(data, acall_settings, err_name, xsink);
+  if (xsink->isException()) {
+    return xsink->raiseException(err_name, "Invalid parameter for asyncCall().");
   }
-  return new QoreNode((int64)(res == -1 ? tperrno : 0));  
+  adapter->switchToSavedContext();
+  return adapter->acall(service_name, acall_settings, pflags, xsink);
 }
 
 #ifdef DEBUG
@@ -899,52 +280,20 @@ TEST()
   // send 3 requests asynchronously, cancel one
   char buffer[4096];
   sprintf(buffer, "qore -e '%%requires tuxedo\n"
-    "$a = new Tuxedo::TuxedoAdapter();\n"
-    "$a.setEnvironmentVariable(\"TUXCONFIG\", \"%s\");\n"
-    "$a.setEnvironmentVariable(\"TUXDIR\", \"" TUXDIR "\");\n"
-    "$res = $a.init();\n"
-    "if ($res != 0) { printf(\"init failed with %%d\n\", $res); exit(11); }\n"
+    "$settings = (\"TUXCONFIG\" : \"%s\", \"TUXDIR\" : \"" TUXDIR "\");\n"
+    "$a = new Tuxedo::TuxedoAdapter($settings);\n"
 
-     // req 1
-    "$res = $a.setStringDataToSend(\"abcd\");\n"
-    "if ($res != 0) { printf(\"setStringDataToSend failed %%d\n\", $res); exit(11); }\n"
-    "$res = $a.asyncCall(\"TOUPPER\", 0);\n"
-    "if ($res[0] != 0) { printf(\"call failed %%d\n\", $res); exit(11); }\n"
-    "$handle1 = $res[1];\n"
-
-    // req 2
-    "$res = $a.setStringDataToSend(\"xyz\");\n"
-    "if ($res != 0) { printf(\"setStringDataToSend failed %%d\n\", $res); exit(11); }\n"
-    "$res = $a.asyncCall(\"TOUPPER\", 0);\n"
-    "if ($res[0] != 0) { printf(\"call failed %%d\n\", $res); exit(11); }\n"
-    "$handle2 = $res[1];\n"
-
-    // req 3
-    "$res = $a.setStringDataToSend(\"mnop\");\n"
-    "if ($res != 0) { printf(\"setStringDataToSend failed %%d\n\", $res); exit(11); }\n"
-    "$res = $a.asyncCall(\"TOUPPER\", 0);\n"
-    "if ($res[0] != 0) { printf(\"call failed %%d\n\", $res); exit(11); }\n"
-    "$handle3 = $res[1];\n"
-
+    "$res1 = $a.asyncCall(\"TOUPPER\", \"data1\", 0);\n"
+    "$res2 = $a.asyncCall(\"TOUPPER\", \"data2\", 0);\n"
+    "$res3 = $a.asyncCall(\"TOUPPER\", \"data3\", 0);\n"
     // cancel req 2
-    "$res = $a.cancelAsyncCall($handle2);\n"
-    "if ($res != 0) { printf(\"cancelAsyncCall failed %%d\n\", $res); exit(11); }\n"
+    "$a.cancelAsyncCall($res2);\n"
 
     // read req 3 and 1
-    "$a.allocateReceiveBuffer(\"STRING\", \"\", 100);\n"
-
-    "$res = $a.waitForAsyncReply($handle3, Tuxedo::TPNOTIME);\n"
-    "if ($res != 0) { printf(\"waitForAsyncReply(%%d) 3 failed %%d\n\", $handle3, $res); exit(11); }\n"
-    "$out = $a.getReceivedString();\n"
-    "if ($out != \"MNOP\") { printf(\"service failed\n\"); exit(11); }\n"
-
-    "$res = $a.waitForAsyncReply($handle1, Tuxedo::TPNOTIME);\n"
-    "if ($res != 0) { printf(\"waitForAsyncReply 1 failed %%d\n\", $res); exit(11); }\n"
-    "$out = $a.getReceivedString();\n"
-    "if ($out != \"ABCD\") { printf(\"service failed\n\"); exit(11); }\n"
-
-    "$res = $a.close();\n"
-    "if ($res != 0) { printf(\"close failed with %%d\n\", $res); exit(11); }\n"
+    "$res = $a.waitForAsyncReply($res3, Tuxedo::TPNOTIME);\n"
+    "if ($res != \"DATA3\") { printf(\"service 3 failed\n\"); exit(11); }\n"
+    "$res = $a.waitForAsyncReply($res1, Tuxedo::TPNOTIME);\n"
+    "if ($res != \"DATA1\") { printf(\"service 1 failed\n\"); exit(11); }\n"
     "exit(10);'\n",
     tuxfile(TUXCONFIG_SIMPLE_TEST)
   );
@@ -953,257 +302,290 @@ TEST()
   res = WEXITSTATUS(res);
   assert(res == 10);
 }
-
-TEST()
-{
-  // send asynchronous, read in an other thread
-  char* stop = getenv("TUXEDO_NO_SIMPLE_TEST");
-  if (stop && stop[0]) return;
-  printf("testing asyncCall() multithreaded - simple server should run\n");
-
-  char buffer[2048];
-  sprintf(buffer, "qore -e '%%requires tuxedo\n"
-    "our $a = new Tuxedo::TuxedoAdapter();\n"
-    "$a.setEnvironmentVariable(\"TUXCONFIG\", \"%s\");\n"
-    "$a.setEnvironmentVariable(\"TUXDIR\", \"" TUXDIR "\");\n"
-    "$res = $a.init();\n"
-    "if ($res != 0) { printf(\"init failed with %%d\n\", $res); exit(12); }\n"
-
-    "$res = $a.setStringDataToSend(\"abcd\");\n"
-    "if ($res != 0) { printf(\"setStringDataToSend failed %%d\n\", $res); exit(13); }\n"
-    "$res = $a.asyncCall(\"TOUPPER\", 0);\n"
-    "if ($res[0] != 0) { printf(\"call failed %%d\n\", $res); exit(14); }\n"
-    "our $handle1 = $res[1];\n"
-     
-    "sub bgthread($my_a, $my_handle) {\n"
-    "  $my_a.allocateReceiveBuffer(\"STRING\", \"\", 100);\n"
-
-    "  my $res = $a.waitForAsyncReply($my_handle, Tuxedo::TPNOTIME);\n"
-    "  if ($res != 0) { printf(\"waitForAsyncReply(%%d) 3 failed %%d\n\", $my_handle, $res); exit(15); }\n"
-    "  my $out = $a.getReceivedString();\n"
-    "  if ($out != \"ABCD\") { printf(\"service failed\n\"); exit(15); }\n"
-
-    "  $res = $my_a.close();\n"
-    "  if ($res != 0) { printf(\"close failed with %%d\n\", $res); exit(17); }\n"
-    "  exit(10);\n"
-    "}\n"
-    
-    "background bgthread($a, $handle1);\n"
-    "sleep(5);exit(18);'\n",
-    tuxfile(TUXCONFIG_SIMPLE_TEST)
-    );
-   
-  int res = system(buffer);
-  res = WEXITSTATUS(res);
-  assert(res == 10);
-}
 #endif
 #endif
 
 //-----------------------------------------------------------------------------
-static QoreNode* joinConversation(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
+static QoreNode* cancelAsyncCall(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
 {
+  char* err_name = "TuxedoAdapter::cancelAsyncCall";
   adapter->switchToSavedContext();
 
+  QoreNode* n = test_param(params, NT_INT, 0);
+  if (!n) return xsink->raiseException(err_name, "One parameter, async call handle integer, expected.");
+  int handle = (int)n->val.intval;
+  adapter->remove_pending_async_call(handle);
+  int res = tpcancel(handle);
+  if (res != -1) return 0;
+  Hash* h = new Hash;
+  h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
+  h->setKeyValue((char*)"Tuxedo call", new QoreNode("tpcancel"), xsink);
+  return xsink->raiseExceptionArg(err_name, new QoreNode(h), "tpcancel() failed with error %d.", tperrno);
+}
+
+//------------------------------------------------------------------------------
+static QoreNode* waitForAsyncReply(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
+{
+  adapter->switchToSavedContext();
+  char* err_name = "TuxedoAdapter::waitForAsyncReply";
+  QoreNode* n = test_param(params, NT_INT, 0);
+  if (!n) return xsink->raiseException(err_name, "The first parameter, the handle, needs to be an integer.");
+  int handle = (int)n->val.intval;
+
+  long flags;
+  long* pflags = 0;
+  if (get_param(params, 1)) {
+    n = test_param(params, NT_INT, 1);
+    if (!n) return xsink->raiseException(err_name, "The second, optional flags needs to be an integer.");
+    flags = (long)n->val.intval;
+    pflags = &flags;
+  }
+  adapter->remove_pending_async_call(handle); // remove it even if the tpgetrply() fails (I do not know better solution)
+  return adapter->get_reply(handle, pflags, xsink);
+}
+
+//-----------------------------------------------------------------------------
+static QoreNode* joinConversation(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
+{
   char* err_name = "TuxedoAdapter::joinConversation";
-  char* err_text = "Two parameters expected: string service name, integer flags.";
-  QoreNode* n = test_param(params , NT_STRING, 0);
-  if (!n) return xsink->raiseException(err_name, err_text);
+  QoreNode* n = test_param(params, NT_STRING, 0);
+  if (!n) return xsink->raiseException(err_name, "First parameter needs to be service name string.");
   char* service_name = n->val.String->getBuffer();
-  n = test_param(params, NT_INT, 1);
-  if (!n) return xsink->raiseException(err_name, err_text);
-  long flags = (long)n->val.intval;
+  if (!service_name || !service_name[0]) {
+    return xsink->raiseException(err_name, "Service name string cannot be empty.");
+  }
+  QoreNode* data = get_param(params, 1);
+  if (!data) {
+    return xsink->raiseException(err_name, "Data expected as the second parameter.");
+  }
+  if (!(data->type == NT_NOTHING || data->type == NT_STRING || data->type == NT_BINARY || data->type == NT_HASH)) {
+    return xsink->raiseException(err_name, "Allowed data: NOTHING, string, binary, hash (FML or FML32).");
+  }
 
-  int res = tpconnect(service_name, adapter->m_send_buffer, adapter->m_send_buffer_size, flags);
+  // optional settings are either (1) integer flags or (2) hash with flags and FML/FML32 selector
+  Hash* connect_settings = 0;
+  long flags = 0;
+  long* pflags = 0;
 
-  List* l = new List;
-  if (res == -1) {
-    l->push(new QoreNode((int64)tperrno));
-  } else {
-    l->push(new QoreNode((int64)0));
-    l->push(new QoreNode((int64)res));
-  } 
-  return new QoreNode(l);
+  if (get_param(params, 2)) {
+    n = test_param(params, NT_HASH, 2);
+    if (n) {
+      connect_settings = n->val.hash;
+    } else {
+      n = test_param(params, NT_INT, 2);
+      if (n) {
+        flags = (long)n->val.intval;
+        pflags = &flags;
+      } else {
+       return xsink->raiseException(err_name, "The third (optional) parameter needs to be hash with settings or integer flags.");
+      }
+    }
+    if (get_param(params, 3)) {
+      return xsink->raiseException(err_name, "Up to three parameter are expected.");
+    }
+  }
+  adapter->setSendBuffer(data, connect_settings, err_name, xsink);
+  if (xsink->isException()) {
+    return xsink->raiseException(err_name, "Invalid parameter for joinConversation().");
+  }
+  adapter->switchToSavedContext();
+  return adapter->connect(service_name, connect_settings, pflags, xsink);
 }
 
 //-----------------------------------------------------------------------------
 static QoreNode* breakConversation(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
 {
+  char* err_name = "TuxedoAdapter::breakConversation";
   adapter->switchToSavedContext();
 
   QoreNode* n = test_param(params, NT_INT, 0);
-  if (!n) return xsink->raiseException("TuxedoAdapter::breakConversation", "One parameter expected: conversation handle integer.");
+  if (!n) return xsink->raiseException(err_name, "One parameter expected: conversation handle integer.");
   int handle = (int)n->val.intval;
-
-  return new QoreNode((int64)(tpdiscon(handle) == -1 ? tperrno : 0));
+  int res = tpdiscon(handle);
+  if (res != -1) return 0;
+  Hash* h = new Hash;
+  h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
+  h->setKeyValue((char*)"Tuxedo call", new QoreNode("tpdiscon"), xsink);
+  return xsink->raiseExceptionArg(err_name, new QoreNode(h), "tpdiscon() failed with error %d.", tperrno);
 }
 
 //-----------------------------------------------------------------------------
 static QoreNode* sendConversationData(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
 {
-  adapter->switchToSavedContext();
-
   char* err_name = "TuxedoAdapter::sendConversationData";
-  char* err_text = "Two integer parameters expected: handle to conversation and flags.";
-
   QoreNode* n = test_param(params, NT_INT, 0);
-  if (!n) return xsink->raiseException(err_name, err_text);
-  int handle = (int)n->val.intval;
-  n = test_param(params, NT_INT, 1);
-  long flags = (long)n->val.intval;
-  
-  long event = TPEV_SVCSUCC;
-  int res = tpsend(handle, adapter->m_send_buffer, adapter->m_send_buffer_size, flags, &event);
+  if (!n) return xsink->raiseException(err_name, "First parameter needs to be integer handle to the conversation.");
+  long handle = (long)n->val.intval;
 
-  List* l = new List;
-  if (res == -1) {
-    l->push(new QoreNode((int64)tperrno));    
-  } else {
-    l->push(new QoreNode((int64)0));
+  QoreNode* data = get_param(params, 1);
+  if (!data) {
+    return xsink->raiseException(err_name, "Data expected as the second parameter.");
   }
-  l->push(new QoreNode((int64)event));
-  return new QoreNode(l);
+  if (!(data->type == NT_NOTHING || data->type == NT_STRING || data->type == NT_BINARY || data->type == NT_HASH)) {
+    return xsink->raiseException(err_name, "Allowed data: NOTHING, string, binary, hash (FML or FML32).");
+  }
+
+  // optional settings are either (1) integer flags or (2) hash with flags and FML/FML32 selector
+  Hash* send_settings = 0;
+  long flags = 0;
+  long* pflags = 0;
+
+  if (get_param(params, 2)) {
+    n = test_param(params, NT_HASH, 2);
+    if (n) {
+      send_settings = n->val.hash;
+    } else {
+      n = test_param(params, NT_INT, 2);
+      if (n) {
+        flags = (long)n->val.intval;
+        pflags = &flags;
+      } else {
+       return xsink->raiseException(err_name, "The third (optional) parameter needs to be hash with settings or integer flags.");
+      }
+    }
+    if (get_param(params, 3)) {
+      return xsink->raiseException(err_name, "Up to three parameter are expected.");
+    }
+  }
+  adapter->setSendBuffer(data, send_settings, err_name, xsink);
+  if (xsink->isException()) {
+    return xsink->raiseException(err_name, "Invalid parameter for sendConversationData().");
+  }
+
+  adapter->switchToSavedContext();
+  return adapter->send(handle, send_settings, pflags, xsink);
 }
 
 //-----------------------------------------------------------------------------
 static QoreNode* receiveConversationData(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
 {
-  adapter->switchToSavedContext();
-
   char* err_name = "TuxedoAdapter::receiveConversationData";
-  char* err_text = "Two integer parameters expected: handle to conversation and flags.";
-
   QoreNode* n = test_param(params, NT_INT, 0);
-  if (!n) return xsink->raiseException(err_name, err_text);
-  int handle = (int)n->val.intval;
-  n = test_param(params, NT_INT, 1);
-  long flags = (long)n->val.intval;
+  if (!n) return xsink->raiseException(err_name, "First parameter needs to be integer handle to the conversation.");
+  long handle = (long)n->val.intval;
 
-  long event = TPEV_SVCSUCC;
-  int res = tprecv(handle, &adapter->m_receive_buffer, &adapter->m_receive_buffer_size, flags, &event);
+  // optional settings are either (1) integer flags or (2) hash with flags and out data type selector
+  Hash* receive_settings = 0;
+  long flags = 0;
+  long* pflags = 0;
 
-  List* l = new List;
-  if (res == -1) {
-    l->push(new QoreNode((int64)tperrno));
-  } else {
-    l->push(new QoreNode((int64)0));
+  if (get_param(params, 1)) {
+    n = test_param(params, NT_HASH, 1);
+    if (n) {
+      receive_settings = n->val.hash;
+    } else {
+      n = test_param(params, NT_INT, 1);
+      if (n) {
+        flags = (long)n->val.intval;
+        pflags = &flags;
+      } else {
+       return xsink->raiseException(err_name, "The second (optional) parameter needs to be hash with settings or integer flags.");
+      }
+    }
+    if (get_param(params, 2)) {
+      return xsink->raiseException(err_name, "Up to two parameter are expected.");
+    }
   }
-  l->push(new QoreNode((int64)event));
-  return new QoreNode(l);
+
+  adapter->switchToSavedContext();
+  return adapter->receive(handle, receive_settings, pflags, xsink);
 }
 
 //-----------------------------------------------------------------------------
 static QoreNode* enqueue(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
 {
-  adapter->switchToSavedContext();
-
   char* err_name = "TuxedoAdapter::enqueue";
-  char* err_text = "Three to four parameter expected: string queue space, string queue name, integer flags, optional hash with control parameters.";
   QoreNode* n = test_param(params, NT_STRING, 0);
-  if (!n) return xsink->raiseException(err_name, err_text);
+  if (!n) return xsink->raiseException(err_name, "First parameter needs to be queue space string.");
   char* queue_space = n->val.String->getBuffer();
+  if (!queue_space || !queue_space[0]) {
+    return xsink->raiseException(err_name, "Queue space parameter cannot be empty.");
+  }
   n = test_param(params, NT_STRING, 1);
-  if (!n) return xsink->raiseException(err_name, err_text);
+  if (!n) return xsink->raiseException(err_name, "Second parameter needs to be queue name string.");
   char* queue_name = n->val.String->getBuffer();
-  n = test_param(params, NT_INT, 2);
-  if (!n) return xsink->raiseException(err_name, err_text);
-  long flags = (long)n->val.intval;
-  n = test_param(params, NT_HASH, 3);
-  Hash* settings = 0;
-  if (n) {
-    settings = n->val.hash;
-  }
-  Hash* out_settings = 0;
-  int res = adapter->enqueue(queue_space, queue_name, flags, settings, out_settings);
+  if (!queue_name || !queue_name[0]) return xsink->raiseException(err_name, "Queue name cannot be empty.");
 
-  List* l = new List;
-  if (res == 0) {
-    l->push(new QoreNode((int64)0));
-    l->push(new QoreNode(out_settings));
-  } else {
-    l->push(new QoreNode((int64)res));
+  QoreNode* data = get_param(params, 2);
+  if (!data) {
+    return xsink->raiseException(err_name, "Data expected as the third parameter.");
   }
-  return new QoreNode(l);
+  if (!(data->type == NT_NOTHING || data->type == NT_STRING || data->type == NT_BINARY || data->type == NT_HASH)) {
+    return xsink->raiseException(err_name, "Allowed data: NOTHING, string, binary, hash (FML or FML32).");
+  }
+
+  // optional settings are either (1) integer flags or (2) hash with flags,  FML/FML32 selector and queue control parameters
+  Hash* enqueue_settings = 0;
+  long flags = 0;
+  long* pflags = 0;
+
+  if (get_param(params, 2)) {
+    n = test_param(params, NT_HASH, 3);
+    if (n) {
+      enqueue_settings = n->val.hash;
+    } else {
+      n = test_param(params, NT_INT, 3);
+      if (n) {
+        flags = (long)n->val.intval;
+        pflags = &flags;
+      } else {
+       return xsink->raiseException(err_name, "The fourth (optional) parameter needs to be hash with settings or integer flags.");
+      }
+    }
+    if (get_param(params, 4)) {
+      return xsink->raiseException(err_name, "Up to four parameter are expected.");
+    }
+  }
+  adapter->setSendBuffer(data, enqueue_settings, err_name, xsink);
+  if (xsink->isException()) {
+    return xsink->raiseException(err_name, "Invalid parameter for enqueue().");
+  }
+
+  adapter->switchToSavedContext();
+  return adapter->enqueue(queue_space, queue_name, enqueue_settings, pflags, xsink);
 }
 
 //-----------------------------------------------------------------------------
 static QoreNode* dequeue(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
 {
-  adapter->switchToSavedContext();
-
   char* err_name = "TuxedoAdapter::dequeue";
-  char* err_text = "Three to four parameter expected: string queue space, string queue name, integer flags, optional hash control parameters.";
   QoreNode* n = test_param(params, NT_STRING, 0);
-  if (!n) return xsink->raiseException(err_name, err_text);
+  if (!n) return xsink->raiseException(err_name, "First parameter needs to be queue space string.");
   char* queue_space = n->val.String->getBuffer();
+  if (!queue_space || !queue_space[0]) {
+    return xsink->raiseException(err_name, "Queue space parameter cannot be empty.");
+  }
   n = test_param(params, NT_STRING, 1);
-  if (!n) return xsink->raiseException(err_name, err_text);
+  if (!n) return xsink->raiseException(err_name, "Second parameter needs to be queue name string.");
   char* queue_name = n->val.String->getBuffer();
-  n = test_param(params, NT_INT, 2);
-  if (!n) return xsink->raiseException(err_name, err_text);
-  long flags = (long)n->val.intval;
-  n = test_param(params, NT_HASH, 3);
-  Hash* settings = 0;
-  if (n) {
-    settings = n->val.hash;
+  if (!queue_name || !queue_name[0]) return xsink->raiseException(err_name, "Queue name cannot be empty.");
+
+  // optional settings are either (1) integer flags or (2) hash with flags and queue control parameters
+  Hash* dequeue_settings = 0;
+  long flags = 0;
+  long* pflags = 0;
+
+  if (get_param(params, 2)) {
+    n = test_param(params, NT_HASH, 2);
+    if (n) {
+      dequeue_settings = n->val.hash;
+    } else {
+      n = test_param(params, NT_INT, 2);
+      if (n) {
+        flags = (long)n->val.intval;
+        pflags = &flags;
+      } else {
+       return xsink->raiseException(err_name, "The third (optional) parameter needs to be hash with settings or integer flags.");
+      }
+    }
+    if (get_param(params, 3)) {
+      return xsink->raiseException(err_name, "Up to three parameter are expected.");
+    }
   }
-  Hash* out_settings = 0;
-  int res = adapter->dequeue(queue_space, queue_name, flags, settings, out_settings);
 
-  List* l = new List;
-  if (res == 0) {
-    l->push(new QoreNode((int64)0));
-    l->push(new QoreNode(out_settings));
-  } else {
-    l->push(new QoreNode((int64)res));
-  }
-  return new QoreNode(l);
+  adapter->switchToSavedContext();
+  return adapter->dequeue(queue_space, queue_name, dequeue_settings, pflags, xsink);
 }
-
-#ifdef DEBUG
-#ifdef TUXCONFIG_QUEUE_TEST
-TEST()
-{
-  char* stop = getenv("TUXEDO_NO_QUEUE_TEST");
-  if (stop && stop[0]) return;
-  printf("testing enqueue() and dequeue() - queue test should run\n");
-
-  // test modeled by qsample from ATMI samples, uses its server  
-  char buffer[2048];
-  sprintf(buffer, "qore -e '%%requires tuxedo\n"
-    "$a = new TuxedoAdapter();\n"
-    "$a.setEnvironmentVariable(\"TUXDIR\", \"" TUXDIR "\");\n"
-    "$a.setEnvironmentVariable(\"TUXCONFIG\", \"%s\");\n"
-    "$res = $a.init();\n"
-    "if ($res != 0) { printf(\"init failed!!!!\n\"); exit(11); }\n"
-
-    "$a.setStringDataToSend(\"test queue\");\n"
-    "$h = (\"flags\" : Tuxedo::TPQREPLYQ, \"replyqueue\" : \"RPLYQ\");\n"
-
-    "$res = $a.enqueue(\"QSPACE\", \"STRING\", 0, $h);\n"
-    "if ($res[0] != 0) { printf(\"enqueue failed\n\"); exit(11); }\n"
-
-    "$a.allocateReceiveBuffer(\"STRING\", \"\", 100);\n"
-    "$h = (\"flags\" : Tuxedo::TPQWAIT);\n"
-
-    "$res = $a.dequeue(\"QSPACE\", \"RPLYQ\", Tuxedo::TPNOTIME, $h);\n"
-    "if ($res[0] != 0) { printf(\"dequeue failed\n\"); exit(11); }\n"
-
-    "$res = $a.getReceivedString();\n"
-    "if ($res != \"TEST QUEUE\") { printf(\"service failed (%%s)\n\", $res); exit(11); }\n"
-
-    "$a.close();\n"
-    "exit(10);'\n",
-    tuxfile(TUXCONFIG_QUEUE_TEST)
-  );
-
-
-  int res = system(buffer);
-  res = WEXITSTATUS(res);
-  assert(res == 10);
-}
-#endif
-#endif
 
 //-----------------------------------------------------------------------------
 static QoreNode* writeToLog(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
@@ -1218,33 +600,30 @@ static QoreNode* writeToLog(Object* self, QoreTuxedoAdapter* adapter, QoreNode* 
   return 0;
 }
 
-#ifdef DEBUG
-TEST()
-{
-  printf("testing writeToLog()\n");
-  char* cmd = "qore -e '%requires tuxedo\n"
-    "$a = new TuxedoAdapter();\n"
-    "$a.writeToLog(\"sample log from a test\");\n"
-    "exit(10);'\n";
-
-  int res = system(cmd);
-  res = WEXITSTATUS(res);
-  assert(res == 10);  
-}
-#endif
-
 //-----------------------------------------------------------------------------
 static QoreNode* openResourceManager(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
 {
   adapter->switchToSavedContext();
-  return new QoreNode((int64)(tpopen() == -1 ? tperrno : 0));
+  int res = tpopen();
+  if (res == -1) {    
+    Hash* h = new Hash;
+    h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
+    h->setKeyValue((char*)"Tuxedo call", new QoreNode("tpopen"), xsink);
+    xsink->raiseExceptionArg("TudedoAdapter::openResourceManager", new QoreNode(h), "tpopen() failed with error %d.", tperrno);
+  }
+  return 0;
 }
 
 //-----------------------------------------------------------------------------
 static QoreNode* closeResourceManager(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
 {
   adapter->switchToSavedContext();
-  return new QoreNode((int64)(tpclose() == -1 ? tperrno : 0));
+  int res = tpclose();
+  if (res != -1) return 0;
+  Hash* h = new Hash;
+  h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
+  h->setKeyValue((char*)"Tuxedo call", new QoreNode("tpclose"), xsink);
+  return xsink->raiseExceptionArg("TuxedoAdapter::closeResourceManager", new QoreNode(h), "tpclose() failed with error %d.", tperrno);
 }
 
 //-----------------------------------------------------------------------------
@@ -1255,21 +634,36 @@ static QoreNode* beginTransaction(Object* self, QoreTuxedoAdapter* adapter, Qore
   long timeout = (long)n->val.intval;
 
   adapter->switchToSavedContext();
-  return new QoreNode((int64)(tpbegin(timeout, 0) == -1 ? tperrno : 0));
+  int res = tpbegin(timeout, 0);
+  if (res != -1) return 0;
+  Hash* h = new Hash;
+  h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
+  h->setKeyValue((char*)"Tuxedo call", new QoreNode("tpbegin"), xsink);
+  return xsink->raiseExceptionArg("TuxedoAdapter::beginTransaction", new QoreNode(h), "tpbegin() failed with error %d.", tperrno);
 }
 
 //-----------------------------------------------------------------------------
 static QoreNode* commitTransaction(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
 {
   adapter->switchToSavedContext();
-  return new QoreNode((int64)(tpcommit(0) == -1 ? tperrno : 0));
+  int res = tpcommit(0);
+  if (res != -1) return 0;
+  Hash* h = new Hash;
+  h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
+  h->setKeyValue((char*)"Tuxedo call", new QoreNode("tpcommit"), xsink);
+  return xsink->raiseExceptionArg("TuxedoAdapter::commitTransaction", new QoreNode(h), "tpcommit() failed with error %d.", tperrno);
 }
 
 //-----------------------------------------------------------------------------
 static QoreNode* abortTransaction(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
 {
   adapter->switchToSavedContext();
-  return new QoreNode((int64)(tpabort(0) == -1 ? tperrno : 0));
+  int res = tpabort(0);
+  if (res != -1) return 0;
+  Hash* h = new Hash;
+  h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
+  h->setKeyValue((char*)"Tuxedo call", new QoreNode("tpabort"), xsink);
+  return xsink->raiseExceptionArg("TuxedoAdapter::abortTransaction", new QoreNode(h), "tpabort() failed with error %d.", tperrno);
 }
 
 //-----------------------------------------------------------------------------
@@ -1288,7 +682,12 @@ static QoreNode* setPriority(Object* self, QoreTuxedoAdapter* adapter, QoreNode*
 
   adapter->switchToSavedContext();
   int res = tpsprio(priority, TPABSOLUTE);
-  return new QoreNode((int64)res);  
+  if (res != -1) return 0;
+  Hash* h = new Hash;
+  h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
+  h->setKeyValue((char*)"Tuxedo call", new QoreNode("tpsprio"), xsink);
+  return xsink->raiseExceptionArg("TuxedoAdapter::setPriority", new QoreNode(h), "tpsprio() failed with error %d.", tperrno);
+
 }
 
 //-----------------------------------------------------------------------------
@@ -1296,14 +695,12 @@ static QoreNode* getPriority(Object* self, QoreTuxedoAdapter* adapter, QoreNode*
 {
   adapter->switchToSavedContext();
   int res = tpgprio();
-  List* l = new List;
-  if (res == -1) {
-    l->push(new QoreNode((int64)tperrno));
-  } else {
-    l->push(new QoreNode((int64)0));
-    l->push(new QoreNode((int64)res));
-  }
-  return new QoreNode(l);
+  if (res != -1) return new QoreNode((int64)res);
+  Hash* h = new Hash;
+  h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
+  h->setKeyValue((char*)"Tuxedo call", new QoreNode("tpgprio"), xsink);
+  return xsink->raiseExceptionArg("TuxedoAdapter::getPriority", new QoreNode(h), "tpgprio() failed with error %d.", tperrno);
+
 }
 
 //-----------------------------------------------------------------------------
@@ -1313,15 +710,14 @@ static QoreNode* suspendTransaction(Object* self, QoreTuxedoAdapter* adapter, Qo
   int id = ++adapter->m_last_suspended_transaction_id;
   TPTRANID tranid;
   int res = tpsuspend(&tranid, 0);
-  List* l = new List;
-  if (res == -1) {
-    l->push(new QoreNode((int64)tperrno));
-  } else {
+  if (res != -1) {
     adapter->m_suspended_transactions[id] = tranid;
-    l->push(new QoreNode((int64)0));
-    l->push(new QoreNode((int64)id));
+    return new QoreNode((int64)id);
   }
-  return new QoreNode(l);
+  Hash* h = new Hash;
+  h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
+  h->setKeyValue((char*)"Tuxedo call", new QoreNode("tpsuspend"), xsink);
+  return xsink->raiseExceptionArg("TuxedoAdapter::suspendTransaction", new QoreNode(h), "tpsuspend() failed with error %d.", tperrno);
 }
 
 //-----------------------------------------------------------------------------
@@ -1338,24 +734,38 @@ static QoreNode* resumeTransaction(Object* self, QoreTuxedoAdapter* adapter, Qor
   }
   
   int res = tpresume(&it->second, 0);
-  if (res == -1) return new QoreNode((int64)tperrno);
-
-  adapter->m_suspended_transactions.erase(it);
-  return new QoreNode((int64)0);
+  if (res != -1) {
+    adapter->m_suspended_transactions.erase(it);
+    return 0;
+  }
+  Hash* h = new Hash;
+  h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
+  h->setKeyValue((char*)"Tuxedo call", new QoreNode("tpresume"), xsink);
+  return xsink->raiseExceptionArg("TuxedoAdapter::resumeTransaction", new QoreNode(h), "tpresume() failed with error %d.", tperrno);
 }
 
 //-----------------------------------------------------------------------------
 static QoreNode* finishCommitAfterDataLogged(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
 {
   adapter->switchToSavedContext();
-  return new QoreNode((int64)(tpscmt(TP_CMT_LOGGED) == -1 ? tperrno : 0));
+  int res = tpscmt(TP_CMT_LOGGED);
+  if (res != -1) return 0;
+  Hash* h = new Hash;
+  h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
+  h->setKeyValue((char*)"Tuxedo call", new QoreNode("tpscmt"), xsink);
+  return xsink->raiseExceptionArg("TuxedoAdapter::finishCommitAfterDataLogged", new QoreNode(h), "tpscmt() failed with error %d.", tperrno);
 }
 
 //-----------------------------------------------------------------------------
 static QoreNode* finishCommitAfterTwoPhaseCompletes(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
 {
   adapter->switchToSavedContext();
-  return new QoreNode((int64)(tpscmt(TP_CMT_COMPLETE) == -1 ? tperrno : 0));
+  int res = tpscmt(TP_CMT_COMPLETE);
+  if (res != -1) return 0;
+  Hash* h = new Hash;
+  h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
+  h->setKeyValue((char*)"Tuxedo call", new QoreNode("tpscmt"), xsink);
+  return xsink->raiseExceptionArg("TuxedoAdapter::finishCommitAfterTwoPhaseCompletes", new QoreNode(h), "tpscmt() failed with error %d.", tperrno);
 }
 
 //-----------------------------------------------------------------------------
@@ -1363,31 +773,60 @@ static QoreNode* isTransactionRunning(Object* self, QoreTuxedoAdapter* adapter, 
 {
   adapter->switchToSavedContext();
   int res = tpgetlev();
-  List* l = new List;
   if (res == -1) {
-    l->push(new QoreNode((int64)tperrno));
-  } else {
-    l->push(new QoreNode((int64)0));
-    l->push(new QoreNode(res != 0));
+    Hash* h = new Hash;
+    h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
+    h->setKeyValue((char*)"Tuxedo call", new QoreNode("tpgetlev"), xsink);
+    return xsink->raiseExceptionArg("TuxedoAdapter::isTransactionRunning", new QoreNode(h), "tpgetlev() failed with error %d.", tperrno);
   }
-  return new QoreNode(l);
+  return new QoreNode(res != 0);
 }
 
 //-----------------------------------------------------------------------------
 static QoreNode* postEvent(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
 {
   char* err_name = "TuxedoAdapter::postEvent";
-  char* err_text = "Two parameters expected: string event name, integer flags.";
   QoreNode* n = test_param(params, NT_STRING, 0);
-  if (!n) return xsink->raiseException(err_name, err_text);
+  if (!n) return xsink->raiseException(err_name, "First parameter needs to be event name string.");
   char* event_name = n->val.String->getBuffer();
-  n = test_param(params, NT_INT, 1);
-  if (!n) return xsink->raiseException(err_name, err_text);
-  long flags = (long)n->val.intval;
+  if (!event_name || !event_name[0]) {
+    return xsink->raiseException(err_name, "Event name string cannot be empty.");
+  }
+  QoreNode* data = get_param(params, 1);
+  if (!data) {
+    return xsink->raiseException(err_name, "Data expected as the second parameter.");
+  }
+  if (!(data->type == NT_NOTHING || data->type == NT_STRING || data->type == NT_BINARY || data->type == NT_HASH)) {
+    return xsink->raiseException(err_name, "Allowed data: NOTHING, string, binary, hash (FML or FML32).");
+  }
 
-  adapter->switchToSavedContext();
-  int res = tppost(event_name, adapter->m_send_buffer, adapter->m_send_buffer_size, flags);
-  return new QoreNode((int64)(res == -1 ? tperrno : 0));
+  // optional settings are either (1) integer flags or (2) hash with flags, FML or FML32 selector 
+  Hash* post_settings = 0;
+  long flags = 0;
+  long* pflags = 0;
+
+  if (get_param(params, 2)) {
+    n = test_param(params, NT_HASH, 2);
+    if (n) {
+      post_settings = n->val.hash;
+    } else {
+      n = test_param(params, NT_INT, 2);
+      if (n) {
+        flags = (long)n->val.intval;
+        pflags = &flags;
+      } else {
+       return xsink->raiseException(err_name, "The third (optional) parameter needs to be hash with settings or integer flags.");
+      }
+    }
+    if (get_param(params, 3)) {
+      return xsink->raiseException(err_name, "Up to three parameter are expected.");
+    }
+  }
+  adapter->setSendBuffer(data, post_settings, err_name, xsink);
+  if (xsink->isException()) {
+    return xsink->raiseException(err_name, "Invalid parameter for call().");
+  }
+  return adapter->post_event(event_name, post_settings, pflags, xsink);
 }
 
 //-----------------------------------------------------------------------------
@@ -1395,7 +834,11 @@ static QoreNode* beginTxTransaction(Object* self, QoreTuxedoAdapter* adapter, Qo
 {
   adapter->switchToSavedContext();
   int res = tx_begin();
-  return new QoreNode((int64)(res == TX_OK ? 0 : res));
+  if (res == TX_OK) return 0;
+  Hash* h = new Hash;
+  h->setKeyValue((char*)"error", new QoreNode((int64)res), xsink);
+  h->setKeyValue((char*)"Tuxedo call", new QoreNode("tx_begin"), xsink);
+  return xsink->raiseExceptionArg("TuxedoAdapter::beginTxTransaction", new QoreNode(h), "tx_begin() failed with error %d.", res);
 }
 
 //-----------------------------------------------------------------------------
@@ -1403,7 +846,11 @@ static QoreNode* commitTxTransaction(Object* self, QoreTuxedoAdapter* adapter, Q
 {
   adapter->switchToSavedContext();
   int res = tx_commit();
-  return new QoreNode((int64)(res == TX_OK ? 0 : res));
+  if (res == TX_OK) return 0;
+  Hash* h = new Hash;
+  h->setKeyValue((char*)"error", new QoreNode((int64)res), xsink);
+  h->setKeyValue((char*)"Tuxedo call", new QoreNode("tx_commit"), xsink);
+  return xsink->raiseExceptionArg("TuxedoAdapter::commitTxTransaction", new QoreNode(h), "tx_commit() failed with error %d.", res);
 }
 
 //-----------------------------------------------------------------------------
@@ -1411,7 +858,11 @@ static QoreNode* abortTxTransaction(Object* self, QoreTuxedoAdapter* adapter, Qo
 {
   adapter->switchToSavedContext();
   int res = tx_rollback();
-  return new QoreNode((int64)(res == TX_OK ? 0 : res));
+  if (res == TX_OK) return 0;
+  Hash* h = new Hash;
+  h->setKeyValue((char*)"error", new QoreNode((int64)res), xsink);
+  h->setKeyValue((char*)"Tuxedo call", new QoreNode("tx_rollback"), xsink);
+  return xsink->raiseExceptionArg("TuxedoAdapter::abortTxTransaction", new QoreNode(h), "tx_rollback() failed with error %d.", res);
 }
 
 //-----------------------------------------------------------------------------
@@ -1419,7 +870,11 @@ static QoreNode* finishTxCommitAfterDataLogged(Object* self, QoreTuxedoAdapter* 
 {
   adapter->switchToSavedContext();
   int res = tx_set_commit_return(TX_COMMIT_DECISION_LOGGED);
-  return new QoreNode((int64)(res == TX_OK ? 0 : res));
+  if (res == TX_OK) return 0;
+  Hash* h = new Hash;
+  h->setKeyValue((char*)"error", new QoreNode((int64)res), xsink);
+  h->setKeyValue((char*)"Tuxedo call", new QoreNode("tx_set_commit_return"), xsink);
+  return xsink->raiseExceptionArg("TuxedoAdapter::finishTxCommitAfterDataLogged", new QoreNode(h), "tx_set_commit_return() failed with error %d.", res);
 }
 
 //-----------------------------------------------------------------------------
@@ -1427,7 +882,11 @@ static QoreNode* finishTxCommitAfterTwoPhaseCompletes(Object* self, QoreTuxedoAd
 {
   adapter->switchToSavedContext();
   int res = tx_set_commit_return(TX_COMMIT_COMPLETED);
-  return new QoreNode((int64)(res == TX_OK ? 0 : res));
+  if (res == TX_OK) return 0;
+  Hash* h = new Hash;
+  h->setKeyValue((char*)"error", new QoreNode((int64)res), xsink);
+  h->setKeyValue((char*)"Tuxedo call", new QoreNode("tx_set_commit_return"), xsink);
+  return xsink->raiseExceptionArg("TuxedoAdapter::finishTxCommitAfterTwoPhaseCompletes", new QoreNode(h), "tx_set_commit_return() failed with error %d.", res);
 }
 
 //-----------------------------------------------------------------------------
@@ -1435,7 +894,11 @@ static QoreNode* openTxResourceManager(Object* self, QoreTuxedoAdapter* adapter,
 {
   adapter->switchToSavedContext();
   int res = tx_open();
-  return new QoreNode((int64)(res == TX_OK ? 0 : res));
+  if (res == TX_OK) return 0;
+  Hash* h = new Hash;
+  h->setKeyValue((char*)"error", new QoreNode((int64)res), xsink);
+  h->setKeyValue((char*)"Tuxedo call", new QoreNode("tx_open"), xsink);
+  return xsink->raiseExceptionArg("TuxedoAdapter::openTxResourceManager", new QoreNode(h), "tx_open() failed with error %d.", res);
 }
 
 //-----------------------------------------------------------------------------
@@ -1443,7 +906,11 @@ static QoreNode* closeTxResourceManager(Object* self, QoreTuxedoAdapter* adapter
 {
   adapter->switchToSavedContext();
   int res = tx_close();
-  return new QoreNode((int64)(res == TX_OK ? 0 : res));
+  if (res == TX_OK) return 0;
+  Hash* h = new Hash;
+  h->setKeyValue((char*)"error", new QoreNode((int64)res), xsink);
+  h->setKeyValue((char*)"Tuxedo call", new QoreNode("tx_close"), xsink);
+  return xsink->raiseExceptionArg("TuxedoAdapter::closeTxResourceManager", new QoreNode(h), "tx_close() failed with error %d.", res);
 }
 
 //-----------------------------------------------------------------------------
@@ -1451,7 +918,11 @@ static QoreNode* setChainedTxTransactions(Object* self, QoreTuxedoAdapter* adapt
 {
   adapter->switchToSavedContext();
   int res = tx_set_transaction_control(TX_CHAINED);
-  return new QoreNode((int64)(res == TX_OK ? 0 : res));
+  if (res == TX_OK) return 0;
+  Hash* h = new Hash;
+  h->setKeyValue((char*)"error", new QoreNode((int64)res), xsink);
+  h->setKeyValue((char*)"Tuxedo call", new QoreNode("tx_set_transaction_control"), xsink);
+  return xsink->raiseExceptionArg("TuxedoAdapter::setChainedTxTransactions", new QoreNode(h), "tx_set_transaction_control() failed with error %d.", res);
 }
 
 //-----------------------------------------------------------------------------
@@ -1459,183 +930,39 @@ static QoreNode* setUnchainedTxTransactions(Object* self, QoreTuxedoAdapter* ada
 {
   adapter->switchToSavedContext();
   int res = tx_set_transaction_control(TX_UNCHAINED);
-  return new QoreNode((int64)(res == TX_OK ? 0 : res));
+  if (res == TX_OK) return 0;
+  Hash* h = new Hash;
+  h->setKeyValue((char*)"error", new QoreNode((int64)res), xsink);
+  h->setKeyValue((char*)"Tuxedo call", new QoreNode("tx_set_transaction_control"), xsink);
+  return xsink->raiseExceptionArg("TuxedoAdapter::setUnchainedTxTransactions", new QoreNode(h), "tx_set_transaction_control() failed with error %d.", res);
 }
 
 //-----------------------------------------------------------------------------
 static QoreNode* setTxTransactionsTimeout(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
 {
+  char* err_name = "TuxedoAdapter::setTxTransactionTimeout";
   QoreNode* n = test_param(params, NT_INT, 0);
-  if (!n) return xsink->raiseException("TuxedoAdapter::setTxTransactionTimeout", "Integer timeout in seconds expected.");
+  if (!n) return xsink->raiseException(err_name, "Integer timeout in seconds expected.");
   long timeout = (long)n->val.intval;
 
   adapter->switchToSavedContext();
   int res = tx_set_transaction_timeout(timeout);
-  return new QoreNode((int64)(res == TX_OK ? 0 : res));
+  if (res == TX_OK) return 0;
+  Hash* h = new Hash;
+  h->setKeyValue((char*)"error", new QoreNode((int64)res), xsink);
+  h->setKeyValue((char*)"Tuxedo call", new QoreNode("tx_set_transaction"), xsink);
+  return xsink->raiseExceptionArg(err_name, new QoreNode(h), "tx_set_transaction() failed with error %d.", res);
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* loadFmlDescriptionImpl(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, bool is_fml32, ExceptionSink* xsink)
+static QoreNode* error2string(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
 {
-  QoreNode* n = test_param(params, NT_STRING, 0);
-  if (n) { 
-    char* filename = n->val.String->getBuffer();
-    Hash* res = adapter->loadFmlDescription(filename, is_fml32, xsink);
-    if (*xsink) return 0;
-    return new QoreNode(res);
-  }
-  n = test_param(params, NT_HASH, 0);
-  if (!n) return xsink->raiseException("TuxedoAdapter::loadFmlDescription[32]", "Single filename string or list of filenames expected.");
-  List* list = n->val.list;
-  vector<string> all_files;
-
-  for (int i = 0, cnt = list->size(); i != cnt; ++i) {
-    n = list->retrieve_entry(i);
-    if (n->type != NT_STRING) return xsink->raiseException("TuxedoAdapter::loadFmlDescription[32]", "List of string filenames expected.");
-    all_files.push_back(n->val.String->getBuffer());
-  }
-  Hash* res = adapter->loadFmlDescription(all_files, is_fml32, xsink);
-  if (*xsink) return 0;
-  return new QoreNode(res);
-}
-
-//-----------------------------------------------------------------------------
-static QoreNode* loadFmlDescription(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
-{
-  return loadFmlDescriptionImpl(self, adapter, params, false, xsink);
-}
-
-//-----------------------------------------------------------------------------
-static QoreNode* loadFml32Description(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
-{
-  return loadFmlDescriptionImpl(self, adapter, params, true, xsink);
-}
-
-//-----------------------------------------------------------------------------
-static QoreNode* generateFmlDescriptionImpl(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, bool is_fml32, ExceptionSink* xsink)
-{
-  char* err_name = "TuxedoAdapter::generateFmlDescription[32]";
-  char* err_text = "Expected parameters: hash (string name -> integer type), optional integer base.";
-  QoreNode* n = test_param(params, NT_HASH, 0);
-  if (!n) return xsink->raiseException(err_name, err_text);
-  Hash* typed_names = n->val.hash;
-  int base = 0;
-  if (get_param(params, 1)) {
-    n = test_param(params, NT_INT, 1);
-    if (!n) return xsink->raiseException(err_name, err_text);
-    base = (int)n->val.intval;
-  }
-  Hash* res = adapter->generateFmlDescription(base, typed_names, is_fml32, xsink);
-  if (*xsink) return 0;
-  return new QoreNode(res);
-}
-
-//-----------------------------------------------------------------------------
-static QoreNode* generateFmlDescription(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, bool is_fml32, ExceptionSink* xsink)
-{
-  return generateFmlDescriptionImpl(self, adapter, params, false, xsink);
-}
-
-//-----------------------------------------------------------------------------
-static QoreNode* generateFml32Description(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, bool is_fml32, ExceptionSink* xsink)
-{
-  return generateFmlDescriptionImpl(self, adapter, params, true, xsink);
-}
-
-//-----------------------------------------------------------------------------
-static void check_fml_description_hash_validity(Hash* description_info, char* err_name, ExceptionSink* xsink)
-{
-  // check validity of parameters
-  HashIterator it(description_info);
-  while (it.next()) {
-    QoreNode* n = it.getValue();
-    if (n->type != NT_LIST) {
-      xsink->raiseException(err_name, "The FML description hash needs to have a list as values.");
-      return;
-   }
-
-    List* l = n->val.list;
-    if (l->size() != 2) {
-      xsink->raiseException(err_name, "The FML description hash needs to have a list with two integers as value.");
-      return;
-    }
-    if (l->retrieve_entry(0)->type != NT_INT || l->retrieve_entry(1)->type != NT_INT) {
-      xsink->raiseException(err_name, "The FML description hash needs to have a list with two integers as value.");
-      return;
-    }
-  }
-}
-
-//-----------------------------------------------------------------------------
-static QoreNode* setFmlDataToSendImpl(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, bool is_fml32, ExceptionSink* xsink)
-{
-  char* err_name = "TuxedoAdapter::setFml[32]DataToSend";
-  char* err_text = "Two parameters expected: hash with FML description info, list with data to send.";
-  QoreNode* n = test_param(params, NT_HASH, 0);
-  if (!n) return xsink->raiseException(err_name, err_text);
-  Hash* description_info = n->val.hash;
-  n = test_param(params, NT_LIST, 1);
-  if (!n) return xsink->raiseException(err_name, err_text);
-  List* data = n->val.list;
-
-  // check validity of parameters
-  check_fml_description_hash_validity(description_info, err_name, xsink);
-  if (*xsink) return 0;
-
-  for (int i = 0, cnt = data->size(); i != cnt; ++i) {
-    n = data->retrieve_entry(i);
-    char* err_text2 = "The data needs to be list of (string name, int type, value) lists.";
-    if (n->type != NT_LIST) return xsink->raiseException(err_name, err_text2);
-    List* sublist = n->val.list;
-    if (sublist->size() != 3) return xsink->raiseException(err_name, err_text2);    
-    n = sublist->retrieve_entry(0);
-    if (n->type != NT_STRING) return xsink->raiseException(err_name, err_text2);
-    n = sublist->retrieve_entry(1);
-    if (n->type != NT_INT) return xsink->raiseException(err_name, err_text2);
-  }
-
-  int res = adapter->setFmlDataToSend(description_info, data, is_fml32, xsink);
-  return new QoreNode((int64)res);
-}
-
-//-----------------------------------------------------------------------------
-static QoreNode* setFmlDataToSend(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
-{
-  return setFmlDataToSendImpl(self, adapter, params, false, xsink);
-}
-
-//-----------------------------------------------------------------------------
-static QoreNode* setFml32DataToSend(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
-{
-  return setFmlDataToSendImpl(self, adapter, params, true, xsink);
-}
-
-//-----------------------------------------------------------------------------
-static QoreNode* getReceivedFmlDataImpl(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, bool is_fml32, ExceptionSink* xsink)
-{
-  char* err_name = "TuxedoAdapter::getReceivedFml[32]Data";
-  QoreNode* n = test_param(params, NT_HASH, 0);
-  if (!n) return xsink->raiseException(err_name, "Single parameter, FML[32] description hash expected.");
-  Hash* description_info = n->val.hash;
-
-  check_fml_description_hash_validity(description_info, err_name, xsink);
-  if (*xsink) return 0;
-
-  List* result = adapter->getFmlDataFromBuffer(description_info, is_fml32, xsink, adapter->m_receive_buffer, adapter->m_receive_buffer_size, err_name);
-  if (*xsink) return 0;
-  return new QoreNode(result);
-}
-
-//-----------------------------------------------------------------------------
-static QoreNode* getReceivedFmlData(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
-{
-  return getReceivedFmlDataImpl(self, adapter, params, false, xsink);
-}
-
-//-----------------------------------------------------------------------------
-static QoreNode* getReceivedFml32Data(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
-{
-  return getReceivedFmlDataImpl(self, adapter, params, true, xsink);
+  QoreNode* n = test_param(params, NT_INT, 0);
+  if (!n) return xsink->raiseException("TuxedoAdapter::error2string", "One parameter expected: integer error code.");
+  int err = (int)n->val.intval;
+  char* str = strerror(err);
+  if (!str || !str[0]) str = "<uknown error>";
+  return new QoreNode(str);
 }
 
 //-----------------------------------------------------------------------------
@@ -1649,39 +976,11 @@ class QoreClass* initTuxedoAdapterClass()
   adapter->setDestructor((q_destructor_t)TUXEDO_destructor);
   adapter->setCopy((q_copy_t)TUXEDO_copy);
 
-  // init/close
-  adapter->addMethod("setUserName", (q_method_t)setUserName);
-  adapter->addMethod("setClientName", (q_method_t)setClientName);
-  adapter->addMethod("setGroupName", (q_method_t)setGroupName);
-  adapter->addMethod("setPassword", (q_method_t)setPassword);
-  adapter->addMethod("setBinaryConnectionData", (q_method_t)setBinaryConnectionData);
-  adapter->addMethod("setConnectionFlags", (q_method_t)setConnectionFlags);
-  adapter->addMethod("setEnvironmentVariable", (q_method_t)setEnvironmentVariable);
-  adapter->addMethod("getNeededAuthentication", (q_method_t)getNeededAuthentication);
-  adapter->addMethod("init", (q_method_t)init);
-  adapter->addMethod("close", (q_method_t)closeAdapter);
-
-  // set/get data
-  adapter->addMethod("setStringDataToSend", (q_method_t)setStringDataToSend);
-  adapter->addMethod("setBinaryDataToSend", (q_method_t)setBinaryDataToSend);  
-  adapter->addMethod("resetDataToSend", (q_method_t)resetDataToSend);
-  adapter->addMethod("allocateReceiveBuffer", (q_method_t)allocateReceiveBuffer);
-  adapter->addMethod("resetReceiveBuffer", (q_method_t)resetReceiveBuffer);
-  adapter->addMethod("setStringEncoding", (q_method_t)setStringEncoding);
-  adapter->addMethod("getReceivedString", (q_method_t)getReceivedString);
-  adapter->addMethod("getReceivedBinary", (q_method_t)getReceivedBinary);
-  adapter->addMethod("getReceivedDataType", (q_method_t)getReceivedDataType);
-  adapter->addMethod("setFmlDataToSend", (q_method_t)setFmlDataToSend);
-  adapter->addMethod("setFml32DataToSend", (q_method_t)setFml32DataToSend);
-  adapter->addMethod("getReceivedFmlData", (q_method_t)getReceivedFmlData);
-  adapter->addMethod("getReceivedFml32Data", (q_method_t)getReceivedFml32Data);
-
   // misc
+  adapter->addMethod("setStringEncoding", (q_method_t)setStringEncoding);
   adapter->addMethod("error2string", (q_method_t)error2string);
   adapter->addMethod("writeToLog", (q_method_t)writeToLog);
   adapter->addMethod("lastErrorDetails", (q_method_t)lastErrorDetails);
-  adapter->addMethod("saveContext", (q_method_t)saveContext);
-  adapter->addMethod("switchToSavedContext", (q_method_t)switchToSavedContext);
   adapter->addMethod("setPriority",(q_method_t)setPriority);
   adapter->addMethod("getPriority", (q_method_t)getPriority);
   adapter->addMethod("postEvent", (q_method_t)postEvent);
@@ -1728,39 +1027,9 @@ class QoreClass* initTuxedoAdapterClass()
   adapter->addMethod("setUnchainedTxTransactions", (q_method_t)setUnchainedTxTransactions);
   adapter->addMethod("setTxTransactionsTimeout", (q_method_t)setTxTransactionsTimeout);
 
-  // FML/FML32 table description (these functions could be standalone but I pick member)
-  adapter->addMethod("loadFmlDestriction", (q_method_t)loadFmlDescription);
-  adapter->addMethod("loadFml32Destriction", (q_method_t)loadFml32Description);
-  adapter->addMethod("generateFmlDescription", (q_method_t)generateFmlDescription);
-  adapter->addMethod("generateFml32Description", (q_method_t)generateFml32Description);
-
   traceout("initTuxedoAdapterClass");
   return adapter;
 }
 
-//----------------------------------------------------------------------------
-#ifdef DEBUG
-TEST()
-{
-  // just test that it could be instantiated
-  QoreTuxedoAdapter ad1;
-  QoreTuxedoAdapter ad2;
-}
-
-TEST()
-{
-  printf("testing TuxedoAdapter instantiation\n");
-  char* cmd =
-    "qore -e '%requires tuxedo\n"
-    "$a = new Tuxedo::TuxedoAdapter();\n"
-    "exit(10);\n'";
-
-  int res = system(cmd);
-  res = WEXITSTATUS(res);
-  assert(res == 10);
-}
-#endif
-
 // EOF
-
 

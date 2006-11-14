@@ -59,7 +59,8 @@ class Hash;
 //------------------------------------------------------------------------------
 class QoreTuxedoAdapter : public ReferenceObject
 {
-public:
+public:  // public for now so the QC_TuxedoAdapter has access to it
+
   // data used to connect Tuxedo server
   std::string m_username;
   std::string m_clientname;
@@ -69,14 +70,9 @@ public:
   env_var_t m_env_variables;
   std::vector<char> m_binary_data;
   long m_connection_flags;
+  bool m_Tuxedo_connection_initialized;
 
   TPCONTEXT_T m_context;
-
-  // input and output buffers
-  char* m_send_buffer;
-  long m_send_buffer_size;
-  char* m_receive_buffer;
-  long m_receive_buffer_size;
 
   QoreEncoding* m_string_encoding; // used to convert every string sent/received
 
@@ -86,35 +82,86 @@ public:
   std::map<int, TPTRANID> m_suspended_transactions; // tpsuspend/tpresume, maps id -> transaction
   int m_last_suspended_transaction_id; // used to generate unique handle for every suspended transcation in the map
 
-  int add_fml_value_into_send_buffer(char* value_name, FLDID32 id, int value_type, QoreNode* value, 
-    bool is_fml32, ExceptionSink* xsink);
-   
-public:
-  QoreTuxedoAdapter();
-  ~QoreTuxedoAdapter();
+  char* m_send_buffer;
+  long m_send_buffer_size;
 
-  int getNeededAuthentication(int& out_auth) const;
-  int init(); 
+  // if these flags are set in TuxedoAdapter constructor they do not needs to be specified in given function
+  long m_default_flags_for_call;
+  bool m_default_flags_for_call_set;
+  long m_default_flags_for_acall;
+  bool m_default_flags_for_acall_set;
+  long m_default_flags_for_getrply;
+  bool m_default_flags_for_getrply_set;
+  long m_default_flags_for_post_event;
+  bool m_default_flags_for_post_event_set;
+  long m_default_flags_for_connect;
+  bool m_default_flags_for_connect_set;
+  long m_default_flags_for_send;
+  bool m_default_flags_for_send_set;
+  long m_default_flags_for_receive;
+  bool m_default_flags_for_receive_set;
+  long m_default_flags_for_enqueue;
+  bool m_default_flags_for_enqueue_set;
+  long m_default_flags_for_dequeue;
+  bool m_default_flags_for_dequeue_set;
+
+  // if there's no explicit info whether we use FML or FML32 this will be the default
+  bool m_default_is_fml32;
+  bool m_default_is_fml32_set;
+
+  // FML/FML32 descriptions are always set in constructor
+  Hash* m_default_fml_description;
+  Hash* m_default_fml32_description;
+  
+  int init();
   int close();
   int saveContext();
-  int switchToSavedContext() const;
-  int allocateReceiveBuffer(char* type, char* subtype, long size);
-  void resetDataToSend();
-  int setDataToSend(void* data, int data_size, char* type, char* subtype);
-  void resetReceiveBuffer();
-  void setStringEncoding(char* name);
-  void remove_pending_async_call(int handle);
-  int enqueue(char* queue_space, char* queue_name, long flags, Hash* settings, Hash*& out_settings);
-  int dequeue(char* queue_space, char* queue_name, long flags, Hash* settings, Hash*& out_settings);
+
+  int add_fml_value_into_send_buffer(char* value_name, FLDID32 id, int value_type, QoreNode* value, 
+    bool is_fml32, ExceptionSink* xsink);
 
   // FML/FML32 - load the description from tables (possibly generate the tables temporarily)
   Hash* loadFmlDescription(const std::vector<std::string>& files, bool is_fml32, ExceptionSink* xsink);
   Hash* loadFmlDescription(const std::string& file, bool is_fml32, ExceptionSink* xsink);
   Hash* generateFmlDescription(int base, Hash* typed_names, bool is_fml32, ExceptionSink* xsink);
 
+  QoreNode* buffer2node(char* buffer, long buffer_size, char* err_name, ExceptionSink* xsink);
+  bool allocate_send_buffer(const char* type, long size, char* err_name, ExceptionSink* xsink);
+
+  std::pair<char*, long> allocate_out_buffer(char* default_type, Hash* settings, char* err_name, ExceptionSink* xsink);
+  long get_flags(Hash* settings, long* pflags, long default_flags, bool default_flags_set, char* err_name, ExceptionSink* xsink);
+
+public:
+  QoreTuxedoAdapter(Hash* settings, ExceptionSink* xsink);
+  ~QoreTuxedoAdapter();
+
+
+  int switchToSavedContext() const;
+  void setStringEncoding(char* name);
+
+  void setSendBuffer(QoreNode* n, Hash* settings, char* err_name, ExceptionSink* xsink);
+  void freeSendBuffer();
+
+  QoreNode* call(char* service_name, Hash* call_settings, long* pflags, ExceptionSink* xsink);
+  QoreNode* acall(char* service_name, Hash* call_settings, long* pflags, ExceptionSink* xsink);
+  QoreNode* get_reply(int handle, long* pflags, ExceptionSink* xsink);
+  QoreNode* post_event(char* event_name, Hash* call_settings, long* pflags, ExceptionSink* xsink);
+  QoreNode* connect(char* service_name, Hash* call_settings, long* pflags, ExceptionSink* xsink);
+  QoreNode* send(int handle, Hash* call_settings, long* pflags, ExceptionSink* xsink);
+  QoreNode* receive(int handle, Hash* call_settings, long* pflags, ExceptionSink* xsink); 
+  QoreNode* enqueue(char* queue_space, char* queue_name, Hash* call_settings, long* pflags, ExceptionSink* xsink); 
+  QoreNode* dequeue(char* queue_space, char* queue_name, Hash* call_settings, long* pflags, ExceptionSink* xsink);
+
+  void remove_pending_async_call(int handle);
+/*
+  int enqueue(char* queue_space, char* queue_name, long flags, Hash* settings, Hash*& out_settings);
+  int dequeue(char* queue_space, char* queue_name, long flags, Hash* settings, Hash*& out_settings);
+
+
   int setFmlDataToSend(Hash* description_info, List* data, bool is_fml32, ExceptionSink* xsink);
   List* getFmlDataFromBuffer(Hash* description_info, bool is_fml32, ExceptionSink* xsink, 
     char* buffer, long buffer_size, char* err_name);
+*/
 
   void deref() { 
     if (ROdereference()) {

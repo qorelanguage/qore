@@ -34,10 +34,13 @@
 
 #include <limits.h>
 #include <float.h>
+#include <sys/types.h>
+#include <dirent.h>
 
 #include <atmi.h>
 #include <fml32.h>
 #include <fml.h>
+#include <tx.h>
 
 #include <memory>
 #include <stdio.h>
@@ -213,33 +216,684 @@ TEST()
 #endif
 
 //------------------------------------------------------------------------------
-QoreTuxedoAdapter::QoreTuxedoAdapter()
+QoreTuxedoAdapter::QoreTuxedoAdapter(Hash* settings, ExceptionSink* xsink)
 : m_connection_flags(0),
+  m_Tuxedo_connection_initialized(false),
   m_context(0),
+  m_string_encoding(QCS_DEFAULT),
+  m_last_suspended_transaction_id(0),
   m_send_buffer(0),
   m_send_buffer_size(0),
-  m_receive_buffer(0),
-  m_receive_buffer_size(0),
-  m_string_encoding(QCS_DEFAULT),
-  m_last_suspended_transaction_id(0)
+  m_default_flags_for_call(0),
+  m_default_flags_for_call_set(false),
+  m_default_flags_for_acall(0),
+  m_default_flags_for_acall_set(false),
+  m_default_flags_for_getrply(0),
+  m_default_flags_for_getrply_set(false),
+  m_default_flags_for_post_event(0),
+  m_default_flags_for_post_event_set(false),
+  m_default_flags_for_connect(0),
+  m_default_flags_for_connect_set(false),
+  m_default_flags_for_send(0),
+  m_default_flags_for_send_set(false),
+  m_default_flags_for_receive(0),
+  m_default_flags_for_receive_set(false),
+  m_default_flags_for_enqueue(0),
+  m_default_flags_for_enqueue_set(false),
+  m_default_flags_for_dequeue(0),
+  m_default_flags_for_dequeue_set(false),
+  m_default_is_fml32(true),
+  m_default_is_fml32_set(false),
+  m_default_fml_description(0),
+  m_default_fml32_description(0)
 {
+  char* err_name = "TuxedoAdapter::constructor";
+
+  long priority;
+  bool priority_set = false;
+  bool finish_commit_after_data_logged;
+  bool finish_commit_set = false;
+  bool finish_Tx_commit_after_data_logged;
+  bool finish_Tx_commit_set = false;
+  bool Tx_transactions_chained;
+  bool Tx_transactions_chained_set = false;
+
+  HashIterator iter(settings);
+  while (iter.next()) {
+    string key = iter.getKey();  
+    for (unsigned i = 0, n = key.size(); i != n; ++i) key[i] = tolower(key[i]);
+
+    //-------------------------------------------
+    if (key == "username") {
+      QoreNode* n = iter.getValue();
+      if (!n || n->type != NT_STRING) {
+        xsink->raiseException(err_name, "Settings value 'UserName' needs to be a string.");
+        return;
+      }
+      char* s = n->val.String->getBuffer();
+      if (!s) s = "";
+      m_username = s;
+      continue;
+    }
+    //-------------------------------------------
+    if (key == "password") {
+      QoreNode* n = iter.getValue();
+      if (!n || n->type != NT_STRING) {
+        xsink->raiseException(err_name, "Settings value 'Password' needs to be a string.");
+        return;
+      }
+      char* s = n->val.String->getBuffer();
+      if (!s) s = "";
+      m_password = s;
+      continue;
+    }
+    //-------------------------------------------
+    if (key == "clientname") {
+      QoreNode* n = iter.getValue();
+      if (!n || n->type != NT_STRING) {
+        xsink->raiseException(err_name, "Settings value 'ClientName' needs to be a string.");
+        return;
+      }
+      char* s = n->val.String->getBuffer();
+      if (!s) s = "";
+      m_clientname = s;
+      continue;
+    }
+    //-------------------------------------------
+    if (key == "groupname") {
+      QoreNode* n = iter.getValue();
+      if (!n || n->type != NT_STRING) {
+        xsink->raiseException(err_name, "Settings value 'GroupName' needs to be a string.");
+        return;
+      }
+      char* s = n->val.String->getBuffer();
+      if (!s) s = "";
+      m_groupname = s;
+      continue;
+    }
+    //-------------------------------------------
+    if (key == "binaryconnectiondata") {
+      QoreNode* n = iter.getValue();
+      if (!n || n->type != NT_BINARY) {
+        xsink->raiseException(err_name, "Settings value 'BinaryConnectionData' needs to be a binary.");
+        return;
+      }
+      BinaryObject* bin = n->val.bin;
+      if (bin->size()) {
+        int size = bin->size();
+        char* data = (char*)bin->getPtr();
+        m_binary_data.clear();
+        m_binary_data.insert(m_binary_data.end(), data, data + size);     
+      }
+      continue;
+    }
+    //-------------------------------------------
+    if (key == "connectionflags") {
+      QoreNode* n = iter.getValue();
+      if (!n || n->type != NT_INT) {
+        xsink->raiseException(err_name, "Settings value 'ConnectionFlags' needs to be an integer.");
+        return;
+      }
+      long flags = (long)n->val.intval;
+      flags |= TPMULTICONTEXTS; // always use multicontext mode
+      m_connection_flags = flags;
+      continue;
+    }
+    //-------------------------------------------
+    if (key == "tuxdir") {
+      QoreNode* n = iter.getValue();
+      if (!n || n->type != NT_STRING) {
+        xsink->raiseException(err_name, "Settings value 'TUXDIR' needs to be a string.");
+        return;
+      }
+      char* s = n->val.String->getBuffer();
+      char* err_text = "Settings value 'TUXDIR' needs to be full path directory to Tuxedo installation.";
+      if (!s || !s[0]) {
+        xsink->raiseException(err_name, err_text);
+        return;
+      }
+      DIR* dir = opendir(s);
+      if (dir) closedir(dir);
+      if (!dir) {
+        xsink->raiseException(err_name, err_text);
+        return;
+      } 
+      m_env_variables.push_back(make_pair("TUXDIR", s));
+      continue;
+    }
+    //-------------------------------------------
+    if (key == "tuxconfig") {
+      QoreNode* n = iter.getValue();
+      if (!n || n->type != NT_STRING) {
+        xsink->raiseException(err_name, "Settings value 'TUXCONFIG' needs to be a string.");
+        return;
+      }
+      char* s = n->val.String->getBuffer();
+      char* err_text = "Settings value 'TUXCONFIG' needs to be full path to configuration file.";
+      if (!s || !s[0]) {
+        xsink->raiseException(err_name, err_text);
+        return;
+      }
+      FILE* f = fopen(s, "rb");
+      if (f) fclose(f);
+      if (!f) {
+        xsink->raiseException(err_name, err_text);
+        return;
+      }
+      m_env_variables.push_back(make_pair("TUXCONFIG", s));
+      continue;
+    }
+    //-------------------------------------------
+    if (key == "wsenvfile") {
+      QoreNode* n = iter.getValue();
+      if (!n || n->type != NT_STRING) {
+        xsink->raiseException(err_name, "Settings value 'WSENVFILE' needs to be a string.");
+        return;
+      }
+      char* s = n->val.String->getBuffer();
+      if (!s) s = "";
+      m_env_variables.push_back(make_pair("WSENVFILE", s));
+      continue;
+    }
+    //-------------------------------------------
+    if (key == "wsnaddr") {
+      QoreNode* n = iter.getValue();
+      if (!n || n->type != NT_STRING) {
+        xsink->raiseException(err_name, "Settings value 'WSNADDR' needs to be a string.");
+        return;
+      }
+      char* s = n->val.String->getBuffer();
+      if (!s) s = "";
+      m_env_variables.push_back(make_pair("WSNADDR", s));
+      continue;
+    }
+    //-------------------------------------------
+    if (key == "wsfaddr") {
+      QoreNode* n = iter.getValue();
+      if (!n || n->type != NT_STRING) {
+        xsink->raiseException(err_name, "Settings value 'WSFADDR' needs to be a string.");
+        return;
+      }
+      char* s = n->val.String->getBuffer();
+      if (!s) s = "";
+      m_env_variables.push_back(make_pair("WSFADDR", s));
+      continue;
+    }
+    //-------------------------------------------
+    if (key == "wsfrange") {
+      QoreNode* n = iter.getValue();
+      if (!n || n->type != NT_STRING) {
+        xsink->raiseException(err_name, "Settings value 'WSFRANGE' needs to be a string.");
+        return;
+      }
+      char* s = n->val.String->getBuffer();
+      if (!s) s = "";
+      m_env_variables.push_back(make_pair("WSFRANGE", s));
+      continue;
+    }
+    //-------------------------------------------
+    if (key == "wsdevice") {
+      QoreNode* n = iter.getValue();
+      if (!n || n->type != NT_STRING) {
+        xsink->raiseException(err_name, "Settings value 'WSDEVICE' needs to be a string.");
+        return;
+      }
+      char* s = n->val.String->getBuffer();
+      if (!s) s = "";
+      m_env_variables.push_back(make_pair("WSDEVICE", s));
+      continue;
+    }
+    //-------------------------------------------
+    if (key == "wstype") {
+      QoreNode* n = iter.getValue();
+      if (!n || n->type != NT_STRING) {
+        xsink->raiseException(err_name, "Settings value 'WSTYPE' needs to be a string.");
+        return;
+      }
+      char* s = n->val.String->getBuffer();
+      if (!s) s = "";
+      m_env_variables.push_back(make_pair("WSTYPE", s));
+      continue;
+    }
+    //-------------------------------------------
+    if (key == "wsrplymax") {
+      QoreNode* n = iter.getValue();
+      if (!n || n->type != NT_STRING) {
+        xsink->raiseException(err_name, "Settings value 'WSRPLYMAX' needs to be a string.");
+        return;
+      }
+      char* s = n->val.String->getBuffer();
+      if (!s) s = "";
+      m_env_variables.push_back(make_pair("WSRPLYMAX", s));
+      continue;
+    }
+    //-------------------------------------------
+    if (key == "tmminencryptbits") {
+      QoreNode* n = iter.getValue();
+      if (!n || n->type != NT_STRING) {
+        xsink->raiseException(err_name, "Settings value 'TMMINENCRYPTBITS' needs to be a string.");
+        return;
+      }
+      char* s = n->val.String->getBuffer();
+      if (!s) s = "";
+      m_env_variables.push_back(make_pair("TMMINENCRYPTBITS", s));
+      continue;
+    }
+    //-------------------------------------------
+    if (key == "tmmaxencryptbits") {
+      QoreNode* n = iter.getValue();
+      if (!n || n->type != NT_STRING) {
+        xsink->raiseException(err_name, "Settings value 'TMMAXENCRYPTBITS' needs to be a string.");
+        return;
+      }
+      char* s = n->val.String->getBuffer();
+      if (!s) s = "";
+      m_env_variables.push_back(make_pair("TMMAXENCRYPTBITS", s));
+      continue;
+    }
+    //-------------------------------------------
+    if (key == "stringencoding") {
+      QoreNode* n = iter.getValue();
+      if (!n || n->type != NT_STRING) {
+        xsink->raiseException(err_name, "Settings 'StringEncoding' needs to be a string.");
+        return;
+      }
+      char* s = n->val.String->getBuffer();
+      if (!s || !s[0]) {
+        s = "UTF8";
+      }
+      setStringEncoding(s);
+      continue;
+    } 
+    //-------------------------------------------
+    if (key == "defaultflagsforcall") {
+      QoreNode* n = iter.getValue();
+      if (!n || n->type != NT_INT) {
+        xsink->raiseException(err_name, "Settings 'DefaultFlagsForCall' needs to be an integer.");
+        return;
+      }
+      m_default_flags_for_call = (long)n->val.intval;
+      m_default_flags_for_call_set = true;
+      continue;
+    }
+    //-------------------------------------------
+    if (key == "defaultflagsforasynccall") {
+      QoreNode* n = iter.getValue();
+      if (!n || n->type != NT_INT) {
+        xsink->raiseException(err_name, "Settings 'DefaultFlagsForAsyncCall' needs to be an integer.");
+        return;
+      }
+      m_default_flags_for_acall = (long)n->val.intval;
+      m_default_flags_for_acall_set = true;
+      continue;
+    }
+    //-------------------------------------------
+    if (key == "defaultflagsforgetasyncreply") {
+      QoreNode* n = iter.getValue();
+      if (!n || n->type != NT_INT) {
+        xsink->raiseException(err_name, "Settings 'DefaultFlagsForGetAsyncReply' needs to be an integer.");
+        return;
+      }
+      m_default_flags_for_getrply = (long)n->val.intval;
+      m_default_flags_for_getrply_set = true;
+      continue;
+    }
+    //-------------------------------------------
+    if (key == "defaultflagsforpostevent") {
+      QoreNode* n = iter.getValue();
+      if (!n || n->type != NT_INT) {
+        xsink->raiseException(err_name, "Settings 'DefaultFlagsForPostEvent' needs to be an integer.");
+        return;
+      }
+      m_default_flags_for_post_event = (long)n->val.intval;
+      m_default_flags_for_post_event_set = true;
+      continue;
+    }
+    //-------------------------------------------
+    if (key == "defaultflagsforjoinconversation") {
+      QoreNode* n = iter.getValue();
+      if (!n || n->type != NT_INT) {
+        xsink->raiseException(err_name, "Settings 'DefaultFlagsForJoinConversation' needs to be an integer.");
+        return;
+      }
+      m_default_flags_for_connect = (long)n->val.intval;
+      m_default_flags_for_connect_set = true;
+      continue;
+    }
+    //-------------------------------------------
+    if (key == "defaultflagsforsendconversationdata") {
+      QoreNode* n = iter.getValue();
+      if (!n || n->type != NT_INT) {
+        xsink->raiseException(err_name, "Settings 'DefaultFlagsForSendConversationData' needs to be an integer.");
+        return;
+      }
+      m_default_flags_for_send = (long)n->val.intval;
+      m_default_flags_for_send_set = true;
+      continue;
+    }
+    //-------------------------------------------
+    if (key == "defaultflagsforreceiveconversationdata") {
+      QoreNode* n = iter.getValue();
+      if (!n || n->type != NT_INT) {
+        xsink->raiseException(err_name, "Settings 'DefaultFlagsForReceiveConversationData' needs to be an integer.");
+        return;
+      }
+      m_default_flags_for_receive = (long)n->val.intval;
+      m_default_flags_for_receive_set = true;
+      continue;
+    }
+    //-------------------------------------------
+    if (key == "defaultflagsforenqueue") {
+      QoreNode* n = iter.getValue();
+      if (!n || n->type != NT_INT) {
+        xsink->raiseException(err_name, "Settings 'DefaultFlagsForEnqueue' needs to be an integer.");
+        return;
+      }
+      m_default_flags_for_enqueue = (long)n->val.intval;
+      m_default_flags_for_enqueue_set = true;
+      continue;
+    }
+    //-------------------------------------------
+    if (key == "defaultflagsfordequeue") {
+      QoreNode* n = iter.getValue();
+      if (!n || n->type != NT_INT) {
+        xsink->raiseException(err_name, "Settings 'DefaultFlagsForDequeue' needs to be an integer.");
+        return;
+      }
+      m_default_flags_for_dequeue = (long)n->val.intval;
+      m_default_flags_for_dequeue_set = true;
+      continue;
+    }
+    //-------------------------------------------
+    if (key == "defaultfmltype") {
+      QoreNode* n = iter.getValue();
+      char* err_text = "Settings 'DefaultFmlType' needs to be string \"FML\" or \"FML32\".";
+      if (!n || n->type != NT_STRING) {
+        xsink->raiseException(err_name, err_text);
+        return;
+      }
+      char* s = n->val.String->getBuffer();
+      if (!s || !s[0]) {
+        xsink->raiseException(err_name, err_text);
+        return;
+      }
+      if (strcmp(s, "FML") == 0) {
+        m_default_is_fml32 = false;
+        m_default_is_fml32_set = true;
+      } else 
+      if (strcmp(s, "FML32") == 0) {
+        m_default_is_fml32 = true;
+        m_default_is_fml32_set = true;
+      } else {
+        xsink->raiseException(err_name, err_text);
+        return;
+      }
+      continue;
+    }
+    //-------------------------------------------
+    if (key == "defaultfmldescriptionfile") {
+      if (m_default_fml_description) {
+        xsink->raiseException(err_name, "Only one of 'DefaultFmlDescriptionFile' or 'DefaultFmlDescription' settings could be used.");
+        return;
+      }
+      char* err_text = "Settings 'DefaultFmlDescriptionFile' needs to be complete file name.";
+      QoreNode* n = iter.getValue();
+      if (!n || n->type != NT_STRING) {
+        xsink->raiseException(err_name, err_text);
+        return;
+      }
+      char* s = n->val.String->getBuffer();
+      if (!s || !s[0]) {
+        xsink->raiseException(err_name, err_text);
+        return;
+      }
+      m_default_fml_description = loadFmlDescription(s, false, xsink);
+      if (xsink->isException()) {
+        xsink->raiseException(err_name, err_text); 
+        return;
+      }
+      continue;
+    }
+    //-------------------------------------------
+    if (key == "defaultfml32descriptionfile") {
+      if (m_default_fml32_description) {
+        xsink->raiseException(err_name, "Only one of 'DefaultFml32DescriptionFile' or 'DefaultFml32Description' settings could be used.");
+        return;
+      }
+      char* err_text = "Settings 'DefaultFml32DescriptionFile' needs to be complete file name.";
+      QoreNode* n = iter.getValue();
+      if (!n || n->type != NT_STRING) {
+        xsink->raiseException(err_name, err_text);
+        return;
+      }
+      char* s = n->val.String->getBuffer();
+      if (!s || !s[0]) {
+        xsink->raiseException(err_name, err_text);
+        return;
+      }
+      m_default_fml32_description = loadFmlDescription(s, true, xsink);
+      if (xsink->isException()) {
+        xsink->raiseException(err_name, err_text);
+        return;
+      }
+      continue;
+    }
+    //-------------------------------------------
+    if (key == "defaultfmldescription") {
+      if (m_default_fml_description) {
+        xsink->raiseException(err_name, "Only one of 'DefaultFmlDescriptionFile' or 'DefaultFmlDescription' settings could beused.");
+        return;
+      }
+      char* err_text = "Settings 'DefaultFmlDescription' needs to be a hash.";
+      QoreNode* n = iter.getValue();
+      if (!n || n->type != NT_HASH) {
+        xsink->raiseException(err_name, err_text);
+        return;
+      }
+      Hash* h = n->val.hash;
+      // check whether base is set
+      int base = 0;
+      n = settings->getKeyValue("DefaultFmlDescriptionBase");
+      if (n) {
+        if (n->type != NT_INT) {
+          xsink->raiseException(err_name, "Settings 'DefaultFmlDescriptionBase' needs to be an integer.");
+          return;
+        }
+        base = (int)n->val.intval;
+      }
+
+      m_default_fml_description = generateFmlDescription(base, h, false, xsink);
+      if (xsink->isException()) {
+        xsink->raiseException(err_name, err_text);
+        return;
+      }
+      continue;
+    }
+    //-------------------------------------------
+    if (key == "defaultfmldescriptionbase") {
+      continue;
+    } 
+    //-------------------------------------------
+    if (key == "defaultfml32description") {
+      if (m_default_fml32_description) {
+        xsink->raiseException(err_name, "Only one of 'DefaultFml32DescriptionFile' or 'DefaultFml32Description' settings could be used.");
+        return;
+      }
+      char* err_text = "Settings 'DefaultFml32Description' needs to be a hash.";
+      QoreNode* n = iter.getValue();
+      if (!n || n->type != NT_HASH) {
+        xsink->raiseException(err_name, err_text);
+        return;
+      }
+      Hash* h = n->val.hash;
+      // check whether base is set
+      int base = 0;
+      n = settings->getKeyValue("DefaultFml32DescriptionBase");
+      if (n) {
+        if (n->type != NT_INT) {
+          xsink->raiseException(err_name, "Settings 'DefaultFml32DescriptionBase' needs to be an integer.");
+          return;
+        }
+        base = (int)n->val.intval;
+      }
+
+      m_default_fml32_description = generateFmlDescription(base, h, true, xsink);
+      if (xsink->isException()) {
+        xsink->raiseException(err_name, err_text);
+        return;
+      }
+      continue;
+    }
+    //-------------------------------------------
+    if (key == "defaultfml32descriptionbase") {
+      continue;
+    }
+    //-------------------------------------------
+    if (key == "priority") {
+      QoreNode* n = iter.getValue();
+      if (!n || n->type != NT_INT) {
+        xsink->raiseException(err_name, "Settings 'Priority' needs to be an integer.");
+        return;
+      }
+      priority_set = true;
+      priority = (long)n->val.intval;
+      continue;
+    }
+    //-------------------------------------------
+    if (key == "whencommitfinishes") {
+      QoreNode* n = iter.getValue();
+      if (!n || n->type != NT_STRING) {
+        xsink->raiseException(err_name, "Settings 'WhenCommitFinishes' needs to be a string.");
+        return;
+      }
+      char* s = n->val.String->getBuffer();
+      if (s && s[0]) {
+        if (strcmp(s, "AfterDataAreLogged") == 0) {
+          finish_commit_after_data_logged = true;
+          finish_commit_set = true;
+        } else
+        if (strcmp(s, "AfterTwoPhaseCompletes") == 0) {
+          finish_commit_after_data_logged = false;
+          finish_commit_set = true;
+        } else {
+          xsink->raiseException(err_name, "Settings 'WhenCommitFinishes' needs to be either 'AfterDataAreLogged' or 'AfterTwoPhaseCompletes'.");
+          return;
+        }
+      }
+      continue;
+    }
+    //-------------------------------------------
+    if (key == "whentxcommitfinishes") { // this is for Tx transactions
+      QoreNode* n = iter.getValue();
+      if (!n || n->type != NT_STRING) {
+        xsink->raiseException(err_name, "Settings 'WhenTxCommitFinishes' needs to be a string.");
+        return;
+      }
+      char* s = n->val.String->getBuffer();
+      if (s && s[0]) {
+        if (strcmp(s, "AfterDataAreLogged") == 0) {
+          finish_Tx_commit_after_data_logged = true;
+          finish_Tx_commit_set = true;
+        } else
+        if (strcmp(s, "AfterTwoPhaseCompletes") == 0) {
+          finish_Tx_commit_after_data_logged = false;
+          finish_Tx_commit_set = true;
+        } else {
+          xsink->raiseException(err_name, "Settings 'WhenTxCommitFinishes' needs to be either 'AfterDataAreLogged' or 'AfterTwoPhaseCompletes'.");
+          return;
+        }
+      }
+      continue;
+    }
+    //-------------------------------------------
+    if (key == "aretxtransactionschained") {
+      QoreNode* n = iter.getValue();
+      if (!n || n->type != NT_BOOLEAN) {
+        xsink->raiseException(err_name, "Settings 'AreTxTransactionsChained' needs to be a boolean.");
+        return;
+      }
+      Tx_transactions_chained = n->val.boolval;
+      Tx_transactions_chained_set = true;
+      continue;
+    }
+
+    //-------------------------------------------
+    xsink->raiseException(err_name, "Settings value '%s' is not recognized.", key.c_str());
+    return;
+  } // while 
+
+  int res = init();
+  if (res == -1) {
+    Hash* h = new Hash;
+    h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
+    h->setKeyValue((char*)"Tuxedo call", new QoreNode("tpinit"), xsink);
+    xsink->raiseExceptionArg(err_name, new QoreNode(h), "tpinit() failed with error %d.", tperrno);
+    return;
+  } 
+  m_Tuxedo_connection_initialized = true;
+  switchToSavedContext();
+
+  // apply the other settings
+  if (priority_set) {
+    int res = tpsprio(priority, TPABSOLUTE);
+    if (res == -1) {
+      Hash* h = new Hash;
+      h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
+      h->setKeyValue((char*)"Tuxedo call", new QoreNode("tpsprio"), xsink);
+      xsink->raiseExceptionArg(err_name, new QoreNode(h), "tpsprio() failed with error %d.", tperrno);
+      return;
+    }
+  }
+
+  if (finish_commit_set) {
+    int res;
+    if (finish_commit_after_data_logged) {
+      res = tpscmt(TP_CMT_LOGGED);
+    } else {
+      res = tpscmt(TP_CMT_COMPLETE);
+    }
+    if (res == -1) {
+      Hash* h = new Hash;
+      h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
+      h->setKeyValue((char*)"Tuxedo call", new QoreNode("tpscmt"), xsink);
+      xsink->raiseExceptionArg(err_name, new QoreNode(h), "tpscmt() failed with error %d.", tperrno);
+      return;
+    }
+  }
+
+  if (finish_Tx_commit_set) {
+    int res;
+    if (finish_Tx_commit_after_data_logged) {
+      res = tx_set_commit_return(TX_COMMIT_DECISION_LOGGED);
+    } else {
+      res = tx_set_commit_return(TX_COMMIT_COMPLETED);
+    }
+    if (res != TX_OK) {
+      Hash* h = new Hash;
+      h->setKeyValue((char*)"error", new QoreNode((int64)res), xsink);
+      h->setKeyValue((char*)"Tuxedo call", new QoreNode("tx_set_commit_return"), xsink);
+      xsink->raiseExceptionArg(err_name, new QoreNode(h), "tx_set_commit_return() failed with error %d.", tperrno);
+      return;
+    }
+  }
+
+  if (Tx_transactions_chained_set) {
+    int res = tx_set_transaction_control(Tx_transactions_chained ? TX_CHAINED : TX_UNCHAINED);
+    if (res != TX_OK) {
+      Hash* h = new Hash;
+      h->setKeyValue((char*)"error", new QoreNode((int64)res), xsink);
+      h->setKeyValue((char*)"Tuxedo call", new QoreNode("tx_set_transaction_control"), xsink);
+      xsink->raiseExceptionArg(err_name, new QoreNode(h), "tx_set_transaction_control() failed with error %d.", res);
+      return;
+    }
+  }
+
 }
 
 //------------------------------------------------------------------------------
 QoreTuxedoAdapter::~QoreTuxedoAdapter()
 {
-  resetReceiveBuffer();
-  resetDataToSend();
-}
-
-//------------------------------------------------------------------------------
-int QoreTuxedoAdapter::getNeededAuthentication(int& out_auth) const
-{
-  EnvironmentSetter setter(m_env_variables);
-  int res = tpchkauth();
-  if (res == -1) return tperrno;
-  out_auth = res;
-  return 0;
+  close();
 }
 
 //------------------------------------------------------------------------------
@@ -275,12 +929,31 @@ int QoreTuxedoAdapter::init()
 //------------------------------------------------------------------------------
 int QoreTuxedoAdapter::close() 
 {
+  freeSendBuffer();
+
+  // needs to be so complicated, just delete (Hash*)h asserts in DEBUG
+  if (m_default_fml_description) {
+    ExceptionSink xsink;
+    QoreNode* aux = new QoreNode(m_default_fml_description);
+    aux->deref(&xsink);
+  }
+  if (m_default_fml32_description) {
+    ExceptionSink xsink;
+    QoreNode* aux = new QoreNode(m_default_fml32_description);
+    aux->deref(&xsink);
+  }
+
+  if (!m_Tuxedo_connection_initialized) {
+    return 0;
+  }
+  switchToSavedContext();
   // cancel all remaining async requests, if any
   for (vector<int>::const_iterator it =  m_pending_async_calls.begin(), end = m_pending_async_calls.end(); it != end; ++it) {
     tpcancel(*it);
   }
   return (tpterm() == -1) ? tperrno : 0;
 }
+
 
 //------------------------------------------------------------------------------
 int QoreTuxedoAdapter::saveContext()
@@ -299,52 +972,282 @@ int QoreTuxedoAdapter::switchToSavedContext() const
 }
 
 //------------------------------------------------------------------------------
-int QoreTuxedoAdapter::allocateReceiveBuffer(char* type, char* subtype, long size)
+void QoreTuxedoAdapter::setStringEncoding(char* name)
 {
-  resetReceiveBuffer();
-
-  m_receive_buffer = tpalloc(type, subtype, size);
-  if (!m_receive_buffer) return tperrno;
-  m_receive_buffer_size = size;
-  return 0;
+  m_string_encoding = QEM.findCreate(name);
+  if (!m_string_encoding) m_string_encoding = QCS_DEFAULT;
 }
 
 //------------------------------------------------------------------------------
-void QoreTuxedoAdapter::resetDataToSend()
+void QoreTuxedoAdapter::freeSendBuffer()
 {
   if (m_send_buffer) {
     tpfree(m_send_buffer);
     m_send_buffer = 0;
   }
-  if (m_send_buffer_size) m_send_buffer_size = 0;
+  m_send_buffer_size = 0;
 }
 
 //------------------------------------------------------------------------------
-void QoreTuxedoAdapter::resetReceiveBuffer()
+bool QoreTuxedoAdapter::allocate_send_buffer(const char* type, long size, char* err_name, ExceptionSink* xsink)
 {
-  if (m_receive_buffer) {
-    tpfree(m_receive_buffer);
-    m_receive_buffer = 0;
+  m_send_buffer = tpalloc((char*)type, 0, size);
+  if (m_send_buffer) {
+    m_send_buffer_size = size;
+    return true;
   }
-  if (m_receive_buffer_size) m_receive_buffer_size = 0;
+  Hash* h = new Hash;
+  h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
+  h->setKeyValue((char*)"Tuxedo call", new QoreNode("tpcall"), xsink);
+  xsink->raiseExceptionArg(err_name, new QoreNode(h), "tpcall(\"%s\", %ld) failed with error %d.", type, size, tperrno);
+  return false;
 }
 
-//------------------------------------------------------------------------------
-int QoreTuxedoAdapter::setDataToSend(void* data, int data_size, char* type, char* subtype)
+//-----------------------------------------------------------------------------
+// Allocate buffer. Get type either from passed settings hash or use the default.
+pair<char*, long> QoreTuxedoAdapter::allocate_out_buffer(char* default_type, Hash* settings, char* err_name, ExceptionSink* xsink)
 {
-  resetDataToSend();
-  m_send_buffer = tpalloc(type, subtype, data_size);
-  if (!m_send_buffer) return tperrno;
-  m_send_buffer_size = data_size;
-  memcpy(m_send_buffer, data, data_size);
+  char type[20] = "STRING";
+  bool type_set = false;
+
+  if (settings) {
+    QoreNode* n = settings->getKeyValue("DefaultReturnedDataType");
+    if (n) {
+      if (n->type != NT_STRING) {
+        xsink->raiseException(err_name, "Settings 'DefaultReturnedDataType' needs to be a string.");
+        return make_pair((char*)0, 0);
+      }
+      char* s = n->val.String->getBuffer();
+      if (!s && strcmp(s, "CARRAY") && strcmp(s, "STRING") && strcmp(s, "FML") && strcmp(s, "FML32")) {
+        xsink->raiseException(err_name, "Settings 'DefaultReturnedDataType': supported values are 'CARRAY', 'STRING', 'FML', 'FML32'.");
+        return make_pair((char*)0, 0);
+      }
+      strcpy(type, s);
+      type_set = true;
+    }
+  }
+  if (!type_set && default_type && default_type[0]) {
+    strcpy(type, default_type);
+  }
+
+  pair<char*, long> result;
+  result.first = tpalloc(type, 0, 4096);
+  if (!result.first) {
+    Hash* h = new Hash;
+    h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
+    h->setKeyValue((char*)"Tuxedo call", new QoreNode("tpalloc"), xsink);
+    xsink->raiseExceptionArg(err_name, new QoreNode(h), "tpalloc(\"%s\", 4096) failed with error %d.", type, tperrno);
+    return result;
+  }
+  result.second = 4096;
+  return result;
+}
+
+//-----------------------------------------------------------------------------
+// Get flags either from passed hash (or integer) or from the default value
+long QoreTuxedoAdapter::get_flags(Hash* settings, long* pflags, long default_flags, bool default_flags_set, char* err_name, ExceptionSink* xsink)
+{
+  if (pflags) return *pflags;
+
+  if (settings) {
+    QoreNode* n = settings->getKeyValue("flags");
+    if (n) {
+      if (n->type != NT_INT) {
+        xsink->raiseException(err_name, "Settings 'flags' needs to be an integer.");
+        return 0;
+      }
+      return (long)n->val.intval;
+    }
+  }
+
+  if (default_flags_set) return default_flags;
+
+  xsink->raiseException(err_name, "Value of 'flags' is missing (no default in constructor, no explicit value passed).");
   return 0;
 }
 
 //------------------------------------------------------------------------------
-void QoreTuxedoAdapter::setStringEncoding(char* name)
+void QoreTuxedoAdapter::setSendBuffer(QoreNode* n, Hash* settings, char* err_name, ExceptionSink* xsink)
 {
-  m_string_encoding = QEM.findCreate(name);
-  if (!m_string_encoding) m_string_encoding = QCS_DEFAULT;
+  freeSendBuffer();
+
+  if (n->type == NT_NOTHING) {
+    return;
+  }
+
+  if (n->type == NT_BINARY) {
+    BinaryObject* bin = n->val.bin;
+    if (bin->size() == 0) return;
+    if (!allocate_send_buffer("CARRAY", bin->size(), err_name, xsink)) return;
+    memcpy(m_send_buffer, bin->getPtr(), bin->size());
+    return;
+  }
+
+  if (n->type == NT_STRING) {
+    char* s = n->val.String->getBuffer();
+    if (!s || !s[0]) return;
+    if (n->val.String->getCharset() != m_string_encoding) {
+      QoreString aux(s, m_string_encoding);
+      if (!allocate_send_buffer("STRING", strlen(aux.getBuffer()) + 1, err_name, xsink)) return;
+      strcpy(m_send_buffer, aux.getBuffer());
+    } else {
+      if (!allocate_send_buffer("STRING", strlen(s) + 1, err_name, xsink)) return;
+      strcpy(m_send_buffer, s);
+    }
+    return;
+  }
+
+  if (n->type == NT_HASH) {
+    // TBD
+  }
+
+  xsink->raiseException(err_name, "Type of data to be sent is not recognized.");
+}
+
+//-----------------------------------------------------------------------------
+QoreNode* QoreTuxedoAdapter::buffer2node(char* buffer, long buffer_size, char* err_name, ExceptionSink* xsink)
+{
+  if (!buffer || buffer_size == 0) {
+    return new QoreNode(NT_NOTHING);
+  }
+  char type[20];
+  char subtype[20];
+  int res = tptypes(buffer, type, subtype);
+  if (res == -1) {
+    Hash* h = new Hash;
+    h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
+    h->setKeyValue((char*)"Tuxedo call", new QoreNode("tptypes"), xsink);
+    return xsink->raiseExceptionArg(err_name, new QoreNode(h), "tptypes() failed with error %d.", tperrno);
+  }
+  
+  if (!strcmp(type, "CARRAY") || !strcmp(type, "X_OCTET")) {
+    void* copy = malloc(buffer_size);
+    if (!copy) {
+      xsink->outOfMemory();
+      return 0;
+    }
+    BinaryObject* bin = new BinaryObject(copy, buffer_size);
+    return new QoreNode(bin);
+  }
+
+  if (!strcmp(type, "STRING")) {
+    QoreString aux(buffer, m_string_encoding);
+    return new QoreNode(aux.getBuffer());    
+  }
+
+  // TBD
+
+  return xsink->raiseException(err_name, "Type [ %s ] of data is not yet supported.", type);
+}
+
+//------------------------------------------------------------------------------
+QoreNode* QoreTuxedoAdapter::call(char* service_name, Hash* call_settings, long* pflags, ExceptionSink* xsink)
+{
+  char* err_name = "TuxedoAdapter:;call";
+  char type[20] = "";
+  char subtype[20];
+
+  if (m_send_buffer) {
+    int res = tptypes(m_send_buffer, type, subtype);
+    if (res == -1) {
+      Hash* h = new Hash;
+      h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
+      h->setKeyValue((char*)"Tuxedo call", new QoreNode("tptypes"), xsink);
+      return xsink->raiseExceptionArg(err_name, new QoreNode(h), "tptypes() failed with error %d.", tperrno);
+    }
+  }
+
+  pair<char*, long> out = allocate_out_buffer(type, call_settings, err_name, xsink);
+  if (xsink->isException()) {
+    return 0;
+  }
+  ON_BLOCK_EXIT(tpfree, out.first);
+  long flags = get_flags(call_settings, pflags, m_default_flags_for_call, m_default_flags_for_call_set, err_name, xsink);
+  if (xsink->isException()) {
+    return 0;
+  }
+  int res = tpcall(service_name, m_send_buffer, m_send_buffer_size, &out.first, &out.second, flags);
+  freeSendBuffer();
+  if (res == -1) {
+    Hash* h = new Hash;
+    h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
+    h->setKeyValue((char*)"Tuxedo call", new QoreNode("tpcall"), xsink);
+    return xsink->raiseExceptionArg(err_name, new QoreNode(h), "tpcall() failed with error %d.", tperrno);
+  }
+
+  QoreNode* ret = buffer2node(out.first, out.second, err_name, xsink);
+  if (xsink->isException()) return 0;
+  return ret;
+}
+
+//------------------------------------------------------------------------------
+QoreNode* QoreTuxedoAdapter::acall(char* service_name, Hash* call_settings, long* pflags, ExceptionSink* xsink)
+{
+  char* err_name = "TuxedoAdapter::asycnCall";
+  long flags = get_flags(call_settings, pflags, m_default_flags_for_acall, m_default_flags_for_acall_set, err_name, xsink);
+  if (xsink->isException()) {
+    return 0;
+  }
+  int res = tpacall(service_name, m_send_buffer, m_send_buffer_size, flags);
+  if (res == -1) {
+    Hash* h = new Hash;
+    h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
+    h->setKeyValue((char*)"Tuxedo call", new QoreNode("tpacall"), xsink);
+    return xsink->raiseExceptionArg(err_name, new QoreNode(h), "tpacall() failed with error %d.", tperrno);
+  }
+  if (res != 0) { // 0 == no reply expected
+    m_pending_async_calls.push_back(res);
+  }
+  return new QoreNode((int64)res);
+}
+
+//-----------------------------------------------------------------------------
+QoreNode* QoreTuxedoAdapter::post_event(char* event_name, Hash* call_settings, long* pflags, ExceptionSink* xsink)
+{
+  // TBD
+  return 0;
+}
+
+//------------------------------------------------------------------------------
+QoreNode* QoreTuxedoAdapter::get_reply(int handle, long* pflags, ExceptionSink* xsink)
+{
+  // TBD
+  return 0;
+}
+
+//------------------------------------------------------------------------------
+QoreNode* QoreTuxedoAdapter::connect(char* service_name, Hash* call_settings, long* pflags, ExceptionSink* xsink)
+{
+  // TBD
+  return 0;
+}
+
+//-----------------------------------------------------------------------------
+QoreNode* QoreTuxedoAdapter::send(int handle, Hash* call_settings, long* pflags, ExceptionSink* xsink)
+{
+  // TBD
+  return 0;
+}
+
+//-----------------------------------------------------------------------------
+QoreNode* QoreTuxedoAdapter::receive(int handle, Hash* call_settings, long* pflags, ExceptionSink* xsink)
+{
+  // TBD
+  return 0;
+}
+
+//-----------------------------------------------------------------------------
+QoreNode* enqueue(char* queue_space, char* queue_name, Hash* call_settings, long* pflags, ExceptionSink* xsink)
+{
+  // TBD
+  return 0;
+}
+
+//-----------------------------------------------------------------------------
+QoreNode* dequeue(char* queue_space, char* queue_name, Hash* call_settings, long* pflags, ExceptionSink* xsink)
+{
+  // TBD
+  return 0;
 }
 
 //------------------------------------------------------------------------------
@@ -358,6 +1261,7 @@ void QoreTuxedoAdapter::remove_pending_async_call(int handle)
   }
 }
 
+/*
 //------------------------------------------------------------------------------
 static QoreNode* get_val(Hash* hash, char* name, QoreType* type)
 {
@@ -492,6 +1396,7 @@ int QoreTuxedoAdapter::dequeue(char* queue_space, char* queue_name, long flags, 
   out_settings = out.release();
   return 0;
 }
+*/
 
 //------------------------------------------------------------------------------
 Hash* QoreTuxedoAdapter::loadFmlDescription(const vector<string>& files, bool is_fml32, ExceptionSink* xsink)
@@ -616,7 +1521,8 @@ static void do_test(bool is_fml32)
   typed_names.setKeyValue("a_string", new QoreNode((int64)FLD_STRING), &xsink);
   typed_names.setKeyValue("a_carray", new QoreNode((int64)FLD_CARRAY), &xsink);
 
-  QoreTuxedoAdapter adapter;
+  Hash empty;
+  QoreTuxedoAdapter adapter(&empty, &xsink);
   Hash* res = adapter.generateFmlDescription(500, &typed_names, is_fml32, &xsink);
   if (xsink) {
     Exception* e = xsink.catchException();
@@ -699,6 +1605,7 @@ TEST()
 }
 #endif
 
+/*
 //------------------------------------------------------------------------------
 // helper
 static int reallocate_buffer(char** buffer, long* buffer_size, long new_size)
@@ -1354,6 +2261,7 @@ TEST()
   do_test2(true);
 }
 #endif
+*/
 
 // EOF
 
