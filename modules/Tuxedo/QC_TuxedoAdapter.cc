@@ -634,6 +634,38 @@ static QoreNode* dequeue(Object* self, QoreTuxedoAdapter* adapter, QoreNode* par
   return adapter->dequeue(queue_space, queue_name, dequeue_settings, pflags, xsink);
 }
 
+#ifdef DEBUG
+#ifdef TUXCONFIG_QUEUE_TEST
+TEST()
+{
+  char* stop = getenv("TUXEDO_NO_QUEUE_TEST");
+  if (stop && stop[0]) return;
+  printf("testing enqueue() and dequeue() - queue test should run\n");
+
+  // test modeled by qsample from ATMI samples, uses its server
+  char buffer[2048];
+  sprintf(buffer, "qore -e '%%requires tuxedo\n"
+    "$settings = (\"TUXCONFIG\" : \"%s\", \"TUXDIR\" : \"" TUXDIR "\");\n"
+    "our $a = new Tuxedo::TuxedoAdapter($settings);\n"
+
+    "$h = (\"queue_control_flags\" : Tuxedo::TPQREPLYQ, \"queue_control_replyqueue\" : \"RPLYQ\", \"flags\" : 0);\n"
+    "$a.enqueue(\"QSPACE\", \"STRING\", \"some data\", $h);\n"
+
+    "$h = (\"queue_control_flags\" : Tuxedo::TPQWAIT, \"flags\" : Tuxedo::TPNOTIME);\n"
+    "$res = $a.dequeue(\"QSPACE\", \"RPLYQ\", $h);\n"
+    "if ($res != \"SAMPLE DATA\") { printf(\"dequeue failed\"); exit(12); }\n"
+
+    "exit(10);'\n",
+    tuxfile(TUXCONFIG_QUEUE_TEST)
+  );
+
+  int res = system(buffer);
+  res = WEXITSTATUS(res);
+  assert(res == 10);
+}
+#endif
+#endif
+
 //-----------------------------------------------------------------------------
 static QoreNode* writeToLog(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
 {
