@@ -1256,34 +1256,197 @@ QoreNode* QoreTuxedoAdapter::get_reply(int handle, Hash* call_settings, long* pf
 //------------------------------------------------------------------------------
 QoreNode* QoreTuxedoAdapter::connect(char* service_name, Hash* call_settings, long* pflags, ExceptionSink* xsink)
 {
-  // TBD
-  return 0;
+  char* err_name = "TuxedoAdapter::joinConversation";
+  long flags = get_flags(call_settings, pflags, m_default_flags_for_connect, m_default_flags_for_connect_set, err_name, xsink);
+  if (xsink->isException()) {
+    return 0;
+  }
+  int res = tpconnect(service_name, m_send_buffer, m_send_buffer_size, flags);
+  if (res != -1) {
+    return new QoreNode((int64)res); // descriptor of the connection
+  }
+  Hash* h = new Hash;
+  h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
+  h->setKeyValue((char*)"Tuxedo call", new QoreNode("tpconnect"), xsink);
+  return xsink->raiseExceptionArg(err_name, new QoreNode(h), "tpconnect() failed with error %d.", tperrno);
 }
 
 //-----------------------------------------------------------------------------
 QoreNode* QoreTuxedoAdapter::send(int handle, Hash* call_settings, long* pflags, ExceptionSink* xsink)
 {
-  // TBD
-  return 0;
+  char* err_name = "TuxedoAdapter::sendConversationData";
+  long flags = get_flags(call_settings, pflags, m_default_flags_for_send, m_default_flags_for_send_set, err_name, xsink);
+  if (xsink->isException()) return 0;
+  long event = TPEV_SVCSUCC;
+  int res = tpsend(handle, m_send_buffer, m_send_buffer_size, flags, &event);
+  if (res != -1) {
+    return new QoreNode((int64)event);
+  }
+  Hash* h = new Hash;
+  h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
+  h->setKeyValue((char*)"Tuxedo call", new QoreNode("tpsend"), xsink);
+  return xsink->raiseExceptionArg(err_name, new QoreNode(h), "tpsend() failed with error %d.", tperrno);
 }
 
 //-----------------------------------------------------------------------------
 QoreNode* QoreTuxedoAdapter::receive(int handle, Hash* call_settings, long* pflags, ExceptionSink* xsink)
 {
-  // TBD
-  return 0;
+  char* err_name = "TuxedoAdapter::receiveConversationData";
+  long flags = get_flags(call_settings, pflags, m_default_flags_for_send, m_default_flags_for_send_set, err_name, xsink);
+  if (xsink->isException()) return 0;
+  long event = TPEV_SVCSUCC;
+
+  pair<char*, long> out = allocate_out_buffer(0, call_settings, err_name, xsink);
+  if (xsink->isException()) {
+    return 0;
+  }
+  ON_BLOCK_EXIT(tpfree, out.first);
+
+  int res = tprecv(handle, &out.first, &out.second, flags, &event);
+  if (res == -1) {
+    Hash* h = new Hash;
+    h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
+    h->setKeyValue((char*)"Tuxedo call", new QoreNode("tprecv"), xsink);
+    return xsink->raiseExceptionArg(err_name, new QoreNode(h), "tprecv() failed with error %d.", tperrno);
+  } 
+    
+  QoreNode* ret = buffer2node(out.first, out.second, err_name, xsink);
+  if (xsink->isException()) return 0;
+
+  Hash* h = new Hash;
+  h->setKeyValue((char*)"data", ret, xsink);
+  h->setKeyValue((char*)"event", new QoreNode((int64)event), xsink);
+  return new QoreNode(h);
+}
+
+//------------------------------------------------------------------------------
+static QoreNode* get_val(Hash* hash, char* name, QoreType* type)
+{
+  if (!hash) return 0;
+  QoreNode* n = hash->getKeyValueExistence(name);
+  if (!n || n == (QoreNode*)-1) return 0;  // -1 could be returned by the getKeyExistence() !!!
+  if (n->type != type) return 0;
+  return n;
 }
 
 //-----------------------------------------------------------------------------
-QoreNode* enqueue(char* queue_space, char* queue_name, Hash* call_settings, long* pflags, ExceptionSink* xsink)
+QoreNode* QoreTuxedoAdapter::enqueue(char* queue_space, char* queue_name, Hash* call_settings, long* pflags, ExceptionSink* xsink)
 {
-  // TBD
-  return 0;
+  char* err_name = "TuxedoAdapter::enqueue";
+  long flags = get_flags(call_settings, pflags, m_default_flags_for_enqueue, m_default_flags_for_enqueue_set, err_name, xsink);
+  if (xsink->isException()) return 0;
+
+  TPQCTL ctl;
+  memset(&ctl, 0, sizeof(ctl));
+  ctl.flags = TPNOFLAGS;
+
+  if (call_settings) {
+    // set queue control parameters
+    QoreNode* n = get_val(call_settings, "queue_control_flags", NT_INT);
+    if (n) ctl.flags = (long)n->val.intval;
+    n = get_val(call_settings, "queue_control_deq_time", NT_INT);
+    if (n) ctl.deq_time = (long)n->val.intval;
+    n = get_val(call_settings, "queue_control_priority", NT_INT);
+    if (n) ctl.priority = (long)n->val.intval;
+    n = get_val(call_settings, "queue_control_exp_time", NT_INT);
+    if (n) ctl.exp_time = (long)n->val.intval;
+    n = get_val(call_settings, "queue_control_delivery_qos", NT_INT);
+    if (n) ctl.delivery_qos = (long)n->val.intval;
+    n = get_val(call_settings, "queue_control_reply_qos", NT_INT);
+    if (n) ctl.reply_qos = (long)n->val.intval;
+    n = get_val(call_settings, "queue_control_urcode", NT_INT);
+    if (n) ctl.urcode = (long)n->val.intval;
+    n = get_val(call_settings, "queue_control_msgid", NT_BINARY);
+    if (n) {
+      BinaryObject* bin = n->val.bin;
+      int sz = sizeof(ctl.msgid);
+      if (bin->size() == sz) memcpy(&ctl.msgid, bin->getPtr(), sz);
+    }
+    n = get_val(call_settings, "queue_control_corrid", NT_BINARY);
+    if (n) {
+      BinaryObject* bin = n->val.bin;
+      int sz = sizeof(ctl.corrid);
+      if (bin->size() == sz) memcpy(&ctl.corrid, bin->getPtr(), sz);
+    }
+    n = get_val(call_settings, "queue_control_replyqueue", NT_STRING);
+    if (n) strcpy(ctl.replyqueue, n->val.String->getBuffer());
+    n = get_val(call_settings, "queue_control_failurequeue", NT_STRING);
+    if (n) strcpy(ctl.failurequeue, n->val.String->getBuffer());
+  }
+
+  int res = tpenqueue(queue_space, queue_name, &ctl, m_send_buffer, m_send_buffer_size, flags);
+  if (res == -1) {
+    Hash* h = new Hash;
+    h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
+    h->setKeyValue((char*)"Tuxedo call", new QoreNode("tpenqueue"), xsink);
+    return xsink->raiseExceptionArg(err_name, new QoreNode(h), "tpenqueue() failed with error %d.", tperrno);
+  }
+  // create hash with relevant out settings
+  auto_ptr<Hash> out(new Hash);
+  out->setKeyValue((char*)"queue_control_flags", new QoreNode((int64)ctl.flags), xsink);
+
+  int sz = sizeof(ctl.msgid);
+  void* copy = malloc(sz);
+  if (!copy) {
+    xsink->outOfMemory();
+    return 0;
+  }
+  memcpy(copy, &ctl.msgid, sz);
+  BinaryObject* bin = new BinaryObject(copy, sz);
+  out->setKeyValue((char*)"queue_control_msgid", new QoreNode(bin), xsink);
+  out->setKeyValue((char*)"queue_control_diagnostic", new QoreNode((int64)ctl.diagnostic), xsink);
+
+  if (xsink->isException()) {
+    return 0;
+  }
+  return new QoreNode(out.release());
 }
 
 //-----------------------------------------------------------------------------
-QoreNode* dequeue(char* queue_space, char* queue_name, Hash* call_settings, long* pflags, ExceptionSink* xsink)
+QoreNode* QoreTuxedoAdapter::dequeue(char* queue_space, char* queue_name, Hash* call_settings, long* pflags, ExceptionSink* xsink)
 {
+  char* err_name = "TuxedoAdapter::dequeue";
+  long flags = get_flags(call_settings, pflags, m_default_flags_for_dequeue, m_default_flags_for_dequeue_set, err_name, xsink);
+  if (xsink->isException()) return 0;
+
+  pair<char*, long> out = allocate_out_buffer(0, call_settings, err_name, xsink);
+  if (xsink->isException()) {
+    return 0;
+  }
+  ON_BLOCK_EXIT(tpfree, out.first);
+
+  TPQCTL ctl;
+  memset(&ctl, 0, sizeof(ctl));
+  ctl.flags = TPNOFLAGS;
+
+  if (call_settings) {
+    // set queue control parameters
+    QoreNode* n = get_val(call_settings, "queue_control_flags", NT_INT);
+    if (n) ctl.flags = (long)n->val.intval;
+    n = get_val(call_settings, "queue_control_msgid", NT_BINARY);
+    if (n) {
+      BinaryObject* bin = n->val.bin;
+      int sz = sizeof(ctl.msgid);
+      if (bin->size() == sz) memcpy(&ctl.msgid, bin->getPtr(), sz);
+    }
+    n = get_val(call_settings, "queue_control_corrid", NT_BINARY);
+    if (n) {
+      BinaryObject* bin = n->val.bin;
+      int sz = sizeof(ctl.corrid);
+      if (bin->size() == sz) memcpy(&ctl.corrid, bin->getPtr(), sz);
+    }
+  }
+
+  int res = tpdequeue(queue_space, queue_name, &ctl, &out.first, &out.second, flags);
+  if (res == -1) {
+    Hash* h = new Hash;
+    h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
+    h->setKeyValue((char*)"Tuxedo call", new QoreNode("tpdequeue"), xsink);
+    return xsink->raiseExceptionArg(err_name, new QoreNode(h), "tpdequeue() failed with error %d.", tperrno);
+  }
+
+
+
   // TBD
   return 0;
 }
@@ -1300,76 +1463,6 @@ void QoreTuxedoAdapter::remove_pending_async_call(int handle)
 }
 
 /*
-//------------------------------------------------------------------------------
-static QoreNode* get_val(Hash* hash, char* name, QoreType* type)
-{
-  if (!hash) return 0;
-  QoreNode* n = hash->getKeyValueExistence(name);
-  if (!n || n == (QoreNode*)-1) return 0;  // -1 could be returned by the getKeyExistence() !!!
-  if (n->type != type) return 0;
-  return n;
-}
-
-//------------------------------------------------------------------------------
-int QoreTuxedoAdapter::enqueue(char* queue_space, char* queue_name, long flags, Hash* settings, Hash*& out_settings)
-{
-  memset(&m_queue_settings, 0, sizeof(m_queue_settings));
-  m_queue_settings.flags = TPNOFLAGS; // by default do not usea
-
-  // set queue control parameters
-  QoreNode* n = get_val(settings, "flags", NT_INT);
-  if (n) m_queue_settings.flags = (long)n->val.intval;
-  n = get_val(settings, "deq_time", NT_INT);
-  if (n) m_queue_settings.deq_time = (long)n->val.intval;
-  n = get_val(settings, "priority", NT_INT);
-  if (n) m_queue_settings.priority = (long)n->val.intval;
-  n = get_val(settings, "exp_time", NT_INT);
-  if (n) m_queue_settings.exp_time = (long)n->val.intval;
-  n = get_val(settings, "delivery_qos", NT_INT);
-  if (n) m_queue_settings.delivery_qos = (long)n->val.intval;
-  n = get_val(settings, "reply_qos", NT_INT);
-  if (n) m_queue_settings.reply_qos = (long)n->val.intval;
-  n = get_val(settings, "urcode", NT_INT);
-  if (n) m_queue_settings.urcode = (long)n->val.intval;
-  n = get_val(settings, "msgid", NT_BINARY);
-  if (n) {
-    BinaryObject* bin = n->val.bin;
-    int sz = sizeof(m_queue_settings.msgid);
-    if (bin->size() == sz) memcpy(&m_queue_settings.msgid, bin->getPtr(), sz);
-  }
-  n = get_val(settings, "corrid", NT_BINARY);
-  if (n) {
-    BinaryObject* bin = n->val.bin;
-    int sz = sizeof(m_queue_settings.corrid);
-    if (bin->size() == sz) memcpy(&m_queue_settings.corrid, bin->getPtr(), sz);
-  }
-  n = get_val(settings, "replyqueue", NT_STRING);
-  if (n) strcpy(m_queue_settings.replyqueue, n->val.String->getBuffer());
-  n = get_val(settings, "failurequeue", NT_STRING);
-  if (n) strcpy(m_queue_settings.failurequeue, n->val.String->getBuffer());
-
-  int res = tpenqueue(queue_space, queue_name, &m_queue_settings, m_send_buffer, m_send_buffer_size, flags);
-  if (res == -1) return tperrno;
-
- // create hash with relevant out settings
-  ExceptionSink xsink;
-  auto_ptr<Hash> out(new Hash);
-  out->setKeyValue("flags", new QoreNode((int64)m_queue_settings.flags), &xsink);
-
-  int sz = sizeof(m_queue_settings.msgid);
-  void* copy = malloc(sz);
-  if (!copy) return TPEOS;
-  memcpy(copy, &m_queue_settings.msgid, sz);
-  BinaryObject* bin = new BinaryObject(copy, sz);
-  out->setKeyValue("msgid", new QoreNode(bin), &xsink);
-
-  out->setKeyValue("diagnostic", new QoreNode((int64)m_queue_settings.diagnostic), &xsink);
-
-  if (xsink) return TPEINVAL;
-  out_settings = out.release();
-  return 0;
-}
-
 //------------------------------------------------------------------------------
 int QoreTuxedoAdapter::dequeue(char* queue_space, char* queue_name, long flags, Hash* settings, Hash*& out_settings)
 {
