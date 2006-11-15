@@ -1,7 +1,7 @@
 # Process this file with autoconf to produce a configure script.
 
 # AC_PREREQ(2.59)
-AC_INIT([qore], [0.6.0],
+AC_INIT([qore], [0.5.3],
         [David Nichols <nicholsman@gmail.com>],
         [qore])
 AM_INIT_AUTOMAKE
@@ -139,6 +139,8 @@ if test "$enable_64bit" = "yes"; then
       *linux*)	if test "$GXX" = "yes"; then
 		   CXXFLAGS="$CXXFLAGS -m64"
 		fi
+		LIBSUFFIX=64
+		AC_SUBST(LIBSUFFIX)
 		;;
       *hpux*)	if test "$host_cpu" != "ia64"; then
 		    if test -n "`echo $CXX|grep aCC`"; then
@@ -149,8 +151,7 @@ if test "$enable_64bit" = "yes"; then
 		fi
 		;;
    esac
-   LIBSUFFIX=64
-   AC_SUBST(LIBSUFFIX)
+   RVLIBSUFFIX=64
 else
    case "${host_os}" in
      *linux*)	if test "$GXX" = "yes"; then
@@ -237,9 +238,8 @@ if test "$enable_static_common" = "yes"; then
 fi
 
 AC_ARG_WITH([static-libz-dir],
-     [AS_HELP_STRING([--with-static-libz-dir],
-		     [directory for libz.a library (default=auto)])],
-     [if test ! -d "${with_static_libz_dir}"; then AC_MSG_ERROR([bad value ${with_static_libz_dir} for --with-static_libz_dir]); fi])
+	    [AS_HELP_STRING([--with-static-libz-dir], [directory for libz.a library (default=auto)])],
+	    [if test ! -d "${with_static_libz_dir}"; then AC_MSG_ERROR([bad value ${with_static_libz_dir} for --with-static_libz_dir]); fi])
 
 if test -n "$with_static_libz_dir"; then
     if ! test -f "$with_static_libz_dir/libz.a"; then
@@ -560,10 +560,10 @@ if test -n "$with_tibrv"; then
    # setup tibrv compile and link vars
    TIBRV_CPPFLAGS="-I${with_tibrv}/include"
    # check for dynamic libtibrvcpp
-   if test -f "${with_tibrv}/lib/libtibrvcpp${LIBSUFFIX}.${SHLIB_SUFFIX}"; then
-      TIBRV_LIBS="-L${with_tibrv}/lib -ltibrv${LIBSUFFIX} -ltibrvcm${LIBSUFFIX} -ltibrvcmq${LIBSUFFIX} -ltibrvcpp${LIBSUFFIX} -ltibrvft${LIBSUFFIX} -ltibrvsd${LIBSUFFIX}"   
+   if test -f "${with_tibrv}/lib/libtibrvcpp${RVLIBSUFFIX}.${SHLIB_SUFFIX}"; then
+      TIBRV_LIBS="-L${with_tibrv}/lib -ltibrv${RVLIBSUFFIX} -ltibrvcm${RVLIBSUFFIX} -ltibrvcmq${RVLIBSUFFIX} -ltibrvcpp${RVLIBSUFFIX} -ltibrvft${RVLIBSUFFIX} -ltibrvsd${RVLIBSUFFIX}"   
    else
-      TIBRV_LIBS="-L${with_tibrv}/lib -ltibrv${LIBSUFFIX} -ltibrvcm${LIBSUFFIX} -ltibrvcmq${LIBSUFFIX} ${with_tibrv}/lib/libtibrvcpp${LIBSUFFIX}.a -ltibrvft${LIBSUFFIX} -ltibrvsd${LIBSUFFIX}"   
+      TIBRV_LIBS="-L${with_tibrv}/lib -ltibrv${RVLIBSUFFIX} -ltibrvcm${RVLIBSUFFIX} -ltibrvcmq${RVLIBSUFFIX} ${with_tibrv}/lib/libtibrvcpp${RVLIBSUFFIX}.a -ltibrvft${RVLIBSUFFIX} -ltibrvsd${RVLIBSUFFIX}"   
    fi
 
    # check if C++ compiler can link with TIBCO Rendezvous c++ libs
@@ -574,7 +574,7 @@ if test -n "$with_tibrv"; then
 
    # hack to work around a bug in 64-bit g++ on linux? - if libtibrvcpp is not last on the compile line the link will fail for some reason
    SAVE_LIBS="$LIBS"
-   LIBS="$LIBS -ltibrvcpp${LIBSUFFIX}"
+   LIBS="$LIBS -ltibrvcpp${RVLIBSUFFIX}"
 
    AC_MSG_CHECKING([if we can link to the TIBCO Rendezvous C++ library])
    AC_LINK_IFELSE([AC_LANG_PROGRAM(
@@ -633,7 +633,11 @@ AC_ARG_WITH([tibae],
 
 AC_MSG_CHECKING([TIBCO Active Enterprise SDK])
 if test -n "$with_tibae"; then
-   if test ! -e "$with_tibae/include/sdk/Maverick.h"; then
+   # disable AE SDK on HP-UX PA-RISC, it requires compiling without the -AA flag which we don't support
+   if test -n "`echo $host_os | grep hpux`" -a "$host_cpu" != "ia64"; then
+      AC_MSG_WARN([TIBCO ActiveEnterprise SDK not supported on HP-UX])
+      unset with_tibae
+   elif test ! -e "$with_tibae/include/sdk/Maverick.h"; then
       AC_MSG_ERROR([can't find Maverick.h in $with_tibae/include/sdk])
    elif test -z "`ls $with_tibae/lib/libmaverick*.${SHLIB_SUFFIX} 2>/dev/null`"; then
       AC_MSG_ERROR([can't find libmaverick*.${SHLIB_SUFFIX} in $with_tibae/lib])
@@ -1418,11 +1422,18 @@ else
    echo disabled
 fi
 
-# hack to use our libtool if on HP-UX to enable static libs to be linked in to modules
-if test "`uname -s`" = "HP-UX"; then
-   # remove references to -ldl in libtool
-   sed "s/-ldl//g" libtool > libtool.tmp
-   sed "s/valid_a_lib=no/valid_a_lib=yes/g" libtool.tmp > libtool
+# hack to use our libtool if on PA-RISC HP-UX to enable static libs to be linked in to modules
+if test "`uname -s`" = "HP-UX" -a "$host_os" != "ia64"; then
+   # backup generated libtool
+    if test ! -e libtool.orig ; then
+       cp libtool libtool.orig
+    fi
+    # remove references to -ldl in libtool
+    sed "s/-ldl//g" libtool > libtool.tmp
+    # ensure static libs can be linked to modules
+    sed "s/valid_a_lib=no/valid_a_lib=yes/g" libtool.tmp > libtool.tmp.1
+    # ensure that valid 64-bit libraries are not recognized as invalid
+    sed "s/deplibs_check_method=.*/deplibs_check_method=pass_all/g" libtool.tmp.1 > libtool
+    # delete temporary files
+    rm -f libtool.tmp libtool.tmp.1
 fi
-
-

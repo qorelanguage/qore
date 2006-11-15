@@ -527,7 +527,7 @@ static class QoreNode *op_background(class QoreNode *left, class QoreNode *right
       delete tp;
 
       deregister_thread(tid);
-      xsink->raiseException("THREAD-CREATION-FAILURE", "could not create thread: %s", strerror(errno));
+      xsink->raiseException("THREAD-CREATION-FAILURE", "could not create thread: %s", strerror(rc));
       return NULL;
    }
    printd(5, "pthread_create() new thread TID %d, pthread_create() returned %d\n", tid, rc);
