@@ -291,9 +291,9 @@ TEST()
 
     // read req 3 and 1
     "$res = $a.waitForAsyncReply($res3, Tuxedo::TPNOTIME);\n"
-    "if ($res != \"DATA3\") { printf(\"service 3 failed\n\"); exit(11); }\n"
+    "if ($res.data != \"DATA3\") { printf(\"service 3 failed\n\"); exit(11); }\n"
     "$res = $a.waitForAsyncReply($res1, Tuxedo::TPNOTIME);\n"
-    "if ($res != \"DATA1\") { printf(\"service 1 failed\n\"); exit(11); }\n"
+    "if ($res.data != \"DATA1\") { printf(\"service 1 failed\n\"); exit(11); }\n"
     "exit(10);'\n",
     tuxfile(TUXCONFIG_SIMPLE_TEST)
   );
@@ -302,6 +302,38 @@ TEST()
   res = WEXITSTATUS(res);
   assert(res == 10);
 }
+
+TEST()
+{
+  // send asynchronous, read in an other thread
+  char* stop = getenv("TUXEDO_NO_SIMPLE_TEST");
+  if (stop && stop[0]) return;
+  printf("testing asyncCall() multithreaded - simple server should run\n");
+
+  char buffer[2048];
+  sprintf(buffer, "qore -e '%%requires tuxedo\n"
+    "$settings = (\"TUXCONFIG\" : \"%s\", \"TUXDIR\" : \"" TUXDIR "\");\n"
+    "our $a = new Tuxedo::TuxedoAdapter($settings);\n"
+
+    "our $handle = $a.asyncCall(\"TOUPPER\", \"data1\", 0);\n"
+
+    "sub bgthread($my_a, $my_handle) {\n"
+    "  my $res = $my_a.waitForAsyncReply($my_handle, Tuxedo::TPNOTIME);\n"
+    "  if ($res.data != \"DATA1\") { printf(\"service failed\n\"); exit(15); }\n"
+    "  exit(10);\n"
+    "}\n"
+
+    "background bgthread($a, $handle);\n"
+    "sleep(5);\n"
+    "exit(18);'\n",
+    tuxfile(TUXCONFIG_SIMPLE_TEST)
+    );
+
+  int res = system(buffer);
+  res = WEXITSTATUS(res);
+  assert(res == 10);
+}
+
 #endif
 #endif
 

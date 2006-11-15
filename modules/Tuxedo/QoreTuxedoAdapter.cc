@@ -1224,13 +1224,33 @@ QoreNode* QoreTuxedoAdapter::get_reply(int handle, Hash* call_settings, long* pf
 {
   char* err_name = "TuxedoAdapter::waitForAsyncReply";
 
+  pair<char*, long> out = allocate_out_buffer(0, call_settings, err_name, xsink);
+  if (xsink->isException()) {
+    return 0;
+  }
+  ON_BLOCK_EXIT(tpfree, out.first);
+
   long flags = get_flags(call_settings, pflags, m_default_flags_for_getrply, m_default_flags_for_getrply_set, err_name, xsink);
   if (xsink->isException()) {
     return 0;
   }
 
-  // TBD
-  return 0;
+  int aux_handle = handle;
+  int res = tpgetrply(&aux_handle, &out.first, &out.second, flags);
+  if (res == -1) {
+    Hash* h = new Hash;
+    h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
+    h->setKeyValue((char*)"Tuxedo call", new QoreNode("tpgetrply"), xsink);
+    return xsink->raiseExceptionArg(err_name, new QoreNode(h), "tpgetrply() failed with error %d.", tperrno);
+  }
+
+  QoreNode* ret = buffer2node(out.first, out.second, err_name, xsink);
+  if (xsink->isException()) return 0;
+
+  Hash* h = new Hash;
+  h->setKeyValue((char*)"data", ret, xsink); 
+  h->setKeyValue((char*)"handle", new QoreNode((int64)aux_handle), xsink);
+  return new QoreNode(h);
 }
 
 //------------------------------------------------------------------------------
