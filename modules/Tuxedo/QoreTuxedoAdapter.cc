@@ -2048,19 +2048,34 @@ void QoreTuxedoAdapter::setFmlDataToSend(Hash* description_info, Hash* data, boo
   int index = 0;
   while (iter.next()) {
     ++index;
-    char* name = iter.getKey();
-    if (!name || !name[0]) {
+    char* complete_name = iter.getKey();
+    if (!complete_name || !complete_name[0]) {
       xsink->raiseException(err_name, "Name of item # %d is empty.", index);
       return;
     }
+    // get rid of caret
+    string name(complete_name);
+    char* thumb = strchr((char*)name.c_str(), '^');
+    if (thumb) *thumb = 0;
+    
     QoreNode* value = iter.getValue();
 
-    pair<FLDID32, int> id_type = fml_name2id(name, description_info, xsink, err_name);
+    pair<FLDID32, int> id_type = fml_name2id((char*)name.c_str(), description_info, xsink, err_name);
     if (xsink->isException()) {
       return;
     }
-    add_fml_value_into_send_buffer(name, id_type.first, id_type.second, value, is_fml32, err_name, xsink);
-    if (xsink->isException()) return;
+
+    if (value->type == NT_LIST) {
+      // explode the list members
+      for (int i = 0, cnt = value->val.list->size(); i != cnt; ++i) {
+        QoreNode* subvalue = value->val.list->retrieve_entry(i);
+        add_fml_value_into_send_buffer((char*)name.c_str(), id_type.first, id_type.second, subvalue, is_fml32, err_name, xsink);
+        if (xsink->isException()) return;
+      }
+    } else {
+      add_fml_value_into_send_buffer((char*)name.c_str(), id_type.first, id_type.second, value, is_fml32, err_name, xsink);
+      if (xsink->isException()) return;
+    }
   }
 
   // switch off from append mode
