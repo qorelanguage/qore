@@ -117,8 +117,10 @@ public:  // public for now so the QC_TuxedoAdapter has access to it
   int close();
   int saveContext();
 
-  int add_fml_value_into_send_buffer(char* value_name, FLDID32 id, int value_type, QoreNode* value, 
-    bool is_fml32, ExceptionSink* xsink);
+  void add_fml_value_into_send_buffer(char* value_name, FLDID32 id, int value_type, QoreNode* value, 
+    bool is_fml32, char* err_name, ExceptionSink* xsink);
+  void setFmlDataToSend(Hash* description_info, Hash* data, bool is_fml32, char* err_name, ExceptionSink* xsink);
+  Hash* getFmlDataFromBuffer(Hash* description_info, bool is_fml32, ExceptionSink* xsink, char* buffer, long buffer_size, char* err_name);
 
   // FML/FML32 - load the description from tables (possibly generate the tables temporarily)
   Hash* loadFmlDescription(const std::vector<std::string>& files, bool is_fml32, ExceptionSink* xsink);
@@ -133,6 +135,9 @@ public:  // public for now so the QC_TuxedoAdapter has access to it
 
 public:
   QoreTuxedoAdapter(Hash* settings, ExceptionSink* xsink);
+#ifdef DEBUG
+  QoreTuxedoAdapter(); // just for testing
+#endif
   ~QoreTuxedoAdapter();
 
 
@@ -153,15 +158,6 @@ public:
   QoreNode* dequeue(char* queue_space, char* queue_name, Hash* call_settings, long* pflags, ExceptionSink* xsink);
 
   void remove_pending_async_call(int handle);
-/*
-  int enqueue(char* queue_space, char* queue_name, long flags, Hash* settings, Hash*& out_settings);
-  int dequeue(char* queue_space, char* queue_name, long flags, Hash* settings, Hash*& out_settings);
-
-
-  int setFmlDataToSend(Hash* description_info, List* data, bool is_fml32, ExceptionSink* xsink);
-  List* getFmlDataFromBuffer(Hash* description_info, bool is_fml32, ExceptionSink* xsink, 
-    char* buffer, long buffer_size, char* err_name);
-*/
 
   void deref() { 
     if (ROdereference()) {
