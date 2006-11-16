@@ -839,7 +839,12 @@ if test -n "$with_tuxedo"; then
    AC_MSG_CHECKING([BEA Tuxedo version])
    get_tux_version
    AC_MSG_RESULT([$tux_ver])
-   
+
+   TUX_MAJOR=`echo $tux_ver|cut -f1 -d.`
+   TUX_MINOR=`echo $tux_ver|cut -f2- -d.`
+   AC_DEFINE_UNQUOTED([TUXEDO_VERSION_MAJOR], $TUX_MAJOR, [Tuxedo major version])   
+   AC_DEFINE_UNQUOTED([TUXEDO_VERSION_MINOR], $TUX_MAJOR, [Tuxedo major version])   
+
    # setup tuxedo compile and link vars
    TUXEDO_CPPFLAGS="-I${with_tuxedo}/include"
    TUXEDO_LIBS="-L${with_tuxedo}/lib -ltux -lbuft -lfml -lfml32 -lengine"   

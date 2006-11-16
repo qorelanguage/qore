@@ -235,6 +235,7 @@ static void add_constants(Namespace* ns)
   ns->addConstant("FLD_VIEW32", new QoreNode((int64)FLD_VIEW32));
   ns->addConstant("FLD_MBSTRING", new QoreNode((int64)FLD_MBSTRING));
 
+#if TUXEDO_VERSION_MAJOR > 8
   // XML parsing
   ns->addConstant("TPXPARSNEVER", new QoreNode((int64)TPXPARSNEVER));
   ns->addConstant("TPXPARSALWAYS", new QoreNode((int64)TPXPARSALWAYS));
@@ -247,6 +248,7 @@ static void add_constants(Namespace* ns)
   ns->addConstant("TPXPARSNOINCWS", new QoreNode((int64)TPXPARSNOINCWS));
   ns->addConstant("TPXPARSCACHERESET", new QoreNode((int64)TPXPARSCACHERESET));
   ns->addConstant("TPXPARSCACHESET", new QoreNode((int64)TPXPARSCACHESET));
+#endif
 }
 
 //------------------------------------------------------------------------------

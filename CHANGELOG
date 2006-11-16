@@ -1,3 +1,6 @@
+2006.11.16: David Nichols
+	* changes to compile tuxedo module with tux 8.*
+
 2006.11.15: David Nichols
 	* fix for HP-UX vnsprintf() return value when buffer is too small
 

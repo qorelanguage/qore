@@ -36,6 +36,7 @@
 #include <float.h>
 #include <sys/types.h>
 #include <dirent.h>
+#include <assert.h>
 
 #include <atmi.h>
 #include <fml32.h>
