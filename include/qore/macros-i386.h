@@ -22,6 +22,7 @@
 
 #define _QORE_MACHINE_MACROS_H
 
+#ifdef __GNUC__
 #define HAVE_ATOMIC_MACROS
 
 // returns 1 when counter reaches zero, 0 if not
@@ -45,4 +46,5 @@ static inline void atomic_inc(volatile int *a)
    );
 }
 
+#endif
 #endif
