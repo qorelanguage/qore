@@ -1504,9 +1504,9 @@ AC_OUTPUT
 echo "*** BUILTIN FEATURES ***"
 printf "library  : %s %s " "$OS" "$ARCH"
 if test "$enable_64bit" = "yes"; then
-   echo (64-bit)
+   printf " (64-bit)\n"
 else
-   echo (32-bit)
+   printf " (32-bit)\n"
 fi
 
 printf "debug    : "
