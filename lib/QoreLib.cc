@@ -38,9 +38,9 @@ int qore_version_major     = VERSION_MAJOR;
 int qore_version_minor     = VERSION_MINOR;
 int qore_version_sub       = VERSION_SUB;
 int qore_build_number      = BUILD;
+int qore_target_bits       = TARGET_BITS;
 char qore_target_os[]      = TARGET_OS;
 char qore_target_arch[]    = TARGET_ARCH;
-char qore_target_bits[]    = TARGET_BITS;
 
 #ifndef HAVE_LOCALTIME_R
 class LockedObject lck_localtime;

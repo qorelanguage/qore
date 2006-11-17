@@ -35,6 +35,7 @@ extern int qore_version_major;
 extern int qore_version_minor;
 extern int qore_version_sub;
 extern int qore_build_number;
+extern int qore_target_bits;
 extern char qore_target_os[];
 extern char qore_target_arch[];
 
