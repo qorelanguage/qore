@@ -1471,6 +1471,7 @@ if test "$OS" = "HP-UX"; then
       ARCH=itanium
    else
       ARCH=PA-RISC
+   fi
 else
    ARCH=`uname -p`
 fi
