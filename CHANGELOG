@@ -1,6 +1,7 @@
 2006.11.17: David Nichols
 	* made TIBCO adapter SDK independent from RV in configure, separated
 	  modules/TIBCO into tibrv and tibae directories
+	* enable 64-bit compilation on Solaris for sparc and x86
 
 2006.11.16: David Nichols
 	* changes to compile tuxedo module with tux 8.*
