@@ -137,27 +137,27 @@ noinst_HEADERS = \
 	modules/oracle/oracle-module.h \
 	modules/mysql/qore-mysql-module.h \
 	modules/mysql/qore-mysql.h \
-	modules/TIBCO/tibae-module.h \
-	modules/TIBCO/tibrv-module.h \
-	modules/TIBCO/qore_tibrv.h \
-	modules/TIBCO/QoreApp.h \
-	modules/TIBCO/tibae.h \
-	modules/TIBCO/QoreTibrvTransport.h \
-	modules/TIBCO/QoreTibrvListener.h \
-	modules/TIBCO/QoreTibrvSender.h \
-	modules/TIBCO/QoreTibrvFtMember.h \
-	modules/TIBCO/QoreTibrvFtMonitor.h \
-	modules/TIBCO/QoreTibrvCmTransport.h \
-	modules/TIBCO/QoreTibrvCmSender.h \
-	modules/TIBCO/QoreTibrvCmListener.h \
-	modules/TIBCO/QoreTibrvDistributedQueue.h \
-	modules/TIBCO/QC_TibrvListener.h \
-	modules/TIBCO/QC_TibrvSender.h \
-	modules/TIBCO/QC_TibrvFtMember.h \
-	modules/TIBCO/QC_TibrvFtMonitor.h \
-	modules/TIBCO/QC_TibrvCmSender.h \
-	modules/TIBCO/QC_TibrvCmListener.h \
-	modules/TIBCO/QC_TibrvDistributedQueue.h \
+	modules/tibrv/tibrv-module.h \
+	modules/tibrv/qore_tibrv.h \
+	modules/tibrv/QoreTibrvTransport.h \
+	modules/tibrv/QoreTibrvListener.h \
+	modules/tibrv/QoreTibrvSender.h \
+	modules/tibrv/QoreTibrvFtMember.h \
+	modules/tibrv/QoreTibrvFtMonitor.h \
+	modules/tibrv/QoreTibrvCmTransport.h \
+	modules/tibrv/QoreTibrvCmSender.h \
+	modules/tibrv/QoreTibrvCmListener.h \
+	modules/tibrv/QoreTibrvDistributedQueue.h \
+	modules/tibrv/QC_TibrvListener.h \
+	modules/tibrv/QC_TibrvSender.h \
+	modules/tibrv/QC_TibrvFtMember.h \
+	modules/tibrv/QC_TibrvFtMonitor.h \
+	modules/tibrv/QC_TibrvCmSender.h \
+	modules/tibrv/QC_TibrvCmListener.h \
+	modules/tibrv/QC_TibrvDistributedQueue.h \
+	modules/tibae/tibae-module.h \
+	modules/tibae/QoreApp.h \
+	modules/tibae/tibae.h \
 	modules/ncurses/QC_Window.h \
 	modules/ncurses/QC_Panel.h \
 	modules/ncurses/ncurses-module.h \

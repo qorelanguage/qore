@@ -20,7 +20,11 @@ SUBDIRS += mysql
 endif
 
 if COND_TIBRV
-SUBDIRS += TIBCO
+SUBDIRS += tibrv
+endif
+
+if COND_TIBAE
+SUBDIRS += tibae
 endif
 
 if COND_TUXEDO

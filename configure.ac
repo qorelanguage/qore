@@ -567,21 +567,23 @@ else
 fi
 
 if test -n "$with_tibrv"; then
+   rv_found="$with_tibrv"
 
    # setup tibrv compile and link vars
    TIBRV_CPPFLAGS="-I${with_tibrv}/include"
+   TIBRV_LDFLAGS="-L${with_tibrv}/lib -ltibrv${RVLIBSUFFIX} -ltibrvcm${RVLIBSUFFIX} -ltibrvcmq${RVLIBSUFFIX} -ltibrvft${RVLIBSUFFIX} -ltibrvsd${RVLIBSUFFIX}"
    # check for dynamic libtibrvcpp
    if test -f "${with_tibrv}/lib/libtibrvcpp${RVLIBSUFFIX}.${SHLIB_SUFFIX}"; then
-      TIBRV_LIBS="-L${with_tibrv}/lib -ltibrv${RVLIBSUFFIX} -ltibrvcm${RVLIBSUFFIX} -ltibrvcmq${RVLIBSUFFIX} -ltibrvcpp${RVLIBSUFFIX} -ltibrvft${RVLIBSUFFIX} -ltibrvsd${RVLIBSUFFIX}"   
+      TIBRVCPP_LDFLAGS="-ltibrvcpp${RVLIBSUFFIX}"
    else
-      TIBRV_LIBS="-L${with_tibrv}/lib -ltibrv${RVLIBSUFFIX} -ltibrvcm${RVLIBSUFFIX} -ltibrvcmq${RVLIBSUFFIX} ${with_tibrv}/lib/libtibrvcpp${RVLIBSUFFIX}.a -ltibrvft${RVLIBSUFFIX} -ltibrvsd${RVLIBSUFFIX}"   
+      TIBRVCPP_LDFLAGS="${with_tibrv}/lib/libtibrvcpp${RVLIBSUFFIX}.a"   
    fi
 
    # check if C++ compiler can link with TIBCO Rendezvous c++ libs
    SAVE_CPPFLAGS="$CPPFLAGS"
    SAVE_LDFLAGS="$LDFLAGS"
    CPPFLAGS="$CPPFLAGS $TIBRV_CPPFLAGS"
-   LDFLAGS="$LDFLAGS $TIBRV_LIBS $OPENSSL_LDFLAGS"
+   LDFLAGS="$LDFLAGS $TIBRV_LDFLAGS $TIBRVCPP_LDFLAGS $OPENSSL_LDFLAGS"
 
    # hack to work around a bug in 64-bit g++ on linux? - if libtibrvcpp is not last on the compile line the link will fail for some reason
    SAVE_LIBS="$LIBS"
@@ -603,14 +605,14 @@ Tibrv::close();
       AC_MSG_RESULT([failed: please recompile libtibrvcpp using this c++ compiler ($CXX) and install in $with_tibrv/lib and run configure again if you want the tibrv module])
       unset with_tibrv
       unset TIBRV_CPPFLAGS
-      unset TIBRV_LIBS
+      unset TIBRV_LDFLAGS
    else
       AC_MSG_RESULT([ok])
       # check if secure daemon support was enabled in libtibrvcpp
       SAVE_CPPFLAGS="$CPPFLAGS"
       SAVE_LDFLAGS="$LDFLAGS"
       CPPFLAGS="$CPPFLAGS $TIBRV_CPPFLAGS"
-      LDFLAGS="$LDFLAGS $TIBRV_LIBS"
+      LDFLAGS="$LDFLAGS $TIBRV_LDFLAGS"
 
       AC_MSG_CHECKING([if secure daemon support was enabled in libtibrvcpp])
       AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
@@ -625,13 +627,13 @@ TibrvSdContext::setDaemonCert(TIBRV_SECURE_DAEMON_ANY_NAME, TIBRV_SECURE_DAEMON_
 
       if test "${tibrvsd_links}" = "yes"; then
          AC_MSG_RESULT([ok])
-	 TIBRV_LIBS="$TIBRV_LIBS -lssl -lcrypto"
+	 TIBRV_LDFLAGS="$TIBRV_LDFLAGS -lssl -lcrypto"
 	 AC_DEFINE(TIBRV_SD, 1, Define if TIBCO Rendezvous secure daemon support should be included)
       else
          AC_MSG_RESULT([failed: if you want secure daemon support in the tibrv module, rebuild libtibrvcpp with secure daemon support (remove comments from the SD_MODULE line in $with_tibrv/src/librvcpp/Makefile), rebuild the library and install in $with_tibrv/lib and rerun configure])
       fi
       AC_SUBST(TIBRV_CPPFLAGS)
-      AC_SUBST(TIBRV_LIBS)
+      AC_SUBST(TIBRV_LDFLAGS)
       AC_DEFINE(TIBRV, 1, Define if TIBCO Rendezvous support should be included)
       with_tibrv=yes
    fi
@@ -666,7 +668,7 @@ else
 fi
 
 if test -n "$with_tibae"; then
-   if test -z "$with_tibrv"; then
+   if test -z "$rv_found"; then
       AC_MSG_WARN([TIBCO Active Enterprise SDK found, but no Rendezvous found, disabling tibae support])
       unset with_tibae
    else
@@ -718,19 +720,19 @@ fi
 
 if test -n "$with_tibae"; then
    case "$TIBCO_SDK_VERSION" in
-	4.1.2) TIBAE_LIBS="-L${with_tibae}/lib -lmaverick41 -lpthread"
+	4.1.2) TIBAE_LDFLAGS="-L${with_tibae}/lib -lmaverick41 -lpthread"
 	       TIBAE_CPPFLAGS="-I${with_tibae}/include"
 	       AC_DEFINE(TIBCO_SDK, 4, [define for TIBCO SDK 4.*])
 	       ;;
-	4.1.3) TIBAE_LIBS="-L${with_tibae}/lib -lmaverick41 -lpthread"
+	4.1.3) TIBAE_LDFLAGS="-L${with_tibae}/lib -lmaverick41 -lpthread"
 	       TIBAE_CPPFLAGS="-I${with_tibae}/include"
 	       AC_DEFINE(TIBCO_SDK, 4, [define for TIBCO SDK 4.*])
 	       ;;
-        5.0.*) TIBAE_LIBS="-L${with_tibae}/lib -L${with_tibae_tpcl}/lib -lmaverick50 -lrepowww532 -lxerces-c2_1 -lssl -lcrypto -lpthread"
+        5.0.*) TIBAE_LDFLAGS="-L${with_tibae}/lib -L${with_tibae_tpcl}/lib -lmaverick50 -lrepowww532 -lxerces-c2_1 -lssl -lcrypto -lpthread"
 	       TIBAE_CPPFLAGS="-I${with_tibae}/include/sdk"
 	       AC_DEFINE(TIBCO_SDK, 5, [define for TIBCO SDK 5.*])
 	       ;;
-        5.3.*) TIBAE_LIBS="-L${with_tibae}/lib -L${with_tibae_tpcl}/lib -lmaverick53 -lrepowww532 -lxerces-c2_1 -lssl -lcrypto -licuuc -lpthread"
+        5.3.*) TIBAE_LDFLAGS="-L${with_tibae}/lib -L${with_tibae_tpcl}/lib -lmaverick53 -lrepowww532 -lxerces-c2_1 -lssl -lcrypto -licuuc -lpthread"
 	       TIBAE_CPPFLAGS="-I${with_tibae}/include/sdk"
 	       AC_DEFINE(TIBCO_SDK, 5, [define for TIBCO SDK 5.*])
 	       ;;
@@ -751,7 +753,7 @@ if test -n "$with_tibae"; then
    SAVE_CPPFLAGS="$CPPFLAGS"
    SAVE_LDFLAGS="$LDFLAGS"
    CPPFLAGS="$CPPFLAGS $TIBAE_CPPFLAGS $TIBRV_CPPFLAGS"
-   LDFLAGS="$LDFLAGS $TIBAE_LIBS $TIBRV_LIBS"
+   LDFLAGS="$LDFLAGS $TIBAE_LDFLAGS $TIBRV_LDFLAGS"
    AC_MSG_CHECKING([if we can link to the TIBCO AE SDK])
    AC_LINK_IFELSE([AC_LANG_PROGRAM([[
 #include <Maverick.h>
@@ -775,7 +777,7 @@ TApp ma(NULL);
       unset with_tibae
    else
       AC_MSG_RESULT([ok])
-      AC_SUBST(TIBAE_LIBS)
+      AC_SUBST(TIBAE_LDFLAGS)
       AC_SUBST(TIBAE_CPPFLAGS)
       AC_DEFINE(TIBAE, 1, [Define if TIBCO Active Enterprise support should be included])
       with_tibae=yes
@@ -1498,11 +1500,11 @@ AM_CONDITIONAL([COND_TIBAE],      [test "$with_tibae" = yes])
 AM_CONDITIONAL([COND_TUXEDO],     [test "$with_tuxedo" = yes])
 AM_CONDITIONAL([COND_MONOLITHIC], [test "$enable_shared" = no -o "$enable_builtin_modules" = "yes"])
 
-AC_CONFIG_FILES([Makefile lib/Makefile modules/Makefile modules/ncurses/Makefile modules/TIBCO/Makefile modules/mysql/Makefile modules/oracle/Makefile modules/Tuxedo/Makefile])
+AC_CONFIG_FILES([Makefile lib/Makefile modules/Makefile modules/ncurses/Makefile modules/tibrv/Makefile modules/tibae/Makefile modules/mysql/Makefile modules/oracle/Makefile modules/Tuxedo/Makefile])
 AC_OUTPUT
 
 echo "*** BUILTIN FEATURES ***"
-printf "library  : %s %s " "$OS" "$ARCH"
+printf "library  : %s %s" "$OS" "$ARCH"
 if test "$enable_64bit" = "yes"; then
    printf " (64-bit)\n"
 else
