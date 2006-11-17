@@ -1482,8 +1482,8 @@ fi
 AC_DEFINE_UNQUOTED([VERSION_MAJOR], $VERSION_MAJOR, [major version number])
 AC_DEFINE_UNQUOTED([VERSION_MINOR], $VERSION_MINOR, [minor version number])
 AC_DEFINE_UNQUOTED([VERSION_SUB], $VERSION_SUB, [sub version number])
-AC_DEFINE_UNQUOTED([TARGET_ARCH], $ARCH, [host type])
-AC_DEFINE_UNQUOTED([TARGET_OS], $OS, [host type])
+AC_DEFINE_UNQUOTED([TARGET_ARCH], "$ARCH", [host type])
+AC_DEFINE_UNQUOTED([TARGET_OS], "$OS", [host type])
 AC_DEFINE_UNQUOTED([TARGET_BITS], $bits, [32 or 64 bit build])
 AC_DEFINE_UNQUOTED([BUILD], `./next_build.sh`, [build number])
 
