@@ -150,6 +150,16 @@ if test "$enable_64bit" = "yes"; then
 		    fi
 		fi
 		;;
+     *solaris*) if test "$GXX" = "yes"; then
+		    if test "$host_cpu" = "sparc"; then
+		        CXXFLAGS="$CXXFLAGS -mcpu=ultrasparc3 -m64"  # NOTE we compile for minimum ultrasparc 3 in 64-bit mode
+		    else
+		        CXXFLAGS="$CXXFLAGS -m64"
+		    fi
+		else
+		    CXXFLAGS="$CXXFLAGS -xarch=generic64"
+		fi
+		;;
    esac
    RVLIBSUFFIX=64
    bits=64
@@ -165,6 +175,16 @@ else
 		    elif test -n "`echo $CXX|grep aCC`" -a "$host_cpu" != "ia64"; then
 		        CXXFLAGS="$CXXFLAGS +DA2.0N"   # NOTE we compile for PA-RISC 2.0 32-bit, not PA-RISC 1.1
 		    fi
+		fi
+		;;
+     *solaris*) if test "$GXX" = "yes"; then
+		    if test "$host_cpu" = "sparc"; then
+		        CXXFLAGS="$CXXFLAGS -mcpu=v8 -m32"
+		    else
+		        CXXFLAGS="$CXXFLAGS -m32"
+		    fi
+		else
+		    CXXFLAGS="$CXXFLAGS -xarch=generic"
 		fi
 		;;
    esac
