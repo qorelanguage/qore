@@ -152,6 +152,7 @@ if test "$enable_64bit" = "yes"; then
 		;;
    esac
    RVLIBSUFFIX=64
+   bits=64
 else
    case "${host_os}" in
      *linux*)	if test "$GXX" = "yes"; then
@@ -167,11 +168,12 @@ else
 		fi
 		;;
    esac
+   bits=32
 fi
 
 AC_ARG_ENABLE([static-openssl],
      [AS_HELP_STRING([--enable-static-openssl],
-		     [statically link openssl libraries (default=auto)])],
+		     [force static linkage of openssl libraries (default=auto)])],
      [case "${enable_static_openssl}" in
        yes|no) ;;
        *)      AC_MSG_ERROR(bad value ${enable_static_openssl} for --enable-static-openssl) ;;
@@ -180,7 +182,7 @@ AC_ARG_ENABLE([static-openssl],
 
 AC_ARG_ENABLE([static-libxml2],
      [AS_HELP_STRING([--enable-static-libxml2],
-		     [statically link libxml2 libraries (default=auto)])],
+		     [force static linkage of libxml2 libraries (default=auto)])],
      [case "${enable_static_libxml2}" in
        yes|no) ;;
        *)      AC_MSG_ERROR(bad value ${enable_static_libxml2} for --enable-static-libxml2) ;;
@@ -189,7 +191,7 @@ AC_ARG_ENABLE([static-libxml2],
 
 AC_ARG_ENABLE([static-pcre],
      [AS_HELP_STRING([--enable-static-pcre],
-		     [statically link pcre libraries (default=auto)])],
+		     [force static linkage of pcre libraries (default=auto)])],
      [case "${enable_static_pcre}" in
        yes|no) ;;
        *)      AC_MSG_ERROR(bad value ${enable_static_pcre} for --enable-static-pcre) ;;
@@ -198,7 +200,7 @@ AC_ARG_ENABLE([static-pcre],
 
 AC_ARG_ENABLE([static-ncurses],
      [AS_HELP_STRING([--enable-static-ncurses],
-		     [statically link ncurses libraries (default=auto)])],
+		     [force static linkage of ncurses libraries (default=auto)])],
      [case "${enable_static_ncurses}" in
        yes|no) ;;
        *)      AC_MSG_ERROR(bad value ${enable_static_ncurses} for --enable-static-ncurses) ;;
@@ -207,7 +209,7 @@ AC_ARG_ENABLE([static-ncurses],
 
 AC_ARG_ENABLE([static-common],
      [AS_HELP_STRING([--enable-static-common],
-		     [statically link openssl, libxml2, pcre, and ncurses libraries (default=auto)])],
+		     [force static linkage of openssl, libxml2, pcre, and ncurses libraries (default=auto)])],
      [case "${enable_static_common}" in
        yes|no) ;;
        *)      AC_MSG_ERROR(bad value ${enable_static_common} for --enable-static-common) ;;
@@ -238,7 +240,7 @@ if test "$enable_static_common" = "yes"; then
 fi
 
 AC_ARG_WITH([static-libz-dir],
-	    [AS_HELP_STRING([--with-static-libz-dir], [directory for libz.a library (default=auto)])],
+	    [AS_HELP_STRING([--with-static-libz-dir], [directory for libz.a library to force static linkage (default=auto)])],
 	    [if test ! -d "${with_static_libz_dir}"; then AC_MSG_ERROR([bad value ${with_static_libz_dir} for --with-static_libz_dir]); fi])
 
 if test -n "$with_static_libz_dir"; then
@@ -265,7 +267,7 @@ find_openssl()
     if test -n "$openssl_static"; then
     	if test -f "$lib/libssl.a" -a -f "$lib/libcrypto.a"; then
 	    OPENSSL_LDFLAGS="$lib/libssl.a $lib/libcrypto.a"
-       	    AC_MSG_RESULT([$lib (static)])
+       	    AC_MSG_RESULT([$lib (forced static)])
     	fi
     else
         if test -f "$lib/libssl.${SHLIB_SUFFIX}" -a -f "$lib/libcrypto.${SHLIB_SUFFIX}"; then
@@ -275,7 +277,10 @@ find_openssl()
 	    OPENSSL_LDFLAGS="$OPENSSL_LDFLAGS -lssl -lcrypto"
        	    AC_MSG_RESULT([$lib (shared)])
     	elif test -f "$lib/libssl.a" -a -f "$lib/libcrypto.a"; then
-	    OPENSSL_LDFLAGS="$lib/libssl.a $lib/libcrypto.a"
+	    if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
+       	        OPENSSL_LDFLAGS="-L$lib"
+    	    fi
+	    OPENSSL_LDFLAGS="$OPENSSL_LDFLAGS -lssl -lcrypto"
        	    AC_MSG_RESULT([$lib (static)])
     	fi
     fi
@@ -331,7 +336,7 @@ find_pcre()
     if test -n "$pcre_static"; then
     	if test -f "$lib/libpcre.a"; then
 	    PCRE_LDFLAGS="$lib/libpcre.a"
-       	    AC_MSG_RESULT([$lib (static)])
+       	    AC_MSG_RESULT([$lib (forced static)])
     	fi
     else
         if test -f "$lib/libpcre.${SHLIB_SUFFIX}"; then
@@ -341,7 +346,10 @@ find_pcre()
 	    PCRE_LDFLAGS="$PCRE_LDFLAGS -lpcre"
        	    AC_MSG_RESULT([$lib (shared)])
     	elif test -f "$lib/libpcre.a"; then
-	    PCRE_LDFLAGS="$lib/libpcre.a"
+	    if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
+       	        PCRE_LDFLAGS="-L$lib"
+    	    fi
+	    PCRE_LDFLAGS="$PCRE_LDFLAGS -lpcre"
        	    AC_MSG_RESULT([$lib (static)])
     	fi
     fi
@@ -400,7 +408,7 @@ find_libxml2()
     if test -n "$libxml2_static"; then
     	if test -f "$lib/libxml2.a"; then
 	    LIBXML2_LDFLAGS="$lib/libxml2.a"
-       	    AC_MSG_RESULT([$lib (static)])
+       	    AC_MSG_RESULT([$lib (forced static)])
     	fi
     else
         if test -f "$lib/libxml2.${SHLIB_SUFFIX}"; then
@@ -410,7 +418,10 @@ find_libxml2()
 	    LIBXML2_LDFLAGS="$LIBXML2_LDFLAGS -lxml2"
        	    AC_MSG_RESULT([$lib (shared)])
     	elif test -f "$lib/libxml2.a"; then
-	    LIBXML2_LDFLAGS="$lib/libxml2.a"
+	    if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
+       	        LIBXML2_LDFLAGS="-L$lib"
+    	    fi
+	    LIBXML2_LDFLAGS="$LIBXML2_LDFLAGS -lxml2"
        	    AC_MSG_RESULT([$lib (static)])
     	fi
     fi
@@ -1156,11 +1167,11 @@ check_ncurses()
     if test -n "$ncurses_static"; then
     	if test -f "$lib/libncurses.a" -a -f "$lib/libpanel.a"; then
 	    ncurses_dir=$1
-       	    AC_MSG_RESULT([$lib (ncurses static)])
+       	    AC_MSG_RESULT([$lib (ncurses forced static)])
 	    NCURSES_LIBS="$lib/libncurses.a $lib/libpanel.a"
 	elif test -f "$lib/libcurses.a" -a -f "$lib/libpanel.a"; then
 	    ncurses_dir=$1
-       	    AC_MSG_RESULT([$lib (curses static)])
+       	    AC_MSG_RESULT([$lib (curses forced static)])
 	    NCURSES_LIBS="$lib/libcurses.a $lib/libpanel.a"
     	fi
     elif test -f "$lib/libncurses.${SHLIB_SUFFIX}" -a -f "$lib/libpanel.${SHLIB_SUFFIX}"; then
@@ -1170,7 +1181,7 @@ check_ncurses()
     elif test -f "$lib/libncurses.a" -a -f "$lib/libpanel.a"; then
        ncurses_dir=$1
        AC_MSG_RESULT([$lib (ncurses static)])
-       NCURSES_LIBS="$lib/libncurses.a $lib/libpanel.a"
+       set_ncurses_lib "$1" ncurses
     elif test -f "$lib/libcurses.${SHLIB_SUFFIX}" -a -f "$lib/libpanel.${SHLIB_SUFFIX}"; then
        ncurses_dir=$1
        AC_MSG_RESULT([$lib (curses shared)])
@@ -1180,7 +1191,7 @@ check_ncurses()
        ncurses_dir=$1
        AC_MSG_RESULT([$lib (curses static)])
        NCURSES_CPPFLAGS="-DNOMACROS"
-       NCURSES_LIBS="$lib/libcurses.a $lib/libpanel.a"
+       set_ncurses_lib "$1" curses
     fi
 
     # make sure include files are in the expected place as well
@@ -1453,12 +1464,24 @@ VERSION_MAJOR=`echo $PACKAGE_VERSION | cut -f3 -d\  | sed s/\"//g | cut -f1 -d.`
 VERSION_MINOR=`echo $PACKAGE_VERSION | cut -f3 -d\  | sed s/\"//g | cut -f2 -d.`
 VERSION_SUB=`echo $PACKAGE_VERSION | cut -f3 -d\  | sed s/\"//g | cut -f3 -d.`
 
+# set system variables
+OS=`uname -s`
+if test "$OS" = "HP-UX"; then
+   if "$host_cpu" = "ia64"; then
+      ARCH=itanium
+   else
+      ARCH=PA-RISC
+else
+   ARCH=`uname -p`
+fi
+
 # generate next build number
 AC_DEFINE_UNQUOTED([VERSION_MAJOR], $VERSION_MAJOR, [major version number])
 AC_DEFINE_UNQUOTED([VERSION_MINOR], $VERSION_MINOR, [minor version number])
 AC_DEFINE_UNQUOTED([VERSION_SUB], $VERSION_SUB, [sub version number])
-AC_DEFINE_UNQUOTED([TARGET_ARCH], "`uname -m`", [host type])
-AC_DEFINE_UNQUOTED([TARGET_OS], "`uname -s`", [host type])
+AC_DEFINE_UNQUOTED([TARGET_ARCH], $ARCH, [host type])
+AC_DEFINE_UNQUOTED([TARGET_OS], $OS, [host type])
+AC_DEFINE_UNQUOTED([TARGET_BITS], $bits, [32 or 64 bit build])
 AC_DEFINE_UNQUOTED([BUILD], `./next_build.sh`, [build number])
 
 VERSION_STRING=$PACKAGE_VERSION-`cat .build`
@@ -1478,11 +1501,11 @@ AC_CONFIG_FILES([Makefile lib/Makefile modules/Makefile modules/ncurses/Makefile
 AC_OUTPUT
 
 echo "*** BUILTIN FEATURES ***"
-printf "library  : "
+printf "library  : %s %s " "$OS" "$ARCH"
 if test "$enable_64bit" = "yes"; then
-   echo 64-bit
+   echo (64-bit)
 else
-   echo 32-bit
+   echo (32-bit)
 fi
 
 printf "debug    : "
@@ -1547,7 +1570,7 @@ fi
 
 # hack to use our libtool if on PA-RISC HP-UX to enable static libs to be linked in to modules
 # also to allow 64-bit PA-RISC libraries to be linked to modules
-if test "`uname -s`" = "HP-UX" -a "$host_os" != "ia64"; then
+if test "$OS" = "HP-UX" -a "$host_os" != "ia64"; then
    # backup generated libtool
    if test ! -e libtool.orig ; then
       cp libtool libtool.orig
