@@ -43,12 +43,12 @@ class List {
       inline List();
       inline List(int i);
       inline ~List();
-      inline class QoreNode *retrieve_entry(int index);
-      inline int getEntryAsInt(int index);
+      inline class QoreNode *retrieve_entry(int index) const;
+      inline int getEntryAsInt(int index) const;
       inline class QoreNode **get_entry_ptr(int index);
       inline class QoreNode **getExistingEntryPtr(int index);
       inline void set_entry(int index, class QoreNode *val, class ExceptionSink *xsink);
-      inline class QoreNode *eval_entry(int num, class ExceptionSink *xsink);
+      inline class QoreNode *eval_entry(int num, class ExceptionSink *xsink) const;
       inline void push(class QoreNode *val);
       inline void insert(class QoreNode *val);
       inline class QoreNode *pop();
@@ -56,16 +56,19 @@ class List {
       inline void merge(class List *list);
       inline int delete_entry(int index, class ExceptionSink *xsink);
       inline void pop_entry(int index, class ExceptionSink *xsink);
-      inline int size();
+      inline int size() const
+      {
+	 return length;
+      }
       void dereference(class ExceptionSink *xsink);
-      inline class List *evalList(class ExceptionSink *xsink);
-      inline class QoreNode *eval(class ExceptionSink *xsink);
-      inline class QoreNode *evalFrom(int offset, class ExceptionSink *xsink);
-      inline class QoreNode *copy();
-      inline class List *copyList();
-      inline class List *copyListFrom(int offset);
-      class QoreNode *sort();
-      class QoreNode *sortDescending();
+      inline class List *evalList(class ExceptionSink *xsink) const;
+      inline class QoreNode *eval(class ExceptionSink *xsink) const;
+      inline class QoreNode *evalFrom(int offset, class ExceptionSink *xsink) const;
+      inline class QoreNode *copy() const;
+      inline class List *copyList() const;
+      inline class List *copyListFrom(int offset) const;
+      class QoreNode *sort() const;
+      class QoreNode *sortDescending() const;
       inline void splice(int offset, class ExceptionSink *xsink);
       inline void splice(int offset, int length, class ExceptionSink *xsink);
       inline void splice(int offset, int length, class QoreNode *l, class ExceptionSink *xsink);
@@ -75,42 +78,42 @@ class List {
 
 class ListIterator
 {
-private:
-   int pos;
-   class List *l;
+   private:
+      int pos;
+      class List *l;
    
-public:
-   inline ListIterator(class List *lst) { l = lst; pos = -1; }
-   
-   inline bool next() 
-   { 
-      if (pos < 0)
-      {
-	 if (l->size())
-	    pos = 0;
+   public:
+      inline ListIterator(class List *lst) { l = lst; pos = -1; }
+      
+      inline bool next() 
+      { 
+	 if (pos < 0)
+	 {
+	    if (l->size())
+	       pos = 0;
+	 }
+	 else
+	 {
+	    if (++pos == l->size())
+	       pos = -1;
+	 }
+	 return pos >= 0;
       }
-      else
+      inline class QoreNode *getValue() const
       {
-	 if (++pos == l->size())
-	    pos = -1;
+	 if (pos < 0)
+	    return NULL;
+	 return l->retrieve_entry(pos);
       }
-      return pos >= 0;
-   }
-   inline class QoreNode *getValue()
-   {
-      if (pos < 0)
-	 return NULL;
-      return l->retrieve_entry(pos);
-   }
-   inline class QoreNode **getValuePtr()
-   {
-      if (pos < 0)
-	 return NULL;
-      return l->get_entry_ptr(pos);
-   }
-   inline class QoreNode *eval(class ExceptionSink *xsink);
-   //inline bool last() { return (bool)(ptr ? !ptr->next : false); } 
-   //inline void setValue(class QoreNode *val, class ExceptionSink *xsink);
+      inline class QoreNode **getValuePtr()
+      {
+	 if (pos < 0)
+	    return NULL;
+	 return l->get_entry_ptr(pos);
+      }
+      inline class QoreNode *eval(class ExceptionSink *xsink) const;
+      inline bool last() { return (bool)(pos == (l->size() - 1)); } 
+      //inline void setValue(class QoreNode *val, class ExceptionSink *xsink);
 };
 
 #include <qore/common.h>
@@ -155,14 +158,14 @@ inline List::~List()
       free(entry);
 }
 
-inline class QoreNode *List::retrieve_entry(int num)
+inline class QoreNode *List::retrieve_entry(int num) const
 {
    if (num >= length || num < 0)
       return NULL;
    return entry[num];
 }
 
-inline int List::getEntryAsInt(int num)
+inline int List::getEntryAsInt(int num) const
 {
    if (num >= length || num < 0 || !entry[num])
       return 0;
@@ -183,11 +186,6 @@ inline QoreNode **List::getExistingEntryPtr(int num)
    return &entry[num];
 }
 
-inline int List::size()
-{
-   return length;
-}
-
 inline void List::set_entry(int index, class QoreNode *val, ExceptionSink *xsink)
 {
    class QoreNode **v = get_entry_ptr(index);
@@ -196,7 +194,7 @@ inline void List::set_entry(int index, class QoreNode *val, ExceptionSink *xsink
    *v = val;
 }
 
-inline class QoreNode *List::eval_entry(int num, class ExceptionSink *xsink)
+inline class QoreNode *List::eval_entry(int num, class ExceptionSink *xsink) const
 {
    if (num >= length || num < 0)
       return NULL;
@@ -296,7 +294,7 @@ inline QoreNode *List::pop()
    return rv;
 }
 
-inline class List *List::evalList(ExceptionSink *xsink)
+inline class List *List::evalList(ExceptionSink *xsink) const
 {
    tracein("List::eval()");
    class List *nl = new List();
@@ -315,7 +313,7 @@ inline class List *List::evalList(ExceptionSink *xsink)
    return nl;
 }
 
-inline class QoreNode *List::eval(ExceptionSink *xsink)
+inline class QoreNode *List::eval(ExceptionSink *xsink) const
 {
    tracein("List::eval()");
    class List *nl = new List();
@@ -334,7 +332,7 @@ inline class QoreNode *List::eval(ExceptionSink *xsink)
    return new QoreNode(nl);
 }
 
-inline class QoreNode *List::evalFrom(int offset, ExceptionSink *xsink)
+inline class QoreNode *List::evalFrom(int offset, ExceptionSink *xsink) const
 {
    tracein("List::eval()");
    class List *nl = new List();
@@ -353,7 +351,7 @@ inline class QoreNode *List::evalFrom(int offset, ExceptionSink *xsink)
    return new QoreNode(nl);
 }
 
-inline class QoreNode *List::copy()
+inline class QoreNode *List::copy() const
 {
    class List *nl = new List();
    for (int i = 0; i < length; i++)
@@ -362,7 +360,7 @@ inline class QoreNode *List::copy()
    return new QoreNode(nl);
 }
 
-inline class List *List::copyListFrom(int offset)
+inline class List *List::copyListFrom(int offset) const
 {
    class List *nl = new List();
    for (int i = offset; i < length; i++)
@@ -371,7 +369,7 @@ inline class List *List::copyListFrom(int offset)
    return nl;
 }
 
-inline class List *List::copyList()
+inline class List *List::copyList() const
 {
    class List *nl = new List();
    for (int i = 0; i < length; i++)
@@ -426,7 +424,7 @@ void List::splice(int offset, int len, class QoreNode *l, class ExceptionSink *x
    splice_intern(offset, len, l, xsink);
 }
 
-inline class QoreNode *ListIterator::eval(class ExceptionSink *xsink)
+inline class QoreNode *ListIterator::eval(class ExceptionSink *xsink) const
 {
    // List::eval_entry() checks if the offset is < 0 already
    return l->eval_entry(pos, xsink);

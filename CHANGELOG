@@ -1,3 +1,6 @@
+2006.11.18: David Nichols
+	* starting tagging const methods, reducing excessive inlining
+
 2006.11.17: David Nichols
 	* made TIBCO adapter SDK independent from RV in configure, separated
 	  modules/TIBCO into tibrv and tibae directories

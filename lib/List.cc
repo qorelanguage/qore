@@ -50,7 +50,7 @@ static int compareListEntriesDescending(class QoreNode *l, class QoreNode *r)
    return compareListEntries(l, r) ? 0 : 1;
 }
 
-class QoreNode *List::sort()
+class QoreNode *List::sort() const
 {
    class QoreNode *rv = copy();
    //printd(5, "List::sort() entry=%08p length=%d\n", rv->val.list->entry, length);
@@ -58,7 +58,7 @@ class QoreNode *List::sort()
    return rv;
 }
 
-class QoreNode *List::sortDescending()
+class QoreNode *List::sortDescending() const
 {
    class QoreNode *rv = copy();
    //printd(5, "List::sort() entry=%08p length=%d\n", rv->val.list->entry, length);

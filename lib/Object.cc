@@ -154,6 +154,35 @@ bool Object::compareHard(class Object *obj)
    return rc;
 }
 
+// gate is already held
+inline void Object::doDeleteIntern(class ExceptionSink *xsink)
+{
+   if (status == OS_DELETED)
+   {
+      g.exit();
+      return;
+   }
+   if (status == OS_BEING_DELETED)
+   {
+      g.exit();
+      xsink->raiseException("DOUBLE-DELETE-EXCEPTION", "destructor called from within destructor");
+      return;
+   }
+   status = OS_BEING_DELETED;
+   g.exit();
+   
+   printd(5, "Object::doDelete(this=%08p) calling destructor()\n", this);   
+   myclass->execDestructor(this, xsink);
+   
+   g.enter();
+   status = OS_DELETED;
+   Hash *td = data;
+   data = NULL;
+   g.exit();
+
+   cleanup(xsink, td);
+}
+
 // does a deep dereference and execs destructor if necessary
 void Object::dereference(ExceptionSink *xsink)
 {
@@ -207,31 +236,392 @@ void Object::obliterate(ExceptionSink *xsink)
    }
 }
 
-// gate is already held
-void Object::doDeleteIntern(class ExceptionSink *xsink)
+void Object::doDelete(class ExceptionSink *xsink)
 {
+   g.enter();
+   doDeleteIntern(xsink);
+}
+
+// NOTE: caller must unlock
+class QoreNode **Object::getMemberValuePtr(char *key, class VLock *vl, class ExceptionSink *xsink)
+{
+   if (g.enter(vl, xsink))
+      return NULL;
+
    if (status == OS_DELETED)
    {
       g.exit();
-      return;
+      return NULL;
    }
-   if (status == OS_BEING_DELETED)
+
+   vl->add(&g);
+   return data->getKeyValuePtr(key);
+}
+
+// NOTE: caller must unlock
+class QoreNode **Object::getMemberValuePtr(QoreString *key, class VLock *vl, class ExceptionSink *xsink)
+{
+   if (g.enter(vl, xsink))
+      return NULL;
+
+   if (status == OS_DELETED)
    {
       g.exit();
-      xsink->raiseException("DOUBLE-DELETE-EXCEPTION", "destructor called from within destructor");
+      return NULL;
+   }
+
+   vl->add(&g);
+   return data->getKeyValuePtr(key, xsink);
+}
+
+// NOTE: caller must unlock
+class QoreNode *Object::getMemberValueNoMethod(QoreString *key, class VLock *vl, class ExceptionSink *xsink)
+{
+   if (g.enter(vl, xsink))
+      return NULL;
+
+   if (status == OS_DELETED)
+   {
+      g.exit();
+      makeAccessDeletedObjectException(xsink, key->getBuffer(), myclass->getName());
+      return NULL;
+   }
+
+   QoreNode *rv = data->getKeyValue(key, xsink);
+   if (rv)
+      vl->add(&g);
+   else
+      g.exit();
+   return rv;
+}
+
+// NOTE: caller must unlock
+class QoreNode *Object::getMemberValueNoMethod(char *key, class VLock *vl, class ExceptionSink *xsink)
+{
+   if (g.enter(vl, xsink))
+      return NULL;
+
+   if (status == OS_DELETED)
+   {
+      g.exit();
+      makeAccessDeletedObjectException(xsink, key, myclass->getName());
+      return NULL;
+   }
+
+   QoreNode *rv = data->getKeyValue(key);
+   if (rv)
+      vl->add(&g);
+   else
+      g.exit();
+   return rv;
+}
+
+void Object::deleteMemberValue(QoreString *key, ExceptionSink *xsink)
+{
+   g.enter();
+   if (status == OS_DELETED)
+   {
+      g.exit();
+      makeAccessDeletedObjectException(xsink, key->getBuffer(), myclass->getName());
       return;
    }
-   status = OS_BEING_DELETED;
+
+   data->deleteKey(key, xsink);
    g.exit();
-   
-   printd(5, "Object::doDelete(this=%08p) calling destructor()\n", this);   
-   myclass->execDestructor(this, xsink);
-   
+}
+
+void Object::deleteMemberValue(char *key, ExceptionSink *xsink)
+{
    g.enter();
+   if (status == OS_DELETED)
+   {
+      g.exit();
+      makeAccessDeletedObjectException(xsink, key, myclass->getName());
+      return;
+   }
+
+   data->deleteKey(key, xsink);
+   g.exit();
+}
+
+class List *Object::getMemberList(class ExceptionSink *xsink)
+{
+   class List *lst;
+   g.enter();
+   if (status == OS_DELETED)
+   {
+      g.exit();
+      makeAccessDeletedObjectException(xsink, myclass->getName());
+      return NULL;
+   }
+   lst = data->getKeys();
+   g.exit();
+   return lst;
+}
+
+void Object::setValue(char *key, class QoreNode *value, ExceptionSink *xsink)
+{
+   g.enter();
+   if (status == OS_DELETED)
+   {
+      g.exit();
+      makeAccessDeletedObjectException(xsink, key, myclass->getName());
+      return;
+   }
+   data->setKeyValue(key, value, xsink);
+   g.exit();
+}
+
+/*
+// FIXME: convert to default character set
+inline void Object::setValue(class QoreString *key, class QoreNode *value, ExceptionSink *xsink)
+{
+   g.enter();
+   if (status == OS_DELETED)
+   {
+      g.exit();
+      makeAccessDeletedObjectException(xsink, key->getBuffer(), myclass->getName());
+      return;
+   }
+   data->setKeyValue(key->getBuffer(), value, xsink);
+   g.exit();
+}
+*/
+
+int Object::size()
+{
+   int rc;
+
+   g.enter();
+   if (status == OS_DELETED)
+      rc = 0;
+   else
+      rc = data->size();
+   g.exit();
+   return rc;
+}
+
+// adds all elements (and references them) from the hash passed, leaves the
+// hash passed alone
+void Object::merge(class Hash *h, ExceptionSink *xsink)
+{
+   g.enter();
+   if (status == OS_DELETED)
+   {
+      g.exit();
+      makeAccessDeletedObjectException(xsink, myclass->getName());
+      return;
+   }
+   data->merge(h, xsink);
+   g.exit();
+}
+
+// adds all elements (already referenced) from the hash passed, deletes the
+// hash passed
+void Object::assimilate(class Hash *h, class ExceptionSink *xsink)
+{
+   g.enter();
+   if (status == OS_DELETED)
+   {
+      g.exit();
+      makeAccessDeletedObjectException(xsink, myclass->getName());
+      return;
+   }
+   data->assimilate(h, xsink);
+   g.exit();
+}
+
+/*
+// to be called only in builtin constructors - no locking necessary
+inline void Object::doDeleteNoDestructor(class ExceptionSink *xsink)
+{
    status = OS_DELETED;
-   Hash *td = data;
-   data = NULL;
+   data->dereference(xsink);
+}
+*/
+
+class QoreNode *Object::evalFirstKeyValue(class ExceptionSink *xsink)
+{
+   g.enter();
+   if (status == OS_DELETED)
+   {
+      g.exit();
+      makeAccessDeletedObjectException(xsink, myclass->getName());
+      return NULL;
+   }
+   class QoreNode *rv = data->evalFirstKeyValue(xsink);
+   g.exit();
+   return rv;
+}
+
+class QoreNode *Object::evalMemberNoMethod(char *mem, class ExceptionSink *xsink)
+{
+   printd(5, "Object::evalMemberNoMethod(this=%08p, mem=%08p (%s), xsink=%08p, data->size()=%d)\n",
+	  this, mem, mem, xsink, data ? data->size() : -1);
+   g.enter();
+   if (status == OS_DELETED)
+   {
+      g.exit();
+      makeAccessDeletedObjectException(xsink, mem, myclass->getName());
+      return NULL;
+   }
+   class QoreNode *rv = data->evalKey(mem, xsink);
+   g.exit();
+   return rv;
+}
+
+// it's OK to return NULL here to duplicate the behaviour of NOTHING
+class QoreNode *Object::evalMemberExistence(char *mem, class ExceptionSink *xsink)
+{
+   g.enter();
+   if (status == OS_DELETED)
+   {
+      g.exit();
+      makeAccessDeletedObjectException(xsink, mem, myclass->getName());
+      return NULL;
+   }
+   class QoreNode *rv = data->evalKeyExistence(mem, xsink);
+   g.exit();
+   return rv;
+}
+
+class Hash *Object::evalData(class ExceptionSink *xsink)
+{
+   g.enter();
+   if (status == OS_DELETED)
+   {
+      g.exit();
+      // need to return an empty hash here
+      return new Hash();
+   }
+   class Hash *rv = data->eval(xsink);
+   g.exit();
+   return rv;
+}
+
+// NOTE: caller must unlock lock
+// we check if the object is already locked
+class QoreNode **Object::getExistingValuePtr(class QoreString *mem, class VLock *vl, class ExceptionSink *xsink)
+{
+   if (g.enter(vl, xsink))
+      return NULL;
+
+   if (status == OS_DELETED)
+   {
+      g.exit();
+      makeAccessDeletedObjectException(xsink, mem->getBuffer(), myclass->getName());
+      return NULL;
+   }
+   class QoreNode **rv = data->getExistingValuePtr(mem, xsink);
+   if (!rv)
+      g.exit();
+   else
+      vl->add(&g);
+   return rv;
+}
+
+// NOTE: caller must unlock lock
+// we check if the object is already locked
+class QoreNode **Object::getExistingValuePtr(char *mem, class VLock *vl, class ExceptionSink *xsink)
+{
+   if (g.enter(vl, xsink))
+      return NULL;
+
+   if (status == OS_DELETED)
+   {
+      g.exit();
+      makeAccessDeletedObjectException(xsink, mem, myclass->getName());
+      return NULL;
+   }
+   class QoreNode **rv = data->getExistingValuePtr(mem);
+   if (!rv)
+      g.exit();
+   else
+      vl->add(&g);
+   return rv;
+}
+
+class KeyNode *Object::getReferencedPrivateDataNode(int key) 
+{ 
+   class KeyNode *rv = NULL;
+
+   g.enter();
+   if (status != OS_DELETED && privateData)
+      rv = privateData->getReferencedPrivateDataNode(key);
+   g.exit();
+   return rv;
+}
+
+void *Object::getReferencedPrivateData(int key)
+{ 
+   void *rv = NULL;
+
+   g.enter();
+   if (status != OS_DELETED && privateData)
+      rv = privateData->getReferencedPrivateData(key);
    g.exit();
 
-   cleanup(xsink, td);
+   return rv;
 }
+
+void *Object::getAndClearPrivateData(int key)
+{ 
+   void *rv = NULL;
+   g.enter();
+   if (privateData)
+   {
+      class KeyNode *kn = privateData->find(key);
+      if (kn)
+	 rv = kn->getAndClearPtr();
+   }
+   g.exit(); 
+   return rv;
+}
+
+void Object::setPrivate(int key, void *pd, q_private_t pdref, q_private_t pdderef)
+{ 
+   g.enter();
+   if (!privateData)
+      privateData = new KeyList();
+   privateData->insert(key, pd, pdref, pdderef);
+   g.exit();
+}
+
+void Object::addPrivateDataToString(class QoreString *str)
+{
+   str->concat('(');
+   g.enter();
+   if (privateData)
+   {
+      privateData->addToString(str);
+      str->terminate(str->strlen() - 2);
+   }
+   else
+      str->concat("<NO PRIVATE DATA>");
+   g.exit();
+   str->concat(')');
+}
+
+void Object::cleanup(class ExceptionSink *xsink, class Hash *td)
+{
+   if (privateData)
+   {
+      delete privateData;
+#ifdef DEBUG
+      privateData = NULL;
+#endif
+   }
+   
+   if (pgm)
+   {
+      printd(5, "Object::cleaup() this=%08p (%s) calling QoreProgram::depDeref() (%08p)\n", this, myclass->getName(), pgm);
+      pgm->depDeref(xsink);
+#ifdef DEBUG
+      pgm = NULL;
+#endif
+   }
+   
+   td->dereference(xsink);
+   delete td;   
+}
+
