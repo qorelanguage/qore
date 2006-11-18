@@ -9,7 +9,7 @@ Source0: %{name}-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 
 %description
-qore is a modular, multithreaded, weakly-typed, object-oriented programming language suitable for embedding application logic, application scripting, interface development, and even complex multi-threaded, network-aware object-oriented application development. Qore features integrated XML capability, oracle, mysql, and TIBCO Rendezvous and Active Enterprise modules, as well as built-in date arithmetic, method and member redirection for classes, private methods, synchronized (in the Java sense) functions and class methods, national character set support with implicit and explicit character set conversions, exception handling, Perl5-compatible regular expression support, powerful and easy-to-use data structures (arrays, hashes, etc), and much more. Qore is under active development and is also under heavy commercial use as the technology behind the Qorus Integration Engine (formerly OM/Qore).
+qore is a modular, multithreaded, weakly-typed, object-oriented programming language suitable for embedding application logic, application scripting, interface development, and even complex multi-threaded, network-aware object-oriented application development. Qore features integrated XML capability, oracle, mysql, TIBCO Rendezvous and Adapters modules, as well as built-in date arithmetic, method and member redirection for classes, private methods, synchronized (in the Java sense) functions and class methods, national character set support with implicit and explicit character set conversions, exception handling, Perl5-compatible regular expression support, powerful and easy-to-use data structures (arrays, hashes, etc), and much more. Qore is under active development, very well-tested, and is also under commercial use as the technology behind the Qorus Integration Engine (formerly OM/Qore).
 
 %package oracle-module
 Summary: Oracle module for Qore
@@ -31,7 +31,7 @@ Summary: MySQL module for Qore
 Group: Development/Languages
 
 %description mysql-module
-MySQL DBI driver module for the Qore Programming Language. The MySQL driver is character set aware and supports multithreading and transaction management. Currently stored procedure execution is not supported.
+MySQL DBI driver module for the Qore Programming Language. The MySQL driver is character set aware and supports multithreading, transaction management, and stored procedure execution.
 
 %files mysql-module
 %ifarch i386
@@ -43,11 +43,11 @@ MySQL DBI driver module for the Qore Programming Language. The MySQL driver is c
 
 %ifarch i386
 %package tibae-module
-Summary: TIBCO Active Enterprise integration module for Qore
+Summary: TIBCO Adapters integration module for Qore
 Group: Development/Languages
 
 %description tibae-module
-This module provides the TibcoAdapter class, which enables qore scripts/programs to communicate with (or implement) TIBCO Active Enterprise adapters.
+This module provides the TibcoAdapter class, which enables qore scripts/programs to communicate with (or implement) TIBCO Adapters.
 
 %files tibae-module
 /usr/lib/qore-0.6.0/tibae.qmod
@@ -124,6 +124,9 @@ rm -rf $RPM_BUILD_ROOT
 /usr/man/man1/qore.1.gz
 
 %changelog
+* Sat Nov 18 2006 David Nichols <david_nichols@users.sourceforge.net> - 0.6.0-1
+- updated descriptions
+
 * Thu Dec 7 2005 David Nichols <david_nichols@users.sourceforge.net> - 0.4.0-1
 - Initial rpm build.
 

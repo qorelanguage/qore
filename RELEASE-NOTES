@@ -40,12 +40,12 @@ The "tibrv" module provides direct TIBCO Rendezvous support, allowing qore progr
 
 TIBAE
 -----
-The "tibae" module provides Active Enterprise support; it allows qore programs to send and receive TIBCO AE messages based on an external repository.  
-The TibcoAdapter class is provided by this module.  Note that Qore must be built with the compiler required by the TIBCO AE SDK in order for the "tibae" module to be built.
+The "tibae" module provides TIBCO Adapter support; it allows qore programs to send and receive messages to and from TIBCO Adapters (or implement a TIBCO Adapter in qore) based on an external repository.  
+The TibcoAdapter class is provided by this module.  Note that Qore must be built with the compiler required by the TIBCO Adapter SDK in order for the "tibae" module to be built.
 Note that previous versions of these release notes stated that it was not possible to make an adapter that sent synchronous replies - this is incorrect, just set the subject to the replySubject key of the incoming message hash which should be an inbox (point-to-point) subject name.
-* Linux: I use the SDK version 5.3.2 that requires g++ 3.2 (this also fixes a lot of bugs compared to SDK 4.1.* including some big memory leaks).  All other versions I've found for Linux require g++ 2.96, which is an unsupported RedHat-only version.   Note that as far as I know there is no AE SDK support for x86_64 Linux
+* Linux: I use the SDK version 5.3.2 that requires g++ 3.2 (this also fixes a lot of bugs compared to SDK 4.1.* including some big memory leaks).  All other versions I've found for Linux require g++ 2.96, which is an unsupported RedHat-only version.   Note that at the time of this writing, there is no TIBCO Adapter SDK support for x86_64 Linux
 * Solaris: qore must be compiled with the SunPro CC compiler in order to be able to use the "tibae" module.   
-* OS X: There is finally Rendezvous support for OS X, so hopefully they will support the AE SDK in the next version
+* OS X: There is finally Rendezvous support for OS X, so hopefully they will support the Adapter SDK in the next version
 
 ORACLE
 ------

@@ -55,6 +55,18 @@ AC_CHECK_LIB(socket, setsockopt)
 # look for librt (needed by clock_gettime() on some platforms)
 AC_CHECK_LIB(rt, clock_gettime)
 
+# set system variables
+OS=`uname -s`
+if test "$OS" = "HP-UX"; then
+   if "$host_cpu" = "ia64"; then
+      ARCH=itanium
+   else
+      ARCH=PA-RISC
+   fi
+else
+   ARCH=`uname -p`
+fi
+
 #AC_CANONICAL_HOST
 # get CPU family
 case "${host_cpu}" in
@@ -661,14 +673,14 @@ fi
 
 AC_ARG_WITH([tibae],
   [AS_HELP_STRING([--with-tibae@<:@=DIR@:>@],
-		  [TIBCO Active Enterprise SDK directory (defaults to $SDK_ROOT)])],
+		  [TIBCO Adapters SDK directory (defaults to $SDK_ROOT)])],
   [if test ! -d "${with_tibae}"; then AC_MSG_ERROR(bad value ${with_tibae} for --with-tibae); unset with_tibae; fi])
 
-AC_MSG_CHECKING([TIBCO Active Enterprise SDK])
+AC_MSG_CHECKING([TIBCO Adapters SDK])
 if test -n "$with_tibae"; then
    # disable AE SDK on HP-UX PA-RISC, it requires compiling without the -AA flag which we don't support
-   if test -n "`echo $host_os | grep hpux`" -a "$host_cpu" != "ia64"; then
-      AC_MSG_WARN([TIBCO ActiveEnterprise SDK not supported on HP-UX])
+   if test -n "$OS" = "HP-UX" -a $host_cpu != "ia64"; then
+      AC_MSG_WARN([TIBCO Adapters SDK not supported on HP-UX])
       unset with_tibae
    elif test ! -e "$with_tibae/include/sdk/Maverick.h"; then
       AC_MSG_ERROR([can't find Maverick.h in $with_tibae/include/sdk])
@@ -678,7 +690,11 @@ if test -n "$with_tibae"; then
       AC_MSG_RESULT([$with_tibae])
    fi
 else
-   if test -n "$SDK_ROOT" -a -f "$SDK_ROOT/include/sdk/Maverick.h" -a -n "`ls $SDK_ROOT/lib/libmaverick*.${SHLIB_SUFFIX} 2>/dev/null`"; then
+   # disable AE SDK on HP-UX PA-RISC, it requires compiling without the -AA flag which we don't support
+   if test -n "$OS" = "HP-UX" -a $host_cpu != "ia64"; then
+      AC_MSG_WARN([TIBCO Adapters SDK not supported on HP-UX])
+      unset with_tibae
+   elif test -n "$SDK_ROOT" -a -f "$SDK_ROOT/include/sdk/Maverick.h" -a -n "`ls $SDK_ROOT/lib/libmaverick*.${SHLIB_SUFFIX} 2>/dev/null`"; then
       AC_MSG_RESULT([$SDK_ROOT])
       with_tibae=$SDK_ROOT
    else
@@ -689,16 +705,16 @@ fi
 
 if test -n "$with_tibae"; then
    if test -z "$rv_found"; then
-      AC_MSG_WARN([TIBCO Active Enterprise SDK found, but no Rendezvous found, disabling tibae support])
+      AC_MSG_WARN([TIBCO Adapters SDK found, but no Rendezvous found, disabling tibae support])
       unset with_tibae
    else
-      AC_MSG_CHECKING([TIBCO Active Enterprise SDK version])
+      AC_MSG_CHECKING([TIBCO Adapters SDK version])
       if test -e "$with_tibae"/prodinfo; then
 	 TIBCO_SDK_VERSION=`grep SDK "$with_tibae"/prodinfo|head -1|cut -f2`
       elif test -e "$with_tibae"/version.txt; then
          TIBCO_SDK_VERSION=`grep SDK "$with_tibae"/version.txt|head -1|cut -b25- | cut -f1 -d\ `
       else
-         AC_MSG_RESULT([unable to determine TIBCO Active Enterprise SDK version, disabling tibae support])
+         AC_MSG_RESULT([unable to determine TIBCO Adapters SDK version, disabling tibae support])
          unset with_tibae
       fi
 
@@ -714,9 +730,9 @@ if test -n "$with_tibae"; then
    if test `echo $TIBCO_SDK_VERSION|cut -b1` -gt 4; then
       AC_ARG_WITH([tibae-tpcl],
         [AS_HELP_STRING([--with-tibae-tpcl@<:@=DIR@:>@],
-		        [TIBCO Active Enterprise TPCL directory (defaults to $TPCL_ROOT)])],
+		        [TIBCO Adpaters TPCL directory (defaults to $TPCL_ROOT)])],
 			[if test ! -d "${with_tibae_tpcl}"; then AC_MSG_ERROR(bad value ${with_tibae_tpcl} for --with-tibae-tpcl); unset with_tibae_tpcl; fi])
-      AC_MSG_CHECKING([TIBCO Active Enterprise TPCL])
+      AC_MSG_CHECKING([TIBCO Adapters TPCL])
       if test -n "$with_tibae_tpcl"; then
 	 if test ! -e "$with_tibae_tpcl/lib/libssl.a"; then
 	    AC_MSG_RESULT([can't find libssl.a in $with_tibae_tpcl/lib, disabling tibae support])
@@ -799,7 +815,7 @@ TApp ma(NULL);
       AC_MSG_RESULT([ok])
       AC_SUBST(TIBAE_LDFLAGS)
       AC_SUBST(TIBAE_CPPFLAGS)
-      AC_DEFINE(TIBAE, 1, [Define if TIBCO Active Enterprise support should be included])
+      AC_DEFINE(TIBAE, 1, [Define if TIBCO Adapters support should be included])
       with_tibae=yes
    fi
 fi
@@ -1485,18 +1501,6 @@ fi
 VERSION_MAJOR=`echo $PACKAGE_VERSION | cut -f3 -d\  | sed s/\"//g | cut -f1 -d.`
 VERSION_MINOR=`echo $PACKAGE_VERSION | cut -f3 -d\  | sed s/\"//g | cut -f2 -d.`
 VERSION_SUB=`echo $PACKAGE_VERSION | cut -f3 -d\  | sed s/\"//g | cut -f3 -d.`
-
-# set system variables
-OS=`uname -s`
-if test "$OS" = "HP-UX"; then
-   if "$host_cpu" = "ia64"; then
-      ARCH=itanium
-   else
-      ARCH=PA-RISC
-   fi
-else
-   ARCH=`uname -p`
-fi
 
 # generate next build number
 AC_DEFINE_UNQUOTED([VERSION_MAJOR], $VERSION_MAJOR, [major version number])

@@ -1,7 +1,7 @@
 Qore README
 
 author: David Nichols <david_nichols@users.sourceforge.net>
-updated: 2006.08.19
+updated: 2006.11.18
 
 This document contains some general information on the Qore language.  Please refer to the following files/locations for specific information:
 
@@ -18,12 +18,12 @@ BUILD
 for information on how to build and install qore from sources - some quick information here:
  * only UNIX-like platforms are currently supported
  * requires POSIX threading support
- * requires at least flex 2.5.31 (most distributions have flex 2.5.4) in order to compile the multithreaded parser; you can get this version at 
-	http://sourceforge.net/projects/lex
+ * requires at least flex 2.5.31 (most distributions have flex 2.5.4, flex 2.5.33 recommended) in order to compile the multithreaded parser; you can get this version at 
+	http://sourceforge.net/projects/flex
  * requires libxml2 headers and libraries; libxml2 support is no longer optional
  * requires pcre headers and libraries for perl5-compatible regex support; POSIX regex support is no longer used
- * requires openssl headers and libraries as of v0.5.2
- * optionally support for Oracle, MySQL, ncurses, TIBCO Rendezvous, and TIBCO ActiveEnterprise can be built
+ * requires openssl headers and libraries
+ * optionally support for Oracle, MySQL, ncurses, TIBCO Rendezvous, and TIBCO Adapters, Bea Tuxedo can be built
 (see BUILD for details)
 
 docs/qore.html
@@ -54,7 +54,7 @@ Qorus Integration Engine
 ------------------------
 Qorus Integration Engine is a framework for the development and operation of reliable (fault-tolerant) interfaces supporting "Guaranteed Recoverability".
 
-The system is a highly multi-threaded, Oracle- and TIBCO ActiveEnterprise-integrated workflow and SOA platform where user (and some system) logic is run-time loaded/refreshed from an Oracle database and executed in a controlled fashion in Qore Program objects with restricted capabilities by the system in order to support user-defined workflows and services.
+The system is a highly multi-threaded, MySQL Netowrk, Oracle, TIBCO Rendezvous, and TIBCO Adapters integrated workflow and SOA platform where user (and some system) logic is run-time loaded/refreshed from an Oracle database and executed in a controlled fashion in Qore Program objects with restricted capabilities by the system in order to support user-defined workflows and services.
 
 Basically the qore language was developed in order to make it possible to write this application, however solutions to various challenges in the Qore language/library design were implemented in the most generic and flexible way possible in order to make qore as useful in as many contexts as possible.
 
@@ -63,7 +63,7 @@ The requirements for the language were:
 *) efficient resource sharing
 *) support cleanly embedding logic in automomous objects with variable restricted capabilities (= Program class)
 *) good network/socket API (= Socket class)
-*) FTP, HTTP, XML, XML-RPC, TIBCO AE, Oracle integration (HTTP and XML-RPC functionality is currently provided by Qore-language classes at the moment)
+*) FTP, HTTP, XML, XML-RPC, TIBCO, Oracle integration (HTTP and XML-RPC functionality is currently provided by Qore-language classes at the moment)
 *) total system stability (particularly regarding race conditions) and memory cleanliness
 
 While qore excels as an embedded application scripting library, it has also been designed to be a fully-functional standalone language.

@@ -109,7 +109,7 @@ I have heard that qore builds fine, but I have not actually seen it myself, nor 
 HP-UX builds are finally working with g++ (tested 4.1.1 and aCC), however the configure script include a hack to libtool to get the modules to link dynamic libraries with static libaries and to prohibit -ldl from being automatically included in the link lines.  I am using HP-UX 11.23 (v2) on PA-RISC.
 PA-RISC 2.0 32-bit binaries are produced in 32-bit mode, with --enable-64-bit, PA-RISC 2.0 64-bit binaries are produced
 Qore now uses strtoimax() as a replacement for strtoll() on HP-UX.
-The TIBCO ActiveEnterprise module (tibae) is not supported on PA-RISC because the compiler requirements are incompatible with compiling qore.
+The TIBCO Adapters module (tibae) is not supported on PA-RISC because the compiler requirements are incompatible with compiling qore.
 Currently there is no fast atomic reference count support on PA-RISC platforms.
 Note that only PA-RISC builds have been tested; itanium builds are untested.
 
