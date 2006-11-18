@@ -1,7 +1,7 @@
 Summary: Qore Programming Language
 Name: qore
 Version: 0.6.0
-Release: 1.FC5
+Release: 1%{?dist}
 License: LGPL
 Group: Development/Languages
 URL: http://qore.sourceforge.net
@@ -126,6 +126,7 @@ rm -rf $RPM_BUILD_ROOT
 %changelog
 * Sat Nov 18 2006 David Nichols <david_nichols@users.sourceforge.net> - 0.6.0-1
 - updated descriptions
+- changes to make spec file more release-agnostic (use of the dist tag in release)
 
 * Thu Dec 7 2005 David Nichols <david_nichols@users.sourceforge.net> - 0.4.0-1
 - Initial rpm build.
