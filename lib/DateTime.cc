@@ -92,13 +92,12 @@ static inline int ampm(int hour)
    return i;
 }
 
-class QoreString *DateTime::format(char *fmt)
+void DateTime::format(class QoreString *str, char *fmt)
 {
    struct tm nt;
 
    tracein("DateTime::format()");
 
-   class QoreString *str = new QoreString();
    char *s = fmt;
    while (*s)
    {
@@ -291,7 +290,6 @@ class QoreString *DateTime::format(char *fmt)
 
    printd(5, "DateTime::format() returning \"%s\"\n", str->getBuffer());
    traceout("DateTime::format()");
-   return str;
 }
 
 // set the date from the number of seconds since January 1, 1970 (UNIX epoch)
@@ -930,13 +928,12 @@ class DateTime *DateTime::calcDifference(class DateTime *dt)
 
 #define PL(n) (n == 1 ? "" : "s")
 
-class QoreString *DateTime::getString()
+void DateTime::getString(class QoreString *str)
 {
-   class QoreString *str;
    if (relative)
    {
       int f = 0;
-      str = new QoreString("<time:");
+      str->concat("<time:");
       if (year)
 	 str->sprintf(" %d year%s", year, PL(year)), f++;
       if (month)
@@ -955,11 +952,10 @@ class QoreString *DateTime::getString()
    }
    else
    {
-      str = format("YYYY-MM-DD HH:mm:SS");
+      format(str, "YYYY-MM-DD HH:mm:SS");
       if (millisecond)
 	 str->sprintf(".%03d", millisecond);
    }
-   return str;
 }
 
 // FIXME: implement and use

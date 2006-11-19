@@ -91,6 +91,10 @@ class QoreString {
       void concatAndHTMLEncode(char *);
       void concatAndHTMLDecode(QoreString *str);
       void concat(QoreString *);
+      // concatenates a string and escapes character c with esc_char
+      void concatEscape(QoreString *, char c, char esc_char = '\\');
+      // concatenates a string and escapes character c with esc_char
+      void concatEscape(const char *, char c, char esc_char = '\\');
 
       // concatenation with character set conversion
       void concatAndHTMLEncode(QoreString *, class ExceptionSink *xsink);

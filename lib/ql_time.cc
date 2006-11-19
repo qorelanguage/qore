@@ -86,7 +86,8 @@ static class QoreNode *f_format_date(class QoreNode *params, ExceptionSink *xsin
    else
       temp = p1;
 
-   class QoreString *rv = temp->val.date_time->format(p0->val.String->getBuffer());
+   class QoreString *rv = new QoreString();
+   temp->val.date_time->format(rv, p0->val.String->getBuffer());
    
    if (temp != p1)
       temp->deref(xsink);

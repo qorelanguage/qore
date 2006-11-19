@@ -61,7 +61,9 @@ bool date_Compare(class QoreNode *l, class QoreNode *r)
 
 class QoreString *date_MakeString(class QoreNode *n, int format, class ExceptionSink *xsink)
 {
-   return n->val.date_time->getString();
+   class QoreString *str = new QoreString();
+   n->val.date_time->getString(str);
+   return str;
 }
 
 void date_DeleteContents(class QoreNode *n)

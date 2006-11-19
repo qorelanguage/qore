@@ -74,6 +74,7 @@ libqore_la_SOURCES = \
 	ql_pwd.cc \
 	ql_misc.cc \
 	ql_xml.cc \
+	ql_json.cc \
 	ql_crypto.cc \
 	QC_Socket.cc \
 	QC_Program.cc \
@@ -91,6 +92,11 @@ libqore_la_SOURCES = \
 	QC_Counter.cc \
 	QC_SSLCertificate.cc \
 	QC_SSLPrivateKey.cc
+
+if COND_DEBUG
+libqore_la_SOURCES += ql_debug.cc
+endif
+
 endif
 
 libqore_la_LDFLAGS = -version-info 0:0:0 -no-undefined ${LIBXML2_LDFLAGS} $(PCRE_LDFLAGS) $(OPENSSL_LDFLAGS) $(ZLIB_LDFLAGS) $(LDFLAGS) -lm
@@ -100,7 +106,6 @@ AM_CXXFLAGS = ${PTHREAD_CFLAGS}
 
 if COND_DEBUG
 BUILD_TYPE=dev
-libqore_la_SOURCES += ql_debug.cc
 endif
 
 if COND_PROFILE

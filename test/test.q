@@ -1114,6 +1114,20 @@ sub xml_tests()
     test_value(parseXMLRPCResponse($str), $fr, "second makeXMLRPCResponse() and parseXMLRPCResponse()");
 }
 
+sub json_tests()
+{
+    my $h = ( "test" : 1, 
+	      "gee" : "philly-\"test-quotes\"", 
+	      "marguile" : 1.0392,
+	      "list" : (1, 2, 3, ( "four" : 4 ), 5.0, True, ( "key1" : "one", "key2" : 2.0 )),
+	      "hash" : ( "howdy" : 123, "partner" : 456 ),
+	      "bool" : True,
+	      "time" : now(),
+	      "key"  : "this & that" );
+    my $jstr = makeJSONString(); 
+    #test_value($h, parseJSONString($jstr), "first JSON");
+}
+
 sub digest_tests()
 {
     my $str = "Hello There This is a Test - 1234567890";
@@ -1186,6 +1200,7 @@ sub do_tests()
 	    context_tests();
 	    constant_tests();	
 	    xml_tests();
+	    json_tests();
 	    crypto_tests();
 	    digest_tests();
 	    if ($o.bq)

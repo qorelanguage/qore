@@ -135,8 +135,8 @@ class DateTime {
       // returns the ISO-8601 week number (year may be different)
       void getISOWeek(int &year, int &week, int &day);
 
-      class QoreString *format(char *fmt);
-      class QoreString *getString();
+      void format(class QoreString *str, char *fmt);
+      void getString(class QoreString *str);
       
       inline bool isRelative()
       {

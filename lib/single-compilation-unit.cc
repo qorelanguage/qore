@@ -55,6 +55,7 @@
 #include "ql_pwd.cc"
 #include "ql_misc.cc"
 #include "ql_xml.cc"
+#include "ql_json.cc"
 #include "ql_crypto.cc"
 #include "QC_Socket.cc"
 #include "QC_Program.cc"
@@ -72,3 +73,6 @@
 #include "QC_Counter.cc"
 #include "QC_SSLCertificate.cc"
 #include "QC_SSLPrivateKey.cc"
+#ifdef DEBUG
+#include "ql_debug.cc"
+#endif

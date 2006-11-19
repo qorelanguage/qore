@@ -1,6 +1,8 @@
 2006.11.19: David Nichols
 	* enabled --enable-single-compilation-unit configure option to compile
 	  qore as a single file whenever possible
+	* added lib/ql_json.cc for JSON support
+	* added ql_debug.cc in single compilation unit in lib
 
 2006.11.18: David Nichols
 	* starting tagging const methods, reducing excessive inlining

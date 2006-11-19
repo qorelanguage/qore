@@ -812,3 +812,42 @@ int QoreString::compareSoft(QoreString *str, class ExceptionSink *xsink)
 
    return strcmp(buf, str->buf);
 }
+
+void QoreString::concatEscape(const char *str, char c, char esc_char)
+{
+   // if it's not a null string
+   if (str)
+   {
+      int i = 0;
+      // iterate through new string
+      while (str[i])
+      {
+	 if (str[i] == c)
+	 {
+	    // check for space in buffer
+	    check_char(len + 1);
+	    buf[len++] = esc_char;
+	 }
+	 else
+	    check_char(len);
+	 // concatenate one character at a time
+	 buf[len++] = str[i++];
+      }
+      // see if buffer needs to be resized for '\0'
+      check_char(len);
+      // terminate string
+      buf[len] = '\0';
+   }
+}
+
+void QoreString::concatEscape(QoreString *str, char c, char esc_char)
+{
+   // if it's not a null string
+   if (str && str->len)
+   {
+      // if buffer needs to be resized
+      check_char(str->len + len);
+
+      concatEscape(str->buf, c, esc_char);
+   }
+}
