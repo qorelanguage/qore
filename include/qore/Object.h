@@ -31,7 +31,6 @@
 #include <qore/common.h>
 #include <qore/ReferenceObject.h>
 #include <qore/VRMutex.h>
-#include <qore/support.h>
 
 #include <stdio.h>
 
@@ -51,7 +50,7 @@ class KeyNode {
    public:
       class KeyNode *next;
 
-      inline KeyNode(int k, void *p, q_private_t r, q_private_t d)
+      DLLLOCAL inline KeyNode(int k, void *p, q_private_t r, q_private_t d)
       {
 	 key = k;
 	 ptr = p;
@@ -60,15 +59,15 @@ class KeyNode {
 	 next = NULL;
 	 //printd(5, "KeyNode::KeyNode() this=%08p, key=%d, p=%08p\n", this, key, ptr);
       }
-      inline int getKey() const
+      DLLLOCAL inline int getKey() const
       {
 	 return key;
       }
-      inline void *getPtr() const
+      DLLLOCAL inline void *getPtr() const
       {
 	 return ptr;
       }
-      inline void *getAndClearPtr()
+      DLLLOCAL inline void *getAndClearPtr()
       {
 	 //printd(5, "KeyNode::getAndClearPtr() this=%08p, key=%d, p=%08p\n", this, key, ptr);
 	 void *rv = ptr;
@@ -79,25 +78,25 @@ class KeyNode {
 #endif
 	 return rv;
       }
-      inline class KeyNode *refNode()
+      DLLLOCAL inline class KeyNode *refNode()
       {
 	 if (!ptr)
 	    return NULL;
 	 f_ref(ptr);
 	 return this;
       }
-      inline void deref()
+      DLLLOCAL inline void deref()
       {
 	 f_deref(ptr);
       }
-      inline void *refPtr()
+      DLLLOCAL inline void *refPtr()
       {
 	 if (!ptr)
 	    return NULL;
 	 f_ref(ptr);
 	 return ptr;
       }
-      inline void derefPtr()
+      DLLLOCAL inline void derefPtr()
       {
 	 f_deref(ptr);
       }
@@ -109,19 +108,15 @@ class KeyList {
       int len;
 
    public:
-      inline KeyList();
-      inline ~KeyList();
-      inline class KeyNode *find(int k) const;
-      inline void insert(int k, void *ptr, q_private_t ref, q_private_t deref);
-      inline class KeyNode *getReferencedPrivateDataNode(int key);
-      inline void *getReferencedPrivateData(int key)
-      {
-	 class KeyNode *kn = find(key);
-	 return kn ? kn->refPtr() : NULL;
-      }
-      inline void addToString(class QoreString *str) const;
-      inline void derefAll();
-      //inline bool compare(class KeyList *k);
+      DLLLOCAL inline KeyList();
+      DLLLOCAL inline ~KeyList();
+      DLLLOCAL inline class KeyNode *find(int k) const;
+      DLLLOCAL inline void insert(int k, void *ptr, q_private_t ref, q_private_t deref);
+      DLLLOCAL inline class KeyNode *getReferencedPrivateDataNode(int key);
+      DLLLOCAL inline void *getReferencedPrivateData(int key);
+      DLLLOCAL inline void addToString(class QoreString *str) const;
+      DLLLOCAL inline void derefAll();
+      //DLLLOCAL inline bool compare(class KeyList *k);
 };
 
 // note that any of the methods below that involve locking cannot be const methods
@@ -137,273 +132,79 @@ class Object : public ReferenceObject
       class Hash *data;
       class QoreProgram *pgm;
 
-      inline void init(class QoreClass *oc, class QoreProgram *p);
+      DLLLOCAL inline void init(class QoreClass *oc, class QoreProgram *p);
       // must only be called when inside the gate
-      inline void doDeleteIntern(class ExceptionSink *xsink);
-      //inline void doDeleteNoDestructor(class ExceptionSink *xsink);
-      void cleanup(class ExceptionSink *xsink, class Hash *td);
+      DLLLOCAL inline void doDeleteIntern(class ExceptionSink *xsink);
+      DLLLOCAL void cleanup(class ExceptionSink *xsink, class Hash *td);
       
    protected:
-      inline ~Object();
+      DLLLOCAL ~Object();
 
    public:
-      inline Object(class QoreClass *oc, class QoreProgram *p);
-      inline Object(class QoreClass *oc, class QoreProgram *p, class Hash *d);
+      DLLEXPORT Object(class QoreClass *oc, class QoreProgram *p);
+      DLLEXPORT Object(class QoreClass *oc, class QoreProgram *p, class Hash *d);
 
-      inline void instantiateLVar(lvh_t id);
-      inline void uninstantiateLVar(class ExceptionSink *xsink);
+      DLLEXPORT void instantiateLVar(lvh_t id);
+      DLLEXPORT void uninstantiateLVar(class ExceptionSink *xsink);
 
-      class QoreNode **getMemberValuePtr(class QoreString *key, class VLock *vl, class ExceptionSink *xsink);
-      class QoreNode **getMemberValuePtr(char *key, class VLock *vl, class ExceptionSink *xsink);
+      DLLEXPORT class QoreNode **getMemberValuePtr(class QoreString *key, class VLock *vl, class ExceptionSink *xsink);
+      DLLEXPORT class QoreNode **getMemberValuePtr(char *key, class VLock *vl, class ExceptionSink *xsink);
 
-      class QoreNode *getMemberValueNoMethod(class QoreString *key, class VLock *vl, class ExceptionSink *xsink);
-      class QoreNode *getMemberValueNoMethod(char *key, class VLock *vl, class ExceptionSink *xsink);
-      class QoreNode **getExistingValuePtr(class QoreString *mem, class VLock *vl, class ExceptionSink *xsink);
-      class QoreNode **getExistingValuePtr(char *mem, class VLock *vl, class ExceptionSink *xsink);
-      bool validInstanceOf(int cid) const;
-      void setValue(char *key, class QoreNode *val, class ExceptionSink *xsink);
-      //inline void setValue(class QoreString *key, class QoreNode *val, class ExceptionSink *xsink);
-      class List *getMemberList(class ExceptionSink *xsink);
-      void deleteMemberValue(class QoreString *key, class ExceptionSink *xsink);
-      void deleteMemberValue(char *key, class ExceptionSink *xsink);
-      int size();
-      bool compareSoft(class Object *obj, class ExceptionSink *xsink);
-      bool compareHard(class Object *obj);
+      DLLEXPORT class QoreNode *getMemberValueNoMethod(class QoreString *key, class VLock *vl, class ExceptionSink *xsink);
+      DLLEXPORT class QoreNode *getMemberValueNoMethod(char *key, class VLock *vl, class ExceptionSink *xsink);
+      DLLEXPORT class QoreNode **getExistingValuePtr(class QoreString *mem, class VLock *vl, class ExceptionSink *xsink);
+      DLLEXPORT class QoreNode **getExistingValuePtr(char *mem, class VLock *vl, class ExceptionSink *xsink);
+      DLLEXPORT bool validInstanceOf(int cid) const;
+      DLLEXPORT void setValue(char *key, class QoreNode *val, class ExceptionSink *xsink);
+      DLLEXPORT class List *getMemberList(class ExceptionSink *xsink);
+      DLLEXPORT void deleteMemberValue(class QoreString *key, class ExceptionSink *xsink);
+      DLLEXPORT void deleteMemberValue(char *key, class ExceptionSink *xsink);
+      DLLEXPORT int size();
+      DLLEXPORT bool compareSoft(class Object *obj, class ExceptionSink *xsink);
+      DLLEXPORT bool compareHard(class Object *obj);
 
-      void merge(class Hash *h, class ExceptionSink *xsink);
-      void assimilate(class Hash *h, class ExceptionSink *xsink);
+      DLLEXPORT void merge(class Hash *h, class ExceptionSink *xsink);
+      DLLEXPORT void assimilate(class Hash *h, class ExceptionSink *xsink);
 
-      class QoreNode *evalFirstKeyValue(class ExceptionSink *xsink);
-      class QoreNode *evalMember(class QoreNode *member, class ExceptionSink *xsink);
-      class QoreNode *evalMemberNoMethod(char *mem, class ExceptionSink *xsink);
-      class QoreNode *evalMemberExistence(char *mem, class ExceptionSink *xsink);
-      class Hash *evalData(class ExceptionSink *xsink);
+      DLLEXPORT class QoreNode *evalFirstKeyValue(class ExceptionSink *xsink);
+      DLLEXPORT class QoreNode *evalMember(class QoreNode *member, class ExceptionSink *xsink);
+      DLLEXPORT class QoreNode *evalMemberNoMethod(char *mem, class ExceptionSink *xsink);
+      DLLEXPORT class QoreNode *evalMemberExistence(char *mem, class ExceptionSink *xsink);
+      DLLEXPORT class Hash *evalData(class ExceptionSink *xsink);
+      DLLEXPORT void setPrivate(int key, void *pd, q_private_t pdref, q_private_t pdderef);
+      DLLEXPORT class KeyNode *getReferencedPrivateDataNode(int key);
+      DLLEXPORT void *getReferencedPrivateData(int key);
+      DLLEXPORT void *getAndClearPrivateData(int key);
+      DLLEXPORT void addPrivateDataToString(class QoreString *str);
+      DLLEXPORT class QoreNode *evalMethod(class QoreString *name, class QoreNode *args, class ExceptionSink *xsink);
+      DLLEXPORT void doDelete(class ExceptionSink *xsink);
+      DLLEXPORT void ref();
+      DLLEXPORT void dereference(class ExceptionSink *xsink);
+      DLLEXPORT void obliterate(class ExceptionSink *xsink);
+      
+      DLLEXPORT inline class QoreClass *getClass() const { return myclass; }
+      DLLEXPORT inline class QoreClass *getClass(int cid) const;
+      DLLEXPORT inline int getStatus() const { return status; }
+      DLLEXPORT inline int isValid() const { return status == OS_OK; }
 
-      inline class QoreClass *getClass() const { return myclass; }
-      inline class QoreClass *getClass(int cid) const;
-      inline int getStatus() const { return status; }
-      inline int isValid() const { return status == OS_OK; }
-
-      void setPrivate(int key, void *pd, q_private_t pdref, q_private_t pdderef);
-      class KeyNode *getReferencedPrivateDataNode(int key);
-      void *getReferencedPrivateData(int key);
-      void *getAndClearPrivateData(int key);
-      void addPrivateDataToString(class QoreString *str);
-
-      inline class QoreNode *evalMethod(class QoreString *name, class QoreNode *args, class ExceptionSink *xsink);
-      void doDelete(class ExceptionSink *xsink);
-
-      inline class QoreProgram *getProgram() const
+      DLLEXPORT inline class QoreProgram *getProgram() const
       {
 	 return pgm;
       }
-      inline bool isSystemObject() const
+      DLLEXPORT inline bool isSystemObject() const
       {
 	 return pgm == NULL;
       }
 
-      inline void ref();
-      void dereference(class ExceptionSink *xsink);
-      void obliterate(class ExceptionSink *xsink);
-      
-      inline void tRef()
+      DLLEXPORT inline void tRef()
       {
 	 tRefs.ROreference();
       }
-      inline void tDeref()
+      DLLEXPORT inline void tDeref()
       {
 	 if (tRefs.ROdereference())
 	    delete this;
       }
 };
-
-static inline void alreadyDeleted(class ExceptionSink *xsink, char *cmeth);
-
-#include <qore/common.h>
-#include <qore/QoreNode.h>
-#include <qore/QoreClass.h>
-#include <qore/Context.h>
-#include <qore/QoreString.h>
-#include <qore/List.h>
-#include <qore/ReferenceObject.h>
-#include <qore/Variable.h>
-#include <qore/Exception.h>
-#include <qore/QoreProgram.h>
-
-#include <stdlib.h>
-
-static inline void alreadyDeleted(class ExceptionSink *xsink, char *cmeth)
-{
-   xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s() cannot be executed because the object has already been deleted", cmeth);
-}
-
-inline KeyList::KeyList()
-{
-   head = tail = NULL;
-   len = 0;
-}
-
-inline KeyList::~KeyList()
-{
-   while (head)
-   {
-      tail = head->next;
-      delete head;
-      head = tail;
-   }
-}
-
-inline void KeyList::derefAll()
-{
-   KeyNode *w = head;
-   while (w)
-   {
-      w->deref();
-      w = w->next;
-   }
-}
-
-inline class KeyNode *KeyList::find(int k) const
-{
-   KeyNode *w = head;
-   while (w)
-   {
-      if (w->getKey() == k)
-	 break;
-      w = w->next;
-   }
-   return w;
-}
-
-inline void KeyList::addToString(class QoreString *str) const
-{
-   KeyNode *w = head;
-   while (w)
-   {
-      str->sprintf("%d=<0x%08p>, ", w->getKey(), w->getPtr());
-      w = w->next;
-   }
-}
-
-inline void KeyList::insert(int k, void *ptr, q_private_t ref, q_private_t deref)
-{
-#ifdef DEBUG
-   // see if key exists - should never happen
-   if (find(k))
-      run_time_error("KeyList::insert duplicate key=%d ptr=%08p", k, ptr);
-#endif
-
-   class KeyNode *n = new KeyNode(k, ptr, ref, deref);
-   if (tail)
-      tail->next = n;
-   else
-      head = n;
-   tail = n;
-   len++;
-}
-
-inline class KeyNode *KeyList::getReferencedPrivateDataNode(int key)
-{
-   class KeyNode *kn = find(key);
-   if (!kn)
-      return NULL;
-   kn->refPtr();
-   return kn;
-}
-
-static inline void makeAccessDeletedObjectException(class ExceptionSink *xsink, char *mem, char *cname)
-{
-   xsink->raiseException("OBJECT-ALREADY-DELETED", "attempt to access member '%s' of an already-deleted object of class '%s'", mem, cname);
-}
-
-static inline void makeAccessDeletedObjectException(class ExceptionSink *xsink, char *cname)
-{
-   xsink->raiseException("OBJECT-ALREADY-DELETED", "attempt to an already-deleted object of class '%s'", cname);
-}
-
-inline void Object::init(class QoreClass *oc, class QoreProgram *p)
-{
-   status = OS_OK;
-
-   myclass = oc; 
-   pgm = p;
-   // instead of referencing the class, we reference the program, because the
-   // program contains the namespace that contains the class, and the class'
-   // methods may call functions in the program as well that could otherwise
-   // disappear when the program is deleted
-   if (p)
-   {
-      printd(5, "Object::init() this=%08p (%s) calling QoreProgram::depRef() (%08p)\n", this, myclass->getName(), p);
-      p->depRef();
-   }
-   privateData = NULL;
-}
-
-inline Object::Object(class QoreClass *oc, class QoreProgram *p)
-{
-   init(oc, p);
-   data = new Hash();
-}
-
-inline Object::Object(class QoreClass *oc, class QoreProgram *p, class Hash *h)
-{
-   init(oc, p);
-   data = h;
-}
-
-inline Object::~Object()
-{
-   //tracein("Object::~Object()");
-   printd(5, "Object::~Object() this=%08p, pgm=%08p\n", this, pgm);
-   //myclass->deref();
-#ifdef DEBUG
-   if (pgm)
-      run_time_error("Object::~Object() still has pgm=%08p", pgm);
-   if (data)
-      run_time_error("Object::~Object() still has data=%08p", data);
-   if (privateData)
-      run_time_error("Object::~Object() still has privateData=%08p", privateData);
-#endif
-   //traceout("Object::~Object()");
-}
-
-inline void Object::instantiateLVar(lvh_t id)
-{
-   ref();
-   ::instantiateLVar(id, new QoreNode(this));
-}
-
-inline void Object::uninstantiateLVar(class ExceptionSink *xsink)
-{
-   ::uninstantiateLVar(xsink);
-}
-
-inline void Object::ref()
-{
-   printd(5, "Object::ref(this=%08p) %d->%d\n", this, references, references + 1);
-   //tRef();          // increment total references
-   ROreference();   // increment destructor-relevant references
-}
-
-inline bool Object::validInstanceOf(int cid) const
-{
-   if (status == OS_DELETED)
-      return 0;
-
-   return myclass->getClass(cid);
-}
-
-inline class QoreNode *Object::evalMethod(class QoreString *name, class QoreNode *args, class ExceptionSink *xsink)
-{
-   return myclass->evalMethod(this, name->getBuffer(), args, xsink);
-}
-
-inline class QoreClass *Object::getClass(int cid) const
-{
-
-   if (cid == myclass->getID())
-      return myclass;
-   return myclass->getClass(cid);
-}
 
 #endif

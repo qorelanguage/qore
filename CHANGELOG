@@ -10,6 +10,7 @@
 	* made List and Hash destructors protected to force an explicit 
 	  dereference before the delete to ensure that any exceptions in 
 	  contained objects can be caught
+	* cleaned up Object interface, visibility tags added
 
 2006.11.18: David Nichols
 	* starting tagging const methods, reducing excessive inlining

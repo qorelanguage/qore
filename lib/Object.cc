@@ -26,6 +26,183 @@
 
 #include <qore/config.h>
 #include <qore/Object.h>
+#include <qore/common.h>
+#include <qore/QoreNode.h>
+#include <qore/QoreClass.h>
+#include <qore/Context.h>
+#include <qore/QoreString.h>
+#include <qore/List.h>
+#include <qore/ReferenceObject.h>
+#include <qore/Variable.h>
+#include <qore/Exception.h>
+#include <qore/QoreProgram.h>
+
+#include <stdlib.h>
+
+inline KeyList::KeyList()
+{
+   head = tail = NULL;
+   len = 0;
+}
+
+inline KeyList::~KeyList()
+{
+   while (head)
+   {
+      tail = head->next;
+      delete head;
+      head = tail;
+   }
+}
+
+inline void KeyList::derefAll()
+{
+   KeyNode *w = head;
+   while (w)
+   {
+      w->deref();
+      w = w->next;
+   }
+}
+
+inline class KeyNode *KeyList::find(int k) const
+{
+   KeyNode *w = head;
+   while (w)
+   {
+      if (w->getKey() == k)
+	 break;
+      w = w->next;
+   }
+   return w;
+}
+
+DLLLOCAL inline void *KeyList::getReferencedPrivateData(int key)
+{
+   class KeyNode *kn = find(key);
+   return kn ? kn->refPtr() : NULL;
+}
+
+inline void KeyList::addToString(class QoreString *str) const
+{
+   KeyNode *w = head;
+   while (w)
+   {
+      str->sprintf("%d=<0x%08p>, ", w->getKey(), w->getPtr());
+      w = w->next;
+   }
+}
+
+inline void KeyList::insert(int k, void *ptr, q_private_t ref, q_private_t deref)
+{
+#ifdef DEBUG
+   // see if key exists - should never happen
+   if (find(k))
+      run_time_error("KeyList::insert duplicate key=%d ptr=%08p", k, ptr);
+#endif
+
+   class KeyNode *n = new KeyNode(k, ptr, ref, deref);
+   if (tail)
+      tail->next = n;
+   else
+      head = n;
+   tail = n;
+   len++;
+}
+
+inline class KeyNode *KeyList::getReferencedPrivateDataNode(int key)
+{
+   class KeyNode *kn = find(key);
+   if (!kn)
+      return NULL;
+   kn->refPtr();
+   return kn;
+}
+
+inline void Object::init(class QoreClass *oc, class QoreProgram *p)
+{
+   status = OS_OK;
+
+   myclass = oc; 
+   pgm = p;
+   // instead of referencing the class, we reference the program, because the
+   // program contains the namespace that contains the class, and the class'
+   // methods may call functions in the program as well that could otherwise
+   // disappear when the program is deleted
+   if (p)
+   {
+      printd(5, "Object::init() this=%08p (%s) calling QoreProgram::depRef() (%08p)\n", this, myclass->getName(), p);
+      p->depRef();
+   }
+   privateData = NULL;
+}
+
+Object::Object(class QoreClass *oc, class QoreProgram *p)
+{
+   init(oc, p);
+   data = new Hash();
+}
+
+Object::Object(class QoreClass *oc, class QoreProgram *p, class Hash *h)
+{
+   init(oc, p);
+   data = h;
+}
+
+Object::~Object()
+{
+   //tracein("Object::~Object()");
+   printd(5, "Object::~Object() this=%08p, pgm=%08p\n", this, pgm);
+   //myclass->deref();
+#ifdef DEBUG
+   if (pgm)
+      run_time_error("Object::~Object() still has pgm=%08p", pgm);
+   if (data)
+      run_time_error("Object::~Object() still has data=%08p", data);
+   if (privateData)
+      run_time_error("Object::~Object() still has privateData=%08p", privateData);
+#endif
+   //traceout("Object::~Object()");
+}
+
+void Object::instantiateLVar(lvh_t id)
+{
+   ref();
+   ::instantiateLVar(id, new QoreNode(this));
+}
+
+void Object::uninstantiateLVar(class ExceptionSink *xsink)
+{
+   ::uninstantiateLVar(xsink);
+}
+
+void Object::ref()
+{
+   printd(5, "Object::ref(this=%08p) %d->%d\n", this, references, references + 1);
+   //tRef();          // increment total references
+   ROreference();   // increment destructor-relevant references
+}
+
+bool Object::validInstanceOf(int cid) const
+{
+   if (status == OS_DELETED)
+      return 0;
+
+   return myclass->getClass(cid);
+}
+
+class QoreNode *Object::evalMethod(class QoreString *name, class QoreNode *args, class ExceptionSink *xsink)
+{
+   return myclass->evalMethod(this, name->getBuffer(), args, xsink);
+}
+
+class QoreClass *Object::getClass(int cid) const
+{
+
+   if (cid == myclass->getID())
+      return myclass;
+   return myclass->getClass(cid);
+}
 
 class QoreNode *Object::evalMember(class QoreNode *member, class ExceptionSink *xsink)
 {

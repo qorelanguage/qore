@@ -405,8 +405,7 @@ inline void QoreNode::deref(ExceptionSink *xsink)
 	 printd(0, "QoreNode::deref() WARNING, node %08p references=%d (type=%s)\n",
 		this, references, type->name);
 #endif
-   // get snapshot of reference count to avoid race conditions
-   // in multithreaded environments
+
    if (ROdereference())
    {
       if (type == NT_LIST)

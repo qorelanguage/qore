@@ -50,15 +50,15 @@ class ExceptionSink {
       inline ~ExceptionSink();
       inline void handleExceptions();
       inline void handleWarnings();
-      inline bool isEvent()
+      inline bool isEvent() const
       {
 	 return head || thread_exit;
       }
-      inline bool isThreadExit()
+      inline bool isThreadExit() const
       {
 	 return thread_exit;
       }
-      inline bool isException()
+      inline bool isException() const
       {
 	 return head;
       }
@@ -116,6 +116,11 @@ class Exception {
 void defaultExceptionHandler(class Exception *e);
 void defaultWarningHandler(class Exception *e);
 class QoreNode *makeExceptionObject(class Exception *e);
+
+static inline void alreadyDeleted(class ExceptionSink *xsink, char *cmeth);
+static inline void makeAccessDeletedObjectException(class ExceptionSink *xsink, char *mem, char *cname);
+static inline void makeAccessDeletedObjectException(class ExceptionSink *xsink, char *cname);
+
 /*
 inline void make_exception(class ExceptionSink *xsink, class QoreNode *l);
 inline void make_exception(ExceptionSink *xsink, Exception *ne);
@@ -364,4 +369,18 @@ inline void Exception::del()
    delete this;
 }
 
+static inline void alreadyDeleted(class ExceptionSink *xsink, char *cmeth)
+{
+   xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s() cannot be executed because the object has already been deleted", cmeth);
+}
+
+static inline void makeAccessDeletedObjectException(class ExceptionSink *xsink, char *mem, char *cname)
+{
+   xsink->raiseException("OBJECT-ALREADY-DELETED", "attempt to access member '%s' of an already-deleted object of class '%s'", mem, cname);
+}
+
+static inline void makeAccessDeletedObjectException(class ExceptionSink *xsink, char *cname)
+{
+   xsink->raiseException("OBJECT-ALREADY-DELETED", "attempt to an already-deleted object of class '%s'", cname);
+}
 #endif
