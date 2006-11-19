@@ -357,9 +357,9 @@ static inline bool is_value(class QoreNode *node)
    // the only container types that can be created at parse time are lists and hashes
 
    if (node->type == NT_LIST)
-      return !node->val.list->needs_eval;
+      return !node->val.list->needsEval();
    else if (node->type == NT_HASH)
-      return !node->val.hash->needs_eval;
+      return !node->val.hash->needsEval();
 
    return node->type->isValue();
 }

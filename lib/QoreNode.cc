@@ -32,7 +32,7 @@ static inline QoreNode *crlr_list_copy(QoreNode *n, ExceptionSink *xsink)
 {
    // if it's not an immediate list, then there can't be any
    // variable references in it at any level, so return copy
-   if (!n->val.list->needs_eval)
+   if (!n->val.list->needsEval())
       return n->RefSelf();
 
    // otherwise process each list element
@@ -46,7 +46,7 @@ static inline QoreNode *crlr_hash_copy(QoreNode *n, ExceptionSink *xsink)
 {
    // if it's not an immediate hash, then there can't be any
    // variable references in it at any level, so return copy
-   if (!n->val.hash->needs_eval)
+   if (!n->val.hash->needsEval())
       return n->RefSelf();
 
    Hash *h = new Hash(1);

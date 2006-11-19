@@ -31,6 +31,8 @@
 #include <qore/charset.h>
 #include <qore/QoreType.h>
 #include <qore/QoreNode.h>
+#include <qore/Exception.h>
+#include <qore/BinaryObject.h>
 
 #include <limits.h>
 #include <float.h>

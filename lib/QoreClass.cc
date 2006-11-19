@@ -49,7 +49,7 @@ class QoreNode *Method::eval(Object *self, QoreNode *args, ExceptionSink *xsink)
    QoreNode *new_args;
    if (args)
    {
-      if (args->val.list->needs_eval)
+      if (args->val.list->needsEval())
       {
 	 printd(5, "Method::eval() about to evaluate args=%08p (%s)\n", args, args->type->name);
 	 new_args = args->eval(xsink);
@@ -132,7 +132,7 @@ void Method::evalConstructor(Object *self, QoreNode *args, class BCList *bcl, cl
    QoreNode *new_args;
    if (args)
    {
-      if (args->val.list->needs_eval)
+      if (args->val.list->needsEval())
       {
 	 printd(5, "Method::evalConstructor() about to evaluate args=%08p (%s)\n", args, args->type->name);
 	 new_args = args->eval(xsink);

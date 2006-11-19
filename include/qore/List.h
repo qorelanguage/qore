@@ -30,6 +30,7 @@ class List {
       class QoreNode **entry;
       int length;
       int allocated;
+      bool needs_eval;
 
       void resize(int num);
       inline void check_offset(int &offset);
@@ -38,8 +39,6 @@ class List {
       void splice_intern(int offset, int length, class QoreNode *l, class ExceptionSink *xsink);
 
    public:
-      int needs_eval;
-
       inline List();
       inline List(int i);
       inline ~List();
@@ -72,6 +71,14 @@ class List {
       inline void splice(int offset, class ExceptionSink *xsink);
       inline void splice(int offset, int length, class ExceptionSink *xsink);
       inline void splice(int offset, int length, class QoreNode *l, class ExceptionSink *xsink);
+      DLLEXPORT inline bool needsEval() const
+      {
+	 return needs_eval;
+      }
+      DLLEXPORT inline void clearNeedsEval()
+      {
+	 needs_eval = false;
+      }
 };
 
 #include <stdio.h>
@@ -120,6 +127,7 @@ class ListIterator
 #include <qore/QoreNode.h>
 #include <qore/QoreType.h>
 #include <qore/Object.h>
+#include <qore/Exception.h>
 #ifdef DEBUG
 #include <qore/support.h>
 #endif

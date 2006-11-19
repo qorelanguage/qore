@@ -34,6 +34,7 @@
 #include <qore/QC_Datasource.h>
 #include <qore/DBI.h>
 #include <qore/ModuleManager.h>
+#include <qore/BinaryObject.h>
 
 #include "oracle.h"
 #include "oracle-module.h"

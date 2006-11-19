@@ -128,7 +128,7 @@ bool needsEval(class QoreNode *n)
 	 if (needsEval(n->val.list->retrieve_entry(i)))
 	    return true;
       // here we set needs_eval to false so the list won't be evaluated again
-      n->val.list->needs_eval = false;
+      n->val.list->clearNeedsEval();
       return false;
    }
 
@@ -139,7 +139,7 @@ bool needsEval(class QoreNode *n)
 	 if (needsEval(hi.getValue()))
 	    return true;
       // here we set needs_eval to false so the hash won't be evaluated again
-      n->val.hash->needs_eval = false;
+      n->val.hash->clearNeedsEval();
       return false;
    }
    
@@ -801,6 +801,7 @@ superclass_list:
         | superclass_list ',' superclass
         {
 	   $1->add($3);
+	   $$ = $1;
         }
         ;
 
@@ -1048,7 +1049,7 @@ hash:
 	   $$ = $1;
 	}
         | hash ','
-        { /* empty ',' on end of hash */ }
+        { /* empty ',' on end of hash */ $$=$1; }
 	;
 
 hash_element:

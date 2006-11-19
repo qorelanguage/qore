@@ -40,6 +40,7 @@
 #include <qore/QC_Datasource.h>
 #include <qore/DBI.h>
 #include <qore/ModuleManager.h>
+#include <qore/BinaryObject.h>
 
 #include "qore-mysql.h"
 #include "qore-mysql-module.h"
@@ -509,8 +510,7 @@ inline class QoreNode *MyBindGroup::getOutputHash(class ExceptionSink *xsink)
       // prepare the statement for execution
       if (mysql_stmt_prepare(stmt, qstr.getBuffer(), qstr.strlen()))
       {
-	 h->dereference(xsink);
-	 delete h;
+	 h->derefAndDelete(xsink);
 	 xsink->raiseException("DBI:MYSQL:ERROR", (char *)mysql_error(db));
 	 return NULL;
       }
@@ -524,8 +524,7 @@ inline class QoreNode *MyBindGroup::getOutputHash(class ExceptionSink *xsink)
 
 	 if (mysql_stmt_execute(stmt))
 	 {
-	    h->dereference(xsink);
-	    delete h;
+	    h->derefAndDelete(xsink);
 	    xsink->raiseException("DBI:MYSQL:ERROR", (char *)mysql_error(db));
 	    return NULL;
 	 }

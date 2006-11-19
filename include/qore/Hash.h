@@ -46,10 +46,10 @@ class HashIterator
       class HashMember *ptr;
 
    public:
-      inline HashIterator(class HashMember *h) { ptr = NULL; head = h; }
-      inline HashIterator(class Hash *h);
+      DLLEXPORT inline HashIterator(class HashMember *h) { ptr = NULL; head = h; }
+      DLLEXPORT inline HashIterator(class Hash *h);
 
-      inline class HashMember *next() 
+      DLLEXPORT inline class HashMember *next() 
       { 
 	 if (ptr) 
 	    ptr = ptr->next;
@@ -57,29 +57,29 @@ class HashIterator
 	    ptr = head;
 	 return ptr;
       }
-      inline char *getKey() const
+      DLLEXPORT inline char *getKey() const
       { 
 	 if (!ptr)
 	    return NULL;
 
 	 return ptr->key;
       }
-      inline class QoreString *getKeyString() const;
-      inline class QoreNode *getValue() const
+      DLLEXPORT inline class QoreString *getKeyString() const;
+      DLLEXPORT inline class QoreNode *getValue() const
       {
 	 if (ptr)
 	    return ptr->node;
 	 return NULL;
       }
-      inline class QoreNode **getValuePtr() const
+      DLLEXPORT inline class QoreNode **getValuePtr() const
       {
 	 if (ptr)
 	    return &(ptr->node);
 	 return NULL;
       }
-      inline class QoreNode *eval(class ExceptionSink *xsink) const;
-      inline bool last() const { return (bool)(ptr ? !ptr->next : false); } 
-      //inline void setValue(class QoreNode *val, class ExceptionSink *xsink);
+      DLLEXPORT inline class QoreNode *eval(class ExceptionSink *xsink) const;
+      DLLEXPORT inline bool last() const { return (bool)(ptr ? !ptr->next : false); } 
+      //DLLEXPORT inline void setValue(class QoreNode *val, class ExceptionSink *xsink);
 };
 
 class Hash
@@ -90,459 +90,63 @@ class Hash
       class HashMember *member_list;
       class HashMember *tail;
       hm_hm_t hm;
-      inline class QoreNode **newKeyValue(char *key, class QoreNode *value);
-      inline void internDeleteKey(class HashMember *m, class ExceptionSink *xsink);
-
-   public:
       bool needs_eval;
 
-      inline Hash(bool ne = false);
-      inline ~Hash();
+      DLLLOCAL class QoreNode **newKeyValue(char *key, class QoreNode *value);
+      DLLLOCAL void internDeleteKey(class HashMember *m, class ExceptionSink *xsink);
+      DLLLOCAL inline void deref_intern(class ExceptionSink *xsink);
 
-      // deprecated APIs
-      //inline class QoreNode *getKeyValue(class QoreString *key);
-      //inline class QoreNode *getFirstKeyValue();
+   public:
+      DLLEXPORT Hash(bool ne = false);
+      DLLEXPORT ~Hash();
 
-      inline char *getFirstKey() const { return member_list ? member_list->key :NULL; }
-      inline char *getLastKey() const { return tail ? tail->key : NULL; }
-      inline class QoreNode *getKeyValueExistence(char *key) const;
-      inline class QoreNode *getKeyValueExistence(class QoreString *key, class ExceptionSink *xsink) const;
-      inline class QoreNode *getKeyValue(class QoreString *key, class ExceptionSink *xsink) const;
-      inline class QoreNode *getKeyValue(char *key) const;
-      inline class Hash *copy() const;
+      DLLEXPORT char *getFirstKey() const { return member_list ? member_list->key :NULL; }
+      DLLEXPORT char *getLastKey() const { return tail ? tail->key : NULL; }
+      DLLEXPORT class QoreNode *getKeyValueExistence(char *key) const;
+      DLLEXPORT class QoreNode *getKeyValueExistence(class QoreString *key, class ExceptionSink *xsink) const;
+      DLLEXPORT class QoreNode *getKeyValue(class QoreString *key, class ExceptionSink *xsink) const;
+      DLLEXPORT class QoreNode *getKeyValue(char *key) const;
+      DLLEXPORT class Hash *copy() const;
 
       // APIs suitable for objects below
-      inline class QoreNode **getKeyValuePtr(class QoreString *key, class ExceptionSink *xsink);
-      inline class QoreNode **getKeyValuePtr(char *key);
-      inline class QoreNode **getExistingValuePtr(class QoreString *key, class ExceptionSink *xsink);
-      inline class QoreNode **getExistingValuePtr(char *key);
-      inline void merge(class Hash *h, class ExceptionSink *xsink);
-      inline void assimilate(class Hash *h, class ExceptionSink *xsink);
-      inline class Hash *eval(class ExceptionSink *xsink) const;
-      inline class QoreNode *evalKey(char *key, class ExceptionSink *xsink) const;
-      inline class QoreNode *evalKeyExistence(char *key, class ExceptionSink *xsink) const;
-      inline void setKeyValue(class QoreString *key, class QoreNode *value, class ExceptionSink *xsink);
-      inline void setKeyValue(char *key, class QoreNode *value, class ExceptionSink *xsink);
-      inline void deleteKey(class QoreString *key, class ExceptionSink *xsink);
-      void deleteKey(char *key, class ExceptionSink *xsink);
-      inline class List *getKeys() const;
-      inline bool compareSoft(class Hash *h, class ExceptionSink *xsink) const;
-      inline bool compareHard(class Hash *h) const;
-      inline class QoreNode *evalFirstKeyValue(class ExceptionSink *xsink) const;
-      /*
-      inline class HashIterator *newIterator()
-      {
-	 return new HashIterator(member_list);
+      DLLEXPORT class QoreNode **getKeyValuePtr(class QoreString *key, class ExceptionSink *xsink);
+      DLLEXPORT class QoreNode **getKeyValuePtr(char *key);
+      DLLEXPORT class QoreNode **getExistingValuePtr(class QoreString *key, class ExceptionSink *xsink);
+      DLLEXPORT class QoreNode **getExistingValuePtr(char *key);
+      DLLEXPORT void merge(class Hash *h, class ExceptionSink *xsink);
+      DLLEXPORT void assimilate(class Hash *h, class ExceptionSink *xsink);
+      DLLEXPORT class Hash *eval(class ExceptionSink *xsink) const;
+      DLLEXPORT class QoreNode *evalKey(char *key, class ExceptionSink *xsink) const;
+      DLLEXPORT class QoreNode *evalKeyExistence(char *key, class ExceptionSink *xsink) const;
+      DLLEXPORT void setKeyValue(class QoreString *key, class QoreNode *value, class ExceptionSink *xsink);
+      DLLEXPORT void setKeyValue(char *key, class QoreNode *value, class ExceptionSink *xsink);
+      DLLEXPORT void deleteKey(class QoreString *key, class ExceptionSink *xsink);
+      DLLEXPORT void deleteKey(char *key, class ExceptionSink *xsink);
+      DLLEXPORT class List *getKeys() const;
+      DLLEXPORT bool compareSoft(class Hash *h, class ExceptionSink *xsink) const;
+      DLLEXPORT bool compareHard(class Hash *h) const;
+      DLLEXPORT class QoreNode *evalFirstKeyValue(class ExceptionSink *xsink) const;
+      DLLEXPORT void dereference(class ExceptionSink *xsink);
+      DLLEXPORT void derefAndDelete(class ExceptionSink *xsink);
+
+      DLLEXPORT inline int size() const 
+      { 
+	 return hm.size(); 
       }
-      */
-      inline int size() const { return hm.size(); }
-      void dereference(class ExceptionSink *xsink);
+      DLLEXPORT inline bool needsEval() const
+      {
+	 return needs_eval;
+      }
+      DLLEXPORT inline void clearNeedsEval()
+      {
+	 needs_eval = false;
+      }
 };
-
-#include <qore/QoreNode.h>
-#include <qore/List.h>
-#include <qore/QoreString.h>
-#include <qore/Object.h>
-#include <qore/charset.h>
-
-#include <string.h>
-#include <stdlib.h>
 
 inline HashIterator::HashIterator(class Hash *h) 
 { 
    ptr = NULL;
    head = h->member_list; 
-}
-
-inline void Hash::internDeleteKey(class HashMember *om, class ExceptionSink *xsink)
-{
-   // dereference node if present
-   if (om->node)
-   {
-      if (om->node->type == NT_OBJECT)
-         om->node->val.object->doDelete(xsink);
-      om->node->deref(xsink);
-   }
-   // remove key from list
-   if (om->next)
-      om->next->prev = om->prev;
-   if (om->prev)
-      om->prev->next = om->next;
-   if (om == member_list)
-      member_list = om->next;
-   if (om == tail)
-      tail = om->prev;
-   // free string memory
-   free(om->key);
-   // free om memory
-   delete om;
-}
-
-inline class QoreNode **Hash::getKeyValuePtr(QoreString *key, class ExceptionSink *xsink)
-{
-   if (key->getEncoding() != QCS_DEFAULT)
-   {
-      QoreString *ns = key->convertEncoding(QCS_DEFAULT, xsink);
-      if (xsink->isEvent())
-	 return NULL;
-      QoreNode **rv = getKeyValuePtr(ns->getBuffer());
-      delete ns;
-      return rv;
-   }
-   return getKeyValuePtr(key->getBuffer());
-}
-
-inline void Hash::deleteKey(QoreString *key, ExceptionSink *xsink)
-{
-   if (key->getEncoding() != QCS_DEFAULT)
-   {
-      QoreString *ns = key->convertEncoding(QCS_DEFAULT, xsink);
-      if (xsink->isEvent())
-	 return;
-      deleteKey(ns->getBuffer(), xsink);
-      delete ns;
-   }
-   else
-      deleteKey(key->getBuffer(), xsink);
-}
-
-inline class QoreNode *Hash::getKeyValueExistence(QoreString *key, class ExceptionSink *xsink) const
-{
-   if (key->getEncoding() != QCS_DEFAULT)
-   {
-      QoreString *ns = key->convertEncoding(QCS_DEFAULT, xsink);
-      if (xsink->isEvent())
-	 return NULL;
-      QoreNode *rv = getKeyValueExistence(ns->getBuffer());
-      delete ns;
-      return rv;
-   }
-   return getKeyValueExistence(key->getBuffer());
-}
-
-inline void Hash::setKeyValue(QoreString *key, class QoreNode *value, ExceptionSink *xsink)
-{
-   if (key->getEncoding() != QCS_DEFAULT)
-   {
-      QoreString *ns = key->convertEncoding(QCS_DEFAULT, xsink);
-      if (xsink->isEvent())
-	 return;
-      setKeyValue(ns->getBuffer(), value, xsink);
-      delete ns;
-   }
-   else
-      setKeyValue(key->getBuffer(), value, xsink);
-}
-
-inline void Hash::setKeyValue(char *key, class QoreNode *value, ExceptionSink *xsink)
-{
-#ifdef DEBUG
-   if (!key) run_time_error("Hash::setKeyValue(char) key=NULL\n");
-#endif
-   class QoreNode **v = getKeyValuePtr(key);
-   if (*v)
-      (*v)->deref(xsink);
-   *v = value;
-}
-
-inline class QoreNode **Hash::getExistingValuePtr(QoreString *key, class ExceptionSink *xsink)
-{
-   if (key->getEncoding() != QCS_DEFAULT)
-   {
-      QoreString *ns = key->convertEncoding(QCS_DEFAULT, xsink);
-      if (xsink->isEvent())
-	 return NULL;
-      QoreNode **rv = getExistingValuePtr(ns->getBuffer());
-      delete ns;
-      return rv;
-   }
-   return getExistingValuePtr(key->getBuffer());
-}
-
-inline class QoreNode *Hash::getKeyValue(QoreString *key, class ExceptionSink *xsink) const
-{
-   if (key->getEncoding() != QCS_DEFAULT)
-   {
-      QoreString *ns = key->convertEncoding(QCS_DEFAULT, xsink);
-      if (xsink->isEvent())
-	 return NULL;
-      QoreNode *rv = getKeyValue(ns->getBuffer());
-      delete ns;
-      return rv;
-   }
-   return getKeyValue(key->getBuffer());
-}
-
-// this function should only be called when the key doesn't exist
-inline class QoreNode **Hash::newKeyValue(char *key, class QoreNode *value)
-{
-#ifdef DEBUG
-   if (!key) run_time_error("Hash::newKeyValue() key=NULL\n");
-#endif
-
-   class HashMember *om = new HashMember;
-   om->node = value;
-   om->next = NULL;
-   om->prev = tail;
-   om->key = strdup(key);
-   if (tail)
-      tail->next = om;
-   else
-      member_list = om;
-   tail = om;
-
-   hm[om->key] = om;
-
-   return &om->node;
-}
-
-// retrieve keys in order they were inserted
-inline class List *Hash::getKeys() const
-{
-   class List *list = new List();
-   class HashMember *where = member_list;
-   
-   while (where)
-   {
-      list->push(new QoreNode(where->key));
-      where = where->next;
-   }
-   return list;
-}
-
-// adds all elements (and references them) from the hash passed, leaves the
-// hash passed alone
-// order is maintained
-inline void Hash::merge(class Hash *h, class ExceptionSink *xsink)
-{
-   class HashMember *where = h->member_list;
-   
-   while (where)
-   {
-      setKeyValue(where->key, where->node ? where->node->RefSelf() : NULL, xsink);
-      where = where->next;
-   }
-}
-
-// adds all elements (already referenecd) from the hash passed, deletes the
-// hased passed
-// order is maintained
-inline void Hash::assimilate(class Hash *h, ExceptionSink *xsink)
-{
-   class HashMember *where = h->member_list;
-   
-   while (where)
-   {
-      setKeyValue(where->key, where->node, xsink);
-      where->node = NULL;
-      where = where->next;
-   }
-   delete h;
-}
-
-// can only be used on hashes populated with parsed data - no objects can be present
-// returns the same order
-inline class Hash *Hash::copy() const
-{
-   Hash *h = new Hash();
-
-   // copy all members to new object
-   class HashMember *where = member_list;
-   while (where)
-   {
-      h->setKeyValue(where->key, where->node ? where->node->RefSelf() : NULL, NULL);
-      where = where->next;
-   }
-   return h;
-}
-
-// returns a hash with the same order
-inline class Hash *Hash::eval(ExceptionSink *xsink) const
-{
-   class Hash *h = new Hash();
-
-   class HashMember *where = member_list;
-   while (where)
-   {
-      h->setKeyValue(where->key, where->node ? where->node->eval(xsink) : NULL, xsink);
-      if (xsink->isEvent())
-	 break;
-      where = where->next;
-   }
-   return h;
-}
-
-inline class QoreNode *Hash::evalFirstKeyValue(class ExceptionSink *xsink) const
-{
-   if (!member_list || !member_list->node)
-      return NULL;
-   
-   return member_list->node->eval(xsink);
-}
-
-// hashes should always be empty by the time they are deleted 
-// because object destructors need to be run...
-inline Hash::~Hash()
-{
-#ifdef DEBUG
-   if (member_list)
-      run_time_error("Hash::~Hash() %08p not empty! elements=%d member_list=%08p\n", this, size(), member_list);
-#endif
-}
-
-inline Hash::Hash(bool ne) 
-{ 
-   needs_eval = ne; 
-   member_list = NULL; 
-   tail = NULL; 
-}
-
-inline class QoreNode *HashIterator::eval(class ExceptionSink *xsink) const
-{
-   if (ptr && ptr->node)
-      return ptr->node->eval(xsink);
-   return NULL;
-}
-
-inline class QoreString *HashIterator::getKeyString() const
-{
-   if (!ptr)
-      return NULL;
-
-   return new QoreString(ptr->key, QCS_DEFAULT);
-}
-
-/*
-inline void HashIterator::setValue(class QoreNode *val, class ExceptionSink *xsink)
-{
-   if (!ptr)
-      return;
-
-   if (ptr->node)
-      ptr->node->deref(xsink);
-   ptr->node = val;
-}
-*/
-
-inline class QoreNode *Hash::evalKey(char *key, class ExceptionSink *xsink) const
-{
-#ifdef DEBUG
-   if (!key) run_time_error("Hash::evalKey() key=NULL\n");
-#endif
-   hm_hm_t::const_iterator i = hm.find(key);
-
-   if (i != hm.end() && i->second->node)
-      return i->second->node->eval(xsink);
-
-   return NULL;
-}
-
-inline class QoreNode *Hash::evalKeyExistence(char *key, class ExceptionSink *xsink) const
-{
-#ifdef DEBUG
-   if (!key) run_time_error("Hash::evalKeyExistence() key=NULL\n");
-#endif
-   hm_hm_t::const_iterator i = hm.find(key);
-
-   if (i != hm.end())
-   {
-      if (i->second->node)
-	 return i->second->node->eval(xsink);
-      
-      return NULL;
-   }
-   return (QoreNode *)-1;
-}
-
-inline class QoreNode **Hash::getKeyValuePtr(char *key)
-{
-#ifdef DEBUG
-   if (!key) run_time_error("Hash::getKeyValuePtr() key=NULL\n");
-#endif
-   hm_hm_t::iterator i = hm.find(key);
-
-   if (i != hm.end())
-      return &i->second->node;
-
-   return newKeyValue(key, NULL);
-}
-
-inline class QoreNode *Hash::getKeyValue(char *key) const
-{
-#ifdef DEBUG
-   if (!key) run_time_error("Hash::getKeyValue() key=NULL\n");
-#endif
-
-   hm_hm_t::const_iterator i = hm.find(key);
-
-   if (i != hm.end())
-      return i->second->node;
-
-   return NULL;
-}
-
-inline class QoreNode *Hash::getKeyValueExistence(char *key) const
-{
-#ifdef DEBUG
-   if (!key) run_time_error("Hash::getKeyValueExistence() key=NULL\n");
-#endif
-
-   hm_hm_t::const_iterator i = hm.find(key);
-
-   if (i != hm.end())
-      return i->second->node;
-
-   return (QoreNode *)-1;
-}
-
-// does a "soft" compare (values of different types are converted if necessary and then compared)
-// 0 = equal, 1 = not equal
-inline bool Hash::compareSoft(class Hash *h, class ExceptionSink *xsink) const
-{
-   if (h->hm.size() != hm.size())
-      return 1;
-
-   for (hm_hm_t::const_iterator i = hm.begin(); i != hm.end(); i++)
-   {
-      hm_hm_t::const_iterator j = h->hm.find(i->first);
-      if (j == h->hm.end())
-	 return 1;
-
-      if (::compareSoft(i->second->node, j->second->node, xsink))
-	 return 1;
-   }
-
-   return 0;
-}
-
-// does a "hard" compare (types must be exactly the same)
-// 0 = equal, 1 = not equal
-inline bool Hash::compareHard(class Hash *h) const
-{
-   if (h->hm.size() != hm.size())
-      return 1;
-
-   for (hm_hm_t::const_iterator i = hm.begin(); i != hm.end(); i++)
-   {
-      hm_hm_t::const_iterator j = h->hm.find(i->first);
-      if (j == h->hm.end())
-	 return 1;
-
-      if (::compareHard(i->second->node, j->second->node))
-	 return 1;
-   }
-
-   return 0;
-}
-
-inline class QoreNode **Hash::getExistingValuePtr(char *key)
-{
-   hm_hm_t::const_iterator i = hm.find(key);
-
-   if (i != hm.end())
-      return &i->second->node;
-   
-   return NULL;
 }
 
 #endif // _QORE_HASH_H
