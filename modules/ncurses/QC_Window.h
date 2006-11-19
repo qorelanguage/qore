@@ -401,4 +401,12 @@ class Window : public ReferenceObject, public LockedObject {
       }
 };
 
+static inline int getChar(QoreNode *p)
+{
+   if (p->type == NT_STRING)
+      return p->val.String->getBuffer()[0];
+
+   return p->getAsInt();
+}
+
 #endif // _QORE_NCURSES_WINDOW_H

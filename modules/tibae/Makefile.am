@@ -1,7 +1,11 @@
 libdir = ${exec_prefix}/lib${LIBSUFFIX}
 pkglibdir = $(libdir)/@PACKAGE@-@VERSION@
 
+if COND_SINGLE_COMPILATION_UNIT
+TIBAE_SOURCES = single-compilation-unit.cc
+else
 TIBAE_SOURCES = QoreApp.cc tibae.cc tibae-module.cc 
+endif
 
 if COND_MONOLITHIC
 noinst_LTLIBRARIES = libtibae.la 

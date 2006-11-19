@@ -130,6 +130,15 @@ if test -z "$MODULE_SUFFIX" ; then
 fi
 AC_SUBST(MODULE_SUFFIX)
 
+AC_ARG_ENABLE([single-compilation-unit],
+  [AS_HELP_STRING([--enable-single-compilation-unit],
+		  [enable compilation as a single unit (default: on)])],
+  [case "${enable_single_compilation_unit}" in
+       yes|no) ;;
+       *)      AC_MSG_ERROR(bad value ${enable_single_compilation_unit} for --enable-single-compilation-unit) ;;
+      esac],
+  [enable_single_compilation_unit=yes])
+
 AC_ARG_ENABLE([64bit],
   [AS_HELP_STRING([--enable-64bit],
 		  [enable 64bit support (default: off)])],
@@ -1523,26 +1532,34 @@ AM_CONDITIONAL([COND_TIBRV],      [test "$with_tibrv" = yes])
 AM_CONDITIONAL([COND_TIBAE],      [test "$with_tibae" = yes])
 AM_CONDITIONAL([COND_TUXEDO],     [test "$with_tuxedo" = yes])
 AM_CONDITIONAL([COND_MONOLITHIC], [test "$enable_shared" = no -o "$enable_builtin_modules" = "yes"])
+AM_CONDITIONAL([COND_SINGLE_COMPILATION_UNIT], [test "$enable_single_compilation_unit" = yes])
 
 AC_CONFIG_FILES([Makefile lib/Makefile modules/Makefile modules/ncurses/Makefile modules/tibrv/Makefile modules/tibae/Makefile modules/mysql/Makefile modules/oracle/Makefile modules/Tuxedo/Makefile])
 AC_OUTPUT
 
 echo "*** BUILTIN FEATURES ***"
-printf "library  : %s %s" "$OS" "$ARCH"
+printf "library                 : %s %s" "$OS" "$ARCH"
 if test "$enable_64bit" = "yes"; then
    printf " (64-bit)\n"
 else
    printf " (32-bit)\n"
 fi
 
-printf "debug    : "
+printf "single compilation unit : "
 if test "$enable_debug" = "yes"; then
    echo yes
 else
    echo disabled
 fi
 
-printf "profile  : "
+printf "debug                   : "
+if test "$enable_debug" = "yes"; then
+   echo yes
+else
+   echo disabled
+fi
+
+printf "profile                 : "
 if test "$enable_profile" = "yes"; then
    echo yes
 else
@@ -1553,42 +1570,42 @@ if test "$enable_shared" = "yes"; then
    echo "*** MODULES ***"
 fi
 
-printf "ncurses  : "
+printf "ncurses                 : "
 if test "$enable_ncurses" = "yes"; then
    echo yes
 else
    echo disabled
 fi
 
-printf "oracle   : "
+printf "oracle                  : "
 if test "$with_oracle" = "yes"; then
    echo yes
 else
    echo disabled
 fi
 
-printf "mysql    : "
+printf "mysql                   : "
 if test "$with_mysql" = "yes"; then
    echo yes
 else
    echo disabled
 fi
 
-printf "tibrv    : "
+printf "tibrv                   : "
 if test "$with_tibrv" = "yes"; then
    echo yes
 else
    echo disabled
 fi
 
-printf "tibae    : "
+printf "tibae                   : "
 if test "$with_tibae" = "yes"; then
    echo yes
 else
    echo disabled
 fi
 
-printf "tuxedo   : "
+printf "tuxedo                  : "
 if test "$with_tuxedo" = "yes"; then
    echo yes
 else

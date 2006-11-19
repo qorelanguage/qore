@@ -1,3 +1,7 @@
+2006.11.19: David Nichols
+	* enabled --enable-single-compilation-unit configure option to compile
+	  qore as a single file whenever possible
+
 2006.11.18: David Nichols
 	* starting tagging const methods, reducing excessive inlining
 

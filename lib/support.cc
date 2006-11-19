@@ -37,7 +37,7 @@
 int qore_trace = 0;
 int debug = 0;
 
-extern int threads_initialized;
+extern bool threads_initialized;
 
 // function to use to exit the program
 void leave(int rc)

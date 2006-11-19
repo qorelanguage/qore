@@ -7,6 +7,13 @@ INCLUDES = -I$(top_srcdir)/include
 AM_YFLAGS = -d
 
 lib_LTLIBRARIES = libqore.la
+
+if COND_SINGLE_COMPILATION_UNIT
+libqore_la_SOURCES = \
+	parser.yy \
+	scanner.ll \
+	single-compilation-unit.cc
+else
 libqore_la_SOURCES = \
 	parser.yy \
 	scanner.ll \
@@ -84,6 +91,7 @@ libqore_la_SOURCES = \
 	QC_Counter.cc \
 	QC_SSLCertificate.cc \
 	QC_SSLPrivateKey.cc
+endif
 
 libqore_la_LDFLAGS = -version-info 0:0:0 -no-undefined ${LIBXML2_LDFLAGS} $(PCRE_LDFLAGS) $(OPENSSL_LDFLAGS) $(ZLIB_LDFLAGS) $(LDFLAGS) -lm
 libqore_la_LIBADD = ${PTHREAD_LIBS} 

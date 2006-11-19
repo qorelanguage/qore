@@ -410,14 +410,6 @@ class QoreNode *PC_mvvline(class Object *self, class Panel *p, class QoreNode *p
 					  p3 ? p3->getAsInt() : 0));
 }
 
-static inline unsigned int getChar(QoreNode *p)
-{
-   if (p->type == NT_STRING)
-      return p->val.String->getBuffer()[0];
-
-   return p->getAsInt();
-}
-
 class QoreNode *PC_addch(class Object *self, class Panel *p, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *rv;

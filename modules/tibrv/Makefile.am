@@ -1,6 +1,9 @@
 libdir = ${exec_prefix}/lib${LIBSUFFIX}
 pkglibdir = $(libdir)/@PACKAGE@-@VERSION@
 
+if COND_SINGLE_COMPILATION_UNIT
+	single-compilation-unit.cc
+else
 TIBRV_SOURCES = tibrv.cc \
 	QoreTibrvTransport.cc \
 	QoreTibrvSender.cc \
@@ -19,6 +22,7 @@ TIBRV_SOURCES = tibrv.cc \
 	QC_TibrvCmListener.cc \
 	QC_TibrvDistributedQueue.cc \
 	tibrv-module.cc
+endif
 
 if COND_MONOLITHIC
 noinst_LTLIBRARIES = libtibrv.la
