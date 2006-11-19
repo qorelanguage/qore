@@ -177,17 +177,7 @@ class QoreString {
 
 inline class QoreString *checkEncoding(const class QoreString *str, const class QoreEncoding *enc, class ExceptionSink *xsink);
 
-#include <qore/support.h>
-#include <qore/DateTime.h>
-#include <qore/Exception.h>
 #include <qore/charset.h>
-#include <qore/BinaryObject.h>
-#include <qore/QoreLib.h>
-#include <qore/QoreType.h>
-
-#include <errno.h>
-#include <string.h>
-#include <stdio.h>
 
 inline class QoreString *checkEncoding(const class QoreString *str, const class QoreEncoding *enc, class ExceptionSink *xsink)
 {
