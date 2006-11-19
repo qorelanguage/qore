@@ -6,6 +6,10 @@
 	* cleaned up QoreString interface, tagged for gcc shared object 
 	  visibility
 	* cleaned up Hash interface, visibility tags added 
+	* cleaned up List interface, visibility tags added
+	* made List and Hash destructors protected to force an explicit 
+	  dereference before the delete to ensure that any exceptions in 
+	  contained objects can be caught
 
 2006.11.18: David Nichols
 	* starting tagging const methods, reducing excessive inlining

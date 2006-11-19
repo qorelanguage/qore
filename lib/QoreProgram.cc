@@ -176,7 +176,7 @@ void QoreProgram::endThread(class ExceptionSink *xsink)
 {
    // delete thread local storage data
    class Hash *h = clearThreadData(xsink);
-   delete h;
+   h->derefAndDelete(xsink);
 }
 
 void QoreProgram::resolveFunction(class FunctionCall *f)

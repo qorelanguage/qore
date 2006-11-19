@@ -87,8 +87,7 @@ class Hash *parseDatasource(char *ds, class ExceptionSink *xsink)
    {
       free(ostr);
       xsink->raiseException("DATASOURCE-PARSE-ERROR", "missing database name delimited by '@' in '%s'", ds);
-      h->dereference(xsink);
-      delete h;
+      h->derefAndDelete(xsink);
       return NULL;
    }
 
@@ -111,8 +110,7 @@ class Hash *parseDatasource(char *ds, class ExceptionSink *xsink)
       {
 	 free(ostr);
 	 xsink->raiseException("DATASOURCE-PARSE-ERROR", "missing closing parenthesis in charset specification in '%s'", ds);
-	 h->dereference(xsink);
-	 delete h;
+	 h->derefAndDelete(xsink);
 	 return NULL;
       }
       *p = '\0';  // terminate for db
@@ -131,8 +129,7 @@ class Hash *parseDatasource(char *ds, class ExceptionSink *xsink)
       {
 	 free(ostr);
 	 xsink->raiseException("DATASOURCE-PARSE-ERROR", "missing hostname string after '%' delimeter in '%s'", ds);
-	 h->dereference(xsink);
-	 delete h;
+	 h->derefAndDelete(xsink);
 	 return NULL;
       }
       h->setKeyValue("host", new QoreNode(p), NULL);

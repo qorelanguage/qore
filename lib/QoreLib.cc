@@ -391,7 +391,7 @@ class QoreString *dni(class QoreString *s, class QoreNode *n, int indent, class 
                dni(s, nn = n->val.object->evalMemberNoMethod(l->retrieve_entry(i)->val.String->getBuffer(), xsink), indent + 3, xsink);
                discard(nn, xsink);
             }
-            delete l;
+            l->derefAndDelete(xsink);
          }
       }
    }

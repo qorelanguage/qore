@@ -1465,13 +1465,14 @@ QoreNode* QoreTuxedoAdapter::enqueue(char* queue_space, char* queue_name, Hash* 
     return xsink->raiseExceptionArg(err_name, new QoreNode(h), "tpenqueue() failed with error %d.", tperrno);
   }
   // create hash with relevant out settings
-  auto_ptr<Hash> out(new Hash);
+  Hash *out = new Hash;
   out->setKeyValue((char*)"queue_control_flags", new QoreNode((int64)ctl.flags), xsink);
 
   int sz = sizeof(ctl.msgid);
   void* copy = malloc(sz);
   if (!copy) {
     xsink->outOfMemory();
+    out->derefAndDelete(xsink);
     return 0;
   }
   memcpy(copy, &ctl.msgid, sz);
@@ -1480,9 +1481,10 @@ QoreNode* QoreTuxedoAdapter::enqueue(char* queue_space, char* queue_name, Hash* 
   out->setKeyValue((char*)"queue_control_diagnostic", new QoreNode((int64)ctl.diagnostic), xsink);
 
   if (xsink->isException()) {
+    out->derefAndDelete(xsink);
     return 0;
   }
-  return new QoreNode(out.release());
+  return new QoreNode(out);
 }
 
 //-----------------------------------------------------------------------------
@@ -1530,7 +1532,7 @@ QoreNode* QoreTuxedoAdapter::dequeue(char* queue_space, char* queue_name, Hash* 
   QoreNode* retval = buffer2node(out.first, out.second, err_name, xsink);
   if (xsink->isException()) return 0;
 
-  auto_ptr<Hash> res(new Hash);
+  Hash *res = new Hash;
   res->setKeyValue((char*)"data", retval, xsink);
   
   res->setKeyValue((char*)"queue_control_flags", new QoreNode((int64)ctl.flags), xsink);
@@ -1540,6 +1542,7 @@ QoreNode* QoreTuxedoAdapter::dequeue(char* queue_space, char* queue_name, Hash* 
   void* copy = malloc(sz);
   if (!copy) {
     xsink->outOfMemory();
+    res->derefAndDelete(xsink);
     return 0;
   }
   memcpy(copy, &ctl.msgid, sz);
@@ -1550,6 +1553,7 @@ QoreNode* QoreTuxedoAdapter::dequeue(char* queue_space, char* queue_name, Hash* 
   copy = malloc(sz);
   if (!copy) {
     xsink->outOfMemory();
+    res->derefAndDelete(xsink);
     return 0;
   }
   memcpy(copy, &ctl.corrid, sz);
@@ -1568,6 +1572,7 @@ QoreNode* QoreTuxedoAdapter::dequeue(char* queue_space, char* queue_name, Hash* 
   copy = malloc(sz);
   if (!copy) {
     xsink->outOfMemory();
+    res->derefAndDelete(xsink);
     return 0;
   }
   memcpy(copy, &ctl.cltid, sz);
@@ -1575,9 +1580,10 @@ QoreNode* QoreTuxedoAdapter::dequeue(char* queue_space, char* queue_name, Hash* 
   res->setKeyValue((char*)"queue_control_cltid", new QoreNode(bin), xsink);
 
   if (xsink->isException()) {
+    res->derefAndDelete(xsink);
     return 0;
   }
-  return new QoreNode(res.release());
+  return new QoreNode(res);
 }
 
 //------------------------------------------------------------------------------
@@ -1603,7 +1609,7 @@ Hash* QoreTuxedoAdapter::loadFmlDescription(const vector<string>& files, bool is
   FmlEnvironmentSetter setter(files, is_fml32);
   char* err_name = "TuxedoAdapter::loadFml[32]Description";
 
-  auto_ptr<Hash> result(new Hash);
+  Hash *result = new Hash;
 
   for (unsigned i = 0, n = all_names.size(); i != n; ++i) {
     char* name = (char*)all_names[i].c_str();
@@ -1614,6 +1620,7 @@ Hash* QoreTuxedoAdapter::loadFmlDescription(const vector<string>& files, bool is
       id = Fldid(name);
     }
     if (id == BADFLDID) {
+      result->derefAndDelete(xsink);
       xsink->raiseException(err_name, "Fldid[32](\"%s\") failed. Ferror = %d.", name, Ferror);
       return 0;
     }
@@ -1629,10 +1636,11 @@ Hash* QoreTuxedoAdapter::loadFmlDescription(const vector<string>& files, bool is
     list->push(new QoreNode((int64)type));
     result->setKeyValue(name, new QoreNode(list), xsink);
     if (xsink->isException()) {
+      result->derefAndDelete(xsink);
       return 0;
     }
   }
-  return result.release();
+  return result;
 }
 
 //------------------------------------------------------------------------------
@@ -1704,19 +1712,19 @@ static void do_test(bool is_fml32)
 {
   printf("testing generateFml[32]Description()\n");
   ExceptionSink xsink;
-  Hash typed_names;
+  Hash *typed_names = new Hash();
 
-  typed_names.setKeyValue("a_short", new QoreNode((int64)FLD_SHORT), &xsink);
-  typed_names.setKeyValue("a_long", new QoreNode((int64)FLD_LONG), &xsink);
-  typed_names.setKeyValue("a_char", new QoreNode((int64)FLD_CHAR), &xsink);
-  typed_names.setKeyValue("a_float", new QoreNode((int64)FLD_FLOAT), &xsink);
-  typed_names.setKeyValue("a_double", new QoreNode((int64)FLD_DOUBLE), &xsink);
-  typed_names.setKeyValue("a_string", new QoreNode((int64)FLD_STRING), &xsink);
-  typed_names.setKeyValue("a_carray", new QoreNode((int64)FLD_CARRAY), &xsink);
+  typed_names->setKeyValue("a_short", new QoreNode((int64)FLD_SHORT), &xsink);
+  typed_names->setKeyValue("a_long", new QoreNode((int64)FLD_LONG), &xsink);
+  typed_names->setKeyValue("a_char", new QoreNode((int64)FLD_CHAR), &xsink);
+  typed_names->setKeyValue("a_float", new QoreNode((int64)FLD_FLOAT), &xsink);
+  typed_names->setKeyValue("a_double", new QoreNode((int64)FLD_DOUBLE), &xsink);
+  typed_names->setKeyValue("a_string", new QoreNode((int64)FLD_STRING), &xsink);
+  typed_names->setKeyValue("a_carray", new QoreNode((int64)FLD_CARRAY), &xsink);
 
-  Hash empty;
-  QoreTuxedoAdapter adapter(&empty, &xsink);
-  Hash* res = adapter.generateFmlDescription(500, &typed_names, is_fml32, &xsink);
+  Hash *empty = new Hash();
+  QoreTuxedoAdapter adapter(empty, &xsink);
+  Hash* res = adapter.generateFmlDescription(500, typed_names, is_fml32, &xsink);
   if (xsink) {
     Exception* e = xsink.catchException();
     printf("File %s, line %d threw\n", e->file, e->line);
@@ -1783,13 +1791,8 @@ static void do_test(bool is_fml32)
   aux->deref(&xsink);
   assert(!xsink.isException());
 
-  typed_names.deleteKey("a_short", &xsink);
-  typed_names.deleteKey("a_long", &xsink);
-  typed_names.deleteKey("a_char", &xsink);
-  typed_names.deleteKey("a_float", &xsink);
-  typed_names.deleteKey("a_double", &xsink);
-  typed_names.deleteKey("a_string", &xsink);
-  typed_names.deleteKey("a_carray", &xsink);
+  empty->derefAndDelete(&xsink);
+  typed_names->derefAndDelete(&xsink);
   assert(!xsink.isException());
 }
 
@@ -2148,7 +2151,7 @@ Hash* QoreTuxedoAdapter::getFmlDataFromBuffer(Hash* description_info, bool is_fm
     return 0;
   }
 
-  auto_ptr<Hash> out_hash(new Hash);
+  Hash *out_hash = new Hash;
 
   FLDID32 fldid32 = FIRSTFLDID;
   FLDID   fldid = FIRSTFLDID;
@@ -2159,6 +2162,7 @@ Hash* QoreTuxedoAdapter::getFmlDataFromBuffer(Hash* description_info, bool is_fm
   char* value_buffer = (char*)malloc(value_buffer_size);
   if (!value_buffer) {
     xsink->outOfMemory();
+    out_hash->derefAndDelete(xsink);
     return 0;
   }
   ON_BLOCK_EXIT(free, value_buffer);
@@ -2181,6 +2185,7 @@ Hash* QoreTuxedoAdapter::getFmlDataFromBuffer(Hash* description_info, bool is_fm
         char* aux = (char*)realloc(value_buffer, 2 * value_buffer_size);
         if (!aux) {
           xsink->outOfMemory();
+          out_hash->derefAndDelete(xsink);
           return 0;
         }
         value_buffer = aux;
@@ -2202,6 +2207,7 @@ Hash* QoreTuxedoAdapter::getFmlDataFromBuffer(Hash* description_info, bool is_fm
         char* aux = (char*)realloc(value_buffer, value_buffer_size);
         if (!aux) {
           xsink->outOfMemory();
+          out_hash->derefAndDelete(xsink);
           return 0;
         }
         value_buffer = aux;
@@ -2213,6 +2219,7 @@ Hash* QoreTuxedoAdapter::getFmlDataFromBuffer(Hash* description_info, bool is_fm
     }
 
     if (res == -1) {
+      out_hash->derefAndDelete(xsink);
       xsink->raiseException(err_name, "Failed to extract FML[32] field from buffer, Ferror = %d.", (int)Ferror);
       return 0;
     }
@@ -2224,6 +2231,7 @@ Hash* QoreTuxedoAdapter::getFmlDataFromBuffer(Hash* description_info, bool is_fm
       item_info = fml_id2name(fldid, description_info, xsink, err_name);
     }
     if (xsink->isException()) {
+      out_hash->derefAndDelete(xsink);
       return 0;
     }
     assert(!item_info.first.empty());
@@ -2233,6 +2241,7 @@ Hash* QoreTuxedoAdapter::getFmlDataFromBuffer(Hash* description_info, bool is_fm
     case FLD_SHORT:
     {
       if (actual_value_length != sizeof(short)) {
+        out_hash->derefAndDelete(xsink);
         xsink->raiseException(err_name, "FML[32] type short, invalid data length %d.", actual_value_length);
         return 0;
       }
@@ -2245,6 +2254,7 @@ Hash* QoreTuxedoAdapter::getFmlDataFromBuffer(Hash* description_info, bool is_fm
     case FLD_LONG: 
     {
       if (actual_value_length != sizeof(long)) {
+        out_hash->derefAndDelete(xsink);
         xsink->raiseException(err_name, "FML[32] type long, invalid data length %d.", actual_value_length);
         return 0;
       }
@@ -2257,6 +2267,7 @@ Hash* QoreTuxedoAdapter::getFmlDataFromBuffer(Hash* description_info, bool is_fm
     case FLD_CHAR: 
     {
       if (actual_value_length != sizeof(char)) {
+        out_hash->derefAndDelete(xsink);
         xsink->raiseException(err_name, "FML[32] type char, invalid data length %d.", actual_value_length);
         return 0;
       }
@@ -2267,6 +2278,7 @@ Hash* QoreTuxedoAdapter::getFmlDataFromBuffer(Hash* description_info, bool is_fm
     case FLD_FLOAT: 
     {
       if (actual_value_length != sizeof(float)) {
+	out_hash->derefAndDelete(xsink);
         xsink->raiseException(err_name, "FML[32] type float, invalid data length %d.", actual_value_length);
         return 0;
       }
@@ -2279,6 +2291,7 @@ Hash* QoreTuxedoAdapter::getFmlDataFromBuffer(Hash* description_info, bool is_fm
     case FLD_DOUBLE: 
     {
       if (actual_value_length != sizeof(double)) {
+        out_hash->derefAndDelete(xsink);
         xsink->raiseException(err_name, "FML[32] type double, invalid data length %d.", actual_value_length);
         return 0;
       }
@@ -2314,18 +2327,24 @@ Hash* QoreTuxedoAdapter::getFmlDataFromBuffer(Hash* description_info, bool is_fm
     case FLD_FML32:
     case FLD_VIEW32:
     case FLD_MBSTRING:
+      out_hash->derefAndDelete(xsink);
       xsink->raiseException(err_name, "FML[32] type %d is not yet supported.", item_info.second);
       return 0;
     default:
+      out_hash->derefAndDelete(xsink);
       xsink->raiseException(err_name, "Internal error: uknown data type %d in FML description hash.", item_info.second);
       return 0;
     } // switch
 
     out_hash->setKeyValue((char*)item_info.first.c_str(), result_value, xsink);
-    if (xsink->isException()) return 0;
+    if (xsink->isException())
+    {
+       out_hash->derefAndDelete(xsink);
+       return 0;
+    }
   } // for
   
-  return out_hash.release();
+  return out_hash;
 }
 
 //------------------------------------------------------------------------------
@@ -2334,18 +2353,18 @@ static void do_test2(bool is_fml32)
 {
   printf("testing setFml[32]DataToSend()/getFmlDataFromBuffer()\n");
   ExceptionSink xsink;
-  Hash typed_names;
+  Hash *typed_names = new Hash();
 
-  typed_names.setKeyValue("a_short", new QoreNode((int64)FLD_SHORT), &xsink);
-  typed_names.setKeyValue("a_long", new QoreNode((int64)FLD_LONG), &xsink);
-  typed_names.setKeyValue("a_char", new QoreNode((int64)FLD_CHAR), &xsink);
-  typed_names.setKeyValue("a_float", new QoreNode((int64)FLD_FLOAT), &xsink);
-  typed_names.setKeyValue("a_double", new QoreNode((int64)FLD_DOUBLE), &xsink);
-  typed_names.setKeyValue("a_string", new QoreNode((int64)FLD_STRING), &xsink);
-  typed_names.setKeyValue("a_carray", new QoreNode((int64)FLD_CARRAY), &xsink);
+  typed_names->setKeyValue("a_short", new QoreNode((int64)FLD_SHORT), &xsink);
+  typed_names->setKeyValue("a_long", new QoreNode((int64)FLD_LONG), &xsink);
+  typed_names->setKeyValue("a_char", new QoreNode((int64)FLD_CHAR), &xsink);
+  typed_names->setKeyValue("a_float", new QoreNode((int64)FLD_FLOAT), &xsink);
+  typed_names->setKeyValue("a_double", new QoreNode((int64)FLD_DOUBLE), &xsink);
+  typed_names->setKeyValue("a_string", new QoreNode((int64)FLD_STRING), &xsink);
+  typed_names->setKeyValue("a_carray", new QoreNode((int64)FLD_CARRAY), &xsink);
 
   QoreTuxedoAdapter adapter;
-  Hash* res = adapter.generateFmlDescription(500, &typed_names, is_fml32, &xsink);
+  Hash* res = adapter.generateFmlDescription(500, typed_names, is_fml32, &xsink);
   if (xsink) {
     Exception* e = xsink.catchException();
     printf("File %s, line %d threw\n", e->file, e->line);
@@ -2438,13 +2457,7 @@ static void do_test2(bool is_fml32)
   aux = new QoreNode(data);
   aux->deref(&xsink);
 */
-  typed_names.deleteKey("a_short", &xsink);
-  typed_names.deleteKey("a_long", &xsink);
-  typed_names.deleteKey("a_char", &xsink);
-  typed_names.deleteKey("a_float", &xsink);
-  typed_names.deleteKey("a_double", &xsink);
-  typed_names.deleteKey("a_string", &xsink);
-  typed_names.deleteKey("a_carray", &xsink);
+  typed_names->derefAndDelete(&xsink);
 }
 
 TEST()

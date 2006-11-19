@@ -147,8 +147,7 @@ class QoreNode *UserFunction::eval(QoreNode *args, Object *self, class Exception
             {
 	       if (v)
 		  v->deref(xsink);
-               l->dereference(xsink);
-               delete l;
+               l->derefAndDelete(xsink);
                // uninstantiate local vars from param list
                for (int j = 0; j < num_params; j++)
                   uninstantiateLVar(xsink);
@@ -351,8 +350,7 @@ class QoreNode *UserFunction::evalConstructor(QoreNode *args, Object *self, clas
             {
 	       if (v)
 		  v->deref(xsink);
-               l->dereference(xsink);
-               delete l;
+               l->derefAndDelete(xsink);
                // uninstantiate local vars from param list
                for (int j = 0; j < num_params; j++)
                   uninstantiateLVar(xsink);

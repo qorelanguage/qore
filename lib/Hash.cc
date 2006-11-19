@@ -454,6 +454,9 @@ void Hash::dereference(class ExceptionSink *xsink)
 void Hash::derefAndDelete(class ExceptionSink *xsink)
 {
    deref_intern(xsink);
+#ifdef DEBUG
+   member_list = NULL;
+#endif
    delete this;
 }
 

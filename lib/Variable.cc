@@ -516,10 +516,9 @@ void delete_global_variables()
 {
    tracein("delete_global_variables()");
    if (QORE_ARGV)
-      delete QORE_ARGV;
-   delete ARGV;
-   ENV->dereference(NULL);
-   delete ENV;
+      QORE_ARGV->derefAndDelete(NULL);
+   if (ENV)
+      ENV->derefAndDelete(NULL);
    traceout("delete_global_variables()");
 }
 

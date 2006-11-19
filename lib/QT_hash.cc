@@ -103,5 +103,5 @@ class QoreString *hash_MakeString(class QoreNode *n, int foff, class ExceptionSi
 
 void hash_DeleteContents(class QoreNode *n)
 {
-   delete n->val.hash;
+   n->val.hash->derefAndDelete(NULL);
 }

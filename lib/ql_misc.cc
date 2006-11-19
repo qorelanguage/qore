@@ -331,8 +331,7 @@ static class QoreNode *f_hash_values(class QoreNode *params, ExceptionSink *xsin
 
    if (xsink->isEvent())
    {
-      l->dereference(xsink);
-      delete l;
+      l->derefAndDelete(xsink);
       return NULL;
    }
    return new QoreNode(l);

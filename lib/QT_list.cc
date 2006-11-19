@@ -97,5 +97,5 @@ class QoreString *list_MakeString(class QoreNode *n, int foff, class ExceptionSi
 
 void list_DeleteContents(class QoreNode *n)
 {
-   delete n->val.list;
+   n->val.list->derefAndDelete(NULL);
 }

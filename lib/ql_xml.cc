@@ -94,10 +94,7 @@ class hashKeeper {
       inline ~hashKeeper()
       {
 	 if (h)
-	 {
-	    h->dereference(NULL);
-	    delete h;
-	 }
+	    h->derefAndDelete(NULL);
       }
       inline void setKeyValue(char *k, class QoreNode *v)
       {
@@ -978,8 +975,7 @@ static int getXMLData(xmlTextReader *reader, xml_stack *xstack, class QoreEncodi
 	       class QoreString *value = getXmlString(reader, data_ccsid, xsink);
 	       if (!value)
 	       {
-		  h->dereference(xsink);
-		  delete h;
+		  h->derefAndDelete(xsink);
 		  return 0;
 	       }
 	       h->setKeyValue(name, new QoreNode(value), xsink);

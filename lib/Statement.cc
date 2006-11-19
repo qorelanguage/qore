@@ -1251,7 +1251,7 @@ static int process_node(class QoreNode **node, lvh_t oflag, int pflag)
 	 if (value)
 	    lvids += process_node(value, oflag, pflag);
       }
-      delete keys;
+      keys->derefAndDelete(NULL);
       return lvids;
    }
 

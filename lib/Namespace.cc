@@ -141,7 +141,7 @@ int parseInitConstantHash(class Hash *h, int level)
 	 }
       }
    }
-   delete keys;
+   keys->derefAndDelete(NULL);
    return 0;
 }
 

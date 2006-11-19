@@ -621,7 +621,6 @@ void Object::cleanup(class ExceptionSink *xsink, class Hash *td)
 #endif
    }
    
-   td->dereference(xsink);
-   delete td;   
+   td->derefAndDelete(xsink);
 }
 

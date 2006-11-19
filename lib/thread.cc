@@ -643,7 +643,7 @@ Hash *getAllCallStacks()
 	    h->setKeyValue(&str, new QoreNode(l), NULL);
 	 }
 	 else
-	    delete l;
+	    l->derefAndDelete(NULL);
       }
       w = w->next;
    }   

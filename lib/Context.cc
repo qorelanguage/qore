@@ -115,8 +115,7 @@ class QoreNode *Context::getRow(class ExceptionSink *xsink)
       class QoreNode *v = hi.eval(xsink);
       if (xsink->isEvent())
       {
-	 h->dereference(xsink);
-	 delete h;
+	 h->derefAndDelete(xsink);
 	 return NULL;
       }
       // set key value to list entry

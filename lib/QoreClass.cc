@@ -442,10 +442,7 @@ static QoreNode *f_callObjectMethod(QoreNode *params, ExceptionSink *xsink)
       if (xsink->isEvent())
       {
          if (l)
-	 {
-	    l->dereference(xsink);
-	    delete l;
-	 }
+	    l->derefAndDelete(xsink);
          return NULL;
       }
       args = new QoreNode(l);

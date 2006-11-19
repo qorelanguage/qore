@@ -96,9 +96,11 @@ class Hash
       DLLLOCAL void internDeleteKey(class HashMember *m, class ExceptionSink *xsink);
       DLLLOCAL inline void deref_intern(class ExceptionSink *xsink);
 
+  protected:
+      DLLEXPORT ~Hash();
+
    public:
       DLLEXPORT Hash(bool ne = false);
-      DLLEXPORT ~Hash();
 
       DLLEXPORT char *getFirstKey() const { return member_list ? member_list->key :NULL; }
       DLLEXPORT char *getLastKey() const { return tail ? tail->key : NULL; }

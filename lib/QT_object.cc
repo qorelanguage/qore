@@ -51,8 +51,7 @@ class QoreString *object_MakeString(class QoreNode *n, int foff, class Exception
    {
       if (h)
       {
-	 h->dereference(xsink);
-	 delete h;
+	 h->derefAndDelete(xsink);
 	 return NULL;
       }
    }
@@ -97,8 +96,7 @@ class QoreString *object_MakeString(class QoreNode *n, int foff, class Exception
       if (foff == FMT_NONE)
 	 rv->concat(')');
    }
-   h->dereference(xsink);
-   delete h;
+   h->derefAndDelete(xsink);
 
    return rv;
 }
