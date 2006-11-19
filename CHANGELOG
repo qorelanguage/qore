@@ -3,6 +3,8 @@
 	  qore as a single file whenever possible
 	* added lib/ql_json.cc for JSON support
 	* added ql_debug.cc in single compilation unit in lib
+	* cleanup up QoreString interface, tagged for gcc shared object 
+	  visibility
 
 2006.11.18: David Nichols
 	* starting tagging const methods, reducing excessive inlining

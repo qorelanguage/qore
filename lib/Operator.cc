@@ -929,7 +929,7 @@ static class QoreNode *op_plus_equals(class QoreNode *left, class QoreNode *righ
       new_right->deref(xsink);
       return NULL;
    }
-
+   
    // dereferences happen in each section so that the
    // already referenced value can be passed to list->push()
    // if necessary

@@ -155,22 +155,6 @@ static class QoreNode *f_functionType(class QoreNode *params, ExceptionSink *xsi
    return NULL;
 }
 
-// common HTML encodings table
-struct code_table
-/* {
-      char symbol;
-      char *code;
-      int len;
-   } 
-*/
- html_codes[] = 
-{ { '&', "&amp;", 5 },
-  { '<', "&lt;", 4 },
-  { '>', "&gt;", 4 },
-  { '"', "&quot;", 6 } }; 
-
-//#define NUM_HTML_CODES (sizeof(html_codes) / sizeof(struct code_table))
-
 static class QoreNode *f_html_encode(class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0;
@@ -184,9 +168,9 @@ static class QoreNode *f_html_encode(class QoreNode *params, ExceptionSink *xsin
    {
       int j;
       for (j = 0; j < (int)NUM_HTML_CODES; j++)
-	 if (str[i] == html_codes[j].symbol)
+	 if (str[i] == QoreString::html_codes[j].symbol)
 	 {
-	    ns->concat(html_codes[j].code);
+	    ns->concat(QoreString::html_codes[j].code);
 	    break;
 	 }
       if (j == NUM_HTML_CODES)
@@ -210,11 +194,11 @@ static class QoreNode *f_html_decode(class QoreNode *params, ExceptionSink *xsin
    {
       int j;
       for (j = 0; j < (int)NUM_HTML_CODES; j++)
-	 if ((len - i) >= html_codes[j].len && 
-	     !strncmp(html_codes[j].code, &str[i], html_codes[j].len))
+	 if ((len - i) >= QoreString::html_codes[j].len && 
+	     !strncmp(QoreString::html_codes[j].code, &str[i], QoreString::html_codes[j].len))
 	 {
-	    ns->concat(html_codes[j].symbol);
-	    i += html_codes[j].len;
+	    ns->concat(QoreString::html_codes[j].symbol);
+	    i += QoreString::html_codes[j].len;
 	    break;
 	 }
       if (j == NUM_HTML_CODES)
@@ -618,11 +602,7 @@ static class QoreNode *f_parseHexString(class QoreNode *params, ExceptionSink *x
 
 void init_misc_functions()
 {
-   // set lengths of HTML codes
-   for (int i = 0; i < (int)NUM_HTML_CODES; i++)
-      html_codes[i].len = strlen(html_codes[i].code);
-
-   // register buitlin functions in this file
+   // register builtin functions in this file
    builtinFunctions.add("parse", f_parse);
    builtinFunctions.add("call_function", f_call_function);
    builtinFunctions.add("call_function_args", f_call_function_args);

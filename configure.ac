@@ -538,8 +538,8 @@ AC_ARG_ENABLE([debug],
 
 if test "${enable_debug}" = yes; then
    AC_DEFINE(DEBUG, 1, Define if debugging support should be included)
-# remove -O2 from CXXFLAGS so valgrind can report properly
-CXXFLAGS=`echo $CXXFLAGS | sed 's/\-O2//'`
+   # remove -O2 from CXXFLAGS so valgrind can report properly
+   CXXFLAGS=`echo $CXXFLAGS | sed 's/\-O2//'`
 fi
 
 AC_ARG_ENABLE([builtin-modules],
@@ -550,6 +550,15 @@ AC_ARG_ENABLE([builtin-modules],
        *)      AC_MSG_ERROR(bad value ${enable_builtin_modules} for --enable-builtin-modules) ;;
       esac],
      [enable_builtin_modules=no])
+
+# check for gcc visibility support
+if test "$GXX" = "yes"; then
+   gcc_version=`$CXX -dumpversion`
+   if test "$gcc_version" > "4" -a "enable_debug" != "yes"; then
+      AC_DEFINE(HAVE_GCC_VISIBILITY, 1, if compiling with g++ and visibility support is available)
+      #CXXFLAGS="$CXXFLAGS -fvisibility=hidden"
+   fi
+fi
 
 AC_ARG_ENABLE([threads],
   [AS_HELP_STRING([--enable-threads],
