@@ -25,7 +25,16 @@
 #include <qore/config.h>
 #include <qore/QoreString.h>
 #include <qore/BinaryObject.h>
+#include <qore/support.h>
+#include <qore/DateTime.h>
+#include <qore/Exception.h>
+#include <qore/BinaryObject.h>
+#include <qore/QoreLib.h>
+#include <qore/QoreType.h>
 
+#include <errno.h>
+#include <string.h>
+#include <stdio.h>
 #include <iconv.h>
 
 const struct code_table QoreString::html_codes[] = 
