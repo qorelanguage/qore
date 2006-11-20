@@ -879,7 +879,7 @@ void Object::addPrivateDataToString(class QoreString *str)
 {
    str->concat('(');
    g.enter();
-   if (privateData)
+   if (status == OS_OK && privateData)
    {
       privateData->addToString(str);
       str->terminate(str->strlen() - 2);
