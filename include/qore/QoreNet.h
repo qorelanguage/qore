@@ -30,6 +30,7 @@
 #include <qore/QoreString.h>
 #include <qore/Hash.h>
 #include <qore/LockedObject.h>
+#include <qore/QoreNode.h>
 
 #include <strings.h>
 #include <string.h>

@@ -118,10 +118,7 @@ class QoreTibrvCmMsgCallback : public TibrvCmMsgCallback
       virtual ~QoreTibrvCmMsgCallback()
       {
 	 if (h)
-	 {
-	    h->dereference(&xsink);
-	    delete h;
-	 }
+	    h->derefAndDelete(&xsink);
       }
 
       inline class Hash *getMessage(class ExceptionSink *xs)

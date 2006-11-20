@@ -119,10 +119,7 @@ class QoreTibrvFtMemberCallback : public TibrvFtMemberCallback
       virtual ~QoreTibrvFtMemberCallback() 
       {
 	 if (h)
-	 {
-	    h->dereference(NULL);
-	    delete h;
-	 }
+	    h->derefAndDelete(NULL);
       }
 
       class Hash *getEvent()

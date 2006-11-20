@@ -35,6 +35,7 @@
 #include <qore/QT_backquote.h>
 #include <qore/BuiltinFunctionList.h>
 #include <qore/ssl_constants.h>
+#include <qore/BinaryObject.h>
 
 #include <string.h>
 #include <zlib.h>

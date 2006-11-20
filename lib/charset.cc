@@ -26,6 +26,7 @@
 #include <qore/QoreString.h>
 #include <qore/support.h>
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>

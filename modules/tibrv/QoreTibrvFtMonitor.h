@@ -112,10 +112,7 @@ class QoreTibrvFtMonitorCallback : public TibrvFtMonitorCallback
       virtual ~QoreTibrvFtMonitorCallback() 
       {
 	 if (h)
-	 {
-	    h->dereference(NULL);
-	    delete h;
-	 }
+	    h->derefAndDelete(NULL);
       }
 
       class Hash *getEvent()

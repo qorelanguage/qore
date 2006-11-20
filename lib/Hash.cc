@@ -21,6 +21,7 @@
 */
 
 #include <qore/config.h>
+#include <qore/Qore.h>
 #include <qore/Hash.h>
 #include <qore/QoreNode.h>
 #include <qore/List.h>

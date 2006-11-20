@@ -22,6 +22,8 @@
 
 #include <qore/DateTime.h>
 #include <qore/QoreString.h>
+#include <qore/support.h>
+#include <qore/Exception.h>
 
 #include <time.h>
 

@@ -27,6 +27,7 @@
 #include <qore/List.h>
 #include <qore/params.h>
 #include <qore/StringList.h>
+#include <qore/BinaryObject.h>
 
 #include <string.h>
 

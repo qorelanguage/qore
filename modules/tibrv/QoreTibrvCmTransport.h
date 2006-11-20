@@ -210,11 +210,8 @@ class QoreTibrvCmReviewCallback : public TibrvCmReviewCallback
 	 if (xsink.isException())
 	 {
 	    if (h)
-	    {
-	       h->dereference(&xsink);
-	       delete h;
-	    }
-	    delete l;
+	       h->derefAndDelete(&xsink);
+	    l->derefAndDelete(&xsink);
 	    l = NULL;
 	    return this;
 	 }
@@ -232,14 +229,14 @@ class QoreTibrvCmReviewCallback : public TibrvCmReviewCallback
       virtual inline ~QoreTibrvCmReviewCallback()
       {
 	 if (l)
-	    delete l;
+	    l->derefAndDelete(&xsink);
       }
 
       inline void cleanup()
       {
 	 if (l)
 	 {
-	    delete l;
+	    l->derefAndDelete(&xsink);
 	    l = NULL;
 	 }
       }

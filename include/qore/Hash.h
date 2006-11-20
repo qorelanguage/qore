@@ -64,7 +64,7 @@ class HashIterator
 
 	 return ptr->key;
       }
-      DLLEXPORT inline class QoreString *getKeyString() const;
+      DLLEXPORT class QoreString *getKeyString() const;
       DLLEXPORT inline class QoreNode *getValue() const
       {
 	 if (ptr)
@@ -77,8 +77,11 @@ class HashIterator
 	    return &(ptr->node);
 	 return NULL;
       }
-      DLLEXPORT inline class QoreNode *eval(class ExceptionSink *xsink) const;
-      DLLEXPORT inline bool last() const { return (bool)(ptr ? !ptr->next : false); } 
+      DLLEXPORT class QoreNode *eval(class ExceptionSink *xsink) const;
+      DLLEXPORT inline bool last() const 
+      { 
+	 return (bool)(ptr ? !ptr->next : false); 
+      } 
       //DLLEXPORT inline void setValue(class QoreNode *val, class ExceptionSink *xsink);
 };
 

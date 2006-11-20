@@ -27,6 +27,7 @@
 #include <qore/QoreString.h>
 #include <qore/params.h>
 #include <qore/BuiltinFunctionList.h>
+#include <qore/BinaryObject.h>
 
 #include <openssl/evp.h>
 #include <openssl/des.h>

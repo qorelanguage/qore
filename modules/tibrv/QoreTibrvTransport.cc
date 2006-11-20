@@ -25,6 +25,7 @@
 #include <qore/common.h>
 #include <qore/support.h>
 #include <qore/Exception.h>
+#include <qore/BinaryObject.h>
 
 #include "QoreTibrvTransport.h"
 
@@ -136,10 +137,7 @@ class Hash *QoreTibrvTransport::parseMsg(TibrvMsg *msg, class ExceptionSink *xsi
    if (xsink->isException())
    {
       if (data)
-      {
-	 data->dereference(xsink);
-	 delete data;
-      }
+	 data->derefAndDelete(xsink);
       return NULL;
    }
    
@@ -176,8 +174,7 @@ class Hash *QoreTibrvTransport::msgToHash(TibrvMsg *msg, class ExceptionSink *xs
       status = msg->getFieldByIndex(field, i);
       if (status != TIBRV_OK)
       {
-	 h->dereference(xsink);
-	 delete h;
+	 h->derefAndDelete(xsink);
 	 xsink->raiseException("TIBRV-DEMARSHALLING-ERROR", (char *)status.getText());
 	 return NULL;
       }
@@ -190,8 +187,7 @@ class Hash *QoreTibrvTransport::msgToHash(TibrvMsg *msg, class ExceptionSink *xs
       class QoreNode *val = fieldToNode(&field, xsink);
       if (xsink->isException())
       {
-	 h->dereference(xsink);
-	 delete h;	 
+	 h->derefAndDelete(xsink);
 	 return NULL;
       }
       class QoreNode *ev = h->getKeyValueExistence(key);
@@ -421,7 +417,7 @@ class QoreNode *QoreTibrvTransport::listToNode(TibrvMsgField *field, class Excep
 
       default:
 	 xsink->raiseException("TIBRV-DEMARSHALLING-ERROR", "don't know how to convert a list of type %d", field->getType());
-	 delete l;
+	 l->derefAndDelete(xsink);
 	 return NULL;
    }
    return new QoreNode(l);

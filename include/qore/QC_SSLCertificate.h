@@ -31,6 +31,7 @@ class QoreClass *initSSLCertificateClass();
 #include <qore/Exception.h>
 #include <qore/QoreSSLBase.h>
 #include <qore/support.h>
+#include <qore/BinaryObject.h>
 
 #include <errno.h>
 

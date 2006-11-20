@@ -617,7 +617,7 @@ void Namespace::parseCommit()
    nsl->parseCommit(pendNSL);
 }
 
-inline void Namespace::parseRollback()
+void Namespace::parseRollback()
 {
    printd(5, "Namespace::parseRollback() %s %08p\n", name, this);
 
@@ -790,7 +790,7 @@ inline class Namespace *Namespace::findNamespace(char *nname) const
 // public: only called during Qore initialization to setup
 // system constant types directly in Qore system namespaces
 // FIXME: change to addSystemConstant() to avoid confusion
-inline void Namespace::addConstant(char *cname, class QoreNode *val)
+void Namespace::addConstant(char *cname, class QoreNode *val)
 {
    constant->add(cname, val);
 }

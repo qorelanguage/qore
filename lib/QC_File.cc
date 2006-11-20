@@ -21,6 +21,7 @@
 */
 
 #include <qore/config.h>
+#include <qore/Qore.h>
 #include <qore/common.h>
 #include <qore/QC_File.h>
 #include <qore/QoreClass.h>
