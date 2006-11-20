@@ -202,6 +202,7 @@ QoreString::QoreString(bool b)
 }
 
 #ifdef DEBUG
+namespace {
 TEST()
 {
   QoreString s1(true);
@@ -209,7 +210,8 @@ TEST()
   QoreString s2(false);
   assert(!strcmp(s2.getBuffer(), "0"));
 }
-#endif
+} // namespace
+#endif // DEBUG
 
 QoreString::QoreString(double f)
 {
@@ -645,6 +647,7 @@ void QoreString::concatAndHTMLEncode(QoreString *str, class ExceptionSink *xsink
 	    return;
       }
 
+      ensureBufferSize(len + cstr->len + cstr->len / 10 + 10); // avoid reallocations inside the loop, value guesstimated
       for (int i = 0; i < cstr->len; i++)
       {
 	 // concatenate translated character
@@ -664,6 +667,30 @@ void QoreString::concatAndHTMLEncode(QoreString *str, class ExceptionSink *xsink
 	 delete cstr;
    }
 }
+
+#ifdef DEBUG
+namespace {
+TEST()
+{
+  QoreString s("<>&\"<<>>&&\"\"< > & \" ");
+  ExceptionSink xsink;
+
+  QoreString s2;
+  s2.concatAndHTMLEncode(&s, &xsink);
+  assert(!xsink);
+  if (strcmp(s2.getBuffer(), "&lt;&gt;&amp;&quot;&lt;&lt;&gt;&gt;&amp;&amp;&quot;&quot;&lt; &gt; &amp; &quot; ")) {
+    assert(false);
+  }
+  
+  QoreString s3("aaaa");
+  s3.concatAndHTMLEncode(&s, &xsink);
+  assert(!xsink);
+  if (strcmp(s3.getBuffer(), "aaaa&lt;&gt;&amp;&quot;&lt;&lt;&gt;&gt;&amp;&amp;&quot;&quot;&lt; &gt; &amp; &quot; ")) {
+    assert(false);
+  }
+}
+} // namespace
+#endif // DEBUG
 
 // FIXME: this is slow, each concatenated character gets terminated as well
 void QoreString::concatAndHTMLEncode(char *str)
@@ -703,21 +730,38 @@ void QoreString::concatAndHTMLDecode(QoreString *str)
    // if it's not a null string
    if (str && str->len)
    {
+      ensureBufferSize(len + str->len); // avoid reallocations within the loop
+
       int i = 0;
       while (str->buf[i])
       {
+         if (str->buf[i] != '&') {
+           concat(str->buf[i++]);
+           continue;
+         }
+
 	 // concatenate translated character
-	 int j;
-	 for (j = 0; j < (int)NUM_HTML_CODES; j++)
-	    if ((str->len - i) >= html_codes[j].len
-		&& !strncmp(html_codes[j].code, &str->buf[i], html_codes[j].len))
-	    {
-	       concat(html_codes[j].symbol);
-	       i += html_codes[j].len;
-	       continue;
-	    }
-	 // otherwise concatenate untranslated symbol
-	 concat(str->buf[i++]);
+         char* s = str->getBuffer() + i;
+         bool matched = false;
+	 for (int j = 0; j < (int)NUM_HTML_CODES; j++) {
+            bool found = true;
+            for (int k = 1; k < html_codes[j].len; ++k) {
+               if (s[k] != html_codes[j].code[k]) {
+                 found = false;
+                 break;
+               }
+            }
+            if (found) {
+              concat(html_codes[j].symbol);
+              i += html_codes[j].len;
+              matched = true;
+              break;
+            }
+         }
+         if (!matched) {
+           assert(false); // invalid HTML? should not happen
+           concat(str->buf[i++]);
+         }
       }
       /*
       // see if buffer needs to be resized for '\0'
@@ -727,6 +771,27 @@ void QoreString::concatAndHTMLDecode(QoreString *str)
       */
    }
 }
+
+#ifdef DEBUG
+namespace {
+TEST()
+{
+  QoreString s1("&lt;&gt;&amp;&quot;&lt;&lt;&gt;&gt;&amp;&amp;&quot;&quot;&lt; &gt; &amp; &quot; ");
+
+  QoreString s2;
+  s2.concatAndHTMLDecode(&s1);
+  if (strcmp(s2.getBuffer(), "<>&\"<<>>&&\"\"< > & \" ")) {
+    assert(false);
+  }
+
+  QoreString s3("bbbb");
+  s3.concatAndHTMLDecode(&s1);
+  if (strcmp(s3.getBuffer(), "bbbb<>&\"<<>>&&\"\"< > & \" ")) {
+    assert(false);
+  }
+}
+} // namespace
+#endif // DEBUG
 
 // return 0 for success
 int QoreString::vsprintf(const char *fmt, va_list args)
@@ -1343,4 +1408,32 @@ class BinaryObject *QoreString::parseHex(class ExceptionSink *xsink) const
    return ::parseHex(buf, len, xsink);
 }
 
+void QoreString::ensureBufferSize(unsigned requested_size)
+{
+   if ((unsigned)allocated >= requested_size) {
+      return;  
+   }
+   char* aux = (char *)realloc(buf, requested_size  * sizeof(char));
+   if (!aux) {
+     assert(false);
+     // here should be throw std::bad_alloc();
+     return;
+   }
+   buf = aux;
+   allocated = requested_size;
+}
+
+#ifdef DEBUG
+namespace {
+TEST()
+{
+  QoreString s;
+  s.ensureBufferSize(0);
+  s.ensureBufferSize(100);
+  s.ensureBufferSize(10);
+  int x = 1234;
+  s.ensureBufferSize(x);
+}
+} // namespace
+#endif // DEBUG
 

@@ -173,6 +173,9 @@ class QoreString {
       {
 	 return buf;
       }
+      // Make sure the internal buffer has at least expected size in bytes. 
+      // Useful to eliminate rallocationg when data get appended in loop.
+      DLLEXPORT void ensureBufferSize(unsigned requested_size);
 };
 
 inline class QoreString *checkEncoding(const class QoreString *str, const class QoreEncoding *enc, class ExceptionSink *xsink);
@@ -187,3 +190,4 @@ inline class QoreString *checkEncoding(const class QoreString *str, const class 
 }
 
 #endif
+

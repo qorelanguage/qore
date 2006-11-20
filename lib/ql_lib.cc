@@ -30,6 +30,7 @@
 #include <qore/QoreLib.h>
 #include <qore/BuiltinFunctionList.h>
 #include <qore/ExecArgList.h>
+#include <qore/minitest.hpp>
 
 #include <errno.h>
 #include <stdio.h>
@@ -557,6 +558,28 @@ static class QoreNode *f_mkfifo(class QoreNode *params, ExceptionSink *xsink)
    return new QoreNode(NT_INT, mkfifo(fn, mode));
 }
 
+#ifdef DEBUG
+static QoreNode* runQoreTests(QoreNode* params, ExceptionSink* xsink)
+{
+  minitest::result res = minitest::execute_all_tests();
+  if (res.all_tests_succeeded) {
+    printf("Qore runtime: %d tests succeeded\n", res.sucessful_tests_count);
+    return 0;
+  }
+
+  xsink->raiseException("A Qore test failed", "Qore test in file %s, line %d threw an exception.",
+    res.failed_test_file, res.failed_test_line);
+  return 0;
+}
+
+namespace {
+TEST()
+{
+  // just an example of empty test
+}
+}
+#endif
+
 void init_lib_functions()
 {
    builtinFunctions.add("exit",        f_exit, QDOM_PROCESS);
@@ -594,4 +617,8 @@ void init_lib_functions()
    builtinFunctions.add("hstat",       f_hstat);
    builtinFunctions.add("hlstat",      f_hlstat);
    builtinFunctions.add("exec",        f_exec, QDOM_EXTERNAL_PROCESS | QDOM_PROCESS);
+
+#ifdef DEBUG
+   builtinFunctions.add("runQoreTests", runQoreTests);
+#endif
 }
