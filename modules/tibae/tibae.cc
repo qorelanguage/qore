@@ -49,7 +49,7 @@ static inline class QoreNode *map_minstance_to_node(const MInstance *min, Except
    delete me;
    if (xsink->isEvent())
    {
-      delete h;
+      h->derefAndDelete(xsink);
       return NULL;
    }
    return new QoreNode(h);
@@ -87,7 +87,7 @@ static inline class QoreNode *map_massoclist_to_node(const MAssocList *mal, Exce
    delete me;
    if (xsink->isEvent())
    {
-      delete h;
+      h->derefAndDelete(xsink);
       return NULL;
    }
    return new QoreNode(h);
@@ -103,7 +103,7 @@ static inline class QoreNode *map_munion_to_node(const MUnion *mu, ExceptionSink
    
    if (xsink->isEvent())
    {
-      delete h;
+      h->derefAndDelete(xsink);
       return NULL;
    }
    return new QoreNode(h);
@@ -277,10 +277,7 @@ void TIBAE_constructor(class Object *self, class QoreNode *params, class Excepti
    if (xsink->isEvent())
    {
       if (classlist)
-      {
-	 classlist->dereference(xsink);
-	 delete classlist;
-      }
+	 classlist->derefAndDelete(xsink);
       return;
    }
    try 
@@ -404,8 +401,6 @@ class QoreNode *TIBAE_receive(class Object *self, class QoreApp *myQoreApp, clas
    char *subject = p0->val.String->getBuffer();
    if ((p1 = get_param(params, 1)))
       timeout = p1->getAsInt();
-
-   QoreNode *rv = NULL;
 
    return myQoreApp->receive(subject, timeout, xsink);
 }

@@ -226,10 +226,7 @@ inline QoreApp::~QoreApp()
    free(daemon);
    free(subject);
    if (classlist)
-   {
-      classlist->dereference(NULL);
-      delete classlist;
-   }
+      classlist->derefAndDelete(NULL);
    
    delete appProps;
 
