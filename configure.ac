@@ -19,7 +19,8 @@ elif test -z "`$LEX --version | grep -e ' 2\.5\.3[[1-9]]' -e '2\.5\.[[4-9]][[0-9
         flexver=`$LEX --version`
 	AC_MSG_ERROR([incompatible $flexver found - you can download flex 2.5.33 at http://sourceforge.net/projects/flex])
 else
-	AC_MSG_RESULT([yes])
+        flexver=`$LEX --version`
+	AC_MSG_RESULT([yes ($flexver)])
 fi
 
 AC_PROG_YACC
@@ -565,7 +566,7 @@ if test "$GXX" = "yes"; then
       AC_MSG_RESULT([no, gcc $gcc_version])
    fi
 else
-   AC_MSG_RESULT([no, CXX=$gcc_version])
+   AC_MSG_RESULT([no, $CXX])
 fi
 
 AC_ARG_ENABLE([threads],

@@ -32,6 +32,7 @@ NOTE that --enable-builtin-modules will only work with libtool 1.5.22 or better,
 
 "configure" Option Overview
 ---------------------------
+--disable-single-compilation-unit: to disable building all related files at once in each directory.  This is enabled by default because it normally makes for much quicker compiles and also allows the compiler to optimize based on the entire source at the same time.  However if you don't have enough (virtual) memory then you should turn it off, otherwise leave it on.
 --enable-64bit                 : to build a 64-bit binary (currently only supported on x86_64 architectures) - the default is to build a 32-bit binary even on 64-bit platforms
 --disable-debug                : to disable debugging code - if you are not planning on debugging the qore language itself then it is highly advised to include this flag, as enabling debugging in qore slows down the language a great deal
 --prefix=<dir>                 : default=/usr/local = qore in /usr/local/bin, libraries in /usr/local/lib, modules in /usr/local/lib/qore-<ver>/
@@ -70,7 +71,7 @@ If you have TIBCO Rendezvous and the AE SDK installed, and the supported C++ com
 Note that this module is not supported on HP-UX PA-RISC platforms due to the fact that the compiler requirements for the SDK are incompatible with compiling qore.
 
 *) "tuxedo": BEA Tuxedo support requores Tuxedo 8 or better
-~
+
 *) "ncurses": ncurses module
 note that this module is still experimental due to the fact that I'm not sure if it's possible to safely enable threading without putting a big lock around every curses call.
 if your ncurses is in a non-standard location, set the NCURSES_DIR environment variable before running configure

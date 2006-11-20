@@ -41,8 +41,8 @@ class ReferenceObject
 #endif
    public:
       inline ReferenceObject();
-      inline int reference_count() { return references; }
-      inline bool is_unique() { return references == 1; }
+      inline int reference_count() const { return references; }
+      inline bool is_unique() const { return references == 1; }
       inline void ROreference();
       inline bool ROdereference();
 #ifdef DEBUG

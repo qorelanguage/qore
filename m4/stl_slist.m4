@@ -44,7 +44,7 @@ AC_DEFUN([AC_CXX_STL_LIST],
       AC_TRY_COMPILE([#include <slist>],
                      [stdext::slist<int> t; return 0;],
                      ac_cv_cxx_stl_list=stdext_slist)
-      if test "$with_tibae" != "yes"; then
+      if test "$with_tibae" != "yes" -a "$try_stlport" = "yes"; then
 	SAVE_CXXFLAGS="$CXXFLAGS"
       	SAVE_LDFLAGS="$LDFLAGS"
       	CXXFLAGS="$CXXFLAGS -library=stlport4"

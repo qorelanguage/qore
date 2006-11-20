@@ -50,7 +50,7 @@ AC_DEFUN([AC_CXX_STL_HASH],
       AC_TRY_COMPILE([#include <hash_map>],
                      [stdext::hash_map<int, int> t; return 0;],
                      ac_cv_cxx_stl_hash=stdext_hash_map)
-      if test "$with_tibae" != "yes"; then
+      if test "$with_tibae" != "yes" -a "$try_stlport" = "yes"; then
 	SAVE_CXXFLAGS="$CXXFLAGS"
       	SAVE_LDFLAGS="$LDFLAGS"
       	CXXFLAGS="$CXXFLAGS -library=stlport4"

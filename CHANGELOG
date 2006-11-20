@@ -2,6 +2,8 @@
 	* folded ConstantList, QoreClassList, NamespaceList into Namespace 
 	  implementation
 	* cleaned up Namespace interface, visibility tags added
+	* partially cleaned up QoreClass interface, visibility tags added
+	* disabled use of stlport4 on Solaris
 
 2006.11.19: David Nichols
 	* enabled --enable-single-compilation-unit configure option to compile
