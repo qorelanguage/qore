@@ -1,3 +1,8 @@
+2006.11.20: David Nichols
+	* folded ConstantList, QoreClassList, NamespaceList into Namespace 
+	  implementation
+	* cleaned up Namespace interface, visibility tags added
+
 2006.11.19: David Nichols
 	* enabled --enable-single-compilation-unit configure option to compile
 	  qore as a single file whenever possible

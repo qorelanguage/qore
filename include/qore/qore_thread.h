@@ -62,7 +62,7 @@ static inline class List *getCallStack();
 static inline void pushProgram(class QoreProgram *pgm);
 static inline void popProgram();
 static inline class QoreProgram *getProgram();
-static inline class Namespace *getRootNS();
+static inline class RootNamespace *getRootNS();
 static inline int getParseOptions();
 static inline void beginParsing(char *file, void *ps = NULL);
 static inline void *endParsing();
@@ -423,7 +423,7 @@ static inline class QoreProgram *getProgram()
    return ((ThreadData *)pthread_getspecific(thread_data_key))->pgmStack->getProgram();
 }
 
-static inline class Namespace *getRootNS()
+static inline class RootNamespace *getRootNS()
 {
    return ((ThreadData *)pthread_getspecific(thread_data_key))->pgmStack->getProgram()->getRootNS();
 }

@@ -540,6 +540,8 @@ if test "${enable_debug}" = yes; then
    AC_DEFINE(DEBUG, 1, Define if debugging support should be included)
    # remove -O2 from CXXFLAGS so valgrind can report properly
    CXXFLAGS=`echo $CXXFLAGS | sed 's/\-O2//'`
+else
+   AC_DEFINE(NDEBUG, 1, Define if assert() declarations should be suppressed)
 fi
 
 AC_ARG_ENABLE([builtin-modules],
@@ -552,12 +554,18 @@ AC_ARG_ENABLE([builtin-modules],
      [enable_builtin_modules=no])
 
 # check for gcc visibility support
+AC_MSG_CHECKING([for gcc visibility support])
 if test "$GXX" = "yes"; then
    gcc_version=`$CXX -dumpversion`
-   if test "$gcc_version" > "4" -a "enable_debug" != "yes"; then
+   if test "$gcc_version" \> "4"; then
       AC_DEFINE(HAVE_GCC_VISIBILITY, 1, if compiling with g++ and visibility support is available)
+      AC_MSG_RESULT([yes, $CXX $gcc_version])
       #CXXFLAGS="$CXXFLAGS -fvisibility=hidden"
+   else
+      AC_MSG_RESULT([no, gcc $gcc_version])
    fi
+else
+   AC_MSG_RESULT([no, CXX=$gcc_version])
 fi
 
 AC_ARG_ENABLE([threads],
@@ -697,7 +705,7 @@ AC_ARG_WITH([tibae],
 AC_MSG_CHECKING([TIBCO Adapters SDK])
 if test -n "$with_tibae"; then
    # disable AE SDK on HP-UX PA-RISC, it requires compiling without the -AA flag which we don't support
-   if test -n "$OS" = "HP-UX" -a $host_cpu != "ia64"; then
+   if test "$OS" = "HP-UX" -a $host_cpu != "ia64"; then
       AC_MSG_WARN([TIBCO Adapters SDK not supported on HP-UX])
       unset with_tibae
    elif test ! -e "$with_tibae/include/sdk/Maverick.h"; then
@@ -709,7 +717,7 @@ if test -n "$with_tibae"; then
    fi
 else
    # disable AE SDK on HP-UX PA-RISC, it requires compiling without the -AA flag which we don't support
-   if test -n "$OS" = "HP-UX" -a $host_cpu != "ia64"; then
+   if test "$OS" = "HP-UX" -a $host_cpu != "ia64"; then
       AC_MSG_WARN([TIBCO Adapters SDK not supported on HP-UX])
       unset with_tibae
    elif test -n "$SDK_ROOT" -a -f "$SDK_ROOT/include/sdk/Maverick.h" -a -n "`ls $SDK_ROOT/lib/libmaverick*.${SHLIB_SUFFIX} 2>/dev/null`"; then

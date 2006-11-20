@@ -41,84 +41,6 @@
 
 typedef void (* q_private_t)(void *);
 
-class KeyNode {
-   private:
-      int key;
-      void *ptr;
-      q_private_t f_ref, f_deref;
-
-   public:
-      class KeyNode *next;
-
-      DLLLOCAL inline KeyNode(int k, void *p, q_private_t r, q_private_t d)
-      {
-	 key = k;
-	 ptr = p;
-	 f_ref = r;
-	 f_deref = d;
-	 next = NULL;
-	 //printd(5, "KeyNode::KeyNode() this=%08p, key=%d, p=%08p\n", this, key, ptr);
-      }
-      DLLLOCAL inline int getKey() const
-      {
-	 return key;
-      }
-      DLLLOCAL inline void *getPtr() const
-      {
-	 return ptr;
-      }
-      DLLLOCAL inline void *getAndClearPtr()
-      {
-	 //printd(5, "KeyNode::getAndClearPtr() this=%08p, key=%d, p=%08p\n", this, key, ptr);
-	 void *rv = ptr;
-	 ptr = NULL;
-#ifdef DEBUG
-	 f_ref = NULL;
-	 f_deref = NULL;
-#endif
-	 return rv;
-      }
-      DLLLOCAL inline class KeyNode *refNode()
-      {
-	 if (!ptr)
-	    return NULL;
-	 f_ref(ptr);
-	 return this;
-      }
-      DLLLOCAL inline void deref()
-      {
-	 f_deref(ptr);
-      }
-      DLLLOCAL inline void *refPtr()
-      {
-	 if (!ptr)
-	    return NULL;
-	 f_ref(ptr);
-	 return ptr;
-      }
-      DLLLOCAL inline void derefPtr()
-      {
-	 f_deref(ptr);
-      }
-};
-
-// for objects with multiple classes, private data has to be keyed
-class KeyList {
-      class KeyNode *head, *tail;
-      int len;
-
-   public:
-      DLLLOCAL inline KeyList();
-      DLLLOCAL inline ~KeyList();
-      DLLLOCAL inline class KeyNode *find(int k) const;
-      DLLLOCAL inline void insert(int k, void *ptr, q_private_t ref, q_private_t deref);
-      DLLLOCAL inline class KeyNode *getReferencedPrivateDataNode(int key);
-      DLLLOCAL inline void *getReferencedPrivateData(int key);
-      DLLLOCAL inline void addToString(class QoreString *str) const;
-      DLLLOCAL inline void derefAll();
-      //DLLLOCAL inline bool compare(class KeyList *k);
-};
-
 // note that any of the methods below that involve locking cannot be const methods
 class Object : public ReferenceObject
 {
@@ -146,10 +68,8 @@ class Object : public ReferenceObject
 
       DLLEXPORT void instantiateLVar(lvh_t id);
       DLLEXPORT void uninstantiateLVar(class ExceptionSink *xsink);
-
       DLLEXPORT class QoreNode **getMemberValuePtr(class QoreString *key, class VLock *vl, class ExceptionSink *xsink);
       DLLEXPORT class QoreNode **getMemberValuePtr(char *key, class VLock *vl, class ExceptionSink *xsink);
-
       DLLEXPORT class QoreNode *getMemberValueNoMethod(class QoreString *key, class VLock *vl, class ExceptionSink *xsink);
       DLLEXPORT class QoreNode *getMemberValueNoMethod(char *key, class VLock *vl, class ExceptionSink *xsink);
       DLLEXPORT class QoreNode **getExistingValuePtr(class QoreString *mem, class VLock *vl, class ExceptionSink *xsink);
@@ -162,10 +82,8 @@ class Object : public ReferenceObject
       DLLEXPORT int size();
       DLLEXPORT bool compareSoft(class Object *obj, class ExceptionSink *xsink);
       DLLEXPORT bool compareHard(class Object *obj);
-
       DLLEXPORT void merge(class Hash *h, class ExceptionSink *xsink);
       DLLEXPORT void assimilate(class Hash *h, class ExceptionSink *xsink);
-
       DLLEXPORT class QoreNode *evalFirstKeyValue(class ExceptionSink *xsink);
       DLLEXPORT class QoreNode *evalMember(class QoreNode *member, class ExceptionSink *xsink);
       DLLEXPORT class QoreNode *evalMemberNoMethod(char *mem, class ExceptionSink *xsink);
@@ -181,12 +99,23 @@ class Object : public ReferenceObject
       DLLEXPORT void ref();
       DLLEXPORT void dereference(class ExceptionSink *xsink);
       DLLEXPORT void obliterate(class ExceptionSink *xsink);
-      
-      DLLEXPORT inline class QoreClass *getClass() const { return myclass; }
-      DLLEXPORT inline class QoreClass *getClass(int cid) const;
-      DLLEXPORT inline int getStatus() const { return status; }
-      DLLEXPORT inline int isValid() const { return status == OS_OK; }
+      DLLEXPORT class QoreClass *getClass(int cid) const;
+      DLLLOCAL class QoreNode *evalBuiltinMethodWithPrivateData(class BuiltinMethod *meth, class QoreNode *args, class ExceptionSink *xsink);
+      // called on old to acquire private data, copy method called on self
+      DLLLOCAL void evalCopyMethodWithPrivateData(class BuiltinMethod *meth, class Object *self, class ExceptionSink *xsink);
 
+      DLLEXPORT inline class QoreClass *getClass() const 
+      { 
+	 return myclass; 
+      }
+      DLLEXPORT inline int getStatus() const 
+      { 
+	 return status; 
+      }
+      DLLEXPORT inline int isValid() const 
+      { 
+	 return status == OS_OK; 
+      }
       DLLEXPORT inline class QoreProgram *getProgram() const
       {
 	 return pgm;

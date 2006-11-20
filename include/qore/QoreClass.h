@@ -603,6 +603,7 @@ static inline class QoreNode *getStackObjectValue(char *name, class VLock *vl, E
 #include <qore/Variable.h>
 #include <qore/Sequence.h>
 #include <qore/Namespace.h>
+#include <qore/NamedScope.h>
 
 #include <string.h>
 
@@ -663,14 +664,14 @@ inline void BCANode::resolve()
 {
    if (ns)
    {
-      sclass = parseFindScopedClass(ns);
+      sclass = getRootNS()->parseFindScopedClass(ns);
       printd(5, "BCANode::resolve() this=%08p resolved named scoped %s -> %08p\n", this, ns->ostr, sclass);
       delete ns;
       ns = NULL;
    }
    else
    {
-      sclass = parseFindClass(name);
+      sclass = getRootNS()->parseFindClass(name);
       printd(5, "BCANode::resolve() this=%08p resolved %s -> %08p\n", this, name, sclass);
       free(name);
       name = NULL;
@@ -833,12 +834,12 @@ inline void BCList::parseInit(class QoreClass *cls, class BCAList *bcal)
    {
       if (w->cname)
       {
-	 w->sclass = parseFindScopedClass(w->cname);
+	 w->sclass = getRootNS()->parseFindScopedClass(w->cname);
 	 printd(5, "BCList::parseInit() %s inheriting %s (%08p)\n", cls->getName(), w->cname->ostr, w->sclass);
       }
       else
       {
-	 w->sclass = parseFindClass(w->cstr);
+	 w->sclass = getRootNS()->parseFindClass(w->cstr);
 	 printd(5, "BCList::parseInit() %s inheriting %s (%08p)\n", cls->getName(), w->cstr, w->sclass);
       }
       // recursively add base classes to special method list
@@ -1225,7 +1226,7 @@ inline Method *QoreClass::resolveSelfMethod(char *nme)
 inline Method *QoreClass::resolveSelfMethod(class NamedScope *nme)
 {
    // first find class
-   class QoreClass *qc = parseFindScopedClassWithMethod(nme);
+   class QoreClass *qc = getRootNS()->parseFindScopedClassWithMethod(nme);
    if (!qc)
       return NULL;
 

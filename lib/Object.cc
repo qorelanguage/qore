@@ -39,6 +39,81 @@
 
 #include <stdlib.h>
 
+class KeyNode {
+   private:
+      int key;
+      void *ptr;
+      q_private_t f_ref, f_deref;
+
+   public:
+      class KeyNode *next;
+
+      DLLLOCAL inline KeyNode(int k, void *p, q_private_t r, q_private_t d)
+      {
+	 key = k;
+	 ptr = p;
+	 f_ref = r;
+	 f_deref = d;
+	 next = NULL;
+      }
+      DLLLOCAL inline int getKey() const
+      {
+	 return key;
+      }
+      DLLLOCAL inline void *getPtr() const
+      {
+	 return ptr;
+      }
+      DLLLOCAL inline void *getAndClearPtr()
+      {
+	 void *rv = ptr;
+	 ptr = NULL;
+#ifdef DEBUG
+	 f_ref = NULL;
+	 f_deref = NULL;
+#endif
+	 return rv;
+      }
+      DLLLOCAL inline class KeyNode *refNode()
+      {
+	 if (!ptr)
+	    return NULL;
+	 f_ref(ptr);
+	 return this;
+      }
+      DLLLOCAL inline void deref()
+      {
+	 f_deref(ptr);
+      }
+      DLLLOCAL inline void *refPtr()
+      {
+	 if (!ptr)
+	    return NULL;
+	 f_ref(ptr);
+	 return ptr;
+      }
+      DLLLOCAL inline void derefPtr()
+      {
+	 f_deref(ptr);
+      }
+};
+
+// for objects with multiple classes, private data has to be keyed
+class KeyList {
+      class KeyNode *head, *tail;
+      int len;
+
+   public:
+      DLLLOCAL inline KeyList();
+      DLLLOCAL inline ~KeyList();
+      DLLLOCAL inline class KeyNode *find(int k) const;
+      DLLLOCAL inline void insert(int k, void *ptr, q_private_t ref, q_private_t deref);
+      DLLLOCAL inline class KeyNode *getReferencedPrivateDataNode(int key);
+      DLLLOCAL inline void *getReferencedPrivateData(int key);
+      DLLLOCAL inline void addToString(class QoreString *str) const;
+      DLLLOCAL inline void derefAll();
+};
+
 inline KeyList::KeyList()
 {
    head = tail = NULL;
@@ -165,6 +240,43 @@ Object::~Object()
    //traceout("Object::~Object()");
 }
 
+class QoreNode *Object::evalBuiltinMethodWithPrivateData(class BuiltinMethod *meth, class QoreNode *args, class ExceptionSink *xsink)
+{
+   // get referenced object
+   class KeyNode *kn = getReferencedPrivateDataNode(meth->myclass->getID());
+   
+   if (kn)
+   {
+      class QoreNode *rv = meth->evalMethod(this, kn->getPtr(), args, xsink);
+      kn->deref();
+      return rv;
+   }
+
+   if (myclass == meth->myclass)
+      xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::%s() cannot be executed because the object has already been deleted", myclass->getName(), meth->name);
+   else
+      xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::%s() (base class of object's class '%s') cannot be executed because the object has already been deleted", meth->myclass->getName(), meth->name, myclass->getName());
+   return NULL;
+}
+
+void Object::evalCopyMethodWithPrivateData(class BuiltinMethod *meth, class Object *self, class ExceptionSink *xsink)
+{
+   // get referenced object
+   class KeyNode *kn = getReferencedPrivateDataNode(meth->myclass->getID());
+   
+   if (kn)
+   {
+      meth->evalCopy(self, this, kn->getPtr(), xsink);
+      kn->deref();
+      return;
+   }
+
+   if (myclass == meth->myclass)
+      xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::copy() cannot be executed because the object has already been deleted", myclass->getName());
+   else
+      xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::copy() (base class of object's class '%s') cannot be executed because the object has already been deleted", meth->myclass->getName(), myclass->getName());
+}
+
 void Object::instantiateLVar(lvh_t id)
 {
    ref();
@@ -198,7 +310,6 @@ class QoreNode *Object::evalMethod(class QoreString *name, class QoreNode *args,
 
 class QoreClass *Object::getClass(int cid) const
 {
-
    if (cid == myclass->getID())
       return myclass;
    return myclass->getClass(cid);

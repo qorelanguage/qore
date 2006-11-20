@@ -94,7 +94,7 @@ QoreProgram::QoreProgram()
    qoreFeatureList.populate(&featureList);
 
    // setup namespaces
-   RootNS = getRootNamespace(&QoreNS);
+   RootNS = new RootNamespace(&QoreNS);
 }
 
 QoreProgram::QoreProgram(class QoreProgram *pgm, int po, bool ec, char *ecn)

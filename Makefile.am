@@ -32,14 +32,12 @@ noinst_HEADERS = \
 	include/qore/VRMutex.h \
 	include/qore/QoreClass.h \
 	include/qore/Operator.h \
-	include/qore/QoreClassList.h \
 	include/qore/QoreString.h \
 	include/qore/Reference.h \
 	include/qore/Statement.h \
 	include/qore/common.h \
 	include/qore/config.h \
 	include/qore/proto.h \
-	include/qore/ConstantList.h \
 	include/qore/charset.h \
 	include/qore/ParserSupport.h \
 	include/qore/DateTime.h \

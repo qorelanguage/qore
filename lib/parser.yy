@@ -60,6 +60,27 @@ int yywrap()
 
 extern class Operator **ops;
 
+static inline void addConstant(class NamedScope *name, class QoreNode *value)
+{
+   getRootNS()->rootAddConstant(name, value);
+}
+
+static inline void addClass(class NamedScope *name, class QoreClass *oc)
+{
+   tracein("addClass()");
+   getRootNS()->rootAddClass(name, oc);
+   traceout("addClass()");
+}
+
+static inline class QoreClass *parseFindClass(char *name)
+{
+   class QoreClass *c = getRootNS()->rootFindClass(name);
+   if (!c)
+      parse_error("reference to undefined class '%s'", name);
+
+   return c;
+}
+
 static QoreNode *process_dot(class QoreNode *l, class QoreNode *r)
 {
    if (r->type == NT_BAREWORD)
@@ -202,7 +223,7 @@ static inline void tryAddMethod(int mod, char *n, QoreNode *params, BCAList *bca
    {
       class Method *method = new Method(new UserFunction(strdup(name->getIdentifier()), new Paramlist(params), b, mod & OFM_SYNCED), mod & OFM_PRIVATE, bcal);
       
-      if (addMethodToClass(name, method))
+      if (getRootNS()->addMethodToClass(name, method))
 	 delete method;
    }
    delete name;
@@ -424,14 +445,13 @@ top_level_command:
 	   getRootNS()->addNamespace($1); 
 	   // see if ns declaration is legal
 	   if (checkParseOption(PO_NO_NAMESPACE_DEFS))
-	      parse_error("illegal namespace definition \"%s\" (conflicts with parse option NO_NAMESPACE_DEFINITION)",
-			  $1->name);
+	      parse_error("illegal namespace definition \"%s\" (conflicts with parse option NO_NAMESPACE_DEFINITION)", $1->getName());
 	}
 	;
 
 top_namespace_decl:
 	TOK_NAMESPACE IDENTIFIER '{' namespace_decls '}'
-	{ $4->name = $2; $$ = $4; }
+	{ $4->setName($2); $$ = $4; }
         | TOK_NAMESPACE IDENTIFIER ';'
         { $$ = new Namespace($2); free($2); }
 	;
@@ -480,8 +500,7 @@ namespace_decl:
 	   $$ = new NSNode($1); 
 	   // see if ns declaration is legal
 	   if (checkParseOption(PO_NO_NAMESPACE_DEFS))
-	      parse_error("illegal namespace definition \"%s\" (conflicts with parse option NO_NAMESPACE_DEFINITION)",
-			  $1->name);
+	      parse_error("illegal namespace definition \"%s\" (conflicts with parse option NO_NAMESPACE_DEFINITION)", $1->getName());
 	}
 
 unscoped_const_decl: 

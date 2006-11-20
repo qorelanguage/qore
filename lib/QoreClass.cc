@@ -85,23 +85,7 @@ class QoreNode *Method::eval(Object *self, QoreNode *args, ExceptionSink *xsink)
    if (type == OTF_USER)
       rv = func.userFunc->eval(new_args, self, xsink);
    else
-   {
-      // get referenced object
-      class KeyNode *kn = self->getReferencedPrivateDataNode(func.builtin->myclass->getID());
-
-      if (kn)
-      {
-	 rv = func.builtin->evalMethod(self, kn->getPtr(), new_args, xsink);
-	 kn->deref();
-      }
-      else
-      {
-	 if (self->getClass() == func.builtin->myclass)
-	    xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::%s() cannot be executed because the object has already been deleted", self->getClass()->getName(), name);
-	 else
-	    xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::%s() (base class of object's class '%s') cannot be executed because the object has already been deleted", func.builtin->myclass->getName(), name, self->getClass()->getName());
-      }
-   }
+      rv = self->evalBuiltinMethodWithPrivateData(func.builtin, new_args, xsink);
 
    // switch back to original program if necessary
    if (opgm && cpgm != opgm)
@@ -208,23 +192,7 @@ void Method::evalCopy(Object *self, Object *old, ExceptionSink *xsink)
    if (type == OTF_USER)
       func.userFunc->evalCopy(old, self, xsink);
    else // builtin function
-   {
-      // get referenced object
-      class KeyNode *kn = old->getReferencedPrivateDataNode(func.builtin->myclass->getID());
-
-      if (kn)
-      {
-	 func.builtin->evalCopy(self, old, kn->getPtr(), xsink);
-	 kn->deref();
-      }
-      else
-      {
-	 if (self->getClass() == func.builtin->myclass)
-	    xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::copy() cannot be executed because the object has already been deleted", self->getClass()->getName());
-	 else
-	    xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::copy() (base class of '%s') cannot be executed because the object has already been deleted", func.builtin->myclass->getName(), self->getClass()->getName());
-      }
-   }
+      old->evalCopyMethodWithPrivateData(func.builtin, self, xsink);
 
    // switch back to original program if necessary
    if (opgm && cpgm != opgm)

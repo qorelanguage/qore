@@ -149,7 +149,8 @@ class QoreProgram : public ReferenceObject, private UserFunctionList, private Im
       class ReferenceObject dc;
       class SBNode *sb_head, *sb_tail;
       class ExceptionSink *parseSink, *warnSink;
-      class Namespace *RootNS, *QoreNS;
+      class RootNamespace *RootNS;
+      class Namespace *QoreNS;
 
       int parse_options, warn_mask;
       bool po_locked, exec_class, base_object, requires_exception;
@@ -246,7 +247,7 @@ class QoreProgram : public ReferenceObject, private UserFunctionList, private Im
       // returns 0 for success, -1 for error
       inline int disableWarning(int code) { if (!(parse_options & PO_LOCK_WARNINGS)) { warn_mask &= ~code; return 0; } return -1; }
       inline void cannotProvideFeature(class QoreString *desc);
-      inline class Namespace *getRootNS() { return RootNS; }
+      inline class RootNamespace *getRootNS() { return RootNS; }
       inline int getParseOptions() { return parse_options; }
       inline void exportUserFunction(char *name, class QoreProgram *p, class ExceptionSink *xsink);
       inline class List *getUserFunctionList() { return getUFList(); }

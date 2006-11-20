@@ -234,7 +234,7 @@ inline void ClassRef::resolve()
 {
    if (cscope)
    {
-      class QoreClass *qc = parseFindScopedClass(cscope);
+      class QoreClass *qc = getRootNS()->parseFindScopedClass(cscope);
       if (qc)
 	 cid = qc->getID();
       delete cscope;

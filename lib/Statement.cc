@@ -1068,14 +1068,14 @@ static int process_node(class QoreNode **node, lvh_t oflag, int pflag)
    {
       // resolve simple constant
       printd(5, "process_node() resolving simple constant \"%s\"\n", (*node)->val.c_str);
-      resolveSimpleConstant(node, 1);
+      getRootNS()->resolveSimpleConstant(node, 1);
       return lvids;
    }
 
    if ((*node)->type == NT_CONSTANT)
    {
       printd(5, "process_node() resolving scoped constant \"%s\"\n", (*node)->val.scoped_ref->ostr);
-      resolveScopedConstant(node, 1);
+      getRootNS()->resolveScopedConstant(node, 1);
       return lvids;
    }
 
@@ -1179,7 +1179,7 @@ static int process_node(class QoreNode **node, lvh_t oflag, int pflag)
    if ((*node)->type == NT_SCOPE_REF)
    {
       // find object class
-      if (((*node)->val.socall->oc = parseFindScopedClass((*node)->val.socall->name)))
+      if (((*node)->val.socall->oc = getRootNS()->parseFindScopedClass((*node)->val.socall->name)))
       {
 	 // check if parse options allow access to this class
 	 if ((*node)->val.socall->oc->getDomain() & getProgram()->getParseOptions())
@@ -1216,11 +1216,11 @@ static int process_node(class QoreNode **node, lvh_t oflag, int pflag)
 	 {
 	    QoreNode *rv;
 	    if (k[0] == HE_TAG_CONST)
-	       rv = findConstantValue(k + 1, 1);
+	       rv = getRootNS()->findConstantValue(k + 1, 1);
 	    else
 	    {
 	       class NamedScope *nscope = new NamedScope(strdup(k + 1));
-	       rv = findConstantValue(nscope, 1);
+	       rv = getRootNS()->findConstantValue(nscope, 1);
 	       delete nscope;
 	    }
 	    if (rv)
@@ -1466,7 +1466,7 @@ inline void SwitchStatement::parseInit(lvh_t oflag, int pflag)
    {
       if (w->val)
       {
-	 parseInitConstantValue(&w->val, 0);
+	 getRootNS()->parseInitConstantValue(&w->val, 0);
 
 	 // check for duplicate values
 	 class CaseNode *cw = head;
