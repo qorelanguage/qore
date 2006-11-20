@@ -2,7 +2,7 @@ libdir = ${exec_prefix}/lib${LIBSUFFIX}
 pkglibdir = $(libdir)/@PACKAGE@-@VERSION@
 
 if COND_SINGLE_COMPILATION_UNIT
-	single-compilation-unit.cc
+TIBRV_SOURCES = single-compilation-unit.cc
 else
 TIBRV_SOURCES = tibrv.cc \
 	QoreTibrvTransport.cc \

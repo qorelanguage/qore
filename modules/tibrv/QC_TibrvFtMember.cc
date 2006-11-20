@@ -30,12 +30,12 @@
 
 int CID_TIBRVFTMEMBER;
 
-static inline void getFTM(void *obj)
+static inline void getFTMem(void *obj)
 {
    ((QoreTibrvFtMember *)obj)->ROreference();
 }
 
-static inline void releaseFTM(void *obj)
+static inline void releaseFTMem(void *obj)
 {
    ((QoreTibrvFtMember *)obj)->deref();
 }
@@ -134,7 +134,7 @@ static void TIBRVFTMEMBER_constructor(class Object *self, class QoreNode *params
    if (xsink->isException())
       qftmember->deref();
    else
-      self->setPrivate(CID_TIBRVFTMEMBER, qftmember, getFTM, releaseFTM);
+      self->setPrivate(CID_TIBRVFTMEMBER, qftmember, getFTMem, releaseFTMem);
 
    traceout("TIBRVFTMEMBER_constructor");
 }
