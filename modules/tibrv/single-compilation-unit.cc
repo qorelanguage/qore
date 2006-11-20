@@ -14,4 +14,5 @@
 #include "QC_TibrvCmSender.cc"
 #include "QC_TibrvCmListener.cc"
 #include "QC_TibrvDistributedQueue.cc"
+#include "tibrv.cc"
 #include "tibrv-module.cc"
