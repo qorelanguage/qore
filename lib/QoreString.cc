@@ -31,6 +31,7 @@
 #include <qore/BinaryObject.h>
 #include <qore/QoreLib.h>
 #include <qore/QoreType.h>
+#include <qore/minitest.hpp>
 
 #include <errno.h>
 #include <string.h>
@@ -195,9 +196,20 @@ QoreString::QoreString(bool b)
 {
    allocated = 2;
    buf = (char *)malloc(sizeof(char) * allocated);
-   len = ::sprintf(buf, "%d", b);
+   buf[0] = b ? '1' : '0';
+   buf[1] = 0;
    charset = QCS_DEFAULT;
 }
+
+#ifdef DEBUG
+TEST()
+{
+  QoreString s1(true);
+  assert(!strcmp(s1.getBuffer(), "1"));
+  QoreString s2(false);
+  assert(!strcmp(s2.getBuffer(), "0"));
+}
+#endif
 
 QoreString::QoreString(double f)
 {
