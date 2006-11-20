@@ -692,6 +692,7 @@ TibrvSdContext::setDaemonCert(TIBRV_SECURE_DAEMON_ANY_NAME, TIBRV_SECURE_DAEMON_
       fi
       AC_SUBST(TIBRV_CPPFLAGS)
       AC_SUBST(TIBRV_LDFLAGS)
+      AC_SUBST(TIBRVCPP_LDFLAGS)
       AC_DEFINE(TIBRV, 1, Define if TIBCO Rendezvous support should be included)
       with_tibrv=yes
    fi
