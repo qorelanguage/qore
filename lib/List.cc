@@ -37,6 +37,11 @@
 #include <string.h>
 #include <stdio.h>
 
+#include <qore/minitest.hpp>
+#ifdef DEBUG
+#  include "tests/List_tests.cc"
+#endif
+
 #include <algorithm>
 using namespace std;
 
