@@ -983,9 +983,6 @@ class QoreNode *OraBindGroup::selectRows(class ExceptionSink *xsink)
    if (status)
       ora_checkerr(d_ora->errhp, status, "OraBindGroup::select()", ds, xsink);
 
-   if (xsink->isException())
-      return NULL;
-
    class List *l = NULL;
    if (!xsink->isEvent())
       l = ora_fetch_horizontal(stmthp, ds, xsink);
