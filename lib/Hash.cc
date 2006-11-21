@@ -32,6 +32,10 @@
 #include <string.h>
 #include <stdlib.h>
 
+#ifdef DEBUG
+#  include "tests/Hash_tests.cc"
+#endif
+
 void Hash::internDeleteKey(class HashMember *om, class ExceptionSink *xsink)
 {
    // dereference node if present
@@ -460,27 +464,6 @@ void Hash::derefAndDelete(class ExceptionSink *xsink)
 #endif
    delete this;
 }
-
-#ifdef DEBUG
-namespace {
-TEST()
-{
-  ExceptionSink xsink;
-  Hash* h = new Hash;
-  h->derefAndDelete(&xsink);
-  assert(!xsink);
-
-  h = new Hash;
-  h->setKeyValue("aaa", new QoreNode(true), &xsink);
-  assert(!xsink);
-  h->setKeyValue("bbbb", new QoreNode(1.1), &xsink);
-  assert(!xsink);
-  h->setKeyValue("bbb", new QoreNode(0.0), &xsink); // the same key
-  h->derefAndDelete(&xsink);
-  assert(!xsink);
-}
-}
-#endif // DEBUG
 
 void Hash::deleteKey(char *key, ExceptionSink *xsink)
 {

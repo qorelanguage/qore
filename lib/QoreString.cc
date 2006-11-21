@@ -38,6 +38,10 @@
 #include <stdio.h>
 #include <iconv.h>
 
+#ifdef DEBUG
+#  include "tests/QoreString_tests.cc"
+#endif
+
 const struct code_table QoreString::html_codes[] = 
 { { '&', "&amp;", 5 },
   { '<', "&lt;", 4 },
@@ -201,18 +205,6 @@ QoreString::QoreString(bool b)
    charset = QCS_DEFAULT;
 }
 
-#ifdef DEBUG
-namespace {
-TEST()
-{
-  QoreString s1(true);
-  assert(!strcmp(s1.getBuffer(), "1"));
-  QoreString s2(false);
-  assert(!strcmp(s2.getBuffer(), "0"));
-}
-} // namespace
-#endif // DEBUG
-
 QoreString::QoreString(double f)
 {
    allocated = MAX_FLOAT_STRING_LEN + 1;
@@ -234,7 +226,7 @@ QoreString::QoreString(class DateTime *d)
 
 QoreString::QoreString(class BinaryObject *b)
 {
-   allocated = STR_CLASS_BLOCK;
+   allocated = b->size() + (b->size() * 4) / 10 + 10; // estimate for base64 encoding
    buf = (char *)malloc(sizeof(char) * allocated);
    len = 0;
    charset = QCS_DEFAULT;
@@ -668,30 +660,6 @@ void QoreString::concatAndHTMLEncode(QoreString *str, class ExceptionSink *xsink
    }
 }
 
-#ifdef DEBUG
-namespace {
-TEST()
-{
-  QoreString s("<>&\"<<>>&&\"\"< > & \" ");
-  ExceptionSink xsink;
-
-  QoreString s2;
-  s2.concatAndHTMLEncode(&s, &xsink);
-  assert(!xsink);
-  if (strcmp(s2.getBuffer(), "&lt;&gt;&amp;&quot;&lt;&lt;&gt;&gt;&amp;&amp;&quot;&quot;&lt; &gt; &amp; &quot; ")) {
-    assert(false);
-  }
-  
-  QoreString s3("aaaa");
-  s3.concatAndHTMLEncode(&s, &xsink);
-  assert(!xsink);
-  if (strcmp(s3.getBuffer(), "aaaa&lt;&gt;&amp;&quot;&lt;&lt;&gt;&gt;&amp;&amp;&quot;&quot;&lt; &gt; &amp; &quot; ")) {
-    assert(false);
-  }
-}
-} // namespace
-#endif // DEBUG
-
 // FIXME: this is slow, each concatenated character gets terminated as well
 void QoreString::concatAndHTMLEncode(char *str)
 {
@@ -771,27 +739,6 @@ void QoreString::concatAndHTMLDecode(QoreString *str)
       */
    }
 }
-
-#ifdef DEBUG
-namespace {
-TEST()
-{
-  QoreString s1("&lt;&gt;&amp;&quot;&lt;&lt;&gt;&gt;&amp;&amp;&quot;&quot;&lt; &gt; &amp; &quot; ");
-
-  QoreString s2;
-  s2.concatAndHTMLDecode(&s1);
-  if (strcmp(s2.getBuffer(), "<>&\"<<>>&&\"\"< > & \" ")) {
-    assert(false);
-  }
-
-  QoreString s3("bbbb");
-  s3.concatAndHTMLDecode(&s1);
-  if (strcmp(s3.getBuffer(), "bbbb<>&\"<<>>&&\"\"< > & \" ")) {
-    assert(false);
-  }
-}
-} // namespace
-#endif // DEBUG
 
 // return 0 for success
 int QoreString::vsprintf(const char *fmt, va_list args)
@@ -1422,18 +1369,4 @@ void QoreString::ensureBufferSize(unsigned requested_size)
    buf = aux;
    allocated = requested_size;
 }
-
-#ifdef DEBUG
-namespace {
-TEST()
-{
-  QoreString s;
-  s.ensureBufferSize(0);
-  s.ensureBufferSize(100);
-  s.ensureBufferSize(10);
-  int x = 1234;
-  s.ensureBufferSize(x);
-}
-} // namespace
-#endif // DEBUG
 
