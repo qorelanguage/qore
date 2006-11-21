@@ -43,6 +43,7 @@
 #include <qore/QoreNode.h>
 #include <qore/QoreFile.h>
 #include <qore/hash_map.h>
+#include <qore/minitest.hpp>
 
 // include files for default object classes
 #include <qore/QC_Socket.h>
@@ -57,6 +58,10 @@
 #include <stdlib.h>
 #include <pcre.h>
 #include <assert.h>
+
+#ifdef DEBUG
+#  include "tests/Namespace_tests.cc"
+#endif
 
 #define MAX_RECURSION_DEPTH 20
 
