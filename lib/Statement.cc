@@ -36,10 +36,15 @@
 #include <qore/ParserSupport.h>
 #include <qore/QoreClass.h>
 #include <qore/QoreWarnings.h>
+#include <qore/minitest.hpp>
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#ifdef DEBUG
+#  include "tests/Statement_tests.cc"
+#endif
 
 // only executed by Statement::exec()
 inline int SwitchStatement::exec(class QoreNode **return_value, class ExceptionSink *xsink)
