@@ -63,7 +63,7 @@ inline int SwitchStatement::exec(class QoreNode **return_value, class ExceptionS
       class CaseNode *w = head;
       while (w)
       {
-	 if (!compareHard(se, w->val))
+	 if (w->matches(se))
 	    break;
 	 w = w->next;
       }
