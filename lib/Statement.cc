@@ -1477,7 +1477,12 @@ inline void SwitchStatement::parseInit(lvh_t oflag, int pflag)
 	 class CaseNode *cw = head;
 	 while (cw != w)
 	 {
-	    if (!compareHard(w->val, cw->val))
+            // Check only the simple case blocks (case 1: ...),
+            // not those with relational operators. Could be changed later to provide more checking.
+            CaseNode dummy(0, 0);
+            bool simple_case_blocks = typeid(*w) == typeid(dummy) && typeid(*cw) == typeid(dummy);
+
+	    if (simple_case_blocks && !compareHard(w->val, cw->val))
 	       parse_error("duplicate case values in switch");
 	    cw = cw->next;
 	 }

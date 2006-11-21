@@ -38,7 +38,10 @@ class CaseNode {
 	 code = c;
 	 next = NULL;
       }
-      inline ~CaseNode();
+      virtual bool matches(QoreNode* lhs_value) {
+        return !compareHard(lhs_value, val); // the ! is because of compareHard() semantics
+      }
+      inline virtual ~CaseNode();
 };
 
 class SwitchStatement {

@@ -42,6 +42,7 @@
 #include <qore/QoreRegex.h>
 #include <qore/RegexTrans.h>
 #include <qore/BinaryObject.h>
+#include <qore/SwitchStatementWithOperators.h>
 
 #include "parser.h"
 
@@ -712,12 +713,52 @@ case_block:
         ;
 
 case_code:
-        TOK_CASE exp ':' statements
+        TOK_CASE LOGICAL_GE exp ':' statements
+        {
+          if (needsEval($3)) parse_error("case expression with '>=' needs run-time evaluation");
+          $$ = new CaseNodeWithOperator($3, $5, CaseNodeWithOperator::GreaterOrEqual);
+        }
+        | TOK_CASE LOGICAL_LE exp ':' statements
+        {
+         if (needsEval($3)) parse_error("case expression with '<=' needs run-time evaluation");
+          $$ = new CaseNodeWithOperator($3, $5, CaseNodeWithOperator::LessOrEqual);
+        }
+        | TOK_CASE '<' exp ':' statements
+        {
+          if (needsEval($3)) parse_error("case expression with '>' needs run-time evaluation");
+          $$ = new CaseNodeWithOperator($3, $5, CaseNodeWithOperator::Less);
+        }
+        | TOK_CASE '>' exp ':' statements
+        {
+          if (needsEval($3)) parse_error("case expression with '<' needs run-time evaluation");
+          $$ = new CaseNodeWithOperator($3, $5, CaseNodeWithOperator::Greater);
+        }
+        | TOK_CASE exp ':' statements
         {
 	   if (needsEval($2))
 	      parse_error("case expression needs run-time evaluation");
 	   $$ = new CaseNode($2, $4);
 	}
+        | TOK_CASE LOGICAL_GE exp ':' // nothing
+        {
+          if (needsEval($3)) parse_error("case expression with '>=' needs run-time evaluation");
+          $$ = new CaseNodeWithOperator($3, NULL, CaseNodeWithOperator::GreaterOrEqual);
+        }
+        | TOK_CASE LOGICAL_LE exp ':' // nothing
+        {
+         if (needsEval($3)) parse_error("case expression with '<=' needs run-time evaluation");
+          $$ = new CaseNodeWithOperator($3, NULL, CaseNodeWithOperator::LessOrEqual);
+        }
+        | TOK_CASE '<' exp ':' // nothing
+        {
+          if (needsEval($3)) parse_error("case expression with '>' needs run-time evaluation");
+          $$ = new CaseNodeWithOperator($3, NULL, CaseNodeWithOperator::Less);
+        }
+        | TOK_CASE '>' exp ':' // nothing
+        {
+          if (needsEval($3)) parse_error("case expression with '<' needs run-time evaluation");
+          $$ = new CaseNodeWithOperator($3, NULL, CaseNodeWithOperator::Greater);
+        }
         | TOK_CASE exp ':' // nothing
         {
 	   if (needsEval($2))

@@ -22,6 +22,7 @@ libqore_la_SOURCES = \
 	Function.cc \
 	BuiltinFunctionList.cc \
 	Statement.cc \
+	SwitchStatementWithOperators.cc \
 	Variable.cc \
 	support.cc \
 	QoreSignal.cc \

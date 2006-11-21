@@ -73,6 +73,8 @@
 #include "QC_Counter.cc"
 #include "QC_SSLCertificate.cc"
 #include "QC_SSLPrivateKey.cc"
+#include "SwitchStatementWithOperators.cc"
+
 #ifdef DEBUG
 #include "ql_debug.cc"
 #endif
