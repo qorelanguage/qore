@@ -309,15 +309,29 @@ int QoreString::vsprintf(const char *fmt, va_list args)
    // copy formatted string to buffer
    int i = ::vsnprintf(buf + len, free, fmt, args);
 
+   //printf("DEBUG: QoreString::vsprintf(fmt='%s', ...) buf=%08p, len=%d, vsnprintf rc=%d\n", fmt, buf, len, i);
+#ifdef HPUX
+   // vsnprintf failed but didn't tell us how bug the buffer should be
+   if (i < 0)
+   {
+      //printf("DEBUG: vsnprintf() failed: i=%d allocated=%d len=%d buf=%08p fmtlen=%d (new=i+%d = %d)\n", i, allocated, len, buf, fmtlen, STR_CLASS_EXTRA, i + STR_CLASS_EXTRA);
+      // resize buffer
+      allocated += STR_CLASS_EXTRA;
+      buf = (char *)realloc(buf, sizeof(char) * allocated);
+      *(buf + len) = '\0';
+      return -1;
+   }
+#else
    if (i >= free)
    {
-      //printd(5, "vsnprintf() failed: i=%d allocated=%d len=%d buf=%08p fmtlen=%d (new=i+%d = %d)\n", i, allocated, len, buf, fmtlen, STR_CLASS_EXTRA, i + STR_CLASS_EXTRA);
+      //printf("DEBUG: vsnprintf() failed: i=%d allocated=%d len=%d buf=%08p fmtlen=%d (new=i+%d = %d)\n", i, allocated, len, buf, fmtlen, STR_CLASS_EXTRA, i + STR_CLASS_EXTRA);
       // resize buffer
       allocated = len + i + STR_CLASS_EXTRA;
       buf = (char *)realloc(buf, sizeof(char) * allocated);
       *(buf + len) = '\0';
       return -1;
    }
+#endif
 
    len += i;
    return 0;
@@ -354,6 +368,7 @@ void QoreString::concat(char *str, int size)
 
 void QoreString::concat(QoreString *str)
 {
+   //printd(5, "QoreString::concat(QoreString str=%08p, buf=%08p, len=%d '%s')\n", str, str->buf, str->len, str->buf);
    // if it's not a null string
    if (str && str->len)
    {
@@ -464,6 +479,7 @@ int QoreString::vsnprintf(int size, const char *fmt, va_list args)
    }
    // copy formatted string to buffer
    int i = ::vsnprintf(buf + len, size, fmt, args);
+   //printf("DEBUG: QoreString::vsnprintf(size=%d, fmt='%s', ...) rc=%d (allocated=%d, len=%d)\n", size, fmt, i, allocated, len);
    len += i;
    return i;
 }
@@ -657,7 +673,7 @@ void QoreString::splice_complex(int offset, class ExceptionSink *xsink)
 {
    // get length in chars
    int clen = charset->getLength(buf);
-   //printd(0, "splice_complex(offset=%d) clen=%d\n", offset, clen);
+   //printd(5, "splice_complex(offset=%d) clen=%d\n", offset, clen);
    if (offset >= clen)
       return;
    if (offset < 0)

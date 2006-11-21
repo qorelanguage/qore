@@ -66,6 +66,9 @@ class QoreString {
       class QoreString *substr_complex(int offset);
       class QoreString *substr_complex(int offset, int length);
 
+      int snprintf(int size, const char *fmt, ...);
+      int vsnprintf(int size, const char *fmt, va_list args);
+
    public:
       inline QoreString();
       inline QoreString(bool b);
@@ -116,9 +119,7 @@ class QoreString {
       inline void allocate(int);
       inline void terminate(int);
       int sprintf(const char *fmt, ...);
-      int snprintf(int size, const char *fmt, ...);
       int vsprintf(const char *fmt, va_list args);
-      int vsnprintf(int size, const char *fmt, va_list args);
       inline void take(char *);
       inline void take(char *, class QoreEncoding *new_charset);
       inline void take(char *, int size);

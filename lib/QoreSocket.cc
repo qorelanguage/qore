@@ -642,10 +642,9 @@ class QoreString *QoreSocket::recv(int bufsize, int timeout, int *rc)
    while (true)
    {
       *rc = recv(buf, bs, 0, timeout);
+
       if ((*rc) <= 0)
       {
-	 //printd(0, "QoreSocket::recv(%d, %d) bs=%d, br=%d, rc=%d, errno=%d (%s)\n", bufsize, timeout, bs, br, *rc, errno, strerror(errno));
-
 	 delete str;
 	 str = NULL;
 	 break;
@@ -653,6 +652,8 @@ class QoreString *QoreSocket::recv(int bufsize, int timeout, int *rc)
       str->concat(buf, *rc);
       br += *rc;
 
+      //printd(5, "QoreSocket::recv(bufsize=%d, timeout=%d) actual_bufsize=%d, bytes_read=%d, str=%08p, str->len=%d (rc=%d, errno=%d, %s)\n", bufsize, timeout, bs, br, str, str->strlen(), *rc, errno, strerror(errno));
+      //printf("DEBUG: str='%s'\n", str->getBuffer());
       if (bufsize > 0)
       {
 	 if (br >= bufsize)
@@ -661,7 +662,7 @@ class QoreString *QoreSocket::recv(int bufsize, int timeout, int *rc)
 	    bs = bufsize - br;
       }
    }
-   //printd(5, "QoreSocket::recv() received %d byte(s), strlen=%d\n", br, str->strlen());
+   //printd(5, "QoreSocket::recv(%d, %d) str=%08p len=%d '%s'\n", bufsize, timeout, str, str->strlen(), str->getBuffer());
    free(buf);
    return str;
 }

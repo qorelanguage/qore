@@ -1383,7 +1383,7 @@ if test "$enable_debug" = "no" -a "$enable_profile" = "no"; then
    elif test "$CXX" = "CC" -a "`echo $host_os|cut -b-7`" = "solaris"; then
        CXXFLAGS="$CXXFLAGS -xO5" # Solaris CC
    elif test -n "`echo $CXX|grep aCC`"; then 
-       CXXFLAGS="$CXXFLAGS +O2" # HP-UX aCC
+       CXXFLAGS="$CXXFLAGS" # HP-UX aCC
    fi
    # strip binaries and libraries
    if test "`echo $host_os|cut -b-6`" = "darwin"; then
@@ -1449,7 +1449,7 @@ else
 fi
 
 printf "single compilation unit : "
-if test "$enable_debug" = "yes"; then
+if test "$enable_single_compilation_unit" = "yes"; then
    echo yes
 else
    echo disabled
