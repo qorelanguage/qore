@@ -322,14 +322,6 @@ class QoreNode *WC_mvvline(class Object *self, class Window *w, class QoreNode *
 					  p3 ? p3->getAsInt() : 0));
 }
 
-static inline int getChar(QoreNode *p)
-{
-   if (p->type == NT_STRING)
-      return p->val.String->getBuffer()[0];
-
-   return p->getAsInt();
-}
-
 class QoreNode *WC_addch(class Object *self, class Window *w, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *rv;
