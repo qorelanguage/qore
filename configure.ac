@@ -19,7 +19,8 @@ elif test -z "`$LEX --version | grep -e ' 2\.5\.3[[1-9]]' -e '2\.5\.[[4-9]][[0-9
         flexver=`$LEX --version`
 	AC_MSG_ERROR([incompatible $flexver found - you can download flex 2.5.33 at http://sourceforge.net/projects/flex])
 else
-	AC_MSG_RESULT([yes])
+        flexver=`$LEX --version`
+	AC_MSG_RESULT([yes ($flexver)])
 fi
 
 AC_PROG_YACC
@@ -54,6 +55,18 @@ AC_CHECK_LIB(socket, setsockopt)
 
 # look for librt (needed by clock_gettime() on some platforms)
 AC_CHECK_LIB(rt, clock_gettime)
+
+# set system variables
+OS=`uname -s`
+if test "$OS" = "HP-UX"; then
+   if "$host_cpu" = "ia64"; then
+      ARCH=itanium
+   else
+      ARCH=PA-RISC
+   fi
+else
+   ARCH=`uname -p`
+fi
 
 #AC_CANONICAL_HOST
 # get CPU family
@@ -118,6 +131,15 @@ if test -z "$MODULE_SUFFIX" ; then
 fi
 AC_SUBST(MODULE_SUFFIX)
 
+AC_ARG_ENABLE([single-compilation-unit],
+  [AS_HELP_STRING([--enable-single-compilation-unit],
+		  [enable compilation as a single unit (default: on)])],
+  [case "${enable_single_compilation_unit}" in
+       yes|no) ;;
+       *)      AC_MSG_ERROR(bad value ${enable_single_compilation_unit} for --enable-single-compilation-unit) ;;
+      esac],
+  [enable_single_compilation_unit=yes])
+
 AC_ARG_ENABLE([64bit],
   [AS_HELP_STRING([--enable-64bit],
 		  [enable 64bit support (default: off)])],
@@ -150,8 +172,19 @@ if test "$enable_64bit" = "yes"; then
 		    fi
 		fi
 		;;
+     *solaris*) if test "$GXX" = "yes"; then
+		    if test "$host_cpu" = "sparc"; then
+		        CXXFLAGS="$CXXFLAGS -mcpu=ultrasparc3 -m64"  # NOTE we compile for minimum ultrasparc 3 in 64-bit mode
+		    else
+		        CXXFLAGS="$CXXFLAGS -m64"
+		    fi
+		else
+		    CXXFLAGS="$CXXFLAGS -xarch=generic64"
+		fi
+		;;
    esac
    RVLIBSUFFIX=64
+   bits=64
 else
    case "${host_os}" in
      *linux*)	if test "$GXX" = "yes"; then
@@ -166,12 +199,23 @@ else
 		    fi
 		fi
 		;;
+     *solaris*) if test "$GXX" = "yes"; then
+		    if test "$host_cpu" = "sparc"; then
+		        CXXFLAGS="$CXXFLAGS -mcpu=v8 -m32"
+		    else
+		        CXXFLAGS="$CXXFLAGS -m32"
+		    fi
+		else
+		    CXXFLAGS="$CXXFLAGS -xarch=generic"
+		fi
+		;;
    esac
+   bits=32
 fi
 
 AC_ARG_ENABLE([static-openssl],
      [AS_HELP_STRING([--enable-static-openssl],
-		     [statically link openssl libraries (default=auto)])],
+		     [force static linkage of openssl libraries (default=auto)])],
      [case "${enable_static_openssl}" in
        yes|no) ;;
        *)      AC_MSG_ERROR(bad value ${enable_static_openssl} for --enable-static-openssl) ;;
@@ -180,7 +224,7 @@ AC_ARG_ENABLE([static-openssl],
 
 AC_ARG_ENABLE([static-libxml2],
      [AS_HELP_STRING([--enable-static-libxml2],
-		     [statically link libxml2 libraries (default=auto)])],
+		     [force static linkage of libxml2 libraries (default=auto)])],
      [case "${enable_static_libxml2}" in
        yes|no) ;;
        *)      AC_MSG_ERROR(bad value ${enable_static_libxml2} for --enable-static-libxml2) ;;
@@ -189,7 +233,7 @@ AC_ARG_ENABLE([static-libxml2],
 
 AC_ARG_ENABLE([static-pcre],
      [AS_HELP_STRING([--enable-static-pcre],
-		     [statically link pcre libraries (default=auto)])],
+		     [force static linkage of pcre libraries (default=auto)])],
      [case "${enable_static_pcre}" in
        yes|no) ;;
        *)      AC_MSG_ERROR(bad value ${enable_static_pcre} for --enable-static-pcre) ;;
@@ -198,7 +242,7 @@ AC_ARG_ENABLE([static-pcre],
 
 AC_ARG_ENABLE([static-ncurses],
      [AS_HELP_STRING([--enable-static-ncurses],
-		     [statically link ncurses libraries (default=auto)])],
+		     [force static linkage of ncurses libraries (default=auto)])],
      [case "${enable_static_ncurses}" in
        yes|no) ;;
        *)      AC_MSG_ERROR(bad value ${enable_static_ncurses} for --enable-static-ncurses) ;;
@@ -207,7 +251,7 @@ AC_ARG_ENABLE([static-ncurses],
 
 AC_ARG_ENABLE([static-common],
      [AS_HELP_STRING([--enable-static-common],
-		     [statically link openssl, libxml2, pcre, and ncurses libraries (default=auto)])],
+		     [force static linkage of openssl, libxml2, pcre, and ncurses libraries (default=auto)])],
      [case "${enable_static_common}" in
        yes|no) ;;
        *)      AC_MSG_ERROR(bad value ${enable_static_common} for --enable-static-common) ;;
@@ -238,7 +282,7 @@ if test "$enable_static_common" = "yes"; then
 fi
 
 AC_ARG_WITH([static-libz-dir],
-	    [AS_HELP_STRING([--with-static-libz-dir], [directory for libz.a library (default=auto)])],
+	    [AS_HELP_STRING([--with-static-libz-dir], [directory for libz.a library to force static linkage (default=auto)])],
 	    [if test ! -d "${with_static_libz_dir}"; then AC_MSG_ERROR([bad value ${with_static_libz_dir} for --with-static_libz_dir]); fi])
 
 if test -n "$with_static_libz_dir"; then
@@ -265,7 +309,7 @@ find_openssl()
     if test -n "$openssl_static"; then
     	if test -f "$lib/libssl.a" -a -f "$lib/libcrypto.a"; then
 	    OPENSSL_LDFLAGS="$lib/libssl.a $lib/libcrypto.a"
-       	    AC_MSG_RESULT([$lib (static)])
+       	    AC_MSG_RESULT([$lib (forced static)])
     	fi
     else
         if test -f "$lib/libssl.${SHLIB_SUFFIX}" -a -f "$lib/libcrypto.${SHLIB_SUFFIX}"; then
@@ -275,7 +319,10 @@ find_openssl()
 	    OPENSSL_LDFLAGS="$OPENSSL_LDFLAGS -lssl -lcrypto"
        	    AC_MSG_RESULT([$lib (shared)])
     	elif test -f "$lib/libssl.a" -a -f "$lib/libcrypto.a"; then
-	    OPENSSL_LDFLAGS="$lib/libssl.a $lib/libcrypto.a"
+	    if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
+       	        OPENSSL_LDFLAGS="-L$lib"
+    	    fi
+	    OPENSSL_LDFLAGS="$OPENSSL_LDFLAGS -lssl -lcrypto"
        	    AC_MSG_RESULT([$lib (static)])
     	fi
     fi
@@ -331,7 +378,7 @@ find_pcre()
     if test -n "$pcre_static"; then
     	if test -f "$lib/libpcre.a"; then
 	    PCRE_LDFLAGS="$lib/libpcre.a"
-       	    AC_MSG_RESULT([$lib (static)])
+       	    AC_MSG_RESULT([$lib (forced static)])
     	fi
     else
         if test -f "$lib/libpcre.${SHLIB_SUFFIX}"; then
@@ -341,7 +388,10 @@ find_pcre()
 	    PCRE_LDFLAGS="$PCRE_LDFLAGS -lpcre"
        	    AC_MSG_RESULT([$lib (shared)])
     	elif test -f "$lib/libpcre.a"; then
-	    PCRE_LDFLAGS="$lib/libpcre.a"
+	    if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
+       	        PCRE_LDFLAGS="-L$lib"
+    	    fi
+	    PCRE_LDFLAGS="$PCRE_LDFLAGS -lpcre"
        	    AC_MSG_RESULT([$lib (static)])
     	fi
     fi
@@ -400,7 +450,7 @@ find_libxml2()
     if test -n "$libxml2_static"; then
     	if test -f "$lib/libxml2.a"; then
 	    LIBXML2_LDFLAGS="$lib/libxml2.a"
-       	    AC_MSG_RESULT([$lib (static)])
+       	    AC_MSG_RESULT([$lib (forced static)])
     	fi
     else
         if test -f "$lib/libxml2.${SHLIB_SUFFIX}"; then
@@ -410,7 +460,10 @@ find_libxml2()
 	    LIBXML2_LDFLAGS="$LIBXML2_LDFLAGS -lxml2"
        	    AC_MSG_RESULT([$lib (shared)])
     	elif test -f "$lib/libxml2.a"; then
-	    LIBXML2_LDFLAGS="$lib/libxml2.a"
+	    if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
+       	        LIBXML2_LDFLAGS="-L$lib"
+    	    fi
+	    LIBXML2_LDFLAGS="$LIBXML2_LDFLAGS -lxml2"
        	    AC_MSG_RESULT([$lib (static)])
     	fi
     fi
@@ -486,8 +539,10 @@ AC_ARG_ENABLE([debug],
 
 if test "${enable_debug}" = yes; then
    AC_DEFINE(DEBUG, 1, Define if debugging support should be included)
-# remove -O2 from CXXFLAGS so valgrind can report properly
-CXXFLAGS=`echo $CXXFLAGS | sed 's/\-O2//'`
+   # remove -O2 from CXXFLAGS so valgrind can report properly
+   CXXFLAGS=`echo $CXXFLAGS | sed 's/\-O2//'`
+else
+   AC_DEFINE(NDEBUG, 1, Define if assert() declarations should be suppressed)
 fi
 
 AC_ARG_ENABLE([builtin-modules],
@@ -498,6 +553,21 @@ AC_ARG_ENABLE([builtin-modules],
        *)      AC_MSG_ERROR(bad value ${enable_builtin_modules} for --enable-builtin-modules) ;;
       esac],
      [enable_builtin_modules=no])
+
+# check for gcc visibility support
+AC_MSG_CHECKING([for gcc visibility support])
+if test "$GXX" = "yes"; then
+   gcc_version=`$CXX -dumpversion`
+   if test "$gcc_version" \> "4"; then
+      AC_DEFINE(HAVE_GCC_VISIBILITY, 1, if compiling with g++ and visibility support is available)
+      AC_MSG_RESULT([yes, $CXX $gcc_version])
+      #CXXFLAGS="$CXXFLAGS -fvisibility=hidden"
+   else
+      AC_MSG_RESULT([no, gcc $gcc_version])
+   fi
+else
+   AC_MSG_RESULT([no, CXX=$gcc_version])
+fi
 
 AC_ARG_ENABLE([threads],
   [AS_HELP_STRING([--enable-threads],
@@ -556,21 +626,23 @@ else
 fi
 
 if test -n "$with_tibrv"; then
+   rv_found="$with_tibrv"
 
    # setup tibrv compile and link vars
    TIBRV_CPPFLAGS="-I${with_tibrv}/include"
+   TIBRV_LDFLAGS="-L${with_tibrv}/lib -ltibrv${RVLIBSUFFIX} -ltibrvcm${RVLIBSUFFIX} -ltibrvcmq${RVLIBSUFFIX} -ltibrvft${RVLIBSUFFIX} -ltibrvsd${RVLIBSUFFIX}"
    # check for dynamic libtibrvcpp
    if test -f "${with_tibrv}/lib/libtibrvcpp${RVLIBSUFFIX}.${SHLIB_SUFFIX}"; then
-      TIBRV_LIBS="-L${with_tibrv}/lib -ltibrv${RVLIBSUFFIX} -ltibrvcm${RVLIBSUFFIX} -ltibrvcmq${RVLIBSUFFIX} -ltibrvcpp${RVLIBSUFFIX} -ltibrvft${RVLIBSUFFIX} -ltibrvsd${RVLIBSUFFIX}"   
+      TIBRVCPP_LDFLAGS="-ltibrvcpp${RVLIBSUFFIX}"
    else
-      TIBRV_LIBS="-L${with_tibrv}/lib -ltibrv${RVLIBSUFFIX} -ltibrvcm${RVLIBSUFFIX} -ltibrvcmq${RVLIBSUFFIX} ${with_tibrv}/lib/libtibrvcpp${RVLIBSUFFIX}.a -ltibrvft${RVLIBSUFFIX} -ltibrvsd${RVLIBSUFFIX}"   
+      TIBRVCPP_LDFLAGS="${with_tibrv}/lib/libtibrvcpp${RVLIBSUFFIX}.a"   
    fi
 
    # check if C++ compiler can link with TIBCO Rendezvous c++ libs
    SAVE_CPPFLAGS="$CPPFLAGS"
    SAVE_LDFLAGS="$LDFLAGS"
    CPPFLAGS="$CPPFLAGS $TIBRV_CPPFLAGS"
-   LDFLAGS="$LDFLAGS $TIBRV_LIBS $OPENSSL_LDFLAGS"
+   LDFLAGS="$LDFLAGS $TIBRV_LDFLAGS $TIBRVCPP_LDFLAGS $OPENSSL_LDFLAGS"
 
    # hack to work around a bug in 64-bit g++ on linux? - if libtibrvcpp is not last on the compile line the link will fail for some reason
    SAVE_LIBS="$LIBS"
@@ -592,14 +664,14 @@ Tibrv::close();
       AC_MSG_RESULT([failed: please recompile libtibrvcpp using this c++ compiler ($CXX) and install in $with_tibrv/lib and run configure again if you want the tibrv module])
       unset with_tibrv
       unset TIBRV_CPPFLAGS
-      unset TIBRV_LIBS
+      unset TIBRV_LDFLAGS
    else
       AC_MSG_RESULT([ok])
       # check if secure daemon support was enabled in libtibrvcpp
       SAVE_CPPFLAGS="$CPPFLAGS"
       SAVE_LDFLAGS="$LDFLAGS"
       CPPFLAGS="$CPPFLAGS $TIBRV_CPPFLAGS"
-      LDFLAGS="$LDFLAGS $TIBRV_LIBS"
+      LDFLAGS="$LDFLAGS $TIBRV_LDFLAGS"
 
       AC_MSG_CHECKING([if secure daemon support was enabled in libtibrvcpp])
       AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
@@ -614,13 +686,14 @@ TibrvSdContext::setDaemonCert(TIBRV_SECURE_DAEMON_ANY_NAME, TIBRV_SECURE_DAEMON_
 
       if test "${tibrvsd_links}" = "yes"; then
          AC_MSG_RESULT([ok])
-	 TIBRV_LIBS="$TIBRV_LIBS -lssl -lcrypto"
+	 TIBRV_LDFLAGS="$TIBRV_LDFLAGS -lssl -lcrypto"
 	 AC_DEFINE(TIBRV_SD, 1, Define if TIBCO Rendezvous secure daemon support should be included)
       else
          AC_MSG_RESULT([failed: if you want secure daemon support in the tibrv module, rebuild libtibrvcpp with secure daemon support (remove comments from the SD_MODULE line in $with_tibrv/src/librvcpp/Makefile), rebuild the library and install in $with_tibrv/lib and rerun configure])
       fi
       AC_SUBST(TIBRV_CPPFLAGS)
-      AC_SUBST(TIBRV_LIBS)
+      AC_SUBST(TIBRV_LDFLAGS)
+      AC_SUBST(TIBRVCPP_LDFLAGS)
       AC_DEFINE(TIBRV, 1, Define if TIBCO Rendezvous support should be included)
       with_tibrv=yes
    fi
@@ -628,14 +701,14 @@ fi
 
 AC_ARG_WITH([tibae],
   [AS_HELP_STRING([--with-tibae@<:@=DIR@:>@],
-		  [TIBCO Active Enterprise SDK directory (defaults to $SDK_ROOT)])],
+		  [TIBCO Adapters SDK directory (defaults to $SDK_ROOT)])],
   [if test ! -d "${with_tibae}"; then AC_MSG_ERROR(bad value ${with_tibae} for --with-tibae); unset with_tibae; fi])
 
-AC_MSG_CHECKING([TIBCO Active Enterprise SDK])
+AC_MSG_CHECKING([TIBCO Adapters SDK])
 if test -n "$with_tibae"; then
    # disable AE SDK on HP-UX PA-RISC, it requires compiling without the -AA flag which we don't support
-   if test -n "`echo $host_os | grep hpux`" -a "$host_cpu" != "ia64"; then
-      AC_MSG_WARN([TIBCO ActiveEnterprise SDK not supported on HP-UX])
+   if test "$OS" = "HP-UX" -a $host_cpu != "ia64"; then
+      AC_MSG_WARN([TIBCO Adapters SDK not supported on HP-UX])
       unset with_tibae
    elif test ! -e "$with_tibae/include/sdk/Maverick.h"; then
       AC_MSG_ERROR([can't find Maverick.h in $with_tibae/include/sdk])
@@ -645,7 +718,11 @@ if test -n "$with_tibae"; then
       AC_MSG_RESULT([$with_tibae])
    fi
 else
-   if test -n "$SDK_ROOT" -a -f "$SDK_ROOT/include/sdk/Maverick.h" -a -n "`ls $SDK_ROOT/lib/libmaverick*.${SHLIB_SUFFIX} 2>/dev/null`"; then
+   # disable AE SDK on HP-UX PA-RISC, it requires compiling without the -AA flag which we don't support
+   if test "$OS" = "HP-UX" -a $host_cpu != "ia64"; then
+      AC_MSG_WARN([TIBCO Adapters SDK not supported on HP-UX])
+      unset with_tibae
+   elif test -n "$SDK_ROOT" -a -f "$SDK_ROOT/include/sdk/Maverick.h" -a -n "`ls $SDK_ROOT/lib/libmaverick*.${SHLIB_SUFFIX} 2>/dev/null`"; then
       AC_MSG_RESULT([$SDK_ROOT])
       with_tibae=$SDK_ROOT
    else
@@ -655,17 +732,17 @@ else
 fi
 
 if test -n "$with_tibae"; then
-   if test -z "$with_tibrv"; then
-      AC_MSG_WARN([TIBCO Active Enterprise SDK found, but no Rendezvous found, disabling tibae support])
+   if test -z "$rv_found"; then
+      AC_MSG_WARN([TIBCO Adapters SDK found, but no Rendezvous found, disabling tibae support])
       unset with_tibae
    else
-      AC_MSG_CHECKING([TIBCO Active Enterprise SDK version])
+      AC_MSG_CHECKING([TIBCO Adapters SDK version])
       if test -e "$with_tibae"/prodinfo; then
 	 TIBCO_SDK_VERSION=`grep SDK "$with_tibae"/prodinfo|head -1|cut -f2`
       elif test -e "$with_tibae"/version.txt; then
          TIBCO_SDK_VERSION=`grep SDK "$with_tibae"/version.txt|head -1|cut -b25- | cut -f1 -d\ `
       else
-         AC_MSG_RESULT([unable to determine TIBCO Active Enterprise SDK version, disabling tibae support])
+         AC_MSG_RESULT([unable to determine TIBCO Adapters SDK version, disabling tibae support])
          unset with_tibae
       fi
 
@@ -681,9 +758,9 @@ if test -n "$with_tibae"; then
    if test `echo $TIBCO_SDK_VERSION|cut -b1` -gt 4; then
       AC_ARG_WITH([tibae-tpcl],
         [AS_HELP_STRING([--with-tibae-tpcl@<:@=DIR@:>@],
-		        [TIBCO Active Enterprise TPCL directory (defaults to $TPCL_ROOT)])],
+		        [TIBCO Adpaters TPCL directory (defaults to $TPCL_ROOT)])],
 			[if test ! -d "${with_tibae_tpcl}"; then AC_MSG_ERROR(bad value ${with_tibae_tpcl} for --with-tibae-tpcl); unset with_tibae_tpcl; fi])
-      AC_MSG_CHECKING([TIBCO Active Enterprise TPCL])
+      AC_MSG_CHECKING([TIBCO Adapters TPCL])
       if test -n "$with_tibae_tpcl"; then
 	 if test ! -e "$with_tibae_tpcl/lib/libssl.a"; then
 	    AC_MSG_RESULT([can't find libssl.a in $with_tibae_tpcl/lib, disabling tibae support])
@@ -707,19 +784,19 @@ fi
 
 if test -n "$with_tibae"; then
    case "$TIBCO_SDK_VERSION" in
-	4.1.2) TIBAE_LIBS="-L${with_tibae}/lib -lmaverick41 -lpthread"
+	4.1.2) TIBAE_LDFLAGS="-L${with_tibae}/lib -lmaverick41 -lpthread"
 	       TIBAE_CPPFLAGS="-I${with_tibae}/include"
 	       AC_DEFINE(TIBCO_SDK, 4, [define for TIBCO SDK 4.*])
 	       ;;
-	4.1.3) TIBAE_LIBS="-L${with_tibae}/lib -lmaverick41 -lpthread"
+	4.1.3) TIBAE_LDFLAGS="-L${with_tibae}/lib -lmaverick41 -lpthread"
 	       TIBAE_CPPFLAGS="-I${with_tibae}/include"
 	       AC_DEFINE(TIBCO_SDK, 4, [define for TIBCO SDK 4.*])
 	       ;;
-        5.0.*) TIBAE_LIBS="-L${with_tibae}/lib -L${with_tibae_tpcl}/lib -lmaverick50 -lrepowww532 -lxerces-c2_1 -lssl -lcrypto -lpthread"
+        5.0.*) TIBAE_LDFLAGS="-L${with_tibae}/lib -L${with_tibae_tpcl}/lib -lmaverick50 -lrepowww532 -lxerces-c2_1 -lssl -lcrypto -lpthread"
 	       TIBAE_CPPFLAGS="-I${with_tibae}/include/sdk"
 	       AC_DEFINE(TIBCO_SDK, 5, [define for TIBCO SDK 5.*])
 	       ;;
-        5.3.*) TIBAE_LIBS="-L${with_tibae}/lib -L${with_tibae_tpcl}/lib -lmaverick53 -lrepowww532 -lxerces-c2_1 -lssl -lcrypto -licuuc -lpthread"
+        5.3.*) TIBAE_LDFLAGS="-L${with_tibae}/lib -L${with_tibae_tpcl}/lib -lmaverick53 -lrepowww532 -lxerces-c2_1 -lssl -lcrypto -licuuc -lpthread"
 	       TIBAE_CPPFLAGS="-I${with_tibae}/include/sdk"
 	       AC_DEFINE(TIBCO_SDK, 5, [define for TIBCO SDK 5.*])
 	       ;;
@@ -740,7 +817,7 @@ if test -n "$with_tibae"; then
    SAVE_CPPFLAGS="$CPPFLAGS"
    SAVE_LDFLAGS="$LDFLAGS"
    CPPFLAGS="$CPPFLAGS $TIBAE_CPPFLAGS $TIBRV_CPPFLAGS"
-   LDFLAGS="$LDFLAGS $TIBAE_LIBS $TIBRV_LIBS"
+   LDFLAGS="$LDFLAGS $TIBAE_LDFLAGS $TIBRV_LDFLAGS"
    AC_MSG_CHECKING([if we can link to the TIBCO AE SDK])
    AC_LINK_IFELSE([AC_LANG_PROGRAM([[
 #include <Maverick.h>
@@ -764,9 +841,9 @@ TApp ma(NULL);
       unset with_tibae
    else
       AC_MSG_RESULT([ok])
-      AC_SUBST(TIBAE_LIBS)
+      AC_SUBST(TIBAE_LDFLAGS)
       AC_SUBST(TIBAE_CPPFLAGS)
-      AC_DEFINE(TIBAE, 1, [Define if TIBCO Active Enterprise support should be included])
+      AC_DEFINE(TIBAE, 1, [Define if TIBCO Adapters support should be included])
       with_tibae=yes
    fi
 fi
@@ -1041,11 +1118,11 @@ check_ncurses()
     if test -n "$ncurses_static"; then
     	if test -f "$lib/libncurses.a" -a -f "$lib/libpanel.a"; then
 	    ncurses_dir=$1
-       	    AC_MSG_RESULT([$lib (ncurses static)])
+       	    AC_MSG_RESULT([$lib (ncurses forced static)])
 	    NCURSES_LIBS="$lib/libncurses.a $lib/libpanel.a"
 	elif test -f "$lib/libcurses.a" -a -f "$lib/libpanel.a"; then
 	    ncurses_dir=$1
-       	    AC_MSG_RESULT([$lib (curses static)])
+       	    AC_MSG_RESULT([$lib (curses forced static)])
 	    NCURSES_LIBS="$lib/libcurses.a $lib/libpanel.a"
     	fi
     elif test -f "$lib/libncurses.${SHLIB_SUFFIX}" -a -f "$lib/libpanel.${SHLIB_SUFFIX}"; then
@@ -1055,7 +1132,7 @@ check_ncurses()
     elif test -f "$lib/libncurses.a" -a -f "$lib/libpanel.a"; then
        ncurses_dir=$1
        AC_MSG_RESULT([$lib (ncurses static)])
-       NCURSES_LIBS="$lib/libncurses.a $lib/libpanel.a"
+       set_ncurses_lib "$1" ncurses
     elif test -f "$lib/libcurses.${SHLIB_SUFFIX}" -a -f "$lib/libpanel.${SHLIB_SUFFIX}"; then
        ncurses_dir=$1
        AC_MSG_RESULT([$lib (curses shared)])
@@ -1065,7 +1142,7 @@ check_ncurses()
        ncurses_dir=$1
        AC_MSG_RESULT([$lib (curses static)])
        NCURSES_CPPFLAGS="-DNOMACROS"
-       NCURSES_LIBS="$lib/libcurses.a $lib/libpanel.a"
+       set_ncurses_lib "$1" curses
     fi
 
     # make sure include files are in the expected place as well
@@ -1342,8 +1419,9 @@ VERSION_SUB=`echo $PACKAGE_VERSION | cut -f3 -d\  | sed s/\"//g | cut -f3 -d.`
 AC_DEFINE_UNQUOTED([VERSION_MAJOR], $VERSION_MAJOR, [major version number])
 AC_DEFINE_UNQUOTED([VERSION_MINOR], $VERSION_MINOR, [minor version number])
 AC_DEFINE_UNQUOTED([VERSION_SUB], $VERSION_SUB, [sub version number])
-AC_DEFINE_UNQUOTED([TARGET_ARCH], "`uname -m`", [host type])
-AC_DEFINE_UNQUOTED([TARGET_OS], "`uname -s`", [host type])
+AC_DEFINE_UNQUOTED([TARGET_ARCH], "$ARCH", [host type])
+AC_DEFINE_UNQUOTED([TARGET_OS], "$OS", [host type])
+AC_DEFINE_UNQUOTED([TARGET_BITS], $bits, [32 or 64 bit build])
 AC_DEFINE_UNQUOTED([BUILD], `./next_build.sh`, [build number])
 
 VERSION_STRING=$PACKAGE_VERSION-`cat .build`
@@ -1357,26 +1435,34 @@ AM_CONDITIONAL([COND_MYSQL],      [test "$with_mysql" = yes])
 AM_CONDITIONAL([COND_TIBRV],      [test "$with_tibrv" = yes])
 AM_CONDITIONAL([COND_TIBAE],      [test "$with_tibae" = yes])
 AM_CONDITIONAL([COND_MONOLITHIC], [test "$enable_shared" = no -o "$enable_builtin_modules" = "yes"])
+AM_CONDITIONAL([COND_SINGLE_COMPILATION_UNIT], [test "$enable_single_compilation_unit" = yes])
 
 AC_CONFIG_FILES([Makefile lib/Makefile modules/Makefile modules/ncurses/Makefile modules/TIBCO/Makefile modules/mysql/Makefile modules/oracle/Makefile])
 AC_OUTPUT
 
 echo "*** BUILTIN FEATURES ***"
-printf "library  : "
+printf "library                 : %s %s" "$OS" "$ARCH"
 if test "$enable_64bit" = "yes"; then
-   echo 64-bit
+   printf " (64-bit)\n"
 else
-   echo 32-bit
+   printf " (32-bit)\n"
 fi
 
-printf "debug    : "
+printf "single compilation unit : "
 if test "$enable_debug" = "yes"; then
    echo yes
 else
    echo disabled
 fi
 
-printf "profile  : "
+printf "debug                   : "
+if test "$enable_debug" = "yes"; then
+   echo yes
+else
+   echo disabled
+fi
+
+printf "profile                 : "
 if test "$enable_profile" = "yes"; then
    echo yes
 else
@@ -1387,35 +1473,35 @@ if test "$enable_shared" = "yes"; then
    echo "*** MODULES ***"
 fi
 
-printf "ncurses  : "
+printf "ncurses                 : "
 if test "$enable_ncurses" = "yes"; then
    echo yes
 else
    echo disabled
 fi
 
-printf "oracle   : "
+printf "oracle                  : "
 if test "$with_oracle" = "yes"; then
    echo yes
 else
    echo disabled
 fi
 
-printf "mysql    : "
+printf "mysql                   : "
 if test "$with_mysql" = "yes"; then
    echo yes
 else
    echo disabled
 fi
 
-printf "tibrv    : "
+printf "tibrv                   : "
 if test "$with_tibrv" = "yes"; then
    echo yes
 else
    echo disabled
 fi
 
-printf "tibae    : "
+printf "tibae                   : "
 if test "$with_tibae" = "yes"; then
    echo yes
 else
@@ -1423,17 +1509,20 @@ else
 fi
 
 # hack to use our libtool if on PA-RISC HP-UX to enable static libs to be linked in to modules
-if test "`uname -s`" = "HP-UX" -a "$host_os" != "ia64"; then
+# also to allow 64-bit PA-RISC libraries to be linked to modules
+if test "$OS" = "HP-UX" -a "$host_os" != "ia64"; then
    # backup generated libtool
-    if test ! -e libtool.orig ; then
-       cp libtool libtool.orig
-    fi
-    # remove references to -ldl in libtool
-    sed "s/-ldl//g" libtool > libtool.tmp
-    # ensure static libs can be linked to modules
-    sed "s/valid_a_lib=no/valid_a_lib=yes/g" libtool.tmp > libtool.tmp.1
-    # ensure that valid 64-bit libraries are not recognized as invalid
-    sed "s/deplibs_check_method=.*/deplibs_check_method=pass_all/g" libtool.tmp.1 > libtool
-    # delete temporary files
-    rm -f libtool.tmp libtool.tmp.1
+   if test ! -e libtool.orig ; then
+      cp libtool libtool.orig
+   fi
+   # remove references to -ldl in libtool
+   sed "s/-ldl//g" libtool > libtool.tmp
+   # ensure static libs can be linked to modules
+   sed "s/valid_a_lib=no/valid_a_lib=yes/g" libtool.tmp > libtool.tmp.1
+   # ensure that valid 64-bit libraries are not recognized as invalid
+   sed "s/deplibs_check_method=.*/deplibs_check_method=pass_all/g" libtool.tmp.1 > libtool
+   # delete temporary files
+   rm -f libtool.tmp libtool.tmp.1
 fi
+
+

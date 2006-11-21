@@ -30,12 +30,12 @@
 
 int CID_TIBRVFTMONITOR;
 
-static void getFTM(void *obj)
+static void getFTMon(void *obj)
 {
    ((QoreTibrvFtMonitor *)obj)->ROreference();
 }
 
-static void releaseFTM(void *obj)
+static void releaseFTMon(void *obj)
 {
    ((QoreTibrvFtMonitor *)obj)->deref();
 }
@@ -81,7 +81,7 @@ static void TIBRVFTMONITOR_constructor(class Object *self, class QoreNode *param
    if (xsink->isException())
       qftmonitor->deref();
    else
-      self->setPrivate(CID_TIBRVFTMONITOR, qftmonitor, getFTM, releaseFTM);
+      self->setPrivate(CID_TIBRVFTMONITOR, qftmonitor, getFTMon, releaseFTMon);
 
    traceout("TIBRVFTMONITOR_constructor");
 }

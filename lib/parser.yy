@@ -801,6 +801,7 @@ superclass_list:
         | superclass_list ',' superclass
         {
 	   $1->add($3);
+	   $$ = $1;
         }
         ;
 
@@ -1048,7 +1049,7 @@ hash:
 	   $$ = $1;
 	}
         | hash ','
-        { /* empty ',' on end of hash */ }
+        { /* empty ',' on end of hash */ $$ = $1; }
 	;
 
 hash_element:

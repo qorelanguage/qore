@@ -7,6 +7,12 @@ INCLUDES = -I$(top_srcdir)/include
 AM_YFLAGS = -d
 
 lib_LTLIBRARIES = libqore.la
+if COND_SINGLE_COMPILATION_UNIT
+libqore_la_SOURCES = \
+        parser.yy \
+        scanner.ll \
+        single-compilation-unit.cc
+else
 libqore_la_SOURCES = \
 	parser.yy \
 	scanner.ll \
@@ -84,6 +90,12 @@ libqore_la_SOURCES = \
 	QC_SSLCertificate.cc \
 	QC_SSLPrivateKey.cc
 
+if COND_DEBUG
+libqore_la_SOURCES += ql_debug.cc
+endif
+
+endif
+
 libqore_la_LDFLAGS = -version-info 0:0:0 -no-undefined ${LIBXML2_LDFLAGS} $(PCRE_LDFLAGS) $(OPENSSL_LDFLAGS) $(ZLIB_LDFLAGS) $(LDFLAGS) -lm 
 libqore_la_LIBADD = ${PTHREAD_LIBS} 
 AM_CPPFLAGS = -DMODULE_DIR=\"$(pkglibdir)\" $(PCRE_CPPFLAGS) $(OPENSSL_CPPFLAGS) $(LIBXML2_CPPFLAGS)
@@ -91,7 +103,6 @@ AM_CXXFLAGS = ${PTHREAD_CFLAGS}
 
 if COND_DEBUG
 BUILD_TYPE=dev
-libqore_la_SOURCES += ql_debug.cc
 endif
 
 if COND_PROFILE

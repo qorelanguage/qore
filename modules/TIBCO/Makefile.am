@@ -1,6 +1,10 @@
 libdir = ${exec_prefix}/lib${LIBSUFFIX}
 pkglibdir = $(libdir)/@PACKAGE@-@VERSION@
 
+if COND_SINGLE_COMPILATION_UNIT
+TIBRV_SOURCES = tibrv-single-compilation-unit.cc
+TIBAE_SOURCES = tibae-single-compilation-unit.cc
+else
 TIBRV_SOURCES = tibrv.cc \
 	QoreTibrvTransport.cc \
 	QoreTibrvSender.cc \
@@ -20,30 +24,31 @@ TIBRV_SOURCES = tibrv.cc \
 	QC_TibrvDistributedQueue.cc \
 	tibrv-module.cc
 TIBAE_SOURCES = QoreApp.cc tibae.cc tibae-module.cc 
+endif
 
 if COND_MONOLITHIC
 noinst_LTLIBRARIES = libtibrv.la
 libtibrv_la_SOURCES = $(TIBRV_SOURCES)
-libtibrv_la_LDFLAGS = ${TIBRV_LIBS} -static
+libtibrv_la_LDFLAGS = ${TIBRV_LDFLAGS} ${TIBRVCPP_LDFLAGS} -static
 libtibrv_la_CPPFLAGS = $(TIBRV_CPPFLAGS)
 
 if COND_TIBAE
 noinst_LTLIBRARIES += libtibae.la 
 libtibae_la_SOURCES = $(TIBAE_SOURCES)
-libtibae_la_LDFLAGS = $(TIBAE_LIBS) ${TIBRV_LIBS} -static
+libtibae_la_LDFLAGS = $(TIBAE_LIBS) ${TIBRV_LDFLAGS} -static
 libtibae_la_CPPFLAGS = $(TIBAE_CPPFLAGS) $(TIBRV_CPPFLAGS)
 endif
 
 else
 pkglib_LTLIBRARIES = tibrv.la
 tibrv_la_SOURCES = $(TIBRV_SOURCES)
-tibrv_la_LDFLAGS = -module -avoid-version $(TIBRV_LIBS)
+tibrv_la_LDFLAGS = -module -avoid-version $(TIBRV_LDFLAGS) ${TIBRVCPP_LDFLAGS} 
 tibrv_la_CPPFLAGS = $(TIBRV_CPPFLAGS)
 
 if COND_TIBAE
 pkglib_LTLIBRARIES += tibae.la
 tibae_la_SOURCES = $(TIBAE_SOURCES)
-tibae_la_LDFLAGS = -module -avoid-version $(TIBAE_LIBS) ${TIBRV_LIBS}
+tibae_la_LDFLAGS = -module -avoid-version $(TIBAE_LIBS) ${TIBRV_LDFLAGS}
 tibae_la_CPPFLAGS = $(TIBAE_CPPFLAGS) $(TIBRV_CPPFLAGS)
 endif
 
