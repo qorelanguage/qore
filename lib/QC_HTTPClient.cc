@@ -112,6 +112,31 @@ Namespace* addHTTPClientNamespace()
   n = new QoreNode(h);
   ns->addConstant(&name2, n);
 
+  NamedScope name3(strdup("DEFAULT_HEADER_IGNORE"));
+  l = new List;
+  l->push(new QoreNode("Host"));
+  l->push(new QoreNode("User-Agent"));
+  l->push(new QoreNode("Content-Length"));
+  n = new QoreNode(l);
+  ns->addConstant(&name3, n);
+
+  NamedScope name4(strdup("DEFAULT_PROTOCOLS"));
+  h = new Hash;
+  Hash* h2 = new Hash;
+  h2->setKeyValue("port", new QoreNode((int64)80), &xsink);
+  h2->setKeyValue("ssl", new QoreNode(false), &xsink);
+  assert(!xsink);
+  h->setKeyValue("http", new QoreNode(h2), &xsink);
+  assert(!xsink);
+  h2 = new Hash;
+  h2->setKeyValue("port", new QoreNode((int64)443), &xsink);
+  h2->setKeyValue("ssl", new QoreNode(true), &xsink);
+  assert(!xsink);
+  h->setKeyValue("https", new QoreNode(h2), &xsink);
+  assert(!xsink);
+  n = new QoreNode(h);
+  ns->addConstant(&name4, n);
+
   return ns;
 }
 

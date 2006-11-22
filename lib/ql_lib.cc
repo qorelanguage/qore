@@ -572,6 +572,19 @@ static QoreNode* runQoreTests(QoreNode* params, ExceptionSink* xsink)
   return 0;
 }
 
+static QoreNode* runRecentQoreTests(QoreNode* params, ExceptionSink* xsink)
+{
+  minitest::result res = minitest::test_last_changed_files(3); // 3 last modified files
+  if (res.all_tests_succeeded) {
+    printf("Qore runtime: %d recent tests succeeded\n", res.sucessful_tests_count);
+    return 0;
+  }
+
+  xsink->raiseException("A Qore test failed", "Qore test in file %s, line %d threw an exception.",
+    res.failed_test_file, res.failed_test_line);
+  return 0;
+}
+
 namespace {
 TEST()
 {
@@ -620,5 +633,6 @@ void init_lib_functions()
 
 #ifdef DEBUG
    builtinFunctions.add("runQoreTests", runQoreTests);
+   builtinFunctions.add("runRecentQoreTests", runRecentQoreTests);
 #endif
 }

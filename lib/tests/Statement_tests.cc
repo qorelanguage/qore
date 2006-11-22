@@ -77,23 +77,6 @@ TEST()
   assert(res == 10);
 }
 
-TEST()
-{
-  printf("test standard switch - invalid switch with multiple equal case value\n");
-
-  char* s = "qore -e '\n"
-    "$a = a;\n"
-    "switch ($a) {\n"
-    "case 1: exit(10); break;\n"
-    "case 1: exit(10); break;\n"
-    "}\n"
-    "exit(10);' > /dev/null 2>&1\n";
-
-  int res = system(s);
-  res = WEXITSTATUS(res);
-  assert(res != 10); // expected parse error code
-}
-
 } // namespace
 #endif // DEBUG
 

@@ -57,6 +57,39 @@ TEST()
   assert(res == 10);
 }
 
+TEST()
+{
+  printf("testing HTTPClient DEFAULT_HEADER_IGNORE constants\n");
+  char* s = "qore -e '\n"
+    "$a = HTTPClient::DEFAULT_HEADER_IGNORE;\n"
+    "if (type($a) != Qore::Type::List) exit(11);\n"
+    "$size = elements $a;\n"
+    "if ($size != 3) { printf(\"elements = %d\n\", $size); exit(12); }\n"
+    "$b = $a[2];\n"
+    "if ($b != \"Content-Length\") exit(13);\n"
+    "exit(10);'\n";
+
+  int res = system(s);
+  res = WEXITSTATUS(res);
+  assert(res == 10);
+}
+
+TEST()
+{
+  printf("testing HTTPClient DEFAULT_PROTOCOL constants\n");
+  char* s = "qore -e '\n"
+    "$a = HTTPClient::DEFAULT_PROTOCOLS;\n"
+    "if (type($a) != Qore::Type::Hash) { printf(\"not a hash\n\"); exit(11); }\n"
+    "$x = $a.http;\n"
+    "if (type($x) != Qore::Type::Hash) { printf(\"not a hash\n\"); exit(12); }\n"
+    "if (elements $x != 2) { printf(\"size = %d\n\", elements $x); exit(13); }\n"
+    "exit(10);'\n";
+
+  int res = system(s);
+  res = WEXITSTATUS(res);
+  assert(res == 10);
+}
+
 } // namespace
 #endif // DEBUG
 
