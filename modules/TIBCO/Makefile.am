@@ -35,7 +35,7 @@ libtibrv_la_CPPFLAGS = $(TIBRV_CPPFLAGS)
 if COND_TIBAE
 noinst_LTLIBRARIES += libtibae.la 
 libtibae_la_SOURCES = $(TIBAE_SOURCES)
-libtibae_la_LDFLAGS = $(TIBAE_LIBS) ${TIBRV_LDFLAGS} -static
+libtibae_la_LDFLAGS = $(TIBAE_LDFLAGS) ${TIBRV_LDFLAGS} -static
 libtibae_la_CPPFLAGS = $(TIBAE_CPPFLAGS) $(TIBRV_CPPFLAGS)
 endif
 
@@ -48,7 +48,7 @@ tibrv_la_CPPFLAGS = $(TIBRV_CPPFLAGS)
 if COND_TIBAE
 pkglib_LTLIBRARIES += tibae.la
 tibae_la_SOURCES = $(TIBAE_SOURCES)
-tibae_la_LDFLAGS = -module -avoid-version $(TIBAE_LIBS) ${TIBRV_LDFLAGS}
+tibae_la_LDFLAGS = -module -avoid-version $(TIBAE_LDFLAGS) ${TIBRV_LDFLAGS}
 tibae_la_CPPFLAGS = $(TIBAE_CPPFLAGS) $(TIBRV_CPPFLAGS)
 endif
 
