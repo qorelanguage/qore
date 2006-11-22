@@ -83,6 +83,34 @@ QoreClass *initHTTPClientClass()
 //-----------------------------------------------------------------------------
 void addHTTPClientConstants(Namespace *ns)
 {
+  // namespace for the constants
+  Namespace* inner = new Namespace("HTTPClient3");
+  ns->addNamespace(inner);
+
+  // constants
+  NamedScope name1(strdup("HTTPClient3::DEFAULT_METHODS"));
+  List* l = new List;
+  l->push(new QoreNode("OPTIONS"));
+  l->push(new QoreNode("GET"));
+  l->push(new QoreNode("HEAD"));
+  l->push(new QoreNode("POST"));
+  l->push(new QoreNode("PUT"));
+  l->push(new QoreNode("DELETE"));
+  l->push(new QoreNode("TRACE"));
+  l->push(new QoreNode("CONNECT"));
+  QoreNode* n = new QoreNode(l); 
+  ns->addConstant(&name1, n);
+
+  NamedScope name2(strdup("HTTPCLient3::DEFAULT_HEADERS"));
+  Hash* h = new Hash;
+  ExceptionSink xsink;
+  h->setKeyValue("Accept", new QoreNode("text/html"), &xsink);
+  h->setKeyValue("Content-Type", new QoreNode("text/html"), &xsink);
+  h->setKeyValue("User-Agent", new QoreNode("Qore HTTP Client 0.3.2"), &xsink);
+  h->setKeyValue("Connection", new QoreNode("Keep-Alive"), &xsink);
+  assert(!xsink);
+  QoreNode* n = new QoreNode(h);
+// this makes segfault  ns->addConstant(&name2, n);
 }
 
 // EOF

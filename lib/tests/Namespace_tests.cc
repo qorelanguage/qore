@@ -15,9 +15,14 @@ TEST()
 
 TEST()
 {
+  NamedScope ns(strdup("aaa::bbb")); // checking complex name
+}
+
+TEST()
+{
   // checking that Namespace + NamedScope work together
   Namespace ns("ns");
-  NamedScope scope(strdup("aaa"));
+  NamedScope scope(strdup("bbb"));
 
   ExceptionSink xsink;
   Hash* h = new Hash;
@@ -26,6 +31,14 @@ TEST()
   QoreNode* n = new QoreNode(h);
 
   ns.addConstant(&scope, n);
+}
+
+TEST()
+{
+  // check that nesting of namespaces work
+  Namespace* inner = new Namespace("xyz");
+  Namespace outer("a");
+  outer.addNamespace(inner);
 }
 
 } // namespace
