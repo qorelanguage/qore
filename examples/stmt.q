@@ -90,6 +90,30 @@ switch ($i)
         break;
 }
 
+# switch also provides ability to match by simple relation operators
+# <, >, <= and >=. The case statements are evaluated in the same order 
+# as they were written and the first match is executed.
+$i = 1;
+
+switch ($i) {
+    case > 10: 
+        printf("ERROR\n");
+        break;
+    case < -1.0:
+        printf("ERROR\n");
+        break;
+    case >= 2:
+        printf("ERROR\n");
+        break;
+    case <= 1:
+        printf("switch $i <= 1\n", $i);
+        break;
+    case 0:
+    default:
+        printf("ERROR\n");
+        break;
+}
+
 #########################
 # the "context" statement
 #########################
