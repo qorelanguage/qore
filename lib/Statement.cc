@@ -42,6 +42,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <typeinfo>
+
 #ifdef DEBUG
 #  include "tests/Statement_tests.cc"
 #endif
