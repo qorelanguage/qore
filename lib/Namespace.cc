@@ -53,6 +53,7 @@
 #include <qore/QC_File.h>
 #include <qore/QC_GetOpt.h>
 #include <qore/QC_FtpClient.h>
+#include <qore/QC_HTTPClient.h>
 
 #include <string.h>
 #include <stdlib.h>
@@ -1958,6 +1959,7 @@ RootNamespace::RootNamespace(class Namespace **QoreNS) : Namespace()
    qns->addSystemClass(File = initFileClass());
    qns->addSystemClass(initGetOptClass());
    qns->addSystemClass(initFtpClientClass());
+   qns->addSystemClass(initHTTPClientClass());
 
    qns->addInitialNamespace(get_thread_ns());
 
@@ -2012,6 +2014,8 @@ RootNamespace::RootNamespace(class Namespace **QoreNS) : Namespace()
 
    // add parse option constants to Qore namespace
    addProgramConstants(qns);
+
+   addHTTPClientConstants(qns);
 
    addQoreNamespace(qns);
 

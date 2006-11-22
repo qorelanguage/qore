@@ -74,7 +74,9 @@
 #include "QC_SSLCertificate.cc"
 #include "QC_SSLPrivateKey.cc"
 #include "SwitchStatementWithOperators.cc"
+#include "QC_HTTPClient.cc"
 
 #ifdef DEBUG
 #include "ql_debug.cc"
 #endif
+
