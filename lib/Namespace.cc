@@ -2008,6 +2008,8 @@ RootNamespace::RootNamespace(class Namespace **QoreNS) : Namespace()
 
    // create Qore::Type namespace with type constants
    qns->addInitialNamespace(get_type_ns());
+   // add HTTPClient constants
+   qns->addInitialNamespace(addHTTPClientNamespace());
 
    // add file constants
    addFileConstants(qns);
@@ -2015,7 +2017,6 @@ RootNamespace::RootNamespace(class Namespace **QoreNS) : Namespace()
    // add parse option constants to Qore namespace
    addProgramConstants(qns);
 
-   addHTTPClientConstants(qns);
 
    addQoreNamespace(qns);
 

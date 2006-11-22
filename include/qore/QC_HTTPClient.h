@@ -24,7 +24,7 @@
 
 extern int CID_HTTPCLIENT;
 extern QoreClass *initHTTPClientClass();
-extern void addHTTPClientConstants(Namespace *ns);
+extern Namespace* addHTTPClientNamespace();
 
 #endif
 
