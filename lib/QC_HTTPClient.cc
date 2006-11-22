@@ -109,7 +109,7 @@ void addHTTPClientConstants(Namespace *ns)
   h->setKeyValue("User-Agent", new QoreNode("Qore HTTP Client 0.3.2"), &xsink);
   h->setKeyValue("Connection", new QoreNode("Keep-Alive"), &xsink);
   assert(!xsink);
-  QoreNode* n = new QoreNode(h);
+  n = new QoreNode(h);
 // this makes segfault  ns->addConstant(&name2, n);
 }
 
