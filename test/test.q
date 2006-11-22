@@ -426,6 +426,18 @@ sub switch_test($val)
     return $rv;
 }
 
+sub switch_with_relation_test($val) 
+{
+  my $rv;
+  switch ($val) {
+  case < -1 : $rv = "first switch"; break;
+  case > 1 : $rv = "second switch"; break;
+  case <= -1: $rv = "third switch"; break;
+  case >= 1: $rv = "fourth switch"; break;
+  case 0: $rv = "fifth switch"; break;
+  }
+  return $rv;
+}
 sub statement_tests()
 {
     if ($o.verbose)
@@ -474,7 +486,12 @@ sub statement_tests()
     test_value(switch_test(0), "case 1", "fourth switch");
     test_value(switch_test("hello"), "case 1", "fifth switch");
     test_value(switch_test("testing"), "default", "sixth switch");
-    
+    # switch with relation operators
+    test_value(switch_with_relation_test(-2), "first switch");
+    test_value(switch_with_relation_test(2), "second switch");
+    test_value(switch_with_relation_test(-1.0), "third switch");
+    test_value(switch_with_relation_test(1.0), "fourth switch");
+    test_value(switch_with_relation_test(0), "fifth switch");
 }
 
 sub fibonacci($num)
