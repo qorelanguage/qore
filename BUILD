@@ -102,6 +102,7 @@ NOTE that pthread_create() on Darwin 8.7.1 (OS X 10.4.7) returns 0 (no error) on
 
 *) Solaris:
 The g++ static and shared builds work fine (tested with g++ 4.0.1, 4.1.1, CC).  Note that the sunpro (CC) compiler is required to link with the TIBCO AE SDK.  hash_map is detected and supported with CC 5.5 and stlport4 as well, however it is disabled if the "tibae" module is compiled in, because stlport4 clashes with the iostream library already linked in to the TIBCO AE SDK.
+Note that on Solaris x86 when making a 64-bit build I had to use libtool 1.5.22, libtool 1.5.11 did not recognize that -xarch=generic64 should be passed to the linker and the linker for some reason did not recognize that it should produce a 64-bit output file
 
 *) FreeBSD
 I have heard that qore builds fine, but I have not actually seen it myself, nor do I have access to a FreeBSD platform for testing :-(

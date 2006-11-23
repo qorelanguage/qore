@@ -66,6 +66,9 @@ if test "$OS" = "HP-UX"; then
    fi
 else
    ARCH=`uname -p`
+   if [ $ARCH = "athlon" ]; then
+      ARCH=i386
+   fi
 fi
 
 #AC_CANONICAL_HOST
@@ -543,6 +546,23 @@ if test "${enable_debug}" = yes; then
    CXXFLAGS=`echo $CXXFLAGS | sed 's/\-O2//'`
 else
    AC_DEFINE(NDEBUG, 1, Define if assert() declarations should be suppressed)
+fi
+
+AC_ARG_ENABLE([optimization],
+     [AS_HELP_STRING([--enable-optimization],
+		     [turn on optimization (default=auto (yes unless debugging is enabled)])],
+     [case "${enable_optimization}" in
+       yes|no) ;;
+       *)      AC_MSG_ERROR(bad value ${enable_optimization} for --enable-optimization) ;;
+      esac],
+     [enable_optimization=auto])
+
+if test "$enable_optimization" = "auto"; then
+   if test "${enable_debug}" = yes; then
+      enable_optimization=no
+   else
+      enable_optimization=yes
+   fi
 fi
 
 AC_ARG_ENABLE([builtin-modules],
@@ -1490,22 +1510,23 @@ if test "$with_mysql" = "yes"; then
    AC_DEFINE(QORE_MYSQL, 1, Define to 1 if MySQL support should be included)
 fi
 
+# turn on optimizations if we know how
+if test "$enable_optimization" = "yes"; then
+    if test "$GXX" = "yes"; then
+        CXXFLAGS="$CXXFLAGS -O3"  # gcc
+    elif test "$CXX" = "CC" -a "`echo $host_os|cut -b-7`" = "solaris"; then
+	CXXFLAGS="$CXXFLAGS -xO5" # Solaris CC
+    elif test -n "`echo $CXX|grep aCC`"; then 
+	CXXFLAGS="$CXXFLAGS +O2" # HP-UX aCC
+    fi
+fi
+
 # turn on some build flags for non-debugging, non-profiling builds
 if test "$enable_debug" = "no" -a "$enable_profile" = "no"; then
-   # turn on optimizations if we know how
-   if test "$GXX" = "yes"; then
-       CXXFLAGS="$CXXFLAGS -O3"  # gcc
-   elif test "$CXX" = "CC" -a "`echo $host_os|cut -b-7`" = "solaris"; then
-       CXXFLAGS="$CXXFLAGS -xO5" # Solaris CC
-   elif test -n "`echo $CXX|grep aCC`"; then 
-       CXXFLAGS="$CXXFLAGS +O2" # HP-UX aCC
-   fi
-   # strip binaries and libraries
-   if test "`echo $host_os|cut -b-6`" = "darwin"; then
-      LDFLAGS="$LDFLAGS -Wl,-x"
-   else
-      LDFLAGS="$LDFLAGS -s"
-   fi	
+    # strip binaries and libraries on darwin with -x
+    if test "`echo $host_os|cut -b-6`" = "darwin"; then
+       LDFLAGS="$LDFLAGS -Wl,-x"
+    fi	
 fi
 
 # set special compiler flags for C++ compilers to turn off annoying "String literal converted to char* ..." warnings
@@ -1564,8 +1585,15 @@ else
    printf " (32-bit)\n"
 fi
 
+printf "optimizations           : "
+if test "$enable_optimization" = "yes"; then
+   echo yes
+else
+   echo disabled
+fi
+
 printf "single compilation unit : "
-if test "$enable_debug" = "yes"; then
+if test "$enable_single_compilation_unit" = "yes"; then
    echo yes
 else
    echo disabled

@@ -1985,12 +1985,14 @@ RootNamespace::RootNamespace(class Namespace **QoreNS) : Namespace()
    qns->addConstant("CT_NewThread",  new QoreNode((int64)CT_NEWTHREAD));
    qns->addConstant("CT_Rethrow",    new QoreNode((int64)CT_RETHROW));
 
-   // create constants for version information
+   // create constants for version and platform information
    qns->addConstant("VersionString", new QoreNode(qore_version_string));
    qns->addConstant("VersionMajor",  new QoreNode((int64)qore_version_major));
    qns->addConstant("VersionMinor",  new QoreNode((int64)qore_version_minor));
    qns->addConstant("VersionSub",    new QoreNode((int64)qore_version_sub));
    qns->addConstant("Build",         new QoreNode((int64)qore_build_number));
+   qns->addConstant("PlatformCPU",   new QoreNode(TARGET_ARCH));
+   qns->addConstant("PlatformOS",    new QoreNode(TARGET_OS));
 
    // add constants for regex() function options
    qns->addConstant("RE_Caseless",   new QoreNode((int64)PCRE_CASELESS));

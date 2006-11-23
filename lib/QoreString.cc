@@ -539,13 +539,13 @@ class QoreString *QoreString::convertEncoding(const class QoreEncoding *nccs, Ex
 // endian-agnostic binary object -> base64 string function
 // NOTE: not very high-performance - high-performance versions
 //       would likely be endian-aware and operate directly on 32-bit words
-void QoreString::concatBase64(char *buf, int size)
+void QoreString::concatBase64(char *bbuf, int size)
 {
-   //printf("buf=%08p, size=%d\n", buf, size);
+   //printf("bbuf=%08p, size=%d\n", bbuf, size);
    if (!size)
       return;
 
-   unsigned char *p = (unsigned char *)buf;
+   unsigned char *p = (unsigned char *)bbuf;
    unsigned char *endbuf = p + size;
    while (p < endbuf)
    {

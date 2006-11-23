@@ -151,7 +151,7 @@ OraColumns::OraColumns(OCIStmt *stmthp, class Datasource *ds, char *str, Excepti
    OCIParam *parmp;
 
    // get columns in output
-   while (OCIParamGet(stmthp, OCI_HTYPE_STMT, d_ora->errhp, (dvoid **)&parmp, size() + 1) == OCI_SUCCESS)
+   while (OCIParamGet(stmthp, OCI_HTYPE_STMT, d_ora->errhp, &parmp, size() + 1) == OCI_SUCCESS)
    {
       ub2 dtype;
       text *col_name;

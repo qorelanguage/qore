@@ -736,7 +736,7 @@ class DateTime *DateTime::subtractAbsoluteByRelative(class DateTime *dt)
 }
 
 // return the ISO-8601 calendar week information - note that the ISO-8601 calendar year may be different than the actual year
-void DateTime::getISOWeek(int &yr, int &week, int &day)
+void DateTime::getISOWeek(int &yr, int &week, int &wday)
 {
    // get day of week of jan 1 of this year
    int jan1 = getDayOfWeek(year, 1, 1);
@@ -744,7 +744,7 @@ void DateTime::getISOWeek(int &yr, int &week, int &day)
    // calculate day in calendar week
    int dn = getDayNumber();
    int dow = (dn + jan1 - 1) % 7;
-   day = !dow ? 7 : dow;
+   wday = !dow ? 7 : dow;
    
    //printd(5, "getISOWeek() year=%d, start=%d, daw=%d dn=%d offset=%d\n", year, jan1, dow, dn, (jan1 > 4 ? 9 - jan1 : 2 - jan1));
    if ((!jan1 && dn == 1) || (jan1 == 5 && dn < 4) || (jan1 == 6 && dn < 3))
