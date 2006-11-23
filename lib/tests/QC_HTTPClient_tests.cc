@@ -90,6 +90,62 @@ TEST()
   assert(res == 10);
 }
 
+TEST()
+{
+  printf("testing HTTPClient DEFAULT_HTTP_VERSION constants\n");
+  char* s = "qore -e '\n"
+    "$a = HTTPClient::DEFAULT_HTTP_VERSION;\n"
+    "if ($a != \"1.1\") exit(11);\n"
+    "exit(10);'\n";
+
+  int res = system(s);
+  res = WEXITSTATUS(res);
+  assert(res == 10);
+}
+
+TEST()
+{
+  printf("testing HTTPClient alloved_versions constants\n");
+  char* s = "qore -e '\n"
+    "$a = HTTPClient::allowed_versions;\n"
+    "if (type($a) != Qore::Type::List) exit(11);\n"
+    "$size = elements $a;\n"
+    "if ($size != 2) { printf(\"elements = %d\n\", $size); exit(12); }\n"
+    "$b = $a[1];\n"
+    "if ($b != \"1.1\") exit(13);\n"
+    "exit(10);'\n";
+
+  int res = system(s);
+  res = WEXITSTATUS(res);
+  assert(res == 10);
+}
+
+TEST()
+{
+  printf("testing HTTPClient Version constant\n");
+  char* s = "qore -e '\n"
+    "$a = HTTPClient::Version;\n"
+    "if ($a != \"0.3\") exit(12);\n"
+    "exit(10);'\n";
+
+  int res = system(s);
+  res = WEXITSTATUS(res);
+  assert(res == 10);
+}
+
+TEST()
+{
+  printf("testing HTTPClient defaultTimeout constant\n");
+  char* s = "qore -e '\n"
+    "$a = HTTPClient::defaultTimeout;\n"
+    "if ($a != 300000) exit(12);\n"
+    "exit(10);'\n";
+
+  int res = system(s);
+  res = WEXITSTATUS(res);
+  assert(res == 10);
+}
+
 } // namespace
 #endif // DEBUG
 

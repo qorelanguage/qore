@@ -25,16 +25,56 @@
 
 #include <qore/config.h>
 #include <qore/ReferenceObject.h>
+#include <qore/LockedObject.h>
+#include <qore/QoreSocket.h>
+
+#include <string>
 
 class QoreHTTPClient : public ReferenceObject
 {
+private:
+  Hash* protocols;
+  LockedObject lock;
+  bool ssl;
+  int port;
+  std::string host;
+  std::string path;
+  std::string username;
+  std::string password;
+  std::string default_path;
+  int timeout;
+  std::string http_version;
+  std::string socketpath;
+  bool connected;
+  QoreSocket m_socket;
+
+  void process_url(Hash* opts, ExceptionSink* xsink);
+
 public:
+  static Hash* get_DEFAULT_PROTOCOLS();
+  static List* get_ALLOWED_VERSIONS();
+  static const int defaultTimeout = 300000;
+  static const char* defaultHTTPVersion;
+
+public:
+  QoreHTTPClient(Hash* opts, ExceptionSink* xsink);
+  ~QoreHTTPClient();
 
   void deref() {
     if (ROdereference()) {
       delete this;
     }
   }
+
+  void setHTTPVersion(char* version, ExceptionSink* xsink);
+  const char* getHTTPVersion() const { return http_version.c_str(); }
+
+  void setSecure(bool is_secure) { ssl = is_secure; }
+  bool isSecure() const { return ssl; }
+
+  long verifyPeerCertificate() { return m_socket.verifyPeerCertificate(); }
+  const char* getSSLCipherName() { return m_socket.getSSLCipherName(); }
+  const char* getSSLCipherVersion() { return m_socket.getSSLCipherVersion(); }
 
 };
 

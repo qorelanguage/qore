@@ -48,7 +48,24 @@ static void releaseHTTPClient(void *obj)
 //-----------------------------------------------------------------------------
 static void HTTPClient_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
-  QoreHTTPClient* client = new QoreHTTPClient;
+  char* err_name = "HTTPClient::constructor";
+  char* err_text = "Single parameter, hash with options, expected.";
+  if (num_params(params) != 1) {
+    xsink->raiseException(err_name, err_text);
+    return;
+  }
+  QoreNode* n = test_param(params, NT_HASH, 0);
+  if (!n) {
+    xsink->raiseException(err_name, err_text);
+    return;
+  }
+  Hash* opts = n->val.hash;
+
+  QoreHTTPClient* client = new QoreHTTPClient(opts, xsink);
+  if (xsink->isException()) {
+    delete client;
+    return;
+  }
   self->setPrivate(CID_HTTPCLIENT, client, getHTTPClient, releaseHTTPClient);
 }
 
@@ -85,10 +102,7 @@ Namespace* addHTTPClientNamespace()
 {
   Namespace* ns = new Namespace("HTTPClient");
 
-  ns->addConstant("test", new QoreNode(1.0));
-
   // constants
-  NamedScope name1(strdup("DEFAULT_METHODS"));
   List* l = new List;
   l->push(new QoreNode("OPTIONS"));
   l->push(new QoreNode("GET"));
@@ -99,9 +113,8 @@ Namespace* addHTTPClientNamespace()
   l->push(new QoreNode("TRACE"));
   l->push(new QoreNode("CONNECT"));
   QoreNode* n = new QoreNode(l); 
-  ns->addConstant(&name1, n);
+  ns->addConstant("DEFAULT_METHODS", n);
 
-  NamedScope name2(strdup("DEFAULT_HEADERS"));
   Hash* h = new Hash;
   ExceptionSink xsink;
   h->setKeyValue("Accept", new QoreNode("text/html"), &xsink);
@@ -110,32 +123,27 @@ Namespace* addHTTPClientNamespace()
   h->setKeyValue("Connection", new QoreNode("Keep-Alive"), &xsink);
   assert(!xsink);
   n = new QoreNode(h);
-  ns->addConstant(&name2, n);
+  ns->addConstant("DEFAULT_HEADERS", n);
 
-  NamedScope name3(strdup("DEFAULT_HEADER_IGNORE"));
   l = new List;
   l->push(new QoreNode("Host"));
   l->push(new QoreNode("User-Agent"));
   l->push(new QoreNode("Content-Length"));
   n = new QoreNode(l);
-  ns->addConstant(&name3, n);
+  ns->addConstant("DEFAULT_HEADER_IGNORE", n);
 
-  NamedScope name4(strdup("DEFAULT_PROTOCOLS"));
-  h = new Hash;
-  Hash* h2 = new Hash;
-  h2->setKeyValue("port", new QoreNode((int64)80), &xsink);
-  h2->setKeyValue("ssl", new QoreNode(false), &xsink);
-  assert(!xsink);
-  h->setKeyValue("http", new QoreNode(h2), &xsink);
-  assert(!xsink);
-  h2 = new Hash;
-  h2->setKeyValue("port", new QoreNode((int64)443), &xsink);
-  h2->setKeyValue("ssl", new QoreNode(true), &xsink);
-  assert(!xsink);
-  h->setKeyValue("https", new QoreNode(h2), &xsink);
-  assert(!xsink);
+  h = QoreHTTPClient::get_DEFAULT_PROTOCOLS();
   n = new QoreNode(h);
-  ns->addConstant(&name4, n);
+  ns->addConstant("DEFAULT_PROTOCOLS", n);
+
+  ns->addConstant("DEFAULT_HTTP_VERSION", new QoreNode(QoreHTTPClient::defaultHTTPVersion));
+
+  l = QoreHTTPClient::get_ALLOWED_VERSIONS();
+  n = new QoreNode(l);
+  ns->addConstant("allowed_versions", n);
+
+  ns->addConstant("Version", new QoreNode("0.3"));
+  ns->addConstant("defaultTimeout", new QoreNode((int64)QoreHTTPClient::defaultTimeout));
 
   return ns;
 }
