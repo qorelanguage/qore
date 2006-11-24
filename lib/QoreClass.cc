@@ -32,6 +32,625 @@
 // global class ID sequence
 class Sequence classIDSeq;
 
+inline BCEAList::BCEAList()
+{
+}
+
+inline class QoreNode *BCEAList::findArgs(class QoreClass *qc, bool *aexeced)
+{
+   bceamap_t::iterator i = find(qc);
+   if (i != end())
+   {
+      if (i->second->execed)
+      {
+	 *aexeced = true;
+	 return NULL;
+      }
+      *aexeced = false;
+      i->second->execed = true;
+      return i->second->args;
+   }
+
+   insert(pair<QoreClass *, BCEANode*>(qc, new BCEANode()));
+   *aexeced = false;
+   return NULL;
+}
+
+inline void BCEAList::add(class QoreClass *qc, class QoreNode *arg, class ExceptionSink *xsink)
+{
+   // see if class already exists in the list
+   bceamap_t::iterator i = find(qc);
+   if (i != end())
+      return;
+   
+   // evaluate and save arguments
+   insert(pair<QoreClass *, BCEANode*>(qc, new BCEANode(arg ? arg->eval(xsink) : NULL)));
+}
+
+inline void BCEAList::deref(class ExceptionSink *xsink)
+{
+   bceamap_t::iterator i;
+   while ((i = begin()) != end())
+   {
+      class BCEANode *n = i->second;
+      erase(i);
+      
+      if (n->args)
+	 n->args->deref(xsink);
+      delete n;
+   }
+   delete this;
+}
+
+BCANode::~BCANode()
+{
+   if (ns)
+      delete ns;
+   if (name)
+      free(name);
+}
+
+inline void BCANode::resolve()
+{
+   if (ns)
+   {
+      sclass = getRootNS()->parseFindScopedClass(ns);
+      printd(5, "BCANode::resolve() this=%08p resolved named scoped %s -> %08p\n", this, ns->ostr, sclass);
+      delete ns;
+      ns = NULL;
+   }
+   else
+   {
+      sclass = getRootNS()->parseFindClass(name);
+      printd(5, "BCANode::resolve() this=%08p resolved %s -> %08p\n", this, name, sclass);
+      free(name);
+      name = NULL;
+   }   
+}
+
+BCNode::~BCNode()
+{
+   if (cname)
+      delete cname;
+   if (cstr)
+      free(cstr);
+   if (args)
+      args->deref(NULL);
+}
+
+BCList::BCList(class BCNode *n)
+{
+   head = tail = n;
+   init = false;
+}
+
+inline BCList::~BCList()
+{
+   while (head)
+   {
+      class BCNode *n = head->next;
+      delete head;
+      head = n;
+   }
+}
+
+void BCList::add(class BCNode *n)
+{
+   tail->next = n;
+   tail = n;
+}
+
+inline void BCList::ref()
+{
+   ROreference();
+}
+
+void BCList::deref()
+{
+   if (ROdereference())
+      delete this;
+}
+
+inline void BCList::parseInit(class QoreClass *cls, class BCAList *bcal)
+{
+   if (init)
+      return;
+
+   init = true;
+
+   class BCNode *w = head;
+   while (w)
+   {
+      if (w->cname)
+      {
+	 w->sclass = getRootNS()->parseFindScopedClass(w->cname);
+	 printd(5, "BCList::parseInit() %s inheriting %s (%08p)\n", cls->getName(), w->cname->ostr, w->sclass);
+      }
+      else
+      {
+	 w->sclass = getRootNS()->parseFindClass(w->cstr);
+	 printd(5, "BCList::parseInit() %s inheriting %s (%08p)\n", cls->getName(), w->cstr, w->sclass);
+      }
+      // recursively add base classes to special method list
+      if (w->sclass)
+      {
+         w->sclass->addBaseClassesToSubclass(cls);
+	 // include all subclass domains in this class' domain
+	 cls->addDomain(w->sclass->getDomain());
+      }
+
+      w = w->next;
+   }
+
+   // compare each class in the list to ensure that there are no duplicates
+   w = head;
+   while (w)
+   {
+      if (w->sclass)
+      {
+	 class BCNode *n = w->next;
+	 while (n)
+	 {
+	    if (w->sclass == n->sclass)
+	       parse_error("class '%s' cannot inherit '%s' more than once", cls->getName(), w->sclass->getName());
+
+	    n = n->next;
+	 }
+      }	 
+      w = w->next;
+   }
+
+   // if there is a base class constructor list, resolve all classes and 
+   // ensure that all classes referenced are base classes of this class
+   if (bcal)
+   {
+      for (bcalist_t::iterator i = bcal->begin(); i != bcal->end(); i++)
+      {
+	 (*i)->resolve();
+	 if ((*i)->sclass && !match(*i))
+	    parse_error("%s in base class constructor argument list is not a base class of %s", (*i)->sclass->getName(), cls->getName());
+      }
+   }
+}
+
+BCAList::BCAList(class BCANode *n)
+{
+   push_back(n);
+}
+
+inline BCAList::~BCAList()
+{
+   bcalist_t::iterator i = begin(); 
+   while (i != end())
+   {
+      class BCANode *n = *i;
+      i++;
+      delete n;
+   }
+}
+
+inline void BCAList::ref()
+{
+   ROreference();
+}
+
+void BCAList::deref()
+{
+   if (ROdereference())
+      delete this;
+}
+
+inline class Method *BCList::findMethod(char *name)
+{
+   class Method *m;
+   class BCNode *w = head;
+   while (w)
+   {
+      if (w->sclass)
+      {
+	 if (w->sclass->scl)
+	    w->sclass->scl->parseInit(w->sclass, w->sclass->bcal);
+	 if ((m = w->sclass->findMethod(name)))
+	    return m;
+      }
+      w = w->next;
+   }
+   return NULL;
+}
+
+// only called at run-time
+inline class Method *BCList::findMethod(char *name, bool *priv)
+{
+   class Method *m;
+   class BCNode *w = head;
+   while (w)
+   {
+      if (w->sclass)
+      {
+	 if ((m = w->sclass->findMethod(name, priv)))
+	 {
+	    if (!*priv && w->priv)
+	       (*priv) = w->priv;
+	    return m;
+	 }
+      }
+      w = w->next;
+   }
+   return NULL;
+}
+
+inline bool BCList::match(class BCANode *bca)
+{
+   class BCNode *w = head;
+   while (w)
+   {
+      if (bca->sclass == w->sclass)
+      {
+	 w->args = bca->argexp;
+	 w->hasargs = true;
+	 return true;
+      }
+      w = w->next;
+   }
+   bca->argexp->deref(NULL);
+   return false;
+}
+
+inline bool BCList::isPrivateMember(char *str) const
+{
+   class BCNode *w = head;
+   while (w)
+   {
+      if (w->sclass->isPrivateMember(str))
+	 return true;
+      w = w->next;
+   }
+   return false;
+}
+
+class BuiltinMethod : public BuiltinFunction, public ReferenceObject
+{
+   protected:
+      inline ~BuiltinMethod() {}
+
+   public:
+      class QoreClass *myclass;
+
+      inline BuiltinMethod(class QoreClass *c, char *nme, q_method_t m) : BuiltinFunction(nme, m, QDOM_DEFAULT), myclass(c) {}
+      inline BuiltinMethod(class QoreClass *c, q_constructor_t m) : BuiltinFunction(m, QDOM_DEFAULT), myclass(c) {}
+      inline BuiltinMethod(class QoreClass *c, q_destructor_t m) : BuiltinFunction(m, QDOM_DEFAULT), myclass(c) {}
+      inline BuiltinMethod(class QoreClass *c, q_copy_t m) : BuiltinFunction(m, QDOM_DEFAULT), myclass(c) {}
+      inline void deref();
+};
+
+inline void BuiltinMethod::deref()
+{
+   if (ROdereference())
+      delete this;
+}
+
+inline void QoreClass::checkSpecialIntern(class Method *m)
+{
+   // set quick pointers
+   if (!methodGate && !strcmp(m->name, "methodGate"))
+      methodGate = m;
+   else if (!memberGate && !strcmp(m->name, "memberGate"))
+      memberGate = m;
+}
+
+inline void QoreClass::checkSpecial(class Method *m)
+{
+   // set quick pointers
+   if (!constructor && !strcmp(m->name, "constructor"))
+      constructor = m;
+   else if (!destructor && !strcmp(m->name, "destructor"))
+      destructor = m;
+   else if (!copyMethod && !strcmp(m->name, "copy"))
+      copyMethod = m;
+   else 
+      checkSpecialIntern(m);
+}
+
+inline class Method *QoreClass::findLocalMethod(char *nme)
+{
+   hm_method_t::iterator i = hm.find(nme);
+   if (i != hm.end())
+      return i->second;
+
+   return NULL;
+}
+
+inline Method *QoreClass::findMethod(char *nme)
+{
+   class Method *w;
+   if (!(w = findLocalMethod(nme)))
+   {
+      // search superclasses
+      if (scl)
+	 w = scl->findMethod(nme);
+   }
+   return w;
+}
+
+inline Method *QoreClass::findMethod(char *nme, bool *priv)
+{
+   class Method *w;
+   if (!(w = findLocalMethod(nme)))
+   {
+      // search superclasses
+      if (scl)
+	 w = scl->findMethod(nme, priv);
+   }
+   return w;
+}
+
+inline Method *QoreClass::parseFindMethod(char *nme)
+{
+   class Method *m;
+   if ((m = findLocalMethod(nme)))
+      return m;
+
+   // look in pending methods
+   m = pending_head;
+   while (m)
+   {
+      if (!strcmp(m->name, nme))
+	 return m;
+      m = m->next;
+   }
+   return NULL;
+}
+
+inline void QoreClass::setSystemConstructor(q_constructor_t m)
+{
+   sys = true;
+   system_constructor = new Method(new BuiltinMethod(this, m));
+}
+
+// deletes all pending user methods
+inline void QoreClass::parseRollback()
+{
+   delete_pending_methods();
+}
+
+inline void Method::userInit(UserFunction *u, int p)
+{
+   name = strdup(u->name);
+   type = OTF_USER;
+   func.userFunc = u;
+   priv = p;
+}
+
+inline Method::Method()
+{ 
+   bcal = NULL; 
+}
+
+Method::Method(UserFunction *u, int p, BCAList *b)
+{
+   userInit(u, p);
+   bcal = b;
+}
+
+inline Method::Method(BuiltinMethod *b)
+{
+   name = b->name;
+   type = OTF_BUILTIN;
+   func.builtin = b;
+   priv = 0;
+   bcal = NULL;
+}
+
+Method::~Method()
+{
+   if (name && type != OTF_BUILTIN)
+      free(name);
+   if (type == OTF_USER)
+      func.userFunc->deref();
+   else
+      func.builtin->deref();
+   if (bcal)
+      bcal->deref();
+}
+
+inline bool Method::isSynchronized() const
+{
+   if (type == OTF_BUILTIN)
+      return false;
+   return func.userFunc->isSynchronized();
+}
+
+inline bool Method::inMethod(class Object *self)
+{
+   if (type == OTF_USER)
+      return ::inMethod(func.userFunc->name, self);
+   return ::inMethod(func.builtin->name, self);
+}
+
+inline void Method::evalSystemConstructor(Object *self, QoreNode *args, class BCList *bcl, class BCEAList *bceal, ExceptionSink *xsink)
+{
+   // type must be OTF_BUILTIN
+   func.builtin->evalSystemConstructor(self, args, xsink);
+}
+
+inline void Method::evalSystemDestructor(class Object *self, class ExceptionSink *xsink)
+{
+   // get pointer to private data object from class ID of base type
+   void *ptr = self->getAndClearPrivateData(func.builtin->myclass->getID());
+   //printd(5, "Method::evalSystemDestructor() class=%s (%08p) id=%d ptr=%08p\n", func.builtin->myclass->getName(), func.builtin->myclass, func.builtin->myclass->getID(), ptr);
+   func.builtin->evalSystemDestructor(self, ptr, xsink);
+}
+
+inline void Method::parseInit()
+{
+   // must be called even if func.userFunc->statements is NULL
+   func.userFunc->statements->parseInit(func.userFunc->params, NULL);
+}
+
+inline void Method::parseInitConstructor(class BCList *bcl)
+{
+   // must be called even if func.userFunc->statements is NULL
+   func.userFunc->statements->parseInit(func.userFunc->params, bcl);
+}
+
+inline class Method *Method::copy()
+{
+   class Method *nof;
+   if (type == OTF_USER)
+   {
+      func.userFunc->ROreference();
+      nof = new Method;
+      nof->userInit(func.userFunc, priv);
+      if (bcal)
+      {
+	 bcal->ref();
+	 nof->bcal = bcal;
+      }
+   }
+   else
+   {
+      func.builtin->ROreference();
+      nof = new Method(func.builtin);
+   }
+   return nof;
+}
+
+inline int Method::getType() const
+{ 
+   return type; 
+}
+
+inline bool Method::isPrivate() const 
+{ 
+   return priv; 
+}
+
+inline char *Method::getName() const
+{ 
+   return name; 
+}
+
+// NOTE: caller must unlock structure
+class QoreNode **getStackObjectValuePtr(char *name, class VLock *vl, ExceptionSink *xsink)
+{
+   // this will always return a value
+   Object *o = getStackObject();
+
+   return o->getMemberValuePtr(name, vl, xsink);
+}
+
+// NOTE: caller must unlock structure
+class QoreNode **getExistingStackObjectValuePtr(char *name, class VLock *vl, ExceptionSink *xsink)
+{
+   // this will always return a value
+   Object *o = getStackObject();
+
+   return o->getExistingValuePtr(name, vl, xsink);
+}
+
+// NOTE: caller must unlock structure
+class QoreNode *getStackObjectValue(char *name, class VLock *vl, ExceptionSink *xsink)
+{
+   // this will always return a value
+   Object *o = getStackObject();
+
+   return o->getMemberValueNoMethod(name, vl, xsink);
+}
+
+static inline class QoreNode *evalStackObjectValue(char *name, class ExceptionSink *xsink)
+{
+   class QoreNode *rv;
+
+   tracein("evalStackObjectValue()");
+   class Object *o = getStackObject();
+#ifdef DEBUG
+   if (!o)
+      run_time_error("evalStackObjectalue(%s) object context is NULL", name);
+#endif
+   printd(5, "evalStackObjectValue() o=%08p (%s)\n", o, o->getClass()->getName());
+   rv = o->evalMemberNoMethod(name, xsink);
+   traceout("evalStackObjectValue()");
+   return rv;
+}
+
+// assumes that there is always an object on top of the stack
+void deleteStackObjectKey(char *name, ExceptionSink *xsink)
+{
+   getStackObject()->deleteMemberValue(name, xsink);
+}
+
+static inline class QoreClass *getStackClass()
+{
+   class Object *obj = getStackObject();
+   if (obj)
+      return obj->getClass();
+   return NULL;
+}
+
+inline void QoreClass::addPrivateMember(char *nme)
+{
+   hm_qn_t::iterator i;
+   if ((i = pmm.find(nme)) == pmm.end())
+   {
+      if ((i = pending_pmm.find(nme)) == pending_pmm.end())
+      {
+	 //printd(5, "QoreClass::addPrivateMember() this=%08p %s adding %08p %s\n", this, name, nme, nme);
+	 pending_pmm[nme] = NULL;
+      }
+      else
+      {
+	 if (name)
+	    parse_error("private member '%s' already pending in class %s", nme, name);
+	 else
+	    parse_error("private member '%s' already pending in class", nme);
+	 free(nme);
+      }
+   }
+   else
+   {
+      parse_error("private member '%s' already declared in class %s", nme, name);
+      free(nme);
+   }
+}
+
+void QoreClass::parseMergePrivateMembers(class MemberList *ml)
+{
+   class Member *w = ml->head;
+   while (w)
+   {
+      addPrivateMember(w->name);
+      w->name = NULL;
+      w = w->next;
+   }
+   delete ml;
+}
+
+class MemberList *MemberList::copy() const
+{
+   class MemberList *nl = new MemberList();
+   class Member *w = head;
+   while (w)
+   {
+      nl->add(strdup(w->name));
+      w = w->next;
+   }
+   return nl;
+}
+
+int MemberList::add(char *name)
+{
+   class Member *w = head;
+   while (w)
+   {
+      if (!strcmp(name, w->name))
+	 return -1;
+      w = w->next;
+   }
+   // add new member to list
+   add(new Member(name));
+   return 0;
+}
+
 inline void BCSMList::addBaseClassesToSubclass(class QoreClass *thisclass, class QoreClass *sc)
 {
    class_list_t::const_iterator i = begin();
@@ -242,6 +861,21 @@ QoreClass::~QoreClass()
       scl->deref();
    if (system_constructor)
       delete system_constructor;
+}
+
+inline void QoreClass::delete_pending_methods()
+{
+   Method *w = pending_head;
+
+   printd(5, "QoreClass::delete_pending_methods() %s this=%08p start=%08p\n", name, this, w);
+   while (w)
+   {
+      class Method *n = w->next;
+      delete w;
+      w = n;
+   }
+
+   pending_head = NULL;
 }
 
 class QoreClass *QoreClass::getClass(int cid) const

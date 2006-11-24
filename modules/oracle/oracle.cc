@@ -148,7 +148,8 @@ OraColumns::OraColumns(OCIStmt *stmthp, class Datasource *ds, char *str, Excepti
    class OracleData *d_ora = (OracleData *)ds->private_data;
 
    // retrieve results, if any
-   OCIParam *parmp;
+   //OCIParam *parmp;
+   void *parmp;
 
    // get columns in output
    while (OCIParamGet(stmthp, OCI_HTYPE_STMT, d_ora->errhp, &parmp, size() + 1) == OCI_SUCCESS)

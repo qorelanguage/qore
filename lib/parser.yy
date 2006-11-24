@@ -893,7 +893,7 @@ class_attributes:
         | private_member_list
         {
 	   $$ = new QoreClass();
-	   $$->mergePrivateMembers($1);
+	   $$->parseMergePrivateMembers($1);
 	}
 	| class_attributes method_definition
         { 
@@ -902,7 +902,7 @@ class_attributes:
 	}
 	| class_attributes private_member_list
         { 
-	   $1->mergePrivateMembers($2); 
+	   $1->parseMergePrivateMembers($2); 
 	   $$ = $1; 
 	}
         ;
@@ -983,7 +983,7 @@ base_constructors:
 	}
 	| base_constructors ',' base_constructor
 	{
-	   $1->add($3);
+	   $1->push_back($3);
 	   $$ = $1;
 	}
 	;

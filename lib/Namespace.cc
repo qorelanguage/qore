@@ -1959,7 +1959,7 @@ RootNamespace::RootNamespace(class Namespace **QoreNS) : Namespace()
    qns->addSystemClass(File = initFileClass());
    qns->addSystemClass(initGetOptClass());
    qns->addSystemClass(initFtpClientClass());
-   qns->addSystemClass(initHTTPClientClass());
+   //qns->addSystemClass(initHTTPClientClass());
 
    qns->addInitialNamespace(get_thread_ns());
 
@@ -2011,7 +2011,7 @@ RootNamespace::RootNamespace(class Namespace **QoreNS) : Namespace()
    // create Qore::Type namespace with type constants
    qns->addInitialNamespace(get_type_ns());
    // add HTTPClient constants
-   qns->addInitialNamespace(addHTTPClientNamespace());
+   //qns->addInitialNamespace(addHTTPClientNamespace());
 
    // add file constants
    addFileConstants(qns);

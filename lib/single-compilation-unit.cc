@@ -30,6 +30,7 @@
 #include "StringList.cc"
 #include "thread.cc"
 #include "VRMutex.cc"
+#include "SwitchStatementWithOperators.cc"
 #include "QT_NOTHING.cc"
 #include "QT_bigint.cc"
 #include "QT_float.cc"
@@ -73,8 +74,7 @@
 #include "QC_Counter.cc"
 #include "QC_SSLCertificate.cc"
 #include "QC_SSLPrivateKey.cc"
-#include "SwitchStatementWithOperators.cc"
-#include "QC_HTTPClient.cc"
+//#include "QC_HTTPClient.cc"
 
 #ifdef DEBUG
 #include "ql_debug.cc"
