@@ -66,7 +66,7 @@ if test "$OS" = "HP-UX"; then
    fi
 else
    ARCH=`uname -p`
-   if [ $ARCH = "athlon" ]; then
+   if test $ARCH = i686 -o $ARCH = i586 -o $ARCH = athlon ; then
       ARCH=i386
    fi
 fi
