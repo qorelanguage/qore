@@ -66,6 +66,7 @@ class Namespace
       DLLLOCAL inline class Namespace *resolveNameScope(class NamedScope *name) const;
       DLLLOCAL inline class QoreNode *getConstantValue(char *name) const;
       DLLLOCAL Namespace(char *n, QoreClassList *ocl, ConstantList *cl, NamespaceList *nnsl);
+      DLLLOCAL Namespace(QoreClassList *ocl, ConstantList *cl, NamespaceList *nnsl);
 
    public:
       DLLEXPORT Namespace(char *n);
@@ -105,7 +106,7 @@ class RootNamespace : public Namespace
       DLLLOCAL inline class Namespace *rootResolveNamespace(class NamedScope *nscope);
       DLLLOCAL inline void addQoreNamespace(class Namespace *qns);
       // private constructor
-      DLLLOCAL RootNamespace(QoreClassList *ocl, ConstantList *cl, NamespaceList *nnsl);
+      DLLLOCAL inline RootNamespace(QoreClassList *ocl, ConstantList *cl, NamespaceList *nnsl);
 
    public:
       DLLLOCAL RootNamespace(class Namespace **QoreNS);

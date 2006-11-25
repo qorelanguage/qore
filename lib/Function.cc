@@ -365,28 +365,10 @@ class QoreNode *UserFunction::evalConstructor(QoreNode *args, Object *self, clas
    else
       argv = NULL;
 
-   // if there are base class constructor arguments that haven't already been overridden
-   // by a base class constructor argument specification in a subclass, evaluate them 
-   // as well before pushing object context
-   if (bcl)
-   {
-      class BCNode *w = bcl->head;
-      while (w)
-      {
-	 if (w->hasargs)
-	 {
-	    bceal->add(w->sclass, w->args, xsink);
-	    if (xsink->isEvent())
-	       break;
-	 }
-	 w = w->next;
-      }
-   }
-
    // evaluate base class constructors (if any)
    if (bcl)
-      bcl->execConstructors(self, bceal, xsink);
-   
+      bcl->execConstructorsWithArgs(self, bceal, xsink);
+
    if (!xsink->isEvent())
    {
       // switch to new program for imported objects
@@ -406,7 +388,7 @@ class QoreNode *UserFunction::evalConstructor(QoreNode *args, Object *self, clas
       {
 	 // push call on stack
 	 pushCall(name, CT_USER, self);
-	 
+
 	 // instantiate "$self" variable
 	 self->instantiateLVar(params->selfid);
 	 

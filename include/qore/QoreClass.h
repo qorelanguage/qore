@@ -37,9 +37,9 @@
 #define OTF_USER    0
 #define OTF_BUILTIN 1
 
-class QoreNode *internalObjectVarRef(class QoreNode *n, class ExceptionSink *xsink);
-void initObjects();
-void deleteObjects();
+DLLLOCAL class QoreNode *internalObjectVarRef(class QoreNode *n, class ExceptionSink *xsink);
+DLLLOCAL void initObjects();
+DLLLOCAL void deleteObjects();
 
 class Method {
    private:
@@ -89,16 +89,8 @@ class BCEANode
       class QoreNode *args;
       bool execed;
 
-      DLLLOCAL inline BCEANode(class QoreNode *arg)
-      {
-	 args = arg;
-	 execed = false;
-      }
-      DLLLOCAL inline BCEANode()
-      {
-	 args = NULL;
-	 execed = true;
-      }
+      DLLLOCAL inline BCEANode(class QoreNode *arg);
+      DLLLOCAL inline BCEANode();
 };
 
 struct ltqc
@@ -139,7 +131,6 @@ class BCANode
       class NamedScope *ns;
       char *name;
       class QoreNode *argexp;
-      class BCANode *next;
 
       DLLLOCAL inline BCANode(class NamedScope *n, class QoreNode *arg)
       {
@@ -176,43 +167,6 @@ class BCAList : public ReferenceObject, public bcalist_t
       DLLLOCAL void deref();
 };
 
-/*
-  BCNode 
-  base class pointer
-*/
-class BCNode
-{
-   public:
-      class NamedScope *cname;
-      char *cstr;
-      class QoreClass *sclass;
-      class BCNode *next;
-      class QoreNode *args;
-      bool hasargs;
-      bool priv;
-      
-      DLLLOCAL inline BCNode(class NamedScope *c, bool p)
-      {
-	 cname = c;
-	 cstr = NULL;
-	 sclass = NULL;
-	 next = NULL;
-	 args = NULL;
-	 hasargs = false;
-	 priv = p;
-      }
-      DLLLOCAL inline BCNode(char *str, bool p)
-      {
-	 cname = NULL;
-	 cstr = str;
-	 sclass = NULL;
-	 next = NULL;
-	 args = NULL;
-	 hasargs = false;
-	 priv = p;
-      }
-      DLLLOCAL ~BCNode();
-};
 
 typedef std::list<class QoreClass *> class_list_t;
 
@@ -242,14 +196,47 @@ class BCSMList : public class_list_t
       DLLLOCAL inline void execCopyMethods(class Object *self, class Object *old, class ExceptionSink *xsink);
 };
 
-/*
-  BCList
-  doubly-linked list of base classes, constructors called head->tail, 
-  destructors called in reverse order (tail->head)
-  note that this data structure cannot be modified even if the class is
-  copied to a subprogram object and extended
-*/
-class BCList : public ReferenceObject
+// BCNode 
+// base class pointer
+class BCNode
+{
+   public:
+      class NamedScope *cname;
+      char *cstr;
+      class QoreClass *sclass;
+      class QoreNode *args;
+      bool hasargs;
+      bool priv;
+      
+      DLLLOCAL inline BCNode(class NamedScope *c, bool p)
+      {
+	 cname = c;
+	 cstr = NULL;
+	 sclass = NULL;
+	 args = NULL;
+	 hasargs = false;
+	 priv = p;
+      }
+      DLLLOCAL inline BCNode(char *str, bool p)
+      {
+	 cname = NULL;
+	 cstr = str;
+	 sclass = NULL;
+	 args = NULL;
+	 hasargs = false;
+	 priv = p;
+      }
+      DLLLOCAL ~BCNode();
+};
+
+typedef safe_dslist<class BCNode *> bclist_t;
+
+//  BCList
+//  linked list of base classes, constructors called head->tail, 
+//  destructors called in reverse order (tail->head)
+//  note that this data structure cannot be modified even if the class is
+//  copied to a subprogram object and extended
+class BCList : public ReferenceObject, public bclist_t
 {
    private:
       bool init;
@@ -258,19 +245,17 @@ class BCList : public ReferenceObject
       DLLLOCAL inline ~BCList();
 
    public:
-      // head and tail pointers to maintain insertion order
-      class BCNode *head, *tail;
       // special method (constructor, destructor, copy) list for superclasses 
       class BCSMList sml;
 
       DLLLOCAL BCList(class BCNode *n);
-      DLLLOCAL void add(class BCNode *n);
       DLLLOCAL inline void parseInit(class QoreClass *thisclass, class BCAList *bcal);
       DLLLOCAL inline class Method *resolveSelfMethod(char *name);
       DLLLOCAL inline class Method *findMethod(char *name);
       DLLLOCAL inline class Method *findMethod(char *name, bool *p);
       DLLLOCAL inline bool match(class BCANode *bca);
       DLLLOCAL inline void execConstructors(class Object *o, class BCEAList *bceal, class ExceptionSink *xsink);
+      DLLLOCAL inline void execConstructorsWithArgs(class Object *o, class BCEAList *bceal, class ExceptionSink *xsink);
       DLLLOCAL inline void execSystemConstructors(class Object *o, class BCEAList *bceal, class ExceptionSink *xsink);
       DLLLOCAL inline bool isPrivateMember(char *str) const;
       DLLLOCAL inline void ref();

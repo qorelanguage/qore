@@ -1,3 +1,9 @@
+2006.11.25: David Nichols
+	* more QoreClass API improvements, more use of STL features where
+	  appropriate
+	* more safe_dslist improvements to better implement an STL-like
+	  interface
+
 2006.11.20: David Nichols
 	* folded ConstantList, QoreClassList, NamespaceList into Namespace 
 	  implementation

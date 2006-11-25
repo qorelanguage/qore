@@ -1656,18 +1656,17 @@ void StatementBlock::parseInit(class Paramlist *params, class BCList *bcl)
    if (bcl)
    {
       int tlvids = 0;
-      class BCNode *w = bcl->head;
-      while (w)
+      for (bclist_t::iterator i = bcl->begin(); i != bcl->end(); i++)
       {
-	 if (w->args)
+	 if ((*i)->args)
 	 {
-	    for (int i = 0; i < w->args->val.list->size(); i++)
+	    class List *l = (*i)->args->val.list;
+	    for (int j = 0; j < l->size(); j++)
 	    {
-	       class QoreNode **n = w->args->val.list->get_entry_ptr(i);
+	       class QoreNode **n = l->get_entry_ptr(j);
 	       tlvids += process_node(n, oflag, PF_REFERENCE_OK);
 	    }
 	 }
-	 w = w->next;
       }
       if (tlvids)
       {

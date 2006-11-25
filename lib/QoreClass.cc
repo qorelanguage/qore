@@ -32,6 +32,18 @@
 // global class ID sequence
 class Sequence classIDSeq;
 
+inline BCEANode::BCEANode(class QoreNode *arg)
+{
+   args = arg;
+   execed = false;
+}
+
+inline BCEANode::BCEANode()
+{
+   args = NULL;
+   execed = true;
+}
+
 inline BCEAList::BCEAList()
 {
 }
@@ -120,24 +132,19 @@ BCNode::~BCNode()
 
 BCList::BCList(class BCNode *n)
 {
-   head = tail = n;
+   push_back(n);
    init = false;
 }
 
 inline BCList::~BCList()
 {
-   while (head)
+   bclist_t::iterator i;
+   while ((i = begin()) != end())
    {
-      class BCNode *n = head->next;
-      delete head;
-      head = n;
+      delete *i;
+      // erase() is constant time as long as i == begin()
+      erase(i);
    }
-}
-
-void BCList::add(class BCNode *n)
-{
-   tail->next = n;
-   tail = n;
 }
 
 inline void BCList::ref()
@@ -158,46 +165,38 @@ inline void BCList::parseInit(class QoreClass *cls, class BCAList *bcal)
 
    init = true;
 
-   class BCNode *w = head;
-   while (w)
+   //printd(5, "BCList::parseInit(%s) this=%08p empty=%d, init=%d\n", cls->getName(), this, empty(), init);
+   for (bclist_t::iterator i = begin(); i != end(); i++)
    {
-      if (w->cname)
+      if ((*i)->cname)
       {
-	 w->sclass = getRootNS()->parseFindScopedClass(w->cname);
-	 printd(5, "BCList::parseInit() %s inheriting %s (%08p)\n", cls->getName(), w->cname->ostr, w->sclass);
+	 (*i)->sclass = getRootNS()->parseFindScopedClass((*i)->cname);
+	 printd(5, "BCList::parseInit() %s inheriting %s (%08p)\n", cls->getName(), (*i)->cname->ostr, (*i)->sclass);
       }
       else
       {
-	 w->sclass = getRootNS()->parseFindClass(w->cstr);
-	 printd(5, "BCList::parseInit() %s inheriting %s (%08p)\n", cls->getName(), w->cstr, w->sclass);
+	 (*i)->sclass = getRootNS()->parseFindClass((*i)->cstr);
+	 printd(5, "BCList::parseInit() %s inheriting %s (%08p)\n", cls->getName(), (*i)->cstr, (*i)->sclass);
       }
       // recursively add base classes to special method list
-      if (w->sclass)
+      if ((*i)->sclass)
       {
-         w->sclass->addBaseClassesToSubclass(cls);
+         (*i)->sclass->addBaseClassesToSubclass(cls);
 	 // include all subclass domains in this class' domain
-	 cls->addDomain(w->sclass->getDomain());
+	 cls->addDomain((*i)->sclass->getDomain());
       }
-
-      w = w->next;
    }
 
    // compare each class in the list to ensure that there are no duplicates
-   w = head;
-   while (w)
+   for (bclist_t::iterator i = begin(); i != end(); i++)
    {
-      if (w->sclass)
+      if ((*i)->sclass)
       {
-	 class BCNode *n = w->next;
-	 while (n)
-	 {
-	    if (w->sclass == n->sclass)
-	       parse_error("class '%s' cannot inherit '%s' more than once", cls->getName(), w->sclass->getName());
-
-	    n = n->next;
-	 }
+	 bclist_t::iterator j = i;
+	 while (++j != end())
+	    if ((*i)->sclass == (*j)->sclass)
+	       parse_error("class '%s' cannot inherit '%s' more than once", cls->getName(), (*i)->sclass->getName());
       }	 
-      w = w->next;
    }
 
    // if there is a base class constructor list, resolve all classes and 
@@ -220,12 +219,11 @@ BCAList::BCAList(class BCANode *n)
 
 inline BCAList::~BCAList()
 {
-   bcalist_t::iterator i = begin(); 
-   while (i != end())
+   bcalist_t::iterator i;
+   while ((i = begin()) != end())
    {
-      class BCANode *n = *i;
-      i++;
-      delete n;
+      delete *i;
+      erase(i);
    }
 }
 
@@ -242,18 +240,16 @@ void BCAList::deref()
 
 inline class Method *BCList::findMethod(char *name)
 {
-   class Method *m;
-   class BCNode *w = head;
-   while (w)
+   for (bclist_t::iterator i = begin(); i != end(); i++)
    {
-      if (w->sclass)
+      if ((*i)->sclass)
       {
-	 if (w->sclass->scl)
-	    w->sclass->scl->parseInit(w->sclass, w->sclass->bcal);
-	 if ((m = w->sclass->findMethod(name)))
+	 if ((*i)->sclass->scl)
+	    (*i)->sclass->scl->parseInit((*i)->sclass, (*i)->sclass->bcal);
+	 class Method *m;
+	 if ((m = (*i)->sclass->findMethod(name)))
 	    return m;
       }
-      w = w->next;
    }
    return NULL;
 }
@@ -261,36 +257,32 @@ inline class Method *BCList::findMethod(char *name)
 // only called at run-time
 inline class Method *BCList::findMethod(char *name, bool *priv)
 {
-   class Method *m;
-   class BCNode *w = head;
-   while (w)
+   for (bclist_t::iterator i = begin(); i != end(); i++)
    {
-      if (w->sclass)
+      if ((*i)->sclass)
       {
-	 if ((m = w->sclass->findMethod(name, priv)))
+	 class Method *m;
+	 if ((m = (*i)->sclass->findMethod(name, priv)))
 	 {
-	    if (!*priv && w->priv)
-	       (*priv) = w->priv;
+	    if (!*priv && (*i)->priv)
+	       (*priv) = (*i)->priv;
 	    return m;
 	 }
       }
-      w = w->next;
    }
    return NULL;
 }
 
 inline bool BCList::match(class BCANode *bca)
 {
-   class BCNode *w = head;
-   while (w)
+   for (bclist_t::iterator i = begin(); i != end(); i++)
    {
-      if (bca->sclass == w->sclass)
+      if (bca->sclass == (*i)->sclass)
       {
-	 w->args = bca->argexp;
-	 w->hasargs = true;
+	 (*i)->args = bca->argexp;
+	 (*i)->hasargs = true;
 	 return true;
       }
-      w = w->next;
    }
    bca->argexp->deref(NULL);
    return false;
@@ -298,14 +290,65 @@ inline bool BCList::match(class BCANode *bca)
 
 inline bool BCList::isPrivateMember(char *str) const
 {
-   class BCNode *w = head;
-   while (w)
-   {
-      if (w->sclass->isPrivateMember(str))
+   for (bclist_t::const_iterator i = begin(); i != end(); i++)
+      if ((*i)->sclass->isPrivateMember(str))
 	 return true;
-      w = w->next;
-   }
    return false;
+}
+
+inline class Method *BCList::resolveSelfMethod(char *name)
+{
+   for (bclist_t::iterator i = begin(); i != end(); i++)
+   {
+      if ((*i)->sclass)
+      {
+	 if ((*i)->sclass->scl)
+	    (*i)->sclass->scl->parseInit((*i)->sclass, (*i)->sclass->bcal);
+	 class Method *m;
+	 if ((m = (*i)->sclass->resolveSelfMethodIntern(name)))
+	    return m;
+      }
+   }
+   return NULL;
+}
+
+inline void BCList::execConstructors(class Object *o, class BCEAList *bceal, class ExceptionSink *xsink)
+{
+   for (bclist_t::iterator i = begin(); i != end(); i++)
+   {
+      printd(5, "BCList::execConstructors() %s::constructor() o=%08p (for subclass %s)\n", (*i)->sclass->getName(), o, o->getClass()->getName()); 
+
+      (*i)->sclass->execSubclassConstructor(o, bceal, xsink);
+      if (xsink->isEvent())
+	 break;
+   }
+}
+
+inline void BCList::execConstructorsWithArgs(class Object *o, class BCEAList *bceal, class ExceptionSink *xsink)
+{
+   // if there are base class constructor arguments that haven't already been overridden
+   // by a base class constructor argument specification in a subclass, evaluate them now
+   for (bclist_t::iterator i = begin(); i != end(); i++)
+   {
+      if ((*i)->hasargs)
+      {
+	 bceal->add((*i)->sclass, (*i)->args, xsink);
+	 if (xsink->isEvent())
+	    return;
+      }
+   }
+   execConstructors(o, bceal, xsink);
+}
+
+inline void BCList::execSystemConstructors(class Object *o, class BCEAList *bceal, class ExceptionSink *xsink)
+{
+   for (bclist_t::iterator i = begin(); i != end(); i++)
+   {
+      printd(5, "BCList::execSystemConstructors() %s::constructor() o=%08p (for subclass %s)\n", (*i)->sclass->getName(), o, o->getClass()->getName()); 
+      (*i)->sclass->execSubclassSystemConstructor(o, bceal, xsink);
+      if (xsink->isEvent())
+	 break;
+   }
 }
 
 class BuiltinMethod : public BuiltinFunction, public ReferenceObject
@@ -653,6 +696,7 @@ int MemberList::add(char *name)
 
 inline void BCSMList::addBaseClassesToSubclass(class QoreClass *thisclass, class QoreClass *sc)
 {
+   //printd(0, "BCSMList::addBaseClassesToSubclass(this=%s, sc=%s) size=%d\n", thisclass->getName(), sc->getName());
    class_list_t::const_iterator i = begin();
    while (i != end())
    {
@@ -731,50 +775,6 @@ inline class QoreClass *BCSMList::getClass(int cid) const
       i++;
    }
    return NULL;
-}
-
-inline class Method *BCList::resolveSelfMethod(char *name)
-{
-   class Method *m;
-   class BCNode *w = head;
-   while (w)
-   {
-      if (w->sclass)
-      {
-	 if (w->sclass->scl)
-	    w->sclass->scl->parseInit(w->sclass, w->sclass->bcal);
-	 if ((m = w->sclass->resolveSelfMethodIntern(name)))
-	    return m;
-      }
-      w = w->next;
-   }
-   return NULL;
-}
-
-inline void BCList::execConstructors(class Object *o, class BCEAList *bceal, class ExceptionSink *xsink)
-{
-   class BCNode *w = head;
-   while (w)
-   {
-      printd(5, "BCList::execConstructors() %s::constructor() o=%08p (for subclass %s)\n", w->sclass->getName(), o, o->getClass()->getName()); 
-      w->sclass->execSubclassConstructor(o, bceal, xsink);
-      if (xsink->isEvent())
-	 break;
-      w = w->next;
-   }
-}
-
-inline void BCList::execSystemConstructors(class Object *o, class BCEAList *bceal, class ExceptionSink *xsink)
-{
-   class BCNode *w = head;
-   while (w)
-   {
-      printd(5, "BCList::execSystemConstructors() %s::constructor() o=%08p (for subclass %s)\n", w->sclass->getName(), o, o->getClass()->getName()); 
-      w->sclass->execSubclassSystemConstructor(o, bceal, xsink);
-      if (xsink->isEvent())
-	 break;
-      w = w->next;
-   }
 }
 
 inline void QoreClass::init(char *nme, int dom)

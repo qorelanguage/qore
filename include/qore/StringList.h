@@ -95,8 +95,45 @@ template<typename T> struct _qore_list_iterator
       node_t *node;
 
       inline _qore_list_iterator(node_t *n) { node = n; }
-      inline void operator++(int) { node = node->next; }
+      inline _qore_list_iterator() { node = NULL; }
+      inline self_t operator++(int) 
+      { 
+	 self_t _tmp = *this;
+	 node = node->next; 
+	 return _tmp;
+      }
+      inline self_t operator++() 
+      { 
+	 node = node->next; 
+	 return *this;
+      }
       inline T operator*() { return node->data; }
+      inline bool operator!=(const self_t &n) { return n.node != node; }
+      inline bool operator==(const self_t &n) { return n.node == node; }
+};
+
+template<typename T> struct _qore_list_const_iterator
+{
+      typedef _qore_list_node<T> node_t;
+      typedef _qore_list_const_iterator<T> self_t;
+   
+      // data for the node
+      node_t *node;
+
+      inline _qore_list_const_iterator(const node_t *n) { node = (node_t *)n; }
+      inline _qore_list_const_iterator() { node = NULL; }
+      inline self_t operator++(int) 
+      { 
+	 self_t _tmp = *this;
+	 node = node->next; 
+	 return _tmp;
+      }
+      inline self_t operator++() 
+      { 
+	 node = node->next; 
+	 return *this;
+      }
+      inline T operator*() const { return node->data; }
       inline bool operator!=(const self_t &n) { return n.node != node; }
       inline bool operator==(const self_t &n) { return n.node == node; }
 };
@@ -105,6 +142,7 @@ template<typename T> class safe_dslist
 {  
    public:
       typedef _qore_list_iterator<T> iterator;
+      typedef _qore_list_const_iterator<T> const_iterator;
       typedef _qore_list_node<T> node_t;
       typedef safe_dslist<T> self_t;
       
@@ -129,6 +167,14 @@ template<typename T> class safe_dslist
 	 return head;
       }
       inline iterator end()
+      {
+	 return NULL;
+      }
+      inline const_iterator begin() const
+      {
+	 return head;
+      }
+      inline const_iterator end() const
       {
 	 return NULL;
       }
@@ -168,6 +214,30 @@ template<typename T> class safe_dslist
 	    other->push_back(*i);
 	    i++;
 	 }
+      }
+
+      inline bool empty() const
+      {
+	 return !head;
+      }
+
+      inline void erase(iterator i)
+      {
+	 if (i.node == head)
+	 {
+	    head = i.node->next;
+	    if (!head)
+	       tail = NULL;
+	 }
+	 else
+	 {
+	    // find previous entry
+	    node_t *n = head;
+	    while (n->next != i.node)
+	       n = n->next;
+	    n->next = i.node->next;
+	 }
+	 delete i.node;
       }
 };
 

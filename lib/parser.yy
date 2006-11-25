@@ -860,7 +860,7 @@ superclass_list:
 	}
         | superclass_list ',' superclass
         {
-	   $1->add($3);
+	   $1->push_back($3);
 	   $$ = $1;
         }
         ;

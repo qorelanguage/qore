@@ -469,6 +469,15 @@ Namespace::Namespace(char *n, QoreClassList *ocl, ConstantList *cl, NamespaceLis
    nsl        = nnsl;
 }
 
+Namespace::Namespace(QoreClassList *ocl, ConstantList *cl, NamespaceList *nnsl)
+{
+   init();
+   name       = "";
+   classList  = ocl;
+   constant   = cl;
+   nsl        = nnsl;
+}
+
 Namespace::~Namespace()
 {
    //tracein("Namespace::~Namespace()");
@@ -2030,14 +2039,9 @@ RootNamespace::RootNamespace(class Namespace **QoreNS) : Namespace()
 }
 
 // private constructor
-RootNamespace::RootNamespace(QoreClassList *ocl, ConstantList *cl, NamespaceList *nnsl)
+inline RootNamespace::RootNamespace(QoreClassList *ocl, ConstantList *cl, NamespaceList *nnsl) : Namespace(ocl, cl, nnsl)
 {
-   // we don't call the Namespace constructor because we don't want to copy the name
-   init();
-   name       = "";
-   classList  = ocl;
-   constant   = cl;
-   nsl        = nnsl;
+   qoreNS = nsl->find("Qore");
 }
 
 RootNamespace::~RootNamespace()
