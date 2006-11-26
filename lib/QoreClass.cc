@@ -28,9 +28,19 @@
 #include <qore/Namespace.h>
 #include <qore/Sequence.h>
 #include <qore/BuiltinFunctionList.h>
+#include <qore/Exception.h>
+#include <qore/Function.h>
+#include <qore/List.h>
+#include <qore/Statement.h>
+#include <qore/Object.h>
+#include <qore/QoreType.h>
+#include <qore/Variable.h>
+#include <qore/NamedScope.h>
+
+#include <string.h>
 
 // global class ID sequence
-class Sequence classIDSeq;
+DLLLOCAL class Sequence classIDSeq;
 
 inline BCEANode::BCEANode(class QoreNode *arg)
 {
@@ -434,13 +444,10 @@ inline Method *QoreClass::parseFindMethod(char *nme)
       return m;
 
    // look in pending methods
-   m = pending_head;
-   while (m)
-   {
-      if (!strcmp(m->name, nme))
-	 return m;
-      m = m->next;
-   }
+   hm_method_t::iterator i = hm_pending.find(nme);
+   if (i != hm_pending.end())
+      return i->second;
+
    return NULL;
 }
 
@@ -503,7 +510,7 @@ inline bool Method::isSynchronized() const
    return func.userFunc->isSynchronized();
 }
 
-inline bool Method::inMethod(class Object *self)
+inline bool Method::inMethod(class Object *self) const
 {
    if (type == OTF_USER)
       return ::inMethod(func.userFunc->name, self);
@@ -536,7 +543,7 @@ inline void Method::parseInitConstructor(class BCList *bcl)
    func.userFunc->statements->parseInit(func.userFunc->params, bcl);
 }
 
-inline class Method *Method::copy()
+inline class Method *Method::copy() const
 {
    class Method *nof;
    if (type == OTF_USER)
@@ -630,15 +637,14 @@ static inline class QoreClass *getStackClass()
    return NULL;
 }
 
-inline void QoreClass::addPrivateMember(char *nme)
+void QoreClass::addPrivateMember(char *nme)
 {
-   hm_qn_t::iterator i;
-   if ((i = pmm.find(nme)) == pmm.end())
+   if (pmm.find(nme) == pmm.end())
    {
-      if ((i = pending_pmm.find(nme)) == pending_pmm.end())
+      if (pending_pmm.find(nme) == pending_pmm.end())
       {
 	 //printd(5, "QoreClass::addPrivateMember() this=%08p %s adding %08p %s\n", this, name, nme, nme);
-	 pending_pmm[nme] = NULL;
+	 pending_pmm.insert(nme);
       }
       else
       {
@@ -656,47 +662,9 @@ inline void QoreClass::addPrivateMember(char *nme)
    }
 }
 
-void QoreClass::parseMergePrivateMembers(class MemberList *ml)
-{
-   class Member *w = ml->head;
-   while (w)
-   {
-      addPrivateMember(w->name);
-      w->name = NULL;
-      w = w->next;
-   }
-   delete ml;
-}
-
-class MemberList *MemberList::copy() const
-{
-   class MemberList *nl = new MemberList();
-   class Member *w = head;
-   while (w)
-   {
-      nl->add(strdup(w->name));
-      w = w->next;
-   }
-   return nl;
-}
-
-int MemberList::add(char *name)
-{
-   class Member *w = head;
-   while (w)
-   {
-      if (!strcmp(name, w->name))
-	 return -1;
-      w = w->next;
-   }
-   // add new member to list
-   add(new Member(name));
-   return 0;
-}
-
 inline void BCSMList::addBaseClassesToSubclass(class QoreClass *thisclass, class QoreClass *sc)
 {
-   //printd(0, "BCSMList::addBaseClassesToSubclass(this=%s, sc=%s) size=%d\n", thisclass->getName(), sc->getName());
+   //printd(5, "BCSMList::addBaseClassesToSubclass(this=%s, sc=%s) size=%d\n", thisclass->getName(), sc->getName());
    class_list_t::const_iterator i = begin();
    while (i != end())
    {
@@ -784,7 +752,6 @@ inline void QoreClass::init(char *nme, int dom)
    scl = NULL;
    name = nme;
    sys  = false;
-   pending_head = NULL;
    bcal = NULL;
 
    // quick pointers
@@ -841,17 +808,19 @@ QoreClass::~QoreClass()
       delete m;
    }   
    // delete private member list
-   hm_qn_t::iterator j;
+   strset_t::iterator j;
    while ((j = pmm.begin()) != pmm.end())
    {
-      char *n = j->first;
+      char *n = *j;
       pmm.erase(j);
+      //printd(5, "QoreClass::~QoreClass() freeing private member %08p '%s'\n", n, n);
       free(n);
    }
    while ((j = pending_pmm.begin()) != pending_pmm.end())
    {
-      char *n = j->first;
+      char *n = *j;
       pending_pmm.erase(j);
+      //printd(5, "QoreClass::~QoreClass() freeing pending private member %08p '%s'\n", n, n);
       free(n);
    }
    // delete any pending methods
@@ -865,17 +834,14 @@ QoreClass::~QoreClass()
 
 inline void QoreClass::delete_pending_methods()
 {
-   Method *w = pending_head;
-
-   printd(5, "QoreClass::delete_pending_methods() %s this=%08p start=%08p\n", name, this, w);
-   while (w)
+   hm_method_t::iterator i;
+   while ((i = hm_pending.begin()) != hm_pending.end())
    {
-      class Method *n = w->next;
-      delete w;
-      w = n;
+      class Method *m = i->second;
+      //printd(5, "QoreClass::~QoreClass() deleting pending method %08p %s::%s()\n", m, name, m->name);
+      hm_pending.erase(i);
+      delete m;
    }
-
-   pending_head = NULL;
 }
 
 class QoreClass *QoreClass::getClass(int cid) const
@@ -1092,7 +1058,7 @@ class QoreClass *QoreClass::copyAndDeref()
    tracein("QoreClass::copyAndDeref");
    class QoreClass *noc = new QoreClass(name, classID);
 
-   printd(0, "QoreClass::copyAndDeref() name=%s (%08p) new name=%s (%08p)\n", name, name, noc->name, noc->name);
+   printd(5, "QoreClass::copyAndDeref() name=%s (%08p) new name=%s (%08p)\n", name, name, noc->name, noc->name);
 
    // set up function list
 
@@ -1113,8 +1079,8 @@ class QoreClass *QoreClass::copyAndDeref()
 	 noc->memberGate   = nf;
    }
    // copy private member list
-   for (hm_qn_t::iterator i = pmm.begin(); i != pmm.end(); i++)
-      noc->pmm[strdup(i->first)] = NULL;
+   for (strset_t::iterator i = pmm.begin(); i != pmm.end(); i++)
+      noc->pmm.insert(strdup(*i));
 
    // note that if there is a base class argument list, it
    // is referenced when the constructor is copied
@@ -1216,7 +1182,7 @@ class QoreNode *QoreClass::evalMethodGate(Object *self, char *nme, QoreNode *arg
 
 bool QoreClass::isPrivateMember(char *str) const
 {
-   hm_qn_t::const_iterator i = pmm.find(str);
+   strset_t::const_iterator i = pmm.find(str);
    if (i != pmm.end())
       return true;
 
@@ -1467,17 +1433,11 @@ Method *QoreClass::resolveSelfMethod(char *nme)
 	 err = true;
       else
       {
-	 m = pending_head;
-
-	 while (m)
+	 hm_method_t::iterator i = hm_pending.find(nme);
+	 if (i != hm_pending.end())
 	 {
-	    if (!strcmp(m->name, nme))
-	    {
-	       printd(5, "QoreClass::resolveSelfMethod(%s) resolved to pending method %s::%s() %08p\n", nme, name, nme, m);
-	       break;
-	    }
-
-	    m = m->next;
+	    m = i->second;
+	    printd(5, "QoreClass::resolveSelfMethod(%s) resolved to pending method %s::%s() %08p\n", nme, name, nme, m);
 	 }
       }
    }
@@ -1533,14 +1493,9 @@ Method *QoreClass::resolveSelfMethod(class NamedScope *nme)
 	 err = true;
       else
       {
-	 m = qc->pending_head;
-
-	 while (m)
-	 {
-	    if (!strcmp(m->name, nstr))
-	       break;
-	    m = m->next;
-	 }
+	 hm_method_t::iterator i = qc->hm_pending.find(nstr);
+	 if (i != qc->hm_pending.end())
+	    m = i->second;
       }
    }
 
@@ -1574,8 +1529,7 @@ void QoreClass::addMethod(Method *m)
    else
    {
       // insert in pending list for parse init
-      m->next = pending_head;
-      pending_head = m;
+      hm_pending[m->name] = m;
 
       // if there is a base class constructor argument list, then put it at the class level
       if (m->bcal)
@@ -1647,7 +1601,7 @@ void QoreClass::parseInit()
    setParseClass(this);
    if (!initialized)
    {
-      printd(5, "QoreClass::parseInit() %s this=%08p start=%08p\n", name, this, pending_head);
+      printd(5, "QoreClass::parseInit() %s this=%08p pending size=%d\n", name, this, hm_pending.size());
       if (scl)
 	 scl->parseInit(this, bcal);
 
@@ -1656,41 +1610,39 @@ void QoreClass::parseInit()
       initialized = true;
    }
 
-   class Method *w = pending_head;
-   while (w)
+   for (hm_method_t::iterator i = hm_pending.begin(); i != hm_pending.end(); i++)
    {
       // initialize method
-      if (w->bcal)
-	 w->parseInitConstructor(scl);
+      if (i->second->bcal)
+	 i->second->parseInitConstructor(scl);
       else
-	 w->parseInit();
-      w = w->next;
+	 i->second->parseInit();
    }
 }
 
 // commits all pending user methods
 void QoreClass::parseCommit()
 {
-   class Method *w = pending_head;
+   printd(5, "QoreClass::parseCommit() %s this=%08p size=%d\n", name, this, hm_pending.size());
 
-   printd(5, "QoreClass::parseCommit() %s this=%08p start=%08p\n", name, this, w);
-   while (w)
+   hm_method_t::iterator i;
+   while ((i = hm_pending.begin()) != hm_pending.end())
    {
-      insertMethod(w);
-      checkSpecial(w);
-      w = w->next;
+      class Method *m = i->second;
+      hm_pending.erase(i);
+      insertMethod(m);
+      checkSpecial(m);
    }
 
    // add all pending private members
-   hm_qn_t::iterator i;
-   while ((i = pending_pmm.begin()) != pending_pmm.end())
+   strset_t::iterator j;
+   while ((j = pending_pmm.begin()) != pending_pmm.end())
    { 
-      //printd(5, "QoreClass::parseCommit() %s committing private member %08p %s\n", name, i->first, i->first);
-      pmm[i->first] = NULL;
-      pending_pmm.erase(i);
+      //printd(5, "QoreClass::parseCommit() %s committing private member %08p %s\n", name, *j, *j);
+      pmm.insert(*j);
+      pending_pmm.erase(j);
    }
 
-   pending_head = NULL;
 }
 
 class QoreNode *internalObjectVarRef(QoreNode *n, ExceptionSink *xsink)

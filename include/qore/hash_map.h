@@ -31,7 +31,11 @@
 #ifdef HAVE_QORE_HASH_MAP
 
 #include <qore/hash_map_include.h>
+#include <qore/common.h>
+
 #include <strings.h>
+
+#include <string.h>
 
 class eqstr
 {
@@ -53,17 +57,6 @@ typedef hash_map<char*, class Var *, hash<char *>, class eqstr> hm_var_t;
 #else // HAVE_QORE_HASH_MAP
 #include <map>
 using namespace std;
-
-#include <string.h>
-
-class ltstr
-{
-   public:
-      bool operator()(char* s1, char* s2) const
-      {
-	 return strcmp(s1, s2) < 0;
-      }
-};
 
 typedef map<char*, class QoreNode *, class ltstr> hm_qn_t;
 typedef map<char*, class HashMember *, class ltstr> hm_hm_t;

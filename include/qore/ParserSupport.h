@@ -27,6 +27,7 @@
 #define _QORE_PARSER_SUPPORT_H
 
 #include <qore/LockedObject.h>
+#include <qore/common.h>
 
 #include <stdlib.h>
 
@@ -41,9 +42,9 @@ class HashElement {
    public:
       char *key;
       class QoreNode *value;
-      inline HashElement(class QoreNode *k, class QoreNode *v);
-      inline HashElement(int tag, char *constant, class QoreNode *v);
-      inline ~HashElement();
+      DLLLOCAL inline HashElement(class QoreNode *k, class QoreNode *v);
+      DLLLOCAL inline HashElement(int tag, char *constant, class QoreNode *v);
+      DLLLOCAL inline ~HashElement();
 };
 
 #include <qore/QoreNode.h>
@@ -93,7 +94,7 @@ static inline QoreNode *makeArgs(QoreNode *arg)
    return new QoreNode(l);
 }
 
-inline HashElement::HashElement(class QoreNode *k, class QoreNode *v)
+DLLLOCAL inline HashElement::HashElement(class QoreNode *k, class QoreNode *v)
 {
    //tracein("HashElement::HashElement()");
    if (k->type != NT_STRING)
@@ -108,7 +109,7 @@ inline HashElement::HashElement(class QoreNode *k, class QoreNode *v)
    //traceout("HashElement::HashElement()");
 }
 
-inline HashElement::HashElement(int tag, char *constant, class QoreNode *v)
+DLLLOCAL inline HashElement::HashElement(int tag, char *constant, class QoreNode *v)
 {
    //tracein("HashElement::HashElement()");
    key = (char *)malloc(sizeof(char) * strlen(constant) + 2);
@@ -119,7 +120,7 @@ inline HashElement::HashElement(int tag, char *constant, class QoreNode *v)
    //traceout("HashElement::HashElement()");
 }
 
-inline HashElement::~HashElement()
+DLLLOCAL inline HashElement::~HashElement()
 {
    free(key);
 }
@@ -130,8 +131,8 @@ class ConstNode
    public:
       class NamedScope *name;
       class QoreNode *value;
-      inline ConstNode(char *n, class QoreNode *v) { name = new NamedScope(n); value = v; }
-      inline ~ConstNode() { delete name; }
+      DLLLOCAL inline ConstNode(char *n, class QoreNode *v) { name = new NamedScope(n); value = v; }
+      DLLLOCAL inline ~ConstNode() { delete name; }
 };
 
 class ObjClassDef
@@ -139,8 +140,8 @@ class ObjClassDef
    public:
       class NamedScope *name;
       class QoreClass *oc;
-      inline ObjClassDef(char *n, class QoreClass *o) { name = new NamedScope(n); oc = o; }
-      inline ~ObjClassDef() { delete name; }
+      DLLLOCAL inline ObjClassDef(char *n, class QoreClass *o) { name = new NamedScope(n); oc = o; }
+      DLLLOCAL inline ~ObjClassDef() { delete name; }
 };
 
 #define NSN_OCD   1
@@ -155,9 +156,9 @@ struct NSNode
 	    class ConstNode  *cn;
 	    class Namespace  *ns;
       } n;
-      NSNode(class ObjClassDef *o) { type = NSN_OCD; n.ocd = o; }
-      NSNode(class ConstNode  *c) { type = NSN_CONST; n.cn = c; }
-      NSNode(class Namespace  *s) { type = NSN_NS; n.ns = s; }
+      DLLLOCAL NSNode(class ObjClassDef *o) { type = NSN_OCD; n.ocd = o; }
+      DLLLOCAL NSNode(class ConstNode  *c) { type = NSN_CONST; n.cn = c; }
+      DLLLOCAL NSNode(class Namespace  *s) { type = NSN_NS; n.ns = s; }
 };
 
 static inline void addNSNode(class Namespace *ns, struct NSNode *n)

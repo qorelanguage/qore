@@ -26,6 +26,8 @@
 
 #include <qore/config.h>
 
+#include <string.h>
+
 #ifdef _MSC_VER
   #ifdef BUILDING_DLL
     #define DLLEXPORT __declspec(dllexport)
@@ -42,6 +44,18 @@
     #define DLLLOCAL
   #endif
 #endif
+
+class ltstr
+{
+  public:
+   bool operator()(char* s1, char* s2) const
+   {
+      return strcmp(s1, s2) < 0;
+   }
+};
+
+#include <set>
+typedef std::set<char *, ltstr> strset_t;
 
 typedef long long int64;
 typedef char *lvh_t;

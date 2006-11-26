@@ -61,6 +61,58 @@ int yywrap()
 
 extern class Operator **ops;
 
+// copies keys added, deletes them in the destructor                                                                                                                                
+class MemberList : private strset_t
+{
+   public:
+      DLLLOCAL ~MemberList();
+      DLLLOCAL class MemberList *copy() const;
+      DLLLOCAL int add(char *name);
+      DLLLOCAL inline void mergePrivateMembers(class QoreClass *qc);
+};
+
+inline void MemberList::mergePrivateMembers(class QoreClass *qc)
+{
+   strset_t::iterator i;
+   while ((i = begin()) != end())
+   {
+      char *name = *i;
+      erase(i);
+      qc->addPrivateMember(name);
+   }
+}
+
+MemberList::~MemberList()
+{
+   strset_t::iterator i;
+   while ((i = begin()) != end())
+   {
+      char *name = *i;
+      erase(i);
+      free(name);
+   }
+}
+
+class MemberList *MemberList::copy() const
+{
+   class MemberList *nl = new MemberList();
+   for (strset_t::iterator i = begin(); i != end(); i++)
+      nl->add(*i);
+
+   return nl;
+}
+
+int MemberList::add(char *name)
+{
+   if (find(name) != end())
+      return -1;
+   // add new member to list
+   insert(name);
+   return 0;
+}
+
+
+
 static inline void addConstant(class NamedScope *name, class QoreNode *value)
 {
    getRootNS()->rootAddConstant(name, value);
@@ -893,7 +945,8 @@ class_attributes:
         | private_member_list
         {
 	   $$ = new QoreClass();
-	   $$->parseMergePrivateMembers($1);
+	   $1->mergePrivateMembers($$);
+	   delete $1;
 	}
 	| class_attributes method_definition
         { 
@@ -902,7 +955,7 @@ class_attributes:
 	}
 	| class_attributes private_member_list
         { 
-	   $1->parseMergePrivateMembers($2); 
+	   $2->mergePrivateMembers($1);
 	   $$ = $1; 
 	}
         ;
@@ -917,7 +970,8 @@ private_member_list:
 member_list:
 	SELF_REF
         {
-	   $$ = new MemberList($1);
+	   $$ = new MemberList();
+	   $$->add($1);
         }
         | member_list ',' SELF_REF
         {

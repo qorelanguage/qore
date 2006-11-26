@@ -1,3 +1,6 @@
+2006.11.26: David Nichols
+	* more QoreClass cleanups
+
 2006.11.25: David Nichols
 	* more QoreClass API improvements, more use of STL features where
 	  appropriate

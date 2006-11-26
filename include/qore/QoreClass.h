@@ -27,11 +27,12 @@
 #include <qore/ReferenceObject.h>
 #include <qore/StringList.h>
 #include <qore/support.h>
+#include <qore/hash_map.h>
+#include <qore/common.h>
 
 #include <stdlib.h>
 #include <string.h>
 
-#include <qore/hash_map.h>
 #include <list>
 
 #define OTF_USER    0
@@ -57,20 +58,19 @@ class Method {
 
    public:
       char *name;
-      class Method *next;
       class BCAList *bcal; // for subclass constructors only
 
       DLLLOCAL Method(class UserFunction *u, int p, class BCAList *b);
       DLLLOCAL inline Method(class BuiltinMethod *b);
       DLLLOCAL ~Method();
-      DLLLOCAL inline bool inMethod(class Object *self);
+      DLLLOCAL inline bool inMethod(class Object *self) const;
       DLLLOCAL class QoreNode *eval(class Object *self, class QoreNode *args, class ExceptionSink *xsink);
       DLLLOCAL void evalConstructor(class Object *self, class QoreNode *args, class BCList *bcl, class BCEAList *bceal, class ExceptionSink *xsink);
       DLLLOCAL void evalDestructor(class Object *self, class ExceptionSink *xsink);
       DLLLOCAL inline void evalSystemConstructor(class Object *self, class QoreNode *args, class BCList *bcl, class BCEAList *bceal, class ExceptionSink *xsink);
       DLLLOCAL inline void evalSystemDestructor(class Object *self, class ExceptionSink *xsink);
       DLLLOCAL void evalCopy(class Object *self, class Object *old, class ExceptionSink *xsink);
-      DLLLOCAL inline class Method *copy();
+      DLLLOCAL inline class Method *copy() const;
       DLLLOCAL inline void parseInit();
       DLLLOCAL inline void parseInitConstructor(class BCList *bcl);
       DLLLOCAL inline int getType() const;
@@ -150,12 +150,10 @@ class BCANode
 
 typedef safe_dslist<class BCANode *> bcalist_t;
 
-/*
-  BCAList
-  base class constructor argument list
-  this data structure will not be modified even if the class is copied
-  to a subprogram object
-*/
+//  BCAList
+//  base class constructor argument list
+//  this data structure will not be modified even if the class is copied
+//  to a subprogram object
 class BCAList : public ReferenceObject, public bcalist_t
 {
    protected:
@@ -262,65 +260,6 @@ class BCList : public ReferenceObject, public bclist_t
       DLLLOCAL void deref();
 };
 
-class Member {
-   public:
-      char *name;
-      class Member *next;
-
-      DLLLOCAL inline Member(char *n)
-      {
-	 name = n;
-      }
-
-      DLLLOCAL inline ~Member()
-      {
-	 if (name)
-	    free(name);
-      }
-};
-
-class MemberList {
-   public:
-      class Member *head;
-
-      DLLLOCAL inline MemberList()
-      {
-	 head = NULL;
-      }
-      DLLLOCAL inline MemberList(char *name)
-      {
-	 head = new Member(name);
-	 head->next = NULL;
-      }
-      DLLLOCAL inline ~MemberList()
-      {
-	 while (head)
-	 {
-	    class Member *w = head->next;
-	    delete head;
-	    head = w;
-	 }
-      }
-      DLLLOCAL class MemberList *copy() const;
-      DLLLOCAL int add(char *name);
-      DLLLOCAL inline void add(class Member *w)
-      {
-	 w->next = head;
-	 head = w;
-      }
-      DLLLOCAL inline bool inlist(char *name) const
-      {
-	 class Member *w = head;
-	 while (w)
-	 {
-	    if (!strcmp(name, w->name))
-	       return true;
-	    w = w->next;
-	 }
-	 return false;
-      }
-};
-
 /*
   QoreClass
 
@@ -330,15 +269,15 @@ class MemberList {
   from this class. The ref() and deref() functions are called from the Object class
   when it is created or destroyed
 */
-class QoreClass : public ReferenceObject //, public LockedObject
+class QoreClass : public ReferenceObject
 {
       friend class BCList;
 
    private:
       char *name;
-      hm_method_t hm;
-      hm_qn_t pmm, pending_pmm;
-      class Method *pending_head, *system_constructor;
+      hm_method_t hm, hm_pending;  // method maps
+      strset_t pmm, pending_pmm;
+      class Method *system_constructor;
       class Method *constructor, *destructor, *copyMethod, *methodGate, *memberGate;
       int classID;
       bool sys, initialized;
@@ -374,8 +313,7 @@ class QoreClass : public ReferenceObject //, public LockedObject
       DLLEXPORT void setConstructor(q_constructor_t m);
       DLLEXPORT void setCopy(q_copy_t m);
 
-      DLLEXPORT inline void addPrivateMember(char *name);
-      DLLEXPORT void parseMergePrivateMembers(class MemberList *n);
+      DLLEXPORT void addPrivateMember(char *name);
       DLLEXPORT bool isPrivateMember(char *str) const;
 
       DLLEXPORT class QoreNode *evalMethod(class Object *self, char *nme, class QoreNode *args, class ExceptionSink *xsink);
@@ -419,7 +357,12 @@ class QoreClass : public ReferenceObject //, public LockedObject
       }
       DLLEXPORT void addBaseClassesToSubclass(class QoreClass *sc);
       DLLEXPORT class QoreClass *getClass(int cid) const;
-      DLLEXPORT inline void deref();
+      DLLEXPORT inline void deref()
+      {
+	 //printd(5, "QoreClass::deref() %08p %s %d -> %d\n", this, name, reference_count(), reference_count() - 1);
+	 if (ROdereference())
+	    delete this;
+      }
       DLLEXPORT inline bool hasMemberGate() const
       {
 	 return memberGate != NULL;
@@ -435,7 +378,13 @@ class QoreClass : public ReferenceObject //, public LockedObject
 	 nref.ROreference();
 	 return this;
       }
-      DLLEXPORT inline void nderef();
+      DLLEXPORT inline void nderef()
+      {
+	 //printd(5, "QoreClass::nderef() %08p %s %d -> %d\n", this, name, nref.reference_count(), nref.reference_count() - 1);
+	 if (nref.ROdereference())
+	    deref();
+      }
+
       inline bool is_unique() const
       {
 	 return nref.is_unique();
@@ -467,36 +416,5 @@ DLLLOCAL void deleteStackObjectKey(char *name, ExceptionSink *xsink);
 DLLLOCAL class QoreNode **getExistingStackObjectValuePtr(char *name, class VLock *vl, ExceptionSink *xsink);
 DLLLOCAL class QoreNode **getStackObjectValuePtr(char *name, class VLock *vl, ExceptionSink *xsink);
 DLLLOCAL class QoreNode *getStackObjectValue(char *name, class VLock *vl, ExceptionSink *xsink);
-
-#include <qore/common.h>
-#include <qore/Exception.h>
-#include <qore/qore_thread.h>
-#include <qore/Function.h>
-#include <qore/List.h>
-#include <qore/Statement.h>
-#include <qore/Object.h>
-#include <qore/QoreType.h>
-#include <qore/Variable.h>
-#include <qore/Sequence.h>
-#include <qore/Namespace.h>
-#include <qore/NamedScope.h>
-
-#include <string.h>
-
-extern class Sequence classIDSeq;
-
-inline void QoreClass::nderef()
-{
-   //printd(5, "QoreClass::nderef() %08p %s %d -> %d\n", this, name, nref.reference_count(), nref.reference_count() - 1);
-   if (nref.ROdereference())
-      deref();
-}
-
-inline void QoreClass::deref()
-{
-   //printd(5, "QoreClass::deref() %08p %s %d -> %d\n", this, name, reference_count(), reference_count() - 1);
-   if (ROdereference())
-      delete this;
-}
 
 #endif // _QORE_QORECLASS_H
