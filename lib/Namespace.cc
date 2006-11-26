@@ -810,7 +810,7 @@ void Namespace::addConstant(char *cname, class QoreNode *val)
    constant->add(cname, val);
 }
 
-inline void Namespace::addInitialNamespace(class Namespace *ns)
+void Namespace::addInitialNamespace(class Namespace *ns)
 {
    nsl->add(ns);
 }
