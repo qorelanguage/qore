@@ -38,10 +38,6 @@
 #define OTF_USER    0
 #define OTF_BUILTIN 1
 
-DLLLOCAL class QoreNode *internalObjectVarRef(class QoreNode *n, class ExceptionSink *xsink);
-DLLLOCAL void initObjects();
-DLLLOCAL void deleteObjects();
-
 class Method {
    private:
       int type;
@@ -78,46 +74,6 @@ class Method {
       DLLLOCAL inline char *getName() const;
       // only called when method is user
       DLLLOCAL inline bool isSynchronized() const;
-};
-
-// BCEANode
-// base class constructor evaluated argument node
-// created locally at run time
-class BCEANode
-{
-   public:
-      class QoreNode *args;
-      bool execed;
-
-      DLLLOCAL inline BCEANode(class QoreNode *arg);
-      DLLLOCAL inline BCEANode();
-};
-
-struct ltqc
-{
-      bool operator()(const class QoreClass *qc1, const class QoreClass *qc2) const
-      {
-	 return qc1 < qc2;
-      }
-};
-
-#include <map>
-typedef std::map<class QoreClass *, class BCEANode *, ltqc> bceamap_t;
-
-/*
-  BCEAList
-  base class constructor evaluated argument list
-*/
-class BCEAList : public bceamap_t
-{
-   protected:
-      DLLLOCAL inline ~BCEAList() { }
-
-   public:
-      DLLLOCAL inline BCEAList();
-      DLLLOCAL inline void deref(class ExceptionSink *xsink);
-      DLLLOCAL inline void add(class QoreClass *qc, class QoreNode *arg, class ExceptionSink *xsink);
-      DLLLOCAL inline class QoreNode *findArgs(class QoreClass *qc, bool *aexeced);
 };
 
 /*
@@ -165,7 +121,6 @@ class BCAList : public ReferenceObject, public bcalist_t
       DLLLOCAL void deref();
 };
 
-
 typedef std::list<class QoreClass *> class_list_t;
 
 // BCSMList: Base Class System Method List
@@ -175,19 +130,8 @@ class BCSMList : public class_list_t
    public:
       DLLLOCAL inline void add(class QoreClass *thisclass, class QoreClass *qc);
       DLLLOCAL inline void addBaseClassesToSubclass(class QoreClass *thisclass, class QoreClass *sc);
-      DLLLOCAL inline bool isBaseClass(class QoreClass *qc) const
-      {
-	 class_list_t::const_iterator i = begin();
-	 while (i != end())
-	 {
-	    if (qc == *i)
-	       return true;
-	    i++;
-	 }
-	 return false;
-      }
+      DLLLOCAL inline bool isBaseClass(class QoreClass *qc) const;
       DLLLOCAL inline class QoreClass *getClass(int cid) const;
-
       //inline void execConstructors(class Object *o, class BCEAList *bceal, class ExceptionSink *xsink);
       DLLLOCAL inline void execDestructors(class Object *o, class ExceptionSink *xsink);
       DLLLOCAL inline void execSystemDestructors(class Object *o, class ExceptionSink *xsink);
@@ -231,7 +175,7 @@ typedef safe_dslist<class BCNode *> bclist_t;
 
 //  BCList
 //  linked list of base classes, constructors called head->tail, 
-//  destructors called in reverse order (tail->head)
+//  destructors called in reverse order (tail->head) (stored in BCSMList)
 //  note that this data structure cannot be modified even if the class is
 //  copied to a subprogram object and extended
 class BCList : public ReferenceObject, public bclist_t
@@ -305,36 +249,29 @@ class QoreClass : public ReferenceObject
 
       DLLEXPORT QoreClass(int dom, char *nme);
       DLLEXPORT QoreClass(char *nme);
-      DLLLOCAL QoreClass();
-
+      
       DLLEXPORT void addMethod(class Method *f);
       DLLEXPORT void addMethod(char *nme, q_method_t m);
       DLLEXPORT void setDestructor(q_destructor_t m);
       DLLEXPORT void setConstructor(q_constructor_t m);
+      DLLEXPORT void setSystemConstructor(q_constructor_t m);
       DLLEXPORT void setCopy(q_copy_t m);
-
       DLLEXPORT void addPrivateMember(char *name);
       DLLEXPORT bool isPrivateMember(char *str) const;
-
       DLLEXPORT class QoreNode *evalMethod(class Object *self, char *nme, class QoreNode *args, class ExceptionSink *xsink);
-      DLLEXPORT inline class QoreNode *evalMemberGate(class Object *self, class QoreNode *name, class ExceptionSink *xsink);
       DLLEXPORT class QoreNode *execConstructor(class QoreNode *args, class ExceptionSink *xsink);
       DLLEXPORT class QoreNode *execSystemConstructor(class QoreNode *args, class ExceptionSink *xsink);
-      DLLEXPORT inline void execSubclassConstructor(class Object *self, class BCEAList *bceal, class ExceptionSink *xsink);
-      DLLEXPORT inline void execSubclassSystemConstructor(class Object *self, class BCEAList *bceal, class ExceptionSink *xsink);
-      DLLEXPORT void execDestructor(class Object *self, class ExceptionSink *xsink);
-      DLLEXPORT inline void execSubclassDestructor(class Object *self, class ExceptionSink *xsink);
-      DLLEXPORT inline void execSubclassSystemDestructor(class Object *self, class ExceptionSink *xsink);
       DLLEXPORT class QoreNode *execCopy(class Object *old, class ExceptionSink *xsink);
-      DLLEXPORT inline void execSubclassCopy(class Object *self, class Object *old, class ExceptionSink *xsink);
-
-      DLLEXPORT inline class Method *findMethod(char *nme);
-      DLLEXPORT inline class Method *findMethod(char *nme, bool *priv);
-      DLLEXPORT inline class Method *findLocalMethod(char *name);
-      DLLEXPORT class Method *resolveSelfMethod(char *nme);
-      DLLEXPORT class Method *resolveSelfMethod(class NamedScope *nme);
-      DLLEXPORT inline void setSystemConstructor(q_constructor_t m);
+      DLLEXPORT class Method *findMethod(char *nme);
+      DLLEXPORT class Method *findMethod(char *nme, bool *priv);
+      DLLEXPORT class Method *findLocalMethod(char *name);
       DLLEXPORT class List *getMethodList() const;
+      DLLEXPORT class QoreClass *copyAndDeref();
+      DLLEXPORT void parseInit();
+      DLLEXPORT void parseCommit();
+      DLLEXPORT inline void parseRollback();
+      DLLEXPORT void addBaseClassesToSubclass(class QoreClass *sc);
+      DLLEXPORT class QoreClass *getClass(int cid) const;
       DLLEXPORT inline int numMethods() const
       {
 	 return hm.size();
@@ -343,20 +280,14 @@ class QoreClass : public ReferenceObject
       { 
 	 return copyMethod ? true : false; 
       }
-      DLLEXPORT class QoreClass *copyAndDeref();
       DLLEXPORT inline int getID() const
       { 
 	 return classID; 
       }
-      DLLEXPORT void parseInit();
-      DLLEXPORT void parseCommit();
-      DLLEXPORT inline void parseRollback();
       DLLEXPORT inline bool isSystem() const
       { 
 	 return sys; 
       }
-      DLLEXPORT void addBaseClassesToSubclass(class QoreClass *sc);
-      DLLEXPORT class QoreClass *getClass(int cid) const;
       DLLEXPORT inline void deref()
       {
 	 //printd(5, "QoreClass::deref() %08p %s %d -> %d\n", this, name, reference_count(), reference_count() - 1);
@@ -384,14 +315,9 @@ class QoreClass : public ReferenceObject
 	 if (nref.ROdereference())
 	    deref();
       }
-
-      inline bool is_unique() const
+      DLLEXPORT inline bool is_unique() const
       {
 	 return nref.is_unique();
-      }
-      DLLEXPORT inline void addDomain(int dom)
-      {
-	 domain |= dom;
       }
       DLLEXPORT inline int getDomain() const
       {
@@ -409,9 +335,23 @@ class QoreClass : public ReferenceObject
 #endif
 	 name = n;
       }
-      //inline void merge(class QoreClass *oc);
+      
+      DLLLOCAL QoreClass();
+      DLLLOCAL inline class QoreNode *evalMemberGate(class Object *self, class QoreNode *name, class ExceptionSink *xsink);
+      DLLLOCAL inline void execSubclassConstructor(class Object *self, class BCEAList *bceal, class ExceptionSink *xsink);
+      DLLLOCAL inline void execSubclassSystemConstructor(class Object *self, class BCEAList *bceal, class ExceptionSink *xsink);      
+      DLLLOCAL void execDestructor(class Object *self, class ExceptionSink *xsink);
+      DLLLOCAL inline void execSubclassDestructor(class Object *self, class ExceptionSink *xsink);
+      DLLLOCAL inline void execSubclassSystemDestructor(class Object *self, class ExceptionSink *xsink);
+      DLLLOCAL inline void execSubclassCopy(class Object *self, class Object *old, class ExceptionSink *xsink);
+      DLLLOCAL class Method *resolveSelfMethod(char *nme);
+      DLLLOCAL class Method *resolveSelfMethod(class NamedScope *nme);
+      DLLLOCAL inline void addDomain(int dom);
 };
 
+DLLLOCAL class QoreNode *internalObjectVarRef(class QoreNode *n, class ExceptionSink *xsink);
+DLLLOCAL void initObjects();
+DLLLOCAL void deleteObjects();
 DLLLOCAL void deleteStackObjectKey(char *name, ExceptionSink *xsink);
 DLLLOCAL class QoreNode **getExistingStackObjectValuePtr(char *name, class VLock *vl, ExceptionSink *xsink);
 DLLLOCAL class QoreNode **getStackObjectValuePtr(char *name, class VLock *vl, ExceptionSink *xsink);

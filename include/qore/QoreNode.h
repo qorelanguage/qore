@@ -214,6 +214,7 @@ static inline int getMsMinusOneBigInt(class QoreNode *a);
 #include <qore/Find.h>
 #include <qore/Namespace.h>
 #include <qore/Operator.h>
+#include <qore/NamedScope.h>
 
 #include <string.h>
 #include <stdlib.h>

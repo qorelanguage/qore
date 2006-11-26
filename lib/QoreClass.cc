@@ -42,6 +42,45 @@
 // global class ID sequence
 DLLLOCAL class Sequence classIDSeq;
 
+// BCEANode
+// base class constructor evaluated argument node
+// created locally at run time
+class BCEANode
+{
+public:
+   class QoreNode *args;
+   bool execed;
+   
+   DLLLOCAL inline BCEANode(class QoreNode *arg);
+   DLLLOCAL inline BCEANode();
+};
+
+struct ltqc
+{
+   bool operator()(const class QoreClass *qc1, const class QoreClass *qc2) const
+   {
+      return qc1 < qc2;
+   }
+};
+
+#include <map>
+typedef std::map<class QoreClass *, class BCEANode *, ltqc> bceamap_t;
+
+/*
+ BCEAList
+ base class constructor evaluated argument list
+ */
+class BCEAList : public bceamap_t
+{
+protected:
+   DLLLOCAL inline ~BCEAList() { }
+   
+public:
+   DLLLOCAL inline void deref(class ExceptionSink *xsink);
+   DLLLOCAL inline void add(class QoreClass *qc, class QoreNode *arg, class ExceptionSink *xsink);
+   DLLLOCAL inline class QoreNode *findArgs(class QoreClass *qc, bool *aexeced);
+};
+
 inline BCEANode::BCEANode(class QoreNode *arg)
 {
    args = arg;
@@ -52,10 +91,6 @@ inline BCEANode::BCEANode()
 {
    args = NULL;
    execed = true;
-}
-
-inline BCEAList::BCEAList()
-{
 }
 
 inline class QoreNode *BCEAList::findArgs(class QoreClass *qc, bool *aexeced)
@@ -404,7 +439,7 @@ inline void QoreClass::checkSpecial(class Method *m)
       checkSpecialIntern(m);
 }
 
-inline class Method *QoreClass::findLocalMethod(char *nme)
+class Method *QoreClass::findLocalMethod(char *nme)
 {
    hm_method_t::iterator i = hm.find(nme);
    if (i != hm.end())
@@ -413,7 +448,7 @@ inline class Method *QoreClass::findLocalMethod(char *nme)
    return NULL;
 }
 
-inline Method *QoreClass::findMethod(char *nme)
+class Method *QoreClass::findMethod(char *nme)
 {
    class Method *w;
    if (!(w = findLocalMethod(nme)))
@@ -425,7 +460,7 @@ inline Method *QoreClass::findMethod(char *nme)
    return w;
 }
 
-inline Method *QoreClass::findMethod(char *nme, bool *priv)
+class Method *QoreClass::findMethod(char *nme, bool *priv)
 {
    class Method *w;
    if (!(w = findLocalMethod(nme)))
@@ -451,7 +486,7 @@ inline Method *QoreClass::parseFindMethod(char *nme)
    return NULL;
 }
 
-inline void QoreClass::setSystemConstructor(q_constructor_t m)
+void QoreClass::setSystemConstructor(q_constructor_t m)
 {
    sys = true;
    system_constructor = new Method(new BuiltinMethod(this, m));
@@ -662,6 +697,17 @@ void QoreClass::addPrivateMember(char *nme)
    }
 }
 
+inline bool BCSMList::isBaseClass(class QoreClass *qc) const
+{
+   class_list_t::const_iterator i = begin();
+   while (i != end())
+   {
+      if (qc == *i)
+	 return true;
+      i++;
+   }
+   return false;
+}
 inline void BCSMList::addBaseClassesToSubclass(class QoreClass *thisclass, class QoreClass *sc)
 {
    //printd(5, "BCSMList::addBaseClassesToSubclass(this=%s, sc=%s) size=%d\n", thisclass->getName(), sc->getName());
@@ -1102,6 +1148,11 @@ inline void QoreClass::insertMethod(Method *o)
 
    hm[o->name] = o;
 }      
+
+inline void QoreClass::addDomain(int dom)
+{
+   domain |= dom;
+}
 
 class QoreNode *QoreClass::evalMethod(Object *self, char *nme, QoreNode *args, class ExceptionSink *xsink)
 {
