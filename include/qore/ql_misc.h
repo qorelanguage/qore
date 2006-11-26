@@ -24,6 +24,6 @@
 
 #define QORE_LIB_MISC_H
 
-void init_misc_functions();
+DLLLOCAL void init_misc_functions();
 
 #endif

@@ -136,7 +136,13 @@ static void fcall_DeleteContents(class QoreNode *n)
 
 static class QoreNode *selfref_Eval(class QoreNode *n, class ExceptionSink *xsink)
 {
-   return internalObjectVarRef(n, xsink);
+#ifdef DEBUG
+   class Object *o = getStackObject();
+   if (!o)
+      run_time_error("selfref_Eval(%s) object context is NULL", n->val.c_str);
+   printd(5, "selfref_Eval() o=%08p (%s)\n", o, o->getClass()->getName());
+#endif
+   return getStackObject()->evalMemberNoMethod(n->val.c_str, xsink);
 }
 
 static void scoped_call_DeleteContents(class QoreNode *n)

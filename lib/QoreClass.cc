@@ -38,6 +38,7 @@
 #include <qore/NamedScope.h>
 
 #include <string.h>
+#include <stdlib.h>
 
 // global class ID sequence
 DLLLOCAL class Sequence classIDSeq;
@@ -420,20 +421,20 @@ inline void BuiltinMethod::deref()
 inline void QoreClass::checkSpecialIntern(class Method *m)
 {
    // set quick pointers
-   if (!methodGate && !strcmp(m->name, "methodGate"))
+   if (!methodGate && !strcmp(m->getName(), "methodGate"))
       methodGate = m;
-   else if (!memberGate && !strcmp(m->name, "memberGate"))
+   else if (!memberGate && !strcmp(m->getName(), "memberGate"))
       memberGate = m;
 }
 
 inline void QoreClass::checkSpecial(class Method *m)
 {
    // set quick pointers
-   if (!constructor && !strcmp(m->name, "constructor"))
+   if (!constructor && !strcmp(m->getName(), "constructor"))
       constructor = m;
-   else if (!destructor && !strcmp(m->name, "destructor"))
+   else if (!destructor && !strcmp(m->getName(), "destructor"))
       destructor = m;
-   else if (!copyMethod && !strcmp(m->name, "copy"))
+   else if (!copyMethod && !strcmp(m->getName(), "copy"))
       copyMethod = m;
    else 
       checkSpecialIntern(m);
@@ -493,7 +494,7 @@ void QoreClass::setSystemConstructor(q_constructor_t m)
 }
 
 // deletes all pending user methods
-inline void QoreClass::parseRollback()
+void QoreClass::parseRollback()
 {
    delete_pending_methods();
 }
@@ -615,55 +616,6 @@ inline char *Method::getName() const
    return name; 
 }
 
-// NOTE: caller must unlock structure
-class QoreNode **getStackObjectValuePtr(char *name, class VLock *vl, ExceptionSink *xsink)
-{
-   // this will always return a value
-   Object *o = getStackObject();
-
-   return o->getMemberValuePtr(name, vl, xsink);
-}
-
-// NOTE: caller must unlock structure
-class QoreNode **getExistingStackObjectValuePtr(char *name, class VLock *vl, ExceptionSink *xsink)
-{
-   // this will always return a value
-   Object *o = getStackObject();
-
-   return o->getExistingValuePtr(name, vl, xsink);
-}
-
-// NOTE: caller must unlock structure
-class QoreNode *getStackObjectValue(char *name, class VLock *vl, ExceptionSink *xsink)
-{
-   // this will always return a value
-   Object *o = getStackObject();
-
-   return o->getMemberValueNoMethod(name, vl, xsink);
-}
-
-static inline class QoreNode *evalStackObjectValue(char *name, class ExceptionSink *xsink)
-{
-   class QoreNode *rv;
-
-   tracein("evalStackObjectValue()");
-   class Object *o = getStackObject();
-#ifdef DEBUG
-   if (!o)
-      run_time_error("evalStackObjectalue(%s) object context is NULL", name);
-#endif
-   printd(5, "evalStackObjectValue() o=%08p (%s)\n", o, o->getClass()->getName());
-   rv = o->evalMemberNoMethod(name, xsink);
-   traceout("evalStackObjectValue()");
-   return rv;
-}
-
-// assumes that there is always an object on top of the stack
-void deleteStackObjectKey(char *name, ExceptionSink *xsink)
-{
-   getStackObject()->deleteMemberValue(name, xsink);
-}
-
 static inline class QoreClass *getStackClass()
 {
    class Object *obj = getStackObject();
@@ -708,6 +660,7 @@ inline bool BCSMList::isBaseClass(class QoreClass *qc) const
    }
    return false;
 }
+
 inline void BCSMList::addBaseClassesToSubclass(class QoreClass *thisclass, class QoreClass *sc)
 {
    //printd(5, "BCSMList::addBaseClassesToSubclass(this=%s, sc=%s) size=%d\n", thisclass->getName(), sc->getName());
@@ -849,7 +802,7 @@ QoreClass::~QoreClass()
    while ((i = hm.begin()) != hm.end())
    {
       class Method *m = i->second;
-      //printd(5, "QoreClass::~QoreClass() deleting method %08p %s::%s()\n", m, name, m->name);
+      //printd(5, "QoreClass::~QoreClass() deleting method %08p %s::%s()\n", m, name, m->getName());
       hm.erase(i);
       delete m;
    }   
@@ -884,7 +837,7 @@ inline void QoreClass::delete_pending_methods()
    while ((i = hm_pending.begin()) != hm_pending.end())
    {
       class Method *m = i->second;
-      //printd(5, "QoreClass::~QoreClass() deleting pending method %08p %s::%s()\n", m, name, m->name);
+      //printd(5, "QoreClass::~QoreClass() deleting pending method %08p %s::%s()\n", m, name, m->getName());
       hm_pending.erase(i);
       delete m;
    }
@@ -904,8 +857,7 @@ class QoreNode *Method::eval(Object *self, QoreNode *args, ExceptionSink *xsink)
    tracein("Method::eval()");
 #ifdef DEBUG
    char *oname = self->getClass()->getName();
-   printd(5, "Method::eval() %s::%s() (object=%08p, pgm=%08p)\n", 
-	  oname, name, self, self->getProgram());
+   printd(5, "Method::eval() %s::%s() (object=%08p, pgm=%08p)\n", oname, name, self, self->getProgram());
 #endif
 
    int need_deref = 0;
@@ -918,8 +870,7 @@ class QoreNode *Method::eval(Object *self, QoreNode *args, ExceptionSink *xsink)
       {
 	 printd(5, "Method::eval() about to evaluate args=%08p (%s)\n", args, args->type->name);
 	 new_args = args->eval(xsink);
-	 printd(5, "Method::eval() args=%08p (%s) new_args=%08p (%s)\n",
-		args, args->type->name, new_args, new_args ? new_args->type->name : "NONE");
+	 printd(5, "Method::eval() args=%08p (%s) new_args=%08p (%s)\n", args, args->type->name, new_args, new_args ? new_args->type->name : "NONE");
 	 if (xsink->isEvent())
 	 {
 	    if (new_args)
@@ -971,8 +922,7 @@ void Method::evalConstructor(Object *self, QoreNode *args, class BCList *bcl, cl
    tracein("Method::evalConstructor()");
 #ifdef DEBUG
    char *oname = self->getClass()->getName();
-   printd(5, "Method::evalConstructor() %s::%s() (object=%08p, pgm=%08p)\n", 
-	  oname, name, self, self->getProgram());
+   printd(5, "Method::evalConstructor() %s::%s() (object=%08p, pgm=%08p)\n", oname, name, self, self->getProgram());
 #endif
 
    int need_deref = 0;
@@ -1112,7 +1062,7 @@ class QoreClass *QoreClass::copyAndDeref()
    {
       class Method *nf = i->second->copy();
 
-      noc->hm[nf->name] = nf;
+      noc->hm[nf->getName()] = nf;
       if (i->second == constructor)
 	 noc->constructor  = nf;
       else if (i->second == destructor)
@@ -1142,11 +1092,10 @@ class QoreClass *QoreClass::copyAndDeref()
    return noc;
 }
 
-inline void QoreClass::insertMethod(Method *o)
+inline void QoreClass::insertMethod(Method *m)
 {
-   //printd(5, "QoreClass::insertMethod() %s::%s() size=%d\n", name, o->name, numMethods());
-
-   hm[o->name] = o;
+   //printd(5, "QoreClass::insertMethod() %s::%s() size=%d\n", name, m->getName(), numMethods());
+   hm[m->getName()] = m;
 }      
 
 inline void QoreClass::addDomain(int dom)
@@ -1563,24 +1512,24 @@ Method *QoreClass::resolveSelfMethod(class NamedScope *nme)
 
 void QoreClass::addMethod(Method *m)
 {
-   printd(5, "QoreClass::addMethod(%08p) %s.%s() (this=%08p)\n", m, name ? name : "<pending>", m->name, this);
+   printd(5, "QoreClass::addMethod(%08p) %s.%s() (this=%08p)\n", m, name ? name : "<pending>", m->getName(), this);
 
    // check for illegal private constructor or destructor
-   if (!strcmp(m->name, "constructor") || !strcmp(m->name, "destructor"))
+   if (!strcmp(m->getName(), "constructor") || !strcmp(m->getName(), "destructor"))
    {
       if (m->isPrivate())
-	 parseException("ILLEGAL-PRIVATE-METHOD", "%s methods cannot be private", m->name);
+	 parseException("ILLEGAL-PRIVATE-METHOD", "%s methods cannot be private", m->getName());
    }
 
-   if (parseFindMethod(m->name))
+   if (parseFindMethod(m->getName()))
    {
-      parse_error("method '%s::%s()' has already been defined", name, m->name);
+      parse_error("method '%s::%s()' has already been defined", name, m->getName());
       delete m;
    }
    else
    {
       // insert in pending list for parse init
-      hm_pending[m->name] = m;
+      hm_pending[m->getName()] = m;
 
       // if there is a base class constructor argument list, then put it at the class level
       if (m->bcal)
@@ -1671,7 +1620,7 @@ void QoreClass::parseInit()
    }
 }
 
-// commits all pending user methods
+// commits all pending user methods and pending private members
 void QoreClass::parseCommit()
 {
    printd(5, "QoreClass::parseCommit() %s this=%08p size=%d\n", name, this, hm_pending.size());
@@ -1694,114 +1643,4 @@ void QoreClass::parseCommit()
       pending_pmm.erase(j);
    }
 
-}
-
-class QoreNode *internalObjectVarRef(QoreNode *n, ExceptionSink *xsink)
-{
-   //tracein("internalObjectVarRef()");
-   //traceout("internalObjectVarRef()");
-   return evalStackObjectValue(n->val.c_str, xsink);
-}
-
-static QoreNode *f_getMethodList(QoreNode *params, ExceptionSink *xsink)
-{
-   QoreNode *p0 = test_param(params, NT_OBJECT, 0);
-   if (!p0)
-      return NULL;
-
-   return new QoreNode(p0->val.object->getClass()->getMethodList());
-}
-
-static QoreNode *f_callObjectMethod(QoreNode *params, ExceptionSink *xsink)
-{
-   // get object
-   QoreNode *p0 = test_param(params, NT_OBJECT, 0);
-   if (!p0)
-      return NULL;
-
-   // get method name
-   QoreNode *p1 = test_param(params, NT_STRING, 1);
-   if (!p1)
-      return NULL;
-
-   QoreNode *args;
-
-   // if there are arguments to pass
-   if (get_param(params, 2))
-   {
-      // create argument list by copying current list
-      List *l = params->val.list->copyListFrom(2);
-      if (xsink->isEvent())
-      {
-         if (l)
-	    l->derefAndDelete(xsink);
-         return NULL;
-      }
-      args = new QoreNode(l);
-   }
-   else
-      args = NULL;
-
-   // make sure method call is internal (allows access to private methods) if this function was called internally
-   substituteObjectIfEqual(p0->val.object);
-   QoreNode *rv = p0->val.object->evalMethod(p1->val.String, args, xsink);
-   if (args)
-      args->deref(xsink);
-   return rv;
-}
-
-static QoreNode *f_callObjectMethodArgs(QoreNode *params, ExceptionSink *xsink)
-{
-   // get object
-   QoreNode *p0 = test_param(params, NT_OBJECT, 0);
-   if (!p0)
-      return NULL;
-
-   // get method name
-   QoreNode *p1 = test_param(params, NT_STRING, 1);
-   if (!p1)
-      return NULL;
-
-   QoreNode *args, *p2;
-
-   // if there are arguments to pass
-   if ((p2 = get_param(params, 2)))
-   {
-      if (p2->type == NT_LIST)
-	 args = p2;
-      else
-      {
-	 args = new QoreNode(new List());
-	 args->val.list->push(p2);
-      }
-   }
-   else
-      args = NULL;
-
-   // make sure method call is internal (allows access to private methods) if this function was called internally
-   substituteObjectIfEqual(p0->val.object);
-   QoreNode *rv = p0->val.object->evalMethod(p1->val.String, args, xsink);
-
-   if (p2 != args)
-   {
-      args->val.list->shift();
-      args->deref(xsink);
-   }
-
-   return rv;
-}
-
-// object subsystem is initialized here
-void initObjects()
-{
-   tracein("initObjects()");
-
-   builtinFunctions.add("getMethodList", f_getMethodList);
-   builtinFunctions.add("callObjectMethod", f_callObjectMethod);
-   builtinFunctions.add("callObjectMethodArgs", f_callObjectMethodArgs);
-   traceout("initObjects()");
-}
-
-void deleteObjects()
-{
 }

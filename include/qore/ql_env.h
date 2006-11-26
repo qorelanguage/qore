@@ -24,6 +24,6 @@
 
 #define QORE_LIB_ENV_H
 
-void init_env_functions();
+DLLLOCAL void init_env_functions();
 
 #endif

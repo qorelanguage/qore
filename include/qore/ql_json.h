@@ -24,8 +24,8 @@
 
 #ifndef _QORE_QL_JSON_H
 
-#define _QORE_QLJSON_H
+#define _QORE_QL_JSON_H
 
-void init_json_functions();
+DLLLOCAL void init_json_functions();
 
 #endif // _QORE_QL_JSON_H

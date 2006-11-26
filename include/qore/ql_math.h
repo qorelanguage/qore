@@ -24,6 +24,6 @@
 
 #define QORE_LIB_MATH_H
 
-void init_math_functions();
+DLLLOCAL void init_math_functions();
 
 #endif

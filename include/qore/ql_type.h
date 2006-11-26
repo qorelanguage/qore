@@ -24,6 +24,6 @@
 
 #define QORE_LIB_TYPE_H
 
-void init_type_functions();
+DLLLOCAL void init_type_functions();
 
 #endif

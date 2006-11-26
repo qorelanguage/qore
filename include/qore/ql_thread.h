@@ -26,6 +26,6 @@
 
 #define _QORE_LIB_THREAD_H
 
-void init_thread_functions();
+DLLLOCAL void init_thread_functions();
 
 #endif

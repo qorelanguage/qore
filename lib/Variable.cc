@@ -159,7 +159,8 @@ class QoreNode **get_var_value_ptr(class QoreNode *n, class VLock *vlp, class Ex
    else if (n->type == NT_SELF_VARREF)
    {
       // need to check for deleted objects
-      QoreNode **rv = getStackObjectValuePtr(n->val.c_str, vlp, xsink);
+      // note that getStackObject() is guaranteed to return a value here (self varref is only valid in a method)
+      QoreNode **rv = getStackObject()->getMemberValuePtr(n->val.c_str, vlp, xsink);
       if (!rv && !xsink->isException())
 	 xsink->raiseException("OBJECT-ALREADY-DELETED", "write attempted to member \"%s\" in an already-deleted object", n->val.c_str);
       return rv;
@@ -181,7 +182,7 @@ class QoreNode *getNoEvalVarValue(class QoreNode *n, class VLock *vl, class Exce
       return n->val.vref->getValue(vl, xsink);
 
    if (n->type == NT_SELF_VARREF)
-      return getStackObjectValue(n->val.c_str, vl, xsink);
+      return getStackObject()->getMemberValueNoMethod(n->val.c_str, vl, xsink);
 
    // it's a variable reference tree
    class QoreNode *val = getNoEvalVarValue(n->val.tree.left, vl, xsink);
@@ -245,7 +246,7 @@ class QoreNode *getExistingVarValue(class QoreNode *n, ExceptionSink *xsink, cla
       return n->val.vref->getValue(vl, xsink);
 
    if (n->type == NT_SELF_VARREF)
-      return getStackObjectValue(n->val.c_str, vl, xsink);
+      return getStackObject()->getMemberValueNoMethod(n->val.c_str, vl, xsink);
 
    // it's a variable reference tree
    if (n->type == NT_TREE && (n->val.tree.op == OP_LIST_REF || n->val.tree.op == OP_OBJECT_REF))
@@ -315,8 +316,10 @@ static class QoreNode **getUniqueExistingVarValuePtr(class QoreNode *n, Exceptio
    if (n->type == NT_VARREF)
       return n->val.vref->getValuePtr(vl, xsink);
 
+   // getStackObjecT() will always return a value here (self refs are only legal in methods)
    if (n->type == NT_SELF_VARREF)
-      return getExistingStackObjectValuePtr(n->val.c_str, vl, xsink);
+      return getStackObject()->getExistingValuePtr(n->val.c_str, vl, xsink);
+
    // it's a variable reference tree
    if (n->type == NT_TREE && (n->val.tree.op == OP_LIST_REF || n->val.tree.op == OP_OBJECT_REF))
    {
@@ -428,7 +431,7 @@ void delete_var_node(class QoreNode *lvalue, ExceptionSink *xsink)
    // delete key if exists and resize hash if necessary
    if (lvalue->type == NT_SELF_VARREF)
    {
-      deleteStackObjectKey(lvalue->val.c_str, xsink);
+      getStackObject()->deleteMemberValue(lvalue->val.c_str, xsink);
       return;
    }
 

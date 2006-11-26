@@ -1,9 +1,9 @@
 /*
-  ql_pwd.h
+  ql_object.h
 
   Qore Programming Language
 
-  Copyright (C) 2003, 2004, 2005, 2006 David Nichols
+  Copyright (C) 2004, 2005, 2006 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -20,10 +20,10 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef QORE_LIB_PWD_H
+#ifndef _QORE_QL_OBJECT_H
 
-#define QORE_LIB_PWD_H
+#define _QORE_QL_OBJECT_H
 
-DLLLOCAL void init_pwd_functions();
+DLLLOCAL void init_object_functions();
 
-#endif
+#endif // _QORE_QL_OBJECT_H

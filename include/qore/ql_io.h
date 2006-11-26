@@ -24,6 +24,6 @@
 
 #define QORE_LIB_IO_H
 
-void init_io_functions();
+DLLLOCAL void init_io_functions();
 
 #endif

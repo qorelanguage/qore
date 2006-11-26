@@ -77,6 +77,7 @@ libqore_la_SOURCES = \
 	ql_xml.cc \
 	ql_json.cc \
 	ql_crypto.cc \
+	ql_object.cc \
 	QC_Socket.cc \
 	QC_Program.cc \
 	QC_File.cc \

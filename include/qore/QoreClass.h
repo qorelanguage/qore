@@ -30,9 +30,6 @@
 #include <qore/hash_map.h>
 #include <qore/common.h>
 
-#include <stdlib.h>
-#include <string.h>
-
 #include <list>
 
 #define OTF_USER    0
@@ -46,6 +43,7 @@ class Method {
 	    class BuiltinMethod *builtin;
       } func;
       bool priv;
+      char *name;
 
       DLLLOCAL inline Method();
       DLLLOCAL inline void userInit(UserFunction *u, int p);
@@ -53,7 +51,6 @@ class Method {
    protected:
 
    public:
-      char *name;
       class BCAList *bcal; // for subclass constructors only
 
       DLLLOCAL Method(class UserFunction *u, int p, class BCAList *b);
@@ -220,7 +217,7 @@ class QoreClass : public ReferenceObject
    private:
       char *name;
       hm_method_t hm, hm_pending;  // method maps
-      strset_t pmm, pending_pmm;
+      strset_t pmm, pending_pmm;   // private member lists
       class Method *system_constructor;
       class Method *constructor, *destructor, *copyMethod, *methodGate, *memberGate;
       int classID;
@@ -266,11 +263,9 @@ class QoreClass : public ReferenceObject
       DLLEXPORT class Method *findMethod(char *nme, bool *priv);
       DLLEXPORT class Method *findLocalMethod(char *name);
       DLLEXPORT class List *getMethodList() const;
-      DLLEXPORT class QoreClass *copyAndDeref();
       DLLEXPORT void parseInit();
       DLLEXPORT void parseCommit();
-      DLLEXPORT inline void parseRollback();
-      DLLEXPORT void addBaseClassesToSubclass(class QoreClass *sc);
+      DLLEXPORT void parseRollback();
       DLLEXPORT class QoreClass *getClass(int cid) const;
       DLLEXPORT inline int numMethods() const
       {
@@ -347,14 +342,8 @@ class QoreClass : public ReferenceObject
       DLLLOCAL class Method *resolveSelfMethod(char *nme);
       DLLLOCAL class Method *resolveSelfMethod(class NamedScope *nme);
       DLLLOCAL inline void addDomain(int dom);
+      DLLLOCAL class QoreClass *copyAndDeref();
+      DLLLOCAL void addBaseClassesToSubclass(class QoreClass *sc);
 };
-
-DLLLOCAL class QoreNode *internalObjectVarRef(class QoreNode *n, class ExceptionSink *xsink);
-DLLLOCAL void initObjects();
-DLLLOCAL void deleteObjects();
-DLLLOCAL void deleteStackObjectKey(char *name, ExceptionSink *xsink);
-DLLLOCAL class QoreNode **getExistingStackObjectValuePtr(char *name, class VLock *vl, ExceptionSink *xsink);
-DLLLOCAL class QoreNode **getStackObjectValuePtr(char *name, class VLock *vl, ExceptionSink *xsink);
-DLLLOCAL class QoreNode *getStackObjectValue(char *name, class VLock *vl, ExceptionSink *xsink);
 
 #endif // _QORE_QORECLASS_H

@@ -26,6 +26,6 @@
 
 #define _QORE_QL_XML_H
 
-void init_xml_functions();
+DLLLOCAL void init_xml_functions();
 
 #endif // _QORE_QL_XML_H

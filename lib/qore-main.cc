@@ -79,9 +79,6 @@ void qore_init(char *def_charset, bool show_module_errors)
    // set up core operators
    operatorsInit();
 
-   // init object subsystem
-   initObjects();
-
    builtinFunctions.init();
 
    // init module subsystem
@@ -109,9 +106,6 @@ void qore_cleanup()
 
    // delete all loadable modules
    MM.cleanup();
-
-   // delete object structures
-   deleteObjects();
 
    // delete default type values
    QTM.del();

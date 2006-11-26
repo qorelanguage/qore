@@ -26,6 +26,6 @@
 
 #include <time.h>
 
-void init_time_functions();
+DLLLOCAL void init_time_functions();
 
 #endif
