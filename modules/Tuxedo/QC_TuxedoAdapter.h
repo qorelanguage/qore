@@ -31,6 +31,11 @@
 extern int CID_TUXEDOADAPTER;
 extern class QoreClass* initTuxedoAdapterClass();
 
+#ifdef DEBUG
+extern int CID_TUXEDOTEST;
+extern QoreClass* initDummyTestClass();
+#endif
+
 #endif
 
 // EOF

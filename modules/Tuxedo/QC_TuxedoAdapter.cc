@@ -43,6 +43,9 @@ using std::make_pair;
 using std::map;
 
 int CID_TUXEDOADAPTER;
+#ifdef DEBUG
+int CID_TUXEDOTEST;
+#endif
 
 //------------------------------------------------------------------------------
 #ifdef DEBUG
@@ -67,14 +70,40 @@ static void getTuxedoAdapter(void* obj)
 
 static void releaseTuxedoAdapter(void* obj)
 {
+printf("### TUXEDO release called\n");
   ((QoreTuxedoAdapter*)obj)->deref();
 }
+
+#ifdef DEBUG
+//------------------------------------------------------------------------------
+static void getTuxedoTest(void* obj)
+{
+  ((QoreTuxedoTest*)obj)->ROreference();
+}
+
+static void releaseTuxedoTest(void* obj)
+{
+printf("### TUXEDO release called\n");
+  ((QoreTuxedoTest*)obj)->deref();
+}
+static void TUXEDOTEST_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
+{
+  QoreTuxedoTest* tst = new QoreTuxedoTest;
+  self->setPrivate(CID_TUXEDOTEST, tst, getTuxedoTest, releaseTuxedoTest);
+}
+static void TUXEDOTEST_destructor(Object *self, QoreTuxedoTest* test, ExceptionSink *xsink)
+{
+  test->deref();
+}
+
+#endif
 
 //------------------------------------------------------------------------------
 static void TUXEDO_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
 {
   char* err_name = "TuxedoAdapter::constructor";
   tracein(err_name);
+printf("### TUXEDO started\n");
   
   QoreNode* n = test_param(params, NT_HASH, 0);
   if (!n) {
@@ -90,10 +119,14 @@ static void TUXEDO_constructor(Object *self, QoreNode *params, ExceptionSink *xs
 
   QoreTuxedoAdapter* adapter = new QoreTuxedoAdapter(h, xsink);
   if (*xsink) {    
+printf("#### TUXEDO deleted prematurely\n");
     delete adapter;
     return;
   }
+
+printf("### TUXEDO object created\n");
   self->setPrivate(CID_TUXEDOADAPTER, adapter, getTuxedoAdapter, releaseTuxedoAdapter);
+printf("### TUXEDO set to self\n");
   traceout(err_name);
 }
 
@@ -124,6 +157,7 @@ TEST()
 //------------------------------------------------------------------------------
 static void TUXEDO_destructor(Object *self, QoreTuxedoAdapter* adapter, ExceptionSink *xsink)
 {
+printf("####### TUXEDO deref called\n");
   tracein("TUXEDO_destructor");
   adapter->deref();
   traceout("TUXEDO_destructor");
@@ -1043,6 +1077,19 @@ static QoreNode* error2string(Object* self, QoreTuxedoAdapter* adapter, QoreNode
   if (!str || !str[0]) str = "<uknown error>";
   return new QoreNode(str);
 }
+
+//-----------------------------------------------------------------------------
+#ifdef DEBUG
+QoreClass* initDummyTestClass()
+{
+  QoreClass* tst = new QoreClass(QDOM_NETWORK, strdup("TuxedoTest"));
+  CID_TUXEDOTEST = tst->getID();
+
+  tst->setConstructor((q_constructor_t)TUXEDOTEST_constructor);
+  tst->setDestructor((q_destructor_t)TUXEDOTEST_destructor);
+  return tst;
+}
+#endif
 
 //-----------------------------------------------------------------------------
 class QoreClass* initTuxedoAdapterClass()

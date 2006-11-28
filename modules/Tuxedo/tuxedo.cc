@@ -260,6 +260,9 @@ void tuxedo_module_ns_init(Namespace* rns, Namespace* qns)
 
   add_constants(tuxedons);
   tuxedons->addSystemClass(initTuxedoAdapterClass());
+#ifdef DEBUG
+  tuxedons->addSystemClass(initDummyTestClass());
+#endif
 
   qns->addInitialNamespace(tuxedons);
   traceout("tuxedo_module_ns_init");

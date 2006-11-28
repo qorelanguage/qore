@@ -56,6 +56,19 @@ class Hash;
 
 #endif
 
+//-----------------------------------------------------------------------------
+#ifdef DEBUG
+class QoreTuxedoTest : public ReferenceObject
+{
+public:
+  void deref() {
+    if (ROdereference()) {
+      delete this;
+    }
+  }
+};
+#endif
+
 //------------------------------------------------------------------------------
 class QoreTuxedoAdapter : public ReferenceObject
 {
