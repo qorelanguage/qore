@@ -231,7 +231,7 @@ inline void SelfFunctionCall::resolve()
    else 
       printd(5, "SelfFunctionCall:resolve() resolving '%s'\n", name ? name : "(null)");
    if (func)
-      run_time_error("SelfFunctionCall:resolve() already resolved %s (%08p)", func->name, func);
+      run_time_error("SelfFunctionCall:resolve() already resolved %s (%08p)", func->getName(), func);
 #endif
    if (name)
    {
@@ -251,7 +251,7 @@ inline void SelfFunctionCall::resolve()
       func = getParseClass()->resolveSelfMethod(ns);
    if (func)
    {
-      printd(5, "SelfFunctionCall:resolve() resolved '%s' to %08p\n", func->name, func);
+      printd(5, "SelfFunctionCall:resolve() resolved '%s' to %08p\n", func->getName(), func);
       if (name)
       {
 	 free(name);
@@ -302,7 +302,7 @@ inline FunctionCall::FunctionCall(class QoreNode *a, class NamedScope *n)
 
 inline FunctionCall::FunctionCall(class Method *m, class QoreNode *a)
 {
-   printd(5, "FunctionCall::FunctionCall(a=%08p, method=%08p %s) FC_SELF this=%08p\n", a, m, m->name, this);
+   printd(5, "FunctionCall::FunctionCall(a=%08p, method=%08p %s) FC_SELF this=%08p\n", a, m, m->getName(), this);
    type = FC_SELF;
    f.sfunc = new SelfFunctionCall(m);
    args = a;

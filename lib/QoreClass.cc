@@ -601,21 +601,6 @@ inline class Method *Method::copy() const
    return nof;
 }
 
-inline int Method::getType() const
-{ 
-   return type; 
-}
-
-inline bool Method::isPrivate() const 
-{ 
-   return priv; 
-}
-
-inline char *Method::getName() const
-{ 
-   return name; 
-}
-
 static inline class QoreClass *getStackClass()
 {
    class Object *obj = getStackObject();

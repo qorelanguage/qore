@@ -66,9 +66,18 @@ class Method {
       DLLLOCAL inline class Method *copy() const;
       DLLLOCAL inline void parseInit();
       DLLLOCAL inline void parseInitConstructor(class BCList *bcl);
-      DLLLOCAL inline int getType() const;
-      DLLLOCAL inline bool isPrivate() const;
-      DLLLOCAL inline char *getName() const;
+      DLLLOCAL inline int getType() const
+      {
+	 return type; 
+      }
+      DLLLOCAL inline bool isPrivate() const
+      { 
+	 return priv; 
+      }
+      DLLLOCAL inline char *getName() const
+      {
+	 return name;
+      }
       // only called when method is user
       DLLLOCAL inline bool isSynchronized() const;
 };
