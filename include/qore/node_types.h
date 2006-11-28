@@ -34,7 +34,8 @@ extern class QoreType *NT_NOTHING, *NT_INT, *NT_FLOAT, *NT_STRING, *NT_DATE,
    *NT_SCOPE_REF, *NT_CONSTANT, *NT_BAREWORD, *NT_REFERENCE, *NT_CONTEXT_ROW,
    *NT_REGEX_SUBST, *NT_REGEX_TRANS, *NT_VLIST, *NT_REGEX, *NT_CLASSREF;
 
-#define NUM_VALUE_TYPES 9
+#define NUM_SIMPLE_TYPES 8
+#define NUM_VALUE_TYPES 11
 
 #define NT_NONE  (class QoreType *)-1
 #define NT_ALL   (class QoreType *)-2

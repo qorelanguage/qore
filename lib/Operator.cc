@@ -72,17 +72,24 @@ class QoreNode *Operator::eval(class QoreNode *left, class QoreNode *right, Exce
    printd(5, "evaluating operator %s (0x%08p 0x%08p)\n", description, left, right);
    if (evalArgs)
    {
+      bool ld = true; // dereference left
       if (args == 1)
       {
 	 if (left)
 	 {
-	    left = left->eval(xsink);
-	    if (xsink->isEvent())
+	    if (left->type->getID() >= NUM_SIMPLE_TYPES)
 	    {
-	       if (left) left->deref(xsink);
-	       return NULL;
+	       left = left->eval(xsink);
+	       if (xsink->isEvent())
+	       {
+		  if (left) left->deref(xsink);
+		  return NULL;
+	       }
 	    }
+	    else
+	       ld = false;
 	 }
+	 // also catches the case where left was evaluated to NULL
 	 if (!left)
 	    left = nothing();
 
@@ -100,7 +107,8 @@ class QoreNode *Operator::eval(class QoreNode *left, class QoreNode *right, Exce
 	 if ((left->type != functions[t].ltype) && (functions[t].ltype != NT_ALL))
 	 {
 	    QoreNode *nl = functions[t].ltype->convertTo(left, xsink);
-	    left->deref(xsink);
+	    if (ld) left->deref(xsink);
+	    else ld = true;
 	    if (xsink->isEvent())
 	    {
 	       if (nl) nl->deref(xsink);
@@ -110,32 +118,47 @@ class QoreNode *Operator::eval(class QoreNode *left, class QoreNode *right, Exce
 	 }
 	 result = functions[t].op_func(left, NULL, xsink);
 	 // dereference converted argument
-	 left->deref(xsink);
+	 if (ld)
+	    left->deref(xsink);
       }
       else // 2 arguments
       {
+	 bool rd = true; // dereference right
+
 	 if (left)
 	 {
-	    left = left->eval(xsink);
-	    if (xsink->isEvent())
+	    if (left->type->getID() >= NUM_SIMPLE_TYPES)
 	    {
-	       if (left) left->deref(xsink);
-	       return NULL;
+	       left = left->eval(xsink);
+	       if (xsink->isEvent())
+	       {
+		  if (left) left->deref(xsink);
+		  return NULL;
+	       }
 	    }
+	    else
+	       ld = false;
 	 }
+	 // also catches the case where left was evaluated to NULL
 	 if (!left)
 	    left = nothing();
 
 	 if (right) 
 	 {
-	    right = right->eval(xsink);
-	    if (xsink->isEvent())
+	    if (right->type->getID() >= NUM_SIMPLE_TYPES)
 	    {
-	       left->deref(xsink);
-	       if (right) right->deref(xsink);
-	       return NULL;
+	       right = right->eval(xsink);
+	       if (xsink->isEvent())
+	       {
+		  if (ld) left->deref(xsink);
+		  if (right) right->deref(xsink);
+		  return NULL;
+	       }
 	    }
+	    else
+	       rd = false;
 	 }
+	 // also catches the case where right was evaluated to NULL
 	 if (!right)
 	    right = nothing();
 
@@ -156,7 +179,8 @@ class QoreNode *Operator::eval(class QoreNode *left, class QoreNode *right, Exce
 	     (functions[t].ltype != NT_ALL))
 	 {
 	    QoreNode *nl = functions[t].ltype->convertTo(left, xsink);
-	    left->deref(xsink);
+	    if (ld) left->deref(xsink);
+	    else ld = true;
 	    if (xsink->isEvent())
 	    {
 	       if (nl) nl->deref(xsink);
@@ -168,10 +192,11 @@ class QoreNode *Operator::eval(class QoreNode *left, class QoreNode *right, Exce
 	 if ((right->type != functions[t].rtype) && (functions[t].rtype != NT_ALL))
 	 {
 	    QoreNode *nr = functions[t].rtype->convertTo(right, xsink);
-	    right->deref(xsink);
+	    if (rd) right->deref(xsink);
+	    else rd = true;
 	    if (xsink->isEvent())
 	    {
-	       if (left) left->deref(xsink);
+	       if (ld) left->deref(xsink);
 	       if (nr) nr->deref(xsink);
 	       return NULL;
 	    }
@@ -179,8 +204,8 @@ class QoreNode *Operator::eval(class QoreNode *left, class QoreNode *right, Exce
 	 }
 	 result = functions[t].op_func(left, right, xsink);
 	 // dereference converted arguments
-	 left->deref(xsink);
-	 right->deref(xsink);
+	 if (ld) left->deref(xsink);
+	 if (rd) right->deref(xsink);
       }
    }
    else

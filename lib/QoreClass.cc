@@ -146,6 +146,8 @@ BCANode::~BCANode()
       delete ns;
    if (name)
       free(name);
+   if (argexp)
+      argexp->deref(NULL);
 }
 
 inline void BCANode::resolve()
@@ -211,7 +213,7 @@ inline void BCList::parseInit(class QoreClass *cls, class BCAList *bcal)
 
    init = true;
 
-   //printd(5, "BCList::parseInit(%s) this=%08p empty=%d, init=%d\n", cls->getName(), this, empty(), init);
+   printd(5, "BCList::parseInit(%s) this=%08p empty=%d, bcal=%08p\n", cls->getName(), this, empty(), bcal);
    for (bclist_t::iterator i = begin(); i != end(); i++)
    {
       if ((*i)->cname)
@@ -258,32 +260,6 @@ inline void BCList::parseInit(class QoreClass *cls, class BCAList *bcal)
    }
 }
 
-BCAList::BCAList(class BCANode *n)
-{
-   push_back(n);
-}
-
-inline BCAList::~BCAList()
-{
-   bcalist_t::iterator i;
-   while ((i = begin()) != end())
-   {
-      delete *i;
-      erase(i);
-   }
-}
-
-inline void BCAList::ref()
-{
-   ROreference();
-}
-
-void BCAList::deref()
-{
-   if (ROdereference())
-      delete this;
-}
-
 inline class Method *BCList::findMethod(char *name)
 {
    for (bclist_t::iterator i = begin(); i != end(); i++)
@@ -326,11 +302,11 @@ inline bool BCList::match(class BCANode *bca)
       if (bca->sclass == (*i)->sclass)
       {
 	 (*i)->args = bca->argexp;
+	 bca->argexp = NULL;
 	 (*i)->hasargs = true;
 	 return true;
       }
    }
-   bca->argexp->deref(NULL);
    return false;
 }
 
@@ -394,6 +370,21 @@ inline void BCList::execSystemConstructors(class Object *o, class BCEAList *bcea
       (*i)->sclass->execSubclassSystemConstructor(o, bceal, xsink);
       if (xsink->isEvent())
 	 break;
+   }
+}
+
+BCAList::BCAList(class BCANode *n)
+{
+   push_back(n);
+}
+
+BCAList::~BCAList()
+{
+   bcalist_t::iterator i;
+   while ((i = begin()) != end())
+   {
+      delete *i;
+      erase(i);
    }
 }
 
@@ -473,6 +464,70 @@ class Method *QoreClass::findMethod(char *nme, bool *priv)
    return w;
 }
 
+// only called when parsing
+void QoreClass::setName(char *n)
+{
+#ifdef DEBUG
+   if (name)
+      run_time_error("QoreClass::setName(%08p '%s') name already set to %08p '%s'", n, n, name, name);
+#endif
+   name = n;
+}
+
+bool QoreClass::is_unique() const
+{
+   return nref.is_unique();
+}
+
+class QoreClass *QoreClass::getReference()
+{
+   //printd(5, "QoreClass::getReference() %08x %s %d -> %d\n", this, name, nref.reference_count(), nref.reference_count() + 1);
+   nref.ROreference();
+   return this;
+}
+
+void QoreClass::nderef()
+{
+   //printd(5, "QoreClass::nderef() %08p %s %d -> %d\n", this, name, nref.reference_count(), nref.reference_count() - 1);
+   if (nref.ROdereference())
+      delete this;
+}
+
+bool QoreClass::hasCopy() const
+{
+   return copyMethod ? true : false; 
+}
+
+int QoreClass::getID() const
+{ 
+   return classID; 
+}
+
+bool QoreClass::isSystem() const
+{ 
+   return sys;
+}
+
+bool QoreClass::hasMemberGate() const
+{
+   return memberGate != NULL;
+}
+
+int QoreClass::getDomain() const
+{
+   return domain;
+}
+
+char *QoreClass::getName() const 
+{ 
+   return name; 
+}
+
+int QoreClass::numMethods() const
+{
+   return hm.size();
+}
+
 inline Method *QoreClass::parseFindMethod(char *nme)
 {
    class Method *m;
@@ -509,13 +564,11 @@ inline void Method::userInit(UserFunction *u, int p)
 
 inline Method::Method()
 { 
-   bcal = NULL; 
 }
 
-Method::Method(UserFunction *u, int p, BCAList *b)
+Method::Method(UserFunction *u, int p)
 {
    userInit(u, p);
-   bcal = b;
 }
 
 inline Method::Method(BuiltinMethod *b)
@@ -524,7 +577,6 @@ inline Method::Method(BuiltinMethod *b)
    type = OTF_BUILTIN;
    func.builtin = b;
    priv = 0;
-   bcal = NULL;
 }
 
 Method::~Method()
@@ -535,8 +587,6 @@ Method::~Method()
       func.userFunc->deref();
    else
       func.builtin->deref();
-   if (bcal)
-      bcal->deref();
 }
 
 inline bool Method::isSynchronized() const
@@ -587,11 +637,6 @@ inline class Method *Method::copy() const
       func.userFunc->ROreference();
       nof = new Method;
       nof->userInit(func.userFunc, priv);
-      if (bcal)
-      {
-	 bcal->ref();
-	 nof->bcal = bcal;
-      }
    }
    else
    {
@@ -812,6 +857,8 @@ QoreClass::~QoreClass()
    free(name);
    if (scl)
       scl->deref();
+   if (bcal)
+      delete bcal;
    if (system_constructor)
       delete system_constructor;
 }
@@ -1063,9 +1110,6 @@ class QoreClass *QoreClass::copyAndDeref()
    for (strset_t::iterator i = pmm.begin(); i != pmm.end(); i++)
       noc->pmm.insert(strdup(*i));
 
-   // note that if there is a base class argument list, it
-   // is referenced when the constructor is copied
-   noc->bcal = bcal;
    if (scl)
    {
       scl->ref();
@@ -1515,17 +1559,24 @@ void QoreClass::addMethod(Method *m)
    {
       // insert in pending list for parse init
       hm_pending[m->getName()] = m;
-
-      // if there is a base class constructor argument list, then put it at the class level
-      if (m->bcal)
-      {
-	 // if the constructor is being defined after the class has already been initialized, then throw a parse exception
-	 if (numMethods())
-	    parse_error("constructors making explicit calls to base classes must be defined when the class is defined");
-	 else
-	    bcal = m->bcal;
-      }
    }
+}
+
+int QoreClass::parseAddBaseClassArgumentList(class BCAList *new_bcal)
+{
+   // if the constructor is being defined after the class has already been initialized, then throw a parse exception
+   if (numMethods())
+   {
+      parse_error("constructors giving explicit arguments to base class constructors must be defined when the class is defined");
+      return -1;
+   }
+   else if (bcal)
+   {
+      parse_error("a constructor with a base class argument list has already been defined");
+      return -1;
+   }
+   bcal = new_bcal;
+   return 0;
 }
 
 // adds a builtin method to the class - no duplicate checking is made
@@ -1586,7 +1637,7 @@ void QoreClass::parseInit()
    setParseClass(this);
    if (!initialized)
    {
-      printd(5, "QoreClass::parseInit() %s this=%08p pending size=%d\n", name, this, hm_pending.size());
+      printd(5, "QoreClass::parseInit() %s this=%08p pending size=%d, scl=%08p, bcal=%08p\n", name, this, hm_pending.size(), scl, bcal);
       if (scl)
 	 scl->parseInit(this, bcal);
 
@@ -1598,10 +1649,20 @@ void QoreClass::parseInit()
    for (hm_method_t::iterator i = hm_pending.begin(); i != hm_pending.end(); i++)
    {
       // initialize method
-      if (i->second->bcal)
+      if (!strcmp(i->second->getName(), "constructor"))
 	 i->second->parseInitConstructor(scl);
       else
 	 i->second->parseInit();
+   }
+
+   if (bcal)
+   {
+      if (!scl)
+      {
+	 parse_error("base class constructor arguments given for a class that has no parent classes");
+      }
+      delete bcal;
+      bcal = NULL;
    }
 }
 

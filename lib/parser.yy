@@ -111,8 +111,6 @@ int MemberList::add(char *name)
    return 0;
 }
 
-
-
 static inline void addConstant(class NamedScope *name, class QoreNode *value)
 {
    getRootNS()->rootAddConstant(name, value);
@@ -268,19 +266,55 @@ static inline void tryAddMethod(int mod, char *n, QoreNode *params, BCAList *bca
       parse_error("base class constructor lists are only legal when defining ::constructor() methods");
       if (params)
 	 params->deref(NULL);
-      bcal->deref();
+      delete bcal;
       if (b)
 	 delete b;
    }
    else
    {
-      class Method *method = new Method(new UserFunction(strdup(name->getIdentifier()), new Paramlist(params), b, mod & OFM_SYNCED), mod & OFM_PRIVATE, bcal);
+      class Method *method = new Method(new UserFunction(strdup(name->getIdentifier()), new Paramlist(params), b, mod & OFM_SYNCED), mod & OFM_PRIVATE);
       
-      if (getRootNS()->addMethodToClass(name, method))
+      if (getRootNS()->addMethodToClass(name, method, bcal))
+      {
 	 delete method;
+	 if (bcal)
+	    delete bcal;
+      }
    }
    delete name;
 }
+
+struct MethodNode {
+   public:
+      // method to add to class
+      class Method *m;
+      // base class argument list for constructors
+      class BCAList *bcal;
+
+      DLLLOCAL inline MethodNode(class UserFunction *f, int p, class BCAList *bl) : bcal(bl)
+      {
+	 m = new Method(f, p);
+      }
+      DLLLOCAL inline ~MethodNode()
+      {
+	 if (m)
+	    delete m;
+	 if (bcal)
+	    delete bcal;
+      }
+      DLLLOCAL inline void addAndDelete(class QoreClass *qc)
+      {
+	 qc->addMethod(m);
+	 m = NULL;
+	 if (bcal)
+	 {
+	    qc->parseAddBaseClassArgumentList(bcal);
+	    bcal = NULL;
+	 }
+	 delete this;
+      }
+};
+
 
 %}
 
@@ -306,7 +340,7 @@ static inline void tryAddMethod(int mod, char *n, QoreNode *params, BCAList *bca
       class ContextMod *cmod;
       class HashElement *hashelement;
       class UserFunction *userfunc;	
-      class Method *objectfunc;
+      class MethodNode *methodnode;
       class MemberList *privlist;
       class QoreClass *qoreclass;
       class ConstNode *constnode;
@@ -411,7 +445,7 @@ void yyerror(yyscan_t scanner, const char *str)
 %type <hashelement> hash_element
 %type <cmods>       context_mods
 %type <cmod>        context_mod
-%type <objectfunc>  method_definition
+%type <methodnode>  method_definition
 %type <privlist>    private_member_list
 %type <privlist>    member_list
 %type <qoreclass>   class_attributes
@@ -435,8 +469,8 @@ void yyerror(yyscan_t scanner, const char *str)
 %type <bcanode>     base_constructor
 
  // destructor actions for elements that need deleting when parse errors occur
-%destructor { if ($$) delete $$; } BINARY DATETIME QUOTED_WORD REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod method_definition object_def top_namespace_decl namespace_decls namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor private_member_list member_list
-%destructor { if ($$) $$->deref(); } base_constructor_list base_constructors superclass_list inheritance_list class_attributes
+%destructor { if ($$) delete $$; } BINARY DATETIME QUOTED_WORD REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod method_definition object_def top_namespace_decl namespace_decls namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor private_member_list member_list base_constructor_list base_constructors class_attributes
+%destructor { if ($$) $$->deref(); } superclass_list inheritance_list
 %destructor { if ($$) $$->deref(NULL); } exp myexp scalar function_call scoped_object_call self_function_call hash list
 %destructor { free($$); } IDENTIFIER VAR_REF SELF_REF CONTEXT_REF COMPLEX_CONTEXT_REF BACKQUOTE SCOPED_REF KW_IDENTIFIER_OPENPAREN optname
 
@@ -940,7 +974,7 @@ class_attributes:
 	method_definition
         { 
            $$ = new QoreClass();
-	   $$->addMethod($1); 
+	   $1->addAndDelete($$);
 	}
         | private_member_list
         {
@@ -950,7 +984,7 @@ class_attributes:
 	}
 	| class_attributes method_definition
         { 
-	   $1->addMethod($2); 
+	   $2->addAndDelete($1);
 	   $$ = $1; 
 	}
 	| class_attributes private_member_list
@@ -986,25 +1020,25 @@ method_definition:
 	{
 	   if ($6 && strcmp($2, "constructor"))
 	      parse_error("base class constructor lists are only legal when defining ::constructor() methods");
-	   $$ = new Method(new UserFunction($2, new Paramlist($4), $7, $1 & OFM_SYNCED), $1 & OFM_PRIVATE, $6);
+	   $$ = new MethodNode(new UserFunction($2, new Paramlist($4), $7, $1 & OFM_SYNCED), $1 & OFM_PRIVATE, $6);
 	}
 	| IDENTIFIER '(' myexp ')' base_constructor_list block
         {
 	   if ($5 && strcmp($1, "constructor"))
 	      parse_error("base class constructor lists are only legal when defining ::constructor() methods");
-	   $$ = new Method(new UserFunction($1, new Paramlist($3), $6), 0, $5);
+	   $$ = new MethodNode(new UserFunction($1, new Paramlist($3), $6), 0, $5);
 	}
 	| method_modifiers KW_IDENTIFIER_OPENPAREN myexp ')' base_constructor_list block
 	{
 	   if ($5 && strcmp($2, "constructor"))
 	      parse_error("base class constructor lists are only legal when defining ::constructor() methods");
-	   $$ = new Method(new UserFunction($2, new Paramlist($3), $6, $1 & OFM_SYNCED), $1 & OFM_PRIVATE, $5);
+	   $$ = new MethodNode(new UserFunction($2, new Paramlist($3), $6, $1 & OFM_SYNCED), $1 & OFM_PRIVATE, $5);
 	}
 	| KW_IDENTIFIER_OPENPAREN myexp ')' base_constructor_list block
         {
 	   if ($4 && strcmp($1, "constructor"))
 	      parse_error("base class constructor lists are only legal when defining ::constructor() methods");
-	   $$ = new Method(new UserFunction($1, new Paramlist($2), $5), 0, $4);
+	   $$ = new MethodNode(new UserFunction($1, new Paramlist($2), $5), 0, $4);
 	}
 	;
 

@@ -303,10 +303,10 @@ inline QoreClassList::~QoreClassList()
 
 inline int QoreClassList::add(class QoreClass *oc)
 {
+   printd(5, "QCL::add() this=%08p '%s' (%08p)\n", this, oc->getName(), oc);
+
    if (find(oc->getName()))
       return 1;
-
-   //printd(5, "QCL::add() this=%08p '%s' (%08p)\n", this, oc->getName(), oc);
 
    hm[oc->getName()] = oc;
    return 0;
@@ -560,17 +560,17 @@ void Namespace::addClass(class NamedScope *n, class QoreClass *oc)
    //printd(5, "Namespace::addClass() adding ns=%s (%s, %08p)\n", n->ostr, oc->getName(), oc);
    class Namespace *sns = resolveNameScope(n);
    if (!sns)
-      oc->deref();
+      delete oc;
    else
       if (sns->classList->find(oc->getName()))
       {
 	 parse_error("class '%s' already exists in namespace '%s'", oc->getName(), name);
-	 oc->deref();
+	 delete oc;
       }
       else if (sns->pendClassList->add(oc))
       {
 	 parse_error("class '%s' is already pending in namespace '%s'", oc->getName(), name);
-	 oc->deref();
+	 delete oc;
       }
 }
 
@@ -1224,7 +1224,7 @@ class QoreNode *get_file_constant(class QoreClass *fc, int fd)
 }
 
 // returns 0 for success, non-zero return value means error
-int RootNamespace::addMethodToClass(class NamedScope *name, class Method *qcmethod)
+int RootNamespace::addMethodToClass(class NamedScope *name, class Method *qcmethod, class BCAList *bcal)
 {
    // find class
    //class QoreClassList *plist;
@@ -1259,6 +1259,11 @@ int RootNamespace::addMethodToClass(class NamedScope *name, class Method *qcmeth
    }
 
    oc->addMethod(qcmethod);
+   // after the addMethod call, we can no longer return an error code if 
+   // oc->parseAddBaseClassArgumentList() fails (because the caller will 
+   // delete it if we return an error code), so we delete it here
+   if (bcal && oc->parseAddBaseClassArgumentList(bcal))
+      delete bcal;
 
    return 0;
 }
@@ -1499,22 +1504,22 @@ void Namespace::addClass(class QoreClass *oc)
    if (nsl->find(oc->getName()))
    {
       parse_error("class name '%s' collides with previously-defined namespace '%s'", oc->getName(), oc->getName());
-      oc->deref();
+      delete oc;
    }
    else if (pendNSL->find(oc->getName()))
    {
       parse_error("class name '%s' collides with pending namespace '%s'", oc->getName(), oc->getName());
-      oc->deref();
+      delete oc;
    }
    else if (classList->find(oc->getName()))
    {
       parse_error("class '%s' already exists in namespace '%s'", oc->getName(), name);
-      oc->deref();
+      delete oc;
    }
    else if (pendClassList->add(oc))
    {
       parse_error("class '%s' is already pending in namespace '%s'", oc->getName(), name);
-      oc->deref();
+      delete oc;
    }
    traceout("Namespace::addClass()");
 }
@@ -1817,7 +1822,7 @@ void RootNamespace::rootAddClass(class NamedScope *nscope, class QoreClass *oc)
       sns->addClass(oc);
    }
    else
-      oc->deref();
+      delete oc;
 
    traceout("RootNamespace::rootAddClass()");
 }

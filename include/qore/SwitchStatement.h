@@ -26,22 +26,27 @@
 
 class CaseNode {
    private:
-
+      virtual bool isCaseNodeImpl() const;
+   
    public:
       class QoreNode *val;
       class StatementBlock *code;
       class CaseNode *next;
 
-      inline CaseNode(class QoreNode *v, class StatementBlock *c)
+      DLLLOCAL inline CaseNode(class QoreNode *v, class StatementBlock *c)
       {
 	 val = v;
 	 code = c;
 	 next = NULL;
       }
-      virtual bool matches(QoreNode* lhs_value) {
+      DLLLOCAL virtual bool matches(QoreNode* lhs_value) {
         return !compareHard(lhs_value, val); // the ! is because of compareHard() semantics
       }
-      inline virtual ~CaseNode();
+      DLLLOCAL bool isCaseNode() const
+      {
+	 return isCaseNodeImpl();
+      }
+      DLLLOCAL inline virtual ~CaseNode();
 };
 
 class SwitchStatement {
@@ -53,14 +58,14 @@ class SwitchStatement {
    public:
       class LVList *lvars;
 
-      inline SwitchStatement(class CaseNode *f)
+      DLLLOCAL inline SwitchStatement(class CaseNode *f)
       {
 	 deflt = NULL;
 	 head = tail = f;
 	 sexp = NULL;
 	 lvars = NULL;
       }
-      inline ~SwitchStatement()
+      DLLLOCAL inline ~SwitchStatement()
       {
 	 while (head)
 	 {
@@ -73,12 +78,11 @@ class SwitchStatement {
 	 if (lvars)
 	    delete lvars;
       }
-      inline void setSwitch(class QoreNode *s)
+      DLLLOCAL inline void setSwitch(class QoreNode *s)
       {
 	 sexp = s;
       }
-
-      inline void addCase(class CaseNode *c)
+      DLLLOCAL inline void addCase(class CaseNode *c)
       {
 	 if (tail)
 	    tail->next = c;
@@ -92,9 +96,8 @@ class SwitchStatement {
 	    deflt = c;
 	 }
       }
-
-      inline void parseInit(lvh_t oflag, int pflag = 0);
-      inline int exec(class QoreNode **return_value, class ExceptionSink *xsink);
+      DLLLOCAL inline void parseInit(lvh_t oflag, int pflag = 0);
+      DLLLOCAL inline int exec(class QoreNode **return_value, class ExceptionSink *xsink);
 };
 
 inline CaseNode::~CaseNode()

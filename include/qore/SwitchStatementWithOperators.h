@@ -34,6 +34,8 @@
 //
 class CaseNodeWithOperator : public CaseNode
 {
+private:
+  virtual bool isCaseNodeImpl() const;
 public:
   // <=, <, >=, >
   enum comparison_type_t { LessOrEqual, Less, GreaterOrEqual, Greater };

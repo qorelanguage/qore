@@ -48,12 +48,8 @@ class Method {
       DLLLOCAL inline Method();
       DLLLOCAL inline void userInit(UserFunction *u, int p);
 
-   protected:
-
    public:
-      class BCAList *bcal; // for subclass constructors only
-
-      DLLLOCAL Method(class UserFunction *u, int p, class BCAList *b);
+      DLLLOCAL Method(class UserFunction *u, int p);
       DLLLOCAL inline Method(class BuiltinMethod *b);
       DLLLOCAL ~Method();
       DLLLOCAL inline bool inMethod(class Object *self) const;
@@ -68,7 +64,7 @@ class Method {
       DLLLOCAL inline void parseInitConstructor(class BCList *bcl);
       DLLLOCAL inline int getType() const
       {
-	 return type; 
+	 return type;
       }
       DLLLOCAL inline bool isPrivate() const
       { 
@@ -116,20 +112,16 @@ typedef safe_dslist<class BCANode *> bcalist_t;
 //  base class constructor argument list
 //  this data structure will not be modified even if the class is copied
 //  to a subprogram object
-class BCAList : public ReferenceObject, public bcalist_t
+class BCAList : public bcalist_t
 {
-   protected:
-      DLLLOCAL inline ~BCAList();
-
    public:
       DLLLOCAL BCAList(class BCANode *n);
-      DLLLOCAL inline void ref();
-      DLLLOCAL void deref();
+      DLLLOCAL ~BCAList();
 };
 
 typedef std::list<class QoreClass *> class_list_t;
 
-// BCSMList: Base Class System Method List
+// BCSMList: Base Class Special Method List
 // unique list of base classes for a class hierarchy to ensure that "special" methods, constructor(), destructor(), copy() - are executed only once
 class BCSMList : public class_list_t
 {
@@ -145,7 +137,7 @@ class BCSMList : public class_list_t
 };
 
 // BCNode 
-// base class pointer
+// base class pointer, also stores arguments for base class constructors
 class BCNode
 {
    public:
@@ -177,13 +169,15 @@ class BCNode
       DLLLOCAL ~BCNode();
 };
 
-typedef safe_dslist<class BCNode *> bclist_t;
+//typedef safe_dslist<class BCNode *> bclist_t;
+typedef std::list<class BCNode *> bclist_t;
 
 //  BCList
 //  linked list of base classes, constructors called head->tail, 
 //  destructors called in reverse order (tail->head) (stored in BCSMList)
 //  note that this data structure cannot be modified even if the class is
 //  copied to a subprogram object and extended
+//  this class is a ReferenceObject so it won't be copied when the class is copied
 class BCList : public ReferenceObject, public bclist_t
 {
    private:
@@ -212,29 +206,24 @@ class BCList : public ReferenceObject, public bclist_t
 
 /*
   QoreClass
-
-  the class is a ReferenceObject, because objects instantiated from this class
-  may exist longer than the parent object, and we don't want the class to
-  disappear while there are still objects in existance that have been instantiated
-  from this class. The ref() and deref() functions are called from the Object class
-  when it is created or destroyed
+  defines a qore-language class
 */
-class QoreClass : public ReferenceObject
-{
+class QoreClass{
       friend class BCList;
 
    private:
-      char *name;
+      char *name;                  // the name of the class
       hm_method_t hm, hm_pending;  // method maps
-      strset_t pmm, pending_pmm;   // private member lists
-      class Method *system_constructor;
-      class Method *constructor, *destructor, *copyMethod, *methodGate, *memberGate;
-      int classID;
-      bool sys, initialized;
-      int domain;            // capabilities of builtin class to use in the context of parse restrictions
+      strset_t pmm, pending_pmm;   // private member lists (sets)
+      class Method *system_constructor, *constructor, *destructor, *copyMethod, *methodGate, *memberGate;
+      int classID;                 // class ID
+      bool sys, initialized;       // system class?, is initialized?
+      int domain;                  // capabilities of builtin class to use in the context of parse restrictions
       class ReferenceObject nref;  // namespace references
 
+      // called by each constructor
       DLLLOCAL inline void init(char *nme, int dom = 0);
+      // private constructor only called when the class is copied
       DLLLOCAL QoreClass(char *nme, int id);
       DLLLOCAL inline class Method *parseFindMethod(char *name);
       DLLLOCAL inline void insertMethod(class Method *o);
@@ -246,17 +235,14 @@ class QoreClass : public ReferenceObject
       DLLLOCAL inline class Method *resolveSelfMethodIntern(char *nme);
       DLLLOCAL inline void delete_pending_methods();
 
-   protected:
-      DLLLOCAL ~QoreClass();
-
    public:
       class BCAList *bcal;         // base class constructor argument list
       class BCList *scl;           // base class list
 
       DLLEXPORT QoreClass(int dom, char *nme);
       DLLEXPORT QoreClass(char *nme);
+      DLLEXPORT ~QoreClass();
       
-      DLLEXPORT void addMethod(class Method *f);
       DLLEXPORT void addMethod(char *nme, q_method_t m);
       DLLEXPORT void setDestructor(q_destructor_t m);
       DLLEXPORT void setConstructor(q_constructor_t m);
@@ -272,75 +258,17 @@ class QoreClass : public ReferenceObject
       DLLEXPORT class Method *findMethod(char *nme, bool *priv);
       DLLEXPORT class Method *findLocalMethod(char *name);
       DLLEXPORT class List *getMethodList() const;
-      DLLEXPORT void parseInit();
-      DLLEXPORT void parseCommit();
-      DLLEXPORT void parseRollback();
       DLLEXPORT class QoreClass *getClass(int cid) const;
-      DLLEXPORT inline int numMethods() const
-      {
-	 return hm.size();
-      }
-      DLLEXPORT inline bool hasCopy() const
-      { 
-	 return copyMethod ? true : false; 
-      }
-      DLLEXPORT inline int getID() const
-      { 
-	 return classID; 
-      }
-      DLLEXPORT inline bool isSystem() const
-      { 
-	 return sys; 
-      }
-      DLLEXPORT inline void deref()
-      {
-	 //printd(5, "QoreClass::deref() %08p %s %d -> %d\n", this, name, reference_count(), reference_count() - 1);
-	 if (ROdereference())
-	    delete this;
-      }
-      DLLEXPORT inline bool hasMemberGate() const
-      {
-	 return memberGate != NULL;
-      }
-      DLLEXPORT inline void ref()
-      {
-	 //printd(5, "QoreClass::ref() %08x %s %d -> %d\n", this, name, reference_count(), reference_count() + 1);
-	 ROreference();
-      }
-      DLLEXPORT inline class QoreClass *getReference()
-      {
-	 //printd(5, "QoreClass::getReference() %08x %s %d -> %d\n", this, name, nref.reference_count(), nref.reference_count() + 1);
-	 nref.ROreference();
-	 return this;
-      }
-      DLLEXPORT inline void nderef()
-      {
-	 //printd(5, "QoreClass::nderef() %08p %s %d -> %d\n", this, name, nref.reference_count(), nref.reference_count() - 1);
-	 if (nref.ROdereference())
-	    deref();
-      }
-      DLLEXPORT inline bool is_unique() const
-      {
-	 return nref.is_unique();
-      }
-      DLLEXPORT inline int getDomain() const
-      {
-	 return domain;
-      }
-      DLLEXPORT inline char *getName() const 
-      { 
-	 return name; 
-      }
-      DLLEXPORT inline void setName(char *n)
-      {
-#ifdef DEBUG
-	 if (name)
-	    run_time_error("QoreClass::setName(%08p '%s') name already set to %08p '%s'", n, n, name, name);
-#endif
-	 name = n;
-      }
-      
+      DLLEXPORT int numMethods() const;
+      DLLEXPORT bool hasCopy() const;
+      DLLEXPORT int getID() const;
+      DLLEXPORT bool isSystem() const;
+      DLLEXPORT bool hasMemberGate() const;
+      DLLEXPORT int getDomain() const;
+      DLLEXPORT char *getName() const;
+
       DLLLOCAL QoreClass();
+      DLLLOCAL void addMethod(class Method *f);
       DLLLOCAL inline class QoreNode *evalMemberGate(class Object *self, class QoreNode *name, class ExceptionSink *xsink);
       DLLLOCAL inline void execSubclassConstructor(class Object *self, class BCEAList *bceal, class ExceptionSink *xsink);
       DLLLOCAL inline void execSubclassSystemConstructor(class Object *self, class BCEAList *bceal, class ExceptionSink *xsink);      
@@ -353,6 +281,19 @@ class QoreClass : public ReferenceObject
       DLLLOCAL inline void addDomain(int dom);
       DLLLOCAL class QoreClass *copyAndDeref();
       DLLLOCAL void addBaseClassesToSubclass(class QoreClass *sc);
+      // returns 0 for success, -1 for error
+      DLLLOCAL int parseAddBaseClassArgumentList(class BCAList *bcal);
+      // only called when parsing, sets the name of the class
+      DLLLOCAL void setName(char *n);
+      // returns true if reference count is 1
+      DLLLOCAL inline bool is_unique() const;
+      // references and returns itself
+      DLLLOCAL inline class QoreClass *getReference();
+      // dereferences the class, deletes if reference count is 0
+      DLLLOCAL inline void nderef();
+      DLLLOCAL void parseInit();
+      DLLLOCAL void parseCommit();
+      DLLLOCAL void parseRollback();
 };
 
 #endif // _QORE_QORECLASS_H

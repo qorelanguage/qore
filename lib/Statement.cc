@@ -42,11 +42,15 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <typeinfo>
 
 #ifdef DEBUG
 #  include "tests/Statement_tests.cc"
 #endif
+
+bool CaseNode::isCaseNodeImpl() const
+{
+  return true;
+}
 
 // only executed by Statement::exec()
 inline int SwitchStatement::exec(class QoreNode **return_value, class ExceptionSink *xsink)
@@ -1481,10 +1485,7 @@ inline void SwitchStatement::parseInit(lvh_t oflag, int pflag)
 	 {
             // Check only the simple case blocks (case 1: ...),
             // not those with relational operators. Could be changed later to provide more checking.
-            CaseNode dummy(0, 0);
-            bool simple_case_blocks = typeid(*w) == typeid(dummy) && typeid(*cw) == typeid(dummy);
-
-	    if (simple_case_blocks && !compareHard(w->val, cw->val))
+            if (w->isCaseNode() && cw->isCaseNode() && !compareHard(w->val, cw->val))
 	       parse_error("duplicate case values in switch");
 	    cw = cw->next;
 	 }

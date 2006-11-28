@@ -31,6 +31,12 @@
 #  include "tests/SwitchStatementWithOperators_tests.cc"
 #endif
 
+
+bool CaseNodeWithOperator::isCaseNodeImpl() const
+{
+  return false;
+}
+
 //-----------------------------------------------------------------------------
 bool CaseNodeWithOperator::matches(QoreNode* lhs_value)
 {
