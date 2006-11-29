@@ -33,16 +33,6 @@
 
 int CID_FTPCLIENT;
 
-static void getFtpClient(void *obj)
-{
-   ((QoreFtpClient *)obj)->ROreference();
-}
-
-static void releaseFtpClient(void *obj)
-{
-   ((QoreFtpClient *)obj)->deref();
-}
-
 static void FC_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
    class QoreNode *p0 = test_param(params, NT_STRING, 0);
@@ -59,7 +49,7 @@ static void FC_constructor(class Object *self, class QoreNode *params, Exception
       return;
    }
 
-   self->setPrivate(CID_FTPCLIENT, f = new QoreFtpClient(url, xsink), getFtpClient, releaseFtpClient);
+   self->setPrivate(CID_FTPCLIENT, f = new QoreFtpClient(url, xsink));
 }
 
 static void FC_destructor(class Object *self, class QoreFtpClient *f, ExceptionSink *xsink)

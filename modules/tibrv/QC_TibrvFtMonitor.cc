@@ -30,16 +30,6 @@
 
 int CID_TIBRVFTMONITOR;
 
-static void getFTMon(void *obj)
-{
-   ((QoreTibrvFtMonitor *)obj)->ROreference();
-}
-
-static void releaseFTMon(void *obj)
-{
-   ((QoreTibrvFtMonitor *)obj)->deref();
-}
-
 // syntax: group name, lostInterval, [service, network, daemon, desc] 
 static void TIBRVFTMONITOR_constructor(class Object *self, class QoreNode *params, class ExceptionSink *xsink)
 {
@@ -81,7 +71,7 @@ static void TIBRVFTMONITOR_constructor(class Object *self, class QoreNode *param
    if (xsink->isException())
       qftmonitor->deref();
    else
-      self->setPrivate(CID_TIBRVFTMONITOR, qftmonitor, getFTMon, releaseFTMon);
+      self->setPrivate(CID_TIBRVFTMONITOR, qftmonitor);
 
    traceout("TIBRVFTMONITOR_constructor");
 }

@@ -25,26 +25,17 @@
 #define _QORE_CLASS_QORERMUTEX
 
 #include <qore/common.h>
-#include <qore/ReferenceObject.h>
+#include <qore/AbstractPrivateData.h>
 #include <qore/RMutex.h>
 
 extern int CID_RMUTEX;
 
 class QoreClass *initRMutexClass();
 
-class QoreRMutex : public ReferenceObject, public RMutex
+class QoreRMutex : public AbstractPrivateData, public RMutex
 {
    protected:
-      ~QoreRMutex() {}
-
-   public:
-      inline void deref();
+      virtual ~QoreRMutex() {}
 };
-
-inline void QoreRMutex::deref()
-{
-   if (ROdereference())
-      delete this;
-}
 
 #endif // _QORE_CLASS_QORERMUTEX

@@ -31,16 +31,6 @@
 
 int CID_TIBRVCMSENDER;
 
-static inline void getCMS(void *obj)
-{
-   ((QoreTibrvCmSender *)obj)->ROreference();
-}
-
-static inline void releaseCMS(void *obj)
-{
-   ((QoreTibrvCmSender *)obj)->deref();
-}
-
 // syntax: [cmName, requestOld, ledgerName, syncLedger, relayAgent, desc, service, network, daemon] 
 void TIBRVCMSENDER_constructor(class Object *self, class QoreNode *params, class ExceptionSink *xsink)
 {
@@ -86,7 +76,7 @@ void TIBRVCMSENDER_constructor(class Object *self, class QoreNode *params, class
    if (xsink->isException())
       qcmsender->deref();
    else
-      self->setPrivate(CID_TIBRVCMSENDER, qcmsender, getCMS, releaseCMS);
+      self->setPrivate(CID_TIBRVCMSENDER, qcmsender);
 
    traceout("TIBRVCMSENDER_constructor");
 }

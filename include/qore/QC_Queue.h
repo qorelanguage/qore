@@ -28,30 +28,29 @@
 #include <qore/qore_thread.h>
 #include <qore/support.h>
 #include <qore/QoreQueue.h>
-#include <qore/ReferenceObject.h>
+#include <qore/AbstractPrivateData.h>
 #include <qore/Exception.h>
 
 extern int CID_QUEUE;
 class QoreClass *initQueueClass();
 
-class Queue : public ReferenceObject, public QoreQueue
+class Queue : public AbstractPrivateData, public QoreQueue
 {
    protected:
-      inline ~Queue() {}
+      virtual ~Queue() {}
 
    public:
       inline Queue() {}
       inline Queue(QoreNode *n) : QoreQueue(n) {}
-      inline void deref(class ExceptionSink *xsink);
-};
+      virtual void deref(class ExceptionSink *xsink)
+      {
+	 if (ROdereference())
+	 {
+	    del(xsink);
+	    delete this;
+	 }
+      }
 
-inline void Queue::deref(class ExceptionSink *xsink)
-{
-   if (ROdereference())
-   {
-      del(xsink);
-      delete this;
-   }
-}
+};
 
 #endif // _QORE_CLASS_QUEUE

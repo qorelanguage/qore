@@ -27,27 +27,19 @@
 #define _QORE_CLASS_SEQUENCE_H
 
 #include <qore/Sequence.h>
-#include <qore/ReferenceObject.h>
-
-class QoreSequence : public ReferenceObject, public Sequence
-{
-   protected:
-      inline ~QoreSequence() {}
-
-   public:
-      inline QoreSequence(int start = 0) : Sequence(start) {}
-      inline void deref();
-};
+#include <qore/AbstractPrivateData.h>
 
 extern int CID_SEQUENCE;
 
 class QoreClass *initSequenceClass();
 
-inline void QoreSequence::deref()
+class QoreSequence : public AbstractPrivateData, public Sequence
 {
-   if (ROdereference())
-      delete this;
-}
+   protected:
+      virtual ~QoreSequence() {}
 
+   public:
+      inline QoreSequence(int start = 0) : Sequence(start) {}
+};
 
 #endif // _QORE_CLASS_SEQUENCE_H

@@ -32,16 +32,6 @@
 
 int CID_DATASOURCE;
 
-static void getDS(void *obj)
-{
-   ((ManagedDatasource *)obj)->ref();
-}
-
-static void releaseDS(void *obj)
-{
-   ((ManagedDatasource *)obj)->deref();
-}
-
 // usage: Datasource(db name, [username, password, dbname])
 static void DS_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
@@ -71,7 +61,7 @@ static void DS_constructor(class Object *self, class QoreNode *params, Exception
    if ((p = test_param(params, NT_STRING, 4)))
       ds->setCharset(p->val.String->getBuffer());
    
-   self->setPrivate(CID_DATASOURCE, ds, getDS, releaseDS);
+   self->setPrivate(CID_DATASOURCE, ds);
 }
 
 static void DS_destructor(class Object *self, class ManagedDatasource *ds, ExceptionSink *xsink)
@@ -81,7 +71,7 @@ static void DS_destructor(class Object *self, class ManagedDatasource *ds, Excep
 
 static void DS_copy(class Object *self, class Object *old, class ManagedDatasource *ods, class ExceptionSink *xsink)
 {
-   self->setPrivate(CID_DATASOURCE, ods->copy(), getDS, releaseDS);
+   self->setPrivate(CID_DATASOURCE, ods->copy());
 }
 
 static QoreNode *DS_open(class Object *self, class ManagedDatasource *ds, class QoreNode *params, ExceptionSink *xsink)

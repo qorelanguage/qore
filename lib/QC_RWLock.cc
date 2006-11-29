@@ -30,19 +30,9 @@
 
 int CID_RWLOCK;
 
-static void getRWLock(void *obj)
-{
-   ((RWLock *)obj)->ROreference();
-}
-
-static void releaseRWLock(void *obj)
-{
-   ((RWLock *)obj)->deref();
-}
-
 static void RWLOCK_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
-   self->setPrivate(CID_RWLOCK, new RWLock(), getRWLock, releaseRWLock);
+   self->setPrivate(CID_RWLOCK, new RWLock());
 }
 
 static void RWLOCK_destructor(class Object *self, class RWLock *rwl, ExceptionSink *xsink)
@@ -52,7 +42,7 @@ static void RWLOCK_destructor(class Object *self, class RWLock *rwl, ExceptionSi
 
 static void RWLOCK_copy(class Object *self, class Object *old, class RWLock *rwl, ExceptionSink *xsink)
 {
-   self->setPrivate(CID_RWLOCK, new RWLock(), getRWLock, releaseRWLock);
+   self->setPrivate(CID_RWLOCK, new RWLock());
 }
 
 static class QoreNode *RWLOCK_readLock(class Object *self, class RWLock *rwl, class QoreNode *params, ExceptionSink *xsink)

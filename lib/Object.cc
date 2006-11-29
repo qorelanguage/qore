@@ -36,65 +36,55 @@
 #include <qore/Variable.h>
 #include <qore/Exception.h>
 #include <qore/QoreProgram.h>
+#include <qore/AbstractPrivateData.h>
 
 #include <stdlib.h>
 
 class KeyNode {
    private:
       int key;
-      void *ptr;
-      q_private_t f_ref, f_deref;
+      AbstractPrivateData *ptr;
 
    public:
       class KeyNode *next;
 
-      DLLLOCAL inline KeyNode(int k, void *p, q_private_t r, q_private_t d)
+      DLLLOCAL inline KeyNode(int k, AbstractPrivateData *p)
       {
 	 key = k;
 	 ptr = p;
-	 f_ref = r;
-	 f_deref = d;
 	 next = NULL;
       }
       DLLLOCAL inline int getKey() const
       {
 	 return key;
       }
-      DLLLOCAL inline void *getPtr() const
+      DLLLOCAL inline AbstractPrivateData *getPtr() const
       {
 	 return ptr;
       }
-      DLLLOCAL inline void *getAndClearPtr()
+      DLLLOCAL inline AbstractPrivateData *getAndClearPtr()
       {
-	 void *rv = ptr;
+	 AbstractPrivateData *rv = ptr;
 	 ptr = NULL;
-#ifdef DEBUG
-	 f_ref = NULL;
-	 f_deref = NULL;
-#endif
 	 return rv;
       }
       DLLLOCAL inline class KeyNode *refNode()
       {
 	 if (!ptr)
 	    return NULL;
-	 f_ref(ptr);
+	 ptr->ref();
 	 return this;
       }
-      DLLLOCAL inline void deref()
+      DLLLOCAL inline void deref(class ExceptionSink *xsink)
       {
-	 f_deref(ptr);
+	 ptr->deref(xsink);
       }
-      DLLLOCAL inline void *refPtr()
+      DLLLOCAL inline AbstractPrivateData *refPtr()
       {
 	 if (!ptr)
 	    return NULL;
-	 f_ref(ptr);
+	 ptr->ref();
 	 return ptr;
-      }
-      DLLLOCAL inline void derefPtr()
-      {
-	 f_deref(ptr);
       }
 };
 
@@ -107,11 +97,11 @@ class KeyList {
       DLLLOCAL inline KeyList();
       DLLLOCAL inline ~KeyList();
       DLLLOCAL inline class KeyNode *find(int k) const;
-      DLLLOCAL inline void insert(int k, void *ptr, q_private_t ref, q_private_t deref);
+      DLLLOCAL inline void insert(int k, AbstractPrivateData *ptr);
       DLLLOCAL inline class KeyNode *getReferencedPrivateDataNode(int key);
-      DLLLOCAL inline void *getReferencedPrivateData(int key);
+      DLLLOCAL inline AbstractPrivateData *getReferencedPrivateData(int key);
       DLLLOCAL inline void addToString(class QoreString *str) const;
-      DLLLOCAL inline void derefAll();
+      DLLLOCAL inline void derefAll(class ExceptionSink *xsink);
 };
 
 inline KeyList::KeyList()
@@ -130,12 +120,12 @@ inline KeyList::~KeyList()
    }
 }
 
-inline void KeyList::derefAll()
+inline void KeyList::derefAll(class ExceptionSink *xsink)
 {
    KeyNode *w = head;
    while (w)
    {
-      w->deref();
+      w->deref(xsink);
       w = w->next;
    }
 }
@@ -152,7 +142,7 @@ inline class KeyNode *KeyList::find(int k) const
    return w;
 }
 
-DLLLOCAL inline void *KeyList::getReferencedPrivateData(int key)
+DLLLOCAL inline AbstractPrivateData *KeyList::getReferencedPrivateData(int key)
 {
    class KeyNode *kn = find(key);
    return kn ? kn->refPtr() : NULL;
@@ -168,7 +158,7 @@ inline void KeyList::addToString(class QoreString *str) const
    }
 }
 
-inline void KeyList::insert(int k, void *ptr, q_private_t ref, q_private_t deref)
+inline void KeyList::insert(int k, AbstractPrivateData *ptr)
 {
 #ifdef DEBUG
    // see if key exists - should never happen
@@ -176,7 +166,7 @@ inline void KeyList::insert(int k, void *ptr, q_private_t ref, q_private_t deref
       run_time_error("KeyList::insert duplicate key=%d ptr=%08p", k, ptr);
 #endif
 
-   class KeyNode *n = new KeyNode(k, ptr, ref, deref);
+   class KeyNode *n = new KeyNode(k, ptr);
    if (tail)
       tail->next = n;
    else
@@ -228,7 +218,6 @@ Object::~Object()
 {
    //tracein("Object::~Object()");
    printd(5, "Object::~Object() this=%08p, pgm=%08p\n", this, pgm);
-   //myclass->deref();
 #ifdef DEBUG
    if (pgm)
       run_time_error("Object::~Object() still has pgm=%08p", pgm);
@@ -248,7 +237,7 @@ class QoreNode *Object::evalBuiltinMethodWithPrivateData(class BuiltinMethod *me
    if (kn)
    {
       class QoreNode *rv = meth->evalMethod(this, kn->getPtr(), args, xsink);
-      kn->deref();
+      kn->deref(xsink);
       return rv;
    }
 
@@ -267,7 +256,7 @@ void Object::evalCopyMethodWithPrivateData(class BuiltinMethod *meth, class Obje
    if (kn)
    {
       meth->evalCopy(self, this, kn->getPtr(), xsink);
-      kn->deref();
+      kn->deref(xsink);
       return;
    }
 
@@ -511,7 +500,7 @@ void Object::obliterate(ExceptionSink *xsink)
 	 g.exit();
 
 	 if (privateData)
-	    privateData->derefAll();
+	    privateData->derefAll(xsink);
 
 	 cleanup(xsink, td);
       }
@@ -840,9 +829,9 @@ class KeyNode *Object::getReferencedPrivateDataNode(int key)
    return rv;
 }
 
-void *Object::getReferencedPrivateData(int key)
+AbstractPrivateData *Object::getReferencedPrivateData(int key)
 { 
-   void *rv = NULL;
+   AbstractPrivateData *rv = NULL;
 
    g.enter();
    if (status != OS_DELETED && privateData)
@@ -852,9 +841,9 @@ void *Object::getReferencedPrivateData(int key)
    return rv;
 }
 
-void *Object::getAndClearPrivateData(int key)
+AbstractPrivateData *Object::getAndClearPrivateData(int key)
 { 
-   void *rv = NULL;
+   AbstractPrivateData *rv = NULL;
    g.enter();
    if (privateData)
    {
@@ -866,12 +855,12 @@ void *Object::getAndClearPrivateData(int key)
    return rv;
 }
 
-void Object::setPrivate(int key, void *pd, q_private_t pdref, q_private_t pdderef)
+void Object::setPrivate(int key, AbstractPrivateData *pd)
 { 
    g.enter();
    if (!privateData)
       privateData = new KeyList();
-   privateData->insert(key, pd, pdref, pdderef);
+   privateData->insert(key, pd);
    g.exit();
 }
 

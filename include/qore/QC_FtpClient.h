@@ -26,27 +26,20 @@
 
 #define _QORE_CLASS_FTPCLIENT_H
 
-#include <qore/ReferenceObject.h>
-#include "FtpClient.h"
+#include <qore/AbstractPrivateData.h>
+#include <qore/FtpClient.h>
 
 extern int CID_FTPCLIENT;
 
 class QoreClass *initFtpClientClass();
 
-class QoreFtpClient : public ReferenceObject, public FtpClient
+class QoreFtpClient : public AbstractPrivateData, public FtpClient
 {
    protected:
-      inline ~QoreFtpClient() {}
+      virtual ~QoreFtpClient() {}
 
    public:
       inline QoreFtpClient(class QoreString *url, class ExceptionSink *xsink) : FtpClient(url, xsink) {}
-      inline void deref();
 };
-
-inline void QoreFtpClient::deref()
-{
-   if (ROdereference())
-      delete this;
-}
 
 #endif // _QORE_CLASS_FTPCLIENT_H

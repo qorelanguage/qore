@@ -28,18 +28,18 @@
 
 #include <qore/common.h>
 #include <qore/support.h>
-#include <qore/ReferenceObject.h>
+#include <qore/AbstractPrivateData.h>
 #include <qore/Exception.h>
 #include <qore/charset.h>
 
 #include "QoreTibrvTransport.h"
 
-class QoreTibrvSender : public ReferenceObject, public QoreTibrvTransport
+class QoreTibrvSender : public AbstractPrivateData, public QoreTibrvTransport
 {
    private:
 
    protected:
-      ~QoreTibrvSender() {}
+      virtual ~QoreTibrvSender() {}
 
    public:
       inline QoreTibrvSender(char *desc, char *service, char *network, char *daemon, class ExceptionSink *xsink) : QoreTibrvTransport(desc, service, network, daemon, xsink)
@@ -49,12 +49,6 @@ class QoreTibrvSender : public ReferenceObject, public QoreTibrvTransport
       
       // timout in ms
       class Hash *sendSubjectWithSyncReply(char *subject, class Hash *data, int64 timeout, class ExceptionSink *xsink);
-
-      inline void deref()
-      {
-	 if (ROdereference())
-	    delete this;
-      }
 };
 
 #endif

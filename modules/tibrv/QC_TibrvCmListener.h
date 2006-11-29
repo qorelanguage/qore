@@ -28,8 +28,6 @@
 
 #include <qore/common.h>
 #include <qore/support.h>
-#include <qore/ReferenceObject.h>
-#include <qore/Exception.h>
 
 #include "QoreTibrvCmListener.h"
 

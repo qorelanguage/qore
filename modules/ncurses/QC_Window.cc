@@ -34,16 +34,6 @@
 
 int CID_WINDOW;
 
-static void getWindow(void *obj)
-{
-   ((Window *)obj)->ROreference();
-}
-
-static void releaseWindow(void *obj)
-{
-   ((Window *)obj)->deref();
-}
-
 void WC_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
    class QoreNode *p0, *p1, *p2, *p3;
@@ -61,7 +51,7 @@ void WC_constructor(class Object *self, class QoreNode *params, ExceptionSink *x
    class Window *w = new Window(lines, columns, y, x, xsink);
    if (xsink->isException())
       w->deref();
-   self->setPrivate(CID_WINDOW, w, getWindow, releaseWindow);      
+   self->setPrivate(CID_WINDOW, w);      
 }
 
 void WC_destructor(class Object *self, class Window *w, ExceptionSink *xsink)

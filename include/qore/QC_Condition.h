@@ -25,26 +25,17 @@
 #define _QORE_CLASS_CONDITION_H
 
 #include <qore/common.h>
-#include <qore/qore_thread.h>
-#include <qore/support.h>
 #include <qore/QoreCondition.h>
-#include <qore/ReferenceObject.h>
+#include <qore/AbstractPrivateData.h>
 
 extern int CID_CONDITION;
 
 class QoreClass *initConditionClass();
 
-class Condition : public QoreCondition, public ReferenceObject
+class Condition : public AbstractPrivateData, public QoreCondition
 {
    protected:
-      ~Condition() {}
-
-   public:
-      inline void deref()
-      {
-	 if (ROdereference())
-	    delete this;
-      }
+      virtual ~Condition() {}
 };
 
 #endif // _QORE_CLASS_CONDITION_H

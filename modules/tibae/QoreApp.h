@@ -32,7 +32,7 @@
 #include <qore/QoreType.h>
 #include <qore/QoreString.h>
 #include <qore/config.h>
-#include <qore/ReferenceObject.h>
+#include <qore/AbstractPrivateData.h>
 #include <qore/LockedObject.h>
 #include <qore/Hash.h>
 
@@ -45,7 +45,7 @@
 extern class LockedObject l_mdate_time;
 #endif
 
-class QoreApp : public MApp, public ReferenceObject
+class QoreApp : public AbstractPrivateData, public MApp
 {
    private:
       char *session_name;
@@ -80,12 +80,42 @@ class QoreApp : public MApp, public ReferenceObject
    protected:
       virtual void onInitialization() throw (MException);
       virtual void onTermination() throw (MException) {}
+      virtual ~QoreApp()
+      {
+	 tracein("QoreApp::~QoreApp()");
+#ifdef TIBCO_EXPLICIT_CREATE_SESSION
+	 if (mySession)
+	    delete mySession;
+	 if (myPublisher)
+	    delete myPublisher;
+#endif
+
+	 // if the listener is active
+	 if (mySubscriber)
+	 {
+	    mySubscriber->removeListener(myEventHandler);
+	    delete myEventHandler;
+	    delete mySubscriber;
+	    free(rcv_subject);
+	 }
+	 
+	 free(session_name);
+	 free(service);
+	 free(network);
+	 free(daemon);
+	 free(subject);
+	 if (classlist)
+	    classlist->derefAndDelete(NULL);
+	 
+	 delete appProps;
+
+	 traceout("QoreApp::~QoreApp()");
+      }
 
    public:
       inline QoreApp(MAppProperties *pMAP, char *name, class Hash *clh, 
 		     char *svc = NULL, char *net = NULL, 
 		     char *dmn = NULL, char *sbj = NULL);
-      inline virtual ~QoreApp();
       class QoreNode *sendWithSyncReply(char *function_name, QoreNode *value, int timeout, ExceptionSink *xsink);
       class QoreNode *sendWithSyncReply(char *subject, char *function_name, QoreNode *value, int timeout, ExceptionSink *xsink);
       void send(char *function_name, QoreNode *value, ExceptionSink *xsink);
@@ -105,7 +135,7 @@ class QoreApp : public MApp, public ReferenceObject
       }
       const char *get_subject() { return (const char *)subject; }
       class QoreNode *map_mtree_to_node(MTree *msg, ExceptionSink *xsink);
-      inline void deref(class ExceptionSink *xsink);
+      virtual void deref(class ExceptionSink *xsink);
 };
 
 class QoreEventHandler : public MEventListener
@@ -199,38 +229,6 @@ inline QoreApp::QoreApp(MAppProperties *pMAP, char *name, Hash *clh,
    mySubscriber = NULL;
    myEventHandler = NULL;
    mySession = NULL;
-}
-
-inline QoreApp::~QoreApp()
-{
-   tracein("QoreApp::~QoreApp()");
-#ifdef TIBCO_EXPLICIT_CREATE_SESSION
-   if (mySession)
-      delete mySession;
-   if (myPublisher)
-      delete myPublisher;
-#endif
-
-   // if the listener is active
-   if (mySubscriber)
-   {
-      mySubscriber->removeListener(myEventHandler);
-      delete myEventHandler;
-      delete mySubscriber;
-      free(rcv_subject);
-   }
-
-   free(session_name);
-   free(service);
-   free(network);
-   free(daemon);
-   free(subject);
-   if (classlist)
-      classlist->derefAndDelete(NULL);
-   
-   delete appProps;
-
-   traceout("QoreApp::~QoreApp()");
 }
 
 inline const MBaseClassDescription *QoreApp::find_class(char *cn, ExceptionSink *xsink)
@@ -716,27 +714,6 @@ inline class QoreNode *QoreApp::map_mtree_to_node(MTree *msg, ExceptionSink *xsi
 
    traceout("QoreApp::map_mtree_to_node()");
    return rv;
-}
-
-inline void QoreApp::deref(ExceptionSink *xsink)
-{
-   //tracein("QoreApp::deref()");
-   if (ROdereference())
-   {
-      try {
-	 //printd(5, "QoreApp::deref() %08p: about to call stop()\n", this);
-	 stop();
-	 //printd(5, "QoreApp::deref() %08p: about to delete\n", this);
-	 delete this;
-	 //printd(5, "QoreApp::deref() %08p: returned from delete\n", this);
-      }
-      catch (MException &te)
-      {
-	 //xsink->raiseException("TIBCO-EXCEPTION", "Exception caught in TibcoAdapter::destructor(): %s: %s", 
-	 //te.getType().c_str(), te.getDescription().c_str());
-      }
-   }
-   //traceout("QoreApp::deref()");
 }
 
 #endif // _QORE_TIBCO_QOREAPP_H

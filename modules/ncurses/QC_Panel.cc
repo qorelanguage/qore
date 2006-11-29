@@ -36,16 +36,6 @@ int CID_PANEL;
 
 //class LockedObject nc_panel_update_lock;
 
-static inline void getPanel(void *obj)
-{
-   ((Panel *)obj)->ROreference();
-}
-
-static inline void releasePanel(void *obj)
-{
-   ((Panel *)obj)->deref();
-}
-
 void PC_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
    class QoreNode *p0, *p1, *p2, *p3;
@@ -63,7 +53,7 @@ void PC_constructor(class Object *self, class QoreNode *params, ExceptionSink *x
    class Panel *p = new Panel(lines, columns, y, x, xsink);
    if (xsink->isException())
       p->deref();
-   self->setPrivate(CID_PANEL, p, getPanel, releasePanel);
+   self->setPrivate(CID_PANEL, p);
 }
 
 void PC_destructor(class Object *self, class Panel *p, ExceptionSink *xsink)

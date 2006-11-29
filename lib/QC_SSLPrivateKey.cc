@@ -34,20 +34,10 @@
 
 int CID_SSLPRIVATEKEY;
 
-static inline void getSSLPrivateKey(void *obj)
-{
-   ((QoreSSLPrivateKey *)obj)->ROreference();
-}
-
-static inline void releaseSSLPrivateKey(void *obj)
-{
-   ((QoreSSLPrivateKey *)obj)->deref();
-}
-
 /*
 void createSSLPrivateKeyObject(class Object *self, EVP_PKEY *cert)
 {
-   self->setPrivate(CID_SSLPRIVATEKEY, new QoreSSLPrivateKey(cert), getSSLPrivateKey);
+   self->setPrivate(CID_SSLPRIVATEKEY, new QoreSSLPrivateKey(cert));
 }
 */
 
@@ -68,7 +58,7 @@ static void SSLPKEY_constructor(class Object *self, class QoreNode *params, Exce
    if (xsink->isEvent())
       qpk->deref();
    else
-      self->setPrivate(CID_SSLPRIVATEKEY, qpk, getSSLPrivateKey, releaseSSLPrivateKey);
+      self->setPrivate(CID_SSLPRIVATEKEY, qpk);
 }
 
 static void SSLPKEY_destructor(class Object *self, class QoreSSLPrivateKey *pk, ExceptionSink *xsink)

@@ -28,13 +28,13 @@
 
 #include <qore/common.h>
 #include <qore/support.h>
-#include <qore/ReferenceObject.h>
+#include <qore/AbstractPrivateData.h>
 #include <qore/Exception.h>
 #include <qore/charset.h>
 
 #include "QoreTibrvTransport.h"
 
-class QoreTibrvListener : public ReferenceObject, public QoreTibrvTransport
+class QoreTibrvListener : public AbstractPrivateData, public QoreTibrvTransport
 {
    private:
       class TibrvListener listener;
@@ -42,7 +42,7 @@ class QoreTibrvListener : public ReferenceObject, public QoreTibrvTransport
       class QoreTibrvMsgCallback *callback;
 
    protected:
-      inline ~QoreTibrvListener();
+      virtual ~QoreTibrvListener();
 
    public:
       QoreTibrvListener(char *subject, char *desc, char *service, char *network, char *daemon, class ExceptionSink *xsink);
@@ -74,12 +74,6 @@ class QoreTibrvListener : public ReferenceObject, public QoreTibrvTransport
 	    return NULL;
 	 }
 	 return new QoreString(name);
-      }
-
-      inline void deref()
-      {
-	 if (ROdereference())
-	    delete this;
       }
 };
 

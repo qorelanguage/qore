@@ -28,13 +28,13 @@
 
 #include <qore/common.h>
 #include <qore/support.h>
-#include <qore/ReferenceObject.h>
+#include <qore/AbstractPrivateData.h>
 #include <qore/Exception.h>
 #include <qore/charset.h>
 
 #include "QoreTibrvCmTransport.h"
 
-class QoreTibrvCmListener : public ReferenceObject, public QoreTibrvCmTransport
+class QoreTibrvCmListener : public AbstractPrivateData, public QoreTibrvCmTransport
 {
    private:
       class TibrvCmListener cmListener;
@@ -42,7 +42,7 @@ class QoreTibrvCmListener : public ReferenceObject, public QoreTibrvCmTransport
       class QoreTibrvCmMsgCallback *callback;
 
    protected:
-      inline ~QoreTibrvCmListener();
+      virtual ~QoreTibrvCmListener();
 
    public:
       QoreTibrvCmListener(char *subject, char *cmName, bool requestOld, char *ledgerName, bool syncLedger, char *relayAgent, 
@@ -75,12 +75,6 @@ class QoreTibrvCmListener : public ReferenceObject, public QoreTibrvCmTransport
 	    return NULL;
 	 }
 	 return new QoreString(name);
-      }
-
-      inline void deref()
-      {
-	 if (ROdereference())
-	    delete this;
       }
 };
 

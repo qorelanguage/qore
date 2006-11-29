@@ -29,23 +29,16 @@ class QoreClass *initFileClass();
 static inline void addFileConstants(class Namespace *ns);
 
 #include <qore/QoreFile.h>
-#include <qore/ReferenceObject.h>
+#include <qore/AbstractPrivateData.h>
 
-class File : public QoreFile, public ReferenceObject
+class File : public AbstractPrivateData, public QoreFile
 {
    protected:
-      inline ~File() {}
+      virtual ~File() {}
 
    public:
       inline File(class QoreEncoding *cs) : QoreFile(cs) {}
-      inline void deref();
 };
-
-inline void File::deref()
-{
-   if (ROdereference())
-      delete this;
-}
 
 static inline void addFileConstants(class Namespace *ns)
 {

@@ -30,19 +30,9 @@
 
 int CID_GATE;
 
-static void getGate(void *obj)
-{
-   ((QoreGate *)obj)->ROreference();
-}
-
-static void releaseGate(void *obj)
-{
-   ((QoreGate *)obj)->deref();
-}
-
 static void GATE_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
-   self->setPrivate(CID_GATE, new QoreGate(), getGate, releaseGate);
+   self->setPrivate(CID_GATE, new QoreGate());
 }
 
 static void GATE_destructor(class Object *self, class QoreGate *g, ExceptionSink *xsink)
@@ -52,7 +42,7 @@ static void GATE_destructor(class Object *self, class QoreGate *g, ExceptionSink
 
 static void GATE_copy(class Object *self, class Object *old, class QoreGate *g, ExceptionSink *xsink)
 {
-   self->setPrivate(CID_GATE, new QoreGate(), getGate, releaseGate);
+   self->setPrivate(CID_GATE, new QoreGate());
 }
 
 class QoreNode *GATE_enter(class Object *self, class QoreGate *g, class QoreNode *params, ExceptionSink *xsink)

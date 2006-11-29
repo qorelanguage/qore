@@ -33,20 +33,10 @@
 
 int CID_FILE;
 
-static void getFile(void *obj)
-{
-   ((File *)obj)->ROreference();
-}
-
-static void releaseFile(void *obj)
-{
-   ((File *)obj)->deref();
-}
-
 static void FILE_system_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
    //printd(5, "FILE_constructor() self=%08p, params=%08p\n", self, params);
-   self->setPrivate(CID_FILE, new File(QCS_DEFAULT), getFile, releaseFile);
+   self->setPrivate(CID_FILE, new File(QCS_DEFAULT));
 }
 
 static void FILE_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
@@ -62,7 +52,7 @@ static void FILE_constructor(class Object *self, class QoreNode *params, Excepti
    else
       cs = QCS_DEFAULT;
 
-   self->setPrivate(CID_FILE, new File(cs), getFile, releaseFile);
+   self->setPrivate(CID_FILE, new File(cs));
 }
 
 static void FILE_destructor(class Object *self, class File *f, ExceptionSink *xsink)
@@ -73,7 +63,7 @@ static void FILE_destructor(class Object *self, class File *f, ExceptionSink *xs
 
 static void FILE_copy(class Object *self, class Object *old, class File *f, class ExceptionSink *xsink)
 {
-   self->setPrivate(CID_FILE, new File(f->getEncoding()), getFile, releaseFile);
+   self->setPrivate(CID_FILE, new File(f->getEncoding()));
 }
 
 // open(filename, [flags, mode, charset])

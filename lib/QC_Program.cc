@@ -32,17 +32,6 @@
 
 int CID_PROGRAM;
 
-static void getProgram(void *obj)
-{
-   ((QoreProgram *)obj)->ref();
-}
-
-static void releaseProgram(void *obj)
-{
-   class ExceptionSink xsink;
-   ((QoreProgram *)obj)->deref(&xsink);
-}
-
 static void PROGRAM_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
    class QoreNode *p0;
@@ -53,7 +42,7 @@ static void PROGRAM_constructor(class Object *self, class QoreNode *params, Exce
    else
       parse_opt = 0;
 
-   self->setPrivate(CID_PROGRAM, new QoreProgram(getProgram(), parse_opt), getProgram, releaseProgram);
+   self->setPrivate(CID_PROGRAM, new QoreProgram(getProgram(), parse_opt));
 }
 
 static void PROGRAM_destructor(class Object *self, class QoreProgram *p, ExceptionSink *xsink)

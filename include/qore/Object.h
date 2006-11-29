@@ -31,6 +31,7 @@
 #include <qore/common.h>
 #include <qore/ReferenceObject.h>
 #include <qore/VRMutex.h>
+#include <qore/AbstractPrivateData.h>
 
 #include <stdio.h>
 
@@ -38,8 +39,6 @@
 #define OS_DELETED       1
 #define OS_BEING_DELETED 2
 //#define OS_IN_COPY       4
-
-typedef void (* q_private_t)(void *);
 
 // note that any of the methods below that involve locking cannot be const methods
 class Object : public ReferenceObject
@@ -89,10 +88,10 @@ class Object : public ReferenceObject
       DLLEXPORT class QoreNode *evalMemberNoMethod(char *mem, class ExceptionSink *xsink);
       DLLEXPORT class QoreNode *evalMemberExistence(char *mem, class ExceptionSink *xsink);
       DLLEXPORT class Hash *evalData(class ExceptionSink *xsink);
-      DLLEXPORT void setPrivate(int key, void *pd, q_private_t pdref, q_private_t pdderef);
+      DLLEXPORT void setPrivate(int key, AbstractPrivateData *pd);
       DLLEXPORT class KeyNode *getReferencedPrivateDataNode(int key);
-      DLLEXPORT void *getReferencedPrivateData(int key);
-      DLLEXPORT void *getAndClearPrivateData(int key);
+      DLLEXPORT AbstractPrivateData *getReferencedPrivateData(int key);
+      DLLEXPORT AbstractPrivateData *getAndClearPrivateData(int key);
       DLLEXPORT void addPrivateDataToString(class QoreString *str);
       DLLEXPORT class QoreNode *evalMethod(class QoreString *name, class QoreNode *args, class ExceptionSink *xsink);
       DLLEXPORT void doDelete(class ExceptionSink *xsink);

@@ -32,16 +32,6 @@
 
 int CID_GETOPT;
 
-static void getGetOpt(void *obj)
-{
-   ((GetOpt *)obj)->ROreference();
-}
-
-static void releaseGetOpt(void *obj)
-{
-   ((GetOpt *)obj)->deref();
-}
-
 static inline int process_type(char *key, int &attributes, char *opt, class QoreType *&at, class ExceptionSink *xsink)
 {
    // get type
@@ -232,7 +222,7 @@ static void GETOPT_constructor(class Object *self, class QoreNode *params, Excep
       }
    }
    if (!xsink->isException())
-      self->setPrivate(CID_GETOPT, g, getGetOpt, releaseGetOpt);
+      self->setPrivate(CID_GETOPT, g);
    else
       g->deref();
 }

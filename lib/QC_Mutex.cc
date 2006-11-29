@@ -30,19 +30,9 @@
 
 int CID_MUTEX;
 
-static inline void getMutex(void *obj)
-{
-   ((Mutex *)obj)->ROreference();
-}
-
-static inline void releaseMutex(void *obj)
-{
-   ((Mutex *)obj)->deref();
-}
-
 static void MUTEX_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
-   self->setPrivate(CID_MUTEX, new Mutex(), getMutex, releaseMutex);
+   self->setPrivate(CID_MUTEX, new Mutex());
 }
 
 static void MUTEX_destructor(class Object *self, class Mutex *m, ExceptionSink *xsink)
@@ -52,7 +42,7 @@ static void MUTEX_destructor(class Object *self, class Mutex *m, ExceptionSink *
 
 static void MUTEX_copy(class Object *self, class Object *old, class Mutex *m, ExceptionSink *xsink)
 {
-   self->setPrivate(CID_MUTEX, new Mutex(), getMutex, releaseMutex);
+   self->setPrivate(CID_MUTEX, new Mutex());
 }
 
 class QoreNode *MUTEX_lock(class Object *self, class Mutex *m, class QoreNode *params, ExceptionSink *xsink)

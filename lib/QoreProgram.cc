@@ -51,6 +51,11 @@ int get_warning_code(char *str)
    return 0;
 }
 
+QoreProgram::~QoreProgram()
+{
+   printd(5, "QoreProgram::~QoreProgram() this=%08p\n", this);
+}
+
 void QoreProgram::init()
 {
    //printd(5, "QoreProgram::init() this=%08p\n", this);

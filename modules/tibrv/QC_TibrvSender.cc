@@ -31,16 +31,6 @@
 
 int CID_TIBRVSENDER;
 
-static inline void getTRVS(void *obj)
-{
-   ((QoreTibrvSender *)obj)->ROreference();
-}
-
-static inline void releaseTRVS(void *obj)
-{
-   ((QoreTibrvSender *)obj)->deref();
-}
-
 // syntax: [desc, service, network, daemon] 
 void TIBRVSENDER_constructor(class Object *self, class QoreNode *params, class ExceptionSink *xsink)
 {
@@ -65,7 +55,7 @@ void TIBRVSENDER_constructor(class Object *self, class QoreNode *params, class E
    if (xsink->isException())
       qsender->deref();
    else
-      self->setPrivate(CID_TIBRVSENDER, qsender, getTRVS, releaseTRVS);
+      self->setPrivate(CID_TIBRVSENDER, qsender);
 
    traceout("TIBRVSENDER_constructor");
 }

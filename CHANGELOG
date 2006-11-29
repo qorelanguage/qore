@@ -1,6 +1,8 @@
 2006.11.29: David Nichols
 	* more QoreClass cleanups
 	* enabled inheritance in builtin classes
+	* improved qore c++ class interface
+	* more API cleanups
 
 2006.11.28: David Nichols
 	* more QoreClass cleanups, inheritance fixes

@@ -10,9 +10,12 @@ lib_LTLIBRARIES = libqore.la
 
 if COND_SINGLE_COMPILATION_UNIT
 libqore_la_SOURCES = \
-	parser.yy \
-	scanner.ll \
 	single-compilation-unit.cc
+
+parser.cc: parser.yy
+scanner.cc: scanner.ll
+single-compilation-unit.cc: parser.cc scanner.cc
+
 else
 libqore_la_SOURCES = \
 	parser.yy \

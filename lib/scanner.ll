@@ -253,7 +253,7 @@ static inline bool isRegexSubstModifier(class RegexSubst *qr, int c)
 %option reentrant bison-bridge
 %option stack
 
-%x str_state regex_state incl check_regex regex_subst1 regex_subst2 line_comment exec_class requires regex_trans1 regex_trans2 regex_extract_state disable_warning enable_warning
+%x str_state regex_state incl check_regex regex_subst1 regex_subst2 line_comment exec_class_state requires regex_trans1 regex_trans2 regex_extract_state disable_warning enable_warning
 
 HEX_CONST       0x[0-9A-Fa-f]+
 OCTAL_CONST     \\[0-7]{1,3}
@@ -323,7 +323,7 @@ BINARY          <({HEX_DIGIT}{HEX_DIGIT})+>
 					   BEGIN(INITIAL);
                                         }
 ^%exec-class{WS}*$                      { parse_error("missing argument to %%exec-class"); }
-^%exec-class{WS}*                       BEGIN(exec_class);
+^%exec-class{WS}*                       BEGIN(exec_class_state);
 ^%requires                              BEGIN(requires);
 <requires>[^\t\n\r]+                    {
                                            char *cn = trim(yytext);
@@ -336,7 +336,7 @@ BINARY          <({HEX_DIGIT}{HEX_DIGIT})+>
                                         }
 ^%include{WS}*$                         { parse_error("missing argument to %%include"); }
 ^%include{WS}+				BEGIN(incl);
-<exec_class>{
+<exec_class_state>{
    [^\t\n\r]+$   	                {
                                            char *cn = trim(yytext);
 					   //printf("setting class name to: '%s'\n", cn);

@@ -27,7 +27,7 @@
 extern int CID_SSLCERTIFICATE;
 class QoreClass *initSSLCertificateClass();
 
-#include <qore/ReferenceObject.h>
+#include <qore/AbstractPrivateData.h>
 #include <qore/Exception.h>
 #include <qore/QoreSSLBase.h>
 #include <qore/support.h>
@@ -35,7 +35,7 @@ class QoreClass *initSSLCertificateClass();
 
 #include <errno.h>
 
-class QoreSSLCertificate : public QoreSSLBase, public ReferenceObject
+class QoreSSLCertificate : public AbstractPrivateData, public QoreSSLBase
 {
    private:
       X509 *cert;
@@ -53,7 +53,7 @@ class QoreSSLCertificate : public QoreSSLBase, public ReferenceObject
       }
 
    protected:
-      inline ~QoreSSLCertificate()
+      virtual ~QoreSSLCertificate()
       {
 	 if (cert)
 	    X509_free(cert);
@@ -77,11 +77,6 @@ class QoreSSLCertificate : public QoreSSLBase, public ReferenceObject
 	    xsink->raiseException("SSLCERTIFICATE-CONSTRUCTOR-ERROR", "error parsing certificate file '%s'", fn);
       }
       inline X509 *getData() { return cert; }
-      inline void deref()
-      {
-	 if (ROdereference())
-	    delete this;
-      }
       inline class QoreString *getPEM(class ExceptionSink *xsink)
       {
 	 BIO *bp = BIO_new(BIO_s_mem());

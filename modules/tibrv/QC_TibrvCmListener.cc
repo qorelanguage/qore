@@ -30,16 +30,6 @@
 
 int CID_TIBRVCMLISTENER;
 
-static inline void getCML(void *obj)
-{
-   ((QoreTibrvCmListener *)obj)->ROreference();
-}
-
-static inline void releaseCML(void *obj)
-{
-   ((QoreTibrvCmListener *)obj)->deref();
-}
-
 // syntax: subject, [cmName, requestOld, ledgerName, syncLedger, relayAgent, desc, service, network, daemon] 
 void TIBRVCMLISTENER_constructor(class Object *self, class QoreNode *params, class ExceptionSink *xsink)
 {
@@ -93,7 +83,7 @@ void TIBRVCMLISTENER_constructor(class Object *self, class QoreNode *params, cla
    if (xsink->isException())
       qcmlistener->deref();
    else
-      self->setPrivate(CID_TIBRVCMLISTENER, qcmlistener, getCML, releaseCML);
+      self->setPrivate(CID_TIBRVCMLISTENER, qcmlistener);
 
    traceout("TIBRVCMLISTENER_constructor");
 }

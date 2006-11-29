@@ -30,16 +30,6 @@
 
 int CID_TIBRVFTMEMBER;
 
-static inline void getFTMem(void *obj)
-{
-   ((QoreTibrvFtMember *)obj)->ROreference();
-}
-
-static inline void releaseFTMem(void *obj)
-{
-   ((QoreTibrvFtMember *)obj)->deref();
-}
-
 // syntax: subject, [desc, service, network, daemon] 
 static void TIBRVFTMEMBER_constructor(class Object *self, class QoreNode *params, class ExceptionSink *xsink)
 {
@@ -134,7 +124,7 @@ static void TIBRVFTMEMBER_constructor(class Object *self, class QoreNode *params
    if (xsink->isException())
       qftmember->deref();
    else
-      self->setPrivate(CID_TIBRVFTMEMBER, qftmember, getFTMem, releaseFTMem);
+      self->setPrivate(CID_TIBRVFTMEMBER, qftmember);
 
    traceout("TIBRVFTMEMBER_constructor");
 }

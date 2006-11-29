@@ -25,23 +25,16 @@
 #define _QORE_CLASS_COUNTER_H
 
 #include <qore/QoreCounter.h>
-#include <qore/ReferenceObject.h>
+#include <qore/AbstractPrivateData.h>
 
 extern int CID_COUNTER;
 
 class QoreClass *initCounterClass();
 
-class Counter : public QoreCounter, public ReferenceObject
+class Counter : public AbstractPrivateData, public QoreCounter
 {
    protected:
-      ~Counter() {}
-
-   public:
-      inline void deref()
-      {
-	 if (ROdereference())
-	    delete this;
-      }
+      virtual ~Counter() {}
 };
 
 #endif // _QORE_CLASS_COUNTER_H

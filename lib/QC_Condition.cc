@@ -32,19 +32,9 @@
 
 int CID_CONDITION;
 
-static void getCond(void *obj)
-{
-   ((Condition *)obj)->ROreference();
-}
-
-static void releaseCond(void *obj)
-{
-   ((Condition *)obj)->deref();
-}
-
 static void CONDITION_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
-   self->setPrivate(CID_CONDITION, new Condition(), getCond, releaseCond);
+   self->setPrivate(CID_CONDITION, new Condition());
 }
 
 static void CONDITION_destructor(class Object *self, class Condition *c, ExceptionSink *xsink)
@@ -54,7 +44,7 @@ static void CONDITION_destructor(class Object *self, class Condition *c, Excepti
 
 static void CONDITION_copy(class Object *self, class Object *old, class Condition *c, ExceptionSink *xsink)
 {
-   self->setPrivate(CID_CONDITION, new Condition(), getCond, releaseCond);
+   self->setPrivate(CID_CONDITION, new Condition());
 }
 
 class QoreNode *CONDITION_signal(class Object *self, class Condition *c, class QoreNode *params, ExceptionSink *xsink)

@@ -95,7 +95,8 @@ int main(int argc, char *argv[])
    }
   exit:
    // destroy the program object (cannot call destructor explicitly)
-   qpgm->deref();
+   qpgm->deref(&xsink);
+   xsink.handleExceptions();
    
    // cleanup Qore subsystem (deallocate memory, etc)
    qore_cleanup();

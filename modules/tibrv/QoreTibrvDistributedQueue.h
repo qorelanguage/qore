@@ -28,7 +28,7 @@
 
 #include <qore/common.h>
 #include <qore/support.h>
-#include <qore/ReferenceObject.h>
+#include <qore/AbstractPrivateData.h>
 #include <qore/Exception.h>
 #include <qore/charset.h>
 
@@ -36,13 +36,13 @@
 
 #include "QoreTibrvTransport.h"
 
-class QoreTibrvDistributedQueue : public ReferenceObject, public QoreTibrvTransport
+class QoreTibrvDistributedQueue : public AbstractPrivateData, public QoreTibrvTransport
 {
    private:
       TibrvCmQueueTransport cmQueueTransport;
    
    protected:
-      inline ~QoreTibrvDistributedQueue() {}
+      virtual ~QoreTibrvDistributedQueue() {}
 
    public:
       QoreTibrvDistributedQueue(char *cmName, unsigned workerWeight, unsigned workerTasks, 
@@ -79,12 +79,6 @@ class QoreTibrvDistributedQueue : public ReferenceObject, public QoreTibrvTransp
 	 if (status != TIBRV_OK)
 	    xsink->raiseException("TIBRV-GETWORKERTASKS-ERROR", (char *)status.getText());
 	 return tasks;
-      }
-      
-      inline void deref()
-      {
-	 if (ROdereference())
-	    delete this;
       }
 };
 

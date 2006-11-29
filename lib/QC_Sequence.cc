@@ -30,16 +30,6 @@
 
 int CID_SEQUENCE;
 
-static inline void getSequence(void *obj)
-{
-   ((QoreSequence *)obj)->ROreference();
-}
-
-static inline void releaseSequence(void *obj)
-{
-   ((QoreSequence *)obj)->deref();
-}
-
 static void SEQUENCE_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
    int start;
@@ -48,7 +38,7 @@ static void SEQUENCE_constructor(class Object *self, class QoreNode *params, Exc
       start = p0->getAsInt();
    else
       start = 0;
-   self->setPrivate(CID_SEQUENCE, new QoreSequence(start), getSequence, releaseSequence);
+   self->setPrivate(CID_SEQUENCE, new QoreSequence(start));
 }
 
 static void SEQUENCE_destructor(class Object *self, class QoreSequence *s, ExceptionSink *xsink)
@@ -58,7 +48,7 @@ static void SEQUENCE_destructor(class Object *self, class QoreSequence *s, Excep
 
 static void SEQUENCE_copy(class Object *self, class Object *old, class QoreSequence *s, class ExceptionSink *xsink)
 {
-   self->setPrivate(CID_SEQUENCE, new QoreSequence(s->getCurrent()), getSequence, releaseSequence);
+   self->setPrivate(CID_SEQUENCE, new QoreSequence(s->getCurrent()));
 }
 
 static class QoreNode *SEQUENCE_next(class Object *self, class QoreSequence *s, class QoreNode *params, ExceptionSink *xsink)

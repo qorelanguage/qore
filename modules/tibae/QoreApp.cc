@@ -34,6 +34,26 @@
 class LockedObject l_mdate_time;
 #endif
 
+void QoreApp::deref(ExceptionSink *xsink)
+{
+   //tracein("QoreApp::deref()");
+   if (ROdereference())
+   {
+      try {
+         //printd(5, "QoreApp::deref() %08p: about to call stop()\n", this);
+         stop();
+         //printd(5, "QoreApp::deref() %08p: about to delete\n", this);
+         delete this;
+         //printd(5, "QoreApp::deref() %08p: returned from delete\n", this);
+      }
+      catch (MException &te)
+      {
+         //xsink->raiseException("TIBCO-EXCEPTION", "Exception caught in TibcoAdapter::destructor(): %s: %s",
+         //te.getType().c_str(), te.getDescription().c_str());
+      }
+   }
+}
+
 class MData *QoreApp::instantiate_class(QoreNode *v, const MBaseClassDescription *mbcd, ExceptionSink *xsink)
 {
    tracein("QoreApp::instantiate_class()");

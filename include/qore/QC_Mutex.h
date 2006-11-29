@@ -25,28 +25,17 @@
 #define _QORE_CLASS_MUTEX
 
 #include <qore/common.h>
-#include <qore/qore_thread.h>
-#include <qore/support.h>
-#include <qore/ReferenceObject.h>
+#include <qore/AbstractPrivateData.h>
 #include <qore/LockedObject.h>
 
 extern int CID_MUTEX;
 
 class QoreClass *initMutexClass();
 
-class Mutex : public ReferenceObject, public LockedObject 
+class Mutex : public AbstractPrivateData, public LockedObject 
 {
    protected:
-      ~Mutex() {}
-
-   public:
-      inline void deref();
+      virtual ~Mutex() {}
 };
-
-inline void Mutex::deref()
-{
-   if (ROdereference())
-      delete this;
-}
 
 #endif // _QORE_CLASS_MUTEX

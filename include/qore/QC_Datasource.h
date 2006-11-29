@@ -35,13 +35,13 @@
 #define _QORE_SQL_OBJECTS_DATASOURCE_H
 
 #include <qore/config.h>
-#include <qore/ReferenceObject.h>
 #include <qore/LockedObject.h>
 #include <qore/QoreCondition.h>
 #include <qore/Exception.h>
 #include <qore/SingleExitGate.h>
 #include <qore/DBI.h>
 #include <qore/Datasource.h>
+#include <qore/AbstractPrivateData.h>
 
 #include <stdlib.h>
 #include <string.h>
@@ -54,7 +54,7 @@ class QoreClass *initDatasourceClass();
 
 void datasource_thread_lock_cleanup(void *ptr, class ExceptionSink *xsink);
 
-class ManagedDatasource : public Datasource, private ReferenceObject, private LockedObject
+class ManagedDatasource : public AbstractPrivateData, public Datasource, private LockedObject
 {
    private:
       class SingleExitGate tGate;
@@ -99,7 +99,7 @@ class ManagedDatasource : public Datasource, private ReferenceObject, private Lo
       }
 
    protected:
-      inline ~ManagedDatasource() {}
+      virtual ~ManagedDatasource() {}
 
    public:
       inline ManagedDatasource(DBIDriver *);
@@ -127,16 +127,6 @@ class ManagedDatasource : public Datasource, private ReferenceObject, private Lo
       inline int getTransactionLockTimeout();
       inline void beginTransaction(class ExceptionSink *xsink);
       inline void setAutoCommit(bool ac);
-
-      inline void deref()
-      {
-	 if (ROdereference())
-	    delete this;
-      }
-      inline void ref()
-      {
-	 ROreference();
-      }
 
       inline ManagedDatasource *copy()
       {

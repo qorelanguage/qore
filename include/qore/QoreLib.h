@@ -33,6 +33,7 @@
 #include <string.h>
 #include <strings.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 static inline int64 i8LSB(int64 i);
 static inline int   i4LSB(int i);
@@ -58,6 +59,8 @@ extern char table64[64];
 class BinaryObject *parseBase64(char *buf, int len, class ExceptionSink *xsink);
 class BinaryObject *parseHex(char *buf, int len, class ExceptionSink *xsink);
 class BinaryObject *parseHex(char *buf, int len);
+
+void print_node(FILE *fp, class QoreNode *node);
 
 #ifdef DEBUG
 class QoreString *dni(class QoreString *s, class QoreNode *n, int indent, class ExceptionSink *xsink);

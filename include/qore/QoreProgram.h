@@ -27,7 +27,7 @@
 #define _QORE_QOREPROGRAM_H
 
 #include <qore/config.h>
-#include <qore/ReferenceObject.h>
+#include <qore/AbstractPrivateData.h>
 #include <qore/LockedObject.h>
 #include <qore/Restrictions.h>
 #include <qore/QoreCounter.h>
@@ -140,7 +140,7 @@ class GlobalVariableList
 // the global variable list is deleted, then the variables will in turn dereference the program
 // so it can be deleted...
 
-class QoreProgram : public ReferenceObject, private UserFunctionList, private ImportedFunctionList, public GlobalVariableList
+class QoreProgram : public AbstractPrivateData, private UserFunctionList, private ImportedFunctionList, public GlobalVariableList
 {
    private:
       // parse lock, making parsing actions atomic and thread-safe
@@ -168,7 +168,7 @@ class QoreProgram : public ReferenceObject, private UserFunctionList, private Im
       inline class Hash *clearThreadData(class ExceptionSink *xsink);
 
    protected:
-      inline ~QoreProgram();
+      virtual ~QoreProgram();
 
    public:
       // for the thread counter
@@ -206,13 +206,7 @@ class QoreProgram : public ReferenceObject, private UserFunctionList, private Im
       inline void addGlobalVarDef(char *name);
       inline void addStatement(class Statement *s);
       inline bool existsFunction(char *name);
-      inline void ref()
-      {
-	 //printd(5, "QoreProgram::ref() this=%08p %d->%d\n", this, reference_count(), reference_count() + 1);
-	 ROreference();
-      }
-      inline void deref();
-      inline void deref(class ExceptionSink *xsink)
+      virtual void deref(class ExceptionSink *xsink)
       {
 	 //printd(5, "QoreProgram::deref() this=%08p %d->%d\n", this, reference_count(), reference_count() - 1);
 	 if (ROdereference())
@@ -307,26 +301,6 @@ class QoreProgram : public ReferenceObject, private UserFunctionList, private Im
 #include <qore/Variable.h>
 #include <qore/Namespace.h>
 #include <qore/charset.h>
-
-inline QoreProgram::~QoreProgram()
-{
-   printd(5, "QoreProgram::~QoreProgram() this=%08p\n", this);
-}
-
-inline void QoreProgram::deref()
-{
-   //printd(5, "QoreProgram::deref() this=%08p %d->%d\n", this, reference_count(), reference_count() - 1);
-   if (ROdereference())
-   {
-      // delete all global variables with default exception handler
-      ExceptionSink xsink;
-      clear_all(&xsink);
-      // clear thread data if base object
-      if (base_object)
-	 clearThreadData(&xsink);
-      depDeref(&xsink);
-   }
-}
 
 static inline void addProgramConstants(class Namespace *ns)
 {

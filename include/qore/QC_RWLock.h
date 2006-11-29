@@ -29,13 +29,13 @@
 #include <qore/common.h>
 #include <qore/qore_thread.h>
 #include <qore/support.h>
-#include <qore/ReferenceObject.h>
+#include <qore/AbstractPrivateData.h>
 
 extern int CID_RWLOCK;
 
 class QoreClass *initRWLockClass();
 
-class RWLock : public ReferenceObject 
+class RWLock : public AbstractPrivateData 
 {
    private:
       int readers, writers, readRequests, writeRequests;
@@ -43,8 +43,15 @@ class RWLock : public ReferenceObject
       pthread_cond_t read;
       pthread_cond_t write;
       int prefer_writers;
+
    protected:
-      inline ~RWLock();
+      virtual ~RWLock()
+      {
+	 pthread_mutex_destroy(&m);
+	 pthread_cond_destroy(&read);
+	 pthread_cond_destroy(&write);
+      }
+
    public:
       inline RWLock(int p = 0);
       inline void readLock();
@@ -54,7 +61,6 @@ class RWLock : public ReferenceObject
       inline void writeUnlock();
       inline void writeToRead();
       inline int tryWriteLock();
-      inline void deref();
       inline int numReaders() { return readers; }
 #ifdef DEBUG
       inline int numWriters() { return writers; }
@@ -68,13 +74,6 @@ inline RWLock::RWLock(int p)
    pthread_mutex_init(&m, NULL);
    pthread_cond_init(&read, NULL);
    pthread_cond_init(&write, NULL);
-}
-
-inline RWLock::~RWLock()
-{
-   pthread_mutex_destroy(&m);
-   pthread_cond_destroy(&read);
-   pthread_cond_destroy(&write);
 }
 
 inline void RWLock::readLock()
@@ -189,12 +188,6 @@ inline int RWLock::tryWriteLock()
    writers++;   
    pthread_mutex_unlock(&m);
    return 0;
-}
-
-inline void RWLock::deref()
-{
-   if (ROdereference())
-      delete this;
 }
 
 #endif // _QORE_CLASS_RWLOCK

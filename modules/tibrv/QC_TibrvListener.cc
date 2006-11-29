@@ -30,16 +30,6 @@
 
 int CID_TIBRVLISTENER;
 
-static void getTRVL(void *obj)
-{
-   ((QoreTibrvListener *)obj)->ROreference();
-}
-
-static void releaseTRVL(void *obj)
-{
-   ((QoreTibrvListener *)obj)->deref();
-}
-
 // syntax: subject, [desc, service, network, daemon] 
 void TIBRVLISTENER_constructor(class Object *self, class QoreNode *params, class ExceptionSink *xsink)
 {
@@ -72,7 +62,7 @@ void TIBRVLISTENER_constructor(class Object *self, class QoreNode *params, class
    if (xsink->isException())
       qlistener->deref();
    else
-      self->setPrivate(CID_TIBRVLISTENER, qlistener, getTRVL, releaseTRVL);
+      self->setPrivate(CID_TIBRVLISTENER, qlistener);
 
    traceout("TIBRVLISTENER_constructor");
 }

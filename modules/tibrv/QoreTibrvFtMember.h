@@ -28,7 +28,7 @@
 
 #include <qore/common.h>
 #include <qore/support.h>
-#include <qore/ReferenceObject.h>
+#include <qore/AbstractPrivateData.h>
 #include <qore/Exception.h>
 #include <qore/charset.h>
 #include <qore/Hash.h>
@@ -37,7 +37,7 @@
 
 #include <tibrv/ftcpp.h>
 
-class QoreTibrvFtMember : public ReferenceObject, public QoreTibrvTransport
+class QoreTibrvFtMember : public AbstractPrivateData, public QoreTibrvTransport
 {
    private:
       TibrvFtMember ftMember;
@@ -45,7 +45,7 @@ class QoreTibrvFtMember : public ReferenceObject, public QoreTibrvTransport
       class QoreTibrvFtMemberCallback *callback;
 
    protected:
-      inline ~QoreTibrvFtMember();
+      virtual ~QoreTibrvFtMember();
 
    public:
       QoreTibrvFtMember(char *groupname, int weight, int activeGoal, int64 heartbeat, int64 prep, int64 activation,
@@ -87,12 +87,6 @@ class QoreTibrvFtMember : public ReferenceObject, public QoreTibrvTransport
          }
          
          return count;
-      }
-
-      inline void deref()
-      {
-	 if (ROdereference())
-	    delete this;
       }
 };
 

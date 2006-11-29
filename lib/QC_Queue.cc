@@ -30,20 +30,9 @@
 
 int CID_QUEUE;
 
-static inline void getQueue(void *obj)
-{
-   ((Queue *)obj)->ROreference();
-}
-
-static inline void releaseQueue(void *obj)
-{
-   class ExceptionSink xsink;
-   ((Queue *)obj)->deref(&xsink);
-}
-
 static void QUEUE_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
-   self->setPrivate(CID_QUEUE, new Queue(), getQueue, releaseQueue);
+   self->setPrivate(CID_QUEUE, new Queue());
 }
 
 static void QUEUE_destructor(class Object *self, class Queue *tq, ExceptionSink *xsink)
@@ -53,7 +42,7 @@ static void QUEUE_destructor(class Object *self, class Queue *tq, ExceptionSink 
 
 static void QUEUE_copy(class Object *self, class Object *old, class Queue *tq, ExceptionSink *xsink)
 {
-   self->setPrivate(CID_QUEUE, new Queue(), getQueue, releaseQueue);
+   self->setPrivate(CID_QUEUE, new Queue());
 }
 
 class QoreNode *QUEUE_push(class Object *self, class Queue *tq, class QoreNode *params, ExceptionSink *xsink)

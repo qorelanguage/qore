@@ -28,19 +28,9 @@
 
 int CID_COUNTER;
 
-static void getCounter(void *obj)
-{
-   ((Counter *)obj)->ROreference();
-}
-
-static void releaseCounter(void *obj)
-{
-   ((Counter *)obj)->deref();
-}
-
 static void COUNTER_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
-   self->setPrivate(CID_COUNTER, new Counter(), getCounter, releaseCounter);
+   self->setPrivate(CID_COUNTER, new Counter());
 }
 
 static void COUNTER_destructor(class Object *self, class Counter *c, ExceptionSink *xsink)
@@ -50,7 +40,7 @@ static void COUNTER_destructor(class Object *self, class Counter *c, ExceptionSi
 
 static void COUNTER_copy(class Object *self, class Object *old, class Counter *c, ExceptionSink *xsink)
 {
-   self->setPrivate(CID_COUNTER, new Counter(), getCounter, releaseCounter);
+   self->setPrivate(CID_COUNTER, new Counter());
 }
 
 class QoreNode *COUNTER_inc(class Object *self, class Counter *c, class QoreNode *params, ExceptionSink *xsink)

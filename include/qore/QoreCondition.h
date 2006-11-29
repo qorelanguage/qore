@@ -35,24 +35,22 @@ class QoreCondition
       pthread_cond_t c;
 
    public:
-      inline QoreCondition();
-      inline ~QoreCondition();
-      inline int signal();
-      inline int broadcast();
-      inline int wait(pthread_mutex_t *m);
-      inline int wait(pthread_mutex_t *m, int timeout); // timeout in seconds
-      inline int wait(LockedObject *l) { return wait(&l->ptm_lock); }
-      inline int wait(LockedObject *l, int timeout) { return wait(&l->ptm_lock, timeout); } // timeout in seconds
+      DLLLOCAL inline QoreCondition();
+      DLLLOCAL inline ~QoreCondition()
+      {
+	 pthread_cond_destroy(&c);
+      }
+      DLLLOCAL inline int signal();
+      DLLLOCAL inline int broadcast();
+      DLLLOCAL inline int wait(pthread_mutex_t *m);
+      DLLLOCAL inline int wait(pthread_mutex_t *m, int timeout); // timeout in seconds
+      DLLLOCAL inline int wait(LockedObject *l) { return wait(&l->ptm_lock); }
+      DLLLOCAL inline int wait(LockedObject *l, int timeout) { return wait(&l->ptm_lock, timeout); } // timeout in seconds
 };
 
 inline QoreCondition::QoreCondition()
 {
    pthread_cond_init(&c, NULL);
-}
-
-inline QoreCondition::~QoreCondition()
-{
-   pthread_cond_destroy(&c);
 }
 
 inline int QoreCondition::signal()

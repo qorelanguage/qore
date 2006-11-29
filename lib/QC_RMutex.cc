@@ -30,19 +30,9 @@
 
 int CID_RMUTEX;
 
-static void getQoreRMutex(void *obj)
-{
-   ((QoreRMutex *)obj)->ROreference();
-}
-
-static void releaseQoreRMutex(void *obj)
-{
-   ((QoreRMutex *)obj)->deref();
-}
-
 static void RMUTEX_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
-   self->setPrivate(CID_RMUTEX, new QoreRMutex(), getQoreRMutex, releaseQoreRMutex);
+   self->setPrivate(CID_RMUTEX, new QoreRMutex());
 }
 
 static void RMUTEX_destructor(class Object *self, class QoreRMutex *m, ExceptionSink *xsink)
@@ -52,7 +42,7 @@ static void RMUTEX_destructor(class Object *self, class QoreRMutex *m, Exception
 
 static void RMUTEX_copy(class Object *self, class Object *old, class QoreRMutex *m, ExceptionSink *xsink)
 {
-   self->setPrivate(CID_RMUTEX, new QoreRMutex(), getQoreRMutex, releaseQoreRMutex);
+   self->setPrivate(CID_RMUTEX, new QoreRMutex());
 }
 
 class QoreNode *RMUTEX_enter(class Object *self, class QoreRMutex *m, class QoreNode *params, ExceptionSink *xsink)

@@ -34,20 +34,10 @@
 
 int CID_SSLCERTIFICATE;
 
-static void getSSLCertificate(void *obj)
-{
-   ((QoreSSLCertificate *)obj)->ROreference();
-}
-
-static void releaseSSLCertificate(void *obj)
-{
-   ((QoreSSLCertificate *)obj)->deref();
-}
-
 /*
 void createSSLCertificateObject(class Object *self, X509 *cert)
 {
-   self->setPrivate(CID_SSLCERTIFICATE, new QoreSSLCertificate(cert), getSSLCertificate, releaseSSLCertificate);
+   self->setPrivate(CID_SSLCERTIFICATE, new QoreSSLCertificate(cert));
 }
 */
 
@@ -65,7 +55,7 @@ static void SSLCERT_constructor(class Object *self, class QoreNode *params, Exce
    if (xsink->isEvent())
       qc->deref();
    else
-      self->setPrivate(CID_SSLCERTIFICATE, qc, getSSLCertificate, releaseSSLCertificate);
+      self->setPrivate(CID_SSLCERTIFICATE, qc);
 }
 
 static void SSLCERT_destructor(class Object *self, class QoreSSLCertificate *s, ExceptionSink *xsink)

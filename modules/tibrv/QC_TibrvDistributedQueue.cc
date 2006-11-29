@@ -30,16 +30,6 @@
 
 int CID_TIBRVDQ;
 
-static inline void getDQ(void *obj)
-{
-   ((QoreTibrvDistributedQueue *)obj)->ROreference();
-}
-
-static inline void releaseDQ(void *obj)
-{
-   ((QoreTibrvDistributedQueue *)obj)->deref();
-}
-
 // syntax: name, [desc, service, network, daemon] 
 void TIBRVDQ_constructor(class Object *self, class QoreNode *params, class ExceptionSink *xsink)
 {
@@ -120,7 +110,7 @@ void TIBRVDQ_constructor(class Object *self, class QoreNode *params, class Excep
    if (xsink->isException())
       qdq->deref();
    else
-      self->setPrivate(CID_TIBRVDQ, qdq, getDQ, releaseDQ);
+      self->setPrivate(CID_TIBRVDQ, qdq);
 
    traceout("TIBRVDQ_constructor");
 }

@@ -63,37 +63,17 @@ static const char* tuxfile(const char* file_name_part)
 #endif
 
 //------------------------------------------------------------------------------
-static void getTuxedoAdapter(void* obj)
-{
-  ((QoreTuxedoAdapter*)obj)->ROreference();
-}
-
-static void releaseTuxedoAdapter(void* obj)
-{
-  ((QoreTuxedoAdapter*)obj)->deref();
-}
 
 #ifdef DEBUG
-//------------------------------------------------------------------------------
-static void getTuxedoTest(void* obj)
-{
-  ((QoreTuxedoTest*)obj)->ROreference();
-}
-
-static void releaseTuxedoTest(void* obj)
-{
-  ((QoreTuxedoTest*)obj)->deref();
-}
 static void TUXEDOTEST_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
 {
   QoreTuxedoTest* tst = new QoreTuxedoTest;
-  self->setPrivate(CID_TUXEDOTEST, tst, getTuxedoTest, releaseTuxedoTest);
+  self->setPrivate(CID_TUXEDOTEST, tst);
 }
 static void TUXEDOTEST_destructor(Object *self, QoreTuxedoTest* test, ExceptionSink *xsink)
 {
   test->deref();
 }
-
 #endif
 
 //------------------------------------------------------------------------------
@@ -120,7 +100,7 @@ static void TUXEDO_constructor(Object *self, QoreNode *params, ExceptionSink *xs
     return;
   }
 
-  self->setPrivate(CID_TUXEDOADAPTER, adapter, getTuxedoAdapter, releaseTuxedoAdapter);
+  self->setPrivate(CID_TUXEDOADAPTER, adapter);
   traceout(err_name);
 }
 

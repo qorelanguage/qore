@@ -31,10 +31,12 @@ class QoreClass *initSocketClass();
 extern int CID_SOCKET;
 
 #include <qore/QoreSocket.h>
-#include <qore/ReferenceObject.h>
+#include <qore/AbstractPrivateData.h>
 #include <qore/LockedObject.h>
+#include <qore/QC_SSLCertificate.h>
+#include <qore/QC_SSLPrivateKey.h>
 
-class mySocket : public ReferenceObject, public LockedObject
+class mySocket : public AbstractPrivateData, public LockedObject
 {
    private:
       class QoreSocket *socket;
@@ -54,7 +56,15 @@ class mySocket : public ReferenceObject, public LockedObject
       }
 
    protected:
-      inline ~mySocket();
+      virtual ~mySocket()
+      {
+	 if (cert)
+	    cert->deref();
+	 if (pk)
+	    pk->deref();
+	 
+	 delete socket;
+      }
 
    public:
       inline mySocket()
@@ -474,21 +484,7 @@ class mySocket : public ReferenceObject, public LockedObject
       // p must be already referenced before this call
       inline void setPrivateKey(class QoreSSLPrivateKey *p);
 
-      inline void deref();
 };
-
-#include <qore/QC_SSLCertificate.h>
-#include <qore/QC_SSLPrivateKey.h>
-
-inline mySocket::~mySocket()
-{
-   if (cert)
-      cert->deref();
-   if (pk)
-      pk->deref();
-   
-   delete socket;
-}
 
 inline int mySocket::connectINETSSL(char *host, int port, class ExceptionSink *xsink)
 {
@@ -553,12 +549,6 @@ inline void mySocket::setPrivateKey(class QoreSSLPrivateKey *p)
       pk->deref();
    pk = p;
    unlock();
-}
-
-inline void mySocket::deref()
-{
-   if (ROdereference())
-      delete this;
 }
 
 #endif // _QORE_CLASS_QORESOCKET_H

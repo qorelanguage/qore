@@ -21,6 +21,7 @@
 */
 
 #include <qore/config.h>
+#include <qore/common.h>
 #include <qore/Function.h>
 #include <qore/QoreNode.h>
 #include <qore/Statement.h>
@@ -31,9 +32,250 @@
 #include <qore/params.h>
 #include <qore/CallStack.h>
 #include <qore/QoreClass.h>
+#include <qore/ArgvStack.h>
+#include <qore/QoreType.h>
+#include <qore/QoreProgram.h>
+#include <qore/VRMutex.h>
+#include <qore/Operator.h>
+#include <qore/Object.h>
+#include <qore/NamedScope.h>
 
 #include <stdio.h>
 #include <ctype.h>
+
+static inline void param_error()
+{
+   parse_error("parameter list contains non-variable reference expressions.");
+}
+
+static inline void push_argv(lvh_t argvid)
+{
+   //tracein("push_argv()");
+   class ArgvStack *as = new ArgvStack(argvid); 
+   as->next = get_argvstack();
+   update_argvstack(as);
+   //traceout("push_argv()");
+}
+
+static inline void pop_argv()
+{
+   //tracein("pop_argv()");
+   ArgvStack *oldargs = get_argvstack();
+   update_argvstack(oldargs->next);
+   delete oldargs;
+   //traceout("pop_argv()");
+}
+
+inline SelfFunctionCall::~SelfFunctionCall() 
+{ 
+   if (name) 
+      free(name); 
+   if (ns)
+      delete ns;
+}
+
+inline class QoreNode *SelfFunctionCall::eval(class QoreNode *args, class ExceptionSink *xsink)
+{
+   class Object *self = getStackObject();
+   if (func)
+      return func->eval(self, args, xsink);
+   // otherwise exec copy method
+   return self->getClass()->execCopy(self, xsink);
+}
+
+// called at parse time
+void SelfFunctionCall::resolve()
+{
+#ifdef DEBUG
+   if (ns)
+      printd(5, "SelfFunctionCall:resolve() resolving base class call '%s'\n", ns->ostr);
+   else 
+      printd(5, "SelfFunctionCall:resolve() resolving '%s'\n", name ? name : "(null)");
+   if (func)
+      run_time_error("SelfFunctionCall:resolve() already resolved %s (%08p)", func->getName(), func);
+#endif
+   if (name)
+   {
+      // FIXME: warn if argument list passed (will be ignored)
+
+      // copy method calls will be recognized by func = NULL
+      if (!strcmp(name, "copy"))
+      {
+	 free(name);
+	 name = NULL;
+	 printd(5, "SelfFunctionCall:resolve() resolved to copy constructor\n");
+	 return;
+      }
+      func = getParseClass()->resolveSelfMethod(name);
+   }
+   else
+      func = getParseClass()->resolveSelfMethod(ns);
+   if (func)
+   {
+      printd(5, "SelfFunctionCall:resolve() resolved '%s' to %08p\n", func->getName(), func);
+      if (name)
+      {
+	 free(name);
+	 name = NULL;
+      }
+      else if (ns)
+      {
+	 delete ns;
+	 ns = NULL;
+      }
+   }
+}
+
+class QoreNode *ImportedFunctionCall::eval(class QoreNode *args, class ExceptionSink *xsink)
+{
+   return pgm->callFunction(func, args, xsink);
+}
+
+FunctionCall::FunctionCall(class UserFunction *u, class QoreNode *a)
+{
+   type = FC_USER;
+   f.ufunc = u;
+   args = a;
+}
+
+FunctionCall::FunctionCall(class BuiltinFunction *b, class QoreNode *a)
+{
+   type = FC_BUILTIN;
+   f.bfunc = b;
+   args = a;
+}
+
+FunctionCall::FunctionCall(class QoreNode *a, char *name)
+{
+   printd(5, "FunctionCall::FunctionCall(a=%08p, name=%s) FC_SELF this=%08p\n", a, name, this);
+   type = FC_SELF;
+   f.sfunc = new SelfFunctionCall(name);
+   args = a;
+}
+
+FunctionCall::FunctionCall(class QoreNode *a, class NamedScope *n)
+{
+   printd(5, "FunctionCall::FunctionCall(a=%08p, n=%s) FC_SELF this=%08p\n", a, n->ostr, this);
+   type = FC_SELF;
+   f.sfunc = new SelfFunctionCall(n);
+   args = a;
+}
+
+FunctionCall::FunctionCall(class Method *m, class QoreNode *a)
+{
+   printd(5, "FunctionCall::FunctionCall(a=%08p, method=%08p %s) FC_SELF this=%08p\n", a, m, m->getName(), this);
+   type = FC_SELF;
+   f.sfunc = new SelfFunctionCall(m);
+   args = a;
+}
+
+FunctionCall::FunctionCall(char *name, class QoreNode *a)
+{
+   type = FC_UNRESOLVED;
+   f.c_str = name;
+   args = a;
+}
+
+FunctionCall::FunctionCall(class QoreProgram *p, class UserFunction *u, class QoreNode *a)
+{
+   type = FC_IMPORTED;
+   f.ifunc = new ImportedFunctionCall(p, u);
+   args = a;
+}
+
+FunctionCall::~FunctionCall()
+{
+   printd(5, "FunctionCall::~FunctionCall(): type=%d args=%08p (%s)\n",
+	  type, args, (type == FC_UNRESOLVED && f.c_str) ? f.c_str : "(null)");
+
+   // there could be an object here in the case of a background expression
+   if (args)
+   {
+      ExceptionSink xsink;
+      args->deref(&xsink);
+   }
+
+   switch (type)
+   {
+      case FC_USER:
+      case FC_BUILTIN:
+	 break;
+      case FC_SELF:
+	 delete f.sfunc;
+	 break;
+      case FC_METHOD:
+      case FC_UNRESOLVED:
+	 if (f.c_str)
+	    free(f.c_str);
+	 break;
+      case FC_IMPORTED:
+	 delete f.ifunc;
+	 break;
+   }
+}
+
+void FunctionCall::parseMakeMethod()
+{
+   type = FC_METHOD;
+}
+
+// makes a "new" operator call from a function call
+class QoreNode *FunctionCall::parseMakeNewObject()
+{
+   class QoreNode *rv = new QoreNode(new NamedScope(f.c_str), args);
+   f.c_str = NULL;
+   args = NULL;
+   return rv;
+}
+
+class QoreNode *FunctionCall::eval(class ExceptionSink *xsink)
+{
+   switch (type)
+   {
+      case FC_USER:
+	 return f.ufunc->eval(args, NULL, xsink);
+      case FC_BUILTIN:
+	 return f.bfunc->eval(args, xsink);
+      case FC_SELF:
+	 return f.sfunc->eval(args, xsink);
+      case FC_IMPORTED:
+	 return f.ifunc->eval(args, xsink);
+   }
+   return NULL;
+}
+
+int FunctionCall::existsUserParam(int i) const
+{
+   if (type == FC_USER)
+      return f.ufunc->params->num_params > i;
+   if (type == FC_IMPORTED)
+      return f.ifunc->func->params->num_params > i;
+   return 1;
+}
+
+int FunctionCall::getType() const
+{
+   return type;
+}
+
+char *FunctionCall::getName() const
+{
+   switch (type)
+   {
+      case FC_USER:
+	 return f.ufunc->name;
+      case FC_BUILTIN:
+	 return f.bfunc->name;
+      case FC_SELF:
+	 return f.sfunc->name;
+      case FC_IMPORTED:
+	 return f.ifunc->func->name;
+      case FC_UNRESOLVED:
+      case FC_METHOD:
+	 return f.c_str ? f.c_str : (char *)"copy";
+   }
+   return NULL;   
+}
 
 Paramlist::Paramlist(class QoreNode *params)
 {
@@ -75,6 +317,48 @@ Paramlist::Paramlist(class QoreNode *params)
       }
       params->deref(NULL);
    }
+}
+
+Paramlist::~Paramlist()
+{
+   for (int i = 0; i < num_params; i++)
+      free(names[i]);
+   if (names)
+      delete [] names;
+   if (ids)
+      delete [] ids;
+}
+
+UserFunction::UserFunction(char *nme, class Paramlist *parms, class StatementBlock *b, bool synced)
+{
+   next = NULL;
+   synchronized = synced;
+   if (synced)
+      gate = new VRMutex();
+# ifdef DEBUG
+   else
+      gate = NULL;
+# endif
+   name = nme;
+   params = parms;
+   statements = b;
+}
+
+UserFunction::~UserFunction()
+{
+   printd(5, "UserFunction::~UserFunction() deleting %s\n", name);
+   if (synchronized)
+      delete gate;
+   free(name);
+   delete params;
+   if (statements)
+      delete statements;
+}
+
+void UserFunction::deref()
+{
+   if (ROdereference())
+      delete this;
 }
 
 BuiltinFunction::BuiltinFunction(char *nme, q_func_t f, int typ)
@@ -634,21 +918,4 @@ class QoreNode *doPartialEval(class QoreNode *n, bool *is_self_ref, class Except
 	 (*is_self_ref) = true;
    }
    return rv;
-}
-
-void print_node(FILE *fp, class QoreNode *node)
-{
-   class QoreNode *n_node;
-
-   printd(5, "print_node() node=%08p (%s)\n", node, node ? node->type->name : "(null)");
-   if (!node)
-      return;
-   if (node->type != NT_STRING)
-   {
-      n_node = node->convert(NT_STRING);
-      fputs(n_node->val.String->getBuffer(), fp);
-      n_node->deref(NULL);
-      return;
-   }
-   fputs(node->val.String->getBuffer(), fp);
 }

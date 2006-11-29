@@ -28,18 +28,18 @@
 
 #include <qore/common.h>
 #include <qore/support.h>
-#include <qore/ReferenceObject.h>
+#include <qore/AbstractPrivateData.h>
 #include <qore/Exception.h>
 #include <qore/charset.h>
 
 #include "QoreTibrvCmTransport.h"
 
-class QoreTibrvCmSender : public ReferenceObject, public QoreTibrvCmTransport
+class QoreTibrvCmSender : public AbstractPrivateData, public QoreTibrvCmTransport
 {
    private:
 
    protected:
-      ~QoreTibrvCmSender() {}
+      virtual ~QoreTibrvCmSender() {}
 
    public:
       inline QoreTibrvCmSender(char *cmName, bool requestOld, char *ledgerName, bool syncLedger, char *relayAgent, 
@@ -51,12 +51,6 @@ class QoreTibrvCmSender : public ReferenceObject, public QoreTibrvCmTransport
 
       // timeout and time_limit for certified delivery in ms
       class Hash *sendSubjectWithSyncReply(char *subject, class Hash *data, int64 timeout, int64 time_limit, class ExceptionSink *xsink);
-
-      inline void deref()
-      {
-	 if (ROdereference())
-	    delete this;
-      }
 };
 
 #endif

@@ -1,3 +1,5 @@
+#include "parser.cc"
+#include "scanner.cc"
 #include "Operator.cc"
 #include "QoreNode.cc"
 #include "Function.cc"

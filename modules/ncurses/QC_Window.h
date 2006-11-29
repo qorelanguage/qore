@@ -24,7 +24,7 @@
 
 #define _QORE_NCURSES_WINDOW_H
 
-#include <qore/ReferenceObject.h>
+#include <qore/AbstractPrivateData.h>
 #include <qore/Exception.h>
 #include <qore/LockedObject.h>
 
@@ -35,14 +35,14 @@ extern class LockedObject lUpdate, lGetch;
 extern int CID_Window;
 class QoreClass *initWindowClass();
 
-class Window : public ReferenceObject, public LockedObject {
+class Window : public AbstractPrivateData, public LockedObject {
    private:
 
    protected:
       WINDOW *win;
       int bg, fg;
 
-      ~Window() 
+      virtual ~Window() 
       {
 	 if (win)
 	    delwin(win);
@@ -387,17 +387,6 @@ class Window : public ReferenceObject, public LockedObject {
 	 int rc = ::nodelay(win, b);
 	 unlock();
 	 return rc;
-      }
-
-      inline void ref()
-      {
-	 ROreference();
-      }
-
-      inline void deref()
-      {
-	 if (ROdereference())
-	    delete this;
       }
 };
 

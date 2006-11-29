@@ -27,7 +27,7 @@
 extern int CID_SSLPRIVATEKEY;
 class QoreClass *initSSLPrivateKeyClass();
 
-#include <qore/ReferenceObject.h>
+#include <qore/AbstractPrivateData.h>
 #include <qore/Exception.h>
 
 #include <openssl/ssl.h>
@@ -35,13 +35,13 @@ class QoreClass *initSSLPrivateKeyClass();
 #include <stdio.h>
 #include <errno.h>
 
-class QoreSSLPrivateKey : public ReferenceObject
+class QoreSSLPrivateKey : public AbstractPrivateData
 {
    private:
       EVP_PKEY *pk;
 
    protected:
-      inline ~QoreSSLPrivateKey()
+      virtual ~QoreSSLPrivateKey()
       {
 	 if (pk)
 	    EVP_PKEY_free(pk);
@@ -158,11 +158,6 @@ class QoreSSLPrivateKey : public ReferenceObject
 	 h->setKeyValue("version", new QoreNode(getVersion()), NULL);
 	 h->setKeyValue("bitLength", new QoreNode(getBitLength()), NULL);
 	 return h;
-      }
-      inline void deref()
-      {
-	 if (ROdereference())
-	    delete this;
       }
 };
 

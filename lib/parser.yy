@@ -61,7 +61,26 @@ int yywrap()
 
 extern class Operator **ops;
 
-// copies keys added, deletes them in the destructor                                                                                                                                
+// copies keys added, deletes them in the destructor
+
+static inline class QoreNode *splice_expressions(class QoreNode *a1, class QoreNode *a2)
+{
+   //tracein("splice_expressions()");
+   if (a1->type == NT_LIST)
+   {
+      //printd(5, "LIST x\n");
+      a1->val.list->push(a2);
+      return a1;
+   }
+   //printd(5, "NODE x\n");
+   class QoreNode *nl = new QoreNode(NT_LIST);
+   nl->val.list = new List(1);
+   nl->val.list->push(a1);
+   nl->val.list->push(a2);
+   //traceout("splice_expressions()");
+   return nl;
+}
+
 class MemberList : private strset_t
 {
    public:
@@ -140,9 +159,9 @@ static QoreNode *process_dot(class QoreNode *l, class QoreNode *r)
       r->deref(NULL);
       return rv;
    }
-   else if (r->type == NT_FUNCTION_CALL && r->val.fcall->type == FC_UNRESOLVED)
+   else if (r->type == NT_FUNCTION_CALL && r->val.fcall->getType() == FC_UNRESOLVED)
    {
-      r->val.fcall->type = FC_METHOD;
+      r->val.fcall->parseMakeMethod();
       return makeTree(OP_OBJECT_FUNC_REF, l, r);
    }
 
@@ -1645,9 +1664,7 @@ exp:    scalar
 	}
 	| TOK_NEW function_call      
         {
-	   $$ = makeTree(OP_NEW, new QoreNode(new NamedScope($2->val.fcall->f.c_str), $2->val.fcall->args), NULL); 
-	   $2->val.fcall->f.c_str = NULL;
-	   $2->val.fcall->args = NULL;	   
+	   $$ = makeTree(OP_NEW, $2->val.fcall->parseMakeNewObject(), NULL);
 	   $2->deref(NULL);
 	   // see if new can be used
 	   if (checkParseOption(PO_NO_NEW))

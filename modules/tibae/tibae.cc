@@ -217,17 +217,6 @@ const char *MStringData::data(char const *type, unsigned int *p) const
 }
 */
 
-static void getTA(void *obj)
-{
-   ((QoreApp *)obj)->ROreference();
-}
-
-static void releaseTA(void *obj)
-{
-   class ExceptionSink xsink;
-   ((QoreApp *)obj)->deref(&xsink);
-}
-
 // usage: new TibcoAdapter(session-name, properties, classlist, [, service, network, daemon])
 void TIBAE_constructor(class Object *self, class QoreNode *params, class ExceptionSink *xsink)
 {
@@ -300,7 +289,7 @@ void TIBAE_constructor(class Object *self, class QoreNode *params, class Excepti
       traceout("TIBAE_constructor");
       return;
    }
-   self->setPrivate(CID_TIBAE, myQoreApp, getTA, releaseTA);
+   self->setPrivate(CID_TIBAE, myQoreApp);
    printd(5, "TIBAE_constructor() this=%08p myQoreApp=%08p\n", self, myQoreApp);
    traceout("TIBAE_constructor");
 }

@@ -626,3 +626,20 @@ char *make_class_name(char *str)
    }
    return cn;
 }
+
+void print_node(FILE *fp, class QoreNode *node)
+{
+   class QoreNode *n_node;
+
+   printd(5, "print_node() node=%08p (%s)\n", node, node ? node->type->name : "(null)");
+   if (!node)
+      return;
+   if (node->type != NT_STRING)
+   {
+      n_node = node->convert(NT_STRING);
+      fputs(n_node->val.String->getBuffer(), fp);
+      n_node->deref(NULL);
+      return;
+   }
+   fputs(node->val.String->getBuffer(), fp);
+}

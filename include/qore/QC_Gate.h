@@ -27,26 +27,16 @@
 #define _QORE_CLASS_GATE_H
 
 #include <qore/Gate.h>
-#include <qore/ReferenceObject.h>
-
-class QoreGate : public ReferenceObject, public Gate
-{
-   protected:
-      inline ~QoreGate() {}
-
-   public:
-      inline void deref();
-};
+#include <qore/AbstractPrivateData.h>
 
 extern int CID_GATE;
 
 class QoreClass *initGateClass();
 
-inline void QoreGate::deref()
+class QoreGate : public AbstractPrivateData, public Gate
 {
-   if (ROdereference())
-      delete this;
-}
-
+   protected:
+      virtual ~QoreGate() {}
+};
 
 #endif // _QORE_CLASS_GATE_H

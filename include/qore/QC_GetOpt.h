@@ -25,23 +25,16 @@
 #define _QORE_CLASS_GETOPT_H
 
 #include <qore/QoreGetOpt.h>
-#include <qore/ReferenceObject.h>
+#include <qore/AbstractPrivateData.h>
 
 extern int CID_GETOPT;
 
 class QoreClass *initGetOptClass();
 
-class GetOpt : public QoreGetOpt, public ReferenceObject
+class GetOpt : public AbstractPrivateData, public QoreGetOpt
 {
    protected:
-      ~GetOpt() {}
-
-   public:
-      inline void deref()
-      {
-	 if (ROdereference())
-	    delete this;
-      }
+      virtual ~GetOpt() {}
 };
 
 #endif // _QORE_CLASS_GETOPT_H

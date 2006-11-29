@@ -55,19 +55,9 @@ static inline class QoreNode *doReadResult(int rc, int64 val, char *method_name,
    return rv;
 }
 
-static void getSocket(void *obj)
-{
-   ((mySocket *)obj)->ROreference();
-}
-
-static void releaseSocket(void *obj)
-{
-   ((mySocket *)obj)->deref();
-}
-
 static void SOCKET_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
-   self->setPrivate(CID_SOCKET, new mySocket(), getSocket, releaseSocket);
+   self->setPrivate(CID_SOCKET, new mySocket());
 }
 
 static void SOCKET_destructor(class Object *self, void *obj, ExceptionSink *xsink)
@@ -77,7 +67,7 @@ static void SOCKET_destructor(class Object *self, void *obj, ExceptionSink *xsin
 
 static void SOCKET_copy(class Object *self, class Object *old, void *obj, ExceptionSink *xsink)
 {
-   self->setPrivate(CID_SOCKET, new mySocket(), getSocket, releaseSocket);
+   self->setPrivate(CID_SOCKET, new mySocket());
 }
 
 // currently hardcoded to SOCK_STREAM
@@ -164,7 +154,7 @@ static QoreNode *SOCKET_accept(class Object *self, class mySocket *s, class Qore
 
    // ensure that a socket object is returned (and not a subclass)
    Object *ns = new Object(self->getClass(CID_SOCKET), getProgram());
-   ns->setPrivate(CID_SOCKET, n, getSocket, releaseSocket);
+   ns->setPrivate(CID_SOCKET, n);
    source.setAll(ns, xsink);
       
    return new QoreNode(ns);
@@ -183,7 +173,7 @@ static QoreNode *SOCKET_acceptSSL(class Object *self, class mySocket *s, class Q
 
    // ensure that a socket object is returned (and not a subclass)
    Object *ns = new Object(self->getClass(CID_SOCKET), getProgram());
-   ns->setPrivate(CID_SOCKET, n, getSocket, releaseSocket);
+   ns->setPrivate(CID_SOCKET, n);
    source.setAll(ns, xsink);
    
    return new QoreNode(ns);

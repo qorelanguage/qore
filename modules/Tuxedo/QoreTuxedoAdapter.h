@@ -58,19 +58,15 @@ class Hash;
 
 //-----------------------------------------------------------------------------
 #ifdef DEBUG
-class QoreTuxedoTest : public ReferenceObject
+class QoreTuxedoTest : public AbstractPrivateData
 {
 public:
-  void deref() {
-    if (ROdereference()) {
-      delete this;
-    }
-  }
+      virtual ~QoreTuxedoTest() { }
 };
 #endif
 
 //------------------------------------------------------------------------------
-class QoreTuxedoAdapter : public ReferenceObject
+class QoreTuxedoAdapter : public AbstractPrivateData
 {
 public:  // public for now so the QC_TuxedoAdapter has access to it
 
@@ -151,8 +147,7 @@ public:
 #ifdef DEBUG
   QoreTuxedoAdapter(); // just for testing
 #endif
-  ~QoreTuxedoAdapter();
-
+  virtual ~QoreTuxedoAdapter();
 
   int switchToSavedContext() const;
   void setStringEncoding(char* name);
@@ -172,11 +167,6 @@ public:
 
   void remove_pending_async_call(int handle);
 
-  void deref() { 
-    if (ROdereference()) {
-      delete this;
-    }
-  }
 };
 
 #endif
