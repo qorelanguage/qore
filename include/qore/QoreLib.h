@@ -26,6 +26,13 @@
 
 #include <qore/config.h>
 #include <qore/common.h>
+#include <qore/LockedObject.h>
+#include <qore/StringList.h>
+
+#include <time.h>
+#include <string.h>
+#include <strings.h>
+#include <stdlib.h>
 
 static inline int64 i8LSB(int64 i);
 static inline int   i4LSB(int i);
@@ -37,13 +44,6 @@ static inline short LSBi2(short i);
 
 static inline int64 i8MSB(int64 i);
 static inline int64 MSBi8(int64 i);
-
-#include <qore/LockedObject.h>
-#include <qore/StringList.h>
-
-#include <time.h>
-#include <string.h>
-#include <strings.h>
 
 #ifndef HAVE_LOCALTIME_R
 extern class LockedObject lck_localtime;
@@ -241,29 +241,38 @@ class featureList : public charPtrList
       featureList()
       {
 	 // register default features
-	 push_back("sql");
-	 push_back("threads");
-	 push_back("xml");
+	 push_back(strdup("sql"));
+	 push_back(strdup("threads"));
+	 push_back(strdup("xml"));
 #ifdef QORE_DEBUG
-	 push_back("debug");
+	 push_back(strdup("debug"));
 #endif
 #ifdef QORE_MONOLITHIC
 # ifdef NCURSES
-	 push_back("ncurses");
+	 push_back(strdup("ncurses"));
 # endif
 # ifdef ORACLE
-	 push_back("oracle");
+	 push_back(strdup("oracle"));
 # endif
 # ifdef QORE_MYSQL
-	 push_back("mysql");
+	 push_back(strdup("mysql"));
 # endif
 # ifdef TIBRV
-	 push_back("tibrv");
+	 push_back(strdup("tibrv"));
 # endif
 # ifdef TIBAE
-	 push_back("tibae");
+	 push_back(strdup("tibae"));
 # endif
 #endif
+      }
+      ~featureList()
+      {
+	 featureList::iterator i;
+	 while ((i = begin()) != end())
+	 {
+	    free(*i);
+	    erase(i);
+	 }
       }
 };
 

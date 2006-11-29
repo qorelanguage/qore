@@ -243,7 +243,7 @@ Object::~Object()
 class QoreNode *Object::evalBuiltinMethodWithPrivateData(class BuiltinMethod *meth, class QoreNode *args, class ExceptionSink *xsink)
 {
    // get referenced object
-   class KeyNode *kn = getReferencedPrivateDataNode(meth->myclass->getID());
+   class KeyNode *kn = getReferencedPrivateDataNode(meth->myclass->getIDForMethod());
    
    if (kn)
    {

@@ -218,8 +218,8 @@ void ModuleManager::init(bool se)
 	       if (show_errors)
 		  fprintf(stderr, "error loading %s\n", errstr->getBuffer());
 	       delete errstr;
+	       free(name);
 	    }
-	    free(name);
 	 }
       }
       else

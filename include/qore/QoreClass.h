@@ -166,11 +166,19 @@ class BCNode
 	 hasargs = false;
 	 priv = p;
       }
+      DLLLOCAL inline BCNode(class QoreClass *qc, class QoreNode *xargs = NULL)
+      {
+	 cname = NULL;
+	 cstr = NULL;
+	 sclass = qc;
+	 args = xargs;
+	 hasargs = xargs ? true : false;
+	 priv = false;
+      }
       DLLLOCAL ~BCNode();
 };
 
-//typedef safe_dslist<class BCNode *> bclist_t;
-typedef std::list<class BCNode *> bclist_t;
+typedef safe_dslist<class BCNode *> bclist_t;
 
 //  BCList
 //  linked list of base classes, constructors called head->tail, 
@@ -191,6 +199,7 @@ class BCList : public ReferenceObject, public bclist_t
       class BCSMList sml;
 
       DLLLOCAL BCList(class BCNode *n);
+      DLLLOCAL inline BCList();
       DLLLOCAL inline void parseInit(class QoreClass *thisclass, class BCAList *bcal);
       DLLLOCAL inline class Method *resolveSelfMethod(char *name);
       DLLLOCAL inline class Method *findMethod(char *name);
@@ -216,7 +225,9 @@ class QoreClass{
       hm_method_t hm, hm_pending;  // method maps
       strset_t pmm, pending_pmm;   // private member lists (sets)
       class Method *system_constructor, *constructor, *destructor, *copyMethod, *methodGate, *memberGate;
-      int classID;                 // class ID
+      int classID,                 // class ID
+	 methodID;                 // for subclasses of builtin classes that will not have their own private data, 
+                                   //   instead they will get the private data from this class
       bool sys, initialized;       // system class?, is initialized?
       int domain;                  // capabilities of builtin class to use in the context of parse restrictions
       class ReferenceObject nref;  // namespace references
@@ -266,6 +277,13 @@ class QoreClass{
       DLLEXPORT bool hasMemberGate() const;
       DLLEXPORT int getDomain() const;
       DLLEXPORT char *getName() const;
+      // make a builtin class a child of a another builtin class, private inheritance makes no sense
+      // (there would be too much overhead to use user-level qore interfaces to call private methods)
+      // but base class constructor arguments can be given
+      DLLEXPORT void addBuiltinBaseClass(class QoreClass *qc, class QoreNode *xargs = NULL);
+      // this method will do the same as above but will also ensure that the given class' private data
+      // will be used in all object methods - in this case the class cannot have any private data
+      DLLEXPORT void addDefaultBuiltinBaseClass(class QoreClass *qc, class QoreNode *xargs = NULL);
 
       DLLLOCAL QoreClass();
       DLLLOCAL void addMethod(class Method *f);
@@ -294,6 +312,7 @@ class QoreClass{
       DLLLOCAL void parseInit();
       DLLLOCAL void parseCommit();
       DLLLOCAL void parseRollback();
+      DLLLOCAL int getIDForMethod() const;
 };
 
 #endif // _QORE_QORECLASS_H

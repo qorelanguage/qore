@@ -39,6 +39,7 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <assert.h>
 
 // global class ID sequence
 DLLLOCAL class Sequence classIDSeq;
@@ -73,13 +74,14 @@ typedef std::map<class QoreClass *, class BCEANode *, ltqc> bceamap_t;
  */
 class BCEAList : public bceamap_t
 {
-protected:
-   DLLLOCAL inline ~BCEAList() { }
+   protected:
+      DLLLOCAL inline ~BCEAList() { }
    
-public:
-   DLLLOCAL inline void deref(class ExceptionSink *xsink);
-   DLLLOCAL inline void add(class QoreClass *qc, class QoreNode *arg, class ExceptionSink *xsink);
-   DLLLOCAL inline class QoreNode *findArgs(class QoreClass *qc, bool *aexeced);
+   public:
+      DLLLOCAL inline void deref(class ExceptionSink *xsink);
+      // evaluates arguments, returns -1 if an exception was thrown
+      DLLLOCAL inline int add(class QoreClass *qc, class QoreNode *arg, class ExceptionSink *xsink);
+      DLLLOCAL inline class QoreNode *findArgs(class QoreClass *qc, bool *aexeced);
 };
 
 inline BCEANode::BCEANode(class QoreNode *arg)
@@ -114,15 +116,18 @@ inline class QoreNode *BCEAList::findArgs(class QoreClass *qc, bool *aexeced)
    return NULL;
 }
 
-inline void BCEAList::add(class QoreClass *qc, class QoreNode *arg, class ExceptionSink *xsink)
+inline int BCEAList::add(class QoreClass *qc, class QoreNode *arg, class ExceptionSink *xsink)
 {
    // see if class already exists in the list
    bceamap_t::iterator i = find(qc);
    if (i != end())
-      return;
-   
+      return 0;
+
    // evaluate and save arguments
    insert(pair<QoreClass *, BCEANode*>(qc, new BCEANode(arg ? arg->eval(xsink) : NULL)));
+   if (xsink->isEvent())
+      return -1;
+   return 0;
 }
 
 inline void BCEAList::deref(class ExceptionSink *xsink)
@@ -178,10 +183,13 @@ BCNode::~BCNode()
       args->deref(NULL);
 }
 
-BCList::BCList(class BCNode *n)
+BCList::BCList(class BCNode *n) : init(false)
 {
    push_back(n);
-   init = false;
+}
+
+inline BCList::BCList() : init(false)
+{
 }
 
 inline BCList::~BCList()
@@ -216,16 +224,21 @@ inline void BCList::parseInit(class QoreClass *cls, class BCAList *bcal)
    printd(5, "BCList::parseInit(%s) this=%08p empty=%d, bcal=%08p\n", cls->getName(), this, empty(), bcal);
    for (bclist_t::iterator i = begin(); i != end(); i++)
    {
-      if ((*i)->cname)
-      {
-	 (*i)->sclass = getRootNS()->parseFindScopedClass((*i)->cname);
-	 printd(5, "BCList::parseInit() %s inheriting %s (%08p)\n", cls->getName(), (*i)->cname->ostr, (*i)->sclass);
-      }
-      else
-      {
-	 (*i)->sclass = getRootNS()->parseFindClass((*i)->cstr);
-	 printd(5, "BCList::parseInit() %s inheriting %s (%08p)\n", cls->getName(), (*i)->cstr, (*i)->sclass);
-      }
+      if (!(*i)->sclass)
+	 if ((*i)->cname)
+	 {
+	    (*i)->sclass = getRootNS()->parseFindScopedClass((*i)->cname);
+	    printd(5, "BCList::parseInit() %s inheriting %s (%08p)\n", cls->getName(), (*i)->cname->ostr, (*i)->sclass);
+	    delete (*i)->cname;
+	    (*i)->cname = NULL;
+	 }
+	 else
+	 {
+	    (*i)->sclass = getRootNS()->parseFindClass((*i)->cstr);
+	    printd(5, "BCList::parseInit() %s inheriting %s (%08p)\n", cls->getName(), (*i)->cstr, (*i)->sclass);
+	    free((*i)->cstr);
+	    (*i)->cstr = NULL;
+	 }
       // recursively add base classes to special method list
       if ((*i)->sclass)
       {
@@ -351,14 +364,8 @@ inline void BCList::execConstructorsWithArgs(class Object *o, class BCEAList *bc
    // if there are base class constructor arguments that haven't already been overridden
    // by a base class constructor argument specification in a subclass, evaluate them now
    for (bclist_t::iterator i = begin(); i != end(); i++)
-   {
-      if ((*i)->hasargs)
-      {
-	 bceal->add((*i)->sclass, (*i)->args, xsink);
-	 if (xsink->isEvent())
+      if ((*i)->hasargs && bceal->add((*i)->sclass, (*i)->args, xsink))
 	    return;
-      }
-   }
    execConstructors(o, bceal, xsink);
 }
 
@@ -503,6 +510,11 @@ int QoreClass::getID() const
    return classID; 
 }
 
+int QoreClass::getIDForMethod() const
+{ 
+   return methodID;
+}
+
 bool QoreClass::isSystem() const
 { 
    return sys;
@@ -540,6 +552,21 @@ inline Method *QoreClass::parseFindMethod(char *nme)
       return i->second;
 
    return NULL;
+}
+
+void QoreClass::addBuiltinBaseClass(class QoreClass *qc, class QoreNode *xargs)
+{
+   if (!scl)
+      scl = new BCList();
+   scl->push_back(new BCNode(qc, xargs));
+}
+
+void QoreClass::addDefaultBuiltinBaseClass(class QoreClass *qc, class QoreNode *xargs)
+{
+   addBuiltinBaseClass(qc, xargs);
+   // make sure no methodID has already been assigned
+   assert(methodID == classID);
+   methodID = qc->classID;
 }
 
 void QoreClass::setSystemConstructor(q_constructor_t m)
@@ -606,7 +633,7 @@ inline bool Method::inMethod(class Object *self) const
 inline void Method::evalSystemConstructor(Object *self, QoreNode *args, class BCList *bcl, class BCEAList *bceal, ExceptionSink *xsink)
 {
    // type must be OTF_BUILTIN
-   func.builtin->evalSystemConstructor(self, args, xsink);
+   func.builtin->evalSystemConstructor(self, args, bcl, bceal, xsink);
 }
 
 inline void Method::evalSystemDestructor(class Object *self, class ExceptionSink *xsink)
@@ -614,7 +641,9 @@ inline void Method::evalSystemDestructor(class Object *self, class ExceptionSink
    // get pointer to private data object from class ID of base type
    void *ptr = self->getAndClearPrivateData(func.builtin->myclass->getID());
    //printd(5, "Method::evalSystemDestructor() class=%s (%08p) id=%d ptr=%08p\n", func.builtin->myclass->getName(), func.builtin->myclass, func.builtin->myclass->getID(), ptr);
-   func.builtin->evalSystemDestructor(self, ptr, xsink);
+   // NOTE: ptr may be null for builtin subclasses without private data
+   if (ptr)
+      func.builtin->evalSystemDestructor(self, ptr, xsink);
 }
 
 inline void Method::parseInit()
@@ -797,7 +826,7 @@ QoreClass::QoreClass(int dom, char *nme)
 {
    init(nme, dom);
 
-   classID = classIDSeq.next();
+   classID = methodID = classIDSeq.next();
    printd(5, "QoreClass::QoreClass() creating '%s' ID:%d (this=%08p)\n", name, classID, this);
 }
 
@@ -805,7 +834,7 @@ QoreClass::QoreClass(char *nme)
 {
    init(nme);
 
-   classID = classIDSeq.next();
+   classID = methodID = classIDSeq.next();
    printd(5, "QoreClass::QoreClass() creating '%s' ID:%d (this=%08p)\n", name, classID, this);
 }
 
@@ -813,7 +842,7 @@ QoreClass::QoreClass()
 {
    init(NULL);
 
-   classID = classIDSeq.next();
+   classID = methodID = classIDSeq.next();
    printd(5, "QoreClass::QoreClass() creating unnamed class ID:%d (this=%08p)\n", classID, this);
 }
 
@@ -1006,7 +1035,7 @@ void Method::evalConstructor(Object *self, QoreNode *args, class BCList *bcl, cl
 	 else
 	    cpgm = NULL;
 
-	 func.builtin->evalConstructor(self, new_args, xsink);
+	 func.builtin->evalConstructor(self, new_args, bcl, bceal, xsink);
 
 	 // switch back to original program if necessary
 	 if (opgm && cpgm != opgm)
@@ -1067,7 +1096,7 @@ void Method::evalDestructor(Object *self, ExceptionSink *xsink)
       void *ptr = self->getAndClearPrivateData(func.builtin->myclass->getID());
       if (ptr)
 	 func.builtin->evalDestructor(self, ptr, xsink);
-      else
+      else if (func.builtin->myclass->getID() == func.builtin->myclass->getIDForMethod()) // do not throw an exception if the class has no private data
       {
 	 if (self->getClass() == func.builtin->myclass)
 	    xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::destructor() cannot be executed because the object has already been deleted", self->getClass()->getName());
@@ -1085,6 +1114,7 @@ class QoreClass *QoreClass::copyAndDeref()
 {
    tracein("QoreClass::copyAndDeref");
    class QoreClass *noc = new QoreClass(name, classID);
+   noc->methodID = methodID;
 
    printd(5, "QoreClass::copyAndDeref() name=%s (%08p) new name=%s (%08p)\n", name, name, noc->name, noc->name);
 

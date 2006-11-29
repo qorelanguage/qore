@@ -77,6 +77,176 @@ Paramlist::Paramlist(class QoreNode *params)
    }
 }
 
+BuiltinFunction::BuiltinFunction(char *nme, q_func_t f, int typ)
+{
+   type = typ;
+   name = nme;
+   code.func = f;
+   next = NULL;
+}
+
+BuiltinFunction::BuiltinFunction(char *nme, q_method_t m, int typ)
+{
+   type = typ;
+   name = nme;
+   code.method = m;
+   next = NULL;
+}
+
+BuiltinFunction::BuiltinFunction(q_constructor_t m, int typ)
+{
+   type = typ;
+   name = "constructor";
+   code.constructor = m;
+   next = NULL;
+}
+
+BuiltinFunction::BuiltinFunction(q_destructor_t m, int typ)
+{
+   type = typ;
+   name = "destructor";
+   code.destructor = m;
+   next = NULL;
+}
+
+BuiltinFunction::BuiltinFunction(q_copy_t m, int typ)
+{
+   type = typ;
+   name = "copy";
+   code.copy = m;
+   next = NULL;
+}
+
+void BuiltinFunction::evalConstructor(class Object *self, class QoreNode *args, class BCList *bcl, class BCEAList *bceal, class ExceptionSink *xsink)
+{
+   tracein("BuiltinFunction::evalConstructor()");
+
+   if (bcl)
+      bcl->execConstructorsWithArgs(self, bceal, xsink);
+   
+   if (!xsink->isEvent())
+   {
+      // push call on call stack
+      pushCall("constructor", CT_BUILTIN, self);
+
+      code.constructor(self, args, xsink);
+
+      popCall(xsink);
+   }
+   traceout("BuiltinFunction::evalWithArgs()");
+}
+
+void BuiltinFunction::evalSystemConstructor(class Object *self, class QoreNode *args, class BCList *bcl, class BCEAList *bceal, class ExceptionSink *xsink)
+{
+   if (bcl)
+      bcl->execConstructorsWithArgs(self, bceal, xsink);
+   
+   code.constructor(self, args, xsink);
+}
+
+QoreNode *BuiltinFunction::evalWithArgs(class Object *self, class QoreNode *args, class ExceptionSink *xsink)
+{
+   tracein("BuiltinFunction::evalWithArgs()");
+   printd(2, "BuiltinFunction::evalWithArgs() calling builtin function \"%s\"\n", name);
+   
+   // push call on call stack
+   pushCall(name, CT_BUILTIN, self);
+
+   QoreNode *rv = code.func(args, xsink);
+
+   popCall(xsink);
+
+   traceout("BuiltinFunction::evalWithArgs()");
+   return rv;
+}
+
+QoreNode *BuiltinFunction::evalMethod(class Object *self, void *private_data, class QoreNode *args, class ExceptionSink *xsink)
+{
+   tracein("BuiltinFunction::evalMethod()");
+   printd(2, "BuiltinFunction::evalMethod() calling builtin function '%s' obj=%08p data=%08p\n", name, self, private_data);
+   
+   // push call on call stack
+   pushCall(name, CT_BUILTIN, self);
+
+   QoreNode *rv = code.method(self, private_data, args, xsink);
+
+   popCall(xsink);
+
+   traceout("BuiltinFunction::evalWithArgs()");
+   return rv;
+}
+
+void BuiltinFunction::evalDestructor(class Object *self, void *private_data, class ExceptionSink *xsink)
+{
+   tracein("BuiltinFunction::evalDestructor()");
+   
+   // push call on call stack
+   pushCall("destructor", CT_BUILTIN, self);
+
+   code.destructor(self, private_data, xsink);
+
+   popCall(xsink);
+
+   traceout("BuiltinFunction::destructor()");
+}
+
+void BuiltinFunction::evalCopy(class Object *self, class Object *old, void *private_data, class ExceptionSink *xsink)
+{
+   tracein("BuiltinFunction::evalCopy()");
+   
+   // push call on call stack
+   pushCall("copy", CT_BUILTIN, self);
+
+   code.copy(self, old, private_data, xsink);
+
+   popCall(xsink);
+
+   traceout("BuiltinFunction::evalCopy()");
+}
+
+void BuiltinFunction::evalSystemDestructor(class Object *self, void *private_data, class ExceptionSink *xsink)
+{
+   code.destructor(self, private_data, xsink);
+}
+
+QoreNode *BuiltinFunction::eval(QoreNode *args, ExceptionSink *xsink)
+{
+   class QoreNode *tmp, *rv;
+   ExceptionSink newsink;
+
+   tracein("BuiltinFunction::eval(Node)");
+   printd(3, "BuiltinFunction::eval(Node) calling builtin function \"%s\"\n", name);
+   
+   //printd(5, "BuiltinFunction::eval(Node) args=%08p %s\n", args, args ? args->type->name : "(null)");
+
+   if (args)
+      tmp = args->eval(&newsink);
+   else
+      tmp = NULL;
+
+   //printd(5, "BuiltinFunction::eval(Node) after eval tmp args=%08p %s\n", tmp, tmp ? tmp->type->name : "(null)");
+
+   // push call on call stack
+   pushCall(name, CT_BUILTIN);
+
+   // execute the function if no new exception has happened
+   // necessary only in the case of a builtin object destructor
+   if (!newsink.isEvent())
+      rv = code.func(tmp, xsink);
+   else
+      rv = NULL;
+
+   xsink->assimilate(&newsink);
+
+   // pop call off call stack
+   popCall(xsink);
+
+   discard(tmp, xsink);
+
+   traceout("BuiltinFunction::eval(Node)");
+   return rv;
+}
+
 // calls a user function
 class QoreNode *UserFunction::eval(QoreNode *args, Object *self, class ExceptionSink *xsink)
 {
