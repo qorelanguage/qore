@@ -70,7 +70,6 @@ static void getTuxedoAdapter(void* obj)
 
 static void releaseTuxedoAdapter(void* obj)
 {
-printf("### TUXEDO release called\n");
   ((QoreTuxedoAdapter*)obj)->deref();
 }
 
@@ -83,7 +82,6 @@ static void getTuxedoTest(void* obj)
 
 static void releaseTuxedoTest(void* obj)
 {
-printf("### TUXEDO release called\n");
   ((QoreTuxedoTest*)obj)->deref();
 }
 static void TUXEDOTEST_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
@@ -103,7 +101,6 @@ static void TUXEDO_constructor(Object *self, QoreNode *params, ExceptionSink *xs
 {
   char* err_name = "TuxedoAdapter::constructor";
   tracein(err_name);
-printf("### TUXEDO started\n");
   
   QoreNode* n = test_param(params, NT_HASH, 0);
   if (!n) {
@@ -119,14 +116,11 @@ printf("### TUXEDO started\n");
 
   QoreTuxedoAdapter* adapter = new QoreTuxedoAdapter(h, xsink);
   if (*xsink) {    
-printf("#### TUXEDO deleted prematurely\n");
     delete adapter;
     return;
   }
 
-printf("### TUXEDO object created\n");
   self->setPrivate(CID_TUXEDOADAPTER, adapter, getTuxedoAdapter, releaseTuxedoAdapter);
-printf("### TUXEDO set to self\n");
   traceout(err_name);
 }
 
@@ -157,7 +151,6 @@ TEST()
 //------------------------------------------------------------------------------
 static void TUXEDO_destructor(Object *self, QoreTuxedoAdapter* adapter, ExceptionSink *xsink)
 {
-printf("####### TUXEDO deref called\n");
   tracein("TUXEDO_destructor");
   adapter->deref();
   traceout("TUXEDO_destructor");
@@ -683,7 +676,7 @@ TEST()
     "our $a = new Tuxedo::TuxedoAdapter($settings);\n"
 
     "$h = (\"queue_control_flags\" : Tuxedo::TPQREPLYQ, \"queue_control_replyqueue\" : \"RPLYQ\", \"flags\" : 0);\n"
-    "$a.enqueue(\"QSPACE\", \"STRING\", \"some data\", $h);\n"
+    "$a.enqueue(\"QSPACE\", \"STRING\", \"sample data\", $h);\n"
 
     "$h = (\"queue_control_flags\" : Tuxedo::TPQWAIT, \"flags\" : Tuxedo::TPNOTIME);\n"
     "$res = $a.dequeue(\"QSPACE\", \"RPLYQ\", $h);\n"
