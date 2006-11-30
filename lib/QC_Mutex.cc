@@ -35,11 +35,6 @@ static void MUTEX_constructor(class Object *self, class QoreNode *params, Except
    self->setPrivate(CID_MUTEX, new Mutex());
 }
 
-static void MUTEX_destructor(class Object *self, class Mutex *m, ExceptionSink *xsink)
-{
-   m->deref();
-}
-
 static void MUTEX_copy(class Object *self, class Object *old, class Mutex *m, ExceptionSink *xsink)
 {
    self->setPrivate(CID_MUTEX, new Mutex());
@@ -69,7 +64,6 @@ class QoreClass *initMutexClass()
    class QoreClass *QC_MUTEX = new QoreClass(QDOM_THREAD_CLASS, strdup("Mutex"));
    CID_MUTEX = QC_MUTEX->getID();
    QC_MUTEX->setConstructor(MUTEX_constructor);
-   QC_MUTEX->setDestructor((q_destructor_t)MUTEX_destructor);
    QC_MUTEX->setCopy((q_copy_t)MUTEX_copy);
    QC_MUTEX->addMethod("lock",          (q_method_t)MUTEX_lock);
    QC_MUTEX->addMethod("trylock",       (q_method_t)MUTEX_trylock);

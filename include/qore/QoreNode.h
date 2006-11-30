@@ -20,6 +20,9 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+// FIXME: add derefWithObjectDelete() method to QoreNode to do a delete in addition to a deref if the qorenode is an object
+//        and use this method instead of calling Object::doDelete directly in places around the library
+
 #ifndef _QORE_NODE_H
 
 #define _QORE_NODE_H

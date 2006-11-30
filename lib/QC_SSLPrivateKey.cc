@@ -61,11 +61,6 @@ static void SSLPKEY_constructor(class Object *self, class QoreNode *params, Exce
       self->setPrivate(CID_SSLPRIVATEKEY, qpk);
 }
 
-static void SSLPKEY_destructor(class Object *self, class QoreSSLPrivateKey *pk, ExceptionSink *xsink)
-{
-   pk->deref();
-}
-
 static void SSLPKEY_copy(class Object *self, class Object *old, class QoreSSLPrivateKey *pk, ExceptionSink *xsink)
 {
    xsink->raiseException("SSLPRIVATEKEY-COPY-ERROR", "SSLPrivateKey objects cannot be copied");
@@ -98,7 +93,6 @@ class QoreClass *initSSLPrivateKeyClass()
    class QoreClass *QC_SSLPRIVATEKEY = new QoreClass(strdup("SSLPrivateKey"));
    CID_SSLPRIVATEKEY = QC_SSLPRIVATEKEY->getID();
    QC_SSLPRIVATEKEY->setConstructor(SSLPKEY_constructor);
-   QC_SSLPRIVATEKEY->setDestructor((q_destructor_t)SSLPKEY_destructor);
    QC_SSLPRIVATEKEY->setCopy((q_copy_t)SSLPKEY_copy);
    QC_SSLPRIVATEKEY->addMethod("getType",          (q_method_t)SSLPKEY_getType);
    QC_SSLPRIVATEKEY->addMethod("getVersion",       (q_method_t)SSLPKEY_getVersion);

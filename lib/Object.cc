@@ -229,6 +229,42 @@ Object::~Object()
    //traceout("Object::~Object()");
 }
 
+class QoreClass *Object::getClass() const 
+{ 
+   return myclass; 
+}
+
+int Object::getStatus() const 
+{ 
+   return status; 
+}
+
+int Object::isValid() const 
+{ 
+   return status == OS_OK; 
+}
+
+class QoreProgram *Object::getProgram() const
+{
+   return pgm;
+}
+
+bool Object::isSystemObject() const
+{
+   return pgm == NULL;
+}
+
+void Object::tRef()
+{
+   tRefs.ROreference();
+}
+
+void Object::tDeref()
+{
+   if (tRefs.ROdereference())
+      delete this;
+}
+
 class QoreNode *Object::evalBuiltinMethodWithPrivateData(class BuiltinMethod *meth, class QoreNode *args, class ExceptionSink *xsink)
 {
    // get referenced object
@@ -901,3 +937,10 @@ void Object::cleanup(class ExceptionSink *xsink, class Hash *td)
    td->derefAndDelete(xsink);
 }
 
+void Object::defaultSystemDestructor(int classID, class ExceptionSink *xsink)
+{
+   AbstractPrivateData *pd = getAndClearPrivateData(classID);
+   printd(5, "Object::defaultSystemDestructor() this=%08p class=%s private_data=%08p\n", this, myclass->getName(), pd); 
+   if (pd)
+      pd->deref(xsink);
+}

@@ -70,12 +70,6 @@ static void HTTPClient_constructor(class Object *self, class QoreNode *params, E
 }
 
 //-----------------------------------------------------------------------------
-static void HTTPClient_destructor(class Object *self, QoreHTTPClient* client, ExceptionSink *xsink)
-{
-   client->deref();
-}
-
-//-----------------------------------------------------------------------------
 static void HTTPClient_copy(Object *self, Object *old, QoreHTTPClient* client, ExceptionSink *xsink)
 {
   xsink->raiseException("HTTPClient", "copying HTTPClient objects is not yet supported.");
@@ -90,7 +84,6 @@ QoreClass *initHTTPClientClass()
    CID_HTTPCLIENT = client->getID();
 
    client->setConstructor(HTTPClient_constructor);
-   client->setDestructor((q_destructor_t)HTTPClient_destructor);
    client->setCopy((q_copy_t)HTTPClient_copy);
 
   traceout("initHTTPClientClass");

@@ -64,11 +64,6 @@ static void DS_constructor(class Object *self, class QoreNode *params, Exception
    self->setPrivate(CID_DATASOURCE, ds);
 }
 
-static void DS_destructor(class Object *self, class ManagedDatasource *ds, ExceptionSink *xsink)
-{
-   ds->deref();
-}
-
 static void DS_copy(class Object *self, class Object *old, class ManagedDatasource *ods, class ExceptionSink *xsink)
 {
    self->setPrivate(CID_DATASOURCE, ods->copy());
@@ -291,7 +286,6 @@ class QoreClass *initDatasourceClass()
    class QoreClass *QC_DATASOURCE = new QoreClass(QDOM_DATABASE, strdup("Datasource"));
    CID_DATASOURCE = QC_DATASOURCE->getID();
    QC_DATASOURCE->setConstructor(DS_constructor);
-   QC_DATASOURCE->setDestructor((q_destructor_t)DS_destructor);
    QC_DATASOURCE->setCopy((q_copy_t)DS_copy);
    QC_DATASOURCE->addMethod("open",              (q_method_t)DS_open);
    QC_DATASOURCE->addMethod("close",             (q_method_t)DS_close);

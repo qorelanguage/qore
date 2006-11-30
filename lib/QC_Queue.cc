@@ -35,11 +35,6 @@ static void QUEUE_constructor(class Object *self, class QoreNode *params, Except
    self->setPrivate(CID_QUEUE, new Queue());
 }
 
-static void QUEUE_destructor(class Object *self, class Queue *tq, ExceptionSink *xsink)
-{
-   tq->deref(xsink);
-}
-
 static void QUEUE_copy(class Object *self, class Object *old, class Queue *tq, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QUEUE, new Queue());
@@ -100,7 +95,6 @@ class QoreClass *initQueueClass()
    class QoreClass *QC_QUEUE = new QoreClass(QDOM_THREAD_CLASS, strdup("Queue"));
    CID_QUEUE = QC_QUEUE->getID();
    QC_QUEUE->setConstructor(QUEUE_constructor);
-   QC_QUEUE->setDestructor((q_destructor_t)QUEUE_destructor);
    QC_QUEUE->setCopy((q_copy_t)QUEUE_copy);
    QC_QUEUE->addMethod("push",          (q_method_t)QUEUE_push);
    QC_QUEUE->addMethod("get",           (q_method_t)QUEUE_get);

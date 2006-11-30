@@ -227,11 +227,6 @@ static void GETOPT_constructor(class Object *self, class QoreNode *params, Excep
       g->deref();
 }
 
-static void GETOPT_destructor(class Object *self, class GetOpt *g, ExceptionSink *xsink)
-{
-   g->deref();
-}
-
 static void GETOPT_copy(class Object *self, class Object *old, class GetOpt *g, class ExceptionSink *xsink)
 {
    xsink->raiseException("GETOPT-COPY-ERROR", "copying GetOpt objects is not supported");
@@ -279,7 +274,6 @@ class QoreClass *initGetOptClass()
    class QoreClass *QC_GETOPT = new QoreClass(strdup("GetOpt"));
    CID_GETOPT = QC_GETOPT->getID();
    QC_GETOPT->setConstructor(GETOPT_constructor);
-   QC_GETOPT->setDestructor((q_destructor_t)GETOPT_destructor);
    QC_GETOPT->setCopy((q_copy_t)GETOPT_copy);
    QC_GETOPT->addMethod("parse",         (q_method_t)GETOPT_parse);
 

@@ -172,14 +172,6 @@ static void Q_constructor(class Object *self, class QoreNode *params, ExceptionS
    traceout("Q_constructor()");
 }
 
-static void Q_destructor(class Object *self, class Query *q, ExceptionSink *xsink)
-{
-   tracein("Q_destructor()");
-   if (q)
-      q->deref();
-   traceout("Q_destructor()");
-}
-
 static void Q_copy(class Object *self, class Object *old, class Query *q, class ExceptionSink *xsink)
 {
    xsink->raiseException("COPY-ERROR", "cannot copy queue objects");
@@ -272,7 +264,6 @@ class QoreClass *initQueryQoreClass()
    class QoreClass *QC_QUERY = new QoreClass(strdup("Query"));
    CID_QUERY = QC_QUERY->getID();
    QC_QUERY->setConstructor(Q_constructor);
-   QC_QUERY->setDestructor((q_destructor_t)Q_destructor);
    QC_QUERY->setCopy((q_copy_t)Q_copy);
    QC_QUERY->addMethod("refresh",       (q_method_t)Q_refresh);
 

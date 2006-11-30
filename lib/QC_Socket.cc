@@ -60,11 +60,6 @@ static void SOCKET_constructor(class Object *self, class QoreNode *params, Excep
    self->setPrivate(CID_SOCKET, new mySocket());
 }
 
-static void SOCKET_destructor(class Object *self, void *obj, ExceptionSink *xsink)
-{
-   ((mySocket *)obj)->deref();
-}
-
 static void SOCKET_copy(class Object *self, class Object *old, void *obj, ExceptionSink *xsink)
 {
    self->setPrivate(CID_SOCKET, new mySocket());
@@ -835,7 +830,6 @@ class QoreClass *initSocketClass()
    class QoreClass *QC_SOCKET = new QoreClass(QDOM_NETWORK, strdup("Socket"));
    CID_SOCKET = QC_SOCKET->getID();
    QC_SOCKET->setConstructor(SOCKET_constructor);
-   QC_SOCKET->setDestructor(SOCKET_destructor);
    QC_SOCKET->setCopy(SOCKET_copy);
    QC_SOCKET->addMethod("connect",               (q_method_t)SOCKET_connect);
    QC_SOCKET->addMethod("connectSSL",            (q_method_t)SOCKET_connectSSL);

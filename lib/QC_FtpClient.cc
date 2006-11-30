@@ -52,11 +52,6 @@ static void FC_constructor(class Object *self, class QoreNode *params, Exception
    self->setPrivate(CID_FTPCLIENT, f = new QoreFtpClient(url, xsink));
 }
 
-static void FC_destructor(class Object *self, class QoreFtpClient *f, ExceptionSink *xsink)
-{
-   f->deref();
-}
-
 static void FC_copy(class Object *self, class Object *old, class QoreFtpClient *f, class ExceptionSink *xsink)
 {
    xsink->raiseException("FTPCLIENT-COPY-ERROR", "FtpClient objects cannot be copied.");
@@ -399,7 +394,6 @@ class QoreClass *initFtpClientClass()
    class QoreClass *QC_FTPCLIENT = new QoreClass(QDOM_NETWORK, strdup("FtpClient"));
    CID_FTPCLIENT = QC_FTPCLIENT->getID();
    QC_FTPCLIENT->setConstructor(FC_constructor);
-   QC_FTPCLIENT->setDestructor((q_destructor_t)FC_destructor);
    QC_FTPCLIENT->setCopy((q_copy_t)FC_copy);
    QC_FTPCLIENT->addMethod("connect",               (q_method_t)FC_connect);
    QC_FTPCLIENT->addMethod("disconnect",            (q_method_t)FC_disconnect);

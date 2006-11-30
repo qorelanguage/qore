@@ -35,11 +35,6 @@ static void RMUTEX_constructor(class Object *self, class QoreNode *params, Excep
    self->setPrivate(CID_RMUTEX, new QoreRMutex());
 }
 
-static void RMUTEX_destructor(class Object *self, class QoreRMutex *m, ExceptionSink *xsink)
-{
-   m->deref();
-}
-
 static void RMUTEX_copy(class Object *self, class Object *old, class QoreRMutex *m, ExceptionSink *xsink)
 {
    self->setPrivate(CID_RMUTEX, new QoreRMutex());
@@ -67,7 +62,6 @@ class QoreClass *initRMutexClass()
    class QoreClass *QC_RMUTEX = new QoreClass(QDOM_THREAD_CLASS, strdup("RMutex"));
    CID_RMUTEX = QC_RMUTEX->getID();
    QC_RMUTEX->setConstructor(RMUTEX_constructor);
-   QC_RMUTEX->setDestructor((q_destructor_t)RMUTEX_destructor);
    QC_RMUTEX->setCopy((q_copy_t)RMUTEX_copy);
    QC_RMUTEX->addMethod("enter",         (q_method_t)RMUTEX_enter);
    QC_RMUTEX->addMethod("tryEnter",      (q_method_t)RMUTEX_tryEnter);

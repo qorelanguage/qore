@@ -35,11 +35,6 @@ static void GATE_constructor(class Object *self, class QoreNode *params, Excepti
    self->setPrivate(CID_GATE, new QoreGate());
 }
 
-static void GATE_destructor(class Object *self, class QoreGate *g, ExceptionSink *xsink)
-{
-   g->deref();
-}
-
 static void GATE_copy(class Object *self, class Object *old, class QoreGate *g, ExceptionSink *xsink)
 {
    self->setPrivate(CID_GATE, new QoreGate());
@@ -103,7 +98,6 @@ class QoreClass *initGateClass()
    class QoreClass *QC_GATE = new QoreClass(QDOM_THREAD_CLASS, strdup("Gate"));
    CID_GATE = QC_GATE->getID();
    QC_GATE->setConstructor(GATE_constructor);
-   QC_GATE->setDestructor((q_destructor_t)GATE_destructor);
    QC_GATE->setCopy((q_copy_t)GATE_copy);
    QC_GATE->addMethod("enter",         (q_method_t)GATE_enter);
    QC_GATE->addMethod("exit",          (q_method_t)GATE_exit);

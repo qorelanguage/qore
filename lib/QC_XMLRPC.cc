@@ -35,10 +35,6 @@ static void XRS_constructor(class Object *self, class QoreNode *params, Exceptio
 {
 }
 
-static void XRS_destructor(class Object *self, ExceptionSink *xsink)
-{
-}
-
 static QoreNode *XRS_copy(class Object *self, class Object *old, ExceptionSink *xsink)
 {
 }
@@ -48,10 +44,6 @@ static QoreNode *XRS_call(class Object *self, class QoreNode *params, ExceptionS
 }
 
 static void XRC_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
-{
-}
-
-static void XRC_destructor(class Object *self, ExceptionSink *xsink)
 {
 }
 
@@ -66,7 +58,6 @@ class QoreClass *initXMPRPCServer()
    class QoreClass *QC_XMLRPCSERVER = new QoreClass(strdup("XMLRPCServer"));
    CID_XMLRPCSERVER = QC_XMLRPCSERVER->getID();
    QC_XMLRPCSERVER->setConstructor(XRS_constructor);
-   QC_XMLRPCSERVER->setDestructor(XRS_destructor);
 
    traceout("initXMLRPCServer()");
    return QC_XMLRPCSERVER;
@@ -79,7 +70,6 @@ class QoreClass *initXMPRPCClient()
    class QoreClass *QC_XMLRPCCLIENT = new QoreClass(strdup("XMLRPCClient"));
    CID_XMLRPCCLIENT = QC_XMLRPCCLIENT->getID();
    QC_XMLRPCCLIENT->setConstructor(XRC_constructor);
-   QC_XMLRPCCLIENT->setDestructor(XRC_destructor);
    QC_XMLRPCCLIENT->addMethod("call",          XRC_call);
 
    traceout("initXMLRPCClient()");

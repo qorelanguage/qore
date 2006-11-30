@@ -55,12 +55,6 @@ static void FILE_constructor(class Object *self, class QoreNode *params, Excepti
    self->setPrivate(CID_FILE, new File(cs));
 }
 
-static void FILE_destructor(class Object *self, class File *f, ExceptionSink *xsink)
-{
-   //printd(5, "FILE_destructor() self=%08p, f=%08p\n", self, f);
-   f->deref();
-}
-
 static void FILE_copy(class Object *self, class Object *old, class File *f, class ExceptionSink *xsink)
 {
    self->setPrivate(CID_FILE, new File(f->getEncoding()));
@@ -441,7 +435,6 @@ class QoreClass *initFileClass()
    CID_FILE = QC_FILE->getID();
    QC_FILE->setSystemConstructor(FILE_system_constructor);
    QC_FILE->setConstructor(FILE_constructor);
-   QC_FILE->setDestructor((q_destructor_t)FILE_destructor);
    QC_FILE->setCopy((q_copy_t)FILE_copy);
    QC_FILE->addMethod("open",              (q_method_t)FILE_open);
    QC_FILE->addMethod("close",             (q_method_t)FILE_close);

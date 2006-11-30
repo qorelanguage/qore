@@ -37,11 +37,6 @@ static void CONDITION_constructor(class Object *self, class QoreNode *params, Ex
    self->setPrivate(CID_CONDITION, new Condition());
 }
 
-static void CONDITION_destructor(class Object *self, class Condition *c, ExceptionSink *xsink)
-{
-   c->deref();
-}
-
 static void CONDITION_copy(class Object *self, class Object *old, class Condition *c, ExceptionSink *xsink)
 {
    self->setPrivate(CID_CONDITION, new Condition());
@@ -102,7 +97,6 @@ class QoreClass *initConditionClass()
    CID_CONDITION = QC_CONDITION->getID();
 
    QC_CONDITION->setConstructor(CONDITION_constructor);
-   QC_CONDITION->setDestructor((q_destructor_t)CONDITION_destructor);
    QC_CONDITION->setCopy((q_copy_t)CONDITION_copy);
    QC_CONDITION->addMethod("signal",        (q_method_t)CONDITION_signal);
    QC_CONDITION->addMethod("broadcast",     (q_method_t)CONDITION_broadcast);

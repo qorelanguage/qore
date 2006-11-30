@@ -58,11 +58,6 @@ static void SSLCERT_constructor(class Object *self, class QoreNode *params, Exce
       self->setPrivate(CID_SSLCERTIFICATE, qc);
 }
 
-static void SSLCERT_destructor(class Object *self, class QoreSSLCertificate *s, ExceptionSink *xsink)
-{
-   s->deref();
-}
-
 static void SSLCERT_copy(class Object *self, class Object *old, class QoreSSLCertificate *s, ExceptionSink *xsink)
 {
    xsink->raiseException("SSLCERTIFICATE-COPY-ERROR", "SSLCertificate objects cannot be copied");
@@ -144,7 +139,6 @@ class QoreClass *initSSLCertificateClass()
    class QoreClass *QC_SSLCERTIFICATE = new QoreClass(strdup("SSLCertificate"));
    CID_SSLCERTIFICATE = QC_SSLCERTIFICATE->getID();
    QC_SSLCERTIFICATE->setConstructor(SSLCERT_constructor);
-   QC_SSLCERTIFICATE->setDestructor((q_destructor_t)SSLCERT_destructor);
    QC_SSLCERTIFICATE->setCopy((q_copy_t)SSLCERT_copy);
    QC_SSLCERTIFICATE->addMethod("getPEM",                (q_method_t)SSLCERT_getPEM);
    QC_SSLCERTIFICATE->addMethod("getInfo",               (q_method_t)SSLCERT_getInfo);

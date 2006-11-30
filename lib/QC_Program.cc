@@ -45,11 +45,6 @@ static void PROGRAM_constructor(class Object *self, class QoreNode *params, Exce
    self->setPrivate(CID_PROGRAM, new QoreProgram(getProgram(), parse_opt));
 }
 
-static void PROGRAM_destructor(class Object *self, class QoreProgram *p, ExceptionSink *xsink)
-{
-   p->deref(xsink);
-}
-
 static void PROGRAM_copy(class Object *self, class Object *old, class QoreProgram *p, class ExceptionSink *xsink)
 {
    xsink->raiseException("PROGRAM-COPY-ERROR", "copying Program objects is currently unsupported");
@@ -301,7 +296,6 @@ class QoreClass *initProgramClass()
    class QoreClass *QC_PROGRAM = new QoreClass(strdup("Program"));
    CID_PROGRAM = QC_PROGRAM->getID();
    QC_PROGRAM->setConstructor(PROGRAM_constructor);
-   QC_PROGRAM->setDestructor((q_destructor_t)PROGRAM_destructor);
    QC_PROGRAM->setCopy((q_copy_t)PROGRAM_copy);
    QC_PROGRAM->addMethod("parse",                (q_method_t)PROGRAM_parse);
    QC_PROGRAM->addMethod("parsePending",         (q_method_t)PROGRAM_parsePending);

@@ -41,11 +41,6 @@ static void SEQUENCE_constructor(class Object *self, class QoreNode *params, Exc
    self->setPrivate(CID_SEQUENCE, new QoreSequence(start));
 }
 
-static void SEQUENCE_destructor(class Object *self, class QoreSequence *s, ExceptionSink *xsink)
-{
-   s->deref();
-}
-
 static void SEQUENCE_copy(class Object *self, class Object *old, class QoreSequence *s, class ExceptionSink *xsink)
 {
    self->setPrivate(CID_SEQUENCE, new QoreSequence(s->getCurrent()));
@@ -68,7 +63,6 @@ class QoreClass *initSequenceClass()
    class QoreClass *QC_SEQUENCE = new QoreClass(strdup("Sequence"));
    CID_SEQUENCE = QC_SEQUENCE->getID();
    QC_SEQUENCE->setConstructor(SEQUENCE_constructor);
-   QC_SEQUENCE->setDestructor((q_destructor_t)SEQUENCE_destructor);
    QC_SEQUENCE->setCopy((q_copy_t)SEQUENCE_copy);
    QC_SEQUENCE->addMethod("next",          (q_method_t)SEQUENCE_next);
    QC_SEQUENCE->addMethod("getCurrent",    (q_method_t)SEQUENCE_getCurrent);

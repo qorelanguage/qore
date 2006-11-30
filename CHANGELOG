@@ -1,3 +1,7 @@
+2006.11.30: David Nichols
+	* implemented default destructors for builtin classes
+	* fixed a memory leak with the ARGV variable
+
 2006.11.29: David Nichols
 	* more QoreClass cleanups
 	* enabled inheritance in builtin classes

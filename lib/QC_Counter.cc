@@ -33,11 +33,6 @@ static void COUNTER_constructor(class Object *self, class QoreNode *params, Exce
    self->setPrivate(CID_COUNTER, new Counter());
 }
 
-static void COUNTER_destructor(class Object *self, class Counter *c, ExceptionSink *xsink)
-{
-   c->deref();
-}
-
 static void COUNTER_copy(class Object *self, class Object *old, class Counter *c, ExceptionSink *xsink)
 {
    self->setPrivate(CID_COUNTER, new Counter());
@@ -74,7 +69,6 @@ class QoreClass *initCounterClass()
    CID_COUNTER = QC_COUNTER->getID();
 
    QC_COUNTER->setConstructor(COUNTER_constructor);
-   QC_COUNTER->setDestructor((q_destructor_t)COUNTER_destructor);
    QC_COUNTER->setCopy((q_copy_t)COUNTER_copy);
    QC_COUNTER->addMethod("inc",           (q_method_t)COUNTER_inc);
    QC_COUNTER->addMethod("dec",           (q_method_t)COUNTER_dec);

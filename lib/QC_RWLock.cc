@@ -35,11 +35,6 @@ static void RWLOCK_constructor(class Object *self, class QoreNode *params, Excep
    self->setPrivate(CID_RWLOCK, new RWLock());
 }
 
-static void RWLOCK_destructor(class Object *self, class RWLock *rwl, ExceptionSink *xsink)
-{
-   rwl->deref();
-}
-
 static void RWLOCK_copy(class Object *self, class Object *old, class RWLock *rwl, ExceptionSink *xsink)
 {
    self->setPrivate(CID_RWLOCK, new RWLock());
@@ -98,7 +93,6 @@ class QoreClass *initRWLockClass()
    class QoreClass *QC_RWLOCK = new QoreClass(QDOM_THREAD_CLASS, strdup("RWLock"));
    CID_RWLOCK = QC_RWLOCK->getID();
    QC_RWLOCK->setConstructor(RWLOCK_constructor);
-   QC_RWLOCK->setDestructor((q_destructor_t)RWLOCK_destructor);
    QC_RWLOCK->setCopy((q_copy_t)RWLOCK_copy);
    QC_RWLOCK->addMethod("readLock",      (q_method_t)RWLOCK_readLock);
    QC_RWLOCK->addMethod("writeLock",     (q_method_t)RWLOCK_writeLock);

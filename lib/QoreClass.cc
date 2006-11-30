@@ -36,6 +36,7 @@
 #include <qore/QoreType.h>
 #include <qore/Variable.h>
 #include <qore/NamedScope.h>
+#include <qore/AbstractPrivateData.h>
 
 #include <string.h>
 #include <stdlib.h>
@@ -639,7 +640,7 @@ inline void Method::evalSystemConstructor(Object *self, QoreNode *args, class BC
 inline void Method::evalSystemDestructor(class Object *self, class ExceptionSink *xsink)
 {
    // get pointer to private data object from class ID of base type
-   void *ptr = self->getAndClearPrivateData(func.builtin->myclass->getID());
+   AbstractPrivateData *ptr = self->getAndClearPrivateData(func.builtin->myclass->getID());
    //printd(5, "Method::evalSystemDestructor() class=%s (%08p) id=%d ptr=%08p\n", func.builtin->myclass->getName(), func.builtin->myclass, func.builtin->myclass->getID(), ptr);
    // NOTE: ptr may be null for builtin subclasses without private data
    if (ptr)
@@ -1093,7 +1094,7 @@ void Method::evalDestructor(Object *self, ExceptionSink *xsink)
       func.userFunc->eval(NULL, self, xsink);
    else // builtin function
    {
-      void *ptr = self->getAndClearPrivateData(func.builtin->myclass->getID());
+      AbstractPrivateData *ptr = self->getAndClearPrivateData(func.builtin->myclass->getID());
       if (ptr)
 	 func.builtin->evalDestructor(self, ptr, xsink);
       else if (func.builtin->myclass->getID() == func.builtin->myclass->getIDForMethod()) // do not throw an exception if the class has no private data
@@ -1379,12 +1380,16 @@ void QoreClass::execDestructor(Object *self, ExceptionSink *xsink)
 {
    printd(5, "QoreClass::execDestructor() %s::destructor() o=%08p\n", name, self);
 
+   // we use a new, blank exception sink to ensure all destructor code gets executed 
+   // in case there were already exceptions in the current exceptionsink
    class ExceptionSink de;
 
    if (self->isSystemObject())
    {
       if (destructor)
 	 destructor->evalSystemDestructor(self, &de);
+      else
+	 self->defaultSystemDestructor(classID, &de);
 
       // execute superclass destructors
       if (scl)
@@ -1394,6 +1399,8 @@ void QoreClass::execDestructor(Object *self, ExceptionSink *xsink)
    {
       if (destructor)
 	 destructor->evalDestructor(self, &de);
+      else if (sys)
+	 self->defaultSystemDestructor(classID, &de);
 
       // execute superclass destructors
       if (scl)
@@ -1405,18 +1412,26 @@ void QoreClass::execDestructor(Object *self, ExceptionSink *xsink)
 
 inline void QoreClass::execSubclassDestructor(Object *self, ExceptionSink *xsink)
 {
+   // we use a new, blank exception sink to ensure all destructor code gets executed 
+   // in case there were already exceptions in the current exceptionsink
    class ExceptionSink de;
    if (destructor)
       destructor->evalDestructor(self, &de);
+   else if (sys)
+      self->defaultSystemDestructor(classID, &de);
 
    xsink->assimilate(&de);
 }
 
 inline void QoreClass::execSubclassSystemDestructor(Object *self, ExceptionSink *xsink)
 {
+   // we use a new, blank exception sink to ensure all destructor code gets executed 
+   // in case there were already exceptions in the current exceptionsink
    class ExceptionSink de;
    if (destructor)
       destructor->evalSystemDestructor(self, &de);
+   else if (sys)
+      self->defaultSystemDestructor(classID, &de);
 
    xsink->assimilate(&de);
 }
@@ -1573,14 +1588,17 @@ void QoreClass::addMethod(Method *m)
 {
    printd(5, "QoreClass::addMethod(%08p) %s.%s() (this=%08p)\n", m, name ? name : "<pending>", m->getName(), this);
 
+   bool dst = !strcmp(m->getName(), "destructor");
    // check for illegal private constructor or destructor
-   if (!strcmp(m->getName(), "constructor") || !strcmp(m->getName(), "destructor"))
+   if (!strcmp(m->getName(), "constructor") || dst)
    {
       if (m->isPrivate())
 	 parseException("ILLEGAL-PRIVATE-METHOD", "%s methods cannot be private", m->getName());
    }
 
-   if (parseFindMethod(m->getName()))
+   // if the method already exists or the user is trying to define a user destructor on a system object
+   // (system objects without explicit destructors have an implicit default system destructor that cannot be overridden)
+   if (parseFindMethod(m->getName()) || (sys && dst))
    {
       parse_error("method '%s::%s()' has already been defined", name, m->getName());
       delete m;
