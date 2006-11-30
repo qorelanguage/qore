@@ -56,11 +56,6 @@ void PC_constructor(class Object *self, class QoreNode *params, ExceptionSink *x
    self->setPrivate(CID_PANEL, p);
 }
 
-void PC_destructor(class Object *self, class Panel *p, ExceptionSink *xsink)
-{
-   p->deref();
-}
-
 static void PC_copy(class Object *self, class Object *old, class Panel *p, class ExceptionSink *xsink)
 {
    xsink->raiseException("PANEL-COPY-ERROR", "copying Panel objects is currently unsupported");
@@ -445,7 +440,6 @@ class QoreClass *initPanelClass()
    class QoreClass *QC_PANEL = new QoreClass(strdup("Panel"));
    CID_PANEL = QC_PANEL->getID();
    QC_PANEL->setConstructor(PC_constructor);
-   QC_PANEL->setDestructor((q_destructor_t)PC_destructor);
    QC_PANEL->setCopy((q_copy_t)PC_copy);
    QC_PANEL->addMethod("keypad",             (q_method_t)PC_keypad);
    QC_PANEL->addMethod("mvaddstr",           (q_method_t)PC_mvaddstr);

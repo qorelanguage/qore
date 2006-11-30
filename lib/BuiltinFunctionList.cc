@@ -22,6 +22,7 @@
 
 #include <qore/config.h>
 #include <qore/BuiltinFunctionList.h>
+#include <qore/Function.h>
 #include <qore/DBI.h>
 #include <qore/ql_io.h>
 #include <qore/ql_time.h>
@@ -42,20 +43,22 @@
 #include <qore/ql_debug.h>
 #endif // DEBUG
 
+#include <string.h>
+
 class BuiltinFunctionList builtinFunctions;
 
-inline void BuiltinFunctionList::add_locked(char *name, class QoreNode *(*f)(class QoreNode *, class ExceptionSink *xsink), int typ)
+DLLLOCAL  BuiltinFunctionList::BuiltinFunctionList() : init_done(false) 
 {
-   lock();
-   hm[strdup(name)] = new BuiltinFunction(name, f, typ);
-   unlock();
 }
-
 
 void BuiltinFunctionList::add(char *name, class QoreNode *(*f)(class QoreNode *, class ExceptionSink *xsink), int typ)
 {
    if (init_done)
-      add_locked(name, f, typ);
+   {
+      lock();
+      hm[strdup(name)] = new BuiltinFunction(name, f, typ);
+      unlock();
+   }
    else
       hm[strdup(name)] = new BuiltinFunction(name, f, typ);
 }
@@ -78,6 +81,24 @@ BuiltinFunctionList::~BuiltinFunctionList()
       // delete function
       free(c);
    }
+}
+
+class BuiltinFunction *BuiltinFunctionList::find(char *name)
+{
+   class BuiltinFunction *rv = NULL;
+   if (init_done)
+      lock();
+   hm_bf_t::iterator i = hm.find(name);
+   if (i != hm.end())
+      rv = i->second;
+   if (init_done)
+      unlock();
+   return rv;
+}
+
+inline int BuiltinFunctionList::size() const
+{
+   return hm.size();
 }
 
 void BuiltinFunctionList::init()

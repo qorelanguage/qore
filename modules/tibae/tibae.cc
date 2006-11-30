@@ -294,13 +294,6 @@ void TIBAE_constructor(class Object *self, class QoreNode *params, class Excepti
    traceout("TIBAE_constructor");
 }
 
-void TIBAE_destructor(class Object *self, class QoreApp *myQoreApp, class ExceptionSink *xsink)
-{
-   tracein("TIBAE_destructor()");
-   myQoreApp->deref(xsink);
-   traceout("TIBAE_destructor()");
-}
-
 void TIBAE_copy(class Object *self, class Object *old, class QoreApp *myQoreApp, class ExceptionSink *xsink)
 {
    xsink->raiseException("TIBCO-ADAPTER-COPY-ERROR", "copying TibcoAdapter objects is curently not supported");
@@ -401,7 +394,6 @@ class QoreClass *initTibcoAdapterClass()
    class QoreClass *QC_TIBAE = new QoreClass(QDOM_NETWORK, strdup("TibcoAdapter"));
    CID_TIBAE = QC_TIBAE->getID();
    QC_TIBAE->setConstructor(TIBAE_constructor);
-   QC_TIBAE->setDestructor((q_destructor_t)TIBAE_destructor);
    QC_TIBAE->setCopy((q_copy_t)TIBAE_copy);
    QC_TIBAE->addMethod("receive",                  (q_method_t)TIBAE_receive);
    QC_TIBAE->addMethod("sendSubject",              (q_method_t)TIBAE_sendSubject);

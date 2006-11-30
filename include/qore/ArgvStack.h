@@ -29,7 +29,8 @@ class ArgvStack {
    public:
       lvh_t id;
       class ArgvStack *next;
-      ArgvStack(lvh_t i) { id = i; }
+
+      DLLLOCAL ArgvStack(lvh_t i) { id = i; }
 };
 
 #endif // _QORE_ARGVSTACK_H

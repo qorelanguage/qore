@@ -33,6 +33,7 @@
 #include "thread.cc"
 #include "VRMutex.cc"
 #include "SwitchStatementWithOperators.cc"
+#include "CallStack.cc"
 #include "QT_NOTHING.cc"
 #include "QT_bigint.cc"
 #include "QT_float.cc"

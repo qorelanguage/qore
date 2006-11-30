@@ -30,6 +30,7 @@
 #include <stdio.h>
 #include <string.h>
 
+// FIXME: use STL list instead
 // to maintain the order of inserts
 class HashMember {
    public:

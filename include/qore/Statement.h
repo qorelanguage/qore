@@ -288,6 +288,7 @@ class StatementBlock {
 #include <qore/Variable.h>
 #include <qore/Function.h>
 #include <qore/SwitchStatement.h>
+#include <qore/qore_thread.h>
 
 #include <stdio.h>
 #include <stdlib.h>

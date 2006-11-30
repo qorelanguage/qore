@@ -81,13 +81,6 @@ void TIBRVCMSENDER_constructor(class Object *self, class QoreNode *params, class
    traceout("TIBRVCMSENDER_constructor");
 }
 
-void TIBRVCMSENDER_destructor(class Object *self, class QoreTibrvCmSender *cms, class ExceptionSink *xsink)
-{
-   tracein("TIBRVCMSENDER_destructor()");
-   cms->deref();
-   traceout("TIBRVCMSENDER_destructor()");
-}
-
 void TIBRVCMSENDER_copy(class Object *self, class Object *old, class QoreTibrvCmSender *cms, ExceptionSink *xsink)
 {
    xsink->raiseException("TIBRVCMSENDER-COPY-ERROR", "copying TibrvCmSender objects is curently not supported");
@@ -266,7 +259,6 @@ class QoreClass *initTibrvCmSenderClass()
    class QoreClass *QC_TIBRVCMSENDER = new QoreClass(QDOM_NETWORK, strdup("TibrvCmSender"));
    CID_TIBRVCMSENDER = QC_TIBRVCMSENDER->getID();
    QC_TIBRVCMSENDER->setConstructor(TIBRVCMSENDER_constructor);
-   QC_TIBRVCMSENDER->setDestructor((q_destructor_t)TIBRVCMSENDER_destructor);
    QC_TIBRVCMSENDER->setCopy((q_copy_t)TIBRVCMSENDER_copy);
    QC_TIBRVCMSENDER->addMethod("sendSubject",               (q_method_t)TIBRVCMSENDER_sendSubject);
    QC_TIBRVCMSENDER->addMethod("sendSubjectWithSyncReply",  (q_method_t)TIBRVCMSENDER_sendSubjectWithSyncReply);

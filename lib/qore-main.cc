@@ -68,7 +68,7 @@ void qore_init(char *def_charset, bool show_module_errors)
    // init threading infrastructure
    init_qore_threads();
 
-   initProgramGlobalVars(environ);
+   initENV(environ);
 
    // initialize charset encoding support
    QEM.init(def_charset);

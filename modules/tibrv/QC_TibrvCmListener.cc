@@ -88,13 +88,6 @@ void TIBRVCMLISTENER_constructor(class Object *self, class QoreNode *params, cla
    traceout("TIBRVCMLISTENER_constructor");
 }
 
-void TIBRVCMLISTENER_destructor(class Object *self, class QoreTibrvCmListener *cml, class ExceptionSink *xsink)
-{
-   tracein("TIBRVCMLISTENER_destructor()");
-   cml->deref();
-   traceout("TIBRVCMLISTENER_destructor()");
-}
-
 static void TIBRVCMLISTENER_copy(class Object *self, class Object *old, class QoreTibrvCmListener *cml, ExceptionSink *xsink)
 {
    xsink->raiseException("TIBRVCMLISTENER-COPY-ERROR", "copying TibrvCmListener objects is curently not supported");
@@ -176,7 +169,6 @@ class QoreClass *initTibrvCmListenerClass()
    class QoreClass *QC_TIBRVCMLISTENER = new QoreClass(QDOM_NETWORK, strdup("TibrvCmListener"));
    CID_TIBRVCMLISTENER = QC_TIBRVCMLISTENER->getID();
    QC_TIBRVCMLISTENER->setConstructor(TIBRVCMLISTENER_constructor);
-   QC_TIBRVCMLISTENER->setDestructor((q_destructor_t)TIBRVCMLISTENER_destructor);
    QC_TIBRVCMLISTENER->setCopy((q_copy_t)TIBRVCMLISTENER_copy);
    QC_TIBRVCMLISTENER->addMethod("getQueueSize",       (q_method_t)TIBRVCMLISTENER_getQueueSize);
    QC_TIBRVCMLISTENER->addMethod("getMessage",         (q_method_t)TIBRVCMLISTENER_getMessage);

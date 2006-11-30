@@ -31,6 +31,7 @@
 #include <qore/qore_thread.h>
 #include <qore/Function.h>
 #include <qore/QoreProgram.h>
+#include <qore/Exception.h>
 
 #include <stdio.h>
 #include <string.h>
@@ -41,6 +42,363 @@
 class Hash *ENV;
 
 #include <qore/QoreType.h>
+
+Var::Var(char *nme, QoreNode *val)
+{
+   type = GV_VALUE;
+   v.val.value = val;
+   v.val.name = strdup(nme);
+   //next = NULL;
+}
+
+Var::Var(class Var *ref, bool ro)
+{
+   type = GV_IMPORT;
+   v.ivar.refptr = ref;
+   v.ivar.readonly = ro;
+   ref->ROreference();
+   //next = NULL;
+}
+
+inline void Var::del(class ExceptionSink *xsink)
+{
+   if (type == GV_IMPORT)
+   {
+      printd(5, "Var::~Var() refptr=%08p\n", v.ivar.refptr);
+      v.ivar.refptr->deref(xsink);
+      // clear type so no further deleting will be done
+   }
+   else
+   {
+      printd(5, "Var::~Var() name=%s value=%08p type=%s refs=%d\n", v.val.name ? v.val.name : "(null)",
+	     v.val.value, v.val.value ? v.val.value->type->name : "null", 
+	     v.val.value ? v.val.value->reference_count() : 0);
+   
+      if (v.val.name)
+	 free(v.val.name);
+      if (v.val.value)
+	 v.val.value->deref(xsink);
+      // clear type so no further deleting will be done
+   }
+}
+
+bool Var::isImported() const
+{
+   return type == GV_IMPORT;
+}
+
+char *Var::getName() const
+{
+   if (type == GV_IMPORT)
+      return v.ivar.refptr->getName();
+   return v.val.name;
+}
+
+/*
+class QoreNode *Var::getValue()
+{
+   if (refptr)
+      return refptr->getValue();
+   return value;
+}
+*/
+
+class QoreNode *Var::eval()
+{
+   class QoreNode *rv;
+
+   gate.enter();
+   if (type == GV_IMPORT)
+      rv = v.ivar.refptr->eval();
+   else
+   {
+      rv = v.val.value;
+      if (rv)
+	 rv->ref();
+   }
+   gate.exit();
+   return rv;
+}
+
+// note: the caller must exit the gate!
+class QoreNode **Var::getValuePtr(class VLock *vl, class ExceptionSink *xsink)
+{
+   if (gate.enter(vl, xsink))
+      return NULL;
+
+   if (type == GV_IMPORT)
+   {
+      if (v.ivar.readonly)
+      {
+	 gate.exit();
+	 xsink->raiseException("ACCESS-ERROR", "attempt to write to read-only variable $%s", v.ivar.refptr->getName());
+	 return NULL;
+      }
+      class QoreNode **rv = v.ivar.refptr->getValuePtr(vl, xsink);
+      gate.exit();
+      return rv;
+   }
+   vl->add(&gate);
+   return &v.val.value;
+}
+
+// note: the caller must exit the gate!
+class QoreNode *Var::getValue(class VLock *vl, class ExceptionSink *xsink)
+{
+   if (gate.enter(vl, xsink))
+      return NULL;
+
+   if (type == GV_IMPORT)
+   {
+      class QoreNode *rv = v.ivar.refptr->getValue(vl, xsink);
+      gate.exit();
+      return rv;
+   }
+   vl->add(&gate);
+   return v.val.value;
+}
+
+void Var::setValue(class QoreNode *val, class ExceptionSink *xsink)
+{
+   if (type == GV_IMPORT)
+   {
+      if (v.ivar.readonly)
+      {
+	 xsink->raiseException("ACCESS-ERROR", "attempt to write to read-only variable $%s", v.ivar.refptr->getName());
+	 return;
+      }
+      gate.enter();
+      v.ivar.refptr->setValue(val, xsink);
+      gate.exit();
+      return;
+   }
+
+   gate.enter();
+   if (v.val.value)
+      v.val.value->deref(xsink);
+   v.val.value = val;
+   gate.exit();
+}
+
+void Var::makeReference(class Var *pvar, class ExceptionSink *xsink, bool ro)
+{
+   gate.enter();
+   if (type == GV_IMPORT)
+      v.ivar.refptr->deref(xsink);
+   else
+   {
+      if (v.val.value)
+	 v.val.value->deref(xsink);
+      if (v.val.name)
+	 free(v.val.name);
+   }
+   type = GV_IMPORT;
+   v.ivar.refptr = pvar;
+   v.ivar.readonly = ro;
+   pvar->ROreference();
+   gate.exit();
+}
+
+void Var::deref(class ExceptionSink *xsink)
+{
+   if (ROdereference())
+   {
+      del(xsink);
+      delete this;
+   }
+}
+
+LVar::LVar(lvh_t nid, QoreNode *nvalue) 
+{
+   id = nid; 
+   value = nvalue; 
+   vexp = NULL;
+   obj = NULL;
+}
+
+LVar::LVar(lvh_t nid, QoreNode *ve, class Object *o) 
+{
+   id = nid; 
+   value = NULL;
+   vexp = ve;
+   obj = o;
+}
+
+class QoreNode *LVar::eval(class ExceptionSink *xsink)
+{
+   class QoreNode *rv;
+
+   if (vexp)
+   {
+      class Object *o = NULL;
+      if (obj)
+	 o = substituteObject(obj);
+      // mask the ID in case it's a recursive reference
+      lvh_t save = id;
+      id = NULL;
+      rv = vexp->eval(xsink);
+      //printd(5, "LVar::eval() this=%08p obj=%08p (%s) reference expression %08p (%s) evaluated to %08p (%s)\n", this, obj, obj ? obj->getClass()->name : "NULL", vexp, vexp->type->name, rv, rv ? rv->type->name : "NULL");
+      id = save;
+      if (obj)
+	 substituteObject(o);
+   }
+   else
+      rv = value ? value->RefSelf() : NULL;
+
+   return rv;
+}
+
+class QoreNode **LVar::getValuePtr(class VLock *vl, class ExceptionSink *xsink)
+{
+   if (vexp)
+   {
+      // mask the ID in case it's a recursive reference
+      lvh_t save = id;
+      id = NULL;
+      class QoreNode **rv;
+      if (obj)
+      {
+	 class Object *o = substituteObject(obj);
+	 rv = get_var_value_ptr(vexp, vl, xsink);
+	 substituteObject(o);
+      }
+      else
+	 rv = get_var_value_ptr(vexp, vl, xsink);
+      id = save;
+      return rv;
+   }
+   return &value;
+}
+
+class QoreNode *LVar::getValue(class VLock *vl, class ExceptionSink *xsink)
+{
+   if (vexp)
+   {
+      // mask the ID in case it's a recursive reference
+      lvh_t save = id;
+      id = NULL;
+      class QoreNode *rv;
+      if (obj)
+      {
+	 class Object *o = substituteObject(obj);
+	 rv = getNoEvalVarValue(vexp, vl, xsink);
+	 substituteObject(o);
+      }
+      else
+	 rv = getNoEvalVarValue(vexp, vl, xsink);
+      id = save;
+      return rv;
+   }
+   return value;
+}
+
+void LVar::setValue(class QoreNode *val, class ExceptionSink *xsink)
+{
+   if (vexp)
+   {
+      class Object *o = NULL;
+      if (obj)
+	 o = substituteObject(obj);
+      VLock vl;
+
+      // mask the ID in case it's a recursive reference
+      lvh_t save = id;
+      id = NULL;
+      QoreNode **valp = get_var_value_ptr(vexp, &vl, xsink);
+      id = save;
+
+      if (!xsink->isEvent())
+      {
+	 discard(*valp, xsink);
+	 *valp = val;
+	 vl.del();
+      }
+      else
+      {
+	 vl.del();
+	 discard(val, xsink);
+      }
+      if (obj)
+	 substituteObject(o);
+   }
+   else 
+   {
+      if (value)
+	 value->deref(xsink);
+      value = val;
+   }
+}
+
+void LVar::deref(ExceptionSink *xsink)
+{
+   // if the variable was passed by reference, then write the value back to the
+   // vexp lvalue
+   if (vexp)
+   {
+      vexp->deref(xsink);
+      if (obj)
+	 obj->tDeref();
+   }
+   else 
+      discard(value, xsink);
+   delete this;
+}
+
+VarRef::VarRef(char *nme, int typ)
+{
+   name = nme;
+   type = typ;
+}
+
+VarRef::~VarRef()
+{
+   if (name)
+   {
+      printd(3, "VarRef::~VarRef() deleting variable reference %08p %s\n", name, name);
+      free(name);
+   }
+}
+
+VarRef *VarRef::copy()
+{
+   class VarRef *v = new VarRef();
+   memcpy(v, this, sizeof(class VarRef));
+   v->name = strdup(name);
+   return v;
+}
+
+class QoreNode *VarRef::eval(class ExceptionSink *xsink)
+{
+   if (type == VT_LOCAL)
+   {
+      printd(5, "VarRef::eval() lvar %08p (%s)\n", ref.id, ref.id);
+      return find_lvar(ref.id)->eval(xsink);
+   }
+   printd(5, "VarRef::eval() global var=%08p\n", ref.var);
+   return ref.var->eval();
+}
+
+class QoreNode **VarRef::getValuePtr(class VLock *vl, class ExceptionSink *xsink)
+{
+   if (type == VT_LOCAL)
+      return find_lvar(ref.id)->getValuePtr(vl, xsink);
+   return ref.var->getValuePtr(vl, xsink);
+}
+
+class QoreNode *VarRef::getValue(class VLock *vl, class ExceptionSink *xsink)
+{
+   if (type == VT_LOCAL)
+      return find_lvar(ref.id)->getValue(vl, xsink);
+   return ref.var->getValue(vl, xsink);
+}
+
+void VarRef::setValue(class QoreNode *val, class ExceptionSink *xsink)
+{
+   if (type == VT_LOCAL)
+      find_lvar(ref.id)->setValue(val, xsink);
+   else
+      ref.var->setValue(val, xsink);
+}
 
 static inline class QoreNode **do_list_val_ptr(Tree *tree, class VLock *vlp, ExceptionSink *xsink)
 {
@@ -500,51 +858,104 @@ void delete_var_node(class QoreNode *lvalue, ExceptionSink *xsink)
    // traceout("delete_var_node()");
 }
 
-class List *ARGV = NULL;
-class List *QORE_ARGV = NULL;
-void qore_setup_argv(int pos, int argc, char *argv[])
+// pops local variable off stack
+void uninstantiateLVar(class ExceptionSink *xsink)
 {
-   ARGV = new List();
-   QORE_ARGV = new List();
-   int end = argc - pos;
-   for (int i = 0; i < argc; i++)
-   {
-      if (i < end)
-	 ARGV->push(new QoreNode(argv[i + pos]));
-      QORE_ARGV->push(new QoreNode(argv[i]));
-   }
+   class LVar *lvs = get_thread_stack();
+   class LVar *lvar = lvs;
+
+   //tracein("uninstantiateLVar()");
+#ifdef DEBUG
+   if (!lvs) { run_time_error("uninstantiateLVar(): ERROR empty stack! aborting"); }
+#endif
+   printd(5, "uninstantiating lvar \"%s\"\n", lvs->id);
+   update_thread_stack(lvs->next);
+
+   // the following call will delete the local variable object
+   lvar->deref(xsink);
+   //traceout("uninstantiateLVar()");
 }
 
-void delete_global_variables()
+// pushes local variable on stack by value
+class LVar *instantiateLVar(lvh_t id, class QoreNode *value)
 {
-   tracein("delete_global_variables()");
-   if (QORE_ARGV)
-      QORE_ARGV->derefAndDelete(NULL);
-   if (ARGV)
-      ARGV->derefAndDelete(NULL);
-   if (ENV)
-      ENV->derefAndDelete(NULL);
-   traceout("delete_global_variables()");
+   printd(3, "instantiating lvar '%s' by value (val=%08p)\n", id, value);
+   // allocate new local variable structure
+   class LVar *lvar = new LVar(id, value);
+   // push on stack
+   lvar->next = get_thread_stack();
+   update_thread_stack(lvar);
+
+   return lvar;
 }
 
-void initProgramGlobalVars(char *env[])
+class LVar *instantiateLVar(lvh_t id, class QoreNode *ve, class Object *o)
 {
-   // set up environment hash
-   int i = 0;
-   ENV = new Hash();
-   while (env[i])
-   {
-      char *p;
+   class LVar *lvar;
 
-      if ((p = strchr(env[i], '=')))
-      {
-	 char save = *p;
-	 *p = '\0';
-	 ENV->setKeyValue(env[i], new QoreNode(p + 1), NULL);
-	 //printd(5, "creating $ENV{\"%s\"} = \"%s\"\n", env[i], p + 1);
-	 *p = save;
-      }
-      i++;
+   printd(3, "instantiating lvar %08p '%s' by reference (ve=%08p, o=%08p)\n", id, id, ve, o);
+   // if we're instantiating the same variable recursively, then don't instantiate it at all
+   // allocate new local variable structure
+   lvar = new LVar(id, ve, o);
+   if (o)
+      o->tRef();
+   // push on stack
+   lvar->next = get_thread_stack();
+   update_thread_stack(lvar);
+
+   return lvar;
+}
+
+/*
+// pushes local variable on stack by reference
+static inline class LVar *instantiateLVarRef(lvh_t id, class QoreNode **ptr, class VRMutex *eg)
+{
+   printd(3, "instantiating lvar \"%s\" by reference (ptr=%08p val=%08p)\n", id, ptr, *ptr);
+   // allocate new local variable structure
+   class LVar *lvar = new LVar(id, ptr, eg);
+   // push on stack
+   lvar->next = get_thread_stack();
+   update_thread_stack(lvar);
+
+   return lvar;
+}
+*/
+
+#ifdef DEBUG
+static inline void show_lvstack()
+{
+   class LVar *lvar = get_thread_stack();
+
+   printd(0, "show_lvstack():\n");
+   while (lvar)
+   {
+      VLock vl;
+      QoreNode *n = lvar->getValue(&vl, NULL);
+      printd(0, "\t%08p: \"%s\" value=%08p (type=%s)\n", lvar, lvar->id, n, n ? n->type->name : "<NOTHING>");
+      vl.del();
+      lvar = lvar->next;
    }
-   //traceout("initProgramGlobalVars()");
+}
+#endif
+
+// find_lvar() finds local variables on the local variable stack
+class LVar *find_lvar(lvh_t id)
+{
+   class LVar *lvar = get_thread_stack();
+
+   while (lvar)
+   {
+      //printd(5, "find_lvar(%s) 0x%08p \"%s\" (%08p == %08p) (0x%08p %s) (next=0x%08p)\n", id, lvar, lvar->id, lvar->id, id, lvar->getValue(), lvar->getValue() ? lvar->getValue()->type->name : "(null)", lvar->next);
+      if (lvar->id == id)
+         break;
+      lvar = lvar->next;
+   }
+#ifdef DEBUG
+   if (!lvar)
+   {
+      show_lvstack();
+      run_time_error("find_lvar(): local variable %08p (%s) not found on stack!", id, id);
+   }
+#endif
+   return lvar;
 }

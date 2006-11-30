@@ -89,6 +89,7 @@ inline class QoreNode *evalContextRow(class ExceptionSink *xsink);
 #include <qore/Object.h>
 #include <qore/support.h>
 #include <qore/qore_thread.h>
+#include <qore/Exception.h>
 
 #include <stdlib.h>
 

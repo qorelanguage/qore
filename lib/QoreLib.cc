@@ -31,17 +31,20 @@
 
 #include <string.h>
 
-class featureList qoreFeatureList;
+DLLEXPORT class featureList qoreFeatureList;
 
 // global library variables
-char qore_version_string[] = VERSION_STRING;
-int qore_version_major     = VERSION_MAJOR;
-int qore_version_minor     = VERSION_MINOR;
-int qore_version_sub       = VERSION_SUB;
-int qore_build_number      = BUILD;
-int qore_target_bits       = TARGET_BITS;
-char qore_target_os[]      = TARGET_OS;
-char qore_target_arch[]    = TARGET_ARCH;
+DLLEXPORT char qore_version_string[] = VERSION_STRING;
+DLLEXPORT int qore_version_major     = VERSION_MAJOR;
+DLLEXPORT int qore_version_minor     = VERSION_MINOR;
+DLLEXPORT int qore_version_sub       = VERSION_SUB;
+DLLEXPORT int qore_build_number      = BUILD;
+DLLEXPORT int qore_target_bits       = TARGET_BITS;
+DLLEXPORT char qore_target_os[]      = TARGET_OS;
+DLLEXPORT char qore_target_arch[]    = TARGET_ARCH;
+
+DLLLOCAL class List *ARGV = NULL;
+DLLLOCAL class List *QORE_ARGV = NULL;
 
 #ifndef HAVE_LOCALTIME_R
 class LockedObject lck_localtime;
@@ -51,7 +54,7 @@ class LockedObject lck_localtime;
 class LockedObject lck_gmtime;
 #endif
 
-char table64[64] = {
+DLLLOCAL char table64[64] = {
    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 
    'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 
    'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 
@@ -642,4 +645,51 @@ void print_node(FILE *fp, class QoreNode *node)
       return;
    }
    fputs(node->val.String->getBuffer(), fp);
+}
+
+void qore_setup_argv(int pos, int argc, char *argv[])
+{
+   ARGV = new List();
+   QORE_ARGV = new List();
+   int end = argc - pos;
+   for (int i = 0; i < argc; i++)
+   {
+      if (i < end)
+	 ARGV->push(new QoreNode(argv[i + pos]));
+      QORE_ARGV->push(new QoreNode(argv[i]));
+   }
+}
+
+void initENV(char *env[])
+{
+   // set up environment hash
+   int i = 0;
+   ENV = new Hash();
+   while (env[i])
+   {
+      char *p;
+
+      if ((p = strchr(env[i], '=')))
+      {
+	 char save = *p;
+	 *p = '\0';
+	 ENV->setKeyValue(env[i], new QoreNode(p + 1), NULL);
+	 //printd(5, "creating $ENV{\"%s\"} = \"%s\"\n", env[i], p + 1);
+	 *p = save;
+      }
+      i++;
+   }
+   //traceout("initProgramGlobalVars()");
+}
+
+void delete_global_variables()
+{
+   tracein("delete_global_variables()");
+   if (QORE_ARGV)
+      QORE_ARGV->derefAndDelete(NULL);
+   if (ARGV)
+      ARGV->derefAndDelete(NULL);
+   if (ENV)
+      ENV->derefAndDelete(NULL);
+   traceout("delete_global_variables()");
 }

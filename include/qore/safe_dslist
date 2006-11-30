@@ -1,0 +1,212 @@
+/*
+  safe_dslist
+
+  double-ended singly-linked list
+  reading in multiple threads is safe as long as writes (appends at the end) are locked
+
+  Why safe_dslist?
+  there doesn't seem to be any singly-linked list with constant-time inserts at the beginning and end
+  ("head" and "tail" pointers) meaning that if I want to use STL (or almost-STL) containers, then to get
+  this I have to use "list", which is wasteful of space (because it's doubly-linked) :-(
+  the safe_dslist defined below is a singly-linked list with constant time inserts at the beginning and
+  at the end.  Also it can be read multiple times during inserts (appends at the end of the list) - 
+  only inserts need to be atomic...
+  Only a subset of the list methods are defined.  
+
+  Qore Programming Language
+
+  Copyright (C) 2003,2004,2005,2006 David Nichols
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+#ifndef _QORE_SAFE_DSLIST
+
+#define _QORE_SAFE_DSLIST
+
+#include <qore/config.h>
+
+#include <stdlib.h>
+#include <string.h>
+
+#include <algorithm>
+#include <functional>
+
+template<typename T> struct _qore_list_node
+{
+      typedef _qore_list_node self_t;
+      self_t *next;
+      T data;
+   
+      inline _qore_list_node(T d, self_t *n) { next = n; data = d; }
+      inline _qore_list_node(T d) { next = NULL; data = d; }
+};
+
+template<typename T> struct _qore_list_iterator
+{
+      typedef _qore_list_node<T> node_t;
+      typedef _qore_list_iterator<T> self_t;
+   
+      // data for the node
+      node_t *node;
+
+      inline _qore_list_iterator(node_t *n) { node = n; }
+      inline _qore_list_iterator() { node = NULL; }
+      inline self_t operator++(int) 
+      { 
+	 self_t _tmp = *this;
+	 node = node->next; 
+	 return _tmp;
+      }
+      inline self_t operator++() 
+      { 
+	 node = node->next; 
+	 return *this;
+      }
+      inline T operator*() { return node->data; }
+      inline bool operator!=(const self_t &n) { return n.node != node; }
+      inline bool operator==(const self_t &n) { return n.node == node; }
+};
+
+template<typename T> struct _qore_list_const_iterator
+{
+      typedef _qore_list_node<T> node_t;
+      typedef _qore_list_const_iterator<T> self_t;
+   
+      // data for the node
+      node_t *node;
+
+      inline _qore_list_const_iterator(const node_t *n) { node = (node_t *)n; }
+      inline _qore_list_const_iterator() { node = NULL; }
+      inline self_t operator++(int) 
+      { 
+	 self_t _tmp = *this;
+	 node = node->next; 
+	 return _tmp;
+      }
+      inline self_t operator++() 
+      { 
+	 node = node->next; 
+	 return *this;
+      }
+      inline T operator*() const { return node->data; }
+      inline bool operator!=(const self_t &n) { return n.node != node; }
+      inline bool operator==(const self_t &n) { return n.node == node; }
+};
+
+template<typename T> class safe_dslist
+{  
+   public:
+      typedef _qore_list_iterator<T> iterator;
+      typedef _qore_list_const_iterator<T> const_iterator;
+      typedef _qore_list_node<T> node_t;
+      typedef safe_dslist<T> self_t;
+      
+   private:
+      node_t *head, *tail;
+
+   public: 
+      inline safe_dslist() : head(NULL), tail(NULL) {}
+      inline ~safe_dslist()
+      {
+	 node_t *w = head;
+	 while (w)
+	 {
+	    node_t *n = w->next;
+	    delete w;
+	    w = n;
+	 }
+      }
+
+      inline iterator begin()
+      {
+	 return head;
+      }
+      inline iterator end()
+      {
+	 return NULL;
+      }
+      inline const_iterator begin() const
+      {
+	 return head;
+      }
+      inline const_iterator end() const
+      {
+	 return NULL;
+      }
+      void push_front(T data)
+      {
+	 node_t *n = new node_t(data, head);
+	 if (!tail)
+	    tail = n;
+	 head = n;
+      }
+      
+      void push_back(T data)
+      {
+	 node_t *n = new node_t(data);
+	 if (tail)
+	    tail->next = n;
+	 else
+	    head = n;
+	 tail = n;
+      }
+   
+      inline void populate(self_t &other)
+      {
+	 iterator i = begin();
+	 while (i != end())
+	 {
+	    other.push_back(*i);
+	    i++;
+	 }
+      }
+
+      inline void populate(self_t *other)
+      {
+	 iterator i = begin();
+	 while (i != end())
+	 {
+	    other->push_back(*i);
+	    i++;
+	 }
+      }
+
+      inline bool empty() const
+      {
+	 return !head;
+      }
+
+      inline void erase(iterator i)
+      {
+	 if (i.node == head)
+	 {
+	    head = i.node->next;
+	    if (!head)
+	       tail = NULL;
+	 }
+	 else
+	 {
+	    // find previous entry
+	    node_t *n = head;
+	    while (n->next != i.node)
+	       n = n->next;
+	    n->next = i.node->next;
+	 }
+	 delete i.node;
+      }
+};
+
+#endif

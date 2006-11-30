@@ -54,11 +54,6 @@ void WC_constructor(class Object *self, class QoreNode *params, ExceptionSink *x
    self->setPrivate(CID_WINDOW, w);      
 }
 
-void WC_destructor(class Object *self, class Window *w, ExceptionSink *xsink)
-{
-   w->deref();
-}
-
 static void WC_copy(class Object *self, class Object *old, class Window *w, class ExceptionSink *xsink)
 {
    xsink->raiseException("WINDOW-COPY-ERROR", "copying Window objects is currently unsupported");
@@ -404,7 +399,6 @@ class QoreClass *initWindowClass()
    class QoreClass *QC_WINDOW = new QoreClass(strdup("Window"));
    CID_WINDOW = QC_WINDOW->getID();
    QC_WINDOW->setConstructor(WC_constructor);
-   QC_WINDOW->setDestructor((q_destructor_t)WC_destructor);
    QC_WINDOW->setCopy((q_copy_t)WC_copy);
    QC_WINDOW->addMethod("keypad",             (q_method_t)WC_keypad);
    QC_WINDOW->addMethod("mvaddstr",           (q_method_t)WC_mvaddstr);

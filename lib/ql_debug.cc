@@ -32,18 +32,6 @@
 #include <qore/BuiltinFunctionList.h>
 #include <qore/QoreLib.h>
 
-class Object *CallStack::getPrevStackObject()
-{
-   class CallNode *w = tail;
-   while (w)
-   {
-      if (w->obj)
-	 return w->obj;
-      w = w->prev;
-   }
-   return NULL;
-}
-
 static class QoreNode *f_dbg_get_object_ptr(class QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)(unsigned long)thread_list[gettid()].callStack->getPrevStackObject());

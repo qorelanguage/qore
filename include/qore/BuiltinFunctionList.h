@@ -27,10 +27,7 @@
 #include <qore/config.h>
 #include <qore/hash_map.h>
 #include <qore/Restrictions.h>
-#include <qore/hash_map.h>
 #include <qore/LockedObject.h>
-
-#include <string.h>
 
 class BuiltinFunctionList : public LockedObject
 {
@@ -38,43 +35,19 @@ class BuiltinFunctionList : public LockedObject
       bool init_done;
       hm_bf_t hm;
    
-      inline void add_locked(char *name, class QoreNode *(*f)(class QoreNode *, class ExceptionSink *xsink), int typ);
-      
    public:
-      inline BuiltinFunctionList() : init_done(false) {}
+      DLLLOCAL BuiltinFunctionList();
+      DLLLOCAL ~BuiltinFunctionList();
 
-      ~BuiltinFunctionList();
-      
-      void add(char *name, class QoreNode *(*f)(class QoreNode *, class ExceptionSink *xsink), int typ = QDOM_DEFAULT);
+      DLLEXPORT void add(char *name, class QoreNode *(*f)(class QoreNode *, class ExceptionSink *xsink), int typ = QDOM_DEFAULT);
+      DLLEXPORT class BuiltinFunction *find(char *name);
+      DLLEXPORT int size() const;
 
-      inline class BuiltinFunction *find(char *name);
-
-      inline int size()
-      {
-	 return hm.size();
-      }
-
-      void init();
-      //void cleanup();
+      DLLLOCAL void init();
 };
 
-extern class BuiltinFunctionList builtinFunctions;
+DLLEXPORT extern class BuiltinFunctionList builtinFunctions;
 
 void init_builtin_functions();
-
-#include <qore/Function.h>
-
-inline class BuiltinFunction *BuiltinFunctionList::find(char *name)
-{
-   class BuiltinFunction *rv = NULL;
-   if (init_done)
-      lock();
-   hm_bf_t::iterator i = hm.find(name);
-   if (i != hm.end())
-      rv = i->second;
-   if (init_done)
-      unlock();
-   return rv;
-}
 
 #endif // _QORE_BUILTINFUNCTIONLIST_H

@@ -31,7 +31,7 @@
 #include <string.h>
 
 #define QORE_MODULE_API_MAJOR 0
-#define QORE_MODULE_API_MINOR 1
+#define QORE_MODULE_API_MINOR 2
 
 typedef class QoreString *(*qore_module_init_t)();
 typedef void (*qore_module_ns_init_t)(class Namespace *, class Namespace *);

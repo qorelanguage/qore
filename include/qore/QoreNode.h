@@ -171,6 +171,21 @@ class QoreNode : public ReferenceObject
       inline void deref(class ExceptionSink *xsink);
 };
 
+class TempNode {
+  public:
+   QoreNode *val;
+   inline TempNode(class QoreNode *v) 
+   { 
+      val = v; 
+   }
+   inline void del(ExceptionSink *xsink) 
+   { 
+      if (val) 
+	 val->deref(xsink); 
+      delete this; 
+   }
+};
+
 class ScopedObjectCall 
 {
    public:

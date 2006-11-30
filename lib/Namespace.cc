@@ -66,7 +66,7 @@
 
 #define MAX_RECURSION_DEPTH 20
 
-DLLEXPORT class AutoNamespaceList ANSL;
+class AutoNamespaceList ANSL;
 
 // this class is entirely private to the rest of the library
 class NamespaceList

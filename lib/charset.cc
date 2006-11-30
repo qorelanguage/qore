@@ -44,11 +44,24 @@ static int utf8cl(char *p);
 static int utf8end(char *p, int l);
 static int utf8cpos(char *p, char *e);
 
+struct QoreEncoding *QoreEncodingManager::addUnlocked(char *code, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, char *desc)
+{
+   struct QoreEncoding *qcs = new QoreEncoding(code, l, e, p, desc);
+   emap[qcs->code] = qcs;
+   return qcs;
+}
+
+struct QoreEncoding *QoreEncodingManager::add(char *code, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, char *desc)
+{
+   struct QoreEncoding *qcs = new QoreEncoding(code, l, e, p, desc);
+   lock();
+   emap[qcs->code] = qcs;
+   unlock();
+   return qcs;
+}
+
 QoreEncodingManager::QoreEncodingManager()
 {
-   head = tail = NULL;
-   ahead = atail = NULL;
-
    // add character sets and setup aliases
    
    QCS_USASCII     = addUnlocked("US-ASCII",    NULL,   NULL,    NULL,     "7-bit ASCII character set");
@@ -285,32 +298,28 @@ QoreEncodingManager::QoreEncodingManager()
    QCS_DEFAULT = QCS_UTF8;
 };
 
+QoreEncodingManager::~QoreEncodingManager()
+{
+   encoding_map_t::iterator i;
+   while ((i = emap.begin()) != emap.end())
+   {
+      class QoreEncoding *qe = i->second;
+      emap.erase(i);
+      delete qe;
+   }
+}
+
 void QoreEncodingManager::showEncodings()
 {
-   struct QoreEncoding *w = head;
-   while (w)
-   {
-      printf("%s: %s\n", w->code, w->desc ? w->desc : "(no description available)");
-      w = w->next;
-   }
+   for (encoding_map_t::iterator i = emap.begin(); i != emap.end(); i++)
+      printf("%s: %s\n", i->first, i->second->desc ? i->second->desc : "(no description available)");
 }
 
 void QoreEncodingManager::showAliases()
 {
-   struct QoreEncoding *last = NULL;
-   struct QoreEncodingAlias *aw = ahead;
-   while (aw)
-   {
-      if (last != aw->qcs)
-      {
-	 last = aw->qcs;
-	 printf("encoding: %s\n", last->code);
-      }
-      printf(" + alias: %s\n", aw->alias);
-      aw = aw->next;
-   }
+   for (encoding_map_t::iterator i = amap.begin(); i != amap.end(); i++)
+      printf("%s = %s: %s\n", i->first, i->second->code, i->second->desc ? i->second->desc : "(no description available)");
 }
-
 
 void QoreEncodingManager::init(char *def)
 {
@@ -343,6 +352,42 @@ void QoreEncodingManager::init(char *def)
 	    QCS_DEFAULT = QCS_UTF8;
       }
    }
+}
+
+void QoreEncodingManager::addAlias(struct QoreEncoding *qcs, const char *alias)
+{
+   lock();
+   amap[alias] = qcs;
+   unlock();
+}
+
+struct QoreEncoding *QoreEncodingManager::findUnlocked(char *name)
+{
+   encoding_map_t::iterator i = emap.find(name);
+   if (i != emap.end())
+      return i->second;
+
+   i = amap.find(name);
+   if (i != amap.end())
+      return i->second;
+
+   return NULL;
+}
+
+struct QoreEncoding *QoreEncodingManager::findCreate(char *name)
+{
+   struct QoreEncoding *rv;
+   lock();
+   rv = findUnlocked(name);
+   if (!rv)
+      rv = addUnlocked(name, NULL, NULL, NULL, NULL);
+   unlock();
+   return rv;
+}
+
+struct QoreEncoding *QoreEncodingManager::findCreate(class QoreString *str)
+{
+   return findCreate(str->getBuffer());
 }
 
 static inline int utf8clen(char *p)

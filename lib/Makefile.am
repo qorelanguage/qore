@@ -53,6 +53,7 @@ libqore_la_SOURCES = \
 	StringList.cc \
 	thread.cc \
 	VRMutex.cc \
+	CallStack.cc \
 	QT_NOTHING.cc \
 	QT_bigint.cc \
 	QT_float.cc \

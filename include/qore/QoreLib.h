@@ -60,8 +60,6 @@ class BinaryObject *parseBase64(char *buf, int len, class ExceptionSink *xsink);
 class BinaryObject *parseHex(char *buf, int len, class ExceptionSink *xsink);
 class BinaryObject *parseHex(char *buf, int len);
 
-void print_node(FILE *fp, class QoreNode *node);
-
 #ifdef DEBUG
 class QoreString *dni(class QoreString *s, class QoreNode *n, int indent, class ExceptionSink *xsink);
 #endif
@@ -290,5 +288,11 @@ class TransientLock {
 
 // list of qore features
 extern featureList qoreFeatureList;
+
+DLLEXPORT void qore_setup_argv(int pos, int argc, char *argv[]);
+
+DLLLOCAL void print_node(FILE *fp, class QoreNode *node);
+DLLLOCAL void delete_global_variables();
+DLLLOCAL void initENV(char *env[]);
 
 #endif // _QORE_QORELIB_H

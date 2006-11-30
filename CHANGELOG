@@ -1,6 +1,7 @@
 2006.11.30: David Nichols
 	* implemented default destructors for builtin classes
 	* fixed a memory leak with the ARGV variable
+	* more API cleanups, partial charset.cc|h cleanup
 
 2006.11.29: David Nichols
 	* more QoreClass cleanups

@@ -25,11 +25,11 @@
 #define _QORE_QORECLASS_H
 
 #include <qore/ReferenceObject.h>
-#include <qore/StringList.h>
 #include <qore/support.h>
 #include <qore/hash_map.h>
 #include <qore/common.h>
 
+#include <qore/safe_dslist>
 #include <list>
 
 #define OTF_USER    0

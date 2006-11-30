@@ -49,6 +49,108 @@ void ExceptionSink::outOfMemory()
 #endif
 }
 
+Exception::Exception(char *e, int sline, class QoreString *d)
+{
+   type = ET_SYSTEM;
+
+   if (sline)
+      line = sline;
+   else
+      line = get_pgm_counter();
+   
+   char *f = get_pgm_file();
+   file = f ? strdup(f) : NULL;
+   callStack = new QoreNode(getCallStack());
+
+   err = new QoreNode(e);
+   desc = new QoreNode(d);
+   arg = NULL;
+
+   next = NULL;
+}
+
+Exception::Exception(char *e, class QoreString *d)
+{
+   type = ET_SYSTEM;
+
+   line = get_pgm_counter();
+   
+   char *f = get_pgm_file();
+   file = f ? strdup(f) : NULL;
+   callStack = new QoreNode(getCallStack());
+
+   err = new QoreNode(e);
+   desc = new QoreNode(d);
+   arg = NULL;
+
+   next = NULL;
+}
+
+Exception::Exception(char *e, char *fmt, ...)
+{
+   QoreString *str = new QoreString();
+   va_list args;
+
+   while (true)
+   {
+      va_start(args, fmt);
+      int rc = str->vsprintf(fmt, args);
+      va_end(args);
+      if (!rc)
+	 break;
+   }
+
+   type = ET_SYSTEM;
+   line = get_pgm_counter();
+   char *f = get_pgm_file();
+   file = f ? strdup(f) : NULL;
+   callStack = new QoreNode(getCallStack());
+
+   err = new QoreNode(e);
+   desc = new QoreNode(str);
+   arg = NULL;
+
+   next = NULL;
+}
+
+Exception::~Exception()
+{
+   if (file)
+      free(file);
+}
+
+void Exception::del(class ExceptionSink *xsink)
+{
+   if (callStack)
+      callStack->deref(xsink);
+
+   if (err)
+      err->deref(xsink);
+   if (desc)
+      desc->deref(xsink);
+   if (arg)
+      arg->deref(xsink);
+
+   delete this;
+}
+
+void Exception::del()
+{
+   class ExceptionSink xsink;
+
+   if (callStack)
+      callStack->deref(&xsink);
+
+   if (err)
+      err->deref(&xsink);
+   if (desc)
+      desc->deref(&xsink);
+   if (arg)
+      arg->deref(&xsink);
+
+   delete this;
+}
+
 Exception::Exception(class QoreNode *n)
 {
    type = ET_USER;

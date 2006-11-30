@@ -24,10 +24,13 @@
 
 #define _QORE_CHARSET_H
 
+#include <qore/common.h>
 #include <qore/LockedObject.h>
 
 #include <strings.h>
 #include <string.h>
+
+#include <map>
 
 // for multi-byte character set encodings: gives the length of the string in characters
 typedef int (*mbcs_length_t)(char *);
@@ -42,7 +45,6 @@ struct QoreEncoding {
       mbcs_end_t fend;
       mbcs_pos_t fpos;
       char *desc;
-      struct QoreEncoding *next;
 
       inline QoreEncoding(char *c, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, char *d)
       {
@@ -51,7 +53,6 @@ struct QoreEncoding {
 	 fend = e;
 	 fpos = p;
 	 desc = d ? strdup(d) : NULL;
-	 next = NULL;
       }
       inline ~QoreEncoding()
       {
@@ -77,125 +78,36 @@ struct QoreEncoding {
       }
 };
 
-struct QoreEncodingAlias {
-      struct QoreEncoding *qcs;
-      const char *alias;
-      struct QoreEncodingAlias *next;
-
-      inline QoreEncodingAlias(struct QoreEncoding *q, const char *a)
-      {
-	 qcs = q;
-	 alias = a;
-	 next = NULL;
-      }
-};
+typedef std::map<const char *, struct QoreEncoding *, class cltstr> encoding_map_t;
 
 class QoreEncodingManager : public LockedObject 
 {
    private:
-      class QoreEncoding *head, *tail;
-      class QoreEncodingAlias *ahead, *atail;
+      encoding_map_t emap, amap;
 
-      inline void addUnlocked(struct QoreEncoding *qcs)
-      {
-	 if (tail)
-	    tail->next = qcs;
-	 else
-	    head = qcs;
-	 tail = qcs;
-      }
-      inline struct QoreEncoding *addUnlocked(char *code, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, char *desc)
-      {
-	 struct QoreEncoding *qcs = new QoreEncoding(code, l, e, p, desc);
-	 addUnlocked(qcs);
-	 return qcs;
-      }
+      DLLLOCAL struct QoreEncoding *addUnlocked(char *code, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, char *desc);
+      DLLLOCAL struct QoreEncoding *findUnlocked(char *name);
 
    public:
-      QoreEncodingManager();
-      inline ~QoreEncodingManager()
-      {
-	 while (head)
-	 {
-	    tail = head->next;
-	    delete head;
-	    head = tail;
-	 }
-	 while (ahead)
-	 {
-	    atail = ahead->next;
-	    delete ahead;
-	    ahead = atail;
-	 }
-      }
-      inline struct QoreEncoding *add(char *code, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, char *desc)
-      {
-	 struct QoreEncoding *qcs = new QoreEncoding(code, l, e, p, desc);
-	 lock();
-	 addUnlocked(qcs);
-	 unlock();
-	 return qcs;
-      }
-      inline void addAlias(struct QoreEncoding *qcs, const char *alias)
-      {
-	 struct QoreEncodingAlias *qca = new QoreEncodingAlias(qcs, alias);
-	 lock();
-	 if (atail)
-	    atail->next = qca;
-	 else
-	    ahead = qca;
-	 atail = qca;
-	 unlock();
-      }
-      inline struct QoreEncoding *find(char *name)
-      {
-	 struct QoreEncoding *w = head;
-	 while (w)
-	 {
-	    if (!strcasecmp(name, w->code))
-	       return w;
-	    w = w->next;
-	 }
+      DLLEXPORT void addAlias(struct QoreEncoding *qcs, const char *alias);
+      DLLEXPORT struct QoreEncoding *findCreate(char *name);
+      DLLEXPORT struct QoreEncoding *findCreate(class QoreString *str);
+      DLLEXPORT void showEncodings();
+      DLLEXPORT void showAliases();
+      DLLEXPORT void init(char *def);
 
-	 struct QoreEncodingAlias *aw = ahead;
-	 while (aw)
-	 {
-	    if (!strcasecmp(name, aw->alias))
-	       return aw->qcs;
-	    aw = aw->next;
-	 }
-	 return NULL;
-      }
-      inline struct QoreEncoding *findCreate(char *name)
-      {
-	 struct QoreEncoding *rv;
-	 lock();
-	 rv = find(name);
-	 if (!rv)
-	    rv = addUnlocked(name, NULL, NULL, NULL, NULL);
-	 unlock();
-	 return rv;
-      }
-      inline struct QoreEncoding *findCreate(class QoreString *str);
-      void showEncodings();
-      void showAliases();
-      void init(char *def);
+      DLLLOCAL QoreEncodingManager();
+      DLLLOCAL ~QoreEncodingManager();
+      DLLLOCAL struct QoreEncoding *add(char *code, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, char *desc);
 };
 
-extern QoreEncodingManager QEM;
+DLLEXPORT extern QoreEncodingManager QEM;
 
 // builtin character encodings
-extern QoreEncoding *QCS_DEFAULT, *QCS_USASCII, *QCS_UTF8, *QCS_ISO_8859_1,
+DLLEXPORT extern QoreEncoding *QCS_DEFAULT, *QCS_USASCII, *QCS_UTF8, *QCS_ISO_8859_1,
    *QCS_ISO_8859_2, *QCS_ISO_8859_3, *QCS_ISO_8859_4, *QCS_ISO_8859_5,
    *QCS_ISO_8859_6, *QCS_ISO_8859_7, *QCS_ISO_8859_8, *QCS_ISO_8859_9,
    *QCS_ISO_8859_10, *QCS_ISO_8859_11, *QCS_ISO_8859_13, *QCS_ISO_8859_14,
    *QCS_ISO_8859_15, *QCS_ISO_8859_16, *QCS_KOI8_R, *QCS_KOI8_U, *QCS_KOI7;
-
-#include <qore/QoreString.h>
-
-inline struct QoreEncoding *QoreEncodingManager::findCreate(class QoreString *str)
-{
-   return findCreate(str->getBuffer());
-}
 
 #endif // _QORE_CHARSET_H

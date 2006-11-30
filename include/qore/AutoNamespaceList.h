@@ -35,69 +35,27 @@
 #include <qore/LockedObject.h>
 #include <qore/ModuleManager.h>
 
-class ANSNode {
-   private:
-      qore_module_ns_init_t ns_init;
+#include <qore/safe_dslist>
 
-   public:
-      class ANSNode *next;
+typedef safe_dslist<qore_module_ns_init_t> anslist_t;
 
-      inline ANSNode(qore_module_ns_init_t ni)
-      {
-	 ns_init = ni;
-	 next = NULL;
-      }
-      inline void init(class Namespace *rns, class Namespace *qns)
-      {
-	 ns_init(rns, qns);
-      }
-};
-
-class AutoNamespaceList : public LockedObject
+class AutoNamespaceList : public LockedObject, public anslist_t
 {
-   private:
-      class ANSNode *head, *tail;
-
    public:
-      inline AutoNamespaceList()
+      DLLLOCAL void add(qore_module_ns_init_t ns_init)
       {
-	 head = tail = NULL;
-      }
-
-      inline ~AutoNamespaceList()
-      {
-	 while (head)
-	 {
-	    tail = head->next;
-	    delete head;
-	    head = tail;
-	 }	 
-      }
-
-      inline void add(qore_module_ns_init_t ns_init)
-      {
-	 ANSNode *n = new ANSNode(ns_init);
 	 lock();
-	 if (tail)
-	    tail->next = n;
-	 else
-	    head = n;
-	 tail = n;
+	 push_back(ns_init);
 	 unlock();
       }
       
       inline void init(class Namespace *rns, class Namespace *qns)
       {
-	 class ANSNode *w = head;
-
-	 while (w)
-	 {
-	    w->init(rns, qns);
-	    w = w->next;
-	 }
+	 for (anslist_t::iterator i = begin(); i != end(); i++)
+	    (*i)(rns, qns);
       }
 };
 
-extern class AutoNamespaceList ANSL;
+DLLLOCAL extern class AutoNamespaceList ANSL;
 
 #endif

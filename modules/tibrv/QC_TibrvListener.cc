@@ -67,13 +67,6 @@ void TIBRVLISTENER_constructor(class Object *self, class QoreNode *params, class
    traceout("TIBRVLISTENER_constructor");
 }
 
-void TIBRVLISTENER_destructor(class Object *self, class QoreTibrvListener *trvl, class ExceptionSink *xsink)
-{
-   tracein("TIBRVLISTENER_destructor()");
-   trvl->deref();
-   traceout("TIBRVLISTENER_destructor()");
-}
-
 void TIBRVLISTENER_copy(class Object *self, class Object *old, class QoreTibrvListener *trvl, ExceptionSink *xsink)
 {
    xsink->raiseException("TIBRVLISTENER-COPY-ERROR", "copying TibrvListener objects is curently not supported");
@@ -140,7 +133,6 @@ class QoreClass *initTibrvListenerClass()
    class QoreClass *QC_TIBRVLISTENER = new QoreClass(QDOM_NETWORK, strdup("TibrvListener"));
    CID_TIBRVLISTENER = QC_TIBRVLISTENER->getID();
    QC_TIBRVLISTENER->setConstructor(TIBRVLISTENER_constructor);
-   QC_TIBRVLISTENER->setDestructor((q_destructor_t)TIBRVLISTENER_destructor);
    QC_TIBRVLISTENER->setCopy((q_copy_t)TIBRVLISTENER_copy);
    QC_TIBRVLISTENER->addMethod("getQueueSize",       (q_method_t)TIBRVLISTENER_getQueueSize);
    QC_TIBRVLISTENER->addMethod("getMessage",         (q_method_t)TIBRVLISTENER_getMessage);

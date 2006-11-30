@@ -83,7 +83,18 @@ class VLock {
       {
 	 del();
       }
-      inline void add(class VRMutex *g);
+      inline void add(class VRMutex *g)
+      {
+	 class VLNode *n = new VLNode(g);
+	 if (tail)
+	 {
+	    //run_time_error("VLock::add() > 1 lock count!");
+	    tail->next = n;
+	 }
+	 else
+	    head = n;
+	 tail = n;
+      }
       inline void del()
       {
 	 while (head)

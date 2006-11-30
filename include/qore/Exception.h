@@ -103,14 +103,14 @@ class Exception {
       class QoreNode *callStack, *err, *desc, *arg;
       class Exception *next;
 
-      inline Exception(char *e, char *fmt, ...);
-      inline Exception(char *e, class QoreString *desc);
-      inline Exception(char *e, int sline, class QoreString *desc);
-      Exception(class QoreNode *l);
-      Exception(class Exception *old, class ExceptionSink *xsink);
+      DLLEXPORT Exception(char *e, char *fmt, ...);
+      DLLEXPORT Exception(char *e, class QoreString *desc);
+      DLLEXPORT Exception(char *e, int sline, class QoreString *desc);
+      DLLEXPORT Exception(class QoreNode *l);
+      DLLEXPORT Exception(class Exception *old, class ExceptionSink *xsink);
 
-      inline void del(class ExceptionSink *xsink);
-      inline void del();
+      void del(class ExceptionSink *xsink);
+      void del();
 };
 
 void defaultExceptionHandler(class Exception *e);
@@ -265,108 +265,6 @@ inline void ExceptionSink::deleteExceptionChain(class Exception *e)
       e->del(this);
       e = n;
    }
-}
-
-inline Exception::Exception(char *e, int sline, class QoreString *d)
-{
-   type = ET_SYSTEM;
-
-   if (sline)
-      line = sline;
-   else
-      line = get_pgm_counter();
-   
-   char *f = get_pgm_file();
-   file = f ? strdup(f) : NULL;
-   callStack = new QoreNode(getCallStack());
-
-   err = new QoreNode(e);
-   desc = new QoreNode(d);
-   arg = NULL;
-
-   next = NULL;
-}
-
-inline Exception::Exception(char *e, class QoreString *d)
-{
-   type = ET_SYSTEM;
-
-   line = get_pgm_counter();
-   
-   char *f = get_pgm_file();
-   file = f ? strdup(f) : NULL;
-   callStack = new QoreNode(getCallStack());
-
-   err = new QoreNode(e);
-   desc = new QoreNode(d);
-   arg = NULL;
-
-   next = NULL;
-}
-
-inline Exception::Exception(char *e, char *fmt, ...)
-{
-   QoreString *str = new QoreString();
-   va_list args;
-
-   while (true)
-   {
-      va_start(args, fmt);
-      int rc = str->vsprintf(fmt, args);
-      va_end(args);
-      if (!rc)
-	 break;
-   }
-
-   type = ET_SYSTEM;
-   line = get_pgm_counter();
-   char *f = get_pgm_file();
-   file = f ? strdup(f) : NULL;
-   callStack = new QoreNode(getCallStack());
-
-   err = new QoreNode(e);
-   desc = new QoreNode(str);
-   arg = NULL;
-
-   next = NULL;
-}
-
-inline Exception::~Exception()
-{
-   if (file)
-      free(file);
-}
-
-inline void Exception::del(class ExceptionSink *xsink)
-{
-   if (callStack)
-      callStack->deref(xsink);
-
-   if (err)
-      err->deref(xsink);
-   if (desc)
-      desc->deref(xsink);
-   if (arg)
-      arg->deref(xsink);
-
-   delete this;
-}
-
-inline void Exception::del()
-{
-   class ExceptionSink xsink;
-
-   if (callStack)
-      callStack->deref(&xsink);
-
-   if (err)
-      err->deref(&xsink);
-   if (desc)
-      desc->deref(&xsink);
-   if (arg)
-      arg->deref(&xsink);
-
-   delete this;
 }
 
 static inline void alreadyDeleted(class ExceptionSink *xsink, char *cmeth)

@@ -927,7 +927,7 @@ void Object::cleanup(class ExceptionSink *xsink, class Hash *td)
    
    if (pgm)
    {
-      printd(5, "Object::cleaup() this=%08p (%s) calling QoreProgram::depDeref() (%08p)\n", this, myclass->getName(), pgm);
+      printd(5, "Object::cleanup() this=%08p (%s) calling QoreProgram::depDeref() (%08p)\n", this, myclass->getName(), pgm);
       pgm->depDeref(xsink);
 #ifdef DEBUG
       pgm = NULL;

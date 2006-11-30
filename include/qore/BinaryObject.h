@@ -46,7 +46,7 @@ class BinaryObject {
       }
 
       // returns 0 = equal, 1 = not equal
-      inline int compare(class BinaryObject *obj)
+      inline int compare(class BinaryObject *obj) const
       {
 	 // if the sizes are not equal, then the objects can't be equal
 	 if (len != obj->len)
@@ -59,12 +59,12 @@ class BinaryObject {
 	 return memcmp(ptr, obj->ptr, len);
       }
 
-      inline int size() 
+      inline int size() const
       {
 	 return len;
       }
 
-      inline class BinaryObject *copy()
+      inline class BinaryObject *copy() const
       {
 	 if (!len)
 	    return new BinaryObject();
@@ -74,7 +74,7 @@ class BinaryObject {
 	 return new BinaryObject(np, len);
       }
 
-      inline void *getPtr()
+      inline void *getPtr() const
       {
 	 return ptr;
       }
@@ -90,8 +90,6 @@ class BinaryObject {
       {
 	 append(b->ptr, b->len);
       }
-
-      class QoreString *getBase64String();
 };
 
 #endif // _QORE_BINARYOBJECT_H

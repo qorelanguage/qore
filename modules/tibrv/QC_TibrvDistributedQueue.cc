@@ -115,13 +115,6 @@ void TIBRVDQ_constructor(class Object *self, class QoreNode *params, class Excep
    traceout("TIBRVDQ_constructor");
 }
 
-void TIBRVDQ_destructor(class Object *self, class QoreTibrvDistributedQueue *dq, class ExceptionSink *xsink)
-{
-   tracein("TIBRVDQ_destructor()");
-   dq->deref();
-   traceout("TIBRVDQ_destructor()");
-}
-
 void TIBRVDQ_copy(class Object *self, class Object *old, class QoreTibrvDistributedQueue *dq, ExceptionSink *xsink)
 {
    xsink->raiseException("TIBRV-DISTRIBUTEDQUEUE-COPY-ERROR", "copying TibrvDistributedQueue objects is curently not supported");
@@ -176,7 +169,6 @@ class QoreClass *initTibrvDistributedQueueClass()
    class QoreClass *QC_TIBRVDQ = new QoreClass(QDOM_NETWORK, strdup("TibrvDistributedQueue"));
    CID_TIBRVDQ = QC_TIBRVDQ->getID();
    QC_TIBRVDQ->setConstructor(TIBRVDQ_constructor);
-   QC_TIBRVDQ->setDestructor((q_destructor_t)TIBRVDQ_destructor);
    QC_TIBRVDQ->setCopy((q_copy_t)TIBRVDQ_copy);
    QC_TIBRVDQ->addMethod("setWorkerWeight",  (q_method_t)TIBRVDQ_setWorkerWeight);
    QC_TIBRVDQ->addMethod("setWorkerTasks",   (q_method_t)TIBRVDQ_setWorkerTasks);
