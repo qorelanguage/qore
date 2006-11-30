@@ -40,15 +40,6 @@
 
 #include "QC_TuxedoAdapter.h"
 
-/*###
-#include "QC_TuxedoTypedBuffer.h"
-#include "low_level_api.h"
-#include "QC_TuxedoTransactionId.h"
-#include "QC_TuxedoQueueControlParams.h"
-#include "QC_TuxedoContext.h"
-#include "fml_api.h"
-*/
-
 #ifndef QORE_MONOLITHIC
 char qore_module_name[] = "tuxedo";
 char qore_module_version[] = "0.1";

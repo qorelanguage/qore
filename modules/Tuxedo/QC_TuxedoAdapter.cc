@@ -105,6 +105,61 @@ static void TUXEDO_constructor(Object *self, QoreNode *params, ExceptionSink *xs
 }
 
 #ifdef DEBUG
+/* this kind of tests is not deprecated in favor of using QoreProgram
+TEST()
+{
+  char buffer[1024];
+  sprintf(buffer, "qore -e '%%requires tuxedo\n"
+    "$a = new Tuxedo::TuxedoTest();\n"
+    "delete $a;\n"
+    "exit(10);'\n",
+    tuxfile(TUXCONFIG_SIMPLE_TEST)
+  );
+
+  int res = system(buffer);
+  res = WEXITSTATUS(res);
+  assert(res == 10);
+}
+*/
+
+TEST()
+{
+  QoreString str;
+  str.sprintf("%%requires tuxedo\n"
+    "sub test() {\n"
+    "$a = new Tuxedo::TuxedoTest();\n"
+    "delete $a;\n"
+    "return 10; }\n",
+    tuxfile(TUXCONFIG_SIMPLE_TEST)
+  );
+
+  ExceptionSink xsink;
+  QoreProgram *pgm = new QoreProgram();
+  pgm->parse(str.getBuffer(), "test", &xsink);
+  if (xsink.isEvent()) {
+    assert(false);
+  } else {
+     QoreNode *rv = pgm->callFunction("test", NULL, &xsink);
+     if (xsink.isEvent()) {
+       xsink.handleExceptions();
+       assert(false);
+     }
+     if (!rv) {
+       assert(false);
+     } else
+     if (rv->type != NT_INT) {
+       assert(false);
+     } else
+     if (rv->val.intval != 10) {
+       assert(false);
+     }
+     discard(rv, &xsink);
+  }
+  pgm->deref(&xsink);
+  xsink.handleExceptions();
+}
+
+
 #ifdef TUXCONFIG_SIMPLE_TEST
 TEST()
 {
@@ -120,12 +175,27 @@ TEST()
     "return 10; }\n",
     tuxfile(TUXCONFIG_SIMPLE_TEST)
   );
+
   ExceptionSink xsink;
   QoreProgram *pgm = new QoreProgram();
   pgm->parse(str.getBuffer(), "test", &xsink);
-  if (!xsink.isEvent())
-  {
+  if (xsink.isEvent()) {
+    assert(false);
+  } else {
      QoreNode *rv = pgm->callFunction("test", NULL, &xsink);
+     if (xsink.isEvent()) {
+       xsink.handleExceptions();     
+       assert(false);
+     }
+     if (!rv) {
+       assert(false);
+     } else
+     if (rv->type != NT_INT) {
+       assert(false);
+     } else
+     if (rv->val.intval != 10) {
+       assert(false);
+     }
      discard(rv, &xsink);
   }
   pgm->deref(&xsink);
@@ -204,22 +274,44 @@ TEST()
   if (stop && stop[0]) return;
   printf("testing synchronous call - simple test server should run\n");
 
-  char buffer[1024];
-  sprintf(buffer, "qore -e '%%requires tuxedo\n"
+  QoreString str;
+  str.sprintf("%%requires tuxedo\n"
+   "sub test() {\n"
     "$settings = (\"TUXCONFIG\" : \"%s\", \"TUXDIR\" : \"" TUXDIR "\");\n"
     "$a = new Tuxedo::TuxedoAdapter($settings);\n"
     "$res = $a.call(\"TOUPPER\", \"abcd\", 0);\n"
-    "if ($res != \"ABCD\") { printf(\"call() failed\n\"); exit(11); }\n"
+    "if ($res != \"ABCD\") { printf(\"call() failed\n\"); return 12; }\n"
     "$res = $a.call(\"TOUPPER\", \"xyz\", 0);\n" // second call
-    "if ($res != \"XYZ\") { printf(\"call() failed\n\"); exit(11); }\n"
+    "if ($res != \"XYZ\") { printf(\"call() failed\n\"); return 11; }\n"
     "delete $a;\n"
-    "exit(10);'\n",
+    "return 10; }\n",
     tuxfile(TUXCONFIG_SIMPLE_TEST)
   );
 
-  int res = system(buffer);
-  res = WEXITSTATUS(res);
-  assert(res == 10);
+  ExceptionSink xsink;
+  QoreProgram *pgm = new QoreProgram();
+  pgm->parse(str.getBuffer(), "test", &xsink);
+  if (xsink.isEvent()) {
+    assert(false);
+  } else {
+     QoreNode *rv = pgm->callFunction("test", NULL, &xsink);
+     if (xsink.isEvent()) {
+       xsink.handleExceptions();
+       assert(false);
+     }
+     if (!rv) {
+       assert(false);
+     } else
+     if (rv->type != NT_INT) {
+       assert(false);
+     } else
+     if (rv->val.intval != 10) {
+       assert(false);
+     }
+     discard(rv, &xsink);
+  }
+  pgm->deref(&xsink);
+  xsink.handleExceptions();
 }
 #endif
 #endif
@@ -291,8 +383,9 @@ TEST()
   printf("testing asyncCall() - simple test server should run\n");
 
   // send 3 requests asynchronously, cancel one
-  char buffer[4096];
-  sprintf(buffer, "qore -e '%%requires tuxedo\n"
+  QoreString str;
+  str.sprintf("%%requires tuxedo\n"
+    "sub test() {\n"
     "$settings = (\"TUXCONFIG\" : \"%s\", \"TUXDIR\" : \"" TUXDIR "\");\n"
     "$a = new Tuxedo::TuxedoAdapter($settings);\n"
 
@@ -304,16 +397,37 @@ TEST()
 
     // read req 3 and 1
     "$res = $a.waitForAsyncReply($res3, Tuxedo::TPNOTIME);\n"
-    "if ($res.data != \"DATA3\") { printf(\"service 3 failed\n\"); exit(11); }\n"
+    "if ($res.data != \"DATA3\") { printf(\"service 3 failed\n\"); return 11; }\n"
     "$res = $a.waitForAsyncReply($res1, Tuxedo::TPNOTIME);\n"
-    "if ($res.data != \"DATA1\") { printf(\"service 1 failed\n\"); exit(11); }\n"
-    "exit(10);'\n",
+    "if ($res.data != \"DATA1\") { printf(\"service 1 failed\n\"); return 12; }\n"
+    "return 10; }\n",
     tuxfile(TUXCONFIG_SIMPLE_TEST)
   );
 
-  int res = system(buffer);
-  res = WEXITSTATUS(res);
-  assert(res == 10);
+  ExceptionSink xsink;
+  QoreProgram *pgm = new QoreProgram();
+  pgm->parse(str.getBuffer(), "test", &xsink);
+  if (xsink.isEvent()) {
+    assert(false);
+  } else {
+     QoreNode *rv = pgm->callFunction("test", NULL, &xsink);
+     if (xsink.isEvent()) {
+       xsink.handleExceptions();
+       assert(false);
+     }
+     if (!rv) {
+       assert(false);
+     } else
+     if (rv->type != NT_INT) {
+       assert(false);
+     } else
+     if (rv->val.intval != 10) {
+       assert(false);
+     }
+     discard(rv, &xsink);
+  }
+  pgm->deref(&xsink);
+  xsink.handleExceptions();
 }
 
 TEST()
@@ -323,28 +437,52 @@ TEST()
   if (stop && stop[0]) return;
   printf("testing asyncCall() multithreaded - simple server should run\n");
 
-  char buffer[2048];
-  sprintf(buffer, "qore -e '%%requires tuxedo\n"
+  QoreString str;
+  str.sprintf("%%requires tuxedo\n"
+    "our $handle;\n"
+    "our $result = 13;\n"
+
+    "sub bgthread($my_a, $my_handle) {\n"
+    "  my $res = $my_a.waitForAsyncReply($my_handle, Tuxedo::TPNOTIME);\n"
+    "  if ($res.data != \"DATA1\") { printf(\"service failed\n\"); $result = 15; return; }\n"
+    "  $result = 10;\n"
+    "}\n"
+
+    "sub test() {\n"
     "$settings = (\"TUXCONFIG\" : \"%s\", \"TUXDIR\" : \"" TUXDIR "\");\n"
     "our $a = new Tuxedo::TuxedoAdapter($settings);\n"
 
     "our $handle = $a.asyncCall(\"TOUPPER\", \"data1\", 0);\n"
-
-    "sub bgthread($my_a, $my_handle) {\n"
-    "  my $res = $my_a.waitForAsyncReply($my_handle, Tuxedo::TPNOTIME);\n"
-    "  if ($res.data != \"DATA1\") { printf(\"service failed\n\"); exit(15); }\n"
-    "  exit(10);\n"
-    "}\n"
-
     "background bgthread($a, $handle);\n"
-    "sleep(5);\n"
-    "exit(18);'\n",
+    "sleep(1);\n"
+    "return $result; }\n",
     tuxfile(TUXCONFIG_SIMPLE_TEST)
     );
 
-  int res = system(buffer);
-  res = WEXITSTATUS(res);
-  assert(res == 10);
+  ExceptionSink xsink;
+  QoreProgram *pgm = new QoreProgram();
+  pgm->parse(str.getBuffer(), "test", &xsink);
+  if (xsink.isEvent()) {
+    assert(false);
+  } else {
+     QoreNode *rv = pgm->callFunction("test", NULL, &xsink);
+     if (xsink.isEvent()) {
+       xsink.handleExceptions();
+       assert(false);
+     }
+     if (!rv) {
+       assert(false);
+     } else
+     if (rv->type != NT_INT) {
+       assert(false);
+     } else
+     if (rv->val.intval != 10) {
+       assert(false);
+     }
+     discard(rv, &xsink);
+  }
+  pgm->deref(&xsink);
+  xsink.handleExceptions();
 }
 
 #endif
@@ -656,8 +794,9 @@ TEST()
   printf("testing enqueue() and dequeue() - queue test should run\n");
 
   // test modeled by qsample from ATMI samples, uses its server
-  char buffer[2048];
-  sprintf(buffer, "qore -e '%%requires tuxedo\n"
+  QoreString str;
+  str.sprintf("%%requires tuxedo\n"
+    "sub test() {\n"
     "$settings = (\"TUXCONFIG\" : \"%s\", \"TUXDIR\" : \"" TUXDIR "\");\n"
     "our $a = new Tuxedo::TuxedoAdapter($settings);\n"
 
@@ -666,15 +805,36 @@ TEST()
 
     "$h = (\"queue_control_flags\" : Tuxedo::TPQWAIT, \"flags\" : Tuxedo::TPNOTIME);\n"
     "$res = $a.dequeue(\"QSPACE\", \"RPLYQ\", $h);\n"
-    "if ($res != \"SAMPLE DATA\") { printf(\"dequeue failed\"); exit(12); }\n"
+    "if ($res != \"SAMPLE DATA\") { printf(\"dequeue failed\"); return 12; }\n"
 
-    "exit(10);'\n",
+    "return 10; }\n",
     tuxfile(TUXCONFIG_QUEUE_TEST)
   );
 
-  int res = system(buffer);
-  res = WEXITSTATUS(res);
-  assert(res == 10);
+  ExceptionSink xsink;
+  QoreProgram *pgm = new QoreProgram();
+  pgm->parse(str.getBuffer(), "test", &xsink);
+  if (xsink.isEvent()) {
+    assert(false);
+  } else {
+     QoreNode *rv = pgm->callFunction("test", NULL, &xsink);
+     if (xsink.isEvent()) {
+       xsink.handleExceptions();
+       assert(false);
+     }
+     if (!rv) {
+       assert(false);
+     } else
+     if (rv->type != NT_INT) {
+       assert(false);
+     } else
+     if (rv->val.intval != 10) {
+       assert(false);
+     }
+     discard(rv, &xsink);
+  }
+  pgm->deref(&xsink);
+  xsink.handleExceptions();
 }
 #endif
 #endif
