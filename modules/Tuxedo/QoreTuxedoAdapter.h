@@ -61,7 +61,14 @@ class Hash;
 class QoreTuxedoTest : public AbstractPrivateData
 {
 public:
-      virtual ~QoreTuxedoTest() { }
+  virtual ~QoreTuxedoTest() { }
+};
+
+// test inheritance from builtin class
+class QoreTuxedoTestBase : public AbstractPrivateData
+{
+public:
+  virtual ~QoreTuxedoTestBase() {}
 };
 #endif
 

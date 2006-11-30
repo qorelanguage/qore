@@ -45,6 +45,8 @@ using std::map;
 int CID_TUXEDOADAPTER;
 #ifdef DEBUG
 int CID_TUXEDOTEST;
+int CID_TUXEDOTESTBASE;
+int CID_TUXEDOTESTDESCENDANT1;
 #endif
 
 //------------------------------------------------------------------------------
@@ -74,6 +76,20 @@ static void TUXEDOTEST_destructor(Object *self, QoreTuxedoTest* test, ExceptionS
 {
   test->deref();
 }
+
+//----------------------------
+// test builtin inheritance
+
+static void TUXEDOTESTBASE_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
+{
+  QoreTuxedoTestBase* tst = new QoreTuxedoTestBase;
+  self->setPrivate(CID_TUXEDOTESTBASE, tst);
+}
+static void TUXEDOTESTBASE_destructor(Object *self, QoreTuxedoTestBase* test, ExceptionSink *xsink)
+{
+  test->deref();
+}
+
 #endif
 
 //------------------------------------------------------------------------------
@@ -1228,6 +1244,26 @@ QoreClass* initDummyTestClass()
   tst->setDestructor((q_destructor_t)TUXEDOTEST_destructor);
   return tst;
 }
+
+QoreClass* initDummyBaseTestClass()
+{
+  QoreClass* tst = new QoreClass(QDOM_NETWORK, strdup("TuxedoTestBase"));
+  CID_TUXEDOTESTBASE = tst->getID();
+
+  tst->setConstructor((q_constructor_t)TUXEDOTESTBASE_constructor);
+  tst->setDestructor((q_destructor_t)TUXEDOTESTBASE_destructor);
+  return tst;
+
+}
+
+QoreClass* initDummyDescendant1Class(QoreClass* base)
+{
+  QoreClass* tst = new QoreClass(QDOM_NETWORK, strdup("TuxedoTestDescendant1"));
+  CID_TUXEDOTESTDESCENDANT1 = tst->getID();
+  tst->addDefaultBuiltinBaseClass(base);
+  return tst;
+}
+
 #endif
 
 //-----------------------------------------------------------------------------
