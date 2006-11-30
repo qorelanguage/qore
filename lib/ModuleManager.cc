@@ -211,15 +211,13 @@ void ModuleManager::init(bool se)
 	    if (p)
 	      *p = '\0';
 	    class QoreString *errstr = loadModuleFromPath(globbuf.gl_pathv[i], name);
-	    if (!errstr)
-	       qoreFeatureList.push_back(name);
-	    else
+	    if (errstr)
 	    {
 	       if (show_errors)
 		  fprintf(stderr, "error loading %s\n", errstr->getBuffer());
 	       delete errstr;
-	       free(name);
 	    }
+	    free(name);
 	 }
       }
       else
@@ -451,6 +449,7 @@ class QoreString *ModuleManager::loadModuleFromPath(char *path, char *feature, c
    mi = MM.add(path, name, *api_major, *api_minor, *module_init, *module_ns_init, *module_delete, desc, version, author, url, ptr);
    // add to auto namespace list
    ANSL.add(*module_ns_init);
+   qoreFeatureList.push_back(strdup(name));
    printd(5, "ModuleManager::loadModuleFromPath(%s) registered '%s'\n", path, name);
    if (mip)
       *mip = mi;
