@@ -112,18 +112,24 @@ TEST()
   if (stop && stop[0]) return;
   printf("testing construction - simple test server should run\n");
 
-  char buffer[1024];
-  sprintf(buffer, "qore -e '%%requires tuxedo\n"
+  QoreString str;
+  str.sprintf("%%requires tuxedo\n"
     "$settings = (\"TUXCONFIG\" : \"%s\", \"TUXDIR\" : \"" TUXDIR "\");\n"
     "$a = new Tuxedo::TuxedoAdapter($settings);\n"
     "delete $a;\n"
-    "exit(10);'\n",
+    "return 10;\n",
     tuxfile(TUXCONFIG_SIMPLE_TEST)
   );
-
-  int res = system(buffer);
-  res = WEXITSTATUS(res);
-  assert(res == 10);
+  ExceptionSink xsink;
+  QoreProgram *pgm = new QoreProgram();
+  pgm->parse(str.getBuffer(), "test", &xsink);
+  if (!xsink.isEvent())
+  {
+     QoreNode *rv = pgm->run(&xsink);
+     discard(rv, &xsink);
+  }
+  pgm->deref(&xsink);
+  xsink.handleExceptions();
 }
 #endif
 #endif
