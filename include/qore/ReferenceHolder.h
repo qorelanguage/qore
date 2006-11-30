@@ -1,8 +1,8 @@
 /*
-  QoreClassHolder.h
+  ReferenceHolder.h
 
   Smart pointer like class that dereferences
-  obtained pointer to a QoreClass in destructor.
+  obtained pointer to a ReferenceObject in its destructor.
 
   Qore Programming Language
 
@@ -23,27 +23,27 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef QORE_CLASS_HOLDER_H_
-#define QORE_CLASS_HOLDER_H_
+#ifndef QORE_REFERENCE_HOLDER_H_
+#define QORE_REFERENCE_HOLDER_H_
 
 //-----------------------------------------------------------------------------
 // Example of use:
 //
-// QoreClassHolder<TibcoClass> holder = self->getReferencedPrivateData(...);
+// ReferenceHolder<TibcoClass> holder(self->getReferencedPrivateData(...));
 // holder->a_tibco_function();
-// - deref() is automatic
+// - deref() is automatic when the object goes out of scope
 
 template<typename T>
-class QoreClassHolder
+class ReferenceHolder
 {
 private:
-  QoreClassHolder(const QoreClassHolder&); // not implemented
-  QoreClassHolder& operator=(const QoreClassHolder&); // not implemented
+  ReferenceHolder(const ReferenceHolder&); // not implemented
+  ReferenceHolder& operator=(const ReferenceHolder&); // not implemented
 
   T* p;
 public:
-  QoreClassHolder(T* p_) : p(p_)
-  ~QoreClassHolder() { p->deref(); }
+  ReferenceHolder(T* p_) : p(p_) {}
+  ~ReferenceHolder() { p->deref(); }
 
   T* operator->() { return p; }
 };
