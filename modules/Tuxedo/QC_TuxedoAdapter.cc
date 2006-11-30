@@ -114,10 +114,10 @@ TEST()
 
   QoreString str;
   str.sprintf("%%requires tuxedo\n"
-    "$settings = (\"TUXCONFIG\" : \"%s\", \"TUXDIR\" : \"" TUXDIR "\");\n"
+    "sub test() { $settings = (\"TUXCONFIG\" : \"%s\", \"TUXDIR\" : \"" TUXDIR "\");\n"
     "$a = new Tuxedo::TuxedoAdapter($settings);\n"
     "delete $a;\n"
-    "return 10;\n",
+    "return 10; }\n",
     tuxfile(TUXCONFIG_SIMPLE_TEST)
   );
   ExceptionSink xsink;
@@ -125,7 +125,7 @@ TEST()
   pgm->parse(str.getBuffer(), "test", &xsink);
   if (!xsink.isEvent())
   {
-     QoreNode *rv = pgm->run(&xsink);
+     QoreNode *rv = pgm->callFunction("test", NULL, &xsink);
      discard(rv, &xsink);
   }
   pgm->deref(&xsink);
