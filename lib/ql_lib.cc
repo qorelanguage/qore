@@ -44,6 +44,11 @@
 #include <time.h>
 #include <glob.h>
 
+#ifdef DEBUG
+// Unsorted unit tests are put here
+#  include "tests/ReferenceHolder_tests.cc"
+#endif
+
 static class QoreNode *f_exit(class QoreNode *params, ExceptionSink *xsink)
 {
    class QoreNode *p0;

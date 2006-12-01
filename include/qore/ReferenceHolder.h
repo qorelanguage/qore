@@ -26,6 +26,8 @@
 #ifndef QORE_REFERENCE_HOLDER_H_
 #define QORE_REFERENCE_HOLDER_H_
 
+#include <qore/Exception.h>
+
 //-----------------------------------------------------------------------------
 // Example of use:
 //
@@ -43,7 +45,7 @@ private:
   T* p;
 public:
   ReferenceHolder(T* p_) : p(p_) {}
-  ~ReferenceHolder() { p->deref(); }
+  ~ReferenceHolder() { p->deref(0);}
 
   T* operator->() { return p; }
 };
