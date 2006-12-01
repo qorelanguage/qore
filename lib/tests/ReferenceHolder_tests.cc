@@ -3,6 +3,7 @@
 // Unit tests for ReferenceHolder utility
 #include <qore/ReferenceHolder.h>
 
+namespace ReferenceHolder_tests {
 TEST()
 {
   printf("testing ReferenceHolder 1\n");
@@ -10,6 +11,7 @@ TEST()
   assert(h);
 }
 
+} // namespace
 #endif
 
 // EOF

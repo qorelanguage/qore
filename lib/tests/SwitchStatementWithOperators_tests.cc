@@ -413,179 +413,170 @@ TEST()
 {
   printf("testing switch with simple relational operators 1\n");
   // test <
-  char* s = "qore -e '\n"
-    "$a = 1;\n"
-    "switch ($a) {\n"
-    "case 2: exit(11); break;\n"
-    "case < 2 : exit(10); break;\n"
-    "}\n"
-    "exit(12);'\n";
+  QoreString str(
+    "sub test() {"
+    "$a = 1;"
+    "switch ($a) {"
+    "case 2: return False;"
+    "case < 2 : return True;"
+    "}"
+    "return False;"
+    "}");
 
-  int res = system(s);
-  res = WEXITSTATUS(res);
-  assert(res == 10);
+  run_Qore_test(str, __FILE__, __LINE__);
 }
 
 TEST()
 {
   printf("testing switch with simple relational operators 1a\n");
   // test <
-  char* s = "qore -e '\n"
-    "$a = 1;\n"
-    "switch ($a) {\n"
-    "case < 2 : exit(10); break;\n"
-    "}\n"
-    "exit(12);'\n";
+  QoreString str(
+    "sub test() {"
+    "$a = 1;"
+    "switch ($a) {"
+    "case < 2 : return True;"
+    "}"
+    "return False; }");
 
-  int res = system(s);
-  res = WEXITSTATUS(res);
-  assert(res == 10);
+  run_Qore_test(str, __FILE__, __LINE__);
 }
 
 TEST()
 {
   printf("testing switch with simple relational operators 2\n");
    // test >
-  char* s = "qore -e '\n"
-    "$a = 1;\n"
-    "switch ($a) {\n"
-    "case 2: exit(11); break;\n"
-    "case > 0 : exit(10); break;\n"
+  QoreString str(
+    "sub test() {"
+    "$a = 1;"
+    "switch ($a) {"
+    "case 2: return False;"
+    "case > 0 : return True;"
     "}\n"
-    "exit(12);'\n";
+    "return False; }");
 
-  int res = system(s);
-  res = WEXITSTATUS(res);
-  assert(res == 10);
+  run_Qore_test(str, __FILE__, __LINE__);
 }
 
 TEST()
 {
   printf("testing switch with simple relational operators 3\n");
   // test <=, also duplicate
-  char* s = "qore -e '\n"
-    "$a = 99;\n"
-    "switch ($a) {\n"
-    "case <=99: exit(10); break;\n"
-    "case >99: exit(11); break;\n"
+  QoreString str(
+    "sub test() {"
+    "$a = 99;"
+    "switch ($a) {"
+    "case <=99: return True;\n"
+    "case >99: return False;\n"
     "}\n"
-    "exit(11);'\n";
+    "return False; }");
 
-  int res = system(s);
-  res = WEXITSTATUS(res);
-  assert(res == 10);
+  run_Qore_test(str, __FILE__, __LINE__);
 }
 
 TEST()
 {
   printf("testing switch with simple relational operators 4\n");
   // test >=
-  char* s = "qore -e '\n"
-    "$a = 10;\n"
-    "switch ($a) {\n"
-    "case >= 1: exit(10); break;\n"
-    "case > 0 : exit(11); break;\n"
-    "}\n"
-    "exit(11);'\n";
+  QoreString str(
+    "sub test() {"
+    "$a = 10;"
+    "switch ($a) {"
+    "case >= 1: return True;"
+    "case > 0 : return False;"
+    "}"
+    "return False; }");
 
-  int res = system(s);
-  res = WEXITSTATUS(res);
-  assert(res == 10);
+  run_Qore_test(str, __FILE__, __LINE__);
 }
 
 TEST()
 {
   printf("testing switch with simple relational operators 5\n");
   // test all operators together
-  char* s = "qore -e '\n"
-    "$a = 1;\n"
-    "switch ($a) {\n"
-    "case < 0: exit(11); break;\n"
-    "case >1 : exit(12); break;\n"
-    "case 0: exit(13);\n" // nobreak
-    "case >= 2: exit(14);\n" // nobreak
-    "case <= -1.0: exit(15); break;\n"
-    "default: exit(10); break;\n"
-    "}\n"
-    "exit(16);'\n";
+  QoreString str(
+    "sub test() {"
+    "$a = 1;"
+    "switch ($a) {"
+    "case < 0: return False;"
+    "case >1 : return False;"
+    "case 0: return False;"
+    "case >= 2: return False;"
+    "case <= -1.0: return False;"
+    "default: return True;"
+    "}"
+    "return False; }");
 
-  int res = system(s);
-  res = WEXITSTATUS(res);
-  assert(res == 10);
+  run_Qore_test(str, __FILE__, __LINE__);
 }
 
 TEST()
 {
   printf("testing switch with simple relational operators 6\n");
   // test float/int mix
-  char* s = "qore -e '\n"
-    "$a = 1.23;\n"
-    "switch ($a) {\n"
-    "case >= 1: exit(10); break;\n"
-    "case 1.23 : exit(11); break;\n"
-    "}\n"
-    "exit(11);'\n";
+  QoreString str(
+    "sub test() {"
+    "$a = 1.23;"
+    "switch ($a) {"
+    "case >= 1: return True;"
+    "case 1.23 : return False;"
+    "}"
+    "return False; }");
 
-  int res = system(s);
-  res = WEXITSTATUS(res);
-  assert(res == 10);
+  run_Qore_test(str, __FILE__, __LINE__);
 }
 
 TEST()
 {
   printf("testing switch with simple relational operators 7\n");
   // test float
-  char* s = "qore -e '\n"
-    "$a = 1.2;\n"
-    "switch ($a) {\n"
-    "case 2.0: exit(11); break;\n"
-    "case > 0.1 : exit(10); break;\n"
-    "}\n"
-    "exit(11);'\n";
+  QoreString str(
+    "sub test() {"
+    "$a = 1.2;"
+    "switch ($a) {"
+    "case 2.0: return False;"
+    "case > 0.1 : return True;"
+    "}"
+    "return False; }");
 
-  int res = system(s);
-  res = WEXITSTATUS(res);
-  assert(res == 10);
+  run_Qore_test(str, __FILE__, __LINE__);
 }
 
 TEST()
 {
   printf("testing switch with simple relational operators 8\n");
   // test string
-  char* s = "qore -e '\n"
-    "$a = \"aaa\";\n"
-    "switch ($a) {\n"
-    "case 2: exit(11); break;\n"
-    "case > 0 : exit(11); break;\n"
-    "default: exit(10); break;\n"
-    "}\n"
-    "exit(11);'\n";
+  QoreString str(
+    "sub test() {"
+    "$a = \"aaa\";"
+    "switch ($a) {"
+    "case 2: return False;"
+    "case > 0 : return False;"
+    "default: return True;"
+    "}"
+    "return False; }");
 
-  int res = system(s);
-  res = WEXITSTATUS(res);
-  assert(res == 10);
+  run_Qore_test(str, __FILE__, __LINE__);
 }
 
 TEST()
 {
   printf("testing switch with simple relational operators and empty body\n");
   // test float/int mix
-  char* s = "qore -e '\n"
-    "$a = 1.23;\n"
-    "switch ($a) {\n"
-    "case >= 10:\n"
-    "case <= 1.0:\n"
-    "case >5:\n"
-    "case <-0.1:\n"
-    "case 22:\n"
-    "  exit(11);\n"
-    "case 1.23 : exit(10); break;\n"
-    "}\n"
-    "exit(11);'\n";
+  QoreString str(
+    "sub test() {"
+    "$a = 1.23;"
+    "switch ($a) {"
+    "case >= 10:"
+    "case <= 1.0:"
+    "case >5:"
+    "case <-0.1:"
+    "case 22:"
+    "  return False;"
+    "case 1.23 : return True;"
+    "}"
+    "return False; }");
 
-  int res = system(s);
-  res = WEXITSTATUS(res);
-  assert(res == 10);
+  run_Qore_test(str, __FILE__, __LINE__);
 }
 
 } // namespace

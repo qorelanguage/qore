@@ -7,74 +7,70 @@ TEST()
 {
   printf("test standard switch 1\n");
 
-  char* s = "qore -e '\n"
-    "$a = 1;\n"
-    "switch ($a) {\n"
-    "case 2: exit(11); break;\n"
-    "case 0 : exit(11); break;\n"
-    "case 1: exit(10);\n"
-    "default: exit(11); break;\n"
-    "}\n"
-    "exit(11);'\n";
+  QoreString str(
+    "sub test() {"
+    "$a = 1;"
+    "switch ($a) {"
+    "case 2: return False;"
+    "case 0 : return False;"
+    "case 1: return True;"
+    "default: return False;"
+    "}"
+    "return False; }");
 
-  int res = system(s);
-  res = WEXITSTATUS(res);
-  assert(res == 10);
+  run_Qore_test(str, __FILE__, __LINE__);
 }
 
 TEST()
 {
   printf("test standard switch 2\n");
+  
+  QoreString str(
+    "sub test() {"
+    "$a = 30;"
+    "switch ($a) {"
+    "case 2: return False;"
+    "case 0: return False;"
+    "case 1: return False;"
+    "}"
+    "return True; }");
 
-  char* s = "qore -e '\n"
-    "$a = 30;\n"
-    "switch ($a) {\n"
-    "case 2: exit(11); break;\n"
-    "case 0: exit(11); break;\n"
-    "case 1: exit(11); break;\n"
-    "}\n"
-    "exit(10);'\n";
-
-  int res = system(s);
-  res = WEXITSTATUS(res);
-  assert(res == 10);
+  run_Qore_test(str, __FILE__, __LINE__);
 }
 
 TEST()
 {
   printf("test standard switch 3\n");
 
-  char* s = "qore -e '\n"
-    "$a = \"aa\";\n"
-    "switch ($a) {\n"
-    "case \"ab\": exit(11); break;\n"
-    "case \"a\" : exit(11); break;\n"
-    "case \"aa\": exit(10);\n"
-    "default: exit(11); break;\n"
-    "}\n"
-    "exit(11);'\n";
+  QoreString str(  
+    "sub test() {"
+    "$a = \"aa\";"
+    "switch ($a) {"
+    "case \"ab\": return False;"
+    "case \"a\" : return False;"
+    "case \"aa\": return True;"
+    "default: return False;"
+    "}"
+    "return False; }");
 
-  int res = system(s);
-  res = WEXITSTATUS(res);
-  assert(res == 10);
+  run_Qore_test(str, __FILE__, __LINE__);
 }
 
 TEST()
 {
   printf("test standard switch 4\n");
 
-  char* s = "qore -e '\n"
-    "$a = \"abcd\";\n"
-    "switch ($a) {\n"
-    "case \"aa\": exit(11); break;\n"
-    "case \"a\": exit(11); break;\n"
-    "case \"abcdef\": exit(11); break;\n"
-    "}\n"
-    "exit(10);'\n";
-
-  int res = system(s);
-  res = WEXITSTATUS(res);
-  assert(res == 10);
+  QoreString str(
+    "sub test() {"
+    "$a = \"abcd\";"
+    "switch ($a) {"
+    "case \"aa\": return False;"
+    "case \"a\": return False;"
+    "case \"abcdef\": return False;"
+    "}"
+    "return True; }");
+ 
+  run_Qore_test(str, __FILE__, __LINE__);
 }
 
 } // namespace
