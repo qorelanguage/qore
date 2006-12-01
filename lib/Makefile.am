@@ -100,7 +100,8 @@ libqore_la_SOURCES = \
 	QC_SSLCertificate.cc \
 	QC_SSLPrivateKey.cc \
 	QC_HTTPClient.cc \
-	QoreHTTPClient.cc 
+	QoreHTTPClient.cc \
+	minitest.cc
 
 if COND_DEBUG
 libqore_la_SOURCES += ql_debug.cc

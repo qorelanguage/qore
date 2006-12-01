@@ -377,6 +377,13 @@ TEST()
 #define MINITEST_IMPL1(f, l)    MINITEST_IMPL2(f, l)
 #define TEST()                MINITEST_IMPL1(__FILE__, __LINE__)
 
+//-----------------------------------------------------------------------------
+#include <qore/QoreString.h>
+
+// Support for execution of QoreString as a QoreProgram.
+// The function needs to be named 'test'.
+extern void run_Qore_test(QoreString& str, const char* file, int line, const char* details = 0);
+
 #endif // DEBUG
 #endif 
 

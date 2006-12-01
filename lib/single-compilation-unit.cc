@@ -80,6 +80,7 @@
 #include "QC_SSLCertificate.cc"
 #include "QC_SSLPrivateKey.cc"
 //#include "QC_HTTPClient.cc"
+#include "minitest.cc"
 
 #ifdef DEBUG
 #include "ql_debug.cc"

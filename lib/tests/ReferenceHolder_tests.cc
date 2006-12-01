@@ -5,8 +5,9 @@
 
 TEST()
 {
-  printf("testing ReferenceHolder\n");
+  printf("testing ReferenceHolder 1\n");
   ReferenceHolder<QoreNode> h(new QoreNode(1.1));
+  assert(h);
 }
 
 #endif

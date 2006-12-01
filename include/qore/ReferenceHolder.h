@@ -32,7 +32,9 @@
 // Example of use:
 //
 // ReferenceHolder<TibcoClass> holder(self->getReferencedPrivateData(...));
+//
 // holder->a_tibco_function();
+//
 // - deref() is automatic when the object goes out of scope
 
 template<typename T>
@@ -41,13 +43,15 @@ class ReferenceHolder
 private:
   ReferenceHolder(const ReferenceHolder&); // not implemented
   ReferenceHolder& operator=(const ReferenceHolder&); // not implemented
+  void* operator new(unsigned); // not implemented, make sure it is not new'ed
 
   T* p;
 public:
   ReferenceHolder(T* p_) : p(p_) {}
-  ~ReferenceHolder() { p->deref(0);}
+  ~ReferenceHolder() { if(p) p->deref(0);}
 
   T* operator->() { return p; }
+  operator bool() const { return p != 0; }
 };
 
 #endif
