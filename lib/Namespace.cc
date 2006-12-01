@@ -64,6 +64,7 @@
 
 #ifdef DEBUG
 #  include "tests/Namespace_tests.cc"
+#  include "tests/builtin_inheritance_tests.cc"
 #endif
 
 #define MAX_RECURSION_DEPTH 20
@@ -1818,6 +1819,14 @@ RootNamespace::RootNamespace(class Namespace **QoreNS) : Namespace()
    qns->addSystemClass(initGetOptClass());
    qns->addSystemClass(initFtpClientClass());
    //qns->addSystemClass(initHTTPClientClass());
+
+#ifdef DEBUG
+{ // tests
+   QoreClass* base = initBuiltinInheritanceTestBaseClass();
+   qns->addSystemClass(base);
+   qns->addSystemClass(initBuiltinInheritanceTestDescendant1(base));
+}
+#endif
 
    qns->addInitialNamespace(get_thread_ns());
 
