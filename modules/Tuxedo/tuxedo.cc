@@ -254,9 +254,6 @@ void tuxedo_module_ns_init(Namespace* rns, Namespace* qns)
 
 #ifdef DEBUG
   tuxedons->addSystemClass(initDummyTestClass());
-  QoreClass* base = initDummyBaseTestClass();
-  tuxedons->addSystemClass(base);
-  tuxedons->addSystemClass(initDummyDescendant1Class(base));
 #endif
 
   qns->addInitialNamespace(tuxedons);

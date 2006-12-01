@@ -58,17 +58,11 @@ class Hash;
 
 //-----------------------------------------------------------------------------
 #ifdef DEBUG
+// empty class, used just to check whether the module works
 class QoreTuxedoTest : public AbstractPrivateData
 {
 public:
   virtual ~QoreTuxedoTest() { }
-};
-
-// test inheritance from builtin class
-class QoreTuxedoTestBase : public AbstractPrivateData
-{
-public:
-  virtual ~QoreTuxedoTestBase() {}
 };
 #endif
 

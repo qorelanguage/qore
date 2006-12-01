@@ -33,11 +33,7 @@ extern class QoreClass* initTuxedoAdapterClass();
 
 #ifdef DEBUG
 extern int CID_TUXEDOTEST;
-extern int CID_TUXEDOTESTBASE;
-extern int CID_TUXEDOTESTDESCENDANT1;
 extern QoreClass* initDummyTestClass();
-extern QoreClass* initDummyBaseTestClass();
-extern QoreClass* initDummyDescendant1Class(QoreClass* base);
 #endif
 
 #endif
