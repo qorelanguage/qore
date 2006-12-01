@@ -54,12 +54,12 @@ Qorus Integration Engine
 ------------------------
 Qorus Integration Engine is a framework for the development and operation of reliable (fault-tolerant) interfaces supporting "Guaranteed Recoverability".
 
-The system is a highly multi-threaded, MySQL Netowrk, Oracle, TIBCO Rendezvous, and TIBCO Adapters integrated workflow and SOA platform where user (and some system) logic is run-time loaded/refreshed from an Oracle database and executed in a controlled fashion in Qore Program objects with restricted capabilities by the system in order to support user-defined workflows and services.
+The system is a highly multi-threaded, MySQL, Oracle, TIBCO Rendezvous, and TIBCO Adapters integrated workflow and SOA platform where user (and some system) logic is run-time loaded/refreshed from an Oracle database and executed in a controlled fashion in Qore Program objects with restricted capabilities by the system in order to support user-defined workflows and services.
 
 Basically the qore language was developed in order to make it possible to write this application, however solutions to various challenges in the Qore language/library design were implemented in the most generic and flexible way possible in order to make qore as useful in as many contexts as possible.
 
 The requirements for the language were:
-*) clean threading model
+*) clean threading model, SMP scalability
 *) efficient resource sharing
 *) support cleanly embedding logic in automomous objects with variable restricted capabilities (= Program class)
 *) good network/socket API (= Socket class)

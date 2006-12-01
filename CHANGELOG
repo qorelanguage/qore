@@ -1,3 +1,6 @@
+2006.12.01: David Nichols
+	* ConstantList: more api cleanups
+
 2006.11.30: David Nichols
 	* implemented default destructors for builtin classes
 	* fixed a memory leak with the ARGV variable

@@ -51,6 +51,7 @@ libqore_la_SOURCES = \
 	FtpClient.cc \
 	DBI.cc \
 	StringList.cc \
+	ConstantList.cc \
 	thread.cc \
 	VRMutex.cc \
 	CallStack.cc \

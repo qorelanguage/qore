@@ -44,6 +44,8 @@
 #include <qore/QoreFile.h>
 #include <qore/hash_map.h>
 #include <qore/minitest.hpp>
+#include <qore/QoreType.h>
+#include <qore/ConstantList.h>
 
 // include files for default object classes
 #include <qore/QC_Socket.h>
@@ -104,9 +106,9 @@ class NamespaceList
 class QoreClassList
 {
    private:
-      inline void deleteAll();
-      inline void assimilate(QoreClassList *n);
-      inline void remove(hm_qc_t::iterator i)
+      DLLLOCAL inline void deleteAll();
+      DLLLOCAL inline void assimilate(QoreClassList *n);
+      DLLLOCAL inline void remove(hm_qc_t::iterator i)
       {
 	 class QoreClass *qc = i->second;
 	 //printd(5, "QCL::remove() this=%08p '%s' (%08p)\n", this, qc->getName(), qc);
@@ -117,177 +119,19 @@ class QoreClassList
    public:
       hm_qc_t hm;        // hash_map for name lookups
       
-      inline QoreClassList() {}
-      inline ~QoreClassList();
-      inline int add(class QoreClass *ot);
-      inline class QoreClass *find(char *name);
-      inline class QoreClass *findChange(char *name);
-      inline class QoreClassList *copy(int po);
-      inline void parseInit();
-      inline void parseRollback();
-      inline void parseCommit(QoreClassList *n);
-      inline void reset();
-      inline void assimilate(QoreClassList *n, QoreClassList *otherlist, class NamespaceList *nsl, class NamespaceList *pendNSL, char *nsname);
-      inline class Hash *getInfo();
+      DLLLOCAL inline QoreClassList() {}
+      DLLLOCAL inline ~QoreClassList();
+      DLLLOCAL inline int add(class QoreClass *ot);
+      DLLLOCAL inline class QoreClass *find(char *name);
+      DLLLOCAL inline class QoreClass *findChange(char *name);
+      DLLLOCAL inline class QoreClassList *copy(int po);
+      DLLLOCAL inline void parseInit();
+      DLLLOCAL inline void parseRollback();
+      DLLLOCAL inline void parseCommit(QoreClassList *n);
+      DLLLOCAL inline void reset();
+      DLLLOCAL inline void assimilate(QoreClassList *n, QoreClassList *otherlist, class NamespaceList *nsl, class NamespaceList *pendNSL, char *nsname);
+      DLLLOCAL inline class Hash *getInfo();
 };
-
-// this class is entirely private to the rest of the library
-class ConstantList
-{
-   private:
-      hm_qn_t hm;
-
-      inline void remove(hm_qn_t::iterator i)
-      {
-	 if (i->second)
-	    i->second->deref(NULL);
-
-	 char *c = i->first;
-	 hm.erase(i);
-	 free(c);	 
-      }
-
-      inline void deleteAll();
-
-   public:
-      inline ~ConstantList();
-      inline void add(char *name, class QoreNode *value);
-      inline class QoreNode *find(char *name);
-      inline class ConstantList *copy();
-      inline void reset();
-      inline void assimilate(class ConstantList *n, class ConstantList *otherlist, char *nsname);
-      inline void assimilate(class ConstantList *n);
-      inline void parseInit();
-      inline Hash *getInfo();
-};
-
-inline ConstantList::~ConstantList()
-{
-   //tracein("ConstantList::~ConstantList()");
-   deleteAll();
-   //traceout("ConstantList::~ConstantList()");
-}
-
-//  NOTE: since constants cannot hold objects (only immediate values)
-//  there is no need for an exception handler with the dereference
-inline void ConstantList::deleteAll()
-{
-   hm_qn_t::iterator i;
-   while ((i = hm.begin()) != hm.end())
-      remove(i);
-}
-
-inline void ConstantList::reset()
-{
-   deleteAll();
-}
-
-inline void ConstantList::add(char *name, class QoreNode *value)
-{
-   // first check if the constant has already been defined
-   if (hm.find(name) != hm.end())
-   {
-      parse_error("constant \"%s\" has already been defined", name);
-      value->deref(NULL);
-      return;
-   }
-
-   hm[strdup(name)] = value;
-}
-
-inline class QoreNode *ConstantList::find(char *name)
-{
-   hm_qn_t::iterator i = hm.find(name);
-   if (i != hm.end())
-      return i->second;
-
-   return NULL;
-}
-
-inline class ConstantList *ConstantList::copy()
-{
-   class ConstantList *ncl = new ConstantList();
-
-   for (hm_qn_t::iterator i = hm.begin(); i != hm.end(); i++)
-   {
-      // reference value for new constant definition
-      if (i->second)
-	 i->second->ref();
-      ncl->add(i->first, i->second);
-   }
-
-   return ncl;
-}
-
-// no duplicate checking is done here
-inline void ConstantList::assimilate(class ConstantList *n)
-{
-   hm_qn_t::iterator i;
-   while ((i = n->hm.begin()) != n->hm.end())
-   {
-      // "move" data to new list
-      hm[i->first] = i->second;
-      n->hm.erase(i);
-   }
-}
-
-// duplicate checking is done here
-inline void ConstantList::assimilate(class ConstantList *n, class ConstantList *otherlist, char *nsname)
-{
-   // assimilate target list
-   hm_qn_t::iterator i;
-   while ((i = n->hm.begin()) != n->hm.end())
-   {
-      hm_qn_t::iterator j = otherlist->hm.find(i->first);
-      if (j != otherlist->hm.end())
-      {
-	 parse_error("constant \"%s\" has already been defined in namespace \"%s\"",
-		     i->first, nsname);
-	 n->remove(i);
-      }
-      else
-      {      
-	 j = hm.find(i->first);
-	 if (j != hm.end())
-	 {
-	    parse_error("constant \"%s\" is already pending for namespace \"%s\"",
-			i->first, nsname);
-	    n->remove(i);
-	 }
-	 else
-	 {
-	    // "move" data to new list
-	    hm[i->first] = i->second;
-	    n->hm.erase(i);
-	 }
-      }
-   }
-}
-
-#include <qore/QoreType.h>
-
-inline void ConstantList::parseInit()
-{
-   for (hm_qn_t::iterator i = hm.begin(); i != hm.end(); i++)
-   {
-      printd(5, "ConstantList::parseInit() %s\n", i->first);
-      getRootNS()->parseInitConstantValue(&i->second, 0);
-      printd(5, "ConstantList::parseInit() constant %s resolved to %08p %s\n", 
-	     i->first, i->second, i->second ? i->second->type->name : "NULL");
-      if (!i->second)
-	 i->second = nothing();
-   }
-}
-
-inline Hash *ConstantList::getInfo()
-{
-   class Hash *h = new Hash();
-
-   for (hm_qn_t::iterator i = hm.begin(); i != hm.end(); i++)
-      h->setKeyValue(i->first, i->second->RefSelf(), NULL);
-
-   return h;
-}
 
 inline void QoreClassList::deleteAll()
 {

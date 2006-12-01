@@ -30,6 +30,7 @@
 #include "FtpClient.cc"
 #include "DBI.cc"
 #include "StringList.cc"
+#include "ConstantList.cc"
 #include "thread.cc"
 #include "VRMutex.cc"
 #include "SwitchStatementWithOperators.cc"
