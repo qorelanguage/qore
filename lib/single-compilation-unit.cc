@@ -31,6 +31,7 @@
 #include "DBI.cc"
 #include "StringList.cc"
 #include "ConstantList.cc"
+#include "QoreClassList.cc"
 #include "thread.cc"
 #include "VRMutex.cc"
 #include "SwitchStatementWithOperators.cc"

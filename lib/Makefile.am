@@ -52,6 +52,7 @@ libqore_la_SOURCES = \
 	DBI.cc \
 	StringList.cc \
 	ConstantList.cc \
+	QoreClassList.cc \
 	thread.cc \
 	VRMutex.cc \
 	CallStack.cc \
