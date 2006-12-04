@@ -41,32 +41,6 @@ TEST()
   outer.addNamespace(inner);
 }
 
-TEST()
-{
-  printf("tetsing QoreClass 1\n");
-  QoreClass* c = new QoreClass(strdup("aaa"));
-  delete c;
-}
-
-TEST()
-{
-  printf("testing adding QoreClass into QoreClassList\n");
-  QoreClass* c1 = new QoreClass(strdup("aaa"));
-  QoreClass* c2 = new QoreClass(strdup("aaa"));
-  QoreClass* c3 = new QoreClass(strdup("bbb"));
-
-  QoreClassList l;
-  int res = l.add(c1);
-  assert(!res);
-  res = l.add(c3);
-  assert(!res);
-  res = l.add(c2);  
-  assert(res); // should not be added
-  delete c2;
-  res = l.add(c1);
-  assert(res); // should not be added as well
-}
-
 } // namespace
 #endif // DEBUG
 
