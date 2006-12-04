@@ -1651,8 +1651,14 @@ RootNamespace::RootNamespace(class Namespace **QoreNS) : Namespace()
    QoreClass* base = initBuiltinInheritanceTestBaseClass();
    qns->addSystemClass(base);
    qns->addSystemClass(initBuiltinInheritanceTestDescendant1(base));
+   // hierarchy with 3 levels
    QoreClass* desc2 = initBuiltinInheritanceTestDescendant2(base);
    qns->addSystemClass(desc2);
+   QoreClass* desc3 = initBuiltinInheritanceTestDescendant3(desc2);
+   qns->addSystemClass(desc3);
+// BUGBUG : this fails. When desc2 is used in the next line all is OK
+//    QoreClass* desc4 = initBuiltinInheritanceTestDescendant4(desc3);
+//   qns->addSystemClass(desc4);
 }
 #endif
 
