@@ -560,7 +560,8 @@ TEST()
 
 TEST()
 {
-  printf("testing switch with simple relational operators and empty body\n");
+  printf("testing switch with simple relational operators and empty body 1\n");
+
   // test float/int mix
   QoreString str(
     "sub test() {"

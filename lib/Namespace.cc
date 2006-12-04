@@ -64,7 +64,7 @@
 #include <assert.h>
 
 #ifdef DEBUG
-#  include "tests/Namespace_tests.cc"
+// the #include "test/Namespace_tests.cc" is on the bottom
 #  include "tests/builtin_inheritance_tests.cc"
 #endif
 
@@ -1651,6 +1651,8 @@ RootNamespace::RootNamespace(class Namespace **QoreNS) : Namespace()
    QoreClass* base = initBuiltinInheritanceTestBaseClass();
    qns->addSystemClass(base);
    qns->addSystemClass(initBuiltinInheritanceTestDescendant1(base));
+   QoreClass* desc2 = initBuiltinInheritanceTestDescendant2(base);
+   qns->addSystemClass(desc2);
 }
 #endif
 
@@ -1737,4 +1739,9 @@ class RootNamespace *RootNamespace::copy(int po) const
 {
    return new RootNamespace(classList->copy(po), constant->copy(), nsl->copy(po));
 }
+
+#ifdef DEBUG
+// moved down to allow to test internal classes
+#  include "tests/Namespace_tests.cc"
+#endif
 
