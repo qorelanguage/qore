@@ -24,6 +24,11 @@
 #include <qore/common.h>
 #include <qore/QoreClassList.h>
 #include <qore/QoreClass.h>
+#include <qore/minitest.hpp>
+
+#ifdef DEBUG
+#  include "tests/QoreClassList_tests.cc"
+#endif
 
 inline void QoreClassList::deleteAll()
 {
