@@ -11,6 +11,13 @@ TEST()
   assert(h);
 }
 
+TEST()
+{
+  printf("testing ReferenceHolder 2\n");
+  ExceptionSink xsink;
+  ReferenceHolder<QoreNode> h(new QoreNode(false), &xsink);   
+}
+
 } // namespace
 #endif
 
