@@ -1659,6 +1659,11 @@ RootNamespace::RootNamespace(class Namespace **QoreNS) : Namespace()
 // BUGBUG : this fails. When desc2 is used in the next line all is OK
 //    QoreClass* desc4 = initBuiltinInheritanceTestDescendant4(desc3);
 //   qns->addSystemClass(desc4);
+
+   QoreClass* base2 = initBuiltinInheritanceTestBase2Class();
+   qns->addSystemClass(base2);
+   QoreClass* desc_multi = initBuiltinInheritanceTestDescendantMulti(base2, base);
+   qns->addSystemClass(desc_multi);
 }
 #endif
 
