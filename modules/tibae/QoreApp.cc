@@ -34,6 +34,38 @@
 class LockedObject l_mdate_time;
 #endif
 
+QoreApp::~QoreApp()
+{
+   tracein("QoreApp::~QoreApp()");
+#ifdef TIBCO_EXPLICIT_CREATE_SESSION
+   if (mySession)
+      delete mySession;
+   if (myPublisher)
+      delete myPublisher;
+#endif
+   
+   // if the listener is active
+   if (mySubscriber)
+   {
+      mySubscriber->removeListener(myEventHandler);
+      delete myEventHandler;
+      delete mySubscriber;
+      free(rcv_subject);
+   }
+   
+   free(session_name);
+   free(service);
+   free(network);
+   free(daemon);
+   free(subject);
+   if (classlist)
+      classlist->derefAndDelete(NULL);
+   
+   delete appProps;
+   
+   traceout("QoreApp::~QoreApp()");
+}
+
 void QoreApp::deref(ExceptionSink *xsink)
 {
    //tracein("QoreApp::deref()");

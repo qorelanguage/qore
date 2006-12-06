@@ -285,7 +285,7 @@ void TIBAE_constructor(class Object *self, class QoreNode *params, class Excepti
       xsink->raiseException("TIBCO-EXCEPTION", "Exception thrown in Tibco() constructor %s: %s",
 			 te.getType().c_str(), te.getDescription().c_str());
       if (myQoreApp)
-	 delete myQoreApp;
+	 myQoreApp->deref();
       traceout("TIBAE_constructor");
       return;
    }
