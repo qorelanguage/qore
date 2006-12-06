@@ -41,13 +41,16 @@
 // ExceptionSink xsink;
 // ReferenceHolder<TibcoClass> holder(self->getReferencePrivateData(...), &xsink);
 //
+
+#include <stdlib.h>
+
 template<typename T>
 class ReferenceHolder
 {
 private:
   ReferenceHolder(const ReferenceHolder&); // not implemented
   ReferenceHolder& operator=(const ReferenceHolder&); // not implemented
-  void* operator new(unsigned); // not implemented, make sure it is not new'ed
+  void* operator new(size_t); // not implemented, make sure it is not new'ed
 
   T* p;
   ExceptionSink* xsink;
