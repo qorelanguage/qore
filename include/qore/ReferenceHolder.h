@@ -36,7 +36,11 @@
 // holder->a_tibco_function();
 //
 // - deref() is automatic when the object goes out of scope
-
+//
+// Or
+// ExceptionSink xsink;
+// ReferenceHolder<TibcoClass> holder(self->getReferencePrivateData(...), &xsink);
+//
 template<typename T>
 class ReferenceHolder
 {
@@ -46,9 +50,10 @@ private:
   void* operator new(unsigned); // not implemented, make sure it is not new'ed
 
   T* p;
+  ExceptionSink* xsink;
 public:
-  ReferenceHolder(T* p_) : p(p_) {}
-  ~ReferenceHolder() { if(p) p->deref(0);}
+  ReferenceHolder(T* p_, ExceptionSink* xsink_ = 0) : p(p_), xsink(xsink_) {}
+  ~ReferenceHolder() { if(p) p->deref(xsink);}
 
   T* operator->() { return p; }
   operator bool() const { return p != 0; }
