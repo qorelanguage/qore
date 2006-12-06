@@ -65,7 +65,7 @@
 
 #ifdef DEBUG
 // the #include "test/Namespace_tests.cc" is on the bottom
-#  include "tests/builtin_inheritance_tests.cc"
+//#  include "tests/builtin_inheritance_tests.cc"
 #endif
 
 #define MAX_RECURSION_DEPTH 20
