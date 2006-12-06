@@ -1647,6 +1647,7 @@ RootNamespace::RootNamespace(class Namespace **QoreNS) : Namespace()
    //qns->addSystemClass(initHTTPClientClass());
 
 #ifdef DEBUG
+/*
 { // tests
    QoreClass* base = initBuiltinInheritanceTestBaseClass();
    qns->addSystemClass(base);
@@ -1665,6 +1666,7 @@ RootNamespace::RootNamespace(class Namespace **QoreNS) : Namespace()
    QoreClass* desc_multi = initBuiltinInheritanceTestDescendantMulti(base2, base);
    qns->addSystemClass(desc_multi);
 }
+*/
 #endif
 
    qns->addInitialNamespace(get_thread_ns());
