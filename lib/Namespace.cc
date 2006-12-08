@@ -65,7 +65,7 @@
 
 #ifdef DEBUG
 // the #include "test/Namespace_tests.cc" is on the bottom
-//#  include "tests/builtin_inheritance_tests.cc"
+#  include "tests/builtin_inheritance_tests.cc"
 #endif
 
 #define MAX_RECURSION_DEPTH 20
@@ -1647,7 +1647,6 @@ RootNamespace::RootNamespace(class Namespace **QoreNS) : Namespace()
    //qns->addSystemClass(initHTTPClientClass());
 
 #ifdef DEBUG
-/*
 { // tests
    QoreClass* base = initBuiltinInheritanceTestBaseClass();
    qns->addSystemClass(base);
@@ -1657,16 +1656,17 @@ RootNamespace::RootNamespace(class Namespace **QoreNS) : Namespace()
    qns->addSystemClass(desc2);
    QoreClass* desc3 = initBuiltinInheritanceTestDescendant3(desc2);
    qns->addSystemClass(desc3);
-// BUGBUG : this fails. When desc2 is used in the next line all is OK
+// BUGBUG : this fails. When desc2 is placed in the next line all is OK
 //    QoreClass* desc4 = initBuiltinInheritanceTestDescendant4(desc3);
 //   qns->addSystemClass(desc4);
 
    QoreClass* base2 = initBuiltinInheritanceTestBase2Class();
    qns->addSystemClass(base2);
+// BUGBUG - the function actually fails to deal with two base classes, see the 
+// code in tests/builtin_inheritance_tests.cc
    QoreClass* desc_multi = initBuiltinInheritanceTestDescendantMulti(base2, base);
    qns->addSystemClass(desc_multi);
 }
-*/
 #endif
 
    qns->addInitialNamespace(get_thread_ns());
