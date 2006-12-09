@@ -37,6 +37,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 
 DBIDriverList DBI;
 
@@ -46,6 +47,114 @@ struct dbi_cap_hash dbi_cap_list[] =
   { DBI_CAP_STORED_PROCEDURES,      "StoredProcedures" },
   { DBI_CAP_LOB_SUPPORT,            "LargeObjectSupport" },
 };
+
+DBIDriver::DBIDriver(char *nme, DBIDriverFunctions *funcs, int cps)
+{
+   name = nme;
+   f = funcs;   
+   caps = cps;
+}
+
+DBIDriver::~DBIDriver()
+{
+   delete f;
+}
+
+char *DBIDriver::getName() const
+{
+   return name;
+}
+
+int DBIDriver::getCaps() const
+{
+   return caps;
+}
+
+List *DBIDriver::getCapList() const
+{
+   List *l = new List();
+   for (int i = 0; i < NUM_DBI_CAPS; i++)
+      if (caps & dbi_cap_list[i].cap)
+	 l->push(new QoreNode(dbi_cap_list[i].desc));
+   return l;
+}
+
+int DBIDriver::init(class Datasource *ds, class ExceptionSink *xsink)
+{
+   return f->init(ds, xsink);
+}
+
+int DBIDriver::close(class Datasource *ds)
+{
+   return f->close(ds);
+}
+
+class QoreNode *DBIDriver::select(class Datasource *ds, class QoreString *sql, class List *args, class ExceptionSink *xsink)
+{
+   return f->select(ds, sql, args, xsink);
+}
+
+class QoreNode *DBIDriver::selectRows(class Datasource *ds, class QoreString *sql, class List *args, class ExceptionSink *xsink)
+{
+   return f->selectRows(ds, sql, args, xsink);
+}
+
+class QoreNode *DBIDriver::execSQL(class Datasource *ds, class QoreString *sql, class List *args, class ExceptionSink *xsink)
+{
+   return f->execSQL(ds, sql, args, xsink);
+}
+
+int DBIDriver::commit(class Datasource *ds, class ExceptionSink *xsink)
+{
+   return f->commit(ds, xsink);
+}
+
+int DBIDriver::rollback(class Datasource *ds, class ExceptionSink *xsink)
+{
+   return f->rollback(ds, xsink);
+}
+
+inline DBIDriverList::~DBIDriverList()
+{
+   dbi_map_t::iterator i;
+   while ((i = begin()) != end())
+   {
+      class DBIDriver *driv = i->second;
+      erase(i);
+      delete driv;
+   }
+}
+
+inline DBIDriver *DBIDriverList::find(char *name) const
+{
+   dbi_map_t::const_iterator i = dbi_map_t::find(name);
+   if (i != end())
+      return i->second;
+
+   return NULL;
+}
+
+class DBIDriver *DBIDriverList::registerDriver(char *name, DBIDriverFunctions *f, int caps)
+{
+   assert(!find(name));
+
+   DBIDriver *dd;
+   insert(pair<char *, DBIDriver *>(name, (dd = new DBIDriver(name, f, caps))));   
+   return dd;
+}
+
+class List *DBIDriverList::getDriverList() const
+{
+   if (!size())
+      return NULL;
+
+   class List *l = new List();
+   
+   for (dbi_map_t::const_iterator i = begin(); i != end(); i++)
+      l->push(new QoreNode(i->first));
+
+   return l;
+}
 
 /*
   parseDatasource()

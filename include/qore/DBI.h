@@ -20,6 +20,8 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+// FIXME! DBI driver registration should be done with a forward-compatible mechanism
+
 #ifndef _QORE_DBI_H
 
 #define _QORE_DBI_H
@@ -32,6 +34,8 @@
 
 #include <stdlib.h>
 #include <string.h>
+
+#include <map>
 
 // DBI Driver capabilities
 #define DBI_CAP_NONE                     0
@@ -47,8 +51,8 @@
 
 #define DBI_DEFAULT_STR_LEN 512
 
-void init_dbi_functions();
-class Namespace *getSQLNamespace();
+DLLLOCAL void init_dbi_functions();
+DLLLOCAL class Namespace *getSQLNamespace();
 
 struct dbi_cap_hash
 {
@@ -58,7 +62,7 @@ struct dbi_cap_hash
 
 extern struct dbi_cap_hash dbi_cap_list[];
 
-class Hash *parseDatasource(char *ds, class ExceptionSink *xsink);
+DLLEXPORT class Hash *parseDatasource(char *ds, class ExceptionSink *xsink);
 
 typedef int (*q_dbi_init_t)(class Datasource *, class ExceptionSink *xsink);
 typedef int (*q_dbi_close_t)(class Datasource *);
@@ -78,8 +82,8 @@ class DBIDriverFunctions {
       q_dbi_commit_t commit;
       q_dbi_rollback_t rollback;
 
-      DBIDriverFunctions(q_dbi_init_t p_init, q_dbi_close_t p_close, q_dbi_select_t p_select, q_dbi_select_rows_t p_selectRows,
-			 q_dbi_exec_t p_execSQL, q_dbi_commit_t p_commit, q_dbi_rollback_t p_rollback)
+      DLLEXPORT DBIDriverFunctions(q_dbi_init_t p_init, q_dbi_close_t p_close, q_dbi_select_t p_select, q_dbi_select_rows_t p_selectRows,
+				   q_dbi_exec_t p_execSQL, q_dbi_commit_t p_commit, q_dbi_rollback_t p_rollback)
       {
 	 init = p_init;
 	 close = p_close;
@@ -91,6 +95,7 @@ class DBIDriverFunctions {
       }
 };
 
+// it's not necessary to lock this object because it will only be written to in one thread at a time
 class DBIDriver {
    private:
       DBIDriverFunctions *f;
@@ -98,140 +103,32 @@ class DBIDriver {
 
    public:
       char *name;
-      inline DBIDriver(char *name, DBIDriverFunctions *funcs, int cps);
-      inline ~DBIDriver();
-      inline int init(class Datasource *ds, class ExceptionSink *xsink);
-      inline int close(class Datasource *ds);
-      inline class QoreNode *select(class Datasource *ds, class QoreString *sql, class List *args, class ExceptionSink *xsink);
-      inline class QoreNode *selectRows(class Datasource *ds, class QoreString *sql, class List *args, class ExceptionSink *xsink);
-      inline class QoreNode *execSQL(class Datasource *ds, class QoreString *sql, class List *args, class ExceptionSink *xsink);
-      inline int commit(class Datasource *, class ExceptionSink *xsink);
-      inline int rollback(class Datasource *, class ExceptionSink *xsink);
-      inline int getCaps()
-      {
-	 return caps;
-      }
-      inline List *getCapList()
-      {
-	 List *l = new List();
-	 for (int i = 0; i < NUM_DBI_CAPS; i++)
-	    if (caps & dbi_cap_list[i].cap)
-	       l->push(new QoreNode(dbi_cap_list[i].desc));
-	 return l;
-      }
-      DBIDriver *next;
+
+      DLLLOCAL DBIDriver(char *name, DBIDriverFunctions *funcs, int cps);
+      DLLLOCAL ~DBIDriver();
+      DLLLOCAL int init(class Datasource *ds, class ExceptionSink *xsink);
+      DLLLOCAL int close(class Datasource *ds);
+      DLLLOCAL class QoreNode *select(class Datasource *ds, class QoreString *sql, class List *args, class ExceptionSink *xsink);
+      DLLLOCAL class QoreNode *selectRows(class Datasource *ds, class QoreString *sql, class List *args, class ExceptionSink *xsink);
+      DLLLOCAL class QoreNode *execSQL(class Datasource *ds, class QoreString *sql, class List *args, class ExceptionSink *xsink);
+      DLLLOCAL int commit(class Datasource *, class ExceptionSink *xsink);
+      DLLLOCAL int rollback(class Datasource *, class ExceptionSink *xsink);
+      DLLLOCAL int getCaps() const;
+      DLLLOCAL List *getCapList() const;
+      DLLLOCAL char *getName() const;
 };
 
-class DBIDriverList {
-   private:
-      class DBIDriver *head, *tail;
-      
-   public:
-      inline DBIDriverList()
-      {
-	 head = NULL;
-      }
-      inline ~DBIDriverList()
-      {
-	 DBIDriver *w = head;
-	 while (w)
-	 {
-	    DBIDriver *n = w->next;
-	    delete w;
-	    w = n;
-	 }
-      }
-      inline DBIDriver *find(char *name)
-      {
-	 DBIDriver *w = head;
-	 
-	 while (w)
-	 {
-	    //printd(5, "find(%s) %08p=%s (next=%08p)\n", name, w, w->name, w->next); 
-	    if (!strcmp(name, w->name))
-	       break;
-	    w = w->next;
-	 }
-	 return w;
-      }
-      class DBIDriver *registerDriver(char *name, DBIDriverFunctions *f, int caps)
-      {
-	 DBIDriver *w = find(name);
-	 if (w)
-	 {
-#ifdef DEBUG
-	    run_time_error("ERROR: database driver already registered \"%s\"", name);
-#endif
-	    return NULL;
-	 }
-	 DBIDriver *dd = new DBIDriver(name, f, caps);
-	 dd->next = head;
-	 head = dd;
-	 return dd;
-      }
-      class List *getDriverList()
-      {
-	 if (!head)
-	    return NULL;
+typedef std::map<char *, class DBIDriver *, class ltstr> dbi_map_t;
 
-	 class List *l = new List();
+class DBIDriverList : public dbi_map_t
+{
+public:
+   DLLEXPORT class DBIDriver *registerDriver(char *name, DBIDriverFunctions *f, int caps);
 
-	 DBIDriver *w = head;
-	 while (w)
-	 {
-	    l->push(new QoreNode(w->name));
-	    w = w->next;
-	 }
-	 return l;
-      }
+   DLLLOCAL ~DBIDriverList();
+   DLLLOCAL DBIDriver *find(char *name) const;
+   DLLLOCAL class List *getDriverList() const;
 };
-
-inline DBIDriver::DBIDriver(char *nme, DBIDriverFunctions *funcs, int cps)
-{
-   name = nme;
-   f = funcs;   
-   caps = cps;
-}
-
-inline DBIDriver::~DBIDriver()
-{
-   delete f;
-}
-
-inline int DBIDriver::init(class Datasource *ds, class ExceptionSink *xsink)
-{
-   return f->init(ds, xsink);
-}
-
-inline int DBIDriver::close(class Datasource *ds)
-{
-   return f->close(ds);
-}
-
-inline class QoreNode *DBIDriver::select(class Datasource *ds, class QoreString *sql, class List *args, class ExceptionSink *xsink)
-{
-   return f->select(ds, sql, args, xsink);
-}
-
-inline class QoreNode *DBIDriver::selectRows(class Datasource *ds, class QoreString *sql, class List *args, class ExceptionSink *xsink)
-{
-   return f->selectRows(ds, sql, args, xsink);
-}
-
-inline class QoreNode *DBIDriver::execSQL(class Datasource *ds, class QoreString *sql, class List *args, class ExceptionSink *xsink)
-{
-   return f->execSQL(ds, sql, args, xsink);
-}
-
-inline int DBIDriver::commit(class Datasource *ds, class ExceptionSink *xsink)
-{
-   return f->commit(ds, xsink);
-}
-
-inline int DBIDriver::rollback(class Datasource *ds, class ExceptionSink *xsink)
-{
-   return f->rollback(ds, xsink);
-}
 
 extern class DBIDriverList DBI;
 

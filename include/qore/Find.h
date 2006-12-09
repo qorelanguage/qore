@@ -34,78 +34,11 @@ class Find {
       class QoreNode *exp;
       class QoreNode *where;
       class QoreNode *find_exp;
-      inline Find(class QoreNode *expr, class QoreNode *find_expr, class QoreNode *w)
-      {
-	 exp = expr;
-	 find_exp = find_expr;
-	 where = w;
-      }
-
-      inline ~Find();
-      inline class QoreNode *eval(class ExceptionSink *xsink);
+      
+      DLLLOCAL Find(class QoreNode *expr, class QoreNode *find_expr, class QoreNode *w);
+      DLLLOCAL ~Find();
+      DLLLOCAL class QoreNode *eval(class ExceptionSink *xsink);
 };
 
-#include <qore/QoreNode.h>
-#include <qore/Variable.h>
-
-inline Find::~Find()
-{
-   if (find_exp)
-      find_exp->deref(NULL);
-   if (exp)
-      exp->deref(NULL);
-   if (where)
-      where->deref(NULL);
-}
-
-inline class QoreNode *Find::eval(ExceptionSink *xsink)
-{
-   class Context *context;
-   class QoreNode *rv = NULL;
-
-   context = new Context(NULL, xsink, find_exp);
-   if (xsink->isEvent())
-   {
-      if (context)
-	 context->deref(xsink);
-      return NULL;
-   }
-
-   int multi = 0;
-   for (context->pos = 0; context->pos < context->max_pos && !xsink->isEvent(); context->pos++)
-   {
-      printd(4, "Find::eval() checking %d/%d\n", context->pos, context->max_pos);
-      if (context->check_condition(where, xsink) && !xsink->isEvent())
-      {
-	 printd(4, "Find::eval() GOT IT: %d\n", context->pos);
-	 QoreNode *result = exp->eval(xsink);
-	 if (rv)
-	 {
-	    if (!multi)
-	    {
-	       List *l = new List();
-	       l->push(rv);
-	       l->push(result);
-	       rv = new QoreNode(l);
-	       multi = 1;
-	    }
-	    else
-	       rv->val.list->push(result);
-	 }
-	 else
-	    rv = result;
-      }
-   }
-   if (xsink->isEvent())
-   {
-      if (rv)
-      {
-	 rv->deref(xsink);
-	 rv = NULL;
-      }
-   }
-   context->deref(xsink);
-   return rv;
-}
 
 #endif
