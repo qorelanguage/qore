@@ -44,25 +44,10 @@
 #define DBI_CAP_STORED_PROCEDURES        (1 << 3)
 #define DBI_CAP_LOB_SUPPORT              (1 << 4)
 
-#define NUM_DBI_CAPS 4
-
 #define BN_PLACEHOLDER  0
 #define BN_VALUE        1
 
 #define DBI_DEFAULT_STR_LEN 512
-
-DLLLOCAL void init_dbi_functions();
-DLLLOCAL class Namespace *getSQLNamespace();
-
-struct dbi_cap_hash
-{
-      int cap;
-      char *desc;
-};
-
-extern struct dbi_cap_hash dbi_cap_list[];
-
-DLLEXPORT class Hash *parseDatasource(char *ds, class ExceptionSink *xsink);
 
 typedef int (*q_dbi_init_t)(class Datasource *, class ExceptionSink *xsink);
 typedef int (*q_dbi_close_t)(class Datasource *);
@@ -130,6 +115,10 @@ public:
    DLLLOCAL class List *getDriverList() const;
 };
 
-extern class DBIDriverList DBI;
+DLLEXPORT extern class DBIDriverList DBI;
+DLLEXPORT class Hash *parseDatasource(char *ds, class ExceptionSink *xsink);
+
+DLLLOCAL void init_dbi_functions();
+DLLLOCAL class Namespace *getSQLNamespace();
 
 #endif  // _QORE_DBI_H

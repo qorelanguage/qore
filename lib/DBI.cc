@@ -29,17 +29,24 @@
 #include <qore/params.h>
 #include <qore/Namespace.h>
 #include <qore/BuiltinFunctionList.h>
-
-#include "QC_Datasource.h"
-//#include "QC_Query.h"
-#include "DBI.h"
+#include <qore/QC_Datasource.h>
+#include <qore/DBI.h>
 
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
 
-DBIDriverList DBI;
+#define NUM_DBI_CAPS 4
+
+// global qore library class for DBI driver management
+DLLEXPORT DBIDriverList DBI;
+
+struct dbi_cap_hash
+{
+   int cap;
+   char *desc;
+};
 
 struct dbi_cap_hash dbi_cap_list[] =
 { { DBI_CAP_CHARSET_SUPPORT,        "CharsetSupport" },
