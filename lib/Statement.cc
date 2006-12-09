@@ -52,6 +52,41 @@ bool CaseNode::isCaseNodeImpl() const
   return true;
 }
 
+inline ContextMod::ContextMod(int t, class QoreNode *n)
+{
+   next = NULL;
+   type = t;
+   c.exp = n;
+}
+
+inline ContextMod::~ContextMod()
+{
+   if (c.exp)
+      c.exp->deref(NULL);
+}
+
+ContextModList::ContextModList(ContextMod *cm)
+{
+   head = tail = cm;
+   num = 1;
+}
+
+ContextModList::~ContextModList()
+{
+   while (head)
+   {
+      class ContextMod *w = head->next;
+      delete head;
+      head = w;
+   }
+}
+
+void ContextModList::addContextMod(ContextMod *cm)
+{
+   tail->next = cm;
+   tail = cm;
+}
+
 // only executed by Statement::exec()
 inline int SwitchStatement::exec(class QoreNode **return_value, class ExceptionSink *xsink)
 {

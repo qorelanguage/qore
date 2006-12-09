@@ -29,12 +29,55 @@
 #include <qore/qore_thread.h>
 #include <qore/Variable.h>
 #include <qore/LockedObject.h>
+#include <qore/Statement.h>
+#include <qore/List.h>
+#include <qore/Object.h>
 
 #include <stdlib.h>
 #include <stdio.h>
 
 #include <algorithm>
 using namespace std;
+
+class Templist {
+public:
+   class QoreNode *node;
+   int pos;
+};
+
+struct node_row_list_s {
+   class QoreNode *node;
+   int *row_list;
+   int num_rows;
+   int allocated;
+};
+
+ComplexContextRef::ComplexContextRef(char *str)
+{
+   char *c = strchr(str, ':');
+   *c = '\0';
+   name = strdup(str);
+   member = strdup(c + 1);
+   free(str);
+}
+
+ComplexContextRef::ComplexContextRef(char *n, char *m, int so)
+{
+   name = strdup(n);
+   member = strdup(m);
+   stack_offset = so;
+}
+
+ComplexContextRef::~ComplexContextRef()
+{ 
+   free(name); 
+   free(member); 
+}
+
+class ComplexContextRef *ComplexContextRef::copy()
+{
+   return new ComplexContextRef(name, member, stack_offset);
+}
 
 Context::~Context()
 {
@@ -73,6 +116,48 @@ Context::~Context()
       free(row_list);
 
    traceout("Context::~Context()");
+}
+
+int Context::check_condition(class QoreNode *cond, class ExceptionSink *xsinkx)
+{
+   class QoreNode *val;
+   int rc;
+   
+   tracein("Context::check_condition()");
+   val = cond->eval(xsinkx);
+   if (xsinkx->isEvent())
+   {
+      if (val) val->deref(xsinkx);
+      return -1;
+   }
+   if (val)
+   {
+      rc = val->getAsInt();
+      val->deref(xsinkx);
+   }
+   else
+      rc = 0;
+   traceout("Context::check_condition()");
+   return rc;
+}
+
+void Context::deref(class ExceptionSink *xsink)
+{
+   if (!sub && value)
+      value->deref(xsink);
+   delete this;
+}
+
+class QoreNode *evalContextRef(char *key, class ExceptionSink *xsink)
+{
+   class Context *c = get_context_stack();
+   return c->evalValue(key, xsink);
+}
+
+class QoreNode *evalContextRow(class ExceptionSink *xsink)
+{
+   class Context *c = get_context_stack();
+   return c->getRow(xsink);
 }
 
 class QoreNode *Context::evalValue(char *field, class ExceptionSink *xsink)

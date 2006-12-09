@@ -34,6 +34,7 @@ libqore_la_SOURCES = \
 	Exception.cc \
 	QoreClass.cc \
 	Context.cc \
+	Find.cc \
 	charset.cc \
 	QoreProgram.cc \
 	Namespace.cc \

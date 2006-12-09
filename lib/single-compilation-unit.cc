@@ -13,6 +13,7 @@
 #include "Exception.cc"
 #include "QoreClass.cc"
 #include "Context.cc"
+#include "Find.cc"
 #include "charset.cc"
 #include "QoreProgram.cc"
 #include "Namespace.cc"
