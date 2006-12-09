@@ -1,6 +1,7 @@
 2006.12.09: David Nichols
 	* Context and Find cleanups
 	* partial DBI cleanup
+	* partial Datasource cleanup
 
 2006.12.01: David Nichols
 	* ConstantList: more api cleanups
