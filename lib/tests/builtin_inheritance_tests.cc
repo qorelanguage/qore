@@ -227,8 +227,11 @@ QoreClass* initBuiltinInheritanceTestDescendantMulti(QoreClass* base, QoreClass*
   QoreClass* tst = new QoreClass(QDOM_PROCESS, strdup("BuiltinInheritanceTestDescendantMulti"));
   CID_BUILTININHERITANCETESTDESCENDANT_MULTI = tst->getID();
 
-  //tst->addBuiltinBaseClass(base); - BUGBUG - addBuiltinBaseClass() doesn't work at all
-  //tst->addBuiltinBaseClass(base2);
+  // we have a method (getnum) below, but no constructor to set our own private data,
+  // therefore we have to call addDefaultBuiltinBaseClass() on one of the base classes
+  // to have some private data...
+  //tst->addBuiltinBaseClass(base);
+  tst->addBuiltinBaseClass(base2);
 
   // OTOH simple inheritance works
   tst->addDefaultBuiltinBaseClass(base);
