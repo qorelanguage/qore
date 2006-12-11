@@ -203,22 +203,22 @@ class SSLSocketHelper
 	 return SSL_write(ssl, buf, size);
       }
 
-      inline const char *getCipherName()
+      inline const char *getCipherName() const
       {
 	 return SSL_get_cipher_name(ssl);
       }
 
-      inline const char *getCipherVersion()
+      inline const char *getCipherVersion() const
       {
 	 return SSL_get_cipher_version(ssl);
       }
 
-      inline X509 *getPeerCertificate()
+      inline X509 *getPeerCertificate() const
       {
 	 return SSL_get_peer_certificate(ssl);
       }
 
-      inline long verifyPeerCertificate()
+      inline long verifyPeerCertificate() const
       {	 
 	 X509 *cert = SSL_get_peer_certificate(ssl);
 
@@ -467,26 +467,26 @@ class QoreSocket
       bool isDataAvailable(int timeout = 0);
       bool isOpen() { return (bool)sock; }
 
-      inline const char *getSSLCipherName()
+      inline const char *getSSLCipherName() const
       {
 	 if (!ssl)
 	    return NULL;
 	 return ssl->getCipherName();
       }
 
-      inline const char *getSSLCipherVersion()
+      inline const char *getSSLCipherVersion() const
       {
 	 if (!ssl)
 	    return NULL;
 	 return ssl->getCipherVersion();
       }
 
-      inline bool isSecure()
+      inline bool isSecure() const
       {
 	 return (bool)ssl;
       }
 
-      inline long verifyPeerCertificate()
+      inline long verifyPeerCertificate() const
       {
 	 if (!ssl)
 	    return -1;

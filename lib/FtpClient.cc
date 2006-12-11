@@ -25,7 +25,61 @@
 #include <qore/config.h>
 #include <qore/QoreLib.h>
 
-#include "FtpClient.h"
+#include <qore/FtpClient.h>
+
+class FtpResp
+{
+   private:
+      class QoreString *str;
+   
+   public:
+      DLLLOCAL inline FtpResp() : str(NULL) {}
+      DLLLOCAL inline FtpResp(class QoreString *s)
+      {
+	 str = s;
+      }
+      DLLLOCAL inline ~FtpResp()
+      {
+	 if (str)
+	    delete str;
+      }
+      DLLLOCAL inline class QoreString *assign(class QoreString *s)
+      {
+	 if (str)
+	    delete str;
+	 str = s;
+	 return s;
+      }
+      DLLLOCAL inline char *getBuffer()
+      {
+	 return str->getBuffer();
+      }
+      DLLLOCAL inline class QoreString *getStr()
+      {
+	 return str;
+      }
+      DLLLOCAL inline int getCode()
+      {
+	 if (!str || str->strlen() < 3)
+	    return -1;
+   
+	 char buf[4];
+	 buf[0] = str->getBuffer()[0];
+	 buf[1] = str->getBuffer()[1];
+	 buf[2] = str->getBuffer()[2];
+	 buf[3] = '\0';
+	 return atoi(buf);
+      }
+      DLLLOCAL inline void stripEOL()
+      {
+	 if (!str || !str->strlen())
+	    return;
+	 if (str->getBuffer()[str->strlen() - 1] == '\n')
+	    str->terminate(str->strlen() - 1);
+	 if (str->getBuffer()[str->strlen() - 1] == '\r')
+	    str->terminate(str->strlen() - 1);
+      }
+};
 
 FtpClient::FtpClient(class QoreString *url, class ExceptionSink *xsink)
 {
@@ -38,6 +92,151 @@ FtpClient::FtpClient(class QoreString *url, class ExceptionSink *xsink)
 
    if (url)
       setURLInternal(url, xsink);
+}
+
+FtpClient::~FtpClient()
+{
+   // clear control buffer
+   buffer.clear();
+   disconnectInternal();
+   if (host)
+      free(host);
+   if (user)
+      free(user);
+   if (pass)
+      free(pass);
+}
+
+// private unlocked
+static inline int getFTPCode(QoreString *str)
+{
+   QoreString *b = str->substr(0, 3);
+   if (!b) return -1;
+   int rc = atoi(b->getBuffer());
+   delete b;
+   return rc;
+}
+
+// private unlocked
+class QoreString *FtpClient::sendMsg(char *cmd, char *arg, class ExceptionSink *xsink)
+{
+   QoreString c(cmd);
+   if (arg)
+   {
+      c.concat(' ');
+      c.concat(arg);
+   }
+   c.concat("\r\n");
+   printd(FTPDEBUG, "FtpClient::sendMsg()> %s", c.getBuffer());
+   if (control.send(c.getBuffer(), c.strlen()) < 0)
+   {
+      xsink->raiseException("FTP-SEND-ERROR", strerror(errno));
+      return NULL;
+   }
+   
+   QoreString *resp = getResponse(xsink);
+   return resp;
+}
+
+// private unlocked
+void FtpClient::stripEOL(class QoreString *str)
+{
+   if (!str || !str->strlen())
+      return;
+   if (str->getBuffer()[str->strlen() - 1] == '\n')
+      str->terminate(str->strlen() - 1);
+   if (str->getBuffer()[str->strlen() - 1] == '\r')
+      str->terminate(str->strlen() - 1);
+}
+
+// private unlocked
+int FtpClient::setBinaryMode(bool t, class ExceptionSink *xsink)
+{
+   // set transfer mode
+   QoreString *resp = sendMsg("TYPE", (char *)(t ? "I" : "A"), xsink);
+   if (xsink->isEvent())
+      return -1;
+   int code = getFTPCode(resp);
+   if ((code / 100) != 2)
+   {
+      xsink->raiseException("FTP-ERROR", "can't set mode to '%c', FTP server responded: %s",
+			    (t ? 'I' : 'A'), resp->getBuffer());
+      delete resp;
+      return -1;
+   }
+   delete resp;
+   return 0;
+}
+
+// private unlocked
+int FtpClient::acceptDataConnection(class ExceptionSink *xsink)
+{
+   if (data.acceptAndReplace(NULL))
+   {
+      data.close();
+      xsink->raiseException("FTP-CONNECT-ERROR", "error accepting data connection: %s", 
+			    strerror(errno));
+      return -1;
+   }
+#ifdef DEBUG
+   if (secure_data)
+      printd(FTPDEBUG, "FtpClient::connectDataPort() negotiating client SSL connection\n");
+#endif
+   
+   if (secure_data && data.upgradeClientToSSL(NULL, NULL, xsink))
+      return -1;      
+   
+   printd(FTPDEBUG, "FtpClient::acceptDataConnection() accepted PORT data connection\n");
+   return 0;
+}
+
+// private unlocked
+int FtpClient::connectData(class ExceptionSink *xsink)
+{
+   switch (mode)
+   {
+      case FTP_MODE_UNKNOWN:
+	 if (!connectDataExtendedPassive(xsink))
+	    return 0;
+	 if (xsink->isEvent())
+	    return -1;
+	    if (!connectDataPassive(xsink))
+	       return 0;
+	       if (xsink->isEvent())
+		  return -1;
+		  if (!connectDataPort(xsink))
+		     return 0;
+		     
+		     if (!xsink->isEvent())
+			xsink->raiseException("FTP-CONNECT-ERROR", "Could not negotiate data channel connection with FTP server");
+			return -1;
+      case FTP_MODE_EPSV:
+	 return connectDataExtendedPassive(xsink);
+      case FTP_MODE_PASV:
+	 return connectDataPassive(xsink);
+      case FTP_MODE_PORT:
+	 return connectDataPort(xsink);
+   }
+   return -1;
+}
+
+// private unlocked
+int FtpClient::disconnectInternal()
+{
+   control.close();
+   control_connected = false;
+   mode = FTP_MODE_UNKNOWN;
+   data.close();
+   return 0;
+}
+
+// public locked
+int FtpClient::disconnect()
+{
+   lock();
+   int rc = disconnectInternal();
+   unlock();
+   return rc;
 }
 
 // private unlocked
@@ -315,7 +514,7 @@ int FtpClient::connectDataPort(class ExceptionSink *xsink)
 }
 
 // private unlocked
-inline int FtpClient::connectIntern(class FtpResp *resp, class ExceptionSink *xsink)
+int FtpClient::connectIntern(class FtpResp *resp, class ExceptionSink *xsink)
 {
    // connect to FTP port on remote machine
    if (control.connectINET(host, port))
@@ -352,7 +551,7 @@ inline int FtpClient::connectIntern(class FtpResp *resp, class ExceptionSink *xs
 }
 
 // do PBSZ and PROT commands
-inline int FtpClient::doProt(class FtpResp *resp, class ExceptionSink *xsink)
+int FtpClient::doProt(class FtpResp *resp, class ExceptionSink *xsink)
 {
    // RFC-4217: PBSZ 0 for streaming data
    resp->assign(sendMsg("PBSZ", "0", xsink));
@@ -381,7 +580,7 @@ inline int FtpClient::doProt(class FtpResp *resp, class ExceptionSink *xsink)
 }
 
 // private unlocked
-inline int FtpClient::doAuth(class FtpResp *resp, class ExceptionSink *xsink)
+int FtpClient::doAuth(class FtpResp *resp, class ExceptionSink *xsink)
 {
    resp->assign(sendMsg("AUTH", "TLS", xsink));
    if (xsink->isEvent())
@@ -857,4 +1056,174 @@ int FtpClient::del(char *file, class ExceptionSink *xsink)
    xsink->raiseException("FTP-DELETE-ERROR", "FTP server returned an error to the DELE command: %s", p->getBuffer());
    delete p;
    return -1;
+}
+
+void FtpClient::setURL(class QoreString *url, class ExceptionSink *xsink)
+{
+   lock();
+   setURLInternal(url, xsink);
+   unlock();
+}
+
+class QoreString *FtpClient::getURL() const
+{
+   class QoreString *url = new QoreString("ftp://");
+   if (user)
+   {
+      url->concat(user);
+      if (pass)
+	 url->sprintf(":%s", pass);
+      url->concat('@');
+   }
+   if (host)
+      url->concat(host);
+   if (port)
+      url->sprintf(":%d", port);
+   return url;
+}
+
+void FtpClient::setPort(int p)
+{ 
+   port = p; 
+}
+
+void FtpClient::setUserName(char *u) 
+{ 
+   lock();
+   if (user) 
+      free(user); 
+   user = u ? strdup(u) : NULL;
+   unlock();
+}
+
+void FtpClient::setPassword(char *p) 
+{ 
+   lock();
+   if (pass)
+      free(pass); 
+   pass = p ? strdup(p) : NULL;
+   unlock();
+}
+
+void FtpClient::setHostName(char *h) 
+{ 
+   lock();
+   if (host) 
+      free(host); 
+   host = h ? strdup(h) : NULL;
+   unlock();
+}
+
+int FtpClient::setSecure()
+{
+   lock();
+   if (control_connected)
+   {
+      unlock();
+      return -1;
+   }
+   secure = secure_data = true;
+   unlock();
+   return 0;
+}
+
+int FtpClient::setInsecure()
+{
+   lock();
+   if (control_connected)
+   {
+      unlock();
+      return -1;
+   }
+   secure = secure_data = false;
+   unlock();
+   return 0;
+}
+
+int FtpClient::setInsecureData()
+{
+   lock();
+   if (control_connected)
+   {
+      unlock();
+      return -1;
+   }
+   secure_data = false;
+   unlock();
+   return 0;
+}
+
+// returns true if the control connection can only be established with a secure connection
+bool FtpClient::isSecure() const
+{
+   return secure;
+}
+
+// returns true if data connections can only be established with a secure connection
+bool FtpClient::isDataSecure() const
+{
+   return secure_data;
+}
+
+const char *FtpClient::getSSLCipherName() const
+{
+   return control.getSSLCipherName();
+}
+
+const char *FtpClient::getSSLCipherVersion() const
+{
+   return control.getSSLCipherVersion();
+}
+
+long FtpClient::verifyPeerCertificate() const
+{
+   return control.verifyPeerCertificate();
+}	 
+
+void FtpClient::setModeAuto()
+{
+   lock();
+   mode = FTP_MODE_UNKNOWN;
+   unlock();
+}
+
+void FtpClient::setModeEPSV()
+{
+   lock();
+   mode = FTP_MODE_EPSV;
+   unlock();
+}
+
+void FtpClient::setModePASV()
+{
+   lock();
+   mode = FTP_MODE_PASV;
+   unlock();
+}
+
+void FtpClient::setModePORT()
+{
+   lock();
+   mode = FTP_MODE_PORT;
+   unlock();
+}
+
+int FtpClient::getPort() const 
+{
+   return port; 
+}
+
+char *FtpClient::getUserName() const 
+{ 
+   return user;
+}
+
+char *FtpClient::getPassword() const 
+{ 
+   return pass; 
+}
+
+char *FtpClient::getHostName() const 
+{ 
+   return host; 
 }

@@ -76,62 +76,6 @@
 #define DEFAULT_USERNAME "anonymous"
 #define DEFAULT_PASSWORD "qore@nohost.com"
 
-class FtpResp
-{
-   private:
-      class QoreString *str;
-
-   public:
-      inline FtpResp() : str(NULL) {}
-      inline FtpResp(class QoreString *s)
-      {
-	 str = s;
-      }
-      inline ~FtpResp()
-      {
-	 if (str)
-	    delete str;
-      }
-      inline class QoreString *assign(class QoreString *s)
-      {
-	 if (str)
-	    delete str;
-	 str = s;
-	 return s;
-      }
-      inline char *getBuffer()
-      {
-	 return str->getBuffer();
-      }
-      inline class QoreString *getStr()
-      {
-	 return str;
-      }
-      
-      inline int getCode()
-      {
-	 if (!str || str->strlen() < 3)
-	    return -1;
-
-	 char buf[4];
-	 buf[0] = str->getBuffer()[0];
-	 buf[1] = str->getBuffer()[1];
-	 buf[2] = str->getBuffer()[2];
-	 buf[3] = '\0';
-	 return atoi(buf);
-      }
-
-      inline void stripEOL()
-      {
-	 if (!str || !str->strlen())
-	    return;
-	 if (str->getBuffer()[str->strlen() - 1] == '\n')
-	    str->terminate(str->strlen() - 1);
-	 if (str->getBuffer()[str->strlen() - 1] == '\r')
-	    str->terminate(str->strlen() - 1);
-      }
-};
-
 class FtpClient : public LockedObject
 {
    private:
@@ -143,323 +87,61 @@ class FtpClient : public LockedObject
       int mode, port;
       bool secure, secure_data;
 
-      class QoreString *getResponse(class ExceptionSink *xsink);
-      inline class QoreString *sendMsg(char *cmd, char *arg, class ExceptionSink *xsink);
-      inline void stripEOL(class QoreString *str);
+      DLLLOCAL class QoreString *getResponse(class ExceptionSink *xsink);
+      DLLLOCAL class QoreString *sendMsg(char *cmd, char *arg, class ExceptionSink *xsink);
+      DLLLOCAL void stripEOL(class QoreString *str);
       //int connectDataLongPassive(class ExceptionSink *xsink);
-      int connectDataExtendedPassive(class ExceptionSink *xsink);
-      int connectDataPassive(class ExceptionSink *xsink);
-      int connectDataPort(class ExceptionSink *xsink);
-      inline int connectData(class ExceptionSink *xsink);
-      inline int acceptDataConnection(class ExceptionSink *xsink);
-      inline int setBinaryMode(bool t, class ExceptionSink *xsink);
-      inline int disconnectInternal();
-      void setURLInternal(class QoreString *url, class ExceptionSink *xsink);
-      inline int connectIntern(class FtpResp *resp, class ExceptionSink *xsink);
-      inline int doAuth(class FtpResp *resp, class ExceptionSink *xsink);
-      inline int doProt(class FtpResp *resp, class ExceptionSink *xsink);
+      DLLLOCAL int connectDataExtendedPassive(class ExceptionSink *xsink);
+      DLLLOCAL int connectDataPassive(class ExceptionSink *xsink);
+      DLLLOCAL int connectDataPort(class ExceptionSink *xsink);
+      DLLLOCAL int connectData(class ExceptionSink *xsink);
+      DLLLOCAL int acceptDataConnection(class ExceptionSink *xsink);
+      DLLLOCAL int setBinaryMode(bool t, class ExceptionSink *xsink);
+      DLLLOCAL int disconnectInternal();
+      DLLLOCAL void setURLInternal(class QoreString *url, class ExceptionSink *xsink);
+      DLLLOCAL int connectIntern(class FtpResp *resp, class ExceptionSink *xsink);
+      DLLLOCAL int doAuth(class FtpResp *resp, class ExceptionSink *xsink);
+      DLLLOCAL int doProt(class FtpResp *resp, class ExceptionSink *xsink);
 
    public:
-      FtpClient(class QoreString *url, class ExceptionSink *xsink);
-      inline ~FtpClient();
-      int connect(class ExceptionSink *xsink);
-      inline int disconnect();
-      int cwd(char *dir, class ExceptionSink *xsink);
-      class QoreString *pwd(class ExceptionSink *xsink);
-      int put(char *localpath, char *remotename, class ExceptionSink *xsink);
-      int get(char *remotepath, char *localname, class ExceptionSink *xsink);
-      class QoreString *list(char *path, bool long_list, class ExceptionSink *xsink);
-      int del(char *file, class ExceptionSink *xsink);
-      //int cdup(class ExceptionSink *xsink);
-      //int rename(char *old, char *name, class ExceptionSink *xsink);
-      //int mkdir(char *dir, class ExceptionSink *xsink);
-      //int rmdir(char *dir, class ExceptionSink *xsink);
-      
-      inline int getPort() { return port; }
-      inline char *getUserName() { return user; }
-      inline char *getPassword() { return pass; }
-      inline char *getHostName() { return host; }
-      inline void setURL(class QoreString *url, class ExceptionSink *xsink)
-      {
-	 lock();
-	 setURLInternal(url, xsink);
-	 unlock();
-      }
-      inline class QoreString *getURL()
-      {
-	 class QoreString *url = new QoreString("ftp://");
-	 if (user)
-	 {
-	    url->concat(user);
-	    if (pass)
-	       url->sprintf(":%s", pass);
-	    url->concat('@');
-	 }
-	 if (host)
-	    url->concat(host);
-	 if (port)
-	    url->sprintf(":%d", port);
-	 return url;
-      }
-      inline void setPort(int p) { port = p; }
-      inline void setUserName(char *u) 
-      { 
-	 lock();
-	 if (user) 
-	    free(user); 
-	 user = u ? strdup(u) : NULL;
-	 unlock();
-      }
-      inline void setPassword(char *p) 
-      { 
-	 lock();
-	 if (pass)
-	    free(pass); 
-	 pass = p ? strdup(p) : NULL;
-	 unlock();
-      }
-      inline void setHostName(char *h) 
-      { 
-	 lock();
-	 if (host) 
-	    free(host); 
-	 host = h ? strdup(h) : NULL;
-	 unlock();
-      }
-      inline int setSecure()
-      {
-	 lock();
-	 if (control_connected)
-	 {
-	    unlock();
-	    return -1;
-	 }
-	 secure = secure_data = true;
-	 unlock();
-	 return 0;
-      }
-      inline int setInsecure()
-      {
-	 lock();
-	 if (control_connected)
-	 {
-	    unlock();
-	    return -1;
-	 }
-	 secure = secure_data = false;
-	 unlock();
-	 return 0;
-      }
-      inline int setInsecureData()
-      {
-	 lock();
-	 if (control_connected)
-	 {
-	    unlock();
-	    return -1;
-	 }
-	 secure_data = false;
-	 unlock();
-	 return 0;
-      }
+      DLLEXPORT FtpClient(class QoreString *url, class ExceptionSink *xsink);
+      DLLEXPORT ~FtpClient();
+      DLLEXPORT int connect(class ExceptionSink *xsink);
+      DLLEXPORT int disconnect();
+      DLLEXPORT int cwd(char *dir, class ExceptionSink *xsink);
+      DLLEXPORT class QoreString *pwd(class ExceptionSink *xsink);
+      DLLEXPORT int put(char *localpath, char *remotename, class ExceptionSink *xsink);
+      DLLEXPORT int get(char *remotepath, char *localname, class ExceptionSink *xsink);
+      DLLEXPORT class QoreString *list(char *path, bool long_list, class ExceptionSink *xsink);
+      DLLEXPORT int del(char *file, class ExceptionSink *xsink);
+      //DLLEXPORT int cdup(class ExceptionSink *xsink);
+      //DLLEXPORT int rename(char *old, char *name, class ExceptionSink *xsink);
+      //DLLEXPORT int mkdir(char *dir, class ExceptionSink *xsink);
+      //DLLEXPORT int rmdir(char *dir, class ExceptionSink *xsink);
+      DLLEXPORT int getPort() const;
+      DLLEXPORT char *getUserName() const;
+      DLLEXPORT char *getPassword() const;
+      DLLEXPORT char *getHostName() const;
+      DLLEXPORT void setURL(class QoreString *url, class ExceptionSink *xsink);
+      DLLEXPORT class QoreString *getURL() const;
+      DLLEXPORT void setPort(int p);
+      DLLEXPORT void setUserName(char *u); 
+      DLLEXPORT void setPassword(char *p);
+      DLLEXPORT void setHostName(char *h); 
+      DLLEXPORT int setSecure();
+      DLLEXPORT int setInsecure();
+      DLLEXPORT int setInsecureData();
       // returns true if the control connection can only be established with a secure connection
-      inline bool isSecure()
-      {
-	 return secure;
-      }
+      DLLEXPORT bool isSecure() const;
       // returns true if data connections can only be established with a secure connection
-      inline bool isDataSecure()
-      {
-	 return secure_data;
-      }
-
-      inline const char *getSSLCipherName()
-      {
-	 return control.getSSLCipherName();
-      }
-
-      inline const char *getSSLCipherVersion()
-      {
-	 return control.getSSLCipherVersion();
-      }
-
-      inline long verifyPeerCertificate()
-      {
-	 return control.verifyPeerCertificate();
-      }	 
-
-      inline void setModeAuto()
-      {
-	 lock();
-	 mode = FTP_MODE_UNKNOWN;
-	 unlock();
-      }
-
-      inline void setModeEPSV()
-      {
-	 lock();
-	 mode = FTP_MODE_EPSV;
-	 unlock();
-      }
-
-      inline void setModePASV()
-      {
-	 lock();
-	 mode = FTP_MODE_PASV;
-	 unlock();
-      }
-
-      inline void setModePORT()
-      {
-	 lock();
-	 mode = FTP_MODE_PORT;
-	 unlock();
-      }
+      DLLEXPORT bool isDataSecure() const;
+      DLLEXPORT const char *getSSLCipherName() const;
+      DLLEXPORT const char *getSSLCipherVersion() const;
+      DLLEXPORT long verifyPeerCertificate() const;
+      DLLEXPORT void setModeAuto();
+      DLLEXPORT void setModeEPSV();
+      DLLEXPORT void setModePASV();
+      DLLEXPORT void setModePORT();
 };
-
-inline FtpClient::~FtpClient()
-{
-   // clear control buffer
-   buffer.clear();
-   disconnectInternal();
-   if (host)
-      free(host);
-   if (user)
-      free(user);
-   if (pass)
-      free(pass);
-}
-
-// private unlocked
-static inline int getFTPCode(QoreString *str)
-{
-   QoreString *b = str->substr(0, 3);
-   if (!b) return -1;
-   int rc = atoi(b->getBuffer());
-   delete b;
-   return rc;
-}
-
-// private unlocked
-inline class QoreString *FtpClient::sendMsg(char *cmd, char *arg, class ExceptionSink *xsink)
-{
-   QoreString c(cmd);
-   if (arg)
-   {
-      c.concat(' ');
-      c.concat(arg);
-   }
-   c.concat("\r\n");
-   printd(FTPDEBUG, "FtpClient::sendMsg()> %s", c.getBuffer());
-   if (control.send(c.getBuffer(), c.strlen()) < 0)
-   {
-      xsink->raiseException("FTP-SEND-ERROR", strerror(errno));
-      return NULL;
-   }
-
-   QoreString *resp = getResponse(xsink);
-   return resp;
-}
-
-// private unlocked
-inline void FtpClient::stripEOL(class QoreString *str)
-{
-   if (!str || !str->strlen())
-      return;
-   if (str->getBuffer()[str->strlen() - 1] == '\n')
-      str->terminate(str->strlen() - 1);
-   if (str->getBuffer()[str->strlen() - 1] == '\r')
-      str->terminate(str->strlen() - 1);
-}
-
-// private unlocked
-inline int FtpClient::setBinaryMode(bool t, class ExceptionSink *xsink)
-{
-   // set transfer mode
-   QoreString *resp = sendMsg("TYPE", (char *)(t ? "I" : "A"), xsink);
-   if (xsink->isEvent())
-      return -1;
-   int code = getFTPCode(resp);
-   if ((code / 100) != 2)
-   {
-      xsink->raiseException("FTP-ERROR", "can't set mode to '%c', FTP server responded: %s",
-		     (t ? 'I' : 'A'), resp->getBuffer());
-      delete resp;
-      return -1;
-   }
-   delete resp;
-   return 0;
-}
-
-// private unlocked
-inline int FtpClient::acceptDataConnection(class ExceptionSink *xsink)
-{
-   if (data.acceptAndReplace(NULL))
-   {
-      data.close();
-      xsink->raiseException("FTP-CONNECT-ERROR", "error accepting data connection: %s", 
-		     strerror(errno));
-      return -1;
-   }
-#ifdef DEBUG
-   if (secure_data)
-      printd(FTPDEBUG, "FtpClient::connectDataPort() negotiating client SSL connection\n");
-#endif
-
-   if (secure_data && data.upgradeClientToSSL(NULL, NULL, xsink))
-      return -1;      
-
-   printd(FTPDEBUG, "FtpClient::acceptDataConnection() accepted PORT data connection\n");
-   return 0;
-}
-
-// private unlocked
-inline int FtpClient::connectData(class ExceptionSink *xsink)
-{
-   switch (mode)
-   {
-      case FTP_MODE_UNKNOWN:
-	 if (!connectDataExtendedPassive(xsink))
-	    return 0;
-	 if (xsink->isEvent())
-	    return -1;
-	 if (!connectDataPassive(xsink))
-	    return 0;
-	 if (xsink->isEvent())
-	    return -1;
-	 if (!connectDataPort(xsink))
-	    return 0;
-
-	 if (!xsink->isEvent())
-	    xsink->raiseException("FTP-CONNECT-ERROR", "Could not negotiate data channel connection with FTP server");
-	 return -1;
-      case FTP_MODE_EPSV:
-	 return connectDataExtendedPassive(xsink);
-      case FTP_MODE_PASV:
-	 return connectDataPassive(xsink);
-      case FTP_MODE_PORT:
-	 return connectDataPort(xsink);
-   }
-   return -1;
-}
-
-// private unlocked
-inline int FtpClient::disconnectInternal()
-{
-   control.close();
-   control_connected = false;
-   mode = FTP_MODE_UNKNOWN;
-   data.close();
-   return 0;
-}
-
-// public locked
-inline int FtpClient::disconnect()
-{
-   lock();
-   int rc = disconnectInternal();
-   unlock();
-   return rc;
-}
 
 #endif // _QORE_OBJECTS_FTPCLIENT_H
