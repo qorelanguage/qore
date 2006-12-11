@@ -76,8 +76,7 @@ static QoreNode *PROGRAM_parse(class Object *self, class QoreProgram *p, class Q
       return NULL;
 
    class Exception *e = wsink.catchException();
-   class QoreNode *rv = makeExceptionObject(e);
-   e->del(xsink);
+   class QoreNode *rv = e->makeExceptionObjectAndDelete(xsink);
    return rv;
 }
 
@@ -107,8 +106,7 @@ static QoreNode *PROGRAM_parsePending(class Object *self, class QoreProgram *p, 
       return NULL;
 
    class Exception *e = wsink.catchException();
-   class QoreNode *rv = makeExceptionObject(e);
-   e->del(xsink);
+   class QoreNode *rv = e->makeExceptionObjectAndDelete(xsink);
    return rv;
 }
 
@@ -129,8 +127,7 @@ static QoreNode *PROGRAM_parseCommit(class Object *self, class QoreProgram *p, c
       return NULL;
 
    class Exception *e = wsink.catchException();
-   class QoreNode *rv = makeExceptionObject(e);
-   e->del(xsink);
+   class QoreNode *rv = e->makeExceptionObjectAndDelete(xsink);
    return rv;
 }
 

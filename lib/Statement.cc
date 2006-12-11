@@ -495,7 +495,7 @@ inline int TryStatement::exec(class QoreNode **return_value, class ExceptionSink
 	 catchSaveException(except);
 
 	 if (param)	 // instantiate exception information parameter
-	    instantiateLVar(id, makeExceptionObject(except));
+	    instantiateLVar(id, except->makeExceptionObject());
 
 	 rc = catch_block->exec(&trv, xsink);
 
@@ -506,7 +506,8 @@ inline int TryStatement::exec(class QoreNode **return_value, class ExceptionSink
       else
 	 rc = 0;
 
-      xsink->deleteExceptionChain(except);
+      // delete exception chain
+      except->del(xsink);
    }
    /*
    if (finally)

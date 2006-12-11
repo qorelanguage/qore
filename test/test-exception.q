@@ -28,7 +28,7 @@ try
 	}
 	catch ($ex)
 	{
-	    printf("%s\n", $ex.err == "OBJECT-METHOD-EVAL-ON-NON-OBJECT" && !exists $ex.arg ? "OK" : "ERROR");
+	    printf("%s\n", ($ex.err == "OBJECT-METHOD-EVAL-ON-NON-OBJECT" && !exists $ex.arg) ? "OK" : "ERROR");
 
 	    try
 	    {
@@ -48,7 +48,7 @@ try
 	    }
 	    catch ($ex) 
 	    {
-		printf("%s\n", $ex.err == "OBJECT-METHOD-EVAL-ON-NON-OBJECT" && !exists $ex.arg ? "OK" : "ERROR");
+		printf("%s\n", ($ex.err == "OBJECT-METHOD-EVAL-ON-NON-OBJECT" && !exists $ex.arg) ? "OK" : "ERROR");
 		throw "TEST";
 	    }
 	}

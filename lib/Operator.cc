@@ -723,21 +723,20 @@ static class QoreNode *op_object_method_call(class QoreNode *left, class QoreNod
    tracein("op_object_method_call()");
 
    QoreNode *op = left->eval(xsink);
-   if (!op)
-      return NULL;
 
    if (xsink->isEvent())
    {
-      op->deref(xsink);
+      if (op)
+	 op->deref(xsink);
       traceout("op_object_method_call()");
       return NULL;
    }
 
-   if (op->type != NT_OBJECT)
+   if (!op || op->type != NT_OBJECT)
    {
       xsink->raiseException("OBJECT-METHOD-EVAL-ON-NON-OBJECT", "member function \"%s\" called on type \"%s\"", 
 			    func->val.fcall->f.c_str, op ? op->type->name : "NOTHING" );
-      op->deref(xsink);
+      if (op) op->deref(xsink);
       traceout("op_object_method_call()");
       return NULL;
    }

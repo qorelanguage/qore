@@ -28,6 +28,7 @@
 
 #include <qore/common.h>
 #include <qore/support.h>
+#include <qore/QoreNode.h>
 #include <qore/Exception.h>
 #include <qore/charset.h>
 

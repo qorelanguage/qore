@@ -31,241 +31,81 @@
 #define ET_SYSTEM     0
 #define ET_USER       1
 
-class QoreNode;
-
 class ExceptionSink {
    private:
       bool thread_exit;
       class Exception *head, *tail;
 
-      inline void insert(class Exception *e);
-      inline void clearIntern();
+      DLLLOCAL inline void insert(class Exception *e);
+      DLLLOCAL inline void clearIntern();
 
    public:
-      inline ExceptionSink()
-      {
-         thread_exit = false;
-         head = tail = NULL;
-      }
-      inline ~ExceptionSink();
-      inline void handleExceptions();
-      inline void handleWarnings();
-      inline bool isEvent() const
+      DLLEXPORT ExceptionSink();
+      DLLEXPORT ~ExceptionSink();
+      DLLEXPORT void handleExceptions();
+      DLLEXPORT void handleWarnings();
+      DLLEXPORT bool isEvent() const
       {
 	 return head || thread_exit;
       }
-      inline bool isThreadExit() const
+      DLLEXPORT bool isThreadExit() const
       {
 	 return thread_exit;
       }
-      inline bool isException() const
+      DLLEXPORT bool isException() const
       {
 	 return head;
       }
       // Intended as a alternative to isException():
       // ExceptionSink xsink;
       // if (xsink) { .. }
-      operator bool () const
+      DLLEXPORT operator bool () const
       {
          return head;
       }
       // The QoreNode* returned value is always NULL. Used to simplify error handling code.
-      inline class QoreNode *raiseException(char *err, char *fmt, ...);
+      DLLEXPORT class QoreNode *raiseException(char *err, char *fmt, ...);
       // Raise exception with additional argument (the 'arg' member). Always returns 0.
-      inline QoreNode* raiseExceptionArg(char* err, QoreNode* arg, char* fmt, ...);
-      inline void raiseException(class Exception *e);
-      inline void raiseException(class QoreNode *n);
-      inline void rethrow(class Exception *old);
-      inline void raiseThreadExit()
-      {
-	 thread_exit = true;
-      }
-      inline class Exception *catchException()
-      {
-	 class Exception *e = head;
-	 head = tail = NULL;
-	 return e;
-      }
-      inline void assimilate(class ExceptionSink *xs);
-      inline void deleteExceptionChain(class Exception *e);
-      void outOfMemory();
-      inline void clear();
+      DLLEXPORT QoreNode* raiseExceptionArg(char* err, QoreNode* arg, char* fmt, ...);
+      DLLEXPORT void rethrow(class Exception *old);
+      DLLEXPORT void raiseThreadExit();
+      DLLEXPORT void assimilate(class ExceptionSink *xs);
+      DLLEXPORT void outOfMemory();
+      DLLEXPORT void clear();
+
+      DLLLOCAL void raiseException(class Exception *e);
+      DLLLOCAL void raiseException(class QoreNode *n);
+      DLLLOCAL class Exception *catchException();
+      DLLLOCAL static void defaultExceptionHandler(class Exception *e);
+      DLLLOCAL static void defaultWarningHandler(class Exception *e);
 };
 
 class Exception {
-   protected:
-      ~Exception();
+   friend class ExceptionSink;
 
-   public:
+   private:
       int type;
       int line;
       char *file;
       class QoreNode *callStack, *err, *desc, *arg;
       class Exception *next;
+   
+   protected:
+      ~Exception();
 
+   public:
       DLLEXPORT Exception(char *e, char *fmt, ...);
       DLLEXPORT Exception(char *e, class QoreString *desc);
+      // FIXME: remove this function when parsing line number big is fixed
       DLLEXPORT Exception(char *e, int sline, class QoreString *desc);
-      DLLEXPORT Exception(class QoreNode *l);
       DLLEXPORT Exception(class Exception *old, class ExceptionSink *xsink);
+      DLLEXPORT class QoreNode *makeExceptionObjectAndDelete(class ExceptionSink *xsink);
+      DLLEXPORT class QoreNode *makeExceptionObject();
 
-      void del(class ExceptionSink *xsink);
-      void del();
+      DLLLOCAL Exception(class QoreNode *l);
+      DLLLOCAL void del(class ExceptionSink *xsink);
+      DLLLOCAL void del();
 };
-
-void defaultExceptionHandler(class Exception *e);
-void defaultWarningHandler(class Exception *e);
-class QoreNode *makeExceptionObject(class Exception *e);
-
-static inline void alreadyDeleted(class ExceptionSink *xsink, char *cmeth);
-static inline void makeAccessDeletedObjectException(class ExceptionSink *xsink, char *mem, char *cname);
-static inline void makeAccessDeletedObjectException(class ExceptionSink *xsink, char *cname);
-
-/*
-inline void make_exception(class ExceptionSink *xsink, class QoreNode *l);
-inline void make_exception(ExceptionSink *xsink, Exception *ne);
-*/
-
-#include <qore/common.h>
-#include <qore/List.h>
-#include <qore/qore_thread.h>
-#include <qore/QoreNode.h>
-#include <qore/QoreString.h>
-#include <qore/Object.h>
-#include <qore/support.h>
-
-inline ExceptionSink::~ExceptionSink()
-{
-   handleExceptions();
-}
-
-inline void ExceptionSink::handleExceptions()
-{
-   if (head)
-   {
-      defaultExceptionHandler(head);
-      clearIntern();
-   }
-}
-
-inline void ExceptionSink::handleWarnings()
-{
-   if (head)
-   {
-      defaultWarningHandler(head);
-      clearIntern();
-   }
-}
-
-inline void ExceptionSink::clearIntern()
-{
-   // delete all exceptions
-   while (head)
-   {
-      tail = head->next;
-      head->del();
-      head = tail;
-   }
-}
-
-inline void ExceptionSink::clear()
-{
-   clearIntern();
-   head = tail = NULL;
-}
-
-inline void ExceptionSink::insert(class Exception *e)
-{
-   // append exception to the list
-   if (!head)
-      head = e;
-   else
-      tail->next = e;
-   tail = e;
-}
-
-inline QoreNode* ExceptionSink::raiseException(char *err, char *fmt, ...)
-{
-   class QoreString *desc = new QoreString();
-
-   va_list args;
-
-   while (true)
-   {
-      va_start(args, fmt);
-      int rc = desc->vsprintf(fmt, args);
-      va_end(args);
-      if (!rc)
-	 break;
-   }
-   printd(5, "ExceptionSink::raiseException(%s, %s)\n", err, desc->getBuffer());
-   insert(new Exception(err, 0, desc));
-   return NULL;
-}
-
-inline QoreNode* ExceptionSink::raiseExceptionArg(char* err, QoreNode* arg, char* fmt, ...)
-{
-   class QoreString *desc = new QoreString();
-
-   va_list args;
-
-   while (true)
-   {
-      va_start(args, fmt);
-      int rc = desc->vsprintf(fmt, args);
-      va_end(args);
-      if (!rc)
-         break;
-   }
-   printd(5, "ExceptionSink::raiseExceptionArg(%s, %s)\n", err, desc->getBuffer());
-   Exception* exc = new Exception(err, 0, desc);
-   exc->arg = arg;
-   insert(exc);
-   return NULL;
-}
-
-inline void ExceptionSink::raiseException(class Exception *e)
-{
-   insert(e);
-}
-
-inline void ExceptionSink::raiseException(class QoreNode *n)
-{
-   insert(new Exception(n));
-}
-
-inline void ExceptionSink::rethrow(class Exception *old)
-{
-   insert(new Exception(old, this));
-}
-
-inline void ExceptionSink::assimilate(class ExceptionSink *xs)
-{
-   if (xs->thread_exit)
-   {
-      thread_exit = xs->thread_exit;
-      xs->thread_exit = false;
-   }
-   if (xs->tail)
-   {
-      if (tail)
-	 tail->next = xs->head;
-      else
-	 head = xs->head;
-      tail = xs->tail;
-   }
-   xs->head = xs->tail = NULL;
-}
-
-inline void ExceptionSink::deleteExceptionChain(class Exception *e)
-{
-   while (e)
-   {
-      class Exception *n = e->next;
-      e->del(this);
-      e = n;
-   }
-}
 
 static inline void alreadyDeleted(class ExceptionSink *xsink, char *cmeth)
 {
@@ -281,4 +121,5 @@ static inline void makeAccessDeletedObjectException(class ExceptionSink *xsink, 
 {
    xsink->raiseException("OBJECT-ALREADY-DELETED", "attempt to an already-deleted object of class '%s'", cname);
 }
+
 #endif

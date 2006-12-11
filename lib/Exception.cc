@@ -21,12 +21,156 @@
 */
 
 #include <qore/config.h>
+#include <qore/common.h>
 #include <qore/Exception.h>
 #include <qore/support.h>
 #include <qore/QoreString.h>
 #include <qore/List.h>
-#include <qore/Object.h>
 #include <qore/CallStack.h>
+#include <qore/qore_thread.h>
+#include <qore/QoreNode.h>
+#include <qore/Object.h>
+
+ExceptionSink::ExceptionSink()
+{
+   thread_exit = false;
+   head = tail = NULL;
+}
+
+ExceptionSink::~ExceptionSink()
+{
+   handleExceptions();
+}
+
+void ExceptionSink::raiseThreadExit()
+{
+   thread_exit = true;
+}
+
+class Exception *ExceptionSink::catchException()
+{
+   class Exception *e = head;
+   head = tail = NULL;
+   return e;
+}
+
+void ExceptionSink::handleExceptions()
+{
+   if (head)
+   {
+      defaultExceptionHandler(head);
+      clearIntern();
+   }
+}
+
+void ExceptionSink::handleWarnings()
+{
+   if (head)
+   {
+      defaultWarningHandler(head);
+      clearIntern();
+   }
+}
+
+void ExceptionSink::clearIntern()
+{
+   // delete all exceptions
+   while (head)
+   {
+      tail = head->next;
+      head->del();
+      head = tail;
+   }
+}
+
+void ExceptionSink::clear()
+{
+   clearIntern();
+   head = tail = NULL;
+}
+
+void ExceptionSink::insert(class Exception *e)
+{
+   // append exception to the list
+   if (!head)
+      head = e;
+   else
+      tail->next = e;
+   tail = e;
+}
+
+QoreNode* ExceptionSink::raiseException(char *err, char *fmt, ...)
+{
+   class QoreString *desc = new QoreString();
+   
+   va_list args;
+   
+   while (true)
+   {
+      va_start(args, fmt);
+      int rc = desc->vsprintf(fmt, args);
+      va_end(args);
+      if (!rc)
+	 break;
+   }
+   printd(5, "ExceptionSink::raiseException(%s, %s)\n", err, desc->getBuffer());
+   insert(new Exception(err, 0, desc));
+   return NULL;
+}
+
+QoreNode* ExceptionSink::raiseExceptionArg(char* err, QoreNode* arg, char* fmt, ...)
+{
+   class QoreString *desc = new QoreString();
+   
+   va_list args;
+   
+   while (true)
+   {
+      va_start(args, fmt);
+      int rc = desc->vsprintf(fmt, args);
+      va_end(args);
+      if (!rc)
+         break;
+   }
+   printd(5, "ExceptionSink::raiseExceptionArg(%s, %s)\n", err, desc->getBuffer());
+   Exception* exc = new Exception(err, 0, desc);
+   exc->arg = arg;
+   insert(exc);
+   return NULL;
+}
+
+void ExceptionSink::raiseException(class Exception *e)
+{
+   insert(e);
+}
+
+void ExceptionSink::raiseException(class QoreNode *n)
+{
+   insert(new Exception(n));
+}
+
+void ExceptionSink::rethrow(class Exception *old)
+{
+   insert(new Exception(old, this));
+}
+
+void ExceptionSink::assimilate(class ExceptionSink *xs)
+{
+   if (xs->thread_exit)
+   {
+      thread_exit = xs->thread_exit;
+      xs->thread_exit = false;
+   }
+   if (xs->tail)
+   {
+      if (tail)
+	 tail->next = xs->head;
+      else
+	 head = xs->head;
+      tail = xs->tail;
+   }
+   xs->head = xs->tail = NULL;
+}
 
 void ExceptionSink::outOfMemory()
 {
@@ -131,6 +275,9 @@ void Exception::del(class ExceptionSink *xsink)
    if (arg)
       arg->deref(xsink);
 
+   if (next)
+      next->del(xsink);
+   
    delete this;
 }
 
@@ -147,6 +294,9 @@ void Exception::del()
       desc->deref(&xsink);
    if (arg)
       arg->deref(&xsink);
+
+   if (next)
+      next->del(&xsink);
 
    delete this;
 }
@@ -215,37 +365,47 @@ Exception::Exception(class Exception *old, class ExceptionSink *xsink)
    arg = old->arg ? old->arg->RefSelf() : NULL;
 }
 
-class QoreNode *makeExceptionObject(Exception *e)
+class QoreNode *Exception::makeExceptionObject()
 {
    tracein("makeExceptionObject()");
 
    Hash *h = new Hash();
 
-   if (e->type == ET_USER)
+   if (type == ET_USER)
       h->setKeyValue("type", new QoreNode("User"), NULL);
    else
       h->setKeyValue("type", new QoreNode("System"), NULL);
 
-   h->setKeyValue("file", new QoreNode(e->file), NULL);
-   h->setKeyValue("line", new QoreNode((int64)e->line), NULL);
-   h->setKeyValue("callstack", e->callStack->RefSelf(), NULL);
+   h->setKeyValue("file", new QoreNode(file), NULL);
+   h->setKeyValue("line", new QoreNode((int64)line), NULL);
+   h->setKeyValue("callstack", callStack->RefSelf(), NULL);
 
-   if (e->err)
-      h->setKeyValue("err", e->err->RefSelf(), NULL);
-   if (e->desc)
-      h->setKeyValue("desc", e->desc->RefSelf(), NULL);
-   if (e->arg)
-      h->setKeyValue("arg", e->arg->RefSelf(), NULL);
+   if (err)
+      h->setKeyValue("err", err->RefSelf(), NULL);
+   if (desc)
+      h->setKeyValue("desc", desc->RefSelf(), NULL);
+   if (arg)
+      h->setKeyValue("arg", arg->RefSelf(), NULL);
 
    // add chained exceptions with this "chain reaction" call
-   if (e->next)
-      h->setKeyValue("next", makeExceptionObject(e->next), NULL);
+   if (next)
+      h->setKeyValue("next", next->makeExceptionObject(), NULL);
 
    traceout("makeExceptionObject()");
    return new QoreNode(h);
 }
 
-void defaultExceptionHandler(Exception *e)
+class QoreNode *Exception::makeExceptionObjectAndDelete(ExceptionSink *xsink)
+{
+   tracein("makeExceptionObjectAndDelete()");
+   class QoreNode *rv = makeExceptionObject();
+   del(xsink);
+   traceout("makeExceptionObjectAndDelete()");
+   return rv;
+}
+
+// static member function
+void ExceptionSink::defaultExceptionHandler(Exception *e)
 {
    class ExceptionSink xsink;
 
@@ -373,7 +533,8 @@ void defaultExceptionHandler(Exception *e)
    }
 }
 
-void defaultWarningHandler(Exception *e)
+// static member function
+void ExceptionSink::defaultWarningHandler(Exception *e)
 {
    class ExceptionSink xsink;
 
