@@ -30,6 +30,7 @@
 #include <qore/config.h>
 #include <qore/common.h>
 #include <qore/QoreNode.h>
+#include <qore/QoreLib.h>
 #include <qore/support.h>
 #include <qore/Function.h>
 #include <qore/params.h>

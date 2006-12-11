@@ -55,334 +55,70 @@ class DateTime {
       int millisecond;
       bool relative;
       
-      class DateTime *addAbsoluteToRelative(class DateTime *dt);
-      inline class DateTime *addRelativeToRelative(class DateTime *dt);
+      DLLLOCAL class DateTime *addAbsoluteToRelative(const class DateTime *dt) const;
+      DLLLOCAL class DateTime *addRelativeToRelative(const class DateTime *dt) const;
 
-      class DateTime *subtractAbsoluteByRelative(class DateTime *dt);
-      inline class DateTime *subtractRelativeByRelative(class DateTime *dt);
-      class DateTime *calcDifference(class DateTime *dt);
-      void setDateLiteral(int64 date);
-      void setRelativeDateLiteral(int64 date);
+      DLLLOCAL class DateTime *subtractAbsoluteByRelative(const class DateTime *dt) const;
+      DLLLOCAL class DateTime *subtractRelativeByRelative(const class DateTime *dt) const;
+      DLLLOCAL class DateTime *calcDifference(const class DateTime *dt) const;
+      DLLLOCAL void setDateLiteral(int64 date);
+      DLLLOCAL void setRelativeDateLiteral(int64 date);
 
       // static private methods
-      static inline int positive_leap_years(int year, int month);
-      static inline int negative_leap_years(int year);
+      DLLLOCAL static int positive_leap_years(int year, int month);
+      DLLLOCAL static int negative_leap_years(int year);
 
       // returns 0 - 6, 0 = Sunday
-      static inline int getDayOfWeek(int year, int month, int day)
-      {
-	 int a = (14 - month) / 12;
-	 int y = year - a;
-	 int m = month + 12 * a - 2;
-	 return (day + y + y / 4 - y / 100 + y / 400 + (31 * m / 12)) % 7;
-      }
-      static inline int64 getEpochSeconds(int year, int month, int day);
+      DLLLOCAL static int getDayOfWeek(int year, int month, int day);
+      DLLLOCAL static int64 getEpochSeconds(int year, int month, int day);
       
    public:
 
-      inline DateTime(bool r = false) 
-      {
-	 if (r)
-	 {
-	    year = 0; 
-	    month = 0; 
-	    day = 0; 
-	 }
-	 else
-	 {
-	    year = 1970; 
-	    month = 1; 
-	    day = 1; 
-	 }
-	 hour = 0; 
-	 minute = 0; 
-	 second = 0; 
-	 millisecond = 0; 
-	 relative = r;
-      }
-      inline DateTime(int y, int mo, int d, int h = 0, int mi = 0, int s = 0, short ms = 0, bool r = false);
-      inline DateTime(int64 seconds);
-      inline DateTime(char *date);
-      inline DateTime(struct tm *tms);
+      DLLEXPORT DateTime(bool r = false);
+      DLLEXPORT DateTime(int y, int mo, int d, int h = 0, int mi = 0, int s = 0, short ms = 0, bool r = false);
+      DLLEXPORT DateTime(int64 seconds);
+      DLLEXPORT DateTime(char *date);
+      DLLEXPORT DateTime(struct tm *tms);
 
-      inline void getTM(struct tm *tms);
-      void setDate(int64 seconds);
-      inline void setDate(char *str);
-      inline void setRelativeDate(char *str);
-      inline void setDate(struct tm *tms, short ms = 0);
-      inline void setTime(int h, int m, int s, short ms = 0)
-      {
-	 hour = h;
-	 minute = m;
-	 second = s;
-	 millisecond = ms;
-      }
-      bool checkValidity();
-      inline bool isEqual(class DateTime *dt);
-      inline class DateTime *add(class DateTime *dt);
-      inline class DateTime *subtractBy(class DateTime *dt);
-      int64 getEpochSeconds();
-      inline int getDayNumber()
-      {
-	 return positive_months[(month < 13 ? month : 12) - 1] + day + (month > 2 && isLeapYear(year) ? 1 : 0);
-      }
-
-      inline int getDayOfWeek()
-      {
-	 return getDayOfWeek(year, month, day);
-      }
+      DLLEXPORT void getTM(struct tm *tms) const;
+      DLLEXPORT void setDate(int64 seconds);
+      DLLEXPORT void setDate(char *str);
+      DLLEXPORT void setRelativeDate(char *str);
+      DLLEXPORT void setDate(struct tm *tms, short ms = 0);
+      DLLEXPORT void setTime(int h, int m, int s, short ms = 0);
+      DLLEXPORT bool checkValidity() const;
+      DLLEXPORT bool isEqual(const class DateTime *dt) const;
+      DLLEXPORT class DateTime *add(const class DateTime *dt) const;
+      DLLEXPORT class DateTime *subtractBy(const class DateTime *dt) const;
+      DLLEXPORT int64 getEpochSeconds() const;
+      DLLEXPORT int getDayNumber() const;
+      DLLEXPORT int getDayOfWeek() const;
       
       // returns the ISO-8601 week number (year may be different)
-      void getISOWeek(int &year, int &week, int &day);
+      DLLEXPORT void getISOWeek(int &year, int &week, int &day) const;
 
-      void format(class QoreString *str, char *fmt);
-      void getString(class QoreString *str);
+      DLLEXPORT void format(class QoreString *str, char *fmt) const;
+      DLLEXPORT void getString(class QoreString *str) const;
       
-      inline bool isRelative()
-      {
-	 return relative;
-      }
-      inline bool isAbsolute()
-      {
-	 return !relative;
-      }
-      inline short getYear()
-      {
-	 return year;
-      }
-      inline int getMonth()
-      {
-	 return month;
-      }
-      inline int getDay()
-      {
-	 return day;
-      }
-      inline int getHour()
-      {
-	 return hour;
-      }
-      inline int getMinute()
-      {
-	 return minute;
-      }
-      inline int getSecond()
-      {
-	 return second;
-      }
-      inline int getMillisecond()
-      {
-	 return millisecond;
-      }
-      int64 getRelativeSeconds();
-      int64 getRelativeMilliseconds();
+      DLLEXPORT bool isRelative() const;
+      DLLEXPORT bool isAbsolute() const;
+      DLLEXPORT short getYear() const;
+      DLLEXPORT int getMonth() const;
+      DLLEXPORT int getDay() const;
+      DLLEXPORT int getHour() const;
+      DLLEXPORT int getMinute() const;
+      DLLEXPORT int getSecond() const;
+      DLLEXPORT int getMillisecond() const;
+      DLLEXPORT int64 getRelativeSeconds() const;
+      DLLEXPORT int64 getRelativeMilliseconds() const;
       
       // static methods
-      static inline bool isLeapYear(int year)
-      {
-#if NO_PROLEPTIC_GREGORIAN_CALENDAR
-	 // in 45 BC Julius Ceasar initiated the Julian calendar
-	 if (year <= -45)
-	    return false;
-	 // in 1582 AD Pope Gregory initiated the Gregorian calendar
-	 // although it was not universally adopted in Europe at that time
-	 if (year < 1582)
-	    return (year % 4) ? false : true;
-#endif
-	 if (!(year % 100))
-	    if (!(year % 400))
-	       return true;
-	    else
-	       return false;
-	 return (year % 4) ? false : true;
-      }
-      
-      static inline int getLastDayOfMonth(int month, int year)
-      {
-	 if (month != 2)
-	    return month_lengths[month];
-	 return isLeapYear(year) ? 29 : 28;
-      }
-
+      DLLEXPORT static bool isLeapYear(int year);
+      DLLEXPORT static int getLastDayOfMonth(int month, int year);
       // note that ISO-8601 week days go from 1 - 7 = Mon - Sun
       // a NULL return value means an exception was raised
-      static class DateTime *getDateFromISOWeek(int year, int week, int day, class ExceptionSink *xsink);
-
-      static int compareDates(class DateTime *left, class DateTime *right);
+      DLLEXPORT static class DateTime *getDateFromISOWeek(int year, int week, int day, class ExceptionSink *xsink);
+      DLLEXPORT static int compareDates(class DateTime *left, class DateTime *right);
 };
-
-#include <qore/QoreLib.h>
-
-inline DateTime::DateTime(int y, int mo, int d, int h, int mi, int s, short ms, bool r)
-{
-   if (!r && !y && !mo && !d)
-   {
-      year = 1970;
-      month = 1;
-      day = 1;
-   }
-   else
-   {
-      year = y;
-      month = mo;
-      day = d;
-   }
-   hour = h;
-   minute = mi;
-   second = s;
-   millisecond = ms;
-   relative = r;
-}
-
-inline DateTime::DateTime(struct tm *tms)
-{
-   setDate(tms);
-}
-
-inline DateTime::DateTime(int64 seconds)
-{
-   setDate(seconds);
-}
-
-inline DateTime::DateTime(char *str)
-{
-   setDate(str);
-}
-
-inline void DateTime::getTM(struct tm *tms)
-{
-   tms->tm_year = year - 1900;
-   tms->tm_mon = month - 1;
-   tms->tm_mday = day;
-   tms->tm_hour = hour;
-   tms->tm_min = minute;
-   tms->tm_sec = second;
-   tms->tm_isdst = 0;
-   tms->tm_wday = 0;
-   tms->tm_yday = 0;
-   tms->tm_isdst = -1;
-}
-
-inline void DateTime::setDate(struct tm *tms, short ms)
-{
-   year = 1900 + tms->tm_year;
-   month = tms->tm_mon + 1;
-   day = tms->tm_mday;
-   hour = tms->tm_hour;
-   minute = tms->tm_min;
-   second = tms->tm_sec;
-   millisecond = ms;
-   relative = false;
-}
-
-inline void DateTime::setDate(char *str)
-{
-#ifdef HAVE_STRTOLL
-   int64 date = strtoll(str, NULL, 10);
-#else
-   int64 date = atoll(str);
-#endif
-   int l = strlen(str);
-   // for date-only strings, move the date up to the right position
-   if (l == 8)
-      date *= 1000000;
-   else if (l == 6 || l == 10) // for time-only strings
-      date += 19700101000000LL;
-   setDateLiteral(date);
-   // check for ms
-   char *p = strchr(str, '.');
-   if (!p)
-      return;
-   millisecond = atoi(p + 1);
-   relative = false;
-}
-
-inline void DateTime::setRelativeDate(char *str)
-{
-#ifdef HAVE_STRTOLL
-   int64 date = strtoll(str, NULL, 10);
-#else
-   int64 date = atoll(str);
-#endif
-   // for date-only strings, move the date up to the right position
-   if (strlen(str) == 8)
-      date *= 1000000;
-   setRelativeDateLiteral(date);
-   // check for ms
-   char *p = strchr(str, '.');
-   if (!p)
-      return;
-   millisecond = atoi(p + 1);
-}
-
-inline bool DateTime::isEqual(class DateTime *dt)
-{
-   if (year != dt->year)
-      return false;
-   if (month != dt->month)
-      return false;
-   if (day != dt->day)
-      return false;
-   if (hour != dt->hour)
-      return false;
-   if (minute != dt->minute)
-      return false;
-   if (second != dt->second)
-      return false;
-   if (millisecond != dt->millisecond)
-      return false;
-   return true;
-}
-
-inline class DateTime *DateTime::addRelativeToRelative(class DateTime *dt)
-{
-   class DateTime *nd = new DateTime();
-   nd->relative = true;
-
-   nd->year = year + dt->year;
-   nd->month = month + dt->month;
-   nd->day = day + dt->day;
-   nd->hour = hour + dt->hour;
-   nd->minute = minute + dt->minute;
-   nd->second = second + dt->second;
-   nd->millisecond = millisecond + dt->millisecond;
-   return nd;
-}
-
-inline class DateTime *DateTime::add(class DateTime *dt)
-{
-   if (!relative)
-      return addAbsoluteToRelative(dt);
-   if (!dt->relative)
-      return dt->addAbsoluteToRelative(this);
-   return addRelativeToRelative(dt);
-}
-
-inline class DateTime *DateTime::subtractRelativeByRelative(class DateTime *dt)
-{
-   class DateTime *nd = new DateTime();
-
-   nd->year = year - dt->year;
-   nd->month = month - dt->month;
-   nd->day = day - dt->day;
-   nd->hour = hour - dt->hour;
-   nd->minute = minute - dt->minute;
-   nd->second = second - dt->second;
-   nd->millisecond = millisecond - dt->millisecond;
-   return nd;
-}
-
-inline class DateTime *DateTime::subtractBy(class DateTime *dt)
-{
-   if (!relative)
-   {
-      if (dt->relative)
-	 return subtractAbsoluteByRelative(dt);
-      return calcDifference(dt);
-   }
-   if (!dt->relative)
-      return dt->subtractAbsoluteByRelative(this);
-   return subtractRelativeByRelative(dt);
-}
 
 #endif

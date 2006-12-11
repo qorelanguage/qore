@@ -24,6 +24,7 @@
 #include <qore/QoreString.h>
 #include <qore/support.h>
 #include <qore/Exception.h>
+#include <qore/QoreLib.h>
 
 #include <time.h>
 
@@ -94,7 +95,121 @@ static inline int ampm(int hour)
    return i;
 }
 
-void DateTime::format(class QoreString *str, char *fmt)
+DateTime::DateTime(bool r)
+{
+   if (r)
+   {
+      year = 0;
+      month = 0;
+      day = 0;
+   }
+   else
+   {
+      year = 1970;
+      month = 1;
+      day = 1;
+   }
+   hour = 0;
+   minute = 0;
+   second = 0;
+   millisecond = 0;
+   relative = r;
+}
+
+DateTime::DateTime(int y, int mo, int d, int h, int mi, int s, short ms, bool r)
+{
+   if (!r && !y && !mo && !d)
+   {
+      year = 1970;
+      month = 1;
+      day = 1;
+   }
+   else
+   {
+      year = y;
+      month = mo;
+      day = d;
+   }
+   hour = h;
+   minute = mi;
+   second = s;
+   millisecond = ms;
+   relative = r;
+}
+
+bool DateTime::isRelative() const
+{
+   return relative;
+}
+
+bool DateTime::isAbsolute() const
+{
+   return !relative;
+}
+
+short DateTime::getYear() const
+{
+   return year;
+}
+
+int DateTime::getMonth() const
+{
+   return month;
+}
+
+int DateTime::getDay() const
+{
+   return day;
+}
+
+int DateTime::getHour() const
+{
+   return hour;
+}
+
+int DateTime::getMinute() const
+{
+   return minute;
+}
+
+int DateTime::getSecond() const
+{
+   return second;
+}
+
+int DateTime::getMillisecond() const
+{
+   return millisecond;
+}
+
+void DateTime::setTime(int h, int m, int s, short ms)
+{
+   hour = h;
+   minute = m;
+   second = s;
+   millisecond = ms;
+}
+
+int DateTime::getDayNumber() const
+{
+   return positive_months[(month < 13 ? month : 12) - 1] + day + (month > 2 && isLeapYear(year) ? 1 : 0);
+}
+
+// static method
+int DateTime::getDayOfWeek(int year, int month, int day)
+{
+   int a = (14 - month) / 12;
+   int y = year - a;
+   int m = month + 12 * a - 2;
+   return (day + y + y / 4 - y / 100 + y / 400 + (31 * m / 12)) % 7;
+}
+
+int DateTime::getDayOfWeek() const
+{
+   return getDayOfWeek(year, month, day);
+}
+
+void DateTime::format(class QoreString *str, char *fmt) const
 {
    struct tm nt;
 
@@ -450,7 +565,7 @@ void DateTime::setDate(int64 seconds)
    if (hour) hour += 24;
 }
 
-inline int DateTime::negative_leap_years(int year)
+int DateTime::negative_leap_years(int year)
 {
    year = 1970 - year - 1;
    
@@ -462,8 +577,7 @@ inline int DateTime::negative_leap_years(int year)
    return -year/4 + year/100 - year/400;
 }
 
-
-inline int DateTime::positive_leap_years(int year, int month)
+int DateTime::positive_leap_years(int year, int month)
 {
    if (month < 3 && isLeapYear(year))
       year--;
@@ -480,7 +594,7 @@ inline int DateTime::positive_leap_years(int year, int month)
 
 // get the number of seconds before or after January 1, 1970 (UNIX epoch) for a particular date
 // private static method
-inline int64 DateTime::getEpochSeconds(int year, int month, int day)
+int64 DateTime::getEpochSeconds(int year, int month, int day)
 {
    //printd(0, "%04d-%02d-%02d %02d:%02d:%02d\n", year, month, day, hour, minute, second);
    int tm = month;
@@ -499,7 +613,7 @@ inline int64 DateTime::getEpochSeconds(int year, int month, int day)
 }
 
 // get the number of seconds before or after January 1, 1970 (UNIX epoch)
-int64 DateTime::getEpochSeconds()
+int64 DateTime::getEpochSeconds() const
 {
    //printd(0, "%04d-%02d-%02d %02d:%02d:%02d\n", year, month, day, hour, minute, second);
    int tm = month;
@@ -601,7 +715,7 @@ void DateTime::setRelativeDateLiteral(int64 date)
    relative = true;
 }
 
-class DateTime *DateTime::addAbsoluteToRelative(class DateTime *dt)
+class DateTime *DateTime::addAbsoluteToRelative(const class DateTime *dt) const
 {
    // copy the current date/time
    class DateTime *nd = new DateTime(*this);
@@ -665,7 +779,7 @@ class DateTime *DateTime::addAbsoluteToRelative(class DateTime *dt)
    return nd;   
 }
 
-class DateTime *DateTime::subtractAbsoluteByRelative(class DateTime *dt)
+class DateTime *DateTime::subtractAbsoluteByRelative(const class DateTime *dt) const
 {
    // copy the current date/time
    class DateTime *nd = new DateTime(*this);
@@ -736,7 +850,7 @@ class DateTime *DateTime::subtractAbsoluteByRelative(class DateTime *dt)
 }
 
 // return the ISO-8601 calendar week information - note that the ISO-8601 calendar year may be different than the actual year
-void DateTime::getISOWeek(int &yr, int &week, int &wday)
+void DateTime::getISOWeek(int &yr, int &week, int &wday) const
 {
    // get day of week of jan 1 of this year
    int jan1 = getDayOfWeek(year, 1, 1);
@@ -868,7 +982,7 @@ int DateTime::compareDates(class DateTime *left, class DateTime *right)
 }
 
 // returns a relative date value in days, hours, minutes, seconds, and milliseconds
-class DateTime *DateTime::calcDifference(class DateTime *dt)
+class DateTime *DateTime::calcDifference(const class DateTime *dt) const
 {
    int64 sec = getEpochSeconds() - dt->getEpochSeconds();
    int ms = millisecond - dt->millisecond;
@@ -930,7 +1044,7 @@ class DateTime *DateTime::calcDifference(class DateTime *dt)
 
 #define PL(n) (n == 1 ? "" : "s")
 
-void DateTime::getString(class QoreString *str)
+void DateTime::getString(class QoreString *str) const
 {
    if (relative)
    {
@@ -961,12 +1075,12 @@ void DateTime::getString(class QoreString *str)
 }
 
 // FIXME: implement and use
-bool DateTime::checkValidity()
+bool DateTime::checkValidity() const
 {
    return true;
 }
 
-int64 DateTime::getRelativeSeconds()
+int64 DateTime::getRelativeSeconds() const
 {
    if (relative)
       return millisecond/1000 + second + minute * 60 + hour * 3600ll + day * 86400ll 
@@ -983,7 +1097,7 @@ int64 DateTime::getRelativeSeconds()
    return diff;   
 }
 
-int64 DateTime::getRelativeMilliseconds()
+int64 DateTime::getRelativeMilliseconds() const
 {
    if (relative)
       return millisecond + second * 1000ll + minute * 60000ll + hour * 3600000ll + day * 86400000ll 
@@ -998,4 +1112,182 @@ int64 DateTime::getRelativeMilliseconds()
    if (diff < 0)
       return 0;
    return diff;   
+}
+
+// static methods
+bool DateTime::isLeapYear(int year)
+{
+#if NO_PROLEPTIC_GREGORIAN_CALENDAR
+   // in 45 BC Julius Ceasar initiated the Julian calendar
+   if (year <= -45)
+      return false;
+   // in 1582 AD Pope Gregory initiated the Gregorian calendar
+   // although it was not universally adopted in Europe at that time
+   if (year < 1582)
+      return (year % 4) ? false : true;
+#endif
+   if (!(year % 100))
+      if (!(year % 400))
+	 return true;
+      else
+	 return false;
+   return (year % 4) ? false : true;
+}
+
+int DateTime::getLastDayOfMonth(int month, int year)
+{
+   if (month != 2)
+      return month_lengths[month];
+   return isLeapYear(year) ? 29 : 28;
+}
+
+DateTime::DateTime(struct tm *tms)
+{
+   setDate(tms);
+}
+
+DateTime::DateTime(int64 seconds)
+{
+   setDate(seconds);
+}
+
+DateTime::DateTime(char *str)
+{
+   setDate(str);
+}
+
+void DateTime::getTM(struct tm *tms) const
+{
+   tms->tm_year = year - 1900;
+   tms->tm_mon = month - 1;
+   tms->tm_mday = day;
+   tms->tm_hour = hour;
+   tms->tm_min = minute;
+   tms->tm_sec = second;
+   tms->tm_isdst = 0;
+   tms->tm_wday = 0;
+   tms->tm_yday = 0;
+   tms->tm_isdst = -1;
+}
+
+void DateTime::setDate(struct tm *tms, short ms)
+{
+   year = 1900 + tms->tm_year;
+   month = tms->tm_mon + 1;
+   day = tms->tm_mday;
+   hour = tms->tm_hour;
+   minute = tms->tm_min;
+   second = tms->tm_sec;
+   millisecond = ms;
+   relative = false;
+}
+
+void DateTime::setDate(char *str)
+{
+#ifdef HAVE_STRTOLL
+   int64 date = strtoll(str, NULL, 10);
+#else
+   int64 date = atoll(str);
+#endif
+   int l = strlen(str);
+   // for date-only strings, move the date up to the right position
+   if (l == 8)
+      date *= 1000000;
+   else if (l == 6 || l == 10) // for time-only strings
+      date += 19700101000000LL;
+   setDateLiteral(date);
+   // check for ms
+   char *p = strchr(str, '.');
+   if (!p)
+      return;
+   millisecond = atoi(p + 1);
+   relative = false;
+}
+
+void DateTime::setRelativeDate(char *str)
+{
+#ifdef HAVE_STRTOLL
+   int64 date = strtoll(str, NULL, 10);
+#else
+   int64 date = atoll(str);
+#endif
+   // for date-only strings, move the date up to the right position
+   if (strlen(str) == 8)
+      date *= 1000000;
+   setRelativeDateLiteral(date);
+   // check for ms
+   char *p = strchr(str, '.');
+   if (!p)
+      return;
+   millisecond = atoi(p + 1);
+}
+
+bool DateTime::isEqual(const class DateTime *dt) const
+{
+   if (year != dt->year)
+      return false;
+   if (month != dt->month)
+      return false;
+   if (day != dt->day)
+      return false;
+   if (hour != dt->hour)
+      return false;
+   if (minute != dt->minute)
+      return false;
+   if (second != dt->second)
+      return false;
+   if (millisecond != dt->millisecond)
+      return false;
+   return true;
+}
+
+class DateTime *DateTime::addRelativeToRelative(const class DateTime *dt) const
+{
+   class DateTime *nd = new DateTime();
+   nd->relative = true;
+   
+   nd->year = year + dt->year;
+   nd->month = month + dt->month;
+   nd->day = day + dt->day;
+   nd->hour = hour + dt->hour;
+   nd->minute = minute + dt->minute;
+   nd->second = second + dt->second;
+   nd->millisecond = millisecond + dt->millisecond;
+   return nd;
+}
+
+class DateTime *DateTime::add(const class DateTime *dt) const
+{
+   if (!relative)
+      return addAbsoluteToRelative(dt);
+   if (!dt->relative)
+      return dt->addAbsoluteToRelative(this);
+   return addRelativeToRelative(dt);
+}
+
+class DateTime *DateTime::subtractRelativeByRelative(const class DateTime *dt) const
+{
+   class DateTime *nd = new DateTime();
+   
+   nd->year = year - dt->year;
+   nd->month = month - dt->month;
+   nd->day = day - dt->day;
+   nd->hour = hour - dt->hour;
+   nd->minute = minute - dt->minute;
+   nd->second = second - dt->second;
+   nd->millisecond = millisecond - dt->millisecond;
+   return nd;
+}
+
+class DateTime *DateTime::subtractBy(const class DateTime *dt) const
+{
+   if (!relative)
+   {
+      if (dt->relative)
+	 return subtractAbsoluteByRelative(dt);
+      return calcDifference(dt);
+   }
+   if (!dt->relative)
+      return dt->subtractAbsoluteByRelative(this);
+   return subtractRelativeByRelative(dt);
 }

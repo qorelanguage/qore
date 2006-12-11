@@ -29,6 +29,7 @@
 #include <qore/List.h>
 #include <qore/QoreProgram.h>
 #include <qore/ModuleManager.h>
+#include <qore/QoreLib.h>
 
 extern char qore_version_string[];
 extern int qore_version_major;
