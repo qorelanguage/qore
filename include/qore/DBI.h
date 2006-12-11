@@ -31,11 +31,10 @@
 #include <qore/config.h>
 #include <qore/qore_thread.h>
 #include <qore/List.h>
+#include <qore/safe_dslist>
 
 #include <stdlib.h>
 #include <string.h>
-
-#include <map>
 
 // DBI Driver capabilities
 #define DBI_CAP_NONE                     0
@@ -80,7 +79,6 @@ class DBIDriverFunctions {
       }
 };
 
-// it's not necessary to lock this object because it will only be written to in one thread at a time
 class DBIDriver {
    private:
       DBIDriverFunctions *f;
@@ -99,13 +97,16 @@ class DBIDriver {
       DLLLOCAL int commit(class Datasource *, class ExceptionSink *xsink);
       DLLLOCAL int rollback(class Datasource *, class ExceptionSink *xsink);
       DLLLOCAL int getCaps() const;
-      DLLLOCAL List *getCapList() const;
+      DLLLOCAL class List *getCapList() const;
       DLLLOCAL char *getName() const;
 };
 
-typedef std::map<char *, class DBIDriver *, class ltstr> dbi_map_t;
+typedef safe_dslist<class DBIDriver *> dbi_list_t;
 
-class DBIDriverList : public dbi_map_t
+// it's not necessary to lock this object because it will only be written to in one thread at a time
+// note that a safe_dslist is used because it can be read simulataneously in multiple threads while
+// being wrutteb to
+class DBIDriverList : public dbi_list_t
 {
 public:
    DLLEXPORT class DBIDriver *registerDriver(char *name, DBIDriverFunctions *f, int caps);

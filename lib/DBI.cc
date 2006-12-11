@@ -123,10 +123,10 @@ int DBIDriver::rollback(class Datasource *ds, class ExceptionSink *xsink)
 
 inline DBIDriverList::~DBIDriverList()
 {
-   dbi_map_t::iterator i;
+   dbi_list_t::iterator i;
    while ((i = begin()) != end())
    {
-      class DBIDriver *driv = i->second;
+      class DBIDriver *driv = *i;
       erase(i);
       delete driv;
    }
@@ -134,9 +134,9 @@ inline DBIDriverList::~DBIDriverList()
 
 inline DBIDriver *DBIDriverList::find(char *name) const
 {
-   dbi_map_t::const_iterator i = dbi_map_t::find(name);
-   if (i != end())
-      return i->second;
+   for (dbi_list_t::const_iterator i = begin(); i != end(); i++)
+      if (!strcmp(name, (*i)->getName()))
+	 return *i;
 
    return NULL;
 }
@@ -145,20 +145,20 @@ class DBIDriver *DBIDriverList::registerDriver(char *name, DBIDriverFunctions *f
 {
    assert(!find(name));
 
-   DBIDriver *dd;
-   insert(pair<char *, DBIDriver *>(name, (dd = new DBIDriver(name, f, caps))));   
+   DBIDriver *dd = new DBIDriver(name, f, caps);
+   push_back(dd);
    return dd;
 }
 
 class List *DBIDriverList::getDriverList() const
 {
-   if (!size())
+   if (empty())
       return NULL;
 
    class List *l = new List();
    
-   for (dbi_map_t::const_iterator i = begin(); i != end(); i++)
-      l->push(new QoreNode(i->first));
+   for (dbi_list_t::const_iterator i = begin(); i != end(); i++)
+      l->push(new QoreNode((*i)->getName()));
 
    return l;
 }

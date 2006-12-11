@@ -32,376 +32,376 @@ static inline class Namespace *get_errno_ns()
    class Namespace *Err = new Namespace("Err");
 
 #ifdef EPERM
-   Err->addConstant("EPERM", new QoreNode(NT_INT, EPERM));
+   Err->addConstant("EPERM", new QoreNode((int64)EPERM));
 #endif
 #ifdef ENOENT
-   Err->addConstant("ENOENT", new QoreNode(NT_INT, ENOENT));
+   Err->addConstant("ENOENT", new QoreNode((int64)ENOENT));
 #endif
 #ifdef ESRCH
-   Err->addConstant("ESRCH", new QoreNode(NT_INT, ESRCH));
+   Err->addConstant("ESRCH", new QoreNode((int64)ESRCH));
 #endif
 #ifdef EINTR
-   Err->addConstant("EINTR", new QoreNode(NT_INT, EINTR));
+   Err->addConstant("EINTR", new QoreNode((int64)EINTR));
 #endif
 #ifdef EIO
-   Err->addConstant("EIO", new QoreNode(NT_INT, EIO));
+   Err->addConstant("EIO", new QoreNode((int64)EIO));
 #endif
 #ifdef ENXIO
-   Err->addConstant("ENXIO", new QoreNode(NT_INT, ENXIO));
+   Err->addConstant("ENXIO", new QoreNode((int64)ENXIO));
 #endif
 #ifdef E2BIG
-   Err->addConstant("E2BIG", new QoreNode(NT_INT, E2BIG));
+   Err->addConstant("E2BIG", new QoreNode((int64)E2BIG));
 #endif
 #ifdef ENOEXEC
-   Err->addConstant("ENOEXEC", new QoreNode(NT_INT, ENOEXEC));
+   Err->addConstant("ENOEXEC", new QoreNode((int64)ENOEXEC));
 #endif
 #ifdef EBADF
-   Err->addConstant("EBADF", new QoreNode(NT_INT, EBADF));
+   Err->addConstant("EBADF", new QoreNode((int64)EBADF));
 #endif
 #ifdef ECHILD
-   Err->addConstant("ECHILD", new QoreNode(NT_INT, ECHILD));
+   Err->addConstant("ECHILD", new QoreNode((int64)ECHILD));
 #endif
 #ifdef EAGAIN
-   Err->addConstant("EAGAIN", new QoreNode(NT_INT, EAGAIN));
+   Err->addConstant("EAGAIN", new QoreNode((int64)EAGAIN));
 #endif
 #ifdef ENOMEM
-   Err->addConstant("ENOMEM", new QoreNode(NT_INT, ENOMEM));
+   Err->addConstant("ENOMEM", new QoreNode((int64)ENOMEM));
 #endif
 #ifdef EACCES
-   Err->addConstant("EACCES", new QoreNode(NT_INT, EACCES));
+   Err->addConstant("EACCES", new QoreNode((int64)EACCES));
 #endif
 #ifdef EFAULT
-   Err->addConstant("EFAULT", new QoreNode(NT_INT, EFAULT));
+   Err->addConstant("EFAULT", new QoreNode((int64)EFAULT));
 #endif
 #ifdef ENOTBLK
-   Err->addConstant("ENOTBLK", new QoreNode(NT_INT, ENOTBLK));
+   Err->addConstant("ENOTBLK", new QoreNode((int64)ENOTBLK));
 #endif
 #ifdef EBUSY
-   Err->addConstant("EBUSY", new QoreNode(NT_INT, EBUSY));
+   Err->addConstant("EBUSY", new QoreNode((int64)EBUSY));
 #endif
 #ifdef EEXIST
-   Err->addConstant("EEXIST", new QoreNode(NT_INT, EEXIST));
+   Err->addConstant("EEXIST", new QoreNode((int64)EEXIST));
 #endif
 #ifdef EXDEV
-   Err->addConstant("EXDEV", new QoreNode(NT_INT, EXDEV));
+   Err->addConstant("EXDEV", new QoreNode((int64)EXDEV));
 #endif
 #ifdef ENODEV
-   Err->addConstant("ENODEV", new QoreNode(NT_INT, ENODEV));
+   Err->addConstant("ENODEV", new QoreNode((int64)ENODEV));
 #endif
 #ifdef ENOTDIR
-   Err->addConstant("ENOTDIR", new QoreNode(NT_INT, ENOTDIR));
+   Err->addConstant("ENOTDIR", new QoreNode((int64)ENOTDIR));
 #endif
 #ifdef EISDIR
-   Err->addConstant("EISDIR", new QoreNode(NT_INT, EISDIR));
+   Err->addConstant("EISDIR", new QoreNode((int64)EISDIR));
 #endif
 #ifdef EINVAL
-   Err->addConstant("EINVAL", new QoreNode(NT_INT, EINVAL));
+   Err->addConstant("EINVAL", new QoreNode((int64)EINVAL));
 #endif
 #ifdef ENFILE
-   Err->addConstant("ENFILE", new QoreNode(NT_INT, ENFILE));
+   Err->addConstant("ENFILE", new QoreNode((int64)ENFILE));
 #endif
 #ifdef EMFILE
-   Err->addConstant("EMFILE", new QoreNode(NT_INT, EMFILE));
+   Err->addConstant("EMFILE", new QoreNode((int64)EMFILE));
 #endif
 #ifdef ENOTTY
-   Err->addConstant("ENOTTY", new QoreNode(NT_INT, ENOTTY));
+   Err->addConstant("ENOTTY", new QoreNode((int64)ENOTTY));
 #endif
 #ifdef ETXTBSY
-   Err->addConstant("ETXTBSY", new QoreNode(NT_INT, ETXTBSY));
+   Err->addConstant("ETXTBSY", new QoreNode((int64)ETXTBSY));
 #endif
 #ifdef EFBIG
-   Err->addConstant("EFBIG", new QoreNode(NT_INT, EFBIG));
+   Err->addConstant("EFBIG", new QoreNode((int64)EFBIG));
 #endif
 #ifdef ENOSPC
-   Err->addConstant("ENOSPC", new QoreNode(NT_INT, ENOSPC));
+   Err->addConstant("ENOSPC", new QoreNode((int64)ENOSPC));
 #endif
 #ifdef ESPIPE
-   Err->addConstant("ESPIPE", new QoreNode(NT_INT, ESPIPE));
+   Err->addConstant("ESPIPE", new QoreNode((int64)ESPIPE));
 #endif
 #ifdef EROFS
-   Err->addConstant("EROFS", new QoreNode(NT_INT, EROFS));
+   Err->addConstant("EROFS", new QoreNode((int64)EROFS));
 #endif
 #ifdef EMLINK
-   Err->addConstant("EMLINK", new QoreNode(NT_INT, EMLINK));
+   Err->addConstant("EMLINK", new QoreNode((int64)EMLINK));
 #endif
 #ifdef EPIPE
-   Err->addConstant("EPIPE", new QoreNode(NT_INT, EPIPE));
+   Err->addConstant("EPIPE", new QoreNode((int64)EPIPE));
 #endif
 #ifdef EDOM
-   Err->addConstant("EDOM", new QoreNode(NT_INT, EDOM));
+   Err->addConstant("EDOM", new QoreNode((int64)EDOM));
 #endif
 #ifdef ERANGE
-   Err->addConstant("ERANGE", new QoreNode(NT_INT, ERANGE));
+   Err->addConstant("ERANGE", new QoreNode((int64)ERANGE));
 #endif
 #ifdef EDEADLK
-   Err->addConstant("EDEADLK", new QoreNode(NT_INT, EDEADLK));
+   Err->addConstant("EDEADLK", new QoreNode((int64)EDEADLK));
 #endif
 #ifdef ENAMETOOLONG
-   Err->addConstant("ENAMETOOLONG", new QoreNode(NT_INT, ENAMETOOLONG));
+   Err->addConstant("ENAMETOOLONG", new QoreNode((int64)ENAMETOOLONG));
 #endif
 #ifdef ENOLCK
-   Err->addConstant("ENOLCK", new QoreNode(NT_INT, ENOLCK));
+   Err->addConstant("ENOLCK", new QoreNode((int64)ENOLCK));
 #endif
 #ifdef ENOSYS
-   Err->addConstant("ENOSYS", new QoreNode(NT_INT, ENOSYS));
+   Err->addConstant("ENOSYS", new QoreNode((int64)ENOSYS));
 #endif
 #ifdef ENOTEMPTY
-   Err->addConstant("ENOTEMPTY", new QoreNode(NT_INT, ENOTEMPTY));
+   Err->addConstant("ENOTEMPTY", new QoreNode((int64)ENOTEMPTY));
 #endif
 #ifdef ELOOP
-   Err->addConstant("ELOOP", new QoreNode(NT_INT, ELOOP));
+   Err->addConstant("ELOOP", new QoreNode((int64)ELOOP));
 #endif
 #ifdef EWOULDBLOCK
-   Err->addConstant("EWOULDBLOCK", new QoreNode(NT_INT, EWOULDBLOCK));
+   Err->addConstant("EWOULDBLOCK", new QoreNode((int64)EWOULDBLOCK));
 #endif
 #ifdef ENOMSG
-   Err->addConstant("ENOMSG", new QoreNode(NT_INT, ENOMSG));
+   Err->addConstant("ENOMSG", new QoreNode((int64)ENOMSG));
 #endif
 #ifdef EIDRM
-   Err->addConstant("EIDRM", new QoreNode(NT_INT, EIDRM));
+   Err->addConstant("EIDRM", new QoreNode((int64)EIDRM));
 #endif
 #ifdef ECHRNG
-   Err->addConstant("ECHRNG", new QoreNode(NT_INT, ECHRNG));
+   Err->addConstant("ECHRNG", new QoreNode((int64)ECHRNG));
 #endif
 #ifdef EL2NSYNC
-   Err->addConstant("EL2NSYNC", new QoreNode(NT_INT, EL2NSYNC));
+   Err->addConstant("EL2NSYNC", new QoreNode((int64)EL2NSYNC));
 #endif
 #ifdef EL3HLT
-   Err->addConstant("EL3HLT", new QoreNode(NT_INT, EL3HLT));
+   Err->addConstant("EL3HLT", new QoreNode((int64)EL3HLT));
 #endif
 #ifdef EL3RST
-   Err->addConstant("EL3RST", new QoreNode(NT_INT, EL3RST));
+   Err->addConstant("EL3RST", new QoreNode((int64)EL3RST));
 #endif
 #ifdef ELNRNG
-   Err->addConstant("ELNRNG", new QoreNode(NT_INT, ELNRNG));
+   Err->addConstant("ELNRNG", new QoreNode((int64)ELNRNG));
 #endif
 #ifdef EUNATCH
-   Err->addConstant("EUNATCH", new QoreNode(NT_INT, EUNATCH));
+   Err->addConstant("EUNATCH", new QoreNode((int64)EUNATCH));
 #endif
 #ifdef ENOCSI
-   Err->addConstant("ENOCSI", new QoreNode(NT_INT, ENOCSI));
+   Err->addConstant("ENOCSI", new QoreNode((int64)ENOCSI));
 #endif
 #ifdef EL2HLT
-   Err->addConstant("EL2HLT", new QoreNode(NT_INT, EL2HLT));
+   Err->addConstant("EL2HLT", new QoreNode((int64)EL2HLT));
 #endif
 #ifdef EBADE
-   Err->addConstant("EBADE", new QoreNode(NT_INT, EBADE));
+   Err->addConstant("EBADE", new QoreNode((int64)EBADE));
 #endif
 #ifdef EBADR
-   Err->addConstant("EBADR", new QoreNode(NT_INT, EBADR));
+   Err->addConstant("EBADR", new QoreNode((int64)EBADR));
 #endif
 #ifdef EXFULL
-   Err->addConstant("EXFULL", new QoreNode(NT_INT, EXFULL));
+   Err->addConstant("EXFULL", new QoreNode((int64)EXFULL));
 #endif
 #ifdef ENOANO
-   Err->addConstant("ENOANO", new QoreNode(NT_INT, ENOANO));
+   Err->addConstant("ENOANO", new QoreNode((int64)ENOANO));
 #endif
 #ifdef EBADRQC
-   Err->addConstant("EBADRQC", new QoreNode(NT_INT, EBADRQC));
+   Err->addConstant("EBADRQC", new QoreNode((int64)EBADRQC));
 #endif
 #ifdef EBADSLT
-   Err->addConstant("EBADSLT", new QoreNode(NT_INT, EBADSLT));
+   Err->addConstant("EBADSLT", new QoreNode((int64)EBADSLT));
 #endif
 #ifdef EDEADLOCK
-   Err->addConstant("EDEADLOCK", new QoreNode(NT_INT, EDEADLOCK));
+   Err->addConstant("EDEADLOCK", new QoreNode((int64)EDEADLOCK));
 #endif
 #ifdef EBFONT
-   Err->addConstant("EBFONT", new QoreNode(NT_INT, EBFONT));
+   Err->addConstant("EBFONT", new QoreNode((int64)EBFONT));
 #endif
 #ifdef ENOSTR
-   Err->addConstant("ENOSTR", new QoreNode(NT_INT, ENOSTR));
+   Err->addConstant("ENOSTR", new QoreNode((int64)ENOSTR));
 #endif
 #ifdef ENODATA
-   Err->addConstant("ENODATA", new QoreNode(NT_INT, ENODATA));
+   Err->addConstant("ENODATA", new QoreNode((int64)ENODATA));
 #endif
 #ifdef ETIME
-   Err->addConstant("ETIME", new QoreNode(NT_INT, ETIME));
+   Err->addConstant("ETIME", new QoreNode((int64)ETIME));
 #endif
 #ifdef ENOSR
-   Err->addConstant("ENOSR", new QoreNode(NT_INT, ENOSR));
+   Err->addConstant("ENOSR", new QoreNode((int64)ENOSR));
 #endif
 #ifdef ENONET
-   Err->addConstant("ENONET", new QoreNode(NT_INT, ENONET));
+   Err->addConstant("ENONET", new QoreNode((int64)ENONET));
 #endif
 #ifdef ENOPKG
-   Err->addConstant("ENOPKG", new QoreNode(NT_INT, ENOPKG));
+   Err->addConstant("ENOPKG", new QoreNode((int64)ENOPKG));
 #endif
 #ifdef EREMOTE
-   Err->addConstant("EREMOTE", new QoreNode(NT_INT, EREMOTE));
+   Err->addConstant("EREMOTE", new QoreNode((int64)EREMOTE));
 #endif
 #ifdef ENOLINK
-   Err->addConstant("ENOLINK", new QoreNode(NT_INT, ENOLINK));
+   Err->addConstant("ENOLINK", new QoreNode((int64)ENOLINK));
 #endif
 #ifdef EADV
-   Err->addConstant("EADV", new QoreNode(NT_INT, EADV));
+   Err->addConstant("EADV", new QoreNode((int64)EADV));
 #endif
 #ifdef ESRMNT
-   Err->addConstant("ESRMNT", new QoreNode(NT_INT, ESRMNT));
+   Err->addConstant("ESRMNT", new QoreNode((int64)ESRMNT));
 #endif
 #ifdef ECOMM
-   Err->addConstant("ECOMM", new QoreNode(NT_INT, ECOMM));
+   Err->addConstant("ECOMM", new QoreNode((int64)ECOMM));
 #endif
 #ifdef EPROTO
-   Err->addConstant("EPROTO", new QoreNode(NT_INT, EPROTO));
+   Err->addConstant("EPROTO", new QoreNode((int64)EPROTO));
 #endif
 #ifdef EMULTIHOP
-   Err->addConstant("EMULTIHOP", new QoreNode(NT_INT, EMULTIHOP));
+   Err->addConstant("EMULTIHOP", new QoreNode((int64)EMULTIHOP));
 #endif
 #ifdef EDOTDOT
-   Err->addConstant("EDOTDOT", new QoreNode(NT_INT, EDOTDOT));
+   Err->addConstant("EDOTDOT", new QoreNode((int64)EDOTDOT));
 #endif
 #ifdef EBADMSG
-   Err->addConstant("EBADMSG", new QoreNode(NT_INT, EBADMSG));
+   Err->addConstant("EBADMSG", new QoreNode((int64)EBADMSG));
 #endif
 #ifdef EOVERFLOW
-   Err->addConstant("EOVERFLOW", new QoreNode(NT_INT, EOVERFLOW));
+   Err->addConstant("EOVERFLOW", new QoreNode((int64)EOVERFLOW));
 #endif
 #ifdef ENOTUNIQ
-   Err->addConstant("ENOTUNIQ", new QoreNode(NT_INT, ENOTUNIQ));
+   Err->addConstant("ENOTUNIQ", new QoreNode((int64)ENOTUNIQ));
 #endif
 #ifdef EBADFD
-   Err->addConstant("EBADFD", new QoreNode(NT_INT, EBADFD));
+   Err->addConstant("EBADFD", new QoreNode((int64)EBADFD));
 #endif
 #ifdef EREMCHG
-   Err->addConstant("EREMCHG", new QoreNode(NT_INT, EREMCHG));
+   Err->addConstant("EREMCHG", new QoreNode((int64)EREMCHG));
 #endif
 #ifdef ELIBACC
-   Err->addConstant("ELIBACC", new QoreNode(NT_INT, ELIBACC));
+   Err->addConstant("ELIBACC", new QoreNode((int64)ELIBACC));
 #endif
 #ifdef ELIBBAD
-   Err->addConstant("ELIBBAD", new QoreNode(NT_INT, ELIBBAD));
+   Err->addConstant("ELIBBAD", new QoreNode((int64)ELIBBAD));
 #endif
 #ifdef ELIBSCN
-   Err->addConstant("ELIBSCN", new QoreNode(NT_INT, ELIBSCN));
+   Err->addConstant("ELIBSCN", new QoreNode((int64)ELIBSCN));
 #endif
 #ifdef ELIBMAX
-   Err->addConstant("ELIBMAX", new QoreNode(NT_INT, ELIBMAX));
+   Err->addConstant("ELIBMAX", new QoreNode((int64)ELIBMAX));
 #endif
 #ifdef ELIBEXEC
-   Err->addConstant("ELIBEXEC", new QoreNode(NT_INT, ELIBEXEC));
+   Err->addConstant("ELIBEXEC", new QoreNode((int64)ELIBEXEC));
 #endif
 #ifdef EILSEQ
-   Err->addConstant("EILSEQ", new QoreNode(NT_INT, EILSEQ));
+   Err->addConstant("EILSEQ", new QoreNode((int64)EILSEQ));
 #endif
 #ifdef ERESTART
-   Err->addConstant("ERESTART", new QoreNode(NT_INT, ERESTART));
+   Err->addConstant("ERESTART", new QoreNode((int64)ERESTART));
 #endif
 #ifdef ESTRPIPE
-   Err->addConstant("ESTRPIPE", new QoreNode(NT_INT, ESTRPIPE));
+   Err->addConstant("ESTRPIPE", new QoreNode((int64)ESTRPIPE));
 #endif
 #ifdef EUSERS
-   Err->addConstant("EUSERS", new QoreNode(NT_INT, EUSERS));
+   Err->addConstant("EUSERS", new QoreNode((int64)EUSERS));
 #endif
 #ifdef ENOTSOCK
-   Err->addConstant("ENOTSOCK", new QoreNode(NT_INT, ENOTSOCK));
+   Err->addConstant("ENOTSOCK", new QoreNode((int64)ENOTSOCK));
 #endif
 #ifdef EDESTADDRREQ
-   Err->addConstant("EDESTADDRREQ", new QoreNode(NT_INT, EDESTADDRREQ));
+   Err->addConstant("EDESTADDRREQ", new QoreNode((int64)EDESTADDRREQ));
 #endif
 #ifdef EMSGSIZE
-   Err->addConstant("EMSGSIZE", new QoreNode(NT_INT, EMSGSIZE));
+   Err->addConstant("EMSGSIZE", new QoreNode((int64)EMSGSIZE));
 #endif
 #ifdef EPROTOTYPE
-   Err->addConstant("EPROTOTYPE", new QoreNode(NT_INT, EPROTOTYPE));
+   Err->addConstant("EPROTOTYPE", new QoreNode((int64)EPROTOTYPE));
 #endif
 #ifdef ENOPROTOOPT
-   Err->addConstant("ENOPROTOOPT", new QoreNode(NT_INT, ENOPROTOOPT));
+   Err->addConstant("ENOPROTOOPT", new QoreNode((int64)ENOPROTOOPT));
 #endif
 #ifdef EPROTONOSUPPORT
-   Err->addConstant("EPROTONOSUPPORT", new QoreNode(NT_INT, EPROTONOSUPPORT));
+   Err->addConstant("EPROTONOSUPPORT", new QoreNode((int64)EPROTONOSUPPORT));
 #endif
 #ifdef ESOCKTNOSUPPORT
-   Err->addConstant("ESOCKTNOSUPPORT", new QoreNode(NT_INT, ESOCKTNOSUPPORT));
+   Err->addConstant("ESOCKTNOSUPPORT", new QoreNode((int64)ESOCKTNOSUPPORT));
 #endif
 #ifdef EOPNOTSUPP
-   Err->addConstant("EOPNOTSUPP", new QoreNode(NT_INT, EOPNOTSUPP));
+   Err->addConstant("EOPNOTSUPP", new QoreNode((int64)EOPNOTSUPP));
 #endif
 #ifdef EPFNOSUPPORT
-   Err->addConstant("EPFNOSUPPORT", new QoreNode(NT_INT, EPFNOSUPPORT));
+   Err->addConstant("EPFNOSUPPORT", new QoreNode((int64)EPFNOSUPPORT));
 #endif
 #ifdef EAFNOSUPPORT
-   Err->addConstant("EAFNOSUPPORT", new QoreNode(NT_INT, EAFNOSUPPORT));
+   Err->addConstant("EAFNOSUPPORT", new QoreNode((int64)EAFNOSUPPORT));
 #endif
 #ifdef EADDRINUSE
-   Err->addConstant("EADDRINUSE", new QoreNode(NT_INT, EADDRINUSE));
+   Err->addConstant("EADDRINUSE", new QoreNode((int64)EADDRINUSE));
 #endif
 #ifdef EADDRNOTAVAIL
-   Err->addConstant("EADDRNOTAVAIL", new QoreNode(NT_INT, EADDRNOTAVAIL));
+   Err->addConstant("EADDRNOTAVAIL", new QoreNode((int64)EADDRNOTAVAIL));
 #endif
 #ifdef ENETDOWN
-   Err->addConstant("ENETDOWN", new QoreNode(NT_INT, ENETDOWN));
+   Err->addConstant("ENETDOWN", new QoreNode((int64)ENETDOWN));
 #endif
 #ifdef ENETUNREACH
-   Err->addConstant("ENETUNREACH", new QoreNode(NT_INT, ENETUNREACH));
+   Err->addConstant("ENETUNREACH", new QoreNode((int64)ENETUNREACH));
 #endif
 #ifdef ENETRESET
-   Err->addConstant("ENETRESET", new QoreNode(NT_INT, ENETRESET));
+   Err->addConstant("ENETRESET", new QoreNode((int64)ENETRESET));
 #endif
 #ifdef ECONNABORTED
-   Err->addConstant("ECONNABORTED", new QoreNode(NT_INT, ECONNABORTED));
+   Err->addConstant("ECONNABORTED", new QoreNode((int64)ECONNABORTED));
 #endif
 #ifdef ECONNRESET
-   Err->addConstant("ECONNRESET", new QoreNode(NT_INT, ECONNRESET));
+   Err->addConstant("ECONNRESET", new QoreNode((int64)ECONNRESET));
 #endif
 #ifdef ENOBUFS
-   Err->addConstant("ENOBUFS", new QoreNode(NT_INT, ENOBUFS));
+   Err->addConstant("ENOBUFS", new QoreNode((int64)ENOBUFS));
 #endif
 #ifdef EISCONN
-   Err->addConstant("EISCONN", new QoreNode(NT_INT, EISCONN));
+   Err->addConstant("EISCONN", new QoreNode((int64)EISCONN));
 #endif
 #ifdef ENOTCONN
-   Err->addConstant("ENOTCONN", new QoreNode(NT_INT, ENOTCONN));
+   Err->addConstant("ENOTCONN", new QoreNode((int64)ENOTCONN));
 #endif
 #ifdef ESHUTDOWN
-   Err->addConstant("ESHUTDOWN", new QoreNode(NT_INT, ESHUTDOWN));
+   Err->addConstant("ESHUTDOWN", new QoreNode((int64)ESHUTDOWN));
 #endif
 #ifdef ETOOMANYREFS
-   Err->addConstant("ETOOMANYREFS", new QoreNode(NT_INT, ETOOMANYREFS));
+   Err->addConstant("ETOOMANYREFS", new QoreNode((int64)ETOOMANYREFS));
 #endif
 #ifdef ETIMEDOUT
-   Err->addConstant("ETIMEDOUT", new QoreNode(NT_INT, ETIMEDOUT));
+   Err->addConstant("ETIMEDOUT", new QoreNode((int64)ETIMEDOUT));
 #endif
 #ifdef ECONNREFUSED
-   Err->addConstant("ECONNREFUSED", new QoreNode(NT_INT, ECONNREFUSED));
+   Err->addConstant("ECONNREFUSED", new QoreNode((int64)ECONNREFUSED));
 #endif
 #ifdef EHOSTDOWN
-   Err->addConstant("EHOSTDOWN", new QoreNode(NT_INT, EHOSTDOWN));
+   Err->addConstant("EHOSTDOWN", new QoreNode((int64)EHOSTDOWN));
 #endif
 #ifdef EHOSTUNREACH
-   Err->addConstant("EHOSTUNREACH", new QoreNode(NT_INT, EHOSTUNREACH));
+   Err->addConstant("EHOSTUNREACH", new QoreNode((int64)EHOSTUNREACH));
 #endif
 #ifdef EALREADY
-   Err->addConstant("EALREADY", new QoreNode(NT_INT, EALREADY));
+   Err->addConstant("EALREADY", new QoreNode((int64)EALREADY));
 #endif
 #ifdef EINPROGRESS
-   Err->addConstant("EINPROGRESS", new QoreNode(NT_INT, EINPROGRESS));
+   Err->addConstant("EINPROGRESS", new QoreNode((int64)EINPROGRESS));
 #endif
 #ifdef ESTALE
-   Err->addConstant("ESTALE", new QoreNode(NT_INT, ESTALE));
+   Err->addConstant("ESTALE", new QoreNode((int64)ESTALE));
 #endif
 #ifdef EUCLEAN
-   Err->addConstant("EUCLEAN", new QoreNode(NT_INT, EUCLEAN));
+   Err->addConstant("EUCLEAN", new QoreNode((int64)EUCLEAN));
 #endif
 #ifdef ENOTNAM
-   Err->addConstant("ENOTNAM", new QoreNode(NT_INT, ENOTNAM));
+   Err->addConstant("ENOTNAM", new QoreNode((int64)ENOTNAM));
 #endif
 #ifdef ENAVAIL
-   Err->addConstant("ENAVAIL", new QoreNode(NT_INT, ENAVAIL));
+   Err->addConstant("ENAVAIL", new QoreNode((int64)ENAVAIL));
 #endif
 #ifdef EISNAM
-   Err->addConstant("EISNAM", new QoreNode(NT_INT, EISNAM));
+   Err->addConstant("EISNAM", new QoreNode((int64)EISNAM));
 #endif
 #ifdef EREMOTEIO
-   Err->addConstant("EREMOTEIO", new QoreNode(NT_INT, EREMOTEIO));
+   Err->addConstant("EREMOTEIO", new QoreNode((int64)EREMOTEIO));
 #endif
 #ifdef EDQUOT
-   Err->addConstant("EDQUOT", new QoreNode(NT_INT, EDQUOT));
+   Err->addConstant("EDQUOT", new QoreNode((int64)EDQUOT));
 #endif
 #ifdef ENOMEDIUM
-   Err->addConstant("ENOMEDIUM", new QoreNode(NT_INT, ENOMEDIUM));
+   Err->addConstant("ENOMEDIUM", new QoreNode((int64)ENOMEDIUM));
 #endif
 #ifdef EMEDIUMTYPE
-   Err->addConstant("EMEDIUMTYPE", new QoreNode(NT_INT, EMEDIUMTYPE));
+   Err->addConstant("EMEDIUMTYPE", new QoreNode((int64)EMEDIUMTYPE));
 #endif
 
    traceout("get_errno_ns");
