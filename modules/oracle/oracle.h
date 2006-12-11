@@ -64,7 +64,7 @@ class OraColumn {
 
       class OraColumn *next;
 
-      inline OraColumn(char *n, int len, int ms, ub2 dt)
+      DLLLOCAL inline OraColumn(char *n, int len, int ms, ub2 dt)
       {
 	 name = (char *)malloc(sizeof(char) * (len + 1));
 	 strncpy(name, n, len);
@@ -76,7 +76,7 @@ class OraColumn {
 
 	 next = NULL;
       }
-      inline ~OraColumn()
+      DLLLOCAL inline ~OraColumn()
       {
 	 free(name);
 	 if (defp)
@@ -100,7 +100,7 @@ class OraColumn {
 	    OCIHandleFree(defp, OCI_HTYPE_DEFINE);
 	 }	 
       }
-      class QoreNode *getValue(class Datasource *ds, class ExceptionSink *xsink);
+      DLLLOCAL class QoreNode *getValue(class Datasource *ds, class ExceptionSink *xsink);
 };
 
 class OraColumns {
@@ -109,8 +109,8 @@ class OraColumns {
       class OraColumn *head, *tail;
 
    public:
-      OraColumns(OCIStmt *stmthp, class Datasource *ds, char *str, ExceptionSink *xsink);
-      inline ~OraColumns()
+      DLLLOCAL OraColumns(OCIStmt *stmthp, class Datasource *ds, char *str, ExceptionSink *xsink);
+      DLLLOCAL inline ~OraColumns()
       {
 	 class OraColumn *w = head;
 	 while (w)
@@ -120,7 +120,7 @@ class OraColumns {
 	    w = head;
 	 }
       }
-      inline void add(char *name, int nlen, int maxsize, ub2 dtype)
+      DLLLOCAL inline void add(char *name, int nlen, int maxsize, ub2 dtype)
       {
 	 len++;
 	 class OraColumn *c = new OraColumn(name, nlen, maxsize, dtype);
@@ -134,16 +134,16 @@ class OraColumns {
 	 // printd(5, "column: '%s'\n", c->name);
 	 printd(5, "OraColumns::add() %2d name='%s' (max %d) type=%d\n", size(), c->name, c->maxsize, dtype);
       }
-      inline class OraColumn *getHead() 
+      DLLLOCAL inline class OraColumn *getHead() 
       {
 	 return head;
       }
-      inline int size()
+      DLLLOCAL inline int size()
       {
 	 return len;
       }
 
-      void define(OCIStmt *stmthp, class Datasource *ds, char *str, ExceptionSink *xsink);
+      DLLLOCAL void define(OCIStmt *stmthp, class Datasource *ds, char *str, ExceptionSink *xsink);
 };
 
 union ora_bind {
@@ -167,7 +167,7 @@ class OraBindNode {
       sb2 ind;             // NULL indicator for OCI calls
       class OraBindNode *next;
 
-      inline OraBindNode(class QoreNode *v) // for value nodes
+      DLLLOCAL inline OraBindNode(class QoreNode *v) // for value nodes
       {
 	 bindtype = BN_VALUE;
 	 data.v.value = v;
@@ -175,7 +175,7 @@ class OraBindNode {
 	 buftype = 0;
 	 next = NULL;
       }
-      inline OraBindNode(char *name, int size, char *typ)
+      DLLLOCAL inline OraBindNode(char *name, int size, char *typ)
       {
 	 bindtype = BN_PLACEHOLDER;
 	 data.ph.name = name;
@@ -184,7 +184,7 @@ class OraBindNode {
 	 buftype = 0;
 	 next = NULL;
       }
-      inline ~OraBindNode()
+      DLLLOCAL inline ~OraBindNode()
       {
 	 if (bindtype == BN_PLACEHOLDER)
 	 {
@@ -208,9 +208,9 @@ class OraBindNode {
 	 }
       }
 
-      void bindValue(class Datasource *ds, OCIStmt *stmthp, int pos, class ExceptionSink *xsink);
-      void bindPlaceholder(class Datasource *ds, OCIStmt *stmthp, int pos, class ExceptionSink *xsink);
-      class QoreNode *getValue(class Datasource *ds, class ExceptionSink *xsink);
+      DLLLOCAL void bindValue(class Datasource *ds, OCIStmt *stmthp, int pos, class ExceptionSink *xsink);
+      DLLLOCAL void bindPlaceholder(class Datasource *ds, OCIStmt *stmthp, int pos, class ExceptionSink *xsink);
+      DLLLOCAL class QoreNode *getValue(class Datasource *ds, class ExceptionSink *xsink);
 };
 
 static void ora_checkerr(OCIError *errhp, sword status, char *query_name, Datasource *ds, ExceptionSink *xsink);
@@ -224,11 +224,11 @@ class OraBindGroup {
       class Datasource *ds;
       bool hasOutput;
 
-      void parseOld(class Hash *h, class ExceptionSink *xsink);
-      void parseQuery(class List *args, class ExceptionSink *xsink);
-      class QoreNode *getOutputHash(class ExceptionSink *xsink);
+      DLLLOCAL void parseOld(class Hash *h, class ExceptionSink *xsink);
+      DLLLOCAL void parseQuery(class List *args, class ExceptionSink *xsink);
+      DLLLOCAL class QoreNode *getOutputHash(class ExceptionSink *xsink);
 
-      inline void add(class OraBindNode *c)
+      DLLLOCAL inline void add(class OraBindNode *c)
       {
 	 len++;
 	 if (!tail)
@@ -239,8 +239,8 @@ class OraBindGroup {
       }
 
    public:
-      OraBindGroup(class Datasource *ods, class QoreString *ostr, class List *args, ExceptionSink *xsink);
-      inline ~OraBindGroup()
+      DLLLOCAL OraBindGroup(class Datasource *ods, class QoreString *ostr, class List *args, ExceptionSink *xsink);
+      DLLLOCAL inline ~OraBindGroup()
       {
 	 // free OCI handle
 	 if (stmthp)
@@ -257,13 +257,13 @@ class OraBindGroup {
 	    w = head;
 	 }
       }
-      inline void add(class QoreNode *v)
+      DLLLOCAL inline void add(class QoreNode *v)
       {
 	 class OraBindNode *c = new OraBindNode(v);
 	 add(c);
 	 printd(5, "OraBindGroup::add()\n");
       }
-      inline void add(char *name, int size, char *type)
+      DLLLOCAL inline void add(char *name, int size, char *type)
       {
 	 class OraBindNode *c = new OraBindNode(name, size, type);
 	 add(c);
@@ -271,9 +271,9 @@ class OraBindGroup {
 	 hasOutput = true;
       }
 
-      class QoreNode *exec(class ExceptionSink *xsink);
-      class QoreNode *select(class ExceptionSink *xsink);
-      class QoreNode *selectRows(class ExceptionSink *xsink);
+      DLLLOCAL class QoreNode *exec(class ExceptionSink *xsink);
+      DLLLOCAL class QoreNode *select(class ExceptionSink *xsink);
+      DLLLOCAL class QoreNode *selectRows(class ExceptionSink *xsink);
 };
 
 #endif

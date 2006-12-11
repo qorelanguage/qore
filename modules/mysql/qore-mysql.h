@@ -44,7 +44,7 @@ class MyResult {
       } *bi;
 
    public:
-      inline MyResult(MYSQL_RES *res)
+      DLLLOCAL inline MyResult(MYSQL_RES *res)
       {
 	 field = mysql_fetch_fields(res);
 	 num_fields = mysql_num_fields(res);
@@ -54,7 +54,7 @@ class MyResult {
 	 bi = NULL;
       }
 
-      inline ~MyResult()
+      DLLLOCAL inline ~MyResult()
       {
 	 if (bindbuf)
 	 {
@@ -72,15 +72,15 @@ class MyResult {
 	    delete [] bi;
       }
 
-      void bind(MYSQL_STMT *stmt);
-      class QoreNode *getBoundColumnValue(class QoreEncoding *csid, int i);
+      DLLLOCAL void bind(MYSQL_STMT *stmt);
+      DLLLOCAL class QoreNode *getBoundColumnValue(class QoreEncoding *csid, int i);
 
-      inline char *getFieldName(int i)
+      DLLLOCAL inline char *getFieldName(int i)
       {
 	 return field[i].name;
       }
 
-      inline int getNumFields()
+      DLLLOCAL inline int getNumFields()
       {
 	 return num_fields;
       }
@@ -95,7 +95,7 @@ union my_val {
       double f8;
       void *ptr;
 
-      void assign(class DateTime *d)
+      DLLLOCAL void assign(class DateTime *d)
       {
 	 time.year = d->getYear();
 	 time.month = d->getMonth();
@@ -123,7 +123,7 @@ class MyBindNode {
       class MyBindNode *next;
 
       // for value nodes
-      inline MyBindNode(class QoreNode *v)
+      DLLLOCAL inline MyBindNode(class QoreNode *v)
       {
 	 bindtype = BN_VALUE;
 	 data.value = v;
@@ -131,13 +131,13 @@ class MyBindNode {
 	 next = NULL;
       }
 
-      inline ~MyBindNode()
+      DLLLOCAL inline ~MyBindNode()
       {
 	 if (data.tstr)
 	    delete data.tstr;
       }
      
-      int bindValue(class QoreEncoding *enc, MYSQL_BIND *buf, class ExceptionSink *xsink);
+      DLLLOCAL int bindValue(class QoreEncoding *enc, MYSQL_BIND *buf, class ExceptionSink *xsink);
 };
 
 class MyBindGroup {
@@ -153,8 +153,8 @@ class MyBindGroup {
       class StringList phl;
 
       // returns -1 for error, 0 for OK
-      inline int parse(class List *args, class ExceptionSink *xsink);
-      inline void add(class MyBindNode *c)
+      DLLLOCAL inline int parse(class List *args, class ExceptionSink *xsink);
+      DLLLOCAL inline void add(class MyBindNode *c)
       {
 	 len++;
 	 if (!tail)
@@ -164,12 +164,12 @@ class MyBindGroup {
 	 tail = c;
       }
 
-      inline class QoreNode *getOutputHash(class ExceptionSink *xsink);
-      class QoreNode *execIntern(class ExceptionSink *xsink);
+      DLLLOCAL inline class QoreNode *getOutputHash(class ExceptionSink *xsink);
+      DLLLOCAL class QoreNode *execIntern(class ExceptionSink *xsink);
 
    public:
-      MyBindGroup(class Datasource *ods, class QoreString *ostr, class List *args, class ExceptionSink *xsink);
-      inline ~MyBindGroup()
+      DLLLOCAL MyBindGroup(class Datasource *ods, class QoreString *ostr, class List *args, class ExceptionSink *xsink);
+      DLLLOCAL inline ~MyBindGroup()
       {
 	 if (bind)
 	    delete [] bind;
@@ -189,21 +189,21 @@ class MyBindGroup {
 	 }
       }
 
-      inline void add(class QoreNode *v)
+      DLLLOCAL inline void add(class QoreNode *v)
       {
 	 add(new MyBindNode(v));
 	 printd(5, "MyBindGroup::add() value=%08p\n", v);
       }
 
-      inline void add(char *name)
+      DLLLOCAL inline void add(char *name)
       {
 	 phl.push_back(name);
 	 printd(5, "MyBindGroup::add() placeholder '%s' %d %s\n", name);
 	 hasOutput = true;
       }
-      class QoreNode *exec(class ExceptionSink *xsink);
-      class QoreNode *select(class ExceptionSink *xsink);
-      class QoreNode *selectRows(class ExceptionSink *xsink);
+      DLLLOCAL class QoreNode *exec(class ExceptionSink *xsink);
+      DLLLOCAL class QoreNode *select(class ExceptionSink *xsink);
+      DLLLOCAL class QoreNode *selectRows(class ExceptionSink *xsink);
 };
 
 

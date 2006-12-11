@@ -88,7 +88,7 @@ class MySQLData {
       MYSQL *db;
       LockedObject lck;
 
-      MySQLData(MYSQL *d) { db = d; }
+      DLLLOCAL MySQLData(MYSQL *d) { db = d; }
 };
 
 static struct mapEntry {
