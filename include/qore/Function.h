@@ -26,7 +26,6 @@
 
 #include <qore/ReferenceObject.h>
 #include <qore/Restrictions.h>
-#include <qore/LockedObject.h>
 #include <qore/common.h>
 
 #include <stdio.h>
@@ -41,6 +40,9 @@
 #define FC_IMPORTED       5
 #define FC_METHOD         6
 
+// these data structures are all private to the library
+// FIXME: messy implementation - clean up!
+
 class QoreNode *doPartialEval(class QoreNode *n, bool *is_self_ref, class ExceptionSink *xsink);
 
 class ImportedFunctionCall {
@@ -49,7 +51,7 @@ class ImportedFunctionCall {
       class UserFunction *func;
 
       DLLLOCAL ImportedFunctionCall(class QoreProgram *p, class UserFunction *f) { pgm = p; func = f; }
-      DLLLOCAL inline class QoreNode *eval(class QoreNode *args, class ExceptionSink *xsink);
+      DLLLOCAL class QoreNode *eval(class QoreNode *args, class ExceptionSink *xsink);
 };
 
 class SelfFunctionCall {
@@ -58,31 +60,11 @@ class SelfFunctionCall {
       class NamedScope *ns;
       class Method *func;
 
-      DLLLOCAL inline SelfFunctionCall(char *n) 
-      { 
-	 ns = NULL;
-	 name = n; 
-	 func = NULL; 
-      }
-
-      DLLLOCAL inline SelfFunctionCall(class NamedScope *n) 
-      { 
-	 ns = n;
-	 name = NULL; 
-	 func = NULL; 
-      }
-
-      DLLLOCAL inline SelfFunctionCall(class Method *f) 
-      { 
-	 ns = NULL;
-	 name = NULL;
-	 func = f; 
-      }
-
-      DLLLOCAL inline ~SelfFunctionCall();
-
-      DLLLOCAL inline class QoreNode *eval(class QoreNode *args, class ExceptionSink *xsink);
-
+      DLLLOCAL SelfFunctionCall(char *n);
+      DLLLOCAL SelfFunctionCall(class NamedScope *n);
+      DLLLOCAL SelfFunctionCall(class Method *f);
+      DLLLOCAL ~SelfFunctionCall();
+      DLLLOCAL class QoreNode *eval(class QoreNode *args, class ExceptionSink *xsink);
       DLLLOCAL void resolve();
 };
 
@@ -189,7 +171,7 @@ class UserFunction : public ReferenceObject
       DLLLOCAL class QoreNode *eval(class QoreNode *args, class Object *self, class ExceptionSink *xsink);
       DLLLOCAL class QoreNode *evalConstructor(class QoreNode *args, class Object *self, class BCList *bcl, class BCEAList *scbceal, class ExceptionSink *xsink);
       DLLLOCAL void evalCopy(class Object *old, class Object *self, class ExceptionSink *xsink);
-      DLLLOCAL inline bool isSynchronized() const { return synchronized; }
+      DLLLOCAL bool isSynchronized() const { return synchronized; }
       DLLLOCAL void deref();
 };
 

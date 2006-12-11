@@ -66,7 +66,28 @@ static inline void pop_argv()
    //traceout("pop_argv()");
 }
 
-inline SelfFunctionCall::~SelfFunctionCall() 
+SelfFunctionCall::SelfFunctionCall(char *n) 
+{ 
+   ns = NULL;
+   name = n; 
+   func = NULL; 
+}
+
+SelfFunctionCall::SelfFunctionCall(class NamedScope *n) 
+{ 
+   ns = n;
+   name = NULL; 
+   func = NULL; 
+}
+
+SelfFunctionCall::SelfFunctionCall(class Method *f) 
+{ 
+   ns = NULL;
+   name = NULL;
+   func = f; 
+}
+
+SelfFunctionCall::~SelfFunctionCall() 
 { 
    if (name) 
       free(name); 

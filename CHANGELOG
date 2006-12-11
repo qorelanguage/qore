@@ -5,6 +5,7 @@
 	  NULL, no exception was thrown
 	* ExecArgList cleanup
 	* FtpClient api cleanup
+	* more Function internal api cleanups (needs more work!)
 
 2006.12.10: David Nichols
 	* more Datasource cleanups
