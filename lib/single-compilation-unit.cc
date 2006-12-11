@@ -39,6 +39,7 @@
 #include "CallStack.cc"
 #include "Datasource.cc"
 #include "ManagedDatasource.cc"
+#include "ExecArgList.cc"
 #include "QT_NOTHING.cc"
 #include "QT_bigint.cc"
 #include "QT_float.cc"

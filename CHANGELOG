@@ -3,6 +3,7 @@
 	* Exception API cleanup
 	* fixed a bug in object method execution, when a method is called on
 	  NULL, no exception was thrown
+	* ExecArgList cleanup
 
 2006.12.10: David Nichols
 	* more Datasource cleanups
