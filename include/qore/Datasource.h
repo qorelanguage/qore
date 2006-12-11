@@ -38,30 +38,40 @@ class Datasource
       bool in_transaction;
       bool isopen;
       bool autocommit;
+      class DBIDriver *dsl;
+      class QoreEncoding *qorecharset;
+      void *private_data;
 
       // for pending connection values
       char *p_username,  // for Oracle, MySQL
-	 *p_password,  // for Oracle, MySQL
-	 *p_dbname,    // for Oracle, MySQL
-	 *p_charset,   // for Oracle
-	 *p_hostname;  // for MySQL
+	 *p_password,    // for Oracle, MySQL
+	 *p_dbname,      // for Oracle, MySQL
+	 *p_db_encoding, // for Oracle, MySQL - database-specific name for the encoding for the connection
+	 *p_hostname;    // for MySQL
 
+      // actual connection values set by init() before the datasource is opened
+      char *username,    // for Oracle, MySQL
+	 *password,      // for Oracle, MySQL
+	 *db_encoding,   // for ORacle, MySQL - database-specific name for the encoding for the connection
+	 *dbname,        // for Oracle, MySQL
+	 *hostname;      // for MySQL
+      
       DLLLOCAL void freeConnectionValues();
       DLLLOCAL void setConnectionValues();
 
    public:
-      class QoreEncoding *qorecharset;
-      class DBIDriver *dsl;
-      void *private_data;
-
-      // actual connection values set by init()
-      char *username,  // for Oracle, MySQL
-	 *password,  // for Oracle, MySQL
-	 *dbname,    // for Oracle, MySQL
-	 *charset,   // for Oracle
-	 *hostname;  // for MySQL
-
       DLLEXPORT bool getAutoCommit() const;
+      DLLEXPORT char *getUsername() const;
+      DLLEXPORT char *getPassword() const;
+      DLLEXPORT char *getDBName() const;
+      DLLEXPORT char *getDBEncoding() const;
+      DLLEXPORT char *getOSEncoding() const;
+      DLLEXPORT char *getHostName() const;
+      DLLEXPORT void *getPrivateData() const;
+      DLLEXPORT void setPrivateData(void *data);
+      DLLEXPORT void setDBEncoding(char *name);
+      DLLEXPORT class QoreEncoding *getQoreEncoding() const;
+      DLLEXPORT void setQoreEncoding(class QoreEncoding *enc);
 
       DLLLOCAL Datasource(DBIDriver *);
       DLLLOCAL ~Datasource();
@@ -76,16 +86,16 @@ class Datasource
       DLLLOCAL void reset(ExceptionSink *xsink);
       DLLLOCAL List *getCapabilityList() const;
       DLLLOCAL int getCapabilities() const;
-      DLLLOCAL void setUsername(char *u);
-      DLLLOCAL void setPassword(char *p);
-      DLLLOCAL void setDBName(char *d);
-      DLLLOCAL void setCharset(char *c);
-      DLLLOCAL void setHostName(char *h);
-      DLLLOCAL QoreNode *getUsername() const;
-      DLLLOCAL QoreNode *getPassword() const;
-      DLLLOCAL QoreNode *getDBName() const;
-      DLLLOCAL QoreNode *getCharset() const;
-      DLLLOCAL QoreNode *getHostName() const;
+      DLLLOCAL void setPendingUsername(char *u);
+      DLLLOCAL void setPendingPassword(char *p);
+      DLLLOCAL void setPendingDBName(char *d);
+      DLLLOCAL void setPendingDBEncoding(char *c);
+      DLLLOCAL void setPendingHostName(char *h);
+      DLLLOCAL QoreNode *getPendingUsername() const;
+      DLLLOCAL QoreNode *getPendingPassword() const;
+      DLLLOCAL QoreNode *getPendingDBName() const;
+      DLLLOCAL QoreNode *getPendingDBEncoding() const;
+      DLLLOCAL QoreNode *getPendingHostName() const;
       DLLLOCAL void setTransactionLockTimeout(int t);
       DLLLOCAL int getTransactionLockTimeout() const;
       // returns -1 for error, 0 for OK

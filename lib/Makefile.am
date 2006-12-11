@@ -52,6 +52,7 @@ libqore_la_SOURCES = \
 	FtpClient.cc \
 	DBI.cc \
 	Datasource.cc \
+	ManagedDatasource.cc \
 	StringList.cc \
 	ConstantList.cc \
 	QoreClassList.cc \

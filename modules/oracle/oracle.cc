@@ -90,12 +90,12 @@ static void ora_checkerr(OCIError *errhp, sword status, char *query_name, Dataso
       case OCI_ERROR:
 	 OCIErrorGet((dvoid *)errhp, (ub4) 1, (text *) NULL, &errcode, errbuf, (ub4) sizeof(errbuf), OCI_HTYPE_ERROR);
 	 if (query_name)
-	    xsink->raiseException("DBI:ORACLE:OCI-ERROR", "%s@%s: %s: %s", ds->username, ds->dbname, query_name, remove_trailing_newlines((char *)errbuf));
+	    xsink->raiseException("DBI:ORACLE:OCI-ERROR", "%s@%s: %s: %s", ds->getUsername(), ds->getDBName(), query_name, remove_trailing_newlines((char *)errbuf));
 	 else
-	    xsink->raiseException("DBI:ORACLE:OCI-ERROR", "%s@%s: %s", ds->username, ds->dbname, remove_trailing_newlines((char *)errbuf));
+	    xsink->raiseException("DBI:ORACLE:OCI-ERROR", "%s@%s: %s", ds->getUsername(), ds->getDBName(), remove_trailing_newlines((char *)errbuf));
 	 break;
       case OCI_INVALID_HANDLE:
-	 xsink->raiseException("DBI:ORACLE:OCI-INVALID-HANDLE", "%s@%s: %s", ds->username, ds->dbname, remove_trailing_newlines((char *)errbuf));
+	 xsink->raiseException("DBI:ORACLE:OCI-INVALID-HANDLE", "%s@%s: %s", ds->getUsername(), ds->getDBName(), remove_trailing_newlines((char *)errbuf));
 	 break;
       case OCI_NEED_DATA:
 	 xsink->raiseException("DBI:ORACLE:OCI-NEED-DATA", "Oracle OCI error");
@@ -120,7 +120,7 @@ static int oracle_commit(class Datasource *ds, ExceptionSink *xsink)
 {
    int status;
 
-   class OracleData *d_ora = (OracleData *)ds->private_data;
+   class OracleData *d_ora = (OracleData *)ds->getPrivateData();
 
    // commit transaction
    if ((status = OCITransCommit(d_ora->svchp, d_ora->errhp, (ub4) 0)))
@@ -132,7 +132,7 @@ static int oracle_rollback(class Datasource *ds, ExceptionSink *xsink)
 {
    int status;
 
-   class OracleData *d_ora = (OracleData *)ds->private_data;
+   class OracleData *d_ora = (OracleData *)ds->getPrivateData();
    if ((status = OCITransRollback(d_ora->svchp, d_ora->errhp, (ub4) 0)))
       ora_checkerr(d_ora->errhp, status, "Oracle rollback transaction", ds, xsink);
    return 0;
@@ -145,7 +145,7 @@ OraColumns::OraColumns(OCIStmt *stmthp, class Datasource *ds, char *str, Excepti
    len = 0;
    head = tail = NULL;
 
-   class OracleData *d_ora = (OracleData *)ds->private_data;
+   class OracleData *d_ora = (OracleData *)ds->getPrivateData();
 
    // retrieve results, if any
    //OCIParam *parmp;
@@ -186,7 +186,7 @@ void OraColumns::define(OCIStmt *stmthp, class Datasource *ds, char *str, Except
 {
    //tracein("OraColumne::define()");
 
-   class OracleData *d_ora = (OracleData *)ds->private_data;
+   class OracleData *d_ora = (OracleData *)ds->getPrivateData();
 
    // iterate column list
    class OraColumn *w = head;
@@ -299,7 +299,7 @@ class QoreNode *OraColumn::getValue(class Datasource *ds, class ExceptionSink *x
    else if (dtype == SQLT_CLOB || dtype == SQLT_BLOB)
    {
       // get oracle data
-      class OracleData *d_ora = (OracleData *)ds->private_data;
+      class OracleData *d_ora = (OracleData *)ds->getPrivateData();
 
       printd(5, "OraColumns::getValue() using LOB locator handle %08p\n", val.ptr);
 
@@ -309,7 +309,7 @@ class QoreNode *OraColumn::getValue(class Datasource *ds, class ExceptionSink *x
       ub4 amt = 0;
       if (dtype == SQLT_CLOB)
       {
-	 class QoreString *str = new QoreString(ds->qorecharset);
+	 class QoreString *str = new QoreString(ds->getQoreEncoding());
 	 // read LOB data in streaming callback mode
 	 ora_checkerr(d_ora->errhp,
 		      OCILobRead(d_ora->svchp, d_ora->errhp, (OCILobLocator *)val.ptr, &amt, 1, buf, LOB_BLOCK_SIZE,
@@ -337,7 +337,7 @@ class QoreNode *OraColumn::getValue(class Datasource *ds, class ExceptionSink *x
 
    // must be string data
    remove_trailing_blanks((char *)val.ptr);
-   return new QoreNode(new QoreString((char *)val.ptr, ds->qorecharset));
+   return new QoreNode(new QoreString((char *)val.ptr, ds->getQoreEncoding()));
 }
 
 static class Hash *ora_fetch(OCIStmt *stmthp, class Datasource *ds, class ExceptionSink *xsink)
@@ -371,7 +371,7 @@ static class Hash *ora_fetch(OCIStmt *stmthp, class Datasource *ds, class Except
       while (!xsink->isEvent())
       {
 	 int status;
-	 class OracleData *d_ora = (OracleData *)ds->private_data;
+	 class OracleData *d_ora = (OracleData *)ds->getPrivateData();
 
 	 if ((status = OCIStmtFetch(stmthp, d_ora->errhp, 1, OCI_FETCH_NEXT, OCI_DEFAULT)))
 	 {
@@ -434,7 +434,7 @@ static class List *ora_fetch_horizontal(OCIStmt *stmthp, class Datasource *ds, c
       // setup temporary row to accept values
       columns->define(stmthp, ds, "ora_fetch_horizontal()", xsink);
 
-      class OracleData *d_ora = (OracleData *)ds->private_data;
+      class OracleData *d_ora = (OracleData *)ds->getPrivateData();
 
       // now finally fetch the data
       while (!xsink->isEvent())
@@ -488,11 +488,11 @@ OraBindGroup::OraBindGroup(class Datasource *ods, class QoreString *ostr, class 
    len = 0;
 
    // create copy of string and convert encoding if necessary
-   str = ostr->convertEncoding(ds->qorecharset, xsink);
+   str = ostr->convertEncoding(ds->getQoreEncoding(), xsink);
    if (xsink->isEvent())
       return;
 
-   class OracleData *d_ora = (OracleData *)ds->private_data;
+   class OracleData *d_ora = (OracleData *)ds->getPrivateData();
    printd(4, "OraBindGroup::OraBindGroup() ds=%08p, d_ora=%08p, SQL='%s', args=%d\n", ds, d_ora, str->getBuffer(), args ? args->size() : 0);
 
    // process query string and setup bind value list
@@ -627,7 +627,7 @@ void OraBindGroup::parseQuery(class List *args, class ExceptionSink *xsink)
 	 class QoreNode *v = args->retrieve_entry(len);
 
 	 // replace value marker with generated name
-	 QoreString tn(ds->qorecharset);
+	 QoreString tn(ds->getQoreEncoding());
 	 tn.sprintf(":qdodvrs___%d", len);
 	 int offset = p - str->getBuffer() - 2;
 	 str->replace(offset, 2, &tn);
@@ -697,7 +697,7 @@ void OraBindGroup::parseQuery(class List *args, class ExceptionSink *xsink)
 
 void OraBindNode::bindValue(class Datasource *ds, OCIStmt *stmthp, int pos, class ExceptionSink *xsink)
 {
-   class OracleData *d_ora = (OracleData *)ds->private_data;
+   class OracleData *d_ora = (OracleData *)ds->getPrivateData();
    OCIBind *bndp = NULL;
    ind = 0;
 
@@ -715,9 +715,9 @@ void OraBindNode::bindValue(class Datasource *ds, OCIStmt *stmthp, int pos, clas
 
       class QoreString *bstr = data.v.value->val.String;
       // convert to the db charset if necessary
-      if (bstr->getEncoding() != ds->qorecharset)
+      if (bstr->getEncoding() != ds->getQoreEncoding())
       {
-	 bstr = bstr->convertEncoding(ds->qorecharset, xsink);
+	 bstr = bstr->convertEncoding(ds->getQoreEncoding(), xsink);
 	 if (xsink->isEvent())
 	    return;
 	 // save temporary string for later deleting
@@ -761,7 +761,7 @@ void OraBindNode::bindValue(class Datasource *ds, OCIStmt *stmthp, int pos, clas
       {
 	 buftype = SQLT_STR;
 
-	 QoreString *tstr = new QoreString(ds->qorecharset);
+	 QoreString *tstr = new QoreString(ds->getQoreEncoding());
 	 tstr->sprintf("%lld", data.v.value->val.intval);
 	 data.v.tstr = tstr;
 
@@ -780,7 +780,7 @@ void OraBindNode::bindValue(class Datasource *ds, OCIStmt *stmthp, int pos, clas
 
 void OraBindNode::bindPlaceholder(class Datasource *ds, OCIStmt *stmthp, int pos, class ExceptionSink *xsink)
 {
-   class OracleData *d_ora = (OracleData *)ds->private_data;
+   class OracleData *d_ora = (OracleData *)ds->getPrivateData();
    OCIBind *bndp = NULL;
 
    printd(5, "OraBindNode::bindPlaceholder(ds=%08p, pos=%d) type=%s, size=%d)\n", ds, pos, data.ph.type, data.ph.maxsize);
@@ -864,7 +864,7 @@ class QoreNode *OraBindNode::getValue(class Datasource *ds, class ExceptionSink 
       // must be string data
       remove_trailing_blanks((char *)buf.ptr);
       class QoreString *str = new QoreString();
-      str->take((char *)buf.ptr, ds->qorecharset);
+      str->take((char *)buf.ptr, ds->getQoreEncoding());
       buf.ptr = NULL;
       return new QoreNode(str);
    }
@@ -882,7 +882,7 @@ class QoreNode *OraBindNode::getValue(class Datasource *ds, class ExceptionSink 
    else if (buftype == SQLT_CLOB || buftype == SQLT_BLOB)
    {
       // get oracle data
-      class OracleData *d_ora = (OracleData *)ds->private_data;
+      class OracleData *d_ora = (OracleData *)ds->getPrivateData();
 
       printd(5, "OraBindNode::getValue() using LOB locator handle %08p\n", buf.ptr);
 
@@ -892,7 +892,7 @@ class QoreNode *OraBindNode::getValue(class Datasource *ds, class ExceptionSink 
       ub4 amt = 0;
       if (buftype == SQLT_CLOB)
       {
-	 class QoreString *str = new QoreString(ds->qorecharset);
+	 class QoreString *str = new QoreString(ds->getQoreEncoding());
 	 // read LOB data in streaming callback mode
 	 ora_checkerr(d_ora->errhp,
 		      OCILobRead(d_ora->svchp, d_ora->errhp, (OCILobLocator *)buf.ptr, &amt, 1, bbuf, LOB_BLOCK_SIZE,
@@ -932,7 +932,7 @@ class QoreNode *OraBindGroup::exec(class ExceptionSink *xsink)
 {
    class QoreNode *rv;
 
-   class OracleData *d_ora = (OracleData *)ds->private_data;
+   class OracleData *d_ora = (OracleData *)ds->getPrivateData();
    int status = OCIStmtExecute(d_ora->svchp, stmthp, d_ora->errhp, 1, 0, NULL, NULL, OCI_DEFAULT);
    if (status)
       ora_checkerr(d_ora->errhp, status, "OraBindGroup::exec()", ds, xsink);
@@ -962,7 +962,7 @@ class QoreNode *OraBindGroup::exec(class ExceptionSink *xsink)
 
 class QoreNode *OraBindGroup::select(class ExceptionSink *xsink)
 {
-   class OracleData *d_ora = (OracleData *)ds->private_data;
+   class OracleData *d_ora = (OracleData *)ds->getPrivateData();
 
    int status = OCIStmtExecute(d_ora->svchp, stmthp, d_ora->errhp, 0, 0, NULL, NULL, OCI_DEFAULT);
    if (status)
@@ -979,7 +979,7 @@ class QoreNode *OraBindGroup::select(class ExceptionSink *xsink)
 
 class QoreNode *OraBindGroup::selectRows(class ExceptionSink *xsink)
 {
-   class OracleData *d_ora = (OracleData *)ds->private_data;
+   class OracleData *d_ora = (OracleData *)ds->getPrivateData();
 
    int status = OCIStmtExecute(d_ora->svchp, stmthp, d_ora->errhp, 0, 0, NULL, NULL, OCI_DEFAULT);
    if (status)
@@ -1028,31 +1028,31 @@ static int oracle_open(Datasource *ds, ExceptionSink *xsink)
 {
    tracein("oracle_open()");
 
-   printd(5, "oracle_open() datasource %08p for DB=%s open\n", ds, ds->dbname);
+   printd(5, "oracle_open() datasource %08p for DB=%s open\n", ds, ds->getDBName());
 
-   if (!ds->username)
+   if (!ds->getUsername())
    {
       xsink->raiseException("DATASOURCE-MISSING-USERNAME", "Datasource has an empty username parameter");
       traceout("oracle_open()");
       return -1;
    }
-   if (!ds->password)
+   if (!ds->getPassword())
    {
       xsink->raiseException("DATASOURCE-MISSING-PASSWORD", "Datasource has an empty password parameter");
       traceout("oracle_open()");
       return -1;
    }
-   if (!ds->dbname)
+   if (!ds->getDBName())
    {
       xsink->raiseException("DATASOURCE-MISSING-DBNAME", "Datasource has an empty dbname parameter");
       traceout("oracle_open()");
       return -1;
    }
-   printd(3, "oracle_open(): user=%s pass=%s db=%s (charset=%s)\n",
-	  ds->username, ds->password, ds->dbname, ds->charset ? ds->charset : "(none)");
+   printd(3, "oracle_open(): user=%s pass=%s db=%s (oracle encoding=%s)\n",
+	  ds->getUsername(), ds->getPassword(), ds->getDBName(), ds->getDBEncoding() ? ds->getDBEncoding() : "(none)");
 
    class OracleData *d_ora = new OracleData;
-   ds->private_data = (void *)d_ora;
+   ds->setPrivateData((void *)d_ora);
 
    int oci_flags = OCI_DEFAULT|OCI_THREADED;
 
@@ -1066,9 +1066,9 @@ static int oracle_open(Datasource *ds, ExceptionSink *xsink)
    char nbuf[OCI_NLS_MAXBUFSZ];
    int need_to_set_charset = 0;
 
-   if (ds->charset && ds->charset[0])
+   if (ds->getDBEncoding())
    {
-      charset = ds->charset;
+      charset = ds->getDBEncoding();
       need_to_set_charset = 1;
    }
    else // get Oracle character set name from OS character set name
@@ -1077,21 +1077,17 @@ static int oracle_open(Datasource *ds, ExceptionSink *xsink)
       {
 	 OCIHandleFree(tmpenvhp, OCI_HTYPE_ENV);
 	 xsink->raiseException("DBI:ORACLE:UNKNOWN-CHARACTER-SET", 
-			"cannot map default OS charset '%s' to Oracle character set",
+			"cannot map default OS encoding '%s' to Oracle character encoding",
 			QCS_DEFAULT->code);
 	 delete d_ora;
-	 ds->private_data = NULL;
+	 ds->setPrivateData(NULL);
 	 traceout("oracle_open()");
 	 return -1;
       }
-      ds->qorecharset = QCS_DEFAULT;
-
-      if (ds->charset)
-	 free(ds->charset);
-
-      ds->charset = strdup(nbuf);
+      ds->setDBEncoding(nbuf);
+      ds->setQoreEncoding(QCS_DEFAULT);
       charset = nbuf;
-      printd(5, "oracle_open() setting Oracle charset to '%s' from default OS charset '%s'\n",
+      printd(5, "oracle_open() setting Oracle encoding to '%s' from default OS encoding '%s'\n",
 	     charset, QCS_DEFAULT->code);
    }
 
@@ -1103,14 +1099,14 @@ static int oracle_open(Datasource *ds, ExceptionSink *xsink)
 
    if (!d_ora->charsetid)
    {
-      xsink->raiseException("DBI:ORACLE:UNKNOWN-CHARACTER-SET", "this installation of Oracle does not support the '%s' character set", 
-		     ds->charset);
+      xsink->raiseException("DBI:ORACLE:UNKNOWN-CHARACTER-SET", "this installation of Oracle does not support the '%s' character encoding", 
+			    ds->getDBEncoding());
       delete d_ora;
-      ds->private_data = NULL;
+      ds->setPrivateData(NULL);
       traceout("oracle_open()");
       return -1;
    }
-   printd(5, "Oracle character set '%s' has ID %d\n", charset, d_ora->charsetid);
+   printd(5, "Oracle character encoding '%s' has ID %d\n", charset, d_ora->charsetid);
    // create environment with default character set
    OCIEnvNlsCreate(&d_ora->envhp, oci_flags, 0, NULL, NULL, NULL, 0, NULL, d_ora->charsetid, d_ora->charsetid);
    // map the Oracle character set to a core character set
@@ -1118,15 +1114,15 @@ static int oracle_open(Datasource *ds, ExceptionSink *xsink)
    if (need_to_set_charset)
    {
       // map Oracle character set name to QORE character set
-      if ((OCINlsNameMap(d_ora->envhp, (oratext *)nbuf, OCI_NLS_MAXBUFSZ, (oratext *)ds->charset, OCI_NLS_CS_ORA_TO_IANA) == OCI_SUCCESS))
+      if ((OCINlsNameMap(d_ora->envhp, (oratext *)nbuf, OCI_NLS_MAXBUFSZ, (oratext *)ds->getDBEncoding(), OCI_NLS_CS_ORA_TO_IANA) == OCI_SUCCESS))
       {
-	 printd(5, "oracle_open() Oracle character set '%s' mapped to '%s' character set\n", ds->charset, nbuf);
-	 ds->qorecharset = QEM.findCreate(nbuf);
+	 printd(5, "oracle_open() Oracle character set '%s' mapped to '%s' character set\n", ds->getDBEncoding(), nbuf);
+	 ds->setQoreEncoding(nbuf);
       }
 #ifdef DEBUG
       else
       {
-	 run_time_error("oracle_open(): can't map Oracle character set '%s' to OS character set\n", ds->charset);
+	 run_time_error("oracle_open(): can't map Oracle character set '%s' to OS character set\n", ds->getDBEncoding());
 	 traceout("oracle_open()");
 	 leave(1);
       }
@@ -1137,11 +1133,11 @@ static int oracle_open(Datasource *ds, ExceptionSink *xsink)
 #error need to define HAVE_OCIENVNLSCREATE (with Oracle 9i+)
 /*
    d_ora->charsetid = 0;
-   if (ds->charset)
+   if (ds->getDBEncoding())
    {
       xsink->raiseException("DBI:ORACLE:NO_OCIENVCREATE", "compile-time options do not support Oracle character set specifications");
       delete d_ora;
-      ds->private_data = NULL;
+      ds->setPrivateData(NULL);
       return -1;
    }
 # ifdef HAVE_OCIENVCREATE
@@ -1154,17 +1150,17 @@ static int oracle_open(Datasource *ds, ExceptionSink *xsink)
 #endif // HAVE_OCIENVNLSCREATE
    OCIHandleAlloc(d_ora->envhp, (dvoid **) &d_ora->errhp, OCI_HTYPE_ERROR, 0, 0);
    ora_checkerr(d_ora->errhp, 
-		OCILogon(d_ora->envhp, d_ora->errhp, &d_ora->svchp, (text *)ds->username, strlen(ds->username), (text *)ds->password, strlen(ds->password), (text *)ds->dbname, strlen(ds->dbname)), 
+		OCILogon(d_ora->envhp, d_ora->errhp, &d_ora->svchp, (text *)ds->getUsername(), strlen(ds->getUsername()), (text *)ds->getPassword(), strlen(ds->getPassword()), (text *)ds->getDBName(), strlen(ds->getDBName())), 
 		"<open>", ds, xsink);
    if (xsink->isEvent())
    {
       delete d_ora;
-      ds->private_data = NULL;
+      ds->setPrivateData(NULL);
       traceout("oracle_open()");
       return -1;
    }
 
-   printd(5, "oracle_open() datasource %08p for DB=%s open (envhp=%08p)\n", ds, ds->dbname, d_ora->envhp);
+   printd(5, "oracle_open() datasource %08p for DB=%s open (envhp=%08p)\n", ds, ds->getDBName(), d_ora->envhp);
 
 /*
    OCIStmt *stmthp;
@@ -1177,7 +1173,7 @@ static int oracle_open(Datasource *ds, ExceptionSink *xsink)
    if (xsink->isEvent())
    {
       delete d_ora;
-      ds->private_data = NULL;
+      ds->setPrivateData(NULL);
       traceout("oracle_open()");
       return -1;
    }
@@ -1187,7 +1183,7 @@ static int oracle_open(Datasource *ds, ExceptionSink *xsink)
    if (xsink->isEvent())
    {
       delete d_ora;
-      ds->private_data = NULL;
+      ds->setPrivateData(NULL);
    }
    else
    {
@@ -1206,15 +1202,15 @@ static int oracle_close(class Datasource *ds)
 {
    tracein("oracle_close()");
 
-   class OracleData *d_ora = (OracleData *)ds->private_data;
+   class OracleData *d_ora = (OracleData *)ds->getPrivateData();
 
-   printd(3, "oracle_close(): connection to %s closed.\n", ds->dbname);
+   printd(3, "oracle_close(): connection to %s closed.\n", ds->getDBName());
    OCILogoff(d_ora->svchp, d_ora->errhp);
    OCIHandleFree(d_ora->svchp, OCI_HTYPE_SVCCTX);
    OCIHandleFree(d_ora->errhp, OCI_HTYPE_ERROR);
    OCIHandleFree(d_ora->envhp, OCI_HTYPE_ENV);
    delete d_ora;
-   ds->private_data = NULL;
+   ds->setPrivateData(NULL);
 
    traceout("oracle_close()");
    return 0;

@@ -184,36 +184,36 @@ static int qore_mysql_init(Datasource *ds, ExceptionSink *xsink)
    tracein("qore_mysql_init()");
 
    printd(5, "qore_mysql_init() datasource %08p for DB=%s\n", ds, 
-	  ds->dbname ? ds->dbname : "unknown");
+	  ds->getDBName() ? ds->getDBName() : "unknown");
 
-   if (!ds->dbname)
+   if (!ds->getDBName())
    {
       xsink->raiseException("DATASOURCE-MISSING-DBNAME", "Datasource has an empty dbname parameter");
       traceout("qore_mysql_init()");
       return -1;
    }
 
-   if (ds->charset)
-      ds->qorecharset = get_qore_cs(ds->charset);
+   if (ds->getDBEncoding())
+      ds->setQoreEncoding(get_qore_cs(ds->getDBEncoding()));
    else
    {
-      ds->qorecharset = QCS_DEFAULT;
-      ds->charset = get_mysql_cs(QCS_DEFAULT);
-
-      if (!ds->charset)
+      char *enc = get_mysql_cs(QCS_DEFAULT);
+      if (!enc)
       {
 	 xsink->raiseException("DBI:MYSQL:UNKNOWN-CHARACTER-SET", "cannot find the mysql character set equivalent for '%s'", QCS_DEFAULT->code);
 	 traceout("qore_mysql_init()");
 	 return -1;
       }
-      ds->charset = strdup(ds->charset);
+      
+      ds->setDBEncoding(enc);
+      ds->setQoreEncoding(QCS_DEFAULT);
    }
 
-   printd(3, "qore_mysql_init(): user=%s pass=%s db=%s (charset=%s)\n",
-	  ds->username, ds->password, ds->dbname, ds->charset ? ds->charset : "(none)");
+   printd(3, "qore_mysql_init(): user=%s pass=%s db=%s (encoding=%s)\n",
+	  ds->getUsername(), ds->getPassword(), ds->getDBName(), ds->getDBEncoding() ? ds->getDBEncoding() : "(none)");
 
    MYSQL *db = mysql_init(NULL);
-   if (!mysql_real_connect(db, ds->hostname, ds->username, ds->password, ds->dbname, 0, NULL, 0))
+   if (!mysql_real_connect(db, ds->getHostName(), ds->getUsername(), ds->getPassword(), ds->getDBName(), 0, NULL, 0))
    {
       xsink->raiseException("DBI:MYSQL:CONNECT-ERROR", "%s", mysql_error(db));
       traceout("qore_mysql_init()");
@@ -221,11 +221,11 @@ static int qore_mysql_init(Datasource *ds, ExceptionSink *xsink)
    }
 
    class MySQLData *d_mysql = new MySQLData(db);
-   ds->private_data = (void *)d_mysql;
+   ds->setPrivateData((void *)d_mysql);
 
 #ifdef HAVE_MYSQL_SET_CHARACTER_SET
    // set character set
-   mysql_set_character_set(db, ds->charset);
+   mysql_set_character_set(db, ds->getDBEncoding());
 #endif
 
 #ifdef HAVE_MYSQL_COMMIT
@@ -252,7 +252,7 @@ static int qore_mysql_commit(class Datasource *ds, ExceptionSink *xsink)
 
 #ifdef HAVE_MYSQL_COMMIT
    checkInit();
-   MYSQL *db = ((MySQLData *)ds->private_data)->db;
+   MYSQL *db = ((MySQLData *)ds->getPrivateData())->db;
    if (mysql_commit(db))
       xsink->raiseException("DBI:MYSQL:COMMIT-ERROR", (char *)mysql_error(db));
 #else
@@ -268,7 +268,7 @@ static int qore_mysql_rollback(class Datasource *ds, ExceptionSink *xsink)
 
 #ifdef HAVE_MYSQL_COMMIT
    checkInit();
-   MYSQL *db = ((MySQLData *)ds->private_data)->db;
+   MYSQL *db = ((MySQLData *)ds->getPrivateData())->db;
    if (mysql_rollback(db))
       xsink->raiseException("DBI:MYSQL:ROLLBACK-ERROR", (char *)mysql_error(db));
 #else
@@ -448,7 +448,7 @@ MyBindGroup::MyBindGroup(class Datasource *ods, class QoreString *ostr, class Li
    ds = ods;
 
    // create copy of string and convert encoding if necessary
-   str = ostr->convertEncoding(ods->qorecharset, xsink);
+   str = ostr->convertEncoding(ods->getQoreEncoding(), xsink);
    if (!str)
       return;
 
@@ -456,7 +456,7 @@ MyBindGroup::MyBindGroup(class Datasource *ods, class QoreString *ostr, class Li
    if (parse(args, xsink))
       return;
 
-   MySQLData *d_mysql =(MySQLData *)ds->private_data;
+   MySQLData *d_mysql =(MySQLData *)ds->getPrivateData();
    db = d_mysql->db;
    
    stmt = mysql_stmt_init(db);
@@ -482,7 +482,7 @@ MyBindGroup::MyBindGroup(class Datasource *ods, class QoreString *ostr, class Li
       while (w)
       {
 	 printd(5, "MBG::MBG() binding value at position %d (%s)\n", pos, w->data.value->type->name);
-	 if (w->bindValue(ods->qorecharset, &bind[pos], xsink))
+	 if (w->bindValue(ods->getQoreEncoding(), &bind[pos], xsink))
 	    return;
 	 pos++;
 	 w = w->next;
@@ -538,13 +538,13 @@ inline class QoreNode *MyBindGroup::getOutputHash(class ExceptionSink *xsink)
 	    {
 	       List *l = new List();
 	       while (!mysql_stmt_fetch(stmt))
-		  l->push(myres.getBoundColumnValue(ds->qorecharset, 0));
+		  l->push(myres.getBoundColumnValue(ds->getQoreEncoding(), 0));
 	       v = new QoreNode(l);
 	    }
 	    else
 	    {
 	       mysql_stmt_fetch(stmt);
-	       v = myres.getBoundColumnValue(ds->qorecharset, 0);
+	       v = myres.getBoundColumnValue(ds->getQoreEncoding(), 0);
 	    }
 	 }
       }
@@ -580,7 +580,7 @@ class QoreNode *MyBindGroup::execIntern(class ExceptionSink *xsink)
 	    
 	 while (!mysql_stmt_fetch(stmt))
 	    for (int i = 0; i < myres.getNumFields(); i++)
-	       h->getKeyValue(myres.getFieldName(i))->val.list->push(myres.getBoundColumnValue(ds->qorecharset, i));
+	       h->getKeyValue(myres.getFieldName(i))->val.list->push(myres.getBoundColumnValue(ds->getQoreEncoding(), i));
       }
       rv = new QoreNode(h);
    }
@@ -644,7 +644,7 @@ class QoreNode *MyBindGroup::selectRows(class ExceptionSink *xsink)
 	    class Hash *h = new Hash();
 
 	    for (int i = 0; i < myres.getNumFields(); i++)
-	       h->setKeyValue(myres.getFieldName(i), myres.getBoundColumnValue(ds->qorecharset, i), NULL);
+	       h->setKeyValue(myres.getFieldName(i), myres.getBoundColumnValue(ds->getQoreEncoding(), i), NULL);
 
 	    l->push(new QoreNode(h));
 	 }
@@ -742,157 +742,6 @@ int MyBindNode::bindValue(class QoreEncoding *enc, MYSQL_BIND *buf, class Except
    return -1;
 }
 
-/*
-static class QoreNode *qore_mysql_do_sql(class Datasource *ds, QoreString *qstr, class List *args, ExceptionSink *xsink)
-{
-   tracein("qore_mysql_do_sql()");
-
-   // convert string if necessary
-   class QoreString *tqstr;
-
-   if (qstr->getEncoding() != ds->qorecharset)
-   {
-      tqstr = qstr->convertEncoding(ds->qorecharset, xsink);
-      if (xsink->isEvent())
-      {
-	 traceout("qore_mysql_do_sql()");
-         return NULL;
-      }
-   }
-   else
-      tqstr = qstr;
-
-   MySQLData *d_mysql =(MySQLData *)ds->private_data;
-   MYSQL *db = d_mysql->db;
-   
-   MYSQL_STMT *stmt = mysql_stmt_init(db);
-
-   class QoreNode *rv = NULL;
-
-   if (!mysql_stmt_prepare(stmt, tqstr->getBuffer(), tqstr->strlen()))
-   {
-      MYSQL_RES *res = mysql_stmt_result_metadata(stmt);
-      if (res)
-      {
-	 class MyResult myres(res);
-
-	 if (!mysql_stmt_execute(stmt))
-	 {
-	    Hash *h = new Hash();
-
-	    for (int i = 0; i < myres.getNumFields(); i++)
-	       h->setKeyValue(myres.getFieldName(i), new QoreNode(new List()), NULL);
-
-	    if (mysql_stmt_affected_rows(stmt))
-	    {
-	       myres.bind(stmt);
-
-	       while (!mysql_stmt_fetch(stmt))
-		  for (int i = 0; i < myres.getNumFields(); i++)
-		     h->getKeyValue(myres.getFieldName(i))->val.list->push(myres.getBoundColumnValue(ds->qorecharset, i));
-	    }
-	    rv = new QoreNode(h);
-	 }
-	 else
-	    xsink->raiseException("DBI:MYSQL:ERROR", (char *)mysql_error(db));
-      }
-      else
-      {
-	 if (!mysql_stmt_execute(stmt))
-	    rv = new QoreNode((int64)mysql_stmt_affected_rows(stmt));
-	 else
-	    xsink->raiseException("DBI:MYSQL:ERROR", (char *)mysql_error(db));
-      }
-   }
-   else
-      xsink->raiseException("DBI:MYSQL:ERROR", (char *)mysql_error(db));
-
-   mysql_stmt_close(stmt);
-
-   if (tqstr != qstr)
-      delete tqstr;
-
-   traceout("qore_mysql_do_sql()");
-   return rv;
-}
-
-static class QoreNode *qore_mysql_do_sql_horizontal(class Datasource *ds, QoreString *qstr, class List *args, ExceptionSink *xsink)
-{
-   tracein("qore_mysql_select_horizontal()");
-
-   // convert string if necessary
-   class QoreString *tqstr;
-
-   if (qstr->getEncoding() != ds->qorecharset)
-   {
-      tqstr = qstr->convertEncoding(ds->qorecharset, xsink);
-      if (xsink->isEvent())
-      {
-	 traceout("qore_mysql_select_horizontal()");
-         return NULL;
-      }
-   }
-   else
-      tqstr = qstr;
-
-   MySQLData *d_mysql =(MySQLData *)ds->private_data;
-   MYSQL *db = d_mysql->db;
-   
-   MYSQL_STMT *stmt = mysql_stmt_init(db);
-
-   class QoreNode *rv = NULL;
-
-   if (!mysql_stmt_prepare(stmt, tqstr->getBuffer(), tqstr->strlen()))
-   {
-      MYSQL_RES *res = mysql_stmt_result_metadata(stmt);
-      if (res)
-      {
-	 class MyResult myres(res);
-
-	 if (!mysql_stmt_execute(stmt))
-	 {
-	    List *l = new List();
-
-	    if (mysql_stmt_affected_rows(stmt))
-	    {
-	       myres.bind(stmt);
-
-	       while (!mysql_stmt_fetch(stmt))
-	       {
-		  class Hash *h = new Hash();
-
-		  for (int i = 0; i < myres.getNumFields(); i++)
-		     h->setKeyValue(myres.getFieldName(i), myres.getBoundColumnValue(ds->qorecharset, i), NULL);
-
-		  l->push(new QoreNode(h));
-	       }
-	    }
-
-	    rv = new QoreNode(l);
-	 }
-	 else
-	    xsink->raiseException("DBI:MYSQL:ERROR", (char *)mysql_error(db));
-      }
-      else
-      {
-	 if (!mysql_stmt_execute(stmt))
-	    rv = new QoreNode((int64)mysql_stmt_affected_rows(stmt));
-	 else
-	    xsink->raiseException("DBI:MYSQL:ERROR", (char *)mysql_error(db));
-      }
-   }
-   else
-      xsink->raiseException("DBI:MYSQL:ERROR", (char *)mysql_error(db));
-
-   mysql_stmt_close(stmt);
-
-   if (tqstr != qstr)
-      delete tqstr;
-
-   traceout("qore_mysql_select_horizontal()");
-   return rv;
-}
-*/
 #else  // !HAVE_MYSQL_STMT
 static class Hash *get_result_set(class Datasource *ds, MYSQL_RES *res)
 {
@@ -967,7 +816,7 @@ static class Hash *get_result_set(class Datasource *ds, MYSQL_RES *res)
 	    
 	    // the rest defaults to string
 	    default:
-	       n = new QoreNode(new QoreString(row[i], ds->qorecharset));
+	       n = new QoreNode(new QoreString(row[i], ds->getQoreEncoding()));
 	       break;
 	 }
 	 //printd(5, "get_result_set() row %d col %d: %s (type=%d)=\"%s\"\n", rn, i, field[i].name, field[i].type, row[i]);
@@ -985,16 +834,16 @@ static class QoreNode *qore_mysql_do_sql(class Datasource *ds, QoreString *qstr,
    // convert string if necessary
    class QoreString *tqstr;
 
-   if (qstr->getEncoding() != ds->qorecharset)
+   if (qstr->getEncoding() != ds->getQoreEncoding())
    {
-      tqstr = qstr->convertEncoding(ds->qorecharset, xsink);
+      tqstr = qstr->convertEncoding(ds->getQoreEncoding(), xsink);
       if (xsink->isEvent())
          return NULL;
    }
    else
       tqstr = qstr;
 
-   MySQLData *d_mysql =(MySQLData *)ds->private_data;
+   MySQLData *d_mysql =(MySQLData *)ds->getPrivateData();
    MYSQL *db = d_mysql->db;
    
    d_mysql->lck.lock();
@@ -1124,14 +973,14 @@ static int qore_mysql_close_datasource(class Datasource *ds)
 
    checkInit();
 
-   class MySQLData *d_mysql = (MySQLData *)ds->private_data;
+   class MySQLData *d_mysql = (MySQLData *)ds->getPrivateData();
    
-   printd(3, "qore_mysql_close_datasource(): connection to %s closed.\n", ds->dbname);
+   printd(3, "qore_mysql_close_datasource(): connection to %s closed.\n", ds->getDBName());
    
    mysql_close(d_mysql->db);
    
    delete d_mysql;
-   ds->private_data = NULL;
+   ds->setPrivateData(NULL);
    
    traceout("qore_mysql_close_datasource()");
 

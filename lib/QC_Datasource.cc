@@ -50,16 +50,16 @@ static void DS_constructor(class Object *self, class QoreNode *params, Exception
    class ManagedDatasource *ds = new ManagedDatasource(db_driver);
 
    if ((p = test_param(params, NT_STRING, 1)))
-      ds->setUsername(p->val.String->getBuffer());
+      ds->setPendingUsername(p->val.String->getBuffer());
 
    if ((p = test_param(params, NT_STRING, 2)))
-      ds->setPassword(p->val.String->getBuffer());
+      ds->setPendingPassword(p->val.String->getBuffer());
 
    if ((p = test_param(params, NT_STRING, 3)))
-      ds->setDBName(p->val.String->getBuffer());
+      ds->setPendingDBName(p->val.String->getBuffer());
    
    if ((p = test_param(params, NT_STRING, 4)))
-      ds->setCharset(p->val.String->getBuffer());
+      ds->setPendingDBEncoding(p->val.String->getBuffer());
    
    self->setPrivate(CID_DATASOURCE, ds);
 }
@@ -194,7 +194,7 @@ static QoreNode *DS_setUserName(class Object *self, class ManagedDatasource *ds,
    if (!p)
       return NULL;
 
-   ds->setUsername(p->val.String->getBuffer());
+   ds->setPendingUsername(p->val.String->getBuffer());
    return NULL;
 }
 
@@ -204,7 +204,7 @@ static QoreNode *DS_setPassword(class Object *self, class ManagedDatasource *ds,
    if (!p)
       return NULL;
 
-   ds->setPassword(p->val.String->getBuffer());
+   ds->setPendingPassword(p->val.String->getBuffer());
    return NULL;
 }
 
@@ -214,7 +214,7 @@ static QoreNode *DS_setDBName(class Object *self, class ManagedDatasource *ds, c
    if (!p)
       return NULL;
 
-   ds->setDBName(p->val.String->getBuffer());
+   ds->setPendingDBName(p->val.String->getBuffer());
    return NULL;
 }
 
@@ -224,7 +224,7 @@ static QoreNode *DS_setDBCharset(class Object *self, class ManagedDatasource *ds
    if (!p)
       return NULL;
 
-   ds->setCharset(p->val.String->getBuffer());
+   ds->setPendingDBEncoding(p->val.String->getBuffer());
    return NULL;
 }
 
@@ -234,38 +234,39 @@ static QoreNode *DS_setHostName(class Object *self, class ManagedDatasource *ds,
    if (!p)
       return NULL;
 
-   ds->setHostName(p->val.String->getBuffer());
+   ds->setPendingHostName(p->val.String->getBuffer());
    return NULL;
 }
 
 static QoreNode *DS_getUserName(class Object *self, class ManagedDatasource *ds, class QoreNode *params, ExceptionSink *xsink)
 {
-   return ds->getUsername();
+   return ds->getPendingUsername();
 }
 
 static QoreNode *DS_getPassword(class Object *self, class ManagedDatasource *ds, class QoreNode *params, ExceptionSink *xsink)
 {
-   return ds->getPassword();
+   return ds->getPendingPassword();
 }
 
 static QoreNode *DS_getDBName(class Object *self, class ManagedDatasource *ds, class QoreNode *params, ExceptionSink *xsink)
 {
-   return ds->getDBName();
+   return ds->getPendingDBName();
 }
 
 static QoreNode *DS_getDBCharset(class Object *self, class ManagedDatasource *ds, class QoreNode *params, ExceptionSink *xsink)
 {
-   return ds->getCharset();
+   return ds->getPendingDBEncoding();
 }
 
 static QoreNode *DS_getOSCharset(class Object *self, class ManagedDatasource *ds, class QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(ds->qorecharset ? ds->qorecharset->code : "(unknown)");
+   class QoreEncoding *enc = ds->getQoreEncoding();
+   return new QoreNode(enc ? enc->code : "(unknown)");
 }
 
 static QoreNode *DS_getHostName(class Object *self, class ManagedDatasource *ds, class QoreNode *params, ExceptionSink *xsink)
 {
-   return ds->getHostName();
+   return ds->getPendingHostName();
 }
 
 static QoreNode *DS_setTransactionLockTimeout(class Object *self, class ManagedDatasource *ds, class QoreNode *params, ExceptionSink *xsink)

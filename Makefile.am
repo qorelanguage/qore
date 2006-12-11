@@ -87,6 +87,7 @@ noinst_HEADERS = \
 	include/qore/QoreSSLBase.h \
 	include/qore/QoreWarnings.h \
 	include/qore/Datasource.h \
+	include/qore/ManagedDatasource.h \
 	include/qore/QT_NOTHING.h \
 	include/qore/QT_bigint.h \
 	include/qore/QT_float.h \
