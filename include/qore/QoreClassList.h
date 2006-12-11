@@ -34,6 +34,8 @@
 class QoreClassList
 {
    private:
+      hm_qc_t hm;        // hash_map for name lookups
+      
       DLLLOCAL void deleteAll();
       DLLLOCAL void assimilate(QoreClassList *n);
       DLLLOCAL void remove(hm_qc_t::iterator i)
@@ -45,8 +47,6 @@ class QoreClassList
       }
             
    public:
-      hm_qc_t hm;        // hash_map for name lookups
-      
       DLLLOCAL QoreClassList() {}
       DLLLOCAL ~QoreClassList();
       DLLLOCAL int add(class QoreClass *ot);

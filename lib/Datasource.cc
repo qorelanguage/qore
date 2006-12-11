@@ -307,12 +307,10 @@ void Datasource::setDBEncoding(char *name)
    db_encoding = strdup(name);
 }
 
-/*
 void Datasource::setQoreEncoding(char *name)
 {
    qorecharset = QEM.findCreate(name);
 }
-*/
 
 void Datasource::setQoreEncoding(class QoreEncoding *enc)
 {

@@ -72,6 +72,7 @@ class Datasource
       DLLEXPORT void setDBEncoding(char *name);
       DLLEXPORT class QoreEncoding *getQoreEncoding() const;
       DLLEXPORT void setQoreEncoding(class QoreEncoding *enc);
+      DLLEXPORT void setQoreEncoding(char *name);
 
       DLLLOCAL Datasource(DBIDriver *);
       DLLLOCAL ~Datasource();

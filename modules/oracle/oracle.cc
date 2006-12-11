@@ -1113,7 +1113,7 @@ static int oracle_open(Datasource *ds, ExceptionSink *xsink)
 
    if (need_to_set_charset)
    {
-      // map Oracle character set name to QORE character set
+      // map Oracle character encoding name to QORE/OS character encoding name
       if ((OCINlsNameMap(d_ora->envhp, (oratext *)nbuf, OCI_NLS_MAXBUFSZ, (oratext *)ds->getDBEncoding(), OCI_NLS_CS_ORA_TO_IANA) == OCI_SUCCESS))
       {
 	 printd(5, "oracle_open() Oracle character set '%s' mapped to '%s' character set\n", ds->getDBEncoding(), nbuf);
