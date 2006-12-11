@@ -34,7 +34,7 @@ static inline int gettid();
 
 class Gate
 {
-      friend class VRMutex;
+   friend class VRMutex;
 
    private:
       int code;
@@ -44,106 +44,13 @@ class Gate
       pthread_cond_t cwait;
 
    public:
-      inline Gate();
-      inline ~Gate();
-      inline int enter(int c = gettid());
-      inline int tryEnter(int c = gettid());
-      inline int exit();
-      inline int numInside();
-      inline int numWaiting();
+      Gate();
+      ~Gate();
+      int enter(int c = gettid());
+      int tryEnter(int c = gettid());
+      int exit();
+      int numInside();
+      int numWaiting();
 };
 
-inline Gate::Gate()
-{
-   pthread_mutex_init(&m, NULL);
-   pthread_cond_init(&cwait, NULL);
-   code    = G_NOBODY;
-   count   = 0;
-   waiting = 0;
-}
-
-inline Gate::~Gate()
-{
-   pthread_mutex_destroy(&m);
-   pthread_cond_destroy(&cwait);
-}
-
-inline int Gate::enter(int c)
-{
-   //fprintf(stderr, "Gate::enter(%d) %08p\n", c, this);
-   pthread_mutex_lock(&m);
-   if (c == G_NOBODY)
-   {
-      pthread_mutex_unlock(&m);
-      return -1;
-   }
-   while (code != G_NOBODY && code != c)
-   {
-      waiting++;
-      pthread_cond_wait(&cwait, &m);
-      waiting--;
-   }
-   code = c;
-   count++;
-   pthread_mutex_unlock(&m);
-   return 0;
-}
-
-inline int Gate::exit()
-{
-   //fprintf(stderr, "Gate::exit() %08p\n", this);
-   pthread_mutex_lock(&m);
-   // if the lock is not locked, then return an error
-   if (!count)
-   {
-      pthread_mutex_unlock(&m);
-      return -1;
-   }
-   count--;
-   // if this is the last thread from the group to exit the lock
-   // then unlock the lock
-   if (!count)
-   {
-      code = G_NOBODY;
-      // wake up a sleeping thread if there are threads waiting 
-      // on the lock
-      if (waiting)
-	 pthread_cond_signal(&cwait);
-   }
-   pthread_mutex_unlock(&m);
-
-   return 0;
-}
-
-inline int Gate::tryEnter(int c)
-{
-   pthread_mutex_lock(&m);
-   if (c == G_NOBODY)
-   {
-      pthread_mutex_unlock(&m);
-      return -1;
-   }
-
-   if (code != G_NOBODY && code != c)
-   {
-      pthread_mutex_unlock(&m);
-      return -2;
-   }
-   code = c;
-   count++;
-
-   pthread_mutex_unlock(&m);
-   return 0;
-}
-
-inline int Gate::numInside() 
-{ 
-   return count; 
-}
-
-inline int Gate::numWaiting() 
-{ 
-   return waiting;
-}
-
-#endif // _QORE_OBJECTS_GATE_H
+#endif // _QORE_GATE_H

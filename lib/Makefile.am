@@ -60,6 +60,7 @@ libqore_la_SOURCES = \
 	VRMutex.cc \
 	CallStack.cc \
 	ExecArgList.cc \
+	Gate.cc \
 	QT_NOTHING.cc \
 	QT_bigint.cc \
 	QT_float.cc \
