@@ -31,6 +31,7 @@
 #include <qore/Object.h>
 #include <qore/minitest.hpp>
 #include <qore/BuiltinFunctionList.h>
+#include <qore/QoreNode.h>
 
 #include "tuxedo_module.h"
 #include <atmi.h>

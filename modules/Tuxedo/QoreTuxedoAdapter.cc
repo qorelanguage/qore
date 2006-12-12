@@ -1726,8 +1726,7 @@ static void do_test(bool is_fml32)
   QoreTuxedoAdapter adapter(empty, &xsink);
   Hash* res = adapter.generateFmlDescription(500, typed_names, is_fml32, &xsink);
   if (xsink) {
-    Exception* e = xsink.catchException();
-    printf("File %s, line %d threw\n", e->file, e->line);
+    assert(false);
   }
   assert(res);
 
@@ -2366,8 +2365,7 @@ static void do_test2(bool is_fml32)
   QoreTuxedoAdapter adapter;
   Hash* res = adapter.generateFmlDescription(500, typed_names, is_fml32, &xsink);
   if (xsink) {
-    Exception* e = xsink.catchException();
-    printf("File %s, line %d threw\n", e->file, e->line);
+    assert(false);
   }
   assert(res);
 
