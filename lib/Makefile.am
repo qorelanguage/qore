@@ -64,6 +64,7 @@ libqore_la_SOURCES = \
 	NamedScope.cc \
 	RWLock.cc \
 	QoreSSLCertificate.cc \
+	QoreSSLPrivateKey.cc \
 	QT_NOTHING.cc \
 	QT_bigint.cc \
 	QT_float.cc \

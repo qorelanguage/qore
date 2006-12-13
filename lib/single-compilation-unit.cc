@@ -44,6 +44,7 @@
 #include "NamedScope.cc"
 #include "RWLock.cc"
 #include "QoreSSLCertificate.cc"
+#include "QoreSSLPrivateKey.cc"
 #include "QT_NOTHING.cc"
 #include "QT_bigint.cc"
 #include "QT_float.cc"
