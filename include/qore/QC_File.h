@@ -24,8 +24,8 @@
 
 #define _QORE_CLASS_FILE_H
 
-extern int CID_FILE;
-class QoreClass *initFileClass();
+DLLEXPORT extern int CID_FILE;
+DLLLOCAL class QoreClass *initFileClass();
 static inline void addFileConstants(class Namespace *ns);
 
 #include <qore/QoreFile.h>
@@ -34,10 +34,10 @@ static inline void addFileConstants(class Namespace *ns);
 class File : public AbstractPrivateData, public QoreFile
 {
    protected:
-      virtual ~File() {}
+      DLLLOCAL virtual ~File() {}
 
    public:
-      inline File(class QoreEncoding *cs) : QoreFile(cs) {}
+      DLLLOCAL inline File(class QoreEncoding *cs) : QoreFile(cs) {}
 };
 
 static inline void addFileConstants(class Namespace *ns)

@@ -27,6 +27,7 @@
 #define _QORE_LIST_H
 
 class List {   
+   private:
       class QoreNode **entry;
       int length;
       int allocated;
@@ -35,9 +36,9 @@ class List {
       DLLLOCAL void resize(int num);
       DLLLOCAL void splice_intern(int offset, int length, class ExceptionSink *xsink);
       DLLLOCAL void splice_intern(int offset, int length, class QoreNode *l, class ExceptionSink *xsink);
-      DLLLOCAL inline void check_offset(int &offset);
-      DLLLOCAL inline void check_offset(int &offset, int &len);
-      DLLLOCAL inline void deref_intern(class ExceptionSink *xisnk);
+      DLLLOCAL void check_offset(int &offset);
+      DLLLOCAL void check_offset(int &offset, int &len);
+      DLLLOCAL void deref_intern(class ExceptionSink *xisnk);
 
    protected:
       DLLEXPORT ~List();
@@ -71,18 +72,9 @@ class List {
       DLLEXPORT void splice(int offset, class ExceptionSink *xsink);
       DLLEXPORT void splice(int offset, int length, class ExceptionSink *xsink);
       DLLEXPORT void splice(int offset, int length, class QoreNode *l, class ExceptionSink *xsink);
-      DLLEXPORT inline int size() const
-      {
-	 return length;
-      }
-      DLLEXPORT inline bool needsEval() const
-      {
-	 return needs_eval;
-      }
-      DLLEXPORT inline void clearNeedsEval()
-      {
-	 needs_eval = false;
-      }
+      DLLEXPORT int size() const;
+      DLLEXPORT bool needsEval() const;
+      DLLEXPORT void clearNeedsEval();
 };
 
 class ListIterator
@@ -92,36 +84,12 @@ class ListIterator
       class List *l;
    
    public:
-      DLLEXPORT inline ListIterator(class List *lst) { l = lst; pos = -1; }
-
-      DLLEXPORT inline bool next() 
-      { 
-	 if (pos < 0)
-	 {
-	    if (l->size())
-	       pos = 0;
-	 }
-	 else
-	 {
-	    if (++pos == l->size())
-	       pos = -1;
-	 }
-	 return pos >= 0;
-      }
-      DLLEXPORT inline class QoreNode *getValue() const
-      {
-	 if (pos < 0)
-	    return NULL;
-	 return l->retrieve_entry(pos);
-      }
-      DLLEXPORT inline class QoreNode **getValuePtr()
-      {
-	 if (pos < 0)
-	    return NULL;
-	 return l->get_entry_ptr(pos);
-      }
+      DLLEXPORT inline ListIterator(class List *lst);
+      DLLEXPORT inline bool next();
+      DLLEXPORT inline class QoreNode *getValue() const;
+      DLLEXPORT inline class QoreNode **getValuePtr() const;
       DLLEXPORT inline class QoreNode *eval(class ExceptionSink *xsink) const;
-      DLLEXPORT inline bool last() { return (bool)(pos == (l->size() - 1)); } 
+      DLLEXPORT inline bool last() const;
       //void setValue(class QoreNode *val, class ExceptionSink *xsink);
 };
 

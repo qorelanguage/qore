@@ -48,7 +48,7 @@ using namespace std;
 #define LIST_BLOCK 20
 #define LIST_PAD   15
 
-inline void List::check_offset(int &offset)
+void List::check_offset(int &offset)
 {
    if (offset < 0)
    {
@@ -60,7 +60,7 @@ inline void List::check_offset(int &offset)
       offset = length;
 }
 
-inline void List::check_offset(int &offset, int &len)
+void List::check_offset(int &offset, int &len)
 {
    check_offset(offset);
    if (len < 0)
@@ -386,7 +386,7 @@ class QoreNode *List::sortDescending() const
 }
 
 // does a deep dereference
-inline void List::deref_intern(ExceptionSink *xsink)
+void List::deref_intern(ExceptionSink *xsink)
 {
 //   tracein("List::dereference()");
    for (int i = 0; i < length; i++)
@@ -525,3 +525,57 @@ void List::splice_intern(int offset, int len, class QoreNode *l, class Exception
 	 entry[offset + i] = l->val.list->retrieve_entry(i) ? l->val.list->retrieve_entry(i)->RefSelf() : NULL;
 }
 
+int List::size() const
+{
+   return length;
+}
+
+bool List::needsEval() const
+{
+   return needs_eval;
+}
+
+void List::clearNeedsEval()
+{
+   needs_eval = false;
+}
+
+ListIterator::ListIterator(class List *lst) 
+{ 
+   l = lst; 
+   pos = -1; 
+}
+
+bool ListIterator::next() 
+{ 
+   if (pos < 0)
+   {
+      if (l->size())
+	 pos = 0;
+   }
+   else
+   {
+      if (++pos == l->size())
+	 pos = -1;
+   }
+   return pos >= 0;
+}
+
+class QoreNode *ListIterator::getValue() const
+{
+   if (pos < 0)
+      return NULL;
+   return l->retrieve_entry(pos);
+}
+
+class QoreNode **ListIterator::getValuePtr() const
+{
+   if (pos < 0)
+      return NULL;
+   return l->get_entry_ptr(pos);
+}
+
+bool ListIterator::last() const
+{ 
+   return (bool)(pos == (l->size() - 1)); 
+} 

@@ -60,11 +60,11 @@ class Namespace
       DLLLOCAL class QoreClass *parseMatchScopedClass(class NamedScope *name, int *matched) const;
       DLLLOCAL class QoreClass *parseMatchScopedClassWithMethod(class NamedScope *nscope, int *matched) const;
       DLLLOCAL class Namespace *parseMatchNamespace(class NamedScope *nscope, int *matched) const;
-      DLLLOCAL inline void init();
+      DLLLOCAL void init();
       DLLLOCAL void assimilate(class Namespace *ns);
-      DLLLOCAL inline class Namespace *findNamespace(char *name) const;
-      DLLLOCAL inline class Namespace *resolveNameScope(class NamedScope *name) const;
-      DLLLOCAL inline class QoreNode *getConstantValue(char *name) const;
+      DLLLOCAL class Namespace *findNamespace(char *name) const;
+      DLLLOCAL class Namespace *resolveNameScope(class NamedScope *name) const;
+      DLLLOCAL class QoreNode *getConstantValue(char *name) const;
       DLLLOCAL Namespace(char *n, QoreClassList *ocl, ConstantList *cl, NamespaceList *nnsl);
       DLLLOCAL Namespace(QoreClassList *ocl, ConstantList *cl, NamespaceList *nnsl);
 
@@ -92,10 +92,7 @@ class Namespace
       DLLEXPORT class Hash *getClassInfo() const;
       DLLEXPORT class Hash *getConstantInfo() const;
       DLLEXPORT class Hash *getInfo() const;
-      DLLEXPORT char *getName() const
-      {
-	 return name;
-      }
+      DLLEXPORT char *getName() const;
 };
 
 class RootNamespace : public Namespace
@@ -103,15 +100,16 @@ class RootNamespace : public Namespace
    private:
       class Namespace *qoreNS;
 
-      DLLLOCAL inline class Namespace *rootResolveNamespace(class NamedScope *nscope);
-      DLLLOCAL inline void addQoreNamespace(class Namespace *qns);
+      DLLLOCAL class Namespace *rootResolveNamespace(class NamedScope *nscope);
+      DLLLOCAL void addQoreNamespace(class Namespace *qns);
       // private constructor
-      DLLLOCAL inline RootNamespace(QoreClassList *ocl, ConstantList *cl, NamespaceList *nnsl);
+      DLLLOCAL RootNamespace(QoreClassList *ocl, ConstantList *cl, NamespaceList *nnsl);
 
    public:
+      DLLEXPORT class Namespace *rootGetQoreNamespace() const;
+
       DLLLOCAL RootNamespace(class Namespace **QoreNS);
       DLLLOCAL ~RootNamespace();
-
       DLLLOCAL class RootNamespace *copy(int po = 0) const;
       DLLLOCAL class QoreClass *rootFindClass(char *name) const;
       DLLLOCAL class QoreClass *rootFindChangeClass(char *name);
@@ -134,10 +132,6 @@ class RootNamespace : public Namespace
       DLLLOCAL int resolveScopedConstant(class QoreNode **, int level) const;
       // returns 0 for success, non-zero for error
       DLLLOCAL int addMethodToClass(class NamedScope *name, class Method *qcmethod, class BCAList *bcal);
-      DLLEXPORT inline class Namespace *rootGetQoreNamespace() const
-      {
-	 return qoreNS;
-      }
 };
 
 #endif // QORE_NAMESPACE_H

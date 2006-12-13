@@ -27,14 +27,14 @@
 #include <qore/QoreGetOpt.h>
 #include <qore/AbstractPrivateData.h>
 
-extern int CID_GETOPT;
+DLLEXPORT extern int CID_GETOPT;
 
-class QoreClass *initGetOptClass();
+DLLLOCAL class QoreClass *initGetOptClass();
 
 class GetOpt : public AbstractPrivateData, public QoreGetOpt
 {
    protected:
-      virtual ~GetOpt() {}
+      DLLLOCAL virtual ~GetOpt() {}
 };
 
 #endif // _QORE_CLASS_GETOPT_H

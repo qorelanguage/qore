@@ -29,17 +29,17 @@
 #include <qore/AbstractPrivateData.h>
 #include <qore/FtpClient.h>
 
-extern int CID_FTPCLIENT;
+DLLEXPORT extern int CID_FTPCLIENT;
 
-class QoreClass *initFtpClientClass();
+DLLLOCAL class QoreClass *initFtpClientClass();
 
 class QoreFtpClient : public AbstractPrivateData, public FtpClient
 {
    protected:
-      virtual ~QoreFtpClient() {}
+      DLLLOCAL virtual ~QoreFtpClient() {}
 
    public:
-      inline QoreFtpClient(class QoreString *url, class ExceptionSink *xsink) : FtpClient(url, xsink) {}
+      DLLLOCAL inline QoreFtpClient(class QoreString *url, class ExceptionSink *xsink) : FtpClient(url, xsink) {}
 };
 
 #endif // _QORE_CLASS_FTPCLIENT_H

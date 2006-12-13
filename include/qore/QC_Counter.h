@@ -34,7 +34,7 @@ class QoreClass *initCounterClass();
 class Counter : public AbstractPrivateData, public QoreCounter
 {
    protected:
-      virtual ~Counter() {}
+      DLLLOCAL virtual ~Counter() {}
 };
 
 #endif // _QORE_CLASS_COUNTER_H

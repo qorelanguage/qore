@@ -22,9 +22,9 @@
 #ifndef QC_HTTP_CLIENT_H_
 #define QC_HTTP_CLIENT_H_
 
-extern int CID_HTTPCLIENT;
-extern QoreClass *initHTTPClientClass();
-extern Namespace* addHTTPClientNamespace();
+DLLEXPORT extern int CID_HTTPCLIENT;
+DLLLOCAL extern QoreClass *initHTTPClientClass();
+DLLLOCAL extern Namespace* addHTTPClientNamespace();
 
 #endif
 

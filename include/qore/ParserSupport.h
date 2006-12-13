@@ -94,7 +94,7 @@ static inline QoreNode *makeArgs(QoreNode *arg)
    return new QoreNode(l);
 }
 
-DLLLOCAL inline HashElement::HashElement(class QoreNode *k, class QoreNode *v)
+inline HashElement::HashElement(class QoreNode *k, class QoreNode *v)
 {
    //tracein("HashElement::HashElement()");
    if (k->type != NT_STRING)
@@ -109,7 +109,7 @@ DLLLOCAL inline HashElement::HashElement(class QoreNode *k, class QoreNode *v)
    //traceout("HashElement::HashElement()");
 }
 
-DLLLOCAL inline HashElement::HashElement(int tag, char *constant, class QoreNode *v)
+inline HashElement::HashElement(int tag, char *constant, class QoreNode *v)
 {
    //tracein("HashElement::HashElement()");
    key = (char *)malloc(sizeof(char) * strlen(constant) + 2);
@@ -120,7 +120,7 @@ DLLLOCAL inline HashElement::HashElement(int tag, char *constant, class QoreNode
    //traceout("HashElement::HashElement()");
 }
 
-DLLLOCAL inline HashElement::~HashElement()
+inline HashElement::~HashElement()
 {
    free(key);
 }

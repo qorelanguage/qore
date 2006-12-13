@@ -61,6 +61,9 @@ libqore_la_SOURCES = \
 	CallStack.cc \
 	ExecArgList.cc \
 	Gate.cc \
+	NamedScope.cc \
+	RWLock.cc \
+	QoreSSLCertificate.cc \
 	QT_NOTHING.cc \
 	QT_bigint.cc \
 	QT_float.cc \

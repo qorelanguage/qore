@@ -43,29 +43,11 @@ class NamedScope
       char **strlist;
       char *ostr;
 
-      NamedScope(char *str);
-      inline ~NamedScope();
-      inline char *getIdentifier() { return strlist[elements - 1]; }
-      inline class NamedScope *copy();
-      inline void fixBCCall()
-      {
-	 // fix last string pointer
-	 char *str = strlist[elements - 1];
-	 memmove(str, str + 2, strlen(str) - 1);
-      }
+      DLLLOCAL NamedScope(char *str);
+      DLLLOCAL ~NamedScope();
+      DLLLOCAL char *getIdentifier() const;
+      DLLLOCAL class NamedScope *copy() const;
+      DLLLOCAL void fixBCCall();
 };
-
-inline NamedScope::~NamedScope()
-{
-   for (int i = 0; i < elements; i++)
-      free(strlist[i]);
-   free(strlist);
-   free(ostr);
-}
-
-inline class NamedScope *NamedScope::copy()
-{
-   return new NamedScope(ostr);
-}
 
 #endif // QORE_NAMEDSCOPE_H

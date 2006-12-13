@@ -26,13 +26,10 @@
 
 #define _QORE_OPERATOR_H
 
-#include <string.h>
-#include <stdlib.h>
-
-#include <qore/node_types.h>
+#include <qore/safe_dslist>
 
 // system default operators
-extern class Operator *OP_ASSIGNMENT, *OP_LOG_AND, *OP_LOG_OR, *OP_LOG_LT, 
+DLLEXPORT extern class Operator *OP_ASSIGNMENT, *OP_LOG_AND, *OP_LOG_OR, *OP_LOG_LT, 
    *OP_LOG_GT, *OP_LOG_EQ, *OP_LOG_NE, *OP_LOG_LE, *OP_LOG_GE, *OP_MODULA, 
    *OP_BIN_AND, *OP_BIN_OR, *OP_BIN_NOT, *OP_BIN_XOR, *OP_MINUS, *OP_PLUS, 
    *OP_MULT, *OP_DIV, *OP_UNARY_MINUS, *OP_NOT, *OP_SHIFT_LEFT, *OP_SHIFT_RIGHT, 
@@ -46,29 +43,18 @@ extern class Operator *OP_ASSIGNMENT, *OP_LOG_AND, *OP_LOG_OR, *OP_LOG_LT,
    *OP_XOR_EQUALS, *OP_SHIFT_LEFT_EQUALS, *OP_SHIFT_RIGHT_EQUALS, *OP_INSTANCEOF,
    *OP_REGEX_TRANS, *OP_REGEX_EXTRACT, *OP_CHOMP;
 
-class OperatorList {
-   private:
-      int num;
-      class Operator *head, *tail;
+typedef safe_dslist<Operator *> oplist_t;
 
+class OperatorList : public oplist_t
+{
    public:
-      inline OperatorList()
-      {
-	 head = tail = NULL;
-	 num = 0;
-      }
-      inline ~OperatorList();
-      inline class Operator *add(class Operator *o);
-      inline int size()
-      {
-	 return num;
-      }
-      class Operator *getHead() { return head; }
+      DLLLOCAL OperatorList();
+      DLLLOCAL ~OperatorList();
+      DLLLOCAL void init();
+      DLLLOCAL class Operator *add(class Operator *o);
 };
 
-extern class OperatorList oplist;
-
-void operatorsInit();
+DLLLOCAL extern class OperatorList oplist;
 
 typedef class QoreNode *(* op_func_t)(class QoreNode *l, class QoreNode *r, class ExceptionSink *xsink);
 
@@ -83,151 +69,26 @@ class Operator {
    private:
       int functionsAllocated;
       int (*opMatrix)[NUM_VALUE_TYPES];
-
-      int findFunction(class QoreType *ltype, class QoreType *rtype);
       bool effect, lvalue;
-
-   public:
+      char *name, *description;
       int args;
-      char *name;
-      char *description;
       int evalArgs;
       int numFunctions;
       class OperatorFunction *functions;
-      class Operator *next;
+      
+      DLLLOCAL int findFunction(class QoreType *ltype, class QoreType *rtype) const; 
+      DLLLOCAL static int match(class QoreType *ntype, class QoreType *rtype);
 
-      inline Operator(int arg, char *n, char *desc, int ev, bool eff, bool lv = false)
-      {
-	 numFunctions = 0;
-	 functionsAllocated = 0;
-	 functions = NULL;
-	 args = arg;
-	 name = n;
-	 description = desc;
-	 evalArgs = ev;
-	 opMatrix = NULL;
-	 next = NULL;
-	 effect = eff;
-	 lvalue = lv;
-      }
-      inline ~Operator()
-      {
-	 if (functions)
-	    free(functions);
-	 if (opMatrix)
-	    delete [] opMatrix;
-      }
-      inline bool hasEffect() { return effect; }
-      inline bool needsLValue() { return lvalue; }
-      inline void addFunction(class QoreType *lt, class QoreType *rt, class QoreNode *(*f)(class QoreNode *l, class QoreNode *r, ExceptionSink *xsink));
-      //inline void removeFunction(int lt, int rt, class QoreNode *(*f)(class QoreNode *l, class QoreNode *r, ExceptionSink *xsink));
-      class QoreNode *eval(class QoreNode *l, class QoreNode *r, ExceptionSink *xsink);
-      void init();
+   public:
+      DLLLOCAL Operator(int arg, char *n, char *desc, int ev, bool eff, bool lv = false);
+      DLLLOCAL ~Operator();
+      DLLLOCAL bool hasEffect() const;
+      DLLLOCAL bool needsLValue() const;
+      DLLLOCAL void addFunction(class QoreType *lt, class QoreType *rt, class QoreNode *(*f)(class QoreNode *l, class QoreNode *r, ExceptionSink *xsink));
+      DLLLOCAL class QoreNode *eval(class QoreNode *l, class QoreNode *r, ExceptionSink *xsink) const;
+      DLLLOCAL void init();
+      DLLLOCAL char *getName() const;
+      DLLLOCAL char *getDescription() const;
 };
-
-#include <qore/common.h>
-#include <qore/support.h>
-#include <qore/QoreNode.h>
-
-inline OperatorList::~OperatorList()
-{
-   while (head)
-   {
-      class Operator *w = head->next;
-      delete head;
-      head = w;
-   }
-}
-
-inline class Operator *OperatorList::add(class Operator *o)
-{
-   if (!tail)
-      head = o;
-   else
-      tail->next = o;
-   tail = o;
-   return o;
-}
-
-// if there is no exact match, the first partial match
-// counts as a match
-static inline int match(class QoreType *ntype, class QoreType *rtype)
-{
-   // if any type is OK, or an exact match
-   if (rtype == NT_ALL || ntype == rtype || (rtype == NT_VARREF && ntype == NT_SELF_VARREF))
-      return 1;
-   // otherwise fail
-   else
-      return 0;
-}
-
-inline int Operator::findFunction(class QoreType *ltype, class QoreType *rtype)
-{
-   int i, m = -1;
-
-   //tracein("Operator::findFunction()");
-   //printd(5, "Operator::findFunction() %s: ltype=%d rtype=%d total=%d\n", description, ltype, rtype, numFunctions);
-   // loop through all operator functions
-   for (i = 0; i < numFunctions; i++)
-   {
-      // check for a match on the left side
-      if (match(ltype, functions[i].ltype))
-      {
-	 /* if there is only one operator or there is also
-	  * a match on the right side, return */
-	 if ((args == 1) || 
-	     ((args == 2) && match(rtype, functions[i].rtype)))
-	    return i;
-	 if (m == -1)
-	    m = i;
-	 continue;
-      }
-      if ((args == 2) && match(rtype, functions[i].rtype) 
-	  && (m == -1))
-	 m = i;
-   }
-/* if there is no match of any kind, take the highest priority function
- * (row 0), and try to convert the arguments, otherwise return the best 
- * partial match
- */
-   //traceout("Operator::findFunction()");
-   return m == -1 ? 0 : m;
-}
-
-#define OPFUNC_BLOCK 10
-inline void Operator::addFunction(class QoreType *lt, class QoreType *rt, class QoreNode *(*f)(class QoreNode *l, class QoreNode *r, ExceptionSink *xsink))
-{
-   // resize function array if necessary
-   if (numFunctions == functionsAllocated)
-   {
-      functionsAllocated += OPFUNC_BLOCK;
-      functions = (OperatorFunction *)realloc(functions, sizeof (OperatorFunction) * functionsAllocated);
-   }
-   functions[numFunctions].ltype = lt;
-   functions[numFunctions].rtype = rt;
-   functions[numFunctions++].op_func = f;
-}
-
-/*
-inline void Operator::removeFunction(int lt, int rt, class QoreNode *(*f)(class QoreNode *l, class QoreNode *r, ExceptionSink *xsink))
-{
-   int i;
-
-   for (i = 0; i < numFunctions; i++)
-      if (functions[i].ltype == lt &&
-	  functions[i].rtype == rt && 
-	  functions[i].op_func == f)
-      {
-	 numFunctions--;
-	 if (i == numFunctions)
-	    return;
-	 memmove(&functions[i], &functions[i+1], sizeof(OperatorFunction) * (numFunctions - i));
-      }
-#ifdef DEBUG
-   run_time_error("Operator(%s)::removeFunction(%d, %d, %08p) cannot be found in the list!",
-	  description, lt, rt, f);
-#endif
-}
-*/
 
 #endif

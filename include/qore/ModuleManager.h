@@ -24,11 +24,14 @@
 
 #define _QORE_MODULEMANAGER_H
 
+#include <qore/common.h>
 #include <qore/StringList.h>
 #include <qore/LockedObject.h>
 
 #include <stdio.h>
 #include <string.h>
+
+#include <map>
 
 #define QORE_MODULE_API_MAJOR 0
 #define QORE_MODULE_API_MINOR 2
@@ -47,117 +50,56 @@ class ModuleInfo {
       void *dlptr;
 
    public:
-      class ModuleInfo *next;
-      
-      inline ModuleInfo(char *fn, char *n, int major, int minor, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del, char *d, char *v, char *a, char *u, void *p)
-      {
-	 filename = strdup(fn);
-	 name = n;
-	 api_major = major;
-	 api_minor = minor;
-	 module_init = init;
-	 module_ns_init = ns_init;
-	 module_delete = del;
-	 desc = d;
-	 version = v;
-	 author = a;
-	 url = u;
-	 dlptr = p;
-      }
+      DLLLOCAL ModuleInfo(char *fn, char *n, int major, int minor, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del, char *d, char *v, char *a, char *u, void *p);
       // for "builtin" modules
-      inline ModuleInfo(char *feature, qore_module_delete_t del);
-      ~ModuleInfo();
-      inline char *getName()
-      {
-	 return name;
-      }
-      inline char *getFileName()
-      {
-	 return filename;
-      }
-      inline char *getDesc()
-      {
-	 return desc;
-      }
-      inline char *getVersion()
-      {
-	 return version;
-      }
-      inline char *getURL()
-      {
-	 return url;
-      }
-      inline int getAPIMajor()
-      {
-	 return api_major;
-      }
-      inline int getAPIMinor()
-      {
-	 return api_minor;
-      }
-      inline void ns_init(class Namespace *rns, class Namespace *qns)
-      {
-	 module_ns_init(rns, qns);
-      }
-      inline bool isBuiltin()
-      {
-	 return !dlptr;
-      }
-      class Hash *getHash();
+      DLLLOCAL ModuleInfo(char *feature, qore_module_delete_t del);
+      DLLLOCAL ~ModuleInfo();
+      DLLLOCAL char *getName() const;
+      DLLLOCAL char *getFileName() const;
+      DLLLOCAL char *getDesc() const;
+      DLLLOCAL char *getVersion() const;
+      DLLLOCAL char *getURL() const;
+      DLLLOCAL int getAPIMajor() const;
+      DLLLOCAL int getAPIMinor() const;
+      DLLLOCAL void ns_init(class Namespace *rns, class Namespace *qns) const;
+      DLLLOCAL bool isBuiltin() const;
+      DLLLOCAL class Hash *getHash() const;
 };
 
-class ModuleManager : public LockedObject
+typedef std::map<char *, ModuleInfo *, class ltstr> module_map_t;
+
+class ModuleManager : public LockedObject, module_map_t
 {
    private:
-      class ModuleInfo *head;
-      int num;
       bool show_errors;
       class StringList autoDirList, moduleDirList;
 
-      inline void add(ModuleInfo *m)
-      {
-	 m->next = head;
-	 head = m;
-      }
-      inline void addBuiltin(char *fn, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del);
-      inline class ModuleInfo *add(char *fn, char *n, int major, int minor, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del, char *d, char *v, char *a, char *u, void *p)
-      {
-	 class ModuleInfo *m = new ModuleInfo(fn, n, major, minor, init, ns_init, del, d, v, a, u, p);
-	 add(m);
-	 num++;
-	 return m;
-      }
-      class QoreString *loadModuleFromPath(char *path, char *feature = NULL, class ModuleInfo **mi = NULL);
-      inline class ModuleInfo *find(char *name)
-      {
-	 class ModuleInfo *w = head;
-	 while (w)
-	 {
-	    if (!strcmp(name, w->getName()))
-	       break;
-	    w = w->next;
-	 }
-	 return w;
-      }
+      DLLLOCAL void add(ModuleInfo *m);
+      DLLLOCAL void addBuiltin(char *fn, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del);
+      DLLLOCAL class ModuleInfo *add(char *fn, char *n, int major, int minor, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del, char *d, char *v, char *a, char *u, void *p);
+      DLLLOCAL class QoreString *loadModuleFromPath(char *path, char *feature = NULL, class ModuleInfo **mi = NULL);
+      DLLLOCAL class ModuleInfo *find(char *name);
 
    public:
-      ModuleManager();
       // to add a directory to the QORE_MODULE_DIR list, can only be called before init()
-      void addModuleDir(char *dir);
+      DLLEXPORT void addModuleDir(char *dir);
       // to add a directory to the QORE_AUTO_MODULE_DIR list, can only be called before init()
-      void addAutoModuleDir(char *dir);
+      DLLEXPORT void addAutoModuleDir(char *dir);
       // to add a directory to the QORE_MODULE_DIR list, can only be called before init()
-      void addModuleDirList(char *strlist);
+      DLLEXPORT void addModuleDirList(char *strlist);
       // to add a directory to the QORE_AUTO_MODULE_DIR list, can only be called before init()
-      void addAutoModuleDirList(char *strlist);
-      // explicit initialization and autoloading
-      void init(bool se);
-      // explicit cleanup
-      void cleanup();
+      DLLEXPORT void addAutoModuleDirList(char *strlist);
       // retuns a list of module information hashes
-      class List *getModuleList();
+      DLLEXPORT class List *getModuleList();
       // loads the named module, returns -1 for error
-      class QoreString *loadModule(char *name, class QoreProgram *pgm = NULL);
+      DLLEXPORT class QoreString *loadModule(char *name, class QoreProgram *pgm = NULL);
+
+      // creates the ModuleManager object
+      DLLLOCAL ModuleManager();
+      // explicit initialization and autoloading
+      DLLLOCAL void init(bool se);      
+      // explicit cleanup
+      DLLLOCAL void cleanup();
 };
 
 extern class ModuleManager MM;

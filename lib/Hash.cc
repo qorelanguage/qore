@@ -36,6 +36,81 @@
 #  include "tests/Hash_tests.cc"
 #endif
 
+HashIterator::HashIterator(class HashMember *h) 
+{ 
+   ptr = NULL; 
+   head = h; 
+}
+
+HashIterator::HashIterator(class Hash *h) 
+{ 
+   ptr = NULL;
+   head = h->member_list; 
+}
+
+class QoreNode *HashIterator::eval(class ExceptionSink *xsink) const
+{
+   if (ptr && ptr->node)
+      return ptr->node->eval(xsink);
+   return NULL;
+}
+
+class QoreString *HashIterator::getKeyString() const
+{
+   if (!ptr)
+      return NULL;
+   
+   return new QoreString(ptr->key, QCS_DEFAULT);
+}
+
+/*
+ void HashIterator::setValue(class QoreNode *val, class ExceptionSink *xsink)
+ {
+    if (!ptr)
+       return;
+    
+    if (ptr->node)
+       ptr->node->deref(xsink);
+    ptr->node = val;
+ }
+ */
+
+class HashMember *HashIterator::next() 
+{ 
+   if (ptr) 
+      ptr = ptr->next;
+   else
+      ptr = head;
+   return ptr;
+}
+
+char *HashIterator::getKey() const
+{ 
+   if (!ptr)
+      return NULL;
+   
+   return ptr->key;
+}
+
+class QoreNode *HashIterator::getValue() const
+{
+   if (ptr)
+      return ptr->node;
+   return NULL;
+}
+
+class QoreNode **HashIterator::getValuePtr() const
+{
+   if (ptr)
+      return &(ptr->node);
+   return NULL;
+}
+
+bool HashIterator::last() const 
+{ 
+   return (bool)(ptr ? !ptr->next : false); 
+} 
+
 void Hash::internDeleteKey(class HashMember *om, class ExceptionSink *xsink)
 {
    // dereference node if present
@@ -279,32 +354,6 @@ Hash::Hash(bool ne)
    tail = NULL; 
 }
 
-class QoreNode *HashIterator::eval(class ExceptionSink *xsink) const
-{
-   if (ptr && ptr->node)
-      return ptr->node->eval(xsink);
-   return NULL;
-}
-
-class QoreString *HashIterator::getKeyString() const
-{
-   if (!ptr)
-      return NULL;
-
-   return new QoreString(ptr->key, QCS_DEFAULT);
-}
-
-/*
-void HashIterator::setValue(class QoreNode *val, class ExceptionSink *xsink)
-{
-   if (!ptr)
-      return;
-
-   if (ptr->node)
-      ptr->node->deref(xsink);
-   ptr->node = val;
-}
-*/
 
 class QoreNode *Hash::evalKey(char *key, class ExceptionSink *xsink) const
 {
@@ -480,3 +529,19 @@ void Hash::deleteKey(char *key, ExceptionSink *xsink)
    hm.erase(i);
    internDeleteKey(m, xsink);
 }
+
+int Hash::size() const 
+{ 
+   return hm.size(); 
+}
+
+bool Hash::needsEval() const
+{
+   return needs_eval;
+}
+
+void Hash::clearNeedsEval()
+{
+   needs_eval = false;
+}
+

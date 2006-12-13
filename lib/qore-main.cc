@@ -77,7 +77,7 @@ void qore_init(char *def_charset, bool show_module_errors)
    QTM.init();
 
    // set up core operators
-   operatorsInit();
+   oplist.init();
 
    builtinFunctions.init();
 

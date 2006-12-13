@@ -29,14 +29,14 @@
 #include <qore/Gate.h>
 #include <qore/AbstractPrivateData.h>
 
-extern int CID_GATE;
+DLLEXPORT extern int CID_GATE;
 
-class QoreClass *initGateClass();
+DLLLOCAL class QoreClass *initGateClass();
 
 class QoreGate : public AbstractPrivateData, public Gate
 {
    protected:
-      virtual ~QoreGate() {}
+      DLLLOCAL virtual ~QoreGate() {}
 };
 
 #endif // _QORE_CLASS_GATE_H

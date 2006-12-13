@@ -1,6 +1,8 @@
-/*
-  QC_Condition.h
-   
+/* 
+  RWLock.h
+
+  Read-Write Lock object (default: prefer readers)
+
   Qore Programming Language
 
   Copyright (C) 2003, 2004, 2005, 2006 David Nichols
@@ -20,22 +22,32 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _QORE_CLASS_CONDITION_H
+#ifndef _QORE_CLASS_RWLOCK
 
-#define _QORE_CLASS_CONDITION_H
+#define _QORE_CLASS_RWLOCK
 
-#include <qore/common.h>
-#include <qore/QoreCondition.h>
-#include <qore/AbstractPrivateData.h>
-
-extern int CID_CONDITION;
-
-class QoreClass *initConditionClass();
-
-class Condition : public AbstractPrivateData, public QoreCondition
+class RWLock
 {
+   private:
+      int readers, writers, readRequests, writeRequests;
+      pthread_mutex_t m;
+      pthread_cond_t read;
+      pthread_cond_t write;
+      bool prefer_writers;
+
    protected:
-      DLLLOCAL virtual ~Condition() {}
+
+   public:
+      DLLLOCAL RWLock(bool p = false);
+      DLLLOCAL ~RWLock();
+      DLLLOCAL void readLock();
+      DLLLOCAL void readUnlock();
+      DLLLOCAL int tryReadLock();
+      DLLLOCAL void writeLock();
+      DLLLOCAL void writeUnlock();
+      DLLLOCAL void writeToRead();
+      DLLLOCAL int tryWriteLock();
+      DLLLOCAL int numReaders() const;
 };
 
-#endif // _QORE_CLASS_CONDITION_H
+#endif // _QORE_CLASS_RWLOCK

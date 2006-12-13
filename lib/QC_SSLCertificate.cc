@@ -29,10 +29,7 @@
 #include <qore/support.h>
 #include <qore/Object.h>
 
-#include <openssl/ssl.h>
-#include <openssl/pem.h>
-
-int CID_SSLCERTIFICATE;
+DLLEXPORT int CID_SSLCERTIFICATE;
 
 /*
 void createSSLCertificateObject(class Object *self, X509 *cert)

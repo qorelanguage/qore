@@ -31,18 +31,18 @@
 #include <qore/AbstractPrivateData.h>
 #include <qore/Exception.h>
 
-extern int CID_QUEUE;
-class QoreClass *initQueueClass();
+DLLEXPORT extern int CID_QUEUE;
+DLLLOCAL class QoreClass *initQueueClass();
 
 class Queue : public AbstractPrivateData, public QoreQueue
 {
    protected:
-      virtual ~Queue() {}
+      DLLLOCAL virtual ~Queue() {}
 
    public:
-      inline Queue() {}
-      inline Queue(QoreNode *n) : QoreQueue(n) {}
-      virtual void deref(class ExceptionSink *xsink)
+      DLLLOCAL Queue() {}
+      DLLLOCAL Queue(QoreNode *n) : QoreQueue(n) {}
+      DLLLOCAL virtual void deref(class ExceptionSink *xsink)
       {
 	 if (ROdereference())
 	 {
@@ -50,7 +50,6 @@ class Queue : public AbstractPrivateData, public QoreQueue
 	    delete this;
 	 }
       }
-
 };
 
 #endif // _QORE_CLASS_QUEUE

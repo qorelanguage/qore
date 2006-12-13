@@ -39,6 +39,6 @@
 
 extern int CID_DATASOURCE;
 
-class QoreClass *initDatasourceClass();
+DLLLOCAL class QoreClass *initDatasourceClass();
 
 #endif // _QORE_SQL_OBJECTS_DATASOURCE_H

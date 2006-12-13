@@ -28,14 +28,14 @@
 #include <qore/AbstractPrivateData.h>
 #include <qore/LockedObject.h>
 
-extern int CID_MUTEX;
+DLLEXPORT extern int CID_MUTEX;
 
-class QoreClass *initMutexClass();
+DLLLOCAL class QoreClass *initMutexClass();
 
 class Mutex : public AbstractPrivateData, public LockedObject 
 {
    protected:
-      virtual ~Mutex() {}
+      DLLLOCAL virtual ~Mutex() {}
 };
 
 #endif // _QORE_CLASS_MUTEX

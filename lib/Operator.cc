@@ -21,6 +21,7 @@
 */
 
 #include <qore/config.h>
+#include <qore/common.h>
 #include <qore/Operator.h>
 #include <qore/QoreNode.h>
 #include <qore/Variable.h>
@@ -36,16 +37,18 @@
 #include <qore/RegexSubst.h>
 #include <qore/RegexTrans.h>
 #include <qore/QoreRegex.h>
+#include <qore/node_types.h>
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include <sys/types.h>
 #include <pcre.h>
 
-class OperatorList oplist;
+DLLLOCAL class OperatorList oplist;
 
 // here are the standard, system-default operator pointers
-class Operator *OP_ASSIGNMENT, *OP_LOG_AND, *OP_LOG_OR, *OP_LOG_LT, 
+DLLEXPORT class Operator *OP_ASSIGNMENT, *OP_LOG_AND, *OP_LOG_OR, *OP_LOG_LT, 
    *OP_LOG_GT, *OP_LOG_EQ, *OP_LOG_NE, *OP_LOG_LE, *OP_LOG_GE, *OP_MODULA, 
    *OP_BIN_AND, *OP_BIN_OR, *OP_BIN_NOT, *OP_BIN_XOR, *OP_MINUS, *OP_PLUS, 
    *OP_MULT, *OP_DIV, *OP_UNARY_MINUS, *OP_NOT, *OP_SHIFT_LEFT, *OP_SHIFT_RIGHT, 
@@ -64,7 +67,7 @@ class Operator *OP_ASSIGNMENT, *OP_LOG_AND, *OP_LOG_OR, *OP_LOG_LT,
 // 1: evalArgs 1 argument
 // 2: evalArgs 2 arguments
 // 3: pass-through all arguments
-class QoreNode *Operator::eval(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+class QoreNode *Operator::eval(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink) const
 {
    class QoreNode *result;
 
@@ -2315,6 +2318,48 @@ static class QoreNode *op_regex_extract(class QoreNode *left, class QoreNode *ri
    return new QoreNode(l);
 }
 
+Operator::Operator(int arg, char *n, char *desc, int ev, bool eff, bool lv)
+{
+   numFunctions = 0;
+   functionsAllocated = 0;
+   functions = NULL;
+   args = arg;
+   name = n;
+   description = desc;
+   evalArgs = ev;
+   opMatrix = NULL;
+   effect = eff;
+   lvalue = lv;
+}
+
+Operator::~Operator()
+{
+   if (functions)
+      free(functions);
+   if (opMatrix)
+      delete [] opMatrix;
+}
+
+bool Operator::hasEffect() const
+{ 
+   return effect; 
+}
+
+bool Operator::needsLValue() const
+{ 
+   return lvalue;
+}
+
+char *Operator::getName() const
+{
+   return name;
+}
+
+char *Operator::getDescription() const
+{
+   return description;
+}
+
 void Operator::init()
 {
    if (!evalArgs || numFunctions == 1)
@@ -2326,37 +2371,114 @@ void Operator::init()
 	 opMatrix[i][j] = findFunction(QTM.typelist[i], QTM.typelist[j]);
 }
 
+// if there is no exact match, the first partial match
+// counts as a match
+// static method
+int Operator::match(class QoreType *ntype, class QoreType *rtype)
+{
+   // if any type is OK, or an exact match
+   if (rtype == NT_ALL || ntype == rtype || (rtype == NT_VARREF && ntype == NT_SELF_VARREF))
+      return 1;
+   // otherwise fail
+   else
+      return 0;
+}
+
+int Operator::findFunction(class QoreType *ltype, class QoreType *rtype) const
+{
+   int i, m = -1;
+   
+   //tracein("Operator::findFunction()");
+   //printd(5, "Operator::findFunction() %s: ltype=%d rtype=%d total=%d\n", description, ltype, rtype, numFunctions);
+   // loop through all operator functions
+   for (i = 0; i < numFunctions; i++)
+   {
+      // check for a match on the left side
+      if (match(ltype, functions[i].ltype))
+      {
+	 /* if there is only one operator or there is also
+	 * a match on the right side, return */
+	 if ((args == 1) || 
+	     ((args == 2) && match(rtype, functions[i].rtype)))
+	    return i;
+	 if (m == -1)
+	    m = i;
+	 continue;
+      }
+      if ((args == 2) && match(rtype, functions[i].rtype) 
+	  && (m == -1))
+	 m = i;
+   }
+   /* if there is no match of any kind, take the highest priority function
+      * (row 0), and try to convert the arguments, otherwise return the best 
+      * partial match
+      */
+   //traceout("Operator::findFunction()");
+   return m == -1 ? 0 : m;
+}
+
+#define OPFUNC_BLOCK 10
+void Operator::addFunction(class QoreType *lt, class QoreType *rt, class QoreNode *(*f)(class QoreNode *l, class QoreNode *r, ExceptionSink *xsink))
+{
+   // resize function array if necessary
+   if (numFunctions == functionsAllocated)
+   {
+      functionsAllocated += OPFUNC_BLOCK;
+      functions = (OperatorFunction *)realloc(functions, sizeof (OperatorFunction) * functionsAllocated);
+   }
+   functions[numFunctions].ltype = lt;
+   functions[numFunctions].rtype = rt;
+   functions[numFunctions++].op_func = f;
+}
+
+OperatorList::OperatorList()
+{
+}
+
+OperatorList::~OperatorList()
+{
+   oplist_t::iterator i;
+   while ((i = begin()) != end())
+      erase(i);
+}
+
+class Operator *OperatorList::add(class Operator *o)
+{
+   push_back(o);
+   return o;
+}
+
 // registers the system operators and system operator functions
 // WARNING: declaration order is hardcoded in operators.h
-void operatorsInit()
+void OperatorList::init()
 {
-   tracein("operatorsInit()");
+   tracein("OperatorList::init()");
    
-   OP_ASSIGNMENT = oplist.add(new Operator(2, "=", "assignment", 0, true, true));
+   OP_ASSIGNMENT = add(new Operator(2, "=", "assignment", 0, true, true));
    OP_ASSIGNMENT->addFunction(NT_ALL, NT_ALL, op_assignment);
    
-   OP_LIST_ASSIGNMENT = oplist.add(new Operator(2, "(list) =", "list assignment", 0, true, true));
+   OP_LIST_ASSIGNMENT = add(new Operator(2, "(list) =", "list assignment", 0, true, true));
    OP_LIST_ASSIGNMENT->addFunction(NT_ALL, NT_ALL, op_list_assignment);
    
-   OP_LOG_AND = oplist.add(new Operator(2, "&&", "logical-and", 0, false));
+   OP_LOG_AND = add(new Operator(2, "&&", "logical-and", 0, false));
    OP_LOG_AND->addFunction(NT_INT, NT_INT, op_log_and);
 
-   OP_LOG_OR = oplist.add(new Operator(2, "||", "logical-or", 0, false));
+   OP_LOG_OR = add(new Operator(2, "||", "logical-or", 0, false));
    OP_LOG_OR->addFunction(NT_INT, NT_INT, op_log_or);
    
-   OP_LOG_LT = oplist.add(new Operator(2, "<", "less-than", 1, false));
+   OP_LOG_LT = add(new Operator(2, "<", "less-than", 1, false));
    OP_LOG_LT->addFunction(NT_FLOAT,  NT_FLOAT,  op_log_lt_float);
    OP_LOG_LT->addFunction(NT_INT,    NT_INT,    op_log_lt_bigint);
    OP_LOG_LT->addFunction(NT_STRING, NT_STRING, op_log_lt_string);
    OP_LOG_LT->addFunction(NT_DATE,   NT_DATE,   op_log_lt_date);
    
-   OP_LOG_GT = oplist.add(new Operator(2, ">", "greater-than", 1, false));
+   OP_LOG_GT = add(new Operator(2, ">", "greater-than", 1, false));
    OP_LOG_GT->addFunction(NT_FLOAT,  NT_FLOAT,  op_log_gt_float);
    OP_LOG_GT->addFunction(NT_INT,    NT_INT,    op_log_gt_bigint);
    OP_LOG_GT->addFunction(NT_STRING, NT_STRING, op_log_gt_string);
    OP_LOG_GT->addFunction(NT_DATE,   NT_DATE,   op_log_gt_date);
 
-   OP_LOG_EQ = oplist.add(new Operator(2, "==", "logical-equals", 1, false));
+   OP_LOG_EQ = add(new Operator(2, "==", "logical-equals", 1, false));
    OP_LOG_EQ->addFunction(NT_STRING,  NT_STRING,  op_log_eq_string);
    OP_LOG_EQ->addFunction(NT_FLOAT,   NT_FLOAT,   op_log_eq_float);
    OP_LOG_EQ->addFunction(NT_INT,     NT_INT,     op_log_eq_bigint);
@@ -2373,7 +2495,7 @@ void operatorsInit()
    OP_LOG_EQ->addFunction(NT_NOTHING, NT_NOTHING, op_log_eq_nothing);
    OP_LOG_EQ->addFunction(NT_BINARY,  NT_BINARY,  op_log_eq_binary);
 
-   OP_LOG_NE = oplist.add(new Operator(2, "!=", "not-equals", 1, false));
+   OP_LOG_NE = add(new Operator(2, "!=", "not-equals", 1, false));
    OP_LOG_NE->addFunction(NT_STRING,  NT_STRING,  op_log_ne_string);
    OP_LOG_NE->addFunction(NT_FLOAT,   NT_FLOAT,   op_log_ne_float);
    OP_LOG_NE->addFunction(NT_INT,     NT_INT,     op_log_ne_bigint);
@@ -2390,41 +2512,41 @@ void operatorsInit()
    OP_LOG_NE->addFunction(NT_NOTHING, NT_NOTHING, op_log_ne_nothing);
    OP_LOG_NE->addFunction(NT_BINARY,  NT_BINARY,  op_log_ne_binary);
    
-   OP_LOG_LE = oplist.add(new Operator(2, "<=", "less-than-or-equals", 1, false));
+   OP_LOG_LE = add(new Operator(2, "<=", "less-than-or-equals", 1, false));
    OP_LOG_LE->addFunction(NT_FLOAT,  NT_FLOAT,  op_log_le_float);
    OP_LOG_LE->addFunction(NT_INT,    NT_INT,    op_log_le_bigint);
    OP_LOG_LE->addFunction(NT_STRING, NT_STRING, op_log_le_string);
    OP_LOG_LE->addFunction(NT_DATE,   NT_DATE,   op_log_le_date);
 
-   OP_LOG_GE = oplist.add(new Operator(2, ">=", "greater-than-or-equals", 1, false));
+   OP_LOG_GE = add(new Operator(2, ">=", "greater-than-or-equals", 1, false));
    OP_LOG_GE->addFunction(NT_FLOAT,  NT_FLOAT,  op_log_ge_float);
    OP_LOG_GE->addFunction(NT_INT,    NT_INT,    op_log_ge_bigint);
    OP_LOG_GE->addFunction(NT_STRING, NT_STRING, op_log_ge_string);
    OP_LOG_GE->addFunction(NT_DATE,   NT_DATE,   op_log_ge_date);
 
-   OP_MODULA = oplist.add(new Operator(2, "%", "modula", 1, false));
+   OP_MODULA = add(new Operator(2, "%", "modula", 1, false));
    OP_MODULA->addFunction(NT_INT, NT_INT, op_modula_int);
 
-   OP_BIN_AND = oplist.add(new Operator(2, "&", "binary-and", 1, false));
+   OP_BIN_AND = add(new Operator(2, "&", "binary-and", 1, false));
    OP_BIN_AND->addFunction(NT_INT, NT_INT, op_bin_and_int);
 
-   OP_BIN_OR = oplist.add(new Operator(2, "|", "binary-or", 1, false));
+   OP_BIN_OR = add(new Operator(2, "|", "binary-or", 1, false));
    OP_BIN_OR->addFunction(NT_INT, NT_INT, op_bin_or_int);
 
-   OP_BIN_NOT = oplist.add(new Operator(1, "~", "binary-not", 1, false));
+   OP_BIN_NOT = add(new Operator(1, "~", "binary-not", 1, false));
    OP_BIN_NOT->addFunction(NT_INT, NT_NONE, op_bin_not_int);
 
-   OP_BIN_XOR = oplist.add(new Operator(2, "^", "binary-xor", 1, false));
+   OP_BIN_XOR = add(new Operator(2, "^", "binary-xor", 1, false));
    OP_BIN_XOR->addFunction(NT_INT, NT_INT, op_bin_xor_int);
 
-   OP_MINUS = oplist.add(new Operator(2, "-", "minus", 1, false));
+   OP_MINUS = add(new Operator(2, "-", "minus", 1, false));
    OP_MINUS->addFunction(NT_DATE,  NT_DATE,    op_minus_date);
    OP_MINUS->addFunction(NT_FLOAT, NT_FLOAT,   op_minus_float);
    OP_MINUS->addFunction(NT_INT,   NT_INT,     op_minus_bigint);
    OP_MINUS->addFunction(NT_INT,   NT_NOTHING, op_minus_bigint);
    OP_MINUS->addFunction(NT_HASH,  NT_STRING,  op_minus_hash_string);
 
-   OP_PLUS = oplist.add(new Operator(2, "+", "plus", 1, false));
+   OP_PLUS = add(new Operator(2, "+", "plus", 1, false));
    OP_PLUS->addFunction(NT_LIST,    NT_LIST,   op_plus_list);
    OP_PLUS->addFunction(NT_STRING,  NT_STRING, op_plus_string);
    OP_PLUS->addFunction(NT_DATE,    NT_DATE,   op_plus_date);
@@ -2436,151 +2558,147 @@ void operatorsInit()
    OP_PLUS->addFunction(NT_OBJECT,  NT_HASH,   op_plus_object_hash);
    OP_PLUS->addFunction(NT_NOTHING, NT_INT,    op_plus_bigint);
 
-   OP_MULT = oplist.add(new Operator(2, "*", "multiply", 1, false));
+   OP_MULT = add(new Operator(2, "*", "multiply", 1, false));
    OP_MULT->addFunction(NT_FLOAT, NT_FLOAT, op_multiply_float);
    OP_MULT->addFunction(NT_INT,   NT_INT,   op_multiply_bigint);
 
-   OP_DIV = oplist.add(new Operator(2, "/", "divide", 1, false));
+   OP_DIV = add(new Operator(2, "/", "divide", 1, false));
    OP_DIV->addFunction(NT_FLOAT, NT_FLOAT, op_divide_float);
    OP_DIV->addFunction(NT_INT,   NT_INT,   op_divide_bigint);
 
-   OP_UNARY_MINUS = oplist.add(new Operator(1, "-", "unary-minus", 1, false));
+   OP_UNARY_MINUS = add(new Operator(1, "-", "unary-minus", 1, false));
    OP_UNARY_MINUS->addFunction(NT_FLOAT, NT_NONE, op_unary_minus_float);
    OP_UNARY_MINUS->addFunction(NT_INT,   NT_NONE, op_unary_minus_bigint);
 
-   OP_NOT = oplist.add(new Operator(1, "!", "logical-not", 1, false));
+   OP_NOT = add(new Operator(1, "!", "logical-not", 1, false));
    OP_NOT->addFunction(NT_BOOLEAN, NT_NONE, op_log_not_boolean);
 
-   OP_SHIFT_LEFT = oplist.add(new Operator(2, "<<", "shift-left", 1, false));
+   OP_SHIFT_LEFT = add(new Operator(2, "<<", "shift-left", 1, false));
    OP_SHIFT_LEFT->addFunction(NT_INT, NT_INT, op_shift_left_int);
 
-   OP_SHIFT_RIGHT = oplist.add(new Operator(2, ">>", "shift-right", 1, false));
+   OP_SHIFT_RIGHT = add(new Operator(2, ">>", "shift-right", 1, false));
    OP_SHIFT_RIGHT->addFunction(NT_INT, NT_INT, op_shift_right_int);
 
-   OP_POST_INCREMENT = oplist.add(new Operator(1, "++", "post-increment", 0, true, true));
+   OP_POST_INCREMENT = add(new Operator(1, "++", "post-increment", 0, true, true));
    OP_POST_INCREMENT->addFunction(NT_VARREF, NT_NONE, op_post_inc);
 
-   OP_POST_DECREMENT = oplist.add(new Operator(1, "--", "post-decrement", 0, true, true));
+   OP_POST_DECREMENT = add(new Operator(1, "--", "post-decrement", 0, true, true));
    OP_POST_DECREMENT->addFunction(NT_VARREF, NT_NONE, op_post_dec);
 
-   OP_PRE_INCREMENT = oplist.add(new Operator(1, "++", "pre-increment", 0, true, true));
+   OP_PRE_INCREMENT = add(new Operator(1, "++", "pre-increment", 0, true, true));
    OP_PRE_INCREMENT->addFunction(NT_VARREF, NT_NONE, op_pre_inc);
 
-   OP_PRE_DECREMENT = oplist.add(new Operator(1, "--", "pre-decrement", 0, true, true));
+   OP_PRE_DECREMENT = add(new Operator(1, "--", "pre-decrement", 0, true, true));
    OP_PRE_DECREMENT->addFunction(NT_VARREF, NT_NONE, op_pre_dec);
 
-   OP_LOG_CMP = oplist.add(new Operator(2, "<=>", "logical-comparison", 1, false));
+   OP_LOG_CMP = add(new Operator(2, "<=>", "logical-comparison", 1, false));
    OP_LOG_CMP->addFunction(NT_STRING, NT_STRING, op_cmp_string);
    OP_LOG_CMP->addFunction(NT_FLOAT,  NT_FLOAT,  op_cmp_double);
    OP_LOG_CMP->addFunction(NT_INT,    NT_INT,    op_cmp_bigint);
    OP_LOG_CMP->addFunction(NT_DATE,   NT_DATE,   op_cmp_date);
 
-   OP_PLUS_EQUALS = oplist.add(new Operator(2, "+=", "plus-equals", 0, true, true));
+   OP_PLUS_EQUALS = add(new Operator(2, "+=", "plus-equals", 0, true, true));
    OP_PLUS_EQUALS->addFunction(NT_ALL, NT_INT, op_plus_equals);
 
-   OP_MINUS_EQUALS = oplist.add(new Operator(2, "-=", "minus-equals", 0, true, true));
+   OP_MINUS_EQUALS = add(new Operator(2, "-=", "minus-equals", 0, true, true));
    OP_MINUS_EQUALS->addFunction(NT_ALL, NT_INT, op_minus_equals);
 
-   OP_AND_EQUALS = oplist.add(new Operator(2, "&=", "and-equals", 0, true, true));
+   OP_AND_EQUALS = add(new Operator(2, "&=", "and-equals", 0, true, true));
    OP_AND_EQUALS->addFunction(NT_ALL, NT_INT, op_and_equals);
 
-   OP_OR_EQUALS = oplist.add(new Operator(2, "|=", "or-equals", 0, true, true));
+   OP_OR_EQUALS = add(new Operator(2, "|=", "or-equals", 0, true, true));
    OP_OR_EQUALS->addFunction(NT_ALL, NT_INT, op_or_equals);
 
-   OP_MODULA_EQUALS = oplist.add(new Operator(2, "%=", "modula-equals", 0, true, true));
+   OP_MODULA_EQUALS = add(new Operator(2, "%=", "modula-equals", 0, true, true));
    OP_MODULA_EQUALS->addFunction(NT_ALL, NT_INT, op_modula_equals);
 
-   OP_MULTIPLY_EQUALS = oplist.add(new Operator(2, "*=", "multiply-equals", 0, true, true));
+   OP_MULTIPLY_EQUALS = add(new Operator(2, "*=", "multiply-equals", 0, true, true));
    OP_MULTIPLY_EQUALS->addFunction(NT_ALL, NT_INT, op_multiply_equals);
 
-   OP_DIVIDE_EQUALS = oplist.add(new Operator(2, "/=", "divide-equals", 0, true, true));
+   OP_DIVIDE_EQUALS = add(new Operator(2, "/=", "divide-equals", 0, true, true));
    OP_DIVIDE_EQUALS->addFunction(NT_ALL, NT_INT, op_divide_equals);
 
-   OP_XOR_EQUALS = oplist.add(new Operator(2, "^=", "xor-equals", 0, true, true));
+   OP_XOR_EQUALS = add(new Operator(2, "^=", "xor-equals", 0, true, true));
    OP_XOR_EQUALS->addFunction(NT_ALL, NT_INT, op_xor_equals);
 
-   OP_SHIFT_LEFT_EQUALS = oplist.add(new Operator(2, "<<=", "shift-left-equals", 0, true, true));
+   OP_SHIFT_LEFT_EQUALS = add(new Operator(2, "<<=", "shift-left-equals", 0, true, true));
    OP_SHIFT_LEFT_EQUALS->addFunction(NT_ALL, NT_INT, op_shift_left_equals);
 
-   OP_SHIFT_RIGHT_EQUALS = oplist.add(new Operator(2, ">>=", "shift-right-equals", 0, true, true));
+   OP_SHIFT_RIGHT_EQUALS = add(new Operator(2, ">>=", "shift-right-equals", 0, true, true));
    OP_SHIFT_RIGHT_EQUALS->addFunction(NT_ALL, NT_INT, op_shift_right_equals);
 
-   OP_LIST_REF = oplist.add(new Operator(2, "[]", "list-reference", 0, false));
+   OP_LIST_REF = add(new Operator(2, "[]", "list-reference", 0, false));
    OP_LIST_REF->addFunction(NT_LIST, NT_INT, op_list_ref);
 
-   OP_OBJECT_REF = oplist.add(new Operator(2, ".", "hash/object-reference", 0, false));
+   OP_OBJECT_REF = add(new Operator(2, ".", "hash/object-reference", 0, false));
    OP_OBJECT_REF->addFunction(NT_ALL, NT_ALL, op_object_ref); 
 
-   OP_ELEMENTS = oplist.add(new Operator(1, "elements", "number of elements", 0, false));
+   OP_ELEMENTS = add(new Operator(1, "elements", "number of elements", 0, false));
    OP_ELEMENTS->addFunction(NT_ALL, NT_NONE, op_elements);
 
-   OP_KEYS = oplist.add(new Operator(1, "keys", "list of keys", 0, false));
+   OP_KEYS = add(new Operator(1, "keys", "list of keys", 0, false));
    OP_KEYS->addFunction(NT_ALL, NT_NONE, op_keys);
 
-   OP_QUESTION_MARK = oplist.add(new Operator(2, "question", "question-mark colon", 0, false));
+   OP_QUESTION_MARK = add(new Operator(2, "question", "question-mark colon", 0, false));
    OP_QUESTION_MARK->addFunction(NT_ALL, NT_ALL, op_question_mark);
 
-   OP_ABSOLUTE_EQ = oplist.add(new Operator(2, "===", "absolute logical-equals", 0, false));
+   OP_ABSOLUTE_EQ = add(new Operator(2, "===", "absolute logical-equals", 0, false));
    OP_ABSOLUTE_EQ->addFunction(NT_ALL, NT_ALL, op_absolute_log_eq);
    
-   OP_ABSOLUTE_NE = oplist.add(new Operator(2, "!==", "absolute logical-not-equals", 0, false));
+   OP_ABSOLUTE_NE = add(new Operator(2, "!==", "absolute logical-not-equals", 0, false));
    OP_ABSOLUTE_NE->addFunction(NT_ALL, NT_ALL, op_absolute_log_neq);
 
-   OP_REGEX_MATCH = oplist.add(new Operator(2, "=~", "regular expression match", 1, false));
+   OP_REGEX_MATCH = add(new Operator(2, "=~", "regular expression match", 1, false));
    OP_REGEX_MATCH->addFunction(NT_STRING, NT_REGEX, op_regex_match);
 
-   OP_REGEX_NMATCH = oplist.add(new Operator(2, "!~", "regular expression negative match", 1, false));
+   OP_REGEX_NMATCH = add(new Operator(2, "!~", "regular expression negative match", 1, false));
    OP_REGEX_NMATCH->addFunction(NT_STRING, NT_REGEX, op_regex_nmatch);
 
-   OP_OBJECT_FUNC_REF = oplist.add(new Operator(2, ".", "object method call", 0, true, false));
+   OP_OBJECT_FUNC_REF = add(new Operator(2, ".", "object method call", 0, true, false));
    OP_OBJECT_FUNC_REF->addFunction(NT_ALL, NT_ALL, op_object_method_call);
 
-   OP_NEW = oplist.add(new Operator(1, "new", "new object", 0, true, false));
+   OP_NEW = add(new Operator(1, "new", "new object", 0, true, false));
    OP_NEW->addFunction(NT_ALL, NT_NONE, op_new_object);
 
-   OP_SHIFT = oplist.add(new Operator(1, "shift", "shift from list", 0, true, true));
+   OP_SHIFT = add(new Operator(1, "shift", "shift from list", 0, true, true));
    OP_SHIFT->addFunction(NT_ALL, NT_NONE, op_shift);
 
-   OP_POP = oplist.add(new Operator(1, "pop", "pop from list", 0, true, true));
+   OP_POP = add(new Operator(1, "pop", "pop from list", 0, true, true));
    OP_POP->addFunction(NT_ALL, NT_NONE, op_pop);
 
-   OP_PUSH = oplist.add(new Operator(1, "push", "push on list", 0, true, true));
+   OP_PUSH = add(new Operator(1, "push", "push on list", 0, true, true));
    OP_PUSH->addFunction(NT_ALL, NT_NONE, op_push);
 
-   OP_SPLICE = oplist.add(new Operator(2, "splice", "splice in list", 0, true, true));
+   OP_SPLICE = add(new Operator(2, "splice", "splice in list", 0, true, true));
    OP_SPLICE->addFunction(NT_ALL, NT_ALL, op_splice);
 
-   OP_EXISTS = oplist.add(new Operator(1, "exists", "exists", 0, false));
+   OP_EXISTS = add(new Operator(1, "exists", "exists", 0, false));
    OP_EXISTS->addFunction(NT_ALL, NT_NONE, op_exists);
 
-   OP_SINGLE_ASSIGN = oplist.add(new Operator(2, "single =", "single assignment", 0, true, true));
+   OP_SINGLE_ASSIGN = add(new Operator(2, "single =", "single assignment", 0, true, true));
    OP_SINGLE_ASSIGN->addFunction(NT_ALL, NT_ALL, op_single_assignment);
 
-   OP_UNSHIFT = oplist.add(new Operator(1, "unshift", "unshift/insert to begnning of list", 0, true, true));
+   OP_UNSHIFT = add(new Operator(1, "unshift", "unshift/insert to begnning of list", 0, true, true));
    OP_UNSHIFT->addFunction(NT_ALL, NT_NONE, op_unshift);
 
-   OP_REGEX_SUBST = oplist.add(new Operator(1, "regex subst", "regular expression substitution", 0, true, true));
+   OP_REGEX_SUBST = add(new Operator(1, "regex subst", "regular expression substitution", 0, true, true));
    OP_REGEX_SUBST->addFunction(NT_ALL, NT_REGEX_SUBST, op_regex_subst);
 
-   OP_INSTANCEOF = oplist.add(new Operator(2, "instanceof", "instanceof", 0, false));
+   OP_INSTANCEOF = add(new Operator(2, "instanceof", "instanceof", 0, false));
    OP_INSTANCEOF->addFunction(NT_ALL, NT_CLASSREF, op_instanceof);
 
-   OP_REGEX_TRANS = oplist.add(new Operator(1, "transliteration", "transliteration", 0, true, true));
+   OP_REGEX_TRANS = add(new Operator(1, "transliteration", "transliteration", 0, true, true));
    OP_REGEX_TRANS->addFunction(NT_ALL, NT_REGEX_TRANS, op_regex_trans);
 
-   OP_REGEX_EXTRACT = oplist.add(new Operator(2, "regular expression subpattern extraction", "regular expression subpattern extraction", 1, false));
+   OP_REGEX_EXTRACT = add(new Operator(2, "regular expression subpattern extraction", "regular expression subpattern extraction", 1, false));
    OP_REGEX_EXTRACT->addFunction(NT_STRING, NT_REGEX, op_regex_extract);
 
-   OP_CHOMP = oplist.add(new Operator(1, "chomp", "chomp EOL marker from lvalue", 0, true, true));
+   OP_CHOMP = add(new Operator(1, "chomp", "chomp EOL marker from lvalue", 0, true, true));
    OP_CHOMP->addFunction(NT_ALL, NT_NONE, op_chomp);
 
    // initialize all operators
-   class Operator *w = oplist.getHead();
-   while (w)
-   {
-      w->init();
-      w = w->next;
-   }
+   for (oplist_t::iterator i = begin(); i != end(); i++)
+      (*i)->init();
 
-   traceout("operatorsInit()");
+   traceout("OperatorList::init()");
 }

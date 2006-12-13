@@ -28,14 +28,14 @@
 #include <qore/AbstractPrivateData.h>
 #include <qore/RMutex.h>
 
-extern int CID_RMUTEX;
+DLLEXPORT extern int CID_RMUTEX;
 
-class QoreClass *initRMutexClass();
+DLLLOCAL class QoreClass *initRMutexClass();
 
 class QoreRMutex : public AbstractPrivateData, public RMutex
 {
    protected:
-      virtual ~QoreRMutex() {}
+      DLLLOCAL virtual ~QoreRMutex() {}
 };
 
 #endif // _QORE_CLASS_QORERMUTEX

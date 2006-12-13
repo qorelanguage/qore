@@ -47,43 +47,16 @@ class HashIterator
       class HashMember *ptr;
 
    public:
-      DLLEXPORT inline HashIterator(class HashMember *h) { ptr = NULL; head = h; }
-      DLLEXPORT inline HashIterator(class Hash *h);
-
-      DLLEXPORT inline class HashMember *next() 
-      { 
-	 if (ptr) 
-	    ptr = ptr->next;
-	 else
-	    ptr = head;
-	 return ptr;
-      }
-      DLLEXPORT inline char *getKey() const
-      { 
-	 if (!ptr)
-	    return NULL;
-
-	 return ptr->key;
-      }
+      DLLEXPORT HashIterator(class HashMember *h);
+      DLLEXPORT HashIterator(class Hash *h);
+      DLLEXPORT class HashMember *next();
+      DLLEXPORT char *getKey() const;
       DLLEXPORT class QoreString *getKeyString() const;
-      DLLEXPORT inline class QoreNode *getValue() const
-      {
-	 if (ptr)
-	    return ptr->node;
-	 return NULL;
-      }
-      DLLEXPORT inline class QoreNode **getValuePtr() const
-      {
-	 if (ptr)
-	    return &(ptr->node);
-	 return NULL;
-      }
+      DLLEXPORT class QoreNode *getValue() const;
+      DLLEXPORT class QoreNode **getValuePtr() const;
       DLLEXPORT class QoreNode *eval(class ExceptionSink *xsink) const;
-      DLLEXPORT inline bool last() const 
-      { 
-	 return (bool)(ptr ? !ptr->next : false); 
-      } 
-      //DLLEXPORT inline void setValue(class QoreNode *val, class ExceptionSink *xsink);
+      DLLEXPORT bool last() const;
+      //DLLEXPORT void setValue(class QoreNode *val, class ExceptionSink *xsink);
 };
 
 class Hash
@@ -98,7 +71,7 @@ class Hash
 
       DLLLOCAL class QoreNode **newKeyValue(char *key, class QoreNode *value);
       DLLLOCAL void internDeleteKey(class HashMember *m, class ExceptionSink *xsink);
-      DLLLOCAL inline void deref_intern(class ExceptionSink *xsink);
+      DLLLOCAL void deref_intern(class ExceptionSink *xsink);
 
   protected:
       DLLEXPORT ~Hash();
@@ -113,8 +86,6 @@ class Hash
       DLLEXPORT class QoreNode *getKeyValue(class QoreString *key, class ExceptionSink *xsink) const;
       DLLEXPORT class QoreNode *getKeyValue(char *key) const;
       DLLEXPORT class Hash *copy() const;
-
-      // APIs suitable for objects below
       DLLEXPORT class QoreNode **getKeyValuePtr(class QoreString *key, class ExceptionSink *xsink);
       DLLEXPORT class QoreNode **getKeyValuePtr(char *key);
       DLLEXPORT class QoreNode **getExistingValuePtr(class QoreString *key, class ExceptionSink *xsink);
@@ -134,25 +105,9 @@ class Hash
       DLLEXPORT class QoreNode *evalFirstKeyValue(class ExceptionSink *xsink) const;
       DLLEXPORT void dereference(class ExceptionSink *xsink);
       DLLEXPORT void derefAndDelete(class ExceptionSink *xsink);
-
-      DLLEXPORT inline int size() const 
-      { 
-	 return hm.size(); 
-      }
-      DLLEXPORT inline bool needsEval() const
-      {
-	 return needs_eval;
-      }
-      DLLEXPORT inline void clearNeedsEval()
-      {
-	 needs_eval = false;
-      }
+      DLLEXPORT int size() const;
+      DLLEXPORT bool needsEval() const;
+      DLLEXPORT void clearNeedsEval();
 };
-
-inline HashIterator::HashIterator(class Hash *h) 
-{ 
-   ptr = NULL;
-   head = h->member_list; 
-}
 
 #endif // _QORE_HASH_H

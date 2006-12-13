@@ -76,25 +76,22 @@ class AutoNamespaceList ANSL;
 class NamespaceList
 {
    private:
-      DLLLOCAL inline void deleteAll();
+      DLLLOCAL void deleteAll();
 
    public:
       class Namespace *head, *tail;
 
-      DLLLOCAL inline NamespaceList();
-      DLLLOCAL inline ~NamespaceList();
-
+      DLLLOCAL NamespaceList();
+      DLLLOCAL ~NamespaceList();
       DLLLOCAL class Namespace *find(char *name);
-
-      DLLLOCAL inline void add(class Namespace *ot);
-      DLLLOCAL inline class NamespaceList *copy(int po);
-      DLLLOCAL inline void parseInitConstants();
-      DLLLOCAL inline void parseInit();
-      DLLLOCAL inline void parseCommit(class NamespaceList *n);
-      DLLLOCAL inline void parseRollback();
-      DLLLOCAL inline void reset();
-      DLLLOCAL inline void assimilate(class NamespaceList *n);
-
+      DLLLOCAL void add(class Namespace *ot);
+      DLLLOCAL class NamespaceList *copy(int po);
+      DLLLOCAL void parseInitConstants();
+      DLLLOCAL void parseInit();
+      DLLLOCAL void parseCommit(class NamespaceList *n);
+      DLLLOCAL void parseRollback();
+      DLLLOCAL void reset();
+      DLLLOCAL void assimilate(class NamespaceList *n);
       DLLLOCAL class Namespace *parseResolveNamespace(class NamedScope *name, int *matched);
       DLLLOCAL class QoreNode *parseFindConstantValue(char *cname);
       DLLLOCAL class QoreNode *parseFindScopedConstantValue(class NamedScope *name, int *matched);
@@ -105,7 +102,7 @@ class NamespaceList
 };
 
 
-inline void Namespace::init()
+void Namespace::init()
 {
    next = NULL;
    pendConstant = new ConstantList();
@@ -167,8 +164,13 @@ Namespace::~Namespace()
    //traceout("Namespace::~Namespace()");
 }
 
+char *Namespace::getName() const
+{
+   return name;
+}
+
 // private function
-inline class Namespace *Namespace::resolveNameScope(class NamedScope *nscope) const
+class Namespace *Namespace::resolveNameScope(class NamedScope *nscope) const
 {
    const class Namespace *sns = this;
 
@@ -184,7 +186,7 @@ inline class Namespace *Namespace::resolveNameScope(class NamedScope *nscope) co
 }
 
 // private function
-inline class QoreNode *Namespace::getConstantValue(char *cname) const
+class QoreNode *Namespace::getConstantValue(char *cname) const
 {
    class QoreNode *rv = constant->find(cname);
    if (!rv)
@@ -323,12 +325,12 @@ void Namespace::parseRollback()
    nsl->parseRollback();
 }
 
-inline NamespaceList::NamespaceList()
+NamespaceList::NamespaceList()
 {
    head = tail = NULL;
 }
 
-inline void NamespaceList::deleteAll()
+void NamespaceList::deleteAll()
 {
    while (head)
    {
@@ -338,12 +340,12 @@ inline void NamespaceList::deleteAll()
    }
 }
 
-inline NamespaceList::~NamespaceList()
+NamespaceList::~NamespaceList()
 {
    deleteAll();
 }
 
-inline void NamespaceList::assimilate(class NamespaceList *n)
+void NamespaceList::assimilate(class NamespaceList *n)
 {
    // assimilate target list
    if (tail)
@@ -357,13 +359,13 @@ inline void NamespaceList::assimilate(class NamespaceList *n)
    n->head = n->tail = NULL;
 }
 
-inline void NamespaceList::reset()
+void NamespaceList::reset()
 {
    deleteAll();
    head = tail = NULL;
 }
 
-inline void NamespaceList::add(class Namespace *ns)
+void NamespaceList::add(class Namespace *ns)
 {
    // if namespace is already registered, then assimilate
    Namespace *ons;
@@ -404,7 +406,7 @@ class Namespace *Namespace::copy(int po) const
    return new Namespace(name, classList->copy(po), constant->copy(), nsl->copy(po));
 }
 
-inline class NamespaceList *NamespaceList::copy(int po)
+class NamespaceList *NamespaceList::copy(int po)
 {
    class NamespaceList *nsl = new NamespaceList();
 
@@ -419,7 +421,7 @@ inline class NamespaceList *NamespaceList::copy(int po)
    return nsl;
 }
 
-inline void NamespaceList::parseInitConstants()
+void NamespaceList::parseInitConstants()
 {
    class Namespace *w = head;
 
@@ -430,7 +432,7 @@ inline void NamespaceList::parseInitConstants()
    }
 }
 
-inline void NamespaceList::parseInit()
+void NamespaceList::parseInit()
 {
    class Namespace *w = head;
 
@@ -441,7 +443,7 @@ inline void NamespaceList::parseInit()
    }
 }
 
-inline void NamespaceList::parseCommit(class NamespaceList *l)
+void NamespaceList::parseCommit(class NamespaceList *l)
 {
    assimilate(l);
 
@@ -454,7 +456,7 @@ inline void NamespaceList::parseCommit(class NamespaceList *l)
    }
 }
 
-inline void NamespaceList::parseRollback()
+void NamespaceList::parseRollback()
 {
    class Namespace *w = head;
 
@@ -465,7 +467,7 @@ inline void NamespaceList::parseRollback()
    }
 }
 
-inline class Namespace *Namespace::findNamespace(char *nname) const
+class Namespace *Namespace::findNamespace(char *nname) const
 {
    class Namespace *rv = nsl->find(nname);
    if (!rv)
@@ -612,7 +614,7 @@ class QoreNode *NamespaceList::parseFindConstantValue(char *cname)
 }
 
 /*
-static inline void showNSL(class NamespaceList *nsl)
+static void showNSL(class NamespaceList *nsl)
 {
    printd(5, "showNSL() dumping %08p\n", nsl);
    for (int i = 0; i < nsl->num_namespaces; i++)
@@ -1259,40 +1261,6 @@ class Namespace *Namespace::parseMatchNamespace(class NamedScope *nscope, int *m
    return NULL;
 }
 
-#define NS_BLOCK 5
-NamedScope::NamedScope(char *str)
-{
-   allocated = 0;
-   elements  = 0;
-   strlist = NULL;
-   ostr = str;
-
-   while (char *p = strstr(str, "::"))
-   {
-      // resize array if needed
-      if (elements == allocated)
-      {
-	 allocated += NS_BLOCK;
-	 strlist = (char **)realloc(strlist, sizeof(char *) * allocated);
-      }
-      strlist[elements] = (char *)malloc(sizeof(char) * (p - str + 1));
-      strncpy(strlist[elements], str, (p - str));
-      strlist[elements][p - str] = '\0';
-      elements++;
-      str = p + 2;
-   }
-   // add last field
-   // resize array if needed
-   if (elements == allocated)
-   {
-      allocated++;
-      strlist = (char **)realloc(strlist, sizeof(char *) * allocated);
-   }
-   strlist[elements] = (char *)malloc(sizeof(char) * (strlen(str) + 1));
-   strcpy(strlist[elements], str);
-   elements++;
-}
-
 /*
 class QoreClass *Namespace::parseMatchScopedClassWithMethod(class NamedScope *nscope, int *matched, class QoreClassList **plist, bool *is_pending) const
 {
@@ -1539,7 +1507,7 @@ class QoreClass *RootNamespace::rootFindChangeClass(char *ocname)
 
 /*
 // public
-inline class QoreClass *RootNamespace::rootFindClass(char *ocname, class QoreClassList **plist, bool *is_pending)
+class QoreClass *RootNamespace::rootFindClass(char *ocname, class QoreClassList **plist, bool *is_pending)
 {
    tracein("RootNamespace::rootFindClass()");
 
@@ -1559,7 +1527,7 @@ inline class QoreClass *RootNamespace::rootFindClass(char *ocname, class QoreCla
 }
 */
 
-inline class Namespace *RootNamespace::rootResolveNamespace(class NamedScope *nscope)
+class Namespace *RootNamespace::rootResolveNamespace(class NamedScope *nscope)
 {
    if (nscope->elements == 1)
       return this;
@@ -1579,7 +1547,7 @@ inline class Namespace *RootNamespace::rootResolveNamespace(class NamedScope *ns
 
 /*
 // public
-inline class QoreClass *RootNamespace::rootFindScopedClassWithMethod(class NamedScope *nscope, int *matched, class QoreClassList **plist, bool *is_pending)
+class QoreClass *RootNamespace::rootFindScopedClassWithMethod(class NamedScope *nscope, int *matched, class QoreClassList **plist, bool *is_pending)
 {
    QoreClass *oc;
 
@@ -1591,7 +1559,7 @@ inline class QoreClass *RootNamespace::rootFindScopedClassWithMethod(class Named
 */
 
 // public
-inline class QoreClass *RootNamespace::rootFindScopedClassWithMethod(class NamedScope *nscope, int *matched) const
+class QoreClass *RootNamespace::rootFindScopedClassWithMethod(class NamedScope *nscope, int *matched) const
 {
    QoreClass *oc;
 
@@ -1603,7 +1571,7 @@ inline class QoreClass *RootNamespace::rootFindScopedClassWithMethod(class Named
 
 // public
 // will always be called with a namespace (nscope->elements > 1)
-inline class QoreClass *RootNamespace::rootFindScopedClass(class NamedScope *nscope, int *matched) const
+class QoreClass *RootNamespace::rootFindScopedClass(class NamedScope *nscope, int *matched) const
 {
    QoreClass *oc = parseMatchScopedClass(nscope, matched);
    if (!oc && !(oc = nsl->parseFindScopedClass(nscope, matched)))
@@ -1612,7 +1580,7 @@ inline class QoreClass *RootNamespace::rootFindScopedClass(class NamedScope *nsc
 }
 
 // public, will always be called with nscope->elements > 1
-inline class QoreNode *RootNamespace::rootFindScopedConstantValue(class NamedScope *nscope, int *matched) const
+class QoreNode *RootNamespace::rootFindScopedConstantValue(class NamedScope *nscope, int *matched) const
 {
    class QoreNode *rv = parseMatchScopedConstantValue(nscope, matched);
    if (!rv && !(rv = nsl->parseFindScopedConstantValue(nscope, matched)))
@@ -1620,7 +1588,7 @@ inline class QoreNode *RootNamespace::rootFindScopedConstantValue(class NamedSco
    return rv;
 }
 
-inline void RootNamespace::addQoreNamespace(class Namespace *qns)
+void RootNamespace::addQoreNamespace(class Namespace *qns)
 {
    addInitialNamespace(qns);
    qoreNS = qns;
@@ -1738,7 +1706,7 @@ RootNamespace::RootNamespace(class Namespace **QoreNS) : Namespace()
 }
 
 // private constructor
-inline RootNamespace::RootNamespace(QoreClassList *ocl, ConstantList *cl, NamespaceList *nnsl) : Namespace(ocl, cl, nnsl)
+RootNamespace::RootNamespace(QoreClassList *ocl, ConstantList *cl, NamespaceList *nnsl) : Namespace(ocl, cl, nnsl)
 {
    qoreNS = nsl->find("Qore");
 }
@@ -1746,6 +1714,11 @@ inline RootNamespace::RootNamespace(QoreClassList *ocl, ConstantList *cl, Namesp
 RootNamespace::~RootNamespace()
 {
    name = NULL;
+}
+
+class Namespace *RootNamespace::rootGetQoreNamespace() const
+{
+   return qoreNS;
 }
 
 class RootNamespace *RootNamespace::copy(int po) const

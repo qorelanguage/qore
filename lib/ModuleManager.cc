@@ -63,8 +63,24 @@ class ModuleManager MM;
 # endif
 #endif
 
+ModuleInfo::ModuleInfo(char *fn, char *n, int major, int minor, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del, char *d, char *v, char *a, char *u, void *p)
+{
+   filename = strdup(fn);
+   name = n;
+   api_major = major;
+   api_minor = minor;
+   module_init = init;
+   module_ns_init = ns_init;
+   module_delete = del;
+   desc = d;
+   version = v;
+   author = a;
+   url = u;
+   dlptr = p;
+}
+
 // builtin module info node - when features are compiled into the library
-inline ModuleInfo::ModuleInfo(char *fn, qore_module_delete_t del)
+ModuleInfo::ModuleInfo(char *fn, qore_module_delete_t del)
 {
    filename = "<builtin>";
    name = fn;
@@ -92,7 +108,52 @@ ModuleInfo::~ModuleInfo()
    }
 }
 
-class Hash *ModuleInfo::getHash()
+char *ModuleInfo::getName() const
+{
+   return name;
+}
+
+char *ModuleInfo::getFileName() const
+{
+   return filename;
+}
+
+char *ModuleInfo::getDesc() const
+{
+   return desc;
+}
+
+char *ModuleInfo::getVersion() const
+{
+   return version;
+}
+
+char *ModuleInfo::getURL() const
+{
+   return url;
+}
+
+int ModuleInfo::getAPIMajor() const
+{
+   return api_major;
+}
+
+int ModuleInfo::getAPIMinor() const
+{
+   return api_minor;
+}
+
+void ModuleInfo::ns_init(class Namespace *rns, class Namespace *qns) const
+{
+   module_ns_init(rns, qns);
+}
+
+bool ModuleInfo::isBuiltin() const
+{
+   return !dlptr;
+}
+
+class Hash *ModuleInfo::getHash() const
 {
    class Hash *h = new Hash();
    h->setKeyValue("filename", new QoreNode(filename), NULL);
@@ -109,11 +170,30 @@ class Hash *ModuleInfo::getHash()
 
 ModuleManager::ModuleManager()
 {
-   head = NULL;
-   num = 0;
 }
 
-inline void ModuleManager::addBuiltin(char *fn, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del)
+void ModuleManager::add(ModuleInfo *m)
+{
+   insert(pair<char *, ModuleInfo *>(m->getName(), m));
+}
+
+class ModuleInfo *ModuleManager::add(char *fn, char *n, int major, int minor, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del, char *d, char *v, char *a, char *u, void *p)
+{
+   class ModuleInfo *m = new ModuleInfo(fn, n, major, minor, init, ns_init, del, d, v, a, u, p);
+   add(m);
+   return m;
+}
+
+class ModuleInfo *ModuleManager::find(char *name)
+{
+   module_map_t::iterator i = module_map_t::find(name);
+   if (i == end())
+      return NULL;
+
+   return i->second;
+}
+
+void ModuleManager::addBuiltin(char *fn, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del)
 {
    class QoreString *str = init();
    if (str)
@@ -460,11 +540,12 @@ void ModuleManager::cleanup()
 {
    tracein("ModuleManager::cleanup()");
 
-   while (head)
+   module_map_t::iterator i;
+   while ((i = begin()) != end())
    {
-      ModuleInfo *w = head->next;
-      delete head;
-      head = w;
+      class ModuleInfo *m = i->second;
+      erase(i);
+      delete m;
    }
 
    traceout("ModuleManager::cleanup()");
@@ -472,16 +553,15 @@ void ModuleManager::cleanup()
 
 class List *ModuleManager::getModuleList()
 {
-   if (!num)
-      return NULL;
-
-   class List *l = new List();
-   class ModuleInfo *w = head;
-   while (w)
+   class List *l = NULL;
+   lock();
+   if (!empty())
    {
-      if (!w->isBuiltin())
-	 l->push(new QoreNode(w->getHash()));
-      w = w->next;
+      l = new List();
+      for (module_map_t::iterator i = begin(); i != end(); i++)
+	 if (!i->second->isBuiltin())
+	    l->push(new QoreNode(i->second->getHash()));
    }
+   unlock();
    return l;
 }
