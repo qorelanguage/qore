@@ -28,6 +28,10 @@
 #include <qore/support.h>
 #include <qore/BinaryObject.h>
 
+QoreSSLPrivateKey::QoreSSLPrivateKey(EVP_PKEY *p) : pk(p) 
+{
+}
+
 QoreSSLPrivateKey::~QoreSSLPrivateKey()
 {
    if (pk)
