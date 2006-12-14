@@ -1736,5 +1736,10 @@ void QoreClass::parseCommit()
       pmm.insert(*j);
       pending_pmm.erase(j);
    }
+}
 
+void QoreClass::parseSetBaseClassList(class BCList *bcl)
+{
+   assert(!scl);
+   scl = bcl;
 }

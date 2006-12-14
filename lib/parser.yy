@@ -913,18 +913,18 @@ object_def:
         {
 	   $$ = new ObjClassDef($2, $5); 
 	   $5->setName(strdup($2));
-	   $5->scl = $3;
+	   $5->parseSetBaseClassList($3);
 	}
         | TOK_CLASS SCOPED_REF inheritance_list '{' class_attributes '}'
         { 
 	   $$ = new ObjClassDef($2, $5); 
 	   $5->setName(strdup($$->name->getIdentifier())); 
-	   $5->scl = $3;
+	   $5->parseSetBaseClassList($3);
 	}
 	| TOK_CLASS IDENTIFIER inheritance_list ';'
         { 
 	   class QoreClass *qc = new QoreClass(strdup($2));
-	   qc->scl = $3;
+	   qc->parseSetBaseClassList($3);
 	   $$ = new ObjClassDef($2, qc); 	   
 	}
 	| TOK_CLASS SCOPED_REF inheritance_list ';'
@@ -932,12 +932,12 @@ object_def:
 	   class QoreClass *qc = new QoreClass();
 	   $$ = new ObjClassDef($2, qc);
 	   qc->setName(strdup($$->name->getIdentifier()));
-	   qc->scl = $3;
+	   qc->parseSetBaseClassList($3);
 	}
 	| TOK_CLASS IDENTIFIER inheritance_list '{' '}'
         { 
 	   class QoreClass *qc = new QoreClass(strdup($2));
-	   qc->scl = $3;
+	   qc->parseSetBaseClassList($3);
 	   $$ = new ObjClassDef($2, qc); 	   
 	}
 	| TOK_CLASS SCOPED_REF inheritance_list '{' '}'
@@ -945,7 +945,7 @@ object_def:
 	   class QoreClass *qc = new QoreClass();
 	   $$ = new ObjClassDef($2, qc);
 	   qc->setName(strdup($$->name->getIdentifier()));
-	   qc->scl = $3;
+	   qc->parseSetBaseClassList($3);
 	}
 	;
 

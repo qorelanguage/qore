@@ -219,9 +219,12 @@ class BCList : public ReferenceObject, public bclist_t
 */
 class QoreClass{
       friend class BCList;
+   friend class BCSMList;
 
    private:
       char *name;                  // the name of the class
+      class BCAList *bcal;         // base class constructor argument list
+      class BCList *scl;           // base class list
       hm_method_t hm, hm_pending;  // method maps
       strset_t pmm, pending_pmm;   // private member lists (sets)
       class Method *system_constructor, *constructor, *destructor, *copyMethod, *methodGate, *memberGate;
@@ -247,9 +250,6 @@ class QoreClass{
       DLLLOCAL inline void delete_pending_methods();
 
    public:
-      class BCAList *bcal;         // base class constructor argument list
-      class BCList *scl;           // base class list
-
       DLLEXPORT QoreClass(int dom, char *nme);
       DLLEXPORT QoreClass(char *nme);
       DLLEXPORT ~QoreClass();
@@ -313,6 +313,7 @@ class QoreClass{
       DLLLOCAL void parseCommit();
       DLLLOCAL void parseRollback();
       DLLLOCAL int getIDForMethod() const;
+      DLLLOCAL void parseSetBaseClassList(class BCList *bcl);
 };
 
 #endif // _QORE_QORECLASS_H
