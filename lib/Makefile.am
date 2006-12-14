@@ -65,6 +65,7 @@ libqore_la_SOURCES = \
 	RWLock.cc \
 	QoreSSLCertificate.cc \
 	QoreSSLPrivateKey.cc \
+	mySocket.cc \
 	QT_NOTHING.cc \
 	QT_bigint.cc \
 	QT_float.cc \

@@ -26,9 +26,9 @@
 
 #define _QORE_CLASS_SOCKET_H
 
-class QoreClass *initSocketClass();
+DLLLOCAL class QoreClass *initSocketClass();
 
-extern int CID_SOCKET;
+DLLEXPORT extern int CID_SOCKET;
 
 #include <qore/QoreSocket.h>
 #include <qore/AbstractPrivateData.h>
@@ -43,512 +43,89 @@ class mySocket : public AbstractPrivateData, public LockedObject
       class QoreSSLCertificate *cert;
       class QoreSSLPrivateKey *pk;
 
-      inline void init()
-      {
-	 cert = NULL;
-	 pk = NULL;
-      }
-
-      inline mySocket(class QoreSocket *s)
-      {
-	 socket = s;
-	 init();
-      }
+      DLLLOCAL void init();
+      DLLLOCAL mySocket(class QoreSocket *s);
 
    protected:
-      virtual ~mySocket()
-      {
-	 if (cert)
-	    cert->deref();
-	 if (pk)
-	    pk->deref();
-	 
-	 delete socket;
-      }
+      DLLLOCAL virtual ~mySocket();
 
    public:
-      inline mySocket()
-      {
-	 socket = new QoreSocket();
-	 init();
-      }
-      
-      inline int connect(char *name, class ExceptionSink *xsink = NULL)
-      {
-	 lock();
-	 int rc = socket->connect(name, xsink);
-	 unlock();
-	 return rc;
-      }
-
-      inline int connectINET(char *host, int port, class ExceptionSink *xsink = NULL)
-      {
-	 lock();
-	 int rc = socket->connectINET(host, port, xsink);
-	 unlock();
-	 return rc;
-      }
-
-      inline int connectUNIX(char *p, class ExceptionSink *xsink = NULL)
-      {
-	 lock();
-	 int rc = socket->connectUNIX(p, xsink);
-	 unlock();
-	 return rc;
-      }
-
-      inline int connectSSL(char *name, class ExceptionSink *xsink);
-
-      inline int connectINETSSL(char *host, int port, class ExceptionSink *xsink);
-      inline int connectUNIXSSL(char *p, class ExceptionSink *xsink);
-
+      DLLLOCAL mySocket();      
+      DLLLOCAL int connect(char *name, class ExceptionSink *xsink = NULL);
+      DLLLOCAL int connectINET(char *host, int port, class ExceptionSink *xsink = NULL);
+      DLLLOCAL int connectUNIX(char *p, class ExceptionSink *xsink = NULL);
+      DLLLOCAL int connectSSL(char *name, class ExceptionSink *xsink);
+      DLLLOCAL int connectINETSSL(char *host, int port, class ExceptionSink *xsink);
+      DLLLOCAL int connectUNIXSSL(char *p, class ExceptionSink *xsink);
       // to bind to either a UNIX socket or an INET interface:port
-      inline int bind(char *name, bool reuseaddr = false)
-      {
-	 lock();
-	 int rc = socket->bind(name, reuseaddr);
-	 unlock();
-	 return rc;
-      }
-
+      DLLLOCAL int bind(char *name, bool reuseaddr = false);
       // to bind to an INET tcp port on all interfaces
-      inline int bind(int port, bool reuseaddr = false)
-      {
-	 lock();
-	 int rc = socket->bind(port, reuseaddr);
-	 unlock();
-	 return rc;
-      }
-
+      DLLLOCAL int bind(int port, bool reuseaddr = false);
       // to bind an open socket to an INET tcp port on a specific interface
-      inline int bind(char *interface, int port, bool reuseaddr = false)
-      {
-	 lock();
-	 int rc = socket->bind(interface, port, reuseaddr);
-	 unlock();
-	 return rc;
-      }
-
+      DLLLOCAL int bind(char *interface, int port, bool reuseaddr = false);
       // get port number for INET sockets
-      inline int getPort()
-      {
-	 lock();
-	 int rc = socket->getPort();
-	 unlock();
-	 return rc;
-      }
-
-      inline class mySocket *accept(class SocketSource *source, class ExceptionSink *xsink)
-      {
-	 lock();
-	 QoreSocket *s = socket->accept(source, xsink);
-	 unlock();
-	 if (s)
-	    return new mySocket(s);
-	 return NULL;
-      }
-
-      inline class mySocket *acceptSSL(class SocketSource *source, class ExceptionSink *xsink);
-
-      inline int listen()
-      {
-	 lock();
-	 int rc = socket->listen();
-	 unlock();
-	 return rc;
-      }
-
+      DLLLOCAL int getPort();
+      DLLLOCAL class mySocket *accept(class SocketSource *source, class ExceptionSink *xsink);
+      DLLLOCAL class mySocket *acceptSSL(class SocketSource *source, class ExceptionSink *xsink);
+      DLLLOCAL int listen();
       // send a buffer of a particular size
-      inline int send(char *buf, int size)
-      {
-	 lock();
-	 int rc = socket->send(buf, size);
-	 unlock();
-	 return rc;
-      }
-
+      DLLLOCAL int send(char *buf, int size);
       // send a null-terminated string
-      inline int send(class QoreString *msg, class ExceptionSink *xsink)
-      {
-	 lock();
-	 int rc = socket->send(msg, xsink);
-	 unlock();
-	 return rc;
-      }
-
+      DLLLOCAL int send(class QoreString *msg, class ExceptionSink *xsink);
       // send a binary object
-      inline int send(class BinaryObject *b)
-      {
-	 lock();
-	 int rc = socket->send(b);
-	 unlock();
-	 return rc;
-      }
-
+      DLLLOCAL int send(class BinaryObject *b);
       // send from a file descriptor
-      inline int send(int fd, int size = -1)
-      {
-	 lock();
-	 int rc = socket->send(fd, size);
-	 unlock();
-	 return rc;
-      }
-
+      DLLLOCAL int send(int fd, int size = -1);
       // send bytes and convert to network order
-      inline int sendi1(char b)
-      {
-	 lock();
-	 int rc = socket->sendi1(b);
-	 unlock();
-	 return rc;
-      }
-      inline int sendi2(short b)
-      {
-	 lock();
-	 int rc = socket->sendi2(b);
-	 unlock();
-	 return rc;
-      }
-      inline int sendi4(int b)
-      {
-	 lock();
-	 int rc = socket->sendi4(b);
-	 unlock();
-	 return rc;
-      }
-      inline int sendi8(int64 b)
-      {
-	 lock();
-	 int rc = socket->sendi8(b);
-	 unlock();
-	 return rc;
-      }
-      inline int sendi2LSB(short b)
-      {
-	 lock();
-	 int rc = socket->sendi2LSB(b);
-	 unlock();
-	 return rc;
-      }
-      inline int sendi4LSB(int b)
-      {
-	 lock();
-	 int rc = socket->sendi4LSB(b);
-	 unlock();
-	 return rc;
-      }
-      inline int sendi8LSB(int64 b)
-      {
-	 lock();
-	 int rc = socket->sendi8LSB(b);
-	 unlock();
-	 return rc;
-      }
-
+      DLLLOCAL int sendi1(char b);
+      DLLLOCAL int sendi2(short b);
+      DLLLOCAL int sendi4(int b);
+      DLLLOCAL int sendi8(int64 b);
+      DLLLOCAL int sendi2LSB(short b);
+      DLLLOCAL int sendi4LSB(int b);
+      DLLLOCAL int sendi8LSB(int64 b);
       // receive a certain number of bytes as a string
-      inline class QoreString *recv(int bufsize, int timeout, int *rc)
-      {
-	 lock();
-	 class QoreString *str = socket->recv(bufsize, timeout, rc);
-	 unlock();
-	 return str;
-      }
-
+      DLLLOCAL class QoreString *recv(int bufsize, int timeout, int *rc);
       // receive a certain number of bytes as a binary object
-      inline class BinaryObject *recvBinary(int bufsize, int timeout, int *rc)
-      {
-	 lock();
-	 class BinaryObject *b = socket->recvBinary(bufsize, timeout, rc);
-	 unlock();
-	 return b;
-      }
-
+      DLLLOCAL class BinaryObject *recvBinary(int bufsize, int timeout, int *rc);
       // receive a message
-      inline class QoreString *recv(int timeout, int *rc)
-      {
-	 lock();
-	 class QoreString *str = socket->recv(timeout, rc);
-	 unlock();
-	 return str;
-      }
-
+      DLLLOCAL class QoreString *recv(int timeout, int *rc);
       // receive and write data to a file descriptor
-      inline int recv(int fd, int size, int timeout)
-      {
-	 lock();
-	 int rc = socket->recv(fd, size, timeout);
-	 unlock();
-	 return rc;
-      }
-
+      DLLLOCAL int recv(int fd, int size, int timeout);
       // receive integers and convert from network byte order
-      inline int recvi1(int timeout, char *b)
-      {
-	 lock();
-	 int rc = socket->recvi1(timeout, b);
-	 unlock();
-	 return rc;
-      }
-      inline int recvi2(int timeout, short *b)
-      {
-	 lock();
-	 int rc = socket->recvi2(timeout, b);
-	 unlock();
-	 return rc;
-      }
-      inline int recvi4(int timeout, int *b)
-      {
-	 lock();
-	 int rc = socket->recvi4(timeout, b);
-	 unlock();
-	 return rc;
-      }
-      inline int recvi8(int timeout, int64 *b)
-      {
-	 lock();
-	 int rc = socket->recvi8(timeout, b);
-	 unlock();
-	 return rc;
-      }
-      inline int recvi2LSB(int timeout, short *b)
-      {
-	 lock();
-	 int rc = socket->recvi2LSB(timeout, b);
-	 unlock();
-	 return rc;
-      }
-      inline int recvi4LSB(int timeout, int *b)
-      {
-	 lock();
-	 int rc = socket->recvi4LSB(timeout, b);
-	 unlock();
-	 return rc;
-      }
-      inline int recvi8LSB(int timeout, int64 *b)
-      {
-	 lock();
-	 int rc = socket->recvi8LSB(timeout, b);
-	 unlock();
-	 return rc;
-      }
-
+      DLLLOCAL int recvi1(int timeout, char *b);
+      DLLLOCAL int recvi2(int timeout, short *b);
+      DLLLOCAL int recvi4(int timeout, int *b);
+      DLLLOCAL int recvi8(int timeout, int64 *b);
+      DLLLOCAL int recvi2LSB(int timeout, short *b);
+      DLLLOCAL int recvi4LSB(int timeout, int *b);
+      DLLLOCAL int recvi8LSB(int timeout, int64 *b);
       // send HTTP message
-      inline int sendHTTPMessage(char *method, char *path, char *http_version, class Hash *headers, void *ptr, int size)
-      {
-	 lock();
-	 int rc = socket->sendHTTPMessage(method, path, http_version, headers, ptr, size);
-	 unlock();
-	 return rc;
-      }
-
+      DLLLOCAL int sendHTTPMessage(char *method, char *path, char *http_version, class Hash *headers, void *ptr, int size);
       // send HTTP response
-      inline int sendHTTPResponse(int code, char *desc, char *http_version, class Hash *headers, void *ptr, int size)
-      {
-	 lock();
-	 int rc = socket->sendHTTPResponse(code, desc, http_version, headers, ptr, size);
-	 unlock();
-	 return rc;
-      }
-
+      DLLLOCAL int sendHTTPResponse(int code, char *desc, char *http_version, class Hash *headers, void *ptr, int size);
       // read and parse HTTP header
-      inline class QoreNode *readHTTPHeader(int timeout, int *rc)
-      {
-	 lock();
-	 class QoreNode *n = socket->readHTTPHeader(timeout, rc);
-	 unlock();
-	 return n;
-      }
-
-      inline int setSendTimeout(int ms)
-      {
-	 lock();
-	 int rc = socket->setSendTimeout(ms);
-	 unlock();
-	 return rc;
-      }
-
-      inline int setRecvTimeout(int ms)
-      {
-	 lock();
-	 int rc = socket->setRecvTimeout(ms);
-	 unlock();
-	 return rc;
-      }
-
-      inline int getSendTimeout()
-      {
-	 lock();
-	 int rc = socket->getSendTimeout();
-	 unlock();
-	 return rc;
-      }
-
-      inline int getRecvTimeout()
-      {
-	 lock();
-	 int rc = socket->getRecvTimeout();
-	 unlock();
-	 return rc;
-      }
-
-      inline int close() 
-      { 
-	 lock();
-	 int rc = socket->close();
-	 unlock();
-	 return rc;
-      }
-
-      inline int shutdown() 
-      { 
-	 lock();
-	 int rc = socket->shutdown();
-	 unlock();
-	 return rc;
-      }
-
-      inline int shutdownSSL(class ExceptionSink *xsink) 
-      { 
-	 lock();
-	 int rc = socket->shutdownSSL(xsink);
-	 unlock();
-	 return rc;
-      }
-
-      inline const char *getSSLCipherName() 
-      { 
-	 lock();
-	 const char *str = socket->getSSLCipherName();
-	 unlock();
-	 return str;
-      }
-
-      inline const char *getSSLCipherVersion() 
-      { 
-	 lock();
-	 const char *str = socket->getSSLCipherVersion();
-	 unlock();
-	 return str;
-      }
-
-      inline bool isSecure()
-      {
-	 lock();
-	 bool rc = socket->isSecure();
-	 unlock();
-	 return rc;
-      }
-
-      inline long verifyPeerCertificate()
-      {
-	 lock();
-	 long rc = socket->verifyPeerCertificate();
-	 unlock();
-	 return rc;
-      }
-
-      inline int getSocket()
-      {
-	 lock();
-	 int rc = socket->getSocket();
-	 unlock();
-	 return rc;
-      }
-
-      inline void setEncoding(class QoreEncoding *id)
-      {
-	 socket->setEncoding(id);
-      }
-
-      inline class QoreEncoding *getEncoding()
-      {
-	 return socket->getEncoding();
-      }
-      
-      inline bool isDataAvailable(int timeout = 0)
-      {
-	 lock();
-	 bool b = socket->isDataAvailable(timeout);
-	 unlock();
-	 return b;
-      }
-
-      inline bool isOpen()
-      {
-	 return socket->isOpen();
-      }
-
+      DLLLOCAL class QoreNode *readHTTPHeader(int timeout, int *rc);
+      DLLLOCAL int setSendTimeout(int ms);
+      DLLLOCAL int setRecvTimeout(int ms);
+      DLLLOCAL int getSendTimeout();
+      DLLLOCAL int getRecvTimeout();
+      DLLLOCAL int close();
+      DLLLOCAL int shutdown();
+      DLLLOCAL int shutdownSSL(class ExceptionSink *xsink) ;
+      DLLLOCAL const char *getSSLCipherName();
+      DLLLOCAL const char *getSSLCipherVersion();
+      DLLLOCAL bool isSecure();
+      DLLLOCAL long verifyPeerCertificate();
+      DLLLOCAL int getSocket();
+      DLLLOCAL void setEncoding(class QoreEncoding *id);
+      DLLLOCAL class QoreEncoding *getEncoding() const;
+      DLLLOCAL bool isDataAvailable(int timeout = 0);
+      DLLLOCAL bool isOpen() const;
       // c must be already referenced before this call
-      inline void setCertificate(class QoreSSLCertificate *c);
-
+      DLLLOCAL void setCertificate(class QoreSSLCertificate *c);
       // p must be already referenced before this call
-      inline void setPrivateKey(class QoreSSLPrivateKey *p);
-
+      DLLLOCAL void setPrivateKey(class QoreSSLPrivateKey *p);
 };
-
-inline int mySocket::connectINETSSL(char *host, int port, class ExceptionSink *xsink)
-{
-   lock();
-   int rc = socket->connectINETSSL(host, port, 
-				   cert ? cert->getData() : NULL,
-				   pk ? pk->getData() : NULL,
-				   xsink);
-   unlock();
-   return rc;
-}
-
-inline int mySocket::connectUNIXSSL(char *p, class ExceptionSink *xsink)
-{
-   lock();
-   int rc = socket->connectUNIXSSL(p, 
-				   cert ? cert->getData() : NULL,
-				   pk ? pk->getData() : NULL,
-				   xsink);
-   unlock();
-   return rc;
-}
-
-inline int mySocket::connectSSL(char *name, class ExceptionSink *xsink)
-{
-   lock();
-   int rc = socket->connectSSL(name, 
-			       cert ? cert->getData() : NULL,
-			       pk ? pk->getData() : NULL,
-			       xsink);
-   unlock();
-   return rc;
-}
-
-inline class mySocket *mySocket::acceptSSL(class SocketSource *source, class ExceptionSink *xsink)
-{
-   lock();
-   QoreSocket *s = socket->acceptSSL(source,
-				     cert ? cert->getData() : NULL, 
-				     pk ? pk->getData() : NULL, xsink);
-   unlock();
-   if (s)
-      return new mySocket(s);
-   return NULL;
-}
-
-// c must be already referenced before this call
-inline void mySocket::setCertificate(class QoreSSLCertificate *c)
-{
-   lock();
-   if (cert)
-      cert->deref();
-   cert = c;
-   unlock();
-}
-
-// p must be already referenced before this call
-inline void mySocket::setPrivateKey(class QoreSSLPrivateKey *p)
-{
-   lock();
-   if (pk)
-      pk->deref();
-   pk = p;
-   unlock();
-}
 
 #endif // _QORE_CLASS_QORESOCKET_H

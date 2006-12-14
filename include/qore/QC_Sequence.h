@@ -29,17 +29,17 @@
 #include <qore/Sequence.h>
 #include <qore/AbstractPrivateData.h>
 
-extern int CID_SEQUENCE;
+DLLEXPORT extern int CID_SEQUENCE;
 
-class QoreClass *initSequenceClass();
+DLLLOCAL class QoreClass *initSequenceClass();
 
 class QoreSequence : public AbstractPrivateData, public Sequence
 {
    protected:
-      virtual ~QoreSequence() {}
+      DLLLOCAL virtual ~QoreSequence() {}
 
    public:
-      inline QoreSequence(int start = 0) : Sequence(start) {}
+      DLLLOCAL QoreSequence(int start = 0) : Sequence(start) {}
 };
 
 #endif // _QORE_CLASS_SEQUENCE_H
