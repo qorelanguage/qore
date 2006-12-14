@@ -66,6 +66,7 @@ libqore_la_SOURCES = \
 	QoreSSLCertificate.cc \
 	QoreSSLPrivateKey.cc \
 	mySocket.cc \
+	QoreCondition.cc \
 	QT_NOTHING.cc \
 	QT_bigint.cc \
 	QT_float.cc \

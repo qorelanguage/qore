@@ -35,50 +35,14 @@ class QoreCondition
       pthread_cond_t c;
 
    public:
-      DLLLOCAL inline QoreCondition();
-      DLLLOCAL inline ~QoreCondition()
-      {
-	 pthread_cond_destroy(&c);
-      }
-      DLLLOCAL inline int signal();
-      DLLLOCAL inline int broadcast();
-      DLLLOCAL inline int wait(pthread_mutex_t *m);
-      DLLLOCAL inline int wait(pthread_mutex_t *m, int timeout); // timeout in seconds
-      DLLLOCAL inline int wait(LockedObject *l) { return wait(&l->ptm_lock); }
-      DLLLOCAL inline int wait(LockedObject *l, int timeout) { return wait(&l->ptm_lock, timeout); } // timeout in seconds
+      DLLLOCAL QoreCondition();
+      DLLLOCAL ~QoreCondition();
+      DLLLOCAL int signal();
+      DLLLOCAL int broadcast();
+      DLLLOCAL int wait(pthread_mutex_t *m);
+      DLLLOCAL int wait(pthread_mutex_t *m, int timeout); // timeout in seconds
+      DLLLOCAL int wait(LockedObject *l) { return wait(&l->ptm_lock); }
+      DLLLOCAL int wait(LockedObject *l, int timeout) { return wait(&l->ptm_lock, timeout); } // timeout in seconds
 };
-
-inline QoreCondition::QoreCondition()
-{
-   pthread_cond_init(&c, NULL);
-}
-
-inline int QoreCondition::signal()
-{
-   return pthread_cond_signal(&c);
-}
-
-inline int QoreCondition::broadcast()
-{
-   return pthread_cond_broadcast(&c);
-}
-
-inline int QoreCondition::wait(pthread_mutex_t *m)
-{
-   return pthread_cond_wait(&c, m);
-}
-
-// timeout is in seconds
-inline int QoreCondition::wait(pthread_mutex_t *m, int timeout)
-{
-   struct timeval now;
-   struct timespec tmout;
-            
-   gettimeofday(&now, NULL);
-   tmout.tv_sec = now.tv_sec + timeout;
-   tmout.tv_nsec = now.tv_usec * 1000;
-
-   return pthread_cond_timedwait(&c, m, &tmout);
-}
 
 #endif // QORE_CONDITION
