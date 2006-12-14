@@ -24,12 +24,12 @@
 
 #define _QORE_QT_LIST_H
 
-class QoreNode *list_DefaultValue();
-class QoreNode *list_ConvertTo(class QoreNode *n, class ExceptionSink *xsink);
-class QoreNode *list_Eval(class QoreNode *n, class ExceptionSink *xsink);
-class QoreNode *list_Copy(class QoreNode *n, class ExceptionSink *xsink);
-bool list_Compare(class QoreNode *l, class QoreNode *r);
-class QoreString *list_MakeString(class QoreNode *n, int format, class ExceptionSink *xsink);
-void list_DeleteContents(class QoreNode *n);
+DLLLOCAL class QoreNode *list_DefaultValue();
+DLLLOCAL class QoreNode *list_ConvertTo(class QoreNode *n, class ExceptionSink *xsink);
+DLLLOCAL class QoreNode *list_Eval(class QoreNode *n, class ExceptionSink *xsink);
+DLLLOCAL class QoreNode *list_Copy(class QoreNode *n, class ExceptionSink *xsink);
+DLLLOCAL bool list_Compare(class QoreNode *l, class QoreNode *r);
+DLLLOCAL class QoreString *list_MakeString(class QoreNode *n, int format, class ExceptionSink *xsink);
+DLLLOCAL void list_DeleteContents(class QoreNode *n);
 
 #endif // _QORE_QT_LIST_H

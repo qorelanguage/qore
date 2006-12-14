@@ -31,16 +31,16 @@
 #include <qore/ModuleManager.h>
 #include <qore/QoreLib.h>
 
-extern char qore_version_string[];
-extern int qore_version_major;
-extern int qore_version_minor;
-extern int qore_version_sub;
-extern int qore_build_number;
-extern int qore_target_bits;
-extern char qore_target_os[];
-extern char qore_target_arch[];
+DLLEXPORT extern char qore_version_string[];
+DLLEXPORT extern int qore_version_major;
+DLLEXPORT extern int qore_version_minor;
+DLLEXPORT extern int qore_version_sub;
+DLLEXPORT extern int qore_build_number;
+DLLEXPORT extern int qore_target_bits;
+DLLEXPORT extern char qore_target_os[];
+DLLEXPORT extern char qore_target_arch[];
 
-void qore_init(char *def_charset = NULL, bool show_module_errors = false);
-void qore_cleanup();
+DLLEXPORT void qore_init(char *def_charset = NULL, bool show_module_errors = false);
+DLLEXPORT void qore_cleanup();
 
 #endif  // _QORE_QORE_H

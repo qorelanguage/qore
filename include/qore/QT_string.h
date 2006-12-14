@@ -24,11 +24,11 @@
 
 #define _QORE_QT_STRING_H
 
-class QoreNode *string_DefaultValue();
-class QoreNode *string_Copy(class QoreNode *n, class ExceptionSink *xsink);
-class QoreNode *string_ConvertTo(class QoreNode *n, class ExceptionSink *xsink);
-bool string_Compare(class QoreNode *l, class QoreNode *r);
-class QoreString *string_MakeString(class QoreNode *n, int format, class ExceptionSink *xsink);
-void string_DeleteContents(class QoreNode *n);
+DLLLOCAL class QoreNode *string_DefaultValue();
+DLLLOCAL class QoreNode *string_Copy(class QoreNode *n, class ExceptionSink *xsink);
+DLLLOCAL class QoreNode *string_ConvertTo(class QoreNode *n, class ExceptionSink *xsink);
+DLLLOCAL bool string_Compare(class QoreNode *l, class QoreNode *r);
+DLLLOCAL class QoreString *string_MakeString(class QoreNode *n, int format, class ExceptionSink *xsink);
+DLLLOCAL void string_DeleteContents(class QoreNode *n);
 
 #endif // _QORE_QT_STRING_H

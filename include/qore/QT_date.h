@@ -24,11 +24,11 @@
 
 #define _QORE_QT_DATE_H
 
-class QoreNode *date_DefaultValue();
-class QoreNode *date_Copy(class QoreNode *n, class ExceptionSink *xsink);
-class QoreNode *date_ConvertTo(class QoreNode *n, class ExceptionSink *xsink);
-bool date_Compare(class QoreNode *l, class QoreNode *r);
-class QoreString *date_MakeString(class QoreNode *n, int format, class ExceptionSink *xsink);
-void date_DeleteContents(class QoreNode *n);
+DLLLOCAL class QoreNode *date_DefaultValue();
+DLLLOCAL class QoreNode *date_Copy(class QoreNode *n, class ExceptionSink *xsink);
+DLLLOCAL class QoreNode *date_ConvertTo(class QoreNode *n, class ExceptionSink *xsink);
+DLLLOCAL bool date_Compare(class QoreNode *l, class QoreNode *r);
+DLLLOCAL class QoreString *date_MakeString(class QoreNode *n, int format, class ExceptionSink *xsink);
+DLLLOCAL void date_DeleteContents(class QoreNode *n);
 
 #endif // _QORE_QT_DATE_H

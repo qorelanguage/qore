@@ -24,9 +24,9 @@
 
 #define _QORE_QT_BOOLEAN_H
 
-class QoreNode *boolean_DefaultValue();
-class QoreNode *boolean_ConvertTo(class QoreNode *n, class ExceptionSink *xsink);
-bool boolean_Compare(class QoreNode *l, class QoreNode *r);
-class QoreString *boolean_MakeString(class QoreNode *n, int format, class ExceptionSink *xsink);
+DLLLOCAL class QoreNode *boolean_DefaultValue();
+DLLLOCAL class QoreNode *boolean_ConvertTo(class QoreNode *n, class ExceptionSink *xsink);
+DLLLOCAL bool boolean_Compare(class QoreNode *l, class QoreNode *r);
+DLLLOCAL class QoreString *boolean_MakeString(class QoreNode *n, int format, class ExceptionSink *xsink);
 
 #endif // _QORE_QT_BOOLEAN_H

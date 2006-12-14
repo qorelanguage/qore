@@ -24,12 +24,12 @@
 
 #define _QORE_QT_HASH_H
 
-class QoreNode *hash_DefaultValue();
-class QoreNode *hash_ConvertTo(class QoreNode *n, class ExceptionSink *xsink);
-class QoreNode *hash_Eval(class QoreNode *n, class ExceptionSink *xsink);
-class QoreNode *hash_Copy(class QoreNode *n, class ExceptionSink *xsink);
-bool hash_Compare(class QoreNode *l, class QoreNode *r);
-class QoreString *hash_MakeString(class QoreNode *n, int format, class ExceptionSink *xsink);
-void hash_DeleteContents(class QoreNode *n);
+DLLLOCAL class QoreNode *hash_DefaultValue();
+DLLLOCAL class QoreNode *hash_ConvertTo(class QoreNode *n, class ExceptionSink *xsink);
+DLLLOCAL class QoreNode *hash_Eval(class QoreNode *n, class ExceptionSink *xsink);
+DLLLOCAL class QoreNode *hash_Copy(class QoreNode *n, class ExceptionSink *xsink);
+DLLLOCAL bool hash_Compare(class QoreNode *l, class QoreNode *r);
+DLLLOCAL class QoreString *hash_MakeString(class QoreNode *n, int format, class ExceptionSink *xsink);
+DLLLOCAL void hash_DeleteContents(class QoreNode *n);
 
 #endif // _QORE_QT_HASH_H

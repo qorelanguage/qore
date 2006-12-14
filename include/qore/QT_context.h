@@ -1,4 +1,4 @@
-/*
+#/*
   QT_context.h
 
   Qore Programming Language
@@ -24,9 +24,9 @@
 
 #define _QORE_QT_CONTEXT_H
 
-class QoreNode *contextref_Eval(class QoreNode *n, class ExceptionSink *xsink);
-class QoreNode *complexcontextref_Eval(class QoreNode *n, class ExceptionSink *xsink);
-class QoreNode *complexcontextref_Copy(class QoreNode *n, class ExceptionSink *xsink);
-void complexcontextref_DeleteContents(class QoreNode *n);
+DLLLOCAL class QoreNode *contextref_Eval(class QoreNode *n, class ExceptionSink *xsink);
+DLLLOCAL class QoreNode *complexcontextref_Eval(class QoreNode *n, class ExceptionSink *xsink);
+DLLLOCAL class QoreNode *complexcontextref_Copy(class QoreNode *n, class ExceptionSink *xsink);
+DLLLOCAL void complexcontextref_DeleteContents(class QoreNode *n);
 
 #endif // _QORE_QT_CONTEXT_H
