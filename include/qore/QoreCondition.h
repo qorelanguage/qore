@@ -35,14 +35,14 @@ class QoreCondition
       pthread_cond_t c;
 
    public:
-      DLLLOCAL QoreCondition();
-      DLLLOCAL ~QoreCondition();
-      DLLLOCAL int signal();
-      DLLLOCAL int broadcast();
-      DLLLOCAL int wait(pthread_mutex_t *m);
-      DLLLOCAL int wait(pthread_mutex_t *m, int timeout); // timeout in seconds
-      DLLLOCAL int wait(LockedObject *l) { return wait(&l->ptm_lock); }
-      DLLLOCAL int wait(LockedObject *l, int timeout) { return wait(&l->ptm_lock, timeout); } // timeout in seconds
+      DLLEXPORT QoreCondition();
+      DLLEXPORT ~QoreCondition();
+      DLLEXPORT int signal();
+      DLLEXPORT int broadcast();
+      DLLEXPORT int wait(pthread_mutex_t *m);
+      DLLEXPORT int wait(pthread_mutex_t *m, int timeout); // timeout in seconds
+      DLLEXPORT int wait(LockedObject *l) { return wait(&l->ptm_lock); }
+      DLLEXPORT int wait(LockedObject *l, int timeout) { return wait(&l->ptm_lock, timeout); } // timeout in seconds
 };
 
 #endif // QORE_CONDITION
