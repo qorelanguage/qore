@@ -48,34 +48,33 @@ private:
   bool connected;
   QoreSocket m_socket;
 
-  void process_url(Hash* opts, ExceptionSink* xsink);
+  DLLLOCAL void process_url(Hash* opts, ExceptionSink* xsink);
 
 public:
-  static Hash* get_DEFAULT_PROTOCOLS();
-  static List* get_ALLOWED_VERSIONS();
+  DLLLOCAL static Hash* get_DEFAULT_PROTOCOLS();
+  DLLLOCAL static List* get_ALLOWED_VERSIONS();
   static const int defaultTimeout = 300000;
   static const char* defaultHTTPVersion;
 
 public:
-  QoreHTTPClient(Hash* opts, ExceptionSink* xsink);
-  ~QoreHTTPClient();
+  DLLLOCAL QoreHTTPClient(Hash* opts, ExceptionSink* xsink);
+  DLLLOCAL ~QoreHTTPClient();
 
-  void deref() {
+  DLLLOCAL void deref() {
     if (ROdereference()) {
       delete this;
     }
   }
 
-  void setHTTPVersion(char* version, ExceptionSink* xsink);
-  const char* getHTTPVersion() const { return http_version.c_str(); }
+  DLLLOCAL void setHTTPVersion(char* version, ExceptionSink* xsink);
+  DLLLOCAL const char* getHTTPVersion() const { return http_version.c_str(); }
 
-  void setSecure(bool is_secure) { ssl = is_secure; }
-  bool isSecure() const { return ssl; }
+  DLLLOCAL void setSecure(bool is_secure) { ssl = is_secure; }
+  DLLLOCAL bool isSecure() const { return ssl; }
 
-  long verifyPeerCertificate() { return m_socket.verifyPeerCertificate(); }
-  const char* getSSLCipherName() { return m_socket.getSSLCipherName(); }
-  const char* getSSLCipherVersion() { return m_socket.getSSLCipherVersion(); }
-
+  DLLLOCAL long verifyPeerCertificate() { return m_socket.verifyPeerCertificate(); }
+  DLLLOCAL const char* getSSLCipherName() { return m_socket.getSSLCipherName(); }
+  DLLLOCAL const char* getSSLCipherVersion() { return m_socket.getSSLCipherVersion(); }
 };
 
 #endif 

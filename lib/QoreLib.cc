@@ -47,11 +47,11 @@ DLLLOCAL class List *ARGV = NULL;
 DLLLOCAL class List *QORE_ARGV = NULL;
 
 #ifndef HAVE_LOCALTIME_R
-class LockedObject lck_localtime;
+DLLLOCAL class LockedObject lck_localtime;
 #endif
 
 #ifndef HAVE_GMTIME_R
-class LockedObject lck_gmtime;
+DLLLOCAL class LockedObject lck_gmtime;
 #endif
 
 DLLLOCAL char table64[64] = {
@@ -79,6 +79,44 @@ static inline int get_number(char **param)
 #define P_INCLUDE_PLUS      2
 #define P_SPACE_FILL        4
 #define P_ZERO_FILL         8
+
+featureList::featureList()
+{
+   // register default features
+   push_back(strdup("sql"));
+   push_back(strdup("threads"));
+   push_back(strdup("xml"));
+#ifdef QORE_DEBUG
+   push_back(strdup("debug"));
+#endif
+#ifdef QORE_MONOLITHIC
+# ifdef NCURSES
+   push_back(strdup("ncurses"));
+# endif
+# ifdef ORACLE
+   push_back(strdup("oracle"));
+# endif
+# ifdef QORE_MYSQL
+   push_back(strdup("mysql"));
+# endif
+# ifdef TIBRV
+   push_back(strdup("tibrv"));
+# endif
+# ifdef TIBAE
+   push_back(strdup("tibae"));
+# endif
+#endif
+}
+
+featureList::~featureList()
+{
+   featureList::iterator i;
+   while ((i = begin()) != end())
+   {
+      free(*i);
+      erase(i);
+   }
+}
 
 // if type = 0 then field widths are soft limits, otherwise they are hard
 static int process_opt(QoreString *cstr, char *param, class QoreNode *node, int type, int *taken, class ExceptionSink *xsink)
@@ -693,3 +731,65 @@ void delete_global_variables()
       ENV->derefAndDelete(NULL);
    traceout("delete_global_variables()");
 }
+
+struct tm *q_localtime(const time_t *clock, struct tm *tms)
+{
+#ifdef HAVE_LOCALTIME_R
+   localtime_r(clock, tms);
+#else
+   lck_localtime.lock();
+   struct tm *t = localtime(clock);
+   memcpy(tms, t, sizeof(struct tm));
+   lck_localtime.unlock();
+#endif
+   return tms;
+}
+
+struct tm *q_gmtime(const time_t *clock, struct tm *tms)
+{
+#ifdef HAVE_GMTIME_R
+   gmtime_r(clock, tms);
+#else
+   lck_gmtime.lock();
+   struct tm *t = gmtime(clock);
+   memcpy(tms, t, sizeof(struct tm));
+   lck_gmtime.unlock();
+#endif
+   return tms;
+}
+
+// thread-safe basename function (resulting pointer must be free()ed)
+char *q_basename(char *path)
+{
+   char *p = strrchr(path, '/');
+   if (!p)
+      return strdup(path);
+   return strdup(p + 1);
+}
+
+// returns a pointer within the same string
+char *q_basenameptr(char *path)
+{
+   char *p = strrchr(path, '/');
+   if (!p)
+      return path;
+   return p + 1;   
+}
+
+// thread-safe basename function (resulting pointer must be free()ed)
+char *q_dirname(char *path)
+{
+   char *p = strrchr(path, '/');
+   if (!p || p == path)
+   {
+      char *x = (char *)malloc(sizeof(char) * 2);
+      x[0] = !p ? '.' : '/';
+      x[1] = '\0';
+      return x;
+   }
+   char *x = (char *)malloc(sizeof(char) * (p - path + 1));
+   strncpy(x, path, p - path);
+   x[p - path] = '\0';
+   return x;
+}
+
