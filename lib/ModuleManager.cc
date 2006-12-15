@@ -310,7 +310,7 @@ void ModuleManager::init(bool se)
 class QoreString *ModuleManager::loadModule(char *name, class QoreProgram *pgm)
 {
    // if the feature already exists in this program, then return
-   if (pgm && !pgm->featureList.find(name))
+   if (pgm && !pgm->checkFeature(name))
       return NULL;
 
    // if the feature already exists, then load the namespace changes into this program and register the feature
@@ -321,7 +321,7 @@ class QoreString *ModuleManager::loadModule(char *name, class QoreProgram *pgm)
       if (pgm)
       {
 	 mi->ns_init(pgm->getRootNS(), pgm->getQoreNS());
-	 pgm->featureList.push_back(mi->getName());
+	 pgm->addFeature(mi->getName());
       }
       unlock();
       return NULL;
@@ -350,7 +350,7 @@ class QoreString *ModuleManager::loadModule(char *name, class QoreProgram *pgm)
 	 if (pgm)
 	 {
 	    mi->ns_init(pgm->getRootNS(), pgm->getQoreNS());
-	    pgm->featureList.push_back(mi->getName());
+	    pgm->addFeature(mi->getName());
 	 }
 	 return NULL;
       }

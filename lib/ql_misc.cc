@@ -306,17 +306,7 @@ static class QoreNode *f_getModuleList(class QoreNode *params, ExceptionSink *xs
 
 static class QoreNode *f_getFeatureList(class QoreNode *params, ExceptionSink *xsink)
 {
-   class List *l = new List();
-
-   charPtrList::iterator i = getProgram()->featureList.begin();
-   charPtrList::iterator end = getProgram()->featureList.end();
-   while (i != end)
-   {
-      l->push(new QoreNode(*i));
-      i++;
-   }
-
-   return new QoreNode(l);
+   return new QoreNode(getProgram()->getFeatureList());
 }
 
 static class QoreNode *f_hash_values(class QoreNode *params, ExceptionSink *xsink)

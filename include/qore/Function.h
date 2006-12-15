@@ -171,8 +171,15 @@ class UserFunction : public ReferenceObject
       DLLLOCAL class QoreNode *eval(class QoreNode *args, class Object *self, class ExceptionSink *xsink);
       DLLLOCAL class QoreNode *evalConstructor(class QoreNode *args, class Object *self, class BCList *bcl, class BCEAList *scbceal, class ExceptionSink *xsink);
       DLLLOCAL void evalCopy(class Object *old, class Object *self, class ExceptionSink *xsink);
-      DLLLOCAL bool isSynchronized() const { return synchronized; }
+      DLLLOCAL bool isSynchronized() const 
+      { 
+	 return synchronized; 
+      }
       DLLLOCAL void deref();
+      DLLLOCAL char *getName() const 
+      {
+	 return name;
+      }
 };
 
 #endif // _QORE_FUNCTION_H

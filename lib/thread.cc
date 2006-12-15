@@ -137,12 +137,12 @@ class BGThreadParams {
 	    callobj->tRef();
 
 	 // increment the program's thread counter
-	 pgm->tcount.inc();
+	 pgm->tc_inc();
       }
       inline ~BGThreadParams()
       {
 	 // decrement program's thread count
-	 pgm->tcount.dec();
+	 pgm->tc_dec();
       }
       void cleanup(class ExceptionSink *xsink)
       {

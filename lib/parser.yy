@@ -62,7 +62,6 @@ int yywrap()
 extern class Operator **ops;
 
 // copies keys added, deletes them in the destructor
-
 static inline class QoreNode *splice_expressions(class QoreNode *a1, class QoreNode *a2)
 {
    //tracein("splice_expressions()");
@@ -79,6 +78,11 @@ static inline class QoreNode *splice_expressions(class QoreNode *a1, class QoreN
    nl->val.list->push(a2);
    //traceout("splice_expressions()");
    return nl;
+}
+
+static inline int checkParseOption(int o)
+{
+   return getParseOptions() & o;
 }
 
 class MemberList : private strset_t

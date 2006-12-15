@@ -361,7 +361,7 @@ BINARY          <({HEX_DIGIT}{HEX_DIGIT})+>
 					   else
 					   {
 					      // save file name string in QoreProgram's list
-					      getProgram()->fileList.push_front(fname->getBuffer());
+					      getProgram()->addFile(fname->getBuffer());
 					      // "give away" string - it will be deleted when the QoreProgram object
 					      // is deleted
 					      beginParsing(fname->giveBuffer(), (void *)YY_CURRENT_BUFFER);

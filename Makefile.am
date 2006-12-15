@@ -24,6 +24,9 @@ noinst_HEADERS = \
 	include/qore/node_types.h \
 	include/qore/Function.h \
 	include/qore/BuiltinFunctionList.h \
+	include/qore/UserFunctionList.h \
+	include/qore/GlobalVariableList.h \
+	include/qore/ImportedFunctionList.h \
 	include/qore/Variable.h \
 	include/qore/TypeConstants.h \
 	include/qore/Sequence.h \

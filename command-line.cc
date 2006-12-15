@@ -11,6 +11,8 @@
 */
 
 #include <qore/Qore.h>
+#include <qore/support.h>
+#include <qore/charset.h>
 
 #include "command-line.h"
 

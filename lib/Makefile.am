@@ -24,6 +24,9 @@ libqore_la_SOURCES = \
 	QoreNode.cc \
 	Function.cc \
 	BuiltinFunctionList.cc \
+	UserFunctionList.cc \
+	GlobalVariableList.cc \
+	ImportedFunctionList.cc \
 	Statement.cc \
 	SwitchStatementWithOperators.cc \
 	Variable.cc \

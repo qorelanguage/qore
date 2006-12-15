@@ -75,9 +75,9 @@ class charPtrList : public safe_dslist<char *>
    public:
       // returns 0 for found, -1 for not found
       // FIXME: use STL find algorithm
-      inline int find(char *str)
+      inline int find(char *str) const
       {
-	 iterator i = begin();
+	 const_iterator i = begin();
 	 while (i != end())
 	 {
 	    if (!strcmp(*i, str))
