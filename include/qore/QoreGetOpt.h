@@ -24,6 +24,11 @@
 
 #define _QORE_QOREGETOPT_H
 
+#include <qore/common.h>
+#include <qore/safe_dslist>
+
+#include <map>
+
 #define QGO_ERR_DUP_SHORT_OPT -1
 #define QGO_ERR_DUP_LONG_OPT  -2
 #define QGO_ERR_DUP_NAME      -3
@@ -37,10 +42,6 @@
 
 #define QGO_OPT_LIST_OR_ADD (QGO_OPT_ADDITIVE|QGO_OPT_LIST)
 
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
-
 class QoreGetOptNode {
    public:
       char *name;
@@ -49,79 +50,34 @@ class QoreGetOptNode {
       class QoreType *argtype;
       int option;
 
-      class QoreGetOptNode *next;
-
-      inline QoreGetOptNode(char *n, char so, char *lo, class QoreType *at = NULL, int o = QGO_OPT_NONE)
-      {
-	 name = n  ? strdup(n) : NULL;
-	 short_opt = so;
-	 long_opt = lo ? strdup(lo) : NULL;
-	 argtype = at;
-	 option = o;
-      }
-      inline ~QoreGetOptNode();
+      DLLLOCAL QoreGetOptNode(char *n, char so, char *lo, class QoreType *at = NULL, int o = QGO_OPT_NONE);
+      DLLLOCAL ~QoreGetOptNode();
 };
+
+typedef std::map<char *, QoreGetOptNode *, class ltstr> getopt_long_map_t;
+typedef std::map<char, QoreGetOptNode *, class ltchar> getopt_short_map_t;
+typedef safe_dslist<QoreGetOptNode *> getopt_node_list_t;
 
 class QoreGetOpt {
    private:
-      class QoreGetOptNode *head;
+      getopt_long_map_t long_map;
+      getopt_short_map_t short_map;
+      getopt_node_list_t node_list;
       
-      class QoreNode *parseDate(char *val);
-      void processLongArg(char *arg, class List *l, class Hash *h, int &i, bool modify);
-      int processShortArg(char *arg, class List *l, class Hash *h, int &i, int &j, bool modify);
-      inline QoreGetOptNode *find(char *opt)
-      {
-	 class QoreGetOptNode *w = head;
-	 while (w)
-	 {
-	    if (w->long_opt && !strcmp(w->long_opt, opt))
-	       return w;
-	    w = w->next;
-	 }
-	 return NULL;
-      }
-      inline class QoreGetOptNode *find(char opt)
-      {
-	 class QoreGetOptNode *w = head;
-	 while (w)
-	 {
-	    //printd(5, "QGO::find(%c) w=%08p %c next=%08p\n", opt, w, w->short_opt, w->next);
-	    if (w->short_opt == opt)
-	       return w;
-	    w = w->next;
-	 }
-	 return NULL;
-      }
-      void doOption(class QoreGetOptNode *n, class Hash *h, char *val);
-      char *getNextArgument(class List *l, class Hash *h, int &i, char *lopt, char sopt);
+      DLLLOCAL static class QoreNode *parseDate(char *val);
+      DLLLOCAL void processLongArg(char *arg, class List *l, class Hash *h, int &i, bool modify);
+      DLLLOCAL int processShortArg(char *arg, class List *l, class Hash *h, int &i, int &j, bool modify);
+      DLLLOCAL QoreGetOptNode *find(char *opt) const;
+      DLLLOCAL class QoreGetOptNode *find(char opt) const;
+      DLLLOCAL void doOption(class QoreGetOptNode *n, class Hash *h, char *val);
+      DLLLOCAL char *getNextArgument(class List *l, class Hash *h, int &i, char *lopt, char sopt);
 
    public:
-      inline QoreGetOpt()
-      {
-	 head = NULL;
-      }
-      inline ~QoreGetOpt()
-      {
-	 while (head)
-	 {
-	    class QoreGetOptNode *w = head->next;
-	    delete head;
-	    head = w;
-	 }
-      }
+      DLLLOCAL QoreGetOpt();
+      DLLLOCAL ~QoreGetOpt();
       // returns 0 for OK
-      int add(char *name, char short_opt, char *long_opt, class QoreType *argtype = NULL, int option = QGO_OPT_NONE);
-      class Hash *parse(class List *l, bool ml, class ExceptionSink *xsink);
+      DLLLOCAL int add(char *name, char short_opt, char *long_opt, class QoreType *argtype = NULL, int option = QGO_OPT_NONE);
+      DLLLOCAL class Hash *parse(class List *l, bool ml, class ExceptionSink *xsink);
 };
-
-#include <qore/QoreNode.h>
-
-inline QoreGetOptNode::~QoreGetOptNode()
-{
-   if (name)
-      free(name);
-   if (long_opt)
-      free(long_opt);
-}
 
 #endif // _QORE_QOREGETOPT_H

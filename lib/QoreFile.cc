@@ -49,11 +49,6 @@ char *QoreFile::getFileName() const
    return filename; 
 }
 
-int QoreFile::getFD() const
-{
-   return is_open ? fd : -1; 
-}
-
 int QoreFile::close()
 {
    if (filename)

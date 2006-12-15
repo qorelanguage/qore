@@ -54,6 +54,15 @@ class ltstr
    }
 };
 
+class ltchar
+{
+  public:
+   bool operator()(char s1, char s2) const
+   {
+      return s1 < s2;
+   }
+};
+
 class cltstr
 {
   public:

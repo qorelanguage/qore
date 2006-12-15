@@ -20,13 +20,68 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+#include <qore/config.h>
+#include <qore/common.h>
 #include <qore/QoreGetOpt.h>
 #include <qore/Hash.h>
 #include <qore/List.h>
 #include <qore/Exception.h>
 #include <qore/QoreString.h>
+#include <qore/QoreNode.h>
 
 #include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
+
+QoreGetOptNode::QoreGetOptNode(char *n, char so, char *lo, class QoreType *at, int o)
+{
+   name = n  ? strdup(n) : NULL;
+   short_opt = so;
+   long_opt = lo ? strdup(lo) : NULL;
+   argtype = at;
+   option = o;
+}
+
+QoreGetOptNode::~QoreGetOptNode()
+{
+   if (name)
+      free(name);
+   if (long_opt)
+      free(long_opt);
+}
+
+QoreGetOpt::QoreGetOpt()
+{
+}
+
+QoreGetOpt::~QoreGetOpt()
+{
+   getopt_node_list_t::iterator i;
+   while ((i = node_list.begin()) != node_list.end())
+   {
+      class QoreGetOptNode *n = *i;
+      node_list.erase(i);
+      delete n;
+   }
+   long_map.clear();
+   short_map.clear();
+}
+
+class QoreGetOptNode *QoreGetOpt::find(char *opt) const
+{
+   getopt_long_map_t::const_iterator i = long_map.find(opt);
+   if (i != long_map.end())
+      return i->second;
+   return NULL;
+}
+
+class QoreGetOptNode *QoreGetOpt::find(char opt) const
+{
+   getopt_short_map_t::const_iterator i = short_map.find(opt);
+   if (i != short_map.end())
+      return i->second;
+   return NULL;
+}
 
 int QoreGetOpt::add(char *name, char short_opt, char *long_opt, class QoreType *argtype, int option)
 {
@@ -38,18 +93,18 @@ int QoreGetOpt::add(char *name, char short_opt, char *long_opt, class QoreType *
 
    //printf("QoreGetOpt::add(%s, %03d (%c), %s, %08p, %d)\n", name, short_opt, short_opt ? short_opt : '-', long_opt, argtype, option);
    // look for duplicate entries
-   class QoreGetOptNode *n = head;
-   while (n)
-   {
-      if (short_opt && n->short_opt == short_opt)
-	 return QGO_ERR_DUP_SHORT_OPT;
-      if (long_opt && n->long_opt && !strcmp(long_opt, n->long_opt))
-	 return QGO_ERR_DUP_LONG_OPT;
-      n = n->next;
-   }
-   n = new QoreGetOptNode(name, short_opt, long_opt, argtype, option);
-   n->next = head;
-   head = n;
+   if (short_opt && find(short_opt))
+      return QGO_ERR_DUP_SHORT_OPT;
+   if (long_opt && find(long_opt))
+      return QGO_ERR_DUP_LONG_OPT;
+
+   class QoreGetOptNode *n = new QoreGetOptNode(name, short_opt, long_opt, argtype, option);
+   if (short_opt)
+      short_map[short_opt] = n;
+   if (long_opt)
+      long_map[n->long_opt] = n;
+   node_list.push_back(n);
+   
    return 0;
 }
 
@@ -62,6 +117,7 @@ static void inline addError(class Hash *h, QoreString *err)
    (*v)->val.list->push(new QoreNode(err));
 }
 
+// private, static method
 class QoreNode *QoreGetOpt::parseDate(char *val)
 {
    // check for ISO-8601 or qore date formats 

@@ -420,13 +420,6 @@ static class QoreNode *FILE_getchar(class Object *self, class File *f, class Qor
    return NULL;
 }
 
-#ifdef DEBUG
-static class QoreNode *FILE_getFD(class Object *self, class File *f, class QoreNode *params, ExceptionSink *xsink)
-{
-   return new QoreNode((int64)f->getFD());
-}
-#endif
-
 class QoreClass *initFileClass()
 {
    tracein("initFileClass()");
@@ -464,9 +457,6 @@ class QoreClass *initFileClass()
    QC_FILE->addMethod("vprintf",           (q_method_t)FILE_vprintf);
    QC_FILE->addMethod("f_printf",          (q_method_t)FILE_f_printf);
    QC_FILE->addMethod("f_vprintf",         (q_method_t)FILE_f_vprintf);
-#ifdef DEBUG
-   QC_FILE->addMethod("getFD",             (q_method_t)FILE_getFD);
-#endif
    traceout("initFileClass()");
    return QC_FILE;
 }
