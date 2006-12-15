@@ -888,6 +888,17 @@ sub misc_tests()
     my $str2 = "&amp;&lt;&gt;&quot;";
     test_value(html_encode($str1), $str2, "html_encode()");
     test_value(html_decode($str2), $str1, "html_decode()");
+
+    # note that '@' signs are legal in the password field as with datasources
+    my $url = "https://username:passw@rd@hostname:1044/path/is/here";
+    my $uh = ( "protocol" : "https",
+	       "username" : "username",
+	       "password" : "passw@rd",
+	       "host" : "hostname",
+	       "port" : 1044,
+	       "path" : "path/is/here" );
+
+    test_value(parseURL($url), $uh, "parseURL()");
     
     my $str = "This is a long string xxxxxxxxxxxxxxxxxxxxxxxxxxxx";
     my $b = compress($str);

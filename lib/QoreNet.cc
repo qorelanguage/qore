@@ -26,78 +26,86 @@
 #include <qore/QoreNet.h>
 #include <qore/support.h>
 
+#include <strings.h>
 #include <string.h>
-#include <ctype.h>
+#include <stdlib.h>
+#include <netdb.h>
 
-void QoreURL::parseIntern(char *buf)
+// FIXME: check err?
+int q_gethostbyname(char *host, struct in_addr *sin_addr)
 {
-   if (!buf || !buf[0])
-      return;
-
-   printd(5, "QoreURL::parseIntern(%s)\n", buf);
-
-   char *p = strstr(buf, "://");
-   char *pos;
-
-   // get protocol
-   if (p)
+   tracein("q_gethostbyname()");
+   
+#ifdef HAVE_GETHOSTBYNAME_R
+   struct hostent he;
+   int err;
+   char buf[BUFSIZE];
+# ifdef HAVE_GETHOSTBYNAME_R_GLIBC2_STYLE
+   struct hostent *p;
+   
+   if (gethostbyname_r(host, &he, buf, BUFSIZE, &p, &err))
    {
-      protocol = new QoreString(buf, p - buf);
-      // convert to lower case
-      protocol->tolwr();
-      printd(5, "QoreURL::parseIntern protocol=%s\n", protocol->getBuffer());
-      pos = p + 3;
+      traceout("q_gethostbyname()");
+      return -1;
    }
-   else
-      pos = buf;
-
-   char *nbuf;
-
-   // find end of hostname
-   if ((p = strchr(pos, '/')))
+# else // assume Solaris-style gethostbyname_r
+   if (!gethostbyname_r(host, &he, buf, BUFSIZE, &err))
    {
-      // get pathname if not at EOS
-      if (p[1] != '\0')
-      {
-	 path = new QoreString(p + 1);
-	 printd(5, "QoreURL::parseIntern path=%s\n", path->getBuffer());
-      }
-      // get copy of hostname string for localized searching and invasive parsing
-      nbuf = (char *)malloc(sizeof(char) * (p - pos + 1));
-      strncpy(nbuf, pos, p - pos);
-      nbuf[p - pos] = '\0';
+      printd(5, "q_gethostbyname() Solaris gethostbyname_r() returned NULL");
+      traceout("q_gethostbyname()");
+      return -1;
    }
-   else
-      nbuf = strdup(pos);
-
-   // see if there's a username
-   if ((p = strchr(nbuf, '@')))
+# endif // HAVE_GETHOSTBYNAME_R_GLIBC2_STYLE
+   memcpy((char *)sin_addr, (char *)he.h_addr, he.h_length);
+#else  // else if !HAVE_GETHOSTBYNAME_R
+   struct hostent *he;
+   lck_gethostbyname.lock();
+   if (!(he = gethostbyname(host)))
    {
-      pos = p + 1;
-      *p = '\0';
-      // see if there's a password
-      if ((p = strchr(nbuf, ':')))
-      {
-	 printd(5, "QoreURL::parseIntern password=%s\n", p + 1);
-	 password = new QoreString(p + 1);
-	 *p = '\0';
-      }
-      // set username
-      printd(5, "QoreURL::parseIntern username=%s\n", nbuf);
-      username = new QoreString(nbuf);
+      //herror("q_gethostbyname()");
+      lck_gethostbyname.unlock();
+      traceout("q_gethostbyname()");
+      return -1;
    }
-   else
-      pos = nbuf;
-
-   // see if there's a port
-   if ((p = strchr(pos, ':')))
-   {
-      *p = '\0';
-      port = atoi(p + 1);
-      printd(5, "QoreURL::parseIntern port=%d\n", port);
-   }
-   // set hostname
-   printd(5, "QoreURL::parseIntern host=%s\n", pos);
-   host = new QoreString(pos);
-   free(nbuf);
+   memcpy((char *)sin_addr, (char *)he->h_addr, he->h_length);
+   lck_gethostbyname.unlock();
+#endif
+   traceout("q_gethostbyname()");
+   return 0;
 }
+
+// thread-safe gethostbyaddr (string returned must be freed)
+// FIXME: check err?
+char *q_gethostbyaddr(const char *addr, int len, int type)
+{
+   char *host;
+   
+#ifdef HAVE_GETHOSTBYADDR_R
+   struct hostent he;
+   char buf[BUFSIZE];
+   int err;
+# ifdef HAVE_SOLARIS_STYLE_GETHOST
+   if (gethostbyaddr_r(addr, len, type, &he, buf, BUFSIZE, &err))
+      host = strdup(he.h_name);
+   else
+      host = NULL;
+# else // assume glibc2-style gethostbyaddr_r
+   struct hostent *p;
+   
+   if (!gethostbyaddr_r(addr, len, type, &he, buf, BUFSIZE, &p, &err))
+      host = strdup(he.h_name);
+   else
+      host = NULL;
+# endif // HAVE_SOLARIS_STYLE_GETHOST
+#else  // else if !HAVE_GETHOSTBYADDR_R
+   lck_gethostbyaddr.lock();
+   struct hostent *he;
+   if ((he = gethostbyaddr(addr, len, type)))
+      host = strdup(he->h_name);
+   else
+      host = NULL;
+   lck_gethostbyaddr.unlock();
+#endif // HAVE_GETHOSTBYADDR_R
+   return host;
+}
+

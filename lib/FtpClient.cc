@@ -24,8 +24,8 @@
 
 #include <qore/config.h>
 #include <qore/QoreLib.h>
-
 #include <qore/FtpClient.h>
+#include <qore/QoreURL.h>
 
 class FtpResp
 {
@@ -250,24 +250,24 @@ void FtpClient::setURLInternal(class QoreString *url_str, class ExceptionSink *x
    }
 
    // verify protocol
-   if (url.protocol)
+   if (url.getProtocol())
    {
-      if (!url.protocol->compare("ftps"))
+      if (!url.getProtocol()->compare("ftps"))
 	 secure = secure_data = true;
-      else if (url.protocol->compare("ftp"))
+      else if (url.getProtocol()->compare("ftp"))
       {
-	 xsink->raiseException("UNSUPPORTED-PROTOCOL", "'%s' not supported (expected 'ftp' or 'ftps')", url.protocol->getBuffer());
+	 xsink->raiseException("UNSUPPORTED-PROTOCOL", "'%s' not supported (expected 'ftp' or 'ftps')", url.getProtocol()->getBuffer());
 	 return;
       }
    }
 
    // set username
-   user = url.username ? url.username->giveBuffer() : NULL;   
+   user = url.take_username();   
    // set password
-   pass = url.password ? url.password->giveBuffer() : NULL;
+   pass = url.take_password();
    // set host
-   host = url.host ? url.host->giveBuffer() : NULL;
-   port = url.port ? url.port : DEFAULT_FTP_CONTROL_PORT;
+   host = url.take_host();
+   port = url.getPort() ? url.getPort() : DEFAULT_FTP_CONTROL_PORT;
 }
 
 // private unlocked

@@ -18,6 +18,7 @@
 #include "QoreProgram.cc"
 #include "Namespace.cc"
 #include "QoreNet.cc"
+#include "QoreURL.cc"
 #include "QoreFile.cc"
 #include "QoreSocket.cc"
 #include "DateTime.cc"

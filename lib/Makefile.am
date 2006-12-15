@@ -39,6 +39,7 @@ libqore_la_SOURCES = \
 	QoreProgram.cc \
 	Namespace.cc \
 	QoreNet.cc \
+	QoreURL.cc \
 	QoreFile.cc \
 	QoreSocket.cc \
 	DateTime.cc \

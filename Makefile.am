@@ -61,6 +61,7 @@ noinst_HEADERS = \
 	include/qore/macros-none.h \
 	include/qore/QoreSocket.h \
 	include/qore/QoreNet.h \
+	include/qore/QoreURL.h \
 	include/qore/Restrictions.h \
 	include/qore/QoreFile.h \
 	include/qore/QoreLib.h \
