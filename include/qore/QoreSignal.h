@@ -30,39 +30,23 @@
 #include <map>
 
 // maximum number of signals
+#ifndef QORE_SIGNAL_MAX
 #define QORE_SIGNAL_MAX 128
+#endif
 
-using namespace std;
-typedef map<int, class Function *> m_int_func_t;
+typedef std::map<int, class Function *> m_int_func_t;
 
 class QoreSignalManager {
    private:
       m_int_func_t smap;
    
    public:
-      inline QoreSignalManager() {}
-      inline ~QoreSignalManager()
-      {
-	 smap.clear();
-      }
-      inline void setHandler(int sig, class Function *f)
-      {
-	 smap[sig] = f;
-      }
-      inline void removeHandler(int sig)
-      {
-	 smap.erase(sig);
-      }
-      inline class Function *getHandler(int sig)
-      {
-	 m_int_func_t::iterator i = smap.find(sig);
-	 if (i == smap.end())
-	    return NULL;
-	 return i->second;
-      }
-      void handleSignal(int sig);
+      DLLLOCAL QoreSignalManager();
+      DLLLOCAL ~QoreSignalManager();
+      DLLLOCAL void setHandler(int sig, class Function *f);
+      DLLLOCAL void removeHandler(int sig);
+      DLLLOCAL class Function *getHandler(int sig);
+      DLLLOCAL void handleSignal(int sig);
 };
-
-#include <qore/Function.h>
 
 #endif

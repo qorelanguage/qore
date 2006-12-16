@@ -174,7 +174,7 @@ ModuleManager::ModuleManager()
 
 void ModuleManager::add(ModuleInfo *m)
 {
-   insert(pair<char *, ModuleInfo *>(m->getName(), m));
+   insert(std::pair<char *, ModuleInfo *>(m->getName(), m));
 }
 
 class ModuleInfo *ModuleManager::add(char *fn, char *n, int major, int minor, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del, char *d, char *v, char *a, char *u, void *p)
