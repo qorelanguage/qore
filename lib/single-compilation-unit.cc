@@ -48,6 +48,7 @@
 #include "Gate.cc"
 #include "NamedScope.cc"
 #include "RWLock.cc"
+#include "QoreSSLBase.cc"
 #include "QoreSSLCertificate.cc"
 #include "QoreSSLPrivateKey.cc"
 #include "mySocket.cc"

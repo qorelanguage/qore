@@ -68,6 +68,7 @@ libqore_la_SOURCES = \
 	Gate.cc \
 	NamedScope.cc \
 	RWLock.cc \
+	QoreSSLBase.cc \
 	QoreSSLCertificate.cc \
 	QoreSSLPrivateKey.cc \
 	mySocket.cc \

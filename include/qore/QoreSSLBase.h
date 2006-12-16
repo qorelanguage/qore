@@ -24,58 +24,15 @@
 
 #define _QORE_QORESSLBASE_H
 
-#include <qore/ReferenceObject.h>
-#include <qore/Exception.h>
-#include <qore/Hash.h>
-#include <qore/support.h>
-
 #include <openssl/ssl.h>
 #include <openssl/x509v3.h>
-
-#define OBJ_BUF_LEN 80
 
 class QoreSSLBase
 {
   public:
-   static class Hash *X509_NAME_to_hash(X509_NAME *n)
-   {
-      class Hash *h = new Hash();
-      for (int i = 0; i < X509_NAME_entry_count(n); i++)
-      {
-	 X509_NAME_ENTRY *e = X509_NAME_get_entry(n, i);
-	 
-	 ASN1_OBJECT *ko = X509_NAME_ENTRY_get_object(e);
-	 char key[OBJ_BUF_LEN + 1];
-	 
-	 OBJ_obj2txt(key, OBJ_BUF_LEN, ko, 0);
-	 ASN1_STRING *val = X509_NAME_ENTRY_get_data(e);
-	 //printd(5, "do_X509_name() %s=%s\n", key, ASN1_STRING_data(val));
-	 h->setKeyValue(key, new QoreNode((char *)ASN1_STRING_data(val)), NULL);
-      }
-      return h;
-   }
-
-   static class DateTime *ASN1_TIME_to_DateTime(ASN1_STRING *t)
-   {
-      // FIXME: check ASN1_TIME format if this algorithm is always correct
-      QoreString str("20");
-      str.concat((char *)ASN1_STRING_data(t));
-      str.terminate(14);
-      return new DateTime(str.getBuffer());
-   }
-
-   static class QoreString *ASN1_OBJECT_to_QoreString(ASN1_OBJECT *o)
-   {
-      BIO *bp = BIO_new(BIO_s_mem());
-      i2a_ASN1_OBJECT(bp, o);
-      char *buf;
-      long len = BIO_get_mem_data(bp, &buf);
-      class QoreString *str = new QoreString(buf, (int)len);
-      BIO_free(bp);
-      return str;
-   }
+   static class Hash *X509_NAME_to_hash(X509_NAME *n);
+   static class DateTime *ASN1_TIME_to_DateTime(ASN1_STRING *t);
+   static class QoreString *ASN1_OBJECT_to_QoreString(ASN1_OBJECT *o);
 };
-
-
 
 #endif // _QORE_CLASS_SSLBASE_H

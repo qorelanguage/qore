@@ -45,16 +45,16 @@ class QoreQueue
       int len;
 
    public:
-      DLLEXPORT QoreQueue();
-      DLLEXPORT ~QoreQueue();
-      DLLEXPORT QoreQueue(QoreNode *n);
-      DLLEXPORT void push(QoreNode *n);
-      DLLEXPORT QoreNode *shift();
-      DLLEXPORT QoreNode *shift(int timeout_ms, bool *to);
-      DLLEXPORT QoreNode *pop();
-      DLLEXPORT QoreNode *pop(int timeout_ms, bool *to);
-      DLLEXPORT int size() const;
-      DLLEXPORT void del(class ExceptionSink *xsink);
+      DLLLOCAL QoreQueue();
+      DLLLOCAL ~QoreQueue();
+      DLLLOCAL QoreQueue(QoreNode *n);
+      DLLLOCAL void push(QoreNode *n);
+      DLLLOCAL QoreNode *shift();
+      DLLLOCAL QoreNode *shift(int timeout_ms, bool *to);
+      DLLLOCAL QoreNode *pop();
+      DLLLOCAL QoreNode *pop(int timeout_ms, bool *to);
+      DLLLOCAL int size() const;
+      DLLLOCAL void del(class ExceptionSink *xsink);
 };
 
 #endif // _QORE_QOREQUEUE_H
