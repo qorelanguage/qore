@@ -27,71 +27,20 @@
 class ProgramNode {
    public:
       class QoreProgram *pgm;
-      inline ProgramNode(class QoreProgram *p) { pgm = p; next = NULL; }
-      class QoreProgram *getInfo();
-      class ProgramNode *next;
       class ProgramNode *prev;
+
+      DLLLOCAL ProgramNode(class QoreProgram *p);
 };
 
 class QoreProgramStack {
       class ProgramNode *tail;
+
    public:
-      inline QoreProgramStack(class QoreProgram *p);
-      inline ~QoreProgramStack();
-      inline void push(class QoreProgram *p);
-      inline void pop();
-      class QoreProgram *getProgram() { return tail->pgm; }
+      DLLLOCAL QoreProgramStack(class QoreProgram *p);
+      DLLLOCAL ~QoreProgramStack();
+      DLLLOCAL void push(class QoreProgram *p);
+      DLLLOCAL void pop();
+      DLLLOCAL class QoreProgram *getProgram() const;
 };
-
-#include <qore/qore_thread.h>
-#include <qore/support.h>
-
-inline QoreProgramStack::QoreProgramStack(class QoreProgram *p)
-{
-   tail = new ProgramNode(p);
-   tail->prev = NULL;
-}
-
-inline QoreProgramStack::~QoreProgramStack()
-{
-   while (tail)
-   {
-      class ProgramNode *c = tail->prev;
-      delete tail;
-      tail = c;
-   }
-}
-
-inline void QoreProgramStack::push(class QoreProgram *p)
-{
-   tracein("QoreProgramStack::push()");
-   printd(5, "QoreProgramStack::push(%08p)\n", p);
-#ifdef DEBUG
-   if (!p)
-   {
-      run_time_error("QoreProgramStack::push() NULL\n");
-      exit(1);
-   }
-#endif
-   ProgramNode *n = new ProgramNode(p);
-   n->next = NULL;
-   n->prev = tail;
-   if (tail)
-      tail->next = n;
-   tail = n;
-   traceout("QoreProgramStack::push()");
-}
-
-inline void QoreProgramStack::pop()
-{
-   tracein("QoreProgramStack::pop()");
-   printd(5, "QoreProgramStack::pop()\n", tail->pgm);
-   ProgramNode *n = tail;
-   tail = tail->prev;
-   if (tail)
-      tail->next = NULL;
-   delete n;
-   traceout("QoreProgramStack::pop()");
-}
 
 #endif // _QORE_QOREPROGRAMSTACK_H

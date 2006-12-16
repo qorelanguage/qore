@@ -1,4 +1,4 @@
-libdir = ${exec_prefix}/lib${LIBSUFFIX}
+#libdir = ${exec_prefix}/lib${LIBSUFFIX}
 pkglibdir = $(libdir)/@PACKAGE@-@VERSION@
 
 SUBDIRS =
@@ -40,6 +40,7 @@ libqore_la_SOURCES = \
 	Find.cc \
 	charset.cc \
 	QoreProgram.cc \
+	QoreProgramStack.cc \
 	Namespace.cc \
 	QoreNet.cc \
 	QoreURL.cc \
@@ -71,6 +72,9 @@ libqore_la_SOURCES = \
 	QoreSSLPrivateKey.cc \
 	mySocket.cc \
 	QoreCondition.cc \
+	QoreQueue.cc \
+	QoreRegex.cc \
+	QoreRegexBase.cc \
 	QT_NOTHING.cc \
 	QT_bigint.cc \
 	QT_float.cc \
