@@ -182,7 +182,7 @@ static inline void set_properties(MAppProperties *appProperties, Hash *h, Except
       {
 	 xsink->raiseException("TIBCO-INVALID-PROPERTIES-HASH",
 			"properties hash has invalid type \"%s\" for key \"%s\" (must be string)",
-			hi.getValue()->type->name, key);
+			hi.getValue()->type->getName(), key);
 	 return;
       }
       char *val = hi.getValue()->val.String->getBuffer();

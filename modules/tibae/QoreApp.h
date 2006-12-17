@@ -404,7 +404,7 @@ inline MData *QoreApp::do_primitive_type(const MPrimitiveClassDescription *pcd, 
       return NULL;
 
    xsink->raiseException("DEBUG:TIBCO-UNSUPPORTED-TYPE", "unsupported QORE type \"%s\" (TIBCO type \"%s\")", 
-		  v->type->name, pcd->getShortName().c_str());
+		  v->type->getName(), pcd->getShortName().c_str());
 
    //traceout("QoreApp::do_primitive_type()");
    return NULL;
@@ -456,7 +456,7 @@ inline MData *QoreApp::instantiate_sequence(const MSequenceClassDescription *msd
    {
       xsink->raiseException("TIBCO-INVALID-TYPE-FOR-SEQUENCE", 
 			 "cannot instantiate TIBCO sequence \"%s\" from node type \"%s\"",
-			 msd->getFullName().c_str(), v->type->name);
+			 msd->getFullName().c_str(), v->type->getName());
       return NULL;
    }
    MSequence *seq = new MSequence(mcr, msd->getFullName());
@@ -496,7 +496,7 @@ inline MData *QoreApp::instantiate_modeledclass(const MModeledClassDescription *
    {
       xsink->raiseException("TIBCO-INVALID-TYPE-FOR-CLASS", 
 			 "cannot instantiate class \"%s\" from node type \"%s\"",
-			 mcd->getFullName().c_str(), v->type->name);
+			 mcd->getFullName().c_str(), v->type->getName());
       return NULL;
    }
 
@@ -525,7 +525,7 @@ inline MData *QoreApp::instantiate_modeledclass(const MModeledClassDescription *
 	    return NULL;
 	 }
 	 printd(5, "QoreApp::instantiate_modeledclass(): instantiating %s member %s (%08p %s)\n", 
-		mcd->getFullName().c_str(), key, t, t ? t->type->name : "(null)");
+		mcd->getFullName().c_str(), key, t, t ? t->type->getName() : "(null)");
 	 MData *md = instantiate_class(t, mad->getAttributeClassDescription(), xsink);
 	 printd(5, "QoreApp::instantiate_modeledclass(): setting key=%s to md=%08p\n", key, md); 
 	 try {
@@ -572,7 +572,7 @@ inline MData *QoreApp::instantiate_union(const MUnionDescription *mud, QoreNode 
    {
       xsink->raiseException("TIBCO-INVALID-TYPE-FOR-UNION", 
 			 "cannot instantiate TIBCO union \"%s\" from node type \"%s\"",
-			 mud->getFullName().c_str(), v->type->name);
+			 mud->getFullName().c_str(), v->type->getName());
       return NULL;
    }
    // ensure that Object does not have more than one key
@@ -603,7 +603,7 @@ inline MData *QoreApp::instantiate_union(const MUnionDescription *mud, QoreNode 
 	 return NULL;
       }
       printd(3, "QoreApp::instantiate_union(): instantiating %s member %s (%08p %s)\n", 
-	     mud->getFullName().c_str(), key, t, t ? t->type->name : "(null)");
+	     mud->getFullName().c_str(), key, t, t ? t->type->getName() : "(null)");
       MData *md;
       mu->set(key, md = instantiate_class(t, mmd->getMemberClassDescription(), xsink));
       if (md)

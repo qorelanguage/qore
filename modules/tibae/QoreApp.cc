@@ -89,7 +89,7 @@ void QoreApp::deref(ExceptionSink *xsink)
 class MData *QoreApp::instantiate_class(QoreNode *v, const MBaseClassDescription *mbcd, ExceptionSink *xsink)
 {
    tracein("QoreApp::instantiate_class()");
-   printd(5, "QoreApp::instantiate_class() mbcd=%08p %s: %08p (%s)\n", mbcd, mbcd->getFullName().c_str(), v, v ? v->type->name : "(null)");
+   printd(5, "QoreApp::instantiate_class() mbcd=%08p %s: %08p (%s)\n", mbcd, mbcd->getFullName().c_str(), v, v ? v->type->getName() : "(null)");
 
    const MPrimitiveClassDescription *pcd;
    const MModeledClassDescription *mcd;
