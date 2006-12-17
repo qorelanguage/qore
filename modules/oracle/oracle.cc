@@ -634,7 +634,7 @@ void OraBindGroup::parseQuery(class List *args, class ExceptionSink *xsink)
 	 p = str->getBuffer() + offset + tn.strlen();
 
 	 printd(5, "OraBindGroup::parseQuery() newstr=%s\n", str->getBuffer());
-	 printd(5, "OraBindGroup::parseQuery() adding value type=%s\n",v ? v->type->name : "<NULL>");
+	 printd(5, "OraBindGroup::parseQuery() adding value type=%s\n",v ? v->type->getName() : "<NULL>");
 	 add(v);
       }
       else if (!quote && (*p) == ':') // found placeholder marker
@@ -664,7 +664,7 @@ void OraBindGroup::parseQuery(class List *args, class ExceptionSink *xsink)
 	    }
 	    if (t->type != NT_STRING)
 	    {
-	       xsink->raiseException("DBI-EXEC-EXCEPTION", "expecting type name as value of 'type' key, got '%s'", t->type->name);
+	       xsink->raiseException("DBI-EXEC-EXCEPTION", "expecting type name as value of 'type' key, got '%s'", t->type->getName());
 	       break;
 	    }
 	    
@@ -680,7 +680,7 @@ void OraBindGroup::parseQuery(class List *args, class ExceptionSink *xsink)
 	 else if (v->type == NT_INT)
 	    add(tstr.giveBuffer(), v->val.intval, "string");
 	 else
-	    xsink->raiseException("DBI-EXEC-EXCEPTION", "expecting string or hash for placeholder description, got '%s'", v->type->name);
+	    xsink->raiseException("DBI-EXEC-EXCEPTION", "expecting string or hash for placeholder description, got '%s'", v->type->getName());
       }
       else if (((*p) == '\'') || ((*p) == '\"'))
       {
@@ -701,7 +701,7 @@ void OraBindNode::bindValue(class Datasource *ds, OCIStmt *stmthp, int pos, clas
    OCIBind *bndp = NULL;
    ind = 0;
 
-   //printd(5, "OraBindNode::bindValue() type=%s\n", data.v.value ? data.v.value->type->name : "NOTHING");
+   //printd(5, "OraBindNode::bindValue() type=%s\n", data.v.value ? data.v.value->type->getName() : "NOTHING");
 
    // bind a NULL
    if (is_nothing(data.v.value) || is_null(data.v.value))
@@ -775,7 +775,7 @@ void OraBindNode::bindValue(class Datasource *ds, OCIStmt *stmthp, int pos, clas
 		   OCIBindByPos(stmthp, &bndp, d_ora->errhp, pos, &data.v.value->val.floatval, sizeof(double), SQLT_FLT, (dvoid *)NULL, (ub2 *)NULL, (ub2 *)NULL, (ub4)0, (ub4 *)NULL, OCI_DEFAULT), "OraBindNode::bindValue()", ds, xsink);
    }
    else
-      xsink->raiseException("ORACLE-BIND-PLACEHOLDER-ERROR", "type '%s' is not supported for SQL binding", data.v.value->type->name);
+      xsink->raiseException("ORACLE-BIND-PLACEHOLDER-ERROR", "type '%s' is not supported for SQL binding", data.v.value->type->getName());
 }
 
 void OraBindNode::bindPlaceholder(class Datasource *ds, OCIStmt *stmthp, int pos, class ExceptionSink *xsink)
