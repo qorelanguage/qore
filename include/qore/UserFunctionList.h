@@ -44,6 +44,4 @@ public:
    DLLLOCAL class List *getList();
 };
 
-
-
 #endif
