@@ -120,9 +120,9 @@ static class QoreNode *f_type(class QoreNode *params, ExceptionSink *xsink)
 {
    class QoreNode *p = get_param(params, 0);
    if (!p)
-      return new QoreNode(NT_NOTHING->name);
+      return new QoreNode(NT_NOTHING->getName());
    else
-      return new QoreNode(p->type->name);
+      return new QoreNode(p->type->getName());
 }
 
 void init_type_functions()

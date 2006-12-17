@@ -108,7 +108,7 @@ static inline int process_type(char *key, int &attributes, char *opt, class Qore
       }
       if (at != NT_INT && at != NT_FLOAT)
       {
-	 xsink->raiseException("GETOPT-OPTION-ERROR", "additive attributes for type '%s' are not supported (option '%s')", at->name, key);
+	 xsink->raiseException("GETOPT-OPTION-ERROR", "additive attributes for type '%s' are not supported (option '%s')", at->getName(), key);
 	 return -1;
       }
       attributes |= QGO_OPT_ADDITIVE;
@@ -145,7 +145,7 @@ static void GETOPT_constructor(class Object *self, class QoreNode *params, Excep
       if (!v || v->type != NT_STRING)
       {
 	 xsink->raiseException("GETOPT-PARAMETER-ERROR", "value of option key '%s' is not a string (%s)", k,
-			v ? v->type->name : "NOTHING");
+			v ? v->type->getName() : "NOTHING");
 	 break;
       }
       class QoreType *at = NULL;

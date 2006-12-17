@@ -175,7 +175,7 @@ static QoreNode *process_dot(class QoreNode *l, class QoreNode *r)
 // returns 0 for OK, -1 for error
 static int check_lvalue(class QoreNode *node)
 {
-   //printd(5, "type=%s\n", node->type->name);
+   //printd(5, "type=%s\n", node->type->getName());
    if (node->type == NT_VARREF)
    {
       return 0;
@@ -250,7 +250,7 @@ bool needsEval(class QoreNode *n)
       return n->val.tree.op->hasEffect();
    }
 
-   //printd(0, "needsEval() type %s = true\n", n->type->name);
+   //printd(0, "needsEval() type %s = true\n", n->type->getName());
    return true;
 }
 
@@ -274,7 +274,7 @@ static bool hasEffect(class QoreNode *n)
       return n->val.tree.op->hasEffect();
    }
 
-   //printd(5, "hasEffect() node %08p type=%s op=%d ok=%d\n", n, n->type->name, n->type == NT_TREE ? n->val.tree.op : -1, ok);
+   //printd(5, "hasEffect() node %08p type=%s op=%d ok=%d\n", n, n->type->getName(), n->type == NT_TREE ? n->val.tree.op : -1, ok);
    return false;
 }
 
@@ -668,7 +668,7 @@ statement:
 	   if (!hasEffect($1) 
 	       && ($1->type != NT_VARREF || $1->val.vref->type == VT_UNRESOLVED)
 	       && ($1->type != NT_VLIST))
-	      parse_error("statement has no effect (%s)", $1->type->name);
+	      parse_error("statement has no effect (%s)", $1->type->getName());
 	   $$ = new Statement(S_EXPRESSION, $1);
 	}
         | try_statement
@@ -1257,7 +1257,7 @@ exp:    scalar
 	   {
 	      class QoreNode *n = $3->val.list->retrieve_entry(i);
 	      if (n->type != NT_VARREF)
-		 parse_error("element %d in list following 'my' is not a variable reference (%s)", i, n->type->name);
+		 parse_error("element %d in list following 'my' is not a variable reference (%s)", i, n->type->getName());
 	      else
 		 n->val.vref->type = VT_LOCAL;
 	   }
@@ -1275,7 +1275,7 @@ exp:    scalar
 	   {
 	      class QoreNode *n = $3->val.list->retrieve_entry(i);
 	      if (n->type != NT_VARREF)
-		 parse_error("element %d in list following 'our' is not a variable reference (%s)", i, n->type->name);
+		 parse_error("element %d in list following 'our' is not a variable reference (%s)", i, n->type->getName());
 	      else
 	      {
 		 n->val.vref->type = VT_GLOBAL;
@@ -1414,7 +1414,7 @@ exp:    scalar
 		 QoreNode *n = $1->val.list->retrieve_entry(i);
 		 if (check_lvalue(n))
 		 {
-		    parse_error("element %d in list assignment is not an lvalue (%s)", i, n->type->name);
+		    parse_error("element %d in list assignment is not an lvalue (%s)", i, n->type->getName());
 		    ok = false;
 		 }
 	      }
@@ -1427,7 +1427,7 @@ exp:    scalar
 	   {
 	      if (check_lvalue($1))
 	      {
-		 parse_error("left-hand side of assignment is not an lvalue (%s)", $1->type->name);
+		 parse_error("left-hand side of assignment is not an lvalue (%s)", $1->type->getName());
 		 $$ = makeErrorTree(OP_ASSIGNMENT, $1, $3);
 	      }
 	      else
@@ -1453,7 +1453,7 @@ exp:    scalar
         {
 	   if ($2->type != NT_LIST || $2->val.list->size() != 2)
 	   {
-	      parse_error("invalid arguments to unshift, expected: lvalue, expression (%s)", $2->type->name);
+	      parse_error("invalid arguments to unshift, expected: lvalue, expression (%s)", $2->type->getName());
 	      $$ = makeErrorTree(OP_UNSHIFT, $2, NULL);
 	   }
 	   else
@@ -1483,7 +1483,7 @@ exp:    scalar
         {
 	   if ($2->type != NT_LIST || $2->val.list->size() != 2)
 	   {
-	      parse_error("invalid arguments to push, expected: lvalue, expression (%s)", $2->type->name);
+	      parse_error("invalid arguments to push, expected: lvalue, expression (%s)", $2->type->getName());
 	      $$ = makeErrorTree(OP_PUSH, $2, NULL);
 	   }
 	   else
@@ -1524,7 +1524,7 @@ exp:    scalar
         {
 	   if ($2->type != NT_LIST || $2->val.list->size() < 2 || $2->val.list->size() > 4)
 	   {
-	      parse_error("invalid arguments to splice, expected: lvalue, offset exp [length exp, [list exp]] (%s)", $2->type->name);
+	      parse_error("invalid arguments to splice, expected: lvalue, offset exp [length exp, [list exp]] (%s)", $2->type->getName());
 	      $$ = makeErrorTree(OP_SPLICE, $2, NULL);
 	   }
 	   else
@@ -1637,7 +1637,7 @@ exp:    scalar
 	}
         | exp REGEX_MATCH REGEX_EXTRACT
         {
-	   //printd(5, "REGEX_EXTRACT: '%s'\n", (new QoreNode($3))->type->name);
+	   //printd(5, "REGEX_EXTRACT: '%s'\n", (new QoreNode($3))->type->getName());
 	   $$ = makeTree(OP_REGEX_EXTRACT, $1, new QoreNode($3));
 	}
 	| exp '>' exp		     { $$ = makeTree(OP_LOG_GT, $1, $3); }

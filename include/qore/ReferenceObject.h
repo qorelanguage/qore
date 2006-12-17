@@ -39,47 +39,23 @@ class ReferenceObject
    // for atomic reference updates
       class LockedObject mRO;
 #endif
+
    public:
-      inline ReferenceObject();
-      inline int reference_count() const { return references; }
-      inline bool is_unique() const { return references == 1; }
-      inline void ROreference();
-      inline bool ROdereference();
+      DLLEXPORT ReferenceObject();
+      DLLEXPORT ~ReferenceObject();
+      DLLEXPORT int reference_count() const 
+      { 
+	 return references; 
+      }
+      DLLEXPORT bool is_unique() const 
+      { 
+	 return references == 1; 
+      }
+      DLLEXPORT void ROreference();
+      DLLEXPORT bool ROdereference();
 #ifdef DEBUG
       //virtual void test() {}
 #endif
 };
-
-inline ReferenceObject::ReferenceObject()
-{
-   references = 1;
-}
-
-inline void ReferenceObject::ROreference()
-{
-#ifdef HAVE_ATOMIC_MACROS
-   atomic_inc(&references);
-#else
-   mRO.lock();
-   ++references; 
-   mRO.unlock();
-#endif
-}
-
-// returns true when references reach zero
-inline bool ReferenceObject::ROdereference()
-{
-   // do not do a cache sync (or at worst a mutex lock and unlock) if references == 1
-   if (references == 1)
-      return true;
-#ifdef HAVE_ATOMIC_MACROS
-   return atomic_dec(&references);
-#else
-   mRO.lock();
-   int rc = --references;
-   mRO.unlock();
-   return !rc;
-#endif
-}
 
 #endif // _QORE_REFERENCE_OBJECT_H

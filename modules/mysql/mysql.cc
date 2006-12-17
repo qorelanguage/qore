@@ -397,7 +397,7 @@ inline int MyBindGroup::parse(class List *args, class ExceptionSink *xsink)
 	 p = str->getBuffer() + offset;
 
 	 printd(5, "MyBindGroup::parse() newstr=%s\n", str->getBuffer());
-	 printd(5, "MyBindGroup::parse() adding value type=%s\n",v ? v->type->name : "<NULL>");
+	 printd(5, "MyBindGroup::parse() adding value type=%s\n",v ? v->type->getName() : "<NULL>");
 	 add(v);
       }
       else if (!quote && (*p) == ':') // found placeholder marker
@@ -481,7 +481,7 @@ MyBindGroup::MyBindGroup(class Datasource *ods, class QoreString *ostr, class Li
       int pos = 0;
       while (w)
       {
-	 printd(5, "MBG::MBG() binding value at position %d (%s)\n", pos, w->data.value->type->name);
+	 printd(5, "MBG::MBG() binding value at position %d (%s)\n", pos, w->data.value->type->getName());
 	 if (w->bindValue(ods->getQoreEncoding(), &bind[pos], xsink))
 	    return;
 	 pos++;
@@ -672,7 +672,7 @@ class QoreNode *MyBindGroup::selectRows(class ExceptionSink *xsink)
 
 int MyBindNode::bindValue(class QoreEncoding *enc, MYSQL_BIND *buf, class ExceptionSink *xsink)
 {
-   //printd(5, "MyBindNode::bindValue() type=%s\n", data.value ? data.value->type->name : "NOTHING");
+   //printd(5, "MyBindNode::bindValue() type=%s\n", data.value ? data.value->type->getName() : "NOTHING");
 
    // bind a NULL value
    if (is_nothing(data.value) || is_null(data.value))
@@ -738,7 +738,7 @@ int MyBindNode::bindValue(class QoreEncoding *enc, MYSQL_BIND *buf, class Except
       return 0;
    }
 
-   xsink->raiseException("DBI-EXEC-EXCEPTION", "type '%s' is not supported for SQL binding", data.value->type->name);
+   xsink->raiseException("DBI-EXEC-EXCEPTION", "type '%s' is not supported for SQL binding", data.value->type->getName());
    return -1;
 }
 

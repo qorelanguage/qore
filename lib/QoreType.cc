@@ -56,10 +56,26 @@
 #include <qore/QT_context.h>
 #include <qore/QT_varref.h>
 
-class QoreTypeManager QTM;
+#include <qore/support.h>
+#include <qore/List.h>
+#include <qore/QoreNode.h>
+#include <qore/QoreString.h>
+#include <qore/Operator.h>
+
+#include <string.h>
+
+#define QTM_NO_VALUE     false
+#define QTM_VALUE        true
+#define QTM_NO_CONTAINER false
+#define QTM_CONTAINER    true
+
+DLLLOCAL int QoreTypeManager::lastid = 0;
+DLLLOCAL class QoreType *QoreTypeManager::typelist[NUM_VALUE_TYPES];
+
+DLLEXPORT class QoreTypeManager QTM;
 
 // system types
-class QoreType *NT_NOTHING, *NT_INT, *NT_FLOAT, *NT_STRING, *NT_DATE,
+DLLEXPORT class QoreType *NT_NOTHING, *NT_INT, *NT_FLOAT, *NT_STRING, *NT_DATE,
    *NT_BOOLEAN, *NT_NULL, *NT_BINARY, *NT_LIST, *NT_HASH,
    *NT_OBJECT, *NT_FLIST, *NT_BACKQUOTE, *NT_CONTEXTREF, *NT_COMPLEXCONTEXTREF,
    *NT_VARREF, *NT_TREE, *NT_FIND, *NT_FUNCTION_CALL, *NT_SELF_VARREF,
@@ -67,7 +83,118 @@ class QoreType *NT_NOTHING, *NT_INT, *NT_FLOAT, *NT_STRING, *NT_DATE,
    *NT_REGEX_SUBST, *NT_REGEX_TRANS, *NT_VLIST, *NT_REGEX, *NT_CLASSREF;
 
 // default value nodes for builtin types
-class QoreNode *Nothing, *Null, *Zero, *NullString, *ZeroFloat, *ZeroDate, *True, *False, *emptyList, *emptyHash;
+DLLEXPORT class QoreNode *Nothing, *Null, *Zero, *NullString, *ZeroFloat, *ZeroDate, *True, *False, *emptyList, *emptyHash;
+
+QoreType::QoreType(char *                 p_name, 
+		   single_arg_func_t      p_eval, 
+		   convert_func_t         p_convert_to, 
+		   no_arg_func_t          p_default_value,
+		   single_arg_func_t      p_copy,
+		   compare_func_t         p_compare,
+		   delete_func_t          p_delete_contents,
+		   string_func_t          p_make_string,
+		   bool   p_is_value, 
+		   bool   p_is_container)
+{
+   name                   = p_name;
+   f_eval                 = p_eval;
+   f_convert_to           = p_convert_to;
+   f_default_value        = p_default_value;
+   f_copy                 = p_copy;
+   f_compare              = p_compare;
+   f_delete_contents      = p_delete_contents;
+   f_make_string          = p_make_string;
+   
+   is_value        = p_is_value;
+   is_container    = p_is_container;
+   
+   id = QoreTypeManager::lastid++;
+}
+
+class QoreNode *QoreType::eval(class QoreNode *n, class ExceptionSink *xsink)
+{
+   if (!f_eval)
+   {
+      n->ref();
+      return n;
+   }
+   return f_eval(n, xsink);
+}
+
+class QoreNode *QoreType::getDefaultValue()
+{
+#ifdef DEBUG
+   if (!f_default_value)
+      run_time_error("QoreType::getDefaultValue() '%s' has no default value\n", name);
+#endif
+   return f_default_value();
+}
+
+class QoreNode *QoreType::convertTo(class QoreNode *n, class ExceptionSink *xsink)
+{
+#ifdef DEBUG
+   if (!f_convert_to)
+      run_time_error("QoreType::convertTo() '%s' f_convert_to is NULL\n", name);
+#endif
+   return f_convert_to(n, xsink);
+}
+
+class QoreNode *QoreType::copy(class QoreNode *n, class ExceptionSink *xsink)
+{
+   if (!f_copy)
+   {
+      class QoreNode *rv = new QoreNode(n->type);
+      memcpy(&rv->val, &n->val, sizeof(union node_u));
+      return rv;
+   }
+   return f_copy(n, xsink);
+}
+
+void QoreTypeManager::add(class QoreType *t)
+{
+   if (t->getID() < NUM_VALUE_TYPES)
+      typelist[t->getID()] = t;
+
+   insert(std::pair<int, QoreType *>(t->getID(), t));
+}
+
+bool QoreType::compare(class QoreNode *n1, class QoreNode *n2) const
+{
+   if (!f_compare)
+      return 0;
+   return f_compare(n1, n2);
+}
+
+void QoreType::deleteContents(class QoreNode *n)
+{
+   if (f_delete_contents)
+      f_delete_contents(n);
+}
+
+class QoreString *QoreType::getAsString(class QoreNode *n, int format, class ExceptionSink *xsink) const
+{
+   if (f_make_string)
+      return f_make_string(n, format, xsink);
+   
+   QoreString *rv = new QoreString();
+   rv->sprintf("%s (0x%08p)", name, n);
+   return rv;
+}
+
+int QoreType::getID() const
+{ 
+   return id; 
+}
+
+bool QoreType::isValue() const
+{ 
+   return is_value; 
+}
+
+char *QoreType::getName() const
+{
+   return name;
+}
 
 static class QoreNode *simpleStringCopy(class QoreNode *orig, class ExceptionSink *xsink)
 {
@@ -109,7 +236,7 @@ static void tree_DeleteContents(class QoreNode *n)
 static class QoreNode *INVALID_COPY(class QoreNode *n, class ExceptionSink *xsink)
 {
 #ifdef DEBUG
-   run_time_error("copy attempted of type %s", n->type->name);
+   run_time_error("copy attempted of type %s", n->type->getName());
 #endif
    return NULL;
 }
@@ -189,9 +316,6 @@ static void regex_DeleteContents(class QoreNode *n)
 QoreTypeManager::QoreTypeManager()
 {
    tracein("QoreTypeManager::QoreTypeManager()");
-
-   head = NULL;
-   lastid = num = 0;
    
    // register system data types
    // first, value types for operator matrix optimization
@@ -271,12 +395,49 @@ QoreTypeManager::~QoreTypeManager()
    tracein("QoreTypeManager::~QoreTypeManager()");
 
    // delete all stored types
-   while (head)
+   qore_type_map_t::iterator i;
+   while ((i = begin()) != end())
    {
-      class QoreType *w = head->next;
-      delete head;
-      head = w;
+      delete i->second;
+      erase(i);
    }
 
    traceout("QoreTypeManager::~QoreTypeManager()");
+}
+
+class QoreType *QoreTypeManager::find(int id)
+{
+   if (id < NUM_VALUE_TYPES)
+      return typelist[id];
+
+   qore_type_map_t::const_iterator i = qore_type_map_t::find(id);
+   if (i == end())
+      return NULL;
+   return i->second;
+}
+
+bool compareHard(QoreNode *l, QoreNode *r)
+{
+   if (is_nothing(l))
+      if (is_nothing(r))
+         return 0;
+      else
+         return 1;
+   if (is_nothing(r))
+      return 1;
+   if (l->type != r->type)
+      return 1;
+   
+   return l->type->compare(l, r);
+}
+
+// this function calls the operator function that will                                                                                                                      
+// convert values to do the conversion                                                                                                                                      
+bool compareSoft(class QoreNode *node1, class QoreNode *node2, class ExceptionSink *xsink)
+{
+   // logical equals always returns an integer result                                                                                                                       
+   class QoreNode *node = OP_LOG_EQ->eval(node1, node2, xsink);
+   bool b = node->val.boolval;
+   node->deref(NULL);
+   return !b;
 }

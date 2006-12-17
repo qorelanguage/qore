@@ -117,7 +117,7 @@ static int doJSONValue(class QoreString *str, class QoreNode *v, int format, cla
    }
    
    delete str;
-   xsink->raiseException("JSON-SERIALIZATION-ERROR", "don't know how to serialize type '%s'", v->type->name);
+   xsink->raiseException("JSON-SERIALIZATION-ERROR", "don't know how to serialize type '%s'", v->type->getName());
    return -1;
 }
 

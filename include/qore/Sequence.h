@@ -32,22 +32,10 @@ class Sequence : public LockedObject
       int val;
 
    public:
-      inline Sequence(int start = 0);
-      inline int next();
-      inline int getCurrent() { return val; }
+      DLLLOCAL Sequence(int start = 0);
+      DLLLOCAL int next();
+      DLLLOCAL int getCurrent() const;
 };
 
-inline Sequence::Sequence(int start)
-{
-   val = start;
-}
-
-inline int Sequence::next()
-{
-   lock();
-   int rc = val++;
-   unlock();
-   return rc;
-}
 
 #endif

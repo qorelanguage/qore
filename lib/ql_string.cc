@@ -136,7 +136,7 @@ static class QoreNode *f_substr(class QoreNode *params, ExceptionSink *xsink)
       temp = p0;
    else
    {
-      //printd(5, "f_substr() node->type=%s\n", p0 ? p0->type->name : "(null)");
+      //printd(5, "f_substr() node->type=%s\n", p0 ? p0->type->getName() : "(null)");
       temp = p0->convert(NT_STRING);
    }
    if ((p2 = get_param(params, 2)))

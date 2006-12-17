@@ -930,9 +930,9 @@ class QoreNode *Method::eval(Object *self, QoreNode *args, ExceptionSink *xsink)
    {
       if (args->val.list->needsEval())
       {
-	 printd(5, "Method::eval() about to evaluate args=%08p (%s)\n", args, args->type->name);
+	 printd(5, "Method::eval() about to evaluate args=%08p (%s)\n", args, args->type->getName());
 	 new_args = args->eval(xsink);
-	 printd(5, "Method::eval() args=%08p (%s) new_args=%08p (%s)\n", args, args->type->name, new_args, new_args ? new_args->type->name : "NONE");
+	 printd(5, "Method::eval() args=%08p (%s) new_args=%08p (%s)\n", args, args->type->getName(), new_args, new_args ? new_args->type->getName() : "NONE");
 	 if (xsink->isEvent())
 	 {
 	    if (new_args)
@@ -973,7 +973,7 @@ class QoreNode *Method::eval(Object *self, QoreNode *args, ExceptionSink *xsink)
       new_args->deref(xsink);
 #ifdef DEBUG
    printd(5, "Method::eval() %s::%s() returning %08p (type=%s, refs=%d)\n",
-	  oname, name, rv, rv ? rv->type->name : "(null)", rv ? rv->reference_count() : 0);
+	  oname, name, rv, rv ? rv->type->getName() : "(null)", rv ? rv->reference_count() : 0);
 #endif
    traceout("Method::eval()");
    return rv;
@@ -995,10 +995,10 @@ void Method::evalConstructor(Object *self, QoreNode *args, class BCList *bcl, cl
    {
       if (args->val.list->needsEval())
       {
-	 printd(5, "Method::evalConstructor() about to evaluate args=%08p (%s)\n", args, args->type->name);
+	 printd(5, "Method::evalConstructor() about to evaluate args=%08p (%s)\n", args, args->type->getName());
 	 new_args = args->eval(xsink);
 	 printd(5, "Method::evalConstructor() args=%08p (%s) new_args=%08p (%s)\n",
-		args, args->type->name, new_args, new_args ? new_args->type->name : "NONE");
+		args, args->type->getName(), new_args, new_args ? new_args->type->getName() : "NONE");
 	 if (xsink->isEvent())
 	 {
 	    if (new_args)

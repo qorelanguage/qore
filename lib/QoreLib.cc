@@ -131,7 +131,7 @@ static int process_opt(QoreString *cstr, char *param, class QoreNode *node, int 
    QoreString tbuf(cstr->getEncoding());
 
    printd(3, "process_opt(): param=%s type=%d node=%08p node->type=%s refs=%d\n",
-	  param, type, node, node ? node->type->name : "(null)", node ? node->reference_count() : -1);
+	  param, type, node, node ? node->type->getName() : "(null)", node ? node->reference_count() : -1);
    if (node && node->type == NT_STRING)
       printd(4, "process_opt() %08p (%d) \"%s\"\n",
 	     node->val.String->getBuffer(), node->val.String->strlen(), node->val.String->getBuffer());
@@ -381,7 +381,7 @@ class QoreString *dni(class QoreString *s, class QoreNode *n, int indent, class 
       return s;
    }
 
-   s->sprintf("node=%08p refs=%d type=%s ", n, n->reference_count(), n->type->name);
+   s->sprintf("node=%08p refs=%d type=%s ", n, n->reference_count(), n->type->getName());
 
    if (n->type == NT_BOOLEAN)
       s->sprintf("val=%s\n", n->val.boolval ? "True" : "False");
@@ -672,7 +672,7 @@ void print_node(FILE *fp, class QoreNode *node)
 {
    class QoreNode *n_node;
 
-   printd(5, "print_node() node=%08p (%s)\n", node, node ? node->type->name : "(null)");
+   printd(5, "print_node() node=%08p (%s)\n", node, node ? node->type->getName() : "(null)");
    if (!node)
       return;
    if (node->type != NT_STRING)

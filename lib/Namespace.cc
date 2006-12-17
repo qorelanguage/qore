@@ -1083,7 +1083,7 @@ int RootNamespace::resolveSimpleConstant(class QoreNode **node, int level) const
       return -1;
 
    printd(5, "RootNamespace::resolveSimpleConstant(%s, %d) %08p %s-> %08p %s\n", 
-	  (*node)->val.c_str, level, *node, (*node)->type->name, rv, rv->type->name);
+	  (*node)->val.c_str, level, *node, (*node)->type->getName(), rv, rv->type->getName());
    
    (*node)->deref(NULL);
    *node = rv->RefSelf();
@@ -1473,7 +1473,7 @@ void RootNamespace::rootAddConstant(class NamedScope *nscope, class QoreNode *va
    if (sns)
    {
       printd(5, "RootNamespace::rootAddConstant() %s: adding %s to %s (value=%08p type=%s)\n", nscope->ostr, 
-	     nscope->getIdentifier(), sns->name, value, value ? value->type->name : "(none)");
+	     nscope->getIdentifier(), sns->name, value, value ? value->type->getName() : "(none)");
       sns->pendConstant->add(nscope->strlist[nscope->elements - 1], value);
    }
    else

@@ -77,7 +77,7 @@ class QoreString *list_MakeString(class QoreNode *n, int foff, class ExceptionSi
       {
 	 if (foff != FMT_NONE)
 	 {
-	    indent(rv, foff + 2);
+	    rv->addch(' ', foff + 2);
 	    rv->sprintf("[%d]=", i);
 	 }
 	 QoreString *elem = n->val.list->retrieve_entry(i)->getAsString(foff != FMT_NONE ? foff + 2 : foff, xsink);

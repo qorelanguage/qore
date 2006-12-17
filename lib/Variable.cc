@@ -71,7 +71,7 @@ inline void Var::del(class ExceptionSink *xsink)
    else
    {
       printd(5, "Var::~Var() name=%s value=%08p type=%s refs=%d\n", v.val.name ? v.val.name : "(null)",
-	     v.val.value, v.val.value ? v.val.value->type->name : "null", 
+	     v.val.value, v.val.value ? v.val.value->type->getName() : "null", 
 	     v.val.value ? v.val.value->reference_count() : 0);
    
       if (v.val.name)
@@ -237,7 +237,7 @@ class QoreNode *LVar::eval(class ExceptionSink *xsink)
       lvh_t save = id;
       id = NULL;
       rv = vexp->eval(xsink);
-      //printd(5, "LVar::eval() this=%08p obj=%08p (%s) reference expression %08p (%s) evaluated to %08p (%s)\n", this, obj, obj ? obj->getClass()->name : "NULL", vexp, vexp->type->name, rv, rv ? rv->type->name : "NULL");
+      //printd(5, "LVar::eval() this=%08p obj=%08p (%s) reference expression %08p (%s) evaluated to %08p (%s)\n", this, obj, obj ? obj->getClass()->name : "NULL", vexp, vexp->type->getName(), rv, rv ? rv->type->getName() : "NULL");
       id = save;
       if (obj)
 	 substituteObject(o);
@@ -418,7 +418,7 @@ static inline class QoreNode **do_list_val_ptr(Tree *tree, class VLock *vlp, Exc
       return NULL;
 
    // if the variable's value is not already a list, then make it one
-   // printd(0, "index=%d val=%08p (%s)\n", ind, *val, *val ? (*val)->type->name : "(null)");
+   // printd(0, "index=%d val=%08p (%s)\n", ind, *val, *val ? (*val)->type->getName() : "(null)");
    if (!(*val))
    {
       (*val) = new QoreNode(NT_LIST);
@@ -462,7 +462,7 @@ static inline class QoreNode **do_object_val_ptr(Tree *tree, class VLock *vlp, E
    }
 
    // if the variable's value is not already a hash or an object, then make it a hash
-   //printd(0, "index=%d val=%08p (%s)\n", ind, *val, *val ? (*val)->type->name : "(null)");
+   //printd(0, "index=%d val=%08p (%s)\n", ind, *val, *val ? (*val)->type->getName() : "(null)");
    if (!(*val))
       (*val) = new QoreNode(new Hash());
    else if ((*val)->type != NT_OBJECT && (*val)->type != NT_HASH)
@@ -508,7 +508,7 @@ static inline class QoreNode **do_object_val_ptr(Tree *tree, class VLock *vlp, E
 // this function will change the lvalue to the right type if needed (used for assignments)
 class QoreNode **get_var_value_ptr(class QoreNode *n, class VLock *vlp, class ExceptionSink *xsink)
 {
-   //printd(5, "get_var_value_ptr(%08p) %s\n", n, n->type->name);
+   //printd(5, "get_var_value_ptr(%08p) %s\n", n, n->type->getName());
    if (n->type == NT_VARREF)
    {
       //printd(5, "get_var_value_ptr(): vref=%s (%08p)\n", n->val.vref->name, n->val.vref);
@@ -535,7 +535,7 @@ class QoreNode **get_var_value_ptr(class QoreNode *n, class VLock *vlp, class Ex
 // object references, exceptions could be thrown
 class QoreNode *getNoEvalVarValue(class QoreNode *n, class VLock *vl, class ExceptionSink *xsink)
 {
-   printd(5, "getNoEvalVarValue(%08p) %s\n", n, n->type->name);
+   printd(5, "getNoEvalVarValue(%08p) %s\n", n, n->type->getName());
    if (n->type == NT_VARREF)
       return n->val.vref->getValue(vl, xsink);
 
@@ -599,7 +599,7 @@ class QoreNode *getNoEvalVarValue(class QoreNode *n, class VLock *vl, class Exce
 // will *not* execute memberGate methods
 class QoreNode *getExistingVarValue(class QoreNode *n, ExceptionSink *xsink, class VLock *vl, class TempNode **pt)
 {
-   printd(5, "getExistingVarValue(%08p) %s\n", n, n->type->name);
+   printd(5, "getExistingVarValue(%08p) %s\n", n, n->type->getName());
    if (n->type == NT_VARREF)
       return n->val.vref->getValue(vl, xsink);
 
@@ -670,7 +670,7 @@ class QoreNode *getExistingVarValue(class QoreNode *n, ExceptionSink *xsink, cla
 // needed for deletes
 static class QoreNode **getUniqueExistingVarValuePtr(class QoreNode *n, ExceptionSink *xsink, class VLock *vl, class TempNode **pt)
 {
-   printd(5, "getUniqueExistingVarValuePtr(%08p) %s\n", n, n->type->name);
+   printd(5, "getUniqueExistingVarValuePtr(%08p) %s\n", n, n->type->getName());
    if (n->type == NT_VARREF)
       return n->val.vref->getValuePtr(vl, xsink);
 
@@ -931,7 +931,7 @@ static inline void show_lvstack()
    {
       VLock vl;
       QoreNode *n = lvar->getValue(&vl, NULL);
-      printd(0, "\t%08p: \"%s\" value=%08p (type=%s)\n", lvar, lvar->id, n, n ? n->type->name : "<NOTHING>");
+      printd(0, "\t%08p: \"%s\" value=%08p (type=%s)\n", lvar, lvar->id, n, n ? n->type->getName() : "<NOTHING>");
       vl.del();
       lvar = lvar->next;
    }
@@ -945,7 +945,7 @@ class LVar *find_lvar(lvh_t id)
 
    while (lvar)
    {
-      //printd(5, "find_lvar(%s) 0x%08p \"%s\" (%08p == %08p) (0x%08p %s) (next=0x%08p)\n", id, lvar, lvar->id, lvar->id, id, lvar->getValue(), lvar->getValue() ? lvar->getValue()->type->name : "(null)", lvar->next);
+      //printd(5, "find_lvar(%s) 0x%08p \"%s\" (%08p == %08p) (0x%08p %s) (next=0x%08p)\n", id, lvar, lvar->id, lvar->id, id, lvar->getValue(), lvar->getValue() ? lvar->getValue()->type->getName() : "(null)", lvar->next);
       if (lvar->id == id)
          break;
       lvar = lvar->next;

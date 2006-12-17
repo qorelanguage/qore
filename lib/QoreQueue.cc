@@ -231,7 +231,7 @@ void QoreQueue::del(class ExceptionSink *xsink)
    while (head)
    {
       printd(5, "QoreQueue::~QoreQueue() deleting %08p (node %08p type %s)\n",
-	     head, head->node, head->node ? head->node->type->name : "(null)");
+	     head, head->node, head->node ? head->node->type->getName() : "(null)");
       QoreQueueNode *w = head->next;
       head->del(xsink);
       head = w;

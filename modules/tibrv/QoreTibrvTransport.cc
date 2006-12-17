@@ -67,7 +67,7 @@ int QoreTibrvTransport::hashToMsg(TibrvMsg *msg, class Hash *hash, class Excepti
 // returns 0 for success, -1 for error
 int QoreTibrvTransport::valueToField(char *key, class QoreNode *v, TibrvMsg *msg, class ExceptionSink *xsink)
 {
-   //printd(5, "adding %s (%s)\n", key, v ? v->type->name : "null");
+   //printd(5, "adding %s (%s)\n", key, v ? v->type->getName() : "null");
    if (is_nothing(v))
       msg->addString(key, NULL);
    else if (v->type == NT_INT)
@@ -124,7 +124,7 @@ int QoreTibrvTransport::valueToField(char *key, class QoreNode *v, TibrvMsg *msg
       msg->addOpaque(key, v->val.bin->getPtr(), v->val.bin->size());
    else
    {
-      xsink->raiseException("TIBRV-MARSHALLING-ERROR", "can't serialize type '%s'", v->type->name);
+      xsink->raiseException("TIBRV-MARSHALLING-ERROR", "can't serialize type '%s'", v->type->getName());
       return -1;
    }
 
@@ -483,7 +483,7 @@ int QoreTibrvTransport::doEncodedType(TibrvMsg *msg, char *key, char *type, clas
 	    
 	    return 0;
 	 }
-	 xsink->raiseException("TIBRV-MARSHALLING-ERROR", "can't serialize tibrv type 'ipaddr32' from qore type '%s' (need int, float, or string)", val ? val->type->name : "NOTHING");
+	 xsink->raiseException("TIBRV-MARSHALLING-ERROR", "can't serialize tibrv type 'ipaddr32' from qore type '%s' (need int, float, or string)", val ? val->type->getName() : "NOTHING");
 	 return -1;
       }	 
    }
@@ -538,7 +538,7 @@ int QoreTibrvTransport::doEncodedType(TibrvMsg *msg, char *key, char *type, clas
    {
       if (!val || val->type != NT_STRING)
       {
-	 xsink->raiseException("TIBRV-MARSHALLING-ERROR", "can't serialize tibrv type 'xml' from qore type '%s' (need string)", val ? val->type->name : "NOTHING");
+	 xsink->raiseException("TIBRV-MARSHALLING-ERROR", "can't serialize tibrv type 'xml' from qore type '%s' (need string)", val ? val->type->getName() : "NOTHING");
 	 return -1;
       }
 

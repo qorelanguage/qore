@@ -29,13 +29,6 @@
 #include <qore/common.h>
 
 #include <stdarg.h>
-#include <ctype.h>
-
-#define MAX_INT_STRING_LEN    48
-#define MAX_BIGINT_STRING_LEN 48
-#define MAX_FLOAT_STRING_LEN  48
-#define STR_CLASS_BLOCK 80
-#define STR_CLASS_EXTRA 40
 
 struct code_table {
       char symbol;
@@ -138,56 +131,21 @@ class QoreString {
       DLLEXPORT class QoreString *substr(int offset, int length);
       DLLEXPORT int chomp();
       // returns the encoding for the string
-      DLLEXPORT inline class QoreEncoding *getEncoding() const 
-      { 
-	 return charset; 
-      }
-      DLLEXPORT inline class QoreString *copy() const
-      {
-	 return new QoreString((QoreString *)this);
-      }
-      DLLEXPORT inline void tolwr()
-      {
-	 char *c = buf;
-	 while (*c)
-	 {
-	    *c = ::tolower(*c);
-	    c++;
-	 }
-      }
-      DLLEXPORT inline void toupr()
-      {
-	 char *c = buf;
-	 while (*c)
-	 {
-	    *c = ::toupper(*c);
-	    c++;
-	 }
-      }
+      DLLEXPORT class QoreEncoding *getEncoding() const;
+      DLLEXPORT class QoreString *copy() const;
+      DLLEXPORT void tolwr();
+      DLLEXPORT void toupr();
       // returns number of bytes
-      DLLEXPORT inline int strlen() const
-      {
-	 return len;
-      }
-      DLLEXPORT inline char *getBuffer() const
-      {
-	 return buf;
-      }
+      DLLEXPORT int strlen() const;
+      DLLEXPORT char *getBuffer() const;
       // Make sure the internal buffer has at least expected size in bytes. 
       // Useful to eliminate rallocationg when data get appended in loop.
       DLLEXPORT void ensureBufferSize(unsigned requested_size);
+      // append a character to the string a number of times
+      DLLEXPORT void addch(char c, int times);
 };
 
-inline class QoreString *checkEncoding(const class QoreString *str, const class QoreEncoding *enc, class ExceptionSink *xsink);
-
-#include <qore/charset.h>
-
-inline class QoreString *checkEncoding(const class QoreString *str, const class QoreEncoding *enc, class ExceptionSink *xsink)
-{
-   if (str->getEncoding() != enc)
-      return str->convertEncoding(enc, xsink);
-   return (QoreString *)str;
-}
+DLLEXPORT class QoreString *checkEncoding(const class QoreString *str, const class QoreEncoding *enc, class ExceptionSink *xsink);
 
 #endif
 

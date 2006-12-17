@@ -39,129 +39,14 @@ class SingleExitGate
       pthread_cond_t cwait;
 
    public:
-      inline SingleExitGate();
-      inline ~SingleExitGate();
-      inline int enter(int timeout = 0);
-      inline int tryEnter();
-      inline int exit();
-      inline int forceExit();
-      inline int getLockTID() { return tid; }
+      DLLLOCAL SingleExitGate();
+      DLLLOCAL ~SingleExitGate();
+      DLLLOCAL int enter(int timeout = 0);
+      DLLLOCAL int tryEnter();
+      DLLLOCAL int exit();
+      DLLLOCAL int forceExit();
+      DLLLOCAL int getLockTID() const;
 };
 
-inline SingleExitGate::SingleExitGate()
-{
-   pthread_mutex_init(&m, NULL);
-   pthread_cond_init(&cwait, NULL);
-   tid = -1;
-   waiting = 0;
-}
-
-inline SingleExitGate::~SingleExitGate()
-{
-   pthread_mutex_destroy(&m);
-   pthread_cond_destroy(&cwait);
-}
-
-inline int SingleExitGate::enter(int timeout)
-{
-   int ctid = gettid();
-
-   //fprintf(stderr, "SingleExitGate::enter(%d) %08p\n", c, this);
-   pthread_mutex_lock(&m);
-
-   while (tid != -1 && tid != ctid)
-   {
-      waiting++;
-      if (timeout)
-	 while (true)
-	 {
-	    struct timeval now;
-	    struct timespec tmout;
-	    
-	    gettimeofday(&now, NULL);
-	    tmout.tv_sec = now.tv_sec + timeout;
-	    tmout.tv_nsec = now.tv_usec * 1000;
-	    
-	    if (!pthread_cond_timedwait(&cwait, &m, &tmout))
-	       break;
-
-	    // lock has timed out, unlock and return -1
-	    pthread_mutex_unlock(&m);
-	    printd(1, "SingleExitGate %08p timed out after %ds waiting for tid %d to release lock\n", timeout, tid);
-	    return -1;
-	 }
-      else
-	 pthread_cond_wait(&cwait, &m);
-      waiting--;
-   }
-
-   tid = ctid;
-
-   pthread_mutex_unlock(&m);
-   return 0;
-}
-
-inline int SingleExitGate::exit()
-{
-   int ctid = gettid();
-
-   //fprintf(stderr, "SingleExitGate::exit() %08p\n", this);
-   pthread_mutex_lock(&m);
-
-   // if the lock is not locked by this thread, then return an error
-   if (tid != ctid)
-   {
-      pthread_mutex_unlock(&m);
-      return -1;
-   }
-
-   // unlock the lock
-   tid = -1;
-   if (waiting)
-      pthread_cond_signal(&cwait);
-
-   pthread_mutex_unlock(&m);
-
-   return 0;
-}
-
-inline int SingleExitGate::forceExit()
-{
-   //fprintf(stderr, "SingleExitGate::exit() %08p\n", this);
-   pthread_mutex_lock(&m);
-
-   // if the lock is not locked, then return
-   if (tid == -1)
-   {
-      pthread_mutex_unlock(&m);
-      return 0;
-   }
-
-   // unlock the lock
-   tid = -1;
-   if (waiting)
-      pthread_cond_signal(&cwait);
-
-   pthread_mutex_unlock(&m);
-
-   return 0;
-}
-
-inline int SingleExitGate::tryEnter()
-{
-   int ctid = gettid();
-
-   pthread_mutex_lock(&m);
-
-   if (tid != -1 && tid != ctid)
-   {
-      pthread_mutex_unlock(&m);
-      return -1;
-   }
-   tid = ctid;
-
-   pthread_mutex_unlock(&m);
-   return 0;
-}
 
 #endif // _QORE_OBJECTS_SINGLEEXITGATE_H

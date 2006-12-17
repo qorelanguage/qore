@@ -738,7 +738,7 @@ static class QoreNode *op_object_method_call(class QoreNode *left, class QoreNod
    if (!op || op->type != NT_OBJECT)
    {
       xsink->raiseException("OBJECT-METHOD-EVAL-ON-NON-OBJECT", "member function \"%s\" called on type \"%s\"", 
-			    func->val.fcall->f.c_str, op ? op->type->name : "NOTHING" );
+			    func->val.fcall->f.c_str, op ? op->type->getName() : "NOTHING" );
       if (op) op->deref(xsink);
       traceout("op_object_method_call()");
       return NULL;
@@ -806,7 +806,7 @@ static class QoreNode *op_assignment(class QoreNode *left, class QoreNode *right
 #if 0
    printd(5, "op_assignment() *%08p=%08p (type=%s refs=%d)\n",
 	  v, new_value, 
-	  new_value ? new_value->type->name : "(null)",
+	  new_value ? new_value->type->getName() : "(null)",
 	  new_value ? new_value->reference_count() : 0 );
 #endif
 
@@ -2014,7 +2014,7 @@ static QoreNode *op_unshift(class QoreNode *left, class QoreNode *elem, Exceptio
 
    ensure_unique(val, xsink);
 
-   printd(5, "op_unshift() *val=%08p (%s)\n", *val, *val ? (*val)->type->name : "(none)");
+   printd(5, "op_unshift() *val=%08p (%s)\n", *val, *val ? (*val)->type->getName() : "(none)");
    printd(5, "op_unshift() about to call unshift() on list node %08p (%d) with element %08p\n", (*val), (*val)->val.list->size(), elem);
 
    if (elem)
@@ -2048,12 +2048,12 @@ static QoreNode *op_shift(class QoreNode *left, class QoreNode *x, ExceptionSink
 
    ensure_unique(val, xsink);
 
-   printd(5, "op_shift() *val=%08p (%s)\n", *val, *val ? (*val)->type->name : "(none)");
+   printd(5, "op_shift() *val=%08p (%s)\n", *val, *val ? (*val)->type->getName() : "(none)");
    printd(5, "op_shift() about to call List::shift() on list node %08p (%d)\n", (*val), (*val)->val.list->size());
 
    QoreNode *rv = (*val)->val.list->shift();
 
-   printd(5, "op_shift() got node %08p (%s)\n", rv, rv ? rv->type->name : "(none)");
+   printd(5, "op_shift() got node %08p (%s)\n", rv, rv ? rv->type->getName() : "(none)");
    // the list reference will now be the reference for return value
    // therefore no need to reference again
 
@@ -2073,12 +2073,12 @@ static QoreNode *op_pop(class QoreNode *left, class QoreNode *x, ExceptionSink *
 
    ensure_unique(val, xsink);
 
-   printd(5, "op_pop() *val=%08p (%s)\n", *val, *val ? (*val)->type->name : "(none)");
+   printd(5, "op_pop() *val=%08p (%s)\n", *val, *val ? (*val)->type->getName() : "(none)");
    printd(5, "op_pop() about to call List::pop() on list node %08p (%d)\n", (*val), (*val)->val.list->size());
 
    QoreNode *rv = (*val)->val.list->pop();
 
-   printd(5, "op_pop() got node %08p (%s)\n", rv, rv ? rv->type->name : "(none)");
+   printd(5, "op_pop() got node %08p (%s)\n", rv, rv ? rv->type->getName() : "(none)");
    // the list reference will now be the reference for return value
    // therefore no need to reference again
 
@@ -2368,7 +2368,7 @@ void Operator::init()
    // create function lookup matrix
    for (int i = 0; i < NUM_VALUE_TYPES; i++)
       for (int j = 0; j < NUM_VALUE_TYPES; j++)
-	 opMatrix[i][j] = findFunction(QTM.typelist[i], QTM.typelist[j]);
+	 opMatrix[i][j] = findFunction(QTM.find(i), QTM.find(j));
 }
 
 // if there is no exact match, the first partial match

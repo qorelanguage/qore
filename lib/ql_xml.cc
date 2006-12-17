@@ -195,7 +195,7 @@ static void makeXMLString(QoreString *str, Hash *h, int indent, class QoreEncodi
 
 static void concatSimpleValue(QoreString *str, QoreNode *n, class ExceptionSink *xsink)
 {
-   //printd(0, "concatSimpleValue() n=%08p (%s) %s\n", n, n->type->name, n->type == NT_STRING ? n->val.String->getBuffer() : "unknown");
+   //printd(0, "concatSimpleValue() n=%08p (%s) %s\n", n, n->type->getName(), n->type == NT_STRING ? n->val.String->getBuffer() : "unknown");
 
    if (n->type == NT_STRING)
       str->concatAndHTMLEncode(n->val.String, xsink);

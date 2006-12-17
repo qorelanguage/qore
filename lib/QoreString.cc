@@ -32,15 +32,23 @@
 #include <qore/QoreLib.h>
 #include <qore/QoreType.h>
 #include <qore/minitest.hpp>
+#include <qore/charset.h>
 
 #include <errno.h>
 #include <string.h>
 #include <stdio.h>
 #include <iconv.h>
+#include <ctype.h>
 
 #ifdef DEBUG
 #  include "tests/QoreString_tests.cc"
 #endif
+
+#define MAX_INT_STRING_LEN    48
+#define MAX_BIGINT_STRING_LEN 48
+#define MAX_FLOAT_STRING_LEN  48
+#define STR_CLASS_BLOCK 80
+#define STR_CLASS_EXTRA 40
 
 const struct code_table QoreString::html_codes[] = 
 { { '&', "&amp;", 5 },
@@ -1363,10 +1371,63 @@ void QoreString::ensureBufferSize(unsigned requested_size)
    char* aux = (char *)realloc(buf, requested_size  * sizeof(char));
    if (!aux) {
      assert(false);
-     // here should be throw std::bad_alloc();
+     // FIXME: std::bad_alloc() should be thrown here;
      return;
    }
    buf = aux;
    allocated = requested_size;
 }
 
+class QoreEncoding *QoreString::getEncoding() const 
+{ 
+   return charset; 
+}
+
+class QoreString *QoreString::copy() const
+{
+   return new QoreString((QoreString *)this);
+}
+
+void QoreString::tolwr()
+{
+   char *c = buf;
+   while (*c)
+   {
+      *c = ::tolower(*c);
+      c++;
+   }
+}
+
+void QoreString::toupr()
+{
+   char *c = buf;
+   while (*c)
+   {
+      *c = ::toupper(*c);
+      c++;
+   }
+}
+
+// returns number of bytes
+int QoreString::strlen() const
+{
+   return len;
+}
+
+char *QoreString::getBuffer() const
+{
+   return buf;
+}
+
+class QoreString *checkEncoding(const class QoreString *str, const class QoreEncoding *enc, class ExceptionSink *xsink)
+{
+   if (str->getEncoding() != enc)
+      return str->convertEncoding(enc, xsink);
+   return (QoreString *)str;
+}
+
+void QoreString::addch(char c, int times)
+{
+   for (int i = 0; i < times; i++)
+      concat(c);
+}

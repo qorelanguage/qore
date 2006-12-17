@@ -184,7 +184,7 @@ class QoreNode *Context::evalValue(char *field, class ExceptionSink *xsink)
 
 class QoreNode *Context::getRow(class ExceptionSink *xsink)
 {
-   printd(5, "Context::getRow() value=%08p %s\n", value, value ? value->type->name : "NULL");
+   printd(5, "Context::getRow() value=%08p %s\n", value, value ? value->type->getName() : "NULL");
    if (!value)
       return NULL;
 
@@ -255,7 +255,7 @@ static inline int compare_templist(class Templist t1, class Templist t2)
    rc = rv->getAsInt();
    rv->deref(NULL);
 
-   //printd(5, "t1.node->type=%s t2.node->type=%s\n", t1.node->type->name, t2.node->type->name);
+   //printd(5, "t1.node->type=%s t2.node->type=%s\n", t1.node->type->getName(), t2.node->type->getName());
    //   print_node(stderr, t1.node); printd(1," == "); print_node(stderr, t2.node);
    //   printd(5, " result = %d\n", rc);
 

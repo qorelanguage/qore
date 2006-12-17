@@ -522,14 +522,14 @@ QoreNode *BuiltinFunction::eval(QoreNode *args, ExceptionSink *xsink)
    tracein("BuiltinFunction::eval(Node)");
    printd(3, "BuiltinFunction::eval(Node) calling builtin function \"%s\"\n", name);
    
-   //printd(5, "BuiltinFunction::eval(Node) args=%08p %s\n", args, args ? args->type->name : "(null)");
+   //printd(5, "BuiltinFunction::eval(Node) args=%08p %s\n", args, args ? args->type->getName() : "(null)");
 
    if (args)
       tmp = args->eval(&newsink);
    else
       tmp = NULL;
 
-   //printd(5, "BuiltinFunction::eval(Node) after eval tmp args=%08p %s\n", tmp, tmp ? tmp->type->name : "(null)");
+   //printd(5, "BuiltinFunction::eval(Node) after eval tmp args=%08p %s\n", tmp, tmp ? tmp->type->getName() : "(null)");
 
    // push call on call stack
    pushCall(name, CT_BUILTIN);
@@ -573,7 +573,7 @@ class QoreNode *UserFunction::eval(QoreNode *args, Object *self, class Exception
    for (i = 0; i < num_params; i++)
    {
       QoreNode *n = args ? args->val.list->retrieve_entry(i) : NULL;
-      printd(4, "UserFunction::eval() %d: instantiating param lvar %d (%08p %s)\n", i, params->ids[i], n, n ? n->type->name : "(null)");
+      printd(4, "UserFunction::eval() %d: instantiating param lvar %d (%08p %s)\n", i, params->ids[i], n, n ? n->type->getName() : "(null)");
       if (n)
       {
          if (n->type == NT_REFERENCE)

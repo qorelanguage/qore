@@ -63,9 +63,11 @@ libqore_la_SOURCES = \
 	QoreClassList.cc \
 	thread.cc \
 	VRMutex.cc \
+	RMutex.cc \
 	CallStack.cc \
 	ExecArgList.cc \
 	Gate.cc \
+	SingleExitGate.cc \
 	NamedScope.cc \
 	RWLock.cc \
 	QoreSSLBase.cc \
@@ -76,6 +78,10 @@ libqore_la_SOURCES = \
 	QoreQueue.cc \
 	QoreRegex.cc \
 	QoreRegexBase.cc \
+	RegexSubst.cc \
+	RegexTrans.cc \
+	Sequence.cc \
+	ReferenceObject.cc \
 	QT_NOTHING.cc \
 	QT_bigint.cc \
 	QT_float.cc \

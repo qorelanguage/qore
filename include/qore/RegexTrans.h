@@ -32,131 +32,18 @@ class RegexTrans
       class QoreString *source, *target;
       bool sr, tr;
 
-      void doRange(class QoreString *str, char end);
+      DLLLOCAL void doRange(class QoreString *str, char end);
 
    public:
-      inline RegexTrans();
-      inline ~RegexTrans();
-      inline void finishSource();
-      inline void finishTarget();
-      inline class QoreString *exec(class QoreString *target, class ExceptionSink *xsink);
-      inline void concatSource(char c);
-      inline void concatTarget(char c);
-      inline void setTargetRange() { tr = true; }
-      inline void setSourceRange() { sr = true; }
+      DLLLOCAL RegexTrans();
+      DLLLOCAL ~RegexTrans();
+      DLLLOCAL void finishSource();
+      DLLLOCAL void finishTarget();
+      DLLLOCAL class QoreString *exec(class QoreString *target, class ExceptionSink *xsink);
+      DLLLOCAL void concatSource(char c);
+      DLLLOCAL void concatTarget(char c);
+      DLLLOCAL void setTargetRange();
+      DLLLOCAL void setSourceRange();
 };
-
-#include <qore/support.h>
-#include <qore/Exception.h>
-#include <qore/QoreString.h>
-
-#include <stdlib.h>
-#include <strings.h>
-#include <ctype.h>
-
-// constructor used when parsing
-inline RegexTrans::RegexTrans()
-{
-   //printd(5, "RegexTrans::RegexTrans() this=%08p\n", this);
-   source = new QoreString();
-   target = new QoreString();
-   sr = tr = false;
-}
-
-inline RegexTrans::~RegexTrans()
-{
-   //printd(5, "RegexTrans::~RegexTrans() this=%08p\n", this);
-   if (source)
-      delete source;
-   if (target)
-      delete target;
-}
-
-inline void RegexTrans::finishSource()
-{
-   if (sr)
-      parse_error("no end character for character range at end of source pattern in transliteration");
-}
-
-inline void RegexTrans::finishTarget()
-{
-   if (tr)
-      parse_error("no end character for character range at end of target pattern in transliteration");
-}
-
-inline void RegexTrans::doRange(class QoreString *str, char end)
-{
-   if (!str->strlen())
-   {
-      parse_error("no start character for character range in transliteration");
-      return;
-   }
-   char start = str->getBuffer()[str->strlen() - 1];
-   str->terminate(str->strlen() - 1);
-   if (start > end)
-   {
-      parse_error("invalid range '%c' - '%c' in transliteration operator", start, end);
-      return;
-   }
-   do
-      str->concat(start++);
-   while (start <= end);
-}
-
-inline void RegexTrans::concatSource(char c)
-{
-   if (sr)
-   {
-      doRange(source, c);
-      sr = false;
-   }
-   else
-      source->concat(c);
-}
-
-inline void RegexTrans::concatTarget(char c)
-{
-   if (tr)
-   {
-      doRange(target, c);
-      tr = false;
-   }
-   else
-      target->concat(c);
-}
-
-inline class QoreString *RegexTrans::exec(class QoreString *str, class ExceptionSink *xsink)
-{
-   //printd(5, "source='%s' target='%s' ('%s')\n", source->getBuffer(), target->getBuffer(), str->getBuffer());
-   class QoreString *tstr;
-   if (str->getEncoding() != QCS_DEFAULT)
-   {
-      tstr = str->convertEncoding(QCS_DEFAULT, xsink);
-      if (!tstr)
-	 return NULL;
-   }
-   else
-      tstr = str;
-
-   class QoreString *ns = new QoreString();
-   for (int i = 0; i < tstr->strlen(); i++)
-   {
-      char c = tstr->getBuffer()[i];
-      char *p = strchr(source->getBuffer(), c);
-      if (p)
-      {
-	 int pos = p - source->getBuffer();
-	 if (target->strlen() <= pos)
-	    pos = target->strlen() - 1;
-	 if (pos >= 0)
-	    ns->concat(target->getBuffer()[pos]);
-      }
-      else
-	 ns->concat(c);
-   }
-   if (tstr != str)
-      delete tstr;
-   return ns;
-}
 
 #endif // _QORE_REGEXTRANS_H

@@ -88,7 +88,7 @@ class QoreString *hash_MakeString(class QoreNode *n, int foff, class ExceptionSi
 	    first = true;
 
 	 if (foff != FMT_NONE)
-	    indent(rv, foff + 2);
+	    rv->addch(' ', foff + 2);
 
 	 QoreString *elem = hi.getValue()->getAsString(foff != FMT_NONE ? foff + 2 : foff, xsink);
 	 rv->sprintf("%s : %s", hi.getKey(), elem->getBuffer());

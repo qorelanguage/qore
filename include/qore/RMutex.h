@@ -28,35 +28,17 @@
 
 #include <pthread.h>
 
-extern pthread_mutexattr_t ma_recursive;
-
 class RMutex
 {
    private:
       pthread_mutex_t m;
 
    public:
-      inline RMutex()
-      {
-	 // create mutex and set recursive attribute
-	 pthread_mutex_init(&m, &ma_recursive);
-      }
-      inline ~RMutex()
-      {
-	 pthread_mutex_destroy(&m);
-      }
-      inline int enter()
-      {
-	 return pthread_mutex_lock(&m);
-      }
-      inline int tryEnter()
-      {
-	 return pthread_mutex_trylock(&m);
-      }
-      inline int exit()
-      {
-	 return pthread_mutex_unlock(&m);
-      }
+      DLLLOCAL RMutex();
+      DLLLOCAL ~RMutex();
+      DLLLOCAL int enter();
+      DLLLOCAL int tryEnter();
+      DLLLOCAL int exit();
 };
 
 #endif
