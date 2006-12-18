@@ -28,6 +28,14 @@ libqore_la_SOURCES = \
 	GlobalVariableList.cc \
 	ImportedFunctionList.cc \
 	Statement.cc \
+	ContextStatement.cc \
+	IfStatement.cc \
+	WhileStatement.cc \
+	ForStatement.cc \
+	ForEachStatement.cc \
+	DeleteStatement.cc \
+	TryStatement.cc \
+	ThrowStatement.cc \
 	SwitchStatementWithOperators.cc \
 	Variable.cc \
 	support.cc \

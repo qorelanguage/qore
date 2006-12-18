@@ -63,7 +63,7 @@ template <typename T> struct free_ptr : std::unary_function <T*, void>
 class StringList : public strdeque_t
 {
    public:
-      inline ~StringList()
+      ~StringList()
       {
 	 std::for_each(begin(), end(), free_ptr<char>());
       }
@@ -75,7 +75,7 @@ class charPtrList : public safe_dslist<char *>
    public:
       // returns 0 for found, -1 for not found
       // FIXME: use STL find algorithm
-      inline int find(char *str) const
+      int find(char *str) const
       {
 	 const_iterator i = begin();
 	 while (i != end())

@@ -60,7 +60,7 @@ Var::Var(class Var *ref, bool ro)
    //next = NULL;
 }
 
-inline void Var::del(class ExceptionSink *xsink)
+void Var::del(class ExceptionSink *xsink)
 {
    if (type == GV_IMPORT)
    {
@@ -357,6 +357,41 @@ VarRef::~VarRef()
       printd(3, "VarRef::~VarRef() deleting variable reference %08p %s\n", name, name);
       free(name);
    }
+}
+
+void VarRef::resolve()
+{
+   lvh_t id;
+   if ((id = find_local_var(name)))
+   {
+      type = VT_LOCAL;
+      ref.id = id;
+      printd(5, "VarRef::resolve(): local var %s resolved (id=%08p)\n", name, ref.id);
+   }
+   else
+   {
+      ref.var = getProgram()->checkVar(name);
+      type = VT_GLOBAL;
+      printd(5, "VarRef::resolve(): global var %s resolved (var=%08p)\n", name, ref.var);
+   }
+}
+
+// returns 0 for OK, 1 for would be a new variable
+int VarRef::resolveExisting()
+{
+   lvh_t id;
+   if ((id = find_local_var(name)))
+   {
+      type = VT_LOCAL;
+      ref.id = id;
+      printd(5, "VarRef::resolveExisting(): local var %s resolved (id=%08p)\n", name, ref.id);
+      return 0;
+   }
+   
+   ref.var = getProgram()->findVar(name);
+   type = VT_GLOBAL;
+   printd(5, "VarRef::resolveExisting(): global var %s resolved (var=%08p)\n", name, ref.var);
+   return !ref.var;
 }
 
 VarRef *VarRef::copy()

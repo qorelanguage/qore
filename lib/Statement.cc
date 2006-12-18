@@ -24,6 +24,14 @@
 #include <qore/common.h>
 #include <qore/QoreNode.h>
 #include <qore/Statement.h>
+#include <qore/IfStatement.h>
+#include <qore/WhileStatement.h>
+#include <qore/ForStatement.h>
+#include <qore/ForEachStatement.h>
+#include <qore/DeleteStatement.h>
+#include <qore/TryStatement.h>
+#include <qore/ThrowStatement.h>
+#include <qore/SwitchStatement.h>
 #include <qore/Variable.h>
 #include <qore/support.h>
 #include <qore/Function.h>
@@ -37,6 +45,7 @@
 #include <qore/QoreClass.h>
 #include <qore/QoreWarnings.h>
 #include <qore/minitest.hpp>
+#include <qore/ContextStatement.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -47,711 +56,120 @@
 #  include "tests/Statement_tests.cc"
 #endif
 
-bool CaseNode::isCaseNodeImpl() const
+// parse context stack
+class CVNode 
 {
-  return true;
+public:
+   char *name;
+   class CVNode *next;
+   
+   DLLLOCAL CVNode(char *n) { name = n; }
+};
+
+// parse variable stack
+class VNode {
+public:
+   char *name;
+   class VNode *next;
+   
+   DLLLOCAL VNode(char *nme) { name = nme; }
+};
+
+LVList::LVList(int num)
+{
+   if (num)
+      ids = new lvh_t[num];
+   else
+      ids = NULL;
+   num_lvars = num;
 }
 
-inline ContextMod::ContextMod(int t, class QoreNode *n)
+LVList::~LVList()
+{
+   if (ids)
+      delete [] ids;
+}
+
+class QoreNode *StatementBlock::exec(ExceptionSink *xsink)
+{
+   class QoreNode *return_value = NULL;
+   exec(&return_value, xsink);
+   return return_value;
+}
+
+Statement::Statement(int type, class QoreNode *node)
 {
    next = NULL;
-   type = t;
-   c.exp = n;
+   setPosition();
+   Type       = type;
+   s.node     = node;
 }
 
-inline ContextMod::~ContextMod()
+Statement::Statement(int type)
 {
-   if (c.exp)
-      c.exp->deref(NULL);
+   next = NULL;
+   setPosition();
+   Type       = type;
 }
 
-ContextModList::ContextModList(ContextMod *cm)
+Statement::Statement(class StatementBlock *b)
 {
-   head = tail = cm;
-   num = 1;
+   next = NULL;
+   setPosition();
+   Type        = S_SUB_BLOCK;
+   s.sub_block = b;
 }
 
-ContextModList::~ContextModList()
+void Statement::setPosition()
 {
+   LineNumber = get_pgm_counter();
+   FileName   = get_pgm_file();
+}
+
+#define STATEMENT_BLOCK 20
+
+StatementBlock::StatementBlock(Statement *s)
+{
+   allocated = STATEMENT_BLOCK;
+   head = tail = s;
+   lvars = NULL;
+}
+
+void StatementBlock::addStatement(class Statement *s)
+{
+   //tracein("StatementBlock::addStatement()");
+   // if statement was blank then return already-present block
+   if (!s) return;
+   
+   if (!head)
+      head = s;
+   else
+      tail->next = s;
+   tail = s;
+   
+   //traceout("StatementBlock::addStatement()");
+}
+
+StatementBlock::~StatementBlock()
+{
+   //tracein("StatementBlock::~StatementBlock()");
+   
    while (head)
    {
-      class ContextMod *w = head->next;
+      tail = head->next;
       delete head;
-      head = w;
+      head = tail;
    }
-}
-
-void ContextModList::addContextMod(ContextMod *cm)
-{
-   tail->next = cm;
-   tail = cm;
-}
-
-// only executed by Statement::exec()
-inline int SwitchStatement::exec(class QoreNode **return_value, class ExceptionSink *xsink)
-{
-   int i, rc = 0;
-
-   tracein("SwitchStatement::exec()");
-   // instantiate local variables
-   for (i = 0; i < lvars->num_lvars; i++)
-      instantiateLVar(lvars->ids[i], NULL);
-
-   class QoreNode *se = sexp->eval(xsink);
-   if (!xsink->isEvent())
-   {
-      // find match
-      class CaseNode *w = head;
-      while (w)
-      {
-	 if (w->matches(se))
-	    break;
-	 w = w->next;
-      }
-      if (!w && deflt)
-	 w = deflt;
-
-      while (w && !rc && !xsink->isEvent())
-      {
-	 if (w->code)
-	    rc = w->code->exec(return_value, xsink);
-
-	 w = w->next;
-      }
-      if (rc == RC_BREAK || rc == RC_CONTINUE)
-	 rc = 0;
-   }
-
-   if (se)
-      se->deref(xsink);
-
-   // uninstantiate local variables
-   for (i = 0; i < lvars->num_lvars; i++)
-      uninstantiateLVar(xsink);
-
-   traceout("SwitchStatement::exec()");
-   return rc;
-}
-
-// only executed by Statement::exec()
-inline int IfStatement::exec(class QoreNode **return_value, class ExceptionSink *xsink)
-{
-   int i, rc = 0;
-
-   tracein("IfStatement::exec()");
-   // instantiate local variables
-   for (i = 0; i < lvars->num_lvars; i++)
-      instantiateLVar(lvars->ids[i], NULL);
-
-   if (cond->boolEval(xsink))
-   {
-      if (!xsink->isEvent() && if_code)
-	 rc = if_code->exec(return_value, xsink);
-   }
-   else if (else_code)
-      rc = else_code->exec(return_value, xsink);
-
-   // uninstantiate local variables
-   for (i = 0; i < lvars->num_lvars; i++)
-      uninstantiateLVar(xsink);
-   traceout("IfStatement::exec()");
-   return rc;
-}
-
-// only executed by Statement::exec()
-inline int ForStatement::exec(class QoreNode **return_value, class ExceptionSink *xsink)
-{
-   int i, rc = 0;
-
-   tracein("ForStatement::exec()");
-   // instantiate local variables
-   for (i = 0; i < lvars->num_lvars; i++)
-      instantiateLVar(lvars->ids[i], NULL);
-
-   // evaluate assignment expression and discard results if any
-   if (assignment)
-      discard(assignment->eval(xsink), xsink);
-
-   // execute "for" body
-   while (!xsink->isEvent())
-   {
-      // check conditional expression, exit "for" loop if condition is
-      // false
-      if (cond && (!cond->boolEval(xsink) || xsink->isEvent()))
-	 break;
-
-      // otherwise, execute "for" body
-      if (code && (((rc = code->exec(return_value, xsink)) == RC_BREAK) || xsink->isEvent()))
-      {
-	 rc = 0;
-	 break;
-      }
-      if (rc == RC_RETURN)
-	 break;
-      else if (rc == RC_CONTINUE)
-	 rc = 0;
-      
-      // evaluate iterator expression and discard results if any
-      if (iterator)
-	 discard(iterator->eval(xsink), xsink);
-   }
-
-   // uninstantiate local variables
-   for (i = 0; i < lvars->num_lvars; i++)
-      uninstantiateLVar(xsink);
-   traceout("ForStatement::exec()");
-   return rc;
-}
-
-// only executed by Statement::exec()
-inline int ForEachStatement::exec(class QoreNode **return_value, class ExceptionSink *xsink)
-{
-   if (list->type == NT_REFERENCE)
-      return execRef(return_value, xsink);
-
-   int i, rc = 0;
-
-   tracein("ForEachStatement::exec()");
-   // instantiate local variables
-   for (i = 0; i < lvars->num_lvars; i++)
-      instantiateLVar(lvars->ids[i], NULL);
-
-   // get list evaluation (although may be a single node)
-   class QoreNode *tlist = list->eval(xsink);
-   if (tlist && is_nothing(tlist))
-   {
-      tlist->deref(xsink);
-      tlist = NULL;
-   }
-
-   // execute "foreach" body
-   if (!xsink->isEvent() && tlist && ((tlist->type != NT_LIST) || tlist->val.list->size()))
-   {
-      int i = 0;
-
-      while (true)
-      {
-	 class VLock vl;
-	 class QoreNode **n = get_var_value_ptr(var, &vl, xsink);
-	 if (xsink->isEvent())
-	 {
-	    // unlock lock now
-	    vl.del();
-	    // dereference single value (because it won't be assigned
-	    // to the variable and dereferenced later because an 
-	    // exception has been thrown)
-	    if (tlist->type != NT_LIST)
-	       tlist->deref(xsink);
-	    break;
-	 }
-
-	 // dereference old value of variable
-	 if (*n)
-	 {
-	    (*n)->deref(xsink);
-	    if (xsink->isEvent())
-	    {
-	       (*n) = NULL;
-	       // unlock lock now
-	       vl.del();
-	       // dereference single value (because it won't be assigned
-	       // to the variable and dereferenced later because an 
-	       // exception has been thrown)
-	       if (tlist->type != NT_LIST)
-		  tlist->deref(xsink);
-	       break;
-	    }
-	 }
-
-	 // assign variable to current value in list
-	 if (tlist->type == NT_LIST)
-	    *n = tlist->val.list->eval_entry(i, xsink);
-	 else
-	    *n = tlist;
-
-	 // unlock variable
-	 vl.del();
-
-	 // execute "for" body
-	 if (code && (((rc = code->exec(return_value, xsink)) == RC_BREAK) || xsink->isEvent()))
-	 {
-	    rc = 0;
-	    break;
-	 }
-
-	 if (rc == RC_RETURN)
-	    break;
-	 else if (rc == RC_CONTINUE)
-	    rc = 0;
-	 i++;
-	 if (tlist->type != NT_LIST)
-	    break;
-	 if (i == tlist->val.list->size())
-	    break;
-      }
-   }
-   // dereference list (but not single values; their reference belongs to the
-   // variable assignment
-   if (tlist && tlist->type == NT_LIST)
-      tlist->deref(xsink);
-
-   // uninstantiate local variables
-   for (i = 0; i < lvars->num_lvars; i++)
-      uninstantiateLVar(xsink);
-   traceout("ForEachStatement::exec()");
-   return rc;
-}
-
-// only executed by Statement::exec()
-inline int ForEachStatement::execRef(class QoreNode **return_value, class ExceptionSink *xsink)
-{
-   int i, rc = 0;
-
-   tracein("ForEachStatement::exec()");
-   // instantiate local variables
-   for (i = 0; i < lvars->num_lvars; i++)
-      instantiateLVar(lvars->ids[i], NULL);
-
-   // get list evaluation (although may be a single node)
-   class QoreNode *tlist, *vr;
-   bool is_self_ref = false;
-   vr = doPartialEval(list->val.lvexp, &is_self_ref, xsink);
-   if (!xsink->isEvent())
-   {
-      tlist = vr->eval(xsink);
-      if (tlist && is_nothing(tlist))
-      {
-	 tlist->deref(xsink);
-	 tlist = NULL;
-      }
-   }
-   else
-      tlist = NULL;
-
-   VLock vl;
-
-   // execute "foreach" body
-   if (!xsink->isEvent() && tlist && ((tlist->type != NT_LIST) || tlist->val.list->size()))
-   {
-      class QoreNode *ln = NULL;
-      int i = 0;
-
-      if (tlist->type == NT_LIST)
-	 ln = new QoreNode(new List());
-
-      while (true)
-      {
-	 class QoreNode **n = get_var_value_ptr(var, &vl, xsink);
-	 if (xsink->isEvent())
-	 {
-	    // unlock lock now
-	    vl.del();
-	    // dereference single value (because it won't be assigned
-	    // to the variable and dereferenced later because an 
-	    // exception has been thrown)
-	    if (tlist->type != NT_LIST)
-	       tlist->deref(xsink);
-	    break;
-	 }
-
-	 // dereference old value of variable
-	 if (*n)
-	 {
-	    (*n)->deref(xsink);
-	    if (xsink->isEvent())
-	    {
-	       (*n) = NULL;
-	       // unlock lock now
-	       vl.del();
-	       // dereference single value (because it won't be assigned
-	       // to the variable and dereferenced later because an 
-	       // exception has been thrown)
-	       if (tlist->type != NT_LIST)
-		  tlist->deref(xsink);
-	       break;
-	    }
-	 }
-
-	 // assign variable to current value in list
-	 if (tlist->type == NT_LIST)
-	    *n = tlist->val.list->eval_entry(i, xsink);
-	 else
-	    *n = tlist;
-	 
-	 // unlock variable
-	 vl.del();
-	 
-	 // execute "for" body
-	 if (code)
-	 {
-	    rc = code->exec(return_value, xsink);
-
-	    // assign value of variable to referenced variable
-	    n = get_var_value_ptr(var, &vl, xsink);
-	    if (xsink->isEvent())
-	    {
-	       // unlock lock now
-	       vl.del();
-	       break;
-	    }
-
-	    QoreNode *nv;
-	    if (*n)
-	       nv = (*n)->eval(xsink);
-	    else
-	       nv = NULL;
-
-	    // assign new value to referenced variable
-	    if (tlist->type == NT_LIST)
-	       ln->val.list->set_entry(i, nv, NULL);
-	    else
-	       ln = nv;
-
-	    vl.del();
-	 }
-
-	 if (!code || xsink->isEvent() || rc == RC_BREAK)
-	 {
-	    rc = 0;
-	    break;
-	 }
-
-	 if (rc == RC_RETURN)
-	    break;
-	 else if (rc == RC_CONTINUE)
-	    rc = 0;
-	 i++;
-
-	 // break out of loop if appropriate
-	 if (tlist->type != NT_LIST || i == tlist->val.list->size())
-	    break;
-      }
-
-      if (!xsink->isEvent())
-      {
-	 // write the value back to the lvalue
-	 QoreNode **val = get_var_value_ptr(vr, &vl, xsink);
-	 if (!xsink->isEvent())
-	 {
-	    discard(*val, xsink);
-	    *val = ln;
-	    vl.del();
-	 }
-	 else
-	 {
-	    vl.del();
-	    discard(ln, xsink);
-	 }
-      }
-   }
-
-    // dereference list (but not single values; their reference belongs to the
-   // variable assignment
-   if (tlist && tlist->type == NT_LIST)
-      tlist->deref(xsink);
-
-   // dereference partial evaluation for lvalue assignment
-   if (vr)
-      vr->deref(xsink);
    
-   // uninstantiate local variables
-   for (i = 0; i < lvars->num_lvars; i++)
-      uninstantiateLVar(xsink);
-
-   traceout("ForEachStatement::exec()");
-   return rc;
-}
-
-// only executed by Statement::exec()
-inline void DeleteStatement::exec(ExceptionSink *xsink)
-{
-   delete_var_node(var, xsink);
-}
-
-// only executed by Statement::exec()
-inline int TryStatement::exec(class QoreNode **return_value, class ExceptionSink *xsink)
-{
-   QoreNode *trv = NULL;
-
-   tracein("TryStatement::exec()");
-   int rc = 0;
-   if (try_block)
-      rc = try_block->exec(&trv, xsink);
-
-   /*
-   // if thread_exit has been executed
-   if (except == (Exception *)1)
-      return rc;
-   */
-
-   class Exception *except = xsink->catchException();
-   if (except)
-   {
-      printd(5, "TryStatement::exec() entering catch handler, e=%08p\n", except);
-
-      if (catch_block)
-      {
-	 // save exception
-	 catchSaveException(except);
-
-	 if (param)	 // instantiate exception information parameter
-	    instantiateLVar(id, except->makeExceptionObject());
-
-	 rc = catch_block->exec(&trv, xsink);
-
-	 // uninstantiate extra args
-	 if (param)
-	    uninstantiateLVar(xsink);
-      }
-      else
-	 rc = 0;
-
-      // delete exception chain
-      except->del(xsink);
-   }
-   /*
-   if (finally)
-   {
-      printd(5, "TryStatement::exec() now executing finally block...\n");
-      rc = finally->exec(return_value, xsink);
-   }
-   */
-   if (trv)
-      if (*return_value) // NOTE: double return! (maybe should raise an exception here?)
-	 trv->deref(xsink);
-      else
-	 *return_value = trv;
-   traceout("TryStatement::exec()");
-   return rc;
+   if (lvars)
+      delete lvars;
+   //traceout("StatementBlock::~StatementBlock()");
 }
 
 // only executed by Statement::exec()
 inline void exec_rethrow(ExceptionSink *xsink)
 {
    xsink->rethrow(catchGetException());
-}
-
-// only executed by Statement::exec()
-inline void ThrowStatement::exec(ExceptionSink *xsink)
-{
-   class QoreNode *a;
-   if (args)
-      a = args->eval(xsink);
-   else
-      a = NULL;
-
-   xsink->raiseException(a);
-   if (a)
-      a->deref(NULL);
-}
-
-// only executed by Statement::exec()
-// FIXME: local vars should only be instantiated if there is a non-null context
-inline int ContextStatement::exec(class QoreNode **return_value, class ExceptionSink *xsink)
-{
-   tracein("ContextStatement::exec()");
-   int rc = 0;
-   int i;
-   class Context *context;
-   class QoreNode *cond = NULL, *sort = NULL;
-   int sort_type = CM_NO_SORT;
-
-   // find modifiers node
-   if (mods)
-   {
-      ContextMod *w = mods->getHead();
-      while (w)
-      {
-	 switch (w->type)
-	 {
-	    case CM_WHERE_NODE:
-	       if (!cond)
-		  cond = w->c.exp;
-	       else
-	       {
-		  // FIXME: should be a parse exception
-		  xsink->raiseException("CONTEXT-CREATION-EXCEPTION", "multiple where conditions found for context statement!");
-		  return 0;
-	       }
-	       break;
-	    case CM_SORT_ASCENDING:
-	    case CM_SORT_DESCENDING:
-	       sort = w->c.exp;
-	       sort_type = w->type;
-	       break;
-	 }
-	 w = w->next;
-      }
-   }
-   
-   // instantiate local variables
-   for (i = 0; i < lvars->num_lvars; i++)
-      instantiateLVar(lvars->ids[i], NULL);
-
-   // create the context
-   context = new Context(name, xsink, exp, cond, sort_type, sort, NULL);
-
-   // execute the statements
-   if (code)
-      for (context->pos = 0; context->pos < context->max_pos && !xsink->isEvent(); context->pos++)
-      {
-	 printd(4, "ContextStatement::exec() iteration %d/%d\n", context->pos, context->max_pos);
-	 if (((rc = code->exec(return_value, xsink)) == RC_BREAK) || xsink->isEvent())
-	 {
-	    rc = 0;
-	    break;
-	 }
-	 else if (rc == RC_RETURN)
-	    break;
-	 else if (rc == RC_CONTINUE)
-	    rc = 0;
-      }
-
-   // destroy the context
-   context->deref(xsink);
-
-   // uninstantiate local variables
-   for (i = 0; i < lvars->num_lvars; i++)
-      uninstantiateLVar(xsink);
-
-   traceout("ContextStatement::exec()");
-   return rc;
-
-}
-
-// only executed by Statement::exec()
-inline int ContextStatement::execSummary(class QoreNode **return_value, class ExceptionSink *xsink)
-{
-   tracein("ContextStatement::execSummary()");
-   int rc = 0;
-   int i;
-   class Context *context;
-   class QoreNode *cond = NULL, *sort = NULL, *summarize = NULL;
-   int sort_type = CM_NO_SORT;
-
-   // instantiate local variables
-   for (i = 0; i < lvars->num_lvars; i++)
-      instantiateLVar(lvars->ids[i], NULL);
-
-   // find modifiers node
-   if (mods)
-   {
-      ContextMod *w = mods->getHead();
-      while (w)
-      {
-	 switch (w->type)
-	 {
-	    case CM_WHERE_NODE:
-	       if (cond)
-	       {
-		  // FIXME: should be a parse exception
-		  xsink->raiseException("CONTEXT-CREATION-EXCEPTION", "multiple where conditions found for context statement!");
-		  return 0;
-	       }
-	       cond = w->c.exp;
-	       break;
-	    case CM_SORT_ASCENDING:
-	    case CM_SORT_DESCENDING:
-	       sort = w->c.exp;
-	       sort_type = w->type;
-	       break;
-	    case CM_SUMMARIZE_BY:
-	       summarize = w->c.exp;
-	       break;
-	 }
-	 w = w->next;
-      }
-   }
-
-   // create the context
-   context = new Context(name, xsink, exp, cond, sort_type, sort, summarize);
-   
-   // execute the statements
-   if (code)
-   {
-      if (context->max_group_pos && !xsink->isEvent())
-	 do
-	 {
-	    if (((rc = code->exec(return_value, xsink)) == RC_BREAK) || xsink->isEvent())
-	    {
-	       rc = 0;
-	       break;
-	    }
-	    else if (rc == RC_RETURN)
-	       break;
-	    else if (rc == RC_CONTINUE)
-	       rc = 0;
-	 }
-	 while (!xsink->isEvent() && context->next_summary());
-   }
-   
-   // destroy the context
-   context->deref(xsink);
-
-   // uninstantiate local variables
-   for (i = 0; i < lvars->num_lvars; i++)
-      uninstantiateLVar(xsink);
-   traceout("ContextStatement::execSummary()");
-   return rc;
-}
-
-// only executed by Statement::exec()
-inline int WhileStatement::execWhile(class QoreNode **return_value, class ExceptionSink *xsink)
-{
-   int i, rc = 0;
-
-   tracein("WhileStatement::execWhile()");
-   // instantiate local variables
-   for (i = 0; i < lvars->num_lvars; i++)
-      instantiateLVar(lvars->ids[i], NULL);
-
-   while (cond->boolEval(xsink) && !xsink->isEvent())
-   {
-      if (code && (((rc = code->exec(return_value, xsink)) == RC_BREAK) || xsink->isEvent()))
-      {
-	 rc = 0;
-	 break;
-      }
-      if (rc == RC_RETURN)
-	 break;
-      else if (rc == RC_CONTINUE)
-	 rc = 0;
-   }
-   // uninstantiate local variables
-   for (i = 0; i < lvars->num_lvars; i++)
-      uninstantiateLVar(xsink);
-   traceout("WhileStatement::execWhile()");
-   return rc;
-}
-
-// only executed by Statement::exec()
-inline int WhileStatement::execDoWhile(class QoreNode **return_value, class ExceptionSink *xsink)
-{
-   int i, rc = 0;
-
-   tracein("WhileStatement::execDoWhile()");
-   // instantiate local variables
-   for (i = 0; i < lvars->num_lvars; i++)
-      instantiateLVar(lvars->ids[i], NULL);
-      
-   do
-   {
-      if (code && (((rc = code->exec(return_value, xsink)) == RC_BREAK) || xsink->isEvent()))
-      {
-	 rc = 0;
-	 break;
-      }
-      if (rc == RC_RETURN)
-	 break;
-      else if (rc == RC_CONTINUE)
-	 rc = 0;
-   } while (cond->boolEval(xsink) && !xsink->isEvent());
-
-   // uninstantiate local variables
-   for (i = 0; i < lvars->num_lvars; i++)
-      uninstantiateLVar(xsink);
-   traceout("WhileStatement::execDoWhile()");
-   return rc;
 }
 
 Statement::~Statement()
@@ -973,41 +391,6 @@ static inline lvh_t find_local_var(char *name)
    return 0;
 }
 
-inline void VarRef::resolve()
-{
-   lvh_t id;
-   if ((id = find_local_var(name)))
-   {
-      type = VT_LOCAL;
-      ref.id = id;
-      printd(5, "VarRef::resolve(): local var %s resolved (id=%08p)\n", name, ref.id);
-   }
-   else
-   {
-      ref.var = getProgram()->checkVar(name);
-      type = VT_GLOBAL;
-      printd(5, "VarRef::resolve(): global var %s resolved (var=%08p)\n", name, ref.var);
-   }
-}
-
-// returns 0 for OK, 1 for would be a new variable
-int VarRef::resolveExisting()
-{
-   lvh_t id;
-   if ((id = find_local_var(name)))
-   {
-      type = VT_LOCAL;
-      ref.id = id;
-      printd(5, "VarRef::resolveExisting(): local var %s resolved (id=%08p)\n", name, ref.id);
-      return 0;
-   }
-
-   ref.var = getProgram()->findVar(name);
-   type = VT_GLOBAL;
-   printd(5, "VarRef::resolveExisting(): global var %s resolved (var=%08p)\n", name, ref.var);
-   return !ref.var;
-}
-
 // checks for illegal $self assignments in an object context
 static inline void checkSelf(class QoreNode *n, lvh_t selfid)
 {
@@ -1041,8 +424,6 @@ static inline void checkLocalVariableChange(class QoreNode *n)
    if (n->type == NT_VARREF && n->val.vref->type == VT_LOCAL)
       parse_error("illegal local variable modification in background expression");
 }
-	    
-
 
 #define PF_BACKGROUND   1
 #define PF_REFERENCE_OK 2
@@ -1061,7 +442,7 @@ static inline int getBaseLVType(class QoreNode *n)
 }
 
 // this function will put variables on the local stack but will not pop them
-static int process_node(class QoreNode **node, lvh_t oflag, int pflag)
+int process_node(class QoreNode **node, lvh_t oflag, int pflag)
 {
    int lvids = 0, i;
    int current_pflag = pflag;
@@ -1326,216 +707,6 @@ static int process_node(class QoreNode **node, lvh_t oflag, int pflag)
       (*node)->val.classref->resolve();
 
    return lvids;
-}
-
-inline void ContextStatement::parseInit(lvh_t oflag, int pflag)
-{
-   tracein("ContextStatement::parseInit()");
-
-   int i, lvids = 0;
-
-   if (!exp && !getCVarStack())
-      parse_error("subcontext statement out of context");
-
-   // initialize context expression
-   if (exp)
-      lvids += process_node(&exp, oflag, pflag);
-
-   // need to push something on the stack even if the context is not named
-   push_cvar(name);
-
-   if (mods)
-   {
-      ContextMod *w = mods->getHead();
-      while (w)
-      {
-	 //printd(0, "%08p: i=%d/%d\n", this, i, mods->num_mods);
-	 switch (w->type)
-	 {
-	    case CM_SORT_ASCENDING:
-	    case CM_SORT_DESCENDING:
-	       if (process_node(&(w->c.exp), oflag, pflag))
-		  parse_error("local variable declarations not allowed in sort expressions!");
-	       break;
-	    case CM_WHERE_NODE:
-	       lvids += process_node(&(w->c.exp), oflag, pflag);
-	       break;
-	    case CM_SUMMARIZE_BY:
-	       if (process_node(&(w->c.exp), oflag, pflag))
-		  parse_error("local variable declarations not allowed in \"summarize by\" expressions!");
-	       break;
-#ifdef DEBUG
-	    default:
-	       parse_error("type %d not handled", w->type);
-	       traceout("ContextStatement::parseInit()");
-	       leave(2);
-#endif
-	 }
-	 w = w->next;
-      }
-   }
-
-   // initialize statement block
-   if (code)
-      code->parseInit(oflag, pflag);
-
-   // save local variables
-   lvars = new LVList(lvids);
-   for (i = 0; i < lvids; i++)
-      lvars->ids[i] = pop_local_var();
-
-   pop_cvar();
-   traceout("ContextStatement::parseInit()");
-}
-
-inline void IfStatement::parseInit(lvh_t oflag, int pflag)
-{
-   int i, lvids = 0;
-
-   lvids += process_node(&cond, oflag, pflag);
-   if (if_code)
-      if_code->parseInit(oflag, pflag);
-   if (else_code)
-      else_code->parseInit(oflag, pflag);
-   // save local variables
-   lvars = new LVList(lvids);
-   for (i = 0; i < lvids; i++)
-      lvars->ids[i] = pop_local_var();
-}
-
-inline void WhileStatement::parseWhileInit(lvh_t oflag, int pflag)
-{
-   int i, lvids = 0;
-
-   lvids += process_node(&cond, oflag, pflag);
-   if (code)
-      code->parseInit(oflag, pflag);
-
-   // save local variables
-   lvars = new LVList(lvids);
-   for (i = 0; i < lvids; i++)
-      lvars->ids[i] = pop_local_var();
-}
-
-/* do ... while statements can have variables local to the statement
- * however, it doesn't do much good :-) */
-inline void WhileStatement::parseDoWhileInit(lvh_t oflag, int pflag)
-{
-   int i, lvids = 0;
-
-   if (code)
-      code->parseInit(oflag, pflag);
-   lvids += process_node(&cond, oflag, pflag);
-
-   // save local variables
-   lvars = new LVList(lvids);
-   for (i = 0; i < lvids; i++)
-      lvars->ids[i] = pop_local_var();
-}
-
-inline void ForStatement::parseInit(lvh_t oflag, int pflag)
-{
-   int i, lvids = 0;
-
-   if (assignment)
-      lvids += process_node(&assignment, oflag, pflag);
-   if (cond)
-      lvids += process_node(&cond, oflag, pflag);
-   if (iterator)
-      lvids += process_node(&iterator, oflag, pflag);
-   if (code)
-      code->parseInit(oflag, pflag);
-
-   // save local variables
-   lvars = new LVList(lvids);
-   for (i = 0; i < lvids; i++)
-      lvars->ids[i] = pop_local_var();
-}
-
-inline void ForEachStatement::parseInit(lvh_t oflag, int pflag)
-{
-   int i, lvids = 0;
-
-   lvids += process_node(&var, oflag, pflag);
-   lvids += process_node(&list, oflag, pflag | PF_REFERENCE_OK);
-   if (code)
-      code->parseInit(oflag, pflag);
-
-   // save local variables 
-   lvars = new LVList(lvids);
-   for (i = 0; i < lvids; i++)
-      lvars->ids[i] = pop_local_var();
-}
-
-inline void TryStatement::parseInit(lvh_t oflag, int pflag)
-{
-   if (try_block)
-      try_block->parseInit(oflag, pflag);
-
-   // prepare catch block and params
-   if (param)
-   {
-      id = push_local_var(param);
-      printd(3, "TryStatement::parseInit() reg. local var %s (id=%08p)\n", param, id);
-   }
-   else
-      id = NULL;
-   
-   // initialize code block
-   if (catch_block)
-      catch_block->parseInit(oflag, pflag | PF_RETHROW_OK);
-
-   // pop local param from stack
-   if (param)
-      pop_local_var();
-}
-
-inline int DeleteStatement::parseInit(lvh_t oflag, int pflag)
-{
-   return process_node(&var, oflag, pflag);
-}
-
-inline int ThrowStatement::parseInit(lvh_t oflag, int pflag)
-{
-   if (args)
-      return process_node(&args, oflag, pflag);
-   return 0;
-}
-
-inline void SwitchStatement::parseInit(lvh_t oflag, int pflag)
-{
-   int i, lvids = 0;
-
-   lvids += process_node(&sexp, oflag, pflag);
-
-   class CaseNode *w = head;
-   while (w)
-   {
-      if (w->val)
-      {
-	 getRootNS()->parseInitConstantValue(&w->val, 0);
-
-	 // check for duplicate values
-	 class CaseNode *cw = head;
-	 while (cw != w)
-	 {
-            // Check only the simple case blocks (case 1: ...),
-            // not those with relational operators. Could be changed later to provide more checking.
-            if (w->isCaseNode() && cw->isCaseNode() && !compareHard(w->val, cw->val))
-	       parse_error("duplicate case values in switch");
-	    cw = cw->next;
-	 }
-      }
-
-      if (w->code)
-	 w->code->parseInit(oflag, pflag);
-      w = w->next;
-   }
-
-   // save local variables
-   lvars = new LVList(lvids);
-   for (i = 0; i < lvids; i++)
-      lvars->ids[i] = pop_local_var();
 }
 
 // processes a single statement; does not pop variables off stack

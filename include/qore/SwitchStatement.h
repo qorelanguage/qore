@@ -26,27 +26,17 @@
 
 class CaseNode {
    private:
-      virtual bool isCaseNodeImpl() const;
+      DLLLOCAL virtual bool isCaseNodeImpl() const;
    
    public:
       class QoreNode *val;
       class StatementBlock *code;
       class CaseNode *next;
 
-      DLLLOCAL inline CaseNode(class QoreNode *v, class StatementBlock *c)
-      {
-	 val = v;
-	 code = c;
-	 next = NULL;
-      }
-      DLLLOCAL virtual bool matches(QoreNode* lhs_value) {
-        return !compareHard(lhs_value, val); // the ! is because of compareHard() semantics
-      }
-      DLLLOCAL bool isCaseNode() const
-      {
-	 return isCaseNodeImpl();
-      }
-      DLLLOCAL inline virtual ~CaseNode();
+      DLLLOCAL CaseNode(class QoreNode *v, class StatementBlock *c);
+      DLLLOCAL virtual bool matches(QoreNode* lhs_value);
+      DLLLOCAL bool isCaseNode() const;
+      DLLLOCAL virtual ~CaseNode();
 };
 
 class SwitchStatement {
@@ -58,54 +48,12 @@ class SwitchStatement {
    public:
       class LVList *lvars;
 
-      DLLLOCAL inline SwitchStatement(class CaseNode *f)
-      {
-	 deflt = NULL;
-	 head = tail = f;
-	 sexp = NULL;
-	 lvars = NULL;
-      }
-      DLLLOCAL inline ~SwitchStatement()
-      {
-	 while (head)
-	 {
-	    class CaseNode *w = head->next;
-	    delete head;
-	    head = w;
-	 }
-	 if (sexp)
-	    sexp->deref(NULL);
-	 if (lvars)
-	    delete lvars;
-      }
-      DLLLOCAL inline void setSwitch(class QoreNode *s)
-      {
-	 sexp = s;
-      }
-      DLLLOCAL inline void addCase(class CaseNode *c)
-      {
-	 if (tail)
-	    tail->next = c;
-	 else
-	    head = c;
-	 tail = c;
-	 if (!c->val)
-	 {
-	    if (deflt)
-	       parse_error("multiple defaults in switch statement");
-	    deflt = c;
-	 }
-      }
-      DLLLOCAL inline void parseInit(lvh_t oflag, int pflag = 0);
-      DLLLOCAL inline int exec(class QoreNode **return_value, class ExceptionSink *xsink);
+      DLLLOCAL SwitchStatement(class CaseNode *f);
+      DLLLOCAL ~SwitchStatement();
+      DLLLOCAL void setSwitch(class QoreNode *s);
+      DLLLOCAL void addCase(class CaseNode *c);
+      DLLLOCAL void parseInit(lvh_t oflag, int pflag = 0);
+      DLLLOCAL int exec(class QoreNode **return_value, class ExceptionSink *xsink);
 };
-
-inline CaseNode::~CaseNode()
-{
-   if (val)
-      val->deref(NULL);
-   if (code)
-      delete code;
-}
 
 #endif

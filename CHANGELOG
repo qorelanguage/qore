@@ -1,3 +1,6 @@
+2006.12.17: David Nichols
+	* ContextStatement api cleanup, catch and report more parse errors
+
 2006.12.16: David Nichols
 	* QoreSocket api cleanup
 

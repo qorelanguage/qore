@@ -28,10 +28,9 @@
 #include <qore/common.h>
 
 #define CM_WHERE_NODE           1
-#define CM_NO_SORT              2
-#define CM_SORT_ASCENDING       3
-#define CM_SORT_DESCENDING      4
-#define CM_SUMMARIZE_BY         5
+#define CM_SORT_ASCENDING       2
+#define CM_SORT_DESCENDING      3
+#define CM_SUMMARIZE_BY         4
 
 class Context {
       DLLLOCAL void Sort(class QoreNode *sort, int sort_type = CM_SORT_ASCENDING);
@@ -58,7 +57,7 @@ class Context {
       
       DLLLOCAL Context(char *nme, class ExceptionSink *xsinkx, class QoreNode *exp,
 		       class QoreNode *cond = NULL,
-		       int sort_type = CM_NO_SORT, class QoreNode *sort = NULL,
+		       int sort_type = -1, class QoreNode *sort = NULL,
 		       class QoreNode *summary = NULL, int ignore_key = 0);
       DLLLOCAL class QoreNode *evalValue(char *field, class ExceptionSink *xsink);
       DLLLOCAL class QoreNode *getRow(class ExceptionSink *xsink);

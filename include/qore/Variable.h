@@ -85,7 +85,7 @@ class Var : public ReferenceObject
       union VarValue v;
       class VRMutex gate;
 
-      DLLLOCAL inline void del(class ExceptionSink *xsink);
+      DLLLOCAL void del(class ExceptionSink *xsink);
 
    protected:
       DLLLOCAL ~Var() {}
@@ -112,17 +112,17 @@ class VarRef {
 	    class Var *var;    // for global variables
       } ref;
 
-      DLLLOCAL inline VarRef(char *n, int t);
-      DLLLOCAL inline VarRef() {}
-      DLLLOCAL inline ~VarRef();
-      DLLLOCAL inline void resolve();
+      DLLLOCAL VarRef(char *n, int t);
+      DLLLOCAL VarRef() {}
+      DLLLOCAL ~VarRef();
+      DLLLOCAL void resolve();
       // returns -1 if the variable did not already exist
       DLLLOCAL int resolveExisting();
-      DLLLOCAL inline class VarRef *copy();
-      DLLLOCAL inline class QoreNode *eval(class ExceptionSink *xsink);
-      DLLLOCAL inline void setValue(class QoreNode *val, class ExceptionSink *xsink);
-      DLLLOCAL inline class QoreNode **getValuePtr(class VLock *vl, class ExceptionSink *xsink);
-      DLLLOCAL inline class QoreNode *getValue(class VLock *vl, class ExceptionSink *xsink);
+      DLLLOCAL class VarRef *copy();
+      DLLLOCAL class QoreNode *eval(class ExceptionSink *xsink);
+      DLLLOCAL void setValue(class QoreNode *val, class ExceptionSink *xsink);
+      DLLLOCAL class QoreNode **getValuePtr(class VLock *vl, class ExceptionSink *xsink);
+      DLLLOCAL class QoreNode *getValue(class VLock *vl, class ExceptionSink *xsink);
 };
 
 DLLLOCAL class QoreNode **get_var_value_ptr(class QoreNode *lvalue, class VLock *vl, class ExceptionSink *xsink);

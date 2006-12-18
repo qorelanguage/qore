@@ -50,8 +50,16 @@ template<typename T> struct _qore_list_node
       self_t *next;
       T data;
    
-      inline _qore_list_node(T d, self_t *n) { next = n; data = d; }
-      inline _qore_list_node(T d) { next = NULL; data = d; }
+      _qore_list_node(T d, self_t *n) 
+      { 
+	 next = n; 
+	 data = d; 
+      }
+      _qore_list_node(T d) 
+      {
+	 next = NULL; 
+	 data = d; 
+      }
 };
 
 template<typename T> struct _qore_list_iterator
@@ -62,22 +70,37 @@ template<typename T> struct _qore_list_iterator
       // data for the node
       node_t *node;
 
-      inline _qore_list_iterator(node_t *n) { node = n; }
-      inline _qore_list_iterator() { node = NULL; }
-      inline self_t operator++(int) 
+      _qore_list_iterator(node_t *n) 
+      { 
+	 node = n; 
+      }
+      _qore_list_iterator() 
+      { 
+	 node = NULL; 
+      }
+      self_t operator++(int) 
       { 
 	 self_t _tmp = *this;
 	 node = node->next; 
 	 return _tmp;
       }
-      inline self_t operator++() 
+      self_t operator++() 
       { 
 	 node = node->next; 
 	 return *this;
       }
-      inline T operator*() { return node->data; }
-      inline bool operator!=(const self_t &n) { return n.node != node; }
-      inline bool operator==(const self_t &n) { return n.node == node; }
+      T operator*() 
+      { 
+	 return node->data; 
+      }
+      bool operator!=(const self_t &n) 
+      { 
+	 return n.node != node; 
+      }
+      bool operator==(const self_t &n) 
+      {
+	 return n.node == node; 
+      }
 };
 
 template<typename T> struct _qore_list_const_iterator
@@ -88,22 +111,37 @@ template<typename T> struct _qore_list_const_iterator
       // data for the node
       node_t *node;
 
-      inline _qore_list_const_iterator(const node_t *n) { node = (node_t *)n; }
-      inline _qore_list_const_iterator() { node = NULL; }
-      inline self_t operator++(int) 
+      _qore_list_const_iterator(const node_t *n) 
+      { 
+	 node = (node_t *)n; 
+      }
+      _qore_list_const_iterator() 
+      { 
+	 node = NULL; 
+      }
+      self_t operator++(int) 
       { 
 	 self_t _tmp = *this;
 	 node = node->next; 
 	 return _tmp;
       }
-      inline self_t operator++() 
+      self_t operator++() 
       { 
 	 node = node->next; 
 	 return *this;
       }
-      inline T operator*() const { return node->data; }
-      inline bool operator!=(const self_t &n) { return n.node != node; }
-      inline bool operator==(const self_t &n) { return n.node == node; }
+      T operator*() const 
+      { 
+	 return node->data; 
+      }
+      bool operator!=(const self_t &n) 
+      { 
+	 return n.node != node; 
+      }
+      bool operator==(const self_t &n) 
+      { 
+	 return n.node == node; 
+      }
 };
 
 template<typename T> class safe_dslist
@@ -118,8 +156,10 @@ template<typename T> class safe_dslist
       node_t *head, *tail;
 
    public: 
-      inline safe_dslist() : head(NULL), tail(NULL) {}
-      inline ~safe_dslist()
+      safe_dslist() : head(NULL), tail(NULL) 
+      {
+      }
+      ~safe_dslist()
       {
 	 node_t *w = head;
 	 while (w)
@@ -129,20 +169,19 @@ template<typename T> class safe_dslist
 	    w = n;
 	 }
       }
-
-      inline iterator begin()
+      iterator begin()
       {
 	 return head;
       }
-      inline iterator end()
+      iterator end()
       {
 	 return NULL;
       }
-      inline const_iterator begin() const
+      const_iterator begin() const
       {
 	 return head;
       }
-      inline const_iterator end() const
+      const_iterator end() const
       {
 	 return NULL;
       }
@@ -153,7 +192,6 @@ template<typename T> class safe_dslist
 	    tail = n;
 	 head = n;
       }
-      
       void push_back(T data)
       {
 	 node_t *n = new node_t(data);
@@ -163,8 +201,7 @@ template<typename T> class safe_dslist
 	    head = n;
 	 tail = n;
       }
-   
-      inline void populate(self_t &other)
+      void populate(self_t &other)
       {
 	 iterator i = begin();
 	 while (i != end())
@@ -173,8 +210,7 @@ template<typename T> class safe_dslist
 	    i++;
 	 }
       }
-
-      inline void populate(self_t *other)
+      void populate(self_t *other)
       {
 	 iterator i = begin();
 	 while (i != end())
@@ -183,13 +219,11 @@ template<typename T> class safe_dslist
 	    i++;
 	 }
       }
-
-      inline bool empty() const
+      bool empty() const
       {
 	 return !head;
       }
-
-      inline void erase(iterator i)
+      void erase(iterator i)
       {
 	 if (i.node == head)
 	 {

@@ -39,6 +39,14 @@ noinst_HEADERS = \
 	include/qore/QoreString.h \
 	include/qore/Reference.h \
 	include/qore/Statement.h \
+	include/qore/ContextStatement.h \
+	include/qore/IfStatement.h \
+	include/qore/WhileStatement.h \
+	include/qore/ForStatement.h \
+	include/qore/ForEachStatement.h \
+	include/qore/DeleteStatement.h \
+	include/qore/TryStatement.h \
+	include/qore/ThrowStatement.h \
 	include/qore/common.h \
 	include/qore/config.h \
 	include/qore/proto.h \

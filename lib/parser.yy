@@ -26,6 +26,14 @@
 #include <qore/Operator.h>
 #include <qore/Function.h>
 #include <qore/Statement.h>
+#include <qore/ContextStatement.h>
+#include <qore/IfStatement.h>
+#include <qore/WhileStatement.h>
+#include <qore/ForStatement.h>
+#include <qore/ForEachStatement.h>
+#include <qore/DeleteStatement.h>
+#include <qore/TryStatement.h>
+#include <qore/ThrowStatement.h>
 #include <qore/Variable.h>
 #include <qore/support.h>
 #include <qore/Context.h>
@@ -690,18 +698,7 @@ statement:
         | TOK_SUMMARIZE optname '(' exp ')' TOK_BY '(' exp ')' context_mods statement_or_block
         {
 	   $$ = new Statement(S_SUMMARY);
-	   
-	   ContextModList *cml;
-
-	   if ($10)
-	   {
-	      $10->addContextMod(new ContextMod(CM_SUMMARIZE_BY, $8));
-	      cml = $10;
-	   }
-	   else
-	      cml = new ContextModList(new ContextMod(CM_SUMMARIZE_BY, $8));
-
-	   $$->s.SContext = new ContextStatement($2, $4, cml, $11);
+	   $$->s.SContext = new ContextStatement($2, $4, $10, $11, $8);
 	}
         | TOK_CONTEXT optname '(' exp ')' context_mods statement_or_block
         {

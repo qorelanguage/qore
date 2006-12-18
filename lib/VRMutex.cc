@@ -32,6 +32,68 @@ inline void show_vl(class VLock *vl, class VLock *nvl)
 }
 #endif
 
+VLNode::VLNode(class VRMutex *gate) 
+{
+   g = gate;
+   next = NULL;
+}
+
+VLock::VLock()
+{
+   waiting_on = NULL;
+   tid = 0;
+   head = NULL;
+   tail = NULL;
+}
+
+VLock::~VLock()
+{
+   del();
+}
+
+void VLock::add(class VRMutex *g)
+{
+   class VLNode *n = new VLNode(g);
+   if (tail)
+   {
+      //run_time_error("VLock::add() > 1 lock count!");
+      tail->next = n;
+   }
+   else
+      head = n;
+   tail = n;
+}
+
+void VLock::del()
+{
+   while (head)
+   {
+      tail = head->next;
+      head->g->exit();
+      delete head;
+      head = tail;
+   }
+}
+
+class VRMutex *VLock::find(class VRMutex *g)
+{
+   class VLNode *w = head;
+   while (w)
+   {
+      if (w->g == g)
+	 return g;
+      w = w->next;
+   }
+   return NULL;
+}
+
+VRMutex::VRMutex()
+{
+   count = waiting = 0;
+   tid = -1;
+   vl = NULL;
+}
+
 void VRMutex::enter()
 {
    //printd(5, "VRMutex::enter() %08p\n", this);

@@ -37,16 +37,10 @@ class VRMutex : public LockedObject, public QoreCondition
       class VLock *vl;
 
    public:
-      inline VRMutex()
-      {
-	 count = waiting = 0;
-	 tid = -1;
-	 vl = NULL;
-      }
-
-      int enter(class VLock *, class ExceptionSink *);
-      void enter();
-      int exit();
+      DLLLOCAL VRMutex();
+      DLLLOCAL int enter(class VLock *, class ExceptionSink *);
+      DLLLOCAL void enter();
+      DLLLOCAL int exit();
 };
 
 // VLNode and VLock are for nested locks when updating variables and objects
@@ -55,11 +49,7 @@ class VLNode {
       class VRMutex *g;
       class VLNode *next;
 
-      inline VLNode(class VRMutex *gate) 
-      {
-	 g = gate;
-	 next = NULL;
-      }
+      DLLLOCAL VLNode(class VRMutex *gate);
 };
 
 // for locking
@@ -72,50 +62,11 @@ class VLock {
       class VRMutex *waiting_on;
       int tid;
 
-      inline VLock()
-      {
-	 waiting_on = NULL;
-	 tid = 0;
-	 head = NULL;
-	 tail = NULL;
-      }
-      inline ~VLock()
-      {
-	 del();
-      }
-      inline void add(class VRMutex *g)
-      {
-	 class VLNode *n = new VLNode(g);
-	 if (tail)
-	 {
-	    //run_time_error("VLock::add() > 1 lock count!");
-	    tail->next = n;
-	 }
-	 else
-	    head = n;
-	 tail = n;
-      }
-      inline void del()
-      {
-	 while (head)
-	 {
-	    tail = head->next;
-	    head->g->exit();
-	    delete head;
-	    head = tail;
-	 }
-      }
-      inline class VRMutex *find(class VRMutex *g)
-      {
-	 class VLNode *w = head;
-	 while (w)
-	 {
-	    if (w->g == g)
-	       return g;
-	    w = w->next;
-	 }
-	 return NULL;
-      }
+      DLLLOCAL VLock();
+      DLLLOCAL ~VLock();
+      DLLLOCAL void add(class VRMutex *g);
+      DLLLOCAL void del();
+      DLLLOCAL class VRMutex *find(class VRMutex *g);
 };
 
 #endif
