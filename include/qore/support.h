@@ -29,6 +29,8 @@
 
 DLLEXPORT void leave(int rc);
 DLLEXPORT int printe(const char *fmt, ...);
+DLLEXPORT char *remove_trailing_newlines(char *str);
+DLLEXPORT char *remove_trailing_blanks(char *str);
 
 // we supply debugging function also for non-debugging builds as library entry points
 // in case a debugging-enabled binary is linked against a non-debugging-enabled lib
@@ -56,9 +58,6 @@ DLLEXPORT extern int debug;
 #define tracein(a)
 #define traceout(a)
 #endif
-
-DLLLOCAL char *remove_trailing_newlines(char *str);
-DLLLOCAL char *remove_trailing_blanks(char *str);
 
 // the following functions are only referenced from C++ source
 DLLLOCAL void print_error_pos(char *type);
