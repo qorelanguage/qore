@@ -1,3 +1,10 @@
+2006.12.19: David Nichols
+	* changes to make library API independent of debug flag
+
+2006.12.18: David Nichols
+	* lots of API cleanups
+	* QoreNode cleanup
+
 2006.12.17: David Nichols
 	* ContextStatement api cleanup, catch and report more parse errors
 

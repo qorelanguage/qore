@@ -121,7 +121,7 @@ int DBIDriver::rollback(class Datasource *ds, class ExceptionSink *xsink)
    return f->rollback(ds, xsink);
 }
 
-inline DBIDriverList::~DBIDriverList()
+DBIDriverList::~DBIDriverList()
 {
    dbi_list_t::iterator i;
    while ((i = begin()) != end())
@@ -132,7 +132,7 @@ inline DBIDriverList::~DBIDriverList()
    }
 }
 
-inline DBIDriver *DBIDriverList::find(char *name) const
+DBIDriver *DBIDriverList::find(char *name) const
 {
    for (dbi_list_t::const_iterator i = begin(); i != end(); i++)
       if (!strcmp(name, (*i)->getName()))

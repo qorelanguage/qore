@@ -111,9 +111,9 @@ class DBIDriverList : public dbi_list_t
 {
 public:
    DLLEXPORT class DBIDriver *registerDriver(char *name, DBIDriverFunctions *f, int caps);
+   DLLEXPORT DBIDriver *find(char *name) const;
 
    DLLLOCAL ~DBIDriverList();
-   DLLLOCAL DBIDriver *find(char *name) const;
    DLLLOCAL class List *getDriverList() const;
 };
 

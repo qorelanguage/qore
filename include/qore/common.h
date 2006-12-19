@@ -48,7 +48,7 @@
 class ltstr
 {
   public:
-   bool operator()(char* s1, char* s2) const
+   bool operator()(const char* s1, const char* s2) const
    {
       return strcmp(s1, s2) < 0;
    }
@@ -57,18 +57,9 @@ class ltstr
 class ltchar
 {
   public:
-   bool operator()(char s1, char s2) const
+   bool operator()(const char s1, const char s2) const
    {
       return s1 < s2;
-   }
-};
-
-class cltstr
-{
-  public:
-   bool operator()(const char* s1, const char* s2) const
-   {
-      return strcmp(s1, s2) < 0;
    }
 };
 
@@ -89,12 +80,12 @@ typedef void (*q_copy_t)(class Object *, class Object *, void *, class Exception
 #ifndef HAVE_ATOLL
 #ifdef HAVE_STRTOIMAX
 #include <inttypes.h>
-static inline long long atoll(char *str)
+static inline long long atoll(const char *str)
 {
    return strtoimax(str, NULL, 10);
 }
 #else
-static inline long long atoll(char *str)
+static inline long long atoll(const char *str)
 {
    long long i;
    sscanf(str, "%lld", &i);

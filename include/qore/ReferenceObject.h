@@ -53,9 +53,6 @@ class ReferenceObject
       }
       DLLEXPORT void ROreference();
       DLLEXPORT bool ROdereference();
-#ifdef DEBUG
-      //virtual void test() {}
-#endif
 };
 
 #endif // _QORE_REFERENCE_OBJECT_H
