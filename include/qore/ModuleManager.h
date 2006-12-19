@@ -68,40 +68,43 @@ class ModuleInfo {
 
 typedef std::map<char *, ModuleInfo *, class ltstr> module_map_t;
 
-class ModuleManager : public LockedObject, module_map_t
+// all members and methods are static; there will always only be one of these...
+class ModuleManager
 {
    private:
-      bool show_errors;
-      class StringList autoDirList, moduleDirList;
-
-      DLLLOCAL void add(ModuleInfo *m);
-      DLLLOCAL void addBuiltin(char *fn, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del);
-      DLLLOCAL class ModuleInfo *add(char *fn, char *n, int major, int minor, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del, char *d, char *v, char *a, char *u, void *p);
-      DLLLOCAL class QoreString *loadModuleFromPath(char *path, char *feature = NULL, class ModuleInfo **mi = NULL);
-      DLLLOCAL class ModuleInfo *find(char *name);
+      DLLLOCAL static bool show_errors;
+      DLLLOCAL static class StringList autoDirList, moduleDirList;
+      DLLLOCAL static class LockedObject mutex;
+      DLLLOCAL static module_map_t map;
+      
+      DLLLOCAL static void add(ModuleInfo *m);
+      DLLLOCAL static void addBuiltin(char *fn, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del);
+      DLLLOCAL static class ModuleInfo *add(char *fn, char *n, int major, int minor, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del, char *d, char *v, char *a, char *u, void *p);
+      DLLLOCAL static class QoreString *loadModuleFromPath(char *path, char *feature = NULL, class ModuleInfo **mi = NULL);
+      DLLLOCAL static class ModuleInfo *find(char *name);
 
    public:
       // to add a directory to the QORE_MODULE_DIR list, can only be called before init()
-      DLLEXPORT void addModuleDir(char *dir);
+      DLLEXPORT static void addModuleDir(char *dir);
       // to add a directory to the QORE_AUTO_MODULE_DIR list, can only be called before init()
-      DLLEXPORT void addAutoModuleDir(char *dir);
+      DLLEXPORT static void addAutoModuleDir(char *dir);
       // to add a directory to the QORE_MODULE_DIR list, can only be called before init()
-      DLLEXPORT void addModuleDirList(char *strlist);
+      DLLEXPORT static void addModuleDirList(char *strlist);
       // to add a directory to the QORE_AUTO_MODULE_DIR list, can only be called before init()
-      DLLEXPORT void addAutoModuleDirList(char *strlist);
+      DLLEXPORT static void addAutoModuleDirList(char *strlist);
       // retuns a list of module information hashes
-      DLLEXPORT class List *getModuleList();
+      DLLEXPORT static class List *getModuleList();
       // loads the named module, returns -1 for error
-      DLLEXPORT class QoreString *loadModule(char *name, class QoreProgram *pgm = NULL);
+      DLLEXPORT static class QoreString *loadModule(char *name, class QoreProgram *pgm = NULL);
 
       // creates the ModuleManager object
       DLLLOCAL ModuleManager();
       // explicit initialization and autoloading
-      DLLLOCAL void init(bool se);      
+      DLLLOCAL static void init(bool se);      
       // explicit cleanup
-      DLLLOCAL void cleanup();
+      DLLLOCAL static void cleanup();
 };
 
-extern class ModuleManager MM;
+DLLEXPORT extern class ModuleManager MM;
 
 #endif // _QORE_MODULEMANAGER_H

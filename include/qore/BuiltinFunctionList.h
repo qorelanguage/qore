@@ -29,21 +29,23 @@
 #include <qore/Restrictions.h>
 #include <qore/LockedObject.h>
 
-class BuiltinFunctionList : public LockedObject
+// there is only one of these, therefore we have static members and methods
+class BuiltinFunctionList
 {
    private:
-      bool init_done;
-      hm_bf_t hm;
+      DLLLOCAL static bool init_done;
+      DLLLOCAL static hm_bf_t hm;
+      DLLLOCAL static class LockedObject mutex;
    
    public:
       DLLLOCAL BuiltinFunctionList();
       DLLLOCAL ~BuiltinFunctionList();
 
-      DLLEXPORT void add(char *name, class QoreNode *(*f)(class QoreNode *, class ExceptionSink *xsink), int typ = QDOM_DEFAULT);
-      DLLEXPORT class BuiltinFunction *find(char *name);
-      DLLEXPORT int size() const;
+      DLLEXPORT static void add(char *name, class QoreNode *(*f)(class QoreNode *, class ExceptionSink *xsink), int typ = QDOM_DEFAULT);
+      DLLEXPORT static class BuiltinFunction *find(char *name);
+      DLLEXPORT static int size();
 
-      DLLLOCAL void init();
+      DLLLOCAL static void init();
 };
 
 DLLEXPORT extern class BuiltinFunctionList builtinFunctions;

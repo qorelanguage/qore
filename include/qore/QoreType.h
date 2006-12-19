@@ -109,4 +109,52 @@ DLLEXPORT extern class QoreTypeManager QTM;
 DLLEXPORT bool compareHard(QoreNode *l, QoreNode *r);
 DLLEXPORT bool compareSoft(class QoreNode *node1, class QoreNode *node2, class ExceptionSink *xsink);
 
+static inline class QoreNode *nothing()
+{
+   Nothing->ref();
+   return Nothing;
+}
+
+static inline class QoreNode *null()
+{
+   Null->ref();
+   return Null;
+}
+
+static inline class QoreNode *boolean_false()
+{
+   False->ref();
+   return False;
+}
+
+static inline class QoreNode *boolean_true()
+{
+   True->ref();
+   return True;
+}
+
+static inline class QoreNode *zero()
+{
+   Zero->ref();
+   return Zero;
+}
+
+static inline class QoreNode *zero_float()
+{
+   ZeroFloat->ref();
+   return ZeroFloat;
+}
+
+static inline class QoreNode *zero_date()
+{
+   ZeroDate->ref();
+   return ZeroDate;
+}
+
+static inline class QoreNode *null_string()
+{
+   NullString->ref();
+   return NullString;
+}
+
 #endif // _QORE_QORETYPE_H

@@ -581,7 +581,7 @@ if test "$GXX" = "yes"; then
    if test "$gcc_version" \> "4"; then
       AC_DEFINE(HAVE_GCC_VISIBILITY, 1, if compiling with g++ and visibility support is available)
       AC_MSG_RESULT([yes, $CXX $gcc_version])
-      #CXXFLAGS="$CXXFLAGS -fvisibility=hidden"
+      CXXFLAGS="$CXXFLAGS -fvisibility=hidden"
    else
       AC_MSG_RESULT([no, gcc $gcc_version])
    fi

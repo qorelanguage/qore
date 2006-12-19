@@ -26,7 +26,7 @@
 
 #include <signal.h>
 
-inline void addSignalConstants(class Namespace *ns)
+static inline void addSignalConstants(class Namespace *ns)
 {
 #ifdef SIGHUP
    ns->addConstant("SIGHUP", new QoreNode((int64)SIGHUP));

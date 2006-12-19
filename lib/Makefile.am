@@ -1,4 +1,4 @@
-#libdir = ${exec_prefix}/lib${LIBSUFFIX}
+##libdir = ${exec_prefix}/lib${LIBSUFFIX}
 pkglibdir = $(libdir)/@PACKAGE@-@VERSION@
 
 SUBDIRS =
@@ -21,6 +21,9 @@ libqore_la_SOURCES = \
 	parser.yy \
 	scanner.ll \
 	Operator.cc \
+	Tree.cc \
+	ClassRef.cc \
+	ScopedObjectCall.cc \
 	QoreNode.cc \
 	Function.cc \
 	BuiltinFunctionList.cc \

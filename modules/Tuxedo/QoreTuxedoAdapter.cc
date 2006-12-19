@@ -22,17 +22,8 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <qore/common.h>
-#include <qore/support.h>
-#include <qore/Object.h>
+#include <qore/Qore.h>
 #include <qore/minitest.hpp>
-#include <qore/ScopeGuard.h>
-#include <qore/LockedObject.h>
-#include <qore/charset.h>
-#include <qore/QoreType.h>
-#include <qore/QoreNode.h>
-#include <qore/Exception.h>
-#include <qore/BinaryObject.h>
 
 #include <limits.h>
 #include <float.h>

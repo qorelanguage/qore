@@ -30,7 +30,7 @@
 
 #define G_NOBODY -1
 
-static inline int gettid();
+int gettid();
 
 class Gate
 {

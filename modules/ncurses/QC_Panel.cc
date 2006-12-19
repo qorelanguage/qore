@@ -20,14 +20,7 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <qore/config.h>
-#include <qore/common.h>
-#include <qore/qore_thread.h>
-#include <qore/QoreClass.h>
-#include <qore/params.h>
-#include <qore/support.h>
-#include <qore/Exception.h>
-#include <qore/QoreLib.h>
+#include <qore/Qore.h>
 
 #include "ncurses-module.h"
 #include "QC_Panel.h"

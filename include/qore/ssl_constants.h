@@ -26,7 +26,7 @@
 
 #include <openssl/ssl.h>
 
-inline void addSSLConstants(class Namespace *ns)
+static inline void addSSLConstants(class Namespace *ns)
 {
    ns->addConstant("X509_V_OK", new QoreNode((int64)X509_V_OK));
    ns->addConstant("X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT", new QoreNode((int64)X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT));

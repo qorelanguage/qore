@@ -61,6 +61,9 @@ noinst_HEADERS = \
 	include/qore/QoreNumber.h \
 	include/qore/ErrnoConstants.h \
 	include/qore/Gate.h \
+	include/qore/Tree.h \
+	include/qore/ClassRef.h \
+	include/qore/ScopedObjectCall.h \
 	include/qore/QoreNode.h \
 	include/qore/ModuleManager.h \
 	include/qore/Namespace.h \

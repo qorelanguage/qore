@@ -38,6 +38,8 @@
 #include <qore/RegexTrans.h>
 #include <qore/QoreRegex.h>
 #include <qore/node_types.h>
+#include <qore/ScopedObjectCall.h>
+#include <qore/ClassRef.h>
 
 #include <stdio.h>
 #include <string.h>
@@ -61,6 +63,28 @@ DLLEXPORT class Operator *OP_ASSIGNMENT, *OP_LOG_AND, *OP_LOG_OR, *OP_LOG_LT,
    *OP_SPLICE, *OP_MODULA_EQUALS, *OP_MULTIPLY_EQUALS, *OP_DIVIDE_EQUALS,
    *OP_XOR_EQUALS, *OP_SHIFT_LEFT_EQUALS, *OP_SHIFT_RIGHT_EQUALS, *OP_INSTANCEOF,
    *OP_REGEX_TRANS, *OP_REGEX_EXTRACT, *OP_CHOMP;
+
+// call to get a node with the specified type
+static inline void ensure_type(class QoreNode **v, class QoreType *type, class ExceptionSink *xsink)
+{
+   if ((*v)->type != type)
+   {
+      class QoreNode *n = (*v)->convert(type);
+      (*v)->deref(xsink);
+      (*v) = n;
+   }
+}
+
+// call to get a node with reference count 1
+static inline void ensure_unique(class QoreNode **v, class ExceptionSink *xsink)
+{
+   if ((*v)->reference_count() > 1)
+   {
+      QoreNode *old = *v;
+      (*v) = old->realCopy(xsink);
+      old->deref(xsink);
+   }
+}
 
 // Operator::eval(): return value requires a deref(xsink) afterwards
 // there are 3 main cases which have been split into 3 sections as a speed optimization
@@ -2253,14 +2277,14 @@ static QoreNode *op_exists(class QoreNode *left, class QoreNode *x, ExceptionSin
       b = true;
    else
    {
-      class TempNode *tn = NULL;
+      class QoreNode *tn = NULL;
       class VLock vl;
       class QoreNode *n = getExistingVarValue(left, xsink, &vl, &tn);
       // return if an exception happened
       if (xsink->isEvent())
       {
 	 vl.del();
-	 if (tn) tn->del(xsink);
+	 if (tn) tn->deref(xsink);
 	 //traceout("op_exists()");
 	 return NULL;
       }
@@ -2270,7 +2294,7 @@ static QoreNode *op_exists(class QoreNode *left, class QoreNode *x, ExceptionSin
 	 b = false;
       else
 	 b = true;
-      if (tn) tn->del(xsink);
+      if (tn) tn->deref(xsink);
    }
    return new QoreNode(b);
 }

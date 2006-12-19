@@ -44,6 +44,12 @@
 
 class ModuleManager MM;
 
+class StringList ModuleManager::autoDirList;
+class StringList ModuleManager::moduleDirList;
+bool ModuleManager::show_errors = false;
+class LockedObject ModuleManager::mutex;
+module_map_t ModuleManager::map;
+
 #ifdef QORE_MONOLITHIC
 // for non-shared builds of the qore library, initialize all optional components here
 # ifdef TIBRV
@@ -174,7 +180,7 @@ ModuleManager::ModuleManager()
 
 void ModuleManager::add(ModuleInfo *m)
 {
-   insert(std::pair<char *, ModuleInfo *>(m->getName(), m));
+   map.insert(std::pair<char *, ModuleInfo *>(m->getName(), m));
 }
 
 class ModuleInfo *ModuleManager::add(char *fn, char *n, int major, int minor, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del, char *d, char *v, char *a, char *u, void *p)
@@ -186,8 +192,8 @@ class ModuleInfo *ModuleManager::add(char *fn, char *n, int major, int minor, qo
 
 class ModuleInfo *ModuleManager::find(char *name)
 {
-   module_map_t::iterator i = module_map_t::find(name);
-   if (i == end())
+   module_map_t::iterator i = map.find(name);
+   if (i == map.end())
       return NULL;
 
    return i->second;
@@ -314,7 +320,7 @@ class QoreString *ModuleManager::loadModule(char *name, class QoreProgram *pgm)
       return NULL;
 
    // if the feature already exists, then load the namespace changes into this program and register the feature
-   lock(); // make sure checking and loading are atomic
+   mutex.lock(); // make sure checking and loading are atomic
    class ModuleInfo *mi = find(name);
    if (mi)
    {
@@ -323,7 +329,7 @@ class QoreString *ModuleManager::loadModule(char *name, class QoreProgram *pgm)
 	 mi->ns_init(pgm->getRootNS(), pgm->getQoreNS());
 	 pgm->addFeature(mi->getName());
       }
-      unlock();
+      mutex.unlock();
       return NULL;
    }
 
@@ -342,7 +348,7 @@ class QoreString *ModuleManager::loadModule(char *name, class QoreProgram *pgm)
       if (!stat(str.getBuffer(), &sb))
       {
 	 errstr = loadModuleFromPath(str.getBuffer(), name, &mi);
-	 unlock();
+	 mutex.unlock();
 	 
 	 if (errstr)
 	    return errstr;
@@ -356,7 +362,7 @@ class QoreString *ModuleManager::loadModule(char *name, class QoreProgram *pgm)
       }
       w++;
    }
-   unlock();
+   mutex.unlock();
    
    errstr = new QoreString;
    errstr->sprintf("feature '%s' is not builtin and no module with this name could be found in the module path", name);
@@ -541,10 +547,10 @@ void ModuleManager::cleanup()
    tracein("ModuleManager::cleanup()");
 
    module_map_t::iterator i;
-   while ((i = begin()) != end())
+   while ((i = map.begin()) != map.end())
    {
       class ModuleInfo *m = i->second;
-      erase(i);
+      map.erase(i);
       delete m;
    }
 
@@ -554,14 +560,14 @@ void ModuleManager::cleanup()
 class List *ModuleManager::getModuleList()
 {
    class List *l = NULL;
-   lock();
-   if (!empty())
+   mutex.lock();
+   if (!map.empty())
    {
       l = new List();
-      for (module_map_t::iterator i = begin(); i != end(); i++)
+      for (module_map_t::iterator i = map.begin(); i != map.end(); i++)
 	 if (!i->second->isBuiltin())
 	    l->push(new QoreNode(i->second->getHash()));
    }
-   unlock();
+   mutex.unlock();
    return l;
 }

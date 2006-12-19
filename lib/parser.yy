@@ -50,7 +50,10 @@
 #include <qore/QoreRegex.h>
 #include <qore/RegexTrans.h>
 #include <qore/BinaryObject.h>
+#include <qore/SwitchStatement.h>
 #include <qore/SwitchStatementWithOperators.h>
+#include <qore/ClassRef.h>
+#include <qore/Hash.h>
 
 #include "parser.h"
 

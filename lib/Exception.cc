@@ -204,7 +204,7 @@ Exception::Exception(char *e, int sline, class QoreString *d)
    
    char *f = get_pgm_file();
    file = f ? strdup(f) : NULL;
-   callStack = new QoreNode(getCallStack());
+   callStack = new QoreNode(getCallStackList());
 
    err = new QoreNode(e);
    desc = new QoreNode(d);
@@ -221,7 +221,7 @@ Exception::Exception(char *e, class QoreString *d)
    
    char *f = get_pgm_file();
    file = f ? strdup(f) : NULL;
-   callStack = new QoreNode(getCallStack());
+   callStack = new QoreNode(getCallStackList());
 
    err = new QoreNode(e);
    desc = new QoreNode(d);
@@ -248,7 +248,7 @@ Exception::Exception(char *e, char *fmt, ...)
    line = get_pgm_counter();
    char *f = get_pgm_file();
    file = f ? strdup(f) : NULL;
-   callStack = new QoreNode(getCallStack());
+   callStack = new QoreNode(getCallStackList());
 
    err = new QoreNode(e);
    desc = new QoreNode(str);
@@ -307,7 +307,7 @@ Exception::Exception(class QoreNode *n)
    line = get_pgm_counter();
    char *f = get_pgm_file();
    file = f ? strdup(f) : NULL;
-   callStack = new QoreNode(getCallStack());
+   callStack = new QoreNode(getCallStackList());
    next = NULL;
 
    // must be a list

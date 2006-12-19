@@ -54,6 +54,9 @@
 extern char **environ;
 #endif
 
+int qore_trace = 0;
+int debug = 0;
+
 void qore_init(char *def_charset, bool show_module_errors)
 {
    // initialize libxml2 library

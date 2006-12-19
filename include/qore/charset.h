@@ -80,25 +80,27 @@ struct QoreEncoding {
 
 typedef std::map<const char *, struct QoreEncoding *, class cltstr> encoding_map_t;
 
-class QoreEncodingManager : public LockedObject 
+// there will always only be one of these, therefore all members and methods are static
+class QoreEncodingManager
 {
    private:
-      encoding_map_t emap, amap;
-
-      DLLLOCAL struct QoreEncoding *addUnlocked(char *code, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, char *desc);
-      DLLLOCAL struct QoreEncoding *findUnlocked(char *name);
+      DLLLOCAL static encoding_map_t emap, amap;
+      DLLLOCAL static class LockedObject mutex;
+   
+      DLLLOCAL static struct QoreEncoding *addUnlocked(char *code, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, char *desc);
+      DLLLOCAL static struct QoreEncoding *findUnlocked(char *name);
 
    public:
-      DLLEXPORT void addAlias(struct QoreEncoding *qcs, const char *alias);
-      DLLEXPORT struct QoreEncoding *findCreate(char *name);
-      DLLEXPORT struct QoreEncoding *findCreate(class QoreString *str);
-      DLLEXPORT void showEncodings();
-      DLLEXPORT void showAliases();
-      DLLEXPORT void init(char *def);
+      DLLEXPORT static void addAlias(struct QoreEncoding *qcs, const char *alias);
+      DLLEXPORT static struct QoreEncoding *findCreate(char *name);
+      DLLEXPORT static struct QoreEncoding *findCreate(class QoreString *str);
+      DLLEXPORT static void showEncodings();
+      DLLEXPORT static void showAliases();
+      DLLEXPORT static void init(char *def);
 
       DLLLOCAL QoreEncodingManager();
       DLLLOCAL ~QoreEncodingManager();
-      DLLLOCAL struct QoreEncoding *add(char *code, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, char *desc);
+      DLLLOCAL static struct QoreEncoding *add(char *code, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, char *desc);
 };
 
 DLLEXPORT extern QoreEncodingManager QEM;

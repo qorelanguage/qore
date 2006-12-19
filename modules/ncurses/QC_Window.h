@@ -27,6 +27,7 @@
 #include <qore/AbstractPrivateData.h>
 #include <qore/Exception.h>
 #include <qore/LockedObject.h>
+#include <qore/QoreString.h>
 
 #include <curses.h>
 

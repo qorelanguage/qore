@@ -632,7 +632,7 @@ class QoreNode *getNoEvalVarValue(class QoreNode *n, class VLock *vl, class Exce
 
 // finds object value pointers without making any changes to the referenced structures
 // will *not* execute memberGate methods
-class QoreNode *getExistingVarValue(class QoreNode *n, ExceptionSink *xsink, class VLock *vl, class TempNode **pt)
+class QoreNode *getExistingVarValue(class QoreNode *n, ExceptionSink *xsink, class VLock *vl, class QoreNode **pt)
 {
    printd(5, "getExistingVarValue(%08p) %s\n", n, n->type->getName());
    if (n->type == NT_VARREF)
@@ -698,12 +698,12 @@ class QoreNode *getExistingVarValue(class QoreNode *n, ExceptionSink *xsink, cla
       return NULL;
    }
 
-   *pt = new TempNode(t);
-   return (*pt)->val;
+   *pt = t;
+   return t;
 }
 
 // needed for deletes
-static class QoreNode **getUniqueExistingVarValuePtr(class QoreNode *n, ExceptionSink *xsink, class VLock *vl, class TempNode **pt)
+static class QoreNode **getUniqueExistingVarValuePtr(class QoreNode *n, ExceptionSink *xsink, class VLock *vl, class QoreNode **pt)
 {
    printd(5, "getUniqueExistingVarValuePtr(%08p) %s\n", n, n->type->getName());
    if (n->type == NT_VARREF)
@@ -780,8 +780,8 @@ static class QoreNode **getUniqueExistingVarValuePtr(class QoreNode *n, Exceptio
       return NULL;
    }
 
-   *pt = new TempNode(t);
-   return &((*pt)->val);
+   *pt = t;
+   return pt;
 }
 
 void delete_var_node(class QoreNode *lvalue, ExceptionSink *xsink)

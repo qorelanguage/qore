@@ -24,10 +24,8 @@
 
 #define _QORE_MYSQL_H
 
-#include <qore/config.h>
-#include <qore/Exception.h>
-#include <qore/QoreString.h>
-#include <qore/StringList.h>
+#include <qore/Qore.h>
+#include <qore/DBI.h>
 
 #include <mysql.h>
 

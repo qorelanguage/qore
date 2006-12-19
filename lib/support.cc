@@ -34,9 +34,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-int qore_trace = 0;
-int debug = 0;
-
 extern bool threads_initialized;
 
 // function to use to exit the program
@@ -113,10 +110,10 @@ char *remove_trailing_blanks(char *str)
    return str;
 }
 
-#ifdef DEBUG
+// FIXME: remove this and use assert()
 void showCallStack()
 {
-   List *callStack = getCallStack();
+   List *callStack = getCallStackList();
    printf("terminated at %s:%d\n", get_pgm_file(), get_pgm_counter());
    if (callStack && callStack->size())
    {
@@ -133,11 +130,12 @@ void showCallStack()
    }
 }
 
+// FIXME: remove this and use assert()
 void run_time_error(const char *fmt, ...)
 {
    va_list args;
    QoreString buf;
-
+   
    while (true)
    {
       va_start(args, fmt);
@@ -146,7 +144,7 @@ void run_time_error(const char *fmt, ...)
       if (!rc)
 	 break;
    }
-
+   
    printe("run-time error in line %d of file \"%s\": ", get_pgm_counter(), get_pgm_file());
    fputs(buf.getBuffer(), stderr);
    fputc('\n', stderr);
@@ -155,7 +153,6 @@ void run_time_error(const char *fmt, ...)
    abort();
    //exit(1);
 }
-#endif
 
 void parse_error(const char *fmt, ...)
 {

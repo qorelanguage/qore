@@ -45,9 +45,12 @@
 
 #include <string.h>
 
+bool BuiltinFunctionList::init_done = false;
+hm_bf_t BuiltinFunctionList::hm;
+class LockedObject BuiltinFunctionList::mutex;
 class BuiltinFunctionList builtinFunctions;
 
-DLLLOCAL  BuiltinFunctionList::BuiltinFunctionList() : init_done(false) 
+DLLLOCAL  BuiltinFunctionList::BuiltinFunctionList()
 {
 }
 
@@ -55,9 +58,9 @@ void BuiltinFunctionList::add(char *name, class QoreNode *(*f)(class QoreNode *,
 {
    if (init_done)
    {
-      lock();
+      mutex.lock();
       hm[strdup(name)] = new BuiltinFunction(name, f, typ);
-      unlock();
+      mutex.unlock();
    }
    else
       hm[strdup(name)] = new BuiltinFunction(name, f, typ);
@@ -87,16 +90,16 @@ class BuiltinFunction *BuiltinFunctionList::find(char *name)
 {
    class BuiltinFunction *rv = NULL;
    if (init_done)
-      lock();
+      mutex.lock();
    hm_bf_t::iterator i = hm.find(name);
    if (i != hm.end())
       rv = i->second;
    if (init_done)
-      unlock();
+      mutex.unlock();
    return rv;
 }
 
-inline int BuiltinFunctionList::size() const
+inline int BuiltinFunctionList::size()
 {
    return hm.size();
 }

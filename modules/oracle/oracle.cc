@@ -22,19 +22,8 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <qore/config.h>
-#include <qore/support.h>
-#include <qore/QoreNode.h>
-#include <qore/QoreType.h>
-#include <qore/Exception.h>
-#include <qore/Object.h>
-#include <qore/QoreString.h>
-#include <qore/QoreClass.h>
-#include <qore/charset.h>
-#include <qore/QC_Datasource.h>
+#include <qore/Qore.h>
 #include <qore/DBI.h>
-#include <qore/ModuleManager.h>
-#include <qore/BinaryObject.h>
 
 #include "oracle.h"
 #include "oracle-module.h"

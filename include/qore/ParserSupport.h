@@ -28,6 +28,8 @@
 
 #include <qore/LockedObject.h>
 #include <qore/common.h>
+#include <qore/Exception.h>
+#include <qore/NamedScope.h>
 
 #include <stdlib.h>
 

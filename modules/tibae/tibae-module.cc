@@ -22,11 +22,7 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <qore/config.h>
-#include <qore/common.h>
-#include <qore/support.h>
-#include <qore/Namespace.h>
-#include <qore/ModuleManager.h>
+#include <qore/Qore.h>
 
 #include "tibae-module.h"
 #include "tibae.h"

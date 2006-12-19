@@ -29,7 +29,7 @@
 #include <pthread.h>
 #include <sys/time.h>
 
-static inline int gettid();
+int gettid();
 
 class SingleExitGate
 {

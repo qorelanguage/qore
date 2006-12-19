@@ -32,6 +32,7 @@
 #include <qore/qore_thread.h>
 #include <qore/List.h>
 #include <qore/safe_dslist>
+#include <qore/Datasource.h>
 
 #include <stdlib.h>
 #include <string.h>

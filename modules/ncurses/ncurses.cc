@@ -23,11 +23,6 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/BuiltinFunctionList.h>
-#include <qore/params.h>
-#include <qore/ModuleManager.h>
-#include <qore/Hash.h>
-#include <qore/QoreLib.h>
 
 #include "ncurses-module.h"
 #include "QC_Window.h"

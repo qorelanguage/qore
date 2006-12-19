@@ -25,22 +25,23 @@
 #define QORE_SUPPORT_H
 
 #include <qore/config.h>
+#include <qore/common.h>
 
-void leave(int rc);
-int printe(const char *fmt, ...);
+DLLEXPORT void leave(int rc);
+DLLEXPORT int printe(const char *fmt, ...);
 
 // we supply debugging function also for non-debugging builds as library entry points
 // in case a debugging-enabled binary is linked against a non-debugging-enabled lib
-void trace_function(int code, char *funcname);
-int print_debug(int level, const char *fmt, ...);
+DLLEXPORT void trace_function(int code, char *funcname);
+DLLEXPORT int print_debug(int level, const char *fmt, ...);
 
 #define TRACE_IN   1
 #define TRACE_OUT  2
 
-#ifdef DEBUG
-extern int qore_trace;
-extern int debug;
+DLLEXPORT extern int qore_trace;
+DLLEXPORT extern int debug;
 
+#ifdef DEBUG
 //int printd(int level, const char *fmt, ...);
 #define printd print_debug
 
@@ -56,39 +57,17 @@ extern int debug;
 #define traceout(a)
 #endif
 
-char *remove_trailing_newlines(char *str);
-char *remove_trailing_blanks(char *str);
-
-#include <ctype.h>
-static inline void strtolower(char *str)
-{
-   while (*(str))
-   {
-      (*str) = tolower(*str);
-      str++;
-   }
-}
-
-static inline char *strtoupper(char *str)
-{
-   char *p = str;
-   while (*(p))
-   {
-      *p = toupper(*p);
-      p++;
-   }
-   return str;
-}
+DLLLOCAL char *remove_trailing_newlines(char *str);
+DLLLOCAL char *remove_trailing_blanks(char *str);
 
 // the following functions are only referenced from C++ source
-void print_error_pos(char *type);
-void parse_error(const char *fmt, ...);
-void parseException(char *err, const char *fmt, ...);
-class QoreString *findFileInEnvPath(char *file, char *varname);
+DLLLOCAL void print_error_pos(char *type);
+DLLLOCAL void parse_error(const char *fmt, ...);
+DLLLOCAL void parseException(char *err, const char *fmt, ...);
+DLLLOCAL class QoreString *findFileInEnvPath(char *file, char *varname);
 
-#ifdef DEBUG
-void run_time_error(const char *fmt, ...);
-#endif
+// FIXME: remove this and use assert() instead
+DLLEXPORT void run_time_error(const char *fmt, ...);
 
 #ifndef HAVE_ISBLANK
 #define isblank(a) ((a) == ' ' || (a) == '\t')

@@ -22,10 +22,7 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <qore/common.h>
-#include <qore/support.h>
-#include <qore/params.h>
-#include <qore/charset.h>
+#include <qore/Qore.h>
 
 #include "QC_TibrvCmSender.h"
 
