@@ -36,6 +36,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <assert.h>
 
 #include <qore/minitest.hpp>
 #ifdef DEBUG
@@ -89,10 +90,8 @@ List::List(bool i)
 
 List::~List()
 {
-#ifdef DEBUG
-   if (length)
-      run_time_error("List::~List() %08p not empty! elements=%d entry=%08p\n", this, length, entry);
-#endif
+   assert(!length);
+
    if (entry)
       free(entry);
 }
@@ -357,9 +356,7 @@ static int compareListEntries(class QoreNode *l, class QoreNode *r)
       return 1;
 
    class ExceptionSink xsink;
-   class QoreNode *rv = OP_LOG_LT->eval(l, r, &xsink);
-   int rc = (int)rv->val.boolval;
-   rv->deref(NULL);
+   int rc = (int)OP_LOG_LT->bool_eval(l, r, &xsink);
    //printd(5, "compareListEntries() returning %d\n", rc);
    return rc;
 }

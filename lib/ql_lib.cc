@@ -54,9 +54,9 @@ static class QoreNode *f_exit(class QoreNode *params, ExceptionSink *xsink)
    class QoreNode *p0;
 
    if (!(p0 = get_param(params, 0)))
-      leave(0);
+      exit(0);
 
-   leave(p0->getAsInt());
+   exit(p0->getAsInt());
    return NULL;
 }
 

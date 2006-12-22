@@ -46,6 +46,8 @@ class LVar {
       class QoreNode *vexp;  // partially evaluated lvalue expression for references
       class Object *obj;     // for references to object members
 
+      DLLLOCAL class QoreNode *evalReference(class ExceptionSink *xsink);
+      
    protected:
       DLLLOCAL ~LVar() {}
 
@@ -59,6 +61,7 @@ class LVar {
       DLLLOCAL class QoreNode *getValue(class VLock *vl, class ExceptionSink *xsink);
       DLLLOCAL void setValue(class QoreNode *val, class ExceptionSink *xsink);
       DLLLOCAL class QoreNode *eval(class ExceptionSink *xsink);
+      DLLLOCAL class QoreNode *eval(bool &needs_deref, class ExceptionSink *xsink);
       DLLLOCAL bool checkRecursiveReference(lvh_t nid);
       DLLLOCAL void deref(class ExceptionSink *xsink);
 };
@@ -120,6 +123,7 @@ class VarRef {
       DLLLOCAL int resolveExisting();
       DLLLOCAL class VarRef *copy();
       DLLLOCAL class QoreNode *eval(class ExceptionSink *xsink);
+      DLLLOCAL class QoreNode *eval(bool &needs_deref, class ExceptionSink *xsink);
       DLLLOCAL void setValue(class QoreNode *val, class ExceptionSink *xsink);
       DLLLOCAL class QoreNode **getValuePtr(class VLock *vl, class ExceptionSink *xsink);
       DLLLOCAL class QoreNode *getValue(class VLock *vl, class ExceptionSink *xsink);

@@ -104,7 +104,6 @@ class Exception {
 
       DLLLOCAL Exception(class QoreNode *l);
       DLLLOCAL void del(class ExceptionSink *xsink);
-      DLLLOCAL void del();
 };
 
 static inline void alreadyDeleted(class ExceptionSink *xsink, char *cmeth)

@@ -84,8 +84,8 @@ class SSLSocketHelper
       // returns 0 for success
       DLLLOCAL int read(char *buf, int size);
       // returns 0 for success
-      DLLLOCAL int write(void *buf, int size, class ExceptionSink *xsink);
-      DLLLOCAL int write(void *buf, int size);
+      DLLLOCAL int write(const void *buf, int size, class ExceptionSink *xsink);
+      DLLLOCAL int write(const void *buf, int size);
       DLLLOCAL const char *getCipherName() const;
       DLLLOCAL const char *getCipherVersion() const;
       DLLLOCAL X509 *getPeerCertificate() const;
@@ -138,20 +138,20 @@ class QoreSocket
    public:
       DLLEXPORT QoreSocket();
       DLLEXPORT ~QoreSocket();
-      DLLEXPORT int connect(char *name, class ExceptionSink *xsink = NULL);
-      DLLEXPORT int connectINET(char *host, int prt, class ExceptionSink *xsink = NULL);
-      DLLEXPORT int connectUNIX(char *p, class ExceptionSink *xsink = NULL);
-      DLLEXPORT int connectSSL(char *name, X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink);
-      DLLEXPORT int connectINETSSL(char *host, int prt, X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink);
-      DLLEXPORT int connectUNIXSSL(char *p, X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink);
+      DLLEXPORT int connect(const char *name, class ExceptionSink *xsink = NULL);
+      DLLEXPORT int connectINET(const char *host, int prt, class ExceptionSink *xsink = NULL);
+      DLLEXPORT int connectUNIX(const char *p, class ExceptionSink *xsink = NULL);
+      DLLEXPORT int connectSSL(const char *name, X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink);
+      DLLEXPORT int connectINETSSL(const char *host, int prt, X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink);
+      DLLEXPORT int connectUNIXSSL(const char *p, X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink);
       // to bind to a UNIX domain socket or INET interface:port
-      DLLEXPORT int bind(char *name, bool reuseaddr = false);
+      DLLEXPORT int bind(const char *name, bool reuseaddr = false);
       // to bind to an INET tcp port on all interfaces
       DLLEXPORT int bind(int prt, bool reuseaddr);
       // to bind an open socket to an INET tcp port on a specific interface
-      DLLEXPORT int bind(char *interface, int prt, bool reuseaddr = false);
+      DLLEXPORT int bind(const char *interface, int prt, bool reuseaddr = false);
       // to bind an INET socket to a specific socket address
-      DLLEXPORT int bind(struct sockaddr *addr, int size);
+      DLLEXPORT int bind(const struct sockaddr *addr, int size);
       // to find out our port number, also assigns the interal port number if it must be discovered
       DLLEXPORT int getPort();
       DLLEXPORT class QoreSocket *accept(class SocketSource *source, class ExceptionSink *xsink);
@@ -159,11 +159,11 @@ class QoreSocket
       DLLEXPORT int acceptAndReplace(class SocketSource *source);
       DLLEXPORT int listen();
       // send a buffer of a particular size
-      DLLEXPORT int send(char *buf, int size);
+      DLLEXPORT int send(const char *buf, int size);
       // send a null-terminated string
-      DLLEXPORT int send(class QoreString *msg, class ExceptionSink *xsink);
+      DLLEXPORT int send(const class QoreString *msg, class ExceptionSink *xsink);
       // send a binary object
-      DLLEXPORT int send(class BinaryObject *msg);
+      DLLEXPORT int send(const class BinaryObject *msg);
       // send from a file descriptor
       DLLEXPORT int send(int fd, int size = -1);
       // send integer value in network byte order
@@ -191,9 +191,9 @@ class QoreSocket
       // receive and write data to a file descriptor
       DLLEXPORT int recv(int fd, int size, int timeout);
       // send an HTTP message
-      DLLEXPORT int sendHTTPMessage(char *method, char *path, char *http_version, class Hash *headers, void *data, int size);
+      DLLEXPORT int sendHTTPMessage(const char *method, const char *path, const char *http_version, class Hash *headers, void *data, int size);
       // send an HTTP response
-      DLLEXPORT int sendHTTPResponse(int code, char *desc, char *http_version, class Hash *headers, void *data, int size);
+      DLLEXPORT int sendHTTPResponse(int code, const char *desc, const char *http_version, class Hash *headers, void *data, int size);
       // read and parse HTTP header
       DLLEXPORT class QoreNode *readHTTPHeader(int timeout, int *prc);
       // set send timeout in milliseconds
@@ -204,7 +204,7 @@ class QoreSocket
       DLLEXPORT int getSendTimeout() const;
       // get recv timeout in milliseconds
       DLLEXPORT int getRecvTimeout() const;
-      DLLEXPORT bool isDataAvailable(int timeout = 0);
+      DLLEXPORT bool isDataAvailable(int timeout = 0) const;
       DLLEXPORT int close();
       DLLEXPORT int shutdown();
       DLLEXPORT int shutdownSSL(class ExceptionSink *xsink);

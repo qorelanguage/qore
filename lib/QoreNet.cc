@@ -32,7 +32,7 @@
 #include <netdb.h>
 
 // FIXME: check err?
-int q_gethostbyname(char *host, struct in_addr *sin_addr)
+int q_gethostbyname(const char *host, struct in_addr *sin_addr)
 {
    tracein("q_gethostbyname()");
    

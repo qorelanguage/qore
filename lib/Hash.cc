@@ -31,6 +31,7 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <assert.h>
 
 #ifdef DEBUG
 #  include "tests/Hash_tests.cc"
@@ -138,9 +139,7 @@ void Hash::internDeleteKey(class HashMember *om, class ExceptionSink *xsink)
 // this function should only be called when the key doesn't exist
 class QoreNode **Hash::newKeyValue(char *key, class QoreNode *value)
 {
-#ifdef DEBUG
-   if (!key) run_time_error("Hash::newKeyValue() key=NULL\n");
-#endif
+   assert(key);
 
    class HashMember *om = new HashMember;
    om->node = value;
@@ -216,9 +215,7 @@ void Hash::setKeyValue(QoreString *key, class QoreNode *value, ExceptionSink *xs
 
 void Hash::setKeyValue(char *key, class QoreNode *value, ExceptionSink *xsink)
 {
-#ifdef DEBUG
-   if (!key) run_time_error("Hash::setKeyValue(char) key=NULL\n");
-#endif
+   assert(key);
    class QoreNode **v = getKeyValuePtr(key);
    if (*v)
       (*v)->deref(xsink);
@@ -341,10 +338,7 @@ class QoreNode *Hash::evalFirstKeyValue(class ExceptionSink *xsink) const
 // because object destructors need to be run...
 Hash::~Hash()
 {
-#ifdef DEBUG
-   if (member_list)
-      run_time_error("Hash::~Hash() %08p not empty! elements=%d member_list=%08p\n", this, size(), member_list);
-#endif
+   assert(!member_list);
 }
 
 Hash::Hash(bool ne) 
@@ -357,9 +351,8 @@ Hash::Hash(bool ne)
 
 class QoreNode *Hash::evalKey(char *key, class ExceptionSink *xsink) const
 {
-#ifdef DEBUG
-   if (!key) run_time_error("Hash::evalKey() key=NULL\n");
-#endif
+   assert(key);
+
    hm_hm_t::const_iterator i = hm.find(key);
 
    if (i != hm.end() && i->second->node)
@@ -370,9 +363,8 @@ class QoreNode *Hash::evalKey(char *key, class ExceptionSink *xsink) const
 
 class QoreNode *Hash::evalKeyExistence(char *key, class ExceptionSink *xsink) const
 {
-#ifdef DEBUG
-   if (!key) run_time_error("Hash::evalKeyExistence() key=NULL\n");
-#endif
+   assert(key);
+
    hm_hm_t::const_iterator i = hm.find(key);
 
    if (i != hm.end())
@@ -387,9 +379,8 @@ class QoreNode *Hash::evalKeyExistence(char *key, class ExceptionSink *xsink) co
 
 class QoreNode **Hash::getKeyValuePtr(char *key)
 {
-#ifdef DEBUG
-   if (!key) run_time_error("Hash::getKeyValuePtr() key=NULL\n");
-#endif
+   assert(key);
+
    hm_hm_t::iterator i = hm.find(key);
 
    if (i != hm.end())
@@ -400,9 +391,7 @@ class QoreNode **Hash::getKeyValuePtr(char *key)
 
 class QoreNode *Hash::getKeyValue(char *key) const
 {
-#ifdef DEBUG
-   if (!key) run_time_error("Hash::getKeyValue() key=NULL\n");
-#endif
+   assert(key);
 
    hm_hm_t::const_iterator i = hm.find(key);
 
@@ -414,9 +403,7 @@ class QoreNode *Hash::getKeyValue(char *key) const
 
 class QoreNode *Hash::getKeyValueExistence(char *key) const
 {
-#ifdef DEBUG
-   if (!key) run_time_error("Hash::getKeyValueExistence() key=NULL\n");
-#endif
+   assert(key);
 
    hm_hm_t::const_iterator i = hm.find(key);
 
@@ -516,9 +503,8 @@ void Hash::derefAndDelete(class ExceptionSink *xsink)
 
 void Hash::deleteKey(char *key, ExceptionSink *xsink)
 {
-#ifdef DEBUG
-   if (!key) run_time_error("Hash::deleteKey() key=NULL\n");
-#endif
+   assert(key);
+
    hm_hm_t::iterator i = hm.find(key);
 
    if (i == hm.end())

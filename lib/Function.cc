@@ -42,6 +42,7 @@
 
 #include <stdio.h>
 #include <ctype.h>
+#include <assert.h>
 
 static inline void param_error()
 {
@@ -112,8 +113,7 @@ void SelfFunctionCall::resolve()
       printd(5, "SelfFunctionCall:resolve() resolving base class call '%s'\n", ns->ostr);
    else 
       printd(5, "SelfFunctionCall:resolve() resolving '%s'\n", name ? name : "(null)");
-   if (func)
-      run_time_error("SelfFunctionCall:resolve() already resolved %s (%08p)", func->getName(), func);
+   assert(!func);
 #endif
    if (name)
    {
@@ -686,7 +686,6 @@ class QoreNode *UserFunction::eval(QoreNode *args, Object *self, class Exception
    return val;
 }
 
-
 // this function will set up user copy constructor calls
 void UserFunction::evalCopy(Object *oold, Object *self, ExceptionSink *xsink)
 {
@@ -917,16 +916,16 @@ class QoreNode *doPartialEval(class QoreNode *n, bool *is_self_ref, class Except
    QoreNode *rv;
    if (n->type == NT_TREE)
    {
-      class QoreNode *nn = n->val.tree.right->eval(xsink);
+      class QoreNode *nn = n->val.tree->right->eval(xsink);
       if (xsink->isEvent())
       {
 	 discard(nn, xsink);
 	 return NULL;
       }
       rv = new QoreNode(NT_TREE);
-      rv->val.tree.right = nn ? nn : nothing();
-      rv->val.tree.op = n->val.tree.op;
-      if (!(rv->val.tree.left = doPartialEval(n->val.tree.left, is_self_ref, xsink)))
+      rv->val.tree->right = nn ? nn : nothing();
+      rv->val.tree->op = n->val.tree->op;
+      if (!(rv->val.tree->left = doPartialEval(n->val.tree->left, is_self_ref, xsink)))
       {
 	 rv->deref(xsink);
 	 rv = NULL;

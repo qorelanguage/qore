@@ -25,6 +25,7 @@
 #include "QoreApp.h"
 
 #include <unistd.h>
+#include <assert.h>
 
 #ifdef TIBCO_MDT_BUG
 #include <qore/LockedObject.h>
@@ -110,10 +111,7 @@ class MData *QoreApp::instantiate_class(QoreNode *v, const MBaseClassDescription
    else
    {
       rv = NULL;
-#ifdef DEBUG
-      // should never happen
-      run_time_error("DEBUG:cannot instantiate class \"%s\"\n", mbcd->getFullName().c_str());
-#endif
+      assert(false);
    }
 
    traceout("QoreApp::instantiate_class()");
@@ -142,7 +140,7 @@ void QoreApp::onInitialization() throw (MException)
 #ifdef DEBUG
    catch (...)
    {
-      run_time_error("DEBUG:unknown exception in QoreApp::onInitialization()");
+      assert(false);
    }
 #endif
    traceout("QoreApp::onInitialization()");

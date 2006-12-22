@@ -25,6 +25,8 @@
 #include <qore/Exception.h>
 #include <qore/support.h>
 
+#include <assert.h>
+
 #ifdef DEBUG
 inline void show_vl(class VLock *vl, class VLock *nvl)
 {
@@ -55,10 +57,7 @@ void VLock::add(class VRMutex *g)
 {
    class VLNode *n = new VLNode(g);
    if (tail)
-   {
-      //run_time_error("VLock::add() > 1 lock count!");
       tail->next = n;
-   }
    else
       head = n;
    tail = n;
@@ -173,10 +172,7 @@ int VRMutex::enter(class VLock *nvl, class ExceptionSink *xsink)
 
 int VRMutex::exit()
 {
-#ifdef DEBUG
-   if (tid != gettid())
-      run_time_error("VRMutex::Exit() called from wrong thread this=%08p", this);
-#endif
+   assert(tid == gettid());
 
    //fprintf(stderr, "Gate::exit() %08p\n", this);
    lock();

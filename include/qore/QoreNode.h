@@ -29,10 +29,7 @@
 
 #include <qore/common.h>
 #include <qore/ReferenceObject.h>
-#include <qore/Tree.h>
 #include <qore/node_types.h>
-
-#define TRACK_REFS     0
 
 #define FMT_NONE   -1
 #define FMT_NORMAL 0
@@ -72,7 +69,7 @@ union node_u {
       // for a pointer to objects
       void *ptr;
       // for an expression with an operator
-      class Tree tree;
+      class Tree *tree;
       // for references to an lvalue
       class QoreNode *lvexp;
       // for regular expression substitutions
@@ -129,15 +126,17 @@ class QoreNode : public ReferenceObject
       DLLLOCAL QoreNode(class NamedScope *n);
       DLLLOCAL QoreNode(class ClassRef *c);
       DLLLOCAL QoreNode(class VarRef *v);
-      DLLLOCAL QoreNode(class QoreNode *l, class Operator *o, class QoreNode *r);
+      DLLLOCAL QoreNode(class QoreNode *l, class AbstractOperator *o, class QoreNode *r);
       DLLLOCAL QoreNode(class RegexSubst *rs);
       DLLLOCAL QoreNode(class RegexTrans *rt);
       DLLLOCAL QoreNode(class ComplexContextRef *ccref);
       DLLLOCAL QoreNode(class LVRef *lvref);
       DLLLOCAL QoreNode(class QoreRegex *r);
+      DLLLOCAL QoreNode(class Tree *t);
 
       DLLLOCAL class QoreNode *realCopy(class ExceptionSink *xsink);
       DLLLOCAL class QoreNode *eval(class ExceptionSink *xsink);
+      DLLLOCAL class QoreNode *eval(bool &needs_deref, class ExceptionSink *xsink);
       DLLLOCAL int64 bigIntEval(class ExceptionSink *xsink);
       DLLLOCAL int integerEval(class ExceptionSink *xsink);
       DLLLOCAL bool boolEval(class ExceptionSink *xsink);

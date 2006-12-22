@@ -26,6 +26,8 @@
 #include <qore/qore_thread.h>
 #include <qore/support.h>
 
+#include <assert.h>
+
 ProgramNode::ProgramNode(class QoreProgram *p)
 { 
    pgm = p; 
@@ -51,13 +53,9 @@ void QoreProgramStack::push(class QoreProgram *p)
 {
    tracein("QoreProgramStack::push()");
    printd(5, "QoreProgramStack::push(%08p)\n", p);
-#ifdef DEBUG
-   if (!p)
-   {
-      run_time_error("QoreProgramStack::push() NULL\n");
-      exit(1);
-   }
-#endif
+
+   assert(p);
+
    ProgramNode *n = new ProgramNode(p);
    n->prev = tail;
    tail = n;

@@ -54,6 +54,7 @@
 #include <qore/SwitchStatementWithOperators.h>
 #include <qore/ClassRef.h>
 #include <qore/Hash.h>
+#include <qore/Tree.h>
 
 #include "parser.h"
 
@@ -193,8 +194,8 @@ static int check_lvalue(class QoreNode *node)
    }
    if (node->type == NT_TREE)
    {
-      if (node->val.tree.op == OP_LIST_REF || node->val.tree.op == OP_OBJECT_REF)
-	 return check_lvalue(node->val.tree.left);
+      if (node->val.tree->op == OP_LIST_REF || node->val.tree->op == OP_OBJECT_REF)
+	 return check_lvalue(node->val.tree->left);
       else
 	 return -1;
    }
@@ -254,11 +255,11 @@ bool needsEval(class QoreNode *n)
 
    if (n->type == NT_TREE)
    {
-      if (needsEval(n->val.tree.left) || (n->val.tree.right && needsEval(n->val.tree.right)))
+      if (needsEval(n->val.tree->left) || (n->val.tree->right && needsEval(n->val.tree->right)))
       {
 	 return true;
       }
-      return n->val.tree.op->hasEffect();
+      return n->val.tree->op->hasEffect();
    }
 
    //printd(0, "needsEval() type %s = true\n", n->type->getName());
@@ -272,20 +273,9 @@ static bool hasEffect(class QoreNode *n)
       return true;
 
    if (n->type == NT_TREE)
-   {
-      // FIXME: this is not a good approach
-      if (n->val.tree.op == OP_ASSIGNMENT)
-      {
-	 // if the statement is a single, non-nested assignment
-	 // then change the operator type to avoid extra
-	 // evaluations
-	 n->val.tree.op = OP_SINGLE_ASSIGN;
-	 return true;
-      }
-      return n->val.tree.op->hasEffect();
-   }
+      return n->val.tree->op->hasEffect();
 
-   //printd(5, "hasEffect() node %08p type=%s op=%d ok=%d\n", n, n->type->getName(), n->type == NT_TREE ? n->val.tree.op : -1, ok);
+   //printd(5, "hasEffect() node %08p type=%s op=%d ok=%d\n", n, n->type->getName(), n->type == NT_TREE ? n->val.tree->op : -1, ok);
    return false;
 }
 
@@ -676,10 +666,12 @@ statement:
 	exp ';'
         {
 	   // if the expression has no effect and it's not a variable declaration
-	   if (!hasEffect($1) 
+	   if (!hasEffect($1)
 	       && ($1->type != NT_VARREF || $1->val.vref->type == VT_UNRESOLVED)
 	       && ($1->type != NT_VLIST))
 	      parse_error("statement has no effect (%s)", $1->type->getName());
+	   if ($1->type == NT_TREE)
+	      $1->val.tree->ignoreReturnValue();
 	   $$ = new Statement(S_EXPRESSION, $1);
 	}
         | try_statement

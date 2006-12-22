@@ -45,11 +45,11 @@ DLLEXPORT class QoreString *q_vsprintf(class QoreNode *params, int field, int of
 DLLEXPORT struct tm *q_localtime(const time_t *clock, struct tm *tms);
 DLLEXPORT struct tm *q_gmtime(const time_t *clock, struct tm *tms);
 // thread-safe basename function (resulting pointer must be free()ed)
-DLLEXPORT char *q_basename(char *path);
+DLLEXPORT char *q_basename(const char *path);
 // returns a pointer within the same string
-DLLEXPORT char *q_basenameptr(char *path);
+DLLEXPORT char *q_basenameptr(const char *path);
 // thread-safe basename function (resulting pointer must be free()ed)
-DLLEXPORT char *q_dirname(char *path);
+DLLEXPORT char *q_dirname(const char *path);
 DLLEXPORT void qore_setup_argv(int pos, int argc, char *argv[]);
 
 static inline char *strchrs(char *str, char *chars)
@@ -109,9 +109,5 @@ DLLLOCAL class BinaryObject *parseHex(char *buf, int len);
 DLLLOCAL void print_node(FILE *fp, class QoreNode *node);
 DLLLOCAL void delete_global_variables();
 DLLLOCAL void initENV(char *env[]);
-
-#ifdef DEBUG
-DLLLOCAL class QoreString *dni(class QoreString *s, class QoreNode *n, int indent, class ExceptionSink *xsink);
-#endif
 
 #endif // _QORE_QORELIB_H

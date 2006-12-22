@@ -36,12 +36,6 @@
 
 extern bool threads_initialized;
 
-// function to use to exit the program
-void leave(int rc)
-{
-   exit(rc);
-}
-
 int printe(const char *fmt, ...)
 {
    va_list args;
@@ -110,7 +104,6 @@ char *remove_trailing_blanks(char *str)
    return str;
 }
 
-// FIXME: remove this and use assert()
 void showCallStack()
 {
    List *callStack = getCallStackList();
@@ -128,30 +121,6 @@ void showCallStack()
                 h->getKeyValue("type")->val.String->getBuffer());
       }
    }
-}
-
-// FIXME: remove this and use assert()
-void run_time_error(const char *fmt, ...)
-{
-   va_list args;
-   QoreString buf;
-   
-   while (true)
-   {
-      va_start(args, fmt);
-      int rc = buf.vsprintf(fmt, args);
-      va_end(args);
-      if (!rc)
-	 break;
-   }
-   
-   printe("run-time error in line %d of file \"%s\": ", get_pgm_counter(), get_pgm_file());
-   fputs(buf.getBuffer(), stderr);
-   fputc('\n', stderr);
-   showCallStack();
-   fflush(stderr);
-   abort();
-   //exit(1);
 }
 
 void parse_error(const char *fmt, ...)

@@ -33,7 +33,7 @@
 
 #include <stdlib.h>
 
-static inline class QoreNode *makeTree(class Operator *op, class QoreNode *left, class QoreNode *right);
+static inline class QoreNode *makeTree(class AbstractOperator *op, class QoreNode *left, class QoreNode *right);
 static inline QoreNode *makeArgs(QoreNode *arg);
 static inline void addNSNode(class Namespace *ns, struct NSNode *n);
 
@@ -54,15 +54,16 @@ class HashElement {
 #include <qore/QoreType.h>
 #include <qore/Namespace.h>
 #include <qore/Operator.h>
+#include <qore/Tree.h>
 
 #include <stdlib.h>
 
-static inline class QoreNode *makeErrorTree(class Operator *op, class QoreNode *left, class QoreNode *right)
+static inline class QoreNode *makeErrorTree(class AbstractOperator *op, class QoreNode *left, class QoreNode *right)
 {
    return new QoreNode(left, op, right);
 }
 
-static class QoreNode *makeTree(class Operator *op, class QoreNode *left, class QoreNode *right)
+static class QoreNode *makeTree(class AbstractOperator *op, class QoreNode *left, class QoreNode *right)
 {
    ExceptionSink xsink;
 
@@ -71,7 +72,7 @@ static class QoreNode *makeTree(class Operator *op, class QoreNode *left, class 
    // if both nodes are constants, then evaluate immediately */
    if (is_value(left) && (!right || is_value(right)))
    {
-      class QoreNode *n_node = op->eval(left, right, &xsink);
+      class QoreNode *n_node = op->eval(left, right, true, &xsink);
       //printd(5, "makeTree(): l=%08p (%s), r=%08p, op=%s, returning %08p\n", left, left->type->getName(), right, op->name, n_node);
       left->deref(NULL);
       if (right)
@@ -84,7 +85,7 @@ static class QoreNode *makeTree(class Operator *op, class QoreNode *left, class 
       return n_node;
    }
    // otherwise, put nodes and operator into tree for runtime evaluation
-   return new QoreNode(left, op, right);
+   return new QoreNode(new Tree(left, op, right));
 }
 
 static inline QoreNode *makeArgs(QoreNode *arg)

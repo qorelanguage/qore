@@ -155,7 +155,7 @@ int SSLSocketHelper::read(char *buf, int size)
 }
 
 // returns 0 for success
-int SSLSocketHelper::write(void *buf, int size, class ExceptionSink *xsink)
+int SSLSocketHelper::write(const void *buf, int size, class ExceptionSink *xsink)
 {
    int rc;
    if ((rc = SSL_write(ssl, buf, size)) <= 0)
@@ -166,7 +166,7 @@ int SSLSocketHelper::write(void *buf, int size, class ExceptionSink *xsink)
    return rc;
 }
 
-int SSLSocketHelper::write(void *buf, int size)
+int SSLSocketHelper::write(const void *buf, int size)
 {
    return SSL_write(ssl, buf, size);
 }
@@ -453,7 +453,7 @@ int QoreSocket::acceptInternal(class SocketSource *source)
 }
 
 // hardcoded to SOCK_STREAM (tcp only)
-int QoreSocket::connectINET(char *host, int prt, class ExceptionSink *xsink)
+int QoreSocket::connectINET(const char *host, int prt, class ExceptionSink *xsink)
 {
    tracein("QoreSocket::connectINET()");
 
@@ -500,7 +500,7 @@ int QoreSocket::connectINET(char *host, int prt, class ExceptionSink *xsink)
    return 0;
 }
 
-int QoreSocket::connectUNIX(char *p, class ExceptionSink *xsink)
+int QoreSocket::connectUNIX(const char *p, class ExceptionSink *xsink)
 {
    tracein("connectUNIX()");
 
@@ -546,7 +546,7 @@ int QoreSocket::connectUNIX(char *p, class ExceptionSink *xsink)
 // * bind("filename");
 // for INET sockets (AF_INET)
 // * bind("interface:port");
-int QoreSocket::bind(char *name, bool reuseaddr)
+int QoreSocket::bind(const char *name, bool reuseaddr)
 {
    //printd(5, "QoreSocket::bind(%s)\n", name);
    // see if there is a port specifier
@@ -1088,7 +1088,7 @@ int QoreSocket::recv(int fd, int size, int timeout)
 }
 
 // returns 0 for success
-int QoreSocket::sendHTTPMessage(char *method, char *path, char *http_version, class Hash *headers, void *data, int size)
+int QoreSocket::sendHTTPMessage(const char *method, const char *path, const char *http_version, class Hash *headers, void *data, int size)
 {
    // prepare header string
    QoreString hdr(charsetid);
@@ -1128,7 +1128,7 @@ int QoreSocket::sendHTTPMessage(char *method, char *path, char *http_version, cl
 }
 
 // returns 0 for success
-int QoreSocket::sendHTTPResponse(int code, char *desc, char *http_version, class Hash *headers, void *data, int size)
+int QoreSocket::sendHTTPResponse(int code, const char *desc, const char *http_version, class Hash *headers, void *data, int size)
 {
    // prepare header string
    QoreString hdr(charsetid);
@@ -1335,7 +1335,7 @@ class QoreNode *QoreSocket::readHTTPHeader(int timeout, int *rc)
    return new QoreNode(h);
 }
 
-bool QoreSocket::isDataAvailable(int timeout)
+bool QoreSocket::isDataAvailable(int timeout) const
 {
    if (!sock)
       return false;
@@ -1412,7 +1412,7 @@ int QoreSocket::recv(char *buf, int bs, int flags, int timeout)
 // * QoreSocket::connect("hostname:<port_number>");
 // for AF_UNIX sockets:
 // * QoreSocket::connect("filename");
-int QoreSocket::connect(char *name, class ExceptionSink *xsink)
+int QoreSocket::connect(const char *name, class ExceptionSink *xsink)
 {
    char *p;
    if ((p = strchr(name, ':')))
@@ -1435,7 +1435,7 @@ int QoreSocket::connect(char *name, class ExceptionSink *xsink)
 // * QoreSocket::connectSSL("hostname:<port_number>");
 // for AF_UNIX sockets:
 // * QoreSocket::connectSSL("filename");
-int QoreSocket::connectSSL(char *name, X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink)
+int QoreSocket::connectSSL(const char *name, X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink)
 {
    char *p;
    if ((p = strchr(name, ':')))
@@ -1452,7 +1452,7 @@ int QoreSocket::connectSSL(char *name, X509 *cert, EVP_PKEY *pkey, class Excepti
    return connectUNIXSSL(name, cert, pkey, xsink);
 }
 
-int QoreSocket::connectINETSSL(char *host, int prt, X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink)
+int QoreSocket::connectINETSSL(const char *host, int prt, X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink)
 {
    int rc = connectINET(host, prt, xsink);
    if (rc)
@@ -1460,7 +1460,7 @@ int QoreSocket::connectINETSSL(char *host, int prt, X509 *cert, EVP_PKEY *pkey, 
    return upgradeClientToSSLIntern(cert, pkey, xsink);
 }
 
-int QoreSocket::connectUNIXSSL(char *p, X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink)
+int QoreSocket::connectUNIXSSL(const char *p, X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink)
 {
    int rc = connectUNIX(p, xsink);
    if (rc)
@@ -1551,7 +1551,7 @@ int QoreSocket::bind(int prt, bool reuseaddr)
 }
 
 // to bind to an INET tcp port on a specific interface
-int QoreSocket::bind(char *interface, int prt, bool reuseaddr)
+int QoreSocket::bind(const char *interface, int prt, bool reuseaddr)
 {
    printd(5, "QoreSocket::bind(%s, %d)\n", interface, prt);
 
@@ -1587,7 +1587,7 @@ int QoreSocket::bind(char *interface, int prt, bool reuseaddr)
 }
 
 // to bind an INET socket to a particular address
-int QoreSocket::bind(struct sockaddr *addr, int size)
+int QoreSocket::bind(const struct sockaddr *addr, int size)
 {
    // close if it's already been opened as an INET socket
    if (sock && type != AF_INET)
@@ -1695,7 +1695,7 @@ static inline void add_to_buffer(char **buf, int *len, void *data, int size)
 }
 */
 
-int QoreSocket::send(char *buf, int size)
+int QoreSocket::send(const char *buf, int size)
 {
    if (!sock)
       return -2;
@@ -1719,9 +1719,9 @@ int QoreSocket::send(char *buf, int size)
 }
 
 // converts to socket encoding if necessary
-int QoreSocket::send(class QoreString *msg, class ExceptionSink *xsink)
+int QoreSocket::send(const class QoreString *msg, class ExceptionSink *xsink)
 {
-   class QoreString *tstr;
+   const class QoreString *tstr;
    if (msg->getEncoding() != charsetid)
    {
       tstr = msg->convertEncoding(charsetid, xsink);
@@ -1730,13 +1730,13 @@ int QoreSocket::send(class QoreString *msg, class ExceptionSink *xsink)
    }
    else
       tstr = msg;
-   int rc = send((char *)tstr->getBuffer(), tstr->strlen());
+   int rc = send((const char *)tstr->getBuffer(), tstr->strlen());
    if (tstr != msg)
       delete tstr;
    return rc;
 }
 
-int QoreSocket::send(class BinaryObject *b)
+int QoreSocket::send(const class BinaryObject *b)
 {
    return send((char *)b->getPtr(), b->size());
 }

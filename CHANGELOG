@@ -1,3 +1,9 @@
+2006.12.21: David Nichols
+	* extensive API updates for SMP performance improvements - updates
+	  geared at reducing the number of cache invalidations resulting in
+	  more than 2x speed improvement on SMP machines for the areas where
+	  the optimizations have been implemented
+
 2006.12.19: David Nichols
 	* changes to make library API independent of debug flag
 

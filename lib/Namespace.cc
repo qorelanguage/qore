@@ -218,9 +218,10 @@ void Namespace::addConstant(class NamedScope *nscope, class QoreNode *value)
 void Namespace::addSystemClass(class QoreClass *oc)
 {
    tracein("Namespace::addSystemClass()");
+
 #ifdef DEBUG
    if (classList->add(oc))
-      run_time_error("Namespace::addSystemClass() %s %08p already exists in %s", oc->getName(), oc, name);
+      assert(false);
 #else
    classList->add(oc);
 #endif
@@ -1055,10 +1056,10 @@ int RootNamespace::parseInitConstantValue(class QoreNode **val, int level)
    }
    else if ((*val)->type == NT_TREE)
    {
-      if (parseInitConstantValue(&((*val)->val.tree.left), level + 1))
+      if (parseInitConstantValue(&((*val)->val.tree->left), level + 1))
 	 return -1;
-      if ((*val)->val.tree.right)
-	 if (parseInitConstantValue(&((*val)->val.tree.right), level + 1))
+      if ((*val)->val.tree->right)
+	 if (parseInitConstantValue(&((*val)->val.tree->right), level + 1))
 	    return -1;
    }
    // if it's an expression or container type, then evaluate in case it contains immediate expressions

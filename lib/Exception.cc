@@ -75,11 +75,11 @@ void ExceptionSink::handleWarnings()
 void ExceptionSink::clearIntern()
 {
    // delete all exceptions
-   while (head)
+   ExceptionSink xs;
+   if (head)
    {
-      tail = head->next;
-      head->del();
-      head = tail;
+      head->del(&xs);
+      head = tail = NULL;
    }
 }
 
@@ -278,26 +278,6 @@ void Exception::del(class ExceptionSink *xsink)
    if (next)
       next->del(xsink);
    
-   delete this;
-}
-
-void Exception::del()
-{
-   class ExceptionSink xsink;
-
-   if (callStack)
-      callStack->deref(&xsink);
-
-   if (err)
-      err->deref(&xsink);
-   if (desc)
-      desc->deref(&xsink);
-   if (arg)
-      arg->deref(&xsink);
-
-   if (next)
-      next->del(&xsink);
-
    delete this;
 }
 

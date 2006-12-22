@@ -30,6 +30,11 @@ class QoreNode *varref_Eval(class QoreNode *n, class ExceptionSink *xsink)
    return n->val.vref->eval(xsink);
 }
 
+class QoreNode *varref_eval_opt_deref(bool &needs_deref, class QoreNode *n, class ExceptionSink *xsink)
+{
+   return n->val.vref->eval(needs_deref, xsink);
+}
+
 class QoreNode *varref_Copy(class QoreNode *n, class ExceptionSink *xsink)
 {
    return new QoreNode(n->val.vref->copy());

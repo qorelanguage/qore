@@ -475,10 +475,7 @@ class Method *QoreClass::findMethod(char *nme, bool *priv)
 // only called when parsing
 void QoreClass::setName(char *n)
 {
-#ifdef DEBUG
-   if (name)
-      run_time_error("QoreClass::setName(%08p '%s') name already set to %08p '%s'", n, n, name, name);
-#endif
+   assert(!name);
    name = n;
 }
 
@@ -1330,14 +1327,7 @@ class QoreNode *QoreClass::execSystemConstructor(QoreNode *args, class Exception
       bceal->deref(xsink);
 
    // should never happen!
-#ifdef DEBUG
-   if (xsink->isEvent())
-   {
-      o->dereference(xsink);
-      run_time_error("QoreClass::execSystemConstructor() %s::constructor() o=%08p, exception in constructor, dereferencing object and returning NULL\n", name, o);
-      return NULL;
-   }
-#endif
+   assert(!xsink->isEvent());
 
    QoreNode *rv = new QoreNode(o);
    printd(5, "QoreClass::execSystemConstructor() %s::constructor() o=%08p, returning %08p\n", name, o, rv);
@@ -1630,10 +1620,9 @@ int QoreClass::parseAddBaseClassArgumentList(class BCAList *new_bcal)
 // adds a builtin method to the class - no duplicate checking is made
 void QoreClass::addMethod(char *nme, q_method_t m)
 {
-#ifdef DEBUG
-   if (!strcmp(nme, "constructor") || !strcmp(nme, "destructor") || !strcmp(nme, "copy"))
-      run_time_error("cannot call QoreClass::addMethod('%s')  use setConstructor() setDestructor() setCopy() instead", nme);
-#endif
+   assert(strcmp(nme, "constructor"));
+   assert(strcmp(nme, "destructor"));
+   assert(strcmp(nme, "copy"));
 
    sys = true;
    BuiltinMethod *b = new BuiltinMethod(this, nme, m);

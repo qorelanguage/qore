@@ -42,11 +42,14 @@
 #include <qore/NamedScope.h>
 #include <qore/qore_thread.h>
 #include <qore/Exception.h>
+#include <qore/tree.h>
 
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <assert.h>
 
+#define TRACK_REFS 1
 
 QoreNode::QoreNode() 
 {
@@ -60,6 +63,7 @@ QoreNode::QoreNode(class QoreType *t)
    type = t; 
 #if TRACK_REFS
    printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, type->getName());
+   printd(5, "QoreNode::ref() %s:%d\n", get_pgm_file(), get_pgm_counter());
 #endif
 }
 
@@ -68,7 +72,8 @@ QoreNode::QoreNode(int64 v)
    type = NT_INT;
    val.intval = v; 
 #if TRACK_REFS
-   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, type->getName());
+   printd(5, "QoreNode::ref() %08p type=%s (0->1) value=%lld\n", this, type->getName(), v);
+   printd(5, "QoreNode::ref() %s:%d\n", get_pgm_file(), get_pgm_counter());
 #endif
 }
 
@@ -273,12 +278,10 @@ QoreNode::QoreNode(class VarRef *v)
 #endif
 }
 
-QoreNode::QoreNode(class QoreNode *l, class Operator *o, class QoreNode *r)
+QoreNode::QoreNode(class QoreNode *l, class AbstractOperator *o, class QoreNode *r)
 {
    type = NT_TREE;
-   val.tree.left = l;
-   val.tree.op = o;
-   val.tree.right = r;
+   val.tree = new Tree(l, o, r);
 #if TRACK_REFS
    printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, type->getName());
 #endif
@@ -306,6 +309,15 @@ QoreNode::QoreNode(class QoreRegex *r)
 {
    type = NT_REGEX;
    val.regex = r;
+#if TRACK_REFS
+   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, type->getName());
+#endif
+}
+
+QoreNode::QoreNode(class Tree *t)
+{
+   type = NT_TREE;
+   val.tree = t;
 #if TRACK_REFS
    printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, type->getName());
 #endif
@@ -342,10 +354,6 @@ void QoreNode::ref()
 #if TRACK_REFS
    printd(5, "QoreNode::ref() %08p type=%s (%d->%d)\n", this, type->getName(), references, references + 1);
 #endif
-/*
-   if (type == NT_OBJECT)
-      run_time_error("QoreNode::ref(this=%08p) is an object (class=%s, rc=%d)!", this, val.object->getClass()->name, reference_count());
-*/
 #endif
    ROreference();
 }
@@ -359,13 +367,12 @@ class QoreNode *QoreNode::RefSelf()
 void QoreNode::deref(ExceptionSink *xsink)
 {
    //tracein("QoreNode::deref()");
+   assert(references > 0);
 #ifdef DEBUG
 #if TRACK_REFS
    printd(5, "QoreNode::deref() %08p type=%s (%d->%d)\n", this, type->getName(), references, references - 1);
+   if (type == NT_STRING) printd(5, "QoreNode::deref() %08p string='%s'\n", this, val.String->getBuffer());
 #endif
-   if (references <= 0)
-      run_time_error("QoreNode::deref(): %08p has references = %d (type=%s)!",
-		     this, references, type->getName());
    if (references > 51200)
       if (type == NT_INT)
 	 printd(0, "QoreNode::deref() WARNING, node %08p references=%d (type=%s) (val=%d)\n",
@@ -397,10 +404,8 @@ void QoreNode::deref(ExceptionSink *xsink)
 class QoreNode *QoreNode::realCopy(ExceptionSink *xsink)
 {
    //tracein("QoreNode::realCopy()");
-#ifdef DEBUG
-   if (!this) 
-      run_time_error("Node::realCopy() ERROR NULL ptr passed!"); 
-#endif
+   assert(this);
+
    //traceout("QoreNode::realCopy()");
    return type->copy(this, xsink);
 }
@@ -411,6 +416,20 @@ class QoreNode *QoreNode::realCopy(ExceptionSink *xsink)
 class QoreNode *QoreNode::eval(ExceptionSink *xsink)
 {
    return type->eval(this, xsink);
+}
+
+/*
+ QoreNode::eval(): return value requires a dereference if needs_deref is true
+ */
+class QoreNode *QoreNode::eval(bool &needs_deref, ExceptionSink *xsink)
+{
+   if (is_value(this))
+   {
+      needs_deref = false;
+      return this;
+   }
+   needs_deref = true;
+   return type->eval(needs_deref, this, xsink);
 }
 
 int64 QoreNode::bigIntEval(ExceptionSink *xsink)
@@ -451,6 +470,8 @@ int QoreNode::integerEval(ExceptionSink *xsink)
 
 bool QoreNode::boolEval(ExceptionSink *xsink)
 {
+   return type->bool_eval(this, xsink);
+/*
    class QoreNode *new_node = eval(xsink);
    if (xsink->isEvent())
    {
@@ -464,6 +485,7 @@ bool QoreNode::boolEval(ExceptionSink *xsink)
    bool rv = new_node->getAsBool();
    new_node->deref(xsink);
    return rv;
+ */
 }
 
 class QoreString *QoreNode::getAsString(int foff, class ExceptionSink *xsink)
@@ -672,12 +694,12 @@ static inline QoreNode *crlr_hash_copy(QoreNode *n, ExceptionSink *xsink)
 static inline QoreNode *crlr_tree_copy(QoreNode *n, ExceptionSink *xsink)
 {
    QoreNode *nn = new QoreNode(NT_TREE);
-   nn->val.tree.op = n->val.tree.op;
-   nn->val.tree.left = copy_and_resolve_lvar_refs(n->val.tree.left, xsink);
-   if (n->val.tree.right)
-      nn->val.tree.right = copy_and_resolve_lvar_refs(n->val.tree.right, xsink);
+   nn->val.tree->op = n->val.tree->op;
+   nn->val.tree->left = copy_and_resolve_lvar_refs(n->val.tree->left, xsink);
+   if (n->val.tree->right)
+      nn->val.tree->right = copy_and_resolve_lvar_refs(n->val.tree->right, xsink);
    else
-      nn->val.tree.right = NULL;
+      nn->val.tree->right = NULL;
    return nn;
 }
 

@@ -35,6 +35,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <assert.h>
 
 #include <algorithm>
 using namespace std;
@@ -83,10 +84,7 @@ Context::~Context()
 {
    tracein("Context::~Context()");
 
-#ifdef DEBUG
-   if (!get_context_stack())
-      run_time_error("Context::~Context(): no stack! aborting");
-#endif
+   assert(get_context_stack());
    update_context_stack(get_context_stack()->next);
 
    if (name)
@@ -240,10 +238,6 @@ static inline int in_list(class QoreNode *node, struct node_row_list_s *nlist,
 // to sort non-existing values last
 static inline int compare_templist(class Templist t1, class Templist t2)
 {
-   class QoreNode *rv;
-   int rc;
-   ExceptionSink xsink;
-
    //printd(5, "t1.node=%08p pos=%d t2.node=%08p pos=%d\n", t1.node, t1.pos, t2.node, t2.pos);
 
    if (is_nothing(t1.node))
@@ -251,14 +245,12 @@ static inline int compare_templist(class Templist t1, class Templist t2)
    if (is_nothing(t2.node))
       return 1;
 
-   rv = OP_LOG_LT->eval(t1.node, t2.node, &xsink);
-   rc = rv->getAsInt();
-   rv->deref(NULL);
+   ExceptionSink xsink;
+   int rc = (int)OP_LOG_LT->bool_eval(t1.node, t2.node, &xsink);
 
    //printd(5, "t1.node->type=%s t2.node->type=%s\n", t1.node->type->getName(), t2.node->type->getName());
    //   print_node(stderr, t1.node); printd(1," == "); print_node(stderr, t2.node);
    //   printd(5, " result = %d\n", rc);
-
    return rc;
 }
 

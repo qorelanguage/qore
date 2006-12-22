@@ -114,7 +114,7 @@ static void do_help(char *arg)
 {
    show_usage();
    printf(helpstr);
-   leave(0);
+   exit(0);
 }
 
 static void warn_to_err(char *arg)
@@ -230,7 +230,7 @@ static void do_version(char *arg)
       putchar(')');
    }
    putchar('\n');
-   leave(0);
+   exit(0);
 }
 
 static void set_charset(char *arg)
@@ -241,13 +241,13 @@ static void set_charset(char *arg)
 static void show_charsets(char *arg)
 {
    QEM.showEncodings();
-   leave(0);
+   exit(0);
 }
 
 static void show_charset_aliases(char *arg)
 {
    QEM.showAliases();
-   leave(0);
+   exit(0);
 }
 
 static void set_exec(char *arg)
@@ -536,7 +536,7 @@ char *parse_command_line(unsigned argc, char *argv[])
    if (opt_errors)
    {
       printe(suggest, pn);
-      leave(1);
+      exit(1);
    }
    return fn;
 }

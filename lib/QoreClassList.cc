@@ -26,6 +26,8 @@
 #include <qore/QoreClass.h>
 #include <qore/minitest.hpp>
 
+#include <assert.h>
+
 #ifdef DEBUG
 #  include "tests/QoreClassList_tests.cc"
 #endif
@@ -123,11 +125,8 @@ inline void QoreClassList::assimilate(class QoreClassList *n)
    {
       class QoreClass *nc = i->second;
       n->hm.erase(i);      
-#ifdef DEBUG
-      class QoreClass *c;
-      if ((c = find(nc->getName())))
-	 run_time_error("QoreClassList::assimilate() this=%08p DUPLICATE CLASS %08p (%s)\n", this, nc, nc->getName());
-#endif
+
+      assert(!find(nc->getName()));
       printd(5, "QoreClassList::assimilate() this=%08p adding=%08p (%s)\n", this, nc, nc->getName());
       add(nc);
    }

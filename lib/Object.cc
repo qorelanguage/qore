@@ -39,6 +39,7 @@
 #include <qore/AbstractPrivateData.h>
 
 #include <stdlib.h>
+#include <assert.h>
 
 class KeyNode {
    private:
@@ -160,11 +161,7 @@ inline void KeyList::addToString(class QoreString *str) const
 
 inline void KeyList::insert(int k, AbstractPrivateData *ptr)
 {
-#ifdef DEBUG
-   // see if key exists - should never happen
-   if (find(k))
-      run_time_error("KeyList::insert duplicate key=%d ptr=%08p", k, ptr);
-#endif
+   assert(!find(k));
 
    class KeyNode *n = new KeyNode(k, ptr);
    if (tail)
@@ -218,14 +215,9 @@ Object::~Object()
 {
    //tracein("Object::~Object()");
    printd(5, "Object::~Object() this=%08p, pgm=%08p\n", this, pgm);
-#ifdef DEBUG
-   if (pgm)
-      run_time_error("Object::~Object() still has pgm=%08p", pgm);
-   if (data)
-      run_time_error("Object::~Object() still has data=%08p", data);
-   if (privateData)
-      run_time_error("Object::~Object() still has privateData=%08p", privateData);
-#endif
+   assert(!pgm);
+   assert(!data);
+   assert(!privateData);
    //traceout("Object::~Object()");
 }
 

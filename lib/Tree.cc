@@ -24,10 +24,42 @@
 #include <qore/common.h>
 #include <qore/Tree.h>
 #include <qore/Operator.h>
+#include <qore/QoreNode.h>
+
+Tree::Tree(class QoreNode *l, class AbstractOperator *o, class QoreNode *r)
+{
+   left = l;
+   op = o;
+   right = r;
+   ref_rv = true;
+}
+
+Tree::~Tree()
+{
+   if (left)
+      left->deref(NULL);
+   if (right)
+      right->deref(NULL);
+}
 
 class QoreNode *Tree::eval(class ExceptionSink *xsink)
 {
-   return op->eval(left, right, xsink);
+   return op->eval(left, right, ref_rv, xsink);
 }
 
+bool Tree::bool_eval(class ExceptionSink *xsink)
+{
+   return op->bool_eval(left, right, xsink);
+}
+
+void Tree::ignoreReturnValue()
+{
+   // OPTIMIZATION: change post incremement to pre increment for top-level expressions to avoid extra SMP cache invalidations
+   if (op == OP_POST_INCREMENT)
+      op = OP_PRE_INCREMENT;
+   else if (op == OP_POST_DECREMENT)
+      op = OP_PRE_DECREMENT;
+      
+   ref_rv = false;
+}
 

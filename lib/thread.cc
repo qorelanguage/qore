@@ -54,6 +54,7 @@
 
 #include <pthread.h>
 #include <sys/time.h>
+#include <assert.h>
 
 #if defined(DARWIN) && MAX_QORE_THREADS > 2560
 #warning Darwin cannot support more than 2560 threads, MAX_QORE_THREADS set to 2560
@@ -269,15 +270,15 @@ class BGThreadParams {
 	    obj = callobj;
 	    obj->ref();
 	 }
-	 else if (fc->type == NT_TREE && fc->val.tree.op == OP_OBJECT_FUNC_REF)
+	 else if (fc->type == NT_TREE && fc->val.tree->op == OP_OBJECT_FUNC_REF)
 	 {
 	    // evaluate object
-	    class QoreNode *n = fc->val.tree.left->eval(xsink);
+	    class QoreNode *n = fc->val.tree->left->eval(xsink);
 	    if (!n || xsink->isEvent())
 	       return;
 	    
-	    fc->val.tree.left->deref(xsink);
-	    fc->val.tree.left = n;
+	    fc->val.tree->left->deref(xsink);
+	    fc->val.tree->left = n;
 	    if (n->type == NT_OBJECT)
 	    {
 	       obj = n->val.object;
@@ -330,10 +331,7 @@ class BGThreadParams {
 
 inline ThreadResourceList::~ThreadResourceList()
 {
-#ifdef DEBUG
-   if (head)
-      run_time_error("ThreadResourceList %08p not empty, head = %08p", this, head);
-#endif
+   assert(!head);
 }
 
 inline class ThreadResourceNode *ThreadResourceList::find(void *key)
@@ -912,7 +910,7 @@ static void *op_background_thread(class BGThreadParams *btp)
    return NULL;
 }
 
-static class QoreNode *op_background(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static class QoreNode *op_background(class QoreNode *left, class QoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
    if (!left)
       return NULL;
@@ -968,7 +966,9 @@ static class QoreNode *op_background(class QoreNode *left, class QoreNode *right
    printd(5, "pthread_create() new thread TID %d, pthread_create() returned %d\n", tid, rc);
 
    printd(5, "create_thread() created thread with TID %d\n", ptid);
-   return new QoreNode((int64)tid);
+   if (ref_rv)
+      return new QoreNode((int64)tid);
+   return NULL;
 }
 
 void init_qore_threads()

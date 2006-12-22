@@ -28,12 +28,19 @@
 #define _QORE_TREE_H
 
 class Tree {
+private:
+   bool ref_rv;
+
 public:
-   class Operator *op;
+   class AbstractOperator *op;
    class QoreNode *left;
    class QoreNode *right;
    
+   DLLLOCAL Tree(class QoreNode *l, class AbstractOperator *op, class QoreNode *r = NULL);
+   DLLLOCAL ~Tree();
    DLLLOCAL class QoreNode *eval(class ExceptionSink *xsink);
+   DLLLOCAL bool bool_eval(class ExceptionSink *xsink);
+   DLLLOCAL void ignoreReturnValue();
 };
 
 #endif

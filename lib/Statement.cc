@@ -46,11 +46,12 @@
 #include <qore/QoreWarnings.h>
 #include <qore/minitest.hpp>
 #include <qore/ContextStatement.h>
+#include <qore/Tree.h>
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+#include <assert.h>
 
 #ifdef DEBUG
 #  include "tests/Statement_tests.cc"
@@ -225,7 +226,7 @@ Statement::~Statement()
       case S_THREAD_EXIT:
 	 break;
       default:
-	 run_time_error("don't know how to delete statement type %d\n", Type);
+	 assert(false);
 #endif
    }
 }
@@ -295,10 +296,7 @@ int StatementBlock::exec(class QoreNode **return_value, class ExceptionSink *xsi
    for (int i = 0; i < lvars->num_lvars; i++)
       instantiateLVar(lvars->ids[i], NULL);
 
-#ifdef DEBUG
-   if (!xsink)
-      run_time_error("StatementBlock::exec() xsink=NULL");
-#endif
+   assert(xsink);
 
    // execute block
    class Statement *where = head;
@@ -368,10 +366,7 @@ static inline lvh_t pop_local_var()
    class VNode *vnode = getVStack();
    lvh_t rc = vnode->name;
 
-#ifdef DEBUG
-   if (!vnode)
-      run_time_error("pop_local_var(): empty VStack!");
-#endif
+   assert(vnode);
    printd(5, "pop_local_var(): popping var %s\n", vnode->name);
    updateVStack(vnode->next);
    delete vnode;
@@ -406,16 +401,16 @@ static inline void checkSelf(class QoreNode *n, lvh_t selfid)
       return;
 
    // otherwise it's a tree: go to root expression 
-   while (n->val.tree.left->type == NT_TREE)
-      n = n->val.tree.left;
+   while (n->val.tree->left->type == NT_TREE)
+      n = n->val.tree->left;
 
-   if (n->val.tree.left->type != NT_VARREF)
+   if (n->val.tree->left->type != NT_VARREF)
       return;
 
    // left must be variable reference, check if the tree is
    // a list reference; if so, it's invalid
-   if (n->val.tree.left->val.vref->type == VT_LOCAL && n->val.tree.left->val.vref->ref.id == selfid
-       && n->val.tree.op == OP_LIST_REF)
+   if (n->val.tree->left->val.vref->type == VT_LOCAL && n->val.tree->left->val.vref->ref.id == selfid
+       && n->val.tree->op == OP_LIST_REF)
       parse_error("illegal conversion of $self to a list");
 }
 
@@ -437,7 +432,7 @@ static inline int getBaseLVType(class QoreNode *n)
 	 return VT_OBJECT;
       if (n->type == NT_VARREF)
 	 return n->val.vref->type;
-      n = n->val.tree.left;
+      n = n->val.tree->left;
    }
 }
 
@@ -554,22 +549,22 @@ int process_node(class QoreNode **node, lvh_t oflag, int pflag)
    if ((*node)->type == NT_TREE)
    {
       // set "parsing background" flag if the background operator is being parsed
-      if ((*node)->val.tree.op == OP_BACKGROUND)
+      if ((*node)->val.tree->op == OP_BACKGROUND)
 	 pflag |= PF_BACKGROUND;
 
       // process left branch of tree
-      lvids += process_node(&((*node)->val.tree.left), oflag, pflag);
+      lvids += process_node(&((*node)->val.tree->left), oflag, pflag);
       // process right branch if it exists
-      if ((*node)->val.tree.right)
-	 lvids += process_node(&((*node)->val.tree.right), oflag, pflag);
+      if ((*node)->val.tree->right)
+	 lvids += process_node(&((*node)->val.tree->right), oflag, pflag);
       
       // check for illegal changes to local variables in background expressions
-      if (pflag & PF_BACKGROUND && (*node)->val.tree.op->needsLValue())
-	 checkLocalVariableChange((*node)->val.tree.left);	 
+      if (pflag & PF_BACKGROUND && (*node)->val.tree->op->needsLValue())
+	 checkLocalVariableChange((*node)->val.tree->left);	 
 
       // throw a parse exception if an assignment is attempted on $self
-      if (((*node)->val.tree.op == OP_ASSIGNMENT || (*node)->val.tree.op == OP_SINGLE_ASSIGN) && oflag)
-	    checkSelf((*node)->val.tree.left, oflag);
+      if ((*node)->val.tree->op == OP_ASSIGNMENT && oflag)
+	    checkSelf((*node)->val.tree->left, oflag);
       return lvids;
    }
 

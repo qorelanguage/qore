@@ -27,7 +27,6 @@
 #include <qore/config.h>
 #include <qore/common.h>
 
-DLLEXPORT void leave(int rc);
 DLLEXPORT int printe(const char *fmt, ...);
 DLLEXPORT char *remove_trailing_newlines(char *str);
 DLLEXPORT char *remove_trailing_blanks(char *str);
@@ -37,36 +36,34 @@ DLLEXPORT char *remove_trailing_blanks(char *str);
 DLLEXPORT void trace_function(int code, char *funcname);
 DLLEXPORT int print_debug(int level, const char *fmt, ...);
 
-#define TRACE_IN   1
-#define TRACE_OUT  2
-
 DLLEXPORT extern int qore_trace;
 DLLEXPORT extern int debug;
 
+#define TRACE_IN   1
+#define TRACE_OUT  2
+
 #ifdef DEBUG
-//int printd(int level, const char *fmt, ...);
 #define printd print_debug
 
 #define tracein(a) trace_function(TRACE_IN, a)
 #define traceout(a) trace_function(TRACE_OUT, a)
+
 #else
 #ifdef __GNUC__
 #define printd(args...)
+#define tracein(args...)
+#define traceout(args...)
 #else
 #define printd(args, ...)
+#define tracein(args, ...)
+#define traceout(args, ...)
 #endif
-#define tracein(a)
-#define traceout(a)
 #endif
 
 // the following functions are only referenced from C++ source
-DLLLOCAL void print_error_pos(char *type);
 DLLLOCAL void parse_error(const char *fmt, ...);
 DLLLOCAL void parseException(char *err, const char *fmt, ...);
 DLLLOCAL class QoreString *findFileInEnvPath(char *file, char *varname);
-
-// FIXME: remove this and use assert() instead
-DLLEXPORT void run_time_error(const char *fmt, ...);
 
 #ifndef HAVE_ISBLANK
 #define isblank(a) ((a) == ' ' || (a) == '\t')

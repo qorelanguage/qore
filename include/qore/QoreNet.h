@@ -40,7 +40,7 @@ extern class LockedObject lck_gethostbyaddr;
 #define BUFSIZE          512
 
 // thread-safe gethostbyname (0 = success, !0 = error)
-DLLEXPORT int q_gethostbyname(char *host, struct in_addr *sin_addr);
+DLLEXPORT int q_gethostbyname(const char *host, struct in_addr *sin_addr);
 // thread-safe gethostbyaddr (string returned must be freed)
 DLLEXPORT char *q_gethostbyaddr(const char *addr, int len, int type);
 

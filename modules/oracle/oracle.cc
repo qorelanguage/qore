@@ -33,6 +33,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <strings.h>
+#include <assert.h>
 
 #ifndef QORE_MONOLITHIC
 char qore_module_name[] = "oracle";
@@ -1111,9 +1112,8 @@ static int oracle_open(Datasource *ds, ExceptionSink *xsink)
 #ifdef DEBUG
       else
       {
-	 run_time_error("oracle_open(): can't map Oracle character set '%s' to OS character set\n", ds->getDBEncoding());
-	 traceout("oracle_open()");
-	 leave(1);
+	 printd(0, "oracle_open(): can't map Oracle character set '%s' to OS character set\n", ds->getDBEncoding());
+	 assert(false);
       }
 #endif
    }

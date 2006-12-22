@@ -100,11 +100,21 @@ void ForStatement::parseInit(lvh_t oflag, int pflag)
    int i, lvids = 0;
    
    if (assignment)
+   {
       lvids += process_node(&assignment, oflag, pflag);
+      // enable optimizations when return value is ignored for operator expressions
+      if (assignment->type == NT_TREE)
+	 assignment->val.tree->ignoreReturnValue();
+   }
    if (cond)
       lvids += process_node(&cond, oflag, pflag);
    if (iterator)
+   {
       lvids += process_node(&iterator, oflag, pflag);
+      // enable optimizations when return value is ignored for operator expressions
+      if (iterator->type == NT_TREE)
+	 iterator->val.tree->ignoreReturnValue();
+   }
    if (code)
       code->parseInit(oflag, pflag);
    
