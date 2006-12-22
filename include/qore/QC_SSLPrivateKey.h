@@ -45,10 +45,11 @@ class QoreSSLPrivateKey : public AbstractPrivateData
       DLLLOCAL virtual ~QoreSSLPrivateKey();
 
    public:
+      DLLEXPORT class QoreString *getPEM(class ExceptionSink *xsink) const;
+
       DLLLOCAL QoreSSLPrivateKey(EVP_PKEY *p);
       DLLLOCAL QoreSSLPrivateKey(char *fn, char *pp, class ExceptionSink *xsink);
       DLLLOCAL EVP_PKEY *getData() const;
-      DLLLOCAL class QoreString *getPEM(class ExceptionSink *xsink) const;
       DLLLOCAL char *getType() const;
       DLLLOCAL int64 getVersion() const;
       // returns the length in bits
