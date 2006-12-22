@@ -42,7 +42,7 @@
 #include <qore/NamedScope.h>
 #include <qore/qore_thread.h>
 #include <qore/Exception.h>
-#include <qore/tree.h>
+#include <qore/Tree.h>
 
 #include <string.h>
 #include <stdlib.h>

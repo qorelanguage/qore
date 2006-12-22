@@ -250,7 +250,7 @@ static bool op_absolute_log_eq(class QoreNode *left, class QoreNode *right, bool
    if (xsink->isEvent())
    {
       if (lnp && ld) lnp->deref(xsink);
-      return NULL;
+      return false;
    }
 
    bool rd, rv;
@@ -273,7 +273,7 @@ static bool op_absolute_log_neq(class QoreNode *left, class QoreNode *right, boo
    if (xsink->isEvent())
    {
       if (lnp && ld) lnp->deref(xsink);
-      return NULL;
+      return false;
    }
    
    bool rd, rv;
@@ -305,7 +305,7 @@ static bool op_log_or(class QoreNode *left, class QoreNode *right, bool ref_rv, 
    bool l = left->boolEval(xsink);
    
    if (xsink->isEvent())
-      return NULL;
+      return false;
    
    bool b;
    // if left side is true, then do not evaluate right side
@@ -433,7 +433,7 @@ static bool op_exists(class QoreNode *left, class QoreNode *x, bool ref_rv, Exce
 	 vl.del();
 	 if (tn) tn->deref(xsink);
 	 //traceout("op_exists()");
-	 return NULL;
+	 return false;
       }
       
       // FIXME: this should return false for objects that have been deleted
@@ -454,7 +454,7 @@ static bool op_instanceof(class QoreNode *l, class QoreNode *r, bool ref_rv, Exc
    {
       if (l && ld)
 	 l->deref(xsink);
-      return NULL;
+      return false;
    }
    if (!l)
       return false;
@@ -2448,7 +2448,7 @@ bool BoolOperator::bool_eval(class QoreNode *left, class QoreNode *right, Except
 	       if (xsink->isEvent())
 	       {
 		  if (left && ld) left->deref(xsink);
-		  return NULL;
+		  return false;
 	       }
 	    }
 	    else
@@ -2480,7 +2480,7 @@ bool BoolOperator::bool_eval(class QoreNode *left, class QoreNode *right, Except
 	    if (xsink->isEvent())
 	    {
 	       if (nl) nl->deref(xsink);
-	       return NULL;
+	       return false;
 	    }
 	    left = nl;
 	 }
@@ -2501,7 +2501,7 @@ bool BoolOperator::bool_eval(class QoreNode *left, class QoreNode *right, Except
 	       if (xsink->isEvent())
 	       {
 		  if (left && ld) left->deref(xsink);
-		  return NULL;
+		  return false;
 	       }
 	    }
 	    else
@@ -2523,7 +2523,7 @@ bool BoolOperator::bool_eval(class QoreNode *left, class QoreNode *right, Except
 	       {
 		  if (ld) left->deref(xsink);
 		  if (right && rd) right->deref(xsink);
-		  return NULL;
+		  return false;
 	       }
 	    }
 	    else
@@ -2558,7 +2558,7 @@ bool BoolOperator::bool_eval(class QoreNode *left, class QoreNode *right, Except
 	    if (xsink->isEvent())
 	    {
 	       if (nl) nl->deref(xsink);
-	       return NULL;
+	       return false;
 	    }
 	    left = nl;
 	 }
@@ -2572,7 +2572,7 @@ bool BoolOperator::bool_eval(class QoreNode *left, class QoreNode *right, Except
 	    {
 	       if (ld) left->deref(xsink);
 	       if (nr) nr->deref(xsink);
-	       return NULL;
+	       return false;
 	    }
 	    right = nr;
 	 }
