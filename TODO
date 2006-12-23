@@ -10,3 +10,5 @@ see docs/roadmap.html
 * add context functions
 * add file functions (is_file() is_dir() is_symlink(), etc)
 * implement a forward-compatible/extensible interface for DBI driver registration
+* allow user to specify sort callback function for sort()
+* implement IntOperator for more efficient evaluation of operators returning integer values

@@ -2697,7 +2697,10 @@ OperatorList::~OperatorList()
 {
    oplist_t::iterator i;
    while ((i = begin()) != end())
+   {
+      delete (*i);
       erase(i);
+   }
 }
 
 class Operator *OperatorList::add(class Operator *o)
