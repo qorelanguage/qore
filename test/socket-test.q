@@ -20,6 +20,12 @@ const i2 = 5121;
 const i4 = 2393921;
 const i8 = 12309309203932;
 
+const http_headers =  
+    ( "Accept"       : "text",
+      "Content-Type" : "text",
+      "User-Agent"   : "Qore HTTP Test Agent",
+      "Connection"   : "Keep-Alive" );
+
 class socket_test {
 
     constructor()
@@ -166,6 +172,13 @@ class socket_test {
 	$m = $s.recvi8LSB();
 	$.test_value($who, $m, i8, "sendi8LSB");
 	$s.send("OK");
+
+        $m = $s.readHTTPHeader();
+        $.test_value($who, $m.method, "POST", "HTTP header method");
+        $m = $s.recv($m."content-length");
+        $.test_value($who, $m, $.string, "HTTP message body");
+
+	$s.send("OK");
     }
     
     private send_messages($s)
@@ -190,6 +203,8 @@ class socket_test {
 	$s.sendi4LSB(i4);
 	$.get_response($s);
 	$s.sendi8LSB(i8);
+	$.get_response($s);
+	$s.sendHTTPMessage("POST", "none", "1.1", http_headers, $.string);
 	$.get_response($s);
     }
 
