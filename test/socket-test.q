@@ -178,7 +178,7 @@ class socket_test {
         $m = $s.recv($m."content-length");
         $.test_value($who, $m, $.string, "HTTP message body");
 
-	$s.send("OK");
+	$s.sendHTTPResponse(200, "OK", "1.1", http_headers, "OK");
     }
     
     private send_messages($s)
@@ -205,12 +205,20 @@ class socket_test {
 	$s.sendi8LSB(i8);
 	$.get_response($s);
 	$s.sendHTTPMessage("POST", "none", "1.1", http_headers, $.string);
-	$.get_response($s);
+	$.get_http_response($s);
     }
 
     private get_response($s)
     {
 	my $m = $s.recv(2);
+	if ($m != "OK")
+	    throw "RESPONSE-ERROR", sprintf("expecting 'OK', got: %N", $m);
+    }
+
+    private get_http_response($s)
+    {
+        my $m = $s.readHTTPHeader();
+        $m = $s.recv($m."content-length");
 	if ($m != "OK")
 	    throw "RESPONSE-ERROR", sprintf("expecting 'OK', got: %N", $m);
     }

@@ -103,6 +103,7 @@ static bool op_log_gt_bigint(class QoreNode *left, class QoreNode *right, bool r
 
 static bool op_log_eq_bigint(class QoreNode *left, class QoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
+   //printd(5, "op_log_eq_bigint() left=%lld right=%lld result=%d\n", left->val.intval, right->val.intval, (left->val.intval == right->val.intval));
    return left->val.intval == right->val.intval;
 }
 
@@ -336,7 +337,7 @@ static inline bool compare_lists(class List *l, class List *r, ExceptionSink *xs
 static bool op_log_eq_list(class QoreNode *left, class QoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
    if ((left->type != NT_LIST) || (right->type != NT_LIST))
-      return boolean_false();
+      return false;
    
    return !compare_lists(left->val.list, right->val.list, xsink);
 }
@@ -344,7 +345,7 @@ static bool op_log_eq_list(class QoreNode *left, class QoreNode *right, bool ref
 static bool op_log_eq_hash(class QoreNode *left, class QoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
    if ((left->type != NT_HASH) || (right->type != NT_HASH))
-      return boolean_false();
+      return false;
    
    return !left->val.hash->compareSoft(right->val.hash, xsink);
 }
@@ -352,7 +353,7 @@ static bool op_log_eq_hash(class QoreNode *left, class QoreNode *right, bool ref
 static bool op_log_eq_object(class QoreNode *left, class QoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
    if ((left->type != NT_OBJECT) || (right->type != NT_OBJECT))
-      return boolean_false();
+      return false;
    
    return !left->val.object->compareSoft(right->val.object, xsink);
 }
