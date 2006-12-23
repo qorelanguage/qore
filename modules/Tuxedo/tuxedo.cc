@@ -42,16 +42,16 @@
 #include "QC_TuxedoAdapter.h"
 
 #ifndef QORE_MONOLITHIC
-char qore_module_name[] = "tuxedo";
-char qore_module_version[] = "0.1";
-char qore_module_description[] = "Connection to Tuxedo 9.1 (should be compatible with older versions).";
-char qore_module_author[] = "Pavel Vozenilek";
-char qore_module_url[] = "http://qore.sourceforge.net";
-int qore_module_api_major = QORE_MODULE_API_MAJOR;
-int qore_module_api_minor = QORE_MODULE_API_MINOR;
-qore_module_init_t qore_module_init = tuxedo_module_init;
-qore_module_ns_init_t qore_module_ns_init =tuxedo_module_ns_init;
-qore_module_delete_t qore_module_delete = tuxedo_module_delete;
+DLLEXPORT char qore_module_name[] = "tuxedo";
+DLLEXPORT char qore_module_version[] = "0.1";
+DLLEXPORT char qore_module_description[] = "Connection to Tuxedo 9.1 (should be compatible with older versions).";
+DLLEXPORT char qore_module_author[] = "Pavel Vozenilek";
+DLLEXPORT char qore_module_url[] = "http://qore.sourceforge.net";
+DLLEXPORT int qore_module_api_major = QORE_MODULE_API_MAJOR;
+DLLEXPORT int qore_module_api_minor = QORE_MODULE_API_MINOR;
+DLLEXPORT qore_module_init_t qore_module_init = tuxedo_module_init;
+DLLEXPORT qore_module_ns_init_t qore_module_ns_init =tuxedo_module_ns_init;
+DLLEXPORT qore_module_delete_t qore_module_delete = tuxedo_module_delete;
 #endif
 
 //------------------------------------------------------------------------------
