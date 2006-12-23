@@ -1,4 +1,4 @@
-##libdir = ${exec_prefix}/lib${LIBSUFFIX}
+libdir = ${exec_prefix}/lib${LIBSUFFIX}
 pkglibdir = $(libdir)/@PACKAGE@-@VERSION@
 
 SUBDIRS =
