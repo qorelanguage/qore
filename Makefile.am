@@ -34,6 +34,7 @@ noinst_HEADERS = \
 	include/qore/Sequence.h \
 	include/qore/CallStack.h \
 	include/qore/LockedObject.h \
+	include/qore/RWLock.h \
 	include/qore/RMutex.h \
 	include/qore/VRMutex.h \
 	include/qore/QoreClass.h \
