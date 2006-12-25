@@ -131,8 +131,8 @@ MemberList::~MemberList()
 class MemberList *MemberList::copy() const
 {
    class MemberList *nl = new MemberList();
-   for (strset_t::const_iterator i = begin(); i != end(); i++)
-      nl->add(*i);
+   for (strset_t::const_iterator it = begin(), e = end(); it != e; ++it)
+      nl->add(*it);
 
    return nl;
 }
