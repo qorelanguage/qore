@@ -101,7 +101,6 @@ class MemberList : private strset_t
 {
    public:
       DLLLOCAL ~MemberList();
-      DLLLOCAL class MemberList *copy() const;
       DLLLOCAL int add(char *name);
       DLLLOCAL inline void mergePrivateMembers(class QoreClass *qc);
 };
@@ -126,15 +125,6 @@ MemberList::~MemberList()
       erase(i);
       free(name);
    }
-}
-
-class MemberList *MemberList::copy() const
-{
-   class MemberList *nl = new MemberList();
-   for (strset_t::const_iterator it = begin(), e = end(); it != e; ++it)
-      nl->add(*it);
-
-   return nl;
 }
 
 int MemberList::add(char *name)
