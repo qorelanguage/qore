@@ -1778,8 +1778,7 @@ static class QoreNode *op_post_dec(class QoreNode *left, class QoreNode *right, 
    // acquire new value if necessary
    if (!(*n))
    {
-      (*n) = new QoreNode(NT_INT);
-      (*n)->val.intval = 0;
+      (*n) = new QoreNode((int64)0);
       rv = NULL;
    }
    else if ((*n)->type != NT_INT)

@@ -1,5 +1,7 @@
 2006.12.25: David Nichols
 	* removed unused (and buggy) MemberList::copy() method
+	* use a map for private object data, removed pviate KeyNode class and
+	  greatly simplified the private KeyList class
 
 2006.12.23: David Nichols
 	* fixed a static memory leak in the OperatorList destructor

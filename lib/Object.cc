@@ -41,144 +41,51 @@
 #include <stdlib.h>
 #include <assert.h>
 
-class KeyNode {
-   private:
-      int key;
-      AbstractPrivateData *ptr;
+#include <map>
 
-   public:
-      class KeyNode *next;
-
-      DLLLOCAL inline KeyNode(int k, AbstractPrivateData *p)
-      {
-	 key = k;
-	 ptr = p;
-	 next = NULL;
-      }
-      DLLLOCAL inline int getKey() const
-      {
-	 return key;
-      }
-      DLLLOCAL inline AbstractPrivateData *getPtr() const
-      {
-	 return ptr;
-      }
-      DLLLOCAL inline AbstractPrivateData *getAndClearPtr()
-      {
-	 AbstractPrivateData *rv = ptr;
-	 ptr = NULL;
-	 return rv;
-      }
-      DLLLOCAL inline class KeyNode *refNode()
-      {
-	 if (!ptr)
-	    return NULL;
-	 ptr->ref();
-	 return this;
-      }
-      DLLLOCAL inline void deref(class ExceptionSink *xsink)
-      {
-	 ptr->deref(xsink);
-      }
-      DLLLOCAL inline AbstractPrivateData *refPtr()
-      {
-	 if (!ptr)
-	    return NULL;
-	 ptr->ref();
-	 return ptr;
-      }
-};
+typedef std::map<int, AbstractPrivateData *> keymap_t;
 
 // for objects with multiple classes, private data has to be keyed
-class KeyList {
-      class KeyNode *head, *tail;
-      int len;
-
+class KeyList : public keymap_t 
+{
    public:
-      DLLLOCAL inline KeyList();
-      DLLLOCAL inline ~KeyList();
-      DLLLOCAL inline class KeyNode *find(int k) const;
-      DLLLOCAL inline void insert(int k, AbstractPrivateData *ptr);
-      DLLLOCAL inline class KeyNode *getReferencedPrivateDataNode(int key);
-      DLLLOCAL inline AbstractPrivateData *getReferencedPrivateData(int key);
+      DLLLOCAL inline AbstractPrivateData *getReferencedPrivateData(int key) const;
       DLLLOCAL inline void addToString(class QoreString *str) const;
-      DLLLOCAL inline void derefAll(class ExceptionSink *xsink);
+      DLLLOCAL inline void derefAll(class ExceptionSink *xsink) const;
+      DLLLOCAL inline AbstractPrivateData *getAndClearPtr(int key);
 };
 
-inline KeyList::KeyList()
+inline void KeyList::derefAll(class ExceptionSink *xsink) const
 {
-   head = tail = NULL;
-   len = 0;
+   for (keymap_t::const_iterator i = begin(), e = end(); i != e; ++i)
+      i->second->deref(xsink);
 }
 
-inline KeyList::~KeyList()
+DLLLOCAL inline AbstractPrivateData *KeyList::getReferencedPrivateData(int key) const
 {
-   while (head)
-   {
-      tail = head->next;
-      delete head;
-      head = tail;
-   }
-}
-
-inline void KeyList::derefAll(class ExceptionSink *xsink)
-{
-   KeyNode *w = head;
-   while (w)
-   {
-      w->deref(xsink);
-      w = w->next;
-   }
-}
-
-inline class KeyNode *KeyList::find(int k) const
-{
-   KeyNode *w = head;
-   while (w)
-   {
-      if (w->getKey() == k)
-	 break;
-      w = w->next;
-   }
-   return w;
-}
-
-DLLLOCAL inline AbstractPrivateData *KeyList::getReferencedPrivateData(int key)
-{
-   class KeyNode *kn = find(key);
-   return kn ? kn->refPtr() : NULL;
+   keymap_t::const_iterator i = find(key);
+   if (i == end())
+      return NULL;
+   
+   i->second->ref();
+   return i->second;
 }
 
 inline void KeyList::addToString(class QoreString *str) const
 {
-   KeyNode *w = head;
-   while (w)
-   {
-      str->sprintf("%d=<0x%08p>, ", w->getKey(), w->getPtr());
-      w = w->next;
-   }
+   for (keymap_t::const_iterator i = begin(), e = end(); i != e; ++i)
+      str->sprintf("%d=<0x%08p>, ", i->first, i->second);
 }
 
-inline void KeyList::insert(int k, AbstractPrivateData *ptr)
+inline AbstractPrivateData *KeyList::getAndClearPtr(int key)
 {
-   assert(!find(k));
-
-   class KeyNode *n = new KeyNode(k, ptr);
-   if (tail)
-      tail->next = n;
-   else
-      head = n;
-   tail = n;
-   len++;
-}
-
-inline class KeyNode *KeyList::getReferencedPrivateDataNode(int key)
-{
-   class KeyNode *kn = find(key);
-   if (!kn)
+   keymap_t::iterator i = find(key);
+   if (i == end())
       return NULL;
-   kn->refPtr();
-   return kn;
+
+   class AbstractPrivateData *rv = i->second;
+   erase(i);
+   return rv;
 }
 
 inline void Object::init(class QoreClass *oc, class QoreProgram *p)
@@ -260,12 +167,12 @@ void Object::tDeref()
 class QoreNode *Object::evalBuiltinMethodWithPrivateData(class BuiltinMethod *meth, class QoreNode *args, class ExceptionSink *xsink)
 {
    // get referenced object
-   class KeyNode *kn = getReferencedPrivateDataNode(meth->myclass->getIDForMethod());
+   class AbstractPrivateData *pd = getReferencedPrivateData(meth->myclass->getIDForMethod());
    
-   if (kn)
+   if (pd)
    {
-      class QoreNode *rv = meth->evalMethod(this, kn->getPtr(), args, xsink);
-      kn->deref(xsink);
+      class QoreNode *rv = meth->evalMethod(this, pd, args, xsink);
+      pd->deref(xsink);
       return rv;
    }
 
@@ -279,12 +186,12 @@ class QoreNode *Object::evalBuiltinMethodWithPrivateData(class BuiltinMethod *me
 void Object::evalCopyMethodWithPrivateData(class BuiltinMethod *meth, class Object *self, class ExceptionSink *xsink)
 {
    // get referenced object
-   class KeyNode *kn = getReferencedPrivateDataNode(meth->myclass->getID());
+   class AbstractPrivateData *pd = getReferencedPrivateData(meth->myclass->getID());
    
-   if (kn)
+   if (pd)
    {
-      meth->evalCopy(self, this, kn->getPtr(), xsink);
-      kn->deref(xsink);
+      meth->evalCopy(self, this, pd, xsink);
+      pd->deref(xsink);
       return;
    }
 
@@ -846,17 +753,6 @@ class QoreNode **Object::getExistingValuePtr(char *mem, class VLock *vl, class E
    return rv;
 }
 
-class KeyNode *Object::getReferencedPrivateDataNode(int key) 
-{ 
-   class KeyNode *rv = NULL;
-
-   g.enter();
-   if (status != OS_DELETED && privateData)
-      rv = privateData->getReferencedPrivateDataNode(key);
-   g.exit();
-   return rv;
-}
-
 AbstractPrivateData *Object::getReferencedPrivateData(int key)
 { 
    AbstractPrivateData *rv = NULL;
@@ -874,11 +770,7 @@ AbstractPrivateData *Object::getAndClearPrivateData(int key)
    AbstractPrivateData *rv = NULL;
    g.enter();
    if (privateData)
-   {
-      class KeyNode *kn = privateData->find(key);
-      if (kn)
-	 rv = kn->getAndClearPtr();
-   }
+      rv = privateData->getAndClearPtr(key);
    g.exit(); 
    return rv;
 }
@@ -888,7 +780,7 @@ void Object::setPrivate(int key, AbstractPrivateData *pd)
    g.enter();
    if (!privateData)
       privateData = new KeyList();
-   privateData->insert(key, pd);
+   privateData->insert(std::pair<int, AbstractPrivateData *>(key, pd));
    g.exit();
 }
 
