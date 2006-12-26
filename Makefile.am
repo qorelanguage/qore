@@ -135,6 +135,7 @@ noinst_HEADERS = \
 	include/qore/ql_xml.h \
 	include/qore/ql_json.h \
 	include/qore/ql_crypto.h \
+	include/qore/ql_file.h \
 	include/qore/ql_object.h \
 	include/qore/QC_Queue.h \
 	include/qore/QC_Socket.h \

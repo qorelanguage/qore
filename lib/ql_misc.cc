@@ -21,6 +21,7 @@
 */
 
 #include <qore/config.h>
+#include <qore/common.h>
 #include <qore/QoreNode.h>
 #include <qore/support.h>
 #include <qore/Exception.h>
@@ -588,7 +589,6 @@ static class QoreNode *f_parseHexString(class QoreNode *params, ExceptionSink *x
       return NULL;
    return new QoreNode(b);
 }
-
 
 void init_misc_functions()
 {

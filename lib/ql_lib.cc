@@ -563,6 +563,58 @@ static class QoreNode *f_mkfifo(class QoreNode *params, ExceptionSink *xsink)
    return new QoreNode(NT_INT, mkfifo(fn, mode));
 }
 
+static class QoreNode *f_setuid(class QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p0 = get_param(params, 0);
+
+   if (is_nothing(p0))
+   {
+      xsink->raiseException("SETUID-ERROR", "missing user ID");
+      return NULL;
+   }
+
+   return new QoreNode((int64)setuid(p0->getAsInt()));
+}
+
+static class QoreNode *f_seteuid(class QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p0 = get_param(params, 0);
+   
+   if (is_nothing(p0))
+   {
+      xsink->raiseException("SETEUID-ERROR", "missing user ID");
+      return NULL;
+   }
+   
+   return new QoreNode((int64)seteuid(p0->getAsInt()));
+}
+
+static class QoreNode *f_setgid(class QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p0 = get_param(params, 0);
+   
+   if (is_nothing(p0))
+   {
+      xsink->raiseException("SETGID-ERROR", "missing group ID");
+      return NULL;
+   }
+   
+   return new QoreNode((int64)setgid(p0->getAsInt()));
+}
+
+static class QoreNode *f_setegid(class QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p0 = get_param(params, 0);
+   
+   if (is_nothing(p0))
+   {
+      xsink->raiseException("SETEGID-ERROR", "missing group ID");
+      return NULL;
+   }
+   
+   return new QoreNode((int64)setegid(p0->getAsInt()));
+}
+
 #ifdef DEBUG
 static QoreNode* runQoreTests(QoreNode* params, ExceptionSink* xsink)
 {
@@ -635,6 +687,10 @@ void init_lib_functions()
    builtinFunctions.add("hstat",       f_hstat);
    builtinFunctions.add("hlstat",      f_hlstat);
    builtinFunctions.add("exec",        f_exec, QDOM_EXTERNAL_PROCESS | QDOM_PROCESS);
+   builtinFunctions.add("setuid",      f_setuid);
+   builtinFunctions.add("seteuid",     f_seteuid);
+   builtinFunctions.add("setgid",      f_setgid);
+   builtinFunctions.add("setegid",     f_setegid);
 
 #ifdef DEBUG
    builtinFunctions.add("runQoreTests", runQoreTests);

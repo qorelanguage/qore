@@ -101,6 +101,7 @@
 #include "ql_json.cc"
 #include "ql_crypto.cc"
 #include "ql_object.cc"
+#include "ql_file.cc"
 #include "QC_Socket.cc"
 #include "QC_Program.cc"
 #include "QC_File.cc"

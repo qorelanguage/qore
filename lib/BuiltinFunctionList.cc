@@ -38,6 +38,7 @@
 #include <qore/ql_thread.h>
 #include <qore/ql_crypto.h>
 #include <qore/ql_object.h>
+#include <qore/ql_file.h>
 
 #ifdef DEBUG
 #include <qore/ql_debug.h>
@@ -123,6 +124,7 @@ void BuiltinFunctionList::init()
    init_thread_functions();
    init_crypto_functions();
    init_object_functions();
+   init_file_functions();
 #ifdef DEBUG
    init_debug_functions();
 #endif
