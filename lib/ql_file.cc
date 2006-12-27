@@ -34,7 +34,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-static class QoreNode *check_stat(int code, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *check_stat(unsigned code, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = test_param(params, NT_STRING, 0);
 
@@ -50,7 +50,7 @@ static class QoreNode *check_stat(int code, class QoreNode *params, ExceptionSin
    return (sbuf.st_mode & S_IFMT) == code ? boolean_true() : boolean_false();
 }
 
-static class QoreNode *check_lstat(int code, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *check_lstat(unsigned code, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0;
    if (!(p0 = test_param(params, NT_STRING, 0)))
