@@ -39,7 +39,8 @@ class List {
       DLLLOCAL void check_offset(int &offset);
       DLLLOCAL void check_offset(int &offset, int &len);
       DLLLOCAL void deref_intern(class ExceptionSink *xisnk);
-
+      DLLLOCAL int qsort(class QoreProgram *pgm, class UserFunction *f, int left, int right, class ExceptionSink *xsink);
+      
    protected:
       DLLEXPORT ~List();
 
@@ -69,8 +70,10 @@ class List {
       DLLEXPORT class List *copyListFrom(int offset) const;
       DLLEXPORT class QoreNode *sort() const;
       DLLEXPORT class QoreNode *sortDescending() const;
-      DLLEXPORT class QoreNode *sort(char *sort_function_name) const;
-      DLLEXPORT class QoreNode *sortDescending(char *sort_function_name) const;
+      DLLEXPORT class QoreNode *sort(char *sort_function_name, class ExceptionSink *xsink) const;
+      DLLEXPORT class QoreNode *sortStable() const;
+      DLLEXPORT class QoreNode *sortDescendingStable() const;
+      DLLEXPORT class QoreNode *sortStable(char *sort_function_name, class ExceptionSink *xsink) const;
       DLLEXPORT void splice(int offset, class ExceptionSink *xsink);
       DLLEXPORT void splice(int offset, int length, class ExceptionSink *xsink);
       DLLEXPORT void splice(int offset, int length, class QoreNode *l, class ExceptionSink *xsink);

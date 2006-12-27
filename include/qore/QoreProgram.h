@@ -127,6 +127,7 @@ class QoreProgram : public AbstractPrivateData
       DLLEXPORT int getWarningMask() const;
       DLLEXPORT bool checkFeature(char *f) const;
       DLLEXPORT class List *getFeatureList() const;
+      DLLEXPORT class UserFunction *findUserFunction(char *name);
       
       // QoreProgram() NOTE: ecn is the exec_class_name and will be copied if it exists
       DLLLOCAL QoreProgram(class QoreProgram *pgm, int po, bool ec = false, char *ecn = NULL);

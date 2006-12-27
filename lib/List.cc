@@ -29,9 +29,8 @@
 #include <qore/QoreType.h>
 #include <qore/Object.h>
 #include <qore/Exception.h>
-#ifdef DEBUG
+#include <qore/ReferenceHolder.h>
 #include <qore/support.h>
-#endif
 
 #include <stdlib.h>
 #include <string.h>
@@ -48,6 +47,8 @@ using namespace std;
 
 #define LIST_BLOCK 20
 #define LIST_PAD   15
+
+typedef ReferenceHolder<QoreNode> safe_qorenode_t;
 
 void List::check_offset(int &offset)
 {
@@ -382,20 +383,111 @@ class QoreNode *List::sortDescending() const
    return rv;
 }
 
-class QoreNode *List::sort(char *sort_function_name) const
+static inline class QoreNode *do_args(QoreNode *e1, QoreNode *e2)
 {
-   class QoreNode *rv = copy();
-   //printd(5, "List::sort() entry=%08p length=%d\n", rv->val.list->entry, length);
-   std::sort(rv->val.list->entry, rv->val.list->entry + length, compareListEntries);
+   class List *l = new List();
+   l->push(e1);
+   l->push(e2);
+   return new QoreNode(l);
+}
+
+// quicksort for controlled and interruptible sorts
+int List::qsort(class QoreProgram *pgm, class UserFunction *f, int left, int right, class ExceptionSink *xsink)
+{
+   int l_hold = left;
+   int r_hold = right;
+   class QoreNode *pivot = entry[left];
+
+   while (left < right)
+   {
+      while (true)
+      {
+	 safe_qorenode_t args(do_args(entry[right], pivot), xsink);
+	 safe_qorenode_t rv(pgm->callFunction(f, *args, xsink), xsink);
+	 if (xsink->isEvent())
+	    return -1;
+	 int rc = rv->getAsInt();
+	 if (rc >= 0 && left < right)
+	    right--;
+	 else
+	    break;
+      }
+
+      if (left != right)
+      {
+	 entry[left] = entry[right];
+	 left++;
+      }
+
+      while (true)
+      {
+	 safe_qorenode_t args(do_args(entry[left], pivot), xsink);
+	 safe_qorenode_t rv(pgm->callFunction(f, *args, xsink), xsink);
+	 if (xsink->isEvent())
+	    return -1;
+	 int rc = rv->getAsInt();
+	 if (rc <= 0 && left < right)
+	    left++;
+	 else
+	    break;
+      }
+      
+      if (left != right)
+      {
+	 entry[right] = entry[left];
+	 right--;
+      }
+   }
+   entry[left] = pivot;
+   int t_left = left;
+   left = l_hold;
+   right = r_hold;
+   int rc = 0;
+   if (left < t_left)
+      rc = qsort(pgm, f, left, t_left - 1, xsink);
+   if (!rc && right > t_left)
+      rc = qsort(pgm, f, t_left + 1, right, xsink);
+   return rc;
+}
+
+class QoreNode *List::sort(char *sort_function_name, class ExceptionSink *xsink) const
+{   
+   QoreProgram *pgm = getProgram();
+   class UserFunction *f = pgm->findUserFunction(sort_function_name);
+   if (!f)
+   {
+      xsink->raiseException("SORT-ERROR", "sort callback function '%s' does not exist", sort_function_name);
+      return NULL;
+   }
+   QoreNode *rv = copy();
+   if (length)
+      if (rv->val.list->qsort(pgm, f, 0, length - 1, xsink))
+      {
+	 rv->deref(xsink);
+	 rv = NULL;
+      }
    return rv;
 }
 
-class QoreNode *List::sortDescending(char *sort_function_name) const
+class QoreNode *List::sortStable() const
 {
    class QoreNode *rv = copy();
    //printd(5, "List::sort() entry=%08p length=%d\n", rv->val.list->entry, length);
-   std::sort(rv->val.list->entry, rv->val.list->entry + length, compareListEntriesDescending);
+   std::stable_sort(rv->val.list->entry, rv->val.list->entry + length, compareListEntries);
    return rv;
+}
+
+class QoreNode *List::sortDescendingStable() const
+{
+   class QoreNode *rv = copy();
+   //printd(5, "List::sort() entry=%08p length=%d\n", rv->val.list->entry, length);
+   std::stable_sort(rv->val.list->entry, rv->val.list->entry + length, compareListEntriesDescending);
+   return rv;
+}
+
+class QoreNode *List::sortStable(char *sort_function_name, class ExceptionSink *xsink) const
+{   
+   return NULL;
 }
 
 // does a deep dereference

@@ -59,6 +59,7 @@ public:
   ~ReferenceHolder() { if(p) p->deref(xsink);}
 
   T* operator->() { return p; }
+  T* operator*() { return p; }
   operator bool() const { return p != 0; }
 };
 
