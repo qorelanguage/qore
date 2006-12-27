@@ -100,6 +100,11 @@ sub hash_return($var)
 	     "var" : $var );
 }
 
+sub hash_sort_callback($l, $r)
+{
+    return $l.key1 <=> $r.key1;
+}
+
 # array tests
 sub array_tests()
 {
@@ -152,8 +157,29 @@ sub array_tests()
     test_value($c[4], 5, "second list list plus operator concatenation");
     my $l1 = ( 3, 2, 4, 1, 6, 5 );
     my $l2 = ( "one", "two", "three", "four", "five", "six" );
+    my $hl = 
+	( ( "key1" : 8, "key2" : "two" ),
+	  ( "key1" : 2, "key2" : "seven" ),
+	  ( "key1" : 7, "key2" : "six" ),
+	  ( "key1" : 1, "key2" : "eight" ),
+	  ( "key1" : 6, "key2" : "four" ),
+	  ( "key1" : 9, "key2" : "three" ),
+	  ( "key1" : 3, "key2" : "five" ),
+	  ( "key1" : 5, "key2" : "nine" ),
+	  ( "key1" : 4, "key2" : "one" ) );
+    my $sorted_hl = 
+	( ( "key1" : 1, "key2" : "eight" ),
+	  ( "key1" : 2, "key2" : "seven" ),
+	  ( "key1" : 3, "key2" : "five" ),
+	  ( "key1" : 4, "key2" : "one" ),
+	  ( "key1" : 5, "key2" : "nine" ),
+	  ( "key1" : 6, "key2" : "four" ),
+	  ( "key1" : 7, "key2" : "six" ),
+	  ( "key1" : 8, "key2" : "two" ),
+	  ( "key1" : 9, "key2" : "three" ) );
     test_value(sort($l1), (1,2,3,4,5,6), "first sort()");
     test_value(sort($l2), ("five", "four", "one", "six", "three", "two"), "second sort()");
+    test_value(sort($hl, "hash_sort_callback"), $sorted_hl, "sort with callback");
     test_value(sortDescending($l1), (6,5,4,3,2,1), "first sortDescending()");
     test_value(sortDescending($l2), ("two", "three", "six", "one", "four", "five"), "second sortDescending()");
     my $v = shift $l2;
@@ -920,6 +946,21 @@ sub lib_tests()
 	test_value(gethostname(), $ENV.HOSTNAME, "gethostname()");
     else
 	test_value(!strlen(gethostname()), False, "!strlen(gethostname())");
+}
+
+sub file_tests()
+{
+    test_value(is_file($ENV."_"), True, "is_file()");
+    test_value(is_executable($ENV."_"), True, "is_executable()");
+    test_value(is_dir("/"), True, "is_dir()");
+    test_value(is_writeable($ENV.HOME), True, "is_writable()");
+    test_value(is_readable($ENV.HOME), False, "is_readable()");
+    test_value(is_dev("/dev/null"), True, "is_dev()");
+    test_value(is_cdev("/dev/null"), True, "is_cdev()");
+    test_value(is_bdev("/dev/null"), False, "is_bdev()");
+    test_value(is_link("/"), False, "is_link()");
+    test_value(is_socket("/"), False, "is_socket()");
+    test_value(is_pipe("/"), False, "is_pipe()");
 }
 
 sub io_tests()

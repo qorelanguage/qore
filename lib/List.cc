@@ -386,7 +386,9 @@ class QoreNode *List::sortDescending() const
 static inline class QoreNode *do_args(QoreNode *e1, QoreNode *e2)
 {
    class List *l = new List();
+   e1->ref();
    l->push(e1);
+   e2->ref();
    l->push(e2);
    return new QoreNode(l);
 }

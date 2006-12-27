@@ -185,7 +185,7 @@ void init_file_functions()
    builtinFunctions.add("is_dir", f_is_dir);
    builtinFunctions.add("is_socket", f_is_socket);
    builtinFunctions.add("is_pipe", f_is_pipe);
-   builtinFunctions.add("is_cdev", f_is_dev);
+   builtinFunctions.add("is_dev", f_is_dev);
    builtinFunctions.add("is_cdev", f_is_cdev);
    builtinFunctions.add("is_bdev", f_is_bdev);
    builtinFunctions.add("is_link", f_is_link);
