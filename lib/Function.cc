@@ -352,7 +352,6 @@ Paramlist::~Paramlist()
 
 UserFunction::UserFunction(char *nme, class Paramlist *parms, class StatementBlock *b, bool synced)
 {
-   next = NULL;
    synchronized = synced;
    if (synced)
       gate = new VRMutex();

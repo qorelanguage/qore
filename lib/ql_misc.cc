@@ -43,6 +43,20 @@
 
 static class QoreNode *f_sort(class QoreNode *params, ExceptionSink *xsink)
 {
+   char *name = NULL;
+   // check for a function name in second argument and throw exception if not present
+   // before checking for a list in the first argument
+   QoreNode *fn = get_param(params, 1);
+   if (!is_nothing(fn))
+   {
+      if (fn->type != NT_STRING)
+      {
+	 xsink->raiseException("SORT-PARAMETER-ERROR", "second argument is present and is not a string (%s)", fn->type->getName());
+	 return NULL;
+      }
+      name = fn->val.String->getBuffer();
+   }
+   
    QoreNode *lst = test_param(params, NT_LIST, 0);
    if (!lst)
       return NULL;

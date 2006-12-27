@@ -382,6 +382,22 @@ class QoreNode *List::sortDescending() const
    return rv;
 }
 
+class QoreNode *List::sort(char *sort_function_name) const
+{
+   class QoreNode *rv = copy();
+   //printd(5, "List::sort() entry=%08p length=%d\n", rv->val.list->entry, length);
+   std::sort(rv->val.list->entry, rv->val.list->entry + length, compareListEntries);
+   return rv;
+}
+
+class QoreNode *List::sortDescending(char *sort_function_name) const
+{
+   class QoreNode *rv = copy();
+   //printd(5, "List::sort() entry=%08p length=%d\n", rv->val.list->entry, length);
+   std::sort(rv->val.list->entry, rv->val.list->entry + length, compareListEntriesDescending);
+   return rv;
+}
+
 // does a deep dereference
 void List::deref_intern(ExceptionSink *xsink)
 {

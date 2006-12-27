@@ -163,7 +163,6 @@ class UserFunction : public ReferenceObject
 
    public:
       char *name;
-      class UserFunction *next;
       class Paramlist *params;
       class StatementBlock *statements;
 

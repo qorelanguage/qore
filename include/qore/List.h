@@ -69,6 +69,8 @@ class List {
       DLLEXPORT class List *copyListFrom(int offset) const;
       DLLEXPORT class QoreNode *sort() const;
       DLLEXPORT class QoreNode *sortDescending() const;
+      DLLEXPORT class QoreNode *sort(char *sort_function_name) const;
+      DLLEXPORT class QoreNode *sortDescending(char *sort_function_name) const;
       DLLEXPORT void splice(int offset, class ExceptionSink *xsink);
       DLLEXPORT void splice(int offset, int length, class ExceptionSink *xsink);
       DLLEXPORT void splice(int offset, int length, class QoreNode *l, class ExceptionSink *xsink);
@@ -84,12 +86,12 @@ class ListIterator
       class List *l;
    
    public:
-      DLLEXPORT inline ListIterator(class List *lst);
-      DLLEXPORT inline bool next();
-      DLLEXPORT inline class QoreNode *getValue() const;
-      DLLEXPORT inline class QoreNode **getValuePtr() const;
-      DLLEXPORT inline class QoreNode *eval(class ExceptionSink *xsink) const;
-      DLLEXPORT inline bool last() const;
+      DLLEXPORT ListIterator(class List *lst);
+      DLLEXPORT bool next();
+      DLLEXPORT class QoreNode *getValue() const;
+      DLLEXPORT class QoreNode **getValuePtr() const;
+      DLLEXPORT class QoreNode *eval(class ExceptionSink *xsink) const;
+      DLLEXPORT bool last() const;
       //void setValue(class QoreNode *val, class ExceptionSink *xsink);
 };
 
