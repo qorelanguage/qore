@@ -177,9 +177,22 @@ sub array_tests()
 	  ( "key1" : 7, "key2" : "six" ),
 	  ( "key1" : 8, "key2" : "two" ),
 	  ( "key1" : 9, "key2" : "three" ) );
+    my $stable_sorted_hl = 
+	( ( "key1" : 1, "key2" : "eight" ),
+	  ( "key1" : 2, "key2" : "seven" ),
+	  ( "key1" : 3, "key2" : "five" ),
+	  ( "key1" : 3, "key2" : "five-o" ),
+	  ( "key1" : 4, "key2" : "one" ),
+	  ( "key1" : 5, "key2" : "nine" ),
+	  ( "key1" : 6, "key2" : "four" ),
+	  ( "key1" : 7, "key2" : "six" ),
+	  ( "key1" : 8, "key2" : "two" ),
+	  ( "key1" : 9, "key2" : "three" ) );
     test_value(sort($l1), (1,2,3,4,5,6), "first sort()");
     test_value(sort($l2), ("five", "four", "one", "six", "three", "two"), "second sort()");
-    test_value(sort($hl, "hash_sort_callback"), $sorted_hl, "sort with callback");
+    test_value(sort($hl, "hash_sort_callback"), $sorted_hl, "sort() with callback");
+    $hl += ( "key1" : 3, "key2" : "five-o" );
+    test_value(sortStable($hl, "hash_sort_callback"), $stable_sorted_hl, "sortStable() with callback");
     test_value(sortDescending($l1), (6,5,4,3,2,1), "first sortDescending()");
     test_value(sortDescending($l2), ("two", "three", "six", "one", "four", "five"), "second sortDescending()");
     my $v = shift $l2;

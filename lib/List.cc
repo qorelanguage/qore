@@ -383,6 +383,15 @@ class QoreNode *List::sortDescending() const
    return rv;
 }
 
+class QoreNode *StackList::getAndClear(int i)
+{
+   if (i < 0 || i >= length)
+      return NULL;
+   class QoreNode *rv = entry[i];
+   entry[i] = NULL;
+   return rv;
+}
+
 static inline class QoreNode *do_args(QoreNode *e1, QoreNode *e2)
 {
    class List *l = new List();
@@ -393,7 +402,62 @@ static inline class QoreNode *do_args(QoreNode *e1, QoreNode *e2)
    return new QoreNode(l);
 }
 
-// quicksort for controlled and interruptible sorts
+// mergesort for controlled and interruptible sorts (stable)
+int List::mergesort(class QoreProgram *pgm, class UserFunction *f, class ExceptionSink *xsink)
+{
+   //printd(5, "List::mergesort() ENTER this=%08p, pgm=%08p, f=%08p length=%d\n", this, pgm, f, length);
+   
+   if (length <= 1)
+      return 0;
+
+   // separate list into two equal-sized lists
+   StackList left(xsink), right(xsink);
+   int mid = length / 2;
+   {
+      int i;
+      for (i = 0; i < mid; i++)
+	 left.push(entry[i]);
+      for (; i < length; i++)
+	 right.push(entry[i]);
+   }
+
+   // set length to 0 - the temporary lists own the entry references now
+   length = 0;
+
+   // mergesort the two lists
+   if (left.mergesort(pgm, f, xsink) || right.mergesort(pgm, f, xsink))
+      return -1;
+
+   // merge the resulting lists
+   // use offsets and StackList::getAndClear() to avoid moving a lot of memory around
+   int li = 0, ri = 0;
+   while ((li < left.length) && (ri < right.length))
+   {
+      class QoreNode *l = left.entry[li];
+      class QoreNode *r = right.entry[ri];
+      safe_qorenode_t args(do_args(l, r), xsink);
+      safe_qorenode_t rv(pgm->callFunction(f, *args, xsink), xsink);
+      if (xsink->isEvent())
+	 return -1;
+      int rc = rv->getAsInt();
+      if (rc <= 0)
+	 push(left.getAndClear(li++));
+      else
+	 push(right.getAndClear(ri++));
+   }
+
+   // only one list will have entries left...
+   while (li < left.length)
+      push(left.getAndClear(li++));
+   while (ri < right.length)
+      push(right.getAndClear(ri++));
+
+   //printd(5, "List::mergesort() EXIT this=%08p, length=%d\n", this, length);
+
+   return 0;
+}
+
+// quicksort for controlled and interruptible sorts (unstable)
 int List::qsort(class QoreProgram *pgm, class UserFunction *f, int left, int right, class ExceptionSink *xsink)
 {
    int l_hold = left;
@@ -489,7 +553,21 @@ class QoreNode *List::sortDescendingStable() const
 
 class QoreNode *List::sortStable(char *sort_function_name, class ExceptionSink *xsink) const
 {   
-   return NULL;
+   QoreProgram *pgm = getProgram();
+   class UserFunction *f = pgm->findUserFunction(sort_function_name);
+   if (!f)
+   {
+      xsink->raiseException("SORT-ERROR", "sort callback function '%s' does not exist", sort_function_name);
+      return NULL;
+   }
+   QoreNode *rv = copy();
+   if (length)
+      if (rv->val.list->mergesort(pgm, f, xsink))
+      {
+	 rv->deref(xsink);
+	 rv = NULL;
+      }
+   return rv;
 }
 
 // does a deep dereference

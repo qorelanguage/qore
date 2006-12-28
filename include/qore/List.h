@@ -27,7 +27,7 @@
 #define _QORE_LIST_H
 
 class List {   
-   private:
+   protected:
       class QoreNode **entry;
       int length;
       int allocated;
@@ -39,9 +39,10 @@ class List {
       DLLLOCAL void check_offset(int &offset);
       DLLLOCAL void check_offset(int &offset, int &len);
       DLLLOCAL void deref_intern(class ExceptionSink *xisnk);
+      // qsort sorts the list in-place (unstable)
       DLLLOCAL int qsort(class QoreProgram *pgm, class UserFunction *f, int left, int right, class ExceptionSink *xsink);
-      
-   protected:
+      // mergesort sorts the list in-place (stable)
+      DLLLOCAL int mergesort(class QoreProgram *pgm, class UserFunction *f, class ExceptionSink *xsink);
       DLLEXPORT ~List();
 
    public:
@@ -80,6 +81,29 @@ class List {
       DLLEXPORT int size() const;
       DLLEXPORT bool needsEval() const;
       DLLEXPORT void clearNeedsEval();
+};
+
+class StackList : public List
+{
+private:
+   class ExceptionSink *xsink;
+   
+   // none of these operators/methods are implemented - here to make sure they are not used
+   DLLLOCAL void *operator new(size_t); 
+   DLLLOCAL StackList();
+   DLLLOCAL StackList(bool i);
+   DLLLOCAL void deleteAndDeref(class ExceptionSink *xsink);
+   
+public:
+   DLLEXPORT StackList(class ExceptionSink *xs)
+   {
+      xsink = xs;
+   }
+   DLLEXPORT ~StackList()
+   {
+      dereference(xsink);
+   }
+   DLLEXPORT class QoreNode *getAndClear(int i);
 };
 
 class ListIterator
