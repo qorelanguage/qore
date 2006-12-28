@@ -706,7 +706,7 @@
     </table>
 
     <sect2 id="Qore_File_constructor">
-      <title>Qore::File::constructor()</title>
+      <title>File::constructor()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -763,7 +763,7 @@
     </sect2>
 
     <sect2 id="Qore_File_destructor">
-      <title>Qore::File::destructor()</title>
+      <title>File::destructor()</title>
 
       <variablelist>
 	<varlistentry>
@@ -782,7 +782,7 @@
     </sect2>
 
     <sect2 id="Qore_File_copy">
-      <title>Qore::File::copy()</title>
+      <title>File::copy()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -838,7 +838,7 @@
     </sect2>
 
     <sect2 id="Qore_File_close">
-      <title>Qore::File::close()</title>
+      <title>File::close()</title>
 
      <variablelist>
 	<varlistentry>
@@ -895,7 +895,7 @@
     </sect2>
 
     <sect2 id="Qore_File_f_printf">
-      <title>Qore::File::f_printf()</title>
+      <title>File::f_printf()</title>
 
      <variablelist>
 	<varlistentry>
@@ -977,7 +977,7 @@
     </sect2>
 
     <sect2 id="Qore_File_f_vprintf">
-      <title>Qore::File::f_vprintf()</title>
+      <title>File::f_vprintf()</title>
       
      <variablelist>
 	<varlistentry>
@@ -1058,7 +1058,7 @@
     </sect2>
 
     <sect2 id="Qore_File_getchar">
-      <title>Qore::File::getchar()</title><para></para>
+      <title>File::getchar()</title><para></para>
 
      <variablelist>
 	<varlistentry>
@@ -1117,7 +1117,7 @@
     </sect2>
     
     <sect2 id="Qore_File_getCharset">
-      <title>Qore::File::getCharset()</title>
+      <title>File::getCharset()</title>
       
      <variablelist>
 	<varlistentry>
@@ -1176,7 +1176,7 @@
     </sect2>
 
     <sect2 id="Qore_File_getPos">
-      <title>Qore::File::getPos()</title>
+      <title>File::getPos()</title>
       
      <variablelist>
 	<varlistentry>
@@ -1235,7 +1235,7 @@
     </sect2>
 
     <sect2 id="Qore_File_printf">
-      <title>Qore::File::printf()</title>
+      <title>File::printf()</title>
       
      <variablelist>
 	<varlistentry>
@@ -1317,7 +1317,7 @@
     </sect2>
 
     <sect2 id="Qore_File_open">
-      <title>Qore::File::open()</title>
+      <title>File::open()</title>
 
       <variablelist>
 	<varlistentry>
@@ -1409,7 +1409,7 @@
 
     </sect2>
     <sect2 id="Qore_File_read">
-      <title>Qore::File::read()</title>
+      <title>File::read()</title>
       
       <variablelist>
 	<varlistentry>
@@ -1491,7 +1491,7 @@
     </sect2>
 
     <sect2 id="Qore_File_readi1">
-      <title>Qore::File::readi1()</title>
+      <title>File::readi1()</title>
       
       <variablelist>
 	<varlistentry>
@@ -1567,7 +1567,7 @@
     </sect2>
 
     <sect2 id="Qore_File_readi2">
-      <title>Qore::File::readi2()</title>
+      <title>File::readi2()</title>
       
       <variablelist>
 	<varlistentry>
@@ -1643,7 +1643,7 @@
     </sect2>
 
     <sect2 id="Qore_File_readi4">
-      <title>Qore::File::readi4()</title>
+      <title>File::readi4()</title>
       
       <variablelist>
 	<varlistentry>
@@ -1719,7 +1719,7 @@
     </sect2>
 
     <sect2 id="Qore_File_readi2LSB">
-      <title>Qore::File::readi2LSB()</title>
+      <title>File::readi2LSB()</title>
       
       <variablelist>
 	<varlistentry>
@@ -1793,7 +1793,7 @@
     </sect2>
 
     <sect2 id="Qore_File_readi4LSB">
-      <title>Qore::File::readi4LSB()</title>
+      <title>File::readi4LSB()</title>
       
      <variablelist>
 	<varlistentry>
@@ -1867,7 +1867,7 @@
     </sect2>
 
     <sect2 id="Qore_File_readBinary">
-      <title>Qore::File::readBinary()</title>
+      <title>File::readBinary()</title>
       
      <variablelist>
 	<varlistentry>
@@ -1946,7 +1946,7 @@
     </sect2>
 
     <sect2 id="Qore_File_readLine">
-      <title>Qore::File::readLine()</title>
+      <title>File::readLine()</title>
       
      <variablelist>
 	<varlistentry>
@@ -2022,7 +2022,7 @@
     </sect2>
 
     <sect2 id="Qore_File_setCharset">
-      <title>Qore::File::setCharset()</title>
+      <title>File::setCharset()</title>
       
      <variablelist>
 	<varlistentry>
@@ -2081,7 +2081,7 @@
     </sect2>
 
     <sect2 id="Qore_File_setPos">
-      <title>Qore::File::setPos()</title>
+      <title>File::setPos()</title>
       
      <variablelist>
 	<varlistentry>
@@ -2138,7 +2138,7 @@
     </sect2>
 
     <sect2 id="Qore_File_sync">
-      <title>Qore::File::sync()</title>
+      <title>File::sync()</title>
 
      <variablelist>
 	<varlistentry>
@@ -2195,7 +2195,7 @@
     </sect2>
 
     <sect2 id="Qore_File_vprintf">
-      <title>Qore::File::vprintf()</title>
+      <title>File::vprintf()</title>
       
      <variablelist>
 	<varlistentry>
@@ -2275,7 +2275,7 @@
     </sect2>
 
     <sect2 id="Qore_File_write">
-      <title>Qore::File::write()</title>
+      <title>File::write()</title>
       
       <variablelist>
 	<varlistentry>
@@ -2355,7 +2355,7 @@
     </sect2>
 
     <sect2 id="Qore_File_writei1">
-      <title>Qore::File::writei1()</title>
+      <title>File::writei1()</title>
       
       <variablelist>
 	<varlistentry>
@@ -2429,7 +2429,7 @@
     </sect2>
 
     <sect2 id="Qore_File_writei2">
-      <title>Qore::File::writei2()</title>
+      <title>File::writei2()</title>
       
      <variablelist>
 	<varlistentry>
@@ -2504,7 +2504,7 @@
     </sect2>
 
     <sect2 id="Qore_File_writei4">
-      <title>Qore::File::writei4()</title>
+      <title>File::writei4()</title>
       
      <variablelist>
 	<varlistentry>
@@ -2579,7 +2579,7 @@
     </sect2>
 
     <sect2 id="Qore_File_writei2LSB">
-      <title>Qore::File::writei2LSB()</title>
+      <title>File::writei2LSB()</title>
       
      <variablelist>
 	<varlistentry>
@@ -2653,7 +2653,7 @@
     </sect2>
 
     <sect2 id="Qore_File_writei4LSB">
-      <title>Qore::File::writei4LSB()</title>
+      <title>File::writei4LSB()</title>
       
      <variablelist>
 	<varlistentry>
@@ -2748,7 +2748,7 @@
 
 	<tbody>
 	  <row>
-	    <entry><para><link linkend="Qore::GetOpt::constructor">GetOpt::constructor()</link></para></entry>
+	    <entry><para><link linkend="GetOpt::constructor">GetOpt::constructor()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Creates the GetOpt object with the option hash passed.</para></entry>
 	  </row>
@@ -2763,7 +2763,7 @@
 	    <entry><para>Throws an exception; objects of this class cannot be copied.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore::GetOpt::parse">GetOpt::parse()</link></para></entry>
+	    <entry><para><link linkend="GetOpt::parse">GetOpt::parse()</link></para></entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Parses the argument list passed and retuns a hash of the results.</para></entry>
 	  </row>
@@ -2772,8 +2772,8 @@
       </tgroup>
     </table>
 
-    <sect2 id="Qore::GetOpt::constructor">
-      <title>Qore::GetOpt::constructor()</title>
+    <sect2 id="GetOpt::constructor">
+      <title>GetOpt::constructor()</title>
 
       <variablelist>
 	<varlistentry>
@@ -2877,7 +2877,7 @@
     </sect2>
 
     <sect2 id="Qore_GetOpt_destructor">
-      <title>Qore::GetOpt::destructor()</title>
+      <title>GetOpt::destructor()</title>
 
       <variablelist>
 	<varlistentry>
@@ -2896,7 +2896,7 @@
     </sect2>
 
     <sect2 id="Qore_GetOpt_copy">
-      <title>Qore::GetOpt::copy()</title>
+      <title>GetOpt::copy()</title>
 
       <variablelist>
 	<varlistentry>
@@ -2970,8 +2970,8 @@
       </table>
     </sect2>
 
-    <sect2 id="Qore::GetOpt::parse">
-      <title>Qore::GetOpt::parse()</title>
+    <sect2 id="GetOpt::parse">
+      <title>GetOpt::parse()</title>
       
       <variablelist>
 	<varlistentry>
@@ -3358,7 +3358,7 @@
     </table>
 
     <sect2 id="Qore_FtpClient_constructor">
-      <title>Qore::FtpClient::constructor()</title>
+      <title>FtpClient::constructor()</title>
       
       <variablelist>
 	<varlistentry>
@@ -3438,7 +3438,7 @@
     </sect2>
 
     <sect2 id="Qore_FtpClient_destructor">
-      <title>Qore::FtpClient::destructor()</title>
+      <title>FtpClient::destructor()</title>
 
       <variablelist>
 	<varlistentry>
@@ -3457,7 +3457,7 @@
     </sect2>
 
     <sect2 id="Qore_FtpClient_copy">
-      <title>Qore::FtpClient::copy()</title>
+      <title>FtpClient::copy()</title>
 
       <variablelist>
 	<varlistentry>
@@ -3532,7 +3532,7 @@
     </sect2>
 
     <sect2 id="Qore_FtpClient_connect">
-      <title>Qore::FtpClient::connect()</title>
+      <title>FtpClient::connect()</title>
 
       <variablelist>
 	<varlistentry>
@@ -3615,7 +3615,7 @@
     </sect2>
 
     <sect2 id="Qore_FtpClient_disconnect">
-      <title>Qore::FtpClient::disconnect()</title>
+      <title>FtpClient::disconnect()</title>
 
       <variablelist>
 	<varlistentry>
@@ -4630,7 +4630,7 @@
     </sect2>
 
     <sect2 id="Qore_FtpClient_list">
-      <title>Qore::FtpClient::list()</title>
+      <title>FtpClient::list()</title>
       
       <variablelist>
 	<varlistentry>
@@ -4713,7 +4713,7 @@
       
     </sect2>
     <sect2 id="Qore_FtpClient_nlst">
-      <title>Qore::FtpClient::nlst()</title>
+      <title>FtpClient::nlst()</title>
 
       <variablelist>
 	<varlistentry>
@@ -4796,7 +4796,7 @@
 
     </sect2>
     <sect2 id="Qore_FtpClient_pwd">
-      <title>Qore::FtpClient::pwd()</title>
+      <title>FtpClient::pwd()</title>
 
       <variablelist>
 	<varlistentry>
@@ -4880,7 +4880,7 @@
     </sect2>
 
     <sect2 id="Qore_FtpClient_cwd">
-      <title>Qore::FtpClient::cwd()</title>
+      <title>FtpClient::cwd()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -4966,7 +4966,7 @@
     </sect2>
 
     <sect2 id="Qore_FtpClient_get">
-      <title>Qore::FtpClient::get()</title>
+      <title>FtpClient::get()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -5061,7 +5061,7 @@
     </sect2>
 
     <sect2 id="Qore_FtpClient_put">
-      <title>Qore::FtpClient::put()</title>
+      <title>FtpClient::put()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -5160,7 +5160,7 @@
     </sect2>
 
     <sect2 id="Qore_FtpClient_del">
-      <title>Qore::FtpClient::del()</title>
+      <title>FtpClient::del()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -5246,7 +5246,7 @@
     </sect2>
 
     <sect2 id="Qore_FtpClient_setUserName">
-      <title>Qore::FtpClient::setUserName()</title>
+      <title>FtpClient::setUserName()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -5320,7 +5320,7 @@
     </sect2>
 
     <sect2 id="Qore_FtpClient_setPassword">
-      <title>Qore::FtpClient::setPassword()</title>
+      <title>FtpClient::setPassword()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -5394,7 +5394,7 @@
     </sect2>
 
     <sect2 id="Qore_FtpClient_setHostName">
-      <title>Qore::FtpClient::setHostName()</title>
+      <title>FtpClient::setHostName()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -5468,7 +5468,7 @@
     </sect2>
 
     <sect2 id="Qore_FtpClient_setPort">
-      <title>Qore::FtpClient::setPort()</title>
+      <title>FtpClient::setPort()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -5542,7 +5542,7 @@
     </sect2>
 
     <sect2 id="Qore_FtpClient_setURL">
-      <title>Qore::FtpClient::setURL()</title>
+      <title>FtpClient::setURL()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -5624,7 +5624,7 @@
     </sect2>
 
     <sect2 id="Qore_FtpClient_getUserName">
-      <title>Qore::FtpClient::getUserName()</title>
+      <title>FtpClient::getUserName()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -5680,7 +5680,7 @@
     </sect2>
 
     <sect2 id="Qore_FtpClient_getPassword">
-      <title>Qore::FtpClient::getPassword()</title>
+      <title>FtpClient::getPassword()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -5736,7 +5736,7 @@
     </sect2>
 
     <sect2 id="Qore_FtpClient_getHostName">
-      <title>Qore::FtpClient::getHostName()</title>
+      <title>FtpClient::getHostName()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -5792,7 +5792,7 @@
     </sect2>
 
     <sect2 id="Qore_FtpClient_getPort">
-      <title>Qore::FtpClient::getPort()</title>
+      <title>FtpClient::getPort()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -5848,7 +5848,7 @@
     </sect2>
 
     <sect2 id="Qore_FtpClient_getURL">
-      <title>Qore::FtpClient::getURL()</title>
+      <title>FtpClient::getURL()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -6089,7 +6089,7 @@
     </table>
     
     <sect2 id="Qore_Program_constructor">
-      <title>Qore::Program::constructor()</title>
+      <title>Program::constructor()</title>
       
       <variablelist>
 	<varlistentry>
@@ -6146,7 +6146,7 @@
     </sect2>
 
     <sect2 id="Qore_Program_destructor">
-      <title>Qore::Program::destructor()</title>
+      <title>Program::destructor()</title>
 
       <variablelist>
 	<varlistentry>
@@ -6165,7 +6165,7 @@
     </sect2>
 
     <sect2 id="Qore_Program_copy">
-      <title>Qore::Program::copy()</title>
+      <title>Program::copy()</title>
 
       <variablelist>
 	<varlistentry>
@@ -6240,7 +6240,7 @@
     </sect2>
 
     <sect2 id="Qore_Program_parse">
-      <title>Qore::Program::parse()</title>
+      <title>Program::parse()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -6319,7 +6319,7 @@
     </sect2>
 
     <sect2 id="Qore_Program_parsePending">
-      <title>Qore::Program::parsePending()</title>
+      <title>Program::parsePending()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -6398,7 +6398,7 @@
     </sect2>
 
     <sect2 id="Qore_Program_parseRollback">
-      <title>Qore::Program::parseRollback()</title>
+      <title>Program::parseRollback()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -6454,7 +6454,7 @@
     </sect2>
 
     <sect2 id="Qore_Program_parseCommit">
-      <title>Qore::Program::parseCommit()</title>
+      <title>Program::parseCommit()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -6528,7 +6528,7 @@
     </sect2>
 
     <sect2 id="Qore_Program_callFunction">
-      <title>Qore::Program::callFunction()</title>
+      <title>Program::callFunction()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -6611,7 +6611,7 @@
     </sect2>
 
     <sect2 id="Qore_Program_callFunctionArgs">
-      <title>Qore::Program::callFunctionArgs()</title>
+      <title>Program::callFunctionArgs()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -6694,7 +6694,7 @@
     </sect2>
 
     <sect2 id="Qore_Program_existsFunction">
-      <title>Qore::Program::existsFunction()</title>
+      <title>Program::existsFunction()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -6750,7 +6750,7 @@
     </sect2>
 
     <sect2 id="Qore_Program_run">
-      <title>Qore::Program::run()</title>
+      <title>Program::run()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -6806,7 +6806,7 @@
     </sect2>
 
     <sect2 id="Qore_Program_importFunction">
-      <title>Qore::Program::importFunction()</title>
+      <title>Program::importFunction()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -6888,7 +6888,7 @@
     </sect2>
 
     <sect2 id="Qore_Program_importGlobalVariable">
-      <title>Qore::Program::importGlobalVariable()</title>
+      <title>Program::importGlobalVariable()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -6972,7 +6972,7 @@
     </sect2>
 
     <sect2 id="Qore_Program_getUserFunctionList">
-      <title>Qore::Program::getUserFunctionList()</title>
+      <title>Program::getUserFunctionList()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -7361,7 +7361,7 @@
     </table>
     
     <sect2 id="Qore_Socket_constructor">
-      <title>Qore::Socket::constructor()</title>
+      <title>Socket::constructor()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -7417,7 +7417,7 @@
     </sect2>
 
     <sect2 id="Qore_Socket_destructor">
-      <title>Qore::Socket::destructor()</title>
+      <title>Socket::destructor()</title>
 
       <variablelist>
 	<varlistentry>
@@ -7436,7 +7436,7 @@
     </sect2>
 
     <sect2 id="Qore_Socket_copy">
-      <title>Qore::Socket::copy()</title>
+      <title>Socket::copy()</title>
 
       <variablelist>
 	<varlistentry>
@@ -7493,7 +7493,7 @@
     </sect2>
 
     <sect2 id="Qore_Socket_bind">
-      <title>Qore::Socket::bind()</title>
+      <title>Socket::bind()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -7584,7 +7584,7 @@
     </sect2>
 
     <sect2 id="Qore_Socket_accept">
-      <title>Qore::Socket::accept()</title>
+      <title>Socket::accept()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -7759,7 +7759,7 @@
     </sect2>
 
     <sect2 id="Qore_Socket_connect">
-      <title>Qore::Socket::connect()</title>
+      <title>Socket::connect()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -7952,7 +7952,7 @@
     </sect2>
 
     <sect2 id="Qore_Socket_listen">
-      <title>Qore::Socket::listen()</title>
+      <title>Socket::listen()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -8642,7 +8642,7 @@
     </sect2>
 
     <sect2 id="Qore_Socket_isDataAvailable">
-      <title>Qore::Socket::isDataAvailable()</title>
+      <title>Socket::isDataAvailable()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -8698,7 +8698,7 @@
     </sect2>
 
     <sect2 id="Qore_Socket_send">
-      <title>Qore::Socket::send()</title>
+      <title>Socket::send()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -8781,7 +8781,7 @@
     </sect2>
 
     <sect2 id="Qore_Socket_sendi1">
-      <title>Qore::Socket::sendi1()</title>
+      <title>Socket::sendi1()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -8855,7 +8855,7 @@
     </sect2>
 
     <sect2 id="Qore_Socket_sendi2">
-      <title>Qore::Socket::sendi2()</title>
+      <title>Socket::sendi2()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -8929,7 +8929,7 @@
     </sect2>
 
     <sect2 id="Qore_Socket_sendi4">
-      <title>Qore::Socket::sendi4()</title>
+      <title>Socket::sendi4()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -9003,7 +9003,7 @@
     </sect2>
 
     <sect2 id="Qore_Socket_sendi8">
-      <title>Qore::Socket::sendi8()</title>
+      <title>Socket::sendi8()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -9077,7 +9077,7 @@
     </sect2>
 
     <sect2 id="Qore_Socket_sendi2LSB">
-      <title>Qore::Socket::sendi2LSB()</title>
+      <title>Socket::sendi2LSB()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -9151,7 +9151,7 @@
     </sect2>
 
     <sect2 id="Qore_Socket_sendi4LSB">
-      <title>Qore::Socket::sendi4LSB()</title>
+      <title>Socket::sendi4LSB()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -9225,7 +9225,7 @@
     </sect2>
 
     <sect2 id="Qore_Socket_sendi8LSB">
-      <title>Qore::Socket::sendi8LSB()</title>
+      <title>Socket::sendi8LSB()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -9299,7 +9299,7 @@
     </sect2>
 
     <sect2 id="Qore_Socket_sendHTTPMessage">
-      <title>Qore::Socket::sendHTTPMessage()</title>
+      <title>Socket::sendHTTPMessage()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -9406,7 +9406,7 @@
     </sect2>
 
     <sect2 id="Qore_Socket_sendHTTPResponse">
-      <title>Qore::Socket::sendHTTPResponse()</title>
+      <title>Socket::sendHTTPResponse()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -9513,7 +9513,7 @@
     </sect2>
 
     <sect2 id="Qore_Socket_recv">
-      <title>Qore::Socket::recv()</title>
+      <title>Socket::recv()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -9600,7 +9600,7 @@
     </sect2>
 
     <sect2 id="Qore_Socket_recvBinary">
-      <title>Qore::Socket::recvBinary()</title>
+      <title>Socket::recvBinary()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -9687,7 +9687,7 @@
     </sect2>
 
     <sect2 id="Qore_Socket_recvi1">
-      <title>Qore::Socket::recvi1()</title>
+      <title>Socket::recvi1()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -9769,7 +9769,7 @@
     </sect2>
 
     <sect2 id="Qore_Socket_recvi2">
-      <title>Qore::Socket::recvi2()</title>
+      <title>Socket::recvi2()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -9851,7 +9851,7 @@
     </sect2>
 
     <sect2 id="Qore_Socket_recvi4">
-      <title>Qore::Socket::recvi4()</title>
+      <title>Socket::recvi4()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -9933,7 +9933,7 @@
     </sect2>
 
     <sect2 id="Qore_Socket_recvi8">
-      <title>Qore::Socket::recvi8()</title>
+      <title>Socket::recvi8()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -10015,7 +10015,7 @@
     </sect2>
 
     <sect2 id="Qore_Socket_recvi2LSB">
-      <title>Qore::Socket::recvi2LSB()</title>
+      <title>Socket::recvi2LSB()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -10097,7 +10097,7 @@
     </sect2>
 
     <sect2 id="Qore_Socket_recvi4LSB">
-      <title>Qore::Socket::recvi4LSB()</title>
+      <title>Socket::recvi4LSB()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -10179,7 +10179,7 @@
     </sect2>
 
     <sect2 id="Qore_Socket_recvi8LSB">
-      <title>Qore::Socket::recvi8LSB()</title>
+      <title>Socket::recvi8LSB()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -10261,7 +10261,7 @@
     </sect2>
 
     <sect2 id="Qore_Socket_readHTTPHeader">
-      <title>Qore::Socket::readHTTPHeader()</title>
+      <title>Socket::readHTTPHeader()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -10343,7 +10343,7 @@
     </sect2>
 
     <sect2 id="Qore_Socket_getPort">
-      <title>Qore::Socket::getPort()</title>      
+      <title>Socket::getPort()</title>      
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -10399,7 +10399,7 @@
     </sect2>
 
     <sect2 id="Qore_Socket_shutdown">
-      <title>Qore::Socket::shutdown()</title>      
+      <title>Socket::shutdown()</title>      
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -10455,7 +10455,7 @@
     </sect2>
 
     <sect2 id="Qore_Socket_close">
-      <title>Qore::Socket::close()</title>      
+      <title>Socket::close()</title>      
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -10511,7 +10511,7 @@
     </sect2>
 
     <sect2 id="Qore_Socket_getCharset">
-      <title>Qore::Socket::getCharset()</title>
+      <title>Socket::getCharset()</title>
       
      <variablelist>
 	<varlistentry>
@@ -10570,7 +10570,7 @@
     </sect2>
 
     <sect2 id="Qore_Socket_setCharset">
-      <title>Qore::Socket::setCharset()</title>
+      <title>Socket::setCharset()</title>
       
      <variablelist>
 	<varlistentry>
@@ -10629,7 +10629,7 @@
     </sect2>
 
     <sect2 id="Qore_Socket_getSocket">
-      <title>Qore::Socket::getSocket()</title>      
+      <title>Socket::getSocket()</title>      
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -12963,7 +12963,7 @@
     </table>
 
     <sect2 id="Qore::SQL::Datasource::constructor">
-      <title>Qore::SQL::Datasource::constructor()</title>
+      <title>Datasource::constructor()</title>
 
       <variablelist>
 	<varlistentry>
@@ -13020,7 +13020,7 @@
     </sect2>
 
     <sect2 id="Qore::SQL::Datasource::destructor">
-      <title>Qore::SQL::Datasource::destructor()</title>
+      <title>Datasource::destructor()</title>
 
       <variablelist>
 	<varlistentry>
@@ -13039,7 +13039,7 @@
     </sect2>
 
     <sect2 id="Qore::SQL::Datasource::copy">
-      <title>Qore::SQL::Datasource::copy()</title>
+      <title>Datasource::copy()</title>
 
       <variablelist>
 	<varlistentry>
@@ -13096,7 +13096,7 @@
     </sect2>
 
     <sect2 id="Qore::SQL::Datasource::beginTransaction">
-      <title>Qore::SQL::Datasource::beginTransaction()</title>
+      <title>Datasource::beginTransaction()</title>
       
       <variablelist>
 	<varlistentry>
@@ -13175,7 +13175,7 @@
     </sect2>
 
     <sect2 id="Qore::SQL::Datasource::open">
-      <title>Qore::SQL::Datasource::open()</title>
+      <title>Datasource::open()</title>
       
       <variablelist>
 	<varlistentry>
@@ -13250,7 +13250,7 @@
     </sect2>
 
     <sect2 id="Qore::SQL::Datasource::close">
-      <title>Qore::SQL::Datasource::close()</title>
+      <title>Datasource::close()</title>
 
       <variablelist>
 	<varlistentry>
@@ -13308,7 +13308,7 @@
     </sect2>
 
     <sect2 id="Qore::SQL::Datasource::commit">
-      <title>Qore::SQL::Datasource::commit()</title>
+      <title>Datasource::commit()</title>
 
       <variablelist>
 	<varlistentry>
@@ -13387,7 +13387,7 @@
     </sect2>
 
     <sect2 id="Qore::SQL::Datasource::rollback">
-      <title>Qore::SQL::Datasource::rollback()</title>
+      <title>Datasource::rollback()</title>
 
       <variablelist>
 	<varlistentry>
@@ -13466,7 +13466,7 @@
     </sect2>
 
     <sect2 id="Qore::SQL::Datasource::setAutoCommit">
-      <title>Qore::SQL::Datasource::setAutoCommit()</title>
+      <title>Datasource::setAutoCommit()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -13522,7 +13522,7 @@
     </sect2>
 
     <sect2 id="Qore::SQL::Datasource::exec">
-      <title>Qore::SQL::Datasource::exec()</title>
+      <title>Datasource::exec()</title>
 
       <variablelist>
 	<varlistentry>
@@ -13608,7 +13608,7 @@
     </sect2>
 
     <sect2 id="Qore::SQL::Datasource::select">
-      <title>Qore::SQL::Datasource::select()</title>
+      <title>Datasource::select()</title>
 
       <variablelist>
 	<varlistentry>
@@ -13683,7 +13683,7 @@
     </sect2>
 
     <sect2 id="Qore::SQL::Datasource::selectRows">
-      <title>Qore::SQL::Datasource::selectRows()</title>
+      <title>Datasource::selectRows()</title>
 
       <variablelist>
 	<varlistentry>
@@ -13758,7 +13758,7 @@
     </sect2>
 
     <sect2 id="Qore::SQL::Datasource::setTransactionLockTimeout">
-      <title>Qore::SQL::Datasource::setTransactionLockTimeout()</title>
+      <title>Datasource::setTransactionLockTimeout()</title>
 
       <variablelist>
 	<varlistentry>
@@ -13815,7 +13815,7 @@
 
     </sect2>
     <sect2 id="Qore::SQL::Datasource::getTransactionLockTimeout">
-      <title>Qore::SQL::Datasource::getTransactionLockTimeout()</title>
+      <title>Datasource::getTransactionLockTimeout()</title>
 
       <variablelist>
 	<varlistentry>
@@ -13873,7 +13873,7 @@
     </sect2>
 
     <sect2 id="Qore::SQL::Datasource::setUserName">
-      <title>Qore::SQL::Datasource::setUserName()</title>
+      <title>Datasource::setUserName()</title>
 
       <variablelist>
 	<varlistentry>
@@ -13930,7 +13930,7 @@
     </sect2>
 
     <sect2 id="Qore::SQL::Datasource::getUserName">
-      <title>Qore::SQL::Datasource::getUserName()</title>
+      <title>Datasource::getUserName()</title>
 
       <variablelist>
 	<varlistentry>
@@ -13988,7 +13988,7 @@
     </sect2>
 
     <sect2 id="Qore::SQL::Datasource::setPassword">
-      <title>Qore::SQL::Datasource::setPassword()</title>
+      <title>Datasource::setPassword()</title>
 
       <variablelist>
 	<varlistentry>
@@ -14045,7 +14045,7 @@
     </sect2>
 
     <sect2 id="Qore::SQL::Datasource::getPassword">
-      <title>Qore::SQL::Datasource::getPassword()</title>
+      <title>Datasource::getPassword()</title>
       
       <variablelist>
 	<varlistentry>
@@ -14103,7 +14103,7 @@
     </sect2>
 
     <sect2 id="Qore::SQL::Datasource::setDBName">
-      <title>Qore::SQL::Datasource::setDBName()</title>
+      <title>Datasource::setDBName()</title>
 
       <variablelist>
 	<varlistentry>
@@ -14160,7 +14160,7 @@
     </sect2>
 
     <sect2 id="Qore::SQL::Datasource::getDBName">
-      <title>Qore::SQL::Datasource::getDBName()</title>
+      <title>Datasource::getDBName()</title>
 
       <variablelist>
 	<varlistentry>
@@ -14218,7 +14218,7 @@
     </sect2>
 
     <sect2 id="Qore::SQL::Datasource::setDBCharset">
-      <title>Qore::SQL::Datasource::setDBCharset()</title>
+      <title>Datasource::setDBCharset()</title>
 
       <variablelist>
 	<varlistentry>
@@ -14275,7 +14275,7 @@
     </sect2>
 
     <sect2 id="Qore::SQL::Datasource::setHostName">
-      <title>Qore::SQL::Datasource::setHostName()</title>
+      <title>Datasource::setHostName()</title>
 
       <variablelist>
 	<varlistentry>
@@ -14332,7 +14332,7 @@
     </sect2>
 
     <sect2 id="Qore::SQL::Datasource::getDBCharset">
-      <title>Qore::SQL::Datasource::getDBCharset()</title>
+      <title>Datasource::getDBCharset()</title>
 
       <variablelist>
 	<varlistentry>
@@ -14389,7 +14389,7 @@
 
     </sect2>
     <sect2 id="Qore::SQL::Datasource::getOSCharset">
-      <title>Qore::SQL::Datasource::getOSCharset()</title>
+      <title>Datasource::getOSCharset()</title>
 
       <variablelist>
 	<varlistentry>
@@ -14446,7 +14446,7 @@
     </sect2>
 
     <sect2 id="Qore::SQL::Datasource::getHostName">
-      <title>Qore::SQL::Datasource::getHostName()</title>
+      <title>Datasource::getHostName()</title>
 
       <variablelist>
 	<varlistentry>
@@ -14554,7 +14554,7 @@
     </table>
 
     <sect2 id="Qore::Thread::Condition::constructor">
-      <title>Qore::Thread::Condition::constructor()</title>
+      <title>Condition::constructor()</title>
 
       <variablelist>
 	<varlistentry>
@@ -14612,7 +14612,7 @@
     </sect2>
 
     <sect2 id="Qore::Thread::Condition::destructor">
-      <title>Qore::Thread::Condition::destructor()</title>
+      <title>Condition::destructor()</title>
 
       <variablelist>
 	<varlistentry>
@@ -14631,7 +14631,7 @@
     </sect2>
 
     <sect2 id="Qore::Thread::Condition::copy">
-      <title>Qore::Thread::Condition::copy()</title>
+      <title>Condition::copy()</title>
 
       <variablelist>
 	<varlistentry>
@@ -14688,7 +14688,7 @@
     </sect2>
 
     <sect2 id="Qore::Thread::Condition::signal">
-      <title>Qore::Thread::Condition::signal()</title>
+      <title>Condition::signal()</title>
 
       <variablelist>
 	<varlistentry>
@@ -14763,7 +14763,7 @@
     </sect2>
 
     <sect2 id="Qore::Thread::Condition::broadcast">
-      <title>Qore::Thread::Condition::broadcast()</title>
+      <title>Condition::broadcast()</title>
 
       <variablelist>
 	<varlistentry>
@@ -14838,7 +14838,7 @@
     </sect2>
 
     <sect2 id="Qore::Thread::Condition::wait">
-      <title>Qore::Thread::Condition::wait()</title>
+      <title>Condition::wait()</title>
       
       <variablelist>
 	<varlistentry>
@@ -14969,7 +14969,7 @@
     </table>
 
     <sect2 id="Qore::Thread::Counter::constructor">
-      <title>Qore::Thread::Counter::constructor()</title>
+      <title>Counter::constructor()</title>
 
       <variablelist>
 	<varlistentry>
@@ -15027,7 +15027,7 @@
     </sect2>
 
     <sect2 id="Qore::Thread::Counter::destructor">
-      <title>Qore::Thread::Counter::destructor()</title>
+      <title>Counter::destructor()</title>
 
       <variablelist>
 	<varlistentry>
@@ -15046,7 +15046,7 @@
     </sect2>
 
     <sect2 id="Qore::Thread::Counter::copy">
-      <title>Qore::Thread::Counter::copy()</title>
+      <title>Counter::copy()</title>
 
       <variablelist>
 	<varlistentry>
@@ -15103,7 +15103,7 @@
     </sect2>
 
     <sect2 id="Qore::Thread::Counter::inc">
-      <title>Qore::Thread::Counter::inc()</title>
+      <title>Counter::inc()</title>
       
       <variablelist>
 	<varlistentry>
@@ -15160,7 +15160,7 @@
 
     </sect2>
     <sect2 id="Qore::Thread::Counter::dec">
-      <title>Qore::Thread::Counter::dec()</title>
+      <title>Counter::dec()</title>
 
       <variablelist>
 	<varlistentry>
@@ -15217,7 +15217,7 @@
 
     </sect2>
     <sect2 id="Qore::Thread::Counter::waitForZero">
-      <title>Qore::Thread::Counter::waitForZero()</title>
+      <title>Counter::waitForZero()</title>
 
       <variablelist>
 	<varlistentry>
@@ -15274,7 +15274,7 @@
 
     </sect2>
     <sect2 id="Qore::Thread::Counter::getCount">
-      <title>Qore::Thread::Counter::getCount()</title>
+      <title>Counter::getCount()</title>
 
       <variablelist>
 	<varlistentry>
@@ -15387,7 +15387,7 @@
     </table>
 
     <sect2 id="Qore::Thread::Queue::constructor">
-      <title>Qore::Thread::Queue::constructor()</title>
+      <title>Queue::constructor()</title>
 
       <variablelist>
 	<varlistentry>
@@ -15445,7 +15445,7 @@
     </sect2>
 
     <sect2 id="Qore::Thread::Queue::destructor">
-      <title>Qore::Thread::Queue::destructor()</title>
+      <title>Queue::destructor()</title>
 
       <variablelist>
 	<varlistentry>
@@ -15464,7 +15464,7 @@
     </sect2>
 
     <sect2 id="Qore::Thread::Queue::copy">
-      <title>Qore::Thread::Queue::copy()</title>
+      <title>Queue::copy()</title>
 
       <variablelist>
 	<varlistentry>
@@ -15521,7 +15521,7 @@
     </sect2>
 
     <sect2 id="Qore::Thread::Queue::get">
-      <title>Qore::Thread::Queue::get()</title>
+      <title>Queue::get()</title>
 
       <variablelist>
 	<varlistentry>
@@ -15596,7 +15596,7 @@
     </sect2>
 
     <sect2 id="Qore::Thread::Queue::pop">
-      <title>Qore::Thread::Queue::pop()</title>
+      <title>Queue::pop()</title>
 
       <variablelist>
 	<varlistentry>
@@ -15671,7 +15671,7 @@
     </sect2>
 
     <sect2 id="Qore::Thread::Queue::push">
-      <title>Qore::Thread::Queue::push()</title>
+      <title>Queue::push()</title>
 
       <variablelist>
 	<varlistentry>
@@ -15728,7 +15728,7 @@
     </sect2>
 
     <sect2 id="Qore::Thread::Queue::size">
-      <title>Qore::Thread::Queue::size()</title>
+      <title>Queue::size()</title>
 
       <variablelist>
 	<varlistentry>
@@ -15863,7 +15863,7 @@
     </table>
 
     <sect2 id="Qore::Thread::RWLock::constructor">
-      <title>Qore::Thread::RWLock::constructor()</title>
+      <title>RWLock::constructor()</title>
 
       <variablelist>
 	<varlistentry>
@@ -15921,7 +15921,7 @@
     </sect2>
 
     <sect2 id="Qore::Thread::RWLock::destructor">
-      <title>Qore::Thread::RWLock::destructor()</title>
+      <title>RWLock::destructor()</title>
 
       <variablelist>
 	<varlistentry>
@@ -15940,7 +15940,7 @@
     </sect2>
 
     <sect2 id="Qore::Thread::RWLock::copy">
-      <title>Qore::Thread::RWLock::copy()</title>
+      <title>RWLock::copy()</title>
 
       <variablelist>
 	<varlistentry>
@@ -15997,7 +15997,7 @@
     </sect2>
 
     <sect2 id="Qore::Thread::RWLock::readLock">
-      <title>Qore::Thread::RWLock::readLock()</title>
+      <title>RWLock::readLock()</title>
 
       <variablelist>
 	<varlistentry>
@@ -16054,7 +16054,7 @@
 
     </sect2>
     <sect2 id="Qore::Thread::RWLock::readUnlock">
-      <title>Qore::Thread::RWLock::readUnlock()</title>
+      <title>RWLock::readUnlock()</title>
 
       <variablelist>
 	<varlistentry>
@@ -16111,7 +16111,7 @@
 
     </sect2>
     <sect2 id="Qore::Thread::RWLock::writeLock">
-      <title>Qore::Thread::RWLock::writeLock()</title>
+      <title>RWLock::writeLock()</title>
 
       <variablelist>
 	<varlistentry>
@@ -16168,7 +16168,7 @@
 
     </sect2>
     <sect2 id="Qore::Thread::RWLock::writeUnlock">
-      <title>Qore::Thread::RWLock::writeUnlock()</title>
+      <title>RWLock::writeUnlock()</title>
 
       <variablelist>
 	<varlistentry>
@@ -16225,7 +16225,7 @@
 
     </sect2>
     <sect2 id="Qore::Thread::RWLock::tryReadLock">
-      <title>Qore::Thread::RWLock::tryReadLock()</title>
+      <title>RWLock::tryReadLock()</title>
 
       <variablelist>
 	<varlistentry>
@@ -16282,7 +16282,7 @@
 
     </sect2>
     <sect2 id="Qore::Thread::RWLock::tryWriteLock">
-      <title>Qore::Thread::RWLock::tryWriteLock()</title>
+      <title>RWLock::tryWriteLock()</title>
 
       <variablelist>
 	<varlistentry>
@@ -16339,7 +16339,7 @@
 
     </sect2>
     <sect2 id="Qore::Thread::RWLock::numReaders">
-      <title>Qore::Thread::RWLock::numReaders()</title>
+      <title>RWLock::numReaders()</title>
 
       <variablelist>
 	<varlistentry>
@@ -16447,7 +16447,7 @@
     </table>
 
     <sect2 id="Qore::Thread::Mutex::constructor">
-      <title>Qore::Thread::Mutex::constructor()</title>
+      <title>Mutex::constructor()</title>
 
       <variablelist>
 	<varlistentry>
@@ -16505,7 +16505,7 @@
     </sect2>
 
     <sect2 id="Qore::Thread::Mutex::destructor">
-      <title>Qore::Thread::Mutex::destructor()</title>
+      <title>Mutex::destructor()</title>
 
       <variablelist>
 	<varlistentry>
@@ -16524,7 +16524,7 @@
     </sect2>
 
     <sect2 id="Qore::Thread::Mutex::copy">
-      <title>Qore::Thread::Mutex::copy()</title>
+      <title>Mutex::copy()</title>
 
       <variablelist>
 	<varlistentry>
@@ -16581,7 +16581,7 @@
     </sect2>
 
     <sect2 id="Qore::Thread::Mutex::lock">
-      <title>Qore::Thread::Mutex::lock()</title>
+      <title>Mutex::lock()</title>
 
       <variablelist>
 	<varlistentry>
@@ -16638,7 +16638,7 @@
 
     </sect2>
     <sect2 id="Qore::Thread::Mutex::unlock">
-      <title>Qore::Thread::Mutex::unlock()</title>
+      <title>Mutex::unlock()</title>
 
       <variablelist>
 	<varlistentry>
@@ -16695,7 +16695,7 @@
 
     </sect2>
     <sect2 id="Qore::Thread::Mutex::trylock">
-      <title>Qore::Thread::Mutex::trylock()</title>
+      <title>Mutex::trylock()</title>
 
       <variablelist>
 	<varlistentry>
@@ -16798,7 +16798,7 @@
     </table>
     
     <sect2 id="Qore::Thread::RMutex::constructor">
-      <title>Qore::Thread::RMutex::constructor()</title>
+      <title>RMutex::constructor()</title>
       
       <variablelist>
 	<varlistentry>
@@ -16855,7 +16855,7 @@
     </sect2>
 
     <sect2 id="Qore::Thread::RMutex::destructor">
-      <title>Qore::Thread::RMutex::destructor()</title>
+      <title>RMutex::destructor()</title>
 
       <variablelist>
 	<varlistentry>
@@ -16874,7 +16874,7 @@
     </sect2>
 
     <sect2 id="Qore::Thread::RMutex::copy">
-      <title>Qore::Thread::RMutex::copy()</title>
+      <title>RMutex::copy()</title>
 
       <variablelist>
 	<varlistentry>
@@ -16931,7 +16931,7 @@
     </sect2>
 
     <sect2 id="Qore::Thread::RMutex::enter">
-      <title>Qore::Thread::RMutex::enter()</title>
+      <title>RMutex::enter()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -16987,7 +16987,7 @@
     </sect2>
 
     <sect2 id="Qore::Thread::RMutex::exit">
-      <title>Qore::Thread::RMutex::exit()</title>
+      <title>RMutex::exit()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -17089,7 +17089,7 @@
     </table>
 
     <sect2 id="Qore::Thread::Sequence::constructor">
-      <title>Qore::Thread::Sequence::constructor()</title>
+      <title>Sequence::constructor()</title>
 
       <variablelist>
 	<varlistentry>
@@ -17146,7 +17146,7 @@
     </sect2>
 
     <sect2 id="Qore::Thread::Sequence::destructor">
-      <title>Qore::Thread::Sequence::destructor()</title>
+      <title>Sequence::destructor()</title>
 
       <variablelist>
 	<varlistentry>
@@ -17165,7 +17165,7 @@
     </sect2>
 
     <sect2 id="Qore::Thread::Sequence::copy">
-      <title>Qore::Thread::Sequence::copy()</title>
+      <title>Sequence::copy()</title>
 
       <variablelist>
 	<varlistentry>
@@ -17222,7 +17222,7 @@
     </sect2>
 
     <sect2 id="Qore::Thread::Sequence::next">
-      <title>Qore::Thread::Sequence::next()</title>
+      <title>Sequence::next()</title>
 
       <variablelist>
 	<varlistentry>
@@ -17279,7 +17279,7 @@
     </sect2>
 
     <sect2 id="Qore::Thread::Sequence::getCurrent">
-      <title>Qore::Thread::Sequence::getCurrent()</title>
+      <title>Sequence::getCurrent()</title>
 
       <variablelist>
 	<varlistentry>
@@ -17397,7 +17397,7 @@
     </table>
   
     <sect2 id="Qore::Thread::Gate::constructor">
-      <title>Qore::Thread::Gate::constructor()</title>
+      <title>Gate::constructor()</title>
 
       <variablelist>
 	<varlistentry>
@@ -17455,7 +17455,7 @@
     </sect2>
 
     <sect2 id="Qore::Thread::Gate::destructor">
-      <title>Qore::Thread::Gate::destructor()</title>
+      <title>Gate::destructor()</title>
 
       <variablelist>
 	<varlistentry>
@@ -17474,7 +17474,7 @@
     </sect2>
 
     <sect2 id="Qore::Thread::Gate::copy">
-      <title>Qore::Thread::Gate::copy()</title>
+      <title>Gate::copy()</title>
 
       <variablelist>
 	<varlistentry>
@@ -17531,7 +17531,7 @@
     </sect2>
 
     <sect2 id="Qore::Thread::Gate::enter">
-      <title>Qore::Thread::Gate::enter()</title>
+      <title>Gate::enter()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -17605,7 +17605,7 @@
   </sect2>
 
     <sect2 id="Qore::Thread::Gate::tryEnter">
-      <title>Qore::Thread::Gate::tryEnter()</title>
+      <title>Gate::tryEnter()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -17679,7 +17679,7 @@
   </sect2>
 
   <sect2 id="Qore::Thread::Gate::exit">
-    <title>Qore::Thread::Gate::exit()</title>
+    <title>Gate::exit()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -17735,7 +17735,7 @@
   </sect2>
 
   <sect2 id="Qore::Thread::Gate::numInside">
-    <title>Qore::Thread::Gate::numInside()</title>
+    <title>Gate::numInside()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -17791,7 +17791,7 @@
     </sect2>
 
     <sect2 id="Qore::Thread::Gate::numWaiting">
-      <title>Qore::Thread::Gate::numWaiting()</title>
+      <title>Gate::numWaiting()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>

@@ -597,7 +597,7 @@ language, either by an addition to this data type, or by adding another date typ
   <sect2 id="Objects">
     <title>Objects</title>
 
-    <para>Qore objects are instantiations of a Qore class.  They have members (like a hash - values associated to string keys), and methods.  The Qore class defition specifies the methods that run on objects of that class, and any private members.  Qore classes are declared with a special syntax, and objects are instantiated using the <command>new</command> operator as follows.</para>
+    <para>Qore objects are instantiations of a Qore class.  They have members (like a hash - values associated to string keys), and methods.  The Qore class definition specifies the methods that run on objects of that class, and any private members.  Qore classes are declared with a special syntax, and objects are instantiated using the <command>new</command> operator as follows.</para>
 
     <programlisting><replaceable>lvalue</replaceable> = <command>new</command> <replaceable>class_identifier</replaceable>([<replaceable>argument list</replaceable>])</programlisting>
 
@@ -626,7 +626,7 @@ language, either by an addition to this data type, or by adding another date typ
 
 <para>Qore uses the operating system's iconv library functions to perform any encoding conversions.</para>
 
-<para>Qore supports character sets that are backwards compatible with 7-bit ASCII.  This includes all ISO-8859-* character sets, UTF-8, KOIR-8, KOIU-8, and KOI7, among others.  However, mutibyte character encodings are currently only properly supported for UTF-8.  For UTF-8 strings, the <link linkend="strlen">strlen()</link>, <link linkend="index">index()</link>, <link linkend="rindex">rindex()</link>, <link linkend="Splice_Operator">splice operator</link> all work with character offsets, which may be different than byte offsets.  For all other character set encodings, a 1 byte=1 character relationship is assumed.</para>
+<para>Qore supports character sets that are backwards compatible with 7-bit ASCII.  This includes all ISO-8859-* character sets, UTF-8, KOIR-8, KOIU-8, and KOI7, among others.  However, mutibyte character encodings are currently only properly supported for UTF-8.  For UTF-8 strings, the <link linkend="length">length()</link>, <link linkend="index">index()</link>, <link linkend="rindex">rindex()</link>, <link linkend="substr">substr()</link>, <link linkend="Splice_Operator">splice operator</link> all work with character offsets, which may be different than byte offsets.  For all other character set encodings, a 1 byte=1 character relationship is assumed.</para>
 
 <para>The default Qore character set is determined by environment variables.</para>
 
@@ -709,8 +709,8 @@ language, either by an addition to this data type, or by adding another date typ
 	    <entry><para>Use of Qore operators (see <link linkend='Operators'>Operators</link> for more information)</para></entry>
 	    <entry>
 	      <para><programlisting>1 + 2
-$a || $b</programlisting></para>
-	      <para><code><command>background</command> my_function()</code></para>
+$a || $b
+<command>background</command> my_function()</programlisting></para>
 	    </entry>
 	  </row>
 	  <row>
@@ -1216,7 +1216,7 @@ $a || $b</programlisting></para>
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Executes the shell command in a separate process and returns the stdout as a string.  To perform the same action using a Qore expression, see the <link linkend="backquote">backquote function</link>.</para>
+	<para>Executes the shell command in a separate process and returns the stdout as a string.  To perform the same action using a Qore expression, see the <link linkend="backquote">backquote() function</link>.</para>
      </listitem>
     </varlistentry>
     <varlistentry>
