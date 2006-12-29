@@ -348,8 +348,8 @@ QoreTypeManager::QoreTypeManager()
    add(NT_BOOLEAN = new QoreType("boolean", NULL, NULL, NULL, boolean_ConvertTo, boolean_DefaultValue, NULL, boolean_Compare, NULL, boolean_MakeString, QTM_VALUE, QTM_NO_CONTAINER));
    add(NT_NULL = new QoreType("NULL", NULL, NULL, NULL, NULL, NULL_DefaultValue, NULL, NULL, NULL, NULL_MakeString, QTM_VALUE, QTM_NO_CONTAINER));
    add(NT_BINARY = new QoreType("binary", NULL, NULL, NULL, NULL, NULL, binary_Copy, binary_Compare, binary_DeleteContents, binary_MakeString, QTM_VALUE, QTM_NO_CONTAINER));
-   add(NT_LIST = new QoreType("list", list_Eval, NULL, NULL, list_ConvertTo, list_DefaultValue, list_Copy, list_Compare, list_DeleteContents, list_MakeString, QTM_VALUE, QTM_CONTAINER));
-   add(NT_HASH = new QoreType("hash", hash_Eval, NULL, NULL, hash_ConvertTo, hash_DefaultValue, hash_Copy, hash_Compare, hash_DeleteContents, hash_MakeString, QTM_VALUE, QTM_CONTAINER));
+   add(NT_LIST = new QoreType("list", list_Eval, list_eval_opt_deref, NULL, list_ConvertTo, list_DefaultValue, list_Copy, list_Compare, list_DeleteContents, list_MakeString, QTM_VALUE, QTM_CONTAINER));
+   add(NT_HASH = new QoreType("hash", hash_Eval, hash_eval_opt_deref, NULL, hash_ConvertTo, hash_DefaultValue, hash_Copy, hash_Compare, hash_DeleteContents, hash_MakeString, QTM_VALUE, QTM_CONTAINER));
    add(NT_OBJECT = new QoreType("object", NULL, NULL, NULL, NULL, NULL, object_Copy, object_Compare, NULL, object_MakeString, QTM_VALUE, QTM_CONTAINER));
 
    // now parse types

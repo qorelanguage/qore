@@ -51,6 +51,18 @@ class QoreNode *hash_Eval(class QoreNode *l, class ExceptionSink *xsink)
    return new QoreNode(l->val.hash->eval(xsink));
 }
 
+class QoreNode *hash_eval_opt_deref(bool &needs_deref, class QoreNode *n, class ExceptionSink *xsink)
+{
+   if (!n->val.hash->needsEval())
+   {
+      needs_deref = false;
+      return n;
+   }
+
+   needs_deref = true;
+   return new QoreNode(n->val.hash->eval(xsink));
+}
+
 class QoreNode *hash_Copy(class QoreNode *l, class ExceptionSink *xsink)
 {
    return new QoreNode(l->val.hash->eval(xsink));

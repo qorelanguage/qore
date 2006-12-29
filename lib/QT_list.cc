@@ -46,6 +46,18 @@ class QoreNode *list_Eval(class QoreNode *l, class ExceptionSink *xsink)
    return l->val.list->eval(xsink);
 }
 
+class QoreNode *list_eval_opt_deref(bool &needs_deref, class QoreNode *n, class ExceptionSink *xsink)
+{
+   if (!n->val.list->needsEval())
+   {
+      needs_deref = false;
+      return n;
+   }
+
+   needs_deref = true;
+   return n->val.list->eval(xsink);
+}
+
 class QoreNode *list_Copy(class QoreNode *l, class ExceptionSink *xsink)
 {
    return l->val.list->eval(xsink);
