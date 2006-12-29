@@ -693,14 +693,9 @@ static inline QoreNode *crlr_hash_copy(QoreNode *n, ExceptionSink *xsink)
 
 static inline QoreNode *crlr_tree_copy(QoreNode *n, ExceptionSink *xsink)
 {
-   QoreNode *nn = new QoreNode(NT_TREE);
-   nn->val.tree->op = n->val.tree->op;
-   nn->val.tree->left = copy_and_resolve_lvar_refs(n->val.tree->left, xsink);
-   if (n->val.tree->right)
-      nn->val.tree->right = copy_and_resolve_lvar_refs(n->val.tree->right, xsink);
-   else
-      nn->val.tree->right = NULL;
-   return nn;
+   class Tree *t = new Tree(copy_and_resolve_lvar_refs(n->val.tree->left, xsink), n->val.tree->op, 
+			    n->val.tree->right ? copy_and_resolve_lvar_refs(n->val.tree->right, xsink) : NULL);
+   return new QoreNode(t);
 }
 
 static inline QoreNode *crlr_fcall_copy(QoreNode *n, ExceptionSink *xsink)

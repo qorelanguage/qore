@@ -921,14 +921,11 @@ class QoreNode *doPartialEval(class QoreNode *n, bool *is_self_ref, class Except
 	 discard(nn, xsink);
 	 return NULL;
       }
-      rv = new QoreNode(NT_TREE);
-      rv->val.tree->right = nn ? nn : nothing();
-      rv->val.tree->op = n->val.tree->op;
-      if (!(rv->val.tree->left = doPartialEval(n->val.tree->left, is_self_ref, xsink)))
-      {
-	 rv->deref(xsink);
-	 rv = NULL;
-      }
+      class Tree *t = new Tree(doPartialEval(n->val.tree->left, is_self_ref, xsink), n->val.tree->op, nn ? nn : nothing());
+      if (!t->left)
+	 delete t;
+      else
+	 rv = new QoreNode(t);
    }
    else
    {
