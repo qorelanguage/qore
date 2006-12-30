@@ -923,6 +923,21 @@ void QoreString::concat(char c)
    buf[1] = '\0';
 }
 
+void QoreString::concat_n(char c, unsigned n)
+{
+  if (allocated) {
+    check_char(len + n + STR_CLASS_BLOCK); // more data will follow the padding
+    memset(buf + len, c, n);
+    buf[len + n] = 0;
+    len += n;
+  } else {   
+    allocated = n + STR_CLASS_BLOCK;
+    buf = (char*)malloc(sizeof(char) * allocated);
+    memset(buf, c, n);
+    buf[n] = 0;    
+  }
+}
+
 int QoreString::vsnprintf(int size, const char *fmt, va_list args)
 {
    // ensure minimum space is free

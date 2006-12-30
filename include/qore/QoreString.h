@@ -109,6 +109,8 @@ class QoreString {
       DLLEXPORT void concat(const char *);
       DLLEXPORT void concat(const char *, int size);
       DLLEXPORT void concat(const char);
+      // appends passed character n-times
+      DLLEXPORT void concat_n(char c, unsigned n);
       DLLEXPORT int compareSoft(const QoreString *, class ExceptionSink *) const;
       DLLEXPORT int compare(const QoreString *) const;
       DLLEXPORT int compare(const char *) const;
