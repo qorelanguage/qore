@@ -243,7 +243,7 @@ static void addXMLElement(char *key, QoreString *str, QoreNode *n, int indent, c
 	    if (j && format)
 	    {
 	       str->concat('\n');
-               str->concat_n(' ', indent);
+               str->addch(' ', indent);
 	    }
 
 	    addXMLElement(key, str, v, indent, node, ccs, format, xsink);
@@ -346,7 +346,7 @@ static void addXMLElement(char *key, QoreString *str, QoreNode *n, int indent, c
 	    if (format && !vn)
 	    {
 	       str->concat('\n');
-               str->concat_n(' ', indent);
+               str->addch(' ', indent);
 	    }
 	 }
       }
@@ -366,7 +366,7 @@ static void addXMLElement(char *key, QoreString *str, QoreNode *n, int indent, c
 	       makeXMLString(str, h, indent + 2, ccs, format, xsink);
 	       // indent closing entry
 	       if (format)
-                  str->concat_n(' ', indent);
+                  str->addch(' ', indent);
 	    }
 	    if (h)
 	       h->dereference(xsink);
@@ -433,7 +433,7 @@ static void makeXMLString(QoreString *str, Hash *h, int indent, class QoreEncodi
       {
 	 if (done)
 	    str->concat('\n');
-         str->concat_n(' ', indent);
+         str->addch(' ', indent);
       }
       //printd(5, "makeXMLString() level %d adding member %s\n", indent / 2, node->getBuffer());
       addXMLElement(key, str, hi.getValue(), indent, key, ccs, format, xsink);
@@ -607,13 +607,13 @@ static inline void addXMLRPCValueInternHash(QoreString *str, Hash *h, int indent
       //else printd(0, "addXMLRPCValueInternHashInternal() not converting %sx \"%s\"\n", member->getEncoding()->code, member->getBuffer());
       // indent
       if (format)
-         str->concat_n(' ', indent);
+         str->addch(' ', indent);
       str->concat("<member>");
       if (format)
       {
 	 str->concat('\n');
 	 // indent
-         str->concat_n(' ', indent + 6);
+         str->addch(' ', indent + 6);
       }
       str->concat("<name>");
       str->concatAndHTMLEncode(member.get(), xsink);
@@ -626,13 +626,13 @@ static inline void addXMLRPCValueInternHash(QoreString *str, Hash *h, int indent
       addXMLRPCValue(str, val, indent + 6, ccs, format, xsink);
       // indent
       if (format)
-         str->concat_n(' ', indent + 4);
+         str->addch(' ', indent + 4);
       str->concat("</member>");
       if (format) str->concat('\n');
    }
    // indent
    if (format)
-      str->concat_n(' ', indent + 2);
+      str->addch(' ', indent + 2);
    str->concat("</struct>");
    //if (format) str->concat('\n');
 }
@@ -669,14 +669,14 @@ static void addXMLRPCValueIntern(QoreString *str, QoreNode *n, int indent, class
       {
 	 str->concat('\n');
 	 // indent
-         str->concat_n(' ', indent + 4);
+         str->addch(' ', indent + 4);
       }
       str->concatBase64(n->val.bin);
       if (format)
       {
 	 str->concat('\n');
 	 // indent
-         str->concat_n(' ', indent);
+         str->addch(' ', indent);
       }
       str->concat("</base64>");
    }
@@ -691,7 +691,7 @@ static void addXMLRPCValueIntern(QoreString *str, QoreNode *n, int indent, class
       {
 	 str->concat('\n');
 	 // indent
-         str->concat_n(' ', indent + 4);
+         str->addch(' ', indent + 4);
       }
       if (n->val.list->size())
       {
@@ -700,7 +700,7 @@ static void addXMLRPCValueIntern(QoreString *str, QoreNode *n, int indent, class
 	 for (int i = 0; i < n->val.list->size(); i++)
 	    addXMLRPCValue(str, n->val.list->retrieve_entry(i), indent + 6, ccs, format, xsink);
 	 if (format)
-            str->concat_n(' ', indent + 4);
+            str->addch(' ', indent + 4);
 	 str->concat("</data>");
       }
       else
@@ -709,7 +709,7 @@ static void addXMLRPCValueIntern(QoreString *str, QoreNode *n, int indent, class
       {
 	 str->concat('\n');
 	 // indent
-         str->concat_n(' ', indent + 2);
+         str->addch(' ', indent + 2);
       }
       str->concat("</array>");
       //if (format) str->concat('\n');
@@ -719,7 +719,7 @@ static void addXMLRPCValueIntern(QoreString *str, QoreNode *n, int indent, class
    {
       str->concat('\n');
       // indent
-      str->concat_n(' ' , indent);
+      str->addch(' ' , indent);
    }
 }
 
@@ -730,7 +730,7 @@ static void addXMLRPCValue(QoreString *str, QoreNode *n, int indent, class QoreE
    // add value node
    // indent
    if (format)
-      str->concat_n(' ', indent);
+      str->addch(' ', indent);
    
    if (!is_nothing(n))
    {
@@ -739,7 +739,7 @@ static void addXMLRPCValue(QoreString *str, QoreNode *n, int indent, class QoreE
       {
 	 str->concat('\n');
 	 // indent
-         str->concat_n(' ', indent + 2);
+         str->addch(' ', indent + 2);
       }
       
       addXMLRPCValueIntern(str, n, indent, ccs, format, xsink);

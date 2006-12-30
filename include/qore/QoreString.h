@@ -42,11 +42,11 @@ extern class code_table html_codes[];
 
 class QoreString {
       int len;
-      int allocated;
+      unsigned allocated;
       char *buf;
       class QoreEncoding *charset;
 
-      DLLLOCAL inline void check_char(int i);
+      DLLLOCAL inline void check_char(unsigned i);
       DLLLOCAL inline void check_offset(int &offset);
       DLLLOCAL inline void check_offset(int &offset, int &num);
       DLLLOCAL void splice_simple(int offset, int length, class ExceptionSink *xsink);
@@ -109,8 +109,6 @@ class QoreString {
       DLLEXPORT void concat(const char *);
       DLLEXPORT void concat(const char *, int size);
       DLLEXPORT void concat(const char);
-      // appends passed character n-times
-      DLLEXPORT void concat_n(char c, unsigned n);
       DLLEXPORT int compareSoft(const QoreString *, class ExceptionSink *) const;
       DLLEXPORT int compare(const QoreString *) const;
       DLLEXPORT int compare(const char *) const;
@@ -141,10 +139,10 @@ class QoreString {
       DLLEXPORT int strlen() const;
       DLLEXPORT char *getBuffer() const;
       // Make sure the internal buffer has at least expected size in bytes. 
-      // Useful to eliminate rallocationg when data get appended in loop.
+      // Useful to eliminate repeated reallocate() when data are appended in a loop.
       DLLEXPORT void ensureBufferSize(unsigned requested_size);
       // append a character to the string a number of times
-      DLLEXPORT void addch(char c, int times);
+      DLLEXPORT void addch(char c, unsigned times);
 };
 
 DLLEXPORT class QoreString *checkEncoding(const class QoreString *str, const class QoreEncoding *enc, class ExceptionSink *xsink);

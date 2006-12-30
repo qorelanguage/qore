@@ -56,11 +56,12 @@ const struct code_table QoreString::html_codes[] =
   { '>', "&gt;", 4 },
   { '"', "&quot;", 6 } }; 
 
-inline void QoreString::check_char(int i)
+inline void QoreString::check_char(unsigned i)
 {
    if (i >= allocated)
    {
       allocated = i + STR_CLASS_BLOCK;
+      allocated = (allocated / 16 + 1) * 16; // use complete cache line
       buf = (char *)realloc(buf, allocated * sizeof(char));
    }
 }
@@ -923,25 +924,10 @@ void QoreString::concat(char c)
    buf[1] = '\0';
 }
 
-void QoreString::concat_n(char c, unsigned n)
-{
-  if (allocated) {
-    check_char(len + n + STR_CLASS_BLOCK); // more data will follow the padding
-    memset(buf + len, c, n);
-    buf[len + n] = 0;
-    len += n;
-  } else {   
-    allocated = n + STR_CLASS_BLOCK;
-    buf = (char*)malloc(sizeof(char) * allocated);
-    memset(buf, c, n);
-    buf[n] = 0;    
-  }
-}
-
 int QoreString::vsnprintf(int size, const char *fmt, va_list args)
 {
    // ensure minimum space is free
-   if ((allocated - len) < size)
+   if ((allocated - len) < (unsigned)size)
    {
       allocated += (size + STR_CLASS_EXTRA);
       // resize buffer
@@ -1383,6 +1369,7 @@ void QoreString::ensureBufferSize(unsigned requested_size)
    if ((unsigned)allocated >= requested_size) {
       return;  
    }
+   requested_size = (requested_size / 16 + 1) * 16; // fill complete cache line
    char* aux = (char *)realloc(buf, requested_size  * sizeof(char));
    if (!aux) {
      assert(false);
@@ -1441,8 +1428,19 @@ class QoreString *checkEncoding(const class QoreString *str, const class QoreEnc
    return (QoreString *)str;
 }
 
-void QoreString::addch(char c, int times)
+void QoreString::addch(char c, unsigned times)
 {
-   for (int i = 0; i < times; i++)
-      concat(c);
+  if (allocated) {
+    check_char(len + times + STR_CLASS_BLOCK); // more data will follow the padding
+    memset(buf + len, c, times);
+    buf[len + times] = 0;
+    len += times;
+  } else {
+    allocated = times + STR_CLASS_BLOCK;
+    allocated = (allocated / 16 + 1) * 16; // use complete cache line
+    buf = (char*)malloc(sizeof(char) * allocated);
+    memset(buf, c, times);
+    buf[times] = 0;
+  }
 }
+
