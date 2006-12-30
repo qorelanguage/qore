@@ -35,6 +35,7 @@
 #include <qore/Variable.h>
 #include <qore/Namespace.h>
 #include <qore/charset.h>
+#include <qore/ScopeGuard.h>
 
 extern class List *ARGV, *QORE_ARGV;
 extern class Hash *ENV;
@@ -94,16 +95,13 @@ public:
 
 inline SBNode::~SBNode()
 {
-   if (statements) delete statements; 
+   reset();
 }
 
 inline void SBNode::reset()
 {
-   if (statements)
-   {
-      delete statements;
-      statements = NULL;
-   }
+   delete statements;
+   statements = 0;
 }
 
 QoreProgram::~QoreProgram()
@@ -230,11 +228,8 @@ void QoreProgram::del(class ExceptionSink *xsink)
       exec_class_name = NULL;
    }
 
-   if (RootNS)
-   {
-      delete RootNS;
-      RootNS = NULL;
-   }
+   delete RootNS;
+   RootNS = 0;
 
    if (base_object)
    {
@@ -839,11 +834,9 @@ void QoreProgram::parseFile(char *filename, class ExceptionSink *xsink, class Ex
       traceout("QoreProgram::parseFile()");
       return;
    }
+   ON_BLOCK_EXIT(fclose, fp);
 
    parse(fp, filename, xsink, wS, wm);
-
-   fclose(fp);
-
    traceout("QoreProgram::parseFile()");
 }
 
