@@ -78,6 +78,7 @@ class QoreProgram : public AbstractPrivateData
       DLLLOCAL void internParseRollback();
       DLLLOCAL int internParsePending(char *code, char *label);
       DLLLOCAL class Hash *clearThreadData(class ExceptionSink *xsink);
+      DLLLOCAL void del(class ExceptionSink *xsink);
 
    protected:
       DLLLOCAL virtual ~QoreProgram();
@@ -149,7 +150,6 @@ class QoreProgram : public AbstractPrivateData
       DLLLOCAL void endThread(class ExceptionSink *xsink);
       DLLLOCAL void startThread();
       DLLLOCAL class Hash *getThreadData();
-      DLLLOCAL void del(class ExceptionSink *xsink);
       DLLLOCAL void depRef();
       DLLLOCAL void depDeref(class ExceptionSink *xsink);
       DLLLOCAL void addFeature(char *f);
