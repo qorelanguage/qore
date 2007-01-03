@@ -100,11 +100,8 @@ inline SBNode::~SBNode()
 
 inline void SBNode::reset()
 {
-   if (statements)
-   {
-      delete statements;
-      statements = 0;
-   }
+   delete statements;
+   statements = 0;
 }
 
 QoreProgram::~QoreProgram()
