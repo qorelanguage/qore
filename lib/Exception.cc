@@ -151,7 +151,7 @@ QoreNode* ExceptionSink::raiseException(char *err, char *fmt, ...)
 	 break;
    }
    printd(5, "ExceptionSink::raiseException(%s, %s)\n", err, desc->getBuffer());
-   insert(new Exception(err, 0, desc));
+   insert(new Exception(err, desc));
    return NULL;
 }
 
@@ -170,7 +170,7 @@ QoreNode* ExceptionSink::raiseExceptionArg(char* err, QoreNode* arg, char* fmt, 
          break;
    }
    printd(5, "ExceptionSink::raiseExceptionArg(%s, %s)\n", err, desc->getBuffer());
-   Exception* exc = new Exception(err, 0, desc);
+   Exception* exc = new Exception(err, desc);
    exc->arg = arg;
    insert(exc);
    return NULL;
@@ -246,6 +246,7 @@ Exception::Exception(char *e, class QoreString *d)
    next = NULL;
 }
 
+/*
 // called for runtime exceptions
 Exception::Exception(char *e, char *fmt, ...)
 {
@@ -273,7 +274,7 @@ Exception::Exception(char *e, char *fmt, ...)
 
    next = NULL;
 }
-
+*/
 // called when parsing
 ParseException::ParseException(char *e, class QoreString *d)
 {

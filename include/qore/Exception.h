@@ -84,17 +84,19 @@ class Exception {
       ~Exception();
 
    public:
-      DLLEXPORT Exception(char *e, char *fmt, ...);
+      // called for generic exceptions
+      //DLLEXPORT Exception(char *e, char *fmt, ...);
       DLLEXPORT class QoreNode *makeExceptionObjectAndDelete(class ExceptionSink *xsink);
       DLLEXPORT class QoreNode *makeExceptionObject();
 
-      // for derived classes
-      DLLLOCAL Exception() {}
       // called for runtime exceptions
       DLLLOCAL Exception(char *err, class QoreString *desc);
       // called for rethrow
       DLLLOCAL Exception(class Exception *old, class ExceptionSink *xsink);
-      DLLLOCAL Exception(class QoreNode *l);
+      // called for user exceptions
+      DLLLOCAL Exception(class QoreNode *n);
+      // for derived classes
+      DLLLOCAL Exception() {}
       DLLLOCAL void del(class ExceptionSink *xsink);
 };
 
