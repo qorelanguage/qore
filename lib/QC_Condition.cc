@@ -29,6 +29,7 @@
 #include <qore/params.h>
 #include <qore/support.h>
 #include <errno.h>
+#include <qore/ReferenceHolder.h>
 
 int CID_CONDITION;
 
@@ -67,6 +68,7 @@ class QoreNode *CONDITION_wait(class Object *self, class Condition *c, class Qor
       xsink->raiseException("CONDITION-WAIT-PARAMETER-EXCEPTION", "expecting a Mutex object as parameter to Condition::wait()");
       return NULL;
    }
+   ReferenceHolder<Mutex> holder(m);
 
    int timeout = getMsZeroInt(get_param(params, 1));
    QoreNode *rv;
@@ -85,7 +87,6 @@ class QoreNode *CONDITION_wait(class Object *self, class Condition *c, class Qor
    else
       rv = new QoreNode((int64)rc);
 
-   m->deref();
    return rv;
 }
 
