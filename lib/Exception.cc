@@ -246,35 +246,6 @@ Exception::Exception(char *e, class QoreString *d)
    next = NULL;
 }
 
-/*
-// called for runtime exceptions
-Exception::Exception(char *e, char *fmt, ...)
-{
-   QoreString *str = new QoreString();
-   va_list args;
-
-   while (true)
-   {
-      va_start(args, fmt);
-      int rc = str->vsprintf(fmt, args);
-      va_end(args);
-      if (!rc)
-	 break;
-   }
-
-   type = ET_SYSTEM;
-   get_pgm_counter(start_line, end_line);   
-   char *f = get_pgm_file();
-   file = f ? strdup(f) : NULL;
-   callStack = new QoreNode(getCallStackList());
-
-   err = new QoreNode(e);
-   desc = new QoreNode(str);
-   arg = NULL;
-
-   next = NULL;
-}
-*/
 // called when parsing
 ParseException::ParseException(char *e, class QoreString *d)
 {

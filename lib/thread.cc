@@ -618,11 +618,8 @@ void update_argvstack(ArgvStack *as)
 void get_pgm_counter(int &start_line, int &end_line)
 {
    ThreadData *td = (ThreadData *)pthread_getspecific(thread_data_key);
-#ifdef DEBUG
    start_line = td->pgm_counter_start;
    end_line = td->pgm_counter_end;
-#else
-#endif
 }
 
 void update_pgm_counter_pgm_file(int start_line, int end_line, char *f)
