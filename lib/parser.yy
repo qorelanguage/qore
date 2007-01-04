@@ -22,6 +22,7 @@
 */
 
 #include <qore/config.h>
+#include <qore/common.h>
 #include <qore/QoreNode.h>
 #include <qore/Operator.h>
 #include <qore/Function.h>
@@ -55,23 +56,172 @@
 #include <qore/ClassRef.h>
 #include <qore/Hash.h>
 #include <qore/Tree.h>
+#include <qore/List.h>
+#include <qore/QoreType.h>
+#include <qore/NamedScope.h>
+#include <qore/Exception.h>
+
+#define YYLTYPE struct QoreParserLocation
 
 #include "parser.h"
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 #define YYINITDEPTH 300
 //#define YYDEBUG 1
 
-/*
-int yywrap()
-{
-   return 1;
-}
-*/
+#define HE_TAG_CONST        1
+#define HE_TAG_SCOPED_CONST 2
 
-extern class Operator **ops;
+#define YYLLOC_DEFAULT(Current, Rhs, N)                                \
+          do                                                                  \
+            if (N)                                                            \
+              {                                                               \
+                (Current).first_line   = YYRHSLOC(Rhs, 1).first_line;         \
+                (Current).last_line    = YYRHSLOC(Rhs, N).last_line;          \
+              }                                                               \
+            else                                                              \
+              {                                                               \
+                (Current).first_line   = (Current).last_line   =              \
+                  YYRHSLOC(Rhs, 0).last_line;                                 \
+              }                                                               \
+          while (0)
+
+class HashElement {
+   public:
+      char *key;
+      class QoreNode *value;
+      DLLLOCAL inline HashElement(class QoreNode *k, class QoreNode *v);
+      DLLLOCAL inline HashElement(int tag, char *constant, class QoreNode *v);
+      DLLLOCAL inline ~HashElement();
+};
+
+static inline class QoreNode *makeErrorTree(class AbstractOperator *op, class QoreNode *left, class QoreNode *right)
+{
+   return new QoreNode(left, op, right);
+}
+
+static class QoreNode *makeTree(class AbstractOperator *op, class QoreNode *left, class QoreNode *right)
+{
+   //tracein("makeTree()");
+   //printd(5, "makeTree(): l=%08p, r=%08p, op=%d\n", left, right, op);
+   // if both nodes are constants, then evaluate immediately */
+   if (is_value(left) && (!right || is_value(right)))
+   {
+      ExceptionSink xsink;
+
+      class QoreNode *n_node = op->eval(left, right, true, &xsink);
+      //printd(5, "makeTree(): l=%08p (%s), r=%08p, op=%s, returning %08p\n", left, left->type->getName(), right, op->name, n_node);
+      left->deref(NULL);
+      if (right)
+	 right->deref(NULL);
+
+      if (xsink.isEvent())
+	 getProgram()->addParseException(&xsink);
+
+      //traceout("makeTree()");
+      return n_node;
+   }
+   // otherwise, put nodes and operator into tree for runtime evaluation
+   return new QoreNode(new Tree(left, op, right));
+}
+
+static inline QoreNode *makeArgs(QoreNode *arg)
+{
+   if (!arg || arg->type == NT_LIST)
+      return arg;
+   List *l = new List(1);
+   l->push(arg);
+   return new QoreNode(l);
+}
+
+inline HashElement::HashElement(class QoreNode *k, class QoreNode *v)
+{
+   //tracein("HashElement::HashElement()");
+   if (k->type != NT_STRING)
+   {
+      parse_error("object member name must be a string value!");
+      key = strdup("");
+   }
+   else
+      key = strdup(k->val.String->getBuffer());
+   k->deref(NULL);
+   value = v;
+   //traceout("HashElement::HashElement()");
+}
+
+inline HashElement::HashElement(int tag, char *constant, class QoreNode *v)
+{
+   //tracein("HashElement::HashElement()");
+   key = (char *)malloc(sizeof(char) * strlen(constant) + 2);
+   key[0] = tag; // mark as constant
+   strcpy(key + 1, constant);
+   value = v;
+   free(constant);
+   //traceout("HashElement::HashElement()");
+}
+
+inline HashElement::~HashElement()
+{
+   free(key);
+}
+
+// for constant definitions
+class ConstNode
+{
+   public:
+      class NamedScope *name;
+      class QoreNode *value;
+      DLLLOCAL inline ConstNode(char *n, class QoreNode *v) { name = new NamedScope(n); value = v; }
+      DLLLOCAL inline ~ConstNode() { delete name; }
+};
+
+class ObjClassDef
+{
+   public:
+      class NamedScope *name;
+      class QoreClass *oc;
+      DLLLOCAL inline ObjClassDef(char *n, class QoreClass *o) { name = new NamedScope(n); oc = o; }
+      DLLLOCAL inline ~ObjClassDef() { delete name; }
+};
+
+#define NSN_OCD   1
+#define NSN_CONST 2
+#define NSN_NS    3
+
+struct NSNode
+{
+      int type;
+      union {
+	    class ObjClassDef *ocd;
+	    class ConstNode  *cn;
+	    class Namespace  *ns;
+      } n;
+      DLLLOCAL NSNode(class ObjClassDef *o) { type = NSN_OCD; n.ocd = o; }
+      DLLLOCAL NSNode(class ConstNode  *c) { type = NSN_CONST; n.cn = c; }
+      DLLLOCAL NSNode(class Namespace  *s) { type = NSN_NS; n.ns = s; }
+};
+
+static inline void addNSNode(class Namespace *ns, struct NSNode *n)
+{
+   switch (n->type)
+   {
+      case NSN_OCD:
+	 ns->addClass(n->n.ocd->name, n->n.ocd->oc);
+	 delete n->n.cn;
+	 break;
+      case NSN_CONST:
+	 ns->addConstant(n->n.cn->name, n->n.cn->value);
+	 delete n->n.cn;
+	 break;
+      case NSN_NS:
+	 ns->addNamespace(n->n.ns);
+	 break;
+   }
+   delete n;
+}
 
 // copies keys added, deletes them in the destructor
 static inline class QoreNode *splice_expressions(class QoreNode *a1, class QoreNode *a2)
@@ -252,7 +402,7 @@ bool needsEval(class QoreNode *n)
       return n->val.tree->op->hasEffect();
    }
 
-   //printd(0, "needsEval() type %s = true\n", n->type->getName());
+   //printd(5, "needsEval() type %s = true\n", n->type->getName());
    return true;
 }
 
@@ -333,10 +483,9 @@ struct MethodNode {
 %}
 
 %pure-parser
-//%skeleton "lalr1.cc"
 %lex-param {yyscan_t yyscanner}
 %parse-param {yyscan_t yyscanner}
-//%locations
+%locations
 %error-verbose
 
 %union
@@ -375,46 +524,126 @@ struct MethodNode {
 }
 
 %{
-//#define YYSTYPE char const *
 
+//#define YYSTYPE char const *
 //#define LEX_PARAMETERS YYSTYPE *lvalp, struct YYLTYPE *llocp
 //#define ERROR_PARAMETERS struct YYLTYPE *llocp, char const *s
-#define LEX_PARAMETERS YYSTYPE *lvalp, yyscan_t scanner
+//#define LEX_PARAMETERS YYSTYPE *lvalp, yyscan_t scanner
 //#define LEX_PARAMETERS void
 //#define ERROR_PARAMETERS char const *s
-int yylex(LEX_PARAMETERS);
 //int yylex();
 
-void yyerror(yyscan_t scanner, const char *str)
+#define LEX_PARAMETERS YYSTYPE *lvalp, YYLTYPE *loc, yyscan_t scanner
+
+DLLLOCAL int yylex(LEX_PARAMETERS);
+
+DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str)
 {
+   //printd(5, "yyerror() location: %d-%d: \"%s\"\n", loc->first_line, loc->last_line, str);
    parse_error("%s", str);
 }
 
 %}
 
-%token TOK_CLASS TOK_NEW TOK_OBJECT_REF TOK_RETURN TOK_MY
-%token TOK_DO TOK_TRY TOK_THROW TOK_CATCH TOK_FINALLY
-%token TOK_WHERE TOK_NULL P_INCREMENT P_DECREMENT 
-%token TOK_WHILE TOK_IF TOK_FOR TOK_SUB TOK_THREAD_EXIT 
-%token TOK_BREAK TOK_CONTINUE TOK_NOTHING TOK_CONTEXT_ROW
-%token TOK_FIND TOK_AUTOCOMMIT TOK_FOREACH TOK_IN TOK_DELETE
-%token TOK_PRIVATE TOK_BACKGROUND TOK_SYNCHRONIZED
-%token TOK_CONTEXT TOK_SORT_BY TOK_SUB_CONTEXT TOK_CONST
-%token TOK_SUMMARIZE TOK_BY TOK_SORT_DESCENDING_BY
-%token TOK_NAMESPACE TOK_SCOPED_REF TOK_OUR TOK_RETHROW
-%token TOK_SWITCH TOK_CASE TOK_DEFAULT TOK_INHERITS
+// define string aliases for token names for more user-friendly error reporting
+%token TOK_CLASS "'class'"
+%token TOK_RETURN "'return'"
+%token TOK_MY "'my'"
+%token TOK_DO "'do'"
+%token TOK_TRY "'try'"
+%token TOK_THROW "'throw'"
+%token TOK_CATCH "'catch'"
+%token TOK_FINALLY "'finally'"
+%token TOK_WHERE "'where'"
+%token TOK_NULL "NULL"
+%token TOK_WHILE "'while'"
+%token TOK_IF "'if'"
+%token TOK_FOR "'for'"
+%token TOK_SUB "'sub'"
+%token TOK_THREAD_EXIT "'thread_exit'" 
+%token TOK_BREAK "'break'"
+%token TOK_CONTINUE "'continue'"
+%token TOK_NOTHING "'NOTHING'"
+%token TOK_CONTEXT_ROW "'%%'"
+%token TOK_FIND "'find'"
+%token TOK_FOREACH "'foreach'"
+%token TOK_IN "'in'"
+%token TOK_DELETE "'delete'"
+%token TOK_PRIVATE "'private'"
+%token TOK_SYNCHRONIZED "'synchronized'"
+%token TOK_CONTEXT "'context'"
+%token TOK_SORT_BY "'sortBy'"
+%token TOK_SORT_DESCENDING_BY "'sortDescendingBy'"
+%token TOK_SUB_CONTEXT "'subcontext'"
+%token TOK_CONST "'const'"
+%token TOK_SUMMARIZE "'summarize'"
+%token TOK_BY "'by'"
+%token TOK_NAMESPACE "'namespace'"
+%token TOK_OUR "'our'"
+%token TOK_RETHROW "'rethrow'"
+%token TOK_SWITCH "'switch'"
+%token TOK_CASE "'case'"
+%token TOK_DEFAULT "'default'"
+%token TOK_INHERITS "'inherits'"
+%token TOK_ELSE "'else'"
 
-%token <integer> INTEGER
-%token <decimal> QFLOAT
-%token <string> IDENTIFIER VAR_REF BACKQUOTE SELF_REF KW_IDENTIFIER_OPENPAREN
-%token <string> SCOPED_REF CONTEXT_REF COMPLEX_CONTEXT_REF
-%token <datetime> DATETIME
-%token <String> QUOTED_WORD
-%token <binary> BINARY
-%token <RegexSubst> REGEX_SUBST
-%token <RegexTrans> REGEX_TRANS
-%token <nscope> BASE_CLASS_CALL
-%token <Regex> REGEX REGEX_EXTRACT
+// operator tokens
+%token P_INCREMENT "++ operator"
+%token P_DECREMENT "-- operator"
+%token PLUS_EQUALS "+= operator"
+%token MINUS_EQUALS "-= operator"
+%token AND_EQUALS "&= operator"
+%token OR_EQUALS "|= operator"
+%token MODULA_EQUALS "%= operator"
+%token MULTIPLY_EQUALS "*= operator"
+%token DIVIDE_EQUALS "/= operator"
+%token XOR_EQUALS "^= operator"
+%token SHIFT_LEFT_EQUALS "<<= operator"
+%token SHIFT_RIGHT_EQUALS ">>= operator"
+%token TOK_UNSHIFT "'unshift'"
+%token TOK_PUSH "'push'"
+%token TOK_POP "'pop'"
+%token TOK_SHIFT "'shift'"
+%token TOK_CHOMP "'chomp'"
+%token LOGICAL_AND "&& operator"
+%token LOGICAL_OR "|| operator"
+%token LOGICAL_EQ "== operator"
+%token LOGICAL_NE "!= operator"
+%token LOGICAL_LE "<= operator"
+%token LOGICAL_GE ">= operator"
+%token LOGICAL_CMP "<=> operator"
+%token ABSOLUTE_EQ "=== operator"
+%token ABSOLUTE_NE "!== operator"
+%token REGEX_MATCH "=~ operator"
+%token REGEX_NMATCH "!~ operator"
+%token TOK_EXISTS "'exists'"
+%token TOK_INSTANCEOF "'instanceof'"
+%token SHIFT_RIGHT ">> operator"
+%token SHIFT_LEFT "<< operator"
+%token TOK_ELEMENTS "'elements'"
+%token TOK_KEYS "'keys'"
+%token TOK_NEW "'new'"
+%token TOK_BACKGROUND "'background'"
+
+ // tokens returning data
+%token <integer> INTEGER "integer value"
+%token <decimal> QFLOAT "floating-point value"
+%token <string> IDENTIFIER "identifier"
+%token <string> VAR_REF "variable reference"
+%token <string> BACKQUOTE "backquote expression"
+%token <string> SELF_REF "in-object member reference"
+%token <string> KW_IDENTIFIER_OPENPAREN "keyword used as function or method identifier"
+%token <string> SCOPED_REF "namespace or class-scoped reference"
+%token <string> CONTEXT_REF "context reference"
+%token <string> COMPLEX_CONTEXT_REF "named context reference"
+%token <datetime> DATETIME "date/time value"
+%token <String> QUOTED_WORD "quoted string"
+%token <binary> BINARY "binary constant value"
+%token <RegexSubst> REGEX_SUBST "regular expression substitution expression"
+%token <RegexTrans> REGEX_TRANS "tranliteration expression"
+%token <nscope> BASE_CLASS_CALL "call to base class method"
+%token <Regex> REGEX "regular expression expression"
+%token <Regex> REGEX_EXTRACT "regular expression extraction expression"
 
 %nonassoc IFX
 %nonassoc TOK_ELSE
@@ -539,7 +768,7 @@ top_level_command:
 	}
         | '{' statements '}'
         {
-	   getProgram()->addStatement(new Statement($2));
+	   getProgram()->addStatement(new Statement(@1.first_line, @3.last_line, $2));
         }
         | top_namespace_decl
         {
@@ -662,63 +891,63 @@ statement:
 	      parse_error("statement has no effect (%s)", $1->type->getName());
 	   if ($1->type == NT_TREE)
 	      $1->val.tree->ignoreReturnValue();
-	   $$ = new Statement(S_EXPRESSION, $1);
+	   $$ = new Statement(@1.first_line, @1.last_line, S_EXPRESSION, $1);
 	}
         | try_statement
         { $$ = $1; }
 	| TOK_RETHROW ';'
 	{
-	   $$ = new Statement(S_RETHROW);
+	   $$ = new Statement(@1.first_line, @1.last_line, S_RETHROW);
 	}
         | TOK_THROW exp ';'
         {
-	   $$ = new Statement(S_THROW);
+	   $$ = new Statement(@1.first_line, @2.last_line, S_THROW);
 	   $$->s.Throw = new ThrowStatement($2);
 	}
         | TOK_SUB_CONTEXT context_mods statement_or_block
         {
-	   $$ = new Statement(S_SUBCONTEXT);
+	   $$ = new Statement(@1.first_line, @3.last_line, S_SUBCONTEXT);
 	   $$->s.SContext = new ContextStatement(NULL, NULL, $2, $3);
 	}
         | TOK_SUMMARIZE optname '(' exp ')' TOK_BY '(' exp ')' context_mods statement_or_block
         {
-	   $$ = new Statement(S_SUMMARY);
+	   $$ = new Statement(@1.first_line, @11.last_line, S_SUMMARY);
 	   $$->s.SContext = new ContextStatement($2, $4, $10, $11, $8);
 	}
         | TOK_CONTEXT optname '(' exp ')' context_mods statement_or_block
         {
-	   $$ = new Statement(S_CONTEXT);
+	   $$ = new Statement(@1.first_line, @7.last_line, S_CONTEXT);
 	   
 	   $$->s.SContext = new ContextStatement($2, $4, $6, $7);
         }
 	| TOK_IF '(' exp ')' statement_or_block %prec IFX
         {	
-	   $$ = new Statement(S_IF);
+	   $$ = new Statement(@1.first_line, @5.last_line, S_IF);
 	   $$->s.If = new IfStatement($3, $5, NULL);
 	}
         | TOK_IF '(' exp ')' statement_or_block TOK_ELSE statement_or_block
         {
-	   $$ = new Statement(S_IF);
+	   $$ = new Statement(@1.first_line, @7.last_line, S_IF);
 	   $$->s.If = new IfStatement($3, $5, $7);
 	}
 	| TOK_WHILE '(' exp ')' statement_or_block
         {
-	   $$ = new Statement(S_WHILE);
+	   $$ = new Statement(@1.first_line, @5.last_line, S_WHILE);
 	   $$->s.While = new WhileStatement($3, $5);
 	}
 	| TOK_DO statement_or_block TOK_WHILE '(' exp ')' ';'
         {
-	   $$ = new Statement(S_DO_WHILE);
+	   $$ = new Statement(@1.first_line, @5.last_line, S_DO_WHILE);
 	   $$->s.While = new WhileStatement($5, $2);
 	}
 	| TOK_FOR '(' myexp ';' myexp ';' myexp ')' statement_or_block
         {
-	   $$ = new Statement(S_FOR);
+	   $$ = new Statement(@1.first_line, @9.last_line, S_FOR);
 	   $$->s.For = new ForStatement($3, $5, $7, $9);
 	}
         | TOK_FOREACH exp TOK_IN '(' exp ')' statement_or_block
         {
-	   $$ = new Statement(S_FOREACH);
+	   $$ = new Statement(@1.first_line, @7.last_line, S_FOREACH);
 	   $$->s.ForEach = new ForEachStatement($2, $5, $7);
 	   if ($2->type != NT_VARREF && $2->type != NT_SELF_VARREF)
 	      parse_error("foreach variable expression is not a variable reference");
@@ -730,19 +959,19 @@ statement:
 	   if (checkParseOption(PO_NO_THREAD_CONTROL))
 	      parse_error("illegal use of \"thread_exit\" (conflicts with parse option NO_THREAD_CONTROL)");
 
-	   $$ = new Statement(S_THREAD_EXIT); 
+	   $$ = new Statement(@1.first_line, @1.last_line, S_THREAD_EXIT); 
 	}
         | TOK_BREAK ';'
         {
-	  $$ = new Statement(S_BREAK);
+	  $$ = new Statement(@1.first_line, @1.last_line, S_BREAK);
 	}
         | TOK_CONTINUE ';'
         {
-	  $$ = new Statement(S_CONTINUE);
+	  $$ = new Statement(@1.first_line, @1.last_line, S_CONTINUE);
 	}
         | TOK_DELETE exp ';'
         {
-	   $$ = new Statement(S_DELETE);
+	   $$ = new Statement(@1.first_line, @2.last_line, S_DELETE);
 	   $$->s.Delete = new DeleteStatement($2);
 	   if (check_vars($2))
 	      parse_error("delete statement takes only variable references as arguments");
@@ -777,16 +1006,16 @@ context_mod:
 	;
 
 return_statement:
-	TOK_RETURN     { $$ = new Statement(S_RETURN); $$->s.node = NULL; }
+	TOK_RETURN     { $$ = new Statement(@1.first_line, @1.last_line, S_RETURN); $$->s.node = NULL; }
 	|
-	TOK_RETURN exp { $$ = new Statement(S_RETURN, $2); }
+	TOK_RETURN exp { $$ = new Statement(@1.first_line, @2.last_line, S_RETURN, $2); }
 	;
 
 switch_statement:
         TOK_SWITCH '(' exp ')' '{' case_block '}'
         {
 	   $6->setSwitch($3);
-	   $$ = new Statement(S_SWITCH);
+	   $$ = new Statement(@1.first_line, @7.last_line, S_SWITCH);
 	   $$->s.Switch = $6;
         }
         ;
@@ -869,7 +1098,7 @@ case_code:
 try_statement:
         TOK_TRY statement_or_block TOK_CATCH '(' myexp ')' statement_or_block
         {
-	   $$ = new Statement(S_TRY);
+	   $$ = new Statement(@1.first_line, @7.last_line, S_TRY);
 	   char *param = NULL;
 	   if ($5)
 	   {

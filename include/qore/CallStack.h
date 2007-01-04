@@ -35,7 +35,7 @@ class CallNode {
    public:
       char *func;
       char *file_name;
-      int line_number;
+      int start_line, end_line;
       int type;
       class Object *obj;
       class CallNode *next;

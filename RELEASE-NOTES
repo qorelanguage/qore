@@ -23,8 +23,6 @@ Parsing
 -------
 *) Note that there is a parse lock on each program object.  Parsing on a single program object is single-threaded.  However, the reentrant parser is able to support simultaneous parsing on different program objects.
 *) Parsing happens in 2 stages - 1) parse to pending data structures, and 2) commit the pending data structures to the Qore Program object.  References are resolved in the second stage, which allows flexible referencing of functions, constants, classes, etc before they are declared.  Any parse errors at any stage will cause all the uncomitted parsing to be rolled back.  The Qore Program class allows the programmer control over the 2 stages of parsing with the Program::parsePending(), Program::parseCommit(), and Program::parseRollback() methods.
-*) BUG: error reporting needs to be improved when parse errors happen: when a parse error happens at the start of a block, the line number is normally reported at the end of the block (or right after the end of the block) - this is very annoying
-*) error reporting is not very user friendly in many cases - parser needs to be improved
 
 
 **************************
@@ -84,13 +82,10 @@ experimental: provides the "Panel" and "Window" classes along with many function
 **************************************
 
 The file docs/roadmap.html contains line-by-line feature information.  Generally, qore should hit version 1.0 when:
-*) the shared library and module interfaces are streamlined
 *) the bugs listed in this file are resolved
-*) performance issues are resolved - currently qore is too slow for some simple cases
 *) have more robust DBI drivers (PostgresSQL, Sybase should be added)
 *) binding and fetching has been implemented with explicit APIs so Qore programs can handle data sets larger than available memory
 *) signal-handling support has been implemented (for UNIX platforms at least)
-*) parser issues with line number reporting have been resolved
 
 
 *********************

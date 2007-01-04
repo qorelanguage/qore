@@ -61,6 +61,7 @@ DLLEXPORT extern int debug;
 #endif
 
 // the following functions are only referenced from C++ source
+DLLLOCAL void parse_error(int sline, int eline, const char *fmt, ...);
 DLLLOCAL void parse_error(const char *fmt, ...);
 DLLLOCAL void parseException(char *err, const char *fmt, ...);
 DLLLOCAL class QoreString *findFileInEnvPath(char *file, char *varname);

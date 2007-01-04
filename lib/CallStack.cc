@@ -37,7 +37,7 @@ CallNode::CallNode(char *f, int t, class Object *o)
    func = f;
    type = t;
    file_name   = get_pgm_file();
-   line_number = get_pgm_counter();
+   get_pgm_counter(start_line, end_line);
    obj = o;
    if (obj)
       obj->ref();
@@ -71,7 +71,8 @@ class Hash *CallNode::getInfo() const
    str->concat(func);
 
    h->setKeyValue("function", new QoreNode(str), NULL);
-   h->setKeyValue("line",     new QoreNode((int64)line_number), NULL);
+   h->setKeyValue("line",     new QoreNode((int64)start_line), NULL);
+   h->setKeyValue("endline",  new QoreNode((int64)end_line), NULL);
    h->setKeyValue("file",     new QoreNode(file_name), NULL);
    h->setKeyValue("typecode", new QoreNode((int64)type), NULL);
    // CT_RETHROW is only aded manually

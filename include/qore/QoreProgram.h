@@ -141,6 +141,7 @@ class QoreProgram : public AbstractPrivateData
       DLLLOCAL class Var *createVar(char *name);
       DLLLOCAL void importGlobalVariable(class Var *var, class ExceptionSink *xsink, bool readonly);
       DLLLOCAL void makeParseException(char *err, class QoreString *desc);
+      DLLLOCAL void makeParseException(int sline, int eline, class QoreString *desc);
       DLLLOCAL void makeParseException(class QoreString *desc);
       DLLLOCAL void addParseException(class ExceptionSink *xsink);
       DLLLOCAL void makeParseWarning(int code, char *warn, const char *fmt, ...);

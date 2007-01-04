@@ -44,12 +44,15 @@
 #include <qore/ModuleManager.h>
 #include <qore/QoreRegex.h>
 #include <qore/QoreWarnings.h>
+#include <qore/qore_thread.h>
 
 #include "parser.h"
 
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+
+#define YY_USER_ACTION { yylloc->setConditionalFirst(yylineno); yylloc->last_line = yylineno; update_parse_location(yylloc->first_line, yylloc->last_line); }
 
 int yyparse(yyscan_t yyscanner);
 
@@ -251,17 +254,20 @@ static inline bool isRegexSubstModifier(class RegexSubst *qr, int c)
 %}
 
 %option noyywrap nomain noyy_top_state warn
-%option reentrant bison-bridge
+%option reentrant bison-bridge bison-locations
 %option stack
+%option yylineno
+%option noyy_push_state
+%option noyy_pop_state
 
 %x str_state regex_state incl check_regex regex_subst1 regex_subst2 line_comment exec_class_state requires regex_trans1 regex_trans2 regex_extract_state disable_warning enable_warning
 
-HEX_CONST       0x[0-9A-Fa-f]+
+HEX_DIGIT       [0-9A-Fa-f]
+HEX_CONST       0x{HEX_DIGIT}+
 OCTAL_CONST     \\[0-7]{1,3}
 DIGIT		[0-9]
-HEX_DIGIT       [0-9A-Fa-f]
 WORD		[a-zA-Z][a-zA-Z0-9_]*
-WS		[ \t\r]
+WS		[ \t]
 YEAR            [0-9]{4}
 MONTH           (0[1-9])|(1[012])
 DAY             ((0[1-9])|([12][0-9])|(3[01]))
@@ -362,8 +368,7 @@ BINARY          <({HEX_DIGIT}{HEX_DIGIT})+>
 					   {
 					      // save file name string in QoreProgram's list
 					      getProgram()->addFile(fname->getBuffer());
-					      // "give away" string - it will be deleted when the QoreProgram object
-					      // is deleted
+					      // "give away" string - it will be deleted when the QoreProgram object is deleted
 					      beginParsing(fname->giveBuffer(), (void *)YY_CURRENT_BUFFER);
 					      yy_switch_to_buffer(yy_create_buffer(yyin, YY_BUF_SIZE, yyscanner), yyscanner);
 					      BEGIN(INITIAL);
@@ -388,9 +393,7 @@ BINARY          <({HEX_DIGIT}{HEX_DIGIT})+>
 \/\*                                    {
                                             int c;
                                             while ((c = yyinput(yyscanner)))
-					       if (c == '\n')
-						  increment_pgm_counter();
-					       else if (c == '*')
+					       if (c == '*')
 					       {
 						  if (yyinput(yyscanner) == '/') break;
 						  else unput(c);
@@ -401,13 +404,10 @@ BINARY          <({HEX_DIGIT}{HEX_DIGIT})+>
 						  break;
 					       }
                                         }
-\"					yylval->String = new QoreString(); BEGIN(str_state);
+\"					yylval->String = new QoreString(); yylloc->setExplicitFirst(yylineno); BEGIN(str_state);
 <str_state>{
       \"				BEGIN(INITIAL); return QUOTED_WORD;
-      \n				{
-                                           increment_pgm_counter();
-					   yylval->String->concat('\n');
-                                        }
+      \n				yylval->String->concat('\n');
       {OCTAL_CONST}			{
 					   int result;
 					   sscanf(yytext + 1, "%o", &result);
@@ -422,10 +422,7 @@ BINARY          <({HEX_DIGIT}{HEX_DIGIT})+>
       \\b				yylval->String->concat('\b');
       \\f				yylval->String->concat('\f');
       \\.				yylval->String->concat(yytext[1]);
-      \\\n                              {
-	                                   increment_pgm_counter();
-					   yylval->String->concat('\n');
-                                        }
+      \\\n                              yylval->String->concat('\n');
       [^\\\n\"]+			{
 					   char *yptr = yytext;
 					   while (*yptr)
@@ -445,7 +442,6 @@ BINARY          <({HEX_DIGIT}{HEX_DIGIT})+>
 					   return REGEX_SUBST;
                                         }
       \n				{
-	                                   increment_pgm_counter();
 					   yylval->RegexSubst->concatTarget('\n');
                                         }
       \\\/                              yylval->RegexSubst->concatTarget('/');
@@ -458,10 +454,7 @@ BINARY          <({HEX_DIGIT}{HEX_DIGIT})+>
 }
 <regex_subst1>{
       \/  	                        BEGIN(regex_subst2);
-      \n				{
-	                                   increment_pgm_counter();
-					   yylval->RegexSubst->concatSource('\n');
-                                        }
+      \n				yylval->RegexSubst->concatSource('\n');
       \\\/                              yylval->RegexSubst->concatSource('/');
       \\.                               { yylval->RegexSubst->concatSource('\\'); yylval->RegexSubst->concatSource(yytext[1]); }
       [^\n\\/]+			        {
@@ -477,19 +470,13 @@ BINARY          <({HEX_DIGIT}{HEX_DIGIT})+>
 					   yylval->RegexTrans->finishTarget(); 
 					   return REGEX_TRANS;
                                         }
-      \n				{
-	                                   increment_pgm_counter();
-					   yylval->RegexTrans->concatTarget('\n');
-                                        }
+      \n				yylval->RegexTrans->concatTarget('\n');
       \\n				yylval->RegexTrans->concatTarget('\n');
       \\t				yylval->RegexTrans->concatTarget('\t');
       \\r				yylval->RegexTrans->concatTarget('\r');
       \\b				yylval->RegexTrans->concatTarget('\b');
       \\f				yylval->RegexTrans->concatTarget('\f');
-      \\\n                              {
-	                                   increment_pgm_counter();
-					   yylval->RegexTrans->concatTarget('\n');
-                                        }
+      \\\n                              yylval->RegexTrans->concatTarget('\n');
       \\\/                              yylval->RegexTrans->concatTarget('/');
       \\.				yylval->RegexTrans->concatTarget(yytext[1]);
       [^\n\\/\-]+			        {
@@ -501,21 +488,13 @@ BINARY          <({HEX_DIGIT}{HEX_DIGIT})+>
 <regex_trans1>{
       -                                 yylval->RegexTrans->setSourceRange();
       \/  	                        BEGIN(regex_trans2); yylval->RegexTrans->finishSource();
-      \n				{
-	                                   increment_pgm_counter();
-					   yylval->RegexTrans->concatSource('\n');
-                                        }
+      \n				yylval->RegexTrans->concatSource('\n');
       \\n				yylval->RegexTrans->concatSource('\n');
       \\t				yylval->RegexTrans->concatSource('\t');
       \\r				yylval->RegexTrans->concatSource('\r');
       \\b				yylval->RegexTrans->concatSource('\b');
       \\f				yylval->RegexTrans->concatSource('\f');
-      \\\n                              {
-	                                   increment_pgm_counter();
-					   yylval->RegexTrans->concatSource('\n');
-                                        }
-
-
+      \\\n                              yylval->RegexTrans->concatSource('\n');
       \\\/                              yylval->RegexTrans->concatSource('/');
       \\.				yylval->RegexTrans->concatSource(yytext[1]);
       [^\n\\/\-]+			        {
@@ -526,11 +505,11 @@ BINARY          <({HEX_DIGIT}{HEX_DIGIT})+>
 }
 <check_regex>{
       {WS}+                             // ignore 
-      s\/                               yylval->RegexSubst = new RegexSubst(); BEGIN(regex_subst1);
-      x\/                               yylval->Regex = new QoreRegex(); BEGIN(regex_extract_state);
-      m\/                               yylval->Regex = new QoreRegex(); BEGIN(regex_state);
-      \/                                yylval->Regex = new QoreRegex(); BEGIN(regex_state);
-      tr\/                              yylval->RegexTrans = new RegexTrans(); BEGIN(regex_trans1);
+      s\/                               yylval->RegexSubst = new RegexSubst(); yylloc->setExplicitFirst(yylineno); BEGIN(regex_subst1);
+      x\/                               yylval->Regex      = new QoreRegex();  yylloc->setExplicitFirst(yylineno); BEGIN(regex_extract_state);
+      m\/                               yylval->Regex      = new QoreRegex();  yylloc->setExplicitFirst(yylineno); BEGIN(regex_state);
+      \/                                yylval->Regex      = new QoreRegex();  yylloc->setExplicitFirst(yylineno); BEGIN(regex_state);
+      tr\/                              yylval->RegexTrans = new RegexTrans(); yylloc->setExplicitFirst(yylineno); BEGIN(regex_trans1);
       [^\/]                             BEGIN(INITIAL);
 }
 <regex_state>{
@@ -545,10 +524,7 @@ BINARY          <({HEX_DIGIT}{HEX_DIGIT})+>
 					   yylval->Regex->parse(); 
 					   return REGEX;
                                         }
-      \n				{
-	                                   increment_pgm_counter();
-					   yylval->Regex->concat('\n');
-                                        }
+      \n				yylval->Regex->concat('\n');
       \\\/                              yylval->Regex->concat('/');
       \\.                               { yylval->Regex->concat('\\'); yylval->Regex->concat(yytext[1]); }
       [^\n\\/]+			        {
@@ -569,10 +545,7 @@ BINARY          <({HEX_DIGIT}{HEX_DIGIT})+>
 					   yylval->Regex->parse(); 
 					   return REGEX_EXTRACT;
                                         }
-      \n				{
-	                                   increment_pgm_counter();
-					   yylval->Regex->concat('\n');
-                                        }
+      \n				yylval->Regex->concat('\n');
       \\\/                              yylval->Regex->concat('/');
       \\.                               { yylval->Regex->concat('\\'); yylval->Regex->concat(yytext[1]); }
       [^\n\\/]+			        {
@@ -636,12 +609,12 @@ pop                                     return TOK_POP;
 splice                                  return TOK_SPLICE;
 instanceof                              return TOK_INSTANCEOF;
 chomp					return TOK_CHOMP;
-chomp\(                            yylval->string = strdup("chomp"); return KW_IDENTIFIER_OPENPAREN;
-push\(                             yylval->string = strdup("push"); return KW_IDENTIFIER_OPENPAREN;
-pop\(                              yylval->string = strdup("pop"); return KW_IDENTIFIER_OPENPAREN;
-splice\(                           yylval->string = strdup("splice"); return KW_IDENTIFIER_OPENPAREN;
-shift\(                            yylval->string = strdup("shift"); return KW_IDENTIFIER_OPENPAREN;
-unshift\(                          yylval->string = strdup("unshift"); return KW_IDENTIFIER_OPENPAREN;
+chomp\(                                 yylval->string = strdup("chomp"); return KW_IDENTIFIER_OPENPAREN;
+push\(                                  yylval->string = strdup("push"); return KW_IDENTIFIER_OPENPAREN;
+pop\(                                   yylval->string = strdup("pop"); return KW_IDENTIFIER_OPENPAREN;
+splice\(                                yylval->string = strdup("splice"); return KW_IDENTIFIER_OPENPAREN;
+shift\(                                 yylval->string = strdup("shift"); return KW_IDENTIFIER_OPENPAREN;
+unshift\(                               yylval->string = strdup("unshift"); return KW_IDENTIFIER_OPENPAREN;
 {YEAR}-{MONTH}-{DAY}[T-]{HOUR}:{MSEC}:{MSEC}(\.{MS})?   yylval->datetime = makeDateTime(yytext); return DATETIME;
 {YEAR}-{MONTH}-{DAY}                    yylval->datetime = makeDate(yytext); return DATETIME;
 {HOUR}:{MSEC}:{MSEC}(\.{MS})?           yylval->datetime = makeTime(yytext); return DATETIME;
@@ -670,7 +643,7 @@ P{D2}:{D2}:{D2}(\.{MS})?                yylval->datetime = makeRelativeTime(yyte
 \%{WORD}\:{WORD}                        yylval->string = strdup(yytext + 1); return COMPLEX_CONTEXT_REF;
 \%\%                                    return TOK_CONTEXT_ROW;
 \`[^`]*\`                               yylval->string = strdup(remove_quotes(yytext)); return BACKQUOTE;
-\'[^']*\'				yylval->String = new QoreString(remove_quotes(yytext)); return QUOTED_WORD;
+\'[^\']*\'				yylval->String = new QoreString(remove_quotes(yytext)); return QUOTED_WORD;
 \<{WS}*=				return LOGICAL_LE;
 \>{WS}*=				return LOGICAL_GE;
 \!{WS}*=				return LOGICAL_NE;
@@ -698,8 +671,6 @@ P{D2}:{D2}:{D2}(\.{MS})?                yylval->datetime = makeRelativeTime(yyte
 =\~                                     BEGIN(check_regex); return REGEX_MATCH;
 \!\~                                    BEGIN(check_regex); return REGEX_NMATCH;
 {WS}+					/* ignore whitespace */
-\n					{
-                                           increment_pgm_counter();
-                                        }
+\n|\r                                    /* ignore linefeeds and carriage returns */
 .					return yytext[0];
 %%

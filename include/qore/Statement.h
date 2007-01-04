@@ -51,6 +51,8 @@
 #define RC_BREAK        2
 #define RC_CONTINUE     3
 
+// all definitions in this file are private to the library and subject to change
+
 DLLLOCAL int process_node(class QoreNode **node, lvh_t oflag, int pflag);
 
 class LVList {
@@ -63,12 +65,10 @@ class LVList {
 };
 
 class Statement {
-   private:
-      DLLLOCAL void setPosition();
-
    public:
       int Type;
       int LineNumber;
+      int EndLineNumber;
       char *FileName;
       union StatementTypeUnion
       {
@@ -97,9 +97,9 @@ class Statement {
       } s;
       class Statement *next;
 
-      DLLLOCAL Statement(int type, class QoreNode *node);
-      DLLLOCAL Statement(int type);
-      DLLLOCAL Statement(class StatementBlock *block);
+      DLLLOCAL Statement(int sline, int eline, int type, class QoreNode *node);
+      DLLLOCAL Statement(int sline, int eline, int type);
+      DLLLOCAL Statement(int sline, int eline, class StatementBlock *block);
       DLLLOCAL ~Statement();
       DLLLOCAL int exec(class QoreNode **return_value, class ExceptionSink *xsink);
       DLLLOCAL int parseInit(lvh_t oflag, int pflag = 0);

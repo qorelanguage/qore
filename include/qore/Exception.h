@@ -44,25 +44,13 @@ class ExceptionSink {
       DLLEXPORT ~ExceptionSink();
       DLLEXPORT void handleExceptions();
       DLLEXPORT void handleWarnings();
-      DLLEXPORT bool isEvent() const
-      {
-	 return head || thread_exit;
-      }
-      DLLEXPORT bool isThreadExit() const
-      {
-	 return thread_exit;
-      }
-      DLLEXPORT bool isException() const
-      {
-	 return head;
-      }
+      DLLEXPORT bool isEvent() const;
+      DLLEXPORT bool isThreadExit() const;
+      DLLEXPORT bool isException() const;
       // Intended as a alternative to isException():
       // ExceptionSink xsink;
       // if (xsink) { .. }
-      DLLEXPORT operator bool () const
-      {
-         return head;
-      }
+      DLLEXPORT operator bool () const;
       // The QoreNode* returned value is always NULL. Used to simplify error handling code.
       DLLEXPORT class QoreNode *raiseException(char *err, char *fmt, ...);
       // Raise exception with additional argument (the 'arg' member). Always returns 0.
@@ -78,32 +66,45 @@ class ExceptionSink {
       DLLLOCAL class Exception *catchException();
       DLLLOCAL static void defaultExceptionHandler(class Exception *e);
       DLLLOCAL static void defaultWarningHandler(class Exception *e);
+      DLLLOCAL void overrideLocation(int sline, int eline, char *file);
 };
 
 class Exception {
    friend class ExceptionSink;
 
    private:
+   
+   protected:
       int type;
-      int line;
+      int start_line, end_line;
       char *file;
       class QoreNode *callStack, *err, *desc, *arg;
       class Exception *next;
-   
-   protected:
+
       ~Exception();
 
    public:
       DLLEXPORT Exception(char *e, char *fmt, ...);
-      DLLEXPORT Exception(char *e, class QoreString *desc);
-      // FIXME: remove this function when parsing line number big is fixed
-      DLLEXPORT Exception(char *e, int sline, class QoreString *desc);
-      DLLEXPORT Exception(class Exception *old, class ExceptionSink *xsink);
       DLLEXPORT class QoreNode *makeExceptionObjectAndDelete(class ExceptionSink *xsink);
       DLLEXPORT class QoreNode *makeExceptionObject();
 
+      // for derived classes
+      DLLLOCAL Exception() {}
+      // called for runtime exceptions
+      DLLLOCAL Exception(char *err, class QoreString *desc);
+      // called for rethrow
+      DLLLOCAL Exception(class Exception *old, class ExceptionSink *xsink);
       DLLLOCAL Exception(class QoreNode *l);
       DLLLOCAL void del(class ExceptionSink *xsink);
+};
+
+class ParseException : public Exception
+{
+   public:
+      // called for parse exceptions
+      DLLLOCAL ParseException(char *err, class QoreString *desc);
+      // called for parse exceptions
+      DLLLOCAL ParseException(int s_line, int e_line, char *err, class QoreString *desc);
 };
 
 static inline void alreadyDeleted(class ExceptionSink *xsink, char *cmeth)

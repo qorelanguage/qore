@@ -107,7 +107,12 @@ char *remove_trailing_blanks(char *str)
 void showCallStack()
 {
    List *callStack = getCallStackList();
-   printf("terminated at %s:%d\n", get_pgm_file(), get_pgm_counter());
+   int sl, el;
+   get_pgm_counter(sl, el);
+   if (sl == el)
+      printf("terminated at %s:%d\n", get_pgm_file(), sl);
+   else
+      printf("terminated at %s:%d-%d\n", get_pgm_file(), sl, el);
    if (callStack && callStack->size())
    {
       printe("call stack:\n");
@@ -138,6 +143,23 @@ void parse_error(const char *fmt, ...)
 	 break;
    }
    getProgram()->makeParseException(desc);
+}
+
+void parse_error(int sline, int eline, const char *fmt, ...)
+{
+   printd(5, "parse_error(sline, eline, \"%s\", ...) called\n", sline, eline, fmt);
+
+   class QoreString *desc = new QoreString();
+   while (true)
+   {
+      va_list args;
+      va_start(args, fmt);
+      int rc = desc->vsprintf(fmt, args);
+      va_end(args);
+      if (!rc)
+	 break;
+   }
+   getProgram()->makeParseException(sline, eline, desc);
 }
 
 void parseException(char *err, const char *fmt, ...)

@@ -1,3 +1,11 @@
+2007.01.04: David Nichols
+	* finally fixed line-number reporting bug - enabled bison locations,
+	  split parse and runtime position tracking, added ParseException class
+	* made error reporting more user-friendly by using string aliases 
+	  instead of token names in error messages from the parser
+	* fixed a bug in line-counting in singly-quoted strings by using flex'
+	  yylineno
+
 2006.12.27: David Nichols
 	* fixed is_dev() function registration
 	* finished implementing sort() with callback

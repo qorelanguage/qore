@@ -293,7 +293,7 @@ void QoreProgram::makeParseException(char *err, class QoreString *desc)
    tracein("QoreProgram::makeParseException()");
    if (!requires_exception)
    {
-      class Exception *ne = new Exception(err, get_pgm_stmt(), desc);
+      class Exception *ne = new ParseException(err, desc);
       parseSink->raiseException(ne);
    }
    else
@@ -306,7 +306,20 @@ void QoreProgram::makeParseException(class QoreString *desc)
    tracein("QoreProgram::makeParseException()");
    if (!requires_exception)
    {
-      class Exception *ne = new Exception("PARSE-EXCEPTION", get_pgm_stmt(), desc);
+      class Exception *ne = new ParseException("PARSE-EXCEPTION", desc);
+      parseSink->raiseException(ne);
+   }
+   else
+      delete desc;
+   traceout("QoreProgram::makeParseException()");
+}
+
+void QoreProgram::makeParseException(int sline, int eline, class QoreString *desc)
+{
+   tracein("QoreProgram::makeParseException()");
+   if (!requires_exception)
+   {
+      class Exception *ne = new ParseException(sline, eline, "PARSE-EXCEPTION", desc);
       parseSink->raiseException(ne);
    }
    else
@@ -321,6 +334,10 @@ void QoreProgram::addParseException(class ExceptionSink *xsink)
       delete xsink;
       return;
    }
+   // ensure that all exceptions reflect the current parse location
+   int sline, eline;
+   get_parse_location(sline, eline);
+   xsink->overrideLocation(sline, eline, get_parse_file());
    parseSink->assimilate(xsink);
 }
 
@@ -340,7 +357,7 @@ void QoreProgram::makeParseWarning(int code, char *warn, const char *fmt, ...)
       if (!rc)
          break;
    }
-   class Exception *ne = new Exception(warn, get_pgm_stmt(), desc);
+   class Exception *ne = new ParseException(warn, desc);
    warnSink->raiseException(ne);
    traceout("QoreProgram::makeParseWarning()");
 }
@@ -362,7 +379,7 @@ void QoreProgram::cannotProvideFeature(class QoreString *desc)
       requires_exception = true;
    }
 
-   class Exception *ne = new Exception("CANNOT-PROVIDE-FEATURE", desc);
+   class Exception *ne = new ParseException("CANNOT-PROVIDE-FEATURE", desc);
    parseSink->raiseException(ne);
    
    traceout("QoreProgram::cannotProvideFeature()");

@@ -47,6 +47,43 @@ void ExceptionSink::raiseThreadExit()
    thread_exit = true;
 }
 
+bool ExceptionSink::isEvent() const
+{
+   return head || thread_exit;
+}
+
+bool ExceptionSink::isThreadExit() const
+{
+   return thread_exit;
+}
+
+bool ExceptionSink::isException() const
+{
+   return head;
+}
+
+// Intended as a alternative to isException():
+// ExceptionSink xsink;
+// if (xsink) { .. }
+ExceptionSink::operator bool () const
+{
+   return head;
+}
+
+void ExceptionSink::overrideLocation(int sline, int eline, char *file)
+{
+   class Exception *w = head;
+   while (w)
+   {
+      w->start_line = sline;
+      w->end_line = eline;
+      if (w->file)
+	 free(w->file);
+      w->file = file ? strdup(file) : NULL;
+      w = w->next;
+   }
+}
+
 class Exception *ExceptionSink::catchException()
 {
    class Exception *e = head;
@@ -181,7 +218,7 @@ void ExceptionSink::outOfMemory()
    if (!ex)
       return;
    // set line and file in exception
-   ex->line = get_pgm_counter();
+   get_pgm_counter(ex->start_line, ex->end_line);
    char *f = get_pgm_file();
    ex->file = f ? strdup(f) : NULL;
    // there is no callstack in an out-of-memory exception
@@ -193,32 +230,11 @@ void ExceptionSink::outOfMemory()
 #endif
 }
 
-Exception::Exception(char *e, int sline, class QoreString *d)
-{
-   type = ET_SYSTEM;
-
-   if (sline)
-      line = sline;
-   else
-      line = get_pgm_counter();
-   
-   char *f = get_pgm_file();
-   file = f ? strdup(f) : NULL;
-   callStack = new QoreNode(getCallStackList());
-
-   err = new QoreNode(e);
-   desc = new QoreNode(d);
-   arg = NULL;
-
-   next = NULL;
-}
-
+// called for runtime errors
 Exception::Exception(char *e, class QoreString *d)
 {
    type = ET_SYSTEM;
-
-   line = get_pgm_counter();
-   
+   get_pgm_counter(start_line, end_line);
    char *f = get_pgm_file();
    file = f ? strdup(f) : NULL;
    callStack = new QoreNode(getCallStackList());
@@ -230,6 +246,7 @@ Exception::Exception(char *e, class QoreString *d)
    next = NULL;
 }
 
+// called for runtime exceptions
 Exception::Exception(char *e, char *fmt, ...)
 {
    QoreString *str = new QoreString();
@@ -245,13 +262,46 @@ Exception::Exception(char *e, char *fmt, ...)
    }
 
    type = ET_SYSTEM;
-   line = get_pgm_counter();
+   get_pgm_counter(start_line, end_line);   
    char *f = get_pgm_file();
    file = f ? strdup(f) : NULL;
    callStack = new QoreNode(getCallStackList());
 
    err = new QoreNode(e);
    desc = new QoreNode(str);
+   arg = NULL;
+
+   next = NULL;
+}
+
+// called when parsing
+ParseException::ParseException(char *e, class QoreString *d)
+{
+   type = ET_SYSTEM;
+   get_parse_location(start_line, end_line);
+   char *f = get_parse_file();
+   file = f ? strdup(f) : NULL;
+   callStack = new QoreNode(getCallStackList());
+
+   err = new QoreNode(e);
+   desc = new QoreNode(d);
+   arg = NULL;
+
+   next = NULL;
+}
+
+// called when parsing
+ParseException::ParseException(int s_line, int e_line, char *e, class QoreString *d)
+{
+   type = ET_SYSTEM;
+   start_line = s_line;
+   end_line = e_line;
+   char *f = get_parse_file();
+   file = f ? strdup(f) : NULL;
+   callStack = new QoreNode(getCallStackList());
+
+   err = new QoreNode(e);
+   desc = new QoreNode(d);
    arg = NULL;
 
    next = NULL;
@@ -284,7 +334,7 @@ void Exception::del(class ExceptionSink *xsink)
 Exception::Exception(class QoreNode *n)
 {
    type = ET_USER;
-   line = get_pgm_counter();
+   get_pgm_counter(start_line, end_line);   
    char *f = get_pgm_file();
    file = f ? strdup(f) : NULL;
    callStack = new QoreNode(getCallStackList());
@@ -315,10 +365,11 @@ Exception::Exception(class QoreNode *n)
 
 Exception::Exception(class Exception *old, class ExceptionSink *xsink)
 {
-   type = old->type;
-   line = old->line;
-   file = old->file ? strdup(old->file) : NULL;
-   callStack = old->callStack->realCopy(xsink);
+   type       = old->type;
+   start_line = old->start_line;
+   end_line   = old->end_line;
+   file       = old->file ? strdup(old->file) : NULL;
+   callStack  = old->callStack->realCopy(xsink);
    // insert current position as a rethrow entry in the new callstack
    class List *l = callStack->val.list;
    char *fn = NULL;
@@ -335,7 +386,10 @@ Exception::Exception(class Exception *old, class ExceptionSink *xsink)
    char *f = get_pgm_file();
    if (f)
       h->setKeyValue("file", new QoreNode(f), NULL);
-   h->setKeyValue("line", new QoreNode((int64)get_pgm_counter()), NULL);
+   int sline, eline;
+   get_pgm_counter(sline, eline);
+   h->setKeyValue("line", new QoreNode((int64)sline), NULL);
+   h->setKeyValue("endline", new QoreNode((int64)eline), NULL);
    l->insert(new QoreNode(h));
 
    next = old->next ? new Exception(old->next, xsink) : NULL;
@@ -357,7 +411,8 @@ class QoreNode *Exception::makeExceptionObject()
       h->setKeyValue("type", new QoreNode("System"), NULL);
 
    h->setKeyValue("file", new QoreNode(file), NULL);
-   h->setKeyValue("line", new QoreNode((int64)line), NULL);
+   h->setKeyValue("line", new QoreNode((int64)start_line), NULL);
+   h->setKeyValue("endline", new QoreNode((int64)end_line), NULL);
    h->setKeyValue("callstack", callStack->RefSelf(), NULL);
 
    if (err)
@@ -405,19 +460,31 @@ void ExceptionSink::defaultExceptionHandler(Exception *e)
 	 {
 	    found = true;
 	    class Hash *h = cs->retrieve_entry(i)->val.hash;
-	    printe(" in %s() (%s:%d, %s code)\n",
-		   h->getKeyValue("function")->val.String->getBuffer(),
-		   e->file, e->line,
-		   h->getKeyValue("type")->val.String->getBuffer());
+	    if (e->start_line == e->end_line)
+	       printe(" in %s() (%s:%d, %s code)\n",
+		      h->getKeyValue("function")->val.String->getBuffer(),
+		      e->file, e->start_line,
+		      h->getKeyValue("type")->val.String->getBuffer());
+	    else
+	       printe(" in %s() (%s:%d-%d, %s code)\n",
+		      h->getKeyValue("function")->val.String->getBuffer(),
+		      e->file, e->start_line, e->end_line,
+		      h->getKeyValue("type")->val.String->getBuffer());
 	 }
       }
 
       if (!found)
       {
 	 if (e->file)
-	    printe(" at %s:%d", e->file, e->line);
-	 else if (e->line)
-	    printe(" on line %d", e->line);
+	    if (e->start_line == e->end_line)
+	       printe(" at %s:%d", e->file, e->start_line);
+	    else
+	       printe(" at %s:%d-%d", e->file, e->start_line, e->end_line);
+	 else if (e->start_line)
+	    if (e->start_line == e->end_line)
+	       printe(" on line %d", e->start_line);
+	    else
+	       printe(" on lines %d through %d", e->start_line, e->end_line);
 	 printe("\n");
       }
       
@@ -481,28 +548,29 @@ void ExceptionSink::defaultExceptionHandler(Exception *e)
 	    else
 	    {
 	       QoreNode *fn = h->getKeyValue("file");
-	       int line = h->getKeyValue("line")->val.intval;
+	       char *fns = fn ? fn->val.String->getBuffer() : NULL;
+	       int start_line = h->getKeyValue("line")->val.intval;
+	       int end_line = h->getKeyValue("endline")->val.intval;
 	       if (!strcmp(type, "rethrow"))
 	       {
 		  if (fn)
-		     printe(" %2d: RETHROW at %s:%d\n", pos, fn->val.String->getBuffer(), line);
+		     printe(" %2d: RETHROW at %s:%d\n", pos, fn->val.String->getBuffer(), start_line);
 		  else
-		     printe(" %2d: RETHROW at line %d\n", pos, line);
+		     printe(" %2d: RETHROW at line %d\n", pos, start_line);
 	       }
 	       else
 	       {
-		  if (fn)
-		     printe(" %2d: %s() (%s:%d, %s code)\n", pos,
-			    h->getKeyValue("function")->val.String->getBuffer(),
-			    fn->val.String->getBuffer(),
-			    (int)h->getKeyValue("line")->val.intval,
-			    type);
+		  char *func = h->getKeyValue("function")->val.String->getBuffer();
+		  if (fns)
+		     if (start_line == end_line)
+			printe(" %2d: %s() (%s:%d, %s code)\n", pos, func, fns, start_line, type);
+		     else
+			printe(" %2d: %s() (%s:%d-%d, %s code)\n", pos, func, fns, start_line, end_line, type);
 		  else
-		     printe(" %2d: %s() (line %d, %s code)\n", pos,
-			    h->getKeyValue("function")->val.String->getBuffer(),
-			    (int)h->getKeyValue("line")->val.intval,
-			    type);
-		  
+		     if (start_line == end_line)
+			printe(" %2d: %s() (line %d, %s code)\n", pos, func, start_line, type);
+		     else
+			printe(" %2d: %s() (line %d - %d, %s code)\n", pos, func, start_line, end_line, type);
 	       }
 	    }
 	 }
@@ -523,9 +591,15 @@ void ExceptionSink::defaultWarningHandler(Exception *e)
       printe("warning encountered ");
 
       if (e->file)
-	 printe("at %s:%d", e->file, e->line);
-      else if (e->line)
-	 printe("on line %d", e->line);
+	 if (e->start_line == e->end_line)
+	    printe("at %s:%d", e->file, e->start_line);
+	 else
+	    printe("at %s:%d-%d", e->file, e->start_line, e->end_line);
+      else if (e->start_line)
+	 if (e->start_line == e->end_line)
+	    printe("on line %d", e->start_line);
+	 else
+	    printe("on line %d-%d", e->start_line, e->end_line);
       printe("\n");
       
       printe("%s: %s\n", e->err->val.String->getBuffer(), e->desc->val.String->getBuffer());

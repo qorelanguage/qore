@@ -115,41 +115,40 @@ public:
 static tid_node *tid_head = NULL, *tid_tail = NULL;
  
 class ProgramLocation {
-public:
-   int line;
-   char *file;
-   void *parseState;
-   class ProgramLocation *next;
-   
-   DLLLOCAL ProgramLocation(int l, char *fname, void *ps = NULL) 
-   { 
-      line = l; 
-      file = fname; 
-      parseState = ps;
-   }
+   public:
+      char *file;
+      void *parseState;
+      class ProgramLocation *next;
+      
+      DLLLOCAL ProgramLocation(char *fname, void *ps = NULL) 
+      { 
+	 file       = fname; 
+	 parseState = ps;
+      }
 };
 
 // this structure holds all thread-specific data
 class ThreadData 
 {
-public:
-   int tid;
-   class LVar *lvstack;
-   class Context *context_stack;
-   class ArgvStack *argvstack;
-   class QoreProgramStack *pgmStack;
-   class ProgramLocation *plStack;
-   int pgm_stmt;
-   int pgm_counter;
-   char *pgm_file;
-   void *parseState;
-   class VNode *vstack;  // used during parsing (local variable stack)
-   class CVNode *cvarstack;
-   class QoreClass *parseClass;
-   class Exception *catchException;
-   
-   DLLLOCAL ThreadData(int ptid, QoreProgram *p);
-   DLLLOCAL ~ThreadData();
+   public:
+      int tid;
+      class LVar *lvstack;
+      class Context *context_stack;
+      class ArgvStack *argvstack;
+      class QoreProgramStack *pgmStack;
+      class ProgramLocation *plStack;
+      int parse_line_start, parse_line_end;
+      char *parse_file;
+      int pgm_counter_start, pgm_counter_end;
+      char *pgm_file;
+      void *parseState;
+      class VNode *vstack;  // used during parsing (local variable stack)
+      class CVNode *cvarstack;
+      class QoreClass *parseClass;
+      class Exception *catchException;
+      
+      DLLLOCAL ThreadData(int ptid, QoreProgram *p);
+      DLLLOCAL ~ThreadData();
 };
 
 void ThreadEntry::cleanup()
@@ -248,7 +247,7 @@ class BGThreadParams {
       class QoreNode *fc;
       class QoreProgram *pgm;
       int tid;
-      int line;
+      int s_line, e_line;
       char *file;
       bool method_reference;
 
@@ -257,7 +256,7 @@ class BGThreadParams {
 	 tid = t;
 	 fc = f;
 	 pgm = getProgram();
-	 line = get_pgm_counter();
+	 get_pgm_counter(s_line, e_line);
 	 file = get_pgm_file();
 
 	 obj = NULL;
@@ -507,9 +506,10 @@ ThreadData::ThreadData(int ptid, class QoreProgram *p)
    lvstack       = NULL;
    context_stack = NULL;
    argvstack     = NULL;
-   pgm_counter   = 0;
-   pgm_stmt      = 0;
+   pgm_counter_start = pgm_counter_end = 0;
    pgm_file      = NULL;
+   parse_line_start = parse_line_end = 0;
+   parse_file    = NULL;
    pgmStack      = new QoreProgramStack(p);
    plStack       = NULL;
    parseState    = NULL;
@@ -528,13 +528,12 @@ void beginParsing(char *file, void *ps)
 {
    ThreadData *td = (ThreadData *)pthread_getspecific(thread_data_key);
    
-   printd(5, "beginParsing() of \"%s\", (stack=%s)\n",
-	  file, (td->plStack ? td->plStack->file : "NONE"));
+   //printd(5, "beginParsing() of %08p (%s), (stack=%s)\n", file, file ? file : "null", (td->plStack ? td->plStack->file : "NONE"));
    
    // if current position exists, then save
-   if (td->pgm_file)
+   if (td->parse_file)
    {
-      class ProgramLocation *pl = new ProgramLocation(td->pgm_counter, td->pgm_file, td->parseState);
+      class ProgramLocation *pl = new ProgramLocation(td->parse_file, td->parseState);
       if (!td->plStack)
       {
 	 pl->next = NULL;
@@ -546,9 +545,7 @@ void beginParsing(char *file, void *ps)
 	 td->plStack = pl;
       }
    }
-   td->pgm_counter = 1;
-   td->pgm_stmt = 0;
-   td->pgm_file = file;
+   td->parse_file = file;
    td->parseState = ps;
    pthread_setspecific(thread_data_key, td);
 }
@@ -558,22 +555,19 @@ void *endParsing()
    ThreadData *td = (ThreadData *)pthread_getspecific(thread_data_key);
    void *rv = td->parseState;
    
-   printd(5, "endParsing() ending parsing of \"%s\", returning %08p\n",
-	  td->pgm_file, rv);
+   printd(5, "endParsing() ending parsing of \"%s\", returning %08p\n", td->parse_file, rv);
    if (td->plStack)
    {
       class ProgramLocation *pl = td->plStack->next;
-      td->pgm_counter = td->plStack->line;
-      td->pgm_file    = td->plStack->file;
+      td->parse_file  = td->plStack->file;
       td->parseState  = td->plStack->parseState;
       delete td->plStack;
       td->plStack = pl;
    }
    else
    {
-      td->pgm_counter = 0;
-      td->pgm_file    = NULL;
-      td->parseState  = NULL;
+      td->parse_file = NULL;
+      td->parseState = NULL;
    }
    pthread_setspecific(thread_data_key, td);
    return rv;
@@ -621,41 +615,62 @@ void update_argvstack(ArgvStack *as)
    pthread_setspecific(thread_data_key, td);
 }
 
-int get_pgm_counter()
-{
-   return ((ThreadData *)pthread_getspecific(thread_data_key))->pgm_counter;
-}
-
-int get_pgm_stmt()
-{
-   return ((ThreadData *)pthread_getspecific(thread_data_key))->pgm_stmt;
-}
-
-void update_pgm_counter_pgm_file(int p, char *f)
-{
-   ThreadData *td  = (ThreadData *)pthread_getspecific(thread_data_key);
-   td->pgm_counter = p;
-   td->pgm_file    = f;
-   pthread_setspecific(thread_data_key, td);
-}
-
-void update_pgm_stmt()
-{
-   ThreadData *td  = (ThreadData *)pthread_getspecific(thread_data_key);
-   td->pgm_stmt = td->pgm_counter;
-   pthread_setspecific(thread_data_key, td);
-}
-
-void increment_pgm_counter()
+void get_pgm_counter(int &start_line, int &end_line)
 {
    ThreadData *td = (ThreadData *)pthread_getspecific(thread_data_key);
-   td->pgm_counter++;
+   start_line = td->pgm_counter_start;
+   end_line = td->pgm_counter_end;
+}
+
+void update_pgm_counter_pgm_file(int start_line, int end_line, char *f)
+{
+   ThreadData *td  = (ThreadData *)pthread_getspecific(thread_data_key);
+   td->pgm_counter_start = start_line;
+   td->pgm_counter_end   = end_line;
+   td->pgm_file          = f;
+   pthread_setspecific(thread_data_key, td);
+}
+
+void update_pgm_counter(int start_line, int end_line)
+{
+   ThreadData *td  = (ThreadData *)pthread_getspecific(thread_data_key);
+   td->pgm_counter_start = start_line;
+   td->pgm_counter_end   = end_line;
    pthread_setspecific(thread_data_key, td);
 }
 
 char *get_pgm_file()
 {
    return ((ThreadData *)pthread_getspecific(thread_data_key))->pgm_file;
+}
+
+void get_parse_location(int &start_line, int &end_line)
+{
+   ThreadData *td = (ThreadData *)pthread_getspecific(thread_data_key);
+   start_line = td->parse_line_start;
+   end_line = td->parse_line_end;
+}
+
+void update_parse_location(int start_line, int end_line, char *f)
+{
+   ThreadData *td  = (ThreadData *)pthread_getspecific(thread_data_key);
+   td->parse_line_start = start_line;
+   td->parse_line_end   = end_line;
+   td->parse_file       = f;
+   pthread_setspecific(thread_data_key, td);
+}
+
+void update_parse_location(int start_line, int end_line)
+{
+   ThreadData *td  = (ThreadData *)pthread_getspecific(thread_data_key);
+   td->parse_line_start = start_line;
+   td->parse_line_end   = end_line;
+   pthread_setspecific(thread_data_key, td);
+}
+
+char *get_parse_file()
+{
+   return ((ThreadData *)pthread_getspecific(thread_data_key))->parse_file;
 }
 
 bool inMethod(char *name, class Object *o)
@@ -862,7 +877,7 @@ static void *op_background_thread(class BGThreadParams *btp)
    // create thread-local data for this thread in the program object
    btp->pgm->startThread();
    // set program counter for new thread
-   update_pgm_counter_pgm_file(btp->line, btp->file);
+   update_pgm_counter_pgm_file(btp->s_line, btp->e_line, btp->file);
 
    // push this call on the thread stack
    pushCall("background operator", CT_NEWTHREAD, btp->callobj);

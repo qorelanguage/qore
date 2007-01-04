@@ -98,33 +98,33 @@ class QoreNode *StatementBlock::exec(ExceptionSink *xsink)
    return return_value;
 }
 
-Statement::Statement(int type, class QoreNode *node)
+Statement::Statement(int sline, int eline, int type, class QoreNode *node)
 {
+   LineNumber = sline;
+   EndLineNumber = eline;
+   FileName = get_parse_file();
    next = NULL;
-   setPosition();
    Type       = type;
    s.node     = node;
 }
 
-Statement::Statement(int type)
+Statement::Statement(int sline, int eline, int type)
 {
+   LineNumber = sline;
+   EndLineNumber = eline;
+   FileName = get_parse_file();
    next = NULL;
-   setPosition();
    Type       = type;
 }
 
-Statement::Statement(class StatementBlock *b)
+Statement::Statement(int sline, int eline, class StatementBlock *b)
 {
+   LineNumber = sline;
+   EndLineNumber = eline;
+   FileName = get_parse_file();
    next = NULL;
-   setPosition();
    Type        = S_SUB_BLOCK;
    s.sub_block = b;
-}
-
-void Statement::setPosition()
-{
-   LineNumber = get_pgm_counter();
-   FileName   = get_pgm_file();
 }
 
 #define STATEMENT_BLOCK 20
@@ -236,7 +236,7 @@ int Statement::exec(class QoreNode **return_value, ExceptionSink *xsink)
    class QoreNode *rv;
 
    printd(1, "Statement::exec() file=%s line=%d type=%d\n", FileName, LineNumber, Type);
-   update_pgm_counter_pgm_file(LineNumber, FileName);
+   update_pgm_counter_pgm_file(LineNumber, EndLineNumber, FileName);
    switch (Type)
    {
       case S_EXPRESSION:
@@ -712,7 +712,7 @@ int Statement::parseInit(lvh_t oflag, int pflag)
    tracein("Statement::parseInit()");
    printd(2, "Statement::parseInit() %08p type=%d line %d file %s\n", this, Type, LineNumber, FileName);
    // set pgm position in case of errors
-   update_pgm_counter_pgm_file(LineNumber, FileName);
+   update_parse_location(LineNumber, EndLineNumber, FileName);
    switch (Type)
    {
       case S_SUBCONTEXT:
