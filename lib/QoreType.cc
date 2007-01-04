@@ -181,7 +181,7 @@ void QoreTypeManager::add(class QoreType *t)
    if (t->getID() < NUM_VALUE_TYPES)
       typelist[t->getID()] = t;
 
-   insert(std::pair<int, QoreType *>(t->getID(), t));
+   insert(std::make_pair(t->getID(), t));
 }
 
 bool QoreType::compare(class QoreNode *n1, class QoreNode *n2) const

@@ -53,7 +53,7 @@ void ImportedFunctionList::add(class QoreProgram *pgm, class UserFunction *func)
    tracein("ImportedFunctionList::add()");
    
    ImportedFunctionNode *n = new ImportedFunctionNode(pgm, func);
-   insert(std::pair<char *, ImportedFunctionNode *>(func->getName(), n));
+   insert(std::make_pair(func->getName(), n));
    
    traceout("ImportedFunctionList::add()");
 }

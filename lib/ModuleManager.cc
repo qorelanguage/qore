@@ -180,7 +180,7 @@ ModuleManager::ModuleManager()
 
 void ModuleManager::add(ModuleInfo *m)
 {
-   map.insert(std::pair<char *, ModuleInfo *>(m->getName(), m));
+   map.insert(std::make_pair(m->getName(), m));
 }
 
 class ModuleInfo *ModuleManager::add(char *fn, char *n, int major, int minor, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del, char *d, char *v, char *a, char *u, void *p)

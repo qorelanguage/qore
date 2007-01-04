@@ -112,7 +112,7 @@ inline class QoreNode *BCEAList::findArgs(class QoreClass *qc, bool *aexeced)
       return i->second->args;
    }
 
-   insert(std::pair<QoreClass *, BCEANode*>(qc, new BCEANode()));
+   insert(std::make_pair(qc, new BCEANode()));
    *aexeced = false;
    return NULL;
 }
@@ -125,7 +125,7 @@ inline int BCEAList::add(class QoreClass *qc, class QoreNode *arg, class Excepti
       return 0;
 
    // evaluate and save arguments
-   insert(std::pair<QoreClass *, BCEANode*>(qc, new BCEANode(arg ? arg->eval(xsink) : NULL)));
+   insert(std::make_pair(qc, new BCEANode(arg ? arg->eval(xsink) : NULL)));
    if (xsink->isEvent())
       return -1;
    return 0;

@@ -780,7 +780,7 @@ void Object::setPrivate(int key, AbstractPrivateData *pd)
    g.enter();
    if (!privateData)
       privateData = new KeyList();
-   privateData->insert(std::pair<int, AbstractPrivateData *>(key, pd));
+   privateData->insert(std::make_pair(key, pd));
    g.exit();
 }
 
