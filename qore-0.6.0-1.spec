@@ -108,15 +108,15 @@ rm -rf $RPM_BUILD_ROOT
 
 /usr/bin/qore
 %ifarch i386
-/usr/lib/libqore.so.0.0.0
-/usr/lib/libqore.so.0
+/usr/lib/libqore.so.1.0.0
+/usr/lib/libqore.so.1
 /usr/lib/libqore.so
 /usr/lib/libqore.la
 /usr/lib/qore-0.6.0/ncurses.qmod
 %endif
 %ifarch x86_64
-/usr/lib64/libqore.so.0.0.0
-/usr/lib64/libqore.so.0
+/usr/lib64/libqore.so.1.0.0
+/usr/lib64/libqore.so.1
 /usr/lib64/libqore.so
 /usr/lib64/libqore.la
 /usr/lib64/qore-0.6.0/ncurses.qmod
@@ -124,10 +124,13 @@ rm -rf $RPM_BUILD_ROOT
 /usr/man/man1/qore.1.gz
 
 %changelog
-* Sat Nov 18 2006 David Nichols <david_nichols@users.sourceforge.net> - 0.6.0-1
+* Fri Jan 5 2007 David Nichols <david_nichols@users.sourceforge.net>
+- updated libqore so version to 1.0.0
+
+* Sat Nov 18 2006 David Nichols <david_nichols@users.sourceforge.net>
 - updated descriptions
 - changes to make spec file more release-agnostic (use of the dist tag in release)
 
-* Thu Dec 7 2005 David Nichols <david_nichols@users.sourceforge.net> - 0.4.0-1
+* Thu Dec 7 2005 David Nichols <david_nichols@users.sourceforge.net>
 - Initial rpm build.
 
