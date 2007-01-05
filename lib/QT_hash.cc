@@ -43,6 +43,11 @@ class QoreNode *hash_ConvertTo(class QoreNode *n, class ExceptionSink *xsink)
    return new QoreNode(new Hash());
 }
 
+bool hash_needs_eval(class QoreNode *n)
+{
+   return n->val.hash->needsEval();
+}
+
 class QoreNode *hash_Eval(class QoreNode *l, class ExceptionSink *xsink)
 {
    if (!l->val.hash->needsEval())

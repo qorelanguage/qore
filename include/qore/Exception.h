@@ -85,7 +85,6 @@ class Exception {
 
    public:
       // called for generic exceptions
-      //DLLEXPORT Exception(char *e, char *fmt, ...);
       DLLEXPORT class QoreNode *makeExceptionObjectAndDelete(class ExceptionSink *xsink);
       DLLEXPORT class QoreNode *makeExceptionObject();
 

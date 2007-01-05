@@ -86,23 +86,29 @@ DLLEXPORT class QoreType *NT_NOTHING, *NT_INT, *NT_FLOAT, *NT_STRING, *NT_DATE,
 // default value nodes for builtin types
 DLLEXPORT class QoreNode *Nothing, *Null, *Zero, *NullString, *ZeroFloat, *ZeroDate, *True, *False, *emptyList, *emptyHash;
 
-QoreType::QoreType(char *                 p_name, 
-		   single_arg_func_t      p_eval, 
-		   eval_opt_deref_func_t  p_eval_opt_deref,
-		   bool_type_func_t	  p_bool_eval,
-		   convert_func_t         p_convert_to, 
-		   no_arg_func_t          p_default_value,
-		   single_arg_func_t      p_copy,
-		   compare_func_t         p_compare,
-		   delete_func_t          p_delete_contents,
-		   string_func_t          p_make_string,
-		   bool   p_is_value, 
-		   bool   p_is_container)
+QoreType::QoreType(char *                  p_name, 
+		   needs_eval_func_t       p_needs_eval,
+		   single_arg_func_t       p_eval, 
+		   eval_opt_deref_func_t   p_eval_opt_deref,
+		   bool_eval_type_func_t   p_bool_eval,
+		   bigint_eval_type_func_t p_bigint_eval,
+		   float_eval_type_func_t  p_float_eval,
+		   convert_func_t          p_convert_to, 
+		   no_arg_func_t           p_default_value,
+		   single_arg_func_t       p_copy,
+		   compare_func_t          p_compare,
+		   delete_func_t           p_delete_contents,
+		   string_func_t           p_make_string,
+		   bool                    p_is_value, 
+		   bool                    p_is_container)
 {
    name                   = p_name;
+   f_needs_eval           = p_needs_eval;
    f_eval                 = p_eval;
    f_eval_opt_deref       = p_eval_opt_deref;
    f_bool_eval		  = p_bool_eval;
+   f_bigint_eval	  = p_bigint_eval;
+   f_float_eval		  = p_float_eval;
    f_convert_to           = p_convert_to;
    f_default_value        = p_default_value;
    f_copy                 = p_copy;
@@ -123,6 +129,15 @@ class QoreNode *QoreType::eval(class QoreNode *n, class ExceptionSink *xsink)
    return f_eval(n, xsink);
 }
 
+bool QoreType::needs_eval(class QoreNode *n) const
+{
+   if (f_needs_eval)
+      return f_needs_eval(n);
+   if (is_value)
+      return false;
+   return true;
+}
+
 class QoreNode *QoreType::eval(bool &needs_deref, class QoreNode *n, class ExceptionSink *xsink)
 {
    if (!f_eval_opt_deref)
@@ -132,10 +147,17 @@ class QoreNode *QoreType::eval(bool &needs_deref, class QoreNode *n, class Excep
 	 needs_deref = false;
 	 return n;
       }
-      needs_deref = true;
-      return eval(n, xsink);
+      class QoreNode *rv = eval(n, xsink);
+      if (!rv)
+	 needs_deref = false;
+      else
+	 needs_deref = true;
+      return rv;
    }
-   return f_eval_opt_deref(needs_deref, n, xsink);
+   class QoreNode *rv = f_eval_opt_deref(needs_deref, n, xsink);
+   if (!rv && needs_deref)
+      needs_deref = false;
+   return rv;
 }
 
 bool QoreType::bool_eval(class QoreNode *n, class ExceptionSink *xsink)
@@ -151,6 +173,36 @@ bool QoreType::bool_eval(class QoreNode *n, class ExceptionSink *xsink)
       return rv;
    }
    return f_bool_eval(n, xsink);
+}
+
+int64 QoreType::bigint_eval(class QoreNode *n, class ExceptionSink *xsink)
+{
+   if (!f_bigint_eval)
+   {
+      bool needs_deref;
+      class QoreNode *v = eval(needs_deref, n, xsink);
+      if (!v)
+	 return 0;
+      int64 rv = v->getAsBigInt();
+      if (needs_deref) v->deref(xsink);
+      return rv;
+   }
+   return f_bigint_eval(n, xsink);
+}
+
+double QoreType::float_eval(class QoreNode *n, class ExceptionSink *xsink)
+{
+   if (!f_float_eval)
+   {
+      bool needs_deref;
+      class QoreNode *v = eval(needs_deref, n, xsink);
+      if (!v)
+	 return 0.0;
+      double rv = v->getAsFloat();
+      if (needs_deref) v->deref(xsink);
+      return rv;
+   }
+   return f_float_eval(n, xsink);
 }
 
 class QoreNode *QoreType::getDefaultValue()
@@ -334,44 +386,45 @@ static void regex_DeleteContents(class QoreNode *n)
    delete n->val.regex;
 }
 
+// FIXME: eliminate this crap by using a class hierarchy and virtual methods
 QoreTypeManager::QoreTypeManager()
 {
    tracein("QoreTypeManager::QoreTypeManager()");
    
    // register system data types
    // first, value types for operator matrix optimization
-   add(NT_NOTHING = new QoreType("nothing", NULL, NULL, NULL, NULL, NOTHING_DefaultValue, NULL, NULL, NULL, NOTHING_MakeString, QTM_VALUE, QTM_NO_CONTAINER));
-   add(NT_INT = new QoreType("integer", NULL, NULL, NULL, bigint_ConvertTo, bigint_DefaultValue, NULL, bigint_Compare, NULL, bigint_MakeString, QTM_VALUE, QTM_NO_CONTAINER));
-   add(NT_FLOAT = new QoreType("float", NULL, NULL, NULL, float_ConvertTo, float_DefaultValue, NULL, float_Compare, NULL, float_MakeString, QTM_VALUE, QTM_NO_CONTAINER));
-   add(NT_STRING = new QoreType("string", NULL, NULL, NULL, string_ConvertTo, string_DefaultValue, string_Copy, string_Compare, string_DeleteContents, string_MakeString, QTM_VALUE, QTM_NO_CONTAINER));
-   add(NT_DATE = new QoreType("date", NULL, NULL, NULL, date_ConvertTo, date_DefaultValue, date_Copy, date_Compare, date_DeleteContents, date_MakeString, QTM_VALUE, QTM_NO_CONTAINER));
-   add(NT_BOOLEAN = new QoreType("boolean", NULL, NULL, NULL, boolean_ConvertTo, boolean_DefaultValue, NULL, boolean_Compare, NULL, boolean_MakeString, QTM_VALUE, QTM_NO_CONTAINER));
-   add(NT_NULL = new QoreType("NULL", NULL, NULL, NULL, NULL, NULL_DefaultValue, NULL, NULL, NULL, NULL_MakeString, QTM_VALUE, QTM_NO_CONTAINER));
-   add(NT_BINARY = new QoreType("binary", NULL, NULL, NULL, NULL, NULL, binary_Copy, binary_Compare, binary_DeleteContents, binary_MakeString, QTM_VALUE, QTM_NO_CONTAINER));
-   add(NT_LIST = new QoreType("list", list_Eval, list_eval_opt_deref, NULL, list_ConvertTo, list_DefaultValue, list_Copy, list_Compare, list_DeleteContents, list_MakeString, QTM_VALUE, QTM_CONTAINER));
-   add(NT_HASH = new QoreType("hash", hash_Eval, hash_eval_opt_deref, NULL, hash_ConvertTo, hash_DefaultValue, hash_Copy, hash_Compare, hash_DeleteContents, hash_MakeString, QTM_VALUE, QTM_CONTAINER));
-   add(NT_OBJECT = new QoreType("object", NULL, NULL, NULL, NULL, NULL, object_Copy, object_Compare, NULL, object_MakeString, QTM_VALUE, QTM_CONTAINER));
+   add(NT_NOTHING = new QoreType("nothing", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NOTHING_DefaultValue, NULL, NULL, NULL, NOTHING_MakeString, QTM_VALUE, QTM_NO_CONTAINER));
+   add(NT_INT = new QoreType("integer", NULL, NULL, NULL, NULL, NULL, NULL, bigint_ConvertTo, bigint_DefaultValue, NULL, bigint_Compare, NULL, bigint_MakeString, QTM_VALUE, QTM_NO_CONTAINER));
+   add(NT_FLOAT = new QoreType("float", NULL, NULL, NULL, NULL, NULL, NULL, float_ConvertTo, float_DefaultValue, NULL, float_Compare, NULL, float_MakeString, QTM_VALUE, QTM_NO_CONTAINER));
+   add(NT_STRING = new QoreType("string", NULL, NULL, NULL, NULL, NULL, NULL, string_ConvertTo, string_DefaultValue, string_Copy, string_Compare, string_DeleteContents, string_MakeString, QTM_VALUE, QTM_NO_CONTAINER));
+   add(NT_DATE = new QoreType("date", NULL, NULL, NULL, NULL, NULL, NULL, date_ConvertTo, date_DefaultValue, date_Copy, date_Compare, date_DeleteContents, date_MakeString, QTM_VALUE, QTM_NO_CONTAINER));
+   add(NT_BOOLEAN = new QoreType("boolean", NULL, NULL, NULL, NULL, NULL, NULL, boolean_ConvertTo, boolean_DefaultValue, NULL, boolean_Compare, NULL, boolean_MakeString, QTM_VALUE, QTM_NO_CONTAINER));
+   add(NT_NULL = new QoreType("NULL", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL_DefaultValue, NULL, NULL, NULL, NULL_MakeString, QTM_VALUE, QTM_NO_CONTAINER));
+   add(NT_BINARY = new QoreType("binary", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, binary_Copy, binary_Compare, binary_DeleteContents, binary_MakeString, QTM_VALUE, QTM_NO_CONTAINER));
+   add(NT_LIST = new QoreType("list", list_needs_eval, list_Eval, list_eval_opt_deref, NULL, NULL, NULL, list_ConvertTo, list_DefaultValue, list_Copy, list_Compare, list_DeleteContents, list_MakeString, QTM_VALUE, QTM_CONTAINER));
+   add(NT_HASH = new QoreType("hash", hash_needs_eval, hash_Eval, hash_eval_opt_deref, NULL, NULL, NULL, hash_ConvertTo, hash_DefaultValue, hash_Copy, hash_Compare, hash_DeleteContents, hash_MakeString, QTM_VALUE, QTM_CONTAINER));
+   add(NT_OBJECT = new QoreType("object", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, object_Copy, object_Compare, NULL, object_MakeString, QTM_VALUE, QTM_CONTAINER));
 
    // now parse types
-   add(NT_FLIST = new QoreType("flist", NULL, NULL, NULL, NULL, NULL, NULL, NULL, list_DeleteContents, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
-   add(NT_BACKQUOTE = new QoreType("backquote", backquote_Eval, NULL, NULL, NULL, NULL, simpleStringCopy, NULL, simpleStringDelete, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
-   add(NT_CONTEXTREF = new QoreType("context reference", contextref_Eval, NULL, NULL, NULL, NULL, simpleStringCopy, NULL, temp_crefDelete, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
-   add(NT_COMPLEXCONTEXTREF = new QoreType("complex context reference", complexcontextref_Eval, NULL, NULL, NULL, NULL, complexcontextref_Copy, NULL, complexcontextref_DeleteContents, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
-   add(NT_VARREF = new QoreType("variable reference", varref_Eval, varref_eval_opt_deref, NULL, NULL, NULL, varref_Copy, NULL, varref_DeleteContents, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
-   add(NT_TREE = new QoreType("tree", tree_Eval, NULL, tree_bool_eval, NULL, NULL, INVALID_COPY, NULL, tree_DeleteContents, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
-   add(NT_FIND = new QoreType("find", find_Eval, NULL, NULL, NULL, NULL, INVALID_COPY, NULL, find_DeleteContents, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
-   add(NT_FUNCTION_CALL = new QoreType("function call", fcall_Eval, NULL, NULL, NULL, NULL, INVALID_COPY, NULL, fcall_DeleteContents, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
-   add(NT_SELF_VARREF = new QoreType("in-object variable reference", selfref_Eval, NULL, NULL, NULL, NULL, simpleStringCopy, NULL, simpleStringDelete, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
-   add(NT_SCOPE_REF = new QoreType("scoped object call", NULL, NULL, NULL, NULL, NULL, INVALID_COPY, NULL, scoped_call_DeleteContents, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
-   add(NT_CONSTANT = new QoreType("constant reference", NULL, NULL, NULL, NULL, NULL, INVALID_COPY, NULL, scoped_ref_DeleteContents, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
-   add(NT_BAREWORD = new QoreType("bareword", NULL, NULL, NULL, NULL, NULL, simpleStringCopy, NULL, simpleStringDelete, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
-   add(NT_REFERENCE = new QoreType("reference to lvalue", NULL, NULL, NULL, NULL, NULL, INVALID_COPY, NULL, ref_DeleteContents, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
-   add(NT_CONTEXT_ROW = new QoreType("get context row", contextrow_Eval, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
-   add(NT_REGEX_SUBST = new QoreType("regular expression substitution", NULL, NULL, NULL, NULL, NULL, INVALID_COPY, NULL, regexsubst_DeleteContents, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
-   add(NT_REGEX_TRANS = new QoreType("regular expression translation", NULL, NULL, NULL, NULL, NULL, INVALID_COPY, NULL, regextrans_DeleteContents, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
-   add(NT_VLIST = new QoreType("variable list", NULL, NULL, NULL, NULL, NULL, NULL, NULL, list_DeleteContents, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
-   add(NT_REGEX = new QoreType("regular expression", NULL, NULL, NULL, NULL, NULL, INVALID_COPY, NULL, regex_DeleteContents, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
-   add(NT_CLASSREF = new QoreType("class reference", NULL, NULL, NULL, NULL, NULL, INVALID_COPY, NULL, classref_DeleteContents, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
+   add(NT_FLIST = new QoreType("flist", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, list_DeleteContents, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
+   add(NT_BACKQUOTE = new QoreType("backquote", NULL, backquote_Eval, NULL, NULL, NULL, NULL, NULL, NULL, simpleStringCopy, NULL, simpleStringDelete, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
+   add(NT_CONTEXTREF = new QoreType("context reference", NULL, contextref_Eval, NULL, NULL, NULL, NULL, NULL, NULL, simpleStringCopy, NULL, temp_crefDelete, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
+   add(NT_COMPLEXCONTEXTREF = new QoreType("complex context reference", NULL, complexcontextref_Eval, NULL, NULL, NULL, NULL, NULL, NULL, complexcontextref_Copy, NULL, complexcontextref_DeleteContents, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
+   add(NT_VARREF = new QoreType("variable reference", NULL, varref_Eval, varref_eval_opt_deref, NULL, NULL, NULL, NULL, NULL, varref_Copy, NULL, varref_DeleteContents, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
+   add(NT_TREE = new QoreType("tree", NULL, tree_Eval, NULL, tree_bool_eval, NULL, NULL, NULL, NULL, INVALID_COPY, NULL, tree_DeleteContents, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
+   add(NT_FIND = new QoreType("find", NULL, find_Eval, NULL, NULL, NULL, NULL, NULL, NULL, INVALID_COPY, NULL, find_DeleteContents, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
+   add(NT_FUNCTION_CALL = new QoreType("function call", NULL, fcall_Eval, NULL, NULL, NULL, NULL, NULL, NULL, INVALID_COPY, NULL, fcall_DeleteContents, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
+   add(NT_SELF_VARREF = new QoreType("in-object variable reference", NULL, selfref_Eval, NULL, NULL, NULL, NULL, NULL, NULL, simpleStringCopy, NULL, simpleStringDelete, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
+   add(NT_SCOPE_REF = new QoreType("scoped object call", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, INVALID_COPY, NULL, scoped_call_DeleteContents, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
+   add(NT_CONSTANT = new QoreType("constant reference", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, INVALID_COPY, NULL, scoped_ref_DeleteContents, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
+   add(NT_BAREWORD = new QoreType("bareword", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, simpleStringCopy, NULL, simpleStringDelete, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
+   add(NT_REFERENCE = new QoreType("reference to lvalue", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, INVALID_COPY, NULL, ref_DeleteContents, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
+   add(NT_CONTEXT_ROW = new QoreType("get context row", NULL, contextrow_Eval, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
+   add(NT_REGEX_SUBST = new QoreType("regular expression substitution", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, INVALID_COPY, NULL, regexsubst_DeleteContents, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
+   add(NT_REGEX_TRANS = new QoreType("regular expression translation", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, INVALID_COPY, NULL, regextrans_DeleteContents, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
+   add(NT_VLIST = new QoreType("variable list", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, list_DeleteContents, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
+   add(NT_REGEX = new QoreType("regular expression", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, INVALID_COPY, NULL, regex_DeleteContents, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
+   add(NT_CLASSREF = new QoreType("class reference", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, INVALID_COPY, NULL, classref_DeleteContents, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
 
    // from now on, assign IDs in the user space 
    lastid = QTM_USER_START;

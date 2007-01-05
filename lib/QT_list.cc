@@ -38,6 +38,11 @@ class QoreNode *list_ConvertTo(class QoreNode *n, class ExceptionSink *xsink)
    return new QoreNode(l);
 }
 
+bool list_needs_eval(class QoreNode *n)
+{
+   return n->val.list->needsEval();
+}
+
 class QoreNode *list_Eval(class QoreNode *l, class ExceptionSink *xsink)
 {
    if (!l->val.list->needsEval())

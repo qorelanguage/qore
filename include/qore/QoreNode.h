@@ -126,7 +126,7 @@ class QoreNode : public ReferenceObject
       DLLLOCAL QoreNode(class NamedScope *n);
       DLLLOCAL QoreNode(class ClassRef *c);
       DLLLOCAL QoreNode(class VarRef *v);
-      DLLLOCAL QoreNode(class QoreNode *l, class AbstractOperator *o, class QoreNode *r);
+      DLLLOCAL QoreNode(class QoreNode *l, class Operator *o, class QoreNode *r);
       DLLLOCAL QoreNode(class RegexSubst *rs);
       DLLLOCAL QoreNode(class RegexTrans *rt);
       DLLLOCAL QoreNode(class ComplexContextRef *ccref);
@@ -134,6 +134,7 @@ class QoreNode : public ReferenceObject
       DLLLOCAL QoreNode(class QoreRegex *r);
       DLLLOCAL QoreNode(class Tree *t);
 
+      DLLLOCAL bool needs_eval();
       DLLLOCAL class QoreNode *realCopy(class ExceptionSink *xsink);
       DLLLOCAL class QoreNode *eval(class ExceptionSink *xsink);
       DLLLOCAL class QoreNode *eval(bool &needs_deref, class ExceptionSink *xsink);

@@ -26,6 +26,7 @@
 
 DLLLOCAL class QoreNode *list_DefaultValue();
 DLLLOCAL class QoreNode *list_ConvertTo(class QoreNode *n, class ExceptionSink *xsink);
+DLLLOCAL bool list_needs_eval(class QoreNode *n);
 DLLLOCAL class QoreNode *list_Eval(class QoreNode *n, class ExceptionSink *xsink);
 DLLLOCAL class QoreNode *list_eval_opt_deref(bool &needs_deref, class QoreNode *n, class ExceptionSink *xsink);
 DLLLOCAL class QoreNode *list_Copy(class QoreNode *n, class ExceptionSink *xsink);

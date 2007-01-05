@@ -26,6 +26,7 @@
 
 DLLLOCAL class QoreNode *hash_DefaultValue();
 DLLLOCAL class QoreNode *hash_ConvertTo(class QoreNode *n, class ExceptionSink *xsink);
+DLLLOCAL bool hash_needs_eval(class QoreNode *n);
 DLLLOCAL class QoreNode *hash_Eval(class QoreNode *n, class ExceptionSink *xsink);
 DLLLOCAL class QoreNode *hash_eval_opt_deref(bool &needs_deref, class QoreNode *n, class ExceptionSink *xsink);
 DLLLOCAL class QoreNode *hash_Copy(class QoreNode *n, class ExceptionSink *xsink);

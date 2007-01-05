@@ -98,12 +98,12 @@ class HashElement {
       DLLLOCAL inline ~HashElement();
 };
 
-static inline class QoreNode *makeErrorTree(class AbstractOperator *op, class QoreNode *left, class QoreNode *right)
+static inline class QoreNode *makeErrorTree(class Operator *op, class QoreNode *left, class QoreNode *right)
 {
    return new QoreNode(left, op, right);
 }
 
-static class QoreNode *makeTree(class AbstractOperator *op, class QoreNode *left, class QoreNode *right)
+static class QoreNode *makeTree(class Operator *op, class QoreNode *left, class QoreNode *right)
 {
    //tracein("makeTree()");
    //printd(5, "makeTree(): l=%08p, r=%08p, op=%d\n", left, right, op);

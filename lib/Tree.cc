@@ -26,7 +26,7 @@
 #include <qore/Operator.h>
 #include <qore/QoreNode.h>
 
-Tree::Tree(class QoreNode *l, class AbstractOperator *o, class QoreNode *r)
+Tree::Tree(class QoreNode *l, class Operator *o, class QoreNode *r)
 {
    left = l;
    op = o;

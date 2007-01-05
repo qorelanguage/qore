@@ -1,3 +1,6 @@
+2007.01.05: David Nichols
+	* more cache invalidation optimizations
+
 2007.01.04: David Nichols
 	* finally fixed line-number reporting bug - enabled bison locations,
 	  split parse and runtime position tracking, added ParseException class

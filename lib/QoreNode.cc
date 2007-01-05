@@ -280,7 +280,7 @@ QoreNode::QoreNode(class VarRef *v)
 #endif
 }
 
-QoreNode::QoreNode(class QoreNode *l, class AbstractOperator *o, class QoreNode *r)
+QoreNode::QoreNode(class QoreNode *l, class Operator *o, class QoreNode *r)
 {
    type = NT_TREE;
    val.tree = new Tree(l, o, r);
@@ -412,6 +412,11 @@ class QoreNode *QoreNode::realCopy(ExceptionSink *xsink)
    return type->copy(this, xsink);
 }
 
+bool QoreNode::needs_eval()
+{
+   return type->needs_eval(this);
+}
+
 /*
   QoreNode::eval(): return value requires a dereference
  */
@@ -430,64 +435,22 @@ class QoreNode *QoreNode::eval(bool &needs_deref, ExceptionSink *xsink)
       needs_deref = false;
       return this;
    }
-   needs_deref = true;
    return type->eval(needs_deref, this, xsink);
 }
 
 int64 QoreNode::bigIntEval(ExceptionSink *xsink)
 {
-   class QoreNode *new_node = eval(xsink);
-   if (xsink->isEvent())
-   {
-      discard(new_node, xsink);
-      return 0;
-   }
-   // assign to zero if null
-   if (!new_node)
-      return (int64)0;
-
-   // convert value to integer if necessary
-   int64 rv = new_node->getAsBigInt();
-   new_node->deref(xsink);
-   return rv;
+   return type->bigint_eval(this, xsink);
 }
 
 int QoreNode::integerEval(ExceptionSink *xsink)
 {
-   class QoreNode *new_node = eval(xsink);
-   if (xsink->isEvent())
-   {
-      discard(new_node, xsink);
-      return 0;
-   }
-   // assign to zero if null
-   if (!new_node)
-      return 0;
-
-   // convert value to integer if necessary
-   int rv = new_node->getAsInt();
-   new_node->deref(xsink);
-   return rv;
+   return (int)type->bigint_eval(this, xsink);
 }
 
 bool QoreNode::boolEval(ExceptionSink *xsink)
 {
    return type->bool_eval(this, xsink);
-/*
-   class QoreNode *new_node = eval(xsink);
-   if (xsink->isEvent())
-   {
-      discard(new_node, xsink);
-      return false;
-   }
-   // assign to zero if null
-   if (!new_node)
-      return false;
-
-   bool rv = new_node->getAsBool();
-   new_node->deref(xsink);
-   return rv;
- */
 }
 
 class QoreString *QoreNode::getAsString(int foff, class ExceptionSink *xsink)

@@ -32,11 +32,11 @@ private:
    bool ref_rv;
 
 public:
-   class AbstractOperator *op;
+   class Operator *op;
    class QoreNode *left;
    class QoreNode *right;
    
-   DLLLOCAL Tree(class QoreNode *l, class AbstractOperator *op, class QoreNode *r = NULL);
+   DLLLOCAL Tree(class QoreNode *l, class Operator *op, class QoreNode *r = NULL);
    DLLLOCAL ~Tree();
    DLLLOCAL class QoreNode *eval(class ExceptionSink *xsink);
    DLLLOCAL bool bool_eval(class ExceptionSink *xsink);
