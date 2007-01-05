@@ -912,7 +912,7 @@ class QoreNode *UserFunction::evalConstructor(QoreNode *args, Object *self, clas
 // this will only be called with lvalue expressions
 class QoreNode *doPartialEval(class QoreNode *n, bool *is_self_ref, class ExceptionSink *xsink)
 {
-   QoreNode *rv;
+   QoreNode *rv = NULL;
    if (n->type == NT_TREE)
    {
       class QoreNode *nn = n->val.tree->right->eval(xsink);
