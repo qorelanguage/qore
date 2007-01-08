@@ -1204,10 +1204,148 @@ sub json_tests()
 	      "list" : (1, 2, 3, ( "four" : 4 ), 5.0, True, ( "key1" : "one", "key2" : 2.0 )),
 	      "hash" : ( "howdy" : 123, "partner" : 456 ),
 	      "bool" : True,
-	      "time" : now(),
+	      "time" : format_date("YYYY-MM-DD HH:mm:SS", now()),
 	      "key"  : "this & that" );
-    my $jstr = makeJSONString(); 
-    #test_value($h, parseJSONString($jstr), "first JSON");
+    my $jstr = makeJSONString($h);
+    test_value($h == parseJSON($jstr), True, "first JSON");
+
+    $jstr = "{
+    \"glossary\": {
+        \"title\": \"example glossary\",
+		\"GlossDiv\": {
+            \"title\": \"S\",
+			\"GlossList\": {
+                \"GlossEntry\": {
+                    \"ID\": \"SGML\",
+					\"SortAs\": \"SGML\",
+					\"GlossTerm\": \"Standard Generalized Markup Language\",
+					\"Acronym\": \"SGML\",
+					\"Abbrev\": \"ISO 8879:1986\",
+					\"GlossDef\": {
+                        \"para\": \"A meta-markup language, used to create markup languages such as DocBook.\",
+						\"GlossSeeAlso\": [\"GML\", \"XML\"]
+                    },
+					\"GlossSee\": \"markup\"
+                }
+            }
+        }
+    }
+}";
+    my $xml = "<glossary><title>example glossary</title>
+  <GlossDiv><title>S</title>
+   <GlossList>
+    <GlossEntry>
+     <ID>SGML</ID>
+     <SortAs>SGML</SortAs>
+     <GlossTerm>Standard Generalized Markup Language</GlossTerm>
+     <Acronym>SGML</Acronym>
+     <Abbrev>ISO 8879:1986</Abbrev>
+     <GlossDef>
+      <para>A meta-markup language, used to create markup languages such as DocBook.</para>
+      <GlossSeeAlso>GML</GlossSeeAlso>
+      <GlossSeeAlso>XML</GlossSeeAlso>
+     </GlossDef>
+     <GlossSee>markup</GlossSee>
+    </GlossEntry>
+   </GlossList>
+  </GlossDiv>
+ </glossary>";
+    test_value(parseJSON($jstr), parseXML($xml), "first parseJSON() and parseXML()");
+
+    $jstr = '
+{ "web-app": {
+  "servlet": [   
+    {
+      "servlet-name": "cofaxCDS",
+      "servlet-class": "org.cofax.cds.CDSServlet",
+      "init-param": {
+        "configGlossary:installationAt": "Philadelphia, PA",
+        "configGlossary:adminEmail": "ksm@pobox.com",
+        "configGlossary:poweredBy": "Cofax",
+        "configGlossary:poweredByIcon": "/images/cofax.gif",
+        "configGlossary:staticPath": "/content/static",
+        "templateProcessorClass": "org.cofax.WysiwygTemplate",
+        "templateLoaderClass": "org.cofax.FilesTemplateLoader",
+        "templatePath": "templates",
+        "templateOverridePath": null,
+        "defaultListTemplate": "listTemplate.htm",
+        "defaultFileTemplate": "articleTemplate.htm",
+        "useJSP": false,
+        "jspListTemplate": "listTemplate.jsp",
+        "jspFileTemplate": "articleTemplate.jsp",
+        "cachePackageTagsTrack": 200,
+        "cachePackageTagsStore": 200,
+        "cachePackageTagsRefresh": 60,
+        "cacheTemplatesTrack": 100,
+        "cacheTemplatesStore": 50,
+        "cacheTemplatesRefresh": 15,
+        "cachePagesTrack": 200,
+        "cachePagesStore": 100,
+        "cachePagesRefresh": 10,
+        "cachePagesDirtyRead": 10,
+        "searchEngineListTemplate": "forSearchEnginesList.htm",
+        "searchEngineFileTemplate": "forSearchEngines.htm",
+        "searchEngineRobotsDb": "WEB-INF/robots.db",
+        "useDataStore": true,
+        "dataStoreClass": "org.cofax.SqlDataStore",
+        "redirectionClass": "org.cofax.SqlRedirection",
+        "dataStoreName": "cofax",
+        "dataStoreDriver": "com.microsoft.jdbc.sqlserver.SQLServerDriver",
+        "dataStoreUrl": "jdbc:microsoft:sqlserver://LOCALHOST:1433;DatabaseName=goon",
+        "dataStoreUser": "sa",
+        "dataStorePassword": "dataStoreTestQuery",
+        "dataStoreTestQuery": "SET NOCOUNT ON;select test=\"test\";",
+        "dataStoreLogFile": "/usr/local/tomcat/logs/datastore.log",
+        "dataStoreInitConns": 10,
+        "dataStoreMaxConns": 100,
+        "dataStoreConnUsageLimit": 100,
+        "dataStoreLogLevel": "debug",
+        "maxUrlLength": 500}},
+    {
+      "servlet-name": "cofaxEmail",
+      "servlet-class": "org.cofax.cds.EmailServlet",
+      "init-param": {
+      "mailHost": "mail1",
+      "mailHostOverride": "mail2"}},
+    {
+      "servlet-name": "cofaxAdmin",
+      "servlet-class": "org.cofax.cds.AdminServlet"},
+ 
+    {
+      "servlet-name": "fileServlet",
+      "servlet-class": "org.cofax.cds.FileServlet"},
+    {
+      "servlet-name": "cofaxTools",
+      "servlet-class": "org.cofax.cms.CofaxToolsServlet",
+      "init-param": {
+        "templatePath": "toolstemplates/",
+        "log": 1,
+        "logLocation": "/usr/local/tomcat/logs/CofaxTools.log",
+        "logMaxSize": null,
+        "dataLog": 1,
+        "dataLogLocation": "/usr/local/tomcat/logs/dataLog.log",
+        "dataLogMaxSize": null,
+        "removePageCache": "/content/admin/remove?cache=pages&id=",
+        "removeTemplateCache": "/content/admin/remove?cache=templates&id=",
+        "fileTransferFolder": "/usr/local/tomcat/webapps/content/fileTransferFolder",
+        "lookInContext": 1,
+        "adminGroupID": 4,
+        "betaServer": true}}],
+  "servlet-mapping": {
+    "cofaxCDS": "/",
+    "cofaxEmail": "/cofaxutil/aemail/*",
+    "cofaxAdmin": "/admin/*",
+    "fileServlet": "/static/*",
+    "cofaxTools": "/tools/*"},
+ 
+  "taglib": {
+    "taglib-uri": "cofax.tld",
+    "taglib-location": "/WEB-INF/tlds/cofax.tld"}}}
+';
+    $xml = '<?xml version="1.0" encoding="UTF-8"?><web-app xmlns:configGlossary="http://nothing.com"><servlet><servlet-name>cofaxCDS</servlet-name><servlet-class>org.cofax.cds.CDSServlet</servlet-class><init-param><configGlossary:installationAt>Philadelphia, PA</configGlossary:installationAt><configGlossary:adminEmail>ksm@pobox.com</configGlossary:adminEmail><configGlossary:poweredBy>Cofax</configGlossary:poweredBy><configGlossary:poweredByIcon>/images/cofax.gif</configGlossary:poweredByIcon><configGlossary:staticPath>/content/static</configGlossary:staticPath><templateProcessorClass>org.cofax.WysiwygTemplate</templateProcessorClass><templateLoaderClass>org.cofax.FilesTemplateLoader</templateLoaderClass><templatePath>templates</templatePath><templateOverridePath></templateOverridePath><defaultListTemplate>listTemplate.htm</defaultListTemplate><defaultFileTemplate>articleTemplate.htm</defaultFileTemplate><useJSP>0</useJSP><jspListTemplate>listTemplate.jsp</jspListTemplate><jspFileTemplate>articleTemplate.jsp</jspFileTemplate><cachePackageTagsTrack>200</cachePackageTagsTrack><cachePackageTagsStore>200</cachePackageTagsStore><cachePackageTagsRefresh>60</cachePackageTagsRefresh><cacheTemplatesTrack>100</cacheTemplatesTrack><cacheTemplatesStore>50</cacheTemplatesStore><cacheTemplatesRefresh>15</cacheTemplatesRefresh><cachePagesTrack>200</cachePagesTrack><cachePagesStore>100</cachePagesStore><cachePagesRefresh>10</cachePagesRefresh><cachePagesDirtyRead>10</cachePagesDirtyRead><searchEngineListTemplate>forSearchEnginesList.htm</searchEngineListTemplate><searchEngineFileTemplate>forSearchEngines.htm</searchEngineFileTemplate><searchEngineRobotsDb>WEB-INF/robots.db</searchEngineRobotsDb><useDataStore>1</useDataStore><dataStoreClass>org.cofax.SqlDataStore</dataStoreClass><redirectionClass>org.cofax.SqlRedirection</redirectionClass><dataStoreName>cofax</dataStoreName><dataStoreDriver>com.microsoft.jdbc.sqlserver.SQLServerDriver</dataStoreDriver><dataStoreUrl>jdbc:microsoft:sqlserver://LOCALHOST:1433;DatabaseName=goon</dataStoreUrl><dataStoreUser>sa</dataStoreUser><dataStorePassword>dataStoreTestQuery</dataStorePassword><dataStoreTestQuery>SET NOCOUNT ON;select test=&quot;test&quot;;</dataStoreTestQuery><dataStoreLogFile>/usr/local/tomcat/logs/datastore.log</dataStoreLogFile><dataStoreInitConns>10</dataStoreInitConns><dataStoreMaxConns>100</dataStoreMaxConns><dataStoreConnUsageLimit>100</dataStoreConnUsageLimit><dataStoreLogLevel>debug</dataStoreLogLevel><maxUrlLength>500</maxUrlLength></init-param></servlet><servlet><servlet-name>cofaxEmail</servlet-name><servlet-class>org.cofax.cds.EmailServlet</servlet-class><init-param><mailHost>mail1</mailHost><mailHostOverride>mail2</mailHostOverride></init-param></servlet><servlet><servlet-name>cofaxAdmin</servlet-name><servlet-class>org.cofax.cds.AdminServlet</servlet-class></servlet><servlet><servlet-name>fileServlet</servlet-name><servlet-class>org.cofax.cds.FileServlet</servlet-class></servlet><servlet><servlet-name>cofaxTools</servlet-name><servlet-class>org.cofax.cms.CofaxToolsServlet</servlet-class><init-param><templatePath>toolstemplates/</templatePath><log>1</log><logLocation>/usr/local/tomcat/logs/CofaxTools.log</logLocation><logMaxSize></logMaxSize><dataLog>1</dataLog><dataLogLocation>/usr/local/tomcat/logs/dataLog.log</dataLogLocation><dataLogMaxSize></dataLogMaxSize><removePageCache>/content/admin/remove?cache=pages&amp;id=</removePageCache><removeTemplateCache>/content/admin/remove?cache=templates&amp;id=</removeTemplateCache><fileTransferFolder>/usr/local/tomcat/webapps/content/fileTransferFolder</fileTransferFolder><lookInContext>1</lookInContext><adminGroupID>4</adminGroupID><betaServer>1</betaServer></init-param></servlet><servlet-mapping><cofaxCDS>/</cofaxCDS><cofaxEmail>/cofaxutil/aemail/*</cofaxEmail><cofaxAdmin>/admin/*</cofaxAdmin><fileServlet>/static/*</fileServlet><cofaxTools>/tools/*</cofaxTools></servlet-mapping><taglib><taglib-uri>cofax.tld</taglib-uri><taglib-location>/WEB-INF/tlds/cofax.tld</taglib-location></taglib></web-app>';
+    my $x = parseXML($xml);
+    delete $x."web-app"."^attributes^";
+    test_value(parseJSON($jstr) == $x, True, "second parseJSON() and parseXML()");
 }
 
 sub digest_tests()

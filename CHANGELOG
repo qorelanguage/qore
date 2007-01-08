@@ -1,5 +1,7 @@
 2007.01.08: David Nichols
 	* fixed a "read from uninitialized memory" error with parsing
+	* implemented JSON parsing: "parseJSON()" also added JSON tests to 
+	  test.q
 
 2007.01.05: David Nichols
 	* more cache invalidation optimizations
