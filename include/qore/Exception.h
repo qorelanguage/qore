@@ -95,7 +95,7 @@ class Exception {
       // called for user exceptions
       DLLLOCAL Exception(class QoreNode *n);
       // for derived classes
-      DLLLOCAL Exception() {}
+      DLLLOCAL Exception();
       DLLLOCAL void del(class ExceptionSink *xsink);
 };
 

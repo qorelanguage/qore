@@ -1,3 +1,6 @@
+2007.01.08: David Nichols
+	* fixed a "read from uninitialized memory" error with parsing
+
 2007.01.05: David Nichols
 	* more cache invalidation optimizations
 

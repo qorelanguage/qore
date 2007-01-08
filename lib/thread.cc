@@ -502,20 +502,22 @@ void ThreadCleanupList::pop(int exec)
 
 ThreadData::ThreadData(int ptid, class QoreProgram *p)
 {
-   tid           = ptid;
-   lvstack       = NULL;
-   context_stack = NULL;
-   argvstack     = NULL;
-   pgm_counter_start = pgm_counter_end = 0;
-   pgm_file      = NULL;
-   parse_line_start = parse_line_end = 0;
-   parse_file    = NULL;
-   pgmStack      = new QoreProgramStack(p);
-   plStack       = NULL;
-   parseState    = NULL;
-   vstack        = NULL;
-   cvarstack     = NULL;
-   parseClass    = NULL;
+   tid               = ptid;
+   lvstack           = NULL;
+   context_stack     = NULL;
+   argvstack         = NULL;
+   pgm_counter_start = 0;
+   pgm_counter_end   = 0;
+   parse_line_start  = 0;
+   parse_line_end    = 0;
+   pgm_file          = NULL;
+   parse_file        = NULL;
+   pgmStack          = new QoreProgramStack(p);
+   plStack           = NULL;
+   parseState        = NULL;
+   vstack            = NULL;
+   cvarstack         = NULL;
+   parseClass        = NULL;
 }
 
 ThreadData::~ThreadData()

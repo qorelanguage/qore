@@ -757,8 +757,8 @@ void QoreProgram::parse(FILE *fp, char *name, class ExceptionSink *xsink, class 
    yyscan_t lexer;
    yylex_init(&lexer);
    yyset_in(fp, lexer);
-   yyparse(lexer);
    // yyparse() will call endParsing() and restore old pgm position
+   yyparse(lexer);
 
    // finalize parsing, back out or commit all changes
    internParseCommit();
@@ -882,6 +882,7 @@ int QoreProgram::internParsePending(char *code, char *label)
    yyscan_t lexer;
    yylex_init(&lexer);
    yy_scan_string(code, lexer);
+   yyset_lineno(1, lexer);
    // yyparse() will call endParsing() and restore old pgm position
    yyparse(lexer);
 

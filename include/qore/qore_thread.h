@@ -38,6 +38,7 @@
 
 // pointer to a qore thread destructor function
 typedef void (*qtdest_t)(void *);
+// pointer to a qore thread resource destructor function
 typedef void (*qtrdest_t)(void *, class ExceptionSink *);
 
 DLLEXPORT extern class Operator *OP_BACKGROUND;
@@ -57,7 +58,6 @@ DLLLOCAL void update_argvstack(class ArgvStack *as);
 DLLLOCAL void get_pgm_counter(int &start_line, int &end_line);
 DLLLOCAL char *get_pgm_file();
 DLLLOCAL void update_pgm_counter_pgm_file(int start_line, int end_line, char *f);
-
 DLLLOCAL void get_parse_location(int &start_line, int &end_line);
 DLLLOCAL char *get_parse_file();
 DLLLOCAL void update_parse_location(int start_line, int end_line);

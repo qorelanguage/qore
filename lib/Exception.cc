@@ -230,9 +230,16 @@ void ExceptionSink::outOfMemory()
 #endif
 }
 
+// only called with derived classes
+Exception::Exception()
+{
+   //printd(5, "Exception::Exception() this=%08p\n", this);
+}
+
 // called for runtime errors
 Exception::Exception(char *e, class QoreString *d)
 {
+   //printd(5, "Exception::Exception() this=%08p\n", this);
    type = ET_SYSTEM;
    get_pgm_counter(start_line, end_line);
    char *f = get_pgm_file();
@@ -250,6 +257,8 @@ Exception::Exception(char *e, class QoreString *d)
 ParseException::ParseException(char *e, class QoreString *d)
 {
    type = ET_SYSTEM;
+   start_line = -1;
+   end_line = -1;
    get_parse_location(start_line, end_line);
    char *f = get_parse_file();
    file = f ? strdup(f) : NULL;

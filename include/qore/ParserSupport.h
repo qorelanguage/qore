@@ -30,24 +30,18 @@ class QoreParserLocation
 {
    private:
       bool explicit_first;
-   public:
-      int first_line;
-      int last_line;
 
-      DLLLOCAL QoreParserLocation() : explicit_first(false)
-      {
-      }
+   public:
+      int first_line, last_line;
+
+      // method defined in scanner.ll
+      DLLLOCAL QoreParserLocation();
+      // method defined in scanner.ll
+      DLLLOCAL void updatePosition(int f);
       DLLLOCAL void setExplicitFirst(int f)
       {
 	 first_line = f;
 	 explicit_first = true;
-      }
-      DLLLOCAL void setConditionalFirst(int f)
-      {
-	 if (!explicit_first)
-	    first_line = f;
-	 else
-	    explicit_first = false;
       }
 };
 

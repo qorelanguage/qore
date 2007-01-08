@@ -20,10 +20,14 @@
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-  Flex scanner: no string length limits, no include file depth limits, thread-safe
-  
-  requires flex 2.5.31 or better (2.5.4 will not work) so a thread-safe scanner can
-  be generated
+  Flex scanner: 
+    no string length limits, 
+    no include file depth limits, 
+    thread-safe
+
+  requires flex 2.5.31 or better (2.5.33 recommended, 2.5.4 will not work) 
+  so a thread-safe scanner can be generated
+
   see: http://lex.sourceforge.net/
 */
 
@@ -52,7 +56,26 @@
 #include <string.h>
 #include <stdlib.h>
 
-#define YY_USER_ACTION { yylloc->setConditionalFirst(yylineno); yylloc->last_line = yylineno; update_parse_location(yylloc->first_line, yylloc->last_line); }
+QoreParserLocation::QoreParserLocation() : explicit_first(false), first_line(0)
+{
+}
+
+void QoreParserLocation::updatePosition(int f)
+{
+   if (!explicit_first)
+   {
+      first_line = f;
+      update_parse_location(f, f);
+   }
+   else
+   {
+      update_parse_location(first_line, f);
+      explicit_first = false;
+   }
+   last_line = f;
+}
+
+#define YY_USER_ACTION { yylloc->updatePosition(yylineno); }
 
 int yyparse(yyscan_t yyscanner);
 
