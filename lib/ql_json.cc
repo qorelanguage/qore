@@ -339,6 +339,8 @@ static class QoreNode *getJSONValue(char *&buf, int &line_number, class QoreEnco
    return NULL;
 }
 
+#define JSF_THRESHOLD 20
+
 static int doJSONValue(class QoreString *str, class QoreNode *v, int format, class ExceptionSink *xsink)
 {
    if (is_nothing(v))
@@ -350,10 +352,21 @@ static int doJSONValue(class QoreString *str, class QoreNode *v, int format, cla
    {
       str->concat("[ ");
       ListIterator li(v->val.list);
+      QoreString tmp(str->getEncoding());
       while (li.next())
       {
-	 if (doJSONValue(str, li.getValue(), format, xsink))
+	 bool ind = tmp.strlen() > JSF_THRESHOLD;
+	 tmp.terminate(0);
+	 if (doJSONValue(&tmp, li.getValue(), format == -1 ? format : format + 2, xsink))
 	    return -1;
+
+	 if (format != -1 && (ind || tmp.strlen() > JSF_THRESHOLD))
+	 {
+	    str->concat('\n');
+	    str->addch(' ', format + 2);
+	 }
+	 str->sprintf("%s", tmp.getBuffer());
+
 	 if (!li.last())
 	    str->concat(", ");
       }
@@ -364,11 +377,20 @@ static int doJSONValue(class QoreString *str, class QoreNode *v, int format, cla
    {
       str->concat("{ ");
       HashIterator hi(v->val.hash);
+      QoreString tmp(str->getEncoding());
       while (hi.next())
       {
-	 str->sprintf("\"%s\" : ", hi.getKey());
-	 if (doJSONValue(str, hi.getValue(), format, xsink))
+	 bool ind = tmp.strlen() > JSF_THRESHOLD;
+	 tmp.terminate(0);
+	 if (doJSONValue(&tmp, hi.getValue(), format == -1 ? format : format + 2, xsink))
 	    return -1;
+
+	 if (format != -1 && (ind || tmp.strlen() > JSF_THRESHOLD))
+	 {
+	    str->concat('\n');
+	    str->addch(' ', format + 2);
+	 }
+	 str->sprintf("\"%s\" : %s", hi.getKey(), tmp.getBuffer());
 	 if (!hi.last())
 	    str->concat(", ");
       }
@@ -443,14 +465,25 @@ static class QoreNode *f_makeJSONString(class QoreNode *params, ExceptionSink *x
       ccs = QCS_DEFAULT;
 
    class QoreString *str = new QoreString(ccs);
-   return doJSONValue(str, val, 0, xsink) ? NULL : new QoreNode(str);
+   return doJSONValue(str, val, -1, xsink) ? NULL : new QoreNode(str);
 }
 
-/*
 static class QoreNode *f_makeFormattedJSONString(class QoreNode *params, ExceptionSink *xsink)
 {
+   class QoreNode *val, *pcs;
+
+   tracein("f_makeFormattedJSONString()");
+   val = get_param(params, 0);
+
+   class QoreEncoding *ccs;
+   if ((pcs = test_param(params, NT_STRING, 1)))
+      ccs = QEM.findCreate(pcs->val.String);
+   else
+      ccs = QCS_DEFAULT;
+
+   class QoreString *str = new QoreString(ccs);
+   return doJSONValue(str, val, 0, xsink) ? NULL : new QoreNode(str);
 }
-*/
 
 static class QoreNode *parseJSONValue(class QoreString *str, class ExceptionSink *xsink)
 {
@@ -489,7 +522,7 @@ static class QoreNode *f_parseJSON(class QoreNode *params, ExceptionSink *xsink)
 
 void init_json_functions()
 {
-   builtinFunctions.add("makeJSONString",        f_makeJSONString);
-   //builtinFunctions.add("makeFormattedJSONString",        f_makeFormattedJSONString);
-   builtinFunctions.add("parseJSON",             f_parseJSON);
+   builtinFunctions.add("makeJSONString",          f_makeJSONString);
+   builtinFunctions.add("makeFormattedJSONString", f_makeFormattedJSONString);
+   builtinFunctions.add("parseJSON",               f_parseJSON);
 }
