@@ -1209,6 +1209,28 @@ sub json_tests()
     my $jstr = makeJSONString($h);
     test_value($h == parseJSON($jstr), True, "first JSON");
 
+    my $ver = "1.1";
+    my $id = 512;
+    my $method = "methodname";
+
+    my $jc = ( "version" : $ver,
+	       "id" : $id,
+	       "method" : $method,
+	       "params" : $h );
+
+    test_value(parseJSON(makeJSONRPCRequestString($method, $ver, $id, $h)) == $jc, True, "makeJSONRPCRequestString");
+    test_value(parseJSON(makeFormattedJSONRPCRequestString($method, $ver, $id, $h)) == $jc, True, "makeJSONRPCRequestString");
+
+    # create result hash by modifying the call hash above: delete "method" and "params" keys and add "result" key
+    my $jr = $jc - "method" - "params" + ( "result" : $h );
+    test_value(parseJSON(makeJSONRPCResponseString($ver, $id, $h)) == $jr, True, "makeJSONRPCResponseString");
+    test_value(parseJSON(makeFormattedJSONRPCResponseString($ver, $id, $h)) == $jr, True, "makeFormattedJSONRPCResponseString");
+
+    # create error hash by modifying the result hash: delete "result" key and add "error" key
+    my $je = $jr - "result" + ( "error" : $h );
+    test_value(parseJSON(makeJSONRPCErrorString($ver, $id, $h)) == $je, True, "makeJSONRPCErrorString");
+    test_value(parseJSON(makeFormattedJSONRPCErrorString($ver, $id, $h)) == $je, True, "makeFormattedJSONRPCErrorString");
+
     $jstr = "{
     \"glossary\": {
         \"title\": \"example glossary\",

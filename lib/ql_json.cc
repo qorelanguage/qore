@@ -30,7 +30,7 @@
 #include <stdlib.h>
 
 // returns 0 for OK
-int cmp_rest_token(char *&p, char *tok)
+static int cmp_rest_token(char *&p, char *tok)
 {
    p++;
    while (*tok)
@@ -462,7 +462,7 @@ static class QoreNode *f_makeJSONString(class QoreNode *params, ExceptionSink *x
    if ((pcs = test_param(params, NT_STRING, 1)))
       ccs = QEM.findCreate(pcs->val.String);
    else
-      ccs = QCS_DEFAULT;
+      ccs = QCS_UTF8;
 
    class QoreString *str = new QoreString(ccs);
    return doJSONValue(str, val, -1, xsink) ? NULL : new QoreNode(str);
@@ -479,7 +479,7 @@ static class QoreNode *f_makeFormattedJSONString(class QoreNode *params, Excepti
    if ((pcs = test_param(params, NT_STRING, 1)))
       ccs = QEM.findCreate(pcs->val.String);
    else
-      ccs = QCS_DEFAULT;
+      ccs = QCS_UTF8;
 
    class QoreString *str = new QoreString(ccs);
    return doJSONValue(str, val, 0, xsink) ? NULL : new QoreNode(str);
@@ -506,23 +506,296 @@ static class QoreNode *parseJSONValue(class QoreString *str, class ExceptionSink
 
 static class QoreNode *f_parseJSON(class QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0, *p1;
+   QoreNode *p0;
 
    if (!(p0 = test_param(params, NT_STRING, 0)))
        return NULL;
  
-      class QoreEncoding *ccsid;
-   if ((p1 = test_param(params, NT_STRING, 1)))
-      ccsid = QEM.findCreate(p1->val.String);
-   else
-      ccsid = QCS_DEFAULT;
-
    return parseJSONValue(p0->val.String, xsink);
+}
+
+// syntax: makeJSONRPCRequestString(method, version, id, params)
+static class QoreNode *f_makeJSONRPCRequestString(class QoreNode *params, ExceptionSink *xsink)
+{
+   class QoreNode *p0;
+   if (!(p0 = test_param(params, NT_STRING, 0)))
+   {
+      xsink->raiseException("MAKE-JSONRPC-REQUEST-STRING-ERROR", "expecting method name as first parameter");
+      return NULL;
+   }
+
+   class QoreNode *p1, *p2, *p3;
+   p1 = get_param(params, 1);
+   p2 = get_param(params, 2);
+   p3 = get_param(params, 3);
+
+   QoreString *str = new QoreString(QCS_UTF8);
+
+   // write version key first if present
+   if (p1)
+   {
+      str->concat("{ \"version\" : ");
+      if (doJSONValue(str, p1, -1, xsink))
+	 return NULL;
+      str->concat(", ");
+   }
+   else
+      str->concat("{ ");
+
+   str->concat("\"method\" : ");
+   if (doJSONValue(str, p0, -1, xsink))
+      return NULL;
+
+   if (p2)
+   {
+      str->concat(", \"id\" : ");
+      if (doJSONValue(str, p2, -1, xsink))
+	 return NULL;
+   }
+
+   // params key should come last
+   str->concat(", \"params\" : ");
+   if (p3)
+   {
+      if (doJSONValue(str, p3, -1, xsink))
+	 return NULL;
+   }
+   else
+      str->concat("null");
+   str->concat(" }");
+   return new QoreNode(str);
+}
+
+// syntax: makeFormattedJSONRPCRequestString(method, version, id, params)
+static class QoreNode *f_makeFormattedJSONRPCRequestString(class QoreNode *params, ExceptionSink *xsink)
+{
+   class QoreNode *p0;
+   if (!(p0 = test_param(params, NT_STRING, 0)))
+   {
+      xsink->raiseException("MAKE-FORMATTED-JSONRPC-REQUEST-STRING-ERROR", "expecting method name as first parameter");
+      return NULL;
+   }
+
+   class QoreNode *p1, *p2, *p3;
+   p1 = get_param(params, 1);
+   p2 = get_param(params, 2);
+   p3 = get_param(params, 3);
+
+   QoreString *str = new QoreString(QCS_UTF8);
+
+   // write version key first if present
+   if (p1)
+   {
+      str->concat("{\n  \"version\" : ");
+      if (doJSONValue(str, p1, 2, xsink))
+	 return NULL;
+      str->concat(",\n  ");
+   }
+   else
+      str->concat("{\n  ");
+
+   str->concat("\"method\" : ");
+   if (doJSONValue(str, p0, 2, xsink))
+      return NULL;
+
+   if (p2)
+   {
+      str->concat(",\n  \"id\" : ");
+      if (doJSONValue(str, p2, 2, xsink))
+	 return NULL;
+   }
+
+   // params key should come last
+   str->concat(",\n  \"params\" : ");
+   if (p3)
+   {
+      if (doJSONValue(str, p3, 2, xsink))
+	 return NULL;
+   }
+   else
+      str->concat("null");
+   str->concat("\n}");
+   return new QoreNode(str);
+}
+
+// syntax: makeJSONRPCResponseString(version, id, response)
+static class QoreNode *f_makeJSONRPCResponseString(class QoreNode *params, ExceptionSink *xsink)
+{
+   class QoreNode *p0, *p1, *p2;
+   p0 = get_param(params, 0);
+   p1 = get_param(params, 1);
+   p2 = get_param(params, 2);
+
+   QoreString *str = new QoreString(QCS_UTF8);
+
+   // write version key first if present
+   if (p0)
+   {
+      str->concat("{ \"version\" : ");
+      if (doJSONValue(str, p0, -1, xsink))
+	 return NULL;
+      str->concat(", ");
+   }
+   else
+      str->concat("{ ");
+
+   if (p1)
+   {
+      str->concat("\"id\" : ");
+      if (doJSONValue(str, p1, -1, xsink))
+	 return NULL;
+      str->concat(", ");
+   }
+
+   // result key should come last
+   str->concat("\"result\" : ");
+   if (p2)
+   {
+      if (doJSONValue(str, p2, -1, xsink))
+	 return NULL;
+   }
+   else
+      str->concat("null");
+   str->concat(" }");
+   return new QoreNode(str);
+}
+
+// syntax: makeFormattedJSONRPCResponseString(version, id, response)
+static class QoreNode *f_makeFormattedJSONRPCResponseString(class QoreNode *params, ExceptionSink *xsink)
+{
+   class QoreNode *p0, *p1, *p2;
+   p0 = get_param(params, 0);
+   p1 = get_param(params, 1);
+   p2 = get_param(params, 2);
+
+   QoreString *str = new QoreString(QCS_UTF8);
+
+   // write version key first if present
+   if (p0)
+   {
+      str->concat("{\n  \"version\" : ");
+      if (doJSONValue(str, p0, 2, xsink))
+	 return NULL;
+      str->concat(",\n  ");
+   }
+   else
+      str->concat("{\n  ");
+
+   if (p1)
+   {
+      str->concat("\"id\" : ");
+      if (doJSONValue(str, p1, 2, xsink))
+	 return NULL;
+      str->concat(",\n  ");
+   }
+
+   // result key should come last
+   str->concat("\"result\" : ");
+   if (p2)
+   {
+      if (doJSONValue(str, p2, 2, xsink))
+	 return NULL;
+   }
+   else
+      str->concat("null");
+   str->concat("\n}");
+   return new QoreNode(str);
+}
+
+// syntax: makeJSONRPCErrorString(version, id, response)
+static class QoreNode *f_makeJSONRPCErrorString(class QoreNode *params, ExceptionSink *xsink)
+{
+   class QoreNode *p0, *p1, *p2;
+   p0 = get_param(params, 0);
+   p1 = get_param(params, 1);
+   p2 = get_param(params, 2);
+
+   QoreString *str = new QoreString(QCS_UTF8);
+
+   // write version key first if present
+   if (p0)
+   {
+      str->concat("{ \"version\" : ");
+      if (doJSONValue(str, p0, -1, xsink))
+	 return NULL;
+      str->concat(", ");
+   }
+   else
+      str->concat("{ ");
+
+   if (p1)
+   {
+      str->concat("\"id\" : ");
+      if (doJSONValue(str, p1, -1, xsink))
+	 return NULL;
+      str->concat(", ");
+   }
+
+   // error key should come last
+   str->concat("\"error\" : ");
+   if (p2)
+   {
+      if (doJSONValue(str, p2, -1, xsink))
+	 return NULL;
+   }
+   else
+      str->concat("null");
+   str->concat(" }");
+   return new QoreNode(str);
+}
+
+// syntax: makeFormattedJSONRPCErrorString(version, id, response)
+static class QoreNode *f_makeFormattedJSONRPCErrorString(class QoreNode *params, ExceptionSink *xsink)
+{
+   class QoreNode *p0, *p1, *p2;
+   p0 = get_param(params, 0);
+   p1 = get_param(params, 1);
+   p2 = get_param(params, 2);
+
+   QoreString *str = new QoreString(QCS_UTF8);
+
+   // write version key first if present
+   if (p0)
+   {
+      str->concat("{\n  \"version\" : ");
+      if (doJSONValue(str, p0, 2, xsink))
+	 return NULL;
+      str->concat(",\n  ");
+   }
+   else
+      str->concat("{\n  ");
+
+   if (p1)
+   {
+      str->concat("\"id\" : ");
+      if (doJSONValue(str, p1, 2, xsink))
+	 return NULL;
+      str->concat(",\n  ");
+   }
+
+   // error key should come last
+   str->concat("\"error\" : ");
+   if (p2)
+   {
+      if (doJSONValue(str, p2, 2, xsink))
+	 return NULL;
+   }
+   else
+      str->concat("null");
+   str->concat("\n}");
+   return new QoreNode(str);
 }
 
 void init_json_functions()
 {
-   builtinFunctions.add("makeJSONString",          f_makeJSONString);
-   builtinFunctions.add("makeFormattedJSONString", f_makeFormattedJSONString);
-   builtinFunctions.add("parseJSON",               f_parseJSON);
+   builtinFunctions.add("makeJSONString",                      f_makeJSONString);
+   builtinFunctions.add("makeFormattedJSONString",             f_makeFormattedJSONString);
+   builtinFunctions.add("parseJSON",                           f_parseJSON);
+
+   builtinFunctions.add("makeJSONRPCRequestString",            f_makeJSONRPCRequestString);
+   builtinFunctions.add("makeFormattedJSONRPCRequestString",   f_makeFormattedJSONRPCRequestString);
+   builtinFunctions.add("makeJSONRPCResponseString",           f_makeJSONRPCResponseString);
+   builtinFunctions.add("makeFormattedJSONRPCResponseString",  f_makeFormattedJSONRPCResponseString);
+   builtinFunctions.add("makeJSONRPCErrorString",              f_makeJSONRPCErrorString);
+   builtinFunctions.add("makeFormattedJSONRPCErrorString",     f_makeFormattedJSONRPCErrorString);
 }

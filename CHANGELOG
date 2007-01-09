@@ -1,3 +1,10 @@
+2007.01.09: David Nichols
+	* added makeJSONRPCRequestString(), makeJSONRPCResponseString(), 
+	  makeJSONRPCErrorString(), makeFormattedJSONRPCRequestString(), 
+	  makeFormattedJSONRPCResponseString(), and 
+	  makeFormattedJSONRPCErrorString() functions to lib/ql_json.cc
+	* added tests for new functions to test/test.q
+
 2007.01.08: David Nichols
 	* fixed a "read from uninitialized memory" error with parsing
 	* implemented JSON parsing: "parseJSON()" also added JSON tests to 
