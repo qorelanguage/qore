@@ -99,7 +99,7 @@ static class QoreNode *f_tibrvSetUserCertWithKey(class QoreNode *params, class E
       delete pemcert;
       return NULL;
    }
-   pemcert->concat(pempk);
+   pemcert->concat(pempk->getBuffer());
    delete pempk;
 
    pt = test_param(params, NT_STRING, 2);

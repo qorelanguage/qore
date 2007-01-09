@@ -86,13 +86,13 @@ class QoreString {
       DLLEXPORT void set(const char *str, class QoreEncoding *new_qorecharset = QCS_DEFAULT);
       DLLEXPORT void concatAndHTMLEncode(const char *);
       DLLEXPORT void concatAndHTMLDecode(const QoreString *str);
-      DLLEXPORT void concat(const QoreString *);
-      // concatenates a string and escapes character c with esc_char
-      DLLEXPORT void concatEscape(const QoreString *, char c, char esc_char = '\\');
+      // concatenates a string and escapes character c with esc_char (converts encodings if necessary)
+      DLLEXPORT void concatEscape(const QoreString *, char c, char esc_char, class ExceptionSink *xsink);
       // concatenates a string and escapes character c with esc_char
       DLLEXPORT void concatEscape(const char *, char c, char esc_char = '\\');
       // concatenation with character set conversion
       DLLEXPORT void concatAndHTMLEncode(const QoreString *, class ExceptionSink *xsink);
+      // concatenates a string and converts encodings if necessary
       DLLEXPORT void concat(const QoreString *, class ExceptionSink *xsink);
       // in the following method, size refers to the number of characters, not bytes
       DLLEXPORT void concat(const QoreString *, int size, class ExceptionSink *xsink);
@@ -143,6 +143,9 @@ class QoreString {
       DLLEXPORT void ensureBufferSize(unsigned requested_size);
       // append a character to the string a number of times
       DLLEXPORT void addch(char c, unsigned times);
+
+      // concatenates a qorestring without converting encodings - internal only
+      DLLLOCAL void concat(const QoreString *);
 };
 
 DLLEXPORT class QoreString *checkEncoding(const class QoreString *str, const class QoreEncoding *enc, class ExceptionSink *xsink);
