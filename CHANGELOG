@@ -1,3 +1,6 @@
+2007.01.10: David Nichols
+	* JSON-RPC fixes
+
 2007.01.09: David Nichols
 	* added makeJSONRPCRequestString(), makeJSONRPCResponseString(), 
 	  makeJSONRPCErrorString(), makeFormattedJSONRPCRequestString(), 

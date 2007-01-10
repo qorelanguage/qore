@@ -1233,9 +1233,9 @@ sub json_tests()
     test_value(parseJSON(makeFormattedJSONRPCErrorString($ver, $id, $h)) == $je, True, "makeFormattedJSONRPCErrorString");
 
     # create JSON-RPC 1.1 error string
-    $je = $je - "id" + ( "error" : ( "name" : "JSONRPCError", "code" : $id, "message" : $mess, "error" : $h ) );
-    test_value(parseJSON(makeJSONRPC11ErrorString($id, $mess, $h)) == $je, True, "makeJSONRPCErrorString");
-    test_value(parseJSON(makeFormattedJSONRPC11ErrorString($id, $mess, $h)) == $je, True, "makeFormattedJSONRPCErrorString");
+    $je = $je + ( "error" : ( "name" : "JSONRPCError", "code" : $id, "message" : $mess, "error" : $h ) );
+    test_value(parseJSON(makeJSONRPC11ErrorString($id, $mess, $id, $h)) == $je, True, "makeJSONRPCErrorString");
+    test_value(parseJSON(makeFormattedJSONRPC11ErrorString($id, $mess, $id, $h)) == $je, True, "makeFormattedJSONRPCErrorString");
 
     $jstr = "{
     \"glossary\": {

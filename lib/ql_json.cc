@@ -793,29 +793,42 @@ static class QoreNode *f_makeFormattedJSONRPCErrorString(class QoreNode *params,
    return new QoreNode(str);
 }
 
-// syntax: makeJSONRPC11ErrorString(code, message, error)
+// syntax: makeJSONRPC11ErrorString(code, message, id, error)
 static class QoreNode *f_makeJSONRPC11ErrorString(class QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0;
-   p0 = get_param(params, 0);
-   int code = p0 ? p0->getAsInt() : 0;
+   class QoreNode *p;
+   p = get_param(params, 0);
+   int code = p ? p->getAsInt() : 0;
    if (code < 100 || code > 999)
    {
       xsink->raiseException("MAKE-JSONRPC11-ERROR-STRING-ERROR", "error code (first argument) must be between 100 and 999 inclusive (value passed: %d)", code);
       return NULL;
    }
 
-   class QoreNode *p1 = test_param(params, NT_STRING, 1);
-   if (!p1 || !p1->val.String->strlen())
+   p = test_param(params, NT_STRING, 1);
+   if (!p || !p->val.String->strlen())
    {
       xsink->raiseException("MAKE-JSONRPC11-ERROR-STRING-ERROR", "error message string not passed as second argument)");
       return NULL;
    }
+   QoreString *mess = p->val.String;
 
    QoreString *str = new QoreString(QCS_UTF8);
-   str->sprintf("{ \"version\" : \"1.1\", \"error\" : { \"name\" : \"JSONRPCError\", \"code\" : %d, \"message\" : \"", code);
+   str->concat("{ \"version\" : \"1.1\", ");
+
+   // get optional "id" value
+   p = get_param(params, 2);
+   if (p)
+   {
+      str->concat("\"id\" : ");
+      if (doJSONValue(str, p, -1, xsink))
+	 return NULL;
+      str->concat(", ");
+   }
+   
+   str->sprintf("\"error\" : { \"name\" : \"JSONRPCError\", \"code\" : %d, \"message\" : \"", code);
    // concat here so character encodings can be automatically converted if necessary
-   str->concatEscape(p1->val.String, '"', '\\', xsink);
+   str->concatEscape(mess, '"', '\\', xsink);
    if (xsink->isException())
    {
       delete str;
@@ -825,40 +838,53 @@ static class QoreNode *f_makeJSONRPC11ErrorString(class QoreNode *params, Except
    str->concat('\"');
 
    // get optional "error" value
-   class QoreNode *p2 = get_param(params, 2);
-   if (p2)
+   p = get_param(params, 3);
+   if (p)
    {
       str->concat(", \"error\" : ");
-      if (doJSONValue(str, p2, -1, xsink))
+      if (doJSONValue(str, p, -1, xsink))
 	 return NULL;
    }
    str->concat(" } }");
    return new QoreNode(str);
 }
 
-// syntax: makeFormattedJSONRPC11ErrorString(version, id, response)
+// syntax: makeFormattedJSONRPC11ErrorString(code, message, id, error)
 static class QoreNode *f_makeFormattedJSONRPC11ErrorString(class QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0;
-   p0 = get_param(params, 0);
-   int code = p0 ? p0->getAsInt() : 0;
+   class QoreNode *p;
+   p = get_param(params, 0);
+   int code = p ? p->getAsInt() : 0;
    if (code < 100 || code > 999)
    {
       xsink->raiseException("MAKE-JSONRPC11-ERROR-STRING-ERROR", "error code (first argument) must be between 100 and 999 inclusive (value passed: %d)", code);
       return NULL;
    }
 
-   class QoreNode *p1 = test_param(params, NT_STRING, 1);
-   if (!p1 || !p1->val.String->strlen())
+   p = test_param(params, NT_STRING, 1);
+   if (!p || !p->val.String->strlen())
    {
       xsink->raiseException("MAKE-JSONRPC11-ERROR-STRING-ERROR", "error message string not passed as second argument)");
       return NULL;
    }
+   QoreString *mess = p->val.String;
 
    QoreString *str = new QoreString(QCS_UTF8);
-   str->sprintf("{\n  \"version\" : \"1.1\",\n  \"error\" :\n  {\n    \"name\" : \"JSONRPCError\",\n    \"code\" : %d,\n    \"message\" : \"", code);
+   str->sprintf("{\n  \"version\" : \"1.1\",\n  ");
+
+   // get optional "id" value
+   p = get_param(params, 2);
+   if (p)
+   {
+      str->concat("\"id\" : ");
+      if (doJSONValue(str, p, -1, xsink))
+	 return NULL;
+      str->concat(",\n  ");
+   }
+
+   str->sprintf("\"error\" :\n  {\n    \"name\" : \"JSONRPCError\",\n    \"code\" : %d,\n    \"message\" : \"", code);
    // concat here so character encodings can be automatically converted if necessary
-   str->concatEscape(p1->val.String, '"', '\\', xsink);
+   str->concatEscape(mess, '"', '\\', xsink);
    if (xsink->isException())
    {
       delete str;
@@ -868,11 +894,11 @@ static class QoreNode *f_makeFormattedJSONRPC11ErrorString(class QoreNode *param
    str->concat('\"');
 
    // get optional "error" value
-   class QoreNode *p2 = get_param(params, 2);
-   if (p2)
+   p = get_param(params, 3);
+   if (p)
    {
       str->concat(",\n    \"error\" : ");
-      if (doJSONValue(str, p2, 4, xsink))
+      if (doJSONValue(str, p, 4, xsink))
 	 return NULL;
    }
    str->concat("\n  }\n}");
