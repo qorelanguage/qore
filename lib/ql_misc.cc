@@ -640,6 +640,38 @@ static class QoreNode *f_parseHexString(class QoreNode *params, ExceptionSink *x
    return new QoreNode(b);
 }
 
+// takes a hex string like "6d4f84e0" (without any leading 0x) and returns the corresponding base-10 integer
+static class QoreNode *f_hexToInt(class QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p0 = test_param(params, NT_STRING, 0);
+   if (!p0)
+      return NULL;
+
+   if (!p0->val.String->strlen())
+      return zero();
+
+   int64 rc = 0;
+   int64 pow = 0;
+   char *buf = p0->val.String->getBuffer();
+   for (char *p = p0->val.String->strlen() + buf - 1; p >= buf; p--)
+   {
+      int n = get_nibble(*p, xsink);
+      if (xsink->isException())
+	 return NULL;
+      if (!pow)
+      {
+	 rc = n;
+	 pow = 16;
+      }
+      else
+      {
+	 rc += n * pow;
+	 pow *= 16;
+      }
+   }
+   return new QoreNode(rc);
+}
+
 void init_misc_functions()
 {
    // register builtin functions in this file
@@ -671,4 +703,5 @@ void init_misc_functions()
    builtinFunctions.add("uncompress_to_binary", f_uncompress_to_binary);
    builtinFunctions.add("getByte", f_getByte);
    builtinFunctions.add("splice", f_splice);
+   builtinFunctions.add("hexToInt", f_hexToInt);
 }

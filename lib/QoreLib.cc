@@ -437,7 +437,7 @@ class BinaryObject *parseBase64(char *buf, int len, class ExceptionSink *xsink)
    return new BinaryObject(binbuf, blen);
 }
 
-static inline int get_nibble(char c, class ExceptionSink *xsink)
+int get_nibble(char c, class ExceptionSink *xsink)
 {
    if (isdigit(c))
       return c - 48;

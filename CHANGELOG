@@ -1,5 +1,7 @@
 2007.01.10: David Nichols
 	* JSON-RPC fixes
+	* added hexToInt() function to lib/ql_misc.cc to return an integer for a
+	  hexadecimal string value
 
 2007.01.09: David Nichols
 	* added makeJSONRPCRequestString(), makeJSONRPCResponseString(), 

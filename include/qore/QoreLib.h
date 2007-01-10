@@ -103,6 +103,7 @@ DLLLOCAL extern class LockedObject lck_gmtime;
 
 DLLLOCAL extern char table64[64];
 
+DLLLOCAL int get_nibble(char c, class ExceptionSink *xsink);
 DLLLOCAL class BinaryObject *parseBase64(char *buf, int len, class ExceptionSink *xsink);
 DLLLOCAL class BinaryObject *parseHex(char *buf, int len, class ExceptionSink *xsink);
 DLLLOCAL class BinaryObject *parseHex(char *buf, int len);
