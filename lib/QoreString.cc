@@ -1298,15 +1298,25 @@ void QoreString::concatEscape(const char *str, char c, char esc_char)
    }
 }
 
-void QoreString::concatEscape(const QoreString *str, char c, char esc_char)
+void QoreString::concatEscape(const QoreString *str, char c, char esc_char, class ExceptionSink *xsink)
 {
    // if it's not a null string
    if (str && str->len)
    {
+      const QoreString *cstr = str;
+      if (charset != str->charset)
+      {
+	 cstr = str->convertEncoding(charset, xsink);
+	 if (xsink->isEvent())
+	    return;
+      }
+
       // if buffer needs to be resized
       check_char(str->len + len);
 
       concatEscape(str->buf, c, esc_char);
+      if (cstr != str)
+	 delete cstr;
    }
 }
 

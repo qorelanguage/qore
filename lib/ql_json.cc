@@ -414,7 +414,14 @@ static int doJSONValue(class QoreString *str, class QoreNode *v, int format, cla
 	 t = v->val.String;
 
       str->concat('"');
-      str->concatEscape(t, '"');
+      str->concatEscape(t, '"', '\\', xsink);
+      if (xsink->isException())
+      {
+	 if (t != v->val.String)
+	    delete t;
+	 delete str;
+	 return -1;
+      }
       str->concat('"');
       if (t != v->val.String)
 	 delete t;
@@ -786,6 +793,92 @@ static class QoreNode *f_makeFormattedJSONRPCErrorString(class QoreNode *params,
    return new QoreNode(str);
 }
 
+// syntax: makeJSONRPC11ErrorString(code, message, error)
+static class QoreNode *f_makeJSONRPC11ErrorString(class QoreNode *params, ExceptionSink *xsink)
+{
+   class QoreNode *p0;
+   p0 = get_param(params, 0);
+   int code = p0 ? p0->getAsInt() : 0;
+   if (code < 100 || code > 999)
+   {
+      xsink->raiseException("MAKE-JSONRPC11-ERROR-STRING-ERROR", "error code (first argument) must be between 100 and 999 inclusive (value passed: %d)", code);
+      return NULL;
+   }
+
+   class QoreNode *p1 = test_param(params, NT_STRING, 1);
+   if (!p1 || !p1->val.String->strlen())
+   {
+      xsink->raiseException("MAKE-JSONRPC11-ERROR-STRING-ERROR", "error message string not passed as second argument)");
+      return NULL;
+   }
+
+   QoreString *str = new QoreString(QCS_UTF8);
+   str->sprintf("{ \"version\" : \"1.1\", \"error\" : { \"name\" : \"JSONRPCError\", \"code\" : %d, \"message\" : \"", code);
+   // concat here so character encodings can be automatically converted if necessary
+   str->concatEscape(p1->val.String, '"', '\\', xsink);
+   if (xsink->isException())
+   {
+      delete str;
+      return NULL;
+   }
+
+   str->concat('\"');
+
+   // get optional "error" value
+   class QoreNode *p2 = get_param(params, 2);
+   if (p2)
+   {
+      str->concat(", \"error\" : ");
+      if (doJSONValue(str, p2, -1, xsink))
+	 return NULL;
+   }
+   str->concat(" } }");
+   return new QoreNode(str);
+}
+
+// syntax: makeFormattedJSONRPC11ErrorString(version, id, response)
+static class QoreNode *f_makeFormattedJSONRPC11ErrorString(class QoreNode *params, ExceptionSink *xsink)
+{
+   class QoreNode *p0;
+   p0 = get_param(params, 0);
+   int code = p0 ? p0->getAsInt() : 0;
+   if (code < 100 || code > 999)
+   {
+      xsink->raiseException("MAKE-JSONRPC11-ERROR-STRING-ERROR", "error code (first argument) must be between 100 and 999 inclusive (value passed: %d)", code);
+      return NULL;
+   }
+
+   class QoreNode *p1 = test_param(params, NT_STRING, 1);
+   if (!p1 || !p1->val.String->strlen())
+   {
+      xsink->raiseException("MAKE-JSONRPC11-ERROR-STRING-ERROR", "error message string not passed as second argument)");
+      return NULL;
+   }
+
+   QoreString *str = new QoreString(QCS_UTF8);
+   str->sprintf("{\n  \"version\" : \"1.1\",\n  \"error\" :\n  {\n    \"name\" : \"JSONRPCError\",\n    \"code\" : %d,\n    \"message\" : \"", code);
+   // concat here so character encodings can be automatically converted if necessary
+   str->concatEscape(p1->val.String, '"', '\\', xsink);
+   if (xsink->isException())
+   {
+      delete str;
+      return NULL;
+   }
+
+   str->concat('\"');
+
+   // get optional "error" value
+   class QoreNode *p2 = get_param(params, 2);
+   if (p2)
+   {
+      str->concat(",\n    \"error\" : ");
+      if (doJSONValue(str, p2, 4, xsink))
+	 return NULL;
+   }
+   str->concat("\n  }\n}");
+   return new QoreNode(str);
+}
+
 void init_json_functions()
 {
    builtinFunctions.add("makeJSONString",                      f_makeJSONString);
@@ -798,4 +891,6 @@ void init_json_functions()
    builtinFunctions.add("makeFormattedJSONRPCResponseString",  f_makeFormattedJSONRPCResponseString);
    builtinFunctions.add("makeJSONRPCErrorString",              f_makeJSONRPCErrorString);
    builtinFunctions.add("makeFormattedJSONRPCErrorString",     f_makeFormattedJSONRPCErrorString);
+   builtinFunctions.add("makeJSONRPC11ErrorString",            f_makeJSONRPC11ErrorString);
+   builtinFunctions.add("makeFormattedJSONRPC11ErrorString",   f_makeFormattedJSONRPC11ErrorString);
 }

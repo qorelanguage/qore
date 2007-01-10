@@ -1212,6 +1212,7 @@ sub json_tests()
     my $ver = "1.1";
     my $id = 512;
     my $method = "methodname";
+    my $mess = "an error occurred, OH NO!!!!";
 
     my $jc = ( "version" : $ver,
 	       "id" : $id,
@@ -1230,6 +1231,11 @@ sub json_tests()
     my $je = $jr - "result" + ( "error" : $h );
     test_value(parseJSON(makeJSONRPCErrorString($ver, $id, $h)) == $je, True, "makeJSONRPCErrorString");
     test_value(parseJSON(makeFormattedJSONRPCErrorString($ver, $id, $h)) == $je, True, "makeFormattedJSONRPCErrorString");
+
+    # create JSON-RPC 1.1 error string
+    $je = $je - "id" + ( "error" : ( "name" : "JSONRPCError", "code" : $id, "message" : $mess, "error" : $h ) );
+    test_value(parseJSON(makeJSONRPC11ErrorString($id, $mess, $h)) == $je, True, "makeJSONRPCErrorString");
+    test_value(parseJSON(makeFormattedJSONRPC11ErrorString($id, $mess, $h)) == $je, True, "makeFormattedJSONRPCErrorString");
 
     $jstr = "{
     \"glossary\": {
