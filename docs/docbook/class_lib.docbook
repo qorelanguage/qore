@@ -3425,7 +3425,7 @@
 	  <tbody>
 	    <row>
 	      <entry><para><code>UNSUPPORTED-PROTOCOL</code></para></entry>
-	      <entry><para>Only &quot;ftp&quot; is allowed as the protocol in the URL.</para></entry>
+	      <entry><para>Only &quot;ftp&quot; or &quot;ftps&quot; are allowed as the protocol in the URL.</para></entry>
 	    </row>
 	    <row>
 	      <entry><para><code>FTP-URL-ERROR</code></para></entry>
