@@ -95,6 +95,7 @@ Namespace* addHTTPClientNamespace()
 {
   Namespace* ns = new Namespace("HTTPClient");
 
+/*
   // constants
   List* l = new List;
   l->push(new QoreNode("OPTIONS"));
@@ -134,8 +135,9 @@ Namespace* addHTTPClientNamespace()
   l = QoreHTTPClient::get_ALLOWED_VERSIONS();
   n = new QoreNode(l);
   ns->addConstant("allowed_versions", n);
+*/
 
-  ns->addConstant("Version", new QoreNode("0.3"));
+  ns->addConstant("Version", new QoreNode(QoreHTTPClient::version));
   ns->addConstant("defaultTimeout", new QoreNode((int64)QoreHTTPClient::defaultTimeout));
 
   return ns;

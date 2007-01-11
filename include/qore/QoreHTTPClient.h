@@ -29,52 +29,72 @@
 #include <qore/QoreSocket.h>
 
 #include <string>
+#include <map>
 
-class QoreHTTPClient : public ReferenceObject
+// ssl-enabled protocols are stored as negative numbers, non-ssl as positive
+#define make_protocol(a, b) ((a) * ((b) ? -1 : 1))
+#define get_port(a) ((a) * (((a) < 0) ? -1 : 1))
+#define get_ssl(a) ((a) * (((a) < 0) ? true : false))
+
+#define HTTPCLIENT_DEFAULT_PORT 80
+#define HTTPCLIENT_DEFAULT_HOST "localhost"
+
+// set default timeout to 5 minutes (300,000 ms)
+#define HTTPCLIENT_DEFAULT_TIMEOUT 300000
+
+// protocol map class to recognize user-defined protocols (mostly useful for derived classes)
+typedef std::map<std::string, int> prot_map_t;
+
+class QoreHTTPClient
 {
-private:
-  Hash* protocols;
-  LockedObject lock;
-  bool ssl;
-  int port;
-  std::string host;
-  std::string path;
-  std::string username;
-  std::string password;
-  std::string default_path;
-  int timeout;
-  std::string http_version;
-  std::string socketpath;
-  bool connected;
-  QoreSocket m_socket;
+   private:
+      // are we using http 1.1 or 1.0?
+      bool http11;
+      prot_map_t prot_map;
 
-  DLLLOCAL void process_url(Hash* opts, ExceptionSink* xsink);
+      LockedObject lock;
+      bool ssl;
+      int port, default_port;
+      std::string host;
+      std::string path;
+      std::string username;
+      std::string password;
+      std::string default_path;
+      int timeout;
+      std::string socketpath;
+      bool connected;
+      QoreSocket m_socket;
+      
+      // returns -1 if an exception was thrown, 0 for OK
+      DLLLOCAL int process_url(class QoreString *str, ExceptionSink* xsink);
+      // returns -1 if an exception was thrown, 0 for OK
+      DLLLOCAL int connect_unlocked(class ExceptionSink *xsink);
+      
+   public:
+      DLLEXPORT QoreHTTPClient();
+      DLLEXPORT ~QoreHTTPClient();
+      // set options with a hash
+      DLLEXPORT setOptions(Hash* opts, ExceptionSink* xsink);
+      // useful for c++ derived classes
+      DLLEXPORT setDefaultPort(int prt);
+      // useful for c++ derived classes
+      DLLEXPORT setDefaultPath(char *pth);
 
-public:
-  DLLLOCAL static Hash* get_DEFAULT_PROTOCOLS();
-  DLLLOCAL static List* get_ALLOWED_VERSIONS();
-  static const int defaultTimeout = 300000;
-  static const char* defaultHTTPVersion;
+      
 
-public:
-  DLLLOCAL QoreHTTPClient(Hash* opts, ExceptionSink* xsink);
-  DLLLOCAL ~QoreHTTPClient();
+      DLLEXPORT void setTimeout(int to);
+      DLLEXOPRT int getTimeout();
 
-  DLLLOCAL void deref() {
-    if (ROdereference()) {
-      delete this;
-    }
-  }
+      // returns -1 if an exception was thrown, 0 for OK
+      DLLEXPORT int setHTTPVersion(char* version, ExceptionSink* xsink);
+      DLLEXPORT const char* getHTTPVersion() const;
+      
+      DLLEXPORT void setSecure(bool is_secure);
+      DLLEXPORT bool isSecure() const;
 
-  DLLLOCAL void setHTTPVersion(char* version, ExceptionSink* xsink);
-  DLLLOCAL const char* getHTTPVersion() const { return http_version.c_str(); }
-
-  DLLLOCAL void setSecure(bool is_secure) { ssl = is_secure; }
-  DLLLOCAL bool isSecure() const { return ssl; }
-
-  DLLLOCAL long verifyPeerCertificate() { return m_socket.verifyPeerCertificate(); }
-  DLLLOCAL const char* getSSLCipherName() { return m_socket.getSSLCipherName(); }
-  DLLLOCAL const char* getSSLCipherVersion() { return m_socket.getSSLCipherVersion(); }
+      DLLEXPORT long verifyPeerCertificate();
+      DLLEXPORT const char* getSSLCipherName();
+      DLLEXPORT const char* getSSLCipherVersion();
 };
 
 #endif 
