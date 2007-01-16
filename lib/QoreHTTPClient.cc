@@ -220,6 +220,4 @@ int QoreHTTPClient::connect_unlocked(class ExceptionSink *xsink)
    if (!rc)
       connected = true;
 }
-
 // EOF
-
