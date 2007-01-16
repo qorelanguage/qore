@@ -20,25 +20,32 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <qore/Qore.h>
+#include <qore/config.h>
+#include <qore/support.h>
+#include <qore/QoreNode.h>
+#include <qore/QoreType.h>
+#include <qore/Object.h>
+#include <qore/Exception.h>
+#include <qore/QoreString.h>
+#include <qore/params.h>
+#include <qore/QoreClass.h>
 
 #include "tibae.h"
 #include "QoreApp.h"
+#include <memory>
 
 int CID_TIBAE;
 
 static inline class QoreNode *map_minstance_to_node(const MInstance *min, ExceptionSink *xsink)
 {
-   Hash *h = new Hash();
-
-   MEnumerator<MString, MData *> *me = min->newEnumerator();
+   std::auto_ptr<MEnumerator<MString, MData *> >me(min->newEnumerator());   
    MString name;
    MData *val;
 
+   Hash* h = new Hash;
    while (me->next(name, val) && !xsink->isEvent())
       h->setKeyValue((char *)name.c_str(), map_mdata_to_node(val, xsink), xsink);
 
-   delete me;
    if (xsink->isEvent())
    {
       h->derefAndDelete(xsink);
@@ -379,6 +386,163 @@ class QoreNode *TIBAE_receive(class Object *self, class QoreApp *myQoreApp, clas
    return myQoreApp->receive(subject, timeout, xsink);
 }
 
+
+//------------------------------------------------------------------------------
+// Parameters:
+// * class name (string), in Tibco docs called "name of the class repository object in which this operation is defined"
+//   Example: "greetings".
+// * method name (string), in Tibco docs "name of the operation repository that defined this operation"
+//   Example: "setGreetings"
+// * data (hash), keys are string parameter names + appropriate type (according to repository) of values
+// * optional: timeout (integer, millseconds), default is 60 seconds, 0 means infinite
+// * optional: client name (string), in Tibco docs "this name must refer to a client repository object defined 
+//   in endpoint.clients directory
+//   Default value is ""
+//
+// Returns hash with data send as a reply to this call.
+//
+static QoreNode* TIBAE_operationsCallWithSyncResult(Object* self, QoreApp* myQoreApp, QoreNode* params, ExceptionSink *xsink)
+{
+  char* err = "Invalid parameters. Expected: class name (string), method name (string), data (hash), "
+    "[timeout (integer, millis), ] [client name (string)]";
+  char* func = "TIBCO-OPERATIONS-CALL-WITH-SYNC_RESULT";
+  QoreNode* class_name = test_param(params, NT_STRING, 0);
+  if (!class_name) {
+    return xsink->raiseException(func, err);
+  }
+  char* class_name_extracted = class_name->val.String->getBuffer(); 
+  QoreNode* method_name = test_param(params, NT_STRING, 1);
+  if (!method_name) {
+    return xsink->raiseException(func, err);
+  } 
+  char* method_name_extracted = method_name->val.String->getBuffer();
+  QoreNode* data = test_param(params, NT_HASH, 2);
+  if (!data) {
+    return xsink->raiseException(func, err);
+  }
+  Hash* data_extracted = data->val.hash;
+  unsigned timeout = 60 * 1000;
+  char* client_name = "";
+
+  int next_item = 3;
+  QoreNode* n = test_param(params, NT_INT, 3);
+  if (n) {
+    timeout = (unsigned)n->val.intval;
+    ++next_item;
+  }
+  n = test_param(params, NT_STRING, next_item);
+  if (n) {
+    client_name = n->val.String->getBuffer();
+  }
+
+  return myQoreApp->operationsCallWithSyncResult(class_name_extracted, method_name_extracted, data_extracted,
+    timeout, client_name, xsink);
+}
+
+//------------------------------------------------------------------------------
+// The same parameters as for TIBAE_operationsCallWithSyncResult, 
+// except for the timeout (not needed), always returns 0.
+//
+static QoreNode* TIBAE_operationsOneWayCall(Object* self, QoreApp* myQoreApp, QoreNode* params, ExceptionSink *xsink)
+{
+  char* err = "Invalid parameters. Expected: class name (string), method name (string), data (hash), "
+    "[client name (string)]";
+  char* func = "TIBCO-OPERATIONS-ONE-WAY-CALL";
+  QoreNode* class_name = test_param(params, NT_STRING, 0);
+  if (!class_name) {
+    return xsink->raiseException(func, err);
+  }
+  char* class_name_extracted = class_name->val.String->getBuffer();
+  QoreNode* method_name = test_param(params, NT_STRING, 1);
+  if (!method_name) {
+    return xsink->raiseException(func, err);
+  }
+  char* method_name_extracted = method_name->val.String->getBuffer();
+  QoreNode* data = test_param(params, NT_HASH, 2);
+  if (!data) {
+    return xsink->raiseException(func, err);
+  }
+  Hash* data_extracted = data->val.hash;
+  char* client_name = "";
+
+  QoreNode* n = test_param(params, NT_STRING, 3);
+  if (n) {
+    client_name = n->val.String->getBuffer();
+  }
+
+  myQoreApp->operationsOneWayCall(class_name_extracted, method_name_extracted, data_extracted, client_name, xsink);
+  return 0;
+}
+
+//------------------------------------------------------------------------------
+// The same parameters as for TIBAE_operationsCallWithSyncResult (including timeout).
+// Always return 0. To get the reply use combination of class name + method name passed to this call.
+//
+static QoreNode* TIBAE_operationsAsyncCall(Object* self, QoreApp* myQoreApp, QoreNode* params, ExceptionSink *xsink)
+{
+ char* err = "Invalid parameters. Expected: class name (string), method name (string), data (hash), "
+    "[timeout (integer, millis), ] [client name (string)]";
+  char* func = "TIBCO-OPERATIONS-ASYNC-CALL";
+  QoreNode* class_name = test_param(params, NT_STRING, 0);
+  if (!class_name) {
+    return xsink->raiseException(func, err);
+  }
+  char* class_name_extracted = class_name->val.String->getBuffer();
+  QoreNode* method_name = test_param(params, NT_STRING, 1);
+  if (!method_name) {
+    return xsink->raiseException(func, err);
+  }
+  char* method_name_extracted = method_name->val.String->getBuffer();
+  QoreNode* data = test_param(params, NT_HASH, 2);
+  if (!data) {
+    return xsink->raiseException(func, err);
+  }
+  Hash* data_extracted = data->val.hash;
+  unsigned timeout = 60 * 1000;
+  char* client_name = "";
+
+  int next_item = 3;
+  QoreNode* n = test_param(params, NT_INT, 3);
+  if (n) {
+    timeout = (unsigned)n->val.intval;
+    ++next_item;
+  }
+  n = test_param(params, NT_STRING, next_item);
+  if (n) {
+    client_name = n->val.String->getBuffer();
+  }
+
+  myQoreApp->operationsAsyncCall(class_name_extracted, method_name_extracted, data_extracted, timeout, client_name, xsink);
+  return 0;
+}
+
+//------------------------------------------------------------------------------
+// Parameters:
+// * class name (string)
+// * method name (string)
+// The class/method need to be invoked prior with operationsAsyncCall().
+//
+// Returns hash with retrieved values.
+//
+static QoreNode* TIBAE_operationsGetAsyncCallResult(Object* self, QoreApp* myQoreApp, QoreNode* params, ExceptionSink *xsink)
+{
+  char* err = "Invalid parameters. Expected: class name (string), method name (string)";
+  char* func = "TIBCO-OPERATIONS-GET-ASYNC-RESULT";
+  QoreNode* class_name = test_param(params, NT_STRING, 0);
+  if (!class_name) {
+    return xsink->raiseException(func, err);
+  }
+  char* class_name_extracted = class_name->val.String->getBuffer();
+  QoreNode* method_name = test_param(params, NT_STRING, 1);
+  if (!method_name) {
+    return xsink->raiseException(func, err);
+  }
+  char* method_name_extracted = method_name->val.String->getBuffer();
+
+  return myQoreApp->operationsGetAsyncCallResult(class_name_extracted, method_name_extracted, xsink);
+}
+
+//------------------------------------------------------------------------------
 class QoreClass *initTibcoAdapterClass()
 {
    tracein("initTibcoAdapterClass()");
@@ -390,6 +554,14 @@ class QoreClass *initTibcoAdapterClass()
    QC_TIBAE->addMethod("receive",                  (q_method_t)TIBAE_receive);
    QC_TIBAE->addMethod("sendSubject",              (q_method_t)TIBAE_sendSubject);
    QC_TIBAE->addMethod("sendSubjectWithSyncReply", (q_method_t)TIBAE_sendSubjectWithSyncReply);
+
+   // operations
+   QC_TIBAE->addMethod("operationsCallWithSyncResult", (q_method_t)TIBAE_operationsCallWithSyncResult);
+   QC_TIBAE->addMethod("operationsOneWayCall",         (q_method_t)TIBAE_operationsOneWayCall);
+/* commented out for now as the retrieving async call method still fails
+   QC_TIBAE->addMethod("operationsAsyncCall",          (q_method_t)TIBAE_operationsAsyncCall);
+   QC_TIBAE->addMethod("operationsGetAsyncCallResult", (q_method_t)TIBAE_operationsGetAsyncCallResult);
+*/
    traceout("initTibcoAdapterClass()");
    return QC_TIBAE;
 }
