@@ -35,17 +35,6 @@
 int CID_HTTPCLIENT;
 
 //-----------------------------------------------------------------------------
-static void getHTTPClient(void *obj)
-{
-   ((QoreHTTPClient*)obj)->ROreference();
-}
-
-static void releaseHTTPClient(void *obj)
-{
-   ((QoreHTTPClient*)obj)->deref();
-}
-
-//-----------------------------------------------------------------------------
 static void HTTPClient_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
   char* err_name = "HTTPClient::constructor";
@@ -66,7 +55,7 @@ static void HTTPClient_constructor(class Object *self, class QoreNode *params, E
     delete client;
     return;
   }
-  self->setPrivate(CID_HTTPCLIENT, client, getHTTPClient, releaseHTTPClient);
+  self->setPrivate(CID_HTTPCLIENT, client);
 }
 
 //-----------------------------------------------------------------------------
@@ -148,18 +137,17 @@ Namespace* addHTTPClientNamespace()
    
    QoreHTTPClient::default_headers["Accept"] = "text/html";
    QoreHTTPClient::default_headers["Content-Type"] = "text/html";
-   QoreHTTPClient::default_headers["User-Agent"] = "Qore HTTP Client v" + PACKAGE_VERSION;
    QoreHTTPClient::default_headers["Connection"] = "Keep-Alive";
 
-   class QoreString *user_agent = new QoreString();
-   user_agent->sprintf("Qore HTTP Client v%s", PACKAGE_VERSION);
-   QoreHTTPClient::default_headers->setKeyValue("User-Agent", new QoreNode(user_agent), NULL);
+   class QoreString *user_agent = new QoreString("Qore HTTP Client v");
+   user_agent->concat(PACKAGE_VERSION);
+   QoreHTTPClient::mandatory_headers.setKeyValue("User-Agent", user_agent, NULL);
 
    char buf[HOSTNAMEBUFSIZE + 1];
    if (gethostname(buf, HOSTNAMEBUFSIZE))
-      QoreHTTPClient::default_headers->setKeyValue("Host", new QoreNode("localhost"), NULL);
+      QoreHTTPClient::mandatory_headers.setKeyValue("Host", new QoreNode("localhost"), NULL);
    else
-      QoreHTTPClient::default_headers->setKeyValue("Host", new QoreNode(buf), NULL);
+      QoreHTTPClient::mandatory_headers.setKeyValue("Host", new QoreNode(buf), NULL);
    
    QoreHTTPClient::header_ignore.insert("Host");
    QoreHTTPClient::header_ignore.insert("User-Agent");

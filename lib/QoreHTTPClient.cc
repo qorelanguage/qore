@@ -55,9 +55,19 @@ void QoreHTTPClient::setTimeout(int to)
    timeout = to;
 }
 
-int QoreHTTPClient::getTimeout()
+int QoreHTTPClient::getTimeout() const
 {
    return timeout;
+}
+
+void QoreHTTPClient::setEncoding(class QoreEncoding *qe)
+{
+   m_socket.setEncoding(qe);
+}
+
+class QoreEncoding *QoreHTTPClient::getEncoding() const
+{
+   return m_socket.getEncoding();
 }
 
 QoreHTTPClient::setOptions(Hash* opts, ExceptionSink* xsink)
@@ -115,7 +125,7 @@ int QoreHTTPClient::process_url(class QoreString *str, ExceptionSink* xsink)
 {
    QoreURL url(str);
    if (!url.isValid()) {
-      xsink->raiseException("HTTPCLIENT-CONSTRUCTOR-ERROR", "url parameter cannot be parsed");
+      xsink->raiseException("HTTP-CLIENT-CONSTRUCTOR-ERROR", "url parameter cannot be parsed");
       return -1;
    }
 
@@ -144,7 +154,7 @@ int QoreHTTPClient::process_url(class QoreString *str, ExceptionSink* xsink)
       prot_map_t::const_iterator i = prot_map.find(prot->getBuffer());
       if (i == prot_map.end())
       {
-	 xsink->raiseException("HTTPCLIENT-UNKNOWN-PROTOCOL", "protocol '%s' is not supported.", url.protocol->getBuffer());
+	 xsink->raiseException("HTTP-CLIENT-UNKNOWN-PROTOCOL", "protocol '%s' is not supported.", url.protocol->getBuffer());
 	 return -1;
       }
 
@@ -171,7 +181,7 @@ int QoreHTTPClient::setHTTPVersion(char* version, ExceptionSink* xsink)
       http11 = true;
       return 0;
    }
-   xsink->raiseException("HTTPCLIENT-SETHTTPVERSION-ERROR", "only '1.0' and '1.1' are valid (value passed: '%s')", version);
+   xsink->raiseException("HTTP-CLIENT-SETHTTPVERSION-ERROR", "only '1.0' and '1.1' are valid (value passed: '%s')", version);
    return -1;
 }
 
@@ -247,26 +257,257 @@ void QoreHTTPClient::disconnect()
    unlock();
 }
 
-class QoreString *QoreHTTPClient::send_internal(char *meth, char *path, class Hash *headers, void *data, unsigned size, bool getbody = false)
+class Hash *QoreHTTPClient::send_internal(char *meth, char *path, class Hash *headers, void *data, unsigned size, bool getbody = false, class ExceptionSink *xsink)
 {
       // check if method is valid
    string_set_t::const_iterator i = method_set.find(meth);
    if (i == method_set.end())
    {
       xsink->raiseException("HTTP-CLIENT-METHOD-ERROR", "HTTP method (%n) not recognized.", method);
-      return;
+      return NULL;
    }
    
-   class QoreString *ans = NULL;
    lock();
    if (connect_unlocked())
    {
       unlock();
       return NULL;
    }
+
+   class Hash *nh = mandatory_headers.copy();
+   bool keep_alive = true;
+
+   if (headers)
+   {
+      HashIterator hi(headers);
+      while (hi.next())
+      {
+	 if (!strcasecmp(hi.getKey(), "connection"))
+	 {
+	    class QoreNode *v = hi.getValue();
+	    if (v && v->type == NT_STRING && !strcasecmp(v->val.String->getBuffer(), "close"))
+	       keep_alive = false;
+	 }
+
+	 // if one of the mandatory headers is found, then ignore it
+	 strcase_set_t::iterator i = header_ignore.find(hi.getKey());
+	 if (i != header_ignore.end())
+	    continue;
+
+	 // otherwise set the value in the hash
+	 nh->setKeyValue(hi.getKey(), hi.getValue(), xsink);
+      }
+   }
+
+   // add default headers if they weren't overridden
+   for (header_map_t::const_iterator i = default_headers.begin(), e = default_headers.end(); i != e; ++i)
+   {
+      // look in original headers to see if the key was already given
+      if (headers)
+      {
+	 bool skip = false;
+	 HashIterator hi(headers);
+	 while (hi.next())
+	 {
+	    if (!strcasecmp(hi.getKey(), i->first))
+	    {
+	       skip = true;
+	       break;
+	    }
+	 }
+	 if (skip)
+	    continue;
+      }
+      nh->setKeyValue(i->first, new QoreNode(i->second.c_str()), NULL);
+   }
+
+   // send the message
+   int rc = m_socket.sendHTTPMessage(meth, path, http11 ? "1.1" : "1.0", nh, data, size);
+   nh->derefAndDelete(xsink);
    
+   if (rc)
+   {
+      unlock();
+      if (rc == -2)
+	 xsink->raiseException("HTTP-CLIENT-SEND-ERROR", "socket was closed at the remote end before the message could be sent");
+      else 
+	 xsink->raiseException("HTTP-CLIENT-SEND-ERROR", "send failed with error code %d: %s", rc, strerror(errno));
+      return NULL;
+   }
+
+   int rc;
+   class QoreNode *ans = m_socket.readHTTPHeader(timeout, &rc);
+
+   if (!ans || ans->type != NT_HASH)
+   {
+      unlock();
+      if (ans)
+	 ans->deref(xsink);
+      xsink->raiseException("HTTP-CLIENT-RECV-ERROR", "malformed HTTP header received from socket %s, could not parse header", socketpath.c_str());
+      return NULL;
+   }
+
+   if (rc <= 0)
+   {
+      unlock();
+      if (!rc)             // remote end has closed the connection
+	 xsink->raiseException("HTTP-CLIENT-RECV-ERROR", "remote end has closed the connection");
+      else if (rc == -1)   // recv() error
+	 xsink->raiseException("HTTP-CLIENT-RECV-ERROR", strerror(errno));
+      else if (rc == -2)
+	 xsink->raiseException("HTTP-CLIENT-RECV-ERROR", "socket was closed at the remote end");
+      else if (rc == -3)   // timeout
+	 xsink->raiseException("HTTP-CLIENT-TIMEOUT", "timed out waiting %dms for response on socket %s", timeout, socketpath.c_str());
+
+      ans->deref(xsink);
+      return NULL;
+   }
+
+   // check HTTP status code
+   class QoreNode *v = ah->getKeyValue("status_code");
+   if (!v)
+   {
+      unlock();
+      xsink->raiseException("HTTP-CLIENT-RECV-ERROR", "no HTTP status code received in response");
+      ans->deref(xsink);
+      return NULL;
+   }
+   
+   int code = v->getAsInt();
+   if (code >= 300 && code < 400)
+   {
+      unlock();
+      v = ah->getKeyValue("status_message");
+      char *mess = v ? v->val.String->getBuffer() : "<no message>";
+      v = ah->getKeyValue("location");
+      char *location = v ? v->val.String->getBuffer() : "<no location>";
+      xsink->raiseException("HTTP-CLIENT-RECV-ERROR", "HTTP redirect (%d) to %s ignored: message: %s", code, location, mess);
+      ans->deref(xsink);
+      return NULL;
+   }
+
+   if (code < 200 && code >= 300)
+   {
+      unlock();
+      v = ah->getKeyValue("status_message");
+      char *mess = v ? v->val.String->getBuffer() : "<no message>";
+      xsink->raiseException("HTTP-CLIENT-RECV-ERROR", "HTTP status code %d received: message: %s", code, mess);
+      ans->deref(xsink);
+      return NULL;
+   }
+
+   // process content-type
+   class Hash *ah = ans->val.hash;
+   v = ah->getKeyValue("content-type");
+   // see if there is a character set specification in the content-type header
+   if (v)
+   {
+      char *str = v->val.String->getBuffer();
+      char *p = strstr(str, "charset=");
+      if (p && (p == str || *(p - 1) == ';'))
+      {
+	 // move p to start of encoding
+	 char *c = p + 8;
+	 QoreString enc;
+	 while (*c && *c != ';')
+	    enc.concat(*c);
+	 // set new encoding
+	 m_socket.setEncoding(QEM.findCreate(&enc));
+	 // strip from content-type
+	 class QoreString *nc;
+	 if (p != str)
+	    nc->concat(str, str - p - 1);
+	 if (*c)
+	    nc->concat(*c);
+	 ah->setKeyValue("content-type", new QoreNode(nc));
+	 str = nc->getBuffer();
+      }
+      // split into a list if ";" characters are present
+      p = strchr(str, ';');
+      if (p)
+      {
+	 class List *l = new List();
+	 do {
+	    l->push(new QoreNode(new QoreString(str, p - str, m_socket->getEncoding())));
+	    str = p + 1;
+	 } while (p = strchr(str, ';'));
+	 // add last field
+	 if (*str)
+	    l->push(new QoreNode(new QoreString(str, m_socket->getEncoding())));
+	 ah->setKeyValue("content-type", new QoreNode(l));
+      }
+   }
+
+   // get response body, if any
+   v = ah->getKeyValue("content-length");
+   int len = v ? v->getAsInt() : 0;
+   if (len || getbody)
+   {
+      int rc;
+      class QoreString *body = m_socket.recv(len, timeout, &rc);
+
+      if (rc <= 0)
+      {
+	 unlock();
+	 if (!rc)             // remote end has closed the connection
+	    xsink->raiseException("HTTP-CLIENT-RECV-ERROR", "remote end closed the connection while receiving response message body");
+	 else if (rc == -1)   // recv() error
+	    xsink->raiseException("HTTP-CLIENT-RECV-ERROR", strerror(errno));
+	 else if (rc == -2)
+	    xsink->raiseException("HTTP-CLIENT-RECV-ERROR", "socket was closed at the remote end while receiving response message body");
+	 else if (rc == -3)   // timeout
+	    xsink->raiseException("HTTP-CLIENT-TIMEOUT", "timed out waiting %dms for response message body of length %d on socket %s", timeout, len, socketpath.c_str());
+	 ans->deref(xsink);
+	 return NULL;
+      }
+
+      ah->setKeyValue("body", new QoreNode(body), NULL);
+   }
+
+   // check for connection: close header
+   if (!keep_alive || ((v = ah->getKeyValue("connection")) && !strcasecmp(v->val.String->getBuffer(), "close")))
+      disconnect_unlocked(xsink);
+
    unlock();
    return ans;
+}
+
+class QoreNode *QoreHTTPClient::send(char *meth, char *path, class Hash *headers, void *data, unsigned size, bool getbody = false, class ExceptionSink *xsink)
+{
+   class QoreNore *ans = send_internal(meth, path, headers, data, size, getbody, xsink);
+   if (!ans)
+      return NULL;
+   class QoreNode *rv = ans->val.hash->getKeyValue("body");
+   ans->val.hash->deleteKey("body");
+   ans->derefAndDelete(xsink);
+   return rv;
+}
+
+class QoreNode *QoreHTTPClient::get(char *path, class Hash *headers, class ExceptionSink *xsink)
+{
+   class QoreNore *ans = send_internal("GET", path, headers, NULL, 0, true, xsink);
+   if (!ans)
+      return NULL;
+   class QoreNode *rv = ans->val.hash->getKeyValue("body");
+   ans->val.hash->deleteKey("body");
+   ans->derefAndDelete(xsink);
+   return rv;
+}
+
+class QoreNode *QoreHTTPClient::head(char *path, class Hash *headers, class ExceptionSink *xsink)
+{
+   return send_internal("HEAD", path, headers, NULL, 0, false, xsink);
+}
+
+class QoreNode *QoreHTTPClient::post(char *path, class Hash *headers, void *data, unsigned size, class ExceptionSink *xsink)
+{
+   class QoreNore *ans = send_internal("POST", path, headers, data, size, true, xsink);
+   if (!ans)
+      return NULL;
+   class QoreNode *rv = ans->val.hash->getKeyValue("body");
+   ans->val.hash->deleteKey("body");
+   ans->derefAndDelete(xsink);
+   return rv;
 }
 
 // EOF
