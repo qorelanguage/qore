@@ -447,18 +447,17 @@ static class QoreNode *f_split(class QoreNode *params, ExceptionSink *xsink)
    pattern = p0->val.String->getBuffer();
    str = p1->val.String->getBuffer();
    printd(5, "in f_split(\"%s\", \"%s\")\n", pattern, str);
-   QoreNode *rv = new QoreNode(NT_LIST);
-   rv->val.list = new List();
+   class List *l = new List();
    while (char *p = strstr(str, pattern))
    {
       //printd(5, "str=%08p p=%08p \"%s\" \"%s\"\n", str, p, str, pattern);
-      rv->val.list->push(new QoreNode(new QoreString(str, p - str, p1->val.String->getEncoding())));
+      l->push(new QoreNode(new QoreString(str, p - str, p1->val.String->getEncoding())));
       str = p + strlen(pattern);
    }
    // add last field
    if (*str)
-      rv->val.list->push(new QoreNode(new QoreString(str, p1->val.String->getEncoding())));
-   return rv;
+      l->push(new QoreNode(new QoreString(str, p1->val.String->getEncoding())));
+   return new QoreNode(l);
 }
 
 static class QoreNode *f_get_encoding(class QoreNode *params, ExceptionSink *xsink)
