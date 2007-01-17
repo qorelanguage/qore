@@ -111,9 +111,9 @@ QoreHTTPClient::~QoreHTTPClient()
 }
 
 //-----------------------------------------------------------------------------
-int QoreHTTPClient::process_url(Hash* opts, ExceptionSink* xsink)
+int QoreHTTPClient::process_url(class QoreString *str, ExceptionSink* xsink)
 {
-   QoreURL url(n->val.String);
+   QoreURL url(str);
    if (!url.isValid()) {
       xsink->raiseException("HTTPCLIENT-CONSTRUCTOR-ERROR", "url parameter cannot be parsed");
       return -1;
@@ -161,12 +161,12 @@ int QoreHTTPClient::process_url(Hash* opts, ExceptionSink* xsink)
 //-----------------------------------------------------------------------------
 int QoreHTTPClient::setHTTPVersion(char* version, ExceptionSink* xsink)
 {
-   îf (!strcmp(version, "1.0"))
+   if (!strcmp(version, "1.0"))
    {
       http11 = false;
       return 0;
    }
-   else if (!strcmp(version, "1.1"))
+   if (!strcmp(version, "1.1"))
    {
       http11 = true;
       return 0;
@@ -219,5 +219,54 @@ int QoreHTTPClient::connect_unlocked(class ExceptionSink *xsink)
       rc = m_socket.connect(socketpath.c_str(), xsink);
    if (!rc)
       connected = true;
+   return rc;
 }
+
+int QoreHTTPClient::connect(class ExceptionSink *xsink)
+{
+   int rc;
+   lock();
+   rc = connect_unlocked(xsink);
+   unlock();
+   return rc;
+}
+
+void QoreHTTPClient::disconnect_unlocked()
+{
+   if (connected)
+   {
+      m_socket.close();
+      connected = false;
+   }
+}
+
+void QoreHTTPClient::disconnect()
+{
+   lock();
+   disconnect_unlocked();
+   unlock();
+}
+
+class QoreString *QoreHTTPClient::send_internal(char *meth, char *path, class Hash *headers, void *data, unsigned size, bool getbody = false)
+{
+      // check if method is valid
+   string_set_t::const_iterator i = method_set.find(meth);
+   if (i == method_set.end())
+   {
+      xsink->raiseException("HTTP-CLIENT-METHOD-ERROR", "HTTP method (%n) not recognized.", method);
+      return;
+   }
+   
+   class QoreString *ans = NULL;
+   lock();
+   if (connect_unlocked())
+   {
+      unlock();
+      return NULL;
+   }
+   
+   unlock();
+   return ans;
+}
+
 // EOF

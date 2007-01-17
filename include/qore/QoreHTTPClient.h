@@ -30,6 +30,7 @@
 
 #include <string>
 #include <map>
+#include <set>
 
 // ssl-enabled protocols are stored as negative numbers, non-ssl as positive
 #define make_protocol(a, b) ((a) * ((b) ? -1 : 1))
@@ -44,15 +45,19 @@
 
 // protocol map class to recognize user-defined protocols (mostly useful for derived classes)
 typedef std::map<std::string, int> prot_map_t;
+typedef std::set<std::string> string_set_t;
+typedef std::map<std::string, std::string> header_map_t;
 
-class QoreHTTPClient
+class QoreHTTPClient : public LockedObject
 {
    private:
+      static string_set_t method_set, header_ignore;
+      static header_map_t default_headers;
+   
       // are we using http 1.1 or 1.0?
       bool http11;
       prot_map_t prot_map;
 
-      LockedObject lock;
       bool ssl;
       int port, default_port;
       std::string host;
@@ -69,6 +74,8 @@ class QoreHTTPClient
       DLLLOCAL int process_url(class QoreString *str, ExceptionSink* xsink);
       // returns -1 if an exception was thrown, 0 for OK
       DLLLOCAL int connect_unlocked(class ExceptionSink *xsink);
+      DLLLOCAL void disconnect_unlocked(class ExceptionSink *xsink);
+      DLLLOCAL void send_internal(char *meth, char *path, class Hash *headers, void *data, unsigned size, bool getbody = false);
       
    public:
       DLLEXPORT QoreHTTPClient();
@@ -79,8 +86,6 @@ class QoreHTTPClient
       DLLEXPORT setDefaultPort(int prt);
       // useful for c++ derived classes
       DLLEXPORT setDefaultPath(char *pth);
-
-      
 
       DLLEXPORT void setTimeout(int to);
       DLLEXOPRT int getTimeout();
@@ -95,6 +100,10 @@ class QoreHTTPClient
       DLLEXPORT long verifyPeerCertificate();
       DLLEXPORT const char* getSSLCipherName();
       DLLEXPORT const char* getSSLCipherVersion();
+      
+      // returns -1 if an exception was thrown, 0 for OK
+      DLLEXPORT int connect(class ExceptionSink *xsink);
+      DLLEXPORT void disconnect(class ExceptionSink *xsink);
 };
 
 #endif 

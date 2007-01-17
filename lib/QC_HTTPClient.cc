@@ -137,8 +137,33 @@ Namespace* addHTTPClientNamespace()
   ns->addConstant("allowed_versions", n);
 */
 
-  ns->addConstant("Version", new QoreNode(QoreHTTPClient::version));
-  ns->addConstant("defaultTimeout", new QoreNode((int64)QoreHTTPClient::defaultTimeout));
+   QoreHTTPClient::method_set.insert("OPTIONS");
+   QoreHTTPClient::method_set.insert("GET");
+   QoreHTTPClient::method_set.insert("HEAD");
+   QoreHTTPClient::method_set.insert("POST");
+   QoreHTTPClient::method_set.insert("PUT");
+   QoreHTTPClient::method_set.insert("DELETE");
+   QoreHTTPClient::method_set.insert("TRACE");
+   QoreHTTPClient::method_set.insert("CONNECT");
+   
+   QoreHTTPClient::default_headers["Accept"] = "text/html";
+   QoreHTTPClient::default_headers["Content-Type"] = "text/html";
+   QoreHTTPClient::default_headers["User-Agent"] = "Qore HTTP Client v" + PACKAGE_VERSION;
+   QoreHTTPClient::default_headers["Connection"] = "Keep-Alive";
+
+   class QoreString *user_agent = new QoreString();
+   user_agent->sprintf("Qore HTTP Client v%s", PACKAGE_VERSION);
+   QoreHTTPClient::default_headers->setKeyValue("User-Agent", new QoreNode(user_agent), NULL);
+
+   char buf[HOSTNAMEBUFSIZE + 1];
+   if (gethostname(buf, HOSTNAMEBUFSIZE))
+      QoreHTTPClient::default_headers->setKeyValue("Host", new QoreNode("localhost"), NULL);
+   else
+      QoreHTTPClient::default_headers->setKeyValue("Host", new QoreNode(buf), NULL);
+   
+   QoreHTTPClient::header_ignore.insert("Host");
+   QoreHTTPClient::header_ignore.insert("User-Agent");
+   QoreHTTPClient::header_ignore.insert("Content-Length");
 
   return ns;
 }
