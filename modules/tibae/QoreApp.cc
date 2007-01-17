@@ -1236,6 +1236,16 @@ QoreNode* QoreApp::operationsGetAsyncCallResult(char* class_name, char* method_n
   }
   ON_BLOCK_EXIT_OBJ(context, &async_call_context_t::destroy);
 
-  return context.listener->get_data(xsink);
+  // UNFINISHED
+  // This fails: the get_data() is called but listener's onReply() was not called
+  // and the returned data are empty.
+  // One part of the documentation suggest that it is client code (here) that should call
+  // the onReply() but doing so Tibco exception is thrown.
+  // The (probable) solution is to create worker threads that would retrieve the
+  // reply data and asynchronously call the onReply(). MDispatcher is suggested 
+  // as the 'thread provider'.
+  //
+  // The only example using MDispatcher is mt_rpc (in tra/5.3/examples/cpp).
+  return context.listener->get_data(xsink); // <<== now always returns empty data
 }
 
