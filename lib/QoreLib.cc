@@ -455,7 +455,7 @@ class BinaryObject *parseHex(char *buf, int len, class ExceptionSink *xsink)
    if (!len)
       return new BinaryObject();
 
-   if ((len / 2 * 2) != len)
+   if ((len / 2) * 2 != len)
    {
       xsink->raiseException("PARSE-HEX-ERROR", "cannot parse an odd number of hex digits (%d digit%s)", len, len == 1 ? "" : "s");
       return NULL;
