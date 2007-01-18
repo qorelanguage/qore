@@ -726,13 +726,16 @@ void List::clearNeedsEval()
 }
 
 ListIterator::ListIterator(class List *lst) 
+: l(lst), pos(-1)
+#ifdef DEBUG
+  , m_list_size(l->size())
+#endif
 { 
-   l = lst; 
-   pos = -1; 
 }
 
 bool ListIterator::next() 
-{ 
+{
+   assert(l->size() == m_list_size); // if this asserts than the list was changed while iterating => undefined behavior 
    if (l->size() == 0) return false; // empty
    if (++pos >= l->size()) return false; // finished
    return true;
@@ -740,6 +743,7 @@ bool ListIterator::next()
 
 class QoreNode *ListIterator::getValue() const
 {
+   assert(l->size() == m_list_size); 
    if (pos < 0)
       return NULL;
    return l->retrieve_entry(pos);
@@ -747,12 +751,14 @@ class QoreNode *ListIterator::getValue() const
 
 class QoreNode **ListIterator::getValuePtr() const
 {
+   assert(l->size() == m_list_size); 
    if (pos < 0)
       return NULL;
    return l->get_entry_ptr(pos);
 }
 
 bool ListIterator::last() const
-{ 
+{
+   assert(l->size() == m_list_size); 
    return (bool)(pos == (l->size() - 1)); 
 } 

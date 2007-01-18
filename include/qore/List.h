@@ -109,8 +109,11 @@ public:
 class ListIterator
 {
    private:
+      class List* l;
       int pos;
-      class List *l;
+#ifdef DEBUG
+      int m_list_size; // used to verify that the list is not changed during iteration
+#endif
    
    public:
       DLLEXPORT ListIterator(class List *lst);
