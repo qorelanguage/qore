@@ -733,6 +733,7 @@ ListIterator::ListIterator(class List *lst)
 
 bool ListIterator::next() 
 { 
+   if (l->size() == 0) return -1;
    if (pos < 0)
    {
       if (l->size())
