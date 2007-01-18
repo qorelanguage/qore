@@ -3,7 +3,7 @@
 
   Qore Programming Language
   
-  Copyright (C) 2003, 2004, 2005, 2006 David Nichols
+  Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
   
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -40,14 +40,14 @@ static void QUEUE_copy(class Object *self, class Object *old, class Queue *tq, E
    self->setPrivate(CID_QUEUE, new Queue());
 }
 
-class QoreNode *QUEUE_push(class Object *self, class Queue *tq, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *QUEUE_push(class Object *self, class Queue *tq, class QoreNode *params, ExceptionSink *xsink)
 {
    tq->push(get_param(params, 0));
    return NULL;
 }
 
 // can't use shift because it's a reserved word
-class QoreNode *QUEUE_get(class Object *self, class Queue *tq, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *QUEUE_get(class Object *self, class Queue *tq, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *rv;
 
@@ -65,7 +65,7 @@ class QoreNode *QUEUE_get(class Object *self, class Queue *tq, class QoreNode *p
    return rv;
 }
 
-class QoreNode *QUEUE_pop(class Object *self, class Queue *tq, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *QUEUE_pop(class Object *self, class Queue *tq, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *rv;
 
@@ -83,7 +83,7 @@ class QoreNode *QUEUE_pop(class Object *self, class Queue *tq, class QoreNode *p
    return rv;
 }
 
-class QoreNode *QUEUE_size(class Object *self, class Queue *tq, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *QUEUE_size(class Object *self, class Queue *tq, class QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)tq->size());
 }

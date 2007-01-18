@@ -5,7 +5,7 @@
  
  Qore Programming Language
  
- Copyright (C) 2003, 2004, 2005, 2006 David Nichols
+ Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
  
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
@@ -46,6 +46,10 @@ public:
    // returns a hash of the parameters parsed - destructive: zeros out all elements
    DLLEXPORT class Hash *getHash();
       // returns the QoreString without zeroing it out in the class
+   DLLEXPORT class QoreString *getHost() const;
+   DLLEXPORT class QoreString *getUserName() const;
+   DLLEXPORT class QoreString *getPassword() const;
+   DLLEXPORT class QoreString *getPath() const;
    DLLEXPORT class QoreString *getProtocol() const;
    DLLEXPORT int getPort() const;
 

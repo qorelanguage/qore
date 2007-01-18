@@ -38,25 +38,25 @@ static void COUNTER_copy(class Object *self, class Object *old, class Counter *c
    self->setPrivate(CID_COUNTER, new Counter());
 }
 
-class QoreNode *COUNTER_inc(class Object *self, class Counter *c, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *COUNTER_inc(class Object *self, class Counter *c, class QoreNode *params, ExceptionSink *xsink)
 {
    c->inc();
    return NULL;
 }
 
-class QoreNode *COUNTER_dec(class Object *self, class Counter *c, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *COUNTER_dec(class Object *self, class Counter *c, class QoreNode *params, ExceptionSink *xsink)
 {
    c->dec();
    return NULL;
 }
 
-class QoreNode *COUNTER_waitForZero(class Object *self, class Counter *c, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *COUNTER_waitForZero(class Object *self, class Counter *c, class QoreNode *params, ExceptionSink *xsink)
 {
    c->waitForZero();
    return NULL;
 }
 
-class QoreNode *COUNTER_getCount(class Object *self, class Counter *c, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *COUNTER_getCount(class Object *self, class Counter *c, class QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)c->getCount());
 }

@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003, 2004, 2005, 2006 David Nichols
+  Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -36,6 +36,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <ctype.h>
+
+#ifndef HOSTNAMEBUFSIZE
+#define HOSTNAMEBUFSIZE 512
+#endif
 
 // function to try and make a class name out of a file path, returns a new string that must be free()ed
 DLLEXPORT char *make_class_name(char *fn);

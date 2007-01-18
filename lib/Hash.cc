@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003, 2004, 2005, 2006 David Nichols
+  Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -113,15 +113,9 @@ bool HashIterator::last() const
    return (bool)(ptr ? !ptr->next : false); 
 } 
 
-void Hash::internDeleteKey(class HashMember *om, class ExceptionSink *xsink)
+// NOTE: does not delete the value, this must be done by the called before this call
+void Hash::internDeleteKey(class HashMember *om)
 {
-   // dereference node if present
-   if (om->node)
-   {
-      if (om->node->type == NT_OBJECT)
-         om->node->val.object->doDelete(xsink);
-      om->node->deref(xsink);
-   }
    // remove key from list
    if (om->next)
       om->next->prev = om->prev;
@@ -184,6 +178,22 @@ void Hash::deleteKey(QoreString *key, ExceptionSink *xsink)
    }
    else
       deleteKey(key->getBuffer(), xsink);
+}
+
+class QoreNode *Hash::takeKeyValue(QoreString *key, ExceptionSink *xsink)
+{
+   class QoreNode *rv;
+   if (key->getEncoding() != QCS_DEFAULT)
+   {
+      QoreString *ns = key->convertEncoding(QCS_DEFAULT, xsink);
+      if (xsink->isEvent())
+	 return NULL;
+      rv = takeKeyValue(ns->getBuffer());
+      delete ns;
+   }
+   else
+      rv = takeKeyValue(key->getBuffer());
+   return rv;
 }
 
 class QoreNode *Hash::getKeyValueExistence(QoreString *key, class ExceptionSink *xsink) const
@@ -514,7 +524,36 @@ void Hash::deleteKey(char *key, ExceptionSink *xsink)
    class HashMember *m = i->second;
 
    hm.erase(i);
-   internDeleteKey(m, xsink);
+
+   // dereference node if present
+   if (m->node)
+   {
+      if (m->node->type == NT_OBJECT)
+         m->node->val.object->doDelete(xsink);
+      m->node->deref(xsink);
+   }
+
+   internDeleteKey(m);
+}
+
+class QoreNode *Hash::takeKeyValue(char *key)
+{
+   assert(key);
+
+   hm_hm_t::iterator i = hm.find(key);
+
+   if (i == hm.end())
+      return NULL;
+
+   class HashMember *m = i->second;
+
+   hm.erase(i);
+
+   class QoreNode *rv = m->node;
+
+   internDeleteKey(m);
+
+   return rv;
 }
 
 int Hash::size() const 

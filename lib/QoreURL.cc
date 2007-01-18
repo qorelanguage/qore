@@ -3,7 +3,7 @@
   
  Qore Programming Language
  
- Copyright (C) 2003, 2004, 2005, 2006 David Nichols
+ Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
  
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
@@ -171,6 +171,26 @@ bool QoreURL::isValid() const
 class QoreString *QoreURL::getProtocol() const
 {
    return protocol;
+}
+
+class QoreString *QoreURL::getUserName() const
+{
+   return username;
+}
+
+class QoreString *QoreURL::getPassword() const
+{
+   return password;
+}
+
+class QoreString *QoreURL::getPath() const
+{
+   return path;
+}
+
+class QoreString *QoreURL::getHost() const
+{
+   return host;
 }
 
 int QoreURL::getPort() const

@@ -3,7 +3,7 @@
  
  Qore Programming Language
  
- Copyright (C) 2003, 2004, 2005, 2006 David Nichols
+ Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
  
  NOTE that 2 copies of connection values are kept in case
  the values are changed while a connection is in use

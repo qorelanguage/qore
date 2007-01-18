@@ -3,7 +3,7 @@
  
  QORE programming language
  
- Copyright (C) 2003, 2004, 2005, 2006 David Nichols
+ Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
  
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public

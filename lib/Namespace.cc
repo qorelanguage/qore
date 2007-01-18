@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003, 2004, 2005, 2006 David Nichols
+  Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -1613,7 +1613,6 @@ RootNamespace::RootNamespace(class Namespace **QoreNS) : Namespace()
    qns->addSystemClass(File = initFileClass());
    qns->addSystemClass(initGetOptClass());
    qns->addSystemClass(initFtpClientClass());
-   //qns->addSystemClass(initHTTPClientClass());
 
 #ifdef DEBUG
 { // tests
@@ -1687,8 +1686,9 @@ RootNamespace::RootNamespace(class Namespace **QoreNS) : Namespace()
 
    // create Qore::Type namespace with type constants
    qns->addInitialNamespace(get_type_ns());
-   // add HTTPClient constants
-   //qns->addInitialNamespace(addHTTPClientNamespace());
+
+   // add HTTPClient namespace
+   qns->addInitialNamespace(addHTTPClientNamespace());
 
    // add file constants
    addFileConstants(qns);

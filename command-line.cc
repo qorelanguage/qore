@@ -7,7 +7,7 @@
 
   it should offer POSIX style command-line handling on any platform...
 
-  Copyright (C) 2003, 2004, 2005, 2006 David Nichols
+  Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
 */
 
 #include <qore/Qore.h>
@@ -214,7 +214,7 @@ static void do_lock_options(char *arg)
 
 static void do_version(char *arg)
 {
-   printf("QORE for %s %s (%d-bit build), Copyright (C) 2003 - 2006 David Nichols\nversion %s", qore_target_os, qore_target_arch, qore_target_bits, qore_version_string);
+   printf("QORE for %s %s (%d-bit build), Copyright (C) 2003 - 2007 David Nichols\nversion %s", qore_target_os, qore_target_arch, qore_target_bits, qore_version_string);
 
    charPtrList::iterator i = qoreFeatureList.begin();
    if (i != qoreFeatureList.end())

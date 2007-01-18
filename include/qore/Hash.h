@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003, 2004, 2005, 2006 David Nichols
+  Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -70,7 +70,7 @@ class Hash
       bool needs_eval;
 
       DLLLOCAL class QoreNode **newKeyValue(char *key, class QoreNode *value);
-      DLLLOCAL void internDeleteKey(class HashMember *m, class ExceptionSink *xsink);
+      DLLLOCAL void internDeleteKey(class HashMember *m);
       DLLLOCAL void deref_intern(class ExceptionSink *xsink);
 
   protected:
@@ -81,7 +81,9 @@ class Hash
 
       DLLEXPORT char *getFirstKey() const { return member_list ? member_list->key :NULL; }
       DLLEXPORT char *getLastKey() const { return tail ? tail->key : NULL; }
+      // returns (QoreNode *)-1 if the key doesn't exist
       DLLEXPORT class QoreNode *getKeyValueExistence(char *key) const;
+      // returns (QoreNode *)-1 if the key doesn't exist
       DLLEXPORT class QoreNode *getKeyValueExistence(class QoreString *key, class ExceptionSink *xsink) const;
       DLLEXPORT class QoreNode *getKeyValue(class QoreString *key, class ExceptionSink *xsink) const;
       DLLEXPORT class QoreNode *getKeyValue(char *key) const;
@@ -99,6 +101,10 @@ class Hash
       DLLEXPORT void setKeyValue(char *key, class QoreNode *value, class ExceptionSink *xsink);
       DLLEXPORT void deleteKey(class QoreString *key, class ExceptionSink *xsink);
       DLLEXPORT void deleteKey(char *key, class ExceptionSink *xsink);
+      // "takes" the value of the key from the hash and removes the key from the hash and returns the value
+      DLLEXPORT class QoreNode *takeKeyValue(class QoreString *key, class ExceptionSink *xsink);
+      // "takes" the value of the key from the hash and removes the key from the hash and returns the value
+      DLLEXPORT class QoreNode *takeKeyValue(char *key);
       DLLEXPORT class List *getKeys() const;
       DLLEXPORT bool compareSoft(class Hash *h, class ExceptionSink *xsink) const;
       DLLEXPORT bool compareHard(class Hash *h) const;

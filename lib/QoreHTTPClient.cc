@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2006 QoreTechnologies
+  Copyright (C) 2006, 2007 Qore Technologies
   
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -29,15 +29,67 @@
 #  include "tests/QoreHTTPClient_tests.cc"
 #endif
 
+str_set_t QoreHTTPClient::method_set;
+strcase_set_t QoreHTTPClient::header_ignore;
+header_map_t QoreHTTPClient::default_headers;
+class SafeHash QoreHTTPClient::mandatory_headers;
+
+// static initialization
+void QoreHTTPClient::static_init()
+{
+   // setup static members of QoreHTTPClient class
+   method_set.insert("OPTIONS");
+   method_set.insert("GET");
+   method_set.insert("HEAD");
+   method_set.insert("POST");
+   method_set.insert("PUT");
+   method_set.insert("DELETE");
+   method_set.insert("TRACE");
+   method_set.insert("CONNECT");
+
+   default_headers["Accept"] = "text/html";
+   default_headers["Content-Type"] = "text/html";
+   default_headers["Connection"] = "Keep-Alive";
+
+   class QoreString *user_agent = new QoreString("Qore HTTP Client v");
+   user_agent->concat(PACKAGE_VERSION);
+   mandatory_headers.setKeyValue("User-Agent", new QoreNode(user_agent), NULL);
+
+   char buf[HOSTNAMEBUFSIZE + 1];
+   if (gethostname(buf, HOSTNAMEBUFSIZE))
+      mandatory_headers.setKeyValue("Host", new QoreNode("localhost"), NULL);
+   else
+      mandatory_headers.setKeyValue("Host", new QoreNode(buf), NULL);
+   
+   header_ignore.insert("Host");
+   header_ignore.insert("User-Agent");
+   header_ignore.insert("Content-Length");
+}
+
 //-----------------------------------------------------------------------------
 QoreHTTPClient::QoreHTTPClient()
-: ssl(false),
-  port(HTTPCLIENT_DEFAULT_PORT),
-  default_port(HTTPCLIENT_DEFAULT_PORT),
-  timeout(HTTPCLIENT_DEFAULT_TIMEOUT),
-  host(HTTPCLIENT_DEFAULT_HOST),
-  connected(false),
+   : http11(true),
+     ssl(false),
+     port(HTTPCLIENT_DEFAULT_PORT),
+     default_port(HTTPCLIENT_DEFAULT_PORT),
+     host(HTTPCLIENT_DEFAULT_HOST),
+     timeout(HTTPCLIENT_DEFAULT_TIMEOUT),
+     connected(false)
 {
+   // setup protocol map
+   prot_map["http"] = make_protocol(80, false);
+   prot_map["https"] = make_protocol(443, true);
+
+   setSocketPath();
+}
+
+void QoreHTTPClient::setSocketPath()
+{
+   // setup socketpath
+   socketpath = host + ":";
+   char buff[20];
+   sprintf(buff, "%d", port);
+   socketpath += buff;
 }
 
 void QoreHTTPClient::setDefaultPort(int def_port)
@@ -70,15 +122,44 @@ class QoreEncoding *QoreHTTPClient::getEncoding() const
    return m_socket.getEncoding();
 }
 
-QoreHTTPClient::setOptions(Hash* opts, ExceptionSink* xsink)
+int QoreHTTPClient::setOptions(Hash* opts, ExceptionSink* xsink)
 {
-   // setup protocol map
-   prot_map["http"] = make_protocol(80, false);
-   prot_map["https"] = make_protocol(443, true);
-
-   n = opts->getKeyValue("default_port");  
+   class QoreNode *n = opts->getKeyValue("default_port");  
    if (n)
       default_port = n->getAsInt();
+
+   // process new protocols
+   n = opts->getKeyValue("protocols");  
+   if (n && n->type == NT_HASH)
+   {
+      HashIterator hi(n->val.hash);
+      while (hi.next())
+      {
+	 class QoreNode *v = hi.getValue();
+	 if (!v || (v->type != NT_HASH && n->type != NT_INT))
+	 {
+	    xsink->raiseException("HTTP-CLIENT-CONSTRUCTOR-ERROR", "value of protocol hash key '%s' is not a hash or an int", hi.getKey());
+	    return -1;
+	 }
+	 bool ssl = false;
+	 int port;
+	 if (v->type == NT_INT)
+	    port = v->val.intval;
+	 else
+	 {
+	    class QoreNode *p = v->val.hash->getKeyValue("port");
+	    port = p ? p->getAsInt() : 0;
+	    if (!port)
+	    {
+	       xsink->raiseException("HTTP-CLIENT-CONSTRUCTOR-ERROR", "'port' key in protocol hash key '%s' is missing or zero", hi.getKey());
+	       return -1;
+	    }
+	    p = v->val.hash->getKeyValue("ssl");
+	    ssl = p ? p->getAsBool() : false;
+	 }
+	 prot_map[hi.getKey()] = make_protocol(port, ssl);
+      }
+   }
 
    n = opts->getKeyValue("default_path");  
    if (n && n->type == NT_STRING)
@@ -90,29 +171,38 @@ QoreHTTPClient::setOptions(Hash* opts, ExceptionSink* xsink)
       timeout = getMsZeroInt(n);
 
    n = opts->getKeyValue("http_version");  
-   if (n && n->type == NT_STRING && setHTTPVersion(n->val.String, xsink))
-      return;
+   if (n)
+   {
+      if (n->type == NT_STRING)
+      {
+	 if (setHTTPVersion(n->val.String->getBuffer(), xsink))
+	    return -1;
+      }
+      else
+      {
+	 xsink->raiseException("HTTP-CLIENT-CONSTRUCTOR-ERROR", "expecting string version ('1.0', '1.1' as value for http_version key in options hash");
+	 return -1;
+      }
+   }
 
    // parse url option if present
-   QoreNode* n = opts->getKeyValue("url");  
+   n = opts->getKeyValue("url");  
    if (n && n->type == NT_STRING)
       if (process_url(n->val.String, xsink))
-	 return;
+	 return -1;
 
    if (!path.empty()) {
       default_path = "/" + path;
    } else {
       n = opts->getKeyValue("default_path");
       if (n && n->type == NT_STRING) {
-	 default_path = "/" + n->val.String->getBuffer();
+	 default_path = "/";
+	 default_path += n->val.String->getBuffer();
       }
    }
 
-   // setup socketpath
-   socketpath = host + ":";
-   char buff[20];
-   sprintf(buff, "%d", port);
-   socketpath += buff;
+   setSocketPath();
+   return 0;
 }
 
 //-----------------------------------------------------------------------------
@@ -133,7 +223,7 @@ int QoreHTTPClient::process_url(class QoreString *str, ExceptionSink* xsink)
       port = url.getPort();
 
    // host is always set if valid
-   host = url.host->getBuffer();
+   host = url.getHost()->getBuffer();
 
    // check if hostname is really a local port number (for a URL string like: "8080")
    if (!url.getPort()) {
@@ -145,16 +235,19 @@ int QoreHTTPClient::process_url(class QoreString *str, ExceptionSink* xsink)
       }
    }
 
-   path = url.take_path();
-   username = url.take_username();
-   password = url.take_password();
+   class QoreString *tmp = url.getPath();
+   path = tmp ? tmp->getBuffer() : "";
+   tmp = url.getUserName();
+   username = tmp ? tmp->getBuffer() : "";
+   tmp = url.getPassword();
+   password = tmp ? tmp->getBuffer() : "";
 
-   class QoreString *prot = url.getProtocol();
-   if (prot) {
-      prot_map_t::const_iterator i = prot_map.find(prot->getBuffer());
+   tmp = url.getProtocol();
+   if (tmp) {
+      prot_map_t::const_iterator i = prot_map.find(tmp->getBuffer());
       if (i == prot_map.end())
       {
-	 xsink->raiseException("HTTP-CLIENT-UNKNOWN-PROTOCOL", "protocol '%s' is not supported.", url.protocol->getBuffer());
+	 xsink->raiseException("HTTP-CLIENT-UNKNOWN-PROTOCOL", "protocol '%s' is not supported.", tmp->getBuffer());
 	 return -1;
       }
 
@@ -185,9 +278,14 @@ int QoreHTTPClient::setHTTPVersion(char* version, ExceptionSink* xsink)
    return -1;
 }
 
-void QoreHTTPClient::setHTTP11()
+const char *QoreHTTPClient::getHTTPVersion() const
 {
-   http11 = true;
+   return http11 ? "1.1" : "1.0";
+}
+
+void QoreHTTPClient::setHTTP11(bool val)
+{
+   http11 = val;
 }
 
 bool QoreHTTPClient::isHTTP11() const 
@@ -257,18 +355,18 @@ void QoreHTTPClient::disconnect()
    unlock();
 }
 
-class Hash *QoreHTTPClient::send_internal(char *meth, char *path, class Hash *headers, void *data, unsigned size, bool getbody = false, class ExceptionSink *xsink)
+class QoreNode *QoreHTTPClient::send_internal(char *meth, char *path, class Hash *headers, void *data, unsigned size, bool getbody, class ExceptionSink *xsink)
 {
       // check if method is valid
-   string_set_t::const_iterator i = method_set.find(meth);
+   str_set_t::const_iterator i = method_set.find(meth);
    if (i == method_set.end())
    {
-      xsink->raiseException("HTTP-CLIENT-METHOD-ERROR", "HTTP method (%n) not recognized.", method);
+      xsink->raiseException("HTTP-CLIENT-METHOD-ERROR", "HTTP method (%n) not recognized.", meth);
       return NULL;
    }
    
    lock();
-   if (connect_unlocked())
+   if (connect_unlocked(xsink))
    {
       unlock();
       return NULL;
@@ -295,7 +393,9 @@ class Hash *QoreHTTPClient::send_internal(char *meth, char *path, class Hash *he
 	    continue;
 
 	 // otherwise set the value in the hash
-	 nh->setKeyValue(hi.getKey(), hi.getValue(), xsink);
+	 class QoreNode *n = hi.getValue();
+	 if (!is_nothing(n))
+	    nh->setKeyValue(hi.getKey(), n->RefSelf(), xsink);
       }
    }
 
@@ -309,7 +409,7 @@ class Hash *QoreHTTPClient::send_internal(char *meth, char *path, class Hash *he
 	 HashIterator hi(headers);
 	 while (hi.next())
 	 {
-	    if (!strcasecmp(hi.getKey(), i->first))
+	    if (!strcasecmp(hi.getKey(), i->first.c_str()))
 	    {
 	       skip = true;
 	       break;
@@ -318,7 +418,7 @@ class Hash *QoreHTTPClient::send_internal(char *meth, char *path, class Hash *he
 	 if (skip)
 	    continue;
       }
-      nh->setKeyValue(i->first, new QoreNode(i->second.c_str()), NULL);
+      nh->setKeyValue((char *)i->first.c_str(), new QoreNode(i->second.c_str()), xsink);
    }
 
    // send the message
@@ -335,7 +435,6 @@ class Hash *QoreHTTPClient::send_internal(char *meth, char *path, class Hash *he
       return NULL;
    }
 
-   int rc;
    class QoreNode *ans = m_socket.readHTTPHeader(timeout, &rc);
 
    if (!ans || ans->type != NT_HASH)
@@ -364,6 +463,7 @@ class Hash *QoreHTTPClient::send_internal(char *meth, char *path, class Hash *he
    }
 
    // check HTTP status code
+   class Hash *ah = ans->val.hash;
    class QoreNode *v = ah->getKeyValue("status_code");
    if (!v)
    {
@@ -378,9 +478,9 @@ class Hash *QoreHTTPClient::send_internal(char *meth, char *path, class Hash *he
    {
       unlock();
       v = ah->getKeyValue("status_message");
-      char *mess = v ? v->val.String->getBuffer() : "<no message>";
+      char *mess = v ? v->val.String->getBuffer() : (char *)"<no message>";
       v = ah->getKeyValue("location");
-      char *location = v ? v->val.String->getBuffer() : "<no location>";
+      char *location = v ? v->val.String->getBuffer() : (char *)"<no location>";
       xsink->raiseException("HTTP-CLIENT-RECV-ERROR", "HTTP redirect (%d) to %s ignored: message: %s", code, location, mess);
       ans->deref(xsink);
       return NULL;
@@ -390,14 +490,13 @@ class Hash *QoreHTTPClient::send_internal(char *meth, char *path, class Hash *he
    {
       unlock();
       v = ah->getKeyValue("status_message");
-      char *mess = v ? v->val.String->getBuffer() : "<no message>";
+      char *mess = v ? v->val.String->getBuffer() : (char *)"<no message>";
       xsink->raiseException("HTTP-CLIENT-RECV-ERROR", "HTTP status code %d received: message: %s", code, mess);
       ans->deref(xsink);
       return NULL;
    }
 
    // process content-type
-   class Hash *ah = ans->val.hash;
    v = ah->getKeyValue("content-type");
    // see if there is a character set specification in the content-type header
    if (v)
@@ -419,7 +518,7 @@ class Hash *QoreHTTPClient::send_internal(char *meth, char *path, class Hash *he
 	    nc->concat(str, str - p - 1);
 	 if (*c)
 	    nc->concat(*c);
-	 ah->setKeyValue("content-type", new QoreNode(nc));
+	 ah->setKeyValue("content-type", new QoreNode(nc), xsink);
 	 str = nc->getBuffer();
       }
       // split into a list if ";" characters are present
@@ -428,13 +527,13 @@ class Hash *QoreHTTPClient::send_internal(char *meth, char *path, class Hash *he
       {
 	 class List *l = new List();
 	 do {
-	    l->push(new QoreNode(new QoreString(str, p - str, m_socket->getEncoding())));
+	    l->push(new QoreNode(new QoreString(str, p - str, m_socket.getEncoding())));
 	    str = p + 1;
-	 } while (p = strchr(str, ';'));
+	 } while ((p = strchr(str, ';')));
 	 // add last field
 	 if (*str)
-	    l->push(new QoreNode(new QoreString(str, m_socket->getEncoding())));
-	 ah->setKeyValue("content-type", new QoreNode(l));
+	    l->push(new QoreNode(new QoreString(str, m_socket.getEncoding())));
+	 ah->setKeyValue("content-type", new QoreNode(l), xsink);
       }
    }
 
@@ -466,31 +565,29 @@ class Hash *QoreHTTPClient::send_internal(char *meth, char *path, class Hash *he
 
    // check for connection: close header
    if (!keep_alive || ((v = ah->getKeyValue("connection")) && !strcasecmp(v->val.String->getBuffer(), "close")))
-      disconnect_unlocked(xsink);
+      disconnect_unlocked();
 
    unlock();
    return ans;
 }
 
-class QoreNode *QoreHTTPClient::send(char *meth, char *path, class Hash *headers, void *data, unsigned size, bool getbody = false, class ExceptionSink *xsink)
+class QoreNode *QoreHTTPClient::send(char *meth, char *path, class Hash *headers, void *data, unsigned size, bool getbody, class ExceptionSink *xsink)
 {
-   class QoreNore *ans = send_internal(meth, path, headers, data, size, getbody, xsink);
+   class QoreNode *ans = send_internal(meth, path, headers, data, size, getbody, xsink);
    if (!ans)
       return NULL;
-   class QoreNode *rv = ans->val.hash->getKeyValue("body");
-   ans->val.hash->deleteKey("body");
-   ans->derefAndDelete(xsink);
+   class QoreNode *rv = ans->val.hash->takeKeyValue("body");
+   ans->deref(xsink);
    return rv;
 }
 
 class QoreNode *QoreHTTPClient::get(char *path, class Hash *headers, class ExceptionSink *xsink)
 {
-   class QoreNore *ans = send_internal("GET", path, headers, NULL, 0, true, xsink);
+   class QoreNode *ans = send_internal("GET", path, headers, NULL, 0, true, xsink);
    if (!ans)
       return NULL;
-   class QoreNode *rv = ans->val.hash->getKeyValue("body");
-   ans->val.hash->deleteKey("body");
-   ans->derefAndDelete(xsink);
+   class QoreNode *rv = ans->val.hash->takeKeyValue("body");
+   ans->deref(xsink);
    return rv;
 }
 
@@ -501,12 +598,11 @@ class QoreNode *QoreHTTPClient::head(char *path, class Hash *headers, class Exce
 
 class QoreNode *QoreHTTPClient::post(char *path, class Hash *headers, void *data, unsigned size, class ExceptionSink *xsink)
 {
-   class QoreNore *ans = send_internal("POST", path, headers, data, size, true, xsink);
+   class QoreNode *ans = send_internal("POST", path, headers, data, size, true, xsink);
    if (!ans)
       return NULL;
-   class QoreNode *rv = ans->val.hash->getKeyValue("body");
-   ans->val.hash->deleteKey("body");
-   ans->derefAndDelete(xsink);
+   class QoreNode *rv = ans->val.hash->takeKeyValue("body");
+   ans->deref(xsink);
    return rv;
 }
 

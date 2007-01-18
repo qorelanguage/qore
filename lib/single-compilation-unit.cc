@@ -73,6 +73,7 @@
 #include "RegexTrans.cc"
 #include "Sequence.cc"
 #include "ReferenceObject.cc"
+#include "QoreHTTPClient.cc"
 #include "QT_NOTHING.cc"
 #include "QT_bigint.cc"
 #include "QT_float.cc"
@@ -118,7 +119,7 @@
 #include "QC_Counter.cc"
 #include "QC_SSLCertificate.cc"
 #include "QC_SSLPrivateKey.cc"
-//#include "QC_HTTPClient.cc"
+#include "QC_HTTPClient.cc"
 #include "minitest.cc"
 
 #ifdef DEBUG

@@ -1,7 +1,7 @@
 # XML-RPC client class definition
 # subclassed from the HTTPClient class
 
-%include HTTPClient.qc
+#%include HTTPClient.qc
 
 namespace XmlRpcClient
 {

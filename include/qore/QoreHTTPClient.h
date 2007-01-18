@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2006 QoreTechnologies
+  Copyright (C) 2006, 2007 QoreTechnologies
   
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -24,7 +24,7 @@
 #define QORE_HTTP_FILE_H_
 
 #include <qore/config.h>
-#include <qore/ReferenceObject.h>
+#include <qore/AbstractPrivateData.h>
 #include <qore/LockedObject.h>
 #include <qore/QoreSocket.h>
 
@@ -43,16 +43,47 @@
 // set default timeout to 5 minutes (300,000 ms)
 #define HTTPCLIENT_DEFAULT_TIMEOUT 300000
 
+// case-insensitive map
+class ltstrcase
+{
+  public:
+   bool operator()(std::string s1, std::string s2) const
+   {
+      return strcasecmp(s1.c_str(), s2.c_str()) < 0;
+   }
+};
+
 // protocol map class to recognize user-defined protocols (mostly useful for derived classes)
 typedef std::map<std::string, int> prot_map_t;
-typedef std::set<std::string> string_set_t;
+typedef std::set<std::string> str_set_t;
+typedef std::set<std::string, ltstrcase> strcase_set_t;
+
 typedef std::map<std::string, std::string> header_map_t;
 
-class QoreHTTPClient : public LockedObject
+class SafeHash : public Hash
+{
+      // none of these operators/methods are implemented - here to make sure they are not used
+      DLLLOCAL void *operator new(size_t); 
+      DLLLOCAL SafeHash(bool i);
+      DLLLOCAL void deleteAndDeref(class ExceptionSink *xsink);
+
+   public:
+      DLLLOCAL SafeHash()
+      {
+      }
+      DLLLOCAL ~SafeHash()
+      {
+	 dereference(NULL);
+      }
+};
+
+class QoreHTTPClient : public AbstractPrivateData, public LockedObject
 {
    private:
-      static string_set_t method_set, header_ignore;
+      static str_set_t method_set;
+      static strcase_set_t header_ignore;
       static header_map_t default_headers;
+      static class SafeHash mandatory_headers;
    
       // are we using http 1.1 or 1.0?
       bool http11;
@@ -74,26 +105,36 @@ class QoreHTTPClient : public LockedObject
       DLLLOCAL int process_url(class QoreString *str, ExceptionSink* xsink);
       // returns -1 if an exception was thrown, 0 for OK
       DLLLOCAL int connect_unlocked(class ExceptionSink *xsink);
-      DLLLOCAL void disconnect_unlocked(class ExceptionSink *xsink);
-      DLLLOCAL void send_internal(char *meth, char *path, class Hash *headers, void *data, unsigned size, bool getbody = false);
+      DLLLOCAL void disconnect_unlocked();
+      DLLLOCAL class QoreNode *send_internal(char *meth, char *path, class Hash *headers, void *data, unsigned size, bool getbody, class ExceptionSink *xsink);
+      DLLLOCAL void setSocketPath();
+
+   protected:
+      DLLLOCAL virtual ~QoreHTTPClient();
       
    public:
+      DLLLOCAL static void static_init();
+
       DLLEXPORT QoreHTTPClient();
-      DLLEXPORT ~QoreHTTPClient();
-      // set options with a hash
-      DLLEXPORT setOptions(Hash* opts, ExceptionSink* xsink);
+      // set options with a hash, returns -1 if an exception was thrown, 0 for OK
+      DLLEXPORT int setOptions(Hash* opts, ExceptionSink* xsink);
       // useful for c++ derived classes
-      DLLEXPORT setDefaultPort(int prt);
+      DLLEXPORT void setDefaultPort(int prt);
       // useful for c++ derived classes
-      DLLEXPORT setDefaultPath(char *pth);
+      DLLEXPORT void setDefaultPath(char *pth);
 
       DLLEXPORT void setTimeout(int to);
-      DLLEXOPRT int getTimeout();
+      DLLEXPORT int getTimeout() const;
+
+      DLLEXPORT void setEncoding(class QoreEncoding *qe);
+      DLLEXPORT class QoreEncoding *getEncoding() const;
 
       // returns -1 if an exception was thrown, 0 for OK
       DLLEXPORT int setHTTPVersion(char* version, ExceptionSink* xsink);
       DLLEXPORT const char* getHTTPVersion() const;
-      
+      DLLEXPORT void setHTTP11(bool h11);
+      DLLEXPORT bool isHTTP11() const;
+
       DLLEXPORT void setSecure(bool is_secure);
       DLLEXPORT bool isSecure() const;
 
@@ -103,7 +144,12 @@ class QoreHTTPClient : public LockedObject
       
       // returns -1 if an exception was thrown, 0 for OK
       DLLEXPORT int connect(class ExceptionSink *xsink);
-      DLLEXPORT void disconnect(class ExceptionSink *xsink);
+      DLLEXPORT void disconnect();
+
+      DLLEXPORT class QoreNode *send(char *meth, char *path, class Hash *headers, void *data, unsigned size, bool getbody, class ExceptionSink *xsink);
+      DLLEXPORT class QoreNode *get(char *path, class Hash *headers, class ExceptionSink *xsink);
+      DLLEXPORT class QoreNode *head(char *path, class Hash *headers, class ExceptionSink *xsink);
+      DLLEXPORT class QoreNode *post(char *path, class Hash *headers, void *data, unsigned size, class ExceptionSink *xsink);
 };
 
 #endif 

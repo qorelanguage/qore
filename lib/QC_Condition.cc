@@ -3,7 +3,7 @@
 
   Qore Programming Language
   
-  Copyright (C) 2003, 2004, 2005, 2006 David Nichols
+  Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
   
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -51,7 +51,7 @@ class QoreNode *CONDITION_signal(class Object *self, class Condition *c, class Q
    return NULL;
 }
 
-class QoreNode *CONDITION_broadcast(class Object *self, class Condition *c, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *CONDITION_broadcast(class Object *self, class Condition *c, class QoreNode *params, ExceptionSink *xsink)
 {
    if (c->broadcast())
       xsink->raiseException("CONDITION-BROADCAST-ERROR", strerror(errno));
@@ -59,7 +59,7 @@ class QoreNode *CONDITION_broadcast(class Object *self, class Condition *c, clas
    return NULL;
 }
 
-class QoreNode *CONDITION_wait(class Object *self, class Condition *c, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *CONDITION_wait(class Object *self, class Condition *c, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = test_param(params, NT_OBJECT, 0);
    Mutex *m = p0 ? (Mutex *)p0->val.object->getReferencedPrivateData(CID_MUTEX) : NULL;

@@ -1,3 +1,8 @@
+2007.01.18: David Nichols
+	* added 2007 to copyright notices
+	* enabled internal HTTPClient class
+	* added C++ Hash::takeKeyValue() method
+
 2007.01.10: David Nichols
 	* JSON-RPC fixes
 	* added hexToInt() function to lib/ql_misc.cc to return an integer for a

@@ -3,7 +3,7 @@
 
   Qore Programming Language
   
-  Copyright (C) 2003, 2004, 2005, 2006 David Nichols
+  Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
   
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -40,7 +40,7 @@ static void GATE_copy(class Object *self, class Object *old, class QoreGate *g, 
    self->setPrivate(CID_GATE, new QoreGate());
 }
 
-class QoreNode *GATE_enter(class Object *self, class QoreGate *g, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *GATE_enter(class Object *self, class QoreGate *g, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
 
@@ -59,12 +59,12 @@ class QoreNode *GATE_enter(class Object *self, class QoreGate *g, class QoreNode
    return new QoreNode((int64)g->enter());
 }
 
-class QoreNode *GATE_exit(class Object *self, class QoreGate *g, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *GATE_exit(class Object *self, class QoreGate *g, class QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)g->exit());
 }
 
-class QoreNode *GATE_tryEnter(class Object *self, class QoreGate *g, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *GATE_tryEnter(class Object *self, class QoreGate *g, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
 
@@ -81,12 +81,12 @@ class QoreNode *GATE_tryEnter(class Object *self, class QoreGate *g, class QoreN
    return new QoreNode((int64)g->tryEnter());
 }
 
-class QoreNode *GATE_numInside(class Object *self, class QoreGate *g, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *GATE_numInside(class Object *self, class QoreGate *g, class QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)g->numInside());
 }
 
-class QoreNode *GATE_numWaiting(class Object *self, class QoreGate *g, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *GATE_numWaiting(class Object *self, class QoreGate *g, class QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)g->numWaiting());
 }
@@ -101,6 +101,7 @@ class QoreClass *initGateClass()
    QC_GATE->setCopy((q_copy_t)GATE_copy);
    QC_GATE->addMethod("enter",         (q_method_t)GATE_enter);
    QC_GATE->addMethod("exit",          (q_method_t)GATE_exit);
+   QC_GATE->addMethod("tryEnter",      (q_method_t)GATE_tryEnter);
    QC_GATE->addMethod("numInside",     (q_method_t)GATE_numInside);
    QC_GATE->addMethod("numWaiting",    (q_method_t)GATE_numWaiting);
 
