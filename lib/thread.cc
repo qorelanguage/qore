@@ -824,10 +824,10 @@ static int get_thread_entry()
    thread_list[tid].ptid = (pthread_t)-1L;
    thread_list[tid].tidnode = new tid_node(tid);
    thread_list[tid].callStack = NULL;
+   num_threads++;
    lThreadList.unlock();
    //printf("t%d cs=0\n", tid);
 
-   num_threads++;
    return tid;
 }
 
