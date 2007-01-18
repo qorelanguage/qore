@@ -733,18 +733,9 @@ ListIterator::ListIterator(class List *lst)
 
 bool ListIterator::next() 
 { 
-   if (l->size() == 0) return -1;
-   if (pos < 0)
-   {
-      if (l->size())
-	 pos = 0;
-   }
-   else
-   {
-      if (++pos == l->size())
-	 pos = -1;
-   }
-   return pos >= 0;
+   if (l->size() == 0) return false; // empty
+   if (++pos >= l->size()) return false; // finished
+   return true;
 }
 
 class QoreNode *ListIterator::getValue() const
