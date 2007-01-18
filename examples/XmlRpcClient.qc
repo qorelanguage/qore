@@ -1,8 +1,6 @@
 # XML-RPC client class definition
 # subclassed from the HTTPClient class
 
-#%include HTTPClient.qc
-
 namespace XmlRpcClient
 {
     const Version = "0.2.2";
