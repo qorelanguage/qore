@@ -10691,7 +10691,7 @@
 
 
   <sect1 id="HTTPClient_Class">
-    <title>HTTPClient Class</title>
+    <title>Qore::HTTPClient::HTTPClient Class</title>
     <para>The HTTPClient class can be used to communicate with HTTP servers using the HTTP or HTTPS (HTTP using an SSL/TLS encrypted connection) protocol.</para>
     <para>By default 'Connection: Keep-Alive' is always sent regardless of the HTTP protocol level set for the object, however if a server response contains 'Connection: close', the connection will be closed as soon as the full response (including any message body if present) has been read.</para>
     <para>Note that HTTP redirect messages are currently not processed and will cause an <code>HTTP-CLIENT-RECEIVE-ERROR</code> exception to be thrown.</para>

@@ -27,7 +27,7 @@
         <row><entry><para><link linkend="Miscellaneous_Functions">Miscellaneous Functions</link></para></entry></row>
         <row><entry><para><link linkend="Threading_Functions">Threading Functions</link></para></entry></row>
         <row><entry><para><link linkend="XML_Functions">XML Functions</link></para></entry></row>
-        <row><entry><para><link linkend="JSON_Functions">JSON (JavaScript Object Notation) Functions</link></para></entry></row>
+        <row><entry><para><link linkend="JSON_Functions">JSON Functions</link></para></entry></row>
       </tbody>
     </tgroup>
   </table>
@@ -16898,9 +16898,9 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
 </sect1>
 
 <sect1 id="JSON_Functions">
-  <title>JSON (JavaScript Object Notation) Functions</title>
+  <title>JSON Functions</title>
 
-  <para>JSON functions allow serializing and deserializing between JSON strings and qore data structures.  There are also functions for JSONRPC support; see below for details.</para>
+  <para>JSON (JavaScript Object Notation) functions allow serializing and deserializing between JSON strings and qore data structures.  There are also functions for JSONRPC support for easier integration with JavaScript clients; see below for details.</para>
 
   <sect2 id="makeJSONString">
     <title>makeJSONString()</title>
