@@ -30,12 +30,12 @@
 	    <entry><para>For parsing and executing application-embedded or user-supplied logic.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="HTTPClient_Class">HTTPClient Class</link></para></entry>
-	    <entry><para>For communication with HTTP servers with and without TSL/SSL encryption.</para></entry>
-	  </row>
-	  <row>
 	    <entry><para><link linkend="Qore_Socket_Class">Socket Class</link></para></entry>
 	    <entry><para>For communication with IPv4 sockets with and without TSL/SSL encryption.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="HTTPClient_Class">HTTPClient Class</link></para></entry>
+	    <entry><para>For communication with HTTP servers with and without TSL/SSL encryption.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="SSLCertificate_Class">SSLCertificate Class</link></para></entry>

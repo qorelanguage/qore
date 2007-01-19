@@ -77,7 +77,7 @@
   <sect1 id="Qore_Modules">
     <title>Qore Modules</title>
     <para>Qore modules allow the Qore language to be extended at run-time.  Qore modules must conform to the Qore Module API and have the file extension <command><code>*.qmod</code></command>.</para>
-    <para>Modules shipping with Qore include <link linkend="oracle_Module"><code>oracle</code></link>, <link linkend="mysql_Module"><code>mysql</code></link>, <link linkend="ncurses_Module"><code>ncurses</code></link>, <link linkend="tibrv_Module"><code>tibrv</code></link>, and <link linkend="tibae_Module"><code>tibae</code></link>.</para>
+    <para>Modules shipping with Qore include <link linkend="oracle_Module"><code>oracle</code></link>, <link linkend="mysql_Module"><code>mysql</code></link>, <link linkend="ncurses_Module"><code>ncurses</code></link>, <link linkend="tibrv_Module"><code>tibrv</code></link>, <link linkend="tibae_Module"><code>tibae</code></link>, and <link linkend="Tuxedo_Module"><code>tuxedo</code></link>.</para>
     <para>To load a module, use the <code>%requires</code> parse directive. If the named feature is not already present in Qore, Qore looks for a module with this name in the directories listed in the <code>QORE_MODULE_DIR</code> environment variable.</para>
   </sect1>
   
@@ -634,15 +634,19 @@ language, either by an addition to this data type, or by adding another date typ
 
 <para>Character set encodings are automatically converted by the Qore language when necessary.  Encoding conversion errors will cause a Qore Exception to be thrown.  The character set encoding conversions supported by Qore depend on the Operating System's iconv library function.</para>
 
+<para>The following is a non-exhaustive list of examples in Qore where character encoding processing is performed.</para>
+
 <para>Character set encodings can be explicitly performed with the <link linkend="convert_encoding">convert_encoding()</link> function, and the encoding attached to a string can be checked with the <link linkend="get_encoding">get_encoding()</link> function. </para>
 
-<para>The TibcoAdapter class will automatically convert all strings to UTF-8 encoding if necessary before transmitting any messages, as required by the TIBCO SDK. See <link linkend='Tibae_TibcoAdapter_Class'>TibcoAdapter Class</link> for more information.</para>
+<para>The <link linkend='Tibae_TibcoAdapter_Class'>TibcoAdapter Class</link> will automatically convert all strings to UTF-8 encoding if necessary before transmitting any messages, as required by the TIBCO SDK.</para>
 
 <para>The <link linkend='TibrvSender_Class'>TibrvSender Class</link>, <link linkend='TibrvListener_Class'>TibrvListener Class</link>, <link linkend='TibrvCmSender_Class'>TibrvCmSender Class</link>, and the <link linkend='TibrvCmListener_Class'>TibrvCmListener Class</link> will convert and tag strings to the encoding set for instantiated objects of these classes.</para>
 
-<para>Datasource objects will translate character set encoding to the encoding required by the database if necessary as well (this is actually the responsibility of the DBI driver for the database in question).  See <link linkend='Qore::SQL::Datasource_Class'>Datasource Class</link> for more information.</para>
+<para>The <link linkend='Qore::SQL::Datasource_Class'>Datasource Class</link> will translate character set encodings to the encoding required by the database if necessary as well (this is actually the responsibility of the DBI driver for the database in question).</para>
 
-<para>Socket objects will translate character set encodings to the encoding specified for the Socket, if any has been set, as well as tagging strings received with the object's encoding.  See <link linkend='Qore_Socket_Class'>Socket Class</link> for more information.</para>
+<para>The <link linkend='Qore_Socket_Class'>Socket Class</link> will translate character set encodings to the encoding specified for the Socket, if any has been set, as well as tagging strings received with the object's encoding.</para>
+
+<para>The <link linkend='HTTPClient_Class'>HTTPClient Class</link> will translate character set encodings to the encoding specified for the HTTPClient object, if any has been set, as well as tagging strings received with the object's encoding.  Additionally, if an HTTP server response specifies a specific encoding to use, the encoding will be automatically set to this encoding as well.</para>
 
 <para>File objects will also automatically convert any string to the encoding specified for the File, if any has been set, as well as tagging strings read with the object's encoding.  See <link linkend='Qore_File_Class'>File Class</link> for more information.</para>
 

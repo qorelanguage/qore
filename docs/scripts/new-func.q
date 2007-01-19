@@ -3,7 +3,7 @@
 sub generate_toc()
 {
     my $rows = ();
-    foreach my $k in (keys $funcs)
+    foreach my $k in (sort(keys $funcs))
     {
 	my $entry[0].para.link = ( "^attributes^" : ( "linkend" : $k ), "^value^" : $k + "()" );
 	$entry[1].para = exists $funcs.$k.ret ? $funcs.$k.ret : "N/A";
@@ -26,7 +26,7 @@ sub doCap($args)
 sub generate_info()
 {
     my $rows = ();
-    foreach my $k in (keys $funcs)
+    foreach my $k in (sort(keys $funcs))
     {
 	my $sect2 = ( "^attributes^" : ( "id" : $k ),
 		      "title" : $k + "()",

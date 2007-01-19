@@ -109,7 +109,7 @@ static class QoreString *getJSONStringToken(char *&buf, int &line_number, class 
       buf++;
    }
    delete str;
-   xsink->raiseException("JSON_PARSE_ERROR", "premature end of input at line %d while parsing JSON string", line_number);
+   xsink->raiseException("JSON-PARSE-ERROR", "premature end of input at line %d while parsing JSON string", line_number);
    return NULL;
 }
 
@@ -279,7 +279,7 @@ static class QoreNode *getJSONValue(char *&buf, int &line_number, class QoreEnco
 	 {
 	    if (has_dot)
 	    {
-	       xsink->raiseException("JSON_PARSE_ERROR", "unexpected '.' in floating point number (too many '.' characters)");
+	       xsink->raiseException("JSON-PARSE-ERROR", "unexpected '.' in floating point number (too many '.' characters)");
 	       return NULL;
 	    }
 	    has_dot = true;
@@ -302,7 +302,7 @@ static class QoreNode *getJSONValue(char *&buf, int &line_number, class QoreEnco
 	 }
 	 else if (!isdigit(*buf))
 	 {
-	    xsink->raiseException("JSON_PARSE_ERROR", "unexpected character in number");
+	    xsink->raiseException("JSON-PARSE-ERROR", "unexpected character in number");
 	    return NULL;
 	 }
 	 str.concat(*buf);
@@ -579,7 +579,7 @@ static class QoreNode *f_makeFormattedJSONRPCRequestString(class QoreNode *param
    class QoreNode *p0;
    if (!(p0 = test_param(params, NT_STRING, 0)))
    {
-      xsink->raiseException("MAKE-FORMATTED-JSONRPC-REQUEST-STRING-ERROR", "expecting method name as first parameter");
+      xsink->raiseException("MAKE-JSONRPC-REQUEST-STRING-ERROR", "expecting method name as first parameter");
       return NULL;
    }
 

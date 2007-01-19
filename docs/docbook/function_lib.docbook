@@ -23,9 +23,11 @@
         <row><entry><para><link linkend="Operating_System_Functions">Operating System Functions</link></para></entry></row>
         <row><entry><para><link linkend="Cryptographic_Functions">Cryptographic Functions</link></para></entry></row>
         <row><entry><para><link linkend="Digest_Functions">Digest Functions</link></para></entry></row>
+        <row><entry><para><link linkend="Filesystem_Functions">Filesystem Functions</link></para></entry></row>
         <row><entry><para><link linkend="Miscellaneous_Functions">Miscellaneous Functions</link></para></entry></row>
         <row><entry><para><link linkend="Threading_Functions">Threading Functions</link></para></entry></row>
         <row><entry><para><link linkend="XML_Functions">XML Functions</link></para></entry></row>
+        <row><entry><para><link linkend="JSON_Functions">JSON (JavaScript Object Notation) Functions</link></para></entry></row>
       </tbody>
     </tgroup>
   </table>
@@ -1682,6 +1684,28 @@
         <row>
           <entry>
             <para>
+              <link linkend="hexToInt">hexToInt()</link>
+            </para>
+          </entry>
+          <entry>
+            <para>Integer</para>
+          </entry>
+          <entry>
+            <para>N</para>
+          </entry>
+          <entry>
+            <para>Returns an integer for a hexadecimal string value.</para>
+          </entry>
+        </row>
+        <row>
+          <entry><para><link linkend="hlstat">hlstat()</link></para></entry>
+          <entry><para>Hash</para></entry>
+          <entry><para>N</para></entry>
+          <entry><para>Returns a hash of information about the file corresponding to the pathname argument; does not follow symbolic links (returns information about symbolic links).</para></entry>
+        </row>
+        <row>
+          <entry>
+            <para>
               <link linkend="hours">hours()</link>
             </para>
           </entry>
@@ -1694,6 +1718,12 @@
           <entry>
             <para>Returns a relative date in hours to be used in date arithmetic.</para>
           </entry>
+        </row>
+        <row>
+          <entry><para><link linkend="hstat">hstat()</link></para></entry>
+          <entry><para>Hash</para></entry>
+          <entry><para>N</para></entry>
+          <entry><para>Returns a hash of information about the file corresponding to the pathname argument; follows symbolic links.</para></entry>
         </row>
         <row>
           <entry>
@@ -1775,6 +1805,182 @@
             <para>Returns the argument converted to an integer</para>
           </entry>
         </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="is_bdev">is_bdev()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Boolean</para>
+        </entry>
+        <entry>
+          <para>N</para>
+        </entry>
+        <entry>
+          <para>Returns True if the string passed identifies a block device file on the filesystem.</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="is_cdev">is_cdev()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Boolean</para>
+        </entry>
+        <entry>
+          <para>N</para>
+        </entry>
+        <entry>
+          <para>Returns True if the string passed identifies a character device file on the filesystem.</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="is_dev">is_dev()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Boolean</para>
+        </entry>
+        <entry>
+          <para>N</para>
+        </entry>
+        <entry>
+          <para>Returns True if the string passed identifies a device file (either block or character) on the filesystem.</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="is_dir">is_dir()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Boolean</para>
+        </entry>
+        <entry>
+          <para>N</para>
+        </entry>
+        <entry>
+          <para>Returns True if the string passed identifies a directory on the filesystem.</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="is_executable">is_executable()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Boolean</para>
+        </entry>
+        <entry>
+          <para>N</para>
+        </entry>
+        <entry>
+          <para>Returns True if the string passed identifies an executable file.</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="is_file">is_file()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Boolean</para>
+        </entry>
+        <entry>
+          <para>N</para>
+        </entry>
+        <entry>
+          <para>Returns True if the string passed identifies a regular file on the filesystem.</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="is_link">is_link()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Boolean</para>
+        </entry>
+        <entry>
+          <para>N</para>
+        </entry>
+        <entry>
+          <para>Returns True if the string passed identifies a symbolic link on the filesystem.</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="is_pipe">is_pipe()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Boolean</para>
+        </entry>
+        <entry>
+          <para>N</para>
+        </entry>
+        <entry>
+          <para>Returns True if the string passed identifies a pipe (FIFO) on the filesystem.</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="is_readable">is_readable()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Boolean</para>
+        </entry>
+        <entry>
+          <para>N</para>
+        </entry>
+        <entry>
+          <para>Returns True if the string passed identifies a file readable by the current user.</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="is_socket">is_socket()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Boolean</para>
+        </entry>
+        <entry>
+          <para>N</para>
+        </entry>
+        <entry>
+          <para>Returns True if the string passed identifies a socket on the filesystem.</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="is_wríteable">is_wríteable()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Boolean</para>
+        </entry>
+        <entry>
+          <para>N</para>
+        </entry>
+        <entry>
+          <para>Returns True if the string passed identifies a file writable by the current user.</para>
+        </entry>
+      </row>
         <row>
           <entry>
             <para>
@@ -1922,21 +2128,92 @@
           </entry>
         </row>
         <row>
-          <entry>
-            <para>
-              <link linkend="makeBase64String">makeBase64String()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>String</para>
-          </entry>
-          <entry>
-            <para>N</para>
-          </entry>
-          <entry>
-            <para>Returns a base64-encoded representation of a binary object or a string.</para>
-          </entry>
+          <entry><para><link linkend="makeBase64String">makeBase64String()</link></para></entry>
+          <entry><para>String</para></entry>
+          <entry><para>N</para></entry>
+          <entry><para>Returns a base64-encoded representation of a binary object or a string.</para></entry>
         </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="makeFormattedJSONRPC11ErrorString">makeFormattedJSONRPC11ErrorString()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>String</para>
+        </entry>
+        <entry>
+          <para>Y</para>
+        </entry>
+        <entry>
+          <para>Creates a JSON-RPC 1.1 error response string from the parameters passed, formatted with line breaks for easier readability.</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="makeFormattedJSONRPCErrorString">makeFormattedJSONRPCErrorString()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>String</para>
+        </entry>
+        <entry>
+          <para>Y</para>
+        </entry>
+        <entry>
+          <para>Creates a generic JSON-RPC error response string from the parameters passed, formatted with line breaks for easier readability.</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="makeFormattedJSONRPCRequestString">makeFormattedJSONRPCRequestString()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>String</para>
+        </entry>
+        <entry>
+          <para>Y</para>
+        </entry>
+        <entry>
+          <para>Creates a JSON-RPC request string from the parameters passed, formatted with line breaks for easier readability.</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="makeFormattedJSONRPCResponseString">makeFormattedJSONRPCResponseString()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>String</para>
+        </entry>
+        <entry>
+          <para>Y</para>
+        </entry>
+        <entry>
+          <para>Creates a JSON-RPC response string from the parameters passed, formatted with line breaks for easier readability.</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="makeFormattedJSONString">makeFormattedJSONString()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>String</para>
+        </entry>
+        <entry>
+          <para>Y</para>
+        </entry>
+        <entry>
+          <para>Serializes qore data into a JSON string, formatted with line breaks for easier readability.</para>
+        </entry>
+      </row>
+
         <row>
           <entry>
             <para>
@@ -2049,6 +2326,92 @@
             <para>Serializes a hash into an XML string with formatting and an XML header.</para>
           </entry>
         </row>
+        <row>
+          <entry><para><link linkend="makeHexString">makeHexString()</link></para></entry>
+          <entry><para>String</para></entry>
+          <entry><para>N</para></entry>
+          <entry><para>Returns a hex-encoded representation of a binary object or a string.</para></entry>
+        </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="makeJSONRPC11ErrorString">makeJSONRPC11ErrorString()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>String</para>
+        </entry>
+        <entry>
+          <para>Y</para>
+        </entry>
+        <entry>
+          <para>Creates a JSON-RPC 1.1 error response string from the parameters passed, without any line breaks.</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="makeJSONRPCErrorString">makeJSONRPCErrorString()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>String</para>
+        </entry>
+        <entry>
+          <para>Y</para>
+        </entry>
+        <entry>
+          <para>Creates a generic JSON-RPC error response string from the parameters passed, without any line breaks.</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="makeJSONRPCRequestString">makeJSONRPCRequestString()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>String</para>
+        </entry>
+        <entry>
+          <para>Y</para>
+        </entry>
+        <entry>
+          <para>Creates a JSON-RPC request string from the parameters passed, without any line breaks.</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="makeJSONRPCResponseString">makeJSONRPCResponseString()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>String</para>
+        </entry>
+        <entry>
+          <para>Y</para>
+        </entry>
+        <entry>
+          <para>Creates a JSON-RPC response string from the parameters passed, without any line breaks.</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="makeJSONString">makeJSONString()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>String</para>
+        </entry>
+        <entry>
+          <para>Y</para>
+        </entry>
+        <entry>
+          <para>Serializes qore data into a JSON string, without any line breaks.</para>
+        </entry>
+      </row>
         <row>
           <entry>
             <para>
@@ -2373,20 +2736,10 @@
           </entry>
         </row>
         <row>
-          <entry>
-            <para>
-              <link linkend="parseBase64String">parseBase64String()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>Binary</para>
-          </entry>
-          <entry>
-            <para>Y</para>
-          </entry>
-          <entry>
-            <para>Parses a base64 encoded string and returns the binary object</para>
-          </entry>
+          <entry><para><link linkend="parseBase64String">parseBase64String()</link></para></entry>
+          <entry><para>Binary</para></entry>
+          <entry><para>Y</para></entry>
+          <entry><para>Parses a base64 encoded string and returns the binary object</para></entry>
         </row>
 
         <row>
@@ -2395,6 +2748,30 @@
           <entry><para>N</para></entry>
           <entry><para>Returns a hash of the components of a datasource string.</para></entry>
         </row>
+
+        <row>
+          <entry><para><link linkend="parseHexString">parseHexString()</link></para></entry>
+          <entry><para>Binary</para></entry>
+          <entry><para>Y</para></entry>
+          <entry><para>Parses a hex-encoded string and returns the binary object</para></entry>
+        </row>
+
+      <row>
+        <entry>
+          <para>
+            <link linkend="parseJSON">parseJSON()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Qore Data</para>
+        </entry>
+        <entry>
+          <para>N</para>
+        </entry>
+        <entry>
+          <para>Parses a JSON string and returns the corresponding qore data structure.</para>
+        </entry>
+      </row>
 
         <row>
           <entry>
@@ -2777,6 +3154,39 @@
           <entry><para>N</para></entry>
           <entry><para>Returns a relative date in seconds to be used in date arithmetic.</para></entry>
         </row>
+
+      <row>
+        <entry>
+          <para>
+            <link linkend="setegid">setegid()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Integer</para>
+        </entry>
+        <entry>
+          <para>Y</para>
+        </entry>
+        <entry>
+          <para>Changes the process effective group ID according to the argument passed.  Returns 0 for success, non-zero for errors (the error code can be retrieved with -link- linkend=-errno--errno()-/link-)</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="seteuid">seteuid()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Integer</para>
+        </entry>
+        <entry>
+          <para>Y</para>
+        </entry>
+        <entry>
+          <para>Changes the process effective user ID according to the argument passed.  Returns 0 for success, non-zero for errors (the error code can be retrieved with -link- linkend=-errno--errno()-/link-)</para>
+        </entry>
+      </row>
         <row>
           <entry>
             <para>
@@ -2793,6 +3203,39 @@
             <para>Sets the value of an environment variable</para>
           </entry>
         </row>
+
+      <row>
+        <entry>
+          <para>
+            <link linkend="setgid">setgid()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Integer</para>
+        </entry>
+        <entry>
+          <para>Y</para>
+        </entry>
+        <entry>
+          <para>Changes the process group ID according to the argument passed.  Returns 0 for success, non-zero for errors (the error code can be retrieved with -link- linkend=-errno--errno()-/link-)</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="setuid">setuid()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Integer</para>
+        </entry>
+        <entry>
+          <para>Y</para>
+        </entry>
+        <entry>
+          <para>Changes the process user ID according to the argument passed.  Returns 0 for success, non-zero for errors (the error code can be retrieved with -link- linkend=-errno--errno()-/link-)</para>
+        </entry>
+      </row>
 
       <row>
         <entry>
@@ -2844,36 +3287,28 @@
           </entry>
         </row>
         <row>
-          <entry>
-            <para>
-              <link linkend="sort">sort()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>List</para>
-          </entry>
-          <entry>
-            <para>Y</para>
-          </entry>
-          <entry>
-            <para>Sorts a list in ascending order</para>
-          </entry>
+          <entry><para><link linkend="sort">sort()</link></para></entry>
+          <entry><para>List</para></entry>
+          <entry><para>Y</para></entry>
+          <entry><para>Sorts a list in ascending order (unstable); takes an optional callback function to sort non-trivial data types.</para></entry>
         </row>
         <row>
-          <entry>
-            <para>
-              <link linkend="sortDescending">sortDescending()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>List</para>
-          </entry>
-          <entry>
-            <para>Y</para>
-          </entry>
-          <entry>
-            <para>Sorts a list in descending order</para>
-          </entry>
+          <entry><para><link linkend="sortDescending">sortDescending()</link></para></entry>
+          <entry><para>List</para></entry>
+          <entry><para>Y</para></entry>
+          <entry><para>Sorts a list in descending order (unstable); takes an optional callback function to sort non-trivial data types.</para></entry>
+        </row>
+        <row>
+          <entry><para><link linkend="sortDescendingStable">sortDescendingStable()</link></para></entry>
+          <entry><para>List</para></entry>
+          <entry><para>Y</para></entry>
+          <entry><para>Performs a descending stable sort on a list and returns the new list; takes an optional callback function to sort non-trivial data types.</para></entry>
+        </row>
+        <row>
+          <entry><para><link linkend="sortStable">sortStable()</link></para></entry>
+          <entry><para>List</para></entry>
+          <entry><para>Y</para></entry>
+          <entry><para>Performs an ascending stable sort on a list and returns the new list; takes an optional callback function to sort non-trivial data types.</para></entry>
         </row>
         <row>
           <entry>
@@ -7916,126 +8351,6 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
 
 </sect2>
 
-<sect2 id="chdir">
-  <title>chdir()</title>
-
-  <variablelist>
-    <varlistentry>
-      <term>Synopsis</term>
-      <listitem>
-	<para>Changes the current working directory.</para>
-      </listitem>
-    </varlistentry>
-    <varlistentry>
-      <term>Usage</term>
-      <listitem>
-	<programlisting>chdir(<replaceable>directory_string</replaceable>)</programlisting>
-      </listitem>
-    </varlistentry>
-  </variablelist>
-
-  <table>
-    <title>Arguments and Return Values for chdir()</title>
-    <tgroup cols='3' align='left' colsep='1' rowsep='1'>
-      
-      <thead>
-	<row>
-	  <entry><para>Argument Type</para></entry>
-	  <entry><para>Return Type</para></entry>
-	  <entry><para>Description</para></entry>
-	</row>
-  </thead>
-
-<tbody>
-  <row>
-    <entry><para>String</para></entry>
-    <entry><para>Integer</para></entry>
-    <entry><para>Changes the current working directory.  Returns 0 if successful.</para></entry>
-  </row>
-
-</tbody>
-</tgroup>
-</table>
-
-  <table><title>Exceptions Thrown by chdir()</title>
-  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
-    <thead>
-      <row>
-	<entry><para>err</para></entry>
-	<entry><para>desc</para></entry>
-      </row>
-    </thead>
-    <tbody>
-      <row>
-	<entry><para><code>CHDIR-PARAMETER-ERROR</code></para></entry>
-	<entry><para>The string for the new directory was missing from the call.</para></entry>
-      </row>
-    </tbody>
-  </tgroup>
-  </table>
-
-</sect2>
-
-<sect2 id="chmod">
-  <title>chmod()</title>
-
-  <variablelist>
-    <varlistentry>
-      <term>Synopsis</term>
-      <listitem>
-	<para>Changes the mode of a file.</para>
-      </listitem>
-    </varlistentry>
-    <varlistentry>
-      <term>Usage</term>
-      <listitem>
-	<programlisting>chmod(<replaceable>filename, mode</replaceable>)</programlisting>
-      </listitem>
-    </varlistentry>
-  </variablelist>
-
-  <table>
-    <title>Arguments and Return Values for chmod()</title>
-    <tgroup cols='3' align='left' colsep='1' rowsep='1'>
-      
-      <thead>
-	<row>
-	  <entry><para>Argument Type</para></entry>
-	  <entry><para>Return Type</para></entry>
-	  <entry><para>Description</para></entry>
-	</row>
-  </thead>
-
-<tbody>
-  <row>
-    <entry><para>String, Integer</para></entry>
-    <entry><para>Integer</para></entry>
-    <entry><para>Sets the mode of the given file to the integer passed.  Returns 0 if successful.</para></entry>
-  </row>
-
-</tbody>
-</tgroup>
-</table>
-
-  <table><title>Exceptions Thrown by chmod()</title>
-  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
-    <thead>
-      <row>
-	<entry><para>err</para></entry>
-	<entry><para>desc</para></entry>
-      </row>
-    </thead>
-    <tbody>
-      <row>
-	<entry><para><code>CHMOD-PARAMETER-ERROR</code></para></entry>
-	<entry><para>Either the filename or the mode was missing from the call.</para></entry>
-      </row>
-    </tbody>
-  </tgroup>
-  </table>
-
-</sect2>
-
 <sect2 id="errno">
 <title>errno()</title>
 
@@ -8596,217 +8911,306 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
   <para>This function does not throw any exceptions.</para>
 </sect2>
 
-<sect2 id="lstat">
-<title>lstat()</title>
-
-  <variablelist>
-    <varlistentry>
-      <term>Synopsis</term>
-      <listitem>
-	<para>Returns a list of filesystem values for the file or symbolic link passed.</para>
-      </listitem>
-    </varlistentry>
-    <varlistentry>
-      <term>Usage</term>
-      <listitem>
-	<programlisting>lstat(<replaceable>pathname</replaceable>)</programlisting>
-      </listitem>
-    </varlistentry>
-  </variablelist>
-
-  <table>
-    <title>Arguments and Return Values for lstat()</title>
-    <tgroup cols='3' align='left' colsep='1' rowsep='1'>
-      <thead>
-	<row>
-	  <entry><para>Argument Type</para></entry>
-	  <entry><para>Return Type</para></entry>
-	  <entry><para>Description</para></entry>
-	</row>
-      </thead>
-      <tbody>
-	<row>
-	  <entry><para>String</para></entry>
-	  <entry><para>List</para></entry>
-	  <entry><para>Returns a list of filesystem values for the file passed.  Does not follow symbolic links, but rather returns filesystem information for symbolic links.  See also <link linkend="stat">stat()</link>.  See <link linkend="Stat_List">Stat List</link> for a description of the list returned by this function.</para></entry>
-	</row>
-      </tbody>
-    </tgroup>
-  </table>
-  <para>This function does not throw any exceptions.</para>
-</sect2>
-
-<sect2 id="mkdir">
-<title>mkdir()</title>
-
-  <variablelist>
-    <varlistentry>
-      <term>Synopsis</term>
-      <listitem>
-	<para>Creates a directory, optionally specifying the mode.</para>
-      </listitem>
-    </varlistentry>
-    <varlistentry>
-      <term>Usage</term>
-      <listitem>
-	<programlisting>mkdir(<replaceable>string_name, [mode]</replaceable>)</programlisting>
-      </listitem>
-    </varlistentry>
-  </variablelist>
-
-  <table>
-    <title>Arguments and Return Values for mkdir()</title>
-    <tgroup cols='3' align='left' colsep='1' rowsep='1'>
-      <thead>
-	<row>
-	  <entry><para>Argument Type</para></entry>
-	  <entry><para>Return Type</para></entry>
-	  <entry><para>Description</para></entry>
-	</row>
-      </thead>
-      <tbody>
-	<row>
-	  <entry><para>String, [Integer]</para></entry>
-	  <entry><para>Integer</para></entry>
-	  <entry><para>Creates a directory with the specified name.  If the mode parameter is not sent, then 0777 is used by default (which is AND'ed with the umask).  Returns 0 if no error occurred.</para></entry>
-	</row>
-      </tbody>
-    </tgroup>
-  </table>
-
-  <table><title>Exceptions Thrown by mkdir()</title>
-  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
-    <thead>
-      <row>
-	<entry><para>err</para></entry>
-	<entry><para>desc</para></entry>
-      </row>
-    </thead>
-    <tbody>
-      <row>
-	<entry><para><code>MKDIR-PARAMETER-ERROR</code></para></entry>
-	<entry><para>Missing directory name for the mkdir() call.</para></entry>
-      </row>
-    </tbody>
-  </tgroup>
-  </table>
-
-</sect2>
-
-<sect2 id="mkfifo">
-  <title>mkfifo()</title>
-
-  <variablelist>
-    <varlistentry>
-      <term>Synopsis</term>
-      <listitem>
-	<para>Creates a named pipe file with an optional file mode (default = 0600).</para>
-      </listitem>
-    </varlistentry>
-    <varlistentry>
-      <term>Usage</term>
-      <listitem>
-	<programlisting>mkfifo(<replaceable>filename, [mode]</replaceable>)</programlisting>
-      </listitem>
-    </varlistentry>
-  </variablelist>
-
-      <table>
-        <title>Arguments and Return Values for mkfifo()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument Type</para>
-              </entry>
-              <entry>
-                <para>Return Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>String, [Integer]</para>
-              </entry>
-              <entry>
-                <para>Integer</para>
-              </entry>
-              <entry>
-                <para>Creates a named pipe with the supplied path and optional mode.  If <replaceable>mode</replaceable> is not supplied, then 0660 is used by default.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-
-  <para>This function does not throw any exceptions.</para>
-
-</sect2>
-
-
-<sect2 id="rmdir">
-<title>rmdir()</title>
-
-  <variablelist>
-    <varlistentry>
-      <term>Synopsis</term>
-      <listitem>
-	<para>Removes a directory.</para>
-      </listitem>
-    </varlistentry>
-    <varlistentry>
-      <term>Usage</term>
-      <listitem>
-	<programlisting>rmdir(<replaceable>path</replaceable>)</programlisting>
-      </listitem>
-    </varlistentry>
-  </variablelist>
-
-
-<table><title>Arguments and Return Values for rmdir()</title>
-<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-
-  <thead>
-  <row>
-    <entry><para>Argument Type</para></entry>
-    <entry><para>Return Type</para></entry>
-    <entry><para>Description</para></entry>
-  </row>
-  </thead>
-
-<tbody>
-  <row>
-    <entry><para>String</para></entry>
-    <entry><para>Integer</para></entry>
-    <entry><para>Removes an empty directory.  Returns 0 if no error occurred.</para></entry>
-  </row>
-
-</tbody>
-</tgroup>
-</table>
-
-  <table><title>Exceptions Thrown by rmdir()</title>
-  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
-    <thead>
-      <row>
-	<entry><para>err</para></entry>
-	<entry><para>desc</para></entry>
-      </row>
-    </thead>
-    <tbody>
-      <row>
-	<entry><para><code>RMDIR-PARAMETER-ERROR</code></para></entry>
-	<entry><para>Missing directory name for the <code>rmdir()</code> call.</para></entry>
-      </row>
-    </tbody>
-  </tgroup>
-  </table>
-
-</sect2>
+  <sect2 id="setegid">
+    <title>setegid()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Changes the process effective group ID according to the argument passed.  Returns 0 for success, non-zero for errors (the error code can be retrieved with <link linkend="errno">errno()</link>)</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>setegid(<replaceable>egid</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for setegid()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>EGID</para>
+            </entry>
+            <entry>
+              <para>Integer</para>
+            </entry>
+            <entry>
+              <para>Changes the process effective group ID according to the argument passed.  Returns 0 for success, non-zero for errors (the error code can be retrieved with <link linkend="errno">errno()</link>)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table>
+      <title>Exceptions thrown by setegid()</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>err</para>
+            </entry>
+            <entry>
+              <para>desc</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <code>SETEGID-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing EGID argument to function</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="seteuid">
+    <title>seteuid()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Changes the process effective user ID according to the argument passed.  Returns 0 for success, non-zero for errors (the error code can be retrieved with <link linkend="errno">errno()</link>)</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>seteuid(<replaceable>euid</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for seteuid()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>EUID</para>
+            </entry>
+            <entry>
+              <para>Integer</para>
+            </entry>
+            <entry>
+              <para>Changes the process effective user ID according to the argument passed.  Returns 0 for success, non-zero for errors (the error code can be retrieved with <link linkend="errno">errno()</link>)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table>
+      <title>Exceptions thrown by seteuid()</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>err</para>
+            </entry>
+            <entry>
+              <para>desc</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <code>SETEUID-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing EUID argument to function</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="setgid">
+    <title>setgid()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Changes the process group ID according to the argument passed.  Returns 0 for success, non-zero for errors (the error code can be retrieved with <link linkend="errno">errno()</link>)</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>setgid(<replaceable>gid</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for setgid()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>GID</para>
+            </entry>
+            <entry>
+              <para>Integer</para>
+            </entry>
+            <entry>
+              <para>Changes the process group ID according to the argument passed.  Returns 0 for success, non-zero for errors (the error code can be retrieved with <link linkend="errno">errno()</link>)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table>
+      <title>Exceptions thrown by setgid()</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>err</para>
+            </entry>
+            <entry>
+              <para>desc</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <code>SETGID-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing GID argument to function</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="setuid">
+    <title>setuid()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Changes the process user ID according to the argument passed.  Returns 0 for success, non-zero for errors (the error code can be retrieved with <link linkend="errno">errno()</link>)</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>setuid(<replaceable>uid</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for setuid()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>UID</para>
+            </entry>
+            <entry>
+              <para>Integer</para>
+            </entry>
+            <entry>
+              <para>Changes the process user ID according to the argument passed.  Returns 0 for success, non-zero for errors (the error code can be retrieved with <link linkend="errno">errno()</link>)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table>
+      <title>Exceptions thrown by setuid()</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>err</para>
+            </entry>
+            <entry>
+              <para>desc</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <code>SETUID-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing UID argument to function</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
 
 <sect2 id="sleep">
 <title>sleep()</title>
@@ -9041,95 +9445,6 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
   </table>
 
   <para>This function does not throw any exceptions.</para>
-</sect2>
-
-<sect2 id="umask">
-<title>umask()</title>
-
-  <variablelist>
-    <varlistentry>
-      <term>Synopsis</term>
-      <listitem>
-	<para>Sets the file creation mask for the process.</para>
-      </listitem>
-    </varlistentry>
-    <varlistentry>
-      <term>Usage</term>
-      <listitem>
-	<programlisting>umask(<replaceable>mode</replaceable>)</programlisting>
-      </listitem>
-    </varlistentry>
-  </variablelist>
-
-
-  <table>
-    <title>Arguments and Return Values for umask()</title>
-    <tgroup cols='3' align='left' colsep='1' rowsep='1'>
-
-  <thead>
-  <row>
-    <entry><para>Argument Type</para></entry>
-    <entry><para>Return Type</para></entry>
-    <entry><para>Description</para></entry>
-  </row>
-  </thead>
-
-<tbody>
-  <row>
-    <entry><para>Integer</para></entry>
-    <entry><para>Integer</para></entry>
-    <entry><para>Sets the file creation mask for the process, returns 0 for success.  If no argument is passed, no action is taken, and the function returns NOTHING.</para></entry>
-  </row>
-
-</tbody>
-</tgroup>
-</table>
-  <para>This function does not throw any exceptions.</para>
-
-</sect2>
-
-<sect2 id="unlink">
-<title>unlink()</title>
-
-  <variablelist>
-    <varlistentry>
-      <term>Synopsis</term>
-      <listitem>
-	<para>Deletes a file and returns 0 for success.</para>
-      </listitem>
-    </varlistentry>
-    <varlistentry>
-      <term>Usage</term>
-      <listitem>
-	<programlisting>unlink(<replaceable>file</replaceable>)</programlisting>
-      </listitem>
-    </varlistentry>
-  </variablelist>
-
-
-<table><title>Arguments and Return Values for unlink()</title>
-<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-
-  <thead>
-  <row>
-    <entry><para>Argument Type</para></entry>
-    <entry><para>Return Type</para></entry>
-    <entry><para>Description</para></entry>
-  </row>
-  </thead>
-
-<tbody>
-  <row>
-    <entry><para>String</para></entry>
-    <entry><para>Integer</para></entry>
-    <entry><para>Deletes a file and returns 0 for success.</para></entry>
-  </row>
-
-</tbody>
-</tgroup>
-</table>
-  <para>This function does not throw any exceptions.</para>
-
 </sect2>
 
 <sect2 id="usleep">
@@ -12162,6 +12477,1115 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
 
   </sect1>
 
+  <sect1 id="Filesystem_Functions">
+    <title>Filesystem Functions</title>
+    <para>The following functions return information about or are related to the filesystem.</para>
+
+<sect2 id="chdir">
+  <title>chdir()</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Changes the current working directory.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+	<programlisting>chdir(<replaceable>directory_string</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+  <table>
+    <title>Arguments and Return Values for chdir()</title>
+    <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+      
+      <thead>
+	<row>
+	  <entry><para>Argument Type</para></entry>
+	  <entry><para>Return Type</para></entry>
+	  <entry><para>Description</para></entry>
+	</row>
+  </thead>
+
+<tbody>
+  <row>
+    <entry><para>String</para></entry>
+    <entry><para>Integer</para></entry>
+    <entry><para>Changes the current working directory.  Returns 0 if successful.</para></entry>
+  </row>
+
+</tbody>
+</tgroup>
+</table>
+
+  <table><title>Exceptions Thrown by chdir()</title>
+  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+    <thead>
+      <row>
+	<entry><para>err</para></entry>
+	<entry><para>desc</para></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+	<entry><para><code>CHDIR-PARAMETER-ERROR</code></para></entry>
+	<entry><para>The string for the new directory was missing from the call.</para></entry>
+      </row>
+    </tbody>
+  </tgroup>
+  </table>
+
+</sect2>
+
+<sect2 id="chmod">
+  <title>chmod()</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Changes the mode of a file.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+	<programlisting>chmod(<replaceable>filename, mode</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+  <table>
+    <title>Arguments and Return Values for chmod()</title>
+    <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+      
+      <thead>
+	<row>
+	  <entry><para>Argument Type</para></entry>
+	  <entry><para>Return Type</para></entry>
+	  <entry><para>Description</para></entry>
+	</row>
+  </thead>
+
+<tbody>
+  <row>
+    <entry><para>String, Integer</para></entry>
+    <entry><para>Integer</para></entry>
+    <entry><para>Sets the mode of the given file to the integer passed.  Returns 0 if successful.</para></entry>
+  </row>
+
+</tbody>
+</tgroup>
+</table>
+
+  <table><title>Exceptions Thrown by chmod()</title>
+  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+    <thead>
+      <row>
+	<entry><para>err</para></entry>
+	<entry><para>desc</para></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+	<entry><para><code>CHMOD-PARAMETER-ERROR</code></para></entry>
+	<entry><para>Either the filename or the mode was missing from the call.</para></entry>
+      </row>
+    </tbody>
+  </tgroup>
+  </table>
+
+</sect2>
+
+<sect2 id="hlstat">
+<title>hlstat()</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Returns a hash of filesystem values for the file passed; symbolic links are not followed; information is returned about symbolic links (see <link linkend="hlstat">hstat()</link> for a version of this function that follows symbolic links).</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+	<programlisting>hlstat(<replaceable>pathname</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+  <table>
+    <title>Arguments and Return Values for hlstat()</title>
+    <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument Type</para></entry>
+	  <entry><para>Return Type</para></entry>
+	  <entry><para>Description</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para>String</para></entry>
+	  <entry><para>Hash</para></entry>
+	  <entry><para>Returns a hash of filesystem values for the file passed; symbolic links are not followed (information is returned about symbolic links).  See also <link linkend="hstat">hstat()</link>.  See <link linkend="Stat_Hash">Stat Hash</link> below for a description of the hash returned by this function.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+
+  <table id="Stat_Hash">
+    <title>Stat Hash Description</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Key</para></entry>
+	  <entry><para>Value Description</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code>dev</code></para></entry>
+	  <entry><para>device inode number the file is on</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>inode</code></para></entry>
+	  <entry><para>inode of the file</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>mode</code></para></entry>
+	  <entry><para>inode protection mode</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>nlink</code></para></entry>
+	  <entry><para>number of hard links to this file</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>uid</code></para></entry>
+	  <entry><para>user ID of the owner</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>gid</code></para></entry>
+	  <entry><para>group ID of the owner</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>rdev</code></para></entry>
+	  <entry><para>device type number</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>size</code></para></entry>
+	  <entry><para>file size in bytes</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>atime</code></para></entry>
+	  <entry><para>last access time of the file</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>mtime</code></para></entry>
+	  <entry><para>last modified time of the file</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>ctime</code></para></entry>
+	  <entry><para>last change time of the file's inode</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>blksize</code></para></entry>
+	  <entry><para>block size</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>blocks</code></para></entry>
+	  <entry><para>blocks allocated for the file</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>type</code></para></entry>
+	  <entry><para>a string indicating the type of file: 'BLOCK-DEVICE', 'DIRECTORY', 'CHARACTER-DEVICE', 'FIFO', 'SYMBOLIC-LINK', 'SOCKET', 'CHARACTER-DEVICE', 'REGULAR', 'UNKNOWN'</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+
+  <para>This function does not throw any exceptions.</para>
+
+</sect2>
+
+<sect2 id="hstat">
+<title>hstat()</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Returns a hash of filesystem values for the file passed; symbolic links are followed; see <link linkend="hlstat">hlstat()</link> to retrieve information about a symbolic link.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+	<programlisting>hstat(<replaceable>pathname</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+  <table>
+    <title>Arguments and Return Values for hstat()</title>
+    <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument Type</para></entry>
+	  <entry><para>Return Type</para></entry>
+	  <entry><para>Description</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para>String</para></entry>
+	  <entry><para>Hash</para></entry>
+	  <entry><para>Returns a hash of filesystem values for the file passed; symbolic links are followed.  See also <link linkend="hlstat">hlstat()</link>.  See <link linkend="Stat_Hash">Stat Hash</link> for a description of the hash returned by this function.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+  <para>This function does not throw any exceptions.</para>
+
+</sect2>
+
+  <sect2 id="is_bdev">
+    <title>is_bdev()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Returns True if the string passed identifies a block device file on the filesystem.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>is_bdev(<replaceable>path</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for is_bdev()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Path</para>
+            </entry>
+            <entry>
+              <para>Boolean</para>
+            </entry>
+            <entry>
+              <para>Returns True if the string passed identifies a block device file on the filesystem.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="is_cdev">
+    <title>is_cdev()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Returns True if the string passed identifies a character device file on the filesystem.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>is_cdev(<replaceable>path</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for is_cdev()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Path</para>
+            </entry>
+            <entry>
+              <para>Boolean</para>
+            </entry>
+            <entry>
+              <para>Returns True if the string passed identifies a character device file on the filesystem.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="is_dev">
+    <title>is_dev()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Returns True if the string passed identifies a device file (either block or character) on the filesystem.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>is_dev(<replaceable>path</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for is_dev()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Path</para>
+            </entry>
+            <entry>
+              <para>Boolean</para>
+            </entry>
+            <entry>
+              <para>Returns True if the string passed identifies a device file (either block or character) on the filesystem.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="is_dir">
+    <title>is_dir()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Returns True if the string passed identifies a directory on the filesystem.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>is_dir(<replaceable>path</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for is_dir()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Path</para>
+            </entry>
+            <entry>
+              <para>Boolean</para>
+            </entry>
+            <entry>
+              <para>Returns True if the string passed identifies a directory on the filesystem.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="is_executable">
+    <title>is_executable()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Returns True if the string passed identifies an executable file.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>is_executable(<replaceable>path</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for is_executable()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Path</para>
+            </entry>
+            <entry>
+              <para>Boolean</para>
+            </entry>
+            <entry>
+              <para>Returns True if the string passed identifies an executable file.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="is_file">
+    <title>is_file()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Returns True if the string passed identifies a regular file on the filesystem.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>is_file(<replaceable>path</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for is_file()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Path</para>
+            </entry>
+            <entry>
+              <para>Boolean</para>
+            </entry>
+            <entry>
+              <para>Returns True if the string passed identifies a regular file on the filesystem.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="is_link">
+    <title>is_link()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Returns True if the string passed identifies a symbolic link on the filesystem.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>is_link(<replaceable>path</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for is_link()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Path</para>
+            </entry>
+            <entry>
+              <para>Boolean</para>
+            </entry>
+            <entry>
+              <para>Returns True if the string passed identifies a symbolic link on the filesystem.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="is_pipe">
+    <title>is_pipe()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Returns True if the string passed identifies a pipe (FIFO) on the filesystem.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>is_pipe(<replaceable>path</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for is_pipe()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Path</para>
+            </entry>
+            <entry>
+              <para>Boolean</para>
+            </entry>
+            <entry>
+              <para>Returns True if the string passed identifies a pipe (FIFO) on the filesystem.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="is_readable">
+    <title>is_readable()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Returns True if the string passed identifies a file readable by the current user.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>is_readable(<replaceable>path</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for is_readable()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Path</para>
+            </entry>
+            <entry>
+              <para>Boolean</para>
+            </entry>
+            <entry>
+              <para>Returns True if the string passed identifies a file readable by the current user.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="is_socket">
+    <title>is_socket()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Returns True if the string passed identifies a socket on the filesystem.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>is_socket(<replaceable>path</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for is_socket()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Path</para>
+            </entry>
+            <entry>
+              <para>Boolean</para>
+            </entry>
+            <entry>
+              <para>Returns True if the string passed identifies a socket on the filesystem.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="is_wríteable">
+    <title>is_wríteable()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Returns True if the string passed identifies a file writable by the current user.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>is_wríteable(<replaceable>path</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for is_wríteable()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Path</para>
+            </entry>
+            <entry>
+              <para>Boolean</para>
+            </entry>
+            <entry>
+              <para>Returns True if the string passed identifies a file writable by the current user.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+
+<sect2 id="lstat">
+<title>lstat()</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Returns a list of filesystem values for the file or symbolic link passed.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+	<programlisting>lstat(<replaceable>pathname</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+  <table>
+    <title>Arguments and Return Values for lstat()</title>
+    <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument Type</para></entry>
+	  <entry><para>Return Type</para></entry>
+	  <entry><para>Description</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para>String</para></entry>
+	  <entry><para>List</para></entry>
+	  <entry><para>Returns a list of filesystem values for the file passed.  Does not follow symbolic links, but rather returns filesystem information for symbolic links.  See also <link linkend="stat">stat()</link>.  See <link linkend="Stat_List">Stat List</link> for a description of the list returned by this function.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+  <para>This function does not throw any exceptions.</para>
+</sect2>
+
+<sect2 id="mkdir">
+<title>mkdir()</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Creates a directory, optionally specifying the mode.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+	<programlisting>mkdir(<replaceable>string_name, [mode]</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+  <table>
+    <title>Arguments and Return Values for mkdir()</title>
+    <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument Type</para></entry>
+	  <entry><para>Return Type</para></entry>
+	  <entry><para>Description</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para>String, [Integer]</para></entry>
+	  <entry><para>Integer</para></entry>
+	  <entry><para>Creates a directory with the specified name.  If the mode parameter is not sent, then 0777 is used by default (which is AND'ed with the umask).  Returns 0 if no error occurred.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+
+  <table><title>Exceptions Thrown by mkdir()</title>
+  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+    <thead>
+      <row>
+	<entry><para>err</para></entry>
+	<entry><para>desc</para></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+	<entry><para><code>MKDIR-PARAMETER-ERROR</code></para></entry>
+	<entry><para>Missing directory name for the mkdir() call.</para></entry>
+      </row>
+    </tbody>
+  </tgroup>
+  </table>
+
+</sect2>
+
+<sect2 id="mkfifo">
+  <title>mkfifo()</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Creates a named pipe file with an optional file mode (default = 0600).</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+	<programlisting>mkfifo(<replaceable>filename, [mode]</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+      <table>
+        <title>Arguments and Return Values for mkfifo()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument Type</para>
+              </entry>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>String, [Integer]</para>
+              </entry>
+              <entry>
+                <para>Integer</para>
+              </entry>
+              <entry>
+                <para>Creates a named pipe with the supplied path and optional mode.  If <replaceable>mode</replaceable> is not supplied, then 0660 is used by default.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+
+  <para>This function does not throw any exceptions.</para>
+
+</sect2>
+
+
+<sect2 id="rmdir">
+<title>rmdir()</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Removes a directory.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+	<programlisting>rmdir(<replaceable>path</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+
+<table><title>Arguments and Return Values for rmdir()</title>
+<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+
+  <thead>
+  <row>
+    <entry><para>Argument Type</para></entry>
+    <entry><para>Return Type</para></entry>
+    <entry><para>Description</para></entry>
+  </row>
+  </thead>
+
+<tbody>
+  <row>
+    <entry><para>String</para></entry>
+    <entry><para>Integer</para></entry>
+    <entry><para>Removes an empty directory.  Returns 0 if no error occurred.</para></entry>
+  </row>
+
+</tbody>
+</tgroup>
+</table>
+
+  <table><title>Exceptions Thrown by rmdir()</title>
+  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+    <thead>
+      <row>
+	<entry><para>err</para></entry>
+	<entry><para>desc</para></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+	<entry><para><code>RMDIR-PARAMETER-ERROR</code></para></entry>
+	<entry><para>Missing directory name for the <code>rmdir()</code> call.</para></entry>
+      </row>
+    </tbody>
+  </tgroup>
+  </table>
+
+</sect2>
+
+<sect2 id="umask">
+<title>umask()</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Sets the file creation mask for the process.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+	<programlisting>umask(<replaceable>mode</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+
+  <table>
+    <title>Arguments and Return Values for umask()</title>
+    <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+
+  <thead>
+  <row>
+    <entry><para>Argument Type</para></entry>
+    <entry><para>Return Type</para></entry>
+    <entry><para>Description</para></entry>
+  </row>
+  </thead>
+
+<tbody>
+  <row>
+    <entry><para>Integer</para></entry>
+    <entry><para>Integer</para></entry>
+    <entry><para>Sets the file creation mask for the process, returns 0 for success.  If no argument is passed, no action is taken, and the function returns NOTHING.</para></entry>
+  </row>
+
+</tbody>
+</tgroup>
+</table>
+  <para>This function does not throw any exceptions.</para>
+
+</sect2>
+
+<sect2 id="unlink">
+<title>unlink()</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Deletes a file and returns 0 for success.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+	<programlisting>unlink(<replaceable>file</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+
+<table><title>Arguments and Return Values for unlink()</title>
+<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+
+  <thead>
+  <row>
+    <entry><para>Argument Type</para></entry>
+    <entry><para>Return Type</para></entry>
+    <entry><para>Description</para></entry>
+  </row>
+  </thead>
+
+<tbody>
+  <row>
+    <entry><para>String</para></entry>
+    <entry><para>Integer</para></entry>
+    <entry><para>Deletes a file and returns 0 for success.</para></entry>
+  </row>
+
+</tbody>
+</tgroup>
+</table>
+  <para>This function does not throw any exceptions.</para>
+
+</sect2>
+
+  </sect1>
+
 <sect1 id="Miscellaneous_Functions">
 <title>Miscellaneous Functions</title>
 <para></para>
@@ -13198,6 +14622,57 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
       <para>This function does not throw any exceptions.</para>
     </sect2>
 
+    <sect2 id="hexToInt">
+      <title>hexToInt()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns an integer for a hexadecimal string value.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>hexToInt(<replaceable>hex_string</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      
+      <table>
+        <title>Arguments and Return Values for hexToInt()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument Type</para>
+              </entry>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>String</para>
+              </entry>
+              <entry>
+                <para>Integer</para>
+              </entry>
+              <entry>
+                <para>Returns an integer for a hexadecimal string value.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <para>This function does not throw any exceptions.</para>
+    </sect2>
+
 <sect2 id="html_decode">
 <title>html_decode()</title>
 
@@ -13286,7 +14761,7 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Returns a base64-encoded representation of a binary object or a string.</para>
+	<para>Returns a base64-encoded representation of a binary object or a string (see also <link linkend="makeHexString">makeHexString()</link>).</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -13312,6 +14787,45 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
 	  <entry><para>Binary or String</para></entry>
 	  <entry><para>String</para></entry>
 	  <entry><para>Returns a base64-encoded representation of a binary object or a string.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+  <para>This function does not throw any exceptions.</para>
+</sect2>
+
+<sect2 id="makeHexString">
+  <title>makeHexString()</title>
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Returns a hex-encoded representation of a binary object or a string (see also <link linkend="makeBase64String">makeBase64String()</link>).</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+	<programlisting>makeHexString(<replaceable>arg</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+  
+  <table>
+    <title>Arguments and Return Values for makeHexString()</title>
+    <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument Type</para></entry>
+	  <entry><para>Return Type</para></entry>
+	  <entry><para>Description</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para>Binary or String</para></entry>
+	  <entry><para>String</para></entry>
+	  <entry><para>Returns a hex-encoded representation of a binary object or a string.</para></entry>
 	</row>
       </tbody>
     </tgroup>
@@ -13385,7 +14899,7 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Parses a base64 encoded string and returns the binary object.</para>
+	<para>Parses a base64 encoded string and returns the binary object (see also <link linkend="parseHexString">parseHexString()</link>).</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -13450,7 +14964,7 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
         <varlistentry>
           <term>Usage</term>
           <listitem>
-            <programlisting>parseBase64String(<replaceable>datasource_string</replaceable>)</programlisting>
+            <programlisting>parseDatasource(<replaceable>datasource_string</replaceable>)</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -13492,6 +15006,65 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
 	</tgroup>
       </table>
     </sect2>
+
+<sect2 id="parseHexString">
+<title>parseHexString()</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Parses a hex-encoded string and returns the binary object (see also <link linkend="parseBase64String">parseBase64String()</link>).</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+	<programlisting>parseHexString(<replaceable>hex_string</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+
+<table><title>Arguments and Return Values for parseHexString()</title>
+<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+
+  <thead>
+  <row>
+    <entry><para>Argument Type</para></entry>
+    <entry><para>Return Type</para></entry>
+    <entry><para>Description</para></entry>
+  </row>
+  </thead>
+
+<tbody>
+  <row>
+    <entry><para>String</para></entry>
+    <entry><para>Binary</para></entry>
+    <entry><para>Parses a hex-encoded string and returns the binary object.  If anything is passed other than a string as an argument, no action is taken and the function returns NOTHING.</para></entry>
+  </row>
+
+</tbody>
+</tgroup>
+</table>
+
+  <table><title>Exceptions Thrown by parseHexString()</title>
+  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+    <thead>
+      <row>
+	<entry><para>err</para></entry>
+	<entry><para>desc</para></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+	<entry><para><code>PARSE-HEX-ERROR</code></para></entry>
+	<entry><para>A syntax error occurred parsing the hex string (odd number of digits, invalid character, etc).</para></entry>
+      </row>
+    </tbody>
+  </tgroup>
+  </table>
+</sect2>
 
 <sect2 id="parseURL">
   <title>parseURL()</title>
@@ -13581,13 +15154,13 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Sorts a list where all the elements are somple data types, in ascending order.</para>
+	<para>Performs an unstable sort in ascending order and returns the new list (for a stable version see <link linkend="sortStable">sortStable()</link>).  Without a callback function, this function will only sort basic data types.  A callback function can be used to sort complex data types.  The callback function must accept two arguments and must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>sort(<replaceable>list</replaceable>)</programlisting>
+	<programlisting>sort(<replaceable>list, [callback]</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -13605,7 +15178,7 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
 	<row>
 	  <entry><para>List</para></entry>
 	  <entry><para>List</para></entry>
-	  <entry><para>Sorts the list passed in ascending order and returns the sorted list.  The list must be made up of orderable types (i.e. a list of hashes cannot be sorted).</para></entry>
+	  <entry><para>Sorts the list passed in ascending order and returns the sorted list.  The list must be made up of basic data types unless a callback function is used.</para></entry>
 	</row>
       </tbody>
     </tgroup>
@@ -13619,7 +15192,7 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
       <varlistentry>
 	<term>Synopsis</term>
 	<listitem>
-	  <para>Sorts a list where all the elements are somple data types, in descending order.</para>
+	  <para>Performs an unstable sort in descending order and returns the new list (for a stable version see <link linkend="sortDescendingStable">sortDescendingStable()</link>).  Without a callback function, this function will only sort basic data types.  A callback function can be used to sort complex data types.  The callback function must accept two arguments and must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively.</para>
 	</listitem>
       </varlistentry>
       <varlistentry>
@@ -13643,13 +15216,89 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
 	  <row>
 	    <entry><para>List</para></entry>
 	    <entry><para>List</para></entry>
-	    <entry><para>Sorts the list passed in descending order and returns the sorted list.  The list must be made up of orderable types (i.e. a list of hashes cannot be sorted).</para></entry>
+	    <entry><para>Sorts the list passed in descending order and returns the sorted list.  The list must be made up of basic data types unless a callback function is used.</para></entry>
 	  </row>
 	</tbody>
       </tgroup>
     </table>
     <para>This function does not throw any exceptions.</para>
   </sect2>
+
+  <sect2 id="sortDescendingStable">
+    <title>sortDescendingStable()</title>
+    <variablelist>
+      <varlistentry>
+	<term>Synopsis</term>
+	<listitem>
+	  <para>Performs a stable sort in descending order and returns the new list (for an untable version see <link linkend="sortDescendingStable">sortDescendingStable()</link>).  Without a callback function, this function will only sort basic data types.  A callback function can be used to sort complex data types.  The callback function must accept two arguments and must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Usage</term>
+	<listitem>
+	  <programlisting>sortDescendingStable(<replaceable>list</replaceable>)</programlisting>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for sortDescendingStable()</title>
+      <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>Argument Type</para></entry>
+	    <entry><para>Return Type</para></entry>
+	    <entry><para>Description</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row>
+	    <entry><para>List</para></entry>
+	    <entry><para>List</para></entry>
+	    <entry><para>Sorts the list passed in descending order and returns the sorted list.  The list must be made up of basic data types unless a callback function is used.</para></entry>
+	  </row>
+	</tbody>
+      </tgroup>
+    </table>
+    <para>This function does not throw any exceptions.</para>
+  </sect2>
+
+<sect2 id="sortStable">
+  <title>sortStable()</title>
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Performs a stable sort in ascending order and returns the new list (for an unstable version see <link linkend="sort">sort()</link>).  Without a callback function, this function will only sort basic data types.  A callback function can be used to sort complex data types.  The callback function must accept two arguments and must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+	<programlisting>sortStable(<replaceable>list, [callback]</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+  <table>
+    <title>Arguments and Return Values for sortStable()</title>
+    <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument Type</para></entry>
+	  <entry><para>Return Type</para></entry>
+	  <entry><para>Description</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para>List</para></entry>
+	  <entry><para>List</para></entry>
+	  <entry><para>Sorts the list passed in ascending order and returns the sorted list.  The list must be made up of basic data types unless a callback function is used.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+  <para>This function does not throw any exceptions.</para>
+</sect2>
 
 <sect2 id="srand">
   <title>srand()</title>
@@ -14183,7 +15832,7 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
 <sect1 id="XML_Functions">
   <title>XML Functions</title>
 
-  <para></para>
+  <para>XML functions allow serializing and deserializing between XML strings and qore data structures.  There are also functions for XML-RPC support; see below for details.</para>
 
   <sect2 id="makeFormattedXMLFragment">
     <title>makeFormattedXMLFragment()</title>
@@ -15246,6 +16895,753 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
 
 </sect2>
 
+</sect1>
+
+<sect1 id="JSON_Functions">
+  <title>JSON (JavaScript Object Notation) Functions</title>
+
+  <para>JSON functions allow serializing and deserializing between JSON strings and qore data structures.  There are also functions for JSONRPC support; see below for details.</para>
+
+  <sect2 id="makeJSONString">
+    <title>makeJSONString()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Serializes qore data into a JSON string, without any line breaks.  By default the string produced will be in UTF-8 encoding, but this can be overridden by the second argument</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>makeJSONString(<replaceable>Any Type, [Encoding]]</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for makeJSONString()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Any Type, [Encoding]]</para>
+            </entry>
+            <entry>
+              <para>String</para>
+            </entry>
+            <entry>
+              <para>Serializes qore data into a JSON string, without any line breaks.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+
+    <table><title>Exceptions Thrown by makeJSONString()</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>err</para></entry>
+	  <entry><para>desc</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code>JSON-SERIALIZATION-ERROR</code></para></entry>
+	  <entry><para>Error serializing to JSON string.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+    </table>
+
+  </sect2>
+  <sect2 id="makeFormattedJSONString">
+    <title>makeFormattedJSONString()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Serializes qore data into a JSON string, formatted with line breaks for easier readability.  By default the string produced will be in UTF-8 encoding, but this can be overridden by the second argument</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>makeFormattedJSONString(<replaceable>Any Type, [Encoding]]</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for makeFormattedJSONString()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Any Type, [Encoding]]</para>
+            </entry>
+            <entry>
+              <para>String</para>
+            </entry>
+            <entry>
+              <para>Serializes qore data into a JSON string, formatted with line breaks for easier readability.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+
+    <table><title>Exceptions Thrown by makeFormattedJSONString()</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>err</para></entry>
+	  <entry><para>desc</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code>JSON-SERIALIZATION-ERROR</code></para></entry>
+	  <entry><para>Error serializing to JSON string.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+    </table>
+
+
+  </sect2>
+  <sect2 id="makeJSONRPCRequestString">
+    <title>makeJSONRPCRequestString()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Creates a JSON-RPC request string from the parameters passed, without any line breaks.  To follow JSON-RPC specifications, the generated string will always be in UTF-8 encoding.  The last argument can be of any qore type (or complex data structure).</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>makeJSONRPCRequestString(<replaceable>method_name, [json_version], [id], [arguments]</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for makeJSONRPCRequestString()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Method_name, [json_version], [id], [arguments]</para>
+            </entry>
+            <entry>
+              <para>String</para>
+            </entry>
+            <entry>
+              <para>Creates a JSON-RPC request string from the parameters passed, without any line breaks.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+
+    <table><title>Exceptions Thrown by makeJSONRPCRequestString()</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>err</para></entry>
+	  <entry><para>desc</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code>JSON-SERIALIZATION-ERROR</code></para></entry>
+	  <entry><para>Error serializing to JSON string.</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>MAKE-JSONRPC-REQUEST-STRING-ERROR</code></para></entry>
+	  <entry><para>missing method name as first parameter.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+    </table>
+
+  </sect2>
+  <sect2 id="makeFormattedJSONRPCRequestString">
+    <title>makeFormattedJSONRPCRequestString()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Creates a JSON-RPC request string from the parameters passed, formatted with line breaks for easier readability.  To follow JSON-RPC specifications, the generated string will always be in UTF-8 encoding.  The last argument can be of any qore type (or complex data structure).</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>makeFormattedJSONRPCRequestString(<replaceable>method_name, [json_version], [id], [arguments]</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for makeFormattedJSONRPCRequestString()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Method_name, [json_version], [id], [arguments]</para>
+            </entry>
+            <entry>
+              <para>String</para>
+            </entry>
+            <entry>
+              <para>Creates a JSON-RPC request string from the parameters passed, formatted with line breaks for easier readability.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+
+    <table><title>Exceptions Thrown by makeFormattedJSONRPCRequestString()</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>err</para></entry>
+	  <entry><para>desc</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code>JSON-SERIALIZATION-ERROR</code></para></entry>
+	  <entry><para>Error serializing to JSON string.</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>MAKE-JSONRPC-REQUEST-STRING-ERROR</code></para></entry>
+	  <entry><para>missing method name as first parameter.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+    </table>
+
+
+  </sect2>
+  <sect2 id="makeJSONRPCResponseString">
+    <title>makeJSONRPCResponseString()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Creates a JSON-RPC response string from the parameters passed, without any line breaks.  To follow JSON-RPC specifications, the generated string will always be in UTF-8 encoding.  The last argument can be of any qore type (or complex data structure).</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>makeJSONRPCResponseString(<replaceable>[json_version], [id], [response]</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for makeJSONRPCResponseString()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>[json_version], [id], [response]</para>
+            </entry>
+            <entry>
+              <para>String</para>
+            </entry>
+            <entry>
+              <para>Creates a JSON-RPC response string from the parameters passed, without any line breaks.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table><title>Exceptions Thrown by makeJSONRPCResponseString()</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>err</para></entry>
+	  <entry><para>desc</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code>JSON-SERIALIZATION-ERROR</code></para></entry>
+	  <entry><para>Error serializing to JSON string.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+    </table>
+
+
+  </sect2>
+  <sect2 id="makeFormattedJSONRPCResponseString">
+    <title>makeFormattedJSONRPCResponseString()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Creates a JSON-RPC response string from the parameters passed, formatted with line breaks for easier readability.  To follow JSON-RPC specifications, the generated string will always be in UTF-8 encoding.  The last argument can be of any qore type (or complex data structure).</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>makeFormattedJSONRPCResponseString(<replaceable>[json_version], [id], [response]</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for makeFormattedJSONRPCResponseString()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>[json_version], [id], [response]</para>
+            </entry>
+            <entry>
+              <para>String</para>
+            </entry>
+            <entry>
+              <para>Creates a JSON-RPC response string from the parameters passed, formatted with line breaks for easier readability.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+
+    <table><title>Exceptions Thrown by makeFormattedJSONRPCResponseString()</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>err</para></entry>
+	  <entry><para>desc</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code>JSON-SERIALIZATION-ERROR</code></para></entry>
+	  <entry><para>Error serializing to JSON string.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+    </table>
+
+  </sect2>
+  <sect2 id="makeJSONRPCErrorString">
+    <title>makeJSONRPCErrorString()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Creates a generic JSON-RPC error response string from the parameters passed, without any line breaks.  To follow JSON-RPC specifications, the generated string will always be in UTF-8 encoding.  The last argument can be of any qore type (or complex data structure).</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>makeJSONRPCErrorString(<replaceable>[json_version], [id], [response]</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for makeJSONRPCErrorString()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>[json_version], [id], [response]</para>
+            </entry>
+            <entry>
+              <para>String</para>
+            </entry>
+            <entry>
+              <para>Creates a generic JSON-RPC error response string from the parameters passed, without any line breaks.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table><title>Exceptions Thrown by makeJSONRPCErrorString()</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>err</para></entry>
+	  <entry><para>desc</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code>JSON-SERIALIZATION-ERROR</code></para></entry>
+	  <entry><para>Error serializing to JSON string.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+    </table>
+
+  </sect2>
+  <sect2 id="makeFormattedJSONRPCErrorString">
+    <title>makeFormattedJSONRPCErrorString()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Creates a generic JSON-RPC error response string from the parameters passed, formatted with line breaks for easier readability.  To follow JSON-RPC specifications, the generated string will always be in UTF-8 encoding.  The last argument can be of any qore type (or complex data structure).</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>makeFormattedJSONRPCErrorString(<replaceable>[json_version], [id], [response]</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for makeFormattedJSONRPCErrorString()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>[json_version], [id], [response]</para>
+            </entry>
+            <entry>
+              <para>String</para>
+            </entry>
+            <entry>
+              <para>Creates a generic JSON-RPC error response string from the parameters passed, formatted with line breaks for easier readability.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table><title>Exceptions Thrown by makeFormattedJSONRPCErrorString()</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>err</para></entry>
+	  <entry><para>desc</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code>JSON-SERIALIZATION-ERROR</code></para></entry>
+	  <entry><para>Error serializing to JSON string.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+    </table>
+
+  </sect2>
+  <sect2 id="makeJSONRPC11ErrorString">
+    <title>makeJSONRPC11ErrorString()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Creates a JSON-RPC 1.1 error response string from the parameters passed, without any line breaks.  To follow JSON-RPC specifications, the generated string will always be in UTF-8 encoding.  The last argument can be of any qore type (or complex data structure).</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>makeJSONRPC11ErrorString(<replaceable></replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for makeJSONRPC11ErrorString()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Code, Error_message, [id], [error_response]</para>
+            </entry>
+            <entry>
+              <para>String</para>
+            </entry>
+            <entry>
+              <para>Creates a JSON-RPC 1.1 error response string from the parameters passed, formatted with line breaks for easier readability.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table><title>Exceptions Thrown by makeJSONRPC11ErrorString()</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>err</para></entry>
+	  <entry><para>desc</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code>JSON-SERIALIZATION-ERROR</code></para></entry>
+	  <entry><para>Error serializing to JSON string.</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>MAKE-JSONRPC11-ERROR-STRING-ERROR</code></para></entry>
+	  <entry><para>Invalid argument to method.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+    </table>
+
+  </sect2>
+  <sect2 id="makeFormattedJSONRPC11ErrorString">
+    <title>makeFormattedJSONRPC11ErrorString()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Creates a JSON-RPC 1.1 error response string from the parameters passed, formatted with line breaks for easier readability.  To follow JSON-RPC specifications, the generated string will always be in UTF-8 encoding.  The first code argument must be an integer between 100 and 999 (inclusive).  The last argument can be of any qore type (or complex data structure).</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>makeFormattedJSONRPC11ErrorString(<replaceable>code, error_message, [id], [error_response]</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for makeFormattedJSONRPC11ErrorString()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Code, Error_message, [id], [error_response]</para>
+            </entry>
+            <entry>
+              <para>String</para>
+            </entry>
+            <entry>
+              <para>Creates a JSON-RPC 1.1 error response string from the parameters passed, formatted with line breaks for easier readability.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table><title>Exceptions Thrown by makeFormattedJSONRPC11ErrorString()</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>err</para></entry>
+	  <entry><para>desc</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code>JSON-SERIALIZATION-ERROR</code></para></entry>
+	  <entry><para>Error serializing to JSON string.</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>MAKE-JSONRPC11-ERROR-STRING-ERROR</code></para></entry>
+	  <entry><para>Invalid argument to method.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+    </table>
+
+  </sect2>
+  <sect2 id="parseJSON">
+    <title>parseJSON()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Parses a JSON string and returns the corresponding qore data structure.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>parseJSON(<replaceable>json_string</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for parseJSON()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Json_string</para>
+            </entry>
+            <entry>
+              <para>Qore Data</para>
+            </entry>
+            <entry>
+              <para>Parses a JSON string and returns the corresponding qore data structure.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+
+    <table><title>Exceptions Thrown by parseJSON()</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>err</para></entry>
+	  <entry><para>desc</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code>JSON-PARSE-ERROR</code></para></entry>
+	  <entry><para>error parsing JSON string.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+    </table>
+
+  </sect2>
 </sect1>
 
 <sect1 id="Debug_Functions">
