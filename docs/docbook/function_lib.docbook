@@ -16914,7 +16914,7 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <programlisting>makeJSONString(<replaceable>Any Type, [Encoding]]</replaceable>)</programlisting>
+          <programlisting>makeJSONString(<replaceable>Any Type, [Encoding]</replaceable>)</programlisting>
         </listitem>
       </varlistentry>
     </variablelist>
@@ -16937,7 +16937,7 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
         <tbody>
           <row>
             <entry>
-              <para>Any Type, [Encoding]]</para>
+              <para>Any Type, [Encoding]</para>
             </entry>
             <entry>
               <para>String</para>
@@ -16980,7 +16980,7 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <programlisting>makeFormattedJSONString(<replaceable>Any Type, [Encoding]]</replaceable>)</programlisting>
+          <programlisting>makeFormattedJSONString(<replaceable>Any Type, [Encoding]</replaceable>)</programlisting>
         </listitem>
       </varlistentry>
     </variablelist>
@@ -17003,7 +17003,7 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
         <tbody>
           <row>
             <entry>
-              <para>Any Type, [Encoding]]</para>
+              <para>Any Type, [Encoding]</para>
             </entry>
             <entry>
               <para>String</para>
