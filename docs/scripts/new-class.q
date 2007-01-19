@@ -84,6 +84,8 @@ sub get_arg_rows($args)
     my $arg_rows = ();
     foreach my $arg in (keys $args)
     {
+	if (type($args.$arg) != Type::Hash)
+	    $args.$arg.desc = $args.$arg;
 	my $entry[0].para.replaceable = do_arg($arg, $args.$arg.optional);
 	$entry[1].para = exists $args.$arg.type ? $args.$arg.type : "String";
 	$entry[2].para = $args.$arg.desc;

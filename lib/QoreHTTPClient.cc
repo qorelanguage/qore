@@ -50,10 +50,7 @@ void QoreHTTPClient::static_init()
    default_headers["Accept"] = "text/html";
    default_headers["Content-Type"] = "text/html";
    default_headers["Connection"] = "Keep-Alive";
-
-   class QoreString *user_agent = new QoreString("Qore HTTP Client v");
-   user_agent->concat(PACKAGE_VERSION);
-   mandatory_headers.setKeyValue("User-Agent", new QoreNode(user_agent), NULL);
+   default_headers["User-Agent"] = "Qore HTTP Client v" PACKAGE_VERSION;
 
    char buf[HOSTNAMEBUFSIZE + 1];
    if (gethostname(buf, HOSTNAMEBUFSIZE))
@@ -62,7 +59,6 @@ void QoreHTTPClient::static_init()
       mandatory_headers.setKeyValue("Host", new QoreNode(buf), NULL);
    
    header_ignore.insert("Host");
-   header_ignore.insert("User-Agent");
    header_ignore.insert("Content-Length");
 }
 
@@ -274,7 +270,7 @@ int QoreHTTPClient::setHTTPVersion(char* version, ExceptionSink* xsink)
       http11 = true;
       return 0;
    }
-   xsink->raiseException("HTTP-CLIENT-SETHTTPVERSION-ERROR", "only '1.0' and '1.1' are valid (value passed: '%s')", version);
+   xsink->raiseException("HTTP-VERSION-ERROR", "only '1.0' and '1.1' are valid (value passed: '%s')", version);
    return -1;
 }
 
@@ -442,7 +438,7 @@ class QoreNode *QoreHTTPClient::send_internal(char *meth, char *path, class Hash
       unlock();
       if (ans)
 	 ans->deref(xsink);
-      xsink->raiseException("HTTP-CLIENT-RECV-ERROR", "malformed HTTP header received from socket %s, could not parse header", socketpath.c_str());
+      xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", "malformed HTTP header received from socket %s, could not parse header", socketpath.c_str());
       return NULL;
    }
 
@@ -450,11 +446,11 @@ class QoreNode *QoreHTTPClient::send_internal(char *meth, char *path, class Hash
    {
       unlock();
       if (!rc)             // remote end has closed the connection
-	 xsink->raiseException("HTTP-CLIENT-RECV-ERROR", "remote end has closed the connection");
+	 xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", "remote end has closed the connection");
       else if (rc == -1)   // recv() error
-	 xsink->raiseException("HTTP-CLIENT-RECV-ERROR", strerror(errno));
+	 xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", strerror(errno));
       else if (rc == -2)
-	 xsink->raiseException("HTTP-CLIENT-RECV-ERROR", "socket was closed at the remote end");
+	 xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", "socket was closed at the remote end");
       else if (rc == -3)   // timeout
 	 xsink->raiseException("HTTP-CLIENT-TIMEOUT", "timed out waiting %dms for response on socket %s", timeout, socketpath.c_str());
 
@@ -468,7 +464,7 @@ class QoreNode *QoreHTTPClient::send_internal(char *meth, char *path, class Hash
    if (!v)
    {
       unlock();
-      xsink->raiseException("HTTP-CLIENT-RECV-ERROR", "no HTTP status code received in response");
+      xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", "no HTTP status code received in response");
       ans->deref(xsink);
       return NULL;
    }
@@ -481,7 +477,7 @@ class QoreNode *QoreHTTPClient::send_internal(char *meth, char *path, class Hash
       char *mess = v ? v->val.String->getBuffer() : (char *)"<no message>";
       v = ah->getKeyValue("location");
       char *location = v ? v->val.String->getBuffer() : (char *)"<no location>";
-      xsink->raiseException("HTTP-CLIENT-RECV-ERROR", "HTTP redirect (%d) to %s ignored: message: %s", code, location, mess);
+      xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", "HTTP redirect (%d) to %s ignored: message: %s", code, location, mess);
       ans->deref(xsink);
       return NULL;
    }
@@ -491,7 +487,7 @@ class QoreNode *QoreHTTPClient::send_internal(char *meth, char *path, class Hash
       unlock();
       v = ah->getKeyValue("status_message");
       char *mess = v ? v->val.String->getBuffer() : (char *)"<no message>";
-      xsink->raiseException("HTTP-CLIENT-RECV-ERROR", "HTTP status code %d received: message: %s", code, mess);
+      xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", "HTTP status code %d received: message: %s", code, mess);
       ans->deref(xsink);
       return NULL;
    }
@@ -549,11 +545,11 @@ class QoreNode *QoreHTTPClient::send_internal(char *meth, char *path, class Hash
       {
 	 unlock();
 	 if (!rc)             // remote end has closed the connection
-	    xsink->raiseException("HTTP-CLIENT-RECV-ERROR", "remote end closed the connection while receiving response message body");
+	    xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", "remote end closed the connection while receiving response message body");
 	 else if (rc == -1)   // recv() error
-	    xsink->raiseException("HTTP-CLIENT-RECV-ERROR", strerror(errno));
+	    xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", strerror(errno));
 	 else if (rc == -2)
-	    xsink->raiseException("HTTP-CLIENT-RECV-ERROR", "socket was closed at the remote end while receiving response message body");
+	    xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", "socket was closed at the remote end while receiving response message body");
 	 else if (rc == -3)   // timeout
 	    xsink->raiseException("HTTP-CLIENT-TIMEOUT", "timed out waiting %dms for response message body of length %d on socket %s", timeout, len, socketpath.c_str());
 	 ans->deref(xsink);
