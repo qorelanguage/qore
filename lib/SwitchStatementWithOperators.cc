@@ -26,6 +26,7 @@
 #include <qore/Statement.h>
 #include <qore/SwitchStatementWithOperators.h>
 #include <qore/minitest.hpp>
+#include <qore/Operator.h>
 
 #ifdef DEBUG
 #  include "tests/SwitchStatementWithOperators_tests.cc"
@@ -51,7 +52,7 @@ bool CaseNode::isCaseNodeImpl() const
    return true;
 }
 
-bool CaseNode::matches(QoreNode* lhs_value) {
+bool CaseNode::matches(QoreNode* lhs_value, class ExceptionSink *xsink) {
    return !compareHard(lhs_value, val); // the ! is because of compareHard() semantics
 }
 
@@ -119,7 +120,7 @@ int SwitchStatement::exec(class QoreNode **return_value, class ExceptionSink *xs
       class CaseNode *w = head;
       while (w)
       {
-	 if (w->matches(se))
+	 if (w->matches(se, xsink))
 	    break;
 	 w = w->next;
       }
@@ -190,52 +191,9 @@ bool CaseNodeWithOperator::isCaseNodeImpl() const
 }
 
 //-----------------------------------------------------------------------------
-bool CaseNodeWithOperator::matches(QoreNode* lhs_value)
+bool CaseNodeWithOperator::matches(QoreNode* lhs_value, class ExceptionSink *xsink)
 {
-  if (lhs_value->type != NT_INT && lhs_value->type != NT_FLOAT) {
-    return false;
-  }
-  if (val->type != NT_INT && val->type != NT_FLOAT) {
-    return false;
-  }
-
-  bool res;
-  if (lhs_value->type == NT_INT && val->type == NT_INT) {
-    int64 lhs = lhs_value->val.intval;
-    int64 rhs = val->val.intval;
-    switch (m_comparison_type) {
-      case GreaterOrEqual:
-        res = lhs >= rhs;
-        break;
-      case Greater:
-        res = lhs > rhs;
-        break;
-      case LessOrEqual:
-        res = lhs <= rhs;
-        break;
-      case Less:
-        res = lhs < rhs;
-        break;
-    }
-  } else {
-    double lhs = lhs_value->type == NT_INT ? (double)lhs_value->val.intval : lhs_value->val.floatval;
-    double rhs = val->type == NT_INT ? (double)val->val.intval : val->val.floatval;
-    switch (m_comparison_type) {
-      case GreaterOrEqual:
-        res = lhs >= rhs;
-        break;
-      case Greater:
-        res = lhs > rhs;
-        break;
-      case LessOrEqual:
-        res = lhs <= rhs;
-        break;
-      case Less:
-        res = lhs < rhs;
-        break;
-    }
-  }
-  return res;
+   return m_operator->bool_eval(lhs_value, val, xsink);
 }
 
 // EOF

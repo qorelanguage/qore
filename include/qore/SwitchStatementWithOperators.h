@@ -36,17 +36,14 @@ class CaseNodeWithOperator : public CaseNode
 {
 private:
   DLLLOCAL virtual bool isCaseNodeImpl() const;
-public:
-  // <=, <, >=, >
-  enum comparison_type_t { LessOrEqual, Less, GreaterOrEqual, Greater };
 private:
-  comparison_type_t m_comparison_type;
+  class Operator *m_operator;
 public:
-  DLLLOCAL CaseNodeWithOperator(QoreNode* v, StatementBlock* c, comparison_type_t cmp_type)
-  : CaseNode(v, c), m_comparison_type(cmp_type) {}
+  DLLLOCAL CaseNodeWithOperator(QoreNode* v, StatementBlock* c, Operator *op)
+  : CaseNode(v, c), m_operator(op) {}
   DLLLOCAL ~CaseNodeWithOperator() {}
 
-  DLLLOCAL virtual bool matches(QoreNode* lhs_value);
+  DLLLOCAL virtual bool matches(QoreNode* lhs_value, class ExceptionSink *xsink);
 };
 
 #endif

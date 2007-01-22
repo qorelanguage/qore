@@ -4565,7 +4565,7 @@ $var[1].count++;
     <entry><para>A switch statement</para></entry>
     <entry><programlisting><command>switch</command> (<replaceable>expression</replaceable>) 
 {
-    <command>case</command> <replaceable>constant_expression</replaceable>: 
+    <command>case</command> <replaceable>case_expression</replaceable>: 
         <replaceable>statement(s)</replaceable> 
     [ <command>default</command> : 
         <replaceable>statement(s)</replaceable> ]
@@ -4773,7 +4773,7 @@ $var[1].count++;
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>The Qore <command>switch</command> statement is similar to the <command>switch</command> statement in C and C++, except that the <command>case</command> values can be any expression that does not need run-time evaluation.</para>
+	<para>The Qore <command>switch</command> statement is similar to the <command>switch</command> statement in C and C++, except that the <command>case</command> values can be any expression that does not need run-time evaluation and can also be expressions with simple relational operators using the switch value as an implied operand.</para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -4781,11 +4781,31 @@ $var[1].count++;
       <listitem>
 	<programlisting><command>switch</command> (<replaceable>expression</replaceable>) 
 { 
-    <command>case</command> <replaceable>constant_expression</replaceable>: 
+    <command>case</command> <replaceable>case_expression</replaceable>: 
         <replaceable>statement(s)</replaceable> 
     ...
     [ <command>default</command> : 
         <replaceable>statement(s)</replaceable> ]
+}</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>switch ($val)
+{
+    case &lt; -1: 
+        printf("less than -1\n");
+	break;
+    case "string":
+        printf("string\n");
+	break;
+    case &gt; 2007-01-22T15:00:00: 
+        printf("greater than 2007-01-22 15:00:00\n");
+	break;
+    default:
+        printf("default\n");
+	break;
 }</programlisting>
       </listitem>
     </varlistentry>

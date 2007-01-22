@@ -8,12 +8,12 @@ TEST()
   printf("testing CaseNodeWithOperator::LessOrEqual 1\n");
 
   QoreNode* n = new QoreNode((int64)1);
-  CaseNodeWithOperator cmp(n, 0, CaseNodeWithOperator::LessOrEqual);
+  CaseNodeWithOperator cmp(n, 0, OP_LOG_LE);
   QoreNode* lhs = new QoreNode((int64)1);
-  bool b = cmp.matches(lhs);
+  ExceptionSink xsink;
+  bool b = cmp.matches(lhs, &xsink);
   assert(b);
 
-  ExceptionSink xsink;
   lhs->deref(&xsink);
   assert(!xsink);
 }
@@ -23,42 +23,42 @@ TEST()
   printf("testing CaseNodeWithOperator::LessOrEqual 2\n");
 
   QoreNode* n = new QoreNode((int64)1);
-  CaseNodeWithOperator cmp(n, 0, CaseNodeWithOperator::LessOrEqual);
+  CaseNodeWithOperator cmp(n, 0, OP_LOG_LE);
   QoreNode* lhs = new QoreNode(1.0);
-  bool b = cmp.matches(lhs);
+  ExceptionSink xsink;
+  bool b = cmp.matches(lhs, &xsink);
   assert(b);
 
-  ExceptionSink xsink;
   lhs->deref(&xsink);
   assert(!xsink);
 }
 
 TEST()
 {
-  printf("testing CaseNodeWithOperator::LessOrEqual 3\n");
+  printf("testing OP_LOG_LE 3\n");
 
   QoreNode* n = new QoreNode((int64)1);
-  CaseNodeWithOperator cmp(n, 0, CaseNodeWithOperator::LessOrEqual);
+  CaseNodeWithOperator cmp(n, 0, OP_LOG_LE);
   QoreNode* lhs = new QoreNode((int64)0);
-  bool b = cmp.matches(lhs);
+  ExceptionSink xsink;
+  bool b = cmp.matches(lhs, &xsink);
   assert(b);
 
-  ExceptionSink xsink;
   lhs->deref(&xsink);
   assert(!xsink);
 }
 
 TEST()
 {
-  printf("testing CaseNodeWithOperator::LessOrEqual 4\n");
+  printf("testing OP_LOG_LE 4\n");
 
   QoreNode* n = new QoreNode((int64)1);
-  CaseNodeWithOperator cmp(n, 0, CaseNodeWithOperator::LessOrEqual);
+  CaseNodeWithOperator cmp(n, 0, OP_LOG_LE);
   QoreNode* lhs = new QoreNode(0.0);
-  bool b = cmp.matches(lhs);
+  ExceptionSink xsink;
+  bool b = cmp.matches(lhs, &xsink);
   assert(b);
 
-  ExceptionSink xsink;
   lhs->deref(&xsink);
   assert(!xsink);
 }
@@ -68,327 +68,327 @@ TEST()
   printf("testing CaseNodeWithOperator with non-numeric\n");
 
   QoreNode* n = new QoreNode((int64)1);
-  CaseNodeWithOperator cmp(n, 0, CaseNodeWithOperator::LessOrEqual);
+  CaseNodeWithOperator cmp(n, 0, OP_LOG_LE);
   QoreNode* lhs = new QoreNode("aa");
-  bool b = cmp.matches(lhs);
+  ExceptionSink xsink;
+  bool b = cmp.matches(lhs, &xsink);
   assert(!b);
 
-  ExceptionSink xsink;
   lhs->deref(&xsink);
   assert(!xsink);
 }
 
 TEST()
 {
-  printf("testing CaseNodeWithOperator::LessOrEqual 5\n");
+  printf("testing OP_LOG_LE 5\n");
 
   QoreNode* n = new QoreNode((int64)1);
-  CaseNodeWithOperator cmp(n, 0, CaseNodeWithOperator::LessOrEqual);
+  CaseNodeWithOperator cmp(n, 0, OP_LOG_LE);
   QoreNode* lhs = new QoreNode((int64)2);
-  bool b = cmp.matches(lhs);
+  ExceptionSink xsink;
+  bool b = cmp.matches(lhs, &xsink);
   assert(!b);
 
-  ExceptionSink xsink;
   lhs->deref(&xsink);
   assert(!xsink);
 }
 
 TEST()
 {
-  printf("testing CaseNodeWithOperator::LessOrEqual 6\n");
+  printf("testing OP_LOG_LE 6\n");
 
   QoreNode* n = new QoreNode((int64)1);
-  CaseNodeWithOperator cmp(n, 0, CaseNodeWithOperator::LessOrEqual);
+  CaseNodeWithOperator cmp(n, 0, OP_LOG_LE);
   QoreNode* lhs = new QoreNode(2.1);
-  bool b = cmp.matches(lhs);
+  ExceptionSink xsink;
+  bool b = cmp.matches(lhs, &xsink);
   assert(!b);
 
-  ExceptionSink xsink;
   lhs->deref(&xsink);
   assert(!xsink);
 }
 
 TEST()
 {
-  printf("testing CaseNodeWithOperator::Less 1\n");
+  printf("testing OP_LOG_LT 1\n");
 
   QoreNode* n = new QoreNode((int64)1);
-  CaseNodeWithOperator cmp(n, 0, CaseNodeWithOperator::Less);
+  CaseNodeWithOperator cmp(n, 0, OP_LOG_LT);
   QoreNode* lhs = new QoreNode((int64)1);
-  bool b = cmp.matches(lhs);
+  ExceptionSink xsink;
+  bool b = cmp.matches(lhs, &xsink);
   assert(!b);
 
-  ExceptionSink xsink;
   lhs->deref(&xsink);
   assert(!xsink);
 }
 
 TEST()
 {
-  printf("testing CaseNodeWithOperator::Less 2\n");
+  printf("testing OP_LOG_LT 2\n");
 
   QoreNode* n = new QoreNode((int64)1);
-  CaseNodeWithOperator cmp(n, 0, CaseNodeWithOperator::Less);
+  CaseNodeWithOperator cmp(n, 0, OP_LOG_LT);
   QoreNode* lhs = new QoreNode(1.0);
-  bool b = cmp.matches(lhs);
+  ExceptionSink xsink;
+  bool b = cmp.matches(lhs, &xsink);
   assert(!b);
 
-  ExceptionSink xsink;
   lhs->deref(&xsink);
   assert(!xsink);
 }
 
 TEST()
 {
-  printf("testing CaseNodeWithOperator::Less 3\n");
+  printf("testing OP_LOG_LT 3\n");
 
   QoreNode* n = new QoreNode((int64)1);
-  CaseNodeWithOperator cmp(n, 0, CaseNodeWithOperator::Less);
+  CaseNodeWithOperator cmp(n, 0, OP_LOG_LT);
   QoreNode* lhs = new QoreNode((int64)0);
-  bool b = cmp.matches(lhs);
+  ExceptionSink xsink;
+  bool b = cmp.matches(lhs, &xsink);
   assert(b);
 
-  ExceptionSink xsink;
   lhs->deref(&xsink);
   assert(!xsink);
 }
 
 TEST()
 {
-  printf("testing CaseNodeWithOperator::Less 4\n");
+  printf("testing OP_LOG_LT 4\n");
 
   QoreNode* n = new QoreNode((int64)1);
-  CaseNodeWithOperator cmp(n, 0, CaseNodeWithOperator::Less);
+  CaseNodeWithOperator cmp(n, 0, OP_LOG_LT);
   QoreNode* lhs = new QoreNode(-0.1);
-  bool b = cmp.matches(lhs);
+  ExceptionSink xsink;
+  bool b = cmp.matches(lhs, &xsink);
   assert(b);
 
-  ExceptionSink xsink;
   lhs->deref(&xsink);
   assert(!xsink);
 }
 
 TEST()
 {
-  printf("testing CaseNodeWithOperator::Less 5\n");
+  printf("testing OP_LOG_LT 5\n");
 
   QoreNode* n = new QoreNode((int64)1);
-  CaseNodeWithOperator cmp(n, 0, CaseNodeWithOperator::Less);
+  CaseNodeWithOperator cmp(n, 0, OP_LOG_LT);
   QoreNode* lhs = new QoreNode((int64)11);
-  bool b = cmp.matches(lhs);
+  ExceptionSink xsink;
+  bool b = cmp.matches(lhs, &xsink);
   assert(!b);
 
-  ExceptionSink xsink;
   lhs->deref(&xsink);
   assert(!xsink);
 }
 
 TEST()
 {
-  printf("testing CaseNodeWithOperator::Less 6\n");
+  printf("testing OP_LOG_LT 6\n");
 
   QoreNode* n = new QoreNode((int64)1);
-  CaseNodeWithOperator cmp(n, 0, CaseNodeWithOperator::Less);
+  CaseNodeWithOperator cmp(n, 0, OP_LOG_LT);
   QoreNode* lhs = new QoreNode(1.01);
-  bool b = cmp.matches(lhs);
+  ExceptionSink xsink;
+  bool b = cmp.matches(lhs, &xsink);
   assert(!b);
 
-  ExceptionSink xsink;
   lhs->deref(&xsink);
   assert(!xsink);
 }
 
 TEST()
 {
-  printf("testing CaseNodeWithOperator::GreaterOrEqual 1\n");
+  printf("testing OP_LOG_GE 1\n");
 
   QoreNode* n = new QoreNode((int64)1);
-  CaseNodeWithOperator cmp(n, 0, CaseNodeWithOperator::GreaterOrEqual);
+  CaseNodeWithOperator cmp(n, 0, OP_LOG_GE);
   QoreNode* lhs = new QoreNode((int64)1);
-  bool b = cmp.matches(lhs);
+  ExceptionSink xsink;
+  bool b = cmp.matches(lhs, &xsink);
   assert(b);
 
-  ExceptionSink xsink;
   lhs->deref(&xsink);
   assert(!xsink);
 }
 
 TEST()
 {
-  printf("testing CaseNodeWithOperator::GreaterOrEqual 2\n");
+  printf("testing OP_LOG_GE 2\n");
 
   QoreNode* n = new QoreNode((int64)1);
-  CaseNodeWithOperator cmp(n, 0, CaseNodeWithOperator::GreaterOrEqual);
+  CaseNodeWithOperator cmp(n, 0, OP_LOG_GE);
   QoreNode* lhs = new QoreNode(1.0);
-  bool b = cmp.matches(lhs);
+  ExceptionSink xsink;
+  bool b = cmp.matches(lhs, &xsink);
   assert(b);
 
-  ExceptionSink xsink;
   lhs->deref(&xsink);
   assert(!xsink);
 }
 
 TEST()
 {
-  printf("testing CaseNodeWithOperator::GreaterOrEqual 3\n");
+  printf("testing OP_LOG_GE 3\n");
 
   QoreNode* n = new QoreNode((int64)1);
-  CaseNodeWithOperator cmp(n, 0, CaseNodeWithOperator::GreaterOrEqual);
+  CaseNodeWithOperator cmp(n, 0, OP_LOG_GE);
   QoreNode* lhs = new QoreNode((int64)0);
-  bool b = cmp.matches(lhs);
+  ExceptionSink xsink;
+  bool b = cmp.matches(lhs, &xsink);
   assert(!b);
 
-  ExceptionSink xsink;
   lhs->deref(&xsink);
   assert(!xsink);
 }
 
 TEST()
 {
-  printf("testing CaseNodeWithOperator::GreaterOrEqual 4\n");
+  printf("testing OP_LOG_GE 4\n");
 
   QoreNode* n = new QoreNode((int64)1);
-  CaseNodeWithOperator cmp(n, 0, CaseNodeWithOperator::GreaterOrEqual);
+  CaseNodeWithOperator cmp(n, 0, OP_LOG_GE);
   QoreNode* lhs = new QoreNode(-1.0);
-  bool b = cmp.matches(lhs);
+  ExceptionSink xsink;
+  bool b = cmp.matches(lhs, &xsink);
   assert(!b);
 
-  ExceptionSink xsink;
   lhs->deref(&xsink);
   assert(!xsink);
 }
 
 TEST()
 {
-  printf("testing CaseNodeWithOperator::GreaterOrEqual 5\n");
+  printf("testing OP_LOG_GE 5\n");
 
   QoreNode* n = new QoreNode((int64)1);
-  CaseNodeWithOperator cmp(n, 0, CaseNodeWithOperator::GreaterOrEqual);
+  CaseNodeWithOperator cmp(n, 0, OP_LOG_GE);
   QoreNode* lhs = new QoreNode((int64)2);
-  bool b = cmp.matches(lhs);
+  ExceptionSink xsink;
+  bool b = cmp.matches(lhs, &xsink);
   assert(b);
 
-  ExceptionSink xsink;
   lhs->deref(&xsink);
   assert(!xsink);
 }
 
 TEST()
 {
-  printf("testing CaseNodeWithOperator::GreaterOrEqual 6\n");
+  printf("testing OP_LOG_GE 6\n");
 
   QoreNode* n = new QoreNode((int64)1);
-  CaseNodeWithOperator cmp(n, 0, CaseNodeWithOperator::GreaterOrEqual);
+  CaseNodeWithOperator cmp(n, 0, OP_LOG_GE);
   QoreNode* lhs = new QoreNode(2.0);
-  bool b = cmp.matches(lhs);
+  ExceptionSink xsink;
+  bool b = cmp.matches(lhs, &xsink);
   assert(b);
 
-  ExceptionSink xsink;
   lhs->deref(&xsink);
   assert(!xsink);
 }
 
 TEST()
 {
-  printf("testing CaseNodeWithOperator::Greater 1\n");
+  printf("testing OP_LOG_GT 1\n");
 
   QoreNode* n = new QoreNode((int64)1);
-  CaseNodeWithOperator cmp(n, 0, CaseNodeWithOperator::Greater);
+  CaseNodeWithOperator cmp(n, 0, OP_LOG_GT);
   QoreNode* lhs = new QoreNode((int64)1);
-  bool b = cmp.matches(lhs);
+  ExceptionSink xsink;
+  bool b = cmp.matches(lhs, &xsink);
   assert(!b);
 
-  ExceptionSink xsink;
   lhs->deref(&xsink);
   assert(!xsink);
 }
 
 TEST()
 {
-  printf("testing CaseNodeWithOperator::Greater 2\n");
+  printf("testing OP_LOG_GT 2\n");
 
   QoreNode* n = new QoreNode((int64)1);
-  CaseNodeWithOperator cmp(n, 0, CaseNodeWithOperator::Greater);
+  CaseNodeWithOperator cmp(n, 0, OP_LOG_GT);
   QoreNode* lhs = new QoreNode(1.0);
-  bool b = cmp.matches(lhs);
+  ExceptionSink xsink;
+  bool b = cmp.matches(lhs, &xsink);
   assert(!b);
 
-  ExceptionSink xsink;
   lhs->deref(&xsink);
   assert(!xsink);
 }
 
 TEST()
 {
-  printf("testing CaseNodeWithOperator::Greater 3\n");
+  printf("testing OP_LOG_GT 3\n");
 
   QoreNode* n = new QoreNode((int64)1);
-  CaseNodeWithOperator cmp(n, 0, CaseNodeWithOperator::Greater);
+  CaseNodeWithOperator cmp(n, 0, OP_LOG_GT);
   QoreNode* lhs = new QoreNode((int64)0);
-  bool b = cmp.matches(lhs);
+  ExceptionSink xsink;
+  bool b = cmp.matches(lhs, &xsink);
   assert(!b);
 
-  ExceptionSink xsink;
   lhs->deref(&xsink);
   assert(!xsink);
 }
 
 TEST()
 {
-  printf("testing CaseNodeWithOperator::Greater 4\n");
+  printf("testing OP_LOG_GT 4\n");
 
   QoreNode* n = new QoreNode((int64)1);
-  CaseNodeWithOperator cmp(n, 0, CaseNodeWithOperator::Greater);
+  CaseNodeWithOperator cmp(n, 0, OP_LOG_GT);
   QoreNode* lhs = new QoreNode(0.0);
-  bool b = cmp.matches(lhs);
+  ExceptionSink xsink;
+  bool b = cmp.matches(lhs, &xsink);
   assert(!b);
 
-  ExceptionSink xsink;
   lhs->deref(&xsink);
   assert(!xsink);
 }
 
 TEST()
 {
-  printf("testing CaseNodeWithOperator::Greater 5\n");
+  printf("testing OP_LOG_GT 5\n");
 
   QoreNode* n = new QoreNode((int64)1);
-  CaseNodeWithOperator cmp(n, 0, CaseNodeWithOperator::Greater);
+  CaseNodeWithOperator cmp(n, 0, OP_LOG_GT);
   QoreNode* lhs = new QoreNode((int64)2);
-  bool b = cmp.matches(lhs);
+  ExceptionSink xsink;
+  bool b = cmp.matches(lhs, &xsink);
   assert(b);
 
-  ExceptionSink xsink;
   lhs->deref(&xsink);
   assert(!xsink);
 }
 
 TEST()
 {
-  printf("testing CaseNodeWithOperator::Greater 6\n");
+  printf("testing OP_LOG_GT 6\n");
 
   QoreNode* n = new QoreNode((int64)1);
-  CaseNodeWithOperator cmp(n, 0, CaseNodeWithOperator::Greater);
+  CaseNodeWithOperator cmp(n, 0, OP_LOG_GT);
   QoreNode* lhs = new QoreNode(2.2);
-  bool b = cmp.matches(lhs);
+  ExceptionSink xsink;
+  bool b = cmp.matches(lhs, &xsink);
   assert(b);
 
-  ExceptionSink xsink;
   lhs->deref(&xsink);
   assert(!xsink);
 }
 
 TEST()
 {
-  printf("testing CaseNodeWithOperator::Greater 7\n");
+  printf("testing OP_LOG_GT 7\n");
   // both floats
   QoreNode* n = new QoreNode(1.0);
-  CaseNodeWithOperator cmp(n, 0, CaseNodeWithOperator::Greater);
+  CaseNodeWithOperator cmp(n, 0, OP_LOG_GT);
   QoreNode* lhs = new QoreNode(1.0);
-  bool b = cmp.matches(lhs);
+  ExceptionSink xsink;
+  bool b = cmp.matches(lhs, &xsink);
   assert(!b);
 
-  ExceptionSink xsink;
   lhs->deref(&xsink);
   assert(!xsink);
 }
@@ -396,15 +396,15 @@ TEST()
 
 TEST()
 {
-  printf("testing CaseNodeWithOperator::Greater 8\n");
+  printf("testing OP_LOG_GT 8\n");
   // both floats
   QoreNode* n = new QoreNode(1.0);
-  CaseNodeWithOperator cmp(n, 0, CaseNodeWithOperator::Greater);
+  CaseNodeWithOperator cmp(n, 0, OP_LOG_GT);
   QoreNode* lhs = new QoreNode(2.0);
-  bool b = cmp.matches(lhs);
+  ExceptionSink xsink;
+  bool b = cmp.matches(lhs, &xsink);
   assert(b);
 
-  ExceptionSink xsink;
   lhs->deref(&xsink);
   assert(!xsink);
 }

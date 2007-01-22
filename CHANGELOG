@@ -7,6 +7,10 @@
 	* moved HTTPClient, XmlRpcClient, and JsonRpcClient to the Qore 
 	  namespace
 	* added JsonRpcClient class documentation
+	* fixed a segfault in switch with comparison operators when the switch 
+	  argument was NULL
+	* updated case statements in switch to be able to process any type when
+	  relational operators are used
 
 2007.01.19: David Nichols
 	* added HTTPClient class documentation

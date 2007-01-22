@@ -1036,22 +1036,22 @@ case_code:
         TOK_CASE LOGICAL_GE exp ':' statements
         {
           if (needsEval($3)) parse_error("case expression with '>=' needs run-time evaluation");
-          $$ = new CaseNodeWithOperator($3, $5, CaseNodeWithOperator::GreaterOrEqual);
+          $$ = new CaseNodeWithOperator($3, $5, OP_LOG_GE);
         }
         | TOK_CASE LOGICAL_LE exp ':' statements
         {
          if (needsEval($3)) parse_error("case expression with '<=' needs run-time evaluation");
-          $$ = new CaseNodeWithOperator($3, $5, CaseNodeWithOperator::LessOrEqual);
+          $$ = new CaseNodeWithOperator($3, $5, OP_LOG_LE);
         }
         | TOK_CASE '<' exp ':' statements
         {
-          if (needsEval($3)) parse_error("case expression with '>' needs run-time evaluation");
-          $$ = new CaseNodeWithOperator($3, $5, CaseNodeWithOperator::Less);
+          if (needsEval($3)) parse_error("case expression with '<' needs run-time evaluation");
+          $$ = new CaseNodeWithOperator($3, $5, OP_LOG_LT);
         }
         | TOK_CASE '>' exp ':' statements
         {
-          if (needsEval($3)) parse_error("case expression with '<' needs run-time evaluation");
-          $$ = new CaseNodeWithOperator($3, $5, CaseNodeWithOperator::Greater);
+          if (needsEval($3)) parse_error("case expression with '>' needs run-time evaluation");
+          $$ = new CaseNodeWithOperator($3, $5, OP_LOG_GT);
         }
         | TOK_CASE exp ':' statements
         {
@@ -1062,22 +1062,22 @@ case_code:
         | TOK_CASE LOGICAL_GE exp ':' // nothing
         {
           if (needsEval($3)) parse_error("case expression with '>=' needs run-time evaluation");
-          $$ = new CaseNodeWithOperator($3, NULL, CaseNodeWithOperator::GreaterOrEqual);
+          $$ = new CaseNodeWithOperator($3, NULL, OP_LOG_GE);
         }
         | TOK_CASE LOGICAL_LE exp ':' // nothing
         {
          if (needsEval($3)) parse_error("case expression with '<=' needs run-time evaluation");
-          $$ = new CaseNodeWithOperator($3, NULL, CaseNodeWithOperator::LessOrEqual);
+          $$ = new CaseNodeWithOperator($3, NULL, OP_LOG_LE);
         }
         | TOK_CASE '<' exp ':' // nothing
         {
           if (needsEval($3)) parse_error("case expression with '>' needs run-time evaluation");
-          $$ = new CaseNodeWithOperator($3, NULL, CaseNodeWithOperator::Less);
+          $$ = new CaseNodeWithOperator($3, NULL, OP_LOG_LT);
         }
         | TOK_CASE '>' exp ':' // nothing
         {
           if (needsEval($3)) parse_error("case expression with '<' needs run-time evaluation");
-          $$ = new CaseNodeWithOperator($3, NULL, CaseNodeWithOperator::Greater);
+          $$ = new CaseNodeWithOperator($3, NULL, OP_LOG_GT);
         }
         | TOK_CASE exp ':' // nothing
         {

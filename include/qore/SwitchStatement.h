@@ -34,7 +34,7 @@ class CaseNode {
       class CaseNode *next;
 
       DLLLOCAL CaseNode(class QoreNode *v, class StatementBlock *c);
-      DLLLOCAL virtual bool matches(QoreNode* lhs_value);
+      DLLLOCAL virtual bool matches(QoreNode* lhs_value, class ExceptionSink *xsink);
       DLLLOCAL bool isCaseNode() const;
       DLLLOCAL virtual ~CaseNode();
 };
