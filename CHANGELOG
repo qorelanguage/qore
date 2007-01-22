@@ -4,6 +4,9 @@
 	  converted to UTF-8 before parsing
 	* added JsonRpcClient class to library
 	* added XmlRpcClient documentation
+	* moved HTTPClient, XmlRpcClient, and JsonRpcClient to the Qore 
+	  namespace
+	* added JsonRpcClient class documentation
 
 2007.01.19: David Nichols
 	* added HTTPClient class documentation

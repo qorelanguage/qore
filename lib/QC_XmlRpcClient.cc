@@ -92,7 +92,7 @@ static class QoreNode *XRC_call(Object *self, QoreHTTPClient *client, class Qore
    return parseXMLRPCResponse(ans->val.String, QCS_DEFAULT, xsink);
 }
 
-static QoreClass *initXmlRpcClientClass(class QoreClass *http_client)
+class QoreClass *initXmlRpcClientClass(class QoreClass *http_client)
 {
     QoreClass* client = new QoreClass(QDOM_NETWORK, strdup("XmlRpcClient"));
     CID_XMLRPCCLIENT = client->getID();
@@ -107,9 +107,3 @@ static QoreClass *initXmlRpcClientClass(class QoreClass *http_client)
     return client;
 } 
 
-Namespace *addXmlRpcClientNamespace(class QoreClass *http_client)
-{
-   Namespace* ns = new Namespace("XmlRpcClient");
-   ns->addSystemClass(initXmlRpcClientClass(http_client));
-   return ns;
-}

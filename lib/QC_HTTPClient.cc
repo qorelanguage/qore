@@ -260,9 +260,12 @@ static class QoreNode *HC_getEncoding(class Object *self, class QoreHTTPClient *
 }
 
 //-----------------------------------------------------------------------------
-static QoreClass *initHTTPClientClass()
+QoreClass *initHTTPClientClass()
 {
    tracein("initHTTPClientClass");
+
+   // initialize static data structures in the QoreHTTPClient class
+   QoreHTTPClient::static_init();
 
    QoreClass* client = new QoreClass(QDOM_NETWORK, strdup("HTTPClient"));
    CID_HTTPCLIENT = client->getID();
@@ -289,17 +292,6 @@ static QoreClass *initHTTPClientClass()
 
    traceout("initHTTPClientClass");
    return client;
-}
-
-//-----------------------------------------------------------------------------
-Namespace* addHTTPClientNamespace(class QoreClass *&http_client)
-{
-   // initialize static data structures in the QoreHTTPClient class
-   QoreHTTPClient::static_init();
-
-   Namespace* ns = new Namespace("HTTPClient");
-   ns->addSystemClass((http_client = initHTTPClientClass()));
-   return ns;
 }
 
 // EOF

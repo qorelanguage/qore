@@ -93,7 +93,7 @@ static class QoreNode *JRC_call(Object *self, QoreHTTPClient *client, class Qore
    return parseJSONValue(ans->val.String, xsink);
 }
 
-static QoreClass *initJsonRpcClientClass(class QoreClass *http_client)
+QoreClass *initJsonRpcClientClass(class QoreClass *http_client)
 {
     QoreClass* client = new QoreClass(QDOM_NETWORK, strdup("JsonRpcClient"));
     CID_JSONRPCCLIENT = client->getID();
@@ -107,10 +107,3 @@ static QoreClass *initJsonRpcClientClass(class QoreClass *http_client)
 
     return client;
 } 
-
-Namespace *addJsonRpcClientNamespace(class QoreClass *http_client)
-{
-   Namespace* ns = new Namespace("JsonRpcClient");
-   ns->addSystemClass(initJsonRpcClientClass(http_client));
-   return ns;
-}

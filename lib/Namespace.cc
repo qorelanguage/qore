@@ -1616,6 +1616,12 @@ RootNamespace::RootNamespace(class Namespace **QoreNS) : Namespace()
    qns->addSystemClass(initGetOptClass());
    qns->addSystemClass(initFtpClientClass());
 
+   // add HTTPClient namespace
+   class QoreClass *http_client_class;
+   qns->addSystemClass((http_client_class = initHTTPClientClass()));
+   qns->addSystemClass(initXmlRpcClientClass(http_client_class));
+   qns->addSystemClass(initJsonRpcClientClass(http_client_class));
+
 #ifdef DEBUG
 { // tests
    QoreClass* base = initBuiltinInheritanceTestBaseClass();
@@ -1688,12 +1694,6 @@ RootNamespace::RootNamespace(class Namespace **QoreNS) : Namespace()
 
    // create Qore::Type namespace with type constants
    qns->addInitialNamespace(get_type_ns());
-
-   // add HTTPClient namespace
-   class QoreClass *http_client_class;
-   qns->addInitialNamespace(addHTTPClientNamespace(http_client_class));
-   qns->addInitialNamespace(addXmlRpcClientNamespace(http_client_class));
-   qns->addInitialNamespace(addJsonRpcClientNamespace(http_client_class));
 
    // add file constants
    addFileConstants(qns);

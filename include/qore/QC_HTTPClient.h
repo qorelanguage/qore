@@ -23,7 +23,7 @@
 #define QC_HTTP_CLIENT_H_
 
 DLLEXPORT extern int CID_HTTPCLIENT;
-DLLLOCAL Namespace* addHTTPClientNamespace(class QoreClass *&http_client_class);
+DLLLOCAL class QoreClass *initHTTPClientClass();
 
 #endif
 

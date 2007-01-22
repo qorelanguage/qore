@@ -42,6 +42,10 @@
 	    <entry><para>For communication using the XML-RPC protocol with and without TSL/SSL encryption.</para></entry>
 	  </row>
 	  <row>
+	    <entry><para><link linkend="JsonRpcClient_Class">JsonRpclient Class</link></para></entry>
+	    <entry><para>For communication using the JSON-RPC protocol with and without TSL/SSL encryption.</para></entry>
+	  </row>
+	  <row>
 	    <entry><para><link linkend="SSLCertificate_Class">SSLCertificate Class</link></para></entry>
 	    <entry><para>For working with X.509 certificates.</para></entry>
 	  </row>
@@ -10695,7 +10699,7 @@
 
 
   <sect1 id="HTTPClient_Class">
-    <title>Qore::HTTPClient::HTTPClient Class</title>
+    <title>Qore::HTTPClient Class</title>
     <para>The HTTPClient class can be used to communicate with HTTP servers using the HTTP or HTTPS (HTTP using an SSL/TLS encrypted connection) protocol.</para>
     <para>By default 'Connection: Keep-Alive' is always sent regardless of the HTTP protocol level set for the object, however if a server response contains 'Connection: close', the connection will be closed as soon as the full response (including any message body if present) has been read.</para>
     <para>Note that HTTP redirect messages are currently not processed and will cause an <code>HTTP-CLIENT-RECEIVE-ERROR</code> exception to be thrown.</para>
@@ -10853,7 +10857,7 @@
               <para>N</para>
             </entry>
             <entry>
-              <para>Connects to the remote socket.  If the protocol indicates that a secure connection should be established (or HTTPClient::setSecure() was called previsouly), SSL/TLS negotiation will be attempted.  Note: For possible exceptions, see the Socket::connect() method (or Socket::connectSSL() for secure connections).</para>
+              <para>Connects to the remote socket.  If the protocol indicates that a secure connection should be established (or <link linkend="HTTPClient_setSecure">HTTPClient::setSecure()</link> was called previsouly), SSL/TLS negotiation will be attempted.  Note: For possible exceptions, see the <link linkend="Qore_Socket_connect">Socket::connect()</link> method (or <link linkend="Socket_connectSSL">Socket::connectSSL()</link> for secure connections).</para>
             </entry>
           </row>
           <row>
@@ -10879,7 +10883,7 @@
               <para>Y</para>
             </entry>
             <entry>
-              <para>Sends an HTTP GET request and returns the message body received.  In order to get the headers and the body, use the HTTPClient::send() method instead.  If no connection is established, an internal call to connect() will be made before sending the message.</para>
+              <para>Sends an HTTP GET request and returns the message body received.  In order to get the headers and the body, use the <link linkend="HTTPClient_send">HTTPClient::send()</link> method instead.  If no connection is established, an internal call to <link linkend="HTTPClient_connect">HTTPClient::connect()</link> will be made before sending the message.</para>
             </entry>
           </row>
           <row>
@@ -10892,7 +10896,7 @@
               <para>Y</para>
             </entry>
             <entry>
-              <para>Sends an HTTP HEAD request and returns the headers received.  If no connection is established, an internal call to connect() will be made before sending the message.</para>
+              <para>Sends an HTTP HEAD request and returns the headers received.  If no connection is established, an internal call to <link linkend="HTTPClient_connect">HTTPClient::connect()</link> will be made before sending the message.</para>
             </entry>
           </row>
           <row>
@@ -10905,7 +10909,7 @@
               <para>Y</para>
             </entry>
             <entry>
-              <para>Sends an HTTP POST request with a message body and returns the message body received as a response.  In order to get the headers and the body in the response, use the HTTPClient::send() method instead.  If no connection is established, an internal call to connect() will be made before sending the message.</para>
+              <para>Sends an HTTP POST request with a message body and returns the message body received as a response.  In order to get the headers and the body in the response, use the <link linkend="HTTPClient_send">HTTPClient::send()</link> method instead.  If no connection is established, an internal call to <link linkend="HTTPClient_connect">HTTPClient::connect()</link> will be made before sending the message.</para>
             </entry>
           </row>
           <row>
@@ -10918,7 +10922,7 @@
               <para>Y</para>
             </entry>
             <entry>
-              <para>Sends an HTTP request with the specified method and optional message body and returns headers and optionally the body received as a response in a hash format.  If no connection is established, an internal call to connect() will be made before sending the message.</para>
+              <para>Sends an HTTP request with the specified method and optional message body and returns headers and optionally the body received as a response in a hash format.  If no connection is established, an internal call to <link linkend="HTTPClient_connect">HTTPClient::connect()</link> will be made before sending the message.</para>
             </entry>
           </row>
           <row>
@@ -11117,7 +11121,7 @@
         </tgroup>
       </table>
 
-      <table>
+      <table id="HTTPClient_constructor_option_hash_keys">
         <title>HTTPClient::constructor() Option Hash Keys</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
@@ -12963,7 +12967,7 @@
   </sect1>
 
   <sect1 id="XmlRpcClient_Class">
-    <title>Qore::XmlRpcClient::XmlRpcClient Class</title>
+    <title>Qore::XmlRpcClient Class</title>
     <para>The XmlRpcClient class provides easy access to XML-RPC web services.  This class inherits all public methods of the <link linkend="HTTPClient_Class">HTTPClient class</link>.  The inherited <link linkend="HTTPClient_Class">HTTPClient</link> methods are not listed in this section, see the section on the <link linkend="HTTPClient_Class">HTTPClient class</link> for more information on methods provided by the parent class.  For low-level XML-RPC functions, see the XML-RPC functions in <link linkend="XML_Functions">XML Functions</link>.</para>
 
     <para>The XmlRpcClient class understands the following protocols in addition to the <link linkend="HTTPClient_Protocols">protocols supported by the HTTPClient class</link>:</para>
@@ -12984,7 +12988,7 @@
             <entry><para><code>xmlrpc</code></para></entry>
             <entry><para>80</para></entry>
             <entry><para>No</para></entry>
-            <entry><para>Unencrypted XML-RPC over HTTP protocol</para></entry>
+            <entry><para>Unencrypted XML-RPC protocol over HTTP</para></entry>
           </row>
           <row>
             <entry><para><code>xmlrpcs</code></para></entry>
@@ -13156,7 +13160,7 @@
                 <para>Hash</para>
               </entry>
               <entry>
-                <para>an option hash, valid keys: 'url' (the URL to connect to), 'default_port' (the default port number to connect to), 'protocols' (a hash describing new protocols, the key is the protocol name and the value is either an integer giving the default port number or a hash with 'port' and 'ssl' keys giving the default port number and a boolean value to indicate that an SSL connection should be established), 'http_version' (either '1.0' or '1.1' for the HTTP protocol version compliancy), 'default_path' (the default path to use for new connections to override the default path 'RPC2'</para>
+                <para>an option hash, see <link linkend="HTTPClient_constructor_option_hash_keys">HTTPClient::constructor() Option Hash Keys</link> for valid keys in this hash.</para>
               </entry>
             </row>
           </tbody>
@@ -13531,6 +13535,551 @@
               </entry>
               <entry>
                 <para>If the call was successful, the response information will be found in the key 'params'.  If an error occurred then the error information can be found under the 'fault' key.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+  </sect1>
+
+  <sect1 id="JsonRpcClient_Class">
+    <title>Qore::JsonRpcClient Class</title>
+    <para>The JsonRpcClient class provides easy access to JSON-RPC web services.  This class inherits all public methods of the <link linkend="HTTPClient_Class">HTTPClient class</link>.  The inherited HTTPClient methods are not listed in this section, see the section on the HTTPClient class for more information on methods provided by the parent class.  For low-level JSON-RPC functions, see the JSON-RPC functions in <link linkend="JSON_Functions">JSON Functions</link>.</para>
+
+    <para>The JsonRpcClient class understands the following protocols in addition to the <link linkend="HTTPClient_Protocols">protocols supported by the HTTPClient class</link>:</para>
+
+    <table>
+      <title>JsonRpcClient Class Protocols</title>
+      <tgroup cols='4' align='left' colsep='1' rowsep='1'>
+        <thead>
+          <row>
+            <entry><para>Protocol</para></entry>
+            <entry><para>Default Port</para></entry>
+            <entry><para>SSL?</para></entry>
+            <entry><para>Description</para></entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry><para><code>jsonrpc</code></para></entry>
+            <entry><para>80</para></entry>
+            <entry><para>No</para></entry>
+            <entry><para>Unencrypted JSON-RPC protocol over HTTP</para></entry>
+          </row>
+          <row>
+            <entry><para><code>jsonrpcs</code></para></entry>
+            <entry><para>443</para></entry>
+            <entry><para>Yes</para></entry>
+            <entry><para>JSON-RPC protocol over HTTP with SSL/TLS encryption</para></entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+
+    <table>
+      <title>JsonRpcClient Class Method Overview</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Method</para>
+            </entry>
+            <entry>
+              <para>Except?</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <link linkend="JsonRpcClient_constructor">JsonRpcClient::constructor()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>N</para>
+            </entry>
+            <entry>
+              <para>Creates the JsonRpcClient object based on the parameters passed.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="JsonRpcClient_destructor">JsonRpcClient::destructor()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>N</para>
+            </entry>
+            <entry>
+              <para>Destroys the JsonRpcClient object and closes any open connections.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="JsonRpcClient_copy">JsonRpcClient::copy()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>Y</para>
+            </entry>
+            <entry>
+              <para>Copying objects of this class is not supported, an exception will be thrown.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="JsonRpcClient_call">JsonRpcClient::call()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>N</para>
+            </entry>
+            <entry>
+              <para>Calls a remote method using a variable number of arguments for the method arguments and returns the response as qore data structure.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="JsonRpcClient_callArgs">JsonRpcClient::callArgs()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>N</para>
+            </entry>
+            <entry>
+              <para>Calls a remote method using a single value after the method name for the method arguments and returns the response as qore data structure.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <sect2 id="JsonRpcClient_constructor">
+      <title>JsonRpcClient::constructor()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Creates the JsonRpcClient object based on the parameters passed.  See <link linkend="HTTPClient_constructor">HTTPClient::constructor()</link> for information on possible exceptions</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>JsonRpcClient::constructor(<replaceable>[opts]</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for JsonRpcClient::constructor()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <replaceable>[opts]</replaceable>
+                </para>
+              </entry>
+              <entry>
+                <para>Hash</para>
+              </entry>
+              <entry>
+                <para>an option hash, see <link linkend="HTTPClient_constructor_option_hash_keys">HTTPClient::constructor() Option Hash Keys</link> for valid keys in this hash.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for JsonRpcClient::constructor()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>Object</para>
+              </entry>
+              <entry>
+                <para>The JsonRpcClient object is returned</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="JsonRpcClient_destructor">
+      <title>JsonRpcClient::destructor()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Destroys the JsonRpcClient object and closes any open connections.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>JsonRpcClient::destructor()</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for JsonRpcClient::destructor()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for JsonRpcClient::destructor()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method returns no value</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="JsonRpcClient_copy">
+      <title>JsonRpcClient::copy()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Copying objects of this class is not supported, an exception will be thrown.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>JsonRpcClient::copy()</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for JsonRpcClient::copy()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for JsonRpcClient::copy()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method returns no value</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Exceptions thrown by JsonRpcClient::copy()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>err</para>
+              </entry>
+              <entry>
+                <para>desc</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <code>JSONRPCCLIENT-COPY-ERROR</code>
+                </para>
+              </entry>
+              <entry>
+                <para>objects of this class may not be copied</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="JsonRpcClient_call">
+      <title>JsonRpcClient::call()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Calls a remote method using a variable number of arguments for the method arguments and returns the response as qore data structure.  See <link linkend="HTTPClient_send">HTTPClient::send()</link>, <link linkend="makeJSONRPCRequestString">makeJSONRPCRequestString()</link>, and <link linkend="parseJSON">parseJSON()</link> for information on possible exceptions.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>JsonRpcClient::call(<replaceable>method_name, [arg_list]</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for JsonRpcClient::call()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <replaceable>method_name</replaceable>
+                </para>
+              </entry>
+              <entry>
+                <para>String</para>
+              </entry>
+              <entry>
+                <para>The JSON-RPC method name to call</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>
+                  <replaceable>[arg_list]</replaceable>
+                </para>
+              </entry>
+              <entry>
+                <para>List or Any</para>
+              </entry>
+              <entry>
+                <para>An optional list (or single value) of arguments for the method.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for JsonRpcClient::call()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>Hash</para>
+              </entry>
+              <entry>
+                <para>The information returned by the JSON-RPC method.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="JsonRpcClient_callArgs">
+      <title>JsonRpcClient::callArgs()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Calls a remote method using a single value after the method name for the method arguments and returns the response as qore data structure.  See <link linkend="HTTPClient_send">HTTPClient::send()</link>, <link linkend="makeJSONRPCRequestString">makeJSONRPCRequestString()</link>, and <link linkend="parseJSON">parseJSON()</link> for information on possible exceptions.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>JsonRpcClient::callArgs(<replaceable>method_name, [arg_list]</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for JsonRpcClient::callArgs()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <replaceable>method_name</replaceable>
+                </para>
+              </entry>
+              <entry>
+                <para>String</para>
+              </entry>
+              <entry>
+                <para>The JSON-RPC method name to call</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>
+                  <replaceable>[arg_list]</replaceable>
+                </para>
+              </entry>
+              <entry>
+                <para>List or Any</para>
+              </entry>
+              <entry>
+                <para>An optional list (or single value) of arguments for the method.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for JsonRpcClient::callArgs()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>Any</para>
+              </entry>
+              <entry>
+                <para>The information returned by the JSON-RPC method.</para>
               </entry>
             </row>
           </tbody>
