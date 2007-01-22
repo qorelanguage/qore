@@ -15832,7 +15832,7 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
 <sect1 id="XML_Functions">
   <title>XML Functions</title>
 
-  <para>XML functions allow serializing and deserializing between XML strings and qore data structures.  There are also functions for XML-RPC support; see below for details.</para>
+  <para>XML functions allow serializing and deserializing between XML strings and qore data structures.  There are also functions for XML-RPC support; see below for details and see the <link linkend="XmlRpcClient_Class">XmlRpcClient Class</link> for a classes supporting communication with this protocol.</para>
 
   <sect2 id="makeFormattedXMLFragment">
     <title>makeFormattedXMLFragment()</title>

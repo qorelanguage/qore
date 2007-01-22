@@ -8485,11 +8485,11 @@ BOOL values, so boolean() could be called as well with the same effect</para>
 	      <entry><para>Creates a publisher, transmits data, and returns a data structure representing the reply.</para></entry>
 	      <entry><para><link linkend="Tibae_TibcoAdapter_operationsCallWithSyncResult">TibcoAdapter::operationsCallWithSyncResult()</link></para></entry>
 	      <entry>Y</entry>
-	      <entry>Calls an Tibco Operation and returns a data structure representing the reply.</para></entry>
-	      <entry><para><link linkend\"Tibae_TibcoAdapter_operationsOneWayCall">TibcoAdapter::operationsOneWayCall()></link></para></entry>
+	      <entry><para>Calls a Tibco Adapter Operation and returns a data structure representing the reply.</para></entry>
+	      <entry><para><link linkend="Tibae_TibcoAdapter_operationsOneWayCall">TibcoAdapter::operationsOneWayCall()></link></para></entry>
 	      <entry>Y</entry>
 	      <entry>Calls an one way (no reply sent) Tibco Operation.</entry>
-	    </row>	    
+	    </row>
 	  </tbody>
 	</tgroup>
       </table>
@@ -9022,11 +9022,7 @@ BOOL values, so boolean() could be called as well with the same effect</para>
             </tbody>
           </tgroup>
         </table>
-
-        </table>
       </sect3>
-
-
     </sect2>
   </sect1>
 
