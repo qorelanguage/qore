@@ -492,7 +492,7 @@ static class QoreNode *f_makeFormattedJSONString(class QoreNode *params, Excepti
    return doJSONValue(str, val, 0, xsink) ? NULL : new QoreNode(str);
 }
 
-static class QoreNode *parseJSONValue(class QoreString *str, class ExceptionSink *xsink)
+class QoreNode *parseJSONValue(class QoreString *str, class ExceptionSink *xsink)
 {
    int line_number = 1;
    char *buf = str->getBuffer();
@@ -519,6 +519,68 @@ static class QoreNode *f_parseJSON(class QoreNode *params, ExceptionSink *xsink)
        return NULL;
  
    return parseJSONValue(p0->val.String, xsink);
+}
+
+class QoreString *makeJSONRPC11RequestStringArgs(class QoreNode *params, ExceptionSink *xsink)
+{
+   class QoreNode *p0;
+   if (!(p0 = test_param(params, NT_STRING, 0)))
+   {
+      xsink->raiseException("MAKE-JSONRPC11-REQUEST-STRING-ERROR", "expecting method name as first parameter");
+      return NULL;
+   }
+
+   class QoreNode *p1 = get_param(params, 1);
+
+   QoreString *str = new QoreString(QCS_UTF8);
+
+   // write version key first
+   str->concat("{ \"version\" : \"1.1\", \"method\" : ");
+   if (doJSONValue(str, p0, -1, xsink))
+      return NULL;
+
+   // params key should come last
+   str->concat(", \"params\" : ");
+   if (p1)
+   {
+      if (doJSONValue(str, p1, -1, xsink))
+	 return NULL;
+   }
+   else
+      str->concat("null");
+   str->concat(" }");
+   return str;
+}
+
+class QoreString *makeJSONRPC11RequestString(class QoreNode *params, ExceptionSink *xsink)
+{
+   class QoreNode *p0;
+   if (!(p0 = test_param(params, NT_STRING, 0)))
+   {
+      xsink->raiseException("MAKE-JSONRPC11-REQUEST-STRING-ERROR", "expecting method name as first parameter");
+      return NULL;
+   }
+
+   QoreString *str = new QoreString(QCS_UTF8);
+
+   // write version key first
+   str->concat("{ \"version\" : \"1.1\", \"method\" : ");
+   if (doJSONValue(str, p0, -1, xsink))
+      return NULL;
+
+   // params key should come last
+   str->concat(", \"params\" : ");
+   if (num_params(params) > 1)
+   {
+      ReferenceHolder<QoreNode> new_params(new QoreNode(params->val.list->copyListFrom(1)));
+
+      if (doJSONValue(str, *new_params, -1, xsink))
+	 return NULL;
+   }
+   else
+      str->concat("null");
+   str->concat(" }");
+   return str;
 }
 
 // syntax: makeJSONRPCRequestString(method, version, id, params)

@@ -2,6 +2,7 @@
 	* added XmlRpcClient class to library
 	* fixed encoding bugs in parsing XML (libxml2 requires input to be 
 	  converted to UTF-8 before parsing
+	* added JsonRpcClient class to library
 
 2007.01.19: David Nichols
 	* added HTTPClient class documentation

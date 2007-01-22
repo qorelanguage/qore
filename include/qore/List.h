@@ -106,6 +106,25 @@ public:
    DLLEXPORT class QoreNode *getAndClear(int i);
 };
 
+class TempList {
+   private:
+      class List *l;
+      class ExceptionSink *xsink;
+
+   public:
+      DLLEXPORT TempList(class List *lst, class ExceptionSink *xs) : l(lst), xsink(xs)
+      {
+      }
+      DLLEXPORT ~TempList()
+      {
+	 if (l)
+	    l->derefAndDelete(xsink);
+      }
+      DLLEXPORT List *operator->(){ return l; };
+      DLLEXPORT List *operator*() { return l; };
+      DLLEXPORT operator bool() const { return l != 0; }
+};
+
 class ListIterator
 {
    private:

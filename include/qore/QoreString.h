@@ -155,17 +155,17 @@ class TempString {
       class QoreString *str;
 
    public:
-      TempString(class QoreString *s)
+      DLLEXPORT TempString(class QoreString *s)
       {
 	 str = s;
       }
-      ~TempString()
+      DLLEXPORT ~TempString()
       {
 	 delete str;
       }
-      QoreString *operator->(){ return str; };
-      QoreString *operator*() { return str; };
-      operator bool() const { return str != 0; }      
+      DLLEXPORT QoreString *operator->(){ return str; };
+      DLLEXPORT QoreString *operator*() { return str; };
+      DLLEXPORT operator bool() const { return str != 0; }      
 };
 
 // class for using strings possibly temporarily converted to another encoding
@@ -175,7 +175,7 @@ class TempEncodingHelper {
       bool temp;
 
    public:
-      TempEncodingHelper(class QoreString *s, class QoreEncoding *qe, class ExceptionSink *xsink)
+      DLLEXPORT TempEncodingHelper(class QoreString *s, class QoreEncoding *qe, class ExceptionSink *xsink)
       {
 	 if (s->getEncoding() != qe)
 	 {
@@ -188,15 +188,15 @@ class TempEncodingHelper {
 	    temp = false;
 	 }
       }
-      ~TempEncodingHelper()
+      DLLEXPORT ~TempEncodingHelper()
       {
 	 if (temp && str)
 	    delete str;
       }
-      QoreString *operator->(){ return str; };
-      QoreString *operator*() { return str; };
+      DLLEXPORT QoreString *operator->(){ return str; };
+      DLLEXPORT QoreString *operator*() { return str; };
       // to check for an exception in the constructor
-      operator bool() const { return str != 0; }
+      DLLEXPORT operator bool() const { return str != 0; }
 };
 
 #endif
