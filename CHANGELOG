@@ -11,6 +11,7 @@
 	  argument was NULL
 	* updated case statements in switch to be able to process any type when
 	  relational operators are used
+	* Solaris and HP-UX build fixes
 
 2007.01.19: David Nichols
 	* added HTTPClient class documentation

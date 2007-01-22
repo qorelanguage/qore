@@ -550,7 +550,7 @@ int QoreSocket::bind(const char *name, bool reuseaddr)
 {
    //printd(5, "QoreSocket::bind(%s)\n", name);
    // see if there is a port specifier
-   char *p = strchr(name, ':');
+   const char *p = strchr(name, ':');
    if (p)
    {
       int prt = atoi(p + 1);
@@ -1414,7 +1414,7 @@ int QoreSocket::recv(char *buf, int bs, int flags, int timeout)
 // * QoreSocket::connect("filename");
 int QoreSocket::connect(const char *name, class ExceptionSink *xsink)
 {
-   char *p;
+   const char *p;
    if ((p = strchr(name, ':')))
    {
       char *host = (char *)malloc(sizeof(char) * (p - name + 1));
@@ -1437,7 +1437,7 @@ int QoreSocket::connect(const char *name, class ExceptionSink *xsink)
 // * QoreSocket::connectSSL("filename");
 int QoreSocket::connectSSL(const char *name, X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink)
 {
-   char *p;
+   const char *p;
    if ((p = strchr(name, ':')))
    {
       char *host = (char *)malloc(sizeof(char) * (p - name + 1));
