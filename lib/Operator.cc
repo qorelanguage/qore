@@ -2287,7 +2287,6 @@ Operator::Operator(int arg, char *n, char *desc, int ev, bool eff, bool lv)
    opMatrix = NULL;
    effect = eff;
    lvalue = lv;
-   ref_rv = true;
 }
 
 Operator::~Operator()

@@ -135,7 +135,7 @@ class Operator {
    private:
       opfunc_list_t functions;
       int (*opMatrix)[NUM_VALUE_TYPES];
-      bool effect, lvalue, ref_rv;
+      bool effect, lvalue;
       char *name, *description;
       int args;
       int evalArgs;
