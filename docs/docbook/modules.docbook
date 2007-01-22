@@ -8483,6 +8483,12 @@ BOOL values, so boolean() could be called as well with the same effect</para>
 	      <entry><para><link linkend="Tibae_TibcoAdapter_sendSubjectWithSyncReply">TibcoAdapter::sendSubjectWithSyncReply()</link></para></entry>
 	      <entry>Y</entry>
 	      <entry><para>Creates a publisher, transmits data, and returns a data structure representing the reply.</para></entry>
+	      <entry><para><link linkend="Tibae_TibcoAdapter_operationsCallWithSyncResult">TibcoAdapter::operationsCallWithSyncResult()</link></para></entry>
+	      <entry>Y</entry>
+	      <entry>Calls an Tibco Operation and returns a data structure representing the reply.</para></entry>
+	      <entry><para><link linkend\"Tibae_TibcoAdapter_operationsOneWayCall">TibcoAdapter::operationsOneWayCall()></link></para></entry>
+	      <entry>Y</entry>
+	      <entry>Calls an one way (no reply sent) Tibco Operation.</entry>
 	    </row>	    
 	  </tbody>
 	</tgroup>
@@ -8885,6 +8891,142 @@ BOOL values, so boolean() could be called as well with the same effect</para>
 	  </tgroup>
 	</table>
       </sect3>
+
+
+      <sect3 id="Tibae_TibcoAdapter_operationsCallWithSyncResult">
+        <title>TibcoAdapter::operationsCallWithSyncResult()()</title>
+        <variablelist>
+          <varlistentry>
+            <term>Synopsis</term>
+            <listitem>
+              <para>Calls an Tibco Operation, waits for the reply and converts the reply into returned data structure.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>Usage</term>
+            <listitem>
+              <programlisting>TibcoAdapter::operationsCallWithSyncResult(<replaceable>class name, method name, call parameters, [timeout], [client name]</replaceable>)</programlisting>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+
+       <table>
+          <title>Arguments for TibcoAdapter::operationsCallWithSyncResult()</title>
+          <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+            <thead>
+              <row>
+                <entry><para>Argument</para></entry>
+                <entry><para>Type</para></entry>
+                <entry><para>Description</para></entry>
+              </row>
+            </thead>
+            <tbody>
+              <row>
+                <entry><para><replaceable>class name</replaceable></para></entry>
+                <entry><para>String</para></entry>
+                <entry><para>Class name of the Operation, as defined in Tibco repository.</para></entry>
+              </row>
+              <row>
+                <entry><para><replaceable>method name</replaceable></para></entry>
+                <entry><para>String</para></entry>
+                <entry><para>Method name of the Operation, as defined in Tibco repository.</para></entry>
+              </row>
+              <row>
+                <entry><para><replaceable>call parameters</replaceable></para></entry>
+                <entry><para>Hash</para></entry>
+                <entry><para>Parameters passed to the Operation, must match the class description or an exception will be thrown.</para></entry>
+              </row>
+              <row>
+                <entry><para><replaceable>[timeout]</replaceable></para></entry>
+                <entry><para>Integer</para></entry>
+                <entry><para>Optional timeout. Default value is 60 seconds.</para></entry>
+              </row>
+              <row>
+                <entry><para><replaceable>[client name]</replaceable></para></entry>
+                <entry><para>String</para></entry>
+                <entry><para>Optional identification of the caller, as defined in Tibco repository. Default is empty string.</para></entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </table>
+
+        <table>
+          <title>Return Values for TibcoAdapter::operationsCallWithSyncResult()</title>
+          <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+            <thead>
+              <row>
+                <entry><para>Return Type</para></entry>
+                <entry><para>Description</para></entry>
+              </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry><para>Hash</para></entry>
+              <entry><para>The reply from the Operation. If timeout expires an exception is thrown.</para></entry>
+            </row>
+          </tbody>
+          </tgroup>
+        </table>
+      </sect3>
+
+
+      <sect3 id="Tibae_TibcoAdapter_operationsOneWayCall">
+        <title>TibcoAdapter::operationsOneWayCall()()</title>
+        <variablelist>
+          <varlistentry>
+            <term>Synopsis</term>
+            <listitem>
+              <para>Calls an oneway Tibco Operation, no reply is expected.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>Usage</term>
+            <listitem>
+              <programlisting>TibcoAdapter::operationsOneWayCall(<replaceable>class name, method name, call parameters, [client name]</replaceable>)</programlisting>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+
+       <table>
+          <title>Arguments for TibcoAdapter::operationsOneWayCall()</title>
+          <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+            <thead>
+              <row>
+                <entry><para>Argument</para></entry>
+                <entry><para>Type</para></entry>
+                <entry><para>Description</para></entry>
+              </row>
+            </thead>
+            <tbody>
+              <row>
+                <entry><para><replaceable>class name</replaceable></para></entry>
+                <entry><para>String</para></entry>
+                <entry><para>Class name of the oneway Operation, as defined in Tibco repository.</para></entry>
+              </row>
+              <row>
+                <entry><para><replaceable>method name</replaceable></para></entry>
+                <entry><para>String</para></entry>
+                <entry><para>Method name of the oneway Operation, as defined in Tibco repository.</para></entry>
+              </row>
+              <row>
+                <entry><para><replaceable>call parameters</replaceable></para></entry>
+                <entry><para>Hash</para></entry>
+                <entry><para>Parameters passed to the oneway Operation, must match the class description or an exception will be thrown.</para></entry>
+              </row>
+
+              <row>
+                <entry><para><replaceable>[client name]</replaceable></para></entry>
+                <entry><para>String</para></entry>
+                <entry><para>Optional identification of the caller, as defined in Tibco repository. Default is empty string.</para></entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </table>
+
+        </table>
+      </sect3>
+
+
     </sect2>
   </sect1>
 
