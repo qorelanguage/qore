@@ -148,9 +148,16 @@ class QoreProgram *Object::getProgram() const
    return pgm;
 }
 
-bool Object::isSystemObject() const
+bool Object::isSystemObject()
 {
-   return pgm == NULL;
+   bool rc;
+   g.enter();
+   if (status != OS_OK)
+      rc = false;
+   else
+      rc = (pgm == NULL);
+   g.exit();
+   return rc;
 }
 
 void Object::tRef()

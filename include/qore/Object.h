@@ -97,7 +97,7 @@ class Object : public ReferenceObject
       DLLEXPORT int getStatus() const;
       DLLEXPORT int isValid() const;
       DLLEXPORT class QoreProgram *getProgram() const;
-      DLLEXPORT bool isSystemObject() const;
+      DLLEXPORT bool isSystemObject();
       DLLEXPORT void tRef();
       DLLEXPORT void tDeref();
       DLLEXPORT void ref();
