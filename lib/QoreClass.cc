@@ -756,9 +756,9 @@ inline void BCSMList::add(class QoreClass *thisclass, class QoreClass *qc)
 
 inline void BCSMList::execDestructors(class Object *o, class ExceptionSink *xsink)
 {
-   class_list_t::const_reverse_iterator i = (class_list_t::const_reverse_iterator)rbegin();
+   class_list_t::reverse_iterator i = rbegin();
    // cast below required by g++ 3.2 at least
-   while (i != (class_list_t::const_reverse_iterator)rend())
+   while (i != rend())
    {
       printd(5, "BCSMList::execDestructors() %s::destructor() o=%08p (subclass %s)\n", (*i)->getName(), o, o->getClass()->getName());
       (*i)->execSubclassDestructor(o, xsink);
@@ -768,8 +768,8 @@ inline void BCSMList::execDestructors(class Object *o, class ExceptionSink *xsin
 
 inline void BCSMList::execSystemDestructors(class Object *o, class ExceptionSink *xsink)
 {
-   class_list_t::const_reverse_iterator i = (class_list_t::const_reverse_iterator)rbegin();
-   while (i != (class_list_t::const_reverse_iterator)rend())
+   class_list_t::reverse_iterator i = rbegin();
+   while (i != rend())
    {
       printd(5, "BCSMList::execSystemDestructors() %s::destructor() o=%08p (subclass %s)\n", (*i)->getName(), o, o->getClass()->getName());
       (*i)->execSubclassSystemDestructor(o, xsink);
