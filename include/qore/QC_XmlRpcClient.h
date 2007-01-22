@@ -1,10 +1,10 @@
 /*
-  QC_HTTPClient.h
+  QC_XmlRpcClient.h
 
   Qore Programming Language
 
-  Copyright (C) 2006 Qore Technologies
-
+  Copyright (C) 2006, 2007 QoreTechnologies
+  
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
   License as published by the Free Software Foundation; either
@@ -18,15 +18,12 @@
   You should have received a copy of the GNU Lesser General Public
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- */
-#ifndef QC_HTTP_CLIENT_H_
-#define QC_HTTP_CLIENT_H_
+*/
 
-DLLEXPORT extern int CID_HTTPCLIENT;
-DLLLOCAL Namespace* addHTTPClientNamespace(class QoreClass *&http_client_class);
+#ifndef _QORE_CLASS_XMLRPCCLIENT_H
+#define _QORE_CLASS_XMLRPCCLIENT_H
+
+DLLEXPORT extern int CID_XMLRPCCLIENT;
+DLLLOCAL Namespace *addXmlRpcClientNamespace(class QoreClass *http_client);
 
 #endif
-
-// EOF
-
-

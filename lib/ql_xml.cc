@@ -753,24 +753,27 @@ static void addXMLRPCValue(QoreString *str, QoreNode *n, int indent, class QoreE
    traceout("addXMLRPCValue()");
 }
 
-// makeXMLRPCCallString(string (function name), params, ...)
-static class QoreNode *f_makeXMLRPCCallString(class QoreNode *params, ExceptionSink *xsink)
+class QoreString *makeXMLRPCCallString(class QoreEncoding *ccs, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0, *p;
-   class QoreEncoding *ccs = QCS_DEFAULT;
 
-   tracein("f_makeXMLRPCCallString()");
+   tracein("makeXMLRPCCallString()");
    if (!(p0 = test_param(params, NT_STRING, 0)))
    {
-      xsink->raiseException("MAKE-XML-RPC-CALL-STRING-PARAMETER-EXCEPTION",
-			    "expecting method name as first parameter");
-      traceout("f_makeXMLRPCCallString()");
+      xsink->raiseException("MAKE-XML-RPC-CALL-STRING-PARAMETER-EXCEPTION", "expecting method name as first parameter");
+      traceout("makeXMLRPCCallString()");
       return NULL;
    }
 
    QoreString *str = new QoreString(ccs);
    str->sprintf("<?xml version=\"1.0\" encoding=\"%s\"?><methodCall><methodName>", ccs->code);
-   str->concatAndHTMLEncode(p0->val.String->getBuffer());
+   str->concatAndHTMLEncode(p0->val.String, xsink);
+   if (xsink->isException())
+   {
+      delete str;
+      traceout("makeXMLRPCCallString()");
+      return NULL;
+   }
    str->concat("</methodName>");
 
    // now process all params
@@ -785,6 +788,12 @@ static class QoreNode *f_makeXMLRPCCallString(class QoreNode *params, ExceptionS
 	 {
 	    str->concat("<param>");
 	    addXMLRPCValue(str, p, 0, ccs, 0, xsink);
+	    if (xsink->isException())
+	    {
+	       delete str;
+	       traceout("makeXMLRPCCallString()");
+	       return NULL;
+	    }
 	    str->concat("</param>");
 	 }
 	 else
@@ -795,28 +804,39 @@ static class QoreNode *f_makeXMLRPCCallString(class QoreNode *params, ExceptionS
    else
       str->concat("<params/>");
    str->concat("</methodCall>");
-   traceout("f_makeXMLRPCCallString()");
-   return new QoreNode(str);
+   traceout("makeXMLRPCCallString()");
+   return str;
+}
+
+// makeXMLRPCCallString(string (function name), params, ...)
+static class QoreNode *f_makeXMLRPCCallString(class QoreNode *params, ExceptionSink *xsink)
+{
+   class QoreString *str = makeXMLRPCCallString(QCS_DEFAULT, params, xsink);
+   return str ? new QoreNode(str) : NULL;
 }
 
 // makeXMLRPCCallStringArgs(string (function name), list of params)
-static class QoreNode *f_makeXMLRPCCallStringArgs(class QoreNode *params, ExceptionSink *xsink)
+class QoreString *makeXMLRPCCallStringArgs(class QoreEncoding *ccs, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0, *p1;
-   class QoreEncoding *ccs = QCS_DEFAULT;
 
-   tracein("f_makeXMLRPCCallStringArgs()");
+   tracein("makeXMLRPCCallStringArgs()");
    if (!(p0 = test_param(params, NT_STRING, 0)))
    {
-      xsink->raiseException("MAKE-XML-RPC-CALL-STRING-ARGS-PARAMETER-EXCEPTION",
-		     "expecting method name as first parameter");
-      traceout("f_makeXMLRPCCallStringArgs()");
+      xsink->raiseException("MAKE-XML-RPC-CALL-STRING-ARGS-PARAMETER-EXCEPTION", "expecting method name as first parameter");
+      traceout("makeXMLRPCCallStringArgs()");
       return NULL;
    }
 
    QoreString *str = new QoreString(ccs);
    str->sprintf("<?xml version=\"1.0\" encoding=\"%s\"?><methodCall><methodName>", ccs->code);
-   str->concatAndHTMLEncode(p0->val.String->getBuffer());
+   str->concatAndHTMLEncode(p0->val.String, xsink);
+   if (xsink->isException())
+   {
+      delete str;
+      traceout("makeXMLRPCCallStringArgs()");
+      return NULL;
+   }
    str->concat("</methodName>"); 
 
    if ((p1 = get_param(params, 1)) && (p1->type == NT_LIST) && p1->val.list->size())
@@ -832,6 +852,12 @@ static class QoreNode *f_makeXMLRPCCallStringArgs(class QoreNode *params, Except
 	 {
 	    str->concat("<param>");
 	    addXMLRPCValue(str, p, 0, ccs, 0, xsink);
+	    if (xsink->isException())
+	    {
+	       delete str;
+	       traceout("makeXMLRPCCallStringArgs()");
+	       return NULL;
+	    }
 	    str->concat("</param>");
 	 }
 	 else
@@ -843,14 +869,27 @@ static class QoreNode *f_makeXMLRPCCallStringArgs(class QoreNode *params, Except
    {
       str->concat("<params><param>"); 
       addXMLRPCValue(str, p1, 0, ccs, 0, xsink);
+      if (xsink->isException())
+      {
+	 delete str;
+	 traceout("makeXMLRPCCallStringArgs()");
+	 return NULL;
+      }
       str->concat("</param></params>");       
    }
    else
       str->concat("<params/>");
 
    str->concat("</methodCall>");
-   traceout("f_makeXMLRPCCallStringArgs()");
-   return new QoreNode(str);
+   traceout("makeXMLRPCCallStringArgs()");
+   return str;
+}
+
+// makeXMLRPCCallStringArgs(string (function name), list of params)
+static class QoreNode *f_makeXMLRPCCallStringArgs(class QoreNode *params, ExceptionSink *xsink)
+{
+   class QoreString *str = makeXMLRPCCallStringArgs(QCS_DEFAULT, params, xsink);
+   return str ? new QoreNode(str) : NULL;
 }
 
 static inline class QoreString *getXmlString(xmlTextReader *reader, class QoreEncoding *id, class ExceptionSink *xsink)
@@ -1938,8 +1977,7 @@ static void makeXMLStringNew(xmlTextWriterPtr writer, Hash *h, class ExceptionSi
    traceout("makeXMLStringNew()");
 }
 
-// NOTE: the libxml2 library will convert all characters to UTF-8, assuming that the
-// input encoding is correctly specified
+// NOTE: the libxml2 library requires all input to be in UTF-8 encoding
 // syntax: parseXML(xml string [, output encoding])
 static class QoreNode *f_parseXML(class QoreNode *params, ExceptionSink *xsink)
 {
@@ -1960,7 +1998,12 @@ static class QoreNode *f_parseXML(class QoreNode *params, ExceptionSink *xsink)
    else
       ccsid = QCS_DEFAULT;
 
-   xmlTextReader *reader = xmlReaderForDoc((xmlChar *)p0->val.String->getBuffer(), NULL, NULL, QORE_XML_READER_PARAMS);
+   // convert to UTF-8 
+   TempEncodingHelper str(p0->val.String, QCS_UTF8, xsink);
+   if (!str)
+      return NULL;
+
+   xmlTextReader *reader = xmlReaderForDoc((xmlChar *)str->getBuffer(), NULL, NULL, QORE_XML_READER_PARAMS);
    if (!reader)
    {
       traceout("f_parseXML()");
@@ -2788,7 +2831,11 @@ static class QoreNode *f_parseXMLRPCValue(class QoreNode *params, ExceptionSink 
    else
       ccsid = QCS_DEFAULT;
 
-   xmlTextReader *reader = xmlReaderForDoc((xmlChar *)p0->val.String->getBuffer(), NULL, NULL, QORE_XML_READER_PARAMS);
+   TempEncodingHelper str(p0->val.String, QCS_UTF8, xsink);
+   if (!str)
+      return NULL;
+
+   xmlTextReader *reader = xmlReaderForDoc((xmlChar *)str->getBuffer(), NULL, NULL, QORE_XML_READER_PARAMS);
    if (!reader)
       return NULL;
    ON_BLOCK_EXIT(xmlFreeTextReader, reader);
@@ -2834,7 +2881,11 @@ static class QoreNode *f_parseXMLRPCCall(class QoreNode *params, ExceptionSink *
    else
       ccsid = QCS_DEFAULT;
 
-   xmlTextReader *reader = xmlReaderForDoc((xmlChar *)p0->val.String->getBuffer(), NULL, NULL, QORE_XML_READER_PARAMS);
+   TempEncodingHelper str(p0->val.String, QCS_UTF8, xsink);
+   if (!str)
+      return NULL;
+
+   xmlTextReader *reader = xmlReaderForDoc((xmlChar *)str->getBuffer(), NULL, NULL, QORE_XML_READER_PARAMS);
    if (!reader)
       return NULL;
    ON_BLOCK_EXIT(xmlFreeTextReader, reader);
@@ -2952,21 +3003,15 @@ static class QoreNode *f_parseXMLRPCCall(class QoreNode *params, ExceptionSink *
    return new QoreNode(h.getHash());
 }
 
-static class QoreNode *f_parseXMLRPCResponse(class QoreNode *params, ExceptionSink *xsink)
+class QoreNode *parseXMLRPCResponse(class QoreString *msg, class QoreEncoding *ccsid, ExceptionSink *xsink)
 {
-   QoreNode *p0, *p1;
-   if (!(p0 = test_param(params, NT_STRING, 0)))
+   printd(5, "parseXMLRPCCall(%s)\n", msg->getBuffer());
+
+   TempEncodingHelper str(msg, QCS_UTF8, xsink);
+   if (!str)
       return NULL;
 
-   printd(5, "parseXMLRPCCall(%s)\n", p0->val.String->getBuffer());
-
-   class QoreEncoding *ccsid;
-   if ((p1 = test_param(params, NT_STRING, 1)))
-      ccsid = QEM.findCreate(p1->val.String);
-   else
-      ccsid = QCS_DEFAULT;
-
-   xmlTextReader *reader = xmlReaderForDoc((xmlChar *)p0->val.String->getBuffer(), NULL, NULL, QORE_XML_READER_PARAMS);
+   xmlTextReader *reader = xmlReaderForDoc((xmlChar *)str->getBuffer(), NULL, NULL, QORE_XML_READER_PARAMS);
    if (!reader)
       return NULL;
    ON_BLOCK_EXIT(xmlFreeTextReader, reader);
@@ -2980,15 +3025,11 @@ static class QoreNode *f_parseXMLRPCResponse(class QoreNode *params, ExceptionSi
       return qore_xml_exception("PARSE-XML-RPC-RESPONSE-ERROR", "expecting 'methodResponse' element", xsink);
 
    if (qore_xmlCheckName(reader, "methodResponse", xsink))
-   {
       return NULL;
-   }
 
    // check for params or fault element
    if (qore_xmlRead(reader, "expecting 'params' or 'fault' element", xsink))
-   {
       return NULL;
-   }
 
    if ((nt = qore_xmlTextReaderNodeType(reader)) != XML_READER_TYPE_ELEMENT)
       return qore_xml_exception("PARSE-XML-RPC-RESPONSE-ERROR", "expecting 'params' or 'fault' element", xsink);
@@ -3008,9 +3049,7 @@ static class QoreNode *f_parseXMLRPCResponse(class QoreNode *params, ExceptionSi
 
       // get "params" element
       if (qore_xmlRead(reader, "expecting 'params' element", xsink))
-      {
 	 return NULL;
-      }
 
       int params_depth = xmlTextReaderDepth(reader);
 
@@ -3018,9 +3057,7 @@ static class QoreNode *f_parseXMLRPCResponse(class QoreNode *params, ExceptionSi
       if (depth < params_depth)
       {
 	 if ((nt = qore_xmlReadNode(reader, xsink)) == -1)
-	 {
 	    return NULL;
-	 }
 
 	 if (nt != XML_READER_TYPE_END_ELEMENT)
 	 {
@@ -3028,24 +3065,18 @@ static class QoreNode *f_parseXMLRPCResponse(class QoreNode *params, ExceptionSi
 	       return qore_xml_exception("PARSE-XML-RPC-RESPONSE-ERROR", "expecting 'param' element", xsink);
 	       
 	    if (qore_xmlCheckName(reader, "param", xsink))
-	    {
 	       return NULL;
-	    }
 	       
 	    // get "value" element
 	    if (qore_xmlRead(reader, "expecting 'value' element", xsink))
-	    {
 	       return NULL;
-	    }
 
 	    // if param was not an empty element
 	    depth = xmlTextReaderDepth(reader);
 	    if (params_depth < depth)
 	    {
 	       if ((nt = qore_xmlReadNode(reader, xsink)) == -1)
-	       {
 		  return NULL;
-	       }
 	    
 	       if (nt != XML_READER_TYPE_END_ELEMENT)
 	       {
@@ -3053,15 +3084,11 @@ static class QoreNode *f_parseXMLRPCResponse(class QoreNode *params, ExceptionSi
 		     return qore_xml_exception("PARSE-XML-RPC-RESPONSE-ERROR", "expecting 'value' element", xsink);
 	       
 		  if (qore_xmlCheckName(reader, "value", xsink))
-		  {
 		     return NULL;
-		  }
 	       		  
 		  // position at next element
 		  if (qore_xmlRead(reader, "expecting XML-RPC value element", xsink))
-		  {
 		     return NULL;
-		  }
 		  
 		  // if value was not an empty element
 		  if (depth < xmlTextReaderDepth(reader))
@@ -3069,16 +3096,7 @@ static class QoreNode *f_parseXMLRPCResponse(class QoreNode *params, ExceptionSi
 		     getXMLRPCValueData(reader, &v, ccsid, true, xsink);
 		     
 		     if (xsink->isEvent())
-		     {
 			return NULL;
-		     }
-		     /*
-		     // get "param" end element
-		     if (qore_xmlRead(reader, "expecting 'param' end element", xsink))
-		     {
-			return NULL;
-		     }
-		     */
 		  }
 		  if ((nt = qore_xmlTextReaderNodeType(reader)) != XML_READER_TYPE_END_ELEMENT)
 		     return qore_xml_exception("PARSE-XML-RPC-RESPONSE-ERROR", "expecting 'param' end element", xsink);
@@ -3086,18 +3104,14 @@ static class QoreNode *f_parseXMLRPCResponse(class QoreNode *params, ExceptionSi
 
 	       // get "params" end element
 	       if (qore_xmlRead(reader, "expecting 'params' end element", xsink))
-	       {
 		  return NULL;
-	       }
 	    }
 	    if ((nt = qore_xmlTextReaderNodeType(reader)) != XML_READER_TYPE_END_ELEMENT)
 	       return qore_xml_exception("PARSE-XML-RPC-RESPONSE-ERROR", "expecting 'params' end element", xsink);
 	 }
 	 // get "methodResponse" end element
 	 if (qore_xmlRead(reader, "expecting 'methodResponse' end element", xsink))
-	 {
 	    return NULL;
-	 }
       }
    }
    else if (!strcmp(name, "fault"))
@@ -3106,48 +3120,30 @@ static class QoreNode *f_parseXMLRPCResponse(class QoreNode *params, ExceptionSi
 
       // get "value" element
       if (qore_xmlRead(reader, "expecting 'value' element", xsink))
-      {
 	 return NULL;
-      }
       
       if ((nt = qore_xmlTextReaderNodeType(reader)) != XML_READER_TYPE_ELEMENT)
 	 return qore_xml_exception("PARSE-XML-RPC-RESPONSE-ERROR", "expecting fault 'value' element", xsink);
 
       if (qore_xmlCheckName(reader, "value", xsink))
-      {
 	 return NULL;
-      }
 
       // position at next element
       if (qore_xmlRead(reader, "expecting XML-RPC value element", xsink))
-      {
 	 return NULL;
-      }
       
       // get fault structure
       getXMLRPCValueData(reader, &v, ccsid, true, xsink);
 
       if (xsink->isEvent())
-      {
 	 return NULL;
-      }
 
-      /*
-      // get "fault" end element
-      if (qore_xmlRead(reader, "expecting 'fault' end element", xsink))
-      {
-	 return NULL;
-      }
-      */
-      
       if ((nt = qore_xmlTextReaderNodeType(reader)) != XML_READER_TYPE_END_ELEMENT)
 	 return qore_xml_exception("PARSE-XML-RPC-RESPONSE-ERROR", "expecting 'fault' end element", xsink);
 
       // get "methodResponse" end element
       if (qore_xmlRead(reader, "expecting 'methodResponse' end element", xsink))
-      {
 	 return NULL;
-      }
    }
    else
    {
@@ -3158,13 +3154,29 @@ static class QoreNode *f_parseXMLRPCResponse(class QoreNode *params, ExceptionSi
    if ((nt = qore_xmlTextReaderNodeType(reader)) != XML_READER_TYPE_END_ELEMENT)
       return qore_xml_exception("PARSE-XML-RPC-CALL-ERROR", "expecting 'methodResponse' end element", xsink);
 
-
    class Hash *h = new Hash();
    if (fault)
       h->setKeyValue("fault", v.getValue(), NULL);
    else
       h->setKeyValue("params", v.getValue(), NULL);
    return new QoreNode(h);
+}
+
+static class QoreNode *f_parseXMLRPCResponse(class QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p0, *p1;
+   if (!(p0 = test_param(params, NT_STRING, 0)))
+      return NULL;
+
+   printd(5, "parseXMLRPCCall(%s)\n", p0->val.String->getBuffer());
+
+   class QoreEncoding *ccsid;
+   if ((p1 = test_param(params, NT_STRING, 1)))
+      ccsid = QEM.findCreate(p1->val.String);
+   else
+      ccsid = QCS_DEFAULT;
+
+   return parseXMLRPCResponse(p0->val.String, ccsid, xsink);
 }
 
 void init_xml_functions()

@@ -10,7 +10,6 @@
 
 #include some XML-RPC helper functions and class
 %include xmlrpc.ql
-%include XmlRpcClient.qc
 
 # define command-line options for GetOpt class
 const xml_rpc_opts = 

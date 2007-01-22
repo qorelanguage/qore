@@ -150,5 +150,54 @@ class QoreString {
 
 DLLEXPORT class QoreString *checkEncoding(const class QoreString *str, const class QoreEncoding *enc, class ExceptionSink *xsink);
 
+class TempString {
+   private:
+      class QoreString *str;
+
+   public:
+      TempString(class QoreString *s)
+      {
+	 str = s;
+      }
+      ~TempString()
+      {
+	 delete str;
+      }
+      QoreString *operator->(){ return str; };
+      QoreString *operator*() { return str; };
+      operator bool() const { return str != 0; }      
+};
+
+// class for using strings possibly temporarily converted to another encoding
+class TempEncodingHelper {
+   private:
+      class QoreString *str;
+      bool temp;
+
+   public:
+      TempEncodingHelper(class QoreString *s, class QoreEncoding *qe, class ExceptionSink *xsink)
+      {
+	 if (s->getEncoding() != qe)
+	 {
+	    str = s->convertEncoding(qe, xsink);
+	    temp = true;
+	 }
+	 else
+	 {
+	    str = s;
+	    temp = false;
+	 }
+      }
+      ~TempEncodingHelper()
+      {
+	 if (temp && str)
+	    delete str;
+      }
+      QoreString *operator->(){ return str; };
+      QoreString *operator*() { return str; };
+      // to check for an exception in the constructor
+      operator bool() const { return str != 0; }
+};
+
 #endif
 

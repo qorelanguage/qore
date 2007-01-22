@@ -120,6 +120,7 @@
 #include "QC_SSLCertificate.cc"
 #include "QC_SSLPrivateKey.cc"
 #include "QC_HTTPClient.cc"
+#include "QC_XmlRpcClient.cc"
 #include "minitest.cc"
 
 #ifdef DEBUG

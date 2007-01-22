@@ -31,7 +31,6 @@
 
 str_set_t QoreHTTPClient::method_set;
 strcase_set_t QoreHTTPClient::header_ignore;
-header_map_t QoreHTTPClient::default_headers;
 class SafeHash QoreHTTPClient::mandatory_headers;
 
 // static initialization
@@ -46,11 +45,6 @@ void QoreHTTPClient::static_init()
    method_set.insert("DELETE");
    method_set.insert("TRACE");
    method_set.insert("CONNECT");
-
-   default_headers["Accept"] = "text/html";
-   default_headers["Content-Type"] = "text/html";
-   default_headers["Connection"] = "Keep-Alive";
-   default_headers["User-Agent"] = "Qore HTTP Client v" PACKAGE_VERSION;
 
    char buf[HOSTNAMEBUFSIZE + 1];
    if (gethostname(buf, HOSTNAMEBUFSIZE))
@@ -75,6 +69,12 @@ QoreHTTPClient::QoreHTTPClient()
    // setup protocol map
    prot_map["http"] = make_protocol(80, false);
    prot_map["https"] = make_protocol(443, true);
+
+   // setup default headers
+   default_headers["Accept"] = "text/html";
+   default_headers["Content-Type"] = "text/html";
+   default_headers["Connection"] = "Keep-Alive";
+   default_headers["User-Agent"] = "Qore HTTP Client v" PACKAGE_VERSION;
 
    setSocketPath();
 }
@@ -351,9 +351,9 @@ void QoreHTTPClient::disconnect()
    unlock();
 }
 
-class QoreNode *QoreHTTPClient::send_internal(char *meth, char *path, class Hash *headers, void *data, unsigned size, bool getbody, class ExceptionSink *xsink)
+class QoreNode *QoreHTTPClient::send_internal(char *meth, const char *path, class Hash *headers, void *data, unsigned size, bool getbody, class ExceptionSink *xsink)
 {
-      // check if method is valid
+   // check if method is valid
    str_set_t::const_iterator i = method_set.find(meth);
    if (i == method_set.end())
    {
@@ -416,6 +416,10 @@ class QoreNode *QoreHTTPClient::send_internal(char *meth, char *path, class Hash
       }
       nh->setKeyValue((char *)i->first.c_str(), new QoreNode(i->second.c_str()), xsink);
    }
+
+   // use default path if no path is set
+   if (!path || !path[0])
+      path = default_path.c_str();
 
    // send the message
    int rc = m_socket.sendHTTPMessage(meth, path, http11 ? "1.1" : "1.0", nh, data, size);
@@ -567,7 +571,7 @@ class QoreNode *QoreHTTPClient::send_internal(char *meth, char *path, class Hash
    return ans;
 }
 
-class QoreNode *QoreHTTPClient::send(char *meth, char *path, class Hash *headers, void *data, unsigned size, bool getbody, class ExceptionSink *xsink)
+class QoreNode *QoreHTTPClient::send(char *meth, const char *path, class Hash *headers, void *data, unsigned size, bool getbody, class ExceptionSink *xsink)
 {
    class QoreNode *ans = send_internal(meth, path, headers, data, size, getbody, xsink);
    if (!ans)
@@ -577,7 +581,7 @@ class QoreNode *QoreHTTPClient::send(char *meth, char *path, class Hash *headers
    return rv;
 }
 
-class QoreNode *QoreHTTPClient::get(char *path, class Hash *headers, class ExceptionSink *xsink)
+class QoreNode *QoreHTTPClient::get(const char *path, class Hash *headers, class ExceptionSink *xsink)
 {
    class QoreNode *ans = send_internal("GET", path, headers, NULL, 0, true, xsink);
    if (!ans)
@@ -587,12 +591,12 @@ class QoreNode *QoreHTTPClient::get(char *path, class Hash *headers, class Excep
    return rv;
 }
 
-class QoreNode *QoreHTTPClient::head(char *path, class Hash *headers, class ExceptionSink *xsink)
+class QoreNode *QoreHTTPClient::head(const char *path, class Hash *headers, class ExceptionSink *xsink)
 {
    return send_internal("HEAD", path, headers, NULL, 0, false, xsink);
 }
 
-class QoreNode *QoreHTTPClient::post(char *path, class Hash *headers, void *data, unsigned size, class ExceptionSink *xsink)
+class QoreNode *QoreHTTPClient::post(const char *path, class Hash *headers, void *data, unsigned size, class ExceptionSink *xsink)
 {
    class QoreNode *ans = send_internal("POST", path, headers, data, size, true, xsink);
    if (!ans)
@@ -601,5 +605,11 @@ class QoreNode *QoreHTTPClient::post(char *path, class Hash *headers, void *data
    ans->deref(xsink);
    return rv;
 }
+
+void QoreHTTPClient::addProtocol(char *prot, int port, bool ssl)
+{
+   prot_map[prot] = make_protocol(port, ssl);
+}
+
 
 // EOF

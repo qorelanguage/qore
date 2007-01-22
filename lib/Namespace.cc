@@ -57,6 +57,7 @@
 #include <qore/QC_GetOpt.h>
 #include <qore/QC_FtpClient.h>
 #include <qore/QC_HTTPClient.h>
+#include <qore/QC_XmlRpcClient.h>
 
 #include <string.h>
 #include <stdlib.h>
@@ -1688,7 +1689,9 @@ RootNamespace::RootNamespace(class Namespace **QoreNS) : Namespace()
    qns->addInitialNamespace(get_type_ns());
 
    // add HTTPClient namespace
-   qns->addInitialNamespace(addHTTPClientNamespace());
+   class QoreClass *http_client_class;
+   qns->addInitialNamespace(addHTTPClientNamespace(http_client_class));
+   qns->addInitialNamespace(addXmlRpcClientNamespace(http_client_class));
 
    // add file constants
    addFileConstants(qns);

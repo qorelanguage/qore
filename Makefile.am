@@ -154,6 +154,7 @@ noinst_HEADERS = \
 	include/qore/QC_SSLCertificate.h \
 	include/qore/QC_SSLPrivateKey.h \
 	include/qore/QC_HTTPClient.h \
+	include/qore/QC_XmlRpcClient.h \
 	include/qore/QoreHTTPClient.h \
 	include/qore/DBI.h \
 	include/qore/ScopeGuard.h \

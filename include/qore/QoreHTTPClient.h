@@ -82,7 +82,6 @@ class QoreHTTPClient : public AbstractPrivateData, public LockedObject
    private:
       static str_set_t method_set;
       static strcase_set_t header_ignore;
-      static header_map_t default_headers;
       static class SafeHash mandatory_headers;
    
       // are we using http 1.1 or 1.0?
@@ -106,13 +105,15 @@ class QoreHTTPClient : public AbstractPrivateData, public LockedObject
       // returns -1 if an exception was thrown, 0 for OK
       DLLLOCAL int connect_unlocked(class ExceptionSink *xsink);
       DLLLOCAL void disconnect_unlocked();
-      DLLLOCAL class QoreNode *send_internal(char *meth, char *path, class Hash *headers, void *data, unsigned size, bool getbody, class ExceptionSink *xsink);
+      DLLLOCAL class QoreNode *send_internal(char *meth, const char *path, class Hash *headers, void *data, unsigned size, bool getbody, class ExceptionSink *xsink);
       DLLLOCAL void setSocketPath();
 
    protected:
       DLLLOCAL virtual ~QoreHTTPClient();
       
    public:
+      header_map_t default_headers;
+
       DLLLOCAL static void static_init();
 
       DLLEXPORT QoreHTTPClient();
@@ -122,6 +123,8 @@ class QoreHTTPClient : public AbstractPrivateData, public LockedObject
       DLLEXPORT void setDefaultPort(int prt);
       // useful for c++ derived classes
       DLLEXPORT void setDefaultPath(char *pth);
+      // useful for c++ derived classes
+      DLLEXPORT void addProtocol(char *prot, int port, bool ssl = false);
 
       DLLEXPORT void setTimeout(int to);
       DLLEXPORT int getTimeout() const;
@@ -146,10 +149,10 @@ class QoreHTTPClient : public AbstractPrivateData, public LockedObject
       DLLEXPORT int connect(class ExceptionSink *xsink);
       DLLEXPORT void disconnect();
 
-      DLLEXPORT class QoreNode *send(char *meth, char *path, class Hash *headers, void *data, unsigned size, bool getbody, class ExceptionSink *xsink);
-      DLLEXPORT class QoreNode *get(char *path, class Hash *headers, class ExceptionSink *xsink);
-      DLLEXPORT class QoreNode *head(char *path, class Hash *headers, class ExceptionSink *xsink);
-      DLLEXPORT class QoreNode *post(char *path, class Hash *headers, void *data, unsigned size, class ExceptionSink *xsink);
+      DLLEXPORT class QoreNode *send(char *meth, const char *path, class Hash *headers, void *data, unsigned size, bool getbody, class ExceptionSink *xsink);
+      DLLEXPORT class QoreNode *get(const char *path, class Hash *headers, class ExceptionSink *xsink);
+      DLLEXPORT class QoreNode *head(const char *path, class Hash *headers, class ExceptionSink *xsink);
+      DLLEXPORT class QoreNode *post(const char *path, class Hash *headers, void *data, unsigned size, class ExceptionSink *xsink);
 };
 
 #endif 

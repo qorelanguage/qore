@@ -139,6 +139,7 @@ libqore_la_SOURCES = \
 	QC_SSLCertificate.cc \
 	QC_SSLPrivateKey.cc \
 	QC_HTTPClient.cc \
+	QC_XmlRpcClient.cc \
 	QoreHTTPClient.cc \
 	minitest.cc
 

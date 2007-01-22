@@ -292,13 +292,13 @@ static QoreClass *initHTTPClientClass()
 }
 
 //-----------------------------------------------------------------------------
-Namespace* addHTTPClientNamespace()
+Namespace* addHTTPClientNamespace(class QoreClass *&http_client)
 {
    // initialize static data structures in the QoreHTTPClient class
    QoreHTTPClient::static_init();
 
    Namespace* ns = new Namespace("HTTPClient");
-   ns->addSystemClass(initHTTPClientClass());
+   ns->addSystemClass((http_client = initHTTPClientClass()));
    return ns;
 }
 
