@@ -65,7 +65,7 @@ QoreNode* runTuxedoTests(QoreNode* params, ExceptionSink* xsink)
     return 0;
   }
   
-  xsink->raiseException("Tuxedo test failed", "Tuxedo test in file %s, line %d threw an exception.", 
+  xsink->raiseException("TUXEDO-TEST-FAILURE", "Tuxedo test in file %s, line %d threw an exception.", 
     res.failed_test_file, res.failed_test_line);
   return 0;
 }

@@ -135,7 +135,7 @@ static vector<string> read_names_from_fml_description_file(const char* filename,
    vector<string> result;
   FILE* f = fopen(filename, "r");
   if (!f) {
-    xsink->raiseException("FML[32]_process_description_tables", "read_names_from_fml_description_file(): the file [ %s ] cannot be opened.", filename);
+    xsink->raiseException("FML-DESCRIPTION-TABLE-ERROR", "read_names_from_fml_description_file(): the file [ %s ] cannot be opened.", filename);
     return result;
   }
   ON_BLOCK_EXIT(fclose, f);
@@ -277,7 +277,7 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(Hash* settings, ExceptionSink* xsink)
   m_default_fml_description(0),
   m_default_fml32_description(0)
 {
-  char* err_name = "TuxedoAdapter::constructor";
+  char* err_name = "TUXEDO-ADAPTER-CONSTRUCTOR";
 
   long priority;
   bool priority_set = false;
@@ -852,6 +852,7 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(Hash* settings, ExceptionSink* xsink)
     return;
   } // while 
 
+  err_name = "TUXEDO-ERROR";
   int res = init();
   if (res == -1) {
     Hash* h = new Hash;
@@ -1217,7 +1218,7 @@ QoreNode* QoreTuxedoAdapter::buffer2node(char* buffer, long buffer_size, char* e
 //------------------------------------------------------------------------------
 QoreNode* QoreTuxedoAdapter::call(char* service_name, Hash* call_settings, long* pflags, ExceptionSink* xsink)
 {
-  char* err_name = "TuxedoAdapter::call";
+  char* err_name = "TUXEDO-ERROR";
   char type[20] = "";
   char subtype[20];
 
@@ -1257,7 +1258,7 @@ QoreNode* QoreTuxedoAdapter::call(char* service_name, Hash* call_settings, long*
 //------------------------------------------------------------------------------
 QoreNode* QoreTuxedoAdapter::acall(char* service_name, Hash* call_settings, long* pflags, ExceptionSink* xsink)
 {
-  char* err_name = "TuxedoAdapter::asyncCall";
+  char* err_name = "TUXEDO-ERROR";
   long flags = get_flags(call_settings, pflags, m_default_flags_for_acall, m_default_flags_for_acall_set, err_name, xsink);
   if (xsink->isException()) {
     return 0;
@@ -1278,7 +1279,7 @@ QoreNode* QoreTuxedoAdapter::acall(char* service_name, Hash* call_settings, long
 //-----------------------------------------------------------------------------
 QoreNode* QoreTuxedoAdapter::post_event(char* event_name, Hash* call_settings, long* pflags, ExceptionSink* xsink)
 {
-  char* err_name = "TuxedoAdapter::postEvent";
+  char* err_name = "TUXEDO-ERROR";
   long flags = get_flags(call_settings, pflags, m_default_flags_for_post_event, m_default_flags_for_post_event_set, err_name, xsink);
   if (xsink->isException()) {
     return 0;
@@ -1296,7 +1297,7 @@ QoreNode* QoreTuxedoAdapter::post_event(char* event_name, Hash* call_settings, l
 //------------------------------------------------------------------------------
 QoreNode* QoreTuxedoAdapter::get_reply(int handle, Hash* call_settings, long* pflags, ExceptionSink* xsink)
 {
-  char* err_name = "TuxedoAdapter::waitForAsyncReply";
+  char* err_name = "TUXEDO-ADAPTER-WAIT-FOR-ASYNC_REPLY";
 
   pair<char*, long> out = allocate_out_buffer(0, call_settings, err_name, xsink);
   if (xsink->isException()) {
@@ -1315,7 +1316,7 @@ QoreNode* QoreTuxedoAdapter::get_reply(int handle, Hash* call_settings, long* pf
     Hash* h = new Hash;
     h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
     h->setKeyValue((char*)"Tuxedo call", new QoreNode("tpgetrply"), xsink);
-    return xsink->raiseExceptionArg(err_name, new QoreNode(h), "tpgetrply() failed with error %d.", tperrno);
+    return xsink->raiseExceptionArg("TUXEDO-ERROR", new QoreNode(h), "tpgetrply() failed with error %d.", tperrno);
   }
 
   QoreNode* ret = buffer2node(out.first, out.second, err_name, xsink);
@@ -1330,7 +1331,7 @@ QoreNode* QoreTuxedoAdapter::get_reply(int handle, Hash* call_settings, long* pf
 //------------------------------------------------------------------------------
 QoreNode* QoreTuxedoAdapter::connect(char* service_name, Hash* call_settings, long* pflags, ExceptionSink* xsink)
 {
-  char* err_name = "TuxedoAdapter::joinConversation";
+  char* err_name = "TUXEDO-ADAPTER-JOIN-CONVERSATION";
   long flags = get_flags(call_settings, pflags, m_default_flags_for_connect, m_default_flags_for_connect_set, err_name, xsink);
   if (xsink->isException()) {
     return 0;
@@ -1342,13 +1343,13 @@ QoreNode* QoreTuxedoAdapter::connect(char* service_name, Hash* call_settings, lo
   Hash* h = new Hash;
   h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
   h->setKeyValue((char*)"Tuxedo call", new QoreNode("tpconnect"), xsink);
-  return xsink->raiseExceptionArg(err_name, new QoreNode(h), "tpconnect() failed with error %d.", tperrno);
+  return xsink->raiseExceptionArg("TUXEDO-ERROR", new QoreNode(h), "tpconnect() failed with error %d.", tperrno);
 }
 
 //-----------------------------------------------------------------------------
 QoreNode* QoreTuxedoAdapter::send(int handle, Hash* call_settings, long* pflags, ExceptionSink* xsink)
 {
-  char* err_name = "TuxedoAdapter::sendConversationData";
+  char* err_name = "TUXEDO-ERROR-SEND-CONVERSATION-DATA";
   long flags = get_flags(call_settings, pflags, m_default_flags_for_send, m_default_flags_for_send_set, err_name, xsink);
   if (xsink->isException()) return 0;
   long event = TPEV_SVCSUCC;
@@ -1359,13 +1360,13 @@ QoreNode* QoreTuxedoAdapter::send(int handle, Hash* call_settings, long* pflags,
   Hash* h = new Hash;
   h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
   h->setKeyValue((char*)"Tuxedo call", new QoreNode("tpsend"), xsink);
-  return xsink->raiseExceptionArg(err_name, new QoreNode(h), "tpsend() failed with error %d.", tperrno);
+  return xsink->raiseExceptionArg("TUXEDO-ERROR", new QoreNode(h), "tpsend() failed with error %d.", tperrno);
 }
 
 //-----------------------------------------------------------------------------
 QoreNode* QoreTuxedoAdapter::receive(int handle, Hash* call_settings, long* pflags, ExceptionSink* xsink)
 {
-  char* err_name = "TuxedoAdapter::receiveConversationData";
+  char* err_name = "TUXEDO-ADAPTER-RECEIVE-CONVERSATION-DATA";
   long flags = get_flags(call_settings, pflags, m_default_flags_for_send, m_default_flags_for_send_set, err_name, xsink);
   if (xsink->isException()) return 0;
   long event = TPEV_SVCSUCC;
@@ -1376,6 +1377,7 @@ QoreNode* QoreTuxedoAdapter::receive(int handle, Hash* call_settings, long* pfla
   }
   ON_BLOCK_EXIT(tpfree, out.first);
 
+  err_name = "TUXEDO-ERROR";
   int res = tprecv(handle, &out.first, &out.second, flags, &event);
   if (res == -1) {
     Hash* h = new Hash;
@@ -1406,7 +1408,7 @@ static QoreNode* get_val(Hash* hash, char* name, QoreType* type)
 //-----------------------------------------------------------------------------
 QoreNode* QoreTuxedoAdapter::enqueue(char* queue_space, char* queue_name, Hash* call_settings, long* pflags, ExceptionSink* xsink)
 {
-  char* err_name = "TuxedoAdapter::enqueue";
+  char* err_name = "TUXEDO-ADAPTER-ENQUEUE";
   long flags = get_flags(call_settings, pflags, m_default_flags_for_enqueue, m_default_flags_for_enqueue_set, err_name, xsink);
   if (xsink->isException()) return 0;
 
@@ -1453,7 +1455,7 @@ QoreNode* QoreTuxedoAdapter::enqueue(char* queue_space, char* queue_name, Hash* 
     Hash* h = new Hash;
     h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
     h->setKeyValue((char*)"Tuxedo call", new QoreNode("tpenqueue"), xsink);
-    return xsink->raiseExceptionArg(err_name, new QoreNode(h), "tpenqueue() failed with error %d.", tperrno);
+    return xsink->raiseExceptionArg("TUXEDO-ERROR", new QoreNode(h), "tpenqueue() failed with error %d.", tperrno);
   }
   // create hash with relevant out settings
   Hash *out = new Hash;
@@ -1481,7 +1483,7 @@ QoreNode* QoreTuxedoAdapter::enqueue(char* queue_space, char* queue_name, Hash* 
 //-----------------------------------------------------------------------------
 QoreNode* QoreTuxedoAdapter::dequeue(char* queue_space, char* queue_name, Hash* call_settings, long* pflags, ExceptionSink* xsink)
 {
-  char* err_name = "TuxedoAdapter::dequeue";
+  char* err_name = "TUXEDO-ADAPTER-DEQUEUE";
   long flags = get_flags(call_settings, pflags, m_default_flags_for_dequeue, m_default_flags_for_dequeue_set, err_name, xsink);
   if (xsink->isException()) return 0;
 
@@ -1518,7 +1520,7 @@ QoreNode* QoreTuxedoAdapter::dequeue(char* queue_space, char* queue_name, Hash* 
     Hash* h = new Hash;
     h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
     h->setKeyValue((char*)"Tuxedo call", new QoreNode("tpdequeue"), xsink);
-    return xsink->raiseExceptionArg(err_name, new QoreNode(h), "tpdequeue() failed with error %d.", tperrno);
+    return xsink->raiseExceptionArg("TUXEDO-ERROR", new QoreNode(h), "tpdequeue() failed with error %d.", tperrno);
   }
   QoreNode* retval = buffer2node(out.first, out.second, err_name, xsink);
   if (xsink->isException()) return 0;
@@ -1598,7 +1600,7 @@ Hash* QoreTuxedoAdapter::loadFmlDescription(const vector<string>& files, bool is
   ON_BLOCK_EXIT((is_fml32 ? &Fidnm_unload : &Fidnm_unload32));
 
   FmlEnvironmentSetter setter(files, is_fml32);
-  char* err_name = "TuxedoAdapter::loadFml[32]Description";
+  char* err_name = "LOAD-FML-DESCRIPTION-ERROR";
 
   Hash *result = new Hash;
 
@@ -1645,7 +1647,7 @@ Hash* QoreTuxedoAdapter::loadFmlDescription(const string& file, bool is_fml32, E
 //------------------------------------------------------------------------------
 Hash* QoreTuxedoAdapter::generateFmlDescription(int base, Hash* typed_names, bool is_fml32, ExceptionSink* xsink)
 {
-  char* err_name = "TuxedoAdapter::generateFml[32]Description";
+  char* err_name = "LOAD-FML-DESCRIPTION-ERROR";
 
   char buffer[256];
   char* tmpfile = tmpnam(buffer);
@@ -1803,7 +1805,7 @@ static void reallocate_buffer(char** buffer, long* buffer_size, long new_size, c
     Hash* h = new Hash;
     h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
     h->setKeyValue((char*)"Tuxedo call", new QoreNode("tprealloc"), xsink);
-    xsink->raiseExceptionArg(err_name, new QoreNode(h), "tprealloc() failed with error %d.", tperrno);
+    xsink->raiseExceptionArg("TUXEDO-ERROR", new QoreNode(h), "tprealloc() failed with error %d.", tperrno);
     return;
   }
   *buffer = res;
@@ -2006,7 +2008,7 @@ void QoreTuxedoAdapter::add_fml_value_into_send_buffer(char* value_name, FLDID32
       Hash* h = new Hash;
       h->setKeyValue((char*)"error", new QoreNode((int64)Ferror), xsink);
       h->setKeyValue((char*)"Tuxedo call", new QoreNode("Fappend[32]"), xsink);
-      xsink->raiseExceptionArg(err_name, new QoreNode(h), "Value '%s' cannot be appended into FML[32] buffer. Error %d.", value_name, (int)Ferror);
+      xsink->raiseExceptionArg("TUXEDO-ERROR", new QoreNode(h), "Value '%s' cannot be appended into FML[32] buffer. Error %d.", value_name, (int)Ferror);
       return;
     }
     // the buffer needs to be resized
@@ -2036,7 +2038,7 @@ void QoreTuxedoAdapter::setFmlDataToSend(Hash* description_info, Hash* data, boo
     Hash* h = new Hash;
     h->setKeyValue((char*)"error", new QoreNode((int64)Ferror), xsink);
     h->setKeyValue((char*)"Tuxedo call", new QoreNode("Finit[32]"), xsink);
-    xsink->raiseExceptionArg(err_name, new QoreNode(h), "Finit[32] failed with error %d.", (int)Ferror);
+    xsink->raiseExceptionArg("TUXEDO-ERROR", new QoreNode(h), "Finit[32] failed with error %d.", (int)Ferror);
     return;
   }
   // append every item in the buffer
@@ -2086,7 +2088,7 @@ void QoreTuxedoAdapter::setFmlDataToSend(Hash* description_info, Hash* data, boo
     Hash* h = new Hash;
     h->setKeyValue((char*)"error", new QoreNode((int64)Ferror), xsink);
     h->setKeyValue((char*)"Tuxedo call", new QoreNode("Findex[32]"), xsink);
-    xsink->raiseExceptionArg(err_name, new QoreNode(h), "Findex[32] failed with error %d.", (int)Ferror);
+    xsink->raiseExceptionArg("TUXEDO-ERROR", new QoreNode(h), "Findex[32] failed with error %d.", (int)Ferror);
     return;
   }
 
@@ -2101,7 +2103,7 @@ void QoreTuxedoAdapter::setFmlDataToSend(Hash* description_info, Hash* data, boo
     Hash* h = new Hash;
     h->setKeyValue((char*)"error", new QoreNode((int64)Ferror), xsink);
     h->setKeyValue((char*)"Tuxedo call", new QoreNode("Fsizeof[32]"), xsink);
-    xsink->raiseExceptionArg(err_name, new QoreNode(h), "Fsizeof[32] failed with error %d.", (int)Ferror);
+    xsink->raiseExceptionArg("TUXEDO-ERROR", new QoreNode(h), "Fsizeof[32] failed with error %d.", (int)Ferror);
     return;
   }
   assert(result_size);
