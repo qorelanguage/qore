@@ -1,0 +1,798 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<chapter id="Tuxedo_Module">
+  <title>Tuxedo Module</title>
+
+
+
+    <para>The Tuxedo module...</para>
+
+  <sect2 id="TuxedoAdapter_Class">
+    <title>TuxedoAdapter Class</title>
+    <para>The TuxedoAdapter class is used to communicate with Tuxedo servers. Detailed description of Tuxedo interface can be found on <ulink url="http://edocs.bea.com/tuxedo/tux91/interm/ref.htm">Tuxedo 9.1 reference</ulink> and related pages. TuxedoAdapter class provides multithread safe wrapper over messaging part of Tuxedo API. Constants from Tuxedo API (like <code>TPAPPAUTH</code>) are all exposed in Tuxedo namespace.</para>
+
+    <table>
+      <title>TuxedoAdapter Class Method Overview</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Method</para>
+            </entry>
+            <entry>
+              <para>Except?</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+
+          <row>
+            <entry>
+              <para>
+                <link linkend="TuxedoAdapter_constructor">TuxedoAdapter::constructor()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>Y</para>
+            </entry>
+            <entry>
+              <para>Creates the Tuxedo adapter based on parameters passed as a hash.</para>
+            </entry>
+          </row>
+
+          <row>
+            <entry>
+              <para>
+                <link linkend="TuxedoAdapter_destructor">TuxedoAdapter::destructor()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>N</para>
+            </entry>
+            <entry>
+              <para>Destroys the TuxedoAdapter object.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="TuxedoAdapter_copy">TuxedoAdapter::copy()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>Y</para>
+            </entry>
+            <entry>
+              <para>Copying objects of this class is not supported, an exception will be thrown.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="TuxedoAdapter_setStringEncoding">TuxedoAdapter::setStringEncoding()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>Y</para>
+            </entry>
+            <entry>
+              <para>Sets the string encoding for the object; any strings deserialized with this object will be tagged with this character encoding.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="TuxedoAdapter_getStringEncoding">TuxedoAdapter::getStringEncoding()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>N</para>
+            </entry>
+            <entry>
+              <para>Returns the character encoding used for the object</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+
+
+    <sect3 id="TuxedoAdapter_constructor">
+      <title>TuxedoAdapter::constructor()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Creates the TuxedoAdapter instance based on the passed settings.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>TuxedoAdapter::constructor(<replaceable>arg1</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+
+      <table>
+        <title>Arguments for TuxedoAdapter::constructor()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+
+            <row>
+              <entry>
+                <para>Tuxedo connection settings</para>
+              </entry>
+              <entry>
+                <para>Hash</para>
+              </entry>
+              <entry>
+                <para>The passed settings (Hash) could and should to set up all relevant parameters to connect a Tuxedo server. The environment variables, used by <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c55.htm">Tuxedo C API</ulink> don't need to be set explicitly. They will be examined if and only if their equivalent is not present among the settings. See <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c55.htm">tpinit() documentation</ulink> for details. All recognized settings are listed in the table <link linkend="TuxedoAdapter_constructor_settings">TuxedoAdapter::constructor settings</link> bellow. 
+
+The settings names are case insensitive. Unrecognized settings result in the exception <code>TUXEDO-ADAPTER-CONSTRUCTOR</code>. 
+At least <code>TUXDIR</code> and <code>TUXCONFIG</code> settings need to be specified explicitly (either through the hash or with environment variables). For settings not set explicitly defaults are used.
+
+
+
+(22) DefaultFmlDescriptionBase (integer) - optional base offset used when DefaultFmlDescription is specified. See http://edocs.bea.com/tuxedo/tux91/fml/fml04.htm for details.
+(23) DefaultFml32DescriptionFile (string, full file path) - optional, name of file which contains description of all FML32 data used by the adapter. The file, if specified, needs to have fomat described in http://edocs.bea.com/tuxedo/tux91/fml/fml04.htm. The file is read only during construction of the adapter. This settings cannot be used together with DefaultFml32Description settings.
+(24) DefaultFml32Description (hash) - optional, description of all FML32 data types used by this adapter. The key is a symbolic name, the integer value (e.g. FLD_STRING) specifies the type. This settings cannot be used together with DefaultFml32DescriptionFile.
+(25) DefaultFml32DescriptionBase (integer) - optional base offset used when DefaultFml32Description is specified. See http://edocs.bea.com/tuxedo/tux91/fml/fml04.htm for details.
+(26) Priority (integer) - default priority used for Tuxedo. TuxedoAdapter::setPriority() can be used later to change the priority. See tpgprio() documentation for details.
+(27) WhenCommitFinishes (string, either 'AfterDataAreLogged' or 'AfterTwoPhaseCompletes') - specifies mechanism used by Tuxedo transaction commit. The settings can be changed later by TuxedoAdapter::finishCommitAfterDataLogged() or TuxedoAdapter::finishCommitAfterTwoPhaseCompletes(). See tpscmt() documentation for details.
+(28) WhenTxCommitFinishes (string, either 'AfterDataAreLogged' or 'AfterTwoPhaseCompletes') - specified mechanims used by X/Open (TX) transaction commit. The settings can be changed later by TuxedoAdapter::finishTxCommitAfterDataLogged() or TuxedoAdapter::finishTxCommitAfterTwoPhaseCompletes(). See tx_set_commit_return() documentation for details.
+(29) AreTxTransactionsChained (boolean) - specified whether new X/Open (TX) transaction starts automatically after commit or rollback (for True) or whether it needs to be specified explicitly by TuxedoAdapter::beginTxTransaction() (for False). Default is not chained (explicit start, False). See tx_set_transaction_control() documentation for details.
+(30) WSENVFILE, WSNADDR, WSFADDR, WSFRANGE, WSDEVICE, WSTYPE, WSRPLYMAX, TMMINENCRYPTBITS, TMMAXENCRYPTBITS (all strings) - optional equivalents of environment variables examined by tpinit().
+</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+
+    <sect3 id="TuxedoAdapter_constructor_settings">
+      <table>
+        <title>Settings for TuxedoAdapter::constructor()</title>
+        <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+          <thead>
+            <row>
+              <entry><para>Value</para></entry>
+              <entry><para>Type</para></entry>
+              <entry><para>Description</para></entry>
+              <entry><para>Default</para></entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry><para><replaceable>TUXDIR</replaceable></para></entry>
+              <entry><para>String</para></entry>
+              <entry><para>Full path to the directory where Tuxedo is installed. 
+              Environment variable TUXDIR is used if this value is not present among the settings</para></entry>
+              <entry><para>required explicitly</para></entry>
+            </row>
+            <row>
+              <entry><para><replaceable>TUXCONFIG</replaceable></para></entry>
+              <entry><para>String</para></entry>
+              <entry><para>Full path to the configuration file used by this TuxedoAdapter instance.
+              Environment variable TUXCONFIG is used if this value is not present among the settings</para></entry>
+              <entry><para>required explicitly</para></entry>
+            </row>
+            <row>
+              <entry><para><replaceable>UserName</replaceable></para></entry>
+              <entry><para>String</para></entry>
+              <entry><para>User name to connect the Tuxedo server. 
+              See <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c55.htm">tpinit() documentation</ulink> for details.
+              </para></entry>
+              <entry><para>empty string</para></entry>
+            </row>
+            <row>
+              <entry><para><replaceable>Password</replaceable></para></entry>
+              <entry><para>String</para></entry>
+              <entry><para>Password required to connect the Tuxedo server.
+              See <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c55.htm">tpinit() documentation</ulink> for details.
+              </para></entry>
+              <entry><para>empty string</para></entry>
+            </row>
+            <row>
+              <entry><para><replaceable>ClientName</replaceable></para></entry>
+              <entry><para>String</para></entry>
+              <entry><para>Client name to connect the Tuxedo server.
+              See <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c55.htm">tpinit() documentation</ulink> for details.
+              </para></entry>
+              <entry><para>empty string</para></entry>
+            </row>
+            <row>
+              <entry><para><replaceable>GroupName</replaceable></para></entry>
+              <entry><para>String</para></entry>
+              <entry><para>Group name to connect the Tuxedo server.
+              See <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c55.htm">tpinit() documentation</ulink> for details.
+              </para></entry>
+              <entry><para>empty string</para></entry>
+            </row>
+            <row>
+              <entry><para><replaceable>BinaryConnectionData</replaceable></para></entry>
+              <entry><para>Binary</para></entry>
+              <entry><para>Binary data that are passed to the Tuxedo server during connection.
+              See <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c55.htm">tpinit() documentation</ulink> for details.
+              </para></entry>
+              <entry><para>no data passed</para></entry>
+            </row>
+            <row>
+              <entry><para><replaceable>ConnectionFlags</replaceable></para></entry>
+              <entry><para>Integer</para></entry>
+              <entry><para>Flags passed to the 
+               <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c55.htm">tpinit()</ulink>. 
+               The flag <code>TPMULTICONTEXT</code> (the application may have several connection at the same time) 
+               is set automatically
+              </para></entry>
+              <entry><para><code>TPMULTICONTEXT</code> (always set)</para></entry>
+            </row>
+            <row>
+              <entry><para><replaceable>StringEncoding</replaceable></para></entry>
+              <entry><para>String</para></entry>
+              <entry><para>Encoding used for all sent and retrieved strings.
+              </para></entry>
+              <entry><para>'UTF8'</para></entry>
+            </row>
+            <row>
+              <entry><para><replaceable>DefaultFlagsForCall</replaceable></para></entry>
+              <entry><para>Integer</para></entry>
+              <entry><para>Flags used as a default when the <link linkend="TuxedoAdapter_call">TuxedoAdapter::call()</link> does not
+              specify them explicitly. If this settings is not present the  
+              <link linkend="TuxedoAdapter_call">TuxedoAdapter::call()</link> requires the 'flags' parameter.
+              See <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c26.htm">tpcall() documentation</ulink> for details.
+              </para></entry>
+              <entry><para>n/a</para></entry>
+            </row>
+            <row>
+              <entry><para><replaceable>DefaultFlagsForAsyncCall</replaceable></para></entry>
+              <entry><para>Integer</para></entry>
+              <entry><para>Flags used as a default when the <link linkend="TuxedoAdapter_asyncCall">TuxedoAdapter::asyncCall()</link> does not
+              specify them explicitly. If this settings is not present the
+              <link linkend="TuxedoAdapter_asyncCall">TuxedoAdapter::asyncCall()</link> requires the 'flags' parameter.
+              See <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c20.htm">tpacall() documentation</ulink> for details.
+              </para></entry>
+              <entry><para>n/a</para></entry>
+            </row>
+            <row>
+              <entry><para><replaceable>DefaultFlagsForWaitForAsyncReply</replaceable></para></entry>
+              <entry><para>Integer</para></entry>
+              <entry><para>Flags used as a default when the <link linkend="TuxedoAdapter_waitForAsyncReply">TuxedoAdapter::waitForAsyncReply()</link> does not
+              specify them explicitly. If this settings is not present the
+              <link linkend="TuxedoAdapter_waitForAsyncReply">TuxedoAdapter::waitForAsyncReply()</link> requires the 'flags' parameter.
+              See <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c52.htm">tpgetrply() documentation</ulink> for details.
+              </para></entry>
+              <entry><para>n/a</para></entry>
+            </row>
+            <row>
+              <entry><para><replaceable>DefaultFlagsForPostEvent</replaceable></para></entry>
+              <entry><para>Integer</para></entry>
+              <entry><para>Flags used as a default when the <link linkend="TuxedoAdapter_postEvent">TuxedoAdapter::postEvent()</link> does not
+              specify them explicitly. If this settings is not present the
+              <link linkend="TuxedoAdapter_postEvent">TuxedoAdapter::postEvent()</link> requires the 'flags' parameter.
+              See <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c62.htm">tppost() documentation</ulink> for details.
+              </para></entry>
+              <entry><para>n/a</para></entry>
+            </row>
+            <row>
+              <entry><para><replaceable>DefaultFlagsForJoinConversation</replaceable></para></entry>
+              <entry><para>Integer</para></entry>
+              <entry><para>Flags used as a default when the <link linkend="TuxedoAdapter_joinConversation">TuxedoAdapter::joinConversation()</link> does not
+              specify them explicitly. If this settings is not present the
+              <link linkend="TuxedoAdapter_joinConversation">TuxedoAdapter::joinConversation()</link> requires the 'flags' parameter.
+              See <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c32.htm">tpconnect() documentation</ulink> for details.
+              </para></entry>
+              <entry><para>n/a</para></entry>
+            </row>
+            <row>
+              <entry><para><replaceable>DefaultFlagsForSendConversationData</replaceable></para></entry>
+              <entry><para>Integer</para></entry>
+              <entry><para>Flags used as a default when the <link linkend="TuxedoAdapter_sendConversationData">TuxedoAdapter::sendConversationData()</link> does not
+              specify them explicitly. If this settings is not present the
+              <link linkend="TuxedoAdapter_sendConversationData">TuxedoAdapter::sendConversationData()</link> requires the 'flags' parameter.
+              See <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c70.htm">tpsend() documentation</ulink> for details.
+              </para></entry>
+              <entry><para>n/a</para></entry>
+            </row>
+            <row>
+              <entry><para><replaceable>DefaultFlagsForReceiveConversationData</replaceable></para></entry>
+              <entry><para>Integer</para></entry>
+              <entry><para>Flags used as a default when the <link linkend="TuxedoAdapter_receiveConversationData">TuxedoAdapter::receiveConversationData()</link> does not
+              specify them explicitly. If this settings is not present the
+              <link linkend="TuxedoAdapter_receiveConversationData">TuxedoAdapter::receiveConversationData()</link> requires the 'flags' parameter.
+              See <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c64.htm">tprecv() documentation</ulink> for details.
+              </para></entry>
+              <entry><para>n/a</para></entry>
+            </row>
+            <row>
+              <entry><para><replaceable>DefaultFlagsForEnqueue</replaceable></para></entry>
+              <entry><para>Integer</para></entry>
+              <entry><para>Flags used as a default when the <link linkend="TuxedoAdapter_enqueue">TuxedoAdapter::enqueue()</link> does not               specify them explicitly. If this settings is not present the
+              <link linkend="TuxedoAdapter_enqueue">TuxedoAdapter::enqueue()</link> requires the 'flags' parameter.
+               See <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c38.htm">tpenqueue() documentation</ulink> for details.
+              </para></entry>
+              <entry><para>n/a</para></entry>
+            </row>
+            <row>
+              <entry><para><replaceable>DefaultFlagsForDequeue</replaceable></para></entry>
+              <entry><para>Integer</para></entry>
+              <entry><para>Flags used as a default when the <link linkend="TuxedoAdapter_dequeue">TuxedoAdapter::dequeue()</link> does not               specify them explicitly. If this settings is not present the
+              <link linkend="TuxedoAdapter_dequeue">TuxedoAdapter::dequeue()</link> requires the 'flags' parameter.
+               See <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c36.htm">tpdequeue() documentation</ulink> for details.
+              </para></entry>
+              <entry><para>n/a</para></entry>
+            </row>
+            <row>               
+              <entry><para><replaceable>DefaultFmlType</replaceable></para></entry>
+              <entry><para>String (either 'FML' or 'FML32')</para></entry>
+              <entry><para>Selects into which <ulink url="http://edocs.bea.com/tuxedo/tux91/interm/atmiprog.htm#fml">FML</ulink>
+              type Hash data will be serialized if no direct hint is given. If this settings is not present then any function
+              serializing Hash data requires explicit hint about the result FML type.
+              </para></entry>
+              <entry><para>'FML32'</para></entry>
+            </row>
+            <row>
+              <entry><para><replaceable>DefaultFmlDescriptionFile</replaceable></para></entry>
+              <entry><para>String</para></entry>
+              <entry><para>If used it should be full file path to a text file formatted according to 
+              <ulink url="http://edocs.bea.com/tuxedo/tux91/fml/fml04.htm">FML description file specification</ulink>.
+              This file should describe all FML data used by this instance of TuxedoAdapter. The file is read
+              only during construction of the adapter. This settings is mutually exclusive with 
+              <code>DefaultFmlDescription</code> (description provided in a Hash).
+              </para></entry>
+              <entry><para>n/a</para></entry>
+            </row>
+            <row>
+              <entry><para><replaceable>DefaultFmlDescription</replaceable></para></entry>
+              <entry><para>Hash</para></entry>
+              <entry><para>Description of all FML data used by this instance of TuxedoAdapter.
+              The key is FML item name, the value is integer (e.g. <code>FLD_STRING</code>) specifying the type.
+              This settings is mutually exclusive with DefaultFmlDescriptionFile (decsription provided in a file).
+              See <ulink url="http://edocs.bea.com/tuxedo/tux91/fml/fml04.htm">FML description file specification</ulink>
+              for details.
+              </para></entry>
+              <entry><para>n/a</para></entry>
+            </row>
+
+
+
+
+
+          </tbody>
+        </tgroup>
+      </table>
+    </sect3>
+
+
+
+        <title>Return Values for TuxedoAdapter::constructor()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>Object</para>
+              </entry>
+              <entry>
+                <para>The TuxedoAdapter object is returned</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Exceptions thrown by TuxedoAdapter::constructor()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>err</para>
+              </entry>
+              <entry>
+                <para>desc</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <code>XXX</code>
+                </para>
+              </entry>
+              <entry>
+                <para>dabcct</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>
+                  <code>XXXY</code>
+                </para>
+              </entry>
+              <entry>
+                <para>abcd</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect3>
+    <sect3 id="TuxedoAdapter_destructor">
+      <title>TuxedoAdapter::destructor()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Destroys the TuxedoAdapter object.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>TuxedoAdapter::destructor()</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for TuxedoAdapter::destructor()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for TuxedoAdapter::destructor()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method returns no value</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect3>
+    <sect3 id="TuxedoAdapter_copy">
+      <title>TuxedoAdapter::copy()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Copying objects of this class is not supported, an exception will be thrown.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>TuxedoAdapter::copy()</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for TuxedoAdapter::copy()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for TuxedoAdapter::copy()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method returns no value</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Exceptions thrown by TuxedoAdapter::copy()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>err</para>
+              </entry>
+              <entry>
+                <para>desc</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <code>TUX-COPY-ERROR</code>
+                </para>
+              </entry>
+              <entry>
+                <para>objects of this class may not be copied</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect3>
+    <sect3 id="TuxedoAdapter_setStringEncoding">
+      <title>TuxedoAdapter::setStringEncoding()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Sets the string encoding for the object; any strings deserialized with this object will be tagged with this character encoding.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>TuxedoAdapter::setStringEncoding(<replaceable>encoding</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for TuxedoAdapter::setStringEncoding()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <replaceable>encoding</replaceable>
+                </para>
+              </entry>
+              <entry>
+                <para>String</para>
+              </entry>
+              <entry>
+                <para>The string encoding to use for this object.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for TuxedoAdapter::setStringEncoding()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method returns no value</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Exceptions thrown by TuxedoAdapter::setStringEncoding()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>err</para>
+              </entry>
+              <entry>
+                <para>desc</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <code>TIBRVLISTENER-SETSTRINGENCODING-ERROR</code>
+                </para>
+              </entry>
+              <entry>
+                <para>missing encoding parameter from method call</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect3>
+    <sect3 id="TuxedoAdapter_getStringEncoding">
+      <title>TuxedoAdapter::getStringEncoding()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns the character encoding used for the object</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>TuxedoAdapter::getStringEncoding()</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for TuxedoAdapter::getStringEncoding()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for TuxedoAdapter::getStringEncoding()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>String</para>
+              </entry>
+              <entry>
+                <para>The character encoding used for the object.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect3>
+  </sect2>
+
+
+</chapter>
