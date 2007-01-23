@@ -72,6 +72,46 @@
           <row>
             <entry>
               <para>
+                <link linkend="TuxedoAdapter_call">TuxedoAdapter::call()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>Y</para>
+            </entry>
+            <entry>
+              <para>Calls a Tuxedo service, returns the reply.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="TuxedoAdapter_asyncCall">TuxedoAdapter::asyncCall()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>Y</para>
+            </entry>
+            <entry>
+              <para>Calls an Tuxedo server and returns immediatelly The reply can be retrieved later.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="TuxedoAdapter_waitForAsyncReply">TuxedoAdapter::waitForAsyncReply()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>Y</para>
+            </entry>
+            <entry>
+              <para>Waits for a reply for an asynchronous call.</para>
+            </entry>
+          </row>
+
+          <row>
+            <entry>
+              <para>
                 <link linkend="TuxedoAdapter_setStringEncoding">TuxedoAdapter::setStringEncoding()</link>
               </para>
             </entry>
@@ -197,7 +237,7 @@ At least <code>TUXDIR</code> and <code>TUXCONFIG</code> settings need to be spec
                 </para>
               </entry>
               <entry>
-                <para>A Tuxedo call failed. Hash parameter has a member 'error' with Tuxedo error code.</para>
+                <para>A Tuxedo call failed. Hash exception parameter has member 'error' with Tuxedo error code.</para>
               </entry>
             </row>
           </tbody>
@@ -581,7 +621,7 @@ At least <code>TUXDIR</code> and <code>TUXCONFIG</code> settings need to be spec
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Destroys the TuxedoAdapter object.</para>
+            <para>Destroys the TuxedoAdapter object. All pending asynchronous calls are cancelled, all opened conversations are forcibly stopped, the connection to Tuxedo is terminated.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -648,6 +688,7 @@ At least <code>TUXDIR</code> and <code>TUXCONFIG</code> settings need to be spec
         </tgroup>
       </table>
     </sect3>
+
     <sect3 id="TuxedoAdapter_copy">
       <title>TuxedoAdapter::copy()</title>
       <variablelist>
@@ -737,7 +778,7 @@ At least <code>TUXDIR</code> and <code>TUXCONFIG</code> settings need to be spec
             <row>
               <entry>
                 <para>
-                  <code>TUX-COPY-ERROR</code>
+                  <code>TUXEDO-ADAPTER-COPY-ERROR</code>
                 </para>
               </entry>
               <entry>
@@ -748,6 +789,453 @@ At least <code>TUXDIR</code> and <code>TUXCONFIG</code> settings need to be spec
         </tgroup>
       </table>
     </sect3>
+
+
+    <sect3 id="TuxedoAdapter_call">
+      <title>TuxedoAdapter::call()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Invokes a Tuxedo service, waits for the reply and converts it into returned data structure. 
+            See <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c26.htm">tpcall() documentation</ulink> for details.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>TuxedoAdapter:call(<replaceable>service name, data [, flags]</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+
+      <table>
+        <title>Arguments for TuxedoAdapter::call()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <replaceable>service name</replaceable>
+                </para>
+              </entry>
+              <entry>
+                <para>String</para>
+              </entry>
+              <entry>
+                <para>As defined in configuration file (TUXCONFIG).</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>
+                  <replaceable>data</replaceable>
+                </para>
+              </entry>
+              <entry>
+                <para>NOTHING,String, Binary or Hash</para>
+              </entry>
+              <entry>
+                <para>Data serialized into the Tuxedo format and passed to the service. 
+                Hash is converted either into FML or FML32, based on the hint in 'flags' 
+                or on the settings 'DefaultFlagsForCall' passed into the constructor.</para>
+              </entry>
+            </row>
+
+            <row>
+              <entry>
+                <para>
+                  <replaceable>[flags]</replaceable>
+                </para>
+              </entry>
+              <entry>
+                <para>Integer or Hash</para>
+              </entry>
+              <entry>
+                <para>If the value is Integer then it is equivalent with flags used by the
+                <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c26.htm">tpcall()</ulink>. Hash value may contrain following items:
+                 bool value 'use_fml32' (whether to process Hash data as FML or FML32),  
+                 integer value 'flags' (the same as for tpcall()) and
+                 string value 'DefaultReturnedDataType' (allowed values 'CARRAY', 'STRING', 'FML' or 'FML32') giving a hint
+                 of output data type.  If the TuxedoAdapter constructor did not specified 'DefaultFlagsForCall' settings 
+                 then the 'flags' needs to be present (either as the Integer or part of the Hash).
+                </para>
+              </entry>
+            </row>
+
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for TuxedoAdapter::call()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>String, Binary or Hash</para>
+              </entry>
+              <entry>
+                <para>Received reply converted into a Qore datatype. FML and FML32 are encoded into the Hash.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Exceptions thrown by TuxedoAdapter::call()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>err</para>
+              </entry>
+              <entry>
+                <para>desc</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <code>TUXEDO-ADAPTER-CALL</code>
+                </para>
+              </entry>
+              <entry>
+                <para>Invalid parameter.</para>
+              </entry>
+            </row>
+
+            <row>
+              <entry>
+                <para>
+                  <code>TUXEDO-ERROR</code>
+                </para>
+              </entry>
+              <entry>
+                <para>A Tuxedo call failed. Hash parameter has a member 'error' with Tuxedo error code.</para>
+              </entry>
+            </row>
+
+          </tbody>
+        </tgroup>
+      </table>
+    </sect3>
+
+
+    <sect3 id="TuxedoAdapter_asyncCall">
+      <title>TuxedoAdapter::call()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Invokes a Tuxedo service asynchronously, without waiting for the reply. 
+            See <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c20.htm">tpacall() documentation</ulink> 
+            for details. To retrieve the reply use 
+            <link linkend="TuxedoAdapter_waitForAsyncreply">TuxedoAdapter::waitForAsyncReply()</link> 
+            or cancel the pending reply with <link linkend="TuxedoAdapter_cancelAsyncCall">TuxedoAdapter::cancelAsyncCall()</link>.
+            The same service may be called either synchronously with <link linkend="TuxedoAdapter_call">TuxedoAdapter::call()</link> 
+            or asynchronously.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>TuxedoAdapter:asyncCall(<replaceable>service name, data [, flags]</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for TuxedoAdapter::asyncCall()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <replaceable>service name</replaceable>
+                </para>
+              </entry>
+              <entry>
+                <para>String</para>
+              </entry>
+              <entry>
+                <para>As defined in configuration file (TUXCONFIG).</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>
+                  <replaceable>data</replaceable>
+                </para>
+              </entry>
+              <entry>
+                <para>NOTHING, String, Binary or Hash</para>
+              </entry>
+              <entry>
+                <para>Data serialized into the Tuxedo format and passed to the service.
+                Hash is converted either into FML or FML32, based on the hint in 'flags'
+                or on the settings 'DefaultFlagsForAsyncCall' passed into the constructor.
+                </para>
+              </entry>
+            </row>
+
+            <row>
+              <entry>
+                <para>
+                  <replaceable>[flags]</replaceable>
+                </para>
+              </entry>
+              <entry>
+                <para>Integer or Hash</para>
+              </entry>
+              <entry>
+                <para>
+                 If  the value is Integer then it is equivalent with flags used by the
+                 <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c68.htm">tpacall()</ulink>. 
+                 Hash value may contrain following items:
+                 bool value 'use_fml32' (whether to process Hash data as FML or FML32),
+                 integer value 'flags' (the same as for tpacall()) and
+
+                 If the TuxedoAdapter constructor did not specified 'DefaultFlagsForAsyncCall' settings
+                 then the 'flags' needs to be present (either as the Integer or part of the Hash).
+                </para>
+              </entry>
+            </row>
+
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for TuxedoAdapter::asyncCall()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>Integer</para>
+              </entry>
+              <entry>
+                <para>Handle used to later retrieve the pending reply with
+                <link linkend="TuxedoAdapter_waitForAsyncReply">TuxedoAdapter::waitForAsyncReply()</link>.
+                To cancel the call <link linkend="TuxedoAdapter_cancelAsyncCall">TuxedoAdapter::cancelAsyncCall()</link>. 
+                All pending asynchronous calls are automatically cancelled when the TuxedoAdapter instance is destroyed.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Exceptions thrown by TuxedoAdapter::asyncCall()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>err</para>
+              </entry>
+              <entry>
+                <para>desc</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <code>TUXEDO-ADAPTER-ASYNC-CALL</code>
+                </para>
+              </entry>
+              <entry>
+                <para>Invalid parameter.</para>
+              </entry>
+            </row>
+
+            <row>
+              <entry>
+                <para>
+                  <code>TUXEDO-ERROR</code>
+                </para>
+              </entry>
+              <entry>
+                <para>A Tuxedo call failed. Hash exception parameter has member 'error' with Tuxedo error code.</para>
+              </entry>
+            </row>
+
+          </tbody>
+        </tgroup>
+      </table>
+    </sect3>
+
+
+    <sect3 id="TuxedoAdapter_cancelAsyncCall">
+      <title>TuxedoAdapter::cancelAsyncCall()()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Cancels asynchronous call to a Tuxedo service started by the 
+            <link linkend="TuxedoAdapter_asyncCall">TuxedoAdapter::asyncCall()</link> 
+            See <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c27.htm">tpcancel() documentation</ulink> 
+            for details. When TuxedoAdapter object is destroyed all pending asynchronous calls are cancelled automatically.
+            </para>
+           </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>TuxedoAdapter::cancelAsyncCall(<replaceable>handle</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for TuxedoAdapter::cancelAsyncCall()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <replaceable>handle</replaceable>
+                </para>
+              </entry>
+              <entry>
+                <para>Integer</para>
+              </entry>
+              <entry>
+                <para>The value returned by 
+                <link linkend="TuxedoAdapter_asyncCall">TuxedoAdapter::asyncCall()</link>, 
+                neither cancelled nor used by a 
+                <link linkend="TuxedoAdapter_waitForAsyncReply">TuxedoAdapter::waitForAsyncReply()</link>.
+                </para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+
+      <table>
+        <title>Return Values for TuxedoAdapter::cancelAsyncCall()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method does not return any value.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+
+      <table>
+        <title>Exceptions thrown by TuxedoAdapter::cancelAsyncCall()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>err</para>
+              </entry>
+              <entry>
+                <para>desc</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <code>TUXEDO-ADAPTER-CANCEL-ASYNC-CALL</code>
+                </para>
+              </entry>
+              <entry>
+                <para>Missing or invalid parameter.</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>
+                  <code>TUXEDO-ERROR</code>
+                </para>
+              </entry>
+              <entry>
+                <para>A Tuxedo call failed. Hash exception parameter has member 'error' with Tuxedo error code.</para>
+              </entry>
+            </row>
+
+          </tbody>
+        </tgroup>
+      </table>
+    </sect3>
+
+
     <sect3 id="TuxedoAdapter_setStringEncoding">
       <title>TuxedoAdapter::setStringEncoding()</title>
       <variablelist>
@@ -850,6 +1338,8 @@ At least <code>TUXDIR</code> and <code>TUXCONFIG</code> settings need to be spec
         </tgroup>
       </table>
     </sect3>
+
+
     <sect3 id="TuxedoAdapter_getStringEncoding">
       <title>TuxedoAdapter::getStringEncoding()</title>
       <variablelist>
