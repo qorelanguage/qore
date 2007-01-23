@@ -558,10 +558,10 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(Hash* settings, ExceptionSink* xsink)
       continue;
     }
     //-------------------------------------------
-    if (key == "defaultflagsforgetasyncreply") {
+    if (key == "defaultflagsforwaitforasyncreply") {
       QoreNode* n = iter.getValue();
       if (!n || n->type != NT_INT) {
-        xsink->raiseException(err_name, "Settings 'DefaultFlagsForGetAsyncReply' needs to be an integer.");
+        xsink->raiseException(err_name, "Settings 'DefaultFlagsForWaitForAsyncReply' needs to be an integer.");
         return;
       }
       m_default_flags_for_getrply = (long)n->val.intval;
