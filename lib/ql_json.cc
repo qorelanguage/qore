@@ -126,7 +126,10 @@ static class QoreNode *getJSONObject(char *&buf, int &line_number, class QoreEnc
    skip_whitespace(buf, line_number);
       
    if (*buf == '}')
+   {
+      buf++;
       return new QoreNode(h);
+   }
 
    while (*buf)
    {
@@ -199,7 +202,10 @@ static class QoreNode *getJSONArray(char *&buf, int &line_number, class QoreEnco
 
    skip_whitespace(buf, line_number);
    if (*buf == ']')
+   {
+      *buf++;
       return new QoreNode(l);
+   }
 
    while (*buf)
    {
