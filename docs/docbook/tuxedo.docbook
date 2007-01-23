@@ -108,6 +108,19 @@
               <para>Waits for a reply for an asynchronous call.</para>
             </entry>
           </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="TuxedoAdapter_cancelAsyncCall">TuxedoAdapter::cancelAsyncCall()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>Y</para>
+            </entry>
+            <entry>
+              <para>Cancels reply from an asynchonous call.</para>
+            </entry>
+          </row>
 
           <row>
             <entry>
@@ -1110,9 +1123,142 @@ At least <code>TUXDIR</code> and <code>TUXCONFIG</code> settings need to be spec
       </table>
     </sect3>
 
+    <sect3 id="TuxedoAdapter_waitForAsyncReply">
+      <title>TuxedoAdapter::waitForAsyncReply()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Waits for reply started by 
+            <link linkend="TuxedoAdapter_asyncCall">TuxedoAdapter::asyncCall()</link> 
+            and not cancelled by 
+            <link linkend="TuxedoAdapter_cancelAsyncCall">TuxedoAdapter::cancelAsyncCall()</link>. 
+            See <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c52.htm">tpgetrply() documentation</ulink> 
+            for details.
+            </para>
+          </listitem>
+        </varlistentry>
+       </variablelist>
+
+      <table>
+        <title>Arguments for TuxedoAdapter::waitForAsyncReply()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <replaceable>handle</replaceable>
+                </para>
+              </entry>
+              <entry>
+                <para>Integer</para>
+              </entry>
+              <entry>
+                <para>The value returned by 
+                 <link linkend="TuxedoAdapter_asyncCall">TuxedoAdapter::asyncCall()</link> and not yet cancelled 
+                 or used in another waitForAsyncReply().
+                </para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>
+                  <replaceable>[flags]</replaceable>
+                </para>
+              </entry>
+              <entry>
+                <para>Integer or Hash</para>
+              </entry>
+              <entry>
+                <para>Integer with values as described in tpacall() documentation. Hash may contain bool value 'use_fml32' an
+d integer value 'flags'.  If the TuxedoAdapter constructor did not specified 'DefaultFlagsForwaitForAsyncReply' settings then the flags needs to be present (either as the integer or part of the hash).</para>
+              </entry>
+            </row>
+
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for TuxedoAdapter::waitForAsyncReply()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>String | Binary | Hash</para>
+              </entry>
+              <entry>
+                <para>Received reply converted into a Qore type.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Exceptions thrown by TuxedoAdapter::waitForAsyncReply()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>err</para>
+              </entry>
+              <entry>
+                <para>desc</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <code>TUXEDO-ADAPTER-WAIT-FOR-ASYNC-REPLY</code>
+                </para>
+              </entry>
+              <entry>
+                <para>Missing or invalid parameter.</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>
+                  <code>TUXEDO-ERROR</code>
+                </para>
+              </entry>
+              <entry>
+                <para>Tuxedo call failed. Hash parameter has a member 'error' with Tuxedo error code.</para>
+              </entry>
+            </row>
+
+          </tbody>
+        </tgroup>
+      </table>
+
+    </sect3>
 
     <sect3 id="TuxedoAdapter_cancelAsyncCall">
-      <title>TuxedoAdapter::cancelAsyncCall()()</title>
+      <title>TuxedoAdapter::cancelAsyncCall()</title>
       <variablelist>
         <varlistentry>
           <term>Synopsis</term>
