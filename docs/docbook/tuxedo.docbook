@@ -79,20 +79,7 @@
               <para>Y</para>
             </entry>
             <entry>
-              <para>Sets the string encoding for the object; any strings deserialized with this object will be tagged with this character encoding.</para>
-            </entry>
-          </row>
-          <row>
-            <entry>
-              <para>
-                <link linkend="TuxedoAdapter_getStringEncoding">TuxedoAdapter::getStringEncoding()</link>
-              </para>
-            </entry>
-            <entry>
-              <para>N</para>
-            </entry>
-            <entry>
-              <para>Returns the character encoding used for the object</para>
+              <para>Sets the string encoding for the object; any strings serialized and deserialized with this object will be tagged with this character encoding.</para>
             </entry>
           </row>
         </tbody>
@@ -112,7 +99,7 @@
         <varlistentry>
           <term>Usage</term>
           <listitem>
-            <programlisting>TuxedoAdapter::constructor(<replaceable>arg1</replaceable>)</programlisting>
+            <programlisting>TuxedoAdapter::constructor(<replaceable>settings</replaceable>)</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -147,18 +134,6 @@
 
 The settings names are case insensitive. Unrecognized settings result in the exception <code>TUXEDO-ADAPTER-CONSTRUCTOR</code>. 
 At least <code>TUXDIR</code> and <code>TUXCONFIG</code> settings need to be specified explicitly (either through the hash or with environment variables). For settings not set explicitly defaults are used.
-
-
-
-(22) DefaultFmlDescriptionBase (integer) - optional base offset used when DefaultFmlDescription is specified. See http://edocs.bea.com/tuxedo/tux91/fml/fml04.htm for details.
-(23) DefaultFml32DescriptionFile (string, full file path) - optional, name of file which contains description of all FML32 data used by the adapter. The file, if specified, needs to have fomat described in http://edocs.bea.com/tuxedo/tux91/fml/fml04.htm. The file is read only during construction of the adapter. This settings cannot be used together with DefaultFml32Description settings.
-(24) DefaultFml32Description (hash) - optional, description of all FML32 data types used by this adapter. The key is a symbolic name, the integer value (e.g. FLD_STRING) specifies the type. This settings cannot be used together with DefaultFml32DescriptionFile.
-(25) DefaultFml32DescriptionBase (integer) - optional base offset used when DefaultFml32Description is specified. See http://edocs.bea.com/tuxedo/tux91/fml/fml04.htm for details.
-(26) Priority (integer) - default priority used for Tuxedo. TuxedoAdapter::setPriority() can be used later to change the priority. See tpgprio() documentation for details.
-(27) WhenCommitFinishes (string, either 'AfterDataAreLogged' or 'AfterTwoPhaseCompletes') - specifies mechanism used by Tuxedo transaction commit. The settings can be changed later by TuxedoAdapter::finishCommitAfterDataLogged() or TuxedoAdapter::finishCommitAfterTwoPhaseCompletes(). See tpscmt() documentation for details.
-(28) WhenTxCommitFinishes (string, either 'AfterDataAreLogged' or 'AfterTwoPhaseCompletes') - specified mechanims used by X/Open (TX) transaction commit. The settings can be changed later by TuxedoAdapter::finishTxCommitAfterDataLogged() or TuxedoAdapter::finishTxCommitAfterTwoPhaseCompletes(). See tx_set_commit_return() documentation for details.
-(29) AreTxTransactionsChained (boolean) - specified whether new X/Open (TX) transaction starts automatically after commit or rollback (for True) or whether it needs to be specified explicitly by TuxedoAdapter::beginTxTransaction() (for False). Default is not chained (explicit start, False). See tx_set_transaction_control() documentation for details.
-(30) WSENVFILE, WSNADDR, WSFADDR, WSFRANGE, WSDEVICE, WSTYPE, WSRPLYMAX, TMMINENCRYPTBITS, TMMAXENCRYPTBITS (all strings) - optional equivalents of environment variables examined by tpinit().
 </para>
               </entry>
             </row>
@@ -166,6 +141,69 @@ At least <code>TUXDIR</code> and <code>TUXCONFIG</code> settings need to be spec
         </tgroup>
       </table>
       <table>
+        <title>Return Values for TuxedoAdapter::constructor()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>Object</para>
+              </entry>
+              <entry>
+                <para>The newly create TuxedoAdapter object</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+
+      <table>
+        <title>Exceptions thrown by TuxedoAdapter::constructor()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>err</para>
+              </entry>
+              <entry>
+                <para>desc</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <code>TUXEDO-ADAPTER-CONSTRUCTOR</code>
+                </para>
+              </entry>
+              <entry>
+                <para>Invalid or unrecognized value of settings</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>
+                  <code>TUXEDO-ERROR</code>
+                </para>
+              </entry>
+              <entry>
+                <para>A Tuxedo call failed. Hash parameter has a member 'error' with Tuxedo error code.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+
 
     <sect3 id="TuxedoAdapter_constructor_settings">
       <table>
@@ -370,80 +408,173 @@ At least <code>TUXDIR</code> and <code>TUXCONFIG</code> settings need to be spec
               </para></entry>
               <entry><para>n/a</para></entry>
             </row>
+            <row>
+              <entry><para><replaceable>DefaultFmlDescriptionBase</replaceable></para></entry>
+              <entry><para>Integer</para></entry>
+              <entry><para>Base offset of the FML items specified by the DefaultFmlDescription.
+              Used only when DefaultFmlDescription is also specified. For details see
+              <ulink url="http://edocs.bea.com/tuxedo/tux91/fml/fml04.htm">FML description file specification</ulink>.
+              </para></entry>
+              <entry><para>0</para></entry>
+            </row>
+            <row>
+              <entry><para><replaceable>DefaultFml32DescriptionFile</replaceable></para></entry>
+              <entry><para>String</para></entry>
+              <entry><para>If used it should be full file path to a text file formatted according to
+              <ulink url="http://edocs.bea.com/tuxedo/tux91/fml/fml04.htm">FML32 description file specification</ulink>.
+              This file should describe all FML32 data used by this instance of TuxedoAdapter. The file is read
+              only during construction of the adapter. This settings is mutually exclusive with
+              <code>DefaultFml32Description</code> (description provided in a Hash).
+              </para></entry>
+              <entry><para>n/a</para></entry>
+            </row>
+            <row>
+              <entry><para><replaceable>DefaultFml32Description</replaceable></para></entry>
+              <entry><para>Hash</para></entry>
+              <entry><para>Description of all FML32 data used by this instance of TuxedoAdapter.
+              The key is FML32 item name, the value is integer (e.g. <code>FLD_STRING</code>) specifying the type.
+              This settings is mutually exclusive with DefaultFml32DescriptionFile (decsription provided in a file).
+               See <ulink url="http://edocs.bea.com/tuxedo/tux91/fml/fml04.htm">FML32 description file specification</ulink>
+              for details.
+              </para></entry>
+              <entry><para>n/a</para></entry>
+            </row>
+            <row>
+              <entry><para><replaceable>DefaultFml32DescriptionBase</replaceable></para></entry>
+              <entry><para>Integer</para></entry>
+              <entry><para>Base offset of the FML32 items specified by the DefaultFmlDescription.
+              Used only when DefaultFml32Description is also specified. For details see
+               <ulink url="http://edocs.bea.com/tuxedo/tux91/fml/fml04.htm">FML32 description file specification</ulink>.
+              </para></entry>
+              <entry><para>0</para></entry>
+            </row>
+            <row>
+              <entry><para><replaceable>Priority</replaceable></para></entry>
+              <entry><para>Integer (1..100)</para></entry>
+              <entry><para>Default Priority used for communication with Tuxedo servers. 
+              <link linkend="TuxedoAdapter_setPriority">TuxedoAdapter::setPriority()</link> can be used later
+              to change the priority again. See <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c77.htm">tpspprio() documentation</ulink>
+              for details.
+              </para></entry>
+              <entry><para>set in configuration file</para></entry>
+            </row>
+            <row>
+              <entry><para><replaceable>WhenCommitFinishes</replaceable></para></entry>
+              <entry><para>String 'AfterDataAreLogged' or 'AfterTwoPhaseCompletes'</para></entry>
+              <entry><para>Specifies which mechanism is used when Tuxedo transaction (NOT TX transaction) commits.
+              The settings could be changed later by 
+              <link linkend="TuxedoAdapter_finishCommitAfterDataLogged">TuxedoAdapter::finishCommitAfterDataLogged()</link>
+              or <link linkend="TuxedoAdapter_finishCommitAfterTwoPhaseCompletes">TuxedoAdapter::finishCommitAfterTwoPhaseCompletes()</link>.
+              See <ulink src="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c68.htm">tpscmt() documentation</ulink> for details.
 
+              </para></entry>
+              <entry><para>set in configuration file</para></entry>
+            </row>
+            <row>
+              <entry><para><replaceable>WhenTxCommitFinishes</replaceable></para></entry>
+              <entry><para>String 'AfterDataAreLogged' or 'AfterTwoPhaseCompletes'</para></entry>
+              <entry><para>Specifies which mechanism is used when X/Open (TX) transaction commits.
+              The settings could be changed later by
+              <link linkend="TuxedoAdapter_finishTxCommitAfterDataLogged">TuxedoAdapter::finishTxCommitAfterDataLogged()</link>
+              or <link linkend="TuxedoAdapter_finishTxCommitAfterTwoPhaseCompletes">TuxedoAdapter::finishTxCommitAfterTwoPhaseCompletes()</link>.
+              See <ulink src="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c107.htm">tx_set_commit_return() documentation</ulink>
+              for details.
 
+              </para></entry>
+              <entry><para>'AfterTwoPhaseCompletes'</para></entry>
+            </row>
+            <row>
+              <entry><para><replaceable>AreTxTransactionsChained</replaceable></para></entry>
+              <entry><para>Boolean</para></entry>
+              <entry><para>Specifies whether a new X/Open (TX) transaction starts automatically after commit or rollback
+              (when value is True) or whether it needs to be started explicitly by
+              <link linkend="TuxedoAdapter_beginTxTransaction">TuxedoAdapter::beginTxTransaction()</link> (when value is False).
+              See <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c108.htm">tx_set_transaction_control() documentation</ulink>
+              for details.
+              </para></entry>
+              <entry><para>False</para></entry>
+            </row>
 
-
-
+            <row>
+              <entry><para><replaceable>WSENVFILE</replaceable></para></entry>
+              <entry><para>String</para></entry>
+              <entry><para>Equivalent of WSENVFILE environment variable described in
+              <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c55.htm">tpinit() documentation</ulink>.
+              </para></entry>
+              <entry><para>empty string</para></entry>
+            </row>
+            <row>
+              <entry><para><replaceable>WSNADDR</replaceable></para></entry>
+              <entry><para>String</para></entry>
+              <entry><para>Equivalent of WSNADDR environment variable described in
+              <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c55.htm">tpinit() documentation</ulink>.
+              </para></entry>
+              <entry><para>empty string</para></entry>
+            </row>
+            <row>
+              <entry><para><replaceable>WSFADDR</replaceable></para></entry>
+              <entry><para>String</para></entry>
+              <entry><para>Equivalent of WSFADDR environment variable described in
+              <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c55.htm">tpinit() documentation</ulink>.
+              </para></entry>
+              <entry><para>empty string</para></entry>
+            </row>
+            <row>
+              <entry><para><replaceable>WSFRANGE</replaceable></para></entry>
+              <entry><para>String</para></entry>
+              <entry><para>Equivalent of WSFRANGE environment variable described in
+              <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c55.htm">tpinit() documentation</ulink>.
+              </para></entry>
+              <entry><para>empty string</para></entry>
+            </row>
+            <row>
+              <entry><para><replaceable>WSDEVICE</replaceable></para></entry>
+              <entry><para>String</para></entry>
+              <entry><para>Equivalent of WSDEVICE environment variable described in
+              <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c55.htm">tpinit() documentation</ulink>.
+              </para></entry>
+              <entry><para>empty string</para></entry>
+            </row>
+            <row>
+              <entry><para><replaceable>WSTYPE</replaceable></para></entry>
+              <entry><para>String</para></entry>
+              <entry><para>Equivalent of WSTYPE environment variable described in
+              <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c55.htm">tpinit() documentation</ulink>.
+              </para></entry>
+              <entry><para>empty string</para></entry>
+            </row>
+            <row>
+              <entry><para><replaceable>WSRPLYMAX</replaceable></para></entry>
+              <entry><para>String</para></entry>
+              <entry><para>Equivalent of WSRPLYMAX environment variable described in
+              <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c55.htm">tpinit() documentation</ulink>.
+              </para></entry>
+              <entry><para>empty string</para></entry>
+            </row>
+            <row>
+              <entry><para><replaceable>TMMINENCRYPTBITS</replaceable></para></entry>
+              <entry><para>String</para></entry>
+              <entry><para>Equivalent of TMMINENCRYPTBITS environment variable described in
+              <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c55.htm">tpinit() documentation</ulink>.
+              </para></entry>
+              <entry><para>empty string</para></entry>
+            </row>
+            <row>
+              <entry><para><replaceable>TMMAXENCRYPTBITS</replaceable></para></entry>
+              <entry><para>String</para></entry>
+              <entry><para>Equivalent of TMMAXENCRYPTBITS environment variable described in
+               <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c55.htm">tpinit() documentation</ulink>.
+              </para></entry>
+              <entry><para>empty string</para></entry>
+            </row>
           </tbody>
         </tgroup>
       </table>
     </sect3>
 
 
-
-        <title>Return Values for TuxedoAdapter::constructor()</title>
-        <tgroup cols="2" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Return Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>Object</para>
-              </entry>
-              <entry>
-                <para>The TuxedoAdapter object is returned</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-      <table>
-        <title>Exceptions thrown by TuxedoAdapter::constructor()</title>
-        <tgroup cols="2" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>err</para>
-              </entry>
-              <entry>
-                <para>desc</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>
-                  <code>XXX</code>
-                </para>
-              </entry>
-              <entry>
-                <para>dabcct</para>
-              </entry>
-            </row>
-            <row>
-              <entry>
-                <para>
-                  <code>XXXY</code>
-                </para>
-              </entry>
-              <entry>
-                <para>abcd</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
     </sect3>
+
     <sect3 id="TuxedoAdapter_destructor">
       <title>TuxedoAdapter::destructor()</title>
       <variablelist>
