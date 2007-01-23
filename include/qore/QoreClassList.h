@@ -25,6 +25,7 @@
 #define _QORE_QORECLASSLIST_H
 
 #include <qore/config.h>
+
 #include <qore/QoreClass.h>
 #include <qore/hash_map.h>
 

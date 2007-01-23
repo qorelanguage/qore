@@ -24,8 +24,6 @@
 
 #define _QORE_QORECOUNTER_H 1
 
-#include <qore/config.h>
-
 #include <pthread.h>
 class QoreCounter
 {

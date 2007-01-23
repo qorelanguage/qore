@@ -1,3 +1,6 @@
+2007.01.23: David Nichols
+	* fixed bugs parsing empty JSON lists and hashes
+
 2007.01.22: David Nichols
 	* added XmlRpcClient class to library
 	* fixed encoding bugs in parsing XML (libxml2 requires input to be 

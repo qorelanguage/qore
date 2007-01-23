@@ -26,8 +26,6 @@
 
 #define _QORE_LOCKEDOBJECT_H
 
-#include <qore/config.h>
-
 #include <pthread.h>
 class LockedObject {
       friend class QoreCondition;

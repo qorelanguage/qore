@@ -8483,12 +8483,16 @@ BOOL values, so boolean() could be called as well with the same effect</para>
 	      <entry><para><link linkend="Tibae_TibcoAdapter_sendSubjectWithSyncReply">TibcoAdapter::sendSubjectWithSyncReply()</link></para></entry>
 	      <entry>Y</entry>
 	      <entry><para>Creates a publisher, transmits data, and returns a data structure representing the reply.</para></entry>
+	    </row>
+	    <row>
 	      <entry><para><link linkend="Tibae_TibcoAdapter_operationsCallWithSyncResult">TibcoAdapter::operationsCallWithSyncResult()</link></para></entry>
 	      <entry>Y</entry>
 	      <entry><para>Calls a Tibco Adapter Operation and returns a data structure representing the reply.</para></entry>
-	      <entry><para><link linkend="Tibae_TibcoAdapter_operationsOneWayCall">TibcoAdapter::operationsOneWayCall()></link></para></entry>
+	    </row>
+	    <row>
+	      <entry><para><link linkend="Tibae_TibcoAdapter_operationsOneWayCall">TibcoAdapter::operationsOneWayCall()</link></para></entry>
 	      <entry>Y</entry>
-	      <entry>Calls an one way (no reply sent) Tibco Operation.</entry>
+	      <entry><para>Calls an one way (no reply sent) Tibco Operation.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -8894,7 +8898,7 @@ BOOL values, so boolean() could be called as well with the same effect</para>
 
 
       <sect3 id="Tibae_TibcoAdapter_operationsCallWithSyncResult">
-        <title>TibcoAdapter::operationsCallWithSyncResult()()</title>
+        <title>TibcoAdapter::operationsCallWithSyncResult()</title>
         <variablelist>
           <varlistentry>
             <term>Synopsis</term>
@@ -8971,7 +8975,7 @@ BOOL values, so boolean() could be called as well with the same effect</para>
 
 
       <sect3 id="Tibae_TibcoAdapter_operationsOneWayCall">
-        <title>TibcoAdapter::operationsOneWayCall()()</title>
+        <title>TibcoAdapter::operationsOneWayCall()</title>
         <variablelist>
           <varlistentry>
             <term>Synopsis</term>

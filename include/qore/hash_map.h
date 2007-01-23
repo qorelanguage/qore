@@ -56,15 +56,14 @@ typedef hash_map<char*, class Var *, hash<char *>, class eqstr> hm_var_t;
 
 #else // HAVE_QORE_HASH_MAP
 #include <map>
-using namespace std;
 
-typedef map<char*, class QoreNode *, class ltstr> hm_qn_t;
-typedef map<char*, class HashMember *, class ltstr> hm_hm_t;
-typedef map<char*, class Method *, class ltstr> hm_method_t;
-typedef map<char*, class BuiltinFunction *, class ltstr> hm_bf_t;
-typedef map<char*, class QoreClass *, class ltstr> hm_qc_t;
-typedef map<char*, class UserFunction *, class ltstr> hm_uf_t;
-typedef map<char*, class Var *, class ltstr> hm_var_t;
+typedef std::map<char*, class QoreNode *, class ltstr> hm_qn_t;
+typedef std::map<char*, class HashMember *, class ltstr> hm_hm_t;
+typedef std::map<char*, class Method *, class ltstr> hm_method_t;
+typedef std::map<char*, class BuiltinFunction *, class ltstr> hm_bf_t;
+typedef std::map<char*, class QoreClass *, class ltstr> hm_qc_t;
+typedef std::map<char*, class UserFunction *, class ltstr> hm_uf_t;
+typedef std::map<char*, class Var *, class ltstr> hm_var_t;
 
 #endif // HAVE_QORE_HASH_MAP
 

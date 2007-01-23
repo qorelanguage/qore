@@ -26,7 +26,6 @@
 
 #define _QORE_ABSTRACTPRIVATEDATA_H
 
-#include <qore/config.h>
 #include <qore/ReferenceObject.h>
 
 class AbstractPrivateData : public ReferenceObject
