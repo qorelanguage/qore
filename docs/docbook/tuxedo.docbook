@@ -1801,6 +1801,294 @@ At least <code>TUXDIR</code> and <code>TUXCONFIG</code> settings need to be spec
       </table>
     </sect3>
 
+    <sect3 id="TuxedoAdapter_joinConversation">
+      <title>TuxedoAdapter::joinConversation()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Connects a Tuxedo service in conversation mode, if provided a data is sent. See
+            <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c32.htm">tpconnect() documentation</ulink>
+            for details.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>TuxedoAdapter::joinConversation(<replaceable>service name, data [, flags]</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+
+      <table>
+        <title>Arguments for TuxedoAdapter::joinConversation()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <replaceable>service name</replaceable>
+                </para>
+              </entry>
+              <entry>
+                <para>String</para>
+              </entry>
+              <entry>
+                <para>As defined in configuration file (TUXCONFIG).</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>
+                  <replaceable>data</replaceable>
+                </para>
+              </entry>
+              <entry>
+                <para>NOTHING,String, Binary or Hash</para>
+              </entry>
+              <entry>
+                <para>Data serialized into the Tuxedo format and passed to the service.
+                Hash is converted either into FML or FML32, based on the hint in 'flags'
+                or on the settings 'DefaultFmlType' passed into the constructor.</para>
+              </entry>
+            </row>
+           <row>
+              <entry>
+                <para>
+                  <replaceable>[flags]</replaceable>
+                </para>
+              </entry>
+              <entry>
+                <para>Integer or Hash</para>
+              </entry>
+              <entry>
+                <para>If the value is Integer then it is equivalent with flags used by the
+                <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c32.htm#1041087">tpconnect()</ulink>. 
+                 Hash value may contrain following items:
+                 bool value 'use_fml32' (whether to process Hash data as FML or FML32) and
+                 integer value 'flags' (the same as for tpconnect()).
+                 If the TuxedoAdapter constructor did not specified 'DefaultFlagsForJoinConversation' settings
+                 then the 'flags' needs to be present (either as the Integer or part of the Hash).
+                </para>
+              </entry>
+            </row>
+
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for TuxedoAdapter::call()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>Integer</para>
+              </entry>
+              <entry>
+                <para>Descriptor of the established conversation. The descriptor is used by
+                <link linkend="TuxedoAdapter_sendConversationData">TuxedoAdapter::sendConversationData()</link>,
+                <link linkend="TuxedoAdapter_receiveConversationData">TuxedoAdapter::receiveConversationData()</link>
+                and <link linkend="TuxedoAdapter_breakConversation">TuxedoAdapter::breakConversation()</link>.
+                
+                When the TuxedoAdapter instance gets destroyed all remaining opened conversations are
+                broken automatically.
+                </para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+     </table>
+      <table>
+        <title>Exceptions thrown by TuxedoAdapter::joinConversation()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>err</para>
+              </entry>
+              <entry>
+                <para>desc</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <code>TUXEDO-ADAPTER-JOIN-CONVERSATION</code>
+                </para>
+              </entry>
+              <entry>
+                <para>Invalid parameter.</para>
+              </entry>
+            </row>
+
+            <row>
+              <entry>
+                <para>
+                  <code>TUXEDO-ERROR</code>
+                </para>
+              </entry>
+              <entry>
+                <para>A Tuxedo call failed. Hash parameter has a member 'error' with Tuxedo error code.</para>
+              </entry>
+            </row>
+
+          </tbody>
+        </tgroup>
+      </table>
+
+    </sect3>
+
+    <sect3 id="TuxedoAdapter_breakConversation">
+      <title>TuxedoAdapter::joinConversation()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Forcibly breaks an established conversation mode. See
+            <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c37.htm#1042150">tpdiscon() documentation</ulink>
+            for details. This is NOT the recomended way to close such a connection.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>TuxedoAdapter::breakConversation(<replaceable>service descriptor</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+
+      <table>
+        <title>Arguments for TuxedoAdapter::joinConversation()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <replaceable>conversation descriptor</replaceable>
+                </para>
+              </entry>
+              <entry>
+                <para>Integer</para>
+              </entry>
+              <entry>
+                <para>A valid conversation descriptor returned by
+                <link linkend="TuxedoAdapter_joinConversation">TuxedoAdapter::joinConversation()</link>.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+
+      <table>
+        <title>Return Values for TuxedoAdapter::breakConversation()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method doesn't return any value.
+                </para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+     </table>
+     </table>
+      <table>
+        <title>Exceptions thrown by TuxedoAdapter::joinConversation()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>err</para>
+              </entry>
+              <entry>
+                <para>desc</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <code>TUXEDO-ADAPTER-BREAK-CONVERSATION</code>
+                </para>
+              </entry>
+              <entry>
+                <para>Invalid parameter.</para>
+              </entry>
+            </row>
+
+            <row>
+              <entry>
+                <para>
+                  <code>TUXEDO-ERROR</code>
+                </para>
+              </entry>
+              <entry>
+                <para>A Tuxedo call failed. Hash parameter has a member 'error' with Tuxedo error code.</para>
+              </entry>
+            </row>
+
+          </tbody>
+        </tgroup>
+      </table>
+    </sect3>
+
     <sect3 id="TuxedoAdapter_setStringEncoding">
       <title>TuxedoAdapter::setStringEncoding()</title>
       <variablelist>
