@@ -1106,10 +1106,10 @@ try_statement:
 	      {
 		 param = $5->val.vref->name;
 		 $5->val.vref->name = NULL;
-		 $5->deref(NULL);
 	      }
 	      else
 		 parse_error("only one parameter accepted in catch block for exception hash");
+	      $5->deref(NULL);
 	   }
 	   $$->s.Try = new TryStatement($2, $7, param);
 	}
