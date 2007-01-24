@@ -26,7 +26,7 @@
 
 #define _QORE_QORENET_H
 
-#include <qore/config.h>
+#include <qore/common.h>
 #include <qore/LockedObject.h>
 
 #ifndef HAVE_GETHOSTBYNAME_R

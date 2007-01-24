@@ -24,7 +24,9 @@
 
 #define _QORE_COMMON_H
 
+#ifdef _QORE_LIB_INTERN
 #include <qore/config.h>
+#endif
 
 #include <string.h>
 
@@ -75,8 +77,7 @@ typedef void (*q_constructor_t)(class Object *, class QoreNode *, class Exceptio
 typedef void (*q_destructor_t)(class Object *, void *, class ExceptionSink *);
 typedef void (*q_copy_t)(class Object *, class Object *, void *, class ExceptionSink *);
 
-#include <stdlib.h>
-
+#ifdef _QORE_LIB_INTERN
 #ifndef HAVE_ATOLL
 #ifdef HAVE_STRTOIMAX
 #include <inttypes.h>
@@ -98,5 +99,7 @@ static inline long long atoll(const char *str)
 #include <inttypes.h>
 #define strtoll strtoimax
 #endif
+
+#endif // _QORE_LIB_INTERN
 
 #endif // _QORE_COMMON_H

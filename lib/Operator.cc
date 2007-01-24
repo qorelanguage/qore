@@ -801,6 +801,7 @@ static class QoreNode *op_object_method_call(class QoreNode *left, class QoreNod
       traceout("op_object_method_call()");
       return NULL;
    }
+
    QoreNode *rv = op->val.object->getClass()->evalMethod(op->val.object, func->val.fcall->f.c_str, func->val.fcall->args, xsink);
    if (ld) op->deref(xsink);
 

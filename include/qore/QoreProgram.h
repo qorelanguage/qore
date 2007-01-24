@@ -26,7 +26,7 @@
 
 #define _QORE_QOREPROGRAM_H
 
-#include <qore/config.h>
+#include <qore/common.h>
 #include <qore/AbstractPrivateData.h>
 #include <qore/LockedObject.h>
 #include <qore/Restrictions.h>

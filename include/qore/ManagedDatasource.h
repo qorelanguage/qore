@@ -34,7 +34,9 @@ FIXME: commit()s when autocommit=true should be made here, also after
 
 #define _QORE_MANAGEDDATASOURCE_H
 
-#include <qore/config.h>
+#ifdef _QORE_LIB_INTERN
+
+#include <qore/common.h>
 #include <qore/LockedObject.h>
 #include <qore/QoreCondition.h>
 #include <qore/SingleExitGate.h>
@@ -43,7 +45,7 @@ FIXME: commit()s when autocommit=true should be made here, also after
 
 #define DEFAULT_TL_TIMEOUT 120
 
-void datasource_thread_lock_cleanup(void *ptr, class ExceptionSink *xsink);
+DLLLOCAL void datasource_thread_lock_cleanup(void *ptr, class ExceptionSink *xsink);
 
 class ManagedDatasource : public AbstractPrivateData, public Datasource, private LockedObject
 {
@@ -93,5 +95,7 @@ public:
    DLLLOCAL void setAutoCommit(bool ac);   
    DLLLOCAL ManagedDatasource *copy();
 };
+
+#endif
 
 #endif // _QORE_SQL_OBJECTS_DATASOURCE_H

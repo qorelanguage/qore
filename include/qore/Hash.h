@@ -24,7 +24,7 @@
 
 #define _QORE_HASH_H
 
-#include <qore/config.h>
+#include <qore/common.h>
 #include <qore/hash_map.h>
 
 #include <stdio.h>

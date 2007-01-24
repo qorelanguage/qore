@@ -3,8 +3,6 @@
 
   thread-safe object definition
 
-  references: how many variables are pointing at this object?
-
   Qore Programming Language
 
   Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols

@@ -1,3 +1,6 @@
+2007.01.24: David Nichols
+	* fixed a memory leak with a parse exception in parser.yy
+
 2007.01.23: David Nichols
 	* fixed bugs parsing empty JSON lists and hashes
 

@@ -24,7 +24,6 @@
 
 #define _QORE_QORE_H
 
-#include <qore/config.h>
 #include <qore/common.h>
 #include <qore/List.h>
 #include <qore/QoreProgram.h>

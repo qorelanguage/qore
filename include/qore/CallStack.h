@@ -23,7 +23,8 @@
 #ifndef _QORE_CALLSTACK_H
 #define _QORE_CALLSTACK_H
 
-#include <qore/config.h>
+#ifdef _QORE_LIB_INTERN
+
 #include <qore/common.h>
 
 #define CT_USER      0
@@ -62,5 +63,7 @@ class CallStack {
       DLLLOCAL class Object *substituteObject(class Object *o);
       DLLLOCAL bool inMethod(char *name, class Object *o) const;
 };
+
+#endif // _QORE_LIB_INTERN
 
 #endif // _QORE_CALLSTACK_H

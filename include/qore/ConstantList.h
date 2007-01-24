@@ -32,7 +32,9 @@
 
 #define _QORE_CONSTANTLIST_H
 
-#include <qore/config.h>
+#ifdef _QORE_LIB_INTERN
+
+#include <qore/common.h>
 #include <qore/hash_map.h>
 
 class ConstantList
@@ -55,5 +57,6 @@ class ConstantList
       DLLLOCAL Hash *getInfo();
 };
 
+#endif
 
 #endif // _QORE_CONSTANTLIST_H

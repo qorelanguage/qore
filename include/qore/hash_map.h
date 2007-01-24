@@ -26,12 +26,11 @@
 
 #define _QORE_HASH_MAP_H
 
-#include <qore/config.h>
+#include <qore/common.h>
 
 #ifdef HAVE_QORE_HASH_MAP
 
 #include <qore/hash_map_include.h>
-#include <qore/common.h>
 
 #include <strings.h>
 

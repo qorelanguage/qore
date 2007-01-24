@@ -24,7 +24,8 @@
 
 #define QORE_CONTEXT_H
 
-#include <qore/config.h>
+#ifdef _QORE_LIB_INTERN
+
 #include <qore/common.h>
 
 #define CM_WHERE_NODE           1
@@ -82,5 +83,7 @@ class ComplexContextRef
 DLLLOCAL class QoreNode *evalContextRef(char *key, class ExceptionSink *xsink);
 DLLLOCAL class QoreNode *evalComplexContextRef(class ComplexContextRef *c, class ExceptionSink *xsink);
 DLLLOCAL class QoreNode *evalContextRow(class ExceptionSink *xsink);
+
+#endif
 
 #endif

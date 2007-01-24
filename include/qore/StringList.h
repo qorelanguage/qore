@@ -24,7 +24,6 @@
 
 #define _QORE_STRINGLIST_H
 
-#include <qore/config.h>
 #include <qore/safe_dslist>
 
 #include <stdlib.h>
@@ -34,16 +33,6 @@
 #include <functional>
 #include <list>
 #include <deque>
-
-// STL is currently missing "slist"
-
-#ifdef HAVE_QORE_SLIST
-#include <qore/slist_include.h>
-
-typedef slist<char *> strslist_t;
-#else
-typedef std::list<char *> strslist_t;
-#endif
 
 typedef std::list<char *> strlist_t;
 
@@ -63,11 +52,11 @@ template <typename T> struct free_ptr : std::unary_function <T*, void>
 class StringList : public strdeque_t
 {
    public:
-      ~StringList()
+      DLLLOCAL ~StringList()
       {
 	 std::for_each(begin(), end(), free_ptr<char>());
       }
-      void addDirList(char *str);
+      DLLLOCAL void addDirList(char *str);
 };
 
 class charPtrList : public safe_dslist<char *>
@@ -75,7 +64,7 @@ class charPtrList : public safe_dslist<char *>
    public:
       // returns 0 for found, -1 for not found
       // FIXME: use STL find algorithm
-      int find(char *str) const
+      DLLLOCAL int find(char *str) const
       {
 	 const_iterator i = begin();
 	 while (i != end())

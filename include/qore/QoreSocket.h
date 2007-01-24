@@ -32,6 +32,7 @@
 #define DEFAULT_SOCKET_BUFSIZE 4096
 #endif
 
+#include <qore/common.h>
 #include <qore/config.h>
 #include <qore/support.h>
 #include <qore/QoreString.h>

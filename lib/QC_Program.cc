@@ -305,6 +305,8 @@ class QoreClass *initProgramClass()
    QC_PROGRAM->addMethod("importFunction",       (q_method_t)PROGRAM_importFunction);
    QC_PROGRAM->addMethod("importGlobalVariable", (q_method_t)PROGRAM_importGlobalVariable);
    QC_PROGRAM->addMethod("getUserFunctionList",  (q_method_t)PROGRAM_getUserFunctionList);
+   QC_PROGRAM->addMethod("setParseOptions",      (q_method_t)PROGRAM_setParseOptions);
+   QC_PROGRAM->addMethod("disableParseOptions",  (q_method_t)PROGRAM_disableParseOptions);
 
    traceout("initProgramClass()");
    return QC_PROGRAM;

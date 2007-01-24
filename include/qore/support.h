@@ -24,7 +24,6 @@
 
 #define QORE_SUPPORT_H
 
-#include <qore/config.h>
 #include <qore/common.h>
 
 DLLEXPORT int printe(const char *fmt, ...);
@@ -60,6 +59,8 @@ DLLEXPORT extern int debug;
 #endif
 #endif
 
+#ifdef _QORE_LIB_INTERN
+
 // the following functions are only referenced from C++ source
 DLLLOCAL void parse_error(int sline, int eline, const char *fmt, ...);
 DLLLOCAL void parse_error(const char *fmt, ...);
@@ -68,6 +69,8 @@ DLLLOCAL class QoreString *findFileInEnvPath(char *file, char *varname);
 
 #ifndef HAVE_ISBLANK
 #define isblank(a) ((a) == ' ' || (a) == '\t')
+#endif
+
 #endif
 
 #endif

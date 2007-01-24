@@ -24,7 +24,6 @@
 
 #define _QORE_QORELIB_H
 
-#include <qore/config.h>
 #include <qore/common.h>
 #include <qore/LockedObject.h>
 #include <qore/StringList.h>
@@ -97,6 +96,7 @@ class featureList : public charPtrList
 // list of qore features
 DLLEXPORT extern featureList qoreFeatureList;
 
+#ifdef _QORE_LIB_INTERN
 #ifndef HAVE_LOCALTIME_R
 DLLLOCAL extern class LockedObject lck_localtime;
 #endif
@@ -114,5 +114,6 @@ DLLLOCAL class BinaryObject *parseHex(char *buf, int len);
 DLLLOCAL void print_node(FILE *fp, class QoreNode *node);
 DLLLOCAL void delete_global_variables();
 DLLLOCAL void initENV(char *env[]);
+#endif
 
 #endif // _QORE_QORELIB_H

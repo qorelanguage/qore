@@ -49,5 +49,5 @@ void StringList::addDirList(char *str)
 
    // add last directory
    if (*str)
-      push_back(strdup(str));
+      push_back(str);
 }

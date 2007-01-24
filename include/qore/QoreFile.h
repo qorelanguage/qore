@@ -28,7 +28,7 @@
 
 #define _QORE_QOREFILE_H
 
-#include <qore/config.h>
+#include <qore/common.h>
 
 #include <fcntl.h>
 #include <unistd.h>

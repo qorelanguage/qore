@@ -24,10 +24,12 @@
 
 #define _QORE_BUILTINFUNCTIONLIST_H
 
-#include <qore/config.h>
+#include <qore/common.h>
 #include <qore/hash_map.h>
 #include <qore/Restrictions.h>
 #include <qore/LockedObject.h>
+
+DLLLOCAL void init_builtin_functions();
 
 // there is only one of these, therefore we have static members and methods
 class BuiltinFunctionList
@@ -49,7 +51,5 @@ class BuiltinFunctionList
 };
 
 DLLEXPORT extern class BuiltinFunctionList builtinFunctions;
-
-void init_builtin_functions();
 
 #endif // _QORE_BUILTINFUNCTIONLIST_H

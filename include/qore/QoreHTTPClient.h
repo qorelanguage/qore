@@ -23,7 +23,7 @@
 #ifndef QORE_HTTP_FILE_H_
 #define QORE_HTTP_FILE_H_
 
-#include <qore/config.h>
+#include <qore/common.h>
 #include <qore/AbstractPrivateData.h>
 #include <qore/LockedObject.h>
 #include <qore/QoreSocket.h>

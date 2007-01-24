@@ -34,11 +34,14 @@
 
 #define _QORE_QC_DATASOURCE_H
 
-#include <qore/config.h>
+#ifdef _QORE_LIB_INTERN
+#include <qore/common.h>
 #include <qore/ManagedDatasource.h>
 
 extern int CID_DATASOURCE;
 
 DLLLOCAL class QoreClass *initDatasourceClass();
+
+#endif // _QORE_LIB_INTERN
 
 #endif // _QORE_SQL_OBJECTS_DATASOURCE_H
