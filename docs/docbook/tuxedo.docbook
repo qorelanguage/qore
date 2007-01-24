@@ -160,7 +160,7 @@
               <para>Y</para>
             </entry>
             <entry>
-              <para>Opens new communication with a Tuxedo service in conversation mode.</para>
+              <para>Opens new communication with a Tuxedo service in conversational mode.</para>
             </entry>
           </row>
 
@@ -174,7 +174,7 @@
               <para>Y</para>
             </entry>
             <entry>
-              <para>Forcibly closes a communication in conversation mode.</para>
+              <para>Forcibly closes a communication in conversational mode.</para>
             </entry>
           </row>
           <row>
@@ -187,7 +187,7 @@
               <para>Y</para>
             </entry>
             <entry>
-              <para>Sends data to a Tuxedo service in conversation mode.</para>
+              <para>Sends data to a Tuxedo service in conversational mode.</para>
             </entry>
           </row>
 
@@ -201,7 +201,7 @@
               <para>Y</para>
             </entry>
             <entry>
-              <para>Retrieves data from a Tuxedo service in conversation mode.</para>
+              <para>Retrieves data from a Tuxedo service in conversational mode.</para>
             </entry>
           </row>
 
@@ -1807,7 +1807,7 @@ At least <code>TUXDIR</code> and <code>TUXCONFIG</code> settings need to be spec
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Connects a Tuxedo service in conversation mode, if provided a data is sent. See
+            <para>Connects a Tuxedo service in conversational mode, if provided a data is sent. See
             <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c32.htm">tpconnect() documentation</ulink>
             for details.
             </para>
@@ -1971,7 +1971,7 @@ At least <code>TUXDIR</code> and <code>TUXCONFIG</code> settings need to be spec
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Forcibly breaks an established conversation mode. See
+            <para>Forcibly breaks an established conversational mode. See
             <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c37.htm#1042150">tpdiscon() documentation</ulink>
             for details. This is NOT the recomended way to close such a connection.
             </para>
@@ -2089,6 +2089,314 @@ At least <code>TUXDIR</code> and <code>TUXCONFIG</code> settings need to be spec
       </table>
     </sect3>
 
+    <sect3 id="TuxedoAdapter_sendConversationData">
+      <title>TuxedoAdapter::sendConversationData()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Sends data in conversational mode. See
+            <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c70.htm">tpsend() documentation</ulink> for details.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>TuxedoAdapter:sendConversationData(<replaceable>conversation descriptor, data [, flags]</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+
+     <table>
+        <title>Arguments for TuxedoAdapter::sendConversationData()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <replaceable>conversation descriptor</replaceable>
+                </para>
+              </entry>
+              <entry>
+                <para>Integer</para>
+              </entry>
+              <entry>
+                <para>
+                A valid descriptor returned by
+                <link linkend="TuxedoAdapter_joinConversation">TuxedoAdapter::joinConversation()</link>.
+                </para>
+              </entry>
+            </row>
+           <row>
+              <entry>
+                <para>
+                  <replaceable>data</replaceable>
+                </para>
+              </entry>
+              <entry>
+                <para>NOTHING,String, Binary or Hash</para>
+              </entry>
+              <entry>
+                <para>Data serialized into the Tuxedo format and passed to the service.
+                Hash is converted either into FML or FML32, based on the hint in 'flags'
+                or on the settings 'DefaultFmlType' passed into the constructor.</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>
+                  <replaceable>[flags]</replaceable>
+                </para>
+              </entry>
+              <entry>
+                <para>Integer or Hash</para>
+              </entry>
+              <entry>
+                <para>If the value is Integer then it is equivalent with flags used by the
+                <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c70.htm">tpsend()</ulink>. 
+                 Hash value may contrain following items:
+                 bool value 'use_fml32' (whether to process Hash data as FML or FML32) and
+                 integer value 'flags' (the same as for tpsend()).
+
+                 If the TuxedoAdapter constructor did not specified 'DefaultFlagsForSendConversationData' settings
+                 then the 'flags' needs to be present (either as the Integer or part of the Hash).
+                </para>
+              </entry>
+            </row>
+
+          </tbody>
+        </tgroup>
+      </table>
+     <table>
+        <title>Return Values for TuxedoAdapter::sendConversationData()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>Integer</para>
+              </entry>
+              <entry>
+                <para>Event, indicating state of the conversation. See
+                <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c70.htm">tpsend() documentation</ulink>
+                for allowed values and their interpretation.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+
+      <table>
+        <title>Exceptions thrown by TuxedoAdapter::sendConversationData()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>err</para>
+              </entry>
+              <entry>
+                <para>desc</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <code>TUXEDO-ADAPTER-SEND-CONVERSATION-DATA</code>
+                </para>
+              </entry>
+              <entry>
+                <para>Invalid parameter.</para>
+              </entry>
+            </row>
+
+            <row>
+              <entry>
+                <para>
+                  <code>TUXEDO-ERROR</code>
+                </para>
+              </entry>
+              <entry>
+                <para>A Tuxedo call failed. Hash parameter has a member 'error' with Tuxedo error code.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect3>
+
+    <sect3 id="TuxedoAdapter_receiveConversationData">
+      <title>TuxedoAdapter::receiveConversationData()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Receive data in conversational mode. See
+            <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c64.htm">tprecv() documentation</ulink> for details.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+           <programlisting>TuxedoAdapter:receiveConversationData(<replaceable>conversation descriptor [, flags]</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+     <table>
+        <title>Arguments for TuxedoAdapter::receiveConversationData()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <replaceable>conversation descriptor</replaceable>
+                </para>
+              </entry>
+              <entry>
+                <para>Integer</para>
+              </entry>
+              <entry>
+                <para>
+                A valid descriptor returned by
+                <link linkend="TuxedoAdapter_joinConversation">TuxedoAdapter::joinConversation()</link>.
+                </para>
+              </entry>
+            </row>
+           <row>
+              <entry>
+                <para>
+                  <replaceable>[flags]</replaceable>
+                </para>
+              </entry>
+              <entry>
+                <para>Integer or Hash</para>
+              </entry>
+              <entry>
+                <para>If the value is Integer then it is equivalent with flags used by the
+                <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c64.htm">tprecv()</ulink>.
+
+                Hash value may contrain following items: integer value 'flags' (the same as for tprecv()) and
+                string value 'DefaultReturnedDataType' (allowed values 'CARRAY', 'STRING', 'FML' or 'FML32') 
+                giving a hint of output data type.  
+
+                 If the TuxedoAdapter constructor did not specified 'DefaultFlagsForReceiveConversationData' settings
+                 then the 'flags' needs to be present (either as the Integer or part of the Hash).
+                </para>
+              </entry>
+            </row>
+
+          </tbody>
+        </tgroup>
+      </table>
+
+      <table>
+        <title>Return Values for TuxedoAdapter::receiveConversationData()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>Hash</para>
+              </entry>
+              <entry>
+                <para>The retrned Hash contains item 'data' with received reply converted into 
+                 a Qore datatype (FML and FML32 are encoded into a Hash) and item
+                 'event' indicating state of the conversation. See
+                 <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c64.htm">tprecv() documentation</ulink>
+                 for details about the events.
+               </para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+
+      <table>
+        <title>Exceptions thrown by TuxedoAdapter::receiveConversationData()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>err</para>
+              </entry>
+              <entry>
+                <para>desc</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <code>TUXEDO-ADAPTER-RECEIVE-CONVERSATION-DATA</code>
+                </para>
+              </entry>
+              <entry>
+                <para>Invalid parameter.</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>
+                  <code>TUXEDO-ERROR</code>
+                </para>
+              </entry>
+              <entry>
+                <para>A Tuxedo call failed. Hash parameter has a member 'error' with Tuxedo error code.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect3>
+
     <sect3 id="TuxedoAdapter_setStringEncoding">
       <title>TuxedoAdapter::setStringEncoding()</title>
       <variablelist>
@@ -2192,81 +2500,6 @@ At least <code>TUXDIR</code> and <code>TUXCONFIG</code> settings need to be spec
       </table>
     </sect3>
 
-
-
-    <sect3 id="TuxedoAdapter_getStringEncoding">
-      <title>TuxedoAdapter::getStringEncoding()</title>
-      <variablelist>
-        <varlistentry>
-          <term>Synopsis</term>
-          <listitem>
-            <para>Returns the character encoding used for the object</para>
-          </listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>Usage</term>
-          <listitem>
-            <programlisting>TuxedoAdapter::getStringEncoding()</programlisting>
-          </listitem>
-        </varlistentry>
-      </variablelist>
-      <table>
-        <title>Arguments for TuxedoAdapter::getStringEncoding()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-      <table>
-        <title>Return Values for TuxedoAdapter::getStringEncoding()</title>
-        <tgroup cols="2" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Return Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>String</para>
-              </entry>
-              <entry>
-                <para>The character encoding used for the object.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-    </sect3>
   </sect2>
 
 
