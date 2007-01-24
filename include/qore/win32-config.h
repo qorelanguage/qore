@@ -1,9 +1,9 @@
 /*
-  config.h
+  win32_config.h
 
   Qore Programming Language
 
-  Copyright (C) David Nichols 2005
+  Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -20,14 +20,9 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef QORE_CONFIG_H
+#ifndef _QORE_WIN32_CONFIG_H
 
-#define QORE_CONFIG_H
+#define _QORE_WIN32_CONFIG_H
 
-#ifdef WIN32
-#include <qore/win32-config.h>
-#else
-#include <qore/unix-config.h>
-#endif
 
 #endif

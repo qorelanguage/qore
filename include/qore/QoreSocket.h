@@ -33,7 +33,6 @@
 #endif
 
 #include <qore/common.h>
-#include <qore/config.h>
 #include <qore/support.h>
 #include <qore/QoreString.h>
 #include <qore/qore_thread.h>

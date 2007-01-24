@@ -25,9 +25,7 @@
 #define _QORE_REFERENCE_OBJECT_H
 
 #include <qore/common.h>
-#ifdef _QORE_LIB_INTERN
 #include <qore/macros.h>
-#endif
 
 #if !defined(HAVE_ATOMIC_MACROS)
 #include <qore/LockedObject.h>
@@ -38,7 +36,7 @@ class ReferenceObject
    protected:
       int references;
 #if !defined(HAVE_ATOMIC_MACROS)
-   // for atomic reference updates
+      // for atomic reference updates
       class LockedObject mRO;
 #endif
 
