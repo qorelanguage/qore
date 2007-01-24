@@ -92,7 +92,7 @@
               <para>Y</para>
             </entry>
             <entry>
-              <para>Calls an Tuxedo server and returns immediatelly The reply can be retrieved later.</para>
+              <para>Calls an Tuxedo service and returns immediatelly The reply can be retrieved later.</para>
             </entry>
           </row>
           <row>
@@ -119,6 +119,89 @@
             </entry>
             <entry>
               <para>Cancels reply from an asynchonous call.</para>
+            </entry>
+          </row>
+
+         <row>
+            <entry>
+              <para>
+                <link linkend="TuxedoAdapter_enqueue">TuxedoAdapter::enqueue()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>Y</para>
+            </entry>
+            <entry>
+              <para>Puts data into a Tuxedo queue.</para>
+            </entry>
+          </row>
+
+          <row>
+            <entry>
+              <para>
+                <link linkend="TuxedoAdapter_dequeue">TuxedoAdapter::dequeue()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>Y</para>
+            </entry>
+            <entry>
+              <para>Retrieves data from a Tuxedo queue.</para>
+            </entry>
+          </row>
+
+          <row>
+            <entry>
+              <para>
+                <link linkend="TuxedoAdapter_joinConversation">TuxedoAdapter::joinConversation()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>Y</para>
+            </entry>
+            <entry>
+              <para>Opens new communication with a Tuxedo service in conversation mode.</para>
+            </entry>
+          </row>
+
+          <row>
+            <entry>
+              <para>
+                <link linkend="TuxedoAdapter_breakConversation">TuxedoAdapter::breakConversation()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>Y</para>
+            </entry>
+            <entry>
+              <para>Forcibly closes a communication in conversation mode.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="TuxedoAdapter_sendConversationData">TuxedoAdapter::sendConversationData()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>Y</para>
+            </entry>
+            <entry>
+              <para>Sends data to a Tuxedo service in conversation mode.</para>
+            </entry>
+          </row>
+
+          <row>
+            <entry>
+              <para>
+                <link linkend="TuxedoAdapter_receiveConversationData">TuxedoAdapter::receiveConversationData()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>Y</para>
+            </entry>
+            <entry>
+              <para>Retrieves data from a Tuxedo service in conversation mode.</para>
             </entry>
           </row>
 
@@ -864,7 +947,7 @@ At least <code>TUXDIR</code> and <code>TUXCONFIG</code> settings need to be spec
               <entry>
                 <para>Data serialized into the Tuxedo format and passed to the service. 
                 Hash is converted either into FML or FML32, based on the hint in 'flags' 
-                or on the settings 'DefaultFlagsForCall' passed into the constructor.</para>
+                or on the settings 'DefaultFmlType' passed into the constructor.</para>
               </entry>
             </row>
 
@@ -1023,7 +1106,7 @@ At least <code>TUXDIR</code> and <code>TUXCONFIG</code> settings need to be spec
               <entry>
                 <para>Data serialized into the Tuxedo format and passed to the service.
                 Hash is converted either into FML or FML32, based on the hint in 'flags'
-                or on the settings 'DefaultFlagsForAsyncCall' passed into the constructor.
+                or on the settings 'DefaultFmlType' passed into the constructor.
                 </para>
               </entry>
             </row>
@@ -1183,8 +1266,15 @@ At least <code>TUXDIR</code> and <code>TUXCONFIG</code> settings need to be spec
                 <para>Integer or Hash</para>
               </entry>
               <entry>
-                <para>Integer with values as described in tpacall() documentation. Hash may contain bool value 'use_fml32' an
-d integer value 'flags'.  If the TuxedoAdapter constructor did not specified 'DefaultFlagsForwaitForAsyncReply' settings then the flags needs to be present (either as the integer or part of the hash).</para>
+                <para>Integer with values as described in 
+                <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c20.htm">tpacall() documentation</ulink>. 
+                The Hash may contain: string value 'DefaultReturnedDataType' (valid values are 'CARRAY',
+                'STRING', 'FML', 'FML32') which provides hint about output data type (Tuxedo may ignore
+                this hint) and integer 'flags' (the same as for tpgetrply()). 
+
+                If the TuxedoAdapter constructor did not specified 'DefaultFlagsForwaitForAsyncReply' settings 
+                then the 'flags' needs to be present (either as the integer or part of the hash).
+                </para>
               </entry>
             </row>
 
@@ -1207,7 +1297,7 @@ d integer value 'flags'.  If the TuxedoAdapter constructor did not specified 'De
           <tbody>
             <row>
               <entry>
-                <para>String | Binary | Hash</para>
+                <para>String, Binary or Hash</para>
               </entry>
               <entry>
                 <para>Received reply converted into a Qore type.</para>
@@ -1247,7 +1337,7 @@ d integer value 'flags'.  If the TuxedoAdapter constructor did not specified 'De
                 </para>
               </entry>
               <entry>
-                <para>Tuxedo call failed. Hash parameter has a member 'error' with Tuxedo error code.</para>
+                <para>A Tuxedo call failed. Hash exception parameter has member 'error' with Tuxedo error code.</para>
               </entry>
             </row>
 
@@ -1381,6 +1471,335 @@ d integer value 'flags'.  If the TuxedoAdapter constructor did not specified 'De
       </table>
     </sect3>
 
+   <sect3 id="TuxedoAdapter_enqueue">
+      <title>TuxedoAdapter::enqueue()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Puts data into a Tuxedo queue. For details see 
+            <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c38.htm">tpenqueue() documentation</ulink>.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+           <programlisting>TuxedoAdapter::enqueue(<replaceable>queue space, queue name, data [, flags]</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for TuxedoAdapter::enqueue()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <replaceable>queue space</replaceable>
+                </para>
+              </entry>
+              <entry>
+                <para>String</para>
+              </entry>
+              <entry>
+                <para>Queue identifier #1.</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>
+                  <replaceable>queue name</replaceable>
+                </para>
+              </entry>
+              <entry>
+                <para>String</para>
+              </entry>
+              <entry>
+                <para>Queue identifier #2.</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>
+                  <replaceable>data</replaceable>
+                </para>
+              </entry>
+              <entry>
+                <para>NOTHING, String, Binary or Hash</para>
+              </entry>
+              <entry>
+                <para>Data serialized into the Tuxedo format and put to the queue.
+                Hash is converted either into FML or FML32, based on the hint in 'flags'
+                or on the settings 'DefaultFmlType' passed into the constructor.
+                </para>
+              </entry>
+            </row>
+
+           <row>
+              <entry>
+                <para>
+                  <replaceable>[flags]</replaceable>
+                </para>
+              </entry>
+              <entry>
+                <para>Integer or Hash</para>
+              </entry>
+              <entry>
+                <para>
+                Integer with values as described in
+                <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c38.htm#1042179">tpenqueue() documentation</ulink>.
+                The Hash may contain: bool value 'use_fml32' (hint whether Hash data are converted into FML or FML32),
+                integer value 'flags' (the same as for tpenqueue()), integer queue control parameters 
+                'queue_control_flags, 'queue_control_deq_time', 'queue_control_priority', 'queue_control_exp_time', 
+                'queue_control_delivery_qos', queue_control_reply_qos', 'queue_control_urcode' and
+                binary queue parameters queue_control_msgid', 'queue_control_corrid'. See tpenqueue() 
+                documentation for details on queue control parameters.
+
+                If the TuxedoAdapter constructor did not specified 'DefaultFlagsForEnqueue' settings then the 'flags' 
+                needs to be present (either as the integer or part of the hash).
+                </para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for TuxedoAdapter::enqueue()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>Hash</para>
+              </entry>
+              <entry>
+                <para>Result of the operation is returned: binary value 'queue_control_msgid' contains generated ID for the 
+                data put into the queue, integer value 'queue_control_diagnostic' contains diagnostic of the 
+                tpenqueue() call. 
+                See <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c38.htm">tpenqueue() documentation</ulink>
+                 for details. </para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+     <table>
+        <title>Exceptions thrown by TuxedoAdapter::enqueue()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>err</para>
+              </entry>
+              <entry>
+                <para>desc</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <code>TUXEDO-ADAPTER-ENQUEUE</code>
+                </para>
+              </entry>
+              <entry>
+                <para>Missing or invalid parameter.</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>
+                  <code>TUXEDO-ERROR</code>
+                </para>
+              </entry>
+              <entry>
+                <para>A Tuxedo call failed. Hash exception parameter has member 'error' with Tuxedo error code.</para>
+              </entry>
+            </row>
+
+          </tbody>
+        </tgroup>
+      </table>
+    </sect3>
+
+   <sect3 id="TuxedoAdapter_dequeue">
+      <title>TuxedoAdapter::dequeue()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Retrieves data from a Tuxedo queue. For details see 
+            <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c36.htm">tpdequeue() documentation</ulink>.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+           <programlisting>TuxedoAdapter::dequeue(<replaceable>queue space, queue name, [, flags]</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+
+     <table>
+        <title>Arguments for TuxedoAdapter::dequeue()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <replaceable>queue space</replaceable>
+                </para>
+              </entry>
+              <entry>
+                <para>String</para>
+              </entry>
+              <entry>
+                <para>Queue identifier #1.</para>
+              </entry>
+            </row>
+           <row>
+              <entry>
+                <para>
+                  <replaceable>queue name</replaceable>
+                </para>
+              </entry>
+              <entry>
+                <para>String</para>
+              </entry>
+              <entry>
+                <para>Queue identifier #2.</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>
+                  <replaceable>[flags]</replaceable>
+                </para>
+              </entry>
+              <entry>
+                <para>Integer or Hash</para>
+              </entry>
+              <entry>
+                <para>
+                Integer with values as described in
+                <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c36.htm">tpdequeue() documentation</ulink>.
+                The Hash may contain: integer value 'flags' (the same as for tpdequeue()), 
+                integer queue control parameter 'queue_control_flags' and binary queue control parameters
+                'queue_control_msgid' and 'queue_control_corrid'.
+
+                If the TuxedoAdapter constructor did not specified 'DefaultFlagsForDequeue' settings then the 'flags' 
+                needs to be present (either as the integer or part of the hash).
+                </para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for TuxedoAdapter::dequeue()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>Hash</para>
+              </entry>
+              <entry>
+                <para>Result of the call: data fetched from the queue (the value named 'data') 
+                and integer queue control parameters 'queue_control_flags' and 'queue_control_priority'. See 
+                <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c36.htm">tpdequeue() documentation</ulink>
+                for details.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+
+     <table>
+        <title>Exceptions thrown by TuxedoAdapter::dequeue()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>err</para>
+              </entry>
+              <entry>
+                <para>desc</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <code>TUXEDO-ADAPTER-DEQUEUE</code>
+                </para>
+              </entry>
+              <entry>
+                <para>Missing or invalid parameter.</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>
+                  <code>TUXEDO-ERROR</code>
+                </para>
+              </entry>
+              <entry>
+                <para>A Tuxedo call failed. Hash exception parameter has member 'error' with Tuxedo error code.</para>
+              </entry>
+            </row>
+
+          </tbody>
+        </tgroup>
+      </table>
+    </sect3>
 
     <sect3 id="TuxedoAdapter_setStringEncoding">
       <title>TuxedoAdapter::setStringEncoding()</title>
@@ -1486,6 +1905,7 @@ d integer value 'flags'.  If the TuxedoAdapter constructor did not specified 'De
     </sect3>
 
 
+
     <sect3 id="TuxedoAdapter_getStringEncoding">
       <title>TuxedoAdapter::getStringEncoding()</title>
       <variablelist>
@@ -1563,3 +1983,4 @@ d integer value 'flags'.  If the TuxedoAdapter constructor did not specified 'De
 
 
 </chapter>
+
