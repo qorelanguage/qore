@@ -1075,7 +1075,7 @@ static QoreNode* postEvent(Object* self, QoreTuxedoAdapter* adapter, QoreNode* p
   }
   adapter->setSendBuffer(data, post_settings, err_name, xsink);
   if (xsink->isException()) {
-    return xsink->raiseException(err_name, "Invalid parameter for call().");
+    return xsink->raiseException(err_name, "Invalid parameter for postEvent().");
   }
   return adapter->post_event(event_name, post_settings, pflags, xsink);
 }
