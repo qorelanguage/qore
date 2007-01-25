@@ -306,7 +306,7 @@
           <row>
             <entry>
               <para>
-                <link linkend="TuxedoAdapter_suspendsTransaction">TuxedoAdapter::suspendTransaction()</link>
+                <link linkend="TuxedoAdapter_suspendTransaction">TuxedoAdapter::suspendTransaction()</link>
               </para>
             </entry>
             <entry>
@@ -319,7 +319,7 @@
           <row>
             <entry>
               <para>
-                <link linkend="TuxedoAdapter_resumesTransaction">TuxedoAdapter::resumeTransaction()</link>
+                <link linkend="TuxedoAdapter_resumeTransaction">TuxedoAdapter::resumeTransaction()</link>
               </para>
             </entry>
             <entry>
@@ -376,6 +376,113 @@
           <row>
             <entry>
               <para>
+                <link linkend="TuxedoAdapter_beginTxTransaction">TuxedoAdapter::beginTxTransaction()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>Y</para>
+            </entry>
+            <entry>
+              <para>Starts a X/Open compatible transaction.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="TuxedoAdapter_commitTxTransaction">TuxedoAdapter::commitTxTransaction()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>Y</para>
+            </entry>
+            <entry>
+              <para>Commits a X/Open compatible transaction.</para>
+            </entry>
+          </row>
+
+          <row>
+            <entry>
+              <para>
+                <link linkend="TuxedoAdapter_abortTxTransaction">TuxedoAdapter::abortTxTransaction()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>Y</para>
+            </entry>
+            <entry>
+              <para>Rolls back a X/Open compatible transaction.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+               <link linkend="TuxedoAdapter_finishTxCommitAfterDataLogged">TuxedoAdapter::finishTxCommitAfterDataLogged()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>Y</para>
+            </entry>
+            <entry>
+              <para>Sets a commit protocol used by the X/Open compatible transaction.</para>
+            </entry>
+          </row>
+
+         <row>
+            <entry>
+              <para>
+               <link linkend="TuxedoAdapter_finishTxCommitAfterTwoPhaseCompletes">TuxedoAdapter::finishTxCommitAfterTwoPhaseCompletes()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>Y</para>
+            </entry>
+            <entry>
+              <para>Sets a commit protocol used by the X/Open compatible transaction.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+               <link linkend="TuxedoAdapter_setChainedTxTransactions">TuxedoAdapter::setChainedTxTransactions()</link>              </para>
+            </entry>
+            <entry>
+              <para>Y</para>
+            </entry>
+            <entry>
+              <para>Finishing one X/Open compatible transaction will automatically start the next one.</para>
+            </entry>
+          </row>
+
+
+          <row>
+            <entry>
+              <para>
+               <link linkend="TuxedoAdapter_setUnchainedTxTransactions">TuxedoAdapter::setUnchainedTxTransactions()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>Y</para>
+            </entry>
+            <entry>
+              <para>Each X/Open compatible transaction needs to be started explicitly.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+               <link linkend="TuxedoAdapter_setTxTransactionsTimeout">TuxedoAdapter::setTxTransactionsTimeout()</link>              </para>
+            </entry>
+            <entry>
+              <para>Y</para>
+            </entry>
+            <entry>
+              <para>Sets timeout for X/Open compatible transaction commit.</para>
+            </entry>
+          </row>
+
+          <row>
+            <entry>
+              <para>
                 <link linkend="TuxedoAdapter_setStringEncoding">TuxedoAdapter::setStringEncoding()</link>
               </para>
             </entry>
@@ -386,6 +493,89 @@
               <para>Sets the string encoding for the object; any strings serialized and deserialized with this object will be tagged with this character encoding.</para>
             </entry>
           </row>
+
+          <row>
+            <entry>
+              <para>
+                <link linkend="TuxedoAdapter_error2string">TuxedoAdapter::error2string()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>N</para>
+            </entry>
+            <entry>
+              <para>Converts numeric Tuxedo error code into a descriptive text.</para>
+            </entry>
+          </row>
+
+          <row>
+            <entry>
+              <para>
+                <link linkend="TuxedoAdapter_writeToLog">TuxedoAdapter::writeToLog()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>N</para>
+            </entry>
+            <entry>
+              <para>Writes a message into Tuxedo log file.</para>
+            </entry>
+          </row>
+
+          <row>
+            <entry>
+              <para>
+                <link linkend="TuxedoAdapter_lastErrorDetails">TuxedoAdapter::lastErrorDetails()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>N</para>
+            </entry>
+            <entry>
+              <para>Returns details (an error code) for the last failed Tuxedo call.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="TuxedoAdapter_getPriority">TuxedoAdapter::getPriority()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>Y</para>
+            </entry>
+            <entry>
+              <para>Returns numeric priority used by Tuxedo.</para>
+            </entry>
+          </row>
+
+          <row>
+            <entry>
+              <para>
+                <link linkend="TuxedoAdapter_setPriority">TuxedoAdapter::setPriority()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>Y</para>
+            </entry>
+            <entry>
+              <para>Sets numeric priority used by Tuxedo.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="TuxedoAdapter_postEvent">TuxedoAdapter::postEvent()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>Y</para>
+            </entry>
+            <entry>
+              <para>Generates a Tuxedo event.</para>
+            </entry>
+          </row>
+
         </tbody>
       </tgroup>
     </table>
@@ -1211,7 +1401,7 @@ At least <code>TUXDIR</code> and <code>TUXCONFIG</code> settings need to be spec
 
 
     <sect3 id="TuxedoAdapter_asyncCall">
-      <title>TuxedoAdapter::call()</title>
+      <title>TuxedoAdapter::asyncCall()</title>
       <variablelist>
         <varlistentry>
           <term>Synopsis</term>
@@ -1219,7 +1409,7 @@ At least <code>TUXDIR</code> and <code>TUXCONFIG</code> settings need to be spec
             <para>Invokes a Tuxedo service asynchronously, without waiting for the reply. 
             See <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c20.htm">tpacall() documentation</ulink> 
             for details. To retrieve the reply use 
-            <link linkend="TuxedoAdapter_waitForAsyncreply">TuxedoAdapter::waitForAsyncReply()</link> 
+            <link linkend="TuxedoAdapter_waitForAsyncReply">TuxedoAdapter::waitForAsyncReply()</link> 
             or cancel the pending reply with <link linkend="TuxedoAdapter_cancelAsyncCall">TuxedoAdapter::cancelAsyncCall()</link>.
             The same service may be called either synchronously with <link linkend="TuxedoAdapter_call">TuxedoAdapter::call()</link> 
             or asynchronously.</para>
@@ -1827,7 +2017,7 @@ At least <code>TUXDIR</code> and <code>TUXCONFIG</code> settings need to be spec
         <varlistentry>
           <term>Usage</term>
           <listitem>
-           <programlisting>TuxedoAdapter::dequeue(<replaceable>queue space, queue name, [, flags]</replaceable>)</programlisting>
+            <programlisting>TuxedoAdapter::dequeue(<replaceable>queue space, queue name, [, flags]</replaceable>)</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -1900,6 +2090,7 @@ At least <code>TUXDIR</code> and <code>TUXCONFIG</code> settings need to be spec
           </tbody>
         </tgroup>
       </table>
+
       <table>
         <title>Return Values for TuxedoAdapter::dequeue()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -2089,7 +2280,6 @@ At least <code>TUXDIR</code> and <code>TUXCONFIG</code> settings need to be spec
             </row>
           </tbody>
         </tgroup>
-      </table>
      </table>
       <table>
         <title>Exceptions thrown by TuxedoAdapter::joinConversation()</title>
@@ -2134,7 +2324,7 @@ At least <code>TUXDIR</code> and <code>TUXCONFIG</code> settings need to be spec
     </sect3>
 
     <sect3 id="TuxedoAdapter_breakConversation">
-      <title>TuxedoAdapter::joinConversation()</title>
+      <title>TuxedoAdapter::breakConversation()</title>
       <variablelist>
         <varlistentry>
           <term>Synopsis</term>
@@ -2213,10 +2403,8 @@ At least <code>TUXDIR</code> and <code>TUXCONFIG</code> settings need to be spec
             </row>
           </tbody>
         </tgroup>
-      </table>
      </table>
-     </table>
-      <table>
+     <table>
         <title>Exceptions thrown by TuxedoAdapter::joinConversation()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
@@ -2681,7 +2869,7 @@ At least <code>TUXDIR</code> and <code>TUXCONFIG</code> settings need to be spec
             Wrapper for Tuxedo call
             <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c30.htm">tpclose()</ulink>.
             The manager is opened by calling 
-            <link linkend="TuxedoAdapter::openResourceManager">TuxedoAdapter::openResourceManager()</link>.
+            <link linkend="TuxedoAdapter_openResourceManager">TuxedoAdapter::openResourceManager()</link>.
             </para>
           </listitem>
         </varlistentry>
@@ -2883,6 +3071,113 @@ At least <code>TUXDIR</code> and <code>TUXCONFIG</code> settings need to be spec
       </table>
     </sect3>
 
+    <sect3 id="TuxedoAdapter_closeTxResourceManager">
+      <title>TuxedoAdapter::closeTxResourceManager()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>
+            Wrapper for Tuxedo call
+            <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c102.htm">tx_close()</ulink>.
+            Use <link linkend="TuxedoAdapter_openTxResourceManager">TuxedoAdapter::openTxResourceManager()</link>
+            to open the manager.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>TuxedoAdapter::closeTxResourceManager()</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for TuxedoAdapter::closeTxResourceManager()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for TuxedoAdapter::closeTxResourceManager()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method returns no value</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Exceptions thrown by TuxedoAdapter::closeTxResourceManager()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>err</para>
+              </entry>
+              <entry>
+                <para>desc</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <code>TUXEDO-ERROR</code>
+                </para>
+              </entry>
+              <entry>
+                <para>A Tuxedo call failed. Hash parameter has a member 'error' with Tuxedo error code.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect3>
+
+
    <sect3 id="TuxedoAdapter_beginTransaction">
       <title>TuxedoAdapter::beginTransaction()</title>
       <variablelist>
@@ -2988,7 +3283,7 @@ At least <code>TUXDIR</code> and <code>TUXCONFIG</code> settings need to be spec
     </sect3>
 
    <sect3 id="TuxedoAdapter_commitTransaction">
-      <title>TuxedoAdapter::beginTransaction()</title>
+      <title>TuxedoAdapter::commitTransaction()</title>
       <variablelist>
         <varlistentry>
           <term>Synopsis</term>
@@ -3299,6 +3594,1252 @@ At least <code>TUXDIR</code> and <code>TUXCONFIG</code> settings need to be spec
       </table>
     </sect3>
 
+   <sect3 id="TuxedoAdapter_suspendTransaction">       
+    <title>TuxedoAdapter::suspendTransaction()</title>
+      <variablelist>         
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>
+            Wrapper for Tuxedo call
+            <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c81.htm">tpsuspend()</ulink>. Use
+            <link linkend="TuxedoAdapter_resumeTransaction">TuxedoAdapter::resumeTransaction()</link> to resume it.
+            </para>
+          </listitem>         
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>TuxedoAdapter::suspendTransaction()</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for TuxedoAdapter::suspendTransaction()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for TuxedoAdapter::suspendTransaction()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>Integer</para>
+              </entry>
+              <entry>
+                <para>Transaction ID to be passed into 
+                <link linkend="TuxedoAdapter_resumeTransaction">TuxedoAdapter::resumeTransaction()</link>.
+                </para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Exceptions thrown by TuxedoAdapter::suspendTransaction()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>err</para>
+              </entry>
+              <entry>
+                <para>desc</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <code>TUXEDO-ERROR</code>
+                </para>
+              </entry>
+              <entry>
+                <para>A Tuxedo call failed. Hash parameter has a member 'error' with Tuxedo error code.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect3>
+
+   <sect3 id="TuxedoAdapter_resumeTransaction">
+      <title>TuxedoAdapter::resumeTransaction()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>
+            Wrapper for Tuxedo call
+            <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c65.htm#1044625">tpresume()</ulink>.
+            The transaction needs to be suspended prior by calling
+            <link linkend="TuxedoAdapter_suspendTransaction">TuxedoAdapter::suspendTransaction()</link>.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>TuxedoAdapter::resumeTransaction(<replaceable>transaction ID</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for TuxedoAdapter::resumeTransaction()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>Transaction ID</para>
+              </entry>
+              <entry>
+                <para>Integer</para>
+              </entry>
+              <entry>
+                <para>The ID returned by the 
+                <link linkend="TuxedoAdapter_suspendTransaction">TuxedoAdapter::suspendTransaction()</link>.
+               </para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Exceptions thrown by TuxedoAdapter::resumeTransaction()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>err</para>
+              </entry>
+              <entry>
+                <para>desc</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <code>TUXEDO-ERROR</code>
+                </para>
+              </entry>
+              <entry>
+                <para>A Tuxedo call failed. Hash parameter has a member 'error' with Tuxedo error code.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect3>
+
+    <sect3 id="TuxedoAdapter_finishCommitAfterDataLogged">
+      <title>TuxedoAdapter::finishCommitAfterDataLogged()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>
+            Wrapper for Tuxedo call
+            <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c68.htm">tpscmt(TP_CMT_LOGGED)</ulink>.
+            To switch to an alternative mechanism use
+            <link linkend="TuxedoAdapter_finishCommitAfterTwoPhaseCompletes">TuxedoAdapter::finishCommitAfterTwoPhaseCompletes()</link>.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>TuxedoAdapter::finishCommitAfterDataLogged()</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for TuxedoAdapter::finishCommitAfterDataLogged()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for TuxedoAdapter::finishCommitAfterDataLogged()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method returns no value</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Exceptions thrown by TuxedoAdapter::finishCommitAfterDataLogged()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>err</para>
+              </entry>
+              <entry>
+                <para>desc</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <code>TUXEDO-ERROR</code>
+                </para>
+              </entry>
+              <entry>
+                <para>A Tuxedo call failed. Hash parameter has a member 'error' with Tuxedo error code.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect3>
+
+    <sect3 id="TuxedoAdapter_finishCommitAfterTwoPhaseCompletes">
+      <title>TuxedoAdapter::finishCommitAfterTwoPhaseCompletes()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>
+            Wrapper for Tuxedo call
+            <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c68.htm">tpscmt(TP_CMT_COMPLETE)</ulink>.
+            To switch to an alternative mechanism use
+            <link linkend="TuxedoAdapter_finishCommitAfterDataLogged">TuxedoAdapter::finishCommitAfterDataLogged()</link>.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>TuxedoAdapter::finishCommitAfterTwoPhaseCompletes()</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for TuxedoAdapter::finishCommitAfterTwoPhaseCompletes()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for TuxedoAdapter::finishCommitAfterTwoPhaseCompletes()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method returns no value</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Exceptions thrown by TuxedoAdapter::finishCommitAfterTwoPhaseCompletes()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>err</para>
+              </entry>
+              <entry>
+                <para>desc</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <code>TUXEDO-ERROR</code>
+                </para>
+              </entry>
+              <entry>
+                <para>A Tuxedo call failed. Hash parameter has a member 'error' with Tuxedo error code.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect3>
+
+   <sect3 id="TuxedoAdapter_beginTxTransaction">
+      <title>TuxedoAdapter::beginTxTransaction()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>
+            Wrapper for Tuxedo call
+            <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c101.htm">tx_begin()</ulink>.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>TuxedoAdapter::beginTxTransaction()</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for TuxedoAdapter::beginTxTransaction()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for TuxedoAdapter::beginTxTransaction()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method returns no value</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Exceptions thrown by TuxedoAdapter::beginTxTransaction()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>err</para>
+              </entry>
+              <entry>
+                <para>desc</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <code>TUXEDO-ERROR</code>
+                </para>
+              </entry>
+              <entry>
+                <para>A Tuxedo call failed. Hash parameter has a member 'error' with Tuxedo error code.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect3>
+
+   <sect3 id="TuxedoAdapter_commitTxTransaction">
+      <title>TuxedoAdapter::commitTxTransaction()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>
+            Wrapper for Tuxedo call
+            <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c103.htm">tx_commit()</ulink>.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>TuxedoAdapter::commitTxTransaction()</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for TuxedoAdapter::commitTxTransaction()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for TuxedoAdapter::commitTxTransaction()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method returns no value</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Exceptions thrown by TuxedoAdapter::commitTxTransaction()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>err</para>
+              </entry>
+              <entry>
+                <para>desc</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <code>TUXEDO-ERROR</code>
+                </para>
+              </entry>
+              <entry>
+                <para>A Tuxedo call failed. Hash parameter has a member 'error' with Tuxedo error code.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect3>
+
+   <sect3 id="TuxedoAdapter_abortTxTransaction">
+      <title>TuxedoAdapter::abortTxTransaction()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>
+            Wrapper for Tuxedo call
+            <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c106.htm">tx_abort()</ulink>.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>TuxedoAdapter::abortTxTransaction()</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for TuxedoAdapter::abortTxTransaction()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for TuxedoAdapter::abortTxTransaction()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method returns no value</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Exceptions thrown by TuxedoAdapter::abortTxTransaction()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>err</para>
+              </entry>
+              <entry>
+                <para>desc</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <code>TUXEDO-ERROR</code>
+                </para>
+              </entry>
+              <entry>
+                <para>A Tuxedo call failed. Hash parameter has a member 'error' with Tuxedo error code.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect3>
+
+    <sect3 id="TuxedoAdapter_finishTxCommitAfterDataLogged">
+      <title>TuxedoAdapter::finishTxCommitAfterDataLogged()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>
+            Wrapper for Tuxedo call
+            <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c107.htm">tx_set_commit_return(TX_COMMIT_DECISION_LOGGED)</ulink>.
+            To switch to an alternative mechanism use
+            <link linkend="TuxedoAdapter_finishTxCommitAfterTwoPhaseCompletes">TuxedoAdapter::finishTxCommitAfterTwoPhaseCompletes()</link>.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>TuxedoAdapter::finishTxCommitAfterDataLogged()</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for TuxedoAdapter::finishTxCommitAfterDataLogged()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for TuxedoAdapter::finishTxCommitAfterDataLogged()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method returns no value</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Exceptions thrown by TuxedoAdapter::finishTxCommitAfterDataLogged()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>err</para>
+              </entry>
+              <entry>
+                <para>desc</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <code>TUXEDO-ERROR</code>
+                </para>
+              </entry>
+              <entry>
+                <para>A Tuxedo call failed. Hash parameter has a member 'error' with Tuxedo error code.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect3>
+
+    <sect3 id="TuxedoAdapter_finishTxCommitAfterTwoPhaseCompletes">
+      <title>TuxedoAdapter::finishTxCommitAfterTwoPhaseCompletes()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>
+            Wrapper for Tuxedo call
+            <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c107.htm">tx_set_commit_return(TX_COMMIT_COMPLETED)</ulink>.
+            To switch to an alternative mechanism use
+            <link linkend="TuxedoAdapter_finishTxCommitAfterDataLogged">TuxedoAdapter::finishTxCommitAfterDataLogged()</link>.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>TuxedoAdapter::finishTxCommitAfterTwoPhaseCompletes()</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for TuxedoAdapter::finishTxCommitAfterTwoPhaseCompletes()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for TuxedoAdapter::finishTxCommitAfterTwoPhaseCompletes()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method returns no value</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Exceptions thrown by TuxedoAdapter::finishTxCommitAfterTwoPhaseCompletes()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>err</para>
+              </entry>
+              <entry>
+                <para>desc</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <code>TUXEDO-ERROR</code>
+                </para>
+              </entry>
+              <entry>
+                <para>A Tuxedo call failed. Hash parameter has a member 'error' with Tuxedo error code.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect3>
+
+
+   <sect3 id="TuxedoAdapter_setChainedTxTransactions">
+    <title>TuxedoAdapter::setChainedTransactions()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>
+            Wrapper for Tuxedo call
+            <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c108.htm"> tx_set_transaction_control(TX_CHAINED)</ulink>. Use
+            <link linkend="TuxedoAdapter_setUnchainedTxTransactions">TuxedoAdapter::setUnchainedTxTransactions()</link> to switch to an alternative mechanism.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>TuxedoAdapter::setChainedTxTransactions()</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for TuxedoAdapter::setChainedTxTransactions()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for TuxedoAdapter::setChainedTxTransactions()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>
+                This method returns no value.
+                </para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Exceptions thrown by TuxedoAdapter::setChainedTxTransactions()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>err</para>
+              </entry>
+              <entry>
+                <para>desc</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <code>TUXEDO-ERROR</code>
+                </para>
+              </entry>
+              <entry>
+                <para>A Tuxedo call failed. Hash parameter has a member 'error' with Tuxedo error code.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect3>
+
+   <sect3 id="TuxedoAdapter_setUnchainedTxTransactions">
+    <title>TuxedoAdapter::setUnchainedTransactions()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>
+            Wrapper for Tuxedo call
+            <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c108.htm"> tx_set_transaction_control(TX_UNCHAINED)</ulink>. Use
+            <link linkend="TuxedoAdapter_setChainedTxTransactions">TuxedoAdapter::setChainedTxTransactions()</link> to switch to an alternative mechanism.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>TuxedoAdapter::setChainedTxTransactions()</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for TuxedoAdapter::setUnchainedTxTransactions()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for TuxedoAdapter::setUnchainedTxTransactions()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>
+                This method returns no value.
+                </para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Exceptions thrown by TuxedoAdapter::setUnchainedTxTransactions()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>err</para>
+              </entry>
+              <entry>
+                <para>desc</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <code>TUXEDO-ERROR</code>
+                </para>
+              </entry>
+              <entry>
+                <para>A Tuxedo call failed. Hash parameter has a member 'error' with Tuxedo error code.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect3>
+
+   <sect3 id="TuxedoAdapter_setTxTransactionsTimeout">
+    <title>TuxedoAdapter::setTxTransactionsTimeout()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>
+            Wrapper for Tuxedo call
+            <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c109.htm#1046597">tx_set_transaction_timeout()</ulink>.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>TuxedoAdapter::setTxTransactionsTimeout(<replaceable>timeout</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for TuxedoAdapter::setTxTransactionsTimeout()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>timeout</para>
+              </entry>
+              <entry>
+                <para>Integer</para>
+              </entry>
+              <entry>
+                <para>Timeout in seconds.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for TuxedoAdapter:::setTxTransactionsTimeout()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>
+                This method returns no value.
+                </para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Exceptions thrown by TuxedoAdapter::setTxTransactionsTimeout()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>err</para>
+              </entry>
+              <entry>
+                <para>desc</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <code>TUXEDO-ERROR</code>
+                </para>
+              </entry>
+              <entry>
+                <para>A Tuxedo call failed. Hash parameter has a member 'error' with Tuxedo error code.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect3>
 
     <sect3 id="TuxedoAdapter_setStringEncoding">
       <title>TuxedoAdapter::setStringEncoding()</title>
@@ -3391,11 +4932,11 @@ At least <code>TUXDIR</code> and <code>TUXCONFIG</code> settings need to be spec
             <row>
               <entry>
                 <para>
-                  <code>TIBRVLISTENER-SETSTRINGENCODING-ERROR</code>
+                  <code>TUXEDO-ADAPTER-SET-STRING-ENCODING</code>
                 </para>
               </entry>
               <entry>
-                <para>missing encoding parameter from method call</para>
+                <para>Invalid parameter.</para>
               </entry>
             </row>
           </tbody>
@@ -3403,8 +4944,587 @@ At least <code>TUXDIR</code> and <code>TUXCONFIG</code> settings need to be spec
       </table>
     </sect3>
 
+    <sect3 id="TuxedoAdapter_error2string">
+      <title>TuxedoAdapter::error2string()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Converts a Tuxedo error code (usually retrieved from 'error' item in exception Hash parameter)
+            into human readable form.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>TuxedoAdapter::error2string(<replaceable>error code</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for TuxedoAdapter::setStringEncoding()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <replaceable>error code</replaceable>
+                </para>
+              </entry>
+              <entry>
+                <para>Integer</para>
+              </entry>
+              <entry>
+                <para>Tuxedo error code.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for TuxedoAdapter::error2string()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>String</para>
+              </entry>
+              <entry>
+                <para>Human readable description of the error code.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect3>
+
+    <sect3 id="TuxedoAdapter_writeToLog">
+      <title>TuxedoAdapter::writeToLog()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Writes given string into Tuxedo log.
+            The function is a wrapper for Tuxedo call 
+            <link url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c110.htm">userlog()</link>.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>TuxedoAdapter::writeToLog(<replaceable>logged string</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for TuxedoAdapter::writeToLog()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <replaceable>logged string</replaceable>
+                </para>
+              </entry>
+              <entry>
+                <para>String</para>
+              </entry>
+              <entry>
+                <para>Text to be written into Tuxedo log.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect3>
+
+    <sect3 id="TuxedoAdapter_lastErrorDetails">
+      <title>TuxedoAdapter::lastErrorDetails()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Converst a Tuxedo error code (usually retrieved from 'error' item in exception Hash parameter)
+            into human readable form. The function is a wrapper for Tuxedo call
+            <link url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c40.htm">tperrordetail()</link>.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>TuxedoAdapter::lastErrorDetails()</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for TuxedoAdapter::lastErrorDetails()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for TuxedoAdapter::lastErrorDetails()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>Integer</para>
+              </entry>
+              <entry>
+                <para>
+                Additional info about the last error generated by Tuxedo.
+                See <link url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c40.htm">tperrordetail() documentation</link> for more information.
+                </para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect3>
+
+   <sect3 id="TuxedoAdapter_getPriority">
+      <title>TuxedoAdapter::getPriority()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>
+            Wrapper for Tuxedo call
+            <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c53.htm">tpgprio()</ulink>.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>TuxedoAdapter::getPriority()</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for TuxedoAdapter::getPriority()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for TuxedoAdapter::getPriority()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>Integer</para>
+              </entry>
+              <entry>
+                <para>Current Tuxedo priority.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Exceptions thrown by TuxedoAdapter::getPriority()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>err</para>
+              </entry>
+              <entry>
+                <para>desc</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <code>TUXEDO-ERROR</code>
+                </para>
+              </entry>
+              <entry>
+                <para>A Tuxedo call failed. Hash parameter has a member 'error' with Tuxedo error code.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect3>
+
+   <sect3 id="TuxedoAdapter_setPriority">
+      <title>TuxedoAdapter::setPriority()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>
+            Wrapper for Tuxedo call
+            <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c77.htm">tpsprio()</ulink>.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>TuxedoAdapter::setPriority(<replaceable>new priority</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for TuxedoAdapter::setPriority()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>new priority</para>
+              </entry>
+              <entry>
+                <para>Integer</para>
+              </entry>
+              <entry>
+                <para>New Tuxedo priority (1..100).</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for TuxedoAdapter::setPriority()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method returns no value</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Exceptions thrown by TuxedoAdapter::setTxTransactionsTimeout()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>err</para>
+              </entry>
+              <entry>
+                <para>desc</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <code>TUXEDO-ADAPTER-SET-PRIORITY</code>
+                </para>
+              </entry>
+              <entry>
+                <para>Invalid parameter.</para>
+              </entry>
+            </row>
+
+            <row>
+              <entry>
+                <para>
+                  <code>TUXEDO-ERROR</code>
+                </para>
+              </entry>
+              <entry>
+                <para>A Tuxedo call failed. Hash parameter has a member 'error' with Tuxedo error code.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect3>
+
+    <sect3 id="TuxedoAdapter_postEvent">
+      <title>TuxedoAdapter::postEvent()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Posts a Tuxedo event.
+            See <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c62.htm">tppost() documentation</ulink> for details.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>TuxedoAdapter:postEvent(<replaceable>event name, data [, flags]</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for TuxedoAdapter::postEvent()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <replaceable>event name</replaceable>
+                </para>
+              </entry>
+              <entry>
+                <para>String</para>
+              </entry>
+              <entry>
+                <para>Event name, up to 31 characters.</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>
+                  <replaceable>data</replaceable>
+                </para>
+              </entry>
+              <entry>
+                <para>NOTHING,String, Binary or Hash</para>
+              </entry>
+              <entry>
+                <para>Data serialized into the Tuxedo format and passed to the service.
+                Hash is converted either into FML or FML32, based on the hint in 'flags'
+                or on the settings 'DefaultFmlType' passed into the constructor.</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>
+                  <replaceable>[flags]</replaceable>
+                </para>
+              </entry>
+              <entry>
+                <para>Integer or Hash</para>
+              </entry>
+              <entry>
+                <para>If the value is Integer then it is equivalent with flags used by the
+                <ulink url="http://edocs.bea.com/tuxedo/tux91/rf3c/rf3c62.htm">tppost()</ulink>. 
+                 Hash value may contrain following items:
+                 bool value 'use_fml32' (whether to process Hash data as FML or FML32) and
+                 integer value 'flags' (the same as for tppost()).
+                 If the TuxedoAdapter constructor did not specified 'DefaultFlagsForPostEvent' settings
+                 then the 'flags' needs to be present (either as the Integer or part of the Hash).
+                </para>
+              </entry>
+            </row>
+
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for TuxedoAdapter::postEvent()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method does not return any value.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Exceptions thrown by TuxedoAdapter::cancelAsyncCall()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>err</para>
+              </entry>
+              <entry>
+                <para>desc</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <code>TUXEDO-ADAPTER-CANCEL-POST-EVENT</code>
+                </para>
+              </entry>
+              <entry>
+                <para>Missing or invalid parameter.</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>
+                  <code>TUXEDO-ERROR</code>
+                </para>
+              </entry>
+              <entry>
+                <para>A Tuxedo call failed. Hash exception parameter has member 'error' with Tuxedo error code.</para>
+              </entry>
+            </row>
+
+          </tbody>
+        </tgroup>
+      </table>
+    </sect3>
+
   </sect2>
-
-
 </chapter>
 
