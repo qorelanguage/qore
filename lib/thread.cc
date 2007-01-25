@@ -368,9 +368,9 @@ void ThreadResourceList::setIntern(class ThreadResourceNode *n)
 void ThreadResourceList::set(void *key, qtrdest_t func)
 {
    //printd(5, "TRL::set(key=%08p, func=%08p, tid=%d)\n", key, func, gettid());
-   assert(!find(key, gettid()));
    class ThreadResourceNode *n = new ThreadResourceNode(key, func);
    lock();
+   assert(!find(key, gettid()));
    setIntern(n);
    //printd(5, "TRL::set(key=%08p, func=%08p, tid=%d) n=%08p, head=%08p, head->next=%08p\n", key, func, gettid(), n, head, head->next);
    unlock();
