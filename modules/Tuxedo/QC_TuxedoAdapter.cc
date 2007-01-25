@@ -858,7 +858,7 @@ static QoreNode* openResourceManager(Object* self, QoreTuxedoAdapter* adapter, Q
     Hash* h = new Hash;
     h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
     h->setKeyValue((char*)"Tuxedo call", new QoreNode("tpopen"), xsink);
-    xsink->raiseExceptionArg("TUXEDO-ADAPTER-OPEN-RESOURCE-MANAGER", new QoreNode(h), "tpopen() failed with error %d.", tperrno);
+    xsink->raiseExceptionArg("TUXEDO-ERROR", new QoreNode(h), "tpopen() failed with error %d.", tperrno);
   }
   return 0;
 }
@@ -872,7 +872,7 @@ static QoreNode* closeResourceManager(Object* self, QoreTuxedoAdapter* adapter, 
   Hash* h = new Hash;
   h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
   h->setKeyValue((char*)"Tuxedo call", new QoreNode("tpclose"), xsink);
-  return xsink->raiseExceptionArg("TUXEDO-ADAPTER-CLOSE-RESOURCE-MANAGER", new QoreNode(h), "tpclose() failed with error %d.", tperrno);
+  return xsink->raiseExceptionArg("TUXEDO-ERROR", new QoreNode(h), "tpclose() failed with error %d.", tperrno);
 }
 
 //-----------------------------------------------------------------------------
@@ -888,7 +888,7 @@ static QoreNode* beginTransaction(Object* self, QoreTuxedoAdapter* adapter, Qore
   Hash* h = new Hash;
   h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
   h->setKeyValue((char*)"Tuxedo call", new QoreNode("tpbegin"), xsink);
-  return xsink->raiseExceptionArg("TuxedoAdapter::beginTransaction", new QoreNode(h), "tpbegin() failed with error %d.", tperrno);
+  return xsink->raiseExceptionArg("TUXEDO-ERROR", new QoreNode(h), "tpbegin() failed with error %d.", tperrno);
 }
 
 //-----------------------------------------------------------------------------
@@ -900,7 +900,7 @@ static QoreNode* commitTransaction(Object* self, QoreTuxedoAdapter* adapter, Qor
   Hash* h = new Hash;
   h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
   h->setKeyValue((char*)"Tuxedo call", new QoreNode("tpcommit"), xsink);
-  return xsink->raiseExceptionArg("TUXEDO-ADAPTER-COMMIT-TRANSACTION", new QoreNode(h), "tpcommit() failed with error %d.", tperrno);
+  return xsink->raiseExceptionArg("TUXEDO-ERROR", new QoreNode(h), "tpcommit() failed with error %d.", tperrno);
 }
 
 //-----------------------------------------------------------------------------
@@ -912,7 +912,7 @@ static QoreNode* abortTransaction(Object* self, QoreTuxedoAdapter* adapter, Qore
   Hash* h = new Hash;
   h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
   h->setKeyValue((char*)"Tuxedo call", new QoreNode("tpabort"), xsink);
-  return xsink->raiseExceptionArg("TUXEDO-ADAPTER-ABORT-TRANSACTION", new QoreNode(h), "tpabort() failed with error %d.", tperrno);
+  return xsink->raiseExceptionArg("TUXEDO-ERROR", new QoreNode(h), "tpabort() failed with error %d.", tperrno);
 }
 
 //-----------------------------------------------------------------------------
