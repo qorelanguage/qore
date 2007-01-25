@@ -446,7 +446,7 @@ void ThreadResourceList::remove(void *key)
 {
    //printd(0, "TRL::remove(key=%08p)\n", key);
    lock();
-   class ThreadResourceNode *w;
+   class ThreadResourceNode *w = head;
    while (w)
    {
       if (w->key == key)
