@@ -84,6 +84,7 @@ class QoreString {
       // returns the number of characters
       DLLEXPORT int length() const;
       DLLEXPORT void set(const char *str, class QoreEncoding *new_qorecharset = QCS_DEFAULT);
+      DLLEXPORT void set(QoreString *str);
       DLLEXPORT void concatAndHTMLEncode(const char *);
       DLLEXPORT void concatAndHTMLDecode(const QoreString *str);
       // concatenates a string and escapes character c with esc_char (converts encodings if necessary)

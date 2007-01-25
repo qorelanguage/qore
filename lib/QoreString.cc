@@ -361,6 +361,14 @@ void QoreString::set(const char *str, class QoreEncoding *new_qorecharset)
       concat(str);
 }
 
+void QoreString::set(QoreString *str)
+{
+   len = 0;
+   charset = str->charset;
+   ensureBufferSize(str->len + 1);
+   concat(str->buf);
+}
+
 void QoreString::replace(int offset, int dlen, const char *str)
 {
    int nl = str ? ::strlen(str) : 0;

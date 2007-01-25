@@ -60,7 +60,7 @@ int ManagedDatasource::grabLock(class ExceptionSink *xsink)
 void ManagedDatasource::releaseLock()
 {
    tGate.exit();
-   trlist.remove(this);
+   trlist.remove(this, gettid());
 }
 
 ManagedDatasource *ManagedDatasource::copy()

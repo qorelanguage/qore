@@ -86,9 +86,10 @@ DLLLOCAL class CallStack *getCallStack();
 
 class ThreadResourceList : public LockedObject {
    private:
-      static class ThreadResourceNode *head;
+      class ThreadResourceNode *head;
    
       DLLLOCAL class ThreadResourceNode *find(void *key);
+      DLLLOCAL class ThreadResourceNode *find(void *key, int tid);
       DLLLOCAL void removeIntern(class ThreadResourceNode *w);
       DLLLOCAL void setIntern(class ThreadResourceNode *n);
 
@@ -100,6 +101,8 @@ class ThreadResourceList : public LockedObject {
       //returns 0 if not already set, 1 if already set
       DLLEXPORT int setOnce(void *key, qtrdest_t func);
       DLLEXPORT void remove(void *key);
+      // remove only for the given TID
+      DLLEXPORT void remove(void *key, int tid);
       DLLEXPORT void purgeTID(int tid, class ExceptionSink *xsink);
 };
 

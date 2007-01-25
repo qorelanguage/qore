@@ -184,7 +184,6 @@ public:
 };
 
 DLLLOCAL ThreadCleanupNode *ThreadCleanupList::head = NULL;
-DLLLOCAL ThreadResourceNode *ThreadResourceList::head = NULL;
 
 ThreadResourceNode::ThreadResourceNode(void *k, qtrdest_t f) : key(k), func(f), tid(gettid()), prev(NULL)
 {
@@ -345,20 +344,35 @@ inline class ThreadResourceNode *ThreadResourceList::find(void *key)
    return NULL;
 }
 
+inline class ThreadResourceNode *ThreadResourceList::find(void *key, int tid)
+{
+   class ThreadResourceNode *w = head;
+   while (w)
+   {
+      if (w->key == key && w->tid == tid)
+	 return w;
+      w = w->next;
+   }
+   return NULL;
+}
+
 void ThreadResourceList::setIntern(class ThreadResourceNode *n)
 {
-   //printd(5, "TRL::setIntern(key=%08p, func=%08p)\n", n->key, n->func);
    n->next = head;
    if (head)
       head->prev = n;
    head = n;
+   printd(5, "TRL::setIntern(key=%08p, func=%08p) head=%08p\n", n->key, n->func, head);
 }
 
 void ThreadResourceList::set(void *key, qtrdest_t func)
 {
+   //printd(5, "TRL::set(key=%08p, func=%08p, tid=%d)\n", key, func, gettid());
+   assert(!find(key, gettid()));
    class ThreadResourceNode *n = new ThreadResourceNode(key, func);
    lock();
    setIntern(n);
+   //printd(5, "TRL::set(key=%08p, func=%08p, tid=%d) n=%08p, head=%08p, head->next=%08p\n", key, func, gettid(), n, head, head->next);
    unlock();
 }
 
@@ -392,10 +406,11 @@ void ThreadResourceList::purgeTID(int tid, class ExceptionSink *xsink)
    class ThreadResourceList trl;
 
    lock();
+   //printd(5, "purgeTID(%d) head=%08p\n", tid, head);
    class ThreadResourceNode *w = head;
    while (w)
    {
-      //printd(5, "TRL::purgeTID(%d) w->tid=%d, w->key=%08p, w->next=%08p\n", tid,w->tid, w->key, w->next);
+      printd(5, "TRL::purgeTID(%d) w->tid=%d, w->key=%08p, w->next=%08p\n", tid, w->tid, w->key, w->next);
       if (w->tid == tid)
       {
 	 class ThreadResourceNode *n = w->next;
@@ -415,12 +430,6 @@ void ThreadResourceList::purgeTID(int tid, class ExceptionSink *xsink)
       while (w)
       {
 	 w->call(xsink);
-	 w = w->next;
-      }
-      // erase all nodes in temporary list
-      w = trl.head;
-      while (w)
-      {
 	 class ThreadResourceNode *n = w->next;
 	 delete w;
 	 w = n;
@@ -435,15 +444,44 @@ void ThreadResourceList::purgeTID(int tid, class ExceptionSink *xsink)
 
 void ThreadResourceList::remove(void *key)
 {
-   //printd(5, "TRL::remove(key=%08p)\n", key);
+   //printd(0, "TRL::remove(key=%08p)\n", key);
    lock();
    class ThreadResourceNode *w;
-   while ((w = find(key)))
+   while (w)
    {
-      removeIntern(w);
-      delete w;
+      if (w->key == key)
+      {
+	 class ThreadResourceNode *n = w->next;
+	 removeIntern(w);
+	 delete w;
+	 w = n;
+      }
+      else
+	 w = w->next;
    }
    unlock();
+}
+
+// there must be only one of these
+void ThreadResourceList::remove(void *key, int tid)
+{
+   lock();
+   //printd(5, "TRL::remove(key=%08p, tid=%d) head=%08p\n", key, tid, head);
+   class ThreadResourceNode *w = head;
+   while (w)
+   {
+      //printd(5, "TRL::remove(key=%08p, tid=%d) w=%08p key=%08p, tid=%d\n", key, tid, w, w->key, w->tid);
+      if (w->key == key && w->tid == tid)
+      {
+	 removeIntern(w);
+	 delete w;
+	 unlock();
+	 return;
+      }
+      w = w->next;
+   }
+   unlock();
+   assert(false);
 }
 
 ThreadCleanupList::ThreadCleanupList()

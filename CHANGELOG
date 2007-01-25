@@ -1,3 +1,7 @@
+2007.01.25: David Nichols
+	* fixed a bug in thread resource tracking in the qore Datasource class
+	  (c++ ManagedDatasource class)
+
 2007.01.24: David Nichols
 	* fixed a memory leak with a parse exception in parser.yy
 
