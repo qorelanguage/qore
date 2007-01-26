@@ -328,7 +328,7 @@ lass \"%s\"", pcd->getFullName().c_str(), cn);
    if (v->type == NT_NOTHING || v->type == NT_NULL)
       return NULL;
 
-   xsink->raiseException("DEBUG:TIBCO-UNSUPPORTED-TYPE", "unsupported QORE type \"%s\" (TIBCO type \"%s\")",
+   xsink->raiseException("TIBCO-UNSUPPORTED-TYPE", "unsupported QORE type \"%s\" (TIBCO type \"%s\")",
                   v->type->getName(), pcd->getShortName().c_str());
 
    //traceout("QoreApp::do_primitive_type()");
@@ -1230,7 +1230,7 @@ QoreNode* QoreApp::operationsGetAsyncCallResult(char* class_name, char* method_n
 {
   async_call_context_t context = extract_pending_call(class_name, method_name, this);
   if (context.isEmpty()) {
-    xsink->raiseException("TIBCO-GET_ASYNC-CALL-RESULT", "No pending call for %s:%s found", class_name, method_name);
+    xsink->raiseException("TIBCO-GET-ASYNC-CALL-RESULT", "No pending call for %s:%s found", class_name, method_name);
     return 0;
   }
   ON_BLOCK_EXIT_OBJ(context, &async_call_context_t::destroy);
