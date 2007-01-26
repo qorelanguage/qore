@@ -565,3 +565,4 @@ class QoreClass *initTibcoAdapterClass()
    traceout("initTibcoAdapterClass()");
    return QC_TIBAE;
 }
+
