@@ -1065,7 +1065,6 @@ struct OperationsListener : public MOperationReplyListener
       xsink->assimilate(&m_xsink); // intention: copy the existing member sink to the one passed via parameter
       return 0;
     }
-printf("LISTENER GET_DATA CALLED\n");
     QoreNode* res = m_returned_value; 
     m_returned_value = 0; 
     return res; 
