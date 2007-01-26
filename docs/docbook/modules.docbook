@@ -8971,6 +8971,65 @@ BOOL values, so boolean() could be called as well with the same effect</para>
           </tbody>
           </tgroup>
         </table>
+
+        <table>
+          <title>Exceptions Thrown by TibcoAdapter::operationsCallWithSyncResult()</title>
+          <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+            <thead>
+              <row>
+                <entry><para>err</para></entry>
+                <entry><para>desc</para></entry>
+              </row>
+            </thead>
+            <tbody>
+              <row>
+                <entry><para><code>TIBCO-EXCEPTION</code></para></entry>
+                <entry><para>The TIBCO SDK raised an exception.</para></entry>
+              </row>
+              <row>
+                <entry><para><code>TIBCO-REMOTE-EXCEPTION</code></para></entry>
+                <entry><para>The TIBCO raised an exception on server side.</para></entry>
+              </row>
+
+              <row>
+                <entry><para><code>TIBCO-CLASS-DESCRIPTION-NOT-FOUND</code></para></entry>
+                <entry><para>Description of a class not found in adapter parameters.</para></entry>
+              </row>
+              <row>
+                <entry><para><code>TIBCO-CLASS-NOT-FOUND</code></para></entry>
+                <entry><para>Class not found in repository.</para></entry>
+              </row>
+              <row>
+                <entry><para><code>TIBCO-MISSING-CLASS-NAME</code></para></entry>
+                <entry><para>Missing entry for an instantiated type.</para></entry>
+              </row>
+
+              <row>
+                <entry><para><code>TIBCO-MISSING-VALUE</code></para></entry>
+                <entry><para>Missing value for an instantiated type.</para></entry>
+              </row>
+              <row>
+                <entry><para><code>TIBCO-DATE-INSTANTIATION-ERROR</code></para></entry>
+                <entry><para>Date type cannot be instantiated.</para></entry>
+              </row>
+
+              <row>
+                <entry><para><code>TIBCO-UNSUPPORTED-TYPE</code></para></entry>
+                 <entry><para>A type currently not supported by the module.</para></entry>
+              </row>
+              <row>
+                <entry><para><code>TIBCO-INVALID-TYPE-FOR-CLASS</code></para></entry>
+                  <entry><para>Hash data was expected.</para></entry>
+              </row>
+              <row>
+                <entry><para><code>TIBCO-HASH-KEY-INVALID</code></para></entry>
+                   <entry><para>Invalid attribute of a class.</para></entry>
+              </row>
+
+            </tbody>
+          </tgroup>
+        </table>
+
       </sect3>
 
 
@@ -9026,6 +9085,64 @@ BOOL values, so boolean() could be called as well with the same effect</para>
             </tbody>
           </tgroup>
         </table>
+
+        <table>
+          <title>Exceptions Thrown by TibcoAdapter::operationsOneWayCall()</title>
+          <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+            <thead>
+              <row>
+                <entry><para>err</para></entry>
+                <entry><para>desc</para></entry>
+              </row>
+            </thead>
+            <tbody>
+              <row>
+                <entry><para><code>TIBCO-EXCEPTION</code></para></entry>
+                <entry><para>The TIBCO SDK raised an exception.</para></entry>
+              </row>
+              <row>
+                <entry><para><code>TIBCO-REMOTE-EXCEPTION</code></para></entry>
+                <entry><para>The TIBCO raised an exception on server side.</para></entry>
+              </row>
+              <row>
+                <entry><para><code>TIBCO-CLASS-DESCRIPTION-NOT-FOUND</code></para></entry>
+                <entry><para>Description of a class not found in adapter parameters.</para></entry>
+              </row>
+              <row>
+                <entry><para><code>TIBCO-CLASS-NOT-FOUND</code></para></entry>
+                <entry><para>Class not found in repository.</para></entry>
+              </row>
+              <row>
+                <entry><para><code>TIBCO-MISSING-CLASS-NAME</code></para></entry>
+                <entry><para>Missing entry for an instantiated type.</para></entry>
+              </row>
+
+              <row>
+                <entry><para><code>TIBCO-MISSING-VALUE</code></para></entry>
+                <entry><para>Missing value for an instantiated type.</para></entry>
+              </row>
+              <row>
+                <entry><para><code>TIBCO-DATE-INSTANTIATION-ERROR</code></para></entry>
+                <entry><para>Date type cannot be instantiated.</para></entry>
+              </row>
+
+              <row>
+                <entry><para><code>TIBCO-UNSUPPORTED-TYPE</code></para></entry>
+                 <entry><para>A type currently not supported by the module.</para></entry>
+              </row>
+              <row>
+                <entry><para><code>TIBCO-INVALID-TYPE-FOR-CLASS</code></para></entry>
+                  <entry><para>Hash data was expected.</para></entry>
+              </row>
+              <row>
+                <entry><para><code>TIBCO-HASH-KEY-INVALID</code></para></entry>
+                   <entry><para>Invalid attribute of a class.</para></entry>
+              </row>
+
+            </tbody>
+          </tgroup>
+        </table>
+
       </sect3>
     </sect2>
   </sect1>
