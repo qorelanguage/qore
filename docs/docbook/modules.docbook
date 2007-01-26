@@ -8485,12 +8485,12 @@ BOOL values, so boolean() could be called as well with the same effect</para>
 	      <entry><para>Creates a publisher, transmits data, and returns a data structure representing the reply.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para><link linkend="Tibae_TibcoAdapter_operationsCallWithSyncResult">TibcoAdapter::operationsCallWithSyncResult()</link></para></entry>
+	      <entry><para><link linkend="Tibae_TibcoAdapter_callOperationWithSyncReply">TibcoAdapter::callOperationWithSyncReply()</link></para></entry>
 	      <entry>Y</entry>
 	      <entry><para>Calls a Tibco Adapter Operation and returns a data structure representing the reply.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para><link linkend="Tibae_TibcoAdapter_operationsOneWayCall">TibcoAdapter::operationsOneWayCall()</link></para></entry>
+	      <entry><para><link linkend="Tibae_TibcoAdapter_callOperationOneWay">TibcoAdapter::callOperationOneWay()</link></para></entry>
 	      <entry>Y</entry>
 	      <entry><para>Calls an one way (no reply sent) Tibco Operation.</para></entry>
 	    </row>
@@ -8897,8 +8897,8 @@ BOOL values, so boolean() could be called as well with the same effect</para>
       </sect3>
 
 
-      <sect3 id="Tibae_TibcoAdapter_operationsCallWithSyncResult">
-        <title>TibcoAdapter::operationsCallWithSyncResult()</title>
+      <sect3 id="Tibae_TibcoAdapter_callOperationWithSyncReply">
+        <title>TibcoAdapter::callOperationWithSyncReply()</title>
         <variablelist>
           <varlistentry>
             <term>Synopsis</term>
@@ -8909,13 +8909,13 @@ BOOL values, so boolean() could be called as well with the same effect</para>
           <varlistentry>
             <term>Usage</term>
             <listitem>
-              <programlisting>TibcoAdapter::operationsCallWithSyncResult(<replaceable>class name, method name, call parameters, [timeout], [client name]</replaceable>)</programlisting>
+              <programlisting>TibcoAdapter::callOperationWithSyncReply(<replaceable>class name, method name, call parameters, [timeout], [client name]</replaceable>)</programlisting>
             </listitem>
           </varlistentry>
         </variablelist>
 
        <table>
-          <title>Arguments for TibcoAdapter::operationsCallWithSyncResult()</title>
+          <title>Arguments for TibcoAdapter::callOperationWithSyncReply()</title>
           <tgroup cols='3' align='left' colsep='1' rowsep='1'>
             <thead>
               <row>
@@ -8955,7 +8955,7 @@ BOOL values, so boolean() could be called as well with the same effect</para>
         </table>
 
         <table>
-          <title>Return Values for TibcoAdapter::operationsCallWithSyncResult()</title>
+          <title>Return Values for TibcoAdapter::callOperationWithSyncReply()</title>
           <tgroup cols='2' align='left' colsep='1' rowsep='1'>
             <thead>
               <row>
@@ -8973,7 +8973,7 @@ BOOL values, so boolean() could be called as well with the same effect</para>
         </table>
 
         <table>
-          <title>Exceptions Thrown by TibcoAdapter::operationsCallWithSyncResult()</title>
+          <title>Exceptions Thrown by TibcoAdapter::callOperationWithSyncReply()</title>
           <tgroup cols='2' align='left' colsep='1' rowsep='1'>
             <thead>
               <row>
@@ -9033,8 +9033,8 @@ BOOL values, so boolean() could be called as well with the same effect</para>
       </sect3>
 
 
-      <sect3 id="Tibae_TibcoAdapter_operationsOneWayCall">
-        <title>TibcoAdapter::operationsOneWayCall()</title>
+      <sect3 id="Tibae_TibcoAdapter_callOperationOneWay">
+        <title>TibcoAdapter::callOperationOneWay()</title>
         <variablelist>
           <varlistentry>
             <term>Synopsis</term>
@@ -9045,13 +9045,13 @@ BOOL values, so boolean() could be called as well with the same effect</para>
           <varlistentry>
             <term>Usage</term>
             <listitem>
-              <programlisting>TibcoAdapter::operationsOneWayCall(<replaceable>class name, method name, call parameters, [client name]</replaceable>)</programlisting>
+              <programlisting>TibcoAdapter::callOperationOneWay(<replaceable>class name, method name, call parameters, [client name]</replaceable>)</programlisting>
             </listitem>
           </varlistentry>
         </variablelist>
 
        <table>
-          <title>Arguments for TibcoAdapter::operationsOneWayCall()</title>
+          <title>Arguments for TibcoAdapter::callOperationOneWay()</title>
           <tgroup cols='3' align='left' colsep='1' rowsep='1'>
             <thead>
               <row>
@@ -9087,7 +9087,7 @@ BOOL values, so boolean() could be called as well with the same effect</para>
         </table>
 
         <table>
-          <title>Exceptions Thrown by TibcoAdapter::operationsOneWayCall()</title>
+          <title>Exceptions Thrown by TibcoAdapter::callOperationOneWay()</title>
           <tgroup cols='2' align='left' colsep='1' rowsep='1'>
             <thead>
               <row>
