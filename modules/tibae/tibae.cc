@@ -556,8 +556,8 @@ class QoreClass *initTibcoAdapterClass()
    QC_TIBAE->addMethod("sendSubjectWithSyncReply", (q_method_t)TIBAE_sendSubjectWithSyncReply);
 
    // operations
-   QC_TIBAE->addMethod("operationsCallWithSyncResult", (q_method_t)TIBAE_operationsCallWithSyncResult);
-   QC_TIBAE->addMethod("operationsOneWayCall",         (q_method_t)TIBAE_operationsOneWayCall);
+   QC_TIBAE->addMethod("callOperationWithSyncReply",  (q_method_t)TIBAE_operationsCallWithSyncResult);
+   QC_TIBAE->addMethod("callOperationOneWay",         (q_method_t)TIBAE_operationsOneWayCall);
 /* commented out for now as the retrieving async call method still fails
    QC_TIBAE->addMethod("operationsAsyncCall",          (q_method_t)TIBAE_operationsAsyncCall);
    QC_TIBAE->addMethod("operationsGetAsyncCallResult", (q_method_t)TIBAE_operationsGetAsyncCallResult);
