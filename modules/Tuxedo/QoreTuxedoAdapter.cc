@@ -38,6 +38,7 @@
 
 #include <memory>
 #include <stdio.h>
+#include <unistd.h>
 
 #ifdef DEBUG
 #  define private public
