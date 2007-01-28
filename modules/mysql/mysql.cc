@@ -469,7 +469,7 @@ MyBindGroup::MyBindGroup(class Datasource *ods, class QoreString *ostr, class Li
       int pos = 0;
       while (w)
       {
-	 printd(5, "MBG::MBG() binding value at position %d (%s)\n", pos, w->data.value->type->getName());
+	 printd(5, "MBG::MBG() binding value at position %d (%s)\n", pos, w->data.value ? w->data.value->type->getName() : "<null>");
 	 if (w->bindValue(ods->getQoreEncoding(), &bind[pos], xsink))
 	    return;
 	 pos++;
