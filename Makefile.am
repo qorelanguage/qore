@@ -23,6 +23,7 @@ noinst_HEADERS = \
 	include/qore/params.h \
 	include/qore/node_types.h \
 	include/qore/Function.h \
+	include/qore/BuiltinMethod.h \
 	include/qore/BuiltinFunctionList.h \
 	include/qore/UserFunctionList.h \
 	include/qore/QoreClassList.h \

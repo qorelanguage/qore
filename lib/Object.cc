@@ -23,6 +23,7 @@
 */
 
 #include <qore/Qore.h>
+#include <qore/BuiltinMethod.h>
 
 #include <stdlib.h>
 #include <assert.h>

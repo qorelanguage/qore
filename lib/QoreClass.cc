@@ -22,6 +22,7 @@
 
 #include <qore/Qore.h>
 #include <qore/Sequence.h>
+#include <qore/BuiltinMethod.h>
 
 #include <string.h>
 #include <stdlib.h>

@@ -25,9 +25,9 @@
 #define _QORE_QORECLASS_H
 
 #include <qore/ReferenceObject.h>
-#include <qore/support.h>
 #include <qore/hash_map.h>
 #include <qore/common.h>
+#include <qore/BuiltinMethod.h>
 
 #include <qore/safe_dslist>
 #include <list>
@@ -76,21 +76,6 @@ class Method {
       }
       // only called when method is user
       DLLLOCAL inline bool isSynchronized() const;
-};
-
-class BuiltinMethod : public BuiltinFunction, public ReferenceObject
-{
-   protected:
-      DLLLOCAL inline ~BuiltinMethod() {}
-
-  public:
-      class QoreClass *myclass;
-
-      DLLLOCAL inline BuiltinMethod(class QoreClass *c, char *nme, q_method_t m) : BuiltinFunction(nme, m, QDOM_DEFAULT), myclass(c) {}
-      DLLLOCAL inline BuiltinMethod(class QoreClass *c, q_constructor_t m) : BuiltinFunction(m, QDOM_DEFAULT), myclass(c) {}
-      DLLLOCAL inline BuiltinMethod(class QoreClass *c, q_destructor_t m) : BuiltinFunction(m, QDOM_DEFAULT), myclass(c) {}
-      DLLLOCAL inline BuiltinMethod(class QoreClass *c, q_copy_t m) : BuiltinFunction(m, QDOM_DEFAULT), myclass(c) {}
-      DLLLOCAL inline void deref();
 };
 
 /*
