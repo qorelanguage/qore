@@ -25,6 +25,7 @@
 #define _QORE_OPERATOR_H
 
 #include <qore/safe_dslist>
+#include <qore/node_types.h>
 #include <vector>
 
 // system default operators

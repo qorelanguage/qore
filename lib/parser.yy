@@ -61,8 +61,6 @@
 #include <qore/NamedScope.h>
 #include <qore/Exception.h>
 
-#define YYLTYPE struct QoreParserLocation
-
 #include "parser.h"
 
 #include <stdio.h>
@@ -71,9 +69,6 @@
 
 #define YYINITDEPTH 300
 //#define YYDEBUG 1
-
-#define HE_TAG_CONST        1
-#define HE_TAG_SCOPED_CONST 2
 
 #define YYLLOC_DEFAULT(Current, Rhs, N)                                \
           do                                                                  \

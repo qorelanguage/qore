@@ -20,24 +20,15 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <qore/config.h>
-#include <qore/common.h>
+#include <qore/Qore.h>
+#include <qore/Tree.h>
 #include <qore/Function.h>
-#include <qore/QoreNode.h>
 #include <qore/Statement.h>
 #include <qore/Variable.h>
-#include <qore/support.h>
-#include <qore/qore_thread.h>
-#include <qore/Exception.h>
-#include <qore/params.h>
 #include <qore/CallStack.h>
-#include <qore/QoreClass.h>
 #include <qore/ArgvStack.h>
-#include <qore/QoreType.h>
-#include <qore/QoreProgram.h>
 #include <qore/VRMutex.h>
 #include <qore/Operator.h>
-#include <qore/Object.h>
 #include <qore/NamedScope.h>
 
 #include <stdio.h>

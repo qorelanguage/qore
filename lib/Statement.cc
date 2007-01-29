@@ -20,9 +20,7 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <qore/config.h>
-#include <qore/common.h>
-#include <qore/QoreNode.h>
+#include <qore/Qore.h>
 #include <qore/Statement.h>
 #include <qore/IfStatement.h>
 #include <qore/WhileStatement.h>
@@ -33,20 +31,18 @@
 #include <qore/ThrowStatement.h>
 #include <qore/SwitchStatement.h>
 #include <qore/Variable.h>
-#include <qore/support.h>
 #include <qore/Function.h>
 #include <qore/Context.h>
 #include <qore/Operator.h>
-#include <qore/Object.h>
-#include <qore/QoreString.h>
-#include <qore/qore_thread.h>
-#include <qore/Exception.h>
 #include <qore/ParserSupport.h>
-#include <qore/QoreClass.h>
 #include <qore/QoreWarnings.h>
 #include <qore/minitest.hpp>
 #include <qore/ContextStatement.h>
 #include <qore/Tree.h>
+#include <qore/Find.h>
+#include <qore/ScopedObjectCall.h>
+#include <qore/ClassRef.h>
+#include <qore/NamedScope.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -321,14 +317,14 @@ void StatementBlock::exec()
    exec(&xsink);
 }
 
-static inline void push_cvar(char *name)
+void push_cvar(char *name)
 {
    class CVNode *cvn = new CVNode(name);
    cvn->next = getCVarStack();
    updateCVarStack(cvn);
 }
 
-static inline void pop_cvar()
+void pop_cvar()
 {
    class CVNode *cvn = getCVarStack();
    updateCVarStack(cvn->next);
@@ -361,7 +357,7 @@ static inline lvh_t push_local_var(char *name)
    return vnode->name;
 }
 
-static inline lvh_t pop_local_var()
+lvh_t pop_local_var()
 {
    class VNode *vnode = getVStack();
    lvh_t rc = vnode->name;

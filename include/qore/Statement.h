@@ -126,4 +126,8 @@ class StatementBlock {
       DLLLOCAL void exec();
 };
 
+DLLLOCAL void push_cvar(char *name);
+DLLLOCAL void pop_cvar();
+DLLLOCAL lvh_t pop_local_var();
+
 #endif // _QORE_STATEMENT_H

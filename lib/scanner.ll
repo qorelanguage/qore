@@ -31,24 +31,14 @@
   see: http://lex.sourceforge.net/
 */
 
-#include <qore/config.h>
-#include <qore/common.h>
-#include <qore/QoreNode.h>
-#include <qore/QoreLib.h>
-#include <qore/support.h>
-#include <qore/Function.h>
-#include <qore/params.h>
-#include <qore/QoreProgram.h>
-#include <qore/DateTime.h>
-#include <qore/QoreString.h>
+#include <qore/Qore.h>
 #include <qore/common.h>
 #include <qore/ParserSupport.h>
 #include <qore/RegexSubst.h>
 #include <qore/RegexTrans.h>
-#include <qore/ModuleManager.h>
 #include <qore/QoreRegex.h>
 #include <qore/QoreWarnings.h>
-#include <qore/qore_thread.h>
+#include <qore/NamedScope.h>
 
 #include "parser.h"
 

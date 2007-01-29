@@ -20,12 +20,10 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include <qore/config.h>
-#include <qore/common.h>
+#include <qore/Qore.h>
 #include <qore/UserFunctionList.h>
-#include <qore/List.h>
-#include <qore/support.h>
 #include <qore/Function.h>
+#include <qore/Statement.h>
 
 UserFunctionList::~UserFunctionList()
 {

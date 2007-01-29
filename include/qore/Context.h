@@ -64,7 +64,7 @@ class Context {
       DLLLOCAL class QoreNode *getRow(class ExceptionSink *xsink);
       DLLLOCAL int next_summary();
       DLLLOCAL int check_condition(class QoreNode *cond, class ExceptionSink *xsinkx);
-      DLLLOCAL inline void deref(class ExceptionSink *xsink);
+      DLLLOCAL void deref(class ExceptionSink *xsink);
 };
 
 class ComplexContextRef 

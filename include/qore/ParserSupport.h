@@ -26,6 +26,9 @@
 
 #define _QORE_PARSER_SUPPORT_H
 
+#define HE_TAG_CONST        1
+#define HE_TAG_SCOPED_CONST 2
+
 class QoreParserLocation
 {
    private:
@@ -45,9 +48,6 @@ class QoreParserLocation
       }
 };
 
-class QoreParserContext {
-   public:
-      void *scanner;
-};
+#define YYLTYPE struct QoreParserLocation
 
 #endif // _QORE_PARSER_SUPPORT_H
