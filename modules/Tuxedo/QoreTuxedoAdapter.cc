@@ -24,6 +24,7 @@
 
 #include <qore/Qore.h>
 #include <qore/minitest.hpp>
+#include <qore/Environment.h>
 
 #include <limits.h>
 #include <float.h>
@@ -76,10 +77,11 @@ EnvironmentSetter::EnvironmentSetter(const env_t& new_env)
     if (!old) old = "";
     m_old_env.push_back(make_pair(it->first, old));
 
+    Environment env;
     if (it->second.empty()) {
-      unsetenv(it->first.c_str());
+      env.unset(it->first.c_str());
     } else {
-      setenv(it->first.c_str(), it->second.c_str(), 1);
+      env.set(it->first.c_str(), it->second.c_str(), 1);
     }
   }
 }
@@ -89,10 +91,11 @@ LockedObject EnvironmentSetter::m_mutex;
 EnvironmentSetter::~EnvironmentSetter()
 {
   for (env_t::const_iterator it = m_old_env.begin(), end = m_old_env.end(); it != end; ++it) {
+    Environment env;
     if (it->second.empty()) {
-      unsetenv(it->first.c_str());
+      env.unset(it->first.c_str());
     } else {
-      setenv(it->first.c_str(), it->second.c_str(), 1);
+      env.set(it->first.c_str(), it->second.c_str(), 1);
     }
   }
 
@@ -184,23 +187,27 @@ TEST()
   envs.push_back(make_pair("test_aaa", "xyz"));
   envs.push_back(make_pair("test_bbb", ""));
 
-  setenv("test_aaa", "old aaa", 1);
-  setenv("test_bbb", "old bbb", 1);
+  Environment env;
+  env.set("test_aaa", "old aaa", 1);
+  env.set("test_bbb", "old bbb", 1);
 
   { 
     EnvironmentSetter setter(envs);
-    char* s = getenv("test_aaa");
+    QoreString* s = env.get("test_aaa");
     assert(s);
-    assert(!strcmp(s, "xyz"));
-    s = getenv("test_bbb");
-    if (s) assert(!s[0]);
+    assert(!strcmp(s->getBuffer(), "xyz"));
+    delete s;
+    s = env.get("test_bbb");
+    assert(!s);
   }
-  char* s = getenv("test_aaa");
+  QoreString* s =env.get("test_aaa");
   assert(s);
-  assert(!strcmp(s, "old aaa"));
-  s = getenv("test_bbb");
+  assert(!strcmp(s->getBuffer(), "old aaa"));
+  delete s;
+  s = env.get("test_bbb");
   assert(s);
-  assert(!strcmp(s, "old bbb"));
+  assert(!strcmp(s->getBuffer(), "old bbb"));
+  delete s;
 }
 
 TEST()
