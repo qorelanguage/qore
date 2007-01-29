@@ -76,7 +76,7 @@ static void TUXEDOTEST_destructor(Object *self, QoreTuxedoTest* test, ExceptionS
 //------------------------------------------------------------------------------
 static void TUXEDO_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
 {
-  char* err_name = "TUXEDO-ADAPTER-CONSTRUCTOR";
+  char* err_name = (char*)"TUXEDO-ADAPTER-CONSTRUCTOR";
   tracein(err_name);
   
   QoreNode* n = test_param(params, NT_HASH, 0);
@@ -218,7 +218,7 @@ static void TUXEDO_copy(Object *self, Object *old, QoreTuxedoAdapter* adapter, E
 //-----------------------------------------------------------------------------
 static QoreNode* call(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
 {
-  char* err_name = "TUXEDO-ADAPTER-CALL";
+  char* err_name = (char*)"TUXEDO-ADAPTER-CALL";
   QoreNode* n = test_param(params, NT_STRING, 0);
   if (!n) return xsink->raiseException(err_name, "First parameter needs to be service string.");
   char* service_name = n->val.String->getBuffer();
@@ -326,7 +326,7 @@ static QoreNode* setStringEncoding(Object* self, QoreTuxedoAdapter* adapter, Qor
 //-----------------------------------------------------------------------------
 static QoreNode* asyncCall(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
 {
-  char* err_name = "TUXEDO-ADAPTER-ASYNC-CALL";
+  char* err_name = (char*)"TUXEDO-ADAPTER-ASYNC-CALL";
   QoreNode* n = test_param(params, NT_STRING, 0);
   if (!n) return xsink->raiseException(err_name, "First parameter needs to be service string.");
   char* service_name = n->val.String->getBuffer();
@@ -488,7 +488,7 @@ TEST()
 //-----------------------------------------------------------------------------
 static QoreNode* cancelAsyncCall(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
 {
-  char* err_name = "TUXEDO-ADAPTER-CANCEL-ASYNC_CALL";
+  char* err_name = (char*)"TUXEDO-ADAPTER-CANCEL-ASYNC_CALL";
   adapter->switchToSavedContext();
 
   QoreNode* n = test_param(params, NT_INT, 0);
@@ -507,7 +507,7 @@ static QoreNode* cancelAsyncCall(Object* self, QoreTuxedoAdapter* adapter, QoreN
 static QoreNode* waitForAsyncReply(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
 {
   adapter->switchToSavedContext();
-  char* err_name = "TUXEDO-ADAPTER-WAIT-FOR-ASYNC-REPLY";
+  char* err_name = (char*)"TUXEDO-ADAPTER-WAIT-FOR-ASYNC-REPLY";
   QoreNode* n = test_param(params, NT_INT, 0);
   if (!n) return xsink->raiseException(err_name, "The first parameter, the handle, needs to be an integer.");
   int handle = (int)n->val.intval;
@@ -542,7 +542,7 @@ static QoreNode* waitForAsyncReply(Object* self, QoreTuxedoAdapter* adapter, Qor
 //-----------------------------------------------------------------------------
 static QoreNode* joinConversation(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
 {
-  char* err_name = "TUXEDO-ADAPTER-JOIN-CONVERSATION";
+  char* err_name = (char*)"TUXEDO-ADAPTER-JOIN-CONVERSATION";
   QoreNode* n = test_param(params, NT_STRING, 0);
   if (!n) return xsink->raiseException(err_name, "First parameter needs to be service name string.");
   char* service_name = n->val.String->getBuffer();
@@ -590,7 +590,7 @@ static QoreNode* joinConversation(Object* self, QoreTuxedoAdapter* adapter, Qore
 //-----------------------------------------------------------------------------
 static QoreNode* breakConversation(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
 {
-  char* err_name = "TUXEDO-ADAPTER-BREAK-CONVERSATION";
+  char* err_name = (char*)"TUXEDO-ADAPTER-BREAK-CONVERSATION";
   adapter->switchToSavedContext();
 
   QoreNode* n = test_param(params, NT_INT, 0);
@@ -607,7 +607,7 @@ static QoreNode* breakConversation(Object* self, QoreTuxedoAdapter* adapter, Qor
 //-----------------------------------------------------------------------------
 static QoreNode* sendConversationData(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
 {
-  char* err_name = "TUXEDO-ADAPTER-SEND-CONVERSATION-DATA";
+  char* err_name = (char*)"TUXEDO-ADAPTER-SEND-CONVERSATION-DATA";
   QoreNode* n = test_param(params, NT_INT, 0);
   if (!n) return xsink->raiseException(err_name, "First parameter needs to be integer handle to the conversation.");
   long handle = (long)n->val.intval;
@@ -654,7 +654,7 @@ static QoreNode* sendConversationData(Object* self, QoreTuxedoAdapter* adapter, 
 //-----------------------------------------------------------------------------
 static QoreNode* receiveConversationData(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
 {
-  char* err_name = "TUXEDO-ADAPTER-RECEIVE-CONVERSATION-DATA";
+  char* err_name = (char*)"TUXEDO-ADAPTER-RECEIVE-CONVERSATION-DATA";
   QoreNode* n = test_param(params, NT_INT, 0);
   if (!n) return xsink->raiseException(err_name, "First parameter needs to be integer handle to the conversation.");
   long handle = (long)n->val.intval;
@@ -689,7 +689,7 @@ static QoreNode* receiveConversationData(Object* self, QoreTuxedoAdapter* adapte
 //-----------------------------------------------------------------------------
 static QoreNode* enqueue(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
 {
-  char* err_name = "TUXEDO-ADAPTER-ENQUEUE";
+  char* err_name = (char*)"TUXEDO-ADAPTER-ENQUEUE";
   QoreNode* n = test_param(params, NT_STRING, 0);
   if (!n) return xsink->raiseException(err_name, "First parameter needs to be queue space string.");
   char* queue_space = n->val.String->getBuffer();
@@ -743,7 +743,7 @@ static QoreNode* enqueue(Object* self, QoreTuxedoAdapter* adapter, QoreNode* par
 //-----------------------------------------------------------------------------
 static QoreNode* dequeue(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
 {
-  char* err_name = "TUXEDO-ADAPTER-DEQUEUE";
+  char* err_name = (char*)"TUXEDO-ADAPTER-DEQUEUE";
   QoreNode* n = test_param(params, NT_STRING, 0);
   if (!n) return xsink->raiseException(err_name, "First parameter needs to be queue space string.");
   char* queue_space = n->val.String->getBuffer();
@@ -844,7 +844,7 @@ static QoreNode* writeToLog(Object* self, QoreTuxedoAdapter* adapter, QoreNode* 
   QoreNode* n = test_param(params, NT_STRING, 0);
   if (!n) return xsink->raiseException("TUXEDO-ADAPTER-WRITE-TO-LOG", "One parameter expected - string to be written.");
   char* text = n->val.String->getBuffer();
-  if (!text) text = "";
+  if (!text) text = (char*)"";
   userlog("%s", text);
   return 0;
 }
@@ -925,7 +925,7 @@ static QoreNode* lastErrorDetails(Object* self, QoreTuxedoAdapter* adapter, Qore
 //-----------------------------------------------------------------------------
 static QoreNode* setPriority(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
 {
-  char* err_name = "TUXEDO-ADAPTER-SET-PRIORITY";
+  char* err_name = (char*)"TUXEDO-ADAPTER-SET-PRIORITY";
   QoreNode* n = test_param(params, NT_INT, 0);
   if (!n) return xsink->raiseException(err_name, "Integer priority parameter expected.");
   int priority = (int)n->val.intval;
@@ -973,7 +973,7 @@ static QoreNode* suspendTransaction(Object* self, QoreTuxedoAdapter* adapter, Qo
 //-----------------------------------------------------------------------------
 static QoreNode* resumeTransaction(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
 {
-  char* err_name = "TUXEDO-ADAPTER-RESUME-TRANSACTION";
+  char* err_name = (char*)"TUXEDO-ADAPTER-RESUME-TRANSACTION";
   QoreNode* n = test_param(params, NT_INT, 0);
   if (!n) return xsink->raiseException(err_name, "One parameter, suspended transaction ID expected.");
   int id = (int)n->val.intval;
@@ -1036,7 +1036,7 @@ static QoreNode* isTransactionRunning(Object* self, QoreTuxedoAdapter* adapter, 
 //-----------------------------------------------------------------------------
 static QoreNode* postEvent(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
 {
-  char* err_name = "TUXEDO-ADAPTER-POST-EVENT";
+  char* err_name = (char*)"TUXEDO-ADAPTER-POST-EVENT";
   QoreNode* n = test_param(params, NT_STRING, 0);
   if (!n) return xsink->raiseException(err_name, "First parameter needs to be event name string.");
   char* event_name = n->val.String->getBuffer();
@@ -1191,7 +1191,7 @@ static QoreNode* setUnchainedTxTransactions(Object* self, QoreTuxedoAdapter* ada
 //-----------------------------------------------------------------------------
 static QoreNode* setTxTransactionsTimeout(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
 {
-  char* err_name = "TUXEDO-ADAPTER-SET-TX-TRANSACTION-TIMEOUT";
+  char* err_name = (char*)"TUXEDO-ADAPTER-SET-TX-TRANSACTION-TIMEOUT";
   QoreNode* n = test_param(params, NT_INT, 0);
   if (!n) return xsink->raiseException(err_name, "Integer timeout in seconds expected.");
   long timeout = (long)n->val.intval;
