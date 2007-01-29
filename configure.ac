@@ -947,9 +947,9 @@ if test -n "$with_tuxedo"; then
    TUXEDO_CPPFLAGS="-I${with_tuxedo}/include"
    TUXEDO_LIBS="-L${with_tuxedo}/lib -ltux -lbuft -lfml -lfml32 -lengine"   
 
-   #case "${host_os}" in
-     #*solaris*) TUXEDO_LIBS="${TUXEDO_LIBS} -lcobatmi" ;;
-   #esac
+   case "${host_os}" in
+     *solaris*) TUXEDO_LIBS="${TUXEDO_LIBS} -lxmlfmlbase" ;;
+   esac
 
    # check if C++ compiler can link with tuxedo libs
    SAVE_CPPFLAGS="$CPPFLAGS"
