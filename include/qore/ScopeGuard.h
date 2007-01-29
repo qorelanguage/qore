@@ -29,11 +29,13 @@ protected:
     ~ScopeGuardImplBase()
     {
     }
+public:
     ScopeGuardImplBase(const ScopeGuardImplBase& other) throw() 
         : dismissed_(other.dismissed_)
     {
         other.Dismiss();
     }
+protected:
     template <typename J>
     static void SafeExecute(J& j) throw() 
     {
