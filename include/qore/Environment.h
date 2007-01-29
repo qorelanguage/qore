@@ -36,6 +36,7 @@ class Environment {
       // appends value to string, returns 0 for OK, -1 for not found
       DLLEXPORT int get(const char *name, class QoreString *str);
       DLLEXPORT int unset(const char *name);
+      bool valueExists(const char* name); // true if exists and is not empty
 };
 
 DLLEXPORT extern Environment Env;

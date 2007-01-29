@@ -106,3 +106,15 @@ int Environment::unset(const char *name)
 #endif
    return rc;
 }
+
+bool Environment::valueExists(const char* name)
+{
+  if (!name || !name[0]) return false;
+  QoreString* s = get(name);
+  if (!s) return false;
+  char* str = s->getBuffer();
+  bool result = str && str[0];
+  delete s;
+  return result;
+}
+
