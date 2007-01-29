@@ -384,7 +384,7 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(Hash* settings, ExceptionSink* xsink)
         return;
       }
       char* s = n->val.String->getBuffer();
-      char* err_text = "Settings value 'TUXDIR' needs to be full path directory to Tuxedo installation.";
+      char* err_text = (char*)"Settings value 'TUXDIR' needs to be full path directory to Tuxedo installation.";
       if (!s || !s[0]) {
         xsink->raiseException(err_name, err_text);
         return;
@@ -1384,7 +1384,7 @@ QoreNode* QoreTuxedoAdapter::receive(int handle, Hash* call_settings, long* pfla
   }
   ON_BLOCK_EXIT(tpfree, out.first);
 
-  err_name = "TUXEDO-ERROR";
+  err_name = (char*)"TUXEDO-ERROR";
   int res = tprecv(handle, &out.first, &out.second, flags, &event);
   if (res == -1) {
     Hash* h = new Hash;
@@ -1680,13 +1680,13 @@ Hash* QoreTuxedoAdapter::generateFmlDescription(int base, Hash* typed_names, boo
     char* type_name;
 
     switch (type) {
-    case FLD_SHORT: type_name = "short"; break;    
-    case FLD_LONG: type_name = "long"; break;
-    case FLD_CHAR: type_name = "char"; break;
-    case FLD_FLOAT: type_name = "float"; break;
-    case FLD_DOUBLE: type_name = "double"; break;
-    case FLD_STRING: type_name = "string"; break;
-    case FLD_CARRAY: type_name = "carray"; break;
+    case FLD_SHORT: type_name = (char*)"short"; break;    
+    case FLD_LONG: type_name = (char*)"long"; break;
+    case FLD_CHAR: type_name = (char*)"char"; break;
+    case FLD_FLOAT: type_name = (char*)"float"; break;
+    case FLD_DOUBLE: type_name = (char*)"double"; break;
+    case FLD_STRING: type_name = (char*)"string"; break;
+    case FLD_CARRAY: type_name = (char*)"carray"; break;
 
     case FLD_PTR:
     case FLD_FML32:
@@ -1973,7 +1973,7 @@ void QoreTuxedoAdapter::add_fml_value_into_send_buffer(char* value_name, FLDID32
         encoded_string.reset(new QoreString(s, m_string_encoding));
         s = encoded_string->getBuffer();
       }
-      if (!s) s = "";
+      if (!s) s = (char*)"";
       ptr_val = s;
       value_length = strlen(s) + 1; 
       break;
@@ -1987,7 +1987,7 @@ void QoreTuxedoAdapter::add_fml_value_into_send_buffer(char* value_name, FLDID32
       }
       BinaryObject* bin = value->val.bin;
       ptr_val = (char*)bin->getPtr();
-      if (!ptr_val) ptr_val = "";
+      if (!ptr_val) ptr_val = (char*)"";
       value_length = bin->size();
       break;
     }
