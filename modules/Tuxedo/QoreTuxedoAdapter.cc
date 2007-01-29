@@ -50,7 +50,6 @@
 using std::string;
 using std::vector;
 using std::pair;
-using std::make_pair;
 using std::auto_ptr;
 
 namespace {
@@ -71,14 +70,14 @@ struct EnvironmentSetter
 EnvironmentSetter::EnvironmentSetter(const env_t& new_env)
 {
   m_mutex.lock();
+  Environment env;
 
   for (env_t::const_iterator it = new_env.begin(), end = new_env.end(); it != end; ++it) {
-    char* old = getenv(it->first.c_str());
-    if (!old) old = "";
-    m_old_env.push_back(make_pair(it->first, old));
+    QoreString* old = env.get(it->first.c_str());
+    char* s = old ? old->getBuffer() : (char*)"";
+    m_old_env.push_back(std::pair<std::string, std::string>(it->first, s));
 
-    Environment env;
-    if (it->second.empty()) {
+    if (it->second.empty()) {      
       env.unset(it->first.c_str());
     } else {
       env.set(it->first.c_str(), it->second.c_str(), 1);
@@ -111,9 +110,9 @@ private:
 
   void set(const string& value, bool is_fml32) {
     env_t new_env;
-    new_env.push_back(make_pair(is_fml32 ? "FIELDTBLS32" : "FIELDTBLS", value));
+    new_env.push_back(pair<std::string, std::string>(is_fml32 ? "FIELDTBLS32" : "FIELDTBLS", value));
     // all file names are expected to be absolute paths
-    new_env.push_back(make_pair(is_fml32 ? "FLDTBLDIR32" : "FLDTBLDIR", string())); 
+    new_env.push_back(pair<std::string, std::string>(is_fml32 ? "FLDTBLDIR32" : "FLDTBLDIR", string())); 
     m_setter.reset(new EnvironmentSetter(new_env));
   }
 
@@ -184,8 +183,8 @@ TEST()
 {
   printf("testing EnvironmentSetter\n");
   vector<pair<string, string> > envs;
-  envs.push_back(make_pair("test_aaa", "xyz"));
-  envs.push_back(make_pair("test_bbb", ""));
+  envs.push_back(pair<std::string, std::string>("test_aaa", "xyz"));
+  envs.push_back(pair<std::string, std::string>("test_bbb", ""));
 
   Environment env;
   env.set("test_aaa", "old aaa", 1);
@@ -396,7 +395,7 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(Hash* settings, ExceptionSink* xsink)
         xsink->raiseException(err_name, err_text);
         return;
       } 
-      m_env_variables.push_back(make_pair("TUXDIR", s));
+      m_env_variables.push_back(pair<std::string, std::string>("TUXDIR", s));
       continue;
     }
     //-------------------------------------------
@@ -418,7 +417,7 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(Hash* settings, ExceptionSink* xsink)
         xsink->raiseException(err_name, err_text);
         return;
       }
-      m_env_variables.push_back(make_pair("TUXCONFIG", s));
+      m_env_variables.push_back(pair<std::string, std::string>("TUXCONFIG", s));
       continue;
     }
     //-------------------------------------------
@@ -430,7 +429,7 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(Hash* settings, ExceptionSink* xsink)
       }
       char* s = n->val.String->getBuffer();
       if (!s) s = "";
-      m_env_variables.push_back(make_pair("WSENVFILE", s));
+      m_env_variables.push_back(pair<std::string, std::string>("WSENVFILE", s));
       continue;
     }
     //-------------------------------------------
@@ -442,7 +441,7 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(Hash* settings, ExceptionSink* xsink)
       }
       char* s = n->val.String->getBuffer();
       if (!s) s = "";
-      m_env_variables.push_back(make_pair("WSNADDR", s));
+      m_env_variables.push_back(pair<std::string, std::string>("WSNADDR", s));
       continue;
     }
     //-------------------------------------------
@@ -454,7 +453,7 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(Hash* settings, ExceptionSink* xsink)
       }
       char* s = n->val.String->getBuffer();
       if (!s) s = "";
-      m_env_variables.push_back(make_pair("WSFADDR", s));
+      m_env_variables.push_back(pair<std::string, std::string>("WSFADDR", s));
       continue;
     }
     //-------------------------------------------
@@ -466,7 +465,7 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(Hash* settings, ExceptionSink* xsink)
       }
       char* s = n->val.String->getBuffer();
       if (!s) s = "";
-      m_env_variables.push_back(make_pair("WSFRANGE", s));
+      m_env_variables.push_back(pair<std::string, std::string>("WSFRANGE", s));
       continue;
     }
     //-------------------------------------------
@@ -478,7 +477,7 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(Hash* settings, ExceptionSink* xsink)
       }
       char* s = n->val.String->getBuffer();
       if (!s) s = "";
-      m_env_variables.push_back(make_pair("WSDEVICE", s));
+      m_env_variables.push_back(pair<std::string, std::string>("WSDEVICE", s));
       continue;
     }
     //-------------------------------------------
@@ -490,7 +489,7 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(Hash* settings, ExceptionSink* xsink)
       }
       char* s = n->val.String->getBuffer();
       if (!s) s = "";
-      m_env_variables.push_back(make_pair("WSTYPE", s));
+      m_env_variables.push_back(pair<std::string, std::string>("WSTYPE", s));
       continue;
     }
     //-------------------------------------------
@@ -502,7 +501,7 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(Hash* settings, ExceptionSink* xsink)
       }
       char* s = n->val.String->getBuffer();
       if (!s) s = "";
-      m_env_variables.push_back(make_pair("WSRPLYMAX", s));
+      m_env_variables.push_back(pair<std::string, std::string>("WSRPLYMAX", s));
       continue;
     }
     //-------------------------------------------
@@ -514,7 +513,7 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(Hash* settings, ExceptionSink* xsink)
       }
       char* s = n->val.String->getBuffer();
       if (!s) s = "";
-      m_env_variables.push_back(make_pair("TMMINENCRYPTBITS", s));
+      m_env_variables.push_back(pair<std::string, std::string>("TMMINENCRYPTBITS", s));
       continue;
     }
     //-------------------------------------------
@@ -526,7 +525,7 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(Hash* settings, ExceptionSink* xsink)
       }
       char* s = n->val.String->getBuffer();
       if (!s) s = "";
-      m_env_variables.push_back(make_pair("TMMAXENCRYPTBITS", s));
+      m_env_variables.push_back(pair<std::string, std::string>("TMMAXENCRYPTBITS", s));
       continue;
     }
     //-------------------------------------------
@@ -1054,12 +1053,12 @@ pair<char*, long> QoreTuxedoAdapter::allocate_out_buffer(char* default_type, Has
     if (n) {
       if (n->type != NT_STRING) {
         xsink->raiseException(err_name, "Settings 'DefaultReturnedDataType' needs to be a string.");
-        return make_pair((char*)0, 0);
+        return pair<char*, long>((char*)0, 0);
       }
       char* s = n->val.String->getBuffer();
       if (!s && strcmp(s, "CARRAY") && strcmp(s, "STRING") && strcmp(s, "FML") && strcmp(s, "FML32")) {
         xsink->raiseException(err_name, "Settings 'DefaultReturnedDataType': supported values are 'CARRAY', 'STRING', 'FML', 'FML32'.");
-        return make_pair((char*)0, 0);
+        return pair<char*, long>((char*)0, 0);
       }
       strcpy(type, s);
       type_set = true;
@@ -1864,7 +1863,7 @@ static pair<string, int> fml_id2name(FLDID32 id, Hash* description_info, Excepti
     return result;
   }
   xsink->raiseException(func_name, "A FML[32] ID not found in description table.");
-  return make_pair("", 0);
+  return pair<std::string, int>("", 0);
 }
 
 //------------------------------------------------------------------------------
