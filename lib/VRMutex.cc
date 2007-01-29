@@ -110,12 +110,12 @@ void VRMutex::enter()
    }
    tid = mtid;
 #ifdef DEBUG
-   printd(5, "VRMutex::enter() this=%p count: %d->%d\n", this, count, count + 1);
+   //printd(5, "VRMutex::enter() this=%p count: %d->%d\n", this, count, count + 1);
 #endif
    count++;
 #ifdef DEBUG
-   if (count == 1)
-      printd(5, "VRMutex::enter() this=%08p grabbed lock (vl=%08p)\n", this, vl);
+   //if (count == 1)
+   //printd(5, "VRMutex::enter() this=%08p grabbed lock (vl=%08p)\n", this, vl);
 #endif
    unlock();
 }

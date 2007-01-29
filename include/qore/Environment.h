@@ -28,8 +28,8 @@ class Environment {
    private:
 
    public:
-      DLLLOCAL Environment();
-      DLLLOCAL ~Environment();
+      DLLEXPORT Environment();
+      DLLEXPORT ~Environment();
 
       DLLEXPORT int set(const char *name, const char *value, int overwrite = 1);
       DLLEXPORT class QoreString *get(const char *name);
