@@ -30,6 +30,7 @@
 #include <qore/ModuleManager.h>
 #include <qore/QoreLib.h>
 #include <qore/QoreNode.h>
+#include <qore/QoreNet.h>
 #include <qore/Hash.h>
 #include <qore/List.h>
 #include <qore/Object.h>
@@ -46,7 +47,7 @@
 #include <qore/qore_thread.h>
 #include <qore/LockedObject.h>
 #include <qore/DBI.h>
-#include <qore/QC_Datasource.h>
+#include <qore/Datasource.h>
 #include <qore/QoreClass.h>
 #include <qore/ScopeGuard.h>
 #include <qore/ReferenceHolder.h>

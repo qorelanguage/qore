@@ -3,7 +3,7 @@
 
   Qore XML functions
 
-  Qore Programming Language
+2  Qore Programming Language
 
   Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
 
@@ -22,16 +22,8 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <qore/config.h>
-#include <qore/QoreNode.h>
-#include <qore/Object.h>
-#include <qore/support.h>
-#include <qore/params.h>
-#include <qore/charset.h>
-#include <qore/BinaryObject.h>
-#include <qore/BuiltinFunctionList.h>
+#include <qore/Qore.h>
 #include <qore/ql_xml.h>
-#include <qore/ScopeGuard.h>
 
 #include <libxml/xmlreader.h>
 #include <libxml/xmlwriter.h>

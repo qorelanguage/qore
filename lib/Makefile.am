@@ -141,6 +141,7 @@ libqore_la_SOURCES = \
 	QC_SSLPrivateKey.cc \
 	QC_HTTPClient.cc \
 	QC_XmlRpcClient.cc \
+	QC_JsonRpcClient.cc \
 	QoreHTTPClient.cc \
 	minitest.cc
 

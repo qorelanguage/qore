@@ -22,25 +22,10 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <qore/config.h>
-#include <qore/support.h>
-#include <qore/common.h>
-#include <qore/qore_thread.h>
-#include <qore/QoreNode.h>
-#include <qore/QoreType.h>
-#include <qore/List.h>
-#include <qore/Object.h>
-#include <qore/Operator.h>
-#include <qore/QoreClass.h>
-#include <qore/Variable.h>
-#include <qore/QoreProgram.h>
-#include <qore/Namespace.h>
-#include <qore/LockedObject.h>
+#include <qore/Qore.h>
 #include <qore/CallStack.h>
 #include <qore/ArgvStack.h>
-#include <qore/Hash.h>
 #include <qore/QoreProgramStack.h>
-#include <qore/Statement.h>
 
 // to register object types
 #include <qore/QC_Queue.h>

@@ -20,13 +20,8 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include <qore/config.h>
-#include <qore/common.h>
+#include <qore/Qore.h>
 #include <qore/QC_SSLPrivateKey.h>
-#include <qore/Hash.h>
-#include <qore/Exception.h>
-#include <qore/support.h>
-#include <qore/BinaryObject.h>
 
 QoreSSLPrivateKey::QoreSSLPrivateKey(EVP_PKEY *p) : pk(p) 
 {

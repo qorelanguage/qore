@@ -20,10 +20,8 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <qore/config.h>
-#include <qore/QoreType.h>
+#include <qore/Qore.h>
 #include <qore/QT_binary.h>
-#include <qore/BinaryObject.h>
 
 bool binary_Compare(class QoreNode *l, class QoreNode *r)
 {

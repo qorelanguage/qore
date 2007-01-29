@@ -206,7 +206,7 @@ class BCList : public ReferenceObject, public bclist_t
       DLLLOCAL inline class Method *findMethod(char *name, bool *p);
       DLLLOCAL inline bool match(class BCANode *bca);
       DLLLOCAL inline void execConstructors(class Object *o, class BCEAList *bceal, class ExceptionSink *xsink);
-      DLLLOCAL inline void execConstructorsWithArgs(class Object *o, class BCEAList *bceal, class ExceptionSink *xsink);
+      DLLLOCAL void execConstructorsWithArgs(class Object *o, class BCEAList *bceal, class ExceptionSink *xsink);
       DLLLOCAL inline void execSystemConstructors(class Object *o, class BCEAList *bceal, class ExceptionSink *xsink);
       DLLLOCAL inline bool isPrivateMember(char *str) const;
       DLLLOCAL inline void ref();
@@ -287,7 +287,7 @@ class QoreClass{
 
       DLLLOCAL QoreClass();
       DLLLOCAL void addMethod(class Method *f);
-      DLLLOCAL inline class QoreNode *evalMemberGate(class Object *self, class QoreNode *name, class ExceptionSink *xsink);
+      DLLLOCAL class QoreNode *evalMemberGate(class Object *self, class QoreNode *name, class ExceptionSink *xsink);
       DLLLOCAL inline void execSubclassConstructor(class Object *self, class BCEAList *bceal, class ExceptionSink *xsink);
       DLLLOCAL inline void execSubclassSystemConstructor(class Object *self, class BCEAList *bceal, class ExceptionSink *xsink);      
       DLLLOCAL void execDestructor(class Object *self, class ExceptionSink *xsink);
@@ -304,11 +304,11 @@ class QoreClass{
       // only called when parsing, sets the name of the class
       DLLLOCAL void setName(char *n);
       // returns true if reference count is 1
-      DLLLOCAL inline bool is_unique() const;
+      DLLLOCAL bool is_unique() const;
       // references and returns itself
-      DLLLOCAL inline class QoreClass *getReference();
+      DLLLOCAL class QoreClass *getReference();
       // dereferences the class, deletes if reference count is 0
-      DLLLOCAL inline void nderef();
+      DLLLOCAL void nderef();
       DLLLOCAL void parseInit();
       DLLLOCAL void parseCommit();
       DLLLOCAL void parseRollback();

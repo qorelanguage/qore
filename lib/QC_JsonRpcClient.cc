@@ -22,6 +22,7 @@
 
 #include <qore/Qore.h>
 #include <qore/QC_JsonRpcClient.h>
+#include <qore/QC_HTTPClient.h>
 #include <qore/QoreHTTPClient.h>
 #include <qore/ReferenceHolder.h>
 #include <qore/ql_json.h>

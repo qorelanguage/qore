@@ -20,18 +20,10 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <qore/config.h>
-#include <qore/common.h>
+#include <qore/Qore.h>
+#include <qore/CallStack.h>
 #include <qore/ql_debug.h>
-#include <qore/QoreNode.h>
-#include <qore/Variable.h>
 #include <qore/ql_type.h>
-#include <qore/Object.h>
-#include <qore/params.h>
-#include <qore/charset.h>
-#include <qore/BuiltinFunctionList.h>
-#include <qore/QoreLib.h>
-#include <qore/qore_thread.h>
 
 static inline void strindent(QoreString *s, int indent)
 {

@@ -18,13 +18,8 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include <qore/config.h>
-#include <qore/common.h>
+#include <qore/Qore.h>
 #include <qore/QoreRegex.h>
-#include <qore/support.h>
-
-#include <qore/QoreString.h>
-#include <qore/support.h>
 
 QoreRegex::QoreRegex()
 {

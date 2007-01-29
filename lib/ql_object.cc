@@ -20,13 +20,7 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include <qore/config.h>
-#include <qore/Exception.h>
-#include <qore/params.h>
-#include <qore/QoreClass.h>
-#include <qore/QoreNode.h>
-#include <qore/Object.h>
-#include <qore/qore_thread.h>
+#include <qore/Qore.h>
 #include <qore/ql_object.h>
 
 // returns a list of method names for the object passed as a parameter

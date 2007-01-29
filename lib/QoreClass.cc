@@ -346,7 +346,7 @@ inline void BCList::execConstructors(class Object *o, class BCEAList *bceal, cla
    }
 }
 
-inline void BCList::execConstructorsWithArgs(class Object *o, class BCEAList *bceal, class ExceptionSink *xsink)
+void BCList::execConstructorsWithArgs(class Object *o, class BCEAList *bceal, class ExceptionSink *xsink)
 {
    // if there are base class constructor arguments that haven't already been overridden
    // by a base class constructor argument specification in a subclass, evaluate them now
@@ -1219,7 +1219,7 @@ bool QoreClass::isPrivateMember(char *str) const
    return false;
 }
 
-inline class QoreNode *QoreClass::evalMemberGate(class Object *self, class QoreNode *nme, class ExceptionSink *xsink)
+class QoreNode *QoreClass::evalMemberGate(class Object *self, class QoreNode *nme, class ExceptionSink *xsink)
 {
    tracein("QoreClass::evalMembeGatre()");
    printd(5, "QoreClass::evalMemberGate() member=%s\n", nme->val.String->getBuffer());
@@ -1237,7 +1237,7 @@ inline class QoreNode *QoreClass::evalMemberGate(class Object *self, class QoreN
    return rv;
 }
 
-inline class QoreNode *QoreClass::execConstructor(QoreNode *args, ExceptionSink *xsink)
+class QoreNode *QoreClass::execConstructor(QoreNode *args, ExceptionSink *xsink)
 {
    // create new object
    class Object *o = new Object(this, getProgram());

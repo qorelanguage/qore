@@ -20,10 +20,8 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <qore/config.h>
+#include <qore/Qore.h>
 #include <qore/VRMutex.h>
-#include <qore/Exception.h>
-#include <qore/support.h>
 
 #include <assert.h>
 

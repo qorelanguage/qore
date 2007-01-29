@@ -74,36 +74,6 @@
 
 class AutoNamespaceList ANSL;
 
-// this class is entirely private to the rest of the library
-class NamespaceList
-{
-   private:
-      DLLLOCAL void deleteAll();
-
-   public:
-      class Namespace *head, *tail;
-
-      DLLLOCAL NamespaceList();
-      DLLLOCAL ~NamespaceList();
-      DLLLOCAL class Namespace *find(char *name);
-      DLLLOCAL void add(class Namespace *ot);
-      DLLLOCAL class NamespaceList *copy(int po);
-      DLLLOCAL void parseInitConstants();
-      DLLLOCAL void parseInit();
-      DLLLOCAL void parseCommit(class NamespaceList *n);
-      DLLLOCAL void parseRollback();
-      DLLLOCAL void reset();
-      DLLLOCAL void assimilate(class NamespaceList *n);
-      DLLLOCAL class Namespace *parseResolveNamespace(class NamedScope *name, int *matched);
-      DLLLOCAL class QoreNode *parseFindConstantValue(char *cname);
-      DLLLOCAL class QoreNode *parseFindScopedConstantValue(class NamedScope *name, int *matched);
-      DLLLOCAL class QoreClass *parseFindScopedClassWithMethod(class NamedScope *name, int *matched) const;
-      DLLLOCAL class QoreClass *parseFindScopedClass(class NamedScope *name, int *matched);
-      DLLLOCAL class QoreClass *parseFindClass(char *ocname);
-      DLLLOCAL class QoreClass *parseFindChangeClass(char *ocname);
-};
-
-
 void Namespace::init()
 {
    next = NULL;

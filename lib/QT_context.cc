@@ -20,13 +20,8 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <qore/config.h>
-#include <qore/QoreType.h>
+#include <qore/Qore.h>
 #include <qore/QT_context.h>
-#include <qore/support.h>
-#include <qore/QoreString.h>
-#include <qore/QoreNode.h>
-#include <qore/Context.h>
 
 class QoreNode *contextref_Eval(class QoreNode *n, class ExceptionSink *xsink)
 {

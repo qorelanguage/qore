@@ -20,10 +20,8 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <qore/config.h>
-#include <qore/QoreType.h>
+#include <qore/Qore.h>
 #include <qore/QT_object.h>
-#include <qore/Object.h>
 
 // there is no object_DeleteContents, because they will be taken care of by QoreNode::~QoreNode
 

@@ -156,6 +156,7 @@ DLLEXPORT int getMsZeroInt(class QoreNode *a);
 DLLEXPORT int getMsZeroBigInt(class QoreNode *a);
 DLLEXPORT int getMsMinusOneInt(class QoreNode *a);
 DLLEXPORT int getMsMinusOneBigInt(class QoreNode *a);
+DLLEXPORT int getMicroSecZeroInt(class QoreNode *a);
 DLLEXPORT bool is_nothing(class QoreNode *n);
 DLLEXPORT bool is_value(class QoreNode *node);
 

@@ -20,17 +20,8 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <qore/config.h>
+#include <qore/Qore.h>
 #include <qore/ql_io.h>
-#include <qore/Function.h>
-#include <qore/Variable.h>
-#include <qore/QoreNode.h>
-#include <qore/support.h>
-#include <qore/QoreString.h>
-#include <qore/params.h>
-#include <qore/Exception.h>
-#include <qore/BuiltinFunctionList.h>
-#include <qore/QoreLib.h>
 
 #include <string.h>
 #include <stdio.h>

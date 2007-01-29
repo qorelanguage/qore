@@ -20,10 +20,8 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <qore/config.h>
-#include <qore/common.h>
+#include <qore/Qore.h>
 #include <qore/QoreClassList.h>
-#include <qore/QoreClass.h>
 #include <qore/minitest.hpp>
 
 #include <assert.h>
@@ -32,19 +30,19 @@
 #  include "tests/QoreClassList_tests.cc"
 #endif
 
-inline void QoreClassList::deleteAll()
+void QoreClassList::deleteAll()
 {
    hm_qc_t::iterator i;
    while ((i = hm.begin()) != hm.end())
       remove(i);
 }
 
-inline QoreClassList::~QoreClassList()
+QoreClassList::~QoreClassList()
 {
    deleteAll();
 }
 
-inline int QoreClassList::add(class QoreClass *oc)
+int QoreClassList::add(class QoreClass *oc)
 {
    printd(5, "QCL::add() this=%08p '%s' (%08p)\n", this, oc->getName(), oc);
 
@@ -55,7 +53,7 @@ inline int QoreClassList::add(class QoreClass *oc)
    return 0;
 }
 
-inline class QoreClass *QoreClassList::find(char *name)
+class QoreClass *QoreClassList::find(char *name)
 {
    hm_qc_t::iterator i = hm.find(name);
    if (i != hm.end())
@@ -63,7 +61,7 @@ inline class QoreClass *QoreClassList::find(char *name)
    return NULL;
 }
 
-inline class QoreClass *QoreClassList::findChange(char *name)
+class QoreClass *QoreClassList::findChange(char *name)
 {
    hm_qc_t::iterator i = hm.find(name);
    if (i != hm.end())
@@ -83,7 +81,7 @@ inline class QoreClass *QoreClassList::findChange(char *name)
    return NULL;
 }
 
-inline class QoreClassList *QoreClassList::copy(int po)
+class QoreClassList *QoreClassList::copy(int po)
 {
    class QoreClassList *nocl = new QoreClassList();
 
@@ -94,31 +92,31 @@ inline class QoreClassList *QoreClassList::copy(int po)
    return nocl;
 }
 
-inline void QoreClassList::parseInit()
+void QoreClassList::parseInit()
 {
    for (hm_qc_t::iterator i = hm.begin(); i != hm.end(); i++)
       i->second->parseInit();
 }
 
-inline void QoreClassList::parseRollback()
+void QoreClassList::parseRollback()
 {
    for (hm_qc_t::iterator i = hm.begin(); i != hm.end(); i++)
       i->second->parseRollback();
 }
 
-inline void QoreClassList::parseCommit(class QoreClassList *l)
+void QoreClassList::parseCommit(class QoreClassList *l)
 {
    assimilate(l);
    for (hm_qc_t::iterator i = hm.begin(); i != hm.end(); i++)
       i->second->parseCommit();
 }
 
-inline void QoreClassList::reset()
+void QoreClassList::reset()
 {
    deleteAll();
 }
 
-inline void QoreClassList::assimilate(class QoreClassList *n)
+void QoreClassList::assimilate(class QoreClassList *n)
 {
    hm_qc_t::iterator i;
    while ((i = n->hm.begin()) != n->hm.end())
@@ -132,7 +130,7 @@ inline void QoreClassList::assimilate(class QoreClassList *n)
    }
 }
 
-inline void QoreClassList::assimilate(QoreClassList *n, QoreClassList *otherlist, class NamespaceList *nsl, class NamespaceList *pendNSL, char *nsname)
+void QoreClassList::assimilate(QoreClassList *n, QoreClassList *otherlist, class NamespaceList *nsl, class NamespaceList *pendNSL, char *nsname)
 {
    hm_qc_t::iterator i;
    while ((i = n->hm.begin()) != n->hm.end())
@@ -166,7 +164,7 @@ inline void QoreClassList::assimilate(QoreClassList *n, QoreClassList *otherlist
    }
 }
 
-inline class Hash *QoreClassList::getInfo()
+class Hash *QoreClassList::getInfo()
 {
    class Hash *h = new Hash();
    for (hm_qc_t::iterator i = hm.begin(); i != hm.end(); i++)

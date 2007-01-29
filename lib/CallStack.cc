@@ -20,17 +20,8 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <qore/config.h>
-#include <qore/common.h>
-
-#include <qore/qore_thread.h>
-#include <qore/QoreType.h>
-#include <qore/QoreString.h>
-#include <qore/List.h>
-#include <qore/Hash.h>
-#include <qore/support.h>
-#include <qore/QoreClass.h>
-#include <qore/Object.h>
+#include <qore/Qore.h>
+#include <qore/CallStack.h>
 
 CallNode::CallNode(char *f, int t, class Object *o)
 {

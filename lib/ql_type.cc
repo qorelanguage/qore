@@ -20,15 +20,8 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <qore/config.h>
+#include <qore/Qore.h>
 #include <qore/ql_type.h>
-#include <qore/QoreNode.h>
-#include <qore/support.h>
-#include <qore/QoreType.h>
-#include <qore/Object.h>
-#include <qore/params.h>
-#include <qore/BinaryObject.h>
-#include <qore/BuiltinFunctionList.h>
 
 static class QoreNode *f_boolean(class QoreNode *params, ExceptionSink *xsink)
 {

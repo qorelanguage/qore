@@ -27,13 +27,13 @@ ClassRef::ClassRef(class NamedScope *n)
    cscope = n;
 }
 
-inline ClassRef::~ClassRef()
+ClassRef::~ClassRef()
 {
    if (cscope)
       delete cscope;
 }
 
-inline void ClassRef::resolve()
+void ClassRef::resolve()
 {
    if (cscope)
    {
