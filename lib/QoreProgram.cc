@@ -22,20 +22,11 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <qore/config.h>
-#include <qore/QoreProgram.h>
+#include <qore/Qore.h>
 #include <qore/QoreProgramStack.h>
-#include <qore/support.h>
-#include <qore/BuiltinFunctionList.h>
-#include <qore/QoreLib.h>
-#include <qore/Function.h>
-#include <qore/qore_thread.h>
-#include <qore/Exception.h>
-#include <qore/Statement.h>
-#include <qore/Variable.h>
-#include <qore/Namespace.h>
-#include <qore/charset.h>
-#include <qore/ScopeGuard.h>
+#include <qore/ParserSupport.h>
+
+#include <errno.h>
 
 extern class List *ARGV, *QORE_ARGV;
 extern class Hash *ENV;

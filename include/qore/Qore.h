@@ -52,6 +52,19 @@
 #include <qore/ReferenceHolder.h>
 #include <qore/Environment.h>
 
+// include private definitions if compiling the library
+#ifdef _QORE_LIB_INTERN
+#include <qore/Function.h>
+#include <qore/Statement.h>
+#include <qore/Variable.h>
+#include <qore/NamedScope.h>
+#include <qore/ScopedObjectCall.h>
+#include <qore/ClassRef.h>
+#include <qore/Context.h>
+#include <qore/Operator.h>
+#include <qore/Tree.h>
+#endif
+
 DLLEXPORT extern char qore_version_string[];
 DLLEXPORT extern int qore_version_major;
 DLLEXPORT extern int qore_version_minor;

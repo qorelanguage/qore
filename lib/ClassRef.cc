@@ -21,8 +21,6 @@
  */
 
 #include <qore/Qore.h>
-#include <qore/ClassRef.h>
-#include <qore/NamedScope.h>
 
 ClassRef::ClassRef(class NamedScope *n)
 {

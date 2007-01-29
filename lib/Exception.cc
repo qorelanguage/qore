@@ -20,16 +20,8 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <qore/config.h>
-#include <qore/common.h>
-#include <qore/Exception.h>
-#include <qore/support.h>
-#include <qore/QoreString.h>
-#include <qore/List.h>
+#include <qore/Qore.h>
 #include <qore/CallStack.h>
-#include <qore/qore_thread.h>
-#include <qore/QoreNode.h>
-#include <qore/Object.h>
 
 ExceptionSink::ExceptionSink()
 {

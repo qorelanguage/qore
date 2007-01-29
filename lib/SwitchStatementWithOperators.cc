@@ -20,13 +20,9 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <qore/config.h>
-#include <qore/common.h>
-#include <qore/QoreNode.h>
-#include <qore/Statement.h>
+#include <qore/Qore.h>
 #include <qore/SwitchStatementWithOperators.h>
 #include <qore/minitest.hpp>
-#include <qore/Operator.h>
 
 #ifdef DEBUG
 #  include "tests/SwitchStatementWithOperators_tests.cc"

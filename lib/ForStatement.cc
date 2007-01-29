@@ -20,12 +20,11 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include <qore/config.h>
-#include <qore/common.h>
+#include <qore/Qore.h>
 #include <qore/ForStatement.h>
 #include <qore/Statement.h>
 #include <qore/Variable.h>
-#include <qore/QoreNode.h>
+#include <qore/Tree.h>
 
 ForStatement::ForStatement(class QoreNode *a, class QoreNode *c, class QoreNode *i, class StatementBlock *cd)
 {

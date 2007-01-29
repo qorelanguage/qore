@@ -20,12 +20,12 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include <qore/config.h>
+#include <qore/Qore.h>
 #include <qore/common.h>
 #include <qore/ForEachStatement.h>
 #include <qore/Statement.h>
 #include <qore/Variable.h>
-#include <qore/QoreNode.h>
+#include <qore/Function.h>
 
 // only executed by Statement::exec()
 int ForEachStatement::exec(class QoreNode **return_value, class ExceptionSink *xsink)

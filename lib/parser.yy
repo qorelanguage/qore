@@ -21,12 +21,7 @@
    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <qore/config.h>
-#include <qore/common.h>
-#include <qore/QoreNode.h>
-#include <qore/Operator.h>
-#include <qore/Function.h>
-#include <qore/Statement.h>
+#include <qore/Qore.h>
 #include <qore/ContextStatement.h>
 #include <qore/IfStatement.h>
 #include <qore/WhileStatement.h>
@@ -35,31 +30,14 @@
 #include <qore/DeleteStatement.h>
 #include <qore/TryStatement.h>
 #include <qore/ThrowStatement.h>
-#include <qore/Variable.h>
-#include <qore/support.h>
-#include <qore/Context.h>
-#include <qore/Object.h>
-#include <qore/QoreString.h>
-#include <qore/QoreClass.h>
-#include <qore/qore_thread.h>
-#include <qore/QoreProgram.h>
 #include <qore/Find.h>
-#include <qore/Namespace.h>
 #include <qore/ParserSupport.h>
-#include <qore/DateTime.h>
 #include <qore/RegexSubst.h>
 #include <qore/QoreRegex.h>
 #include <qore/RegexTrans.h>
-#include <qore/BinaryObject.h>
 #include <qore/SwitchStatement.h>
 #include <qore/SwitchStatementWithOperators.h>
-#include <qore/ClassRef.h>
-#include <qore/Hash.h>
 #include <qore/Tree.h>
-#include <qore/List.h>
-#include <qore/QoreType.h>
-#include <qore/NamedScope.h>
-#include <qore/Exception.h>
 
 #include "parser.h"
 

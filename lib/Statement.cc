@@ -331,7 +331,7 @@ void pop_cvar()
    delete cvn;
 }
 
-static inline lvh_t push_local_var(char *name)
+lvh_t push_local_var(char *name)
 {
    class VNode *vnode;
 
@@ -369,7 +369,7 @@ lvh_t pop_local_var()
    return rc;
 }
 
-static inline lvh_t find_local_var(char *name)
+lvh_t find_local_var(char *name)
 {
    class VNode *vnode = getVStack();
 
@@ -415,10 +415,6 @@ static inline void checkLocalVariableChange(class QoreNode *n)
    if (n->type == NT_VARREF && n->val.vref->type == VT_LOCAL)
       parse_error("illegal local variable modification in background expression");
 }
-
-#define PF_BACKGROUND   1
-#define PF_REFERENCE_OK 2
-#define PF_RETHROW_OK   4
 
 static inline int getBaseLVType(class QoreNode *n)
 {

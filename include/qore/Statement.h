@@ -51,6 +51,10 @@
 #define RC_BREAK        2
 #define RC_CONTINUE     3
 
+#define PF_BACKGROUND   1
+#define PF_REFERENCE_OK 2
+#define PF_RETHROW_OK   4
+
 // all definitions in this file are private to the library and subject to change
 
 DLLLOCAL int process_node(class QoreNode **node, lvh_t oflag, int pflag);
@@ -129,5 +133,7 @@ class StatementBlock {
 DLLLOCAL void push_cvar(char *name);
 DLLLOCAL void pop_cvar();
 DLLLOCAL lvh_t pop_local_var();
+DLLLOCAL lvh_t push_local_var(char *name);
+DLLLOCAL lvh_t find_local_var(char *name);
 
 #endif // _QORE_STATEMENT_H

@@ -20,14 +20,9 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <qore/config.h>
 #include <qore/Qore.h>
 #include <qore/QoreLib.h>
-#include <qore/LockedObject.h>
-#include <qore/List.h>
-#include <qore/params.h>
 #include <qore/StringList.h>
-#include <qore/BinaryObject.h>
 
 #include <string.h>
 

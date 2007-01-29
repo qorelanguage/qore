@@ -78,6 +78,21 @@ class Method {
       DLLLOCAL inline bool isSynchronized() const;
 };
 
+class BuiltinMethod : public BuiltinFunction, public ReferenceObject
+{
+   protected:
+      DLLLOCAL inline ~BuiltinMethod() {}
+
+  public:
+      class QoreClass *myclass;
+
+      DLLLOCAL inline BuiltinMethod(class QoreClass *c, char *nme, q_method_t m) : BuiltinFunction(nme, m, QDOM_DEFAULT), myclass(c) {}
+      DLLLOCAL inline BuiltinMethod(class QoreClass *c, q_constructor_t m) : BuiltinFunction(m, QDOM_DEFAULT), myclass(c) {}
+      DLLLOCAL inline BuiltinMethod(class QoreClass *c, q_destructor_t m) : BuiltinFunction(m, QDOM_DEFAULT), myclass(c) {}
+      DLLLOCAL inline BuiltinMethod(class QoreClass *c, q_copy_t m) : BuiltinFunction(m, QDOM_DEFAULT), myclass(c) {}
+      DLLLOCAL inline void deref();
+};
+
 /*
   BCANode
   base class constructor argument node

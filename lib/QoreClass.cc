@@ -20,23 +20,8 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <qore/config.h>
-#include <qore/common.h>
-#include <qore/QoreClass.h>
-#include <qore/qore_thread.h>
-#include <qore/params.h>
-#include <qore/Namespace.h>
+#include <qore/Qore.h>
 #include <qore/Sequence.h>
-#include <qore/BuiltinFunctionList.h>
-#include <qore/Exception.h>
-#include <qore/Function.h>
-#include <qore/List.h>
-#include <qore/Statement.h>
-#include <qore/Object.h>
-#include <qore/QoreType.h>
-#include <qore/Variable.h>
-#include <qore/NamedScope.h>
-#include <qore/AbstractPrivateData.h>
 
 #include <string.h>
 #include <stdlib.h>
@@ -395,21 +380,6 @@ BCAList::~BCAList()
       erase(i);
    }
 }
-
-class BuiltinMethod : public BuiltinFunction, public ReferenceObject
-{
-   protected:
-      inline ~BuiltinMethod() {}
-
-   public:
-      class QoreClass *myclass;
-
-      inline BuiltinMethod(class QoreClass *c, char *nme, q_method_t m) : BuiltinFunction(nme, m, QDOM_DEFAULT), myclass(c) {}
-      inline BuiltinMethod(class QoreClass *c, q_constructor_t m) : BuiltinFunction(m, QDOM_DEFAULT), myclass(c) {}
-      inline BuiltinMethod(class QoreClass *c, q_destructor_t m) : BuiltinFunction(m, QDOM_DEFAULT), myclass(c) {}
-      inline BuiltinMethod(class QoreClass *c, q_copy_t m) : BuiltinFunction(m, QDOM_DEFAULT), myclass(c) {}
-      inline void deref();
-};
 
 inline void BuiltinMethod::deref()
 {
