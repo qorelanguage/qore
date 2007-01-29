@@ -31,19 +31,19 @@
 class AbstractPrivateData : public ReferenceObject
 {
    protected:
-      virtual ~AbstractPrivateData() {}
+      DLLEXPORT virtual ~AbstractPrivateData() {}
 
    public:
-      void ref()
+      DLLEXPORT void ref()
       {
 	 ROreference();
       }
-      virtual void deref(class ExceptionSink *xsink)
+      DLLEXPORT virtual void deref(class ExceptionSink *xsink)
       {
 	 if (ROdereference())
 	    delete this;
       }
-      virtual void deref()
+      DLLEXPORT virtual void deref()
       {
 	 if (ROdereference())
 	    delete this;
