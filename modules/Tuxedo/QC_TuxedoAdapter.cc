@@ -1212,7 +1212,7 @@ static QoreNode* error2string(Object* self, QoreTuxedoAdapter* adapter, QoreNode
   if (!n) return xsink->raiseException("TUXEDO-ADAPTER-ERROR2STRING", "One parameter expected: integer error code.");
   int err = (int)n->val.intval;
   char* str = strerror(err);
-  if (!str || !str[0]) str = "<uknown error>";
+  if (!str || !str[0]) str = (char*)"<uknown error>";
   return new QoreNode(str);
 }
 
