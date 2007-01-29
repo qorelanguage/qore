@@ -93,6 +93,7 @@ libqore_la_SOURCES = \
 	RegexTrans.cc \
 	Sequence.cc \
 	ReferenceObject.cc \
+	Environment.cc \
 	QT_NOTHING.cc \
 	QT_bigint.cc \
 	QT_float.cc \

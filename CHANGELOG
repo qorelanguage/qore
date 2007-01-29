@@ -1,3 +1,7 @@
+2007.01.29: David Nichols
+	* fixed a logical bug in setenv() (could have caused a crash)
+	* made environment manipulations thread-safe on HP-UX
+
 2007.01.25: David Nichols
 	* fixed a bug in thread resource tracking in the qore Datasource class
 	  (c++ ManagedDatasource class)

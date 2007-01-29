@@ -20,27 +20,21 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <qore/config.h>
+#include <qore/Qore.h>
 #include <qore/ql_env.h>
-#include <qore/QoreNode.h>
-#include <qore/support.h>
-#include <qore/QoreString.h>
-#include <qore/params.h>
-#include <qore/BuiltinFunctionList.h>
 
 #include <stdio.h>
 #include <stdlib.h>
 
 static class QoreNode *f_getenv(class QoreNode *params, ExceptionSink *xsink)
 {
-   char *var;
    QoreNode *p0;
 
    if (!(p0 = test_param(params, NT_STRING, 0)))
       return NULL;
-   if ((var = getenv(p0->val.String->getBuffer())))
-      return new QoreNode(var);
-   return NULL;
+
+   class QoreString *str = Env.get(p0->val.String->getBuffer());
+   return str ? new QoreNode(str) : NULL;
 }
 
 static class QoreNode *f_setenv(class QoreNode *params, ExceptionSink *xsink)
@@ -48,38 +42,30 @@ static class QoreNode *f_setenv(class QoreNode *params, ExceptionSink *xsink)
    class QoreNode *p0, *p1, *t;
    
    if (!(p0 = test_param(params, NT_STRING, 0))
-       || (p1 = get_param(params, 1)))
+       || !(p1 = get_param(params, 1)))
       return NULL;
    if (p1->type != NT_STRING)
       t = p1->convert(NT_STRING);
    else
       t = p1;
 
-   QoreString arg(p0->val.String->getBuffer());
-   arg.concat('=');
-   arg.concat(t->val.String);
-   putenv(arg.getBuffer());
+   int rc = Env.set(p0->val.String->getBuffer(), t->val.String->getBuffer());
    if (t != p1)
       t->deref(xsink);
-   return NULL;
+   return new QoreNode((int64)rc);
 }
 
-#ifdef HAVE_UNSETENV
 static class QoreNode *f_unsetenv(class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0;
    if (!(p0 = test_param(params, NT_STRING, 0)))
       return NULL;
-   unsetenv(p0->val.String->getBuffer());	
-   return NULL;
+   return new QoreNode((int64)Env.unset(p0->val.String->getBuffer()));
 }
-#endif
 
 void init_env_functions()
 {
    builtinFunctions.add("getenv", f_getenv);
    builtinFunctions.add("setenv", f_setenv);
-#ifdef HAVE_UNSETENV
    builtinFunctions.add("unsetenv", f_unsetenv);
-#endif
 }

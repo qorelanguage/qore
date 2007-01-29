@@ -20,12 +20,7 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <qore/config.h>
-#include <qore/support.h>
-#include <qore/QoreString.h>
-#include <qore/qore_thread.h>
-#include <qore/QoreProgram.h>
-#include <qore/qore_thread.h>
+#include <qore/Qore.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -201,7 +196,10 @@ class QoreString *findFileInEnvPath(char *file, char *varname)
       return new QoreString(file);
 
    // get path from environment
-   char *idir = getenv(varname);
+   class QoreString str;
+   if (Env.get(varname, &str))
+      return NULL;
+   char *idir = str.getBuffer();
 
    // if path is empty, return null
    if (!idir)

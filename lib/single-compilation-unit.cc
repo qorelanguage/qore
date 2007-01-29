@@ -74,6 +74,7 @@
 #include "Sequence.cc"
 #include "ReferenceObject.cc"
 #include "QoreHTTPClient.cc"
+#include "Environment.cc"
 #include "QT_NOTHING.cc"
 #include "QT_bigint.cc"
 #include "QT_float.cc"

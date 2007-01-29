@@ -50,6 +50,7 @@
 #include <qore/QoreClass.h>
 #include <qore/ScopeGuard.h>
 #include <qore/ReferenceHolder.h>
+#include <qore/Environment.h>
 
 DLLEXPORT extern char qore_version_string[];
 DLLEXPORT extern int qore_version_major;

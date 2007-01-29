@@ -126,6 +126,7 @@ case "${host_os}" in
 		   AC_DEFINE(HPUX_ACC_SOCKLEN_HACK, 1, if compiling on HP-UX with aCC and need to use int instead of socklen_t)
 		fi
 		AC_DEFINE(HPUX, 1, if compiling on HP-UX)
+		AC_DEFINE(NEED_ENVIRON_LOCK, 1, if the environment operations are thread-safe)
 		;;
 esac
 AC_SUBST(SHLIB_SUFFIX)
@@ -1396,7 +1397,7 @@ AC_FUNC_STAT
 AC_FUNC_STRERROR_R
 AC_FUNC_STRTOD
 AC_FUNC_VPRINTF
-AC_CHECK_FUNCS([bzero floor gethostbyaddr gethostbyaddr_r gethostbyname gethostbyname_r gethostname gettimeofday memmove memset mkfifo putenv regcomp select socket setsockopt getsockopt strcasecmp strchr strdup strerror strspn strstr atoll strtol strtoll isblank localtime_r gmtime_r exp2 clock_gettime realloc timegm seteuid setegid])
+AC_CHECK_FUNCS([bzero floor gethostbyaddr gethostbyaddr_r gethostbyname gethostbyname_r gethostname gettimeofday memmove memset mkfifo putenv regcomp select socket setsockopt getsockopt strcasecmp strchr strdup strerror strspn strstr atoll strtol strtoll isblank localtime_r gmtime_r exp2 clock_gettime realloc timegm seteuid setegid setenv unsetenv])
 
 # try to find strtoimax on HPUX
 AC_MSG_CHECKING([for strtoimax])
