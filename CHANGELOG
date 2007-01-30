@@ -208,7 +208,7 @@
 	* fix for HP-UX vnsprintf() return value when buffer is too small
 
 2006.11.13: David Nichols
-	* added support for specifyingg stati linkage to libraries that may not
+	* added support for specifyingg static linkage to libraries that may not
 	  be present on some systems (configure change)
 	* added some charset aliases for HP-UX character set abbreviations
 

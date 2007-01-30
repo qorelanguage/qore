@@ -41,6 +41,8 @@ The "tibae" module added new methods to the TibcoAdapter class to support client
 Due to time constraints the deadlock solution was not universally applied to all user locks.  Complete deadlock detection (with qore threading primitives, including deadlocks with "synchronous" methods/functions) will be delivered in the next version of qore.
 However some deadlocks are now detected and will cause an exception to be thrown and all locks of one thread to be released.
 
+*) bug fixes, miscellaneous new functions, etc
+see CHANGELOG and the updated qore 0.6.0 documentation for details
 
 ***********************
 *** LANGUAGE ISSUES ***
