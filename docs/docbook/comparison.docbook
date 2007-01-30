@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<chapter id="Appendix_C:_Language_Comparisons">
+  <title>Appendix C: Language Comparisons</title>
+
+  <para>Qore's syntax superficially appears to be a mixture of C, Java and perl with some unique features to Qore (such as <command>context</command> statements, etc).</para>
+
+  <para>Because no independent comparison of Qore with other languages exists, I'll try to compare Qore to perl and Java as objectively as possible in this section (since I used these two languages to get ideas for the interface for Qore).</para>
+
+  <sect1 id="Qore_and_perl">
+    <title>Qore and perl</title>
+
+    <para>Qore is not perl; perl is a robust, mature, feature-full, and powerful language, and Qore is a new, young, and (compared to perl) relatively limited language and differs philosophically in some areas.</para>
+
+    <para>(Some) similarities to perl:</para>
+
+    <itemizedlist mark='bullet'>
+      <listitem>
+	<para>Qore is a weakly-typed scripting language</para>
+      </listitem>
+      <listitem>
+        <para>Qore variable references begin with a dollar sign "$". (ex: $value is a valid variable in both perl and Qore)</para>
+      </listitem>
+      <listitem>
+        <para>In Qore, subroutines are declared with the keyword <command>sub</command></para>
+      </listitem>
+      <listitem>
+        <para>Qore and perl share many statements (like <command>for</command>, <command>foreach</command>, <command>while</command>, <command>do</command>, <command>if</command>, etc), and operators.</para>
+      </listitem>
+      <listitem>
+        <para>Qore and perl share many basic operators</para>
+      </listitem>
+      <listitem>
+        <para>Qore and perl both use double-precision floating point numbers</para>
+      </listitem>
+      <listitem>
+        <para>Qore uses <ulink url="http://www.pcre.org">PCRE</ulink> to provide perl5-compatible regular expression support</para>
+      </listitem>
+    </itemizedlist>
+
+    <para>(Some) differences from perl:</para>
+
+    <itemizedlist mark='bullet'>
+      <listitem>
+        <para>Qore has a clean and powerful threading model, built-in from the start by design</para>
+      </listitem>
+      <listitem>
+        <para>Qore has clean object-oriented features, built-in from the start by design</para>
+      </listitem>
+      <listitem>
+        <para>Qore has transparent UTF-8 support (qore's substr(), string splice, index(), etc work on character offsets, not byte offsets according to the character encoding used for the string), perl's wide character support is not as transparent - for example, 'printf("%s\n", substr("ä", 0, 1));' will output an invalid character in perl, but work properly in Qore using UTF-8 variable-width characters</para>
+      </listitem>
+      <listitem>
+        <para>Qore tends to avoid syntactic shortcuts and require more verbose expressions than perl; Qore has a much smaller grammar than perl, and no default variables (no $_, etc); Qore has <command>if</command> statements, but no "unless"; etc</para>
+      </listitem>
+      <listitem>
+        <para>A Qore variable can be of any type, whereas in perl the type of variable also depends on the name</para>
+	<para>perl: <programlisting>@array = (1, "two"); 
+%hash = ( "a", 1, "b", 2);
+$scalar = 3.0;</programlisting>
+	</para>
+	<para>Qore: <programlisting>$array = (1, "two");
+$hash = ( "a" : 1, "b" : 2);
+$scalar = 3.0;</programlisting>
+	</para>
+      </listitem>
+      <listitem>
+        <para>Qore subroutines can be declared with an optional list of local variables to receive subroutine arguments; the parentheses after the subroutine name are not optional.</para>
+      </listitem>
+      <listitem>
+        <para>Qore accepts a statement or a statement block after <command>if</command>, <command>while</command>, <command>for</command>, <command>foreach</command>, etc, like C, C++, and Java, but unlike perl that requires a block ("{" "}") after such statements.</para>
+      </listitem>
+      <listitem>
+        <para>Qore's <link linkend="Splice_Operator"><command>splice</command> operator</link> works on strings (respecting character offsets for multi-byte character encodings) as well as lists.</para>
+      </listitem>
+      <listitem>
+        <para>Qore has a <command>switch/case</command> statement, whereas perl has none</para>
+      </listitem>
+      <listitem>
+        <para>Qore hashes must be specified with a specific syntax, ex: <programlisting>( "key" : <replaceable>expression</replaceable> )</programlisting></para>
+      </listitem>
+      <listitem>
+        <para>Qore's object-oriented features are very different from perl's.</para>
+      </listitem>
+      <listitem>
+        <para>Qore's exception handling is more similar to C++ or Java's.</para>
+      </listitem>
+      <listitem>
+        <para>Qore has very tight database integration and syntactic support for processing query results (<command>context</command> statements, <command>find</command> expressions)</para>
+      </listitem>
+      <listitem>
+        <para>Qore uses 64-bit integers by default even on 32-bit platforms.</para>
+      </listitem>
+      <listitem>
+        <para>Qore's operators can change lvalues without references, in Qore a function can change an lvalue only if a reference is passed</para>
+      </listitem>
+      <listitem>
+        <para>there is currently no generic equivalent to perl's references.  It is only possible to pass values by reference in Qore if the subroutine includes a local variable argument list</para>
+      </listitem>
+      <listitem>
+        <para>Qore does not support enclosures or lamba functions, however Qore's Program class provides a powerful mechanism for embedding logic in a program or even for self-modifying programs</para>
+      </listitem>
+      <listitem>
+        <para>Qore does not yet support signal handling; this is planned for a future release (before 1.0)</para>
+      </listitem>
+    </itemizedlist>
+
+  </sect1>
+  <sect1 id="Qore_and_Java">
+    <title>Qore and Java</title>
+
+    <para>Complex object-oriented qore programs/scripts are more similar to Java programs than to perl scripts, even though the fact that variable names always begin with a "$" will continue to remind one of perl. This section will attempt to outline the similarities and differences between qore and Java, however, because I'm not a Java expert, it will definitely be incomplete, and may be inaccurate in some cases.</para>
+
+    <para>Similarities to Java:</para>
+
+    <itemizedlist mark='bullet'>
+      <listitem>
+        <para>when executed with the <code>--exec-class</code> or <code>%exec-class</code> options, a qore program/script will disable the use of top-level statements and instantiate the class with the same name as the input file (stripping the suffix and the path of course) in a manner similar to executing a java program.</para>
+      </listitem>
+      <listitem>
+        <para>Objects in qore are always referenced unless explicitly copied in a manner very similar to java.</para>
+      </listitem>
+      <listitem>
+        <para>qore implements the <command>synchronized</command> keyword in a manner similar to Java, using a reentrant thread lock to ensure that only one thread can execute the function or method at one time (but still allowing recursive invokations in that thread).</para>
+      </listitem>
+      <listitem>
+        <para>qore and Java implement exception handling with <command>try catch</command> blocks (however, see differences below)</para>
+      </listitem>
+      <listitem>
+        <para>qore and Java implement class inheritance (however, see differences below)</para>
+      </listitem>
+    </itemizedlist>
+
+    <para>Differences from Java</para>
+
+    <itemizedlist mark='bullet'>
+      <listitem>
+        <para>Java is a strongly-typed language and qore is a weakly-typed languange. This means that many programming mistakes in Java can be caught at parse time, while in qore the same mistake may be a run-time error. However, qore's weakly-typed nature can allow much more elegant solutions to some kinds of problems (there are advantages and disadvantages to each approach).</para>
+      </listitem>
+      <listitem>
+        <para>Java's exception handling is strongly typed, supporting multiple catch blocks, requiring methods to declare the exceptions they can throw, etc. Qore supports only one catch block due to the weakly-typed nature of the language.</para>
+      </listitem>
+      <listitem>
+        <para>Qore implements multiple inheritance in a manner more similar to C++; overriding base class constructor arguments is supported. Java implements single class inheritance and multiple interface inheritance.</para>
+      </listitem>
+      <listitem>
+        <para>All methods and members of Qore objects are public by default unless declared private, Java implements finer grained control (the <code>protected</code> keyword, etc.).</para>
+      </listitem>
+      <listitem>
+        <para>Qore provides no way of overloading methods (including <code>constructor()</code> methods); Java does</para>
+      </listitem>
+      <listitem>
+        <para>In Qore, any base class method can be overridden in a derived class; also in Qore there is a special syntax that allows explicit calling base class methods from within derived classes. In Java, methods declared as <code>final</code> cannot be overridden, and for those that can, there is no way to call overridden base class methods (as far as I am aware).</para>
+      </listitem>
+      <listitem>
+        <para>Java uses <code>this</code> as a reference to the current object, Qore uses <code>$self</code></para>
+      </listitem>
+      <listitem>
+        <para>Qore has no concept of interfaces; Java does.</para>
+      </listitem>
+      <listitem>
+        <para>Java uses the <code>clone</code> method and a special interface to provide a mechanism to copy objects; qore uses the <code>copy()</code> method, which is run in the copy of the object after all members have been copied (although members that are objects get a new reference to the object, so it's not a deep copy -- basically Qore executed an equivalent of Java's <code>Object.clone()</code> call, and then allows the new object to make changes to the new data). Qore's <code>copy()</code> methods are inherited and run in the same order as <code>constructor()</code> methods in class hierarchies.</para>
+      </listitem>
+      <listitem>
+        <para>Declaring a Qore <code>copy()</code> method as <command>synchronized</command> has no effect because the method is run in the new object, which is always unique.</para>
+      </listitem>
+      <listitem>
+        <para>Java is based on byte code and requires classes to be compiled to byte code before they are run. Qore parses (very quickly) normal text data to an internal compiled representation which is executed; there is no byte code in qore (yet).</para>
+      </listitem>
+    </itemizedlist>
+  </sect1>
+</chapter>
+
+

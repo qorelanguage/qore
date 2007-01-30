@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<chapter id="Appendix_D:_Future_Development">
+  <title>Appendix D: Future Development</title>
+
+  <para>Some changes planned for future releases:</para>
+
+  <itemizedlist mark='bullet'>
+    <listitem>
+      <para>add optional strong typing to the language + strongly typed data structures</para>
+    </listitem>
+    <listitem>
+      <para>add PostgresSQL and Sybase drivers to the DBI layer</para>
+    </listitem>
+    <listitem>
+      <para>add integration with other messaging systems</para>
+    </listitem>
+  </itemizedlist>
+</chapter>

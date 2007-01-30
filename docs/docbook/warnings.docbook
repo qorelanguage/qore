@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<chapter id="Warnings">
+  <title>Warnings</title>
+
+  <para>Warnings give the programmer information about possible errors in qore code.</para>
+
+  <para>Warnings can be enabled using the -W command-line option (see <link linkend="Command-Line_Parsing">Command-Line Parsing</link> for more information) or by using the <code>%enable-all-warnings</code> or <code>%enable-warning</code> <link linkend="Parse_Directives">parse directives</link>.</para>
+
+  <table>
+    <title>Warnings</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Warning Code</para></entry>
+	  <entry><para>Description</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code>duplicate-local-vars</code></para></entry>
+	  <entry><para>This warning is raised when the same local variable is declared more than once within the same lexical scope.</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>warning-mask-unchanged</code></para></entry>
+	  <entry><para>This warning is raised when a program tries to change the warning mask with parse options, but the warnings are locked.</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>unknown-warning</code></para></entry>
+	  <entry><para>This warning is raised when a program tries to enable or disable an unknown warning.</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>undeclared-var</code></para></entry>
+	  <entry><para>This warning is raised when a program uses a variable that has not been declared with <command>my</command> or <command>our</command>.</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>duplicate-global-vars</code></para></entry>
+	  <entry><para>Raised when a program declares a global variable more than once.</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>unreachable-code</code></para></entry>
+	  <entry><para>Raised when code is defined that can never be executed (for example, follows a <command>return</command> statement.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+
+</chapter>

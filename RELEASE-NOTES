@@ -1,0 +1,786 @@
+RELEASE NOTES for qore v0.6.0
+
+NOTE: for platform-specific notes and build instructions, please see the file BUILD
+
+*** LIST OF CHANGES IN THIS RELEASE ***
+
+*) major SMP performance increases
+work was done to dramatically reduce the number of cache invalidations which results in a very significant performance increase (more than 2x for affected code paths) - this also affects single-threaded code running on SMP machines.  Basically due to these changes the CPUs are able to use their caches much more effectively, thus improving performance drastically.  This was done without sacrificing the clean threading model - from the qore user code/programming interface perspective no compatibility has been sacrificed; the language is simply faster.
+
+Future releases will take this further and give even better performance increases.
+
+*) stable shared-library interface, version 1.0
+The qore library now exports a stable shared-library interface - this will be further improved in future release as internal implementation details of exported classes are further abstracted from the interface.
+
+*) qore line-number reporting bug finally quashed
+The bug where qore would report an incorrect line number with multi-line statements has finally been fixed - error messages now give the entire statement range where the error occured.  Furthermore parse error reporting has been further improved by making error messages more informative and readable.
+
+*) internal JSON-RPC support
+support for JSON-RPC has been added, including support for serializing and deserializing between qore data structures and JSON strings and a built-in JsonRpcClient class subclassed from the new HTTPClient class - see the 0.6.0 documentation for more details.
+
+*) builtin HTTPClient, XmlRpcClient, and JsonRpcClient classes
+the old qore-language HTTPClient and XmlRpcClient classes have been replaced with new high-performance internal versions.  The external API has been kept backwards-compatible as well.  The XmlRpcClient and JsonRpcClient classes are subclassed from the new HTTPClient class using qore's new support for builtin class hierarchies (in previous releases class hierarchies could only be implemented in qore code).
+
+*) the switch/case statement accepts simple relational operators in case expressions
+
+*) new functions: is_dir(), is_file(), is_executable(), is_readable(), is_dev(), etc
+To verify file types easier
+
+*) new single compilation unit build support, visibility tagging
+g++ visibility tagging is used when possible allowing header files to clearly label API entry points as well as private interfaces.
+Furthermore, when used with the default single compilation unit builds (where all files in a given directory are built together), the compiler can perform much better optimizations on the code.
+Visibiility tagging also allows the symbol table size to be drastically reduced (particularly with templated objects) as symbols for private interfaces are not included in the shared library.
+
+*) BEA Tuxedo (TM) module implemented
+The full Tuxedo client API is available in qore if you have a licensed version of BEA Tuxedo installed, see the updated documentation for the "tuxedo" module
+
+*) TIBCO synchronous client operation support added to "tibae" module
+The "tibae" module added new methods to the TibcoAdapter class to support client-side synchronous operation calls
+
+*) initial support for deadlock detection
+Due to time constraints the deadlock solution was not universally applied to all user locks.  Complete deadlock detection (with qore threading primitives, including deadlocks with "synchronous" methods/functions) will be delivered in the next version of qore.
+However some deadlocks are now detected and will cause an exception to be thrown and all locks of one thread to be released.
+
+*) bug fixes, miscellaneous new functions, etc
+see CHANGELOG and the updated qore 0.6.0 documentation for details
+
+***********************
+*** LANGUAGE ISSUES ***
+***********************
+
+Out of Memory Errors
+--------------------
+*) BUG: out of memory conditions are not handled with the c++ new operator... I need a good solution for that.  Generally the Qore program will crash if the new operator cannot allocate the memory it needs, however work has begun on handling out of memory errors starting in v0.5.2
+
+References, Copying, Passing by Value
+-------------------------------------
+Unlike some other languages requiring garbage collection, Qore uses a deterministic reference-counted architecture for memory management.  When the references on a value node reach 0, that object is deleted.  When arguments to a function or method are passed by value, internally, for all value types other than an object (instantiation of a Qore class), the reference count is atomically incremented and the same value node is passed to the function or method.  In this case, if that value node is changed, then the value is copied and the changes are made to the copy.  So, for all value node types other than objects, a copy-on-write approach is used.  However objects are always passed by reference.  There is always only one copy of each object unless the object is explicitly copied.  In this sense, Qore acts like Java as far as I am aware.
+
+Parsing
+-------
+*) Note that there is a parse lock on each program object.  Parsing on a single program object is single-threaded.  However, the reentrant parser is able to support simultaneous parsing on different program objects.
+*) Parsing happens in 2 stages - 1) parse to pending data structures, and 2) commit the pending data structures to the Qore Program object.  References are resolved in the second stage, which allows flexible referencing of functions, constants, classes, etc before they are declared.  Any parse errors at any stage will cause all the uncomitted parsing to be rolled back.  The Qore Program class allows the programmer control over the 2 stages of parsing with the Program::parsePending(), Program::parseCommit(), and Program::parseRollback() methods.
+
+
+**************************
+*** MODULE INFORMATION ***
+**************************
+
+TIBRV
+-----
+The "tibrv" module provides direct TIBCO Rendezvous support, allowing qore programs to send and receive Rendezvous messages directly.
+* Linux: supported on 32-bit and 64-bit builds of qore
+* Solaris: supported on 32-bit builds (FIXME: add 64-bit solaris build support)
+* OS X: supported on 32-bit builds
+
+TIBAE
+-----
+The "tibae" module provides TIBCO Adapter support; it allows qore programs to send and receive messages to and from TIBCO Adapters (or implement a TIBCO Adapter in qore) based on an external repository.  
+The TibcoAdapter class is provided by this module.  Note that Qore must be built with the compiler required by the TIBCO Adapter SDK in order for the "tibae" module to be built.
+Note that previous versions of these release notes stated that it was not possible to make an adapter that sent synchronous replies - this is incorrect, just set the subject to the replySubject key of the incoming message hash which should be an inbox (point-to-point) subject name.
+* Linux: I use the SDK version 5.3.2 that requires g++ 3.2 (this also fixes a lot of bugs compared to SDK 4.1.* including some big memory leaks).  All other versions I've found for Linux require g++ 2.96, which is an unsupported RedHat-only version.   Note that at the time of this writing, there is no TIBCO Adapter SDK support for x86_64 Linux
+* Solaris: qore must be compiled with the SunPro CC compiler in order to be able to use the "tibae" module.   
+* OS X: There is finally Rendezvous support for OS X, so hopefully they will support the Adapter SDK in the next version
+
+TUXEDO
+------
+The "tuxedo" module provides a qore-language interface to Tuxedo functionality.  It is supported on all platforms where the Tuxedo SDK is available.
+
+ORACLE
+------
+The "oracle" DBI driver has been well tested and is in heavy production use.
+*) transaction management is supported
+*) automatic transparent character set conversion is supported when necessary
+*) threading support
+*) it's possible to call functions and procedures
+*) all NUMBER fields are loaded as strings in selects in order to not lose any data.  Qore would need an arbitrary-precision Number type in order handle this case better.
+*) it's possible to bind and retrieve *LOB values
+
+MYSQL
+-----
+The "mysql" DBI driver has not been as extensively tested as the Oracle driver, but now supports all features of the Oracle driver except stored procedure execution.
+*) transaction management is supported
+*) automatic transparent character set conversion is supported when necessary
+*) threading support
+*) stored procedure support with direct binding and retrieving values
+
+NCURSES
+-------
+experimental: provides the "Panel" and "Window" classes along with many functions and constants - see test/ncurses.q and examples/hanio.q and examples/worms.q for more information. 
+
+
+*********************
+*** SQL Subsystem ***
+*********************
+
+*) NOTE that there is a transaction lock on the Datasource class (above the DBI driver level) that is automatically enabled if autocommit is off on the Datasource that prohibits two or more threads from being in a transaction at the same time on the same datasource.  To best use this feature when starting a transaction with a Datasource::select() (like a "select for update"), call Datasource::beginTransaction() before the "select for update".  You notify qore that the transaction has completed by calling Datasource::commit() or Datasource::rollback().  Note that this must be done in the same thread that started the transaction.  Currently there is no way in qore to execute SQL in separate threads simultaneously on the same datasource if autocommit is off and one of the threads has started a transaction (either by calling Datasource::beginTransaction() or Datasource::exec()).
+*) NOTE the Datasource::describe() method should not be used until the design and implementation are reworked.  This method has been disabled in the top-level Qore class for the time being.
+*) autocommits should probably be moved to the Datasource class to make DBI driver implementation a little easier
+
+
+**************************************
+*** Current and Future Development ***
+**************************************
+
+The file docs/roadmap.html contains line-by-line feature information.  Generally, qore should hit version 1.0 when:
+*) the bugs listed in this file are resolved
+*) have more robust DBI drivers (PostgresSQL, Sybase should be added)
+*) binding and fetching has been implemented with explicit APIs so Qore programs can handle data sets larger than available memory
+*) signal-handling support has been implemented (for UNIX platforms at least)
+
+
+*********************
+*** General Notes ***
+*********************
+
+Threading
+---------
+Qore was designed to favor multithreaded performance over single-threaded performance.  Due to this reason Qore programs should be very scalable on SMP systems.
+
+Memory Cleanliness
+------------------
+Qore has been thoroughly reviewed with valgrind (on Linux) and dbx (on Solaris) for memory errors.  There are no known dynamic memory leaks at this time.  However, see below on handling out of memory conditions.
+The new features have not been as extensively tested, and there is some danger of memory leaks with exception handling, as not every code path has been explicitly tested.
+
+Stability & Bugs
+----------------
+NOTE that while qore is version 0.5.*, this does not indicate a lack of stability.  The qore language is in heavy production and must absolutely remain stable and without memory leaks.
+However not all code paths are as well tested as others; there are certainly unknown bugs out there.  
+
+Undocumented Features
+---------------------
+The documentation is not entirely complete, but it's gotten much better in the last releases
+
+---------------------
+RELEASE NOTES HISTORY
+---------------------
+
+*******************************
+RELEASE SUMMARY for qore v0.5.3
+*******************************
+
+* scanner and parser modified to accept direct specification of opaque binary objects using hexadecimal digits enclosed in angle brackets:
+        ex: const bin = <a4b7297b>;
+
+must be an even number of digits or a parse error will result
+
+* new functions
+  + hstat(), hlstat() - perform a "stat()" on a file/directory/etc and return a hash instead of a list - much easier to use output, including a "type" key, which gives the file type
+  + makeHexString(), parseHexString() - to covert from a binary object to a hex string and vice versa
+
+* performance improvements
+temporary objects no longer cause a cache sync on deletion, use STL map when hash_map is not available, more use of STL map in other data structures for quicker lookups
+
+* Solaris shared library fix
+finally Solaris shared-library builds are working properly
+
+* GetOpt class date parsing improvements
+all Qore formats should also be parsable by the GetOpt class
+
+* lots of bug fixes
+deadlocks in several classes were fixed that happened after timeouts (Datasource, SingleExitGate classes)
+bug in Datasource copy constructor
+broken ncurses module fixed, initscr() is now optional
+
+
+*******************************
+RELEASE SUMMARY for qore v0.5.2
+*******************************
+
+*) ***CHANGE***: COMPATIBILITY WARNING: "tibco" module renamed "tibae"
+the "tibco" module was renamed "tibae" to be consistent with the new "tibrv" module - see below
+programs requiring the old "tibco" module should now use "%requires tibae"
+
+*) ***CHANGE***: COMPATIBILITY WARNING: date/time handling changes
+**WARNING**: int <-> date conversions are now done with 64-bit offset from Jan 1, 1970 00:00:00
+previously int <-> date conversions were done with a not-very-useful direct conversion, like this:
+  int(2006-01-01) => 20060101000000   (and vice-versa)
+
+as of v0.5.2 integers converted to a date and dates converted to an integer will be based on the offset in seconds from January 1, 1970 (the UNIX epoch).   This is done with a 64-bit number so dates far in the past and future are supported.  Note that the date algorithms implement a "proleptic gregorian calendar"; that is; leap years are still calculated according to the Gregorian formula before the actual adoption of the Gregorian calendar in 1582 (in parts of Europe anyway), so date calculations before 1582 may not match with historical records (when the Julian calendar was used in Europe).
+
+Date differences are now much easier to calculate, for example:
+# calculate the number of seconds different between two dates:
+$diff = int(2006-01-01) - int(2005-12-31);
+
+this gives 86400 seconds = 1 day.  previsouly you had to use mktime() which would only work with 32-bit offsets, so dates far in the past or future would give erroneous answers.
+
+While this could in theory introduce incompatibilies in qore scripts, I expect that it will not in practice.  The only time where this conversion was useful was for specifying dates, i.e.: $date = date(20060101000000), however this should be changed to the clearer format: $date = 2006-01-01 (or $date = 2006-01-01-00:00:00), or for the lazy, the string <-> date conversion logic remains unchanged, so this could still be written as: $date = date("20060101000000") (just add quotes around the integer dates);
+
+**WARNING**: date/time arithmetic no longer takes daylight savings time into consideration
+this is because the internal 64-bit algorithm is not time-zone/DST aware - the old algorithm used mktime().  If you need to do date arithmetic possibly over DST changes and it's important to take these changes into account, and your dates are within the UNIX epoch (before Jan 19 2038), then use qore's mktime() function instead.
+
+**FIX**: subtracting one absolute date by another will now give a relative date giving the time difference, 
+i.e.: $d = 2006-01-02 - 2006-01-01 = 1D
+the resulting relative date is normalized to days, hours, minutes, seconds, and milliseconds (months and years are not of fixed length - the units below can be reliably interconverted)
+
+Additionally, the scanner has been modified to only accept valid month, day, hour, minute, and second values (i.e. dates like 2006-13-45-34:78:89 will throw parse exceptions)
+
+Other date changes (not expected to cause compatibility problems) are:
+* millisecond subtraction fixed
+* ISO 8601 date formats like 2006-01-01T10:00:00 are accepted (without the time zone component) as well as qore's format: 2006-01-01-10:00:00
+* ISO 8601 relative date formats like P0001-02-01T01:01:01 are accepted (however qore's relative date format is arguably more readable)
+* dates can be specified with an optional millisecond value, i.e.: 2006-01-01T10:00:00.502 for 502 seconds after Jan 1 2006 10:00 am
+* relative milliseconds can be directly specified with <num>ms: i.e.: $date + 250ms;
+* absolute dates printed with the %n or %N *printf format specification that include a millisecond value will be output with the millisecond value like "2006-01-01 10:00:00.502"
+* relative dates printed with the %n or %N *printf format specification will take the following format: <time: x years x months x days x hours x minutes x seconds x milliseconds>
+  units that are zero are not printed, unless all units are zero and then only <time: 0 seconds> is printed
+* new date functions & support for calculating ISO-8601 calendar week information: getISOWeekHash(), getISOWeekString(), getDateFromISOWeek(), getDayNumber(), getDayOfWeek(), getISODayOfWeek(), get_years(), get_months(), get_days(), get_hours(), get_minutes(), get_seconds(), get_milliseconds()
+* all qore functions and methods taking timeout values will now accept date/time values, i.e. Queue::pop(250ms) will timeout after 250 milliseconds.  If an absolute date is passed then the timeout value will be calculated based on the current date (this will probably be only rarely used).  The ability of these functions and methods to accept relative times is good for the programmer - if in doubt about the units, just use a relative time - i.e. Queue::pop(10s) will wait 10 seconds before timing out, however if a method or function expects larger units than those passed, passing smaller units will not magically make the timeout period respect a smaller time resolution (i.e. Datasource::setTransactionLockTimeout(90s + 500ms) will have the ms units truncated to give a value of 90 seconds)
+
+*) New direct TIBCO Rendezvous support
+Direct TIBCO Rendezvous sending and listening is now supported with the new "tibrv" module - as of this version it's now possible to build in tibrv support without tibae support (tibrv is also supported on OS X ppc and intel now as well)
+
+To use the new TIBCO Rendezvous support use the "%use tibrv" directive to ensure that the functionality is loaded
+
+Classes supplied by this module:
+ + TibrvListener         - for listening to reliable messages
+ + TibrvSender           - for sending reliable messages
+ + TibrvCmListener       - for listening to certified messages
+ + TibrvCmSender         - for sending certified messages
+ + TibrvFtMember         - to implement a fault-tolerant node
+ + TibrvFtMonitor        - to monitor a fault-tolerant group
+ + TibrvDistributedQueue - to manage certified messages in a distributed queue
+
+NOTE: we do not send native Rendezvous arrays - we use the old style "multiple fields with the same name" approach to have more flexible arrays (different datatype in each element, etc).   Native Tibrv arrays are decoded properly when received.
+
+automatic type mapping:
+  TIBRVMSG_BOOL <-> boolean
+  TIBRVMSG_I8,U8,I16,U16,I32,U32,I64,U64 -> int (note there is a loss of precision with the U64 -> int conversion)
+  int -> TIBRVMSG_I64
+  TIBRVMSG_F32,F64 -> float
+  float -> TIBRVMSG_F64
+  TIBRVMSG_DATETIME <-> date
+  TIBRVMSG_OPAQUE <-> binary
+  TIBRVMSG_STRING -> string     (strings are marked with the default encoding for the object)
+  string -> TIBRVMSG_STRING     (encoding conversions are made if necessary to the encoding set for the object)
+  TIBRVMSG_XML -> string        (to explicitly send this type, use the tibrv_xml() function)
+  TIBRVMSG_IPPORT16 -> int      (to explicitly send this type, use the tibrv_ipport16() function)
+  TIBRVMSG_IPADDR32 -> string   (produces a string like "192.168.1.1" - to explicitly send this type, use the tibrv_ipaddr32() function)
+
+to do explicit qore->tibrv type mapping, use the following helper functions supplied by the module:
+  tibrv_i8()
+  tibrv_u8()
+  tibrv_i16()
+  tibrv_u16()
+  tibrv_i32()
+  tibrv_u32()
+  tibrv_i64()
+  tibrv_u64()
+  tibrv_f32()
+  tibrv_f64()
+  tibrv_ipport16()
+  tibrv_ipaddr32()  - note: takes a string argument like "192.168.1.1"
+  tibrv_xml()
+  tibrv_bool()
+
+set certificates for secure daemons using tibrvSetDaemonCert() and tibrvSetUserCertWithKey() using the SSLCertificate and SSLPrivateKey classes.  Note that these functions are only available if your tibrvcpp library was compiled with secure daemon support.  See BUILD for more information.
+
+*) strong encryption and digest support
+added SSLCertificate and SSLPrivateKey classes - the constructors for these classes expect a text file in PEM format defining the appropriate object.  Detailed information about the objects can be retrieved using member functions, see the updated qore v0.5.2 documentation for details.
+
+Added new functions supporting strong cryptography:
+ *** BLOWFISH 
+   + blowfish_encrypt_cbc()
+   + blocfish_decrypt_cbc()
+   + blowfish_decrypt_cbc_to_string()
+ *** DES and DESX (including multiple-key algorithms)
+   + des_encrypt_cbc()
+   + des_decrypt_cbc()
+   + des_decrypt_cbc_to_string()
+   + des_ede_encrypt_cbc()
+   + des_ede_decrypt_cbc()
+   + des_ede_decrypt_cbc_to_string()
+   + des_ede3_encrypt_cbc()
+   + des_ede3_decrypt_cbc()
+   + des_ede3_decrypt_cbc_to_string()
+   + desx_encrypt_cbc()
+   + desx_decrypt_cbc()
+   + desx_decrypt_cbc_to_string()
+ *** RC4
+   + rc4_encrypt()
+   + rc4_decrypt()
+   + rc4_decrypt_to_string()
+ *** RC2
+   + rc2_encrypt_cbc()
+   + rc2_decrypt_cbc()
+   + rc2_decrypt_cbc_to_string()
+ *** CAST5
+   + cast5_encrypt_cbc()
+   + cast5_decrypt_cbc()
+   + cast5_decrypt_cbc_to_string()
+ *** RC5
+   + rc5_encrypt_cbc()
+   + rc5_decrypt_cbc()
+   + rc5_decrypt_cbc_to_string()
+
+added digest functions: MD2(), MD4(), MD5(), SHA(), SHA1(), DSS(), DSS1(), RIPEMD160(), MDC2()
+
+NOTE: when the digest functions are run on strings, the trailing null character is not included in the digest calculation.  however, when the cryptographic functions are run on strings, the trailing null is included, so that strings can be decrypted with the trailing null.
+
+*) new Socket methods supporting TLS/SSL communication with strong encryption
+making or accepting TLS/SSL connections is nearly transparent with the new Socket class changes.  Instead of Socket::connect() you would use Socket::connectSSL().  Instead of Socket::accept() you use Socket::acceptSSL() (requires setting a certificate and private key using the SSLCertificate and SSLPrivateKey classes and the Socket::setCertificate() and Socket::setPrivateKey() classes)
+
+Once a TLS/SSL connection has been established on a socket, subsequent reads and writes using the standard Socket methods will be done using the equivalent SSL functions in a manner transparent to the programmer.
+
+new methods:
+  + Socket::connectSSL()              - makes a TLS/ SSL connection to a remote socket
+  + Socket::acceptSSL()               - accepts a connection on a socket and negotiates a TLS/SSL session
+  + Socket::shutdownSSL()             - shuts down an active TLS/SSH session by sending the "close notify" shutdown alert to the peer
+  + Socket::setCertificate()          - associates a certificate with a socket
+  + Socket::setPrivateKey()           - associates a private key with a socket
+  + Socket::verifyPeerCertificate()   - returns a verification code describing the state of the peer's certificate
+  + Socket::isSecure()                - returns True if a secure connection has been established
+  + Socket::isOpen()                  - returns True if the socket is open
+  + Socket::getSSLCipherName()        - returns the name of the encryption algorithm for secure connection
+  + Socket::getSSLCipherVersion()     - returns the version of the encryption algorithm for secure connection
+
+*) the FtpClient class has been modified to support the ftps protocol according to RFC-4217
+a RFC-4217 compliant secure connection will be made if the protocol in the URL is set to "ftps" or if the setSecure() method is called before connect()
+
+new FtpClient methods:
+  + FtpClient::setSecure()                - will try to make an RFC-4217 compliant secure control and data connections to the server
+  + FtpClient::setInsecure()              - will try to make unencrypted connections to the server
+  + FtpClient::setInsecureData()          - will try to make unencrypted data connections to the server even if the control connection is secure
+  + FtpClient::isSecure()                 - returns True if a secure control connection has been established
+  + FtpClient::isDataSecure()             - returns True if the data connection is secure
+  + FtpClient::getSSLCipherName()         - returns the name of the encryption algorithm for ftps connections
+  + FtpClient::getSSLCipherVersion()      - returns the version of the encryption algorithm for ftps connections
+  + FtpClient::verifyPeerCertificate()    - verifies the peer's certificate for ftps connections
+  + FtpClient::setModeAuto()              - sets the object to automatically try EPSV, PASV, and PORT for the data connection
+  + FtpClient::setModeEPSV()              - sets the object to only try EPSV mode for the data connection
+  + FtpClient::setModePASV()              - sets the object to only try PASV mode for the data connection
+  + FtpClient::setModePORT()              - sets the object to only try PORT mode for the data connection
+
+*) "oracle" driver improvements
+the select() and selectRows() methods both support binding data directly in queries with the same syntax as with exec()
+for example:
+my $result = $oradb.select("select * from table where value = %v", $value);
+
+*) "mysql" driver improvements
+The "mysql" module now supports directly binding data and retrieving values from queries in the qore DBI syntax (already supported by the "oracle" module) - also the select() and selectRows() DBI methods support value binding as well
+for example, using the test database as given in examples/mysql-test-db.sql and the following stored procedure:
+delimiter //
+create procedure get_family (in id int, out fname varchar(32))
+begin
+   select name into fname from family where family_id = id;
+end;
+//
+
+executing:
+$h = $mysqldb.exec("call get_family(%v, :name)", 1);
+
+will return ( "name" : "Smith" )
+
+*) improved XML serialization and deserialization
+mixed elements and text can now be serialized and deserialized without data loss (except whitespace is still not retained) - for example, now it's possible to deserialize (parse) a docbook xml file and then reserialize it (generate the XML from the Qore data structure) without losing information (this was not possible with previous versions of qore).
+
+*) 64-bit build support on x86_64 (AMD64, etc)
+native 64-bit binaries can now be built on Linux x86_64 - the build system has been modified to be able to correctly find paths and set directory names for 64-bit libraries if the --enable-64bit configure option is used.  By default 32-bit builds are made unless the --enable-64bit option is passed to configure.
+
+*) %requires error reporting improved
+if any requested features cannot be loaded, then only exceptions related to missing features will be reported.  this avoids possibly hundreds (or more) exceptions in large programs where features cannot be loaded (i.e. unresolved classes, functions, etc)
+
+*) new warning framework
+enable warnings from the command-line with "-W" or from qore code with the new parse directives: %enable-all-warnings and %enable-warning <warn>.  Disable warnings from qore code with %disable-warning <warn>
+initial warnings are: 
+   duplicate-local-vars
+   warning-mask-unchanged
+   unknown-warning
+   undeclared-var
+   duplicate-global-vars
+   unreachable-code
+
+Other new command-line flags related to warnings: -r: treat warnings as errors, -A: lock warnings
+The %lock-warnings parse directive and the PO_LOCK_WARNINGS parse option were implemented in order to ensure that warning levels can't be changed when this option is set
+
+*) parse restrictions enforced for classes
+all classes tagged with capabilities and the capabilities are checked against the parse options when the new operator is parsed and when inherited classes are declared
+new parse restrictions: PO_NO_DATABASE (parse directive: %no-database), PO_NO_THREAD_CONTROL (%no-thread-control), PO_NO_THREAD_CLASSES (%no-thread-classes)
+note that PO_NO_THREADS is now equivalent to PO_NO_THREAD_CONTROL | PO_NO_THREAD_CLASSES
+
+*) internal qore class API significantly simplified and streamlined
+it is now much easier to develop qore classes in c++ with the new API
+
+*) lots of bug fixes, etc
+see CHANGELOG for details
+
+
+*******************************
+RELEASE SUMMARY for qore v0.5.1
+*******************************
+*) PCRE (Perl-Compatible Regular Expression) support added
+All regular expression operations in Qore are now performed using the PCRE library, meaning that regular expressions in Qore should be much more perl compatible and finally consistent on all platforms.
+new flags for matching and substitution:
+	/i = ignore case
+	/s = makes a dot (.) match a newline character
+	/x = extended matching
+	/m = multiline matching
+
+Subpattern backreference substitutions are now supported, i.e.:
+	$str = "abc def";
+	$str =~ s/(\w+) +(\w+)/$2, $1/;
+	# now $str = "def, abc"
+
+Regular expressions are now parsed one time at parse time (in previous versions of Qore using POSIX regular expression support, the regular expressions were parsed every time they were executed which was very inefficient).
+
+*) UTF-8 multi-byte character support fixed - character offsets now used instead of byte offsets for multi-byte strings
+Qore now assumes character offsets instead of byte offsets for multi-byte characters in: substr(), splice operator with strings, index(), rindex(), length()
+NOTE: length() and strlen() will now return different values for strings with multi-byte characters.
+The ord() function still accepts only byte offsets and returns single-byte values.
+
+*) transliteration operator implemented, i.e.:
+	$str =~ tr/abc/123/;
+        $str =~ tr/a-z/A-Z/;
+note that this operator is not yet multi-byte charset aware for range specifications
+
+*) support for non-threading build of qore removed
+had been broken for a long time anyway.  from now on optimizations will be concentrated on the single multi-threaded version of qore
+
+*) rindex() semantics fixed
+The optional offset value works like perl's rindex offset - if present, it specifies the character offset from which the reverse search will begin - starting at that character to the beginning of the string.
+
+*) bindex() and brindex() functions added
+give byte offsets into strings when a match is found.
+
+*) new function "regex_subst()" added
+allows regular expression substitution to be performed with patterns potentially generated at run-time
+
+*) new constants added for regex() and regex_subst()
+	RE_Caseless  - sets caseless matching
+	RE_DotAll    - makes a dot (.) match a newline character
+	RE_Extended  - extended matching
+	RE_MultiLine - enables multiline matching
+
+*) libz-based compression function support added
+compress(), compress2(), uncompress_to_string(), and uncompress_to_binary() functions added to allow for compressing and uncompressing data
+
+*) the "elements" operator modified to work on binary and string types
+returns the number of bytes in a binary object
+returns the number of characters in a string
+
+*) the "-" and "-=" operators updated to delete keys from hashes
+ex: $hash - "string" or $hash -= "string"
+will remove the key "string" from the hash if it exists.  note that this will only dereference the value at that key, so if the value is an object and this is not the last reference to the object, the object will not be deleted.
+
+* implemented "instanceof" operator
+like Java's operator of the same name
+
+*) implemented %= (modula-equals), *= (multiply-equals), /= (divide-equals), ^= (xor-equals), <<= (shift-left-equals), and >>= (shift-right-equals) operators
+
+*) fixed bugs in the |=, &=, +=, and -= operators
+the precision was artificially restricted to 32 bits
+
+*) "shift" and "unshift" can now be used as function and method names
+
+*) Oracle driver fixed to not throw parse exceptions when the ":" character is not followed by an alphabetic character
+so ":=" is legal in SQL statements again :-)
+
+*) added VARCHAR, CLOB, BLOB, DATE constants
+to be used in Datasource::exec() and Datasource::vexec() calls to specify placeholder buffer types.
+
+*) modified Oracle driver to accept an integer as a placeholder bind argument
+To be used as an easy way to specify the length of a string buffer to bind - otherwise the maximum length is set by default to 512 bytes, which will cause a run-time exception to be thrown if a longer string is attempted to be bound to the buffer.
+
+*) optional timeout values in ms implemented for Queue::pop() and Queue::get() methods
+
+*) copy-on-write implemented for class definitions in subprograms
+performance & memory efficiency improvement when creating subprograms (Program objects)
+
+*) module subsystem enhacements
+any program can use "%requires" at any time.
+
+*) bug fixes and other miscellaneous enhancements
+see CHANGELOG for details
+
+
+*******************************
+RELEASE SUMMARY for qore v0.5.0
+*******************************
+*) the release documentation has been greatly improved with this release; all Qore features, functions, classes are documented, see the qore.html file included with the release, or http://qore.sourceforge.net/?manual=1
+
+*) deprecated "file" type removed, use the File class instead
+the following functions have been removed, use File methods instead:
+	fprint()        File::print()
+	fprintf()       File::printf()
+	f_fprintf()     File::f_printf()
+	vfprintf()      File::vprintf()
+	create_file()   File::open("name", O_CREAT | O_WRONLY)
+	close_file()    File::close()
+	open()          File::open()
+	close()         File::close()
+	readline()      File::readLine()
+	fflush()        File::sync()
+	eof()           N/A: test read return values
+
+the following global variables have been removed:
+	$STDERR, $STDOUT
+
+the following constants have been implemented to replace them:
+	stdout, stdin, stderr   - all objects of type File
+
+the following new methods have been implemented in the File class:
+	File::vprintf()
+	File::f_printf()
+	File::f_vprintf()
+
+*) exception handling semantics changed and "rethrow" statement implemented
+as of this release, catch blocks may only declare one parameter which will receive the exception hash.  user information is stored in the err, desc, and arg keys.  if a list is thrown, the elements of the list will be assigned to the new "err", "desc", and "arg" keys of the exception hash.  any type of value(s) can be thrown, but lists are mapped as described above.  If a list longer than 3 elements is thrown, then elements 2 - the remainder of the list are mapped to a new list assigned to the "arg" key of the exception hash.  If only one argument is thrown, it is mapped to the "err" key of the exception hash.
+If no parameter is declared in the catch block then the exception information cannot be accessed in the catch block (however it can be rethrown, see the "rethrow" statement below).
+The automatic $argv variable is no longer assigned in catch blocks.
+The exception hash is otherwise the same as before.
+System exceptions always populate the err and desc keys, and never the arg key.
+    old syntax:
+	try {
+	    throw "ERROR", "description", new Info();
+	}
+	catch ($ex, $err, $desc, $arg)
+	{
+	    printf("exception at %s:%f: %s: %s (arg=%N)", $ex.file, $ex.line, $err, $desc, $arg);
+	}
+
+    new syntax:
+	try {
+	    throw "ERROR", "description", new Info();
+	}
+	catch ($ex)
+	{
+	    printf("exception at %s:%f: %s: %s (arg=%N)", $ex.file, $ex.line, $ex.err, $ex.desc, $ex.arg);
+	}
+
+the "rethrow" statement (taking no arguments) was implemented and can only be used in a catch block.  This statement will cause the current exception to be rethrown, and an entry is added on the call stack tagged as a rethrow entry (i.e.: $ex.type == "rethrow").  
+This allows programs to maintain a coherent call stack even when exceptions are handled with one or more catch blocks.
+
+*) Socket class method changes - consistent error handling for all Socket methods
+socket errors will throw exceptions, when a read or write is attempted on a closed socket.  for example, if the other side closes the connection: a SOCKET-CLOSED exception is thrown, for socket read errors a SOCKET-RECV-ERROR exception is thrown.
+Timeouts cause NOTHING to be returned.
+These changes were made because some methods (like Socket::readi4() for example) could return a -1 value as a legitimate read - to make socket handling consistent across all qore Socket methods.
+This will requre changes in almost all socket code in qore - I apologize for the inconvenience, but the changes were necessary to have a consistent socket API and to allow all socket methods to handle communications errors (previously it was not possible to catch errors in the Socket::readi*() methods, for example).
+
+*) Module optimizations and reorganization
+The XML module has been merged into qore: qore can no longer be built without libxml2 support.
+The FtpClient module has also been merged into qore - there are no particular dependencies on this class anyway to justify it being a module.
+Qore modules now need to declare their API conformity level and will be explicitly initialized.
+Note that older qore modules used an OS-level mechanism for automatically initializing themselves, and, since the internal API is not yet clever enough to detect duplicate internal symbols, the older qore modules will register themselves with the qore runtime engine, which, in the case of the FtpClient and XML modules, can cause core dumps or other errors when the duplicate symbols are referenced.  Therefore older qore modules cannot be used with this version of qore.
+The default module directory has been changed to pgklibdir-version, meaning that, if your --prefix=/usr, the module directory will now be /usr/lib/qore-0.5.0
+Modules installed in the "auto" subdirectory of the module directory (and any modules in the directories listed in the QORE_AUTO_MODULE_DIR environment variable) will be automatically loaded when qore starts, before any parsing begins.
+Other modules (in the root module directory) must be loaded with the %requires directive (see next point)
+
+*) %requires directive for explicitly listing qore feature requirements
+the "%requires" directive will attempt to load a module of the same name if the named feature is not already present in qore.
+Modules are searched in the directories in colon-separated order listed in the QORE_MODULE_DIR environment variable and then in the pgklibdir-version (/usr/lib/qore-0.5.0 in the example above) directory.
+Modules must have the same file name as the object of the "%requires" directive and must have the extension ".qmod"
+The following modules must be explicitly loaded with %requires in a shared build of qore:
+	tibco
+	ncurses (still experimental)
+
+*) Oracle driver enhancements
+there is a new DB-independent Datasource::exec() syntax (although so far only the Oracle driver has been modified to support it).  In Oracle *LOB columns are supported for binding and passing values through ::exec().  The syntax is somewhat similar to *printf() except %v is used for all value types:
+For example, to bind values in a generic SQL statement:
+$ds.exec("insert into table values ( %v, %v, %v, %v, %v, %v )", binary($data), "string", 12345, True, now(), 1.43);
+for Oracle, values are bound as follows:
+	Type::Binary   = SQLT_BIN  (can be a BLOB for example)
+	Type::String   = SQLT_STR
+	Type::Integer  = SQLT_INT or SQLT_STR  (int > 32-bits = SQLT_STR, <= 32-bit int = SQLT_INT)
+	Type::Boolean  = SQLT_INT  (1 or 0)
+	Type::Float    = SQLT_FLT
+	Type::Date     = SQLT_DAT
+
+attempts to bind other types will result in a run-time exception.
+
+To retrieve values from a stored procedure or function, you must specify placeholder with a syntax more similar to Oracle's as follows:
+$hash = $ds.exec(begin stored_procedure_name('Literal String', :param1, :param2, param3); end;");
+
+The placeholders are the :param* elements in the string, and will correspond to the keys in the result hash (without the leading ':' character).  If no types are defined by arguments following the string, then they default to strings with a maximum length of 512 bytes.  To retrieve other types or longer string values using placeholders, you have to include arguments after the string, one argument for each placeholder.  The arguments should be the data type for the bind as follows:
+	Type::Binary  = BLOB
+	"clob"        = CLOB
+	Type::String  = SQLT_STR
+	Type::Integer = SQLT_INT  (returns a 32 bit integer)
+	Type::Float   = SQLT_FLT
+	Type::Date    = SQLT_DAT
+	Type::Hash    = SQLT_RSET (for result sets, stored procs that return cursors, etc)
+
+This new syntax is meant to be driver-independent, so, for example, when the MySQL driver is updated to take advantage of MySQL 5.0 features like stored procedure execution, support for this syntax will be implemented as well.
+
+*) splice, push, and pop list operators implemented
+do not use parentheses directly after the operator keywords, if you do, qore will assume you want to call a function of the same name.
+Generally this is another point where qore differs philosophically from perl.  In qore, operators can change lvalues directly, but functions must be explicitly passed references to change lvalues.
+qore's splice operator works like perl's splice function
+    i.e.: $l = (1, 2, 3);
+
+    INCORRECT usage of the splice operator:
+	splice($l, 1, 1);   # <- WRONG! this will try to call qore function "splice()", which can never change the value of $l in qore
+
+    CORRECT example:
+	splice $l, 1, 1;    # RIGHT! now $l = (1, 3) 
+
+The same is true of the push and pop operators.  splice, push, and pop are all special keywords in qore in that they can also be used as function and method names.  The qore parser determines if you want to use the operator by checking if these special keywords are followed by an open parenthesis.  If so, then qore assumes you want to execute a function of the same name.
+
+qore's push operator will add one element to the end of a list - to concatenate lists in qore use the + operator.  Note that this differs from perl's "push" function.
+qore's pop operator removes the last element from a list and returns that element (i.e. it works like perl's pop function)
+
+Note that all three operators (like all qore operators) perform thread-atomic operations - no explicit locking is needed in multithreaded programs to guarantee the atomicity of these operations.
+Note also that the splice operator in qore works on strings as well as lists.
+
+*) internal Gate class replaced with a more efficient RMutex class
+the RMutex class is based on a recursive pthread lock; as this is the locking element most often used in Qore to ensure atomicity and thread-safety, this change should bring about a performance increase overall for Qore programs (even single-threaded ones)
+
+*) ncurses classes
+Some ncurses functions and classes (Window and Panel) have been added.  See examples in test/ncurses.q, examples/hanoi.q, examples/worm.q.  Note that threading is enabled but still highly experimental with qore ncurses programs.
+Use "%requires ncurses" in qore programs that would like to use ncurses functionality.
+This module is still experimental.
+
+*) private inheritance has been implemented
+ex: class MyClass inherits private Mutex;
+
+With private inheritance methods of the parent classes can only be executed from within the class.  Any attempt to execute a method of a privately inherited class from outside the class will result in a run-time exception.  However the inheriting class has no restrictions on accessing members or methods of parent classes - private inheritance only affects access of instantiated objects from outside the class.
+
+*) Datasource::selectRows() implemented returning a list of hashes
+sometimes it's more convenient to work with a list of hashes, rather than the hash of lists as returned by the Datasource::select() method.  The Oracle and MySQL drivers have been updated with support for this new DBI method (however it's not implemented for old versions of MySQL without the prepared statement interface)
+
+*) Datasource::vexec() implemented to allow a variable-length list of arguments to be passed
+
+*) parseXMLRPCResponse(), parseXMLRPCCall(), and parseXMLRPCValue() implemented as native functions
+now XML-RPC support is much better integrated in qore (and much faster).  The old user functions in examples/xmlrpc.ql have been removed.
+
+*) HTTPServer.qc and HTTPClient.qc updated to perform HTTP 1.1 compliant connection handling
+Now the HTTPServer class is a little closer to being actually HTTP 1.1 compliant :-)
+
+*) build system updated to delete binary versions of modules
+it's no longer required to include --disable-static in the configure command-line to keep useless static versions of qore modules from being built (however if you don't need the static library, the build should be about twice as fast with --disable-static)
+
+*) added Socket::shutdown() method
+
+*) added a Queue::pop() method so the Queue class can be used as a blocking and thread-safe stack
+
+*) MySQL driver fixed to use the more efficient prepared statement interface when available
+there was a bug in the driver causing it to always use the older character-based interface even when the prepared statement interface was available; this has been fixed
+
+*) the SQL subsystem is no longer optional
+DBI drivers are still optionally-compiled, but it will no longer be possible to build qore without SQL infrastructure support
+
+*) other new functions, methods, backwards-compatible changes to existing methods, and lots of bug fixes
+see CHANGELOG for details
+
+
+*******************************
+RELEASE SUMMARY for qore v0.4.3
+*******************************
+*) XML parsing and generation bugs fixed along with some memory leaks plugged...
+
+*) *_thread_data() functions no longer accessible in programs with the PO_NO_THREADS option enabled
+
+*) many run-time class inheritance fixes
+
+*) Socket class bug fixes for server processes
+
+*) Type::* constant values are now strings instead of unpredictable integers
+
+*) HP-UX build fixes
+still not 100% out-of-the-box supported, but coming soon...
+
+*) core dump, memory leaks, Oracle stored proc execution fixes, and many other changes and fixes
+for details see the CHANGELOG
+
+
+*******************************
+RELEASE SUMMARY for qore v0.4.2 
+*******************************
+
+*) objects and references
+objects are always passed by reference now - like Java.  They are only copied if the special ::copy() method is explicitly executed, and the class supports copying.  This change was necessary to facilitate pure Object-Oriented programming.  The ::copy() method exists for every object as a system method, but can be overridden - to prevent an object from being copied, define a copy() method and throw an exception in it...
+
+*) class inheritance
+multiple class inheritance is supported; the basic syntax is:
+
+	class [namespaces::...]class_name inherits [namespaces::...]class_1[, class 2 ...];
+
+You can also give explicit arguments to base class constructors with a C++-like syntax, and you can override base class constructor arguments in subclasses withthe same syntax if desired.  see examples/inherit.q for more information.   Also see examples/XmlRpcClient.qc for another, more practical, example - the XmlRpcClient class is now a child of the HTTPClient client and gives explicit arguments to the HTTPClient constructor...
+
+*) private class member support
+references to private class members outside the class will cause an exception to be thrown.  declare like this (only in in-line class declarations):
+	private $.mem_1[, $.mem_2 ...];
+
+*) *LOB support in Datasource::select() in the Oracle driver
+the 128K limit for CLOBs is now gone and BLOBs will now be selected as binary objects.  However I have found what I believe is a bug in Oracle 9i where even if you are trying to stream CLOB data you have to allocate a buffer bigger than the CLOB you are trying to stream or you will get an "ORA-24812: character set conversion to or from UCS2 failed" error (I saw this on Saolaris with a 9i client and 9i server), to change the buffer size in modules/oracle/oracle.h with the LOB_BLOCK_SIZE define (currently it's set at 32K as a compromise - not ideal for working streaming like with 10g, but medium large for the broken versions...)
+
+*) internal GetOpt class support
+works the same as the old GetOpt user class delivered in the examples directory, see the new examples/getopt.q script for more information
+
+*) new command-line options
+--exec-class (-x), taking an optional class name argument, will instantiate the class with the same same as the Qore script (override by giving an argument).  This option also turns on --no-top-level.  To be used for more pure OO programming.
+
+*) much improved reference support
+References are not quite universally supported, but getting closer; now recursive local variable reference expressions are supported as well as references to object members (i.e.: do_something(\$.var_name)) - these are now also properly supported in background expressions.
+
+*) XML generation improvements, bug fixes
+Generating formatted XML will give better-formatted XML, also empty elements will be output in the recommended short form (<node/> rather than <node></node>)
+
+*) binary integer support in the Socket class
+Socket::sendi1(), ::sendi2(), and ::sendi4() (and associated ::readi*() methods) have been implemented; they respect network byte order.
+
+*) deprecated socket_* functions removed
+use the Socket class instead...
+
+* many miscellaneous bug fixes
+see CHANGELOG for details
+
+
+*******************************
+RELEASE SUMMARY for qore v0.4.0
+*******************************
+
+*) mysql driver substantially updated  
+It now supports threading, proper character set handling, transactions, and uses the more efficient prepared statement interface.
+
+*) C/C++-style switch/case statement implemented
+by popular demand :-).  The syntax is the same as the C/C++ statement of the same name, except that case values can be any expression non requiring run-time evaluation (any expression you can assign to a constant can be used as a case expression).
+
+*) list assignment implemented
+ex: ($a, $b, $c) = (1, 2, 3); 
+does what you would expect.  Lists assignments in qore work (as far as I could tell by my testing) just like list assignments in perl.  The lvalues on the left-hand side of the assignment can be any valid lvalue expression.
+
+*) "our" and "my" accept lists, "our" can appear anywhere
+it's now possible to declare lists of local and global variables by putting a list of variables after "my" or "our", like:
+my ($a, $b, $c);
+our ($a, $b, $c);
+
+*) elements in "foreach" can modify the list argument by using a reference
+ex: 
+--
+$l = (1, 2);
+foreach my $e in (\$l)
+   $e = sprintf("str-%d", $e);
+-- 
+afterwards $l will be ("str-1", "str-2");
+
+*) new command-line options "-e" (--exec) and "-m" (--show-module-errors)
+-e allows a qore program to be given on the command line, and -m can be used to see if there are errors loading qore modules
+
+*) empty programs do not throw a parse error
+
+*) system() does a fork() and exec() if no shell meta-characters are present
+means more efficent system() execution
+
+*) imported functions can be exported to subprogram objects
+
+*) new File::printf() and Socket::isDataAvailable() methods
+
+*) Socket::recv*() methods accept negative or extremely large arguments safely
+
+*) Socket::recv*() methods accept an optional timeout value in milliseconds after the buffer argument
+With this change it's possible to do non-blocking I/O with Qore sockets
+
+*) Socket::bind() can reuse socket addresses
+Socket::bind() now takes a boolean argument after the socket specifier, if this is True, then the socket option SO_REUSEADDR will be set on the socket, meaning that even if the socket has not been 100% closed it can be opened and bound to (for example, if the socket is still in a TIME_WAIT state because the socket was closed while there were open client connections)
+
+*) lists (and hashes) can end with a trailing comma
+makes it easier to comment out the last element in a list or hash
+
+*) new functions added
+mkdir(), chmod(), rmdir(), pow(), hypot(), sqrt() functions added
+
+*) STL hash_map used to accellerate hash lookups
+on supported platforms
+
+*) lots of bug fixes
+see the CHANGELOG for details

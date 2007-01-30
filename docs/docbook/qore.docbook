@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" 
+"/usr/share/sgml/docbook/xml-dtd-4.4-1.0-30.1/docbookx.dtd"
+[
+  <!ENTITY bookinfo         SYSTEM "bookinfo.docbook">
+  <!ENTITY introduction     SYSTEM "introduction.docbook">
+  <!ENTITY language         SYSTEM "language.docbook">
+  <!ENTITY function_lib     SYSTEM "function_lib.docbook">
+  <!ENTITY class_lib        SYSTEM "class_lib.docbook">
+  <!ENTITY modules          SYSTEM "modules.docbook">
+  <!ENTITY tuxedo           SYSTEM "tuxedo.docbook">
+  <!ENTITY command_line     SYSTEM "command_line.docbook">
+  <!ENTITY parse_directives SYSTEM "parse_directives.docbook">
+  <!ENTITY warnings         SYSTEM "warnings.docbook">
+  <!ENTITY keywords         SYSTEM "keywords.docbook">
+  <!ENTITY bugs             SYSTEM "bugs.docbook">
+  <!ENTITY comparison       SYSTEM "comparison.docbook">
+  <!ENTITY future           SYSTEM "future.docbook">
+]>
+
+<book>
+
+&introduction;
+&language;
+&function_lib;
+&class_lib;
+&modules;
+&command_line;
+&parse_directives;
+&warnings;
+&keywords;
+&bugs;
+&comparison;
+&future;
+&bookinfo;
+
+<colophon>
+<para>This document was first drafted with OpenOffice.org, then converted to docbook XML by Helmut Wollmersdorfer, then edited by hand with Emacs.</para>
+</colophon>
+
+</book>

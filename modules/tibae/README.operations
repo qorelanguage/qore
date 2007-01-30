@@ -1,0 +1,279 @@
+This is overview of support for Tibco Active Enterprise
+Operations in Qore.
+
+
+Tibco Active Enterprise Operations is described (as of release 5.3) 
+in {TIBCO dir}/tra/5.3/doc/sdk/html/index.html or in PDF
+equivalent {TIBCO dir}/tra/5.3/doc/pdf/tib_ad_sdk_programmers.pdf.
+
+Prerequisities:
+===============
+
+1. The headers provided by Tibco do not compile with GCC
+   due to a bug.
+
+   In {TIBCO dir}/tra/5.3/include/sdk/MComponentRegistry.h
+   the declaration of class MComponentRegistry needs to be 
+   moved _before_ declaration of template class MComponentEnumerator
+   (which calls a member of MComponentRegistry, not yet
+   defined in the shipped header).
+
+2. The headers produce several warnings with GCC, complaining
+   about different order of initialisation of member variables
+   (compared to order of their definition).
+
+   Headers producing warnings are: MJmsConnectionSpec.h and MMap.h.
+   If the order of _initialisation_ is changed to follow
+   order of declaration the warnings disappear.
+   The change is safe. 
+
+   Changing order of declaration is NOT recommended since
+   it potentially breaks binary compatibility.
+
+Semantics:
+==========
+
+Support for the Operations is added into existing
+Tibco Adaptive Enterprise adapter ('TibcoAdapter', tibae)
+and reuses this adapter for:
+
+ * Tibco initialisation
+ * conversion between Qore data and Tibco data and vice versa
+
+
+
+Operations allow to provide very similar Qore interface
+to the existing TibcoAdapter functionality:
+
+* synchronous call (with timeout),
+  similar to TibcoAdapter::sendSubjectWithSyncReply()
+
+* asynchronous call, similar to TibcoAdapter::sendSubject()
+  and TibcoAdapter::receive().
+
+  This functionality is currently (Jan. 2007) disabled
+  because of problem with the implementation 
+  (requires thread management of its own).
+
+* 'oneway' call, returning immediatelly,
+  discarding all potential reply data.
+  (tibae has no equivalent functionality as of Jan. 2007.)
+
+
+
+TibcoAdapter::operationsCallWithSyncResult() 
+============================================
+calls  an operation implemented by the server and 
+returns its reply.
+
+  Parameters:
+   * class name (string), in Tibco docs called 
+     "name of the class repository object in which this operation 
+     is defined".
+
+     Example: 'greetings'.
+
+   * method name (string), in Tibco docs "name of the operation 
+     repository that defined this operation".
+
+     Example: 'setGreetings'.
+
+   * data (hash). Keys are string names which need to be
+     defined in Tibco repository and passed into constructor
+     of TibcoAdapter (the classlist parameter).
+
+     The syntax is the same as for 
+     TibcoAdapter::sendSubjectWithSyncReply()
+     or TibcoAdapter::sendSubject() and the same code
+     processes these data.
+
+   * optional timeout in milliseconds (integer) with default
+     value of 60 seconds. If timeout expires a Tibco exception
+     is thrown and then converted into Qore exception.
+
+   * optional client name (string), in Tibco docs 
+     this name must refer to a client repository object 
+     in endpoint.clients directory". Default value is empty string.
+
+  Return value: 
+     Qore data type transformed from the server reply (Tibco data).
+     The same rules as with 
+     TibcoAdapter::sendSubjectWithSyncReply()
+     or TibcoAdapter::receive() apply and the same 
+     code is used to transform the data.
+
+
+TibcoAdapter::operationsOneWayCall()
+====================================
+Provides similar functionality as 
+TibcoAdapter::operationsCallWithSyncResult()
+but does ignore any possible reply data.
+
+The called method (operation) needs to be marked as
+'oneway' in Tibco Designer.
+
+  Parameters (the same as for operationsCallWithSyncResult()
+  but without the timeout):
+
+   * class name (string), in Tibco docs called
+     "name of the class repository object in which this operation
+     is defined".
+
+     Example: 'greetings'.
+
+   * method name (string), in Tibco docs "name of the operation
+     repository that defined this operation".
+
+     Example: 'setGreetings'.
+
+   * data (hash). Keys are string names which need to be
+     defined in Tibco repository and passed into constructor
+     of TibcoAdapter (the classlist parameter).
+
+     The syntax is the same as for
+     TibcoAdapter::sendSubjectWithSyncReply()
+     or TibcoAdapter::sendSubject() and the same code
+     processes these data.
+
+   * optional client name (string), in Tibco docs
+     this name must refer to a client repository object
+     in endpoint.clients directory". Default value is empty string.
+
+  Return value: nothing.
+ 
+
+TibcoAdapter::operationsAsyncCall()
+===================================
+Invokes an operation and returns without waiting
+on the reply. The reply could be picked later
+by the TibcoAdapter::operationsGetAsyncCallResult().
+
+An operation that could be invoked synchronously
+could be invoked asynchronously and vice versa.
+
+As of Jan 2007 this method is commented out
+because the 
+TibcoAdapter::operationsGetAsyncCallResult()
+does not work yet. This method alone works.
+
+  Parameters:
+    Exactly the same as for 
+    TibcoAdapter::operationsGetAsyncCallResult()
+    including timeout. The expired timeout should
+    result in Qore exception when the 
+    TibcoAdapter::operationsGetAsyncCallResult()
+    is called.
+   
+
+  Return value: nothing
+
+  Note: 
+    The combination of class name, method name
+    and TibcoAdapter instance uniquely
+    identifies the asynchronous call
+    and is used by 
+    TibcoAdapter::operationsGetAsyncCallResult().
+
+    Pending requests (not yet retrieved)
+    are automatically dropped when the
+    TibcoAdapter instance is destroyed.
+
+
+TibcoAdapter::operationsAsyncCall()
+===================================
+Retrieve reply for the call made by
+TibcoAdapter::operationsAsyncCall().
+
+The method is currently (Jan 2007) commented out 
+because of unsolved problems - a separate
+thread needs to be probably started
+(per call, per instance?) to wait for 
+the data. All examples (both C++ and Java)
+show how to use asynchronous calls when
+the main event loop is handled by Tibco.
+Qore handles the event loop itself.
+
+
+  Parameter:
+   * class name (string), in Tibco docs called
+     "name of the class repository object in which this operation
+     is defined".
+
+     Example: 'greetings'.
+
+   * method name (string), in Tibco docs "name of the operation
+     repository that defined this operation".
+
+     Example: 'setGreetings'.
+
+   These two parameters (together with TibcoAdapter instance)
+   uniquely identify pending asynchronous call.
+
+   Pending requests not retrieved by this call
+   are discarded by the TibcoAdapter instance.
+
+
+  Return value: (the same as for
+    TibcoAdapter::operationsOneWayCall()):
+
+     Qore data type transformed from the server reply (Tibco data).
+     The same rules as with
+     TibcoAdapter::sendSubjectWithSyncReply()
+     or TibcoAdapter::receive() apply and the same
+     code is used to transform the data.
+
+
+Example:
+========
+Simple example using synchronous call
+and invoking the server 'greetings'
+(implemented in 
+{TIBCO dir}/tra/5.3/tra/5.3/examples/sdk/cpp/operations),
+with DAT (repository) file 
+TIBCO dir}/tra/5.3/tra/5.3/examples/sdk/cpp/CPP_EXAMPLES.dat.
+
+The server may be compiled as is, started and it runs for
+dozen of seconds, then it stops itself. If the 
+part that stops itself is commented out the server
+will stay running.
+
+sub simple_synchronous_test()
+{
+  # Application properties for adapter
+  my $props.AppVersion = Qore::VersionString;
+  $props.AppInfo = "some info";  # any text
+  $props.AppName = "operations"; # any test should work
+  $props.RepoURL = "full-path-to-the-CPP_EXAMPLES-dat";
+
+  # location in CPP_EXAMPLES.dat, as extracted from Designer
+  #
+  $props.ConfigURL = "/tibco/private/adapter/examples/operation/inprocGreetings";
+
+  # All user parameters need to be listed here!!!!
+  # The syntax looks undocumented and cannot be derived
+  # from Designer. For classes the work 'class' should
+  # replace the 'scalar'.
+
+  # named parameters required by the 'greetings' server
+  # 
+  my $classes.message = "/tibco/public/scalar/ae/string";
+  $classes.recipientName = "/tibco/public/scalar/ae/string";
+  $classes.year = "/tibco/public/scalar/ae/string";
+
+  my $adapter = new TibcoAdapter("greetings", $props, $classes);
+
+  # the keys need to be listed in 'classlist' passed into TibcoAdapter
+  # constructor, otherwise Qore exception is thrown.
+  #
+  my $params = ("recipientName" : "Mr. Smith", "year" : "2006");
+  $res = $a.operationsCallWithSyncResult("greetings", "getGreetings", $params, 1000, "client1");
+  # This should print "Mr. Smith, Best wishes for 2006"
+  printf("result of sync call = %s\n", $res);
+}
+
+Paths to Tibco libraries (libtibrv.so, libmaverick.so, Xerces parser) 
+need to set to run the test.
+
+Pavel Vozenilek
+Jan 2007
+
