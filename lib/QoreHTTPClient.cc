@@ -509,13 +509,13 @@ class QoreNode *QoreHTTPClient::send_internal(char *meth, const char *path, clas
 	 char *c = p + 8;
 	 QoreString enc;
 	 while (*c && *c != ';')
-	    enc.concat(*c);
+	    enc.concat(*(c++));
 	 // set new encoding
 	 m_socket.setEncoding(QEM.findCreate(&enc));
 	 // strip from content-type
-	 class QoreString *nc;
+	 class QoreString *nc = new QoreString();
 	 if (p != str)
-	    nc->concat(str, str - p - 1);
+	    nc->concat(str, p - str - 1);
 	 if (*c)
 	    nc->concat(*c);
 	 ah->setKeyValue("content-type", new QoreNode(nc), xsink);

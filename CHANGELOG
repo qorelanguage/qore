@@ -1,3 +1,7 @@
+2007.01.30: David Nichols
+	* fixed character encoding handling with content-type headers in
+	  lib/QoreHTTPClient.cc
+
 2007.01.29: David Nichols
 	* fixed a logical bug in setenv() (could have caused a crash)
 	* made environment manipulations thread-safe on HP-UX
