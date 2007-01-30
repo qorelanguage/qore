@@ -94,7 +94,8 @@ int Environment::unset(const char *name)
    lck_environ.lock();
 #endif
 #ifdef HAVE_UNSETENV
-   rc = unsetenv(name);
+   unsetenv(name);
+   rc = 0;
 #else
    // FIXME: here we fake it - we don't actually remove the variable from the environment, but we set it to nothing...
    std::string str = name;
