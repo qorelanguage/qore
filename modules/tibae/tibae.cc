@@ -340,14 +340,27 @@ class QoreNode *TIBAE_sendSubjectWithSyncReply(class Object *self, class QoreApp
        !(p1 = test_param(params, NT_STRING, 1)) ||
        !((p2 = test_param(params, NT_OBJECT, 2)) || (p2 = test_param(params, NT_HASH, 2))))
    {
-      xsink->raiseException("TIBCO-SEND-WITH-SYNC-REPLY-PARAMETER-ERROR", "invalid parameters passed to tibco_send_with_sync_reply(), expecting subject (string), function name (string), message (object), [timeout (int)]");
+      xsink->raiseException("TIBCO-SEND-WITH-SYNC-REPLY-PARAMETER-ERROR", "invalid parameters passed to tibco_send_with_sync_reply(), expecting subject (string), function name (string), message (object), [timeout (date/time or integer milliseconds)]");
       return NULL;
    }
 
    fname = p1->val.String->getBuffer();
 
-   // set timeout paramter if present
-   int timeout = getMsZeroInt(get_param(params, 3));
+   // set timeout parameter if present
+   int timeout = 0;
+   if ((p3 = get_param(params, 3))) {
+      QoreNode* n = test_param(params, NT_INT, 3);
+      if (n) {
+        timeout = p3->getAsInt();
+      } else {
+        n = test_param(params, NT_DATE, 3);
+        if (!n) {
+          xsink->raiseException("TIBCO-SEND-WITH-SYNC-REPLY-PARAMETER-ERROR", "The timeout parameter needs to be integer or string.");
+          return 0;
+        }
+        timeout = n->val.date_time->getRelativeMilliseconds();
+      }
+   }
 
    // try to send message
    try
@@ -372,12 +385,25 @@ class QoreNode *TIBAE_receive(class Object *self, class QoreApp *myQoreApp, clas
 
    if (!(p0 = test_param(params, NT_STRING, 0)))
    {
-      xsink->raiseException("TIBCO-RECEIVE-PARAMETER-ERROR", "invalid parameters passed to tibco_receive(), expecting subject (string), [timeout (int)]");
+      xsink->raiseException("TIBCO-RECEIVE-PARAMETER-ERROR", "invalid parameters passed to tibco_receive(), expecting subject (string), [timeout (date/time or integer milliseconds)]");
       return NULL;
    }
 
    char *subject = p0->val.String->getBuffer();
-   unsigned long timeout = getMsZeroBigInt(get_param(params, 1));
+   unsigned long timeout = 0;
+   if ((p1 = get_param(params, 1))) {
+     QoreNode* n = test_param(params, NT_INT, 1);
+     if (n) {
+       timeout = (unsigned long)n->val.intval;
+     } else {
+       n = test_param(params, NT_DATE, 3);
+       if (n) {
+        timeout = (unsigned long)n->val.date_time->getRelativeMilliseconds();
+       } else {
+        xsink->raiseException("TIBCO-RECEIVE-PARAMETER-ERROR", "timeout parameter needs to be either integer or date/time.");
+       }
+     }
+   }
 
    return myQoreApp->receive(subject, timeout, xsink);
 }
@@ -390,7 +416,7 @@ class QoreNode *TIBAE_receive(class Object *self, class QoreApp *myQoreApp, clas
 // * method name (string), in Tibco docs "name of the operation repository that defined this operation"
 //   Example: "setGreetings"
 // * data (hash), keys are string parameter names + appropriate type (according to repository) of values
-// * optional: timeout (integer, millseconds), default is 60 seconds, 0 means infinite
+// * optional: timeout (date/time or integer, millseconds), default is 60 seconds, 0 means infinite
 // * optional: client name (string), in Tibco docs "this name must refer to a client repository object defined 
 //   in endpoint.clients directory
 //   Default value is ""
@@ -400,7 +426,7 @@ class QoreNode *TIBAE_receive(class Object *self, class QoreApp *myQoreApp, clas
 static QoreNode* TIBAE_operationsCallWithSyncResult(Object* self, QoreApp* myQoreApp, QoreNode* params, ExceptionSink *xsink)
 {
   char* err = "Invalid parameters. Expected: class name (string), method name (string), data (hash), "
-    "[timeout (integer, millis), ] [client name (string)]";
+    "[timeout (integer in millis or date/time), ] [client name (string)]";
   char* func = "TIBCO-OPERATIONS-CALL-WITH-SYNC_RESULT";
   QoreNode* class_name = test_param(params, NT_STRING, 0);
   if (!class_name) {
@@ -425,6 +451,12 @@ static QoreNode* TIBAE_operationsCallWithSyncResult(Object* self, QoreApp* myQor
   if (n) {
     timeout = (unsigned)n->val.intval;
     ++next_item;
+  } else {
+    n = test_param(params, NT_DATE, 3);
+    if (n) {
+      timeout = (unsigned)n->val.date_time->getRelativeMilliseconds();
+      ++next_item;
+    }
   }
   n = test_param(params, NT_STRING, next_item);
   if (n) {
@@ -477,7 +509,7 @@ static QoreNode* TIBAE_operationsOneWayCall(Object* self, QoreApp* myQoreApp, Qo
 static QoreNode* TIBAE_operationsAsyncCall(Object* self, QoreApp* myQoreApp, QoreNode* params, ExceptionSink *xsink)
 {
  char* err = "Invalid parameters. Expected: class name (string), method name (string), data (hash), "
-    "[timeout (integer, millis), ] [client name (string)]";
+    "[timeout (integer in millis or date/time), ] [client name (string)]";
   char* func = "TIBCO-OPERATIONS-ASYNC-CALL";
   QoreNode* class_name = test_param(params, NT_STRING, 0);
   if (!class_name) {
@@ -502,6 +534,12 @@ static QoreNode* TIBAE_operationsAsyncCall(Object* self, QoreApp* myQoreApp, Qor
   if (n) {
     timeout = (unsigned)n->val.intval;
     ++next_item;
+  } else {
+    n = test_param(params, NT_DATE, 3);
+    if (n) {
+      timeout = (unsigned)n->val.date_time->getRelativeMilliseconds();
+      ++next_item;
+    }
   }
   n = test_param(params, NT_STRING, next_item);
   if (n) {
