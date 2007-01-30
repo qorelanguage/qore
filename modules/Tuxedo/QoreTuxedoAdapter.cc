@@ -286,13 +286,13 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(Hash* settings, ExceptionSink* xsink)
 {
   char* err_name = (char*)"TUXEDO-ADAPTER-CONSTRUCTOR";
 
-  long priority;
+  long priority = 0;
   bool priority_set = false;
-  bool finish_commit_after_data_logged;
+  bool finish_commit_after_data_logged = false;
   bool finish_commit_set = false;
-  bool finish_Tx_commit_after_data_logged;
+  bool finish_Tx_commit_after_data_logged = false;
   bool finish_Tx_commit_set = false;
-  bool Tx_transactions_chained;
+  bool Tx_transactions_chained = false;
   bool Tx_transactions_chained_set = false;
 
   HashIterator iter(settings);
