@@ -221,9 +221,7 @@ EXTRA_DIST = .build next_build.sh WHATISQORE RELEASE-NOTES \
 	test/tibrv-test.q \
         test/unlocked-thread-test.q \
 	test/regex.q \
-	examples/HTTPClient.qc \
 	examples/HTTPServer.qc \
-	examples/XmlRpcClient.qc \
         examples/xmlrpc.ql \
         examples/XmlRpcHandler.qc \
         examples/XmlRpcServerValidation.q \

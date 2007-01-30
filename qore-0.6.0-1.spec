@@ -68,6 +68,21 @@ This module provides functionality enabling qore scripts/programs to communicate
 /usr/lib64/qore-0.6.0/tibrv.qmod
 %endif
 
+%package tuxedo-module
+Summary: BEA Tuxedo(R) client API integration module for Qore
+Group: Development/Languages
+
+%description tuxedo-module
+This module provides functionality enabling qore scripts/programs to communicate using the BEA Tuxedo(R) client API.
+
+%files tuxedo-module
+%ifarch i386
+/usr/lib/qore-0.6.0/tuxedo.qmod
+%endif
+%ifarch x86_64
+/usr/lib64/qore-0.6.0/tuxedo.qmod
+%endif
+
 %prep
 %setup -q
 cxx=g++
@@ -124,6 +139,9 @@ rm -rf $RPM_BUILD_ROOT
 /usr/man/man1/qore.1.gz
 
 %changelog
+* Tue Jan 30 2007 David Nichols <david_nichols@users.sourceforge.net>
+- added tuxedo module
+
 * Fri Jan 5 2007 David Nichols <david_nichols@users.sourceforge.net>
 - updated libqore so version to 1.0.0
 
