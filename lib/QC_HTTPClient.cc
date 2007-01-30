@@ -227,8 +227,7 @@ static class QoreNode *HC_post(class Object *self, class QoreHTTPClient *client,
 
 static class QoreNode *HC_setTimeout(class Object *self, class QoreHTTPClient *client, class QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p = get_param(params, 0);
-   client->setTimeout(p ? p->getAsInt() : 0);
+   client->setTimeout(getMsZeroInt(get_param(params, 0)));
    return NULL;
 }
 
