@@ -945,7 +945,7 @@ if test -n "$with_tuxedo"; then
 
    # setup tuxedo compile and link vars
    TUXEDO_CPPFLAGS="-I${with_tuxedo}/include"
-   TUXEDO_LIBS="-L${with_tuxedo}/lib -ltux -lbuft -lfml -lfml32 -lengine"   
+   TUXEDO_LIBS="-L${with_tuxedo}/lib -lbuft -lfml -lfml32 -lengine -ltux"   
 
    case "${host_os}" in
      *solaris*) TUXEDO_LIBS="${TUXEDO_LIBS} -lxmlfmlbase" ;;
