@@ -948,7 +948,7 @@ if test -n "$with_tuxedo"; then
    TUXEDO_LIBS="-L${with_tuxedo}/lib -lbuft -lfml -lfml32 -lengine -ltux"   
 
    case "${host_os}" in
-     *solaris*) TUXEDO_LIBS="${TUXEDO_LIBS} -lxmlfmlbase" ;;
+     *solaris*) TUXEDO_LIBS="${TUXEDO_LIBS} -lxmlfmlbase -ltux" ;;
    esac
 
    # check if C++ compiler can link with tuxedo libs
