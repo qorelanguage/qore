@@ -3214,7 +3214,7 @@ At least <code>TUXDIR</code> and <code>TUXCONFIG</code> settings need to be spec
           <tbody>
             <row>
               <entry>
-                <para>Timeout</para>
+                <para>[timeout sec]</para>
               </entry>
               <entry>
                 <para>Integer or Date/Time</para>

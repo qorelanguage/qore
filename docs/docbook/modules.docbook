@@ -8669,7 +8669,7 @@ BOOL values, so boolean() could be called as well with the same effect</para>
 	  <varlistentry>
 	    <term>Usage</term>
 	    <listitem>
-	      <programlisting>TibcoAdapter::receive(<replaceable>subject, [timeout]</replaceable>)</programlisting>
+	      <programlisting>TibcoAdapter::receive(<replaceable>subject, [timeout ms]</replaceable>)</programlisting>
 	    </listitem>
 	  </varlistentry>
 	</variablelist>
@@ -8691,9 +8691,9 @@ BOOL values, so boolean() could be called as well with the same effect</para>
 		<entry><para>The subject to listen on.</para></entry>
 	      </row>
 	      <row>
-		<entry><para><replaceable>[timeout]</replaceable></para></entry>
-		<entry><para>Integer</para></entry>
-		<entry><para>The timeout in milliseconds (1/1000 second).</para></entry>
+		<entry><para><replaceable>[timeout ms]</replaceable></para></entry>
+		<entry><para>Integer or Date/Time</para></entry>
+		<entry><para>The timeout in milliseconds (1/1000 second) or as relative date/time.</para></entry>
 	      </row>
 	    </tbody>
 	  </tgroup>
@@ -8837,7 +8837,7 @@ BOOL values, so boolean() could be called as well with the same effect</para>
 	  <varlistentry>
 	    <term>Usage</term>
 	    <listitem>
-	      <programlisting>TibcoAdapter::sendSubjectWithSyncReply(<replaceable>subject, function, message, [timeout]</replaceable>)</programlisting>
+	      <programlisting>TibcoAdapter::sendSubjectWithSyncReply(<replaceable>subject, function, message, [timeout ms]</replaceable>)</programlisting>
 	    </listitem>
 	  </varlistentry>
 	</variablelist>
@@ -8869,9 +8869,9 @@ BOOL values, so boolean() could be called as well with the same effect</para>
 		<entry><para>The message data, must match the class description or an exception will be thrown.</para></entry>
 	      </row>
 	      <row>
-		<entry><para><replaceable>[timeout]</replaceable></para></entry>
-		<entry><para>Integer</para></entry>
-		<entry><para>The timeout in milliseconds (1/1000 second).</para></entry>
+		<entry><para><replaceable>[timeout ms]</replaceable></para></entry>
+		<entry><para>Integer or Date/Time</para></entry>
+		<entry><para>The timeout in milliseconds (1/1000 second) or as relative date/time.</para></entry>
 	      </row>
 	    </tbody>
 	  </tgroup>
@@ -8909,7 +8909,7 @@ BOOL values, so boolean() could be called as well with the same effect</para>
           <varlistentry>
             <term>Usage</term>
             <listitem>
-              <programlisting>TibcoAdapter::callOperationWithSyncReply(<replaceable>class name, method name, call parameters, [timeout], [client name]</replaceable>)</programlisting>
+              <programlisting>TibcoAdapter::callOperationWithSyncReply(<replaceable>class name, method name, call parameters, [timeout ms], [client name]</replaceable>)</programlisting>
             </listitem>
           </varlistentry>
         </variablelist>
@@ -8941,8 +8941,8 @@ BOOL values, so boolean() could be called as well with the same effect</para>
                 <entry><para>Parameters passed to the Operation, must match the class description or an exception will be thrown.</para></entry>
               </row>
               <row>
-                <entry><para><replaceable>[timeout]</replaceable></para></entry>
-                <entry><para>Integer</para></entry>
+                <entry><para><replaceable>[timeout ms]</replaceable></para></entry>
+                <entry><para>Integer or Date/Time</para></entry>
                 <entry><para>Optional timeout. Default value is 60 seconds.</para></entry>
               </row>
               <row>
