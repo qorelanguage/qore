@@ -468,7 +468,7 @@
           <row>
             <entry>
               <para>
-               <link linkend="TuxedoAdapter_setTxTransactionsTimeout">TuxedoAdapter::setTxTransactionsTimeout()</link>              </para>
+               <link linkend="TuxedoAdapter_setTxTransactionTimeout">TuxedoAdapter::setTxTransactionTimeout()</link>              </para>
             </entry>
             <entry>
               <para>Y</para>
@@ -3191,7 +3191,7 @@ At least <code>TUXDIR</code> and <code>TUXCONFIG</code> settings need to be spec
         <varlistentry>
           <term>Usage</term>
           <listitem>
-            <programlisting>TuxedoAdapter::beginTransaction()</programlisting>
+            <programlisting>TuxedoAdapter::beginTransaction(<replaceable>[timeout sec]</replaceable>)</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -3214,13 +3214,13 @@ At least <code>TUXDIR</code> and <code>TUXCONFIG</code> settings need to be spec
           <tbody>
             <row>
               <entry>
-                <para>n/a</para>
+                <para>Timeout</para>
               </entry>
               <entry>
-                <para>n/a</para>
+                <para>Integer or Date/Time</para>
               </entry>
               <entry>
-                <para>This method takes no arguments.</para>
+                <para>Timeout in seconds. Default is zero which means no timeout (waiting forever).</para>
               </entry>
             </row>
           </tbody>
@@ -4733,8 +4733,8 @@ At least <code>TUXDIR</code> and <code>TUXCONFIG</code> settings need to be spec
       </table>
     </sect3>
 
-   <sect3 id="TuxedoAdapter_setTxTransactionsTimeout">
-    <title>TuxedoAdapter::setTxTransactionsTimeout()</title>
+   <sect3 id="TuxedoAdapter_setTxTransactionTimeout">
+    <title>TuxedoAdapter::setTxTransactionTimeout()</title>
       <variablelist>
         <varlistentry>
           <term>Synopsis</term>
@@ -4748,12 +4748,12 @@ At least <code>TUXDIR</code> and <code>TUXCONFIG</code> settings need to be spec
         <varlistentry>
           <term>Usage</term>
           <listitem>
-            <programlisting>TuxedoAdapter::setTxTransactionsTimeout(<replaceable>timeout</replaceable>)</programlisting>
+            <programlisting>TuxedoAdapter::setTxTransactionTimeout(<replaceable>timeout sec</replaceable>)</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
       <table>
-        <title>Arguments for TuxedoAdapter::setTxTransactionsTimeout()</title>
+        <title>Arguments for TuxedoAdapter::setTxTransactionTimeout()</title>
         <tgroup cols="3" align="left" colsep="1" rowsep="1">
           <thead>
             <row>
@@ -4774,7 +4774,7 @@ At least <code>TUXDIR</code> and <code>TUXCONFIG</code> settings need to be spec
                 <para>timeout</para>
               </entry>
               <entry>
-                <para>Integer</para>
+                <para>Integer or Date/Time</para>
               </entry>
               <entry>
                 <para>Timeout in seconds.</para>
@@ -4784,7 +4784,7 @@ At least <code>TUXDIR</code> and <code>TUXCONFIG</code> settings need to be spec
         </tgroup>
       </table>
       <table>
-        <title>Return Values for TuxedoAdapter:::setTxTransactionsTimeout()</title>
+        <title>Return Values for TuxedoAdapter:::setTxTransactionTimeout()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
             <row>
@@ -4811,7 +4811,7 @@ At least <code>TUXDIR</code> and <code>TUXCONFIG</code> settings need to be spec
         </tgroup>
       </table>
       <table>
-        <title>Exceptions thrown by TuxedoAdapter::setTxTransactionsTimeout()</title>
+        <title>Exceptions thrown by TuxedoAdapter::setTxTransactionTimeout()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
             <row>
@@ -5333,7 +5333,7 @@ At least <code>TUXDIR</code> and <code>TUXCONFIG</code> settings need to be spec
         </tgroup>
       </table>
       <table>
-        <title>Exceptions thrown by TuxedoAdapter::setTxTransactionsTimeout()</title>
+        <title>Exceptions thrown by TuxedoAdapter::setTxTransactionTimeout()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
             <row>
