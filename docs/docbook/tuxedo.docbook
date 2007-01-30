@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
-<chapter id="Tuxedo_Module">
-  <title>Tuxedo Module</title>
+<sect1 id="Tuxedo_Module">
+  <title>tuxedo Module</title>
 
-
-
-    <para>The Tuxedo module...</para>
+    <para>The &quot;tuxedo&quot; module provides a Qore-language client API to BEA Tuxedo services.</para>
 
   <sect2 id="TuxedoAdapter_Class">
     <title>TuxedoAdapter Class</title>
@@ -5526,5 +5524,5 @@ At least <code>TUXDIR</code> and <code>TUXCONFIG</code> settings need to be spec
     </sect3>
 
   </sect2>
-</chapter>
+</sect1>
 

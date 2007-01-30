@@ -11151,6 +11151,10 @@
               <entry><para><code>default_path</code></para></entry>
               <entry><para></para>The default path to use for new connections if a path is not otherwise specified in the connection URL</entry>
             </row>
+            <row>
+              <entry><para><code>timeout</code></para></entry>
+              <entry><para></para>The timeout value in milliseconds (also can be a relative date-time value for clarity, ex: <code>5m</code>)</entry>
+            </row>
           </tbody>
         </tgroup>
       </table>

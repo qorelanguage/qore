@@ -9262,10 +9262,12 @@ BOOL values, so boolean() could be called as well with the same effect</para>
 
     <para>When compiled against MySQL 5, the following additional capabilities are available: <code>DBI_CAP_STORED_PROCEDURES</code>.</para>
 
-    <para>The driver uses MySQL's prepared statement interface when it is available (with MySQL 4 or better).</para>
+    <para>The driver uses MySQL's prepared statement interface when it is available (with MySQL 4 or better). Like all Qore components, the MySQL DBI driver is thread-safe.</para>
 
-    <para>Like all Qore components, the MySQL DBI driver is thread-safe.</para>
+    <para>Note that is is not necessary to give buffer types when binding placeholder values; the mysql driver will determine the needed type in advance and create the placeholder buffer automatically.  Qore placeholder buffer specifications are ignored when the mysql driver is used.</para>
 
   </sect1>
+
+  &tuxedo;
 
 </chapter>

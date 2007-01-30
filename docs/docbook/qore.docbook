@@ -25,7 +25,6 @@
 &function_lib;
 &class_lib;
 &modules;
-&tuxedo;
 &command_line;
 &parse_directives;
 &warnings;
