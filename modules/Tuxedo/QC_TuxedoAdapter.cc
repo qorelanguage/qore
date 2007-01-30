@@ -878,9 +878,18 @@ static QoreNode* closeResourceManager(Object* self, QoreTuxedoAdapter* adapter, 
 //-----------------------------------------------------------------------------
 static QoreNode* beginTransaction(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
 {
+  char* err = (char*)"One parameter: integer or date/time timeout in milliseconds expected.";
   QoreNode* n = test_param(params, NT_INT, 0);
-  if (!n) return xsink->raiseException("TUXEDO-ADAPTER-BEGIN-TRANSACTION", "One parameter: timeout integer, exception.");
-  long timeout = (long)n->val.intval;
+  long timeout;
+  if (!n) {
+    n = test_param(params, NT_DATE, 0);
+    if (!n) {
+      return xsink->raiseException("TUXEDO-ADAPTER-BEGIN-TRANSACTION", err);
+    }
+    timeout = (long)n->val.date_time->getRelativeMilliseconds();
+  } else {
+    timeout = (long)n->val.intval;
+  }
 
   adapter->switchToSavedContext();
   int res = tpbegin(timeout, 0);
