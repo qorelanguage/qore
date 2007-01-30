@@ -332,7 +332,6 @@ class QoreNode *TIBAE_sendSubject(class Object *self, class QoreApp *myQoreApp, 
 // usage: Tibco::sendSubjectWithSyncReply(subject, function_name, message[, timeout])
 class QoreNode *TIBAE_sendSubjectWithSyncReply(class Object *self, class QoreApp *myQoreApp, class QoreNode *params, class ExceptionSink *xsink)
 {
-   int timeout = 0;
    class QoreNode *p0, *p1, *p2, *p3;
    char *fname;
 
@@ -348,8 +347,7 @@ class QoreNode *TIBAE_sendSubjectWithSyncReply(class Object *self, class QoreApp
    fname = p1->val.String->getBuffer();
 
    // set timeout paramter if present
-   if ((p3 = get_param(params, 3)))
-      timeout = p3->getAsInt();
+   int timeout = getMsZeroInt(get_param(params, 3));
 
    // try to send message
    try
@@ -370,7 +368,6 @@ class QoreNode *TIBAE_sendSubjectWithSyncReply(class Object *self, class QoreApp
 // Tibco::receive(subject, [timeout])
 class QoreNode *TIBAE_receive(class Object *self, class QoreApp *myQoreApp, class QoreNode *params, class ExceptionSink *xsink)
 {
-   unsigned long timeout = 0;
    QoreNode *p0, *p1;
 
    if (!(p0 = test_param(params, NT_STRING, 0)))
@@ -380,8 +377,7 @@ class QoreNode *TIBAE_receive(class Object *self, class QoreApp *myQoreApp, clas
    }
 
    char *subject = p0->val.String->getBuffer();
-   if ((p1 = get_param(params, 1)))
-      timeout = p1->getAsInt();
+   unsigned long timeout = getMsZeroBigInt(get_param(params, 1));
 
    return myQoreApp->receive(subject, timeout, xsink);
 }
