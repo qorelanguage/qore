@@ -48,7 +48,7 @@ NOTE that --enable-builtin-modules will only work with libtool 1.5.22 or better,
 --with-mysql-includes=<dir>    : directory for MySQL includes ("mysql" module)
 --with-mysql-libs=<dir>        : directory for MySQL libraries ("mysql" module)
 
-recommended configure arguments: configure --disable-static --disable-debug --prefix=/usr   ( add --enable-64bit on x86_64 platforms for 64-bit builds)
+recommended configure arguments: configure --disable-static --disable-debug --prefix=/usr   ( add --enable-64bit on 64-bit platforms for 64-bit builds)
 
 
 ========= to build optional modules ==========
@@ -101,7 +101,7 @@ Older builds worked fine with 10.3.8, currently the new version with shared libr
 NOTE that pthread_create() on Darwin 8.7.1 (OS X 10.4.7) returns 0 (no error) on i386 at least, even when it appears that thread resources are exhausted and the new thread is never started.  This happens after 2560 threads are started, so normally this will not be an issue for most programs.  To make sure that this doesn't happen, when qore is compiled on Darwin MAX_QORE_THREADS is automatically set to 2560 (otherwise the default is normally 4096)
 
 *) Solaris:
-The g++ static and shared builds work fine (tested with g++ 4.0.1, 4.1.1, CC).  Note that the sunpro (CC) compiler is required to link with the TIBCO AE SDK.  hash_map is detected and supported with CC 5.5 and stlport4 as well, however it is disabled if the "tibae" module is compiled in, because stlport4 clashes with the iostream library already linked in to the TIBCO AE SDK.
+The g++ static and shared builds work fine (tested with g++ 4.0.1, 4.1.1, CC).  Note that the sunpro (CC) compiler is required to link with the TIBCO AE SDK.  stlport is no longer supported, so hash_map support is not available on Solaris.  map is used instead.
 Note that on Solaris x86 when making a 64-bit build I had to use libtool 1.5.22, libtool 1.5.11 did not recognize that -xarch=generic64 should be passed to the linker and the linker for some reason did not recognize that it should produce a 64-bit output file
 
 *) FreeBSD

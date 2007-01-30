@@ -8,9 +8,9 @@ see docs/roadmap.html
 * add signal constants/infrastructure
 * add context functions
 * implement a forward-compatible/extensible interface for DBI driver registration
-* implement IntOperator for more efficient evaluation of operators returning integer values
 
 done:
 * add file functions (is_file() is_dir() is_symlink(), etc)
 * do not allow global variable initialization at the top level if NO_TOP_LEVEL is set
 * allow user to specify sort callback function for sort()
+* implement BigIntOperator for more efficient evaluation of operators returning integer values

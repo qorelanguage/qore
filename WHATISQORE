@@ -26,16 +26,21 @@ By defining methodGate() and memberGate() methods, the programmer can redirect a
 
 Qore has built-in national character set support based on the C library's iconv functions and supports both implicit and explicit character set conversions.  For example, if a Datasource object is assigned the "UTF-8" character set, but a File object has "ISO-8859-1" character set, any data written to the database from the File object will be automatically converted implicitly to the "UTF-8" character set without any intervention necessary by the programmer.
 
-Qore has good Oracle integration, making it easy to write scripts/programs to manipulate data in Oracle databases.
+Qore has good Oracle and MySQL integration, making it easy to write scripts/programs to manipulate data in Oracle databases.
 
 Qore has libxml2 integration, allowing simple, automatic, and transparent serialization/deserialization to/from XML data to/from Qore data structures.
+
+Qore has JSON and JSON-RPC integration, supporting transparent serialization/deserialization to/from JSON data to/from Qore data structures.
+
+Qore has Socket, HTTPClient, XmlRpcClient, JsonRpcClient, and FtpClient modules (all supporting optional TLS/SSL encryption) for easy communication with various protocols.
 
 Qore uses the PCRE library to provide Perl-compatible regular expression support.
 
 Qore has TIBCO Adapters ("tibae" module) and direct Rendezvous ("tibrv" module) integration, making it very easy to write scripts/programs making use of TIBCO messaging.  Serializing/deserializing to/from TIBCO messages and to/from Qore data structures is simple, automatic, and transparent to the programmer.
 
+Qore has a "tuxedo" module, providing a qore-language Tuxedo client API.
+
 On the future roadmap:
-* improve mysql driver to support stored procedures
 * add optional strong typing to the language + strongly typed data structures
 * add PostgresSQL and Sybase drivers to the DBI layer
 * add integration with other messaging technologies
