@@ -878,15 +878,14 @@ static QoreNode* closeResourceManager(Object* self, QoreTuxedoAdapter* adapter, 
 //-----------------------------------------------------------------------------
 static QoreNode* beginTransaction(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
 {
-  char* err = (char*)"One parameter: integer or date/time timeout in milliseconds expected.";
+  char* err = (char*)"One optional parameter: integer or date/time timeout in seconds expected.";
   QoreNode* n = test_param(params, NT_INT, 0);
-  long timeout;
+  long timeout = 0; // no timeout by default
   if (!n) {
     n = test_param(params, NT_DATE, 0);
-    if (!n) {
-      return xsink->raiseException("TUXEDO-ADAPTER-BEGIN-TRANSACTION", err);
+    if (n) {
+      timeout = (long)n->val.date_time->getRelativeSeconds();
     }
-    timeout = (long)n->val.date_time->getRelativeMilliseconds();
   } else {
     timeout = (long)n->val.intval;
   }
@@ -1202,8 +1201,17 @@ static QoreNode* setTxTransactionsTimeout(Object* self, QoreTuxedoAdapter* adapt
 {
   char* err_name = (char*)"TUXEDO-ADAPTER-SET-TX-TRANSACTION-TIMEOUT";
   QoreNode* n = test_param(params, NT_INT, 0);
-  if (!n) return xsink->raiseException(err_name, "Integer timeout in seconds expected.");
-  long timeout = (long)n->val.intval;
+  long timeout;
+  if (!n) {
+    n = test_param(params, NT_DATE, 0);
+    if (n) {
+      timeout = (long)n->val.date_time->getRelativeSeconds();
+    } else {
+      return xsink->raiseException(err_name, "Integer or date/time timeout in seconds expected.");
+    }
+  } else {
+    timeout = (long)n->val.intval;
+  }
 
   adapter->switchToSavedContext();
   int res = tx_set_transaction_timeout(timeout);
@@ -1298,7 +1306,7 @@ class QoreClass* initTuxedoAdapterClass()
   adapter->addMethod("finishTxCommitAfterTwoPhaseCompletes", (q_method_t)finishTxCommitAfterTwoPhaseCompletes);
   adapter->addMethod("setChainedTxTransactions", (q_method_t)setChainedTxTransactions);
   adapter->addMethod("setUnchainedTxTransactions", (q_method_t)setUnchainedTxTransactions);
-  adapter->addMethod("setTxTransactionsTimeout", (q_method_t)setTxTransactionsTimeout);
+  adapter->addMethod("setTxTransactionTimeout", (q_method_t)setTxTransactionsTimeout);
 
   traceout("initTuxedoAdapterClass");
   return adapter;
