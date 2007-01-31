@@ -30,6 +30,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+ManagedDatasource::~ManagedDatasource()
+{
+   trlist.remove(this);
+}
+
 int ManagedDatasource::grabLockIntern(class ExceptionSink *xsink)
 {	 
    if (tGate.enter(tl_timeout))

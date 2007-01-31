@@ -1,3 +1,8 @@
+2007.01.31: David Nichols
+	* fixed a bug in ManagedDatasource thread resource tracking
+
+*** v0.6.0 *** RELEASE
+
 2007.01.30: David Nichols
 	* fixed character encoding handling with content-type headers in
 	  lib/QoreHTTPClient.cc
