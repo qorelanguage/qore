@@ -66,10 +66,12 @@ private:
    DLLLOCAL void releaseLock();
    
 protected:
-   virtual ~ManagedDatasource();
+   DLLLOCAL virtual ~ManagedDatasource();
    
 public:
    DLLLOCAL ManagedDatasource(DBIDriver *);
+   DLLLOCAL virtual void deref(class ExceptionSink *xsink);
+   DLLLOCAL virtual void deref();
    DLLLOCAL class QoreNode *select(class QoreString *query_str, class List *args, ExceptionSink *xsink);
    DLLLOCAL class QoreNode *selectRows(class QoreString *query_str, class List *args, ExceptionSink *xsink);
    DLLLOCAL class QoreNode *exec(class QoreString *query_str, class List *args, ExceptionSink *xsink);
