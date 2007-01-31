@@ -66,7 +66,7 @@ private:
    DLLLOCAL void releaseLock();
    
 protected:
-   virtual ~ManagedDatasource() {}
+   virtual ~ManagedDatasource();
    
 public:
    DLLLOCAL ManagedDatasource(DBIDriver *);

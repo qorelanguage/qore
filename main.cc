@@ -97,6 +97,7 @@ int main(int argc, char *argv[])
       // wait for any other threads to terminate
       qpgm->waitForTermination();
    }
+
   exit:
    // destroy the program object (cannot call destructor explicitly)
    qpgm->deref(&xsink);
