@@ -32,7 +32,28 @@
 
 ManagedDatasource::~ManagedDatasource()
 {
-   close();
+}
+
+void ManagedDatasource::deref(class ExceptionSink *xsink)
+{
+   if (ROdereference())
+   {
+      if (in_transaction)
+      {
+	 xsink->raiseException("DATASOURCE-LOCK-EXCEPTION", "TID %d terminated while in a transaction; transaction will be automatically rolled back and the lock released", gettid());
+	 rollback(xsink);
+      }
+      delete this;
+   }
+}
+
+void ManagedDatasource::deref()
+{
+   if (ROdereference())
+   {
+      close();
+      delete this;
+   }
 }
 
 int ManagedDatasource::grabLockIntern(class ExceptionSink *xsink)
@@ -192,11 +213,18 @@ void ManagedDatasource::beginTransaction(class ExceptionSink *xsink)
    //printd(0, "ManagedDatasource::beginTransaction() autocommit=%s\n", autocommit ? "true" : "false");
    if (!startDBAction(xsink))
    {
-      if (grabLock(xsink) && !Datasource::beginTransaction(xsink))
-	 in_transaction = false;
+      if (!grabLock(xsink))
+      {
+	 if (Datasource::beginTransaction(xsink))
+	 {
+	    releaseLock();
+	    in_transaction = false;
+	 }
+      }
       
       endDBAction();
    }
+   //printd(0, "ManagedDatasource::beginTransaction() this=%08p in_transaction=%d\n", this, in_transaction);
 }
 
 int ManagedDatasource::commit(ExceptionSink *xsink)
