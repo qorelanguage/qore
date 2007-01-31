@@ -32,7 +32,7 @@
 
 ManagedDatasource::~ManagedDatasource()
 {
-   trlist.remove(this);
+   close();
 }
 
 int ManagedDatasource::grabLockIntern(class ExceptionSink *xsink)
@@ -58,14 +58,14 @@ int ManagedDatasource::grabLock(class ExceptionSink *xsink)
    if (grabLockIntern(xsink))
       return -1;
    if (!in_transaction)
-      trlist.set(this, datasource_thread_lock_cleanup);
+      trlist.set((Datasource *)this, datasource_thread_lock_cleanup);
    return 0;
 }
 
 void ManagedDatasource::releaseLock()
 {
    tGate.exit();
-   trlist.remove(this, gettid());
+   trlist.remove((Datasource *)this, gettid());
 }
 
 ManagedDatasource *ManagedDatasource::copy()
@@ -192,7 +192,7 @@ void ManagedDatasource::beginTransaction(class ExceptionSink *xsink)
    //printd(0, "ManagedDatasource::beginTransaction() autocommit=%s\n", autocommit ? "true" : "false");
    if (!startDBAction(xsink))
    {
-      if (!Datasource::beginTransaction(xsink) && grabLock(xsink))
+      if (grabLock(xsink) && !Datasource::beginTransaction(xsink))
 	 in_transaction = false;
       
       endDBAction();
@@ -267,7 +267,7 @@ int ManagedDatasource::closeUnlocked()
       if ((tid = tGate.getLockTID()) != -1)
       {
 	 // remove the thread resource 
-	 trlist.remove(this);
+	 trlist.remove((Datasource *)this);
 	 // force-exit the transaction lock if it's held
 	 tGate.forceExit();
       }
