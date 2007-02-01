@@ -336,7 +336,7 @@ static class Hash *ora_fetch(OCIStmt *stmthp, class Datasource *ds, class Except
    // retrieve results from statement and return hash
    
    // setup column structure for output columns
-   class OraColumns *columns = new OraColumns(stmthp, ds, "ora_fetch()", xsink);
+   OraColumns columns(stmthp, ds, "ora_fetch()", xsink);
 
    if (!xsink->isEvent())
    {
@@ -344,7 +344,7 @@ static class Hash *ora_fetch(OCIStmt *stmthp, class Datasource *ds, class Except
       h = new Hash();
       
       // create hash elements for each column, assign empty list
-      class OraColumn *w = columns->getHead();
+      class OraColumn *w = columns.getHead();
       while (w)
       {
 	 printd(5, "ora_fetch() allocating list for '%s' column\n", w->name);
@@ -355,7 +355,7 @@ static class Hash *ora_fetch(OCIStmt *stmthp, class Datasource *ds, class Except
       int num_rows = 0;
       
       // setup temporary row to accept values
-      columns->define(stmthp, ds, "ora_fetch()", xsink);
+      columns.define(stmthp, ds, "ora_fetch()", xsink);
       
       // now finally fetch the data
       while (!xsink->isEvent())
@@ -376,7 +376,7 @@ static class Hash *ora_fetch(OCIStmt *stmthp, class Datasource *ds, class Except
 	 }
 
 	 // copy data or perform per-value processing if needed
-	 class OraColumn *w = columns->getHead();
+	 class OraColumn *w = columns.getHead();
 	 int i = 0;
 	 while (w)
 	 {
@@ -398,12 +398,8 @@ static class Hash *ora_fetch(OCIStmt *stmthp, class Datasource *ds, class Except
 	 }
 	 num_rows++;
       }
-      printd(2, "ora_fetch(): %d column(s), %d row(s) retrieved as output\n", columns->size(), num_rows);
+      printd(2, "ora_fetch(): %d column(s), %d row(s) retrieved as output\n", columns.size(), num_rows);
    }
-   // free column structure
-   if (columns)
-      delete columns;
-
    return h;
 }
 
@@ -414,7 +410,7 @@ static class List *ora_fetch_horizontal(OCIStmt *stmthp, class Datasource *ds, c
    // retrieve results from statement and return hash
    
    // setup column structure for output columns
-   class OraColumns *columns = new OraColumns(stmthp, ds, "ora_fetch_horizontal()", xsink);
+   OraColumns columns(stmthp, ds, "ora_fetch_horizontal()", xsink);
 
    if (!xsink->isEvent())
    {
@@ -422,7 +418,7 @@ static class List *ora_fetch_horizontal(OCIStmt *stmthp, class Datasource *ds, c
       l = new List();
 
       // setup temporary row to accept values
-      columns->define(stmthp, ds, "ora_fetch_horizontal()", xsink);
+      columns.define(stmthp, ds, "ora_fetch_horizontal()", xsink);
 
       class OracleData *d_ora = (OracleData *)ds->getPrivateData();
 
@@ -442,13 +438,13 @@ static class List *ora_fetch_horizontal(OCIStmt *stmthp, class Datasource *ds, c
 		  break;
 	    }
 	 }
-	 //printd(5, "ora_fetch_horizontal(): l=%08p, %d column(s), got row %d\n", l, columns->size(), l->size());
+	 //printd(5, "ora_fetch_horizontal(): l=%08p, %d column(s), got row %d\n", l, columns.size(), l->size());
 
 	 // set up hash for row
 	 class Hash *h = new Hash();
 
 	 // copy data or perform per-value processing if needed
-	 class OraColumn *w = columns->getHead();
+	 class OraColumn *w = columns.getHead();
 	 while (w)
 	 {
 	    // assign value to hash
@@ -460,12 +456,8 @@ static class List *ora_fetch_horizontal(OCIStmt *stmthp, class Datasource *ds, c
 	 // add row to list
 	 l->push(new QoreNode(h));
       }
-      printd(2, "ora_fetch_horizontal(): %d column(s), %d row(s) retrieved as output\n", columns->size(), l->size());
+      printd(2, "ora_fetch_horizontal(): %d column(s), %d row(s) retrieved as output\n", columns.size(), l->size());
    }
-   // free column structure
-   if (columns)
-      delete columns;
-
    return l;
 }
 
