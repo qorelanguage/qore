@@ -8487,7 +8487,7 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Creates a copy of the current process with a new PID.  Only the current thread will be running in the child.</para>
+	<para>Creates a copy of the current process with a new PID.  This function will throw an exception if more than one thread is running.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -8521,7 +8521,23 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
 </tgroup>
 </table>
 
-  <para>This function does not throw any exceptions.</para>
+      <table>
+	<title>Exceptions Thrown by fork()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>ILLEGAL-FORK</code></para></entry>
+	      <entry><para>Cannot fork if more than one thread is running.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
 
 </sect2>
 
