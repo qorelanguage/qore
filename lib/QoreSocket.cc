@@ -28,6 +28,7 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <strings.h>
+#include <errno.h>
 
 #ifdef HAVE_SYS_SELECT_H
 #include <sys/select.h>
@@ -1168,39 +1169,25 @@ int QoreSocket::sendHTTPResponse(int code, const char *desc, const char *http_ve
    return 0;
 }
 
-// FIXME: implement a maximum header size - otherwise a malicious message could fill up all memory
-// rc is:
-//    0 for remote end shutdown
-//   -1 for socket error
-//   -2 for socket not open
-//   -3 for timeout
-class QoreNode *QoreSocket::readHTTPHeader(int timeout, int *rc)
+// state:
+//   0 = '\r' received
+//   1 = '\r\n' received
+//   2 = '\r\n\r' received
+//   3 = '\n' received
+class QoreString *QoreSocket::readHTTPData(int timeout, int *rc, int state)
 {
-   if (!sock)
-   {
-      *rc = -2;
-      return NULL;
-   }
-
    // read in HHTP header until \r\n\r\n or \n\n from socket
-
-   // state:
-   //   0 = '\r' received
-   //   1 = '\r\n' received
-   //   2 = '\r\n\r' received
-   //   3 = '\n' received
-   int state = -1;
-
+      
    QoreString *hdr = new QoreString(charsetid);
    while (true)
    {
       char c;
       *rc = recv(&c, 1, 0, timeout); // = read(sock, &c, 1);
-      //printd(0, "read char: %c (%03d) (old state: %d)\n", c > 30 ? c : '?', c, state);
+				     //printd(0, "read char: %c (%03d) (old state: %d)\n", c > 30 ? c : '?', c, state);
       if ((*rc) <= 0)
       {
 	 //printd(0, "QoreSocket::readHTTPHeader(timeout=%d) hdr->strlen()=%d, rc=%d, errno=%d (%s)\n", timeout, hdr->strlen(), *rc, errno, strerror(errno));
-
+	 
 	 delete hdr;
 	 return NULL;
       }
@@ -1241,7 +1228,59 @@ class QoreNode *QoreSocket::readHTTPHeader(int timeout, int *rc)
 	 hdr->concat(c);
       }
    }
-   hdr->concat("\n\0");
+   hdr->concat('\n');
+   
+   return hdr;
+}
+
+// static method
+void QoreSocket::convertHeaderToHash(class Hash *h, char *p)
+{
+   while (*p)
+   {
+      char *buf = p;
+      
+      if ((p = strstr(buf, "\r\n")))
+      {
+	 *p = '\0';
+	 p += 2;
+      }
+      else if ((p = strchr(buf, '\n')))
+      {
+	 *p = '\0';
+	 p++;
+      }
+      else
+	 break;
+      char *t = strchr(buf, ':');
+      if (!t)
+	 break;
+      *t = '\0';
+      t++;
+      while (t && isblank(*t))
+	 t++;
+      strtolower(buf);
+      h->setKeyValue(buf, new QoreNode(t), NULL);
+   }
+}
+
+// FIXME: implement a maximum header size - otherwise a malicious message could fill up all memory
+// rc is:
+//    0 for remote end shutdown
+//   -1 for socket error
+//   -2 for socket not open
+//   -3 for timeout
+class QoreNode *QoreSocket::readHTTPHeader(int timeout, int *rc)
+{
+   if (!sock)
+   {
+      *rc = -2;
+      return NULL;
+   }
+
+   class QoreString *hdr = readHTTPData(timeout, rc);
+   if (!hdr)
+      return NULL;
 
    char *buf = hdr->getBuffer();
    //printd(0, "HTTP header=%s", buf);
@@ -1306,34 +1345,147 @@ class QoreNode *QoreSocket::readHTTPHeader(int timeout, int *rc)
 	 }
       }
    }
-   while (*p)
-   {
-      buf = p;
-      
-      if ((p = strstr(buf, "\r\n")))
-      {
-	 *p = '\0';
-	 p += 2;
-      }
-      else if ((p = strchr(buf, '\n')))
-      {
-	 *p = '\0';
-	 p++;
-      }
-      else
-	 break;
-      t1 = strchr(buf, ':');
-      if (!t1)
-	 break;
-      *t1 = '\0';
-      t1++;
-      while (t1 && isblank(*t1))
-	 t1++;
-      strtolower(buf);
-      h->setKeyValue(buf, new QoreNode(t1), NULL);
-   }
+   
+   convertHeaderToHash(h, p);
    delete hdr;
    return new QoreNode(h);
+}
+
+void QoreSocket::doException(int rc, char *meth, class ExceptionSink *xsink)
+{
+   if (!rc)
+      xsink->raiseException("SOCKET-CLOSED", "remote end has closed the connection");
+   else if (rc == -1)   // recv() error
+      xsink->raiseException("SOCKET-RECV-ERROR", strerror(errno));
+   else if (rc == -2)   
+      xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened before Socket::%s() call", meth);   
+   // rc == -3: TIMEOUT returns NOTHING
+}
+
+// receive a binary message in HTTP chunked format
+class Hash *QoreSocket::readHTTPChunkedBodyBinary(int timeout, class ExceptionSink *xsink)
+{
+   return NULL;
+}
+
+// receive a message in HTTP chunked format
+class Hash *QoreSocket::readHTTPChunkedBody(int timeout, class ExceptionSink *xsink)
+{
+   class QoreString *buf = new QoreString(charsetid);
+   class QoreString str; // for reading the size of each chunk
+   
+   int rc;
+   // read the size then read the data and append to buf
+   while (true)
+   {
+      // state = 0, nothing
+      // state = 1, \r received
+      int state = 0;
+      while (true)
+      {
+	 char c;
+	 rc = recv(&c, 1, 0, timeout);
+	 if (rc <= 0)
+	 {
+	    delete buf;
+	    doException(rc, "readHTTPChunkedBody", xsink);
+	    return NULL;
+	 }
+      
+	 if (!state && c == '\r')
+	    state = 1;
+	 else if (state && c == '\n')
+	    break;
+	 else
+	 {
+	    if (state)
+	    {
+	       state = 0;
+	       str.concat('\r');
+	    }
+	    str.concat(c);
+	 }
+      }
+      // DEBUG
+      //printd(0, "got chunk size (%d bytes) string: %s\n", str.strlen(), str.getBuffer());
+
+      // terminate string at ';' char if present
+      char *p = strchr(str.getBuffer(), ';');
+      if (p)
+	 *p = '\0';
+      long size = strtol(str.getBuffer(), NULL, 16);
+      if (size == 0)
+	 break;
+      if (size < 0)
+      {
+	 delete buf;
+	 xsink->raiseException("READ-HTTP-CHUNK-ERROR", "negative value given for chunk size (%d)", size);
+	 return NULL;
+      }
+      // ensure string is blanked for next read
+      str.terminate(0);
+      
+      // prepare string for chunk
+      buf->ensureBufferSize((unsigned)(buf->strlen() + size + 1));
+      
+      // read chunk directly into string buffer    
+      int bs = size < DEFAULT_SOCKET_BUFSIZE ? size : DEFAULT_SOCKET_BUFSIZE;
+      int br = 0; // bytes received
+      while (true)
+      {
+	 rc = recv(buf->getBuffer() + buf->strlen() + br, bs, 0, timeout);
+	 if (rc <= 0)
+	 {
+	    delete buf;
+	    doException(rc, "readHTTPChunkedBody", xsink);
+	    return NULL;
+	 }
+	 br += rc;
+	 
+	 if (br >= size)
+	    break;
+	 if (size - br < bs)
+	    bs = size - br;
+      }
+      // ensure new data read is included in string size
+      buf->allocate(buf->strlen() + size);
+      // DEBUG
+      //printd(0, "got chunk (%d bytes): %s\n", br, buf->getBuffer() + buf->strlen() -  size);
+
+      // read crlf after chunk
+      char crlf[2];
+      br = 0;
+      while (br < 2)
+      {
+	 rc = recv(crlf, 2 - br, 0, timeout);
+	 if (rc <= 0)
+	 {
+	    delete buf;
+	    doException(rc, "readHTTPChunkedBody", xsink);
+	    return NULL;
+	 }
+	 br += rc;
+      }      
+   }
+   // read footers or nothing
+   class QoreString *hdr = readHTTPData(timeout, &rc, 1);
+   if (!hdr)
+   {
+      delete buf;
+      doException(rc, "readHTTPChunkedBody", xsink);
+      return NULL;
+   }
+   class Hash *h = new Hash();
+   h->setKeyValue("body", new QoreNode(buf), xsink);
+   
+   if (hdr->strlen() >= 2 && hdr->strlen() <= 4)
+   {
+      delete hdr;
+      return h;
+   }
+   convertHeaderToHash(h, hdr->getBuffer());
+   delete hdr;
+   return h;
 }
 
 bool QoreSocket::isDataAvailable(int timeout) const

@@ -541,10 +541,24 @@ class QoreNode *QoreHTTPClient::send_internal(char *meth, const char *path, clas
       }
    }
 
+   class QoreNode *te = ah->getKeyValue("transfer-encoding");
+   
    // get response body, if any
    v = ah->getKeyValue("content-length");
    int len = v ? v->getAsInt() : 0;
-   if (len || getbody)
+   
+   if (te && !strcmp(te->val.String->getBuffer(), "chunked")) // check for chunked response body
+   {
+      class Hash *nah = m_socket.readHTTPChunkedBody(timeout, xsink);
+      if (!nah)
+      {
+	 ans->deref(xsink);
+	 return NULL;
+      }
+      
+      ah->assimilate(nah, xsink);
+   }
+   else if (len || getbody)
    {
       int rc;
       class QoreString *body = m_socket.recv(len, timeout, &rc);

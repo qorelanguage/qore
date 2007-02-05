@@ -106,6 +106,10 @@ class mySocket : public AbstractPrivateData, public LockedObject
       DLLLOCAL int sendHTTPResponse(int code, char *desc, char *http_version, class Hash *headers, void *ptr, int size);
       // read and parse HTTP header
       DLLLOCAL class QoreNode *readHTTPHeader(int timeout, int *rc);
+      // receive a binary message in HTTP chunked format
+      DLLLOCAL class Hash *readHTTPChunkedBodyBinary(int timeout, class ExceptionSink *xsink);
+      // receive a string message in HTTP chunked format
+      DLLLOCAL class Hash *readHTTPChunkedBody(int timeout, class ExceptionSink *xsink);
       DLLLOCAL int setSendTimeout(int ms);
       DLLLOCAL int setRecvTimeout(int ms);
       DLLLOCAL int getSendTimeout();

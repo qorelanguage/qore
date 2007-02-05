@@ -6,6 +6,9 @@
 	  path if the path is otherwise empty
 	* updated HTTPClient to set the port number in the Host: field if it's
 	  not port 80
+	* added QoreSocket::readHTTPChunkedData() and added support for reading 
+	  chunked data to HTTPClient class if the transfer-encoding header is
+	  set to chunked
 
 2007.01.31: David Nichols
 	* fixed a bug in ManagedDatasource thread resource tracking

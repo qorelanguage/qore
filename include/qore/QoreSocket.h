@@ -134,7 +134,10 @@ class QoreSocket
       DLLLOCAL int recv(char *buf, int bs, int flags, int timeout);
       DLLLOCAL int upgradeClientToSSLIntern(X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink);
       DLLLOCAL int upgradeServerToSSLIntern(X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink);
-	   
+      // read until \r\n and return the string
+      DLLLOCAL class QoreString *readHTTPData(int timeout, int *rc, int state = -1);
+      DLLLOCAL static void convertHeaderToHash(class Hash *h, char *p);
+      
    public:
       DLLEXPORT QoreSocket();
       DLLEXPORT ~QoreSocket();
@@ -196,6 +199,10 @@ class QoreSocket
       DLLEXPORT int sendHTTPResponse(int code, const char *desc, const char *http_version, class Hash *headers, void *data, int size);
       // read and parse HTTP header
       DLLEXPORT class QoreNode *readHTTPHeader(int timeout, int *prc);
+      // receive a binary message in HTTP chunked format
+      DLLEXPORT class Hash *readHTTPChunkedBodyBinary(int timeout, class ExceptionSink *xsink);
+      // receive a string message in HTTP chunked format
+      DLLEXPORT class Hash *readHTTPChunkedBody(int timeout, class ExceptionSink *xsink);
       // set send timeout in milliseconds
       DLLEXPORT int setSendTimeout(int ms);
       // set recv timeout in milliseconds
@@ -218,6 +225,8 @@ class QoreSocket
       DLLEXPORT long verifyPeerCertificate() const;
       DLLEXPORT int upgradeClientToSSL(X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink);
       DLLEXPORT int upgradeServerToSSL(X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink);
+
+      DLLEXPORT static void doException(int rc, char *meth, class ExceptionSink *xsink);
 };
 
 #endif // _QORE_QORESOCKET_H

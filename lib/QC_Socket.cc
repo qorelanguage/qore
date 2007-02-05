@@ -29,21 +29,11 @@
 
 int CID_SOCKET;
 
-static inline void doException(int rc, char *method_name, class ExceptionSink *xsink)
-{
-   if (!rc)             // remote end has closed the connection
-      xsink->raiseException("SOCKET-CLOSED", "remote end has closed the connection");
-   else if (rc == -1)   // recv() error
-      xsink->raiseException("SOCKET-RECV-ERROR", strerror(errno));
-   else if (rc == -2)   // TIMEOUT returns NOTHING
-      xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened before Socket::%s() call", method_name);
-}
-
 static inline class QoreNode *doReadResult(int rc, int64 val, char *method_name, class ExceptionSink *xsink)
 {
    class QoreNode *rv = NULL;
    if (rc <= 0)
-      doException(rc, method_name, xsink);
+      QoreSocket::doException(rc, method_name, xsink);
    else
       rv = new QoreNode(val);
    return rv;
@@ -395,7 +385,7 @@ static QoreNode *SOCKET_recv(class Object *self, class mySocket *s, class QoreNo
    if (rc > 0)
       return new QoreNode(msg);
 
-   doException(rc, "recv", xsink);
+   QoreSocket::doException(rc, "recv", xsink);
    return NULL;
 }
 
@@ -490,7 +480,7 @@ static QoreNode *SOCKET_recvBinary(class Object *self, class mySocket *s, class 
    if (rc > 0)
       return new QoreNode(b);
 
-   doException(rc, "recvBinary", xsink);
+   QoreSocket::doException(rc, "recvBinary", xsink);
    return NULL;
 }
 
@@ -636,9 +626,27 @@ static QoreNode *SOCKET_readHTTPHeader(class Object *self, class mySocket *s, cl
    class QoreNode *rv = s->readHTTPHeader(timeout, &rc);
       
    if (rc <= 0)
-      doException(rc, "readHTTPHeader", xsink);
+      QoreSocket::doException(rc, "readHTTPHeader", xsink);
 
    return rv;
+}
+
+static QoreNode *SOCKET_readHTTPChunkedBody(class Object *self, class mySocket *s, class QoreNode *params, ExceptionSink *xsink)
+{
+   int timeout = getMsMinusOneInt(get_param(params, 0));
+
+   // when rc = -3 it's a timeout, but rv will be NULL anyway, so we do nothing
+   class Hash *h = s->readHTTPChunkedBody(timeout, xsink);
+   return h ? new QoreNode(h) : NULL;
+}
+
+static QoreNode *SOCKET_readHTTPChunkedBodyBinary(class Object *self, class mySocket *s, class QoreNode *params, ExceptionSink *xsink)
+{
+   int timeout = getMsMinusOneInt(get_param(params, 0));
+
+   // when rc = -3 it's a timeout, but rv will be NULL anyway, so we do nothing
+   class Hash *h = s->readHTTPChunkedBodyBinary(timeout, xsink);
+   return h ? new QoreNode(h) : NULL;
 }
 
 static QoreNode *SOCKET_close(class Object *self, class mySocket *s, class QoreNode *params, ExceptionSink *xsink)
@@ -825,52 +833,54 @@ class QoreClass *initSocketClass()
    CID_SOCKET = QC_SOCKET->getID();
    QC_SOCKET->setConstructor(SOCKET_constructor);
    QC_SOCKET->setCopy(SOCKET_copy);
-   QC_SOCKET->addMethod("connect",               (q_method_t)SOCKET_connect);
-   QC_SOCKET->addMethod("connectSSL",            (q_method_t)SOCKET_connectSSL);
-   QC_SOCKET->addMethod("bind",                  (q_method_t)SOCKET_bind);
-   QC_SOCKET->addMethod("accept",                (q_method_t)SOCKET_accept);
-   QC_SOCKET->addMethod("acceptSSL",             (q_method_t)SOCKET_acceptSSL);
-   QC_SOCKET->addMethod("listen",                (q_method_t)SOCKET_listen);
-   QC_SOCKET->addMethod("send",                  (q_method_t)SOCKET_send);
-   QC_SOCKET->addMethod("sendBinary",            (q_method_t)SOCKET_sendBinary);
-   QC_SOCKET->addMethod("sendi1",                (q_method_t)SOCKET_sendi1);
-   QC_SOCKET->addMethod("sendi2",                (q_method_t)SOCKET_sendi2);
-   QC_SOCKET->addMethod("sendi4",                (q_method_t)SOCKET_sendi4);
-   QC_SOCKET->addMethod("sendi8",                (q_method_t)SOCKET_sendi8);
-   QC_SOCKET->addMethod("sendi2LSB",             (q_method_t)SOCKET_sendi2LSB);
-   QC_SOCKET->addMethod("sendi4LSB",             (q_method_t)SOCKET_sendi4LSB);
-   QC_SOCKET->addMethod("sendi8LSB",             (q_method_t)SOCKET_sendi8LSB);
-   QC_SOCKET->addMethod("recv",                  (q_method_t)SOCKET_recv);
-   QC_SOCKET->addMethod("recvBinary",            (q_method_t)SOCKET_recvBinary);
-   QC_SOCKET->addMethod("recvi1",                (q_method_t)SOCKET_recvi1);
-   QC_SOCKET->addMethod("recvi2",                (q_method_t)SOCKET_recvi2);
-   QC_SOCKET->addMethod("recvi4",                (q_method_t)SOCKET_recvi4);
-   QC_SOCKET->addMethod("recvi8",                (q_method_t)SOCKET_recvi8);
-   QC_SOCKET->addMethod("recvi2LSB",             (q_method_t)SOCKET_recvi2LSB);
-   QC_SOCKET->addMethod("recvi4LSB",             (q_method_t)SOCKET_recvi4LSB);
-   QC_SOCKET->addMethod("recvi8LSB",             (q_method_t)SOCKET_recvi8LSB);
-   QC_SOCKET->addMethod("sendHTTPMessage",       (q_method_t)SOCKET_sendHTTPMessage);
-   QC_SOCKET->addMethod("sendHTTPResponse",      (q_method_t)SOCKET_sendHTTPResponse);
-   QC_SOCKET->addMethod("readHTTPHeader",        (q_method_t)SOCKET_readHTTPHeader);
-   QC_SOCKET->addMethod("getPort",               (q_method_t)SOCKET_getPort);
-   QC_SOCKET->addMethod("close",                 (q_method_t)SOCKET_close);
-   QC_SOCKET->addMethod("shutdown",              (q_method_t)SOCKET_shutdown);
-   QC_SOCKET->addMethod("shutdownSSL",           (q_method_t)SOCKET_shutdownSSL);
-   QC_SOCKET->addMethod("getSocket",             (q_method_t)SOCKET_getSocket);
-   QC_SOCKET->addMethod("setSendTimeout",        (q_method_t)SOCKET_setSendTimeout);
-   QC_SOCKET->addMethod("setRecvTimeout",        (q_method_t)SOCKET_setRecvTimeout);
-   QC_SOCKET->addMethod("getSendTimeout",        (q_method_t)SOCKET_getSendTimeout);
-   QC_SOCKET->addMethod("getRecvTimeout",        (q_method_t)SOCKET_getRecvTimeout);
-   QC_SOCKET->addMethod("getCharset",            (q_method_t)SOCKET_getCharset);
-   QC_SOCKET->addMethod("setCharset",            (q_method_t)SOCKET_setCharset);
-   QC_SOCKET->addMethod("isDataAvailable",       (q_method_t)SOCKET_isDataAvailable);
-   QC_SOCKET->addMethod("getSSLCipherName",      (q_method_t)SOCKET_getSSLCipherName);
-   QC_SOCKET->addMethod("getSSLCipherVersion",   (q_method_t)SOCKET_getSSLCipherVersion);
-   QC_SOCKET->addMethod("isSecure",              (q_method_t)SOCKET_isSecure);
-   QC_SOCKET->addMethod("verifyPeerCertificate", (q_method_t)SOCKET_verifyPeerCertificate);
-   QC_SOCKET->addMethod("setCertificate",        (q_method_t)SOCKET_setCertificate);
-   QC_SOCKET->addMethod("setPrivateKey",         (q_method_t)SOCKET_setPrivateKey);
-   QC_SOCKET->addMethod("isOpen",                (q_method_t)SOCKET_isOpen);
+   QC_SOCKET->addMethod("connect",                   (q_method_t)SOCKET_connect);
+   QC_SOCKET->addMethod("connectSSL",                (q_method_t)SOCKET_connectSSL);
+   QC_SOCKET->addMethod("bind",                      (q_method_t)SOCKET_bind);
+   QC_SOCKET->addMethod("accept",                    (q_method_t)SOCKET_accept);
+   QC_SOCKET->addMethod("acceptSSL",                 (q_method_t)SOCKET_acceptSSL);
+   QC_SOCKET->addMethod("listen",                    (q_method_t)SOCKET_listen);
+   QC_SOCKET->addMethod("send",                      (q_method_t)SOCKET_send);
+   QC_SOCKET->addMethod("sendBinary",                (q_method_t)SOCKET_sendBinary);
+   QC_SOCKET->addMethod("sendi1",                    (q_method_t)SOCKET_sendi1);
+   QC_SOCKET->addMethod("sendi2",                    (q_method_t)SOCKET_sendi2);
+   QC_SOCKET->addMethod("sendi4",                    (q_method_t)SOCKET_sendi4);
+   QC_SOCKET->addMethod("sendi8",                    (q_method_t)SOCKET_sendi8);
+   QC_SOCKET->addMethod("sendi2LSB",                 (q_method_t)SOCKET_sendi2LSB);
+   QC_SOCKET->addMethod("sendi4LSB",                 (q_method_t)SOCKET_sendi4LSB);
+   QC_SOCKET->addMethod("sendi8LSB",                 (q_method_t)SOCKET_sendi8LSB);
+   QC_SOCKET->addMethod("recv",                      (q_method_t)SOCKET_recv);
+   QC_SOCKET->addMethod("recvBinary",                (q_method_t)SOCKET_recvBinary);
+   QC_SOCKET->addMethod("recvi1",                    (q_method_t)SOCKET_recvi1);
+   QC_SOCKET->addMethod("recvi2",                    (q_method_t)SOCKET_recvi2);
+   QC_SOCKET->addMethod("recvi4",                    (q_method_t)SOCKET_recvi4);
+   QC_SOCKET->addMethod("recvi8",                    (q_method_t)SOCKET_recvi8);
+   QC_SOCKET->addMethod("recvi2LSB",                 (q_method_t)SOCKET_recvi2LSB);
+   QC_SOCKET->addMethod("recvi4LSB",                 (q_method_t)SOCKET_recvi4LSB);
+   QC_SOCKET->addMethod("recvi8LSB",                 (q_method_t)SOCKET_recvi8LSB);
+   QC_SOCKET->addMethod("sendHTTPMessage",           (q_method_t)SOCKET_sendHTTPMessage);
+   QC_SOCKET->addMethod("sendHTTPResponse",          (q_method_t)SOCKET_sendHTTPResponse);
+   QC_SOCKET->addMethod("readHTTPHeader",            (q_method_t)SOCKET_readHTTPHeader);
+   QC_SOCKET->addMethod("readHTTPChunkedBody",       (q_method_t)SOCKET_readHTTPChunkedBody);
+   QC_SOCKET->addMethod("readHTTPChunkedBodyBinary", (q_method_t)SOCKET_readHTTPChunkedBodyBinary);
+   QC_SOCKET->addMethod("getPort",                   (q_method_t)SOCKET_getPort);
+   QC_SOCKET->addMethod("close",                     (q_method_t)SOCKET_close);
+   QC_SOCKET->addMethod("shutdown",                  (q_method_t)SOCKET_shutdown);
+   QC_SOCKET->addMethod("shutdownSSL",               (q_method_t)SOCKET_shutdownSSL);
+   QC_SOCKET->addMethod("getSocket",                 (q_method_t)SOCKET_getSocket);
+   QC_SOCKET->addMethod("setSendTimeout",            (q_method_t)SOCKET_setSendTimeout);
+   QC_SOCKET->addMethod("setRecvTimeout",            (q_method_t)SOCKET_setRecvTimeout);
+   QC_SOCKET->addMethod("getSendTimeout",            (q_method_t)SOCKET_getSendTimeout);
+   QC_SOCKET->addMethod("getRecvTimeout",            (q_method_t)SOCKET_getRecvTimeout);
+   QC_SOCKET->addMethod("getCharset",                (q_method_t)SOCKET_getCharset);
+   QC_SOCKET->addMethod("setCharset",                (q_method_t)SOCKET_setCharset);
+   QC_SOCKET->addMethod("isDataAvailable",           (q_method_t)SOCKET_isDataAvailable);
+   QC_SOCKET->addMethod("getSSLCipherName",          (q_method_t)SOCKET_getSSLCipherName);
+   QC_SOCKET->addMethod("getSSLCipherVersion",       (q_method_t)SOCKET_getSSLCipherVersion);
+   QC_SOCKET->addMethod("isSecure",                  (q_method_t)SOCKET_isSecure);
+   QC_SOCKET->addMethod("verifyPeerCertificate",     (q_method_t)SOCKET_verifyPeerCertificate);
+   QC_SOCKET->addMethod("setCertificate",            (q_method_t)SOCKET_setCertificate);
+   QC_SOCKET->addMethod("setPrivateKey",             (q_method_t)SOCKET_setPrivateKey);
+   QC_SOCKET->addMethod("isOpen",                    (q_method_t)SOCKET_isOpen);
 
    traceout("initSocketClass()");
    return QC_SOCKET;

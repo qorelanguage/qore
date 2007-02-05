@@ -294,8 +294,13 @@ void Hash::assimilate(class Hash *h, ExceptionSink *xsink)
    {
       setKeyValue(where->key, where->node, xsink);
       where->node = NULL;
-      where = where->next;
+      class HashMember *n = where->next;
+      delete where;
+      where = n;
    }
+#ifdef DEBUG
+   h->member_list = NULL;
+#endif
    delete h;
 }
 

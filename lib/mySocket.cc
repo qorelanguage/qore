@@ -336,6 +336,24 @@ int mySocket::sendHTTPResponse(int code, char *desc, char *http_version, class H
    return rc;
 }
 
+// receive a binary message in HTTP chunked format
+class Hash *mySocket::readHTTPChunkedBodyBinary(int timeout, class ExceptionSink *xsink)
+{
+   lock();
+   class Hash *h = socket->readHTTPChunkedBodyBinary(timeout, xsink);
+   unlock();
+   return h;
+}
+
+// receive a string message in HTTP chunked format
+class Hash *mySocket::readHTTPChunkedBody(int timeout, class ExceptionSink *xsink)
+{
+   lock();
+   class Hash *h = socket->readHTTPChunkedBody(timeout, xsink);
+   unlock();
+   return h;
+}
+
 // read and parse HTTP header
 class QoreNode *mySocket::readHTTPHeader(int timeout, int *rc)
 {
