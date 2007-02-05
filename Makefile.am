@@ -195,8 +195,9 @@ noinst_HEADERS = \
 	modules/Tuxedo/tuxedo_module.h \
 	modules/Tuxedo/QC_TuxedoAdapter.h \
 	modules/Tuxedo/QoreTuxedoAdapter.h \
+	modules/sybase/sybase.h \
 	command-line.h \
-	include/qore/Qore.h
+	include/qore/Qore.h 
 
 EXTRA_DIST = .build next_build.sh WHATISQORE RELEASE-NOTES \
         test/thread-object-test.q \
