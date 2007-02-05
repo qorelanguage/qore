@@ -31,7 +31,6 @@
 
 str_set_t QoreHTTPClient::method_set;
 strcase_set_t QoreHTTPClient::header_ignore;
-class SafeHash QoreHTTPClient::mandatory_headers;
 
 // static initialization
 void QoreHTTPClient::static_init()
@@ -45,12 +44,6 @@ void QoreHTTPClient::static_init()
    method_set.insert("DELETE");
    method_set.insert("TRACE");
    method_set.insert("CONNECT");
-
-   char buf[HOSTNAMEBUFSIZE + 1];
-   if (gethostname(buf, HOSTNAMEBUFSIZE))
-      mandatory_headers.setKeyValue("Host", new QoreNode("localhost"), NULL);
-   else
-      mandatory_headers.setKeyValue("Host", new QoreNode(buf), NULL);
    
    header_ignore.insert("Host");
    header_ignore.insert("Content-Length");
@@ -62,7 +55,6 @@ QoreHTTPClient::QoreHTTPClient()
      ssl(false),
      port(HTTPCLIENT_DEFAULT_PORT),
      default_port(HTTPCLIENT_DEFAULT_PORT),
-     host(HTTPCLIENT_DEFAULT_HOST),
      timeout(HTTPCLIENT_DEFAULT_TIMEOUT),
      connected(false)
 {
@@ -81,8 +73,13 @@ QoreHTTPClient::QoreHTTPClient()
 
 void QoreHTTPClient::setSocketPath()
 {
+   char hostname[HOSTNAMEBUFSIZE + 1];
+   if (gethostname(hostname, HOSTNAMEBUFSIZE))
+      strcpy(hostname, "localhost");
+   
    // setup socketpath
-   socketpath = host + ":";
+   socketpath = hostname;
+   socketpath += ":";
    char buff[20];
    sprintf(buff, "%d", port);
    socketpath += buff;
@@ -368,7 +365,9 @@ class QoreNode *QoreHTTPClient::send_internal(char *meth, const char *path, clas
       return NULL;
    }
 
-   class Hash *nh = mandatory_headers.copy();
+   class StackHash nh(xsink);
+   // set host field
+   nh.setKeyValue("Host", new QoreNode(host.c_str()), xsink);
    bool keep_alive = true;
 
    if (headers)
@@ -391,7 +390,7 @@ class QoreNode *QoreHTTPClient::send_internal(char *meth, const char *path, clas
 	 // otherwise set the value in the hash
 	 class QoreNode *n = hi.getValue();
 	 if (!is_nothing(n))
-	    nh->setKeyValue(hi.getKey(), n->RefSelf(), xsink);
+	    nh.setKeyValue(hi.getKey(), n->RefSelf(), xsink);
       }
    }
 
@@ -414,7 +413,7 @@ class QoreNode *QoreHTTPClient::send_internal(char *meth, const char *path, clas
 	 if (skip)
 	    continue;
       }
-      nh->setKeyValue((char *)i->first.c_str(), new QoreNode(i->second.c_str()), xsink);
+      nh.setKeyValue((char *)i->first.c_str(), new QoreNode(i->second.c_str()), xsink);
    }
 
    // use default path if no path is set
@@ -422,8 +421,7 @@ class QoreNode *QoreHTTPClient::send_internal(char *meth, const char *path, clas
       path = default_path.c_str();
 
    // send the message
-   int rc = m_socket.sendHTTPMessage(meth, path, http11 ? "1.1" : "1.0", nh, data, size);
-   nh->derefAndDelete(xsink);
+   int rc = m_socket.sendHTTPMessage(meth, path, http11 ? "1.1" : "1.0", &nh, data, size);
    
    if (rc)
    {

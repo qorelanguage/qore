@@ -116,4 +116,27 @@ class Hash
       DLLEXPORT void clearNeedsEval();
 };
 
+class StackHash : public Hash
+{
+private:
+   class ExceptionSink *xsink;
+   
+   // none of these operators/methods are implemented - here to make sure they are not used
+   DLLLOCAL void *operator new(size_t); 
+   DLLLOCAL StackHash();
+   DLLLOCAL StackHash(bool i);
+   DLLLOCAL void deleteAndDeref(class ExceptionSink *xsink);
+   
+public:
+   DLLEXPORT StackHash(class ExceptionSink *xs)
+   {
+	 xsink = xs;
+   }
+   DLLEXPORT ~StackHash()
+   {
+      dereference(xsink);
+   }
+};
+
+
 #endif // _QORE_HASH_H
