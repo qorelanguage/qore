@@ -45,7 +45,6 @@ void QoreHTTPClient::static_init()
    method_set.insert("TRACE");
    method_set.insert("CONNECT");
    
-   header_ignore.insert("Host");
    header_ignore.insert("Content-Length");
 }
 
@@ -67,7 +66,8 @@ QoreHTTPClient::QoreHTTPClient()
    default_headers["Content-Type"] = "text/html";
    default_headers["Connection"] = "Keep-Alive";
    default_headers["User-Agent"] = "Qore HTTP Client v" PACKAGE_VERSION;
-
+   default_headers["Host"] = "auto";
+   
    setSocketPath();
 }
 
@@ -366,8 +366,6 @@ class QoreNode *QoreHTTPClient::send_internal(char *meth, const char *path, clas
    }
 
    class StackHash nh(xsink);
-   // set host field
-   nh.setKeyValue("Host", new QoreNode(host.c_str()), xsink);
    bool keep_alive = true;
 
    if (headers)
@@ -413,7 +411,11 @@ class QoreNode *QoreHTTPClient::send_internal(char *meth, const char *path, clas
 	 if (skip)
 	    continue;
       }
-      nh.setKeyValue((char *)i->first.c_str(), new QoreNode(i->second.c_str()), xsink);
+      // set host field automatically if not overridden
+      if (!strcmp(i->first.c_str(), "Host"))
+	 nh.setKeyValue("Host", new QoreNode(host.c_str()), xsink);
+      else
+	 nh.setKeyValue((char *)i->first.c_str(), new QoreNode(i->second.c_str()), xsink);
    }
 
    // use default path if no path is set
