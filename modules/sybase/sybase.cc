@@ -29,6 +29,7 @@
 //#include <qore/Query.h>
 #include <qore/QoreNode.h>
 #include <ctpublic.h>
+#include <sybase.h>
 
 struct dst_sybase_s {
       CS_CONTEXT *context;
