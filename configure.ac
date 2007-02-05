@@ -1121,6 +1121,29 @@ check_mysql_include()
     fi
 }
 
+# Sybase settings
+# Expects env variables set by $SYBROOT/SYBASE.sh or $SYBROOT/SYBASE.csh.
+#
+AC_ARG_WITH([sybase],
+  [AS_HELP_STRING([--with-sybase@<:@=DIR@:>@],
+                  [Sybase Adaptive Server directory (defaults to $SYBROOT)])],
+   ,
+   [with_sybase=auto])
+
+if test "$with_sybase" = "auto"; then
+   if test -n "$SYBROOT"; then
+      with_sybase=yes
+   else
+      with_sybase=no
+   fi
+fi
+
+if test -n "$with_sybase"; then
+   # setup compile and link vars
+   SYBASE_INCLUDES="-I${SYBROOT}/${SYBASE_OCS}/include"
+   SYBASE_LIBS="-L${SYBROOT}/${SYBASE_OCS}/lib -lsybdb"
+fi
+
 # see if we can figure out where the mysql files are
 if test "${enable_mysql}" != "no"; then
    AC_MSG_CHECKING([for mysql includes])
@@ -1576,10 +1599,11 @@ AM_CONDITIONAL([COND_MYSQL],      [test "$with_mysql" = yes])
 AM_CONDITIONAL([COND_TIBRV],      [test "$with_tibrv" = yes])
 AM_CONDITIONAL([COND_TIBAE],      [test "$with_tibae" = yes])
 AM_CONDITIONAL([COND_TUXEDO],     [test "$with_tuxedo" = yes])
+AM_CONDITIONAL([COND_TUXEDO],     [test "$with_sybase" = yes])
 AM_CONDITIONAL([COND_MONOLITHIC], [test "$enable_shared" = no -o "$enable_builtin_modules" = "yes"])
 AM_CONDITIONAL([COND_SINGLE_COMPILATION_UNIT], [test "$enable_single_compilation_unit" = yes])
 
-AC_CONFIG_FILES([Makefile lib/Makefile modules/Makefile modules/ncurses/Makefile modules/tibrv/Makefile modules/tibae/Makefile modules/mysql/Makefile modules/oracle/Makefile modules/Tuxedo/Makefile])
+AC_CONFIG_FILES([Makefile lib/Makefile modules/Makefile modules/ncurses/Makefile modules/tibrv/Makefile modules/tibae/Makefile modules/mysql/Makefile modules/oracle/Makefile modules/Tuxedo/Makefile modules/sybase/Makefile])
 AC_OUTPUT
 
 echo "*** BUILTIN FEATURES ***"
@@ -1631,6 +1655,13 @@ fi
 
 printf "oracle                  : "
 if test "$with_oracle" = "yes"; then
+   echo yes
+else
+   echo disabled
+fi
+
+printf "sybase                  : "
+if test "$with_sybase" = "yes"; then
    echo yes
 else
    echo disabled
