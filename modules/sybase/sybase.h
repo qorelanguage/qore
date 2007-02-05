@@ -24,7 +24,7 @@
 
 #define QORE_SYBASE_H
 
-#include <qore/dbi.h>
+#include <qore/DBI.h>
 
 // exported function prototypes
 int syb_ds_init(class Datasource *ds);

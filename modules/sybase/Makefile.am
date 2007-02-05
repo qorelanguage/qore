@@ -14,7 +14,7 @@ sybase_la_SOURCES = $(SYBASE_SOURCES)
 sybase_la_LDFLAGS = -module -avoid-version ${SYBASE_LIBS}
 endif
 
-INCLUDES = -I$(top_srcdir)/include $(SYBASE_INCLUDES)
+INCLUDES = -I$(top_srcdir)/include $(SYBASE_INCLUDES) -I/opt/sybase/OCS-15_0/include
 
 AM_CXXFLAGS = ${PTHREAD_CFLAGS}
 

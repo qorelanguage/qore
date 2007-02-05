@@ -25,11 +25,12 @@
 
 #include <qore/config.h>
 #include <qore/support.h>
-#include <SQL/DBI.h>
-//#include <qore/Query.h>
+#include <qore/DBI.h>
 #include <qore/QoreNode.h>
+
 #include <ctpublic.h>
-#include <sybase.h>
+
+#include "sybase.h"
 
 struct dst_sybase_s {
       CS_CONTEXT *context;
@@ -71,7 +72,8 @@ int syb_ds_init(class Datasource *ds)
 
    tracein("syb_ds_init()");
 
-   ds->d.sybase = new struct dst_sybase_s;
+   ds->setPrivateData(new struct dst_sybase_s);
+/*
    // if datasource is already initialized
    if (ds->status == DSS_OPEN)
    {
@@ -89,7 +91,7 @@ int syb_ds_init(class Datasource *ds)
    // check return code...
 
    ds->status = DSS_OPEN;
-
+*/
    traceout("syb_ds_init()");
    return 0;
 }
@@ -98,3 +100,4 @@ int syb_ds_close(class Datasource *ds)
 {
    
 }
+
