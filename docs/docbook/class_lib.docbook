@@ -10748,10 +10748,6 @@
 	</thead>
 	<tbody>
 	  <row>
-	    <entry><para><code>Host</code></para></entry>
-	    <entry><para>This is always set to the hostname set when the qore shared library is initialized.</para></entry>
-	  </row>
-	  <row>
 	    <entry><para><code>Content-Length</code></para></entry>
 	    <entry><para>This header is only sent if a message body is send, and, if so, the length is calculated automatically.</para></entry>
 	  </row>
