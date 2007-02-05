@@ -1092,7 +1092,7 @@ int QoreSocket::sendHTTPMessage(const char *method, const char *path, const char
    // prepare header string
    QoreString hdr(charsetid);
 
-   hdr.sprintf("%s %s HTTP/%s\r\n", method, path, http_version);
+   hdr.sprintf("%s %s HTTP/%s\r\n", method, path && path[0] ? path : "/", http_version);
    if (headers)
    {
       class HashIterator hi(headers);
@@ -1108,6 +1108,8 @@ int QoreSocket::sendHTTPMessage(const char *method, const char *path, const char
 	       hdr.sprintf("%s: %lld\r\n", hi.getKey(), v->val.intval);
 	    else if (v->type == NT_FLOAT)
 	       hdr.sprintf("%s: %f\r\n", hi.getKey(), v->val.floatval);
+	    else if (v->type == NT_BOOLEAN)
+	       hdr.sprintf("%s: %d\r\n", hi.getKey(), v->val.boolval);
 	 }
       }
    }

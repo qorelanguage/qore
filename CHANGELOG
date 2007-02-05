@@ -2,6 +2,8 @@
 	* corrected a bug in the HTTPClient class where the Host field was being
 	  set to the local host name instead of the name of the host being
 	  connected to
+	* updated Socket::sendHTTPMessage() to ensure that a "/" is sent as the 
+	  path if the path is otherwise empty
 
 2007.01.31: David Nichols
 	* fixed a bug in ManagedDatasource thread resource tracking
