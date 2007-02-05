@@ -4,6 +4,8 @@
 	  connected to
 	* updated Socket::sendHTTPMessage() to ensure that a "/" is sent as the 
 	  path if the path is otherwise empty
+	* updated HTTPClient to set the port number in the Host: field if it's
+	  not port 80
 
 2007.01.31: David Nichols
 	* fixed a bug in ManagedDatasource thread resource tracking

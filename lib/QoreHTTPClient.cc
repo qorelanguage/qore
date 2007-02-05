@@ -408,7 +408,16 @@ class QoreNode *QoreHTTPClient::send_internal(char *meth, const char *path, clas
       }
       // set host field automatically if not overridden
       if (!strcmp(i->first.c_str(), "Host"))
-	 nh.setKeyValue("Host", new QoreNode(host.c_str()), xsink);
+      {
+	 if (port == 80)
+	    nh.setKeyValue("Host", new QoreNode(host.c_str()), xsink);
+	 else
+	 {
+	    QoreString *str = new QoreString();
+	    str->sprintf("%s:%d", host.c_str(), port);
+	    nh.setKeyValue("Host", new QoreNode(str), xsink);
+	 }
+      }
       else
 	 nh.setKeyValue((char *)i->first.c_str(), new QoreNode(i->second.c_str()), xsink);
    }
