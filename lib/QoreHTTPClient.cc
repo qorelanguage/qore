@@ -73,12 +73,7 @@ QoreHTTPClient::QoreHTTPClient()
 
 void QoreHTTPClient::setSocketPath()
 {
-   char hostname[HOSTNAMEBUFSIZE + 1];
-   if (gethostname(hostname, HOSTNAMEBUFSIZE))
-      strcpy(hostname, "localhost");
-   
-   // setup socketpath
-   socketpath = hostname;
+   socketpath = host;
    socketpath += ":";
    char buff[20];
    sprintf(buff, "%d", port);
@@ -227,7 +222,7 @@ int QoreHTTPClient::process_url(class QoreString *str, ExceptionSink* xsink)
 	 port = val;
       }
    }
-
+   
    class QoreString *tmp = url.getPath();
    path = tmp ? tmp->getBuffer() : "";
    tmp = url.getUserName();
