@@ -203,19 +203,7 @@ static class QoreNode *f_html_encode(class QoreNode *params, ExceptionSink *xsin
       return NULL;
 
    class QoreString *ns = new QoreString(p0->val.String->getEncoding());
-   char *str = p0->val.String->getBuffer();
-   for (int i = 0; i < p0->val.String->strlen(); i++)
-   {
-      int j;
-      for (j = 0; j < (int)NUM_HTML_CODES; j++)
-	 if (str[i] == QoreString::html_codes[j].symbol)
-	 {
-	    ns->concat(QoreString::html_codes[j].code);
-	    break;
-	 }
-      if (j == NUM_HTML_CODES)
-	 ns->concat(str[i]);
-   }
+   ns->concatAndHTMLEncode(p0->val.String->getBuffer());
    return new QoreNode(ns);
 }
 
@@ -227,26 +215,8 @@ static class QoreNode *f_html_decode(class QoreNode *params, ExceptionSink *xsin
       return NULL;
 
    QoreString *ns = new QoreString(p0->val.String->getEncoding());
-   char *str = p0->val.String->getBuffer();
-   int i = 0;
-   int len = p0->val.String->strlen();
-   while (str[i])
-   {
-      int j;
-      for (j = 0; j < (int)NUM_HTML_CODES; j++)
-	 if ((len - i) >= QoreString::html_codes[j].len && 
-	     !strncmp(QoreString::html_codes[j].code, &str[i], QoreString::html_codes[j].len))
-	 {
-	    ns->concat(QoreString::html_codes[j].symbol);
-	    i += QoreString::html_codes[j].len;
-	    break;
-	 }
-      if (j == NUM_HTML_CODES)
-      {
-	 ns->concat(str[i]);
-	 i++;
-      }
-   }
+   ns->concatAndHTMLDecode(p0->val.String);
+
    return new QoreNode(ns);
 }
 

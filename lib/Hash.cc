@@ -295,6 +295,7 @@ void Hash::assimilate(class Hash *h, ExceptionSink *xsink)
       setKeyValue(where->key, where->node, xsink);
       where->node = NULL;
       class HashMember *n = where->next;
+      free(where->key);
       delete where;
       where = n;
    }

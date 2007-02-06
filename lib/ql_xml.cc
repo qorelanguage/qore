@@ -187,50 +187,6 @@ inline xml_stack::xml_stack()
 
 } // anonymous namespace
 
-// returns a string in UTF-8 encoding, assumes UTF-8 encoding, doe not perform any HTML decoding
-class QoreString *decode_xml_character_references(class QoreString *str)
-{
-   char *p = str->getBuffer();
-   QoreString *rv = new QoreString(QCS_UTF8);
-   rv->ensureBufferSize(str->strlen() + 1);
-   while (*p)
-   {
-      char c = *p;
-      p++;
-      if (c != '&')
-      {
-	 rv->concat(c);
-	 continue;
-      }
-      if (!*p)
-      {
-	 rv->concat('&');
-	 break;
-      }
-      if (*p == '#')
-      {
-	 // find end of character sequence
-	 char *e = strchr(p + 1, ';');
-	 // if not found or the number is too big, then don't try to decode it
-	 if (e && (e - p) < 8)
-	 {
-	    unsigned code;
-	    if (*(p + 1) == 'x')
-	       code = strtoul(p + 1, NULL, 16);
-	    else
-	       code = strtoul(p + 1, NULL, 10);
-
-	    rv->concatUTF8FromUnicode(code);
-
-	    p = e + 1;
-	    continue;
-	 }
-      }
-      rv->concat('&');
-   }
-   return rv;
-}
-
 static void makeXMLString(QoreString *str, Hash *h, int indent, class QoreEncoding *ccs, int format, class ExceptionSink *xsink);
 
 static void concatSimpleValue(QoreString *str, QoreNode *n, class ExceptionSink *xsink)
@@ -1057,10 +1013,11 @@ static int getXMLData(xmlTextReader *reader, xml_stack *xstack, class QoreEncodi
 	    if (!qstr)
 	       return 0;
 
-	    // decode character references in CDATA
+	    // decode HTML character references in CDATA
 	    if (nt == XML_READER_TYPE_CDATA)
 	    {
-	       class QoreString *ns = decode_xml_character_references(qstr);
+	       class QoreString *ns = new QoreString(qstr->getEncoding());
+	       ns->concatAndHTMLDecode(qstr);
 	       delete qstr;
 	       qstr = ns;
 	    }
@@ -3223,20 +3180,6 @@ static class QoreNode *f_parseXMLRPCResponse(class QoreNode *params, ExceptionSi
    return parseXMLRPCResponse(p0->val.String, ccsid, xsink);
 }
 
-static class QoreNode *f_decodeXMLCharacterReferences(class QoreNode *params, ExceptionSink *xsink)
-{
-   class QoreNode *p0 = test_param(params, NT_STRING, 0);
-   if (!p0)
-      return NULL;
-
-   TempEncodingHelper str(p0->val.String, QCS_UTF8, xsink);
-   if (!str)
-      return NULL;
-
-   class QoreString *rv = decode_xml_character_references(*str);
-   return rv ? new QoreNode(rv) : NULL;
-}
-
 void init_xml_functions()
 {
    builtinFunctions.add("parseXML",                               f_parseXML);
@@ -3270,6 +3213,4 @@ void init_xml_functions()
    builtinFunctions.add("parseXMLRPCValue",                       f_parseXMLRPCValue);
    builtinFunctions.add("parseXMLRPCCall",                        f_parseXMLRPCCall);
    builtinFunctions.add("parseXMLRPCResponse",                    f_parseXMLRPCResponse);
-
-   builtinFunctions.add("decodeXMLCharacterReferences",           f_decodeXMLCharacterReferences);
 }

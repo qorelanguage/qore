@@ -639,13 +639,9 @@ void QoreString::concatAndHTMLEncode(const QoreString *str, class ExceptionSink 
    // if it's not a null string
    if (str && str->len)
    {
-      const QoreString *cstr = str;
-      if (charset != str->charset)
-      {
-	 cstr = str->convertEncoding(charset, xsink);
-	 if (xsink->isEvent())
-	    return;
-      }
+      TempEncodingHelper cstr((QoreString *)str, charset, xsink);
+      if (!cstr)
+	 return;
 
       ensureBufferSize(len + cstr->len + cstr->len / 10 + 10); // avoid reallocations inside the loop, value guesstimated
       for (int i = 0; i < cstr->len; i++)
@@ -662,9 +658,6 @@ void QoreString::concatAndHTMLEncode(const QoreString *str, class ExceptionSink 
 	 if (j == NUM_HTML_CODES)
 	    concat(cstr->buf[i]);
       }
-
-      if (cstr != str)
-	 delete cstr;
    }
 }
 
@@ -718,6 +711,30 @@ void QoreString::concatAndHTMLDecode(const QoreString *str)
 
 	 // concatenate translated character
          char* s = str->getBuffer() + i;
+	 // check for unicode character references
+	 if (*(s + 1) == '#')
+	 {
+	    s += 2;
+	    // find end of character sequence
+	    char *e = strchr(s, ';');
+	    // if not found or the number is too big, then don't try to decode it
+	    if (e && (e - s) < 8)
+	    {
+	       unsigned code;
+	       if (*s == 'x')
+		  code = strtoul(s + 1, NULL, 16);
+	       else
+		  code = strtoul(s, NULL, 10);
+	       
+	       if (!concatUnicode(code))
+	       {
+		  i = e - str->buf +1;
+		  continue;
+	       }
+	       // error occurred, so back out
+	       s -= 2;
+	    }
+	 }
          bool matched = false;
 	 for (int j = 0; j < (int)NUM_HTML_CODES; j++) {
             bool found = true;
@@ -735,16 +752,10 @@ void QoreString::concatAndHTMLDecode(const QoreString *str)
             }
          }
          if (!matched) {
-           assert(false); // invalid HTML? should not happen
-           concat(str->buf[i++]);
+	    //assert(false); // we should not abort with invalid HTML
+	    concat(str->buf[i++]);
          }
       }
-      /*
-      // see if buffer needs to be resized for '\0'
-      check_char(len);
-      // terminate string
-      buf[len] = '\0';
-      */
    }
 }
 
@@ -1451,6 +1462,45 @@ void QoreString::addch(char c, unsigned times)
     memset(buf, c, times);
     buf[times] = 0;
   }
+}
+
+int QoreString::concatUnicode(unsigned code, class ExceptionSink *xsink)
+{
+   if (charset == QCS_UTF8)
+   {
+      concatUTF8FromUnicode(code);
+      return 0;
+   }
+   QoreString tmp(QCS_UTF8);
+   tmp.concatUTF8FromUnicode(code);
+   class QoreString *ns = tmp.convertEncoding(charset, xsink);
+   if (!ns)
+      return -1;
+   concat(ns);
+   delete ns;
+   return 0;   
+}
+
+int QoreString::concatUnicode(unsigned code)
+{
+   if (charset == QCS_UTF8)
+   {
+      concatUTF8FromUnicode(code);
+      return 0;
+   }
+   QoreString tmp(QCS_UTF8);
+   tmp.concatUTF8FromUnicode(code);
+   ExceptionSink xsink;
+   class QoreString *ns = tmp.convertEncoding(charset, &xsink);
+   if (!ns)
+   {
+      // ignore exceptions
+      xsink.clear();
+      return -1;
+   }
+   concat(ns);
+   delete ns;
+   return 0;   
 }
 
 void QoreString::concatUTF8FromUnicode(unsigned code)
