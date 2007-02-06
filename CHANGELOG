@@ -4,6 +4,7 @@
 	* html decoding modified to decode numeric character codes
 	* modified gmtime() and localtime() to return the current GMT and local
 	  time (respectively) if no argument is passed to the functions
+	* added deflate(), inflate_to_string() and inflate_to_binary() functions
 
 2007.02.05: David Nichols
 	* corrected a bug in the HTTPClient class where the Host field was being

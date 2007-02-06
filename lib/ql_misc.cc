@@ -385,11 +385,11 @@ static class QoreNode *f_compress2(class QoreNode *params, ExceptionSink *xsink)
       return NULL;
 
    QoreNode *p1 = get_param(params, 1);
-   int level = p1 ? p1->getAsInt() : 0;
+   int level = p1 ? p1->getAsInt() : Z_DEFAULT_COMPRESSION;
 
-   if (level > 9)
+   if (!level || level > 9)
    {
-      xsink->raiseException("ZLIB-LEVEL-ERROR", "level must be between 0 - 9 (value passed: %d)", level);
+      xsink->raiseException("ZLIB-LEVEL-ERROR", "level must be between 1 - 9 (value passed: %d)", level);
       return NULL;
    }
 
@@ -494,6 +494,237 @@ static class QoreNode *f_uncompress_to_binary(class QoreNode *params, ExceptionS
    }
 
    return new QoreNode(new BinaryObject(buf, blen));
+}
+
+static class QoreNode *f_deflate(class QoreNode *params, ExceptionSink *xsink)
+{
+   // need a string or binary argument
+   QoreNode *p0 = get_param(params, 0);
+   if (!p0)
+      return NULL;
+
+   QoreNode *p1 = get_param(params, 1);
+   int level = p1 ? p1->getAsInt() : Z_DEFAULT_COMPRESSION;
+
+   if (!level || level > 9)
+   {
+      xsink->raiseException("ZLIB-LEVEL-ERROR", "level must be between 0 - 9 (value passed: %d)", level);
+      return NULL;
+   }
+
+   void *ptr;
+   unsigned long len;
+   if (p0->type == NT_STRING)
+   {
+      ptr = p0->val.String->getBuffer();
+      len = p0->val.String->strlen() + 1;
+   }
+   else if (p0->type == NT_BINARY)
+   {
+      ptr = p0->val.bin->getPtr();
+      len = p0->val.bin->size();
+   }
+   else
+      return NULL;
+
+   if (!ptr || !len)
+      return NULL;
+
+   z_stream c_stream; // compression stream
+   c_stream.zalloc = Z_NULL;
+   c_stream.zfree = Z_NULL;
+   c_stream.opaque = Z_NULL;
+
+   int rc = deflateInit(&c_stream, level);   
+   if (rc != Z_OK)
+   {
+      xsink->raiseException("ZLIB-DEFLATE-ERROR", "deflateInit() returned error code %d", rc);
+      return NULL;
+   }
+   
+   // allocate new buffer
+   unsigned long bsize = len / 5 + 100;
+   void *buf = malloc(bsize);
+   
+   c_stream.next_in = (Bytef *)ptr;
+   c_stream.next_out = (Bytef *)buf;
+   c_stream.avail_in = len;
+   c_stream.avail_out = bsize;
+
+   while (c_stream.avail_in)
+   {
+      rc = deflate(&c_stream, Z_NO_FLUSH);
+      if (rc != Z_OK && rc != Z_BUF_ERROR)
+      {
+	 xsink->raiseException("ZLIB-DEFLATE-ERROR", "deflate() returned error code %d", rc);
+	 free(buf);
+	 return NULL;
+      }
+
+      if (!c_stream.avail_out)
+      {
+	 int new_space = ((len / 3) + 100);
+	 //printd(5, "deflate() Z_BUF_ERROR:1 bsize=%d->%d, new_space=%d avail_out=%d -> %d next_out=%08p\n", bsize, bsize + new_space, new_space, c_stream.avail_out, c_stream.avail_out + new_space, c_stream.next_out);
+
+	 bsize += new_space;
+	 c_stream.avail_out += new_space;
+	 buf = realloc(buf, bsize);
+      }
+      //printd(5, "deflate() Z_BUF_ERROR:1 bsize=%d, avail_out=%d, next_out=%08p\n", bsize, c_stream.avail_out, c_stream.next_out);
+   }
+
+   while (true)
+   {
+      rc = deflate(&c_stream, Z_FINISH);
+      if (rc == Z_STREAM_END)
+	 break;
+      if (rc != Z_OK && rc != Z_BUF_ERROR)
+      {
+	 xsink->raiseException("ZLIB-DEFLATE-ERROR", "deflate() returned error code %d", rc);
+	 free(buf);
+	 return NULL;
+      }
+      // resize buffer
+      int new_space = 2; //((len / 3) + 100);
+      //printd(5, "deflate() Z_BUF_ERROR:2 bsize=%d->%d, new_space=%d avail_out=%d -> %d, next_out=%08p\n", bsize, bsize + new_space, new_space, c_stream.avail_out, c_stream.avail_out + new_space, c_stream.next_out);
+
+      bsize += new_space;
+      c_stream.avail_out += new_space;
+      buf = realloc(buf, bsize);
+   }
+
+   //printd(5, "deflate() buf=%08p, bsize=%d, avail_out=%d, size=%d, next_out=%08p\n", buf, bsize, c_stream.avail_out, bsize - c_stream.avail_out, c_stream.next_out);
+   return new QoreNode(new BinaryObject(buf, bsize - c_stream.avail_out));
+}
+
+// syntax: inflate_to_string(binary object, [encoding of new string])
+static class QoreNode *f_inflate_to_string(class QoreNode *params, ExceptionSink *xsink)
+{
+   // need binary argument
+   QoreNode *p0 = test_param(params, NT_BINARY, 0);
+   if (!p0)
+      return NULL;
+
+   QoreEncoding *ccsid;
+   QoreNode *p1 = test_param(params, NT_STRING, 1);
+   ccsid = p1 ? QEM.findCreate(p1->val.String) : QCS_DEFAULT;
+
+   z_stream d_stream; // decompression stream
+   d_stream.zalloc = Z_NULL;
+   d_stream.zfree = Z_NULL;
+   d_stream.opaque = Z_NULL;
+
+   int rc = inflateInit(&d_stream);
+   if (rc != Z_OK)
+   {
+      xsink->raiseException("ZLIB-INFLATE-ERROR", "inflateInit() returned error code %d", rc);
+      return NULL;
+   }
+   
+   int len = p0->val.bin->size();
+
+   // allocate new buffer
+   unsigned long bsize = len * 2 + 100;
+   void *buf = malloc(bsize);
+   
+   d_stream.next_in = (Bytef *)p0->val.bin->getPtr();
+   d_stream.next_out = (Bytef *)buf;
+   d_stream.avail_in = p0->val.bin->size();
+   d_stream.avail_out = bsize;
+
+   while (true)
+   {
+      rc = inflate(&d_stream, Z_NO_FLUSH);
+      if (rc == Z_STREAM_END)
+	 break;
+      if (rc == Z_BUF_ERROR)
+      {
+	 int new_space = ((len * 3) + 100);
+	 bsize += new_space;
+	 d_stream.avail_out += new_space;
+	 buf = realloc(buf, bsize);
+      }
+      else if (rc != Z_OK)
+      {
+	 xsink->raiseException("ZLIB-INFLATE-ERROR", "inflate() returned error code %d", rc);
+	 free(buf);
+	 return NULL;
+      }
+   }
+
+   rc = inflateEnd(&d_stream);
+   if (rc != Z_OK)
+   {
+      xsink->raiseException("ZLIB-INFLATE-ERROR", "inflateEnd() returned error code %d", rc);
+      free(buf);
+      return NULL;
+   }
+
+   class QoreString *str = new QoreString(ccsid);
+   str->take((char *)buf);
+   return new QoreNode(str);
+}
+
+// syntax: inflate_to_binary(binary object)
+static class QoreNode *f_inflate_to_binary(class QoreNode *params, ExceptionSink *xsink)
+{
+   // need binary argument
+   QoreNode *p0 = test_param(params, NT_BINARY, 0);
+   if (!p0)
+      return NULL;
+
+   z_stream d_stream; // decompression stream
+   d_stream.zalloc = Z_NULL;
+   d_stream.zfree = Z_NULL;
+   d_stream.opaque = Z_NULL;
+
+   int rc = inflateInit(&d_stream);
+   if (rc != Z_OK)
+   {
+      xsink->raiseException("ZLIB-INFLATE-ERROR", "inflateInit() returned error code %d", rc);
+      return NULL;
+   }
+   
+   int len = p0->val.bin->size();
+
+   // allocate new buffer
+   unsigned long bsize = len * 2 + 100;
+   void *buf = malloc(bsize);
+   
+   d_stream.next_in = (Bytef *)p0->val.bin->getPtr();
+   d_stream.next_out = (Bytef *)buf;
+   d_stream.avail_in = p0->val.bin->size();
+   d_stream.avail_out = bsize;
+
+   while (true)
+   {
+      rc = inflate(&d_stream, Z_NO_FLUSH);
+      if (rc == Z_STREAM_END)
+	 break;
+      if (rc == Z_BUF_ERROR)
+      {
+	 int new_space = ((len * 3) + 100);
+	 bsize += new_space;
+	 d_stream.avail_out += new_space;
+	 buf = realloc(buf, bsize);
+      }
+      else if (rc != Z_OK)
+      {
+	 xsink->raiseException("ZLIB-INFLATE-ERROR", "inflate() returned error code %d", rc);
+	 free(buf);
+	 return NULL;
+      }
+   }
+
+   rc = inflateEnd(&d_stream);
+   if (rc != Z_OK)
+   {
+      xsink->raiseException("ZLIB-INFLATE-ERROR", "inflateEnd() returned error code %d", rc);
+      free(buf);
+      return NULL;
+   }
+
+   return new QoreNode(new BinaryObject(buf, bsize - d_stream.avail_out));
 }
 
 static class QoreNode *f_getByte(class QoreNode *params, ExceptionSink *xsink)
@@ -659,6 +890,9 @@ void init_misc_functions()
    builtinFunctions.add("compress2", f_compress2);
    builtinFunctions.add("uncompress_to_string", f_uncompress_to_string);
    builtinFunctions.add("uncompress_to_binary", f_uncompress_to_binary);
+   builtinFunctions.add("deflate", f_deflate);
+   builtinFunctions.add("inflate_to_string", f_inflate_to_string);
+   builtinFunctions.add("inflate_to_binary", f_inflate_to_binary);
    builtinFunctions.add("getByte", f_getByte);
    builtinFunctions.add("splice", f_splice);
    builtinFunctions.add("hexToInt", f_hexToInt);

@@ -942,6 +942,8 @@ sub misc_tests()
     my $str = "This is a long string xxxxxxxxxxxxxxxxxxxxxxxxxxxx";
     my $b = compress($str);
     test_value($str, uncompress_to_string($b, strlen($str) + 1), "compress and uncompress");
+    $b = deflate($str);
+    test_value($str, inflate_to_string($b), "deflate and inflate");
 }
 
 sub math_tests()

@@ -439,45 +439,55 @@ class QoreNode *QoreHTTPClient::send_internal(char *meth, const char *path, clas
       return NULL;
    }
 
-   class QoreNode *ans = m_socket.readHTTPHeader(timeout, &rc);
-
-   if (!ans || ans->type != NT_HASH)
+   class QoreNode *ans;
+   int code;
+   class Hash *ah;
+   class QoreNode *v;
+   while (true)
    {
-      unlock();
-      if (ans)
+      ans = m_socket.readHTTPHeader(timeout, &rc);
+
+      if (!ans || ans->type != NT_HASH)
+      {
+	 unlock();
+	 if (ans)
+	    ans->deref(xsink);
+	 xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", "malformed HTTP header received from socket %s, could not parse header", socketpath.c_str());
+	 return NULL;
+      }
+
+      if (rc <= 0)
+      {
+	 unlock();
+	 if (!rc)             // remote end has closed the connection
+	    xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", "remote end has closed the connection");
+	 else if (rc == -1)   // recv() error
+	    xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", strerror(errno));
+	 else if (rc == -2)
+	    xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", "socket was closed at the remote end");
+	 else if (rc == -3)   // timeout
+	    xsink->raiseException("HTTP-CLIENT-TIMEOUT", "timed out waiting %dms for response on socket %s", timeout, socketpath.c_str());
+	 
 	 ans->deref(xsink);
-      xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", "malformed HTTP header received from socket %s, could not parse header", socketpath.c_str());
-      return NULL;
-   }
+	 return NULL;
+      }
 
-   if (rc <= 0)
-   {
-      unlock();
-      if (!rc)             // remote end has closed the connection
-	 xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", "remote end has closed the connection");
-      else if (rc == -1)   // recv() error
-	 xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", strerror(errno));
-      else if (rc == -2)
-	 xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", "socket was closed at the remote end");
-      else if (rc == -3)   // timeout
-	 xsink->raiseException("HTTP-CLIENT-TIMEOUT", "timed out waiting %dms for response on socket %s", timeout, socketpath.c_str());
-
-      ans->deref(xsink);
-      return NULL;
-   }
-
-   // check HTTP status code
-   class Hash *ah = ans->val.hash;
-   class QoreNode *v = ah->getKeyValue("status_code");
-   if (!v)
-   {
-      unlock();
-      xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", "no HTTP status code received in response");
-      ans->deref(xsink);
-      return NULL;
-   }
+      // check HTTP status code
+      ah = ans->val.hash;
+      v = ah->getKeyValue("status_code");
+      if (!v)
+      {
+	 unlock();
+	 xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", "no HTTP status code received in response");
+	 ans->deref(xsink);
+	 return NULL;
+      }
    
-   int code = v->getAsInt();
+      code = v->getAsInt();
+      // continue processing if "100 Continue" response received (ignore this response)
+      if (code != 100)
+	 break;
+   }
    if (code >= 300 && code < 400)
    {
       unlock();
