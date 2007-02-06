@@ -98,7 +98,7 @@ static class QoreNode *f_min(class QoreNode *params, ExceptionSink *xsink)
    {
       if (!num_params(params))
 	 return NULL;
-      lst = params->val.list;
+      lst = params;
    }
 
    class QoreNode *rv = NULL;
@@ -126,7 +126,7 @@ static class QoreNode *f_max(class QoreNode *params, ExceptionSink *xsink)
    {
       if (!num_params(params))
 	 return NULL;
-      lst = params->val.list;
+      lst = params;
    }
    
    class QoreNode *rv = NULL;
