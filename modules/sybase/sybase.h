@@ -1,9 +1,9 @@
 /*
-  sybase.h
+  sybase-module.h
 
-  Qore Programming Language
+  Sybase integration to QORE
 
-  Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+  Copyright (C) 2007 Qore Technologies
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -20,18 +20,16 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef QORE_SYBASE_H
+#ifndef _QORE_SYBASE_MODULE_H
 
-#define QORE_SYBASE_H
+#define _QORE_SYBASE_MODULE_H
 
-#include <qore/DBI.h>
+class QoreString;
+class Namespace;
 
-// exported function prototypes
-int syb_ds_init(class Datasource *ds);
-int syb_ds_close(class Datasource *ds);
-int syb_commit_transaction(class Datasource *ds);
-int syb_rollback_transaction(class Datasource *ds);
-int syb_exec_sql(class Datasource *dsx, char *query_str);
-class Query *syb_exec_query(class Query *query, char *query_str);
+extern QoreString *sybase_module_init();
+extern void sybase_module_ns_init(Namespace *rns, Namespace *qns);
+extern void sybase_module_delete();
 
 #endif
+
