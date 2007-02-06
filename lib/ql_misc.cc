@@ -344,171 +344,12 @@ static class QoreNode *f_compress(class QoreNode *params, ExceptionSink *xsink)
    if (!p0)
       return NULL;
 
-   void *ptr;
-   unsigned long len;
-   if (p0->type == NT_STRING)
-   {
-      ptr = p0->val.String->getBuffer();
-      len = p0->val.String->strlen() + 1;
-   }
-   else if (p0->type == NT_BINARY)
-   {
-      ptr = p0->val.bin->getPtr();
-      len = p0->val.bin->size();
-   }
-   else
-      return NULL;
-
-   if (!ptr || !len)
-      return NULL;
-
-   // allocate new buffer
-   unsigned long blen = len + (len / 10) + 12;
-   void *buf = malloc(blen);
-   int rc = compress((Bytef *)buf, &blen, (Bytef *)ptr, len);
-
-   if (rc != Z_OK)
-   {
-      xsink->raiseException("ZLIB-COMPRESS-ERROR", "compress() returned error code %d", rc);
-      free(buf);
-      return NULL;
-   }
-
-   return new QoreNode(new BinaryObject(buf, blen));
-}
-
-static class QoreNode *f_compress2(class QoreNode *params, ExceptionSink *xsink)
-{
-   // need a string or binary argument
-   QoreNode *p0 = get_param(params, 0);
-   if (!p0)
-      return NULL;
-
    QoreNode *p1 = get_param(params, 1);
    int level = p1 ? p1->getAsInt() : Z_DEFAULT_COMPRESSION;
 
    if (!level || level > 9)
    {
-      xsink->raiseException("ZLIB-LEVEL-ERROR", "level must be between 1 - 9 (value passed: %d)", level);
-      return NULL;
-   }
-
-   void *ptr;
-   unsigned long len;
-   if (p0->type == NT_STRING)
-   {
-      ptr = p0->val.String->getBuffer();
-      len = p0->val.String->strlen() + 1;
-   }
-   else if (p0->type == NT_BINARY)
-   {
-      ptr = p0->val.bin->getPtr();
-      len = p0->val.bin->size();
-   }
-   else
-      return NULL;
-
-   if (!ptr || !len)
-      return NULL;
-
-   // allocate new buffer
-   unsigned long blen = len + (len / 10) + 12;
-   void *buf = malloc(blen);
-   int rc = compress2((Bytef *)buf, &blen, (Bytef *)ptr, len, level);
-
-   if (rc != Z_OK)
-   {
-      xsink->raiseException("ZLIB-COMPRESS2-ERROR", "compress2() returned error code %d", rc);
-      free(buf);
-      return NULL;
-   }
-
-   return new QoreNode(new BinaryObject(buf, blen));
-}
-
-// syntax: binary object, new string length
-// returns -1 for buffer too small
-static class QoreNode *f_uncompress_to_string(class QoreNode *params, ExceptionSink *xsink)
-{
-   // need binary argument
-   QoreNode *p0 = test_param(params, NT_BINARY, 0);
-   if (!p0)
-      return NULL;
-
-   QoreNode *p1 = get_param(params, 1);
-   unsigned long blen = p1 ? p1->getAsInt() : 0;
-   if (!blen)
-      return new QoreNode((int64)-1);
-
-   // allocate new buffer
-   void *buf = malloc(blen);
-   int rc = uncompress((Bytef *)buf, &blen, (Bytef *)p0->val.bin->getPtr(), p0->val.bin->size());
-
-   if (rc == Z_BUF_ERROR)
-   {
-      free(buf);
-      return new QoreNode((int64)-1);
-   }
-
-   if (rc != Z_OK)
-   {
-      xsink->raiseException("ZLIB-UNCOMPRESS-ERROR", "uncompress() returned error code %d", rc);
-      free(buf);
-      return NULL;
-   }
-
-   class QoreString *str = new QoreString();
-   str->take((char *)buf);
-   return new QoreNode(str);
-}
-
-// syntax: binary object, new binary buffer size
-// returns -1 for buffer too small
-static class QoreNode *f_uncompress_to_binary(class QoreNode *params, ExceptionSink *xsink)
-{
-   // need binary argument
-   QoreNode *p0 = test_param(params, NT_BINARY, 0);
-   if (!p0)
-      return NULL;
-
-   QoreNode *p1 = get_param(params, 1);
-   unsigned long blen = p1 ? p1->getAsInt() : 0;
-   if (!blen)
-      return new QoreNode((int64)-1);
-
-   // allocate new buffer
-   void *buf = malloc(blen);
-   int rc = uncompress((Bytef *)buf, &blen, (Bytef *)p0->val.bin->getPtr(), p0->val.bin->size());
-
-   if (rc == Z_BUF_ERROR)
-   {
-      free(buf);
-      return new QoreNode((int64)-1);
-   }
-
-   if (rc != Z_OK)
-   {
-      xsink->raiseException("ZLIB-UNCOMPRESS-ERROR", "uncompress() returned error code %d", rc);
-      free(buf);
-      return NULL;
-   }
-
-   return new QoreNode(new BinaryObject(buf, blen));
-}
-
-static class QoreNode *f_deflate(class QoreNode *params, ExceptionSink *xsink)
-{
-   // need a string or binary argument
-   QoreNode *p0 = get_param(params, 0);
-   if (!p0)
-      return NULL;
-
-   QoreNode *p1 = get_param(params, 1);
-   int level = p1 ? p1->getAsInt() : Z_DEFAULT_COMPRESSION;
-
-   if (!level || level > 9)
-   {
-      xsink->raiseException("ZLIB-LEVEL-ERROR", "level must be between 0 - 9 (value passed: %d)", level);
+      xsink->raiseException("ZLIB-DEFLATE-ERROR", "level must be between 0 - 9 (value passed: %d)", level);
       return NULL;
    }
 
@@ -597,8 +438,8 @@ static class QoreNode *f_deflate(class QoreNode *params, ExceptionSink *xsink)
    return new QoreNode(new BinaryObject(buf, bsize - c_stream.avail_out));
 }
 
-// syntax: inflate_to_string(binary object, [encoding of new string])
-static class QoreNode *f_inflate_to_string(class QoreNode *params, ExceptionSink *xsink)
+// syntax: uncompress_to_string(binary object, [encoding of new string])
+static class QoreNode *f_uncompress_to_string(class QoreNode *params, ExceptionSink *xsink)
 {
    // need binary argument
    QoreNode *p0 = test_param(params, NT_BINARY, 0);
@@ -665,8 +506,8 @@ static class QoreNode *f_inflate_to_string(class QoreNode *params, ExceptionSink
    return new QoreNode(str);
 }
 
-// syntax: inflate_to_binary(binary object)
-static class QoreNode *f_inflate_to_binary(class QoreNode *params, ExceptionSink *xsink)
+// syntax: uncompress_to_binary(binary object)
+static class QoreNode *f_uncompress_to_binary(class QoreNode *params, ExceptionSink *xsink)
 {
    // need binary argument
    QoreNode *p0 = test_param(params, NT_BINARY, 0);
@@ -886,13 +727,10 @@ void init_misc_functions()
    builtinFunctions.add("getModuleList", f_getModuleList);
    builtinFunctions.add("getFeatureList", f_getFeatureList);
    builtinFunctions.add("hash_values", f_hash_values);
-   builtinFunctions.add("compress", f_compress);
-   builtinFunctions.add("compress2", f_compress2);
+   builtinFunctions.add("compress", f_deflate);
+   builtinFunctions.add("compress2", f_deflate);
    builtinFunctions.add("uncompress_to_string", f_uncompress_to_string);
    builtinFunctions.add("uncompress_to_binary", f_uncompress_to_binary);
-   builtinFunctions.add("deflate", f_deflate);
-   builtinFunctions.add("inflate_to_string", f_inflate_to_string);
-   builtinFunctions.add("inflate_to_binary", f_inflate_to_binary);
    builtinFunctions.add("getByte", f_getByte);
    builtinFunctions.add("splice", f_splice);
    builtinFunctions.add("hexToInt", f_hexToInt);
