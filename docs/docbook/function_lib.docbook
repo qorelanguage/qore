@@ -1644,9 +1644,7 @@
           </entry>
           <entry><para>N</para></entry>
           <entry>
-            <para>Returns a date value in GMT based on the value of the 
-      argument passed, which must be the number of seconds after Jan 1, 1970, 
-      00:00:00</para>
+            <para>Returns a date/time value in GMT</para>
           </entry>
         </row>
         <row>
@@ -6278,13 +6276,13 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Returns the date and time in GMT corresponding to the argument passed, which must be an integer giving the number of seconds since Jan 1, 1970, 00:00:00. </para>
+	<para>Returns the date and time in GMT; if no argument is passed, then the current GMT time is returned.  Otherwise the single argument must be an integer giving the number of seconds since Jan 1, 1970, 00:00:00.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>gmtime(<replaceable>int_value</replaceable>)</programlisting>
+	<programlisting>gmtime(<replaceable>[int_value]</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -6314,7 +6312,7 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
                 <para>Date</para>
               </entry>
               <entry>
-                <para>The integer argument must be the number of seconds passed since Jan 1, 1970, 00:00:00 (see <link linkend="mktime">mktime()</link> for a function that returns such a value).  Qore uses the C library function gmtime() to calculate the return value, which is returned as a Qore Date type.</para>
+                <para>The optional integer argument must be the number of seconds passed since Jan 1, 1970, 00:00:00 (see <link linkend="mktime">mktime()</link> for a function that returns such a value).  Qore uses the C library function gmtime() to calculate the return value, which is returned as a Qore Date type.  If no argument is passed, then the current date and time in GMT are returned.  If an argument is passed that is not a date/time value, then NOTHING is returned.</para>
               </entry>
             </row>
           </tbody>
@@ -6384,13 +6382,13 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Returns the date and time in local time corresponding to the integer argument passed, which must be the number of seconds since Jan 1, 1970, 00:00:00.</para>
+	<para>Returns the date and time in local time corresponding to the integer argument passed, which must be the number of seconds since Jan 1, 1970, 00:00:00.  If no argument is passed, then the current local date and time are returned.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>localtime(<replaceable>int_value</replaceable>)</programlisting>
+	<programlisting>localtime(<replaceable>[int_value]</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -6420,7 +6418,7 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
                 <para>Date</para>
               </entry>
               <entry>
-                <para>The integer argument must be the number of seconds passed since Jan 1, 1970, 00:00:00 (see <link linkend="mktime">mktime()</link> for a function that returns such a value).  Qore uses the C library function localtime() to return the return value, which is returned as a Qore Date type.</para>
+                <para>The optional integer argument must be the number of seconds passed since Jan 1, 1970, 00:00:00 (see <link linkend="mktime">mktime()</link> for a function that returns such a value).  Qore uses the C library function localtime() to calculate the return value, which is returned as a Qore Date type.  If no argument is passed, then the current date and time in the current time zone are returned.  If an argument is passed that is not a date/time value, then NOTHING is returned.</para>
               </entry>
             </row>
           </tbody>

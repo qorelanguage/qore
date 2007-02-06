@@ -1,48 +1,9 @@
-RELEASE NOTES for qore v0.6.0
+RELEASE NOTES for qore v0.6.1
 
 NOTE: for platform-specific notes and build instructions, please see the file BUILD
 
-*** LIST OF CHANGES IN THIS RELEASE ***
+---- work in progress ----
 
-*) major SMP performance increases
-work was done to dramatically reduce the number of cache invalidations which results in a very significant performance increase (more than 2x for affected code paths) - this also affects single-threaded code running on SMP machines.  Basically due to these changes the CPUs are able to use their caches much more effectively, thus improving performance drastically.  This was done without sacrificing the clean threading model - from the qore user code/programming interface perspective no compatibility has been sacrificed; the language is simply faster.
-
-Future releases will take this further and give even better performance increases.
-
-*) stable shared-library interface, version 1.0
-The qore library now exports a stable shared-library interface - this will be further improved in future release as internal implementation details of exported classes are further abstracted from the interface.
-
-*) qore line-number reporting bug finally quashed
-The bug where qore would report an incorrect line number with multi-line statements has finally been fixed - error messages now give the entire statement range where the error occured.  Furthermore parse error reporting has been further improved by making error messages more informative and readable.
-
-*) internal JSON-RPC support
-support for JSON-RPC has been added, including support for serializing and deserializing between qore data structures and JSON strings and a built-in JsonRpcClient class subclassed from the new HTTPClient class - see the 0.6.0 documentation for more details.
-
-*) builtin HTTPClient, XmlRpcClient, and JsonRpcClient classes
-the old qore-language HTTPClient and XmlRpcClient classes have been replaced with new high-performance internal versions.  The external API has been kept backwards-compatible as well.  The XmlRpcClient and JsonRpcClient classes are subclassed from the new HTTPClient class using qore's new support for builtin class hierarchies (in previous releases class hierarchies could only be implemented in qore code).
-
-*) the switch/case statement accepts simple relational operators in case expressions
-
-*) new functions: is_dir(), is_file(), is_executable(), is_readable(), is_dev(), etc
-To verify file types easier
-
-*) new single compilation unit build support, visibility tagging
-g++ visibility tagging is used when possible allowing header files to clearly label API entry points as well as private interfaces.
-Furthermore, when used with the default single compilation unit builds (where all files in a given directory are built together), the compiler can perform much better optimizations on the code.
-Visibiility tagging also allows the symbol table size to be drastically reduced (particularly with templated objects) as symbols for private interfaces are not included in the shared library.
-
-*) BEA Tuxedo (TM) module implemented
-The full Tuxedo client API is available in qore if you have a licensed version of BEA Tuxedo installed, see the updated documentation for the "tuxedo" module
-
-*) TIBCO synchronous client operation support added to "tibae" module
-The "tibae" module added new methods to the TibcoAdapter class to support client-side synchronous operation calls
-
-*) initial support for deadlock detection
-Due to time constraints the deadlock solution was not universally applied to all user locks.  Complete deadlock detection (with qore threading primitives, including deadlocks with "synchronous" methods/functions) will be delivered in the next version of qore.
-However some deadlocks are now detected and will cause an exception to be thrown and all locks of one thread to be released.
-
-*) bug fixes, miscellaneous new functions, etc
-see CHANGELOG and the updated qore 0.6.0 documentation for details
 
 ***********************
 *** LANGUAGE ISSUES ***
@@ -154,6 +115,51 @@ The documentation is not entirely complete, but it's gotten much better in the l
 ---------------------
 RELEASE NOTES HISTORY
 ---------------------
+
+*******************************
+RELEASE SUMMARY for qore v0.6.0
+*******************************
+
+*) major SMP performance increases
+work was done to dramatically reduce the number of cache invalidations which results in a very significant performance increase (more than 2x for affected code paths) - this also affects single-threaded code running on SMP machines.  Basically due to these changes the CPUs are able to use their caches much more effectively, thus improving performance drastically.  This was done without sacrificing the clean threading model - from the qore user code/programming interface perspective no compatibility has been sacrificed; the language is simply faster.
+
+Future releases will take this further and give even better performance increases.
+
+*) stable shared-library interface, version 1.0
+The qore library now exports a stable shared-library interface - this will be further improved in future release as internal implementation details of exported classes are further abstracted from the interface.
+
+*) qore line-number reporting bug finally quashed
+The bug where qore would report an incorrect line number with multi-line statements has finally been fixed - error messages now give the entire statement range where the error occured.  Furthermore parse error reporting has been further improved by making error messages more informative and readable.
+
+*) internal JSON-RPC support
+support for JSON-RPC has been added, including support for serializing and deserializing between qore data structures and JSON strings and a built-in JsonRpcClient class subclassed from the new HTTPClient class - see the 0.6.0 documentation for more details.
+
+*) builtin HTTPClient, XmlRpcClient, and JsonRpcClient classes
+the old qore-language HTTPClient and XmlRpcClient classes have been replaced with new high-performance internal versions.  The external API has been kept backwards-compatible as well.  The XmlRpcClient and JsonRpcClient classes are subclassed from the new HTTPClient class using qore's new support for builtin class hierarchies (in previous releases class hierarchies could only be implemented in qore code).
+
+*) the switch/case statement accepts simple relational operators in case expressions
+
+*) new functions: is_dir(), is_file(), is_executable(), is_readable(), is_dev(), etc
+To verify file types easier
+
+*) new single compilation unit build support, visibility tagging
+g++ visibility tagging is used when possible allowing header files to clearly label API entry points as well as private interfaces.
+Furthermore, when used with the default single compilation unit builds (where all files in a given directory are built together), the compiler can perform much better optimizations on the code.
+Visibiility tagging also allows the symbol table size to be drastically reduced (particularly with templated objects) as symbols for private interfaces are not included in the shared library.
+
+*) BEA Tuxedo (TM) module implemented
+The full Tuxedo client API is available in qore if you have a licensed version of BEA Tuxedo installed, see the updated documentation for the "tuxedo" module
+
+*) TIBCO synchronous client operation support added to "tibae" module
+The "tibae" module added new methods to the TibcoAdapter class to support client-side synchronous operation calls
+
+*) initial support for deadlock detection
+Due to time constraints the deadlock solution was not universally applied to all user locks.  Complete deadlock detection (with qore threading primitives, including deadlocks with "synchronous" methods/functions) will be delivered in the next version of qore.
+However some deadlocks are now detected and will cause an exception to be thrown and all locks of one thread to be released.
+
+*) bug fixes, miscellaneous new functions, etc
+see CHANGELOG and the updated qore 0.6.0 documentation for details
+
 
 *******************************
 RELEASE SUMMARY for qore v0.5.3

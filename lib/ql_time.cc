@@ -93,34 +93,35 @@ static class QoreNode *f_format_date(class QoreNode *params, ExceptionSink *xsin
 
 static class QoreNode *f_localtime(class QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0;
    time_t t;
 
-   if (!(p0 = get_param(params, 0)))
+   // if no parameters are passed, then return the current local time (like now())
+   if (!num_params(params)) 
       return NULL;
-
-   t = p0->getAsInt();
+   else
+   {
+      class QoreNode *p0 = get_param(params, 0);
+      t = p0 ? p0->getAsInt() : 0;
+   }
 
    struct tm tms;
-   class DateTime *dt = new DateTime(q_localtime(&t, &tms));
-
-   return new QoreNode(dt);
+   return new QoreNode(new DateTime(q_localtime(&t, &tms)));
 }
 
 static class QoreNode *f_gmtime(class QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0;
    time_t t;
-
-   if (!(p0 = get_param(params, 0)))
-      return NULL;
-
-   t = p0->getAsInt();
+   // if no parameters are passed, then return the current GMT time
+   if (!num_params(params))
+      t = time(NULL);
+   else
+   {
+      class QoreNode *p0 = get_param(params, 0);
+      t = p0 ? p0->getAsInt() : 0;
+   }
 
    struct tm tms;
-   class DateTime *dt = new DateTime(q_gmtime(&t, &tms));
-
-   return new QoreNode(dt);
+   return new QoreNode(new DateTime(q_gmtime(&t, &tms)));
 }
 
 static class QoreNode *f_mktime(class QoreNode *params, ExceptionSink *xsink)
@@ -143,7 +144,7 @@ static class QoreNode *f_mktime(class QoreNode *params, ExceptionSink *xsink)
    if (temp != p0)
       temp->deref(xsink);
 
-   return new QoreNode(NT_INT, t);
+   return new QoreNode((int64)t);
 }
 
 #ifdef HAVE_TIMEGM
@@ -166,7 +167,7 @@ static class QoreNode *f_timegm(class QoreNode *params, ExceptionSink *xsink)
    if (temp != p0)
       temp->deref(xsink);
 
-   return new QoreNode(NT_INT, t);
+   return new QoreNode((int64)t);
 }
 #endif
 
