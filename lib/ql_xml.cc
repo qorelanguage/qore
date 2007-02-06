@@ -3,7 +3,7 @@
 
   Qore XML functions
 
-2  Qore Programming Language
+  Qore Programming Language
 
   Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
 
@@ -1001,7 +1001,7 @@ static int getXMLData(xmlTextReader *reader, xml_stack *xstack, class QoreEncodi
 	 }
 	 //printd(5, "%s: type=%d, hasValue=%d, empty=%d, depth=%d\n", name, nt, xmlTextReaderHasValue(reader), xmlTextReaderIsEmptyElement(reader), depth);
       }
-      else if (nt == XML_READER_TYPE_TEXT)
+      else if (nt == XML_READER_TYPE_TEXT || nt == XML_READER_TYPE_CDATA)
       {
 	 int depth = xmlTextReaderDepth(reader);
 	 xstack->checkDepth(depth);
