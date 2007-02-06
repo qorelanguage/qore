@@ -1,5 +1,6 @@
 2007.02.06: David Nichols
 	* treat CDATA as text when parsing XML strings
+	* decode unicode numeric character references in CDATA strings
 
 2007.02.05: David Nichols
 	* corrected a bug in the HTTPClient class where the Host field was being

@@ -1453,3 +1453,45 @@ void QoreString::addch(char c, unsigned times)
   }
 }
 
+void QoreString::concatUTF8FromUnicode(unsigned code)
+{
+   // 6-byte code
+   if (code > 0x03ffffff)
+   {
+      concat(0xfc | (((1 << 30) & code) ? 1 : 0));
+      concat(0x80 | ((code & (0x3f << 24)) >> 24));
+      concat(0x80 | ((code & (0x3f << 18)) >> 18));
+      concat(0x80 | ((code & (0x3f << 12)) >> 12));
+      concat(0x80 | ((code & (0x3f << 6)) >> 6));
+      concat(0x80 | (code & 0x3f));
+   }
+   else if (code > 0x001fffff) // 5-byte code
+   {
+      concat(0xf8 | ((code & (0x3 << 24)) >> 24));
+      concat(0x80 | ((code & (0x3f << 18)) >> 18));
+      concat(0x80 | ((code & (0x3f << 12)) >> 12));
+      concat(0x80 | ((code & (0x3f << 6)) >> 6));
+      concat(0x80 | (code & 0x3f));
+   }
+   else if (code > 0xffff) // 4-byte code
+   {
+      concat(0xf0 | ((code & (0x7 << 18)) >> 18));
+      concat(0x80 | ((code & (0x3f << 12)) >> 12));
+      concat(0x80 | ((code & (0x3f << 6)) >> 6));
+      concat(0x80 | (code & 0x3f));
+   }
+   else if (code > 0x7ff) // 3-byte code
+   {
+      concat(0xe0 | ((code & (0xf << 12)) >> 12));
+      concat(0x80 | ((code & (0x3f << 6)) >> 6));
+      concat(0x80 | (code & 0x3f));
+   }
+   else if (code > 0x7f) // 2-byte code
+   {
+      concat(0xc0 | ((code & (0x2f << 6)) >> 6));
+      concat(0x80 | (code & 0x3f));
+   }
+   else
+      concat((char)code);
+}
+

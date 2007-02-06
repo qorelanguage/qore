@@ -144,6 +144,8 @@ class QoreString {
       DLLEXPORT void ensureBufferSize(unsigned requested_size);
       // append a character to the string a number of times
       DLLEXPORT void addch(char c, unsigned times);
+      // append a UTF-8 character sequence from a unicode code point
+      DLLEXPORT void concatUTF8FromUnicode(unsigned code);
 
       // concatenates a qorestring without converting encodings - internal only
       DLLLOCAL void concat(const QoreString *);
