@@ -6,6 +6,7 @@
 	  time (respectively) if no argument is passed to the functions
 	* updated compress(), compress2(), and uncompress_*() functions to use
 	  the streaming deflate/inflate API
+	* compress2() is deprecated as it is identical to compress()
 
 2007.02.05: David Nichols
 	* corrected a bug in the HTTPClient class where the Host field was being

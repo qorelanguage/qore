@@ -504,22 +504,6 @@
         <row>
           <entry>
             <para>
-              <link linkend="compress2">compress2()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>String or Binary</para>
-          </entry>
-          <entry>
-            <para>Y</para>
-          </entry>
-          <entry>
-            <para>Performs libz-based data compression and returns a binary object of the compressed data.  The level of compression is determined by the argument.</para>
-          </entry>
-        </row>
-        <row>
-          <entry>
-            <para>
               <link linkend="convert_encoding">convert_encoding()</link>
             </para>
           </entry>
@@ -13950,39 +13934,36 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Performs zlib-based data compression and returns a binary object of the compressed data.</para>
+	<para>Performs zlib-based data compression and returns a binary object of the compressed data.  The optional second argument specifies the compression level; if no second argument is given, then a tradeoff between speed and compression size is taken (default: 6).</para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>compress(<replaceable>string | binary</replaceable>)</programlisting>
+	<programlisting>compress(<replaceable>string | binary, [level]</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
 
-
-<table><title>Arguments and Return Values for compress()</title>
-<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-
-  <thead>
-  <row>
-    <entry><para>Argument Type</para></entry>
-    <entry><para>Return Type</para></entry>
-    <entry><para>Description</para></entry>
-  </row>
-  </thead>
-
-<tbody>
-  <row>
-    <entry><para><replaceable>string | binary</replaceable></para></entry>
-    <entry><para>Binary</para></entry>
-    <entry><para>Compresses the input data and returns a binary object.</para></entry>
-  </row>
-
-</tbody>
-</tgroup>
-</table>
+  <table>
+    <title>Arguments and Return Values for compress()</title>
+    <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument Type</para></entry>
+	  <entry><para>Return Type</para></entry>
+	  <entry><para>Description</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><replaceable>string | binary, [level]</replaceable></para></entry>
+	  <entry><para>Binary</para></entry>
+	  <entry><para>Compresses the input data and returns a binary object.  The optional <replaceable>level</replaceable> argument should be an integer between 1 and 9, 9 meaning the highest compression level.  If this argument is not present then a default value of 6 is assumed.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
 
   <table><title>Exceptions Thrown by compress()</title>
   <tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -13994,69 +13975,8 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
     </thead>
     <tbody>
       <row>
-	<entry><para><code>ZLIB-COMPRESS-ERROR</code></para></entry>
-	<entry><para>zlib returned an error to the compress function.</para></entry>
-      </row>
-    </tbody>
-  </tgroup>
-  </table>
-
-</sect2>
-
-<sect2 id="compress2">
-  <title>compress2()</title>
-
-  <variablelist>
-    <varlistentry>
-      <term>Synopsis</term>
-      <listitem>
-	<para>Performs zlib-based data compression and returns a binary object of the compressed data.  The second argument specifies the compression level.</para>
-      </listitem>
-    </varlistentry>
-    <varlistentry>
-      <term>Usage</term>
-      <listitem>
-	<programlisting>compress2(<replaceable>string | binary, level</replaceable>)</programlisting>
-      </listitem>
-    </varlistentry>
-  </variablelist>
-
-  <table>
-    <title>Arguments and Return Values for compress2()</title>
-    <tgroup cols='3' align='left' colsep='1' rowsep='1'>
-      <thead>
-	<row>
-	  <entry><para>Argument Type</para></entry>
-	  <entry><para>Return Type</para></entry>
-	  <entry><para>Description</para></entry>
-	</row>
-      </thead>
-      <tbody>
-	<row>
-	  <entry><para><replaceable>string | binary, level</replaceable></para></entry>
-	  <entry><para>Binary</para></entry>
-	  <entry><para>Compresses the input data and returns a binary object.  The <replaceable>level</replaceable> argument must be an integer between 0 and 9, 9 meaning the highest compression level.</para></entry>
-	</row>
-      </tbody>
-    </tgroup>
-  </table>
-
-  <table><title>Exceptions Thrown by compress2()</title>
-  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
-    <thead>
-      <row>
-	<entry><para>err</para></entry>
-	<entry><para>desc</para></entry>
-      </row>
-    </thead>
-    <tbody>
-      <row>
-	<entry><para><code>ZLIB-COMPRESS2-ERROR</code></para></entry>
-	<entry><para>zlib returned an error to the compress function.</para></entry>
-      </row>
-      <row>
-	<entry><para><code>ZLIB-LEVEL-ERROR</code></para></entry>
-	<entry><para>The compression level was not between 0 and 9.</para></entry>
+	<entry><para><code>ZLIB-DEFLATE-ERROR</code></para></entry>
+	<entry><para>zlib returned an error or the compression level is invalid.</para></entry>
       </row>
     </tbody>
   </tgroup>
@@ -15370,7 +15290,7 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>uncompress_to_binary(<replaceable>binary, buffer_size</replaceable>)</programlisting>
+	<programlisting>uncompress_to_binary(<replaceable>binary</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -15387,9 +15307,9 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
       </thead>
       <tbody>
 	<row>
-	  <entry><para><replaceable>binary, buffer_size</replaceable></para></entry>
+	  <entry><para><replaceable>binary</replaceable></para></entry>
 	  <entry><para>Binary</para></entry>
-	  <entry><para>Uncompresses the input data and returns a binary object.  The <replaceable>buffer_size</replaceable> argument gives the size of the buffer for the uncompressed data.  If the buffer is too small, then -1 is returned.</para></entry>
+	  <entry><para>Uncompresses the input data and returns a binary object.</para></entry>
 	</row>
       </tbody>
     </tgroup>
@@ -15405,8 +15325,8 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
     </thead>
     <tbody>
       <row>
-	<entry><para><code>ZLIB-UNCOMPRESS-ERROR</code></para></entry>
-	<entry><para>zlib returned an error to the uncompress() function.</para></entry>
+	<entry><para><code>ZLIB-INFLATE-ERROR</code></para></entry>
+	<entry><para>zlib returned an error while uncompressing the data.</para></entry>
       </row>
     </tbody>
   </tgroup>
@@ -15421,13 +15341,13 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Uncompresses data using zlib functions and returns a string of the uncompressed data.</para>
+	<para>Uncompresses data using zlib functions and returns a string of the uncompressed data.  An optional second string argument may be passed to give the character encoding of the string; if not present, the default encoding for the process is assumed.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>uncompress_to_string(<replaceable>binary, buffer_size</replaceable>)</programlisting>
+	<programlisting>uncompress_to_string(<replaceable>binary, [encoding]</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -15444,9 +15364,9 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
       </thead>
       <tbody>
 	<row>
-	  <entry><para><replaceable>binary, buffer_size</replaceable></para></entry>
+	  <entry><para><replaceable>binary, [encoding]</replaceable></para></entry>
 	  <entry><para>Binary</para></entry>
-	  <entry><para>Uncompresses the input data and returns a string.  The <replaceable>buffer_size</replaceable> argument gives the size of the buffer for the uncompressed data.  If the buffer is too small, then -1 is returned.</para></entry>
+	  <entry><para>Uncompresses the input data and returns a string.  The optional <replaceable>encoding</replaceable> argument may be passed to specify the encoding of the string.</para></entry>
 	</row>
       </tbody>
     </tgroup>
@@ -15462,8 +15382,8 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
     </thead>
     <tbody>
       <row>
-	<entry><para><code>ZLIB-UNCOMPRESS-ERROR</code></para></entry>
-	<entry><para>zlib returned an error to the uncompress() function.</para></entry>
+	<entry><para><code>ZLIB-INFLATE-ERROR</code></para></entry>
+	<entry><para>zlib returned an error while uncompressing the data.</para></entry>
       </row>
     </tbody>
   </tgroup>
