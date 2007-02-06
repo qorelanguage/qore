@@ -727,8 +727,8 @@ void init_misc_functions()
    builtinFunctions.add("getModuleList", f_getModuleList);
    builtinFunctions.add("getFeatureList", f_getFeatureList);
    builtinFunctions.add("hash_values", f_hash_values);
-   builtinFunctions.add("compress", f_deflate);
-   builtinFunctions.add("compress2", f_deflate);
+   builtinFunctions.add("compress", f_compress);
+   builtinFunctions.add("compress2", f_compress);
    builtinFunctions.add("uncompress_to_string", f_uncompress_to_string);
    builtinFunctions.add("uncompress_to_binary", f_uncompress_to_binary);
    builtinFunctions.add("getByte", f_getByte);
