@@ -940,8 +940,8 @@ sub misc_tests()
     test_value(parseURL($url), $uh, "parseURL()");
     
     my $str = "This is a long string xxxxxxxxxxxxxxxxxxxxxxxxxxxx";
-    my $b = compress($str);
-    test_value($str, uncompress_to_string($b), "compress and uncompress");
+    test_value($str, uncompress_to_string(compress($str)), "compress and uncompress");
+    test_value($str, gunzip_to_string(gzip($str)), "gzip and gunzip");
 }
 
 sub math_tests()
