@@ -99,6 +99,7 @@
 #include "ql_string.cc"
 #include "ql_pwd.cc"
 #include "ql_misc.cc"
+#include "ql_list.cc"
 #include "ql_xml.cc"
 #include "ql_json.cc"
 #include "ql_crypto.cc"

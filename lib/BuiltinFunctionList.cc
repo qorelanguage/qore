@@ -33,6 +33,7 @@
 #include <qore/ql_string.h>
 #include <qore/ql_pwd.h>
 #include <qore/ql_misc.h>
+#include <qore/ql_list.h>
 #include <qore/ql_xml.h>
 #include <qore/ql_json.h>
 #include <qore/ql_thread.h>
@@ -114,6 +115,7 @@ void BuiltinFunctionList::init()
    init_time_functions();
    init_lib_functions();
    init_misc_functions();
+   init_list_functions();
    init_type_functions();
    init_pwd_functions();
    init_math_functions();

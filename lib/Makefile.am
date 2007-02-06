@@ -118,6 +118,7 @@ libqore_la_SOURCES = \
 	ql_string.cc \
 	ql_pwd.cc \
 	ql_misc.cc \
+	ql_list.cc \
 	ql_xml.cc \
 	ql_json.cc \
 	ql_crypto.cc \

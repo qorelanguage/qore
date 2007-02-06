@@ -124,6 +124,7 @@ noinst_HEADERS = \
 	include/qore/QT_context.h \
 	include/qore/QT_varref.h \
 	include/qore/ql_string.h \
+	include/qore/ql_list.h \
 	include/qore/ql_misc.h \
 	include/qore/ql_math.h \
 	include/qore/ql_io.h \
