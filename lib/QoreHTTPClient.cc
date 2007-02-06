@@ -507,19 +507,22 @@ class QoreNode *QoreHTTPClient::send_internal(char *meth, const char *path, clas
    {
       char *str = v->val.String->getBuffer();
       char *p = strstr(str, "charset=");
-      if (p && (p == str || *(p - 1) == ';'))
+      if (p && (p == str || *(p - 1) == ';' || *(p - 1) == ' '))
       {
 	 // move p to start of encoding
 	 char *c = p + 8;
 	 QoreString enc;
-	 while (*c && *c != ';')
+	 while (*c && *c != ';' && *c != ' ')
 	    enc.concat(*(c++));
 	 // set new encoding
 	 m_socket.setEncoding(QEM.findCreate(&enc));
 	 // strip from content-type
 	 class QoreString *nc = new QoreString();
+	 // skip any spaces before the charset=
+	 while (p != str && (*(p - 1) == ' ' || *(p - 1) == ';'))
+	    p--;
 	 if (p != str)
-	    nc->concat(str, p - str - 1);
+	    nc->concat(str, p - str);
 	 if (*c)
 	    nc->concat(*c);
 	 ah->setKeyValue("content-type", new QoreNode(nc), xsink);
@@ -591,12 +594,7 @@ class QoreNode *QoreHTTPClient::send_internal(char *meth, const char *path, clas
 
 class QoreNode *QoreHTTPClient::send(char *meth, const char *path, class Hash *headers, void *data, unsigned size, bool getbody, class ExceptionSink *xsink)
 {
-   class QoreNode *ans = send_internal(meth, path, headers, data, size, getbody, xsink);
-   if (!ans)
-      return NULL;
-   class QoreNode *rv = ans->val.hash->takeKeyValue("body");
-   ans->deref(xsink);
-   return rv;
+   return send_internal(meth, path, headers, data, size, getbody, xsink);
 }
 
 class QoreNode *QoreHTTPClient::get(const char *path, class Hash *headers, class ExceptionSink *xsink)

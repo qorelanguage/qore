@@ -1,3 +1,6 @@
+2007.02.06: David Nichols
+	* treat CDATA as text when parsing XML strings
+
 2007.02.05: David Nichols
 	* corrected a bug in the HTTPClient class where the Host field was being
 	  set to the local host name instead of the name of the host being

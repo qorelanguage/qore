@@ -2929,7 +2929,6 @@ class Operator *OperatorList::add(class Operator *o)
 }
 
 // registers the system operators and system operator functions
-// WARNING: declaration order is hardcoded in operators.h
 void OperatorList::init()
 {
    tracein("OperatorList::init()");
