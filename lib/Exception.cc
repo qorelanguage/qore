@@ -147,6 +147,14 @@ QoreNode* ExceptionSink::raiseException(char *err, char *fmt, ...)
    return NULL;
 }
 
+// returns NULL, takes ownership of the "desc" argument
+QoreNode *ExceptionSink::raiseException(char *err, class QoreString *desc)
+{
+   printd(5, "ExceptionSink::raiseException(%s, %s)\n", err, desc->getBuffer());
+   insert(new Exception(err, desc));
+   return NULL;
+}
+
 QoreNode* ExceptionSink::raiseExceptionArg(char* err, QoreNode* arg, char* fmt, ...)
 {
    class QoreString *desc = new QoreString();

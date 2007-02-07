@@ -55,6 +55,8 @@ class ExceptionSink {
       DLLEXPORT class QoreNode *raiseException(char *err, char *fmt, ...);
       // Raise exception with additional argument (the 'arg' member). Always returns 0.
       DLLEXPORT QoreNode* raiseExceptionArg(char* err, QoreNode* arg, char* fmt, ...);
+      // returns NULL, takes owenership of the "desc" argument
+      DLLEXPORT QoreNode *raiseException(char *err, class QoreString *desc);
       DLLEXPORT void rethrow(class Exception *old);
       DLLEXPORT void raiseThreadExit();
       DLLEXPORT void assimilate(class ExceptionSink *xs);

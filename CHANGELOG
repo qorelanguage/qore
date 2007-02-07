@@ -1,5 +1,8 @@
 2007.02.07: David Nichols
 	* implemented List::min() and List::max() with and without callbacks
+	* plugged memory leaks in new compression/decompression code in 
+	  ql_misc.cc by using ON_BLOCK_EXIT()
+	* improved zlib exception reporting
 
 2007.02.06: David Nichols
 	* treat CDATA as text when parsing XML strings

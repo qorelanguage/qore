@@ -486,20 +486,10 @@
           </entry>
         </row>
         <row>
-          <entry>
-            <para>
-              <link linkend="compress">compress()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>String or Binary</para>
-          </entry>
-          <entry>
-            <para>Y</para>
-          </entry>
-          <entry>
-            <para>Performs zlib-based data compression and returns a binary object of the compressed data.</para>
-          </entry>
+          <entry><para><link linkend="compress">compress()</link></para></entry>
+          <entry><para>Binary</para></entry>
+          <entry><para>Y</para></entry>
+          <entry><para>Performs zlib-based &quot;deflate&quot; data compression (<ulink url="http://www.ietf.org/rfc/rfc1951.txt?number=1952">RFC 1951</ulink>) and returns a binary object of the compressed data.</para></entry>
         </row>
         <row>
           <entry>
@@ -1632,6 +1622,24 @@
           </entry>
         </row>
         <row>
+          <entry><para><link linkend="gunzip_to_binary">gunzip_to_binary()</link></para></entry>
+          <entry><para>Binary</para></entry>
+          <entry><para>N</para></entry>
+          <entry><para>Uncompresses data compressed with the &quot;gzip&quot; algorithm (<ulink url="http://www.ietf.org/rfc/rfc1952.txt?number=1952">RFC 1952</ulink>) using zlib functions and returns a binary object.</para></entry>
+        </row>
+        <row>
+          <entry><para><link linkend="gunzip_to_string">gunzip_to_string()</link></para></entry>
+          <entry><para>String</para></entry>
+          <entry><para>N</para></entry>
+          <entry><para>Uncompresses data compressed with the &quot;gzip&quot; algorithm (<ulink url="http://www.ietf.org/rfc/rfc1952.txt?number=1952">RFC 1952</ulink>) using zlib functions and returns a string.</para></entry>
+        </row>
+        <row>
+          <entry><para><link linkend="gzip">gzip()</link></para></entry>
+          <entry><para>Binary</para></entry>
+          <entry><para>Y</para></entry>
+          <entry><para>Performs zlib-based &quot;gzip&quot; data compression (<ulink url="http://www.ietf.org/rfc/rfc1952.txt?number=1952">RFC 1952</ulink>) and returns a binary object of the compressed data.</para></entry>
+        </row>
+        <row>
           <entry>
             <para>
               <link linkend="hash">hash()</link>
@@ -1664,20 +1672,10 @@
           </entry>
         </row>
         <row>
-          <entry>
-            <para>
-              <link linkend="hexToInt">hexToInt()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>Integer</para>
-          </entry>
-          <entry>
-            <para>N</para>
-          </entry>
-          <entry>
-            <para>Returns an integer for a hexadecimal string value.</para>
-          </entry>
+          <entry><para><link linkend="hextoint">hextoint()</link></para></entry>
+          <entry><para>Integer</para></entry>
+          <entry><para>N</para></entry>
+          <entry><para>Returns an integer for a hexadecimal string value.</para></entry>
         </row>
         <row>
           <entry><para><link linkend="hlstat">hlstat()</link></para></entry>
@@ -3451,6 +3449,12 @@
           </entry>
         </row>
         <row>
+          <entry><para><link linkend="strtoint">strtoint()</link></para></entry>
+          <entry><para>Integer</para></entry>
+          <entry><para>N</para></entry>
+          <entry><para>Returns an integer corresponding to the string passed with the possibility to specify the base (default base 10).</para></entry>
+        </row>
+        <row>
           <entry>
             <para>
               <link linkend="substr">substr()</link>
@@ -3627,36 +3631,16 @@
           </entry>
         </row>
         <row>
-          <entry>
-            <para>
-              <link linkend="uncompress_to_binary">uncompress_to_binary()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>Binary</para>
-          </entry>
-          <entry>
-            <para>N</para>
-          </entry>
-          <entry>
-            <para>Uncompresses compressed data compressed using zlib functions and returns a binary value.</para>
-          </entry>
+          <entry><para><link linkend="uncompress_to_binary">uncompress_to_binary()</link></para></entry>
+          <entry><para>Binary</para></entry>
+          <entry><para>N</para></entry>
+          <entry><para>Uncompresses (inflates) data compressed with the &quot;deflate&quot; algorithm (<ulink url="http://www.ietf.org/rfc/rfc1951.txt?number=1951">RFC 1951</ulink>) using zlib functions and returns a binary object.</para></entry>
         </row>
         <row>
-          <entry>
-            <para>
-              <link linkend="uncompress_to_string">uncompress_to_string()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>Binary</para>
-          </entry>
-          <entry>
-            <para>N</para>
-          </entry>
-          <entry>
-            <para>Uncompresses compressed data compressed using zlib functions and returns a string value.</para>
-          </entry>
+          <entry><para><link linkend="uncompress_to_string">uncompress_to_string()</link></para></entry>
+          <entry><para>String</para></entry>
+          <entry><para>N</para></entry>
+          <entry><para>Uncompresses (inflates) data compressed with the &quot;deflate&quot; algorithm (<ulink url="http://www.ietf.org/rfc/rfc1951.txt?number=1951">RFC 1951</ulink>) using zlib functions and returns a string.</para></entry>
         </row>
         <row>
           <entry>
@@ -13934,7 +13918,7 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Performs zlib-based data compression and returns a binary object of the compressed data.  The optional second argument specifies the compression level; if no second argument is given, then a tradeoff between speed and compression size is taken (default: 6).</para>
+	<para>Performs zlib-based &quot;deflate&quot; data compression (<ulink url="http://www.ietf.org/rfc/rfc1951.txt?number=1951">RFC 1951</ulink>) and returns a binary object of the compressed data.  The optional second argument specifies the compression level; if no second argument is given, then a tradeoff between speed and compression size is taken (default: 6).</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -13975,8 +13959,12 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
     </thead>
     <tbody>
       <row>
-	<entry><para><code>ZLIB-DEFLATE-ERROR</code></para></entry>
-	<entry><para>zlib returned an error or the compression level is invalid.</para></entry>
+	<entry><para><code>ZLIB-LEVEL-ERROR</code></para></entry>
+	<entry><para>the compression level is invalid (must be between 1 - 9 inclusive).</para></entry>
+      </row>
+      <row>
+	<entry><para><code>ZLIB-ERROR</code></para></entry>
+	<entry><para>zlib returned an error while processing.</para></entry>
       </row>
     </tbody>
   </tgroup>
@@ -14505,6 +14493,181 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
       <para>This function does not throw any exceptions.</para>
     </sect2>
 
+    <sect2 id="gunzip_to_binary">
+      <title>gunzip_to_binary()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Uncompresses gzipped data using zlib functions and returns a binary object of the uncompressed data.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>gunzip_to_binary(<replaceable>binary</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments and Return Values for gunzip_to_binary()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument Type</para></entry>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><replaceable>binary</replaceable></para></entry>
+	      <entry><para>Binary</para></entry>
+	      <entry><para>Uncompresses the input data and returns a binary object.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+  
+      <table><title>Exceptions Thrown by gunzip_to_binary()</title>
+      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>err</para></entry>
+	    <entry><para>desc</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row>
+	    <entry><para><code>ZLIB-ERROR</code></para></entry>
+	    <entry><para>zlib returned an error while processing.</para></entry>
+	  </row>
+	</tbody>
+      </tgroup>
+      </table>
+
+    </sect2>
+
+    <sect2 id="gunzip_to_string">
+      <title>gunzip_to_string()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Uncompresses gzipped data using zlib functions and returns a string of the uncompressed data.  An optional second string argument may be passed to give the character encoding of the string; if not present, the default encoding for the process is assumed.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>gunzip_to_string(<replaceable>binary, [encoding]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+      
+      <table>
+	<title>Arguments and Return Values for gunzip_to_string()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument Type</para></entry>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><replaceable>binary, [encoding]</replaceable></para></entry>
+	      <entry><para>Binary</para></entry>
+	      <entry><para>Uncompresses the input data and returns a string.  The optional <replaceable>encoding</replaceable> argument may be passed to specify the encoding of the string.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+      
+      <table><title>Exceptions Thrown by gunzip_to_string()</title>
+      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>err</para></entry>
+	    <entry><para>desc</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row>
+	    <entry><para><code>ZLIB-ERROR</code></para></entry>
+	    <entry><para>zlib returned an error while processing.</para></entry>
+	  </row>
+	</tbody>
+      </tgroup>
+      </table>
+      
+    </sect2>
+
+    <sect2 id="gzip">
+      <title>gzip()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Performs zlib-based &quot;gzip&quot; data compression (<ulink url="http://www.ietf.org/rfc/rfc1952.txt?number=1952">RFC 1952</ulink>) and returns a binary object of the compressed data.  The optional second argument specifies the compression level; if no second argument is given, then a tradeoff between speed and compression size is taken (default: 6).</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>gzip(<replaceable>string | binary, [level]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+      
+      <table>
+	<title>Arguments and Return Values for gzip()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument Type</para></entry>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><replaceable>string | binary, [level]</replaceable></para></entry>
+	      <entry><para>Binary</para></entry>
+	      <entry><para>Compresses the input data and returns a binary object of the gzipped data.  The optional <replaceable>level</replaceable> argument should be an integer between 1 and 9, 9 meaning the highest compression level.  If this argument is not present then a default value of 6 is assumed.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+      
+      <table><title>Exceptions Thrown by gzip()</title>
+      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>err</para></entry>
+	    <entry><para>desc</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row>
+	    <entry><para><code>ZLIB-LEVEL-ERROR</code></para></entry>
+	    <entry><para>the compression level is invalid (must be between 1 - 9 inclusive).</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>ZLIB-ERROR</code></para></entry>
+	    <entry><para>zlib returned an error while processing.</para></entry>
+	  </row>
+	</tbody>
+      </tgroup>
+      </table>
+      
+    </sect2>
+
     <sect2 id="hash_values">
       <title>hash_values()</title>
       <variablelist>
@@ -14556,8 +14719,8 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
       <para>This function does not throw any exceptions.</para>
     </sect2>
 
-    <sect2 id="hexToInt">
-      <title>hexToInt()</title>
+    <sect2 id="hextoint">
+      <title>hextoint()</title>
       <variablelist>
         <varlistentry>
           <term>Synopsis</term>
@@ -14568,13 +14731,13 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
         <varlistentry>
           <term>Usage</term>
           <listitem>
-            <programlisting>hexToInt(<replaceable>hex_string</replaceable>)</programlisting>
+            <programlisting>hextoint(<replaceable>hex_string</replaceable>)</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
       
       <table>
-        <title>Arguments and Return Values for hexToInt()</title>
+        <title>Arguments and Return Values for hextoint()</title>
         <tgroup cols="3" align="left" colsep="1" rowsep="1">
           <thead>
             <row>
@@ -15277,6 +15440,57 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
   <para>This function does not throw any exceptions.</para>
 </sect2>
 
+    <sect2 id="strtoint">
+      <title>strtoint()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns an integer corresponding to the string passed with the possibility to specify the base (default base 10).</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+           <programlisting>strtoint(<replaceable>string, [base]</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      
+      <table>
+        <title>Arguments and Return Values for strtoint()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument Type</para>
+              </entry>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>String</para>
+              </entry>
+              <entry>
+                <para>Integer</para>
+              </entry>
+              <entry>
+                <para>Returns an integer corresponding to the string value in the base specified.  If no base is passed, then base 10 is assumed.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <para>This function does not throw any exceptions.</para>
+    </sect2>
+
 <sect2 id="uncompress_to_binary">
   <title>uncompress_to_binary()</title>
 
@@ -15325,8 +15539,8 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
     </thead>
     <tbody>
       <row>
-	<entry><para><code>ZLIB-INFLATE-ERROR</code></para></entry>
-	<entry><para>zlib returned an error while uncompressing the data.</para></entry>
+	<entry><para><code>ZLIB-ERROR</code></para></entry>
+	<entry><para>zlib returned an error while processing.</para></entry>
       </row>
     </tbody>
   </tgroup>
@@ -15382,8 +15596,8 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
     </thead>
     <tbody>
       <row>
-	<entry><para><code>ZLIB-INFLATE-ERROR</code></para></entry>
-	<entry><para>zlib returned an error while uncompressing the data.</para></entry>
+	<entry><para><code>ZLIB-ERROR</code></para></entry>
+	<entry><para>zlib returned an error while processing.</para></entry>
       </row>
     </tbody>
   </tgroup>
