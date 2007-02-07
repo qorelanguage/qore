@@ -1,3 +1,6 @@
+2007.02.07: David Nichols
+	* implemented List::min() and List::max() with and without callbacks
+
 2007.02.06: David Nichols
 	* treat CDATA as text when parsing XML strings
 	* decode unicode numeric character references in CDATA strings

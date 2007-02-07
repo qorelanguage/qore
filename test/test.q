@@ -195,6 +195,10 @@ sub array_tests()
     test_value(sortStable($hl, "hash_sort_callback"), $stable_sorted_hl, "sortStable() with callback");
     test_value(sortDescending($l1), (6,5,4,3,2,1), "first sortDescending()");
     test_value(sortDescending($l2), ("two", "three", "six", "one", "four", "five"), "second sortDescending()");
+    test_value(min($l1), 1, "simple min()");
+    test_value(max($l1), 6, "simple max()");
+    test_value(min($hl, "hash_sort_callback"), ( "key1" : 1, "key2" : "eight" ), "min() with callback");
+    test_value(max($hl, "hash_sort_callback"), ( "key1" : 9, "key2" : "three" ), "max() with callback");
     my $v = shift $l2;
     test_value($l2, ("two","three","four","five","six"), "array shift");
     unshift $l2, $v;

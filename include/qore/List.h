@@ -75,6 +75,10 @@ class List {
       DLLEXPORT class QoreNode *sortStable() const;
       DLLEXPORT class QoreNode *sortDescendingStable() const;
       DLLEXPORT class QoreNode *sortStable(char *sort_function_name, class ExceptionSink *xsink) const;
+      DLLEXPORT class QoreNode *min() const;
+      DLLEXPORT class QoreNode *max() const;
+      DLLEXPORT class QoreNode *min(char *callback_function_name, class ExceptionSink *xsink) const;
+      DLLEXPORT class QoreNode *max(char *callback_function_name, class ExceptionSink *xsink) const;
       DLLEXPORT void splice(int offset, class ExceptionSink *xsink);
       DLLEXPORT void splice(int offset, int length, class ExceptionSink *xsink);
       DLLEXPORT void splice(int offset, int length, class QoreNode *l, class ExceptionSink *xsink);

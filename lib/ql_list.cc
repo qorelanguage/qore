@@ -93,58 +93,58 @@ static class QoreNode *f_sortDescendingStable(class QoreNode *params, ExceptionS
 
 static class QoreNode *f_min(class QoreNode *params, ExceptionSink *xsink)
 {   
-   QoreNode *lst = test_param(params, NT_LIST, 0);
-   if (!lst)
+   QoreNode *p = test_param(params, NT_LIST, 0);
+   class List *lst;
+   char *callback = NULL;
+   if (p)
+   {
+      lst = p->val.list;
+      p = test_param(params, NT_STRING, 1);
+      if (p)
+	 callback = p->val.String->getBuffer();
+   }
+   else
    {
       if (!num_params(params))
 	 return NULL;
-      lst = params;
+      lst = params->val.list;
    }
 
-   class QoreNode *rv = NULL;
-   ListIterator li(lst->val.list);
-   while (li.next())
-   {
-      if (!rv)
-	 rv = li.getValue();
-      else
-      {
-	 bool rc = OP_LOG_LT->bool_eval(li.getValue(), rv, xsink);
-	 if (xsink->isException())
-	    return NULL;
-	 if (rc)
-	    rv = li.getValue();
-      }
-   }
-   return rv ? rv->RefSelf() : NULL;
+   class QoreNode *rv;
+   if (callback)
+      rv = lst->min(callback, xsink);
+   else
+      rv = lst->min();
+
+   return rv;
 }  
 
 static class QoreNode *f_max(class QoreNode *params, ExceptionSink *xsink)
 {   
-   QoreNode *lst = test_param(params, NT_LIST, 0);
-   if (!lst)
+   QoreNode *p = test_param(params, NT_LIST, 0);
+   class List *lst;
+   char *callback = NULL;
+   if (p)
+   {
+      lst = p->val.list;
+      p = test_param(params, NT_STRING, 1);
+      if (p)
+	 callback = p->val.String->getBuffer();
+   }
+   else
    {
       if (!num_params(params))
 	 return NULL;
-      lst = params;
+      lst = params->val.list;
    }
-   
-   class QoreNode *rv = NULL;
-   ListIterator li(lst->val.list);
-   while (li.next())
-   {
-      if (!rv)
-	 rv = li.getValue();
-      else
-      {
-	 bool rc = OP_LOG_GT->bool_eval(li.getValue(), rv, xsink);
-	 if (xsink->isException())
-	    return NULL;
-	 if (rc)
-	    rv = li.getValue();
-      }
-   }
-   return rv ? rv->RefSelf() : NULL;
+
+   class QoreNode *rv;
+   if (callback)
+      rv = lst->max(callback, xsink);
+   else
+      rv = lst->max();
+
+   return rv;
 }   
 
 void init_list_functions()

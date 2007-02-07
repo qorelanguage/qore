@@ -439,7 +439,7 @@ int List::mergesort(class QoreProgram *pgm, class UserFunction *f, class Excepti
       safe_qorenode_t rv(pgm->callFunction(f, *args, xsink), xsink);
       if (xsink->isEvent())
 	 return -1;
-      int rc = rv->getAsInt();
+      int rc = *rv ? rv->getAsInt() : 0;
       if (rc <= 0)
 	 push(left.getAndClear(li++));
       else
@@ -472,7 +472,7 @@ int List::qsort(class QoreProgram *pgm, class UserFunction *f, int left, int rig
 	 safe_qorenode_t rv(pgm->callFunction(f, *args, xsink), xsink);
 	 if (xsink->isEvent())
 	    return -1;
-	 int rc = rv->getAsInt();
+	 int rc = *rv ? rv->getAsInt() : 0;
 	 if (rc >= 0 && left < right)
 	    right--;
 	 else
@@ -491,7 +491,7 @@ int List::qsort(class QoreProgram *pgm, class UserFunction *f, int left, int rig
 	 safe_qorenode_t rv(pgm->callFunction(f, *args, xsink), xsink);
 	 if (xsink->isEvent())
 	    return -1;
-	 int rc = rv->getAsInt();
+	 int rc = *rv ? rv->getAsInt() : 0;
 	 if (rc <= 0 && left < right)
 	    left++;
 	 else
@@ -522,7 +522,7 @@ class QoreNode *List::sort(char *sort_function_name, class ExceptionSink *xsink)
    class UserFunction *f = pgm->findUserFunction(sort_function_name);
    if (!f)
    {
-      xsink->raiseException("SORT-ERROR", "sort callback function '%s' does not exist", sort_function_name);
+      xsink->raiseException("LIST-CALLBACK-ERROR", "sort callback function '%s()' does not exist", sort_function_name);
       return NULL;
    }
    QoreNode *rv = copy();
@@ -557,7 +557,7 @@ class QoreNode *List::sortStable(char *sort_function_name, class ExceptionSink *
    class UserFunction *f = pgm->findUserFunction(sort_function_name);
    if (!f)
    {
-      xsink->raiseException("SORT-ERROR", "sort callback function '%s' does not exist", sort_function_name);
+      xsink->raiseException("LIST-CALLBACK-ERROR", "sort callback function '%s()' does not exist", sort_function_name);
       return NULL;
    }
    QoreNode *rv = copy();
@@ -723,6 +723,114 @@ bool List::needsEval() const
 void List::clearNeedsEval()
 {
    needs_eval = false;
+}
+
+class QoreNode *List::min() const
+{
+   class QoreNode *rv = NULL;
+   // it's not possible for an exception to be raised here, but
+   // we need an exception sink anyway
+   class ExceptionSink xsink;
+
+   for (int i = 0; i < length; i++)
+   {
+      class QoreNode *v = entry[i];
+
+      if (!rv)
+	 rv = v;
+      else
+      {
+	 if (OP_LOG_LT->bool_eval(v, rv, &xsink))
+	    rv = v;
+	 assert(!xsink);
+      }
+   }
+   return rv ? rv->RefSelf() : NULL;
+}
+
+class QoreNode *List::max() const
+{
+   class QoreNode *rv = NULL;
+   // it's not possible for an exception to be raised here, but
+   // we need an exception sink anyway
+   class ExceptionSink xsink;
+
+   for (int i = 0; i < length; i++)
+   {
+      class QoreNode *v = entry[i];
+
+      if (!rv)
+	 rv = v;
+      else
+      {
+	 if (OP_LOG_GT->bool_eval(v, rv, &xsink))
+	    rv = v;
+	 assert(!xsink);
+      }
+   }
+   return rv ? rv->RefSelf() : NULL;
+}
+
+class QoreNode *List::min(char *callback_function_name, class ExceptionSink *xsink) const
+{
+   class QoreProgram *pgm = getProgram();
+   class UserFunction *f = pgm->findUserFunction(callback_function_name);
+   if (!f)
+   {
+      xsink->raiseException("LIST-CALLBACK-ERROR", "callback function '%s()' does not exist", callback_function_name);
+      return NULL;
+   }
+
+   class QoreNode *rv = NULL;
+
+   for (int i = 0; i < length; i++)
+   {
+      class QoreNode *v = entry[i];
+
+      if (!rv)
+	 rv = v;
+      else
+      {
+	 safe_qorenode_t args(do_args(v, rv), xsink);
+	 safe_qorenode_t result(pgm->callFunction(f, *args, xsink), xsink);
+	 if (xsink->isEvent())
+	    return NULL;
+	 if (*result ? result->getAsInt() < 0 : false)
+	    rv = v;
+      }
+   }
+   return rv ? rv->RefSelf() : NULL;
+}
+
+class QoreNode *List::max(char *callback_function_name, class ExceptionSink *xsink) const
+{
+   class QoreProgram *pgm = getProgram();
+   class UserFunction *f = pgm->findUserFunction(callback_function_name);
+   if (!f)
+   {
+      xsink->raiseException("LIST-CALLBACK-ERROR", "callback function '%s()' does not exist", callback_function_name);
+      return NULL;
+   }
+
+   class QoreNode *rv = NULL;
+
+   for (int i = 0; i < length; i++)
+   {
+      class QoreNode *v = entry[i];
+
+      if (!rv)
+	 rv = v;
+      else
+      {
+	 safe_qorenode_t args(do_args(v, rv), xsink);
+	 safe_qorenode_t result(pgm->callFunction(f, *args, xsink), xsink);
+	 if (xsink->isEvent())
+	    return NULL;
+	 if (*result ? result->getAsInt() > 0 : false)
+	    rv = v;
+      }
+   }
+   return rv ? rv->RefSelf() : NULL;
 }
 
 ListIterator::ListIterator(class List *lst) 
