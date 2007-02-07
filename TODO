@@ -1,5 +1,6 @@
 see docs/roadmap.html
 
+* implement GZFile class
 * allow customizable QORE_INCLUDE_DIR searches
 * track include files, make sure they are only included once
 * add argument info to functions, throw errors if arguments are not correct
