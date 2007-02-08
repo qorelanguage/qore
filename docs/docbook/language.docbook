@@ -5860,6 +5860,8 @@ printf("%s\n", makeFormattedXMLString($h));</programlisting>
 
    <para>Note than when deserializing XML strings to Qore data structures, the above rules are applied in reverse.  If any out-of-order duplicate keys are detected, Qore will automatically generate unique hash key names based on the above rules.</para>
 
+   <para>Also note that CDATA text will be generated if a hash key starts with '^cdata'; such text will not be processed for escape code substitution.  When deserializing XML strings to qore data structures, CDATA text will be placed unmodified under such a hash key as well.</para>
+
     <table>
       <title>Functions For XML Serialization and Deserialization</title>
       <tgroup cols='2' align='left' colsep='1' rowsep='1'>

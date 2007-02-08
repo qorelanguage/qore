@@ -110,9 +110,10 @@ class xml_node {
       xml_node *next;
       int depth;
       int vcount;
+      int cdcount;
 
       xml_node(QoreNode **n, int d) 
-      : node(n), next(0), depth(d), vcount(0)
+	 : node(n), next(0), depth(d), vcount(0), cdcount(0)
       {
       }
 };
@@ -168,13 +169,21 @@ class xml_stack {
 	 val = NULL;
 	 return rv;
       }
-      inline int getValueCount()
+      inline int getValueCount() const
       {
 	 return tail->vcount;
       }
       inline void incValueCount()
       {
 	 tail->vcount++;
+      }
+      inline int getCDataCount() const
+      {
+	 return tail->cdcount;
+      }
+      inline void incCDataCount()
+      {
+	 tail->cdcount++;
       }
 };
 
@@ -204,9 +213,38 @@ static void concatSimpleValue(QoreString *str, QoreNode *n, class ExceptionSink 
    else if (n->type == NT_DATE)
       str->concat(n->val.date_time);
    else
-   {	 
+   {
       QoreNode *nn = n->convert(NT_STRING);
       str->concatAndHTMLEncode(nn->val.String, xsink);
+      nn->deref(NULL);
+   }
+}
+
+static void concatSimpleCDataValue(QoreString *str, QoreNode *n, class ExceptionSink *xsink)
+{
+   //printd(0, "concatSimpleValue() n=%08p (%s) %s\n", n, n->type->getName(), n->type == NT_STRING ? n->val.String->getBuffer() : "unknown");
+
+   if (n->type == NT_STRING)
+   {
+      if (strstr(n->val.String->getBuffer(), "]]>"))
+      {
+	 xsink->raiseException("MAKE-XML-ERROR", "CDATA text contains illegal ']]>' sequence");
+	 return;
+      }
+      str->concat(n->val.String, xsink);
+   }
+   else if (n->type == NT_INT)
+      str->sprintf("%lld", n->val.intval);
+   else if (n->type == NT_FLOAT)
+      str->sprintf("%.9g", n->val.floatval);
+   else if (n->type == NT_BOOLEAN)
+      str->sprintf("%d", n->val.boolval);
+   else if (n->type == NT_DATE)
+      str->concat(n->val.date_time);
+   else
+   {
+      QoreNode *nn = n->convert(NT_STRING);
+      str->concat(nn->val.String, xsink);
       nn->deref(NULL);
    }
 }
@@ -402,6 +440,18 @@ static void makeXMLString(QoreString *str, Hash *h, int indent, class QoreEncodi
       if (!strncmp(key, "^value", 6))
       {
 	 concatSimpleValue(str, hi.getValue(), xsink);
+	 if (xsink->isException())
+	    break;
+	 continue;
+      }
+
+      if (!strncmp(key, "^cdata", 5))
+      {
+	 str->concat("<![CDATA[");
+	 concatSimpleCDataValue(str, hi.getValue(), xsink);
+	 if (xsink->isException())
+	    break;
+	 str->concat("]]>");
 	 continue;
       }
 
@@ -1001,7 +1051,7 @@ static int getXMLData(xmlTextReader *reader, xml_stack *xstack, class QoreEncodi
 	 }
 	 //printd(5, "%s: type=%d, hasValue=%d, empty=%d, depth=%d\n", name, nt, xmlTextReaderHasValue(reader), xmlTextReaderIsEmptyElement(reader), depth);
       }
-      else if (nt == XML_READER_TYPE_TEXT || nt == XML_READER_TYPE_CDATA)
+      else if (nt == XML_READER_TYPE_TEXT)
       {
 	 int depth = xmlTextReaderDepth(reader);
 	 xstack->checkDepth(depth);
@@ -1013,28 +1063,20 @@ static int getXMLData(xmlTextReader *reader, xml_stack *xstack, class QoreEncodi
 	    if (!qstr)
 	       return 0;
 
-	    // decode HTML character references in CDATA
-	    if (nt == XML_READER_TYPE_CDATA)
-	    {
-	       class QoreString *ns = new QoreString(qstr->getEncoding());
-	       ns->concatAndHTMLDecode(qstr);
-	       delete qstr;
-	       qstr = ns;
-	    }
+	    class QoreNode *val = new QoreNode(qstr);
 
-	    // FIXME: this is wrong
 	    class QoreNode *n = xstack->getNode();
 	    if (n)
 	    {
 	       if (n->type == NT_HASH)
 	       {
 		  if (!xstack->getValueCount())
-		     n->val.hash->setKeyValue("^value^", new QoreNode(qstr), xsink);
+		     n->val.hash->setKeyValue("^value^", val, xsink);
 		  else
 		  {
-		     QoreString val;
-		     val.sprintf("^value%d^", xstack->getValueCount());
-		     n->val.hash->setKeyValue(val.getBuffer(), new QoreNode(qstr), xsink);
+		     QoreString kstr;
+		     kstr.sprintf("^value%d^", xstack->getValueCount());
+		     n->val.hash->setKeyValue(kstr.getBuffer(), val, xsink);
 		  }		  
 	       }
 	       else // convert value to hash and save value node
@@ -1044,14 +1086,64 @@ static int getXMLData(xmlTextReader *reader, xml_stack *xstack, class QoreEncodi
 		  h->setKeyValue("^value^", n, NULL);
 		  xstack->incValueCount();
 
-		  QoreString val;
-		  val.sprintf("^value%d^", 1);
-		  h->setKeyValue(val.getBuffer(), new QoreNode(qstr), xsink);
+		  QoreString kstr;
+		  kstr.sprintf("^value%d^", 1);
+		  h->setKeyValue(kstr.getBuffer(), val, xsink);
 	       }
 	       xstack->incValueCount();
 	    }
 	    else
-	       xstack->setNode(new QoreNode(qstr));
+	       xstack->setNode(val);
+	 }
+      }
+      else if (nt == XML_READER_TYPE_CDATA)
+      {
+	 int depth = xmlTextReaderDepth(reader);
+	 xstack->checkDepth(depth);
+
+	 char *str = (char *)xmlTextReaderConstValue(reader);
+	 if (str)
+	 {
+	    class QoreString *qstr = getXmlString(reader, data_ccsid, xsink);
+	    if (!qstr)
+	       return 0;
+
+#if 0       
+	    // THIS IS WRONG- CDATA must not be processed
+	    // decode HTML character references in CDATA
+	    class QoreString *ns = new QoreString(qstr->getEncoding());
+	    ns->concatAndHTMLDecode(qstr);
+	    delete qstr;
+	    qstr = ns;
+#endif
+
+	    class QoreNode *val = new QoreNode(qstr);
+
+	    class QoreNode *n = xstack->getNode();
+	    if (n && n->type == NT_HASH)
+	    {
+	       if (!xstack->getCDataCount())
+		  n->val.hash->setKeyValue("^cdata^", val, xsink);
+	       else
+	       {
+		  QoreString kstr;
+		  kstr.sprintf("^cdata%d^", xstack->getCDataCount());
+		  n->val.hash->setKeyValue(kstr.getBuffer(), val, xsink);
+	       }		  
+	    }
+	    else // convert value to hash and save value node
+	    {
+	       class Hash *h = new Hash();
+	       xstack->setNode(new QoreNode(h));
+	       if (n)
+	       {
+		  h->setKeyValue("^value^", n, NULL);
+		  xstack->incValueCount();
+	       }
+
+	       h->setKeyValue("^cdata^", val, xsink);
+	    }
+	    xstack->incCDataCount();
 	 }
       }
       rc = xmlTextReaderRead(reader);

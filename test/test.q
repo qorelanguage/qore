@@ -1198,6 +1198,8 @@ sub xml_tests()
     test_value(parseXMLRPCResponse($str), $fr, "second makeXMLRPCResponse() and parseXMLRPCResponse()");
     $str = makeFormattedXMLRPCFaultResponseString(100, "error");
     test_value(parseXMLRPCResponse($str), $fr, "second makeXMLRPCResponse() and parseXMLRPCResponse()");
+    $o = ( "xml" : ($o + ( "^cdata^" : "this string contains special characters &<> etc" )) );
+    test_value($o == parseXML(makeXMLString($o)), True, "xml serialization with cdata");
 }
 
 sub json_tests()

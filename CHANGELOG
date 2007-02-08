@@ -1,3 +1,14 @@
+2007.02.08: David Nichols
+	* added documentation for min() and max()
+	* corrected some documentation typos
+	* modified hextoint() to accept optionally leading '0x' or 'x' in front
+	  of the string of hex digits
+	* modified XML parsing to treat CDATA specially: put it in ^cdata^ hash
+	  keys and do not do any escape processing on it so it can be recognized
+	  as CDATA, also makeXMLString() will create CDATA entries properly for
+	  such hash keys, this data can be processed for escape code conversion
+	  using the html_decode() function
+
 2007.02.07: David Nichols
 	* implemented List::min() and List::max() with and without callbacks
 	* plugged memory leaks in new compression/decompression code in 

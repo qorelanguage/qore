@@ -863,7 +863,7 @@ static class QoreNode *f_parseHexString(class QoreNode *params, ExceptionSink *x
    return new QoreNode(b);
 }
 
-// takes a hex string like "6d4f84e0" (without any leading 0x) and returns the corresponding base-10 integer
+// takes a hex string like "6d4f84e0" (with or without leading x or 0x) and returns the corresponding base-10 integer
 static class QoreNode *f_hextoint(class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = test_param(params, NT_STRING, 0);
@@ -876,6 +876,10 @@ static class QoreNode *f_hextoint(class QoreNode *params, ExceptionSink *xsink)
    int64 rc = 0;
    int64 pow = 0;
    char *buf = p0->val.String->getBuffer();
+   if (*buf == '0' && *(buf + 1) == 'x')
+      buf += 2;
+   else if (*buf == 'x')
+      buf++;
    for (char *p = p0->val.String->strlen() + buf - 1; p >= buf; p--)
    {
       int n = get_nibble(*p, xsink);

@@ -2489,22 +2489,17 @@
           </entry>
         </row>
         <row>
-          <entry>
-            <para>
-              <link linkend="makeXMLString">makeXMLString()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>String</para>
-          </entry>
-          <entry>
-            <para>Y</para>
-          </entry>
-          <entry>
-            <para>Serializes a hash into a complete XML string with an XML header and without formatting.</para>
-          </entry>
+          <entry><para><link linkend="makeXMLString">makeXMLString()</link></para></entry>
+          <entry><para>String</para></entry>
+          <entry><para>Y</para></entry>
+          <entry><para>Serializes a hash into a complete XML string with an XML header and without formatting.</para></entry>
         </row>
-
+        <row>
+          <entry><para><link linkend="max">max()</link></para></entry>
+          <entry><para>Any</para></entry>
+          <entry><para>N</para></entry>
+          <entry><para>Returns the maximum value in a list (see also <link linkend="min">min()</link>); one variant takes an optional callback function to process lists of complex data types.</para></entry>
+        </row>
       <row>
         <entry>
           <para>
@@ -2559,6 +2554,12 @@
 	  <entry><para>Date</para></entry>
           <entry><para>N</para></entry>
           <entry><para>Returns a relative date in milliseconds to be used in date arithmetic.</para></entry>
+        </row>
+        <row>
+          <entry><para><link linkend="min">min()</link></para></entry>
+          <entry><para>Any</para></entry>
+          <entry><para>N</para></entry>
+          <entry><para>Returns the minumum value in a list (see also <link linkend="max">max()</link>); one variant takes an optional callback function to process lists of complex data types.</para></entry>
         </row>
         <row>
           <entry>
@@ -14930,6 +14931,94 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
   <para>This function does not throw any exceptions.</para>
 </sect2>
 
+  <sect2 id="max">
+    <title>max()</title>
+    <variablelist>
+      <varlistentry>
+	<term>Synopsis</term>
+	<listitem>
+	  <para>Returns the maximum value in a list (see also <link linkend="min">min()</link>).  Without a callback function, this function will only work on basic data types.  A callback function can be used to find the maximum value of a list of complex data types.  The callback function must accept two arguments and must return -1, 0, or 1 if the first is less than, equal to, or greater than the second, respectively.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Usage</term>
+	<listitem>
+	  <programlisting>max(<replaceable>list, [callback]</replaceable>)</programlisting>
+	  <programlisting>max(<replaceable>elem1, elem2[, ...]</replaceable>)</programlisting>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for max()</title>
+      <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>Argument Type</para></entry>
+	    <entry><para>Return Type</para></entry>
+	    <entry><para>Description</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row>
+	    <entry><para><replaceable>list, [callback]</replaceable></para></entry>
+	    <entry><para>Any</para></entry>
+	    <entry><para>Finds the maxmimum value in the list and returns that value.  The list must be made up of basic data types unless a callback function is used as described above.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><replaceable>elem1, elem2[, ...]</replaceable></para></entry>
+	    <entry><para>Any</para></entry>
+	    <entry><para>Finds the maximum value in the list of simple data types passed as top-level arguments to the function and returns that value.  No callback function can be specified with this variant.</para></entry>
+	  </row>
+	</tbody>
+      </tgroup>
+    </table>
+    <para>This function does not throw any exceptions (note that the callback function could throw an exception).</para>
+  </sect2>
+
+  <sect2 id="min">
+    <title>min()</title>
+    <variablelist>
+      <varlistentry>
+	<term>Synopsis</term>
+	<listitem>
+	  <para>Returns the minumum value in a list (see also <link linkend="max">max()</link>).  Without a callback function, this function will only work on basic data types.  A callback function can be used to find the minimum value of a list of complex data types.  The callback function must accept two arguments and must return -1, 0, or 1 if the first is less than, equal to, or greater than the second, respectively.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Usage</term>
+	<listitem>
+	  <programlisting>min(<replaceable>list, [callback]</replaceable>)</programlisting>
+	  <programlisting>min(<replaceable>elem1, elem2[, ...]</replaceable>)</programlisting>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for min()</title>
+      <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>Argument Type</para></entry>
+	    <entry><para>Return Type</para></entry>
+	    <entry><para>Description</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row>
+	    <entry><para><replaceable>list, [callback]</replaceable></para></entry>
+	    <entry><para>Any</para></entry>
+	    <entry><para>Finds the minimum value in the list and returns that value.  The list must be made up of basic data types unless a callback function is used as described above.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><replaceable>elem1, elem2[, ...]</replaceable></para></entry>
+	    <entry><para>Any</para></entry>
+	    <entry><para>Finds the minimum value in the list of simple data types passed as top-level arguments to the function and returns that value.  No callback function can be specified with this variant.</para></entry>
+	  </row>
+	</tbody>
+      </tgroup>
+    </table>
+    <para>This function does not throw any exceptions (note that the callback function could throw an exception).</para>
+  </sect2>
+
 <sect2 id="parse">
 <title>parse()</title>
 
@@ -15327,7 +15416,7 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
       <varlistentry>
 	<term>Synopsis</term>
 	<listitem>
-	  <para>Performs a stable sort in descending order and returns the new list (for an untable version see <link linkend="sortDescendingStable">sortDescendingStable()</link>).  Without a callback function, this function will only sort basic data types.  A callback function can be used to sort complex data types.  The callback function must accept two arguments and must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively.</para>
+	  <para>Performs a stable sort in descending order and returns the new list (for an unstable version see <link linkend="sortDescending">sortDescending()</link>).  Without a callback function, this function will only sort basic data types.  A callback function can be used to sort complex data types.  The callback function must accept two arguments and must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively.</para>
 	</listitem>
       </varlistentry>
       <varlistentry>
