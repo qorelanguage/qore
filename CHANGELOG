@@ -8,6 +8,7 @@
 	  as CDATA, also makeXMLString() will create CDATA entries properly for
 	  such hash keys, this data can be processed for escape code conversion
 	  using the html_decode() function
+	* updated library to -version 2:0:1 (libqore 1.1.0)
 
 2007.02.07: David Nichols
 	* implemented List::min() and List::max() with and without callbacks
