@@ -23,6 +23,7 @@
 #include <qore/Qore.h>
 #include <qore/QoreURL.h>
 #include <qore/QoreHTTPClient.h>
+#include <qore/ql_misc.h>
 #include <qore/minitest.hpp>
 
 #ifdef DEBUG
@@ -66,6 +67,7 @@ QoreHTTPClient::QoreHTTPClient()
    default_headers["Content-Type"] = "text/html";
    default_headers["Connection"] = "Keep-Alive";
    default_headers["User-Agent"] = "Qore HTTP Client v" PACKAGE_VERSION;
+   default_headers["Accept-Encoding"] = "deflate,gzip";
    default_headers["Host"] = "auto";
    
    setSocketPath();
@@ -554,27 +556,51 @@ class QoreNode *QoreHTTPClient::send_internal(char *meth, const char *path, clas
       }
    }
 
+   // see if we should do a binary or string read
+   char *content_encoding = NULL;
+   v = ah->getKeyValue("content-encoding");
+   if (v)
+      content_encoding = v->val.String->getBuffer();
+
    class QoreNode *te = ah->getKeyValue("transfer-encoding");
    
    // get response body, if any
    v = ah->getKeyValue("content-length");
    int len = v ? v->getAsInt() : 0;
-   
+
+   class QoreNode *body = NULL;   
    if (te && !strcmp(te->val.String->getBuffer(), "chunked")) // check for chunked response body
    {
-      class Hash *nah = m_socket.readHTTPChunkedBody(timeout, xsink);
+      class Hash *nah;
+      if (content_encoding)
+	 nah = m_socket.readHTTPChunkedBodyBinary(timeout, xsink);
+      else
+	 nah = m_socket.readHTTPChunkedBody(timeout, xsink);
       if (!nah)
       {
 	 ans->deref(xsink);
 	 return NULL;
       }
       
+      body = nah->takeKeyValue("body");
       ah->assimilate(nah, xsink);
    }
    else if (len || getbody)
    {
       int rc;
-      class QoreString *body = m_socket.recv(len, timeout, &rc);
+
+      if (content_encoding)
+      {
+	 class BinaryObject *bobj = m_socket.recvBinary(len, timeout, &rc);
+	 if (rc > 0)
+	    body = new QoreNode(bobj);
+      }
+      else
+      {
+	 class QoreString *bstr = m_socket.recv(len, timeout, &rc);
+	 if (rc > 0)
+	    body = new QoreNode(bstr);
+      }
 
       if (rc <= 0)
       {
@@ -590,8 +616,6 @@ class QoreNode *QoreHTTPClient::send_internal(char *meth, const char *path, clas
 	 ans->deref(xsink);
 	 return NULL;
       }
-
-      ah->setKeyValue("body", new QoreNode(body), NULL);
    }
 
    // check for connection: close header
@@ -599,6 +623,34 @@ class QoreNode *QoreHTTPClient::send_internal(char *meth, const char *path, clas
       disconnect_unlocked();
 
    unlock();
+
+   // for content-encoding processing we can run unlocked
+
+   // add body to result hash and process content encoding if necessary
+   if (body && content_encoding)
+   {
+      class BinaryObject *bobj = body->val.bin;
+      class QoreString *str = NULL;
+      if (!strcmp(content_encoding, "deflate"))
+	 str = qore_inflate_to_string(bobj, m_socket.getEncoding(), xsink);
+      else if (!strcmp(content_encoding, "gzip"))
+	 str = qore_gunzip_to_string(bobj, m_socket.getEncoding(), xsink);
+      else
+      {
+	 xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", "don't know how to handle content-encoding '%s'", content_encoding);
+	 ans->deref(xsink);
+	 ans = NULL;
+      }
+      body->deref(xsink);
+      if (str)
+	 body = new QoreNode(str);
+      else
+	 body = NULL;	    
+   }
+   
+   if (body)
+      ah->setKeyValue("body", body, xsink);
+   
    return ans;
 }
 

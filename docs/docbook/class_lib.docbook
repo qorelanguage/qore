@@ -10704,6 +10704,7 @@
     <para>By default 'Connection: Keep-Alive' is always sent regardless of the HTTP protocol level set for the object, however if a server response contains 'Connection: close', the connection will be closed as soon as the full response (including any message body if present) has been read.</para>
     <para>Note that HTTP redirect messages are currently not processed and will cause an <code>HTTP-CLIENT-RECEIVE-ERROR</code> exception to be thrown.</para>
     <para>Objects of this class are thread-safe and support serializing multiple simultaneous requests from many threads.  If a request is in progress and another thread attempts to make a request at the same time, the second thread will block until the first is complete.  Therefore the total amount of time a thread could wait for a response in a multi-threaded context could be greater than the read timeout value.</para>
+    <para>This class understands and automatically decodes &quot;deflate&quot; and &quot;gzip&quot; content encodings as well.</para>
     <para>The default read timeout value is 300,000 milliseconds (5 minutes).  Note that the read timeout value applies to individual packets; for this reason for large transfers the overall read time could exceed the read timeout value.</para>
     <para>This class understands the protocols in the following table.</para>
 
@@ -10780,6 +10781,10 @@
 	  <row>
 	    <entry><para><code>Connection</code></para></entry>
 	    <entry><para><code>Keep-Alive</code></para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>Accept-Encoding</code></para></entry>
+	    <entry><para><code>deflate,gzip</code></para></entry>
 	  </row>
 	</tbody>
       </tgroup>
