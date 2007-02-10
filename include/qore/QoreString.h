@@ -120,6 +120,7 @@ class QoreString {
       DLLEXPORT void take(char *);
       DLLEXPORT void take(char *, const class QoreEncoding *new_charset);
       DLLEXPORT void take(char *, int size);
+      DLLEXPORT void takeAndTerminate(char *, int size);
       DLLEXPORT class QoreString *convertEncoding(const class QoreEncoding *nccs, class ExceptionSink *xsink) const;
       DLLEXPORT char *giveBuffer();
       DLLEXPORT void clear();

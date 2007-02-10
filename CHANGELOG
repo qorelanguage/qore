@@ -1,3 +1,8 @@
+2007.02.10: David Nichols
+	* ensure that decompressed strings are null terminated and the length is
+	  set properly and not calculated in case they contain binary data after
+	  all
+
 2007.02.09: David Nichols
 	* fixed bugs in compressing/decomressing data larger than the default
 	  buffer size

@@ -462,7 +462,14 @@ class QoreString *qore_inflate_to_string(class BinaryObject *b, class QoreEncodi
    }
 
    class QoreString *str = new QoreString(enc);
-   str->take((char *)buf);
+   // how much data was decompressed
+   len = bsize - d_stream.avail_out;
+   // add closing \0 if necessary
+   if (((char *)buf)[len - 1])
+      str->takeAndTerminate((char *)buf, len);
+   else // otherwise take string and set length
+      str->take((char *)buf, len - 1);
+
    return str;
 }
 
@@ -640,7 +647,14 @@ class QoreString *qore_gunzip_to_string(class BinaryObject *bin, class QoreEncod
    }
 
    class QoreString *str = new QoreString(enc);
-   str->take((char *)buf);
+   // how much data was decompressed
+   len = bsize - d_stream.avail_out;
+   // add closing \0 if necessary
+   if (((char *)buf)[len - 1])
+      str->takeAndTerminate((char *)buf, len);
+   else // otherwise take string and set length
+      str->take((char *)buf, len - 1);
+
    return str;
 }
 

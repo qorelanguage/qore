@@ -314,6 +314,16 @@ void QoreString::take(char *str, int size)
    allocated = size + 1;
 }
 
+void QoreString::takeAndTerminate(char *str, int size)
+{
+   if (buf)
+      free(buf);
+   buf = str;
+   len = allocated = size;
+   check_char(size);
+   buf[size] = '\0';
+}
+
 // NOTE: could be dangerous if we refer to the buffer after this
 // call and it's NULL (the only way the buffer can become NULL)
 char *QoreString::giveBuffer()
