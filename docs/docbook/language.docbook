@@ -336,7 +336,7 @@ print("global a = %d\n", $a); </programlisting>
     <entry><para><link linkend="Date">Date</link></para></entry>
     <entry><para>A date with an optional time component, with resolution to the millisecond.</para></entry>
     <entry><code>2005-07-20</code></entry>
-    <entry><para>0000-00-00 00:00:00</para></entry>
+    <entry><para>1970-01-01 00:00:00</para></entry>
   </row>
   <row>
     <entry><para><link linkend="Binary">Binary</link></para></entry>
@@ -348,13 +348,13 @@ print("global a = %d\n", $a); </programlisting>
     <entry><para><link linkend="NULL">NULL</link></para></entry>
     <entry><para>Corresponds to a NULL value in a database query (not equivalent to NOTHING)</para></entry>
     <entry><code><command>NULL</command></code></entry>
-    <entry><para>n/a</para></entry>
+    <entry><code><command>NULL</command></code></entry>
   </row>
   <row>
     <entry><para><link linkend="NOTHING">NOTHING</link></para></entry>
     <entry><para>Represents the state of a variable having no value or function returning no value (not equivalent to NULL)</para></entry>
     <entry><code><command>NOTHING</command></code></entry>
-    <entry><para>n/a</para></entry>
+    <entry><code><command>NOTHING</command></code></entry>
   </row>
 
 </tbody>
@@ -498,6 +498,8 @@ language, either by an addition to this data type, or by adding another date typ
 
   <para>The <link linkend="Qore::SQL::Datasource_Class">Datasource Class</link> can also be used to read and write Binary objects as BLOBs.</para>
 
+  <para>Note that this is not an exhaustive list; see the function and class library documentation for more examples.</para>
+
 </sect2>
 
 <sect2 id="NULL">
@@ -508,7 +510,7 @@ language, either by an addition to this data type, or by adding another date typ
 <sect2 id="NOTHING">
   <title>NOTHING</title>
   <para>This special data type represents no value.</para>
-  <note><para>The <command>exists</command> operator will return False when given <command>NOTHING</command> as an argument.</para></note>
+  <note><para>The <link linkend="Exists_Operator"><command>exists</command></link> operator will return False when given <command>NOTHING</command> as an argument.</para></note>
 </sect2>
 
 <sect2 id="Conversions">
@@ -4708,24 +4710,24 @@ $var[1].count++;
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>The Qore <command>for</command> statement is most similar to the <command>for</command> statement in C and Java, or the non array iterator <command>for</command> statement in Perl.  This statement is ideal for loops that should execute a given number of times, then complete.</para>
+	<para>The Qore <command>for</command> statement is most similar to the <command>for</command> statement in C and Java, or the non array iterator <command>for</command> statement in Perl.  This statement is ideal for loops that should execute a given number of times, then complete.  Each of the three expressions in the <command>for</command> statement is optional and may be omitted.</para>
      </listitem>
     </varlistentry>
     <varlistentry>
       <term>Syntax</term>
       <listitem>
-	<programlisting><command>for</command> ( <replaceable>initial_expression</replaceable> ; <replaceable>test_expression</replaceable> ; <replaceable>iterator_expression</replaceable> )
+	<programlisting><command>for</command> ( <replaceable>[initial_expression]</replaceable> ; <replaceable>[test_expression]</replaceable> ; <replaceable>[iterator_expression]</replaceable> )
       <replaceable>statement</replaceable></programlisting>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Description</term>
       <listitem>
-	<para><replaceable>initial_expression</replaceable></para>
+	<para><replaceable>[initial_expression]</replaceable></para>
 	<para>The <replaceable>initial_expression</replaceable> is executed only once at the start of each <command>for</command> loop. It is typically used to initialize a loop variable.</para>
-	<para><replaceable>test_expression</replaceable></para>
+	<para><replaceable>[test_expression]</replaceable></para>
 	<para>The <replaceable>test_expression</replaceable> is executed at the start of each <command>for</command> loop iteration. If this expression evaluates to Boolean False, the loop will terminate.</para>
-	<para><replaceable>iterator_expression</replaceable></para>
+	<para><replaceable>[iterator_expression]</replaceable></para>
 	<para>The <replaceable>iterator_expression</replaceable> is executed at the end of each <command>for</command> loop iteration. It is typically used to increment or decrement a loop variable that will be used in the <replaceable>test_expression</replaceable>.</para>
      </listitem>
     </varlistentry>

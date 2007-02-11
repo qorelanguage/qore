@@ -29,6 +29,9 @@
 #include <ctype.h>
 #include <stdlib.h>
 
+// RFC 4627 JSON specification
+// qore only supports JSON with UTF-8 
+
 // returns 0 for OK
 static int cmp_rest_token(char *&p, char *tok)
 {
@@ -87,19 +90,40 @@ static class QoreString *getJSONStringToken(char *&buf, int &line_number, class 
 	    buf++;
 	    continue;
 	 }
-	 // FIXME: implement unicode character parsing
-	 if (*buf == '\b')
+	 if (*buf == 'b')
 	    str->concat('\b');
-	 else if (*buf == '\f')
+	 else if (*buf == 'f')
 	    str->concat('\f');
-	 else if (*buf == '\n')
+	 else if (*buf == 'n')
 	    str->concat('\n');
-	 else if (*buf == '\r')
+	 else if (*buf == 'r')
 	    str->concat('\r');
-	 else if (*buf == '\t')
+	 else if (*buf == 't')
 	    str->concat('\t');
-	 else
-	    break;
+	 else if (*buf == 'u') // expect a unicode character specification
+	 {
+	    ++buf;
+	    // check for 4 hex digits
+	    if (isxdigit(*buf) && *(buf + 1) && isxdigit(*(buf + 1)) 
+		&& *(buf + 2) && isxdigit(*(buf + 2)) 
+		&& *(buf + 3) && isxdigit(*(buf + 3)))
+	    {
+	       char unicode[5];
+	       strncpy(unicode, buf, 4);
+	       unicode[4] = '\0';
+	       unsigned code = strtoul(unicode, NULL, 16);
+	       if (str->concatUnicode(code, xsink))
+		  break;
+	       buf += 3;
+	    }
+	    else
+	       str->concat("\\u");
+	 }
+	 else // otherwise just concatenate the characters
+	 {
+	    str->concat('\\');
+	    str->concat(*buf);
+	 }
 	 buf++;
 	 continue;
       }

@@ -1,3 +1,8 @@
+2007.02.11: David Nichols
+	* fixed a bug parsing escape sequences in JSON strings
+	* implemented unicode numeric character code parsing in JSON strings 
+	* updated documentation
+
 2007.02.10: David Nichols
 	* ensure that decompressed strings are null terminated and the length is
 	  set properly and not calculated in case they contain binary data after

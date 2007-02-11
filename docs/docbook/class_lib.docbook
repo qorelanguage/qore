@@ -5920,9 +5920,13 @@
     <title>Qore::Program Class</title>
     
     <para>Program objects allow Qore programs to support subprograms with restricted capabilities, for example, to support user-defined logic for application actions.</para>
+
+    <para>Parsing in Qore happens in two steps: first all code is parsed to pending data structures, and then in the second stage, all references are resolved, and, if there are no errors, then all changes are committed to the Program object.  Note that all parse actions (<link linkend="Qore_Program_parse">Program::parse()</link>, <link linkend="Qore_Program_parsePending">Program::parsePending()</link>, <link linkend="Qore_Program_parseCommit">Program::parseCommit()</link>, and <link linkend="Qore_Program_parseRollback">Program::parseRollback()</link>) are atomic; there is a thread lock on each Program object to ensure atomicity, and if any parse errors occur in any stage of parsing, any pending changes to the Program object are automatically rolled back.  However parse actions that affect only one stage of the two stages of parsing (<link linkend="Qore_Program_parsePending">Program::parsePending()</link>, <link linkend="Qore_Program_parseCommit">Program::parseCommit()</link> and  <link linkend="Qore_Program_parseRollback">Program::parseRollback()</link>) are atomic within themselves, but not between calls, so one thread may inadvertently commit changes to a Program object if two or more threads are trying to perform transaction-safe two-stage parsing on a Program object without explicit user locking.</para>
     
-    <para>The constants in the following table are defined to allow parse options to be set for Program objects.  These options should be binary-OR'ed together and passed to the Program object's constructor.  Also see <link linkend="Command-Line_Parsing">Command-Line Parsing</link> for equivalent command-line options, and <link linkend="Parse_Directives">Parse Directives</link> for equivalent parse directives.</para>
+    <para>The constants in the following table can be used to limit the capabilities of a Program object.  These options should be binary-OR'ed together and passed to the Program object's constructor.  Also see <link linkend="Command-Line_Parsing">Command-Line Parsing</link> for equivalent command-line options, and <link linkend="Parse_Directives">Parse Directives</link> for equivalent parse directives.</para>
     
+    <para>Note that a program can provide controlled access to functionality otherwise restricted by parse options by exporting a custom API into the child program object using either the <link linkend="Qore_Program_importFunction">Program::importFunction()</link> or <link linkend="Qore_Program_importGlobalVariable">Program::importGlobalVariable()</link> methods.  This is possible because code (functions or object methods) imported into and called from a subprogram will run in the parent's space and therefore with the parent's capabilities.</para>
+
     <table id="Parse_Options">
       <title>Parse Options</title>
       <tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -5944,7 +5948,15 @@
 	  </row>
 	  <row>
 	    <entry><para>Qore::PO_NO_THREADS</para></entry>
-	    <entry><para>Disallows any thread operations (<link linkend="Background_Operator"><command>background</command> operator</link> and <link linkend="thread_exit_Statements"><command>thread_exit</command> statement</link>, for example).</para></entry>
+	    <entry><para>Disallows any thread operations (the <link linkend="Background_Operator"><command>background</command> operator</link> and the <link linkend="thread_exit_Statements"><command>thread_exit</command> statement</link>, for example) and the use of thread-relevant classes and functions (equivalent to PO_NO_THREAD_CLASSES | PO_NO_THREAD_CONTROL).</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>Qore::PO_NO_THREAD_CLASSES</para></entry>
+	    <entry><para>Disallows access to any thread classes.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>Qore::PO_NO_THREAD_CONTROL</para></entry>
+	    <entry><para>Disallows access to any thread-control functions and thread-relevant statements and operators (for example the <link linkend="Background_Operator"><command>background</command> operator</link> and the <link linkend="thread_exit_Statements"><command>thread_exit</command> statement</link>).</para></entry>
 	  </row>
 	  <row>
 	    <entry><para>Qore::PO_NO_TOP_LEVEL_STATEMENTS</para></entry>
@@ -6914,7 +6926,7 @@
 	    <programlisting>QoreProgram::importGlobalVariable(<replaceable>string:name, [boolean:read_only]</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
-      </variablelist>
+xs      </variablelist>
 
       <table>
 	<title>Arguments for Program::importGlobalVariable()</title>
@@ -13579,6 +13591,38 @@
             <entry><para>JSON-RPC protocol over HTTP with SSL/TLS encryption</para></entry>
           </row>
         </tbody>
+      </tgroup>
+    </table>
+
+    <para>The JsonRpcClient supplies default values for HTTP headers as follows:</para>
+
+    <table>
+      <title>JsonRpcClient Default, but Overridable Headers</title>
+      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>Header</para></entry>
+	    <entry><para>Default Value</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row>
+	    <entry><para><code>Accept</code></para></entry>
+	    <entry><para><code>application/json</code></para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>Content-Type</code></para></entry>
+	    <entry><para><code>application/json</code></para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>User-Agent</code></para></entry>
+	    <entry><para><code>Qore JSON-RPC Client v0.6.1</code></para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>Connection</code></para></entry>
+	    <entry><para><code>Keep-Alive</code></para></entry>
+	  </row>
+	</tbody>
       </tgroup>
     </table>
 
