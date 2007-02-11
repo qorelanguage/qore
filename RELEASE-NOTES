@@ -2,7 +2,35 @@ RELEASE NOTES for qore v0.6.1
 
 NOTE: for platform-specific notes and build instructions, please see the file BUILD
 
----- work in progress ----
+this release is mostly a bug-fix release
+
+*) bugs in HTTPClient class fixed
+the Host: header is now set correctly; this bug prohibited connections form being made to HTTP 1.1 servers
+path is set to "/" when otherwise empty
+host number is set in the Host: field if not port 80
+
+*) HTTPClient class improvements
+chunked traqnsfer encoding accepted and correctly parsed
+"deflate" and "gzip" content-encoding accepted and handled transparently
+
+*) thread-resource tracking bugs fixed, particularly affecting the Datasource class
+leaving uncomitted transactions open when the thread terminates would cause programs to crash in the previous version of qore
+
+*) compression functions rewritten, gzip() and gunzip_to_string() and gunzip_to_binary() implemented
+buffer sizes are automatically handled (and transparently resized internally if necessary); it's now possible to specify the string character encoding for *_to_string() functions
+
+*) min() and max() functions implemented for lists
+callback functions accepted to work on lists of complex dta types
+
+*) unicode numeric character sequences decoded in HTTP contexts and in JSON strings
+
+*) CDATA elements in XML strings are now handled correctly
+CDATA elements are put in ^cdata^ hash keys when deserializing XML strings - no escape code processing is performed on this data
+conversely, serialization to XML strings will handle ^cdata^ keys by creating CDATA elements
+
+*) strtoint() function implemented, gmtime() and localtime() modified to return current time if no argument passed
+
+*) other minor bugs fixed, see CHANGELOG for details
 
 
 ***********************
