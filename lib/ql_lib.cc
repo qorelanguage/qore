@@ -421,9 +421,9 @@ static class QoreNode *f_strerror(class QoreNode *params, ExceptionSink *xsink)
    if (!p0)
       return NULL;
 #ifdef NEED_STRERROR_R
-#define BUFSIZE 512
-   char buf[BUFSIZE];
-   if (strerror_r(p0->getAsInt(), buf, BUFSIZE))
+#define STRERR_BUFSIZE 512
+   char buf[STRERR_BUFSIZE];
+   if (strerror_r(p0->getAsInt(), buf, STRERR_BUFSIZE))
       return NULL;
    return new QoreNode(buf);
 #else
