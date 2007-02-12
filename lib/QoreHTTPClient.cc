@@ -114,12 +114,8 @@ class QoreEncoding *QoreHTTPClient::getEncoding() const
 
 int QoreHTTPClient::setOptions(Hash* opts, ExceptionSink* xsink)
 {
-   class QoreNode *n = opts->getKeyValue("default_port");  
-   if (n)
-      default_port = n->getAsInt();
-
    // process new protocols
-   n = opts->getKeyValue("protocols");  
+   class QoreNode *n = opts->getKeyValue("protocols");  
    if (n && n->type == NT_HASH)
    {
       HashIterator hi(n->val.hash);
@@ -151,6 +147,17 @@ int QoreHTTPClient::setOptions(Hash* opts, ExceptionSink* xsink)
       }
    }
 
+   // parse url option if present
+   n = opts->getKeyValue("url");  
+   if (n && n->type == NT_STRING)
+      if (process_url(n->val.String, xsink))
+	 return -1;
+
+   n = opts->getKeyValue("default_port");  
+   if (n)
+      default_port = n->getAsInt();
+
+
    n = opts->getKeyValue("default_path");  
    if (n && n->type == NT_STRING)
       default_path = n->val.String->getBuffer();
@@ -174,12 +181,6 @@ int QoreHTTPClient::setOptions(Hash* opts, ExceptionSink* xsink)
 	 return -1;
       }
    }
-
-   // parse url option if present
-   n = opts->getKeyValue("url");  
-   if (n && n->type == NT_STRING)
-      if (process_url(n->val.String, xsink))
-	 return -1;
 
    if (!path.empty()) {
       default_path = "/" + path;
@@ -209,8 +210,12 @@ int QoreHTTPClient::process_url(class QoreString *str, ExceptionSink* xsink)
       return -1;
    }
 
+   bool port_set = false;
    if (url.getPort())
+   {
       port = url.getPort();
+      port_set = true;
+   }
 
    // host is always set if valid
    host = url.getHost()->getBuffer();
@@ -222,6 +227,7 @@ int QoreHTTPClient::process_url(class QoreString *str, ExceptionSink* xsink)
       if (aux != host.c_str()) {
 	 host = HTTPCLIENT_DEFAULT_HOST;
 	 port = val;
+	 port_set = true;
       }
    }
    
@@ -242,7 +248,7 @@ int QoreHTTPClient::process_url(class QoreString *str, ExceptionSink* xsink)
       }
 
       // set port only if it wasn't overridden in the URL
-      if (!port)
+      if (!port_set)
 	 port = get_port(i->second);
 
       // set SSL setting from protocol default
