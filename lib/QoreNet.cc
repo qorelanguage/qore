@@ -39,17 +39,19 @@ int q_gethostbyname(const char *host, struct in_addr *sin_addr)
 #ifdef HAVE_GETHOSTBYNAME_R
    struct hostent he;
    int err;
-   char buf[BUFSIZE];
+   char buf[NET_BUFSIZE];
 # ifdef HAVE_GETHOSTBYNAME_R_GLIBC2_STYLE
    struct hostent *p;
    
-   if (gethostbyname_r(host, &he, buf, BUFSIZE, &p, &err))
+   if (gethostbyname_r(host, &he, buf, NET_BUFSIZE, &p, &err))
    {
+      // NOTE: ERANGE means that the buffer was too small
+      //printd(5, "gethostbyname_r() host=%s (bs=%d) error=%d: %d: %s\n", host, NET_BUFSIZE, err, errno, strerror(errno));
       traceout("q_gethostbyname()");
       return -1;
    }
 # else // assume Solaris-style gethostbyname_r
-   if (!gethostbyname_r(host, &he, buf, BUFSIZE, &err))
+   if (!gethostbyname_r(host, &he, buf, NET_BUFSIZE, &err))
    {
       printd(5, "q_gethostbyname() Solaris gethostbyname_r() returned NULL");
       traceout("q_gethostbyname()");
@@ -82,17 +84,17 @@ char *q_gethostbyaddr(const char *addr, int len, int type)
    
 #ifdef HAVE_GETHOSTBYADDR_R
    struct hostent he;
-   char buf[BUFSIZE];
+   char buf[NET_BUFSIZE];
    int err;
 # ifdef HAVE_SOLARIS_STYLE_GETHOST
-   if (gethostbyaddr_r(addr, len, type, &he, buf, BUFSIZE, &err))
+   if (gethostbyaddr_r(addr, len, type, &he, buf, NET_BUFSIZE, &err))
       host = strdup(he.h_name);
    else
       host = NULL;
 # else // assume glibc2-style gethostbyaddr_r
    struct hostent *p;
    
-   if (!gethostbyaddr_r(addr, len, type, &he, buf, BUFSIZE, &p, &err))
+   if (!gethostbyaddr_r(addr, len, type, &he, buf, NET_BUFSIZE, &p, &err))
       host = strdup(he.h_name);
    else
       host = NULL;
