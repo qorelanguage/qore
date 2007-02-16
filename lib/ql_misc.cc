@@ -30,26 +30,6 @@
 #include <zlib.h>
 #include <time.h>
 
-class qore_gz_header : public gz_header
-{
-      DLLLOCAL qore_gz_header(bool n_text, char *n_name, char *n_comment)
-      {
-	 text = n_text;
-	 time = ::time(NULL);
-	 xflags = 0;
-	 os = 3; // always set to UNIX
-	 extra = Z_NULL;
-	 extra_len = 0;
-	 extra_max = 0;
-	 name = (Bytef *)n_name;
-	 name_max = 0;
-	 comment = (Bytef *)n_comment;
-	 comm_max = 0;
-	 hcrc = 0;
-	 done = 0;
-      }
-};
-
 // FIXME: don't copy the list - the arguments have already been evaluated
 // just build a new list and then zero it out before deleting it
 static class QoreNode *f_call_function(class QoreNode *params, ExceptionSink *xsink)
