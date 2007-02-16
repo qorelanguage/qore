@@ -77,9 +77,8 @@ class QoreApp : public AbstractPrivateData, public MApp
       const MBaseClassDescription *find_class(char *cn, ExceptionSink *xsink);
       int refs;
 
-      // helers for operations 
-      MData* QoreNode2MData(char* class_name, QoreNode* value, ExceptionSink* xsink);
-      void setRequestParamaters(MOperationRequest& req, Hash* params, ExceptionSink* xsink);
+      // helpers for operations 
+      void setRequestParameters(MOperationRequest& req, Hash* params, ExceptionSink* xsink);
 
    protected:
       virtual void onInitialization() throw (MException);
