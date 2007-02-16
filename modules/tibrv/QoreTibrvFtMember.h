@@ -143,7 +143,7 @@ inline QoreNode *QoreTibrvFtMember::getEvent(class ExceptionSink *xsink)
       if (status == TIBRV_INVALID_QUEUE)
       {
 	 class Hash *h = new Hash();
-	 h->setKeyValue("action", new QoreNode(-1LL), NULL);
+	 h->setKeyValue("action", new QoreNode((int64)-1), NULL);
 	 return new QoreNode(h);
       }
    

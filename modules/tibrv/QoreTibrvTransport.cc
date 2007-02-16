@@ -293,7 +293,7 @@ class QoreNode *QoreTibrvTransport::fieldToNode(TibrvMsgField *field, class Exce
       }
 
       case TIBRVMSG_DATETIME:
-	 val = new QoreNode(new DateTime(data.date.sec));
+	 val = new QoreNode(new DateTime((int64)data.date.sec));
 	 break;
 
       case TIBRVMSG_OPAQUE:

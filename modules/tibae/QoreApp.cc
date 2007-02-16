@@ -141,6 +141,15 @@ const MBaseClassDescription *QoreApp::find_class(char *cn, ExceptionSink *xsink)
    QoreNode *t = NULL;
 
    char *cdesc;
+   if (classlist && (t = classlist->getKeyValue((char *)cn)) && t->type == NT_STRING)
+      cdesc = t->val.String->getBuffer();
+   else
+   {
+      xsink->raiseException("TIBCO-CLASS-DESCRIPTION-NOT-FOUND", "no class description given for class \"%s\"", cn);
+      return NULL;
+   }
+
+#if 0
    if (!classlist || !(t = classlist->getKeyValue((char *)cn)) || t->type != NT_STRING)
    {
       /*
@@ -166,6 +175,7 @@ const MBaseClassDescription *QoreApp::find_class(char *cn, ExceptionSink *xsink)
    }
    else
       cdesc = t->val.String->getBuffer();
+#endif
 
    if (!(mbcd = mcr->getClassDescription(cdesc)))
    {
@@ -988,44 +998,35 @@ QoreEventHandler::~QoreEventHandler()
 // Tibco.Operations related functionality
 
 //------------------------------------------------------------------------------
-MData* QoreApp::QoreNode2MData(char* class_name, QoreNode* value, ExceptionSink* xsink)
+void QoreApp::setRequestParameters(MOperationRequest& req, Hash* params, ExceptionSink* xsink)
 {
-   const MBaseClassDescription* mbcd = find_class(class_name, xsink);
-   if (xsink->isEvent())
-      return 0;
-   if (!mbcd)
-   {
-      xsink->raiseException("TIBCO-CLASS-DESCRIPTION-NOT-FOUND", "cannot find TIBCO class description for class name \"%s\"", class_name);
-      return 0;
-   }
-   MData *md = instantiate_class(value, mbcd, xsink);
-   if (xsink->isEvent())
-   {
-     delete md;
-     return 0;
-   }
-   return md;
-}
+   const MOperationDescription *mod = req.getOperationDescription();
 
-//------------------------------------------------------------------------------
-void QoreApp::setRequestParamaters(MOperationRequest& req, Hash* params, ExceptionSink* xsink)
-{
-  HashIterator hi(params);
-  while (hi.next()) {
-   char *key = hi.getKey();
-   QoreNode *t = hi.getValue();
+   HashIterator hi(params);
+   while (hi.next()) {
+      char *key = hi.getKey();
+      QoreNode *t = hi.getValue();
 
-    std::auto_ptr<MData> data(QoreNode2MData(key, t, xsink));
-    if (xsink->isException()) {
-      return;
-    }
-    if (!data.get()) {
-      xsink->raiseException("TIBCO-CLASS-DESCRIPTION-NOT-FOUND", "cannot find TIBCO class description for class name \"%s\"", key);
-      return;
-    }
-    MString attribute_name(key);
-    req.set(attribute_name, *data.get());
-  }
+      const MOperationParameterDescription *mopd = mod->getParameter(key);
+      if (!mopd)
+      {
+	 xsink->raiseException("TIBCO-PARAMETER-DESCRIPTION-NOT-FOUND", "cannot find parameter description for '%s'", key);
+	 return;
+      }
+      const MBaseClassDescription* mbdc = mopd->getMemberClassDescription();
+           
+      //std::auto_ptr<MData> data(QoreNode2MData(key, t, xsink));
+      std::auto_ptr<MData> data(instantiate_class(t, mbdc, xsink));
+      if (xsink->isException()) {
+	 return;
+      }
+      if (!data.get()) {
+	 xsink->raiseException("TIBCO-CLASS-DESCRIPTION-NOT-FOUND", "cannot find TIBCO class description for class name \"%s\"", key);
+	 return;
+      }
+      MString attribute_name(key);
+      req.set(attribute_name, *data.get());
+   }
 }
 
 //-----------------------------------------------------------------------------
@@ -1078,7 +1079,7 @@ QoreNode* QoreApp::operationsCallWithSyncResult(char* class_name, char* method_n
 {
   try {
     MOperationRequest req(this, class_name, method_name, client_name);
-    setRequestParamaters(req, parameters, xsink);
+    setRequestParameters(req, parameters, xsink);
     if (xsink->isException()) {
       return 0;
     }
@@ -1102,7 +1103,7 @@ void QoreApp::operationsOneWayCall(char* class_name, char* method_name, Hash* pa
 {
   try {
     MOperationRequest req(this, class_name, method_name, client_name);
-    setRequestParamaters(req, parameters, xsink);
+    setRequestParameters(req, parameters, xsink);
 
     if (xsink->isException()) {
       return;
@@ -1205,7 +1206,7 @@ void QoreApp::operationsAsyncCall(char* class_name, char* method_name, Hash* par
 {
   try {
     std::auto_ptr<MOperationRequest> req(new MOperationRequest(this, class_name, method_name, client_name));
-    setRequestParamaters(*req, parameters, xsink);
+    setRequestParameters(*req, parameters, xsink);
 
     if (xsink->isException()) {
       return;
