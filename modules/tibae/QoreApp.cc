@@ -1007,7 +1007,13 @@ void QoreApp::setRequestParameters(MOperationRequest& req, Hash* params, Excepti
       char *key = hi.getKey();
       QoreNode *t = hi.getValue();
 
-      const MBaseClassDescription* mbdc = mod->getParameter(key)->getMemberClassDescription();
+      const MOperationParameterDescription *mopd = mod->getParameter(key);
+      if (!mopd)
+      {
+	 xsink->raiseException("TIBCO-PARAMETER-DESCRIPTION-NOT-FOUND", "cannot find parameter description for '%s'", key);
+	 return;
+      }
+      const MBaseClassDescription* mbdc = mopd->getMemberClassDescription();
            
       //std::auto_ptr<MData> data(QoreNode2MData(key, t, xsink));
       std::auto_ptr<MData> data(instantiate_class(t, mbdc, xsink));
