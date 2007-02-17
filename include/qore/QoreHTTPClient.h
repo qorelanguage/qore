@@ -43,21 +43,10 @@
 // set default timeout to 5 minutes (300,000 ms)
 #define HTTPCLIENT_DEFAULT_TIMEOUT 300000
 
-// case-insensitive map
-class ltstrcase
-{
-  public:
-   bool operator()(std::string s1, std::string s2) const
-   {
-      return strcasecmp(s1.c_str(), s2.c_str()) < 0;
-   }
-};
-
 // protocol map class to recognize user-defined protocols (mostly useful for derived classes)
 typedef std::map<std::string, int> prot_map_t;
 typedef std::set<std::string> str_set_t;
 typedef std::set<std::string, ltstrcase> strcase_set_t;
-
 typedef std::map<std::string, std::string> header_map_t;
 
 class SafeHash : public Hash

@@ -30,6 +30,7 @@
 #include <zlib.h>
 #include <time.h>
 
+/*
 class qore_gz_header : public gz_header
 {
       DLLLOCAL qore_gz_header(bool n_text, char *n_name, char *n_comment)
@@ -49,6 +50,7 @@ class qore_gz_header : public gz_header
 	 done = 0;
       }
 };
+*/
 
 // FIXME: don't copy the list - the arguments have already been evaluated
 // just build a new list and then zero it out before deleting it

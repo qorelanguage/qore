@@ -28,6 +28,8 @@
 
 #include <string.h>
 
+#include <string>
+
 #ifdef _MSC_VER
   #ifdef BUILDING_DLL
     #define DLLEXPORT __declspec(dllexport)
@@ -51,6 +53,25 @@ class ltstr
    bool operator()(const char* s1, const char* s2) const
    {
       return strcmp(s1, s2) < 0;
+   }
+};
+
+class ltcstrcase
+{
+  public:
+   bool operator()(const char* s1, const char* s2) const
+   {
+      return strcasecmp(s1, s2) < 0;
+   }
+};
+
+// for case-insensitive maps
+class ltstrcase
+{
+  public:
+   bool operator()(std::string s1, std::string s2) const
+   {
+      return strcasecmp(s1.c_str(), s2.c_str()) < 0;
    }
 };
 

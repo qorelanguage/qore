@@ -429,7 +429,7 @@ void QoreTypeManager::init()
    Zero        = new QoreNode((int64)0);
    ZeroFloat   = new QoreNode(0.0);
    NullString  = new QoreNode("");
-   ZeroDate    = new QoreNode(new DateTime(0ll));
+   ZeroDate    = new QoreNode(new DateTime((int64)0));
    
    emptyList   = new QoreNode(new List());
    emptyHash   = new QoreNode(new Hash());

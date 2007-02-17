@@ -78,7 +78,8 @@ struct QoreEncoding {
       }
 };
 
-typedef std::map<const char *, struct QoreEncoding *, class ltstr> encoding_map_t;
+// case-insensitive maps for encodings
+typedef std::map<const char *, struct QoreEncoding *, class ltcstrcase> encoding_map_t;
 
 // there will always only be one of these, therefore all members and methods are static
 class QoreEncodingManager
@@ -92,6 +93,7 @@ class QoreEncodingManager
 
    public:
       DLLEXPORT static void addAlias(struct QoreEncoding *qcs, const char *alias);
+      // FIXME: should be const char
       DLLEXPORT static struct QoreEncoding *findCreate(char *name);
       DLLEXPORT static struct QoreEncoding *findCreate(class QoreString *str);
       DLLEXPORT static void showEncodings();

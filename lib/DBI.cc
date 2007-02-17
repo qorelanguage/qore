@@ -114,6 +114,13 @@ int DBIDriver::rollback(class Datasource *ds, class ExceptionSink *xsink)
    return f->rollback(ds, xsink);
 }
 
+int DBIDriver::beginTransaction(class Datasource *ds, class ExceptionSink *xsink)
+{
+   if (f->begin_transaction)
+      return f->begin_transaction(ds, xsink);
+   return 0; // 0 = OK
+}
+
 DBIDriverList::~DBIDriverList()
 {
    dbi_list_t::iterator i;

@@ -137,6 +137,9 @@ QoreNode *Datasource::selectRows(class QoreString *query_str, class List *args, 
 
 QoreNode *Datasource::exec(class QoreString *query_str, class List *args, ExceptionSink *xsink)
 {
+   if (!autocommit && !in_transaction && beginTransaction(xsink))
+      return NULL;
+
    class QoreNode *rv = dsl->execSQL(this, query_str, args, xsink);
    if (!autocommit && !in_transaction && !xsink->isException())
       in_transaction = true;
@@ -152,13 +155,17 @@ int Datasource::beginTransaction(class ExceptionSink *xsink)
       xsink->raiseException("AUTOCOMMIT-ERROR", "transaction management is not available because autocommit is enabled for this Datasource");
       return -1;
    }
-   
-   in_transaction = true;
-   return 0;
+   int rc = dsl->beginTransaction(this, xsink);
+   if (!rc)
+      in_transaction = true;
+   return rc;
 }
 
 int Datasource::commit(ExceptionSink *xsink)
 {
+   if (!in_transaction && beginTransaction(xsink))
+      return -1;
+
    int rc = dsl->commit(this, xsink);
    in_transaction = false;
    return rc;
@@ -166,6 +173,9 @@ int Datasource::commit(ExceptionSink *xsink)
 
 int Datasource::rollback(ExceptionSink *xsink)
 {
+   if (!in_transaction && beginTransaction(xsink))
+      return -1;
+
    int rc = dsl->rollback(this, xsink);
    in_transaction = false;
    return rc;

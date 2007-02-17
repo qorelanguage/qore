@@ -55,6 +55,7 @@ typedef class QoreNode *(*q_dbi_select_rows_t)(class Datasource *, class QoreStr
 typedef class QoreNode *(*q_dbi_exec_t)(class Datasource *, class QoreString *, class List *args, class ExceptionSink *xsink);
 typedef int (*q_dbi_commit_t)(class Datasource *, class ExceptionSink *xsink);
 typedef int (*q_dbi_rollback_t)(class Datasource *, class ExceptionSink *xsink);
+typedef int (*q_dbi_begin_transaction_t)(class Datasource *, class ExceptionSink *xsink);
 
 class DBIDriverFunctions {
    public:
@@ -65,9 +66,11 @@ class DBIDriverFunctions {
       q_dbi_exec_t execSQL;
       q_dbi_commit_t commit;
       q_dbi_rollback_t rollback;
+      q_dbi_begin_transaction_t begin_transaction; // for DBI drivers that require explicit transaction starts
 
       DLLEXPORT DBIDriverFunctions(q_dbi_init_t p_init, q_dbi_close_t p_close, q_dbi_select_t p_select, q_dbi_select_rows_t p_selectRows,
-				   q_dbi_exec_t p_execSQL, q_dbi_commit_t p_commit, q_dbi_rollback_t p_rollback)
+				   q_dbi_exec_t p_execSQL, q_dbi_commit_t p_commit, q_dbi_rollback_t p_rollback,
+				   q_dbi_begin_transaction_t p_begin_transaction = NULL)
       {
 	 init = p_init;
 	 close = p_close;
@@ -76,6 +79,7 @@ class DBIDriverFunctions {
 	 execSQL = p_execSQL;
 	 commit = p_commit;
 	 rollback = p_rollback;
+	 begin_transaction = p_begin_transaction;
       }
 };
 
@@ -96,6 +100,7 @@ class DBIDriver {
       DLLLOCAL class QoreNode *execSQL(class Datasource *ds, class QoreString *sql, class List *args, class ExceptionSink *xsink);
       DLLLOCAL int commit(class Datasource *, class ExceptionSink *xsink);
       DLLLOCAL int rollback(class Datasource *, class ExceptionSink *xsink);
+      DLLLOCAL int beginTransaction(class Datasource *, class ExceptionSink *xsink);
       DLLLOCAL int getCaps() const;
       DLLLOCAL class List *getCapList() const;
       DLLLOCAL char *getName() const;
