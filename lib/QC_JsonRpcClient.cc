@@ -44,7 +44,7 @@ static void JRC_constructor(class Object *self, class QoreNode *params, Exceptio
    client->default_headers["User-Agent"] = "Qore JSON-RPC Client v" PACKAGE_VERSION;
 
    client->addProtocol("jsonrpc", 80, false);
-   client->addProtocol("jsonrpcs", 443, false);
+   client->addProtocol("jsonrpcs", 443, true);
 
    QoreNode* n = test_param(params, NT_HASH, 0);
    if (n && client->setOptions(n->val.hash, xsink))
