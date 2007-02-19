@@ -475,7 +475,9 @@ class QoreNode *QoreHTTPClient::send_internal(char *meth, const char *path, clas
 	    xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", "socket was closed at the remote end");
 	 else if (rc == -3)   // timeout
 	    xsink->raiseException("HTTP-CLIENT-TIMEOUT", "timed out waiting %dms for response on socket %s", timeout, socketpath.c_str());
-	 
+	 else
+	    assert(false);
+
 	 ans->deref(xsink);
 	 return NULL;
       }
@@ -566,7 +568,15 @@ class QoreNode *QoreHTTPClient::send_internal(char *meth, const char *path, clas
    char *content_encoding = NULL;
    v = ah->getKeyValue("content-encoding");
    if (v)
+   {
       content_encoding = v->val.String->getBuffer();
+      // check for misuse of this field by including a character encoding value
+      if (!strncasecmp(content_encoding, "iso", 3) || !strncasecmp(content_encoding, "utf-", 4))
+      {
+	 m_socket.setEncoding(QEM.findCreate(content_encoding));
+	 content_encoding = NULL;
+      }
+   }
 
    class QoreNode *te = ah->getKeyValue("transfer-encoding");
    
@@ -584,6 +594,7 @@ class QoreNode *QoreHTTPClient::send_internal(char *meth, const char *path, clas
 	 nah = m_socket.readHTTPChunkedBody(timeout, xsink);
       if (!nah)
       {
+	 unlock();
 	 ans->deref(xsink);
 	 return NULL;
       }
@@ -619,6 +630,9 @@ class QoreNode *QoreHTTPClient::send_internal(char *meth, const char *path, clas
 	    xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", "socket was closed at the remote end while receiving response message body");
 	 else if (rc == -3)   // timeout
 	    xsink->raiseException("HTTP-CLIENT-TIMEOUT", "timed out waiting %dms for response message body of length %d on socket %s", timeout, len, socketpath.c_str());
+	 else
+	    assert(false);
+
 	 ans->deref(xsink);
 	 return NULL;
       }
@@ -637,9 +651,9 @@ class QoreNode *QoreHTTPClient::send_internal(char *meth, const char *path, clas
    {
       class BinaryObject *bobj = body->val.bin;
       class QoreString *str = NULL;
-      if (!strcmp(content_encoding, "deflate"))
+      if (!strcmp(content_encoding, "deflate") || !strcmp(content_encoding, "x-deflate"))
 	 str = qore_inflate_to_string(bobj, m_socket.getEncoding(), xsink);
-      else if (!strcmp(content_encoding, "gzip"))
+      else if (!strcmp(content_encoding, "gzip") || !strcmp(content_encoding, "x-gzip"))
 	 str = qore_gunzip_to_string(bobj, m_socket.getEncoding(), xsink);
       else
       {
