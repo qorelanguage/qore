@@ -29,11 +29,21 @@
 #include <qore/QoreNode.h>
 #include <qore/Exception.h>
 #include <qore/Qore.h>
+#include <qore/minitest.hpp>
 
 #include <ctpublic.h>
 #include <assert.h>
+#include <ctype.h>
+#include <memory>
+#include <string>
+#include <vector>
 
 #include "sybase.h"
+#include <qore/ScopeGuard.h>
+
+#ifdef DEBUG
+#  define private public
+#endif
 
 #ifndef QORE_MONOLITHIC
 DLLEXPORT char qore_module_name[] = "sybase";
@@ -48,6 +58,37 @@ DLLEXPORT qore_module_ns_init_t qore_module_ns_init = sybase_module_ns_init;
 DLLEXPORT qore_module_delete_t qore_module_delete = sybase_module_delete;
 #endif
 
+static DBIDriver* DBID_SYBASE;
+
+// capabilities of this driver (TBD - review this, copied from Oracle module)
+#define DBI_SYBASE_CAPS (DBI_CAP_TRANSACTION_MANAGEMENT | DBI_CAP_STORED_PROCEDURES | DBI_CAP_CHARSET_SUPPORT | DBI_CAP_LOB_SUPPORT)
+
+//------------------------------------------------------------------------------
+#ifdef DEBUG
+// exported
+QoreNode* runSybaseTests(QoreNode* params, ExceptionSink* xsink)
+{
+  minitest::result res = minitest::execute_all_tests();
+  if (res.all_tests_succeeded) {
+    printf("Sybase module: %d tests succeeded\n", res.sucessful_tests_count);
+    return 0;
+  }
+
+  xsink->raiseException("SYBASE-TEST-FAILURE", "Sybase test in file %s, line %d threw an exception.",
+    res.failed_test_file, res.failed_test_line);
+  return 0;
+}
+
+TEST()
+{
+  // just an example of empty test
+}
+#endif
+
+static int sybase_commit(Datasource *ds, ExceptionSink *xsink);
+
+namespace {
+
 //------------------------------------------------------------------------------
 class sybase_connection
 {
@@ -55,14 +96,15 @@ private:
   CS_CONTEXT* m_context;
   CS_CONNECTION* m_connection;
 
-  static CS_RETCODE csmsg_callback();
   static CS_RETCODE clientmsg_callback();
   static CS_RETCODE servermsg_callback();
+  static CS_RETCODE message_callback();
 
 public:
   sybase_connection();
   ~sybase_connection();
-  void init(char* username, char* password, ExceptionSink* xsink);
+  void init(char* username, char* password, char* dbname, ExceptionSink* xsink);
+  CS_CONNECTION* getConnection() const { return m_connection; }
 };
 
 //------------------------------------------------------------------------------
@@ -78,7 +120,8 @@ sybase_connection::~sybase_connection()
   if (m_connection) {
     ret = ct_close(m_connection, CS_UNUSED);
     if (ret != CS_SUCCEED) {
-      assert(false); // not much can be done here
+// commented out since it returns CS_BUSY. No idea at the time of writing what to do with it.
+//      assert(false); // not much can be done here
     }
   }
   if (m_context) {
@@ -97,117 +140,863 @@ sybase_connection::~sybase_connection()
 //------------------------------------------------------------------------------
 // Post-constructor initialization used as it fits (unfortunately) better
 // with current programming model.
-void sybase_connection::init(char* username, char* password, ExceptionSink* xsink)
+void sybase_connection::init(char* username, char* password, char* dbname, ExceptionSink* xsink)
 {
   assert(!m_connection);
   assert(!m_context);
+
   CS_RETCODE ret = cs_ctx_alloc(CS_VERSION_100, &m_context);
   if (ret != CS_SUCCEED) {
     xsink->raiseException("DBI:SYBASE:CT-LIB-CANNOT-ALLOCATE-ERROR", "cs_ctx_alloc() failed with error %d", ret);
     return;
   }
+
   ret = ct_init(m_context, CS_VERSION_100);
   if (ret != CS_SUCCEED) {
     xsink->raiseException("DBI:SYBASE:CT-LIB-INIT-FAILED", "ct_init() failed with error %d", ret);
     return;  
   }
-  
+
+  // add callbacks
+  ret = cs_config(m_context, CS_SET, CS_MESSAGE_CB, (CS_VOID*)message_callback, CS_UNUSED, NULL);
+  if (ret != CS_SUCCEED) {
+    xsink->raiseException("DBI:SYBASE:CT-LIB-SET-CALLBACK", "ct_config(CS_MESSAGE_CB) failed with error %d", ret);
+    return;
+  }
+
+  ret = ct_callback(m_context, 0, CS_SET, CS_CLIENTMSG_CB, (CS_VOID*)&clientmsg_callback);
+  if (ret != CS_SUCCEED) {
+    xsink->raiseException("DBI:SYBASE:CT-LIB-SET-CALLBACK", "ct_callback(CS_SERVERMSG_CB) failed with error %d", ret);
+    return;
+  }
+
+  ret = ct_callback(m_context, 0, CS_SET, CS_SERVERMSG_CB, (CS_VOID*)&servermsg_callback);
+  if (ret != CS_SUCCEED) {
+    xsink->raiseException("DBI:SYBASE:CT-LIB-SET-CALLBACK", "ct_callback(CS_SERVERMSG_CB) failed with error %d", ret);
+    return;
+  }
+
+  ret = ct_con_alloc(m_context, &m_connection);
+  if (ret != CS_SUCCEED) {
+    xsink->raiseException("DBI:SYBASE:CT-LIB-CREATE-CONNECTION", "ct_con_alloc() failed with error %d", ret);
+    return;
+  }
+
+  ret = ct_con_props(m_connection, CS_SET, CS_USERNAME, username, CS_NULLTERM, 0);
+  if (ret != CS_SUCCEED) {
+    xsink->raiseException("DBI:SYBASE:CT-LIB-SET-USERNAME", "ct_con_props(CS_USERNAME) failed with error %d", ret);
+    return;
+  }
+  if (password && password[0]) {
+    ret = ct_con_props(m_connection, CS_SET, CS_PASSWORD, password, CS_NULLTERM, 0);
+    if (ret != CS_SUCCEED) {
+      xsink->raiseException("DBI:SYBASE:CT-LIB-SET-PASSWORD", "ct_con_props(CS_PASSWORD) failed with error %d", ret);
+      return;
+    }
+  }
+
+  ret = ct_connect(m_connection, dbname,  strlen(dbname));
+  if (ret != CS_SUCCEED) {
+    xsink->raiseException("DBI:SYBASE:CT-LIB-CONNECT", "ct_connect() failed with error %d", ret);
+    return;
+  }
+
+  // transaction management is done by the driver (docs says it is by default)
+  CS_BOOL chained_transactions = CS_FALSE;
+  ret = ct_options(m_connection, CS_SET, CS_OPT_CHAINXACTS, &chained_transactions, CS_UNUSED, NULL);
+  if (ret != CS_SUCCEED) {
+    xsink->raiseException("DBI:SYBASE:CT-LIB-SET-TRANSACTION-CHAINING", "ct_options(CS_OPT_CHAINXACTS) failed with error %d", ret);
+    return;
+  }
 }
 
 //------------------------------------------------------------------------------
-CS_RETCODE sybase_connection::csmsg_callback()
+#ifdef DEBUG
+TEST()
 {
-  return 0; // TBD
+  sybase_connection conn;
+  ExceptionSink xsink;
+  conn.init("sa", 0, "pavel", &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+}
+#endif
+
+//------------------------------------------------------------------------------
+CS_RETCODE sybase_connection::message_callback()
+{
+  return CS_SUCCEED; // TBD
 }
 
 //------------------------------------------------------------------------------
 CS_RETCODE sybase_connection::clientmsg_callback()
 {
-  return 0; // TBD
+  return CS_SUCCEED; // TBD
 }
 
 //------------------------------------------------------------------------------
 CS_RETCODE sybase_connection::servermsg_callback()
 {
-  return 0; // TBD
+  return CS_SUCCEED; // TBD
 }
 
 //------------------------------------------------------------------------------
-int syb_commit_transaction(class Datasource *ds)
+class SybaseBindGroup
 {
-}
+private:
+  QoreString* m_cmd; // as passed by the user
+  Datasource* m_ds;
+  CS_CONNECTION* m_connection;
+  std::vector<QoreNode*> m_input_parameters; // as provided by the user
+  std::string m_command_id; // unique name for the command, generated here
 
-int syb_rollback_transaction(class Datasource *ds)
-{
-  return 0; // TBD
-}
+  void parseQuery(List *args, ExceptionSink *xsink);
 
-int syb_exec_sql(class Query *query, char *query_str)
-{
-  return 0; // TBD
-}
+  // helpers for execute_command
+  CS_COMMAND* prepare_command(ExceptionSink* xsink);
+  static void deallocate_prepared_statement(CS_COMMAND* cmd, char* id);
 
-class Query *syb_exec_query(class Query *query, char *query_str)
-{
-}
+  typedef struct column_info_t {
+    column_info_t(const std::string& n, unsigned t, unsigned s) : m_column_name(n), m_column_type(t), m_max_size(s) {}
+    std::string m_column_name;
+    unsigned m_column_type; // CS_..._TYPE constants
+    unsigned m_max_size;
+  };
+  std::vector<column_info_t> extract_input_parameters_info(CS_COMMAND* cmd, ExceptionSink* xsink);
+  bool does_command_return_data() const;
+  std::vector<column_info_t> extract_output_parameters_info(CS_COMMAND* cmd, ExceptionSink* xsink);
 
-int syb_ds_init(class Datasource *ds)
-{
-   CS_RETCODE rc;
+  QoreNode* execute_command(ExceptionSink* xsink);
 
-   tracein("syb_ds_init()");
-
-//   ds->setPrivateData(new struct dst_sybase_s);
-/*
-   // if datasource is already initialized
-   if (ds->status == DSS_OPEN)
-   {
 #ifdef DEBUG
-      printe("syb_ds_init(): datasource \"%s\" is already open!\n", ds->name);
-#endif      
-      return 0;
-   }
-   printd(3, "syb_ds_init(): user=%s pass=%s db=%s\n",
-          ds->username, ds->password, ds->dbname);
+  SybaseBindGroup(QoreString* ostr);
+#endif
+public:
+  SybaseBindGroup(Datasource* ds, QoreString* ostr, List *args, ExceptionSink *xsink); 
+  ~SybaseBindGroup();
 
-   // allocate context structure
-   ds->d.sybase->context = NULL;
-   rc = cs_ctx_alloc(CS_VERSION_100, &ds->d.sybase->context);
-   // check return code...
+  QoreNode* exec(class ExceptionSink *xsink);
+  QoreNode* select(class ExceptionSink *xsink);
+  QoreNode* selectRows(class ExceptionSink *xsink);
+};
 
-   ds->status = DSS_OPEN;
-*/
-   traceout("syb_ds_init()");
-   return 0;
-}
-
-int syb_ds_close(class Datasource *ds)
+//------------------------------------------------------------------------------
+#ifdef DEBUG
+SybaseBindGroup::SybaseBindGroup(QoreString* ostr)
+: m_cmd(0),
+  m_ds(0),
+  m_connection(0)
 {
-   
+  m_cmd = new QoreString(ostr->getBuffer());
+}
+#endif
+
+//------------------------------------------------------------------------------
+SybaseBindGroup::SybaseBindGroup(Datasource* ds, QoreString* ostr, List *args, ExceptionSink *xsink) 
+: m_cmd(0),
+  m_ds(ds),
+  m_connection(0)
+{
+  m_cmd = ostr->convertEncoding(ds->getQoreEncoding(), xsink);
+  if (xsink->isEvent()) {
+    return;
+  } 
+  sybase_connection* sc = (sybase_connection*)ds->getPrivateData();
+  m_connection = sc->getConnection();
+
+  // process query string and setup bind value list
+  parseQuery(args, xsink);
+  if (xsink->isEvent()) {
+    return;
+  }
 }
 
 //------------------------------------------------------------------------------
-QoreString *sybase_module_init()
+SybaseBindGroup::~SybaseBindGroup()
+{
+  delete m_cmd;
+}
+
+//------------------------------------------------------------------------------
+void SybaseBindGroup::parseQuery(List* args, ExceptionSink* xsink)
+{
+  // code copied from Oracle module, not knowing better way
+  if (args) {
+    m_input_parameters.reserve(args->size());
+  }
+  char quote = 0;
+  char *p = m_cmd->getBuffer();
+  while (*p)
+  {
+    if (!quote && (*p) == '%') // found value marker
+    {
+      p++;
+      if ((*p) != 'v')
+      {
+        xsink->raiseException("DBI-EXEC-PARSE-EXCEPTION", "invalid value specification (expecting '%v', got %%%c)", *p);
+        break;
+      }
+      p++;
+      if (isalpha(*p))
+      {
+        xsink->raiseException("DBI-EXEC-PARSE-EXCEPTION", "invalid value specification (expecting '%v', got %%v%c*)", *p);
+        break;
+      }
+      if (!args || args->size() <= (int)m_input_parameters.size())
+      {
+        xsink->raiseException("DBI-EXEC-PARSE-EXCEPTION", "too few arguments passed (%d) for value expression (%d)",
+          args ? args->size() : 0, m_input_parameters.size() + 1);
+        break;
+      }
+      QoreNode *v = args->retrieve_entry(m_input_parameters.size());
+
+      // replace value marker with ? expected by ct_dynamic()
+      QoreString tn(" ?");
+      int offset = p - m_cmd->getBuffer() - 2;
+      m_cmd->replace(offset, 2, &tn);
+      p = m_cmd->getBuffer() + offset + tn.strlen();
+
+      m_input_parameters.push_back(v);
+    }
+    else if (((*p) == '\'') || ((*p) == '\"'))
+    {
+      if (!quote)
+        quote = *p;
+      else if (quote == (*p))
+        quote = 0;
+      p++;
+    }
+    else
+      p++;
+   }
+}
+
+//------------------------------------------------------------------------------
+#ifdef DEBUG
+TEST()
+{
+  ExceptionSink xsink;
+  QoreString str("select cound(*) from a_table where num = %v and value = %v");
+  SybaseBindGroup grp(&str);  
+  
+  List* lst = new List;
+  lst->push(new QoreNode("aaa"));
+  lst->push(new QoreNode("bbb"));
+
+  grp.parseQuery(lst, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  unsigned size = grp.m_input_parameters.size();
+  assert(size == 2);
+
+  char* new_str = grp.m_cmd->getBuffer();
+  if (strcmp(new_str, "select cound(*) from a_table where num =  ? and value =  ?") != 0) {
+    assert(false); // it needs to be formatted acc to Sybase 
+  }
+
+  QoreNode* n = new QoreNode(lst);
+  n->deref(&xsink);
+}
+
+TEST()
+{
+  // test with more arguments than placeholders (perhaps this should fail too)
+  ExceptionSink xsink;
+  QoreString str("select count(*) from a_table where num = %v and value = %v");
+  SybaseBindGroup grp(&str);
+
+  List* lst = new List;
+  lst->push(new QoreNode("aaa"));
+  lst->push(new QoreNode("bbb"));
+  lst->push(new QoreNode("ccc"));
+
+  grp.parseQuery(lst, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  unsigned size = grp.m_input_parameters.size();
+  assert(size == 2);
+
+  char* new_str = grp.m_cmd->getBuffer();
+  if (strcmp(new_str, "select count(*) from a_table where num =  ? and value =  ?") != 0) {
+    assert(false); // it needs to be formatted acc to Sybase
+  }
+
+  QoreNode* n = new QoreNode(lst);
+  n->deref(&xsink);
+}
+
+TEST()
+{
+  ExceptionSink xsink;
+  QoreString str("select count(*) from a_table where num = %v and value = %v");
+  SybaseBindGroup grp(&str);
+
+  List* lst = new List;
+  lst->push(new QoreNode("aaa"));
+
+  grp.parseQuery(lst, &xsink);
+  if (!xsink.isException()) { // not enought arguments
+    assert(false);
+  }
+  xsink.clear();
+
+  QoreNode* n = new QoreNode(lst);
+  n->deref(&xsink);
+}
+
+#endif
+
+//------------------------------------------------------------------------------
+CS_COMMAND* SybaseBindGroup::prepare_command(ExceptionSink* xsink)
+{
+  CS_COMMAND* result = 0;
+  CS_RETCODE err = ct_cmd_alloc(m_connection, &result);
+  if (err != CS_SUCCEED) {
+printf("#### err1 %p\n", m_connection);
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_cmd_alloc() failed with error %d", (int)err);
+    return 0;
+  }
+  ScopeGuard g = MakeGuard(ct_cmd_drop, result);
+
+  // try to make unique name, as much unique as possible
+  static unsigned counter = 0;
+  ++counter;
+  char aux[30];
+  sprintf(aux, "my_cmd_%u_%u", (unsigned)pthread_self(), counter);
+  m_command_id = aux;
+
+  err = ct_dynamic(result, CS_PREPARE, (CS_CHAR*)m_command_id.c_str(), CS_NULLTERM, m_cmd->getBuffer(), CS_NULLTERM);
+  if (err != CS_SUCCEED) {
+printf("### err2\n");
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_dynamic(CS_PREPARE, \"%s\") failed with error %d", m_cmd->getBuffer(), (int)err);
+    return 0;
+  }
+  
+  err = ct_send(result);
+  if (err != CS_SUCCEED) {
+printf("### err3\n");
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_send() for \"%s\" failed with error %d", m_cmd->getBuffer(), (int)err);
+    return 0;
+  }
+
+  // no results expected
+  CS_INT result_type;
+  err = ct_results(result, &result_type);
+  if (err != CS_SUCCEED) {
+printf("### err 4\n");
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_result() failed with error %d", (int)err);
+    return 0;
+  }
+  if (result_type != CS_CMD_SUCCEED) {
+printf("### err 5: cmd = %s\n", m_cmd->getBuffer());
+    assert(result_type == CS_CMD_FAIL);
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() ct_dynamic(CS_PREPARE) failed with error %d", (int)err);
+    return 0;
+  }
+  while((err = ct_results(result, &result_type)) == CS_SUCCEED);
+
+  g.Dismiss();
+  return result;
+}
+
+//------------------------------------------------------------------------------
+#ifdef DEBUG
+TEST()
+{
+  sybase_connection conn;
+  ExceptionSink xsink;
+  conn.init("sa", 0, "pavel", &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+
+  QoreString str("select count(*) from syskeys");
+  SybaseBindGroup grp(&str);
+  grp.m_connection = conn.getConnection();
+
+  grp.prepare_command(&xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+}
+#endif
+
+//------------------------------------------------------------------------------
+void SybaseBindGroup::deallocate_prepared_statement(CS_COMMAND* cmd, char* id)
+{
+  CS_RETCODE err = ct_dynamic(cmd, CS_DEALLOC, id, CS_NULLTERM, 0, CS_UNUSED);
+  assert(err == CS_SUCCEED);
+}
+
+//------------------------------------------------------------------------------
+std::vector<SybaseBindGroup::column_info_t> SybaseBindGroup::extract_input_parameters_info(CS_COMMAND* cmd, ExceptionSink* xsink)
+{
+  std::vector<column_info_t> empty;
+  assert(cmd);
+  CS_RETCODE err = ct_dynamic(cmd, CS_DESCRIBE_INPUT, (CS_CHAR*)m_command_id.c_str(), CS_NULLTERM, 0, CS_UNUSED);
+  if (err != CS_SUCCEED) {
+printf("### err10\n");
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_dynamic(CS_DESCRIBE_INPUT) failed with error %d", (int)err);
+    return empty;
+  }
+
+  err = ct_send(cmd);
+  if (err != CS_SUCCEED) {
+printf("### err20\n");
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_send() failed with error %d", (int)err);
+    return empty;
+  }
+
+  std::vector<column_info_t> result;
+
+  CS_INT result_type;
+  while ((err = ct_results(cmd, &result_type)) == CS_SUCCEED) {
+    if (result_type != CS_DESCRIBE_RESULT) continue;
+    CS_INT numparam = 0;
+    CS_INT len;
+    err = ct_res_info(cmd, CS_NUMDATA, &numparam, CS_UNUSED, &len);
+    if (err != CS_SUCCEED) {
+printf("### err33\n");
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call to ct_res_info(CS_DESCRIBE_RESULT) failed with error %d", (int)err);
+      return empty;
+    }
+    result.reserve(numparam);
+
+printf("### num of parameters = %d\n", (int)numparam);
+    CS_DATAFMT datafmt;
+    for (CS_INT i = 1; i <= numparam; ++i) { 
+      err = ct_describe(cmd, i, &datafmt);
+      if (err != CS_SUCCEED) {
+printf("### err 44\n");
+        xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call to ct_describe(%d) failed with error %d", i, (int)err);
+        return empty;
+      }
+      std::string name;
+      if (datafmt.name[0]) {
+        name = datafmt.name;
+      } else {
+        name = "<unnamed>";
+      }
+      result.push_back(column_info_t(name, datafmt.datatype, datafmt.maxlength));
+    }
+  }
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// Checks if it is select command. May should handle stored procedures?
+bool SybaseBindGroup::does_command_return_data() const
+{
+  char* p = m_cmd->getBuffer();
+  if (!p) return false;
+  while (*p && isspace(*p)) ++p;
+  if (!*p) return false;
+  if (strncasecmp(p, "select", 6) == 0) return true;
+  return false;
+}
+
+//------------------------------------------------------------------------------
+std::vector<SybaseBindGroup::column_info_t> SybaseBindGroup::extract_output_parameters_info(CS_COMMAND* cmd, ExceptionSink* xsink)
+{
+  std::vector<column_info_t> empty;
+  assert(cmd);
+  CS_RETCODE err = ct_dynamic(cmd, CS_DESCRIBE_OUTPUT, (CS_CHAR*)m_command_id.c_str(), CS_NULLTERM, 0, CS_UNUSED);
+  if (err != CS_SUCCEED) {
+printf("### err10\n");
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_dynamic(CS_DESCRIBE_OUTPUT) failed with error %d", (int)err);
+    return empty;
+  }
+
+  err = ct_send(cmd);
+  if (err != CS_SUCCEED) {
+printf("### err20\n");
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_send() failed with error %d", (int)err);
+    return empty;
+  }
+
+  std::vector<column_info_t> result;
+
+  CS_INT result_type;
+  while ((err = ct_results(cmd, &result_type)) == CS_SUCCEED) {
+    if (result_type != CS_DESCRIBE_RESULT) continue;
+    CS_INT numparam = 0;
+    CS_INT len;
+    err = ct_res_info(cmd, CS_NUMDATA, &numparam, CS_UNUSED, &len);
+    if (err != CS_SUCCEED) {
+printf("### err33\n");
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call to ct_res_info(CS_DESCRIBE_RESULT) failed with error %d", (int)err);
+      return empty;
+    }
+    result.reserve(numparam);
+
+printf("### num of parameters = %d\n", (int)numparam);
+    CS_DATAFMT datafmt;
+    for (CS_INT i = 1; i <= numparam; ++i) {
+      err = ct_describe(cmd, i, &datafmt);
+      if (err != CS_SUCCEED) {
+printf("### err 44\n");
+        xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call to ct_describe(%d) failed with error %d", i, (int)err);
+        return empty;
+      }
+      std::string name;
+      if (datafmt.name[0]) {
+        name = datafmt.name;
+      } else {
+        name = "<unnamed>";
+      }
+      result.push_back(column_info_t(name, datafmt.datatype, datafmt.maxlength));
+    }
+  }
+  return result;
+}
+
+//------------------------------------------------------------------------------
+QoreNode* SybaseBindGroup::execute_command(ExceptionSink* xsink)
+{
+  CS_COMMAND* cmd = prepare_command(xsink);
+  if (xsink->isException()) {
+printf("### err A\n");
+    return 0;
+  }
+  ON_BLOCK_EXIT(ct_cmd_drop, cmd);
+  ON_BLOCK_EXIT(&SybaseBindGroup::deallocate_prepared_statement, cmd, (char*)m_command_id.c_str());
+
+  std::vector<column_info_t> inputs = extract_input_parameters_info(cmd, xsink);
+  if (xsink->isException()) {
+printf("### err B\n");
+    return 0;
+  }
+  std::vector<column_info_t> outputs;
+  if (does_command_return_data()) {
+    outputs = extract_output_parameters_info(cmd, xsink);
+    if (xsink->isException()) {
+      return 0;
+    }
+  }
+
+
+  // TBD
+  return 0;
+}
+
+//------------------------------------------------------------------------------
+#ifdef DEBUG
+TEST()
+{
+  sybase_connection conn;
+  ExceptionSink xsink;
+  conn.init("sa", 0, "pavel", &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+
+  QoreString str("select count(*) from syskeys where id > %v and id < %v");
+  SybaseBindGroup grp(&str);
+  grp.m_connection = conn.getConnection();
+
+  List* lst = new List;
+  lst->push(new QoreNode((int64)0));
+  lst->push(new QoreNode((int64)1000));
+
+  grp.parseQuery(lst, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+
+  CS_COMMAND* cmd = grp.prepare_command(&xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  std::vector<SybaseBindGroup::column_info_t> inputs = grp.extract_input_parameters_info(cmd, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  assert(inputs.size() == 2);
+
+  std::vector<SybaseBindGroup::column_info_t> outputs = grp.extract_output_parameters_info(cmd, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  assert(inputs.size() == 1);
+
+  QoreNode* aux = new QoreNode(lst);
+  aux->deref(&xsink);
+}
+#endif
+
+//------------------------------------------------------------------------------
+QoreNode* SybaseBindGroup::exec(class ExceptionSink *xsink)
+{
+  QoreNode* n = execute_command(xsink);
+  if (n) n->deref(xsink);
+  if (xsink->isException()) {
+    return 0;
+  }
+  if (m_ds->getAutoCommit()) {
+    sybase_commit(m_ds, xsink);
+  }
+  return 0;
+}
+
+//------------------------------------------------------------------------------
+QoreNode* SybaseBindGroup::select(class ExceptionSink *xsink)
+{
+  QoreNode* n = execute_command(xsink);
+  if (xsink->isException()) {
+    if (n) n->deref(xsink);
+    return 0;
+  }
+  return n;
+}
+
+//------------------------------------------------------------------------------
+QoreNode* SybaseBindGroup::selectRows(class ExceptionSink *xsink)
+{
+  QoreNode* n = execute_command(xsink);
+  if (xsink->isException()) {
+    if (n) n->deref(xsink);
+    return 0;
+  }
+  return n;
+}
+
+} // anonymous namespace
+
+//------------------------------------------------------------------------------
+static int sybase_open(Datasource *ds, ExceptionSink *xsink)
+{
+  tracein("sybase_open()");
+
+  if (!ds->getUsername()) {
+    xsink->raiseException("DATASOURCE-MISSING-USERNAME", "Datasource has an empty username parameter");
+    traceout("oracle_open()");
+    return -1;
+  }
+  if (!ds->getPassword()) {
+    xsink->raiseException("DATASOURCE-MISSING-PASSWORD", "Datasource has an empty password parameter");
+    traceout("oracle_open()");
+    return -1;
+  }
+  if (!ds->getDBName()) {
+    xsink->raiseException("DATASOURCE-MISSING-DBNAME", "Datasource has an empty dbname parameter");
+    traceout("oracle_open()");
+    return -1;
+  }
+
+  std::auto_ptr<sybase_connection> sc(new sybase_connection);
+  sc->init(ds->getUsername(), ds->getPassword(), ds->getDBName(), xsink);
+  if (xsink->isException()) {
+    return -1;  
+  }
+  ds->setPrivateData(sc.release());
+
+  // TBD - something about string encoding should be here
+
+  traceout("sybase_open()");
+  return 0;
+}
+
+//------------------------------------------------------------------------------
+static int sybase_close(Datasource *ds)
+{
+  tracein("sybase_close()");
+  sybase_connection* sc = (sybase_connection*)ds->getPrivateData();
+  ds->setPrivateData(0);
+  delete sc;
+  traceout("sybase_close()");
+  return 0;
+}
+
+//------------------------------------------------------------------------------
+static QoreNode* sybase_select(Datasource *ds, QoreString *qstr, List *args, ExceptionSink *xsink)
+{
+  SybaseBindGroup grp(ds, qstr, args, xsink);
+  if (xsink->isException()) {
+    return 0;
+  }
+  return grp.select(xsink);
+}
+
+//------------------------------------------------------------------------------
+static QoreNode* sybase_select_rows(Datasource *ds, QoreString *qstr, List *args, ExceptionSink *xsink)
+{
+  SybaseBindGroup grp(ds, qstr, args, xsink);
+  if (xsink->isException()) {
+    return 0;
+  }
+  return grp.selectRows(xsink);
+}
+
+//------------------------------------------------------------------------------
+static QoreNode* sybase_exec(Datasource *ds, QoreString *qstr, List *args, ExceptionSink *xsink)
+{
+  SybaseBindGroup grp(ds, qstr, args, xsink);
+  if (xsink->isException()) {
+    return 0;
+  }
+  return grp.exec(xsink);
+}
+
+//------------------------------------------------------------------------------
+// Locally debugable function
+static int sybase_commit_impl(sybase_connection* sc, ExceptionSink* xsink)
+{
+  CS_COMMAND* cmd = 0;
+  CS_RETCODE err = ct_cmd_alloc(sc->getConnection(), &cmd);
+  if (err != CS_SUCCEED) {
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_cmd_alloc() failed with error %d", (int)err);
+    return 0;
+  }
+  ON_BLOCK_EXIT(ct_cmd_drop, cmd);
+
+  err = ct_dynamic(cmd, CS_EXEC_IMMEDIATE, 0, CS_UNUSED, "commit transaction", CS_NULLTERM);
+  if (err != CS_SUCCEED) {
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_dynamic(\"commit transaction\") failed with error %d", (int)err);
+    return 0;
+  }
+  err = ct_send(cmd);
+  if (err != CS_SUCCEED) {
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_send() failed with error %d", (int)err);
+    return 0;
+  }
+
+  // no results expected
+  CS_INT result_type;
+  err = ct_results(cmd, &result_type);
+  if (err != CS_SUCCEED) {
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_result() failed with error %d", (int)err);
+    return 0;
+  }
+  if (result_type != CS_CMD_SUCCEED) {
+    assert(result_type == CS_CMD_FAIL);
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() for \"commit transaction\" failed with error %d",
+ (int)err);
+    return 0;
+  }
+  while((err = ct_results(cmd, &result_type)) == CS_SUCCEED);
+
+  return 1;
+}
+
+//------------------------------------------------------------------------------
+static int sybase_commit(Datasource *ds, ExceptionSink *xsink)
+{
+  sybase_connection* sc = (sybase_connection*)ds->getPrivateData();
+  return sybase_commit_impl(sc, xsink);
+}
+
+//------------------------------------------------------------------------------
+#ifdef DEBUG
+TEST()
+{
+  // test sybase_commit()
+  sybase_connection conn;
+  ExceptionSink xsink;
+  conn.init("sa", 0, "pavel", &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  int res = sybase_commit_impl(&conn, &xsink);
+  if (res != 1) {
+    assert(false);
+  }
+}
+#endif
+
+//------------------------------------------------------------------------------
+// Locally debugeable function
+static int sybase_rollback_impl(sybase_connection* sc, ExceptionSink* xsink)
+{
+  CS_COMMAND* cmd = 0;
+  CS_RETCODE err = ct_cmd_alloc(sc->getConnection(), &cmd);
+  if (err != CS_SUCCEED) {
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_cmd_alloc() failed with error %d", (int)err);
+    return 0;
+  }
+  ON_BLOCK_EXIT(ct_cmd_drop, cmd);
+
+  err = ct_dynamic(cmd, CS_EXEC_IMMEDIATE, 0, CS_UNUSED, "rollback transaction", CS_NULLTERM);
+  if (err != CS_SUCCEED) {
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_dynamic(\"rollback transaction\") failed with error %d", (int)err);
+    return 0;
+  }
+  err = ct_send(cmd);
+  if (err != CS_SUCCEED) {
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_send() failed with error %d", (int)err);
+    return 0;
+  }
+
+  // no results expected
+  CS_INT result_type;
+  err = ct_results(cmd, &result_type);
+  if (err != CS_SUCCEED) {
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_result() failed with error %d", (int)err);
+    return 0;
+  }
+  if (result_type != CS_CMD_SUCCEED) {
+    assert(result_type == CS_CMD_FAIL);
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() for \"rollback transaction\" failed with error %d", (int)err);
+    return 0;
+  }
+  while((err = ct_results(cmd, &result_type)) == CS_SUCCEED);
+
+  return 1;
+}
+
+//------------------------------------------------------------------------------
+static int sybase_rollback(Datasource *ds, ExceptionSink *xsink)
+{
+  sybase_connection* sc = (sybase_connection*)ds->getPrivateData();
+  return sybase_rollback_impl(sc, xsink);
+}
+
+//------------------------------------------------------------------------------
+#ifdef DEBUG
+TEST()
+{
+  // test sybase_rollback()
+  sybase_connection conn;
+  ExceptionSink xsink;
+  conn.init("sa", 0, "pavel", &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  int res = sybase_rollback_impl(&conn, &xsink);
+  if (res != 1) {
+    assert(false);
+  }
+}
+#endif
+
+//------------------------------------------------------------------------------
+QoreString* sybase_module_init()
 {
    tracein("sybase_module_init()");
-/*
+
+#ifdef DEBUG
+  builtinFunctions.add("runSybaseTests", runSybaseTests, QDOM_DATABASE);
+#endif
+
    // register driver with DBI subsystem
    DBIDriverFunctions *ddf =
-      new DBIDriverFunctions(oracle_open,
-                             oracle_close,
-                             oracle_select,
-                             oracle_select_rows,
-                             oracle_exec,
-                             oracle_commit,
-                             oracle_rollback);
-   DBID_ORACLE = DBI.registerDriver("oracle", ddf, DBI_ORACLE_CAPS);
-*/
+      new DBIDriverFunctions(sybase_open,
+                             sybase_close,
+                             sybase_select,
+                             sybase_select_rows,
+                             sybase_exec,
+                             sybase_commit,
+                             sybase_rollback);
+   DBID_SYBASE = DBI.registerDriver("sybase", ddf, DBI_SYBASE_CAPS);
+
    traceout("sybase_module_init()");
    return NULL;
 }
 
 //------------------------------------------------------------------------------
-void oracle_module_ns_init(Namespace *rns, Namespace *qns)
+void sybase_module_ns_init(Namespace *rns, Namespace *qns)
 {
    tracein("sybase_module_ns_init()");
    // nothing to do at the moment
@@ -218,12 +1007,9 @@ void oracle_module_ns_init(Namespace *rns, Namespace *qns)
 void sybase_module_delete()
 {
    tracein("sybase_module_delete()");
-   //DBI_deregisterDriver(DBID_SYBASE); - commented out because copied from oracle module
+   //DBI_deregisterDriver(DBID_SYBASE); - commented out because it is so in oracle module
    traceout("sybase_module_delete()");
 }
 
-
-
-
-
+// EOF
 
