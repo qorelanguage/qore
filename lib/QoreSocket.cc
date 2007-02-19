@@ -1365,7 +1365,122 @@ void QoreSocket::doException(int rc, char *meth, class ExceptionSink *xsink)
 // receive a binary message in HTTP chunked format
 class Hash *QoreSocket::readHTTPChunkedBodyBinary(int timeout, class ExceptionSink *xsink)
 {
-   return NULL;
+   class BinaryObject *b = new BinaryObject;
+   class QoreString str; // for reading the size of each chunk
+   
+   int rc;
+   // read the size then read the data and append to buffer
+   while (true)
+   {
+      // state = 0, nothing
+      // state = 1, \r received
+      int state = 0;
+      while (true)
+      {
+	 char c;
+	 rc = recv(&c, 1, 0, timeout);
+	 if (rc <= 0)
+	 {
+	    delete b;
+	    doException(rc, "readHTTPChunkedBodyBinary", xsink);
+	    return NULL;
+	 }
+	 
+	 if (!state && c == '\r')
+	    state = 1;
+	 else if (state && c == '\n')
+	    break;
+	 else
+	 {
+	    if (state)
+	    {
+	       state = 0;
+	       str.concat('\r');
+	    }
+	    str.concat(c);
+	 }
+      }
+      // DEBUG
+      //printd(0, "got chunk size (%d bytes) string: %s\n", str.strlen(), str.getBuffer());
+      
+      // terminate string at ';' char if present
+      char *p = strchr(str.getBuffer(), ';');
+      if (p)
+	 *p = '\0';
+      long size = strtol(str.getBuffer(), NULL, 16);
+      if (size == 0)
+	 break;
+      if (size < 0)
+      {
+	 delete b;
+	 xsink->raiseException("READ-HTTP-CHUNK-ERROR", "negative value given for chunk size (%d)", size);
+	 return NULL;
+      }
+      
+      // prepare string for chunk
+      str.ensureBufferSize(size + 1);
+      
+      // read chunk directly into string buffer    
+      int bs = size < DEFAULT_SOCKET_BUFSIZE ? size : DEFAULT_SOCKET_BUFSIZE;
+      int br = 0; // bytes received
+      while (true)
+      {
+	 rc = recv(str.getBuffer() + br, bs, 0, timeout);
+	 if (rc <= 0)
+	 {
+	    delete b;
+	    doException(rc, "readHTTPChunkedBodyBinary", xsink);
+	    return NULL;
+	 }
+	 br += rc;
+	 
+	 if (br >= size)
+	    break;
+	 if (size - br < bs)
+	    bs = size - br;
+      }
+      // copy string buffer to binary object
+      b->append(str.getBuffer(), size);
+      // DEBUG
+      //printd(0, "got chunk (%d bytes): %s\n", br, str.getBuffer() -  size);
+      
+      // read crlf after chunk
+      char crlf[2];
+      br = 0;
+      while (br < 2)
+      {
+	 rc = recv(crlf, 2 - br, 0, timeout);
+	 if (rc <= 0)
+	 {
+	    delete b;
+	    doException(rc, "readHTTPChunkedBodyBinary", xsink);
+	    return NULL;
+	 }
+	 br += rc;
+      }      
+
+      // ensure string is blanked for next read
+      str.terminate(0);
+   }
+   // read footers or nothing
+   class QoreString *hdr = readHTTPData(timeout, &rc, 1);
+   if (!hdr)
+   {
+      delete b;
+      doException(rc, "readHTTPChunkedBodyBinary", xsink);
+      return NULL;
+   }
+   class Hash *h = new Hash();
+   h->setKeyValue("body", new QoreNode(b), xsink);
+   
+   if (hdr->strlen() >= 2 && hdr->strlen() <= 4)
+   {
+      delete hdr;
+      return h;
+   }
+   convertHeaderToHash(h, hdr->getBuffer());
+   delete hdr;
+   return h; 
 }
 
 // receive a message in HTTP chunked format
