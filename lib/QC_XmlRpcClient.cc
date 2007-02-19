@@ -43,7 +43,7 @@ static void XRC_constructor(class Object *self, class QoreNode *params, Exceptio
    client->default_headers["User-Agent"] = "Qore XML-RPC Client v" PACKAGE_VERSION;
 
    client->addProtocol("xmlrpc", 80, false);
-   client->addProtocol("xmlrpcs", 443, false);
+   client->addProtocol("xmlrpcs", 443, true);
 
    QoreNode* n = test_param(params, NT_HASH, 0);
    if (n && client->setOptions(n->val.hash, xsink))
