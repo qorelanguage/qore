@@ -1,3 +1,9 @@
+2007.02.19: David Nichols
+	* implemented QoreSocket::readHTTPChunkedBodyBinary()
+	* fixed deadlock in QoreHTTPClient.cc when a chunked read error occurs
+	* detected misuse of Content-Encoding header to specify a character 
+	  encoding
+
 2007.02.12: David Nichols
 	* enlarged buffer for host ip address lookups to 1024 bytes
 	* fixed a bug setting the port number by protocol name in the 
