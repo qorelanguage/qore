@@ -754,8 +754,31 @@ printf("### err x2\n");
 //------------------------------------------------------------------------------
 QoreNode* SybaseBindData::read_ouput(CS_COMMAND* cmd, const std::vector<column_info_t>& out_info, ExceptionSink* xsink)
 {
+  CS_RETCODE err;
+  CS_INT result_type; 
+  while ((err = ct_results(cmd, &result_type)) == CS_SUCCEED) {
+    switch (result_type) {
+    case CS_COMPUTE_RESULT:
+    case CS_CURSOR_RESULT:
+    case CS_PARAM_RESULT:
+    case CS_ROW_RESULT:
+    case CS_STATUS_RESULT:
+    case CS_COMPUTE_FMT_RESULT:
+    case CS_MSG_RESULT:
+    case CS_ROW_FMT_RESULT:
+    case CS_DESCRIBE_RESULT:
+    case CS_CMD_DONE:
+    case CS_CMD_FAIL:
+    case CS_CMD_SUCCEED:
+      // TBD
+    default:
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() gave unknown result type %d", (int)result_type);
+      return 0;
+    }
+  }
+
   // TBD
-  retur  0;
+  return  0;
 }
 
 //------------------------------------------------------------------------------
