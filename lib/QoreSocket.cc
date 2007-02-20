@@ -962,8 +962,11 @@ class BinaryObject *QoreSocket::recvBinary(int bufsize, int timeout, int *rc)
       *rc = recv(buf, bs, 0, timeout);
       if ((*rc) <= 0)
       {
-	 delete b;
-	 b = NULL;
+	 if (*rc || (!*rc && bufsize > 0))
+	 {
+	    delete b;
+	    b = NULL;
+	 }
 	 break;
       }
       b->append(buf, *rc);
@@ -978,6 +981,9 @@ class BinaryObject *QoreSocket::recvBinary(int bufsize, int timeout, int *rc)
       }
    }
    free(buf);
+   // "fix" return code value if no buffer size was set
+   if (bufsize <= 0 && !(*rc))
+      *rc = 1;
    return b;
 }
 
@@ -1003,8 +1009,11 @@ class QoreString *QoreSocket::recv(int bufsize, int timeout, int *rc)
       {
 	 //printd(0, "QoreSocket::recv(%d, %d) bs=%d, br=%d, rc=%d, errno=%d (%s)\n", bufsize, timeout, bs, br, *rc, errno, strerror(errno));
 
-	 delete str;
-	 str = NULL;
+	 if (*rc || (!*rc && bufsize > 0))
+	 {
+	    delete str;
+	    str = NULL;
+	 }
 	 break;
       }
       str->concat(buf, *rc);
@@ -1020,6 +1029,9 @@ class QoreString *QoreSocket::recv(int bufsize, int timeout, int *rc)
    }
    //printd(5, "QoreSocket::recv() received %d byte(s), strlen=%d\n", br, str->strlen());
    free(buf);
+   // "fix" return code value if no buffer size was set
+   if (bufsize <= 0 && !(*rc))
+      *rc = 1;
    return str;
 }
 

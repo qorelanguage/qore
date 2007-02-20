@@ -673,31 +673,19 @@ class QoreNode *QoreHTTPClient::getResponseHeader(const char *meth, const char *
    return ans;
 }
 
+// always generate a Host header pointing to the host hosting the resource, not the proxy
+// (RFC 2616 is not totally clear on this, but other clients do it this way)
 class QoreNode *QoreHTTPClient::getHostHeaderValue()
 {
    QoreNode *hv;
 
-   if (!proxy_port)
-   {
-      if (port == 80)
-	 hv = new QoreNode(host.c_str());
-      else
-      {
-	 QoreString *str = new QoreString();
-	 str->sprintf("%s:%d", host.c_str(), port);
-	 hv = new QoreNode(str);
-      }
-   }
+   if (port == 80)
+      hv = new QoreNode(host.c_str());
    else
    {
-      if (proxy_port == 80)
-	 hv = new QoreNode(proxy_host.c_str());
-      else
-      {
-	 QoreString *str = new QoreString();
-	 str->sprintf("%s:%d", proxy_host.c_str(), proxy_port);
-	 hv = new QoreNode(str);
-      }
+      QoreString *str = new QoreString();
+      str->sprintf("%s:%d", host.c_str(), port);
+      hv = new QoreNode(str);
    }
    return hv;
 }
@@ -721,7 +709,7 @@ class QoreNode *QoreHTTPClient::send_internal(char *meth, const char *mpath, cla
       HashIterator hi(headers);
       while (hi.next())
       {
-	 if (!strcasecmp(hi.getKey(), "connection"))
+	 if (!strcasecmp(hi.getKey(), "connection") || (proxy_port && !strcasecmp(hi.getKey(), "proxy-connection")))
 	 {
 	    class QoreNode *v = hi.getValue();
 	    if (v && v->type == NT_STRING && !strcasecmp(v->val.String->getBuffer(), "close"))
@@ -986,16 +974,17 @@ class QoreNode *QoreHTTPClient::send_internal(char *meth, const char *mpath, cla
       if (content_encoding)
       {
 	 class BinaryObject *bobj = m_socket.recvBinary(len, timeout, &rc);
-	 if (rc > 0)
+	 if (rc > 0 && bobj)
 	    body = new QoreNode(bobj);
       }
       else
       {
 	 class QoreString *bstr = m_socket.recv(len, timeout, &rc);
-	 if (rc > 0)
+	 if (rc > 0 && bstr)
 	    body = new QoreNode(bstr);
       }
 
+      //printf("body=%08p\n", body);
       if (rc <= 0)
       {
 	 unlock();
