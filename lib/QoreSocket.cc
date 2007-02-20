@@ -1119,6 +1119,7 @@ int QoreSocket::sendHTTPMessage(const char *method, const char *path, const char
       hdr.sprintf("Content-Length: %d\r\n", size);
 
    hdr.concat("\r\n");
+   //printf("hdr=%s\n", hdr.getBuffer());
    int rc;
    if ((rc = send(hdr.getBuffer(), hdr.strlen())))
       return rc;
