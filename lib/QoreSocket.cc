@@ -962,7 +962,7 @@ class BinaryObject *QoreSocket::recvBinary(int bufsize, int timeout, int *rc)
       *rc = recv(buf, bs, 0, timeout);
       if ((*rc) <= 0)
       {
-	 if (*rc || (!*rc && bufsize > 0))
+	 if (*rc || !br || (!*rc && bufsize > 0))
 	 {
 	    delete b;
 	    b = NULL;
@@ -1009,7 +1009,7 @@ class QoreString *QoreSocket::recv(int bufsize, int timeout, int *rc)
       {
 	 //printd(0, "QoreSocket::recv(%d, %d) bs=%d, br=%d, rc=%d, errno=%d (%s)\n", bufsize, timeout, bs, br, *rc, errno, strerror(errno));
 
-	 if (*rc || (!*rc && bufsize > 0))
+	 if (*rc || !br || (!*rc && bufsize > 0))
 	 {
 	    delete str;
 	    str = NULL;
