@@ -298,6 +298,9 @@ int QoreHTTPClient::set_url_unlocked(const char *str, ExceptionSink* xsink)
 int QoreHTTPClient::setURL(const char *str, ExceptionSink* xsink)
 {
    lock();
+   // disconnect immediately if not using a proxy
+   if (!proxy_port)
+      disconnect_unlocked();
    int rc = set_url_unlocked(str, xsink);
    unlock();
    return rc;
@@ -434,14 +437,16 @@ int QoreHTTPClient::set_proxy_url_unlocked(const char *pstr, class ExceptionSink
 
 int QoreHTTPClient::setProxyURL(const char *proxy, class ExceptionSink *xsink) 
 {
+   int rc;
+   lock();
+   disconnect_unlocked();
    if (!proxy || !proxy[0])
    {
       clearProxyURL();
-      return 0;
+      rc = 0;
    }
-
-   lock();
-   int rc = set_proxy_url_unlocked(proxy, xsink);
+   else
+      rc = set_proxy_url_unlocked(proxy, xsink);
    unlock();
    return rc;
 }
