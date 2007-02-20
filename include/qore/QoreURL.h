@@ -33,14 +33,14 @@ private:
 
    DLLLOCAL void zero();
    DLLLOCAL void reset();
-   DLLLOCAL void parseIntern(char *url);
+   DLLLOCAL void parseIntern(const char *url);
 
 public:      
    DLLEXPORT QoreURL();
-   DLLEXPORT QoreURL(char *url);
+   DLLEXPORT QoreURL(const char *url);
    DLLEXPORT QoreURL(class QoreString *url);
    DLLEXPORT ~QoreURL();
-   DLLEXPORT int parse(char *url);
+   DLLEXPORT int parse(const char *url);
    DLLEXPORT int parse(class QoreString *url);
    DLLEXPORT bool isValid() const;
    // returns a hash of the parameters parsed - destructive: zeros out all elements

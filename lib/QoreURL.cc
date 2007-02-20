@@ -47,7 +47,7 @@ void QoreURL::reset()
       delete host;
 }
 
-void QoreURL::parseIntern(char *buf)
+void QoreURL::parseIntern(const char *buf)
 {
    if (!buf || !buf[0])
       return;
@@ -55,7 +55,7 @@ void QoreURL::parseIntern(char *buf)
    printd(5, "QoreURL::parseIntern(%s)\n", buf);
    
    char *p = strstr(buf, "://");
-   char *pos;
+   const char *pos;
    
    // get protocol
    if (p)
@@ -77,7 +77,7 @@ void QoreURL::parseIntern(char *buf)
       // get pathname if not at EOS
       if (p[1] != '\0')
       {
-	 path = new QoreString(p + 1);
+	 path = new QoreString(p);
 	 printd(5, "QoreURL::parseIntern path=%s\n", path->getBuffer());
       }
       // get copy of hostname string for localized searching and invasive parsing
@@ -126,7 +126,7 @@ QoreURL::QoreURL()
    zero();
 }
 
-QoreURL::QoreURL(char *url)
+QoreURL::QoreURL(const char *url)
 {
    zero();
    parse(url);
@@ -143,7 +143,7 @@ QoreURL::~QoreURL()
    reset();
 }
 
-int QoreURL::parse(char *url)
+int QoreURL::parse(const char *url)
 {
    reset();
    zero();

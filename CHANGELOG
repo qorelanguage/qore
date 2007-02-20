@@ -1,3 +1,7 @@
+2007.02.20: David Nichols
+	* updated HTTPClient to support redirections, basic authentication and
+	  proxies (proxy support untested)
+
 2007.02.17: David Nichols
 	* added begin_transaction function to DBI drivers to support databases
 	  requiring explicit "BEGIN"s for transaction management

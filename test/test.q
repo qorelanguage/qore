@@ -939,7 +939,7 @@ sub misc_tests()
 	       "password" : "passw@rd",
 	       "host" : "hostname",
 	       "port" : 1044,
-	       "path" : "path/is/here" );
+	       "path" : "/path/is/here" );
 
     test_value(parseURL($url), $uh, "parseURL()");
     

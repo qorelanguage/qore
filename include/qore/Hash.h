@@ -1,4 +1,4 @@
-/*
+#/*
   Hash.h
 
   Qore Programming Language
@@ -43,16 +43,17 @@ class HashMember {
 class HashIterator
 {
    private:
-      class HashMember *head;
+      class Hash *h;
       class HashMember *ptr;
 
    public:
-      DLLEXPORT HashIterator(class HashMember *h);
       DLLEXPORT HashIterator(class Hash *h);
+      DLLEXPORT HashIterator(class Hash &h);
       DLLEXPORT class HashMember *next();
       DLLEXPORT char *getKey() const;
       DLLEXPORT class QoreString *getKeyString() const;
       DLLEXPORT class QoreNode *getValue() const;
+      DLLEXPORT class QoreNode *takeValueAndDelete();
       DLLEXPORT class QoreNode **getValuePtr() const;
       DLLEXPORT class QoreNode *eval(class ExceptionSink *xsink) const;
       DLLEXPORT bool last() const;

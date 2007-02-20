@@ -43,6 +43,9 @@
 // set default timeout to 5 minutes (300,000 ms)
 #define HTTPCLIENT_DEFAULT_TIMEOUT 300000
 
+// set default maximum number of redirections
+#define HTTPCLIENT_DEFAULT_MAX_REDIRECTS 5
+
 // protocol map class to recognize user-defined protocols (mostly useful for derived classes)
 typedef std::map<std::string, int> prot_map_t;
 typedef std::set<std::string> str_set_t;
@@ -69,20 +72,17 @@ class SafeHash : public Hash
 class QoreHTTPClient : public AbstractPrivateData, public LockedObject
 {
    private:
-      static str_set_t method_set;
-      static strcase_set_t header_ignore;
-      static class SafeHash mandatory_headers;
+      DLLLOCAL static str_set_t method_set;
+      DLLLOCAL static strcase_set_t header_ignore;
    
       // are we using http 1.1 or 1.0?
       bool http11;
       prot_map_t prot_map;
 
-      bool ssl;
-      int port, default_port;
-      std::string host;
-      std::string path;
-      std::string username;
-      std::string password;
+      bool ssl, proxy_ssl;
+      int port, proxy_port, default_port, max_redirects;
+      std::string host, path, username, password;
+      std::string proxy_host, proxy_path, proxy_username, proxy_password;
       std::string default_path;
       int timeout;
       std::string socketpath;
@@ -90,12 +90,17 @@ class QoreHTTPClient : public AbstractPrivateData, public LockedObject
       QoreSocket m_socket;
       
       // returns -1 if an exception was thrown, 0 for OK
-      DLLLOCAL int process_url(class QoreString *str, ExceptionSink* xsink);
+      DLLEXPORT int set_url_unlocked(const char *url, class ExceptionSink *xsink);
+      // returns -1 if an exception was thrown, 0 for OK
+      DLLEXPORT int set_proxy_url_unlocked(const char *url, class ExceptionSink *xsink);
       // returns -1 if an exception was thrown, 0 for OK
       DLLLOCAL int connect_unlocked(class ExceptionSink *xsink);
       DLLLOCAL void disconnect_unlocked();
-      DLLLOCAL class QoreNode *send_internal(char *meth, const char *path, class Hash *headers, void *data, unsigned size, bool getbody, class ExceptionSink *xsink);
+      DLLLOCAL class QoreNode *send_internal(char *meth, const char *mpath, class Hash *headers, void *data, unsigned size, bool getbody, class ExceptionSink *xsink);
       DLLLOCAL void setSocketPath();
+      DLLLOCAL const char *getMsgPath(const char *mpath, class QoreString &pstr);
+      DLLLOCAL class QoreNode *getResponseHeader(const char *meth, const char *mpath, class Hash &nh, void *data, unsigned size, int &code, class ExceptionSink *xsink);
+      DLLLOCAL class QoreNode *getHostHeaderValue();
 
    protected:
       DLLLOCAL virtual ~QoreHTTPClient();
@@ -107,6 +112,7 @@ class QoreHTTPClient : public AbstractPrivateData, public LockedObject
 
       DLLEXPORT QoreHTTPClient();
       // set options with a hash, returns -1 if an exception was thrown, 0 for OK
+      // NOTE: this function is unlocked and designed only to be called with the constructor
       DLLEXPORT int setOptions(Hash* opts, ExceptionSink* xsink);
       // useful for c++ derived classes
       DLLEXPORT void setDefaultPort(int prt);
@@ -127,8 +133,22 @@ class QoreHTTPClient : public AbstractPrivateData, public LockedObject
       DLLEXPORT void setHTTP11(bool h11);
       DLLEXPORT bool isHTTP11() const;
 
+      // returns -1 if an exception was thrown, 0 for OK
+      DLLEXPORT int setURL(const char *url, class ExceptionSink *xsink);
+      DLLEXPORT class QoreString *getURL();
+
+      DLLEXPORT int setProxyURL(const char *proxy, class ExceptionSink *xsink);
+      DLLEXPORT class QoreString *getProxyURL();
+      DLLEXPORT void clearProxyURL();
+
       DLLEXPORT void setSecure(bool is_secure);
       DLLEXPORT bool isSecure() const;
+
+      DLLEXPORT void setProxySecure(bool is_secure);
+      DLLEXPORT bool isProxySecure() const;
+
+      DLLEXPORT void setMaxRedirects(int max);
+      DLLEXPORT int getMaxRedirects() const;
 
       DLLEXPORT long verifyPeerCertificate();
       DLLEXPORT const char* getSSLCipherName();

@@ -32,16 +32,16 @@
 #  include "tests/Hash_tests.cc"
 #endif
 
-HashIterator::HashIterator(class HashMember *h) 
-{ 
-   ptr = NULL; 
-   head = h; 
+HashIterator::HashIterator(class Hash *qh) 
+{
+   h = qh;
+   ptr = NULL;
 }
 
-HashIterator::HashIterator(class Hash *h) 
-{ 
+HashIterator::HashIterator(class Hash &qh) 
+{
+   h = &qh;
    ptr = NULL;
-   head = h->member_list; 
 }
 
 class QoreNode *HashIterator::eval(class ExceptionSink *xsink) const
@@ -76,7 +76,7 @@ class HashMember *HashIterator::next()
    if (ptr) 
       ptr = ptr->next;
    else
-      ptr = head;
+      ptr = h->member_list;
    return ptr;
 }
 
@@ -93,6 +93,22 @@ class QoreNode *HashIterator::getValue() const
    if (ptr)
       return ptr->node;
    return NULL;
+}
+
+class QoreNode *HashIterator::takeValueAndDelete()
+{
+   class QoreNode *rv;
+   if (ptr)
+   { 
+      rv = ptr->node;
+      ptr->node = NULL;
+      class HashMember *w = ptr;
+      h->internDeleteKey(w);
+      ptr = ptr->prev;
+   }
+   else
+      rv = NULL;
+   return rv;
 }
 
 class QoreNode **HashIterator::getValuePtr() const
