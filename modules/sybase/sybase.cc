@@ -267,7 +267,10 @@ private:
   bool does_command_return_data() const;
   std::vector<column_info_t> extract_output_parameters_info(CS_COMMAND* cmd, ExceptionSink* xsink);
   void bind_input_parameters(CS_COMMAND* cmd, const std::vector<column_info_t>& params, ExceptionSink* xsink);
-  QoreNode* read_ouput(CS_COMMAND* cmd, const std::vector<column_info_t>& out_info, ExceptionSink* xsink);
+  QoreNode* read_output(CS_COMMAND* cmd, const std::vector<column_info_t>& out_info, ExceptionSink* xsink);
+  void read_single_value(CS_COMMAND* cmd, const column_info_t& out_type, QoreNode*& out, ExceptionSink* xsink);
+  void read_single_row(CS_COMMAND* cmd, const column_info_t& out_type, QoreNode*& out, ExceptionSink* xsink);
+  void read_new_row(CS_COMMAND* cmd, const column_info_t& out_type, QoreNode*& out, ExceptionSink* xsink);
 
   QoreNode* execute_command(ExceptionSink* xsink);
 
@@ -752,8 +755,9 @@ printf("### err x2\n");
 }
 
 //------------------------------------------------------------------------------
-QoreNode* SybaseBindData::read_ouput(CS_COMMAND* cmd, const std::vector<column_info_t>& out_info, ExceptionSink* xsink)
+QoreNode* SybaseBindGroup::read_output(CS_COMMAND* cmd, const std::vector<column_info_t>& out_info, ExceptionSink* xsink)
 {
+  QoreNode* result = 0;
   CS_RETCODE err;
   CS_INT result_type; 
   while ((err = ct_results(cmd, &result_type)) == CS_SUCCEED) {
@@ -764,7 +768,7 @@ QoreNode* SybaseBindData::read_ouput(CS_COMMAND* cmd, const std::vector<column_i
     case CS_CURSOR_RESULT:
       // Sybase bug??? This code does not use cursors.
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() failed with result code CS_CURSOR_RESULT");
-      return 0;
+      return result;
     case CS_PARAM_RESULT:
       // single row
       // TBD
@@ -773,42 +777,66 @@ QoreNode* SybaseBindData::read_ouput(CS_COMMAND* cmd, const std::vector<column_i
       // TBD
     case CS_STATUS_RESULT:
       // single value
+      if (result) {
+      }
       // TBD
-    case CS_COMPUTE_FMT_RESULT:
+    case CS_COMPUTEFMT_RESULT:
       // Sybase bug???
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() failed with result code CS_COMPUTE_FMT_RESULT");
-      return 0;
+      return result;
     case CS_MSG_RESULT:
       // Sybase bug???
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() failed with result code CS_MSG_RESULT");
-      return 0;
-    case CS_ROW_FMT_RESULT:
+      return result;
+    case CS_ROWFMT_RESULT:
+      // Sybase bug???
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() failed with result code CS_ROW_FMT_RESULT");
+      return result;      
     case CS_DESCRIBE_RESULT:
       // Sybase bug?
-      xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_resink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() failed with result code CS_ROW_FMT_RESULT");
-      return 0;
-ts() failed with result code CS_DESCRIBE_RESULTS");
-      return 0;
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() failed with result code CS_DESCRIBE_RESULTS");
+      return result;
     case CS_CMD_DONE:
       // e.g. update, ct_res_info() could be used to get # of affected rows
-      return 0;
+      return result;
     case CS_CMD_FAIL:
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() failed with result code CS_CMD_FAIL");
-      return 0;
+      return result;
     case CS_CMD_SUCCEED: // no data returned
       if (!out_info.empty()) {
         // Sybase bug???
         xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() returned no data although some where expected");
       }
-      return 0;
+      return result;
     default:
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() gave unknown result type %d", (int)result_type);
-      return 0;
+      return result;
     }
   }
 
+  if (err != CS_END_RESULTS) {
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() finished with unexpected result code %d", (int)err);
+  }
+
+  return  result;
+}
+
+//------------------------------------------------------------------------------
+void SybaseBindGroup::read_single_value(CS_COMMAND* cmd, const column_info_t& out_type, QoreNode*& out, ExceptionSink* xsink)
+{
   // TBD
-  return  0;
+}
+
+//------------------------------------------------------------------------------
+void SybaseBindGroup::read_single_row(CS_COMMAND* cmd, const column_info_t& out_type, QoreNode*& out, ExceptionSink* xsink)
+{
+  // TBD
+}
+
+//------------------------------------------------------------------------------
+void SybaseBindGroup::read_new_row(CS_COMMAND* cmd, const column_info_t& out_type, QoreNode*& out, ExceptionSink* xsink)
+{
+  // TBD
 }
 
 //------------------------------------------------------------------------------
@@ -840,7 +868,7 @@ printf("### err B\n");
     return 0;
   }  
 
-  QoreNode* res = read_data(cmd, outputs, xsink);
+  QoreNode* res = read_output(cmd, outputs, xsink);
   if (!xsink->isException()) {
     cancel_guard.Dismiss();
   } else {
