@@ -759,18 +759,48 @@ QoreNode* SybaseBindData::read_ouput(CS_COMMAND* cmd, const std::vector<column_i
   while ((err = ct_results(cmd, &result_type)) == CS_SUCCEED) {
     switch (result_type) {
     case CS_COMPUTE_RESULT:
+      // single row
+      // TBD
     case CS_CURSOR_RESULT:
+      // Sybase bug??? This code does not use cursors.
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() failed with result code CS_CURSOR_RESULT");
+      return 0;
     case CS_PARAM_RESULT:
+      // single row
+      // TBD
     case CS_ROW_RESULT:
+      // 0 or more rows
+      // TBD
     case CS_STATUS_RESULT:
+      // single value
+      // TBD
     case CS_COMPUTE_FMT_RESULT:
+      // Sybase bug???
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() failed with result code CS_COMPUTE_FMT_RESULT");
+      return 0;
     case CS_MSG_RESULT:
+      // Sybase bug???
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() failed with result code CS_MSG_RESULT");
+      return 0;
     case CS_ROW_FMT_RESULT:
     case CS_DESCRIBE_RESULT:
+      // Sybase bug?
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_resink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() failed with result code CS_ROW_FMT_RESULT");
+      return 0;
+ts() failed with result code CS_DESCRIBE_RESULTS");
+      return 0;
     case CS_CMD_DONE:
+      // e.g. update, ct_res_info() could be used to get # of affected rows
+      return 0;
     case CS_CMD_FAIL:
-    case CS_CMD_SUCCEED:
-      // TBD
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() failed with result code CS_CMD_FAIL");
+      return 0;
+    case CS_CMD_SUCCEED: // no data returned
+      if (!out_info.empty()) {
+        // Sybase bug???
+        xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() returned no data although some where expected");
+      }
+      return 0;
     default:
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() gave unknown result type %d", (int)result_type);
       return 0;
