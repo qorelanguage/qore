@@ -266,6 +266,7 @@ private:
   std::vector<column_info_t> extract_input_parameters_info(CS_COMMAND* cmd, ExceptionSink* xsink);
   bool does_command_return_data() const;
   std::vector<column_info_t> extract_output_parameters_info(CS_COMMAND* cmd, ExceptionSink* xsink);
+  void bind_input_parameters(CS_COMMAND* cmd, const std::vector<column_info_t>& params, ExceptionSink* xsink);
 
   QoreNode* execute_command(ExceptionSink* xsink);
 
@@ -654,14 +655,111 @@ printf("### err 44\n");
 }
 
 //------------------------------------------------------------------------------
+void SybaseBindGroup::bind_input_parameters(CS_COMMAND* cmd, const std::vector<column_info_t>& param_info, ExceptionSink* xsink)
+{
+  if (param_info.size() != m_input_parameters.size()) {
+printf("### err x4\n");
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "Number of expected parameters: %u, available parameters %u", 
+      param_info.size(), m_input_parameters.size());
+    return;
+  }
+
+  CS_RETCODE err = ct_dynamic(cmd, CS_EXECUTE, (CS_CHAR*)m_command_id.c_str(), CS_NULLTERM, 0, CS_UNUSED);
+  if (err != CS_SUCCEED) {
+printf("### failed to execute\n");
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_dynamic(CS_EXECUTE, \"%s\") failed with error %d", m_cmd->getBuffer(), (int)err);
+    return;
+  }
+
+  for (unsigned i = 0, n = param_info.size(); i != n; ++i) {
+    QoreNode* n = m_input_parameters[i];
+    const char* param_name = param_info[i].m_column_name.c_str();
+
+    CS_DATAFMT datafmt;
+    memset(&datafmt, 0, sizeof(datafmt));
+    datafmt.status = CS_INPUTVALUE;
+    datafmt.namelen = CS_NULLTERM;
+    datafmt.count = 1;
+
+    if (is_null(n)) {
+      err = ct_param(cmd, &datafmt, 0, CS_UNUSED, -1);
+      if (err != CS_SUCCEED) {
+printf("### err x5\n");
+        xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_param(NULL) failed for parameter #%u (%s) with error", i + 1, param_name, (int)err);
+        return;
+      }
+      continue;
+    }
+
+    switch (param_info[i].m_column_type) {
+    case CS_CHAR_TYPE: // varchar
+    case CS_BINARY_TYPE:
+    case CS_LONGCHAR_TYPE:
+    case CS_LONGBINARY_TYPE:
+    case CS_TEXT_TYPE:
+    case CS_IMAGE_TYPE:
+    case CS_TINYINT_TYPE:
+    case CS_SMALLINT_TYPE:
+      assert(false); // TBD
+      break;
+    case CS_INT_TYPE:
+    {
+      if (n->type != NT_INT) {
+printf("### err x3\n");
+        xsink->raiseException("DBI-EXEC-EXCEPTION", "Incorrect type for integer parameter #%u (%s)", i + 1, param_name);
+        return;
+      }
+      CS_INT val = n->val.intval;
+      datafmt.datatype = CS_INT_TYPE;      
+      datafmt.maxlength = sizeof(CS_INT);
+      err = ct_param(cmd, &datafmt, &val, CS_UNUSED, 0);
+      if (err != CS_SUCCEED) {
+printf("### err x6, adding %d, err = %d, FAIL = %d\n", (int)val, (int)err, (int)CS_FAIL);
+        xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase function ct_param() for integer parameter #%u (%s) failed with error", i + 1, param_name, (int)err);
+        return;
+      }
+      break;
+    }
+    case CS_REAL_TYPE:
+    case CS_FLOAT_TYPE:
+    case CS_BIT_TYPE:
+    case CS_DATETIME_TYPE:
+    case CS_DATETIME4_TYPE:
+    case CS_MONEY_TYPE:
+    case CS_MONEY4_TYPE:
+    case CS_NUMERIC_TYPE:
+    case CS_DECIMAL_TYPE:
+    case CS_VARCHAR_TYPE:
+    case CS_VARBINARY_TYPE:
+      assert(false);
+      // TBD - deal with all the types
+      break;
+    default:
+printf("### err x1\n");
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "Unrecognized type %d of Sybase parameter # %u", 
+        (int)param_info[i].m_column_type, i + 1);
+      return;
+    }
+  }
+
+  err = ct_send(cmd);
+  if (err != CS_SUCCEED) {
+printf("### err x2\n");
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_send() failed with error %d", (int)err);
+    return;
+  }
+}
+
+//------------------------------------------------------------------------------
 QoreNode* SybaseBindGroup::execute_command(ExceptionSink* xsink)
 {
   CS_COMMAND* cmd = prepare_command(xsink);
   if (xsink->isException()) {
 printf("### err A\n");
     return 0;
-  }
+  }  
   ON_BLOCK_EXIT(ct_cmd_drop, cmd);
+  ScopeGuard cancel_guard = MakeGuard(ct_cancel, (CS_CONNECTION*)0, cmd, CS_CANCEL_ALL);
   ON_BLOCK_EXIT(&SybaseBindGroup::deallocate_prepared_statement, cmd, (char*)m_command_id.c_str());
 
   std::vector<column_info_t> inputs = extract_input_parameters_info(cmd, xsink);
@@ -676,10 +774,17 @@ printf("### err B\n");
       return 0;
     }
   }
+  bind_input_parameters(cmd, inputs, xsink);
+  if (xsink->isException()) {
+    return 0;
+  }  
 
 
-  // TBD
-  return 0;
+  QoreNode* res = 0;//
+  if (!xsink->isException()) {
+    cancel_guard.Dismiss();
+  }
+  return res;
 }
 
 //------------------------------------------------------------------------------
@@ -720,7 +825,12 @@ TEST()
   if (xsink.isException()) {
     assert(false);
   }
-  assert(inputs.size() == 1);
+  assert(outputs.size() == 1);
+
+  grp.bind_input_parameters(cmd, inputs, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
 
   QoreNode* aux = new QoreNode(lst);
   aux->deref(&xsink);
