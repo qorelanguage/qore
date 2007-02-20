@@ -267,6 +267,7 @@ private:
   bool does_command_return_data() const;
   std::vector<column_info_t> extract_output_parameters_info(CS_COMMAND* cmd, ExceptionSink* xsink);
   void bind_input_parameters(CS_COMMAND* cmd, const std::vector<column_info_t>& params, ExceptionSink* xsink);
+  QoreNode* read_ouput(CS_COMMAND* cmd, const std::vector<column_info_t>& out_info, ExceptionSink* xsink);
 
   QoreNode* execute_command(ExceptionSink* xsink);
 
@@ -751,6 +752,13 @@ printf("### err x2\n");
 }
 
 //------------------------------------------------------------------------------
+QoreNode* SybaseBindData::read_ouput(CS_COMMAND* cmd, const std::vector<column_info_t>& out_info, ExceptionSink* xsink)
+{
+  // TBD
+  retur  0;
+}
+
+//------------------------------------------------------------------------------
 QoreNode* SybaseBindGroup::execute_command(ExceptionSink* xsink)
 {
   CS_COMMAND* cmd = prepare_command(xsink);
@@ -779,10 +787,14 @@ printf("### err B\n");
     return 0;
   }  
 
-
-  QoreNode* res = 0;//
+  QoreNode* res = read_data(cmd, outputs, xsink);
   if (!xsink->isException()) {
     cancel_guard.Dismiss();
+  } else {
+    if (res) {
+      res->deref(xsink);
+      res = 0;
+    }
   }
   return res;
 }
