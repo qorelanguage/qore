@@ -77,11 +77,13 @@ class DateTime {
       DLLEXPORT DateTime(bool r = false);
       DLLEXPORT DateTime(int y, int mo, int d, int h = 0, int mi = 0, int s = 0, short ms = 0, bool r = false);
       DLLEXPORT DateTime(int64 seconds);
+      DLLEXPORT DateTime(int64 seconds, int ms);
       DLLEXPORT DateTime(char *date);
       DLLEXPORT DateTime(struct tm *tms);
 
       DLLEXPORT void getTM(struct tm *tms) const;
       DLLEXPORT void setDate(int64 seconds);
+      DLLEXPORT void setDate(int64 seconds, int ms);
       DLLEXPORT void setDate(char *str);
       DLLEXPORT void setRelativeDate(char *str);
       DLLEXPORT void setDate(struct tm *tms, short ms = 0);

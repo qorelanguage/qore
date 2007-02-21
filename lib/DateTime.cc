@@ -410,6 +410,19 @@ void DateTime::format(class QoreString *str, char *fmt) const
 }
 
 // set the date from the number of seconds since January 1, 1970 (UNIX epoch)
+void DateTime::setDate(int64 seconds, int ms)
+{
+   if (ms >= 1000 || ms <= -1000)
+   {
+      int ds = ms / 1000;
+      seconds += ds;
+      ms -= ds * 1000;
+   }
+   setDate(seconds);
+   millisecond = ms;
+}
+
+// set the date from the number of seconds since January 1, 1970 (UNIX epoch)
 void DateTime::setDate(int64 seconds)
 {
    relative = false;
@@ -1149,6 +1162,11 @@ DateTime::DateTime(struct tm *tms)
 DateTime::DateTime(int64 seconds)
 {
    setDate(seconds);
+}
+
+DateTime::DateTime(int64 seconds, int ms)
+{
+   setDate(seconds, ms);
 }
 
 DateTime::DateTime(char *str)
