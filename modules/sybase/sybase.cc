@@ -242,6 +242,15 @@ CS_RETCODE sybase_connection::servermsg_callback()
 }
 
 //------------------------------------------------------------------------------
+// from exutils.h in samples
+typedef struct _ex_column_data
+{
+  CS_SMALLINT          indicator;
+  CS_CHAR         *value;
+  CS_INT          valuelen;
+} EX_COLUMN_DATA;
+
+//------------------------------------------------------------------------------
 class SybaseBindGroup
 {
 private:
@@ -269,6 +278,8 @@ private:
   void bind_input_parameters(CS_COMMAND* cmd, const std::vector<column_info_t>& params, ExceptionSink* xsink);
   QoreNode* read_output(CS_COMMAND* cmd, const std::vector<column_info_t>& out_info, ExceptionSink* xsink);
   void read_row(CS_COMMAND* cmd, const std::vector<column_info_t>& out_info, QoreNode*& out, ExceptionSink* xsink);
+  void extract_row_data_to_Hash(Hash* out, CS_INT col_index, CS_DATAFMT* datafmt, EX_COLUMN_DATA* coldata, 
+    const column_info_t& out_info, ExceptionSink* xsink);
 
   QoreNode* execute_command(ExceptionSink* xsink);
 
@@ -833,25 +844,29 @@ printf("### read_output() called\n");
   }
 
   if (err != CS_END_RESULTS) {
+printf("### err in CS_END_RESULTS, result\n");
     xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() finished with unexpected result code %d", (int)err);
   }
 
+printf("### read_data finished, exc = %s\n", xsink->isException() ? "true" : "false");
   return  result;
 }
 
 //------------------------------------------------------------------------------
-// from exutils.h in samples
-typedef struct _ex_column_data
+// helper to free allocated data
+static void free_coldata(EX_COLUMN_DATA* coldata, CS_INT cnt)
 {
-  CS_INT          indicator;
-  CS_CHAR         *value;
-  CS_INT          valuelen;
-} EX_COLUMN_DATA;
-\
+  for (CS_INT i = 0; i < cnt; ++i) {
+    if (coldata[i].value) {
+      free(coldata[i].value);
+    }
+  }
+}
+
 //------------------------------------------------------------------------------
 void SybaseBindGroup::read_row(CS_COMMAND* cmd, const std::vector<column_info_t>& out_info, QoreNode*& out, ExceptionSink* xsink)
 {
-printf("### read_row() called\n");
+printf("### read_row() called, exception = %s\n", xsink->isException() ? "true" : "false");
   CS_INT num_cols;
   CS_RETCODE err = ct_res_info(cmd, CS_NUMDATA, &num_cols, CS_UNUSED, NULL);
   if (err != CS_SUCCEED) {
@@ -867,36 +882,153 @@ printf("### err line %d\n", __LINE__);
   }
 printf("### columns # = %d\n", (int)num_cols);
 
+  if (num_cols != (CS_INT)out_info.size()) {
+    assert(false); // cannot happen
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "Internal error: different sizes of output row received");
+    return;
+  }
+
+  EX_COLUMN_DATA* coldata = (EX_COLUMN_DATA *)malloc(num_cols * sizeof (EX_COLUMN_DATA));
+  if (!coldata) {
+    xsink->outOfMemory();
+    return;
+  }
+  ON_BLOCK_EXIT(free, coldata);
+  memset(coldata, 0, num_cols * sizeof(EX_COLUMN_DATA));
+  ON_BLOCK_EXIT(free_coldata, coldata, num_cols);
+
+  CS_DATAFMT* datafmt = (CS_DATAFMT *)malloc(num_cols * sizeof (CS_DATAFMT));
+  if (!datafmt) {
+    xsink->outOfMemory();
+    return;
+  }
+  ON_BLOCK_EXIT(free, datafmt);
+  memset(datafmt, 0, num_cols * sizeof(CS_DATAFMT));
+
   for (CS_INT i = 0; i < num_cols; ++i) {
-    CS_DATAFMT datafmt;
-    memset(&datafmt, 0, sizeof(datafmt));
-    err = ct_describe(cmd, i + 1, &datafmt);
+    err = ct_describe(cmd, i + 1, &datafmt[i]);
     if (err != CS_SUCCEED) {
 printf("### err line %d\n", __LINE__);
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_describe() failed with error %d", (int)err);
       return;
     }
-    datafmt.count = 0; // fetch just single item
+    datafmt[i].count = 0; // fetch just single item
 
-    assert(datafmt.maxlength < 100000); // guess, if invalid then app semnatic is wrong (I assume the value is actual data length)
+    assert(datafmt[i].maxlength < 100000); // guess, if invalid then app semnatic is wrong (I assume the value is actual data length)
 
-    void* buffer = malloc(datafmt.maxlength + 4); // some padding for zero terminator
-    if (!buffer) {
+    coldata[i].value = (CS_CHAR*)malloc(datafmt[i].maxlength + 4); // some padding for zero terminator
+    if (!coldata[i].value) {
+printf("### err line %d\n", __LINE__);
       xsink->outOfMemory();
       return;
     }
-    ON_BLOCK_EXIT(free, buffer);
 
-    CS_INT copied = 0;
-    CS_SMALLINT indicator;
-    err = ct_bind(cmd, i + 1, &datafmt, buffer, &copied, &indicator);
+    err = ct_bind(cmd, i + 1, &datafmt[i], coldata[i].value, &coldata[i].valuelen, &coldata[i].indicator);
     if (err != CS_SUCCEED) {
 printf("### err line %d\n", __LINE__);
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_bind() failed with error %d", (int)err);
       return;
     }
-    // TBD
   }
+
+  CS_INT rows_read = 0;
+  while ((err = ct_fetch(cmd, CS_UNUSED, CS_UNUSED, CS_UNUSED, &rows_read)) == CS_SUCCEED) {
+printf("### A ROW WAS READ!!!\n");
+    // process the row
+    Hash* h = new Hash;
+
+    for (CS_INT i = 0; i < num_cols; ++i) {
+      extract_row_data_to_Hash(h, i, &datafmt[i], &coldata[i], out_info[i], xsink);
+      if (xsink->isException()) {
+        QoreNode* aux = new QoreNode(h);
+        aux->deref(xsink);
+        return;
+      }
+    }
+
+    if (out == 0) {
+      out = new QoreNode(h);
+    } else
+    if (out->type == NT_HASH) {
+      // convert to list
+      List* l = new List;
+      l->push(out);
+      l->push(new QoreNode(h));
+      out = new QoreNode(l);
+    } else {
+      assert(out->type == NT_LIST);
+      out->val.list->push(new QoreNode(h));
+    }
+  }
+  if (err != CS_END_DATA) {
+    assert(false);
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_fetch() returned erro %d", (int)err);
+    return;
+  }
+printf("### read row finished\n");
+}
+
+//------------------------------------------------------------------------------
+void SybaseBindGroup::extract_row_data_to_Hash(Hash* out, CS_INT col_index, CS_DATAFMT* datafmt, EX_COLUMN_DATA* coldata,
+    const column_info_t& out_info, ExceptionSink* xsink)
+{
+  std::string column_name;
+  if (datafmt->name && datafmt->name[0]) {
+    column_name = datafmt->name;
+  } else
+  if (out_info.m_column_name[0] != '<') { // <unnamed>
+    column_name = out_info.m_column_name;
+  } else {
+    char buffer[20];
+    sprintf(buffer, "column%d", (int)(col_index + 1));
+    column_name = buffer;
+  }
+  // TBD - convert column name by encoding?
+
+  if (coldata->indicator == -1) { // NULL
+    QoreString* s = new QoreString((char*)column_name.c_str());
+    out->setKeyValue(s, new QoreNode(NT_NULL), xsink);
+    return;
+  }
+ 
+  assert(datafmt->datatype == (CS_INT)out_info.m_column_type);
+  switch (datafmt->datatype) {
+  case CS_CHAR_TYPE: // varchar
+  case CS_BINARY_TYPE:
+  case CS_LONGCHAR_TYPE:
+  case CS_LONGBINARY_TYPE:
+  case CS_TEXT_TYPE:
+  case CS_IMAGE_TYPE:
+  case CS_TINYINT_TYPE:
+  case CS_SMALLINT_TYPE:
+    // TBD
+    assert(false);
+    break;
+  case CS_INT_TYPE:
+  {
+    CS_INT* value = (CS_INT*)(coldata->value);
+printf("### read INT %s = %d\n", column_name.c_str(), (int)value);
+    break;
+  }
+  case CS_REAL_TYPE:
+  case CS_FLOAT_TYPE:
+  case CS_BIT_TYPE:
+  case CS_DATETIME_TYPE:
+  case CS_DATETIME4_TYPE:
+  case CS_MONEY_TYPE:
+  case CS_MONEY4_TYPE:
+  case CS_NUMERIC_TYPE:
+  case CS_DECIMAL_TYPE:
+  case CS_VARCHAR_TYPE:
+  case CS_VARBINARY_TYPE:
+    assert(false);
+    // TBD - deal with all the types
+    break;
+  default:
+    assert(false);
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "Unknown data type %d", (int)datafmt->datatype);
+    return;
+  } 
 }
 
 //------------------------------------------------------------------------------
