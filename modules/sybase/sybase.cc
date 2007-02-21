@@ -268,9 +268,7 @@ private:
   std::vector<column_info_t> extract_output_parameters_info(CS_COMMAND* cmd, ExceptionSink* xsink);
   void bind_input_parameters(CS_COMMAND* cmd, const std::vector<column_info_t>& params, ExceptionSink* xsink);
   QoreNode* read_output(CS_COMMAND* cmd, const std::vector<column_info_t>& out_info, ExceptionSink* xsink);
-  void read_single_value(CS_COMMAND* cmd, const column_info_t& out_type, QoreNode*& out, ExceptionSink* xsink);
-  void read_single_row(CS_COMMAND* cmd, const column_info_t& out_type, QoreNode*& out, ExceptionSink* xsink);
-  void read_new_row(CS_COMMAND* cmd, const column_info_t& out_type, QoreNode*& out, ExceptionSink* xsink);
+  void read_row(CS_COMMAND* cmd, const std::vector<column_info_t>& out_info, QoreNode*& out, ExceptionSink* xsink);
 
   QoreNode* execute_command(ExceptionSink* xsink);
 
@@ -759,12 +757,16 @@ QoreNode* SybaseBindGroup::read_output(CS_COMMAND* cmd, const std::vector<column
 {
   QoreNode* result = 0;
   CS_RETCODE err;
-  CS_INT result_type; 
-  while ((err = ct_results(cmd, &result_type)) == CS_SUCCEED) {
+  CS_INT result_type = 0; 
+
+printf("### read_output() called\n");
+  while ((err = ct_results(cmd, &result_type)) == CS_SUCCEED) {    
     switch (result_type) {
     case CS_COMPUTE_RESULT:
       // single row
       // TBD
+      assert(false);
+      break;
     case CS_CURSOR_RESULT:
       // Sybase bug??? This code does not use cursors.
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() failed with result code CS_CURSOR_RESULT");
@@ -772,14 +774,30 @@ QoreNode* SybaseBindGroup::read_output(CS_COMMAND* cmd, const std::vector<column
     case CS_PARAM_RESULT:
       // single row
       // TBD
+      assert(false);
+      break;
     case CS_ROW_RESULT:
       // 0 or more rows
-      // TBD
+      read_row(cmd, out_info, result, xsink);
+      if (xsink->isException()) {
+        return result;
+      }
+      break;
     case CS_STATUS_RESULT:
       // single value
-      if (result) {
+      if (result) { // cannot happen?
+        xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() already read CS_STATUC_RESULT");
+        return result;
       }
-      // TBD
+      if (out_info.size() != 1) { // Sybase bug??? Description should be for this single value.
+        xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() returned unexpected single value");
+        return result;
+      }
+      read_row(cmd, out_info, result, xsink);
+      if (xsink->isException()) {
+        return result;
+      }
+      break;
     case CS_COMPUTEFMT_RESULT:
       // Sybase bug???
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() failed with result code CS_COMPUTE_FMT_RESULT");
@@ -805,7 +823,7 @@ QoreNode* SybaseBindGroup::read_output(CS_COMMAND* cmd, const std::vector<column
     case CS_CMD_SUCCEED: // no data returned
       if (!out_info.empty()) {
         // Sybase bug???
-        xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() returned no data although some where expected");
+        xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() returns no data where expected");
       }
       return result;
     default:
@@ -822,21 +840,63 @@ QoreNode* SybaseBindGroup::read_output(CS_COMMAND* cmd, const std::vector<column
 }
 
 //------------------------------------------------------------------------------
-void SybaseBindGroup::read_single_value(CS_COMMAND* cmd, const column_info_t& out_type, QoreNode*& out, ExceptionSink* xsink)
+// from exutils.h in samples
+typedef struct _ex_column_data
 {
-  // TBD
-}
-
+  CS_INT          indicator;
+  CS_CHAR         *value;
+  CS_INT          valuelen;
+} EX_COLUMN_DATA;
+\
 //------------------------------------------------------------------------------
-void SybaseBindGroup::read_single_row(CS_COMMAND* cmd, const column_info_t& out_type, QoreNode*& out, ExceptionSink* xsink)
+void SybaseBindGroup::read_row(CS_COMMAND* cmd, const std::vector<column_info_t>& out_info, QoreNode*& out, ExceptionSink* xsink)
 {
-  // TBD
-}
+printf("### read_row() called\n");
+  CS_INT num_cols;
+  CS_RETCODE err = ct_res_info(cmd, CS_NUMDATA, &num_cols, CS_UNUSED, NULL);
+  if (err != CS_SUCCEED) {
+printf("### err line %d\n", __LINE__);
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_res_info() failed to get number of rows, error %d", (int)err);
+    return;
+  }
+  if (num_cols <= 0) {
+    assert(false); // cannot happen
+printf("### err line %d\n", __LINE__);
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "Internal error: no columns returned");
+    return;
+  }
+printf("### columns # = %d\n", (int)num_cols);
 
-//------------------------------------------------------------------------------
-void SybaseBindGroup::read_new_row(CS_COMMAND* cmd, const column_info_t& out_type, QoreNode*& out, ExceptionSink* xsink)
-{
-  // TBD
+  for (CS_INT i = 0; i < num_cols; ++i) {
+    CS_DATAFMT datafmt;
+    memset(&datafmt, 0, sizeof(datafmt));
+    err = ct_describe(cmd, i + 1, &datafmt);
+    if (err != CS_SUCCEED) {
+printf("### err line %d\n", __LINE__);
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_describe() failed with error %d", (int)err);
+      return;
+    }
+    datafmt.count = 0; // fetch just single item
+
+    assert(datafmt.maxlength < 100000); // guess, if invalid then app semnatic is wrong (I assume the value is actual data length)
+
+    void* buffer = malloc(datafmt.maxlength + 4); // some padding for zero terminator
+    if (!buffer) {
+      xsink->outOfMemory();
+      return;
+    }
+    ON_BLOCK_EXIT(free, buffer);
+
+    CS_INT copied = 0;
+    CS_SMALLINT indicator;
+    err = ct_bind(cmd, i + 1, &datafmt, buffer, &copied, &indicator);
+    if (err != CS_SUCCEED) {
+printf("### err line %d\n", __LINE__);
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_bind() failed with error %d", (int)err);
+      return;
+    }
+    // TBD
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -925,6 +985,12 @@ TEST()
     assert(false);
   }
 
+  QoreNode* res = grp.read_output(cmd, outputs, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+
+
   QoreNode* aux = new QoreNode(lst);
   aux->deref(&xsink);
 }
@@ -934,7 +1000,7 @@ TEST()
 QoreNode* SybaseBindGroup::exec(class ExceptionSink *xsink)
 {
   QoreNode* n = execute_command(xsink);
-  if (n) n->deref(xsink);
+  if (n) n->deref(xsink); // not needed
   if (xsink->isException()) {
     return 0;
   }
@@ -952,6 +1018,19 @@ QoreNode* SybaseBindGroup::select(class ExceptionSink *xsink)
     if (n) n->deref(xsink);
     return 0;
   }
+  if (n) {
+    if (n->type == NT_LIST) {
+      n->deref(xsink);
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "SQL command returned more than one row");
+      return 0;
+    }
+    if (n->type != NT_HASH) {
+      n->deref(xsink);
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "Internal error - unexpected type returned");
+      return 0;
+    }
+  }
+
   return n;
 }
 
@@ -962,6 +1041,15 @@ QoreNode* SybaseBindGroup::selectRows(class ExceptionSink *xsink)
   if (xsink->isException()) {
     if (n) n->deref(xsink);
     return 0;
+  }
+  if (n) {
+    if (n->type != NT_LIST) {
+      if (n->type != NT_HASH) {
+        n->deref(xsink);
+        xsink->raiseException("DBI-EXEC-EXCEPTION", "Internal error - unexpected type returned");
+        return 0;
+      }
+    }
   }
   return n;
 }
