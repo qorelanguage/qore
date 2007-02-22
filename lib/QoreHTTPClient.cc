@@ -297,18 +297,17 @@ int QoreHTTPClient::set_url_unlocked(const char *str, ExceptionSink* xsink)
 
 int QoreHTTPClient::setURL(const char *str, ExceptionSink* xsink)
 {
-   lock();
+   SafeLocker sl(this);
    // disconnect immediately if not using a proxy
    if (!proxy_port)
       disconnect_unlocked();
    int rc = set_url_unlocked(str, xsink);
-   unlock();
    return rc;
 }
 
 class QoreString *QoreHTTPClient::getURL()
 {
-   lock();
+   SafeLocker sl(this);
    class QoreString *pstr = new QoreString("http");
    if (ssl)
       pstr->concat("s://");
@@ -321,7 +320,6 @@ class QoreString *QoreHTTPClient::getURL()
    if (port != 80)
       pstr->sprintf(":%d", port);
    pstr->concat(proxy_path.c_str());
-   unlock();
    return pstr;
 }
 
@@ -329,7 +327,7 @@ class QoreString *QoreHTTPClient::getURL()
 int QoreHTTPClient::setHTTPVersion(char* version, ExceptionSink* xsink)
 {
    int rc = 0;
-   lock();
+   SafeLocker sl(this);
    if (!strcmp(version, "1.0"))
       http11 = false;
    else if (!strcmp(version, "1.1"))
@@ -339,7 +337,6 @@ int QoreHTTPClient::setHTTPVersion(char* version, ExceptionSink* xsink)
       xsink->raiseException("HTTP-VERSION-ERROR", "only '1.0' and '1.1' are valid (value passed: '%s')", version);
       rc = -1;
    }
-   unlock();
    return -1;
 }
 
@@ -438,7 +435,7 @@ int QoreHTTPClient::set_proxy_url_unlocked(const char *pstr, class ExceptionSink
 int QoreHTTPClient::setProxyURL(const char *proxy, class ExceptionSink *xsink) 
 {
    int rc;
-   lock();
+   SafeLocker sl(this);
    disconnect_unlocked();
    if (!proxy || !proxy[0])
    {
@@ -447,19 +444,15 @@ int QoreHTTPClient::setProxyURL(const char *proxy, class ExceptionSink *xsink)
    }
    else
       rc = set_proxy_url_unlocked(proxy, xsink);
-   unlock();
    return rc;
 }
 
 class QoreString *QoreHTTPClient::getProxyURL() 
 {
-   lock();
+   SafeLocker sl(this);
 
    if (!proxy_port)
-   {
-      unlock();
       return NULL;
-   }
 
    class QoreString *pstr = new QoreString("http");
    if (proxy_ssl)
@@ -473,13 +466,12 @@ class QoreString *QoreHTTPClient::getProxyURL()
    if (port != 80)
       pstr->sprintf(":%d", port);
    pstr->concat(proxy_path.c_str());
-   unlock();
    return pstr;
 }
 
 void QoreHTTPClient::clearProxyURL()
 {
-   lock();
+   SafeLocker sl(this);
    proxy_port = 0;
    proxy_username.clear();
    proxy_password.clear();
@@ -487,7 +479,6 @@ void QoreHTTPClient::clearProxyURL()
    proxy_path.clear();
    proxy_ssl = false;
    setSocketPath();
-   unlock();
 }
 
 void QoreHTTPClient::setSecure(bool is_secure) 
@@ -516,26 +507,20 @@ bool QoreHTTPClient::isProxySecure() const
 
 long QoreHTTPClient::verifyPeerCertificate()
 { 
-   lock();
-   long rv = m_socket.verifyPeerCertificate(); 
-   unlock();
-   return rv;
+   SafeLocker sl(this);
+   return m_socket.verifyPeerCertificate(); 
 }
 
 const char* QoreHTTPClient::getSSLCipherName()
 { 
-   lock();
-   const char *rv = m_socket.getSSLCipherName(); 
-   unlock();
-   return rv;
+   SafeLocker sl(this);
+   return m_socket.getSSLCipherName(); 
 }
 
 const char* QoreHTTPClient::getSSLCipherVersion() 
 { 
-   lock();
-   const char *rv = m_socket.getSSLCipherVersion(); 
-   unlock();
-   return rv;
+   SafeLocker sl(this);
+   return m_socket.getSSLCipherVersion(); 
 }
 
 int QoreHTTPClient::connect_unlocked(class ExceptionSink *xsink)
@@ -554,11 +539,8 @@ int QoreHTTPClient::connect_unlocked(class ExceptionSink *xsink)
 
 int QoreHTTPClient::connect(class ExceptionSink *xsink)
 {
-   int rc;
-   lock();
-   rc = connect_unlocked(xsink);
-   unlock();
-   return rc;
+   SafeLocker sl(this);
+   return connect_unlocked(xsink);
 }
 
 void QoreHTTPClient::disconnect_unlocked()
@@ -572,9 +554,8 @@ void QoreHTTPClient::disconnect_unlocked()
 
 void QoreHTTPClient::disconnect()
 {
-   lock();
+   SafeLocker sl(this);
    disconnect_unlocked();
-   unlock();
 }
 
 const char *QoreHTTPClient::getMsgPath(const char *mpath, class QoreString &pstr)
@@ -700,7 +681,7 @@ class QoreNode *QoreHTTPClient::send_internal(char *meth, const char *mpath, cla
       return NULL;
    }
    
-   lock();
+   SafeLocker sl(this);
    class StackHash nh(xsink);
    bool keep_alive = true;
 
@@ -816,10 +797,7 @@ class QoreNode *QoreHTTPClient::send_internal(char *meth, const char *mpath, cla
 
       ans = getResponseHeader(meth, mpath, nh, data, size, code, xsink);
       if (!ans)
-      {
-	 unlock();
 	 return NULL;
-      }
       ah = ans->val.hash;
 
       if (code >= 300 && code < 400)
@@ -834,7 +812,7 @@ class QoreNode *QoreHTTPClient::send_internal(char *meth, const char *mpath, cla
 
 	 if (!location)
 	 {
-	    unlock();
+	    sl.unlock();
 	    v = ah->getKeyValue("status_message");
 	    char *mess = v ? v->val.String->getBuffer() : (char *)"<no message>";
 	    xsink->raiseException("HTTP-CLIENT-REDIRECT-ERROR", "no redirect location given for status code %d: message: '%s'", code, mess);
@@ -848,7 +826,7 @@ class QoreNode *QoreHTTPClient::send_internal(char *meth, const char *mpath, cla
 
 	 if (set_url_unlocked(location, xsink))
 	 {
-	    unlock();
+	    sl.unlock();
 	    v = ah->getKeyValue("status_message");
 	    char *mess = v ? v->val.String->getBuffer() : (char *)"<no message>";
 	    xsink->raiseException("HTTP-CLIENT-REDIRECT-ERROR", "exception occurred while setting URL for new location '%s' (code %d: message: '%s')", location, code, mess);
@@ -865,7 +843,7 @@ class QoreNode *QoreHTTPClient::send_internal(char *meth, const char *mpath, cla
 
    if (code >= 300 && code < 400)
    {
-      unlock();
+      sl.unlock();
       v = ah->getKeyValue("status_message");
       char *mess = v ? v->val.String->getBuffer() : (char *)"<no message>";
       v = ah->getKeyValue("location");
@@ -877,7 +855,7 @@ class QoreNode *QoreHTTPClient::send_internal(char *meth, const char *mpath, cla
 
    if (code < 200 && code >= 300)
    {
-      unlock();
+      sl.unlock();
       v = ah->getKeyValue("status_message");
       char *mess = v ? v->val.String->getBuffer() : (char *)"<no message>";
       xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", "HTTP status code %d received: message: %s", code, mess);
@@ -959,7 +937,6 @@ class QoreNode *QoreHTTPClient::send_internal(char *meth, const char *mpath, cla
 	 nah = m_socket.readHTTPChunkedBody(timeout, xsink);
       if (!nah)
       {
-	 unlock();
 	 ans->deref(xsink);
 	 return NULL;
       }
@@ -987,7 +964,7 @@ class QoreNode *QoreHTTPClient::send_internal(char *meth, const char *mpath, cla
       //printf("body=%08p\n", body);
       if (rc <= 0)
       {
-	 unlock();
+	 sl.unlock();
 	 if (!rc)             // remote end has closed the connection
 	    xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", "remote end closed the connection while receiving response message body");
 	 else if (rc == -1)   // recv() error
@@ -1008,7 +985,7 @@ class QoreNode *QoreHTTPClient::send_internal(char *meth, const char *mpath, cla
    if (!keep_alive || ((v = ah->getKeyValue("connection")) && !strcasecmp(v->val.String->getBuffer(), "close")))
       disconnect_unlocked();
 
-   unlock();
+   sl.unlock();
 
    // for content-encoding processing we can run unlocked
 

@@ -56,69 +56,55 @@ mySocket::mySocket()
 
 int mySocket::connect(char *name, class ExceptionSink *xsink)
 {
-   lock();
-   int rc = socket->connect(name, xsink);
-   unlock();
-   return rc;
+   SafeLocker sl(this);
+   return socket->connect(name, xsink);
 }
 
 int mySocket::connectINET(char *host, int port, class ExceptionSink *xsink)
 {
-   lock();
-   int rc = socket->connectINET(host, port, xsink);
-   unlock();
-   return rc;
+   SafeLocker sl(this);
+   return socket->connectINET(host, port, xsink);
 }
 
 int mySocket::connectUNIX(char *p, class ExceptionSink *xsink)
 {
-   lock();
-   int rc = socket->connectUNIX(p, xsink);
-   unlock();
-   return rc;
+   SafeLocker sl(this);
+   return socket->connectUNIX(p, xsink);
 }
 
 // to bind to either a UNIX socket or an INET interface:port
 int mySocket::bind(char *name, bool reuseaddr)
 {
-   lock();
-   int rc = socket->bind(name, reuseaddr);
-   unlock();
-   return rc;
+   SafeLocker sl(this);
+   return socket->bind(name, reuseaddr);
 }
 
 // to bind to an INET tcp port on all interfaces
 int mySocket::bind(int port, bool reuseaddr)
 {
-   lock();
-   int rc = socket->bind(port, reuseaddr);
-   unlock();
-   return rc;
+   SafeLocker sl(this);
+   return socket->bind(port, reuseaddr);
 }
 
 // to bind an open socket to an INET tcp port on a specific interface
 int mySocket::bind(char *interface, int port, bool reuseaddr)
 {
-   lock();
-   int rc = socket->bind(interface, port, reuseaddr);
-   unlock();
-   return rc;
+   SafeLocker sl(this);
+   return socket->bind(interface, port, reuseaddr);
 }
 
 // get port number for INET sockets
 int mySocket::getPort()
 {
-   lock();
-   int rc = socket->getPort();
-   unlock();
-   return rc;
+   SafeLocker sl(this);
+   return socket->getPort();
 }
 
 class mySocket *mySocket::accept(class SocketSource *source, class ExceptionSink *xsink)
 {
-   lock();
+   SafeLocker sl(this);
    QoreSocket *s = socket->accept(source, xsink);
-   unlock();
+   sl.unlock();
    if (s)
       return new mySocket(s);
    return NULL;
@@ -126,337 +112,257 @@ class mySocket *mySocket::accept(class SocketSource *source, class ExceptionSink
 
 int mySocket::listen()
 {
-   lock();
-   int rc = socket->listen();
-   unlock();
-   return rc;
+   SafeLocker sl(this);
+   return socket->listen();
 }
 
 // send a buffer of a particular size
 int mySocket::send(char *buf, int size)
 {
-   lock();
-   int rc = socket->send(buf, size);
-   unlock();
-   return rc;
+   SafeLocker sl(this);
+   return socket->send(buf, size);
 }
 
 // send a null-terminated string
 int mySocket::send(class QoreString *msg, class ExceptionSink *xsink)
 {
-   lock();
-   int rc = socket->send(msg, xsink);
-   unlock();
-   return rc;
+   SafeLocker sl(this);
+   return socket->send(msg, xsink);
 }
 
 // send a binary object
 int mySocket::send(class BinaryObject *b)
 {
-   lock();
-   int rc = socket->send(b);
-   unlock();
-   return rc;
+   SafeLocker sl(this);
+   return socket->send(b);
 }
 
 // send from a file descriptor
 int mySocket::send(int fd, int size)
 {
-   lock();
-   int rc = socket->send(fd, size);
-   unlock();
-   return rc;
+   SafeLocker sl(this);
+   return socket->send(fd, size);
 }
 
 // send bytes and convert to network order
 int mySocket::sendi1(char b)
 {
-   lock();
-   int rc = socket->sendi1(b);
-   unlock();
-   return rc;
+   SafeLocker sl(this);
+   return socket->sendi1(b);
 }
 
 int mySocket::sendi2(short b)
 {
-   lock();
-   int rc = socket->sendi2(b);
-   unlock();
-   return rc;
+   SafeLocker sl(this);
+   return socket->sendi2(b);
 }
 
 int mySocket::sendi4(int b)
 {
-   lock();
-   int rc = socket->sendi4(b);
-   unlock();
-   return rc;
+   SafeLocker sl(this);
+   return socket->sendi4(b);
 }
 
 int mySocket::sendi8(int64 b)
 {
-   lock();
-   int rc = socket->sendi8(b);
-   unlock();
-   return rc;
+   SafeLocker sl(this);
+   return socket->sendi8(b);
 }
 
 int mySocket::sendi2LSB(short b)
 {
-   lock();
-   int rc = socket->sendi2LSB(b);
-   unlock();
-   return rc;
+   SafeLocker sl(this);
+   return socket->sendi2LSB(b);
 }
 
 int mySocket::sendi4LSB(int b)
 {
-   lock();
-   int rc = socket->sendi4LSB(b);
-   unlock();
-   return rc;
+   SafeLocker sl(this);
+   return socket->sendi4LSB(b);
 }
 
 int mySocket::sendi8LSB(int64 b)
 {
-   lock();
-   int rc = socket->sendi8LSB(b);
-   unlock();
-   return rc;
+   SafeLocker sl(this);
+   return socket->sendi8LSB(b);
 }
 
 // receive a certain number of bytes as a string
 class QoreString *mySocket::recv(int bufsize, int timeout, int *rc)
 {
-   lock();
-   class QoreString *str = socket->recv(bufsize, timeout, rc);
-   unlock();
-   return str;
+   SafeLocker sl(this);
+   return socket->recv(bufsize, timeout, rc);
 }
 
 // receive a certain number of bytes as a binary object
 class BinaryObject *mySocket::recvBinary(int bufsize, int timeout, int *rc)
 {
-   lock();
-   class BinaryObject *b = socket->recvBinary(bufsize, timeout, rc);
-   unlock();
-   return b;
+   SafeLocker sl(this);
+   return socket->recvBinary(bufsize, timeout, rc);
 }
 
 // receive a message
 class QoreString *mySocket::recv(int timeout, int *rc)
 {
-   lock();
-   class QoreString *str = socket->recv(timeout, rc);
-   unlock();
-   return str;
+   SafeLocker sl(this);
+   return socket->recv(timeout, rc);
 }
 
 // receive and write data to a file descriptor
 int mySocket::recv(int fd, int size, int timeout)
 {
-   lock();
-   int rc = socket->recv(fd, size, timeout);
-   unlock();
-   return rc;
+   SafeLocker sl(this);
+   return socket->recv(fd, size, timeout);
 }
 
 // receive integers and convert from network byte order
 int mySocket::recvi1(int timeout, char *b)
 {
-   lock();
-   int rc = socket->recvi1(timeout, b);
-   unlock();
-   return rc;
+   SafeLocker sl(this);
+   return socket->recvi1(timeout, b);
 }
 
 int mySocket::recvi2(int timeout, short *b)
 {
-   lock();
-   int rc = socket->recvi2(timeout, b);
-   unlock();
-   return rc;
+   SafeLocker sl(this);
+   return socket->recvi2(timeout, b);
 }
 
 int mySocket::recvi4(int timeout, int *b)
 {
-   lock();
-   int rc = socket->recvi4(timeout, b);
-   unlock();
-   return rc;
+   SafeLocker sl(this);
+   return socket->recvi4(timeout, b);
 }
 
 int mySocket::recvi8(int timeout, int64 *b)
 {
-   lock();
-   int rc = socket->recvi8(timeout, b);
-   unlock();
-   return rc;
+   SafeLocker sl(this);
+   return socket->recvi8(timeout, b);
 }
 
 int mySocket::recvi2LSB(int timeout, short *b)
 {
-   lock();
-   int rc = socket->recvi2LSB(timeout, b);
-   unlock();
-   return rc;
+   SafeLocker sl(this);
+   return socket->recvi2LSB(timeout, b);
 }
 
 int mySocket::recvi4LSB(int timeout, int *b)
 {
-   lock();
-   int rc = socket->recvi4LSB(timeout, b);
-   unlock();
-   return rc;
+   SafeLocker sl(this);
+   return socket->recvi4LSB(timeout, b);
 }
 
 int mySocket::recvi8LSB(int timeout, int64 *b)
 {
-   lock();
-   int rc = socket->recvi8LSB(timeout, b);
-   unlock();
-   return rc;
+   SafeLocker sl(this);
+   return socket->recvi8LSB(timeout, b);
 }
 
 // send HTTP message
 int mySocket::sendHTTPMessage(char *method, char *path, char *http_version, class Hash *headers, void *ptr, int size)
 {
-   lock();
-   int rc = socket->sendHTTPMessage(method, path, http_version, headers, ptr, size);
-   unlock();
-   return rc;
+   SafeLocker sl(this);
+   return socket->sendHTTPMessage(method, path, http_version, headers, ptr, size);
 }
 
 // send HTTP response
 int mySocket::sendHTTPResponse(int code, char *desc, char *http_version, class Hash *headers, void *ptr, int size)
 {
-   lock();
-   int rc = socket->sendHTTPResponse(code, desc, http_version, headers, ptr, size);
-   unlock();
-   return rc;
+   SafeLocker sl(this);
+   return socket->sendHTTPResponse(code, desc, http_version, headers, ptr, size);
 }
 
 // receive a binary message in HTTP chunked format
 class Hash *mySocket::readHTTPChunkedBodyBinary(int timeout, class ExceptionSink *xsink)
 {
-   lock();
-   class Hash *h = socket->readHTTPChunkedBodyBinary(timeout, xsink);
-   unlock();
-   return h;
+   SafeLocker sl(this);
+   return socket->readHTTPChunkedBodyBinary(timeout, xsink);
 }
 
 // receive a string message in HTTP chunked format
 class Hash *mySocket::readHTTPChunkedBody(int timeout, class ExceptionSink *xsink)
 {
-   lock();
-   class Hash *h = socket->readHTTPChunkedBody(timeout, xsink);
-   unlock();
-   return h;
+   SafeLocker sl(this);
+   return socket->readHTTPChunkedBody(timeout, xsink);
 }
 
 // read and parse HTTP header
 class QoreNode *mySocket::readHTTPHeader(int timeout, int *rc)
 {
-   lock();
-   class QoreNode *n = socket->readHTTPHeader(timeout, rc);
-   unlock();
-   return n;
+   SafeLocker sl(this);
+   return socket->readHTTPHeader(timeout, rc);
 }
 
 int mySocket::setSendTimeout(int ms)
 {
-   lock();
-   int rc = socket->setSendTimeout(ms);
-   unlock();
-   return rc;
+   SafeLocker sl(this);
+   return socket->setSendTimeout(ms);
 }
 
 int mySocket::setRecvTimeout(int ms)
 {
-   lock();
-   int rc = socket->setRecvTimeout(ms);
-   unlock();
-   return rc;
+   SafeLocker sl(this);
+   return socket->setRecvTimeout(ms);
 }
 
 int mySocket::getSendTimeout()
 {
-   lock();
-   int rc = socket->getSendTimeout();
-   unlock();
-   return rc;
+   SafeLocker sl(this);
+   return socket->getSendTimeout();
 }
 
 int mySocket::getRecvTimeout()
 {
-   lock();
-   int rc = socket->getRecvTimeout();
-   unlock();
-   return rc;
+   SafeLocker sl(this);
+   return socket->getRecvTimeout();
 }
 
 int mySocket::close() 
 { 
-   lock();
-   int rc = socket->close();
-   unlock();
-   return rc;
+   SafeLocker sl(this);
+   return socket->close();
 }
 
 int mySocket::shutdown() 
 { 
-   lock();
-   int rc = socket->shutdown();
-   unlock();
-   return rc;
+   SafeLocker sl(this);
+   return socket->shutdown();
 }
 
 int mySocket::shutdownSSL(class ExceptionSink *xsink) 
 { 
-   lock();
-   int rc = socket->shutdownSSL(xsink);
-   unlock();
-   return rc;
+   SafeLocker sl(this);
+   return socket->shutdownSSL(xsink);
 }
 
 const char *mySocket::getSSLCipherName()
 { 
-   lock();
-   const char *str = socket->getSSLCipherName();
-   unlock();
-   return str;
+   SafeLocker sl(this);
+   return socket->getSSLCipherName();
 }
 
 const char *mySocket::getSSLCipherVersion()
 { 
-   lock();
-   const char *str = socket->getSSLCipherVersion();
-   unlock();
-   return str;
+   SafeLocker sl(this);
+   return socket->getSSLCipherVersion();
 }
 
 bool mySocket::isSecure()
 {
-   lock();
-   bool rc = socket->isSecure();
-   unlock();
-   return rc;
+   SafeLocker sl(this);
+   return socket->isSecure();
 }
 
 long mySocket::verifyPeerCertificate()
 {
-   lock();
-   long rc = socket->verifyPeerCertificate();
-   unlock();
-   return rc;
+   SafeLocker sl(this);
+   return socket->verifyPeerCertificate();
 }
 
 int mySocket::getSocket()
 {
-   lock();
-   int rc = socket->getSocket();
-   unlock();
-   return rc;
+   SafeLocker sl(this);
+   return socket->getSocket();
 }
 
 void mySocket::setEncoding(class QoreEncoding *id)
@@ -471,10 +377,8 @@ class QoreEncoding *mySocket::getEncoding() const
 
 bool mySocket::isDataAvailable(int timeout)
 {
-   lock();
-   bool b = socket->isDataAvailable(timeout);
-   unlock();
-   return b;
+   SafeLocker sl(this);
+   return socket->isDataAvailable(timeout);
 }
 
 bool mySocket::isOpen() const
@@ -484,44 +388,38 @@ bool mySocket::isOpen() const
 
 int mySocket::connectINETSSL(char *host, int port, class ExceptionSink *xsink)
 {
-   lock();
-   int rc = socket->connectINETSSL(host, port, 
-				   cert ? cert->getData() : NULL,
-				   pk ? pk->getData() : NULL,
-				   xsink);
-   unlock();
-   return rc;
+   SafeLocker sl(this);
+   return socket->connectINETSSL(host, port, 
+				 cert ? cert->getData() : NULL,
+				 pk ? pk->getData() : NULL,
+				 xsink);
 }
 
 int mySocket::connectUNIXSSL(char *p, class ExceptionSink *xsink)
 {
-   lock();
-   int rc = socket->connectUNIXSSL(p, 
-				   cert ? cert->getData() : NULL,
-				   pk ? pk->getData() : NULL,
-				   xsink);
-   unlock();
-   return rc;
+   SafeLocker sl(this);
+   return socket->connectUNIXSSL(p, 
+				 cert ? cert->getData() : NULL,
+				 pk ? pk->getData() : NULL,
+				 xsink);
 }
 
 int mySocket::connectSSL(char *name, class ExceptionSink *xsink)
 {
-   lock();
-   int rc = socket->connectSSL(name, 
-			       cert ? cert->getData() : NULL,
-			       pk ? pk->getData() : NULL,
-			       xsink);
-   unlock();
-   return rc;
+   SafeLocker sl(this);
+   return socket->connectSSL(name, 
+			     cert ? cert->getData() : NULL,
+			     pk ? pk->getData() : NULL,
+			     xsink);
 }
 
 class mySocket *mySocket::acceptSSL(class SocketSource *source, class ExceptionSink *xsink)
 {
-   lock();
+   SafeLocker sl(this);
    QoreSocket *s = socket->acceptSSL(source,
 				     cert ? cert->getData() : NULL, 
 				     pk ? pk->getData() : NULL, xsink);
-   unlock();
+   sl.unlock();
    if (s)
       return new mySocket(s);
    return NULL;
@@ -530,19 +428,17 @@ class mySocket *mySocket::acceptSSL(class SocketSource *source, class ExceptionS
 // c must be already referenced before this call
 void mySocket::setCertificate(class QoreSSLCertificate *c)
 {
-   lock();
+   SafeLocker sl(this);
    if (cert)
       cert->deref();
    cert = c;
-   unlock();
 }
 
 // p must be already referenced before this call
 void mySocket::setPrivateKey(class QoreSSLPrivateKey *p)
 {
-   lock();
+   SafeLocker sl(this);
    if (pk)
       pk->deref();
    pk = p;
-   unlock();
 }
