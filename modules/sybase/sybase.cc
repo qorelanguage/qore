@@ -912,11 +912,12 @@ printf("### err line %d\n", __LINE__);
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_describe() failed with error %d", (int)err);
       return;
     }
-    datafmt[i].count = 0; // fetch just single item
-
+    datafmt[i].count = 1; // fetch just single item
+printf("#### read datafmt: maxlength = %d, type = %d, CS_FMT_UNUSED = %d\n", (int)datafmt[i].maxlength, (int)datafmt[i].format, (int)CS_FMT_UNUSED);
     assert(datafmt[i].maxlength < 100000); // guess, if invalid then app semnatic is wrong (I assume the value is actual data length)
 
     coldata[i].value = (CS_CHAR*)malloc(datafmt[i].maxlength + 4); // some padding for zero terminator
+//###    datafmt[i].maxlength += 4;
     if (!coldata[i].value) {
 printf("### err line %d\n", __LINE__);
       xsink->outOfMemory();
@@ -929,11 +930,12 @@ printf("### err line %d\n", __LINE__);
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_bind() failed with error %d", (int)err);
       return;
     }
+printf("### i = %d, type = %d, CS_INT = %d\n", (int)i, (int)datafmt[i].datatype, (int)CS_INT_TYPE);
   }
 
   CS_INT rows_read = 0;
   while ((err = ct_fetch(cmd, CS_UNUSED, CS_UNUSED, CS_UNUSED, &rows_read)) == CS_SUCCEED) {
-printf("### A ROW WAS READ!!!\n");
+printf("### A ROW WAS READ!!! rows count = %d\n", (int)rows_read);   
     // process the row
     Hash* h = new Hash;
 
@@ -1007,7 +1009,7 @@ void SybaseBindGroup::extract_row_data_to_Hash(Hash* out, CS_INT col_index, CS_D
   case CS_INT_TYPE:
   {
     CS_INT* value = (CS_INT*)(coldata->value);
-printf("### read INT %s = %d\n", column_name.c_str(), (int)value);
+printf("### (pointer %p) read INT %s = %d\n", coldata->value, column_name.c_str(), (int)value);
     break;
   }
   case CS_REAL_TYPE:
@@ -1083,7 +1085,7 @@ TEST()
     assert(false);
   }
 
-  QoreString str("select count(*) from syskeys where id > %v and id < %v");
+  QoreString str("select id from syskeys where id > %v and id < %v");
   SybaseBindGroup grp(&str);
   grp.m_connection = conn.getConnection();
 
@@ -1403,6 +1405,7 @@ QoreString* sybase_module_init()
   builtinFunctions.add("runSybaseTests", runSybaseTests, QDOM_DATABASE);
 #endif
 
+/* old registration method
    // register driver with DBI subsystem
    DBIDriverFunctions *ddf =
       new DBIDriverFunctions(sybase_open,
@@ -1413,6 +1416,19 @@ QoreString* sybase_module_init()
                              sybase_commit,
                              sybase_rollback);
    DBID_SYBASE = DBI.registerDriver("sybase", ddf, DBI_SYBASE_CAPS);
+*/
+   // register driver with DBI subsystem
+   class qore_dbi_method_list methods;
+   methods.add(QDBI_METHOD_OPEN, sybase_open);
+   methods.add(QDBI_METHOD_CLOSE, sybase_close);
+   methods.add(QDBI_METHOD_SELECT, sybase_select);
+   methods.add(QDBI_METHOD_SELECT_ROWS, sybase_select_rows);
+   methods.add(QDBI_METHOD_EXEC, sybase_exec);
+   methods.add(QDBI_METHOD_COMMIT, sybase_commit);
+   methods.add(QDBI_METHOD_ROLLBACK, sybase_rollback);
+
+   
+   DBID_SYBASE = DBI.registerDriver("sybase", methods, DBI_SYBASE_CAPS);
 
    traceout("sybase_module_init()");
    return NULL;
