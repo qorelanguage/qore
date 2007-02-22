@@ -20,8 +20,6 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-// FIXME! DBI driver registration should be done with a forward-compatible mechanism
-
 #ifndef _QORE_DBI_H
 
 #define _QORE_DBI_H
@@ -122,11 +120,10 @@ class DBIDriver {
    private:
       DBIDriverFunctions f;
       int caps;
+      const char *name;
 
    public:
-      char *name;
-
-      DLLLOCAL DBIDriver(char *name, dbi_method_list_t &methods, int cps);
+      DLLLOCAL DBIDriver(const char *name, dbi_method_list_t &methods, int cps);
       DLLLOCAL ~DBIDriver();
       DLLLOCAL int init(class Datasource *ds, class ExceptionSink *xsink);
       DLLLOCAL int close(class Datasource *ds);
@@ -138,27 +135,28 @@ class DBIDriver {
       DLLLOCAL int beginTransaction(class Datasource *, class ExceptionSink *xsink);
       DLLLOCAL int getCaps() const;
       DLLLOCAL class List *getCapList() const;
-      DLLLOCAL char *getName() const;
+      DLLLOCAL const char *getName() const;
 };
 
 typedef safe_dslist<class DBIDriver *> dbi_list_t;
 
 // it's not necessary to lock this object because it will only be written to in one thread at a time
 // note that a safe_dslist is used because it can be safely read in multiple threads while
-// being written to (in the lock)
+// being written to (in the lock).  The list should never be that long so the penalty for searching
+// a linked list with strcmp() against using a hash with explicit locking around all searches
+// should be acceptable...
 class DBIDriverList : public dbi_list_t
 {
 public:
-   //DLLEXPORT class DBIDriver *registerDriver(char *name, DBIDriverFunctions *f, int caps);
-   DLLEXPORT class DBIDriver *registerDriver(char *name, dbi_method_list_t &methods, int caps);
-   DLLEXPORT DBIDriver *find(char *name) const;
+   DLLEXPORT class DBIDriver *registerDriver(const char *name, dbi_method_list_t &methods, int caps);
+   DLLEXPORT DBIDriver *find(const char *name) const;
 
    DLLLOCAL ~DBIDriverList();
    DLLLOCAL class List *getDriverList() const;
 };
 
 DLLEXPORT extern class DBIDriverList DBI;
-DLLEXPORT class Hash *parseDatasource(char *ds, class ExceptionSink *xsink);
+DLLEXPORT class Hash *parseDatasource(const char *ds, class ExceptionSink *xsink);
 
 DLLLOCAL void init_dbi_functions();
 DLLLOCAL class Namespace *getSQLNamespace();

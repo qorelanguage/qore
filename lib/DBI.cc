@@ -48,7 +48,7 @@ struct dbi_cap_hash dbi_cap_list[] =
   { DBI_CAP_LOB_SUPPORT,            "LargeObjectSupport" },
 };
 
-DBIDriver::DBIDriver(char *nme, dbi_method_list_t &methods, int cps)
+DBIDriver::DBIDriver(const char *nme, dbi_method_list_t &methods, int cps)
 {
    // add methods to internal data structure
    for (dbi_method_list_t::iterator i = methods.begin(), e = methods.end(); i != e; ++i)
@@ -106,7 +106,7 @@ DBIDriver::~DBIDriver()
 {
 }
 
-char *DBIDriver::getName() const
+const char *DBIDriver::getName() const
 {
    return name;
 }
@@ -178,7 +178,7 @@ DBIDriverList::~DBIDriverList()
    }
 }
 
-DBIDriver *DBIDriverList::find(char *name) const
+DBIDriver *DBIDriverList::find(const char *name) const
 {
    for (dbi_list_t::const_iterator i = begin(); i != end(); i++)
       if (!strcmp(name, (*i)->getName()))
@@ -187,7 +187,7 @@ DBIDriver *DBIDriverList::find(char *name) const
    return NULL;
 }
 
-class DBIDriver *DBIDriverList::registerDriver(char *name, dbi_method_list_t &methods, int caps)
+class DBIDriver *DBIDriverList::registerDriver(const char *name, dbi_method_list_t &methods, int caps)
 {
    assert(!find(name));
    
@@ -217,7 +217,7 @@ class List *DBIDriverList::getDriverList() const
   driver, charset, and host are optional
 */
 
-class Hash *parseDatasource(char *ds, class ExceptionSink *xsink)
+class Hash *parseDatasource(const char *ds, class ExceptionSink *xsink)
 {
    if (!ds || !ds[0])
       return NULL;

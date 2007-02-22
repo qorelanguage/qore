@@ -436,10 +436,10 @@ MyBindGroup::MyBindGroup(class Datasource *ods, class QoreString *ostr, class Li
    ds = ods;
 
    // create copy of string and convert encoding if necessary
-   str = ostr->convertEncoding(ods->getQoreEncoding(), xsink);
+   str = ostr->convertEncoding(ds->getQoreEncoding(), xsink);
    if (!str)
       return;
-
+   
    // parse query and bind variables/placeholders, return on error
    if (parse(args, xsink))
       return;
@@ -819,28 +819,18 @@ static class QoreNode *qore_mysql_do_sql(class Datasource *ds, QoreString *qstr,
 {
    tracein("qore_mysql_do_sql()");
 
-   // convert string if necessary
-   class QoreString *tqstr;
-
-   if (qstr->getEncoding() != ds->getQoreEncoding())
-   {
-      tqstr = qstr->convertEncoding(ds->getQoreEncoding(), xsink);
-      if (xsink->isEvent())
-         return NULL;
-   }
-   else
-      tqstr = qstr;
-
+   TempEncodingHelper tqstr(qstr, ds->getEncoding(), xsink);
+   if (!tqstr)
+      return NULL;
+   
    MySQLData *d_mysql =(MySQLData *)ds->getPrivateData();
    MYSQL *db = d_mysql->db;
    
    d_mysql->lck.lock();
-   if (mysql_query(db, qstr->getBuffer()))
+   if (mysql_query(db, tqstr->getBuffer()))
    {
       xsink->raiseException("DBI:MYSQL:SELECT-ERROR", (char *)mysql_error(db));
       d_mysql->lck.unlock();
-      if (tqstr != qstr)
-         delete tqstr;
       return NULL;
    }
 
@@ -853,8 +843,6 @@ static class QoreNode *qore_mysql_do_sql(class Datasource *ds, QoreString *qstr,
       if (!res)
       {
 	 xsink->raiseException("DBI:MYSQL:SELECT-ERROR", (char *)mysql_error(db));
-	 if (tqstr != qstr)
-	    delete tqstr;
 	 return NULL;
       }
       class Hash *h = get_result_set(ds, res);
@@ -870,9 +858,6 @@ static class QoreNode *qore_mysql_do_sql(class Datasource *ds, QoreString *qstr,
    if (ds->getAutoCommit())
       mysql_commit(db);
 #endif
-
-   if (tqstr != qstr)
-      delete tqstr;
 
    traceout("qore_mysql_do_sql()");
    return rv;
