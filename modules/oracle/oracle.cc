@@ -37,7 +37,7 @@
 
 #ifndef QORE_MONOLITHIC
 DLLEXPORT char qore_module_name[] = "oracle";
-DLLEXPORT char qore_module_version[] = "0.1";
+DLLEXPORT char qore_module_version[] = "0.6";
 DLLEXPORT char qore_module_description[] = "Oracle database driver";
 DLLEXPORT char qore_module_author[] = "David Nichols";
 DLLEXPORT char qore_module_url[] = "http://qore.sourceforge.net";
@@ -1202,15 +1202,16 @@ class QoreString *oracle_module_init()
    tracein("oracle_module_init()");
 
    // register driver with DBI subsystem
-   DBIDriverFunctions *ddf = 
-      new DBIDriverFunctions(oracle_open, 
-			     oracle_close,
-			     oracle_select, 
-			     oracle_select_rows, 
-			     oracle_exec, 
-			     oracle_commit, 
-			     oracle_rollback);
-   DBID_ORACLE = DBI.registerDriver("oracle", ddf, DBI_ORACLE_CAPS);
+   class qore_dbi_method_list methods;
+   methods.add(QDBI_METHOD_OPEN, oracle_open);
+   methods.add(QDBI_METHOD_CLOSE, oracle_close);
+   methods.add(QDBI_METHOD_SELECT, oracle_select);
+   methods.add(QDBI_METHOD_SELECT_ROWS, oracle_select_rows);
+   methods.add(QDBI_METHOD_EXEC, oracle_exec);
+   methods.add(QDBI_METHOD_COMMIT, oracle_commit);
+   methods.add(QDBI_METHOD_ROLLBACK, oracle_rollback);
+   
+   DBID_ORACLE = DBI.registerDriver("oracle", methods, DBI_ORACLE_CAPS);
 
    traceout("oracle_module_init()");
    return NULL;

@@ -48,7 +48,20 @@
 
 #define DBI_DEFAULT_STR_LEN 512
 
-typedef int (*q_dbi_init_t)(class Datasource *, class ExceptionSink *xsink);
+// DBI method codes
+#define QDBI_METHOD_OPEN               1
+#define QDBI_METHOD_CLOSE              2
+#define QDBI_METHOD_SELECT             3
+#define QDBI_METHOD_SELECT_ROWS        4
+#define QDBI_METHOD_EXEC               5
+#define QDBI_METHOD_COMMIT             6
+#define QDBI_METHOD_ROLLBACK           7
+#define QDBI_METHOD_BEGIN_TRANSACTION  8
+
+#define QDBI_VALID_CODES 9
+
+// DBI method signatures
+typedef int (*q_dbi_open_t)(class Datasource *, class ExceptionSink *xsink);
 typedef int (*q_dbi_close_t)(class Datasource *);
 typedef class QoreNode *(*q_dbi_select_t)(class Datasource *, class QoreString *, class List *, class ExceptionSink *xsink);
 typedef class QoreNode *(*q_dbi_select_rows_t)(class Datasource *, class QoreString *, class List *, class ExceptionSink *xsink);
@@ -57,9 +70,33 @@ typedef int (*q_dbi_commit_t)(class Datasource *, class ExceptionSink *xsink);
 typedef int (*q_dbi_rollback_t)(class Datasource *, class ExceptionSink *xsink);
 typedef int (*q_dbi_begin_transaction_t)(class Datasource *, class ExceptionSink *xsink);
 
+typedef std::pair<int, void *> qore_dbi_method_t;
+
+typedef safe_dslist<qore_dbi_method_t> dbi_method_list_t;
+
+class qore_dbi_method_list : public dbi_method_list_t
+{
+public:
+   // covers open, commit, rollback, and begin transaction
+   DLLEXPORT void add(int code, q_dbi_open_t method)
+   {
+      push_back(std::make_pair(code, (void *)method));
+   }
+   // for close
+   DLLEXPORT void add(int code, q_dbi_close_t method)
+   {
+      push_back(std::make_pair(code, (void *)method));
+   }
+   // covers select, select_rows. and exec
+   DLLEXPORT void add(int code, q_dbi_select_t method)
+   {
+      push_back(std::make_pair(code, (void *)method));
+   }
+};
+
 class DBIDriverFunctions {
    public:
-      q_dbi_init_t init;
+      q_dbi_open_t open;
       q_dbi_close_t close;
       q_dbi_select_t select;
       q_dbi_select_rows_t selectRows;
@@ -68,30 +105,28 @@ class DBIDriverFunctions {
       q_dbi_rollback_t rollback;
       q_dbi_begin_transaction_t begin_transaction; // for DBI drivers that require explicit transaction starts
 
-      DLLEXPORT DBIDriverFunctions(q_dbi_init_t p_init, q_dbi_close_t p_close, q_dbi_select_t p_select, q_dbi_select_rows_t p_selectRows,
-				   q_dbi_exec_t p_execSQL, q_dbi_commit_t p_commit, q_dbi_rollback_t p_rollback,
-				   q_dbi_begin_transaction_t p_begin_transaction = NULL)
+      DLLLOCAL DBIDriverFunctions()
       {
-	 init = p_init;
-	 close = p_close;
-	 select = p_select;
-	 selectRows = p_selectRows;
-	 execSQL = p_execSQL;
-	 commit = p_commit;
-	 rollback = p_rollback;
-	 begin_transaction = p_begin_transaction;
+	 open = NULL;
+	 close = NULL;
+	 select = NULL;
+	 selectRows = NULL;
+	 execSQL = NULL;
+	 commit = NULL;
+	 rollback = NULL;
+	 begin_transaction = NULL;
       }
 };
 
 class DBIDriver {
    private:
-      DBIDriverFunctions *f;
+      DBIDriverFunctions f;
       int caps;
 
    public:
       char *name;
 
-      DLLLOCAL DBIDriver(char *name, DBIDriverFunctions *funcs, int cps);
+      DLLLOCAL DBIDriver(char *name, dbi_method_list_t &methods, int cps);
       DLLLOCAL ~DBIDriver();
       DLLLOCAL int init(class Datasource *ds, class ExceptionSink *xsink);
       DLLLOCAL int close(class Datasource *ds);
@@ -109,12 +144,13 @@ class DBIDriver {
 typedef safe_dslist<class DBIDriver *> dbi_list_t;
 
 // it's not necessary to lock this object because it will only be written to in one thread at a time
-// note that a safe_dslist is used because it can be read simulataneously in multiple threads while
-// being wrutteb to
+// note that a safe_dslist is used because it can be safely read in multiple threads while
+// being written to (in the lock)
 class DBIDriverList : public dbi_list_t
 {
 public:
-   DLLEXPORT class DBIDriver *registerDriver(char *name, DBIDriverFunctions *f, int caps);
+   //DLLEXPORT class DBIDriver *registerDriver(char *name, DBIDriverFunctions *f, int caps);
+   DLLEXPORT class DBIDriver *registerDriver(char *name, dbi_method_list_t &methods, int caps);
    DLLEXPORT DBIDriver *find(char *name) const;
 
    DLLLOCAL ~DBIDriverList();

@@ -48,16 +48,62 @@ struct dbi_cap_hash dbi_cap_list[] =
   { DBI_CAP_LOB_SUPPORT,            "LargeObjectSupport" },
 };
 
-DBIDriver::DBIDriver(char *nme, DBIDriverFunctions *funcs, int cps)
+DBIDriver::DBIDriver(char *nme, dbi_method_list_t &methods, int cps)
 {
+   // add methods to internal data structure
+   for (dbi_method_list_t::iterator i = methods.begin(), e = methods.end(); i != e; ++i)
+   {
+      assert((*i).first >= 0 && (*i).first < QDBI_VALID_CODES);
+      switch ((*i).first)
+      {
+	 case QDBI_METHOD_OPEN:
+	    assert(!f.open);
+	    f.open = (q_dbi_open_t)(*i).second;
+	    break;
+	 case QDBI_METHOD_CLOSE:
+	    assert(!f.close);
+	    f.close = (q_dbi_close_t)(*i).second;
+	    break;
+	 case QDBI_METHOD_SELECT:
+	    assert(!f.select);
+	    f.select = (q_dbi_select_t)(*i).second;
+	    break;
+	 case QDBI_METHOD_SELECT_ROWS:
+	    assert(!f.selectRows);
+	    f.selectRows = (q_dbi_select_rows_t)(*i).second;
+	    break;
+	 case QDBI_METHOD_EXEC:
+	    assert(!f.execSQL);
+	    f.execSQL = (q_dbi_exec_t)(*i).second;
+	    break;
+	 case QDBI_METHOD_COMMIT:
+	    assert(!f.commit);
+	    f.commit = (q_dbi_commit_t)(*i).second;
+	    break;
+	 case QDBI_METHOD_ROLLBACK:
+	    assert(!f.rollback);
+	    f.rollback = (q_dbi_rollback_t)(*i).second;
+	    break;
+	 case QDBI_METHOD_BEGIN_TRANSACTION:
+	    assert(!f.begin_transaction);
+	    f.begin_transaction = (q_dbi_begin_transaction_t)(*i).second;
+	    break;
+      }
+   }
+   assert(f.open);
+   assert(f.close);
+   assert(f.select);
+   assert(f.selectRows);
+   assert(f.execSQL);
+   assert(f.commit);
+   assert(f.rollback);
+   
    name = nme;
-   f = funcs;   
    caps = cps;
 }
 
 DBIDriver::~DBIDriver()
 {
-   delete f;
 }
 
 char *DBIDriver::getName() const
@@ -81,43 +127,43 @@ List *DBIDriver::getCapList() const
 
 int DBIDriver::init(class Datasource *ds, class ExceptionSink *xsink)
 {
-   return f->init(ds, xsink);
+   return f.open(ds, xsink);
 }
 
 int DBIDriver::close(class Datasource *ds)
 {
-   return f->close(ds);
+   return f.close(ds);
 }
 
 class QoreNode *DBIDriver::select(class Datasource *ds, class QoreString *sql, class List *args, class ExceptionSink *xsink)
 {
-   return f->select(ds, sql, args, xsink);
+   return f.select(ds, sql, args, xsink);
 }
 
 class QoreNode *DBIDriver::selectRows(class Datasource *ds, class QoreString *sql, class List *args, class ExceptionSink *xsink)
 {
-   return f->selectRows(ds, sql, args, xsink);
+   return f.selectRows(ds, sql, args, xsink);
 }
 
 class QoreNode *DBIDriver::execSQL(class Datasource *ds, class QoreString *sql, class List *args, class ExceptionSink *xsink)
 {
-   return f->execSQL(ds, sql, args, xsink);
+   return f.execSQL(ds, sql, args, xsink);
 }
 
 int DBIDriver::commit(class Datasource *ds, class ExceptionSink *xsink)
 {
-   return f->commit(ds, xsink);
+   return f.commit(ds, xsink);
 }
 
 int DBIDriver::rollback(class Datasource *ds, class ExceptionSink *xsink)
 {
-   return f->rollback(ds, xsink);
+   return f.rollback(ds, xsink);
 }
 
 int DBIDriver::beginTransaction(class Datasource *ds, class ExceptionSink *xsink)
 {
-   if (f->begin_transaction)
-      return f->begin_transaction(ds, xsink);
+   if (f.begin_transaction)
+      return f.begin_transaction(ds, xsink);
    return 0; // 0 = OK
 }
 
@@ -141,11 +187,11 @@ DBIDriver *DBIDriverList::find(char *name) const
    return NULL;
 }
 
-class DBIDriver *DBIDriverList::registerDriver(char *name, DBIDriverFunctions *f, int caps)
+class DBIDriver *DBIDriverList::registerDriver(char *name, dbi_method_list_t &methods, int caps)
 {
    assert(!find(name));
-
-   DBIDriver *dd = new DBIDriver(name, f, caps);
+   
+   DBIDriver *dd = new DBIDriver(name, methods, caps);
    push_back(dd);
    return dd;
 }
@@ -336,9 +382,9 @@ class Namespace *getSQLNamespace()
    // datasource type constants
    SQLNS->addConstant("DSOracle",   new QoreNode("oracle"));
    SQLNS->addConstant("DSMySQL",    new QoreNode("mysql"));
+   SQLNS->addConstant("DSSybase",   new QoreNode("sybase"));
    // the following have no drivers yet
    SQLNS->addConstant("DSPGSQL",    new QoreNode("pgsql"));
-   SQLNS->addConstant("DSSybase",   new QoreNode("sybase"));
    SQLNS->addConstant("DSDB2",      new QoreNode("db2"));
    SQLNS->addConstant("DSInformix", new QoreNode("informix"));
 

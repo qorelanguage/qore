@@ -943,15 +943,15 @@ static class QoreNode *qore_mysql_exec(class Datasource *ds, QoreString *qstr, c
 #endif
 }
 
-static int qore_mysql_init_datasource(Datasource *ds, ExceptionSink *xsink)
+static int qore_mysql_open_datasource(Datasource *ds, ExceptionSink *xsink)
 {
-   tracein("qore_mysql_init_datasource()");
+   tracein("qore_mysql_open_datasource()");
 
    checkInit();
 
    int rc = qore_mysql_init(ds, xsink);
 
-   traceout("qore_mysql_init_datasource()");
+   traceout("qore_mysql_open_datasource()");
    return rc;
 }
 
@@ -985,16 +985,16 @@ class QoreString *qore_mysql_module_init()
    my_init();
 
    // register database functions with DBI subsystem
-   DBIDriverFunctions *ddf = 
-      new DBIDriverFunctions(qore_mysql_init_datasource, 
-			     qore_mysql_close_datasource,
-			     qore_mysql_select, 
-			     qore_mysql_select_rows, 
-			     qore_mysql_exec, 
-			     qore_mysql_commit, 
-			     qore_mysql_rollback);
+   class qore_dbi_method_list methods;
+   methods.add(QDBI_METHOD_OPEN, qore_mysql_open_datasource);
+   methods.add(QDBI_METHOD_CLOSE, qore_mysql_close_datasource);
+   methods.add(QDBI_METHOD_SELECT, qore_mysql_select);
+   methods.add(QDBI_METHOD_SELECT_ROWS, qore_mysql_select_rows);
+   methods.add(QDBI_METHOD_EXEC, qore_mysql_exec);
+   methods.add(QDBI_METHOD_COMMIT, qore_mysql_commit);
+   methods.add(QDBI_METHOD_ROLLBACK, qore_mysql_rollback);
 
-   DBID_MYSQL = DBI.registerDriver("mysql", ddf, mysql_caps);
+   DBID_MYSQL = DBI.registerDriver("mysql", methods, mysql_caps);
 
    traceout("qore_mysql_module_init()");
    return NULL;
