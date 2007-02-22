@@ -27,6 +27,8 @@
 #define _QORE_LOCKEDOBJECT_H
 
 #include <pthread.h>
+#include <assert.h>
+
 class LockedObject {
       friend class QoreCondition;
 
@@ -63,5 +65,35 @@ inline void LockedObject::unlock()
    pthread_mutex_unlock(&ptm_lock);
 }
 
+class SafeLockHelper
+{
+private:
+   LockedObject *lck;
+   bool locked;
+
+public:
+   SafeLockHelper(LockedObject *l)
+   {
+      lck = l;
+      locked = false;
+   }
+   ~SafeLockHelper()
+   {
+      if (locked)
+	 lck->unlock();
+   }
+   void lock()
+   {
+      assert(!locked);
+      lck->lock();
+      locked = true;
+   }
+   void unlock()
+   {
+      assert(locked);
+      locked = false;
+      lck->unlock();
+   }
+};
 
 #endif // _QORE_LOCKEDOBJECT_H
