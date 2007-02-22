@@ -916,8 +916,8 @@ printf("### err line %d\n", __LINE__);
 printf("#### read datafmt: maxlength = %d, type = %d, CS_FMT_UNUSED = %d\n", (int)datafmt[i].maxlength, (int)datafmt[i].format, (int)CS_FMT_UNUSED);
     assert(datafmt[i].maxlength < 100000); // guess, if invalid then app semnatic is wrong (I assume the value is actual data length)
 
-    coldata[i].value = (CS_CHAR*)malloc(datafmt[i].maxlength + 4); // some padding for zero terminator
-//###    datafmt[i].maxlength += 4;
+    coldata[i].value = (CS_CHAR*)malloc(datafmt[i].maxlength + 4); // some padding for zero terminator, 4 is safe bet
+    datafmt[i].maxlength += 4;
     if (!coldata[i].value) {
 printf("### err line %d\n", __LINE__);
       xsink->outOfMemory();
@@ -939,8 +939,8 @@ printf("### A ROW WAS READ!!! rows count = %d\n", (int)rows_read);
     // process the row
     Hash* h = new Hash;
 
-    for (CS_INT i = 0; i < num_cols; ++i) {
-      extract_row_data_to_Hash(h, i, &datafmt[i], &coldata[i], out_info[i], xsink);
+    for (CS_INT j = 0; j < num_cols; ++j) {
+      extract_row_data_to_Hash(h, j, &datafmt[j], &coldata[j], out_info[j], xsink);
       if (xsink->isException()) {
         QoreNode* aux = new QoreNode(h);
         aux->deref(xsink);
@@ -993,23 +993,40 @@ void SybaseBindGroup::extract_row_data_to_Hash(Hash* out, CS_INT col_index, CS_D
     return;
   }
  
-  assert(datafmt->datatype == (CS_INT)out_info.m_column_type);
+//#### return back later  assert(datafmt->datatype == (CS_INT)out_info.m_column_type);
   switch (datafmt->datatype) {
   case CS_CHAR_TYPE: // varchar
+  {
+    CS_CHAR* value = (CS_CHAR*)(coldata->value);
+printf("### string read %s\n", value);
+    break;
+  }
   case CS_BINARY_TYPE:
   case CS_LONGCHAR_TYPE:
   case CS_LONGBINARY_TYPE:
   case CS_TEXT_TYPE:
   case CS_IMAGE_TYPE:
-  case CS_TINYINT_TYPE:
-  case CS_SMALLINT_TYPE:
     // TBD
     assert(false);
+  case CS_TINYINT_TYPE:
+  {
+    CS_TINYINT* value = (CS_TINYINT*)(coldata->value);
+printf("### read TINYINT %s = %d\n", column_name.c_str(), (int)*value);
+    // TBD
     break;
+  }
+  case CS_SMALLINT_TYPE:
+  {
+    CS_SMALLINT* value = (CS_SMALLINT*)(coldata->value);
+printf("### read SMALLINT %s = %d\n", column_name.c_str(), (int)*value);
+    // TBD
+    break;
+  }
   case CS_INT_TYPE:
   {
     CS_INT* value = (CS_INT*)(coldata->value);
-printf("### (pointer %p) read INT %s = %d\n", coldata->value, column_name.c_str(), (int)value);
+printf("### read INT %s = %d\n", column_name.c_str(), (int)*value);
+    // TBD
     break;
   }
   case CS_REAL_TYPE:
@@ -1085,7 +1102,7 @@ TEST()
     assert(false);
   }
 
-  QoreString str("select id from syskeys where id > %v and id < %v");
+  QoreString str("select count(*) from syskeys where id > %v and id < %v");
   SybaseBindGroup grp(&str);
   grp.m_connection = conn.getConnection();
 
@@ -1405,7 +1422,7 @@ QoreString* sybase_module_init()
   builtinFunctions.add("runSybaseTests", runSybaseTests, QDOM_DATABASE);
 #endif
 
-/* old registration method
+/* old registration method replaced on 2007/02/22
    // register driver with DBI subsystem
    DBIDriverFunctions *ddf =
       new DBIDriverFunctions(sybase_open,
