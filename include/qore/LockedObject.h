@@ -32,6 +32,8 @@
 class LockedObject {
       friend class QoreCondition;
 
+      LockedObject(const LockedObject&); // not implemented
+      LockedObject& operator=(const LockedObject&); // not implemented
    public:
       pthread_mutex_t ptm_lock;
 
@@ -67,6 +69,9 @@ inline void LockedObject::unlock()
 
 class SafeLocker
 {
+   SafeLocker(const SafeLocker&); // not implemented
+   SafeLocker& operator=(const SafeLocker&); // not implemented
+
 private:
    LockedObject *lck;
    bool locked;
