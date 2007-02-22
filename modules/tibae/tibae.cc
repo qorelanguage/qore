@@ -242,6 +242,18 @@ void TIBAE_constructor(class Object *self, class QoreNode *params, class Excepti
    else
       classlist = NULL;
 
+   QoreString tmp;
+   if ((p = get_param(params, NT_STRING, 3)))
+   {
+      if (p->type == NT_STRING)
+	 service = p->val.String->getBuffer();
+      else if (p->type == NT_INT)
+      {
+	 tmp.sprintf("%lld", p->val.intval);
+	 service = tmp.val.String->getBuffer();
+      }
+   }
+   
    if ((p = test_param(params, NT_STRING, 3)))
       service = p->val.String->getBuffer();
 
