@@ -65,19 +65,20 @@ inline void LockedObject::unlock()
    pthread_mutex_unlock(&ptm_lock);
 }
 
-class SafeLockHelper
+class SafeLocker
 {
 private:
    LockedObject *lck;
    bool locked;
 
 public:
-   SafeLockHelper(LockedObject *l)
+   SafeLocker(LockedObject *l)
    {
       lck = l;
-      locked = false;
+      lck->lock();
+      locked = true;
    }
-   ~SafeLockHelper()
+   ~SafeLocker()
    {
       if (locked)
 	 lck->unlock();

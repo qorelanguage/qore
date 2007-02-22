@@ -1,5 +1,6 @@
 2007.02.22: David Nichols
 	* implemented new extensible DBI-driver registration
+	* implemented SafeLocker class to avoid locking errors
 
 2007.02.20: David Nichols
 	* updated HTTPClient to support redirections, basic authentication and
