@@ -579,7 +579,7 @@ void QoreHTTPClient::disconnect()
 
 const char *QoreHTTPClient::getMsgPath(const char *mpath, class QoreString &pstr)
 {
-   pstr.terminate(0);
+   pstr.clear();
 
    // use default path if no path is set
    if (!mpath || !mpath[0])

@@ -40,7 +40,7 @@ void ManagedDatasource::deref(class ExceptionSink *xsink)
    {
       if (in_transaction)
       {
-	 xsink->raiseException("DATASOURCE-LOCK-EXCEPTION", "TID %d terminated while in a transaction; transaction will be automatically rolled back and the lock released", gettid());
+	 xsink->raiseException("DATASOURCE-TRANSACTION-EXCEPTION", "TID %d terminated while in a transaction; transaction will be automatically rolled back and the lock released", gettid());
 	 rollback(xsink);
       }
       delete this;

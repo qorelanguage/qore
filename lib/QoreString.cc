@@ -340,13 +340,9 @@ char *QoreString::giveBuffer()
 
 void QoreString::clear()
 {
-   if (buf)
-   {
-      free(buf);
-      buf = NULL;
-   }
-   allocated = 0;
+   check_char(0);
    len = 0;
+   buf[0] = '\0';
 }
 
 void QoreString::set(const char *str, class QoreEncoding *new_qorecharset)

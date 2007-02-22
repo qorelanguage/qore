@@ -1115,7 +1115,7 @@ Hash *getAllCallStacks()
 	 if (l->size())
 	 {
 	    // make hash entry
-	    str.terminate(0);
+	    str.clear();
 	    str.sprintf("%d", w->tid);
 	    h->setKeyValue(&str, new QoreNode(l), NULL);
 	 }

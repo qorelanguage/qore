@@ -148,7 +148,7 @@ static void GETOPT_constructor(class Object *self, class QoreNode *params, Excep
       int attributes = QGO_OPT_NONE;
 
       // reset buffer
-      vstr.terminate(0);
+      vstr.clear();
       vstr.concat(v->val.String->getBuffer());
       char *val = vstr.getBuffer();
 

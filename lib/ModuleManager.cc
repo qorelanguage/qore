@@ -275,7 +275,7 @@ void ModuleManager::init(bool se)
    while (w != autoDirList.end())
    {
       // make new string for glob
-      gstr.terminate(0);
+      gstr.clear();
       gstr.concat(*w);
       gstr.concat("/*.qmod");
 
@@ -334,7 +334,7 @@ class QoreString *ModuleManager::loadModule(char *name, class QoreProgram *pgm)
    StringList::iterator w = moduleDirList.begin();
    while (w != moduleDirList.end())
    {
-      str.terminate(0);
+      str.clear();
       str.sprintf("%s/%s.qmod", *w, name);
       //printd(5, "ModuleManager::loadModule(%s) trying %s\n", name, str.getBuffer());
 

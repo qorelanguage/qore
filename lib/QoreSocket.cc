@@ -1473,7 +1473,7 @@ class Hash *QoreSocket::readHTTPChunkedBodyBinary(int timeout, class ExceptionSi
       }      
 
       // ensure string is blanked for next read
-      str.terminate(0);
+      str.clear();
    }
    // read footers or nothing
    class QoreString *hdr = readHTTPData(timeout, &rc, 1);
@@ -1551,7 +1551,7 @@ class Hash *QoreSocket::readHTTPChunkedBody(int timeout, class ExceptionSink *xs
 	 return NULL;
       }
       // ensure string is blanked for next read
-      str.terminate(0);
+      str.clear();
       
       // prepare string for chunk
       buf->ensureBufferSize((unsigned)(buf->strlen() + size + 1));

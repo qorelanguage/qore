@@ -16488,6 +16488,25 @@ xs      </variablelist>
 	  </listitem>
 	</varlistentry>
       </variablelist>
+
+      <table>
+	<title>Exceptions Thrown by Datasource::destructor()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>DATASOURCE-TRANSACTION-EXCEPTION</code></para></entry>
+	      <entry><para>The Datasource was destroyed while a transaction was still in progress; the transaction will be automatically rolled back.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
     </sect2>
 
     <sect2 id="Qore::SQL::Datasource::copy">

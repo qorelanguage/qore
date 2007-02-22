@@ -189,7 +189,7 @@ class Hash *QoreSSLCertificate::getPurposeHash() const
 	    break;
 	 default:
 	    name = X509_PURPOSE_get0_name(pt);
-	    tstr.terminate(0);
+	    tstr.clear();
 	    tstr.concat(name);
 	    tstr.concat("CA");
 	    nameca = tstr.getBuffer();

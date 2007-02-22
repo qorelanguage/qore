@@ -386,7 +386,7 @@ static int doJSONValue(class QoreString *str, class QoreNode *v, int format, cla
       while (li.next())
       {
 	 bool ind = tmp.strlen() > JSF_THRESHOLD;
-	 tmp.terminate(0);
+	 tmp.clear();
 	 if (doJSONValue(&tmp, li.getValue(), format == -1 ? format : format + 2, xsink))
 	    return -1;
 
@@ -411,7 +411,7 @@ static int doJSONValue(class QoreString *str, class QoreNode *v, int format, cla
       while (hi.next())
       {
 	 bool ind = tmp.strlen() > JSF_THRESHOLD;
-	 tmp.terminate(0);
+	 tmp.clear();
 	 if (doJSONValue(&tmp, hi.getValue(), format == -1 ? format : format + 2, xsink))
 	    return -1;
 

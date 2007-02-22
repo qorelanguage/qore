@@ -1021,7 +1021,7 @@ static int getXMLData(xmlTextReader *reader, xml_stack *xstack, class QoreEncodi
 			if (!et)
 			   break;
 			c++;
-			ns.terminate(0);
+			ns.clear();
 		     }
 		     xstack->push(n->val.hash->getKeyValuePtr(ns.getBuffer()), depth);
 		  }

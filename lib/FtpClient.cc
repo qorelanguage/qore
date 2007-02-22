@@ -96,8 +96,6 @@ FtpClient::FtpClient(class QoreString *url, class ExceptionSink *xsink)
 
 FtpClient::~FtpClient()
 {
-   // clear control buffer
-   buffer.clear();
    disconnectInternal();
    if (host)
       free(host);
