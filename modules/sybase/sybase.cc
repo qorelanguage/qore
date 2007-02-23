@@ -542,7 +542,12 @@ TEST()
 void SybaseBindGroup::deallocate_prepared_statement(CS_COMMAND* cmd, char* id)
 {
   CS_RETCODE err = ct_dynamic(cmd, CS_DEALLOC, id, CS_NULLTERM, 0, CS_UNUSED);
+if (err != CS_SUCCEED) printf("### deallocate_prepared_statement returned %d (CS_FAIL = %d)\n", (int)err, (int)CS_FAIL);
   assert(err == CS_SUCCEED);
+  err = ct_send(cmd);
+  assert(err == CS_SUCCEED);
+  CS_INT result_type;
+  while ((err = ct_results(cmd, &result_type)) == CS_SUCCEED);
 }
 
 //------------------------------------------------------------------------------
@@ -706,12 +711,26 @@ printf("### err x5\n");
 
     switch (param_info[i].m_column_type) {
     case CS_CHAR_TYPE: // varchar
+      // TBD
+      assert(false);
     case CS_BINARY_TYPE:
+      // TBD
+      assert(false);
     case CS_LONGCHAR_TYPE:
+      // TBD
+      assert(false);
     case CS_LONGBINARY_TYPE:
+      // TBD
+      assert(false);
     case CS_TEXT_TYPE:
+      // TBD
+      assert(false);
     case CS_IMAGE_TYPE:
+      // TBD
+      assert(false);
     case CS_TINYINT_TYPE:
+      //TBD
+      assert(false);
     case CS_SMALLINT_TYPE:
       assert(false); // TBD
       break;
@@ -734,15 +753,35 @@ printf("### err x6, adding %d, err = %d, FAIL = %d\n", (int)val, (int)err, (int)
       break;
     }
     case CS_REAL_TYPE:
+      // TBD
+      assert(false);
     case CS_FLOAT_TYPE:
+      // TBD
+      assert(false);
     case CS_BIT_TYPE:
+      // TBD
+      assert(false);
     case CS_DATETIME_TYPE:
+      // TBD
+      assert(false);
     case CS_DATETIME4_TYPE:
+      // TBD
+      assert(false);
     case CS_MONEY_TYPE:
+      // TBD
+      assert(false);
     case CS_MONEY4_TYPE:
+      // TBD
+      assert(false);
     case CS_NUMERIC_TYPE:
+      // TBD
+      assert(false);
     case CS_DECIMAL_TYPE:
+      // TBD
+      assert(false);
     case CS_VARCHAR_TYPE:
+      // TBD
+      assert(false);
     case CS_VARBINARY_TYPE:
       assert(false);
       // TBD - deal with all the types
@@ -757,7 +796,6 @@ printf("### err x1\n");
 
   err = ct_send(cmd);
   if (err != CS_SUCCEED) {
-printf("### err x2\n");
     xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_send() failed with error %d", (int)err);
     return;
   }
@@ -913,7 +951,6 @@ printf("### err line %d\n", __LINE__);
       return;
     }
     datafmt[i].count = 1; // fetch just single item
-printf("#### read datafmt: maxlength = %d, type = %d, CS_FMT_UNUSED = %d\n", (int)datafmt[i].maxlength, (int)datafmt[i].format, (int)CS_FMT_UNUSED);
     assert(datafmt[i].maxlength < 100000); // guess, if invalid then app semnatic is wrong (I assume the value is actual data length)
 
     coldata[i].value = (CS_CHAR*)malloc(datafmt[i].maxlength + 4); // some padding for zero terminator, 4 is safe bet
@@ -931,12 +968,10 @@ printf("### err line %d\n", __LINE__);
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_bind() failed with error %d", (int)err);
       return;
     }
-printf("### i = %d, type = %d, CS_INT = %d\n", (int)i, (int)datafmt[i].datatype, (int)CS_INT_TYPE);
   }
 
   CS_INT rows_read = 0;
   while ((err = ct_fetch(cmd, CS_UNUSED, CS_UNUSED, CS_UNUSED, &rows_read)) == CS_SUCCEED) {
-printf("### A ROW WAS READ!!! rows count = %d\n", (int)rows_read);   
     // process the row
     Hash* h = new Hash;
 
@@ -968,7 +1003,6 @@ printf("### A ROW WAS READ!!! rows count = %d\n", (int)rows_read);
     xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_fetch() returned erro %d", (int)err);
     return;
   }
-printf("### read row finished\n");
 }
 
 //------------------------------------------------------------------------------
@@ -1072,6 +1106,8 @@ void SybaseBindGroup::extract_row_data_to_Hash(Hash* out, CS_INT col_index, CS_D
 //------------------------------------------------------------------------------
 QoreNode* SybaseBindGroup::execute_command(ExceptionSink* xsink)
 {
+  // TBD - for not select use the immediate execute
+
   CS_COMMAND* cmd = prepare_command(xsink);
   if (xsink->isException()) {
 printf("### err A\n");
@@ -1175,6 +1211,97 @@ TEST()
   QoreNode* aux = new QoreNode(lst);
   aux->deref(&xsink);
 }
+
+TEST()
+{
+  // as above but using the exec_command()
+  sybase_connection conn;
+  ExceptionSink xsink;
+  conn.init("sa", 0, "pavel", &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+
+  QoreString str("select count(*) from syskeys where id > %v and id < %v");
+  SybaseBindGroup grp(&str);
+  grp.m_connection = conn.getConnection();
+
+  List* lst = new List;
+  lst->push(new QoreNode((int64)0));
+  lst->push(new QoreNode((int64)1000));
+
+  grp.parseQuery(lst, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  QoreNode* n = grp.execute_command(&xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  n->deref(&xsink);
+}
+
+TEST()
+{
+  // select all columns
+  sybase_connection conn;
+  ExceptionSink xsink;
+  conn.init("sa", 0, "pavel", &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+
+  QoreString str("select * from syskeys where id > %v and id < %v");
+  SybaseBindGroup grp(&str);
+  grp.m_connection = conn.getConnection();
+
+  List* lst = new List;
+  lst->push(new QoreNode((int64)0));
+  lst->push(new QoreNode((int64)1000));
+
+  grp.parseQuery(lst, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+
+  CS_COMMAND* cmd = grp.prepare_command(&xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  std::vector<SybaseBindGroup::column_info_t> inputs = grp.extract_input_parameters_info(cmd, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  assert(inputs.size() == 2);
+  std::vector<SybaseBindGroup::column_info_t> outputs = grp.extract_output_parameters_info(cmd, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  assert(outputs.size() == 22); // on my machine
+
+  grp.bind_input_parameters(cmd, inputs, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+
+  QoreNode* res = grp.read_output(cmd, outputs, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  assert(res);
+  if (res->type != NT_LIST) {
+    assert(false);
+  }
+  if (res->val.list->size() != 48) { // 48 on my machine
+    assert(false);
+  }
+
+  res->deref(&xsink);
+
+  QoreNode* aux = new QoreNode(lst);
+  aux->deref(&xsink);
+}
+
 #endif
 
 //------------------------------------------------------------------------------
@@ -1496,6 +1623,10 @@ void sybase_module_delete()
    //DBI_deregisterDriver(DBID_SYBASE); - commented out because it is so in oracle module
    traceout("sybase_module_delete()");
 }
+
+#ifdef DEBUG
+#  include "tests/sybase_tests.cc"
+#endif
 
 // EOF
 
