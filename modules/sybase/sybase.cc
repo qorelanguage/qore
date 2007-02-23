@@ -245,8 +245,8 @@ CS_RETCODE sybase_connection::servermsg_callback()
 // from exutils.h in samples
 typedef struct _ex_column_data
 {
-  CS_SMALLINT          indicator;
-  CS_CHAR         *value;
+  CS_SMALLINT     indicator;
+  CS_CHAR*        value;
   CS_INT          valuelen;
 } EX_COLUMN_DATA;
 
@@ -921,8 +921,9 @@ printf("#### read datafmt: maxlength = %d, type = %d, CS_FMT_UNUSED = %d\n", (in
     if (!coldata[i].value) {
 printf("### err line %d\n", __LINE__);
       xsink->outOfMemory();
-      return;
+      return;    
     }
+    // TBD - handle text, image, varchar
 
     err = ct_bind(cmd, i + 1, &datafmt[i], coldata[i].value, &coldata[i].valuelen, &coldata[i].indicator);
     if (err != CS_SUCCEED) {
@@ -986,19 +987,22 @@ void SybaseBindGroup::extract_row_data_to_Hash(Hash* out, CS_INT col_index, CS_D
     column_name = buffer;
   }
   // TBD - convert column name by encoding?
+  QoreString* key = new QoreString((char*)column_name.c_str());
+  QoreNode* v = 0;
 
   if (coldata->indicator == -1) { // NULL
-    QoreString* s = new QoreString((char*)column_name.c_str());
-    out->setKeyValue(s, new QoreNode(NT_NULL), xsink);
+    out->setKeyValue(key, new QoreNode(NT_NULL), xsink);
     return;
   }
  
-//#### return back later  assert(datafmt->datatype == (CS_INT)out_info.m_column_type);
+  assert(datafmt->datatype == (CS_INT)out_info.m_column_type);
   switch (datafmt->datatype) {
   case CS_CHAR_TYPE: // varchar
   {
     CS_CHAR* value = (CS_CHAR*)(coldata->value);
-printf("### string read %s\n", value);
+    // TBD - conversion
+    QoreString* s = new QoreString(value);
+    v = new QoreNode(s);
     break;
   }
   case CS_BINARY_TYPE:
@@ -1011,27 +1015,39 @@ printf("### string read %s\n", value);
   case CS_TINYINT_TYPE:
   {
     CS_TINYINT* value = (CS_TINYINT*)(coldata->value);
-printf("### read TINYINT %s = %d\n", column_name.c_str(), (int)*value);
-    // TBD
+    v = new QoreNode((int64)*value);
     break;
   }
   case CS_SMALLINT_TYPE:
   {
     CS_SMALLINT* value = (CS_SMALLINT*)(coldata->value);
-printf("### read SMALLINT %s = %d\n", column_name.c_str(), (int)*value);
-    // TBD
+    v = new QoreNode((int64)*value);
     break;
   }
   case CS_INT_TYPE:
   {
     CS_INT* value = (CS_INT*)(coldata->value);
-printf("### read INT %s = %d\n", column_name.c_str(), (int)*value);
-    // TBD
+    v = new QoreNode((int64)*value);
     break;
   }
   case CS_REAL_TYPE:
+  {
+    CS_REAL* value = (CS_REAL*)(coldata->value);
+    v = new QoreNode((double)*value);
+    break;
+  }
   case CS_FLOAT_TYPE:
+  {
+    CS_FLOAT* value = (CS_FLOAT*)(coldata->value);
+    v = new QoreNode((double)*value);
+    break;
+  }
   case CS_BIT_TYPE:
+  {
+    CS_BIT* value = (CS_BIT*)(coldata->value);
+    v = new QoreNode(*value != 0);
+    break;
+  }
   case CS_DATETIME_TYPE:
   case CS_DATETIME4_TYPE:
   case CS_MONEY_TYPE:
@@ -1045,9 +1061,12 @@ printf("### read INT %s = %d\n", column_name.c_str(), (int)*value);
     break;
   default:
     assert(false);
+    delete key;
     xsink->raiseException("DBI-EXEC-EXCEPTION", "Unknown data type %d", (int)datafmt->datatype);
     return;
   } 
+  assert(out);
+  out->setKeyValue(key, v, xsink);
 }
 
 //------------------------------------------------------------------------------
@@ -1095,6 +1114,7 @@ printf("### err B\n");
 #ifdef DEBUG
 TEST()
 {
+  // test used during the development
   sybase_connection conn;
   ExceptionSink xsink;
   conn.init("sa", 0, "pavel", &xsink);
@@ -1140,8 +1160,18 @@ TEST()
   if (xsink.isException()) {
     assert(false);
   }
-
-
+  assert(res);
+  // row "column1" with value 48 (on test machine)
+  if (res->type != NT_HASH) {
+    assert(false);
+  }
+  QoreNode* n = res->val.hash->getKeyValue("column1");
+  assert(n);
+  assert(n->type == NT_INT);
+  assert(n->val.intval == 48);
+  
+  res->deref(&xsink);
+  
   QoreNode* aux = new QoreNode(lst);
   aux->deref(&xsink);
 }
