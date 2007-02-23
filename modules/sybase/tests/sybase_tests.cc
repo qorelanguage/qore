@@ -243,9 +243,16 @@ static void test2()
   }
   QoreNode* n = grp.execute_command(&xsink);
   if (xsink.isException()) {
+    assert(false);  
+  }
+  if (n->type != NT_HASH) {
     assert(false);
   }
-  // TBD - check n
+  QoreNode* val = n->val.hash->getKeyValue("column1");
+  assert(val);
+  assert(val->type == NT_INT);
+  assert(val->val.intval == 48);
+
   n->deref(&xsink);
 }
 
@@ -324,10 +331,42 @@ TEST()
   test3();
 }
 
+//------------------------------------------------------------------------------
+static void test4()
+{
+  // as above but using execute_command()
+  sybase_connection conn;
+  ExceptionSink xsink;
+  conn.init("sa", 0, "pavel", &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+
+  QoreString str("select * from syskeys where id > %v and id < %v");
+  SybaseBindGroup grp(&str);
+  grp.m_connection = conn.getConnection();
+
+  List* lst = new List;
+  lst->push(new QoreNode((int64)0));
+  lst->push(new QoreNode((int64)1000));
+
+  grp.parseQuery(lst, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+
+}
+
+TEST()
+{
+  test4();
+}
+
+//------------------------------------------------------------------------------
 TEST()
 {
 /*
-  // test whether it leaks
+  // test whether it leaks - check memory usage
   for (;;) {
     test3();
   }

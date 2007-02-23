@@ -60,8 +60,10 @@ DLLEXPORT qore_module_delete_t qore_module_delete = sybase_module_delete;
 
 static DBIDriver* DBID_SYBASE;
 
-// capabilities of this driver (TBD - review this, copied from Oracle module)
-#define DBI_SYBASE_CAPS (DBI_CAP_TRANSACTION_MANAGEMENT | DBI_CAP_STORED_PROCEDURES | DBI_CAP_CHARSET_SUPPORT | DBI_CAP_LOB_SUPPORT)
+// capabilities of this driver (todo - review this, copied from Oracle module)
+#define DBI_SYBASE_CAPS (DBI_CAP_TRANSACTION_MANAGEMENT | DBI_CAP_CHARSET_SUPPORT | DBI_CAP_LOB_SUPPORT) 
+// DBI_CAP_STORED_PROCEDURES is commented out  - this would require to recognise @ as parameter name prefix 
+// and also not to execute the statement immediatelly 
 
 //------------------------------------------------------------------------------
 #ifdef DEBUG
@@ -91,6 +93,7 @@ private:
   CS_CONTEXT* m_context;
   CS_CONNECTION* m_connection;
 
+  // Sybase requires callbacks
   static CS_RETCODE clientmsg_callback();
   static CS_RETCODE servermsg_callback();
   static CS_RETCODE message_callback();
@@ -237,35 +240,54 @@ class SybaseBindGroup
 {
 private:
   QoreString* m_cmd; // as passed by the user
-  Datasource* m_ds;
-  CS_CONNECTION* m_connection;
+  Datasource* m_ds; // passed from upper layer
+  CS_CONNECTION* m_connection; // Sybase specific
   std::vector<QoreNode*> m_input_parameters; // as provided by the user
   std::string m_command_id; // unique name for the command, generated here
 
+  // Mostly copied from Oracle module. Also changes passed SQL command to Sybase format
+  // (replacing %v with ?). Does not work with procedures. May be better rewritten.
   void parseQuery(List *args, ExceptionSink *xsink);
 
-  // helpers for execute_command
+  // helpers for execute_command() ---------------------------------------------
+
+  // wraps ct_dynamic(CS_PREPARE)
   CS_COMMAND* prepare_command(ExceptionSink* xsink);
+  // opposite to prepare_command(). Always fails for unknown reason
+  // and commented out. Even than the app does not leak (tested).
   static void deallocate_prepared_statement(CS_COMMAND* cmd, char* id);
 
+  // description of both input parameters and output data
   typedef struct column_info_t {
     column_info_t(const std::string& n, unsigned t, unsigned s) : m_column_name(n), m_column_type(t), m_max_size(s) {}
     std::string m_column_name;
     unsigned m_column_type; // CS_..._TYPE constants
     unsigned m_max_size;
   };
+
+  // wraps ct_dynamic(CS_DESCRIBE_INPUT)
   std::vector<column_info_t> extract_input_parameters_info(CS_COMMAND* cmd, ExceptionSink* xsink);
-  bool does_command_return_data() const;
+  bool does_command_return_data() const; // equivalent to: is it SQL select?
+  // wraps ct_dynamic(CS_DESCRIBE_OUTPUT). The function may be redundant - needs investigation.  
   std::vector<column_info_t> extract_output_parameters_info(CS_COMMAND* cmd, ExceptionSink* xsink);
+  // wraps ct_param(). Uses m_input_parameters to get data from input 'QoreNode's 
   void bind_input_parameters(CS_COMMAND* cmd, const std::vector<column_info_t>& params, ExceptionSink* xsink);
+  // wraps ct_results(), returns Hash (1 row) or List (more rows) 
   QoreNode* read_output(CS_COMMAND* cmd, const std::vector<column_info_t>& out_info, ExceptionSink* xsink);
+
+  // helper for read_output(), adds just read single row into 'out'
   void read_row(CS_COMMAND* cmd, const std::vector<column_info_t>& out_info, QoreNode*& out, ExceptionSink* xsink);
+  // converts Sybase data to QoreNode
   void extract_row_data_to_Hash(Hash* out, CS_INT col_index, CS_DATAFMT* datafmt, EX_COLUMN_DATA* coldata, 
     const column_info_t& out_info, ExceptionSink* xsink);
 
+  // the main functionality of this class is here: executes m_cmd using m_input_parameters
+  // and returns data converted into Qore nodes
   QoreNode* execute_command(ExceptionSink* xsink);
 
 #ifdef DEBUG
+  // needed to be able to create independent tests. The whole architecture woul be better changed
+  // to support testing.
   SybaseBindGroup(QoreString* ostr);
 #endif
 public:
@@ -902,12 +924,11 @@ void SybaseBindGroup::extract_row_data_to_Hash(Hash* out, CS_INT col_index, CS_D
     column_name = buffer;
   }
   // TBD - convert column name by encoding?
-  QoreString* key = new QoreString((char*)column_name.c_str());
+  std::auto_ptr<QoreString> key(new QoreString((char*)column_name.c_str()));
   QoreNode* v = 0;
 
   if (coldata->indicator == -1) { // NULL
-    out->setKeyValue(key, new QoreNode(NT_NULL), xsink);
-    delete key;
+    out->setKeyValue(key.get(), new QoreNode(NT_NULL), xsink);
     return;
   }
  
@@ -977,13 +998,11 @@ void SybaseBindGroup::extract_row_data_to_Hash(Hash* out, CS_INT col_index, CS_D
     break;
   default:
     assert(false);
-    delete key;
     xsink->raiseException("DBI-EXEC-EXCEPTION", "Unknown data type %d", (int)datafmt->datatype);
     return;
   } 
   assert(out);
-  out->setKeyValue(key, v, xsink);
-  delete key;
+  out->setKeyValue(key.get(), v, xsink);
 }
 
 //------------------------------------------------------------------------------
@@ -998,9 +1017,9 @@ printf("### err A\n");
   }  
   ON_BLOCK_EXIT(ct_cmd_drop, cmd);
   ScopeGuard cancel_guard = MakeGuard(ct_cancel, (CS_CONNECTION*)0, cmd, CS_CANCEL_ALL);
-// This fails for unknown reason so I commented it out.
+// Sybase API called within deallocate_prepared_statement()  fail for unknown reason so I commented it out.
 // The long running tests indicate no leak (probably due to ct_cmd_drop()).
-//  ON_BLOCK_EXIT(&SybaseBindGroup::deallocate_prepared_statement, cmd, (char*)m_command_id.c_str());
+// ON_BLOCK_EXIT(&SybaseBindGroup::deallocate_prepared_statement, cmd, (char*)m_command_id.c_str());
 
   std::vector<column_info_t> inputs = extract_input_parameters_info(cmd, xsink);
   if (xsink->isException()) {
