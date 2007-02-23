@@ -467,7 +467,6 @@ printf("### err33\n");
     }
     result.reserve(numparam);
 
-printf("### num of parameters = %d\n", (int)numparam);
     CS_DATAFMT datafmt;
     for (CS_INT i = 1; i <= numparam; ++i) { 
       err = ct_describe(cmd, i, &datafmt);
@@ -534,7 +533,6 @@ printf("### err33\n");
     }
     result.reserve(numparam);
 
-printf("### num of parameters = %d\n", (int)numparam);
     CS_DATAFMT datafmt;
     for (CS_INT i = 1; i <= numparam; ++i) {
       err = ct_describe(cmd, i, &datafmt);
@@ -909,6 +907,7 @@ void SybaseBindGroup::extract_row_data_to_Hash(Hash* out, CS_INT col_index, CS_D
 
   if (coldata->indicator == -1) { // NULL
     out->setKeyValue(key, new QoreNode(NT_NULL), xsink);
+    delete key;
     return;
   }
  
@@ -984,6 +983,7 @@ void SybaseBindGroup::extract_row_data_to_Hash(Hash* out, CS_INT col_index, CS_D
   } 
   assert(out);
   out->setKeyValue(key, v, xsink);
+  delete key;
 }
 
 //------------------------------------------------------------------------------
@@ -998,7 +998,9 @@ printf("### err A\n");
   }  
   ON_BLOCK_EXIT(ct_cmd_drop, cmd);
   ScopeGuard cancel_guard = MakeGuard(ct_cancel, (CS_CONNECTION*)0, cmd, CS_CANCEL_ALL);
-  ON_BLOCK_EXIT(&SybaseBindGroup::deallocate_prepared_statement, cmd, (char*)m_command_id.c_str());
+// This fails for unknown reason so I commented it out.
+// The long running tests indicate no leak (probably due to ct_cmd_drop()).
+//  ON_BLOCK_EXIT(&SybaseBindGroup::deallocate_prepared_statement, cmd, (char*)m_command_id.c_str());
 
   std::vector<column_info_t> inputs = extract_input_parameters_info(cmd, xsink);
   if (xsink->isException()) {

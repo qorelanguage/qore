@@ -146,7 +146,7 @@ TEST()
 }
 
 //------------------------------------------------------------------------------
-TEST()
+static void test1()
 {
   // test used during the development
   sybase_connection conn;
@@ -204,15 +204,23 @@ TEST()
   assert(n->type == NT_INT);
   assert(n->val.intval == 48);
 
+  CS_RETCODE err = ct_cmd_drop(cmd);
+  assert(err = CS_SUCCEED);
+
   res->deref(&xsink);
 
   QoreNode* aux = new QoreNode(lst);
   aux->deref(&xsink);
 }
 
-//------------------------------------------------------------------------------
 TEST()
-{/*
+{
+  test1();
+}
+
+//------------------------------------------------------------------------------
+static void test2()
+{
   // as above but using the execute_command()
   sybase_connection conn;
   ExceptionSink xsink;
@@ -239,13 +247,17 @@ TEST()
   }
   // TBD - check n
   n->deref(&xsink);
-*/
+}
+
+TEST()
+{
+  test2();
 }
 
 //------------------------------------------------------------------------------
-TEST()
+static void test3()
 {
-  // select all columns
+  // select all
   sybase_connection conn;
   ExceptionSink xsink;
   conn.init("sa", 0, "pavel", &xsink);
@@ -270,16 +282,18 @@ TEST()
   if (xsink.isException()) {
     assert(false);
   }
+
   std::vector<SybaseBindGroup::column_info_t> inputs = grp.extract_input_parameters_info(cmd, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
-  assert(inputs.size() == 2);
+  assert(inputs.size() == 2); 
+
   std::vector<SybaseBindGroup::column_info_t> outputs = grp.extract_output_parameters_info(cmd, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
-  assert(outputs.size() == 22); // on my machine
+  assert(outputs.size() == 22); // 22 on my machine
 
   grp.bind_input_parameters(cmd, inputs, &xsink);
   if (xsink.isException()) {
@@ -294,14 +308,30 @@ TEST()
   if (res->type != NT_LIST) {
     assert(false);
   }
-  if (res->val.list->size() != 48) { // 48 on my machine
-    assert(false);
-  }
+  assert(res->val.list->size() == 48); // 48 on my machine
 
-  res->deref(&xsink);
+  if (res) res->deref(&xsink);
+
+  CS_RETCODE err = ct_cmd_drop(cmd);
+  assert(err = CS_SUCCEED);
 
   QoreNode* aux = new QoreNode(lst);
   aux->deref(&xsink);
+}
+
+TEST()
+{
+  test3();
+}
+
+TEST()
+{
+/*
+  // test whether it leaks
+  for (;;) {
+    test3();
+  }
+*/
 }
 
 } // namespace
