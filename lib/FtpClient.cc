@@ -610,36 +610,27 @@ int FtpClient::doAuth(class FtpResp *resp, class ExceptionSink *xsink)
 // public locked
 int FtpClient::connect(class ExceptionSink *xsink)
 {
-   lock();
+   SafeLocker sl(this);
 
    disconnectInternal();
 
    if (!host)
    {
-      unlock();
       xsink->raiseException("FTP-CONNECT-ERROR", "no hostname set");
       return -1;
    }
 
    FtpResp resp;
    if (connectIntern(&resp, xsink))
-   {
-      unlock();
       return -1;
-   }
 
    if (secure && doAuth(&resp, xsink))
-   {
-      unlock();
       return -1;
-   }
 
    resp.assign(sendMsg("USER", user ? user : (char *)DEFAULT_USERNAME, xsink));
    if (xsink->isEvent())
-   {
-      unlock();
       return -1;
-   }
+
    int code = resp.getCode();
 
    // if user not logged in immediately, continue
@@ -648,10 +639,8 @@ int FtpClient::connect(class ExceptionSink *xsink)
       // if there is an error, then exit
       if (code != 331)
       {
-	 unlock();
 	 resp.stripEOL();
 	 xsink->raiseException("FTP-LOGIN-ERROR", "response from FTP server: %s", resp.getBuffer());
-	 return -1;
       }
 
       // send password
@@ -664,7 +653,6 @@ int FtpClient::connect(class ExceptionSink *xsink)
       // if user not logged in for whatever reason, then exit
       if ((code / 100) != 2)
       {
-	 unlock();
 	 resp.stripEOL();
 	 xsink->raiseException("FTP-LOGIN-ERROR", "response from FTP server: %s", resp.getBuffer());
 	 return -1;
@@ -673,48 +661,38 @@ int FtpClient::connect(class ExceptionSink *xsink)
 
    loggedin = true;
 
-   unlock();
    return 0;
 }
 
 // public locked
 class QoreString *FtpClient::list(char *path, bool long_list, class ExceptionSink *xsink)
 {
-   lock();
+   SafeLocker sl(this);
    if (!loggedin)
    {
-      unlock();
       xsink->raiseException("FTP-NOT-CONNECTED", "FtpClient::connect() must be called before FtpClient::%s()",
 		     (long_list ? "list" : "nlst"));
       return NULL;
    }
 
    if (setBinaryMode(false, xsink) || connectData(xsink))
-   {
-      unlock();
       return NULL;
-   }
 
    FtpResp resp(sendMsg((char *)(long_list ? "LIST" : "NLST"), path, xsink));
    if (xsink->isEvent())
-   {
-      unlock();
       return NULL;
-   }
 
    int code = resp.getCode();
    //printf("LIST: %s", resp->getBuffer());
    // file not found or similar
    if ((code / 100 == 5))
    {
-      unlock();
       data.close();
       return NULL;
    }
 
    if ((code / 100 != 1))
    {
-      unlock();
       data.close();
       resp.stripEOL();
       xsink->raiseException("FTP-LIST-ERROR", "FTP server returned an error to the %s command: %s",
@@ -724,7 +702,6 @@ class QoreString *FtpClient::list(char *path, bool long_list, class ExceptionSin
 
    if ((mode == FTP_MODE_PORT && acceptDataConnection(xsink)) || xsink->isEvent())
    {
-      unlock();
       data.close();
       return NULL;
    }
@@ -734,7 +711,7 @@ class QoreString *FtpClient::list(char *path, bool long_list, class ExceptionSin
    QoreString *l = new QoreString();
 
    // read until done
-   while (1)
+   while (true)
    {
       int rc;
       if (!resp.assign(data.recv(-1, &rc)))
@@ -744,7 +721,7 @@ class QoreString *FtpClient::list(char *path, bool long_list, class ExceptionSin
    }
    data.close();
    resp.assign(getResponse(xsink));
-   unlock();
+   sl.unlock();
    if (xsink->isEvent())
       return NULL;
 
@@ -767,10 +744,9 @@ int FtpClient::put(char *localpath, char *remotename, class ExceptionSink *xsink
 {
    printd(5, "FtpClient::put(%s, %s)\n", localpath, remotename ? remotename : "NULL");
 
-   lock();
+   SafeLocker sl(this);
    if (!loggedin)
    {
-      unlock();
       xsink->raiseException("FTP-NOT-CONNECTED", "FtpClient::connect() must be called before the FtpClient::put()");
       return -1;
    }
@@ -778,7 +754,6 @@ int FtpClient::put(char *localpath, char *remotename, class ExceptionSink *xsink
    int fd = open(localpath, O_RDONLY, 0);
    if (fd < 0)
    {
-      unlock();
       xsink->raiseException("FTP-FILE-OPEN-ERROR", "%s: %s", localpath, strerror(errno));
       return -1;
    }
@@ -786,7 +761,6 @@ int FtpClient::put(char *localpath, char *remotename, class ExceptionSink *xsink
    // set binary mode and establish data connection
    if (setBinaryMode(true, xsink) || connectData(xsink))
    {
-      unlock();
       close(fd);
       return -1;
    }
@@ -795,7 +769,6 @@ int FtpClient::put(char *localpath, char *remotename, class ExceptionSink *xsink
    struct stat file_info;
    if (fstat(fd, &file_info) == -1)
    {
-      unlock();
       close(fd);
       xsink->raiseException("FTP-FILE-PUT-ERROR", "could not get file size: %s", strerror(errno));
       return -1;
@@ -814,7 +787,6 @@ int FtpClient::put(char *localpath, char *remotename, class ExceptionSink *xsink
       free(rn);
    if (xsink->isEvent())
    {
-      unlock();
       data.close();
       close(fd);
       return -1;
@@ -823,7 +795,6 @@ int FtpClient::put(char *localpath, char *remotename, class ExceptionSink *xsink
 
    if ((resp.getCode() / 100) != 1)
    {
-      unlock();
       data.close();
       resp.stripEOL();
       xsink->raiseException("FTP-PUT-ERROR", "could not put file, FTP server replied: %s", 
@@ -834,7 +805,6 @@ int FtpClient::put(char *localpath, char *remotename, class ExceptionSink *xsink
 
    if ((mode == FTP_MODE_PORT && acceptDataConnection(xsink)) || xsink->isEvent())
    {
-      unlock();
       data.close();
       close(fd);
       return -1;
@@ -847,7 +817,7 @@ int FtpClient::put(char *localpath, char *remotename, class ExceptionSink *xsink
    close(fd);
 
    resp.assign(getResponse(xsink));
-   unlock();
+   sl.unlock();
    if (xsink->isEvent())
       return -1;
 
@@ -872,10 +842,9 @@ int FtpClient::get(char *remotepath, char *localname, class ExceptionSink *xsink
 {
    printd(5, "FtpClient::get(%s, %s)\n", remotepath, localname ? localname : "NULL");
 
-   lock();
+   SafeLocker sl(this);
    if (!loggedin)
    {
-      unlock();
       xsink->raiseException("FTP-NOT-CONNECTED", "FtpClient::connect() must be called before the FtpClient::get()");
       return -1;
    }
@@ -892,7 +861,6 @@ int FtpClient::get(char *remotepath, char *localname, class ExceptionSink *xsink
    int fd = open(ln, O_WRONLY|O_CREAT, 0644);
    if (fd < 0)
    {
-      unlock();
       xsink->raiseException("FTP-FILE-OPEN-ERROR", "%s: %s", ln, strerror(errno));
       if (ln != localname)
 	 free(ln);
@@ -902,7 +870,6 @@ int FtpClient::get(char *remotepath, char *localname, class ExceptionSink *xsink
    // set binary mode and establish data connection
    if (setBinaryMode(true, xsink) || connectData(xsink))
    {
-      unlock();
       // delete temporary file
       unlink(ln);
       if (ln != localname)
@@ -915,7 +882,6 @@ int FtpClient::get(char *remotepath, char *localname, class ExceptionSink *xsink
    FtpResp resp(sendMsg("RETR", remotepath, xsink));
    if (xsink->isEvent())
    {
-      unlock();
       // delete temporary file
       unlink(ln);
       if (ln != localname)
@@ -928,7 +894,6 @@ int FtpClient::get(char *remotepath, char *localname, class ExceptionSink *xsink
 
    if ((resp.getCode() / 100) != 1)
    {
-      unlock();
       // delete temporary file
       unlink(ln);
       if (ln != localname)
@@ -943,7 +908,6 @@ int FtpClient::get(char *remotepath, char *localname, class ExceptionSink *xsink
 
    if ((mode == FTP_MODE_PORT && acceptDataConnection(xsink)) || xsink->isEvent())
    {
-      unlock();
       // delete temporary file
       unlink(ln);
       if (ln != localname)
@@ -963,7 +927,7 @@ int FtpClient::get(char *remotepath, char *localname, class ExceptionSink *xsink
    close(fd);
 
    resp.assign(getResponse(xsink));
-   unlock();
+   sl.unlock();
    if (xsink->isEvent())
       return -1;
 
@@ -981,15 +945,14 @@ int FtpClient::get(char *remotepath, char *localname, class ExceptionSink *xsink
 // public locked
 int FtpClient::cwd(char *dir, class ExceptionSink *xsink)
 {
-   lock();
+   SafeLocker sl(this);
    if (!loggedin)
    {
-      unlock();
       xsink->raiseException("FTP-NOT-CONNECTED", "FtpClient::connect() must be called before the FtpClient::cwd()");
       return -1;
    }
    class QoreString *p = sendMsg("CWD", dir, xsink);
-   unlock();
+   sl.unlock();
    if (xsink->isEvent())
       return -1;
 
@@ -1007,16 +970,15 @@ int FtpClient::cwd(char *dir, class ExceptionSink *xsink)
 // public locked
 class QoreString *FtpClient::pwd(class ExceptionSink *xsink)
 {
-   lock();
+   SafeLocker sl(this);
    if (!loggedin)
    {
-      unlock();
       xsink->raiseException("FTP-NOT-CONNECTED", "FtpClient::connect() must be called before the FtpClient::pwd()");
       return NULL;
    }
 
    class QoreString *p = sendMsg("PWD", NULL, xsink);
-   unlock();
+   sl.unlock();
    if ((getFTPCode(p) / 100) == 2)
    {
       QoreString *rv = p->substr(4);
@@ -1033,15 +995,14 @@ class QoreString *FtpClient::pwd(class ExceptionSink *xsink)
 // public locked
 int FtpClient::del(char *file, class ExceptionSink *xsink)
 {
-   lock();
+   SafeLocker sl(this);
    if (!loggedin)
    {
-      unlock();
       xsink->raiseException("FTP-NOT-CONNECTED", "FtpClient::connect() must be called before the FtpClient::delete()");
       return -1;
    }
    class QoreString *p = sendMsg("DELE", file, xsink);
-   unlock();
+   sl.unlock();
    if (xsink->isEvent())
       return -1;
 
