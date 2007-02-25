@@ -301,8 +301,7 @@ int QoreHTTPClient::setURL(const char *str, ExceptionSink* xsink)
    // disconnect immediately if not using a proxy
    if (!proxy_port)
       disconnect_unlocked();
-   int rc = set_url_unlocked(str, xsink);
-   return rc;
+   return set_url_unlocked(str, xsink);
 }
 
 class QoreString *QoreHTTPClient::getURL()
@@ -337,7 +336,7 @@ int QoreHTTPClient::setHTTPVersion(char* version, ExceptionSink* xsink)
       xsink->raiseException("HTTP-VERSION-ERROR", "only '1.0' and '1.1' are valid (value passed: '%s')", version);
       rc = -1;
    }
-   return -1;
+   return rc;
 }
 
 const char *QoreHTTPClient::getHTTPVersion() const
@@ -434,17 +433,14 @@ int QoreHTTPClient::set_proxy_url_unlocked(const char *pstr, class ExceptionSink
 
 int QoreHTTPClient::setProxyURL(const char *proxy, class ExceptionSink *xsink) 
 {
-   int rc;
    SafeLocker sl(this);
    disconnect_unlocked();
    if (!proxy || !proxy[0])
    {
       clearProxyURL();
-      rc = 0;
+      return 0;
    }
-   else
-      rc = set_proxy_url_unlocked(proxy, xsink);
-   return rc;
+   return set_proxy_url_unlocked(proxy, xsink);
 }
 
 class QoreString *QoreHTTPClient::getProxyURL() 
