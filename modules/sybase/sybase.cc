@@ -432,7 +432,7 @@ printf("### err 4\n");
     return 0;
   }
   if (result_type != CS_CMD_SUCCEED) {
-printf("### err 5 (errcode = %d): cmd = %s\n", (int)err, m_cmd->getBuffer());
+printf("### err 5 (errcode = %d, result type = %d, expected %d): cmd = %s\n", (int)err, (int)result_type, (int)CS_CMD_FAIL, m_cmd->getBuffer());
     assert(result_type == CS_CMD_FAIL);
     xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() ct_dynamic(CS_PREPARE) failed with error %d", (int)err);
     return 0;

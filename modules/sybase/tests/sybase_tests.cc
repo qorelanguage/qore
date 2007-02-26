@@ -415,7 +415,7 @@ TEST()
 static void prepare_testing(sybase_connection* conn)
 {
   ExceptionSink xsink;
-
+  {
   QoreString str1("drop table my_test"); 
   SybaseBindGroup grp1(&str1);
   grp1.m_connection = conn->getConnection();
@@ -428,8 +428,9 @@ static void prepare_testing(sybase_connection* conn)
   QoreNode* n1 = grp1.execute_command(&xsink);
   assert(!n1);
   xsink.clear();
-
+  }
   //----------
+  {
   QoreString str2("create table my_test (int_col INTEGER, varchar_col VARCHAR)");
   SybaseBindGroup grp2(&str2);
   grp2.m_connection = conn->getConnection();
@@ -442,8 +443,9 @@ static void prepare_testing(sybase_connection* conn)
   QoreNode* n2 = grp2.execute_command(&xsink);
   assert(!n2);
   xsink.clear();
-
+  }
   //--------
+  {
   QoreString str3("insert into my_test values(11, 'aaa')");
   SybaseBindGroup grp3(&str3);
   grp3.m_connection = conn->getConnection();
@@ -465,11 +467,113 @@ static void prepare_testing(sybase_connection* conn)
   if (xsink.isException()) {
     assert(false);
   }
-  
-
+  }
   //--------
-/*
-  QoreString str4("select int_col from my_test values");
+  {
+  QoreString str4("select count(*) from my_test");
+  SybaseBindGroup grp4(&str4);
+  grp4.m_connection = conn->getConnection();
+
+  grp4.parseQuery(0, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+
+  QoreNode* n4 = grp4.execute_command(&xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  assert(n4);
+  assert(n4->type == NT_HASH);
+  assert(n4->val.hash->size() == 1);
+  n4->deref(&xsink);
+  }
+  //-------- once more
+  {
+  QoreString str5("select count(*) from my_test");
+  SybaseBindGroup grp5(&str5);
+  grp5.m_connection = conn->getConnection();
+
+  grp5.parseQuery(0, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+
+  QoreNode* n5 = grp5.execute_command(&xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  assert(n5);
+  assert(n5->type == NT_HASH);
+  assert(n5->val.hash->size() == 1);
+  n5->deref(&xsink);
+  }
+  //--------
+  {
+  // new transaction may be started explicitly
+  QoreString str6a("begin transaction");
+  SybaseBindGroup grp6a(&str6a);
+  grp6a.m_connection = conn->getConnection();
+
+  grp6a.parseQuery(0, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+
+  QoreNode* n6a = grp6a.execute_command(&xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  assert(!n6a);
+
+  QoreString str6("insert into my_test values(22, 'bbb')");
+  SybaseBindGroup grp6(&str6);
+  grp6.m_connection = conn->getConnection();
+
+  grp6.parseQuery(0, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+
+  QoreNode* n6 = grp6.execute_command(&xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  assert(!n6);
+
+  if (!sybase_commit_impl(conn, &xsink)) {
+    assert(false);
+  }
+  if (xsink.isException()) {
+    assert(false);
+  }
+  }
+  //--------
+  { // no explicit transaction start
+  QoreString str6("insert into my_test values(33, 'ccc')");
+  SybaseBindGroup grp6(&str6);
+  grp6.m_connection = conn->getConnection();
+
+  grp6.parseQuery(0, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+
+  QoreNode* n6 = grp6.execute_command(&xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  assert(!n6);
+  if (!sybase_commit_impl(conn, &xsink)) {
+    assert(false);
+  }
+  if (xsink.isException()) {
+    assert(false);
+  }
+  }
+  //--------
+  {
+  QoreString str4("select int_col from my_test");
   SybaseBindGroup grp4(&str4);
   grp4.m_connection = conn->getConnection();
 
@@ -484,8 +588,10 @@ static void prepare_testing(sybase_connection* conn)
   }
   assert(n4);
   assert(n4->type == NT_LIST);
-  assert(n4->val.list->size() == 2);
-*/
+  assert(n4->val.list->size() == 3);
+  n4->deref(&xsink);
+  }
+
 }
 
 //------------------------------------------------------------------------------
