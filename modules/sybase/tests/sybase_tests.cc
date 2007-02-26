@@ -127,6 +127,34 @@ TEST()
 //------------------------------------------------------------------------------
 TEST()
 {
+  // several commit/rollbacks
+  sybase_connection conn;
+  ExceptionSink xsink;
+  conn.init("sa", 0, "pavel", &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  int res = sybase_commit_impl(&conn, &xsink);
+  if (res != 1) {
+    assert(false);
+  }
+  res = sybase_commit_impl(&conn, &xsink);
+  assert(res == 1);
+  res = sybase_rollback_impl(&conn, &xsink);
+  assert(res == 1);
+  res = sybase_commit_impl(&conn, &xsink);
+  assert(res == 1);
+  res = sybase_rollback_impl(&conn, &xsink);
+  assert(res == 1);
+  res = sybase_commit_impl(&conn, &xsink);
+  assert(res == 1);
+  res = sybase_rollback_impl(&conn, &xsink);
+  assert(res == 1); 
+}
+
+//------------------------------------------------------------------------------
+TEST()
+{
   // test for prepare_command()
   sybase_connection conn;
   ExceptionSink xsink;
@@ -384,18 +412,80 @@ TEST()
 }
 
 //------------------------------------------------------------------------------
-static void prepare_testing(SybaseBindGroup& grp, ExceptionSink* xsink)
+static void prepare_testing(sybase_connection* conn)
 {
-  QoreString str("drop my_test");
+  ExceptionSink xsink;
 
-  grp.parseQuery(0, xsink);
-  if (xsink->isException()) {
+  QoreString str1("drop table my_test"); 
+  SybaseBindGroup grp1(&str1);
+  grp1.m_connection = conn->getConnection();
+
+  grp1.parseQuery(0, &xsink);
+  if (xsink.isException()) {
     assert(false);
   }
 
-  QoreNode* n = grp.execute_command(xsink);
-  // this returns 1 item: # of deleted rows
-  n->deref(xsink);
+  QoreNode* n1 = grp1.execute_command(&xsink);
+  assert(!n1);
+  xsink.clear();
+
+  //----------
+  QoreString str2("create table my_test (int_col INTEGER, varchar_col VARCHAR)");
+  SybaseBindGroup grp2(&str2);
+  grp2.m_connection = conn->getConnection();
+
+  grp2.parseQuery(0, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+
+  QoreNode* n2 = grp2.execute_command(&xsink);
+  assert(!n2);
+  xsink.clear();
+
+  //--------
+  QoreString str3("insert into my_test values(11, 'aaa')");
+  SybaseBindGroup grp3(&str3);
+  grp3.m_connection = conn->getConnection();
+
+  grp3.parseQuery(0, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+
+  QoreNode* n3 = grp3.execute_command(&xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  assert(!n3);
+
+  if (!sybase_commit_impl(conn, &xsink)) {
+    assert(false);    
+  }
+  if (xsink.isException()) {
+    assert(false);
+  }
+  
+
+  //--------
+/*
+  QoreString str4("select int_col from my_test values");
+  SybaseBindGroup grp4(&str4);
+  grp4.m_connection = conn->getConnection();
+
+  grp4.parseQuery(0, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+
+  QoreNode* n4 = grp4.execute_command(&xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  assert(n4);
+  assert(n4->type == NT_LIST);
+  assert(n4->val.list->size() == 2);
+*/
 }
 
 //------------------------------------------------------------------------------
@@ -409,11 +499,7 @@ TEST()
     assert(false);
   }
 
-  QoreString str("select count(*) from syskeys"); // dunny
-  SybaseBindGroup grp(&str);
-  grp.m_connection = conn.getConnection();
-
-  prepare_testing(grp, &xsink);
+  prepare_testing(&conn);
 }
 
 } // namespace

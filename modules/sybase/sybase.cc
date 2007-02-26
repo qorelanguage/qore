@@ -432,7 +432,7 @@ printf("### err 4\n");
     return 0;
   }
   if (result_type != CS_CMD_SUCCEED) {
-printf("### err 5: cmd = %s\n", m_cmd->getBuffer());
+printf("### err 5 (errcode = %d): cmd = %s\n", (int)err, m_cmd->getBuffer());
     assert(result_type == CS_CMD_FAIL);
     xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() ct_dynamic(CS_PREPARE) failed with error %d", (int)err);
     return 0;
@@ -447,10 +447,9 @@ printf("### err 5: cmd = %s\n", m_cmd->getBuffer());
 void SybaseBindGroup::deallocate_prepared_statement(CS_COMMAND* cmd, char* id)
 {
   CS_RETCODE err = ct_dynamic(cmd, CS_DEALLOC, id, CS_NULLTERM, 0, CS_UNUSED);
-if (err != CS_SUCCEED) printf("### deallocate_prepared_statement returned %d (CS_FAIL = %d)\n", (int)err, (int)CS_FAIL);
-  assert(err == CS_SUCCEED);
+//###  assert(err == CS_SUCCEED);
   err = ct_send(cmd);
-  assert(err == CS_SUCCEED);
+//###  assert(err == CS_SUCCEED);
   CS_INT result_type;
   while ((err = ct_results(cmd, &result_type)) == CS_SUCCEED);
 }
@@ -711,7 +710,6 @@ QoreNode* SybaseBindGroup::read_output(CS_COMMAND* cmd, const std::vector<column
   CS_RETCODE err;
   CS_INT result_type = 0; 
 
-printf("### read_output() called\n");
   while ((err = ct_results(cmd, &result_type)) == CS_SUCCEED) {    
     switch (result_type) {
     case CS_COMPUTE_RESULT:
@@ -789,7 +787,6 @@ printf("### err in CS_END_RESULTS, result\n");
     xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() finished with unexpected result code %d", (int)err);
   }
 
-printf("### read_data finished, exc = %s\n", xsink->isException() ? "true" : "false");
   return  result;
 }
 
@@ -807,7 +804,6 @@ static void free_coldata(EX_COLUMN_DATA* coldata, CS_INT cnt)
 //------------------------------------------------------------------------------
 void SybaseBindGroup::read_row(CS_COMMAND* cmd, const std::vector<column_info_t>& out_info, QoreNode*& out, ExceptionSink* xsink)
 {
-printf("### read_row() called, exception = %s\n", xsink->isException() ? "true" : "false");
   CS_INT num_cols;
   CS_RETCODE err = ct_res_info(cmd, CS_NUMDATA, &num_cols, CS_UNUSED, NULL);
   if (err != CS_SUCCEED) {
@@ -821,7 +817,6 @@ printf("### err line %d\n", __LINE__);
     xsink->raiseException("DBI-EXEC-EXCEPTION", "Internal error: no columns returned");
     return;
   }
-printf("### columns # = %d\n", (int)num_cols);
 
   if (num_cols != (CS_INT)out_info.size()) {
     assert(false); // cannot happen
@@ -1017,9 +1012,7 @@ printf("### err A\n");
   }  
   ON_BLOCK_EXIT(ct_cmd_drop, cmd);
   ScopeGuard cancel_guard = MakeGuard(ct_cancel, (CS_CONNECTION*)0, cmd, CS_CANCEL_ALL);
-// Sybase API called within deallocate_prepared_statement()  fail for unknown reason so I commented it out.
-// The long running tests indicate no leak (probably due to ct_cmd_drop()).
-// ON_BLOCK_EXIT(&SybaseBindGroup::deallocate_prepared_statement, cmd, (char*)m_command_id.c_str());
+  ON_BLOCK_EXIT(&SybaseBindGroup::deallocate_prepared_statement, cmd, (char*)m_command_id.c_str());
 
   std::vector<column_info_t> inputs = extract_input_parameters_info(cmd, xsink);
   if (xsink->isException()) {
@@ -1192,6 +1185,7 @@ static int sybase_commit_impl(sybase_connection* sc, ExceptionSink* xsink)
   CS_COMMAND* cmd = 0;
   CS_RETCODE err = ct_cmd_alloc(sc->getConnection(), &cmd);
   if (err != CS_SUCCEED) {
+printf("### commit failure1\n");
     xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_cmd_alloc() failed with error %d", (int)err);
     return 0;
   }
@@ -1199,11 +1193,13 @@ static int sybase_commit_impl(sybase_connection* sc, ExceptionSink* xsink)
 
   err = ct_dynamic(cmd, CS_EXEC_IMMEDIATE, 0, CS_UNUSED, "commit transaction", CS_NULLTERM);
   if (err != CS_SUCCEED) {
+printf("### commit failure2\n");
     xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_dynamic(\"commit transaction\") failed with error %d", (int)err);
     return 0;
   }
   err = ct_send(cmd);
   if (err != CS_SUCCEED) {
+printf("### commit failure3\n");
     xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_send() failed with error %d", (int)err);
     return 0;
   }
@@ -1212,11 +1208,13 @@ static int sybase_commit_impl(sybase_connection* sc, ExceptionSink* xsink)
   CS_INT result_type;
   err = ct_results(cmd, &result_type);
   if (err != CS_SUCCEED) {
+printf("### commit failure4\n");
     xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_result() failed with error %d", (int)err);
     return 0;
   }
   if (result_type != CS_CMD_SUCCEED) {
     assert(result_type == CS_CMD_FAIL);
+printf("### commit failure5\n");
     xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() for \"commit transaction\" failed with error %d",
  (int)err);
     return 0;
