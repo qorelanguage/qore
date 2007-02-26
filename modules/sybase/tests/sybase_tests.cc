@@ -591,7 +591,77 @@ static void prepare_testing(sybase_connection* conn)
   assert(n4->val.list->size() == 3);
   n4->deref(&xsink);
   }
+  //--------
+  {
+  QoreString str("select int_col from my_test where int_col = %v");
+  SybaseBindGroup grp(&str);
+  grp.m_connection = conn->getConnection();
 
+  List* lst = new List;
+  lst->push(new QoreNode((int64)22));
+
+  grp.parseQuery(lst, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+
+  QoreNode* n = grp.execute_command(&xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  if (n->type != NT_HASH) {
+    assert(false);
+  }
+  assert(n->val.hash->size() == 1);
+
+  n->deref(&xsink);
+  }
+  //--------
+  {
+  QoreString str("select int_col from my_test where int_col = %v");
+  SybaseBindGroup grp(&str);
+  grp.m_connection = conn->getConnection();
+
+  List* lst = new List;
+  lst->push(new QoreNode((int64)22222)); // nonexistent
+
+  grp.parseQuery(lst, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+
+  QoreNode* n = grp.execute_command(&xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  assert(!n);
+  }
+
+  //--------
+  {
+  QoreString str("select int_col from my_test where varchar_col = %v");
+  SybaseBindGroup grp(&str);
+  grp.m_connection = conn->getConnection();
+
+  List* lst = new List;
+  lst->push(new QoreNode("bbb"));
+
+  grp.parseQuery(lst, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+
+  QoreNode* n = grp.execute_command(&xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  if (n->type != NT_LIST) {
+    assert(false);
+  }
+  assert(n->val.list->size() == 1);
+
+  n->deref(&xsink);
+  }
 }
 
 //------------------------------------------------------------------------------

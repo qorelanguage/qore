@@ -612,13 +612,34 @@ printf("### err x5\n");
     }
 
     switch (param_info[i].m_column_type) {
-    case CS_CHAR_TYPE: // varchar
-      // TBD
-      assert(false);
-    case CS_BINARY_TYPE:
-      // TBD
-      assert(false);
+    case CS_VARCHAR_TYPE:
     case CS_LONGCHAR_TYPE:
+    case CS_CHAR_TYPE: // all types are almost equivalent
+    {
+      if (n->type != NT_STRING) {
+        xsink->raiseException("DBI-EXEC-EXCEPTION", "Incorrect type for string parameter #%u (%s)", i + 1, param_name);
+        return;
+      }
+      QoreString* aux = n->val.String;
+      // TBD - convert
+      char* s = "";
+      if (aux && aux->getBuffer()) {
+        s = aux->getBuffer();
+      }
+
+      datafmt.datatype = param_info[i].m_column_type;
+      //datafmt.maxlength = strlen(s);
+      datafmt.format = CS_FMT_NULLTERM;
+      err = ct_param(cmd, &datafmt, s, CS_UNUSED, 0);
+      if (err != CS_SUCCEED) {
+printf("### err9373\n");
+        xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase function ct_param() for string parameter #%u (%s) failed with error", i + 1, param_name, (int)err);
+        return;
+      }
+      break;
+    }
+
+    case CS_BINARY_TYPE:
       // TBD
       assert(false);
     case CS_LONGBINARY_TYPE:
@@ -631,15 +652,53 @@ printf("### err x5\n");
       // TBD
       assert(false);
     case CS_TINYINT_TYPE:
-      //TBD
-      assert(false);
-    case CS_SMALLINT_TYPE:
-      assert(false); // TBD
+    {
+      if (n->type != NT_INT) {
+        xsink->raiseException("DBI-EXEC-EXCEPTION", "Incorrect type for integer parameter #%u (%s)", i + 1, param_name);
+        return;
+      }
+      if (n->val.intval < 128 || n->val.intval >= 128) {
+        xsink->raiseException("DBI-EXEC-EXCEPTION", "Integer value (%d parameter) is out of range for Sybase datatype", i + 1
+);
+        return;
+      }
+
+      CS_TINYINT val = n->val.intval;
+      datafmt.datatype = CS_TINYINT_TYPE;
+      datafmt.maxlength = sizeof(CS_TINYINT);
+      err = ct_param(cmd, &datafmt, &val, CS_UNUSED, 0);
+      if (err != CS_SUCCEED) {
+        xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase function ct_param() for integer parameter #%u (%s) failed with error", i + 1, param_name, (int)err);
+        return;
+      }
       break;
+    }
+
+    case CS_SMALLINT_TYPE:
+    {
+      if (n->type != NT_INT) {
+        xsink->raiseException("DBI-EXEC-EXCEPTION", "Incorrect type for integer parameter #%u (%s)", i + 1, param_name);
+        return;
+      }
+      if (n->val.intval < 32 * 1024 || n->val.intval >= 32 * 1024) {
+        xsink->raiseException("DBI-EXEC-EXCEPTION", "Integer value (%d parameter) is out of range for Sybase datatype", i + 1);
+        return;
+      }
+
+      CS_SMALLINT val = n->val.intval;
+      datafmt.datatype = CS_SMALLINT_TYPE;
+      datafmt.maxlength = sizeof(CS_SMALLINT);
+      err = ct_param(cmd, &datafmt, &val, CS_UNUSED, 0);
+      if (err != CS_SUCCEED) {
+        xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase function ct_param() for integer parameter #%u (%s) failed with error", i + 1, param_name, (int)err);
+        return;
+      }
+      break;
+    }
+
     case CS_INT_TYPE:
     {
       if (n->type != NT_INT) {
-printf("### err x3\n");
         xsink->raiseException("DBI-EXEC-EXCEPTION", "Incorrect type for integer parameter #%u (%s)", i + 1, param_name);
         return;
       }
@@ -648,7 +707,6 @@ printf("### err x3\n");
       datafmt.maxlength = sizeof(CS_INT);
       err = ct_param(cmd, &datafmt, &val, CS_UNUSED, 0);
       if (err != CS_SUCCEED) {
-printf("### err x6, adding %d, err = %d, FAIL = %d\n", (int)val, (int)err, (int)CS_FAIL);
         xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase function ct_param() for integer parameter #%u (%s) failed with error", i + 1, param_name, (int)err);
         return;
       }
@@ -681,9 +739,7 @@ printf("### err x6, adding %d, err = %d, FAIL = %d\n", (int)val, (int)err, (int)
     case CS_DECIMAL_TYPE:
       // TBD
       assert(false);
-    case CS_VARCHAR_TYPE:
-      // TBD
-      assert(false);
+
     case CS_VARBINARY_TYPE:
       assert(false);
       // TBD - deal with all the types
@@ -698,6 +754,7 @@ printf("### err x1\n");
 
   err = ct_send(cmd);
   if (err != CS_SUCCEED) {
+printf("### err 876\n");
     xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_send() failed with error %d", (int)err);
     return;
   }
