@@ -38,14 +38,6 @@ typedef std::list<char *> strlist_t;
 
 typedef std::deque<char *> strdeque_t;
 
-template <typename T> struct free_ptr : std::unary_function <T*, void>
-{
-   void operator()(T *ptr)
-   {
-      free(ptr);
-   }
-};
-
 // non-thread-safe list
 // a deque should require fewer memory allocations compared to a linked list, so we'll go with the
 // deque for now for this list

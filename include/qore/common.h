@@ -29,6 +29,7 @@
 #include <string.h>
 
 #include <string>
+#include <functional>
 
 #ifdef _MSC_VER
   #ifdef BUILDING_DLL
@@ -46,6 +47,37 @@
     #define DLLLOCAL
   #endif
 #endif
+
+// functor template for deleting pointers
+template <typename T> struct free_ptr : std::unary_function <T*, void>
+{
+      void operator()(T *ptr)
+      {
+	 free(ptr);
+      }
+};
+
+// functor template for deleting elements
+template <typename T> struct simple_delete
+{
+      void operator()(T *ptr)
+      {
+	 delete ptr;
+      }
+};
+
+// functor template for dereferencing elements
+template <typename T> struct simple_deref
+{
+      void operator()(T *ptr)
+      {
+	 ptr->deref();
+      }
+      void operator()(T *ptr, class ExceptionSink *xsink)
+      {
+	 ptr->deref(xsink);
+      }
+};
 
 class ltstr
 {
