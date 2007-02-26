@@ -211,19 +211,19 @@ void sybase_connection::init(char* username, char* password, char* dbname, Excep
 //------------------------------------------------------------------------------
 CS_RETCODE sybase_connection::message_callback()
 {
-  return CS_SUCCEED; // TBD
+  return CS_SUCCEED;
 }
 
 //------------------------------------------------------------------------------
 CS_RETCODE sybase_connection::clientmsg_callback()
 {
-  return CS_SUCCEED; // TBD
+  return CS_SUCCEED;
 }
 
 //------------------------------------------------------------------------------
 CS_RETCODE sybase_connection::servermsg_callback()
 {
-  return CS_SUCCEED; // TBD
+  return CS_SUCCEED;
 }
 
 //------------------------------------------------------------------------------
@@ -1008,7 +1008,7 @@ void SybaseBindGroup::extract_row_data_to_Hash(Hash* out, CS_INT col_index, CS_D
 //------------------------------------------------------------------------------
 QoreNode* SybaseBindGroup::execute_command(ExceptionSink* xsink)
 {
-  // TBD - for not select use the immediate execute
+  // TBD - for not select use the immediate execute (drop returns 1 value! though)
 
   CS_COMMAND* cmd = prepare_command(xsink);
   if (xsink->isException()) {

@@ -355,6 +355,16 @@ static void test4()
     assert(false);
   }
 
+  QoreNode* n = grp.execute_command(&xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  if (n->type != NT_LIST) {
+    assert(false);
+  }
+  assert(n->val.list->size() == 48);
+
+  n->deref(&xsink);
 }
 
 TEST()
@@ -371,6 +381,39 @@ TEST()
     test3();
   }
 */
+}
+
+//------------------------------------------------------------------------------
+static void prepare_testing(SybaseBindGroup& grp, ExceptionSink* xsink)
+{
+  QoreString str("drop my_test");
+
+  grp.parseQuery(0, xsink);
+  if (xsink->isException()) {
+    assert(false);
+  }
+
+  QoreNode* n = grp.execute_command(xsink);
+  // this returns 1 item: # of deleted rows
+  n->deref(xsink);
+}
+
+//------------------------------------------------------------------------------
+TEST()
+{
+  // as above but using execute_command()
+  sybase_connection conn;
+  ExceptionSink xsink;
+  conn.init("sa", 0, "pavel", &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+
+  QoreString str("select count(*) from syskeys"); // dunny
+  SybaseBindGroup grp(&str);
+  grp.m_connection = conn.getConnection();
+
+  prepare_testing(grp, &xsink);
 }
 
 } // namespace
