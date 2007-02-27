@@ -431,7 +431,10 @@ static void prepare_testing(sybase_connection* conn)
   }
   //----------
   {
-  QoreString str2("create table my_test (int_col INTEGER, varchar_col VARCHAR)");
+  QoreString str2("create table my_test ("
+    "int_col INTEGER DEFAULT NULL, "
+    "varchar_col VARCHAR(30) DEFAULT NULL "
+    ")");
   SybaseBindGroup grp2(&str2);
   grp2.m_connection = conn->getConnection();
 
@@ -644,7 +647,7 @@ static void prepare_testing(sybase_connection* conn)
   grp.m_connection = conn->getConnection();
 
   List* lst = new List;
-  lst->push(new QoreNode("bbb"));
+  lst->push(new QoreNode("aaa"));
 
   grp.parseQuery(lst, &xsink);
   if (xsink.isException()) {
@@ -655,10 +658,11 @@ static void prepare_testing(sybase_connection* conn)
   if (xsink.isException()) {
     assert(false);
   }
-  if (n->type != NT_LIST) {
+  assert(n);
+  if (n->type != NT_HASH) {
     assert(false);
   }
-  assert(n->val.list->size() == 1);
+  assert(n->val.hash->size() == 1);
 
   n->deref(&xsink);
   }
