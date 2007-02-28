@@ -244,6 +244,7 @@ private:
   CS_CONNECTION* m_connection; // Sybase specific
   std::vector<QoreNode*> m_input_parameters; // as provided by the user
   std::string m_command_id; // unique name for the command, generated here
+  bool m_is_immediatelly_executable;
 
   // Mostly copied from Oracle module. Also changes passed SQL command to Sybase format
   // (replacing %v with ?). Does not work with procedures. May be better rewritten.
@@ -281,6 +282,10 @@ private:
   void extract_row_data_to_Hash(Hash* out, CS_INT col_index, CS_DATAFMT* datafmt, EX_COLUMN_DATA* coldata, 
     const column_info_t& out_info, ExceptionSink* xsink);
 
+  // select is not, if it has ? it is not. Immediate execution is a Sybase feature
+  bool is_sql_command_immediatelly_executable();
+  void execute_immediatelly(ExceptionSink* xsink);
+
   // the main functionality of this class is here: executes m_cmd using m_input_parameters
   // and returns data converted into Qore nodes
   QoreNode* execute_command(ExceptionSink* xsink);
@@ -304,7 +309,8 @@ public:
 SybaseBindGroup::SybaseBindGroup(QoreString* ostr)
 : m_cmd(0),
   m_ds(0),
-  m_connection(0)
+  m_connection(0),
+  m_is_immediatelly_executable(false)
 {
   m_cmd = new QoreString(ostr->getBuffer());
 }
@@ -314,7 +320,8 @@ SybaseBindGroup::SybaseBindGroup(QoreString* ostr)
 SybaseBindGroup::SybaseBindGroup(Datasource* ds, QoreString* ostr, List *args, ExceptionSink *xsink) 
 : m_cmd(0),
   m_ds(ds),
-  m_connection(0)
+  m_connection(0),
+  m_is_immediatelly_executable(false)
 {
   m_cmd = ostr->convertEncoding(ds->getQoreEncoding(), xsink);
   if (xsink->isEvent()) {
@@ -322,6 +329,12 @@ SybaseBindGroup::SybaseBindGroup(Datasource* ds, QoreString* ostr, List *args, E
   } 
   sybase_connection* sc = (sybase_connection*)ds->getPrivateData();
   m_connection = sc->getConnection();
+
+  if (is_sql_command_immediatelly_executable()) {  
+    m_is_immediatelly_executable = true;
+    // no manipulation with the query, no binding needed
+    return;
+  }
 
   // process query string and setup bind value list
   parseQuery(args, xsink);
@@ -626,18 +639,13 @@ printf("### err x5\n");
       char* s = "";
       if (aux && aux->getBuffer()) {
         s = aux->getBuffer();
-printf("#### VALUE = %s\n", s);
       }
-printf("########### strlen = %d\n", strlen(s));
-if (s == 0) printf("### IS NULL\n"); else printf("#### NOT NULL\n");
       datafmt.datatype = param_info[i].m_column_type;
       datafmt.format = CS_FMT_NULLTERM;
       datafmt.maxlength = CS_MAX_CHAR;
 
       err = ct_param(cmd, &datafmt, s, strlen(s), 0);
-printf("#### after ct_param()\n");
       if (err != CS_SUCCEED) {
-printf("####### ?????\n");
 printf("### err9373 adding [%s]\n", s);
         xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase function ct_param() for string parameter #%u (%s) failed with error", i + 1, param_name, (int)err);
         return;
@@ -813,22 +821,19 @@ QoreNode* SybaseBindGroup::read_output(CS_COMMAND* cmd, const std::vector<column
   while ((err = ct_results(cmd, &result_type)) == CS_SUCCEED) {    
     switch (result_type) {
     case CS_COMPUTE_RESULT:
-      // single row
-      // TBD
-      assert(false);
-      break;
+      // ??? not supported
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() failed with result code CS_COMPUTE_RESULT");
+      return result;
     case CS_CURSOR_RESULT:
       // Sybase bug??? This code does not use cursors.
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() failed with result code CS_CURSOR_RESULT");
       return result;
     case CS_PARAM_RESULT:
-      // single row
-      // TBD
-      assert(false);
-      break;
+      // ??? not supported
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() failed with result code CS_PARAM_RESULT");
+      return result;
     case CS_ROW_RESULT:
       // 0 or more rows
-printf("#### A ROW RETURNED\n");
       read_row(cmd, out_info, result, xsink);
       if (xsink->isException()) {
         return result;
@@ -884,7 +889,6 @@ printf("#### A ROW RETURNED\n");
   }
 
   if (err != CS_END_RESULTS) {
-printf("### err in CS_END_RESULTS, result\n");
     xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() finished with unexpected result code %d", (int)err);
   }
 
@@ -912,7 +916,6 @@ printf("### err line %d\n", __LINE__);
     xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_res_info() failed to get number of rows, error %d", (int)err);
     return;
   }
-printf("#### READ ROW HAS %d columns\n", num_cols);
   if (num_cols <= 0) {
     assert(false); // cannot happen
 printf("### err line %d\n", __LINE__);
@@ -945,7 +948,6 @@ printf("### erro 111\n");
   memset(datafmt, 0, num_cols * sizeof(CS_DATAFMT));
 
   for (CS_INT i = 0; i < num_cols; ++i) {
-printf("### reading coilumn #%d\n", i + 1);
     err = ct_describe(cmd, i + 1, &datafmt[i]);
     if (err != CS_SUCCEED) {
 printf("### err line %d\n", __LINE__);
@@ -955,7 +957,6 @@ printf("### err line %d\n", __LINE__);
     datafmt[i].count = 1; // fetch just single item
     assert(datafmt[i].maxlength < 100000); // guess, if invalid then app semnatic is wrong (I assume the value is actual data length)
 
-printf("### column length = %d\n", datafmt[i].maxlength);
     coldata[i].value = (CS_CHAR*)malloc(datafmt[i].maxlength + 4); // some padding for zero terminator, 4 is safe bet
     datafmt[i].maxlength += 4;
     if (!coldata[i].value) {
@@ -973,17 +974,14 @@ printf("### err line %d\n", __LINE__);
     }
   }
 
-printf("### before fetching\n");
   CS_INT rows_read = 0;
   while ((err = ct_fetch(cmd, CS_UNUSED, CS_UNUSED, CS_UNUSED, &rows_read)) == CS_SUCCEED) {
-printf("### a value fetched\n");
     // process the row
     Hash* h = new Hash;
 
     for (CS_INT j = 0; j < num_cols; ++j) {
       extract_row_data_to_Hash(h, j, &datafmt[j], &coldata[j], out_info[j], xsink);
       if (xsink->isException()) {
-printf("#### extract_row_data_to_Hash failed\n");
         QoreNode* aux = new QoreNode(h);
         aux->deref(xsink);
         return;
@@ -991,23 +989,19 @@ printf("#### extract_row_data_to_Hash failed\n");
     }
 
     if (out == 0) {
-printf("### new note allocated\n");
       out = new QoreNode(h);
     } else
     if (out->type == NT_HASH) {
-printf("### returning list\n");
       // convert to list
       List* l = new List;
       l->push(out);
       l->push(new QoreNode(h));
       out = new QoreNode(l);
     } else {
-printf("### retunring hash\n");
       assert(out->type == NT_LIST);
       out->val.list->push(new QoreNode(h));
     }
   }
-printf("### fetching done\n");
   if (err != CS_END_DATA) {
     assert(false);
     xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_fetch() returned erro %d", (int)err);
@@ -1041,6 +1035,8 @@ void SybaseBindGroup::extract_row_data_to_Hash(Hash* out, CS_INT col_index, CS_D
  
   assert(datafmt->datatype == (CS_INT)out_info.m_column_type);
   switch (datafmt->datatype) {
+  case CS_LONGCHAR_TYPE:
+  case CS_VARCHAR_TYPE:
   case CS_CHAR_TYPE: // varchar
   {
     CS_CHAR* value = (CS_CHAR*)(coldata->value);
@@ -1050,7 +1046,6 @@ void SybaseBindGroup::extract_row_data_to_Hash(Hash* out, CS_INT col_index, CS_D
     break;
   }
   case CS_BINARY_TYPE:
-  case CS_LONGCHAR_TYPE:
   case CS_LONGBINARY_TYPE:
   case CS_TEXT_TYPE:
   case CS_IMAGE_TYPE:
@@ -1070,7 +1065,6 @@ void SybaseBindGroup::extract_row_data_to_Hash(Hash* out, CS_INT col_index, CS_D
   }
   case CS_INT_TYPE:
   {
-printf("#### extractyed INT\n");
     CS_INT* value = (CS_INT*)(coldata->value);
     v = new QoreNode((int64)*value);
     break;
@@ -1095,11 +1089,13 @@ printf("#### extractyed INT\n");
   }
   case CS_DATETIME_TYPE:
   case CS_DATETIME4_TYPE:
+    assert(false); ///???? what to do here
   case CS_MONEY_TYPE:
   case CS_MONEY4_TYPE:
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "Reading Sybase Money datatype is not supported");
+    return;
   case CS_NUMERIC_TYPE:
   case CS_DECIMAL_TYPE:
-  case CS_VARCHAR_TYPE:
   case CS_VARBINARY_TYPE:
     assert(false);
     // TBD - deal with all the types
@@ -1114,9 +1110,74 @@ printf("#### extractyed INT\n");
 }
 
 //------------------------------------------------------------------------------
+bool SybaseBindGroup::is_sql_command_immediatelly_executable()
+{
+/*###
+  char* s = m_cmd->getBuffer();
+  if (!s) return false; // ???
+  while (isblank(*s)) ++s;
+  if (!*s) return false; // ???
+  if (strncasecmp(s, "select", 6) == 0) { 
+    return false; // it is select
+  }
+  // %v is Quore placeholder for parameter (here converted into ? a bit later)
+  // strstr() is a bit pessimistic but even if it makes mistake the slower
+  // path should work correctly
+  return strstr(s, "%%v") == 0;
+*/ return false;
+}
+
+//------------------------------------------------------------------------------
+// Faster way to execute SQL statements (no binding, no retrieving descriptions). 
+// Guesstimate for Qorus is that 90% of commands will go this way.
+void SybaseBindGroup::execute_immediatelly(ExceptionSink* xsink)
+{
+  CS_COMMAND* cmd = 0;
+  CS_RETCODE err = ct_cmd_alloc(m_connection, &cmd);
+  if (err != CS_SUCCEED) {
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_cmd_alloc() failed with error %d", (int)err);
+    return;
+  }
+  ON_BLOCK_EXIT(ct_cmd_drop, cmd);
+
+  err = ct_dynamic(cmd, CS_EXEC_IMMEDIATE, 0, CS_UNUSED, "commit transaction", CS_NULLTERM);
+  if (err != CS_SUCCEED) {
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_dynamic(\"%s\") failed with error %d", (int)err, m_cmd->getBuffer());
+    return;
+  }
+  err = ct_send(cmd);
+  if (err != CS_SUCCEED) {
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_send() failed with error %d", (int)err);
+    return;
+  }
+
+  // no results expected
+  CS_INT result_type;
+  err = ct_results(cmd, &result_type);
+  if (err != CS_SUCCEED) {
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_result() failed with error %d", (int)err);
+    return;
+  }
+  if (result_type != CS_CMD_SUCCEED) {
+    assert(result_type == CS_CMD_FAIL);
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() for \"%s\" failed with error %d", (int)err, m_cmd->getBuffer());
+    return;
+  }
+  while((err = ct_results(cmd, &result_type)) == CS_SUCCEED);
+}
+
+//------------------------------------------------------------------------------
 QoreNode* SybaseBindGroup::execute_command(ExceptionSink* xsink)
 {
-  // TBD - for not select use the immediate execute (drop returns 1 value! though)
+  if (m_is_immediatelly_executable) {
+assert(false); //##### DELETE
+    // faster path to execute non-select w/o input parameters.
+    // In case of problems or for testing purposes the call could be 
+    // commented out and the driver should still work correctly - this is just an optimization.
+printf("#### executing %s immediatelly\n", m_cmd->getBuffer());
+    execute_immediatelly(xsink);
+    return 0;
+  }
 
   CS_COMMAND* cmd = prepare_command(xsink);
   if (xsink->isException()) {

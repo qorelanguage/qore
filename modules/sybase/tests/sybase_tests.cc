@@ -18,7 +18,7 @@ TEST()
 {
   // test whether parseQuery() works
   ExceptionSink xsink;
-  QoreString str("select cound(*) from a_table where num = %v and value = %v");
+  QoreString str("select count(*) from a_table where num = %v and value = %v");
   SybaseBindGroup grp(&str);
 
   List* lst = new List;
@@ -33,7 +33,7 @@ TEST()
   assert(size == 2);
 
   char* new_str = grp.m_cmd->getBuffer();
-  if (strcmp(new_str, "select cound(*) from a_table where num =  ? and value =  ?") != 0) {
+  if (strcmp(new_str, "select count(*) from a_table where num =  ? and value =  ?") != 0) {
     assert(false); // it needs to be formatted acc to Sybase
   }
 
@@ -302,6 +302,7 @@ static void test3()
 
   QoreString str("select * from syskeys where id > %v and id < %v");
   SybaseBindGroup grp(&str);
+  assert(grp.m_is_immediatelly_executable == false);
   grp.m_connection = conn.getConnection();
 
   List* lst = new List;
@@ -369,9 +370,9 @@ static void test4()
   if (xsink.isException()) {
     assert(false);
   }
-
   QoreString str("select * from syskeys where id > %v and id < %v");
   SybaseBindGroup grp(&str);
+  assert(grp.m_is_immediatelly_executable == false);
   grp.m_connection = conn.getConnection();
 
   List* lst = new List;
