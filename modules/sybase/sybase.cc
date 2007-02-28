@@ -352,7 +352,7 @@ SybaseBindGroup::~SybaseBindGroup()
 //------------------------------------------------------------------------------
 void SybaseBindGroup::parseQuery(List* args, ExceptionSink* xsink)
 {
-  // code copied from Oracle module, not knowing better way
+  // code partly copied from Oracle module, not knowing better way
   if (args) {
     m_input_parameters.reserve(args->size());
   }
@@ -457,12 +457,14 @@ printf("### err 5 (errcode = %d, result type = %d, expected %d): cmd = %s\n", (i
 }
 
 //------------------------------------------------------------------------------
+// The assert() are commented out because very often but not always (!!!) the calls fail.
+// The functions should be still called to avoid leaks.
 void SybaseBindGroup::deallocate_prepared_statement(CS_COMMAND* cmd, char* id)
 {
   CS_RETCODE err = ct_dynamic(cmd, CS_DEALLOC, id, CS_NULLTERM, 0, CS_UNUSED);
-//###  assert(err == CS_SUCCEED);
+//  assert(err == CS_SUCCEED);
   err = ct_send(cmd);
-//###  assert(err == CS_SUCCEED);
+//  assert(err == CS_SUCCEED);
   CS_INT result_type;
   while ((err = ct_results(cmd, &result_type)) == CS_SUCCEED);
 }
@@ -522,7 +524,7 @@ printf("### err 44\n");
 }
 
 //------------------------------------------------------------------------------
-// Checks if it is select command. May should handle stored procedures?
+// Checks if it is select command. May it should handle stored procedures?
 bool SybaseBindGroup::does_command_return_data() const
 {
   char* p = m_cmd->getBuffer();
@@ -1112,19 +1114,13 @@ void SybaseBindGroup::extract_row_data_to_Hash(Hash* out, CS_INT col_index, CS_D
 //------------------------------------------------------------------------------
 bool SybaseBindGroup::is_sql_command_immediatelly_executable()
 {
-/*###
-  char* s = m_cmd->getBuffer();
-  if (!s) return false; // ???
-  while (isblank(*s)) ++s;
-  if (!*s) return false; // ???
-  if (strncasecmp(s, "select", 6) == 0) { 
-    return false; // it is select
+  if (does_command_return_data()) {
+    return false;
   }
   // %v is Quore placeholder for parameter (here converted into ? a bit later)
   // strstr() is a bit pessimistic but even if it makes mistake the slower
   // path should work correctly
-  return strstr(s, "%%v") == 0;
-*/ return false;
+  return strstr(m_cmd->getBuffer(), "%%v") == 0;
 }
 
 //------------------------------------------------------------------------------

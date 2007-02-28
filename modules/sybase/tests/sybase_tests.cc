@@ -435,6 +435,7 @@ static void prepare_testing(sybase_connection* conn)
   QoreString str2("create table my_test ("
     "int_col INTEGER DEFAULT NULL, "
     "varchar_col VARCHAR(30) DEFAULT NULL "
+//    "bool_col bit default NULL "
     ")");
   SybaseBindGroup grp2(&str2);
   grp2.m_connection = conn->getConnection();
@@ -450,7 +451,7 @@ static void prepare_testing(sybase_connection* conn)
   }
   //--------
   {
-  QoreString str3("insert into my_test values(11, 'aaa')");
+  QoreString str3("insert into my_test (int_col, varchar_col) values (11, 'aaa')");
   SybaseBindGroup grp3(&str3);
   grp3.m_connection = conn->getConnection();
 
@@ -530,7 +531,7 @@ static void prepare_testing(sybase_connection* conn)
   }
   assert(!n6a);
 
-  QoreString str6("insert into my_test values(22, 'bbb')");
+  QoreString str6("insert into my_test  (int_col, varchar_col) values(22, 'bbb')");
   SybaseBindGroup grp6(&str6);
   grp6.m_connection = conn->getConnection();
 
@@ -554,7 +555,7 @@ static void prepare_testing(sybase_connection* conn)
   }
   //--------
   { // no explicit transaction start
-  QoreString str6("insert into my_test values(33, 'ccc')");
+  QoreString str6("insert into my_test  (varchar_col, int_col) values('ccc', 33)");
   SybaseBindGroup grp6(&str6);
   grp6.m_connection = conn->getConnection();
 
