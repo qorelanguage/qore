@@ -123,6 +123,11 @@ bool HashIterator::last() const
    return (bool)(ptr ? !ptr->next : false); 
 } 
 
+bool HashIterator::first() const 
+{ 
+   return (bool)(ptr ? !ptr->prev : false); 
+} 
+
 // NOTE: does not delete the value, this must be done by the called before this call
 void Hash::internDeleteKey(class HashMember *om)
 {

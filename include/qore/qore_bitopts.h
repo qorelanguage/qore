@@ -26,6 +26,8 @@
 
 #include <qore/common.h>
 
+#include <arpa/inet.h>
+
 static inline int64 i8LSB(int64 i);
 static inline int   i4LSB(int i);
 static inline short i2LSB(short i);
@@ -36,6 +38,30 @@ static inline short LSBi2(short i);
 
 static inline int64 i8MSB(int64 i);
 static inline int64 MSBi8(int64 i);
+
+static inline double f8MSB(double f8)
+{
+   int64 val = i8MSB(*((int64 *)&f8));
+   return *((double *)&val);
+}
+
+static inline double MSBf8(double f8)
+{
+   int64 val = MSBi8(*((int64 *)&f8));
+   return *((double *)&val);
+}
+
+static inline float f4MSB(float f4)
+{
+   int val = htonl(*((int *)&f4));
+   return *((float *)&val);
+}
+
+static inline float MSBf4(float f4)
+{
+   int val = ntohl(*((int *)&f4));
+   return *((float *)&val);
+}
 
 static inline int64 swapi8(int64 i)
 { 

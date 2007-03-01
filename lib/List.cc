@@ -870,3 +870,9 @@ bool ListIterator::last() const
    assert(l->size() == m_list_size); 
    return (bool)(pos == (l->size() - 1)); 
 } 
+
+bool ListIterator::first() const
+{
+   assert(l->size() == m_list_size); 
+   return !pos; 
+} 

@@ -56,6 +56,7 @@ class HashIterator
       DLLEXPORT class QoreNode *takeValueAndDelete();
       DLLEXPORT class QoreNode **getValuePtr() const;
       DLLEXPORT class QoreNode *eval(class ExceptionSink *xsink) const;
+      DLLEXPORT bool first() const;
       DLLEXPORT bool last() const;
       //DLLEXPORT void setValue(class QoreNode *val, class ExceptionSink *xsink);
 };

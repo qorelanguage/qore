@@ -201,6 +201,10 @@ class TempEncodingHelper {
 	 if (temp && str)
 	    delete str;
       }
+      DLLEXPORT bool is_temp() const
+      {
+	 return temp;
+      }
       DLLEXPORT QoreString *operator->(){ return str; };
       DLLEXPORT QoreString *operator*() { return str; };
       // to check for an exception in the constructor

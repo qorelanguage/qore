@@ -144,6 +144,7 @@ class ListIterator
       DLLEXPORT class QoreNode *getValue() const;
       DLLEXPORT class QoreNode **getValuePtr() const;
       DLLEXPORT class QoreNode *eval(class ExceptionSink *xsink) const;
+      DLLEXPORT bool first() const;
       DLLEXPORT bool last() const;
       //void setValue(class QoreNode *val, class ExceptionSink *xsink);
 };
