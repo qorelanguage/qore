@@ -545,7 +545,7 @@ inline class QoreNode *MyBindGroup::getOutputHash(class ExceptionSink *xsink)
 
 class QoreNode *MyBindGroup::execIntern(class ExceptionSink *xsink)
 {
-   class QoreNode *rv;
+   class QoreNode *rv = NULL;
    MYSQL_RES *res = mysql_stmt_result_metadata(stmt);
    if (res)
    {
@@ -609,7 +609,7 @@ inline class QoreNode *MyBindGroup::select(class ExceptionSink *xsink)
 
 class QoreNode *MyBindGroup::selectRows(class ExceptionSink *xsink)
 {
-   class QoreNode *rv;
+   class QoreNode *rv = NULL;
    MYSQL_RES *res = mysql_stmt_result_metadata(stmt);
    if (res)
    {
