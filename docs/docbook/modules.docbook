@@ -9158,7 +9158,7 @@ BOOL values, so boolean() could be called as well with the same effect</para>
     <note><para>There seems to be a bug in Oracle 9i and earlier in the streaming OCILobRead() function, where the LOB buffer must be at least twice as big as the LOB data to be read.  This bug does not affect versions of the Qore oracle module linked with Oracle 10g libraries.</para></note>
 
     <table>
-      <title>Qore to Oracle Type Mappings for Binding Values in Datasource::exec()</title>
+      <title>Qore to Oracle Type Mappings for Binding by Value</title>
       <tgroup cols='3' align='left' colsep='1' rowsep='1'>
 	<thead>
 	  <row>
@@ -9267,6 +9267,32 @@ BOOL values, so boolean() could be called as well with the same effect</para>
     <para>Note that is is not necessary to give buffer types when binding placeholder values; the mysql driver will determine the needed type in advance and create the placeholder buffer automatically.  Qore placeholder buffer specifications are ignored when the mysql driver is used.</para>
 
   </sect1>
+
+  <sect1 id="pqsql_Module">
+    <title>pqsql Module</title>
+
+    <para>The pgsql module provides a PostgreSQL driver to Qore's DBI system, allowing Qore programs to access PostgreSQL databases through the <link linkend="Qore::SQL::Datasource_Class">Datasource Class</link>.</para>
+
+    <para>This driver supports the following DBI capabilities when compiled against PostgreSQL 8 or better: <code>DBI_CAP_TRANSACTION_MANAGEMENT, DBI_CAP_CHARSET_SUPPORT, DBI_CAP_LOB_SUPPORT, DBI_CAP_STORED_PROCEDURES</code>.</para>
+
+    <para>The driver employs efficient binary bindings for all non-text data types and fully supports multidimensional arrays when in when selecting and bding by value.  Like all Qore components, the PostgreSQL DBI driver is thread-safe.</para>
+
+    <para>Note that binding by placeholder is not supported by this driver; Qore DBI placeholder buffer specifications are ignored when the mysql driver is used.</para>
+
+  </sect1>
+
+    <table>
+      <title>Qore to PostgreSQL Type Mappings for Binding by Value</title>
+      <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>Argument</para></entry>
+	    <entry><para>OCI Type</para></entry>
+	    <entry><para>Description</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+
 
   &tuxedo;
 

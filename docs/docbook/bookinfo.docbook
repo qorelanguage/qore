@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
 <bookinfo>
-<title>Qore v0.6.1</title>
+<title>Qore v0.6.2</title>
 <subtitle>Programming Language Reference Manual</subtitle>
 <authorgroup>
 <author>
@@ -14,10 +14,17 @@
 </author>
 </authorgroup>
 
-<date>12 February 2007</date>
-<releaseinfo>V. 0.6.1</releaseinfo>
+<date>2 March 2007</date>
+<releaseinfo>V. 0.6.2</releaseinfo>
 
 <revhistory>
+
+<revision>
+  <revnumber>2.0</revnumber>
+  <date>2 March 2007</date>
+  <authorinitials>dn</authorinitials>
+  <revremark>Update to 0.6.2</revremark>
+</revision>
 
 <revision>
   <revnumber>1.9</revnumber>

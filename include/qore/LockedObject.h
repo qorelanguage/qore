@@ -67,6 +67,31 @@ inline void LockedObject::unlock()
    pthread_mutex_unlock(&ptm_lock);
 }
 
+// to be used as a stack object (not on the heap) as an exception-safe way to ensure that locks are released
+// this object does not allow the lock to be released earlier than the object's scope
+class AutoLocker {
+   // not implemented
+   AutoLocker(const AutoLocker&);
+   AutoLocker& operator=(const AutoLocker&);
+   void *operator new(size_t);
+
+private:
+   LockedObject *lck;
+
+public:
+   AutoLocker(LockedObject *l)
+   {
+      lck = l;
+      lck->lock();
+   }
+   ~AutoLocker()
+   {
+      lck->unlock();
+   }
+};
+
+// to be used as a stack object (not on the heap) as an exception-safe way to ensure that locks are released
+// this object allows the lock to be released earlier than the SafeLocker's scope
 class SafeLocker
 {
    // not implemented
