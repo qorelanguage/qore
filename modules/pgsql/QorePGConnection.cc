@@ -778,6 +778,7 @@ int QorePGResult::add(class QoreNode *v, class ExceptionSink *xsink)
 #if POSTGRES_VERSION_MAJOR >= 8
 	 pb->iv.day   = htonl(d->getDay());
 #endif
+#ifdef HAVE_INT64_TIMESTAMP
 	 pb->iv.time = i8MSB(((d->getYear() * 365 * 24 * 3600) + d->getHour() * 24 * 3600 + d->getMinute() * 3600 + d->getSecond()) * 1000000 + d->getMillisecond() * 1000);
 #else
 	 //printd(5, "year=%d, hour=%d, minute=%d, second=%d, ms=%d, seconds = %g\n", d->getYear(), d->getHour(), d->getMinute(), d->getSecond(), d->getMillisecond(), time);
