@@ -1342,7 +1342,7 @@ check_pgsql()
        with_pgsql_includes=$inc/pgsql
     fi
     if test -z "$with_pgsql_includes"; then
-       echo pgsql $1 $inc not found
+       #echo pgsql $1 $inc not found
        return
     else
        # check for server include files
@@ -1351,7 +1351,7 @@ check_pgsql()
        elif test -d "$with_pgsql_includes/postgresql/server"; then
 	  with_pgsql_server_includes="$with_pgsql_includes/postgresql/server"
        else
-          echo pgsql $1 $inc server includes not found
+          #echo pgsql $1 $inc server includes not found
           unset with_pgsql_includes
           return
        fi
@@ -1376,7 +1376,7 @@ check_pgsql()
     fi
 
     if test -z "$with_pgsql_libs"; then
-       echo pgsql $1 libs not found
+       #echo pgsql $1 libs not found
        unset with_pgsql_includes
        unset with_pgsql_server_includes
     else
