@@ -1316,9 +1316,9 @@ CS_CONTEXT *m_context; ct_init(m_context, CS_VERSION_100);
 
    if test "$sybase_links" = "no"; then
       if test -n "$sybase_explicit"; then
-         AC_MSG_ERROR([could not compile a test Sybase program])
+         AC_MSG_ERROR([could not compile and link a test Sybase program])
       else
-         AC_MSG_WARN([could not compile a test Sybase program, disabling sybase support])
+         AC_MSG_WARN([could not compile and link a test Sybase program, disabling sybase support])
 	 unset with_sybase
       fi
    else
@@ -1386,14 +1386,29 @@ check_pgsql()
        #echo pgsql $1 libs not found
        unset with_pgsql_includes
        unset with_pgsql_server_includes
-    else
-	if test "$with_pgsql_includes" != "/usr/include"; then
-	   pgsql_app_includes=true
-        fi
-	if test "$with_pgsql_libs" != "/lib${LIBSUFFIX}" -a "$with_pgsql_libs" != "/usr/lib${LIBSUFFIX}"; then
-	   pgsql_app_libs=true
-	fi
+       return
     fi
+    if test "$with_pgsql_includes" != "/usr/include"; then
+       pgsql_app_includes=true
+    fi
+    if test "$with_pgsql_libs" != "/lib${LIBSUFFIX}" -a "$with_pgsql_libs" != "/usr/lib${LIBSUFFIX}"; then
+       pgsql_app_libs=true
+    fi
+    
+    # check postgresql version
+    pg_config=`ls $with_pgsql_server_includes/pg_config*.h 2>/dev/null`
+    if test -z "$pg_config"; then
+       AC_MSG_ERROR([can't determine PostgreSQL version])
+    fi
+    version=`grep "PG_VERSION " $pg_config|cut -f2 -d\"`
+    version_major=`echo $version|cut -f1 -d.`
+    if test -z "$version_major"; then
+       AC_MSG_ERROR([can't determine PostgreSQL version])
+    fi
+    if test $version_major -lt 7; then
+       AC_MSG_ERROR([PostgreSQL version $version is not supported (must be >= 7)])
+    fi
+    AC_DEFINE_UNQUOTED([POSTGRES_VERSION_MAJOR], $version_major, [postgresql major version number])
 }
 
 # see if we can figure out where the pgsql include files and libraries are

@@ -145,7 +145,11 @@ static class QoreNode *qpg_data_interval(char *data, int type, int len, class Qo
    ms = (int)((f - (double)val) * 1000.0);   
    //printf("interval time=%g, day=%d, month=%d\n", val, ntohl(iv->day), ntohl(iv->month));
 #endif
+#if POSTGRES_VERSION_MAJOR >= 8
    return new QoreNode(new DateTime(0, ntohl(iv->month), ntohl(iv->day), 0, 0, (int64)val, ms, true));
+#else
+   return new QoreNode(new DateTime(0, ntohl(iv->month), 0, 0, 0, (int64)val, ms, true));
+#endif
 }
 
 static class QoreNode *qpg_data_time(char *data, int type, int len, class QoreEncoding *enc)
@@ -709,7 +713,7 @@ int QorePGResult::add(class QoreNode *v, class ExceptionSink *xsink)
       paramTypes[nParams] = 0;
    else if (v->type == NT_INT)
    {
-      if (v->val.intval < 32768 && v->val.intval > -32768)
+      if (v->val.intval <= 32767 && v->val.intval > -32768)
       {
 	 //printd(5, "i2: %d\n", (int)v->val.intval);
 	 paramTypes[nParams]   = INT2OID;
@@ -717,7 +721,7 @@ int QorePGResult::add(class QoreNode *v, class ExceptionSink *xsink)
 	 paramValues[nParams]  = (char *)&pb->i2;
 	 paramLengths[nParams] = sizeof(short);
       }
-      else if (v->val.intval < 2147483648 && v->val.intval > -2147483648)
+      else if (v->val.intval <= 2147483647 && v->val.intval > -2147483648)
       {
 	 //printd(5, "i4: %d (%d, %d)\n", (int)v->val.intval, sizeof(uint32_t), sizeof(int));
 	 paramTypes[nParams]   = INT4OID;
@@ -771,8 +775,9 @@ int QorePGResult::add(class QoreNode *v, class ExceptionSink *xsink)
 	 paramTypes[nParams] = INTERVALOID;
 	 
 	 pb->iv.month = htonl(d->getMonth());
+#if POSTGRES_VERSION_MAJOR >= 8
 	 pb->iv.day   = htonl(d->getDay());
-#ifdef HAVE_INT64_TIMESTAMP
+#endif
 	 pb->iv.time = i8MSB(((d->getYear() * 365 * 24 * 3600) + d->getHour() * 24 * 3600 + d->getMinute() * 3600 + d->getSecond()) * 1000000 + d->getMillisecond() * 1000);
 #else
 	 //printd(5, "year=%d, hour=%d, minute=%d, second=%d, ms=%d, seconds = %g\n", d->getYear(), d->getHour(), d->getMinute(), d->getSecond(), d->getMillisecond(), time);
@@ -1121,7 +1126,9 @@ int QorePGBindArray::bind(class QoreNode *n, class QoreEncoding *enc, class Exce
 	 Interval *i = (Interval *)ptr;
 	 
 	 i->month = htonl(d->getMonth());
+#if POSTGRES_VERSION_MAJOR >= 8
 	 i->day   = htonl(d->getDay());
+#endif
 #ifdef HAVE_INT64_TIMESTAMP
 	 i->time = i8MSB(((d->getYear() * 365 * 24 * 3600) + d->getHour() * 24 * 3600 + d->getMinute() * 3600 + d->getSecond()) * 1000000 + d->getMillisecond() * 1000);
 #else

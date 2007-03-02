@@ -216,10 +216,18 @@ static void pgsql_module_ns_init(class Namespace *rns, class Namespace *qns)
    pgsql->addConstant("PG_TYPE_XID",                 new QoreNode((int64)XIDOID));
    pgsql->addConstant("PG_TYPE_CID",                 new QoreNode((int64)CIDOID));
    pgsql->addConstant("PG_TYPE_VECTOROID",           new QoreNode((int64)OIDVECTOROID));
+#ifdef PG_TYPE_RELTYPE_OID
    pgsql->addConstant("PG_TYPE_TYPE_RELTYPE",        new QoreNode((int64)PG_TYPE_RELTYPE_OID));
+#endif
+#ifdef PG_ATTRIBUTE_RELTYPE_OID
    pgsql->addConstant("PG_TYPE_ATTRIBUTE_RELTYPE",   new QoreNode((int64)PG_ATTRIBUTE_RELTYPE_OID));
+#endif
+#ifdef PG_PROC_RELTYPE_OID
    pgsql->addConstant("PG_TYPE_PROC_RELTYPE",        new QoreNode((int64)PG_PROC_RELTYPE_OID));
+#endif
+#ifdef PG_CLASS_RELTYPE_OID
    pgsql->addConstant("PG_TYPE_CLASS_RELTYPE",       new QoreNode((int64)PG_CLASS_RELTYPE_OID));
+#endif
    pgsql->addConstant("PG_TYPE_POINT",               new QoreNode((int64)POINTOID));
    pgsql->addConstant("PG_TYPE_LSEG",                new QoreNode((int64)LSEGOID));
    pgsql->addConstant("PG_TYPE_PATH",                new QoreNode((int64)PATHOID));
@@ -266,7 +274,7 @@ static void pgsql_module_ns_init(class Namespace *rns, class Namespace *qns)
    pgsql->addConstant("PG_TYPE_ANYELEMENT",          new QoreNode((int64)ANYELEMENTOID));
 
    // array types
-   pgsql->addConstant("PG_TYPE_INT4ARRAY",           new QoreNode((int64)INT4ARRAYOID));
+   pgsql->addConstant("PG_TYPE_INT4ARRAY",           new QoreNode((int64)QPGT_INT4ARRAYOID));
    pgsql->addConstant("PG_TYPE_CIRCLEARRAY",         new QoreNode((int64)QPGT_CIRCLEARRAYOID));
    pgsql->addConstant("PG_TYPE_MONEYARRAY",          new QoreNode((int64)QPGT_MONEYARRAYOID));
    pgsql->addConstant("PG_TYPE_BOOLARRAY",           new QoreNode((int64)QPGT_BOOLARRAYOID));
