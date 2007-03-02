@@ -423,7 +423,7 @@ void QorePGResult::static_init()
    //data_map[OIDVECTOROID]   = qpg_data_oidvector;
 
    //array_data_map[INT2VECTOROID] = std::make_pair(INT2OID, qpg_data_int2);
-   array_data_map[INT4ARRAYOID] = std::make_pair(INT4OID, qpg_data_int4);
+   array_data_map[QPGT_INT4ARRAYOID]         = std::make_pair(INT4OID, qpg_data_int4);
    array_data_map[QPGT_CIRCLEARRAYOID]       = std::make_pair(CIRCLEOID, qpg_data_circle);
    array_data_map[QPGT_MONEYARRAYOID]        = std::make_pair(CASHOID, qpg_data_cash);
    array_data_map[QPGT_BOOLARRAYOID]         = std::make_pair(BOOLOID, qpg_data_bool);
