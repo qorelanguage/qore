@@ -1162,7 +1162,7 @@ if test "${with_mysql}" != "no"; then
       fi
    fi
 
-   for dir in $MYSQL_DIR / /usr /usr/local /opt/mysql /usr/mysql /sw /opt/local /opt/sfw /usr/sfw; do
+   for dir in $MYSQL_DIR / /usr /usr/local/mysql /opt/mysql /usr/mysql /sw /opt/local /opt/sfw /usr/sfw; do
       check_mysql $dir
       if test -n "$with_mysql_includes"; then
 	 break;
