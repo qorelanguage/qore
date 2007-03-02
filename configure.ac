@@ -1365,19 +1365,19 @@ check_pgsql()
     fi
 
     lib="$1/lib${LIBSUFFIX}"
-    if test -f "$lib/libpq.${SHLIB_SUFFIX}"; then
+    if test -f "$lib/libpq.${SHLIB_SUFFIX}" -o -f "$lib/libpq.so"; then
        with_pgsql_libs=$lib
     elif test -f "$lib/postgresql/libpq.${SHLIB_SUFFIX}"; then
        with_pgsql_libs=$lib/postgresql
     elif test -f "$lib/pgsql/libpq.${SHLIB_SUFFIX}"; then
        with_pgsql_libs=$lib/pgsql
-    elif test -f "$lib/libpgsqlclient_r.a"; then
+    elif test -f "$lib/libpq.a"; then
        with_pgsql_libs=$lib
        pgsql_static=1
-    elif test -f "$lib/postgresql/libpgsqlclient_r.a"; then
+    elif test -f "$lib/postgresql/libpq.a"; then
        with_pgsql_libs=$lib/postgresql
        pgsql_static=1
-    elif test -f "$lib/pgsql/libpgsqlclient_r.a"; then
+    elif test -f "$lib/pgsql/libpq.a"; then
        with_pgsql_libs=$lib/pgsql
        pgsql_static=1
     fi
