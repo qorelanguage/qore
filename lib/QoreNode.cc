@@ -20,28 +20,13 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <qore/config.h>
+#include <qore/Qore.h>
 #include <qore/common.h>
-#include <qore/QoreNode.h>
-#include <qore/Variable.h>
-#include <qore/support.h>
-#include <qore/List.h>
-#include <qore/Hash.h>
 #include <qore/ScopedObjectCall.h>
 #include <qore/ClassRef.h>
-#include <qore/support.h>
-#include <qore/DateTime.h>
-#include <qore/QoreString.h>
-#include <qore/QoreType.h>
-#include <qore/Object.h>
-#include <qore/QoreClass.h>
-#include <qore/Function.h>
 #include <qore/Find.h>
-#include <qore/Namespace.h>
 #include <qore/Operator.h>
 #include <qore/NamedScope.h>
-#include <qore/qore_thread.h>
-#include <qore/Exception.h>
 #include <qore/Tree.h>
 
 #include <string.h>
@@ -50,6 +35,18 @@
 #include <assert.h>
 
 #define TRACK_REFS 1
+
+char *QoreNodeStringHelper::operator*()
+{
+   if (!node)
+      return "";
+   return node->val.String->getBuffer();
+}
+
+int QoreNodeStringHelper::strlen() const
+{
+   return node ? node->val.String->strlen() : 0;
+}
 
 QoreNode::QoreNode() 
 {

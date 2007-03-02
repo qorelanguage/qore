@@ -69,8 +69,10 @@ inline void LockedObject::unlock()
 
 class SafeLocker
 {
-   SafeLocker(const SafeLocker&); // not implemented
-   SafeLocker& operator=(const SafeLocker&); // not implemented
+   // not implemented
+   SafeLocker(const SafeLocker&);
+   SafeLocker& operator=(const SafeLocker&);
+   void *operator new(size_t);
 
 private:
    LockedObject *lck;

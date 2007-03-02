@@ -11,10 +11,10 @@ else
 automoddir = $(pkglibdir)/auto
 pkglib_LTLIBRARIES = sybase.la
 sybase_la_SOURCES = $(SYBASE_SOURCES)
-sybase_la_LDFLAGS = -module -avoid-version ${SYBASE_LIBS}  -L/opt/sybase/OCS-15_0/lib -lsybcs_r -lsybintl_r -lsybblk_r -lsybcomn_r -lsybct_r
+sybase_la_LDFLAGS = -module -avoid-version ${SYBASE_LIBS}
 endif
 
-INCLUDES = -I$(top_srcdir)/include $(SYBASE_INCLUDES) -I/opt/sybase/OCS-15_0/include
+INCLUDES = -I$(top_srcdir)/include $(SYBASE_INCLUDES)
 
 AM_CXXFLAGS = ${PTHREAD_CFLAGS}
 

@@ -162,6 +162,11 @@ class TempString {
    private:
       class QoreString *str;
 
+      // not implemented
+      TempString(const TempString &);
+      TempString & operator=(const TempString &);
+      void *operator new(size_t);
+
    public:
       DLLEXPORT TempString(class QoreString *s)
       {
@@ -181,6 +186,11 @@ class TempEncodingHelper {
    private:
       class QoreString *str;
       bool temp;
+
+      // not implemented
+      TempEncodingHelper(const TempEncodingHelper &);
+      TempEncodingHelper& operator=(const TempEncodingHelper &);
+      void *operator new(size_t);
 
    public:
       DLLEXPORT TempEncodingHelper(class QoreString *s, class QoreEncoding *qe, class ExceptionSink *xsink)

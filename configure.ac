@@ -214,6 +214,9 @@ else
 		fi
 		;;
    esac
+   if test "$host_cpu" = "x86_64"; then
+      cpu_family=i386
+   fi
    bits=32
 fi
 
@@ -1095,130 +1098,96 @@ if test "$with_oracle" = "yes"; then
    LDFLAGS="$SAVE_LDFLAGS"
 fi
 
-AC_ARG_ENABLE([mysql],
-     [AS_HELP_STRING([--enable-mysql],
-		     [enable mysql support (default=auto)])],
-     [case "${enable_mysql}" in
-       yes|no|auto) ;;
-       *)      AC_MSG_ERROR(bad value ${enable_mysql} for --enable-mysql) ;;
-      esac],
-     [enable_mysql=auto])
+AC_ARG_WITH([mysql],
+    [AS_HELP_STRING([--with-mysql@<:@=DIR@:>@],
+                    [MySQL base directory])],
+    [if test ! -d "${with_mysql}"; then AC_MSG_ERROR(directory ${with_mysql} does not exist for --with-mysql); unset with_mysql; fi])
 
-AC_ARG_WITH([mysql-includes],
-    [AS_HELP_STRING([--with-mysql-includes@<:@=DIR@:>@],
-                    [MySQL include file directory])],
-    [if test ! -d "${with_mysql_includes}"; then AC_MSG_ERROR(bad value ${with_mysql_includes} for --with-mysql-includes); unset with_mysql_includes; fi])
-
-AC_ARG_WITH([mysql-libs],
-    [AS_HELP_STRING([--with-mysql-libs@<:@=DIR@:>@],
-                    [directory for MySQL libraries (default: /usr/lib/mysql)])],
-    [if test ! -d "${with_mysql_libs}"; then AC_MSG_ERROR(bad value ${with_mysql_libs} for --with-mysql-libs); unset with_mysql_libs; fi])
-
-check_mysql_include()
+check_mysql()
 {
-    if test -f "$1/mysql.h"; then
-       mysql_include_dir=$1
+    inc="$1/include"
+    if test "$1" = "/"; then
+       inc=/usr/include
     fi
-}
 
-# Sybase settings
-# Expects env variables set by $SYBROOT/SYBASE.sh or $SYBROOT/SYBASE.csh.
-#
-AC_ARG_WITH([sybase],
-  [AS_HELP_STRING([--with-sybase@<:@=DIR@:>@],
-                  [Sybase Adaptive Server directory (defaults to $SYBROOT)])],
-   ,
-   [with_sybase=auto])
+    if test -f "$inc/mysql.h"; then
+       with_mysql_includes=$inc
+    elif test -f "$inc/mysql/mysql.h"; then
+       with_mysql_includes=$inc/mysql
+    fi
+    if test -z "$with_mysql_includes"; then
+       return
+    fi
 
-if test "$with_sybase" = "auto"; then
-   if test -n "$SYBROOT"; then
-      with_sybase=yes
-   else
-      with_sybase=no
-   fi
-fi
-
-if test -n "$with_sybase"; then
-   # setup compile and link vars
-   SYBASE_INCLUDES="-I${SYBROOT}/${SYBASE_OCS}/include"
-   SYBASE_LIBS="-L${SYBROOT}/${SYBASE_OCS}/lib -lsybdb"
-fi
-
-# see if we can figure out where the mysql files are
-if test "${enable_mysql}" != "no"; then
-   AC_MSG_CHECKING([for mysql includes])
-   if test -n "$with_mysql_includes"; then 
-      if test -f "$with_mysql_includes/mysql.h"; then
-      	 AC_MSG_RESULT([$with_mysql_includes])
-	 enable_mysql=yes
-      else
-	 AC_MSG_RESULT([error: $with_mysql_includes does not contain mysql.h])
-	 unset with_mysql_includes
-	 enable_mysql=no
-      fi
-   else
-      for dir in "$MYSQL_DIR/include" /usr/local/mysql/include /opt/mysql/include /usr/mysql/include /usr/include/mysql /sw/include/mysql /opt/local/include/mysql /opt/sfw/include/mysql /usr/sfw/include/mysql; do
-      	  check_mysql_include $dir
-      	  if test -n "$mysql_include_dir"; then
-	     AC_MSG_RESULT([$mysql_include_dir])
-	     with_mysql_includes="$mysql_include_dir"
-	     enable_mysql=yes
-	     break;
-	  fi
-      done
-      if test -z "$mysql_include_dir"; then
-          AC_MSG_RESULT([not found])
-	  unset with_mysql_includes
-      fi
-   fi
-fi
-
-check_mysql_lib()
-{
-    if test -f "$1/libmysqlclient_r.${SHLIB_SUFFIX}"; then
-       mysql_lib_dir=$1
-       AC_MSG_RESULT([$1 (shared)])
-    elif test -f "$1/libmysqlclient_r.a"; then
-       mysql_lib_dir=$1
+    lib="$1/lib${LIBSUFFIX}"
+    if test -f "$lib/libmysqlclient_r.${SHLIB_SUFFIX}"; then
+       with_mysql_libs=$lib
+    elif test -f "$lib/mysql/libmysqlclient_r.${SHLIB_SUFFIX}"; then
+       with_mysql_libs=$lib/mysql
+    elif test -f "$lib/libmysqlclient_r.a"; then
+       with_mysql_libs=$lib
        mysql_static=1
-       AC_MSG_RESULT([$1 (static)])
+    elif test -f "$lib/mysql/libmysqlclient_r.a"; then
+       with_mysql_libs=$lib/mysql
+       mysql_static=1
+    fi
+
+    if test -z "$with_mysql_libs"; then
+       unset with_mysql_includes
+    else
+	if test "$with_mysql_includes" != "/usr/include"; then
+	   mysql_app_includes=true
+        fi
+	if test "$with_mysql_libs" != "/lib${LIBSUFFIX}" -a "$with_mysql_libs" != "/usr/lib${LIBSUFFIX}"; then
+	   mysql_app_libs=true
+	fi
     fi
 }
 
-if test "${enable_mysql}" != "no"; then
-   AC_MSG_CHECKING([for mysql libraries])
-   if test -n "$with_mysql_libs"; then
-      check_mysql_lib "$with_mysql_libs"
+# see if we can figure out where the mysql include files and libraries are
+if test "${with_mysql}" != "no"; then
+   AC_MSG_CHECKING([for mysql includes and libraries])
 
-      if test -n "$mysql_lib_dir"; then
-	 enable_mysql=yes
+   if test -n "$with_mysql"; then
+      check_mysql "$with_mysql"
+      if test -z "$with_mysql_includes"; then
+	 AC_MSG_ERROR([not found in $with_mysql])
+      fi
+   fi
+
+   for dir in $MYSQL_DIR / /usr /usr/local /opt/mysql /usr/mysql /sw /opt/local /opt/sfw /usr/sfw; do
+      check_mysql $dir
+      if test -n "$with_mysql_includes"; then
+	 break;
+      fi
+   done
+
+   if test -n "$with_mysql_includes"; then
+      if test -n "$mysql_static"; then
+	 AC_MSG_RESULT([includes=$with_mysql_includes, libs=$with_mysql_libs (static)])
       else
-	 AC_MSG_RESULT([error: $with_mysql_libs does not contain libmysqlclient])
-	 unset with_mysql_libs
+	 AC_MSG_RESULT([includes=$with_mysql_includes, libs=$with_mysql_libs (shared)])
       fi
+      with_mysql=yes
    else
-      for dir in "$MYSQL_DIR/lib${LIBSUFFIX}" /usr/local/mysql/lib${LIBSUFFIX} /opt/mysql/lib${LIBSUFFIX} /usr/mysql/lib${LIBSUFFIX} /usr/lib${LIBSUFFIX}/mysql /sw/lib/mysql /opt/local/lib${LIBSUFFIX} /usr/sfw/lib${LIBSUFFIX} /opt/sfw/lib${LIBSUFFIX} ;do
-      	  check_mysql_lib $dir
-      	  if test -n "$mysql_lib_dir"; then
-	     with_mysql_libs="$mysql_lib_dir"
-	     enable_mysql=yes
-	     break;
-	  fi
-      done
-      if test -z "$mysql_lib_dir"; then
-          AC_MSG_RESULT([not found])
-	  unset with_mysql_libs
-      fi
+      AC_MSG_RESULT([not found])
    fi
 fi
 
-if test "${enable_mysql}" = yes; then
-  if test -n "$with_mysql_includes" -a -n "$with_mysql_libs"; then
-     MYSQL_INCLUDES="-I$with_mysql_includes"
+if test "${with_mysql}" = yes; then
+  if test -n "$with_mysql_includes"; then
+     # only set include path if necessary
+     if test -n "$mysql_app_includes"; then
+          MYSQL_INCLUDES="-I$with_mysql_includes"
+     fi
      if test -n "$mysql_static"; then
           MYSQL_LIBS="$with_mysql_libs/libmysqlclient_r.a"
      else
-          MYSQL_LIBS="-L$with_mysql_libs -lmysqlclient_r"
+	if test -n "$mysql_app_libs"; then
+	   MYSQL_LIBS="-L$with_mysql_libs -lmysqlclient_r"
+	else
+	   MYSQL_LIBS="-lmysqlclient_r"
+	fi
      fi
      # check if C++ compiler can link with MYSQL libs
      SAVE_CXXFLAGS="$CXXFLAGS"
@@ -1253,12 +1222,243 @@ MYSQL mysql; mysql_init(&mysql);
 	fi
         with_mysql=yes
      fi
-  elif test -n "$with_mysql_includes"; then
-     AC_MSG_WARN([MySQL includes found, but libraries not, disabling MySQL support])
-  elif test -n "$with_mysql_libs"; then
-     AC_MSG_WARN([MySQL libraries found, but not includes, disabling MySQL support])
   else
      AC_MSG_WARN([no MySQL libraries or includes found, disabling MySQL support])
+  fi
+fi
+
+check_sybase()
+{
+    d=`ls -d $1/OCS-* 2>/dev/null | tail -1`;
+    if test -n "$d"; then
+       dir="$d"
+    else
+       dir="$1"
+    fi
+
+    if test -f "$dir/include/ctpublic.h"; then
+        with_sybase_includes=$dir/include
+    else
+	return
+    fi
+
+    if test -f "$dir/lib/libsybcs_r.${SHLIB_SUFFIX}"; then
+       with_sybase_libs=$dir/lib
+    else
+       unset with_sybase_includes
+    fi
+}
+
+# Sybase settings
+AC_ARG_WITH([sybase],
+    [AS_HELP_STRING([--with-sybase@<:@=DIR@:>@],
+                    [Sybase or Sybase OCS base directory])],
+    [if test ! -d "${with_sybase}"; then AC_MSG_ERROR(directory ${with_sybase} does not exist for --with-sybase); unset with_sybase; fi])
+
+# see if we can figure out where the mysql include files and libraries are
+if test "${with_sybase}" != "no"; then
+   if test -n "$with_sybase"; then
+      sybase_explicit=yes
+   fi
+
+   AC_MSG_CHECKING([for sybase includes and libraries])
+
+   if test -n "$with_sybase"; then
+      check_sybase "$with_sybase"
+      if test -z "$with_sybase_includes"; then
+	 AC_MSG_ERROR([not found in $with_mysql])
+      fi
+   fi
+
+   for dir in $SYBASE $SYBASE/$SYBASE_OCS /usr/sybase /usr/local/sybase /opt/sybase; do
+      check_sybase "$dir"
+      if test -n "$with_sybase_includes"; then
+	 break;
+      fi
+   done
+
+   if test -n "$with_sybase_includes"; then
+      if test -n "$sybase_static"; then
+	 AC_MSG_RESULT([includes=$with_sybase_includes, libs=$with_sybase_libs (static)])
+      else
+	 AC_MSG_RESULT([includes=$with_sybase_includes, libs=$with_sybase_libs (shared)])
+      fi
+      with_sybase=yes
+   else
+      AC_MSG_RESULT([not found])
+   fi
+fi
+
+if test "${with_sybase}" = yes; then
+   SYBASE_INCLUDES="-I$with_sybase_includes"
+   SYBASE_LIBS="-L$with_sybase_libs -lsybdb -lsybcs_r -lsybintl_r -lsybblk_r -lsybcomn_r -lsybct_r -lsybunic -lsybtcl_r"
+
+   # check if C++ compiler can link with MYSQL libs
+   SAVE_CXXFLAGS="$CXXFLAGS"
+   SAVE_LDFLAGS="$LDFLAGS"
+   CXXFLAGS="$CXXFLAGS $SYBASE_INCLUDES"
+   LDFLAGS="$LDFLAGS $SYBASE_LIBS"
+   AC_LINK_IFELSE([AC_LANG_PROGRAM([[
+#include <ctpublic.h>
+	 ]],[[
+CS_CONTEXT *m_context; ct_init(m_context, CS_VERSION_100);
+	]])], sybase_links=yes, sybase_links=no)
+
+   CXXFLAGS="$SAVE_CXXFLAGS"
+   LDFLAGS="$SAVE_LDFLAGS"
+
+   if test "$sybase_links" = "no"; then
+      if test -n "$sybase_explicit"; then
+         AC_MSG_ERROR([could not compile a test Sybase program])
+      else
+         AC_MSG_WARN([could not compile a test Sybase program, disabling sybase support])
+	 unset with_sybase
+      fi
+   else
+      # without this "test" below, the shell will crap out
+      test
+      AC_SUBST(SYBASE_INCLUDES)
+      AC_SUBST(SYBASE_LIBS)
+   fi
+fi
+
+AC_ARG_WITH([pgsql],
+    [AS_HELP_STRING([--with-pgsql@<:@=DIR@:>@],
+                    [PostgreSQL base directory])],
+    [if test ! -d "${with_pgsql}"; then AC_MSG_ERROR(directory ${with_pgsql} does not exist for --with-pgsql); unset with_pgsql; fi])
+
+check_pgsql()
+{
+    inc="$1/include"
+    if test "$1" = "/"; then
+       inc=/usr/include
+    fi
+
+    if test -f "$inc/libpq-fe.h"; then
+       with_pgsql_includes=$inc
+    elif test -f "$inc/postgresql/libpq-fe.h"; then
+       with_pgsql_includes=$inc/postgresql
+     elif test -f "$inc/pgsql/libpq-fe.h"; then
+       with_pgsql_includes=$inc/pgsql
+    fi
+    if test -z "$with_pgsql_includes"; then
+       echo pgsql $1 $inc not found
+       return
+    else
+       # check for server include files
+       if test -d "$with_pgsql_includes/pgsql/server"; then
+	  with_pgsql_server_includes="$with_pgsql_includes/pgsql/server"
+       elif test -d "$with_pgsql_includes/postgresql/server"; then
+	  with_pgsql_server_includes="$with_pgsql_includes/postgresql/server"
+       else
+          echo pgsql $1 $inc server includes not found
+          unset with_pgsql_includes
+          return
+       fi
+    fi
+
+    lib="$1/lib${LIBSUFFIX}"
+    if test -f "$lib/libpq.${SHLIB_SUFFIX}"; then
+       with_pgsql_libs=$lib
+    elif test -f "$lib/postgresql/libpq.${SHLIB_SUFFIX}"; then
+       with_pgsql_libs=$lib/postgresql
+    elif test -f "$lib/pgsql/libpq.${SHLIB_SUFFIX}"; then
+       with_pgsql_libs=$lib/pgsql
+    elif test -f "$lib/libpgsqlclient_r.a"; then
+       with_pgsql_libs=$lib
+       pgsql_static=1
+    elif test -f "$lib/postgresql/libpgsqlclient_r.a"; then
+       with_pgsql_libs=$lib/postgresql
+       pgsql_static=1
+    elif test -f "$lib/pgsql/libpgsqlclient_r.a"; then
+       with_pgsql_libs=$lib/pgsql
+       pgsql_static=1
+    fi
+
+    if test -z "$with_pgsql_libs"; then
+       echo pgsql $1 libs not found
+       unset with_pgsql_includes
+       unset with_pgsql_server_includes
+    else
+	if test "$with_pgsql_includes" != "/usr/include"; then
+	   pgsql_app_includes=true
+        fi
+	if test "$with_pgsql_libs" != "/lib${LIBSUFFIX}" -a "$with_pgsql_libs" != "/usr/lib${LIBSUFFIX}"; then
+	   pgsql_app_libs=true
+	fi
+    fi
+}
+
+# see if we can figure out where the pgsql include files and libraries are
+if test "${with_pgsql}" != "no"; then
+   AC_MSG_CHECKING([for PostgreSQL includes and libraries])
+
+   if test -n "$with_pgsql"; then
+      check_pgsql "$with_pgsql"
+      if test -z "$with_pgsql_includes"; then
+	 AC_MSG_ERROR([not found in $with_pgsql])
+      fi
+   fi
+
+   for dir in $PGSQL_DIR / /usr /usr/local /opt/pgsql /usr/pgsql /sw /opt/local /opt/sfw /usr/sfw; do
+      check_pgsql $dir
+      if test -n "$with_pgsql_includes"; then
+	 break;
+      fi
+   done
+
+   if test -n "$with_pgsql_includes"; then
+      if test -n "$pgsql_static"; then
+	 AC_MSG_RESULT([includes=$with_pgsql_includes, libs=$with_pgsql_libs (static)])
+      else
+	 AC_MSG_RESULT([includes=$with_pgsql_includes, libs=$with_pgsql_libs (shared)])
+      fi
+      with_pgsql=yes
+   else
+      AC_MSG_RESULT([not found])
+   fi
+fi
+
+if test "${with_pgsql}" = yes; then
+  if test -n "$with_pgsql_includes"; then
+     # only set include path if necessary
+     if test -n "$pgsql_app_includes"; then
+          PGSQL_INCLUDES="-I$with_pgsql_includes -I$with_pgsql_server_includes"
+     else
+          PGSQL_INCLUDES="-I$with_pgsql_server_includes"
+     fi
+     if test -n "$pgsql_static"; then
+          PGSQL_LIBS="$with_pgsql_libs/libpq.a"
+     else
+	if test -n "$pgsql_app_libs"; then
+	   PGSQL_LIBS="-L$with_pgsql_libs -lpq"
+	else
+	   PGSQL_LIBS="-lpq"
+	fi
+     fi
+     # check if C++ compiler can link with PGSQL libs
+     SAVE_CXXFLAGS="$CXXFLAGS"
+     SAVE_LDFLAGS="$LDFLAGS"
+     CXXFLAGS="$CXXFLAGS $PGSQL_INCLUDES"
+     LDFLAGS="$LDFLAGS $PGSQL_LIBS"
+     AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+#include <libpq-fe.h>
+	 ]],[[
+PQconnectdb(NULL);
+	]])], pgsql_links=yes, pgsql_links=no)
+
+     CXXFLAGS="$SAVE_CXXFLAGS"
+     LDFLAGS="$SAVE_LDFLAGS"
+
+     if test "$pgsql_links" = "no"; then
+        AC_MSG_ERROR([could not compile a test PostgreSQL program])
+     else
+        AC_SUBST(PGSQL_INCLUDES)
+	AC_SUBST(PGSQL_LIBS)
+        with_pgsql=yes
+     fi
+  else
+     AC_MSG_WARN([no PostgreSQL libraries or includes found, disabling PostgreSQL support])
   fi
 fi
 
@@ -1596,46 +1796,47 @@ AM_CONDITIONAL([COND_DEBUG],      [test "$enable_debug" = yes])
 AM_CONDITIONAL([COND_PROFILE],    [test "$enable_profile" = yes])
 AM_CONDITIONAL([COND_ORACLE],     [test "$with_oracle" = yes])
 AM_CONDITIONAL([COND_MYSQL],      [test "$with_mysql" = yes])
+AM_CONDITIONAL([COND_SYBASE],     [test "$with_sybase" = yes])
+AM_CONDITIONAL([COND_PGSQL],      [test "$with_pgsql" = yes])
 AM_CONDITIONAL([COND_TIBRV],      [test "$with_tibrv" = yes])
 AM_CONDITIONAL([COND_TIBAE],      [test "$with_tibae" = yes])
 AM_CONDITIONAL([COND_TUXEDO],     [test "$with_tuxedo" = yes])
-AM_CONDITIONAL([COND_TUXEDO],     [test "$with_sybase" = yes])
 AM_CONDITIONAL([COND_MONOLITHIC], [test "$enable_shared" = no -o "$enable_builtin_modules" = "yes"])
 AM_CONDITIONAL([COND_SINGLE_COMPILATION_UNIT], [test "$enable_single_compilation_unit" = yes])
 
-AC_CONFIG_FILES([Makefile lib/Makefile modules/Makefile modules/ncurses/Makefile modules/tibrv/Makefile modules/tibae/Makefile modules/mysql/Makefile modules/oracle/Makefile modules/Tuxedo/Makefile modules/sybase/Makefile])
+AC_CONFIG_FILES([Makefile lib/Makefile modules/Makefile modules/ncurses/Makefile modules/tibrv/Makefile modules/tibae/Makefile modules/mysql/Makefile modules/oracle/Makefile modules/Tuxedo/Makefile modules/sybase/Makefile modules/pgsql/Makefile])
 AC_OUTPUT
 
 echo "*** BUILTIN FEATURES ***"
-printf "library                 : %s %s" "$OS" "$ARCH"
+printf "%-24s: %s %s" library "$OS" "$cpu_family"
 if test "$enable_64bit" = "yes"; then
    printf " (64-bit)\n"
 else
    printf " (32-bit)\n"
 fi
 
-printf "optimizations           : "
+printf "%-24s: " optimizations
 if test "$enable_optimization" = "yes"; then
    echo yes
 else
    echo disabled
 fi
 
-printf "single compilation unit : "
+printf "%-24s: " "single compilation unit"
 if test "$enable_single_compilation_unit" = "yes"; then
    echo yes
 else
    echo disabled
 fi
 
-printf "debug                   : "
+printf "%-24s: " debug
 if test "$enable_debug" = "yes"; then
    echo yes
 else
    echo disabled
 fi
 
-printf "profile                 : "
+printf "%-24s: " profiling
 if test "$enable_profile" = "yes"; then
    echo yes
 else
@@ -1646,49 +1847,56 @@ if test "$enable_shared" = "yes"; then
    echo "*** MODULES ***"
 fi
 
-printf "ncurses                 : "
+printf "%-24s: " ncurses
 if test "$enable_ncurses" = "yes"; then
    echo yes
 else
    echo disabled
 fi
 
-printf "oracle                  : "
+printf "%-24s: " oracle
 if test "$with_oracle" = "yes"; then
    echo yes
 else
    echo disabled
 fi
 
-printf "sybase                  : "
+printf "%-24s: " sybase
 if test "$with_sybase" = "yes"; then
    echo yes
 else
    echo disabled
 fi
 
-printf "mysql                   : "
+printf "%-24s: " mysql
 if test "$with_mysql" = "yes"; then
    echo yes
 else
    echo disabled
 fi
 
-printf "tibrv                   : "
+printf "%-24s: " pgsql
+if test "$with_pgsql" = "yes"; then
+   echo yes
+else
+   echo disabled
+fi
+
+printf "%-24s: " tibrv
 if test "$with_tibrv" = "yes"; then
    echo yes
 else
    echo disabled
 fi
 
-printf "tibae                   : "
+printf "%-24s: " tibae
 if test "$with_tibae" = "yes"; then
    echo yes
 else
    echo disabled
 fi
 
-printf "tuxedo                  : "
+printf "%-24s: " tuxedo
 if test "$with_tuxedo" = "yes"; then
    echo yes
 else
@@ -1711,5 +1919,4 @@ if test "$OS" = "HP-UX" -a "$host_os" != "ia64"; then
    # delete temporary files
    rm -f libtool.tmp libtool.tmp.1
 fi
-
 

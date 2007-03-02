@@ -194,4 +194,10 @@ endif
 if COND_TUXEDO
 libqore_la_LIBADD += ../modules/Tuxedo/libtuxedo.la
 endif
+if COND_SYBASE
+libqore_la_LIBADD += ../modules/sybase/libsybase.la
+endif
+if COND_PGSQL
+libqore_la_LIBADD += ../modules/pgsql/libpgsql.la
+endif
 endif

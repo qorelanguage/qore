@@ -31,3 +31,11 @@ if COND_TUXEDO
 SUBDIRS += Tuxedo
 endif
 
+if COND_PGSQL
+SUBDIRS += pgsql
+endif
+
+if COND_SYBASE
+SUBDIRS += sybase
+endif
+

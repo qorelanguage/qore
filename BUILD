@@ -45,8 +45,7 @@ NOTE that --enable-builtin-modules will only work with libtool 1.5.22 or better,
 --with-tibae=<dir>             : directory for TIBCO AE SDK ("tibae" module)
 --with-tibae-tpcl=<dir>        : directory for TIBCO AE TPCL installation ("tibae" module)
 --with-oracle=<dir>            : directory for Oracle installation ("oracle" module)
---with-mysql-includes=<dir>    : directory for MySQL includes ("mysql" module)
---with-mysql-libs=<dir>        : directory for MySQL libraries ("mysql" module)
+--with-mysql=<dir>             : directory for MySQL installation ("mysql" module)
 
 recommended configure arguments: configure --disable-static --disable-debug --prefix=/usr   ( add --enable-64bit on 64-bit platforms for 64-bit builds)
 

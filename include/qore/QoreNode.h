@@ -175,4 +175,46 @@ static inline bool is_null(class QoreNode *n)
    return false;
 }
 
+class QoreNodeStringHelper {
+   private:
+      class QoreNode *node;
+      bool temp;
+
+      // not implemented
+      QoreNodeStringHelper(const QoreNodeStringHelper&);
+      QoreNodeStringHelper& operator=(const QoreNodeStringHelper&);
+      void *operator new(size_t);
+
+   public:
+      DLLEXPORT QoreNodeStringHelper(QoreNode *n, class ExceptionSink *xsink) : temp(false)
+      {
+	 if (is_nothing(n) || is_null(n))
+	    node = NULL;
+	 else if (n->type == NT_STRING)
+	    node = n;
+	 else
+	 {
+	    // if an exception occurs, node is NULL and temp is true
+	    node = n->convert(NT_STRING, xsink);
+	    temp = true;
+	 }
+      }
+      DLLEXPORT ~QoreNodeStringHelper()
+      {
+	 if (node && temp)
+	    node->deref(NULL);
+      }
+      // to check for an exception in the constructor
+      DLLEXPORT operator bool() const 
+      { 
+	 return !temp || node;
+      }
+      DLLEXPORT char *operator*();
+      DLLEXPORT bool is_temp() const
+      {
+	 return temp;
+      }
+      DLLEXPORT int strlen() const;
+};
+
 #endif

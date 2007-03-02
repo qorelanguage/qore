@@ -144,6 +144,28 @@ static QoreNode *DS_selectRows(class Object *self, class ManagedDatasource *ds, 
    return rv;
 }
 
+static QoreNode *DS_vselect(class Object *self, class ManagedDatasource *ds, class QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p0 = test_param(params, NT_STRING, 0);
+   if (!p0)
+      return NULL;
+
+   QoreNode *p1 = test_param(params, NT_LIST, 1);
+   List *args = p1 ? p1->val.list : NULL;
+   return ds->select(p0->val.String, args, xsink);
+}
+
+static QoreNode *DS_vselectRows(class Object *self, class ManagedDatasource *ds, class QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p0 = test_param(params, NT_STRING, 0);
+   if (!p0)
+      return NULL;
+
+   QoreNode *p1 = test_param(params, NT_LIST, 1);
+   List *args = p1 ? p1->val.list : NULL;
+   return ds->selectRows(p0->val.String, args, xsink);
+}
+
 /*
 static QoreNode *DS_describe(class Object *self, class ManagedDatasource *ds, class QoreNode *params, ExceptionSink *xsink)
 {
@@ -286,9 +308,11 @@ class QoreClass *initDatasourceClass()
    QC_DATASOURCE->addMethod("commit",            (q_method_t)DS_commit);
    QC_DATASOURCE->addMethod("rollback",          (q_method_t)DS_rollback);
    QC_DATASOURCE->addMethod("exec",              (q_method_t)DS_exec);
-   QC_DATASOURCE->addMethod("vexec",             (q_method_t)DS_vexec);
    QC_DATASOURCE->addMethod("select",            (q_method_t)DS_select);
    QC_DATASOURCE->addMethod("selectRows",        (q_method_t)DS_selectRows);
+   QC_DATASOURCE->addMethod("vexec",             (q_method_t)DS_vexec);
+   QC_DATASOURCE->addMethod("vselect",           (q_method_t)DS_vselect);
+   QC_DATASOURCE->addMethod("vselectRows",       (q_method_t)DS_vselectRows);
    //QC_DATASOURCE->addMethod("describe",          (q_method_t)DS_describe);
    QC_DATASOURCE->addMethod("beginTransaction",  (q_method_t)DS_beginTransaction);
    QC_DATASOURCE->addMethod("reset",             (q_method_t)DS_reset);

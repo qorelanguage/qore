@@ -169,6 +169,9 @@ noinst_HEADERS = \
 	modules/oracle/oracle-module.h \
 	modules/mysql/qore-mysql-module.h \
 	modules/mysql/qore-mysql.h \
+	modules/pgsql/pgsql.h \
+	modules/pgsql/QorePGConnection.h \
+	modules/pgsql/QorePGMapper.h \
 	modules/tibrv/tibrv-module.h \
 	modules/tibrv/qore_tibrv.h \
 	modules/tibrv/QoreTibrvTransport.h \
