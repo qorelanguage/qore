@@ -4,6 +4,8 @@
 	  include files are found)
 	* fixed configure for sybase
 	* added pgsql module for PostgreSQL database access
+	* fixed configure for pcre (only succeed if matching libs and include
+	  files are found, do not abort until all possibilities are checked)
 
 2007.02.22: David Nichols
 	* implemented new extensible DBI-driver registration

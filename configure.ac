@@ -376,6 +376,7 @@ set_pcre_cppflags()
     if test "$1" != "/usr/include"; then
         PCRE_CPPFLAGS=-I$1
     fi
+    with_pcre_includes="$1"
 }
 
 find_pcre()
@@ -385,7 +386,8 @@ find_pcre()
     if test -n "$pcre_static"; then
     	if test -f "$lib/libpcre.a"; then
 	    PCRE_LDFLAGS="$lib/libpcre.a"
-       	    AC_MSG_RESULT([$lib (forced static)])
+	    with_pcre_libs="$lib"
+	    pcre_static=1
     	fi
     else
         if test -f "$lib/libpcre.${SHLIB_SUFFIX}"; then
@@ -393,19 +395,19 @@ find_pcre()
        	        PCRE_LDFLAGS="-L$lib"
     	    fi
 	    PCRE_LDFLAGS="$PCRE_LDFLAGS -lpcre"
-       	    AC_MSG_RESULT([$lib (shared)])
+	    with_pcre_libs="$lib"
     	elif test -f "$lib/libpcre.a"; then
 	    if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
        	        PCRE_LDFLAGS="-L$lib"
     	    fi
 	    PCRE_LDFLAGS="$PCRE_LDFLAGS -lpcre"
-       	    AC_MSG_RESULT([$lib (static)])
+	    with_pcre_libs="$lib"
+	    pcre_static=1
     	fi
     fi
     if test -z "$PCRE_LDFLAGS"; then
         return
     fi
-    AC_MSG_CHECKING([for pcre include files])
     # try to find include files
     if test "$1" = "/"; then
         inc=/usr/include
@@ -413,13 +415,13 @@ find_pcre()
         inc=$1/include
     fi
     if test -f "$inc/pcre.h"; then
-        AC_MSG_RESULT([found: $inc])
         set_pcre_cppflags $inc
     elif test -f "$inc/pcre/pcre.h"; then
-        AC_MSG_RESULT([found: $inc/pcre])
         set_pcre_cppflags $inc/pcre
     else
-	AC_MSG_ERROR([not found])
+        unset PCRE_LDFLAGS
+	unset with_pcre_libs
+	return
     fi
     AC_SUBST(PCRE_LDFLAGS)
     AC_SUBST(PCRE_CPPFLAGS)   
@@ -441,6 +443,11 @@ for dir in "${with_pcre_dir}" /usr / /usr/local /opt/gnu /opt/pcre /usr/local/pc
 done
 if test -z "$PCRE_LDFLAGS"; then
     AC_MSG_ERROR([no pcre library found])
+fi
+if test -n "$pcre_static"; then
+   AC_MSG_RESULT([includes $with_pcre_includes libs $with_pcre_libs (static)])
+else
+   AC_MSG_RESULT([includes $with_pcre_includes libs $with_pcre_libs (shared)])
 fi
 
 set_libxml2_cppflags()
