@@ -31,16 +31,18 @@ static class QoreString *pgsql_module_init();
 static void pgsql_module_ns_init(class Namespace *rns, class Namespace *qns);
 static void pgsql_module_delete();
 
-char qore_module_name[] = "pgsql";
-char qore_module_version[] = "0.1";
-char qore_module_description[] = "PostgreSQL module";
-char qore_module_author[] = "David Nichols";
-char qore_module_url[] = "http://qore.sourceforge.net";
-int qore_module_api_major = QORE_MODULE_API_MAJOR;
-int qore_module_api_minor = QORE_MODULE_API_MINOR;
-qore_module_init_t qore_module_init = pgsql_module_init;
-qore_module_ns_init_t qore_module_ns_init = pgsql_module_ns_init;
-qore_module_delete_t qore_module_delete = pgsql_module_delete;
+#ifndef QORE_MOINOLITHIC
+DLLEXPORT char qore_module_name[] = "pgsql";
+DLLEXPORT char qore_module_version[] = "0.1";
+DLLEXPORT char qore_module_description[] = "PostgreSQL module";
+DLLEXPORT char qore_module_author[] = "David Nichols";
+DLLEXPORT char qore_module_url[] = "http://qore.sourceforge.net";
+DLLEXPORT int qore_module_api_major = QORE_MODULE_API_MAJOR;
+DLLEXPORT int qore_module_api_minor = QORE_MODULE_API_MINOR;
+DLLEXPORT qore_module_init_t qore_module_init = pgsql_module_init;
+DLLEXPORT qore_module_ns_init_t qore_module_ns_init = pgsql_module_ns_init;
+DLLEXPORT qore_module_delete_t qore_module_delete = pgsql_module_delete;
+#endif
 
 static int pgsql_caps = DBI_CAP_TRANSACTION_MANAGEMENT 
    | DBI_CAP_CHARSET_SUPPORT
