@@ -472,7 +472,7 @@ void QorePGResult::static_init()
    //array_data_map[QPGT_REGTYPEARRAYOID]      = std::make_pair(OID, qpg_data_);
    //array_data_map[QPGT_ANYARRAYOID]          = std::make_pair(OID, qpg_data_);
 
-   array_type_map[INT4OID]                      = INT4ARRAYOID;
+   array_type_map[INT4OID]                      = QPGT_INT4ARRAYOID;
    array_type_map[CIRCLEOID]                    = QPGT_CIRCLEARRAYOID;
    array_type_map[CASHOID]                      = QPGT_MONEYARRAYOID;
    array_type_map[BOOLOID]                      = QPGT_BOOLARRAYOID;
