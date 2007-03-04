@@ -20,31 +20,18 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <qore/config.h>
 #include <qore/Qore.h>
-#include <qore/Namespace.h>
-#include <qore/support.h>
-#include <qore/common.h>
-#include <qore/QoreClass.h>
-#include <qore/Object.h>
-#include <qore/qore_thread.h>
-#include <qore/params.h>
 #include <qore/ErrnoConstants.h>
 #include <qore/TypeConstants.h>
-#include <qore/QoreProgram.h>
 #include <qore/ParserSupport.h>
 #include <qore/Function.h>
 #include <qore/CallStack.h>
 #include <qore/QoreRegexBase.h>
-#include <qore/DBI.h>
 #include <qore/AutoNamespaceList.h>
 #include <qore/ssl_constants.h>
 #include <qore/NamedScope.h>
-#include <qore/QoreNode.h>
 #include <qore/QoreFile.h>
-#include <qore/hash_map.h>
 #include <qore/minitest.hpp>
-#include <qore/QoreType.h>
 #include <qore/ConstantList.h>
 #include <qore/QoreClassList.h>
 
@@ -59,6 +46,7 @@
 #include <qore/QC_HTTPClient.h>
 #include <qore/QC_XmlRpcClient.h>
 #include <qore/QC_JsonRpcClient.h>
+#include <qore/QC_SafeLocker.h>
 
 #include <string.h>
 #include <stdlib.h>
@@ -1585,6 +1573,7 @@ RootNamespace::RootNamespace(class Namespace **QoreNS) : Namespace()
    qns->addSystemClass(File = initFileClass());
    qns->addSystemClass(initGetOptClass());
    qns->addSystemClass(initFtpClientClass());
+   qns->addSystemClass(initSafeLockerClass());
 
    // add HTTPClient namespace
    class QoreClass *http_client_class;

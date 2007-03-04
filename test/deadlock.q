@@ -34,5 +34,21 @@ synchronized sub b()
     }
 }
 
-background a();
-b();
+sub main()
+{
+    # internal deadlock with synchronized subroutines
+    background a();
+    b();
+
+    my $m = new Mutex();
+    $m.lock();
+    try {
+	$m.lock();
+    }
+    catch ($ex)
+    {
+	printf("%s: %s\n", $ex.err, $ex.desc); 
+    }    
+}
+
+main();

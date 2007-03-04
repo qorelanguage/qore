@@ -5,6 +5,10 @@
 	  on a lock that the current thread is already holding; if so, there
 	  a THREAD-DEADLOCK exception is raised
 	* applied deadlock detection to Mutex, VRMutex, and Condition classes
+	* added SafeLocker class as a helper class for exception-safe unlocking 
+	  within a block
+	* throw an exception in Mutex::destructor() if it's destroyed while
+	  locked
 
 2007.03.02: David Nichols
 	* added Datasource::vselect() and Datasource::vselectRows() methods
