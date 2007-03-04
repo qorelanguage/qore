@@ -101,7 +101,7 @@ class Var : public ReferenceObject
       DLLLOCAL void makeReference(class Var *v, class ExceptionSink *xsink, bool ro = false);
       DLLLOCAL bool isImported() const;
       DLLLOCAL void deref(class ExceptionSink *xsink);
-      DLLLOCAL class QoreNode *eval();
+      DLLLOCAL class QoreNode *eval(class ExceptionSink *xsink);
       DLLLOCAL class QoreNode **getValuePtr(class VLock *vl, class ExceptionSink *xsink);
       DLLLOCAL class QoreNode *getValue(class VLock *vl, class ExceptionSink *xsink);
 };

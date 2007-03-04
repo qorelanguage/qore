@@ -52,7 +52,7 @@ class QoreNode *date_Copy(class QoreNode *l, class ExceptionSink *xsink)
    return new QoreNode(new DateTime(*(l->val.date_time)));
 }
 
-bool date_Compare(class QoreNode *l, class QoreNode *r)
+bool date_Compare(class QoreNode *l, class QoreNode *r, class ExceptionSink *xsink)
 {
    return (bool)!l->val.date_time->isEqual(r->val.date_time);
 }

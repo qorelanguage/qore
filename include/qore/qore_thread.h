@@ -83,6 +83,7 @@ DLLLOCAL class Object *substituteObject(class Object *o);
 DLLLOCAL void catchSaveException(class Exception *e);
 DLLLOCAL class Exception *catchGetException();
 DLLLOCAL class CallStack *getCallStack();
+DLLLOCAL class VLock *getVLock();
 
 class ThreadResourceList : public LockedObject {
    private:

@@ -47,7 +47,7 @@ class QoreNode *bigint_ConvertTo(class QoreNode *n, class ExceptionSink *xsink)
    return new QoreNode(i);
 }
 
-bool bigint_Compare(class QoreNode *l, class QoreNode *r)
+bool bigint_Compare(class QoreNode *l, class QoreNode *r, class ExceptionSink *xsink)
 {
    return (bool)(l->val.intval != r->val.intval);
 }

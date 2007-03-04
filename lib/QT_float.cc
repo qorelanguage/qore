@@ -47,7 +47,7 @@ class QoreNode *float_ConvertTo(class QoreNode *n, class ExceptionSink *xsink)
    return new QoreNode(f);
 }
 
-bool float_Compare(class QoreNode *l, class QoreNode *r)
+bool float_Compare(class QoreNode *l, class QoreNode *r, class ExceptionSink *xsink)
 {
    return (bool)(l->val.floatval != r->val.floatval);
 }

@@ -58,10 +58,11 @@ static class QoreNode *CONDITION_broadcast(class Object *self, class Condition *
 static class QoreNode *CONDITION_wait(class Object *self, class Condition *c, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = test_param(params, NT_OBJECT, 0);
-   Mutex *m = p0 ? (Mutex *)p0->val.object->getReferencedPrivateData(CID_MUTEX) : NULL;
+   Mutex *m = p0 ? (Mutex *)p0->val.object->getReferencedPrivateData(CID_MUTEX, xsink) : NULL;
    if (!p0 || !m)
    {
-      xsink->raiseException("CONDITION-WAIT-PARAMETER-EXCEPTION", "expecting a Mutex object as parameter to Condition::wait()");
+      if (!xsink->isException())
+	 xsink->raiseException("CONDITION-WAIT-PARAMETER-EXCEPTION", "expecting a Mutex object as parameter to Condition::wait()");
       return NULL;
    }
    ReferenceHolder<Mutex> holder(m);
@@ -71,11 +72,11 @@ static class QoreNode *CONDITION_wait(class Object *self, class Condition *c, cl
 
    int rc;
    if (timeout)
-      rc = c->wait(&m->ptm_lock, timeout);
+      rc = c->wait(m, timeout, xsink);
    else
-      rc = c->wait(&m->ptm_lock);
+      rc = c->wait(m, xsink);
 
-   if (rc && rc != ETIMEDOUT)
+   if (rc && rc != ETIMEDOUT && !*xsink)
    {
       xsink->raiseException("CONDITION-WAIT-ERROR", strerror(errno));
       rv = NULL;

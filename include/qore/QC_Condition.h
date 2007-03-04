@@ -24,7 +24,7 @@
 
 #define _QORE_CLASS_CONDITION_H
 
-#include <qore/common.h>
+#include <qore/Qore.h>
 #include <qore/QoreCondition.h>
 #include <qore/AbstractPrivateData.h>
 
@@ -32,10 +32,42 @@ extern int CID_CONDITION;
 
 class QoreClass *initConditionClass();
 
-class Condition : public AbstractPrivateData, public QoreCondition
+class Condition : public AbstractPrivateData
 {
+   private:
+      QoreCondition cond;
+
    protected:
       DLLLOCAL virtual ~Condition() {}
+
+   public:
+      DLLLOCAL int wait(class Mutex *m, int timeout, class ExceptionSink *xsink)
+      {
+	 // FIXME: implement timeout
+	 if (m->verify_lock_tid("Condition::wait", xsink))
+	    return -1;
+	 m->asl_lock.lock();
+	 int rc = cond.wait(&m->asl_lock, timeout);
+	 m->asl_lock.unlock();
+	 return rc;
+      }
+      DLLLOCAL int wait(class Mutex *m, class ExceptionSink *xsink)
+      {
+	 if (m->verify_lock_tid("Condition::wait", xsink))
+	    return -1;
+	 m->asl_lock.lock();
+	 int rc = cond.wait(&m->asl_lock);
+	 m->asl_lock.unlock();
+	 return rc;
+      }
+      DLLLOCAL int signal()
+      {
+	 return cond.signal();
+      }
+      DLLLOCAL int broadcast()
+      {
+	 return cond.broadcast();
+      }
 };
 
 #endif // _QORE_CLASS_CONDITION_H

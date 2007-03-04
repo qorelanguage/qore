@@ -785,9 +785,10 @@ static QoreNode *SOCKET_setCertificate(class Object *self, class mySocket *s, cl
 	 return NULL;
       }
    }
-   else if (!p0 || p0->type != NT_OBJECT || !(cert = (QoreSSLCertificate *)p0->val.object->getReferencedPrivateData(CID_SSLCERTIFICATE)))
+   else if (!p0 || p0->type != NT_OBJECT || !(cert = (QoreSSLCertificate *)p0->val.object->getReferencedPrivateData(CID_SSLCERTIFICATE, xsink)))
    {
-      xsink->raiseException("SOCKET-SETCERTIFICATE-ERROR", "expecting SSLCertificate object parameter");
+      if (!xsink->isException())
+	 xsink->raiseException("SOCKET-SETCERTIFICATE-ERROR", "expecting SSLCertificate object parameter");
       return NULL;
    }
 
@@ -815,9 +816,10 @@ static QoreNode *SOCKET_setPrivateKey(class Object *self, class mySocket *s, cla
 	 return NULL;
       }
    }
-   else if (!p0 || (p0->type != NT_OBJECT) || !(pk = (QoreSSLPrivateKey *)p0->val.object->getReferencedPrivateData(CID_SSLPRIVATEKEY)))
+   else if (!p0 || (p0->type != NT_OBJECT) || !(pk = (QoreSSLPrivateKey *)p0->val.object->getReferencedPrivateData(CID_SSLPRIVATEKEY, xsink)))
    {
-      xsink->raiseException("SOCKET-SETPRIVATEKEY-ERROR", "expecting SSLPrivateKey object parameter");
+      if (!xsink->isException())
+	 xsink->raiseException("SOCKET-SETPRIVATEKEY-ERROR", "expecting SSLPrivateKey object parameter");
       return NULL;
    }
 

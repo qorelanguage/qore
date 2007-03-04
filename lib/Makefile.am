@@ -74,6 +74,7 @@ libqore_la_SOURCES = \
 	QoreClassList.cc \
 	thread.cc \
 	VRMutex.cc \
+	VLock.cc \
 	RMutex.cc \
 	CallStack.cc \
 	ExecArgList.cc \
@@ -143,6 +144,7 @@ libqore_la_SOURCES = \
 	QC_HTTPClient.cc \
 	QC_XmlRpcClient.cc \
 	QC_JsonRpcClient.cc \
+	QC_SafeLocker.cc \
 	QoreHTTPClient.cc \
 	minitest.cc
 

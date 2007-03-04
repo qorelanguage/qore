@@ -27,7 +27,7 @@
 DLLLOCAL class QoreNode *string_DefaultValue();
 DLLLOCAL class QoreNode *string_Copy(class QoreNode *n, class ExceptionSink *xsink);
 DLLLOCAL class QoreNode *string_ConvertTo(class QoreNode *n, class ExceptionSink *xsink);
-DLLLOCAL bool string_Compare(class QoreNode *l, class QoreNode *r);
+DLLLOCAL bool string_Compare(class QoreNode *l, class QoreNode *r, class ExceptionSink *xsink);
 DLLLOCAL class QoreString *string_MakeString(class QoreNode *n, int format, class ExceptionSink *xsink);
 DLLLOCAL void string_DeleteContents(class QoreNode *n);
 

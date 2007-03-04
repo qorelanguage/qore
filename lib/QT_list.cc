@@ -66,12 +66,12 @@ class QoreNode *list_Copy(class QoreNode *l, class ExceptionSink *xsink)
    return l->val.list->eval(xsink);
 }
 
-bool list_Compare(class QoreNode *l, class QoreNode *r)
+bool list_Compare(class QoreNode *l, class QoreNode *r, class ExceptionSink *xsink)
 {
    if (l->val.list->size() != r->val.list->size())
       return 1;
    for (int i = 0; i < l->val.list->size(); i++)
-      if (compareHard(l->val.list->retrieve_entry(i), r->val.list->retrieve_entry(i)))
+      if (compareHard(l->val.list->retrieve_entry(i), r->val.list->retrieve_entry(i), xsink))
 	 return 1;
    return 0;
 }

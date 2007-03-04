@@ -27,7 +27,7 @@
 DLLLOCAL class QoreNode *date_DefaultValue();
 DLLLOCAL class QoreNode *date_Copy(class QoreNode *n, class ExceptionSink *xsink);
 DLLLOCAL class QoreNode *date_ConvertTo(class QoreNode *n, class ExceptionSink *xsink);
-DLLLOCAL bool date_Compare(class QoreNode *l, class QoreNode *r);
+DLLLOCAL bool date_Compare(class QoreNode *l, class QoreNode *r, class ExceptionSink *xsink);
 DLLLOCAL class QoreString *date_MakeString(class QoreNode *n, int format, class ExceptionSink *xsink);
 DLLLOCAL void date_DeleteContents(class QoreNode *n);
 

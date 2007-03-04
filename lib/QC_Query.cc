@@ -125,7 +125,7 @@ static void Q_constructor(class Object *self, class QoreNode *params, ExceptionS
       traceout("Q_constructor()");
       return;
    }
-   Datasource *ds = (Datasource *)p0->val.object->getReferencedPrivateData(CID_DATASOURCE);
+   Datasource *ds = (Datasource *)p0->val.object->getReferencedPrivateData(CID_DATASOURCE, xsink);
    g->exit();
    if (!ds)
    {

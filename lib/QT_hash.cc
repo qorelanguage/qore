@@ -71,9 +71,9 @@ class QoreNode *hash_Copy(class QoreNode *l, class ExceptionSink *xsink)
    return new QoreNode(l->val.hash->eval(xsink));
 }
 
-bool hash_Compare(class QoreNode *l, class QoreNode *r)
+bool hash_Compare(class QoreNode *l, class QoreNode *r, class ExceptionSink *xsink)
 {
-   return l->val.hash->compareHard(r->val.hash);
+   return l->val.hash->compareHard(r->val.hash, xsink);
 }
 
 class QoreString *hash_MakeString(class QoreNode *n, int foff, class ExceptionSink *xsink)

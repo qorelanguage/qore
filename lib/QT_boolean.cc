@@ -47,7 +47,7 @@ class QoreNode *boolean_ConvertTo(class QoreNode *n, class ExceptionSink *xsink)
    return rv;
 }
 
-bool boolean_Compare(class QoreNode *l, class QoreNode *r)
+bool boolean_Compare(class QoreNode *l, class QoreNode *r, class ExceptionSink *xsink)
 {
    return (bool)(l->val.boolval != r->val.boolval);
 }

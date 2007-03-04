@@ -52,6 +52,7 @@ class Object : public ReferenceObject
    private:
       class QoreClass *myclass;
       int status;
+      bool system_object;
       class VRMutex g;
       class KeyList *privateData;
       class ReferenceObject tRefs;  // reference-references
@@ -81,23 +82,23 @@ class Object : public ReferenceObject
       DLLEXPORT class List *getMemberList(class ExceptionSink *xsink);
       DLLEXPORT void deleteMemberValue(class QoreString *key, class ExceptionSink *xsink);
       DLLEXPORT void deleteMemberValue(char *key, class ExceptionSink *xsink);
-      DLLEXPORT int size();
+      DLLEXPORT int size(class ExceptionSink *xsink);
       DLLEXPORT bool compareSoft(class Object *obj, class ExceptionSink *xsink);
-      DLLEXPORT bool compareHard(class Object *obj);
+      DLLEXPORT bool compareHard(class Object *obj, class ExceptionSink *xsink);
       DLLEXPORT class QoreNode *evalFirstKeyValue(class ExceptionSink *xsink);
       DLLEXPORT class QoreNode *evalMember(class QoreNode *member, class ExceptionSink *xsink);
       DLLEXPORT class QoreNode *evalMemberNoMethod(char *mem, class ExceptionSink *xsink);
       DLLEXPORT class QoreNode *evalMemberExistence(char *mem, class ExceptionSink *xsink);
       DLLEXPORT class Hash *evalData(class ExceptionSink *xsink);
       DLLEXPORT void setPrivate(int key, AbstractPrivateData *pd);
-      DLLEXPORT AbstractPrivateData *getReferencedPrivateData(int key);
+      DLLEXPORT AbstractPrivateData *getReferencedPrivateData(int key, class ExceptionSink *xsink);
       DLLEXPORT class QoreNode *evalMethod(class QoreString *name, class QoreNode *args, class ExceptionSink *xsink);
       DLLEXPORT class QoreClass *getClass(int cid) const;
       DLLEXPORT class QoreClass *getClass() const;
       DLLEXPORT int getStatus() const;
       DLLEXPORT int isValid() const;
       DLLEXPORT class QoreProgram *getProgram() const;
-      DLLEXPORT bool isSystemObject();
+      DLLEXPORT bool isSystemObject() const;
       DLLEXPORT void tRef();
       DLLEXPORT void tDeref();
       DLLEXPORT void ref();
@@ -108,11 +109,11 @@ class Object : public ReferenceObject
       DLLLOCAL void merge(class Hash *h, class ExceptionSink *xsink);
       DLLLOCAL void assimilate(class Hash *h, class ExceptionSink *xsink);
       DLLLOCAL class KeyNode *getReferencedPrivateDataNode(int key);
-      DLLLOCAL AbstractPrivateData *getAndClearPrivateData(int key);
+      DLLLOCAL AbstractPrivateData *getAndClearPrivateData(int key, class ExceptionSink *xsink);
       DLLLOCAL class QoreNode *evalBuiltinMethodWithPrivateData(class BuiltinMethod *meth, class QoreNode *args, class ExceptionSink *xsink);
       // called on old to acquire private data, copy method called on self (new copy)
       DLLLOCAL void evalCopyMethodWithPrivateData(class BuiltinMethod *meth, class Object *self, class ExceptionSink *xsink);
-      DLLLOCAL void addPrivateDataToString(class QoreString *str);
+      DLLLOCAL void addPrivateDataToString(class QoreString *str, class ExceptionSink *xsink);
       DLLLOCAL void obliterate(class ExceptionSink *xsink);
       DLLLOCAL void doDelete(class ExceptionSink *xsink);
       DLLLOCAL void defaultSystemDestructor(int classID, class ExceptionSink *xsink);

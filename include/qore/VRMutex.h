@@ -26,47 +26,21 @@
 
 #define _QORE_VRMUTEX_H
 
-#include <qore/LockedObject.h>
-#include <qore/QoreCondition.h>
+#include <qore/AbstractSmartLock.h>
+#include <qore/VLock.h>
 
 // class for tiered locking and deadlock detection
-class VRMutex : public LockedObject, public QoreCondition
+class VRMutex : public AbstractSmartLock
 {
    private:
       int tid, count, waiting;
-      class VLock *vl;
 
    public:
       DLLLOCAL VRMutex();
-      DLLLOCAL int enter(class VLock *, class ExceptionSink *);
-      DLLLOCAL void enter();
+      DLLLOCAL int enter(class ExceptionSink *);
+      //DLLLOCAL void enter();
       DLLLOCAL int exit();
-};
-
-// VLNode and VLock are for nested locks when updating variables and objects
-class VLNode {
-   public:
-      class VRMutex *g;
-      class VLNode *next;
-
-      DLLLOCAL VLNode(class VRMutex *gate);
-};
-
-// for locking
-class VLock {
-   private:
-      class VLNode *head;
-      class VLNode *tail;
-
-   public:
-      class VRMutex *waiting_on;
-      int tid;
-
-      DLLLOCAL VLock();
-      DLLLOCAL ~VLock();
-      DLLLOCAL void add(class VRMutex *g);
-      DLLLOCAL void del();
-      DLLLOCAL class VRMutex *find(class VRMutex *g);
+      DLLLOCAL virtual int release();
 };
 
 #endif

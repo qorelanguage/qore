@@ -34,7 +34,9 @@ typedef ReferenceHolder<QoreHTTPClient> safe_httpclient_t;
 static void XRC_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
    // get HTTPClient object
-   safe_httpclient_t client((QoreHTTPClient *)getStackObject()->getReferencedPrivateData(CID_HTTPCLIENT));
+   safe_httpclient_t client((QoreHTTPClient *)getStackObject()->getReferencedPrivateData(CID_HTTPCLIENT, xsink));
+   if (!client)
+      return;
 
    // set options for XML-RPC communication
    client->setDefaultPath("RPC2");

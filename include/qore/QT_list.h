@@ -30,7 +30,7 @@ DLLLOCAL bool list_needs_eval(class QoreNode *n);
 DLLLOCAL class QoreNode *list_Eval(class QoreNode *n, class ExceptionSink *xsink);
 DLLLOCAL class QoreNode *list_eval_opt_deref(bool &needs_deref, class QoreNode *n, class ExceptionSink *xsink);
 DLLLOCAL class QoreNode *list_Copy(class QoreNode *n, class ExceptionSink *xsink);
-DLLLOCAL bool list_Compare(class QoreNode *l, class QoreNode *r);
+DLLLOCAL bool list_Compare(class QoreNode *l, class QoreNode *r, class ExceptionSink *xsink);
 DLLLOCAL class QoreString *list_MakeString(class QoreNode *n, int format, class ExceptionSink *xsink);
 DLLLOCAL void list_DeleteContents(class QoreNode *n);
 

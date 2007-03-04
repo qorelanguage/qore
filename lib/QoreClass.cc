@@ -608,7 +608,7 @@ inline void Method::evalSystemConstructor(Object *self, QoreNode *args, class BC
 inline void Method::evalSystemDestructor(class Object *self, class ExceptionSink *xsink)
 {
    // get pointer to private data object from class ID of base type
-   AbstractPrivateData *ptr = self->getAndClearPrivateData(func.builtin->myclass->getID());
+   AbstractPrivateData *ptr = self->getAndClearPrivateData(func.builtin->myclass->getID(), xsink);
    //printd(5, "Method::evalSystemDestructor() class=%s (%08p) id=%d ptr=%08p\n", func.builtin->myclass->getName(), func.builtin->myclass, func.builtin->myclass->getID(), ptr);
    // NOTE: ptr may be null for builtin subclasses without private data
    if (ptr)
@@ -1062,10 +1062,10 @@ void Method::evalDestructor(Object *self, ExceptionSink *xsink)
       func.userFunc->eval(NULL, self, xsink);
    else // builtin function
    {
-      AbstractPrivateData *ptr = self->getAndClearPrivateData(func.builtin->myclass->getID());
+      AbstractPrivateData *ptr = self->getAndClearPrivateData(func.builtin->myclass->getID(), xsink);
       if (ptr)
 	 func.builtin->evalDestructor(self, ptr, xsink);
-      else if (func.builtin->myclass->getID() == func.builtin->myclass->getIDForMethod()) // do not throw an exception if the class has no private data
+      else if (!xsink->isException() && func.builtin->myclass->getID() == func.builtin->myclass->getIDForMethod()) // do not throw an exception if the class has no private data
       {
 	 if (self->getClass() == func.builtin->myclass)
 	    xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::destructor() cannot be executed because the object has already been deleted", self->getClass()->getName());

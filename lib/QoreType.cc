@@ -222,11 +222,11 @@ void QoreTypeManager::add(class QoreType *t)
    insert(std::make_pair(t->getID(), t));
 }
 
-bool QoreType::compare(class QoreNode *n1, class QoreNode *n2) const
+bool QoreType::compare(class QoreNode *n1, class QoreNode *n2, class ExceptionSink *xsink) const
 {
    if (!f_compare)
       return 0;
-   return f_compare(n1, n2);
+   return f_compare(n1, n2, xsink);
 }
 
 void QoreType::deleteContents(class QoreNode *n)
@@ -476,7 +476,7 @@ class QoreType *QoreTypeManager::find(int id)
    return i->second;
 }
 
-bool compareHard(QoreNode *l, QoreNode *r)
+bool compareHard(QoreNode *l, QoreNode *r, class ExceptionSink *xsink)
 {
    if (is_nothing(l))
       if (is_nothing(r))
@@ -488,7 +488,7 @@ bool compareHard(QoreNode *l, QoreNode *r)
    if (l->type != r->type)
       return 1;
    
-   return l->type->compare(l, r);
+   return l->type->compare(l, r, xsink);
 }
 
 // this function calls the operator function that will                                                                                                                      

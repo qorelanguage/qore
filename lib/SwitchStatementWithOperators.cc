@@ -49,7 +49,7 @@ bool CaseNode::isCaseNodeImpl() const
 }
 
 bool CaseNode::matches(QoreNode* lhs_value, class ExceptionSink *xsink) {
-   return !compareHard(lhs_value, val); // the ! is because of compareHard() semantics
+   return !compareHard(lhs_value, val, xsink); // the ! is because of compareHard() semantics
 }
 
 bool CaseNode::isCaseNode() const
@@ -152,6 +152,7 @@ void SwitchStatement::parseInit(lvh_t oflag, int pflag)
    lvids += process_node(&sexp, oflag, pflag);
    
    class CaseNode *w = head;
+   class ExceptionSink xsink;
    while (w)
    {
       if (w->val)
@@ -164,8 +165,10 @@ void SwitchStatement::parseInit(lvh_t oflag, int pflag)
 	 {
             // Check only the simple case blocks (case 1: ...),
             // not those with relational operators. Could be changed later to provide more checking.
-            if (w->isCaseNode() && cw->isCaseNode() && !compareHard(w->val, cw->val))
+	    // note that no exception can be raised here as the case node values are parse values
+            if (w->isCaseNode() && cw->isCaseNode() && !compareHard(w->val, cw->val, &xsink))
 	       parse_error("duplicate case values in switch");
+	    assert(!xsink);
 	    cw = cw->next;
 	 }
       }

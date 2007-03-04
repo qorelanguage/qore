@@ -467,7 +467,7 @@ bool Hash::compareSoft(class Hash *h, class ExceptionSink *xsink) const
 
 // does a "hard" compare (types must be exactly the same)
 // 0 = equal, 1 = not equal
-bool Hash::compareHard(class Hash *h) const
+bool Hash::compareHard(class Hash *h, class ExceptionSink *xsink) const
 {
    if (h->hm.size() != hm.size())
       return 1;
@@ -478,7 +478,7 @@ bool Hash::compareHard(class Hash *h) const
       if (j == h->hm.end())
 	 return 1;
 
-      if (::compareHard(i->second->node, j->second->node))
+      if (::compareHard(i->second->node, j->second->node, xsink))
 	 return 1;
    }
 

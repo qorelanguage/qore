@@ -93,13 +93,14 @@ class QoreNode *Var::getValue()
 }
 */
 
-class QoreNode *Var::eval()
+class QoreNode *Var::eval(class ExceptionSink *xsink)
 {
    class QoreNode *rv;
 
-   gate.enter();
+   if (gate.enter(xsink))
+      return NULL;
    if (type == GV_IMPORT)
-      rv = v.ivar.refptr->eval();
+      rv = v.ivar.refptr->eval(xsink);
    else
    {
       rv = v.val.value;
@@ -113,7 +114,7 @@ class QoreNode *Var::eval()
 // note: the caller must exit the gate!
 class QoreNode **Var::getValuePtr(class VLock *vl, class ExceptionSink *xsink)
 {
-   if (gate.enter(vl, xsink))
+   if (gate.enter(xsink))
       return NULL;
 
    if (type == GV_IMPORT)
@@ -128,14 +129,13 @@ class QoreNode **Var::getValuePtr(class VLock *vl, class ExceptionSink *xsink)
       gate.exit();
       return rv;
    }
-   vl->add(&gate);
    return &v.val.value;
 }
 
 // note: the caller must exit the gate!
 class QoreNode *Var::getValue(class VLock *vl, class ExceptionSink *xsink)
 {
-   if (gate.enter(vl, xsink))
+   if (gate.enter(xsink))
       return NULL;
 
    if (type == GV_IMPORT)
@@ -144,7 +144,6 @@ class QoreNode *Var::getValue(class VLock *vl, class ExceptionSink *xsink)
       gate.exit();
       return rv;
    }
-   vl->add(&gate);
    return v.val.value;
 }
 
@@ -157,13 +156,15 @@ void Var::setValue(class QoreNode *val, class ExceptionSink *xsink)
 	 xsink->raiseException("ACCESS-ERROR", "attempt to write to read-only variable $%s", v.ivar.refptr->getName());
 	 return;
       }
-      gate.enter();
+      if (gate.enter(xsink))
+	 return;
       v.ivar.refptr->setValue(val, xsink);
       gate.exit();
       return;
    }
 
-   gate.enter();
+   if (gate.enter(xsink))
+      return;
    if (v.val.value)
       v.val.value->deref(xsink);
    v.val.value = val;
@@ -172,7 +173,8 @@ void Var::setValue(class QoreNode *val, class ExceptionSink *xsink)
 
 void Var::makeReference(class Var *pvar, class ExceptionSink *xsink, bool ro)
 {
-   gate.enter();
+   if (gate.enter(xsink))
+      return;
    if (type == GV_IMPORT)
       v.ivar.refptr->deref(xsink);
    else
@@ -308,12 +310,12 @@ void LVar::setValue(class QoreNode *val, class ExceptionSink *xsink)
       class Object *o = NULL;
       if (obj)
 	 o = substituteObject(obj);
-      VLock vl;
+      AutoVLock vl;
 
       // mask the ID in case it's a recursive reference
       lvh_t save = id;
       id = NULL;
-      QoreNode **valp = get_var_value_ptr(vexp, &vl, xsink);
+      QoreNode **valp = get_var_value_ptr(vexp, *vl, xsink);
       id = save;
 
       if (!xsink->isEvent())
@@ -419,7 +421,7 @@ class QoreNode *VarRef::eval(class ExceptionSink *xsink)
       return find_lvar(ref.id)->eval(xsink);
    }
    printd(5, "VarRef::eval() global var=%08p\n", ref.var);
-   return ref.var->eval();
+   return ref.var->eval(xsink);
 }
 
 class QoreNode *VarRef::eval(bool &needs_deref, class ExceptionSink *xsink)
@@ -427,7 +429,7 @@ class QoreNode *VarRef::eval(bool &needs_deref, class ExceptionSink *xsink)
    if (type == VT_LOCAL)
       return find_lvar(ref.id)->eval(needs_deref, xsink);
    needs_deref = true;
-   return ref.var->eval();
+   return ref.var->eval(xsink);
 }
 
 class QoreNode **VarRef::getValuePtr(class VLock *vl, class ExceptionSink *xsink)
@@ -803,7 +805,7 @@ static class QoreNode **getUniqueExistingVarValuePtr(class QoreNode *n, Exceptio
 
 void delete_var_node(class QoreNode *lvalue, ExceptionSink *xsink)
 {
-   class VLock vl;
+   class AutoVLock vl;
    class QoreNode **val;
 
    //tracein("delete_var_node()");
@@ -812,7 +814,7 @@ void delete_var_node(class QoreNode *lvalue, ExceptionSink *xsink)
    // ptr, dereference it, and return
    if (lvalue->type == NT_VARREF)
    {
-      val = lvalue->val.vref->getValuePtr(&vl, xsink);
+      val = lvalue->val.vref->getValuePtr(*vl, xsink);
       if (val && *val)
       {
 	 printd(5, "delete_var_node() setting ptr %08p (val=%08p) to NULL\n", val, (*val));
@@ -848,7 +850,7 @@ void delete_var_node(class QoreNode *lvalue, ExceptionSink *xsink)
    // otherwise it is a list or object (hash) reference
    // find variable ptr, exit if doesn't exist anyway
    //val = get_var_value_ptr(lvalue->val.tree->left, vl, xsink);
-   val = getUniqueExistingVarValuePtr(lvalue->val.tree->left, xsink, &vl, NULL);
+   val = getUniqueExistingVarValuePtr(lvalue->val.tree->left, xsink, *vl, NULL);
 
    if (!val || !(*val) || xsink->isEvent())
       return;
@@ -979,8 +981,8 @@ static inline void show_lvstack()
    printd(0, "show_lvstack():\n");
    while (lvar)
    {
-      VLock vl;
-      QoreNode *n = lvar->getValue(&vl, NULL);
+      AutoVLock vl;
+      QoreNode *n = lvar->getValue(*vl, NULL);
       printd(0, "\t%08p: \"%s\" value=%08p (type=%s)\n", lvar, lvar->id, n, n ? n->type->getName() : "<NOTHING>");
       vl.del();
       lvar = lvar->next;

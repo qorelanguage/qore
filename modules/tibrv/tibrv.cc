@@ -38,7 +38,9 @@ static class QoreNode *f_tibrvSetDaemonCert(class QoreNode *params, class Except
 
    // get certificate (SSLCertificate class)
    pt = test_param(params, NT_OBJECT, 1);
-   class QoreSSLCertificate *sslc = pt ? (QoreSSLCertificate *)pt->val.object->getReferencedPrivateData(CID_SSLCERTIFICATE) : NULL;
+   class QoreSSLCertificate *sslc = pt ? (QoreSSLCertificate *)pt->val.object->getReferencedPrivateData(CID_SSLCERTIFICATE, xsink) : NULL;
+   if (*xsink)
+      return NULL;
    class QoreString *pemcert = NULL;
    if (sslc)
    {
@@ -67,7 +69,9 @@ static class QoreNode *f_tibrvSetUserCertWithKey(class QoreNode *params, class E
 {
    // get certificate (SSLCertificate class)
    class QoreNode *pt = test_param(params, NT_OBJECT, 0);
-   class QoreSSLCertificate *cert = pt ? (QoreSSLCertificate *)pt->val.object->getReferencedPrivateData(CID_SSLCERTIFICATE) : NULL;
+   class QoreSSLCertificate *cert = pt ? (QoreSSLCertificate *)pt->val.object->getReferencedPrivateData(CID_SSLCERTIFICATE, xsink) : NULL;
+   if (*xsink)
+      return NULL;
    if (!cert)
    {
       xsink->raiseException("TIBRV-SET-USER-CERT-WTIH-KEY-ERROR", "expecting SSLCertificate object as first parameter to method");
@@ -79,7 +83,9 @@ static class QoreNode *f_tibrvSetUserCertWithKey(class QoreNode *params, class E
       return NULL;
 
    pt = test_param(params, NT_OBJECT, 1);
-   class QoreSSLPrivateKey *pk = pt ? (QoreSSLPrivateKey *)pt->val.object->getReferencedPrivateData(CID_SSLPRIVATEKEY) : NULL;
+   class QoreSSLPrivateKey *pk = pt ? (QoreSSLPrivateKey *)pt->val.object->getReferencedPrivateData(CID_SSLPRIVATEKEY, xsink) : NULL;
+   if (*xsink)
+      return NULL;
    if (!pk)
    {
       xsink->raiseException("TIBRV-SET-USER-CERT-WTIH-KEY-ERROR", "expecting SSLPrivateKey object as second parameter to method");

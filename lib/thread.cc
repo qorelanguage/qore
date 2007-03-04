@@ -26,6 +26,7 @@
 #include <qore/CallStack.h>
 #include <qore/ArgvStack.h>
 #include <qore/QoreProgramStack.h>
+#include <qore/VLock.h>
 
 // to register object types
 #include <qore/QC_Queue.h>
@@ -117,6 +118,7 @@ class ThreadData
 {
    public:
       int tid;
+      class VLock vlock;     // for deadlock detection
       class LVar *lvstack;
       class Context *context_stack;
       class ArgvStack *argvstack;
@@ -602,6 +604,12 @@ void *endParsing()
 int gettid()
 {
    return ((ThreadData *)pthread_getspecific(thread_data_key))->tid;
+}
+
+class VLock *getVLock()
+{
+   ThreadData *td = (ThreadData *)pthread_getspecific(thread_data_key);
+   return &td->vlock;
 }
 
 class LVar *get_thread_stack()

@@ -78,7 +78,7 @@ static class QoreString *dni(class QoreString *s, class QoreNode *n, int indent,
    
    else if (n->type == NT_OBJECT)
    {
-      s->sprintf("elements=%d (type=%s, valid=%s)\n", n->val.object->size(),
+      s->sprintf("elements=%d (type=%s, valid=%s)\n", n->val.object->size(xsink),
                  n->val.object->getClass() ? n->val.object->getClass()->getName() : "<none>",
 		 n->val.object->isValid() ? "yes" : "no");
       {

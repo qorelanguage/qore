@@ -51,6 +51,7 @@
 #include "QoreClassList.cc"
 #include "thread.cc"
 #include "VRMutex.cc"
+#include "VLock.cc"
 #include "RMutex.cc"
 #include "SwitchStatementWithOperators.cc"
 #include "CallStack.cc"
@@ -124,6 +125,7 @@
 #include "QC_HTTPClient.cc"
 #include "QC_XmlRpcClient.cc"
 #include "QC_JsonRpcClient.cc"
+//#include "QC_SafeLocker.cc"
 #include "minitest.cc"
 
 #ifdef DEBUG

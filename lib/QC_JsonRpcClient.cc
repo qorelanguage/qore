@@ -32,7 +32,9 @@ int CID_JSONRPCCLIENT;
 static void JRC_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
    // get HTTPClient object
-   ReferenceHolder<QoreHTTPClient> client((QoreHTTPClient *)getStackObject()->getReferencedPrivateData(CID_HTTPCLIENT));
+   ReferenceHolder<QoreHTTPClient> client((QoreHTTPClient *)getStackObject()->getReferencedPrivateData(CID_HTTPCLIENT, xsink));
+   if (!client)
+      return;
 
    // set encoding to UTF-8
    client->setEncoding(QCS_UTF8);

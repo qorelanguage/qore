@@ -862,7 +862,7 @@ class QoreNode *get_file_constant(class QoreClass *fc, int fd)
    class ExceptionSink xsink;
 
    class QoreNode *rv = fc->execSystemConstructor(NULL, &xsink);
-   class File *f = (File *)rv->val.object->getReferencedPrivateData(CID_FILE);
+   class File *f = (File *)rv->val.object->getReferencedPrivateData(CID_FILE, &xsink);
    f->makeSpecial(fd);
    f->deref();
 

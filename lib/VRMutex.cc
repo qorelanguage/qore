@@ -25,65 +25,6 @@
 
 #include <assert.h>
 
-#ifdef DEBUG
-inline void show_vl(class VLock *vl, class VLock *nvl)
-{
-   printd(5, "VRMutex::enter() vl=%08p, nvl=%08p vl->waiting_on=%08p (in nvl=%08p)\n", vl, nvl, vl ? vl->waiting_on : NULL, (nvl && vl) ? nvl->find(vl->waiting_on) : NULL);
-}
-#endif
-
-VLNode::VLNode(class VRMutex *gate) 
-{
-   g = gate;
-   next = NULL;
-}
-
-VLock::VLock()
-{
-   waiting_on = NULL;
-   tid = 0;
-   head = NULL;
-   tail = NULL;
-}
-
-VLock::~VLock()
-{
-   del();
-}
-
-void VLock::add(class VRMutex *g)
-{
-   class VLNode *n = new VLNode(g);
-   if (tail)
-      tail->next = n;
-   else
-      head = n;
-   tail = n;
-}
-
-void VLock::del()
-{
-   while (head)
-   {
-      tail = head->next;
-      head->g->exit();
-      delete head;
-      head = tail;
-   }
-}
-
-class VRMutex *VLock::find(class VRMutex *g)
-{
-   class VLNode *w = head;
-   while (w)
-   {
-      if (w->g == g)
-	 return g;
-      w = w->next;
-   }
-   return NULL;
-}
-
 VRMutex::VRMutex()
 {
    count = waiting = 0;
@@ -91,18 +32,19 @@ VRMutex::VRMutex()
    vl = NULL;
 }
 
+/*
 void VRMutex::enter()
 {
    //printd(5, "VRMutex::enter() %08p\n", this);
 
    int mtid = gettid();
-   lock();
+   AutoLocker al(&asl_lock);
    while (tid != -1 && tid != mtid)
    {
       waiting++;
       printd(5, "VRMutex::enter() this=%08p about to block on VRMutex owned by TID %d\n", this, tid);
 #ifdef DEBUG
-      show_vl(vl, NULL);
+      vl->show(NULL);
 #endif
       wait((LockedObject *)this);
       printd(5, "VRMutex::enter() this=%08p grabbed VRMutex\n", this);
@@ -117,54 +59,45 @@ void VRMutex::enter()
    //if (count == 1)
    //printd(5, "VRMutex::enter() this=%08p grabbed lock (vl=%08p)\n", this, vl);
 #endif
-   unlock();
 }
+*/
 
-int VRMutex::enter(class VLock *nvl, class ExceptionSink *xsink)
+int VRMutex::enter(class ExceptionSink *xsink)
 {
+   class VLock *nvl = getVLock();
    int mtid = gettid();
-   lock();
+
+   // grabs the lock and releases it when the function is exited
+   AutoLocker al(&asl_lock);
+
    while (tid != -1 && tid != mtid)
    {
-      // check for a deadlock - 
-      // if the thread that's holding the lock is waiting on a lock
-      // that we are holding, then there is a deadlock
-      if (vl && vl->waiting_on && nvl->find(vl->waiting_on))
-      {
-	 xsink->raiseException("THREAD-DEADLOCK", "TIDs %d and %d have deadlocked trying to acquire the same resources", tid, mtid);
-	 unlock();
-	 return -1;
-      }
-
+      assert(nvl);
       waiting++;
-      nvl->waiting_on = this;
-      nvl->tid = mtid;
-      printd(5, "VRMutex::enter() this=%08p about to block on VRMutex owned by TID %d\n", this, tid);
-#ifdef DEBUG
-      show_vl(vl, nvl);
-#endif
-      wait((LockedObject *)this);
-      printd(5, "VRMutex::enter() this=%08p grabbed VRMutex\n", this);
-      nvl->waiting_on = NULL;
+      int rc = nvl->waitOn((AbstractSmartLock *)this, vl, mtid, xsink);
       waiting--;
+      // if rc is non-zero there was a deadlock
+      if (rc)
+	 return -1;
    }
-   tid = mtid;
+   // The list must always be the same!
+   assert((mtid == tid  && vl == nvl) || (tid == -1 && !vl));
 
+   if (tid == -1)
+   {
+      tid = mtid;
+      vl = nvl;
 #ifdef DEBUG
-   printd(5, "VRMutex::enter() this=%p count: %d->%d\n", this, count, count + 1);
+      if (count == 1)
+	 printd(5, "VRMutex::enter() this=%08p grabbed lock (vl=%08p nvl=%08p)\n", this, vl, nvl);
 #endif
+      nvl->push(this);
+   }
+   
+   printd(5, "VRMutex::enter() this=%p count: %d->%d\n", this, count, count + 1);
 
    count++;
 
-   if (!vl)
-      vl = nvl;
-
-#ifdef DEBUG
-   if (count == 1)
-      printd(5, "VRMutex::enter() this=%08p grabbed lock (vl=%08p nvl=%08p)\n", this, vl, nvl);
-#endif
-
-   unlock();
    return 0;
 }
 
@@ -173,13 +106,11 @@ int VRMutex::exit()
    assert(tid == gettid());
 
    //fprintf(stderr, "Gate::exit() %08p\n", this);
-   lock();
+   // grabs the lock and releases it when the function is exited
+   AutoLocker al(&asl_lock);
    // if the lock is not locked, then return an error
    if (!count)
-   {
-      unlock();
       return -1;
-   }
 #ifdef DEBUG
    printd(5, "VRMutex::exit() this=%p count: %d->%d\n", this, count, count - 1);
 #endif
@@ -191,18 +122,54 @@ int VRMutex::exit()
    {
 #ifdef DEBUG
       printd(5, "VRMutex::exit() this=%p releasing lock (vl=%08p)\n", this, vl);
+      AbstractSmartLock *g = vl->pop();
+      assert(g == this);
+#else
+      vl->pop();
 #endif
+      
       tid = -1;
       vl = NULL;
 
       // wake up a sleeping thread if there are threads waiting 
       // on the lock
       if (waiting)
-	 signal();
+	 asl_cond.signal();
    }
 
-   unlock();
+   return 0;
+}
 
+int VRMutex::release()
+{
+   assert(tid == gettid());
+   
+   //fprintf(stderr, "Gate::exit() %08p\n", this);
+   // grabs the lock and releases it when the function is exited
+   AutoLocker al(&asl_lock);
+   // if the lock is not locked, then return an error
+   if (!count)
+      return -1;
+#ifdef DEBUG
+   printd(5, "VRMutex::release() this=%p count: %d->%d\n", this, count, count - 1);
+#endif
+   
+   count--;
+   // if this is the last thread from the group to exit the lock
+   // then unlock the lock
+   if (!count)
+   {
+      printd(5, "VRMutex::exit() this=%p releasing lock (vl=%08p)\n", this, vl);
+      
+      tid = -1;
+      vl = NULL;
+      
+      // wake up a sleeping thread if there are threads waiting 
+      // on the lock
+      if (waiting)
+	 asl_cond.signal();
+   }
+   
    return 0;
 }
 

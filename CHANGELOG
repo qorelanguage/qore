@@ -1,3 +1,11 @@
+2007.03.04: David Nichols
+	* implemented new deadlock-detection framework for all internal locking
+	  each thread has a VLock object that tracks locks held; before a 
+	  thread blocks, it checks the thread holding the lock if it's waiting
+	  on a lock that the current thread is already holding; if so, there
+	  a THREAD-DEADLOCK exception is raised
+	* applied deadlock detection to Mutex, VRMutex, and Condition classes
+
 2007.03.02: David Nichols
 	* added Datasource::vselect() and Datasource::vselectRows() methods
 	* fixed configure script for mysql (only succeed if matching libs and

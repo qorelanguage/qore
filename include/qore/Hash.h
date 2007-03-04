@@ -109,7 +109,7 @@ class Hash
       DLLEXPORT class QoreNode *takeKeyValue(char *key);
       DLLEXPORT class List *getKeys() const;
       DLLEXPORT bool compareSoft(class Hash *h, class ExceptionSink *xsink) const;
-      DLLEXPORT bool compareHard(class Hash *h) const;
+      DLLEXPORT bool compareHard(class Hash *h, class ExceptionSink *xsink) const;
       DLLEXPORT class QoreNode *evalFirstKeyValue(class ExceptionSink *xsink) const;
       DLLEXPORT void dereference(class ExceptionSink *xsink);
       DLLEXPORT void derefAndDelete(class ExceptionSink *xsink);

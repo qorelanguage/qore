@@ -640,15 +640,15 @@ class QoreNode *UserFunction::eval(QoreNode *args, Object *self, class Exception
       push_argv(params->argvid);
 
       // enter gate if necessary
-      if (synchronized)
-         gate->enter();
+      if (!synchronized || !gate->enter(xsink))
+      {
+	 // execute function
+	 val = statements->exec(xsink);
 
-      // execute function
-      val = statements->exec(xsink);
-
-      // exit gate if necessary
-      if (synchronized)
-	 gate->exit();
+	 // exit gate if necessary
+	 if (synchronized)
+	    gate->exit();
+      }
 
       // pop argv from stack and uninstantiate
       pop_argv();
@@ -861,16 +861,16 @@ class QoreNode *UserFunction::evalConstructor(QoreNode *args, Object *self, clas
 	 push_argv(params->argvid);
 	 
 	 // enter gate if necessary
-	 if (synchronized)
-	    gate->enter();
+	 if (!synchronized || !gate->enter(xsink))
+	 {
+	    // execute function
+	    val = statements->exec(xsink);
 	 
-	 // execute function
-	 val = statements->exec(xsink);
-	 
-	 // exit gate if necessary
-	 if (synchronized)
-	    gate->exit();
-	 
+	    // exit gate if necessary
+	    if (synchronized)
+	       gate->exit();
+	 }
+
 	 // pop argv from stack and uninstantiate
 	 pop_argv();
 	 uninstantiateLVar(xsink);

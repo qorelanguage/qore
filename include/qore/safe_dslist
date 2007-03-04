@@ -185,6 +185,28 @@ template<typename T> class safe_dslist
       {
 	 return NULL;
       }
+      iterator find(T data)
+      {
+	 node_t *w = head;
+	 while (w)
+	 {
+	    if (w->data == data)
+	       return w;
+	    w = w->next;
+	 }
+	 return NULL;
+      }
+      const_iterator find(T data) const
+      {
+	 node_t *w = head;
+	 while (w)
+	 {
+	    if (w->data == data)
+	       return w;
+	    w = w->next;
+	 }
+	 return NULL;
+      }
       void push_front(T data)
       {
 	 node_t *n = new node_t(data, head);

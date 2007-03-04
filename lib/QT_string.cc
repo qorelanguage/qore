@@ -55,7 +55,7 @@ class QoreNode *string_ConvertTo(class QoreNode *n, class ExceptionSink *xsink)
    return rv;
 }
 
-bool string_Compare(class QoreNode *l, class QoreNode *r)
+bool string_Compare(class QoreNode *l, class QoreNode *r, class ExceptionSink *xsink)
 {
    return l->val.String->compare(r->val.String);
 }

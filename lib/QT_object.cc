@@ -37,9 +37,9 @@ class QoreNode *object_Copy(class QoreNode *n, class ExceptionSink *xsink)
    return n->RefSelf();
 }
 
-bool object_Compare(class QoreNode *l, class QoreNode *r)
+bool object_Compare(class QoreNode *l, class QoreNode *r, class ExceptionSink *xsink)
 {
-   return l->val.object->compareHard(r->val.object);
+   return l->val.object->compareHard(r->val.object, xsink);
 }
 
 class QoreString *object_MakeString(class QoreNode *n, int foff, class ExceptionSink *xsink)
@@ -58,7 +58,12 @@ class QoreString *object_MakeString(class QoreNode *n, int foff, class Exception
 
    if (foff != FMT_NONE)
    {
-      n->val.object->addPrivateDataToString(rv);
+      n->val.object->addPrivateDataToString(rv, xsink);
+      if (xsink->isException())
+      {
+	 h->derefAndDelete(xsink);
+	 return NULL;
+      }
       rv->concat(' ');
    }
    if (!h->size())

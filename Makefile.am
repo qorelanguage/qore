@@ -17,6 +17,7 @@ noinst_HEADERS = \
 	include/qore/QoreProgram.h \
 	include/qore/ReferenceObject.h \
 	include/qore/AbstractPrivateData.h \
+	include/qore/AbstractSmartLock.h \
 	include/qore/QoreType.h \
 	include/qore/List.h \
 	include/qore/ArgvStack.h \
@@ -38,6 +39,7 @@ noinst_HEADERS = \
 	include/qore/RWLock.h \
 	include/qore/RMutex.h \
 	include/qore/VRMutex.h \
+	include/qore/VLock.h \
 	include/qore/QoreClass.h \
 	include/qore/Operator.h \
 	include/qore/QoreString.h \
@@ -159,6 +161,7 @@ noinst_HEADERS = \
 	include/qore/QC_HTTPClient.h \
 	include/qore/QC_XmlRpcClient.h \
 	include/qore/QC_JsonRpcClient.h \
+	include/qore/QC_SafeLocker.h \
 	include/qore/QoreHTTPClient.h \
 	include/qore/DBI.h \
 	include/qore/ScopeGuard.h \
@@ -226,6 +229,7 @@ EXTRA_DIST = .build next_build.sh WHATISQORE RELEASE-NOTES \
 	test/tibrv-test.q \
         test/unlocked-thread-test.q \
 	test/regex.q \
+	test/deadlock.q \
 	examples/HTTPServer.qc \
         examples/xmlrpc.ql \
         examples/XmlRpcHandler.qc \

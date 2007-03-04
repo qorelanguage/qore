@@ -41,7 +41,7 @@ typedef bool (*bool_eval_type_func_t)(class QoreNode *, class ExceptionSink *xsi
 typedef int64 (*bigint_eval_type_func_t)(class QoreNode *, class ExceptionSink *xsink);
 typedef double (*float_eval_type_func_t)(class QoreNode *, class ExceptionSink *xsink);
 typedef class QoreNode *(*convert_func_t)(class QoreNode *, class ExceptionSink *xsink);
-typedef bool (*compare_func_t)(class QoreNode *, class QoreNode *);
+typedef bool (*compare_func_t)(class QoreNode *, class QoreNode *, class ExceptionSink *xsink);
 typedef void (*delete_func_t)(class QoreNode *);
 typedef class QoreString *(*string_func_t)(class QoreNode *, int format, class ExceptionSink *xsink);
 
@@ -98,7 +98,7 @@ class QoreType {
       DLLEXPORT class QoreNode *getDefaultValue();
       DLLEXPORT class QoreNode *convertTo(class QoreNode *n, class ExceptionSink *xsink);
       // compare = 0 means values are equal
-      DLLEXPORT bool compare(class QoreNode *n1, class QoreNode *n2) const;
+      DLLEXPORT bool compare(class QoreNode *n1, class QoreNode *n2, class ExceptionSink *xsink) const;
       DLLEXPORT void deleteContents(class QoreNode *n);
       DLLEXPORT class QoreString *getAsString(class QoreNode *n, int format, class ExceptionSink *xsink) const;
 };
@@ -125,7 +125,7 @@ class QoreTypeManager : public qore_type_map_t
 
 DLLEXPORT extern class QoreTypeManager QTM;
 
-DLLEXPORT bool compareHard(QoreNode *l, QoreNode *r);
+DLLEXPORT bool compareHard(QoreNode *l, QoreNode *r, class ExceptionSink *xsink);
 DLLEXPORT bool compareSoft(class QoreNode *node1, class QoreNode *node2, class ExceptionSink *xsink);
 
 static inline class QoreNode *nothing()
