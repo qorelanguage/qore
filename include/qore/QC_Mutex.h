@@ -54,7 +54,7 @@ class Mutex : public AbstractPrivateData, public AbstractSmartLock
 	 if (tid != -1)
 	 {
 	    vl->pop();
-	    xsink->raiseException("LOCK-ERROR", "Mutex object destroyed while locked");
+	    xsink->raiseException("LOCK-ERROR", "Mutex object destroyed while locked in TID %d", gettid());
 	    tid = -2;
 	    asl_cond.broadcast();
 	 }   

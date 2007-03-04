@@ -8,7 +8,7 @@ synchronized sub a()
 {
     if ($dl)
 	return;
-    usleep(500ms);
+    usleep(1s);
     try {
 	return b() + 1;
     }
@@ -23,7 +23,7 @@ synchronized sub b()
 {
     if ($dl)
 	return;
-    usleep(500ms);
+    usleep(1ms);
     try {
 	return a() + 1;
     }
@@ -44,6 +44,13 @@ sub main()
     $m.lock();
     try {
 	$m.lock();
+    }
+    catch ($ex)
+    {
+	printf("%s: %s\n", $ex.err, $ex.desc); 
+    }    
+    try {
+	delete $m;
     }
     catch ($ex)
     {
