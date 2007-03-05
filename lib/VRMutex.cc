@@ -120,13 +120,8 @@ int VRMutex::exit()
    // then unlock the lock
    if (!count)
    {
-#ifdef DEBUG
       printd(5, "VRMutex::exit() this=%p releasing lock (vl=%08p)\n", this, vl);
-      AbstractSmartLock *g = vl->pop();
-      assert(g == this);
-#else
-      vl->pop();
-#endif
+      vl->pop(this);
       
       tid = -1;
       vl = NULL;
@@ -147,6 +142,7 @@ int VRMutex::release()
    //fprintf(stderr, "Gate::exit() %08p\n", this);
    // grabs the lock and releases it when the function is exited
    AutoLocker al(&asl_lock);
+
    // if the lock is not locked, then return an error
    if (!count)
       return -1;
@@ -161,6 +157,7 @@ int VRMutex::release()
    {
       printd(5, "VRMutex::exit() this=%p releasing lock (vl=%08p)\n", this, vl);
       
+      vl->pop(this);
       tid = -1;
       vl = NULL;
       

@@ -53,7 +53,7 @@ class Mutex : public AbstractPrivateData, public AbstractSmartLock
 	 AutoLocker al(&asl_lock);	    
 	 if (tid != -1)
 	 {
-	    vl->pop();
+	    vl->pop(this);
 	    xsink->raiseException("LOCK-ERROR", "Mutex object destroyed while locked in TID %d", gettid());
 	    tid = -2;
 	    asl_cond.broadcast();
@@ -104,12 +104,7 @@ class Mutex : public AbstractPrivateData, public AbstractSmartLock
 	    xsink->raiseException("LOCK-ERROR", "TID %d called Mutex::unlock() while the lock is held by tid %d", mtid, tid);
 	    return -1;
 	 }
-#ifdef DEBUG
-	 AbstractSmartLock *g = vl->pop();
-	 assert(g == this);
-#else
-	 vl->pop();
-#endif
+	 vl->pop(this);
 	 release_intern();	 
 	 return 0;
       }

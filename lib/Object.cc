@@ -458,7 +458,7 @@ void Object::doDelete(class ExceptionSink *xsink)
 }
 
 // NOTE: caller must unlock
-class QoreNode **Object::getMemberValuePtr(char *key, class VLock *vl, class ExceptionSink *xsink)
+class QoreNode **Object::getMemberValuePtr(char *key, class AutoVLock *vl, class ExceptionSink *xsink)
 {
    if (g.enter(xsink))
       return NULL;
@@ -469,11 +469,12 @@ class QoreNode **Object::getMemberValuePtr(char *key, class VLock *vl, class Exc
       return NULL;
    }
 
+   vl->push(&g);
    return data->getKeyValuePtr(key);
 }
 
 // NOTE: caller must unlock
-class QoreNode **Object::getMemberValuePtr(QoreString *key, class VLock *vl, class ExceptionSink *xsink)
+class QoreNode **Object::getMemberValuePtr(QoreString *key, class AutoVLock *vl, class ExceptionSink *xsink)
 {
    if (g.enter(xsink))
       return NULL;
@@ -484,11 +485,12 @@ class QoreNode **Object::getMemberValuePtr(QoreString *key, class VLock *vl, cla
       return NULL;
    }
 
+   vl->push(&g);
    return data->getKeyValuePtr(key, xsink);
 }
 
 // NOTE: caller must unlock
-class QoreNode *Object::getMemberValueNoMethod(QoreString *key, class VLock *vl, class ExceptionSink *xsink)
+class QoreNode *Object::getMemberValueNoMethod(QoreString *key, class AutoVLock *vl, class ExceptionSink *xsink)
 {
    if (g.enter(xsink))
       return NULL;
@@ -503,11 +505,13 @@ class QoreNode *Object::getMemberValueNoMethod(QoreString *key, class VLock *vl,
    QoreNode *rv = data->getKeyValue(key, xsink);
    if (!rv)
       g.exit();
+   else
+      vl->push(&g);
    return rv;
 }
 
 // NOTE: caller must unlock
-class QoreNode *Object::getMemberValueNoMethod(char *key, class VLock *vl, class ExceptionSink *xsink)
+class QoreNode *Object::getMemberValueNoMethod(char *key, class AutoVLock *vl, class ExceptionSink *xsink)
 {
    if (g.enter(xsink))
       return NULL;
@@ -522,6 +526,8 @@ class QoreNode *Object::getMemberValueNoMethod(char *key, class VLock *vl, class
    QoreNode *rv = data->getKeyValue(key);
    if (!rv)
       g.exit();
+   else
+      vl->push(&g);
    return rv;
 }
 
@@ -722,7 +728,7 @@ class Hash *Object::evalData(class ExceptionSink *xsink)
 
 // NOTE: caller must unlock lock
 // we check if the object is already locked
-class QoreNode **Object::getExistingValuePtr(class QoreString *mem, class VLock *vl, class ExceptionSink *xsink)
+class QoreNode **Object::getExistingValuePtr(class QoreString *mem, class AutoVLock *vl, class ExceptionSink *xsink)
 {
    if (g.enter(xsink))
       return NULL;
@@ -736,12 +742,14 @@ class QoreNode **Object::getExistingValuePtr(class QoreString *mem, class VLock 
    class QoreNode **rv = data->getExistingValuePtr(mem, xsink);
    if (!rv)
       g.exit();
+   else
+      vl->push(&g);
    return rv;
 }
 
 // NOTE: caller must unlock lock
 // we check if the object is already locked
-class QoreNode **Object::getExistingValuePtr(char *mem, class VLock *vl, class ExceptionSink *xsink)
+class QoreNode **Object::getExistingValuePtr(char *mem, class AutoVLock *vl, class ExceptionSink *xsink)
 {
    if (g.enter(xsink))
       return NULL;
@@ -755,6 +763,8 @@ class QoreNode **Object::getExistingValuePtr(char *mem, class VLock *vl, class E
    class QoreNode **rv = data->getExistingValuePtr(mem);
    if (!rv)
       g.exit();
+   else
+      vl->push(&g);
    return rv;
 }
 

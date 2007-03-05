@@ -238,7 +238,7 @@ static class QoreNode *GETOPT_parse(class Object *self, class GetOpt *g, class Q
    bool modify = false;
    if (p0->type == NT_REFERENCE)
    {
-      class QoreNode **vp = get_var_value_ptr(p0->val.lvexp, *vl, xsink);
+      class QoreNode **vp = get_var_value_ptr(p0->val.lvexp, &vl, xsink);
       if (xsink->isEvent() || !(*vp) || (*vp)->type != NT_LIST)
 	 return NULL;
       if ((*vp)->reference_count() > 1)

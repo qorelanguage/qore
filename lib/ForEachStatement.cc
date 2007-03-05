@@ -56,7 +56,7 @@ int ForEachStatement::exec(class QoreNode **return_value, class ExceptionSink *x
       while (true)
       {
 	 class AutoVLock vl;
-	 class QoreNode **n = get_var_value_ptr(var, *vl, xsink);
+	 class QoreNode **n = get_var_value_ptr(var, &vl, xsink);
 	 if (xsink->isEvent())
 	 {
 	    // unlock lock now
@@ -165,7 +165,7 @@ int ForEachStatement::execRef(class QoreNode **return_value, class ExceptionSink
 
       while (true)
       {
-	 class QoreNode **n = get_var_value_ptr(var, *vl, xsink);
+	 class QoreNode **n = get_var_value_ptr(var, &vl, xsink);
 	 if (xsink->isEvent())
 	 {
 	    // unlock lock now
@@ -211,7 +211,7 @@ int ForEachStatement::execRef(class QoreNode **return_value, class ExceptionSink
 	    rc = code->exec(return_value, xsink);
 
 	    // assign value of variable to referenced variable
-	    n = get_var_value_ptr(var, *vl, xsink);
+	    n = get_var_value_ptr(var, &vl, xsink);
 	    if (xsink->isEvent())
 	    {
 	       // unlock lock now
@@ -254,7 +254,7 @@ int ForEachStatement::execRef(class QoreNode **return_value, class ExceptionSink
       if (!xsink->isEvent())
       {
 	 // write the value back to the lvalue
-	 QoreNode **val = get_var_value_ptr(vr, *vl, xsink);
+	 QoreNode **val = get_var_value_ptr(vr, &vl, xsink);
 	 if (!xsink->isEvent())
 	 {
 	    discard(*val, xsink);

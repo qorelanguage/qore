@@ -1,3 +1,6 @@
+2007.03.05: David Nichols
+	* fixed auto locking and lock list handling
+
 2007.03.04: David Nichols
 	* implemented new deadlock-detection framework for all internal locking
 	  each thread has a VLock object that tracks locks held; before a 

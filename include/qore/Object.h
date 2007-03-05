@@ -71,12 +71,12 @@ class Object : public ReferenceObject
       DLLEXPORT Object(class QoreClass *oc, class QoreProgram *p);
       DLLEXPORT Object(class QoreClass *oc, class QoreProgram *p, class Hash *d);
 
-      DLLEXPORT class QoreNode **getMemberValuePtr(class QoreString *key, class VLock *vl, class ExceptionSink *xsink);
-      DLLEXPORT class QoreNode **getMemberValuePtr(char *key, class VLock *vl, class ExceptionSink *xsink);
-      DLLEXPORT class QoreNode *getMemberValueNoMethod(class QoreString *key, class VLock *vl, class ExceptionSink *xsink);
-      DLLEXPORT class QoreNode *getMemberValueNoMethod(char *key, class VLock *vl, class ExceptionSink *xsink);
-      DLLEXPORT class QoreNode **getExistingValuePtr(class QoreString *mem, class VLock *vl, class ExceptionSink *xsink);
-      DLLEXPORT class QoreNode **getExistingValuePtr(char *mem, class VLock *vl, class ExceptionSink *xsink);
+      DLLEXPORT class QoreNode **getMemberValuePtr(class QoreString *key, class AutoVLock *vl, class ExceptionSink *xsink);
+      DLLEXPORT class QoreNode **getMemberValuePtr(char *key, class AutoVLock *vl, class ExceptionSink *xsink);
+      DLLEXPORT class QoreNode *getMemberValueNoMethod(class QoreString *key, class AutoVLock *vl, class ExceptionSink *xsink);
+      DLLEXPORT class QoreNode *getMemberValueNoMethod(char *key, class AutoVLock *vl, class ExceptionSink *xsink);
+      DLLEXPORT class QoreNode **getExistingValuePtr(class QoreString *mem, class AutoVLock *vl, class ExceptionSink *xsink);
+      DLLEXPORT class QoreNode **getExistingValuePtr(char *mem, class AutoVLock *vl, class ExceptionSink *xsink);
       DLLEXPORT bool validInstanceOf(int cid) const;
       DLLEXPORT void setValue(char *key, class QoreNode *val, class ExceptionSink *xsink);
       DLLEXPORT class List *getMemberList(class ExceptionSink *xsink);

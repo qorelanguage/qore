@@ -36,7 +36,7 @@ protected:
 public:
    LockedObject asl_lock;
    QoreCondition asl_cond;
-   
+
    virtual ~AbstractSmartLock() {}
    virtual int release() = 0;
    void self_wait() { asl_cond.wait(&asl_lock); }

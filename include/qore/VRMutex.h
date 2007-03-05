@@ -38,7 +38,7 @@ class VRMutex : public AbstractSmartLock
    public:
       DLLLOCAL VRMutex();
       DLLLOCAL int enter(class ExceptionSink *);
-      //DLLLOCAL void enter();
+      DLLLOCAL int auto_enter(class ExceptionSink *);
       DLLLOCAL int exit();
       DLLLOCAL virtual int release();
 };

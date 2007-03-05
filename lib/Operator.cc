@@ -415,7 +415,7 @@ static bool op_exists(class QoreNode *left, class QoreNode *x, ExceptionSink *xs
    {
       class QoreNode *tn = NULL;
       class AutoVLock vl;
-      class QoreNode *n = getExistingVarValue(left, xsink, *vl, &tn);
+      class QoreNode *n = getExistingVarValue(left, xsink, &vl, &tn);
       // return if an exception happened
       if (xsink->isEvent())
       {
@@ -657,7 +657,7 @@ static class QoreNode *op_regex_subst(class QoreNode *left, class QoreNode *righ
 {
    // get current value and save
    class AutoVLock vl;
-   class QoreNode **v = get_var_value_ptr(left, *vl, xsink);
+   class QoreNode **v = get_var_value_ptr(left, &vl, xsink);
    if (xsink->isEvent())
       return NULL;
 
@@ -681,7 +681,7 @@ static class QoreNode *op_regex_trans(class QoreNode *left, class QoreNode *righ
 {
    // get current value and save
    class AutoVLock vl;
-   class QoreNode **v = get_var_value_ptr(left, *vl, xsink);
+   class QoreNode **v = get_var_value_ptr(left, &vl, xsink);
    if (xsink->isEvent())
       return NULL;
 
@@ -830,7 +830,7 @@ static class QoreNode *op_assignment(class QoreNode *left, class QoreNode *right
 
    // get current value and save
    class AutoVLock vl;
-   v = get_var_value_ptr(left, *vl, xsink);
+   v = get_var_value_ptr(left, &vl, xsink);
    if (xsink->isEvent())
    {
       vl.del();
@@ -891,7 +891,7 @@ static class QoreNode *op_list_assignment(class QoreNode *left, class QoreNode *
       class QoreNode *lv = left->val.list->retrieve_entry(i);
 
       class AutoVLock vl;
-      v = get_var_value_ptr(lv, *vl, xsink);
+      v = get_var_value_ptr(lv, &vl, xsink);
       if (xsink->isEvent())
       {
 	 vl.del();
@@ -954,7 +954,7 @@ static class QoreNode *op_plus_equals(class QoreNode *left, class QoreNode *righ
 
    // get ptr to current value
    class AutoVLock vl;
-   v = get_var_value_ptr(left, *vl, xsink);
+   v = get_var_value_ptr(left, &vl, xsink);
    if (xsink->isEvent())
    {
       vl.del();
@@ -1114,7 +1114,7 @@ static class QoreNode *op_minus_equals(class QoreNode *left, class QoreNode *rig
    // get ptr to current value
 
    class AutoVLock vl;
-   v = get_var_value_ptr(left, *vl, xsink);
+   v = get_var_value_ptr(left, &vl, xsink);
    if (xsink->isEvent())
    {
       vl.del();
@@ -1202,7 +1202,7 @@ static class QoreNode *op_and_equals(class QoreNode *left, class QoreNode *right
 
    // get ptr to current value
    class AutoVLock vl;
-   v = get_var_value_ptr(left, *vl, xsink);
+   v = get_var_value_ptr(left, &vl, xsink);
    if (xsink->isEvent())
       return NULL;
 
@@ -1246,7 +1246,7 @@ static class QoreNode *op_or_equals(class QoreNode *left, class QoreNode *right,
 
    // get ptr to current value
    class AutoVLock vl;
-   v = get_var_value_ptr(left, *vl, xsink);
+   v = get_var_value_ptr(left, &vl, xsink);
    if (xsink->isEvent())
       return NULL;
 
@@ -1289,7 +1289,7 @@ static class QoreNode *op_modula_equals(class QoreNode *left, class QoreNode *ri
 
    // get ptr to current value
    class AutoVLock vl;
-   v = get_var_value_ptr(left, *vl, xsink);
+   v = get_var_value_ptr(left, &vl, xsink);
    if (xsink->isEvent())
       return NULL;
 
@@ -1337,7 +1337,7 @@ static class QoreNode *op_multiply_equals(class QoreNode *left, class QoreNode *
 
    // get ptr to current value
    class AutoVLock vl;
-   v = get_var_value_ptr(left, *vl, xsink);
+   v = get_var_value_ptr(left, &vl, xsink);
    if (xsink->isEvent())
    {
       if (res && rd)
@@ -1422,7 +1422,7 @@ static class QoreNode *op_divide_equals(class QoreNode *left, class QoreNode *ri
 
    // get ptr to current value
    class AutoVLock vl;
-   v = get_var_value_ptr(left, *vl, xsink);
+   v = get_var_value_ptr(left, &vl, xsink);
    if (xsink->isEvent())
    {
       if (res && rd)
@@ -1509,7 +1509,7 @@ static class QoreNode *op_xor_equals(class QoreNode *left, class QoreNode *right
 
    // get ptr to current value
    class AutoVLock vl;
-   v = get_var_value_ptr(left, *vl, xsink);
+   v = get_var_value_ptr(left, &vl, xsink);
    if (xsink->isEvent())
       return NULL;
 
@@ -1553,7 +1553,7 @@ static class QoreNode *op_shift_left_equals(class QoreNode *left, class QoreNode
 
    // get ptr to current value
    class AutoVLock vl;
-   v = get_var_value_ptr(left, *vl, xsink);
+   v = get_var_value_ptr(left, &vl, xsink);
    if (xsink->isEvent())
       return NULL;
 
@@ -1597,7 +1597,7 @@ static class QoreNode *op_shift_right_equals(class QoreNode *left, class QoreNod
 
    // get ptr to current value
    class AutoVLock vl;
-   v = get_var_value_ptr(left, *vl, xsink);
+   v = get_var_value_ptr(left, &vl, xsink);
    if (xsink->isEvent())
       return NULL;
 
@@ -1719,7 +1719,7 @@ static class QoreNode *op_post_inc(class QoreNode *left, class QoreNode *right, 
    // tracein("op_post_inc()");
 
    class AutoVLock vl;
-   n = get_var_value_ptr(left, *vl, xsink);
+   n = get_var_value_ptr(left, &vl, xsink);
    if (xsink->isEvent())
       return NULL;
 
@@ -1759,7 +1759,7 @@ static class QoreNode *op_post_dec(class QoreNode *left, class QoreNode *right, 
    // tracein("op_post_dec()");
 
    class AutoVLock vl;
-   n = get_var_value_ptr(left, *vl, xsink);
+   n = get_var_value_ptr(left, &vl, xsink);
    //printd(5, "op_post_dec() n=%08p, *n=%08p\n", n, *n);
    if (xsink->isEvent())
       return NULL;
@@ -1807,7 +1807,7 @@ static class QoreNode *op_pre_inc(class QoreNode *left, class QoreNode *right, b
    // tracein("op_pre_inc()");
 
    class AutoVLock vl;
-   n = get_var_value_ptr(left, *vl, xsink);
+   n = get_var_value_ptr(left, &vl, xsink);
    if (xsink->isEvent())
       return NULL;
 
@@ -1845,7 +1845,7 @@ static class QoreNode *op_pre_dec(class QoreNode *left, class QoreNode *right, b
    // tracein("op_pre_dec()");
 
    class AutoVLock vl;
-   n = get_var_value_ptr(left, *vl, xsink);
+   n = get_var_value_ptr(left, &vl, xsink);
    if (xsink->isEvent())
       return NULL;
 
@@ -1882,7 +1882,7 @@ static QoreNode *op_unshift(class QoreNode *left, class QoreNode *elem, bool ref
    printd(5, "op_unshift(%08p, %08p, isEvent=%d)\n", left, elem, xsink->isEvent());
 
    class AutoVLock vl;
-   QoreNode **val = get_var_value_ptr(left, *vl, xsink);
+   QoreNode **val = get_var_value_ptr(left, &vl, xsink);
    // value is not a list, so throw exception
    if (xsink->isEvent() || !(*val) || (*val)->type != NT_LIST)
    {
@@ -1921,7 +1921,7 @@ static QoreNode *op_shift(class QoreNode *left, class QoreNode *x, bool ref_rv, 
    printd(5, "op_shift(%08p, %08p, isEvent=%d)\n", left, x, xsink->isEvent());
 
    class AutoVLock vl;
-   QoreNode **val = get_var_value_ptr(left, *vl, xsink);
+   QoreNode **val = get_var_value_ptr(left, &vl, xsink);
    if (xsink->isEvent() || !(*val) || (*val)->type != NT_LIST)
       return NULL;
 
@@ -1946,7 +1946,7 @@ static QoreNode *op_pop(class QoreNode *left, class QoreNode *x, bool ref_rv, Ex
    printd(5, "op_pop(%08p, %08p, isEvent=%d)\n", left, x, xsink->isEvent());
 
    class AutoVLock vl;
-   QoreNode **val = get_var_value_ptr(left, *vl, xsink);
+   QoreNode **val = get_var_value_ptr(left, &vl, xsink);
    if (xsink->isEvent() || !(*val) || (*val)->type != NT_LIST)
       return NULL;
 
@@ -1971,7 +1971,7 @@ static QoreNode *op_push(class QoreNode *left, class QoreNode *elem, bool ref_rv
    printd(5, "op_push(%08p, %08p, isEvent=%d)\n", left, elem, xsink->isEvent());
 
    class AutoVLock vl;
-   QoreNode **val = get_var_value_ptr(left, *vl, xsink);
+   QoreNode **val = get_var_value_ptr(left, &vl, xsink);
    // value is not a list, so throw exception
    if (xsink->isEvent() || !(*val) || (*val)->type != NT_LIST)
    {
@@ -2010,7 +2010,7 @@ static QoreNode *op_splice(class QoreNode *left, class QoreNode *l, bool ref_rv,
    printd(5, "op_splice(%08p, %08p, isEvent=%d)\n", left, l, xsink->isEvent());
 
    class AutoVLock vl;
-   QoreNode **val = get_var_value_ptr(left, *vl, xsink);
+   QoreNode **val = get_var_value_ptr(left, &vl, xsink);
    if (xsink->isEvent())
       return NULL;
 
@@ -2081,7 +2081,7 @@ static int64 op_chomp(class QoreNode *arg, class QoreNode *x, ExceptionSink *xsi
    //tracein("op_chomp()");
    
    class AutoVLock vl;
-   QoreNode **val = get_var_value_ptr(arg, *vl, xsink);
+   QoreNode **val = get_var_value_ptr(arg, &vl, xsink);
    if (xsink->isEvent())
       return 0;
    

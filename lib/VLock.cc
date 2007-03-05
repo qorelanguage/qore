@@ -1,5 +1,5 @@
 /*
- VRMutex.cc
+ VLock.cc
  
  Qore Programming Language
  
@@ -21,29 +21,41 @@
  */
 
 #include <qore/Qore.h>
-#include <qore/VRMutex.h>
+#include <qore/VLock.h>
 
 #include <assert.h>
 
 AutoVLock::AutoVLock()
 {
-   vl = getVLock();
-   mark = vl->getMark();
-   //printd(5, "AutoVLock::AutoVLock() this=%08p, vl=%08p mark=%08p\n", this, vl, mark);
+   //printd(5, "AutoVLock::AutoVLock() this=%08p\n", this);
 }
 
 AutoVLock::~AutoVLock()
 {
-   //printd(5, "AutoVLock::~AutoVLock() this=%08p, vl=%08p, mark=%08p\n", this, vl, mark);
-   vl->delToMark(mark);
+   //printd(5, "AutoVLock::~AutoVLock() this=%08p size=%d\n", this, size());
+   del();
 }
 
 void AutoVLock::del()
 {
-   //printd(5, "AutoVLock::~AutoVLock() this=%08p, vl=%08p, mark=%08p\n", this, vl, mark);
-   vl->delToMark(mark);
+   //printd(5, "AutoVLock::del() this=%08p size=%d\n", this, size());
+
+   abstract_lock_list_t::iterator i;
+   while ((i = begin()) != end())
+   {
+      //printd(5, "AutoVLock::del() this=%08p releasing=%08p\n", this, *i);
+      (*i)->release();
+      erase(i);
+   }
 }
 
+void AutoVLock::push(class AbstractSmartLock *p)
+{
+   //printd(5, "AutoVLock::push(%08p) this=%08p\n", p, this);
+   push_back(p);
+}
+
+/*
 AbstractSmartLock *VLock::getMark() const
 {
    abstract_lock_list_t::const_reverse_iterator i = rbegin();
@@ -51,7 +63,7 @@ AbstractSmartLock *VLock::getMark() const
    //printd(5, "VLock::getMark() returning %08p size=%d\n", p, size());
    return p;
 }
-
+*/
 int VLock::waitOn(AbstractSmartLock *asl, VLock *vl, int current_tid, class ExceptionSink *xsink)
 {
    assert(vl);
@@ -109,27 +121,58 @@ void VLock::push(AbstractSmartLock *g)
    push_back(g);
 }
 
-AbstractSmartLock *VLock::pop()
+int VLock::pop(AbstractSmartLock *g)
 {
    assert(begin() != end());
-   AbstractSmartLock *asl = back();
-   //printd(5, "VLock::pop() this=%08p asl=%08p size=%d\n", this, asl, size());
-   pop_back();
-   return asl;
+
+   if (g == back())
+   {
+      pop_back();
+      return 0;
+   }
+
+   abstract_lock_list_t::iterator i = end();
+   --i;
+   --i;
+   while (*i != g) 
+      --i;
+
+   erase(i);
+   return -1;
 }
 
+/*
 void VLock::delToMark(AbstractSmartLock *mark)
 {
    //printd(5, "VLock::delToMark() mark=%08p size=%d\n", mark, size());
-   abstract_lock_list_t::reverse_iterator i;
-   while (rbegin() != rend() && *(i = rbegin()) != mark)
-   {
-      //printd(5, "VLock::delToMark() releasing %08p (%d)\n", *i, rbegin() == rend());
-      (*i)->release();
-      pop_back();
-   }
+   abstract_lock_list_t::iterator i = end();
+   if (i == begin())
+      return;
+
+   do {
+      --i;
+      if (*i == mark)
+	 break;
+      if ((*i)->auto_delete)
+      {
+	 abstract_lock_list_t::iterator j = i + 1;
+	 //printd(5, "VLock::delToMark() releasing %08p (%d)\n", *i, begin() == end());
+	 (*i)->release();
+	 erase(i);
+	 i = j;
+      }
+   } while (end() != begin());
+   //printd(5, "VLock::delToMark() begin=%08p\n", begin() != end() ? *(begin()) : NULL);
+
+   //abstract_lock_list_t::reverse_iterator i;
+   //while (rbegin() != rend() && *(i = rbegin()) != mark)
+   //{
+   //   (*i)->release();
+   //   pop_back();
+   //}
    //printd(5, "VLock::delToMark() rbegin=%08p\n", rbegin() != rend() ? *(rbegin()) : NULL);
 }
+*/
 
 class AbstractSmartLock *VLock::find(class AbstractSmartLock *g) const
 {

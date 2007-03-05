@@ -36,39 +36,34 @@ typedef std::list<AbstractSmartLock *> abstract_lock_list_t;
 // for locking
 class VLock : protected abstract_lock_list_t
 {
-private:
-   AbstractSmartLock *waiting_on;
-   int tid;
-
-public:   
-   DLLLOCAL VLock();
-   DLLLOCAL ~VLock();
-   DLLLOCAL void push(AbstractSmartLock *g);
-   DLLLOCAL AbstractSmartLock *pop();
-   DLLLOCAL void delToMark(AbstractSmartLock *mark);
-   DLLLOCAL void del();
-   DLLLOCAL AbstractSmartLock *getMark() const;
-   DLLLOCAL AbstractSmartLock *find(AbstractSmartLock *g) const; 
-   DLLLOCAL int waitOn(AbstractSmartLock *asl, class VLock *vl, int tid, class ExceptionSink *xsink);
-   DLLLOCAL int getTID() { return tid; }
-
-   
+   private:
+      AbstractSmartLock *waiting_on;
+      int tid;
+      
+   public:   
+      DLLLOCAL VLock();
+      DLLLOCAL ~VLock();
+      DLLLOCAL void push(AbstractSmartLock *g);
+      DLLLOCAL int pop(AbstractSmartLock *asl);
+      //DLLLOCAL AbstractSmartLock *getMark() const;
+      //DLLLOCAL void delToMark(AbstractSmartLock *mark);
+      DLLLOCAL void del();
+      DLLLOCAL AbstractSmartLock *find(AbstractSmartLock *g) const; 
+      DLLLOCAL int waitOn(AbstractSmartLock *asl, class VLock *vl, int tid, class ExceptionSink *xsink);
+      DLLLOCAL int getTID() { return tid; }
+         
 #ifdef DEBUG
-   DLLLOCAL void show(class VLock *nvl) const; 
+      DLLLOCAL void show(class VLock *nvl) const; 
 #endif
 };
 
-class AutoVLock {
-private:
-   VLock *vl;
-   AbstractSmartLock *mark;
-   
-public:
-   DLLLOCAL AutoVLock();
-   DLLLOCAL ~AutoVLock();
-   DLLLOCAL void del();
-   DLLLOCAL VLock *operator->(){ return vl; };
-   DLLLOCAL VLock *operator*() { return vl; };
+class AutoVLock : protected abstract_lock_list_t
+{
+   public:
+      DLLLOCAL AutoVLock();
+      DLLLOCAL ~AutoVLock();
+      DLLLOCAL void del();
+      DLLLOCAL void push(AbstractSmartLock *asl);
 };
 
 
