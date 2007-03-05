@@ -33,6 +33,7 @@ static void MUTEX_constructor(class Object *self, class QoreNode *params, Except
 static void MUTEX_destructor(class Object *self, class Mutex *m, ExceptionSink *xsink)
 {
    m->destructor(xsink);
+   m->deref(xsink);
 }
 
 static void MUTEX_copy(class Object *self, class Object *old, class Mutex *m, ExceptionSink *xsink)

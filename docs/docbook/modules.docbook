@@ -9292,7 +9292,9 @@ BOOL values, so boolean() could be called as well with the same effect</para>
 	  </row>
 	</thead>
 	<tbody>
-
+	</tbody>
+      </tgroup>
+    </table>
 
   &tuxedo;
 
