@@ -27,12 +27,14 @@ int CID_COUNTER;
 
 static void COUNTER_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
-   self->setPrivate(CID_COUNTER, new Counter());
+   class QoreNode *p = get_param(params, 0);
+   int c = p ? p->getAsInt() : 0;
+   self->setPrivate(CID_COUNTER, new Counter(c));
 }
 
 static void COUNTER_copy(class Object *self, class Object *old, class Counter *c, ExceptionSink *xsink)
 {
-   self->setPrivate(CID_COUNTER, new Counter());
+   self->setPrivate(CID_COUNTER, new Counter(c->getCount()));
 }
 
 static class QoreNode *COUNTER_inc(class Object *self, class Counter *c, class QoreNode *params, ExceptionSink *xsink)

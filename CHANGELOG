@@ -2,6 +2,8 @@
 	* fixed auto locking and lock list handling
 	* more deadlock detection improvements and global thread-resource 
 	  tracking for thread locks
+	* updated the Counter class to allow initialization of the starting 
+	  value of the counter in the constructor (default = 0)
 
 2007.03.04: David Nichols
 	* implemented new deadlock-detection framework for all internal locking

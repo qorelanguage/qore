@@ -35,6 +35,9 @@ class Counter : public AbstractPrivateData, public QoreCounter
 {
    protected:
       DLLLOCAL virtual ~Counter() {}
+
+   public:
+      DLLLOCAL Counter(int nc = 0) : QoreCounter(nc) {}
 };
 
 #endif // _QORE_CLASS_COUNTER_H

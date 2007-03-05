@@ -4,13 +4,18 @@
 
 our $dl;  # deadlock flag
 
-synchronized sub a()
+synchronized sub a($c)
 {
+    if (exists $c)
+    {
+	$c.dec();
+	$c.waitForZero();
+    }
     if ($dl)
 	return;
-    usleep(1s);
+    #usleep(1s);
     try {
-	return b() + 1;
+	return b();
     }
     catch ($ex)
     {
@@ -19,13 +24,18 @@ synchronized sub a()
     }
 }
 
-synchronized sub b()
+synchronized sub b($c)
 {
+    if (exists $c)
+    {
+	$c.dec();
+	$c.waitForZero();
+    }
     if ($dl)
 	return;
-    usleep(1ms);
+    #usleep(1ms);
     try {
-	return a() + 1;
+	return a();
     }
     catch ($ex)
     {
@@ -38,13 +48,21 @@ sub dt()
 {
     our $n = new Mutex();
     $n.lock();
+    try {
+	throwThreadResourceExceptions();
+    }
+    catch ($ex)
+    {
+	printf("%s: %s\n", $ex.err, $ex.desc); 
+    }        
 }
 
 sub main()
 {
     # internal deadlock with synchronized subroutines
-    background a();
-    b();
+    my $c = new Counter(2);
+    background a($c);
+    b($c);
 
     my $m = new Mutex();
     $m.lock();

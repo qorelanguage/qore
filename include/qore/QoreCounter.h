@@ -56,9 +56,9 @@ class QoreCounter
       }
 
    public:
-      inline QoreCounter()
+      inline QoreCounter(int nc = 0)
       {
-	 cnt = 0;
+	 cnt = nc;
 	 pthread_mutex_init(&ptm_lock, NULL);
 	 pthread_cond_init(&c, NULL);
       }
