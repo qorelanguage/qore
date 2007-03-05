@@ -29,7 +29,7 @@ TEST()
   if (xsink.isException()) {
     assert(false);
   }
-  unsigned size = grp.m_input_parameters.size();
+  unsigned size = grp.m_parameters.size();
   assert(size == 2);
 
   char* new_str = grp.m_cmd->getBuffer();
@@ -59,7 +59,7 @@ TEST()
   if (xsink.isException()) {
     assert(false);
   }
-  unsigned size = grp.m_input_parameters.size();
+  unsigned size = grp.m_parameters.size();
   assert(size == 2);
 
   char* new_str = grp.m_cmd->getBuffer();
