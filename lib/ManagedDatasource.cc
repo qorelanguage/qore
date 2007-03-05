@@ -57,8 +57,8 @@ void ManagedDatasource::deref()
 }
 
 int ManagedDatasource::grabLockIntern(class ExceptionSink *xsink)
-{	 
-   if (tGate.enter(tl_timeout))
+{
+   if (tGate.enter(tl_timeout) < 0)
    {
       endDBAction();
       xsink->raiseException("TRANSACTION-TIMEOUT", "timed out on datasource '%s@%s' after waiting %d second%s on transaction lock held by TID %d", 

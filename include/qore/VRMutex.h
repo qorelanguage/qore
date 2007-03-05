@@ -29,18 +29,23 @@
 #include <qore/AbstractSmartLock.h>
 #include <qore/VLock.h>
 
-// class for tiered locking and deadlock detection
+// reentrant thread lock using tiered locking and deadlock detection infrastructure
 class VRMutex : public AbstractSmartLock
 {
    private:
-      int tid, count, waiting;
+      int count;
+
+      DLLLOCAL virtual int releaseImpl();
+      DLLLOCAL virtual int releaseImpl(class ExceptionSink *xsink);
+      DLLLOCAL virtual int grabImpl(int mtid, class VLock *nvl, class ExceptionSink *xsink);
+      DLLLOCAL virtual int grabImpl(int mtid, int timeout_ms, class VLock *nvl, class ExceptionSink *xsink);
+      DLLLOCAL virtual int tryGrabImpl(int mtid, class VLock *nvl);
 
    public:
       DLLLOCAL VRMutex();
       DLLLOCAL int enter(class ExceptionSink *);
-      DLLLOCAL int auto_enter(class ExceptionSink *);
       DLLLOCAL int exit();
-      DLLLOCAL virtual int release();
+      DLLLOCAL virtual const char *getName() const { return "VRMutex"; }
 };
 
 #endif

@@ -40,16 +40,15 @@ class VLock : protected abstract_lock_list_t
       AbstractSmartLock *waiting_on;
       int tid;
       
-   public:   
+   public:
       DLLLOCAL VLock();
       DLLLOCAL ~VLock();
       DLLLOCAL void push(AbstractSmartLock *g);
       DLLLOCAL int pop(AbstractSmartLock *asl);
-      //DLLLOCAL AbstractSmartLock *getMark() const;
-      //DLLLOCAL void delToMark(AbstractSmartLock *mark);
       DLLLOCAL void del();
       DLLLOCAL AbstractSmartLock *find(AbstractSmartLock *g) const; 
       DLLLOCAL int waitOn(AbstractSmartLock *asl, class VLock *vl, int tid, class ExceptionSink *xsink);
+      DLLLOCAL int waitOn(AbstractSmartLock *asl, class VLock *vl, int tid, int timeout_ms, class ExceptionSink *xsink);
       DLLLOCAL int getTID() { return tid; }
          
 #ifdef DEBUG

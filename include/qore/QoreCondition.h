@@ -40,9 +40,9 @@ class QoreCondition
       DLLEXPORT int signal();
       DLLEXPORT int broadcast();
       DLLEXPORT int wait(pthread_mutex_t *m);
-      DLLEXPORT int wait(pthread_mutex_t *m, int timeout); // timeout in seconds
+      DLLEXPORT int wait(pthread_mutex_t *m, int timeout_ms); // timeout in milli seconds
       DLLEXPORT int wait(LockedObject *l) { return wait(&l->ptm_lock); }
-      DLLEXPORT int wait(LockedObject *l, int timeout) { return wait(&l->ptm_lock, timeout); } // timeout in seconds
+      DLLEXPORT int wait(LockedObject *l, int timeout) { return wait(&l->ptm_lock, timeout); } // timeout in milli seconds
 };
 
 #endif // QORE_CONDITION

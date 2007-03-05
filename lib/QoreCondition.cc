@@ -49,15 +49,17 @@ int QoreCondition::wait(pthread_mutex_t *m)
    return pthread_cond_wait(&c, m);
 }
 
-// timeout is in seconds
-int QoreCondition::wait(pthread_mutex_t *m, int timeout)
+// timeout is in milliseconds
+int QoreCondition::wait(pthread_mutex_t *m, int timeout_ms)
 {
    struct timeval now;
    struct timespec tmout;
    
    gettimeofday(&now, NULL);
-   tmout.tv_sec = now.tv_sec + timeout;
-   tmout.tv_nsec = now.tv_usec * 1000;
+   int secs = timeout_ms / 1000;
+   timeout_ms += secs * 1000;
+   tmout.tv_sec = now.tv_sec + secs;
+   tmout.tv_nsec = now.tv_usec * 1000 + timeout_ms * 1000000;
    
    return pthread_cond_timedwait(&c, m, &tmout);
 }

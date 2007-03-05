@@ -39,7 +39,7 @@ SingleExitGate::~SingleExitGate()
    pthread_cond_destroy(&cwait);
 }
 
-int SingleExitGate::enter(int timeout)
+int SingleExitGate::enter(int timeout_ms)
 {
    int ctid = gettid();
    
@@ -49,26 +49,28 @@ int SingleExitGate::enter(int timeout)
    while (tid != -1 && tid != ctid)
    {
       waiting++;
-      if (timeout)
+      if (timeout_ms)
 	 while (true)
 	 {
 	    struct timeval now;
 	    struct timespec tmout;
 	    
+	    int secs = timeout_ms / 1000;
+	    int new_ms = timeout_ms -  secs * 1000;
 	    gettimeofday(&now, NULL);
-	    tmout.tv_sec = now.tv_sec + timeout;
-	    tmout.tv_nsec = now.tv_usec * 1000;
+	    tmout.tv_sec = now.tv_sec + secs;
+	    tmout.tv_nsec = now.tv_usec * 1000 + new_ms * 1000000;
 	    
 	    if (!pthread_cond_timedwait(&cwait, &m, &tmout))
 	       break;
 	    
 	    // lock has timed out, unlock and return -1
 	    pthread_mutex_unlock(&m);
-	    printd(1, "SingleExitGate %08p timed out after %ds waiting for tid %d to release lock\n", timeout, tid);
+	    printd(1, "SingleExitGate %08p timed out after %dms waiting for tid %d to release lock\n", timeout_ms, tid);
 	    return -1;
 	 }
-	    else
-	       pthread_cond_wait(&cwait, &m);
+      else
+	 pthread_cond_wait(&cwait, &m);
       waiting--;
    }
    

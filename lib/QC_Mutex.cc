@@ -42,18 +42,18 @@ static void MUTEX_copy(class Object *self, class Object *old, class Mutex *m, Ex
 
 static class QoreNode *MUTEX_lock(class Object *self, class Mutex *m, class QoreNode *params, ExceptionSink *xsink)
 {
-   m->lock(xsink);
+   m->grab(xsink);
    return NULL;
 }
 
 static class QoreNode *MUTEX_trylock(class Object *self, class Mutex *m, class QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)m->trylock()); 
+   return new QoreNode((int64)m->tryGrab()); 
 }
 
 static class QoreNode *MUTEX_unlock(class Object *self, class Mutex *m, class QoreNode *params, ExceptionSink *xsink)
 {
-   m->unlock(xsink);
+   m->release(xsink);
    return NULL;
 }
 

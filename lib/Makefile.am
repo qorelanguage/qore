@@ -75,6 +75,7 @@ libqore_la_SOURCES = \
 	thread.cc \
 	VRMutex.cc \
 	VLock.cc \
+	AbstractSmartLock.cc \
 	RMutex.cc \
 	CallStack.cc \
 	ExecArgList.cc \

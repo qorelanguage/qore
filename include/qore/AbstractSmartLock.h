@@ -28,18 +28,59 @@
 #include <qore/LockedObject.h>
 #include <qore/QoreCondition.h>
 
+DLLLOCAL void abstract_smart_lock_cleanup(class AbstractSmartLock *asl, class ExceptionSink *xsink);
+
 class AbstractSmartLock
 {
-protected:
-   class VLock *vl;
+   protected:
+      class VLock *vl;
+      int tid, waiting;
 
-public:
-   LockedObject asl_lock;
-   QoreCondition asl_cond;
+      virtual int releaseImpl() = 0;
+      virtual int releaseImpl(class ExceptionSink *xsink) = 0;
+      virtual int grabImpl(int mtid, class VLock *nvl, class ExceptionSink *xsink) = 0;
+      virtual int grabImpl(int mtid, int timeout_ms, class VLock *nvl, class ExceptionSink *xsink) = 0;
+      virtual int tryGrabImpl(int mtid, class VLock *nvl) = 0;
+/*
+      DLLLOCAL virtual int grabInternImpl(int mtid)
+      {
+	 return -1;
+      }
+*/
+      DLLLOCAL void grab_intern_intern(int mtid, class VLock *nvl);
+      DLLLOCAL void release_intern_intern();
+      DLLLOCAL virtual void grab_intern(int mtid, class VLock *nvl);
+      DLLLOCAL virtual void release_intern();
 
-   virtual ~AbstractSmartLock() {}
-   virtual int release() = 0;
-   void self_wait() { asl_cond.wait(&asl_lock); }
+   public:
+      LockedObject asl_lock;
+      QoreCondition asl_cond;
+
+      DLLLOCAL AbstractSmartLock() : vl(NULL), tid(-1), waiting(0)  {}
+      DLLLOCAL virtual void cleanup();
+      DLLLOCAL virtual ~AbstractSmartLock() {}
+      DLLLOCAL virtual void destructor(class ExceptionSink *xsink);
+
+      // grab return values: 
+      //    0   = grabbed the lock
+      //    > 0 = acquired the lock recursively (was already acquired by this thread)
+      //    < 0 = error occured (deadlock or timeout)
+/*
+      DLLLOCAL int grabIntern(class ExceptionSink *xsink)
+      {
+	 int mtid = gettid();
+	 AutoLocker al(&asl_lock);
+	 return grabInternImpl(mtid);
+      }
+*/
+      DLLLOCAL int grab(class ExceptionSink *xsink);
+      DLLLOCAL int grab(int timeout_ms, class ExceptionSink *xsink);
+      DLLLOCAL int tryGrab();
+      DLLLOCAL int release();
+      DLLLOCAL int release(class ExceptionSink *xsink);
+      DLLLOCAL void self_wait() { asl_cond.wait(&asl_lock); }
+      DLLLOCAL int self_wait(int timeout_ms) { return asl_cond.wait(&asl_lock, timeout_ms); }
+      DLLLOCAL virtual const char *getName() const = 0;
 };
 
 #endif

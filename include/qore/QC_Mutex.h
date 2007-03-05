@@ -34,50 +34,26 @@ DLLLOCAL class QoreClass *initMutexClass();
 class Mutex : public AbstractPrivateData, public AbstractSmartLock
 {
    private:
-      int tid, waiting;
 
-      // only called in the lock
-      void release_intern()
+      DLLLOCAL virtual int releaseImpl()
       {
-	 tid = -1;
-	 vl = NULL;
-	 if (waiting)
-	    asl_cond.signal();
+	 if (tid < 0)
+	    return -1;
+	 return 0;
       }
 
-   public:
-      DLLLOCAL Mutex() : tid(-1), waiting(0) {}
-
-      DLLLOCAL void destructor(class ExceptionSink *xsink)
+      DLLLOCAL virtual int grabImpl(int mtid, class VLock *nvl, class ExceptionSink *xsink)
       {
-	 AutoLocker al(&asl_lock);	    
-	 if (tid != -1)
-	 {
-	    vl->pop(this);
-	    xsink->raiseException("LOCK-ERROR", "Mutex object destroyed while locked in TID %d", gettid());
-	    tid = -2;
-	    asl_cond.broadcast();
-	 }   
-      }
-      DLLLOCAL int lock(class ExceptionSink *xsink)
-      {
-	 int mtid = gettid();
-	 class VLock *nvl = getVLock();
-	 AutoLocker al(&asl_lock);
 	 if (tid != -1)
 	 {
 	    if (tid == mtid)
 	    {
-	       xsink->raiseException("LOCK-ERROR", "TID %d called Mutex::lock() twice without an intervening Mutex::unlock()", tid);
+	       // use getName for possible inheritance
+	       xsink->raiseException("LOCK-ERROR", "TID %d called %s::lock() twice without an intervening %s::unlock()", tid, getName(), getName());
 	       return -1;
 	    }
 	    while (tid >= 0)
 	    {
-	       if (tid == -2)
-	       {
-		  xsink->raiseException("LOCK-ERROR", "Mutex has been deleted in another thread");
-		  return -1;
-	       }
 	       waiting++;
 	       int rc =  nvl->waitOn((AbstractSmartLock *)this, vl, mtid, xsink);
 	       waiting--;
@@ -85,46 +61,71 @@ class Mutex : public AbstractPrivateData, public AbstractSmartLock
 		  return -1;
 	    }
 	 }
-	 tid = mtid;
-	 vl = nvl;
-	 nvl->push(this);
+	 if (tid == -2)
+	 {
+	    // use getName for possible inheritance
+	    xsink->raiseException("LOCK-ERROR", "%s has been deleted in another thread", getName());
+	    return -1;
+	 }
+
 	 return 0;
       }
-      DLLLOCAL int unlock(class ExceptionSink *xsink)
+
+      DLLLOCAL virtual int grabImpl(int mtid, int timeout_ms, class VLock *nvl, class ExceptionSink *xsink)
+      {
+	 if (tid != -1)
+	 {
+	    if (tid == mtid)
+	    {
+	       // getName() for possible inheritance
+	       xsink->raiseException("LOCK-ERROR", "TID %d called %s::lock() twice without an intervening %s::unlock()", tid, getName(), getName());
+	       return -1;
+	    }
+	    while (tid >= 0)
+	    {
+	       waiting++;
+	       int rc =  nvl->waitOn((AbstractSmartLock *)this, vl, mtid, timeout_ms, xsink);
+	       waiting--;
+	       if (rc)
+		  return -1;
+	    }
+	 }
+	 if (tid == -2)
+	 {
+	    // getName() for possible inheritance
+	    xsink->raiseException("LOCK-ERROR", "%s has been deleted in another thread", getName());
+	    return -1;
+	 }
+	 return 0;
+      }
+      DLLLOCAL virtual int releaseImpl(class ExceptionSink *xsink)
       {
 	 int mtid = gettid();
-	 AutoLocker al(&asl_lock);
 	 if (tid < 0)
 	 {
-	    xsink->raiseException("LOCK-ERROR", "TID %d called Mutex::unlock() while the lock was already unlocked", mtid);
+	    // getName() for possible inheritance
+	    xsink->raiseException("LOCK-ERROR", "TID %d called %s::unlock() while the lock was already unlocked", mtid, getName());
 	    return -1;
 	 }
 	 if (tid != mtid)
 	 {
-	    xsink->raiseException("LOCK-ERROR", "TID %d called Mutex::unlock() while the lock is held by tid %d", mtid, tid);
+	    // getName() for possible inheritance
+	    xsink->raiseException("LOCK-ERROR", "TID %d called %s::unlock() while the lock is held by tid %d", mtid, tid, getName());
 	    return -1;
 	 }
-	 vl->pop(this);
-	 release_intern();	 
 	 return 0;
       }
-      DLLLOCAL int trylock()
+
+      DLLLOCAL virtual int tryGrabImpl(int mtid, class VLock *nvl)
       {
-	 AutoLocker al(&asl_lock);
-	 if (tid >= 0)
+	 if (tid != -1)
 	    return -1;
-	 tid = gettid();
-	 vl = getVLock();
 	 return 0;
       }
-      DLLLOCAL int release()
-      {
-	 AutoLocker al(&asl_lock);
-	 if (tid < 0)
-	    return -1;
-	 release_intern();
-	 return 0;
-      }
+
+   public:
+      DLLLOCAL Mutex() {}
+
       DLLLOCAL int verify_lock_tid(char *meth, class ExceptionSink *xsink)
       {
 	 AutoLocker al(&asl_lock);
@@ -132,11 +133,12 @@ class Mutex : public AbstractPrivateData, public AbstractSmartLock
 	 if (tid == mtid)
 	    return 0;
 	 if (tid < 0)
-	    xsink->raiseException("LOCK-ERROR", "%s() with unlocked lock argument", meth);
+	    xsink->raiseException("LOCK-ERROR", "%s() with unlocked %s argument", meth, getName());
 	 else
-	    xsink->raiseException("LOCK-ERROR", "TID called %s with lock argument held by TID %d", mtid, tid);
+	    xsink->raiseException("LOCK-ERROR", "TID called %s with %s lock argument held by TID %d", mtid, getName(), tid);
 	 return -1;
       }
+      DLLLOCAL virtual const char *getName() const { return "Mutex"; }
 };
 
 #endif // _QORE_CLASS_MUTEX

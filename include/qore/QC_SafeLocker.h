@@ -40,7 +40,7 @@ public:
    DLLLOCAL QoreSafeLocker(class Mutex *mt, class ExceptionSink *xsink)
    {
       m = mt;
-      m->lock(xsink);
+      m->grab(xsink);
       if (!*xsink)
 	 locked = true;
    }
@@ -50,7 +50,7 @@ public:
       if (ROdereference())
       {
 	 if (locked)
-	    m->unlock(xsink);
+	    m->release(xsink);
 	 m->deref(xsink);
       }
    }
@@ -62,7 +62,7 @@ public:
 	 xsink->raiseException("SAFELOCKER-ERROR", "SafeLocker::lock() called while lock already held");
 	 return -1;
       }
-      int rc = m->lock(xsink);
+      int rc = m->grab(xsink);
       if (!rc)
 	 locked = true;
       return rc;
@@ -74,13 +74,13 @@ public:
 	 xsink->raiseException("SAFELOCKER-ERROR", "SafeLocker::unlock() called while lock not held");
 	 return -1;
       }
-      // set locked to false here so we don't try again if there is an error
+      // set locked to false here in every case, so we don't try again if there is an error
       locked = false;
-      return m->unlock(xsink);
+      return m->release(xsink);
    }
    DLLLOCAL int trylock()
    {
-      return m->trylock();
+      return m->tryGrab();
    }
 };
 

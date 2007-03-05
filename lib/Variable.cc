@@ -97,7 +97,7 @@ class QoreNode *Var::eval(class ExceptionSink *xsink)
 {
    class QoreNode *rv;
 
-   if (gate.enter(xsink))
+   if (gate.enter(xsink) < 0)
       return NULL;
    if (type == GV_IMPORT)
       rv = v.ivar.refptr->eval(xsink);
@@ -114,7 +114,7 @@ class QoreNode *Var::eval(class ExceptionSink *xsink)
 // note: the caller must exit the gate!
 class QoreNode **Var::getValuePtr(class AutoVLock *vl, class ExceptionSink *xsink)
 {
-   if (gate.enter(xsink))
+   if (gate.enter(xsink) < 0)
       return NULL;
 
    if (type == GV_IMPORT)
@@ -136,7 +136,7 @@ class QoreNode **Var::getValuePtr(class AutoVLock *vl, class ExceptionSink *xsin
 // note: the caller must exit the gate!
 class QoreNode *Var::getValue(class AutoVLock *vl, class ExceptionSink *xsink)
 {
-   if (gate.enter(xsink))
+   if (gate.enter(xsink) < 0)
       return NULL;
 
    if (type == GV_IMPORT)
@@ -158,14 +158,14 @@ void Var::setValue(class QoreNode *val, class ExceptionSink *xsink)
 	 xsink->raiseException("ACCESS-ERROR", "attempt to write to read-only variable $%s", v.ivar.refptr->getName());
 	 return;
       }
-      if (gate.enter(xsink))
+      if (gate.enter(xsink) < 0)
 	 return;
       v.ivar.refptr->setValue(val, xsink);
       gate.exit();
       return;
    }
 
-   if (gate.enter(xsink))
+   if (gate.enter(xsink) < 0)
       return;
    if (v.val.value)
       v.val.value->deref(xsink);
@@ -175,7 +175,7 @@ void Var::setValue(class QoreNode *val, class ExceptionSink *xsink)
 
 void Var::makeReference(class Var *pvar, class ExceptionSink *xsink, bool ro)
 {
-   if (gate.enter(xsink))
+   if (gate.enter(xsink) < 0)
       return;
    if (type == GV_IMPORT)
       v.ivar.refptr->deref(xsink);

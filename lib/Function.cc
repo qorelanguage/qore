@@ -640,7 +640,7 @@ class QoreNode *UserFunction::eval(QoreNode *args, Object *self, class Exception
       push_argv(params->argvid);
 
       // enter gate if necessary
-      if (!synchronized || !gate->enter(xsink))
+      if (!synchronized || (gate->enter(xsink) >= 0))
       {
 	 // execute function
 	 val = statements->exec(xsink);
@@ -861,7 +861,7 @@ class QoreNode *UserFunction::evalConstructor(QoreNode *args, Object *self, clas
 	 push_argv(params->argvid);
 	 
 	 // enter gate if necessary
-	 if (!synchronized || !gate->enter(xsink))
+	 if (!synchronized || (gate->enter(xsink) >= 0))
 	 {
 	    // execute function
 	    val = statements->exec(xsink);

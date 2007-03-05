@@ -34,6 +34,12 @@ synchronized sub b()
     }
 }
 
+sub dt()
+{
+    our $n = new Mutex();
+    $n.lock();
+}
+
 sub main()
 {
     # internal deadlock with synchronized subroutines
@@ -56,6 +62,7 @@ sub main()
     {
 	printf("%s: %s\n", $ex.err, $ex.desc); 
     }    
+    background dt();
 }
 
 main();

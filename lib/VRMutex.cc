@@ -25,148 +25,126 @@
 
 #include <assert.h>
 
-VRMutex::VRMutex()
+VRMutex::VRMutex() : count(0)
 {
-   count = waiting = 0;
-   tid = -1;
-   vl = NULL;
 }
 
-/*
-void VRMutex::enter()
-{
-   //printd(5, "VRMutex::enter() %08p\n", this);
-
-   int mtid = gettid();
-   AutoLocker al(&asl_lock);
-   while (tid != -1 && tid != mtid)
-   {
-      waiting++;
-      printd(5, "VRMutex::enter() this=%08p about to block on VRMutex owned by TID %d\n", this, tid);
-#ifdef DEBUG
-      vl->show(NULL);
-#endif
-      wait((LockedObject *)this);
-      printd(5, "VRMutex::enter() this=%08p grabbed VRMutex\n", this);
-      waiting--;
-   }
-   tid = mtid;
-#ifdef DEBUG
-   //printd(5, "VRMutex::enter() this=%p count: %d->%d\n", this, count, count + 1);
-#endif
-   count++;
-#ifdef DEBUG
-   //if (count == 1)
-   //printd(5, "VRMutex::enter() this=%08p grabbed lock (vl=%08p)\n", this, vl);
-#endif
-}
-*/
 
 int VRMutex::enter(class ExceptionSink *xsink)
 {
-   class VLock *nvl = getVLock();
    int mtid = gettid();
-
-   // grabs the lock and releases it when the function is exited
+   class VLock *nvl = getVLock();
    AutoLocker al(&asl_lock);
-
-   while (tid != -1 && tid != mtid)
-   {
-      assert(nvl);
-      waiting++;
-      int rc = nvl->waitOn((AbstractSmartLock *)this, vl, mtid, xsink);
-      waiting--;
-      // if rc is non-zero there was a deadlock
-      if (rc)
-	 return -1;
-   }
-   // The list must always be the same!
-   assert((mtid == tid  && vl == nvl) || (tid == -1 && !vl));
-
-   if (tid == -1)
-   {
-      tid = mtid;
-      vl = nvl;
-#ifdef DEBUG
-      if (count == 1)
-	 printd(5, "VRMutex::enter() this=%08p grabbed lock (vl=%08p nvl=%08p)\n", this, vl, nvl);
-#endif
-      nvl->push(this);
-   }
-   
-   printd(5, "VRMutex::enter() this=%p count: %d->%d\n", this, count, count + 1);
-
-   count++;
-
-   return 0;
+   int rc = grabImpl(mtid, nvl, xsink);
+   if (!rc)
+      grab_intern_intern(mtid, nvl);
+   return rc;
 }
 
 int VRMutex::exit()
 {
-   assert(tid == gettid());
-
-   //fprintf(stderr, "Gate::exit() %08p\n", this);
-   // grabs the lock and releases it when the function is exited
    AutoLocker al(&asl_lock);
-   // if the lock is not locked, then return an error
-   if (!count)
-      return -1;
-#ifdef DEBUG
-   printd(5, "VRMutex::exit() this=%p count: %d->%d\n", this, count, count - 1);
-#endif
-
-   count--;
-   // if this is the last thread from the group to exit the lock
-   // then unlock the lock
-   if (!count)
-   {
-      printd(5, "VRMutex::exit() this=%p releasing lock (vl=%08p)\n", this, vl);
-      vl->pop(this);
-      
-      tid = -1;
-      vl = NULL;
-
-      // wake up a sleeping thread if there are threads waiting 
-      // on the lock
-      if (waiting)
-	 asl_cond.signal();
-   }
-
-   return 0;
+   int rc = releaseImpl();
+   if (!rc)
+      release_intern_intern();
+   return rc;
 }
 
-int VRMutex::release()
+int VRMutex::grabImpl(int mtid, class VLock *nvl, class ExceptionSink *xsink)
+{
+   while (tid != -1 && tid != mtid)
+   {
+      if (tid == -2)
+      {
+	 xsink->raiseException("VRMUTEX-ERROR", "%s has been deleted in another thread", getName());
+	 return -1;
+      }
+
+      ++waiting;
+      int rc = nvl->waitOn((AbstractSmartLock *)this, vl, mtid, xsink);
+      --waiting;
+      // if rc is non-zero there was a deadlock
+      if (rc)
+	 return -1;
+   }
+   // the thread lock list must always be the same if the lock was grabbed
+   assert((mtid == tid  && vl == nvl) || (tid == -1 && !vl));
+
+   printd(5, "VRMutex::enter() this=%p count: %d->%d\n", this, count, count + 1);
+
+   return count++;
+}
+
+int VRMutex::grabImpl(int mtid, int timeout_ms, class VLock *nvl, class ExceptionSink *xsink)
+{
+   while (tid != -1 && tid != mtid)
+   {
+      if (tid == -2)
+      {
+	 xsink->raiseException("LOCK-ERROR", "%s has been deleted in another thread", getName());
+	 return -1;
+      }
+
+      ++waiting;
+      int rc = nvl->waitOn((AbstractSmartLock *)this, vl, mtid, timeout_ms, xsink);
+      --waiting;
+      // if rc is non-zero there was a timeout or deadlock
+      if (rc)
+	 return -1;
+   }
+   // the thread lock list must always be the same if the lock was grabbed
+   assert((mtid == tid  && vl == nvl) || (tid == -1 && !vl));
+
+   printd(5, "VRMutex::enter() this=%p count: %d->%d\n", this, count, count + 1);
+
+   return count++;
+}
+
+int VRMutex::tryGrabImpl(int mtid, class VLock *nvl)
+{
+   if (tid != -1 && tid != mtid)
+      return -1;
+
+   // the thread lock list must always be the same if the lock was grabbed
+   assert((mtid == tid  && vl == nvl) || (tid == -1 && !vl));
+
+   printd(5, "VRMutex::enter() this=%p count: %d->%d\n", this, count, count + 1);
+
+   return count++;
+}
+
+// internal use only
+int VRMutex::releaseImpl()
 {
    assert(tid == gettid());
-   
-   //fprintf(stderr, "Gate::exit() %08p\n", this);
-   // grabs the lock and releases it when the function is exited
-   AutoLocker al(&asl_lock);
+   printd(5, "VRMutex::exit() this=%p count: %d->%d\n", this, count, count - 1);
 
-   // if the lock is not locked, then return an error
-   if (!count)
-      return -1;
-#ifdef DEBUG
-   printd(5, "VRMutex::release() this=%p count: %d->%d\n", this, count, count - 1);
-#endif
-   
-   count--;
-   // if this is the last thread from the group to exit the lock
-   // then unlock the lock
-   if (!count)
-   {
-      printd(5, "VRMutex::exit() this=%p releasing lock (vl=%08p)\n", this, vl);
-      
-      vl->pop(this);
-      tid = -1;
-      vl = NULL;
-      
-      // wake up a sleeping thread if there are threads waiting 
-      // on the lock
-      if (waiting)
-	 asl_cond.signal();
-   }
-   
-   return 0;
+   --count;
+   // if this is the last thread from the group to exit the lock, then return 0
+   return count ? -1 : 0;
 }
 
+int VRMutex::releaseImpl(class ExceptionSink *xsink)
+{
+   int mtid = gettid();
+   if (tid == -1)
+   {
+      // use getName() here so it can be safely inherited
+      xsink->raiseException("LOCK-ERROR", "%s::exit() called without acquiring the lock", getName());
+      return -1;
+   }
+   else if (tid != mtid)
+   {
+      // use getName() here so it can be safely inherited
+      xsink->raiseException("LOCK-ERROR", "%s::exit() called by TID %d while the lock is held by TID %d", getName(), tid, mtid);
+      return -1;      
+   }
+   // count must be > 0 because tid != 0
+   assert(count);
+
+   printd(5, "VRMutex::exit() this=%p count: %d->%d\n", this, count, count - 1);
+
+   --count;
+   // if this is the last thread from the group to exit the lock, then return 0
+   return count ? -1 : 0;
+}
