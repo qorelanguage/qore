@@ -103,6 +103,7 @@ public:
   ~sybase_connection();
   void init(char* username, char* password, char* dbname, ExceptionSink* xsink);
   CS_CONNECTION* getConnection() const { return m_connection; }
+  CS_CONTEXT* getContext() const { return m_context; }
 };
 
 //------------------------------------------------------------------------------
@@ -244,7 +245,9 @@ private:
   CS_CONNECTION* m_connection; // Sybase specific
   std::vector<QoreNode*> m_input_parameters; // as provided by the user
   std::string m_command_id; // unique name for the command, generated here
-  bool m_is_immediatelly_executable;
+  bool m_is_immediatelly_executable;  
+  QoreEncoding* m_encoding; // encoding to which the string should be converted
+  StringList m_placeholders;
 
   // Mostly copied from Oracle module. Also changes passed SQL command to Sybase format
   // (replacing %v with ?). Does not work with procedures. May be better rewritten.
@@ -310,9 +313,14 @@ SybaseBindGroup::SybaseBindGroup(QoreString* ostr)
 : m_cmd(0),
   m_ds(0),
   m_connection(0),
-  m_is_immediatelly_executable(false)
+  m_is_immediatelly_executable(false),
+  m_encoding(QCS_DEFAULT)
 {
   m_cmd = new QoreString(ostr->getBuffer());
+  if (is_sql_command_immediatelly_executable()) {
+    m_is_immediatelly_executable = true;
+  }
+
 }
 #endif
 
@@ -321,9 +329,10 @@ SybaseBindGroup::SybaseBindGroup(Datasource* ds, QoreString* ostr, List *args, E
 : m_cmd(0),
   m_ds(ds),
   m_connection(0),
-  m_is_immediatelly_executable(false)
+  m_is_immediatelly_executable(false),
+  m_encoding(ds->getQoreEncoding())
 {
-  m_cmd = ostr->convertEncoding(ds->getQoreEncoding(), xsink);
+  m_cmd = ostr->convertEncoding(m_encoding, xsink);
   if (xsink->isEvent()) {
     return;
   } 
@@ -389,6 +398,27 @@ void SybaseBindGroup::parseQuery(List* args, ExceptionSink* xsink)
       p = m_cmd->getBuffer() + offset + tn.strlen();
 
       m_input_parameters.push_back(v);
+    }
+    else if (!quote && (*p) == ':') // found placeholder marker
+    {
+      // copied from MySQL codebase
+      char *w = p;
+
+      p++;
+      if (!isalpha(*p))
+         continue;
+
+      // get placeholder name
+      QoreString tstr;
+      while (isalnum(*p) || (*p) == '_')
+      tstr.concat(*(p++));
+
+      m_placeholders.push_back(tstr.giveBuffer());
+
+      // substitute "@" for ":" in bind name
+      // find byte position of start of string
+      int offset = w - m_cmd->getBuffer();
+      m_cmd->replace(offset, 1, "@");
     }
     else if (((*p) == '\'') || ((*p) == '\"'))
     {
@@ -636,10 +666,10 @@ printf("### err x5\n");
         xsink->raiseException("DBI-EXEC-EXCEPTION", "Incorrect type for string parameter #%u (%s)", i + 1, param_name);
         return;
       }
-      QoreString* aux = n->val.String;
-      // TBD - convert
+      std::auto_ptr<QoreString> aux (n->val.String->convertEncoding(m_encoding, xsink));
+      
       char* s = "";
-      if (aux && aux->getBuffer()) {
+      if (aux.get() && aux->getBuffer()) {
         s = aux->getBuffer();
       }
       datafmt.datatype = param_info[i].m_column_type;
@@ -656,11 +686,26 @@ printf("### err9373 adding [%s]\n", s);
     }
 
     case CS_BINARY_TYPE:
-      // TBD
-      assert(false);
     case CS_LONGBINARY_TYPE:
-      // TBD
-      assert(false);
+    case CS_VARBINARY_TYPE:
+    {
+      if (n->type != NT_BINARY) {
+        xsink->raiseException("DBI-EXEC-EXCEPTION", "Incorrect type for binary parameter #%u (%s)", i + 1, param_name);
+        return;
+      }
+
+      datafmt.datatype = param_info[i].m_column_type;
+      datafmt.maxlength = n->val.bin->size();
+
+      err = ct_param(cmd, &datafmt, n->val.bin->getPtr(), n->val.bin->size(), 0);
+      if (err != CS_SUCCEED) {
+printf("### err9373 adding binary failed\n");
+        xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase function ct_param() for binary parameter #%u (%s) failed with error", i + 1, param_name, (int)err);
+        return;
+      }
+      break;
+    }
+
     case CS_TEXT_TYPE:
       // TBD
       assert(false);
@@ -790,10 +835,6 @@ printf("### err9373 adding [%s]\n", s);
     case CS_DECIMAL_TYPE:
       // TBD
       assert(false);
-
-    case CS_VARBINARY_TYPE:
-      assert(false);
-      // TBD - deal with all the types
       break;
     default:
 printf("### err x1\n");
@@ -802,7 +843,6 @@ printf("### err x1\n");
       return;
     }
   }
-printf("#### before send\n");
 
   err = ct_send(cmd);
   if (err != CS_SUCCEED) {
@@ -810,7 +850,6 @@ printf("### err 876\n");
     xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_send() failed with error %d", (int)err);
     return;
   }
-printf("### after send\n");
 }
 
 //------------------------------------------------------------------------------
@@ -966,7 +1005,7 @@ printf("### err line %d\n", __LINE__);
       xsink->outOfMemory();
       return;    
     }
-    // TBD - handle text, image, varchar
+    // TBD - handle text, image, varchar ???
 
     err = ct_bind(cmd, i + 1, &datafmt[i], coldata[i].value, &coldata[i].valuelen, &coldata[i].indicator);
     if (err != CS_SUCCEED) {
@@ -1026,7 +1065,6 @@ void SybaseBindGroup::extract_row_data_to_Hash(Hash* out, CS_INT col_index, CS_D
     sprintf(buffer, "column%d", (int)(col_index + 1));
     column_name = buffer;
   }
-  // TBD - convert column name by encoding?
   std::auto_ptr<QoreString> key(new QoreString((char*)column_name.c_str()));
   QoreNode* v = 0;
 
@@ -1042,8 +1080,7 @@ void SybaseBindGroup::extract_row_data_to_Hash(Hash* out, CS_INT col_index, CS_D
   case CS_CHAR_TYPE: // varchar
   {
     CS_CHAR* value = (CS_CHAR*)(coldata->value);
-    // TBD - conversion
-    QoreString* s = new QoreString(value);
+    QoreString* s = new QoreString(value, coldata->valuelen, m_encoding);
     v = new QoreNode(s);
     break;
   }
@@ -1114,13 +1151,18 @@ void SybaseBindGroup::extract_row_data_to_Hash(Hash* out, CS_INT col_index, CS_D
 //------------------------------------------------------------------------------
 bool SybaseBindGroup::is_sql_command_immediatelly_executable()
 {
+  bool res = true;
   if (does_command_return_data()) {
-    return false;
+    res = false;
+  } else {
+    // %v is Quore placeholder for parameter (here converted into ? a bit later)
+    // strstr() is a bit pessimistic but even if it makes mistake the slower
+    // path should work correctly
+    if (strstr(m_cmd->getBuffer(), "%%v")) {
+      res = false;
+    }
   }
-  // %v is Quore placeholder for parameter (here converted into ? a bit later)
-  // strstr() is a bit pessimistic but even if it makes mistake the slower
-  // path should work correctly
-  return strstr(m_cmd->getBuffer(), "%%v") == 0;
+  return res;
 }
 
 //------------------------------------------------------------------------------
@@ -1166,18 +1208,15 @@ void SybaseBindGroup::execute_immediatelly(ExceptionSink* xsink)
 QoreNode* SybaseBindGroup::execute_command(ExceptionSink* xsink)
 {
   if (m_is_immediatelly_executable) {
-assert(false); //##### DELETE
     // faster path to execute non-select w/o input parameters.
     // In case of problems or for testing purposes the call could be 
     // commented out and the driver should still work correctly - this is just an optimization.
-printf("#### executing %s immediatelly\n", m_cmd->getBuffer());
     execute_immediatelly(xsink);
     return 0;
   }
 
   CS_COMMAND* cmd = prepare_command(xsink);
   if (xsink->isException()) {
-printf("### err A\n");
     return 0;
   }  
   ON_BLOCK_EXIT(ct_cmd_drop, cmd);
@@ -1186,12 +1225,10 @@ printf("### err A\n");
 
   std::vector<column_info_t> inputs = extract_input_parameters_info(cmd, xsink);
   if (xsink->isException()) {
-printf("### err B\n");
     return 0;
   }
   std::vector<column_info_t> outputs;
   if (does_command_return_data()) {
-printf("### command has ouput data\n");
     outputs = extract_output_parameters_info(cmd, xsink);
     if (xsink->isException()) {
       return 0;
@@ -1199,24 +1236,18 @@ printf("### command has ouput data\n");
   }
   bind_input_parameters(cmd, inputs, xsink);
   if (xsink->isException()) {
-printf("#### AAA\n");
     return 0;
   }  
-printf("### before read output\n");
 
   QoreNode* res = read_output(cmd, outputs, xsink);
-printf("### after read output\n");
   if (!xsink->isException()) {
-printf("#### cancelling\n");
     cancel_guard.Dismiss();
   } else {
-printf("### derefing\n");
     if (res) {
       res->deref(xsink);
       res = 0;
     }
   }
-printf("### execute_command() returned\n");
   return res;
 }
 
@@ -1278,6 +1309,87 @@ QoreNode* SybaseBindGroup::selectRows(class ExceptionSink *xsink)
   return n;
 }
 
+//------------------------------------------------------------------------------
+// Converts Qore encoding name to Qore encoding type.
+// Covers only what the function get_default_string_encoding() supports.
+static QoreEncoding* encoding_str2Qore(char* encoding_str, ExceptionSink* xsink)
+{
+  if (!encoding_str || !encoding_str[0]) {
+    // internal error
+    assert(false);
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "Empty encoding passed into encoding_str2Qore()");
+    return 0;
+  }
+  if (strcmp(encoding_str, "utf-8") == 0) {
+    return QCS_UTF8;
+  }
+  if (strcmp(encoding_str, "iso-8859-1") == 0) {
+    return QCS_ISO_8859_1;
+  }
+  if (strcmp(encoding_str, "us-ascii") == 0) {
+    return QCS_USASCII; // I hope this is correct
+  }
+  if (strcmp(encoding_str, "iso-8859-2") == 0) {
+    return QCS_ISO_8859_2;
+  }
+
+  // The other encoding may be added later.
+  // Then the function get_default_string_encoding() needs
+  // to be synchronized.
+  
+  assert(false);
+  xsink->raiseException("DBI-EXEC-EXCEPTION", "Unknown encoding [%s] passed into encoding_str2Qore()", encoding_str);
+  return 0;
+}
+
+//------------------------------------------------------------------------------
+// Converts Sybase encoding name to Qore encoding name. Only selected number of names is handled.
+//
+// See http://infocenter.sybase.com/help/index.jsp?topic=/com.sybase.dc35823_1500/html/uconfig/X29127.htm
+// (customizing locale information for Adaptive Server)
+static std::string get_default_string_encoding(CS_CONTEXT* context, ExceptionSink* xsink)
+{
+printf("### retrieving locale\n");
+  CS_LOCALE* locale;
+  CS_RETCODE err = cs_loc_alloc(context, &locale);
+  if (err != CS_SUCCEED) {
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call cs_loc_alloc() returned error %d", (int)err);
+    return std::string();
+  }
+  ON_BLOCK_EXIT(cs_loc_drop, context, locale);
+
+  CS_CHAR encoding_str[100];
+  err = cs_locale(context, CS_GET, locale, CS_SYB_CHARSET, encoding_str, sizeof(encoding_str), 0);
+  if (err != CS_SUCCEED) {
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call cs_locale() returned error %d", (int)err);
+    return std::string();
+  }
+
+  if (!encoding_str[0]) {
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call cs_locale() returned empty string for encoding");
+    return std::string();
+  }
+  if (strcmp(encoding_str, "utf8") == 0) {
+    return "utf-8";
+  }
+  if (strcmp(encoding_str, "iso_1") == 0) {
+    return "iso-8859-1";
+  }
+  if (strcmp(encoding_str, "ascii8") == 0) {
+    return "us-ascii"; // I hope this is correct
+  }
+  if (strcmp(encoding_str, "iso88592") == 0) {
+    return "iso-8859-2";
+  }
+  // If new item is added here synchronize the above function 
+  // encoding_str2Qore() too.
+  // Possible problems: Sybase has "koi8" while Qore has 2 encodings: QCS_KOI8_R and QCS_KOI8_U.
+
+  xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call cs_locale() returned currently unrecognized encoding %s", encoding_str);
+
+  return std::string();
+}
+
 } // anonymous namespace
 
 //------------------------------------------------------------------------------
@@ -1308,7 +1420,37 @@ static int sybase_open(Datasource *ds, ExceptionSink *xsink)
   }
   ds->setPrivateData(sc.release());
 
-  // TBD - something about string encoding should be here
+  // string encoding
+   if (ds->getDBEncoding()) {
+printf("### already HAS encoding\n");
+    char* encoding_str = ds->getDBEncoding();
+    QoreEncoding* encoding_qore = encoding_str2Qore(encoding_str, xsink);
+    if (xsink->isException()) {
+      sybase_connection* sc = (sybase_connection*)ds->getPrivateData();
+      ds->setPrivateData(0);
+      delete sc;
+      return -1;
+    }
+    ds->setQoreEncoding(encoding_qore);
+   } else {
+printf("### CHECKING for encoding\n");
+      std::string encoding_str = get_default_string_encoding(sc->getContext(), xsink);
+      if (xsink->isException()) {
+        sybase_connection* sc = (sybase_connection*)ds->getPrivateData();
+        ds->setPrivateData(0);
+        delete sc;
+        return -1;
+      }
+      ds->setDBEncoding((char*)encoding_str.c_str());
+      QoreEncoding* encoding_qore = encoding_str2Qore((char*)encoding_str.c_str(), xsink);
+      if (xsink->isException()) {
+        sybase_connection* sc = (sybase_connection*)ds->getPrivateData();
+        ds->setPrivateData(0);
+        delete sc;
+        return -1;
+      }
+      ds->setQoreEncoding(encoding_qore);
+   }
 
   traceout("sybase_open()");
   return 0;

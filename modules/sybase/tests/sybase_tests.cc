@@ -673,7 +673,6 @@ static void prepare_testing(sybase_connection* conn)
 //------------------------------------------------------------------------------
 TEST()
 {
-  // as above but using execute_command()
   sybase_connection conn;
   ExceptionSink xsink;
   conn.init("sa", 0, "pavel", &xsink);
@@ -682,6 +681,93 @@ TEST()
   }
 
   prepare_testing(&conn);
+
+  // insert one column, leave the rest to be the default NULL
+{
+  QoreString str3("insert into my_test (int_col) values (11)");
+  SybaseBindGroup grp3(&str3);
+  grp3.m_connection = conn.getConnection();
+
+  grp3.parseQuery(0, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+
+  QoreNode* n3 = grp3.execute_command(&xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  assert(!n3);
+
+  if (!sybase_commit_impl(&conn, &xsink)) {
+    assert(false);
+  }
+  if (xsink.isException()) {
+    assert(false);  
+  }
+}
+
+{
+  QoreString str3("select * from my_test where int_col = 11");
+  SybaseBindGroup grp3(&str3);
+  grp3.m_connection = conn.getConnection();
+
+  grp3.parseQuery(0, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+
+  QoreNode* n3 = grp3.execute_command(&xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  assert(n3);
+  assert(n3->type == NT_HASH);
+  n3->deref(&xsink);
+}
+
+}
+
+//------------------------------------------------------------------------------
+TEST()
+{
+  // test reading a varchar value
+  sybase_connection conn;
+  ExceptionSink xsink;
+  conn.init("sa", 0, "pavel", &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+
+  prepare_testing(&conn);
+
+  QoreString str("select varchar_col from my_test where int_col = 33");
+  SybaseBindGroup grp(&str);
+  grp.m_connection = conn.getConnection();
+
+  grp.parseQuery(0, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+
+  QoreNode* n = grp.execute_command(&xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  assert(n);
+  if (n->type != NT_HASH) {
+    assert(false);
+  }
+  assert(n->val.hash->size() == 1);
+  QoreNode* v = n->val.hash->getKeyValue("varchar_col");
+  assert(v);
+  assert(v->type == NT_STRING);
+  char* s = v->val.String->getBuffer();
+  if (strcmp(s, "ccc") != 0) {
+    assert(false);
+  }
+
+  n->deref(&xsink);
 }
 
 } // namespace
