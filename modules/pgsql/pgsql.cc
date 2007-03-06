@@ -125,7 +125,7 @@ static int qore_pgsql_open(Datasource *ds, ExceptionSink *xsink)
       ds->setQoreEncoding(QCS_DEFAULT);
    }
 
-   class QorePGConnection *pc = new QorePGConnection(lstr.strlen() ? lstr.getBuffer() : NULL, xsink);
+   class QorePGConnection *pc = new QorePGConnection(lstr.getBuffer(), xsink);
 
    if (*xsink)
    {
