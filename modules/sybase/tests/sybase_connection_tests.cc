@@ -16,8 +16,7 @@ TEST()
   }
 }
 
-}
-
+} // namespace
 #endif
 
 // EOF

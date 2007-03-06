@@ -83,65 +83,6 @@ TEST()
   n->deref(&xsink);
 }
 
-//------------------------------------------------------------------------------
-TEST()
-{
-  // test sybase_commit()
-  sybase_connection conn;
-  ExceptionSink xsink;
-  conn.init(SYBASE_TEST_SETTINGS, &xsink);
-  if (xsink.isException()) {
-    assert(false);
-  }
-  int res = sybase_commit_impl(&conn, &xsink);
-  if (res != 1) {
-    assert(false);
-  }
-}
-
-//------------------------------------------------------------------------------
-TEST()
-{
-  // test sybase_rollback()
-  sybase_connection conn;
-  ExceptionSink xsink;
-  conn.init(SYBASE_TEST_SETTINGS, &xsink);
-  if (xsink.isException()) {
-    assert(false);
-  }
-  int res = sybase_rollback_impl(&conn, &xsink);
-  if (res != 1) {
-    assert(false);
-  }
-}
-
-//------------------------------------------------------------------------------
-TEST()
-{
-  // several commit/rollbacks
-  sybase_connection conn;
-  ExceptionSink xsink;
-  conn.init(SYBASE_TEST_SETTINGS, &xsink);
-  if (xsink.isException()) {
-    assert(false);
-  }
-  int res = sybase_commit_impl(&conn, &xsink);
-  if (res != 1) {
-    assert(false);
-  }
-  res = sybase_commit_impl(&conn, &xsink);
-  assert(res == 1);
-  res = sybase_rollback_impl(&conn, &xsink);
-  assert(res == 1);
-  res = sybase_commit_impl(&conn, &xsink);
-  assert(res == 1);
-  res = sybase_rollback_impl(&conn, &xsink);
-  assert(res == 1);
-  res = sybase_commit_impl(&conn, &xsink);
-  assert(res == 1);
-  res = sybase_rollback_impl(&conn, &xsink);
-  assert(res == 1); 
-}
 
 //------------------------------------------------------------------------------
 TEST()
@@ -457,7 +398,7 @@ static void prepare_testing(sybase_connection* conn)
   }
   assert(!n3);
 
-  if (!sybase_commit_impl(conn, &xsink)) {
+  if (!sybase_low_level_commit(conn, &xsink)) {
     assert(false);    
   }
   if (xsink.isException()) {
@@ -537,7 +478,7 @@ static void prepare_testing(sybase_connection* conn)
   }
   assert(!n6);
 
-  if (!sybase_commit_impl(conn, &xsink)) {
+  if (!sybase_low_level_commit(conn, &xsink)) {
     assert(false);
   }
   if (xsink.isException()) {
@@ -560,7 +501,7 @@ static void prepare_testing(sybase_connection* conn)
     assert(false);
   }
   assert(!n6);
-  if (!sybase_commit_impl(conn, &xsink)) {
+  if (!sybase_low_level_commit(conn, &xsink)) {
     assert(false);
   }
   if (xsink.isException()) {
@@ -691,7 +632,7 @@ TEST()
   }
   assert(!n3);
 
-  if (!sybase_commit_impl(&conn, &xsink)) {
+  if (!sybase_low_level_commit(&conn, &xsink)) {
     assert(false);
   }
   if (xsink.isException()) {

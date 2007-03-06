@@ -41,6 +41,7 @@
 #include "sybase.h"
 #include <qore/ScopeGuard.h>
 #include "sybase_connection.h"
+#include "sybase_low_level_interface.h"
 
 #ifdef DEBUG
 #  define private public
@@ -82,8 +83,6 @@ QoreNode* runSybaseTests(QoreNode* params, ExceptionSink* xsink)
   return 0;
 }
 #endif
-
-static int sybase_commit(Datasource *ds, ExceptionSink *xsink);
 
 namespace {
 
@@ -1077,43 +1076,7 @@ bool SybaseBindGroup::is_sql_command_immediatelly_executable()
 // Guesstimate for Qorus is that 90% of commands will go this way.
 void SybaseBindGroup::execute_immediatelly(ExceptionSink* xsink)
 {
-  CS_COMMAND* cmd = 0;
-  CS_RETCODE err = ct_cmd_alloc(m_connection, &cmd);
-  if (err != CS_SUCCEED) {
-printf("### line %d\n", __LINE__);
-    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_cmd_alloc() failed with error %d", (int)err);
-    return;
-  }
-  ON_BLOCK_EXIT(ct_cmd_drop, cmd);
-
-  err = ct_dynamic(cmd, CS_EXEC_IMMEDIATE, 0, CS_UNUSED, "commit transaction", CS_NULLTERM);
-  if (err != CS_SUCCEED) {
-printf("### line %d\n", __LINE__);
-    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_dynamic(\"%s\") failed with error %d", (int)err, m_cmd->getBuffer());
-    return;
-  }
-  err = ct_send(cmd);
-  if (err != CS_SUCCEED) {
-printf("### line %d\n", __LINE__);
-    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_send() failed with error %d", (int)err);
-    return;
-  }
-
-  // no results expected
-  CS_INT result_type;
-  err = ct_results(cmd, &result_type);
-  if (err != CS_SUCCEED) {
-printf("### line %d\n", __LINE__);
-    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_result() failed with error %d", (int)err);
-    return;
-  }
-  if (result_type != CS_CMD_SUCCEED) {
-    assert(result_type == CS_CMD_FAIL);
-printf("### line %d\n", __LINE__);
-    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() for \"%s\" failed with error %d", (int)err, m_cmd->getBuffer());
-    return;
-  }
-  while((err = ct_results(cmd, &result_type)) == CS_SUCCEED);
+  sybase_low_level_execute_directly_command(m_connection, (char*)m_cmd, xsink);
 }
 
 //------------------------------------------------------------------------------
@@ -1177,7 +1140,7 @@ QoreNode* SybaseBindGroup::exec(class ExceptionSink *xsink)
     return 0;
   }
   if (m_ds->getAutoCommit()) {
-    sybase_commit(m_ds, xsink);
+    sybase_low_level_commit((sybase_connection*)m_ds->getPrivateData(), xsink);
   }
   return 0;
 }
@@ -1415,103 +1378,17 @@ static QoreNode* sybase_exec(Datasource *ds, QoreString *qstr, List *args, Excep
 }
 
 //------------------------------------------------------------------------------
-// Locally debugable function
-static int sybase_commit_impl(sybase_connection* sc, ExceptionSink* xsink)
-{
-  CS_COMMAND* cmd = 0;
-  CS_RETCODE err = ct_cmd_alloc(sc->getConnection(), &cmd);
-  if (err != CS_SUCCEED) {
-printf("### commit failure1\n");
-    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_cmd_alloc() failed with error %d", (int)err);
-    return 0;
-  }
-  ON_BLOCK_EXIT(ct_cmd_drop, cmd);
-
-  err = ct_dynamic(cmd, CS_EXEC_IMMEDIATE, 0, CS_UNUSED, "commit transaction", CS_NULLTERM);
-  if (err != CS_SUCCEED) {
-printf("### commit failure2\n");
-    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_dynamic(\"commit transaction\") failed with error %d", (int)err);
-    return 0;
-  }
-  err = ct_send(cmd);
-  if (err != CS_SUCCEED) {
-printf("### commit failure3\n");
-    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_send() failed with error %d", (int)err);
-    return 0;
-  }
-
-  // no results expected
-  CS_INT result_type;
-  err = ct_results(cmd, &result_type);
-  if (err != CS_SUCCEED) {
-printf("### commit failure4\n");
-    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_result() failed with error %d", (int)err);
-    return 0;
-  }
-  if (result_type != CS_CMD_SUCCEED) {
-    assert(result_type == CS_CMD_FAIL);
-printf("### commit failure5\n");
-    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() for \"commit transaction\" failed with error %d",
- (int)err);
-    return 0;
-  }
-  while((err = ct_results(cmd, &result_type)) == CS_SUCCEED);
-
-  return 1;
-}
-
-//------------------------------------------------------------------------------
 static int sybase_commit(Datasource *ds, ExceptionSink *xsink)
 {
   sybase_connection* sc = (sybase_connection*)ds->getPrivateData();
-  return sybase_commit_impl(sc, xsink);
-}
-
-//------------------------------------------------------------------------------
-// Locally debugeable function
-static int sybase_rollback_impl(sybase_connection* sc, ExceptionSink* xsink)
-{
-  CS_COMMAND* cmd = 0;
-  CS_RETCODE err = ct_cmd_alloc(sc->getConnection(), &cmd);
-  if (err != CS_SUCCEED) {
-    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_cmd_alloc() failed with error %d", (int)err);
-    return 0;
-  }
-  ON_BLOCK_EXIT(ct_cmd_drop, cmd);
-
-  err = ct_dynamic(cmd, CS_EXEC_IMMEDIATE, 0, CS_UNUSED, "rollback transaction", CS_NULLTERM);
-  if (err != CS_SUCCEED) {
-    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_dynamic(\"rollback transaction\") failed with error %d", (int)err);
-    return 0;
-  }
-  err = ct_send(cmd);
-  if (err != CS_SUCCEED) {
-    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_send() failed with error %d", (int)err);
-    return 0;
-  }
-
-  // no results expected
-  CS_INT result_type;
-  err = ct_results(cmd, &result_type);
-  if (err != CS_SUCCEED) {
-    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_result() failed with error %d", (int)err);
-    return 0;
-  }
-  if (result_type != CS_CMD_SUCCEED) {
-    assert(result_type == CS_CMD_FAIL);
-    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() for \"rollback transaction\" failed with error %d", (int)err);
-    return 0;
-  }
-  while((err = ct_results(cmd, &result_type)) == CS_SUCCEED);
-
-  return 1;
+  return sybase_low_level_commit(sc, xsink);
 }
 
 //------------------------------------------------------------------------------
 static int sybase_rollback(Datasource *ds, ExceptionSink *xsink)
 {
   sybase_connection* sc = (sybase_connection*)ds->getPrivateData();
-  return sybase_rollback_impl(sc, xsink);
+  return sybase_low_level_rollback(sc, xsink);
 }
 
 //------------------------------------------------------------------------------

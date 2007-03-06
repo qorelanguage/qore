@@ -26,6 +26,40 @@
 #ifndef SYBASE_LOW_LEVEL_INTERFACE_H_
 #define SYBASE_LOW_LEVEL_INTERFACE_H_
 
+// Low level interface to Sybase CT library.
+// Most of CT calls should be wrapped here.
+
+#include <string>
+#include <qore/Exception.h>
+#include <ctpublic.h>
+
+class sybase_connection;
+
+//------------------------------------------------------------------------------
+extern int sybase_low_level_commit(sybase_connection* sc, ExceptionSink* xsink);
+extern int sybase_low_level_rollback(sybase_connection* sc, ExceptionSink* xsink);
+
+// The command has no bindings and returns no results.
+extern void sybase_low_level_execute_directly_command(CS_CONNECTION* conn, const char* sql_text, ExceptionSink* xsink);
+
+//------------------------------------------------------------------------------
+// Class used to automatically free all resources associated with a Sybase command
+class sybase_command_wrapper
+{
+  CS_COMMAND* m_cmd;
+  std::string m_string_id; // should be unique across connection
+
+public:
+  sybase_command_wrapper(CS_CONNECTION* conn, ExceptionSink* xsink);
+  ~sybase_command_wrapper();
+  
+  CS_COMMAND* operator()() const { return m_cmd; }
+  char* getStringId() const { return (char*)m_string_id.c_str(); }
+};
+
+//------------------------------------------------------------------------------
+extern void sybase_low_level_prepare_command(const sybase_command_wrapper& wrapper, const char* sql_text, ExceptionSink* xsink);
+
 #endif
 
 // EOF
