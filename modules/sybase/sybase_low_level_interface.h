@@ -30,6 +30,7 @@
 // Most of CT calls should be wrapped here.
 
 #include <string>
+#include <vector>
 #include <qore/Exception.h>
 #include <ctpublic.h>
 
@@ -59,6 +60,21 @@ public:
 
 //------------------------------------------------------------------------------
 extern void sybase_low_level_prepare_command(const sybase_command_wrapper& wrapper, const char* sql_text, ExceptionSink* xsink);
+
+//------------------------------------------------------------------------------
+// description of required input and output parameters for a SQL command, is extracted from Sybase 
+struct parameter_info_t {
+  parameter_info_t(const std::string& n, unsigned t, unsigned s) 
+  : m_name(n), m_type(t), m_max_size(s) {}
+
+  std::string m_name; // either provided by Sybase or assembled by the module
+  unsigned m_type; // CS_..._TYPE constants
+  unsigned m_max_size;
+};
+
+// get input & outputs of a SQL command
+extern std::vector<parameter_info_t> sybase_low_level_get_input_parameters_info(const sybase_command_wrapper& wrapper, ExceptionSink* xsink);
+extern std::vector<parameter_info_t> sybase_low_level_get_output_data_info(const sybase_command_wrapper& wrapper, ExceptionSink* xsink);
 
 #endif
 

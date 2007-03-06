@@ -235,6 +235,127 @@ void sybase_low_level_prepare_command(const sybase_command_wrapper& wrapper, con
   while((err = ct_results(wrapper(), &result_type)) == CS_SUCCEED);
 }
 
+//------------------------------------------------------------------------------
+std::vector<parameter_info_t> sybase_low_level_get_input_parameters_info(
+  const sybase_command_wrapper& wrapper, ExceptionSink* xsink)
+{
+  typedef std::vector<parameter_info_t> result_t;
+  result_t result;
+
+  CS_RETCODE err = ct_dynamic(wrapper(), CS_DESCRIBE_INPUT, wrapper.getStringId(), CS_NULLTERM, 0, CS_UNUSED);
+  if (err != CS_SUCCEED) {
+    assert(false);
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_dynamic(CS_DESCRIBE_INPUT) failed with error %d", (int)err);
+    return result;
+  }
+
+  err = ct_send(wrapper());
+  if (err != CS_SUCCEED) {
+    assert(false);
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_send() failed with error %d", (int)err);
+    return result;
+  }
+
+  CS_INT result_type;
+  while ((err = ct_results(wrapper(), &result_type)) == CS_SUCCEED) {
+    if (result_type != CS_DESCRIBE_RESULT) {
+      continue;
+    }
+
+    CS_INT numparam = 0;
+    CS_INT len;
+    err = ct_res_info(wrapper(), CS_NUMDATA, &numparam, CS_UNUSED, &len); // get # of input params
+    if (err != CS_SUCCEED) {
+      assert(false);
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call to ct_res_info(CS_DESCRIBE_RESULT) failed with error %d", (int)err);
+      return result;
+    }
+    result.reserve(numparam);
+
+    CS_DATAFMT datafmt;
+    for (CS_INT i = 1; i <= numparam; ++i) {
+      err = ct_describe(wrapper(), i, &datafmt);
+      if (err != CS_SUCCEED) {
+        assert(false);
+        xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call to ct_describe(%d) failed with error %d", i, (int)err);
+        result.clear();
+        return result;
+      }
+      std::string name;
+      if (datafmt.name[0]) {
+        name = datafmt.name;
+      } else {
+        char aux[60];
+        sprintf(aux, "unnamed parameter #%d", (int)i);
+        name = aux;
+      }
+      result.push_back(parameter_info_t(name, datafmt.datatype, datafmt.maxlength));
+    }
+  }
+
+  return result;
+}
+
+//------------------------------------------------------------------------------
+std::vector<parameter_info_t> sybase_low_level_get_output_data_info(
+  const sybase_command_wrapper& wrapper, ExceptionSink* xsink)
+{
+  typedef std::vector<parameter_info_t> result_t;
+  result_t result;
+
+  CS_RETCODE err = ct_dynamic(wrapper(), CS_DESCRIBE_OUTPUT, wrapper.getStringId(), CS_NULLTERM, 0, CS_UNUSED);
+  if (err != CS_SUCCEED) {
+    assert(false);
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_dynamic(CS_DESCRIBE_OUTPUT) failed with error %d", (int)err);
+    return result;
+  }
+
+  err = ct_send(wrapper());
+  if (err != CS_SUCCEED) {
+    assert(false);
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_send() failed with error %d", (int)err);
+    return result;
+  }
+
+  CS_INT result_type;
+  while ((err = ct_results(wrapper(), &result_type)) == CS_SUCCEED) {
+    if (result_type != CS_DESCRIBE_RESULT) {
+      continue;
+    }
+
+    CS_INT numparam = 0;
+    CS_INT len;
+    err = ct_res_info(wrapper(), CS_NUMDATA, &numparam, CS_UNUSED, &len); // get # of out columns
+    if (err != CS_SUCCEED) {
+      assert(false);
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call to ct_res_info(CS_DESCRIBE_RESULT) failed with error %d", (int)err);
+      return result;
+    }
+    result.reserve(numparam);
+
+    CS_DATAFMT datafmt;
+    for (CS_INT i = 1; i <= numparam; ++i) {
+      err = ct_describe(wrapper(), i, &datafmt);
+      if (err != CS_SUCCEED) {
+        assert(false);
+        xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call to ct_describe(%d) failed with error %d", i, (int)err);
+        result.clear();
+        return result;
+      }
+      std::string name;
+      if (datafmt.name[0]) {
+        name = datafmt.name;
+      } else {
+        char aux[60];
+        sprintf(aux, "unnamed column #%d", (int)i);
+        name = aux;
+      }
+      result.push_back(parameter_info_t(name, datafmt.datatype, datafmt.maxlength));
+    }
+  }
+
+  return result;
+}
 
 #ifdef DEBUG
 #  include "tests/sybase_low_level_interface_tests.cc"
