@@ -1348,7 +1348,7 @@ bool QorePGResult::checkIntegerDateTimes(PGconn *pc, class ExceptionSink *xsink)
       return false;
    }
 
-   void *data = PQgetvalue(res, 1, 1);
+   void *data = PQgetvalue(res, 0, 0);
    int64 val = MSBi8(*((uint64_t *)data));
 
    return val == 0;
