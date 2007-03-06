@@ -151,6 +151,22 @@ struct qore_pg_numeric {
       unsigned short digits[1];
 };
 
+union qore_pg_time {
+      int64 i;
+      double f;
+};
+
+struct qore_pg_interval {
+      qore_pg_time time;
+      union {
+	    int month;
+	    struct {
+		  int day;
+		  int month;
+	    } with_day;
+      } rest;
+};
+
 /*
 typedef void (*qore_pg_bind_func_t)(class QoreNode *v, char *data);
 typedef int (*qore_pg_bind_size_func_t)(class QoreNode *v);
@@ -165,7 +181,7 @@ struct qore_bind_info {
 typedef std::map<QoreType *, qore_bind_info> qore_pg_bind_map;
 */
 
-typedef class QoreNode *(*qore_pg_data_func_t)(char *data, int type, int size, class QoreEncoding *enc);
+typedef class QoreNode *(*qore_pg_data_func_t)(char *data, int type, int size, class QorePGConnection *conn, class QoreEncoding *enc);
 
 typedef std::map<int, qore_pg_data_func_t> qore_pg_data_map_t;
 
@@ -185,6 +201,7 @@ class QorePGConnection : public LockedObject
 {
    private:
       PGconn *pc;
+      bool interval_has_day, integer_datetimes;
 
    public:
       DLLLOCAL QorePGConnection(char *str, class ExceptionSink *xsink);
@@ -197,6 +214,8 @@ class QorePGConnection : public LockedObject
       DLLLOCAL class QoreNode *select_rows(class Datasource *ds, QoreString *qstr, class List *args, class ExceptionSink *xsink);
       DLLLOCAL class QoreNode *exec(class Datasource *ds, QoreString *qstr, class List *args, class ExceptionSink *xsink);
       DLLLOCAL int begin_transaction(class Datasource *ds, ExceptionSink *xsink);
+      DLLLOCAL bool has_interval_day() const { return interval_has_day; }
+      DLLLOCAL bool has_integer_datetimes() const { return integer_datetimes; }
 };
 
 union parambuf {
@@ -206,7 +225,7 @@ union parambuf {
       double f8;
       char *str;
       void *ptr;
-      Interval iv;
+      qore_pg_interval iv;
 
       DLLLOCAL void assign(short i)
       {
@@ -247,6 +266,7 @@ class QorePGResult {
       int *paramLengths, *paramFormats;
       int *paramArray;
       parambuf_list_t parambuf_list;
+      class QorePGConnection *conn;
       class QoreEncoding *enc;
 
       DLLLOCAL class QoreNode *getNode(int row, int col, class ExceptionSink *xsink);
@@ -259,7 +279,7 @@ class QorePGResult {
    public:
       static qore_pg_array_type_map_t array_type_map;
 
-      DLLLOCAL QorePGResult(class QoreEncoding *r_enc);
+      DLLLOCAL QorePGResult(class QorePGConnection *r_conn, class QoreEncoding *r_enc);
       DLLLOCAL ~QorePGResult();
 
       // returns 0 for OK, -1 for error
@@ -283,6 +303,7 @@ class QorePGBindArray {
       qore_pg_array_header *hdr;
       QoreType *type;
       int oid, arrayoid, format;
+      class QorePGConnection *conn;
 
       // returns -1 for exception, 0 for OK
       DLLLOCAL int check_type(class QoreNode *n, class ExceptionSink *xsink);
@@ -297,7 +318,7 @@ class QorePGBindArray {
       DLLLOCAL void check_size(int size);
 
    public:
-      DLLLOCAL QorePGBindArray();
+      DLLLOCAL QorePGBindArray(class QorePGConnection *r_conn);
       DLLLOCAL ~QorePGBindArray();
       // returns -1 for exception, 0 for OK
       DLLLOCAL int create_data(class List *l, int current, class QoreEncoding *enc, class ExceptionSink *xsink);

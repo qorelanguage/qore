@@ -9286,12 +9286,17 @@ BOOL values, so boolean() could be called as well with the same effect</para>
       <tgroup cols='3' align='left' colsep='1' rowsep='1'>
 	<thead>
 	  <row>
-	    <entry><para>Argument</para></entry>
-	    <entry><para>OCI Type</para></entry>
+	    <entry><para>Qore Type</para></entry>
+	    <entry><para>PostgreSQL Type</para></entry>
 	    <entry><para>Description</para></entry>
 	  </row>
 	</thead>
 	<tbody>
+	  <row>
+	    <entry><para></para></entry>
+	    <entry><para></para></entry>
+	    <entry><para></para></entry>
+	  </row>
 	</tbody>
       </tgroup>
     </table>

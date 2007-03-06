@@ -70,6 +70,7 @@ QoreEncodingManager::QoreEncodingManager()
    QCS_USASCII     = addUnlocked("US-ASCII",    NULL,   NULL,    NULL,     "7-bit ASCII character set");
    addAlias(QCS_USASCII, "ASCII");
    addAlias(QCS_USASCII, "USASCII");
+   addAlias(QCS_USASCII, "US-ASCII");
 
    QCS_UTF8        = addUnlocked("UTF-8",       utf8cl, utf8end, utf8cpos, "variable-width universal character set");
    addAlias(QCS_UTF8, "UTF8");
