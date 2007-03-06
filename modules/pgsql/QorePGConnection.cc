@@ -1333,24 +1333,24 @@ QorePGConnection::QorePGConnection(char *str, class ExceptionSink *xsink)
       do_pg_error(PQerrorMessage(pc), xsink);
    else
    {
-      const char *str;
+      const char *pstr;
       // get server version to encode/decode binary values properly
 #if POSTGRES_VERSION_MAJOR >= 8
       int server_version = PQserverVersion(pc);
       //printd(5, "version=%d\n", server_version);
       interval_has_day = server_version >= 80100 ? true : false;
 #else
-      str = PQparameterStatus(pc, "server_version");
-      interval_has_day = strcmp(str, "8.1") >= 0 ? true : false;
+      pstr = PQparameterStatus(pc, "server_version");
+      interval_has_day = strcmp(pstr, "8.1") >= 0 ? true : false;
 #endif
-      str = PQparameterStatus(pc, "integer_datetimes");
+      pstr = PQparameterStatus(pc, "integer_datetimes");
       //printd(5, "integer_datetimes=%s\n", str);
-      if (!str || !str[0])
+      if (!pstr || !pstr[0])
       {
 	 xsink->raiseException("DBI:PGSQL:SERVER-ERROR", "PostgreSQL server did not provide the value of the 'integer_datetimes' configuration variable");
 	 return;
       }
-      integer_datetimes = strcmp(str, "off");
+      integer_datetimes = strcmp(pstr, "off");
    }
 }
 
