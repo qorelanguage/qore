@@ -1,0 +1,62 @@
+/*
+  sybase_connection.h
+
+  Sybase DB layer for QORE
+  uses Sybase OpenClient C library
+
+  Qore Programming language
+
+  Copyright (C) 2007
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+#ifndef SYBASE_CONNECTION_H_
+#define SYBASE_CONNECTION_H_
+
+#include <qore/Exception.h>
+
+//------------------------------------------------------------------------------
+// Instantiated class is kept as private data of the Datasource
+// for the time thge Datasource exists. All other Sybase
+// resources are shortlived (including CS_COMMAND*).
+//
+class sybase_connection
+{
+private:
+  CS_CONTEXT* m_context;
+  CS_CONNECTION* m_connection;
+
+  // Sybase requires callbacks, their implementation is dummy
+  static CS_RETCODE clientmsg_callback();
+  static CS_RETCODE servermsg_callback();
+  static CS_RETCODE message_callback();
+
+public:
+  sybase_connection();
+  ~sybase_connection();
+
+  // to be called after the object is constructed
+  void init(char* username, char* password, char* dbname, ExceptionSink* xsink);
+
+  CS_CONNECTION* getConnection() const { return m_connection; }
+  CS_CONTEXT* getContext() const { return m_context; }
+};
+
+#endif
+
+// EOF
+
+

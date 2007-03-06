@@ -1,17 +1,8 @@
 #ifdef DEBUG
-namespace sybase_tests_962876 {
 
-//------------------------------------------------------------------------------
-TEST()
-{
-  // basic test if we can connect
-  sybase_connection conn;
-  ExceptionSink xsink;
-  conn.init("sa", 0, "pavel", &xsink);
-  if (xsink.isException()) {
-    assert(false);
-  }
-}
+#include "sybase_tests_common.h"
+
+namespace sybase_tests_962876 {
 
 //------------------------------------------------------------------------------
 TEST()
@@ -29,7 +20,7 @@ TEST()
   if (xsink.isException()) {
     assert(false);
   }
-  unsigned size = grp.m_parameters.size();
+  unsigned size = grp.m_input_parameters.size();
   assert(size == 2);
 
   char* new_str = grp.m_cmd->getBuffer();
@@ -59,7 +50,7 @@ TEST()
   if (xsink.isException()) {
     assert(false);
   }
-  unsigned size = grp.m_parameters.size();
+  unsigned size = grp.m_input_parameters.size();
   assert(size == 2);
 
   char* new_str = grp.m_cmd->getBuffer();
@@ -98,7 +89,7 @@ TEST()
   // test sybase_commit()
   sybase_connection conn;
   ExceptionSink xsink;
-  conn.init("sa", 0, "pavel", &xsink);
+  conn.init(SYBASE_TEST_SETTINGS, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
@@ -114,7 +105,7 @@ TEST()
   // test sybase_rollback()
   sybase_connection conn;
   ExceptionSink xsink;
-  conn.init("sa", 0, "pavel", &xsink);
+  conn.init(SYBASE_TEST_SETTINGS, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
@@ -130,7 +121,7 @@ TEST()
   // several commit/rollbacks
   sybase_connection conn;
   ExceptionSink xsink;
-  conn.init("sa", 0, "pavel", &xsink);
+  conn.init(SYBASE_TEST_SETTINGS, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
@@ -158,7 +149,7 @@ TEST()
   // test for prepare_command()
   sybase_connection conn;
   ExceptionSink xsink;
-  conn.init("sa", 0, "pavel", &xsink);
+  conn.init(SYBASE_TEST_SETTINGS, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
@@ -179,7 +170,7 @@ static void test1()
   // test used during the development
   sybase_connection conn;
   ExceptionSink xsink;
-  conn.init("sa", 0, "pavel", &xsink);
+  conn.init(SYBASE_TEST_SETTINGS, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
@@ -252,7 +243,7 @@ static void test2()
   // as above but using the execute_command()
   sybase_connection conn;
   ExceptionSink xsink;
-  conn.init("sa", 0, "pavel", &xsink);
+  conn.init(SYBASE_TEST_SETTINGS, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
@@ -295,7 +286,7 @@ static void test3()
   // select all
   sybase_connection conn;
   ExceptionSink xsink;
-  conn.init("sa", 0, "pavel", &xsink);
+  conn.init(SYBASE_TEST_SETTINGS, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
@@ -366,7 +357,7 @@ static void test4()
   // as above but using execute_command()
   sybase_connection conn;
   ExceptionSink xsink;
-  conn.init("sa", 0, "pavel", &xsink);
+  conn.init(SYBASE_TEST_SETTINGS, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
@@ -673,9 +664,10 @@ static void prepare_testing(sybase_connection* conn)
 //------------------------------------------------------------------------------
 TEST()
 {
+/*
   sybase_connection conn;
   ExceptionSink xsink;
-  conn.init("sa", 0, "pavel", &xsink);
+  conn.init(SYBASE_TEST_SETTINGS, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
@@ -725,7 +717,7 @@ TEST()
   assert(n3->type == NT_HASH);
   n3->deref(&xsink);
 }
-
+*/
 }
 
 //------------------------------------------------------------------------------
@@ -734,7 +726,7 @@ TEST()
   // test reading a varchar value
   sybase_connection conn;
   ExceptionSink xsink;
-  conn.init("sa", 0, "pavel", &xsink);
+  conn.init(SYBASE_TEST_SETTINGS, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
@@ -769,6 +761,40 @@ TEST()
 
   n->deref(&xsink);
 }
+
+//------------------------------------------------------------------------------
+TEST()
+{
+/*
+  // read it all
+  sybase_connection conn;
+  ExceptionSink xsink;
+  conn.init("sa", 0, "pavel", &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+
+  prepare_testing(&conn);
+
+  QoreString str("select * from my_test");
+  SybaseBindGroup grp(&str);
+  grp.m_connection = conn.getConnection();
+
+  grp.parseQuery(0, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+
+  QoreNode* n = grp.execute_command(&xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  assert(n);
+  assert(n->type == NT_LIST);
+  List* l = n->val.list;
+  assert(l->size() == 3);
+*/
+} 
 
 } // namespace
 #endif

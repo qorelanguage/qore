@@ -40,6 +40,7 @@
 
 #include "sybase.h"
 #include <qore/ScopeGuard.h>
+#include "sybase_connection.h"
 
 #ifdef DEBUG
 #  define private public
@@ -87,157 +88,6 @@ static int sybase_commit(Datasource *ds, ExceptionSink *xsink);
 namespace {
 
 //------------------------------------------------------------------------------
-class sybase_connection
-{
-private:
-  CS_CONTEXT* m_context;
-  CS_CONNECTION* m_connection;
-
-  // Sybase requires callbacks
-  static CS_RETCODE clientmsg_callback();
-  static CS_RETCODE servermsg_callback();
-  static CS_RETCODE message_callback();
-
-public:
-  sybase_connection();
-  ~sybase_connection();
-  void init(char* username, char* password, char* dbname, ExceptionSink* xsink);
-  CS_CONNECTION* getConnection() const { return m_connection; }
-  CS_CONTEXT* getContext() const { return m_context; }
-};
-
-//------------------------------------------------------------------------------
-sybase_connection::sybase_connection()
-: m_context(0), m_connection(0)
-{
-}
-
-//------------------------------------------------------------------------------
-sybase_connection::~sybase_connection()
-{
-  CS_RETCODE ret = CS_SUCCEED;
-  if (m_connection) {
-    ret = ct_close(m_connection, CS_UNUSED);
-    if (ret != CS_SUCCEED) {
-// commented out since it returns CS_BUSY. No idea at the time of writing what to do with it.
-//      assert(false); // not much can be done here
-    }
-  }
-  if (m_context) {
-   CS_INT exit_type = ret == CS_SUCCEED ? CS_UNUSED : CS_FORCE_EXIT;
-    ret = ct_exit(m_context, exit_type);
-    if (ret != CS_SUCCEED) {
-      assert(false); // not much can be done here
-    } 
-    ret = cs_ctx_drop(m_context);
-    if (ret != CS_SUCCEED) {
-      assert(false); // not much can be done here
-    }
-  }
-}
-
-//------------------------------------------------------------------------------
-// Post-constructor initialization used as it fits (unfortunately) better
-// with current programming model.
-void sybase_connection::init(char* username, char* password, char* dbname, ExceptionSink* xsink)
-{
-  assert(!m_connection);
-  assert(!m_context);
-
-  CS_RETCODE ret = cs_ctx_alloc(CS_VERSION_100, &m_context);
-  if (ret != CS_SUCCEED) {
-printf("#### line %d\n", __LINE__);
-    xsink->raiseException("DBI:SYBASE:CT-LIB-CANNOT-ALLOCATE-ERROR", "cs_ctx_alloc() failed with error %d", ret);
-    return;
-  }
-
-  ret = ct_init(m_context, CS_VERSION_100);
-  if (ret != CS_SUCCEED) {
-printf("#### line %d\n", __LINE__);
-    xsink->raiseException("DBI:SYBASE:CT-LIB-INIT-FAILED", "ct_init() failed with error %d", ret);
-    return;  
-  }
-
-  // add callbacks
-  ret = cs_config(m_context, CS_SET, CS_MESSAGE_CB, (CS_VOID*)message_callback, CS_UNUSED, NULL);
-  if (ret != CS_SUCCEED) {
-printf("#### line %d\n", __LINE__);
-    xsink->raiseException("DBI:SYBASE:CT-LIB-SET-CALLBACK", "ct_config(CS_MESSAGE_CB) failed with error %d", ret);
-    return;
-  }
-
-  ret = ct_callback(m_context, 0, CS_SET, CS_CLIENTMSG_CB, (CS_VOID*)&clientmsg_callback);
-  if (ret != CS_SUCCEED) {
-printf("#### line %d\n", __LINE__);
-    xsink->raiseException("DBI:SYBASE:CT-LIB-SET-CALLBACK", "ct_callback(CS_SERVERMSG_CB) failed with error %d", ret);
-    return;
-  }
-
-  ret = ct_callback(m_context, 0, CS_SET, CS_SERVERMSG_CB, (CS_VOID*)&servermsg_callback);
-  if (ret != CS_SUCCEED) {
-printf("#### line %d\n", __LINE__);
-    xsink->raiseException("DBI:SYBASE:CT-LIB-SET-CALLBACK", "ct_callback(CS_SERVERMSG_CB) failed with error %d", ret);
-    return;
-  }
-
-  ret = ct_con_alloc(m_context, &m_connection);
-  if (ret != CS_SUCCEED) {
-printf("#### line %d\n", __LINE__);
-    xsink->raiseException("DBI:SYBASE:CT-LIB-CREATE-CONNECTION", "ct_con_alloc() failed with error %d", ret);
-    return;
-  }
-
-  ret = ct_con_props(m_connection, CS_SET, CS_USERNAME, username, CS_NULLTERM, 0);
-  if (ret != CS_SUCCEED) {
-printf("#### line %d\n", __LINE__);
-    xsink->raiseException("DBI:SYBASE:CT-LIB-SET-USERNAME", "ct_con_props(CS_USERNAME) failed with error %d", ret);
-    return;
-  }
-  if (password && password[0]) {
-    ret = ct_con_props(m_connection, CS_SET, CS_PASSWORD, password, CS_NULLTERM, 0);
-    if (ret != CS_SUCCEED) {
-printf("#### line %d\n", __LINE__);
-      xsink->raiseException("DBI:SYBASE:CT-LIB-SET-PASSWORD", "ct_con_props(CS_PASSWORD) failed with error %d", ret);
-      return;
-    }
-  }
-
-  ret = ct_connect(m_connection, dbname,  strlen(dbname));
-  if (ret != CS_SUCCEED) {
-printf("#### line %d, name %s\n", __LINE__, dbname);
-    xsink->raiseException("DBI:SYBASE:CT-LIB-CONNECT", "ct_connect() failed with error %d", ret);
-    return;
-  }
-
-  // transaction management is done by the driver (docs says it is by default)
-  CS_BOOL chained_transactions = CS_FALSE;
-  ret = ct_options(m_connection, CS_SET, CS_OPT_CHAINXACTS, &chained_transactions, CS_UNUSED, NULL);
-  if (ret != CS_SUCCEED) {
-printf("#### line %d\n", __LINE__);
-    xsink->raiseException("DBI:SYBASE:CT-LIB-SET-TRANSACTION-CHAINING", "ct_options(CS_OPT_CHAINXACTS) failed with error %d", ret);
-    return;
-  }
-}
-
-//------------------------------------------------------------------------------
-CS_RETCODE sybase_connection::message_callback()
-{
-  return CS_SUCCEED;
-}
-
-//------------------------------------------------------------------------------
-CS_RETCODE sybase_connection::clientmsg_callback()
-{
-  return CS_SUCCEED;
-}
-
-//------------------------------------------------------------------------------
-CS_RETCODE sybase_connection::servermsg_callback()
-{
-  return CS_SUCCEED;
-}
-
-//------------------------------------------------------------------------------
 // from exutils.h in samples
 typedef struct _ex_column_data
 {
@@ -253,21 +103,10 @@ private:
   QoreString* m_cmd; // as passed by the user
   Datasource* m_ds; // passed from upper layer
   CS_CONNECTION* m_connection; // Sybase specific
-  
-  typedef struct param_type {
-    QoreNode* m_input_value; // 0 for placeholders, pointer not owned
-    std::string m_placeholder;
-
-    param_type(QoreNode* n) : m_input_value(n) {}
-    param_type(char* s) : m_input_value(0), m_placeholder(s) {}
-  } param_type;
-  std::vector<param_type> m_parameters; // as provided by the user
-  std::string m_rpc_call_name; // if RPC is used then this is the name of the call
-
+  std::vector<QoreNode*> m_input_parameters; // as provided by the user
   std::string m_command_id; // unique name for the command, generated here
-  bool m_is_immediatelly_executable;  
+  bool m_is_immediatelly_executable; // ### probably delete 
   QoreEncoding* m_encoding; // encoding to which the string should be converted
-  std::vector<std::string> m_placeholders;
 
   // Mostly copied from Oracle module. Also changes passed SQL command to Sybase format
   // (replacing %v with ?). Does not work with procedures. May be better rewritten.
@@ -300,10 +139,10 @@ private:
   QoreNode* read_output(CS_COMMAND* cmd, const std::vector<column_info_t>& out_info, ExceptionSink* xsink);
 
   // helper for read_output(), adds just read single row into 'out'
-  void read_row(CS_COMMAND* cmd, const std::vector<column_info_t>& out_info, QoreNode*& out, ExceptionSink* xsink);
+  void read_row(CS_COMMAND* cmd, const std::vector<column_info_t>& out_info, QoreNode*& out, ExceptionSink* xsink, bool ignore_out_description = false);
   // converts Sybase data to QoreNode
   void extract_row_data_to_Hash(Hash* out, CS_INT col_index, CS_DATAFMT* datafmt, EX_COLUMN_DATA* coldata, 
-    const column_info_t& out_info, ExceptionSink* xsink);
+    const column_info_t* out_info, ExceptionSink* xsink);
 
   // select is not, if it has ? it is not. Immediate execution is a Sybase feature
   bool is_sql_command_immediatelly_executable();
@@ -354,6 +193,7 @@ SybaseBindGroup::SybaseBindGroup(Datasource* ds, QoreString* ostr, List *args, E
 {
   m_cmd = ostr->convertEncoding(m_encoding, xsink);
   if (xsink->isEvent()) {
+printf("### line %d\n", __LINE__);
     return;
   } 
   sybase_connection* sc = (sybase_connection*)ds->getPrivateData();
@@ -370,15 +210,6 @@ SybaseBindGroup::SybaseBindGroup(Datasource* ds, QoreString* ostr, List *args, E
   if (xsink->isEvent()) {
     return;
   }
-
-  if (m_rpc_call_name.empty()) {
-    for (unsigned i = 0; i < m_parameters.size(); ++i) {
-      if (m_parameters[i].m_placeholder.empty()) {
-        xsink->raiseException("DBI-EXEC-PARSE-EXCEPTION", "Placeholder variables found but the statement is not procedure call (starting with 'call')");
-        return;
-      }
-    }
-  }
 }
 
 //------------------------------------------------------------------------------
@@ -392,10 +223,8 @@ void SybaseBindGroup::parseQuery(List* args, ExceptionSink* xsink)
 {
   // code partly copied from Oracle module, not knowing better way
   if (args) {
-    m_parameters.reserve(args->size());
+    m_input_parameters.reserve(args->size());
   }
-  int already_retrieved_parameters = 0;
-
   char quote = 0;
   char *p = m_cmd->getBuffer();
   while (*p)
@@ -405,22 +234,25 @@ void SybaseBindGroup::parseQuery(List* args, ExceptionSink* xsink)
       p++;
       if ((*p) != 'v')
       {
+printf("### line %d\n", __LINE__);
         xsink->raiseException("DBI-EXEC-PARSE-EXCEPTION", "invalid value specification (expecting '%v', got %%%c)", *p);
         break;
       }
       p++;
       if (isalpha(*p))
       {
+printf("### line %d\n", __LINE__);
         xsink->raiseException("DBI-EXEC-PARSE-EXCEPTION", "invalid value specification (expecting '%v', got %%v%c*)", *p);
         break;
       }
-      if (!args || args->size() <= already_retrieved_parameters)
+      if (!args || args->size() <= (int)m_input_parameters.size())
       {
+printf("### line %d\n", __LINE__);
         xsink->raiseException("DBI-EXEC-PARSE-EXCEPTION", "too few arguments passed (%d) for value expression (%d)",
-          args ? args->size() : 0, already_retrieved_parameters + 1);
+          args ? args->size() : 0, m_input_parameters.size() + 1);
         break;
       }
-      QoreNode *v = args->retrieve_entry(already_retrieved_parameters++);
+      QoreNode *v = args->retrieve_entry(m_input_parameters.size());
 
       // replace value marker with ? expected by ct_dynamic()
       QoreString tn(" ?");
@@ -428,7 +260,7 @@ void SybaseBindGroup::parseQuery(List* args, ExceptionSink* xsink)
       m_cmd->replace(offset, 2, &tn);
       p = m_cmd->getBuffer() + offset + tn.strlen();
 
-      m_parameters.push_back(param_type(v));
+      m_input_parameters.push_back(v);
     }
     else if (!quote && (*p) == ':') // found placeholder marker
     {
@@ -444,7 +276,7 @@ void SybaseBindGroup::parseQuery(List* args, ExceptionSink* xsink)
       while (isalnum(*p) || (*p) == '_')
       tstr.concat(*(p++));
 
-      m_parameters.push_back(param_type(tstr.getBuffer()));
+//### TBD      m_placeholders.push_back(tstr.giveBuffer());
 
       // substitute "@" for ":" in bind name
       // find byte position of start of string
@@ -462,21 +294,6 @@ void SybaseBindGroup::parseQuery(List* args, ExceptionSink* xsink)
     else
       p++;
    }
-
-   // is this RPC call? (needs to start with 'call' like mysql)
-   char* thumb = m_cmd->getBuffer();
-   while (isspace(*thumb)) ++thumb;
-   if (*thumb == 0) return;
-   if (strncmp(thumb, "call", 4) != 0) return; // not RPC
-   thumb += 4;
-   while (isspace(*thumb)) ++thumb;
-   if (!isalpha(*thumb)) {
-     xsink->raiseException("DBI-EXEC-EXCEPTION", "After call name of called procedure is expected");
-     return;
-   }
-   char* name_start = thumb;
-   while (isalnum(*thumb)) ++thumb;
-   m_rpc_call_name = std::string(name_start, thumb - name_start);
 }
 
 //------------------------------------------------------------------------------
@@ -498,22 +315,11 @@ printf("#### err1 %p\n", m_connection);
   sprintf(aux, "my_cmd_%u_%u", (unsigned)pthread_self(), counter);
   m_command_id = aux;
 
-  if (m_rpc_call_name.empty()) {
-    err = ct_dynamic(result, CS_PREPARE, (CS_CHAR*)m_command_id.c_str(), CS_NULLTERM, m_cmd->getBuffer(), CS_NULLTERM);
-    if (err != CS_SUCCEED) {
+  err = ct_dynamic(result, CS_PREPARE, (CS_CHAR*)m_command_id.c_str(), CS_NULLTERM, m_cmd->getBuffer(), CS_NULLTERM);
+  if (err != CS_SUCCEED) {
 printf("### err2\n");
-      xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_dynamic(CS_PREPARE, \"%s\") failed with error %d", m_cmd->getBuffer(), (int)err);
-      return 0;
-    }
-  } else {
-    // it is RPC
-    err = ct_dynamic(result, CS_RPC_CMD, (CS_CHAR*)m_command_id.c_str(), CS_NULLTERM, (CS_CHAR*)m_rpc_call_name.c_str(), CS_NULLTERM);
-    if (err != CS_SUCCEED) {
-printf("### err2\n");
-      xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_dynamic(CS_RPC_CMD, \"%s\") failed with error %d", m_rpc_call_name.c_str(), (int)err);
-      return 0;
-    }
-
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_dynamic(CS_PREPARE, \"%s\") failed with error %d", m_cmd->getBuffer(), (int)err);
+    return 0;
   }
   
   err = ct_send(result);
@@ -679,10 +485,10 @@ printf("### err 44\n");
 //------------------------------------------------------------------------------
 void SybaseBindGroup::bind_input_parameters(CS_COMMAND* cmd, const std::vector<column_info_t>& param_info, ExceptionSink* xsink)
 {
-  if (param_info.size() != m_parameters.size()) {
+  if (param_info.size() != m_input_parameters.size()) {
 printf("### err x4\n");
     xsink->raiseException("DBI-EXEC-EXCEPTION", "Number of expected parameters: %u, available parameters %u", 
-      param_info.size(), m_parameters.size());
+      param_info.size(), m_input_parameters.size());
     return;
   }
 
@@ -693,60 +499,35 @@ printf("### failed to execute\n");
     return;
   }
 
-  for (unsigned i = 0, n = m_parameters.size(); i != n; ++i) {
-    QoreNode* n = m_parameters[i].m_input_value;
-    
-    bool is_placeholder = !m_parameters[i].m_placeholder.empty();
-    std::string param_name;
-    if (m_rpc_call_name.empty()) {
-      param_name = param_info[i].m_column_name.c_str();
-    } else {
-      param_name = "@";
-      if (is_placeholder) {
-        param_name += m_parameters[i].m_placeholder;
-      } else {
-        param_name += param_info[i].m_column_name.c_str();
-      }
-    }
+  for (unsigned i = 0, n = param_info.size(); i != n; ++i) {
+    QoreNode* n = m_input_parameters[i];
+    const char* param_name = param_info[i].m_column_name.c_str();
 
     CS_DATAFMT datafmt;
     memset(&datafmt, 0, sizeof(datafmt));
-    if (!m_rpc_call_name.empty()) { // all out params need to be named
-      strcpy(datafmt.name, param_name.c_str());
-    }
-    datafmt.status = is_placeholder ? CS_RETURN : CS_INPUTVALUE;
+    datafmt.status = CS_INPUTVALUE;
     datafmt.namelen = CS_NULLTERM;
     datafmt.maxlength = CS_UNUSED;
     datafmt.count = 1;   
 
-    if (is_placeholder == false && is_null(n)) {
+    if (is_null(n)) {
       err = ct_param(cmd, &datafmt, 0, CS_UNUSED, -1);
       if (err != CS_SUCCEED) {
 printf("### err x5\n");
-        xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_param(NULL) failed for parameter #%u (%s) with error", i + 1, param_name.c_str(), (int)err);
+        xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_param(NULL) failed for parameter #%u (%s) with error", i + 1, param_name, (int)err);
         return;
       }
       continue;
     }
 
     switch (param_info[i].m_column_type) {
-    //--------------------------------------------------------------------------
     case CS_VARCHAR_TYPE:
     case CS_LONGCHAR_TYPE:
     case CS_CHAR_TYPE: // all types are almost equivalent
-    if (is_placeholder) {
-      datafmt.datatype = param_info[i].m_column_type;
-      datafmt.maxlength = 10 * 1024; // guess
-      datafmt.status = CS_RETURN;
-
-      err = ct_param(cmd, &datafmt, NULL, 0, -1);
-      if (err != CS_SUCCEED) {
-        xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase function ct_param() for placeholder string parameter %s failed with error", param_name.c_str(), (int)err);
-        return;
-      }
-    } else {
+    {
       if (n->type != NT_STRING) {
-        xsink->raiseException("DBI-EXEC-EXCEPTION", "Incorrect type for string parameter #%u (%s)", i + 1, param_name.c_str());
+printf("### line %d\n", __LINE__);
+        xsink->raiseException("DBI-EXEC-EXCEPTION", "Incorrect type for string parameter #%u (%s)", i + 1, param_name);
         return;
       }
       std::auto_ptr<QoreString> aux (n->val.String->convertEncoding(m_encoding, xsink));
@@ -762,28 +543,19 @@ printf("### err x5\n");
       err = ct_param(cmd, &datafmt, s, strlen(s), 0);
       if (err != CS_SUCCEED) {
 printf("### err9373 adding [%s]\n", s);
-        xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase function ct_param() for string parameter #%u (%s) failed with error", i + 1, param_name.c_str(), (int)err);
+        xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase function ct_param() for string parameter #%u (%s) failed with error", i + 1, param_name, (int)err);
         return;
       }
+      break;
     }
-    break;
 
-    //--------------------------------------------------------------------------
     case CS_BINARY_TYPE:
     case CS_LONGBINARY_TYPE:
     case CS_VARBINARY_TYPE:
-    if (is_placeholder) {
-      datafmt.datatype = param_info[i].m_column_type;
-      datafmt.status = CS_RETURN;
-
-      err = ct_param(cmd, &datafmt, NULL, 0, -1);
-      if (err != CS_SUCCEED) {
-        xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase function ct_param() for placeholder binary parameter %s failed with error", param_name.c_str(), (int)err);
-        return;
-      }
-     } else {
+    {
       if (n->type != NT_BINARY) {
-        xsink->raiseException("DBI-EXEC-EXCEPTION", "Incorrect type for binary parameter #%u (%s)", i + 1, param_name.c_str());
+printf("### line %d\n", __LINE__);
+        xsink->raiseException("DBI-EXEC-EXCEPTION", "Incorrect type for binary parameter #%u (%s)", i + 1, param_name);
         return;
       }
 
@@ -792,11 +564,12 @@ printf("### err9373 adding [%s]\n", s);
 
       err = ct_param(cmd, &datafmt, n->val.bin->getPtr(), n->val.bin->size(), 0);
       if (err != CS_SUCCEED) {
-        xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase function ct_param() for binary parameter #%u (%s) failed with error", i + 1, param_name.c_str(), (int)err);
+printf("### err9373 adding binary failed\n");
+        xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase function ct_param() for binary parameter #%u (%s) failed with error", i + 1, param_name, (int)err);
         return;
       }
+      break;
     }
-    break;
 
     case CS_TEXT_TYPE:
       // TBD
@@ -804,17 +577,10 @@ printf("### err9373 adding [%s]\n", s);
     case CS_IMAGE_TYPE:
       // TBD
       assert(false);
-    case CS_TINYINT_TYPE: //----------------------------------------------------
-    if (is_placeholder) {
-      datafmt.datatype = CS_TINYINT_TYPE;
-      err = ct_param(cmd, &datafmt, 0, 0, -1);
-      if (err != CS_SUCCEED) {
-        xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase function ct_param() for placeholder integer parameter %s failed with error", param_name.c_str(), (int)err);
-        return;
-      }
-    } else {
+    case CS_TINYINT_TYPE:
+    {
       if (n->type != NT_INT) {
-        xsink->raiseException("DBI-EXEC-EXCEPTION", "Incorrect type for integer parameter #%u (%s)", i + 1, param_name.c_str());
+        xsink->raiseException("DBI-EXEC-EXCEPTION", "Incorrect type for integer parameter #%u (%s)", i + 1, param_name);
         return;
       }
       if (n->val.intval < 128 || n->val.intval >= 128) {
@@ -827,26 +593,22 @@ printf("### err9373 adding [%s]\n", s);
       datafmt.datatype = CS_TINYINT_TYPE;
       err = ct_param(cmd, &datafmt, &val, sizeof(val), 0);
       if (err != CS_SUCCEED) {
-        xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase function ct_param() for integer parameter #%u (%s) failed with error", i + 1, param_name.c_str(), (int)err);
+printf("### line %d\n", __LINE__);
+        xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase function ct_param() for integer parameter #%u (%s) failed with error", i + 1, param_name, (int)err);
         return;
       }
+      break;
     }
-    break;
 
-    case CS_SMALLINT_TYPE: //---------------------------------------------------
-    if (is_placeholder) {
-      datafmt.datatype = CS_SMALLINT_TYPE;
-      err = ct_param(cmd, &datafmt, 0, 0, -1);
-      if (err != CS_SUCCEED) {
-        xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase function ct_param() for placeholder integer parameter %s failed with error", param_name.c_str(), (int)err);
-        return;
-      }
-    } else {
+    case CS_SMALLINT_TYPE:
+    {
       if (n->type != NT_INT) {
-        xsink->raiseException("DBI-EXEC-EXCEPTION", "Incorrect type for integer parameter #%u (%s)", i + 1, param_name.c_str());
+printf("### line %d\n", __LINE__);
+        xsink->raiseException("DBI-EXEC-EXCEPTION", "Incorrect type for integer parameter #%u (%s)", i + 1, param_name);
         return;
       }
       if (n->val.intval < 32 * 1024 || n->val.intval >= 32 * 1024) {
+printf("### line %d\n", __LINE__);
         xsink->raiseException("DBI-EXEC-EXCEPTION", "Integer value (%d parameter) is out of range for Sybase datatype", i + 1);
         return;
       }
@@ -855,103 +617,82 @@ printf("### err9373 adding [%s]\n", s);
       datafmt.datatype = CS_SMALLINT_TYPE;
       err = ct_param(cmd, &datafmt, &val, sizeof(val), 0);
       if (err != CS_SUCCEED) {
-        xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase function ct_param() for integer parameter #%u (%s) failed with error", i + 1, param_name.c_str(), (int)err);
+printf("### line %d\n", __LINE__);
+        xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase function ct_param() for integer parameter #%u (%s) failed with error", i + 1, param_name, (int)err);
         return;
       }
+      break;
     }
-    break;
 
-    case CS_INT_TYPE: //--------------------------------------------------------
-    if (is_placeholder) {
-      datafmt.datatype = CS_INT_TYPE;
-      err = ct_param(cmd, &datafmt, 0, 0, -1);
-      if (err != CS_SUCCEED) {
-        xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase function ct_param() for placeholder integer parameter %s failed with error", param_name.c_str(), (int)err);
-        return;
-      }
-    } else {
+    case CS_INT_TYPE:
+    {
       if (n->type != NT_INT) {
-        xsink->raiseException("DBI-EXEC-EXCEPTION", "Incorrect type for integer parameter #%u (%s)", i + 1, param_name.c_str());
+        xsink->raiseException("DBI-EXEC-EXCEPTION", "Incorrect type for integer parameter #%u (%s)", i + 1, param_name);
         return;
       }
       CS_INT val = n->val.intval;
       datafmt.datatype = CS_INT_TYPE;      
       err = ct_param(cmd, &datafmt, &val, sizeof(val), 0);
       if (err != CS_SUCCEED) {
-        xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase function ct_param() for integer parameter #%u (%s) failed with error", i + 1, param_name.c_str(), (int)err);
+printf("### line %d\n", __LINE__);
+        xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase function ct_param() for integer parameter #%u (%s) failed with error", i + 1, param_name, (int)err);
         return;
       }
+      break;
     }
-    break;
-
-    case CS_REAL_TYPE: //-------------------------------------------------------
-    if (is_placeholder) {
-      datafmt.datatype = CS_REAL_TYPE;
-      err = ct_param(cmd, &datafmt, 0, 0, -1);
-      if (err != CS_SUCCEED) {
-        xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase function ct_param() for placeholder float parameter %s failed with error", param_name.c_str(), (int)err);
-        return;
-      }
-    } else {
+    case CS_REAL_TYPE:
+    {
       if (n->type != NT_FLOAT) {
-        xsink->raiseException("DBI-EXEC-EXCEPTION", "Incorrect type for float parameter #%u (%s)", i + 1, param_name.c_str());
+printf("### line %d\n", __LINE__);
+        xsink->raiseException("DBI-EXEC-EXCEPTION", "Incorrect type for float parameter #%u (%s)", i + 1, param_name);
         return;
       }
       CS_REAL val = n->val.floatval;
       datafmt.datatype = CS_REAL_TYPE;
       err = ct_param(cmd, &datafmt, &val, sizeof(val), 0);
       if (err != CS_SUCCEED) {
-        xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase function ct_param() for float parameter #%u (%s) failed with error", i + 1, param_name.c_str(), (int)err);
+printf("### line %d\n", __LINE__);
+        xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase function ct_param() for float parameter #%u (%s) failed with error", i + 1, param_name, (int)err);
         return;
       }
+      break;
     }
-    break;
 
-    case CS_FLOAT_TYPE: //------------------------------------------------------
-    if (is_placeholder) {
-      datafmt.datatype = CS_FLOAT_TYPE;
-      err = ct_param(cmd, &datafmt, 0, 0, -1);
-      if (err != CS_SUCCEED) {
-        xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase function ct_param() for placeholder float parameter %s failed with error", param_name.c_str(), (int)err);
-        return;
-      }
-    } else {
+    case CS_FLOAT_TYPE:
+    {
       if (n->type != NT_FLOAT) {
-        xsink->raiseException("DBI-EXEC-EXCEPTION", "Incorrect type for float parameter #%u (%s)", i + 1, param_name.c_str());
+printf("### line %d\n", __LINE__);
+        xsink->raiseException("DBI-EXEC-EXCEPTION", "Incorrect type for float parameter #%u (%s)", i + 1, param_name);
         return;
       }
       CS_FLOAT val = n->val.floatval;
       datafmt.datatype = CS_FLOAT_TYPE;
       err = ct_param(cmd, &datafmt, &val, sizeof(val), 0);
       if (err != CS_SUCCEED) {
-        xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase function ct_param() for float parameter #%u (%s) failed with error", i + 1, param_name.c_str(), (int)err);
+printf("### line %d\n", __LINE__);
+        xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase function ct_param() for float parameter #%u (%s) failed with error", i + 1, param_name, (int)err);
         return;
       }
+      break;
     }
-    break;
 
-    case CS_BIT_TYPE: //--------------------------------------------------------
-    if (is_placeholder) {
-      datafmt.datatype = CS_BIT_TYPE;
-      err = ct_param(cmd, &datafmt, 0, 0, -1);
-      if (err != CS_SUCCEED) {
-        xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase function ct_param() for placeholder bool parameter %s failed with error", param_name.c_str(), (int)err);
-        return;
-      }
-    } else {
+    case CS_BIT_TYPE:
+    {
       if (n->type != NT_BOOLEAN) {
-        xsink->raiseException("DBI-EXEC-EXCEPTION", "Incorrect type for boolean parameter #%u (%s)", i + 1, param_name.c_str());
+printf("### line %d\n", __LINE__);
+        xsink->raiseException("DBI-EXEC-EXCEPTION", "Incorrect type for boolean parameter #%u (%s)", i + 1, param_name);
         return;
       }
       CS_BIT val = n->val.boolval ? 1 : 0;
       datafmt.datatype = CS_BIT_TYPE;
       err = ct_param(cmd, &datafmt, &val, sizeof(val), 0);
       if (err != CS_SUCCEED) {
-        xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase function ct_param() for bool parameter #%u (%s) failed with error", i + 1, param_name.c_str(), (int)err);
+printf("### line %d\n", __LINE__);
+        xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase function ct_param() for bool parameter #%u (%s) failed with error", i + 1, param_name, (int)err);
         return;
       }
+      break;
     }
-    break;
 
     case CS_DATETIME_TYPE:
       // TBD
@@ -976,8 +717,8 @@ printf("### err x1\n");
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Unrecognized type %d of Sybase parameter # %u", 
         (int)param_info[i].m_column_type, i + 1);
       return;
-    } // switch
-  } // for
+    }
+  }
 
   err = ct_send(cmd);
   if (err != CS_SUCCEED) {
@@ -994,49 +735,71 @@ QoreNode* SybaseBindGroup::read_output(CS_COMMAND* cmd, const std::vector<column
   CS_RETCODE err;
   CS_INT result_type = 0; 
 
-  while ((err = ct_results(cmd, &result_type)) == CS_SUCCEED) {    
+  while ((err = ct_results(cmd, &result_type)) == CS_SUCCEED) {   
+printf("### WHILE ct_results(), result_type = %d\n", (int)result_type); 
     switch (result_type) {
+    case CS_COMPUTE_RESULT:
+printf("### line %d\n", __LINE__);
+      // ??? not supported
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() failed with result code CS_COMPUTE_RESULT");
+      return result;
     case CS_CURSOR_RESULT:
+printf("### line %d\n", __LINE__);
       // Sybase bug??? This code does not use cursors.
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() failed with result code CS_CURSOR_RESULT");
       return result;
-    case CS_PARAM_RESULT: // RPC call out parameters
-    case CS_COMPUTE_RESULT: // computed row
+    case CS_PARAM_RESULT:
+printf("### line %d\n", __LINE__);
+      // ??? not supported
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() failed with result code CS_PARAM_RESULT");
+      return result;
     case CS_ROW_RESULT:
       // 0 or more rows
+printf("### READING REGULAR ROW\n");
       read_row(cmd, out_info, result, xsink);
       if (xsink->isException()) {
+printf("### line %d\n", __LINE__);
         return result;
       }
+printf("### ROW result read\n");
       break;
     case CS_STATUS_RESULT:
-      // single value
+printf("### READING STATUS\n");
+      // single value, not result of an select but e.g. # of lines affected
       if (result) { // cannot happen?
+printf("### line %d\n", __LINE__);
         xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() already read CS_STATUC_RESULT");
         return result;
       }
-      if (out_info.size() != 1) { // Sybase bug??? Description should be for this single value.
+      if (out_info.size() != 0) { 
+printf("### line %d, out size = %d\n", __LINE__, out_info.size());
         xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() returned unexpected single value");
         return result;
       }
-      read_row(cmd, out_info, result, xsink);
+      read_row(cmd, out_info, result, xsink, true);
       if (xsink->isException()) {
+printf("### line %d\n", __LINE__);
         return result;
       }
+printf("### status result read\n");
       break;
     case CS_COMPUTEFMT_RESULT:
+printf("### line %d\n", __LINE__);
       // Sybase bug???
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() failed with result code CS_COMPUTE_FMT_RESULT");
       return result;
     case CS_MSG_RESULT:
+printf("### line %d\n", __LINE__);
       // Sybase bug???
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() failed with result code CS_MSG_RESULT");
       return result;
     case CS_ROWFMT_RESULT:
+printf("### line %d\n", __LINE__);
       // Sybase bug???
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() failed with result code CS_ROW_FMT_RESULT");
       return result;      
     case CS_DESCRIBE_RESULT:
+printf("### line %d\n", __LINE__);
       // Sybase bug?
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() failed with result code CS_DESCRIBE_RESULTS");
       return result;
@@ -1044,24 +807,29 @@ QoreNode* SybaseBindGroup::read_output(CS_COMMAND* cmd, const std::vector<column
       // e.g. update, ct_res_info() could be used to get # of affected rows
       return result;
     case CS_CMD_FAIL:
+printf("### line %d\n", __LINE__);
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() failed with result code CS_CMD_FAIL");
       return result;
     case CS_CMD_SUCCEED: // no data returned
       if (!out_info.empty()) {
+printf("### line %d\n", __LINE__);
         // Sybase bug???
         xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() returns no data where expected");
       }
       return result;
     default:
+printf("### line %d\n", __LINE__);
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() gave unknown result type %d", (int)result_type);
       return result;
     }
   }
+printf("### HERE WE GO\n");
 
   if (err != CS_END_RESULTS) {
+printf("### line %d, err = %d\n", __LINE__, (int)err);
     xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() finished with unexpected result code %d", (int)err);
   }
-
+printf("### RETUIRNING !!!!!!!!!!!!!!!!!!!\n");
   return  result;
 }
 
@@ -1077,7 +845,7 @@ static void free_coldata(EX_COLUMN_DATA* coldata, CS_INT cnt)
 }
 
 //------------------------------------------------------------------------------
-void SybaseBindGroup::read_row(CS_COMMAND* cmd, const std::vector<column_info_t>& out_info, QoreNode*& out, ExceptionSink* xsink)
+void SybaseBindGroup::read_row(CS_COMMAND* cmd, const std::vector<column_info_t>& out_info, QoreNode*& out, ExceptionSink* xsink, bool ignore_out_description)
 {
   CS_INT num_cols;
   CS_RETCODE err = ct_res_info(cmd, CS_NUMDATA, &num_cols, CS_UNUSED, NULL);
@@ -1093,8 +861,8 @@ printf("### err line %d\n", __LINE__);
     return;
   }
 
-  if (num_cols != (CS_INT)out_info.size()) {
-    assert(false); // cannot happen
+  if (!ignore_out_description && num_cols != (CS_INT)out_info.size()) {
+printf("### line %d, num cols = %d, out_info.size = %d\n", __LINE__, (int)num_cols, out_info.size());
     xsink->raiseException("DBI-EXEC-EXCEPTION", "Internal error: different sizes of output row received");
     return;
   }
@@ -1117,6 +885,7 @@ printf("### erro 111\n");
   ON_BLOCK_EXIT(free, datafmt);
   memset(datafmt, 0, num_cols * sizeof(CS_DATAFMT));
 
+printf("#### POSITION 1\n");
   for (CS_INT i = 0; i < num_cols; ++i) {
     err = ct_describe(cmd, i + 1, &datafmt[i]);
     if (err != CS_SUCCEED) {
@@ -1134,8 +903,9 @@ printf("### err line %d\n", __LINE__);
       xsink->outOfMemory();
       return;    
     }
-    // TBD - handle image  ???
+    // TBD - handle text, image, varchar ???
 
+printf("### POSITION 2\n");
     err = ct_bind(cmd, i + 1, &datafmt[i], coldata[i].value, &coldata[i].valuelen, &coldata[i].indicator);
     if (err != CS_SUCCEED) {
 printf("### err line %d\n", __LINE__);
@@ -1144,20 +914,24 @@ printf("### err line %d\n", __LINE__);
     }
   }
 
+printf("### POSITION 3\n");
   CS_INT rows_read = 0;
   while ((err = ct_fetch(cmd, CS_UNUSED, CS_UNUSED, CS_UNUSED, &rows_read)) == CS_SUCCEED) {
     // process the row
     Hash* h = new Hash;
 
+printf("### POSITION 4\n");
     for (CS_INT j = 0; j < num_cols; ++j) {
-      extract_row_data_to_Hash(h, j, &datafmt[j], &coldata[j], out_info[j], xsink);
+      extract_row_data_to_Hash(h, j, &datafmt[j], &coldata[j], ignore_out_description ? &out_info[j] : 0, xsink);
       if (xsink->isException()) {
+printf("### line %d\n", __LINE__);
         QoreNode* aux = new QoreNode(h);
         aux->deref(xsink);
         return;
       }
     }
 
+printf("### POSITION 5\n");
     if (out == 0) {
       out = new QoreNode(h);
     } else
@@ -1172,23 +946,26 @@ printf("### err line %d\n", __LINE__);
       out->val.list->push(new QoreNode(h));
     }
   }
+printf("### POSITION 6\n");
   if (err != CS_END_DATA) {
     assert(false);
+printf("### line %d\n", __LINE__);
     xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_fetch() returned erro %d", (int)err);
     return;
   }
+printf("#### read row returns OK\n");
 }
 
 //------------------------------------------------------------------------------
 void SybaseBindGroup::extract_row_data_to_Hash(Hash* out, CS_INT col_index, CS_DATAFMT* datafmt, EX_COLUMN_DATA* coldata,
-    const column_info_t& out_info, ExceptionSink* xsink)
+    const column_info_t* out_info, ExceptionSink* xsink)
 {
   std::string column_name;
   if (datafmt->name && datafmt->name[0]) {
     column_name = datafmt->name;
   } else
-  if (out_info.m_column_name[0] != '<') { // <unnamed>
-    column_name = out_info.m_column_name;
+  if (out_info && out_info->m_column_name[0] != '<') { // <unnamed>
+    column_name = out_info->m_column_name;
   } else {
     char buffer[20];
     sprintf(buffer, "column%d", (int)(col_index + 1));
@@ -1202,7 +979,7 @@ void SybaseBindGroup::extract_row_data_to_Hash(Hash* out, CS_INT col_index, CS_D
     return;
   }
  
-  assert(datafmt->datatype == (CS_INT)out_info.m_column_type);
+  assert(out_info == 0 || datafmt->datatype == (CS_INT)out_info->m_column_type);
   switch (datafmt->datatype) {
   case CS_LONGCHAR_TYPE:
   case CS_VARCHAR_TYPE:
@@ -1270,6 +1047,7 @@ void SybaseBindGroup::extract_row_data_to_Hash(Hash* out, CS_INT col_index, CS_D
     break;
   default:
     assert(false);
+printf("### line %d\n", __LINE__);
     xsink->raiseException("DBI-EXEC-EXCEPTION", "Unknown data type %d", (int)datafmt->datatype);
     return;
   } 
@@ -1281,9 +1059,6 @@ void SybaseBindGroup::extract_row_data_to_Hash(Hash* out, CS_INT col_index, CS_D
 bool SybaseBindGroup::is_sql_command_immediatelly_executable()
 {
   bool res = true;
-  if (!m_rpc_call_name.empty()) {
-    res = false;
-  } else 
   if (does_command_return_data()) {
     res = false;
   } else {
@@ -1305,6 +1080,7 @@ void SybaseBindGroup::execute_immediatelly(ExceptionSink* xsink)
   CS_COMMAND* cmd = 0;
   CS_RETCODE err = ct_cmd_alloc(m_connection, &cmd);
   if (err != CS_SUCCEED) {
+printf("### line %d\n", __LINE__);
     xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_cmd_alloc() failed with error %d", (int)err);
     return;
   }
@@ -1312,11 +1088,13 @@ void SybaseBindGroup::execute_immediatelly(ExceptionSink* xsink)
 
   err = ct_dynamic(cmd, CS_EXEC_IMMEDIATE, 0, CS_UNUSED, "commit transaction", CS_NULLTERM);
   if (err != CS_SUCCEED) {
+printf("### line %d\n", __LINE__);
     xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_dynamic(\"%s\") failed with error %d", (int)err, m_cmd->getBuffer());
     return;
   }
   err = ct_send(cmd);
   if (err != CS_SUCCEED) {
+printf("### line %d\n", __LINE__);
     xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_send() failed with error %d", (int)err);
     return;
   }
@@ -1325,11 +1103,13 @@ void SybaseBindGroup::execute_immediatelly(ExceptionSink* xsink)
   CS_INT result_type;
   err = ct_results(cmd, &result_type);
   if (err != CS_SUCCEED) {
+printf("### line %d\n", __LINE__);
     xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_result() failed with error %d", (int)err);
     return;
   }
   if (result_type != CS_CMD_SUCCEED) {
     assert(result_type == CS_CMD_FAIL);
+printf("### line %d\n", __LINE__);
     xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() for \"%s\" failed with error %d", (int)err, m_cmd->getBuffer());
     return;
   }
@@ -1339,6 +1119,7 @@ void SybaseBindGroup::execute_immediatelly(ExceptionSink* xsink)
 //------------------------------------------------------------------------------
 QoreNode* SybaseBindGroup::execute_command(ExceptionSink* xsink)
 {
+/* ### probably delete this way completely
   if (m_is_immediatelly_executable) {
     // faster path to execute non-select w/o input parameters.
     // In case of problems or for testing purposes the call could be 
@@ -1346,6 +1127,7 @@ QoreNode* SybaseBindGroup::execute_command(ExceptionSink* xsink)
     execute_immediatelly(xsink);
     return 0;
   }
+*/
 
   CS_COMMAND* cmd = prepare_command(xsink);
   if (xsink->isException()) {
@@ -1357,17 +1139,20 @@ QoreNode* SybaseBindGroup::execute_command(ExceptionSink* xsink)
 
   std::vector<column_info_t> inputs = extract_input_parameters_info(cmd, xsink);
   if (xsink->isException()) {
+printf("### line %d\n", __LINE__);
     return 0;
   }
   std::vector<column_info_t> outputs;
   if (does_command_return_data()) {
     outputs = extract_output_parameters_info(cmd, xsink);
     if (xsink->isException()) {
+printf("### line %d\n", __LINE__);
       return 0;
     }
   }
   bind_input_parameters(cmd, inputs, xsink);
   if (xsink->isException()) {
+printf("### line %d\n", __LINE__);
     return 0;
   }  
 
