@@ -1337,7 +1337,7 @@ QorePGConnection::QorePGConnection(char *str, class ExceptionSink *xsink)
       // get server version to encode/decode binary values properly
 #if POSTGRES_VERSION_MAJOR >= 8
       int server_version = PQserverVersion(pc);
-      printd(0, "version=%d\n", server_version);
+      //printd(5, "version=%d\n", server_version);
       interval_has_day = server_version >= 80100 ? true : false;
 #else
       str = PQparameterStatus(pc, "server_version");
