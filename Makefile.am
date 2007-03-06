@@ -205,6 +205,7 @@ noinst_HEADERS = \
 	modules/sybase/sybase.h \
 	modules/sybase/sybase_connection.h \
 	modules/sybase/sybase_low_level_interface.h \
+	modules/sybase/sybase_executor.h \
 	command-line.h \
 	include/qore/Qore.h 
 
