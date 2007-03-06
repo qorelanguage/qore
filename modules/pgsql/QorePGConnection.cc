@@ -1333,11 +1333,17 @@ QorePGConnection::QorePGConnection(char *str, class ExceptionSink *xsink)
       do_pg_error(PQerrorMessage(pc), xsink);
    else
    {
+      const char *str;
       // get server version to encode/decode binary values properly
+#if POSTGRES_VERSION_MAJOR >= 8
       int server_version = PQserverVersion(pc);
       printd(0, "version=%d\n", server_version);
-      interval_has_day = server_version >= 80100 ? true : false;      
-      const char *str = PQparameterStatus(pc, "integer_datetimes");
+      interval_has_day = server_version >= 80100 ? true : false;
+#else
+      str = PQparameterStatus(pc, "server_version");
+      interval_has_day = strcmp(str, "8.1") >= 0 ? true : false;
+#endif
+      str = PQparameterStatus(pc, "integer_datetimes");
       //printd(5, "integer_datetimes=%s\n", str);
       if (!str || !str[0])
       {
