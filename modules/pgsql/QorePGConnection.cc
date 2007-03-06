@@ -112,15 +112,14 @@ static class QoreNode *qpg_data_timestamp(char *data, int type, int len, class Q
       int64 val = MSBi8(*((uint64_t *)data));
    
       // convert from u-secs to seconds and milliseconds
-      int secs = val / 1000000;
+      int64 secs = val / 1000000;
       int ms = val / 1000 - secs * 1000;
       secs += 10957 * 86400;
       return new QoreNode(new DateTime(secs, ms));
    }
-   int64 val = MSBi8(*((uint64_t *)data));
-   double *fv = (double *)&val;
-   int nv = (int64)*fv;
-   int ms = (int)((*fv - nv) * 1000.0);
+   double fv = MSBf8(*((double *)data));
+   int64 nv = (int64)fv;
+   int ms = (int)((fv - (double)nv) * 1000);
    nv += 10957 * 86400;
    //printd(5, "time=%lld.%03d seconds\n", val, ms);
    return new QoreNode(new DateTime(nv, ms));
@@ -158,25 +157,42 @@ static class QoreNode *qpg_data_interval(char *data, int type, int len, class Qo
 
 static class QoreNode *qpg_data_time(char *data, int type, int len, class QorePGConnection *conn, class QoreEncoding *enc)
 {
+   int64 secs;
+   int ms;
    if (conn->has_integer_datetimes())
-      return new QoreNode(new DateTime(MSBi8(*((uint64_t *)data))));
-
-   int64 tv = MSBi8(*((uint64_t *)data));
-   double val = *((double *)&tv);
-   //printf("val=%g\n", val);
-   return new QoreNode(new DateTime((int64)val));
+   {
+      int64 val = MSBi8(*((uint64_t *)data));
+      secs = val / 1000000;
+      ms = val / 1000 - secs * 1000;
+   }
+   else
+   {
+      double val = MSBf8(*((double *)data));
+      secs = (int64)val;
+      ms = (int)((val - (double)secs) * 1000.0);
+   }
+   return new QoreNode(new DateTime(secs, ms));
 }
 
 static class QoreNode *qpg_data_timetz(char *data, int type, int len, class QorePGConnection *conn, class QoreEncoding *enc)
 {
-   TimeTzADT *tm = (TimeTzADT *)data;
-   if (conn->has_integer_datetimes())
-      return new QoreNode(new DateTime(MSBi8(*((uint64_t *)&tm->time))));
-
-   double val = MSBf8(*((double *)&tm->time));
-   //printf("val=%g\n", val);
    // NOTE! timezone is ignored
-   return new QoreNode(new DateTime((int64)val));
+   TimeTzADT *tm = (TimeTzADT *)data;
+   int64 secs;
+   int ms;
+   if (conn->has_integer_datetimes())
+   {
+      int64 val = MSBi8(*((uint64_t *)&tm->time));
+      secs = val / 1000000;
+      ms = val / 1000 - secs * 1000;
+   }
+   else
+   {
+      double val = MSBf8(*((double *)&tm->time));
+      secs = (int64)val;
+      ms = (int)((val - (double)secs) * 1000.0);
+   }
+   return new QoreNode(new DateTime(secs, ms));
 }
 
 static class QoreNode *qpg_data_tinterval(char *data, int type, int len, class QorePGConnection *conn, class QoreEncoding *enc)
@@ -1296,11 +1312,47 @@ static int do_pg_error(const char *err, class ExceptionSink *xsink)
    else
       e = err;
    QoreString *desc = new QoreString(e);
-   desc->terminate(desc->strlen() - 1);
+   desc->chomp();
    xsink->raiseException("DBI:PGSQL:ERROR", desc);
    return -1;
 }
 
+// hackish way to determine if a pre release 8 server is using int8 or float8 types for datetime values
+bool QorePGResult::checkIntegerDateTimes(PGconn *pc, class ExceptionSink *xsink)
+{
+   res = PQexecParams(pc, "select '00:00'::time as \"a\"", 0, NULL, NULL, NULL, NULL, 1);
+   ExecStatusType rc = PQresultStatus(res);
+   if (rc != PGRES_COMMAND_OK && rc != PGRES_TUPLES_OK)
+   {
+      const char *err = PQerrorMessage(pc);
+      const char *e;
+      if (!strncmp(err, "ERROR:  ", 8))
+	 e = err + 8;
+      else
+	 e = err;
+      QoreString desc(e);
+      desc.chomp();
+      xsink->raiseException("DBI:PGSQL:ERROR", "Error determining binary date/time format: %s", desc.getBuffer());
+      return false;
+   }
+   
+   // ensure that the result format is what we expect
+   if (PQnfields(res) != 1)
+   {
+      xsink->raiseException("DBI:PGSQL:ERROR", "Error determining binary date/time format; expecting 1 colum in test query, got %d", PQnfields(res));
+      return false;
+   }
+   if (PQntuples(res) != 1)
+   {
+      xsink->raiseException("DBI:PGSQL:ERROR", "Error determining binary date/time format; expecting 1 colum in test query, got %d", PQntuples(res));
+      return false;
+   }
+
+   void *data = PQgetvalue(res, 1, 1);
+   int64 val = MSBi8(*((uint64_t *)data));
+
+   return val == 0;
+}
 
 // Note that we can write to the str argument; it is always a copy
 int QorePGResult::exec(PGconn *pc, class QoreString *str, class List *args, class ExceptionSink *xsink)
@@ -1344,13 +1396,15 @@ QorePGConnection::QorePGConnection(char *str, class ExceptionSink *xsink)
       interval_has_day = strcmp(pstr, "8.1") >= 0 ? true : false;
 #endif
       pstr = PQparameterStatus(pc, "integer_datetimes");
-      //printd(5, "integer_datetimes=%s\n", str);
+      
       if (!pstr || !pstr[0])
       {
-	 xsink->raiseException("DBI:PGSQL:SERVER-ERROR", "PostgreSQL server did not provide the value of the 'integer_datetimes' configuration variable");
-	 return;
+	 // encoding does not matter here; we are only getting an integer
+	 QorePGResult res(this, QCS_DEFAULT);
+	 integer_datetimes = res.checkIntegerDateTimes(pc, xsink);
       }
-      integer_datetimes = strcmp(pstr, "off");
+      else
+	 integer_datetimes = strcmp(pstr, "off");
    }
 }
 

@@ -290,6 +290,7 @@ class QorePGResult {
       DLLLOCAL class List *getList(class ExceptionSink *xsink);
       DLLLOCAL int rowsAffected();
       DLLLOCAL bool hasResultData();
+      DLLLOCAL bool checkIntegerDateTimes(PGconn *pc, class ExceptionSink *xsink);
 
       // static functions
       static DLLLOCAL void static_init();
