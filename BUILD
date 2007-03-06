@@ -28,27 +28,33 @@ for ssl support in the Socket class
 	http://www.openssl.org
 if you have the open headers and libraries in a location the configure script cannot find, then you can either use the --with-openssl-libs and --with-openssl-libraries options, or set the OPENSSL_DIR environment variable before running configure
 
-NOTE that --enable-builtin-modules will only work with libtool 1.5.22 or better, which you have to copy to the root build directory by hand before you build the modules, otherwise libtool doesn't build the static libraries properly
-
 "configure" Option Overview
 ---------------------------
---disable-single-compilation-unit: to disable building all related files at once in each directory.  This is enabled by default because it normally makes for much quicker compiles and also allows the compiler to optimize based on the entire source at the same time.  However if you don't have enough (virtual) memory then you should turn it off, otherwise leave it on.
---enable-64bit                 : to build a 64-bit binary (currently only supported on x86_64 architectures) - the default is to build a 32-bit binary even on 64-bit platforms
---disable-debug                : to disable debugging code - if you are not planning on debugging the qore language itself then it is highly advised to include this flag, as enabling debugging in qore slows down the language a great deal
---prefix=<dir>                 : default=/usr/local = qore in /usr/local/bin, libraries in /usr/local/lib, modules in /usr/local/lib/qore-<ver>/
---enable-builtin-modules       : will include code for all modules included in the source distrcibution directly in the shared library - note that this requires a very recent version of libtool otherwise it will fail - normally this option should not be used
---with-openssl-libs=<dir>      : directory for openssl library
---with-openssl-includes=<dir>  : directory for openssl include files
---with-pcre-libs=<dir>         : directory for pcre library
---with-pcre-includes=<dir>     : directory for pcre includes
---with-tibrv=<dir>             : directory for TIBCO Rendezvous installation ("tibrv" module)
---with-tibae=<dir>             : directory for TIBCO AE SDK ("tibae" module)
---with-tibae-tpcl=<dir>        : directory for TIBCO AE TPCL installation ("tibae" module)
---with-oracle=<dir>            : directory for Oracle installation ("oracle" module)
---with-mysql=<dir>             : directory for MySQL installation ("mysql" module)
+--enable-64bit                      : to build a 64-bit binary (support for x86_64, sparc, and pa-risc architectures) - the default is to build a 32-bit binary even on 64-bit platforms
+--disable-static                    : to disable builing a static libqore.a library
+--disable-debug                     : to disable debugging code - if you are not planning on debugging the qore language itself then it is highly advised to include this flag, as enabling debugging in qore slows down the language a great deal
+--prefix=<dir>                      : default=/usr/local = qore in /usr/local/bin, libraries in /usr/local/lib, modules in /usr/local/lib/qore-<ver>/
+--with-openssl-dir=<dir>            : directory of openssl installation
+--with-libxml2-dir=<dir>            : directory of libxml2 installation
+--with-pcre-dir=<dir>               : directory of pcre installation
+--with-oracle=<dir>                 : directory of Oracle installation ("oracle" module)
+--with-oracle-instant-client=<dir>  : directory of Oracle Instant Client installation ("oracle" module)
+--with-mysql=<dir>                  : directory of MySQL installation ("mysql" module)
+--with-pgsql=<dir>	            : directory of PostgreSQL installation ("pgsql" module)
+--with-sybase=<dir>                 : directory of Sybase OCS installation ("sybase" module)
+--with-tibrv=<dir>                  : directory of TIBCO Rendezvous installation ("tibrv" module)
+--with-tibae=<dir>                  : directory of TIBCO AE SDK ("tibae" module)
+--with-tibae-tpcl=<dir>             : directory of TIBCO AE TPCL installation ("tibae" module)
+--with-tuxedo=<dir>                 : directory of Bea Tuxedo installation ("tuxedo" module)
 
+rarely used options
+-------------------
+--disable-single-compilation-unit   : to disable building all related files at once in each directory.  This is enabled by default because it normally makes for much quicker compiles and also allows the compiler to optimize based on the entire source at the same time.  However if you don't have enough (virtual) memory then you should turn it off, otherwise leave it on.
+--enable-builtin-modules            : will include code for all modules included in the source distribution directly in the shared library - note that this requires a very recent version of libtool otherwise it will fail - normally this option should not be used (has not been tested recently, will be removed in a future release)
+
+********************************
 recommended configure arguments: configure --disable-static --disable-debug --prefix=/usr   ( add --enable-64bit on 64-bit platforms for 64-bit builds)
-
+********************************
 
 ========= to build optional modules ==========
 
@@ -61,6 +67,12 @@ Oracle support in qore is good, very well tested.
 *) "mysql": MySQL DBI module requires MySQL 3.3 or better
 If you have MySQL 3.3+ or better you can build in MySQL support.  With MySQL 4.1+ you can get transaction support and the module will use the more efficient prepared statement interface.
 If your mysql installation is in a non-standard location, set the MYSQL_DIR environment variable to the location of the installation before running configure
+
+*) "pgsql": PostgreSQL DBI module requires PostgreSQL 7+ client libraries and headers
+If your PostgreSQL libraries are in a non-standard location you can use the --with-pgsql configure option or set the PGSQL_DIR environment variable.
+
+*) "sybase": Sybase DBI module requires Sybase OCS 15+ client libraries and headers
+Use --with-sybase or set the SYBASE and SYBASE_OCS environment variables to build the "sybase" module.  note that the sybase module has not been tested with x86_64 builds yet
 
 *) "tibrv": TIBCO Rendezvous module requires TIBCO Rendezvous 7.x (6 may work)
 Set the RV_ROOT environment variable to the Rendezvous directory before calling configure (or use the --with-tibrv configure option) to build the "tibrv" module for direct Rendezvous support.  Note that to build this module the libtibrvcpp library must be present; on some platforms you have to rebuild this yourself from the sources provided by TIBCO in order for it to link with the C++ compiler you are using - the sources are normally present in $RV_ROOT/src/librvcpp, normally you have to edit the Makefile provided there and then type "make" to rebuild.  I had to include "ranlib libtibrvcpp.a" on the libraries I rebuilt for OS X.  Secure daemon support is turned off by default in tibrvcpp, to enable secure daemon support edit $RV_ROOT/src/librvcpp/Makefile and uncomment the SD_MODULE line near the end of the file, rebuild, install the new library in $RV_ROOT/lib, and rerun qore's configure script
@@ -100,8 +112,9 @@ Older builds worked fine with 10.3.8, currently the new version with shared libr
 NOTE that pthread_create() on Darwin 8.7.1 (OS X 10.4.7) returns 0 (no error) on i386 at least, even when it appears that thread resources are exhausted and the new thread is never started.  This happens after 2560 threads are started, so normally this will not be an issue for most programs.  To make sure that this doesn't happen, when qore is compiled on Darwin MAX_QORE_THREADS is automatically set to 2560 (otherwise the default is normally 4096)
 
 *) Solaris:
-The g++ static and shared builds work fine (tested with g++ 4.0.1, 4.1.1, CC).  Note that the sunpro (CC) compiler is required to link with the TIBCO AE SDK.  stlport is no longer supported, so hash_map support is not available on Solaris.  map is used instead.
+The g++ static and shared builds work fine (tested with g++ 4.0.1, 4.1.1, CC).  Note that the sunpro (CC) compiler is required to link with the TIBCO AE SDK.  stlport is no longer supported, so hash_map support is not available on Solaris with CC.  map is used instead.
 Note that on Solaris x86 when making a 64-bit build I had to use libtool 1.5.22, libtool 1.5.11 did not recognize that -xarch=generic64 should be passed to the linker and the linker for some reason did not recognize that it should produce a 64-bit output file
+Also note that qore requires a relatively new version of the SunPro compiler (CC), Sun Studio 11 works fine, whereas SunPro 5.5 does not.
 
 *) FreeBSD
 I have heard that qore builds fine, but I have not actually seen it myself, nor do I have access to a FreeBSD platform for testing :-(

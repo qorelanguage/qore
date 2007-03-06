@@ -16271,7 +16271,11 @@ xs      </variablelist>
     
     <para>There is a timeout associated with the transaction lock; if a thread waits for the transaction lock for more than the timeout period, then an exception will be raised in the waiting thread. The timeout value can be read and changed with the <link linkend="Qore::SQL::Datasource::getTransactionLockTimeout">Datasource::getTransactionLockTimeout()</link> and <link linkend="Qore::SQL::Datasource::setTransactionLockTimeout">Datasource::setTransactionLockTimeout()</link> methods, respectively. The default transaction timeout value is 120 seconds.</para>
     
-    <para>Only databases with an existing Qore DBI driver can be accessed through the Qore Datasource class.  DBI drivers shipping with Qore include <link linkend="mysql_Module">mysql</link> and <link linkend="mysql_Module">oracle</link>.  Each Qore DBI driver may support only a subset of all possible features.  Use the following functions to query DBI driver capabilities: <link linkend="getDBIDriverCapabilities">getDBIDriverCapabilities()</link>, <link linkend="getDBIDriverCapabilityList">getDBIDriverCapabilityList()</link>, and <link linkend="getDBIDriverList">getDBIDriverList()</link>.  See <link linkend="DBI_Capability_Constants">DBI Capability Constants</link> for a table of DBI driver capability codes.</para>
+    <para>Only databases with an existing Qore DBI driver can be accessed through the Qore Datasource class.  DBI drivers shipping with Qore include <link linkend="oracle_Module">oracle</link>, <link linkend="mysql_Module">mysql</link>, <link linkend="pgsql_Module">pgsql (PostgreSQL)</link>, and <link linkend="sybase_Module">sybase</link>.</para>
+
+    <para>Qore DBI drivers not delivered with the main distribution may support only a subset of all possible features.  Use the following functions to query DBI driver capabilities: <link linkend="getDBIDriverCapabilities">getDBIDriverCapabilities()</link>, <link linkend="getDBIDriverCapabilityList">getDBIDriverCapabilityList()</link>, and <link linkend="getDBIDriverList">getDBIDriverList()</link>.  See <link linkend="DBI_Capability_Constants">DBI Capability Constants</link> for a table of DBI driver capability codes.</para>
+
+   <para>All qore DBI drivers set new connections to use ISO transaction level %quot;read committed&quot;.</para>
 
     <table>
       <title>Qore::SQL::Datasource Method Overview</title>

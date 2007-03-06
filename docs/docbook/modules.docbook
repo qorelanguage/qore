@@ -9267,19 +9267,229 @@ BOOL values, so boolean() could be called as well with the same effect</para>
     <para>Note that is is not necessary to give buffer types when binding placeholder values; the mysql driver will determine the needed type in advance and create the placeholder buffer automatically.  Qore placeholder buffer specifications are ignored when the mysql driver is used.</para>
 
   </sect1>
-
-  <sect1 id="pqsql_Module">
-    <title>pqsql Module</title>
+  <sect1 id="pgsql_Module">
+    <title>pgsql Module</title>
 
     <para>The pgsql module provides a PostgreSQL driver to Qore's DBI system, allowing Qore programs to access PostgreSQL databases through the <link linkend="Qore::SQL::Datasource_Class">Datasource Class</link>.</para>
 
-    <para>This driver supports the following DBI capabilities when compiled against PostgreSQL 8 or better: <code>DBI_CAP_TRANSACTION_MANAGEMENT, DBI_CAP_CHARSET_SUPPORT, DBI_CAP_LOB_SUPPORT, DBI_CAP_STORED_PROCEDURES</code>.</para>
+    <para>This driver supports the following DBI capabilities when compiled against PostgreSQL 7 or better: <code>DBI_CAP_TRANSACTION_MANAGEMENT, DBI_CAP_CHARSET_SUPPORT, DBI_CAP_LOB_SUPPORT, DBI_CAP_STORED_PROCEDURES</code>.</para>
 
-    <para>The driver employs efficient binary bindings for all non-text data types and fully supports multidimensional arrays when in when selecting and bding by value.  Like all Qore components, the PostgreSQL DBI driver is thread-safe.</para>
+    <para>The driver employs efficient binary bindings for all non-text data types and fully supports multidimensional arrays when in when selecting and binding by value.  The driver determines on a per-connection basis by querying server capabilities whether the server uses 8-byte integer or floating-point data for date/time types, and also whether or not a binary day value is included in intervals.</para>
 
-    <para>Note that binding by placeholder is not supported by this driver; Qore DBI placeholder buffer specifications are ignored when the mysql driver is used.</para>
+    <para>Due to the fact that Qore date/time values do not currently support time zone information, when PostgreSQL data having a time zone component is converted to a Qore data type, the time zone information is lost.</para>
 
-  </sect1>
+    <para>Like all Qore components, the PostgreSQL DBI driver is thread-safe.</para>
+
+    <para>Note that binding by placeholder is not supported by this driver as PostgreSQL returns values directly; Qore DBI placeholder buffer specifications are ignored when the pgsql driver is used.</para>
+
+    <para>The following table describes how PostgreSQL data types are converted to Qore data types by the pgsql driver.</para>
+
+    <table>
+      <title>PostgreSQL to Qore Type Mappings</title>
+      <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>PostgreSQL Type</para></entry>
+	    <entry><para>Qore Type</para></entry>
+	    <entry><para>Notes</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+          <row>
+            <entry><para>BOOLEAN</para></entry>
+            <entry><para>boolean</para></entry>
+            <entry><para></para></entry>
+          </row>
+          <row>
+            <entry><para>BYTEA</para></entry>
+            <entry><para>binary</para></entry>
+            <entry><para></para></entry>
+          </row>
+          <row>
+            <entry><para>CHAR</para></entry>
+            <entry><para></para></entry>
+            <entry><para></para></entry>
+          </row>
+          <row>
+            <entry><para>BPCHAR</para></entry>
+            <entry><para></para></entry>
+            <entry><para></para></entry>
+          </row>
+          <row>
+            <entry><para>INT8</para></entry>
+            <entry><para></para></entry>
+            <entry><para></para></entry>
+          </row>
+          <row>
+            <entry><para>INTEGER</para></entry>
+            <entry><para></para></entry>
+            <entry><para></para></entry>
+          </row>
+          <row>
+            <entry><para>OID</para></entry>
+            <entry><para></para></entry>
+            <entry><para></para></entry>
+          </row>
+          <row>
+            <entry><para>XID</para></entry>
+            <entry><para></para></entry>
+            <entry><para></para></entry>
+          </row>
+          <row>
+            <entry><para>CID</para></entry>
+            <entry><para></para></entry>
+            <entry><para></para></entry>
+          </row>
+          <row>
+            <entry><para>INT2OID</para></entry>
+            <entry><para></para></entry>
+            <entry><para></para></entry>
+          </row>
+          <row>
+            <entry><para>TEXT</para></entry>
+            <entry><para></para></entry>
+            <entry><para></para></entry>
+          </row>
+          <row>
+            <entry><para>CHAR VARYING</para></entry>
+            <entry><para></para></entry>
+            <entry><para></para></entry>
+          </row>
+          <row>
+            <entry><para>NAME</para></entry>
+            <entry><para></para></entry>
+            <entry><para></para></entry>
+          </row>
+          <row>
+            <entry><para>FLOAT4</para></entry>
+            <entry><para></para></entry>
+            <entry><para></para></entry>
+          </row>
+          <row>
+            <entry><para>FLOAT8</para></entry>
+            <entry><para></para></entry>
+            <entry><para></para></entry>
+          </row>
+          <row>
+            <entry><para>ABSTIME</para></entry>
+            <entry><para></para></entry>
+            <entry><para></para></entry>
+          </row>
+          <row>
+            <entry><para>RELTIME</para></entry>
+            <entry><para></para></entry>
+            <entry><para></para></entry>
+          </row>
+          <row>
+            <entry><para>TIMESTAMP</para></entry>
+            <entry><para></para></entry>
+            <entry><para></para></entry>
+          </row>
+          <row>
+            <entry><para>TIMESTAMP WITH TIMEZONE</para></entry>
+            <entry><para></para></entry>
+            <entry><para></para></entry>
+          </row>
+          <row>
+            <entry><para>DATE</para></entry>
+            <entry><para></para></entry>
+            <entry><para></para></entry>
+          </row>
+          <row>
+            <entry><para>INTERVAL</para></entry>
+            <entry><para></para></entry>
+            <entry><para></para></entry>
+          </row>
+          <row>
+            <entry><para>TIME</para></entry>
+            <entry><para></para></entry>
+            <entry><para></para></entry>
+          </row>
+          <row>
+            <entry><para>TIME WITH TIMEZONE</para></entry>
+            <entry><para></para></entry>
+            <entry><para></para></entry>
+          </row>
+          <row>
+            <entry><para>TINTERVAL</para></entry>
+            <entry><para></para></entry>
+            <entry><para></para></entry>
+          </row>
+          <row>
+            <entry><para>NUMERIC</para></entry>
+            <entry><para></para></entry>
+            <entry><para></para></entry>
+          </row>
+          <row>
+            <entry><para>CASH</para></entry>
+            <entry><para></para></entry>
+            <entry><para></para></entry>
+          </row>
+          <row>
+            <entry><para>MACADDR</para></entry>
+            <entry><para></para></entry>
+            <entry><para></para></entry>
+          </row>
+          <row>
+            <entry><para>INET</para></entry>
+            <entry><para></para></entry>
+            <entry><para></para></entry>
+          </row>
+          <row>
+            <entry><para>CIDR</para></entry>
+            <entry><para></para></entry>
+            <entry><para></para></entry>
+          </row>
+          <row>
+            <entry><para>TID</para></entry>
+            <entry><para></para></entry>
+            <entry><para></para></entry>
+          </row>
+          <row>
+            <entry><para>BIT</para></entry>
+            <entry><para></para></entry>
+            <entry><para></para></entry>
+          </row>
+          <row>
+            <entry><para>VARBIT</para></entry>
+            <entry><para></para></entry>
+            <entry><para></para></entry>
+          </row>
+          <row>
+            <entry><para>POINT</para></entry>
+            <entry><para></para></entry>
+            <entry><para></para></entry>
+          </row>
+          <row>
+            <entry><para>LSEG</para></entry>
+            <entry><para></para></entry>
+            <entry><para></para></entry>
+          </row>
+          <row>
+            <entry><para>BOX</para></entry>
+            <entry><para></para></entry>
+            <entry><para></para></entry>
+          </row>
+          <row>
+            <entry><para>PATH</para></entry>
+            <entry><para></para></entry>
+            <entry><para></para></entry>
+          </row>
+          <row>
+            <entry><para>POLYGON</para></entry>
+            <entry><para></para></entry>
+            <entry><para></para></entry>
+          </row>
+          <row>
+            <entry><para>CIRCLE</para></entry>
+            <entry><para></para></entry>
+            <entry><para></para></entry>
+          </row>
+	</tbody>
+      </tgroup>
+    </table>
+
+    <para>The following table gives data mapping when binding qore types by value.  To specify other types, use the <link linkend="pgsql_bind">pgsql_bind() function</link>.</para>
 
     <table>
       <title>Qore to PostgreSQL Type Mappings for Binding by Value</title>
@@ -9288,18 +9498,535 @@ BOOL values, so boolean() could be called as well with the same effect</para>
 	  <row>
 	    <entry><para>Qore Type</para></entry>
 	    <entry><para>PostgreSQL Type</para></entry>
-	    <entry><para>Description</para></entry>
+	    <entry><para>Notes</para></entry>
 	  </row>
 	</thead>
 	<tbody>
 	  <row>
-	    <entry><para></para></entry>
-	    <entry><para></para></entry>
-	    <entry><para></para></entry>
+	    <entry><para>integer</para></entry>
+	    <entry><para>int2, integer, int8</para></entry>
+	    <entry><para>Depending on the size of the integer, the appropriate PostgreSQL type is bound.  This is to avoid errors by using a type larger than that specified for the column or variable, as converting from a smaller type to a larger type is done automatically by the server.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>float</para></entry>
+	    <entry><para>float8</para></entry>
+	    <entry><para>Qore float data is converted directly to PostgreSQL float8 data</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>string</para></entry>
+	    <entry><para>text</para></entry>
+	    <entry><para>The character sencoding is converted to the encoding specified for the connection if necessary.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>boolean</para></entry>
+	    <entry><para>boolean</para></entry>
+	    <entry><para>Qore boolean values are converted directly to the PostgreSQL boolean format</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>date/time</para></entry>
+	    <entry><para>interval, timestamp</para></entry>
+	    <entry><para>Relative date/time values are bound as interval data, absolute date/time values are bound as timestamp data.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>binary</para></entry>
+	    <entry><para>bytea</para></entry>
+	    <entry><para>Qore binary data is bound directly as bytea data.</para></entry>
 	  </row>
 	</tbody>
       </tgroup>
     </table>
+
+    <table id="pgsql_type_constants">
+      <title>PostgreSQL Type Constants for <link linkend="pgsql_bind">pgsql_bind()</link></title>
+      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>Constant</para></entry>
+	    <entry><para>Description</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+          <row>
+            <entry><para>PG_TYPE_BOOL</para></entry>
+            <entry><para>boolean</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_BYTEA</para></entry>
+            <entry><para>bytea</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_CHAR</para></entry>
+            <entry><para>char</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_NAME</para></entry>
+            <entry><para>name</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_INT8</para></entry>
+            <entry><para>int8</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_INT2</para></entry>
+            <entry><para>int2</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_INT2VECTOR</para></entry>
+            <entry><para>int2vector</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_INT4</para></entry>
+            <entry><para>integer</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_REGPROC</para></entry>
+            <entry><para>regproc</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_TEXT</para></entry>
+            <entry><para>text</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_OID</para></entry>
+            <entry><para>oid</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_TID</para></entry>
+            <entry><para>tid (tuple id)</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_XID</para></entry>
+            <entry><para>xid (transaction id)</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_CID</para></entry>
+            <entry><para>cid (command identifier)</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_VECTOROID</para></entry>
+            <entry><para>vector</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_TYPE_RELTYPE</para></entry>
+            <entry><para>type_reltype</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_ATTRIBUTE_RELTYPE</para></entry>
+            <entry><para>attribute_reltype</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_PROC_RELTYPE</para></entry>
+            <entry><para>proc_reltype</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_CLASS_RELTYPE</para></entry>
+            <entry><para>class_reltype</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_POINT</para></entry>
+            <entry><para>point</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_LSEG</para></entry>
+            <entry><para>lseg (line segment)</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_PATH</para></entry>
+            <entry><para>path</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_BOX</para></entry>
+            <entry><para>box</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_POLYGON</para></entry>
+            <entry><para>polygon</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_LINE</para></entry>
+            <entry><para>line</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_FLOAT4</para></entry>
+            <entry><para>float4</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_FLOAT8</para></entry>
+            <entry><para>float8</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_ABSTIME</para></entry>
+            <entry><para>abstime (absolute time)</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_RELTIME</para></entry>
+            <entry><para>reltime (relative time)</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_TINTERVAL</para></entry>
+            <entry><para>tinterval (time interval)</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_UNKNOWN</para></entry>
+            <entry><para>unknown</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_CIRCLE</para></entry>
+            <entry><para>circle</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_CASH</para></entry>
+            <entry><para>cash</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_MACADDR</para></entry>
+            <entry><para>macaddr (MAC address)</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_INET</para></entry>
+            <entry><para>inet (INET address)</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_CIDR</para></entry>
+            <entry><para>CIDR (network addresses in Classless Intenet Domain Routing format)</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_ACLITEM</para></entry>
+            <entry><para>aclitem</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_BPCHAR</para></entry>
+            <entry><para>bpchar</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_VARCHAR</para></entry>
+            <entry><para>character varying</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_DATE</para></entry>
+            <entry><para>date</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_TIME</para></entry>
+            <entry><para>time</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_TIMESTAMP</para></entry>
+            <entry><para>timestamp</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_TIMESTAMPTZ</para></entry>
+            <entry><para>timestamp with time zone</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_INTERVAL</para></entry>
+            <entry><para>interval</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_TIMETZ</para></entry>
+            <entry><para>time with time zone</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_BIT</para></entry>
+            <entry><para>bit</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_VARBIT</para></entry>
+            <entry><para>bit varying</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_NUMERIC</para></entry>
+            <entry><para>numeric</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_REFCURSOR</para></entry>
+            <entry><para>refcursor</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_REGPROCEDURE</para></entry>
+            <entry><para>regprocedure</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_REGOPER</para></entry>
+            <entry><para>regoper</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_REGOPERATOR</para></entry>
+            <entry><para>regoperator</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_REGCLASS</para></entry>
+            <entry><para>regclass</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_REGTYPE</para></entry>
+            <entry><para>regtype</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_RECORD</para></entry>
+            <entry><para>record</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_CSTRING</para></entry>
+            <entry><para>cstring</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_ANY</para></entry>
+            <entry><para>any</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_VOID</para></entry>
+            <entry><para>void</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_TRIGGER</para></entry>
+            <entry><para>trigger</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_LANGUAGE_HANDLER</para></entry>
+            <entry><para>language_handler</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_INTERNAL</para></entry>
+            <entry><para>internal</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_OPAQUE</para></entry>
+            <entry><para>opaque</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_ANYELEMENT</para></entry>
+            <entry><para>anyelement</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_INT4ARRAY</para></entry>
+            <entry><para>int4[]</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_CIRCLEARRAY</para></entry>
+            <entry><para>circle[]</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_MONEYARRAY</para></entry>
+            <entry><para>money[]</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_BOOLARRAY</para></entry>
+            <entry><para>bool[]</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_BYTEAARRAY</para></entry>
+            <entry><para>bytea[]</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_NAMEARRAY</para></entry>
+            <entry><para>name[]</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_INT2ARRAY</para></entry>
+            <entry><para>int2[]</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_TEXTARRAY</para></entry>
+            <entry><para>text[]</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_OIDARRAY</para></entry>
+            <entry><para>oid[]</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_TIDARRAY</para></entry>
+            <entry><para>tid[] (array of tuple IDs)</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_XIDARRAY</para></entry>
+            <entry><para>xid[] (array of transaction IDs)</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_CIDARRAY</para></entry>
+            <entry><para>cid[] (array of command IDs)</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_BPCHARARRAY</para></entry>
+            <entry><para>bpchar[]</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_VARCHARARRAY</para></entry>
+            <entry><para>char varying[]</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_INT8ARRAY</para></entry>
+            <entry><para>int8[]</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_POINTARRAY</para></entry>
+            <entry><para>point[]</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_LSEGARRAY</para></entry>
+            <entry><para>lseg[]</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_PATHARRAY</para></entry>
+            <entry><para>path[]</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_BOXARRAY</para></entry>
+            <entry><para>box[]</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_FLOAT4ARRAY</para></entry>
+            <entry><para>float4[]</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_FLOAT8ARRAY</para></entry>
+            <entry><para>float8[]</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_ABSTIMEARRAY</para></entry>
+            <entry><para>abstime[]</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_RELTIMEARRAY</para></entry>
+            <entry><para>reltime[]</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_TINTERVALARRAY</para></entry>
+            <entry><para>tinterval[]</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_POLYGONARRAY</para></entry>
+            <entry><para>polygon[]</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_MACADDRARRAY</para></entry>
+            <entry><para>macaddr[]</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_INETARRAY</para></entry>
+            <entry><para>inet[]</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_CIDRARRAY</para></entry>
+            <entry><para>cidr[]</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_TIMESTAMPARRAY</para></entry>
+            <entry><para>timestamp[]</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_DATEARRAY</para></entry>
+            <entry><para>date[]</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_TIMEARRAY</para></entry>
+            <entry><para>time[]</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_TIMESTAMPTZARRAY</para></entry>
+            <entry><para>timestamp with time zone[]</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_INTERVALARRAY</para></entry>
+            <entry><para>interval[]</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_NUMERICARRAY</para></entry>
+            <entry><para>numeric[]</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_TIMETZARRAY</para></entry>
+            <entry><para>time with time zone[]</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_BITARRAY</para></entry>
+            <entry><para>bit[]</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_VARBITARRAY</para></entry>
+            <entry><para>bit varying[]</para></entry>
+          </row>
+          <row>
+            <entry><para>PG_TYPE_ANYARRAY</para></entry>
+            <entry><para>any[]</para></entry>
+          </row>
+	</tbody>
+      </tgroup>
+    </table>
+
+  <sect2 id="pgsql_bind">
+    <title>pgsql_bind()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Creates a hash data structure understood by the pgsql DBI driver when biding values in SQL queries that allows programmers to directly specify the PostgreSQL data type for the bind.  Use the <link linkend="pgsql_type_constants">pgsql type constants</link> to specify the PostgreSQL data type for the bind.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>pgsql_bind(<replaceable>pgsql_type_code, value</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for pgsql_bind()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Any Type, [Encoding]</para>
+            </entry>
+            <entry>
+              <para>String</para>
+            </entry>
+            <entry>
+              <para>Serializes qore data into a JSON string, without any line breaks.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+
+    <table><title>Exceptions Thrown by pgsql_bind()</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+        <row>
+          <entry><para>err</para></entry>
+          <entry><para>desc</para></entry>
+        </row>
+      </thead>
+      <tbody>
+        <row>
+          <entry><para><code>PGSQL-BIND-ERROR</code></para></entry>
+          <entry><para>missing type code as first argument</para></entry>
+        </row>
+      </tbody>
+    </tgroup>
+    </table>
+  </sect2>
+  
+  </sect1>
+
+  <sect1 id="sybase_Module">
+    <title>sybase Module</title>
+    <para>The sybase module provides DBI access to Sybase databases using the Sybase CT library to provide connectivity.</para>
+
+  </sect1>
 
   &tuxedo;
 

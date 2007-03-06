@@ -1,6 +1,7 @@
 2007.03.06: David Nichols
 	* updated pgsql driver to query server to determine binary data types
 	  for each connection (set has_interval_day and has_integer_datetimes)
+	* updated documentation for pgsql module
 
 2007.03.05: David Nichols
 	* fixed auto locking and lock list handling
