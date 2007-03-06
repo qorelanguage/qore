@@ -203,6 +203,8 @@ noinst_HEADERS = \
 	modules/Tuxedo/QC_TuxedoAdapter.h \
 	modules/Tuxedo/QoreTuxedoAdapter.h \
 	modules/sybase/sybase.h \
+	modules/sybase/sybase_connection.h \
+	modules/sybase/sybase_low_level_interface.h \
 	command-line.h \
 	include/qore/Qore.h 
 
