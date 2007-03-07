@@ -287,12 +287,12 @@ void MyResult::bind(MYSQL_STMT *stmt)
 	 case FIELD_TYPE_LONGLONG:
 	 case FIELD_TYPE_INT24:
 	 case FIELD_TYPE_TINY:
+	 case FIELD_TYPE_YEAR:
 	    bindbuf[i].buffer_type = MYSQL_TYPE_LONGLONG;
 	    bindbuf[i].buffer = malloc(sizeof(int64));
 	    break;
 	    
 	    // for floating point values
-	 case FIELD_TYPE_DECIMAL:
 	 case FIELD_TYPE_FLOAT:
 	 case FIELD_TYPE_DOUBLE:
 	    bindbuf[i].buffer_type = MYSQL_TYPE_DOUBLE;
@@ -308,6 +308,15 @@ void MyResult::bind(MYSQL_STMT *stmt)
 	    bindbuf[i].buffer = new MYSQL_TIME;
 	    break;
 	    
+	    // for binary types
+	 case FIELD_TYPE_TINY_BLOB:
+	 case FIELD_TYPE_MEDIUM_BLOB:
+	 case FIELD_TYPE_BLOB:
+	    bindbuf[i].buffer_type = MYSQL_TYPE_BLOB;
+	    bindbuf[i].buffer = new char[field[i].length];
+	    bindbuf[i].buffer_length = field[i].length;
+	    break;
+
 	    // for all other types (treated as string)
 	 default:
 	    bindbuf[i].buffer_type = MYSQL_TYPE_STRING;
@@ -343,7 +352,9 @@ class QoreNode *MyResult::getBoundColumnValue(class QoreEncoding *csid, int i)
       MYSQL_TIME *t = (MYSQL_TIME *)bindbuf[i].buffer;
       n = new QoreNode(new DateTime(t->year, t->month, t->day, t->hour, t->minute, t->second));
    }
-   
+   else if (bindbuf[i].buffer_type == MYSQL_TYPE_BLOB)
+      n = new QoreNode(new BinaryObject(bindbuf[i].buffer, *bindbuf[i].length));
+
    return n;
 }
 
@@ -761,7 +772,6 @@ static class Hash *get_result_set(class Datasource *ds, MYSQL_RES *res)
 	       break;
 	       
 	       // for floating point values
-	    case FIELD_TYPE_DECIMAL:
 	    case FIELD_TYPE_FLOAT:
 	    case FIELD_TYPE_DOUBLE:
 	       n = new QoreNode(atof(row[i]));
