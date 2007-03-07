@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+  <sect1 id="sybase_Module">
+    <title>sybase Module</title>
+    
+    <para>The sybase module provides a Qore DBI driver allowing Qore programs to access Sybase databases through the <link linkend="Qore::SQL::Datasource_Class">Datasource Class</link>.</para>
+
+  </sect1>
+

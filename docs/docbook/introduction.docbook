@@ -18,7 +18,7 @@
       <listitem>
 	<para>Database Integration and DBI Layer</para>
 
-	<para>Retrieving, comparing, and manipulating data in a consistent manner from heterogenous database types is made possible by Qore's built-in database integration. Qore was designed with a database independent interfacing (DBI) layer, providing a standard interface for Qore programs to access any database supported by a Qore DBI driver (see the <link linkend='Qore::SQL::Datasource_Class'>Datasource Class</link>). Currently <link linkend="oracle_Module">Oracle</link>, <link linkend="mysql_Module">MySQL</link>, <link linkend="pgsql_Module">PostgrSQL</link>, and <link linkend="sybase_Module">Sybase</link> drivers are available for Qore.</para>
+	<para>Retrieving, comparing, and manipulating data in a consistent manner from heterogenous database types is made possible by Qore's built-in database integration. Qore was designed with a database independent interfacing (DBI) layer, providing a standard interface for Qore programs to access any database supported by a Qore DBI driver (see the <link linkend='Qore::SQL::Datasource_Class'>Datasource Class</link>). Currently <link linkend="oracle_Module">Oracle</link>, <link linkend="mysql_Module">MySQL</link>, <link linkend="pgsql_Module">PostgreSQL</link>, and <link linkend="sybase_Module">Sybase</link> drivers are available for Qore.</para>
 
       </listitem>
     </itemizedlist>

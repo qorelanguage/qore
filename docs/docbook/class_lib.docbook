@@ -16273,9 +16273,9 @@ xs      </variablelist>
     
     <para>Only databases with an existing Qore DBI driver can be accessed through the Qore Datasource class.  DBI drivers shipping with Qore include <link linkend="oracle_Module">oracle</link>, <link linkend="mysql_Module">mysql</link>, <link linkend="pgsql_Module">pgsql (PostgreSQL)</link>, and <link linkend="sybase_Module">sybase</link>.</para>
 
-    <para>Qore DBI drivers not delivered with the main distribution may support only a subset of all possible features.  Use the following functions to query DBI driver capabilities: <link linkend="getDBIDriverCapabilities">getDBIDriverCapabilities()</link>, <link linkend="getDBIDriverCapabilityList">getDBIDriverCapabilityList()</link>, and <link linkend="getDBIDriverList">getDBIDriverList()</link>.  See <link linkend="DBI_Capability_Constants">DBI Capability Constants</link> for a table of DBI driver capability codes.</para>
+    <para>Qore DBI drivers delivered separately from Qore may support only a subset of all possible features.  Use the following functions to query DBI driver capabilities: <link linkend="getDBIDriverCapabilities">getDBIDriverCapabilities()</link>, <link linkend="getDBIDriverCapabilityList">getDBIDriverCapabilityList()</link>, and <link linkend="getDBIDriverList">getDBIDriverList()</link>.  See <link linkend="DBI_Capability_Constants">DBI Capability Constants</link> for a table of DBI driver capability codes.</para>
 
-   <para>All qore DBI drivers set new connections to use ISO transaction level %quot;read committed&quot;.</para>
+   <para>All Qore DBI drivers set new connections to use ISO transaction level %quot;read committed&quot;.</para>
 
     <table>
       <title>Qore::SQL::Datasource Method Overview</title>
