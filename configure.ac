@@ -1037,6 +1037,10 @@ get_oracle_version()
   else
     AC_MSG_ERROR([Oracle libraries not found, use --without-oracle to build without Oracle support])
   fi
+  ora_ver_major=`echo $ORACLE_VERSION | cut -f1 -d.`
+  if test $ora_ver_major -lt 10; then
+     AC_DEFINE(NEED_ORACLE_LOB_WORKAROUND, 1, [define if we need a workaround for the Oracle streaming LOB callback bug])
+  fi
   AC_MSG_RESULT($ORACLE_VERSION)
 }
 

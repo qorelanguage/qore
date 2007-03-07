@@ -33,14 +33,15 @@
 
 #include <oci.h>
 
-// define to support old-style exec format
-#define ORA_EXEC_COMPAT 1
-
 // with 10g on Linux the streaming *lob callback function would 
-// never get more than 1024KB data at a time, however with a 9i
+// never get more than 1024 bytes of data at a time, however with a 9i
 // server and client on Solaris, it would not work unless my 
 // buffer size was at least twice as big as my CLOB!
+#ifdef NEED_ORACLE_LOB_WORKAROUND
 #define LOB_BLOCK_SIZE 128*1024
+#else
+#define LOB_BLOCK_SIZE 1024
+#endif
 
 #define MAXINT32 2147483647   // 2^^32 - 1
 
@@ -50,6 +51,7 @@ union ora_value {
       int i4;
       int64 i8;
       double f8;
+      OCIDateTime *odt;
 };
 
 class OraColumn {
@@ -91,6 +93,14 @@ class OraColumn {
 	       case SQLT_BLOB:
 		  if (val.ptr)
 		     OCIDescriptorFree(val.ptr, OCI_DTYPE_LOB);
+		  break;
+
+	       case SQLT_TIMESTAMP:
+	       case SQLT_TIMESTAMP_TZ:
+	       case SQLT_TIMESTAMP_LTZ:
+	       case SQLT_DATE:
+		  if (val.odt)
+		     OCIDescriptorFree(val.odt, OCI_DTYPE_TIMESTAMP);
 		  break;
 
 	       default:	  // for date and string data
@@ -198,6 +208,8 @@ class OraBindNode {
 	       OCIHandleFree((OCIStmt *)buf.ptr, OCI_HTYPE_STMT);
 	    else if ((buftype == SQLT_BLOB || buftype ==SQLT_CLOB) && buf.ptr)
 	       OCIDescriptorFree(buf.ptr, OCI_DTYPE_LOB);
+	    else if (buftype == SQLT_DATE && buf.odt)
+	       OCIDescriptorFree(buf.odt, OCI_DTYPE_TIMESTAMP);
 	 }
 	 else 
 	 {

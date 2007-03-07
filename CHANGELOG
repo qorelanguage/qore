@@ -3,6 +3,10 @@
 	  loss of precision and to be consistent with other DBI drivers
 	* implemented support for retrieving binary types in mysql
 	* extensive DBI driver doc updates
+	* updated Oracle driver to support TIMESTAMP fields and date/time values
+	  up to millisecond resolution
+	* added date_ms() function to generate a date/time value from an integer
+	  offset from the qore 64-bit epoch in milliseconds
 
 2007.03.06: David Nichols
 	* updated pgsql driver to query server to determine binary data types
