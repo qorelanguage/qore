@@ -9,6 +9,8 @@
 
     <para>Binding by value is supported, and bding by placeholder is required to retrieve values from a procedure or function call.  The oracle driver assumes that any placeholder values are string values unless a placeholder buffer specification is passed in the argument position corresponding to the placeholder specification in the string.  For placeholder buffer spcification values, see <link linkend="oracle_placeholder_specifications">Oracle Type Mappings for Placeholder Specifications</link>.</para>
 
+    <para>Oracle TIMESTAMP data supports time resolution to the microsecond, however Qore's date/time value only supports a millisecond resolution.  Any Oracle TIMESTAMP values are rounded to millisecond resolution when converted to Qore data types.</para>
+
     <para>PL/SQL code and stored procedure and function execution is supported; the following is an example of a stored procedure call:</para>
 
     <programlisting>$result = $db.exec(&quot;begin h3g_psft_order_import.insert_h3g_psft_customers(%v, %v, :status_code, :error_code, :error_description); end;&quot;, &quot;Customer Name&quot;, &quot;Customer-ID&quot;, Type::Int, Type::Int);
@@ -43,6 +45,26 @@ printf(&quot;%N\n&quot;, $result);</programlisting>
 	    <entry><para><code>SQLT_DAT</code></para></entry>
 	    <entry><para><link linkend="Date"><code>Type::Date</code></link></para></entry>
 	    <entry><para>direct conversion</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>SQLT_DATE</code></para></entry>
+	    <entry><para><link linkend="Date"><code>Type::Date</code></link></para></entry>
+	    <entry><para>direct conversion</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>SQLT_TIMESTAMP</code></para></entry>
+	    <entry><para><link linkend="Date"><code>Type::Date</code></link></para></entry>
+	    <entry><para>microseconds are converted to milliseconds, some precision may be lost</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>SQLT_TIMESTAMP_TZ</code></para></entry>
+	    <entry><para><link linkend="Date"><code>Type::Date</code></link></para></entry>
+	    <entry><para>time zone information is ignored and as microseconds are converted to milliseconds, some precision may be lost</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>SQLT_TIMESTAMP_LTZ</code></para></entry>
+	    <entry><para><link linkend="Date"><code>Type::Date</code></link></para></entry>
+	    <entry><para>time zone information is ignored and as microseconds are converted to milliseconds, some precision may be lost</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><code>SQLT_INT</code></para></entry>

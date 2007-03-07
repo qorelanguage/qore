@@ -707,18 +707,18 @@ void OraBindNode::bindValue(class Datasource *ds, OCIStmt *stmthp, int pos, clas
    }
    else if (data.v.value->type == NT_DATE)
    {
+      class DateTime *d = data.v.value->val.date_time;
       buftype = SQLT_DATE;
       buf.odt = NULL;
       ora_checkerr(d_ora->errhp,
 		   OCIDescriptorAlloc(d_ora->envhp, (dvoid **)&buf.odt, OCI_DTYPE_TIMESTAMP, 0, NULL), "OraBindNode::bindValue() TIMESTAMP", ds, xsink);
       if (!*xsink)
       {
-	 class DateTime *d = data.v.value->val.date_time;
 	 ora_checkerr(d_ora->errhp, 
 		      OCIDateTimeConstruct (d_ora->envhp, d_ora->errhp, buf.odt, (sb2)d->getYear(), (ub1)d->getMonth(), (ub1)d->getDay(),
 					    (ub1)d->getHour(), (ub1)d->getMinute(), (ub1)d->getSecond(),
 					    (ub4)(d->getMillisecond() * 1000), NULL, 0), "OraBindNode::bindValue() TIMESTAMP", ds, xsink);
-
+	 
 	 // bind it
 	 ora_checkerr(d_ora->errhp, OCIBindByPos(stmthp, &bndp, d_ora->errhp, pos, &buf.odt, 0, SQLT_TIMESTAMP, (dvoid *)NULL, (ub2 *)NULL, (ub2 *)NULL, (ub4)0, (ub4 *)NULL, OCI_DEFAULT), 
 		      "OraBindNode::bindValue()", ds, xsink);
