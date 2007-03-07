@@ -425,6 +425,14 @@ static class QoreNode *f_clock_getmicros(class QoreNode *params, ExceptionSink *
    return new QoreNode(((int64)tv.tv_sec * (int64)1000000 + tv.tv_usec));
 }
 
+static class QoreNode *f_date_ms(class QoreNode *params, ExceptionSink *xsink) 
+{
+   class QoreNode *p = get_param(params, 0);
+   int64 ms = p ? p->getAsBigInt() : 0;
+   int64 secs = ms / 1000;
+   return new QoreNode(new DateTime(secs, (int)(ms - secs * 1000)));
+}
+
 void init_time_functions()
 {
    builtinFunctions.add("now", f_now);
@@ -463,4 +471,6 @@ void init_time_functions()
    builtinFunctions.add("clock_getmillis",     f_clock_getmillis);
    builtinFunctions.add("clock_getnanos",      f_clock_getnanos);
    builtinFunctions.add("clock_getmicros",     f_clock_getmicros);
+
+   builtinFunctions.add("date_ms",             f_date_ms);
 }
