@@ -1,3 +1,6 @@
+2007.03.07: David Nichols
+	* changed conversion of mysql decimal type to float from int
+
 2007.03.06: David Nichols
 	* updated pgsql driver to query server to determine binary data types
 	  for each connection (set has_interval_day and has_integer_datetimes)

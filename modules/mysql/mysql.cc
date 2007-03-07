@@ -282,7 +282,6 @@ void MyResult::bind(MYSQL_STMT *stmt)
       switch (field[i].type)
       {
 	 // for integer values
-	 case FIELD_TYPE_DECIMAL:
 	 case FIELD_TYPE_SHORT:
 	 case FIELD_TYPE_LONG:
 	 case FIELD_TYPE_LONGLONG:
@@ -293,6 +292,7 @@ void MyResult::bind(MYSQL_STMT *stmt)
 	    break;
 	    
 	    // for floating point values
+	 case FIELD_TYPE_DECIMAL:
 	 case FIELD_TYPE_FLOAT:
 	 case FIELD_TYPE_DOUBLE:
 	    bindbuf[i].buffer_type = MYSQL_TYPE_DOUBLE;
@@ -753,7 +753,6 @@ static class Hash *get_result_set(class Datasource *ds, MYSQL_RES *res)
 	 switch (field[i].type)
 	 {
 	    // for integer values
-	    case FIELD_TYPE_DECIMAL:
 	    case FIELD_TYPE_SHORT:
 	    case FIELD_TYPE_LONG:
 	    case FIELD_TYPE_INT24:
@@ -762,6 +761,7 @@ static class Hash *get_result_set(class Datasource *ds, MYSQL_RES *res)
 	       break;
 	       
 	       // for floating point values
+	    case FIELD_TYPE_DECIMAL:
 	    case FIELD_TYPE_FLOAT:
 	    case FIELD_TYPE_DOUBLE:
 	       n = new QoreNode(atof(row[i]));
