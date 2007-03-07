@@ -250,7 +250,7 @@ void TIBAE_constructor(class Object *self, class QoreNode *params, class Excepti
       else if (p->type == NT_INT)
       {
 	 tmp.sprintf("%lld", p->val.intval);
-	 service = tmp.val.String->getBuffer();
+	 service = tmp.getBuffer();
       }
    }
    

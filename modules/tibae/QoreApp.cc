@@ -592,7 +592,7 @@ MData *QoreApp::instantiate_union(const MUnionDescription *mud, QoreNode *v, Exc
    {
       xsink->raiseException("TIBCO-INVALID-MULTIPLE-KEYS-FOR-UNION",
                          "cannot instantiate TIBCO union \"%s\" from from hash with %d members!",
-                         mud->getFullName().c_str(), v->val.object->size());
+                         mud->getFullName().c_str(), v->val.hash->size());
       return NULL;
    }
    MUnion *mu = new MUnion(mcr, mud->getFullName());
