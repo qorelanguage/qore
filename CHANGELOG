@@ -1,5 +1,7 @@
 2007.03.07: David Nichols
-	* changed conversion of mysql decimal type to float from int
+	* changed conversion of mysql decimal type to string from int to avoid a
+	  loss of precision and to be consistent with other DBI drivers
+	* implemented support for retrieving binary types in mysql
 
 2007.03.06: David Nichols
 	* updated pgsql driver to query server to determine binary data types
