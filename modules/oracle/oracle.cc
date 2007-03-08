@@ -183,12 +183,30 @@ void OraColumns::define(OCIStmt *stmthp, class Datasource *ds, char *str, Except
    int i = 0;
    while (w)
    {
+      //printd(5, "w->dtype=%d\n", w->dtype);
       switch (w->dtype)
       {
-	 case SQLT_DAT:
-	    w->val.ptr = malloc(sizeof(char) * 7);
+	 case SQLT_INT:
+	 case SQLT_UIN:
+	    w->val.i8 = 0;
 	    ora_checkerr(d_ora->errhp,
-			 OCIDefineByPos(stmthp, &w->defp, d_ora->errhp, i + 1, w->val.ptr, 7, SQLT_DAT, &w->ind, 0, 0, OCI_DEFAULT), 
+			 OCIDefineByPos(stmthp, &w->defp, d_ora->errhp, i + 1, &w->val.i8, sizeof(int64), SQLT_INT, &w->ind, 0, 0, OCI_DEFAULT), 
+			 str, ds, xsink);
+	    break;
+
+	 case SQLT_FLT:
+	 case SQLT_BFLOAT:
+	 case SQLT_BDOUBLE:
+	 case SQLT_IBFLOAT:
+	 case SQLT_IBDOUBLE:
+	    ora_checkerr(d_ora->errhp,
+			 OCIDefineByPos(stmthp, &w->defp, d_ora->errhp, i + 1, &w->val.f8, sizeof(double), SQLT_BDOUBLE, &w->ind, 0, 0, OCI_DEFAULT), 
+			 str, ds, xsink);
+	    break;
+
+	 case SQLT_DAT:
+	    ora_checkerr(d_ora->errhp,
+			 OCIDefineByPos(stmthp, &w->defp, d_ora->errhp, i + 1, w->val.date, 7, SQLT_DAT, &w->ind, 0, 0, OCI_DEFAULT), 
 			 str, ds, xsink);
 	    break;
 
@@ -207,17 +225,27 @@ void OraColumns::define(OCIStmt *stmthp, class Datasource *ds, char *str, Except
 			 str, ds, xsink);
 	    break;
 
-
-	 case SQLT_INT:
-	    w->val.i8 = 0;
+	 case SQLT_INTERVAL_YM:
+	    w->val.oi = NULL;
 	    ora_checkerr(d_ora->errhp,
-			 OCIDefineByPos(stmthp, &w->defp, d_ora->errhp, i + 1, &w->val.i8, sizeof(int64), SQLT_INT, &w->ind, 0, 0, OCI_DEFAULT), 
+			 OCIDescriptorAlloc(d_ora->envhp, (dvoid **)&w->val.oi, OCI_DTYPE_INTERVAL_YM, 0, NULL), str, ds, xsink);
+	    if (*xsink)
+	       return;
+	    //printd(5, "OraColumns::define() got TIMESTAMP handle %08p\n", w->val.odt);
+	    ora_checkerr(d_ora->errhp,
+			 OCIDefineByPos(stmthp, &w->defp, d_ora->errhp, i + 1, &w->val.oi, sizeof(w->val.oi), SQLT_INTERVAL_YM, &w->ind, 0, 0, OCI_DEFAULT), 
 			 str, ds, xsink);
 	    break;
 
-	 case SQLT_FLT:
+	 case SQLT_INTERVAL_DS:
+	    w->val.oi = NULL;
 	    ora_checkerr(d_ora->errhp,
-			 OCIDefineByPos(stmthp, &w->defp, d_ora->errhp, i + 1, &w->val.f8, sizeof(double), SQLT_FLT, &w->ind, 0, 0, OCI_DEFAULT), 
+			 OCIDescriptorAlloc(d_ora->envhp, (dvoid **)&w->val.oi, OCI_DTYPE_INTERVAL_DS, 0, NULL), str, ds, xsink);
+	    if (*xsink)
+	       return;
+	    //printd(5, "OraColumns::define() got TIMESTAMP handle %08p\n", w->val.odt);
+	    ora_checkerr(d_ora->errhp,
+			 OCIDefineByPos(stmthp, &w->defp, d_ora->errhp, i + 1, &w->val.oi, sizeof(w->val.oi), SQLT_INTERVAL_DS, &w->ind, 0, 0, OCI_DEFAULT), 
 			 str, ds, xsink);
 	    break;
 
@@ -289,6 +317,32 @@ extern "C" sb4 read_blob_callback(void *bp, CONST dvoid *bufp, ub4 len, ub1 piec
    return OCI_CONTINUE;
 }
 
+
+class QoreNode *get_oracle_timestamp(Datasource *ds, OCIDateTime *odt, class ExceptionSink *xsink)
+{
+   class OracleData *d_ora = (OracleData *)ds->getPrivateData();
+   //printd(5, "OraColumn::getValue() using TIMESTAMP handle %08p\n", val.odt);
+
+   sb2 year;
+   ub1 month, day;
+   ora_checkerr(d_ora->errhp, 
+		OCIDateTimeGetDate(d_ora->envhp, d_ora->errhp, odt, &year, &month, &day),
+		"OCIDateTimeGetDate()", ds, xsink);
+
+   if (*xsink)
+      return NULL;
+
+   ub1 hour, minute, second;
+   ub4 us; // microseconds
+   ora_checkerr(d_ora->errhp, 
+		OCIDateTimeGetTime(d_ora->envhp, d_ora->errhp, odt, &hour, &minute, &second, &us),
+		"OCIDateTimeGetTime()", ds, xsink);
+   if (*xsink)
+      return NULL;
+
+   return new QoreNode(new DateTime(year, month, day, hour, minute, second, us / 1000));
+}
+
 class QoreNode *OraColumn::getValue(class Datasource *ds, class ExceptionSink *xsink)
 {
    //printd(5, "OraColumn::getValue() dtype=%d, ind=%d, maxsize=%d\n", dtype, ind, maxsize);
@@ -299,42 +353,55 @@ class QoreNode *OraColumn::getValue(class Datasource *ds, class ExceptionSink *x
    switch (dtype)
    {
       case SQLT_INT:
+      case SQLT_UIN:
 	 return new QoreNode(val.i8);
 
       case SQLT_FLT:
+      case SQLT_BFLOAT:
+      case SQLT_BDOUBLE:
+      case SQLT_IBFLOAT:
+      case SQLT_IBDOUBLE:
 	 return new QoreNode(val.f8);
 
       case SQLT_DAT:
-	 return new QoreNode(convert_date_time((unsigned char *)val.ptr));
+	 return new QoreNode(convert_date_time(val.date));
 
       case SQLT_TIMESTAMP:
       case SQLT_TIMESTAMP_TZ:
       case SQLT_TIMESTAMP_LTZ:
       case SQLT_DATE:
+	 return get_oracle_timestamp(ds, val.odt, xsink);
+
+      case SQLT_INTERVAL_YM:
       {
 	 // get oracle data
 	 class OracleData *d_ora = (OracleData *)ds->getPrivateData();
 
-	 //printd(5, "OraColumn::getValue() using TIMESTAMP handle %08p\n", val.odt);
+	 //printd(5, "OraColumn::getValue() using INTERVAL_YM handle %08p\n", val.oi);
 
-	 sb2 year;
-	 ub1 month, day;
+	 sb4 year, month;
 	 ora_checkerr(d_ora->errhp, 
-		      OCIDateTimeGetDate(d_ora->envhp, d_ora->errhp, val.odt, &year, &month, &day),
-		      "OCIDateTimeGetDate()", ds, xsink);
+		      OCIIntervalGetYearMonth(d_ora->envhp, d_ora->errhp, &year, &month, val.oi),
+		      "OCIIntervalGetYearMonth()", ds, xsink);
 	 
-	 class QoreNode *rv = NULL;
-	 if (!*xsink)
-	 {
-	    ub1 hour, minute, second;
-	    ub4 us; // microseconds
-	    ora_checkerr(d_ora->errhp, 
-			 OCIDateTimeGetTime(d_ora->envhp, d_ora->errhp, val.odt, &hour, &minute, &second, &us),
-			 "OCIDateTimeGetTime()", ds, xsink);
-	    if (!*xsink)
-	       rv = new QoreNode(new DateTime(year, month, day, hour, minute, second, us / 1000));
-	 }
-	 return rv;
+	 return (*xsink ? NULL :
+		 new QoreNode(new DateTime(year, month, 0, 0, 0, 0, 0, true)));
+      }
+
+      case SQLT_INTERVAL_DS:
+      {
+	 // get oracle data
+	 class OracleData *d_ora = (OracleData *)ds->getPrivateData();
+
+	 //printd(5, "OraColumn::getValue() using INTERVAL_DS handle %08p\n", val.oi);
+
+	 sb4 day, hour, minute, second, microsecond;
+	 ora_checkerr(d_ora->errhp, 
+		      OCIIntervalGetDaySecond(d_ora->envhp, d_ora->errhp, &day, &hour, &minute, &second, &microsecond, val.oi),
+		      "OCIIntervalGetDaySecond()", ds, xsink);
+	 
+	 return (*xsink ? NULL :
+		 new QoreNode(new DateTime(0, 0, day, hour, minute, second, microsecond / 1000, true)));
       }
 
       case SQLT_CLOB:
@@ -378,6 +445,7 @@ class QoreNode *OraColumn::getValue(class Datasource *ds, class ExceptionSink *x
       }
 
       default:
+	 //printd(5, "type=%d\n", dtype);
 	 // must be string data
 	 remove_trailing_blanks((char *)val.ptr);
 	 return new QoreNode(new QoreString((char *)val.ptr, ds->getQoreEncoding()));
@@ -726,9 +794,9 @@ void OraBindNode::bindValue(class Datasource *ds, OCIStmt *stmthp, int pos, clas
       }
 /*
       buftype = SQLT_DAT;
-      buf.ptr = make_oracle_date_time(data.v.value->val.date_time);
+      make_oracle_date_time(data.v.value->val.date_time, buf.date);
       // bind it
-      ora_checkerr(d_ora->errhp, OCIBindByPos(stmthp, &bndp, d_ora->errhp, pos, buf.ptr, 7, SQLT_DAT, (dvoid *)NULL, (ub2 *)NULL, (ub2 *)NULL, (ub4)0, (ub4 *)NULL, OCI_DEFAULT), 
+      ora_checkerr(d_ora->errhp, OCIBindByPos(stmthp, &bndp, d_ora->errhp, pos, buf.date, 7, SQLT_DAT, (dvoid *)NULL, (ub2 *)NULL, (ub2 *)NULL, (ub4)0, (ub4 *)NULL, OCI_DEFAULT), 
 		   "OraBindNode::bindValue()", ds, xsink);
 */
    }
@@ -765,7 +833,7 @@ void OraBindNode::bindValue(class Datasource *ds, OCIStmt *stmthp, int pos, clas
    else if (data.v.value->type == NT_FLOAT)
    {
       ora_checkerr(d_ora->errhp, 
-		   OCIBindByPos(stmthp, &bndp, d_ora->errhp, pos, &data.v.value->val.floatval, sizeof(double), SQLT_FLT, (dvoid *)NULL, (ub2 *)NULL, (ub2 *)NULL, (ub4)0, (ub4 *)NULL, OCI_DEFAULT), "OraBindNode::bindValue()", ds, xsink);
+		   OCIBindByPos(stmthp, &bndp, d_ora->errhp, pos, &data.v.value->val.floatval, sizeof(double), SQLT_BDOUBLE, (dvoid *)NULL, (ub2 *)NULL, (ub2 *)NULL, (ub4)0, (ub4 *)NULL, OCI_DEFAULT), "OraBindNode::bindValue()", ds, xsink);
    }
    else
       xsink->raiseException("ORACLE-BIND-PLACEHOLDER-ERROR", "type '%s' is not supported for SQL binding", data.v.value->type->getName());
@@ -792,11 +860,15 @@ void OraBindNode::bindPlaceholder(class Datasource *ds, OCIStmt *stmthp, int pos
    }
    else if (!strcmp(data.ph.type, "date"))
    {
-      // simply malloc some space for sending to the new node
-      buftype = SQLT_DAT;
-      buf.ptr = malloc(sizeof(char) * 7);
+      //printd(5, "oraBindNode::bindPlaceholder() this=%08p, DATE buftype=%d\n", this, SQLT_DATE);
+      buftype = SQLT_DATE;
+      buf.odt = NULL;
+      ora_checkerr(d_ora->errhp,
+		   OCIDescriptorAlloc(d_ora->envhp, (dvoid **)&buf.odt, OCI_DTYPE_TIMESTAMP, 0, NULL), "OraBindNode::bindPlaceholder()", ds, xsink);
+      if (*xsink)
+	 return;
 
-      ora_checkerr(d_ora->errhp, OCIBindByPos(stmthp, &bndp, d_ora->errhp, pos, buf.ptr, 7, SQLT_DAT, &ind, (ub2 *)NULL, (ub2 *)NULL, (ub4)0, (ub4 *)NULL, OCI_DEFAULT), "OraBindNode::bindPlaceholder()", ds, xsink);
+      ora_checkerr(d_ora->errhp, OCIBindByPos(stmthp, &bndp, d_ora->errhp, pos, &buf.odt, 0, SQLT_TIMESTAMP, &ind, (ub2 *)NULL, (ub2 *)NULL, (ub4)0, (ub4 *)NULL, OCI_DEFAULT), "OraBindNode::bindPlaceholder()", ds, xsink);
    }
    else if (!strcmp(data.ph.type, "clob"))
    {
@@ -827,8 +899,8 @@ void OraBindNode::bindPlaceholder(class Datasource *ds, OCIStmt *stmthp, int pos
    }
    else if (!strcmp(data.ph.type, "float"))
    {
-      buftype = SQLT_FLT;
-      ora_checkerr(d_ora->errhp, OCIBindByPos(stmthp, &bndp, d_ora->errhp, pos, &buf.f8, sizeof(double), SQLT_FLT, &ind, (ub2 *)NULL, (ub2 *)NULL, (ub4)0, (ub4 *)NULL, OCI_DEFAULT), "OraBindNode::bindPlaceholder()", ds, xsink);
+      buftype = SQLT_BDOUBLE;
+      ora_checkerr(d_ora->errhp, OCIBindByPos(stmthp, &bndp, d_ora->errhp, pos, &buf.f8, sizeof(double), SQLT_BDOUBLE, &ind, (ub2 *)NULL, (ub2 *)NULL, (ub4)0, (ub4 *)NULL, OCI_DEFAULT), "OraBindNode::bindPlaceholder()", ds, xsink);
    }
    else if (!strcmp(data.ph.type, "hash"))
    {
@@ -852,6 +924,7 @@ class QoreNode *OraBindNode::getValue(class Datasource *ds, class ExceptionSink 
    if (ind == -1)
       return null();
 
+   //printd(5, "buftype: %d\n", buftype);
    if (buftype == SQLT_STR)
    {
       // must be string data
@@ -862,10 +935,12 @@ class QoreNode *OraBindNode::getValue(class Datasource *ds, class ExceptionSink 
       return new QoreNode(str);
    }
    else if (buftype == SQLT_DAT)
-      return new QoreNode(convert_date_time((unsigned char *)buf.ptr));
+      return new QoreNode(convert_date_time(buf.date));
+   else if (buftype == SQLT_DATE)
+      return get_oracle_timestamp(ds, buf.odt, xsink);
    else if (buftype == SQLT_INT)
       return new QoreNode(buf.i8);
-   else if (buftype == SQLT_FLT)
+   else if (buftype == SQLT_BDOUBLE)
       return new QoreNode(buf.f8);
    else if (buftype == SQLT_RSET)
    {

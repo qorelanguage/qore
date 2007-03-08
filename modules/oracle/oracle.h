@@ -48,10 +48,12 @@
 // FIXME: do not hardcode byte widths - could be incorrect on some platforms
 union ora_value {
       void *ptr;
+      unsigned char date[7];
       int i4;
       int64 i8;
       double f8;
       OCIDateTime *odt;
+      OCIInterval *oi;
 };
 
 class OraColumn {
@@ -86,7 +88,13 @@ class OraColumn {
 	    switch (dtype)
 	    {
 	       case SQLT_INT:
+	       case SQLT_UIN:
 	       case SQLT_FLT:
+	       case SQLT_BFLOAT:
+	       case SQLT_BDOUBLE:
+	       case SQLT_IBFLOAT:
+	       case SQLT_IBDOUBLE:
+	       case SQLT_DAT:
 		  break;
 
 	       case SQLT_CLOB:
@@ -101,6 +109,16 @@ class OraColumn {
 	       case SQLT_DATE:
 		  if (val.odt)
 		     OCIDescriptorFree(val.odt, OCI_DTYPE_TIMESTAMP);
+		  break;
+
+	       case SQLT_INTERVAL_YM:
+		  if (val.oi)
+		     OCIDescriptorFree(val.odt, OCI_DTYPE_INTERVAL_YM);
+		  break;
+
+	       case SQLT_INTERVAL_DS:
+		  if (val.oi)
+		     OCIDescriptorFree(val.odt, OCI_DTYPE_INTERVAL_DS);
 		  break;
 
 	       default:	  // for date and string data
@@ -202,7 +220,7 @@ class OraBindNode {
 	       free(data.ph.name);
 
 	    // free buffer data if any
-	    if ((buftype == SQLT_STR || buftype == SQLT_DAT) && buf.ptr)
+	    if (buftype == SQLT_STR && buf.ptr)
 	       free(buf.ptr);
 	    else if (buftype == SQLT_RSET && buf.ptr)
 	       OCIHandleFree((OCIStmt *)buf.ptr, OCI_HTYPE_STMT);
@@ -215,8 +233,6 @@ class OraBindNode {
 	 {
 	    if (data.v.tstr)
 	       delete data.v.tstr;
-	    if (buftype == SQLT_DAT && buf.ptr)
-	       free(buf.ptr);
 	 }
       }
 
