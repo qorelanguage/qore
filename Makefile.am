@@ -148,7 +148,6 @@ noinst_HEADERS = \
 	include/qore/QC_RWLock.h \
 	include/qore/QC_Program.h \
 	include/qore/QC_Mutex.h \
-	include/qore/QC_RMutex.h \
 	include/qore/QC_Condition.h \
 	include/qore/QC_Gate.h \
 	include/qore/QC_File.h \

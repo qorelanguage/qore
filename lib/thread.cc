@@ -36,7 +36,6 @@
 #include <qore/QC_Gate.h>
 #include <qore/QC_Sequence.h>
 #include <qore/QC_Counter.h>
-#include <qore/QC_RMutex.h>
 
 #include <pthread.h>
 #include <sys/time.h>

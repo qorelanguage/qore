@@ -32,6 +32,8 @@
 DLLEXPORT extern int CID_GATE;
 
 DLLLOCAL class QoreClass *initGateClass();
+// rmutex class is deprecated and will be removed in the next major release
+DLLLOCAL class QoreClass *initRMutexClass();
 
 class QoreGate : public AbstractPrivateData, public VRMutex
 {

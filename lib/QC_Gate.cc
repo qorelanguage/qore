@@ -23,7 +23,8 @@
 #include <qore/Qore.h>
 #include <qore/QC_Gate.h>
 
-int CID_GATE;
+// rmutex class is depcreated and will be removed in the next major release
+int CID_GATE, CID_RMUTEX;
 
 static void GATE_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
@@ -91,4 +92,20 @@ class QoreClass *initGateClass()
 
    traceout("initGateClass()");
    return QC_GATE;
+}
+
+class QoreClass *initRMutexClass()
+{
+   class QoreClass *QC_RMUTEX = new QoreClass(QDOM_THREAD_CLASS, strdup("RMutex"));
+   CID_RMUTEX = QC_RMUTEX->getID();
+   QC_RMUTEX->setConstructor(GATE_constructor);
+   QC_RMUTEX->setDestructor((q_destructor_t)GATE_destructor);
+   QC_RMUTEX->setCopy((q_copy_t)GATE_copy);
+   QC_RMUTEX->addMethod("enter",         (q_method_t)GATE_enter);
+   QC_RMUTEX->addMethod("exit",          (q_method_t)GATE_exit);
+   QC_RMUTEX->addMethod("tryEnter",      (q_method_t)GATE_tryEnter);
+   QC_RMUTEX->addMethod("numInside",     (q_method_t)GATE_numInside);
+   QC_RMUTEX->addMethod("numWaiting",    (q_method_t)GATE_numWaiting);
+
+   return QC_RMUTEX;
 }

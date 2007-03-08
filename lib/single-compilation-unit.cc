@@ -115,7 +115,6 @@
 #include "QC_Datasource.cc"
 #include "QC_Queue.cc"
 #include "QC_Mutex.cc"
-#include "QC_RMutex.cc"
 #include "QC_Condition.cc"
 #include "QC_RWLock.cc"
 #include "QC_Gate.cc"

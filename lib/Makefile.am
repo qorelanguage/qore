@@ -134,7 +134,6 @@ libqore_la_SOURCES = \
 	QC_Datasource.cc \
 	QC_Queue.cc \
 	QC_Mutex.cc \
-	QC_RMutex.cc \
 	QC_Condition.cc \
 	QC_RWLock.cc \
 	QC_Gate.cc \
