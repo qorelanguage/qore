@@ -603,7 +603,6 @@ static void prepare_testing(sybase_connection* conn)
 //------------------------------------------------------------------------------
 TEST()
 {
-/*
   sybase_connection conn;
   ExceptionSink xsink;
   conn.init(SYBASE_TEST_SETTINGS, &xsink);
@@ -656,7 +655,7 @@ TEST()
   assert(n3->type == NT_HASH);
   n3->deref(&xsink);
 }
-*/
+
 }
 
 //------------------------------------------------------------------------------
@@ -704,7 +703,6 @@ TEST()
 //------------------------------------------------------------------------------
 TEST()
 {
-/*
   // read it all
   sybase_connection conn;
   ExceptionSink xsink;
@@ -732,7 +730,6 @@ TEST()
   assert(n->type == NT_LIST);
   List* l = n->val.list;
   assert(l->size() == 3);
-*/
 } 
 
 } // namespace

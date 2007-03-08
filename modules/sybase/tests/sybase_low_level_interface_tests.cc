@@ -76,7 +76,15 @@ TEST()
   }
   CS_CONNECTION* c = conn.getConnection();
 
-  const char* cmd =  "create table my_test_672 ("
+  // cleanup
+  const char* cmd = "drop table my_test_672";
+  sybase_low_level_execute_directly_command(c, cmd, &xsink);
+  if (xsink.isException()) {
+    xsink.clear();
+  }
+
+  // test start
+  cmd =  "create table my_test_672 ("
     "int_col INTEGER, "
     "varchar_col VARCHAR(30))";
 
@@ -618,6 +626,26 @@ static void create_test_procedure()
 }
 
 //-------------------------------------------------------------------------------
+static void create_test_procedure2()
+{
+  const char* cmd =
+    "create proc my_sample_rpc2 ("
+      "@intparam int) as "
+      "print \"This is the message printed out by sample_rpc2.\"";
+
+  sybase_connection c;
+  ExceptionSink xsink;
+  c.init(SYBASE_TEST_SETTINGS, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  sybase_low_level_execute_directly_command(c.getConnection(), cmd, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+}
+
+//-------------------------------------------------------------------------------
 static void drop_test_procedure(bool quiet = false)
 {
   const char* cmd = "drop proc my_sample_rpc";
@@ -638,6 +666,28 @@ static void drop_test_procedure(bool quiet = false)
   }
 }
 
+//-------------------------------------------------------------------------------
+static void drop_test_procedure2(bool quiet = false)
+{
+  const char* cmd = "drop proc my_sample_rpc2";
+
+  sybase_connection c;
+  ExceptionSink xsink;
+  c.init(SYBASE_TEST_SETTINGS, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  sybase_low_level_execute_directly_command(c.getConnection(), cmd, &xsink);
+  if (xsink.isException()) {
+    if (quiet) {
+      xsink.clear();
+    } else {
+      assert(false);
+    }
+  }
+}
+
+//------------------------------------------------------------------------------
 TEST()
 {
   drop_test_procedure(true);
@@ -649,6 +699,62 @@ TEST()
   create_test_procedure();
   drop_test_procedure();
 }
+
+//------------------------------------------------------------------------------
+TEST()
+{
+  drop_test_procedure2(true);
+
+  create_test_procedure2();
+  drop_test_procedure2();
+  create_test_procedure2();
+  drop_test_procedure2();
+  create_test_procedure2();
+  drop_test_procedure2();
+}
+
+//------------------------------------------------------------------------------
+TEST()
+{
+/*
+  drop_test_procedure(true);
+  create_test_procedure();
+
+  // test procedure inputs outputs
+  sybase_connection conn;
+  ExceptionSink xsink;
+  conn.init(SYBASE_TEST_SETTINGS, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  CS_CONNECTION* c = conn.getConnection();
+
+  sybase_command_wrapper w(c, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+
+printf("#### before prepare\n");
+  sybase_low_level_prepare_command(w, "execute my_sample_rpc (10, @p1, @p2, @p3, @p4, @p5, @p6)", &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+printf("#### after prepare\n");
+
+  std::vector<parameter_info_t> inputs = sybase_low_level_get_input_parameters_info(w, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  assert(inputs.size() == 0);
+
+  std::vector<parameter_info_t> outputs = sybase_low_level_get_output_data_info(w, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  assert(outputs.size() == 0);
+*/
+}
+
 
 } // namespace
 #endif

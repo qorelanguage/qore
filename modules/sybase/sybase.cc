@@ -741,7 +741,6 @@ printf("### line %d\n", __LINE__);
 printf("### line %d\n", __LINE__);
         return result;
       }
-printf("### ROW result read\n");
       break;
     case CS_STATUS_RESULT:
       // single value, not result of an select but e.g. # of lines affected

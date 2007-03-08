@@ -388,9 +388,15 @@ std::string sybase_low_level_get_default_encoding(const sybase_connection& conn,
 }
 
 //------------------------------------------------------------------------------
-void sybase_low_level_bind_parameters(const sybase_command_wrapper& wrapper,
- const std::vector<parameter_info_t>& inputs, const std::vector<parameter_info_t>& outputs,
- List* passed_arguments, ExceptionSink* xsink)
+void sybase_low_level_bind_parameters(
+  const sybase_command_wrapper& wrapper,
+  const char* command,
+  bool command_is_procedure_call,
+  const std::vector<parameter_info_t>& inputs,
+  const std::vector<parameter_info_t>& outputs,
+  List* passed_arguments,
+  ExceptionSink* xsink
+  )
 {
   // TBD
 }
