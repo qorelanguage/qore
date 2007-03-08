@@ -46,8 +46,17 @@ synchronized sub b($c)
 
 sub dt()
 {
-    our $n = new Mutex();
+    my $n = new Mutex();
     $n.lock();
+    try {
+	throwThreadResourceExceptions();
+    }
+    catch ($ex)
+    {
+	printf("%s: %s\n", $ex.err, $ex.desc); 
+    }        
+    $n = new Gate();
+    $n.enter();
     try {
 	throwThreadResourceExceptions();
     }
@@ -80,6 +89,26 @@ sub main()
     {
 	printf("%s: %s\n", $ex.err, $ex.desc); 
     }    
+
+    # test Gate
+    my $m = new Gate();
+    try {
+	$m.exit();
+    }
+    catch ($ex)
+    {
+	printf("%s: %s\n", $ex.err, $ex.desc); 
+    }
+    $m.enter();
+    try {
+	delete $m;
+    }
+    catch ($ex)
+    {
+	printf("%s: %s\n", $ex.err, $ex.desc); 
+    }
+
+    # test thread resource tracking: Mutex
     background dt();
 }
 

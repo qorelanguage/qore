@@ -1,3 +1,11 @@
+2007.03.08: David Nichols
+	* added RAW and LONG RAW handling to oracle driver
+	* changed the Gate class to no longer accept a code to enter the gate
+	* applied new deadlock detection and thread-error-catching 
+	  infrastructure to the Gate class (VRmutex implementation)
+	* updated documentation
+	* deprecated the RMutex class in favor of the Gate class
+
 2007.03.07: David Nichols
 	* changed conversion of mysql decimal type to string from int to avoid a
 	  loss of precision and to be consistent with other DBI drivers

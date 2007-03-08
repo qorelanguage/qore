@@ -26,17 +26,18 @@
 
 #define _QORE_CLASS_GATE_H
 
-#include <qore/Gate.h>
+#include <qore/VRMutex.h>
 #include <qore/AbstractPrivateData.h>
 
 DLLEXPORT extern int CID_GATE;
 
 DLLLOCAL class QoreClass *initGateClass();
 
-class QoreGate : public AbstractPrivateData, public Gate
+class QoreGate : public AbstractPrivateData, public VRMutex
 {
    protected:
       DLLLOCAL virtual ~QoreGate() {}
+      DLLLOCAL const char *getName() const { return "Gate"; }
 };
 
 #endif // _QORE_CLASS_GATE_H

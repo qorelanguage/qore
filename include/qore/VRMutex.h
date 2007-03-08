@@ -46,6 +46,7 @@ class VRMutex : public AbstractSmartLock
       DLLLOCAL int enter(class ExceptionSink *);
       DLLLOCAL int exit();
       DLLLOCAL virtual const char *getName() const { return "VRMutex"; }
+      DLLLOCAL int get_count() const { return count; }
 };
 
 #endif

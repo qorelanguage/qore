@@ -67,7 +67,7 @@
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::Gate_Class">Thread::Gate Class</link></para></entry>
-	    <entry><para>For restricting access to a section of code based on an integer key.</para></entry>
+	    <entry><para>A reentrant thread lock.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::Mutex_Class">Thread::Mutex Class</link></para></entry>
@@ -79,7 +79,7 @@
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::RMutex_Class">Thread::RMutex Class</link></para></entry>
-	    <entry><para>A reentrant thread lock.</para></entry>
+	    <entry><para>DEPRECATED: A reentrant thread lock; use Gate instead.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::RWLock_Class">Thread::RWLock Class</link></para></entry>
@@ -20287,7 +20287,7 @@ xs      </variablelist>
 
   <sect1 id="Qore::Thread::RMutex_Class">
     <title>Qore::Thread::RMutex Class</title>
-    <para>The RMutex class implements a recursive thread lock.  Once a thread grabs the lock, it can call the RMutex::enter() method again without blocking.  Other threads that try to enter the lock will block until the thread holding the lock calls RMutex::exit() an equal number of times to the RMutex::enter() calls.</para>
+    <para>DEPRECATED: use the <link linkend="Qore::Thread::Gate_Class">Gate</link> class instead.  The RMutex class implements a recursive thread lock.  Once a thread grabs the lock, it can call the RMutex::enter() method again without blocking.  Other threads that try to enter the lock will block until the thread holding the lock calls RMutex::exit() an equal number of times to the RMutex::enter() calls.</para>
 
     <table>
       <title>Qore::Thread::RMutex Method Overview</title>
@@ -20871,7 +20871,7 @@ xs      </variablelist>
 
   <sect1 id="Qore::Thread::Gate_Class">
     <title>Qore::Thread::Gate Class</title>
-    <para>The Gate class implements a key-based thread lock. Any thread holding the correct key can enter the gate.  Threads that try to enter the gate with another key will block until the last thread exits the gate and the gate is open.  If you will always use the TID (thread ID) as the gate key, then you should use the <link linkend="Qore::Thread::RMutex_Class">RMutex Class</link> instead, because it's more efficient than the Gate class.</para>
+    <para>The Gate class implements a reentrant thread lock.  Once a thread grabs the lock, it can call the Gate::enter() method again without blocking.  Other threads that try to enter the lock will block until the thread holding the lock calls Gate::exit() an equal number of times to the Gate::enter() calls.</para>
 
     <table>
       <title>Qore::Thread::Gate Method Overview</title>
@@ -21074,7 +21074,7 @@ xs      </variablelist>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
-	    <programlisting>Gate::enter(<replaceable>[code]</replaceable>)</programlisting>
+	    <programlisting>Gate::enter(<replaceable>[timeout_ms]</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -21091,9 +21091,9 @@ xs      </variablelist>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><replaceable>[code]</replaceable></para></entry>
-	      <entry><para>Integer</para></entry>
-	      <entry><para>The key code to use to acquire the lock.</para></entry>
+	      <entry><para><replaceable>[timeout_ms]</replaceable></para></entry>
+	      <entry><para>Integer or Relative Time</para></entry>
+	      <entry><para>An optional timeout value in milliseconds for acquiring the lock.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -21128,8 +21128,8 @@ xs      </variablelist>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code>GATE-ENTER-PARAMETER-EXCEPTION</code></para></entry>
-	      <entry><para>-1 is an illegal key for this object.</para></entry>
+	      <entry><para><code>THREAD-DEADLOCK</code></para></entry>
+	      <entry><para>A deadlock was detected while trying to acquire the lock.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -21142,19 +21142,19 @@ xs      </variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Acquires the lock if it is unlocked or locked with the same key, otherwise returns immediately.</para>
+	    <para>Acquires the lock if it is unlocked or locked by the same thread, otherwise returns immediately.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
-	    <programlisting>Gate::tryEnter(<replaceable>[code]</replaceable>)</programlisting>
+	    <programlisting>Gate::tryEnter(<replaceable>[timeout_ms]</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
 
       <table>
-	<title>Arguments for Gate::enter()</title>
+	<title>Arguments for Gate::tryEnter()</title>
 	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
@@ -21165,9 +21165,9 @@ xs      </variablelist>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><replaceable>[code]</replaceable></para></entry>
-	      <entry><para>Integer</para></entry>
-	      <entry><para>The key code to use to acquire the lock.</para></entry>
+	      <entry><para><replaceable>[timeout_ms]</replaceable></para></entry>
+	      <entry><para>Integer or Relative Time</para></entry>
+	      <entry><para>An optional timeout value in milliseconds for acquiring the lock.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -21190,25 +21190,7 @@ xs      </variablelist>
 	  </tbody>
 	</tgroup>
       </table>
-
-      <table>
-	<title>Exceptions Thrown by Gate::tryEnter()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>err</para></entry>
-	      <entry><para>desc</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para><code>GATE-TRYENTER-PARAMETER-EXCEPTION</code></para></entry>
-	      <entry><para>-1 is an illegal key for this object.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-  </sect2>
+    </sect2>
 
   <sect2 id="Qore::Thread::Gate::exit">
     <title>Gate::exit()</title>

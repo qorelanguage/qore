@@ -29,7 +29,6 @@ VRMutex::VRMutex() : count(0)
 {
 }
 
-
 int VRMutex::enter(class ExceptionSink *xsink)
 {
    int mtid = gettid();

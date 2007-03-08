@@ -49,8 +49,8 @@ class AbstractSmartLock
 */
       DLLLOCAL void grab_intern_intern(int mtid, class VLock *nvl);
       DLLLOCAL void release_intern_intern();
-      DLLLOCAL virtual void grab_intern(int mtid, class VLock *nvl);
-      DLLLOCAL virtual void release_intern();
+      DLLLOCAL void grab_intern(int mtid, class VLock *nvl);
+      DLLLOCAL void release_intern();
 
    public:
       LockedObject asl_lock;
@@ -80,6 +80,8 @@ class AbstractSmartLock
       DLLLOCAL int release(class ExceptionSink *xsink);
       DLLLOCAL void self_wait() { asl_cond.wait(&asl_lock); }
       DLLLOCAL int self_wait(int timeout_ms) { return asl_cond.wait(&asl_lock, timeout_ms); }
+      DLLLOCAL int get_tid() const { return tid; }
+      DLLLOCAL int get_waiting() const { return waiting; }
       DLLLOCAL virtual const char *getName() const = 0;
 };
 
