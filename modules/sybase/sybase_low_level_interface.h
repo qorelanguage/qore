@@ -35,6 +35,7 @@
 #include <ctpublic.h>
 
 class sybase_connection;
+class List;
 
 //------------------------------------------------------------------------------
 extern int sybase_low_level_commit(sybase_connection* sc, ExceptionSink* xsink);
@@ -83,6 +84,12 @@ struct parameter_info_t {
 // get input & outputs of a SQL command
 extern std::vector<parameter_info_t> sybase_low_level_get_input_parameters_info(const sybase_command_wrapper& wrapper, ExceptionSink* xsink);
 extern std::vector<parameter_info_t> sybase_low_level_get_output_data_info(const sybase_command_wrapper& wrapper, ExceptionSink* xsink);
+
+//------------------------------------------------------------------------------
+// Bind input (and ouput by reference) parameters to the command.
+extern void sybase_low_level_bind_parameters(const sybase_command_wrapper& wrapper,
+ const std::vector<parameter_info_t>& inputs, const std::vector<parameter_info_t>& outputs,
+ List* passed_arguments, ExceptionSink* xsink);
 
 #endif
 

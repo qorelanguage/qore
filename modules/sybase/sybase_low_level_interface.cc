@@ -25,6 +25,8 @@
 
 #include <qore/config.h>
 #include <qore/support.h>
+#include <qore/List.h>
+#include <qore/Exception.h>
 
 #include <ctpublic.h>
 #include <assert.h>
@@ -383,6 +385,14 @@ std::string sybase_low_level_get_default_encoding(const sybase_connection& conn,
     return std::string();
   }
   return std::string(encoding_str);
+}
+
+//------------------------------------------------------------------------------
+void sybase_low_level_bind_parameters(const sybase_command_wrapper& wrapper,
+ const std::vector<parameter_info_t>& inputs, const std::vector<parameter_info_t>& outputs,
+ List* passed_arguments, ExceptionSink* xsink)
+{
+  // TBD
 }
 
 #ifdef DEBUG
