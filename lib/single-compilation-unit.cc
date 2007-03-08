@@ -128,6 +128,7 @@
 #include "QC_JsonRpcClient.cc"
 #include "QC_SafeLocker.cc"
 #include "minitest.cc"
+#include "inline_printf.cc"
 
 #ifdef DEBUG
 #include "ql_debug.cc"

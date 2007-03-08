@@ -166,6 +166,7 @@ noinst_HEADERS = \
 	include/qore/DBI.h \
 	include/qore/ScopeGuard.h \
 	include/qore/minitest.hpp \
+	include/qore/inline_printf.h \
 	include/qore/ReferenceHolder.h \
 	modules/oracle/oracle-config.h \
 	modules/oracle/oracle.h \

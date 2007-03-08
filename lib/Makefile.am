@@ -147,7 +147,8 @@ libqore_la_SOURCES = \
 	QC_JsonRpcClient.cc \
 	QC_SafeLocker.cc \
 	QoreHTTPClient.cc \
-	minitest.cc
+	minitest.cc \
+	inline_printf.cc
 
 if COND_DEBUG
 libqore_la_SOURCES += ql_debug.cc

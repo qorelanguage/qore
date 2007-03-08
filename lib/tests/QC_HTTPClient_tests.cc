@@ -2,7 +2,7 @@
 
 #ifdef DEBUG
 namespace QC_HTTPClient_tests {
-
+/*
 TEST()
 {
   printf("testing HTTPClient 1\n");
@@ -145,7 +145,7 @@ TEST()
   res = WEXITSTATUS(res);
   assert(res == 10);
 }
-
+*/
 } // namespace
 #endif // DEBUG
 
