@@ -121,8 +121,9 @@ class OraColumn {
 		     OCIDescriptorFree(val.odt, OCI_DTYPE_INTERVAL_DS);
 		  break;
 
-	       default:	  // for date and string data
-		  free(val.ptr);
+	       default:	  // for all columns where data must be allocated
+		  if (val.ptr)
+		     free(val.ptr);
 		  break;
 	    }
 	    OCIHandleFree(defp, OCI_HTYPE_DEFINE);
@@ -220,7 +221,9 @@ class OraBindNode {
 	       free(data.ph.name);
 
 	    // free buffer data if any
-	    if (buftype == SQLT_STR && buf.ptr)
+	    if ((buftype == SQLT_STR
+		 || buftype == SQLT_LBI)
+		&& buf.ptr)
 	       free(buf.ptr);
 	    else if (buftype == SQLT_RSET && buf.ptr)
 	       OCIHandleFree((OCIStmt *)buf.ptr, OCI_HTYPE_STMT);

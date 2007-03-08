@@ -249,6 +249,19 @@ void OraColumns::define(OCIStmt *stmthp, class Datasource *ds, char *str, Except
 			 str, ds, xsink);
 	    break;
 
+	 // handle raw data
+	 case SQLT_BIN:
+	 case SQLT_LBI:
+	 {
+	    int size = w->maxsize + sizeof(int);
+	    w->val.ptr = malloc(size);
+	    w->dtype = SQLT_LVB;
+	    ora_checkerr(d_ora->errhp,
+			 OCIDefineByPos(stmthp, &w->defp, d_ora->errhp, i + 1, w->val.ptr, size, SQLT_LVB, &w->ind, 0, 0, OCI_DEFAULT), 
+			 str, ds, xsink);
+	    break;
+	 }
+
 	 case SQLT_BLOB:
 	 case SQLT_CLOB:
 	    w->val.ptr = NULL;
@@ -404,6 +417,15 @@ class QoreNode *OraColumn::getValue(class Datasource *ds, class ExceptionSink *x
 		 new QoreNode(new DateTime(0, 0, day, hour, minute, second, microsecond / 1000, true)));
       }
 
+      case SQLT_LVB:
+      {
+	 // get oracle data
+	 class OracleData *d_ora = (OracleData *)ds->getPrivateData();
+	 class BinaryObject *b = new BinaryObject();
+	 b->append(OCIRawPtr(d_ora->envhp, (OCIRaw *)val.ptr), OCIRawSize(d_ora->envhp, (OCIRaw *)val.ptr));
+	 return new QoreNode(b);
+      }
+
       case SQLT_CLOB:
       case SQLT_BLOB:
       {
@@ -513,7 +535,7 @@ static class Hash *ora_fetch(OCIStmt *stmthp, class Datasource *ds, class Except
 	       printd(1, "ora_fetch(): dereferencing result value (col=%s)\n", w->name);
 	       (*v)->deref(xsink);
 	    }
-	    // FIXME: check for exception after this call]
+	    // FIXME: check for exception after this call
 	    (*v) = w->getValue(ds, xsink);
 	    if (xsink->isEvent())
 	       break;
