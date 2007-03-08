@@ -42,19 +42,19 @@ static void DS_constructor(class Object *self, class QoreNode *params, Exception
    }
    class ManagedDatasource *ds = new ManagedDatasource(db_driver);
 
-   if ((p = test_param(params, NT_STRING, 1)) && p->val-String->strlen())
+   if ((p = test_param(params, NT_STRING, 1)) && p->val.String->strlen())
       ds->setPendingUsername(p->val.String->getBuffer());
 
-   if ((p = test_param(params, NT_STRING, 2)) && p->val-String->strlen())
+   if ((p = test_param(params, NT_STRING, 2)) && p->val.String->strlen())
       ds->setPendingPassword(p->val.String->getBuffer());
 
-   if ((p = test_param(params, NT_STRING, 3)) && p->val-String->strlen())
+   if ((p = test_param(params, NT_STRING, 3)) && p->val.String->strlen())
       ds->setPendingDBName(p->val.String->getBuffer());
    
-   if ((p = test_param(params, NT_STRING, 4)) && p->val-String->strlen())
+   if ((p = test_param(params, NT_STRING, 4)) && p->val.String->strlen())
       ds->setPendingDBEncoding(p->val.String->getBuffer());
    
-   if ((p = test_param(params, NT_STRING, 5)) && p->val-String->strlen())
+   if ((p = test_param(params, NT_STRING, 5)) && p->val.String->strlen())
       ds->setPendingHostName(p->val.String->getBuffer());
    
    self->setPrivate(CID_DATASOURCE, ds);
