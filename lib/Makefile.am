@@ -148,7 +148,8 @@ libqore_la_SOURCES = \
 	QC_SafeLocker.cc \
 	QoreHTTPClient.cc \
 	minitest.cc \
-	inline_printf.cc
+	inline_printf.cc \
+	QException.cc
 
 if COND_DEBUG
 libqore_la_SOURCES += ql_debug.cc

@@ -129,6 +129,7 @@
 #include "QC_SafeLocker.cc"
 #include "minitest.cc"
 #include "inline_printf.cc"
+#include "QException.h"
 
 #ifdef DEBUG
 #include "ql_debug.cc"
