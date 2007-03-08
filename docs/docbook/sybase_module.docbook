@@ -4,5 +4,9 @@
     
     <para>The sybase module provides a Qore DBI driver allowing Qore programs to access Sybase databases through the <link linkend="Qore::SQL::Datasource_Class">Datasource Class</link>.</para>
 
+    <para>Example of creating a Sybase Datasource:</para>
+
+    <programlisting>$db = new Datasource(SQL::DSSybase, $user, $pass, $db, $charset);</programlisting>
+
   </sect1>
 

@@ -5,6 +5,10 @@
 
   <para>The mysql module provides a MySQL driver to Qore's DBI system, allowing Qore programs to access MySQL databases through the <link linkend="Qore::SQL::Datasource_Class">Datasource Class</link>.</para>
 
+    <para>Example of creating a MySQL Datasource:</para>
+
+    <programlisting>$db = new Datasource(SQL::DSMySQL, $user, $pass, $db, $charset, $hostname);</programlisting>
+
   <para>This driver supports the following DBI capabilities when compiled against MySQL 4 or better: <code>DBI_CAP_TRANSACTION_MANAGEMENT, DBI_CAP_CHARSET_SUPPORT, DBI_CAP_LOB_SUPPORT</code>.</para>
   
   <para>When compiled against MySQL 5, the following additional capabilities are available: <code>DBI_CAP_STORED_PROCEDURES</code>.</para>
@@ -35,7 +39,7 @@ printf(&quot;%N\n&quot;, $result);</programlisting>
   <para>Resulting in:</para>
 
   <programlisting>hash: (1 member)
-name : "Smith"</programlisting>
+  name : "Smith"</programlisting>
   
   <para>The following table describes the mapping from MySQL data types to Qore types.  All other MySQL types not listed are converted to strings.</para>
 

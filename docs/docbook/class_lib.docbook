@@ -16181,12 +16181,20 @@ xs      </variablelist>
 	
 	<tbody>
 	  <row>
-	    <entry><para>SQL::DSOracle</para></entry>
+	    <entry><para><link linkend="oracle_Module"><code>SQL::DSOracle</code></link></para></entry>
 	    <entry><para>Indicates an Oracle database to the Datasource::constructor() method</para></entry>
 	  </row>
 	  <row>
-	    <entry><para>SQL::DSMySQL</para></entry>
+	    <entry><para><link linkend="mysql_Module"><code>SQL::DSMySQL</code></link></para></entry>
 	    <entry><para>Indicates an MySQL database to the Datasource::constructor() method</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="pgsql_Module"><code>SQL::DSPGSQL</code></link></para></entry>
+	    <entry><para>Indicates an PostgreSQL database to the Datasource::constructor() method</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="sybase_Module"><code>SQL::DSSybase</code></link></para></entry>
+	    <entry><para>Indicates an Sybase database to the Datasource::constructor() method</para></entry>
 	  </row>
 	  
 	</tbody>
@@ -16273,9 +16281,9 @@ xs      </variablelist>
     
     <para>Only databases with an existing Qore DBI driver can be accessed through the Qore Datasource class.  DBI drivers shipping with Qore include <link linkend="oracle_Module">oracle</link>, <link linkend="mysql_Module">mysql</link>, <link linkend="pgsql_Module">pgsql (PostgreSQL)</link>, and <link linkend="sybase_Module">sybase</link>.</para>
 
-    <para>Qore DBI drivers delivered separately from Qore may support only a subset of all possible features.  Use the following functions to query DBI driver capabilities: <link linkend="getDBIDriverCapabilities">getDBIDriverCapabilities()</link>, <link linkend="getDBIDriverCapabilityList">getDBIDriverCapabilityList()</link>, and <link linkend="getDBIDriverList">getDBIDriverList()</link>.  See <link linkend="DBI_Capability_Constants">DBI Capability Constants</link> for a table of DBI driver capability codes.</para>
+    <para>DBI drivers delivered separately from Qore may support only a subset of all possible features.  Use the following functions to query DBI driver capabilities: <link linkend="getDBIDriverCapabilities">getDBIDriverCapabilities()</link>, <link linkend="getDBIDriverCapabilityList">getDBIDriverCapabilityList()</link>, and <link linkend="getDBIDriverList">getDBIDriverList()</link>.  See <link linkend="DBI_Capability_Constants">DBI Capability Constants</link> for a table of DBI driver capability codes.</para>
 
-   <para>All Qore DBI drivers set new connections to use ISO transaction level %quot;read committed&quot;.</para>
+   <para>All Qore DBI drivers set new connections to use ISO transaction level &quot;read committed&quot;.</para>
 
     <table>
       <title>Qore::SQL::Datasource Method Overview</title>
@@ -16431,7 +16439,7 @@ xs      </variablelist>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
-	    <programlisting><command>new</command> Datasource(<replaceable>driver_name</replaceable>)</programlisting>
+	    <programlisting><command>new</command> Datasource(<replaceable>driver_name, [username], [password], [dbname], [charset_name], [hostname]</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -16451,6 +16459,31 @@ xs      </variablelist>
 	      <entry><para><replaceable>driver_name</replaceable></para></entry>
 	      <entry><para>String</para></entry>
 	      <entry><para>The name of the DBI driver for the Datasource.  See <link linkend="Qore_SQL_Constants">SQL Constants</link> for builtin constants for DBI drivers shipped with Qore, or see the DBI driver documentation to use an add-on driver.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><replaceable>[username]</replaceable></para></entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>The user name for the new connection.  Also see <link linkend="Qore::SQL::Datasource::setUserName">Datasource::setUserName()</link> for a method that allows this parameter to be set after the constructor.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><replaceable>[password]</replaceable></para></entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>The password for the new connection.  Also see <link linkend="Qore::SQL::Datasource::setPassword">Datasource::setPassword()</link> for a method that allows this parameter to be set after the constructor.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><replaceable>[dbname]</replaceable></para></entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>The database name for the new connection.  Also see <link linkend="Qore::SQL::Datasource::setDBName">Datasource::setDBName()</link> for a method that allows this parameter to be set after the constructor.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><replaceable>[charset_name]</replaceable></para></entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>The database-specific name of the character encoding to use for the new connection.  Also see <link linkend="Qore::SQL::Datasource::setDBCharset">Datasource::setDBCharset()</link> for a method that allows this parameter to be set after the constructor.  If no value is passed for this parameter, then the database character encoding corresponding to the default character encoding for the Qore process will be used instead.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><replaceable>[hostname]</replaceable></para></entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>The host name for the new connection (not used by some DBI drivers).  Also see <link linkend="Qore::SQL::Datasource::setHostName">Datasource::setHostName()</link> for a method that allows this parameter to be set after the constructor.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -16474,6 +16507,28 @@ xs      </variablelist>
 	</tgroup>
       </table>
     </sect2>
+
+      <table>
+	<title>Exceptions Thrown by Datasource::constructor()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>DATASOURCE-PARAMETER-EEROR</code></para></entry>
+	      <entry><para>Missing DBI driver identifier as first argument.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>DATASOURCE-UNSUPPORTED-DATABASE</code></para></entry>
+	      <entry><para>Could not load a driver for the database identified.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
 
     <sect2 id="Qore::SQL::Datasource::destructor">
       <title>Datasource::destructor()</title>
