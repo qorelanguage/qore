@@ -45,6 +45,8 @@
 
 #define MAXINT32 2147483647   // 2^^32 - 1
 
+#define ORA_RAW_SIZE 65535
+
 // FIXME: do not hardcode byte widths - could be incorrect on some platforms
 union ora_value {
       void *ptr;
@@ -222,7 +224,9 @@ class OraBindNode {
 
 	    // free buffer data if any
 	    if ((buftype == SQLT_STR
-		 || buftype == SQLT_LBI)
+		 || buftype == SQLT_LBI
+		 || buftype == SQLT_VBI
+		 || buftype == SQLT_LVB)
 		&& buf.ptr)
 	       free(buf.ptr);
 	    else if (buftype == SQLT_RSET && buf.ptr)

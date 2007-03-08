@@ -892,6 +892,17 @@ void OraBindNode::bindPlaceholder(class Datasource *ds, OCIStmt *stmthp, int pos
 
       ora_checkerr(d_ora->errhp, OCIBindByPos(stmthp, &bndp, d_ora->errhp, pos, &buf.odt, 0, SQLT_TIMESTAMP, &ind, (ub2 *)NULL, (ub2 *)NULL, (ub4)0, (ub4 *)NULL, OCI_DEFAULT), "OraBindNode::bindPlaceholder()", ds, xsink);
    }
+   else if (!strcmp(data.ph.type, "binary"))
+   {
+      buftype = SQLT_LVB;
+      data.ph.maxsize = ORA_RAW_SIZE;
+      buf.ptr = malloc(ORA_RAW_SIZE);
+      // set varbin length to zero
+      ub4 *bs = (ub4 *)buf.ptr;
+      *bs = 0;
+
+      ora_checkerr(d_ora->errhp, OCIBindByPos(stmthp, &bndp, d_ora->errhp, pos, buf.ptr, ORA_RAW_SIZE, SQLT_LVB, &ind, (ub2 *)NULL, (ub2 *)NULL, (ub4)0, (ub4 *)NULL, OCI_DEFAULT), "OraBindNode::bindPlaceholder()", ds, xsink);
+   }
    else if (!strcmp(data.ph.type, "clob"))
    {
       buftype = SQLT_CLOB;
@@ -903,7 +914,7 @@ void OraBindNode::bindPlaceholder(class Datasource *ds, OCIStmt *stmthp, int pos
       printd(5, "bindPalceholder() got LOB locator handle %08p\n", buf.ptr);
       ora_checkerr(d_ora->errhp, OCIBindByPos(stmthp, &bndp, d_ora->errhp, pos, &buf.ptr, 0, SQLT_CLOB, &ind, (ub2 *)NULL, (ub2 *)NULL, (ub4)0, (ub4 *)NULL, OCI_DEFAULT), "OraBindNode::bindPlaceholder()", ds, xsink);
    }
-   else if (!strcmp(data.ph.type, "binary"))
+   else if (!strcmp(data.ph.type, "blob"))
    {
       buftype = SQLT_BLOB;
       buf.ptr = NULL;
@@ -968,6 +979,14 @@ class QoreNode *OraBindNode::getValue(class Datasource *ds, class ExceptionSink 
    {
       class Hash *h = ora_fetch((OCIStmt *)buf.ptr, ds, xsink);
       return h ? new QoreNode(h) : NULL;
+   }
+   else if (buftype == SQLT_LVB)
+   {
+      // get oracle data
+      class OracleData *d_ora = (OracleData *)ds->getPrivateData();
+      class BinaryObject *b = new BinaryObject();
+      b->append(OCIRawPtr(d_ora->envhp, (OCIRaw *)buf.ptr), OCIRawSize(d_ora->envhp, (OCIRaw *)buf.ptr));
+      return new QoreNode(b);
    }
    else if (buftype == SQLT_CLOB || buftype == SQLT_BLOB)
    {
