@@ -1368,10 +1368,52 @@ QoreString* sybase_module_init()
 }
 
 //------------------------------------------------------------------------------
+static void add_constants(Namespace* ns)
+{
+  // constants to be use in exec() when placeholders are used
+  ns->addConstant("CS_CHAR_TYPE", new QoreNode((int64)CS_CHAR_TYPE));
+  ns->addConstant("CS_BINARY_TYPE", new QoreNode((int64)CS_BINARY_TYPE));
+  ns->addConstant("CS_LONGCHAR_TYPE", new QoreNode((int64)CS_LONGCHAR_TYPE));
+  ns->addConstant("CS_LONGBINARY_TYPE", new QoreNode((int64)CS_LONGBINARY_TYPE));
+  ns->addConstant("CS_TEXT_TYPE", new QoreNode((int64)CS_TEXT_TYPE));
+  ns->addConstant("CS_IMAGE_TYPE", new QoreNode((int64)CS_IMAGE_TYPE));
+  ns->addConstant("CS_TINYINT_TYPE", new QoreNode((int64)CS_TINYINT_TYPE));
+  ns->addConstant("CS_SMALLINT_TYPE", new QoreNode((int64)CS_SMALLINT_TYPE));
+  ns->addConstant("CS_INT_TYPE", new QoreNode((int64)CS_INT_TYPE));
+  ns->addConstant("CS_REAL_TYPE", new QoreNode((int64)CS_REAL_TYPE));
+  ns->addConstant("CS_FLOAT_TYPE", new QoreNode((int64)CS_FLOAT_TYPE));
+  ns->addConstant("CS_BIT_TYPE", new QoreNode((int64)CS_BIT_TYPE));
+  ns->addConstant("CS_DATETIME_TYPE", new QoreNode((int64)CS_DATETIME_TYPE));
+  ns->addConstant("CS_DATETIME4_TYPE", new QoreNode((int64)CS_DATETIME4_TYPE));
+  ns->addConstant("CS_MONEY_TYPE", new QoreNode((int64)CS_MONEY_TYPE));
+  ns->addConstant("CS_MONEY4_TYPE", new QoreNode((int64)CS_MONEY4_TYPE));
+  ns->addConstant("CS_NUMERIC_TYPE", new QoreNode((int64)CS_NUMERIC_TYPE));
+  ns->addConstant("CS_DECIMAL_TYPE", new QoreNode((int64)CS_DECIMAL_TYPE));
+  ns->addConstant("CS_VARCHAR_TYPE", new QoreNode((int64)CS_VARCHAR_TYPE));
+  ns->addConstant("CS_VARBINARY_TYPE", new QoreNode((int64)CS_VARBINARY_TYPE));
+  ns->addConstant("CS_LONG_TYPE", new QoreNode((int64)CS_LONG_TYPE));
+  ns->addConstant("CS_SENSITIVITY_TYPE", new QoreNode((int64)CS_SENSITIVITY_TYPE));
+  ns->addConstant("CS_BOUNDARY_TYPE", new QoreNode((int64)CS_BOUNDARY_TYPE));
+  ns->addConstant("CS_VOID_TYPE", new QoreNode((int64)CS_VOID_TYPE));
+  ns->addConstant("CS_USHORT_TYPE", new QoreNode((int64)CS_USHORT_TYPE));
+  ns->addConstant("CS_UNICHAR_TYPE", new QoreNode((int64)CS_UNICHAR_TYPE));
+  ns->addConstant("CS_BLOB_TYPE", new QoreNode((int64)CS_BLOB_TYPE));
+  ns->addConstant("CS_DATE_TYPE", new QoreNode((int64)CS_DATE_TYPE));
+  ns->addConstant("CS_TIME_TYPE", new QoreNode((int64)CS_TIME_TYPE));
+  ns->addConstant("CS_UNITEXT_TYPE", new QoreNode((int64)CS_UNITEXT_TYPE));
+  ns->addConstant("CS_BIGINT_TYPE", new QoreNode((int64)CS_BIGINT_TYPE));
+  ns->addConstant("CS_USMALLINT_TYPE", new QoreNode((int64)CS_USMALLINT_TYPE));
+  ns->addConstant("CS_UINT_TYPE", new QoreNode((int64)CS_UINT_TYPE));
+  ns->addConstant("CS_UBIGINT_TYPE", new QoreNode((int64)CS_UBIGINT_TYPE));
+  ns->addConstant("CS_XML_TYPE", new QoreNode((int64)CS_XML_TYPE));
+}
+
+//------------------------------------------------------------------------------
 void sybase_module_ns_init(Namespace *rns, Namespace *qns)
 {
    tracein("sybase_module_ns_init()");
-   // nothing to do at the moment
+   Namespace* sybasens = new Namespace("Sybase");
+   add_constants(sybasens);
    traceout("sybase_module_ns_init()");
 }
 
