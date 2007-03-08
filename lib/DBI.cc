@@ -398,7 +398,7 @@ class Namespace *getSQLNamespace()
    SQLNS->addConstant("VARCHAR", new QoreNode("string"));
    SQLNS->addConstant("NUMBER",  new QoreNode("string"));
    SQLNS->addConstant("CLOB",    new QoreNode("clob"));
-   SQLNS->addConstant("BLOB",    new QoreNode("binary"));
+   SQLNS->addConstant("BLOB",    new QoreNode("blob"));
    SQLNS->addConstant("DATE",    new QoreNode("date"));
 
    return SQLNS;

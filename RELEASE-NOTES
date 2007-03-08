@@ -2,8 +2,58 @@ RELEASE NOTES for qore v0.6.2
 
 NOTE: for platform-specific notes and build instructions, please see the file BUILD
 
+*) ***WARNING: CHANGE*** all timeouts changed to milliseconds
+affects SingleExitGate::enter() and Condition::wait()
+the optional timeout value is no longer seconds, but milliseconds
 
-work in progress...
+This change will be transparent for code using relative dates, i.e.:
+	$cond.wait($mutex, 2s);
+
+Otherwise for integers make sure and multiply any values representing seconds by 1000, i.e.:
+	$cond.wait($mutex, 2 * 1000); # wait for 2 seconds
+
+*) "pgsql" module: PostgreSQL driver
+the new "pgsql" driver uses efficient binary communication with PostgreSQL servers for binding and retrieving values from queries.
+The driver supports the following features:
+* all builtin PostgreSQL data types are supported
+* multi-dimensional arrays are supported for binding and retrieving
+* is thread-safe
+* stored procedure execution is supported
+* transaction management is supported
+* transparent character encoding conversion is supported if necessary
+
+The driver's name is "pgsql" and the Datasource type constant is SQL::DSPGSQL
+ex: $db = new Datasource(DSPGSQL);
+
+*) "sybase" module: Sybase driver
+...
+The driver's name is "sybase" and the Datasource type constant is SQL::DSSybase
+ex: $db = new Datasource(DSSybase);
+
+
+*) deadlock detection
+...
+
+*) thread locking methods take optional timeouts in ms
+...
+
+*) Oracle driver improvements
+added support for the following types:
+TIMESTAMP* types
+INTERVAL* types
+BINARY_FLOAT
+BINARY_DOUBLE
+UNSIGNED INT
+RAW
+LONG RAW
+
+Qore date/time types are now bound as TIMESTAMP value to preseve milliseconds when possible (for both binding by value and binding by placeholder).  Milliseconds are preserved in all TIMESTAMP* and INTERVAL DAY TO SECOND types.
+
+Timezone information is discarded when converting from Oracle types to Qore types, as Qore's date/time type does not yet support timezone information.
+
+*) mysql driver improvements
+added support for binary types (BLOBs, etc)
+mapped DECIMAL type to a string to avoid losing precision
 
 
 ***********************
