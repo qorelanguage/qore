@@ -26,6 +26,43 @@
 #ifndef SYBASE_QUERY_PARSER_H_
 #define SYBASE_QUERY_PARSER_H_
 
+#include <string>
+#include <vector>
+
+class ExceptionSink;
+
+//------------------------------------------------------------------------------
+// description of extracted query parameter (value to bind or a placeholder name)
+struct sybase_query_parameter
+{
+  sybase_query_parameter() : m_input_parameter(true) {}
+  sybase_query_parameter(const char* s) : m_input_parameter(false), m_placeholder(s) {}
+
+  bool m_input_parameter; // if true then the %v was found
+  std::string m_placeholder; // if non-empty then the :name was found and 'name' is placed here
+
+  bool is_input_parameter() const { return m_input_parameter;  } // as opposite to a placeholder
+};
+
+//------------------------------------------------------------------------------
+// the final result of query processing
+struct processed_sybase_query
+{
+  processed_sybase_query(const char* s, const std::vector<sybase_query_parameter>& params, bool is_procedure)
+  : m_result_query_text(s), m_parameters(params), m_is_procedure(is_procedure) {}
+
+  processed_sybase_query() : m_is_procedure(false) {}
+
+  std::string m_result_query_text;
+  std::vector<sybase_query_parameter> m_parameters;
+  bool m_is_procedure;
+};
+
+//------------------------------------------------------------------------------
+// Process the query text to fit Sybase standards
+extern processed_sybase_query parse_sybase_query(const char* original_query_text, ExceptionSink* xsink);
+
+
 #endif
 
 // EOF

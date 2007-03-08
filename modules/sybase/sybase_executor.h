@@ -26,6 +26,19 @@
 #ifndef SYBASE_EXECUTOR_H_
 #define SYBASE_EXECUTOR_H_
 
+class Datasource;
+class QoreString;
+class ExceptionSink;
+
+//------------------------------------------------------------------------------
+class sybase_executor
+{
+  Datasource* m_ds;
+public:
+  sybase_executor(Datasource* ds, QoreString* ostr, List *args, ExceptionSink *xsink);
+  ~sybase_executor();
+};
+
 #endif
 
 // EOF

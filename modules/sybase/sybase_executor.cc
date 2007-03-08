@@ -25,12 +25,25 @@
 
 #include <qore/config.h>
 #include <qore/support.h>
+#include <qore/Exception.h>
+#include <qore/QoreString.h>
+#include <qore/List.h>
 
-#include <ctpublic.h>
 #include <assert.h>
 #include <qore/minitest.hpp>
 
 #include "sybase_executor.h"
+
+//------------------------------------------------------------------------------
+sybase_executor::sybase_executor(Datasource* ds, QoreString* ostr, List *args, ExceptionSink *xsink)
+: m_ds(ds)
+{
+}
+
+//------------------------------------------------------------------------------
+sybase_executor::~sybase_executor()
+{
+}
 
 #ifdef DEBUG
 #  include "tests/sybase_executor_tests.cc"

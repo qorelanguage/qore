@@ -234,7 +234,6 @@ static void test3()
 
   QoreString str("select * from syskeys where id > %v and id < %v");
   SybaseBindGroup grp(&str);
-  assert(grp.m_is_immediatelly_executable == false);
   grp.m_connection = conn.getConnection();
 
   List* lst = new List;
@@ -304,7 +303,6 @@ static void test4()
   }
   QoreString str("select * from syskeys where id > %v and id < %v");
   SybaseBindGroup grp(&str);
-  assert(grp.m_is_immediatelly_executable == false);
   grp.m_connection = conn.getConnection();
 
   List* lst = new List;

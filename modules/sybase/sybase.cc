@@ -104,7 +104,6 @@ private:
   CS_CONNECTION* m_connection; // Sybase specific
   std::vector<QoreNode*> m_input_parameters; // as provided by the user
   std::string m_command_id; // unique name for the command, generated here
-  bool m_is_immediatelly_executable; // ### probably delete 
   QoreEncoding* m_encoding; // encoding to which the string should be converted
 
   // Mostly copied from Oracle module. Also changes passed SQL command to Sybase format
@@ -143,10 +142,6 @@ private:
   void extract_row_data_to_Hash(Hash* out, CS_INT col_index, CS_DATAFMT* datafmt, EX_COLUMN_DATA* coldata, 
     const column_info_t* out_info, ExceptionSink* xsink);
 
-  // select is not, if it has ? it is not. Immediate execution is a Sybase feature
-  bool is_sql_command_immediatelly_executable();
-  void execute_immediatelly(ExceptionSink* xsink);
-
   // the main functionality of this class is here: executes m_cmd using m_input_parameters
   // and returns data converted into Qore nodes
   QoreNode* execute_command(ExceptionSink* xsink);
@@ -171,14 +166,9 @@ SybaseBindGroup::SybaseBindGroup(QoreString* ostr)
 : m_cmd(0),
   m_ds(0),
   m_connection(0),
-  m_is_immediatelly_executable(false),
   m_encoding(QCS_DEFAULT)
 {
   m_cmd = new QoreString(ostr->getBuffer());
-  if (is_sql_command_immediatelly_executable()) {
-    m_is_immediatelly_executable = true;
-  }
-
 }
 #endif
 
@@ -187,7 +177,6 @@ SybaseBindGroup::SybaseBindGroup(Datasource* ds, QoreString* ostr, List *args, E
 : m_cmd(0),
   m_ds(ds),
   m_connection(0),
-  m_is_immediatelly_executable(false),
   m_encoding(ds->getQoreEncoding())
 {
   m_cmd = ostr->convertEncoding(m_encoding, xsink);
@@ -197,12 +186,6 @@ printf("### line %d\n", __LINE__);
   } 
   sybase_connection* sc = (sybase_connection*)ds->getPrivateData();
   m_connection = sc->getConnection();
-
-  if (is_sql_command_immediatelly_executable()) {  
-    m_is_immediatelly_executable = true;
-    // no manipulation with the query, no binding needed
-    return;
-  }
 
   // process query string and setup bind value list
   parseQuery(args, xsink);
@@ -735,7 +718,6 @@ QoreNode* SybaseBindGroup::read_output(CS_COMMAND* cmd, const std::vector<column
   CS_INT result_type = 0; 
 
   while ((err = ct_results(cmd, &result_type)) == CS_SUCCEED) {   
-printf("### WHILE ct_results(), result_type = %d\n", (int)result_type); 
     switch (result_type) {
     case CS_COMPUTE_RESULT:
 printf("### line %d\n", __LINE__);
@@ -754,7 +736,6 @@ printf("### line %d\n", __LINE__);
       return result;
     case CS_ROW_RESULT:
       // 0 or more rows
-printf("### READING REGULAR ROW\n");
       read_row(cmd, out_info, result, xsink);
       if (xsink->isException()) {
 printf("### line %d\n", __LINE__);
@@ -763,7 +744,6 @@ printf("### line %d\n", __LINE__);
 printf("### ROW result read\n");
       break;
     case CS_STATUS_RESULT:
-printf("### READING STATUS\n");
       // single value, not result of an select but e.g. # of lines affected
       if (result) { // cannot happen?
 printf("### line %d\n", __LINE__);
@@ -828,7 +808,6 @@ printf("### HERE WE GO\n");
 printf("### line %d, err = %d\n", __LINE__, (int)err);
     xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() finished with unexpected result code %d", (int)err);
   }
-printf("### RETUIRNING !!!!!!!!!!!!!!!!!!!\n");
   return  result;
 }
 
@@ -884,7 +863,6 @@ printf("### erro 111\n");
   ON_BLOCK_EXIT(free, datafmt);
   memset(datafmt, 0, num_cols * sizeof(CS_DATAFMT));
 
-printf("#### POSITION 1\n");
   for (CS_INT i = 0; i < num_cols; ++i) {
     err = ct_describe(cmd, i + 1, &datafmt[i]);
     if (err != CS_SUCCEED) {
@@ -904,7 +882,6 @@ printf("### err line %d\n", __LINE__);
     }
     // TBD - handle text, image, varchar ???
 
-printf("### POSITION 2\n");
     err = ct_bind(cmd, i + 1, &datafmt[i], coldata[i].value, &coldata[i].valuelen, &coldata[i].indicator);
     if (err != CS_SUCCEED) {
 printf("### err line %d\n", __LINE__);
@@ -913,13 +890,11 @@ printf("### err line %d\n", __LINE__);
     }
   }
 
-printf("### POSITION 3\n");
   CS_INT rows_read = 0;
   while ((err = ct_fetch(cmd, CS_UNUSED, CS_UNUSED, CS_UNUSED, &rows_read)) == CS_SUCCEED) {
     // process the row
     Hash* h = new Hash;
 
-printf("### POSITION 4\n");
     for (CS_INT j = 0; j < num_cols; ++j) {
       extract_row_data_to_Hash(h, j, &datafmt[j], &coldata[j], ignore_out_description ? &out_info[j] : 0, xsink);
       if (xsink->isException()) {
@@ -930,7 +905,6 @@ printf("### line %d\n", __LINE__);
       }
     }
 
-printf("### POSITION 5\n");
     if (out == 0) {
       out = new QoreNode(h);
     } else
@@ -945,14 +919,12 @@ printf("### POSITION 5\n");
       out->val.list->push(new QoreNode(h));
     }
   }
-printf("### POSITION 6\n");
   if (err != CS_END_DATA) {
     assert(false);
 printf("### line %d\n", __LINE__);
     xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_fetch() returned erro %d", (int)err);
     return;
   }
-printf("#### read row returns OK\n");
 }
 
 //------------------------------------------------------------------------------
@@ -1055,42 +1027,8 @@ printf("### line %d\n", __LINE__);
 }
 
 //------------------------------------------------------------------------------
-bool SybaseBindGroup::is_sql_command_immediatelly_executable()
-{
-  bool res = true;
-  if (does_command_return_data()) {
-    res = false;
-  } else {
-    // %v is Quore placeholder for parameter (here converted into ? a bit later)
-    // strstr() is a bit pessimistic but even if it makes mistake the slower
-    // path should work correctly
-    if (strstr(m_cmd->getBuffer(), "%%v")) {
-      res = false;
-    }
-  }
-  return res;
-}
-
-//------------------------------------------------------------------------------
-// Faster way to execute SQL statements (no binding, no retrieving descriptions). 
-// Guesstimate for Qorus is that 90% of commands will go this way.
-void SybaseBindGroup::execute_immediatelly(ExceptionSink* xsink)
-{
-  sybase_low_level_execute_directly_command(m_connection, (char*)m_cmd, xsink);
-}
-
-//------------------------------------------------------------------------------
 QoreNode* SybaseBindGroup::execute_command(ExceptionSink* xsink)
 {
-/* ### probably delete this way completely
-  if (m_is_immediatelly_executable) {
-    // faster path to execute non-select w/o input parameters.
-    // In case of problems or for testing purposes the call could be 
-    // commented out and the driver should still work correctly - this is just an optimization.
-    execute_immediatelly(xsink);
-    return 0;
-  }
-*/
 
   CS_COMMAND* cmd = prepare_command(xsink);
   if (xsink->isException()) {
