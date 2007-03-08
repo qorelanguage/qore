@@ -57,7 +57,7 @@ int QoreCondition::wait(pthread_mutex_t *m, int timeout_ms)
    
    gettimeofday(&now, NULL);
    int secs = timeout_ms / 1000;
-   timeout_ms += secs * 1000;
+   timeout_ms -= secs * 1000;
    tmout.tv_sec = now.tv_sec + secs;
    tmout.tv_nsec = now.tv_usec * 1000 + timeout_ms * 1000000;
    
