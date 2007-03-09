@@ -45,14 +45,10 @@ class AbstractSmartLock
       DLLLOCAL virtual int externWaitImpl(int mtid, class QoreCondition *cond, class ExceptionSink *xsink);
       DLLLOCAL virtual void destructorImpl(class ExceptionSink *xsink);
 
-/*
-      DLLLOCAL virtual int grabInternImpl(int mtid)
-      {
-	 return -1;
-      }
-*/
-      DLLLOCAL void grab_intern_intern(int mtid, class VLock *nvl);
-      DLLLOCAL void release_intern_intern();
+      DLLLOCAL virtual void signalAllImpl();
+      DLLLOCAL virtual void signalImpl();
+      DLLLOCAL void mark_and_push(int mtid, class VLock *nvl);
+      DLLLOCAL void release_and_signal();
       DLLLOCAL void grab_intern(int mtid, class VLock *nvl);
       DLLLOCAL void release_intern();
       DLLLOCAL int verify_wait_unlocked(int mtid, class ExceptionSink *xsink);
@@ -85,6 +81,8 @@ class AbstractSmartLock
       DLLLOCAL int release(class ExceptionSink *xsink);
       DLLLOCAL void self_wait() { asl_cond.wait(&asl_lock); }
       DLLLOCAL int self_wait(int timeout_ms) { return asl_cond.wait(&asl_lock, timeout_ms); }
+      DLLLOCAL void self_wait(QoreCondition *cond) { cond->wait(&asl_lock); }
+      DLLLOCAL int self_wait(QoreCondition *cond, int timeout_ms) { return cond->wait(&asl_lock, timeout_ms); }
 
       DLLLOCAL int extern_wait(class QoreCondition *cond, int timeout, class ExceptionSink *xsink);
       DLLLOCAL int extern_wait(class QoreCondition *cond, class ExceptionSink *xsink);

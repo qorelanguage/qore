@@ -28,12 +28,13 @@
 #include <qore/AbstractSmartLock.h>
 
 #include <list>
-
-// VLock is for nested locks when updating variables and objects
+#include <map>
 
 typedef std::list<AbstractSmartLock *> abstract_lock_list_t;
 
-// for locking
+typedef std::map<int, class VLock *> vlock_map_t;
+
+// for tracking locks per thread and detecting deadlocks
 class VLock : protected abstract_lock_list_t
 {
    private:
@@ -47,8 +48,16 @@ class VLock : protected abstract_lock_list_t
       DLLLOCAL int pop(AbstractSmartLock *asl);
       DLLLOCAL void del();
       DLLLOCAL AbstractSmartLock *find(AbstractSmartLock *g) const; 
+
+      // for blocking smart locks with deadlock detection
       DLLLOCAL int waitOn(AbstractSmartLock *asl, class VLock *vl, int tid, class ExceptionSink *xsink);
       DLLLOCAL int waitOn(AbstractSmartLock *asl, class VLock *vl, int tid, int timeout_ms, class ExceptionSink *xsink);
+      // for smart locks using an alternate condition variable
+      DLLLOCAL int waitOn(AbstractSmartLock *asl, class QoreCondition *cond, class VLock *vl, int tid, class ExceptionSink *xsink);
+      DLLLOCAL int waitOn(AbstractSmartLock *asl, class QoreCondition *cond, class VLock *vl, int tid, int timeout_ms, class ExceptionSink *xsink);
+      // for smart locks that can be held by more than one thread and are using an alternate condition variable
+      DLLLOCAL int waitOn(AbstractSmartLock *asl, vlock_map_t &vmap, int tid, class ExceptionSink *xsink);
+      DLLLOCAL int waitOn(AbstractSmartLock *asl, vlock_map_t &vmap, int tid, int timeout_ms, class ExceptionSink *xsink);
       DLLLOCAL int getTID() { return tid; }
          
 #ifdef DEBUG

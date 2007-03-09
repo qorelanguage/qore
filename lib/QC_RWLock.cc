@@ -30,6 +30,12 @@ static void RWLOCK_constructor(class Object *self, class QoreNode *params, Excep
    self->setPrivate(CID_RWLOCK, new QoreRWLock());
 }
 
+static void RWLOCK_destructor(class Object *self, class QoreRWLock *rwl, ExceptionSink *xsink)
+{
+   rwl->destructor(xsink);
+   rwl->deref(xsink);
+}
+
 static void RWLOCK_copy(class Object *self, class Object *old, class QoreRWLock *rwl, ExceptionSink *xsink)
 {
    self->setPrivate(CID_RWLOCK, new QoreRWLock());
@@ -37,25 +43,51 @@ static void RWLOCK_copy(class Object *self, class Object *old, class QoreRWLock 
 
 static class QoreNode *RWLOCK_readLock(class Object *self, class QoreRWLock *rwl, class QoreNode *params, ExceptionSink *xsink)
 {
-   rwl->readLock();
-   return NULL;
+   QoreNode *p = get_param(params, 0);
+
+   int rc;
+   if (!is_nothing(p))
+   {
+      int timeout_ms = getMsZeroInt(p);
+      rc = rwl->readLock(timeout_ms, xsink);
+   }
+   else
+      rc = rwl->readLock(xsink);
+
+   if (*xsink)
+      return NULL;
+
+   return new QoreNode((int64)rc);
 }
 
 static class QoreNode *RWLOCK_readUnlock(class Object *self, class QoreRWLock *rwl, class QoreNode *params, ExceptionSink *xsink)
 {
-   rwl->readUnlock();
+   rwl->readUnlock(xsink);
    return NULL;
 }
 
 static class QoreNode *RWLOCK_writeLock(class Object *self, class QoreRWLock *rwl, class QoreNode *params, ExceptionSink *xsink)
 {
-   rwl->writeLock();
-   return NULL;
+   QoreNode *p = get_param(params, 0);
+
+   int rc;
+   if (!is_nothing(p))
+   {
+      int timeout_ms = getMsZeroInt(p);
+      rc = rwl->grab(timeout_ms, xsink);
+   }
+   else
+      rc = rwl->grab(xsink);
+
+   if (*xsink)
+      return NULL;
+
+   return new QoreNode((int64)rc);
 }
 
 static class QoreNode *RWLOCK_writeUnlock(class Object *self, class QoreRWLock *rwl, class QoreNode *params, ExceptionSink *xsink)
 {
-   rwl->writeUnlock();
+   rwl->release(xsink);
    return NULL;
 }
 
@@ -66,7 +98,7 @@ static class QoreNode *RWLOCK_tryReadLock(class Object *self, class QoreRWLock *
 
 static class QoreNode *RWLOCK_tryWriteLock(class Object *self, class QoreRWLock *rwl, class QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)rwl->tryWriteLock());
+   return new QoreNode((int64)rwl->tryGrab());
 }
 
 static class QoreNode *RWLOCK_numReaders(class Object *self, class QoreRWLock *rwl, class QoreNode *params, ExceptionSink *xsink)
@@ -81,6 +113,7 @@ class QoreClass *initRWLockClass()
    class QoreClass *QC_RWLOCK = new QoreClass(QDOM_THREAD_CLASS, strdup("RWLock"));
    CID_RWLOCK = QC_RWLOCK->getID();
    QC_RWLOCK->setConstructor(RWLOCK_constructor);
+   QC_RWLOCK->setDestructor((q_destructor_t)RWLOCK_destructor);
    QC_RWLOCK->setCopy((q_copy_t)RWLOCK_copy);
    QC_RWLOCK->addMethod("readLock",      (q_method_t)RWLOCK_readLock);
    QC_RWLOCK->addMethod("writeLock",     (q_method_t)RWLOCK_writeLock);

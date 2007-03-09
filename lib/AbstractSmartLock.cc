@@ -33,42 +33,54 @@ void abstract_smart_lock_cleanup(AbstractSmartLock *asl, class ExceptionSink *xs
 void AbstractSmartLock::cleanup()
 {
    AutoLocker al(&asl_lock);	    
-   release_intern_intern();
+   release_and_signal();
 }
 
-void AbstractSmartLock::grab_intern_intern(int mtid, class VLock *nvl)
+void AbstractSmartLock::mark_and_push(int mtid, class VLock *nvl)
 {
    tid = mtid;
    vl = nvl;
    nvl->push(this);
 }
 
-void AbstractSmartLock::release_intern_intern()
+void AbstractSmartLock::signalAllImpl()
+{
+   if (waiting)
+      asl_cond.broadcast();
+}
+
+void AbstractSmartLock::signalImpl()
+{
+   if (waiting)
+      asl_cond.signal();
+}
+
+void AbstractSmartLock::release_and_signal()
 {
    vl->pop(this);
    if (tid >= 0)
       tid = -1;
    vl = NULL;
-   if (waiting)
-      asl_cond.signal();
+   signalImpl();
 }
 
 void AbstractSmartLock::grab_intern(int mtid, class VLock *nvl)
 {
    printd(5, "AbstractSmartLock::grab() (%s) this=%08p grabbed lock (nvl=%08p)\n", getName(), this, nvl);
-   grab_intern_intern(mtid, nvl);
+   mark_and_push(mtid, nvl);
    trlist.set(this, (qtrdest_t)abstract_smart_lock_cleanup);
 }
       
 void AbstractSmartLock::release_intern()
 {
    trlist.remove(this, tid);
-   release_intern_intern();
+   release_and_signal();
 }
 
 void AbstractSmartLock::destructorImpl(class ExceptionSink *xsink)
 {
 }
+
 void AbstractSmartLock::destructor(class ExceptionSink *xsink)
 {
    AutoLocker al(&asl_lock);
@@ -78,8 +90,8 @@ void AbstractSmartLock::destructor(class ExceptionSink *xsink)
       vl->pop(this);
       xsink->raiseException("LOCK-ERROR", "%s object destroyed while locked by TID %d", getName(), gettid());
       trlist.remove(this);
-      asl_cond.broadcast();
-   }   
+      signalAllImpl();
+   }
    tid = -2;
 }
 
@@ -134,7 +146,7 @@ int AbstractSmartLock::release()
    AutoLocker al(&asl_lock);
    int rc = releaseImpl();
    if (!rc)
-      release_intern_intern();
+      release_and_signal();
    return rc;
 }
 

@@ -26,28 +26,58 @@
 
 #define _QORE_CLASS_RWLOCK
 
-class RWLock
+#include <qore/AbstractSmartLock.h>
+#include <qore/VLock.h>
+
+#include <map>
+
+// to track TIDs and read counts of readers
+typedef std::map<int, int> tid_map_t;
+
+// ASL mapping:
+// asl_cond: write cond
+// waiting: waiting write requests
+// tid: write TID
+
+class RWLock : public AbstractSmartLock
 {
    private:
-      int readers, writers, readRequests, writeRequests;
-      pthread_mutex_t m;
-      pthread_cond_t read;
-      pthread_cond_t write;
+      int readRequests, writeRequests;
+      QoreCondition read;
       bool prefer_writers;
+      tid_map_t tmap;
+      vlock_map_t vmap;
+
+      // 0 = last read lock in this thread released
+      DLLLOCAL int cleanup_read_lock_intern(tid_map_t::iterator i);
+      DLLLOCAL void mark_read_lock_intern(int mtid, class VLock *nvl);
+
+      DLLLOCAL virtual void cleanup();
+      DLLLOCAL virtual void signalAllImpl();
+      DLLLOCAL virtual void signalImpl();
+      DLLLOCAL virtual int releaseImpl();
+      DLLLOCAL virtual int releaseImpl(class ExceptionSink *xsink);
+      DLLLOCAL virtual int grabImpl(int mtid, class VLock *nvl, class ExceptionSink *xsink);
+      DLLLOCAL virtual int grabImpl(int mtid, int timeout_ms, class VLock *nvl, class ExceptionSink *xsink);
+      DLLLOCAL virtual int tryGrabImpl(int mtid, class VLock *nvl);
+      DLLLOCAL virtual void destructorImpl(class ExceptionSink *xsink);
 
    protected:
 
    public:
       DLLLOCAL RWLock(bool p = false);
-      DLLLOCAL ~RWLock();
-      DLLLOCAL void readLock();
-      DLLLOCAL void readUnlock();
+#ifdef DEBUG
+      virtual DLLLOCAL ~RWLock();
+#endif
+      DLLLOCAL int readLock(int timeout_ms, class ExceptionSink *xsink);
+      DLLLOCAL int readLock(class ExceptionSink *xsink);
+      DLLLOCAL int readUnlock(class ExceptionSink *xsink);
       DLLLOCAL int tryReadLock();
-      DLLLOCAL void writeLock();
-      DLLLOCAL void writeUnlock();
-      DLLLOCAL void writeToRead();
-      DLLLOCAL int tryWriteLock();
-      DLLLOCAL int numReaders() const;
+      //DLLLOCAL void writeToRead(class ExceptionSink *xsink);
+
+      DLLLOCAL int numReaders();
+
+      DLLLOCAL virtual const char *getName() const { return "RWLock"; }
 };
 
 #endif // _QORE_CLASS_RWLOCK

@@ -84,6 +84,56 @@ sub class_dl_b($c, $m, $g)
     }
 }
 
+sub class_dl_c($c, $rw1, $rw2)
+{
+    $rw1.readLock();
+    if (exists $c)
+    {
+	$c.dec();
+	$c.waitForZero();
+    }
+    if ($dl)
+    {
+	$rw1.readUnlock();
+	return;
+    }
+    try {
+	$rw2.readLock();
+	$rw2.readUnlock();
+    }
+    catch ($ex)
+    {
+	printf("%s: %s\n", $ex.err, $ex.desc); 
+	$dl = True;
+    }
+    $rw1.readUnlock();
+}
+
+sub class_dl_d($c, $rw1, $rw2)
+{
+    $rw2.writeLock();
+    if (exists $c)
+    {
+	$c.dec();
+	$c.waitForZero();
+    }
+    if ($dl)
+    {
+	$rw2.writeUnlock();
+	return;
+    }
+    try {
+	$rw1.writeLock();
+	$rw1.writeUnlock();
+    }
+    catch ($ex)
+    {
+	printf("%s: %s\n", $ex.err, $ex.desc); 
+	$dl = True;
+    }
+    $rw2.writeUnlock();
+}
+
 sub dt()
 {
     my $n = new Mutex();
@@ -103,7 +153,26 @@ sub dt()
     catch ($ex)
     {
 	printf("%s: %s\n", $ex.err, $ex.desc); 
-    }        
+    }
+    my $rw = new RWLock();
+    $rw.readLock();
+    $rw.readLock();
+    try {
+	throwThreadResourceExceptions();
+    }
+    catch ($ex)
+    {
+	printf("%s: %s\n", $ex.err, $ex.desc); 
+    }
+    $rw.writeLock();
+    try {
+	throwThreadResourceExceptions();
+    }
+    catch ($ex)
+    {
+	printf("%s: %s\n", $ex.err, $ex.desc); 
+    }
+    
 }
 
 sub cond_test($c, $cond, $m)
@@ -126,16 +195,27 @@ sub main()
     background internal_dl_a($c);
     internal_dl_b($c);
 
+    # deadlock tests with qore classes and explicit locking
     my $m = new Mutex();
     my $g = new Gate();
     
-    # deadlock tests with qore classes and explicit locking
     # increment counter for synchronization
     $c.inc();
     $c.inc();
     $dl = False;
     background class_dl_a($c, $m, $g);
     class_dl_b($c, $m, $g);
+
+    # deadlock tests with other classes
+    my $rw1 = new RWLock();
+    my $rw2 = new RWLock();
+
+    # increment counter for synchronization
+    $c.inc();
+    $c.inc();
+    $dl = False;
+    background class_dl_c($c, $rw1, $rw2);
+    class_dl_d($c, $rw1, $rw2);
 
     # mutex tests
     $m.lock();
@@ -178,6 +258,41 @@ sub main()
     {
 	printf("%s: %s\n", $ex.err, $ex.desc); 
     }
+
+    # RWLock tests
+    try {
+	$rw1.writeUnlock();
+    }
+    catch ($ex)
+    {
+	printf("%s: %s\n", $ex.err, $ex.desc); 
+    }
+    try {
+	$rw1.readUnlock();
+    }
+    catch ($ex)
+    {
+	printf("%s: %s\n", $ex.err, $ex.desc); 
+    }
+    # RWLock tests
+    try {
+	$rw1.writeLock();
+	$rw1.readUnlock();
+    }
+    catch ($ex)
+    {
+	printf("%s: %s\n", $ex.err, $ex.desc); 
+    }
+    $rw1.writeUnlock();
+    try {
+	$rw1.readLock();
+	$rw1.writeUnlock();
+    }
+    catch ($ex)
+    {
+	printf("%s: %s\n", $ex.err, $ex.desc); 
+    }
+    $rw1.readUnlock();
 
     my $cond = new Condition();
     $m = new Mutex();

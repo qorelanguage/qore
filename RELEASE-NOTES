@@ -2,7 +2,7 @@ RELEASE NOTES for qore v0.6.2
 
 NOTE: for platform-specific notes and build instructions, please see the file BUILD
 
-*) ***WARNING: CHANGE*** all timeouts changed to milliseconds
+*) ***COMPATIBILITY WARNING***: all timeouts changed to milliseconds
 affects SingleExitGate::enter() and Condition::wait()
 the optional timeout value is no longer seconds, but milliseconds
 
@@ -11,6 +11,15 @@ This change will be transparent for code using relative dates, i.e.:
 
 Otherwise for integers make sure and multiply any values representing seconds by 1000, i.e.:
 	$cond.wait($mutex, 2 * 1000); # wait for 2 seconds
+
+*) ***COMPATIBILITY WARNING**: Gate::enter() no longer takes a key argument, takes an optional timeout in ms instead
+the key is always assumed to be the TID (thread ID)
+Any integer passed to this method will be assumed to be a timeout value in milliseconds
+with a timeout, if the return value is -1, then the Gate was not grabbed
+
+*) ***COMPATIBILITY WARNING**: the RMutex class is deprecated, use the Gate class instead
+Internally the RMutex class as of this release is a clone of the new implementation of the Gate class
+The RMutex class will be removed in the next release
 
 *) "pgsql" module: PostgreSQL driver
 the new "pgsql" driver uses efficient binary communication with PostgreSQL servers for binding and retrieving values from queries.
@@ -30,12 +39,21 @@ ex: $db = new Datasource(DSPGSQL);
 The driver's name is "sybase" and the Datasource type constant is SQL::DSSybase
 ex: $db = new Datasource(DSSybase);
 
-
 *) deadlock detection
-...
+All Qore threading primitives (including internal locks for variables and "synchronized" methods, etc) now use the new deadlock detection framework.  Potential deadlocks are checked before any primitive would otherwise block.  If a deadlock is detected, a DEADLOCK-EXCEPTION is thrown.  See test/deadlock.q for deadlock and thread error tests.
 
 *) thread locking methods take optional timeouts in ms
-...
+All thread locking methods take an optional timeout value in ms.  
+This affects:
+	Mutex::lock()
+	Gate::enter()
+	...
+
+It's recommended to use a relative time value to make the units clear, i.e
+	if ($m.lock(250ms))
+	{
+	    # lock not grabbed...
+	}
 
 *) Oracle driver improvements
 added support for the following types:

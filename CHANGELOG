@@ -7,6 +7,8 @@
 	* updated SmartMutex class to allow for tracking condition variables
 	  waiting on it so that if it's deleted while a condition variable is
 	  waiting, an exception can be thrown in the other thread(s)
+	* updated RWLock class to take advantage of the new deadlock detection
+	  infrastructure
 
 2007.03.08: David Nichols
 	* added RAW and LONG RAW handling to oracle driver
