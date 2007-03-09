@@ -1,0 +1,71 @@
+/*
+ QC_AutoGate.cc
+ 
+ Qore Programming Language
+ 
+ Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+ 
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+ 
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+ 
+ You should have received a copy of the GNU Lesser General Public
+ License along with this library; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ */
+
+#include <qore/Qore.h>
+#include <qore/QC_AutoGate.h>
+
+int CID_AUTOGATE;
+
+static void AG_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+{
+   class QoreNode *p = test_param(params, NT_OBJECT, 0);
+   QoreGate *g = p ? (QoreGate *)p->val.object->getReferencedPrivateData(CID_GATE, xsink) : NULL;
+   if (xsink->isException())
+      return;
+
+   if (!g)
+   {
+      xsink->raiseException("AUTOGATE-CONSTRUCTOR-ERROR", "expecting Gate type as argument to constructor");
+      return;
+   }
+
+   QoreAutoGate *qsl = new QoreAutoGate(g, xsink);
+   if (*xsink)
+      qsl->deref(xsink);
+   else
+      self->setPrivate(CID_AUTOGATE, qsl);
+}
+
+static void AG_destructor(class Object *self, class QoreAutoGate *ag, ExceptionSink *xsink)
+{
+   ag->destructor(xsink);
+   ag->deref(xsink);
+}
+
+static void AG_copy(class Object *self, class Object *old, class QoreAutoGate *m, ExceptionSink *xsink)
+{
+   xsink->raiseException("AUTOGATE-COPY-ERROR", "objects of this class cannot be copied");
+}
+
+class QoreClass *initAutoGateClass()
+{
+   tracein("initAutoGateClass()");
+   
+   class QoreClass *QC_AutoGate = new QoreClass(QDOM_THREAD_CLASS, strdup("AutoGate"));
+   CID_AUTOGATE = QC_AutoGate->getID();
+   QC_AutoGate->setConstructor(AG_constructor);
+   QC_AutoGate->setDestructor((q_destructor_t)AG_destructor);
+   QC_AutoGate->setCopy((q_copy_t)AG_copy);
+   
+   traceout("initAutoGateClass()");
+   return QC_AutoGate;
+}
