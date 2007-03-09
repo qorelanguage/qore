@@ -134,7 +134,7 @@ sub class_dl_d($c, $rw1, $rw2)
     $rw2.writeUnlock();
 }
 
-sub dt()
+sub test_thread_resources()
 {
     my $n = new Mutex();
     $n.lock();
@@ -172,7 +172,6 @@ sub dt()
     {
 	printf("%s: %s\n", $ex.err, $ex.desc); 
     }
-    
 }
 
 sub cond_test($c, $cond, $m)
@@ -307,9 +306,9 @@ sub main()
     $m.lock();
     $m.unlock();
     delete $m;
-    
+
     # test thread resource tracking checks
-    background dt();
+    background test_thread_resources();
 }
 
 main();

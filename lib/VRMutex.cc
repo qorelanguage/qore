@@ -55,7 +55,7 @@ int VRMutex::grabImpl(int mtid, class VLock *nvl, class ExceptionSink *xsink)
    {
       if (tid == -2)
       {
-	 xsink->raiseException("LOCK-ERROR", "the %s object has been deleted in another thread", getName());
+	 xsink->raiseException("LOCK-ERROR", "TID %d cannot execute %s::enter() because the object has been deleted in another thread", mtid, getName());
 	 return -1;
       }
 
@@ -80,7 +80,7 @@ int VRMutex::grabImpl(int mtid, int timeout_ms, class VLock *nvl, class Exceptio
    {
       if (tid == -2)
       {
-	 xsink->raiseException("LOCK-ERROR", "the %s object has been deleted in another thread", getName());
+	 xsink->raiseException("LOCK-ERROR", "TID %d cannot execute %s::enter() because the object has been deleted in another thread", mtid, getName());
 	 return -1;
       }
 
@@ -129,18 +129,18 @@ int VRMutex::releaseImpl(class ExceptionSink *xsink)
    if (tid == -1)
    {
       // use getName() here so it can be safely inherited
-      xsink->raiseException("LOCK-ERROR", "%s::exit() called without acquiring the lock", getName());
+      xsink->raiseException("LOCK-ERROR", "TID %d called %s::exit() without acquiring the lock", mtid, getName());
       return -1;
    }
    if (tid == -2)
    {
-      xsink->raiseException("LOCK-ERROR", "the %s object has been deleted in another thread", getName());
+      xsink->raiseException("LOCK-ERROR", "TID %d cannot execute %s::exit() because the object has been deleted in another thread", mtid, getName());
       return -1;
    }
    if (tid != mtid)
    {
       // use getName() here so it can be safely inherited
-      xsink->raiseException("LOCK-ERROR", "%s::exit() called by TID %d while the lock is held by TID %d", getName(), mtid, tid);
+      xsink->raiseException("LOCK-ERROR", "TID %d called %s::exit() while the lock is held by TID %d", mtid, getName(), tid);
       return -1;      
    }
    // count must be > 0 because tid != 0

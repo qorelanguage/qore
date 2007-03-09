@@ -1,5 +1,6 @@
 see docs/roadmap.html
 
+* fix Queue class (destructor must wake up any sleeping threads)
 * implement GZFile class
 * allow customizable QORE_INCLUDE_DIR searches
 * track include files, make sure they are only included once
@@ -8,10 +9,10 @@ see docs/roadmap.html
 * add constant execution flag to functions, to allow execution in constant expressions
 * add signal constants/infrastructure
 * add context functions
-* implement a forward-compatible/extensible interface for DBI driver registration
 
 done:
 * add file functions (is_file() is_dir() is_symlink(), etc)
 * do not allow global variable initialization at the top level if NO_TOP_LEVEL is set
 * allow user to specify sort callback function for sort()
 * implement BigIntOperator for more efficient evaluation of operators returning integer values
+* implement a forward-compatible/extensible interface for DBI driver registration

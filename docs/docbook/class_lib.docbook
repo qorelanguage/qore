@@ -19320,11 +19320,9 @@ xs      </variablelist>
   <sect1 id="Qore::Thread::RWLock_Class">
     <title>Qore::Thread::RWLock Class</title>
 
-    <para>The RWLock class 
-    implements a read-write lock for efficient thread locking when writes are less 
-    common than reads and reads must be atomic. When a thread holds the write lock, 
-    no other thread can grab the read or write lock. Multiple threads can hold the 
-    read lock at one time.</para>
+    <para>The RWLock class implements a read-write lock for efficient thread locking when writes are less common than reads and reads must be atomic. When a thread holds the write lock, no other thread can grab the read or write lock. Multiple threads can hold the read lock at one time.</para>
+
+    <para>As with all Qore threading primitives, this class supports deadlock detection and throws exceptions when threading errors are encountered (for example, trying to free the read lock while holding the write lock, etc).</para>
 
     <para>This read-write lock favors readers, so the read lock can be safely acquired recursively.</para>
 
@@ -19358,7 +19356,7 @@ xs      </variablelist>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::RWLock::readLock">RWLock::readLock()</link></para></entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Acquires the read lock or increments the read lock counter; blocks if the write lock is already acquired.</para></entry>
+	    <entry><para>Acquires the read lock with an optional timeout value; blocks if the write lock is already acquired.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::RWLock::readUnlock">RWLock::readUnlock()</link></para></entry>
@@ -19368,7 +19366,7 @@ xs      </variablelist>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::RWLock::writeLock">RWLock::writeLock()</link></para></entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Acquires the write lock; blocks if either the read lock or write lock is already acquired.</para></entry>
+	    <entry><para>Acquires the write lock with an optional timeout; blocks if either the read lock or write lock is already acquired.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::RWLock::writeUnlock">RWLock::writeUnlock()</link></para></entry>
@@ -19535,13 +19533,13 @@ xs      </variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Acquires the read lock or increments the read lock counter; blocks if the write lock is already acquired.</para>
+	    <para>Acquires the read lock with an optional timeout value; blocks if the write lock is already acquired.  The read lock may be acquired recursively, however, each call to RWLock::readLock() requires a corresponding call to <link linkend="Qore::Thread::RWLock::readUnlock">RWLock::readUnlock()</link>. An optional timeout value may be passed to this method, giving a time in milliseconds to wait for the lock to become free.  Like all Qore functions and methods taking timeout values, a relative time value may be passed instead of an integer to make the timeout units clear.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
-	    <programlisting>RWLock::readLock()</programlisting>
+	    <programlisting>RWLock::readLock(<replaceable>[timeout_ms]</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -19558,9 +19556,9 @@ xs      </variablelist>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
+	      <entry><para><replaceable>[timeout_ms]</replaceable></para></entry>
+	      <entry><para>Integer or Relative Time</para></entry>
+	      <entry><para>If an argument is present, it is interpreted as a timeout in milliseconds.  Note that it's recommended to use a relative time value (i.e. <code>250ms</code>) to make the units clear in the source code.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -19577,8 +19575,30 @@ xs      </variablelist>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method return no value.</para></entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>0 for success, -1 for failure (only returned with a timeout)</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by RWLock::readLock()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>THREAD-DEADLOCK</code></para></entry>
+	      <entry><para>A deadlock was detected while trying to acquire the lock.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>LOCK-ERROR</code></para></entry>
+	      <entry><para>readLock() called while already holding the write lock, object deleted in another thread, etc.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -19641,6 +19661,24 @@ xs      </variablelist>
 	</tgroup>
       </table>
 
+      <table>
+	<title>Exceptions Thrown by RWLock::readUnlock()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>LOCK-ERROR</code></para></entry>
+	      <entry><para>readUnlock() called while not holding the read lock, object deleted in another thread, etc.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
     </sect2>
     <sect2 id="Qore::Thread::RWLock::writeLock">
       <title>RWLock::writeLock()</title>
@@ -19649,13 +19687,14 @@ xs      </variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Acquires the write lock; blocks if either the read lock or write lock is already acquired.</para>
+	    <para>Acquires the write lock; blocks if either the read lock or write lock is already acquired.  An optional timeout value may be passed to this method, giving a time in milliseconds to wait for the lock to become free.  Like all Qore functions and methods taking timeout values, a relative time value may be passed instead of an integer to make the timeout units clear.</para>
+	    <para>To release the write lock, use <link linkend="Qore::Thread::RWLock::readUnlock">RWLock::readUnlock()</link>.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
-	    <programlisting>RWLock::writeLock()</programlisting>
+	    <programlisting>RWLock::writeLock(<replaceable>[timeout_ms]</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -19672,9 +19711,9 @@ xs      </variablelist>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
+	      <entry><para><replaceable>[timeout_ms]</replaceable></para></entry>
+	      <entry><para>Integer or Relative Time</para></entry>
+	      <entry><para>If an argument is present, it is interpreted as a timeout in milliseconds.  Note that it's recommended to use a relative time value (i.e. <code>250ms</code>) to make the units clear in the source code.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -19691,8 +19730,30 @@ xs      </variablelist>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method return no value.</para></entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>0 for lock acquired, -1 for timeout (only when a timeout argument is passed)</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by RWLock::writeLock()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>THREAD-DEADLOCK</code></para></entry>
+	      <entry><para>A deadlock was detected while trying to acquire the lock.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>LOCK-ERROR</code></para></entry>
+	      <entry><para>writeLock() called while holding the read lock, writeLock() called while already holding the write lock in the same thread, object deleted in another thread, etc.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -19931,7 +19992,7 @@ xs      </variablelist>
   <sect1 id="Qore::Thread::Mutex_Class">
     <title>Qore::Thread::Mutex Class</title>
 
-    <para>The Mutex class implements a mutual-exclusion lock for thread locking.</para>
+    <para>The Mutex class implements a mutual-exclusion lock for thread locking.  Like all Qore thread primitives, objects of this class participate in deadlock detection and throw exceptions when threading errors occur (ex: unlocking a Mutex object locked by another thread, etc).  See individual methods for more information on exceptions thrown.</para>
 
     <table>
       <title>Qore::Thread::Mutex Method Overview</title>
@@ -20119,13 +20180,14 @@ xs      </variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Locks the Mutex object.  Blocks if the lock is already held.</para>
+	    <para>Locks the Mutex object.  Blocks if the lock is already held.  An optional timeout value may be passed to this method, giving a time in milliseconds to wait for the lock to become free.  Like all Qore functions and methods taking timeout values, a relative time value may be passed instead of an integer to make the timeout units clear.</para>
+	    <para>To release the Mutex, use <link linkend="Qore::Thread::Mutex::unlock">Mutex::unlock()</link>.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
-	    <programlisting>Mutex::lock()</programlisting>
+	    <programlisting>Mutex::lock(<replaceable>[timeout_ms]</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -20142,9 +20204,9 @@ xs      </variablelist>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
+	      <entry><para><replaceable>[timeout_ms]</replaceable></para></entry>
+	      <entry><para>Integer or Relative Time</para></entry>
+	      <entry><para>If an argument is present, it is interpreted as a timeout in milliseconds.  Note that it's recommended to use a relative time value (i.e. <code>250ms</code>) to make the units clear in the source code.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -20161,8 +20223,30 @@ xs      </variablelist>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method return no value.</para></entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>0 for lock acquired, -1 for timeout (only when a timeout argument is passed)</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by Mutex::lock()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>THREAD-DEADLOCK</code></para></entry>
+	      <entry><para>A deadlock was detected while trying to acquire the lock.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>LOCK-ERROR</code></para></entry>
+	      <entry><para>lock called twice in the same thread, object deleted in another thread, etc.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -20220,6 +20304,24 @@ xs      </variablelist>
 	    <row>
 	      <entry><para>n/a</para></entry>
 	      <entry><para>This method return no value.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by Mutex::unlock()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>LOCK-ERROR</code></para></entry>
+	      <entry><para>lock not held, lock held by another thread, object deleted in another thread, etc.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -20902,12 +21004,12 @@ xs      </variablelist>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::Gate::enter">Gate::enter()</link></para></entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Acquires the lock if it is unlocked or locked with the same key, otherwise blocks until the lock counter reaches zero.</para></entry>
+	    <entry><para>Acquires the lock if it is unlocked or locked by the same thread, otherwise blocks until the lock counter reaches zero.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::Gate::tryEnter">Gate::tryEnter()</link></para></entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Acquires the lock if it is unlocked or locked with the same key, otherwise returns immediately with -1.</para></entry>
+	    <entry><para>Acquires the lock if it is unlocked or locked by the same thread, otherwise returns immediately with -1.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::Gate::exit">Gate::exit()</link></para></entry>
@@ -21068,7 +21170,7 @@ xs      </variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Acquires the lock if it is unlocked or locked with the same key, otherwise blocks until the lock counter reaches zero.</para>
+	    <para>Acquires the lock if it is unlocked or locked by the same thread, otherwise blocks until the lock counter reaches zero.  An optional timeout value may be passed to this method, giving a time in milliseconds to wait for the lock to become free.  Like all Qore functions and methods taking timeout values, a relative time value may be passed instead of an integer to make the timeout units clear.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -21110,8 +21212,8 @@ xs      </variablelist>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method returns no value.</para></entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>0 for lock acquired, -1 for timeout (only when a timeout argument is passed)</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -21131,10 +21233,14 @@ xs      </variablelist>
 	      <entry><para><code>THREAD-DEADLOCK</code></para></entry>
 	      <entry><para>A deadlock was detected while trying to acquire the lock.</para></entry>
 	    </row>
+	    <row>
+	      <entry><para><code>LOCK-ERROR</code></para></entry>
+	      <entry><para>object deleted in another thread</para></entry>
+	    </row>
 	  </tbody>
 	</tgroup>
       </table>
-  </sect2>
+    </sect2>
 
     <sect2 id="Qore::Thread::Gate::tryEnter">
       <title>Gate::tryEnter()</title>
@@ -21246,6 +21352,25 @@ xs      </variablelist>
 	  </tbody>
 	</tgroup>
       </table>
+
+      <table>
+	<title>Exceptions Thrown by Gate::exit()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>LOCK-ERROR</code></para></entry>
+	      <entry><para>lock not held by this thread, object deleted in another thread</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
   </sect2>
 
   <sect2 id="Qore::Thread::Gate::numInside">
