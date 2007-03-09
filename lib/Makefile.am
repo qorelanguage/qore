@@ -145,6 +145,7 @@ libqore_la_SOURCES = \
 	QC_XmlRpcClient.cc \
 	QC_JsonRpcClient.cc \
 	QC_AutoLock.cc \
+	QC_AutoGate.cc \
 	QoreHTTPClient.cc \
 	minitest.cc \
 	inline_printf.cc \

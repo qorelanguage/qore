@@ -47,6 +47,7 @@
 #include <qore/QC_XmlRpcClient.h>
 #include <qore/QC_JsonRpcClient.h>
 #include <qore/QC_AutoLock.h>
+#include <qore/QC_AutoGate.h>
 
 #include <string.h>
 #include <stdlib.h>
@@ -1574,6 +1575,7 @@ RootNamespace::RootNamespace(class Namespace **QoreNS) : Namespace()
    qns->addSystemClass(initGetOptClass());
    qns->addSystemClass(initFtpClientClass());
    qns->addSystemClass(initAutoLockClass());
+   qns->addSystemClass(initAutoGateClass());
 
    // add HTTPClient namespace
    class QoreClass *http_client_class;

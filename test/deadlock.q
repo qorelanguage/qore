@@ -65,17 +65,14 @@ sub class_dl_a($c, $m, $g)
 
 sub class_dl_b($c, $m, $g)
 {
-    $g.enter();
+    my $ag = new AutoGate($g);
     if (exists $c)
     {
 	$c.dec();
 	$c.waitForZero();
     }
     if ($dl)
-    {
-	$g.exit();
 	return;
-    }
     try {
 	$m.lock();
 	$m.unlock();
@@ -85,7 +82,6 @@ sub class_dl_b($c, $m, $g)
 	printf("%s: %s\n", $ex.err, $ex.desc); 
 	$dl = True;
     }
-    $g.exit();
 }
 
 sub dt()
@@ -132,6 +128,14 @@ sub main()
     $m.lock();
     try {
 	$m.lock();
+    }
+    catch ($ex)
+    {
+	printf("%s: %s\n", $ex.err, $ex.desc); 
+    }    
+    try {
+	$m.unlock();
+	$m.unlock();
     }
     catch ($ex)
     {

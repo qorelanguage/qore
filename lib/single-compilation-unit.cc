@@ -126,6 +126,7 @@
 #include "QC_XmlRpcClient.cc"
 #include "QC_JsonRpcClient.cc"
 #include "QC_AutoLock.cc"
+#include "QC_AutoGate.cc"
 #include "minitest.cc"
 #include "inline_printf.cc"
 #include "QException.h"
