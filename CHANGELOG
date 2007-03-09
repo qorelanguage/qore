@@ -1,3 +1,9 @@
+2007.03.09: David Nichols
+	* renamed SafeLocker class to "AutoLock"
+	* updated AutoLock to release the lock in the destructor only if the
+	  lock is held (use the lock's status and not track it in the AutoLock
+	  object in case the lock is released due to an exception, etc)
+
 2007.03.08: David Nichols
 	* added RAW and LONG RAW handling to oracle driver
 	* changed the Gate class to no longer accept a code to enter the gate

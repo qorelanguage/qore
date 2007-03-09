@@ -1,5 +1,5 @@
 /*
- QC_SafeLocker.h
+ QC_AutoLock.h
  
  Qore Programming Language
  
@@ -20,62 +20,46 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _QORE_QC_SAFELOCKER_H
+#ifndef _QORE_QC_AUTOLOCK_H
 
-#define _QORE_QC_SAFELOCKER_H
+#define _QORE_QC_AUTOLOCK_H
 
 #include <qore/Qore.h>
 #include <qore/QC_Mutex.h>
 
-DLLEXPORT extern int CID_SAFELOCKER;
+DLLEXPORT extern int CID_AUTOLOCK;
 
-DLLLOCAL class QoreClass *initSafeLockerClass();
+DLLLOCAL class QoreClass *initAutoLockClass();
 
-class QoreSafeLocker : public AbstractPrivateData
+class QoreAutoLock : public AbstractPrivateData
 {
    class Mutex *m;
-   bool locked;
 
 public:
-   DLLLOCAL QoreSafeLocker(class Mutex *mt, class ExceptionSink *xsink)
+   DLLLOCAL QoreAutoLock(class Mutex *mt, class ExceptionSink *xsink)
    {
       m = mt;
       m->grab(xsink);
-      if (!*xsink)
-	 locked = true;
    }
 
    DLLLOCAL virtual void deref(class ExceptionSink *xsink) 
    {
       if (ROdereference())
-      {
-	 if (locked)
-	    m->release(xsink);
 	 m->deref(xsink);
-      }
+   }
+
+   DLLLOCAL virtual void destructor(class ExceptionSink *xsink) 
+   {
+      if (m->owns_lock())
+	 m->release(xsink);
    }
    
    DLLLOCAL int lock(class ExceptionSink *xsink)
    {
-      if (locked)
-      {
-	 xsink->raiseException("SAFELOCKER-ERROR", "SafeLocker::lock() called while lock already held");
-	 return -1;
-      }
-      int rc = m->grab(xsink);
-      if (!rc)
-	 locked = true;
-      return rc;
+      return m->grab(xsink);
    }
    DLLLOCAL int unlock(class ExceptionSink *xsink)
    {
-      if (!locked)
-      {
-	 xsink->raiseException("SAFELOCKER-ERROR", "SafeLocker::unlock() called while lock not held");
-	 return -1;
-      }
-      // set locked to false here in every case, so we don't try again if there is an error
-      locked = false;
       return m->release(xsink);
    }
    DLLLOCAL int trylock()

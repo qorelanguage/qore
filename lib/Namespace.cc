@@ -46,7 +46,7 @@
 #include <qore/QC_HTTPClient.h>
 #include <qore/QC_XmlRpcClient.h>
 #include <qore/QC_JsonRpcClient.h>
-#include <qore/QC_SafeLocker.h>
+#include <qore/QC_AutoLock.h>
 
 #include <string.h>
 #include <stdlib.h>
@@ -1573,7 +1573,7 @@ RootNamespace::RootNamespace(class Namespace **QoreNS) : Namespace()
    qns->addSystemClass(File = initFileClass());
    qns->addSystemClass(initGetOptClass());
    qns->addSystemClass(initFtpClientClass());
-   qns->addSystemClass(initSafeLockerClass());
+   qns->addSystemClass(initAutoLockClass());
 
    // add HTTPClient namespace
    class QoreClass *http_client_class;

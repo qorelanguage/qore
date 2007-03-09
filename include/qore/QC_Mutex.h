@@ -126,6 +126,11 @@ class Mutex : public AbstractPrivateData, public AbstractSmartLock
    public:
       DLLLOCAL Mutex() {}
 
+      DLLLOCAL bool owns_lock()
+      {
+	 AutoLocker al(&asl_lock);
+	 return tid == gettid() ? true : false;
+      }
       DLLLOCAL int verify_lock_tid(char *meth, class ExceptionSink *xsink)
       {
 	 AutoLocker al(&asl_lock);

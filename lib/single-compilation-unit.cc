@@ -125,7 +125,7 @@
 #include "QC_HTTPClient.cc"
 #include "QC_XmlRpcClient.cc"
 #include "QC_JsonRpcClient.cc"
-#include "QC_SafeLocker.cc"
+#include "QC_AutoLock.cc"
 #include "minitest.cc"
 #include "inline_printf.cc"
 #include "QException.h"
