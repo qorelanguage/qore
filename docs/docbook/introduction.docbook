@@ -36,6 +36,7 @@
 	<para>Thread Safety and SMP Scalability</para>
 
 	<para>All elements of Qore are thread-safe, and the language in general has been designed with SMP scalability in mind.  The internal design and implementation of Qore favors multithreaded performance over single-threaded performance, so multithreaded Qore programs can count on an efficient and stable execution platform, and do not have to limit themselves to a subset of Qore's functionality (see <link linkend='Threading'>Threading</link>).  Recent efforts to reduce the number of SMP cache invalidations have resulted in a dramtic performance increase on SMP machines while maintaining 100% code and API compatibility as well.</para>
+	<para>Qore supports deadlock detection in complex locking scenarios and will throw an exception rather than allow an operation to be performed that would cause a deadlock.  Furthermore, Qore's threading primitives detect threading errors and throw exceptions in these cases as well.</para>
       </listitem>
     </itemizedlist>
 

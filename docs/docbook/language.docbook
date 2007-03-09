@@ -5574,12 +5574,8 @@ $name = getName();</programlisting>
 	    <entry><para>A mutual-exclusion thread lock.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore::Thread::RMutex_Class">RMutex</link></para></entry>
-	    <entry><para>A recursive mutual-exclusion thread lock.</para></entry>
-	  </row>
-	  <row>
 	    <entry><para><link linkend="Qore::Thread::Gate_Class">Gate</link></para></entry>
-	    <entry><para>A keyed mutual-exclusion recursive thread lock.</para></entry>
+	    <entry><para>A recursive thread lock.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::RWLock_Class">RWLock</link></para></entry>
@@ -5596,6 +5592,10 @@ $name = getName();</programlisting>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::Queue_Class">Queue</link></para></entry>
 	    <entry><para>A thread-safe, blocking queue class (useful for message passing).</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Qore::Thread::RMutex_Class">RMutex</link></para></entry>
+	    <entry><para>DEPRECATED in favor of the <link linkend="Qore::Thread::Gate_Class">Gate</link> class: A recursive mutual-exclusion thread lock.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::Sequence_Class">Sequence</link></para></entry>
@@ -5653,18 +5653,17 @@ $name = getName();</programlisting>
       </tgroup>
     </table>
     
-  </sect2>
+    </sect2>
 
-<sect2 id="Deadlocks">
-  <title>Deadlocks</title>
+    <sect2 id="Deadlocks">
+      <title>Deadlocks</title>
   
-  <para>Currently there is no deadlock detection in the Qore language. </para>
+      <para>Qore supports deadlock detection in complex locking scenarios and will throw an exception rather than allow an operation to be performed that would cause a deadlock. Deadlock detection is implemented for internal locking of global variables and synchronized methods and subroutinges, etc, as well as for all Qore threading classes.</para>
 
-  <para>Deadlocks can only be caused by user code, for example, by trying to lock the same Mutex twice in the same thread without unlocking it between the two Mutex::lock() calls.</para>
+      <para>Qore can only detect deadlocks when a lock resource acquired by one thread is required by another who holds a lock that the first thread also needs.  Other errors such as forgetting to unlock a global lock and trying to acquire that lock in another thread cannot be detected and will result in a process that never terminates.  Common threading errors such as trying to lock the same Mutex twice in the same thread without unlocking it between the two Mutex::lock() calls are caught in Qore and exceptions are thrown.  Additionally, locks are tracked as thread resources, so if a thread terminates while holding a lock, an exception will be thrown and the lock will be automatically released.</para>
 
-  <para>In this case, the affected thread(s) will hang and the qore process will have to be killed manually.</para>
-</sect2>
-</sect1>
+    </sect2>
+  </sect1>
 
 <sect1 id="Exception_Handling">
   <title>Exception Handling</title>

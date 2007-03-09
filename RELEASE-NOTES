@@ -13,13 +13,13 @@ Otherwise for integers make sure and multiply any values representing seconds by
 	$cond.wait($mutex, 2 * 1000); # wait for 2 seconds
 
 *) ***COMPATIBILITY WARNING**: Gate::enter() no longer takes a key argument, takes an optional timeout in ms instead
-the key is always assumed to be the TID (thread ID)
+the key is always assumed to be the TID (thread ID); meaning that only one thread can hold the lock at one time; however it can be acquired recursively
 Any integer passed to this method will be assumed to be a timeout value in milliseconds
 with a timeout, if the return value is -1, then the Gate was not grabbed
 
 *) ***COMPATIBILITY WARNING**: the RMutex class is deprecated, use the Gate class instead
 Internally the RMutex class as of this release is a clone of the new implementation of the Gate class
-The RMutex class will be removed in the next release
+The RMutex class will be removed in the next release of Qore
 
 *) "pgsql" module: PostgreSQL driver
 the new "pgsql" driver uses efficient binary communication with PostgreSQL servers for binding and retrieving values from queries.
@@ -40,7 +40,9 @@ The driver's name is "sybase" and the Datasource type constant is SQL::DSSybase
 ex: $db = new Datasource(DSSybase);
 
 *) deadlock detection
-All Qore threading primitives (including internal locks for variables and "synchronized" methods, etc) now use the new deadlock detection framework.  Potential deadlocks are checked before any primitive would otherwise block.  If a deadlock is detected, a DEADLOCK-EXCEPTION is thrown.  See test/deadlock.q for deadlock and thread error tests.
+All Qore threading primitives (including internal locks for variables and "synchronized" methods, etc) now use the new deadlock detection framework.  Potential deadlocks are checked before any primitive would otherwise block.  If a deadlock is detected, a DEADLOCK-EXCEPTION is thrown.  
+
+See test/deadlock.q for deadlock and thread error tests.
 
 *) thread locking methods take optional timeouts in ms
 All thread locking methods take an optional timeout value in ms.  
@@ -54,6 +56,12 @@ It's recommended to use a relative time value to make the units clear, i.e
 	{
 	    # lock not grabbed...
 	}
+
+*) thread errors cause exceptions to be thrown
+Common thread errors. such as trying to lock a Mutex twice in the same thread without an intervening Mutex::unlock(), or trying to release a lock that is not held, will cause exceptions to be thrown as of this version of Qore.
+Furthermore, locks are tracked as thread resources, and if a thread terminates without freeing the lock, an exception is thrown and the lock is freed automatically.
+
+See test/deadlock.q for deadlock and thread error tests.
 
 *) Oracle driver improvements
 added support for the following types:
