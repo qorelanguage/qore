@@ -106,6 +106,19 @@ sub dt()
     }        
 }
 
+sub cond_test($c, $cond, $m)
+{
+    $m.lock();
+    $c.dec();
+    try {
+	$cond.wait($m);
+    }
+    catch ($ex)
+    {
+	printf("%s: %s\n", $ex.err, $ex.desc); 
+    }        
+}
+
 sub main()
 {
     # internal deadlock with synchronized subroutines
@@ -140,7 +153,7 @@ sub main()
     catch ($ex)
     {
 	printf("%s: %s\n", $ex.err, $ex.desc); 
-    }    
+    }
     try {
 	delete $m;
     }
@@ -166,6 +179,20 @@ sub main()
 	printf("%s: %s\n", $ex.err, $ex.desc); 
     }
 
+    my $cond = new Condition();
+    $m = new Mutex();
+    # increment counter for synchronization
+    $c.inc();
+    $c.inc();
+    background cond_test($c, $cond, $m);
+    background cond_test($c, $cond, $m);
+    $c.waitForZero();
+    # lock and unlock to ensure that cond.wait has been called
+    usleep(100ms);
+    $m.lock();
+    $m.unlock();
+    delete $m;
+    
     # test thread resource tracking checks
     background dt();
 }

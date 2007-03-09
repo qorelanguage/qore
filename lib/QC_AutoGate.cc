@@ -38,11 +38,11 @@ static void AG_constructor(class Object *self, class QoreNode *params, Exception
       return;
    }
 
-   QoreAutoGate *qsl = new QoreAutoGate(g, xsink);
+   QoreAutoGate *ag = new QoreAutoGate(g, xsink);
    if (*xsink)
-      qsl->deref(xsink);
+      ag->deref(xsink);
    else
-      self->setPrivate(CID_AUTOGATE, qsl);
+      self->setPrivate(CID_AUTOGATE, ag);
 }
 
 static void AG_destructor(class Object *self, class QoreAutoGate *ag, ExceptionSink *xsink)

@@ -53,6 +53,7 @@
 #include "VRMutex.cc"
 #include "VLock.cc"
 #include "AbstractSmartLock.cc"
+#include "SmartMutex.cc"
 #include "RMutex.cc"
 #include "SwitchStatementWithOperators.cc"
 #include "CallStack.cc"

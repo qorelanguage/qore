@@ -46,7 +46,8 @@ void AbstractSmartLock::grab_intern_intern(int mtid, class VLock *nvl)
 void AbstractSmartLock::release_intern_intern()
 {
    vl->pop(this);
-   tid = -1;
+   if (tid >= 0)
+      tid = -1;
    vl = NULL;
    if (waiting)
       asl_cond.signal();
@@ -65,17 +66,21 @@ void AbstractSmartLock::release_intern()
    release_intern_intern();
 }
 
+void AbstractSmartLock::destructorImpl(class ExceptionSink *xsink)
+{
+}
 void AbstractSmartLock::destructor(class ExceptionSink *xsink)
 {
-   AutoLocker al(&asl_lock);	    
+   AutoLocker al(&asl_lock);
+   destructorImpl(xsink);
    if (tid >= 0)
    {
       vl->pop(this);
       xsink->raiseException("LOCK-ERROR", "%s object destroyed while locked by TID %d", getName(), gettid());
-      tid = -2;
       trlist.remove(this);
       asl_cond.broadcast();
    }   
+   tid = -2;
 }
 
 // grab return values: 
@@ -140,4 +145,40 @@ int AbstractSmartLock::release(class ExceptionSink *xsink)
    if (!rc)
       release_intern();
    return rc;
+}
+
+int AbstractSmartLock::externWaitImpl(int mtid, class QoreCondition *cond, int timeout, class ExceptionSink *xsink)
+{
+   xsink->raiseException("WAIT-ERROR", "cannot wait on %s objects", getName());
+   return -1;
+}
+
+int AbstractSmartLock::externWaitImpl(int mtid, class QoreCondition *cond, class ExceptionSink *xsink)
+{
+   xsink->raiseException("WAIT-ERROR", "cannot wait on %s objects", getName());
+   return -1;
+}
+
+int AbstractSmartLock::extern_wait(class QoreCondition *cond, int timeout, class ExceptionSink *xsink)
+{
+   AutoLocker al(&asl_lock);
+   return externWaitImpl(gettid(), cond, timeout, xsink);
+}
+
+int AbstractSmartLock::extern_wait(class QoreCondition *cond, class ExceptionSink *xsink)
+{
+   AutoLocker al(&asl_lock);
+   return externWaitImpl(gettid(), cond, xsink);
+}
+
+
+int AbstractSmartLock::verify_wait_unlocked(int mtid, class ExceptionSink *xsink)
+{
+   if (tid == mtid)
+      return 0;
+   if (tid < 0)
+      xsink->raiseException("WAIT-ERROR", "wait() called with unlocked %s argument", getName());
+   else
+      xsink->raiseException("WAIT-ERROR", "TID %d called wait() with %s lock argument held by TID %d", mtid, getName(), tid);
+   return -1;
 }

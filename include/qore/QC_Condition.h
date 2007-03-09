@@ -43,22 +43,27 @@ class Condition : public AbstractPrivateData
    public:
       DLLLOCAL int wait(class Mutex *m, int timeout, class ExceptionSink *xsink)
       {
-	 // FIXME: implement timeout
+	 return m->extern_wait(&cond, timeout, xsink);
+/*
 	 if (m->verify_lock_tid("Condition::wait", xsink))
 	    return -1;
 	 m->asl_lock.lock();
 	 int rc = cond.wait(&m->asl_lock, timeout);
 	 m->asl_lock.unlock();
 	 return rc;
+*/
       }
       DLLLOCAL int wait(class Mutex *m, class ExceptionSink *xsink)
       {
+	 return m->extern_wait(&cond, xsink);
+/*
 	 if (m->verify_lock_tid("Condition::wait", xsink))
 	    return -1;
 	 m->asl_lock.lock();
 	 int rc = cond.wait(&m->asl_lock);
 	 m->asl_lock.unlock();
 	 return rc;
+*/
       }
       DLLLOCAL int signal()
       {

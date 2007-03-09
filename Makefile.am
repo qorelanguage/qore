@@ -18,6 +18,7 @@ noinst_HEADERS = \
 	include/qore/ReferenceObject.h \
 	include/qore/AbstractPrivateData.h \
 	include/qore/AbstractSmartLock.h \
+	include/qore/SmartMutex.h \
 	include/qore/QoreType.h \
 	include/qore/List.h \
 	include/qore/ArgvStack.h \

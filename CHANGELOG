@@ -4,6 +4,9 @@
 	  lock is held (use the lock's status and not track it in the AutoLock
 	  object in case the lock is released due to an exception, etc)
 	* added AutoGate class for exception-safe gate lock handling
+	* updated SmartMutex class to allow for tracking condition variables
+	  waiting on it so that if it's deleted while a condition variable is
+	  waiting, an exception can be thrown in the other thread(s)
 
 2007.03.08: David Nichols
 	* added RAW and LONG RAW handling to oracle driver

@@ -96,6 +96,7 @@ libqore_la_SOURCES = \
 	Sequence.cc \
 	ReferenceObject.cc \
 	Environment.cc \
+	SmartMutex.cc \
 	QT_NOTHING.cc \
 	QT_bigint.cc \
 	QT_float.cc \

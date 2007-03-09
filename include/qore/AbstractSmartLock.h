@@ -41,6 +41,10 @@ class AbstractSmartLock
       virtual int grabImpl(int mtid, class VLock *nvl, class ExceptionSink *xsink) = 0;
       virtual int grabImpl(int mtid, int timeout_ms, class VLock *nvl, class ExceptionSink *xsink) = 0;
       virtual int tryGrabImpl(int mtid, class VLock *nvl) = 0;
+      DLLLOCAL virtual int externWaitImpl(int mtid, class QoreCondition *cond, int timeout, class ExceptionSink *xsink);
+      DLLLOCAL virtual int externWaitImpl(int mtid, class QoreCondition *cond, class ExceptionSink *xsink);
+      DLLLOCAL virtual void destructorImpl(class ExceptionSink *xsink);
+
 /*
       DLLLOCAL virtual int grabInternImpl(int mtid)
       {
@@ -51,6 +55,7 @@ class AbstractSmartLock
       DLLLOCAL void release_intern_intern();
       DLLLOCAL void grab_intern(int mtid, class VLock *nvl);
       DLLLOCAL void release_intern();
+      DLLLOCAL int verify_wait_unlocked(int mtid, class ExceptionSink *xsink);
 
    public:
       LockedObject asl_lock;
@@ -59,7 +64,7 @@ class AbstractSmartLock
       DLLLOCAL AbstractSmartLock() : vl(NULL), tid(-1), waiting(0)  {}
       DLLLOCAL virtual void cleanup();
       DLLLOCAL virtual ~AbstractSmartLock() {}
-      DLLLOCAL virtual void destructor(class ExceptionSink *xsink);
+      DLLLOCAL void destructor(class ExceptionSink *xsink);
 
       // grab return values: 
       //    0   = grabbed the lock
@@ -80,6 +85,10 @@ class AbstractSmartLock
       DLLLOCAL int release(class ExceptionSink *xsink);
       DLLLOCAL void self_wait() { asl_cond.wait(&asl_lock); }
       DLLLOCAL int self_wait(int timeout_ms) { return asl_cond.wait(&asl_lock, timeout_ms); }
+
+      DLLLOCAL int extern_wait(class QoreCondition *cond, int timeout, class ExceptionSink *xsink);
+      DLLLOCAL int extern_wait(class QoreCondition *cond, class ExceptionSink *xsink);
+
       DLLLOCAL int get_tid() const { return tid; }
       DLLLOCAL int get_waiting() const { return waiting; }
       DLLLOCAL virtual const char *getName() const = 0;

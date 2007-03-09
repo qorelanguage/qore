@@ -45,7 +45,10 @@ public:
    DLLLOCAL virtual void deref(class ExceptionSink *xsink) 
    {
       if (ROdereference())
+      {
 	 g->deref(xsink);
+	 delete this;
+      }
    }
 
    DLLLOCAL virtual void destructor(class ExceptionSink *xsink) 
