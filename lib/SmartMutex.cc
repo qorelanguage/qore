@@ -151,6 +151,7 @@ int SmartMutex::externWaitImpl(int mtid, class QoreCondition *cond, int timeout,
    if (grabImpl(mtid, nvl, xsink))
       return -1;
 
+   grab_intern(mtid, nvl);
    return rc;
 }
 
@@ -184,6 +185,7 @@ int SmartMutex::externWaitImpl(int mtid, class QoreCondition *cond, class Except
    if (grabImpl(mtid, nvl, xsink))
       return -1;
 
+   grab_intern(mtid, nvl);
    return rc;
 }
 
