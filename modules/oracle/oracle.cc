@@ -64,7 +64,7 @@ class OracleData {
       ub2 charsetid;
 };
 
-static void ora_checkerr(OCIError *errhp, sword status, char *query_name, Datasource *ds, ExceptionSink *xsink)
+static void ora_checkerr(OCIError *errhp, sword status, const char *query_name, Datasource *ds, ExceptionSink *xsink)
 {
    text errbuf[512];
    sb4 errcode = 0;
@@ -128,7 +128,7 @@ static int oracle_rollback(class Datasource *ds, ExceptionSink *xsink)
    return 0;
 }
 
-OraColumns::OraColumns(OCIStmt *stmthp, class Datasource *ds, char *str, ExceptionSink *xsink)
+OraColumns::OraColumns(OCIStmt *stmthp, class Datasource *ds, const char *str, ExceptionSink *xsink)
 {
    tracein("OraColumns::OraColumns()");
 
@@ -172,7 +172,7 @@ OraColumns::OraColumns(OCIStmt *stmthp, class Datasource *ds, char *str, Excepti
    traceout("OraColumns::OraColumns()");
 }
 
-void OraColumns::define(OCIStmt *stmthp, class Datasource *ds, char *str, ExceptionSink *xsink)
+void OraColumns::define(OCIStmt *stmthp, class Datasource *ds, const char *str, ExceptionSink *xsink)
 {
    //tracein("OraColumne::define()");
 
@@ -1166,7 +1166,7 @@ static int oracle_open(Datasource *ds, ExceptionSink *xsink)
 
    int oci_flags = OCI_DEFAULT|OCI_THREADED;
 
-   char *charset;
+   const char *charset;
 
    // FIXME: maybe I don't need a temporary environment handle?
    // create temporary environment handle

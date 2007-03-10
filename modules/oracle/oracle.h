@@ -70,7 +70,7 @@ class OraColumn {
 
       class OraColumn *next;
 
-      DLLLOCAL inline OraColumn(char *n, int len, int ms, ub2 dt)
+      DLLLOCAL inline OraColumn(const char *n, int len, int ms, ub2 dt)
       {
 	 name = (char *)malloc(sizeof(char) * (len + 1));
 	 strncpy(name, n, len);
@@ -140,7 +140,7 @@ class OraColumns {
       class OraColumn *head, *tail;
 
    public:
-      DLLLOCAL OraColumns(OCIStmt *stmthp, class Datasource *ds, char *str, ExceptionSink *xsink);
+      DLLLOCAL OraColumns(OCIStmt *stmthp, class Datasource *ds, const char *str, ExceptionSink *xsink);
       DLLLOCAL inline ~OraColumns()
       {
 	 class OraColumn *w = head;
@@ -151,7 +151,7 @@ class OraColumns {
 	    w = head;
 	 }
       }
-      DLLLOCAL inline void add(char *name, int nlen, int maxsize, ub2 dtype)
+      DLLLOCAL inline void add(const char *name, int nlen, int maxsize, ub2 dtype)
       {
 	 len++;
 	 class OraColumn *c = new OraColumn(name, nlen, maxsize, dtype);
@@ -174,14 +174,14 @@ class OraColumns {
 	 return len;
       }
 
-      DLLLOCAL void define(OCIStmt *stmthp, class Datasource *ds, char *str, ExceptionSink *xsink);
+      DLLLOCAL void define(OCIStmt *stmthp, class Datasource *ds, const char *str, ExceptionSink *xsink);
 };
 
 union ora_bind {
       struct {
 	    char *name;       // name for output hash
 	    int maxsize;      // maximum size, -1 = default for type
-	    char *type;       // qore datatype for column
+	    const char *type;       // qore datatype for column
       } ph;
       struct {
 	    class QoreNode *value;   // value to be bound
@@ -206,7 +206,7 @@ class OraBindNode {
 	 buftype = 0;
 	 next = NULL;
       }
-      DLLLOCAL inline OraBindNode(char *name, int size, char *typ)
+      DLLLOCAL inline OraBindNode(char *name, int size, const char *typ)
       {
 	 bindtype = BN_PLACEHOLDER;
 	 data.ph.name = name;
@@ -248,7 +248,7 @@ class OraBindNode {
       DLLLOCAL class QoreNode *getValue(class Datasource *ds, class ExceptionSink *xsink);
 };
 
-static void ora_checkerr(OCIError *errhp, sword status, char *query_name, Datasource *ds, ExceptionSink *xsink);
+static void ora_checkerr(OCIError *errhp, sword status, const char *query_name, Datasource *ds, ExceptionSink *xsink);
 
 class OraBindGroup {
   private:
@@ -298,7 +298,7 @@ class OraBindGroup {
 	 add(c);
 	 printd(5, "OraBindGroup::add()\n");
       }
-      DLLLOCAL inline void add(char *name, int size, char *type)
+      DLLLOCAL inline void add(char *name, int size, const char *type)
       {
 	 class OraBindNode *c = new OraBindNode(name, size, type);
 	 add(c);
