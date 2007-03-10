@@ -1129,7 +1129,7 @@ QoreNode* SybaseBindGroup::selectRows(class ExceptionSink *xsink)
 //------------------------------------------------------------------------------
 // Converts Qore encoding name to Qore encoding type.
 // Covers only what the function get_default_string_encoding() supports.
-static QoreEncoding* encoding_str2Qore(char* encoding_str, ExceptionSink* xsink)
+static QoreEncoding* encoding_str2Qore(const char* encoding_str, ExceptionSink* xsink)
 {
   if (!encoding_str || !encoding_str[0]) {
     // internal error
@@ -1240,7 +1240,7 @@ static int sybase_open(Datasource *ds, ExceptionSink *xsink)
   // string encoding
    if (ds->getDBEncoding()) {
 printf("### already HAS encoding\n");
-    char* encoding_str = ds->getDBEncoding();
+    const char* encoding_str = ds->getDBEncoding();
     QoreEncoding* encoding_qore = encoding_str2Qore(encoding_str, xsink);
     if (xsink->isException()) {
       sybase_connection* sc = (sybase_connection*)ds->getPrivateData();
