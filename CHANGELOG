@@ -3,6 +3,8 @@
 	  transaction (and release the lock)
 	* updated documentation to reflect that Datasource transaction timeouts
 	  are now set in milliseconds instead of seconds
+	* added AutoReadLock and AutoWriteLock for exception-safe RWLock 
+	  handling
 
 2007.03.09: David Nichols
 	* renamed SafeLocker class to "AutoLock"

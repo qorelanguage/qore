@@ -128,6 +128,8 @@
 #include "QC_JsonRpcClient.cc"
 #include "QC_AutoLock.cc"
 #include "QC_AutoGate.cc"
+#include "QC_AutoReadLock.cc"
+#include "QC_AutoWriteLock.cc"
 #include "minitest.cc"
 #include "inline_printf.cc"
 #include "QException.h"

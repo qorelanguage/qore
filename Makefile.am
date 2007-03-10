@@ -161,7 +161,10 @@ noinst_HEADERS = \
 	include/qore/QC_HTTPClient.h \
 	include/qore/QC_XmlRpcClient.h \
 	include/qore/QC_JsonRpcClient.h \
+	include/qore/QC_AutoGate.h \
 	include/qore/QC_AutoLock.h \
+	include/qore/QC_AutoReadLock.h \
+	include/qore/QC_AutoWriteLock.h \
 	include/qore/QoreHTTPClient.h \
 	include/qore/DBI.h \
 	include/qore/ScopeGuard.h \
