@@ -1,3 +1,7 @@
+2007.03.10: David Nichols
+	* updated Datasource class to throw an exception if deleted while in a
+	  transaction (and release the lock)
+
 2007.03.09: David Nichols
 	* renamed SafeLocker class to "AutoLock"
 	* updated AutoLock to release the lock in the destructor only if the

@@ -47,9 +47,10 @@ FIXME: commit()s when autocommit=true should be made here, also after
 
 DLLLOCAL void datasource_thread_lock_cleanup(void *ptr, class ExceptionSink *xsink);
 
-class ManagedDatasource : public AbstractPrivateData, public Datasource, private LockedObject
+class ManagedDatasource : public AbstractPrivateData, public Datasource
 {
 private:
+   class LockedObject ds_lock;
    class SingleExitGate tGate;
    int counter;
    int tl_timeout;
@@ -57,19 +58,22 @@ private:
    
    DLLLOCAL int startDBAction(class ExceptionSink *xsink);
    DLLLOCAL void endDBAction();
-   DLLLOCAL int closeUnlocked();   
+   DLLLOCAL int closeUnlocked(class ExceptionSink *xsink);
    // returns 0 for OK, -1 for error
    DLLLOCAL int grabLockIntern(class ExceptionSink *xsink);
    DLLLOCAL void releaseLockIntern();
    // returns 0 for OK, -1 for error
    DLLLOCAL int grabLock(class ExceptionSink *xsink);
    DLLLOCAL void releaseLock();
+   DLLLOCAL int wait_for_counter(class ExceptionSink *xsink);
    
 protected:
    DLLLOCAL virtual ~ManagedDatasource();
-   
+
 public:
    DLLLOCAL ManagedDatasource(DBIDriver *);
+   DLLLOCAL void thread_cleanup(class ExceptionSink *xsink);
+   DLLLOCAL void destructor(class ExceptionSink *xsink);
    DLLLOCAL virtual void deref(class ExceptionSink *xsink);
    DLLLOCAL virtual void deref();
    DLLLOCAL class QoreNode *select(class QoreString *query_str, class List *args, ExceptionSink *xsink);
@@ -79,6 +83,7 @@ public:
    DLLLOCAL int commit(ExceptionSink *xsink);
    DLLLOCAL int rollback(ExceptionSink *xsink);
    DLLLOCAL int open(ExceptionSink *xsink);
+   DLLLOCAL int close(ExceptionSink *xsink);
    DLLLOCAL int close();
    DLLLOCAL void reset(ExceptionSink *xsink);
    DLLLOCAL void setPendingUsername(char *u);

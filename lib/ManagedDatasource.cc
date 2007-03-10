@@ -34,15 +34,39 @@ ManagedDatasource::~ManagedDatasource()
 {
 }
 
+void ManagedDatasource::thread_cleanup(class ExceptionSink *xsink)
+{
+   AutoLocker al(&ds_lock);
+   // wait for any in-progress action to complete
+   if (counter > 0)
+   {
+      while (counter)
+	 cStatus.wait(&ds_lock);      
+      // in case there are other calls waiting on the condition
+      cStatus.signal();
+   }
+   if (in_transaction)
+   {
+      xsink->raiseException("DATASOURCE-TRANSACTION-EXCEPTION", "TID %d terminated while in a transaction; transaction will be automatically rolled back and the lock released", gettid());
+      Datasource::rollback(xsink);
+      in_transaction = false;
+      // force-exit the transaction lock
+      tGate.forceExit();
+   }
+}
+
+void ManagedDatasource::destructor(class ExceptionSink *xsink)
+{
+   AutoLocker al(&ds_lock);
+   closeUnlocked(xsink);
+   counter = -1;
+}
+
 void ManagedDatasource::deref(class ExceptionSink *xsink)
 {
    if (ROdereference())
    {
-      if (in_transaction)
-      {
-	 xsink->raiseException("DATASOURCE-TRANSACTION-EXCEPTION", "TID %d terminated while in a transaction; transaction will be automatically rolled back and the lock released", gettid());
-	 rollback(xsink);
-      }
+      close(xsink);
       delete this;
    }
 }
@@ -79,14 +103,14 @@ int ManagedDatasource::grabLock(class ExceptionSink *xsink)
    if (grabLockIntern(xsink))
       return -1;
    if (!in_transaction)
-      trlist.set((Datasource *)this, datasource_thread_lock_cleanup);
+      trlist.set(this, datasource_thread_lock_cleanup);
    return 0;
 }
 
 void ManagedDatasource::releaseLock()
 {
    tGate.exit();
-   trlist.remove((Datasource *)this, gettid());
+   trlist.remove(this);
 }
 
 ManagedDatasource *ManagedDatasource::copy()
@@ -107,28 +131,47 @@ ManagedDatasource::ManagedDatasource(DBIDriver *ndsl) : Datasource(ndsl)
    tl_timeout = DEFAULT_TL_TIMEOUT;
 }
 
+int ManagedDatasource::wait_for_counter(class ExceptionSink *xsink)
+{
+   // object has been deleted in another thread
+   if (counter == -1)
+   {
+      xsink->raiseException("DATASOURCE-ERROR", "This object has been deleted in another thread");
+      return -1;
+   }
+   if (counter)
+   {
+      while (counter)
+	 cStatus.wait(&ds_lock);      
+      // in case there are other calls waiting
+      cStatus.signal();
+   }
+   return 0;
+}
+
 int ManagedDatasource::startDBAction(class ExceptionSink *xsink)
 {
-   int rc = 0;
-   
-   lock();
-   
+   AutoLocker al(&ds_lock);
+   // object has been deleted in another thread
+   if (counter == -1)
+   {
+      xsink->raiseException("DATASOURCE-ERROR", "This object has been deleted in another thread");
+      return -1;
+   }
+      
    if (isopen || (!Datasource::open(xsink) && !(xsink->isEvent())))
+   {
       counter++;
-   else
-      rc = -1;
-   
-   unlock();
-   
-   return rc;
+      return 0;
+   }
+   return -1;
 }
 
 void ManagedDatasource::endDBAction()
 {
-   lock();
+   AutoLocker al(&ds_lock);
    if (!--counter)
       cStatus.signal();
-   unlock();
 }
 
 void ManagedDatasource::setTransactionLockTimeout(int t)
@@ -143,18 +186,15 @@ int ManagedDatasource::getTransactionLockTimeout()
 
 void ManagedDatasource::setAutoCommit(bool ac)
 {
-   lock();
-   if (counter)
+   AutoLocker al(&ds_lock);
+   if (counter > 0)
    {
       while (counter)
-	 cStatus.wait(&ptm_lock);
-      
-      // in case there are other close calls waiting
+	 cStatus.wait(&ds_lock);      
+      // in case there are other calls waiting
       cStatus.signal();
    }
    Datasource::setAutoCommit(ac);
-   
-   unlock();
 }
 
 QoreNode *ManagedDatasource::select(class QoreString *query_str, class List *args, ExceptionSink *xsink)
@@ -272,22 +312,19 @@ int ManagedDatasource::rollback(ExceptionSink *xsink)
 
 int ManagedDatasource::open(ExceptionSink *xsink)
 {
-   lock();
-   int rc = Datasource::open(xsink);
-   unlock();
-   
-   return rc;
+   AutoLocker al(&ds_lock);
+   if (wait_for_counter(xsink))
+      return -1;
+   return Datasource::open(xsink);
 }
 
+/*
 int ManagedDatasource::closeUnlocked()
 {
    int rc = -1;
    
    if (isopen)
    {
-      while (counter)
-	 cStatus.wait(&ptm_lock);
-      
       rc = Datasource::close();
       
       // see if the transaction lock is held and, if so, break it
@@ -295,7 +332,7 @@ int ManagedDatasource::closeUnlocked()
       if ((tid = tGate.getLockTID()) != -1)
       {
 	 // remove the thread resource 
-	 trlist.remove((Datasource *)this);
+	 trlist.remove(this);
 	 // force-exit the transaction lock if it's held
 	 tGate.forceExit();
       }
@@ -306,101 +343,130 @@ int ManagedDatasource::closeUnlocked()
    
    return rc;
 }
+*/
+
+// returns 0 for OK, -1 for exception
+int ManagedDatasource::closeUnlocked(class ExceptionSink *xsink)
+{
+   int rc = 0;
+
+   // wait for any in-progress action to complete
+   if (counter > 0)
+   {
+      while (counter)
+	 cStatus.wait(&ds_lock);      
+      // in case there are other calls waiting on the condition
+      cStatus.signal();
+   }
+   if (isopen)
+   {
+      if (in_transaction)
+      {
+	 xsink->raiseException("DATASOURCE-TRANSACTION-EXCEPTION", "Datasource closed while in a transaction; transaction will be automatically rolled back and the lock released");
+	 Datasource::rollback(xsink);
+	 trlist.remove(this);
+	 in_transaction = false;
+	 // force-exit the transaction lock
+	 tGate.forceExit();
+	 rc = -1;
+      }
+      
+      Datasource::close();
+      isopen = false;
+   }
+   
+   return rc;
+}
 
 int ManagedDatasource::close()
 {
-   lock();
-   int rc = closeUnlocked();
-   unlock();
-   return rc;
+   assert(false);
+   
+/*
+   AutoLocker al(&ds_lock);
+   // wait for any in-progress action to complete
+   if (counter)
+   {
+      while (counter)
+	 cStatus.wait(&ds_lock);      
+      // in case there are other calls waiting on the condition
+      cStatus.signal();
+   }
+   return closeUnlocked();
+ */
+}
+
+int ManagedDatasource::close(class ExceptionSink *xsink)
+{
+   AutoLocker al(&ds_lock);
+   return closeUnlocked(xsink);
 }
 
 // forces a close and open to reset a database connection
 void ManagedDatasource::reset(ExceptionSink *xsink)
 {
-   lock();
-   if (isopen)
-   {
-      // force-close the connection
-      closeUnlocked();
-      
-      // open the connection
-      Datasource::open(xsink);
-   }
-   unlock();
+   AutoLocker al(&ds_lock);
+   closeUnlocked(xsink);
+   // open the connection
+   Datasource::open(xsink);
 }
 
 void ManagedDatasource::setPendingUsername(char *u)
 {
-   lock();
+   AutoLocker al(&ds_lock);
    Datasource::setPendingUsername(u);
-   unlock();
 }
 
 void ManagedDatasource::setPendingPassword(char *p)
 {
-   lock();
+   AutoLocker al(&ds_lock);
    Datasource::setPendingPassword(p);
-   unlock();
 }
 
 void ManagedDatasource::setPendingDBName(char *d)
 {
-   lock();
+   AutoLocker al(&ds_lock);
    Datasource::setPendingDBName(d);
-   unlock();
 }
 
 void ManagedDatasource::setPendingDBEncoding(char *c)
 {
-   lock();
+   AutoLocker al(&ds_lock);
    Datasource::setPendingDBEncoding(c);
-   unlock();
 }
 
 void ManagedDatasource::setPendingHostName(char *h)
 {
-   lock();
+   AutoLocker al(&ds_lock);
    Datasource::setPendingHostName(h);
-   unlock();
 }
 
 QoreNode *ManagedDatasource::getPendingUsername()
 {
-   lock();
-   QoreNode *rv = Datasource::getPendingUsername();
-   unlock();
-   return rv;
+   AutoLocker al(&ds_lock);
+   return Datasource::getPendingUsername();
 }
 
 QoreNode *ManagedDatasource::getPendingPassword()
 {
-   lock();
-   QoreNode *rv = Datasource::getPendingPassword();
-   unlock();
-   return rv;
+   AutoLocker al(&ds_lock);
+   return Datasource::getPendingPassword();
 }
 
 QoreNode *ManagedDatasource::getPendingDBName()
 {
-   lock();
-   QoreNode *rv = Datasource::getPendingDBName();
-   unlock();
-   return rv;
+   AutoLocker al(&ds_lock);
+   return Datasource::getPendingDBName();
 }
 
 QoreNode *ManagedDatasource::getPendingDBEncoding()
 {
-   lock();
-   QoreNode *rv = Datasource::getPendingDBEncoding();
-   unlock();
-   return rv;
+   AutoLocker al(&ds_lock);
+   return Datasource::getPendingDBEncoding();
 }
 
 QoreNode *ManagedDatasource::getPendingHostName()
 {
-   lock();
-   QoreNode *rv = Datasource::getPendingHostName();
-   unlock();
-   return rv;
+   AutoLocker al(&ds_lock);
+   return Datasource::getPendingHostName();
 }

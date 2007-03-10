@@ -47,6 +47,11 @@ Datasource::Datasource(DBIDriver *ndsl)
    qorecharset = QCS_DEFAULT;
 }
 
+void Datasource::thread_cleanup(class ExceptionSink *xsink)
+{
+   rollback(xsink);
+}
+
 Datasource::~Datasource()
 {
    if (isopen)

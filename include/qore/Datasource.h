@@ -61,7 +61,7 @@ class Datasource
 
    public:
       DLLEXPORT Datasource(DBIDriver *);
-      DLLEXPORT ~Datasource();
+      DLLEXPORT virtual ~Datasource();
       DLLEXPORT bool getAutoCommit() const;
       DLLEXPORT char *getUsername() const;
       DLLEXPORT char *getPassword() const;
@@ -104,6 +104,7 @@ class Datasource
       DLLEXPORT bool isInTransaction() const;
       DLLEXPORT bool isOpen() const;
       DLLEXPORT Datasource *copy() const;
+      DLLEXPORT virtual void thread_cleanup(class ExceptionSink *xsink);
 };
 
 #endif // _QORE_DATASOURCE_H
