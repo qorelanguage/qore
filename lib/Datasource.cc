@@ -41,8 +41,6 @@ Datasource::Datasource(DBIDriver *ndsl)
    isopen = false;
    in_transaction = false;
    private_data = NULL;
-   p_dbname = p_username = p_password = p_db_encoding = p_hostname = NULL;
-   dbname = username = password = db_encoding = hostname = NULL;
    autocommit = false;
    qorecharset = QCS_DEFAULT;
 }
@@ -60,13 +58,7 @@ Datasource::~Datasource()
    if (private_data) 
       printe("ERROR: Datasource::~Datasource() private_data is not NULL\n");
 #endif
-   if (p_dbname)      free(p_dbname);
-   if (p_username)    free(p_username);
-   if (p_password)    free(p_password);
-   if (p_db_encoding) free(p_db_encoding);
-   if (p_hostname)    free(p_hostname);
    
-   freeConnectionValues();
 }
 
 List *Datasource::getCapabilityList() const
@@ -98,31 +90,22 @@ Datasource *Datasource::copy() const
 {
    class Datasource *nds = new Datasource(dsl);
    
-   nds->p_username    = p_username    ? strdup(p_username)    : NULL;
-   nds->p_password    = p_password    ? strdup(p_password)    : NULL;
-   nds->p_dbname      = p_dbname      ? strdup(p_dbname)      : NULL;
-   nds->p_db_encoding = p_db_encoding ? strdup(p_db_encoding) : NULL;
-   nds->p_hostname    = p_hostname    ? strdup(p_hostname)    : NULL;
+   nds->p_username    = p_username;
+   nds->p_password    = p_password;
+   nds->p_dbname      = p_dbname;
+   nds->p_db_encoding = p_db_encoding;
+   nds->p_hostname    = p_hostname;
    nds->autocommit    = autocommit;
    return nds;
 }
 
-void Datasource::freeConnectionValues()
-{
-   if (dbname)      free(dbname);
-   if (username)    free(username);
-   if (password)    free(password);
-   if (db_encoding) free(db_encoding);
-   if (hostname)    free(hostname);
-}
-
 void Datasource::setConnectionValues()
 {
-   dbname      = p_dbname      ? strdup(p_dbname)      : NULL;
-   username    = p_username    ? strdup(p_username)    : NULL;
-   password    = p_password    ? strdup(p_password)    : NULL;
-   hostname    = p_hostname    ? strdup(p_hostname)    : NULL;
-   db_encoding = p_db_encoding ? strdup(p_db_encoding) : NULL;
+   dbname      = p_dbname;
+   username    = p_username;
+   password    = p_password;
+   hostname    = p_hostname;
+   db_encoding = p_db_encoding;
 }
 
 void Datasource::setAutoCommit(bool ac)
@@ -193,7 +176,6 @@ int Datasource::open(ExceptionSink *xsink)
    if (!isopen)
    {
       // copy pending connection values to connection values
-      freeConnectionValues();
       setConnectionValues();
       
       rc = dsl->init(this, xsink);
@@ -245,69 +227,59 @@ void Datasource::setPrivateData(void *data)
    private_data = data;
 }
 
-void Datasource::setPendingUsername(char *u)
+void Datasource::setPendingUsername(const char *u)
 {
-   if (p_username)
-      free(p_username);
-   p_username = strdup(u);
+   p_username = u;
 }
 
-void Datasource::setPendingPassword(char *p)
+void Datasource::setPendingPassword(const char *p)
 {
-   if (p_password)
-      free(p_password);
-   p_password = strdup(p);
+   p_password = p;
 }
 
-void Datasource::setPendingDBName(char *d)
+void Datasource::setPendingDBName(const char *d)
 {
-   if (p_dbname)
-      free(p_dbname);
-   p_dbname = strdup(d);
+   p_dbname = d;
 }
 
-void Datasource::setPendingDBEncoding(char *c)
+void Datasource::setPendingDBEncoding(const char *c)
 {
-   if (p_db_encoding)
-      free(p_db_encoding);
-   p_db_encoding = strdup(c);
+   p_db_encoding = c;
 }
 
-void Datasource::setPendingHostName(char *h)
+void Datasource::setPendingHostName(const char *h)
 {
-   if (p_hostname)
-      free(p_hostname);
-   p_hostname = strdup(h);
+   p_hostname = h;
 }
 
-char *Datasource::getUsername() const
+const char *Datasource::getUsername() const
 {
-   return username;
+   return username.empty() ? NULL : username.c_str();
 }
 
-char *Datasource::getPassword() const
+const char *Datasource::getPassword() const
 {
-   return password;
+   return password.empty() ? NULL : password.c_str();
 }
 
-char *Datasource::getDBName() const
+const char *Datasource::getDBName() const
 {
-   return dbname;
+   return dbname.empty() ? NULL : dbname.c_str();
 }
 
-char *Datasource::getDBEncoding() const
+const char *Datasource::getDBEncoding() const
 {
-   return db_encoding;
+   return db_encoding.empty() ? NULL : db_encoding.c_str();
 }
 
-char *Datasource::getOSEncoding() const
+const char *Datasource::getOSEncoding() const
 {
-   return qorecharset ? qorecharset->code : NULL;
+   return qorecharset ? qorecharset->getCode() : NULL;
 }
 
-char *Datasource::getHostName() const
+const char *Datasource::getHostName() const
 {
-   return hostname;
+   return hostname.empty() ? NULL : hostname.c_str();
 }
 
 class QoreEncoding *Datasource::getQoreEncoding() const
@@ -315,14 +287,12 @@ class QoreEncoding *Datasource::getQoreEncoding() const
    return qorecharset;
 }
 
-void Datasource::setDBEncoding(char *name)
+void Datasource::setDBEncoding(const char *name)
 {
-   if (db_encoding)
-      free(db_encoding);
-   db_encoding = strdup(name);
+   db_encoding = name;
 }
 
-void Datasource::setQoreEncoding(char *name)
+void Datasource::setQoreEncoding(const char *name)
 {
    qorecharset = QEM.findCreate(name);
 }
@@ -334,50 +304,25 @@ void Datasource::setQoreEncoding(class QoreEncoding *enc)
 
 QoreNode *Datasource::getPendingUsername() const
 {
-   QoreNode *rv;
-   if (p_username)
-      rv = new QoreNode(p_username);
-   else
-      rv = NULL;
-   return rv;
+   return p_username.empty() ? NULL : new QoreNode(p_username.c_str());
 }
 
 QoreNode *Datasource::getPendingPassword() const
 {
-   QoreNode *rv;
-   if (p_password)
-      rv = new QoreNode(p_password);
-   else
-      rv = NULL;
-   return rv;
+   return p_password.empty() ? NULL : new QoreNode(p_password.c_str());
 }
 
 QoreNode *Datasource::getPendingDBName() const
 {
-   QoreNode *rv;
-   if (p_dbname)
-      rv = new QoreNode(p_dbname);
-   else
-      rv = NULL;
-   return rv;
+   return p_dbname.empty() ? NULL : new QoreNode(p_dbname.c_str());
 }
 
 QoreNode *Datasource::getPendingDBEncoding() const
 {
-   QoreNode *rv;
-   if (p_db_encoding)
-      rv = new QoreNode(p_db_encoding);
-   else
-      rv = NULL;
-   return rv;
+   return p_db_encoding.empty() ? NULL : new QoreNode(p_db_encoding.c_str());
 }
 
 QoreNode *Datasource::getPendingHostName() const
 {
-   QoreNode *rv;
-   if (p_hostname)
-      rv = new QoreNode(p_hostname);
-   else
-      rv = NULL;
-   return rv;
+   return p_hostname.empty() ? NULL : new QoreNode(p_hostname.c_str());
 }

@@ -142,7 +142,7 @@ class QoreNode *TIBRVCMLISTENER_setStringEncoding(class Object *self, class Qore
 
 class QoreNode *TIBRVCMLISTENER_getStringEncoding(class Object *self, class QoreTibrvCmListener *cml, QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(cml->getStringEncoding()->code);
+   return new QoreNode(cml->getStringEncoding()->getCode());
 }
 
 class QoreNode *TIBRVCMLISTENER_syncLedger(class Object *self, class QoreTibrvCmListener *cml, QoreNode *params, ExceptionSink *xsink)

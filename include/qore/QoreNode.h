@@ -31,6 +31,8 @@
 #include <qore/ReferenceObject.h>
 #include <qore/node_types.h>
 
+#include <string>
+
 #define FMT_NONE   -1
 #define FMT_NORMAL 0
 
@@ -101,6 +103,7 @@ class QoreNode : public ReferenceObject
       DLLEXPORT QoreNode(bool v);
       DLLEXPORT QoreNode(char *str);
       DLLEXPORT QoreNode(const char *str);
+      DLLEXPORT QoreNode(const std::string &str);
       DLLEXPORT QoreNode(double d);
       DLLEXPORT QoreNode(class DateTime *dt);
       DLLEXPORT QoreNode(class BinaryObject *b);

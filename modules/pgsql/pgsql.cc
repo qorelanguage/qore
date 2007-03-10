@@ -118,7 +118,7 @@ static int qore_pgsql_open(Datasource *ds, ExceptionSink *xsink)
       char *enc = (char *)QorePGMapper::getPGEncoding(QCS_DEFAULT);
       if (!enc)
       {
-         xsink->raiseException("DBI:PGSQL:UNKNOWN-CHARACTER-SET", "cannot find the PostgreSQL character encoding equivalent for '%s'", QCS_DEFAULT->code);
+         xsink->raiseException("DBI:PGSQL:UNKNOWN-CHARACTER-SET", "cannot find the PostgreSQL character encoding equivalent for '%s'", QCS_DEFAULT->getCode());
          return -1;
       }
       ds->setDBEncoding(enc);

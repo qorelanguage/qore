@@ -252,7 +252,7 @@ static class QoreNode *HC_setEncoding(class Object *self, class QoreHTTPClient *
 
 static class QoreNode *HC_getEncoding(class Object *self, class QoreHTTPClient *client, class QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(client->getEncoding()->code);
+   return new QoreNode(client->getEncoding()->getCode());
 }
 
 class QoreNode *f_setURL(class Object *self, class QoreHTTPClient *client, class QoreNode *params, ExceptionSink *xsink)

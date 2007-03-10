@@ -726,7 +726,7 @@ static QoreNode *SOCKET_setCharset(class Object *self, class mySocket *s, class 
 
 static QoreNode *SOCKET_getCharset(class Object *self, class mySocket *s, class QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(s->getEncoding()->code);
+   return new QoreNode(s->getEncoding()->getCode());
 }
 
 static QoreNode *SOCKET_isDataAvailable(class Object *self, class mySocket *s, class QoreNode *params, ExceptionSink *xsink)

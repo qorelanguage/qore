@@ -32,6 +32,8 @@
 
 #include <map>
 
+#include <string>
+
 // for multi-byte character set encodings: gives the length of the string in characters
 typedef int (*mbcs_length_t)(char *);
 // for multi-byte character set encodings: gives the number of bytes for the number of chars
@@ -39,26 +41,25 @@ typedef int (*mbcs_end_t)(char *, int);
 // for multi-byte character set encodings: gives the character position of the ptr
 typedef int (*mbcs_pos_t)(char *, char *);
 
-struct QoreEncoding {
-      char *code;
+class QoreEncoding {
+private:
+      std::string code;
       mbcs_length_t flength;
       mbcs_end_t fend;
       mbcs_pos_t fpos;
-      char *desc;
+      std::string desc;
 
-      inline QoreEncoding(char *c, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, char *d)
+public:
+      inline QoreEncoding(const char *c, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, char *d)
       {
-	 code = c ? strdup(c) : NULL;
+	 code = c;
 	 flength = l;
 	 fend = e;
 	 fpos = p;
-	 desc = d ? strdup(d) : NULL;
+	 desc = d;
       }
       inline ~QoreEncoding()
       {
-	 free(code);
-	 if (desc)
-	    free(desc);
       }
       inline int getLength(char *p)
       {
@@ -76,6 +77,15 @@ struct QoreEncoding {
       {
 	 return (bool)flength;
       }
+      DLLEXPORT const char *getCode() const
+      {
+	 return code.c_str();
+      }
+      DLLEXPORT const char *getDesc() const
+      {
+	 return desc.empty() ? "<no description available>" : desc.c_str();
+      }
+      
 };
 
 // case-insensitive maps for encodings
@@ -88,21 +98,20 @@ class QoreEncodingManager
       DLLLOCAL static encoding_map_t emap, amap;
       DLLLOCAL static class LockedObject mutex;
    
-      DLLLOCAL static struct QoreEncoding *addUnlocked(char *code, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, char *desc);
-      DLLLOCAL static struct QoreEncoding *findUnlocked(char *name);
+      DLLLOCAL static struct QoreEncoding *addUnlocked(const char *code, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, char *desc);
+      DLLLOCAL static struct QoreEncoding *findUnlocked(const char *name);
 
    public:
       DLLEXPORT static void addAlias(struct QoreEncoding *qcs, const char *alias);
-      // FIXME: should be const char
-      DLLEXPORT static struct QoreEncoding *findCreate(char *name);
+      DLLEXPORT static struct QoreEncoding *findCreate(const char *name);
       DLLEXPORT static struct QoreEncoding *findCreate(class QoreString *str);
       DLLEXPORT static void showEncodings();
       DLLEXPORT static void showAliases();
-      DLLEXPORT static void init(char *def);
+      DLLEXPORT static void init(const char *def);
 
       DLLLOCAL QoreEncodingManager();
       DLLLOCAL ~QoreEncodingManager();
-      DLLLOCAL static struct QoreEncoding *add(char *code, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, char *desc);
+      DLLLOCAL static struct QoreEncoding *add(const char *code, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, char *desc);
 };
 
 DLLEXPORT extern QoreEncodingManager QEM;

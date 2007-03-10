@@ -369,7 +369,7 @@ static class QoreNode *FILE_setCharset(class Object *self, class File *f, class 
 
 static class QoreNode *FILE_getCharset(class Object *self, class File *f, class QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(f->getEncoding()->code);
+   return new QoreNode(f->getEncoding()->getCode());
 }
 
 static class QoreNode *FILE_setPos(class Object *self, class File *f, class QoreNode *params, ExceptionSink *xsink)

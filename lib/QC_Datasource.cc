@@ -285,7 +285,7 @@ static QoreNode *DS_getDBCharset(class Object *self, class ManagedDatasource *ds
 static QoreNode *DS_getOSCharset(class Object *self, class ManagedDatasource *ds, class QoreNode *params, ExceptionSink *xsink)
 {
    class QoreEncoding *enc = ds->getQoreEncoding();
-   return new QoreNode(enc ? enc->code : "(unknown)");
+   return new QoreNode(enc ? enc->getCode() : "(unknown)");
 }
 
 static QoreNode *DS_getHostName(class Object *self, class ManagedDatasource *ds, class QoreNode *params, ExceptionSink *xsink)

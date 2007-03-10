@@ -537,7 +537,7 @@ static inline class QoreNode **do_object_val_ptr(Tree *tree, class AutoVLock *vl
    class QoreNode **rv;
    if ((*val)->type == NT_HASH)
    {
-      //printd(0, "do_object_val_ptr() def=%s member %s \"%s\"\n", QCS_DEFAULT->code, member->val.String->getEncoding()->code, member->val.String->getBuffer());
+      //printd(0, "do_object_val_ptr() def=%s member %s \"%s\"\n", QCS_DEFAULT->getCode(), member->val.String->getEncoding()->getCode(), member->val.String->getBuffer());
       rv = (*val)->val.hash->getKeyValuePtr(member->val.String, xsink);
    }
    else

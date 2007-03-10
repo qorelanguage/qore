@@ -3,8 +3,11 @@
 	  transaction (and release the lock)
 	* updated documentation to reflect that Datasource transaction timeouts
 	  are now set in milliseconds instead of seconds
-	* added AutoReadLock and AutoWriteLock for exception-safe RWLock 
-	  handling
+	* added "AutoReadLock" and "AutoWriteLock" classes for exception-safe 
+	  RWLock handling
+	* updated Datasource and QoreEncoding to use std::string to store 
+	  strings
+	* made QoreEncoding members private
 
 2007.03.09: David Nichols
 	* renamed SafeLocker class to "AutoLock"

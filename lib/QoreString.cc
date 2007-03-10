@@ -133,6 +133,15 @@ QoreString::QoreString(const char *str, class QoreEncoding *new_qorecharset)
    charset = new_qorecharset;
 }
 
+QoreString::QoreString(const std::string &str, class QoreEncoding *new_encoding)
+{
+   allocated = str.size() + 1 + STR_CLASS_BLOCK;
+   buf = (char *)malloc(allocated * sizeof(char));
+   memcpy(buf, str.c_str(), str.size() + 1);
+   len = str.size();
+   charset = new_encoding;
+}
+
 QoreString::QoreString(class QoreEncoding *new_qorecharset)
 {
    len = 0;
@@ -477,25 +486,25 @@ class QoreString *QoreString::convertEncoding(const class QoreEncoding *nccs, Ex
       return (QoreString *)str;
    }
 
-   printd(5, "QoreString::convertEncoding() from \"%s\" to \"%s\"\n", charset->code, nccs->code);
+   printd(5, "QoreString::convertEncoding() from \"%s\" to \"%s\"\n", charset->getCode(), nccs->getCode());
 
 #ifdef NEED_ICONV_TRANSLIT
-   QoreString to_code((char *)nccs->code);
+   QoreString to_code((char *)nccs->getCode());
    to_code.concat("//TRANSLIT");
-   iconv_t c = iconv_open(to_code.getBuffer(), charset->code);
+   iconv_t c = iconv_open(to_code.getBuffer(), charset->getCode());
 #else
-   iconv_t c = iconv_open(nccs->code, charset->code);
+   iconv_t c = iconv_open(nccs->getCode(), charset->getCode());
 #endif
    if (c == (iconv_t)-1)
    {
       if (errno == EINVAL)
 	 xsink->raiseException("ENCODING-CONVERSION-ERROR", 
 			       "cannot convert from \"%s\" to \"%s\"", 
-			       charset->code, nccs->code);
+			       charset->getCode(), nccs->getCode());
       else
 	 xsink->raiseException("ENCODING-CONVERSION-ERROR", 
 			"unknown error converting from \"%s\" to \"%s\": %s", 
-			charset->code, nccs->code, strerror(errno));
+			charset->getCode(), nccs->getCode(), strerror(errno));
       return NULL;
    }
    
@@ -517,7 +526,7 @@ class QoreString *QoreString::convertEncoding(const class QoreEncoding *nccs, Ex
 	    {
 	       xsink->raiseException("ENCODING-CONVERSION-ERROR", 
 				     "illegal character sequence found in input type \"%s\" (while converting to \"%s\")",
-				     charset->code, nccs->code);
+				     charset->getCode(), nccs->getCode());
 	       free(nbuf);
 	       iconv_close(c);
 	       return NULL;
@@ -530,7 +539,7 @@ class QoreString *QoreString::convertEncoding(const class QoreEncoding *nccs, Ex
 	    {
 	       xsink->raiseException("ENCODING-CONVERSION-ERROR", 
 				     "error converting from \"%s\" to \"%s\": %s", 
-				     charset->code, nccs->code,
+				     charset->getCode(), nccs->getCode(),
 				     strerror(errno));
 	       free(nbuf);
 	       iconv_close(c);

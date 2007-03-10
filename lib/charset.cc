@@ -47,18 +47,18 @@ encoding_map_t QoreEncodingManager::amap;
 class LockedObject QoreEncodingManager::mutex;
 class QoreEncodingManager QEM;
 
-struct QoreEncoding *QoreEncodingManager::addUnlocked(char *code, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, char *desc)
+struct QoreEncoding *QoreEncodingManager::addUnlocked(const char *code, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, char *desc)
 {
    struct QoreEncoding *qcs = new QoreEncoding(code, l, e, p, desc);
-   emap[qcs->code] = qcs;
+   emap[qcs->getCode()] = qcs;
    return qcs;
 }
 
-struct QoreEncoding *QoreEncodingManager::add(char *code, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, char *desc)
+struct QoreEncoding *QoreEncodingManager::add(const char *code, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, char *desc)
 {
    struct QoreEncoding *qcs = new QoreEncoding(code, l, e, p, desc);
    mutex.lock();
-   emap[qcs->code] = qcs;
+   emap[qcs->getCode()] = qcs;
    mutex.unlock();
    return qcs;
 }
@@ -276,16 +276,16 @@ QoreEncodingManager::~QoreEncodingManager()
 void QoreEncodingManager::showEncodings()
 {
    for (encoding_map_t::iterator i = emap.begin(); i != emap.end(); i++)
-      printf("%s: %s\n", i->first, i->second->desc ? i->second->desc : "(no description available)");
+      printf("%s: %s\n", i->first, i->second->getDesc());
 }
 
 void QoreEncodingManager::showAliases()
 {
    for (encoding_map_t::iterator i = amap.begin(); i != amap.end(); i++)
-      printf("%s = %s: %s\n", i->first, i->second->code, i->second->desc ? i->second->desc : "(no description available)");
+      printf("%s = %s: %s\n", i->first, i->second->getCode(), i->second->getDesc());
 }
 
-void QoreEncodingManager::init(char *def)
+void QoreEncodingManager::init(const char *def)
 {
    // now set default character set
    if (def)
@@ -325,7 +325,7 @@ void QoreEncodingManager::addAlias(struct QoreEncoding *qcs, const char *alias)
    mutex.unlock();
 }
 
-struct QoreEncoding *QoreEncodingManager::findUnlocked(char *name)
+struct QoreEncoding *QoreEncodingManager::findUnlocked(const char *name)
 {
    encoding_map_t::iterator i = emap.find(name);
    if (i != emap.end())
@@ -338,7 +338,7 @@ struct QoreEncoding *QoreEncodingManager::findUnlocked(char *name)
    return NULL;
 }
 
-struct QoreEncoding *QoreEncodingManager::findCreate(char *name)
+struct QoreEncoding *QoreEncodingManager::findCreate(const char *name)
 {
    struct QoreEncoding *rv;
    mutex.lock();

@@ -186,6 +186,16 @@ QoreNode::QoreNode(const char *str)
 #endif
 }
 
+QoreNode::QoreNode(const std::string &str)
+{
+   //fprintf(stderr,"QoreNode::QoreNode(char *= %s)\n", str);
+   type = NT_STRING;
+   val.String = new QoreString(str);
+#if TRACK_REFS
+   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, type->getName());
+#endif
+}
+
 QoreNode::~QoreNode()
 {
 #if 0

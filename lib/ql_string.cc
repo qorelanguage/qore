@@ -458,7 +458,7 @@ static class QoreNode *f_get_encoding(class QoreNode *params, ExceptionSink *xsi
    QoreNode *p0 = test_param(params, NT_STRING, 0);
    if (!p0)
       return NULL;
-   return new QoreNode(new QoreString(p0->val.String->getEncoding()->code));
+   return new QoreNode(new QoreString(p0->val.String->getEncoding()->getCode()));
 }
 
 // usage: convert_encoding(string, new_encoding);

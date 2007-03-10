@@ -182,13 +182,13 @@ static int qore_mysql_init(Datasource *ds, ExceptionSink *xsink)
    }
 
    if (ds->getDBEncoding())
-      ds->setQoreEncoding(get_qore_cs(ds->getDBEncoding()));
+      ds->setQoreEncoding(get_qore_cs((char *)ds->getDBEncoding()));
    else
    {
       char *enc = get_mysql_cs(QCS_DEFAULT);
       if (!enc)
       {
-	 xsink->raiseException("DBI:MYSQL:UNKNOWN-CHARACTER-SET", "cannot find the mysql character set equivalent for '%s'", QCS_DEFAULT->code);
+	 xsink->raiseException("DBI:MYSQL:UNKNOWN-CHARACTER-SET", "cannot find the mysql character set equivalent for '%s'", QCS_DEFAULT->getCode());
 	 traceout("qore_mysql_init()");
 	 return -1;
       }

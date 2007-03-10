@@ -86,7 +86,9 @@ int ManagedDatasource::grabLockIntern(class ExceptionSink *xsink)
    {
       endDBAction();
       xsink->raiseException("TRANSACTION-TIMEOUT", "timed out on datasource '%s@%s' after waiting %d millisecond%s on transaction lock held by TID %d", 
-			    username, dbname, tl_timeout_ms, tl_timeout_ms == 1 ? "" : "s", tGate.getLockTID());
+			    username.empty() ? "<n/a>" : username.c_str(), 
+			    dbname.empty() ? "<n/a>" : dbname.c_str(), tl_timeout_ms, 
+			    tl_timeout_ms == 1 ? "" : "s", tGate.getLockTID());
       return -1;
    }
    return 0;
@@ -117,11 +119,11 @@ ManagedDatasource *ManagedDatasource::copy()
 {
    class ManagedDatasource *nds = new ManagedDatasource(dsl);
    
-   nds->p_username    = p_username    ? strdup(p_username)    : NULL;
-   nds->p_password    = p_password    ? strdup(p_password)    : NULL;
-   nds->p_dbname      = p_dbname      ? strdup(p_dbname)      : NULL;
-   nds->p_hostname    = p_hostname    ? strdup(p_hostname)    : NULL;
-   nds->p_db_encoding = p_db_encoding ? strdup(p_db_encoding) : NULL;
+   nds->p_username    = p_username;
+   nds->p_password    = p_password;
+   nds->p_dbname      = p_dbname;
+   nds->p_hostname    = p_hostname;
+   nds->p_db_encoding = p_db_encoding;
    return nds;
 }
 

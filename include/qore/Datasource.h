@@ -32,6 +32,8 @@
 
 #define _QORE_DATASOURCE_H
 
+#include <string>
+
 class Datasource
 {
    protected:
@@ -43,18 +45,18 @@ class Datasource
       void *private_data;
 
       // for pending connection values
-      char *p_username,  // for Oracle, MySQL
-	 *p_password,    // for Oracle, MySQL
-	 *p_dbname,      // for Oracle, MySQL
-	 *p_db_encoding, // for Oracle, MySQL - database-specific name for the encoding for the connection
-	 *p_hostname;    // for MySQL
+      std::string p_username,  // for Oracle, MySQL
+	 p_password,    // for Oracle, MySQL
+	 p_dbname,      // for Oracle, MySQL
+	 p_db_encoding, // for Oracle, MySQL - database-specific name for the encoding for the connection
+	 p_hostname;    // for MySQL
 
       // actual connection values set by init() before the datasource is opened
-      char *username,    // for Oracle, MySQL
-	 *password,      // for Oracle, MySQL
-	 *db_encoding,   // for ORacle, MySQL - database-specific name for the encoding for the connection
-	 *dbname,        // for Oracle, MySQL
-	 *hostname;      // for MySQL
+      std::string username,    // for Oracle, MySQL
+	 password,      // for Oracle, MySQL
+	 db_encoding,   // for ORacle, MySQL - database-specific name for the encoding for the connection
+	 dbname,        // for Oracle, MySQL
+	 hostname;      // for MySQL
       
       DLLLOCAL void freeConnectionValues();
       DLLLOCAL void setConnectionValues();
@@ -63,23 +65,23 @@ class Datasource
       DLLEXPORT Datasource(DBIDriver *);
       DLLEXPORT virtual ~Datasource();
       DLLEXPORT bool getAutoCommit() const;
-      DLLEXPORT char *getUsername() const;
-      DLLEXPORT char *getPassword() const;
-      DLLEXPORT char *getDBName() const;
-      DLLEXPORT char *getDBEncoding() const;
-      DLLEXPORT char *getOSEncoding() const;
-      DLLEXPORT char *getHostName() const;
+      DLLEXPORT const char *getUsername() const;
+      DLLEXPORT const char *getPassword() const;
+      DLLEXPORT const char *getDBName() const;
+      DLLEXPORT const char *getDBEncoding() const;
+      DLLEXPORT const char *getOSEncoding() const;
+      DLLEXPORT const char *getHostName() const;
       DLLEXPORT void *getPrivateData() const;
       DLLEXPORT void setPrivateData(void *data);
-      DLLEXPORT void setDBEncoding(char *name);
+      DLLEXPORT void setDBEncoding(const char *name);
       DLLEXPORT class QoreEncoding *getQoreEncoding() const;
       DLLEXPORT void setQoreEncoding(class QoreEncoding *enc);
-      DLLEXPORT void setQoreEncoding(char *name);
-      DLLEXPORT void setPendingUsername(char *u);
-      DLLEXPORT void setPendingPassword(char *p);
-      DLLEXPORT void setPendingDBName(char *d);
-      DLLEXPORT void setPendingDBEncoding(char *c);
-      DLLEXPORT void setPendingHostName(char *h);
+      DLLEXPORT void setQoreEncoding(const char *name);
+      DLLEXPORT void setPendingUsername(const char *u);
+      DLLEXPORT void setPendingPassword(const char *p);
+      DLLEXPORT void setPendingDBName(const char *d);
+      DLLEXPORT void setPendingDBEncoding(const char *c);
+      DLLEXPORT void setPendingHostName(const char *h);
       DLLEXPORT void setAutoCommit(bool ac);
       DLLEXPORT int open(ExceptionSink *xsink);
       DLLEXPORT class QoreNode *select(class QoreString *query_str, class List *args, ExceptionSink *xsink);

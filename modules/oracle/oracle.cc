@@ -1183,12 +1183,12 @@ static int oracle_open(Datasource *ds, ExceptionSink *xsink)
    }
    else // get Oracle character set name from OS character set name
    {
-      if ((OCINlsNameMap(tmpenvhp, (oratext *)nbuf, OCI_NLS_MAXBUFSZ, (oratext *)QCS_DEFAULT->code, OCI_NLS_CS_IANA_TO_ORA) != OCI_SUCCESS))
+      if ((OCINlsNameMap(tmpenvhp, (oratext *)nbuf, OCI_NLS_MAXBUFSZ, (oratext *)QCS_DEFAULT->getCode(), OCI_NLS_CS_IANA_TO_ORA) != OCI_SUCCESS))
       {
 	 OCIHandleFree(tmpenvhp, OCI_HTYPE_ENV);
 	 xsink->raiseException("DBI:ORACLE:UNKNOWN-CHARACTER-SET", 
 			"cannot map default OS encoding '%s' to Oracle character encoding",
-			QCS_DEFAULT->code);
+			QCS_DEFAULT->getCode());
 	 delete d_ora;
 	 ds->setPrivateData(NULL);
 	 traceout("oracle_open()");
@@ -1198,7 +1198,7 @@ static int oracle_open(Datasource *ds, ExceptionSink *xsink)
       ds->setQoreEncoding(QCS_DEFAULT);
       charset = nbuf;
       printd(5, "oracle_open() setting Oracle encoding to '%s' from default OS encoding '%s'\n",
-	     charset, QCS_DEFAULT->code);
+	     charset, QCS_DEFAULT->getCode());
    }
 
 #ifdef HAVE_OCIENVNLSCREATE

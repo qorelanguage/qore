@@ -514,7 +514,7 @@ static class QoreNode *f_makeXMLString(class QoreNode *params, ExceptionSink *xs
       ccs = QCS_UTF8;
 
    QoreString *str = new QoreString(ccs);
-   str->sprintf("<?xml version=\"1.0\" encoding=\"%s\"?>", ccs->code);
+   str->sprintf("<?xml version=\"1.0\" encoding=\"%s\"?>", ccs->getCode());
    if (pstr)
    {
       str->concat('<');
@@ -563,7 +563,7 @@ static class QoreNode *f_makeFormattedXMLString(class QoreNode *params, Exceptio
       ccs = QCS_UTF8;
 
    QoreString *str = new QoreString(ccs);
-   str->sprintf("<?xml version=\"1.0\" encoding=\"%s\"?>\n", ccs->code);
+   str->sprintf("<?xml version=\"1.0\" encoding=\"%s\"?>\n", ccs->getCode());
    if (pstr)
    {
       str->concat('<');
@@ -643,10 +643,10 @@ static inline void addXMLRPCValueInternHash(QoreString *str, Hash *h, int indent
 	 {
 	    return;	    
 	 }
-	 //printd(0, "addXMLRPCValueInternHashInternal() converted %s->%s, \"%s\"->\"%s\"\n", member->getEncoding()->code, ccs->code, member->getBuffer(), ns->getBuffer());
+	 //printd(0, "addXMLRPCValueInternHashInternal() converted %s->%s, \"%s\"->\"%s\"\n", member->getEncoding()->getCode(), ccs->getCode(), member->getBuffer(), ns->getBuffer());
 	 member.reset(ns);
       }
-      //else printd(0, "addXMLRPCValueInternHashInternal() not converting %sx \"%s\"\n", member->getEncoding()->code, member->getBuffer());
+      //else printd(0, "addXMLRPCValueInternHashInternal() not converting %sx \"%s\"\n", member->getEncoding()->getCode(), member->getBuffer());
       // indent
       if (format)
          str->addch(' ', indent);
@@ -808,7 +808,7 @@ class QoreString *makeXMLRPCCallString(class QoreEncoding *ccs, class QoreNode *
    }
 
    QoreString *str = new QoreString(ccs);
-   str->sprintf("<?xml version=\"1.0\" encoding=\"%s\"?><methodCall><methodName>", ccs->code);
+   str->sprintf("<?xml version=\"1.0\" encoding=\"%s\"?><methodCall><methodName>", ccs->getCode());
    str->concatAndHTMLEncode(p0->val.String, xsink);
    if (xsink->isException())
    {
@@ -871,7 +871,7 @@ class QoreString *makeXMLRPCCallStringArgs(class QoreEncoding *ccs, class QoreNo
    }
 
    QoreString *str = new QoreString(ccs);
-   str->sprintf("<?xml version=\"1.0\" encoding=\"%s\"?><methodCall><methodName>", ccs->code);
+   str->sprintf("<?xml version=\"1.0\" encoding=\"%s\"?><methodCall><methodName>", ccs->getCode());
    str->concatAndHTMLEncode(p0->val.String, xsink);
    if (xsink->isException())
    {
@@ -2150,7 +2150,7 @@ class QoreString *makeXMLQoreString(QoreNode *pstr, QoreNode *pobj, int format, 
    //if (format)
    //   xmlTextWriterSetIndentString(writer, (xmlChar *)"  ");
 
-   if (!fragment && (xmlTextWriterStartDocument(writer, NULL, ccsid->code, NULL) < 0))
+   if (!fragment && (xmlTextWriterStartDocument(writer, NULL, ccsid->getCode(), NULL) < 0))
    {
       xsink->raiseException("XML-WRITER-ERROR", "xmlTextWriterStartDocument() returned an error");
       return NULL;
@@ -2296,10 +2296,10 @@ static inline void addXMLRPCValueInternHashNew(xmlTextWriterPtr writer, Hash *h,
 	 {
 	    return;	    
 	 }
-	 //printd(0, "addXMLRPCValueInternHash() converted %s->%s, \"%s\"->\"%s\"\n", member->getEncoding()->code, ccs->code, member->getBuffer(), ns->getBuffer());
+	 //printd(0, "addXMLRPCValueInternHash() converted %s->%s, \"%s\"->\"%s\"\n", member->getEncoding()->getCode(), ccs->getCode(), member->getBuffer(), ns->getBuffer());
 	 member.reset(ns);
       }
-      //else printd(0, "addXMLRPCValueInternHash() not converting %s \"%s\"\n", member->getEncoding()->code, member->getBuffer());
+      //else printd(0, "addXMLRPCValueInternHash() not converting %s \"%s\"\n", member->getEncoding()->getCode(), member->getBuffer());
       if (xmlTextWriterStartElement(writer, (xmlChar *)"member") < 0)
       {
 	 xsink->raiseException("XML-WRITER-ERROR", "xmlTextWriterStartElement() returned an error");
@@ -2515,7 +2515,7 @@ static class QoreNode *f_makeXMLRPCCallStringNew(class QoreNode *params, Excepti
       return NULL;
    }
    
-   if (xmlTextWriterStartDocument(writer, NULL, ccs->code, NULL) < 0)
+   if (xmlTextWriterStartDocument(writer, NULL, ccs->getCode(), NULL) < 0)
    {
       xsink->raiseException("XML-WRITER-ERROR", "xmlTextWriterStartDocument() returned an error");
       return NULL;
@@ -2638,7 +2638,7 @@ static class QoreNode *f_makeXMLRPCFaultResponseString(class QoreNode *params, E
    // for speed, the XML is created directly here
    QoreString *str = new QoreString(ccsid);
    str->sprintf("<?xml version=\"1.0\" encoding=\"%s\"?>\n<methodResponse><fault><value><struct><member><name>faultCode</name><value><int>%d</int></value></member><member><name>faultString</name><value><string>",
-		ccsid->code, code);
+		ccsid->getCode(), code);
    str->concatAndHTMLEncode(p1->val.String->getBuffer());
    str->concat("</string></value></member></struct></value></fault></methodResponse>");
    traceout("f_makeXMLRPCFaultResponseString()");
@@ -2659,12 +2659,12 @@ static class QoreNode *f_makeFormattedXMLRPCFaultResponseString(class QoreNode *
    }
    int code = p0 ? p0->getAsInt() : 0;
    class QoreEncoding *ccsid = p1->val.String->getEncoding();
-   //printd(0, "ccsid=%016x (%s) (%s) code=%d\n", ccsid, ccsid->code, p1->val.String->getBuffer(), code);
+   //printd(0, "ccsid=%016x (%s) (%s) code=%d\n", ccsid, ccsid->getCode(), p1->val.String->getBuffer(), code);
 
    // for speed, the XML is created directly here
    QoreString *str = new QoreString(ccsid);
    str->sprintf("<?xml version=\"1.0\" encoding=\"%s\"?>\n<methodResponse>\n  <fault>\n    <value>\n      <struct>\n        <member>\n          <name>faultCode</name>\n          <value><int>%d</int></value>\n        </member>\n        <member>\n          <name>faultString</name>\n          <value><string>",
-		ccsid->code, code);
+		ccsid->getCode(), code);
    str->concatAndHTMLEncode(p1->val.String->getBuffer());
    str->concat("</string></value>\n        </member>\n      </struct>\n    </value>\n  </fault>\n</methodResponse>");
    traceout("f_makeFormattedXMLRPCFaultResponseString()");
@@ -2686,7 +2686,7 @@ static class QoreNode *f_makeXMLRPCResponseString(class QoreNode *params, Except
    }
 
    QoreString *str = new QoreString(ccs);
-   str->sprintf("<?xml version=\"1.0\" encoding=\"%s\"?><methodResponse><params>", ccs->code);
+   str->sprintf("<?xml version=\"1.0\" encoding=\"%s\"?><methodResponse><params>", ccs->getCode());
 
    // now loop through the params
    int ls = num_params(params);
@@ -2741,7 +2741,7 @@ static class QoreNode *f_makeFormattedXMLRPCCallStringArgs(class QoreNode *param
    }
 
    QoreString *str = new QoreString(ccs);
-   str->sprintf("<?xml version=\"1.0\" encoding=\"%s\"?>\n<methodCall>\n  <methodName>", ccs->code);
+   str->sprintf("<?xml version=\"1.0\" encoding=\"%s\"?>\n<methodCall>\n  <methodName>", ccs->getCode());
    str->concatAndHTMLEncode(p0->val.String->getBuffer());
    str->concat("</methodName>\n  <params>\n");
 
@@ -2793,7 +2793,7 @@ static class QoreNode *f_makeFormattedXMLRPCCallString(class QoreNode *params, E
    }
 
    QoreString *str = new QoreString(ccs);
-   str->sprintf("<?xml version=\"1.0\" encoding=\"%s\"?>\n<methodCall>\n  <methodName>", ccs->code);
+   str->sprintf("<?xml version=\"1.0\" encoding=\"%s\"?>\n<methodCall>\n  <methodName>", ccs->getCode());
    str->concatAndHTMLEncode(p0->val.String->getBuffer());
    str->concat("</methodName>\n  <params>\n");
 
@@ -2831,7 +2831,7 @@ static class QoreNode *f_makeFormattedXMLRPCResponseString(class QoreNode *param
 
    QoreNode *rv = new QoreNode(NT_STRING);
    rv->val.String = new QoreString(ccs);
-   rv->val.String->sprintf("<?xml version=\"1.0\" encoding=\"%s\"?>\n<methodResponse>\n  <params>\n", ccs->code);
+   rv->val.String->sprintf("<?xml version=\"1.0\" encoding=\"%s\"?>\n<methodResponse>\n  <params>\n", ccs->getCode());
 
    // now loop through the params
    for (int i = 0; i < ls; i++)

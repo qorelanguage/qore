@@ -30,6 +30,8 @@
 
 #include <stdarg.h>
 
+#include <string>
+
 struct code_table {
       char symbol;
       char *code;
@@ -72,6 +74,7 @@ class QoreString {
       DLLEXPORT QoreString(const char *str, class QoreEncoding *new_qorecharset);
       DLLEXPORT QoreString(class QoreEncoding *new_qorecharset);
       DLLEXPORT QoreString(const char *str, int len, class QoreEncoding *new_qorecharset = QCS_DEFAULT);
+      DLLEXPORT QoreString(const std::string &str, class QoreEncoding *new_encoding = QCS_DEFAULT);
       DLLEXPORT QoreString(char);
       DLLEXPORT QoreString(const QoreString *str);
       DLLEXPORT QoreString(const QoreString *, int);

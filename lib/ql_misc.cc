@@ -177,7 +177,7 @@ static class QoreNode *f_html_decode(class QoreNode *params, ExceptionSink *xsin
 
 static class QoreNode *f_get_default_encoding(class QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(QCS_DEFAULT->code);
+   return new QoreNode(QCS_DEFAULT->getCode());
 }
 
 class QoreNode *f_parse(class QoreNode *params, ExceptionSink *xsink)

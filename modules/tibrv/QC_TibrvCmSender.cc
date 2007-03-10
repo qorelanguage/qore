@@ -157,7 +157,7 @@ class QoreNode *TIBRVCMSENDER_setStringEncoding(class Object *self, class QoreTi
 
 class QoreNode *TIBRVCMSENDER_getStringEncoding(class Object *self, class QoreTibrvCmSender *cms, QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(cms->getStringEncoding()->code);
+   return new QoreNode(cms->getStringEncoding()->getCode());
 }
 
 class QoreNode *TIBRVCMSENDER_connectToRelayAgent(class Object *self, class QoreTibrvCmSender *cms, QoreNode *params, ExceptionSink *xsink)
