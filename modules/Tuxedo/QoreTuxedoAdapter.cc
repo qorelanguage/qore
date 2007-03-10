@@ -284,7 +284,7 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(Hash* settings, ExceptionSink* xsink)
   m_default_fml_description(0),
   m_default_fml32_description(0)
 {
-  char* err_name = (char*)"TUXEDO-ADAPTER-CONSTRUCTOR";
+  const char* err_name = "TUXEDO-ADAPTER-CONSTRUCTOR";
 
   long priority = 0;
   bool priority_set = false;
@@ -1010,7 +1010,7 @@ int QoreTuxedoAdapter::switchToSavedContext() const
 }
 
 //------------------------------------------------------------------------------
-void QoreTuxedoAdapter::setStringEncoding(char* name)
+void QoreTuxedoAdapter::setStringEncoding(const char* name)
 {
   m_string_encoding = QEM.findCreate(name);
   if (!m_string_encoding) m_string_encoding = QCS_DEFAULT;
@@ -1027,7 +1027,7 @@ void QoreTuxedoAdapter::freeSendBuffer()
 }
 
 //------------------------------------------------------------------------------
-bool QoreTuxedoAdapter::allocate_send_buffer(const char* type, long size, char* err_name, ExceptionSink* xsink)
+bool QoreTuxedoAdapter::allocate_send_buffer(const char* type, long size, const char* err_name, ExceptionSink* xsink)
 {
   m_send_buffer = tpalloc((char*)type, 0, size);
   if (m_send_buffer) {
@@ -1043,7 +1043,7 @@ bool QoreTuxedoAdapter::allocate_send_buffer(const char* type, long size, char* 
 
 //-----------------------------------------------------------------------------
 // Allocate buffer. Get type either from passed settings hash or use the default.
-pair<char*, long> QoreTuxedoAdapter::allocate_out_buffer(char* default_type, Hash* settings, char* err_name, ExceptionSink* xsink)
+pair<char*, long> QoreTuxedoAdapter::allocate_out_buffer(const char* default_type, Hash* settings, const char* err_name, ExceptionSink* xsink)
 {
   char type[20] = "STRING";
   bool type_set = false;
@@ -1083,7 +1083,7 @@ pair<char*, long> QoreTuxedoAdapter::allocate_out_buffer(char* default_type, Has
 
 //-----------------------------------------------------------------------------
 // Get flags either from passed hash (or integer) or from the default value
-long QoreTuxedoAdapter::get_flags(Hash* settings, long* pflags, long default_flags, bool default_flags_set, char* err_name, ExceptionSink* xsink)
+long QoreTuxedoAdapter::get_flags(Hash* settings, long* pflags, long default_flags, bool default_flags_set, const char* err_name, ExceptionSink* xsink)
 {
   if (pflags) return *pflags;
 
@@ -1106,7 +1106,7 @@ long QoreTuxedoAdapter::get_flags(Hash* settings, long* pflags, long default_fla
 
 //------------------------------------------------------------------------------
 // Return true if FML32 should be generated, false for FML
-static bool is_fml32_requested(Hash* settings, bool default_is_fml32, bool default_is_fml32_set, char* err_name, ExceptionSink* xsink)
+static bool is_fml32_requested(Hash* settings, bool default_is_fml32, bool default_is_fml32_set, const char* err_name, ExceptionSink* xsink)
 {
   QoreNode* n = settings->getKeyValue((char*)"use_fml32");
   if (n) {
@@ -1122,7 +1122,7 @@ static bool is_fml32_requested(Hash* settings, bool default_is_fml32, bool defau
 }
 
 //------------------------------------------------------------------------------
-void QoreTuxedoAdapter::setSendBuffer(QoreNode* n, Hash* settings, char* err_name, ExceptionSink* xsink)
+void QoreTuxedoAdapter::setSendBuffer(QoreNode* n, Hash* settings, const char* err_name, ExceptionSink* xsink)
 {
   freeSendBuffer();
 
@@ -1169,7 +1169,7 @@ void QoreTuxedoAdapter::setSendBuffer(QoreNode* n, Hash* settings, char* err_nam
 }
 
 //-----------------------------------------------------------------------------
-QoreNode* QoreTuxedoAdapter::buffer2node(char* buffer, long buffer_size, char* err_name, ExceptionSink* xsink)
+QoreNode* QoreTuxedoAdapter::buffer2node(char* buffer, long buffer_size, const char* err_name, ExceptionSink* xsink)
 {
   if (!buffer || buffer_size == 0) {
     return new QoreNode(NT_NOTHING);
@@ -1225,7 +1225,7 @@ QoreNode* QoreTuxedoAdapter::buffer2node(char* buffer, long buffer_size, char* e
 //------------------------------------------------------------------------------
 QoreNode* QoreTuxedoAdapter::call(const char* service_name, Hash* call_settings, long* pflags, ExceptionSink* xsink)
 {
-  char* err_name = (char*)"TUXEDO-ERROR";
+  const char* err_name = (char*)"TUXEDO-ERROR";
   char type[20] = "";
   char subtype[20];
 
@@ -1248,7 +1248,7 @@ QoreNode* QoreTuxedoAdapter::call(const char* service_name, Hash* call_settings,
   if (xsink->isException()) {
     return 0;
   }
-  int res = tpcall(service_name, m_send_buffer, m_send_buffer_size, &out.first, &out.second, flags);
+  int res = tpcall((char *)service_name, m_send_buffer, m_send_buffer_size, &out.first, &out.second, flags);
   freeSendBuffer();
   if (res == -1) {
     Hash* h = new Hash;
@@ -1265,12 +1265,12 @@ QoreNode* QoreTuxedoAdapter::call(const char* service_name, Hash* call_settings,
 //------------------------------------------------------------------------------
 QoreNode* QoreTuxedoAdapter::acall(const char* service_name, Hash* call_settings, long* pflags, ExceptionSink* xsink)
 {
-  char* err_name = (char*)"TUXEDO-ERROR";
+  const char* err_name = (char*)"TUXEDO-ERROR";
   long flags = get_flags(call_settings, pflags, m_default_flags_for_acall, m_default_flags_for_acall_set, err_name, xsink);
   if (xsink->isException()) {
     return 0;
   }
-  int res = tpacall(service_name, m_send_buffer, m_send_buffer_size, flags);
+  int res = tpacall((char *)service_name, m_send_buffer, m_send_buffer_size, flags);
   if (res == -1) {
     Hash* h = new Hash;
     h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
@@ -1286,13 +1286,13 @@ QoreNode* QoreTuxedoAdapter::acall(const char* service_name, Hash* call_settings
 //-----------------------------------------------------------------------------
 QoreNode* QoreTuxedoAdapter::post_event(const char* event_name, Hash* call_settings, long* pflags, ExceptionSink* xsink)
 {
-  char* err_name = (char*)"TUXEDO-ERROR";
+  const char* err_name = (char*)"TUXEDO-ERROR";
   long flags = get_flags(call_settings, pflags, m_default_flags_for_post_event, m_default_flags_for_post_event_set, err_name, xsink);
   if (xsink->isException()) {
     return 0;
   }
 
-  int res = tppost(event_name, m_send_buffer, m_send_buffer_size, flags);
+  int res = tppost((char *)event_name, m_send_buffer, m_send_buffer_size, flags);
   if (res != -1) return 0;
 
   Hash* h = new Hash;
@@ -1304,7 +1304,7 @@ QoreNode* QoreTuxedoAdapter::post_event(const char* event_name, Hash* call_setti
 //------------------------------------------------------------------------------
 QoreNode* QoreTuxedoAdapter::get_reply(int handle, Hash* call_settings, long* pflags, ExceptionSink* xsink)
 {
-  char* err_name = (char*)"TUXEDO-ADAPTER-WAIT-FOR-ASYNC_REPLY";
+  const char* err_name = (char*)"TUXEDO-ADAPTER-WAIT-FOR-ASYNC_REPLY";
 
   pair<char*, long> out = allocate_out_buffer(0, call_settings, err_name, xsink);
   if (xsink->isException()) {
@@ -1338,12 +1338,12 @@ QoreNode* QoreTuxedoAdapter::get_reply(int handle, Hash* call_settings, long* pf
 //------------------------------------------------------------------------------
 QoreNode* QoreTuxedoAdapter::connect(const char* service_name, Hash* call_settings, long* pflags, ExceptionSink* xsink)
 {
-  char* err_name = (char*)"TUXEDO-ADAPTER-JOIN-CONVERSATION";
+  const char* err_name = (char*)"TUXEDO-ADAPTER-JOIN-CONVERSATION";
   long flags = get_flags(call_settings, pflags, m_default_flags_for_connect, m_default_flags_for_connect_set, err_name, xsink);
   if (xsink->isException()) {
     return 0;
   }
-  int res = tpconnect(service_name, m_send_buffer, m_send_buffer_size, flags);
+  int res = tpconnect((char *)service_name, m_send_buffer, m_send_buffer_size, flags);
   if (res != -1) {
     return new QoreNode((int64)res); // descriptor of the connection
   }
@@ -1356,7 +1356,7 @@ QoreNode* QoreTuxedoAdapter::connect(const char* service_name, Hash* call_settin
 //-----------------------------------------------------------------------------
 QoreNode* QoreTuxedoAdapter::send(int handle, Hash* call_settings, long* pflags, ExceptionSink* xsink)
 {
-  char* err_name = (char*)"TUXEDO-ERROR-SEND-CONVERSATION-DATA";
+  const char* err_name = (char*)"TUXEDO-ERROR-SEND-CONVERSATION-DATA";
   long flags = get_flags(call_settings, pflags, m_default_flags_for_send, m_default_flags_for_send_set, err_name, xsink);
   if (xsink->isException()) return 0;
   long event = TPEV_SVCSUCC;
@@ -1373,7 +1373,7 @@ QoreNode* QoreTuxedoAdapter::send(int handle, Hash* call_settings, long* pflags,
 //-----------------------------------------------------------------------------
 QoreNode* QoreTuxedoAdapter::receive(int handle, Hash* call_settings, long* pflags, ExceptionSink* xsink)
 {
-  char* err_name = (char*)"TUXEDO-ADAPTER-RECEIVE-CONVERSATION-DATA";
+  const char* err_name = (char*)"TUXEDO-ADAPTER-RECEIVE-CONVERSATION-DATA";
   long flags = get_flags(call_settings, pflags, m_default_flags_for_send, m_default_flags_for_send_set, err_name, xsink);
   if (xsink->isException()) return 0;
   long event = TPEV_SVCSUCC;
@@ -1415,7 +1415,7 @@ static QoreNode* get_val(Hash* hash, const char* name, QoreType* type)
 //-----------------------------------------------------------------------------
 QoreNode* QoreTuxedoAdapter::enqueue(const char* queue_space, const char* queue_name, Hash* call_settings, long* pflags, ExceptionSink* xsink)
 {
-  char* err_name = (char*)"TUXEDO-ADAPTER-ENQUEUE";
+  const char* err_name = (char*)"TUXEDO-ADAPTER-ENQUEUE";
   long flags = get_flags(call_settings, pflags, m_default_flags_for_enqueue, m_default_flags_for_enqueue_set, err_name, xsink);
   if (xsink->isException()) return 0;
 
@@ -1457,7 +1457,7 @@ QoreNode* QoreTuxedoAdapter::enqueue(const char* queue_space, const char* queue_
     if (n) strcpy(ctl.failurequeue, n->val.String->getBuffer());
   }
 
-  int res = tpenqueue(queue_space, queue_name, &ctl, m_send_buffer, m_send_buffer_size, flags);
+  int res = tpenqueue((char *)queue_space, (char *)queue_name, &ctl, m_send_buffer, m_send_buffer_size, flags);
   if (res == -1) {
     Hash* h = new Hash;
     h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
@@ -1490,7 +1490,7 @@ QoreNode* QoreTuxedoAdapter::enqueue(const char* queue_space, const char* queue_
 //-----------------------------------------------------------------------------
 QoreNode* QoreTuxedoAdapter::dequeue(const char* queue_space, const char* queue_name, Hash* call_settings, long* pflags, ExceptionSink* xsink)
 {
-  char* err_name = (char*)"TUXEDO-ADAPTER-DEQUEUE";
+  const char* err_name = (char*)"TUXEDO-ADAPTER-DEQUEUE";
   long flags = get_flags(call_settings, pflags, m_default_flags_for_dequeue, m_default_flags_for_dequeue_set, err_name, xsink);
   if (xsink->isException()) return 0;
 
@@ -1522,7 +1522,7 @@ QoreNode* QoreTuxedoAdapter::dequeue(const char* queue_space, const char* queue_
     }
   }
 
-  int x = tpdequeue(queue_space, queue_name, &ctl, &out.first, &out.second, flags);
+  int x = tpdequeue((char *)queue_space, (char *)queue_name, &ctl, &out.first, &out.second, flags);
   if (x == -1) {
     Hash* h = new Hash;
     h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
@@ -1607,7 +1607,7 @@ Hash* QoreTuxedoAdapter::loadFmlDescription(const vector<string>& files, bool is
   ON_BLOCK_EXIT((is_fml32 ? &Fidnm_unload : &Fidnm_unload32));
 
   FmlEnvironmentSetter setter(files, is_fml32);
-  char* err_name = (char*)"LOAD-FML-DESCRIPTION-ERROR";
+  const char* err_name = (char*)"LOAD-FML-DESCRIPTION-ERROR";
 
   Hash *result = new Hash;
 
@@ -1654,7 +1654,7 @@ Hash* QoreTuxedoAdapter::loadFmlDescription(const string& file, bool is_fml32, E
 //------------------------------------------------------------------------------
 Hash* QoreTuxedoAdapter::generateFmlDescription(int base, Hash* typed_names, bool is_fml32, ExceptionSink* xsink)
 {
-  char* err_name = (char*)"LOAD-FML-DESCRIPTION-ERROR";
+  const char* err_name = (char*)"LOAD-FML-DESCRIPTION-ERROR";
 
   char buffer[256];
   char* tmpfile = tmpnam(buffer);
@@ -1973,8 +1973,8 @@ void QoreTuxedoAdapter::add_fml_value_into_send_buffer(const char* value_name, F
         encoded_string.reset(new QoreString(s, m_string_encoding));
         s = encoded_string->getBuffer();
       }
-      if (!s) s = (char*)"";
-      ptr_val = s;
+      if (!s) s = "";
+      ptr_val = (char *)s;
       value_length = strlen(s) + 1; 
       break;
     } 
@@ -2129,7 +2129,7 @@ Hash* QoreTuxedoAdapter::getFmlDataFromBuffer(Hash* description_info, bool is_fm
   }
   char type[20];
   char subtype[20];
-  if (tptypes(buffer, type, subtype) == -1) {
+  if (tptypes((char *)buffer, type, subtype) == -1) {
     xsink->raiseException(err_name, "tptypes() of typed buffer failed with error %d.", tperrno);
     return 0;
   }
@@ -2225,9 +2225,9 @@ Hash* QoreTuxedoAdapter::getFmlDataFromBuffer(Hash* description_info, bool is_fm
     // Fname[32] cannot be used as it loads description from file(s)
     pair<string, int> item_info;
     if (is_fml32) {
-      item_info  = fml_id2name(fldid32, description_info, xsink, err_name);
+       item_info  = fml_id2name(fldid32, description_info, xsink, (char *)err_name);
     } else {
-      item_info = fml_id2name(fldid, description_info, xsink, err_name);
+       item_info = fml_id2name(fldid, description_info, xsink, (char *)err_name);
     }
     if (xsink->isException()) {
       out_hash->derefAndDelete(xsink);

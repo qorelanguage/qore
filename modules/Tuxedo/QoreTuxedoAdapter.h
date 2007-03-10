@@ -137,7 +137,7 @@ public:  // public for now so the QC_TuxedoAdapter has access to it
   Hash* loadFmlDescription(const std::string& file, bool is_fml32, ExceptionSink* xsink);
   Hash* generateFmlDescription(int base, Hash* typed_names, bool is_fml32, ExceptionSink* xsink);
 
-  QoreNode* buffer2node(const char* buffer, long buffer_size, const char* err_name, ExceptionSink* xsink);
+  QoreNode* buffer2node(char* buffer, long buffer_size, const char* err_name, ExceptionSink* xsink);
   bool allocate_send_buffer(const char* type, long size, const char* err_name, ExceptionSink* xsink);
 
   std::pair<char*, long> allocate_out_buffer(const char* default_type, Hash* settings, const char* err_name, ExceptionSink* xsink);

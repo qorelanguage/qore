@@ -383,7 +383,6 @@ int ManagedDatasource::closeUnlocked(class ExceptionSink *xsink)
 int ManagedDatasource::close()
 {
    assert(false);
-   
 /*
    AutoLocker al(&ds_lock);
    // wait for any in-progress action to complete
@@ -396,6 +395,7 @@ int ManagedDatasource::close()
    }
    return closeUnlocked();
  */
+   return 0;
 }
 
 int ManagedDatasource::close(class ExceptionSink *xsink)
