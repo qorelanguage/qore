@@ -295,7 +295,7 @@ static QoreNode *DS_getHostName(class Object *self, class ManagedDatasource *ds,
 
 static QoreNode *DS_setTransactionLockTimeout(class Object *self, class ManagedDatasource *ds, class QoreNode *params, ExceptionSink *xsink)
 {
-   ds->setTransactionLockTimeout(getSecZeroInt(get_param(params, 0)));
+   ds->setTransactionLockTimeout(getMsZeroInt(get_param(params, 0)));
    return NULL;
 }
 

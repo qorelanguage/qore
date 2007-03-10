@@ -1,6 +1,8 @@
 2007.03.10: David Nichols
 	* updated Datasource class to throw an exception if deleted while in a
 	  transaction (and release the lock)
+	* updated documentation to reflect that Datasource transaction timeouts
+	  are now set in milliseconds instead of seconds
 
 2007.03.09: David Nichols
 	* renamed SafeLocker class to "AutoLock"

@@ -82,11 +82,11 @@ void ManagedDatasource::deref()
 
 int ManagedDatasource::grabLockIntern(class ExceptionSink *xsink)
 {
-   if (tGate.enter(tl_timeout) < 0)
+   if (tGate.enter(tl_timeout_ms) < 0)
    {
       endDBAction();
-      xsink->raiseException("TRANSACTION-TIMEOUT", "timed out on datasource '%s@%s' after waiting %d second%s on transaction lock held by TID %d", 
-			    username, dbname, tl_timeout, tl_timeout == 1 ? "" : "s", tGate.getLockTID());
+      xsink->raiseException("TRANSACTION-TIMEOUT", "timed out on datasource '%s@%s' after waiting %d millisecond%s on transaction lock held by TID %d", 
+			    username, dbname, tl_timeout_ms, tl_timeout_ms == 1 ? "" : "s", tGate.getLockTID());
       return -1;
    }
    return 0;
@@ -128,7 +128,7 @@ ManagedDatasource *ManagedDatasource::copy()
 ManagedDatasource::ManagedDatasource(DBIDriver *ndsl) : Datasource(ndsl)
 {
    counter = 0;
-   tl_timeout = DEFAULT_TL_TIMEOUT;
+   tl_timeout_ms = DEFAULT_TL_TIMEOUT;
 }
 
 int ManagedDatasource::wait_for_counter(class ExceptionSink *xsink)
@@ -174,14 +174,14 @@ void ManagedDatasource::endDBAction()
       cStatus.signal();
 }
 
-void ManagedDatasource::setTransactionLockTimeout(int t)
+void ManagedDatasource::setTransactionLockTimeout(int t_ms)
 {
-   tl_timeout = t;
+   tl_timeout_ms = t_ms;
 }
 
 int ManagedDatasource::getTransactionLockTimeout()
 {
-   return tl_timeout;
+   return tl_timeout_ms;
 }
 
 void ManagedDatasource::setAutoCommit(bool ac)

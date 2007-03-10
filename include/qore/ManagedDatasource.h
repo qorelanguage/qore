@@ -43,7 +43,8 @@ FIXME: commit()s when autocommit=true should be made here, also after
 #include <qore/Datasource.h>
 #include <qore/AbstractPrivateData.h>
 
-#define DEFAULT_TL_TIMEOUT 120
+// default timeout set to 120 seconds
+#define DEFAULT_TL_TIMEOUT 120000
 
 DLLLOCAL void datasource_thread_lock_cleanup(void *ptr, class ExceptionSink *xsink);
 
@@ -53,7 +54,7 @@ private:
    class LockedObject ds_lock;
    class SingleExitGate tGate;
    int counter;
-   int tl_timeout;
+   int tl_timeout_ms;
    class QoreCondition cStatus;
    
    DLLLOCAL int startDBAction(class ExceptionSink *xsink);
@@ -96,7 +97,7 @@ public:
    DLLLOCAL QoreNode *getPendingDBName();
    DLLLOCAL QoreNode *getPendingDBEncoding();
    DLLLOCAL QoreNode *getPendingHostName();
-   DLLLOCAL void setTransactionLockTimeout(int t);
+   DLLLOCAL void setTransactionLockTimeout(int t_ms);
    DLLLOCAL int getTransactionLockTimeout();
    DLLLOCAL void beginTransaction(class ExceptionSink *xsink);
    DLLLOCAL void setAutoCommit(bool ac);   

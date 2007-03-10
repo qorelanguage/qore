@@ -3,10 +3,10 @@ RELEASE NOTES for qore v0.6.2
 NOTE: for platform-specific notes and build instructions, please see the file BUILD
 
 *) ***COMPATIBILITY WARNING***: all timeouts changed to milliseconds
-affects SingleExitGate::enter() and Condition::wait()
+affects Condition::wait(), Datasource::setTransactionLockTimeout(), and Datasource::getTransactionLockTimeout()
 the optional timeout value is no longer seconds, but milliseconds
 
-This change will be transparent for code using relative dates, i.e.:
+This change will be transparent for code using relative times, i.e.:
 	$cond.wait($mutex, 2s);
 
 Otherwise for integers make sure and multiply any values representing seconds by 1000, i.e.:
@@ -49,15 +49,18 @@ All thread locking methods take an optional timeout value in ms.
 This affects:
 	Mutex::lock()
 	Gate::enter()
+	RWLock::writeLock()
+	RWLock::readLock()
 	...
 
 It's recommended to use a relative time value to make the units clear, i.e
+	$m = new Mutex();
 	if ($m.lock(250ms))
 	{
 	    # lock not grabbed...
 	}
 
-*) thread errors cause exceptions to be thrown
+*) threading errors cause exceptions to be thrown
 Common thread errors. such as trying to lock a Mutex twice in the same thread without an intervening Mutex::unlock(), or trying to release a lock that is not held, will cause exceptions to be thrown as of this version of Qore.
 Furthermore, locks are tracked as thread resources, and if a thread terminates without freeing the lock, an exception is thrown and the lock is freed automatically.
 
@@ -81,6 +84,33 @@ Timezone information is discarded when converting from Oracle types to Qore type
 added support for binary types (BLOBs, etc)
 mapped DECIMAL type to a string to avoid losing precision
 
+*) Datasource class now throws an exception if deleted while in a transaction
+
+*) new classes for exception-safe lock handling
+	AutoLock       (for Mutexes)
+	AutoGate       (for Gates)
+	AutoReadLock   (for RWLocks - grabs the read lock)
+	AutoWriteLock  (for RWLocks - grabs the write lock)
+
+to be used ONLY with local variables - they grab the lock when created and release when destroyed, i.e.
+
+$m = new Mutex();
+...
+{
+   my $al = new AutoLock($m);
+   # ... some more code
+   # when the block is exited (by a return, exception, etc) the lock will automatically be released
+}
+
+or
+$g = new Gate();
+...
+{
+   my $ag = new AutoGate($g);
+   # ... some more code
+   # when the block is exited (by a return, exception, etc) the gate will automatically be released
+}
+etc...
 
 ***********************
 *** LANGUAGE ISSUES ***
