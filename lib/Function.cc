@@ -341,7 +341,7 @@ Paramlist::~Paramlist()
       delete [] ids;
 }
 
-UserFunction::UserFunction(const char *nme, class Paramlist *parms, class StatementBlock *b, bool synced)
+UserFunction::UserFunction(char *nme, class Paramlist *parms, class StatementBlock *b, bool synced)
 {
    synchronized = synced;
    if (synced)
@@ -357,12 +357,13 @@ UserFunction::UserFunction(const char *nme, class Paramlist *parms, class Statem
 
 UserFunction::~UserFunction()
 {
-   printd(5, "UserFunction::~UserFunction() deleting %s\n", name.c_str());
+   printd(5, "UserFunction::~UserFunction() deleting %s\n", name);
    if (synchronized)
       delete gate;
    delete params;
    if (statements)
       delete statements;
+   free(name);
 }
 
 void UserFunction::deref()
@@ -546,7 +547,7 @@ class QoreNode *UserFunction::eval(QoreNode *args, Object *self, class Exception
 {
    tracein("UserFunction::eval()");
    printd(2, "UserFunction::eval(): function='%s' args=%08p (size=%d)\n", 
-          name.c_str(), args, args ? args->val.list->size() : 0);
+          name, args, args ? args->val.list->size() : 0);
 
    int i = 0;
    class QoreNode *val = NULL;
@@ -628,7 +629,7 @@ class QoreNode *UserFunction::eval(QoreNode *args, Object *self, class Exception
 
    if (statements)
    {
-      pushCall(name.c_str(), CT_USER, self);
+      pushCall(name, CT_USER, self);
 
       // push call on stack
       if (self)
@@ -664,8 +665,7 @@ class QoreNode *UserFunction::eval(QoreNode *args, Object *self, class Exception
 
    if (num_params)
    {
-      printd(5, "UserFunction::eval() about to uninstantiate %d vars\n", 
-	     params->num_params);
+      printd(5, "UserFunction::eval() about to uninstantiate %d vars\n", params->num_params);
 
       // uninstantiate local vars from param list
       for (i = 0; i < num_params; i++)
@@ -679,7 +679,7 @@ class QoreNode *UserFunction::eval(QoreNode *args, Object *self, class Exception
 void UserFunction::evalCopy(Object *oold, Object *self, ExceptionSink *xsink)
 {
    tracein("UserFunction::evalCopy()");
-   printd(2, "UserFunction::evalCopy(): function='%s', num_params=%d, oldobj=%08p\n", name.c_str(), params->num_params, oold);
+   printd(2, "UserFunction::evalCopy(): function='%s', num_params=%d, oldobj=%08p\n", name, params->num_params, oold);
 
    // create QoreNode for "old" for either param or argv list
    oold->ref();
@@ -707,7 +707,7 @@ void UserFunction::evalCopy(Object *oold, Object *self, ExceptionSink *xsink)
    if (statements)
    {
       // push call on stack
-      pushCall(name.c_str(), CT_USER, self);
+      pushCall(name, CT_USER, self);
 
       // instantiate self
       self->instantiateLVar(params->selfid);
@@ -733,8 +733,7 @@ void UserFunction::evalCopy(Object *oold, Object *self, ExceptionSink *xsink)
 
    if (params->num_params)
    {
-      printd(5, "UserFunction::evalCopy() about to uninstantiate %d vars\n", 
-	     params->num_params);
+      printd(5, "UserFunction::evalCopy() about to uninstantiate %d vars\n", params->num_params);
 
       // uninstantiate local vars from param list
       for (int i = 0; i < params->num_params; i++)
@@ -748,7 +747,7 @@ class QoreNode *UserFunction::evalConstructor(QoreNode *args, Object *self, clas
 {
    tracein("UserFunction::evalConstructor()");
    printd(2, "UserFunction::evalConstructor(): method='%s:%s' args=%08p (size=%d)\n", 
-          self->getClass()->getName(), name.c_str(), args, args ? args->val.list->size() : 0);
+          self->getClass()->getName(), name, args, args ? args->val.list->size() : 0);
 
    int i = 0;
    class QoreNode *val = NULL;
@@ -850,7 +849,7 @@ class QoreNode *UserFunction::evalConstructor(QoreNode *args, Object *self, clas
       if (statements)
       {
 	 // push call on stack
-	 pushCall(name.c_str(), CT_USER, self);
+	 pushCall(name, CT_USER, self);
 
 	 // instantiate "$self" variable
 	 self->instantiateLVar(params->selfid);

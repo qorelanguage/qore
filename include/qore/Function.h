@@ -157,7 +157,7 @@ class UserFunction : public ReferenceObject
       bool synchronized;
       // for "synchronized" functions
       class VRMutex *gate;
-      std::string name;
+      char *name;
 
    protected:
       DLLLOCAL ~UserFunction();
@@ -166,7 +166,8 @@ class UserFunction : public ReferenceObject
       class Paramlist *params;
       class StatementBlock *statements;
 
-      DLLLOCAL UserFunction(const char *nme, class Paramlist *parms, class StatementBlock *states, bool synced = false);
+      // the object owns the memory for "nme"
+      DLLLOCAL UserFunction(char *nme, class Paramlist *parms, class StatementBlock *states, bool synced = false);
       DLLLOCAL class QoreNode *eval(class QoreNode *args, class Object *self, class ExceptionSink *xsink);
       DLLLOCAL class QoreNode *evalConstructor(class QoreNode *args, class Object *self, class BCList *bcl, class BCEAList *scbceal, class ExceptionSink *xsink);
       DLLLOCAL void evalCopy(class Object *old, class Object *self, class ExceptionSink *xsink);
@@ -177,7 +178,7 @@ class UserFunction : public ReferenceObject
       DLLLOCAL void deref();
       DLLLOCAL const char *getName() const 
       {
-	 return name.c_str();
+	 return name;
       }
 };
 
