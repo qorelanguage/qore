@@ -80,7 +80,7 @@ class HashMember *HashIterator::next()
    return ptr;
 }
 
-char *HashIterator::getKey() const
+const char *HashIterator::getKey() const
 { 
    if (!ptr)
       return NULL;
@@ -147,7 +147,7 @@ void Hash::internDeleteKey(class HashMember *om)
 }
 
 // this function should only be called when the key doesn't exist
-class QoreNode **Hash::newKeyValue(char *key, class QoreNode *value)
+class QoreNode **Hash::newKeyValue(const char *key, class QoreNode *value)
 {
    assert(key);
 
@@ -239,7 +239,7 @@ void Hash::setKeyValue(QoreString *key, class QoreNode *value, ExceptionSink *xs
       setKeyValue(key->getBuffer(), value, xsink);
 }
 
-void Hash::setKeyValue(char *key, class QoreNode *value, ExceptionSink *xsink)
+void Hash::setKeyValue(const char *key, class QoreNode *value, ExceptionSink *xsink)
 {
    assert(key);
    class QoreNode **v = getKeyValuePtr(key);
@@ -381,7 +381,7 @@ Hash::Hash(bool ne)
 }
 
 
-class QoreNode *Hash::evalKey(char *key, class ExceptionSink *xsink) const
+class QoreNode *Hash::evalKey(const char *key, class ExceptionSink *xsink) const
 {
    assert(key);
 
@@ -393,7 +393,7 @@ class QoreNode *Hash::evalKey(char *key, class ExceptionSink *xsink) const
    return NULL;
 }
 
-class QoreNode *Hash::evalKeyExistence(char *key, class ExceptionSink *xsink) const
+class QoreNode *Hash::evalKeyExistence(const char *key, class ExceptionSink *xsink) const
 {
    assert(key);
 
@@ -409,7 +409,7 @@ class QoreNode *Hash::evalKeyExistence(char *key, class ExceptionSink *xsink) co
    return (QoreNode *)-1;
 }
 
-class QoreNode **Hash::getKeyValuePtr(char *key)
+class QoreNode **Hash::getKeyValuePtr(const char *key)
 {
    assert(key);
 
@@ -421,7 +421,7 @@ class QoreNode **Hash::getKeyValuePtr(char *key)
    return newKeyValue(key, NULL);
 }
 
-class QoreNode *Hash::getKeyValue(char *key) const
+class QoreNode *Hash::getKeyValue(const char *key) const
 {
    assert(key);
 
@@ -433,7 +433,7 @@ class QoreNode *Hash::getKeyValue(char *key) const
    return NULL;
 }
 
-class QoreNode *Hash::getKeyValueExistence(char *key) const
+class QoreNode *Hash::getKeyValueExistence(const char *key) const
 {
    assert(key);
 
@@ -485,7 +485,7 @@ bool Hash::compareHard(class Hash *h, class ExceptionSink *xsink) const
    return 0;
 }
 
-class QoreNode **Hash::getExistingValuePtr(char *key)
+class QoreNode **Hash::getExistingValuePtr(const char *key)
 {
    hm_hm_t::const_iterator i = hm.find(key);
 
@@ -533,7 +533,7 @@ void Hash::derefAndDelete(class ExceptionSink *xsink)
    delete this;
 }
 
-void Hash::deleteKey(char *key, ExceptionSink *xsink)
+void Hash::deleteKey(const char *key, ExceptionSink *xsink)
 {
    assert(key);
 
@@ -557,7 +557,7 @@ void Hash::deleteKey(char *key, ExceptionSink *xsink)
    internDeleteKey(m);
 }
 
-class QoreNode *Hash::takeKeyValue(char *key)
+class QoreNode *Hash::takeKeyValue(const char *key)
 {
    assert(key);
 

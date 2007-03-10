@@ -523,7 +523,7 @@ MData *QoreApp::instantiate_modeledclass(const MModeledClassDescription *mcd, Qo
       // instantiate each member
       while (hi.next())
       {
-         char *key = hi.getKey();
+         const char *key = hi.getKey();
          QoreNode *t = hi.getValue();
 
          const MAttributeDescription *mad;
@@ -601,7 +601,7 @@ MData *QoreApp::instantiate_union(const MUnionDescription *mud, QoreNode *v, Exc
       HashIterator hi(h);
       // get the first entry
       hi.next();
-      char *key = hi.getKey();
+      const char *key = hi.getKey();
       QoreNode *t = hi.getValue();
 
       const MMemberDescription *mmd;
@@ -1004,7 +1004,7 @@ void QoreApp::setRequestParameters(MOperationRequest& req, Hash* params, Excepti
 
    HashIterator hi(params);
    while (hi.next()) {
-      char *key = hi.getKey();
+      const char *key = hi.getKey();
       QoreNode *t = hi.getValue();
 
       const MOperationParameterDescription *mopd = mod->getParameter(key);

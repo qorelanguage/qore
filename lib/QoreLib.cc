@@ -108,7 +108,7 @@ featureList::~featureList()
    featureList::iterator i;
    while ((i = begin()) != end())
    {
-      free(*i);
+      free((char *)*i);
       erase(i);
    }
 }

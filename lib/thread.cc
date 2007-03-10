@@ -705,12 +705,12 @@ char *get_parse_file()
    return ((ThreadData *)pthread_getspecific(thread_data_key))->parse_file;
 }
 
-bool inMethod(char *name, class Object *o)
+bool inMethod(const char *name, class Object *o)
 {
    return thread_list[gettid()].callStack->inMethod(name, o);
 }
 
-void pushCall(char *f, int type, class Object *o)
+void pushCall(const char *f, int type, class Object *o)
 {
    thread_list[gettid()].callStack->push(f, type, o);
    //OLD: ((ThreadData *)pthread_getspecific(thread_data_key))->callStack->push(f, type, o);

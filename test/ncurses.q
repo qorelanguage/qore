@@ -68,7 +68,7 @@ class ncurses_test {
 	    $s.printw("iteration %d", $i++);
 	    $s.refresh();
 	    $.tm.lock();
-	    $.tc.wait($.tm, 1);
+	    $.tc.wait($.tm, 1s);
 	    $.tm.unlock();
 	}
 	$.t.dec();

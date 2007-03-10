@@ -51,12 +51,12 @@ class StringList : public strdeque_t
       DLLLOCAL void addDirList(char *str);
 };
 
-class charPtrList : public safe_dslist<char *>
+class charPtrList : public safe_dslist<const char *>
 {
    public:
       // returns 0 for found, -1 for not found
       // FIXME: use STL find algorithm
-      DLLLOCAL int find(char *str) const
+      DLLLOCAL int find(const char *str) const
       {
 	 const_iterator i = begin();
 	 while (i != end())

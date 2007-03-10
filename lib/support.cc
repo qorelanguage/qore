@@ -73,7 +73,7 @@ int print_debug(int level, const char *fmt, ...)
    return 0;
 }
 
-void trace_function(int code, char *funcname)
+void trace_function(int code, const char *funcname)
 {
    if (!qore_trace)
       return;
@@ -157,7 +157,7 @@ void parse_error(int sline, int eline, const char *fmt, ...)
    getProgram()->makeParseException(sline, eline, desc);
 }
 
-void parseException(char *err, const char *fmt, ...)
+void parseException(const char *err, const char *fmt, ...)
 {
    printd(5, "parseException(%s. '%s', ...) called\n", err, fmt);
 
@@ -175,7 +175,7 @@ void parseException(char *err, const char *fmt, ...)
 }
 
 // returns 1 for success
-static inline int tryIncludeDir(class QoreString *dir, char *file)
+static inline int tryIncludeDir(class QoreString *dir, const char *file)
 {
    // make fully-justified path
    if (dir->strlen() && dir->getBuffer()[dir->strlen() - 1] != '/')
@@ -187,7 +187,7 @@ static inline int tryIncludeDir(class QoreString *dir, char *file)
 }
 
 // FIXME: this could be a lot more efficient
-class QoreString *findFileInEnvPath(char *file, char *varname)
+class QoreString *findFileInEnvPath(const char *file, const char *varname)
 {
    //printd(5, "findFileInEnvPath(file=%s var=%s)\n", file, varname);
 
@@ -199,7 +199,7 @@ class QoreString *findFileInEnvPath(char *file, char *varname)
    class QoreString str;
    if (Env.get(varname, &str))
       return NULL;
-   char *idir = str.getBuffer();
+   char *idir = (char *)str.getBuffer();
 
    // if path is empty, return null
    if (!idir)
@@ -207,7 +207,7 @@ class QoreString *findFileInEnvPath(char *file, char *varname)
 
    // duplicate string for invasive searches
    QoreString plist(idir);
-   idir = plist.getBuffer();
+   idir = (char *)plist.getBuffer();
    //printd(5, "findFileInEnvPath() %s=%s\n", varname, idir);
 
    // try each directory

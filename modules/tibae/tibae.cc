@@ -169,7 +169,7 @@ static inline void set_properties(MAppProperties *appProperties, Hash *h, Except
    HashIterator hi(h);
    while (hi.next())
    {
-      char *key = hi.getKey();
+      const char *key = hi.getKey();
       if (!hi.getValue())
       {
 	 xsink->raiseException("TIBCO-INVALID-PROPERTIES-HASH", 

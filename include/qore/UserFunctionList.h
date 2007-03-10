@@ -36,7 +36,7 @@ public:
    DLLLOCAL UserFunctionList() {}
    DLLLOCAL ~UserFunctionList();
    DLLLOCAL void del();
-   DLLLOCAL class UserFunction *find(char *name);
+   DLLLOCAL class UserFunction *find(const char *name);
    DLLLOCAL void add(class UserFunction *func);
    DLLLOCAL void parseInit();
    DLLLOCAL void parseRollback();

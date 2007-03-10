@@ -270,18 +270,18 @@ int FunctionCall::getType() const
    return type;
 }
 
-char *FunctionCall::getName() const
+const char *FunctionCall::getName() const
 {
    switch (type)
    {
       case FC_USER:
-	 return f.ufunc->name;
+	 return f.ufunc->getName();
       case FC_BUILTIN:
-	 return f.bfunc->name;
+	 return f.bfunc->getName();
       case FC_SELF:
 	 return f.sfunc->name;
       case FC_IMPORTED:
-	 return f.ifunc->func->name;
+	 return f.ifunc->func->getName();
       case FC_UNRESOLVED:
       case FC_METHOD:
 	 return f.c_str ? f.c_str : (char *)"copy";
@@ -341,7 +341,7 @@ Paramlist::~Paramlist()
       delete [] ids;
 }
 
-UserFunction::UserFunction(char *nme, class Paramlist *parms, class StatementBlock *b, bool synced)
+UserFunction::UserFunction(const char *nme, class Paramlist *parms, class StatementBlock *b, bool synced)
 {
    synchronized = synced;
    if (synced)
@@ -357,10 +357,9 @@ UserFunction::UserFunction(char *nme, class Paramlist *parms, class StatementBlo
 
 UserFunction::~UserFunction()
 {
-   printd(5, "UserFunction::~UserFunction() deleting %s\n", name);
+   printd(5, "UserFunction::~UserFunction() deleting %s\n", name.c_str());
    if (synchronized)
       delete gate;
-   free(name);
    delete params;
    if (statements)
       delete statements;
@@ -372,7 +371,7 @@ void UserFunction::deref()
       delete this;
 }
 
-BuiltinFunction::BuiltinFunction(char *nme, q_func_t f, int typ)
+BuiltinFunction::BuiltinFunction(const char *nme, q_func_t f, int typ)
 {
    type = typ;
    name = nme;
@@ -380,7 +379,7 @@ BuiltinFunction::BuiltinFunction(char *nme, q_func_t f, int typ)
    next = NULL;
 }
 
-BuiltinFunction::BuiltinFunction(char *nme, q_method_t m, int typ)
+BuiltinFunction::BuiltinFunction(const char *nme, q_method_t m, int typ)
 {
    type = typ;
    name = nme;
@@ -547,7 +546,7 @@ class QoreNode *UserFunction::eval(QoreNode *args, Object *self, class Exception
 {
    tracein("UserFunction::eval()");
    printd(2, "UserFunction::eval(): function='%s' args=%08p (size=%d)\n", 
-          name, args, args ? args->val.list->size() : 0);
+          name.c_str(), args, args ? args->val.list->size() : 0);
 
    int i = 0;
    class QoreNode *val = NULL;
@@ -629,7 +628,7 @@ class QoreNode *UserFunction::eval(QoreNode *args, Object *self, class Exception
 
    if (statements)
    {
-      pushCall(name, CT_USER, self);
+      pushCall(name.c_str(), CT_USER, self);
 
       // push call on stack
       if (self)
@@ -680,7 +679,7 @@ class QoreNode *UserFunction::eval(QoreNode *args, Object *self, class Exception
 void UserFunction::evalCopy(Object *oold, Object *self, ExceptionSink *xsink)
 {
    tracein("UserFunction::evalCopy()");
-   printd(2, "UserFunction::evalCopy(): function='%s', num_params=%d, oldobj=%08p\n", name, params->num_params, oold);
+   printd(2, "UserFunction::evalCopy(): function='%s', num_params=%d, oldobj=%08p\n", name.c_str(), params->num_params, oold);
 
    // create QoreNode for "old" for either param or argv list
    oold->ref();
@@ -708,7 +707,7 @@ void UserFunction::evalCopy(Object *oold, Object *self, ExceptionSink *xsink)
    if (statements)
    {
       // push call on stack
-      pushCall(name, CT_USER, self);
+      pushCall(name.c_str(), CT_USER, self);
 
       // instantiate self
       self->instantiateLVar(params->selfid);
@@ -749,7 +748,7 @@ class QoreNode *UserFunction::evalConstructor(QoreNode *args, Object *self, clas
 {
    tracein("UserFunction::evalConstructor()");
    printd(2, "UserFunction::evalConstructor(): method='%s:%s' args=%08p (size=%d)\n", 
-          self->getClass()->getName(), name, args, args ? args->val.list->size() : 0);
+          self->getClass()->getName(), name.c_str(), args, args ? args->val.list->size() : 0);
 
    int i = 0;
    class QoreNode *val = NULL;
@@ -851,7 +850,7 @@ class QoreNode *UserFunction::evalConstructor(QoreNode *args, Object *self, clas
       if (statements)
       {
 	 // push call on stack
-	 pushCall(name, CT_USER, self);
+	 pushCall(name.c_str(), CT_USER, self);
 
 	 // instantiate "$self" variable
 	 self->instantiateLVar(params->selfid);

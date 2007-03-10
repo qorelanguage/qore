@@ -34,15 +34,15 @@
 
 class CallNode {
    public:
-      char *func;
-      char *file_name;
+      const char *func;
+      const char *file_name;
       int start_line, end_line;
       int type;
       class Object *obj;
       class CallNode *next;
       class CallNode *prev;
 
-      DLLLOCAL CallNode(char *f, int t, class Object *o);
+      DLLLOCAL CallNode(const char *f, int t, class Object *o);
       DLLLOCAL void objectDeref(class ExceptionSink *xsink);
       DLLLOCAL class Hash *getInfo() const;
 };
@@ -55,13 +55,13 @@ class CallStack {
       DLLLOCAL CallStack();
       DLLLOCAL ~CallStack();
       DLLLOCAL class List *getCallStack() const;
-      DLLLOCAL void push(char *f, int t, class Object *o);
+      DLLLOCAL void push(const char *f, int t, class Object *o);
       DLLLOCAL void pop(class ExceptionSink *xsink);
       DLLLOCAL class Object *getPrevStackObject();
       DLLLOCAL void substituteObjectIfEqual(class Object *o);
       DLLLOCAL class Object *getStackObject() const;
       DLLLOCAL class Object *substituteObject(class Object *o);
-      DLLLOCAL bool inMethod(char *name, class Object *o) const;
+      DLLLOCAL bool inMethod(const char *name, class Object *o) const;
 };
 
 #endif // _QORE_LIB_INTERN

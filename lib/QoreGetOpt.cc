@@ -27,7 +27,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-QoreGetOptNode::QoreGetOptNode(char *n, char so, char *lo, class QoreType *at, int o)
+QoreGetOptNode::QoreGetOptNode(const char *n, char so, char *lo, class QoreType *at, int o)
 {
    name = n  ? strdup(n) : NULL;
    short_opt = so;
@@ -77,7 +77,7 @@ class QoreGetOptNode *QoreGetOpt::find(char opt) const
    return NULL;
 }
 
-int QoreGetOpt::add(char *name, char short_opt, char *long_opt, class QoreType *argtype, int option)
+int QoreGetOpt::add(const char *name, char short_opt, char *long_opt, class QoreType *argtype, int option)
 {
    // check input for validity
    if (!name || !name[0])

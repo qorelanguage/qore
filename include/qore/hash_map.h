@@ -33,36 +33,37 @@
 #include <qore/hash_map_include.h>
 
 #include <strings.h>
-
 #include <string.h>
+
+#include <string>
 
 class eqstr
 {
    public:
-      bool operator()(char* s1, char* s2) const
+      bool operator()(const char* s1, const char* s2) const
       {
          return !strcmp(s1, s2);
       }
 };
 
-typedef hash_map<char*, class QoreNode *, hash<char *>, class eqstr> hm_qn_t;
-typedef hash_map<char*, class HashMember *, hash<char *>, class eqstr> hm_hm_t;
+typedef hash_map<const char*, class QoreNode *, hash<const char *>, class eqstr> hm_qn_t;
+typedef hash_map<const char*, class HashMember *, hash<const char *>, class eqstr> hm_hm_t;
 typedef hash_map<char*, class Method *, hash<char *>, class eqstr> hm_method_t;
-typedef hash_map<char*, class BuiltinFunction *, hash<char *>, class eqstr> hm_bf_t;
-typedef hash_map<char*, class QoreClass *, hash<char *>, class eqstr> hm_qc_t;
-typedef hash_map<char*, class UserFunction *, hash<char *>, class eqstr> hm_uf_t;
-typedef hash_map<char*, class Var *, hash<char *>, class eqstr> hm_var_t;
+typedef hash_map<const char*, class BuiltinFunction *, hash<const char *>, class eqstr> hm_bf_t;
+typedef hash_map<const char*, class QoreClass *, hash<const char *>, class eqstr> hm_qc_t;
+typedef hash_map<const char*, class UserFunction *, hash<const char *>, class eqstr> hm_uf_t;
+typedef hash_map<const char*, class Var *, hash<const char *>, class eqstr> hm_var_t;
 
 #else // HAVE_QORE_HASH_MAP
 #include <map>
 
-typedef std::map<char*, class QoreNode *, class ltstr> hm_qn_t;
-typedef std::map<char*, class HashMember *, class ltstr> hm_hm_t;
+typedef std::map<const char*, class QoreNode *, class ltstr> hm_qn_t;
+typedef std::map<const char*, class HashMember *, class ltstr> hm_hm_t;
 typedef std::map<char*, class Method *, class ltstr> hm_method_t;
-typedef std::map<char*, class BuiltinFunction *, class ltstr> hm_bf_t;
-typedef std::map<char*, class QoreClass *, class ltstr> hm_qc_t;
-typedef std::map<char*, class UserFunction *, class ltstr> hm_uf_t;
-typedef std::map<char*, class Var *, class ltstr> hm_var_t;
+typedef std::map<const char*, class BuiltinFunction *, class ltstr> hm_bf_t;
+typedef std::map<const char*, class QoreClass *, class ltstr> hm_qc_t;
+typedef std::map<const char*, class UserFunction *, class ltstr> hm_uf_t;
+typedef std::map<const char*, class Var *, class ltstr> hm_var_t;
 
 #endif // HAVE_QORE_HASH_MAP
 

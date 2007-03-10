@@ -43,8 +43,8 @@ class BuiltinFunctionList
       DLLLOCAL BuiltinFunctionList();
       DLLLOCAL ~BuiltinFunctionList();
 
-      DLLEXPORT static void add(char *name, class QoreNode *(*f)(class QoreNode *, class ExceptionSink *xsink), int typ = QDOM_DEFAULT);
-      DLLEXPORT static class BuiltinFunction *find(char *name);
+      DLLEXPORT static void add(const char *name, class QoreNode *(*f)(class QoreNode *, class ExceptionSink *xsink), int typ = QDOM_DEFAULT);
+      DLLEXPORT static class BuiltinFunction *find(const char *name);
       DLLEXPORT static int size();
 
       DLLLOCAL static void init();

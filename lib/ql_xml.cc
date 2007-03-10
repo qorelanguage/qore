@@ -335,7 +335,7 @@ static void addXMLElement(char *key, QoreString *str, QoreNode *n, int indent, c
 	    HashIterator hi(attrib->val.hash);
 	    while (hi.next())
 	    {
-	       char *key = hi.getKey();
+	       const char *key = hi.getKey();
 	       str->sprintf(" %s=\"", key);
 	       class QoreNode *v = hi.getValue();
 	       if (v)
@@ -995,7 +995,7 @@ static int getXMLData(xmlTextReader *reader, xml_stack *xstack, class QoreEncodi
 	       else
 	       {
 		  // see if last key was the same, if so make a list if it's not
-		  char *lk = n->val.hash->getLastKey();
+		  const char *lk = n->val.hash->getLastKey();
 		  if (!strncmp(lk, name, strlen(name)))
 		  {
 		     // if it's not a list, then make into a list with current value as first entry

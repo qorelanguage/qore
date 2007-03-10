@@ -27,7 +27,7 @@
 
 int CID_GETOPT;
 
-static inline int process_type(char *key, int &attributes, char *opt, class QoreType *&at, class ExceptionSink *xsink)
+static inline int process_type(const char *key, int &attributes, char *opt, class QoreType *&at, class ExceptionSink *xsink)
 {
    // get type
    switch (*opt)
@@ -129,7 +129,7 @@ static void GETOPT_constructor(class Object *self, class QoreNode *params, Excep
    class QoreString vstr;
    while (hi.next())
    {
-      char *k = hi.getKey();
+      const char *k = hi.getKey();
       if (!strcmp(k, "_ERRORS_"))
       {
 	 xsink->raiseException("GETOPT-PARAMETER-ERROR", "option key '%s' is reserved for errors in the output hash", k);

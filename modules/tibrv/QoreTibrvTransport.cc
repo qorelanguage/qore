@@ -48,7 +48,7 @@ int QoreTibrvTransport::hashToMsg(TibrvMsg *msg, class Hash *hash, class Excepti
    
    while (hi.next())
    {
-      char *key = hi.getKey();
+      const char *key = hi.getKey();
       if (key && key[0] == '_')
       {
 	 xsink->raiseException("TIBRV-MARSHALLING-ERROR", "field names may not begin with '_' (%s)", key);
@@ -62,7 +62,7 @@ int QoreTibrvTransport::hashToMsg(TibrvMsg *msg, class Hash *hash, class Excepti
 
 // add fields to message - we add fields using the name so we can have arrays with different typed elements, etc
 // returns 0 for success, -1 for error
-int QoreTibrvTransport::valueToField(char *key, class QoreNode *v, TibrvMsg *msg, class ExceptionSink *xsink)
+int QoreTibrvTransport::valueToField(const char *key, class QoreNode *v, TibrvMsg *msg, class ExceptionSink *xsink)
 {
    //printd(5, "adding %s (%s)\n", key, v ? v->type->getName() : "null");
    if (is_nothing(v))
@@ -420,7 +420,7 @@ class QoreNode *QoreTibrvTransport::listToNode(TibrvMsgField *field, class Excep
    return new QoreNode(l);
 }
 
-int QoreTibrvTransport::doEncodedType(TibrvMsg *msg, char *key, char *type, class QoreNode *val, class ExceptionSink *xsink)
+int QoreTibrvTransport::doEncodedType(TibrvMsg *msg, const char *key, const char *type, class QoreNode *val, class ExceptionSink *xsink)
 {
    if (type[0] == 'i')
    {

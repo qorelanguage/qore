@@ -53,7 +53,7 @@ int QoreClassList::add(class QoreClass *oc)
    return 0;
 }
 
-class QoreClass *QoreClassList::find(char *name)
+class QoreClass *QoreClassList::find(const char *name)
 {
    hm_qc_t::iterator i = hm.find(name);
    if (i != hm.end())
@@ -61,7 +61,7 @@ class QoreClass *QoreClassList::find(char *name)
    return NULL;
 }
 
-class QoreClass *QoreClassList::findChange(char *name)
+class QoreClass *QoreClassList::findChange(const char *name)
 {
    hm_qc_t::iterator i = hm.find(name);
    if (i != hm.end())
@@ -130,7 +130,7 @@ void QoreClassList::assimilate(class QoreClassList *n)
    }
 }
 
-void QoreClassList::assimilate(QoreClassList *n, QoreClassList *otherlist, class NamespaceList *nsl, class NamespaceList *pendNSL, char *nsname)
+void QoreClassList::assimilate(QoreClassList *n, QoreClassList *otherlist, class NamespaceList *nsl, class NamespaceList *pendNSL, const char *nsname)
 {
    hm_qc_t::iterator i;
    while ((i = n->hm.begin()) != n->hm.end())

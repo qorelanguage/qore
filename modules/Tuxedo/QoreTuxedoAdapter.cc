@@ -1673,7 +1673,7 @@ Hash* QoreTuxedoAdapter::generateFmlDescription(int base, Hash* typed_names, boo
   int counter = 0;
 
   while (iter.next()) {
-    char* name = iter.getKey();
+    const char* name = iter.getKey();
     QoreNode* value = iter.getValue();
     if (value->type != NT_INT) (Hash*)xsink->raiseException(err_name, "Input hash: value of [ %s ] needs to be an integer.", name);
     int type = (int)value->val.intval;
@@ -1733,7 +1733,7 @@ static void do_test(bool is_fml32)
   HashIterator it(res);
   int counter = 0;
   while (it.next()) {
-    char* key = it.getKey();
+    const char* key = it.getKey();
     QoreNode* val = it.getValue();
 
     assert(val->type == NT_LIST);
@@ -2053,7 +2053,7 @@ void QoreTuxedoAdapter::setFmlDataToSend(Hash* description_info, Hash* data, boo
   int index = 0;
   while (iter.next()) {
     ++index;
-    char* complete_name = iter.getKey();
+    const char* complete_name = iter.getKey();
     if (!complete_name || !complete_name[0]) {
       xsink->raiseException(err_name, "Name of item # %d is empty.", index);
       return;

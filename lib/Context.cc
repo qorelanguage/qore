@@ -180,7 +180,7 @@ class QoreNode *Context::getRow(class ExceptionSink *xsink)
    class HashIterator hi(value->val.hash);
    while (hi.next())
    {
-      char *key = hi.getKey();
+      const char *key = hi.getKey();
       //char *key = l->retrieve_entry(i)->val.String->getBuffer();
       printd(5, "Context::getRow() key=%s\n", key);
       // get list from hash

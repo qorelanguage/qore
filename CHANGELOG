@@ -8,6 +8,7 @@
 	* updated Datasource and QoreEncoding to use std::string to store 
 	  strings
 	* made QoreEncoding members private
+	* applied "const char*" to headers where appropriate
 
 2007.03.09: David Nichols
 	* renamed SafeLocker class to "AutoLock"

@@ -34,6 +34,6 @@
 
 // defined in QoreProgram.cc
 DLLLOCAL extern const char *qore_warnings[];
-DLLLOCAL int get_warning_code(char *str);
+DLLLOCAL int get_warning_code(const char *str);
 
 #endif // _QORE_QOREWARNINGS_H

@@ -51,14 +51,14 @@ class QoreClassList
       DLLLOCAL QoreClassList() {}
       DLLLOCAL ~QoreClassList();
       DLLLOCAL int add(class QoreClass *ot);
-      DLLLOCAL class QoreClass *find(char *name);
-      DLLLOCAL class QoreClass *findChange(char *name);
+      DLLLOCAL class QoreClass *find(const char *name);
+      DLLLOCAL class QoreClass *findChange(const char *name);
       DLLLOCAL class QoreClassList *copy(int po);
       DLLLOCAL void parseInit();
       DLLLOCAL void parseRollback();
       DLLLOCAL void parseCommit(QoreClassList *n);
       DLLLOCAL void reset();
-      DLLLOCAL void assimilate(QoreClassList *n, QoreClassList *otherlist, class NamespaceList *nsl, class NamespaceList *pendNSL, char *nsname);
+      DLLLOCAL void assimilate(QoreClassList *n, QoreClassList *otherlist, class NamespaceList *nsl, class NamespaceList *pendNSL, const char *nsname);
       DLLLOCAL class Hash *getInfo();
 };
 

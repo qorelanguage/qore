@@ -32,7 +32,7 @@ DLLEXPORT char *remove_trailing_blanks(char *str);
 
 // we supply debugging function also for non-debugging builds as library entry points
 // in case a debugging-enabled binary is linked against a non-debugging-enabled lib
-DLLEXPORT void trace_function(int code, char *funcname);
+DLLEXPORT void trace_function(int code, const char *funcname);
 DLLEXPORT int print_debug(int level, const char *fmt, ...);
 
 DLLEXPORT extern int qore_trace;
@@ -68,8 +68,8 @@ DLLEXPORT extern int debug;
 // the following functions are only referenced from C++ source
 DLLLOCAL void parse_error(int sline, int eline, const char *fmt, ...);
 DLLLOCAL void parse_error(const char *fmt, ...);
-DLLLOCAL void parseException(char *err, const char *fmt, ...);
-DLLLOCAL class QoreString *findFileInEnvPath(char *file, char *varname);
+DLLLOCAL void parseException(const char *err, const char *fmt, ...);
+DLLLOCAL class QoreString *findFileInEnvPath(const char *file, const char *varname);
 
 #endif // _QORE_LIB_INTERN
 

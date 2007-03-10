@@ -37,6 +37,8 @@
 #include <qore/GlobalVariableList.h>
 #include <qore/ImportedFunctionList.h>
 
+#include <string>
+
 // the two-layered reference counting is to eliminate problems from circular references
 // when a program has a global variable that contains an object that references the program...
 // objects now reference the dependency counter, so when the object's counter reaches zero and
@@ -66,7 +68,7 @@ class QoreProgram : public AbstractPrivateData
 
       int parse_options, warn_mask;
       bool po_locked, exec_class, base_object, requires_exception;
-      char *exec_class_name;
+      std::string exec_class_name;
       pthread_key_t thread_local_storage;
 
       DLLLOCAL void init();
@@ -76,7 +78,7 @@ class QoreProgram : public AbstractPrivateData
       DLLLOCAL void initGlobalVars();
       DLLLOCAL void importUserFunction(class QoreProgram *p, class UserFunction *uf, class ExceptionSink *xsink);
       DLLLOCAL void internParseRollback();
-      DLLLOCAL int internParsePending(char *code, char *label);
+      DLLLOCAL int internParsePending(const char *code, const char *label);
       DLLLOCAL class Hash *clearThreadData(class ExceptionSink *xsink);
       DLLLOCAL void del(class ExceptionSink *xsink);
 
@@ -85,30 +87,30 @@ class QoreProgram : public AbstractPrivateData
 
    public:
       DLLEXPORT QoreProgram();
-      DLLEXPORT class QoreNode *callFunction(char *name, class QoreNode *args, class ExceptionSink *xsink);
+      DLLEXPORT class QoreNode *callFunction(const char *name, class QoreNode *args, class ExceptionSink *xsink);
       DLLEXPORT class QoreNode *callFunction(class UserFunction *func, class QoreNode *args, class ExceptionSink *xsink);
       DLLEXPORT class QoreNode *run(class ExceptionSink *xsink);
       DLLEXPORT class QoreNode *runTopLevel(class ExceptionSink *xsink);
-      DLLEXPORT void parseFileAndRun(char *filename);
-      DLLEXPORT void parseAndRun(FILE *, char *name);
-      DLLEXPORT void parseAndRun(char *str, char *name);
-      DLLEXPORT void runClass(char *classname, class ExceptionSink *xsink);
-      DLLEXPORT void parseFileAndRunClass(char *filename, char *classname);
-      DLLEXPORT void parseAndRunClass(FILE *, char *name, char *classname);
-      DLLEXPORT void parseAndRunClass(char *str, char *name, char *classname);      
-      DLLEXPORT void parse(FILE *, char *name, class ExceptionSink *, class ExceptionSink *warnSink = NULL, int warn_mask = -1);
+      DLLEXPORT void parseFileAndRun(const char *filename);
+      DLLEXPORT void parseAndRun(FILE *, const char *name);
+      DLLEXPORT void parseAndRun(const char *str, const char *name);
+      DLLEXPORT void runClass(const char *classname, class ExceptionSink *xsink);
+      DLLEXPORT void parseFileAndRunClass(const char *filename, const char *classname);
+      DLLEXPORT void parseAndRunClass(FILE *, const char *name, const char *classname);
+      DLLEXPORT void parseAndRunClass(const char *str, const char *name, const char *classname);      
+      DLLEXPORT void parse(FILE *, const char *name, class ExceptionSink *, class ExceptionSink *warnSink = NULL, int warn_mask = -1);
       DLLEXPORT void parse(class QoreString *str, class QoreString *lstr, class ExceptionSink *, class ExceptionSink *warnSink = NULL, int warn_mask = -1);
-      DLLEXPORT void parse(char *str, char *lstr, class ExceptionSink *, class ExceptionSink *warnSink = NULL, int warn_mask = -1);
-      DLLEXPORT void parseFile(char *filename, class ExceptionSink *, class ExceptionSink *warnSink = NULL, int warn_mask = -1);
-      DLLEXPORT void parsePending(char *code, char *label, class ExceptionSink *xsink, class ExceptionSink *warnSink = NULL, int warn_mask = -1);
+      DLLEXPORT void parse(const char *str, const char *lstr, class ExceptionSink *, class ExceptionSink *warnSink = NULL, int warn_mask = -1);
+      DLLEXPORT void parseFile(const char *filename, class ExceptionSink *, class ExceptionSink *warnSink = NULL, int warn_mask = -1);
+      DLLEXPORT void parsePending(const char *code, const char *label, class ExceptionSink *xsink, class ExceptionSink *warnSink = NULL, int warn_mask = -1);
       DLLEXPORT void parsePending(class QoreString *str, class QoreString *lstr, class ExceptionSink *xsink, class ExceptionSink *warnSink = NULL, int warn_mask = -1);
       DLLEXPORT void parseCommit(class ExceptionSink *xsink, class ExceptionSink *warnSink = NULL, int warn_mask = -1);
       DLLEXPORT void parseRollback();
-      DLLEXPORT bool existsFunction(char *name);
+      DLLEXPORT bool existsFunction(const char *name);
       DLLEXPORT virtual void deref(class ExceptionSink *xsink);
       DLLEXPORT void lockOptions();
       // setExecClass() NOTE: string passed here will copied
-      DLLEXPORT void setExecClass(char *ecn = NULL);
+      DLLEXPORT void setExecClass(const char *ecn = NULL);
       DLLEXPORT void parseSetParseOptions(int po);
       DLLEXPORT void waitForTermination();
       DLLEXPORT void waitForTerminationAndDeref(class ExceptionSink *xsink);
@@ -126,34 +128,33 @@ class QoreProgram : public AbstractPrivateData
       DLLEXPORT class List *getUserFunctionList();
       DLLEXPORT bool checkWarning(int code) const;
       DLLEXPORT int getWarningMask() const;
-      DLLEXPORT bool checkFeature(char *f) const;
+      DLLEXPORT bool checkFeature(const char *f) const;
       DLLEXPORT class List *getFeatureList() const;
-      DLLEXPORT class UserFunction *findUserFunction(char *name);
+      DLLEXPORT class UserFunction *findUserFunction(const char *name);
       
-      // QoreProgram() NOTE: ecn is the exec_class_name and will be copied if it exists
-      DLLLOCAL QoreProgram(class QoreProgram *pgm, int po, bool ec = false, char *ecn = NULL);
+      DLLLOCAL QoreProgram(class QoreProgram *pgm, int po, bool ec = false, const char *ecn = NULL);
       DLLLOCAL void registerUserFunction(class UserFunction *u);
       DLLLOCAL void resolveFunction(class FunctionCall *f);      
-      DLLLOCAL void addGlobalVarDef(char *name);
+      DLLLOCAL void addGlobalVarDef(const char *name);
       DLLLOCAL void addStatement(class Statement *s);
-      DLLLOCAL class Var *findVar(char *name);
-      DLLLOCAL class Var *checkVar(char *name);
-      DLLLOCAL class Var *createVar(char *name);
+      DLLLOCAL class Var *findVar(const char *name);
+      DLLLOCAL class Var *checkVar(const char *name);
+      DLLLOCAL class Var *createVar(const char *name);
       DLLLOCAL void importGlobalVariable(class Var *var, class ExceptionSink *xsink, bool readonly);
-      DLLLOCAL void makeParseException(char *err, class QoreString *desc);
+      DLLLOCAL void makeParseException(const char *err, class QoreString *desc);
       DLLLOCAL void makeParseException(int sline, int eline, class QoreString *desc);
       DLLLOCAL void makeParseException(class QoreString *desc);
       DLLLOCAL void addParseException(class ExceptionSink *xsink);
-      DLLLOCAL void makeParseWarning(int code, char *warn, const char *fmt, ...);
+      DLLLOCAL void makeParseWarning(int code, const char *warn, const char *fmt, ...);
       DLLLOCAL void addParseWarning(int code, class ExceptionSink *xsink);
       DLLLOCAL void cannotProvideFeature(class QoreString *desc);
-      DLLLOCAL void exportUserFunction(char *name, class QoreProgram *p, class ExceptionSink *xsink);
+      DLLLOCAL void exportUserFunction(const char *name, class QoreProgram *p, class ExceptionSink *xsink);
       DLLLOCAL void endThread(class ExceptionSink *xsink);
       DLLLOCAL void startThread();
       DLLLOCAL class Hash *getThreadData();
       DLLLOCAL void depRef();
       DLLLOCAL void depDeref(class ExceptionSink *xsink);
-      DLLLOCAL void addFeature(char *f);
+      DLLLOCAL void addFeature(const char *f);
       DLLLOCAL void addFile(char *f);
       DLLLOCAL class List *getVarList();
       // increment atomic thread counter

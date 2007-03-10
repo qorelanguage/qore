@@ -552,7 +552,7 @@ void QoreClass::parseRollback()
 
 inline void Method::userInit(UserFunction *u, int p)
 {
-   name = strdup(u->name);
+   name = strdup(u->getName());
    type = OTF_USER;
    func.userFunc = u;
    priv = p;
@@ -569,7 +569,7 @@ Method::Method(UserFunction *u, int p)
 
 inline Method::Method(BuiltinMethod *b)
 {
-   name = b->name;
+   name = (char *)b->getName();
    type = OTF_BUILTIN;
    func.builtin = b;
    priv = 0;
@@ -595,8 +595,8 @@ inline bool Method::isSynchronized() const
 inline bool Method::inMethod(class Object *self) const
 {
    if (type == OTF_USER)
-      return ::inMethod(func.userFunc->name, self);
-   return ::inMethod(func.builtin->name, self);
+      return ::inMethod(func.userFunc->getName(), self);
+   return ::inMethod(func.builtin->getName(), self);
 }
 
 inline void Method::evalSystemConstructor(Object *self, QoreNode *args, class BCList *bcl, class BCEAList *bceal, ExceptionSink *xsink)

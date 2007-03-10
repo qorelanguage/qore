@@ -41,10 +41,10 @@ public:
    DLLLOCAL void delete_all(class ExceptionSink *xsink);
    DLLLOCAL void clear_all(class ExceptionSink *xsink);
    DLLLOCAL void import(class Var *var, class ExceptionSink *xsink, bool readonly = false);
-   DLLLOCAL class Var *newVar(char *name);
+   DLLLOCAL class Var *newVar(const char *name);
    DLLLOCAL class Var *newVar(class Var *v, bool readonly);
-   DLLLOCAL class Var *findVar(char *name);
-   DLLLOCAL class Var *checkVar(char *name, int *new_vars);
+   DLLLOCAL class Var *findVar(const char *name);
+   DLLLOCAL class Var *checkVar(const char *name, int *new_vars);
    DLLLOCAL class List *getVarList() const;
 };
 

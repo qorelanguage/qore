@@ -82,7 +82,7 @@ void GlobalVariableList::delete_all(class ExceptionSink *xsink)
    }
 }
 
-class Var *GlobalVariableList::newVar(char *name)
+class Var *GlobalVariableList::newVar(const char *name)
 {
    class Var *var = new Var(name);
    vmap[var->getName()] = var;
@@ -100,7 +100,7 @@ class Var *GlobalVariableList::newVar(class Var *v, bool readonly)
    return var;
 }
 
-class Var *GlobalVariableList::findVar(char *name)
+class Var *GlobalVariableList::findVar(const char *name)
 {
    hm_var_t::iterator i = vmap.find(name);
    if (i != vmap.end())
@@ -109,7 +109,7 @@ class Var *GlobalVariableList::findVar(char *name)
 }
 
 // used for resolving unflagged global variables
-class Var *GlobalVariableList::checkVar(char *name, int *new_var)
+class Var *GlobalVariableList::checkVar(const char *name, int *new_var)
 {
    tracein("GlobalVariableList::checkVar()");
    class Var *var;

@@ -39,6 +39,8 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include <string>
+
 // structure for local variables
 class LVar {
    private:
@@ -94,9 +96,9 @@ class Var : public ReferenceObject
       DLLLOCAL ~Var() {}
 
    public:
-      DLLLOCAL Var(char *nme, class QoreNode *val = NULL);
+      DLLLOCAL Var(const char *nme, class QoreNode *val = NULL);
       DLLLOCAL Var(class Var *ref, bool ro = false);
-      DLLLOCAL char *getName() const;
+      DLLLOCAL const char *getName() const;
       DLLLOCAL void setValue(class QoreNode *val, class ExceptionSink *xsink);
       DLLLOCAL void makeReference(class Var *v, class ExceptionSink *xsink, bool ro = false);
       DLLLOCAL bool isImported() const;

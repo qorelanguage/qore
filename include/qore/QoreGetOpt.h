@@ -50,7 +50,7 @@ class QoreGetOptNode {
       class QoreType *argtype;
       int option;
 
-      DLLLOCAL QoreGetOptNode(char *n, char so, char *lo, class QoreType *at = NULL, int o = QGO_OPT_NONE);
+      DLLLOCAL QoreGetOptNode(const char *n, char so, char *lo, class QoreType *at = NULL, int o = QGO_OPT_NONE);
       DLLLOCAL ~QoreGetOptNode();
 };
 
@@ -76,7 +76,7 @@ class QoreGetOpt {
       DLLLOCAL QoreGetOpt();
       DLLLOCAL ~QoreGetOpt();
       // returns 0 for OK
-      DLLLOCAL int add(char *name, char short_opt, char *long_opt, class QoreType *argtype = NULL, int option = QGO_OPT_NONE);
+      DLLLOCAL int add(const char *name, char short_opt, char *long_opt, class QoreType *argtype = NULL, int option = QGO_OPT_NONE);
       DLLLOCAL class Hash *parse(class List *l, bool ml, class ExceptionSink *xsink);
 };
 

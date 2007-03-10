@@ -102,7 +102,7 @@ class FunctionCall {
       DLLLOCAL class QoreNode *eval(class ExceptionSink *);
       DLLLOCAL int existsUserParam(int i) const;
       DLLLOCAL int getType() const;
-      DLLLOCAL char *getName() const;
+      DLLLOCAL const char *getName() const;
 };
 
 // object definitions and interfaces
@@ -110,9 +110,9 @@ class BuiltinFunction
 {
    private:
       int type;
+      const char *name;
 
    public:
-      char *name;
       class BuiltinFunction *next;
       union {
 	    q_func_t func;
@@ -122,8 +122,8 @@ class BuiltinFunction
 	    q_copy_t copy;
       } code;
 
-      DLLLOCAL BuiltinFunction(char *nme, q_func_t f, int typ);
-      DLLLOCAL BuiltinFunction(char *nme, q_method_t m, int typ);
+      DLLLOCAL BuiltinFunction(const char *nme, q_func_t f, int typ);
+      DLLLOCAL BuiltinFunction(const char *nme, q_method_t m, int typ);
       DLLLOCAL BuiltinFunction(q_constructor_t m, int typ);
       DLLLOCAL BuiltinFunction(q_destructor_t m, int typ);
       DLLLOCAL BuiltinFunction(q_copy_t m, int typ);
@@ -136,7 +136,7 @@ class BuiltinFunction
       DLLLOCAL class QoreNode *evalWithArgs(class Object *self, class QoreNode *args, class ExceptionSink *xsink);
       DLLLOCAL class QoreNode *eval(class QoreNode *args, class ExceptionSink *xsink);
       DLLLOCAL int getType() const { return type; }
-      DLLLOCAL char *getName() const { return name; }
+      DLLLOCAL const char *getName() const { return name; }
 };
 
 class Paramlist {
@@ -157,16 +157,16 @@ class UserFunction : public ReferenceObject
       bool synchronized;
       // for "synchronized" functions
       class VRMutex *gate;
+      std::string name;
 
    protected:
       DLLLOCAL ~UserFunction();
 
    public:
-      char *name;
       class Paramlist *params;
       class StatementBlock *statements;
 
-      DLLLOCAL UserFunction(char *nme, class Paramlist *parms, class StatementBlock *states, bool synced = false);
+      DLLLOCAL UserFunction(const char *nme, class Paramlist *parms, class StatementBlock *states, bool synced = false);
       DLLLOCAL class QoreNode *eval(class QoreNode *args, class Object *self, class ExceptionSink *xsink);
       DLLLOCAL class QoreNode *evalConstructor(class QoreNode *args, class Object *self, class BCList *bcl, class BCEAList *scbceal, class ExceptionSink *xsink);
       DLLLOCAL void evalCopy(class Object *old, class Object *self, class ExceptionSink *xsink);
@@ -175,9 +175,9 @@ class UserFunction : public ReferenceObject
 	 return synchronized; 
       }
       DLLLOCAL void deref();
-      DLLLOCAL char *getName() const 
+      DLLLOCAL const char *getName() const 
       {
-	 return name;
+	 return name.c_str();
       }
 };
 

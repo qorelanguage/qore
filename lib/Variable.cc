@@ -33,7 +33,7 @@ class Hash *ENV;
 
 #include <qore/QoreType.h>
 
-Var::Var(char *nme, QoreNode *val)
+Var::Var(const char *nme, QoreNode *val)
 {
    type = GV_VALUE;
    v.val.value = val;
@@ -60,12 +60,14 @@ void Var::del(class ExceptionSink *xsink)
    }
    else
    {
-      printd(5, "Var::~Var() name=%s value=%08p type=%s refs=%d\n", v.val.name ? v.val.name : "(null)",
+      printd(5, "Var::~Var() name=%s value=%08p type=%s refs=%d\n", v.val.name,
 	     v.val.value, v.val.value ? v.val.value->type->getName() : "null", 
 	     v.val.value ? v.val.value->reference_count() : 0);
-   
-      if (v.val.name)
-	 free(v.val.name);
+ 
+      free(v.val.name);
+#ifdef DEBUG
+      v.val.name = NULL;
+#endif
       if (v.val.value)
 	 v.val.value->deref(xsink);
       // clear type so no further deleting will be done
@@ -77,7 +79,7 @@ bool Var::isImported() const
    return type == GV_IMPORT;
 }
 
-char *Var::getName() const
+const char *Var::getName() const
 {
    if (type == GV_IMPORT)
       return v.ivar.refptr->getName();
@@ -183,8 +185,7 @@ void Var::makeReference(class Var *pvar, class ExceptionSink *xsink, bool ro)
    {
       if (v.val.value)
 	 v.val.value->deref(xsink);
-      if (v.val.name)
-	 free(v.val.name);
+      free(v.val.name);
    }
    type = GV_IMPORT;
    v.ivar.refptr = pvar;

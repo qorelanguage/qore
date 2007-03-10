@@ -52,11 +52,11 @@ class ExceptionSink {
       // if (xsink) { .. }
       DLLEXPORT operator bool () const;
       // The QoreNode* returned value is always NULL. Used to simplify error handling code.
-      DLLEXPORT class QoreNode *raiseException(char *err, char *fmt, ...);
+      DLLEXPORT class QoreNode *raiseException(const char *err, const char *fmt, ...);
       // Raise exception with additional argument (the 'arg' member). Always returns 0.
-      DLLEXPORT QoreNode* raiseExceptionArg(char* err, QoreNode* arg, char* fmt, ...);
+      DLLEXPORT QoreNode* raiseExceptionArg(const char* err, QoreNode* arg, const char* fmt, ...);
       // returns NULL, takes owenership of the "desc" argument
-      DLLEXPORT QoreNode *raiseException(char *err, class QoreString *desc);
+      DLLEXPORT QoreNode *raiseException(const char *err, class QoreString *desc);
       DLLEXPORT void rethrow(class Exception *old);
       DLLEXPORT void raiseThreadExit();
       DLLEXPORT void assimilate(class ExceptionSink *xs);
@@ -68,7 +68,7 @@ class ExceptionSink {
       DLLLOCAL class Exception *catchException();
       DLLLOCAL static void defaultExceptionHandler(class Exception *e);
       DLLLOCAL static void defaultWarningHandler(class Exception *e);
-      DLLLOCAL void overrideLocation(int sline, int eline, char *file);
+      DLLLOCAL void overrideLocation(int sline, int eline, const char *file);
 };
 
 class Exception {
@@ -91,7 +91,7 @@ class Exception {
       DLLEXPORT class QoreNode *makeExceptionObject();
 
       // called for runtime exceptions
-      DLLLOCAL Exception(char *err, class QoreString *desc);
+      DLLLOCAL Exception(const char *err, class QoreString *desc);
       // called for rethrow
       DLLLOCAL Exception(class Exception *old, class ExceptionSink *xsink);
       // called for user exceptions
@@ -105,22 +105,22 @@ class ParseException : public Exception
 {
    public:
       // called for parse exceptions
-      DLLLOCAL ParseException(char *err, class QoreString *desc);
+      DLLLOCAL ParseException(const char *err, class QoreString *desc);
       // called for parse exceptions
-      DLLLOCAL ParseException(int s_line, int e_line, char *err, class QoreString *desc);
+      DLLLOCAL ParseException(int s_line, int e_line, const char *err, class QoreString *desc);
 };
 
-static inline void alreadyDeleted(class ExceptionSink *xsink, char *cmeth)
+static inline void alreadyDeleted(class ExceptionSink *xsink, const char *cmeth)
 {
    xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s() cannot be executed because the object has already been deleted", cmeth);
 }
 
-static inline void makeAccessDeletedObjectException(class ExceptionSink *xsink, char *mem, char *cname)
+static inline void makeAccessDeletedObjectException(class ExceptionSink *xsink, const char *mem, const char *cname)
 {
    xsink->raiseException("OBJECT-ALREADY-DELETED", "attempt to access member '%s' of an already-deleted object of class '%s'", mem, cname);
 }
 
-static inline void makeAccessDeletedObjectException(class ExceptionSink *xsink, char *cname)
+static inline void makeAccessDeletedObjectException(class ExceptionSink *xsink, const char *cname)
 {
    xsink->raiseException("OBJECT-ALREADY-DELETED", "attempt to an already-deleted object of class '%s'", cname);
 }

@@ -40,12 +40,12 @@ const char *qore_warnings[] = {
    "duplicate-global-vars",
    "unreachable-code"
 };
-#define NUM_WARNINGS (sizeof(qore_warnings)/sizeof(char *))
+#define NUM_WARNINGS (sizeof(qore_warnings)/sizeof(const char *))
 
-int get_warning_code(char *str)
+int get_warning_code(const char *str)
 {
    for (unsigned i = 0; i < NUM_WARNINGS; i++)
-      if (!strcasecmp((const char *)str, qore_warnings[i]))
+      if (!strcasecmp(str, qore_warnings[i]))
          return 1 << i;
    return 0;
 }
@@ -132,7 +132,6 @@ QoreProgram::QoreProgram()
    parse_options = PO_DEFAULT;
    po_locked = false;
    exec_class = false;
-   exec_class_name = NULL;
 
    // init thread local storage key
    pthread_key_create(&thread_local_storage, NULL);
@@ -146,7 +145,7 @@ QoreProgram::QoreProgram()
    RootNS = new RootNamespace(&QoreNS);
 }
 
-QoreProgram::QoreProgram(class QoreProgram *pgm, int po, bool ec, char *ecn)
+QoreProgram::QoreProgram(class QoreProgram *pgm, int po, bool ec, const char *ecn)
 {
    init();
 
@@ -169,7 +168,8 @@ QoreProgram::QoreProgram(class QoreProgram *pgm, int po, bool ec, char *ecn)
       po_locked = false;
 
    exec_class = ec;
-   exec_class_name = ecn ? strdup(ecn) : NULL;
+   if (ecn)
+      exec_class_name = ecn;
 
    // inherit parent's thread local storage key
    thread_local_storage = pgm->thread_local_storage;
@@ -213,12 +213,6 @@ void QoreProgram::del(class ExceptionSink *xsink)
    // method call can be repeated
    deleteSBList();
 
-   if (exec_class_name)
-   {
-      free(exec_class_name);
-      exec_class_name = NULL;
-   }
-
    delete RootNS;
    RootNS = 0;
 
@@ -232,12 +226,12 @@ void QoreProgram::del(class ExceptionSink *xsink)
    }
 }
 
-class Var *QoreProgram::findVar(char *name)
+class Var *QoreProgram::findVar(const char *name)
 {
    return global_var_list.findVar(name);
 }
 
-class Var *QoreProgram::checkVar(char *name)
+class Var *QoreProgram::checkVar(const char *name)
 {
    int new_var = 0;
    class Var *rv = global_var_list.checkVar(name, &new_var);
@@ -256,7 +250,7 @@ class Var *QoreProgram::checkVar(char *name)
    return rv;
 }
 
-class Var *QoreProgram::createVar(char *name)
+class Var *QoreProgram::createVar(const char *name)
 {
    int new_var = 0;
    class Var *rv = global_var_list.checkVar(name, &new_var);
@@ -271,7 +265,7 @@ class Var *QoreProgram::createVar(char *name)
 
 // if this global variable definition is illegal, then
 // it will be flagged in the parseCommit stage
-void QoreProgram::addGlobalVarDef(char *name)
+void QoreProgram::addGlobalVarDef(const char *name)
 {
    int new_var = 0;
    global_var_list.checkVar(name, &new_var);
@@ -279,7 +273,7 @@ void QoreProgram::addGlobalVarDef(char *name)
       makeParseWarning(QP_WARN_DUPLICATE_GLOBAL_VARS, "DUPLICATE-GLOBAL-VARIABLE", "global variable '%s' has already been declared", name);
 }
 
-void QoreProgram::makeParseException(char *err, class QoreString *desc)
+void QoreProgram::makeParseException(const char *err, class QoreString *desc)
 {
    tracein("QoreProgram::makeParseException()");
    if (!requires_exception)
@@ -332,7 +326,7 @@ void QoreProgram::addParseException(class ExceptionSink *xsink)
    parseSink->assimilate(xsink);
 }
 
-void QoreProgram::makeParseWarning(int code, char *warn, const char *fmt, ...)
+void QoreProgram::makeParseWarning(int code, const char *warn, const char *fmt, ...)
 {
    //printd(5, "QP::mPW(code=%d, warn='%s', fmt='%s') warn_mask=%d warnSink=%08p %s\n", code, warn, fmt, warn_mask, warnSink, warnSink && (code & warn_mask) ? "OK" : "SKIPPED");
    if (!warnSink || !(code & warn_mask))
@@ -376,7 +370,7 @@ void QoreProgram::cannotProvideFeature(class QoreString *desc)
    traceout("QoreProgram::cannotProvideFeature()");
 }
 
-class UserFunction *QoreProgram::findUserFunction(char *name)
+class UserFunction *QoreProgram::findUserFunction(const char *name)
 {
    plock.lock();
    class UserFunction *uf = user_func_list.find(name);
@@ -384,7 +378,7 @@ class UserFunction *QoreProgram::findUserFunction(char *name)
    return uf;
 }
 
-void QoreProgram::exportUserFunction(char *name, class QoreProgram *p, class ExceptionSink *xsink)
+void QoreProgram::exportUserFunction(const char *name, class QoreProgram *p, class ExceptionSink *xsink)
 {
    if (this == p)
       xsink->raiseException("PROGRAM-IMPORTFUNCTION-PARAMETER-ERROR", "cannot import a function from the same Program object");
@@ -418,8 +412,8 @@ void QoreProgram::deleteSBList()
 void QoreProgram::registerUserFunction(UserFunction *u)
 {
    // check if an imported function already exists with this name
-   if (imported_func_list.findNode(u->name))
-      parse_error("function \"%s\" has already been imported into this program", u->name);
+   if (imported_func_list.findNode(u->getName()))
+      parse_error("function \"%s\" has already been imported into this program", u->getName());
    else
       user_func_list.add(u);
 }
@@ -519,10 +513,13 @@ void QoreProgram::lockOptions()
 }
 
 // setExecClass() NOTE: string passed here will copied
-void QoreProgram::setExecClass(char *ecn)
+void QoreProgram::setExecClass(const char *ecn)
 {
    exec_class = true;
-   exec_class_name = ecn ? strdup(ecn) : NULL;
+   if (ecn)
+      exec_class_name = ecn;
+   else
+      exec_class_name.clear();
 }
 
 class Namespace *QoreProgram::getQoreNS() const
@@ -568,7 +565,7 @@ void QoreProgram::addStatement(class Statement *s)
       parse_error("illegal top-level statement (conflicts with parse option NO_TOP_LEVEL_STATEMENTS)");
 }
 
-bool QoreProgram::existsFunction(char *name)
+bool QoreProgram::existsFunction(const char *name)
 {
    // need to grab the parse lock for safe access to the user function map
    plock.lock();
@@ -607,7 +604,7 @@ void QoreProgram::disableParseOptions(int po, class ExceptionSink *xsink)
    parse_options &= (~po);
 }
 
-void QoreProgram::parsePending(char *code, char *label, class ExceptionSink *xsink, class ExceptionSink *wS, int wm)
+void QoreProgram::parsePending(const char *code, const char *label, class ExceptionSink *xsink, class ExceptionSink *wS, int wm)
 {
    if (!code || !code[0])
       return;
@@ -643,9 +640,9 @@ class Hash *QoreProgram::getThreadData()
 
 class QoreNode *QoreProgram::run(class ExceptionSink *xsink)
 {
-   if (exec_class_name)
+   if (!exec_class_name.empty())
    {
-      runClass(exec_class_name, xsink);
+      runClass(exec_class_name.c_str(), xsink);
       return NULL;
    }
    return runTopLevel(xsink);
@@ -716,7 +713,7 @@ void QoreProgram::resolveFunction(class FunctionCall *f)
    traceout("QoreProgram::resolveFunction()");
 }
 
-void QoreProgram::parse(FILE *fp, char *name, class ExceptionSink *xsink, class ExceptionSink *wS, int wm)
+void QoreProgram::parse(FILE *fp, const char *name, class ExceptionSink *xsink, class ExceptionSink *wS, int wm)
 {
    printd(5, "QoreProgram::parse(fp=%08p, name=%s, xsink=%08p, wS=%08p, wm=%d)\n", fp, name, xsink, wS, wm);
 
@@ -802,7 +799,7 @@ void QoreProgram::parse(class QoreString *str, class QoreString *lstr, class Exc
       delete tlstr;
 }
 
-void QoreProgram::parse(char *code, char *label, class ExceptionSink *xsink, class ExceptionSink *wS, int wm)
+void QoreProgram::parse(const char *code, const char *label, class ExceptionSink *xsink, class ExceptionSink *wS, int wm)
 {
    if (!(*code))
       return;
@@ -829,7 +826,7 @@ void QoreProgram::parse(char *code, char *label, class ExceptionSink *xsink, cla
    popProgram();
 }
 
-void QoreProgram::parseFile(char *filename, class ExceptionSink *xsink, class ExceptionSink *wS, int wm)
+void QoreProgram::parseFile(const char *filename, class ExceptionSink *xsink, class ExceptionSink *wS, int wm)
 {
    tracein("QoreProgram::parseFile()");
 
@@ -849,7 +846,7 @@ void QoreProgram::parseFile(char *filename, class ExceptionSink *xsink, class Ex
 }
 
 // call must push the current program on the stack and pop it afterwards
-int QoreProgram::internParsePending(char *code, char *label)
+int QoreProgram::internParsePending(const char *code, const char *label)
 {
    printd(5, "QoreProgram::internParsePending(code=%08p, label=%s)\n", code, label);
 
@@ -996,7 +993,7 @@ class QoreNode *QoreProgram::runTopLevel(class ExceptionSink *xsink)
    return rv;
 }
 
-class QoreNode *QoreProgram::callFunction(char *name, class QoreNode *args, class ExceptionSink *xsink)
+class QoreNode *QoreProgram::callFunction(const char *name, class QoreNode *args, class ExceptionSink *xsink)
 {
    class UserFunction *ufc;
    QoreNode *fc;
@@ -1062,10 +1059,10 @@ void QoreProgram::importUserFunction(class QoreProgram *p, class UserFunction *u
 {
    plock.lock();
    // check if a user function already exists with this name
-   if (user_func_list.find(u->name))
-      xsink->raiseException("FUNCTION-IMPORT-ERROR", "user function '%s' already exists in this program object", u->name);
-   else if (imported_func_list.findNode(u->name))
-      xsink->raiseException("FUNCTION-IMPORT-ERROR", "function '%s' has already been imported into this program object", u->name);
+   if (user_func_list.find(u->getName()))
+      xsink->raiseException("FUNCTION-IMPORT-ERROR", "user function '%s' already exists in this program object", u->getName());
+   else if (imported_func_list.findNode(u->getName()))
+      xsink->raiseException("FUNCTION-IMPORT-ERROR", "function '%s' has already been imported into this program object", u->getName());
    else
       imported_func_list.add(p, u);
    plock.unlock();
@@ -1112,7 +1109,7 @@ void QoreProgram::parseRollback()
    popProgram();
 }
 
-void QoreProgram::runClass(char *classname, class ExceptionSink *xsink)
+void QoreProgram::runClass(const char *classname, class ExceptionSink *xsink)
 {
    // find class
    class QoreClass *qc = RootNS->rootFindClass(classname);
@@ -1134,7 +1131,7 @@ void QoreProgram::runClass(char *classname, class ExceptionSink *xsink)
    tcount.dec();
 }
 
-void QoreProgram::parseFileAndRunClass(char *filename, char *classname)
+void QoreProgram::parseFileAndRunClass(const char *filename, const char *classname)
 {
    ExceptionSink xsink;
 
@@ -1144,7 +1141,7 @@ void QoreProgram::parseFileAndRunClass(char *filename, char *classname)
       runClass(classname, &xsink);
 }
 
-void QoreProgram::parseAndRunClass(FILE *fp, char *name, char *classname)
+void QoreProgram::parseAndRunClass(FILE *fp, const char *name, const char *classname)
 {
    ExceptionSink xsink;
 
@@ -1154,7 +1151,7 @@ void QoreProgram::parseAndRunClass(FILE *fp, char *name, char *classname)
       runClass(classname, &xsink);
 }
 
-void QoreProgram::parseAndRunClass(char *str, char *name, char *classname)
+void QoreProgram::parseAndRunClass(const char *str, const char *name, const char *classname)
 {
    ExceptionSink xsink;
 
@@ -1164,7 +1161,7 @@ void QoreProgram::parseAndRunClass(char *str, char *name, char *classname)
       runClass(classname, &xsink);
 }
 
-void QoreProgram::parseFileAndRun(char *filename)
+void QoreProgram::parseFileAndRun(const char *filename)
 {
    ExceptionSink xsink;
 
@@ -1175,8 +1172,8 @@ void QoreProgram::parseFileAndRun(char *filename)
       // get class name
       if (exec_class)
       {
-	 if (exec_class_name)
-	    runClass(exec_class_name, &xsink);
+	 if (!exec_class_name.empty())
+	    runClass(exec_class_name.c_str(), &xsink);
 	 else
 	 {
 	    char *c, *bn = q_basenameptr(filename);
@@ -1195,11 +1192,11 @@ void QoreProgram::parseFileAndRun(char *filename)
    }
 }
 
-void QoreProgram::parseAndRun(FILE *fp, char *name)
+void QoreProgram::parseAndRun(FILE *fp, const char *name)
 {
    ExceptionSink xsink;
    
-   if (exec_class && !exec_class_name)
+   if (exec_class && exec_class_name.empty())
       xsink.raiseException("EXEC-CLASS-ERROR", "class name required if executing from stdin");
    else
    {
@@ -1210,11 +1207,11 @@ void QoreProgram::parseAndRun(FILE *fp, char *name)
    }
 }
 
-void QoreProgram::parseAndRun(char *str, char *name)
+void QoreProgram::parseAndRun(const char *str, const char *name)
 {
    ExceptionSink xsink;
 
-   if (exec_class && !exec_class_name)
+   if (exec_class && exec_class_name.empty())
       xsink.raiseException("EXEC-CLASS-ERROR", "class name required if executing from a direct string");
    else
    {
@@ -1225,12 +1222,12 @@ void QoreProgram::parseAndRun(char *str, char *name)
    }
 }
 
-bool QoreProgram::checkFeature(char *f) const
+bool QoreProgram::checkFeature(const char *f) const
 {
    return featureList.find(f);
 }
 
-void QoreProgram::addFeature(char *f)
+void QoreProgram::addFeature(const char *f)
 {
    featureList.push_back(f);
 }

@@ -46,15 +46,15 @@ void UserFunctionList::add(class UserFunction *func)
 {
    tracein("UserFunctionList::add()");
    
-   if (find(func->name))
-      parse_error("user function \"%s\" has already been defined", func->name);
+   if (find(func->getName()))
+      parse_error("user function '%s' has already been defined", func->getName());
    else
-      pmap[func->name] = func;
+      pmap[func->getName()] = func;
    
    traceout("UserFunctionList::add()");
 }
 
-class UserFunction *UserFunctionList::find(char *name)
+class UserFunction *UserFunctionList::find(const char *name)
 {
    printd(5, "UserFunctionList::find(%s)\n", name);
    // first look in pending functions

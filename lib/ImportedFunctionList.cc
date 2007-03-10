@@ -57,7 +57,7 @@ void ImportedFunctionList::add(class QoreProgram *pgm, class UserFunction *func)
    traceout("ImportedFunctionList::add()");
 }
 
-class ImportedFunctionNode *ImportedFunctionList::findNode(char *name) const
+class ImportedFunctionNode *ImportedFunctionList::findNode(const char *name) const
 {
    printd(5, "ImportedFunctionList::findNode(%s)\n", name);
 
@@ -68,7 +68,7 @@ class ImportedFunctionNode *ImportedFunctionList::findNode(char *name) const
    return NULL;
 }
 
-class UserFunction *ImportedFunctionList::find(char *name) const
+class UserFunction *ImportedFunctionList::find(const char *name) const
 {
    printd(5, "ImportedFunctionList::findFunction(%s) (UserFunction)\n", name);
 

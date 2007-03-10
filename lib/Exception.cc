@@ -62,7 +62,7 @@ ExceptionSink::operator bool () const
    return head;
 }
 
-void ExceptionSink::overrideLocation(int sline, int eline, char *file)
+void ExceptionSink::overrideLocation(int sline, int eline, const char *file)
 {
    class Exception *w = head;
    while (w)
@@ -128,7 +128,7 @@ void ExceptionSink::insert(class Exception *e)
    tail = e;
 }
 
-QoreNode* ExceptionSink::raiseException(char *err, char *fmt, ...)
+QoreNode* ExceptionSink::raiseException(const char *err, const char *fmt, ...)
 {
    class QoreString *desc = new QoreString();
    
@@ -148,14 +148,14 @@ QoreNode* ExceptionSink::raiseException(char *err, char *fmt, ...)
 }
 
 // returns NULL, takes ownership of the "desc" argument
-QoreNode *ExceptionSink::raiseException(char *err, class QoreString *desc)
+QoreNode *ExceptionSink::raiseException(const char *err, class QoreString *desc)
 {
    printd(5, "ExceptionSink::raiseException(%s, %s)\n", err, desc->getBuffer());
    insert(new Exception(err, desc));
    return NULL;
 }
 
-QoreNode* ExceptionSink::raiseExceptionArg(char* err, QoreNode* arg, char* fmt, ...)
+QoreNode* ExceptionSink::raiseExceptionArg(const char* err, QoreNode* arg, const char* fmt, ...)
 {
    class QoreString *desc = new QoreString();
    
@@ -219,7 +219,7 @@ void ExceptionSink::outOfMemory()
       return;
    // set line and file in exception
    get_pgm_counter(ex->start_line, ex->end_line);
-   char *f = get_pgm_file();
+   const char *f = get_pgm_file();
    ex->file = f ? strdup(f) : NULL;
    // there is no callstack in an out-of-memory exception
    // add exception to list
@@ -237,12 +237,12 @@ Exception::Exception()
 }
 
 // called for runtime errors
-Exception::Exception(char *e, class QoreString *d)
+Exception::Exception(const char *e, class QoreString *d)
 {
    //printd(5, "Exception::Exception() this=%08p\n", this);
    type = ET_SYSTEM;
    get_pgm_counter(start_line, end_line);
-   char *f = get_pgm_file();
+   const char *f = get_pgm_file();
    file = f ? strdup(f) : NULL;
    callStack = new QoreNode(getCallStackList());
 
@@ -254,13 +254,13 @@ Exception::Exception(char *e, class QoreString *d)
 }
 
 // called when parsing
-ParseException::ParseException(char *e, class QoreString *d)
+ParseException::ParseException(const char *e, class QoreString *d)
 {
    type = ET_SYSTEM;
    start_line = -1;
    end_line = -1;
    get_parse_location(start_line, end_line);
-   char *f = get_parse_file();
+   const char *f = get_parse_file();
    file = f ? strdup(f) : NULL;
    callStack = new QoreNode(getCallStackList());
 
@@ -272,12 +272,12 @@ ParseException::ParseException(char *e, class QoreString *d)
 }
 
 // called when parsing
-ParseException::ParseException(int s_line, int e_line, char *e, class QoreString *d)
+ParseException::ParseException(int s_line, int e_line, const char *e, class QoreString *d)
 {
    type = ET_SYSTEM;
    start_line = s_line;
    end_line = e_line;
-   char *f = get_parse_file();
+   const char *f = get_parse_file();
    file = f ? strdup(f) : NULL;
    callStack = new QoreNode(getCallStackList());
 
@@ -316,7 +316,7 @@ Exception::Exception(class QoreNode *n)
 {
    type = ET_USER;
    get_pgm_counter(start_line, end_line);   
-   char *f = get_pgm_file();
+   const char *f = get_pgm_file();
    file = f ? strdup(f) : NULL;
    callStack = new QoreNode(getCallStackList());
    next = NULL;
@@ -353,7 +353,7 @@ Exception::Exception(class Exception *old, class ExceptionSink *xsink)
    callStack  = old->callStack->realCopy(xsink);
    // insert current position as a rethrow entry in the new callstack
    class List *l = callStack->val.list;
-   char *fn = NULL;
+   const char *fn = NULL;
    class QoreNode *n = l->retrieve_entry(0);
    // get function name
    if (n)
@@ -364,7 +364,7 @@ Exception::Exception(class Exception *old, class ExceptionSink *xsink)
    h->setKeyValue("type", new QoreNode("rethrow"), NULL);
    h->setKeyValue("typecode", new QoreNode((int64)CT_RETHROW), NULL);
    h->setKeyValue("function", new QoreNode(fn), NULL);
-   char *f = get_pgm_file();
+   const char *f = get_pgm_file();
    if (f)
       h->setKeyValue("file", new QoreNode(f), NULL);
    int sline, eline;
@@ -523,13 +523,13 @@ void ExceptionSink::defaultExceptionHandler(Exception *e)
 	 {
 	    int pos = cs->size() - i;
 	    class Hash *h = cs->retrieve_entry(i)->val.hash;
-	    char *type = h->getKeyValue("type")->val.String->getBuffer();
+	    const char *type = h->getKeyValue("type")->val.String->getBuffer();
 	    if (!strcmp(type, "new-thread"))
 	       printe(" %2d: *thread start*\n", pos);
 	    else
 	    {
 	       QoreNode *fn = h->getKeyValue("file");
-	       char *fns = fn ? fn->val.String->getBuffer() : NULL;
+	       const char *fns = fn ? fn->val.String->getBuffer() : NULL;
 	       int start_line = h->getKeyValue("line")->val.intval;
 	       int end_line = h->getKeyValue("endline")->val.intval;
 	       if (!strcmp(type, "rethrow"))
@@ -541,7 +541,7 @@ void ExceptionSink::defaultExceptionHandler(Exception *e)
 	       }
 	       else
 	       {
-		  char *func = h->getKeyValue("function")->val.String->getBuffer();
+		  const char *func = h->getKeyValue("function")->val.String->getBuffer();
 		  if (fns)
 		     if (start_line == end_line)
 			printe(" %2d: %s() (%s:%d, %s code)\n", pos, func, fns, start_line, type);

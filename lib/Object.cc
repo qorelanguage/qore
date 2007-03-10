@@ -167,9 +167,9 @@ class QoreNode *Object::evalBuiltinMethodWithPrivateData(class BuiltinMethod *me
    if (xsink->isException())
       return NULL;
    if (myclass == meth->myclass)
-      xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::%s() cannot be executed because the object has already been deleted", myclass->getName(), meth->name);
+      xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::%s() cannot be executed because the object has already been deleted", myclass->getName(), meth->getName());
    else
-      xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::%s() (base class of object's class '%s') cannot be executed because the object has already been deleted", meth->myclass->getName(), meth->name, myclass->getName());
+      xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::%s() (base class of object's class '%s') cannot be executed because the object has already been deleted", meth->myclass->getName(), meth->getName(), myclass->getName());
    return NULL;
 }
 

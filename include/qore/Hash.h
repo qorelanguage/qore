@@ -50,7 +50,7 @@ class HashIterator
       DLLEXPORT HashIterator(class Hash *h);
       DLLEXPORT HashIterator(class Hash &h);
       DLLEXPORT class HashMember *next();
-      DLLEXPORT char *getKey() const;
+      DLLEXPORT const char *getKey() const;
       DLLEXPORT class QoreString *getKeyString() const;
       DLLEXPORT class QoreNode *getValue() const;
       DLLEXPORT class QoreNode *takeValueAndDelete();
@@ -71,7 +71,7 @@ class Hash
       hm_hm_t hm;
       bool needs_eval;
 
-      DLLLOCAL class QoreNode **newKeyValue(char *key, class QoreNode *value);
+      DLLLOCAL class QoreNode **newKeyValue(const char *key, class QoreNode *value);
       DLLLOCAL void internDeleteKey(class HashMember *m);
       DLLLOCAL void deref_intern(class ExceptionSink *xsink);
 
@@ -81,32 +81,32 @@ class Hash
    public:
       DLLEXPORT Hash(bool ne = false);
 
-      DLLEXPORT char *getFirstKey() const { return member_list ? member_list->key :NULL; }
-      DLLEXPORT char *getLastKey() const { return tail ? tail->key : NULL; }
+      DLLEXPORT const char *getFirstKey() const { return member_list ? member_list->key :NULL; }
+      DLLEXPORT const char *getLastKey() const { return tail ? tail->key : NULL; }
       // returns (QoreNode *)-1 if the key doesn't exist
-      DLLEXPORT class QoreNode *getKeyValueExistence(char *key) const;
+      DLLEXPORT class QoreNode *getKeyValueExistence(const char *key) const;
       // returns (QoreNode *)-1 if the key doesn't exist
       DLLEXPORT class QoreNode *getKeyValueExistence(class QoreString *key, class ExceptionSink *xsink) const;
       DLLEXPORT class QoreNode *getKeyValue(class QoreString *key, class ExceptionSink *xsink) const;
-      DLLEXPORT class QoreNode *getKeyValue(char *key) const;
+      DLLEXPORT class QoreNode *getKeyValue(const char *key) const;
       DLLEXPORT class Hash *copy() const;
       DLLEXPORT class QoreNode **getKeyValuePtr(class QoreString *key, class ExceptionSink *xsink);
-      DLLEXPORT class QoreNode **getKeyValuePtr(char *key);
+      DLLEXPORT class QoreNode **getKeyValuePtr(const char *key);
       DLLEXPORT class QoreNode **getExistingValuePtr(class QoreString *key, class ExceptionSink *xsink);
-      DLLEXPORT class QoreNode **getExistingValuePtr(char *key);
+      DLLEXPORT class QoreNode **getExistingValuePtr(const char *key);
       DLLEXPORT void merge(class Hash *h, class ExceptionSink *xsink);
       DLLEXPORT void assimilate(class Hash *h, class ExceptionSink *xsink);
       DLLEXPORT class Hash *eval(class ExceptionSink *xsink) const;
-      DLLEXPORT class QoreNode *evalKey(char *key, class ExceptionSink *xsink) const;
-      DLLEXPORT class QoreNode *evalKeyExistence(char *key, class ExceptionSink *xsink) const;
+      DLLEXPORT class QoreNode *evalKey(const char *key, class ExceptionSink *xsink) const;
+      DLLEXPORT class QoreNode *evalKeyExistence(const char *key, class ExceptionSink *xsink) const;
       DLLEXPORT void setKeyValue(class QoreString *key, class QoreNode *value, class ExceptionSink *xsink);
-      DLLEXPORT void setKeyValue(char *key, class QoreNode *value, class ExceptionSink *xsink);
+      DLLEXPORT void setKeyValue(const char *key, class QoreNode *value, class ExceptionSink *xsink);
       DLLEXPORT void deleteKey(class QoreString *key, class ExceptionSink *xsink);
-      DLLEXPORT void deleteKey(char *key, class ExceptionSink *xsink);
+      DLLEXPORT void deleteKey(const char *key, class ExceptionSink *xsink);
       // "takes" the value of the key from the hash and removes the key from the hash and returns the value
       DLLEXPORT class QoreNode *takeKeyValue(class QoreString *key, class ExceptionSink *xsink);
       // "takes" the value of the key from the hash and removes the key from the hash and returns the value
-      DLLEXPORT class QoreNode *takeKeyValue(char *key);
+      DLLEXPORT class QoreNode *takeKeyValue(const char *key);
       DLLEXPORT class List *getKeys() const;
       DLLEXPORT bool compareSoft(class Hash *h, class ExceptionSink *xsink) const;
       DLLEXPORT bool compareHard(class Hash *h, class ExceptionSink *xsink) const;

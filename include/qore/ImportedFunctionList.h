@@ -37,7 +37,7 @@ public:
    DLLLOCAL ImportedFunctionNode(class QoreProgram *p, class UserFunction *u);
 };
 
-typedef std::map<char *, class ImportedFunctionNode *, class ltstr> ifn_map_t;
+typedef std::map<const char *, class ImportedFunctionNode *, class ltstr> ifn_map_t;
 
 class ImportedFunctionList : public ifn_map_t
 {
@@ -45,8 +45,8 @@ public:
    DLLLOCAL ImportedFunctionList();
    DLLLOCAL ~ImportedFunctionList();
    DLLLOCAL void add(class QoreProgram *pgm, class UserFunction *func);
-   DLLLOCAL class UserFunction *find(char *name) const;
-   DLLLOCAL class ImportedFunctionNode *findNode(char *name) const;
+   DLLLOCAL class UserFunction *find(const char *name) const;
+   DLLLOCAL class ImportedFunctionNode *findNode(const char *name) const;
 };
 
 #endif

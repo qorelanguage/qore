@@ -31,9 +31,9 @@ void ConstantList::remove(hm_qn_t::iterator i)
    if (i->second)
       i->second->deref(NULL);
    
-   char *c = i->first;
+   const char *c = i->first;
    hm.erase(i);
-   free(c);	 
+   free((char *)c);	 
 }
 
 ConstantList::~ConstantList()
@@ -57,7 +57,7 @@ void ConstantList::reset()
    deleteAll();
 }
 
-void ConstantList::add(char *name, class QoreNode *value)
+void ConstantList::add(const char *name, class QoreNode *value)
 {
    // first check if the constant has already been defined
    if (hm.find(name) != hm.end())
@@ -70,7 +70,7 @@ void ConstantList::add(char *name, class QoreNode *value)
    hm[strdup(name)] = value;
 }
 
-class QoreNode *ConstantList::find(char *name)
+class QoreNode *ConstantList::find(const char *name)
 {
    hm_qn_t::iterator i = hm.find(name);
    if (i != hm.end())
@@ -107,7 +107,7 @@ void ConstantList::assimilate(class ConstantList *n)
 }
 
 // duplicate checking is done here
-void ConstantList::assimilate(class ConstantList *n, class ConstantList *otherlist, char *nsname)
+void ConstantList::assimilate(class ConstantList *n, class ConstantList *otherlist, const char *nsname)
 {
    // assimilate target list
    hm_qn_t::iterator i;

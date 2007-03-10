@@ -56,7 +56,7 @@ DLLLOCAL  BuiltinFunctionList::BuiltinFunctionList()
 {
 }
 
-void BuiltinFunctionList::add(char *name, class QoreNode *(*f)(class QoreNode *, class ExceptionSink *xsink), int typ)
+void BuiltinFunctionList::add(const char *name, class QoreNode *(*f)(class QoreNode *, class ExceptionSink *xsink), int typ)
 {
    if (init_done)
    {
@@ -75,20 +75,20 @@ BuiltinFunctionList::~BuiltinFunctionList()
    while ((i = hm.begin()) != hm.end())
    {
       //printd(5, "BuiltinFunctionList::~BuiltinFunctionList() deleting '%s()'\n", i->first);
+      char *c = (char *)i->first;
 
-      char *c = i->first;
-
+      // delete function
       delete i->second;
 
       // erase hash entry
       hm.erase(i);
 
-      // delete function
+      // delete name
       free(c);
    }
 }
 
-class BuiltinFunction *BuiltinFunctionList::find(char *name)
+class BuiltinFunction *BuiltinFunctionList::find(const char *name)
 {
    class BuiltinFunction *rv = NULL;
    if (init_done)

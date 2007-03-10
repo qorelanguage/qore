@@ -23,7 +23,7 @@
 #include <qore/Qore.h>
 #include <qore/CallStack.h>
 
-CallNode::CallNode(char *f, int t, class Object *o)
+CallNode::CallNode(const char *f, int t, class Object *o)
 {
    func = f;
    type = t;
@@ -97,7 +97,7 @@ CallStack::~CallStack()
    }
 }
 
-void CallStack::push(char *f, int t, class Object *o)
+void CallStack::push(const char *f, int t, class Object *o)
 {
    tracein("CallStack::push()");
    CallNode *c = new CallNode(f, t, o);
@@ -156,7 +156,7 @@ class Object *CallStack::substituteObject(class Object *o)
    return ro;
 }
 
-bool CallStack::inMethod(char *name, class Object *o) const
+bool CallStack::inMethod(const char *name, class Object *o) const
 {
    if (!tail)
       return false;
