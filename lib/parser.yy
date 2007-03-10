@@ -754,7 +754,7 @@ top_level_command:
 
 top_namespace_decl:
 	TOK_NAMESPACE IDENTIFIER '{' namespace_decls '}'
-	{ $4->setName($2); $$ = $4; }
+	{ $4->setName($2); $$ = $4; free($2); }
         | TOK_NAMESPACE IDENTIFIER ';'
         { $$ = new Namespace($2); free($2); }
 	;
