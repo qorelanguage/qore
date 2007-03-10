@@ -74,7 +74,7 @@ EnvironmentSetter::EnvironmentSetter(const env_t& new_env)
 
   for (env_t::const_iterator it = new_env.begin(), end = new_env.end(); it != end; ++it) {
     QoreString* old = env.get(it->first.c_str());
-    char* s = old ? old->getBuffer() : (char*)"";
+    const char* s = old ? old->getBuffer() : "";
     m_old_env.push_back(std::pair<std::string, std::string>(it->first, s));
 
     if (it->second.empty()) {      
@@ -307,8 +307,8 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(Hash* settings, ExceptionSink* xsink)
         xsink->raiseException(err_name, "Settings value 'UserName' needs to be a string.");
         return;
       }
-      char* s = n->val.String->getBuffer();
-      if (!s) s = (char*)"";
+      const char* s = n->val.String->getBuffer();
+      if (!s) s = "";
       m_username = s;
       continue;
     }
@@ -319,8 +319,8 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(Hash* settings, ExceptionSink* xsink)
         xsink->raiseException(err_name, "Settings value 'Password' needs to be a string.");
         return;
       }
-      char* s = n->val.String->getBuffer();
-      if (!s) s = (char*)"";
+      const char* s = n->val.String->getBuffer();
+      if (!s) s = "";
       m_password = s;
       continue;
     }
@@ -331,8 +331,8 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(Hash* settings, ExceptionSink* xsink)
         xsink->raiseException(err_name, "Settings value 'ClientName' needs to be a string.");
         return;
       }
-      char* s = n->val.String->getBuffer();
-      if (!s) s = (char*)"";
+      const char* s = n->val.String->getBuffer();
+      if (!s) s = "";
       m_clientname = s;
       continue;
     }
@@ -343,8 +343,8 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(Hash* settings, ExceptionSink* xsink)
         xsink->raiseException(err_name, "Settings value 'GroupName' needs to be a string.");
         return;
       }
-      char* s = n->val.String->getBuffer();
-      if (!s) s = (char*)"";
+      const char* s = n->val.String->getBuffer();
+      if (!s) s = "";
       m_groupname = s;
       continue;
     }
@@ -383,7 +383,7 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(Hash* settings, ExceptionSink* xsink)
         xsink->raiseException(err_name, "Settings value 'TUXDIR' needs to be a string.");
         return;
       }
-      char* s = n->val.String->getBuffer();
+      const char* s = n->val.String->getBuffer();
       char* err_text = (char*)"Settings value 'TUXDIR' needs to be full path directory to Tuxedo installation.";
       if (!s || !s[0]) {
         xsink->raiseException(err_name, err_text);
@@ -405,7 +405,7 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(Hash* settings, ExceptionSink* xsink)
         xsink->raiseException(err_name, "Settings value 'TUXCONFIG' needs to be a string.");
         return;
       }
-      char* s = n->val.String->getBuffer();
+      const char* s = n->val.String->getBuffer();
       char* err_text = (char*)"Settings value 'TUXCONFIG' needs to be full path to configuration file.";
       if (!s || !s[0]) {
         xsink->raiseException(err_name, err_text);
@@ -427,8 +427,8 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(Hash* settings, ExceptionSink* xsink)
         xsink->raiseException(err_name, "Settings value 'WSENVFILE' needs to be a string.");
         return;
       }
-      char* s = n->val.String->getBuffer();
-      if (!s) s = (char*)"";
+      const char* s = n->val.String->getBuffer();
+      if (!s) s = "";
       m_env_variables.push_back(pair<std::string, std::string>("WSENVFILE", s));
       continue;
     }
@@ -439,8 +439,8 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(Hash* settings, ExceptionSink* xsink)
         xsink->raiseException(err_name, "Settings value 'WSNADDR' needs to be a string.");
         return;
       }
-      char* s = n->val.String->getBuffer();
-      if (!s) s = (char*)"";
+      const char* s = n->val.String->getBuffer();
+      if (!s) s = "";
       m_env_variables.push_back(pair<std::string, std::string>("WSNADDR", s));
       continue;
     }
@@ -451,8 +451,8 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(Hash* settings, ExceptionSink* xsink)
         xsink->raiseException(err_name, "Settings value 'WSFADDR' needs to be a string.");
         return;
       }
-      char* s = n->val.String->getBuffer();
-      if (!s) s = (char*)"";
+      const char* s = n->val.String->getBuffer();
+      if (!s) s = "";
       m_env_variables.push_back(pair<std::string, std::string>("WSFADDR", s));
       continue;
     }
@@ -463,8 +463,8 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(Hash* settings, ExceptionSink* xsink)
         xsink->raiseException(err_name, "Settings value 'WSFRANGE' needs to be a string.");
         return;
       }
-      char* s = n->val.String->getBuffer();
-      if (!s) s = (char*)"";
+      const char* s = n->val.String->getBuffer();
+      if (!s) s = "";
       m_env_variables.push_back(pair<std::string, std::string>("WSFRANGE", s));
       continue;
     }
@@ -475,8 +475,8 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(Hash* settings, ExceptionSink* xsink)
         xsink->raiseException(err_name, "Settings value 'WSDEVICE' needs to be a string.");
         return;
       }
-      char* s = n->val.String->getBuffer();
-      if (!s) s = (char*)"";
+      const char* s = n->val.String->getBuffer();
+      if (!s) s = "";
       m_env_variables.push_back(pair<std::string, std::string>("WSDEVICE", s));
       continue;
     }
@@ -487,8 +487,8 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(Hash* settings, ExceptionSink* xsink)
         xsink->raiseException(err_name, "Settings value 'WSTYPE' needs to be a string.");
         return;
       }
-      char* s = n->val.String->getBuffer();
-      if (!s) s = (char*)"";
+      const char* s = n->val.String->getBuffer();
+      if (!s) s = "";
       m_env_variables.push_back(pair<std::string, std::string>("WSTYPE", s));
       continue;
     }
@@ -499,8 +499,8 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(Hash* settings, ExceptionSink* xsink)
         xsink->raiseException(err_name, "Settings value 'WSRPLYMAX' needs to be a string.");
         return;
       }
-      char* s = n->val.String->getBuffer();
-      if (!s) s = (char*)"";
+      const char* s = n->val.String->getBuffer();
+      if (!s) s = "";
       m_env_variables.push_back(pair<std::string, std::string>("WSRPLYMAX", s));
       continue;
     }
@@ -511,8 +511,8 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(Hash* settings, ExceptionSink* xsink)
         xsink->raiseException(err_name, "Settings value 'TMMINENCRYPTBITS' needs to be a string.");
         return;
       }
-      char* s = n->val.String->getBuffer();
-      if (!s) s = (char*)"";
+      const char* s = n->val.String->getBuffer();
+      if (!s) s = "";
       m_env_variables.push_back(pair<std::string, std::string>("TMMINENCRYPTBITS", s));
       continue;
     }
@@ -523,8 +523,8 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(Hash* settings, ExceptionSink* xsink)
         xsink->raiseException(err_name, "Settings value 'TMMAXENCRYPTBITS' needs to be a string.");
         return;
       }
-      char* s = n->val.String->getBuffer();
-      if (!s) s = (char*)"";
+      const char* s = n->val.String->getBuffer();
+      if (!s) s = "";
       m_env_variables.push_back(pair<std::string, std::string>("TMMAXENCRYPTBITS", s));
       continue;
     }
@@ -535,9 +535,9 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(Hash* settings, ExceptionSink* xsink)
         xsink->raiseException(err_name, "Settings 'StringEncoding' needs to be a string.");
         return;
       }
-      char* s = n->val.String->getBuffer();
+      const char* s = n->val.String->getBuffer();
       if (!s || !s[0]) {
-        s = (char*)"UTF8";
+        s = "UTF8";
       }
       setStringEncoding(s);
       continue;
@@ -649,7 +649,7 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(Hash* settings, ExceptionSink* xsink)
         xsink->raiseException(err_name, err_text);
         return;
       }
-      char* s = n->val.String->getBuffer();
+      const char* s = n->val.String->getBuffer();
       if (!s || !s[0]) {
         xsink->raiseException(err_name, err_text);
         return;
@@ -679,7 +679,7 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(Hash* settings, ExceptionSink* xsink)
         xsink->raiseException(err_name, err_text);
         return;
       }
-      char* s = n->val.String->getBuffer();
+      const char* s = n->val.String->getBuffer();
       if (!s || !s[0]) {
         xsink->raiseException(err_name, err_text);
         return;
@@ -703,7 +703,7 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(Hash* settings, ExceptionSink* xsink)
         xsink->raiseException(err_name, err_text);
         return;
       }
-      char* s = n->val.String->getBuffer();
+      const char* s = n->val.String->getBuffer();
       if (!s || !s[0]) {
         xsink->raiseException(err_name, err_text);
         return;
@@ -803,7 +803,7 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(Hash* settings, ExceptionSink* xsink)
         xsink->raiseException(err_name, "Settings 'WhenCommitFinishes' needs to be a string.");
         return;
       }
-      char* s = n->val.String->getBuffer();
+      const char* s = n->val.String->getBuffer();
       if (s && s[0]) {
         if (strcmp(s, "AfterDataAreLogged") == 0) {
           finish_commit_after_data_logged = true;
@@ -826,7 +826,7 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(Hash* settings, ExceptionSink* xsink)
         xsink->raiseException(err_name, "Settings 'WhenTxCommitFinishes' needs to be a string.");
         return;
       }
-      char* s = n->val.String->getBuffer();
+      const char* s = n->val.String->getBuffer();
       if (s && s[0]) {
         if (strcmp(s, "AfterDataAreLogged") == 0) {
           finish_Tx_commit_after_data_logged = true;
@@ -1055,7 +1055,7 @@ pair<char*, long> QoreTuxedoAdapter::allocate_out_buffer(char* default_type, Has
         xsink->raiseException(err_name, "Settings 'DefaultReturnedDataType' needs to be a string.");
         return pair<char*, long>((char*)0, 0);
       }
-      char* s = n->val.String->getBuffer();
+      const char* s = n->val.String->getBuffer();
       if (!s && strcmp(s, "CARRAY") && strcmp(s, "STRING") && strcmp(s, "FML") && strcmp(s, "FML32")) {
         xsink->raiseException(err_name, "Settings 'DefaultReturnedDataType': supported values are 'CARRAY', 'STRING', 'FML', 'FML32'.");
         return pair<char*, long>((char*)0, 0);
@@ -1139,7 +1139,7 @@ void QoreTuxedoAdapter::setSendBuffer(QoreNode* n, Hash* settings, char* err_nam
   }
 
   if (n->type == NT_STRING) {
-    char* s = n->val.String->getBuffer();
+    const char* s = n->val.String->getBuffer();
     if (!s || !s[0]) return;
     if (n->val.String->getEncoding() != m_string_encoding) {
       QoreString aux(s, m_string_encoding);
@@ -1968,7 +1968,7 @@ void QoreTuxedoAdapter::add_fml_value_into_send_buffer(const char* value_name, F
         xsink->raiseException(err_name, "Value [ %s ] needs to be a string.", value_name);
         return;
       }
-      char* s = value->val.String->getBuffer();
+      const char* s = value->val.String->getBuffer();
       if (s && s[0] && value->val.String->getEncoding() != m_string_encoding) {
         encoded_string.reset(new QoreString(s, m_string_encoding));
         s = encoded_string->getBuffer();
