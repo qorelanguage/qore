@@ -64,7 +64,7 @@ sybase_connection::~sybase_connection()
 
 //------------------------------------------------------------------------------
 // Post-constructor initialization 
-void sybase_connection::init(char* username, char* password, char* dbname, ExceptionSink* xsink)
+void sybase_connection::init(const char* username, const char* password, const char* dbname, ExceptionSink* xsink)
 {
   assert(!m_connection);
   assert(!m_context);
@@ -111,14 +111,14 @@ void sybase_connection::init(char* username, char* password, char* dbname, Excep
     return;
   }
 
-  ret = ct_con_props(m_connection, CS_SET, CS_USERNAME, username, CS_NULLTERM, 0);
+  ret = ct_con_props(m_connection, CS_SET, CS_USERNAME, (CS_VOID*)username, CS_NULLTERM, 0);
   if (ret != CS_SUCCEED) {
     assert(false);
     xsink->raiseException("DBI:SYBASE:CT-LIB-SET-USERNAME", "ct_con_props(CS_USERNAME) failed with error %d", ret);
     return;
   }
   if (password && password[0]) {
-    ret = ct_con_props(m_connection, CS_SET, CS_PASSWORD, password, CS_NULLTERM, 0);
+    ret = ct_con_props(m_connection, CS_SET, CS_PASSWORD, (CS_VOID*)password, CS_NULLTERM, 0);
     if (ret != CS_SUCCEED) {
       assert(false);
       xsink->raiseException("DBI:SYBASE:CT-LIB-SET-PASSWORD", "ct_con_props(CS_PASSWORD) failed with error %d", ret);
@@ -126,7 +126,7 @@ void sybase_connection::init(char* username, char* password, char* dbname, Excep
     }
   }
 
-  ret = ct_connect(m_connection, dbname,  strlen(dbname));
+  ret = ct_connect(m_connection, (CS_CHAR*)dbname,  strlen(dbname));
   if (ret != CS_SUCCEED) {
     assert(false);
     xsink->raiseException("DBI:SYBASE:CT-LIB-CONNECT", "ct_connect() failed with error %d", ret);

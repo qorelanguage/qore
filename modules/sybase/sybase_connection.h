@@ -49,7 +49,7 @@ public:
   ~sybase_connection();
 
   // to be called after the object is constructed
-  void init(char* username, char* password, char* dbname, ExceptionSink* xsink);
+  void init(const char* username, const char* password, const char* dbname, ExceptionSink* xsink);
 
   CS_CONNECTION* getConnection() const { return m_connection; }
   CS_CONTEXT* getContext() const { return m_context; }
