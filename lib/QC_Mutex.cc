@@ -62,7 +62,7 @@ class QoreClass *initMutexClass()
 {
    tracein("initMutexClass()");
 
-   class QoreClass *QC_MUTEX = new QoreClass(QDOM_THREAD_CLASS, strdup("Mutex"));
+   class QoreClass *QC_MUTEX = new QoreClass("Mutex", QDOM_THREAD_CLASS);
    CID_MUTEX = QC_MUTEX->getID();
    QC_MUTEX->setConstructor(MUTEX_constructor);
    QC_MUTEX->setDestructor((q_destructor_t)MUTEX_destructor);

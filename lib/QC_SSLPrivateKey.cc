@@ -84,7 +84,7 @@ class QoreClass *initSSLPrivateKeyClass()
 {
    tracein("initSSLPrivateKeyClass()");
 
-   class QoreClass *QC_SSLPRIVATEKEY = new QoreClass(strdup("SSLPrivateKey"));
+   class QoreClass *QC_SSLPRIVATEKEY = new QoreClass("SSLPrivateKey");
    CID_SSLPRIVATEKEY = QC_SSLPRIVATEKEY->getID();
    QC_SSLPRIVATEKEY->setConstructor(SSLPKEY_constructor);
    QC_SSLPRIVATEKEY->setCopy((q_copy_t)SSLPKEY_copy);

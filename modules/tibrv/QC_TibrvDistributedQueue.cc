@@ -164,7 +164,7 @@ class QoreClass *initTibrvDistributedQueueClass()
 {
    tracein("initTibrvDistributedQueueClass()");
 
-   class QoreClass *QC_TIBRVDQ = new QoreClass(QDOM_NETWORK, strdup("TibrvDistributedQueue"));
+   class QoreClass *QC_TIBRVDQ = new QoreClass("TibrvDistributedQueue", QDOM_NETWORK);
    CID_TIBRVDQ = QC_TIBRVDQ->getID();
    QC_TIBRVDQ->setConstructor(TIBRVDQ_constructor);
    QC_TIBRVDQ->setCopy((q_copy_t)TIBRVDQ_copy);

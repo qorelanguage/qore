@@ -80,7 +80,7 @@ static QoreNode* BUILTININHERITANCETESTBASE_getnum(Object *self, class QoreNode 
 //-----------------------------------------------------------------------------
 QoreClass* initBuiltinInheritanceTestBaseClass()
 {
-  QoreClass* tst = new QoreClass(QDOM_PROCESS, strdup("BuiltinInheritanceTestBase"));
+  QoreClass* tst = new QoreClass("BuiltinInheritanceTestBase", QDOM_PROCESS);
   CID_BUILTININHERITANCETESTBASE = tst->getID();
 
   tst->setConstructor((q_constructor_t)BUILTININHERITANCETESTBASE_constructor);
@@ -109,7 +109,7 @@ static QoreNode* BUILTININHERITANCETESTBASE2_getnum(Object *self, class QoreNode
 //-----------------------------------------------------------------------------
 QoreClass* initBuiltinInheritanceTestBase2Class()
 {
-  QoreClass* tst = new QoreClass(QDOM_PROCESS, strdup("BuiltinInheritanceTestBase2"));
+  QoreClass* tst = new QoreClass("BuiltinInheritanceTestBase2", QDOM_PROCESS);
   CID_BUILTININHERITANCETESTBASE2 = tst->getID();
 
   tst->setConstructor((q_constructor_t)BUILTININHERITANCETESTBASE2_constructor);
@@ -122,7 +122,7 @@ QoreClass* initBuiltinInheritanceTestBase2Class()
 // Just inherit, no methods, no constructor/destructor
 QoreClass* initBuiltinInheritanceTestDescendant1(QoreClass* base)
 {
-  QoreClass* tst = new QoreClass(QDOM_PROCESS, strdup("BuiltinInheritanceTestDescendant1"));
+  QoreClass* tst = new QoreClass("BuiltinInheritanceTestDescendant1", QDOM_PROCESS);
   CID_BUILTININHERITANCETESTDESCENDANT1 = tst->getID();
   tst->addDefaultBuiltinBaseClass(base);
 
@@ -150,7 +150,7 @@ static QoreNode* BUILTININHERITANCETESTDESCENDANT2_getnum(Object *self, class Qo
 // override constructor, destructor, getnum()
 QoreClass* initBuiltinInheritanceTestDescendant2(QoreClass* base)
 {
-  QoreClass* tst = new QoreClass(QDOM_PROCESS, strdup("BuiltinInheritanceTestDescendant2"));
+  QoreClass* tst = new QoreClass("BuiltinInheritanceTestDescendant2", QDOM_PROCESS);
   CID_BUILTININHERITANCETESTDESCENDANT2 = tst->getID();
   tst->addDefaultBuiltinBaseClass(base);
 
@@ -189,7 +189,7 @@ static QoreNode* BUILTININHERITANCETESTDESCENDANT3_getnum(Object *self, class Qo
 // override getnum()
 QoreClass* initBuiltinInheritanceTestDescendant3(QoreClass* base)
 {
-  QoreClass* tst = new QoreClass(QDOM_PROCESS, strdup("BuiltinInheritanceTestDescendant3"));
+  QoreClass* tst = new QoreClass("BuiltinInheritanceTestDescendant3", QDOM_PROCESS);
   CID_BUILTININHERITANCETESTDESCENDANT3 = tst->getID();
   tst->addDefaultBuiltinBaseClass(base);
 
@@ -208,7 +208,7 @@ static QoreNode* BUILTININHERITANCETESTDESCENDANT4_getnum(Object *self, class Qo
 // override getnum()
 QoreClass* initBuiltinInheritanceTestDescendant4(QoreClass* base)
 {
-  QoreClass* tst = new QoreClass(QDOM_PROCESS, strdup("BuiltinInheritanceTestDescendant4"));
+  QoreClass* tst = new QoreClass("BuiltinInheritanceTestDescendant4", QDOM_PROCESS);
   CID_BUILTININHERITANCETESTDESCENDANT4 = tst->getID();
   tst->addDefaultBuiltinBaseClass(base);
 
@@ -226,7 +226,7 @@ static QoreNode* BUILTININHERITANCETESTDESCENDANT_MULTI_getnum(Object *self, cla
 //-----------------------------------------------------------------------------
 QoreClass* initBuiltinInheritanceTestDescendantMulti(QoreClass* base, QoreClass* base2)
 {
-  QoreClass* tst = new QoreClass(QDOM_PROCESS, strdup("BuiltinInheritanceTestDescendantMulti"));
+  QoreClass* tst = new QoreClass("BuiltinInheritanceTestDescendantMulti", QDOM_PROCESS);
   CID_BUILTININHERITANCETESTDESCENDANT_MULTI = tst->getID();
 
   // we have a method (getnum) below, but no constructor to set our own private data,

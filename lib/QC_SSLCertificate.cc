@@ -127,7 +127,7 @@ class QoreClass *initSSLCertificateClass()
 {
    tracein("initSSLCertificateClass()");
 
-   class QoreClass *QC_SSLCERTIFICATE = new QoreClass(strdup("SSLCertificate"));
+   class QoreClass *QC_SSLCERTIFICATE = new QoreClass("SSLCertificate");
    CID_SSLCERTIFICATE = QC_SSLCERTIFICATE->getID();
    QC_SSLCERTIFICATE->setConstructor(SSLCERT_constructor);
    QC_SSLCERTIFICATE->setCopy((q_copy_t)SSLCERT_copy);

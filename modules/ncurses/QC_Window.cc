@@ -389,7 +389,7 @@ class QoreClass *initWindowClass()
 {
    tracein("initWindowClass()");
 
-   class QoreClass *QC_WINDOW = new QoreClass(strdup("Window"));
+   class QoreClass *QC_WINDOW = new QoreClass("Window");
    CID_WINDOW = QC_WINDOW->getID();
    QC_WINDOW->setConstructor(WC_constructor);
    QC_WINDOW->setCopy((q_copy_t)WC_copy);

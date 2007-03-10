@@ -444,10 +444,10 @@ class Method *QoreClass::findMethod(char *nme, bool *priv)
 }
 
 // only called when parsing
-void QoreClass::setName(char *n)
+void QoreClass::setName(const char *n)
 {
    assert(!name);
-   name = n;
+   name = strdup(n);
 }
 
 bool QoreClass::is_unique() const
@@ -772,12 +772,12 @@ inline class QoreClass *BCSMList::getClass(int cid) const
    return NULL;
 }
 
-inline void QoreClass::init(char *nme, int dom)
+inline void QoreClass::init(const char *nme, int dom)
 {
    initialized = false;
    domain = dom;
    scl = NULL;
-   name = nme;
+   name = nme ? strdup(nme) : NULL;
    sys  = false;
    bcal = NULL;
 
@@ -791,17 +791,9 @@ inline void QoreClass::init(char *nme, int dom)
    system_constructor = NULL;
 }
 
-QoreClass::QoreClass(int dom, char *nme)
+QoreClass::QoreClass(const char *nme, int dom)
 {
    init(nme, dom);
-
-   classID = methodID = classIDSeq.next();
-   printd(5, "QoreClass::QoreClass() creating '%s' ID:%d (this=%08p)\n", name, classID, this);
-}
-
-QoreClass::QoreClass(char *nme)
-{
-   init(nme);
 
    classID = methodID = classIDSeq.next();
    printd(5, "QoreClass::QoreClass() creating '%s' ID:%d (this=%08p)\n", name, classID, this);
@@ -815,9 +807,9 @@ QoreClass::QoreClass()
    printd(5, "QoreClass::QoreClass() creating unnamed class ID:%d (this=%08p)\n", classID, this);
 }
 
-QoreClass::QoreClass(char *nme, int id)
+QoreClass::QoreClass(int id, const char *nme)
 {
-   init(strdup(nme));
+   init(nme);
 
    classID = id;
    printd(5, "QoreClass::QoreClass() creating copy of '%s' ID:%d (this=%08p)\n", name, classID, this);
@@ -1082,7 +1074,7 @@ void Method::evalDestructor(Object *self, ExceptionSink *xsink)
 class QoreClass *QoreClass::copyAndDeref()
 {
    tracein("QoreClass::copyAndDeref");
-   class QoreClass *noc = new QoreClass(name, classID);
+   class QoreClass *noc = new QoreClass(classID, name);
    noc->methodID = methodID;
 
    printd(5, "QoreClass::copyAndDeref() name=%s (%08p) new name=%s (%08p)\n", name, name, noc->name, noc->name);

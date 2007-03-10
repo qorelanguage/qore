@@ -325,7 +325,7 @@ QoreClass *initHTTPClientClass()
    // initialize static data structures in the QoreHTTPClient class
    QoreHTTPClient::static_init();
 
-   QoreClass* client = new QoreClass(QDOM_NETWORK, strdup("HTTPClient"));
+   QoreClass* client = new QoreClass("HTTPClient", QDOM_NETWORK);
    CID_HTTPCLIENT = client->getID();
 
    client->setConstructor(HC_constructor);

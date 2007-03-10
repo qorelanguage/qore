@@ -98,7 +98,7 @@ static class QoreNode *JRC_call(Object *self, QoreHTTPClient *client, class Qore
 
 QoreClass *initJsonRpcClientClass(class QoreClass *http_client)
 {
-    QoreClass* client = new QoreClass(QDOM_NETWORK, strdup("JsonRpcClient"));
+    QoreClass* client = new QoreClass("JsonRpcClient", QDOM_NETWORK);
     CID_JSONRPCCLIENT = client->getID();
 
     client->addDefaultBuiltinBaseClass(http_client);

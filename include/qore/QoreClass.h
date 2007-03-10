@@ -236,9 +236,9 @@ class QoreClass{
       class ReferenceObject nref;  // namespace references
 
       // called by each constructor
-      DLLLOCAL inline void init(char *nme, int dom = 0);
+      DLLLOCAL inline void init(const char *nme, int dom = 0);
       // private constructor only called when the class is copied
-      DLLLOCAL QoreClass(char *nme, int id);
+      DLLLOCAL QoreClass(int id, const char *nme);
       DLLLOCAL inline class Method *parseFindMethod(char *name);
       DLLLOCAL inline void insertMethod(class Method *o);
       // checks for all special methods except constructor & destructor
@@ -250,8 +250,7 @@ class QoreClass{
       DLLLOCAL inline void delete_pending_methods();
 
    public:
-      DLLEXPORT QoreClass(int dom, char *nme);
-      DLLEXPORT QoreClass(char *nme);
+      DLLEXPORT QoreClass(const char *nme, int dom = 0);
       DLLEXPORT ~QoreClass();
       
       DLLEXPORT void addMethod(char *nme, q_method_t m);
@@ -302,7 +301,7 @@ class QoreClass{
       // returns 0 for success, -1 for error
       DLLLOCAL int parseAddBaseClassArgumentList(class BCAList *bcal);
       // only called when parsing, sets the name of the class
-      DLLLOCAL void setName(char *n);
+      DLLLOCAL void setName(const char *n);
       // returns true if reference count is 1
       DLLLOCAL bool is_unique() const;
       // references and returns itself

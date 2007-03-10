@@ -308,7 +308,7 @@ class QoreClass *initDatasourceClass()
 {
    tracein("initDatasourceClass()");
 
-   class QoreClass *QC_DATASOURCE = new QoreClass(QDOM_DATABASE, strdup("Datasource"));
+   class QoreClass *QC_DATASOURCE = new QoreClass("Datasource", QDOM_DATABASE);
    CID_DATASOURCE = QC_DATASOURCE->getID();
    QC_DATASOURCE->setConstructor(DS_constructor);
    QC_DATASOURCE->setDestructor((q_destructor_t)DS_destructor);

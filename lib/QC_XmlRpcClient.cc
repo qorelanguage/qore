@@ -97,16 +97,16 @@ static class QoreNode *XRC_call(Object *self, QoreHTTPClient *client, class Qore
 
 class QoreClass *initXmlRpcClientClass(class QoreClass *http_client)
 {
-    QoreClass* client = new QoreClass(QDOM_NETWORK, strdup("XmlRpcClient"));
-    CID_XMLRPCCLIENT = client->getID();
+   QoreClass* client = new QoreClass("XmlRpcClient", QDOM_NETWORK); 
+   CID_XMLRPCCLIENT = client->getID();
 
-    client->addDefaultBuiltinBaseClass(http_client);
+   client->addDefaultBuiltinBaseClass(http_client);
 
-    client->setConstructor(XRC_constructor);
-    client->setCopy((q_copy_t)XRC_copy);
-    client->addMethod("callArgs", (q_method_t)XRC_callArgs);
-    client->addMethod("call",     (q_method_t)XRC_call);
+   client->setConstructor(XRC_constructor);
+   client->setCopy((q_copy_t)XRC_copy);
+   client->addMethod("callArgs", (q_method_t)XRC_callArgs);
+   client->addMethod("call",     (q_method_t)XRC_call);
 
-    return client;
+   return client;
 } 
 

@@ -132,7 +132,7 @@ class QoreClass *initTibrvSenderClass()
 {
    tracein("initTibrvSenderClass()");
 
-   class QoreClass *QC_TIBRVSENDER = new QoreClass(QDOM_NETWORK, strdup("TibrvSender"));
+   class QoreClass *QC_TIBRVSENDER = new QoreClass("TibrvSender", QDOM_NETWORK);
    CID_TIBRVSENDER = QC_TIBRVSENDER->getID();
    QC_TIBRVSENDER->setConstructor(TIBRVSENDER_constructor);
    QC_TIBRVSENDER->setCopy((q_copy_t)TIBRVSENDER_copy);

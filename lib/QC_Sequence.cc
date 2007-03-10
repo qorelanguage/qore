@@ -55,7 +55,8 @@ class QoreClass *initSequenceClass()
 {
    tracein("initSequenceClass()");
 
-   class QoreClass *QC_SEQUENCE = new QoreClass(strdup("Sequence"));
+   // note that this class does not block therefore has no QDOM_THREAD
+   class QoreClass *QC_SEQUENCE = new QoreClass("Sequence");
    CID_SEQUENCE = QC_SEQUENCE->getID();
    QC_SEQUENCE->setConstructor(SEQUENCE_constructor);
    QC_SEQUENCE->setCopy((q_copy_t)SEQUENCE_copy);

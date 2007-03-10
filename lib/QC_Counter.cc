@@ -64,7 +64,7 @@ class QoreClass *initCounterClass()
 {
    tracein("initCounterClass()");
 
-   class QoreClass *QC_COUNTER = new QoreClass(QDOM_THREAD_CLASS, strdup("Counter"));
+   class QoreClass *QC_COUNTER = new QoreClass("Counter", QDOM_THREAD_CLASS);
    CID_COUNTER = QC_COUNTER->getID();
 
    QC_COUNTER->setConstructor(COUNTER_constructor);

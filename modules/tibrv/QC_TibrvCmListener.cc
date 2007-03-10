@@ -164,7 +164,7 @@ class QoreClass *initTibrvCmListenerClass()
 {
    tracein("initTibrvCmListenerClass()");
 
-   class QoreClass *QC_TIBRVCMLISTENER = new QoreClass(QDOM_NETWORK, strdup("TibrvCmListener"));
+   class QoreClass *QC_TIBRVCMLISTENER = new QoreClass("TibrvCmListener", QDOM_NETWORK);
    CID_TIBRVCMLISTENER = QC_TIBRVCMLISTENER->getID();
    QC_TIBRVCMLISTENER->setConstructor(TIBRVCMLISTENER_constructor);
    QC_TIBRVCMLISTENER->setCopy((q_copy_t)TIBRVCMLISTENER_copy);

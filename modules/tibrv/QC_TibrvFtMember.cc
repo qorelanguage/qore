@@ -176,7 +176,7 @@ class QoreClass *initTibrvFtMemberClass()
 {
    tracein("initTibrvFtMemberClass()");
 
-   class QoreClass *QC_TIBRVFTMEMBER = new QoreClass(QDOM_NETWORK, strdup("TibrvFtMember"));
+   class QoreClass *QC_TIBRVFTMEMBER = new QoreClass("TibrvFtMember", QDOM_NETWORK);
    CID_TIBRVFTMEMBER = QC_TIBRVFTMEMBER->getID();
    QC_TIBRVFTMEMBER->setConstructor(TIBRVFTMEMBER_constructor);
    QC_TIBRVFTMEMBER->setDestructor((q_destructor_t)TIBRVFTMEMBER_destructor);

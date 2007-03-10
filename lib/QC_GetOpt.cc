@@ -266,7 +266,7 @@ class QoreClass *initGetOptClass()
 {
    tracein("initGetOptClass()");
 
-   class QoreClass *QC_GETOPT = new QoreClass(strdup("GetOpt"));
+   class QoreClass *QC_GETOPT = new QoreClass("GetOpt");
    CID_GETOPT = QC_GETOPT->getID();
    QC_GETOPT->setConstructor(GETOPT_constructor);
    QC_GETOPT->setCopy((q_copy_t)GETOPT_copy);

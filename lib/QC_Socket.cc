@@ -1,4 +1,4 @@
-/*
+#/*
   QC_Socket.cc
 
   Qore Programming Language
@@ -831,7 +831,7 @@ class QoreClass *initSocketClass()
 {
    tracein("initSocketClass()");
 
-   class QoreClass *QC_SOCKET = new QoreClass(QDOM_NETWORK, strdup("Socket"));
+   class QoreClass *QC_SOCKET = new QoreClass("Socket", QDOM_NETWORK);
    CID_SOCKET = QC_SOCKET->getID();
    QC_SOCKET->setConstructor(SOCKET_constructor);
    QC_SOCKET->setCopy(SOCKET_copy);

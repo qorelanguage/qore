@@ -60,7 +60,7 @@ class QoreClass *initAutoReadLockClass()
 {
    tracein("initAutoReadLockClass()");
    
-   class QoreClass *QC_AutoReadLock = new QoreClass(QDOM_THREAD_CLASS, strdup("AutoReadLock"));
+   class QoreClass *QC_AutoReadLock = new QoreClass("AutoReadLock", QDOM_THREAD_CLASS);
    CID_AUTOREADLOCK = QC_AutoReadLock->getID();
    QC_AutoReadLock->setConstructor(ARL_constructor);
    QC_AutoReadLock->setDestructor((q_destructor_t)ARL_destructor);

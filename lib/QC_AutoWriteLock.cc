@@ -60,7 +60,7 @@ class QoreClass *initAutoWriteLockClass()
 {
    tracein("initAutoWriteLockClass()");
    
-   class QoreClass *QC_AutoWriteLock = new QoreClass(QDOM_THREAD_CLASS, strdup("AutoWriteLock"));
+   class QoreClass *QC_AutoWriteLock = new QoreClass("AutoWriteLock", QDOM_THREAD_CLASS);
    CID_AUTOWRITELOCK = QC_AutoWriteLock->getID();
    QC_AutoWriteLock->setConstructor(AWL_constructor);
    QC_AutoWriteLock->setDestructor((q_destructor_t)AWL_destructor);

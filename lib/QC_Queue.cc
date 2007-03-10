@@ -87,7 +87,7 @@ class QoreClass *initQueueClass()
 {
    tracein("initQueueClass()");
 
-   class QoreClass *QC_QUEUE = new QoreClass(QDOM_THREAD_CLASS, strdup("Queue"));
+   class QoreClass *QC_QUEUE = new QoreClass("Queue", QDOM_THREAD_CLASS);
    CID_QUEUE = QC_QUEUE->getID();
    QC_QUEUE->setConstructor(QUEUE_constructor);
    QC_QUEUE->setCopy((q_copy_t)QUEUE_copy);

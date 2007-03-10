@@ -254,7 +254,7 @@ class QoreClass *initQueryQoreClass()
 {
    tracein("initQueryQoreClass()");
 
-   class QoreClass *QC_QUERY = new QoreClass(strdup("Query"));
+   class QoreClass *QC_QUERY = new QoreClass("Query");
    CID_QUERY = QC_QUERY->getID();
    QC_QUERY->setConstructor(Q_constructor);
    QC_QUERY->setCopy((q_copy_t)Q_copy);

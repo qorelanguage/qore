@@ -60,7 +60,7 @@ class QoreClass *initAutoGateClass()
 {
    tracein("initAutoGateClass()");
    
-   class QoreClass *QC_AutoGate = new QoreClass(QDOM_THREAD_CLASS, strdup("AutoGate"));
+   class QoreClass *QC_AutoGate = new QoreClass("AutoGate", QDOM_THREAD_CLASS);
    CID_AUTOGATE = QC_AutoGate->getID();
    QC_AutoGate->setConstructor(AG_constructor);
    QC_AutoGate->setDestructor((q_destructor_t)AG_destructor);

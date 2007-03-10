@@ -79,7 +79,7 @@ class QoreClass *initGateClass()
 {
    tracein("initGateClass()");
 
-   class QoreClass *QC_GATE = new QoreClass(QDOM_THREAD_CLASS, strdup("Gate"));
+   class QoreClass *QC_GATE = new QoreClass("Gate", QDOM_THREAD_CLASS);
    CID_GATE = QC_GATE->getID();
    QC_GATE->setConstructor(GATE_constructor);
    QC_GATE->setDestructor((q_destructor_t)GATE_destructor);
@@ -96,7 +96,7 @@ class QoreClass *initGateClass()
 
 class QoreClass *initRMutexClass()
 {
-   class QoreClass *QC_RMUTEX = new QoreClass(QDOM_THREAD_CLASS, strdup("RMutex"));
+   class QoreClass *QC_RMUTEX = new QoreClass("RMutex", QDOM_THREAD_CLASS); 
    CID_RMUTEX = QC_RMUTEX->getID();
    QC_RMUTEX->setConstructor(GATE_constructor);
    QC_RMUTEX->setDestructor((q_destructor_t)GATE_destructor);

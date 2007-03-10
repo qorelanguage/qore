@@ -77,7 +77,7 @@ class QoreClass *initAutoLockClass()
 {
    tracein("initAutoLockClass()");
    
-   class QoreClass *QC_AutoLock = new QoreClass(QDOM_THREAD_CLASS, strdup("AutoLock"));
+   class QoreClass *QC_AutoLock = new QoreClass("AutoLock", QDOM_THREAD_CLASS);
    CID_AUTOLOCK = QC_AutoLock->getID();
    QC_AutoLock->setConstructor(AL_constructor);
    QC_AutoLock->setDestructor((q_destructor_t)AL_destructor);

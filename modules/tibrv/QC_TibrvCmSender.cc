@@ -253,7 +253,7 @@ class QoreClass *initTibrvCmSenderClass()
 {
    tracein("initTibrvCmSenderClass()");
 
-   class QoreClass *QC_TIBRVCMSENDER = new QoreClass(QDOM_NETWORK, strdup("TibrvCmSender"));
+   class QoreClass *QC_TIBRVCMSENDER = new QoreClass("TibrvCmSender", QDOM_NETWORK);
    CID_TIBRVCMSENDER = QC_TIBRVCMSENDER->getID();
    QC_TIBRVCMSENDER->setConstructor(TIBRVCMSENDER_constructor);
    QC_TIBRVCMSENDER->setCopy((q_copy_t)TIBRVCMSENDER_copy);

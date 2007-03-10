@@ -111,7 +111,7 @@ class QoreClass *initTibrvFtMonitorClass()
 {
    tracein("initTibrvFtMonitorClass()");
 
-   class QoreClass *QC_TIBRVFTMONITOR = new QoreClass(QDOM_NETWORK, strdup("TibrvFtMonitor"));
+   class QoreClass *QC_TIBRVFTMONITOR = new QoreClass("TibrvFtMonitor", QDOM_NETWORK);
    CID_TIBRVFTMONITOR = QC_TIBRVFTMONITOR->getID();
    QC_TIBRVFTMONITOR->setConstructor(TIBRVFTMONITOR_constructor);
    QC_TIBRVFTMONITOR->setDestructor((q_destructor_t)TIBRVFTMONITOR_destructor);

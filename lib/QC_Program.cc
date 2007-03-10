@@ -283,7 +283,7 @@ class QoreClass *initProgramClass()
 {
    tracein("initProgramClass()");
 
-   class QoreClass *QC_PROGRAM = new QoreClass(strdup("Program"));
+   class QoreClass *QC_PROGRAM = new QoreClass("Program");
    CID_PROGRAM = QC_PROGRAM->getID();
    QC_PROGRAM->setConstructor(PROGRAM_constructor);
    QC_PROGRAM->setCopy((q_copy_t)PROGRAM_copy);

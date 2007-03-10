@@ -1237,7 +1237,7 @@ static QoreNode* error2string(Object* self, QoreTuxedoAdapter* adapter, QoreNode
 #ifdef DEBUG
 QoreClass* initDummyTestClass()
 {
-  QoreClass* tst = new QoreClass(QDOM_NETWORK, strdup("TuxedoTest"));
+  QoreClass* tst = new QoreClass("TuxedoTest", QDOM_NETWORK);
   CID_TUXEDOTEST = tst->getID();
 
   tst->setConstructor((q_constructor_t)TUXEDOTEST_constructor);
@@ -1250,7 +1250,7 @@ QoreClass* initDummyTestClass()
 class QoreClass* initTuxedoAdapterClass()
 {
   tracein("initTuxedoAdapterClass");
-  QoreClass* adapter = new QoreClass(QDOM_NETWORK, strdup("TuxedoAdapter"));
+  QoreClass* adapter = new QoreClass("TuxedoAdapter", QDOM_NETWORK);
   CID_TUXEDOADAPTER = adapter->getID();  
 
   adapter->setConstructor((q_constructor_t)TUXEDO_constructor);
