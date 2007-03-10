@@ -260,7 +260,7 @@ inline void BCList::parseInit(class QoreClass *cls, class BCAList *bcal)
    }
 }
 
-inline class Method *BCList::findMethod(char *name)
+inline class Method *BCList::findMethod(const char *name)
 {
    for (bclist_t::iterator i = begin(); i != end(); i++)
    {
@@ -277,7 +277,7 @@ inline class Method *BCList::findMethod(char *name)
 }
 
 // only called at run-time
-inline class Method *BCList::findMethod(char *name, bool *priv)
+inline class Method *BCList::findMethod(const char *name, bool *priv)
 {
    for (bclist_t::iterator i = begin(); i != end(); i++)
    {
@@ -310,7 +310,7 @@ inline bool BCList::match(class BCANode *bca)
    return false;
 }
 
-inline bool BCList::isPrivateMember(char *str) const
+inline bool BCList::isPrivateMember(const char *str) const
 {
    for (bclist_t::const_iterator i = begin(); i != end(); i++)
       if ((*i)->sclass->isPrivateMember(str))
@@ -318,7 +318,7 @@ inline bool BCList::isPrivateMember(char *str) const
    return false;
 }
 
-inline class Method *BCList::resolveSelfMethod(char *name)
+inline class Method *BCList::resolveSelfMethod(const char *name)
 {
    for (bclist_t::iterator i = begin(); i != end(); i++)
    {
@@ -410,7 +410,7 @@ inline void QoreClass::checkSpecial(class Method *m)
       checkSpecialIntern(m);
 }
 
-class Method *QoreClass::findLocalMethod(char *nme)
+class Method *QoreClass::findLocalMethod(const char *nme)
 {
    hm_method_t::iterator i = hm.find(nme);
    if (i != hm.end())
@@ -419,7 +419,7 @@ class Method *QoreClass::findLocalMethod(char *nme)
    return NULL;
 }
 
-class Method *QoreClass::findMethod(char *nme)
+class Method *QoreClass::findMethod(const char *nme)
 {
    class Method *w;
    if (!(w = findLocalMethod(nme)))
@@ -431,7 +431,7 @@ class Method *QoreClass::findMethod(char *nme)
    return w;
 }
 
-class Method *QoreClass::findMethod(char *nme, bool *priv)
+class Method *QoreClass::findMethod(const char *nme, bool *priv)
 {
    class Method *w;
    if (!(w = findLocalMethod(nme)))
@@ -499,7 +499,7 @@ int QoreClass::getDomain() const
    return domain;
 }
 
-char *QoreClass::getName() const 
+const char *QoreClass::getName() const 
 { 
    return name; 
 }
@@ -509,7 +509,7 @@ int QoreClass::numMethods() const
    return hm.size();
 }
 
-inline Method *QoreClass::parseFindMethod(char *nme)
+inline Method *QoreClass::parseFindMethod(const char *nme)
 {
    class Method *m;
    if ((m = findLocalMethod(nme)))
@@ -878,7 +878,7 @@ class QoreNode *Method::eval(Object *self, QoreNode *args, ExceptionSink *xsink)
 
    tracein("Method::eval()");
 #ifdef DEBUG
-   char *oname = self->getClass()->getName();
+   const char *oname = self->getClass()->getName();
    printd(5, "Method::eval() %s::%s() (object=%08p, pgm=%08p)\n", oname, name, self, self->getProgram());
 #endif
 
@@ -943,7 +943,7 @@ void Method::evalConstructor(Object *self, QoreNode *args, class BCList *bcl, cl
 {
    tracein("Method::evalConstructor()");
 #ifdef DEBUG
-   char *oname = self->getClass()->getName();
+   const char *oname = self->getClass()->getName();
    printd(5, "Method::evalConstructor() %s::%s() (object=%08p, pgm=%08p)\n", oname, name, self, self->getProgram());
 #endif
 
@@ -1123,7 +1123,7 @@ inline void QoreClass::addDomain(int dom)
    domain |= dom;
 }
 
-class QoreNode *QoreClass::evalMethod(Object *self, char *nme, QoreNode *args, class ExceptionSink *xsink)
+class QoreNode *QoreClass::evalMethod(Object *self, const char *nme, QoreNode *args, class ExceptionSink *xsink)
 {
    tracein("QoreClass::evalMethod()");
    Method *w;
@@ -1172,7 +1172,7 @@ class QoreNode *QoreClass::evalMethod(Object *self, char *nme, QoreNode *args, c
    return w->eval(self, args, xsink);
 }
 
-class QoreNode *QoreClass::evalMethodGate(Object *self, char *nme, QoreNode *args, ExceptionSink *xsink)
+class QoreNode *QoreClass::evalMethodGate(Object *self, const char *nme, QoreNode *args, ExceptionSink *xsink)
 {
    tracein("QoreClass::evalMethodGate()");
    printd(5, "QoreClass::evalMethodGate() method=%s args=%08p\n", nme, args);
@@ -1200,9 +1200,9 @@ class QoreNode *QoreClass::evalMethodGate(Object *self, char *nme, QoreNode *arg
    return rv;
 }
 
-bool QoreClass::isPrivateMember(char *str) const
+bool QoreClass::isPrivateMember(const char *str) const
 {
-   strset_t::const_iterator i = pmm.find(str);
+   strset_t::const_iterator i = pmm.find((char *)str);
    if (i != pmm.end())
       return true;
 
@@ -1428,7 +1428,7 @@ void QoreClass::addBaseClassesToSubclass(class QoreClass *sc)
 }
 
 // private, called from subclasses only
-inline Method *QoreClass::resolveSelfMethodIntern(char *nme)
+inline Method *QoreClass::resolveSelfMethodIntern(const char *nme)
 {
    class Method *m = parseFindMethod(nme);
 
@@ -1439,7 +1439,7 @@ inline Method *QoreClass::resolveSelfMethodIntern(char *nme)
    return m;
 }
 
-Method *QoreClass::resolveSelfMethod(char *nme)
+Method *QoreClass::resolveSelfMethod(const char *nme)
 {
    class Method *m = findLocalMethod(nme);
 #ifdef DEBUG
@@ -1504,7 +1504,7 @@ Method *QoreClass::resolveSelfMethod(class NamedScope *nme)
       return NULL;
    }
 
-   char *nstr = nme->getIdentifier();
+   const char *nstr = nme->getIdentifier();
    class Method *m = qc->findMethod(nstr);
    bool err = false;
    if (m && (//m == copyMethod || 
@@ -1581,7 +1581,7 @@ int QoreClass::parseAddBaseClassArgumentList(class BCAList *new_bcal)
 }
 
 // adds a builtin method to the class - no duplicate checking is made
-void QoreClass::addMethod(char *nme, q_method_t m)
+void QoreClass::addMethod(const char *nme, q_method_t m)
 {
    assert(strcmp(nme, "constructor"));
    assert(strcmp(nme, "destructor"));

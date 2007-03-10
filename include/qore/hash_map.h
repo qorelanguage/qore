@@ -48,7 +48,7 @@ class eqstr
 
 typedef hash_map<const char*, class QoreNode *, hash<const char *>, class eqstr> hm_qn_t;
 typedef hash_map<const char*, class HashMember *, hash<const char *>, class eqstr> hm_hm_t;
-typedef hash_map<char*, class Method *, hash<char *>, class eqstr> hm_method_t;
+typedef hash_map<const char*, class Method *, hash<const char *>, class eqstr> hm_method_t;
 typedef hash_map<const char*, class BuiltinFunction *, hash<const char *>, class eqstr> hm_bf_t;
 typedef hash_map<const char*, class QoreClass *, hash<const char *>, class eqstr> hm_qc_t;
 typedef hash_map<const char*, class UserFunction *, hash<const char *>, class eqstr> hm_uf_t;
@@ -59,7 +59,7 @@ typedef hash_map<const char*, class Var *, hash<const char *>, class eqstr> hm_v
 
 typedef std::map<const char*, class QoreNode *, class ltstr> hm_qn_t;
 typedef std::map<const char*, class HashMember *, class ltstr> hm_hm_t;
-typedef std::map<char*, class Method *, class ltstr> hm_method_t;
+typedef std::map<const char*, class Method *, class ltstr> hm_method_t;
 typedef std::map<const char*, class BuiltinFunction *, class ltstr> hm_bf_t;
 typedef std::map<const char*, class QoreClass *, class ltstr> hm_qc_t;
 typedef std::map<const char*, class UserFunction *, class ltstr> hm_uf_t;
