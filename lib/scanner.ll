@@ -379,10 +379,11 @@ BINARY          <({HEX_DIGIT}{HEX_DIGIT})+>
 					   }
 					   else
 					   {
-					      // save file name string in QoreProgram's list
-					      getProgram()->addFile(fname->getBuffer());
-					      // "give away" string - it will be deleted when the QoreProgram object is deleted
-					      beginParsing(fname->giveBuffer(), (void *)YY_CURRENT_BUFFER);
+					      // take string from buffer
+					      char *str = fname->giveBuffer();
+					      // save file name string in QoreProgram's list - the list now owns the string memory
+					      getProgram()->addFile(str);
+					      beginParsing(str, (void *)YY_CURRENT_BUFFER);
 					      yy_switch_to_buffer(yy_create_buffer(yyin, YY_BUF_SIZE, yyscanner), yyscanner);
 					      BEGIN(INITIAL);
 					   }

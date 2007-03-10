@@ -56,7 +56,7 @@ class qore_gz_header : public gz_header
 // just build a new list and then zero it out before deleting it
 static class QoreNode *f_call_function(class QoreNode *params, ExceptionSink *xsink)
 {
-   char *fname;
+   const char *fname;
    QoreNode *args = NULL, *p0;
 
    if (!(p0 = test_param(params, NT_STRING, 0)))
@@ -90,7 +90,6 @@ static class QoreNode *f_call_function(class QoreNode *params, ExceptionSink *xs
 
 static class QoreNode *f_call_function_args(class QoreNode *params, ExceptionSink *xsink)
 {
-   char *fname;
    class QoreNode *p0, *p1, *args;
 
    if (!(p0 = test_param(params, NT_STRING, 0)))
@@ -99,7 +98,7 @@ static class QoreNode *f_call_function_args(class QoreNode *params, ExceptionSin
 			    "invalid arguments passed to call_function_args(), must be either function name or function name plus argument list");
       return NULL;
    }
-   fname = p0->val.String->getBuffer();
+   const char *fname = p0->val.String->getBuffer();
 
    p1 = get_param(params, 1);
    if (p1 && p1->type == NT_LIST)
@@ -343,7 +342,7 @@ void do_inflate_end(z_stream *d_stream, class ExceptionSink *xsink)
       do_zlib_exception(rc, "inflateEnd", xsink);
 }
 
-class BinaryObject *qore_deflate(void *ptr, unsigned long len, int level, ExceptionSink *xsink)
+class BinaryObject *qore_deflate(const void *ptr, unsigned long len, int level, ExceptionSink *xsink)
 {
    z_stream c_stream; // compression stream
    c_stream.zalloc = Z_NULL;
@@ -526,7 +525,7 @@ class BinaryObject *qore_inflate_to_binary(class BinaryObject *b, class Exceptio
    return new BinaryObject(buf, bsize - d_stream.avail_out);
 }
 
-class BinaryObject *qore_gzip(void *ptr, unsigned long len, int level, ExceptionSink *xsink)
+class BinaryObject *qore_gzip(const void *ptr, unsigned long len, int level, ExceptionSink *xsink)
 {
    z_stream c_stream; // compression stream
    c_stream.zalloc = Z_NULL;
@@ -728,7 +727,7 @@ static class QoreNode *f_compress(class QoreNode *params, ExceptionSink *xsink)
       return NULL;
    }
 
-   void *ptr;
+   const void *ptr;
    unsigned long len;
    if (p0->type == NT_STRING)
    {
@@ -794,7 +793,7 @@ static class QoreNode *f_gzip(class QoreNode *params, ExceptionSink *xsink)
       return NULL;
    }
 
-   void *ptr;
+   const void *ptr;
    unsigned long len;
    if (p0->type == NT_STRING)
    {
@@ -958,12 +957,12 @@ static class QoreNode *f_hextoint(class QoreNode *params, ExceptionSink *xsink)
 
    int64 rc = 0;
    int64 pow = 0;
-   char *buf = p0->val.String->getBuffer();
+   const char *buf = p0->val.String->getBuffer();
    if (*buf == '0' && *(buf + 1) == 'x')
       buf += 2;
    else if (*buf == 'x')
       buf++;
-   for (char *p = p0->val.String->strlen() + buf - 1; p >= buf; p--)
+   for (const char *p = p0->val.String->strlen() + buf - 1; p >= buf; p--)
    {
       int n = get_nibble(*p, xsink);
       if (xsink->isException())

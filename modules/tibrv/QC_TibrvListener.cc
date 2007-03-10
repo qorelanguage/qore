@@ -39,9 +39,9 @@ void TIBRVLISTENER_constructor(class Object *self, class QoreNode *params, class
       xsink->raiseException("TIBRVLISTENER-CONSTRUCTOR-ERROR", "missing subject string");
       return;
    }      
-   char *subject = pt->val.String->getBuffer();   
+   const char *subject = pt->val.String->getBuffer();   
 
-   char *service = NULL, *network = NULL, *daemon = NULL, *desc = NULL;
+   const char *service = NULL, *network = NULL, *daemon = NULL, *desc = NULL;
    pt = test_param(params, NT_STRING, 1);
    if (pt)
       desc = pt->val.String->getBuffer();

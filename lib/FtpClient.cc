@@ -50,7 +50,7 @@ class FtpResp
 	 str = s;
 	 return s;
       }
-      DLLLOCAL inline char *getBuffer()
+      DLLLOCAL inline const char *getBuffer()
       {
 	 return str->getBuffer();
       }
@@ -116,7 +116,7 @@ static inline int getFTPCode(QoreString *str)
 }
 
 // private unlocked
-class QoreString *FtpClient::sendMsg(char *cmd, char *arg, class ExceptionSink *xsink)
+class QoreString *FtpClient::sendMsg(const char *cmd, const char *arg, class ExceptionSink *xsink)
 {
    QoreString c(cmd);
    if (arg)
@@ -284,8 +284,8 @@ class QoreString *FtpClient::getResponse(class ExceptionSink *xsink)
    // see if we got the whole response
    if (resp && resp->getBuffer())
    {
-      char *start = resp->getBuffer();
-      char *p = start;
+      const char *start = resp->getBuffer();
+      const char *p = start;
       while (1)
       {
 	 if ((*p) == '\n')
@@ -665,7 +665,7 @@ int FtpClient::connect(class ExceptionSink *xsink)
 }
 
 // public locked
-class QoreString *FtpClient::list(char *path, bool long_list, class ExceptionSink *xsink)
+class QoreString *FtpClient::list(const char *path, bool long_list, class ExceptionSink *xsink)
 {
    SafeLocker sl(this);
    if (!loggedin)
@@ -678,7 +678,7 @@ class QoreString *FtpClient::list(char *path, bool long_list, class ExceptionSin
    if (setBinaryMode(false, xsink) || connectData(xsink))
       return NULL;
 
-   FtpResp resp(sendMsg((char *)(long_list ? "LIST" : "NLST"), path, xsink));
+   FtpResp resp(sendMsg((long_list ? "LIST" : "NLST"), path, xsink));
    if (xsink->isEvent())
       return NULL;
 
@@ -740,7 +740,7 @@ class QoreString *FtpClient::list(char *path, bool long_list, class ExceptionSin
 }
 
 // public locked
-int FtpClient::put(char *localpath, char *remotename, class ExceptionSink *xsink)
+int FtpClient::put(const char *localpath, const char *remotename, class ExceptionSink *xsink)
 {
    printd(5, "FtpClient::put(%s, %s)\n", localpath, remotename ? remotename : "NULL");
 
@@ -777,7 +777,7 @@ int FtpClient::put(char *localpath, char *remotename, class ExceptionSink *xsink
    // get remote file name
    char *rn;
    if (remotename)
-      rn = remotename;
+      rn = (char *)remotename;
    else
       rn = q_basename(localpath);
 
@@ -838,7 +838,7 @@ int FtpClient::put(char *localpath, char *remotename, class ExceptionSink *xsink
 }
 
 // public locked
-int FtpClient::get(char *remotepath, char *localname, class ExceptionSink *xsink)
+int FtpClient::get(const char *remotepath, const char *localname, class ExceptionSink *xsink)
 {
    printd(5, "FtpClient::get(%s, %s)\n", remotepath, localname ? localname : "NULL");
 
@@ -852,7 +852,7 @@ int FtpClient::get(char *remotepath, char *localname, class ExceptionSink *xsink
    // get local file name
    char *ln;
    if (localname)
-      ln = localname;
+      ln = (char *)localname;
    else
       ln = q_basename(remotepath);
 
@@ -943,7 +943,7 @@ int FtpClient::get(char *remotepath, char *localname, class ExceptionSink *xsink
 }
 
 // public locked
-int FtpClient::cwd(char *dir, class ExceptionSink *xsink)
+int FtpClient::cwd(const char *dir, class ExceptionSink *xsink)
 {
    SafeLocker sl(this);
    if (!loggedin)
@@ -993,7 +993,7 @@ class QoreString *FtpClient::pwd(class ExceptionSink *xsink)
 }
 
 // public locked
-int FtpClient::del(char *file, class ExceptionSink *xsink)
+int FtpClient::del(const char *file, class ExceptionSink *xsink)
 {
    SafeLocker sl(this);
    if (!loggedin)
@@ -1046,7 +1046,7 @@ void FtpClient::setPort(int p)
    port = p; 
 }
 
-void FtpClient::setUserName(char *u) 
+void FtpClient::setUserName(const char *u) 
 { 
    lock();
    if (user) 
@@ -1055,7 +1055,7 @@ void FtpClient::setUserName(char *u)
    unlock();
 }
 
-void FtpClient::setPassword(char *p) 
+void FtpClient::setPassword(const char *p) 
 { 
    lock();
    if (pass)
@@ -1064,7 +1064,7 @@ void FtpClient::setPassword(char *p)
    unlock();
 }
 
-void FtpClient::setHostName(char *h) 
+void FtpClient::setHostName(const char *h) 
 { 
    lock();
    if (host) 

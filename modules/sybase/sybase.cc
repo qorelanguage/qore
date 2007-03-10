@@ -208,7 +208,7 @@ void SybaseBindGroup::parseQuery(List* args, ExceptionSink* xsink)
     m_input_parameters.reserve(args->size());
   }
   char quote = 0;
-  char *p = m_cmd->getBuffer();
+  const char *p = m_cmd->getBuffer();
   while (*p)
   {
     if (!quote && (*p) == '%') // found value marker
@@ -247,7 +247,7 @@ printf("### line %d\n", __LINE__);
     else if (!quote && (*p) == ':') // found placeholder marker
     {
       // copied from MySQL codebase
-      char *w = p;
+      const char *w = p;
 
       p++;
       if (!isalpha(*p))
@@ -402,7 +402,7 @@ printf("### err 44\n");
 // Checks if it is select command. May it should handle stored procedures?
 bool SybaseBindGroup::does_command_return_data() const
 {
-  char* p = m_cmd->getBuffer();
+  const char* p = m_cmd->getBuffer();
   if (!p) return false;
   while (*p && isspace(*p)) ++p;
   if (!*p) return false;
@@ -514,7 +514,7 @@ printf("### line %d\n", __LINE__);
       }
       std::auto_ptr<QoreString> aux (n->val.String->convertEncoding(m_encoding, xsink));
       
-      char* s = "";
+      const char* s = "";
       if (aux.get() && aux->getBuffer()) {
         s = aux->getBuffer();
       }

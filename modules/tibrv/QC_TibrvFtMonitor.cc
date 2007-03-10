@@ -39,7 +39,7 @@ static void TIBRVFTMONITOR_constructor(class Object *self, class QoreNode *param
       xsink->raiseException("TIBRVFTMONITOR-CONSTRUCTOR-ERROR", "missing fault-tolerant group name as first parameter to TibrvFtMonitor::constructor()");
       return;
    }
-   char *groupName = pt->val.String->getBuffer();
+   const char *groupName = pt->val.String->getBuffer();
 
    int64 lostInterval;
    pt = get_param(params, 1);
@@ -50,7 +50,7 @@ static void TIBRVFTMONITOR_constructor(class Object *self, class QoreNode *param
       return;
    }
 
-   char *service = NULL, *network = NULL, *daemon = NULL, *desc = NULL;
+   const char *service = NULL, *network = NULL, *daemon = NULL, *desc = NULL;
    pt = test_param(params, NT_STRING, 2);
    if (pt)
       service = pt->val.String->getBuffer();

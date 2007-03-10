@@ -73,7 +73,7 @@ static class QoreNode *FC_disconnect(class Object *self, class QoreFtpClient *f,
 
 static class QoreNode *FC_list(class Object *self, class QoreFtpClient *f, class QoreNode *params, ExceptionSink *xsink)
 {
-   char *path;
+   const char *path;
    QoreNode *p0 = test_param(params, NT_STRING, 0);
    if (p0)
       path = p0->val.String->getBuffer();
@@ -89,7 +89,7 @@ static class QoreNode *FC_list(class Object *self, class QoreFtpClient *f, class
 
 static class QoreNode *FC_nlst(class Object *self, class QoreFtpClient *f, class QoreNode *params, ExceptionSink *xsink)
 {
-   char *path;
+   const char *path;
    QoreNode *p0 = test_param(params, NT_STRING, 0);
    if (p0)
       path = p0->val.String->getBuffer();
@@ -136,7 +136,7 @@ static class QoreNode *FC_put(class Object *self, class QoreFtpClient *f, class 
       xsink->raiseException("FTPCLIENT-PUT-PARAMETER-ERROR", "expecting path(string) as first parameter of FtpClient::put()");
       return NULL;
    }
-   char *rn;
+   const char *rn;
    QoreNode *p1 = test_param(params, NT_STRING, 1);
    if (p1)
       rn = p1->val.String->getBuffer();
@@ -158,7 +158,7 @@ static class QoreNode *FC_get(class Object *self, class QoreFtpClient *f, class 
       xsink->raiseException("FTPCLIENT-GET-PARAMETER-ERROR", "expecting path(string) as first parameter of FtpClient::get()");
       return NULL;
    }
-   char *ln;
+   const char *ln;
    QoreNode *p1 = test_param(params, NT_STRING, 1);
    if (p1)
       ln = p1->val.String->getBuffer();
@@ -260,7 +260,7 @@ static class QoreNode *FC_setURL(class Object *self, class QoreFtpClient *f, cla
 
 static class QoreNode *FC_getUserName(class Object *self, class QoreFtpClient *f, class QoreNode *params, ExceptionSink *xsink)
 {
-   char *u = f->getUserName();
+   const char *u = f->getUserName();
    if (u)
       return new QoreNode(u); 
 
@@ -269,7 +269,7 @@ static class QoreNode *FC_getUserName(class Object *self, class QoreFtpClient *f
 
 static class QoreNode *FC_getPassword(class Object *self, class QoreFtpClient *f, class QoreNode *params, ExceptionSink *xsink)
 {
-   char *p = f->getPassword();
+   const char *p = f->getPassword();
    if (p)
       return new QoreNode(p); 
 
@@ -278,7 +278,7 @@ static class QoreNode *FC_getPassword(class Object *self, class QoreFtpClient *f
 
 static class QoreNode *FC_getHostName(class Object *self, class QoreFtpClient *f, class QoreNode *params, ExceptionSink *xsink)
 {
-   char *h = f->getHostName();
+   const char *h = f->getHostName();
    if (h)
       return new QoreNode(h); 
 
@@ -353,7 +353,7 @@ static class QoreNode *FC_getSSLCipherVersion(class Object *self, class QoreFtpC
 
 static class QoreNode *FC_verifyPeerCertificate(class Object *self, class QoreFtpClient *f, class QoreNode *params, ExceptionSink *xsink)
 {
-   char *c = getSSLCVCode(f->verifyPeerCertificate());
+   const char *c = getSSLCVCode(f->verifyPeerCertificate());
    return c ? new QoreNode(c) : NULL;
 }
 

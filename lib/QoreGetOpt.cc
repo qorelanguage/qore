@@ -61,9 +61,9 @@ QoreGetOpt::~QoreGetOpt()
    short_map.clear();
 }
 
-class QoreGetOptNode *QoreGetOpt::find(char *opt) const
+class QoreGetOptNode *QoreGetOpt::find(const char *opt) const
 {
-   getopt_long_map_t::const_iterator i = long_map.find(opt);
+   getopt_long_map_t::const_iterator i = long_map.find((char *)opt);
    if (i != long_map.end())
       return i->second;
    return NULL;
@@ -112,7 +112,7 @@ static void inline addError(class Hash *h, QoreString *err)
 }
 
 // private, static method
-class QoreNode *QoreGetOpt::parseDate(char *val)
+class QoreNode *QoreGetOpt::parseDate(const char *val)
 {
    // check for ISO-8601 or qore date formats 
    // 2006-01-01              (10)
@@ -122,7 +122,7 @@ class QoreNode *QoreGetOpt::parseDate(char *val)
    
    if (len >= 10)
    {
-      char *c = strchr(val, '-');
+      const char *c = strchr(val, '-');
       if (c == (val + 4))
       {
 	 QoreString str(val, 4);
@@ -146,7 +146,7 @@ class QoreNode *QoreGetOpt::parseDate(char *val)
    return new QoreNode(new DateTime(val));
 }
 
-void QoreGetOpt::doOption(class QoreGetOptNode *n, class Hash *h, char *val)
+void QoreGetOpt::doOption(class QoreGetOptNode *n, class Hash *h, const char *val)
 {
    // get current value
    class QoreNode **cv = h->getKeyValuePtr(n->name);
@@ -226,14 +226,14 @@ void QoreGetOpt::doOption(class QoreGetOptNode *n, class Hash *h, char *val)
    (*cv) = v;
 }
 
-char *QoreGetOpt::getNextArgument(class List *l, class Hash *h, int &i, char *lopt, char sopt)
+char *QoreGetOpt::getNextArgument(class List *l, class Hash *h, int &i, const char *lopt, char sopt)
 {
    if (i < (l->size() - 1))
    {
       i++;
       class QoreNode *n = l->retrieve_entry(i);
       if (n && n->type == NT_STRING)
-	 return n->val.String->getBuffer();
+	 return (char *)n->val.String->getBuffer();
    }
    QoreString *err = new QoreString();
    if (lopt)
@@ -244,9 +244,9 @@ char *QoreGetOpt::getNextArgument(class List *l, class Hash *h, int &i, char *lo
    return NULL;
 }
 
-void QoreGetOpt::processLongArg(char *arg, class List *l, class Hash *h, int &i, bool modify)
+void QoreGetOpt::processLongArg(const char *arg, class List *l, class Hash *h, int &i, bool modify)
 {
-   char *opt;
+   const char *opt;
    char *val;
 
    // get a copy of the argument
@@ -279,7 +279,7 @@ void QoreGetOpt::processLongArg(char *arg, class List *l, class Hash *h, int &i,
    // if we need a value and there isn't one, then try to get the next argument in the list
    if (w->argtype && !val && (w->option & QGO_OPT_MANDATORY))
    {
-      val = getNextArgument(l, h, i, opt, '\0');
+      val = (char *)getNextArgument(l, h, i, opt, '\0');
       if (val && modify)
 	 do_modify = true;
       if (!val)
@@ -290,7 +290,7 @@ void QoreGetOpt::processLongArg(char *arg, class List *l, class Hash *h, int &i,
       l->pop_entry(--i, NULL);
 }
 
-int QoreGetOpt::processShortArg(char *arg, class List *l, class Hash *h, int &i, int &j, bool modify)
+int QoreGetOpt::processShortArg(const char *arg, class List *l, class Hash *h, int &i, int &j, bool modify)
 {
    char opt = (arg + j)[0];
    // find option
@@ -303,7 +303,7 @@ int QoreGetOpt::processShortArg(char *arg, class List *l, class Hash *h, int &i,
       return 0;
    }
    bool do_modify = false;
-   char *val = NULL;
+   const char *val = NULL;
    if (w->argtype)
    {
       if ((j < (signed)(strlen(arg) - 1))
@@ -339,7 +339,7 @@ class Hash *QoreGetOpt::parse(class List *l, bool modify, class ExceptionSink *x
       if (!n || n->type != NT_STRING)
 	 continue;
 
-      char *arg = n->val.String->getBuffer();
+      const char *arg = n->val.String->getBuffer();
       if (arg[0] == '-')
       {
 	 if (!arg[1])

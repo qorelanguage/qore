@@ -45,8 +45,8 @@ class QoreTibrvCmListener : public AbstractPrivateData, public QoreTibrvCmTransp
       virtual ~QoreTibrvCmListener();
 
    public:
-      QoreTibrvCmListener(char *subject, char *cmName, bool requestOld, char *ledgerName, bool syncLedger, char *relayAgent, 
-			  char *desc, char *service, char *network, char *daemon, class ExceptionSink *xsink);
+      QoreTibrvCmListener(const char *subject, const char *cmName, bool requestOld, const char *ledgerName, bool syncLedger, const char *relayAgent, 
+			  const char *desc, const char *service, const char *network, const char *daemon, class ExceptionSink *xsink);
 
       inline int getQueueSize(class ExceptionSink *xsink)
       {
@@ -54,7 +54,7 @@ class QoreTibrvCmListener : public AbstractPrivateData, public QoreTibrvCmTransp
 	 TibrvStatus status = queue.getCount(count);
 	 if (status != TIBRV_OK)
 	 {
-	    xsink->raiseException("TIBRVCMLISTENER-GETQUEUESIZE-ERROR", (char *)status.getText());
+	    xsink->raiseException("TIBRVCMLISTENER-GETQUEUESIZE-ERROR", status.getText());
 	    return 0;
 	 }
 	 

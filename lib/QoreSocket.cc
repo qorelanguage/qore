@@ -1100,7 +1100,7 @@ int QoreSocket::recv(int fd, int size, int timeout)
 }
 
 // returns 0 for success
-int QoreSocket::sendHTTPMessage(const char *method, const char *path, const char *http_version, class Hash *headers, void *data, int size)
+int QoreSocket::sendHTTPMessage(const char *method, const char *path, const char *http_version, class Hash *headers, const void *data, int size)
 {
    // prepare header string
    QoreString hdr(charsetid);
@@ -1143,7 +1143,7 @@ int QoreSocket::sendHTTPMessage(const char *method, const char *path, const char
 }
 
 // returns 0 for success
-int QoreSocket::sendHTTPResponse(int code, const char *desc, const char *http_version, class Hash *headers, void *data, int size)
+int QoreSocket::sendHTTPResponse(int code, const char *desc, const char *http_version, class Hash *headers, const void *data, int size)
 {
    // prepare header string
    QoreString hdr(charsetid);
@@ -1295,7 +1295,7 @@ class QoreNode *QoreSocket::readHTTPHeader(int timeout, int *rc)
    if (!hdr)
       return NULL;
 
-   char *buf = hdr->getBuffer();
+   const char *buf = hdr->getBuffer();
    //printd(0, "HTTP header=%s", buf);
 
    char *p;
@@ -1438,7 +1438,7 @@ class Hash *QoreSocket::readHTTPChunkedBodyBinary(int timeout, class ExceptionSi
       int br = 0; // bytes received
       while (true)
       {
-	 rc = recv(str.getBuffer() + br, bs, 0, timeout);
+	 rc = recv((char *)str.getBuffer() + br, bs, 0, timeout);
 	 if (rc <= 0)
 	 {
 	    delete b;
@@ -1491,7 +1491,7 @@ class Hash *QoreSocket::readHTTPChunkedBodyBinary(int timeout, class ExceptionSi
       delete hdr;
       return h;
    }
-   convertHeaderToHash(h, hdr->getBuffer());
+   convertHeaderToHash(h, (char *)hdr->getBuffer());
    delete hdr;
    return h; 
 }
@@ -1561,7 +1561,7 @@ class Hash *QoreSocket::readHTTPChunkedBody(int timeout, class ExceptionSink *xs
       int br = 0; // bytes received
       while (true)
       {
-	 rc = recv(buf->getBuffer() + buf->strlen() + br, bs, 0, timeout);
+	 rc = recv((char *)buf->getBuffer() + buf->strlen() + br, bs, 0, timeout);
 	 if (rc <= 0)
 	 {
 	    delete buf;
@@ -1611,7 +1611,7 @@ class Hash *QoreSocket::readHTTPChunkedBody(int timeout, class ExceptionSink *xs
       delete hdr;
       return h;
    }
-   convertHeaderToHash(h, hdr->getBuffer());
+   convertHeaderToHash(h, (char *)hdr->getBuffer());
    delete hdr;
    return h;
 }

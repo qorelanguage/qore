@@ -150,7 +150,7 @@ static void GETOPT_constructor(class Object *self, class QoreNode *params, Excep
       // reset buffer
       vstr.clear();
       vstr.concat(v->val.String->getBuffer());
-      char *val = vstr.getBuffer();
+      char *val = (char *)vstr.getBuffer();
 
       // get data type, if any
       char *tok = strchrs(val, "=:");

@@ -56,7 +56,7 @@ class QoreFile {
       DLLEXPORT ~QoreFile();
       // NOTE: QoreFile::makeSpecial() can only be called right after the constructor
       DLLEXPORT void makeSpecial(int sfd);
-      DLLEXPORT int open(char *fn, int flags = O_RDONLY, int mode = 0777, class QoreEncoding *cs = QCS_DEFAULT);      
+      DLLEXPORT int open(const char *fn, int flags = O_RDONLY, int mode = 0777, class QoreEncoding *cs = QCS_DEFAULT);      
       DLLEXPORT int close();
       DLLEXPORT void setEncoding(class QoreEncoding *cs);
       DLLEXPORT class QoreEncoding *getEncoding() const;

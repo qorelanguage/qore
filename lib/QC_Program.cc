@@ -218,7 +218,7 @@ static QoreNode *PROGRAM_importFunction(class Object *self, class QoreProgram *p
       xsink->raiseException("PROGRAM-IMPORTFUNCTION-PARAMETER-ERROR", "expecting function-name(string) as argument to QoreProgram::importUserFunction()");
       return NULL;
    }
-   char *func = p0->val.String->getBuffer();
+   const char *func = p0->val.String->getBuffer();
 
    getProgram()->exportUserFunction(func, p, xsink);
    return NULL;

@@ -772,7 +772,7 @@ int QorePGResult::add(class QoreNode *v, class ExceptionSink *xsink)
 	 return -1;
 
       paramLengths[nParams] = tmp->strlen();
-      paramValues[nParams]  = tmp->getBuffer();
+      paramValues[nParams]  = (char *)tmp->getBuffer();
       // grab and save the buffer if it's a temporary string to be free'd after the request
       if (tmp.is_temp())
 	 pb->str = tmp->giveBuffer();
@@ -868,7 +868,7 @@ int QorePGResult::add(class QoreNode *v, class ExceptionSink *xsink)
 	 else
 	 {
 	    pb->str = NULL;
-	    paramValues[nParams]  = t->val.String->getBuffer();
+	    paramValues[nParams]  = (char *)t->val.String->getBuffer();
 	    paramLengths[nParams] = t->val.String->strlen();
 	 }
       }
@@ -1252,13 +1252,13 @@ int QorePGBindArray::process_list(List *l, int current, class QoreEncoding *enc,
 int QorePGResult::parse(class QoreString *str, class List *args, class ExceptionSink *xsink)
 {
    char quote = 0;
-   char *p = str->getBuffer();
+   const char *p = str->getBuffer();
    QoreString tmp;
    while (*p)
    {
       if (!quote && (*p) == '%') // found value marker
       {
-         char *w = p;
+         const char *w = p;
 
          p++;
          if ((*p) != 'v')
@@ -1378,7 +1378,7 @@ int QorePGResult::exec(PGconn *pc, const char *cmd, class ExceptionSink *xsink)
    return 0;
 }
 
-QorePGConnection::QorePGConnection(char *str, class ExceptionSink *xsink)
+QorePGConnection::QorePGConnection(const char *str, class ExceptionSink *xsink)
 {
    pc = PQconnectdb(str);
    if (PQstatus(pc) != CONNECTION_OK)

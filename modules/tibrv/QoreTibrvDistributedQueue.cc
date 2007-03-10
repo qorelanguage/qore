@@ -26,9 +26,9 @@
 
 #include "QoreTibrvDistributedQueue.h"
 
-QoreTibrvDistributedQueue::QoreTibrvDistributedQueue(char *cmName, unsigned workerWeight, unsigned workerTasks, 
+QoreTibrvDistributedQueue::QoreTibrvDistributedQueue(const char *cmName, unsigned workerWeight, unsigned workerTasks, 
 						     unsigned short schedulerWeight, int64 schedulerHeartbeat, int64 schedulerActivation,
-						     char *desc, char *service, char *network, char *daemon, 
+						     const char *desc, const char *service, const char *network, const char *daemon, 
 						     class ExceptionSink *xsink) : QoreTibrvTransport(desc, service, network, daemon, xsink)
 {
    if (xsink->isException())

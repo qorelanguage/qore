@@ -26,17 +26,17 @@
 
 #include "QoreTibrvCmTransport.h"
 
-QoreTibrvCmTransport::QoreTibrvCmTransport(char *cmName, bool requestOld, char *ledgerName, bool syncLedger, char *relayAgent, 
-					   char *desc, char *service, char *network, char *daemon, class ExceptionSink *xsink) 
+QoreTibrvCmTransport::QoreTibrvCmTransport(const char *cmName, bool requestOld, const char *ledgerName, bool syncLedger, const char *relayAgent, 
+					   const char *desc, const char *service, const char *network, const char *daemon, class ExceptionSink *xsink) 
    : QoreTibrvTransport(desc, service, network, daemon, xsink)
 {
    if (xsink->isException())
       return;
 
-   TibrvStatus status = cmTransport.create(&transport, (const char*)cmName, (tibrv_bool)requestOld, (const char *)ledgerName, (tibrv_bool)syncLedger, (const char *)relayAgent);
+   TibrvStatus status = cmTransport.create(&transport, cmName, (tibrv_bool)requestOld, ledgerName, (tibrv_bool)syncLedger, relayAgent);
    if (status != TIBRV_OK)
    {
-      xsink->raiseException("TIBRV-CMTRANSPORT-ERROR", "%s", (char *)status.getText());
+      xsink->raiseException("TIBRV-CMTRANSPORT-ERROR", "%s", status.getText());
       return;
    }
 }

@@ -30,11 +30,11 @@ class ExecArgList {
       int allocated;
       int len;
 
-      DLLLOCAL char *getString(char *start, int size);
+      DLLLOCAL char *getString(const char *start, int size);
       DLLLOCAL void addArg(char *str);
 
    public:
-      DLLLOCAL ExecArgList(char *str);
+      DLLLOCAL ExecArgList(const char *str);
       DLLLOCAL ~ExecArgList();
       DLLLOCAL char *getFile();
       DLLLOCAL char **getArgs();

@@ -120,7 +120,7 @@ void RegexSubst::parse()
    str = NULL;
 }
 
-void RegexSubst::concat(class QoreString *cstr, int *ovector, int olen, char *ptr, char *target)
+void RegexSubst::concat(class QoreString *cstr, int *ovector, int olen, const char *ptr, const char *target)
 {
    while (*ptr)
    {
@@ -160,7 +160,7 @@ class QoreString *RegexSubst::exec(class QoreString *target, class QoreString *n
    class QoreString *tstr = new QoreString();
    
    //printd(5, "RegexSubst::exec(%s) this=%08p: global=%s\n", target->getBuffer(), this, global ? "true" : "false"); 
-   char *ptr = t->getBuffer();
+   const char *ptr = t->getBuffer();
    while (true)
    {
       int ovector[SUBST_OVECSIZE];

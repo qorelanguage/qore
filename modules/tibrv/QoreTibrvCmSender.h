@@ -42,15 +42,15 @@ class QoreTibrvCmSender : public AbstractPrivateData, public QoreTibrvCmTranspor
       virtual ~QoreTibrvCmSender() {}
 
    public:
-      inline QoreTibrvCmSender(char *cmName, bool requestOld, char *ledgerName, bool syncLedger, char *relayAgent, 
-			       char *desc, char *service, char *network, char *daemon, class ExceptionSink *xsink) 
+      inline QoreTibrvCmSender(const char *cmName, bool requestOld, const char *ledgerName, bool syncLedger, const char *relayAgent, 
+			       const char *desc, const char *service, const char *network, const char *daemon, class ExceptionSink *xsink) 
 	 : QoreTibrvCmTransport(cmName, requestOld, ledgerName, syncLedger, relayAgent, desc, service, network, daemon, xsink)  { }
 
       // time_limit for certified delivery in ms
-      void sendSubject(char *subject, class Hash *data, char *replySubject, int64 time_limit, class ExceptionSink *xsink);
+      void sendSubject(const char *subject, class Hash *data, const char *replySubject, int64 time_limit, class ExceptionSink *xsink);
 
       // timeout and time_limit for certified delivery in ms
-      class Hash *sendSubjectWithSyncReply(char *subject, class Hash *data, int64 timeout, int64 time_limit, class ExceptionSink *xsink);
+      class Hash *sendSubjectWithSyncReply(const char *subject, class Hash *data, int64 timeout, int64 time_limit, class ExceptionSink *xsink);
 };
 
 #endif

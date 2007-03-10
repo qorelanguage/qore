@@ -88,7 +88,7 @@ class FtpClient : public LockedObject
       bool secure, secure_data;
 
       DLLLOCAL class QoreString *getResponse(class ExceptionSink *xsink);
-      DLLLOCAL class QoreString *sendMsg(char *cmd, char *arg, class ExceptionSink *xsink);
+      DLLLOCAL class QoreString *sendMsg(const char *cmd, const char *arg, class ExceptionSink *xsink);
       DLLLOCAL void stripEOL(class QoreString *str);
       //int connectDataLongPassive(class ExceptionSink *xsink);
       DLLLOCAL int connectDataExtendedPassive(class ExceptionSink *xsink);
@@ -108,12 +108,12 @@ class FtpClient : public LockedObject
       DLLEXPORT ~FtpClient();
       DLLEXPORT int connect(class ExceptionSink *xsink);
       DLLEXPORT int disconnect();
-      DLLEXPORT int cwd(char *dir, class ExceptionSink *xsink);
+      DLLEXPORT int cwd(const char *dir, class ExceptionSink *xsink);
       DLLEXPORT class QoreString *pwd(class ExceptionSink *xsink);
-      DLLEXPORT int put(char *localpath, char *remotename, class ExceptionSink *xsink);
-      DLLEXPORT int get(char *remotepath, char *localname, class ExceptionSink *xsink);
-      DLLEXPORT class QoreString *list(char *path, bool long_list, class ExceptionSink *xsink);
-      DLLEXPORT int del(char *file, class ExceptionSink *xsink);
+      DLLEXPORT int put(const char *localpath, const char *remotename, class ExceptionSink *xsink);
+      DLLEXPORT int get(const char *remotepath, const char *localname, class ExceptionSink *xsink);
+      DLLEXPORT class QoreString *list(const char *path, bool long_list, class ExceptionSink *xsink);
+      DLLEXPORT int del(const char *file, class ExceptionSink *xsink);
       //DLLEXPORT int cdup(class ExceptionSink *xsink);
       //DLLEXPORT int rename(char *old, char *name, class ExceptionSink *xsink);
       //DLLEXPORT int mkdir(char *dir, class ExceptionSink *xsink);
@@ -125,9 +125,9 @@ class FtpClient : public LockedObject
       DLLEXPORT void setURL(class QoreString *url, class ExceptionSink *xsink);
       DLLEXPORT class QoreString *getURL() const;
       DLLEXPORT void setPort(int p);
-      DLLEXPORT void setUserName(char *u); 
-      DLLEXPORT void setPassword(char *p);
-      DLLEXPORT void setHostName(char *h); 
+      DLLEXPORT void setUserName(const char *u); 
+      DLLEXPORT void setPassword(const char *p);
+      DLLEXPORT void setHostName(const char *h); 
       DLLEXPORT int setSecure();
       DLLEXPORT int setInsecure();
       DLLEXPORT int setInsecureData();

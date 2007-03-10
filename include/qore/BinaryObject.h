@@ -79,7 +79,7 @@ class BinaryObject {
 	 return ptr;
       }
 
-      inline void append(void *nptr, int size)
+      inline void append(const void *nptr, int size)
       {
 	 ptr = realloc(ptr, len + size);
 	 memcpy((char *)ptr + len, nptr, size);

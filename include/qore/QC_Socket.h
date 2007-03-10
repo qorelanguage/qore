@@ -51,25 +51,25 @@ class mySocket : public AbstractPrivateData, public LockedObject
 
    public:
       DLLLOCAL mySocket();      
-      DLLLOCAL int connect(char *name, class ExceptionSink *xsink = NULL);
-      DLLLOCAL int connectINET(char *host, int port, class ExceptionSink *xsink = NULL);
-      DLLLOCAL int connectUNIX(char *p, class ExceptionSink *xsink = NULL);
-      DLLLOCAL int connectSSL(char *name, class ExceptionSink *xsink);
-      DLLLOCAL int connectINETSSL(char *host, int port, class ExceptionSink *xsink);
-      DLLLOCAL int connectUNIXSSL(char *p, class ExceptionSink *xsink);
+      DLLLOCAL int connect(const char *name, class ExceptionSink *xsink = NULL);
+      DLLLOCAL int connectINET(const char *host, int port, class ExceptionSink *xsink = NULL);
+      DLLLOCAL int connectUNIX(const char *p, class ExceptionSink *xsink = NULL);
+      DLLLOCAL int connectSSL(const char *name, class ExceptionSink *xsink);
+      DLLLOCAL int connectINETSSL(const char *host, int port, class ExceptionSink *xsink);
+      DLLLOCAL int connectUNIXSSL(const char *p, class ExceptionSink *xsink);
       // to bind to either a UNIX socket or an INET interface:port
-      DLLLOCAL int bind(char *name, bool reuseaddr = false);
+      DLLLOCAL int bind(const char *name, bool reuseaddr = false);
       // to bind to an INET tcp port on all interfaces
       DLLLOCAL int bind(int port, bool reuseaddr = false);
       // to bind an open socket to an INET tcp port on a specific interface
-      DLLLOCAL int bind(char *interface, int port, bool reuseaddr = false);
+      DLLLOCAL int bind(const char *interface, int port, bool reuseaddr = false);
       // get port number for INET sockets
       DLLLOCAL int getPort();
       DLLLOCAL class mySocket *accept(class SocketSource *source, class ExceptionSink *xsink);
       DLLLOCAL class mySocket *acceptSSL(class SocketSource *source, class ExceptionSink *xsink);
       DLLLOCAL int listen();
       // send a buffer of a particular size
-      DLLLOCAL int send(char *buf, int size);
+      DLLLOCAL int send(const char *buf, int size);
       // send a null-terminated string
       DLLLOCAL int send(class QoreString *msg, class ExceptionSink *xsink);
       // send a binary object
@@ -101,9 +101,9 @@ class mySocket : public AbstractPrivateData, public LockedObject
       DLLLOCAL int recvi4LSB(int timeout, int *b);
       DLLLOCAL int recvi8LSB(int timeout, int64 *b);
       // send HTTP message
-      DLLLOCAL int sendHTTPMessage(char *method, char *path, char *http_version, class Hash *headers, void *ptr, int size);
+      DLLLOCAL int sendHTTPMessage(const char *method, const char *path, const char *http_version, class Hash *headers, const void *ptr, int size);
       // send HTTP response
-      DLLLOCAL int sendHTTPResponse(int code, char *desc, char *http_version, class Hash *headers, void *ptr, int size);
+      DLLLOCAL int sendHTTPResponse(int code, const char *desc, const char *http_version, class Hash *headers, const void *ptr, int size);
       // read and parse HTTP header
       DLLLOCAL class QoreNode *readHTTPHeader(int timeout, int *rc);
       // receive a binary message in HTTP chunked format

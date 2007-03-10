@@ -28,7 +28,7 @@
 
 #define ARG_BLOCK 10
 
-char *ExecArgList::getString(char *start, int size)
+char *ExecArgList::getString(const char *start, int size)
 {
    char *str = (char *)malloc(sizeof(char) * (size + 1));
    strncpy(str, start, size);
@@ -49,12 +49,16 @@ void ExecArgList::addArg(char *str)
    len++;
 }
 
-ExecArgList::ExecArgList(char *str)
+ExecArgList::ExecArgList(const char *str)
 {
+   // copy string as we will edit it in place
+   QoreString tmp(str);
+
    allocated = 0;
    len = 0;
    arg = NULL;
-   char *start = str, *p = str;
+   char *start = (char *)tmp.getBuffer();
+   char *p = start;
    int quote = 0;
    
    while (*p)

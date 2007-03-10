@@ -34,7 +34,7 @@ static class QoreNode *f_tibrvSetDaemonCert(class QoreNode *params, class Except
 {
    // get daemon name (format: "ssl:<host>:<port_number>")
    class QoreNode *pt = test_param(params, NT_STRING, 0);
-   char *name = pt ? pt->val.String->getBuffer() : TIBRV_SECURE_DAEMON_ANY_NAME;
+   const char *name = pt ? pt->val.String->getBuffer() : TIBRV_SECURE_DAEMON_ANY_NAME;
 
    // get certificate (SSLCertificate class)
    pt = test_param(params, NT_OBJECT, 1);
@@ -52,14 +52,14 @@ static class QoreNode *f_tibrvSetDaemonCert(class QoreNode *params, class Except
       }
    }
 
-   TibrvStatus status = TibrvSdContext::setDaemonCert((const char *)name, (const char *)(pemcert ? pemcert->getBuffer() : TIBRV_SECURE_DAEMON_ANY_CERT));
+   TibrvStatus status = TibrvSdContext::setDaemonCert((const char *)name, (pemcert ? pemcert->getBuffer() : TIBRV_SECURE_DAEMON_ANY_CERT));
    if (pemcert)
    {
       delete pemcert;
       sslc->deref();
    }
    if (status != TIBRV_OK)
-      xsink->raiseException("TIBRV-SET-DAEMON-CERT-ERROR", "%s", (char *)status.getText());
+      xsink->raiseException("TIBRV-SET-DAEMON-CERT-ERROR", "%s", status.getText());
 
    return NULL;
 }
@@ -102,14 +102,14 @@ static class QoreNode *f_tibrvSetUserCertWithKey(class QoreNode *params, class E
    delete pempk;
 
    pt = test_param(params, NT_STRING, 2);
-   char *pw = pt ? pt->val.String->getBuffer() : NULL;
+   const char *pw = pt ? pt->val.String->getBuffer() : NULL;
 
-   TibrvStatus status = TibrvSdContext::setUserCertWithKey((const char *)pemcert->getBuffer(), (const char *)pw);
+   TibrvStatus status = TibrvSdContext::setUserCertWithKey(pemcert->getBuffer(), pw);
 
    delete pemcert;
 
    if (status != TIBRV_OK)
-      xsink->raiseException("TIBRV-SET-USER-CERT-WTIH-KEY-ERROR", "%s", (char *)status.getText());
+      xsink->raiseException("TIBRV-SET-USER-CERT-WTIH-KEY-ERROR", "%s", status.getText());
 
    return NULL;
 }

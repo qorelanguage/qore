@@ -102,7 +102,7 @@ void QoreFile::makeSpecial(int sfd)
    fd = sfd;
 }
 
-int QoreFile::open(char *fn, int flags, int mode, class QoreEncoding *cs)
+int QoreFile::open(const char *fn, int flags, int mode, class QoreEncoding *cs)
 {
    if (!fn || special_file)
       return -1;

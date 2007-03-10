@@ -74,8 +74,9 @@ static class QoreNode *f_binary(class QoreNode *params, ExceptionSink *xsink)
 
    // convert to string and make binary object
    QoreNode *t = p0->convert(NT_STRING);
-   QoreNode *rv = new QoreNode(new BinaryObject(t->val.String->getBuffer(), t->val.String->strlen()));
-   t->val.String->giveBuffer();
+   int len = t->val.String->strlen();
+   QoreNode *rv = new QoreNode(new BinaryObject(t->val.String->giveBuffer(), len));
+   
    t->deref(xsink);
    return rv;
 }

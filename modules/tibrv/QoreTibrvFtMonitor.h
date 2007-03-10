@@ -48,8 +48,8 @@ class QoreTibrvFtMonitor : public AbstractPrivateData, public QoreTibrvTransport
       virtual ~QoreTibrvFtMonitor();
       
    public:
-      QoreTibrvFtMonitor(char *groupname, int64 lostInterval,
-			 char *desc, char *service, char *network, char *daemon, 
+      QoreTibrvFtMonitor(const char *groupname, int64 lostInterval,
+			 const char *desc, const char *service, const char *network, const char *daemon, 
 			 class ExceptionSink *xsink);
 
       inline QoreNode *getEvent(class ExceptionSink *xsink);
@@ -75,7 +75,7 @@ class QoreTibrvFtMonitor : public AbstractPrivateData, public QoreTibrvTransport
          TibrvStatus status = queue.getCount(count);
          if (status != TIBRV_OK)
          {
-            xsink->raiseException("TIBRVLISTENER-GETQUEUESIZE-ERROR", (char *)status.getText());
+            xsink->raiseException("TIBRVLISTENER-GETQUEUESIZE-ERROR", status.getText());
             return 0;
          }
          
@@ -143,7 +143,7 @@ inline QoreNode *QoreTibrvFtMonitor::getEvent(class ExceptionSink *xsink)
    
       if (status != TIBRV_OK)
       {
-	 xsink->raiseException("TIBRVFTMONITOR-GETEVENT-ERROR", (char *)status.getText());
+	 xsink->raiseException("TIBRVFTMONITOR-GETEVENT-ERROR", status.getText());
 	 return NULL;
       }
       

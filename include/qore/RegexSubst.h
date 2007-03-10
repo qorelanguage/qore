@@ -36,7 +36,7 @@ class RegexSubst : public QoreRegexBase
       class QoreString *newstr;
 
       DLLLOCAL void init();
-      DLLLOCAL void concat(class QoreString *str, int *ovector, int olen, char *ptr, char *target);
+      DLLLOCAL void concat(class QoreString *str, int *ovector, int olen, const char *ptr, const char *target);
 
    public:
       DLLLOCAL RegexSubst();

@@ -54,26 +54,26 @@ mySocket::mySocket()
    init();
 }
 
-int mySocket::connect(char *name, class ExceptionSink *xsink)
+int mySocket::connect(const char *name, class ExceptionSink *xsink)
 {
    SafeLocker sl(this);
    return socket->connect(name, xsink);
 }
 
-int mySocket::connectINET(char *host, int port, class ExceptionSink *xsink)
+int mySocket::connectINET(const char *host, int port, class ExceptionSink *xsink)
 {
    SafeLocker sl(this);
    return socket->connectINET(host, port, xsink);
 }
 
-int mySocket::connectUNIX(char *p, class ExceptionSink *xsink)
+int mySocket::connectUNIX(const char *p, class ExceptionSink *xsink)
 {
    SafeLocker sl(this);
    return socket->connectUNIX(p, xsink);
 }
 
 // to bind to either a UNIX socket or an INET interface:port
-int mySocket::bind(char *name, bool reuseaddr)
+int mySocket::bind(const char *name, bool reuseaddr)
 {
    SafeLocker sl(this);
    return socket->bind(name, reuseaddr);
@@ -87,7 +87,7 @@ int mySocket::bind(int port, bool reuseaddr)
 }
 
 // to bind an open socket to an INET tcp port on a specific interface
-int mySocket::bind(char *interface, int port, bool reuseaddr)
+int mySocket::bind(const char *interface, int port, bool reuseaddr)
 {
    SafeLocker sl(this);
    return socket->bind(interface, port, reuseaddr);
@@ -117,7 +117,7 @@ int mySocket::listen()
 }
 
 // send a buffer of a particular size
-int mySocket::send(char *buf, int size)
+int mySocket::send(const char *buf, int size)
 {
    SafeLocker sl(this);
    return socket->send(buf, size);
@@ -259,14 +259,14 @@ int mySocket::recvi8LSB(int timeout, int64 *b)
 }
 
 // send HTTP message
-int mySocket::sendHTTPMessage(char *method, char *path, char *http_version, class Hash *headers, void *ptr, int size)
+int mySocket::sendHTTPMessage(const char *method, const char *path, const char *http_version, class Hash *headers, const void *ptr, int size)
 {
    SafeLocker sl(this);
    return socket->sendHTTPMessage(method, path, http_version, headers, ptr, size);
 }
 
 // send HTTP response
-int mySocket::sendHTTPResponse(int code, char *desc, char *http_version, class Hash *headers, void *ptr, int size)
+int mySocket::sendHTTPResponse(int code, const char *desc, const char *http_version, class Hash *headers, const void *ptr, int size)
 {
    SafeLocker sl(this);
    return socket->sendHTTPResponse(code, desc, http_version, headers, ptr, size);
@@ -386,7 +386,7 @@ bool mySocket::isOpen() const
    return socket->isOpen();
 }
 
-int mySocket::connectINETSSL(char *host, int port, class ExceptionSink *xsink)
+int mySocket::connectINETSSL(const char *host, int port, class ExceptionSink *xsink)
 {
    SafeLocker sl(this);
    return socket->connectINETSSL(host, port, 
@@ -395,7 +395,7 @@ int mySocket::connectINETSSL(char *host, int port, class ExceptionSink *xsink)
 				 xsink);
 }
 
-int mySocket::connectUNIXSSL(char *p, class ExceptionSink *xsink)
+int mySocket::connectUNIXSSL(const char *p, class ExceptionSink *xsink)
 {
    SafeLocker sl(this);
    return socket->connectUNIXSSL(p, 
@@ -404,7 +404,7 @@ int mySocket::connectUNIXSSL(char *p, class ExceptionSink *xsink)
 				 xsink);
 }
 
-int mySocket::connectSSL(char *name, class ExceptionSink *xsink)
+int mySocket::connectSSL(const char *name, class ExceptionSink *xsink)
 {
    SafeLocker sl(this);
    return socket->connectSSL(name, 

@@ -45,7 +45,7 @@ class QoreTibrvListener : public AbstractPrivateData, public QoreTibrvTransport
       virtual ~QoreTibrvListener();
 
    public:
-      QoreTibrvListener(char *subject, char *desc, char *service, char *network, char *daemon, class ExceptionSink *xsink);
+      QoreTibrvListener(const char *subject, const char *desc, const char *service, const char *network, const char *daemon, class ExceptionSink *xsink);
 
       inline int getQueueSize(class ExceptionSink *xsink)
       {
@@ -53,7 +53,7 @@ class QoreTibrvListener : public AbstractPrivateData, public QoreTibrvTransport
 	 TibrvStatus status = queue.getCount(count);
 	 if (status != TIBRV_OK)
 	 {
-	    xsink->raiseException("TIBRVLISTENER-GETQUEUESIZE-ERROR", (char *)status.getText());
+	    xsink->raiseException("TIBRVLISTENER-GETQUEUESIZE-ERROR", status.getText());
 	    return 0;
 	 }
 	 

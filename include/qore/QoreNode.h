@@ -212,7 +212,7 @@ class QoreNodeStringHelper {
       { 
 	 return !temp || node;
       }
-      DLLEXPORT char *operator*();
+      DLLEXPORT const char *operator*();
       DLLEXPORT bool is_temp() const
       {
 	 return temp;

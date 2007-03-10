@@ -35,11 +35,11 @@
 #include <string>
 
 // for multi-byte character set encodings: gives the length of the string in characters
-typedef int (*mbcs_length_t)(char *);
+typedef int (*mbcs_length_t)(const char *);
 // for multi-byte character set encodings: gives the number of bytes for the number of chars
-typedef int (*mbcs_end_t)(char *, int);
+typedef int (*mbcs_end_t)(const char *, int);
 // for multi-byte character set encodings: gives the character position of the ptr
-typedef int (*mbcs_pos_t)(char *, char *);
+typedef int (*mbcs_pos_t)(const char *, const char *);
 
 class QoreEncoding {
 private:
@@ -50,7 +50,7 @@ private:
       std::string desc;
 
 public:
-      inline QoreEncoding(const char *c, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, char *d)
+      inline QoreEncoding(const char *c, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, const char *d)
       {
 	 code = c;
 	 flength = l;
@@ -61,15 +61,15 @@ public:
       inline ~QoreEncoding()
       {
       }
-      inline int getLength(char *p)
+      inline int getLength(const char *p)
       {
 	 return flength ? flength(p) : strlen(p);
       }
-      inline int getByteLen(char *p, int c)
+      inline int getByteLen(const char *p, int c)
       {
 	 return fend ? fend(p, c) : c;
       }
-      inline int getCharPos(char *p, char *e)
+      inline int getCharPos(const char *p, const char *e)
       {
 	 return fpos ? fpos(p, e) : e - p;
       }
@@ -98,7 +98,7 @@ class QoreEncodingManager
       DLLLOCAL static encoding_map_t emap, amap;
       DLLLOCAL static class LockedObject mutex;
    
-      DLLLOCAL static struct QoreEncoding *addUnlocked(const char *code, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, char *desc);
+      DLLLOCAL static struct QoreEncoding *addUnlocked(const char *code, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, const char *desc);
       DLLLOCAL static struct QoreEncoding *findUnlocked(const char *name);
 
    public:
@@ -111,7 +111,7 @@ class QoreEncodingManager
 
       DLLLOCAL QoreEncodingManager();
       DLLLOCAL ~QoreEncodingManager();
-      DLLLOCAL static struct QoreEncoding *add(const char *code, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, char *desc);
+      DLLLOCAL static struct QoreEncoding *add(const char *code, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, const char *desc);
 };
 
 DLLEXPORT extern QoreEncodingManager QEM;

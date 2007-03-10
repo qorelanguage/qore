@@ -239,7 +239,7 @@ class QoreNode *Object::evalMember(class QoreNode *member, class ExceptionSink *
       return NULL;
 
    class QoreNode *rv = NULL;
-   char *mem = tstr->getBuffer();
+   const char *mem = tstr->getBuffer();
    
    //printd(5, "Object::evalMember() find_key(%s)=%08p myclass=%s\n", mem, find_key(mem), myclass ? myclass->getName() : "NONE");
    // if accessed outside the class and the member is a private member 
@@ -662,7 +662,7 @@ class QoreNode *Object::evalFirstKeyValue(class ExceptionSink *xsink)
    return rv;
 }
 
-class QoreNode *Object::evalMemberNoMethod(char *mem, class ExceptionSink *xsink)
+class QoreNode *Object::evalMemberNoMethod(const char *mem, class ExceptionSink *xsink)
 {
    printd(5, "Object::evalMemberNoMethod(this=%08p, mem=%08p (%s), xsink=%08p, data->size()=%d)\n",
 	  this, mem, mem, xsink, data ? data->size() : -1);

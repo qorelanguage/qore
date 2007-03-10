@@ -10,6 +10,7 @@
 	* made QoreEncoding members private
 	* applied "const char*" to headers where appropriate
 	* updated QoreClass; sanitized constructors and name handling
+	* updated QoreString::getBuffer() to return const char *
 
 2007.03.09: David Nichols
 	* renamed SafeLocker class to "AutoLock"

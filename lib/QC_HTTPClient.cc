@@ -116,7 +116,7 @@ static class QoreNode *HC_disconnect(class Object *self, class QoreHTTPClient *c
 // send(data, method, path, headers, [getbody])
 static class QoreNode *HC_send(class Object *self, class QoreHTTPClient *client, class QoreNode *params, ExceptionSink *xsink)
 {
-   void *ptr = NULL;
+   const void *ptr = NULL;
    int size = 0;
    class QoreNode *p = get_param(params, 0);
    if (!is_nothing(p))
@@ -140,10 +140,10 @@ static class QoreNode *HC_send(class Object *self, class QoreHTTPClient *client,
       xsink->raiseException("HTTP-CLIENT-SEND-ERROR", "expecting method name as second parameter");
       return NULL;
    }
-   char *meth = p->val.String->getBuffer();
+   const char *meth = p->val.String->getBuffer();
 
    p = test_param(params, NT_STRING, 2);
-   char *path = p ? p->val.String->getBuffer() : NULL;
+   const char *path = p ? p->val.String->getBuffer() : NULL;
 
    p = test_param(params, NT_HASH, 3);
    class Hash *h = p ? p->val.hash : NULL;
@@ -163,7 +163,7 @@ static class QoreNode *HC_get(class Object *self, class QoreHTTPClient *client, 
       xsink->raiseException("HTTP-CLIENT-GET-ERROR", "expecting path as first parameter");
       return NULL;
    }
-   char *path = p->val.String->getBuffer();
+   const char *path = p->val.String->getBuffer();
 
    p = test_param(params, NT_HASH, 1);
 
@@ -179,7 +179,7 @@ static class QoreNode *HC_head(class Object *self, class QoreHTTPClient *client,
       xsink->raiseException("HTTP-CLIENT-HEAD-ERROR", "expecting path as first parameter");
       return NULL;
    }
-   char *path = p->val.String->getBuffer();
+   const char *path = p->val.String->getBuffer();
 
    p = test_param(params, NT_HASH, 1);
 
@@ -195,9 +195,9 @@ static class QoreNode *HC_post(class Object *self, class QoreHTTPClient *client,
       xsink->raiseException("HTTP-CLIENT-POST-ERROR", "expecting path as first parameter");
       return NULL;
    }
-   char *path = p->val.String->getBuffer();
+   const char *path = p->val.String->getBuffer();
 
-   void *ptr = NULL;
+   const void *ptr = NULL;
    int size = 0;
    p = get_param(params, 1);
    if (!is_nothing(p))

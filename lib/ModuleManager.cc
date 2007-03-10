@@ -62,7 +62,7 @@ module_map_t ModuleManager::map;
 # endif
 #endif
 
-ModuleInfo::ModuleInfo(char *fn, char *n, int major, int minor, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del, char *d, char *v, char *a, char *u, void *p)
+ModuleInfo::ModuleInfo(const char *fn, char *n, int major, int minor, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del, char *d, char *v, char *a, char *u, void *p)
 {
    filename = strdup(fn);
    name = n;
@@ -176,7 +176,7 @@ void ModuleManager::add(ModuleInfo *m)
    map.insert(std::make_pair(m->getName(), m));
 }
 
-class ModuleInfo *ModuleManager::add(char *fn, char *n, int major, int minor, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del, char *d, char *v, char *a, char *u, void *p)
+class ModuleInfo *ModuleManager::add(const char *fn, char *n, int major, int minor, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del, char *d, char *v, char *a, char *u, void *p)
 {
    class ModuleInfo *m = new ModuleInfo(fn, n, major, minor, init, ns_init, del, d, v, a, u, p);
    add(m);
@@ -362,7 +362,7 @@ class QoreString *ModuleManager::loadModule(char *name, class QoreProgram *pgm)
    return errstr;
 }
 
-class QoreString *ModuleManager::loadModuleFromPath(char *path, char *feature, class ModuleInfo **mip)
+class QoreString *ModuleManager::loadModuleFromPath(const char *path, const char *feature, class ModuleInfo **mip)
 {
    class ModuleInfo *mi = NULL;
    if (mip)

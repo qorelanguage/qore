@@ -516,7 +516,7 @@ int List::qsort(class QoreProgram *pgm, class UserFunction *f, int left, int rig
    return rc;
 }
 
-class QoreNode *List::sort(char *sort_function_name, class ExceptionSink *xsink) const
+class QoreNode *List::sort(const char *sort_function_name, class ExceptionSink *xsink) const
 {   
    QoreProgram *pgm = getProgram();
    class UserFunction *f = pgm->findUserFunction(sort_function_name);
@@ -551,7 +551,7 @@ class QoreNode *List::sortDescendingStable() const
    return rv;
 }
 
-class QoreNode *List::sortStable(char *sort_function_name, class ExceptionSink *xsink) const
+class QoreNode *List::sortStable(const char *sort_function_name, class ExceptionSink *xsink) const
 {   
    QoreProgram *pgm = getProgram();
    class UserFunction *f = pgm->findUserFunction(sort_function_name);
@@ -771,7 +771,7 @@ class QoreNode *List::max() const
    return rv ? rv->RefSelf() : NULL;
 }
 
-class QoreNode *List::min(char *callback_function_name, class ExceptionSink *xsink) const
+class QoreNode *List::min(const char *callback_function_name, class ExceptionSink *xsink) const
 {
    class QoreProgram *pgm = getProgram();
    class UserFunction *f = pgm->findUserFunction(callback_function_name);
@@ -802,7 +802,7 @@ class QoreNode *List::min(char *callback_function_name, class ExceptionSink *xsi
    return rv ? rv->RefSelf() : NULL;
 }
 
-class QoreNode *List::max(char *callback_function_name, class ExceptionSink *xsink) const
+class QoreNode *List::max(const char *callback_function_name, class ExceptionSink *xsink) const
 {
    class QoreProgram *pgm = getProgram();
    class UserFunction *f = pgm->findUserFunction(callback_function_name);

@@ -33,7 +33,7 @@
 // qore only supports JSON with UTF-8 
 
 // returns 0 for OK
-static int cmp_rest_token(char *&p, char *tok)
+static int cmp_rest_token(const char *&p, char *tok)
 {
    p++;
    while (*tok)
@@ -49,7 +49,7 @@ static int cmp_rest_token(char *&p, char *tok)
    return -1;
 } 
 
-static void skip_whitespace(char *&buf, int &line_number)
+static void skip_whitespace(const char *&buf, int &line_number)
 {
    while (*buf)
    {
@@ -69,7 +69,7 @@ static void skip_whitespace(char *&buf, int &line_number)
 }
 
 // '"' has already been read and the buffer is set to this character
-static class QoreString *getJSONStringToken(char *&buf, int &line_number, class QoreEncoding *enc, class ExceptionSink *xsink)
+static class QoreString *getJSONStringToken(const char *&buf, int &line_number, class QoreEncoding *enc, class ExceptionSink *xsink)
 {
    // increment buffer to first character of string
    buf++;
@@ -137,10 +137,10 @@ static class QoreString *getJSONStringToken(char *&buf, int &line_number, class 
    return NULL;
 }
 
-static class QoreNode *getJSONValue(char *&buf, int &line_number, class QoreEncoding *enc, class ExceptionSink *xsink);
+static class QoreNode *getJSONValue(const char *&buf, int &line_number, class QoreEncoding *enc, class ExceptionSink *xsink);
 
 // '{' has already been read and the buffer is set to this character
-static class QoreNode *getJSONObject(char *&buf, int &line_number, class QoreEncoding *enc, class ExceptionSink *xsink)
+static class QoreNode *getJSONObject(const char *&buf, int &line_number, class QoreEncoding *enc, class ExceptionSink *xsink)
 {
    // increment buffer to first character of object description
    buf++;
@@ -218,7 +218,7 @@ static class QoreNode *getJSONObject(char *&buf, int &line_number, class QoreEnc
 }
 
 // '[' has already been read and the buffer is set to this character
-static class QoreNode *getJSONArray(char *&buf, int &line_number, class QoreEncoding *enc, class ExceptionSink *xsink)
+static class QoreNode *getJSONArray(const char *&buf, int &line_number, class QoreEncoding *enc, class ExceptionSink *xsink)
 {
    // increment buffer to first character of array description
    buf++;
@@ -265,7 +265,7 @@ static class QoreNode *getJSONArray(char *&buf, int &line_number, class QoreEnco
    return NULL;
 }
 
-static class QoreNode *getJSONValue(char *&buf, int &line_number, class QoreEncoding *enc, class ExceptionSink *xsink)
+static class QoreNode *getJSONValue(const char *&buf, int &line_number, class QoreEncoding *enc, class ExceptionSink *xsink)
 {
    // skip whitespace
    skip_whitespace(buf, line_number);
@@ -525,7 +525,7 @@ static class QoreNode *f_makeFormattedJSONString(class QoreNode *params, Excepti
 class QoreNode *parseJSONValue(class QoreString *str, class ExceptionSink *xsink)
 {
    int line_number = 1;
-   char *buf = str->getBuffer();
+   const char *buf = str->getBuffer();
    class QoreNode *rv = getJSONValue(buf, line_number, str->getEncoding(), xsink);
    if (rv && *buf)
    {

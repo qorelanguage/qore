@@ -362,12 +362,12 @@ inline int MyBindGroup::parse(class List *args, class ExceptionSink *xsink)
 {
    char quote = 0;
 
-   char *p = str->getBuffer();
+   const char *p = str->getBuffer();
    while (*p)
    {
       if (!quote && (*p) == '%') // found value marker
       {
-	 char *w = p;
+	 const char *w = p;
 
 	 p++;
 	 if ((*p) != 'v')
@@ -401,7 +401,7 @@ inline int MyBindGroup::parse(class List *args, class ExceptionSink *xsink)
       }
       else if (!quote && (*p) == ':') // found placeholder marker
       {
-	 char *w = p;
+	 const char *w = p;
 
 	 p++;
 	 if (!isalpha(*p))
@@ -695,7 +695,7 @@ int MyBindNode::bindValue(class QoreEncoding *enc, MYSQL_BIND *buf, class Except
       len = bstr->strlen();
 
       buf->buffer_type = MYSQL_TYPE_STRING;
-      buf->buffer = bstr->getBuffer();
+      buf->buffer = (char *)bstr->getBuffer();
       buf->buffer_length = len + 1;
       buf->length = &len;
       return 0;

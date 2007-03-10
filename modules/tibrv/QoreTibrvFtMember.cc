@@ -26,8 +26,8 @@
 
 #include "QoreTibrvFtMember.h"
 
-QoreTibrvFtMember::QoreTibrvFtMember(char *groupname, int weight, int activeGoal, int64 hb, int64 prep, int64 act,
-				     char *desc, char *service, char *network, char *daemon, 
+QoreTibrvFtMember::QoreTibrvFtMember(const char *groupname, int weight, int activeGoal, int64 hb, int64 prep, int64 act,
+				     const char *desc, const char *service, const char *network, const char *daemon, 
 				     class ExceptionSink *xsink) : QoreTibrvTransport(desc, service, network, daemon, xsink)
 {
    callback = NULL;

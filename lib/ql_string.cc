@@ -82,7 +82,7 @@ static class QoreNode *f_tolower(class QoreNode *params, ExceptionSink *xsink)
       return NULL;
 
    QoreNode *rv = new QoreNode(new QoreString(p0->val.String));
-   p = rv->val.String->getBuffer();
+   p = (char *)rv->val.String->getBuffer();
    while (*p)
    {
       *p = tolower(*p);
@@ -103,7 +103,7 @@ static class QoreNode *f_toupper(class QoreNode *params, ExceptionSink *xsink)
    printd(5, "f_toupper() p0->val.String=%08p (buf=%08p) rv->val.String=%08p (buf=%08p)\n",
 	  p0->val.String, p0->val.String->getBuffer(),
 	  rv->val.String, rv->val.String->getBuffer());
-   p = rv->val.String->getBuffer();
+   p = (char *)rv->val.String->getBuffer();
    while (*p)
    {
       *p = toupper(*p);
@@ -146,7 +146,7 @@ static class QoreNode *f_substr(class QoreNode *params, ExceptionSink *xsink)
    return rv;
 }
 
-static inline int index_intern(char *haystack, char *needle, int pos = 0)
+static inline int index_intern(const char *haystack, const char *needle, int pos = 0)
 {
    char *p;
    if (!(p = strstr(haystack + pos, needle)))
@@ -273,7 +273,7 @@ static class QoreNode *f_bindex(class QoreNode *params, ExceptionSink *xsink)
 
 // finds the last occurrence of needle in haystack at or before position pos
 // pos must be a non-negative valid byte offset in haystack
-static inline int rindex_intern(char *haystack, int hlen, char *needle, int nlen, int pos)
+static inline int rindex_intern(const char *haystack, int hlen, const char *needle, int nlen, int pos)
 {
    // if the offset does not allow for the needle string to be present, then adjust
    if ((pos + nlen) > hlen)
@@ -431,7 +431,7 @@ static class QoreNode *f_chr(class QoreNode *params, ExceptionSink *xsink)
 // syntax: split(pattern, string);
 static class QoreNode *f_split(class QoreNode *params, ExceptionSink *xsink)
 {
-   char *str, *pattern;
+   const char *str, *pattern;
    QoreNode *p0, *p1;
 
    if (!(p0 = test_param(params, NT_STRING, 0)) ||
@@ -441,7 +441,7 @@ static class QoreNode *f_split(class QoreNode *params, ExceptionSink *xsink)
    str = p1->val.String->getBuffer();
    printd(5, "in f_split(\"%s\", \"%s\")\n", pattern, str);
    class List *l = new List();
-   while (char *p = strstr(str, pattern))
+   while (const char *p = strstr(str, pattern))
    {
       //printd(5, "str=%08p p=%08p \"%s\" \"%s\"\n", str, p, str, pattern);
       l->push(new QoreNode(new QoreString(str, p - str, p1->val.String->getEncoding())));
@@ -555,12 +555,12 @@ static class QoreNode *f_replace(class QoreNode *params, ExceptionSink *xsink)
    else
       t2 = p2->val.String;
 
-   char *str, *pattern;
+   const char *str, *pattern;
    str = p0->val.String->getBuffer();
    pattern = t1->getBuffer();
    int plen = strlen(pattern);
 
-   while (char *p = strstr(str, pattern))
+   while (const char *p = strstr(str, pattern))
    {
       //printd(5, "str=%08p p=%08p '%s' '%s'->'%s'\n", str, p, str, pattern, t1->getBuffer());
       if (p != str)

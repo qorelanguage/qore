@@ -31,7 +31,7 @@ void StringList::addDirList(char *str)
 
    // duplicate string for invasive searches
    QoreString plist(str);
-   str = plist.getBuffer();
+   str = (char *)plist.getBuffer();
 
    // add each directory
    while (char *p = strchr(str, ':'))

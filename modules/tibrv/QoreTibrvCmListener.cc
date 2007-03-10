@@ -26,8 +26,8 @@
 
 #include "QoreTibrvCmListener.h"
 
-QoreTibrvCmListener::QoreTibrvCmListener(char *subject, char *cmName, bool requestOld, char *ledgerName, bool syncLedger, char *relayAgent, 
-					 char *desc, char *service, char *network, char *daemon, class ExceptionSink *xsink)
+QoreTibrvCmListener::QoreTibrvCmListener(const char *subject, const char *cmName, bool requestOld, const char *ledgerName, bool syncLedger, const char *relayAgent, 
+					 const char *desc, const char *service, const char *network, const char *daemon, class ExceptionSink *xsink)
    : QoreTibrvCmTransport(cmName, requestOld, ledgerName, syncLedger, relayAgent, desc, service, network, daemon, xsink)
 {
    if (xsink->isException())
@@ -65,7 +65,7 @@ class Hash *QoreTibrvCmListener::getMessage(class ExceptionSink *xsink)
 
       if (status != TIBRV_OK)
       {
-	 xsink->raiseException("TIBRVCMLISTENER-GETMESSAGE-ERROR", (char *)status.getText());
+	 xsink->raiseException("TIBRVCMLISTENER-GETMESSAGE-ERROR", status.getText());
 	 return NULL;
       }
       if ((h = callback->getMessage(xsink)))
@@ -85,7 +85,7 @@ class Hash *QoreTibrvCmListener::getMessage(int64 timeout_ms, class ExceptionSin
 
    if (status != TIBRV_OK)
    {
-      xsink->raiseException("TIBRVCMLISTENER-GETMESSAGE-ERROR", (char *)status.getText());
+      xsink->raiseException("TIBRVCMLISTENER-GETMESSAGE-ERROR", status.getText());
       return NULL;
    }
 

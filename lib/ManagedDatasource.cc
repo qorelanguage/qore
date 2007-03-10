@@ -413,31 +413,31 @@ void ManagedDatasource::reset(ExceptionSink *xsink)
    Datasource::open(xsink);
 }
 
-void ManagedDatasource::setPendingUsername(char *u)
+void ManagedDatasource::setPendingUsername(const char *u)
 {
    AutoLocker al(&ds_lock);
    Datasource::setPendingUsername(u);
 }
 
-void ManagedDatasource::setPendingPassword(char *p)
+void ManagedDatasource::setPendingPassword(const char *p)
 {
    AutoLocker al(&ds_lock);
    Datasource::setPendingPassword(p);
 }
 
-void ManagedDatasource::setPendingDBName(char *d)
+void ManagedDatasource::setPendingDBName(const char *d)
 {
    AutoLocker al(&ds_lock);
    Datasource::setPendingDBName(d);
 }
 
-void ManagedDatasource::setPendingDBEncoding(char *c)
+void ManagedDatasource::setPendingDBEncoding(const char *c)
 {
    AutoLocker al(&ds_lock);
    Datasource::setPendingDBEncoding(c);
 }
 
-void ManagedDatasource::setPendingHostName(char *h)
+void ManagedDatasource::setPendingHostName(const char *h)
 {
    AutoLocker al(&ds_lock);
    Datasource::setPendingHostName(h);

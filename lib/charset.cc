@@ -38,23 +38,23 @@ struct QoreEncoding *QCS_DEFAULT, *QCS_USASCII, *QCS_UTF8, *QCS_ISO_8859_1,
    *QCS_ISO_8859_10, *QCS_ISO_8859_11, *QCS_ISO_8859_13, *QCS_ISO_8859_14,
    *QCS_ISO_8859_15, *QCS_ISO_8859_16, *QCS_KOI8_R, *QCS_KOI8_U, *QCS_KOI7;
 
-static int utf8cl(char *p);
-static int utf8end(char *p, int l);
-static int utf8cpos(char *p, char *e);
+static int utf8cl(const char *p);
+static int utf8end(const char *p, int l);
+static int utf8cpos(const char *p, const char *e);
 
 encoding_map_t QoreEncodingManager::emap;
 encoding_map_t QoreEncodingManager::amap;
 class LockedObject QoreEncodingManager::mutex;
 class QoreEncodingManager QEM;
 
-struct QoreEncoding *QoreEncodingManager::addUnlocked(const char *code, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, char *desc)
+struct QoreEncoding *QoreEncodingManager::addUnlocked(const char *code, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, const char *desc)
 {
    struct QoreEncoding *qcs = new QoreEncoding(code, l, e, p, desc);
    emap[qcs->getCode()] = qcs;
    return qcs;
 }
 
-struct QoreEncoding *QoreEncodingManager::add(const char *code, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, char *desc)
+struct QoreEncoding *QoreEncodingManager::add(const char *code, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, const char *desc)
 {
    struct QoreEncoding *qcs = new QoreEncoding(code, l, e, p, desc);
    mutex.lock();
@@ -354,7 +354,7 @@ struct QoreEncoding *QoreEncodingManager::findCreate(class QoreString *str)
    return findCreate(str->getBuffer());
 }
 
-static inline int utf8clen(char *p)
+static inline int utf8clen(const char *p)
 {
    // see if a multi-byte char is starting
    if ((*p & 0xc0) == 0xc0)
@@ -381,7 +381,7 @@ static inline int utf8clen(char *p)
    return 1;
 }
 
-static int utf8cl(char *p)
+static int utf8cl(const char *p)
 {
    int i = 0;
    while (*p)
@@ -393,7 +393,7 @@ static int utf8cl(char *p)
    return i;
 }
 
-static int utf8end(char *p, int l)
+static int utf8end(const char *p, int l)
 {
    int b = 0;
    while (*p && l)
@@ -406,7 +406,7 @@ static int utf8end(char *p, int l)
    return b;
 }
 
-static int utf8cpos(char *p, char *end)
+static int utf8cpos(const char *p, const char *end)
 {
    int i = 0;
    while (p < end)

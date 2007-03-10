@@ -33,7 +33,7 @@ void TIBRVSENDER_constructor(class Object *self, class QoreNode *params, class E
 {
    tracein("TIBRVSENDER_constructor");
 
-   char *service = NULL, *network = NULL, *daemon = NULL, *desc = NULL;
+   const char *service = NULL, *network = NULL, *daemon = NULL, *desc = NULL;
    class QoreNode *pt = test_param(params, NT_STRING, 0);
    if (pt)
       desc = pt->val.String->getBuffer();
@@ -70,7 +70,7 @@ static QoreNode *TIBRVSENDER_sendSubject(class Object *self, class QoreTibrvSend
       xsink->raiseException("TIBRVSENDER-SENDSUBJECT-ERROR", "missing subject string as first parameter to method");
       return NULL;
    }
-   char *subject = pt->val.String->getBuffer();
+   const char *subject = pt->val.String->getBuffer();
    pt = test_param(params, NT_HASH, 1);
    if (!pt)
    {
@@ -79,7 +79,7 @@ static QoreNode *TIBRVSENDER_sendSubject(class Object *self, class QoreTibrvSend
    }
    class Hash *h = pt->val.hash;
    pt = test_param(params, NT_STRING, 2);
-   char *replySubject = pt ? pt->val.String->getBuffer() : NULL;
+   const char *replySubject = pt ? pt->val.String->getBuffer() : NULL;
 
    trvs->sendSubject(subject, h, replySubject, xsink);
    return NULL;
@@ -93,7 +93,7 @@ static QoreNode *TIBRVSENDER_sendSubjectWithSyncReply(class Object *self, class 
       xsink->raiseException("TIBRVSENDER-SENDSUBJECTWITHSYNCREPLY-ERROR", "missing subject string as first parameter to method");
       return NULL;
    }
-   char *subject = pt->val.String->getBuffer();
+   const char *subject = pt->val.String->getBuffer();
    pt = test_param(params, NT_HASH, 1);
    if (!pt)
    {

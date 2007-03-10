@@ -87,7 +87,7 @@ class Object : public ReferenceObject
       DLLEXPORT bool compareHard(class Object *obj, class ExceptionSink *xsink);
       DLLEXPORT class QoreNode *evalFirstKeyValue(class ExceptionSink *xsink);
       DLLEXPORT class QoreNode *evalMember(class QoreNode *member, class ExceptionSink *xsink);
-      DLLEXPORT class QoreNode *evalMemberNoMethod(char *mem, class ExceptionSink *xsink);
+      DLLEXPORT class QoreNode *evalMemberNoMethod(const char *mem, class ExceptionSink *xsink);
       DLLEXPORT class QoreNode *evalMemberExistence(char *mem, class ExceptionSink *xsink);
       DLLEXPORT class Hash *evalData(class ExceptionSink *xsink);
       DLLEXPORT void setPrivate(int key, AbstractPrivateData *pd);

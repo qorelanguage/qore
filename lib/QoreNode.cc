@@ -36,7 +36,7 @@
 
 #define TRACK_REFS 1
 
-char *QoreNodeStringHelper::operator*()
+const char *QoreNodeStringHelper::operator*()
 {
    if (!node)
       return "";

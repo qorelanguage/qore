@@ -49,7 +49,7 @@ class QoreSSLCertificate : public AbstractPrivateData, public QoreSSLBase
       DLLEXPORT class QoreString *getPEM(class ExceptionSink *xsink) const;
 
       DLLLOCAL QoreSSLCertificate(X509 *c);
-      DLLLOCAL QoreSSLCertificate(char *fn, class ExceptionSink *xsink);
+      DLLLOCAL QoreSSLCertificate(const char *fn, class ExceptionSink *xsink);
       DLLLOCAL X509 *getData() const;
       DLLLOCAL class Hash *getSubjectHash() const;
       DLLLOCAL class Hash *getIssuerHash() const;

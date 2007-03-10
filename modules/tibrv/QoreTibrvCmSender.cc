@@ -26,14 +26,14 @@
 
 #include "QoreTibrvCmSender.h"
 
-void QoreTibrvCmSender::sendSubject(char *subject, class Hash *data, char *replySubject, int64 time_limit, class ExceptionSink *xsink)
+void QoreTibrvCmSender::sendSubject(const char *subject, class Hash *data, const char *replySubject, int64 time_limit, class ExceptionSink *xsink)
 {
    TibrvMsg msg;
 
    TibrvStatus status = msg.setSendSubject(subject);
    if (status != TIBRV_OK)
    {
-      xsink->raiseException("TIBCO-INVALID-SUBJECT", "'%s': %s", subject, (char *)status.getText());
+      xsink->raiseException("TIBCO-INVALID-SUBJECT", "'%s': %s", subject, status.getText());
       return;
    }
 
@@ -42,7 +42,7 @@ void QoreTibrvCmSender::sendSubject(char *subject, class Hash *data, char *reply
       status = msg.setReplySubject(replySubject);
       if (status != TIBRV_OK)
       {
-         xsink->raiseException("TIBCO-INVALID-REPLY-SUBJECT", "'%s': %s", subject, (char *)status.getText());
+         xsink->raiseException("TIBCO-INVALID-REPLY-SUBJECT", "'%s': %s", subject, status.getText());
          return;
       }  
    }
@@ -55,14 +55,14 @@ void QoreTibrvCmSender::sendSubject(char *subject, class Hash *data, char *reply
    //printd(0, "subject: %s msg=%08p sent OK\n", subject, data);
 }
 
-class Hash *QoreTibrvCmSender::sendSubjectWithSyncReply(char *subject, class Hash *data, int64 timeout, int64 time_limit, class ExceptionSink *xsink)
+class Hash *QoreTibrvCmSender::sendSubjectWithSyncReply(const char *subject, class Hash *data, int64 timeout, int64 time_limit, class ExceptionSink *xsink)
 {
    TibrvMsg msg;
 
    TibrvStatus status = msg.setSendSubject(subject);
    if (status != TIBRV_OK)
    {
-      xsink->raiseException("TIBCO-INVALID-SUBJECT", "'%s': %s", subject, (char *)status.getText());
+      xsink->raiseException("TIBCO-INVALID-SUBJECT", "'%s': %s", subject, status.getText());
       return NULL;
    }
    //printd(5, "subject: %s\n", subject);

@@ -33,7 +33,7 @@ QoreSSLCertificate::QoreSSLCertificate(X509 *c) : cert(c)
 {
 }
 
-QoreSSLCertificate::QoreSSLCertificate(char *fn, class ExceptionSink *xsink)
+QoreSSLCertificate::QoreSSLCertificate(const char *fn, class ExceptionSink *xsink)
 {
    cert = NULL;
    FILE *fp = fopen(fn, "r");
@@ -192,7 +192,7 @@ class Hash *QoreSSLCertificate::getPurposeHash() const
 	    tstr.clear();
 	    tstr.concat(name);
 	    tstr.concat("CA");
-	    nameca = tstr.getBuffer();
+	    nameca = (char *)tstr.getBuffer();
 	    break;
       }
       

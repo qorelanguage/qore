@@ -249,7 +249,7 @@ static void concatSimpleCDataValue(QoreString *str, QoreNode *n, class Exception
    }
 }
 
-static void addXMLElement(char *key, QoreString *str, QoreNode *n, int indent, char *node, class QoreEncoding *ccs, int format, ExceptionSink *xsink)
+static void addXMLElement(const char *key, QoreString *str, QoreNode *n, int indent, const char *node, class QoreEncoding *ccs, int format, ExceptionSink *xsink)
 {
    //tracein("addXMLElement()");
 
@@ -431,7 +431,7 @@ static void makeXMLString(QoreString *str, Hash *h, int indent, class QoreEncodi
 	 keyStr.reset(ns);
       }
 
-      char *key = keyStr->getBuffer();
+      const char *key = keyStr->getBuffer();
       if (!strcmp(key, "^attributes^"))
       {
 	 continue;
@@ -2037,7 +2037,7 @@ static void makeXMLStringNew(xmlTextWriterPtr writer, Hash *h, class ExceptionSi
 	 keyStr.reset(ns);
       }
 
-      char *key = keyStr->getBuffer();
+      const char *key = keyStr->getBuffer();
       if (!strcmp(key, "^attributes^") || !strncmp(key, "^value", 6))
       {
 	 continue;
@@ -2337,7 +2337,7 @@ static inline void addXMLRPCValueInternHashNew(xmlTextWriterPtr writer, Hash *h,
       xsink->raiseException("XML-WRITER-ERROR", "xmlTextWriterEndElement() returned an error");
 }
 
-static void addXMLRPCValueHelper(xmlTextWriterPtr writer, char *type, char *val, class ExceptionSink *xsink)
+static void addXMLRPCValueHelper(xmlTextWriterPtr writer, const char *type, const char *val, class ExceptionSink *xsink)
 {
    if (xmlTextWriterStartElement(writer, (xmlChar *)type) < 0)
    {

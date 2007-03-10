@@ -298,7 +298,7 @@ class QoreString *q_sprintf(class QoreNode *params, int field, int offset, class
       if ((p->val.String->getBuffer()[i] == '%') 
 	  && (j < params->val.list->size()))
       {
-	 i += process_opt(buf, &p->val.String->getBuffer()[i], 
+	 i += process_opt(buf, (char *)&p->val.String->getBuffer()[i], 
 			  get_param(params, j++), field, &taken, xsink);
 	 if (!taken)
 	    j--;
@@ -348,7 +348,7 @@ class QoreString *q_vsprintf(class QoreNode *params, int field, int offset, clas
       }
       if (havearg)
       {
-	 i += process_opt(buf, &fmt->val.String->getBuffer()[i], 
+	 i += process_opt(buf, (char *)&fmt->val.String->getBuffer()[i], 
 			  arg, field, &taken, xsink);
 	 if (!taken)
 	    j--;
@@ -369,7 +369,7 @@ static inline char getBase64Value(char c, class ExceptionSink *xsink)
    return -1;
 }
 
-class BinaryObject *parseBase64(char *buf, int len, class ExceptionSink *xsink)
+class BinaryObject *parseBase64(const char *buf, int len, class ExceptionSink *xsink)
 {
    char *binbuf = (char *)malloc(sizeof(char) * (len + 3));
    int blen = 0;
@@ -445,7 +445,7 @@ int get_nibble(char c, class ExceptionSink *xsink)
    return -1;
 }
 
-class BinaryObject *parseHex(char *buf, int len, class ExceptionSink *xsink)
+class BinaryObject *parseHex(const char *buf, int len, class ExceptionSink *xsink)
 {
    if (!len)
       return new BinaryObject();
@@ -459,7 +459,7 @@ class BinaryObject *parseHex(char *buf, int len, class ExceptionSink *xsink)
    char *binbuf = (char *)malloc(sizeof(char) * (len / 2));
    int blen = 0;
 
-   char *end = buf + len;
+   const char *end = buf + len;
    while (buf < end)
    {
       int b = get_nibble(*buf, xsink);
@@ -496,7 +496,7 @@ static inline int parse_get_nibble(char c)
 
 
 // for use while parsing - parses a null-terminated string and raises parse exceptions for errors
-class BinaryObject *parseHex(char *buf, int len)
+class BinaryObject *parseHex(const char *buf, int len)
 {
    if (!buf || !(*buf))
       return new BinaryObject();
@@ -504,7 +504,7 @@ class BinaryObject *parseHex(char *buf, int len)
    char *binbuf = (char *)malloc(sizeof(char) * (len / 2));
    int blen = 0;
 
-   char *end = buf + len;
+   const char *end = buf + len;
    while (buf < end)
    {
       int b = parse_get_nibble(*buf);
@@ -536,7 +536,7 @@ class BinaryObject *parseHex(char *buf, int len)
    return new BinaryObject(binbuf, blen);
 }
 
-char *make_class_name(char *str)
+char *make_class_name(const char *str)
 {
    char *cn = q_basename(str);
    char *p = strrchr(cn, '.');

@@ -142,7 +142,8 @@ class QoreString {
       DLLEXPORT void toupr();
       // returns number of bytes
       DLLEXPORT int strlen() const;
-      DLLEXPORT char *getBuffer() const;
+      // the string's buffer should normally not be changed
+      DLLEXPORT const char *getBuffer() const;
       // Make sure the internal buffer has at least expected size in bytes. 
       // Useful to eliminate repeated reallocate() when data are appended in a loop.
       DLLEXPORT void ensureBufferSize(unsigned requested_size);

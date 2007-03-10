@@ -45,22 +45,22 @@ class QoreTibrvDistributedQueue : public AbstractPrivateData, public QoreTibrvTr
       virtual ~QoreTibrvDistributedQueue() {}
 
    public:
-      QoreTibrvDistributedQueue(char *cmName, unsigned workerWeight, unsigned workerTasks, 
+      QoreTibrvDistributedQueue(const char *cmName, unsigned workerWeight, unsigned workerTasks, 
 			        unsigned short schedulerWeight, int64 schedulerHeartbeat, int64 schedulerActivation,
-				char *desc, char *service, char *network, char *daemon, class ExceptionSink *xsink);
+				const char *desc, const char *service, const char *network, const char *daemon, class ExceptionSink *xsink);
 
       inline void setWorkerWeight(unsigned weight, class ExceptionSink *xsink)
       {
 	 TibrvStatus status = cmQueueTransport.setWorkerWeight(weight);
 	 if (status != TIBRV_OK)
-	    xsink->raiseException("TIBRV-SETWORKERWEIGHT-ERROR", (char *)status.getText());
+	    xsink->raiseException("TIBRV-SETWORKERWEIGHT-ERROR", status.getText());
       }
 
       inline void setWorkerTasks(unsigned tasks, class ExceptionSink *xsink)
       {
 	 TibrvStatus status = cmQueueTransport.setWorkerTasks(tasks);
 	 if (status != TIBRV_OK)
-	    xsink->raiseException("TIBRV-SETWORKERTASKS-ERROR", (char *)status.getText());
+	    xsink->raiseException("TIBRV-SETWORKERTASKS-ERROR", status.getText());
       }
       
       inline int64 getWorkerWeight(class ExceptionSink *xsink)
@@ -68,7 +68,7 @@ class QoreTibrvDistributedQueue : public AbstractPrivateData, public QoreTibrvTr
 	 unsigned weight;
 	 TibrvStatus status = cmQueueTransport.getWorkerWeight(weight);
 	 if (status != TIBRV_OK)
-	    xsink->raiseException("TIBRV-GETWORKERWEIGHT-ERROR", (char *)status.getText());
+	    xsink->raiseException("TIBRV-GETWORKERWEIGHT-ERROR", status.getText());
 	 return weight;
       }
 
@@ -77,7 +77,7 @@ class QoreTibrvDistributedQueue : public AbstractPrivateData, public QoreTibrvTr
 	 unsigned tasks;
 	 TibrvStatus status = cmQueueTransport.getWorkerTasks(tasks);
 	 if (status != TIBRV_OK)
-	    xsink->raiseException("TIBRV-GETWORKERTASKS-ERROR", (char *)status.getText());
+	    xsink->raiseException("TIBRV-GETWORKERTASKS-ERROR", status.getText());
 	 return tasks;
       }
 };

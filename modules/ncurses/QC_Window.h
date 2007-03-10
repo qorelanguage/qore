@@ -81,7 +81,7 @@ class Window : public AbstractPrivateData, public LockedObject {
 	 return rc;
       }
 
-      inline int qaddstr(char *str)
+      inline int qaddstr(const char *str)
       {
 	 lock();
 	 int rc = waddstr(win, str);
@@ -89,7 +89,7 @@ class Window : public AbstractPrivateData, public LockedObject {
 	 return rc;
       }
 
-      inline int qmvaddstr(int y, int x, char *str)
+      inline int qmvaddstr(int y, int x, const char *str)
       {
 	 lock();
 	 int rc = mvwaddstr(win, y, x, str);

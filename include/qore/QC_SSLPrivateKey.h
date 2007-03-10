@@ -48,7 +48,7 @@ class QoreSSLPrivateKey : public AbstractPrivateData
       DLLEXPORT class QoreString *getPEM(class ExceptionSink *xsink) const;
 
       DLLLOCAL QoreSSLPrivateKey(EVP_PKEY *p);
-      DLLLOCAL QoreSSLPrivateKey(char *fn, char *pp, class ExceptionSink *xsink);
+      DLLLOCAL QoreSSLPrivateKey(const char *fn, char *pp, class ExceptionSink *xsink);
       DLLLOCAL EVP_PKEY *getData() const;
       DLLLOCAL char *getType() const;
       DLLLOCAL int64 getVersion() const;

@@ -51,7 +51,7 @@ class LockedObject l_mdate_time;
 
 static void remove_pending_calls(MApp* app);
 
-static char *get_class(Hash *h)
+static const char *get_class(Hash *h)
 {
    QoreNode *t;
 
@@ -62,8 +62,8 @@ static char *get_class(Hash *h)
    return t->val.String->getBuffer();
 }
 
-QoreApp::QoreApp(MAppProperties *pMAP, char *name, Hash *clh,
-    char *svc, char *net, char *dmn, char *sbj) 
+QoreApp::QoreApp(MAppProperties *pMAP, const char *name, Hash *clh,
+    const char *svc, const char *net, const char *dmn, const char *sbj) 
 : MApp(pMAP)
 {
    appProps = pMAP;
@@ -135,13 +135,13 @@ void QoreApp::deref(ExceptionSink *xsink)
    }
 }
 
-const MBaseClassDescription *QoreApp::find_class(char *cn, ExceptionSink *xsink)
+const MBaseClassDescription *QoreApp::find_class(const char *cn, ExceptionSink *xsink)
 {
    const MBaseClassDescription *mbcd = NULL;
    QoreNode *t = NULL;
 
-   char *cdesc;
-   if (classlist && (t = classlist->getKeyValue((char *)cn)) && t->type == NT_STRING)
+   const char *cdesc;
+   if (classlist && (t = classlist->getKeyValue(cn)) && t->type == NT_STRING)
       cdesc = t->val.String->getBuffer();
    else
    {
@@ -150,7 +150,7 @@ const MBaseClassDescription *QoreApp::find_class(char *cn, ExceptionSink *xsink)
    }
 
 #if 0
-   if (!classlist || !(t = classlist->getKeyValue((char *)cn)) || t->type != NT_STRING)
+   if (!classlist || !(t = classlist->getKeyValue(cn)) || t->type != NT_STRING)
    {
       /*
       cdesc = NULL;
@@ -163,7 +163,7 @@ const MBaseClassDescription *QoreApp::find_class(char *cn, ExceptionSink *xsink)
          printd(0, "QoreApp::find_class() %s\n", elem.c_str());
          if (strstr(elem.c_str(), cn))
          {
-            cdesc = (char *)elem.c_str();
+            cdesc = elem.c_str();
             printd(0, "QoreApp:find_class() found %s!\n", cdesc);
             break;
          }
@@ -210,7 +210,7 @@ MData *QoreApp::do_primitive_type(const MPrimitiveClassDescription *pcd, QoreNod
    if (v->type == NT_HASH)
    {
       // class instantiation (normally for TIBCO m_any type)
-      char *cn;
+      const char *cn;
       if (!(cn = get_class(v->val.hash)))
       {
          xsink->raiseException("TIBCO-MISSING-CLASS-NAME", "instantiating type \"%s\": can't instantiate class from object without \"^class^\" entry", pcd->getFullName().c_str());
@@ -234,7 +234,7 @@ MData *QoreApp::do_primitive_type(const MPrimitiveClassDescription *pcd, QoreNod
    if (v->type == NT_OBJECT)
    {
       // class instantiation (normally for TIBCO m_any type)
-      char *cn;
+      const char *cn;
       if (!(cn = get_class(v->val.object->data)))
       {
          xsink->raiseException("TIBCO-MISSING-CLASS-NAME", "instantiating type \"%s\": can't instantiate class from object wi
@@ -345,7 +345,7 @@ lass \"%s\"", pcd->getFullName().c_str(), cn);
    return NULL;
 }
 
-MTree *QoreApp::make_MTree(char *class_name, QoreNode *value, ExceptionSink *xsink)
+MTree *QoreApp::make_MTree(const char *class_name, QoreNode *value, ExceptionSink *xsink)
 {
    tracein("QoreApp::make_MTree");
 
@@ -429,7 +429,7 @@ MData *QoreApp::instantiate_sequence(const MSequenceClassDescription *msd, QoreN
    // check if class info embedded
    if (v && v->type == NT_HASH)
    {
-      char *cn;
+      const char *cn;
       if (!(cn = get_class(v->val.hash)))
       {
          xsink->raiseException("TIBCO-MISSING-CLASS-NAME",
@@ -445,7 +445,7 @@ MData *QoreApp::instantiate_sequence(const MSequenceClassDescription *msd, QoreN
 /*
    else if (v && v->type == NT_OBJECT)
    {
-      char *cn;
+      const char *cn;
       if (!(cn = get_class(v->val.object->data)))
       {
          xsink->raiseException("TIBCO-MISSING-CLASS-NAME",
@@ -476,10 +476,8 @@ MData *QoreApp::instantiate_sequence(const MSequenceClassDescription *msd, QoreN
       for (int i = 0; i < v->val.list->size(); i++)
       {
          QoreNode *ne = v->val.list->retrieve_entry(i);
-         char *ecn;
          const MBaseClassDescription *mbcd = msd->getContainedClassDescription();
-         ecn = (char *)mbcd->getFullName().c_str();
-         printd(5, "instantiate_class() implicitly instantiating %s\n", ecn);
+         printd(5, "instantiate_class() implicitly instantiating %s\n", mbcd->getFullName().c_str());
          MData *md;
          seq->append(md = instantiate_class(ne, mbcd, xsink));
          if (md)
@@ -687,7 +685,7 @@ void QoreApp::onInitialization() throw (MException)
    traceout("QoreApp::onInitialization()");
 }
 
-class QoreNode *QoreApp::sendWithSyncReply(char *function_name, QoreNode *value, int timeout, ExceptionSink *xsink)
+class QoreNode *QoreApp::sendWithSyncReply(const char *function_name, QoreNode *value, int timeout, ExceptionSink *xsink)
 {
    MTree *msg = make_MTree(function_name, value, xsink);
    if (xsink->isEvent())
@@ -719,7 +717,7 @@ class QoreNode *QoreApp::sendWithSyncReply(char *function_name, QoreNode *value,
    return rv;
 }
 
-void QoreApp::set_subject_name(char *sub)
+void QoreApp::set_subject_name(const char *sub)
 {
    if (subject)
       free(subject);
@@ -733,7 +731,7 @@ void QoreApp::set_subject_name(char *sub)
 }
 
 // this version will create a new publisher and send the message with the subject name passed
-class QoreNode *QoreApp::sendWithSyncReply(char *subj, char *function_name, QoreNode *value, int timeout, ExceptionSink *xsink)
+class QoreNode *QoreApp::sendWithSyncReply(const char *subj, const char *function_name, QoreNode *value, int timeout, ExceptionSink *xsink)
 {
    MTree *msg = make_MTree(function_name, value, xsink);
    if (xsink->isEvent())
@@ -782,7 +780,7 @@ class QoreNode *QoreApp::sendWithSyncReply(char *subj, char *function_name, Qore
    return rv;
 }
 
-void QoreApp::send(char *function_name, QoreNode *value, ExceptionSink *xsink)
+void QoreApp::send(const char *function_name, QoreNode *value, ExceptionSink *xsink)
 {
    MTree *msg = make_MTree(function_name, value, xsink);
    if (xsink->isEvent())
@@ -808,7 +806,7 @@ void QoreApp::send(char *function_name, QoreNode *value, ExceptionSink *xsink)
    //something more to delete here?
 }
 
-void QoreApp::send(char *subj, char *function_name, QoreNode *value, ExceptionSink *xsink)
+void QoreApp::send(const char *subj, const char *function_name, QoreNode *value, ExceptionSink *xsink)
 {
    MTree *msg = make_MTree(function_name, value, xsink);
    if (xsink->isEvent())
@@ -850,7 +848,7 @@ void QoreApp::send(char *subj, char *function_name, QoreNode *value, ExceptionSi
    //something more to delete here?
 }
 
-class QoreNode *QoreApp::receive(char *subj, unsigned long timeout, ExceptionSink *xsink)
+class QoreNode *QoreApp::receive(const char *subj, unsigned long timeout, ExceptionSink *xsink)
 {
    QoreNode *rv = NULL;
 
@@ -1075,7 +1073,7 @@ struct OperationsListener : public MOperationReplyListener
 } // anonymous namespace
 
 //------------------------------------------------------------------------------
-QoreNode* QoreApp::operationsCallWithSyncResult(char* class_name, char* method_name, Hash* parameters, unsigned timeout, char* client_name, ExceptionSink* xsink)
+QoreNode* QoreApp::operationsCallWithSyncResult(const char *class_name, const char *method_name, Hash* parameters, unsigned timeout, const char *client_name, ExceptionSink* xsink)
 {
   try {
     MOperationRequest req(this, class_name, method_name, client_name);
@@ -1099,7 +1097,7 @@ QoreNode* QoreApp::operationsCallWithSyncResult(char* class_name, char* method_n
 }
 
 //------------------------------------------------------------------------------
-void QoreApp::operationsOneWayCall(char* class_name, char* method_name, Hash* parameters, char* client_name, ExceptionSink* xsink)
+void QoreApp::operationsOneWayCall(const char *class_name, const char *method_name, Hash* parameters, const char *client_name, ExceptionSink* xsink)
 {
   try {
     MOperationRequest req(this, class_name, method_name, client_name);
@@ -1126,7 +1124,7 @@ typedef struct pending_call_key {
   std::string m_method_name;
   MApp* m_app;
 
-  pending_call_key(char* class_name, char* method_name, MApp* app)
+  pending_call_key(const char *class_name, const char *method_name, MApp* app)
   : m_class_name(class_name), m_method_name(method_name), m_app(app) {}
 };
 
@@ -1163,14 +1161,14 @@ static pending_async_calls_t g_pending_async_calls;
 static LockedObject g_mutex;
 
 
-static void add_pending_call(char* class_name, char* method_name, MApp* app, async_call_context_t call_context)
+static void add_pending_call(const char *class_name, const char *method_name, MApp* app, async_call_context_t call_context)
 {
   g_mutex.lock();
   ON_BLOCK_EXIT_OBJ(g_mutex, &LockedObject::unlock);
   g_pending_async_calls[pending_call_key(class_name, method_name, app)] = call_context;
 }
 
-static async_call_context_t extract_pending_call(char* class_name, char* method_name, MApp* app)
+static async_call_context_t extract_pending_call(const char *class_name, const char *method_name, MApp* app)
 {
   g_mutex.lock();
   ON_BLOCK_EXIT_OBJ(g_mutex, &LockedObject::unlock);
@@ -1202,7 +1200,7 @@ static void remove_pending_calls(MApp* app)
 }
 
 //------------------------------------------------------------------------------
-void QoreApp::operationsAsyncCall(char* class_name, char* method_name, Hash* parameters, unsigned timeout, char* client_name, ExceptionSink* xsink)
+void QoreApp::operationsAsyncCall(const char *class_name, const char *method_name, Hash* parameters, unsigned timeout, const char *client_name, ExceptionSink* xsink)
 {
   try {
     std::auto_ptr<MOperationRequest> req(new MOperationRequest(this, class_name, method_name, client_name));
@@ -1227,7 +1225,7 @@ void QoreApp::operationsAsyncCall(char* class_name, char* method_name, Hash* par
 }
 
 //------------------------------------------------------------------------------
-QoreNode* QoreApp::operationsGetAsyncCallResult(char* class_name, char* method_name, ExceptionSink* xsink)
+QoreNode* QoreApp::operationsGetAsyncCallResult(const char *class_name, const char *method_name, ExceptionSink* xsink)
 {
   async_call_context_t context = extract_pending_call(class_name, method_name, this);
   if (context.isEmpty()) {

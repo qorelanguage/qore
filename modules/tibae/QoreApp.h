@@ -68,14 +68,13 @@ class QoreApp : public AbstractPrivateData, public MApp
       class QoreEventHandler *myEventHandler;
       class MClassRegistry *mcr;
 
-      class MTree *make_MTree(char *class_name, QoreNode *value, ExceptionSink *xsink);
+      class MTree *make_MTree(const char *class_name, QoreNode *value, ExceptionSink *xsink);
       class MData *instantiate_class(QoreNode *v, const MBaseClassDescription *mbcd, ExceptionSink *xsink);
       class MData *instantiate_sequence(const MSequenceClassDescription *msd, QoreNode *v, ExceptionSink *xsink);
       class MData *instantiate_modeledclass(const MModeledClassDescription *mcd, QoreNode *v, ExceptionSink *xsink);
       class MData *instantiate_union(const MUnionDescription *mud, QoreNode *v, ExceptionSink *xsink);
       class MData *do_primitive_type(const MPrimitiveClassDescription *pcd, QoreNode *v, ExceptionSink *xsink);
-      const MBaseClassDescription *find_class(char *cn, ExceptionSink *xsink);
-      int refs;
+      const MBaseClassDescription *find_class(const char *cn, ExceptionSink *xsink);
 
       // helpers for operations 
       void setRequestParameters(MOperationRequest& req, Hash* params, ExceptionSink* xsink);
@@ -86,24 +85,24 @@ class QoreApp : public AbstractPrivateData, public MApp
       virtual ~QoreApp();
 
    public:
-      inline QoreApp(MAppProperties *pMAP, char *name, class Hash *clh, 
-		     char *svc = NULL, char *net = NULL, 
-		     char *dmn = NULL, char *sbj = NULL);
-      class QoreNode *sendWithSyncReply(char *function_name, QoreNode *value, int timeout, ExceptionSink *xsink);
-      class QoreNode *sendWithSyncReply(char *subject, char *function_name, QoreNode *value, int timeout, ExceptionSink *xsink);
-      void send(char *function_name, QoreNode *value, ExceptionSink *xsink);
-      void send(char *subject, char *function_name, QoreNode *value, ExceptionSink *xsink);
-      class QoreNode *receive(char *subject, unsigned long timeout, ExceptionSink *xsink);
-      void set_subject_name(char *sub);
-      const char *get_subject() { return (const char *)subject; }
+      inline QoreApp(MAppProperties *pMAP, const char *name, class Hash *clh, 
+		     const char *svc = NULL, const char *net = NULL, 
+		     const char *dmn = NULL, const char *sbj = NULL);
+      class QoreNode *sendWithSyncReply(const char *function_name, QoreNode *value, int timeout, ExceptionSink *xsink);
+      class QoreNode *sendWithSyncReply(const char *subject, const char *function_name, QoreNode *value, int timeout, ExceptionSink *xsink);
+      void send(const char *function_name, QoreNode *value, ExceptionSink *xsink);
+      void send(const char *subject, const char *function_name, QoreNode *value, ExceptionSink *xsink);
+      class QoreNode *receive(const char *subject, unsigned long timeout, ExceptionSink *xsink);
+      void set_subject_name(const char *sub);
+      const char *get_subject() { return subject; }
       class QoreNode *map_mtree_to_node(MTree *msg, ExceptionSink *xsink);
       virtual void deref(class ExceptionSink *xsink);
 
       // operations
-      QoreNode* operationsCallWithSyncResult(char* class_name, char* method_name, Hash* parameters, unsigned timeout, char* client_name, ExceptionSink* xsink);
-      void operationsOneWayCall(char* class_name, char* method_name, Hash* parameters, char* client_name, ExceptionSink* xsink);
-      void operationsAsyncCall(char* class_name, char* method_name, Hash* parameters, unsigned timeout, char* client_name, ExceptionSink* xsink);
-      QoreNode* operationsGetAsyncCallResult(char* class_name, char* method_name, ExceptionSink* xsink);
+      QoreNode* operationsCallWithSyncResult(const char *class_name, const char *method_name, Hash* parameters, unsigned timeout, const char *client_name, ExceptionSink* xsink);
+      void operationsOneWayCall(const char *class_name, const char *method_name, Hash* parameters, const char *client_name, ExceptionSink* xsink);
+      void operationsAsyncCall(const char *class_name, const char *method_name, Hash* parameters, unsigned timeout, const char *client_name, ExceptionSink* xsink);
+      QoreNode* operationsGetAsyncCallResult(const char *class_name, const char *method_name, ExceptionSink* xsink);
 };
 
 class QoreEventHandler : public MEventListener

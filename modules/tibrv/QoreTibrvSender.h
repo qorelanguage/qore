@@ -42,13 +42,13 @@ class QoreTibrvSender : public AbstractPrivateData, public QoreTibrvTransport
       virtual ~QoreTibrvSender() {}
 
    public:
-      inline QoreTibrvSender(char *desc, char *service, char *network, char *daemon, class ExceptionSink *xsink) : QoreTibrvTransport(desc, service, network, daemon, xsink)
+      inline QoreTibrvSender(const char *desc, const char *service, const char *network, const char *daemon, class ExceptionSink *xsink) : QoreTibrvTransport(desc, service, network, daemon, xsink)
       { }
 
-      void sendSubject(char *subject, class Hash *data, char *replySubject, class ExceptionSink *xsink);
+      void sendSubject(const char *subject, class Hash *data, const char *replySubject, class ExceptionSink *xsink);
       
       // timout in ms
-      class Hash *sendSubjectWithSyncReply(char *subject, class Hash *data, int64 timeout, class ExceptionSink *xsink);
+      class Hash *sendSubjectWithSyncReply(const char *subject, class Hash *data, int64 timeout, class ExceptionSink *xsink);
 };
 
 #endif

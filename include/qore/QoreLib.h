@@ -41,7 +41,7 @@
 #endif
 
 // function to try and make a class name out of a file path, returns a new string that must be free()ed
-DLLEXPORT char *make_class_name(char *fn);
+DLLEXPORT char *make_class_name(const char *fn);
 // some string formatting functions that work with Qore data structures
 DLLEXPORT class QoreString *q_sprintf(class QoreNode *params, int field, int offset, class ExceptionSink *xsink);
 DLLEXPORT class QoreString *q_vsprintf(class QoreNode *params, int field, int offset, class ExceptionSink *xsink);
@@ -55,12 +55,12 @@ DLLEXPORT char *q_basenameptr(const char *path);
 DLLEXPORT char *q_dirname(const char *path);
 DLLEXPORT void qore_setup_argv(int pos, int argc, char *argv[]);
 
-static inline char *strchrs(char *str, char *chars)
+static inline char *strchrs(const char *str, const char *chars)
 {
    while (*str)
    {
       if (strchr(chars, *str))
-	 return str;
+	 return (char *)str;
       str++;
    }
    return NULL;
@@ -108,9 +108,9 @@ DLLLOCAL extern class LockedObject lck_gmtime;
 DLLLOCAL extern char table64[64];
 
 DLLLOCAL int get_nibble(char c, class ExceptionSink *xsink);
-DLLLOCAL class BinaryObject *parseBase64(char *buf, int len, class ExceptionSink *xsink);
-DLLLOCAL class BinaryObject *parseHex(char *buf, int len, class ExceptionSink *xsink);
-DLLLOCAL class BinaryObject *parseHex(char *buf, int len);
+DLLLOCAL class BinaryObject *parseBase64(const char *buf, int len, class ExceptionSink *xsink);
+DLLLOCAL class BinaryObject *parseHex(const char *buf, int len, class ExceptionSink *xsink);
+DLLLOCAL class BinaryObject *parseHex(const char *buf, int len);
 DLLLOCAL void print_node(FILE *fp, class QoreNode *node);
 DLLLOCAL void delete_global_variables();
 DLLLOCAL void initENV(char *env[]);

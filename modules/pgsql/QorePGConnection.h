@@ -204,7 +204,7 @@ class QorePGConnection : public LockedObject
       bool interval_has_day, integer_datetimes;
 
    public:
-      DLLLOCAL QorePGConnection(char *str, class ExceptionSink *xsink);
+      DLLLOCAL QorePGConnection(const char *str, class ExceptionSink *xsink);
       DLLLOCAL ~QorePGConnection();
       DLLLOCAL int setPGEncoding(const char *enc, class ExceptionSink *xsink);
 

@@ -665,7 +665,7 @@ void OraBindGroup::parseQuery(class List *args, class ExceptionSink *xsink)
 
    char quote = 0;
 
-   char *p = str->getBuffer();
+   const char *p = str->getBuffer();
    while (*p)
    {
       if (!quote && (*p) == '%') // found value marker
@@ -789,7 +789,7 @@ void OraBindNode::bindValue(class Datasource *ds, OCIStmt *stmthp, int pos, clas
       }
 
       // bind value to buffer
-      buf.ptr = bstr->getBuffer();
+      buf.ptr = (char *)bstr->getBuffer();
 
       // bind it
       ora_checkerr(d_ora->errhp, OCIBindByPos(stmthp, &bndp, d_ora->errhp, pos, buf.ptr, bstr->strlen() + 1, SQLT_STR, (dvoid *)NULL, (ub2 *)NULL, (ub2 *)NULL, (ub4)0, (ub4 *)NULL, OCI_DEFAULT), 

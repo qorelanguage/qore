@@ -34,7 +34,7 @@ class QoreNode *backquote_Eval(class QoreNode *n, class ExceptionSink *xsink)
 // read block size is 1K
 #define READ_BLOCK 1024
 
-class QoreNode *backquoteEval(char *cmd, ExceptionSink *xsink)
+class QoreNode *backquoteEval(const char *cmd, ExceptionSink *xsink)
 {
    tracein("backquoteEval()");
 

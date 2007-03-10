@@ -184,7 +184,7 @@ static inline void set_properties(MAppProperties *appProperties, Hash *h, Except
 			hi.getValue()->type->getName(), key);
 	 return;
       }
-      char *val = hi.getValue()->val.String->getBuffer();
+      const char *val = hi.getValue()->val.String->getBuffer();
 
       if (!strcmp(key, "AppVersion"))
 	 appProperties->setAppVersion(val);
@@ -221,7 +221,7 @@ void TIBAE_constructor(class Object *self, class QoreNode *params, class Excepti
 {
    tracein("TIBAE_constructor");
 
-   char *session_name, *service = NULL, *network = NULL, *daemon = NULL;
+   const char *session_name, *service = NULL, *network = NULL, *daemon = NULL;
    QoreNode *p0, *p1, *p2, *p;
 
    if (!(p0 = test_param(params, NT_STRING, 0)) ||
@@ -324,8 +324,8 @@ class QoreNode *TIBAE_sendSubject(class Object *self, class QoreApp *myQoreApp, 
       return NULL;
    }
 
-   char *subject = p0->val.String->getBuffer();
-   char *fname = p1->val.String->getBuffer();
+   const char *subject = p0->val.String->getBuffer();
+   const char *fname = p1->val.String->getBuffer();
 
    // try to send message
    try
@@ -345,7 +345,6 @@ class QoreNode *TIBAE_sendSubject(class Object *self, class QoreApp *myQoreApp, 
 class QoreNode *TIBAE_sendSubjectWithSyncReply(class Object *self, class QoreApp *myQoreApp, class QoreNode *params, class ExceptionSink *xsink)
 {
    class QoreNode *p0, *p1, *p2, *p3;
-   char *fname;
 
    // check input parameters
    if (!(p0 = test_param(params, NT_STRING, 0)) ||
@@ -356,7 +355,7 @@ class QoreNode *TIBAE_sendSubjectWithSyncReply(class Object *self, class QoreApp
       return NULL;
    }
 
-   fname = p1->val.String->getBuffer();
+   const char *fname = p1->val.String->getBuffer();
 
    // set timeout parameter if present
    int timeout = 0;
@@ -401,7 +400,7 @@ class QoreNode *TIBAE_receive(class Object *self, class QoreApp *myQoreApp, clas
       return NULL;
    }
 
-   char *subject = p0->val.String->getBuffer();
+   const char *subject = p0->val.String->getBuffer();
    unsigned long timeout = 0;
    if ((p1 = get_param(params, 1))) {
      QoreNode* n = test_param(params, NT_INT, 1);
@@ -444,20 +443,20 @@ static QoreNode* TIBAE_operationsCallWithSyncResult(Object* self, QoreApp* myQor
   if (!class_name) {
     return xsink->raiseException(func, err);
   }
-  char* class_name_extracted = class_name->val.String->getBuffer(); 
+  const char* class_name_extracted = class_name->val.String->getBuffer(); 
   QoreNode* method_name = test_param(params, NT_STRING, 1);
   if (!method_name) {
     return xsink->raiseException(func, err);
   } 
-  char* method_name_extracted = method_name->val.String->getBuffer();
+  const char* method_name_extracted = method_name->val.String->getBuffer();
   QoreNode* data = test_param(params, NT_HASH, 2);
   if (!data) {
     return xsink->raiseException(func, err);
   }
   Hash* data_extracted = data->val.hash;
   unsigned timeout = 60 * 1000;
-  char* client_name = "";
-
+  const char* client_name = "";
+  
   int next_item = 3;
   QoreNode* n = test_param(params, NT_INT, 3);
   if (n) {
@@ -492,18 +491,18 @@ static QoreNode* TIBAE_operationsOneWayCall(Object* self, QoreApp* myQoreApp, Qo
   if (!class_name) {
     return xsink->raiseException(func, err);
   }
-  char* class_name_extracted = class_name->val.String->getBuffer();
+  const char* class_name_extracted = class_name->val.String->getBuffer();
   QoreNode* method_name = test_param(params, NT_STRING, 1);
   if (!method_name) {
     return xsink->raiseException(func, err);
   }
-  char* method_name_extracted = method_name->val.String->getBuffer();
+  const char* method_name_extracted = method_name->val.String->getBuffer();
   QoreNode* data = test_param(params, NT_HASH, 2);
   if (!data) {
     return xsink->raiseException(func, err);
   }
   Hash* data_extracted = data->val.hash;
-  char* client_name = "";
+  const char* client_name = "";
 
   QoreNode* n = test_param(params, NT_STRING, 3);
   if (n) {
@@ -527,19 +526,19 @@ static QoreNode* TIBAE_operationsAsyncCall(Object* self, QoreApp* myQoreApp, Qor
   if (!class_name) {
     return xsink->raiseException(func, err);
   }
-  char* class_name_extracted = class_name->val.String->getBuffer();
+  const char* class_name_extracted = class_name->val.String->getBuffer();
   QoreNode* method_name = test_param(params, NT_STRING, 1);
   if (!method_name) {
     return xsink->raiseException(func, err);
   }
-  char* method_name_extracted = method_name->val.String->getBuffer();
+  const char* method_name_extracted = method_name->val.String->getBuffer();
   QoreNode* data = test_param(params, NT_HASH, 2);
   if (!data) {
     return xsink->raiseException(func, err);
   }
   Hash* data_extracted = data->val.hash;
   unsigned timeout = 60 * 1000;
-  char* client_name = "";
+  const char* client_name = "";
 
   int next_item = 3;
   QoreNode* n = test_param(params, NT_INT, 3);
@@ -578,12 +577,12 @@ static QoreNode* TIBAE_operationsGetAsyncCallResult(Object* self, QoreApp* myQor
   if (!class_name) {
     return xsink->raiseException(func, err);
   }
-  char* class_name_extracted = class_name->val.String->getBuffer();
+  const char* class_name_extracted = class_name->val.String->getBuffer();
   QoreNode* method_name = test_param(params, NT_STRING, 1);
   if (!method_name) {
     return xsink->raiseException(func, err);
   }
-  char* method_name_extracted = method_name->val.String->getBuffer();
+  const char* method_name_extracted = method_name->val.String->getBuffer();
 
   return myQoreApp->operationsGetAsyncCallResult(class_name_extracted, method_name_extracted, xsink);
 }

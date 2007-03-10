@@ -29,7 +29,7 @@
 #include <arpa/inet.h>
 #include <stdlib.h>
 
-QoreTibrvTransport::QoreTibrvTransport(char *desc, char *service, char *network, char *daemon, class ExceptionSink *xsink)
+QoreTibrvTransport::QoreTibrvTransport(const char *desc, const char *service, const char *network, const char *daemon, class ExceptionSink *xsink)
 {
    enc = QCS_DEFAULT;
    // create transport (connect to rvd daemon)
@@ -159,7 +159,7 @@ class Hash *QoreTibrvTransport::msgToHash(TibrvMsg *msg, class ExceptionSink *xs
    TibrvStatus status = msg->getNumFields(len);
    if (status != TIBRV_OK)
    {
-      xsink->raiseException("TIBRV-DEMARSHALLING-ERROR", (char *)status.getText());
+      xsink->raiseException("TIBRV-DEMARSHALLING-ERROR", status.getText());
       return NULL;
    }
 
@@ -172,11 +172,11 @@ class Hash *QoreTibrvTransport::msgToHash(TibrvMsg *msg, class ExceptionSink *xs
       if (status != TIBRV_OK)
       {
 	 h->derefAndDelete(xsink);
-	 xsink->raiseException("TIBRV-DEMARSHALLING-ERROR", (char *)status.getText());
+	 xsink->raiseException("TIBRV-DEMARSHALLING-ERROR", status.getText());
 	 return NULL;
       }
 
-      char *key = (char *)field.name;
+      const char *key = field.name;
       // if a null pointer is found, then change to a zero-length string
       if (!key)
 	 key = "";
@@ -312,7 +312,7 @@ class QoreNode *QoreTibrvTransport::fieldToNode(TibrvMsgField *field, class Exce
 	 if (!((char *)data.buf)[len - 1])
 	    len--;
 	 str->allocate(len);
-	 memcpy(str->getBuffer(), data.buf, len);
+	 memcpy((char *)str->getBuffer(), data.buf, len);
 	 val = new QoreNode(str);
 	 break;
       }
@@ -457,7 +457,7 @@ int QoreTibrvTransport::doEncodedType(TibrvMsg *msg, const char *key, const char
 	    int addr[4] = { 0, 0, 0, 0 };
 	    int i = 0;
 	    char *c;
-	    char *buf = val->val.String->getBuffer();
+	    const char *buf = val->val.String->getBuffer();
 	    QoreString str;
 	    while ((c = strchr(buf, '.')))
 	    {

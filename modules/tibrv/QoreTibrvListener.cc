@@ -26,7 +26,7 @@
 
 #include "QoreTibrvListener.h"
 
-QoreTibrvListener::QoreTibrvListener(char *subject, char *desc, char *service, char *network, char *daemon, class ExceptionSink *xsink) : QoreTibrvTransport(desc, service, network, daemon, xsink)
+QoreTibrvListener::QoreTibrvListener(const char *subject, const char *desc, const char *service, const char *network, const char *daemon, class ExceptionSink *xsink) : QoreTibrvTransport(desc, service, network, daemon, xsink)
 {
    if (xsink->isException())
    {
@@ -63,7 +63,7 @@ class Hash *QoreTibrvListener::getMessage(class ExceptionSink *xsink)
 
       if (status != TIBRV_OK)
       {
-	 xsink->raiseException("TIBRVLISTENER-GETMESSAGE-ERROR", (char *)status.getText());
+	 xsink->raiseException("TIBRVLISTENER-GETMESSAGE-ERROR", status.getText());
 	 return NULL;
       }
       if ((h = callback->getMessage(xsink)))
@@ -83,7 +83,7 @@ class Hash *QoreTibrvListener::getMessage(int64 timeout_ms, class ExceptionSink 
 
    if (status != TIBRV_OK)
    {
-      xsink->raiseException("TIBRVLISTENER-GETMESSAGE-ERROR", (char *)status.getText());
+      xsink->raiseException("TIBRVLISTENER-GETMESSAGE-ERROR", status.getText());
       return NULL;
    }
 

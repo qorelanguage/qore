@@ -26,7 +26,7 @@
 
 #include "QoreTibrvFtMonitor.h"
 
-QoreTibrvFtMonitor::QoreTibrvFtMonitor(char *groupname, int64 li, char *desc, char *service, char *network, char *daemon, class ExceptionSink *xsink) : QoreTibrvTransport(desc, service, network, daemon, xsink)
+QoreTibrvFtMonitor::QoreTibrvFtMonitor(const char *groupname, int64 li, const char *desc, const char *service, const char *network, const char *daemon, class ExceptionSink *xsink) : QoreTibrvTransport(desc, service, network, daemon, xsink)
 {
    callback = NULL;
    if (xsink->isException())

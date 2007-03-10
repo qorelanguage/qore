@@ -48,8 +48,8 @@ class QoreTibrvFtMember : public AbstractPrivateData, public QoreTibrvTransport
       virtual ~QoreTibrvFtMember();
 
    public:
-      QoreTibrvFtMember(char *groupname, int weight, int activeGoal, int64 heartbeat, int64 prep, int64 activation,
-			char *desc, char *service, char *network, char *daemon, 
+      QoreTibrvFtMember(const char *groupname, int weight, int activeGoal, int64 heartbeat, int64 prep, int64 activation,
+			const char *desc, const char *service, const char *network, const char *daemon, 
 			class ExceptionSink *xsink);
 
       inline QoreNode *getEvent(class ExceptionSink *xsink);
@@ -64,7 +64,7 @@ class QoreTibrvFtMember : public AbstractPrivateData, public QoreTibrvTransport
       {
 	 TibrvStatus status = ftMember.setWeight((tibrv_u16)weight);
 	 if (status != TIBRV_OK)
-	    xsink->raiseException("TIBRVFTMEMEBER-SETWEIGHT-ERROR", "%s", (char *)status.getText());
+	    xsink->raiseException("TIBRVFTMEMEBER-SETWEIGHT-ERROR", "%s", status.getText());
       }
 
       inline const char *getGroupName()
@@ -82,7 +82,7 @@ class QoreTibrvFtMember : public AbstractPrivateData, public QoreTibrvTransport
          TibrvStatus status = queue.getCount(count);
          if (status != TIBRV_OK)
          {
-            xsink->raiseException("TIBRVLISTENER-GETQUEUESIZE-ERROR", (char *)status.getText());
+            xsink->raiseException("TIBRVLISTENER-GETQUEUESIZE-ERROR", status.getText());
             return 0;
          }
          
@@ -149,7 +149,7 @@ inline QoreNode *QoreTibrvFtMember::getEvent(class ExceptionSink *xsink)
    
       if (status != TIBRV_OK)
       {
-	 xsink->raiseException("TIBRVFTMEMBER-GETEVENT-ERROR", (char *)status.getText());
+	 xsink->raiseException("TIBRVFTMEMBER-GETEVENT-ERROR", status.getText());
 	 return NULL;
       }
       

@@ -46,9 +46,9 @@ static void SSLPKEY_constructor(class Object *self, class QoreNode *params, Exce
    }
    // get pass phrase if any
    class QoreNode *p1 = test_param(params, NT_STRING, 1);
-   char *pp = p1 ? p1->val.String->getBuffer() : NULL;   
+   const char *pp = p1 ? p1->val.String->getBuffer() : NULL;   
 
-   QoreSSLPrivateKey *qpk = new QoreSSLPrivateKey(p0->val.String->getBuffer(), pp, xsink);
+   QoreSSLPrivateKey *qpk = new QoreSSLPrivateKey(p0->val.String->getBuffer(), (char *)pp, xsink);
    if (xsink->isEvent())
       qpk->deref();
    else

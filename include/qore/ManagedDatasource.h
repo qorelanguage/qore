@@ -87,11 +87,11 @@ public:
    DLLLOCAL int close(ExceptionSink *xsink);
    DLLLOCAL int close();
    DLLLOCAL void reset(ExceptionSink *xsink);
-   DLLLOCAL void setPendingUsername(char *u);
-   DLLLOCAL void setPendingPassword(char *p);
-   DLLLOCAL void setPendingDBName(char *d);
-   DLLLOCAL void setPendingDBEncoding(char *c);
-   DLLLOCAL void setPendingHostName(char *h);
+   DLLLOCAL void setPendingUsername(const char *u);
+   DLLLOCAL void setPendingPassword(const char *p);
+   DLLLOCAL void setPendingDBName(const char *d);
+   DLLLOCAL void setPendingDBEncoding(const char *c);
+   DLLLOCAL void setPendingHostName(const char *h);
    DLLLOCAL QoreNode *getPendingUsername();
    DLLLOCAL QoreNode *getPendingPassword();
    DLLLOCAL QoreNode *getPendingDBName();

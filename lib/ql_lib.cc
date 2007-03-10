@@ -543,7 +543,7 @@ static class QoreNode *f_mkfifo(class QoreNode *params, ExceptionSink *xsink)
    if (!(p0 = test_param(params, NT_STRING, 0)))
       return NULL;
 
-   char *fn = p0->val.String->getBuffer();
+   const char *fn = p0->val.String->getBuffer();
    int mode;
 
    p1 = test_param(params, NT_INT, 1);

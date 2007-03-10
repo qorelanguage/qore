@@ -39,9 +39,9 @@ void TIBRVCMLISTENER_constructor(class Object *self, class QoreNode *params, cla
       xsink->raiseException("TIBRVCMLISTENER-CONSTRUCTOR-ERROR", "missing subject string");
       return;
    }      
-   char *subject = pt->val.String->getBuffer();   
+   const char *subject = pt->val.String->getBuffer();   
 
-   char *cmName = NULL, *ledgerName = NULL, *relayAgent = NULL;
+   const char *cmName = NULL, *ledgerName = NULL, *relayAgent = NULL;
    bool requestOld, syncLedger;
 
    pt = test_param(params, NT_STRING, 1);
@@ -62,7 +62,7 @@ void TIBRVCMLISTENER_constructor(class Object *self, class QoreNode *params, cla
    if (pt)
       relayAgent = pt->val.String->getBuffer();
 
-   char *service = NULL, *network = NULL, *daemon = NULL, *desc = NULL;
+   const char *service = NULL, *network = NULL, *daemon = NULL, *desc = NULL;
    pt = test_param(params, NT_STRING, 6);
    if (pt)
       desc = pt->val.String->getBuffer();
@@ -153,7 +153,7 @@ class QoreNode *TIBRVCMLISTENER_syncLedger(class Object *self, class QoreTibrvCm
 
 static QoreNode *TIBRVCMLISTENER_getName(class Object *self, class QoreTibrvCmListener *cml, QoreNode *params, ExceptionSink *xsink)
 {
-   char *name = cml->getName(xsink);
+   const char *name = cml->getName(xsink);
    if (!xsink->isException())
       return new QoreNode(name);
 

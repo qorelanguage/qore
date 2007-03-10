@@ -50,7 +50,7 @@ class ModuleInfo {
       void *dlptr;
 
    public:
-      DLLLOCAL ModuleInfo(char *fn, char *n, int major, int minor, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del, char *d, char *v, char *a, char *u, void *p);
+      DLLLOCAL ModuleInfo(const char *fn, char *n, int major, int minor, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del, char *d, char *v, char *a, char *u, void *p);
       // for "builtin" modules
       DLLLOCAL ModuleInfo(char *feature, qore_module_delete_t del);
       DLLLOCAL ~ModuleInfo();
@@ -79,8 +79,8 @@ class ModuleManager
       
       DLLLOCAL static void add(ModuleInfo *m);
       DLLLOCAL static void addBuiltin(char *fn, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del);
-      DLLLOCAL static class ModuleInfo *add(char *fn, char *n, int major, int minor, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del, char *d, char *v, char *a, char *u, void *p);
-      DLLLOCAL static class QoreString *loadModuleFromPath(char *path, char *feature = NULL, class ModuleInfo **mi = NULL);
+      DLLLOCAL static class ModuleInfo *add(const char *fn, char *n, int major, int minor, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del, char *d, char *v, char *a, char *u, void *p);
+      DLLLOCAL static class QoreString *loadModuleFromPath(const char *path, const char *feature = NULL, class ModuleInfo **mi = NULL);
       DLLLOCAL static class ModuleInfo *find(char *name);
 
    public:

@@ -209,13 +209,13 @@ int DateTime::getDayOfWeek() const
    return getDayOfWeek(year, month, day);
 }
 
-void DateTime::format(class QoreString *str, char *fmt) const
+void DateTime::format(class QoreString *str, const char *fmt) const
 {
    struct tm nt;
 
    tracein("DateTime::format()");
 
-   char *s = fmt;
+   const char *s = fmt;
    while (*s)
    {
       switch (*s)
@@ -268,7 +268,7 @@ void DateTime::format(class QoreString *str, char *fmt) const
                   s += 2;
                   if (month && (month <= 12))
                   {
-                     char *t = str->getBuffer() + str->strlen();
+                     char *t = (char *)str->getBuffer() + str->strlen();
                      str->sprintf("%s", months[(int)month - 1].long_name);
                      strtoupper(t);
                   }
@@ -278,7 +278,7 @@ void DateTime::format(class QoreString *str, char *fmt) const
                }
                if (month && (month <= 12))
                {
-                  char *t = str->getBuffer() + str->strlen();
+                  char *t = (char *)str->getBuffer() + str->strlen();
                   str->sprintf("%s", months[(int)month - 1].abbr);
                   strtoupper(t);
                }
@@ -313,7 +313,7 @@ void DateTime::format(class QoreString *str, char *fmt) const
                   str->sprintf("DAY%d", day);
                else
                {
-                  char *t = str->getBuffer() + str->strlen();
+                  char *t = (char *)str->getBuffer() + str->strlen();
                   str->sprintf("%s", days[nt.tm_wday].long_name);
                   strtoupper(t);
                }
@@ -327,7 +327,7 @@ void DateTime::format(class QoreString *str, char *fmt) const
                   str->sprintf("D%02d", day);
                else
                {
-                  char *t = str->getBuffer() + str->strlen();
+                  char *t = (char *)str->getBuffer() + str->strlen();
                   str->sprintf("%s", days[nt.tm_wday].abbr);
                   if (*s == 'Y')
                      strtoupper(t);
@@ -1169,7 +1169,7 @@ DateTime::DateTime(int64 seconds, int ms)
    setDate(seconds, ms);
 }
 
-DateTime::DateTime(char *str)
+DateTime::DateTime(const char *str)
 {
    setDate(str);
 }
@@ -1200,7 +1200,7 @@ void DateTime::setDate(struct tm *tms, short ms)
    relative = false;
 }
 
-void DateTime::setDate(char *str)
+void DateTime::setDate(const char *str)
 {
 #ifdef HAVE_STRTOLL
    int64 date = strtoll(str, NULL, 10);
@@ -1222,7 +1222,7 @@ void DateTime::setDate(char *str)
    relative = false;
 }
 
-void DateTime::setRelativeDate(char *str)
+void DateTime::setRelativeDate(const char *str)
 {
 #ifdef HAVE_STRTOLL
    int64 date = strtoll(str, NULL, 10);

@@ -323,7 +323,7 @@ class QoreString *QoreHTTPClient::getURL()
 }
 
 //-----------------------------------------------------------------------------
-int QoreHTTPClient::setHTTPVersion(char* version, ExceptionSink* xsink)
+int QoreHTTPClient::setHTTPVersion(const char* version, ExceptionSink* xsink)
 {
    int rc = 0;
    SafeLocker sl(this);
@@ -581,7 +581,7 @@ const char *QoreHTTPClient::getMsgPath(const char *mpath, class QoreString &pstr
    return mpath;
 }
 
-class QoreNode *QoreHTTPClient::getResponseHeader(const char *meth, const char *mpath, class Hash &nh, void *data, unsigned size, int &code, class ExceptionSink *xsink)
+class QoreNode *QoreHTTPClient::getResponseHeader(const char *meth, const char *mpath, class Hash &nh, const void *data, unsigned size, int &code, class ExceptionSink *xsink)
 {
    class QoreString pathstr;
    const char *msgpath = getMsgPath(mpath, pathstr);
@@ -667,7 +667,7 @@ class QoreNode *QoreHTTPClient::getHostHeaderValue()
    return hv;
 }
 
-class QoreNode *QoreHTTPClient::send_internal(char *meth, const char *mpath, class Hash *headers, void *data, unsigned size, bool getbody, class ExceptionSink *xsink)
+class QoreNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath, class Hash *headers, const void *data, unsigned size, bool getbody, class ExceptionSink *xsink)
 {
    // check if method is valid
    str_set_t::const_iterator i = method_set.find(meth);
@@ -804,13 +804,13 @@ class QoreNode *QoreHTTPClient::send_internal(char *meth, const char *mpath, cla
 
 	 host_override = false;
 	 v = ah->getKeyValue("location");
-	 char *location = v ? v->val.String->getBuffer() : NULL;
+	 const char *location = v ? v->val.String->getBuffer() : NULL;
 
 	 if (!location)
 	 {
 	    sl.unlock();
 	    v = ah->getKeyValue("status_message");
-	    char *mess = v ? v->val.String->getBuffer() : (char *)"<no message>";
+	    const char *mess = v ? v->val.String->getBuffer() : "<no message>";
 	    xsink->raiseException("HTTP-CLIENT-REDIRECT-ERROR", "no redirect location given for status code %d: message: '%s'", code, mess);
 	    ans->deref(xsink);
 	    return NULL;
@@ -824,7 +824,7 @@ class QoreNode *QoreHTTPClient::send_internal(char *meth, const char *mpath, cla
 	 {
 	    sl.unlock();
 	    v = ah->getKeyValue("status_message");
-	    char *mess = v ? v->val.String->getBuffer() : (char *)"<no message>";
+	    const char *mess = v ? v->val.String->getBuffer() : "<no message>";
 	    xsink->raiseException("HTTP-CLIENT-REDIRECT-ERROR", "exception occurred while setting URL for new location '%s' (code %d: message: '%s')", location, code, mess);
 	    ans->deref(xsink);
 	    return NULL;
@@ -841,9 +841,9 @@ class QoreNode *QoreHTTPClient::send_internal(char *meth, const char *mpath, cla
    {
       sl.unlock();
       v = ah->getKeyValue("status_message");
-      char *mess = v ? v->val.String->getBuffer() : (char *)"<no message>";
+      const char *mess = v ? v->val.String->getBuffer() : "<no message>";
       v = ah->getKeyValue("location");
-      char *location = v ? v->val.String->getBuffer() : (char *)"<no location>";
+      const char *location = v ? v->val.String->getBuffer() : "<no location>";
       xsink->raiseException("HTTP-CLIENT-MAXIMUM-REDIRECTS-EXCEEDED", "maximum redirections (%d) exceeded; redirect code %d to '%s' ignored (message: '%s')", max_redirects, code, location, mess);
       ans->deref(xsink);
       return NULL;
@@ -853,7 +853,7 @@ class QoreNode *QoreHTTPClient::send_internal(char *meth, const char *mpath, cla
    {
       sl.unlock();
       v = ah->getKeyValue("status_message");
-      char *mess = v ? v->val.String->getBuffer() : (char *)"<no message>";
+      const char *mess = v ? v->val.String->getBuffer() :"<no message>";
       xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", "HTTP status code %d received: message: %s", code, mess);
       ans->deref(xsink);
       return NULL;
@@ -864,7 +864,7 @@ class QoreNode *QoreHTTPClient::send_internal(char *meth, const char *mpath, cla
    // see if there is a character set specification in the content-type header
    if (v)
    {
-      char *str = v->val.String->getBuffer();
+      const char *str = v->val.String->getBuffer();
       char *p = strstr(str, "charset=");
       if (p && (p == str || *(p - 1) == ';' || *(p - 1) == ' '))
       {
@@ -904,7 +904,7 @@ class QoreNode *QoreHTTPClient::send_internal(char *meth, const char *mpath, cla
    }
 
    // see if we should do a binary or string read
-   char *content_encoding = NULL;
+   const char *content_encoding = NULL;
    v = ah->getKeyValue("content-encoding");
    if (v)
    {
@@ -1024,7 +1024,7 @@ class QoreNode *QoreHTTPClient::send_internal(char *meth, const char *mpath, cla
    return ans;
 }
 
-class QoreNode *QoreHTTPClient::send(char *meth, const char *path, class Hash *headers, void *data, unsigned size, bool getbody, class ExceptionSink *xsink)
+class QoreNode *QoreHTTPClient::send(const char *meth, const char *path, class Hash *headers, const void *data, unsigned size, bool getbody, class ExceptionSink *xsink)
 {
    return send_internal(meth, path, headers, data, size, getbody, xsink);
 }
@@ -1044,7 +1044,7 @@ class QoreNode *QoreHTTPClient::head(const char *path, class Hash *headers, clas
    return send_internal("HEAD", path, headers, NULL, 0, false, xsink);
 }
 
-class QoreNode *QoreHTTPClient::post(const char *path, class Hash *headers, void *data, unsigned size, class ExceptionSink *xsink)
+class QoreNode *QoreHTTPClient::post(const char *path, class Hash *headers, const void *data, unsigned size, class ExceptionSink *xsink)
 {
    class QoreNode *ans = send_internal("POST", path, headers, data, size, true, xsink);
    if (!ans)

@@ -194,9 +194,9 @@ class QoreSocket
       // receive and write data to a file descriptor
       DLLEXPORT int recv(int fd, int size, int timeout);
       // send an HTTP message
-      DLLEXPORT int sendHTTPMessage(const char *method, const char *path, const char *http_version, class Hash *headers, void *data, int size);
+      DLLEXPORT int sendHTTPMessage(const char *method, const char *path, const char *http_version, class Hash *headers, const void *data, int size);
       // send an HTTP response
-      DLLEXPORT int sendHTTPResponse(int code, const char *desc, const char *http_version, class Hash *headers, void *data, int size);
+      DLLEXPORT int sendHTTPResponse(int code, const char *desc, const char *http_version, class Hash *headers, const void *data, int size);
       // read and parse HTTP header
       DLLEXPORT class QoreNode *readHTTPHeader(int timeout, int *prc);
       // receive a binary message in HTTP chunked format

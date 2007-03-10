@@ -515,7 +515,7 @@ static QoreNode *SOCKET_sendHTTPMessage(class Object *self, class mySocket *s, c
       return NULL;
    }
 
-   char *method, *path, *http_version;
+   const char *method, *path, *http_version;
    method = p0->val.String->getBuffer();
    path = p1->val.String->getBuffer();
    http_version = p2->val.String->getBuffer();
@@ -524,7 +524,7 @@ static QoreNode *SOCKET_sendHTTPMessage(class Object *self, class mySocket *s, c
 
    // see if there is data to send as well
    QoreNode *p4 = get_param(params, 4);
-   void *ptr = NULL;
+   const void *ptr = NULL;
    int size = 0;
 
    if (p4)
@@ -585,7 +585,7 @@ static QoreNode *SOCKET_sendHTTPResponse(class Object *self, class mySocket *s, 
       return NULL;
    }
 
-   char *status_desc, *http_version;
+   const char *status_desc, *http_version;
    status_desc = p1->val.String->getBuffer();
    http_version = p2->val.String->getBuffer();
 
@@ -593,7 +593,7 @@ static QoreNode *SOCKET_sendHTTPResponse(class Object *self, class mySocket *s, 
 
    // see if there is data to send as well
    QoreNode *p4 = get_param(params, 4);
-   void *ptr = NULL;
+   const void *ptr = NULL;
    int size = 0;
 
    if (p4)
@@ -807,9 +807,9 @@ static QoreNode *SOCKET_setPrivateKey(class Object *self, class mySocket *s, cla
    {
       // get passphrase if present
       QoreNode *p1 = test_param(params, NT_STRING, 1);
-      char *pp = p1 ? p1->val.String->getBuffer() : NULL;
+      const char *pp = p1 ? p1->val.String->getBuffer() : NULL;
       // Try and create object
-      pk = new QoreSSLPrivateKey(p0->val.String->getBuffer(), pp, xsink);
+      pk = new QoreSSLPrivateKey(p0->val.String->getBuffer(), (char *)pp, xsink);
       if (xsink->isEvent())
       {
 	 pk->deref();

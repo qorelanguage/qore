@@ -725,7 +725,7 @@ void QoreString::concatAndHTMLDecode(const QoreString *str)
          }
 
 	 // concatenate translated character
-         char* s = str->getBuffer() + i;
+         const char* s = str->getBuffer() + i;
 	 // check for unicode character references
 	 if (*(s + 1) == '#')
 	 {
@@ -1451,7 +1451,7 @@ int QoreString::strlen() const
    return len;
 }
 
-char *QoreString::getBuffer() const
+const char *QoreString::getBuffer() const
 {
    return buf;
 }

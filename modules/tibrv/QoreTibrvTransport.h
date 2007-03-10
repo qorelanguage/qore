@@ -40,7 +40,7 @@ class QoreTibrvTransport
       class TibrvNetTransport transport;
       class QoreEncoding *enc;
 
-      QoreTibrvTransport(char *desc, char *service, char *network, char *daemon, class ExceptionSink *xsink);
+      QoreTibrvTransport(const char *desc, const char *service, const char *network, const char *daemon, class ExceptionSink *xsink);
 
       inline void setStringEncoding(class QoreEncoding *e)
       {
@@ -57,7 +57,7 @@ class QoreTibrvTransport
 	 TibrvStatus status = transport.send(*msg);
 	 if (status != TIBRV_OK)
 	 {
-	    xsink->raiseException("TIBRV-SEND-ERROR", "%s", (char *)status.getText());
+	    xsink->raiseException("TIBRV-SEND-ERROR", "%s", status.getText());
 	    return -1;
 	 }
 	 return 0;
@@ -75,7 +75,7 @@ class QoreTibrvTransport
 
 	 if (status != TIBRV_OK)
 	 {
-	    xsink->raiseException("TIBRV-SENDREQUEST-ERROR", "%s", (char *)status.getText());
+	    xsink->raiseException("TIBRV-SENDREQUEST-ERROR", "%s", status.getText());
 	    return -1;
 	 }
 	 return 0;

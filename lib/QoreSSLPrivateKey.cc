@@ -33,7 +33,7 @@ QoreSSLPrivateKey::~QoreSSLPrivateKey()
       EVP_PKEY_free(pk);
 }
 
-QoreSSLPrivateKey::QoreSSLPrivateKey(char *fn, char *pp, class ExceptionSink *xsink)
+QoreSSLPrivateKey::QoreSSLPrivateKey(const char *fn, char *pp, class ExceptionSink *xsink)
 {
    pk = NULL;
    FILE *fp = fopen(fn, "r");

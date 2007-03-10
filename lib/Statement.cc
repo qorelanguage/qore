@@ -624,7 +624,7 @@ int process_node(class QoreNode **node, lvh_t oflag, int pflag)
       List *keys = (*node)->val.hash->getKeys();
       for (i = 0; i < keys->size(); i++)
       {
-	 char *k = keys->retrieve_entry(i)->val.String->getBuffer();
+	 const char *k = keys->retrieve_entry(i)->val.String->getBuffer();
 	 class QoreNode **value = (*node)->val.hash->getKeyValuePtr(k);
 	 // resolve constant references in keys
 	 if (k[0] == HE_TAG_CONST || k[0] == HE_TAG_SCOPED_CONST)

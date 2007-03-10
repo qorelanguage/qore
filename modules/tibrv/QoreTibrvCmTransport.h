@@ -44,7 +44,7 @@ class QoreTibrvCmTransport : public QoreTibrvTransport
 	 TibrvStatus status = TibrvCmMsg::setTimeLimit(*msg, tl);
 	 if (status != TIBRV_OK)
 	 {
-	    xsink->raiseException("TIBRV-SENDCM-ERROR", "error setting delivery time limit to %lldms: %s", time_limit, (char *)status.getText());
+	    xsink->raiseException("TIBRV-SENDCM-ERROR", "error setting delivery time limit to %lldms: %s", time_limit, status.getText());
 	    return -1;
 	 }
 	 return 0;
@@ -53,8 +53,8 @@ class QoreTibrvCmTransport : public QoreTibrvTransport
    public:
       TibrvCmTransport cmTransport;
 
-      QoreTibrvCmTransport(char *cmName, bool requestOld, char *ledgerName, bool syncLedger, char *relayAgent, 
-			   char *desc, char *service, char *network, char *daemon, class ExceptionSink *xsink); 
+      QoreTibrvCmTransport(const char *cmName, bool requestOld, const char *ledgerName, bool syncLedger, const char *relayAgent, 
+			   const char *desc, const char *service, const char *network, const char *daemon, class ExceptionSink *xsink); 
       ~QoreTibrvCmTransport() {}
 
       // return -1 for error, 0 for success
@@ -66,7 +66,7 @@ class QoreTibrvCmTransport : public QoreTibrvTransport
          TibrvStatus status = cmTransport.send(*msg);
          if (status != TIBRV_OK)
          {
-            xsink->raiseException("TIBRV-SENDCM-ERROR", "%s", (char *)status.getText());
+            xsink->raiseException("TIBRV-SENDCM-ERROR", "%s", status.getText());
             return -1;
          }
          return 0;
@@ -87,7 +87,7 @@ class QoreTibrvCmTransport : public QoreTibrvTransport
 
          if (status != TIBRV_OK)
          {
-            xsink->raiseException("TIBRV-SENDCMREQUEST-ERROR", "%s", (char *)status.getText());
+            xsink->raiseException("TIBRV-SENDCMREQUEST-ERROR", "%s", status.getText());
             return -1;
          }
          return 0;
@@ -98,7 +98,7 @@ class QoreTibrvCmTransport : public QoreTibrvTransport
          TibrvStatus status = cmTransport.connectToRelayAgent();
          if (status != TIBRV_OK)
          {
-            xsink->raiseException("TIBRV-CONNECT-TO-RELAY-AGENT-ERROR", "%s", (char *)status.getText());
+            xsink->raiseException("TIBRV-CONNECT-TO-RELAY-AGENT-ERROR", "%s", status.getText());
             return -1;
          }
 	 return 0;
@@ -109,25 +109,25 @@ class QoreTibrvCmTransport : public QoreTibrvTransport
          TibrvStatus status = cmTransport.disconnectFromRelayAgent();
          if (status != TIBRV_OK)
          {
-            xsink->raiseException("TIBRV-DISCONNECT-FROM-RELAY-AGENT-ERROR", "%s", (char *)status.getText());
+            xsink->raiseException("TIBRV-DISCONNECT-FROM-RELAY-AGENT-ERROR", "%s", status.getText());
             return -1;
          }
 	 return 0;
       }
 
-      inline int expireMessages(char *subject, int64 seqNum, class ExceptionSink *xsink)
+      inline int expireMessages(const char *subject, int64 seqNum, class ExceptionSink *xsink)
       {
-         TibrvStatus status = cmTransport.expireMessages((const char *)subject, (tibrv_u64)seqNum);
+         TibrvStatus status = cmTransport.expireMessages(subject, (tibrv_u64)seqNum);
          if (status != TIBRV_OK)
          {
-            xsink->raiseException("TIBRV-EXPIRE-MESSAGES-ERROR", "%s", (char *)status.getText());
+            xsink->raiseException("TIBRV-EXPIRE-MESSAGES-ERROR", "%s", status.getText());
             return -1;
          }
 	 return 0;	 
       }
 
       // returns the default time limit in milliseconds
-      inline char *getName(class ExceptionSink *xsink)
+      inline const char *getName(class ExceptionSink *xsink)
       {
 	 const char *name;
 	 
@@ -137,7 +137,7 @@ class QoreTibrvCmTransport : public QoreTibrvTransport
             xsink->raiseException("TIBRV-GET-NAME-ERROR", "%s", (char *)status.getText());
             return NULL;
          }
-	 return (char *)name;
+	 return name;
       }
 
       // returns the default time limit in milliseconds
@@ -148,7 +148,7 @@ class QoreTibrvCmTransport : public QoreTibrvTransport
 	 TibrvStatus status = cmTransport.getDefaultTimeLimit(tl);
          if (status != TIBRV_OK)
          {
-            xsink->raiseException("TIBRV-GET-DEFAULT-TIME-LIMIT-ERROR", "%s", (char *)status.getText());
+            xsink->raiseException("TIBRV-GET-DEFAULT-TIME-LIMIT-ERROR", "%s", status.getText());
             return -1;
          }
 	 return (int64)tl * 1000;
@@ -162,20 +162,20 @@ class QoreTibrvCmTransport : public QoreTibrvTransport
 	 TibrvStatus status = cmTransport.setDefaultTimeLimit(tl);
          if (status != TIBRV_OK)
          {
-            xsink->raiseException("TIBRV-SET-DEFAULT-TIME-LIMIT-ERROR", "%s", (char *)status.getText());
+            xsink->raiseException("TIBRV-SET-DEFAULT-TIME-LIMIT-ERROR", "%s", status.getText());
             return -1;
          }
 	 return 0;
       }
 
-      inline class QoreNode *reviewLedger(char *subject, class ExceptionSink *xsink);
+      inline class QoreNode *reviewLedger(const char *subject, class ExceptionSink *xsink);
 
-      inline int removeSendState(char *subject, class ExceptionSink *xsink)
+      inline int removeSendState(const char *subject, class ExceptionSink *xsink)
       {
-         TibrvStatus status = cmTransport.removeSendState((const char *)subject);
+         TibrvStatus status = cmTransport.removeSendState(subject);
          if (status != TIBRV_OK)
          {
-            xsink->raiseException("TIBRV-REMOVE-SEND-STATE-ERROR", "%s", (char *)status.getText());
+            xsink->raiseException("TIBRV-REMOVE-SEND-STATE-ERROR", "%s", status.getText());
             return -1;
          }
 	 return 0;	 
@@ -186,7 +186,7 @@ class QoreTibrvCmTransport : public QoreTibrvTransport
          TibrvStatus status = cmTransport.syncLedger();
          if (status != TIBRV_OK)
          {
-            xsink->raiseException("TIBRV-SYNC-LEDGER-ERROR", "%s", (char *)status.getText());
+            xsink->raiseException("TIBRV-SYNC-LEDGER-ERROR", "%s", status.getText());
             return -1;
          }
 	 return 0;	 
@@ -255,13 +255,13 @@ class QoreTibrvCmReviewCallback : public TibrvCmReviewCallback
       }
 };
 
-inline class QoreNode *QoreTibrvCmTransport::reviewLedger(char *subject, class ExceptionSink *xsink)
+inline class QoreNode *QoreTibrvCmTransport::reviewLedger(const char *subject, class ExceptionSink *xsink)
 {
    class QoreTibrvCmReviewCallback cb;
-   TibrvStatus status = cmTransport.reviewLedger(&cb, (const char *)subject, this);
+   TibrvStatus status = cmTransport.reviewLedger(&cb, subject, this);
    if (status != TIBRV_OK)
    {
-      xsink->raiseException("TIBRV-REVIEW-LEDGER-ERROR", "%s", (char *)status.getText());
+      xsink->raiseException("TIBRV-REVIEW-LEDGER-ERROR", "%s", status.getText());
       return NULL;
    }
 

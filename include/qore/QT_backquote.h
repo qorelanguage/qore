@@ -25,6 +25,6 @@
 #define _QORE_QT_BACKQUOTE_H
 
 DLLLOCAL class QoreNode *backquote_Eval(class QoreNode *n, class ExceptionSink *xsink);
-DLLLOCAL class QoreNode *backquoteEval(char *cmd, ExceptionSink *xsink);
+DLLLOCAL class QoreNode *backquoteEval(const char *cmd, ExceptionSink *xsink);
 
 #endif // _QORE_QT_BACKQUOTE_H
