@@ -38,6 +38,8 @@ typedef std::map<int, class VLock *> vlock_map_t;
 class VLock : protected abstract_lock_list_t
 {
    private:
+      // whenever a lock is about to block, deadlock detection must be synchronized with the global lock
+      static LockedObject global_lock;
       AbstractSmartLock *waiting_on;
       int tid;
 

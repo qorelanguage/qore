@@ -77,9 +77,7 @@ sub class_deadlock_c($c, $rw1, $rw2)
     my $al = new AutoWriteLock($rw1);
     $c.dec();
     $c.waitForZero();
-    printf("%d: rw1 write lock grabbed\n", gettid());
     try {
-	printf("%d: about to get rw2 write lock\n", gettid());
 	$rw2.writeLock();
 	$rw2.writeUnlock();
     }
@@ -95,9 +93,7 @@ sub class_deadlock_d($c, $rw1, $rw2)
     my $al = new AutoWriteLock($rw2);
     $c.dec();
     $c.waitForZero();
-    printf("%d: rw2 read lock grabbed\n", gettid());
     try {
-	printf("%d: about to get rw1 read lock\n", gettid());
 	$rw1.writeLock();
 	$rw1.writeUnlock();
     }
@@ -105,7 +101,6 @@ sub class_deadlock_d($c, $rw1, $rw2)
     {
 	printf("%s: %s\n", $ex.err, $ex.desc); 
     }
-    printf("exited\n");
 }
 
 sub test_thread_resources()

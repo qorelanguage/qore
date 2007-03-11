@@ -25,6 +25,8 @@
 
 #include <assert.h>
 
+LockedObject VLock::global_lock;
+
 AutoVLock::AutoVLock()
 {
    //printd(5, "AutoVLock::AutoVLock() this=%08p\n", this);
@@ -58,6 +60,7 @@ void AutoVLock::push(class AbstractSmartLock *p)
 int VLock::waitOn(AbstractSmartLock *asl, VLock *vl, int current_tid, class ExceptionSink *xsink, int timeout_ms)
 {
    assert(vl);
+   SafeLocker al(&global_lock);
    AbstractSmartLock *vl_wait = vl->waiting_on;
    if (vl_wait && find(vl_wait))
    {
@@ -71,7 +74,8 @@ int VLock::waitOn(AbstractSmartLock *asl, VLock *vl, int current_tid, class Exce
    }
    waiting_on = asl;
    tid = current_tid;
-
+   al.unlock();
+   
 #ifdef DEBUG
    //show(vl);
 #endif
@@ -86,6 +90,7 @@ int VLock::waitOn(AbstractSmartLock *asl, VLock *vl, int current_tid, class Exce
 
 int VLock::waitOn(AbstractSmartLock *asl, QoreCondition *cond, VLock *vl, int current_tid, class ExceptionSink *xsink, int timeout_ms)
 {
+   SafeLocker al(&global_lock);
    AbstractSmartLock *vl_wait = vl->waiting_on;
    printd(0, "VLock::waitOn(asl=%08p, c_tid=%d) vl_wait=%08p other_tid=%d\n", asl, current_tid, vl_wait, vl->tid);
    if (vl_wait && find(vl_wait))
@@ -100,6 +105,7 @@ int VLock::waitOn(AbstractSmartLock *asl, QoreCondition *cond, VLock *vl, int cu
    }
    waiting_on = asl;
    tid = current_tid;
+   al.unlock();
 
    //printd(0, "AbstractSmartLock::block() this=%08p asl=%08p about to block on VRMutex owned by TID %d\n", this, asl, vl ? vl->tid : -1);
    int rc = asl->self_wait(cond, timeout_ms);
@@ -111,6 +117,7 @@ int VLock::waitOn(AbstractSmartLock *asl, QoreCondition *cond, VLock *vl, int cu
 
 int VLock::waitOn(AbstractSmartLock *asl, vlock_map_t &vmap, int current_tid, class ExceptionSink *xsink, int timeout_ms)
 {
+   SafeLocker al(&global_lock);
    for (vlock_map_t::iterator i = vmap.begin(), e = vmap.end(); i != e; ++i)
    {
       AbstractSmartLock *vl_wait = i->second->waiting_on;
@@ -128,6 +135,7 @@ int VLock::waitOn(AbstractSmartLock *asl, vlock_map_t &vmap, int current_tid, cl
    }
    waiting_on = asl;
    tid = current_tid;
+   al.unlock();
 
    //printd(0, "AbstractSmartLock::block() this=%08p asl=%08p about to block on VRMutex owned by TID %d\n", this, asl, vl ? vl->tid : -1);
    int rc = asl->self_wait(timeout_ms);
