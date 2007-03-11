@@ -73,6 +73,7 @@ int VLock::waitOn(AbstractSmartLock *asl, VLock *vl, int current_tid, class Exce
       return -1;
    }
    waiting_on = asl;
+   // FIXME: move tid initialization to constructor
    tid = current_tid;
    al.unlock();
    
