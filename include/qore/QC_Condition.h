@@ -43,7 +43,7 @@ class Condition : public AbstractPrivateData
    public:
       DLLLOCAL int wait(class Mutex *m, int timeout, class ExceptionSink *xsink)
       {
-	 return m->extern_wait(&cond, timeout, xsink);
+	 return m->extern_wait(&cond, xsink, timeout);
       }
       DLLLOCAL int wait(class Mutex *m, class ExceptionSink *xsink)
       {

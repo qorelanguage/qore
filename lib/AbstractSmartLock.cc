@@ -26,7 +26,7 @@
 
 void abstract_smart_lock_cleanup(AbstractSmartLock *asl, class ExceptionSink *xsink)
 {
-   xsink->raiseException("THREAD-ERROR", "TID %d terminated while holding a %s lock; the lock will be automatically released", gettid(), asl->getName());
+   xsink->raiseException("LOCK-ERROR", "TID %d terminated while holding a %s lock; the lock will be automatically released", gettid(), asl->getName());
    asl->cleanup();
 }
 
@@ -38,9 +38,9 @@ void AbstractSmartLock::cleanup()
 
 void AbstractSmartLock::mark_and_push(int mtid, class VLock *nvl)
 {
+   nvl->push(this);
    tid = mtid;
    vl = nvl;
-   nvl->push(this);
 }
 
 void AbstractSmartLock::signalAllImpl()
@@ -59,14 +59,14 @@ void AbstractSmartLock::release_and_signal()
 {
    vl->pop(this);
    if (tid >= 0)
-      tid = -1;
+      tid = Lock_Unlocked;
    vl = NULL;
    signalImpl();
 }
 
 void AbstractSmartLock::grab_intern(int mtid, class VLock *nvl)
 {
-   printd(5, "AbstractSmartLock::grab() (%s) this=%08p grabbed lock (nvl=%08p)\n", getName(), this, nvl);
+   printd(5, "AbstractSmartLock::grab_intern() (%s) this=%08p grabbed lock (nvl=%08p)\n", getName(), this, nvl);
    mark_and_push(mtid, nvl);
    trlist.set(this, (qtrdest_t)abstract_smart_lock_cleanup);
 }
@@ -88,11 +88,15 @@ void AbstractSmartLock::destructor(class ExceptionSink *xsink)
    if (tid >= 0)
    {
       vl->pop(this);
-      xsink->raiseException("LOCK-ERROR", "%s object destroyed while locked by TID %d", getName(), gettid());
+      int mtid = gettid();
+      if (mtid == tid)
+	 xsink->raiseException("LOCK-ERROR", "TID %d deleted %s object while holding the lock", mtid, getName());
+      else
+	 xsink->raiseException("LOCK-ERROR", "TID %d deleted %s object while TID %d was holding the lock", mtid, getName(), tid);
       trlist.remove(this);
       signalAllImpl();
    }
-   tid = -2;
+   tid = Lock_Deleted;
 }
 
 // grab return values: 
@@ -108,23 +112,12 @@ return grabInternImpl(mtid);
 }
 */
 
-int AbstractSmartLock::grab(class ExceptionSink *xsink)
+int AbstractSmartLock::grab(class ExceptionSink *xsink, int timeout_ms)
 {
    int mtid = gettid();
    class VLock *nvl = getVLock();
    AutoLocker al(&asl_lock);
-   int rc = grabImpl(mtid, nvl, xsink);
-   if (!rc)
-      grab_intern(mtid, nvl);
-   return rc;
-}
-
-int AbstractSmartLock::grab(int timeout_ms, class ExceptionSink *xsink)
-{
-   int mtid = gettid();
-   class VLock *nvl = getVLock();
-   AutoLocker al(&asl_lock);
-   int rc = grabImpl(mtid, timeout_ms, nvl, xsink);
+   int rc = grabImpl(mtid, nvl, xsink, timeout_ms);
    if (!rc)
       grab_intern(mtid, nvl);
    return rc;
@@ -159,30 +152,17 @@ int AbstractSmartLock::release(class ExceptionSink *xsink)
    return rc;
 }
 
-int AbstractSmartLock::externWaitImpl(int mtid, class QoreCondition *cond, int timeout, class ExceptionSink *xsink)
+int AbstractSmartLock::externWaitImpl(int mtid, class QoreCondition *cond, class ExceptionSink *xsink, int timeout_ms)
 {
    xsink->raiseException("WAIT-ERROR", "cannot wait on %s objects", getName());
    return -1;
 }
 
-int AbstractSmartLock::externWaitImpl(int mtid, class QoreCondition *cond, class ExceptionSink *xsink)
-{
-   xsink->raiseException("WAIT-ERROR", "cannot wait on %s objects", getName());
-   return -1;
-}
-
-int AbstractSmartLock::extern_wait(class QoreCondition *cond, int timeout, class ExceptionSink *xsink)
+int AbstractSmartLock::extern_wait(class QoreCondition *cond, class ExceptionSink *xsink, int timeout_ms)
 {
    AutoLocker al(&asl_lock);
-   return externWaitImpl(gettid(), cond, timeout, xsink);
+   return externWaitImpl(gettid(), cond, xsink, timeout_ms);
 }
-
-int AbstractSmartLock::extern_wait(class QoreCondition *cond, class ExceptionSink *xsink)
-{
-   AutoLocker al(&asl_lock);
-   return externWaitImpl(gettid(), cond, xsink);
-}
-
 
 int AbstractSmartLock::verify_wait_unlocked(int mtid, class ExceptionSink *xsink)
 {

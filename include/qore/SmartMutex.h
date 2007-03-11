@@ -41,12 +41,10 @@ class SmartMutex : public AbstractSmartLock
       cond_map_t cmap;
 
       DLLLOCAL virtual int releaseImpl();
-      DLLLOCAL virtual int grabImpl(int mtid, class VLock *nvl, class ExceptionSink *xsink);
-      DLLLOCAL virtual int grabImpl(int mtid, int timeout_ms, class VLock *nvl, class ExceptionSink *xsink);
+      DLLLOCAL virtual int grabImpl(int mtid, class VLock *nvl, class ExceptionSink *xsink, int timeout_ms = 0);
       DLLLOCAL virtual int releaseImpl(class ExceptionSink *xsink);
       DLLLOCAL virtual int tryGrabImpl(int mtid, class VLock *nvl);
-      DLLLOCAL virtual int externWaitImpl(int mtid, class QoreCondition *cond, int timeout, class ExceptionSink *xsink);
-      DLLLOCAL virtual int externWaitImpl(int mtid, class QoreCondition *cond, class ExceptionSink *xsink);
+      DLLLOCAL virtual int externWaitImpl(int mtid, class QoreCondition *cond, class ExceptionSink *xsink, int timeout = 0);
       DLLLOCAL virtual void destructorImpl(class ExceptionSink *xsink);
 
    public:

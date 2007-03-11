@@ -33,20 +33,20 @@ DLLLOCAL void abstract_smart_lock_cleanup(class AbstractSmartLock *asl, class Ex
 class AbstractSmartLock
 {
    protected:
+      enum lock_status_e { Lock_Deleted = -2, Lock_Unlocked = -1 };
+   
       class VLock *vl;
       int tid, waiting;
 
       virtual int releaseImpl() = 0;
       virtual int releaseImpl(class ExceptionSink *xsink) = 0;
-      virtual int grabImpl(int mtid, class VLock *nvl, class ExceptionSink *xsink) = 0;
-      virtual int grabImpl(int mtid, int timeout_ms, class VLock *nvl, class ExceptionSink *xsink) = 0;
+      virtual int grabImpl(int mtid, class VLock *nvl, class ExceptionSink *xsink, int timeout_ms = 0) = 0;
       virtual int tryGrabImpl(int mtid, class VLock *nvl) = 0;
-      DLLLOCAL virtual int externWaitImpl(int mtid, class QoreCondition *cond, int timeout, class ExceptionSink *xsink);
-      DLLLOCAL virtual int externWaitImpl(int mtid, class QoreCondition *cond, class ExceptionSink *xsink);
+      DLLLOCAL virtual int externWaitImpl(int mtid, class QoreCondition *cond, class ExceptionSink *xsink, int timeout_ms = 0);
       DLLLOCAL virtual void destructorImpl(class ExceptionSink *xsink);
-
       DLLLOCAL virtual void signalAllImpl();
       DLLLOCAL virtual void signalImpl();
+
       DLLLOCAL void mark_and_push(int mtid, class VLock *nvl);
       DLLLOCAL void release_and_signal();
       DLLLOCAL void grab_intern(int mtid, class VLock *nvl);
@@ -74,18 +74,21 @@ class AbstractSmartLock
 	 return grabInternImpl(mtid);
       }
 */
-      DLLLOCAL int grab(class ExceptionSink *xsink);
-      DLLLOCAL int grab(int timeout_ms, class ExceptionSink *xsink);
+      DLLLOCAL int grab(class ExceptionSink *xsink, int timeout_ms = 0);
       DLLLOCAL int tryGrab();
       DLLLOCAL int release();
       DLLLOCAL int release(class ExceptionSink *xsink);
       DLLLOCAL void self_wait() { asl_cond.wait(&asl_lock); }
-      DLLLOCAL int self_wait(int timeout_ms) { return asl_cond.wait(&asl_lock, timeout_ms); }
-      DLLLOCAL void self_wait(QoreCondition *cond) { cond->wait(&asl_lock); }
-      DLLLOCAL int self_wait(QoreCondition *cond, int timeout_ms) { return cond->wait(&asl_lock, timeout_ms); }
+      DLLLOCAL int self_wait(int timeout_ms = 0) 
+      { 
+	 return timeout_ms ? asl_cond.wait(&asl_lock, timeout_ms) : asl_cond.wait(&asl_lock); 
+      }
+      DLLLOCAL int self_wait(QoreCondition *cond, int timeout_ms = 0) 
+      { 
+	 return timeout_ms ? cond->wait(&asl_lock, timeout_ms) : cond->wait(&asl_lock); 
+      }
 
-      DLLLOCAL int extern_wait(class QoreCondition *cond, int timeout, class ExceptionSink *xsink);
-      DLLLOCAL int extern_wait(class QoreCondition *cond, class ExceptionSink *xsink);
+      DLLLOCAL int extern_wait(class QoreCondition *cond, class ExceptionSink *xsink, int timeout_ms = 0);
 
       DLLLOCAL int get_tid() const { return tid; }
       DLLLOCAL int get_waiting() const { return waiting; }

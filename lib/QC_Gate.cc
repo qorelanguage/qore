@@ -49,7 +49,7 @@ static class QoreNode *GATE_enter(class Object *self, class QoreGate *g, class Q
    if (!is_nothing(p))
    {
       int timeout_ms = getMsZeroInt(p);
-      return new QoreNode((int64)g->grab(timeout_ms, xsink));
+      return new QoreNode((int64)g->grab(xsink, timeout_ms));
    }
 
    return new QoreNode((int64)g->grab(xsink));

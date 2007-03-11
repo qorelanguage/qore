@@ -40,6 +40,10 @@ class VLock : protected abstract_lock_list_t
    private:
       AbstractSmartLock *waiting_on;
       int tid;
+
+      // not implemented
+      VLock(const VLock&);
+      VLock& operator=(const VLock&);
       
    public:
       DLLLOCAL VLock();
@@ -50,14 +54,11 @@ class VLock : protected abstract_lock_list_t
       DLLLOCAL AbstractSmartLock *find(AbstractSmartLock *g) const; 
 
       // for blocking smart locks with deadlock detection
-      DLLLOCAL int waitOn(AbstractSmartLock *asl, class VLock *vl, int tid, class ExceptionSink *xsink);
-      DLLLOCAL int waitOn(AbstractSmartLock *asl, class VLock *vl, int tid, int timeout_ms, class ExceptionSink *xsink);
+      DLLLOCAL int waitOn(AbstractSmartLock *asl, class VLock *vl, int tid, class ExceptionSink *xsink, int timeout_ms = 0);
       // for smart locks using an alternate condition variable
-      DLLLOCAL int waitOn(AbstractSmartLock *asl, class QoreCondition *cond, class VLock *vl, int tid, class ExceptionSink *xsink);
-      DLLLOCAL int waitOn(AbstractSmartLock *asl, class QoreCondition *cond, class VLock *vl, int tid, int timeout_ms, class ExceptionSink *xsink);
+      DLLLOCAL int waitOn(AbstractSmartLock *asl, class QoreCondition *cond, class VLock *vl, int tid, class ExceptionSink *xsink, int timeout_ms = 0);
       // for smart locks that can be held by more than one thread and are using an alternate condition variable
-      DLLLOCAL int waitOn(AbstractSmartLock *asl, vlock_map_t &vmap, int tid, class ExceptionSink *xsink);
-      DLLLOCAL int waitOn(AbstractSmartLock *asl, vlock_map_t &vmap, int tid, int timeout_ms, class ExceptionSink *xsink);
+      DLLLOCAL int waitOn(AbstractSmartLock *asl, vlock_map_t &vmap, int tid, class ExceptionSink *xsink, int timeout_ms = 0);
       DLLLOCAL int getTID() { return tid; }
          
 #ifdef DEBUG
@@ -65,14 +66,20 @@ class VLock : protected abstract_lock_list_t
 #endif
 };
 
+// AutoVLock is for grabbing a series of locks that will only be deleted when the AutoVLock structure is deleted
 class AutoVLock : protected abstract_lock_list_t
 {
+   private:
+      // not implemented
+      AutoVLock(const AutoVLock&);
+      AutoVLock& operator=(const AutoVLock&);
+      void *operator new(size_t);
+   
    public:
       DLLLOCAL AutoVLock();
       DLLLOCAL ~AutoVLock();
       DLLLOCAL void del();
       DLLLOCAL void push(AbstractSmartLock *asl);
 };
-
 
 #endif

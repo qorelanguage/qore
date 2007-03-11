@@ -49,7 +49,7 @@ static class QoreNode *RWLOCK_readLock(class Object *self, class QoreRWLock *rwl
    if (!is_nothing(p))
    {
       int timeout_ms = getMsZeroInt(p);
-      rc = rwl->readLock(timeout_ms, xsink);
+      rc = rwl->readLock(xsink, timeout_ms);
    }
    else
       rc = rwl->readLock(xsink);
@@ -74,7 +74,7 @@ static class QoreNode *RWLOCK_writeLock(class Object *self, class QoreRWLock *rw
    if (!is_nothing(p))
    {
       int timeout_ms = getMsZeroInt(p);
-      rc = rwl->grab(timeout_ms, xsink);
+      rc = rwl->grab(xsink, timeout_ms);
    }
    else
       rc = rwl->grab(xsink);

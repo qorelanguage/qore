@@ -49,51 +49,28 @@ int VRMutex::exit()
    return rc;
 }
 
-int VRMutex::grabImpl(int mtid, class VLock *nvl, class ExceptionSink *xsink)
+int VRMutex::grabImpl(int mtid, class VLock *nvl, class ExceptionSink *xsink, int timeout_ms)
 {
-   while (tid != -1 && tid != mtid)
+   if (tid != mtid)
    {
-      if (tid == -2)
+      while (tid != Lock_Unlocked)
       {
-	 xsink->raiseException("LOCK-ERROR", "TID %d cannot execute %s::enter() because the object has been deleted in another thread", mtid, getName());
-	 return -1;
+	 if (tid == Lock_Deleted)
+	 {
+	    xsink->raiseException("LOCK-ERROR", "TID %d cannot execute %s::enter() because the object has been deleted in another thread", mtid, getName());
+	    return -1;
+	 }
+	 
+	 ++waiting;
+	 int rc = nvl->waitOn((AbstractSmartLock *)this, vl, mtid, xsink, timeout_ms);
+	 --waiting;
+	 // if rc is non-zero there was a timeout or deadlock
+	 if (rc)
+	    return -1;
       }
-
-      ++waiting;
-      int rc = nvl->waitOn((AbstractSmartLock *)this, vl, mtid, xsink);
-      --waiting;
-      // if rc is non-zero there was a deadlock
-      if (rc)
-	 return -1;
+      // the thread lock list must always be the same if the lock was grabbed
+      assert((mtid == tid  && vl == nvl) || (tid == Lock_Unlocked && !vl));
    }
-   // the thread lock list must always be the same if the lock was grabbed
-   assert((mtid == tid  && vl == nvl) || (tid == -1 && !vl));
-
-   printd(5, "VRMutex::enter() this=%p count: %d->%d\n", this, count, count + 1);
-
-   return count++;
-}
-
-int VRMutex::grabImpl(int mtid, int timeout_ms, class VLock *nvl, class ExceptionSink *xsink)
-{
-   while (tid != -1 && tid != mtid)
-   {
-      if (tid == -2)
-      {
-	 xsink->raiseException("LOCK-ERROR", "TID %d cannot execute %s::enter() because the object has been deleted in another thread", mtid, getName());
-	 return -1;
-      }
-
-      ++waiting;
-      int rc = nvl->waitOn((AbstractSmartLock *)this, vl, mtid, timeout_ms, xsink);
-      --waiting;
-      // if rc is non-zero there was a timeout or deadlock
-      if (rc)
-	 return -1;
-   }
-   // the thread lock list must always be the same if the lock was grabbed
-   assert((mtid == tid  && vl == nvl) || (tid == -1 && !vl));
-
    printd(5, "VRMutex::enter() this=%p count: %d->%d\n", this, count, count + 1);
 
    return count++;
@@ -101,11 +78,14 @@ int VRMutex::grabImpl(int mtid, int timeout_ms, class VLock *nvl, class Exceptio
 
 int VRMutex::tryGrabImpl(int mtid, class VLock *nvl)
 {
-   if (tid != -1 && tid != mtid)
-      return -1;
+   if (tid != mtid)
+   {
+      if (tid != Lock_Unlocked)
+	 return -1;
 
-   // the thread lock list must always be the same if the lock was grabbed
-   assert((mtid == tid  && vl == nvl) || (tid == -1 && !vl));
+      // the thread lock list must always be the same if the lock was grabbed
+      assert((mtid == tid  && vl == nvl) || (tid == Lock_Unlocked && !vl));
+   }
 
    printd(5, "VRMutex::enter() this=%p count: %d->%d\n", this, count, count + 1);
 
@@ -126,13 +106,13 @@ int VRMutex::releaseImpl()
 int VRMutex::releaseImpl(class ExceptionSink *xsink)
 {
    int mtid = gettid();
-   if (tid == -1)
+   if (tid == Lock_Unlocked)
    {
       // use getName() here so it can be safely inherited
       xsink->raiseException("LOCK-ERROR", "TID %d called %s::exit() without acquiring the lock", mtid, getName());
       return -1;
    }
-   if (tid == -2)
+   if (tid == Lock_Deleted)
    {
       xsink->raiseException("LOCK-ERROR", "TID %d cannot execute %s::exit() because the object has been deleted in another thread", mtid, getName());
       return -1;
@@ -143,7 +123,7 @@ int VRMutex::releaseImpl(class ExceptionSink *xsink)
       xsink->raiseException("LOCK-ERROR", "TID %d called %s::exit() while the lock is held by TID %d", mtid, getName(), tid);
       return -1;      
    }
-   // count must be > 0 because tid != 0
+   // count must be > 0 because tid > 0
    assert(count);
 
    printd(5, "VRMutex::exit() this=%p count: %d->%d\n", this, count, count - 1);

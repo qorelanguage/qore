@@ -57,8 +57,7 @@ class RWLock : public AbstractSmartLock
       DLLLOCAL virtual void signalImpl();
       DLLLOCAL virtual int releaseImpl();
       DLLLOCAL virtual int releaseImpl(class ExceptionSink *xsink);
-      DLLLOCAL virtual int grabImpl(int mtid, class VLock *nvl, class ExceptionSink *xsink);
-      DLLLOCAL virtual int grabImpl(int mtid, int timeout_ms, class VLock *nvl, class ExceptionSink *xsink);
+      DLLLOCAL virtual int grabImpl(int mtid, class VLock *nvl, class ExceptionSink *xsink, int timeout_ms = 0);
       DLLLOCAL virtual int tryGrabImpl(int mtid, class VLock *nvl);
       DLLLOCAL virtual void destructorImpl(class ExceptionSink *xsink);
 
@@ -67,10 +66,9 @@ class RWLock : public AbstractSmartLock
    public:
       DLLLOCAL RWLock(bool p = false);
 #ifdef DEBUG
-      virtual DLLLOCAL ~RWLock();
+      DLLLOCAL virtual ~RWLock();
 #endif
-      DLLLOCAL int readLock(int timeout_ms, class ExceptionSink *xsink);
-      DLLLOCAL int readLock(class ExceptionSink *xsink);
+      DLLLOCAL int readLock(class ExceptionSink *xsink, int timeout_ms = 0);
       DLLLOCAL int readUnlock(class ExceptionSink *xsink);
       DLLLOCAL int tryReadLock();
       //DLLLOCAL void writeToRead(class ExceptionSink *xsink);

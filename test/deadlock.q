@@ -4,7 +4,7 @@
 
 our $dl;  # deadlock flag
 
-synchronized sub internal_dl_a($c)
+synchronized sub internal_deadlock_a($c)
 {
     if (exists $c)
     {
@@ -14,7 +14,7 @@ synchronized sub internal_dl_a($c)
     if ($dl)
 	return;
     try {
-	return internal_dl_b();
+	return internal_deadlock_b();
     }
     catch ($ex)
     {
@@ -23,7 +23,7 @@ synchronized sub internal_dl_a($c)
     }
 }
 
-synchronized sub internal_dl_b($c)
+synchronized sub internal_deadlock_b($c)
 {
     if (exists $c)
     {
@@ -33,7 +33,7 @@ synchronized sub internal_dl_b($c)
     if ($dl)
 	return;
     try {
-	return internal_dl_a();
+	return internal_deadlock_a();
     }
     catch ($ex)
     {
@@ -42,16 +42,11 @@ synchronized sub internal_dl_b($c)
     }
 }
 
-sub class_dl_a($c, $m, $g)
+sub class_deadlock_a($c, $m, $g)
 {
     my $al = new AutoLock($m);
-    if (exists $c)
-    {
-	$c.dec();
-	$c.waitForZero();
-    }
-    if ($dl)
-	return;
+    $c.dec();
+    $c.waitForZero();
     try {
 	$g.enter();
 	$g.exit();
@@ -59,20 +54,14 @@ sub class_dl_a($c, $m, $g)
     catch ($ex)
     {
 	printf("%s: %s\n", $ex.err, $ex.desc); 
-	$dl = True;
     }
 }
 
-sub class_dl_b($c, $m, $g)
+sub class_deadlock_b($c, $m, $g)
 {
     my $ag = new AutoGate($g);
-    if (exists $c)
-    {
-	$c.dec();
-	$c.waitForZero();
-    }
-    if ($dl)
-	return;
+    $c.dec();
+    $c.waitForZero();
     try {
 	$m.lock();
 	$m.unlock();
@@ -80,58 +69,43 @@ sub class_dl_b($c, $m, $g)
     catch ($ex)
     {
 	printf("%s: %s\n", $ex.err, $ex.desc); 
-	$dl = True;
     }
 }
 
-sub class_dl_c($c, $rw1, $rw2)
+sub class_deadlock_c($c, $rw1, $rw2)
 {
-    $rw1.readLock();
-    if (exists $c)
-    {
-	$c.dec();
-	$c.waitForZero();
-    }
-    if ($dl)
-    {
-	$rw1.readUnlock();
-	return;
-    }
+    my $al = new AutoWriteLock($rw1);
+    $c.dec();
+    $c.waitForZero();
+    printf("%d: rw1 write lock grabbed\n", gettid());
     try {
-	$rw2.readLock();
-	$rw2.readUnlock();
+	printf("%d: about to get rw2 write lock\n", gettid());
+	$rw2.writeLock();
+	$rw2.writeUnlock();
     }
     catch ($ex)
     {
 	printf("%s: %s\n", $ex.err, $ex.desc); 
-	$dl = True;
     }
-    $rw1.readUnlock();
 }
 
-sub class_dl_d($c, $rw1, $rw2)
+sub class_deadlock_d($c, $rw1, $rw2)
 {
-    $rw2.writeLock();
-    if (exists $c)
-    {
-	$c.dec();
-	$c.waitForZero();
-    }
-    if ($dl)
-    {
-	$rw2.writeUnlock();
-	return;
-    }
+    #my $al = new AutoReadLock($rw2);
+    my $al = new AutoWriteLock($rw2);
+    $c.dec();
+    $c.waitForZero();
+    printf("%d: rw2 read lock grabbed\n", gettid());
     try {
+	printf("%d: about to get rw1 read lock\n", gettid());
 	$rw1.writeLock();
 	$rw1.writeUnlock();
     }
     catch ($ex)
     {
 	printf("%s: %s\n", $ex.err, $ex.desc); 
-	$dl = True;
     }
-    $rw2.writeUnlock();
+    printf("exited\n");
 }
 
 sub test_thread_resources()
@@ -191,8 +165,8 @@ sub main()
 {
     # internal deadlock with synchronized subroutines
     my $c = new Counter(2);
-    background internal_dl_a($c);
-    internal_dl_b($c);
+    background internal_deadlock_a($c);
+    internal_deadlock_b($c);
 
     # deadlock tests with qore classes and explicit locking
     my $m = new Mutex();
@@ -201,9 +175,8 @@ sub main()
     # increment counter for synchronization
     $c.inc();
     $c.inc();
-    $dl = False;
-    background class_dl_a($c, $m, $g);
-    class_dl_b($c, $m, $g);
+    background class_deadlock_a($c, $m, $g);
+    class_deadlock_b($c, $m, $g);
 
     # deadlock tests with other classes
     my $rw1 = new RWLock();
@@ -212,9 +185,8 @@ sub main()
     # increment counter for synchronization
     $c.inc();
     $c.inc();
-    $dl = False;
-    background class_dl_c($c, $rw1, $rw2);
-    class_dl_d($c, $rw1, $rw2);
+    background class_deadlock_c($c, $rw1, $rw2);
+    class_deadlock_d($c, $rw1, $rw2);
 
     # mutex tests
     $m.lock();
