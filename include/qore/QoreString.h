@@ -126,6 +126,7 @@ class QoreString {
       DLLEXPORT void takeAndTerminate(char *, int size);
       DLLEXPORT class QoreString *convertEncoding(const class QoreEncoding *nccs, class ExceptionSink *xsink) const;
       DLLEXPORT char *giveBuffer();
+      // reset string to zero length. Memory is NOT deallocated.
       DLLEXPORT void clear();
       DLLEXPORT void replace(int offset, int len, const char *str);
       DLLEXPORT void replace(int offset, int len, const class QoreString *str);
