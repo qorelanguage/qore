@@ -1,5 +1,5 @@
 /*
-  sybase_executor.h
+  sybase_read_output.h
 
   Sybase DB layer for QORE
   uses Sybase OpenClient C library
@@ -23,26 +23,16 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef SYBASE_EXECUTOR_H_
-#define SYBASE_EXECUTOR_H_
+#ifndef SYBASE_READ_OUTPUT_H_
+#define SYBASE_READ_OUTPUT_H_
 
-class Datasource;
-class QoreString;
 class QoreNode;
+class sybase_command_wrapper;
 class ExceptionSink;
 
 //------------------------------------------------------------------------------
-class sybase_executor
-{
-  Datasource* m_ds;
-public:
-  sybase_executor(Datasource* ds, QoreString* ostr, List *args, ExceptionSink *xsink);
-  ~sybase_executor();
-
-  QoreNode* exec(ExceptionSink *xsink);
-  QoreNode* select(ExceptionSink *xsink);
-  QoreNode* selectRows(ExceptionSink *xsink);
-};
+// Read output of a command (SQL or procedure call) and convert it into Qore node (hash or list of hashes)
+extern QoreNode* convert_sybase_output_to_Qore(const sybase_command_wrapper& wrapper, ExceptionSink* xsink);
 
 #endif
 

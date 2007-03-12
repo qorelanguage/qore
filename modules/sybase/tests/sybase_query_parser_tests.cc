@@ -7,6 +7,17 @@ namespace sybase_tests_1739 {
 //------------------------------------------------------------------------------
 TEST()
 {
+  printf("running test %s[%d]\n", __FILE__, __LINE__);
+  assert(is_query_procedure_call("EXEC foo"));
+  assert(is_query_procedure_call(" Execute foo(%v, %v, :aaa)  "));
+  assert(is_query_procedure_call("exec foo(:aaa)"));
+  assert(!is_query_procedure_call("foo"));
+}
+
+//------------------------------------------------------------------------------
+TEST()
+{
+  printf("running test %s[%d]\n", __FILE__, __LINE__);
   sybase_query_parameter p1;
   assert(p1.is_input_parameter());
 
@@ -23,6 +34,7 @@ TEST()
 //------------------------------------------------------------------------------
 TEST()
 {
+  printf("running test %s[%d]\n", __FILE__, __LINE__);
   ExceptionSink xsink; 
   processed_sybase_query res = parse_sql_query("aaa", &xsink);
   if (xsink.isException()) {
@@ -78,6 +90,7 @@ TEST()
 //------------------------------------------------------------------------------
 TEST()
 {
+  printf("running test %s[%d]\n", __FILE__, __LINE__);
   ExceptionSink xsink;
   processed_sybase_query res = parse_procedure_call(" exec aaa ", &xsink);
   if (xsink.isException()) {
@@ -129,6 +142,7 @@ TEST()
 //------------------------------------------------------------------------------
 TEST()
 {
+  printf("running test %s[%d]\n", __FILE__, __LINE__);
   ExceptionSink xsink;
   processed_sybase_query res = parse_sybase_query("aaa", &xsink);
   if (xsink.isException()) {

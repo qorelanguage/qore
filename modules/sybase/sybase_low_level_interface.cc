@@ -25,7 +25,6 @@
 
 #include <qore/config.h>
 #include <qore/support.h>
-#include <qore/List.h>
 #include <qore/Exception.h>
 
 #include <ctpublic.h>
@@ -36,6 +35,7 @@
 
 #include "sybase_low_level_interface.h"
 #include "sybase_connection.h"
+#include "sybase_query_parser.h"
 
 //------------------------------------------------------------------------------
 int sybase_low_level_commit(sybase_connection* sc, ExceptionSink* xsink)
@@ -205,7 +205,7 @@ sybase_command_wrapper::~sybase_command_wrapper()
 void sybase_low_level_prepare_command(const sybase_command_wrapper& wrapper, const char* sql_text, ExceptionSink* xsink)
 {
   assert(sql_text && sql_text[0]);
-  
+ 
   CS_RETCODE err = ct_dynamic(wrapper(), CS_PREPARE, wrapper.getStringId(), CS_NULLTERM, (CS_CHAR*)sql_text, CS_NULLTERM);
   if (err != CS_SUCCEED) {
     assert(false);
@@ -391,14 +391,51 @@ std::string sybase_low_level_get_default_encoding(const sybase_connection& conn,
 void sybase_low_level_bind_parameters(
   const sybase_command_wrapper& wrapper,
   const char* command,
-  bool command_is_procedure_call,
-  const std::vector<parameter_info_t>& inputs,
-  const std::vector<parameter_info_t>& outputs,
-  List* passed_arguments,
+  const std::vector<bind_parameter_t>& parameters,
   ExceptionSink* xsink
   )
 {
   // TBD
+}
+
+//------------------------------------------------------------------------------
+void execute_RPC_call(
+  const sybase_command_wrapper& wrapper,
+  const char* RPC_command, // just name, w/o "exec[ute]" or parameters list
+  const std::vector<RPC_parameter_info_t>& parameters,
+  ExceptionSink* xsink
+  )
+{
+  CS_RETCODE err = ct_command(wrapper(), CS_RPC_CMD, (CS_CHAR*)RPC_command, CS_NULLTERM, CS_NO_RECOMPILE);
+  if (err != CS_SUCCEED) {
+    assert(false);
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_command(CS_RPC_CMD) failed with error %d", (int)err);
+    return;
+  }
+
+  // add all parameters (they need to be specified
+  for (unsigned i = 0, n = (unsigned)parameters.size(); i != n; ++i) {
+    // get the data type
+    CS_DATAFMT datafmt;
+    memset(&datafmt, 0, sizeof(datafmt));
+    datafmt.datatype = parameters[i].m_type;
+    datafmt.maxlength = parameters[i].m_size;
+    datafmt.status = parameters[i].m_is_input ? CS_INPUTVALUE : CS_RETURN;
+
+    err = ct_param(wrapper(), &datafmt, (CS_VOID*)parameters[i].m_data, parameters[i].m_size, parameters[i].m_is_null ? -1 : 0);
+    if (err != CS_SUCCEED) {
+      assert(false);
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_param() #%d failed with error %d", i + 1, (int)err);
+      return;
+    }
+  }
+
+  err = ct_send(wrapper());
+  if (err != CS_SUCCEED) {
+    assert(false);
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_send() failed with error %d", (int)err);
+    return;
+  }  
 }
 
 #ifdef DEBUG

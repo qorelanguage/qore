@@ -1,5 +1,5 @@
 /*
-  sybase_executor.cc
+  sybase_read_output.cc
 
   Sybase DB layer for QORE
   uses Sybase OpenClient C library
@@ -26,48 +26,21 @@
 #include <qore/config.h>
 #include <qore/support.h>
 #include <qore/Exception.h>
-#include <qore/QoreString.h>
-#include <qore/List.h>
 
 #include <assert.h>
 #include <qore/minitest.hpp>
 
-#include "sybase_executor.h"
+#include "sybase_read_output.h"
 
 //------------------------------------------------------------------------------
-sybase_executor::sybase_executor(Datasource* ds, QoreString* ostr, List *args, ExceptionSink *xsink)
-: m_ds(ds)
-{
-}
-
-//------------------------------------------------------------------------------
-sybase_executor::~sybase_executor()
-{
-}
-
-//------------------------------------------------------------------------------
-QoreNode* sybase_executor::exec(ExceptionSink *xsink)
-{
-  // TBD
-  return 0;
-}
-
-//------------------------------------------------------------------------------
-QoreNode* select(ExceptionSink *xsink)
-{
-  // TBD
-  return 0;
-}
-
-//------------------------------------------------------------------------------
-QoreNode* selectRows(ExceptionSink *xsink)
+QoreNode* convert_sybase_output_to_Qore(const sybase_command_wrapper& wrapper, ExceptionSink* xsink)
 {
   // TBD
   return 0;
 }
 
 #ifdef DEBUG
-#  include "tests/sybase_executor_tests.cc"
+#  include "tests/sybase_read_output_tests.cc"
 #endif
 
 // EOF

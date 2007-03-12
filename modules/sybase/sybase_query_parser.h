@@ -59,9 +59,12 @@ struct processed_sybase_query
 };
 
 //------------------------------------------------------------------------------
+// Procedure call is: exec[ute] rpc_name(%v, %v, ... :placeholder1, :placeholder2, ...)
+//
+extern bool is_query_procedure_call(const char* query);
+
 // Process the query text to fit Sybase standards
 extern processed_sybase_query parse_sybase_query(const char* original_query_text, ExceptionSink* xsink);
-
 
 #endif
 

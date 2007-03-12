@@ -33,6 +33,7 @@
 #include <vector>
 #include <qore/Exception.h>
 #include <ctpublic.h>
+#include "sybase_query_parser.h"
 
 class sybase_connection;
 
@@ -85,15 +86,52 @@ extern std::vector<parameter_info_t> sybase_low_level_get_input_parameters_info(
 extern std::vector<parameter_info_t> sybase_low_level_get_output_data_info(const sybase_command_wrapper& wrapper, ExceptionSink* xsink);
 
 //------------------------------------------------------------------------------
+// used by the function bellow
+struct bind_parameter_t 
+{
+  bind_parameter_t(int t, unsigned s) 
+  : m_type(t), m_size(s), m_data(0), m_is_null(true) {}
+  bind_parameter_t(int t, unsigned s, const void* d) 
+  : m_type(t), m_size(s), m_data(d), m_is_null(false) {}
+
+  int m_type; // e.g. CS_INT_TYPE
+  unsigned m_size;
+  const void* m_data;  // not owned
+  bool m_is_null;
+};
+
+// bind SQL command (RPCs do not use binding)
 extern void sybase_low_level_bind_parameters(
   const sybase_command_wrapper& wrapper,
   const char* command,
-  bool command_is_procedure_call,
-  const std::vector<parameter_info_t>& inputs,
-  const std::vector<parameter_info_t>& outputs,
-  List* passed_arguments,
+  const std::vector<bind_parameter_t>& parameters,
   ExceptionSink* xsink
   );
+
+//------------------------------------------------------------------------------
+// used by the function bellow
+struct RPC_parameter_info_t
+{
+  RPC_parameter_info_t(int t, unsigned s) 
+  : m_type(t), m_size(s), m_is_input(false), m_data(0), m_is_null(false) {}
+  RPC_parameter_info_t(int t, unsigned s, const void* d)
+  : m_type(t), m_size(s), m_is_input(true), m_data(d), m_is_null(d != 0) {}
+
+  int m_type; // e.g. CS_TYPE_INT
+  unsigned m_size;
+  bool m_is_input;
+  const void* m_data; // only for input values, not owned
+  bool m_is_null; // only for input values
+};
+
+// send RPC command to the server
+extern void execute_RPC_call(
+  const sybase_command_wrapper& wrapper,
+  const char* RPC_command, // just name, w/o "exec[ute]" or parameters list
+  const std::vector<RPC_parameter_info_t>& parameters,
+  ExceptionSink* xsink
+  );
+  
 
 #endif
 

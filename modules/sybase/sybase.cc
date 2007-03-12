@@ -297,7 +297,7 @@ printf("#### err1 %p\n", m_connection);
   sprintf(aux, "my_cmd_%u_%u", (unsigned)pthread_self(), counter);
   m_command_id = aux;
 
-  err = ct_dynamic(result, CS_PREPARE, (CS_CHAR*)m_command_id.c_str(), CS_NULLTERM, m_cmd->getBuffer(), CS_NULLTERM);
+  err = ct_dynamic(result, CS_PREPARE, (CS_CHAR*)m_command_id.c_str(), CS_NULLTERM, (CS_CHAR*)m_cmd->getBuffer(), CS_NULLTERM);
   if (err != CS_SUCCEED) {
 printf("### err2\n");
     xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_dynamic(CS_PREPARE, \"%s\") failed with error %d", m_cmd->getBuffer(), (int)err);
@@ -522,7 +522,7 @@ printf("### line %d\n", __LINE__);
       datafmt.format = CS_FMT_NULLTERM;
       datafmt.maxlength = CS_MAX_CHAR;
 
-      err = ct_param(cmd, &datafmt, s, strlen(s), 0);
+      err = ct_param(cmd, &datafmt, (CS_VOID*)s, strlen(s), 0);
       if (err != CS_SUCCEED) {
 printf("### err9373 adding [%s]\n", s);
         xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase function ct_param() for string parameter #%u (%s) failed with error", i + 1, param_name, (int)err);

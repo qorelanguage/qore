@@ -46,10 +46,10 @@ struct array_holder
   ~array_holder() { delete[] array; }
 };
 
-} // namepsace
+} // namespace
 
 //------------------------------------------------------------------------------
-static bool is_query_procedure_call(const char* query)
+bool is_query_procedure_call(const char* query)
 {
   while (isspace(*query)) ++query;
   if (strncasecmp(query, "exec ", 5) == 0) {

@@ -8,6 +8,7 @@ namespace sybase_tests_962876 {
 TEST()
 {
   // test whether parseQuery() works
+  printf("running test %s[%d]\n", __FILE__, __LINE__);
   ExceptionSink xsink;
   QoreString str("select count(*) from a_table where num = %v and value = %v");
   SybaseBindGroup grp(&str);
@@ -23,7 +24,7 @@ TEST()
   unsigned size = grp.m_input_parameters.size();
   assert(size == 2);
 
-  char* new_str = grp.m_cmd->getBuffer();
+  const char* new_str = grp.m_cmd->getBuffer();
   if (strcmp(new_str, "select count(*) from a_table where num =  ? and value =  ?") != 0) {
     assert(false); // it needs to be formatted acc to Sybase
   }
@@ -37,6 +38,7 @@ TEST()
 {
   // parseQuery() test with more arguments than placeholders 
   // (perhaps this should fail too but this is how Oracle module behaves)
+  printf("running test %s[%d]\n", __FILE__, __LINE__);
   ExceptionSink xsink;
   QoreString str("select count(*) from a_table where num = %v and value = %v");
   SybaseBindGroup grp(&str);
@@ -53,7 +55,7 @@ TEST()
   unsigned size = grp.m_input_parameters.size();
   assert(size == 2);
 
-  char* new_str = grp.m_cmd->getBuffer();
+  const char* new_str = grp.m_cmd->getBuffer();
   if (strcmp(new_str, "select count(*) from a_table where num =  ? and value =  ?") != 0) {
     assert(false); // it needs to be formatted acc to Sybase
   }
@@ -66,6 +68,7 @@ TEST()
 TEST()
 {
   // parseQuery() test that fails
+  printf("running test %s[%d]\n", __FILE__, __LINE__);
   ExceptionSink xsink;
   QoreString str("select count(*) from a_table where num = %v and value = %v");
   SybaseBindGroup grp(&str);
@@ -88,6 +91,7 @@ TEST()
 TEST()
 {
   // test for prepare_command()
+  printf("running test %s[%d]\n", __FILE__, __LINE__);
   sybase_connection conn;
   ExceptionSink xsink;
   conn.init(SYBASE_TEST_SETTINGS, &xsink);
@@ -109,6 +113,7 @@ TEST()
 static void test1()
 {
   // test used during the development
+  printf("running test %s[%d]\n", __FILE__, __LINE__);
   sybase_connection conn;
   ExceptionSink xsink;
   conn.init(SYBASE_TEST_SETTINGS, &xsink);
@@ -182,6 +187,7 @@ TEST()
 static void test2()
 {
   // as above but using the execute_command()
+  printf("running test %s[%d]\n", __FILE__, __LINE__);
   sybase_connection conn;
   ExceptionSink xsink;
   conn.init(SYBASE_TEST_SETTINGS, &xsink);
@@ -288,6 +294,7 @@ static void test3()
 
 TEST()
 {
+  printf("running test %s[%d]\n", __FILE__, __LINE__);
   test3();
 }
 
@@ -328,6 +335,7 @@ static void test4()
 
 TEST()
 {
+  printf("running test %s[%d]\n", __FILE__, __LINE__);
   test4();
 }
 
@@ -604,6 +612,7 @@ static void prepare_testing(sybase_connection* conn)
 TEST()
 {
 /*
+  printf("running test %s[%d]\n", __FILE__, __LINE__);
   sybase_connection conn;
   ExceptionSink xsink;
   conn.init(SYBASE_TEST_SETTINGS, &xsink);
@@ -663,6 +672,7 @@ TEST()
 TEST()
 {
   // test reading a varchar value
+  printf("running test %s[%d]\n", __FILE__, __LINE__);
   sybase_connection conn;
   ExceptionSink xsink;
   conn.init(SYBASE_TEST_SETTINGS, &xsink);
@@ -693,7 +703,7 @@ TEST()
   QoreNode* v = n->val.hash->getKeyValue("varchar_col");
   assert(v);
   assert(v->type == NT_STRING);
-  char* s = v->val.String->getBuffer();
+  const char* s = v->val.String->getBuffer();
   if (strcmp(s, "ccc") != 0) {
     assert(false);
   }
@@ -705,6 +715,7 @@ TEST()
 TEST()
 {
   // read it all
+  printf("running test %s[%d]\n", __FILE__, __LINE__);
   sybase_connection conn;
   ExceptionSink xsink;
   conn.init("sa", 0, "pavel", &xsink);
