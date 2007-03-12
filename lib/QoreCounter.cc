@@ -37,7 +37,7 @@ void QoreCounter::destructor(class ExceptionSink *xsink)
    cnt = Cond_Deleted;
    if (waiting)
    {
-      xsink->raiseException("CONDITION-ERROR", "Condition variable deleted while there %s %d waiting thread%s",
+      xsink->raiseException("COUNTER-ERROR", "Counter deleted while there %s %d waiting thread%s",
 			    waiting == 1 ? "is" : "are", waiting, waiting == 1 ? "" : "s");
       cond.broadcast();
    }
@@ -55,7 +55,7 @@ void QoreCounter::dec(class ExceptionSink *xsink)
    AutoLocker al(&l);
    if (cnt == Cond_Deleted)
    {
-      xsink->raiseException("CONDITION-ERROR", "Condition variable has been deleted in another thread");
+      xsink->raiseException("COUNTER-ERROR", "Counter has been deleted in another thread");
       return;
    }
    if (!--cnt && waiting)
@@ -78,7 +78,7 @@ int QoreCounter::waitForZero(class ExceptionSink *xsink, int timeout_ms)
    --waiting;
    if (cnt == Cond_Deleted)
    {
-      xsink->raiseException("CONDITION-ERROR", "Condition variable was deleted in another thread while waiting");
+      xsink->raiseException("COUNTER-ERROR", "Counter was deleted in another thread while waiting");
       rc = -1;
    }
    return rc;

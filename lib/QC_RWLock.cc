@@ -106,6 +106,16 @@ static class QoreNode *RWLOCK_numReaders(class Object *self, class QoreRWLock *r
    return new QoreNode((int64)rwl->numReaders());
 }
 
+static class QoreNode *RWLOCK_getReadWaiting(class Object *self, class QoreRWLock *rwl, class QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((int64)rwl->getReadWaiting());
+}
+
+static class QoreNode *RWLOCK_getWriteWaiting(class Object *self, class QoreRWLock *rwl, class QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((int64)rwl->getWriteWaiting());
+}
+
 class QoreClass *initRWLockClass()
 {
    tracein("initRWLockClass()");
@@ -115,13 +125,15 @@ class QoreClass *initRWLockClass()
    QC_RWLOCK->setConstructor(RWLOCK_constructor);
    QC_RWLOCK->setDestructor((q_destructor_t)RWLOCK_destructor);
    QC_RWLOCK->setCopy((q_copy_t)RWLOCK_copy);
-   QC_RWLOCK->addMethod("readLock",      (q_method_t)RWLOCK_readLock);
-   QC_RWLOCK->addMethod("writeLock",     (q_method_t)RWLOCK_writeLock);
-   QC_RWLOCK->addMethod("readUnlock",    (q_method_t)RWLOCK_readUnlock);
-   QC_RWLOCK->addMethod("writeUnlock",   (q_method_t)RWLOCK_writeUnlock);
-   QC_RWLOCK->addMethod("tryReadLock",   (q_method_t)RWLOCK_tryReadLock);
-   QC_RWLOCK->addMethod("tryWriteLock",  (q_method_t)RWLOCK_tryWriteLock);
-   QC_RWLOCK->addMethod("numReaders",    (q_method_t)RWLOCK_numReaders);
+   QC_RWLOCK->addMethod("readLock",        (q_method_t)RWLOCK_readLock);
+   QC_RWLOCK->addMethod("writeLock",       (q_method_t)RWLOCK_writeLock);
+   QC_RWLOCK->addMethod("readUnlock",      (q_method_t)RWLOCK_readUnlock);
+   QC_RWLOCK->addMethod("writeUnlock",     (q_method_t)RWLOCK_writeUnlock);
+   QC_RWLOCK->addMethod("tryReadLock",     (q_method_t)RWLOCK_tryReadLock);
+   QC_RWLOCK->addMethod("tryWriteLock",    (q_method_t)RWLOCK_tryWriteLock);
+   QC_RWLOCK->addMethod("numReaders",      (q_method_t)RWLOCK_numReaders);
+   QC_RWLOCK->addMethod("getReadWaiting",  (q_method_t)RWLOCK_getReadWaiting);
+   QC_RWLOCK->addMethod("getWriteWaiting", (q_method_t)RWLOCK_getWriteWaiting);
 
    traceout("initRWLockClass()");
    return QC_RWLOCK;

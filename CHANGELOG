@@ -7,6 +7,9 @@
 	  variables waiting on it
 	* updated Queue class to throw exceptions on thread errors
 	* added Queue::getWaiting() method
+	* udpated documentation with many threading changes, added initial 
+	  AutoGate, AutoLock, AutoReadLock, and AutoWriteLock class 
+	  documentation
 
 2007.03.10: David Nichols
 	* updated Datasource class to throw an exception if deleted by another

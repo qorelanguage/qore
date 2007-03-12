@@ -58,6 +58,22 @@
 	    <entry><para>For working with databases; provides the user interface to qore DBI drivers.</para></entry>
 	  </row>
 	  <row>
+	    <entry><para><link linkend="Qore::Thread::AutoGate_Class">Thread::AutoGate Class</link></para></entry>
+	    <entry><para>A helper class for the <link linkend="Qore::Thread::Gate_Class">Gate Class</link> for exception-safe Gate handling.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Qore::Thread::AutoLock_Class">Thread::AutoLock Class</link></para></entry>
+	    <entry><para>A helper class for the <link linkend="Qore::Thread::Mutex_Class">Mutex Class</link> for exception-safe Mutex handling.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Qore::Thread::AutoReadLock_Class">Thread::AutoReadLock Class</link></para></entry>
+	    <entry><para>A helper class for the <link linkend="Qore::Thread::RWLock_Class">RWLock Class</link> for exception-safe read lock handling.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Qore::Thread::AutoWriteLock_Class">Thread::AutoWriteLock Class</link></para></entry>
+	    <entry><para>A helper class for the <link linkend="Qore::Thread::RWLock_Class">RWLock Class</link> for exception-safe write lock handling.</para></entry>
+	  </row>
+	  <row>
 	    <entry><para><link linkend="Qore::Thread::Condition_Class">Thread::Condition Class</link></para></entry>
 	    <entry><para>For blocking a thread until a condition becomes true.</para></entry>
 	  </row>
@@ -18035,7 +18051,834 @@ xs      </variablelist>
     </sect2>
   </sect1>
 
-  
+  <sect1 id="Qore::Thread::AutoGate_Class">
+    <title>Qore::Thread::AutoGate Class</title>
+
+    <para>AutoGate objects, when used along with a <link linkend="Qore::Thread::Gate_Class">Gate</link> object, allow Qore programmers to safely enter and exit a gate lock, even if exceptions are thrown or <command>return</command> statements are executed in the block where the AutoGate object is created.  AutoGate objects enter the gate lock for the lifetime of the AutoGate object.  For this reason, it is only appropriate to assign an AutoGate object to a local variable, so when the local variable goes out of scope, the AutoGate object will be deleted and the gate automatically exited.</para>
+
+    <para>For example:</para>
+
+    <programlisting><command>our</command> $gate = new Gate();
+
+<command>sub</command> checkit()
+{
+    # note that the Gate is entered in the AutoGate constructor, and
+    # the Gate will be exited as soon as the block is exited below.
+    # (with either the throw statement or the return statement)
+    <command>my</command> $ag = <command>new</command> AutoGate($gate);
+    <command>if</command> ($error)
+        <command>throw</command> "ERROR", "sorry, an error happened";
+
+    <command>return</command> "OK";
+}</programlisting>
+	    
+
+    <table>
+      <title>Qore::Thread::AutoGate Method Overview</title>
+      <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>Method</para></entry>
+	    <entry><para>Except?</para></entry>
+	    <entry><para>Description</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row>
+	    <entry><para><link linkend="Qore::Thread::AutoGate::constructor">AutoGate::constructor()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Creates the AutoGate object based on the Gate argument passed and immediately calls <link linkend="Qore::Thread::Gate::enter">Gate::enter()</link>.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Qore::Thread::AutoGate::destructor">AutoGate::destructor()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Calls <link linkend="Qore::Thread::Gate::exit">Gate::exit()</link> and destroys the AutoGate object.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Qore::Thread::AutoGate::copy">AutoGate::copy()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Throws an exception; objects of this class cannot be copied.</para></entry>
+	  </row>
+
+	</tbody>
+      </tgroup>
+    </table>
+
+    <sect2 id="Qore::Thread::AutoGate::constructor">
+      <title>AutoGate::constructor()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Creates the AutoGate object based on the Gate argument passed and immediately calls <link linkend="Qore::Thread::Gate::enter">Gate::enter()</link>.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting><command>new</command> AutoGate(<replaceable>$gate</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for AutoGate::constructor()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><replaceable>$gate</replaceable></para></entry>
+	      <entry><para><link linkend="Qore::Thread::Gate_Class">Gate</link></para></entry>
+	      <entry><para>The Gate object to enter for the lifetime of the AutoGate object.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for AutoGate::constructor()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>AutoGate Object</para></entry>
+	      <entry><para>The new AutoGate object.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+    </sect2>
+
+    <sect2 id="Qore::Thread::AutoGate::destructor">
+      <title>AutoGate::destructor()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Calls <link linkend="Qore::Thread::Gate::exit">Gate::exit()</link> on the saved Gate object and destroys the AutoGate object.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting><command>delete</command> <replaceable>lvalue</replaceable></programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+    </sect2>
+
+    <sect2 id="Qore::Thread::AutoGate::copy">
+      <title>AutoGate::copy()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Throws an exception; objects of this class cannot be copied.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <para>Do not use this method; this method is only present to prohibit copying of objects of this class.</para>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+      
+      <table>
+	<title>Arguments for AutoGate::copy()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method takes no arguments.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+      
+      <table>
+	<title>Return Values for AutoGate::copy()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method returns no value because it throws an exception.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by AutoGate::copy()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>AUTOGATE-COPY-ERROR</code></para></entry>
+	      <entry><para>Objects of this class cannot be copied.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+    </sect2>
+
+  </sect1>
+
+  <sect1 id="Qore::Thread::AutoLock_Class">
+    <title>Qore::Thread::AutoLock Class</title>
+
+    <para>AutoLock objects, when used along with a <link linkend="Qore::Thread::Mutex_Class">Mutex</link> object, allow Qore programmers to safely acquire and release a Mutex lock, even if exceptions are thrown or <command>return</command> statements are executed in the block where the AutoLock object is created.  AutoLock objects are helper objects that acquire a Mutex for the lifetime of the object.  For this reason, it is only appropriate to assign an AutoLock object to a local variable, so when the local variable goes out of scope, the AutoLock object will be deleted and the Mutex will be automatically released.</para>
+
+    <para>For example:</para>
+
+    <programlisting><command>our</command> $mutex = new Mutex();
+
+<command>sub</command> checkit()
+{
+    # note that the Mutex is acquired in the AutoLock constructor, and
+    # the Mutex will be released as soon as the block is exited below.
+    # (with either the throw statement or the return statement)
+    <command>my</command> $am = <command>new</command> AutoLock($mutex);
+    <command>if</command> ($error)
+        <command>throw</command> "ERROR", "sorry, an error happened";
+
+    <command>return</command> "OK";
+}</programlisting>
+	    
+    <table>
+      <title>Qore::Thread::AutoLock Method Overview</title>
+      <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>Method</para></entry>
+	    <entry><para>Except?</para></entry>
+	    <entry><para>Description</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row>
+	    <entry><para><link linkend="Qore::Thread::AutoLock::constructor">AutoLock::constructor()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Creates the AutoLock object based on the Mutex argument passed and immediately calls <link linkend="Qore::Thread::Mutex::lock">Mutex::lock()</link>.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Qore::Thread::AutoLock::destructor">AutoLock::destructor()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Calls <link linkend="Qore::Thread::Mutex::unlock">Mutex::unlock()</link> on the saved Mutex and destroys the AutoLock object.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Qore::Thread::AutoLock::copy">AutoLock::copy()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Throws an exception; objects of this class cannot be copied.</para></entry>
+	  </row>
+
+	</tbody>
+      </tgroup>
+    </table>
+
+    <sect2 id="Qore::Thread::AutoLock::constructor">
+      <title>AutoLock::constructor()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Creates the AutoLock object based on the Mutex argument passed.  The AutoLock object immediately calls <link linkend="Qore::Thread::Mutex::lock">Mutex::lock()</link> on the Mutex object passed, and saves it so it can be released when the AutoLock object is destroyed.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting><command>new</command> AutoLock(<replaceable>$mutex</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for AutoLock::constructor()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><replaceable>$mutex</replaceable></para></entry>
+	      <entry><para><link linkend="Qore::Thread::Mutex_Class">Mutex</link></para></entry>
+	      <entry><para>The Mutex object to manage for the lifetime of this object.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for AutoLock::constructor()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>AutoLock Object</para></entry>
+	      <entry><para>The new AutoLock object.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+    </sect2>
+
+    <sect2 id="Qore::Thread::AutoLock::destructor">
+      <title>AutoLock::destructor()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Calls <link linkend="Qore::Thread::Mutex::unlock">Mutex::unlock()</link> on the saved Mutex and destroys the AutoLock object.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting><command>delete</command> <replaceable>lvalue</replaceable></programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+    </sect2>
+
+    <sect2 id="Qore::Thread::AutoLock::copy">
+      <title>AutoLock::copy()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Throws an exception; objects of this class cannot be copied.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <para>Do not use this method; this method is only present to prohibit copying of objects of this class.</para>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+      
+      <table>
+	<title>Arguments for AutoLock::copy()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method takes no arguments.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+      
+      <table>
+	<title>Return Values for AutoLock::copy()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method returns no value because it throws an exception.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by AutoLock::copy()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>AUTOLOCK-COPY-ERROR</code></para></entry>
+	      <entry><para>Objects of this class cannot be copied.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+    </sect2>
+
+  </sect1>
+
+  <sect1 id="Qore::Thread::AutoReadLock_Class">
+    <title>Qore::Thread::AutoReadLock Class</title>
+
+    <para>AutoReadLock objects, when used along with a <link linkend="Qore::Thread::RWLock_Class">RWLock</link> object, allow Qore programmers to safely acquire and release a read lock, even if exceptions are thrown or <command>return</command> statements are executed in the block where the AutoReadLock object is created.  AutoReadLock objects are helper objects that acquire a read lock for the lifetime of the AutoReadLock object.  For this reason, it is only appropriate to assign an AutoReadLock object to a local variable, so when the local variable goes out of scope, the AutoReadLock object will be deleted and the read lock will be automatically released.</para>
+
+    <para>For example:</para>
+
+    <programlisting><command>our</command> $rwl = new RWLock();
+
+<command>sub</command> checkit()
+{
+    # note that the read lock is acquired in the AutoReadLock constructor, and
+    # the read lock will be released as soon as the block is exited below.
+    # (with either the throw statement or the return statement)
+    <command>my</command> $arl = <command>new</command> AutoReadLock($rwl);
+    <command>if</command> ($error)
+        <command>throw</command> "ERROR", "sorry, an error happened";
+
+    <command>return</command> "OK";
+}</programlisting>
+	    
+    <table>
+      <title>Qore::Thread::AutoReadLock Method Overview</title>
+      <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>Method</para></entry>
+	    <entry><para>Except?</para></entry>
+	    <entry><para>Description</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row>
+	    <entry><para><link linkend="Qore::Thread::AutoReadLock::constructor">AutoReadLock::constructor()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Creates the AutoReadLock object based on the RWLock argument passed and immediately calls <link linkend="Qore::Thread::RWLock::readLock">RWLock::readLock()</link>.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Qore::Thread::AutoReadLock::destructor">AutoReadLock::destructor()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Calls <link linkend="Qore::Thread::RWLock::readUnlock">RWLock::readUnlock()</link> on the saved RWLock and destroys the AutoReadLock object.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Qore::Thread::AutoReadLock::copy">AutoReadLock::copy()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Throws an exception; objects of this class cannot be copied.</para></entry>
+	  </row>
+
+	</tbody>
+      </tgroup>
+    </table>
+
+    <sect2 id="Qore::Thread::AutoReadLock::constructor">
+      <title>AutoReadLock::constructor()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Creates the AutoReadLock object based on the RWLock argument passed.  The AutoReadLock object immediately calls <link linkend="Qore::Thread::RWLock::readLock">RWLock::readLock()</link> on the RWLock object passed, and saves it so it can be released when the AutoReadLock object is destroyed.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting><command>new</command> AutoReadLock(<replaceable>$rwlock</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for AutoReadLock::constructor()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><replaceable>$rwlock</replaceable></para></entry>
+	      <entry><para><link linkend="Qore::Thread::RWLock_Class">RWLock</link></para></entry>
+	      <entry><para>The RWLock object to manage for the lifetime of this object.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for AutoReadLock::constructor()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>AutoReadLock Object</para></entry>
+	      <entry><para>The new AutoReadLock object.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+    </sect2>
+
+    <sect2 id="Qore::Thread::AutoReadLock::destructor">
+      <title>AutoReadLock::destructor()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Calls <link linkend="Qore::Thread::RWLock::readUnlock">RWLock::readUnlock()</link> on the saved RWLock and destroys the AutoReadLock object.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting><command>delete</command> <replaceable>lvalue</replaceable></programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+    </sect2>
+
+    <sect2 id="Qore::Thread::AutoReadLock::copy">
+      <title>AutoReadLock::copy()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Throws an exception; objects of this class cannot be copied.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <para>Do not use this method; this method is only present to prohibit copying of objects of this class.</para>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+      
+      <table>
+	<title>Arguments for AutoReadLock::copy()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method takes no arguments.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+      
+      <table>
+	<title>Return Values for AutoReadLock::copy()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method returns no value because it throws an exception.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by AutoReadLock::copy()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>AUTOREADLOCK-COPY-ERROR</code></para></entry>
+	      <entry><para>Objects of this class cannot be copied.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+    </sect2>
+
+  </sect1>
+
+  <sect1 id="Qore::Thread::AutoWriteLock_Class">
+    <title>Qore::Thread::AutoWriteLock Class</title>
+
+    <para>AutoWriteLock objects, when used along with a <link linkend="Qore::Thread::RWLock_Class">RWLock</link> object, allow Qore programmers to safely acquire and release a write lock, even if exceptions are thrown or <command>return</command> statements are executed in the block where the AutoWriteLock object is created.  AutoWriteLock objects are helper objects that acquire a write lock for the lifetime of the AutoWriteLock object.  For this reason, it is only appropriate to assign an AutoWriteLock object to a local variable, so when the local variable goes out of scope, the AutoWriteLock object will be deleted and the write lock will be automatically released.</para>
+
+    <para>For example:</para>
+
+    <programlisting><command>our</command> $rwl = new RWLock();
+
+<command>sub</command> checkit()
+{
+    # note that the write lock is acquired in the AutoWriteLock constructor, and
+    # the write lock will be released as soon as the block is exited below.
+    # (with either the throw statement or the return statement)
+    <command>my</command> $arl = <command>new</command> AutoWriteLock($rwl);
+    <command>if</command> ($error)
+        <command>throw</command> "ERROR", "sorry, an error happened";
+
+    <command>return</command> "OK";
+}</programlisting>
+	    
+    <table>
+      <title>Qore::Thread::AutoWriteLock Method Overview</title>
+      <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>Method</para></entry>
+	    <entry><para>Except?</para></entry>
+	    <entry><para>Description</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row>
+	    <entry><para><link linkend="Qore::Thread::AutoWriteLock::constructor">AutoWriteLock::constructor()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Creates the AutoWriteLock object based on the RWLock argument passed and immediately calls <link linkend="Qore::Thread::RWLock::writeLock">RWLock::writeLock()</link>.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Qore::Thread::AutoWriteLock::destructor">AutoWriteLock::destructor()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Calls <link linkend="Qore::Thread::RWLock::writeUnlock">RWLock::writeUnlock()</link> on the saved RWLock and destroys the AutoWriteLock object.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Qore::Thread::AutoWriteLock::copy">AutoWriteLock::copy()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Throws an exception; objects of this class cannot be copied.</para></entry>
+	  </row>
+
+	</tbody>
+      </tgroup>
+    </table>
+
+    <sect2 id="Qore::Thread::AutoWriteLock::constructor">
+      <title>AutoWriteLock::constructor()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Creates the AutoWriteLock object based on the RWLock argument passed.  The AutoWriteLock object immediately calls <link linkend="Qore::Thread::RWLock::writeLock">RWLock::writeLock()</link> on the RWLock object passed, and saves it so it can be released when the AutoWriteLock object is destroyed.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting><command>new</command> AutoWriteLock(<replaceable>$rwlock</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for AutoWriteLock::constructor()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><replaceable>$rwlock</replaceable></para></entry>
+	      <entry><para><link linkend="Qore::Thread::RWLock_Class">RWLock</link></para></entry>
+	      <entry><para>The RWLock object to manage for the lifetime of this object.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for AutoWriteLock::constructor()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>AutoWriteLock Object</para></entry>
+	      <entry><para>The new AutoWriteLock object.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+    </sect2>
+
+    <sect2 id="Qore::Thread::AutoWriteLock::destructor">
+      <title>AutoWriteLock::destructor()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Calls <link linkend="Qore::Thread::RWLock::writeUnlock">RWLock::writeUnlock()</link> on the saved RWLock and destroys the AutoWriteLock object.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting><command>delete</command> <replaceable>lvalue</replaceable></programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+    </sect2>
+
+    <sect2 id="Qore::Thread::AutoWriteLock::copy">
+      <title>AutoWriteLock::copy()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Throws an exception; objects of this class cannot be copied.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <para>Do not use this method; this method is only present to prohibit copying of objects of this class.</para>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+      
+      <table>
+	<title>Arguments for AutoWriteLock::copy()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method takes no arguments.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+      
+      <table>
+	<title>Return Values for AutoWriteLock::copy()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method returns no value because it throws an exception.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by AutoWriteLock::copy()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>AUTOWRITELOCK-COPY-ERROR</code></para></entry>
+	      <entry><para>Objects of this class cannot be copied.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+    </sect2>
+
+  </sect1>
 
   <sect1 id="Qore::Thread::Condition_Class">
     <title>Qore::Thread::Condition Class</title>
@@ -18082,6 +18925,11 @@ xs      </variablelist>
 	    <entry><para><link linkend="Qore::Thread::Condition::wait">Condition::wait()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Blocks a thread until signaled.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Qore::Thread::Condition::wait_count">Condition::wait_count()</link></para></entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Returns the number of threads currently blocked on this object.</para></entry>
 	  </row>
 	</tbody>
       </tgroup>
@@ -18221,6 +19069,8 @@ xs      </variablelist>
       </table>
     </sect2>
 
+
+  
     <sect2 id="Qore::Thread::Condition::signal">
       <title>Condition::signal()</title>
 
@@ -18446,6 +19296,63 @@ xs      </variablelist>
       </table>
     </sect2>
 
+    <sect2 id="Qore::Thread::Condition::wait_count">
+      <title>Condition::wait_count()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Returns the number of threads currently blocked on this object.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>Condition::wait_count()</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for Condition::wait_count()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method takes no arguments.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for Condition::wait_count()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>The number of threads currently blocked on this object.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
   </sect1>
   <sect1 id="Qore::Thread::Counter_Class">
     <title>Qore::Thread::Counter Class</title>
@@ -18470,7 +19377,7 @@ xs      </variablelist>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::Counter::destructor">Counter::destructor()</link></para></entry>
-	    <entry><para>N</para></entry>
+	    <entry><para>Y</para></entry>
 	    <entry><para>Destroys the Counter object.</para></entry>
 	  </row>
 	  <row>
@@ -18485,18 +19392,23 @@ xs      </variablelist>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::Counter::dec">Counter::dec()</link></para></entry>
-	    <entry><para>N</para></entry>
+	    <entry><para>Y</para></entry>
 	    <entry><para>Atomically decrements the counter value.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::Counter::waitForZero">Counter::waitForZero()</link></para></entry>
-	    <entry><para>N</para></entry>
+	    <entry><para>Y</para></entry>
 	    <entry><para>Blocks a thread until the counter reaches zero.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::Counter::getCount">Counter::getCount()</link></para></entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns the current counter value.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Qore::Thread::Counter::getWaiting">Counter::getWaiting()</link></para></entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Returns the number of threads currently blocked on this object.</para></entry>
 	  </row>
 	</tbody>
       </tgroup>
@@ -18567,7 +19479,7 @@ xs      </variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Destroys the object.</para>
+	    <para>Destroys the object.  Note that it is a programming error to delete this object while other threads are blocked on it; in this case an exception is thrown in the deleting thread, and in each thread blocked on this object when it is deleted.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -18577,6 +19489,25 @@ xs      </variablelist>
 	  </listitem>
 	</varlistentry>
       </variablelist>
+
+      <table>
+	<title>Exceptions Thrown by Counter::destructor()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>COUNTER-ERROR</code></para></entry>
+	      <entry><para>Object deleted while other threads blocked on it.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
     </sect2>
 
     <sect2 id="Qore::Thread::Counter::copy">
@@ -18700,7 +19631,7 @@ xs      </variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Atomically decrements the counter value.</para>
+	    <para>Atomically decrements the counter value.  An exception can only be thrown if the object is deleted in another thread while this call is in progress; this is a race condition caused by a user programming error and should not occur in practise with correct code.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -18749,6 +19680,24 @@ xs      </variablelist>
 	</tgroup>
       </table>
 
+      <table>
+	<title>Exceptions Thrown by Counter::dec()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>COUNTER-ERROR</code></para></entry>
+	      <entry><para>Object deleted in another thread.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
     </sect2>
     <sect2 id="Qore::Thread::Counter::waitForZero">
       <title>Counter::waitForZero()</title>
@@ -18757,13 +19706,13 @@ xs      </variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Blocks a thread until the counter reaches zero.</para>
+	    <para>Blocks a thread until the counter reaches zero.  Takes an optional timeout value in milliseconds.   Like all Qore functions and methods taking timeout values, a relative time value may be passed instead of an integer to make the timeout units clear (ex: <code>2500ms</code> for 2.5 seconds).</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
-	    <programlisting>Counter::waitForZero()</programlisting>
+	    <programlisting>Counter::waitForZero(<replaceable>[timeout_ms]</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -18780,9 +19729,9 @@ xs      </variablelist>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
+	      <entry><para><replaceable>[timeout_ms]</replaceable></para></entry>
+	      <entry><para>Integer or Relative Time</para></entry>
+	      <entry><para>A value giving the number of milliseconds to wait for the Counter to reach zero.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -18799,14 +19748,33 @@ xs      </variablelist>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method return no value.</para></entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>If a timeout value was passed, -1 means that the call timed out, 0 means that the counter reached zero.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by Counter::dec()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>COUNTER-ERROR</code></para></entry>
+	      <entry><para>Object deleted in another thread.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
       </table>
 
     </sect2>
+
     <sect2 id="Qore::Thread::Counter::getCount">
       <title>Counter::getCount()</title>
 
@@ -18863,6 +19831,63 @@ xs      </variablelist>
 	</tgroup>
       </table>
     </sect2>
+
+    <sect2 id="Qore::Thread::Counter::getWaiting">
+      <title>Counter::getWaiting()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Returns the number of threads currently blocked on this object.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>Counter::getWaiting()</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for Counter::getWaiting()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method takes no arguments.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for Counter::getWaiting()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>The number of threads currently blocked on this object.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
   </sect1>
 
   <sect1 id="Qore::Thread::Queue_Class">
@@ -18888,7 +19913,7 @@ xs      </variablelist>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::Queue::destructor">Queue::destructor()</link></para></entry>
-	    <entry><para>N</para></entry>
+	    <entry><para>Y</para></entry>
 	    <entry><para>Destroys the Queue object.</para></entry>
 	  </row>
 	  <row>
@@ -18898,12 +19923,12 @@ xs      </variablelist>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::Queue::get">Queue::get()</link></para></entry>
-	    <entry><para>N</para></entry>
+	    <entry><para>Y</para></entry>
 	    <entry><para>Blocks until at least one entry is available on the queue, then returns the first entry in the queue.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::Queue::pop">Queue::pop()</link></para></entry>
-	    <entry><para>N</para></entry>
+	    <entry><para>Y</para></entry>
 	    <entry><para>Blocks until at least one entry is available on the queue, then returns the last entry in the queue.</para></entry>
 	  </row>
 	  <row>
@@ -18915,6 +19940,11 @@ xs      </variablelist>
 	    <entry><para><link linkend="Qore::Thread::Queue::size">Queue::size()</link></para></entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns the number of elements in the queue.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Qore::Thread::Queue::getWaiting">Queue::getWaiting()</link></para></entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Returns the number of threads currently blocked on this queue.</para></entry>
 	  </row>
 	</tbody>
       </tgroup>
@@ -18985,7 +20015,7 @@ xs      </variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Destroys the object.</para>
+	    <para>Destroys the object.  Note that it is a programming error to delete this object while other threads are blocked on it; in this case an exception is thrown in the deleting thread, and in each thread blocked on this object when it is deleted.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -18995,6 +20025,25 @@ xs      </variablelist>
 	  </listitem>
 	</varlistentry>
       </variablelist>
+
+      <table>
+	<title>Exceptions Thrown by Queue::destructor()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>QUEUE-ERROR</code></para></entry>
+	      <entry><para>The queue was deleted while other threads were blocked on it.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
     </sect2>
 
     <sect2 id="Qore::Thread::Queue::copy">
@@ -19061,7 +20110,7 @@ xs      </variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Blocks until at least one entry is available on the queue, then returns the first entry in the queue.  Accepts an optional timeout value in ms (1/1000 second).</para>
+	    <para>Blocks until at least one entry is available on the queue, then returns the first entry in the queue.  Accepts an optional timeout value in milliseconds (1/1000 second). Like all Qore functions and methods taking timeout values, a relative time value may be passed instead of an integer to make the timeout units clear (ex: <code>2500ms</code> for 2.5 seconds).</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -19086,7 +20135,7 @@ xs      </variablelist>
 	    <row>
 	      <entry><para><replaceable>[timeout_ms]</replaceable></para></entry>
 	      <entry><para>Integer</para></entry>
-	      <entry><para>If present, a timeout value in ms (1/1000 second).  If no data is available in the timeout period, a QUEUE-TIMEOUT exception is thrown.</para></entry>
+	      <entry><para>If present, a timeout value in milliseconds (1/1000 second).  If no data is available in the timeout period, a QUEUE-TIMEOUT exception is thrown.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -19124,6 +20173,10 @@ xs      </variablelist>
 	      <entry><para><code>QUEUE-TIMEOUT</code></para></entry>
 	      <entry><para>The timeout value was exceeded.</para></entry>
 	    </row>
+	    <row>
+	      <entry><para><code>QUEUE-ERROR</code></para></entry>
+	      <entry><para>The queue was deleted in another thread while this thread was blocked on it.</para></entry>
+	    </row>
 	  </tbody>
 	</tgroup>
       </table>
@@ -19136,7 +20189,7 @@ xs      </variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Blocks until at least one entry is available on the queue, then returns the last entry in the queue.  Accepts an optional timeout value in ms (1/1000 second).</para>
+	    <para>Blocks until at least one entry is available on the queue, then returns the last entry in the queue.  Accepts an optional timeout value in ms (1/1000 second).  Like all Qore functions and methods taking timeout values, a relative time value may be passed instead of an integer to make the timeout units clear (ex: <code>2500ms</code> for 2.5 seconds).</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -19198,6 +20251,10 @@ xs      </variablelist>
 	    <row>
 	      <entry><para><code>QUEUE-TIMEOUT</code></para></entry>
 	      <entry><para>The timeout value was exceeded.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>QUEUE-ERROR</code></para></entry>
+	      <entry><para>The queue was deleted in another thread while this thread was blocked on it.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -19317,6 +20374,64 @@ xs      </variablelist>
 	</tgroup>
       </table>
     </sect2>
+
+    <sect2 id="Qore::Thread::Queue::getWaiting">
+      <title>Queue::getWaiting()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Returns the number of threads currently blocked on this queue.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>Queue::getWaiting()</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for Queue::getWaiting()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method takes no arguments.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for Queue::getWaiting()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>The number of threads currently blocked on this queue.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
   </sect1>
 
   <sect1 id="Qore::Thread::RWLock_Class">
@@ -19347,7 +20462,7 @@ xs      </variablelist>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::RWLock::destructor">RWLock::destructor()</link></para></entry>
-	    <entry><para>N</para></entry>
+	    <entry><para>Y</para></entry>
 	    <entry><para>Destroys the RWLock object.</para></entry>
 	  </row>
 	  <row>
@@ -19357,22 +20472,22 @@ xs      </variablelist>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::RWLock::readLock">RWLock::readLock()</link></para></entry>
-	    <entry><para>N</para></entry>
+	    <entry><para>Y</para></entry>
 	    <entry><para>Acquires the read lock with an optional timeout value; blocks if the write lock is already acquired.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::RWLock::readUnlock">RWLock::readUnlock()</link></para></entry>
-	    <entry><para>N</para></entry>
+	    <entry><para>Y</para></entry>
 	    <entry><para>Decrements the read lock counter and releases the read lock if the counter is zero.  If at least one thread is blocked trying to acquire the write lock and the read counter reaches zero, then one thread waiting on the write lock is woken up.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::RWLock::writeLock">RWLock::writeLock()</link></para></entry>
-	    <entry><para>N</para></entry>
+	    <entry><para>Y</para></entry>
 	    <entry><para>Acquires the write lock with an optional timeout; blocks if either the read lock or write lock is already acquired.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::RWLock::writeUnlock">RWLock::writeUnlock()</link></para></entry>
-	    <entry><para>N</para></entry>
+	    <entry><para>Y</para></entry>
 	    <entry><para>Releases the write lock, if any writers are waiting, then wakes one up, otherwise if any readers are waiting, wakes up all readers.</para></entry>
 	  </row>
 	  <row>
@@ -19389,6 +20504,16 @@ xs      </variablelist>
 	    <entry><para><link linkend="Qore::Thread::RWLock::numReaders">RWLock::numReaders()</link></para></entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns the read lock count.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Qore::Thread::RWLock::getReadWaiting">RWLock::getReadWaiting()</link></para></entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Returns the number of threads waiting on the read lock.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Qore::Thread::RWLock::getWriteWaiting">RWLock::getWriteWaiting()</link></para></entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Returns the number of threads waiting on the write lock.</para></entry>
 	  </row>
 	</tbody>
       </tgroup>
@@ -19459,7 +20584,7 @@ xs      </variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Destroys the object.</para>
+	    <para>Destroys the object.  Note that it is a programming error to delete this object while other threads are blocked on it; in this case an exception is thrown in the deleting thread, and in each thread blocked on this object when it is deleted.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -19469,6 +20594,25 @@ xs      </variablelist>
 	  </listitem>
 	</varlistentry>
       </variablelist>
+
+      <table>
+	<title>Exceptions Thrown by RWLock::destructor()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>LOCK-ERROR</code></para></entry>
+	      <entry><para>Object deleted while other threads blocked on it.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
     </sect2>
 
     <sect2 id="Qore::Thread::RWLock::copy">
@@ -19818,6 +20962,24 @@ xs      </variablelist>
 	</tgroup>
       </table>
 
+      <table>
+	<title>Exceptions Thrown by RWLock::writeUnlock()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>LOCK-ERROR</code></para></entry>
+	      <entry><para>writeUnlock() called while not holding the write lock, object deleted in another thread, etc.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
     </sect2>
     <sect2 id="Qore::Thread::RWLock::tryReadLock">
       <title>RWLock::tryReadLock()</title>
@@ -19989,6 +21151,120 @@ xs      </variablelist>
 	</tgroup>
       </table>
     </sect2>
+
+    <sect2 id="Qore::Thread::RWLock::getReadWaiting">
+      <title>RWLock::getReadWaiting()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Returns the number of threads blocked on the read lock (only non-zero while the write lock is held).</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>RWLock::getReadWaiting()</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for RWLock::getReadWaiting()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method takes no arguments.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for RWLock::getReadWaiting()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>The number of threads blocked on the read lock.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="Qore::Thread::RWLock::getWriteWaiting">
+      <title>RWLock::getWriteWaiting()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Returns the number of threads blocked on the write lock.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>RWLock::getWriteWaiting()</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for RWLock::getWriteWaiting()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method takes no arguments.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for RWLock::getWriteWaiting()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>The number of threads blocked on the write lock.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
   </sect1>
 
   <sect1 id="Qore::Thread::Mutex_Class">
@@ -20014,7 +21290,7 @@ xs      </variablelist>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::Mutex::destructor">Mutex::destructor()</link></para></entry>
-	    <entry><para>N</para></entry>
+	    <entry><para>Y</para></entry>
 	    <entry><para>Destroys the Mutex object.</para></entry>
 	  </row>
 	  <row>
@@ -20024,12 +21300,12 @@ xs      </variablelist>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::Mutex::lock">Mutex::lock()</link></para></entry>
-	    <entry><para>N</para></entry>
+	    <entry><para>Y</para></entry>
 	    <entry><para>Locks the Mutex object.  Blocks if the lock is already held.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::Mutex::unlock">Mutex::unlock()</link></para></entry>
-	    <entry><para>N</para></entry>
+	    <entry><para>Y</para></entry>
 	    <entry><para>Unlocks the Mutex object.  Wakes up one thread if any threads are blocked on this lock.</para></entry>
 	  </row>
 	  <row>
@@ -20106,7 +21382,7 @@ xs      </variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Destroys the object.</para>
+	    <para>Destroys the object.  Note that it is a programming error to delete this object while other threads are blocked on it; in this case an exception is thrown in the deleting thread, and in each thread blocked on this object when it is deleted.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -20116,6 +21392,25 @@ xs      </variablelist>
 	  </listitem>
 	</varlistentry>
       </variablelist>
+
+      <table>
+	<title>Exceptions Thrown by Mutex::destructor()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>LOCK-ERROR</code></para></entry>
+	      <entry><para>Object deleted while other threads blocked on it.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
     </sect2>
 
     <sect2 id="Qore::Thread::Mutex::copy">
@@ -20391,292 +21686,8 @@ xs      </variablelist>
 
   <sect1 id="Qore::Thread::RMutex_Class">
     <title>Qore::Thread::RMutex Class</title>
-    <para>DEPRECATED: use the <link linkend="Qore::Thread::Gate_Class">Gate</link> class instead.  The RMutex class implements a recursive thread lock.  Once a thread grabs the lock, it can call the RMutex::enter() method again without blocking.  Other threads that try to enter the lock will block until the thread holding the lock calls RMutex::exit() an equal number of times to the RMutex::enter() calls.</para>
+    <para>DEPRECATED: use the <link linkend="Qore::Thread::Gate_Class">Gate</link> class instead.</para>
 
-    <table>
-      <title>Qore::Thread::RMutex Method Overview</title>
-      <tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	<thead>
-	  <row>
-	    <entry><para>Method</para></entry>
-	    <entry><para>Except?</para></entry>
-	    <entry><para>Description</para></entry>
-	  </row>
-	</thead>
-	<tbody>
-	  <row>
-	    <entry><para><link linkend="Qore::Thread::RMutex::constructor">RMutex::constructor()</link></para></entry>
-	    <entry><para>N</para></entry>
-	    <entry><para>Creates a new RMutex object.</para></entry>
-	  </row>
-	  <row>
-	    <entry><para><link linkend="Qore::Thread::RMutex::destructor">RMutex::destructor()</link></para></entry>
-	    <entry><para>N</para></entry>
-	    <entry><para>Destroys the RMutex object.</para></entry>
-	  </row>
-	  <row>
-	    <entry><para><link linkend="Qore::Thread::RMutex::copy">RMutex::copy()</link></para></entry>
-	    <entry><para>N</para></entry>
-	    <entry><para>Creates a new RMutex object, not based on the original.</para></entry>
-	  </row>
-	  <row>
-	    <entry><para><link linkend="Qore::Thread::RMutex::enter">RMutex::enter()</link></para></entry>
-	    <entry><para>N</para></entry>
-	    <entry><para>Acquires the lock or increments the lock count if already acquired by this thread.  If acquired by another thread, then the call blocks until the lock count reaches zero.</para></entry>
-	  </row>
-	  <row>
-	    <entry><para><link linkend="Qore::Thread::RMutex::exit">RMutex::exit()</link></para></entry>
-	    <entry><para>N</para></entry>
-	    <entry><para>Decrements the lock count, if the result is zero, and there are blocked threads, wakes up one thread.</para></entry>
-	  </row>
-	</tbody>
-      </tgroup>
-    </table>
-    
-    <sect2 id="Qore::Thread::RMutex::constructor">
-      <title>RMutex::constructor()</title>
-      
-      <variablelist>
-	<varlistentry>
-	  <term>Synopsis</term>
-	  <listitem>
-	    <para>Creates a new RMutex object.</para>
-	  </listitem>
-	</varlistentry>
-	<varlistentry>
-	  <term>Usage</term>
-	  <listitem>
-	    <programlisting><command>new</command> RMutex()</programlisting>
-	  </listitem>
-	</varlistentry>
-      </variablelist>
-
-      <table>
-	<title>Arguments for RMutex::constructor()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
-	<title>Return Values for RMutex::constructor()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>RMutex Object</para></entry>
-	      <entry><para>The new object created.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-    </sect2>
-
-    <sect2 id="Qore::Thread::RMutex::destructor">
-      <title>RMutex::destructor()</title>
-
-      <variablelist>
-	<varlistentry>
-	  <term>Synopsis</term>
-	  <listitem>
-	    <para>Destroys the object.</para>
-	  </listitem>
-	</varlistentry>
-	<varlistentry>
-	  <term>Usage</term>
-	  <listitem>
-	    <programlisting><command>delete</command> <replaceable>lvalue</replaceable></programlisting>
-	  </listitem>
-	</varlistentry>
-      </variablelist>
-    </sect2>
-
-    <sect2 id="Qore::Thread::RMutex::copy">
-      <title>RMutex::copy()</title>
-
-      <variablelist>
-	<varlistentry>
-	  <term>Synopsis</term>
-	  <listitem>
-	    <para>Creates a new RMutex object, not based on the original.</para>
-	  </listitem>
-	</varlistentry>
-	<varlistentry>
-	  <term>Usage</term>
-	  <listitem>
-	    <programlisting>RMutex::copy()</programlisting>
-	  </listitem>
-	</varlistentry>
-      </variablelist>
-      
-      <table>
-	<title>Arguments for RMutex::copy()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-      
-      <table>
-	<title>Return Values for RMutex::copy()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>RMutex Object</para></entry>
-	      <entry><para>A new RMutex object, not based on the original.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-    </sect2>
-
-    <sect2 id="Qore::Thread::RMutex::enter">
-      <title>RMutex::enter()</title>
-      <variablelist>
-	<varlistentry>
-	  <term>Synopsis</term>
-	  <listitem>
-	    <para>Acquires the lock or increments the lock count if already acquired by this thread.  If acquired by another thread, then the call blocks until the lock count reaches zero.</para>
-	  </listitem>
-	</varlistentry>
-	<varlistentry>
-	  <term>Usage</term>
-	  <listitem>
-	    <programlisting>RMutex::enter()</programlisting>
-	  </listitem>
-	</varlistentry>
-      </variablelist>
-
-      <table>
-	<title>Arguments for RMutex::enter()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
-	<title>Return Values for RMutex::enter()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method return no value.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-    </sect2>
-
-    <sect2 id="Qore::Thread::RMutex::exit">
-      <title>RMutex::exit()</title>
-      <variablelist>
-	<varlistentry>
-	  <term>Synopsis</term>
-	  <listitem>
-	    <para>Decrements the lock count, if the result is zero, and there are blocked threads, wakes up one thread.</para>
-	  </listitem>
-	</varlistentry>
-	<varlistentry>
-	  <term>Usage</term>
-	  <listitem>
-	    <programlisting>RMutex::exit()</programlisting>
-	  </listitem>
-	</varlistentry>
-      </variablelist>
-
-      <table>
-	<title>Arguments for RMutex::exit()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
-	<title>Return Values for RMutex::exit()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method return no value.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-    </sect2>
   </sect1>
 
   <sect1 id="Qore::Thread::Sequence_Class">
@@ -20995,7 +22006,7 @@ xs      </variablelist>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::Gate::destructor">Gate::destructor()</link></para></entry>
-	    <entry><para>N</para></entry>
+	    <entry><para>Y</para></entry>
 	    <entry><para>Destroys the Gate object.</para></entry>
 	  </row>
 	  <row>
@@ -21010,12 +22021,12 @@ xs      </variablelist>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::Gate::tryEnter">Gate::tryEnter()</link></para></entry>
-	    <entry><para>Y</para></entry>
+	    <entry><para>N</para></entry>
 	    <entry><para>Acquires the lock if it is unlocked or locked by the same thread, otherwise returns immediately with -1.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::Gate::exit">Gate::exit()</link></para></entry>
-	    <entry><para>N</para></entry>
+	    <entry><para>Y</para></entry>
 	    <entry><para>Decrements the lock counter; if it reaches zero then the lock is unlocked and any blocked threads are awoken.</para></entry>
 	  </row>
 	  <row>
@@ -21097,7 +22108,7 @@ xs      </variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Destroys the object.</para>
+	    <para>Destroys the object.  Note that it is a programming error to delete this object while other threads are blocked on it; in this case an exception is thrown in the deleting thread, and in each thread blocked on this object when it is deleted.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -21107,6 +22118,25 @@ xs      </variablelist>
 	  </listitem>
 	</varlistentry>
       </variablelist>
+
+      <table>
+	<title>Exceptions Thrown by Gate::destructor()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>LOCK-ERROR</code></para></entry>
+	      <entry><para>Object deleted while other threads blocked on it.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
     </sect2>
 
     <sect2 id="Qore::Thread::Gate::copy">

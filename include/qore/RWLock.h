@@ -42,7 +42,7 @@ typedef std::map<int, int> tid_map_t;
 class RWLock : public AbstractSmartLock
 {
    private:
-      int readRequests, writeRequests;
+      int readRequests;
       QoreCondition read;
       bool prefer_writers;
       tid_map_t tmap;
@@ -74,6 +74,14 @@ class RWLock : public AbstractSmartLock
       //DLLLOCAL void writeToRead(class ExceptionSink *xsink);
 
       DLLLOCAL int numReaders();
+      DLLLOCAL int getReadWaiting() const
+      {
+	 return readRequests;
+      }
+      DLLLOCAL int getWriteWaiting() const
+      {
+	 return waiting;
+      }
 
       DLLLOCAL virtual const char *getName() const { return "RWLock"; }
 };
