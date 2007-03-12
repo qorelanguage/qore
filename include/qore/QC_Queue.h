@@ -42,14 +42,6 @@ class Queue : public AbstractPrivateData, public QoreQueue
    public:
       DLLLOCAL Queue() {}
       DLLLOCAL Queue(QoreNode *n) : QoreQueue(n) {}
-      DLLLOCAL virtual void deref(class ExceptionSink *xsink)
-      {
-	 if (ROdereference())
-	 {
-	    del(xsink);
-	    delete this;
-	 }
-      }
 };
 
 #endif // _QORE_CLASS_QUEUE

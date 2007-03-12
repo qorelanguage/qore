@@ -5,6 +5,8 @@
 	* added Counter::getWaiting() method
 	* Mutex::destructor() throws an exception if destroyed while condition
 	  variables waiting on it
+	* updated Queue class to throw exceptions on thread errors
+	* added Queue::getWaiting() method
 
 2007.03.10: David Nichols
 	* updated Datasource class to throw an exception if deleted by another

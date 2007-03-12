@@ -24,6 +24,8 @@
 
 #define _QORE_QOREQUEUE_H
 
+#include <qore/LockedObject.h>
+#include <qore/QoreCondition.h>
 
 class QoreQueueNode 
 {
@@ -32,29 +34,40 @@ class QoreQueueNode
       class QoreQueueNode *next;
       class QoreQueueNode *prev;
 
-      DLLLOCAL QoreQueueNode(QoreNode *n, class QoreQueueNode *tail);
+      DLLLOCAL QoreQueueNode(QoreNode *n);
       DLLLOCAL void del(class ExceptionSink *xsink);
 };
 
 class QoreQueue
 {
    private:
-      pthread_mutex_t qmutex;
-      pthread_cond_t  qcond;
+      enum queue_status_e { Queue_Deleted = -1 };
+
+      LockedObject l;
+      QoreCondition cond;
       QoreQueueNode *head, *tail;
       int len;
+      int waiting;
 
    public:
       DLLLOCAL QoreQueue();
       DLLLOCAL ~QoreQueue();
       DLLLOCAL QoreQueue(QoreNode *n);
+      // push at the end of the queue
       DLLLOCAL void push(QoreNode *n);
-      DLLLOCAL QoreNode *shift();
-      DLLLOCAL QoreNode *shift(int timeout_ms, bool *to);
-      DLLLOCAL QoreNode *pop();
-      DLLLOCAL QoreNode *pop(int timeout_ms, bool *to);
-      DLLLOCAL int size() const;
-      DLLLOCAL void del(class ExceptionSink *xsink);
+      // insert at the beginning of the queue
+      DLLLOCAL void insert(QoreNode *n);
+      DLLLOCAL QoreNode *shift(class ExceptionSink *xsink, int timeout_ms = 0, bool *to = 0);
+      DLLLOCAL QoreNode *pop(class ExceptionSink *xsink, int timeout_ms = 0, bool *to = 0);
+      DLLLOCAL int size() const
+      {
+	 return len;
+      }
+      DLLLOCAL int getWaiting() const
+      {
+	 return waiting;
+      }
+      DLLLOCAL void destructor(class ExceptionSink *xsink);
 };
 
 #endif // _QORE_QOREQUEUE_H

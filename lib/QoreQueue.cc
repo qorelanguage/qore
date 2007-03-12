@@ -25,11 +25,8 @@
 
 #include <sys/time.h>
 
-QoreQueueNode::QoreQueueNode(QoreNode *n, class QoreQueueNode *tail) 
+QoreQueueNode::QoreQueueNode(QoreNode *n) : node(n)
 { 
-   node = n; 
-   next = NULL; 
-   prev = tail;
 }
 
 void QoreQueueNode::del(class ExceptionSink *xsink)
@@ -39,20 +36,16 @@ void QoreQueueNode::del(class ExceptionSink *xsink)
    delete this;
 }
 
-QoreQueue::QoreQueue()
+QoreQueue::QoreQueue() : head(0), tail(0), len(0), waiting(0)
 {
-   pthread_mutex_init(&qmutex, NULL);
-   pthread_cond_init(&qcond, NULL);
-   head = NULL;
-   tail = NULL;
-   len  = 0;
 }
 
-QoreQueue::QoreQueue(QoreNode *n)
+QoreQueue::QoreQueue(QoreNode *n) : waiting(0)
 {
-   pthread_mutex_init(&qmutex, NULL);
-   pthread_cond_init(&qcond, NULL);
-   head = new QoreQueueNode(n, NULL);
+   head = new QoreQueueNode(n);
+   head->next = NULL; 
+   head->prev = NULL;
+
    tail = head;
    len  = 1;
 }
@@ -63,40 +56,110 @@ QoreQueue::~QoreQueue()
 {
    tracein("QoreQueue::~QoreQueue()");
    //printd(5, "QoreQueue %08p has head=%08p tail=%08p len=%d\n", this, head, tail, len);
-   pthread_cond_destroy(&qcond);
-   pthread_mutex_destroy(&qmutex);
    traceout("QoreQueue::~QoreQueue()");
 }
 
 void QoreQueue::push(QoreNode *n)
 {
+   AutoLocker al(&l);
+   if (len == Queue_Deleted)
+      return;
+
+   // reference value for being stored in queue
    if (n) 
       n->ref();
    printd(5, "QoreQueue::push(%08p)\n", n);
-   pthread_mutex_lock(&qmutex);
+
    if (!head)
    {
-      head = new QoreQueueNode(n, NULL);
+      head = new QoreQueueNode(n);
+      head->next = NULL; 
+      head->prev = NULL;
+
       tail = head;
-      // signal waiting thread to wakeup and process event
-      pthread_cond_signal(&qcond);
    }
    else
    {
-      tail->next = new QoreQueueNode(n, tail);
-      tail = tail->next;
+      QoreQueueNode *qn = new QoreQueueNode(n);
+      tail->next = qn;
+      qn->next = NULL; 
+      qn->prev = tail;
+
+      tail = qn;
    }
+   // signal waiting thread to wakeup and process event
+   if (waiting)
+      cond.signal();
    
    len++;
-   pthread_mutex_unlock(&qmutex);
 }
 
-QoreNode *QoreQueue::shift()
+void QoreQueue::insert(QoreNode *n)
 {
-   pthread_mutex_lock(&qmutex);
+   AutoLocker al(&l);
+   if (len == Queue_Deleted)
+      return;
+
+   // reference value for being stored in queue
+   if (n) 
+      n->ref();
+   printd(5, "QoreQueue::push(%08p)\n", n);
+
+   if (!head)
+   {
+      head = new QoreQueueNode(n);
+      head->next = NULL; 
+      head->prev = NULL;
+
+      tail = head;
+   }
+   else
+   {
+      QoreQueueNode *qn = new QoreQueueNode(n);
+      qn->next = head;
+      qn->prev = NULL;
+      head->prev = qn;
+
+      head = qn;
+   }
+   // signal waiting thread to wakeup and process event
+   if (waiting)
+      cond.signal();
+   
+   len++;
+}
+
+QoreNode *QoreQueue::shift(class ExceptionSink *xsink, int timeout_ms, bool *to)
+{
+   SafeLocker sl(&l);
    // if there is no data, then wait for condition variable
    while (!head)
-      pthread_cond_wait(&qcond, &qmutex);
+   {
+      int rc;
+      ++waiting;
+      if (timeout_ms)
+	 rc = cond.wait(&l, timeout_ms);
+      else
+	 rc = cond.wait(&l);
+      --waiting;
+      if (rc)
+      {	 
+	 // lock has timed out, unlock and return -1
+	 sl.unlock();
+	 printd(5, "QoreQueue::shift() timed out after %dms waiting on another thread to release the lock\n", timeout_ms);
+	 if (to)
+	    *to = true;
+	 return NULL;
+      }
+      if (len == Queue_Deleted)
+      {
+	 xsink->raiseException("QUEUE-ERROR", "Queue has been deleted in another thread");
+	 return NULL;
+      }
+   }
+   if (to)
+      *to = false;
+   
    QoreQueueNode *n = head;
    head = head->next;
    if (!head)
@@ -105,7 +168,7 @@ QoreNode *QoreQueue::shift()
       head->prev = NULL;
    
    len--;
-   pthread_mutex_unlock(&qmutex);
+   sl.unlock();
    QoreNode *rv = n->node;
    n->node = NULL;
    n->del(NULL);
@@ -113,98 +176,36 @@ QoreNode *QoreQueue::shift()
    return rv;
 }
 
-QoreNode *QoreQueue::shift(int timeout_ms, bool *to)
+QoreNode *QoreQueue::pop(class ExceptionSink *xsink, int timeout_ms, bool *to)
 {
-   pthread_mutex_lock(&qmutex);
+   SafeLocker sl(&l);
    // if there is no data, then wait for condition variable
    while (!head)
-      while (true)
+   {
+      int rc;
+      ++waiting;
+      if (timeout_ms)
+	 rc = cond.wait(&l, timeout_ms);
+      else
+	 rc = cond.wait(&l);
+      --waiting;
+      if (rc)
       {
-	 struct timeval now;
-	 struct timespec tmout;
-	 int ts = timeout_ms / 1000;
-	 timeout_ms -= ts * 1000;
-	 
-	 gettimeofday(&now, NULL);
-	 tmout.tv_sec = now.tv_sec + ts;
-	 tmout.tv_nsec = (now.tv_usec * 1000) + (timeout_ms * 1000000);
-	 
-	 if (!pthread_cond_timedwait(&qcond, &qmutex, &tmout))
-	    break;
-	 
-	 // lock has timed out, unlock and return -1
-	 pthread_mutex_unlock(&qmutex);
-	 printd(5, "QoreQueue::shift() timed out after %dms waiting on another thread to release the lock\n", ts * 1000 + timeout_ms);
-	 *to = true;
+	 // lock has timed out, unlock and return NULL
+	 sl.unlock();
+	 printd(5, "QoreQueue::pop() timed out after %dms waiting on another thread to release the lock\n", rc, timeout_ms);
+	 if (to) 
+	    *to = true;
 	 return NULL;
       }
-	 *to = false;
-   
-   QoreQueueNode *n = head;
-   head = head->next;
-   if (!head)
-      tail = NULL;
-   else
-      head->prev = NULL;
-   
-   len--;
-   pthread_mutex_unlock(&qmutex);
-   QoreNode *rv = n->node;
-   n->node = NULL;
-   n->del(NULL);
-   printd(5, "QoreQueue::shift() %08p\n", n);
-   return rv;
-}
-
-QoreNode *QoreQueue::pop()
-{
-   pthread_mutex_lock(&qmutex);
-   // if there is no data, then wait for condition variable
-   while (!head)
-      pthread_cond_wait(&qcond, &qmutex);
-   QoreQueueNode *n = tail;
-   tail = tail->prev;
-   if (!tail)
-      head = NULL;
-   else
-      tail->next = NULL;
-   
-   len--;
-   pthread_mutex_unlock(&qmutex);
-   QoreNode *rv = n->node;
-   n->node = NULL;
-   n->del(NULL);
-   printd(5, "QoreQueue::shift() %08p\n", n);
-   return rv;
-}
-
-QoreNode *QoreQueue::pop(int timeout_ms, bool *to)
-{
-   pthread_mutex_lock(&qmutex);
-   // if there is no data, then wait for condition variable
-   while (!head)
-      while (true)
+      if (len == Queue_Deleted)
       {
-	 struct timeval now;
-	 struct timespec tmout;
-	 int ts = timeout_ms / 1000;
-	 timeout_ms -= ts * 1000;
-	 
-	 gettimeofday(&now, NULL);
-	 tmout.tv_sec = now.tv_sec + ts;
-	 tmout.tv_nsec = (now.tv_usec * 1000) + (timeout_ms * 1000000);
-	 
-	 int rc;
-	 if (!(rc = pthread_cond_timedwait(&qcond, &qmutex, &tmout)))
-	    break;
-	 
-	 // lock has timed out, unlock and return -1
-	 pthread_mutex_unlock(&qmutex);
-	 printd(5, "rc = %d: QoreQueue::pop() timed out after %dms waiting on another thread to release the lock\n", rc, ts * 1000 + timeout_ms);
-	 *to = true;
+	 xsink->raiseException("QUEUE-ERROR", "Queue has been deleted in another thread");
 	 return NULL;
       }
-	 *to = false;
+   }
+   if (to)
+      *to = false;
    
    QoreQueueNode *n = tail;
    tail = tail->prev;
@@ -214,7 +215,7 @@ QoreNode *QoreQueue::pop(int timeout_ms, bool *to)
       tail->next = NULL;
    
    len--;
-   pthread_mutex_unlock(&qmutex);
+   sl.unlock();
    QoreNode *rv = n->node;
    n->node = NULL;
    n->del(NULL);
@@ -222,8 +223,16 @@ QoreNode *QoreQueue::pop(int timeout_ms, bool *to)
    return rv;
 }
 
-void QoreQueue::del(class ExceptionSink *xsink)
+void QoreQueue::destructor(class ExceptionSink *xsink)
 {
+   AutoLocker al(&l);
+   if (waiting)
+   {
+      xsink->raiseException("QUEUE-ERROR", "Queue deleted while there %s %d waiting thread%s",
+                            waiting == 1 ? "is" : "are", waiting, waiting == 1 ? "" : "s");
+      cond.broadcast();
+   }
+
    while (head)
    {
       printd(5, "QoreQueue::~QoreQueue() deleting %08p (node %08p type %s)\n",
@@ -234,11 +243,5 @@ void QoreQueue::del(class ExceptionSink *xsink)
    }
    head = NULL;
    tail = NULL;
-   len = 0;
+   len = Queue_Deleted;
 }
-
-int QoreQueue::size() const
-{ 
-   return len; 
-}
-

@@ -167,6 +167,17 @@ sub counter_test($c)
     }
 }
 
+sub queue_test($q)
+{
+    try {
+	$q.get();
+    }
+    catch ($ex)
+    {
+	printf("%s: %s\n", $ex.err, $ex.desc); 
+    }
+}
+
 sub main()
 {
     # internal deadlock with synchronized subroutines
@@ -304,6 +315,23 @@ sub main()
 	usleep(100ms);
     try {
 	delete $c1;
+    }    
+    catch ($ex)
+    {
+	printf("%s: %s\n", $ex.err, $ex.desc); 
+    }
+
+
+    # make sure threads sleeping on a Queue wake up with an exception 
+    # when the Queue is deleted
+    my $q = new Queue();
+    background queue_test($q);
+    background queue_test($q);
+    # sleep until there are 2 threads waiting on this Queue
+    while ($q.getWaiting() != 2)
+	usleep(100ms);
+    try {
+	delete $q;
     }    
     catch ($ex)
     {
