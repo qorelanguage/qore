@@ -171,7 +171,7 @@ static QoreNode* BUILTININHERITANCETESTDESCENDANT3_getnum(Object *self, class Qo
     self->getReferencedPrivateData(CID_BUILTININHERITANCETESTDESCENDANT2, xsink);
   assert(!*xsink);
   assert(d2);
-  ReferenceHolder<BuiltinInheritanceTestDescendant2> d2_holder(d2);
+  ReferenceHolder<BuiltinInheritanceTestDescendant2> d2_holder(d2, xsink);
   assert(d2->dummy[36] == 36.0);
 
   // get parent of parent
@@ -179,7 +179,7 @@ static QoreNode* BUILTININHERITANCETESTDESCENDANT3_getnum(Object *self, class Qo
     self->getReferencedPrivateData(CID_BUILTININHERITANCETESTBASE, xsink);
   assert(!*xsink);
   assert(base);
-  ReferenceHolder<BuiltinInheritanceTestBase> base_holder(base);
+  ReferenceHolder<BuiltinInheritanceTestBase> base_holder(base, xsink);
   assert(base->a_value == 1024);
 
   return new QoreNode((int64)3);

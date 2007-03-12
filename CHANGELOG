@@ -1,6 +1,12 @@
+2007.03.12: David Nichols
+	* updated Counter class to throw exceptions on thread errors (deleted
+	  while waiting threads, etc)
+	* added Condition::wait_count() method
+	* added Counter::getWaiting() method
+
 2007.03.10: David Nichols
-	* updated Datasource class to throw an exception if deleted while in a
-	  transaction (and release the lock)
+	* updated Datasource class to throw an exception if deleted by another
+	  thread while in a transaction (and release the lock)
 	* updated documentation to reflect that Datasource transaction timeouts
 	  are now set in milliseconds instead of seconds
 	* added "AutoReadLock" and "AutoWriteLock" classes for exception-safe 

@@ -24,74 +24,38 @@
 
 #define _QORE_QORECOUNTER_H 1
 
-#include <pthread.h>
+#include <qore/Qore.h>
+#include <qore/QoreCondition.h>
+
 class QoreCounter
 {
    private:
-      pthread_mutex_t ptm_lock;
-      pthread_cond_t c;
-      int cnt;
+      enum cond_status_e { Cond_Deleted = -1 };
 
-      inline void lock()
-      {
-	 pthread_mutex_lock(&ptm_lock);
-      }
-      inline void unlock()
-      {
-	 pthread_mutex_unlock(&ptm_lock);
-      }
-      /*
-      inline int signal()
-      {
-	 return pthread_cond_signal(&c);
-      }
-      */
-      inline int broadcast()
-      {
-	 return pthread_cond_broadcast(&c);
-      }
-      inline int wait()
-      {
-	 return pthread_cond_wait(&c, &ptm_lock);
-      }
+      LockedObject l;
+      QoreCondition cond;
+      int cnt;
+      int waiting;
 
    public:
-      inline QoreCounter(int nc = 0)
-      {
-	 cnt = nc;
-	 pthread_mutex_init(&ptm_lock, NULL);
-	 pthread_cond_init(&c, NULL);
-      }
-      inline ~QoreCounter()
-      {
-	 pthread_mutex_destroy(&ptm_lock);
-	 pthread_cond_destroy(&c);
-      }
-      inline void inc()
-      {
-	 lock();
-	 cnt++;
-	 unlock();
-      }
-      inline void dec()
-      {
-	 lock();
-	 cnt--;
-	 if (!cnt)
-	    broadcast();
-	 unlock();
-      }
-      inline void waitForZero()
-      {
-	 lock();
-	 if (cnt)
-	    wait();
-	 unlock();
-      }
-      inline int getCount()
+      DLLEXPORT QoreCounter(int nc = 0);
+      DLLEXPORT ~QoreCounter();
+      DLLEXPORT void destructor(class ExceptionSink *xsink);
+      DLLEXPORT void inc();
+      DLLEXPORT void dec(class ExceptionSink *xsink);
+      DLLEXPORT int waitForZero(class ExceptionSink *xsink, int timeout_ms = 0);
+      DLLEXPORT int getCount() const
       {
 	 return cnt;
       }
+      DLLEXPORT int getWaiting() const
+      {
+	 return waiting;
+      }
+
+      // internal use only - for internal counters
+      DLLLOCAL void waitForZero();
+      DLLLOCAL void dec();
 };
 
 #endif

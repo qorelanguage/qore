@@ -44,7 +44,7 @@ void run_Qore_test(QoreString& str, const char* file, int line, const char* deta
   assert(line);
 
   ExceptionSink xsink;
-  ReferenceHolder<QoreProgram> pgm(new QoreProgram());
+  ReferenceHolder<QoreProgram> pgm(new QoreProgram(), &xsink);
   pgm->parse(str.getBuffer(), "test", &xsink); // function name needs to be always "test"
   if (xsink.isEvent()) {
     printf("Exception throwm when parsing Qore program,\nfile %s, line %d.\n", file, line);
@@ -55,7 +55,7 @@ void run_Qore_test(QoreString& str, const char* file, int line, const char* deta
     assert(false);
   }
 
-  ReferenceHolder<QoreNode> rv(pgm->callFunction("test", NULL, &xsink));
+  ReferenceHolder<QoreNode> rv(pgm->callFunction("test", NULL, &xsink), &xsink);
   if (xsink.isEvent()) {
     printf("Exception throwm when running Qore program,\nfile %s, line %d.\n", file, line);
     if (details && details[0]) {

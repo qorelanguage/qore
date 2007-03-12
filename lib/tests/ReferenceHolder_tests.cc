@@ -7,7 +7,7 @@ namespace ReferenceHolder_tests {
 TEST()
 {
   printf("testing ReferenceHolder 1\n");
-  ReferenceHolder<QoreNode> h(new QoreNode(1.1));
+  ReferenceHolder<QoreNode> h(new QoreNode(1.1), NULL);
   assert(h);
 }
 

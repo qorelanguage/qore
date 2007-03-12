@@ -22,6 +22,7 @@
 
 #include <qore/Qore.h>
 #include <qore/QC_Mutex.h>
+#include <qore/QC_Condition.h>
 
 int CID_MUTEX;
 
@@ -44,14 +45,13 @@ static void MUTEX_copy(class Object *self, class Object *old, class Mutex *m, Ex
 static class QoreNode *MUTEX_lock(class Object *self, class Mutex *m, class QoreNode *params, ExceptionSink *xsink)
 {
    class QoreNode *p = get_param(params, 0);
-   class QoreNode *rv = NULL;
    // we only return a return value if we have a timeout, otherwise we save allocating a QoreNode
    if (!is_nothing(p))
    {
       int timeout_ms = getMsZeroInt(p);
       int rc = m->grab(xsink, timeout_ms);
       if (!*xsink)
-	 rv = new QoreNode((int64)rc);
+	 return new QoreNode((int64)rc);
    }
    else
       m->grab(xsink);

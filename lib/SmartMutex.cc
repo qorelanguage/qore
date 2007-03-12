@@ -135,3 +135,14 @@ bool SmartMutex::owns_lock()
    AutoLocker al(&asl_lock);
    return tid == gettid() ? true : false;
 }
+
+// returns how many condition variables are waiting on this mutex
+int SmartMutex::cond_count(class QoreCondition *cond)
+{
+   AutoLocker al(&asl_lock);
+
+   cond_map_t::iterator i = cmap.find(cond);
+   if (i != cmap.end())
+      return i->second;
+   return 0;
+}

@@ -57,6 +57,10 @@ class Condition : public AbstractPrivateData
       {
 	 return cond.broadcast();
       }
+      DLLLOCAL int wait_count(class Mutex *m)
+      {
+	 return m->cond_count(&cond);
+      }
 };
 
 #endif // _QORE_CLASS_CONDITION_H

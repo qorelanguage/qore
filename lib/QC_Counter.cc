@@ -32,6 +32,12 @@ static void COUNTER_constructor(class Object *self, class QoreNode *params, Exce
    self->setPrivate(CID_COUNTER, new Counter(c));
 }
 
+static void COUNTER_destructor(class Object *self, class Counter *c, ExceptionSink *xsink)
+{
+   c->destructor(xsink);
+   c->deref(xsink);
+}
+
 static void COUNTER_copy(class Object *self, class Object *old, class Counter *c, ExceptionSink *xsink)
 {
    self->setPrivate(CID_COUNTER, new Counter(c->getCount()));
@@ -45,19 +51,32 @@ static class QoreNode *COUNTER_inc(class Object *self, class Counter *c, class Q
 
 static class QoreNode *COUNTER_dec(class Object *self, class Counter *c, class QoreNode *params, ExceptionSink *xsink)
 {
-   c->dec();
+   c->dec(xsink);
    return NULL;
 }
 
 static class QoreNode *COUNTER_waitForZero(class Object *self, class Counter *c, class QoreNode *params, ExceptionSink *xsink)
 {
-   c->waitForZero();
+   class QoreNode *p = get_param(params, 0);
+   // we only return a return value if we have a timeout, otherwise we save allocating a QoreNode
+   int timeout_ms = 0;
+   if (!is_nothing(p))
+      timeout_ms = getMsZeroInt(p);
+
+   int rc = c->waitForZero(xsink, timeout_ms);
+   if (!*xsink)
+      return new QoreNode((int64)rc);
    return NULL;
 }
 
 static class QoreNode *COUNTER_getCount(class Object *self, class Counter *c, class QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)c->getCount());
+}
+
+static class QoreNode *COUNTER_getWaiting(class Object *self, class Counter *c, class QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((int64)c->getWaiting());
 }
 
 class QoreClass *initCounterClass()
@@ -68,11 +87,13 @@ class QoreClass *initCounterClass()
    CID_COUNTER = QC_COUNTER->getID();
 
    QC_COUNTER->setConstructor(COUNTER_constructor);
+   QC_COUNTER->setDestructor((q_destructor_t)COUNTER_destructor);
    QC_COUNTER->setCopy((q_copy_t)COUNTER_copy);
    QC_COUNTER->addMethod("inc",           (q_method_t)COUNTER_inc);
    QC_COUNTER->addMethod("dec",           (q_method_t)COUNTER_dec);
    QC_COUNTER->addMethod("waitForZero",   (q_method_t)COUNTER_waitForZero);
    QC_COUNTER->addMethod("getCount",      (q_method_t)COUNTER_getCount);
+   QC_COUNTER->addMethod("getWaiting",    (q_method_t)COUNTER_getWaiting);
 
    traceout("initCounterClass()");
    return QC_COUNTER;

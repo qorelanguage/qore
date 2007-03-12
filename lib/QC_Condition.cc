@@ -65,7 +65,7 @@ static class QoreNode *CONDITION_wait(class Object *self, class Condition *c, cl
 	 xsink->raiseException("CONDITION-WAIT-PARAMETER-EXCEPTION", "expecting a Mutex object as parameter to Condition::wait()");
       return NULL;
    }
-   ReferenceHolder<Mutex> holder(m);
+   ReferenceHolder<Mutex> holder(m, xsink);
 
    int timeout = getMsZeroInt(get_param(params, 1));
    QoreNode *rv;
@@ -87,6 +87,21 @@ static class QoreNode *CONDITION_wait(class Object *self, class Condition *c, cl
    return rv;
 }
 
+static class QoreNode *CONDITION_wait_count(class Object *self, class Condition *c, class QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p0 = test_param(params, NT_OBJECT, 0);
+   Mutex *m = p0 ? (Mutex *)p0->val.object->getReferencedPrivateData(CID_MUTEX, xsink) : NULL;
+   if (!p0 || !m)
+   {
+      if (!xsink->isException())
+	 xsink->raiseException("CONDITION-WAIT-COUNT-PARAMETER-EXCEPTION", "expecting a Mutex object as parameter to Condition::wait_count()");
+      return NULL;
+   }
+   ReferenceHolder<Mutex> holder(m, xsink);
+
+   return new QoreNode((int64)c->wait_count(m));
+}
+
 class QoreClass *initConditionClass()
 {
    tracein("initConditionClass()");
@@ -99,6 +114,7 @@ class QoreClass *initConditionClass()
    QC_CONDITION->addMethod("signal",        (q_method_t)CONDITION_signal);
    QC_CONDITION->addMethod("broadcast",     (q_method_t)CONDITION_broadcast);
    QC_CONDITION->addMethod("wait",          (q_method_t)CONDITION_wait);
+   QC_CONDITION->addMethod("wait_count",    (q_method_t)CONDITION_wait_count);
 
    traceout("initConditionClass()");
    return QC_CONDITION;

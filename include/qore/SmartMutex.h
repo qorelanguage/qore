@@ -55,6 +55,8 @@ class SmartMutex : public AbstractSmartLock
 
       DLLLOCAL bool owns_lock();
       DLLLOCAL virtual const char *getName() const { return "Mutex"; }
+      // returns how many condition variables are waiting on this mutex
+      DLLLOCAL int cond_count(class QoreCondition *cond);
 };
 
 #endif // _QORE_SMARTMUTEX

@@ -55,7 +55,7 @@ private:
   T* p;
   ExceptionSink* xsink;
 public:
-  ReferenceHolder(T* p_, ExceptionSink* xsink_ = 0) : p(p_), xsink(xsink_) {}
+  ReferenceHolder(T* p_, ExceptionSink* xsink_) : p(p_), xsink(xsink_) {}
   ~ReferenceHolder() { if(p) p->deref(xsink);}
 
   T* operator->() { return p; }

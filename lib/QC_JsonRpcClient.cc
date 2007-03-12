@@ -32,7 +32,7 @@ int CID_JSONRPCCLIENT;
 static void JRC_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
    // get HTTPClient object
-   ReferenceHolder<QoreHTTPClient> client((QoreHTTPClient *)getStackObject()->getReferencedPrivateData(CID_HTTPCLIENT, xsink));
+   ReferenceHolder<QoreHTTPClient> client((QoreHTTPClient *)getStackObject()->getReferencedPrivateData(CID_HTTPCLIENT, xsink), xsink);
    if (!client)
       return;
 

@@ -602,7 +602,7 @@ class QoreString *makeJSONRPC11RequestString(class QoreNode *params, ExceptionSi
    str->concat(", \"params\" : ");
    if (num_params(params) > 1)
    {
-      ReferenceHolder<QoreNode> new_params(new QoreNode(params->val.list->copyListFrom(1)));
+      ReferenceHolder<QoreNode> new_params(new QoreNode(params->val.list->copyListFrom(1)), xsink);
 
       if (doJSONValue(str, *new_params, -1, xsink))
 	 return NULL;

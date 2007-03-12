@@ -42,7 +42,7 @@ synchronized sub internal_deadlock_b($c)
     }
 }
 
-sub class_deadlock_a($c, $m, $g)
+sub mutex_gate_deadlock_a($c, $m, $g)
 {
     my $al = new AutoLock($m);
     $c.dec();
@@ -57,7 +57,7 @@ sub class_deadlock_a($c, $m, $g)
     }
 }
 
-sub class_deadlock_b($c, $m, $g)
+sub mutex_gate_deadlock_b($c, $m, $g)
 {
     my $ag = new AutoGate($g);
     $c.dec();
@@ -72,7 +72,7 @@ sub class_deadlock_b($c, $m, $g)
     }
 }
 
-sub class_deadlock_c($c, $rw1, $rw2)
+sub readwrite_deadlock_c($c, $rw1, $rw2)
 {
     my $al = new AutoWriteLock($rw1);
     $c.dec();
@@ -87,7 +87,7 @@ sub class_deadlock_c($c, $rw1, $rw2)
     }
 }
 
-sub class_deadlock_d($c, $rw1, $rw2)
+sub readwrite_deadlock_d($c, $rw1, $rw2)
 {
     my $al = new AutoReadLock($rw2);
     #my $al = new AutoWriteLock($rw2);
@@ -143,7 +143,6 @@ sub test_thread_resources()
     }
 }
 
-# make sure cond variable wakes up with an exception when mutex is deleted in another thread
 sub cond_test($c, $cond, $m)
 {
     $m.lock();
@@ -155,6 +154,17 @@ sub cond_test($c, $cond, $m)
     {
 	printf("%s: %s\n", $ex.err, $ex.desc); 
     }        
+}
+
+sub counter_test($c)
+{
+    try {
+	$c.waitForZero();
+    }
+    catch ($ex)
+    {
+	printf("%s: %s\n", $ex.err, $ex.desc); 
+    }
 }
 
 sub main()
@@ -171,8 +181,8 @@ sub main()
     # increment counter for synchronization
     $c.inc();
     $c.inc();
-    background class_deadlock_a($c, $m, $g);
-    class_deadlock_b($c, $m, $g);
+    background mutex_gate_deadlock_a($c, $m, $g);
+    mutex_gate_deadlock_b($c, $m, $g);
 
     # deadlock tests with other classes
     my $rw1 = new RWLock();
@@ -181,8 +191,8 @@ sub main()
     # increment counter for synchronization
     $c.inc();
     $c.inc();
-    background class_deadlock_c($c, $rw1, $rw2);
-    class_deadlock_d($c, $rw1, $rw2);
+    background readwrite_deadlock_c($c, $rw1, $rw2);
+    readwrite_deadlock_d($c, $rw1, $rw2);
 
     # mutex tests
     $m.lock();
@@ -261,6 +271,8 @@ sub main()
     }
     $rw1.readUnlock();
 
+    # make sure threads sleeping on Condition variable wake up with an exception 
+    # if the mutex object is deleted in another thread
     my $cond = new Condition();
     $m = new Mutex();
     # increment counter for synchronization
@@ -269,11 +281,34 @@ sub main()
     background cond_test($c, $cond, $m);
     background cond_test($c, $cond, $m);
     $c.waitForZero();
-    # lock and unlock to ensure that cond.wait has been called
-    usleep(100ms);
-    $m.lock();
-    $m.unlock();
-    delete $m;
+    # sleep until there are 2 condition variables waiting on this Mutex
+    while ($cond.wait_count($m) != 2)
+	usleep(100ms);
+    try {
+	delete $m;
+	throw "NO-EXCEPTION-ERROR";
+    }
+    catch ($ex)
+    {
+	printf("%s: %s\n", $ex.err, $ex.desc); 
+    }
+
+    # make sure threads sleeping on a counter wake up with an exception 
+    # when the counter is deleted
+    my $c1 = new Counter();
+    $c1.inc();
+    background counter_test($c1);
+    background counter_test($c1);
+    # sleep until there are 2 counter variables waiting on this Mutex
+    while ($c1.getWaiting() != 2)
+	usleep(100ms);
+    try {
+	delete $c1;
+    }    
+    catch ($ex)
+    {
+	printf("%s: %s\n", $ex.err, $ex.desc); 
+    }
 
     # test thread resource tracking checks
     background test_thread_resources();
