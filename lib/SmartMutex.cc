@@ -125,9 +125,15 @@ int SmartMutex::externWaitImpl(int mtid, class QoreCondition *cond, class Except
 
 void SmartMutex::destructorImpl(class ExceptionSink *xsink)
 {
-   // wake up all condition variables waiting on this mutex
-   for (cond_map_t::iterator i = cmap.begin(), e = cmap.end(); i != e; i++)
-      i->first->broadcast();
+   cond_map_t::iterator i = cmap.begin(), e = cmap.end();
+   if (i != e)
+   {
+      xsink->raiseException("LOCK-ERROR", "%s object deleted in TID %d while one or more Condition variables were waiting on it",
+			    getName(), gettid());
+      // wake up all condition variables waiting on this mutex
+      for (; i != e; i++)
+	 i->first->broadcast();
+   }
 }
 
 bool SmartMutex::owns_lock()
