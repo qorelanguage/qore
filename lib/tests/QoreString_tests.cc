@@ -72,6 +72,26 @@ TEST()
   s.ensureBufferSize(x);
 }
 
+TEST()
+{
+  printf("running test in %s[%d]\n", __FILE__, __LINE__);
+  QoreString s1;
+  assert(s1.length() == 0);
+  s1.clear();
+  assert(s1.length() == 0);
+  s1.set("xyz");
+  assert(s1.length() == 3);
+
+  QoreString s2("aaa");
+  assert(s2.length() == 3);
+  s2.clear();
+  assert(s2.length() == 0);
+  s2.set("bbbb");
+  assert(s2.length() == 4);
+  s2.clear();
+  assert(s2.length() == 0);
+}
+
 } // namespace
 
 #endif // DEBUG
