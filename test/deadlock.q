@@ -89,13 +89,13 @@ sub class_deadlock_c($c, $rw1, $rw2)
 
 sub class_deadlock_d($c, $rw1, $rw2)
 {
-    #my $al = new AutoReadLock($rw2);
-    my $al = new AutoWriteLock($rw2);
+    my $al = new AutoReadLock($rw2);
+    #my $al = new AutoWriteLock($rw2);
     $c.dec();
     $c.waitForZero();
     try {
-	$rw1.writeLock();
-	$rw1.writeUnlock();
+	$rw1.readLock();
+	$rw1.readUnlock();
     }
     catch ($ex)
     {
@@ -143,6 +143,7 @@ sub test_thread_resources()
     }
 }
 
+# make sure cond variable wakes up with an exception when mutex is deleted in another thread
 sub cond_test($c, $cond, $m)
 {
     $m.lock();

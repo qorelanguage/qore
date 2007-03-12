@@ -48,7 +48,7 @@ class VLock : protected abstract_lock_list_t
       VLock& operator=(const VLock&);
       
    public:
-      DLLLOCAL VLock();
+      DLLEXPORT VLock(int n_tid);
       DLLLOCAL ~VLock();
       DLLLOCAL void push(AbstractSmartLock *g);
       DLLLOCAL int pop(AbstractSmartLock *asl);
@@ -56,12 +56,12 @@ class VLock : protected abstract_lock_list_t
       DLLLOCAL AbstractSmartLock *find(AbstractSmartLock *g) const; 
 
       // for blocking smart locks with deadlock detection
-      DLLLOCAL int waitOn(AbstractSmartLock *asl, class VLock *vl, int tid, class ExceptionSink *xsink, int timeout_ms = 0);
+      DLLLOCAL int waitOn(AbstractSmartLock *asl, class VLock *vl, class ExceptionSink *xsink, int timeout_ms = 0);
       // for smart locks using an alternate condition variable
-      DLLLOCAL int waitOn(AbstractSmartLock *asl, class QoreCondition *cond, class VLock *vl, int tid, class ExceptionSink *xsink, int timeout_ms = 0);
-      // for smart locks that can be held by more than one thread and are using an alternate condition variable
-      DLLLOCAL int waitOn(AbstractSmartLock *asl, vlock_map_t &vmap, int tid, class ExceptionSink *xsink, int timeout_ms = 0);
-      DLLLOCAL int getTID() { return tid; }
+      DLLLOCAL int waitOn(AbstractSmartLock *asl, class QoreCondition *cond, class VLock *vl, class ExceptionSink *xsink, int timeout_ms = 0);
+      // for smart locks that can be held by more than one thread
+      DLLLOCAL int waitOn(AbstractSmartLock *asl, vlock_map_t &vmap, class ExceptionSink *xsink, int timeout_ms = 0);
+      DLLLOCAL int getTID() const { return tid; }
          
 #ifdef DEBUG
       DLLLOCAL void show(class VLock *nvl) const; 

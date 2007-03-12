@@ -62,7 +62,7 @@ int VRMutex::grabImpl(int mtid, class VLock *nvl, class ExceptionSink *xsink, in
 	 }
 	 
 	 ++waiting;
-	 int rc = nvl->waitOn((AbstractSmartLock *)this, vl, mtid, xsink, timeout_ms);
+	 int rc = nvl->waitOn((AbstractSmartLock *)this, vl, xsink, timeout_ms);
 	 --waiting;
 	 // if rc is non-zero there was a timeout or deadlock
 	 if (rc)

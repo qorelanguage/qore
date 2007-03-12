@@ -50,7 +50,7 @@ int SmartMutex::grabImpl(int mtid, class VLock *nvl, class ExceptionSink *xsink,
    while (tid >= 0)
    {
       waiting++;
-      int rc =  nvl->waitOn((AbstractSmartLock *)this, vl, mtid, xsink, timeout_ms);
+      int rc =  nvl->waitOn((AbstractSmartLock *)this, vl, xsink, timeout_ms);
       waiting--;
       if (rc)
 	 return -1;

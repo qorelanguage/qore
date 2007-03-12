@@ -524,7 +524,7 @@ void ThreadCleanupList::pop(int exec)
    }
 }
 
-ThreadData::ThreadData(int ptid, class QoreProgram *p)
+ThreadData::ThreadData(int ptid, class QoreProgram *p) : vlock(ptid)
 {
    tid               = ptid;
    lvstack           = NULL;

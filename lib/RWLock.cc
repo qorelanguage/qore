@@ -59,10 +59,10 @@ int RWLock::grabImpl(int mtid, class VLock *nvl, class ExceptionSink *xsink, int
       ++waiting;
       int rc;
       // if the write lock is grabbed, send vl (only one thread owns the lock)
-      //if (tid >= 0)
-	 rc = nvl->waitOn((AbstractSmartLock *)this, vl, mtid, xsink, timeout_ms);
-      //else  // otherwise the read lock is grabbed, so send vmap (many threads own the lock) 
-	 //rc = nvl->waitOn((AbstractSmartLock *)this, vmap, mtid, xsink, timeout_ms);
+      if (tid >= 0)
+	 rc = nvl->waitOn((AbstractSmartLock *)this, vl, xsink, timeout_ms);
+      else  // otherwise the read lock is grabbed, so send vmap (many threads own the lock) 
+	 rc = nvl->waitOn((AbstractSmartLock *)this, vmap, xsink, timeout_ms);
       --waiting;
       if (rc)
 	 return -1;
@@ -263,7 +263,7 @@ int RWLock::readLock(class ExceptionSink *xsink, int timeout_ms)
       while (tid >= 0)
       {
 	 ++readRequests;
-	 int rc = nvl->waitOn((AbstractSmartLock *)this, &read, vl, mtid, xsink, timeout_ms);
+	 int rc = nvl->waitOn((AbstractSmartLock *)this, &read, vl, xsink, timeout_ms);
 	 --readRequests;
 	 if (rc)
 	    return -1;
