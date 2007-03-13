@@ -24,6 +24,8 @@
 
 #define _QORE_SWITCHSTATEMENT_H
 
+#include "AbstractStatement.h"
+
 class CaseNode {
    private:
       DLLLOCAL virtual bool isCaseNodeImpl() const;
@@ -39,21 +41,24 @@ class CaseNode {
       DLLLOCAL virtual ~CaseNode();
 };
 
-class SwitchStatement {
+class SwitchStatement : public AbstractStatement
+{
    private:
       class CaseNode *head, *tail;
       class QoreNode *sexp;
       class CaseNode *deflt;
 
+      DLLLOCAL virtual int parseInitImpl(lvh_t oflag, int pflag = 0);
+      DLLLOCAL virtual int execImpl(class QoreNode **return_value, class ExceptionSink *xsink);
+
    public:
       class LVList *lvars;
 
+      // start and end line are set later
       DLLLOCAL SwitchStatement(class CaseNode *f);
-      DLLLOCAL ~SwitchStatement();
+      DLLLOCAL virtual ~SwitchStatement();
       DLLLOCAL void setSwitch(class QoreNode *s);
       DLLLOCAL void addCase(class CaseNode *c);
-      DLLLOCAL void parseInit(lvh_t oflag, int pflag = 0);
-      DLLLOCAL int exec(class QoreNode **return_value, class ExceptionSink *xsink);
 };
 
 #endif

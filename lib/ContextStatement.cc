@@ -22,7 +22,6 @@
 
 #include <qore/Qore.h>
 #include <qore/ContextStatement.h>
-#include <qore/Statement.h>
 #include <qore/Context.h>
 #include <qore/Variable.h>
 
@@ -61,12 +60,11 @@ void ContextModList::addContextMod(ContextMod *cm)
    //printd(5, "CML::CML() %d (%08p)\n", cm->type, cm->c.exp);
 }
 
-ContextStatement::ContextStatement(char *n, class QoreNode *expr, class ContextModList *mods, class StatementBlock *cd, class QoreNode *summ_exp)
+ContextStatement::ContextStatement(int start_line, int end_line, char *n, class QoreNode *expr, class ContextModList *mods, class StatementBlock *cd) : AbstractStatement(start_line, end_line)
 {
    name = n;
    exp = expr;
    code = cd;
-   summarize = summ_exp;
    lvars = NULL;
    where_exp = sort_ascending = sort_descending = NULL;
    if (mods)
@@ -118,8 +116,6 @@ ContextStatement::~ContextStatement()
       delete code;
    if (lvars)
       delete lvars;
-   if (summarize)
-      summarize->deref(NULL);
    if (where_exp)
       where_exp->deref(NULL);
    if (sort_ascending)
@@ -128,9 +124,8 @@ ContextStatement::~ContextStatement()
       sort_descending->deref(NULL);
 }
 
-// only executed by Statement::exec()
 // FIXME: local vars should only be instantiated if there is a non-null context
-int ContextStatement::exec(class QoreNode **return_value, class ExceptionSink *xsink)
+int ContextStatement::execImpl(class QoreNode **return_value, class ExceptionSink *xsink)
 {
    tracein("ContextStatement::exec()");
    int rc = 0;
@@ -151,7 +146,7 @@ int ContextStatement::exec(class QoreNode **return_value, class ExceptionSink *x
       for (context->pos = 0; context->pos < context->max_pos && !xsink->isEvent(); context->pos++)
       {
 	 printd(4, "ContextStatement::exec() iteration %d/%d\n", context->pos, context->max_pos);
-	 if (((rc = code->exec(return_value, xsink)) == RC_BREAK) || xsink->isEvent())
+	 if (((rc = code->execImpl(return_value, xsink)) == RC_BREAK) || xsink->isEvent())
 	 {
 	    rc = 0;
 	    break;
@@ -173,55 +168,9 @@ int ContextStatement::exec(class QoreNode **return_value, class ExceptionSink *x
    return rc;   
 }
 
-// only executed by Statement::exec()
-int ContextStatement::execSummary(class QoreNode **return_value, class ExceptionSink *xsink)
+int ContextStatement::parseInitImpl(lvh_t oflag, int pflag)
 {
-   tracein("ContextStatement::execSummary()");
-   int rc = 0;
-   int i;
-   class Context *context;
-   class QoreNode *sort = sort_ascending ? sort_ascending : sort_descending;
-   int sort_type = sort_ascending ? CM_SORT_ASCENDING : (sort_descending ? CM_SORT_DESCENDING : -1);
-
-   // instantiate local variables
-   for (i = 0; i < lvars->num_lvars; i++)
-      instantiateLVar(lvars->ids[i], NULL);
-      
-   // create the context
-   context = new Context(name, xsink, exp, where_exp, sort_type, sort, summarize);
-   
-   // execute the statements
-   if (code)
-   {
-      if (context->max_group_pos && !xsink->isEvent())
-	 do
-	 {
-	    if (((rc = code->exec(return_value, xsink)) == RC_BREAK) || xsink->isEvent())
-	    {
-	       rc = 0;
-	       break;
-	    }
-	    else if (rc == RC_RETURN)
-	       break;
-	    else if (rc == RC_CONTINUE)
-	       rc = 0;
-	 }
-	    while (!xsink->isEvent() && context->next_summary());
-   }
-   
-   // destroy the context
-   context->deref(xsink);
-   
-   // uninstantiate local variables
-   for (i = 0; i < lvars->num_lvars; i++)
-      uninstantiateLVar(xsink);
-   traceout("ContextStatement::execSummary()");
-   return rc;
-}
-
-void ContextStatement::parseInit(lvh_t oflag, int pflag)
-{
-   tracein("ContextStatement::parseInit()");
+   tracein("ContextStatement::parseInitImpl()");
    
    int i, lvids = 0;
    
@@ -241,12 +190,10 @@ void ContextStatement::parseInit(lvh_t oflag, int pflag)
       process_node(&sort_ascending, oflag, pflag);
    if (sort_descending)
       process_node(&sort_descending, oflag, pflag);
-   if (summarize)
-      process_node(&summarize, oflag, pflag);
       
    // initialize statement block
    if (code)
-      code->parseInit(oflag, pflag);
+      code->parseInitImpl(oflag, pflag);
    
    // save local variables
    lvars = new LVList(lvids);
@@ -254,5 +201,6 @@ void ContextStatement::parseInit(lvh_t oflag, int pflag)
       lvars->ids[i] = pop_local_var();
    
    pop_cvar();
-   traceout("ContextStatement::parseInit()");
+   traceout("ContextStatement::parseInitImpl()");
+   return 0;
 }

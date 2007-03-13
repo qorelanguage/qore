@@ -23,14 +23,12 @@
 #include <qore/Qore.h>
 #include <qore/TryStatement.h>
 
-TryStatement::TryStatement(class StatementBlock *t, class StatementBlock *c, char *p)
+TryStatement::TryStatement(int start_line, int end_line, class StatementBlock *t, class StatementBlock *c, char *p) : AbstractStatement(start_line, end_line)
 {
    try_block = t;
    catch_block = c;
    param = p;
-   /*
-    finally = f;
-    */
+   //finally = f;
 }
 
 TryStatement::~TryStatement()
@@ -41,21 +39,18 @@ TryStatement::~TryStatement()
       delete try_block;
    if (catch_block)
       delete catch_block;
-   /*
-    if (finally)
-    delete finally;
-    */
+   //if (finally)
+   //delete finally;
 }
 
-// only executed by Statement::exec()
-int TryStatement::exec(class QoreNode **return_value, class ExceptionSink *xsink)
+int TryStatement::execImpl(class QoreNode **return_value, class ExceptionSink *xsink)
 {
    QoreNode *trv = NULL;
    
-   tracein("TryStatement::exec()");
+   tracein("TryStatement::execImpl()");
    int rc = 0;
    if (try_block)
-      rc = try_block->exec(&trv, xsink);
+      rc = try_block->execImpl(&trv, xsink);
    
    /*
     // if thread_exit has been executed
@@ -66,7 +61,7 @@ int TryStatement::exec(class QoreNode **return_value, class ExceptionSink *xsink
    class Exception *except = xsink->catchException();
    if (except)
    {
-      printd(5, "TryStatement::exec() entering catch handler, e=%08p\n", except);
+      printd(5, "TryStatement::execImpl() entering catch handler, e=%08p\n", except);
       
       if (catch_block)
       {
@@ -76,7 +71,7 @@ int TryStatement::exec(class QoreNode **return_value, class ExceptionSink *xsink
 	 if (param)	 // instantiate exception information parameter
 	    instantiateLVar(id, except->makeExceptionObject());
 	 
-	 rc = catch_block->exec(&trv, xsink);
+	 rc = catch_block->execImpl(&trv, xsink);
 	 
 	 // uninstantiate extra args
 	 if (param)
@@ -92,38 +87,40 @@ int TryStatement::exec(class QoreNode **return_value, class ExceptionSink *xsink
     if (finally)
     {
        printd(5, "TryStatement::exec() now executing finally block...\n");
-       rc = finally->exec(return_value, xsink);
+       rc = finally->execImpl(return_value, xsink);
     }
     */
    if (trv)
-      if (*return_value) // NOTE: double return! (maybe should raise an exception here?)
+      if (*return_value) // NOTE: return value overridden in the catch block!
 	 trv->deref(xsink);
       else
 	 *return_value = trv;
-   traceout("TryStatement::exec()");
+   traceout("TryStatement::execImpl()");
    return rc;
 }
 
-void TryStatement::parseInit(lvh_t oflag, int pflag)
+int TryStatement::parseInitImpl(lvh_t oflag, int pflag)
 {
    if (try_block)
-      try_block->parseInit(oflag, pflag);
+      try_block->parseInitImpl(oflag, pflag);
    
    // prepare catch block and params
    if (param)
    {
       id = push_local_var(param);
-      printd(3, "TryStatement::parseInit() reg. local var %s (id=%08p)\n", param, id);
+      printd(3, "TryStatement::parseInitImpl() reg. local var %s (id=%08p)\n", param, id);
    }
    else
       id = NULL;
    
    // initialize code block
    if (catch_block)
-      catch_block->parseInit(oflag, pflag | PF_RETHROW_OK);
+      catch_block->parseInitImpl(oflag, pflag | PF_RETHROW_OK);
    
    // pop local param from stack
    if (param)
       pop_local_var();
+
+   return 0;
 }
 

@@ -24,15 +24,19 @@
 
 #define _QORE_DELETESTATEMENT_H
 
-class DeleteStatement {
-private:
-   class QoreNode *var;
+#include "AbstractStatement.h"
+
+class DeleteStatement : public AbstractStatement
+{
+   private:
+      class QoreNode *var;
+
+      DLLLOCAL virtual int execImpl(class QoreNode **return_value, ExceptionSink *xsink);
+      DLLLOCAL virtual int parseInitImpl(lvh_t oflag, int pflag = 0);
    
-public:
-   DLLLOCAL DeleteStatement(class QoreNode *v);
-   DLLLOCAL ~DeleteStatement();
-   DLLLOCAL void exec(ExceptionSink *xsink);
-   DLLLOCAL int parseInit(lvh_t oflag, int pflag = 0);
+   public:
+      DLLLOCAL DeleteStatement(int start_line, int end_line, class QoreNode *v);
+      DLLLOCAL virtual ~DeleteStatement();
 };
 
 #endif

@@ -45,10 +45,19 @@ noinst_HEADERS = \
 	include/qore/Operator.h \
 	include/qore/QoreString.h \
 	include/qore/Reference.h \
-	include/qore/Statement.h \
+	include/qore/AbstractStatement.h \
+	include/qore/RethrowStatement.h \
+	include/qore/ThreadExitStatement.h \
+	include/qore/BreakStatement.h \
+	include/qore/ContinueStatement.h \
+	include/qore/ReturnStatement.h \
+	include/qore/ExpressionStatement.h \
+	include/qore/StatementBlock.h \
 	include/qore/ContextStatement.h \
+	include/qore/SummarizeStatement.h \
 	include/qore/IfStatement.h \
 	include/qore/WhileStatement.h \
+	include/qore/DoWhileStatement.h \
 	include/qore/ForStatement.h \
 	include/qore/ForEachStatement.h \
 	include/qore/DeleteStatement.h \

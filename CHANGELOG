@@ -1,3 +1,7 @@
+2007.03.13: David Nichols
+	* cleaned up/updated Qore statement implementation to a class tree with
+	  a virtual API
+
 2007.03.12: David Nichols
 	* updated Counter class to throw exceptions on thread errors (deleted
 	  while waiting threads, etc)

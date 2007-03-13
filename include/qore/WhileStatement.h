@@ -24,19 +24,21 @@
 
 #define _QORE_WHILESTATEMENT_H
 
-class WhileStatement {
-private:
-   class QoreNode *cond;
-   class StatementBlock *code;
-   class LVList *lvars;
+#include "AbstractStatement.h"
+
+class WhileStatement : public AbstractStatement
+{
+   protected:
+      class QoreNode *cond;
+      class StatementBlock *code;
+      class LVList *lvars;
+
+      DLLLOCAL virtual int execImpl(class QoreNode **return_value, class ExceptionSink *xsink);
+      DLLLOCAL virtual int parseInitImpl(lvh_t oflag, int pflag = 0);
    
-public:
-   DLLLOCAL WhileStatement(class QoreNode *c, class StatementBlock *cd);
-   DLLLOCAL ~WhileStatement();
-   DLLLOCAL int execWhile(class QoreNode **return_value, class ExceptionSink *xsink);
-   DLLLOCAL int execDoWhile(class QoreNode **return_value, class ExceptionSink *xsink);
-   DLLLOCAL void parseWhileInit(lvh_t oflag, int pflag = 0);
-   DLLLOCAL void parseDoWhileInit(lvh_t oflag, int pflag = 0);
+   public:
+      DLLLOCAL WhileStatement(int start_line, int end_line, class QoreNode *c, class StatementBlock *cd);
+      DLLLOCAL virtual ~WhileStatement();
 };
 
 #endif

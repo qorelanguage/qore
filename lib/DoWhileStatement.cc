@@ -1,5 +1,5 @@
 /*
- WhileStatement.cc
+ DoWhileStatement.cc
  
  Qore Programming Language
  
@@ -21,35 +21,18 @@
  */
 
 #include <qore/Qore.h>
-#include <qore/WhileStatement.h>
-#include <qore/Variable.h>
+#include <qore/DoWhileStatement.h>
 
-WhileStatement::WhileStatement(int start_line, int end_line, class QoreNode *c, class StatementBlock *cd) : AbstractStatement(start_line, end_line)
-{
-   cond = c;
-   code = cd;
-   lvars = NULL;
-}
-
-WhileStatement::~WhileStatement()
-{
-   cond->deref(NULL);
-   if (code)
-      delete code;
-   if (lvars)
-      delete lvars;
-}
-
-int WhileStatement::execImpl(class QoreNode **return_value, class ExceptionSink *xsink)
+int DoWhileStatement::execImpl(class QoreNode **return_value, class ExceptionSink *xsink)
 {
    int i, rc = 0;
    
-   tracein("WhileStatement::execWhileImpl()");
+   tracein("WhileStatement::execDoWhile()");
    // instantiate local variables
    for (i = 0; i < lvars->num_lvars; i++)
       instantiateLVar(lvars->ids[i], NULL);
    
-   while (cond->boolEval(xsink) && !xsink->isEvent())
+   do
    {
       if (code && (((rc = code->execImpl(return_value, xsink)) == RC_BREAK) || xsink->isEvent()))
       {
@@ -60,21 +43,24 @@ int WhileStatement::execImpl(class QoreNode **return_value, class ExceptionSink 
 	 break;
       else if (rc == RC_CONTINUE)
 	 rc = 0;
-   }
+   } while (cond->boolEval(xsink) && !xsink->isEvent());
+   
    // uninstantiate local variables
    for (i = 0; i < lvars->num_lvars; i++)
       uninstantiateLVar(xsink);
-   traceout("WhileStatement::execWhile()");
+   traceout("DoWhileStatement::execImpl()");
    return rc;
 }
 
-int WhileStatement::parseInitImpl(lvh_t oflag, int pflag)
+/* do ... while statements can have variables local to the statement
+ * however, it doesn't do much good :-) */
+int DoWhileStatement::parseInitImpl(lvh_t oflag, int pflag)
 {
    int i, lvids = 0;
    
-   lvids += process_node(&cond, oflag, pflag);
    if (code)
       code->parseInitImpl(oflag, pflag);
+   lvids += process_node(&cond, oflag, pflag);
    
    // save local variables
    lvars = new LVList(lvids);

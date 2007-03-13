@@ -1,5 +1,5 @@
 /*
- TryStatement.h
+ ReturnStatement.h
  
  Qore Programming Language
  
@@ -20,27 +20,27 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _QORE_TRYSTATEMENT_H
+#ifndef _QORE_RETURNSTATEMENT_H
 
-#define _QORE_TRYSTATEMENT_H
+#define _QORE_RETURNSTATEMENT_H
 
 #include "AbstractStatement.h"
 
-class TryStatement : public AbstractStatement
+class ReturnStatement : public AbstractStatement
 {
-   public:
-      class StatementBlock *try_block;
-      class StatementBlock *catch_block;
-      //class StatementBlock *finally;
-      char *param;
-      lvh_t id;
-      
-      DLLLOCAL virtual int execImpl(class QoreNode **return_value, class ExceptionSink *xsink);
+   private:
+      class QoreNode *exp;
+
+      DLLLOCAL virtual int execImpl(class QoreNode **return_value, ExceptionSink *xsink);
       DLLLOCAL virtual int parseInitImpl(lvh_t oflag, int pflag = 0);
    
    public:
-      DLLLOCAL TryStatement(int start_line, int end_line, class StatementBlock *t, class StatementBlock *c, char *p);
-      DLLLOCAL virtual ~TryStatement();
+      DLLLOCAL ReturnStatement(int start_line, int end_line, class QoreNode *v = NULL);
+      DLLLOCAL virtual ~ReturnStatement();
+      DLLLOCAL virtual bool endsBlock() const
+      {
+	 return true;
+      }
 };
 
 #endif

@@ -22,10 +22,9 @@
 
 #include <qore/Qore.h>
 #include <qore/IfStatement.h>
-#include <qore/Statement.h>
 #include <qore/Variable.h>
 
-IfStatement::IfStatement(class QoreNode *c, class StatementBlock *i, class StatementBlock *e)
+IfStatement::IfStatement(int start_line, int end_line, class QoreNode *c, class StatementBlock *i, class StatementBlock *e) : AbstractStatement(start_line, end_line)
 {
    cond = c;
    if_code = i;
@@ -45,7 +44,7 @@ IfStatement::~IfStatement()
 }
 
 // only executed by Statement::exec()
-int IfStatement::exec(class QoreNode **return_value, class ExceptionSink *xsink)
+int IfStatement::execImpl(class QoreNode **return_value, class ExceptionSink *xsink)
 {
    int i, rc = 0;
    
@@ -57,10 +56,10 @@ int IfStatement::exec(class QoreNode **return_value, class ExceptionSink *xsink)
    if (cond->boolEval(xsink))
    {
       if (!xsink->isEvent() && if_code)
-	 rc = if_code->exec(return_value, xsink);
+	 rc = if_code->execImpl(return_value, xsink);
    }
    else if (else_code)
-      rc = else_code->exec(return_value, xsink);
+      rc = else_code->execImpl(return_value, xsink);
    
    // uninstantiate local variables
    for (i = 0; i < lvars->num_lvars; i++)
@@ -69,17 +68,19 @@ int IfStatement::exec(class QoreNode **return_value, class ExceptionSink *xsink)
    return rc;
 }
 
-void IfStatement::parseInit(lvh_t oflag, int pflag)
+int IfStatement::parseInitImpl(lvh_t oflag, int pflag)
 {
    int i, lvids = 0;
    
    lvids += process_node(&cond, oflag, pflag);
    if (if_code)
-      if_code->parseInit(oflag, pflag);
+      if_code->parseInitImpl(oflag, pflag);
    if (else_code)
-      else_code->parseInit(oflag, pflag);
+      else_code->parseInitImpl(oflag, pflag);
    // save local variables
    lvars = new LVList(lvids);
    for (i = 0; i < lvids; i++)
       lvars->ids[i] = pop_local_var();
+
+   return 0;
 }

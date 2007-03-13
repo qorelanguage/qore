@@ -21,15 +21,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/Statement.h>
-#include <qore/IfStatement.h>
-#include <qore/WhileStatement.h>
-#include <qore/ForStatement.h>
-#include <qore/ForEachStatement.h>
-#include <qore/DeleteStatement.h>
-#include <qore/TryStatement.h>
-#include <qore/ThrowStatement.h>
-#include <qore/SwitchStatement.h>
+#include <qore/StatementBlock.h>
 #include <qore/Variable.h>
 #include <qore/Function.h>
 #include <qore/Context.h>
@@ -37,7 +29,6 @@
 #include <qore/ParserSupport.h>
 #include <qore/QoreWarnings.h>
 #include <qore/minitest.hpp>
-#include <qore/ContextStatement.h>
 #include <qore/Tree.h>
 #include <qore/Find.h>
 #include <qore/ScopedObjectCall.h>
@@ -90,49 +81,16 @@ LVList::~LVList()
 class QoreNode *StatementBlock::exec(ExceptionSink *xsink)
 {
    class QoreNode *return_value = NULL;
-   exec(&return_value, xsink);
+   execImpl(&return_value, xsink);
    return return_value;
 }
 
-Statement::Statement(int sline, int eline, int type, class QoreNode *node)
+// line numbers on statement blocks are set later
+StatementBlock::StatementBlock(AbstractStatement *s) : AbstractStatement(-1, -1), head(s), tail(s), lvars(0)
 {
-   LineNumber = sline;
-   EndLineNumber = eline;
-   FileName = get_parse_file();
-   next = NULL;
-   Type       = type;
-   s.node     = node;
 }
 
-Statement::Statement(int sline, int eline, int type)
-{
-   LineNumber = sline;
-   EndLineNumber = eline;
-   FileName = get_parse_file();
-   next = NULL;
-   Type       = type;
-}
-
-Statement::Statement(int sline, int eline, class StatementBlock *b)
-{
-   LineNumber = sline;
-   EndLineNumber = eline;
-   FileName = get_parse_file();
-   next = NULL;
-   Type        = S_SUB_BLOCK;
-   s.sub_block = b;
-}
-
-#define STATEMENT_BLOCK 20
-
-StatementBlock::StatementBlock(Statement *s)
-{
-   allocated = STATEMENT_BLOCK;
-   head = tail = s;
-   lvars = NULL;
-}
-
-void StatementBlock::addStatement(class Statement *s)
+void StatementBlock::addStatement(class AbstractStatement *s)
 {
    //tracein("StatementBlock::addStatement()");
    // if statement was blank then return already-present block
@@ -163,128 +121,7 @@ StatementBlock::~StatementBlock()
    //traceout("StatementBlock::~StatementBlock()");
 }
 
-// only executed by Statement::exec()
-inline void exec_rethrow(ExceptionSink *xsink)
-{
-   xsink->rethrow(catchGetException());
-}
-
-Statement::~Statement()
-{
-   switch (Type)
-   {
-      case S_RETURN:
-	 if (s.node)
-	    s.node->deref(NULL);
-	 break;
-      case S_EXPRESSION:
-	 s.node->deref(NULL);
-	 break;
-      case S_SUBCONTEXT:
-      case S_SUMMARY:
-      case S_CONTEXT:
-	 delete s.SContext;
-	 break;
-      case S_IF:
-	 delete s.If;
-	 break;
-      case S_WHILE:
-      case S_DO_WHILE:
-	 delete s.While;
-	 break;
-      case S_FOR:
-	 delete s.For;
-	 break;
-      case S_FOREACH:
-	 delete s.ForEach;
-	 break;
-      case S_DELETE:
-	 delete s.Delete;
-	 break;
-      case S_SUB_BLOCK:
-	 if (s.sub_block)
-	    delete s.sub_block;
-	 break;
-      case S_THROW:
-	 delete s.Throw;
-	 break;
-      case S_TRY:
-	 delete s.Try;
-	 break;
-      case S_SWITCH:
-	 delete s.Switch;
-	 break;
-#ifdef DEBUG
-      case S_RETHROW:
-      case S_TEMP:
-      case S_BREAK:
-      case S_CONTINUE:
-      case S_THREAD_EXIT:
-	 break;
-      default:
-	 assert(false);
-#endif
-   }
-}
-
-int Statement::exec(class QoreNode **return_value, ExceptionSink *xsink)
-{
-   class QoreNode *rv;
-
-   printd(1, "Statement::exec() file=%s line=%d type=%d\n", FileName, LineNumber, Type);
-   update_pgm_counter_pgm_file(LineNumber, EndLineNumber, FileName);
-   switch (Type)
-   {
-      case S_EXPRESSION:
-	 if ((rv = s.node->eval(xsink)))
-	    rv->deref(xsink);
-	 break;
-      case S_CONTEXT:
-      case S_SUBCONTEXT:
-	 return s.SContext->exec(return_value, xsink);
-      case S_SUMMARY:
-	 return s.SContext->execSummary(return_value, xsink);
-      case S_IF:
-	 return s.If->exec(return_value, xsink);
-      case S_WHILE:
-	 return s.While->execWhile(return_value, xsink);
-      case S_DO_WHILE:
-	 return s.While->execDoWhile(return_value, xsink);
-      case S_FOR:
-	 return s.For->exec(return_value, xsink);
-      case S_FOREACH:
-	 return s.ForEach->exec(return_value, xsink);
-      case S_DELETE:
-	 s.Delete->exec(xsink);
-	 return 0;
-      case S_SUB_BLOCK:
-	 return s.sub_block->exec(return_value, xsink);
-      case S_RETURN:
-	 if (s.node)
-	    (*return_value) = s.node->eval(xsink);
-	 return RC_RETURN;
-      case S_BREAK:
-	 return RC_BREAK;
-      case S_CONTINUE:
-	 return RC_CONTINUE;
-      case S_TRY:
-	 return s.Try->exec(return_value, xsink);
-      case S_RETHROW:
-	 exec_rethrow(xsink);
-	 return 0;
-      case S_THROW:
-	 s.Throw->exec(xsink);
-	 return 0;
-      case S_THREAD_EXIT:
-	 xsink->raiseThreadExit();
-	 return 0;
-      case S_SWITCH:
-	 return s.Switch->exec(return_value, xsink);
-   }
-   return 0;
-}
-
-int StatementBlock::exec(class QoreNode **return_value, class ExceptionSink *xsink)
+int StatementBlock::execImpl(class QoreNode **return_value, class ExceptionSink *xsink)
 {
    tracein("StatementBlock::exec()");
    int rc = 0;
@@ -295,7 +132,7 @@ int StatementBlock::exec(class QoreNode **return_value, class ExceptionSink *xsi
    assert(xsink);
 
    // execute block
-   class Statement *where = head;
+   class AbstractStatement *where = head;
    while (where && !xsink->isEvent())
    {
       if ((rc = where->exec(return_value, xsink)))
@@ -696,82 +533,20 @@ int process_node(class QoreNode **node, lvh_t oflag, int pflag)
    return lvids;
 }
 
-// processes a single statement; does not pop variables off stack
-int Statement::parseInit(lvh_t oflag, int pflag)
-{
-   int lvids = 0;
-
-   tracein("Statement::parseInit()");
-   printd(2, "Statement::parseInit() %08p type=%d line %d file %s\n", this, Type, LineNumber, FileName);
-   // set pgm position in case of errors
-   update_parse_location(LineNumber, EndLineNumber, FileName);
-   switch (Type)
-   {
-      case S_SUBCONTEXT:
-      case S_SUMMARY:
-      case S_CONTEXT:
-	 s.SContext->parseInit(oflag, pflag);
-	 break;
-      case S_EXPRESSION:
-	 lvids += process_node(&(s.node), oflag, pflag);
-	 break;
-      case S_IF:
-	 s.If->parseInit(oflag, pflag);
-	 break;
-      case S_WHILE:
-	 s.While->parseWhileInit(oflag, pflag);
-	 break;
-      case S_DO_WHILE:
-	 s.While->parseDoWhileInit(oflag, pflag);
-	 break;
-      case S_FOR:
-	 s.For->parseInit(oflag, pflag);
-	 break;
-      case S_FOREACH:
-	 s.ForEach->parseInit(oflag, pflag);
-	 break;
-      case S_TRY:
-	 s.Try->parseInit(oflag, pflag);
-	 break;
-      case S_DELETE:
-	 lvids += s.Delete->parseInit(oflag, pflag);
-	 break;
-      case S_SUB_BLOCK:
-	 s.sub_block->parseInit(oflag, pflag);
-	 break;
-      case S_RETURN:
-	 if (s.node)
-	    lvids += process_node(&(s.node), oflag, pflag);
-	 break;
-      case S_THROW:
-	 lvids += s.Throw->parseInit(oflag, pflag);
-	 break;
-      case S_RETHROW:
-	 if (!(pflag & PF_RETHROW_OK))
-	    parse_error("rethrow statements only legal in catch block");
-	 break;
-      case S_SWITCH:
-	 s.Switch->parseInit(oflag, pflag);
-	 break;
-   }
-   traceout("Statement::parseInit()");
-   return lvids;
-}
-
-void StatementBlock::parseInit(lvh_t oflag, int pflag)
+int StatementBlock::parseInitImpl(lvh_t oflag, int pflag)
 {
    int lvids = 0;
 
    tracein("StatementBlock::parseInit()");
    printd(4, "StatementBlock::parseInit(b=%08p, oflag=%d) head=%08p tail=%08p\n", this, oflag, head, tail);
 
-   class Statement *where = head, *ret = NULL;
+   class AbstractStatement *where = head, *ret = NULL;
    while (where)
    {
       lvids += where->parseInit(oflag, pflag);
-      if (!ret && where->next && where->Type == S_RETURN)
+      if (!ret && where->next && where->endsBlock())
       {
-	 // return statement not found at end of block
+	 // unreachable code found
 	 getProgram()->makeParseWarning(QP_WARN_UNREACHABLE_CODE, "UNREACHABLE-CODE", "code after this statement can never be reached");
 	 ret = where;
       }
@@ -784,6 +559,7 @@ void StatementBlock::parseInit(lvh_t oflag, int pflag)
 
    printd(4, "StatementBlock::parseInit(): done (lvars = %d, vstack = %08p)\n", lvids, getVStack());
    traceout("StatementBlock::parseInit()");
+   return 0;
 }
 
 // can also be called with this=NULL
@@ -809,7 +585,7 @@ void StatementBlock::parseInit(class Paramlist *params)
 
    // initialize code block
    if (this)
-      parseInit((lvh_t)NULL);
+      parseInitImpl((lvh_t)NULL);
 
    // pop local param vars from stack
    for (int i = 0; i < params->num_params; i++)
@@ -873,7 +649,7 @@ void StatementBlock::parseInit(class Paramlist *params, class BCList *bcl)
 
    // initialize code block
    if (this)
-      parseInit(oflag);
+      parseInitImpl(oflag);
 
    // pop local param vars from stack
    for (int i = 0; i < params->num_params; i++)

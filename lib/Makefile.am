@@ -30,16 +30,21 @@ libqore_la_SOURCES = \
 	UserFunctionList.cc \
 	GlobalVariableList.cc \
 	ImportedFunctionList.cc \
-	Statement.cc \
+	AbstractStatement.cc \
+	ExpressionStatement.cc \
+	ReturnStatement.cc \
+	StatementBLock.cc \
 	ContextStatement.cc \
+	SummarizeStatement.cc \
 	IfStatement.cc \
 	WhileStatement.cc \
+	DoWhileStatement.cc \
 	ForStatement.cc \
 	ForEachStatement.cc \
 	DeleteStatement.cc \
 	TryStatement.cc \
 	ThrowStatement.cc \
-	SwitchStatementWithOperators.cc \
+	SwitchStatement.cc \
 	Variable.cc \
 	support.cc \
 	QoreSignal.cc \

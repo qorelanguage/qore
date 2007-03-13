@@ -24,20 +24,23 @@
 
 #define _QORE_FOREACHSTATEMENT_H
 
-class ForEachStatement {
-private:
-   class QoreNode *var;
-   class QoreNode *list;
-   class StatementBlock *code;
-   class LVList *lvars;
+#include "AbstractStatement.h"
+
+class ForEachStatement : public AbstractStatement
+{
+   private:
+      class QoreNode *var;
+      class QoreNode *list;
+      class StatementBlock *code;
+      class LVList *lvars;
    
-   DLLLOCAL int execRef(class QoreNode **return_value, class ExceptionSink *xsink);
+      DLLLOCAL int execRef(class QoreNode **return_value, class ExceptionSink *xsink);
+      DLLLOCAL virtual int execImpl(class QoreNode **return_value, class ExceptionSink *xsink);
+      DLLLOCAL virtual int parseInitImpl(lvh_t oflag, int pflag = 0);
    
-public:
-   DLLLOCAL ForEachStatement(class QoreNode *v, class QoreNode *l, class StatementBlock *cd);
-   DLLLOCAL ~ForEachStatement();
-   DLLLOCAL int exec(class QoreNode **return_value, class ExceptionSink *xsink);
-   DLLLOCAL void parseInit(lvh_t oflag, int pflag = 0);
+   public:
+      DLLLOCAL ForEachStatement(int start_line, int end_line, class QoreNode *v, class QoreNode *l, class StatementBlock *cd);
+      DLLLOCAL virtual ~ForEachStatement();
 };
 
 #endif

@@ -24,18 +24,22 @@
 
 #define _QORE_FORSTATEMENT_H
 
-class ForStatement {
+#include "AbstractStatement.h"
+
+class ForStatement : public AbstractStatement
+{
    class QoreNode *assignment;
    class QoreNode *cond;
    class QoreNode *iterator;
    class StatementBlock *code;
    class LVList *lvars;
+
+   DLLLOCAL virtual int execImpl(class QoreNode **return_value, class ExceptionSink *xsink);
+   DLLLOCAL virtual int parseInitImpl(lvh_t oflag, int pflag = 0);
    
 public:
-   DLLLOCAL ForStatement(class QoreNode *a, class QoreNode *c, class QoreNode *i, class StatementBlock *cd);
-   DLLLOCAL ~ForStatement();
-   DLLLOCAL int exec(class QoreNode **return_value, class ExceptionSink *xsink);
-   DLLLOCAL void parseInit(lvh_t oflag, int pflag = 0);
+   DLLLOCAL ForStatement(int start_line, int end_line, class QoreNode *a, class QoreNode *c, class QoreNode *i, class StatementBlock *cd);
+   DLLLOCAL virtual ~ForStatement();
 };
 
 #endif

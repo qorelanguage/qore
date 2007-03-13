@@ -23,13 +23,13 @@
 #include <qore/Qore.h>
 #include <qore/Tree.h>
 #include <qore/Function.h>
-#include <qore/Statement.h>
 #include <qore/Variable.h>
 #include <qore/CallStack.h>
 #include <qore/ArgvStack.h>
 #include <qore/VRMutex.h>
 #include <qore/Operator.h>
 #include <qore/NamedScope.h>
+#include <qore/StatementBlock.h>
 
 #include <stdio.h>
 #include <ctype.h>

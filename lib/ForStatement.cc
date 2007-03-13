@@ -22,11 +22,11 @@
 
 #include <qore/Qore.h>
 #include <qore/ForStatement.h>
-#include <qore/Statement.h>
+#include <qore/StatementBlock.h>
 #include <qore/Variable.h>
 #include <qore/Tree.h>
 
-ForStatement::ForStatement(class QoreNode *a, class QoreNode *c, class QoreNode *i, class StatementBlock *cd)
+ForStatement::ForStatement(int start_line, int end_line, class QoreNode *a, class QoreNode *c, class QoreNode *i, class StatementBlock *cd) : AbstractStatement(start_line, end_line)
 {
    assignment = a;
    cond = c;
@@ -49,12 +49,11 @@ ForStatement::~ForStatement()
       delete lvars;
 }
 
-// only executed by Statement::exec()
-int ForStatement::exec(class QoreNode **return_value, class ExceptionSink *xsink)
+int ForStatement::execImpl(class QoreNode **return_value, class ExceptionSink *xsink)
 {
    int i, rc = 0;
    
-   tracein("ForStatement::exec()");
+   tracein("ForStatement::execImpl()");
    // instantiate local variables
    for (i = 0; i < lvars->num_lvars; i++)
       instantiateLVar(lvars->ids[i], NULL);
@@ -72,7 +71,7 @@ int ForStatement::exec(class QoreNode **return_value, class ExceptionSink *xsink
 	 break;
       
       // otherwise, execute "for" body
-      if (code && (((rc = code->exec(return_value, xsink)) == RC_BREAK) || xsink->isEvent()))
+      if (code && (((rc = code->execImpl(return_value, xsink)) == RC_BREAK) || xsink->isEvent()))
       {
 	 rc = 0;
 	 break;
@@ -90,11 +89,12 @@ int ForStatement::exec(class QoreNode **return_value, class ExceptionSink *xsink
    // uninstantiate local variables
    for (i = 0; i < lvars->num_lvars; i++)
       uninstantiateLVar(xsink);
-   traceout("ForStatement::exec()");
+
+   traceout("ForStatement::execImpl()");
    return rc;
 }
 
-void ForStatement::parseInit(lvh_t oflag, int pflag)
+int ForStatement::parseInitImpl(lvh_t oflag, int pflag)
 {
    int i, lvids = 0;
    
@@ -115,11 +115,13 @@ void ForStatement::parseInit(lvh_t oflag, int pflag)
 	 iterator->val.tree->ignoreReturnValue();
    }
    if (code)
-      code->parseInit(oflag, pflag);
+      code->parseInitImpl(oflag, pflag);
    
    // save local variables
    lvars = new LVList(lvids);
    for (i = 0; i < lvids; i++)
       lvars->ids[i] = pop_local_var();
+
+   return 0;
 }
 

@@ -24,15 +24,23 @@
 
 #define _QORE_THROWSTATEMENT_H
 
-class ThrowStatement {
-private:
-   class QoreNode *args;
+#include "AbstractStatement.h"
+
+class ThrowStatement : public AbstractStatement
+{
+   private:
+      class QoreNode *args;
+
+      DLLLOCAL virtual int execImpl(class QoreNode **return_value, ExceptionSink *xsink);
+      DLLLOCAL virtual int parseInitImpl(lvh_t oflag, int pflag = 0);
    
-public:
-   DLLLOCAL ThrowStatement(class QoreNode *v);
-   DLLLOCAL ~ThrowStatement();
-   DLLLOCAL void exec(ExceptionSink *xsink);
-   DLLLOCAL int parseInit(lvh_t oflag, int pflag = 0);
+   public:
+      DLLLOCAL ThrowStatement(int start_line, int end_line, class QoreNode *v);
+      DLLLOCAL virtual ~ThrowStatement();
+      DLLLOCAL virtual bool endsBlock() const
+      {
+	 return true;
+      }
 };
 
 #endif

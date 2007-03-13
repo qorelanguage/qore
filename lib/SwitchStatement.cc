@@ -1,5 +1,5 @@
 /*
-  SwitchStatementWithOperators.cc
+  SwitchStatement.cc
 
   Qore Programming Language
 
@@ -57,12 +57,9 @@ bool CaseNode::isCaseNode() const
    return isCaseNodeImpl();
 }
 
-SwitchStatement::SwitchStatement(class CaseNode *f)
+// start and end line are set later
+SwitchStatement::SwitchStatement(class CaseNode *f) : AbstractStatement(-1, -1), head(f), tail(f), sexp(0), deflt(0)
 {
-   deflt = NULL;
-   head = tail = f;
-   sexp = NULL;
-   lvars = NULL;
 }
 
 SwitchStatement::~SwitchStatement()
@@ -99,12 +96,11 @@ void SwitchStatement::addCase(class CaseNode *c)
    }
 }
 
-// only executed by Statement::exec()
-int SwitchStatement::exec(class QoreNode **return_value, class ExceptionSink *xsink)
+int SwitchStatement::execImpl(class QoreNode **return_value, class ExceptionSink *xsink)
 {
    int i, rc = 0;
    
-   tracein("SwitchStatement::exec()");
+   tracein("SwitchStatement::execImpl()");
    // instantiate local variables
    for (i = 0; i < lvars->num_lvars; i++)
       instantiateLVar(lvars->ids[i], NULL);
@@ -126,7 +122,7 @@ int SwitchStatement::exec(class QoreNode **return_value, class ExceptionSink *xs
       while (w && !rc && !xsink->isEvent())
       {
 	 if (w->code)
-	    rc = w->code->exec(return_value, xsink);
+	    rc = w->code->execImpl(return_value, xsink);
 	 
 	 w = w->next;
       }
@@ -141,11 +137,11 @@ int SwitchStatement::exec(class QoreNode **return_value, class ExceptionSink *xs
    for (i = 0; i < lvars->num_lvars; i++)
       uninstantiateLVar(xsink);
    
-   traceout("SwitchStatement::exec()");
+   traceout("SwitchStatement::execImpl()");
    return rc;
 }
 
-void SwitchStatement::parseInit(lvh_t oflag, int pflag)
+int SwitchStatement::parseInitImpl(lvh_t oflag, int pflag)
 {
    int i, lvids = 0;
    
@@ -174,7 +170,7 @@ void SwitchStatement::parseInit(lvh_t oflag, int pflag)
       }
       
       if (w->code)
-	 w->code->parseInit(oflag, pflag);
+	 w->code->parseInitImpl(oflag, pflag);
       w = w->next;
    }
    
@@ -182,6 +178,8 @@ void SwitchStatement::parseInit(lvh_t oflag, int pflag)
    lvars = new LVList(lvids);
    for (i = 0; i < lvids; i++)
       lvars->ids[i] = pop_local_var();
+
+   return 0;
 }
 
 bool CaseNodeWithOperator::isCaseNodeImpl() const

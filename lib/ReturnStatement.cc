@@ -1,5 +1,5 @@
 /*
- TryStatement.h
+ ReturnStatement.cc
  
  Qore Programming Language
  
@@ -20,27 +20,30 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _QORE_TRYSTATEMENT_H
+#include <qore/Qore.h>
+#include <qore/ReturnStatement.h>
 
-#define _QORE_TRYSTATEMENT_H
-
-#include "AbstractStatement.h"
-
-class TryStatement : public AbstractStatement
+ReturnStatement::ReturnStatement(int start_line, int end_line, class QoreNode *v) : AbstractStatement(start_line, end_line)
 {
-   public:
-      class StatementBlock *try_block;
-      class StatementBlock *catch_block;
-      //class StatementBlock *finally;
-      char *param;
-      lvh_t id;
-      
-      DLLLOCAL virtual int execImpl(class QoreNode **return_value, class ExceptionSink *xsink);
-      DLLLOCAL virtual int parseInitImpl(lvh_t oflag, int pflag = 0);
-   
-   public:
-      DLLLOCAL TryStatement(int start_line, int end_line, class StatementBlock *t, class StatementBlock *c, char *p);
-      DLLLOCAL virtual ~TryStatement();
-};
+   exp = v;
+}
 
-#endif
+ReturnStatement::~ReturnStatement()
+{
+   // this should never be NULL, but in case the implementation changes...
+   if (exp)
+      exp->deref(NULL);
+}
+
+int ReturnStatement::execImpl(class QoreNode **return_value, ExceptionSink *xsink)
+{
+   if (exp)
+      (*return_value) = exp->eval(xsink);
+   return RC_RETURN;
+}
+
+int ReturnStatement::parseInitImpl(lvh_t oflag, int pflag)
+{
+   return exp ? process_node(&exp, oflag, pflag) : 0;
+}
+

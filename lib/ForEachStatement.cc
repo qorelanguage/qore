@@ -23,12 +23,28 @@
 #include <qore/Qore.h>
 #include <qore/common.h>
 #include <qore/ForEachStatement.h>
-#include <qore/Statement.h>
 #include <qore/Variable.h>
 #include <qore/Function.h>
 
-// only executed by Statement::exec()
-int ForEachStatement::exec(class QoreNode **return_value, class ExceptionSink *xsink)
+ForEachStatement::ForEachStatement(int start_line, int end_line, class QoreNode *v, class QoreNode *l, class StatementBlock *cd) : AbstractStatement(start_line, end_line)
+{
+   var = v;
+   list = l;
+   code = cd;
+   lvars = NULL;
+}
+
+ForEachStatement::~ForEachStatement()
+{
+   var->deref(NULL);
+   list->deref(NULL);
+   if (code)
+      delete code;
+   if (lvars)
+      delete lvars;
+}
+
+int ForEachStatement::execImpl(class QoreNode **return_value, class ExceptionSink *xsink)
 {
    if (list->type == NT_REFERENCE)
       return execRef(return_value, xsink);
@@ -97,7 +113,7 @@ int ForEachStatement::exec(class QoreNode **return_value, class ExceptionSink *x
 	 vl.del();
 
 	 // execute "for" body
-	 if (code && (((rc = code->exec(return_value, xsink)) == RC_BREAK) || xsink->isEvent()))
+	 if (code && (((rc = code->execImpl(return_value, xsink)) == RC_BREAK) || xsink->isEvent()))
 	 {
 	    rc = 0;
 	    break;
@@ -126,12 +142,11 @@ int ForEachStatement::exec(class QoreNode **return_value, class ExceptionSink *x
    return rc;
 }
 
-// only executed by Statement::exec()
 int ForEachStatement::execRef(class QoreNode **return_value, class ExceptionSink *xsink)
 {
    int i, rc = 0;
 
-   tracein("ForEachStatement::exec()");
+   tracein("ForEachStatement::execRef()");
    // instantiate local variables
    for (i = 0; i < lvars->num_lvars; i++)
       instantiateLVar(lvars->ids[i], NULL);
@@ -208,7 +223,7 @@ int ForEachStatement::execRef(class QoreNode **return_value, class ExceptionSink
 	 // execute "for" body
 	 if (code)
 	 {
-	    rc = code->exec(return_value, xsink);
+	    rc = code->execImpl(return_value, xsink);
 
 	    // assign value of variable to referenced variable
 	    n = get_var_value_ptr(var, &vl, xsink);
@@ -282,39 +297,23 @@ int ForEachStatement::execRef(class QoreNode **return_value, class ExceptionSink
    for (i = 0; i < lvars->num_lvars; i++)
       uninstantiateLVar(xsink);
 
-   traceout("ForEachStatement::exec()");
+   traceout("ForEachStatement::execRef()");
    return rc;
 }
 
-void ForEachStatement::parseInit(lvh_t oflag, int pflag)
+int ForEachStatement::parseInitImpl(lvh_t oflag, int pflag)
 {
    int i, lvids = 0;
    
    lvids += process_node(&var, oflag, pflag);
    lvids += process_node(&list, oflag, pflag | PF_REFERENCE_OK);
    if (code)
-      code->parseInit(oflag, pflag);
+      code->parseInitImpl(oflag, pflag);
    
    // save local variables 
    lvars = new LVList(lvids);
    for (i = 0; i < lvids; i++)
       lvars->ids[i] = pop_local_var();
-}
 
-ForEachStatement::ForEachStatement(class QoreNode *v, class QoreNode *l, class StatementBlock *cd)
-{
-   var = v;
-   list = l;
-   code = cd;
-   lvars = NULL;
-}
-
-ForEachStatement::~ForEachStatement()
-{
-   var->deref(NULL);
-   list->deref(NULL);
-   if (code)
-      delete code;
-   if (lvars)
-      delete lvars;
+   return 0;
 }

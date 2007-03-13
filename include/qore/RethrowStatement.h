@@ -1,5 +1,5 @@
 /*
- TryStatement.h
+ RethrowStatement.h
  
  Qore Programming Language
  
@@ -20,27 +20,36 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _QORE_TRYSTATEMENT_H
+#ifndef _QORE_RETHROWSTATEMENT_H
 
-#define _QORE_TRYSTATEMENT_H
+#define _QORE_RETHROWSTATEMENT_H
 
 #include "AbstractStatement.h"
 
-class TryStatement : public AbstractStatement
+class RethrowStatement : public AbstractStatement
 {
-   public:
-      class StatementBlock *try_block;
-      class StatementBlock *catch_block;
-      //class StatementBlock *finally;
-      char *param;
-      lvh_t id;
-      
-      DLLLOCAL virtual int execImpl(class QoreNode **return_value, class ExceptionSink *xsink);
-      DLLLOCAL virtual int parseInitImpl(lvh_t oflag, int pflag = 0);
+   private:
+      DLLLOCAL virtual int execImpl(class QoreNode **return_value, ExceptionSink *xsink)
+      {
+	 xsink->rethrow(catchGetException());
+	 return 0;
+      }
+      DLLLOCAL virtual int parseInitImpl(lvh_t oflag, int pflag = 0)
+      {
+	 return 0;
+      }
    
    public:
-      DLLLOCAL TryStatement(int start_line, int end_line, class StatementBlock *t, class StatementBlock *c, char *p);
-      DLLLOCAL virtual ~TryStatement();
+      DLLLOCAL RethrowStatement(int start_line, int end_line) : AbstractStatement(start_line, end_line)
+      {
+      }
+      DLLLOCAL virtual ~RethrowStatement()
+      {
+      }
+      DLLLOCAL virtual bool endsBlock() const
+      {
+	 return true;
+      }
 };
 
 #endif

@@ -27,6 +27,7 @@
 #include <qore/ParserSupport.h>
 
 #include <errno.h>
+#include <typeinfo>
 
 extern class List *ARGV, *QORE_ARGV;
 extern class Hash *ENV;
@@ -553,10 +554,15 @@ int QoreProgram::getWarningMask() const
    return warnSink ? warn_mask : 0; 
 }
 
-void QoreProgram::addStatement(class Statement *s)
+void QoreProgram::addStatement(class AbstractStatement *s)
 {
    if (!sb_tail->statements)
-      sb_tail->statements = new StatementBlock(s);
+   {
+      if (typeid(s) != typeid(StatementBlock))
+	 sb_tail->statements = new StatementBlock(s);
+      else
+	 sb_tail->statements = dynamic_cast<StatementBlock *>(s);
+   }
    else
       sb_tail->statements->addStatement(s);
 
@@ -904,7 +910,7 @@ void QoreProgram::internParseCommit()
 
       // initialize new statements second (for $our declarations)
       if (sb_tail->statements)
-	 sb_tail->statements->parseInit((lvh_t)0);
+	 sb_tail->statements->parseInitImpl((lvh_t)0);
 
       printd(5, "QoreProgram::internParseCommit() this=%08p RootNS=%08p\n", this, RootNS);
       // initialize new objects, etc in namespaces

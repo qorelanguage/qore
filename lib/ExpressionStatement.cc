@@ -1,5 +1,5 @@
 /*
- DeleteStatement.cc
+ ExpressionStatement.cc
  
  Qore Programming Language
  
@@ -20,32 +20,39 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include <qore/config.h>
-#include <qore/common.h>
-#include <qore/DeleteStatement.h>
-#include <qore/Variable.h>
-#include <qore/QoreNode.h>
+#include <qore/Qore.h>
+#include <qore/ExpressionStatement.h>
 
-DeleteStatement::DeleteStatement(int start_line, int end_line, class QoreNode *v) : AbstractStatement(start_line, end_line)
+ExpressionStatement::ExpressionStatement(int start_line, int end_line, class QoreNode *v) : AbstractStatement(start_line, end_line)
 {
-   var = v;
+   exp = v;
+
+   // if it is a global variable declaration, then do not register
+   if ((exp->type == NT_VARREF
+	&& exp->val.vref->type == VT_GLOBAL)
+       || (exp->type == NT_VLIST && 
+	   exp->val.list->retrieve_entry(0)->val.vref->type == VT_GLOBAL))
+      is_declaration = true;
+   else
+      is_declaration = false;
 }
 
-DeleteStatement::~DeleteStatement()
+ExpressionStatement::~ExpressionStatement()
 {
    // this should never be NULL, but in case the implementation changes...
-   if (var)
-      var->deref(NULL);
+   if (exp)
+      exp->deref(NULL);
 }
 
-int DeleteStatement::execImpl(class QoreNode **return_value, ExceptionSink *xsink)
+int ExpressionStatement::execImpl(class QoreNode **return_value, ExceptionSink *xsink)
 {
-   delete_var_node(var, xsink);
+   discard(exp->eval(xsink), xsink);
    return 0;
 }
 
-int DeleteStatement::parseInitImpl(lvh_t oflag, int pflag)
+int ExpressionStatement::parseInitImpl(lvh_t oflag, int pflag)
 {
-   return process_node(&var, oflag, pflag);
+   //printd(5, "ES::pII() exp=%08p (%s)\n", exp, exp->type->getName());
+   return process_node(&exp, oflag, pflag);
 }
 

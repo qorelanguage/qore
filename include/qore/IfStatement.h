@@ -24,18 +24,22 @@
 
 #define _QORE_IFSTATEMENT_H
 
-class IfStatement {
-private:
-   class QoreNode *cond;
-   class StatementBlock *if_code;
-   class StatementBlock *else_code;
-   class LVList *lvars;
+#include "AbstractStatement.h"
+
+class IfStatement : public AbstractStatement
+{
+   private:
+      class QoreNode *cond;
+      class StatementBlock *if_code;
+      class StatementBlock *else_code;
+      class LVList *lvars;
+
+      DLLLOCAL virtual int execImpl(class QoreNode **return_value, class ExceptionSink *xsink);
+      DLLLOCAL virtual int parseInitImpl(lvh_t oflag, int pflag = 0);
    
-public:
-   DLLLOCAL IfStatement(class QoreNode *c, class StatementBlock *i, class StatementBlock *e);
-   DLLLOCAL ~IfStatement();
-   DLLLOCAL int exec(class QoreNode **return_value, class ExceptionSink *xsink);
-   DLLLOCAL void parseInit(lvh_t oflag, int pflag = 0);
+   public:
+      DLLLOCAL IfStatement(int start_line, int end_line, class QoreNode *c, class StatementBlock *i, class StatementBlock *e = NULL);
+      DLLLOCAL virtual ~IfStatement();
 };
 
 #endif

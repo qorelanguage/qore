@@ -56,7 +56,7 @@
 // include private definitions if compiling the library
 #ifdef _QORE_LIB_INTERN
 #include <qore/Function.h>
-#include <qore/Statement.h>
+#include <qore/AbstractStatement.h>
 #include <qore/Variable.h>
 #include <qore/NamedScope.h>
 #include <qore/ScopedObjectCall.h>

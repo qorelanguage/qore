@@ -22,6 +22,14 @@
 */
 
 #include <qore/Qore.h>
+#include <qore/BreakStatement.h>
+#include <qore/ContinueStatement.h>
+#include <qore/ReturnStatement.h>
+#include <qore/RethrowStatement.h>
+#include <qore/ThreadExitStatement.h>
+#include <qore/ExpressionStatement.h>
+#include <qore/DoWhileStatement.h>
+#include <qore/SummarizeStatement.h>
 #include <qore/ContextStatement.h>
 #include <qore/IfStatement.h>
 #include <qore/WhileStatement.h>
@@ -30,6 +38,7 @@
 #include <qore/DeleteStatement.h>
 #include <qore/TryStatement.h>
 #include <qore/ThrowStatement.h>
+#include <qore/StatementBlock.h>
 #include <qore/Find.h>
 #include <qore/ParserSupport.h>
 #include <qore/RegexSubst.h>
@@ -470,7 +479,7 @@ struct MethodNode {
       char *string;
       class BinaryObject *binary;
       class QoreNode *node;
-      class Statement *statement;
+      class AbstractStatement *statement;
       class StatementBlock *sblock;
       class ContextModList *cmods;
       class ContextMod *cmod;
@@ -729,19 +738,17 @@ top_level_command:
         | object_outofline_function_def  // registered directly
 	| statement                  
         { 
-	   // if it is a global variable declaration, then do not register
-	   if ($1 && $1->Type == S_EXPRESSION
-	       && (($1->s.node->type == NT_VARREF
-		    && $1->s.node->val.vref->type == VT_GLOBAL)
-		   || ($1->s.node->type == NT_VLIST && 
-		       $1->s.node->val.list->retrieve_entry(0)->val.vref->type == VT_GLOBAL)))
+	   if ($1 && $1->isDeclaration())
 	      delete $1;
 	   else
-	      getProgram()->addStatement($1); 
+	      getProgram()->addStatement($1);
 	}
         | '{' statements '}'
         {
-	   getProgram()->addStatement(new Statement(@1.first_line, @3.last_line, $2));
+	   // set line range
+	   $2->LineNumber = @1.first_line;
+	   $2->EndLineNumber = @2.last_line;
+	   getProgram()->addStatement($2);
         }
         | top_namespace_decl
         {
@@ -864,64 +871,53 @@ statement:
 	      parse_error("statement has no effect (%s)", $1->type->getName());
 	   if ($1->type == NT_TREE)
 	      $1->val.tree->ignoreReturnValue();
-	   $$ = new Statement(@1.first_line, @1.last_line, S_EXPRESSION, $1);
+	   $$ = new ExpressionStatement(@1.first_line, @1.last_line, $1);
 	}
         | try_statement
         { $$ = $1; }
 	| TOK_RETHROW ';'
 	{
-	   $$ = new Statement(@1.first_line, @1.last_line, S_RETHROW);
+	   $$ = new RethrowStatement(@1.first_line, @1.last_line);
 	}
         | TOK_THROW exp ';'
         {
-	   $$ = new Statement(@1.first_line, @2.last_line, S_THROW);
-	   $$->s.Throw = new ThrowStatement($2);
+	   $$ = new ThrowStatement(@1.first_line, @2.last_line, $2);
 	}
         | TOK_SUB_CONTEXT context_mods statement_or_block
         {
-	   $$ = new Statement(@1.first_line, @3.last_line, S_SUBCONTEXT);
-	   $$->s.SContext = new ContextStatement(NULL, NULL, $2, $3);
+	   $$ = new ContextStatement(@1.first_line, @3.last_line, NULL, NULL, $2, $3);
 	}
         | TOK_SUMMARIZE optname '(' exp ')' TOK_BY '(' exp ')' context_mods statement_or_block
         {
-	   $$ = new Statement(@1.first_line, @11.last_line, S_SUMMARY);
-	   $$->s.SContext = new ContextStatement($2, $4, $10, $11, $8);
+	   $$ = new SummarizeStatement(@1.first_line, @11.last_line, $2, $4, $10, $11, $8);
 	}
         | TOK_CONTEXT optname '(' exp ')' context_mods statement_or_block
         {
-	   $$ = new Statement(@1.first_line, @7.last_line, S_CONTEXT);
-	   
-	   $$->s.SContext = new ContextStatement($2, $4, $6, $7);
+	   $$ = new ContextStatement(@1.first_line, @7.last_line, $2, $4, $6, $7);
         }
 	| TOK_IF '(' exp ')' statement_or_block %prec IFX
         {	
-	   $$ = new Statement(@1.first_line, @5.last_line, S_IF);
-	   $$->s.If = new IfStatement($3, $5, NULL);
+	   $$ = new IfStatement(@1.first_line, @5.last_line, $3, $5);
 	}
         | TOK_IF '(' exp ')' statement_or_block TOK_ELSE statement_or_block
         {
-	   $$ = new Statement(@1.first_line, @7.last_line, S_IF);
-	   $$->s.If = new IfStatement($3, $5, $7);
+	   $$ = new IfStatement(@1.first_line, @7.last_line, $3, $5, $7);
 	}
 	| TOK_WHILE '(' exp ')' statement_or_block
         {
-	   $$ = new Statement(@1.first_line, @5.last_line, S_WHILE);
-	   $$->s.While = new WhileStatement($3, $5);
+	   $$ = new WhileStatement(@1.first_line, @5.last_line, $3, $5);
 	}
 	| TOK_DO statement_or_block TOK_WHILE '(' exp ')' ';'
         {
-	   $$ = new Statement(@1.first_line, @5.last_line, S_DO_WHILE);
-	   $$->s.While = new WhileStatement($5, $2);
+	   $$ = new DoWhileStatement(@1.first_line, @5.last_line, $5, $2);
 	}
 	| TOK_FOR '(' myexp ';' myexp ';' myexp ')' statement_or_block
         {
-	   $$ = new Statement(@1.first_line, @9.last_line, S_FOR);
-	   $$->s.For = new ForStatement($3, $5, $7, $9);
+	   $$ = new ForStatement(@1.first_line, @9.last_line, $3, $5, $7, $9);
 	}
         | TOK_FOREACH exp TOK_IN '(' exp ')' statement_or_block
         {
-	   $$ = new Statement(@1.first_line, @7.last_line, S_FOREACH);
-	   $$->s.ForEach = new ForEachStatement($2, $5, $7);
+	   $$ = new ForEachStatement(@1.first_line, @7.last_line, $2, $5, $7);
 	   if ($2->type != NT_VARREF && $2->type != NT_SELF_VARREF)
 	      parse_error("foreach variable expression is not a variable reference");
 	}
@@ -932,20 +928,19 @@ statement:
 	   if (checkParseOption(PO_NO_THREAD_CONTROL))
 	      parse_error("illegal use of \"thread_exit\" (conflicts with parse option NO_THREAD_CONTROL)");
 
-	   $$ = new Statement(@1.first_line, @1.last_line, S_THREAD_EXIT); 
+	   $$ = new ThreadExitStatement(@1.first_line, @1.last_line); 
 	}
         | TOK_BREAK ';'
         {
-	  $$ = new Statement(@1.first_line, @1.last_line, S_BREAK);
+	  $$ = new BreakStatement(@1.first_line, @1.last_line);
 	}
         | TOK_CONTINUE ';'
         {
-	  $$ = new Statement(@1.first_line, @1.last_line, S_CONTINUE);
+	  $$ = new ContinueStatement(@1.first_line, @1.last_line);
 	}
         | TOK_DELETE exp ';'
         {
-	   $$ = new Statement(@1.first_line, @2.last_line, S_DELETE);
-	   $$->s.Delete = new DeleteStatement($2);
+	   $$ = new DeleteStatement(@1.first_line, @2.last_line, $2);
 	   if (check_vars($2))
 	      parse_error("delete statement takes only variable references as arguments");
 	}
@@ -979,17 +974,18 @@ context_mod:
 	;
 
 return_statement:
-	TOK_RETURN     { $$ = new Statement(@1.first_line, @1.last_line, S_RETURN); $$->s.node = NULL; }
+        TOK_RETURN     { $$ = new ReturnStatement(@1.first_line, @1.last_line); }
 	|
-	TOK_RETURN exp { $$ = new Statement(@1.first_line, @2.last_line, S_RETURN, $2); }
+	TOK_RETURN exp { $$ = new ReturnStatement(@1.first_line, @2.last_line, $2); }
 	;
 
 switch_statement:
         TOK_SWITCH '(' exp ')' '{' case_block '}'
         {
 	   $6->setSwitch($3);
-	   $$ = new Statement(@1.first_line, @7.last_line, S_SWITCH);
-	   $$->s.Switch = $6;
+	   $$ = $6;
+	   $$->LineNumber = @1.first_line;
+	   $$->EndLineNumber = @7.last_line;
         }
         ;
 
@@ -1071,7 +1067,6 @@ case_code:
 try_statement:
         TOK_TRY statement_or_block TOK_CATCH '(' myexp ')' statement_or_block
         {
-	   $$ = new Statement(@1.first_line, @7.last_line, S_TRY);
 	   char *param = NULL;
 	   if ($5)
 	   {
@@ -1084,7 +1079,7 @@ try_statement:
 		 parse_error("only one parameter accepted in catch block for exception hash");
 	      $5->deref(NULL);
 	   }
-	   $$->s.Try = new TryStatement($2, $7, param);
+	   $$ = new TryStatement(@1.first_line, @7.last_line, $2, $7, param);
 	}
         ;
 

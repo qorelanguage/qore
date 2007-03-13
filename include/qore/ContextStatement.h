@@ -24,6 +24,8 @@
 
 #define _QORE_CONTEXTSTATEMENT_H
 
+#include "AbstractStatement.h"
+
 #include <qore/safe_dslist>
 
 // context mod types defined in Context.h
@@ -49,18 +51,20 @@ public:
    DLLLOCAL void addContextMod(ContextMod *cm);
 };
 
-class ContextStatement {
-public:
-   char *name;
-   class QoreNode *exp, *where_exp, *sort_ascending, *sort_descending, *summarize;
-   class StatementBlock *code;
-   class LVList *lvars;
-   
-   DLLLOCAL ContextStatement(char *n, class QoreNode *expr, class ContextModList *cm, class StatementBlock *cd, class QoreNode *summ_exp = NULL);
-   DLLLOCAL ~ContextStatement();
-   DLLLOCAL int exec(class QoreNode **return_value, class ExceptionSink *xsink);
-   DLLLOCAL int execSummary(class QoreNode **return_value, class ExceptionSink *xsink);
-   DLLLOCAL void parseInit(lvh_t oflag, int pflag = 0);
+class ContextStatement :public AbstractStatement
+{
+   protected:
+      DLLLOCAL virtual int execImpl(class QoreNode **return_value, class ExceptionSink *xsink);
+      DLLLOCAL virtual int parseInitImpl(lvh_t oflag, int pflag = 0);
+
+   public:
+      char *name;
+      class QoreNode *exp, *where_exp, *sort_ascending, *sort_descending;
+      class StatementBlock *code;
+      class LVList *lvars;
+      
+      DLLLOCAL ContextStatement(int start_line, int end_line, char *n, class QoreNode *expr, class ContextModList *cm, class StatementBlock *cd);
+      DLLLOCAL virtual ~ContextStatement();
 };
 
 #endif

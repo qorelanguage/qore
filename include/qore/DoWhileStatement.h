@@ -1,5 +1,5 @@
 /*
- TryStatement.h
+ DoWhileStatement.h
  
  Qore Programming Language
  
@@ -20,27 +20,27 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _QORE_TRYSTATEMENT_H
+#ifndef _QORE_DOWHILESTATEMENT_H
 
-#define _QORE_TRYSTATEMENT_H
+#define _QORE_DOWHILESTATEMENT_H
 
 #include "AbstractStatement.h"
 
-class TryStatement : public AbstractStatement
+#include <qore/WhileStatement.h>
+
+class DoWhileStatement : public WhileStatement
 {
-   public:
-      class StatementBlock *try_block;
-      class StatementBlock *catch_block;
-      //class StatementBlock *finally;
-      char *param;
-      lvh_t id;
-      
+   private:
       DLLLOCAL virtual int execImpl(class QoreNode **return_value, class ExceptionSink *xsink);
       DLLLOCAL virtual int parseInitImpl(lvh_t oflag, int pflag = 0);
    
    public:
-      DLLLOCAL TryStatement(int start_line, int end_line, class StatementBlock *t, class StatementBlock *c, char *p);
-      DLLLOCAL virtual ~TryStatement();
+      DLLLOCAL DoWhileStatement(int start_line, int end_line, class QoreNode *c, class StatementBlock *cd) : WhileStatement(start_line, end_line, c, cd)
+      {
+      }
+      DLLLOCAL virtual ~DoWhileStatement()
+      {
+      }
 };
 
 #endif
