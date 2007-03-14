@@ -61,19 +61,19 @@ public:
       inline ~QoreEncoding()
       {
       }
-      inline int getLength(const char *p)
+      inline int getLength(const char *p) const
       {
 	 return flength ? flength(p) : strlen(p);
       }
-      inline int getByteLen(const char *p, int c)
+      inline int getByteLen(const char *p, int c) const
       {
 	 return fend ? fend(p, c) : c;
       }
-      inline int getCharPos(const char *p, const char *e)
+      inline int getCharPos(const char *p, const char *e) const
       {
 	 return fpos ? fpos(p, e) : e - p;
       }
-      inline bool isMultiByte()
+      inline bool isMultiByte() const
       {
 	 return (bool)flength;
       }
