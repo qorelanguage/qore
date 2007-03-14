@@ -90,7 +90,6 @@ sub readwrite_deadlock_c($c, $rw1, $rw2)
 sub readwrite_deadlock_d($c, $rw1, $rw2)
 {
     my $al = new AutoReadLock($rw2);
-    #my $al = new AutoWriteLock($rw2);
     $c.dec();
     $c.waitForZero();
     try {

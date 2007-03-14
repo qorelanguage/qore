@@ -8,7 +8,7 @@
   <para><code>class, private, synchronized, new, inherits, where, do, while, if, else, for, foreach, const, namespace, return, my, 
   our, try, throw, catch, find, delete, background, exists, thread_exit, in, 
   elements, keys, sub, context, sortBy, sortDescendingBy, NULL, NOTHING, 
-  summarize, by, subcontext, break, continue, instanceof</code></para>
+  summarize, by, subcontext, break, continue, instanceof, on_block_exit</code></para>
 
   <para>The following are special keywords, in that they may be used as function or method names if they are followed by an open parenthesis:</para>
 

@@ -257,9 +257,9 @@ class Var *QoreProgram::createVar(const char *name)
    class Var *rv = global_var_list.checkVar(name, &new_var);
    // it's a new global variable: check if global variables are allowed
    if ((parse_options & PO_NO_GLOBAL_VARS) && new_var)
-      parse_error("illegal reference to new global variable \"%s\" (conflicts with parse option NO_GLOBAL_VARS)", name);
+      parse_error("illegal reference to new global variable '%s' (conflicts with parse option NO_GLOBAL_VARS)", name);
 
-   printd(5, "QoreProgram::createVar() global var \"%s\" processed, new_var=%d\n", name, new_var);
+   printd(5, "QoreProgram::createVar() global var '%s' processed, new_var=%d (val=%08p)\n", name, new_var, rv);
 
    return rv;
 }

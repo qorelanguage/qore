@@ -1,3 +1,19 @@
+2007.03.14: David Nichols
+	* implemented the "on_block_exit" statement - this statement is meant to
+	  provide a clean way to do exception-safe cleanup within Qore code.
+	  Any single statment (or block) after the new "on_block_exit" keyword
+	  will be executed when the current block exits (as long as the 
+	  statement itself is reached when executing - "on_block_exit" 
+	  statements that are never reached when executing will have no effect).
+	  Therefore the position of the "on_block_exit" statement is important,
+	  and the immediate effect of this statement is to queue it's code for
+	  execution when the block is exited.  Even if an exception is raised or
+	  a return statement is executed, any on_block_exit code that is queued 
+	  will be executed.  Therefore it's ideal for putting cleanup code right
+	  next to the code that requires the cleanup, and by using this 
+	  statement, the programmer ensures that the cleanup will be performed
+	  regardless of the exit status of the block (exception, return, etc)
+
 2007.03.13: David Nichols
 	* cleaned up/updated Qore statement implementation to a class tree with
 	  a virtual API

@@ -25,6 +25,9 @@
 #define _QORE_STATEMENT_BLOCK_H
 
 #include <qore/AbstractStatement.h>
+#include <qore/safe_dslist> 
+
+#include <list>
 
 // all definitions in this file are private to the library and subject to change
 
@@ -40,7 +43,9 @@ class LVList {
 class StatementBlock : public AbstractStatement
 {
    private:
-      class AbstractStatement *head, *tail;      
+      typedef safe_dslist<AbstractStatement *> statement_list_t;
+      statement_list_t statement_list;
+      block_list_t on_block_exit_list;
 
    public:
       class LVList *lvars;

@@ -11,6 +11,7 @@
 #include "GlobalVariableList.cc"
 #include "ImportedFunctionList.cc"
 #include "AbstractStatement.cc"
+#include "OnBlockExitStatement.cc"
 #include "ExpressionStatement.cc"
 #include "ReturnStatement.cc"
 #include "StatementBlock.cc"

@@ -4527,12 +4527,12 @@ $var[1].count++;
     <entry><para><link linkend="Classes">Classes</link></para></entry>
   </row>
   <row>
-    <entry><para>An "if" statement </para></entry>
+    <entry><para>An <command>if</command> statement </para></entry>
     <entry><programlisting><command>if</command> ($var == 3) <replaceable>statement</replaceable></programlisting></entry>
     <entry><para><link linkend='if_and_else_Statements'>if and else Statements</link></para></entry>
   </row>
   <row>
-    <entry><para>An "if ... else" statement</para></entry>
+    <entry><para>An "<command>if ... else</command>" statement</para></entry>
     <entry><programlisting><command>if</command> ($var == 3)
     <replaceable>statement</replaceable>
 <command>else</command>
@@ -4540,31 +4540,31 @@ $var[1].count++;
     <entry><para><link linkend='if_and_else_Statements'>if and else Statements</link></para></entry>
   </row>
   <row>
-    <entry><para>A while statement</para></entry>
+    <entry><para>A <command>while</command> statement</para></entry>
     <entry><programlisting><command>while</command> ($var &lt; 10) 
     <replaceable>statement</replaceable></programlisting></entry>
     <entry><para><link linkend='while_Statements'>while Statements</link></para></entry>
   </row>
   <row>
-    <entry><para>A do while statement</para></entry>
+    <entry><para>A <command>do while</command> statement</para></entry>
     <entry><programlisting><command>do</command> <replaceable>statement</replaceable> <command>while</command> 
     (<replaceable>expression</replaceable>);</programlisting></entry>
     <entry><para><link linkend='do_while_Statements'>do while Statements</link></para></entry>
   </row>
   <row>
-    <entry><para>A for statement</para></entry>
+    <entry><para>A <command>for</command> statement</para></entry>
     <entry><programlisting><command>for</command> (<replaceable>expression1</replaceable>; <replaceable>expression2</replaceable>; 
     <replaceable>expression3</replaceable>) <replaceable>statement</replaceable></programlisting></entry>
     <entry><para><link linkend='for_Statements'>for Statements</link></para></entry>
   </row>
   <row>
-    <entry><para>A foreach statement</para></entry>
+    <entry><para>A <command>foreach</command> statement</para></entry>
     <entry><programlisting><command>foreach</command> <replaceable>$variable</replaceable> <command>in</command> 
     (<replaceable>expression</replaceable>) <replaceable>statement</replaceable></programlisting></entry>
     <entry><para><link linkend='foreach_Statements'>Foreach Statements</link></para></entry>
   </row>
   <row>
-    <entry><para>A switch statement</para></entry>
+    <entry><para>A <command>switch</command> statement</para></entry>
     <entry><programlisting><command>switch</command> (<replaceable>expression</replaceable>) 
 {
     <command>case</command> <replaceable>case_expression</replaceable>: 
@@ -4576,7 +4576,7 @@ $var[1].count++;
     <entry><para><link linkend='switch_Statements'>switch Statements</link></para></entry>
   </row>
   <row>
-    <entry><para>A return statement</para></entry>
+    <entry><para>A <command>return</command> statement</para></entry>
     <entry><programlisting><command>return</command> <replaceable>expression</replaceable>;</programlisting></entry>
     <entry><para><link linkend='return_Statements'>return Statements</link></para></entry>
   </row>
@@ -4602,12 +4602,12 @@ $var[1].count++;
     <entry><para><link linkend="Function_Library">Function Library</link></para></entry>
   </row>
   <row>
-    <entry><para>A continue statement</para></entry>
+    <entry><para>A <command>continue</command> statement</para></entry>
     <entry><programlisting><command>continue</command>;</programlisting></entry>
     <entry><para><link linkend='continue_Statements'>continue Statements</link></para></entry>
   </row>
   <row>
-    <entry><para>A break statement</para></entry>
+    <entry><para>A <command>break</command> statement</para></entry>
     <entry><programlisting><command>break</command>;</programlisting></entry>
     <entry><para><link linkend='break_Statements'>break Statements</link></para></entry>
   </row>
@@ -4617,17 +4617,17 @@ $var[1].count++;
     <entry><para>one or more statements enclosed in curly brackets.</para></entry>
   </row>
   <row>
-    <entry><para>A delete statement</para></entry>
+    <entry><para>A <command>delete</command> statement</para></entry>
     <entry><programlisting><command>delete</command> <replaceable>$lvalue</replaceable>;</programlisting></entry>
     <entry><para><link linkend='delete_Statements'>delete Statements</link></para></entry>
   </row>
   <row>
-    <entry><para>A throw statement</para></entry>
+    <entry><para>A <command>throw</command> statement</para></entry>
     <entry><programlisting><command>throw</command> <replaceable>expression</replaceable>;</programlisting></entry>
     <entry><para><link linkend='throw_Statements'>throw Statements</link></para></entry>
   </row>
   <row>
-    <entry><para>Try and catch statements</para></entry>
+    <entry><para><command>try</command> and <command>catch</command> statements</para></entry>
     <entry><programlisting><command>try</command>
     <replaceable>statement</replaceable>
 <command>catch</command> (<replaceable>$vars ...</replaceable>)
@@ -4636,17 +4636,17 @@ $var[1].count++;
     <entry><para><link linkend='try_and_catch_Statements'>try and catch Statements</link></para></entry>
   </row>
   <row>
-    <entry><para>A rethrow statement</para></entry>
+    <entry><para>A <command>rethrow</command> statement</para></entry>
     <entry><programlisting><command>rethrow</command>;</programlisting></entry>
     <entry><para><link linkend='rethrow_Statements'>rethrow Statements</link></para></entry>
   </row>
   <row>
-    <entry><para>A thread_exit statement</para></entry>
+    <entry><para>A <command>thread_exit</command> statement</para></entry>
     <entry><programlisting><command>thread_exit</command>;</programlisting></entry>
     <entry><para><link linkend='thread_exit_Statements'>thread_exit Statements</link></para></entry>
   </row>
   <row>
-    <entry><para>A context statement</para></entry>
+    <entry><para>A <command>context</command> statement</para></entry>
     <entry>
       <programlisting><command>context</command> <replaceable>[name] (expression)</replaceable> 
     <replaceable>statement</replaceable></programlisting>
@@ -4654,7 +4654,7 @@ $var[1].count++;
     <entry><para><link linkend='context_Statements'>context Statements</link></para></entry>
   </row>
   <row>
-    <entry><para>A summarize statement</para></entry>
+    <entry><para>A <command>summarize</command> statement</para></entry>
     <entry>
       <programlisting><command>summarize</command> <replaceable>expression</replaceable> by ( <replaceable>expression</replaceable> )
     <replaceable>statement</replaceable></programlisting>
@@ -4662,10 +4662,16 @@ $var[1].count++;
     <entry><para><link linkend='summarize_Statements'>summarize Statements</link></para></entry>
   </row>
   <row>
-    <entry><para>A subcontext statement</para></entry>
+    <entry><para>A <command>subcontext</command> statement</para></entry>
     <entry><programlisting><command>subcontext</command>
     <replaceable>statement</replaceable></programlisting></entry>
     <entry><para><link linkend='subcontext_Statements'>subcontext Statements</link></para></entry>
+  </row>
+  <row>
+    <entry><para>An <command>on_block_exit</command> statement</para></entry>
+    <entry><programlisting><command>on_block_exit</command>
+    <replaceable>statement</replaceable></programlisting></entry>
+    <entry><para><link linkend='on_block_exit_Statements'>on_block_exit Statements</link></para></entry>
   </row>
 
 </tbody>
@@ -5256,6 +5262,49 @@ $name = getName();</programlisting>
 	</varlistentry>
       </variablelist>
     </sect2>
+
+    <sect2 id="on_block_exit_Statements">
+      <title>on_block_exit Statements</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Queues a statement or statement block for execution when the block is exited, even in the case of exceptions or <command>return</command> statements.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Syntax</term>
+	  <listitem>
+	    <programlisting><command>on_block_exit</command>
+    <replaceable>statement</replaceable></programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Description</term>
+	  <listitem>
+	    <para>The <command>on_block_exit</command> statement provides a clean way to do exception-safe cleanup within Qore code.  Any single statment (or statement block) after the <command>on_block_exit</command> keyword will be executed when the current block exits (as long as the statement itself is reached when executing - <command>on_block_exit</command> statements that are never reached when executing will have no effect).  The the position of the <command>on_block_exit</command> statement in the block is important, as the immediate effect of this statement is to queue its code for execution when the block is exited.  Even if an exception is raised or a <command>return</command> statement is executed, any <command>on_block_exit</command> code that is queued will be executed.  Therefore it's ideal for putting cleanup code right next to the code that requires the cleanup.</para>
+	    <para>By using this statement, programmers ensure that necessary cleanup will be performed regardless of the exit status of the block (exception, return, etc).</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+      <listitem>
+	<programlisting>{
+    $mutex.lock();
+    # here we queue the unlock of the mutex when the block exits, even if an exception is thrown below
+    <command>on_block_exit</command> $mutex.unlock();
+    if ($error)
+        <command>throw</command> "ERROR", "Scary error happened";
+    print("everything's OK!\n");
+    return "OK";
+}
+# when the block exits for any reason, the mutex will be unlocked
+</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+  </sect2>
 
 </sect1>
 

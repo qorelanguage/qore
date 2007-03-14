@@ -46,6 +46,7 @@
 #include <qore/RegexTrans.h>
 #include <qore/SwitchStatement.h>
 #include <qore/SwitchStatementWithOperators.h>
+#include <qore/OnBlockExitStatement.h>
 #include <qore/Tree.h>
 
 #include "parser.h"
@@ -606,6 +607,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str)
 %token TOK_KEYS "keys"
 %token TOK_NEW "new"
 %token TOK_BACKGROUND "background"
+%token TOK_ON_BLOCK_EXIT "on_block_exit"
 
  // tokens returning data
 %token <integer> INTEGER "integer value"
@@ -882,6 +884,10 @@ statement:
         | TOK_THROW exp ';'
         {
 	   $$ = new ThrowStatement(@1.first_line, @2.last_line, $2);
+	}
+        | TOK_ON_BLOCK_EXIT statement_or_block
+        {
+	   $$ = new OnBlockExitStatement(@1.first_line, @2.last_line, $2);
 	}
         | TOK_SUB_CONTEXT context_mods statement_or_block
         {

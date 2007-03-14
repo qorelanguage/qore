@@ -188,6 +188,25 @@ $i = 1;
 delete $i;
 printf("delete: $i = %n\n", $i);
 
+###############################
+# the "on_block_exit" statement
+###############################
+# the "on_block_exit" statement queues a statement for execution when a block is exited
+# this allows programmers to put cleanup code right after the code requiring the cleanup
+# instead at every possible exit point in a block
+try
+{
+    $i = 10;
+    on_block_exit $i = 20;
+    $i = 30;
+    throw False;
+}
+catch ()
+{
+    # ignore the exception
+}
+printf("i must be 20: i=%d\n", $i);
+
 #############################
 # the "thread_exit" statement
 #############################

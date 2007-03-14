@@ -31,6 +31,7 @@ libqore_la_SOURCES = \
 	GlobalVariableList.cc \
 	ImportedFunctionList.cc \
 	AbstractStatement.cc \
+	OnBlockExitStatement.cc \
 	ExpressionStatement.cc \
 	ReturnStatement.cc \
 	StatementBLock.cc \

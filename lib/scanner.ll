@@ -623,6 +623,7 @@ pop                                     return TOK_POP;
 splice                                  return TOK_SPLICE;
 instanceof                              return TOK_INSTANCEOF;
 chomp					return TOK_CHOMP;
+on_block_exit 		 		return TOK_ON_BLOCK_EXIT;
 chomp\(                                 yylval->string = strdup("chomp"); return KW_IDENTIFIER_OPENPAREN;
 push\(                                  yylval->string = strdup("push"); return KW_IDENTIFIER_OPENPAREN;
 pop\(                                   yylval->string = strdup("pop"); return KW_IDENTIFIER_OPENPAREN;

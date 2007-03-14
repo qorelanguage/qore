@@ -85,6 +85,13 @@ DLLLOCAL class Exception *catchGetException();
 DLLLOCAL class CallStack *getCallStack();
 DLLLOCAL class VLock *getVLock();
 
+// called when a StatementBlock has "on block exit" blocks
+DLLLOCAL void pushBlock(block_list_t::iterator i);
+// called when a StatementBlock has "on block exit" blocks
+DLLLOCAL block_list_t::iterator popBlock();
+// called by each "on_block_exit" statement to activate it's code for the block exit
+DLLLOCAL void advanceOnBlockExit();
+
 class ThreadResourceList : public LockedObject {
    private:
       class ThreadResourceNode *head;

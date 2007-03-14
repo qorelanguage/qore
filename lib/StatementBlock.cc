@@ -86,21 +86,21 @@ class QoreNode *StatementBlock::exec(ExceptionSink *xsink)
 }
 
 // line numbers on statement blocks are set later
-StatementBlock::StatementBlock(AbstractStatement *s) : AbstractStatement(-1, -1), head(s), tail(s), lvars(0)
+StatementBlock::StatementBlock(AbstractStatement *s) : AbstractStatement(-1, -1), lvars(0)
 {
+   statement_list.push_back(s);
 }
 
 void StatementBlock::addStatement(class AbstractStatement *s)
 {
    //tracein("StatementBlock::addStatement()");
-   // if statement was blank then return already-present block
-   if (!s) return;
-   
-   if (!head)
-      head = s;
-   else
-      tail->next = s;
-   tail = s;
+   if (s)
+   {
+      statement_list.push_back(s);
+      OnBlockExitStatement *obe = dynamic_cast<OnBlockExitStatement *>(s);
+      if (obe)
+	 on_block_exit_list.push_front(obe->getCode());
+   }
    
    //traceout("StatementBlock::addStatement()");
 }
@@ -108,13 +108,9 @@ void StatementBlock::addStatement(class AbstractStatement *s)
 StatementBlock::~StatementBlock()
 {
    //tracein("StatementBlock::~StatementBlock()");
-   
-   while (head)
-   {
-      tail = head->next;
-      delete head;
-      head = tail;
-   }
+
+   for (statement_list_t::iterator i = statement_list.begin(), e = statement_list.end(); i != e; ++i)
+      delete *i;
    
    if (lvars)
       delete lvars;
@@ -123,7 +119,7 @@ StatementBlock::~StatementBlock()
 
 int StatementBlock::execImpl(class QoreNode **return_value, class ExceptionSink *xsink)
 {
-   tracein("StatementBlock::exec()");
+   tracein("StatementBlock::execImpl()");
    int rc = 0;
    // instantiate local variables
    for (int i = 0; i < lvars->num_lvars; i++)
@@ -131,19 +127,28 @@ int StatementBlock::execImpl(class QoreNode **return_value, class ExceptionSink 
 
    assert(xsink);
 
+   // push on block exit iterator if necessary
+   if (on_block_exit_list.size())
+      pushBlock(on_block_exit_list.end());
+   
    // execute block
-   class AbstractStatement *where = head;
-   while (where && !xsink->isEvent())
-   {
-      if ((rc = where->exec(return_value, xsink)))
+   for (statement_list_t::iterator i = statement_list.begin(), e = statement_list.end(); i != e; ++i)
+      if ((rc = (*i)->exec(return_value, xsink)))
 	 break;
-      where = where->next;
+
+   // execute on block exit code if applicable
+   if (on_block_exit_list.size())
+   {
+      ExceptionSink obe_xsink;
+      for (block_list_t::iterator i = popBlock(), e = on_block_exit_list.end(); i != e; ++i)
+	 rc = (*i)->execImpl(return_value, &obe_xsink);
+      xsink->assimilate(&obe_xsink);
    }
 
    // delete all variables local to this block
    for (int i = 0; i < lvars->num_lvars; i++)
       uninstantiateLVar(xsink);
-   traceout("StatementBlock::exec()");
+   traceout("StatementBlock::execImpl()");
    return rc;
 }
 
@@ -538,19 +543,18 @@ int StatementBlock::parseInitImpl(lvh_t oflag, int pflag)
    int lvids = 0;
 
    tracein("StatementBlock::parseInit()");
-   printd(4, "StatementBlock::parseInit(b=%08p, oflag=%d) head=%08p tail=%08p\n", this, oflag, head, tail);
+   printd(4, "StatementBlock::parseInit(b=%08p, oflag=%d)\n", this, oflag);
 
-   class AbstractStatement *where = head, *ret = NULL;
-   while (where)
+   class AbstractStatement *ret = NULL;
+   for (statement_list_t::iterator i = statement_list.begin(), e = statement_list.end(), l = statement_list.last(); i != e; ++i)
    {
-      lvids += where->parseInit(oflag, pflag);
-      if (!ret && where->next && where->endsBlock())
+      lvids += (*i)->parseInit(oflag, pflag);
+      if (!ret && i != l && (*i)->endsBlock())
       {
 	 // unreachable code found
 	 getProgram()->makeParseWarning(QP_WARN_UNREACHABLE_CODE, "UNREACHABLE-CODE", "code after this statement can never be reached");
-	 ret = where;
+	 ret = *i;
       }
-      where = where->next;
    }
 
    lvars = new LVList(lvids);

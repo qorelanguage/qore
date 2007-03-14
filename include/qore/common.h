@@ -30,6 +30,7 @@
 
 #include <string>
 #include <functional>
+#include <list>
 
 #ifdef _MSC_VER
   #ifdef BUILDING_DLL
@@ -115,6 +116,8 @@ class ltchar
       return s1 < s2;
    }
 };
+
+typedef std::list<class StatementBlock *> block_list_t;
 
 #include <set>
 typedef std::set<char *, ltstr> strset_t;

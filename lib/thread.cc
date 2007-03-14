@@ -132,6 +132,7 @@ class ThreadData
       class CVNode *cvarstack;
       class QoreClass *parseClass;
       class Exception *catchException;
+      std::list<block_list_t::iterator> on_block_exit_list;
       
       DLLLOCAL ThreadData(int ptid, QoreProgram *p);
       DLLLOCAL ~ThreadData();
@@ -547,6 +548,30 @@ ThreadData::ThreadData(int ptid, class QoreProgram *p) : vlock(ptid)
 ThreadData::~ThreadData()
 {
    delete pgmStack;
+   assert(on_block_exit_list.empty());
+}
+
+// called when a StatementBlock has "on block exit" blocks
+void pushBlock(block_list_t::iterator i)
+{
+   ThreadData *td = (ThreadData *)pthread_getspecific(thread_data_key);
+   td->on_block_exit_list.push_back(i);
+}
+
+// called when a StatementBlock has "on block exit" blocks
+block_list_t::iterator popBlock()
+{
+   ThreadData *td = (ThreadData *)pthread_getspecific(thread_data_key);
+   block_list_t::iterator i = td->on_block_exit_list.back();
+   td->on_block_exit_list.pop_back();
+   return i;
+}
+
+// called by each "on_block_exit" statement to activate it's code for the block exit
+void advanceOnBlockExit()
+{
+   ThreadData *td = (ThreadData *)pthread_getspecific(thread_data_key);
+   --td->on_block_exit_list.back();
 }
 
 // new file name, current parse state

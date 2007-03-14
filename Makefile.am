@@ -46,6 +46,7 @@ noinst_HEADERS = \
 	include/qore/QoreString.h \
 	include/qore/Reference.h \
 	include/qore/AbstractStatement.h \
+	include/qore/OnBlockExitStatement.h \
 	include/qore/RethrowStatement.h \
 	include/qore/ThreadExitStatement.h \
 	include/qore/BreakStatement.h \

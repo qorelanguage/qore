@@ -185,6 +185,14 @@ template<typename T> class safe_dslist
       {
 	 return NULL;
       }
+      iterator last()
+      {
+	 return tail;
+      }
+      const_iterator last() const
+      {
+	 return tail;
+      }
       iterator find(T data)
       {
 	 node_t *w = head;
