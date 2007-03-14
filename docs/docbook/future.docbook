@@ -10,9 +10,6 @@
       <para>add optional strong typing to the language + strongly typed data structures</para>
     </listitem>
     <listitem>
-      <para>add PostgresSQL and Sybase drivers to the DBI layer</para>
-    </listitem>
-    <listitem>
       <para>add integration with other messaging systems</para>
     </listitem>
   </itemizedlist>

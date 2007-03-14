@@ -16377,14 +16377,29 @@ xs      </variablelist>
 	    <entry><para>Executes SQL code on the DB connection.</para></entry>
 	  </row>
 	  <row>
+	    <entry><para><link linkend="Qore::SQL::Datasource::vexec">Datasource::vexec()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Executes SQL code on the DB connection, taking a list for all bind arguments.</para></entry>
+	  </row>
+	  <row>
 	    <entry><para><link linkend="Qore::SQL::Datasource::select">Datasource::select()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Executes a select statement on the server and returns the results in a hash (column names) of lists (rows).</para></entry>
 	  </row>
 	  <row>
+	    <entry><para><link linkend="Qore::SQL::Datasource::vselect">Datasource::vselect()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Executes a select statement on the server and returns the results in a hash (column names) of lists (rows), taking a list for all bind arguments.</para></entry>
+	  </row>
+	  <row>
 	    <entry><para><link linkend="Qore::SQL::Datasource::selectRows">Datasource::selectRows()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Executes a select statement on the server and returns the results in a list (rows) of hashes (column names and values).</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Qore::SQL::Datasource::vselectRows">Datasource::vselectRows()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Executes a select statement on the server and returns the results in a list (rows) of hashes (column names and values), taking a list for all bind arguments.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::SQL::Datasource::beginTransaction">Datasource::beginTransaction()</link></para></entry>
@@ -17101,7 +17116,7 @@ xs      </variablelist>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
-	    <programlisting>Datasource::exec(<replaceable>sql_command, [bind_and_or_placeholder_list]</replaceable>)</programlisting>
+	    <programlisting>Datasource::exec(<replaceable>sql_command, [arg1, ...]</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -17123,7 +17138,7 @@ xs      </variablelist>
 	      <entry><para>The SQL command to execute on the server.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para><replaceable>[bind_and_or_placeholder_list]</replaceable></para></entry>
+	      <entry><para><replaceable>[arg1, ...]</replaceable></para></entry>
 	      <entry><para>Any</para></entry>
 	      <entry><para>Include any values to be bound (using <code>%v</code> in the command string) or placeholder specifications (using :&lt;key_name&gt; in the command string) in order after the command string.</para></entry>
 	    </row>
@@ -17172,6 +17187,90 @@ xs      </variablelist>
       </table>
     </sect2>
 
+    <sect2 id="Qore::SQL::Datasource::vexec">
+      <title>Datasource::vexec()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Same as the <link linkend="Qore::SQL::Datasource::exec">Datasource::exec</link> method, except this method takes a single argument after the SQL command giving the list of bind parameters.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>Datasource::vexec(<replaceable>sql_command, [list]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for Datasource::vexec()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><replaceable>sql_command</replaceable></para></entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>The SQL command to execute on the server.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><replaceable>[list]</replaceable></para></entry>
+	      <entry><para>List</para></entry>
+	      <entry><para>Include any values to be bound (using <code>%v</code> in the command string) or placeholder specifications (using :&lt;key_name&gt; in the command string) in a single list in order after the command string.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for Datasource::vexec()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>Integer or Hash</para></entry>
+	      <entry><para>For commands with placeholders, a hash is returned holding the values acquired from executing the SQL statement.  For all other commands, a row count is returned.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by Datasource::vexec()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>TRANSACTION-TIMEOUT</code></para></entry>
+	      <entry><para>Timeout trying to acquire the transaction lock.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para>depends on DBI driver</para></entry>
+	      <entry><para>See documentation for the DBI driver for driver-specific exceptions.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
     <sect2 id="Qore::SQL::Datasource::select">
       <title>Datasource::select()</title>
 
@@ -17185,7 +17284,7 @@ xs      </variablelist>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
-	    <programlisting>Datasource::select(<replaceable>select_statement</replaceable>)</programlisting>
+	    <programlisting>Datasource::select(<replaceable>select_statement, [arg1, ...]</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -17205,6 +17304,11 @@ xs      </variablelist>
 	      <entry><para><replaceable>select_statement</replaceable></para></entry>
 	      <entry><para>String</para></entry>
 	      <entry><para>SQL select statement to execute on the server.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><replaceable>[arg1, ...]</replaceable></para></entry>
+	      <entry><para>Any</para></entry>
+	      <entry><para>Arguments to bind by value in %v positions in the SQL string.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -17247,6 +17351,86 @@ xs      </variablelist>
       </table>
     </sect2>
 
+    <sect2 id="Qore::SQL::Datasource::vselect">
+      <title>Datasource::vselect()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Same as the <link linkend="Qore::SQL::Datasource::select">Datasource::select</link> method, except this method takes a single argument after the SQL command giving the list of bind value parameters.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>Datasource::vselect(<replaceable>select_statement, [list]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for Datasource::vselect()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><replaceable>select_statement</replaceable></para></entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>SQL select statement to execute on the server.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><replaceable>[arg1, ...]</replaceable></para></entry>
+	      <entry><para>List</para></entry>
+	      <entry><para>A list of arguments to bind by value in %v positions in the SQL string.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for Datasource::vselect()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>Hash</para></entry>
+	      <entry><para>Returns a hash (the keys are the column names) of lists (each hash key's value is a list giving the row data).</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by Datasource::vselect()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>depends on DBI driver</para></entry>
+	      <entry><para>See documentation for the DBI driver for driver-specific exceptions.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
     <sect2 id="Qore::SQL::Datasource::selectRows">
       <title>Datasource::selectRows()</title>
 
@@ -17260,7 +17444,7 @@ xs      </variablelist>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
-	    <programlisting>Datasource::selectRows(<replaceable>select_statement</replaceable>)</programlisting>
+	    <programlisting>Datasource::selectRows(<replaceable>select_statement, [arg1, ...]</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -17280,6 +17464,11 @@ xs      </variablelist>
 	      <entry><para><replaceable>select_statement</replaceable></para></entry>
 	      <entry><para>String</para></entry>
 	      <entry><para>SQL select statement to execute on the server.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><replaceable>[arg1, ...]</replaceable></para></entry>
+	      <entry><para>Any</para></entry>
+	      <entry><para>Arguments to bind by value in %v positions in the SQL string.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -17305,6 +17494,86 @@ xs      </variablelist>
 
       <table>
 	<title>Exceptions Thrown by Datasource::selectRows()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>depends on DBI driver</para></entry>
+	      <entry><para>See documentation for the DBI driver for driver-specific exceptions.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="Qore::SQL::Datasource::vselectRows">
+      <title>Datasource::vselectRows()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Same as the <link linkend="Qore::SQL::Datasource::selectRows">Datasource::selectRows</link> method, except this method takes a single argument after the SQL command giving the list of bind value parameters.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>Datasource::vselectRows(<replaceable>select_statement, [list]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for Datasource::vselectRows()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><replaceable>select_statement</replaceable></para></entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>SQL select statement to execute on the server.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><replaceable>[list]</replaceable></para></entry>
+	      <entry><para>List</para></entry>
+	      <entry><para>A list of arguments to bind by value in %v positions in the SQL string.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for Datasource::vselectRows()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>List</para></entry>
+	      <entry><para>Returns a list (the rows returned) of hashes (column values).</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by Datasource::vselectRows()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
