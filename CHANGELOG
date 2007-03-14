@@ -15,6 +15,9 @@
 	  regardless of the exit status of the block (exception, return, etc)
 	* finally tagged functions and classes in documentation with parse
 	  restriction information
+	* made it legal to use pairs of curly braces ({}) anywhere within a 
+	  block to impose scoping rules
+	* doc updates
 
 2007.03.13: David Nichols
 	* cleaned up/updated Qore statement implementation to a class tree with

@@ -852,8 +852,11 @@ statement_or_block:
 statements:
 	statement
         { $$ = new StatementBlock($1); }
-	|
-	statements statement
+	| block
+	{ $$ = new StatementBlock($1); }
+ 	| statements block
+        { $1->addStatement($2); $$ = $1; }
+	| statements statement
         { $1->addStatement($2); $$ = $1; }
 	;
 
