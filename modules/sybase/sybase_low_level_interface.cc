@@ -37,6 +37,7 @@
 #include <qore/Namespace.h>
 #include <qore/QoreType.h>
 #include <qore/TypeConstants.h>
+#include <qore/BinaryObject.h>
 
 #include "sybase_low_level_interface.h"
 #include "sybase_connection.h"
@@ -235,8 +236,9 @@ void sybase_low_level_prepare_command(const sybase_command_wrapper& wrapper, con
   }
   if (result_type != CS_CMD_SUCCEED) {
     assert(result_type == CS_CMD_FAIL);
+printf("#### ct_results for CS_PREPARE for [%s] failed with error %d\n", sql_text, (int)result_type);
     assert(false);
-    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() ct_dynamic(CS_PREPARE) failed with error %d", (int)err);
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() for ct_dynamic(CS_PREPARE, '%s') failed with error %d", sql_text, (int)err);
     return;
   }
   while((err = ct_results(wrapper(), &result_type)) == CS_SUCCEED);
@@ -401,6 +403,12 @@ void sybase_low_level_bind_parameters(
   ExceptionSink* xsink
   )
 {
+printf("#### IN sybase_low_level_bind_parameters\n");
+  sybase_ct_dynamic(wrapper, CS_EXECUTE, xsink);
+  if (xsink->isException()) {
+    return;
+  }
+printf("### binding %d parameters\n", parameters.size());
   // TBD
 }
 
@@ -448,6 +456,20 @@ void execute_RPC_call(
 }
 
 //------------------------------------------------------------------------------
+void sybase_ct_dynamic(
+  const sybase_command_wrapper& wrapper,
+  int command_type_code,
+  ExceptionSink* xsink
+  )
+{
+  CS_RETCODE err = ct_dynamic(wrapper(), command_type_code, wrapper.getStringId(), CS_NULLTERM, 0, CS_UNUSED);
+  if (err != CS_SUCCEED) {
+    assert(false);
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_dynamic(%d) failed with error %d", command_type_code, (int)err);
+  }
+}
+
+//------------------------------------------------------------------------------
 void sybase_ct_param(
   const sybase_command_wrapper& wrapper,
   unsigned parameter_index,
@@ -458,33 +480,29 @@ void sybase_ct_param(
   ExceptionSink* xsink
   )
 {
-  if (is_null(data)) {
-    // SQL NULL value
-    CS_DATAFMT datafmt;
-    memset(&datafmt, 0, sizeof(datafmt));
-    datafmt.status = CS_INPUTVALUE;
-    datafmt.namelen = CS_NULLTERM;
-    datafmt.maxlength = CS_UNUSED;
-    datafmt.count = 1;
-
-    CS_RETCODE err = ct_param(wrapper(), &datafmt, 0, CS_UNUSED, -1);
-    if (err != CS_SUCCEED) {
-      xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_param(NULL) failed for parameter #%u with error %d", parameter_index + 1, (int)err);
-    }
-    return;
-  }
-
   CS_DATAFMT datafmt;
   memset(&datafmt, 0, sizeof(datafmt));
   datafmt.status = CS_INPUTVALUE;
   datafmt.namelen = CS_NULLTERM;
   datafmt.maxlength = CS_UNUSED;
   datafmt.count = 1;
+  
+  CS_RETCODE err;
+  
+  if (is_null(data)) {
+    // SQL NULL value
+    err = ct_param(wrapper(), &datafmt, 0, CS_UNUSED, -1);
+    if (err != CS_SUCCEED) {
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_param(NULL) failed for parameter #%u with error %d", parameter_index + 1, (int)err);
+    }
+    return;
+  }
 
   switch (type) {
   case CS_VARCHAR_TYPE:
   case CS_LONGCHAR_TYPE:
   case CS_CHAR_TYPE: // all types are almost equivalent
+  case CS_TEXT_TYPE: // text could be used only with LIKE in WHERE statement, nowhere else
   {
     if (data->type != NT_STRING) {
       assert(false);
@@ -496,8 +514,107 @@ void sybase_ct_param(
     if (xsink->isException()) {
       return;
     }
+
+    const char* s2 = "";
+    if (*s && s->getBuffer()) {
+      s2 = s->getBuffer();
+    }
+    datafmt.datatype = type;
+    datafmt.format = CS_FMT_NULLTERM;
+    datafmt.maxlength = (2 * 1024 * 1024 * 1024 - 1); // 2GB for text
+
+    err = ct_param(wrapper(), &datafmt, (CS_VOID*)s2, strlen(s2), 0);
+    if (err != CS_SUCCEED) {
+      assert(false);
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase function ct_param() for string parameter #%u failed with error", parameter_index + 1, (int)err);
+        return;
+      }
   }
-  break;
+  return;
+
+  case CS_TINYINT_TYPE:
+  {
+    if (data->type != NT_INT) {
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "Incorrect type for integer parameter #%u", parameter_index + 1);
+      return;
+    }
+    if (data->val.intval < 128 || data->val.intval >= 128) {
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "Integer value (#%d parameter) is out of range for Sybase datatype", parameter_index + 1);
+      return;
+    }
+
+    CS_TINYINT val = data->val.intval;
+    datafmt.datatype = CS_TINYINT_TYPE;
+    err = ct_param(wrapper(), &datafmt, &val, sizeof(val), 0);
+    if (err != CS_SUCCEED) {
+      assert(false);
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase function ct_param() for integer parameter #%u failed with error", parameter_index + 1, (int)err);
+      return;
+    }
+  }
+  return;
+
+  case CS_SMALLINT_TYPE:
+  {
+    if (data->type != NT_INT) {
+      assert(false);
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "Incorrect type for integer parameter #%u", parameter_index + 1);
+      return;
+    }
+    if (data->val.intval < 32 * 1024 || data->val.intval >= 32 * 1024) {
+      assert(false);
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "Integer value (#%d parameter) is out of range for Sybase datatype", parameter_index + 1);
+      return;
+    }
+
+    CS_SMALLINT val = data->val.intval;
+    datafmt.datatype = CS_SMALLINT_TYPE;
+    err = ct_param(wrapper(), &datafmt, &val, sizeof(val), 0);
+    if (err != CS_SUCCEED) {
+      assert(false);
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase function ct_param() for integer parameter #%u failed with error", parameter_index + 1, (int)err);
+      return;
+    }
+  }
+  return;
+
+  case CS_INT_TYPE:
+  {
+    if (data->type != NT_INT) {
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "Incorrect type for integer parameter #%u", parameter_index + 1);
+      return;
+    }
+    CS_INT val = data->val.intval;
+    datafmt.datatype = CS_INT_TYPE;
+    err = ct_param(wrapper(), &datafmt, &val, sizeof(val), 0);
+    if (err != CS_SUCCEED) {
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase function ct_param() for integer parameter #%u failed with error", parameter_index + 1, (int)err);
+      return;
+    }
+  }
+  return;
+
+  case CS_BINARY_TYPE:
+  case CS_LONGBINARY_TYPE:
+  case CS_VARBINARY_TYPE:
+  {
+    if (data->type != NT_BINARY) {
+      assert(false);
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "Incorrect type for binary parameter #%u", parameter_index + 1);
+      return;
+    }
+
+    datafmt.datatype = type;
+    datafmt.maxlength = data->val.bin->size();
+
+    err = ct_param(wrapper(), &datafmt, data->val.bin->getPtr(), data->val.bin->size(), 0);
+    if (err != CS_SUCCEED) {
+      assert(false);
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase function ct_param() for binary parameter #%u failed with error", parameter_index + 1, (int)err);
+      return;
+    }
+  }
+  return;
 
   } // switch 
 }

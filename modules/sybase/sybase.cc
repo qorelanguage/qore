@@ -83,6 +83,19 @@ QoreNode* runSybaseTests(QoreNode* params, ExceptionSink* xsink)
     res.failed_test_file, res.failed_test_line);
   return 0;
 }
+
+QoreNode* runRecentSybaseTests(QoreNode* params, ExceptionSink* xsink)
+{
+  minitest::result res = minitest::test_last_changed_files(1);
+  if (res.all_tests_succeeded) {
+    printf("Sybase module: %d recent tests succeeded\n", res.sucessful_tests_count);
+    return 0;
+  }
+
+  xsink->raiseException("SYBASE-TEST-FAILURE", "Sybase test in file %s, line %d threw an exception.",
+    res.failed_test_file, res.failed_test_line);
+  return 0;
+}
 #endif
 
 namespace {
@@ -1250,6 +1263,7 @@ QoreString* sybase_module_init()
 
 #ifdef DEBUG
   builtinFunctions.add("runSybaseTests", runSybaseTests, QDOM_DATABASE);
+  builtinFunctions.add("runRecentSybaseTests", runRecentSybaseTests, QDOM_DATABASE);
 #endif
 
 /* old registration method replaced on 2007/02/22

@@ -130,6 +130,14 @@ extern void execute_RPC_call(
   const std::vector<RPC_parameter_info_t>& parameters,
   ExceptionSink* xsink
   );
+
+//------------------------------------------------------------------------------
+// wraps ct_dynamic()
+extern void sybase_ct_dynamic(
+  const sybase_command_wrapper& wrapper,
+  int command_type_code, // e.g. CS_EXECUTE
+  ExceptionSink* xsink
+  );
   
 //------------------------------------------------------------------------------
 // wraps ct_param()

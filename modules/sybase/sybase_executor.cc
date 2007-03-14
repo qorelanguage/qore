@@ -47,7 +47,7 @@ sybase_executor::sybase_executor(Datasource* ds, QoreString* ostr, List *args, E
 : m_ds(ds),
   m_args(args)
 {
-  std::auto_ptr<QoreString> cmd(ostr->convertEncoding(ds->getQoreEncoding(), xsink));
+  std::auto_ptr<QoreString> cmd(ostr->convertEncoding(get_encoding(), xsink));
   if (xsink->isException()) {
     return;
   }
@@ -91,22 +91,28 @@ QoreNode* sybase_executor::exec_procedure_call(const sybase_command_wrapper& w, 
 //------------------------------------------------------------------------------
 QoreNode* sybase_executor::exec_language_command(const sybase_command_wrapper& w, ExceptionSink* xsink)
 {
+printf("### position %d\n", __LINE__);
   sybase_low_level_prepare_command(w, m_parsed_query.m_result_query_text.c_str(), xsink);
   if (xsink->isException()) {
     return 0;
   }
 
+printf("### position %d\n", __LINE__);
   std::vector<parameter_info_t> inputs = sybase_low_level_get_input_parameters_info(w, xsink);
   if (xsink->isException()) {
     return 0;
   }
+printf("### position %d\n", __LINE__);
   std::vector<parameter_info_t> outputs = sybase_low_level_get_output_data_info(w, xsink);
   if (xsink->isException()) {
+    assert(false);
     return 0;
   }
 
+printf("### position %d\n", __LINE__);
   if (inputs.empty()) {
     if (m_args && m_args->size() != 0) {
+      assert(false);
       xsink->raiseException("DBI-EXEC-EXCEPTION", "No parameters excepted for the query %s", m_parsed_query.m_result_query_text.c_str());
       return 0;
     }
@@ -116,29 +122,37 @@ QoreNode* sybase_executor::exec_language_command(const sybase_command_wrapper& w
       provided_args = m_args->size();
     }
     if (provided_args != inputs.size()) {
+      assert(false);
       xsink->raiseException("DBI-EXEC-EXCEPTION", "%d parameters expected, %d are provided, query %s", inputs.size(), provided_args, m_parsed_query.m_result_query_text.c_str());
       return 0;
     }
   }
+printf("### position %d\n", __LINE__);
   std::vector<bind_parameter_t> bindings;
   bindings.reserve(inputs.size());
   for (unsigned i = 0, n = inputs.size(); i != n; ++i) {
     bindings.push_back(bind_parameter_t(inputs[i].m_type, inputs[i].m_max_size, m_args->retrieve_entry(i)));
   }
 
-  sybase_low_level_bind_parameters(w, m_ds->getQoreEncoding(), m_parsed_query.m_result_query_text.c_str(), bindings, xsink);
+printf("### position %d\n", __LINE__);
+  sybase_low_level_bind_parameters(w, get_encoding(), m_parsed_query.m_result_query_text.c_str(), bindings, xsink);
+printf("#### after binding\n");
   if (xsink->isException()) {
+    assert(false);
     return 0;
   }
 
-  return convert_sybase_output_to_Qore(w, m_ds->getQoreEncoding(), m_parsed_query, xsink);
+printf("### position %d\n", __LINE__);
+  return convert_sybase_output_to_Qore(w, get_encoding(), m_parsed_query, xsink);
 }
 
 //------------------------------------------------------------------------------
 QoreNode* sybase_executor::exec_impl(ExceptionSink* xsink)
 {
-  CS_CONNECTION* conn = ((sybase_connection*)m_ds->getPrivateData())->getConnection();
+printf("### in exec_impl\n");
+  CS_CONNECTION* conn = get_connection()->getConnection();
   assert(conn);
+printf("#### in exec_impl2\n");
   sybase_command_wrapper cmd_wrapper(conn, xsink);
   if (xsink->isException()) {
     return 0;
@@ -148,6 +162,7 @@ QoreNode* sybase_executor::exec_impl(ExceptionSink* xsink)
   if (m_parsed_query.m_is_procedure) {
     return exec_procedure_call(cmd_wrapper, xsink);
   } else {
+printf("### calling exec_language_command\n");
     return exec_language_command(cmd_wrapper, xsink);
   }
 }
@@ -155,13 +170,15 @@ QoreNode* sybase_executor::exec_impl(ExceptionSink* xsink)
 //------------------------------------------------------------------------------
 QoreNode* sybase_executor::exec(ExceptionSink *xsink)
 {
+printf("### in exec\n");
   QoreNode* n = exec_impl(xsink);
+printf("#### after exec\n");
   if (n) n->deref(xsink); // not needed
   if (xsink->isException()) {
     return 0;
   }
-  if (m_ds->getAutoCommit()) {
-    sybase_low_level_commit((sybase_connection*)m_ds->getPrivateData(), xsink);
+  if (is_autocommit_enabled()) {
+    sybase_low_level_commit(get_connection(), xsink);
   }
   return 0;
 }

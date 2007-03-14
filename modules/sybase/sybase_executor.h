@@ -32,6 +32,7 @@ class QoreNode;
 class ExceptionSink;
 class sybase_command_wrapper;
 class List;
+class sybase_connection;
 
 #include "sybase_query_parser.h"
 
@@ -43,7 +44,7 @@ class List;
 class sybase_executor
 {
 private:
-  Datasource* m_ds;
+  Datasource* m_ds; // not owned
   List* m_args; // arguments for the query, not owned
   processed_sybase_query m_parsed_query;
 
@@ -53,8 +54,36 @@ private:
   // execute all kind of commands, including procedure calls
   QoreNode* exec_impl(ExceptionSink* xsink);
 
+  // helpers
+  sybase_connection* get_connection() const {
 #ifdef DEBUG
-  sybase_executor() : m_ds(0), m_args(0) {}
+    if (m_test_connection) return m_test_connection;
+#endif
+    return (sybase_connection*)m_ds->getPrivateData();
+  }
+
+  QoreEncoding* get_encoding() const {
+#ifdef DEBUG
+    if (m_test_encoding) return m_test_encoding;
+#endif
+    return m_ds->getQoreEncoding();
+  }
+
+  bool is_autocommit_enabled() const {
+#ifdef DEBUG
+    return m_test_autocommit;
+#else
+    return m_ds->getAutoCommit();
+#endif
+  }
+
+#ifdef DEBUG
+  // these members are set instead of m_ds
+  sybase_connection* m_test_connection; // not owned
+  QoreEncoding* m_test_encoding; // not owned
+  bool m_test_autocommit;
+
+  sybase_executor() : m_ds(0), m_args(0), m_test_connection(0), m_test_encoding(0), m_test_autocommit(false) {}
 #endif
 
 public:
