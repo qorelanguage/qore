@@ -88,7 +88,7 @@ class QoreNode *StatementBlock::exec(ExceptionSink *xsink)
 // line numbers on statement blocks are set later
 StatementBlock::StatementBlock(AbstractStatement *s) : AbstractStatement(-1, -1), lvars(0)
 {
-   statement_list.push_back(s);
+   addStatement(s);
 }
 
 void StatementBlock::addStatement(class AbstractStatement *s)
