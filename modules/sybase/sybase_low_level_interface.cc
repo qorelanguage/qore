@@ -597,6 +597,7 @@ void sybase_ct_param(
   case CS_BINARY_TYPE:
   case CS_LONGBINARY_TYPE:
   case CS_VARBINARY_TYPE:
+  case CS_IMAGE_TYPE: // image could be used only with LIKE in WHERE statement, nowhere else
   {
     if (data->type != NT_BINARY) {
       assert(false);
@@ -611,6 +612,68 @@ void sybase_ct_param(
     if (err != CS_SUCCEED) {
       assert(false);
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase function ct_param() for binary parameter #%u failed with error", parameter_index + 1, (int)err);
+      return;
+    }
+  }
+  return;
+
+  case CS_REAL_TYPE:
+  {
+    if (data->type != NT_FLOAT && data->type != NT_INT) {
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "Incorrect type for float parameter #%u", parameter_index + 1);
+      return;
+    }
+    CS_REAL val;
+    if (data->type == NT_FLOAT) {
+      val = data->val.floatval;
+    } else {
+      val = data->val.intval;
+    }
+    datafmt.datatype = CS_REAL_TYPE;
+    err = ct_param(wrapper(), &datafmt, &val, sizeof(val), 0);
+    if (err != CS_SUCCEED) {
+      assert(false);
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase function ct_param() for float parameter #%u failed with error", parameter_index + 1, (int)err);
+      return;
+    }
+  }
+  return;
+
+  case CS_FLOAT_TYPE:
+  {
+    if (data->type != NT_FLOAT && data->type != NT_INT) {
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "Incorrect type for float parameter #%u", parameter_index + 1);
+      return;
+    }
+    CS_FLOAT val;
+    if (data->type == NT_FLOAT) {
+      val = data->val.floatval;
+    } else {
+      val = data->val.intval;
+    }
+    datafmt.datatype = CS_FLOAT_TYPE;
+    err = ct_param(wrapper(), &datafmt, &val, sizeof(val), 0);
+    if (err != CS_SUCCEED) {
+      assert(false);
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase function ct_param() for float parameter #%u failed with error", parameter_index + 1, (int)err);
+      return;
+    }
+  }
+  return;
+
+  case CS_BIT_TYPE:
+  {
+    if (data->type != NT_BOOLEAN) {
+      assert(false);
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "Incorrect type for boolean parameter #%u", parameter_index + 1);
+      return;
+    }
+    CS_BIT val = data->val.boolval ? 1 : 0;
+    datafmt.datatype = CS_BIT_TYPE;
+    err = ct_param(wrapper(), &datafmt, &val, sizeof(val), 0);
+    if (err != CS_SUCCEED) {
+      assert(false);
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase function ct_param() for bool parameter #%u failed with error", parameter_index, (int)err);
       return;
     }
   }
