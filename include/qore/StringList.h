@@ -48,7 +48,7 @@ class StringList : public strdeque_t
       {
 	 std::for_each(begin(), end(), free_ptr<char>());
       }
-      DLLLOCAL void addDirList(char *str);
+      DLLLOCAL void addDirList(const char *str);
 };
 
 class charPtrList : public safe_dslist<const char *>

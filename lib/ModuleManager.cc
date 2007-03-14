@@ -62,7 +62,7 @@ module_map_t ModuleManager::map;
 # endif
 #endif
 
-ModuleInfo::ModuleInfo(const char *fn, char *n, int major, int minor, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del, char *d, char *v, char *a, char *u, void *p)
+ModuleInfo::ModuleInfo(const char *fn, const char *n, int major, int minor, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del, const char *d, const char *v, const char *a, const char *u, const void *p)
 {
    filename = strdup(fn);
    name = n;
@@ -79,7 +79,7 @@ ModuleInfo::ModuleInfo(const char *fn, char *n, int major, int minor, qore_modul
 }
 
 // builtin module info node - when features are compiled into the library
-ModuleInfo::ModuleInfo(char *fn, qore_module_delete_t del)
+ModuleInfo::ModuleInfo(const char *fn, qore_module_delete_t del)
 {
    filename = "<builtin>";
    name = fn;
@@ -107,27 +107,27 @@ ModuleInfo::~ModuleInfo()
    }
 }
 
-char *ModuleInfo::getName() const
+const char *ModuleInfo::getName() const
 {
    return name;
 }
 
-char *ModuleInfo::getFileName() const
+const char *ModuleInfo::getFileName() const
 {
    return filename;
 }
 
-char *ModuleInfo::getDesc() const
+const char *ModuleInfo::getDesc() const
 {
    return desc;
 }
 
-char *ModuleInfo::getVersion() const
+const char *ModuleInfo::getVersion() const
 {
    return version;
 }
 
-char *ModuleInfo::getURL() const
+const char *ModuleInfo::getURL() const
 {
    return url;
 }
@@ -183,7 +183,7 @@ class ModuleInfo *ModuleManager::add(const char *fn, char *n, int major, int min
    return m;
 }
 
-class ModuleInfo *ModuleManager::find(char *name)
+class ModuleInfo *ModuleManager::find(const char *name)
 {
    module_map_t::iterator i = map.find(name);
    if (i == map.end())
@@ -192,7 +192,7 @@ class ModuleInfo *ModuleManager::find(char *name)
    return i->second;
 }
 
-void ModuleManager::addBuiltin(char *fn, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del)
+void ModuleManager::addBuiltin(const char *fn, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del)
 {
    class QoreString *str = init();
    if (str)
@@ -207,25 +207,25 @@ void ModuleManager::addBuiltin(char *fn, qore_module_init_t init, qore_module_ns
 }
 
 // to add a directory to the module directory search list, can only be called before init()
-void ModuleManager::addModuleDir(char *dir)
+void ModuleManager::addModuleDir(const char *dir)
 {
    moduleDirList.push_back(strdup(dir));
 }
 
 // to add a directory to the auto module directory search list, can only be called before init()
-void ModuleManager::addAutoModuleDir(char *dir)
+void ModuleManager::addAutoModuleDir(const char *dir)
 {
    autoDirList.push_back(strdup(dir));
 }
 
 // to add a list of directories to the module directory search list, can only be called before init()
-void ModuleManager::addModuleDirList(char *strlist)
+void ModuleManager::addModuleDirList(const char *strlist)
 {
    moduleDirList.addDirList(strlist);
 }
 
 // to add a list of directories to the auto module directory search list, can only be called before init()
-void ModuleManager::addAutoModuleDirList(char *strlist)
+void ModuleManager::addAutoModuleDirList(const char *strlist)
 {
    autoDirList.addDirList(strlist);
 }
@@ -306,7 +306,7 @@ void ModuleManager::init(bool se)
    }
 }
 
-class QoreString *ModuleManager::loadModule(char *name, class QoreProgram *pgm)
+class QoreString *ModuleManager::loadModule(const char *name, class QoreProgram *pgm)
 {
    // if the feature already exists in this program, then return
    if (pgm && !pgm->checkFeature(name))

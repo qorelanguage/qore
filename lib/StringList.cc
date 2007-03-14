@@ -24,7 +24,7 @@
 
 #include <string.h>
 
-void StringList::addDirList(char *str)
+void StringList::addDirList(const char *str)
 {
    if (!str)
       return;
