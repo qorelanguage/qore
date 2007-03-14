@@ -24,6 +24,9 @@
 
 #define _QORE_TYPECONSTANTS_H
 
+#include <qore/Namespace.h>
+#include <qore/QoreType.h>
+
 static inline class Namespace *get_type_ns()
 {
    class Namespace *Type = new Namespace("Type");
