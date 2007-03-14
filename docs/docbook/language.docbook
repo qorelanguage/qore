@@ -5650,6 +5650,22 @@ $name = getName();</programlisting>
 	    <entry><para><link linkend="Qore::Thread::Sequence_Class">Sequence</link></para></entry>
 	    <entry><para>A simple, thread-atomic sequence object (increment-only).</para></entry>
 	  </row>
+	  <row>
+	    <entry><para><link linkend="Qore::Thread::AutoLock_Class">AutoLock</link></para></entry>
+	    <entry><para>A helper class to automatically release Mutex locks when the AutoLock object is deleted.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Qore::Thread::AutoGate_Class">AutoGate</link></para></entry>
+	    <entry><para>A helper class to automatically exit Gate locks when the AutoGate object is deleted.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Qore::Thread::AutoReadLock_Class">AutoReadLock</link></para></entry>
+	    <entry><para>A helper class to automatically release read locks when the AutoReadLock object is deleted.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Qore::Thread::AutoWriteLock_Class">AutoWriteLock</link></para></entry>
+	    <entry><para>A helper class to automatically release read locks when the AutoWriteLock object is deleted.</para></entry>
+	  </row>
 	</tbody>
       </tgroup>
     </table>
@@ -5818,6 +5834,8 @@ $name = getName();</programlisting>
   </table>
 
   <para>System exceptions always throw 2 values, populating the "err" and "desc" keys of the exception hash, giving the exception string code and the exception description string, respectively. User exceptions have no restrictions, any values given in the throw statement will be mapped to exception keys as per the table above.</para>
+
+  <para>See the <link linkend="on_block_exit_Statements">on_block_exit Statement</link> for a statement that allows for exception-safe cleanup in Qore code.</para>
 
 </sect1>
 

@@ -174,15 +174,15 @@ static class QoreNode *f_is_executable(class QoreNode *params, ExceptionSink *xs
 void init_file_functions()
 {
    // register builtin functions in this file
-   builtinFunctions.add("is_file", f_is_file);
-   builtinFunctions.add("is_dir", f_is_dir);
-   builtinFunctions.add("is_socket", f_is_socket);
-   builtinFunctions.add("is_pipe", f_is_pipe);
-   builtinFunctions.add("is_dev", f_is_dev);
-   builtinFunctions.add("is_cdev", f_is_cdev);
-   builtinFunctions.add("is_bdev", f_is_bdev);
-   builtinFunctions.add("is_link", f_is_link);
-   builtinFunctions.add("is_readable", f_is_readable);
-   builtinFunctions.add("is_writeable", f_is_writeable);
-   builtinFunctions.add("is_executable", f_is_executable);
+   builtinFunctions.add("is_file", f_is_file, QDOM_FILESYSTEM);
+   builtinFunctions.add("is_dir", f_is_dir, QDOM_FILESYSTEM);
+   builtinFunctions.add("is_socket", f_is_socket, QDOM_FILESYSTEM);
+   builtinFunctions.add("is_pipe", f_is_pipe, QDOM_FILESYSTEM);
+   builtinFunctions.add("is_dev", f_is_dev, QDOM_FILESYSTEM);
+   builtinFunctions.add("is_cdev", f_is_cdev, QDOM_FILESYSTEM);
+   builtinFunctions.add("is_bdev", f_is_bdev, QDOM_FILESYSTEM);
+   builtinFunctions.add("is_link", f_is_link, QDOM_FILESYSTEM);
+   builtinFunctions.add("is_readable", f_is_readable, QDOM_FILESYSTEM);
+   builtinFunctions.add("is_writeable", f_is_writeable, QDOM_FILESYSTEM);
+   builtinFunctions.add("is_executable", f_is_executable, QDOM_FILESYSTEM);
 }

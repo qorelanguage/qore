@@ -13,6 +13,8 @@
 	  next to the code that requires the cleanup, and by using this 
 	  statement, the programmer ensures that the cleanup will be performed
 	  regardless of the exit status of the block (exception, return, etc)
+	* finally tagged functions and classes in documentation with parse
+	  restriction information
 
 2007.03.13: David Nichols
 	* cleaned up/updated Qore statement implementation to a class tree with

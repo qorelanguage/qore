@@ -1007,7 +1007,7 @@ void init_misc_functions()
    builtinFunctions.add("get_default_encoding", f_get_default_encoding);
    builtinFunctions.add("parseURL", f_parseURL);
    builtinFunctions.add("getClassName", f_getClassName);
-   builtinFunctions.add("backquote", f_backquote);
+   builtinFunctions.add("backquote", f_backquote, QDOM_EXTERNAL_PROCESS);
    builtinFunctions.add("parseBase64String", f_parseBase64String);
    builtinFunctions.add("makeBase64String", f_makeBase64String);
    builtinFunctions.add("parseHexString", f_parseHexString);

@@ -3520,20 +3520,16 @@
           </entry>
         </row>
         <row>
-          <entry>
-            <para>
-              <link linkend="thread_list">thread_list()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>List</para>
-          </entry>
-          <entry>
-            <para>N</para>
-          </entry>
-          <entry>
-            <para>Returns a list of all current thread IDs</para>
-          </entry>
+          <entry><para><link linkend="thread_list">thread_list()</link></para></entry>
+          <entry><para>List</para></entry>
+          <entry><para>N</para></entry>
+          <entry><para>Returns a list of all current thread IDs</para></entry>
+        </row>
+        <row>
+          <entry><para><link linkend="throwThreadResourceExceptions">throwThreadResourceExceptions()</link></para></entry>
+          <entry><para>n/a</para></entry>
+          <entry><para>Y</para></entry>
+          <entry><para>Immediately runs all thread resource cleanup routines for the current thread and throws all associated exceptions.</para></entry>
         </row>
         <row>
           <entry>
@@ -5197,7 +5193,7 @@
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Returns the system time in microseconds (1/1000000 second intervals since Jan 1, 1970 00:00).</para>
+	<para>Returns the system time in microseconds (1/1000000 second intervals since Jan 1, 1970 00:00).  Please note that many operating system/hardware combinbations are not capable of reporting time at this resolution; the last 3 or more digits may be zero in this case.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -6193,8 +6189,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Returns a string representing the ISO-8601 calendar week information for the absolute date passed (ex: 2006-01-01 = &quot;2005-W52-7&quot;).  Note that the ISO-8601 year does not always correspond with the calendar year at the en
-d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: year=2005, week=52, day=7)</para>
+          <para>Returns a string representing the ISO-8601 calendar week information for the absolute date passed (ex: 2006-01-01 = &quot;2005-W52-7&quot;).  Note that the ISO-8601 year does not always correspond with the calendar year at the end and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: year=2005, week=52, day=7)</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -8268,6 +8263,12 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
 	<programlisting>abort()</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Restrictions</term>
+      <listitem>
+	<para>Not available with <link linkend="PO_NO_PROCESS_CONTROL"><code>PO_NO_PROCESS_CONTROL</code></link></para>
+      </listitem>
+    </varlistentry>
   </variablelist>
 
   <para>This function does not throw any exceptions.</para>
@@ -8376,7 +8377,13 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
-	    <programlisting>exit(<replaceable>exec_string</replaceable>)</programlisting>
+	    <programlisting>exec(<replaceable>exec_string</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Restrictions</term>
+	  <listitem>
+	    <para>Not available with <link linkend="PO_NO_PROCESS_CONTROL"><code>PO_NO_PROCESS_CONTROL</code></link> or <link linkend="PO_NO_EXTERNAL_PROCESS"><code>PO_NO_EXTERNAL_PROCESS</code></link></para>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -8421,6 +8428,12 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
 	    <programlisting>exit(<replaceable>return_code</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Restrictions</term>
+	  <listitem>
+	    <para>Not available with <link linkend="PO_NO_PROCESS_CONTROL"><code>PO_NO_PROCESS_CONTROL</code></link></para>
+	  </listitem>
+	</varlistentry>
       </variablelist>
   
       <table>
@@ -8461,6 +8474,12 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
       <term>Usage</term>
       <listitem>
 	<programlisting>fork()</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Restrictions</term>
+      <listitem>
+	<para>Not available with <link linkend="PO_NO_PROCESS_CONTROL"><code>PO_NO_PROCESS_CONTROL</code></link></para>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -8870,6 +8889,12 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
 	<programlisting>kill(<replaceable>integer_pid, [integer_signal]</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Restrictions</term>
+      <listitem>
+	<para>Not available with <link linkend="PO_NO_EXTERNAL_PROCESS"><code>PO_NO_EXTERNAL_PROCESS</code></link></para>
+      </listitem>
+    </varlistentry>
   </variablelist>
   
   <table>
@@ -9211,6 +9236,12 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
 	<programlisting>sleep(<replaceable>integer_seconds</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Restrictions</term>
+      <listitem>
+	<para>Not available with <link linkend="PO_NO_PROCESS_CONTROL"><code>PO_NO_PROCESS_CONTROL</code></link></para>
+      </listitem>
+    </varlistentry>
   </variablelist>
 
 
@@ -9405,6 +9436,12 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
 	<programlisting>system(<replaceable>shell_command</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Restrictions</term>
+      <listitem>
+	<para>Not available with <link linkend="PO_NO_EXTERNAL_PROCESS"><code>PO_NO_EXTERNAL_PROCESS</code></link></para>
+      </listitem>
+    </varlistentry>
   </variablelist>
 
   <table>
@@ -9445,6 +9482,12 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
       <term>Usage</term>
       <listitem>
 	<programlisting>usleep(<replaceable>file</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Restrictions</term>
+      <listitem>
+	<para>Not available with <link linkend="PO_NO_PROCESS_CONTROL"><code>PO_NO_PROCESS_CONTROL</code></link></para>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -12462,7 +12505,7 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
 
   <sect1 id="Filesystem_Functions">
     <title>Filesystem Functions</title>
-    <para>The following functions return information about or are related to the filesystem.</para>
+    <para>The following functions return information about or are related to the filesystem.  See the <link linkend="Qore_File_Class">File class</link> for a class enabling files to be created, read or written to.</para>
 
 <sect2 id="chdir">
   <title>chdir()</title>
@@ -12480,6 +12523,12 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
 	<programlisting>chdir(<replaceable>directory_string</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+      <varlistentry>
+	<term>Restrictions</term>
+	<listitem>
+	  <para>Not available with <link linkend="PO_NO_FILESYSTEM"><code>PO_NO_FILESYSTEM</code></link></para>
+	</listitem>
+      </varlistentry>
   </variablelist>
 
   <table>
@@ -12540,6 +12589,12 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
 	<programlisting>chmod(<replaceable>filename, mode</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+      <varlistentry>
+	<term>Restrictions</term>
+	<listitem>
+	  <para>Not available with <link linkend="PO_NO_FILESYSTEM"><code>PO_NO_FILESYSTEM</code></link></para>
+	</listitem>
+      </varlistentry>
   </variablelist>
 
   <table>
@@ -12600,6 +12655,12 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
 	<programlisting>hlstat(<replaceable>pathname</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+      <varlistentry>
+	<term>Restrictions</term>
+	<listitem>
+	  <para>Not available with <link linkend="PO_NO_FILESYSTEM"><code>PO_NO_FILESYSTEM</code></link></para>
+	</listitem>
+      </varlistentry>
   </variablelist>
 
   <table>
@@ -12712,6 +12773,12 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
 	<programlisting>hstat(<replaceable>pathname</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+      <varlistentry>
+	<term>Restrictions</term>
+	<listitem>
+	  <para>Not available with <link linkend="PO_NO_FILESYSTEM"><code>PO_NO_FILESYSTEM</code></link></para>
+	</listitem>
+      </varlistentry>
   </variablelist>
 
   <table>
@@ -12751,6 +12818,12 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
         <listitem>
           <programlisting>is_bdev(<replaceable>path</replaceable>)</programlisting>
         </listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Restrictions</term>
+	<listitem>
+	  <para>Not available with <link linkend="PO_NO_FILESYSTEM"><code>PO_NO_FILESYSTEM</code></link></para>
+	</listitem>
       </varlistentry>
     </variablelist>
     <table>
@@ -12800,6 +12873,12 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
           <programlisting>is_cdev(<replaceable>path</replaceable>)</programlisting>
         </listitem>
       </varlistentry>
+      <varlistentry>
+	<term>Restrictions</term>
+	<listitem>
+	  <para>Not available with <link linkend="PO_NO_FILESYSTEM"><code>PO_NO_FILESYSTEM</code></link></para>
+	</listitem>
+      </varlistentry>
     </variablelist>
     <table>
       <title>Arguments and Return Values for is_cdev()</title>
@@ -12847,6 +12926,12 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
         <listitem>
           <programlisting>is_dev(<replaceable>path</replaceable>)</programlisting>
         </listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Restrictions</term>
+	<listitem>
+	  <para>Not available with <link linkend="PO_NO_FILESYSTEM"><code>PO_NO_FILESYSTEM</code></link></para>
+	</listitem>
       </varlistentry>
     </variablelist>
     <table>
@@ -12896,6 +12981,12 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
           <programlisting>is_dir(<replaceable>path</replaceable>)</programlisting>
         </listitem>
       </varlistentry>
+      <varlistentry>
+	<term>Restrictions</term>
+	<listitem>
+	  <para>Not available with <link linkend="PO_NO_FILESYSTEM"><code>PO_NO_FILESYSTEM</code></link></para>
+	</listitem>
+      </varlistentry>
     </variablelist>
     <table>
       <title>Arguments and Return Values for is_dir()</title>
@@ -12943,6 +13034,12 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
         <listitem>
           <programlisting>is_executable(<replaceable>path</replaceable>)</programlisting>
         </listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Restrictions</term>
+	<listitem>
+	  <para>Not available with <link linkend="PO_NO_FILESYSTEM"><code>PO_NO_FILESYSTEM</code></link></para>
+	</listitem>
       </varlistentry>
     </variablelist>
     <table>
@@ -12992,6 +13089,12 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
           <programlisting>is_file(<replaceable>path</replaceable>)</programlisting>
         </listitem>
       </varlistentry>
+      <varlistentry>
+	<term>Restrictions</term>
+	<listitem>
+	  <para>Not available with <link linkend="PO_NO_FILESYSTEM"><code>PO_NO_FILESYSTEM</code></link></para>
+	</listitem>
+      </varlistentry>
     </variablelist>
     <table>
       <title>Arguments and Return Values for is_file()</title>
@@ -13039,6 +13142,12 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
         <listitem>
           <programlisting>is_link(<replaceable>path</replaceable>)</programlisting>
         </listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Restrictions</term>
+	<listitem>
+	  <para>Not available with <link linkend="PO_NO_FILESYSTEM"><code>PO_NO_FILESYSTEM</code></link></para>
+	</listitem>
       </varlistentry>
     </variablelist>
     <table>
@@ -13088,6 +13197,12 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
           <programlisting>is_pipe(<replaceable>path</replaceable>)</programlisting>
         </listitem>
       </varlistentry>
+      <varlistentry>
+	<term>Restrictions</term>
+	<listitem>
+	  <para>Not available with <link linkend="PO_NO_FILESYSTEM"><code>PO_NO_FILESYSTEM</code></link></para>
+	</listitem>
+      </varlistentry>
     </variablelist>
     <table>
       <title>Arguments and Return Values for is_pipe()</title>
@@ -13135,6 +13250,12 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
         <listitem>
           <programlisting>is_readable(<replaceable>path</replaceable>)</programlisting>
         </listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Restrictions</term>
+	<listitem>
+	  <para>Not available with <link linkend="PO_NO_FILESYSTEM"><code>PO_NO_FILESYSTEM</code></link></para>
+	</listitem>
       </varlistentry>
     </variablelist>
     <table>
@@ -13184,6 +13305,12 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
           <programlisting>is_socket(<replaceable>path</replaceable>)</programlisting>
         </listitem>
       </varlistentry>
+      <varlistentry>
+	<term>Restrictions</term>
+	<listitem>
+	  <para>Not available with <link linkend="PO_NO_FILESYSTEM"><code>PO_NO_FILESYSTEM</code></link></para>
+	</listitem>
+      </varlistentry>
     </variablelist>
     <table>
       <title>Arguments and Return Values for is_socket()</title>
@@ -13231,6 +13358,12 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
         <listitem>
           <programlisting>is_wríteable(<replaceable>path</replaceable>)</programlisting>
         </listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Restrictions</term>
+	<listitem>
+	  <para>Not available with <link linkend="PO_NO_FILESYSTEM"><code>PO_NO_FILESYSTEM</code></link></para>
+	</listitem>
       </varlistentry>
     </variablelist>
     <table>
@@ -13282,6 +13415,12 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
 	<programlisting>lstat(<replaceable>pathname</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Restrictions</term>
+      <listitem>
+	<para>Not available with <link linkend="PO_NO_FILESYSTEM"><code>PO_NO_FILESYSTEM</code></link></para>
+      </listitem>
+    </varlistentry>
   </variablelist>
 
   <table>
@@ -13320,6 +13459,12 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
       <term>Usage</term>
       <listitem>
 	<programlisting>mkdir(<replaceable>string_name, [mode]</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Restrictions</term>
+      <listitem>
+	<para>Not available with <link linkend="PO_NO_FILESYSTEM"><code>PO_NO_FILESYSTEM</code></link></para>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -13379,6 +13524,12 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
 	<programlisting>mkfifo(<replaceable>filename, [mode]</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Restrictions</term>
+      <listitem>
+	<para>Not available with <link linkend="PO_NO_FILESYSTEM"><code>PO_NO_FILESYSTEM</code></link></para>
+      </listitem>
+    </varlistentry>
   </variablelist>
 
       <table>
@@ -13432,6 +13583,12 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
       <term>Usage</term>
       <listitem>
 	<programlisting>rmdir(<replaceable>path</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Restrictions</term>
+      <listitem>
+	<para>Not available with <link linkend="PO_NO_FILESYSTEM"><code>PO_NO_FILESYSTEM</code></link></para>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -13494,6 +13651,12 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
 	<programlisting>umask(<replaceable>mode</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Restrictions</term>
+      <listitem>
+	<para>Not available with <link linkend="PO_NO_FILESYSTEM"><code>PO_NO_FILESYSTEM</code></link></para>
+      </listitem>
+    </varlistentry>
   </variablelist>
 
 
@@ -13537,6 +13700,12 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
       <term>Usage</term>
       <listitem>
 	<programlisting>unlink(<replaceable>file</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Restrictions</term>
+      <listitem>
+	<para>Not available with <link linkend="PO_NO_FILESYSTEM"><code>PO_NO_FILESYSTEM</code></link></para>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -13587,6 +13756,12 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
       <term>Usage</term>
       <listitem>
 	<programlisting>backquote(<replaceable>shell_command_string</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Restrictions</term>
+      <listitem>
+	<para>Not available with <link linkend="PO_NO_EXTERNAL_PROCESS"><code>PO_NO_EXTERNAL_PROCESS</code></link></para>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -15714,6 +15889,12 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
 	<programlisting>delete_all_thread_data()</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Restrictions</term>
+      <listitem>
+	<para>Not available with <link linkend="PO_NO_THREAD_CONTROL"><code>PO_NO_THREAD_CONTROL</code></link></para>
+      </listitem>
+    </varlistentry>
   </variablelist>
     
     <table>
@@ -15751,6 +15932,12 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
       <term>Usage</term>
       <listitem>
 	<programlisting>delete_thread_data(<replaceable>key_string, [key_string, ...]</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Restrictions</term>
+      <listitem>
+	<para>Not available with <link linkend="PO_NO_THREAD_CONTROL"><code>PO_NO_THREAD_CONTROL</code></link></para>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -15792,6 +15979,12 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
 	<programlisting>get_all_thread_data()</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Restrictions</term>
+      <listitem>
+	<para>Not available with <link linkend="PO_NO_THREAD_CONTROL"><code>PO_NO_THREAD_CONTROL</code></link></para>
+      </listitem>
+    </varlistentry>
   </variablelist>
     <table>
       <title>Arguments and Return Values for get_all_thread_data()</title>
@@ -15830,6 +16023,12 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
 	<programlisting>getAllThreadCallStacks()</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Restrictions</term>
+      <listitem>
+	<para>Not available with <link linkend="PO_NO_THREAD_CONTROL"><code>PO_NO_THREAD_CONTROL</code></link></para>
+      </listitem>
+    </varlistentry>
   </variablelist>
     <table>
       <title>Arguments and Return Values for getAllThreadCallStacks()</title>
@@ -15866,6 +16065,12 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
       <term>Usage</term>
       <listitem>
 	<programlisting>get_thread_data(<replaceable>key_string</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Restrictions</term>
+      <listitem>
+	<para>Not available with <link linkend="PO_NO_THREAD_CONTROL"><code>PO_NO_THREAD_CONTROL</code></link></para>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -15992,6 +16197,12 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
 	<programlisting>save_thread_data(<replaceable>key_string, value_expression</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Restrictions</term>
+      <listitem>
+	<para>Not available with <link linkend="PO_NO_THREAD_CONTROL"><code>PO_NO_THREAD_CONTROL</code></link></para>
+      </listitem>
+    </varlistentry>
   </variablelist>
 
 
@@ -16020,56 +16231,99 @@ d and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar w
 
 </sect2>
 
-<sect2 id="thread_list">
-  <title>thread_list()</title>
+      <sect2 id="thread_list">
+	<title>thread_list()</title>
 
-  <variablelist>
-    <varlistentry>
-      <term>Synopsis</term>
-      <listitem>
-	<para>Returns a list of all current thread IDs.</para>
-      </listitem>
-    </varlistentry>
-    <varlistentry>
-      <term>Usage</term>
-      <listitem>
-	<programlisting>thread_list()</programlisting>
-      </listitem>
-    </varlistentry>
-  </variablelist>
+	<variablelist>
+	  <varlistentry>
+	    <term>Synopsis</term>
+	    <listitem>
+	      <para>Returns a list of all current thread IDs.</para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term>Usage</term>
+	    <listitem>
+	      <programlisting>thread_list()</programlisting>
+	    </listitem>
+	  </varlistentry>
+	</variablelist>
 
+	<table><title>Arguments and Return Values for thread_list()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument Type</para></entry>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>	  
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>List</para></entry>
+	      <entry><para>Returns a list of all current thread IDs</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+	</table>
+	<para>This function does not throw any exceptions.</para>
+	
+      </sect2>
 
-<table><title>Arguments and Return Values for thread_list()</title>
-<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+      <sect2 id="throwThreadResourceExceptions">
+	<title>throwThreadResourceExceptions()</title>
 
-  <thead>
-  <row>
-    <entry><para>Argument Type</para></entry>
-    <entry><para>Return Type</para></entry>
-    <entry><para>Description</para></entry>
-  </row>
-  </thead>
+	<variablelist>
+	  <varlistentry>
+	    <term>Synopsis</term>
+	    <listitem>
+	      <para>Immediately runs all thread resource cleanup routines for the current thread and throws all associated exceptions.  This function is particularly useful when used in combination with embedded code in order to catch (and log, for example) thread resource errors (ex: uncommitted transactions, unlocked locks, etc).</para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term>Usage</term>
+	    <listitem>
+	      <programlisting>throwThreadResourceExceptions()</programlisting>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term>Restrictions</term>
+	    <listitem>
+	      <para>Not available with <link linkend="PO_NO_THREAD_CONTROL"><code>PO_NO_THREAD_CONTROL</code></link></para>
+	    </listitem>
+	  </varlistentry>
+	</variablelist>
 
-<tbody>
-  <row>
-    <entry><para>n/a</para></entry>
-    <entry><para>List</para></entry>
-    <entry><para>Returns a list of all current thread IDs</para></entry>
-  </row>
+	<table><title>Arguments and Return Values for throwThreadResourceExceptions()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument Type</para></entry>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>	  
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This function returns no value.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+	</table>
 
-</tbody>
-</tgroup>
-</table>
-  <para>This function does not throw any exceptions.</para>
-
-</sect2>
+	<para>This function can throw any exception thrown by a thread resource handler.</para>
+	
+      </sect2>
 
 </sect1>
 
 <sect1 id="XML_Functions">
   <title>XML Functions</title>
 
-  <para>XML functions allow serializing and deserializing between XML strings and qore data structures.  There are also functions for XML-RPC support; see below for details and see the <link linkend="XmlRpcClient_Class">XmlRpcClient Class</link> for a classes supporting communication with this protocol.</para>
+  <para>XML functions allow serializing and deserializing between XML strings and qore data structures.  There are also functions for XML-RPC support; see below for details and see the <link linkend="XmlRpcClient_Class">XmlRpcClient Class</link> for a class supporting communication with this protocol.</para>
 
   <sect2 id="makeFormattedXMLFragment">
     <title>makeFormattedXMLFragment()</title>

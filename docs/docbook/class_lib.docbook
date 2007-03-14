@@ -512,6 +512,8 @@
   <sect1 id="Qore_File_Class">
     <title>Qore::File Class</title>
 
+    <para>Note: This class is not available with the <link linkend="PO_NO_FILESYSTEM"><code>PO_NO_FILESYSTEM</code></link> parse option.</para>
+
     <para>The File class allows Qore programs to read, write, and create files.</para>
 
     <para>File objects can be created and/or opened with a specific character set, that means that any string 
@@ -3058,6 +3060,8 @@
 
   <sect1 id="Qore_FtpClient_Class">
     <title>Qore::FtpClient Class</title>
+
+    <para>Note: This class is not available with the <link linkend="PO_NO_NETWORK"><code>PO_NO_NETWORK</code></link> parse option.</para>
     
     <para>The FtpClient class allows Qore programs to communicate with FTP servers.  The constructor takes an optional URL with the following format:</para>
     
@@ -5954,83 +5958,83 @@
 	</thead>
 	
 	<tbody>
-	  <row>
+	  <row id="PO_NO_GLOBAL_VARS">
 	    <entry><para>Qore::PO_NO_GLOBAL_VARS</para></entry>
 	    <entry><para>Disallows the use of global variables.</para></entry>
 	  </row>
-	  <row>
+	  <row id="PO_NO_SUBROUTINE_DEFS">
 	    <entry><para>Qore::PO_NO_SUBROUTINE_DEFS</para></entry>
 	    <entry><para>Disallows subroutine (function) definitions.</para></entry>
 	  </row>
-	  <row>
+	  <row id="PO_NO_THREADS">
 	    <entry><para>Qore::PO_NO_THREADS</para></entry>
 	    <entry><para>Disallows any thread operations (the <link linkend="Background_Operator"><command>background</command> operator</link> and the <link linkend="thread_exit_Statements"><command>thread_exit</command> statement</link>, for example) and the use of thread-relevant classes and functions (equivalent to PO_NO_THREAD_CLASSES | PO_NO_THREAD_CONTROL).</para></entry>
 	  </row>
-	  <row>
+	  <row id="PO_NO_THREAD_CLASSES">
 	    <entry><para>Qore::PO_NO_THREAD_CLASSES</para></entry>
 	    <entry><para>Disallows access to any thread classes.</para></entry>
 	  </row>
-	  <row>
+	  <row id="PO_NO_THREAD_CONTROL">
 	    <entry><para>Qore::PO_NO_THREAD_CONTROL</para></entry>
 	    <entry><para>Disallows access to any thread-control functions and thread-relevant statements and operators (for example the <link linkend="Background_Operator"><command>background</command> operator</link> and the <link linkend="thread_exit_Statements"><command>thread_exit</command> statement</link>).</para></entry>
 	  </row>
-	  <row>
+	  <row id="PO_NO_TOP_LEVEL_STATEMENTS">
 	    <entry><para>Qore::PO_NO_TOP_LEVEL_STATEMENTS</para></entry>
 	    <entry><para>Disallows top level code.</para></entry>
 	  </row>
-	  <row>
+	  <row id="PO_NO_CLASS_DEFS">
 	    <entry><para>Qore::PO_NO_CLASS_DEFS</para></entry>
 	    <entry><para>Disallows class definitions.</para></entry>
 	  </row>
-	  <row>
+	  <row id="PO_NO_NAMESPACE_DEFS">
 	    <entry><para>Qore::PO_NO_NAMESPACE_DEFS</para></entry>
 	    <entry><para>Disallows new namespace definitions.</para></entry>
 	  </row>
-	  <row>
+	  <row id="PO_NO_CONSTANT_DEFS">
 	    <entry><para>Qore::PO_NO_CONSTANT_DEFS</para></entry>
 	    <entry><para>Disallows constant definitions.</para></entry>
 	  </row>
-	  <row>
+	  <row id="PO_NO_NEW">
 	    <entry><para>Qore::PO_NO_NEW</para></entry>
 	    <entry><para>Disallows use of the <command>new</command> operator.</para></entry>
 	  </row>
-	  <row>
+	  <row id="PO_NO_SYSTEM_CLASSES">
 	    <entry><para>Qore::PO_NO_SYSTEM_CLASSES</para></entry>
 	    <entry><para>Prohibits system classes from being imported into the new Program object.</para></entry>
 	  </row>
-	  <row>
+	  <row id="PO_NO_USER_CLASSES">
 	    <entry><para>Qore::PO_NO_USER_CLASSES</para></entry>
 	    <entry><para>Prohibits user classes from being imported into the new Program object.</para></entry>
 	  </row>
-	  <row>
+	  <row id="PO_NO_CHILD_PO_RESTRICTIONS">
 	    <entry><para>Qore::PO_NO_CHILD_PO_RESTRICTIONS</para></entry>
 	    <entry><para>Allows child program objects to have fewer parse restrictions than the parent object.</para></entry>
 	  </row>
-	  <row>
+	  <row id="PO_NO_EXTERNAL_PROCESS">
 	    <entry><para>Qore::PO_NO_EXTERNAL_PROCESS</para></entry>
 	    <entry><para>Disallows any access to external processes (with <link linkend="system">system()</link>, <link linkend="backquote">backquote()</link>, <link linkend="exec">exec()</link>, etc).</para></entry>
 	  </row>
-	  <row>
+	  <row id="PO_REQUIRE_OUR">
 	    <entry><para>Qore::PO_REQUIRE_OUR</para></entry>
 	    <entry><para>Requires global variables to be declared with <command>our</command> before use.</para></entry>
 	  </row>
-	  <row>
+	  <row id="PO_NO_PROCESS_CONTROL">
 	    <entry><para>Qore::PO_NO_PROCESS_CONTROL</para></entry>
 	    <entry><para>Disallows access to functions that would affect the current process (<link linkend="exit">exit()</link>, <link linkend="exit">exec()</link>, <link linkend="fork">fork()</link>, etc).</para></entry>
 	  </row>
-	  <row>
+	  <row id="PO_NO_NETWORK">
 	    <entry><para>Qore::PO_NO_NETWORK</para></entry>
 	    <entry><para>Disallows access to network functions.</para></entry>
 	  </row>
-	  <row>
+	  <row id="PO_NO_FILESYSTEM">
 	    <entry><para>Qore::PO_NO_FILESYSTEM</para></entry>
 	    <entry><para>Disallows access to the filesystem.</para></entry>
 	  </row>
-	  <row>
+	  <row id="PO_NO_WARNINGS">
 	    <entry><para>Qore::PO_LOCK_WARNINGS</para></entry>
 	    <entry><para>Disallows changes to the warning mask.</para></entry>
 	  </row>
-	  <row>
+	  <row id="PO_NO_DATABASE">
 	    <entry><para>Qore::PO_NO_DATABASE</para></entry>
 	    <entry><para>Disallows access to database functionality.</para></entry>
 	  </row>
@@ -7071,6 +7075,8 @@ xs      </variablelist>
   <sect1 id="Qore_Socket_Class">
     <title>Qore::Socket Class</title>
     
+    <para>Note: This class is not available with the <link linkend="PO_NO_NETWORK"><code>PO_NO_NETWORK</code></link> parse option.</para>
+
     <para>Socket objects allow Qore programs safe access to network sockets.  Non-blocking socket I/O can be performed by appending a timeout value in milliseconds to all Socket::recv*() methods, or by using the <link linkend="Qore_Socket_isDataAvailable">Socket::isDataAvailable()</link> method with a timeout value in milliseconds (1000 ms = 1 second).  Note that as with all Qore functions and methods accepting a timeout value, relative date/time values can be given instead of integers to make the source more readable, for example:</para>
 
     <programlisting><command>my</command> $rc = $socket.isDataAvailable(1250ms); # times out in 1.25 seconds</programlisting>
@@ -10728,6 +10734,9 @@ xs      </variablelist>
 
   <sect1 id="HTTPClient_Class">
     <title>Qore::HTTPClient Class</title>
+
+    <para>Note: This class is not available with the <link linkend="PO_NO_NETWORK"><code>PO_NO_NETWORK</code></link> parse option.</para>
+
     <para>The HTTPClient class can be used to communicate with HTTP servers using the HTTP or HTTPS (HTTP using an SSL/TLS encrypted connection) protocol.</para>
     <para>By default 'Connection: Keep-Alive' is always sent regardless of the HTTP protocol level set for the object, however if a server response contains 'Connection: close', the connection will be closed as soon as the full response (including any message body if present) has been read.</para>
     <para>Note that HTTP redirect messages are currently not processed and will cause an <code>HTTP-CLIENT-RECEIVE-ERROR</code> exception to be thrown.</para>
@@ -13001,6 +13010,9 @@ xs      </variablelist>
 
   <sect1 id="XmlRpcClient_Class">
     <title>Qore::XmlRpcClient Class</title>
+
+    <para>Note: This class is not available with the <link linkend="PO_NO_NETWORK"><code>PO_NO_NETWORK</code></link> parse option.</para>
+
     <para>The XmlRpcClient class provides easy access to XML-RPC web services.  This class inherits all public methods of the <link linkend="HTTPClient_Class">HTTPClient class</link>.  The inherited <link linkend="HTTPClient_Class">HTTPClient</link> methods are not listed in this section, see the section on the <link linkend="HTTPClient_Class">HTTPClient class</link> for more information on methods provided by the parent class.  For low-level XML-RPC functions, see the XML-RPC functions in <link linkend="XML_Functions">XML Functions</link>.</para>
 
     <para>The XmlRpcClient class understands the following protocols in addition to the <link linkend="HTTPClient_Protocols">protocols supported by the HTTPClient class</link>:</para>
@@ -13578,6 +13590,9 @@ xs      </variablelist>
 
   <sect1 id="JsonRpcClient_Class">
     <title>Qore::JsonRpcClient Class</title>
+
+    <para>Note: This class is not available with the <link linkend="PO_NO_NETWORK"><code>PO_NO_NETWORK</code></link> parse option.</para>
+
     <para>The JsonRpcClient class provides easy access to JSON-RPC web services.  This class inherits all public methods of the <link linkend="HTTPClient_Class">HTTPClient class</link>.  The inherited HTTPClient methods are not listed in this section, see the section on the HTTPClient class for more information on methods provided by the parent class.  For low-level JSON-RPC functions, see the JSON-RPC functions in <link linkend="JSON_Functions">JSON Functions</link>.</para>
 
     <para>The JsonRpcClient class understands the following protocols in addition to the <link linkend="HTTPClient_Protocols">protocols supported by the HTTPClient class</link>:</para>
@@ -16285,6 +16300,8 @@ xs      </variablelist>
   <sect1 id="Qore::SQL::Datasource_Class">
     <title>Qore::SQL::Datasource Class</title>
     
+    <para>Note: This class is not available with the <link linkend="PO_NO_DATABASE"><code>PO_NO_DATABASE</code></link> parse option.</para>
+
     <para>Datasource objects allow Qore programs to access databases through a Qore database driver.</para>
 
     <para>Datasource objects will implicitly call <link linkend="Qore::SQL::Datasource::open">Datasource::open()</link> if no connection has yet been established and a method is called requiring a connection to the database server.  Therefore any method that requires communication with the database server can also throw any exception that the open method can throw.</para>
@@ -18054,6 +18071,8 @@ xs      </variablelist>
   <sect1 id="Qore::Thread::AutoGate_Class">
     <title>Qore::Thread::AutoGate Class</title>
 
+    <para>Note: This class is not available with the <link linkend="PO_NO_THREAD_CLASSES"><code>PO_NO_THREAD_CLASSES</code></link> parse option.</para>
+
     <para>AutoGate objects, when used along with a <link linkend="Qore::Thread::Gate_Class">Gate</link> object, allow Qore programmers to safely enter and exit a gate lock, even if exceptions are thrown or <command>return</command> statements are executed in the block where the AutoGate object is created.  AutoGate objects enter the gate lock for the lifetime of the AutoGate object.  For this reason, it is only appropriate to assign an AutoGate object to a local variable, so when the local variable goes out of scope, the AutoGate object will be deleted and the gate automatically exited.</para>
 
     <para>For example:</para>
@@ -18262,6 +18281,8 @@ xs      </variablelist>
   <sect1 id="Qore::Thread::AutoLock_Class">
     <title>Qore::Thread::AutoLock Class</title>
 
+    <para>Note: This class is not available with the <link linkend="PO_NO_THREAD_CLASSES"><code>PO_NO_THREAD_CLASSES</code></link> parse option.</para>
+
     <para>AutoLock objects, when used along with a <link linkend="Qore::Thread::Mutex_Class">Mutex</link> object, allow Qore programmers to safely acquire and release a Mutex lock, even if exceptions are thrown or <command>return</command> statements are executed in the block where the AutoLock object is created.  AutoLock objects are helper objects that acquire a Mutex for the lifetime of the object.  For this reason, it is only appropriate to assign an AutoLock object to a local variable, so when the local variable goes out of scope, the AutoLock object will be deleted and the Mutex will be automatically released.</para>
 
     <para>For example:</para>
@@ -18468,6 +18489,8 @@ xs      </variablelist>
 
   <sect1 id="Qore::Thread::AutoReadLock_Class">
     <title>Qore::Thread::AutoReadLock Class</title>
+
+    <para>Note: This class is not available with the <link linkend="PO_NO_THREAD_CLASSES"><code>PO_NO_THREAD_CLASSES</code></link> parse option.</para>
 
     <para>AutoReadLock objects, when used along with a <link linkend="Qore::Thread::RWLock_Class">RWLock</link> object, allow Qore programmers to safely acquire and release a read lock, even if exceptions are thrown or <command>return</command> statements are executed in the block where the AutoReadLock object is created.  AutoReadLock objects are helper objects that acquire a read lock for the lifetime of the AutoReadLock object.  For this reason, it is only appropriate to assign an AutoReadLock object to a local variable, so when the local variable goes out of scope, the AutoReadLock object will be deleted and the read lock will be automatically released.</para>
 
@@ -18676,6 +18699,8 @@ xs      </variablelist>
   <sect1 id="Qore::Thread::AutoWriteLock_Class">
     <title>Qore::Thread::AutoWriteLock Class</title>
 
+    <para>Note: This class is not available with the <link linkend="PO_NO_THREAD_CLASSES"><code>PO_NO_THREAD_CLASSES</code></link> parse option.</para>
+
     <para>AutoWriteLock objects, when used along with a <link linkend="Qore::Thread::RWLock_Class">RWLock</link> object, allow Qore programmers to safely acquire and release a write lock, even if exceptions are thrown or <command>return</command> statements are executed in the block where the AutoWriteLock object is created.  AutoWriteLock objects are helper objects that acquire a write lock for the lifetime of the AutoWriteLock object.  For this reason, it is only appropriate to assign an AutoWriteLock object to a local variable, so when the local variable goes out of scope, the AutoWriteLock object will be deleted and the write lock will be automatically released.</para>
 
     <para>For example:</para>
@@ -18882,6 +18907,8 @@ xs      </variablelist>
 
   <sect1 id="Qore::Thread::Condition_Class">
     <title>Qore::Thread::Condition Class</title>
+
+    <para>Note: This class is not available with the <link linkend="PO_NO_THREAD_CLASSES"><code>PO_NO_THREAD_CLASSES</code></link> parse option.</para>
 
     <para>Condition objects, when used along with a <link linkend="Qore::Thread::Mutex_Class">Mutex</link> object, allow Qore threads to sleep until a certain condition becomes true.</para>
 
@@ -19356,6 +19383,8 @@ xs      </variablelist>
   </sect1>
   <sect1 id="Qore::Thread::Counter_Class">
     <title>Qore::Thread::Counter Class</title>
+
+    <para>Note: This class is not available with the <link linkend="PO_NO_THREAD_CLASSES"><code>PO_NO_THREAD_CLASSES</code></link> parse option.</para>
 
     <para>Counter objects allow Qore threads to sleep until a counter reaches zero.</para>
 
@@ -19892,6 +19921,8 @@ xs      </variablelist>
 
   <sect1 id="Qore::Thread::Queue_Class">
     <title>Qore::Thread::Queue Class</title>
+
+    <para>Note: This class is not available with the <link linkend="PO_NO_THREAD_CLASSES"><code>PO_NO_THREAD_CLASSES</code></link> parse option.</para>
 
     <para>Queue objects provide a blocking, thread-safe message-passing object to Qore programs.</para>
 
@@ -20436,6 +20467,8 @@ xs      </variablelist>
 
   <sect1 id="Qore::Thread::RWLock_Class">
     <title>Qore::Thread::RWLock Class</title>
+
+    <para>Note: This class is not available with the <link linkend="PO_NO_THREAD_CLASSES"><code>PO_NO_THREAD_CLASSES</code></link> parse option.</para>
 
     <para>The RWLock class implements a read-write lock for efficient thread locking when writes are less common than reads and reads must be atomic. When a thread holds the write lock, no other thread can grab the read or write lock. Multiple threads can hold the read lock at one time.</para>
 
@@ -21270,6 +21303,8 @@ xs      </variablelist>
   <sect1 id="Qore::Thread::Mutex_Class">
     <title>Qore::Thread::Mutex Class</title>
 
+    <para>Note: This class is not available with the <link linkend="PO_NO_THREAD_CLASSES"><code>PO_NO_THREAD_CLASSES</code></link> parse option.</para>
+
     <para>The Mutex class implements a mutual-exclusion lock for thread locking.  Like all Qore thread primitives, objects of this class participate in deadlock detection and throw exceptions when threading errors occur (ex: unlocking a Mutex object locked by another thread, etc).  See individual methods for more information on exceptions thrown.</para>
 
     <table>
@@ -21688,6 +21723,8 @@ xs      </variablelist>
     <title>Qore::Thread::RMutex Class</title>
     <para>DEPRECATED: use the <link linkend="Qore::Thread::Gate_Class">Gate</link> class instead.</para>
 
+    <para>Note: This class is not available with the <link linkend="PO_NO_THREAD_CLASSES"><code>PO_NO_THREAD_CLASSES</code></link> parse option.</para>
+
   </sect1>
 
   <sect1 id="Qore::Thread::Sequence_Class">
@@ -21986,6 +22023,9 @@ xs      </variablelist>
 
   <sect1 id="Qore::Thread::Gate_Class">
     <title>Qore::Thread::Gate Class</title>
+
+    <para>Note: This class is not available with the <link linkend="PO_NO_THREAD_CLASSES"><code>PO_NO_THREAD_CLASSES</code></link> parse option.</para>
+
     <para>The Gate class implements a reentrant thread lock.  Once a thread grabs the lock, it can call the Gate::enter() method again without blocking.  Other threads that try to enter the lock will block until the thread holding the lock calls Gate::exit() an equal number of times to the Gate::enter() calls.</para>
 
     <table>
