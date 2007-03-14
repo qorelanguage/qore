@@ -36,6 +36,8 @@
 #include "sybase_query_parser.h"
 
 class sybase_connection;
+class QoreNode;
+class QoreEncoding;
 
 //------------------------------------------------------------------------------
 extern int sybase_low_level_commit(sybase_connection* sc, ExceptionSink* xsink);
@@ -89,20 +91,18 @@ extern std::vector<parameter_info_t> sybase_low_level_get_output_data_info(const
 // used by the function bellow
 struct bind_parameter_t 
 {
-  bind_parameter_t(int t, unsigned s) 
-  : m_type(t), m_size(s), m_data(0), m_is_null(true) {}
-  bind_parameter_t(int t, unsigned s, const void* d) 
-  : m_type(t), m_size(s), m_data(d), m_is_null(false) {}
+  bind_parameter_t(int t, unsigned s, QoreNode* n) 
+  : m_type(t), m_max_size(s), m_node(n) {}
 
   int m_type; // e.g. CS_INT_TYPE
-  unsigned m_size;
-  const void* m_data;  // not owned
-  bool m_is_null;
+  unsigned m_max_size;
+  QoreNode* m_node; // not owned
 };
 
 // bind SQL command (RPCs do not use binding)
 extern void sybase_low_level_bind_parameters(
   const sybase_command_wrapper& wrapper,
+  const QoreEncoding* encoding,
   const char* command,
   const std::vector<bind_parameter_t>& parameters,
   ExceptionSink* xsink
@@ -112,26 +112,37 @@ extern void sybase_low_level_bind_parameters(
 // used by the function bellow
 struct RPC_parameter_info_t
 {
-  RPC_parameter_info_t(int t, unsigned s) 
-  : m_type(t), m_size(s), m_is_input(false), m_data(0), m_is_null(false) {}
-  RPC_parameter_info_t(int t, unsigned s, const void* d)
-  : m_type(t), m_size(s), m_is_input(true), m_data(d), m_is_null(d != 0) {}
+  RPC_parameter_info_t(int t)
+  : m_type(t), m_is_input(false), m_node(0) {}
+  RPC_parameter_info_t(int t, QoreNode* n) 
+  : m_type(t), m_is_input(true), m_node(n) {}
 
   int m_type; // e.g. CS_TYPE_INT
-  unsigned m_size;
-  bool m_is_input;
-  const void* m_data; // only for input values, not owned
-  bool m_is_null; // only for input values
+  bool m_is_input; // either input (then m_node may contain value) or a placeholder
+  QoreNode* m_node; // not owned
 };
 
 // send RPC command to the server
 extern void execute_RPC_call(
   const sybase_command_wrapper& wrapper,
+  const QoreEncoding* encoding,
   const char* RPC_command, // just name, w/o "exec[ute]" or parameters list
   const std::vector<RPC_parameter_info_t>& parameters,
   ExceptionSink* xsink
   );
   
+//------------------------------------------------------------------------------
+// wraps ct_param()
+extern void sybase_ct_param(
+  const sybase_command_wrapper& wrapper,
+  unsigned parameter_index, // starting with 0
+  const QoreEncoding* encoding,
+  int type, // like CS_INT_TYPE
+  unsigned max_size, // if applicable, CS_UNUSED otherwise
+  QoreNode* data,
+  ExceptionSink* xsink
+  );
+
 
 #endif
 

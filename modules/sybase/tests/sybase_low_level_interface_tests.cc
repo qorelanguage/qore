@@ -1,6 +1,7 @@
 #ifdef DEBUG
 
 #include "sybase_tests_common.h"
+#include <qore/QoreNode.h>
 
 namespace sybase_tests_78620983 {
 
@@ -777,13 +778,15 @@ TEST()
   }
 
   std::vector<RPC_parameter_info_t> vec;
-  CS_INT val = 100;
-  vec.push_back(RPC_parameter_info_t(CS_INT_TYPE, sizeof(CS_INT), &val));
+  QoreNode* n = new QoreNode((int64)111);
+  vec.push_back(RPC_parameter_info_t(CS_INT_TYPE, n));
 
-  execute_RPC_call(w, "my_sample_rpc2", vec, &xsink);
+  execute_RPC_call(w, 0, "my_sample_rpc2", vec, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
+
+  n->deref(&xsink);
 } 
 
 } // namespace

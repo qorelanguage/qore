@@ -42,6 +42,7 @@
 #include <qore/ScopeGuard.h>
 #include "sybase_connection.h"
 #include "sybase_low_level_interface.h"
+#include "QoreSybaseMapper.h"
 
 #ifdef DEBUG
 #  define private public
@@ -1127,84 +1128,22 @@ QoreNode* SybaseBindGroup::selectRows(class ExceptionSink *xsink)
 }
 
 //------------------------------------------------------------------------------
-// Converts Qore encoding name to Qore encoding type.
-// Covers only what the function get_default_string_encoding() supports.
-static QoreEncoding* encoding_str2Qore(const char* encoding_str, ExceptionSink* xsink)
+// copied from Postgres module
+static void set_encoding(Datasource* ds, ExceptionSink* xsink)
 {
-  if (!encoding_str || !encoding_str[0]) {
-    // internal error
-    assert(false);
-    xsink->raiseException("DBI-EXEC-EXCEPTION", "Empty encoding passed into encoding_str2Qore()");
-    return 0;
-  }
-  if (strcmp(encoding_str, "utf-8") == 0) {
-    return QCS_UTF8;
-  }
-  if (strcmp(encoding_str, "iso-8859-1") == 0) {
-    return QCS_ISO_8859_1;
-  }
-  if (strcmp(encoding_str, "us-ascii") == 0) {
-    return QCS_USASCII; // I hope this is correct
-  }
-  if (strcmp(encoding_str, "iso-8859-2") == 0) {
-    return QCS_ISO_8859_2;
-  }
-
-  // The other encoding may be added later.
-  // Then the function get_default_string_encoding() needs
-  // to be synchronized.
-  
-  assert(false);
-  xsink->raiseException("DBI-EXEC-EXCEPTION", "Unknown encoding [%s] passed into encoding_str2Qore()", encoding_str);
-  return 0;
-}
-
-//------------------------------------------------------------------------------
-// Converts Sybase encoding name to Qore encoding name. Only selected number of names is handled.
-//
-// See http://infocenter.sybase.com/help/index.jsp?topic=/com.sybase.dc35823_1500/html/uconfig/X29127.htm
-// (customizing locale information for Adaptive Server)
-static std::string get_default_string_encoding(CS_CONTEXT* context, ExceptionSink* xsink)
-{
-printf("### retrieving locale\n");
-  CS_LOCALE* locale;
-  CS_RETCODE err = cs_loc_alloc(context, &locale);
-  if (err != CS_SUCCEED) {
-    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call cs_loc_alloc() returned error %d", (int)err);
-    return std::string();
-  }
-  ON_BLOCK_EXIT(cs_loc_drop, context, locale);
-
-  CS_CHAR encoding_str[100];
-  err = cs_locale(context, CS_GET, locale, CS_SYB_CHARSET, encoding_str, sizeof(encoding_str), 0);
-  if (err != CS_SUCCEED) {
-    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call cs_locale() returned error %d", (int)err);
-    return std::string();
-  }
-
-  if (!encoding_str[0]) {
-    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call cs_locale() returned empty string for encoding");
-    return std::string();
-  }
-  if (strcmp(encoding_str, "utf8") == 0) {
-    return "utf-8";
-  }
-  if (strcmp(encoding_str, "iso_1") == 0) {
-    return "iso-8859-1";
-  }
-  if (strcmp(encoding_str, "ascii8") == 0) {
-    return "us-ascii"; // I hope this is correct
-  }
-  if (strcmp(encoding_str, "iso88592") == 0) {
-    return "iso-8859-2";
-  }
-  // If new item is added here synchronize the above function 
-  // encoding_str2Qore() too.
-  // Possible problems: Sybase has "koi8" while Qore has 2 encodings: QCS_KOI8_R and QCS_KOI8_U.
-
-  xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call cs_locale() returned currently unrecognized encoding %s", encoding_str);
-
-  return std::string();
+   if (ds->getDBEncoding())
+      ds->setQoreEncoding(QoreSybaseMapper::getQoreEncoding(ds->getDBEncoding()));
+   else
+   {
+      char *enc = (char *)QoreSybaseMapper::getSybaseEncoding(QCS_DEFAULT);
+      if (!enc)
+      {
+         xsink->raiseException("DBI:SYBASE:UNKNOWN-CHARACTER-SET", "cannot find the PostgreSQL character encoding equivalent for '%s'", QCS_DEFAULT->getCode());
+         return;
+      }
+      ds->setDBEncoding(enc);
+      ds->setQoreEncoding(QCS_DEFAULT);
+   }
 }
 
 } // anonymous namespace
@@ -1237,37 +1176,13 @@ static int sybase_open(Datasource *ds, ExceptionSink *xsink)
   }
   ds->setPrivateData(sc.release());
 
-  // string encoding
-   if (ds->getDBEncoding()) {
-printf("### already HAS encoding\n");
-    const char* encoding_str = ds->getDBEncoding();
-    QoreEncoding* encoding_qore = encoding_str2Qore(encoding_str, xsink);
-    if (xsink->isException()) {
-      sybase_connection* sc = (sybase_connection*)ds->getPrivateData();
-      ds->setPrivateData(0);
-      delete sc;
-      return -1;
-    }
-    ds->setQoreEncoding(encoding_qore);
-   } else {
-printf("### CHECKING for encoding\n");
-      std::string encoding_str = get_default_string_encoding(sc->getContext(), xsink);
-      if (xsink->isException()) {
-        sybase_connection* sc = (sybase_connection*)ds->getPrivateData();
-        ds->setPrivateData(0);
-        delete sc;
-        return -1;
-      }
-      ds->setDBEncoding((char*)encoding_str.c_str());
-      QoreEncoding* encoding_qore = encoding_str2Qore((char*)encoding_str.c_str(), xsink);
-      if (xsink->isException()) {
-        sybase_connection* sc = (sybase_connection*)ds->getPrivateData();
-        ds->setPrivateData(0);
-        delete sc;
-        return -1;
-      }
-      ds->setQoreEncoding(encoding_qore);
-   }
+  set_encoding(ds, xsink);
+  if (xsink->isException()) {
+    sybase_connection* sc = (sybase_connection*)ds->getPrivateData();
+    ds->setPrivateData(0);
+    delete sc;
+    return -1;    
+  }
 
   traceout("sybase_open()");
   return 0;
@@ -1420,7 +1335,7 @@ void sybase_module_ns_init(Namespace *rns, Namespace *qns)
 void sybase_module_delete()
 {
    tracein("sybase_module_delete()");
-   //DBI_deregisterDriver(DBID_SYBASE); - commented out because it is so in oracle module
+   //DBI_deregisterDriver(DBID_SYBASE); - commented out because it is commented in oracle module (and others)
    traceout("sybase_module_delete()");
 }
 

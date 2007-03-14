@@ -32,6 +32,11 @@
 #include <pthread.h>
 #include <qore/minitest.hpp>
 #include <qore/ScopeGuard.h>
+#include <qore/charset.h>
+#include <qore/QoreNode.h>
+#include <qore/Namespace.h>
+#include <qore/QoreType.h>
+#include <qore/TypeConstants.h>
 
 #include "sybase_low_level_interface.h"
 #include "sybase_connection.h"
@@ -390,6 +395,7 @@ std::string sybase_low_level_get_default_encoding(const sybase_connection& conn,
 //------------------------------------------------------------------------------
 void sybase_low_level_bind_parameters(
   const sybase_command_wrapper& wrapper,
+  const QoreEncoding* encoding,
   const char* command,
   const std::vector<bind_parameter_t>& parameters,
   ExceptionSink* xsink
@@ -401,6 +407,7 @@ void sybase_low_level_bind_parameters(
 //------------------------------------------------------------------------------
 void execute_RPC_call(
   const sybase_command_wrapper& wrapper,
+  const QoreEncoding* encoding,
   const char* RPC_command, // just name, w/o "exec[ute]" or parameters list
   const std::vector<RPC_parameter_info_t>& parameters,
   ExceptionSink* xsink
@@ -419,10 +426,12 @@ void execute_RPC_call(
     CS_DATAFMT datafmt;
     memset(&datafmt, 0, sizeof(datafmt));
     datafmt.datatype = parameters[i].m_type;
+/*TBD
     datafmt.maxlength = parameters[i].m_size;
     datafmt.status = parameters[i].m_is_input ? CS_INPUTVALUE : CS_RETURN;
 
     err = ct_param(wrapper(), &datafmt, (CS_VOID*)parameters[i].m_data, parameters[i].m_size, parameters[i].m_is_null ? -1 : 0);
+*/
     if (err != CS_SUCCEED) {
       assert(false);
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_param() #%d failed with error %d", i + 1, (int)err);
@@ -436,6 +445,61 @@ void execute_RPC_call(
     xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_send() failed with error %d", (int)err);
     return;
   }  
+}
+
+//------------------------------------------------------------------------------
+void sybase_ct_param(
+  const sybase_command_wrapper& wrapper,
+  unsigned parameter_index,
+  const QoreEncoding* encoding,
+  int type, // like CS_INT_TYPE
+  unsigned max_size, // if applicable, CS_UNUSED otherwise
+  QoreNode* data,
+  ExceptionSink* xsink
+  )
+{
+  if (is_null(data)) {
+    // SQL NULL value
+    CS_DATAFMT datafmt;
+    memset(&datafmt, 0, sizeof(datafmt));
+    datafmt.status = CS_INPUTVALUE;
+    datafmt.namelen = CS_NULLTERM;
+    datafmt.maxlength = CS_UNUSED;
+    datafmt.count = 1;
+
+    CS_RETCODE err = ct_param(wrapper(), &datafmt, 0, CS_UNUSED, -1);
+    if (err != CS_SUCCEED) {
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_param(NULL) failed for parameter #%u with error %d", parameter_index + 1, (int)err);
+    }
+    return;
+  }
+
+  CS_DATAFMT datafmt;
+  memset(&datafmt, 0, sizeof(datafmt));
+  datafmt.status = CS_INPUTVALUE;
+  datafmt.namelen = CS_NULLTERM;
+  datafmt.maxlength = CS_UNUSED;
+  datafmt.count = 1;
+
+  switch (type) {
+  case CS_VARCHAR_TYPE:
+  case CS_LONGCHAR_TYPE:
+  case CS_CHAR_TYPE: // all types are almost equivalent
+  {
+    if (data->type != NT_STRING) {
+      assert(false);
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "Incorrect type for string parameter #%u", parameter_index + 1);
+      return;
+    }
+
+    TempEncodingHelper s(data->val.String, (QoreEncoding*)encoding, xsink);
+    if (xsink->isException()) {
+      return;
+    }
+  }
+  break;
+
+  } // switch 
 }
 
 #ifdef DEBUG

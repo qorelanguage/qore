@@ -27,12 +27,15 @@
 #define SYBASE_READ_OUTPUT_H_
 
 class QoreNode;
+class QoreEncoding;
 class sybase_command_wrapper;
 class ExceptionSink;
 
+#include "sybase_query_parser.h"
+
 //------------------------------------------------------------------------------
 // Read output of a command (SQL or procedure call) and convert it into Qore node (hash or list of hashes)
-extern QoreNode* convert_sybase_output_to_Qore(const sybase_command_wrapper& wrapper, ExceptionSink* xsink);
+extern QoreNode* convert_sybase_output_to_Qore(const sybase_command_wrapper& wrapper, const QoreEncoding* encoding, const processed_sybase_query& query_info, ExceptionSink* xsink);
 
 #endif
 

@@ -33,25 +33,20 @@ rev_encoding_map_t QoreSybaseMapper::rmap;
 
 #define DO_MAP(a, b) map[(a)] = (b); rmap[(b)] = (a);
 
+// See http://infocenter.sybase.com/help/index.jsp?topic=/com.sybase.dc35823_1500/html/uconfig/X29127.htm
+// for supported languages
 void QoreSybaseMapper::static_init()
 {
-   DO_MAP("UTF8",       QCS_UTF8);
-   DO_MAP("LATIN1",     QCS_ISO_8859_1);
-   DO_MAP("LATIN2",     QCS_ISO_8859_2);
-   DO_MAP("LATIN3",     QCS_ISO_8859_3);
-   DO_MAP("LATIN4",     QCS_ISO_8859_4);
-   DO_MAP("ISO_8859_5", QCS_ISO_8859_5);
-   DO_MAP("ISO_8859_6", QCS_ISO_8859_6);
-   DO_MAP("ISO_8859_7", QCS_ISO_8859_7);
-   DO_MAP("ISO_8859_8", QCS_ISO_8859_8);
-   DO_MAP("LATIN5",     QCS_ISO_8859_9);
-   DO_MAP("LATIN6",     QCS_ISO_8859_10);
-   DO_MAP("LATIN7",     QCS_ISO_8859_13);
-   DO_MAP("LATIN8",     QCS_ISO_8859_14);
-   DO_MAP("LATIN9",     QCS_ISO_8859_15);
-   DO_MAP("LATIN10",    QCS_ISO_8859_16);
-   DO_MAP("SQL_ASCII",  QCS_USASCII);
-   DO_MAP("KOI8",       QCS_KOI8_R);
+   DO_MAP("utf8",     QCS_UTF8);
+   DO_MAP("iso_1",    QCS_ISO_8859_1); // Western Europe Latin
+   DO_MAP("iso88592", QCS_ISO_8859_2); // Central Europe Latin
+   DO_MAP("iso88595", QCS_ISO_8859_5); // Cyrilic
+   DO_MAP("iso88596", QCS_ISO_8859_6); // Arabic
+   DO_MAP("iso88597", QCS_ISO_8859_7); // Greek
+   DO_MAP("iso88598", QCS_ISO_8859_8); // Hebrew
+   DO_MAP("iso88599", QCS_ISO_8859_9); // Turkish
+   DO_MAP("ascii8",   QCS_USASCII);
+   DO_MAP("koi8",     QCS_KOI8_R); // Cyrilic
 }
 
 class QoreEncoding *QoreSybaseMapper::getQoreEncoding(const char *cs)

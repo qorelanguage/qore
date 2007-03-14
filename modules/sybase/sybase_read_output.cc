@@ -26,6 +26,7 @@
 #include <qore/config.h>
 #include <qore/support.h>
 #include <qore/Exception.h>
+#include <qore/charset.h>
 
 #include <assert.h>
 #include <qore/minitest.hpp>
@@ -33,7 +34,7 @@
 #include "sybase_read_output.h"
 
 //------------------------------------------------------------------------------
-QoreNode* convert_sybase_output_to_Qore(const sybase_command_wrapper& wrapper, ExceptionSink* xsink)
+QoreNode* convert_sybase_output_to_Qore(const sybase_command_wrapper& wrapper, const QoreEncoding* encoding, const processed_sybase_query& query_info, ExceptionSink* xsink)
 {
   // TBD
   return 0;

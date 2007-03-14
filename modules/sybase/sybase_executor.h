@@ -30,11 +30,33 @@ class Datasource;
 class QoreString;
 class QoreNode;
 class ExceptionSink;
+class sybase_command_wrapper;
+class List;
+
+#include "sybase_query_parser.h"
+
+#ifdef DEBUG
+#  define  private public
+#endif
 
 //------------------------------------------------------------------------------
 class sybase_executor
 {
+private:
   Datasource* m_ds;
+  List* m_args; // arguments for the query, not owned
+  processed_sybase_query m_parsed_query;
+
+  QoreNode* exec_procedure_call(const sybase_command_wrapper& w, ExceptionSink* xsink);
+  QoreNode* exec_language_command(const sybase_command_wrapper& w, ExceptionSink* xsink);
+  
+  // execute all kind of commands, including procedure calls
+  QoreNode* exec_impl(ExceptionSink* xsink);
+
+#ifdef DEBUG
+  sybase_executor() : m_ds(0), m_args(0) {}
+#endif
+
 public:
   sybase_executor(Datasource* ds, QoreString* ostr, List *args, ExceptionSink *xsink);
   ~sybase_executor();
