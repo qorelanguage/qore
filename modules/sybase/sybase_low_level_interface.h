@@ -38,6 +38,7 @@
 class sybase_connection;
 class QoreNode;
 class QoreEncoding;
+class DateTime;
 
 //------------------------------------------------------------------------------
 extern int sybase_low_level_commit(sybase_connection* sc, ExceptionSink* xsink);
@@ -52,13 +53,15 @@ class sybase_command_wrapper
 {
   CS_COMMAND* m_cmd;
   std::string m_string_id; // should be unique across connection
+  CS_CONTEXT* m_context; // needed for datetime conversions
 
 public:
-  sybase_command_wrapper(CS_CONNECTION* conn, ExceptionSink* xsink);
+  sybase_command_wrapper(sybase_connection& conn, ExceptionSink* xsink);
   ~sybase_command_wrapper();
   
   CS_COMMAND* operator()() const { return m_cmd; }
   char* getStringId() const { return (char*)m_string_id.c_str(); }
+  CS_CONTEXT* getContext() const { return m_context; }
 };
 
 //------------------------------------------------------------------------------
@@ -150,6 +153,14 @@ extern void sybase_ct_param(
   QoreNode* data,
   ExceptionSink* xsink
   );
+
+//------------------------------------------------------------------------------
+// Sybase DATETIME manipulation 
+extern void convert_QoreDatetime2SybaseDatetime(CS_CONTEXT* context, DateTime* dt, CS_DATETIME& out, ExceptionSink* xsink);
+extern void convert_QoreDatetime2SybaseDatetime4(CS_CONTEXT* context, DateTime* dt, CS_DATETIME4& out, ExceptionSink* xsink);
+
+extern DateTime* convert_SybaseDatetime2QoreDatetime(CS_CONTEXT* context, CS_DATETIME& dt, ExceptionSink* xsink);
+extern DateTime* convert_SybaseDatetime4_2QoreDatetime(CS_CONTEXT* context, CS_DATETIME4& dt, ExceptionSink* xsink);
 
 
 #endif

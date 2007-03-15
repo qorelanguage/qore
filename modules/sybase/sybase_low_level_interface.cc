@@ -38,6 +38,8 @@
 #include <qore/QoreType.h>
 #include <qore/TypeConstants.h>
 #include <qore/BinaryObject.h>
+#include <qore/DateTime.h>
+#include <string>
 
 #include "sybase_low_level_interface.h"
 #include "sybase_connection.h"
@@ -181,10 +183,11 @@ void sybase_low_level_execute_directly_command(CS_CONNECTION* conn, const char* 
 }
 
 //------------------------------------------------------------------------------
-sybase_command_wrapper::sybase_command_wrapper(CS_CONNECTION* conn, ExceptionSink* xsink)
-: m_cmd(0)
+sybase_command_wrapper::sybase_command_wrapper(sybase_connection& conn, ExceptionSink* xsink)
+: m_cmd(0),
+  m_context(conn.getContext())
 {
-  CS_RETCODE err = ct_cmd_alloc(conn, &m_cmd);
+  CS_RETCODE err = ct_cmd_alloc(conn.getConnection(), &m_cmd);
   if (err != CS_SUCCEED) {
     assert(false);
     xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_cmd_alloc() failed with error %d", (int)err);
@@ -470,6 +473,113 @@ void sybase_ct_dynamic(
 }
 
 //------------------------------------------------------------------------------
+// e.g. return "Apr" for 4
+static const char* getMonthString(int mon)
+{
+  switch (mon) {
+  case 1: return "Jan";
+  case 2: return "Feb";
+  case 3: return "Mar";
+  case 4: return "Apr";
+  case 5: return "May";
+  case 6: return "Jun";
+  case 7: return "Jul";
+  case 8: return "Aug";
+  case 9: return "Sep";
+  case 10: return "Oct";
+  case 11: return "Nov";
+  case 12: return "Dec";
+  default:
+    assert(false);
+    return "";
+  }
+}
+
+//------------------------------------------------------------------------------
+// create string in default Sybase format for datetimes to be converted by cs_convert later to DATETIME[4]
+static std::string QoreDateTime2SybaseStringFormat(DateTime* dt)
+{
+  const char* mon = getMonthString(dt->getMonth());
+  int day = dt->getDay();
+  int year = dt->getYear();
+  int hour = dt->getHour();
+  const char* am_pm;
+  if (hour > 12) {
+    hour -= 12;
+    am_pm = "PM";
+  } else {
+    am_pm = "AM";
+  }
+  int min = dt->getMinute();
+  int sec = dt->getSecond();
+  int millis = dt->getMillisecond();
+
+  char buffer[100];
+  // default Transact SQL datetime style
+  sprintf(buffer, "%s %d %d %02d:%02d:%02d:%03d %s", mon, day, year, hour, min, sec, millis, am_pm);
+  return std::string(buffer);
+}
+
+//------------------------------------------------------------------------------
+// cs_convert() via string is the only available CT API function to create DATETIME
+void convert_QoreDatetime2SybaseDatetime(CS_CONTEXT* context, DateTime* dt, CS_DATETIME& out, ExceptionSink* xsink)
+{
+  std::string string_dt = QoreDateTime2SybaseStringFormat(dt);
+
+  CS_DATAFMT srcfmt;
+  memset(&srcfmt, 0, sizeof(srcfmt));
+  srcfmt.datatype = CS_CHAR_TYPE;
+  srcfmt.maxlength = 100; // guess
+
+  CS_DATAFMT destfmt;
+  memset(&destfmt, 0, sizeof(destfmt));
+  destfmt.datatype = CS_DATETIME_TYPE;
+
+  CS_INT outlen;
+  CS_RETCODE err = cs_convert(context, &srcfmt, (CS_BYTE*)string_dt.c_str(), &destfmt, (CS_BYTE*)&out, &outlen);
+  if (err != CS_SUCCEED) {
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_convert() failed to convert date [%s] into Sybase CS_DATETIME, err %d", string_dt.c_str(), (int)err);
+    return;
+  }
+}
+
+//------------------------------------------------------------------------------
+void convert_QoreDatetime2SybaseDatetime4(CS_CONTEXT* context, DateTime* dt, CS_DATETIME4& out, ExceptionSink* xsink)
+{
+  std::string string_dt = QoreDateTime2SybaseStringFormat(dt);
+
+  CS_DATAFMT srcfmt;
+  memset(&srcfmt, 0, sizeof(srcfmt));
+  srcfmt.datatype = CS_CHAR_TYPE;
+  srcfmt.maxlength = 100; // guess
+
+  CS_DATAFMT destfmt;
+  memset(&destfmt, 0, sizeof(destfmt));
+  destfmt.datatype = CS_DATETIME4_TYPE;
+
+  CS_INT outlen;
+  CS_RETCODE err = cs_convert(context, &srcfmt, (CS_BYTE*)string_dt.c_str(), &destfmt, (CS_BYTE*)&out, &outlen);
+  if (err != CS_SUCCEED) {
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_convert() failed to convert date [%s] into Sybase CS_DATETIME4, err %d", string_dt.c_str(), (int)err);
+    return;
+  }
+}
+
+//------------------------------------------------------------------------------
+DateTime* convert_SybaseDatetime2QoreDatetime(CS_CONTEXT* context, CS_DATETIME& dt, ExceptionSink* xsink)
+{
+  // TBD
+  return 0;
+}
+
+//------------------------------------------------------------------------------
+DateTime* convert_SybaseDatetime4_2QoreDatetime(CS_CONTEXT* context, CS_DATETIME4& dt, ExceptionSink* xsink)
+{
+  // TBD
+  return 0;
+}
+
+//------------------------------------------------------------------------------
 void sybase_ct_param(
   const sybase_command_wrapper& wrapper,
   unsigned parameter_index,
@@ -678,6 +788,56 @@ void sybase_ct_param(
     }
   }
   return;
+
+  case CS_DATETIME_TYPE:
+  {
+    if (data->type != NT_DATE) {
+      assert(false);
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "Incorrect type for datetime parameter #%u", parameter_index + 1);
+      return;
+    }
+
+    CS_DATETIME dt;
+    convert_QoreDatetime2SybaseDatetime(wrapper.getContext(), data->val.date_time, dt, xsink);
+    if (xsink->isException()) {
+      return;
+    }
+
+    datafmt.datatype = CS_DATETIME_TYPE;
+    err = ct_param(wrapper(), &datafmt, &dt, sizeof(dt), 0);
+    if (err != CS_SUCCEED) {
+      assert(false);
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase function ct_param() for datetime parameter #%u failed with error", parameter_index, (int)err);
+      return;
+    }
+  }
+  return;
+
+  case CS_DATETIME4_TYPE:
+  {
+    if (data->type != NT_DATE) {
+      assert(false);
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "Incorrect type for datetime parameter #%u", parameter_index + 1);
+      return;
+    }
+
+    CS_DATETIME4 dt;
+    convert_QoreDatetime2SybaseDatetime4(wrapper.getContext(), data->val.date_time, dt, xsink);
+    if (xsink->isException()) {
+      return;
+    }
+
+    datafmt.datatype = CS_DATETIME4_TYPE;
+    err = ct_param(wrapper(), &datafmt, &dt, sizeof(dt), 0);
+    if (err != CS_SUCCEED) {
+      assert(false);
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase function ct_param() for datetime parameter #%u failed with error", parameter_index, (int)err);
+      return;
+    }
+  }
+  return;
+
+  // TBD - remaining items
 
   } // switch 
 }

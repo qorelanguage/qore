@@ -142,18 +142,13 @@ printf("#### after binding\n");
     return 0;
   }
 
-printf("### position %d\n", __LINE__);
   return convert_sybase_output_to_Qore(w, get_encoding(), m_parsed_query, xsink);
 }
 
 //------------------------------------------------------------------------------
 QoreNode* sybase_executor::exec_impl(ExceptionSink* xsink)
 {
-printf("### in exec_impl\n");
-  CS_CONNECTION* conn = get_connection()->getConnection();
-  assert(conn);
-printf("#### in exec_impl2\n");
-  sybase_command_wrapper cmd_wrapper(conn, xsink);
+  sybase_command_wrapper cmd_wrapper(*get_connection(), xsink);
   if (xsink->isException()) {
     return 0;
   }

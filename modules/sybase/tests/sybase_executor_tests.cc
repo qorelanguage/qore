@@ -1096,6 +1096,43 @@ TEST()
   aux->deref(&xsink);
 }
 
+//------------------------------------------------------------------------------
+TEST()
+{
+  // testing when parameter is NULL
+  printf("running test %s[%d]\n", __FILE__, __LINE__);
+  delete_bit_table(true);
+  create_bit_table();
+  ON_BLOCK_EXIT(delete_bit_table);
+
+  sybase_executor executor;
+  executor.m_parsed_query.m_result_query_text = "select * from bit_table where bit_col = ?";
+  executor.m_parsed_query.m_is_procedure = false;
+
+  sybase_connection conn;
+  ExceptionSink xsink;
+  conn.init(SYBASE_TEST_SETTINGS, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  executor.m_test_encoding = QCS_DEFAULT;
+  executor.m_test_autocommit = false;
+  executor.m_test_connection = &conn;
+  List* l = new List;
+  l->push(new QoreNode(NT_NULL)); // ? is NULL
+  executor.m_args = l;
+
+  QoreNode* n = executor.exec(&xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  assert(!n);
+  if (n) n->deref(&xsink);
+
+  QoreNode* aux = new QoreNode(l);
+  aux->deref(&xsink);
+}
+
 } // namespace
 #endif
 

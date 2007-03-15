@@ -79,11 +79,10 @@ TEST()
   if (xsink.isException()) {
     assert(false);
   }
-  CS_CONNECTION* c = conn.getConnection();
 
   // cleanup
   const char* cmd = "drop table my_test_672";
-  sybase_low_level_execute_directly_command(c, cmd, &xsink);
+  sybase_low_level_execute_directly_command(conn.getConnection(), cmd, &xsink);
   if (xsink.isException()) {
     xsink.clear();
   }
@@ -93,19 +92,19 @@ TEST()
     "int_col INTEGER, "
     "varchar_col VARCHAR(30))";
 
-  sybase_low_level_execute_directly_command(c, cmd, &xsink);
+  sybase_low_level_execute_directly_command(conn.getConnection(), cmd, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
 
   cmd = "insert into my_test_672 values(11, 'aaa')";
-  sybase_low_level_execute_directly_command(c, cmd, &xsink);
+  sybase_low_level_execute_directly_command(conn.getConnection(), cmd, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
 
   cmd = "insert into my_test_672 (varchar_col, int_col) values('bbb', 22)";
-  sybase_low_level_execute_directly_command(c, cmd, &xsink);
+  sybase_low_level_execute_directly_command(conn.getConnection(), cmd, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
@@ -114,7 +113,7 @@ TEST()
   assert(res == 1);
 
   cmd = "drop table my_test_672";
-  sybase_low_level_execute_directly_command(c, cmd, &xsink);
+  sybase_low_level_execute_directly_command(conn.getConnection(), cmd, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
@@ -134,11 +133,10 @@ TEST()
   if (xsink.isException()) {
     assert(false);
   }
-  CS_CONNECTION* c = conn.getConnection();
 
   // cleanup
   const char* cmd = "drop table my_test_173";
-  sybase_low_level_execute_directly_command(c, cmd, &xsink);
+  sybase_low_level_execute_directly_command(conn.getConnection(), cmd, &xsink);
   if (xsink.isException()) {
     xsink.clear();
   }
@@ -147,7 +145,7 @@ TEST()
     "int_col INTEGER, "
     "varchar_col VARCHAR(30))";
 
-  sybase_low_level_execute_directly_command(c, cmd, &xsink);
+  sybase_low_level_execute_directly_command(conn.getConnection(), cmd, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
@@ -156,7 +154,7 @@ TEST()
 
   cmd = "select count(*) from my_test_173";
   for (int i = 0; i < 100; ++i) {
-    sybase_low_level_execute_directly_command(c, cmd, &xsink);
+    sybase_low_level_execute_directly_command(conn.getConnection(), cmd, &xsink);
     if (xsink.isException()) {
       xsink.clear();
     } else {
@@ -165,7 +163,7 @@ TEST()
   }
 
   cmd = "drop table my_test_173";
-  sybase_low_level_execute_directly_command(c, cmd, &xsink);
+  sybase_low_level_execute_directly_command(conn.getConnection(), cmd, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
@@ -185,9 +183,8 @@ TEST()
   if (xsink.isException()) {
     assert(false);
   }
-  CS_CONNECTION* c = conn.getConnection();
 
-  sybase_command_wrapper w(c, &xsink);
+  sybase_command_wrapper w(conn, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
@@ -204,17 +201,16 @@ TEST()
   if (xsink.isException()) {
     assert(false);
   }
-  CS_CONNECTION* c = conn.getConnection();
 
-  sybase_command_wrapper w1(c, &xsink);
+  sybase_command_wrapper w1(conn, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
-  sybase_command_wrapper w2(c, &xsink);
+  sybase_command_wrapper w2(conn, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
-  sybase_command_wrapper w3(c, &xsink);
+  sybase_command_wrapper w3(conn, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
@@ -231,16 +227,15 @@ TEST()
   if (xsink.isException()) {
     assert(false);
   }
-  CS_CONNECTION* c = conn.getConnection();
 
-  sybase_command_wrapper w(c, &xsink);
+  sybase_command_wrapper w(conn, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
 
   // cleanup
   const char* cmd = "drop table my_test_253";
-  sybase_low_level_execute_directly_command(c, cmd, &xsink);
+  sybase_low_level_execute_directly_command(conn.getConnection(), cmd, &xsink);
   if (xsink.isException()) {
     xsink.clear();
   }
@@ -262,9 +257,8 @@ TEST()
   if (xsink.isException()) {
     assert(false);
   }
-  CS_CONNECTION* c = conn.getConnection();
 
-  sybase_command_wrapper w(c, &xsink);
+  sybase_command_wrapper w(conn, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
@@ -286,9 +280,8 @@ TEST()
   if (xsink.isException()) {
     assert(false);
   }
-  CS_CONNECTION* c = conn.getConnection();
 
-  sybase_command_wrapper w(c, &xsink);
+  sybase_command_wrapper w(conn, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
@@ -310,16 +303,15 @@ TEST()
   if (xsink.isException()) {
     assert(false);
   }
-  CS_CONNECTION* c = conn.getConnection();
 
   // cleanup
   const char* cmd = "drop table my_test_254";
-  sybase_low_level_execute_directly_command(c, cmd, &xsink);
+  sybase_low_level_execute_directly_command(conn.getConnection(), cmd, &xsink);
   if (xsink.isException()) {
     xsink.clear();
   }
 
-  sybase_command_wrapper w(c, &xsink);
+  sybase_command_wrapper w(conn, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
@@ -346,9 +338,8 @@ TEST()
   if (xsink.isException()) {
     assert(false);
   }
-  CS_CONNECTION* c = conn.getConnection();
 
-  sybase_command_wrapper w(c, &xsink);
+  sybase_command_wrapper w(conn, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
@@ -376,9 +367,8 @@ TEST()
   if (xsink.isException()) {
     assert(false);
   }
-  CS_CONNECTION* c = conn.getConnection();
 
-  sybase_command_wrapper w(c, &xsink);
+  sybase_command_wrapper w(conn, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
@@ -409,9 +399,8 @@ TEST()
   if (xsink.isException()) {
     assert(false);
   }
-  CS_CONNECTION* c = conn.getConnection();
 
-  sybase_command_wrapper w(c, &xsink);
+  sybase_command_wrapper w(conn, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
@@ -439,9 +428,8 @@ TEST()
   if (xsink.isException()) {
     assert(false);
   }
-  CS_CONNECTION* c = conn.getConnection();
 
-  sybase_command_wrapper w(c, &xsink);
+  sybase_command_wrapper w(conn, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
@@ -469,9 +457,8 @@ TEST()
   if (xsink.isException()) {
     assert(false);
   }
-  CS_CONNECTION* c = conn.getConnection();
 
-  sybase_command_wrapper w(c, &xsink);
+  sybase_command_wrapper w(conn, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
@@ -499,9 +486,8 @@ TEST()
   if (xsink.isException()) {
     assert(false);
   }
-  CS_CONNECTION* c = conn.getConnection();
 
-  sybase_command_wrapper w(c, &xsink);
+  sybase_command_wrapper w(conn, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
@@ -528,9 +514,8 @@ TEST()
   if (xsink.isException()) {
     assert(false);
   }
-  CS_CONNECTION* c = conn.getConnection();
 
-  sybase_command_wrapper w(c, &xsink);
+  sybase_command_wrapper w(conn, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
@@ -558,9 +543,8 @@ TEST()
   if (xsink.isException()) {
     assert(false);
   }
-  CS_CONNECTION* c = conn.getConnection();
 
-  sybase_command_wrapper w(c, &xsink);
+  sybase_command_wrapper w(conn, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
@@ -591,9 +575,8 @@ TEST()
   if (xsink.isException()) {
     assert(false);
   }
-  CS_CONNECTION* c = conn.getConnection();
 
-  sybase_command_wrapper w(c, &xsink);
+  sybase_command_wrapper w(conn, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
@@ -770,9 +753,8 @@ TEST()
   if (xsink.isException()) {
     assert(false);
   }
-  CS_CONNECTION* c = conn.getConnection();
 
-  sybase_command_wrapper w(c, &xsink);
+  sybase_command_wrapper w(conn, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
@@ -788,6 +770,12 @@ TEST()
 
   n->deref(&xsink);
 } 
+
+//------------------------------------------------------------------------------
+TEST()
+{
+  // TBD - datetime test
+}
 
 } // namespace
 #endif
