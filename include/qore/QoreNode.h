@@ -92,8 +92,8 @@ class QoreNode : public ReferenceObject
       inline ~QoreNode();
 
    public:
-      class QoreType *type;
       union node_u val;
+      class QoreType *type;
 
       DLLEXPORT QoreNode();
       DLLEXPORT QoreNode(class QoreType *t);
