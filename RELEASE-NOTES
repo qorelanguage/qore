@@ -39,6 +39,30 @@ ex: $db = new Datasource(DSPGSQL);
 The driver's name is "sybase" and the Datasource type constant is SQL::DSSybase
 ex: $db = new Datasource(DSSybase);
 
+*) HTTPClient improvements
+the HTTPClient class now supports redirections, basic authentication, and proxy support (and basic proxy authentication).
+new methods in the HTTPClient class:
+
+	HTTPClient::setURL() allows the URL to be changed (will disconnect if connected)
+	HTTPClient::getURL() returns the current URL
+	HTTPClient::setProxyURL() allows a proxy URL to be set or cleared
+	HTTPClient::getProxyURL() returns the current proxy URL
+	HTTPClient::clearProxyURL() clears the currenty proxy URL
+	HTTPClient::setProxySecure() sets TLS/SSL mode for next proxy connection
+	HTTPClient::isProxySecure() return TLS/SSL flag for proxy connection
+	HTTPClient::setMaxRedirects() set the maximum number of redirections (default: 5)
+	HTTPClient::getMaxRedirects() returns the current max redirects value 
+
+The constructor understands a couple of new hash keys:
+	"max_redirects" to set the max redirects value
+	"proxy" to set the proxy URL
+
+Since the XmlRpcClient and JsonRpcClient inherit HTTPClient, all improvements to the HTTPClient class are also available in the XmlRpcClient and JsonRpcClient classes as well.
+
+*) new "on_block_exit" statement
+allows exception-safe cleanup code to be placed right next to the code requiring the cleanup
+...
+
 *) deadlock detection
 All Qore threading primitives (including internal locks for variables and "synchronized" methods, etc) now use the new deadlock detection framework.  Potential deadlocks are checked before any primitive would otherwise block.  If a deadlock is detected, a DEADLOCK-EXCEPTION is thrown.  
 
