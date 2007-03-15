@@ -133,16 +133,20 @@ int StatementBlock::execImpl(class QoreNode **return_value, class ExceptionSink 
    
    // execute block
    for (statement_list_t::iterator i = statement_list.begin(), e = statement_list.end(); i != e; ++i)
-      if ((rc = (*i)->exec(return_value, xsink)))
+      if ((rc = (*i)->exec(return_value, xsink)) || *xsink)
 	 break;
 
    // execute on block exit code if applicable
    if (on_block_exit_list.size())
    {
       ExceptionSink obe_xsink;
+      int nrc;
       for (block_list_t::iterator i = popBlock(), e = on_block_exit_list.end(); i != e; ++i)
-	 rc = (*i)->execImpl(return_value, &obe_xsink);
-      xsink->assimilate(&obe_xsink);
+	 nrc = (*i)->execImpl(return_value, &obe_xsink);
+      if (obe_xsink)
+	 xsink->assimilate(&obe_xsink);
+      if (nrc)
+	 rc = nrc;
    }
 
    // delete all variables local to this block

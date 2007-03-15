@@ -1,3 +1,6 @@
+2007.03.15: David Nichols
+	* fixes to on_block_exit and StatementBlock::execImpl()
+
 2007.03.14: David Nichols
 	* implemented the "on_block_exit" statement - this statement is meant to
 	  provide a clean way to do exception-safe cleanup within Qore code.
