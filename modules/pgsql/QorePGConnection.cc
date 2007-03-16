@@ -713,7 +713,7 @@ int QorePGResult::add(class QoreNode *v, class ExceptionSink *xsink)
    parambuf_list.push_back(pb);
 
    int rc = 0;
-   //printd(5, "nparams=%d, type=%s\n", nParams, v->type->getName());
+   //printd(5, "nparams=%d, v=%08p, type=%s\n", nParams, v, v ? v->type->getName() : "(null)");
    if (nParams == allocated)
    {
       allocated += 5;
@@ -727,7 +727,10 @@ int QorePGResult::add(class QoreNode *v, class ExceptionSink *xsink)
    paramArray[nParams] = 0;
    paramFormats[nParams] = 1;
    if (is_nothing(v) || is_null(v))
+   {
       paramTypes[nParams] = 0;
+      paramValues[nParams] = 0;
+   }
    else if (v->type == NT_INT)
    {
       if (v->val.intval <= 32767 && v->val.intval > -32768)
