@@ -1360,12 +1360,17 @@ bool QorePGResult::checkIntegerDateTimes(PGconn *pc, class ExceptionSink *xsink)
 // Note that we can write to the str argument; it is always a copy
 int QorePGResult::exec(PGconn *pc, class QoreString *str, class List *args, class ExceptionSink *xsink)
 {
-   if (parse(str, args, xsink))
+   // convert string to required character encoding or copy
+   std::auto_ptr<QoreString> qstr(str->convertEncoding(enc, xsink));
+   if (!qstr.get())
       return -1;
 
-   //printd(5, "nParams=%d sql=%s\n", nParams, str->getBuffer());
+   if (parse(qstr.get(), args, xsink))
+      return -1;
+
+   //printd(5, "QorePGResult::exec() nParams=%d args=%08p (len=%d) sql=%s\n", nParams, args, args ? args->size() : 0, qstr->getBuffer());
   
-   res = PQexecParams(pc, str->getBuffer(), nParams, paramTypes, paramValues, paramLengths, paramFormats, 1);
+   res = PQexecParams(pc, qstr->getBuffer(), nParams, paramTypes, paramValues, paramLengths, paramFormats, 1);
    ExecStatusType rc = PQresultStatus(res);
    if (rc != PGRES_COMMAND_OK && rc != PGRES_TUPLES_OK)
       return do_pg_error(PQerrorMessage(pc), xsink);
