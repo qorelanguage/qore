@@ -456,7 +456,7 @@ int QoreTibrvTransport::doEncodedType(TibrvMsg *msg, const char *key, const char
 	 {
 	    int addr[4] = { 0, 0, 0, 0 };
 	    int i = 0;
-	    char *c;
+	    const char *c;
 	    const char *buf = val->val.String->getBuffer();
 	    QoreString str;
 	    while ((c = strchr(buf, '.')))
