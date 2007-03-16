@@ -407,7 +407,7 @@ int FtpClient::connectDataPassive(class ExceptionSink *xsink)
    }
    int num[5];
    s++;
-   char *comma;
+   const char *comma;
    for (int i = 0; i < 5; i++)
    {
       comma = strchr(s, ',');
