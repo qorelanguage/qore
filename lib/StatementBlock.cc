@@ -133,7 +133,7 @@ int StatementBlock::execImpl(class QoreNode **return_value, class ExceptionSink 
    
    // execute block
    for (statement_list_t::iterator i = statement_list.begin(), e = statement_list.end(); i != e; ++i)
-      if ((rc = (*i)->exec(return_value, xsink)) || *xsink)
+      if ((rc = (*i)->exec(return_value, xsink)) || xsink->isEvent())
 	 break;
 
    // execute on block exit code if applicable
