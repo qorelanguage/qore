@@ -71,7 +71,6 @@ class Datasource
       DLLEXPORT const char *getDBEncoding() const;
       DLLEXPORT const char *getOSEncoding() const;
       DLLEXPORT const char *getHostName() const;
-      DLLEXPORT class DBIDriver *getDriver() const;
       DLLEXPORT void *getPrivateData() const;
       DLLEXPORT void setPrivateData(void *data);
       DLLEXPORT void setDBEncoding(const char *name);
@@ -108,6 +107,9 @@ class Datasource
       DLLEXPORT bool isOpen() const;
       DLLEXPORT Datasource *copy() const;
       DLLEXPORT virtual void thread_cleanup(class ExceptionSink *xsink);
+      DLLEXPORT const char *getDriverName() const;
+
+      DLLLOCAL class DBIDriver *getDriver() const;
 };
 
 #endif // _QORE_DATASOURCE_H

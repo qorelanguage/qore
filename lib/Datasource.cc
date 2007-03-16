@@ -327,6 +327,11 @@ QoreNode *Datasource::getPendingHostName() const
    return p_hostname.empty() ? NULL : new QoreNode(p_hostname.c_str());
 }
 
+const char *Datasource::getDriverName() const
+{
+   return dsl->getName();
+}
+
 class DBIDriver *Datasource::getDriver() const
 {
    return dsl;
