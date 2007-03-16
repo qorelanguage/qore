@@ -1342,12 +1342,12 @@ bool QorePGResult::checkIntegerDateTimes(PGconn *pc, class ExceptionSink *xsink)
    // ensure that the result format is what we expect
    if (PQnfields(res) != 1)
    {
-      xsink->raiseException("DBI:PGSQL:ERROR", "Error determining binary date/time format; expecting 1 colum in test query, got %d", PQnfields(res));
+      xsink->raiseException("DBI:PGSQL:ERROR", "Error determining binary date/time format; expecting 1 column in test query, got %d", PQnfields(res));
       return false;
    }
    if (PQntuples(res) != 1)
    {
-      xsink->raiseException("DBI:PGSQL:ERROR", "Error determining binary date/time format; expecting 1 colum in test query, got %d", PQntuples(res));
+      xsink->raiseException("DBI:PGSQL:ERROR", "Error determining binary date/time format; expecting 1 column in test query, got %d", PQntuples(res));
       return false;
    }
 
