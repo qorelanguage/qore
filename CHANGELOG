@@ -1,3 +1,6 @@
+2007.03.16: David Nichols
+	* added Datasource::getDriverName() method
+
 2007.03.15: David Nichols
 	* fixes to on_block_exit and StatementBlock::execImpl()
 	* added load_module() function and appropriate internal locking to allow

@@ -71,6 +71,7 @@ class Datasource
       DLLEXPORT const char *getDBEncoding() const;
       DLLEXPORT const char *getOSEncoding() const;
       DLLEXPORT const char *getHostName() const;
+      DLLEXPORT class DBIDriver *getDriver() const;
       DLLEXPORT void *getPrivateData() const;
       DLLEXPORT void setPrivateData(void *data);
       DLLEXPORT void setDBEncoding(const char *name);
