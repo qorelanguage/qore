@@ -101,7 +101,7 @@ ModuleInfo::~ModuleInfo()
       printd(5, "calling dlclose(%08p)\n", dlptr);
 #ifndef DEBUG
       // do not close modules when debugging
-      dlclose(dlptr);
+      dlclose((void *)dlptr);
 #endif
       free(filename);
    }

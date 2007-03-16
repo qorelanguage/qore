@@ -68,7 +68,7 @@ int QoreCounter::waitForZero(class ExceptionSink *xsink, int timeout_ms)
    // counter hit zero, so even it it's bigger than zero by the time we are allowed to execute, it's ok
    // --- synchronization must be done externally
    AutoLocker al(&l);
-   int rc;
+   int rc = 0;
    ++waiting;
    if (cnt && cnt != Cond_Deleted)
       if (!timeout_ms)

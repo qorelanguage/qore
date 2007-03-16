@@ -140,7 +140,7 @@ int StatementBlock::execImpl(class QoreNode **return_value, class ExceptionSink 
    if (on_block_exit_list.size())
    {
       ExceptionSink obe_xsink;
-      int nrc;
+      int nrc = 0;
       for (block_list_t::iterator i = popBlock(), e = on_block_exit_list.end(); i != e; ++i)
 	 nrc = (*i)->execImpl(return_value, &obe_xsink);
       if (obe_xsink)
