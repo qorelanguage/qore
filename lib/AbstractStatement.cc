@@ -23,6 +23,8 @@
 #include <qore/Qore.h>
 #include <qore/AbstractStatement.h>
 
+#include <typeinfo>
+
 AbstractStatement::AbstractStatement(int start_line, int end_line) : LineNumber(start_line), EndLineNumber(end_line)
 {
    FileName = get_parse_file();
