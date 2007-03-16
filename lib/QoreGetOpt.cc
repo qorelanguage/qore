@@ -254,7 +254,7 @@ void QoreGetOpt::processLongArg(const char *arg, class List *l, class Hash *h, i
    arg = vstr.getBuffer();
 
    // see if there is an assignment character
-   char *tok = strchr(arg, '=');
+   char *tok = (char *)strchr(arg, '=');
    if (tok)
    {
       (*tok) = '\0';

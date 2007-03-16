@@ -1215,7 +1215,7 @@ void DateTime::setDate(const char *str)
       date += 19700101000000LL;
    setDateLiteral(date);
    // check for ms
-   char *p = strchr(str, '.');
+   const char *p = strchr(str, '.');
    if (!p)
       return;
    millisecond = atoi(p + 1);
@@ -1234,7 +1234,7 @@ void DateTime::setRelativeDate(const char *str)
       date *= 1000000;
    setRelativeDateLiteral(date);
    // check for ms
-   char *p = strchr(str, '.');
+   const char *p = strchr(str, '.');
    if (!p)
       return;
    millisecond = atoi(p + 1);

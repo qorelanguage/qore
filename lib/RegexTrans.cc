@@ -131,7 +131,7 @@ class QoreString *RegexTrans::exec(class QoreString *str, class ExceptionSink *x
    for (int i = 0; i < tstr->strlen(); i++)
    {
       char c = tstr->getBuffer()[i];
-      char *p = strchr(source->getBuffer(), c);
+      const char *p = strchr(source->getBuffer(), c);
       if (p)
       {
 	 int pos = p - source->getBuffer();

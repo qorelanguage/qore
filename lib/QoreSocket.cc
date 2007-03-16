@@ -1299,12 +1299,12 @@ class QoreNode *QoreSocket::readHTTPHeader(int timeout, int *rc)
    //printd(0, "HTTP header=%s", buf);
 
    char *p;
-   if ((p = strstr(buf, "\r\n")))
+   if ((p = (char *)strstr(buf, "\r\n")))
    {
      *p = '\0';
       p += 2;
    }
-   else if ((p = strchr(buf, '\n')))
+   else if ((p = (char *)strchr(buf, '\n')))
    {
      *p = '\0';
       p++;
@@ -1315,7 +1315,7 @@ class QoreNode *QoreSocket::readHTTPHeader(int timeout, int *rc)
       return new QoreNode(hdr);
    }
    char *t1;
-   if (!(t1 = strstr(buf, "HTTP/1.")))
+   if (!(t1 = (char *)strstr(buf, "HTTP/1.")))
       return new QoreNode(hdr);
 
    Hash *h = new Hash();
@@ -1330,7 +1330,7 @@ class QoreNode *QoreSocket::readHTTPHeader(int timeout, int *rc)
    // if we are getting a response
    if (t1 == buf)
    {
-      char *t2 = strchr(buf + 8, ' ');
+      char *t2 = (char *)strchr(buf + 8, ' ');
       if (t2)
       {
 	 t2++;
@@ -1344,7 +1344,7 @@ class QoreNode *QoreSocket::readHTTPHeader(int timeout, int *rc)
    }
    else // get method and path
    {
-      char *t2 = strchr(buf, ' ');
+      char *t2 = (char *)strchr(buf, ' ');
       if (t2)
       {
 	 *t2 = '\0';
@@ -1417,7 +1417,7 @@ class Hash *QoreSocket::readHTTPChunkedBodyBinary(int timeout, class ExceptionSi
       //printd(0, "got chunk size (%d bytes) string: %s\n", str.strlen(), str.getBuffer());
       
       // terminate string at ';' char if present
-      char *p = strchr(str.getBuffer(), ';');
+      char *p = (char *)strchr(str.getBuffer(), ';');
       if (p)
 	 *p = '\0';
       long size = strtol(str.getBuffer(), NULL, 16);
@@ -1538,7 +1538,7 @@ class Hash *QoreSocket::readHTTPChunkedBody(int timeout, class ExceptionSink *xs
       //printd(0, "got chunk size (%d bytes) string: %s\n", str.strlen(), str.getBuffer());
 
       // terminate string at ';' char if present
-      char *p = strchr(str.getBuffer(), ';');
+      char *p = (char *)strchr(str.getBuffer(), ';');
       if (p)
 	 *p = '\0';
       long size = strtol(str.getBuffer(), NULL, 16);

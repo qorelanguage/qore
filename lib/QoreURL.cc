@@ -54,7 +54,7 @@ void QoreURL::parseIntern(const char *buf)
    
    printd(5, "QoreURL::parseIntern(%s)\n", buf);
    
-   char *p = strstr(buf, "://");
+   char *p = (char *)strstr(buf, "://");
    const char *pos;
    
    // get protocol
@@ -72,7 +72,7 @@ void QoreURL::parseIntern(const char *buf)
    char *nbuf;
    
    // find end of hostname
-   if ((p = strchr(pos, '/')))
+   if ((p = (char *)strchr(pos, '/')))
    {
       // get pathname if not at EOS
       if (p[1] != '\0')
@@ -109,7 +109,7 @@ void QoreURL::parseIntern(const char *buf)
       pos = nbuf;
    
    // see if there's a port
-   if ((p = strchr(pos, ':')))
+   if ((p = (char *)strchr(pos, ':')))
    {
       *p = '\0';
       port = atoi(p + 1);

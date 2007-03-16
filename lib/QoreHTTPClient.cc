@@ -865,11 +865,11 @@ class QoreNode *QoreHTTPClient::send_internal(const char *meth, const char *mpat
    if (v)
    {
       const char *str = v->val.String->getBuffer();
-      char *p = strstr(str, "charset=");
+      const char *p = strstr(str, "charset=");
       if (p && (p == str || *(p - 1) == ';' || *(p - 1) == ' '))
       {
 	 // move p to start of encoding
-	 char *c = p + 8;
+	 const char *c = p + 8;
 	 QoreString enc;
 	 while (*c && *c != ';' && *c != ' ')
 	    enc.concat(*(c++));

@@ -148,7 +148,7 @@ static class QoreNode *f_substr(class QoreNode *params, ExceptionSink *xsink)
 
 static inline int index_intern(const char *haystack, const char *needle, int pos = 0)
 {
-   char *p;
+   const char *p;
    if (!(p = strstr(haystack + pos, needle)))
       return -1;
    return (int)(p - haystack);

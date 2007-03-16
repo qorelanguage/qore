@@ -34,7 +34,7 @@ void StringList::addDirList(const char *str)
    str = (char *)plist.getBuffer();
 
    // add each directory
-   while (char *p = strchr(str, ':'))
+   while (char *p = (char *)strchr(str, ':'))
    {
       if (p != str)
       {

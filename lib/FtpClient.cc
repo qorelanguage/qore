@@ -357,7 +357,7 @@ int FtpClient::connectDataExtendedPassive(class ExceptionSink *xsink)
 
    // ex: 229 Entering Extended Passive Mode (|||63519|)
    // get port for data connection
-   char *s = strstr(resp.getBuffer(), "|||");
+   const char *s = strstr(resp.getBuffer(), "|||");
    if (!s)
    {
       resp.stripEOL();
@@ -365,7 +365,7 @@ int FtpClient::connectDataExtendedPassive(class ExceptionSink *xsink)
       return -1;
    }
    s += 3;
-   char *end = strchr(s, '|');
+   char *end = (char *)strchr(s, '|');
    if (!end)
    {
       resp.stripEOL();
@@ -398,7 +398,7 @@ int FtpClient::connectDataPassive(class ExceptionSink *xsink)
 
    // reply ex: 227 Entering passive mode (127,0,0,1,28,46)  
    // get port for data connection
-   char *s = strstr(resp.getBuffer(), "(");
+   const char *s = strstr(resp.getBuffer(), "(");
    if (!s)
    {
       resp.stripEOL();

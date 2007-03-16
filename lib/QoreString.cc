@@ -732,7 +732,7 @@ void QoreString::concatAndHTMLDecode(const QoreString *str)
 	 {
 	    s += 2;
 	    // find end of character sequence
-	    char *e = strchr(s, ';');
+	    const char *e = strchr(s, ';');
 	    // if not found or the number is too big, then don't try to decode it
 	    if (e && (e - s) < 8)
 	    {
