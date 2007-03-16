@@ -304,6 +304,11 @@ static QoreNode *DS_getTransactionLockTimeout(class Object *self, class ManagedD
    return new QoreNode((int64)ds->getTransactionLockTimeout());
 }
 
+static QoreNode *DS_getDriverName(class Object *self, class ManagedDatasource *ds, class QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode(ds->getDriver()->getName());
+}
+
 class QoreClass *initDatasourceClass()
 {
    tracein("initDatasourceClass()");
@@ -341,6 +346,7 @@ class QoreClass *initDatasourceClass()
    QC_DATASOURCE->addMethod("getDBCharset",      (q_method_t)DS_getDBCharset);
    QC_DATASOURCE->addMethod("getOSCharset",      (q_method_t)DS_getOSCharset);
    QC_DATASOURCE->addMethod("getHostName",       (q_method_t)DS_getHostName);
+   QC_DATASOURCE->addMethod("getDriverName",     (q_method_t)DS_getDriverName);
 
    QC_DATASOURCE->addMethod("setTransactionLockTimeout", (q_method_t)DS_setTransactionLockTimeout);
    QC_DATASOURCE->addMethod("getTransactionLockTimeout", (q_method_t)DS_getTransactionLockTimeout);
