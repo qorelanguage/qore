@@ -95,8 +95,10 @@ class ModuleManager
       DLLEXPORT static void addAutoModuleDirList(const char *strlist);
       // retuns a list of module information hashes
       DLLEXPORT static class List *getModuleList();
-      // loads the named module, returns -1 for error
-      DLLEXPORT static class QoreString *loadModule(const char *name, class QoreProgram *pgm = NULL);
+      // loads the named module at parse time, returns a non-NULL QoreString if an error occured
+      DLLEXPORT static class QoreString *parseLoadModule(const char *name, class QoreProgram *pgm = NULL);
+      // loads the named module at run time, returns -1 if an exception was raised, 0 for OK
+      DLLEXPORT static int runTimeLoadModule(const char *name, class ExceptionSink *xsink);
 
       // creates the ModuleManager object
       DLLLOCAL ModuleManager();

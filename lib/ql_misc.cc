@@ -994,6 +994,16 @@ static class QoreNode *f_strtoint(class QoreNode *params, ExceptionSink *xsink)
    return new QoreNode(strtoll(p0->val.String->getBuffer(), NULL, base));
 }
 
+static class QoreNode *f_load_module(class QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p0 = test_param(params, NT_STRING, 0);
+   if (!p0)
+      return NULL;
+
+   MM.runTimeLoadModule(p0->val.String->getBuffer(), xsink);
+   return NULL;
+}
+
 void init_misc_functions()
 {
    // register builtin functions in this file
@@ -1026,6 +1036,7 @@ void init_misc_functions()
    builtinFunctions.add("splice", f_splice);
    builtinFunctions.add("hextoint", f_hextoint);
    builtinFunctions.add("strtoint", f_strtoint);
+   builtinFunctions.add("load_module", f_load_module);
 
    // depcrecated with stupid capitalization
    builtinFunctions.add("hexToInt", f_hextoint);

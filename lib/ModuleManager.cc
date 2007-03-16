@@ -306,14 +306,31 @@ void ModuleManager::init(bool se)
    }
 }
 
-class QoreString *ModuleManager::loadModule(const char *name, class QoreProgram *pgm)
+int ModuleManager::runTimeLoadModule(const char *name, class ExceptionSink *xsink)
+{
+   class QoreProgram *pgm = getProgram();
+
+   // grab the parse lock
+   SafeLocker sl(pgm->getParseLock());
+
+   class QoreString *err = parseLoadModule(name, pgm);
+   sl.unlock();
+   if (err)
+   {
+      xsink->raiseException("LOAD-MODULE-ERROR", err);
+      return -1;
+   }
+   return 0;
+}
+
+class QoreString *ModuleManager::parseLoadModule(const char *name, class QoreProgram *pgm)
 {
    // if the feature already exists in this program, then return
    if (pgm && !pgm->checkFeature(name))
       return NULL;
 
    // if the feature already exists, then load the namespace changes into this program and register the feature
-   mutex.lock(); // make sure checking and loading are atomic
+   SafeLocker sl(&mutex); // make sure checking and loading are atomic
    class ModuleInfo *mi = find(name);
    if (mi)
    {
@@ -322,14 +339,29 @@ class QoreString *ModuleManager::loadModule(const char *name, class QoreProgram 
 	 mi->ns_init(pgm->getRootNS(), pgm->getQoreNS());
 	 pgm->addFeature(mi->getName());
       }
-      mutex.unlock();
+      return NULL;
+   }
+
+   class QoreString *errstr;
+
+   // see if this is actually a path
+   if (name[0] == '/')
+   {
+      if ((errstr = loadModuleFromPath(name, NULL, &mi)))
+	 return errstr;
+      
+      sl.unlock();
+      if (pgm)
+      {
+	 mi->ns_init(pgm->getRootNS(), pgm->getQoreNS());
+	 pgm->addFeature(mi->getName());
+      }
       return NULL;
    }
 
    // otherwise, try to find module in the module path
    class QoreString str;
    struct stat sb;
-   class QoreString *errstr;
 
    StringList::iterator w = moduleDirList.begin();
    while (w != moduleDirList.end())
@@ -340,12 +372,10 @@ class QoreString *ModuleManager::loadModule(const char *name, class QoreProgram 
 
       if (!stat(str.getBuffer(), &sb))
       {
-	 errstr = loadModuleFromPath(str.getBuffer(), name, &mi);
-	 mutex.unlock();
-	 
-	 if (errstr)
+	 if ((errstr = loadModuleFromPath(str.getBuffer(), name, &mi)))
 	    return errstr;
 
+	 sl.unlock();
 	 if (pgm)
 	 {
 	    mi->ns_init(pgm->getRootNS(), pgm->getQoreNS());
@@ -355,7 +385,7 @@ class QoreString *ModuleManager::loadModule(const char *name, class QoreProgram 
       }
       w++;
    }
-   mutex.unlock();
+   sl.unlock();
    
    errstr = new QoreString;
    errstr->sprintf("feature '%s' is not builtin and no module with this name could be found in the module path", name);
@@ -553,7 +583,7 @@ void ModuleManager::cleanup()
 class List *ModuleManager::getModuleList()
 {
    class List *l = NULL;
-   mutex.lock();
+   AutoLocker al(&mutex);
    if (!map.empty())
    {
       l = new List();
@@ -561,6 +591,5 @@ class List *ModuleManager::getModuleList()
 	 if (!i->second->isBuiltin())
 	    l->push(new QoreNode(i->second->getHash()));
    }
-   mutex.unlock();
    return l;
 }

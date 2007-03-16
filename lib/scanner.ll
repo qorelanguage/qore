@@ -348,7 +348,7 @@ BINARY          <({HEX_DIGIT}{HEX_DIGIT})+>
 <requires>[^\t\n\r]+                    {
                                            char *cn = trim(yytext);
 					   //printd(5, "scanner requesting feature: '%s'\n", cn);
-					   QoreString *err = MM.loadModule(cn, getProgram());
+					   QoreString *err = MM.parseLoadModule(cn, getProgram());
 					   if (err)
 					      getProgram()->cannotProvideFeature(err);
 					   free(cn);

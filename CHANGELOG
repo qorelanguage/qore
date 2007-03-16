@@ -1,5 +1,7 @@
 2007.03.15: David Nichols
 	* fixes to on_block_exit and StatementBlock::execImpl()
+	* added load_module() function and appropriate internal locking to allow
+	  for run-time module loading
 
 2007.03.14: David Nichols
 	* implemented the "on_block_exit" statement - this statement is meant to

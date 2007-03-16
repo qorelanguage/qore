@@ -161,6 +161,13 @@ class QoreProgram : public AbstractPrivateData
       DLLLOCAL void tc_inc();
       // decrement atomic thread counter
       DLLLOCAL void tc_dec();
+      // for run-time module loading; the parse lock must be grabbed
+      // before loading new modules - note this should only be assigned
+      // to a AutoLock or SafeLocker object!
+      DLLLOCAL class LockedObject *getParseLock()
+      {
+	 return &plock;
+      }
 };
 
 DLLLOCAL void addProgramConstants(class Namespace *ns);

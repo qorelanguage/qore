@@ -5284,6 +5284,7 @@ $name = getName();</programlisting>
 	  <term>Description</term>
 	  <listitem>
 	    <para>The <command>on_block_exit</command> statement provides a clean way to do exception-safe cleanup within Qore code.  Any single statment (or statement block) after the <command>on_block_exit</command> keyword will be executed when the current block exits (as long as the statement itself is reached when executing - <command>on_block_exit</command> statements that are never reached when executing will have no effect).  The the position of the <command>on_block_exit</command> statement in the block is important, as the immediate effect of this statement is to queue its code for execution when the block is exited.  Even if an exception is raised or a <command>return</command> statement is executed, any <command>on_block_exit</command> code that is queued will be executed.  Therefore it's ideal for putting cleanup code right next to the code that requires the cleanup.</para>
+	    <para>Note that if this statement is reached when executing in a loop, the <command>on_block_exit</command> code will be executed for each iteration of the loop.</para>
 	    <para>By using this statement, programmers ensure that necessary cleanup will be performed regardless of the exit status of the block (exception, return, etc).</para>
 	  </listitem>
 	</varlistentry>
