@@ -1344,7 +1344,10 @@ check_pgsql()
     if test "$1" = "/"; then
        inc=/usr/include
     fi
-
+    pdir=`ls -d $inc/postgres* 2>/dev/null |tail -1` 
+    if test -n "$pdir"; then
+       inc=$pdir
+    fi
     if test -f "$inc/libpq-fe.h"; then
        with_pgsql_includes=$inc
     elif test -f "$inc/postgresql/libpq-fe.h"; then
@@ -1357,7 +1360,9 @@ check_pgsql()
        return
     else
        # check for server include files
-       if test -d "$with_pgsql_includes/pgsql/server"; then
+       if test -d "$with_pgsql_includes/server"; then
+	  with_pgsql_server_includes="$with_pgsql_includes/server"
+       elif test -d "$with_pgsql_includes/pgsql/server"; then
 	  with_pgsql_server_includes="$with_pgsql_includes/pgsql/server"
        elif test -d "$with_pgsql_includes/postgresql/server"; then
 	  with_pgsql_server_includes="$with_pgsql_includes/postgresql/server"
@@ -1369,6 +1374,12 @@ check_pgsql()
     fi
 
     lib="$1/lib${LIBSUFFIX}"
+
+    pdir=`ls -d $lib/postgres* 2>/dev/null |tail -1` 
+    if test -n "$pdir"; then
+       lib=$pdir
+    fi
+
     if test -f "$lib/libpq.${SHLIB_SUFFIX}" -o -f "$lib/libpq.so"; then
        with_pgsql_libs=$lib
     elif test -f "$lib/postgresql/libpq.${SHLIB_SUFFIX}"; then
