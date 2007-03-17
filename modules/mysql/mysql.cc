@@ -559,6 +559,12 @@ inline class QoreNode *MyBindGroup::getOutputHash(class ExceptionSink *xsink)
    return new QoreNode(h);
 }
 
+static void getLowerCaseName(class QoreString *str, class QoreEncoding *enc, const char *name)
+{
+   str->set(name, enc);
+   str->tolwr();
+}
+
 class QoreNode *MyBindGroup::execIntern(class ExceptionSink *xsink)
 {
    class QoreNode *rv = NULL;
@@ -574,17 +580,26 @@ class QoreNode *MyBindGroup::execIntern(class ExceptionSink *xsink)
       }
 
       Hash *h = new Hash();
+      class QoreEncoding *enc = ds->getQoreEncoding();
+      class QoreString tstr;
 	 
       for (int i = 0; i < myres.getNumFields(); i++)
-	 h->setKeyValue(myres.getFieldName(i), new QoreNode(new List()), NULL);
+      {
+	 getLowerCaseName(&tstr, enc, myres.getFieldName(i));
+	 h->setKeyValue(&tstr, new QoreNode(new List()), NULL);
+      }
 	 
       if (mysql_stmt_affected_rows(stmt))
       {
 	 myres.bind(stmt);
 	    
 	 while (!mysql_stmt_fetch(stmt))
-	    for (int i = 0; i < myres.getNumFields(); i++)
-	       h->getKeyValue(myres.getFieldName(i))->val.list->push(myres.getBoundColumnValue(ds->getQoreEncoding(), i));
+	 {
+	    HashIterator hi(h);
+	    int i = 0;
+	    while (hi.next())
+	       hi.getValue()->val.list->push(myres.getBoundColumnValue(enc, i++));
+	 }
       }
       rv = new QoreNode(h);
    }
@@ -643,12 +658,18 @@ class QoreNode *MyBindGroup::selectRows(class ExceptionSink *xsink)
       {
 	 myres.bind(stmt);
 
+	 class QoreString tstr;
+	 class QoreEncoding *enc = ds->getQoreEncoding();
+
 	 while (!mysql_stmt_fetch(stmt))
 	 {
 	    class Hash *h = new Hash();
 
 	    for (int i = 0; i < myres.getNumFields(); i++)
-	       h->setKeyValue(myres.getFieldName(i), myres.getBoundColumnValue(ds->getQoreEncoding(), i), NULL);
+	    {
+	       getLowerCaseName(&tstr, enc, myres.getFieldName(i));
+	       h->setKeyValue(&tstr, myres.getBoundColumnValue(enc, i), NULL);
+	    }
 
 	    l->push(new QoreNode(h));
 	 }
@@ -755,9 +776,13 @@ static class Hash *get_result_set(class Datasource *ds, MYSQL_RES *res)
    
    // get column names and set up column lists
    MYSQL_FIELD *field = mysql_fetch_fields(res);
-   
+
+   class QoreString tstr;
    for (int i = 0; i < num_fields; i++)
-      h->setKeyValue(field[i].name, new QoreNode(new List()), NULL);
+   {
+      getLowerCaseName(&tstr, ds->getQoreEncoding(), field[i].name);
+      h->setKeyValue(&tstr, new QoreNode(new List()), NULL);
+   }
    
    int rn = 0;
    while ((row = mysql_fetch_row(res)))
