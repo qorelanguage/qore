@@ -279,6 +279,7 @@ void MyResult::bind(MYSQL_STMT *stmt)
    for (int i = 0; i < num_fields; i++)
    {
       // setup bind structure
+      //printd(5, "%d type=%d (%d %d %d)\n", field[i].type, FIELD_TYPE_TINY_BLOB, FIELD_TYPE_MEDIUM_BLOB, FIELD_TYPE_BLOB); 
       switch (field[i].type)
       {
 	 // for integer values
@@ -312,10 +313,14 @@ void MyResult::bind(MYSQL_STMT *stmt)
 	 case FIELD_TYPE_TINY_BLOB:
 	 case FIELD_TYPE_MEDIUM_BLOB:
 	 case FIELD_TYPE_BLOB:
-	    bindbuf[i].buffer_type = MYSQL_TYPE_BLOB;
-	    bindbuf[i].buffer = new char[field[i].length];
-	    bindbuf[i].buffer_length = field[i].length;
-	    break;
+	    // this is only binary data if charsetnr == 63
+	    if (field[i].charsetnr == 63)
+	    {
+	       bindbuf[i].buffer_type = MYSQL_TYPE_BLOB;
+	       bindbuf[i].buffer = new char[field[i].length];
+	       bindbuf[i].buffer_length = field[i].length;
+	       break;
+	    }
 
 	    // for all other types (treated as string)
 	 default:
