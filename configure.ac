@@ -1344,7 +1344,7 @@ check_pgsql()
     if test "$1" = "/"; then
        inc=/usr/include
     fi
-    pdir=`ls -d $inc/postgres* 2>/dev/null |tail -1` 
+    pdir=`ls -d $inc/postgres* 2>/dev/null | grep -v _ext.h | tail -1` 
     if test -n "$pdir"; then
        inc=$pdir
     fi
