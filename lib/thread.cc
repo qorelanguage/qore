@@ -356,22 +356,25 @@ void ThreadResourceList::set(void *key, qtrdest_t func)
 {
    //printd(5, "TRL::set(key=%08p, func=%08p, tid=%d)\n", key, func, gettid());
    class ThreadResourceNode *n = new ThreadResourceNode(key, func);
-   lock();
+
+   AutoLocker al((LockedObject *)this);
+
    assert(!find(key, gettid()));
    setIntern(n);
    //printd(5, "TRL::set(key=%08p, func=%08p, tid=%d) n=%08p, head=%08p, head->next=%08p\n", key, func, gettid(), n, head, head->next);
-   unlock();
 }
 
 inline int ThreadResourceList::setOnce(void *key, qtrdest_t func)
 {
    int rc = 0;
-   lock();
+
+   AutoLocker al((LockedObject *)this);
+
    if (find(key))
       rc = -1;
    else
       setIntern(new ThreadResourceNode(key, func));
-   unlock();
+
    return rc;
 }
 
@@ -392,7 +395,7 @@ void ThreadResourceList::purgeTID(int tid, class ExceptionSink *xsink)
    // we put all the nodes in a temporary list and then run them from there
    class ThreadResourceList trl;
 
-   lock();
+   SafeLocker sl((LockedObject *)this);
    //printd(5, "purgeTID(%d) head=%08p\n", tid, head);
    class ThreadResourceNode *w = head;
    while (w)
@@ -409,7 +412,7 @@ void ThreadResourceList::purgeTID(int tid, class ExceptionSink *xsink)
       else
 	 w = w->next;
    }   
-   unlock();
+   sl.unlock();
 
    if (trl.head)
    {
@@ -432,7 +435,8 @@ void ThreadResourceList::purgeTID(int tid, class ExceptionSink *xsink)
 void ThreadResourceList::remove(void *key)
 {
    //printd(0, "TRL::remove(key=%08p)\n", key);
-   lock();
+   AutoLocker al((LockedObject *)this);
+
    class ThreadResourceNode *w = head;
    while (w)
    {
@@ -446,28 +450,28 @@ void ThreadResourceList::remove(void *key)
       else
 	 w = w->next;
    }
-   unlock();
 }
 
 // there must be only one of these
 void ThreadResourceList::remove(void *key, int tid)
 {
-   lock();
-   //printd(5, "TRL::remove(key=%08p, tid=%d) head=%08p\n", key, tid, head);
+   AutoLocker al((LockedObject *)this);
+
+   //printd(0, "TRL::remove(key=%08p, tid=%d) this=%08p, head=%08p\n", key, tid, this, head);
    class ThreadResourceNode *w = head;
    while (w)
    {
-      //printd(5, "TRL::remove(key=%08p, tid=%d) w=%08p key=%08p, tid=%d\n", key, tid, w, w->key, w->tid);
+      //printd(0, "TRL::remove(key=%08p, tid=%d) this=%08p, w=%08p key=%08p, tid=%d\n", key, tid, this, w, w->key, w->tid);
       if (w->key == key && w->tid == tid)
       {
 	 removeIntern(w);
 	 delete w;
-	 unlock();
 	 return;
       }
       w = w->next;
    }
-   unlock();
+   //printd(0, "TRL::remove(key=%08p, tid=%d) this=%08p ABORT\n", key, tid, this);
+   // if this function fails, there is a bug in the thread resource handling
    assert(false);
 }
 

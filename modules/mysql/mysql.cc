@@ -209,7 +209,7 @@ static int qore_mysql_init(Datasource *ds, ExceptionSink *xsink)
 	  ds->getUsername(), ds->getPassword(), ds->getDBName(), ds->getDBEncoding() ? ds->getDBEncoding() : "(none)");
 
    MYSQL *db = mysql_init(NULL);
-   if (!mysql_real_connect(db, ds->getHostName(), ds->getUsername(), ds->getPassword(), ds->getDBName(), 0, NULL, 0))
+   if (!mysql_real_connect(db, ds->getHostName(), ds->getUsername(), ds->getPassword(), ds->getDBName(), 0, NULL, CLIENT_FOUND_ROWS))
    {
       xsink->raiseException("DBI:MYSQL:CONNECT-ERROR", "%s", mysql_error(db));
       traceout("qore_mysql_init()");

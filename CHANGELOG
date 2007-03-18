@@ -1,3 +1,8 @@
+2007.03.18: David Nichols
+	* added per-connection locking in mysql driver when prepared statement 
+	  api is available
+	* set CLIENT_FOUND_ROWS on connect in mysql driver
+
 2007.03.16: David Nichols
 	* added Datasource::getDriverName() method
 
