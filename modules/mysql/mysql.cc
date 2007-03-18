@@ -68,15 +68,23 @@ static int mysql_caps = DBI_CAP_NONE
 
 class DBIDriver *DBID_MYSQL = NULL;
 
-// this is the thread key that will tell us if the 
+// this is the thread key that will tell us if the current thread has been initialized for mysql threading
 static pthread_key_t ptk_mysql;
 
-class MySQLData {
+class MySQLConnection {
    public:
       MYSQL *db;
       LockedObject lck;
 
-      DLLLOCAL MySQLData(MYSQL *d) { db = d; }
+      DLLLOCAL MySQLConnection(MYSQL *d) { db = d; }
+      DLLLOCAL void lock()
+      {
+	 lck.lock();
+      }
+      DLLLOCAL void unlock()
+      {
+	 lck.unlock();
+      }
 };
 
 static struct mapEntry {
@@ -208,7 +216,7 @@ static int qore_mysql_init(Datasource *ds, ExceptionSink *xsink)
       return -1;
    }
 
-   class MySQLData *d_mysql = new MySQLData(db);
+   class MySQLConnection *d_mysql = new MySQLConnection(db);
    ds->setPrivateData((void *)d_mysql);
 
 #ifdef HAVE_MYSQL_SET_CHARACTER_SET
@@ -240,9 +248,12 @@ static int qore_mysql_commit(class Datasource *ds, ExceptionSink *xsink)
 
 #ifdef HAVE_MYSQL_COMMIT
    checkInit();
-   MYSQL *db = ((MySQLData *)ds->getPrivateData())->db;
-   if (mysql_commit(db))
-      xsink->raiseException("DBI:MYSQL:COMMIT-ERROR", (char *)mysql_error(db));
+   MySQLConnection *d_mysql =(MySQLConnection *)ds->getPrivateData();
+
+   AutoLocker al(&d_mysql->lck);
+
+   if (mysql_commit(d_mysql->db))
+      xsink->raiseException("DBI:MYSQL:COMMIT-ERROR", (char *)mysql_error(d_mysql->db));
 #else
    xsink->raiseException("DBI:MYSQL:NOT-IMPLEMENTED", "this version of the MySQL client API does not support transaction management");
 #endif
@@ -256,9 +267,12 @@ static int qore_mysql_rollback(class Datasource *ds, ExceptionSink *xsink)
 
 #ifdef HAVE_MYSQL_COMMIT
    checkInit();
-   MYSQL *db = ((MySQLData *)ds->getPrivateData())->db;
-   if (mysql_rollback(db))
-      xsink->raiseException("DBI:MYSQL:ROLLBACK-ERROR", (char *)mysql_error(db));
+   MySQLConnection *d_mysql =(MySQLConnection *)ds->getPrivateData();
+
+   AutoLocker al(&d_mysql->lck);
+   
+   if (mysql_rollback(d_mysql->db))
+      xsink->raiseException("DBI:MYSQL:ROLLBACK-ERROR", (char *)mysql_error(d_mysql->db));
 #else
    xsink->raiseException("DBI:MYSQL:NOT-IMPLEMENTED", "this version of the MySQL client API does not support transaction management");
 #endif
@@ -329,7 +343,9 @@ void MyResult::bind(MYSQL_STMT *stmt)
 	    bindbuf[i].buffer_length = field[i].length + 1;
 	    break;
       }
+      bi[i].mnull = 0;
       bindbuf[i].is_null = &bi[i].mnull;
+      bi[i].mlen = 0;
       bindbuf[i].length = &bi[i].mlen;
    }
 
@@ -361,6 +377,94 @@ class QoreNode *MyResult::getBoundColumnValue(class QoreEncoding *csid, int i)
       n = new QoreNode(new BinaryObject(bindbuf[i].buffer, *bindbuf[i].length));
 
    return n;
+}
+
+MyBindGroup::MyBindGroup(class Datasource *ods, class QoreString *ostr, class List *args, class ExceptionSink *xsink)
+{
+   head = tail = NULL;
+   stmt = NULL;
+   hasOutput = false;
+   bind = NULL;
+   len = 0;
+   ds = ods;
+   mydata =(MySQLConnection *)ds->getPrivateData();
+   locked = false;
+
+   // create copy of string and convert encoding if necessary
+   str = ostr->convertEncoding(ds->getQoreEncoding(), xsink);
+   if (!str)
+      return;
+   
+   // parse query and bind variables/placeholders, return on error
+   if (parse(args, xsink))
+      return;
+   
+   stmt = mysql_stmt_init(mydata->db);
+   if (!stmt)
+   {
+      xsink->raiseException("DBI:MYSQL:ERROR", "error creating MySQL statement handle: out of memory");
+      return;
+   }
+
+   //printd(5, "mysql prepare: (%d) %s\n", str->strlen(), str->getBuffer());
+
+   mydata->lock();
+   locked = true;
+
+   // prepare the statement for execution
+   if (mysql_stmt_prepare(stmt, str->getBuffer(), str->strlen()))
+   {
+      xsink->raiseException("DBI:MYSQL:ERROR", mysql_error(mydata->db));
+      return;
+   }
+
+   // if there is data to bind, then bind it
+   if (len)
+   {
+      // allocate bind buffer
+      bind = new MYSQL_BIND[len];
+      // zero out bind memory
+      memset(bind, 0, sizeof(MYSQL_BIND) * len);
+
+      // bind all values/placeholders
+      class MyBindNode *w = head;
+      int pos = 0;
+      while (w)
+      {
+	 printd(5, "MBG::MBG() binding value at position %d (%s)\n", pos, w->data.value ? w->data.value->type->getName() : "<null>");
+	 if (w->bindValue(ods->getQoreEncoding(), &bind[pos], xsink))
+	    return;
+	 pos++;
+	 w = w->next;
+      }
+   }
+   // now perform the bind
+   if (mysql_stmt_bind_param(stmt, bind))
+      xsink->raiseException("DBI:MYSQL-ERROR", (char *)mysql_error(mydata->db));
+}
+
+MyBindGroup::~MyBindGroup()
+{
+   if (bind)
+      delete [] bind;
+
+   if (stmt)
+      mysql_stmt_close(stmt);
+
+   if (locked)
+      mydata->unlock();
+
+   if (str)
+      delete str;
+
+   class MyBindNode *w = head;
+   while (w)
+   {
+      
+      head = w->next;
+      delete w;
+      w = head;
+   }
 }
 
 inline int MyBindGroup::parse(class List *args, class ExceptionSink *xsink)
@@ -442,61 +546,6 @@ inline int MyBindGroup::parse(class List *args, class ExceptionSink *xsink)
    return 0;
 }
 
-MyBindGroup::MyBindGroup(class Datasource *ods, class QoreString *ostr, class List *args, class ExceptionSink *xsink)
-{
-   head = tail = NULL;
-   stmt = NULL;
-   hasOutput = false;
-   bind = NULL;
-   len = 0;
-   ds = ods;
-
-   // create copy of string and convert encoding if necessary
-   str = ostr->convertEncoding(ds->getQoreEncoding(), xsink);
-   if (!str)
-      return;
-   
-   // parse query and bind variables/placeholders, return on error
-   if (parse(args, xsink))
-      return;
-
-   MySQLData *d_mysql =(MySQLData *)ds->getPrivateData();
-   db = d_mysql->db;
-   
-   stmt = mysql_stmt_init(db);
-
-   // prepare the statement for execution
-   if (mysql_stmt_prepare(stmt, str->getBuffer(), str->strlen()))
-   {
-      xsink->raiseException("DBI:MYSQL:ERROR", (char *)mysql_error(db));
-      return;
-   }
-
-   // if there is data to bind, then bind it
-   if (len)
-   {
-      // allocate bind buffer
-      bind = new MYSQL_BIND[len];
-      // zero out bind memory
-      memset(bind, 0, sizeof(MYSQL_BIND) * len);
-
-      // bind all values/placeholders
-      class MyBindNode *w = head;
-      int pos = 0;
-      while (w)
-      {
-	 printd(5, "MBG::MBG() binding value at position %d (%s)\n", pos, w->data.value ? w->data.value->type->getName() : "<null>");
-	 if (w->bindValue(ods->getQoreEncoding(), &bind[pos], xsink))
-	    return;
-	 pos++;
-	 w = w->next;
-      }
-   }
-   // now perform the bind
-   if (mysql_stmt_bind_param(stmt, bind))
-      xsink->raiseException("DBI:MYSQL-ERROR", (char *)mysql_error(db));
-}
-
 inline class QoreNode *MyBindGroup::getOutputHash(class ExceptionSink *xsink)
 {
    class Hash *h = new Hash();
@@ -506,7 +555,7 @@ inline class QoreNode *MyBindGroup::getOutputHash(class ExceptionSink *xsink)
    {
       // prepare statement to retrieve values
       mysql_stmt_close(stmt);
-      stmt = mysql_stmt_init(db);
+      stmt = mysql_stmt_init(mydata->db);
 
       QoreString qstr;
       qstr.sprintf("select @%s", *sli);
@@ -515,7 +564,7 @@ inline class QoreNode *MyBindGroup::getOutputHash(class ExceptionSink *xsink)
       if (mysql_stmt_prepare(stmt, qstr.getBuffer(), qstr.strlen()))
       {
 	 h->derefAndDelete(xsink);
-	 xsink->raiseException("DBI:MYSQL:ERROR", (char *)mysql_error(db));
+	 xsink->raiseException("DBI:MYSQL:ERROR", (char *)mysql_error(mydata->db));
 	 return NULL;
       }
 
@@ -529,7 +578,7 @@ inline class QoreNode *MyBindGroup::getOutputHash(class ExceptionSink *xsink)
 	 if (mysql_stmt_execute(stmt))
 	 {
 	    h->derefAndDelete(xsink);
-	    xsink->raiseException("DBI:MYSQL:ERROR", (char *)mysql_error(db));
+	    xsink->raiseException("DBI:MYSQL:ERROR", (char *)mysql_error(mydata->db));
 	    return NULL;
 	 }
 
@@ -575,7 +624,7 @@ class QoreNode *MyBindGroup::execIntern(class ExceptionSink *xsink)
 
       if (mysql_stmt_execute(stmt))
       {
-	 xsink->raiseException("DBI:MYSQL:ERROR", (char *)mysql_error(db));
+	 xsink->raiseException("DBI:MYSQL:ERROR", (char *)mysql_error(mydata->db));
 	 return NULL;
       }
 
@@ -608,7 +657,7 @@ class QoreNode *MyBindGroup::execIntern(class ExceptionSink *xsink)
       // there is no result set
       if (mysql_stmt_execute(stmt))
       {
-	 xsink->raiseException("DBI:MYSQL:ERROR", (char *)mysql_error(db));
+	 xsink->raiseException("DBI:MYSQL:ERROR", (char *)mysql_error(mydata->db));
 	 return NULL;
       }
 
@@ -627,7 +676,7 @@ inline class QoreNode *MyBindGroup::exec(class ExceptionSink *xsink)
    
 #ifdef HAVE_MYSQL_COMMIT
    if (!xsink->isException() && ds->getAutoCommit())
-      mysql_commit(db);
+      mysql_commit(mydata->db);
 #endif
    
    return rv;
@@ -648,7 +697,7 @@ class QoreNode *MyBindGroup::selectRows(class ExceptionSink *xsink)
 
       if (mysql_stmt_execute(stmt))
       {
-	 xsink->raiseException("DBI:MYSQL:ERROR", (char *)mysql_error(db));
+	 xsink->raiseException("DBI:MYSQL:ERROR", (char *)mysql_error(mydata->db));
 	 return NULL;
       }
 
@@ -682,7 +731,7 @@ class QoreNode *MyBindGroup::selectRows(class ExceptionSink *xsink)
       // there is no result set
       if (mysql_stmt_execute(stmt))
       {
-	 xsink->raiseException("DBI:MYSQL:ERROR", (char *)mysql_error(db));
+	 xsink->raiseException("DBI:MYSQL:ERROR", (char *)mysql_error(mydata->db));
 	 return NULL;
       }
 
@@ -863,7 +912,7 @@ static class QoreNode *qore_mysql_do_sql(class Datasource *ds, QoreString *qstr,
    if (!tqstr)
       return NULL;
    
-   MySQLData *d_mysql =(MySQLData *)ds->getPrivateData();
+   MySQLConnection *d_mysql =(MySQLConnection *)ds->getPrivateData();
    MYSQL *db = d_mysql->db;
    
    d_mysql->lck.lock();
@@ -986,7 +1035,7 @@ static int qore_mysql_close_datasource(class Datasource *ds)
 
    checkInit();
 
-   class MySQLData *d_mysql = (MySQLData *)ds->getPrivateData();
+   class MySQLConnection *d_mysql = (MySQLConnection *)ds->getPrivateData();
    
    printd(3, "qore_mysql_close_datasource(): connection to %s closed.\n", ds->getDBName());
    

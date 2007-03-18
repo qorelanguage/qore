@@ -145,10 +145,11 @@ class MyBindGroup {
       MYSQL_STMT *stmt;
       bool hasOutput;
       MYSQL_BIND *bind;
-      MYSQL *db;
       Datasource *ds;
+      class MySQLConnection *mydata;
       int len;
       class StringList phl;
+      bool locked;
 
       // returns -1 for error, 0 for OK
       DLLLOCAL inline int parse(class List *args, class ExceptionSink *xsink);
@@ -167,25 +168,7 @@ class MyBindGroup {
 
    public:
       DLLLOCAL MyBindGroup(class Datasource *ods, class QoreString *ostr, class List *args, class ExceptionSink *xsink);
-      DLLLOCAL inline ~MyBindGroup()
-      {
-	 if (bind)
-	    delete [] bind;
-
-	 if (stmt)
-	    mysql_stmt_close(stmt);
-
-	 if (str)
-	    delete str;
-
-	 class MyBindNode *w = head;
-	 while (w)
-	 {
-	    head = w->next;
-	    delete w;
-	    w = head;
-	 }
-      }
+      DLLLOCAL ~MyBindGroup();
 
       DLLLOCAL inline void add(class QoreNode *v)
       {
