@@ -1,3 +1,9 @@
+2007.03.19: David Nichols
+	* renamed on_block_exit to on_exit
+	* implemented on_success and on_error statements to conditionally 
+	  execute code at the end of a block depending on whether an exception
+	  is active or not
+
 2007.03.18: David Nichols
 	* added per-connection locking in mysql driver when prepared statement 
 	  api is available

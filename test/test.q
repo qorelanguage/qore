@@ -536,11 +536,11 @@ sub statement_tests()
     test_value(switch_with_relation_test(1.0), "fourth switch");
     test_value(switch_with_relation_test(0), "fifth switch");
 
-    # on_block_exit tests
+    # on_exit tests
     try 
     {
 	$a = 1;
-	on_block_exit
+	on_exit
 	    $a = 2;
 	$a = 3;
 	throw False;
@@ -548,35 +548,43 @@ sub statement_tests()
     catch()
     {
     }
+    my $err;
+    my $success = False;
     try 
     {
 	$b = 100;
-	on_block_exit
+	on_exit
 	{
 	    $b = 2;
-	    on_block_exit
+	    on_exit
 		$b = 5;
+	    on_error
+		$err = True;
+	    on_success
+		$success = True;
 	    # we use "if (True)..." so we don't get an "unreachable-code" warning
 	    if (True)
 		throw False;
 	    $b = "hello";
 	}
 	$v = 100;
-	on_block_exit
+	on_exit
 	    $v = 99;
 	
 	# we use "if (True)..." so we don't get an "unreachable-code" warning
 	if (True)
 	    throw False;
-	on_block_exit
+	on_exit
 	    $v = 101;
     }
     catch()
     {
     }
-    test_value($a, 2, "first on_block_exit");
-    test_value($b, 5, "second on_block_exit");
-    test_value($v, 99, "third on_block_exit");
+    test_value($a, 2, "first on_exit");
+    test_value($b, 5, "second on_exit");
+    test_value($v, 99, "third on_exit");
+    test_value($err, True, "on_error");
+    test_value($success, False, "on_success");
 }
 
 sub fibonacci($num)

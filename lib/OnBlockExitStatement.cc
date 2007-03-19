@@ -23,7 +23,7 @@
 #include <qore/Qore.h>
 #include <qore/OnBlockExitStatement.h>
 
-OnBlockExitStatement::OnBlockExitStatement(int start_line, int end_line, class StatementBlock *n_code) : AbstractStatement(start_line, end_line), code(n_code)
+OnBlockExitStatement::OnBlockExitStatement(int start_line, int end_line, class StatementBlock *n_code, enum obe_type_e n_type) : AbstractStatement(start_line, end_line), code(n_code), type(n_type)
 {
 }
 

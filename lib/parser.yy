@@ -607,7 +607,9 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str)
 %token TOK_KEYS "keys"
 %token TOK_NEW "new"
 %token TOK_BACKGROUND "background"
-%token TOK_ON_BLOCK_EXIT "on_block_exit"
+%token TOK_ON_EXIT "on_exit"
+%token TOK_ON_SUCCESS "on_success"
+%token TOK_ON_ERROR "on_error"
 
  // tokens returning data
 %token <integer> INTEGER "integer value"
@@ -888,9 +890,17 @@ statement:
         {
 	   $$ = new ThrowStatement(@1.first_line, @2.last_line, $2);
 	}
-        | TOK_ON_BLOCK_EXIT statement_or_block
+        | TOK_ON_EXIT statement_or_block
         {
-	   $$ = new OnBlockExitStatement(@1.first_line, @2.last_line, $2);
+	   $$ = new OnBlockExitStatement(@1.first_line, @2.last_line, $2, OBE_Unconditional);
+	}
+        | TOK_ON_SUCCESS statement_or_block
+        {
+	   $$ = new OnBlockExitStatement(@1.first_line, @2.last_line, $2, OBE_Success);
+	}
+        | TOK_ON_ERROR statement_or_block
+        {
+	   $$ = new OnBlockExitStatement(@1.first_line, @2.last_line, $2, OBE_Error);
 	}
         | TOK_SUB_CONTEXT context_mods statement_or_block
         {

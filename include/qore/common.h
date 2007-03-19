@@ -117,7 +117,11 @@ class ltchar
    }
 };
 
-typedef std::list<class StatementBlock *> block_list_t;
+enum obe_type_e { OBE_Unconditional, OBE_Success, OBE_Error };
+
+typedef std::pair<enum obe_type_e, class StatementBlock *> qore_conditional_block_exit_statement_t;
+
+typedef std::list<qore_conditional_block_exit_statement_t> block_list_t;
 
 #include <set>
 typedef std::set<char *, ltstr> strset_t;

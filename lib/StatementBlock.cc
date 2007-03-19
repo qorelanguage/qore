@@ -99,7 +99,7 @@ void StatementBlock::addStatement(class AbstractStatement *s)
       statement_list.push_back(s);
       OnBlockExitStatement *obe = dynamic_cast<OnBlockExitStatement *>(s);
       if (obe)
-	 on_block_exit_list.push_front(obe->getCode());
+	 on_block_exit_list.push_front(std::make_pair(obe->getType(), obe->getCode()));
    }
    
    //traceout("StatementBlock::addStatement()");
@@ -141,8 +141,13 @@ int StatementBlock::execImpl(class QoreNode **return_value, class ExceptionSink 
    {
       ExceptionSink obe_xsink;
       int nrc = 0;
+      bool error = *xsink;
       for (block_list_t::iterator i = popBlock(), e = on_block_exit_list.end(); i != e; ++i)
-	 nrc = (*i)->execImpl(return_value, &obe_xsink);
+      {
+	 enum obe_type_e type = (*i).first;
+	 if (type == OBE_Unconditional || (!error && type == OBE_Success) || (error && type == OBE_Error))
+	    nrc = (*i).second->execImpl(return_value, &obe_xsink);
+      }
       if (obe_xsink)
 	 xsink->assimilate(&obe_xsink);
       if (nrc)
