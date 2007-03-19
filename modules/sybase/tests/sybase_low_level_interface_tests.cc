@@ -774,7 +774,223 @@ TEST()
 //------------------------------------------------------------------------------
 TEST()
 {
-  // TBD - datetime test
+  // testing how cs_convert() works (no examples)
+  printf("running test %s[%d]\n", __FILE__, __LINE__);
+
+  sybase_connection conn;
+  ExceptionSink xsink;
+  conn.init(SYBASE_TEST_SETTINGS, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+
+  CS_DATAFMT srcfmt;
+  memset(&srcfmt, 0, sizeof(srcfmt));
+  srcfmt.datatype = CS_INT_TYPE;
+
+  CS_DATAFMT destfmt;
+  memset(&destfmt, 0, sizeof(destfmt));
+  destfmt.datatype = CS_REAL_TYPE;
+
+  CS_INT in = 100;
+  CS_REAL out = 0;
+  CS_INT outlen = 0;  
+  CS_RETCODE err = cs_convert(conn.getContext(), &srcfmt, (CS_BYTE*)&in, &destfmt, (CS_BYTE*)&out, &outlen);
+  assert(err == CS_SUCCEED);
+  assert(outlen == sizeof(CS_REAL));
+  assert(out == 100.0);
+}
+
+//------------------------------------------------------------------------------
+TEST()
+{
+  // testing how cs_convert() works (no examples)
+  printf("running test %s[%d]\n", __FILE__, __LINE__);
+
+  sybase_connection conn;
+  ExceptionSink xsink;
+  conn.init(SYBASE_TEST_SETTINGS, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+
+  CS_BOOL out = false;
+  CS_RETCODE err = cs_will_convert(conn.getContext(), CS_VARCHAR_TYPE, CS_REAL_TYPE, &out);
+  assert(err == CS_SUCCEED);
+  assert(out);
+}
+
+//------------------------------------------------------------------------------
+TEST()
+{
+  // testing how cs_convert() works (no examples)
+  printf("running test %s[%d]\n", __FILE__, __LINE__);
+
+  sybase_connection conn;
+  ExceptionSink xsink;
+  conn.init(SYBASE_TEST_SETTINGS, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+
+  CS_BOOL out = false;
+  CS_RETCODE err = cs_will_convert(conn.getContext(), CS_CHAR_TYPE, CS_DATETIME_TYPE, &out);
+  assert(err == CS_SUCCEED);
+  assert(out);
+}
+
+//------------------------------------------------------------------------------
+TEST()
+{
+  // testing how cs_convert() works (no examples)
+  printf("running test %s[%d]\n", __FILE__, __LINE__);
+
+  sybase_connection conn;
+  ExceptionSink xsink;
+  conn.init(SYBASE_TEST_SETTINGS, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+
+  CS_BOOL out = false;
+  CS_RETCODE err = cs_will_convert(conn.getContext(), CS_CHAR_TYPE, CS_DATETIME4_TYPE, &out);
+  assert(err == CS_SUCCEED);
+  assert(out);
+}
+
+//------------------------------------------------------------------------------
+TEST()
+{
+  // testing how cs_convert() works (no examples)
+  printf("running test %s[%d]\n", __FILE__, __LINE__);
+
+  sybase_connection conn;
+  ExceptionSink xsink;
+  conn.init(SYBASE_TEST_SETTINGS, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  // recommended in a google post by Tleulin Daniyar on Oct 29 199 on a Sybase related newsgroup
+  CS_INT val = CS_DATES_LONG;
+  CS_RETCODE err = cs_dt_info(conn.getContext(), CS_SET, NULL, CS_DT_CONVFMT, CS_UNUSED, (CS_VOID*)&val, sizeof(val), 0);
+  assert(err == CS_SUCCEED);
+
+  // datetime -> string
+  CS_DATAFMT srcfmt;
+  memset(&srcfmt, 0, sizeof(srcfmt));
+  srcfmt.datatype = CS_DATETIME_TYPE;
+  srcfmt.maxlength = sizeof(CS_DATETIME);
+
+  CS_CHAR out[100] = "";
+  CS_DATAFMT destfmt;
+  memset(&destfmt, 0, sizeof(destfmt));
+  destfmt.datatype = CS_CHAR_TYPE;
+  destfmt.maxlength = 100;
+  destfmt.format = CS_FMT_NULLTERM;
+
+  CS_INT out_len;
+  CS_DATETIME dt;
+  dt.dtdays = 1;
+  dt.dttime = 300;
+  err = cs_convert(conn.getContext(), &srcfmt, &dt, &destfmt, out, &out_len);
+  assert(err == CS_SUCCEED);
+  if (strcmp(out, "Jan  2 1900 12:00:01:000AM")) {
+    assert(false);
+  }
+  // string -> datetime
+  CS_DATETIME dt2;
+  memset(&dt2, 0, sizeof(dt2));
+
+  memset(&srcfmt, 0, sizeof(srcfmt));
+  srcfmt.datatype = CS_CHAR_TYPE;
+  srcfmt.maxlength = strlen(out);
+  srcfmt.format = CS_FMT_NULLTERM;
+
+  memset(&destfmt, 0, sizeof(destfmt));
+  destfmt.datatype = CS_DATETIME_TYPE;
+  destfmt.maxlength = sizeof(CS_DATETIME);
+
+  err = cs_convert(conn.getContext(), &srcfmt, out, &destfmt, &dt2, &out_len);
+  assert(err == CS_SUCCEED); 
+  if (memcmp(&dt, &dt2, sizeof(dt))) {
+    assert(false);
+  } 
+}
+
+//------------------------------------------------------------------------------
+TEST()
+{
+  printf("running test %s[%d]\n", __FILE__, __LINE__);
+printf("### testing datetime\n");
+
+  sybase_connection conn;
+  ExceptionSink xsink;
+  conn.init(SYBASE_TEST_SETTINGS, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+
+  // set default type of string representation of DATETIME to long (like Jan 1 1990 12:32:55:0000 PM)
+  CS_INT aux = CS_DATES_LONG;
+  CS_RETCODE err = cs_dt_info(conn.getContext(), CS_SET, NULL, CS_DT_CONVFMT, CS_UNUSED, (CS_VOID*)&aux, sizeof(aux), 0);
+  if (err != CS_SUCCEED) {
+    assert(false);
+  }
+
+  std::auto_ptr<DateTime> d(new DateTime);
+
+  CS_DATETIME dt1;
+  convert_QoreDatetime2SybaseDatetime(conn.getContext(), d.get(), dt1, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+ 
+  std::auto_ptr<DateTime> d2(convert_SybaseDatetime2QoreDatetime(conn.getContext(), dt1, &xsink));
+  if (xsink.isException()) {
+    assert(false);
+  }
+
+  if (d->getEpochSeconds() != d2->getEpochSeconds()) {
+    assert(false);
+  }
+}
+
+//------------------------------------------------------------------------------
+TEST()
+{
+  printf("running test %s[%d]\n", __FILE__, __LINE__);
+printf("### testing datetime\n");
+
+  sybase_connection conn;
+  ExceptionSink xsink;
+  conn.init(SYBASE_TEST_SETTINGS, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+
+  // set default type of string representation of DATETIME to long (like Jan 1 1990 12:32:55:0000 PM)
+  CS_INT aux = CS_DATES_LONG;
+  CS_RETCODE err = cs_dt_info(conn.getContext(), CS_SET, NULL, CS_DT_CONVFMT, CS_UNUSED, (CS_VOID*)&aux, sizeof(aux), 0);
+  if (err != CS_SUCCEED) {
+    assert(false);
+  }
+
+  std::auto_ptr<DateTime> d(new DateTime);
+
+  CS_DATETIME4 dt1;
+  convert_QoreDatetime2SybaseDatetime4(conn.getContext(), d.get(), dt1, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+
+  std::auto_ptr<DateTime> d2(convert_SybaseDatetime4_2QoreDatetime(conn.getContext(), dt1, &xsink));
+  if (xsink.isException()) {
+    assert(false);
+  }
+
+  if (d->getEpochSeconds() != d2->getEpochSeconds()) {
+    assert(false);
+  }
 }
 
 } // namespace

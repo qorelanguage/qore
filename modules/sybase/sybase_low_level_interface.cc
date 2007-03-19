@@ -525,41 +525,46 @@ static std::string QoreDateTime2SybaseStringFormat(DateTime* dt)
 void convert_QoreDatetime2SybaseDatetime(CS_CONTEXT* context, DateTime* dt, CS_DATETIME& out, ExceptionSink* xsink)
 {
   std::string string_dt = QoreDateTime2SybaseStringFormat(dt);
-
   CS_DATAFMT srcfmt;
   memset(&srcfmt, 0, sizeof(srcfmt));
   srcfmt.datatype = CS_CHAR_TYPE;
-  srcfmt.maxlength = 100; // guess
+  srcfmt.maxlength = string_dt.size();
+  srcfmt.format = CS_FMT_NULLTERM;
 
   CS_DATAFMT destfmt;
   memset(&destfmt, 0, sizeof(destfmt));
   destfmt.datatype = CS_DATETIME_TYPE;
+  destfmt.maxlength = sizeof(CS_DATETIME);
 
-  CS_INT outlen;
-  CS_RETCODE err = cs_convert(context, &srcfmt, (CS_BYTE*)string_dt.c_str(), &destfmt, (CS_BYTE*)&out, &outlen);
+  CS_INT aux;
+  CS_RETCODE err = cs_convert(context, &srcfmt, (CS_BYTE*)string_dt.c_str(), &destfmt, (CS_BYTE*)&out, &aux);
   if (err != CS_SUCCEED) {
+    assert(false);
     xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_convert() failed to convert date [%s] into Sybase CS_DATETIME, err %d", string_dt.c_str(), (int)err);
     return;
   }
 }
 
 //------------------------------------------------------------------------------
+// cs_convert() via string is the only available CT API function to create DATETIME
 void convert_QoreDatetime2SybaseDatetime4(CS_CONTEXT* context, DateTime* dt, CS_DATETIME4& out, ExceptionSink* xsink)
 {
   std::string string_dt = QoreDateTime2SybaseStringFormat(dt);
-
   CS_DATAFMT srcfmt;
   memset(&srcfmt, 0, sizeof(srcfmt));
   srcfmt.datatype = CS_CHAR_TYPE;
-  srcfmt.maxlength = 100; // guess
+  srcfmt.maxlength = string_dt.size();
+  srcfmt.format = CS_FMT_NULLTERM;
 
   CS_DATAFMT destfmt;
   memset(&destfmt, 0, sizeof(destfmt));
   destfmt.datatype = CS_DATETIME4_TYPE;
+  destfmt.maxlength = sizeof(CS_DATETIME4);
 
   CS_INT outlen;
   CS_RETCODE err = cs_convert(context, &srcfmt, (CS_BYTE*)string_dt.c_str(), &destfmt, (CS_BYTE*)&out, &outlen);
   if (err != CS_SUCCEED) {
+    assert(false);
     xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_convert() failed to convert date [%s] into Sybase CS_DATETIME4, err %d", string_dt.c_str(), (int)err);
     return;
   }
@@ -568,15 +573,31 @@ void convert_QoreDatetime2SybaseDatetime4(CS_CONTEXT* context, DateTime* dt, CS_
 //------------------------------------------------------------------------------
 DateTime* convert_SybaseDatetime2QoreDatetime(CS_CONTEXT* context, CS_DATETIME& dt, ExceptionSink* xsink)
 {
-  // TBD
-  return 0;
+  CS_DATEREC x;
+  memset(&x, 0, sizeof(x));  
+  CS_RETCODE err = cs_dt_crack(context, CS_DATETIME_TYPE, &dt, &x);
+  if (err != CS_SUCCEED) {
+    assert(false);
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_dt_crack() failed with error %d", (int)err);
+    return 0;
+  }
+
+  return new DateTime(x.dateyear, x.datemonth, x.datedmonth, x.datehour, x.dateminute, x.datesecond, x.datemsecond, false);
 }
 
 //------------------------------------------------------------------------------
 DateTime* convert_SybaseDatetime4_2QoreDatetime(CS_CONTEXT* context, CS_DATETIME4& dt, ExceptionSink* xsink)
 {
-  // TBD
-  return 0;
+  CS_DATEREC x;
+  memset(&x, 0, sizeof(x));
+  CS_RETCODE err = cs_dt_crack(context, CS_DATETIME4_TYPE, &dt, &x);
+  if (err != CS_SUCCEED) {
+    assert(false);
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_dt_crack() failed with error %d", (int)err);
+    return 0;
+  }
+
+  return new DateTime(x.dateyear, x.datemonth, x.datedmonth, x.datehour, x.dateminute, x.datesecond, x.datemsecond, false);
 }
 
 //------------------------------------------------------------------------------

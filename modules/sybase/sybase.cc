@@ -1187,6 +1187,15 @@ static int sybase_open(Datasource *ds, ExceptionSink *xsink)
   if (xsink->isException()) {
     return -1;  
   }
+
+  // set default type of string representation of DATETIME to long (like Jan 1 1990 12:32:55:0000 PM)
+  CS_INT aux = CS_DATES_LONG;
+  CS_RETCODE err = cs_dt_info(sc->getContext(), CS_SET, NULL, CS_DT_CONVFMT, CS_UNUSED, (CS_VOID*)&aux, sizeof(aux), 0);
+  if (err != CS_SUCCEED) {
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call cs_dt_info(CS_DT_CONVFMT) failed with error %d", (int)err);
+    return -1;
+  }
+
   ds->setPrivateData(sc.release());
 
   set_encoding(ds, xsink);
