@@ -109,7 +109,7 @@ void RWLock::destructorImpl(class ExceptionSink *xsink)
    for (vlock_map_t::iterator i = vmap.begin(), e = vmap.end(); i != e; ++i)
    {
       i->second->pop((AbstractSmartLock *)this);
-      trlist.remove((AbstractSmartLock *)this, i->first);
+      // do not remove from the thread resource list
    }
    vmap.clear();
    tmap.clear();
@@ -123,7 +123,7 @@ int RWLock::cleanup_read_lock_intern(tid_map_t::iterator i)
       vlock_map_t::iterator vi = vmap.find(i->first);
       // pop the lock from this thread's lock list
       vi->second->pop((AbstractSmartLock *)this);
-      // do not remove from the trlist (thread resource list) here
+      // do not remove from the thread resource list here
       // remove map entries for this thread
       tmap.erase(i);
       vmap.erase(vi);
@@ -155,9 +155,8 @@ int RWLock::releaseImpl()
 }
 
 // thread exited holding the lock: remove whatever lock was locked
-void RWLock::cleanup()
+void RWLock::cleanupImpl()
 {
-   AutoLocker al(&asl_lock);
    // if it was a read lock
    if (tmap.size())
    {
@@ -240,7 +239,7 @@ void RWLock::mark_read_lock_intern(int mtid, class VLock *nvl)
       // now register that we have grabbed this lock with the thread list
       nvl->push((AbstractSmartLock *)this);
       // register the thread resource
-      trlist.set((AbstractSmartLock *)this, (qtrdest_t)abstract_smart_lock_cleanup);
+      set_thread_resource((AbstractThreadResource *)this);
    }
    else // increment lock count otherwise
       ++(i->second);
@@ -277,7 +276,7 @@ int RWLock::readLock(class ExceptionSink *xsink, int timeout_ms)
       tmap[mtid] = 1;
       vmap[mtid] = nvl;
       // register the thread resource
-      trlist.set((AbstractSmartLock *)this, (qtrdest_t)abstract_smart_lock_cleanup);
+      set_thread_resource((AbstractThreadResource *)this);
       nvl->push((AbstractSmartLock *)this);
       return 0;
    }
@@ -319,7 +318,7 @@ int RWLock::readUnlock(class ExceptionSink *xsink)
 
    // if this thread has released it's last read lock, then remove the thread resource
    if (!cleanup_read_lock_intern(i))
-      trlist.remove((AbstractSmartLock *)this, mtid);
+      remove_thread_resource((AbstractThreadResource *)this);
    return 0;
 }
 

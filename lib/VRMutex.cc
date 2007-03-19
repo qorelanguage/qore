@@ -49,6 +49,15 @@ int VRMutex::exit()
    return rc;
 }
 
+void VRMutex::cleanupImpl()
+{
+   if (tid == gettid())
+   {
+      release_and_signal();
+      count = 0;
+   }
+}
+
 int VRMutex::grabImpl(int mtid, class VLock *nvl, class ExceptionSink *xsink, int timeout_ms)
 {
    if (tid != mtid)

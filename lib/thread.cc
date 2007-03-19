@@ -27,6 +27,7 @@
 #include <qore/ArgvStack.h>
 #include <qore/QoreProgramStack.h>
 #include <qore/VLock.h>
+#include <qore/ThreadResourceList.h>
 
 // to register object types
 #include <qore/QC_Queue.h>
@@ -50,7 +51,6 @@
 class Operator *OP_BACKGROUND;
 
 ThreadCleanupList tclist;
-ThreadResourceList trlist;
 
 // default thread creation attribute
 static pthread_attr_t ta_default;
@@ -133,6 +133,7 @@ class ThreadData
       class QoreClass *parseClass;
       class Exception *catchException;
       std::list<block_list_t::iterator> on_block_exit_list;
+      class ThreadResourceList trlist;
 
       DLLLOCAL ThreadData(int ptid, QoreProgram *p);
       DLLLOCAL ~ThreadData();
@@ -158,33 +159,7 @@ public:
    class ThreadCleanupNode *next;
 };
 
-class ThreadResourceNode
-{
-public:
-   void *key;
-   qtrdest_t func;
-   int tid;
-   class ThreadResourceNode *next, *prev;
-   
-   DLLLOCAL ThreadResourceNode(void *k, qtrdest_t f);
-   DLLLOCAL void call(class ExceptionSink *xsink);
-};
-
 DLLLOCAL ThreadCleanupNode *ThreadCleanupList::head = NULL;
-
-ThreadResourceNode::ThreadResourceNode(void *k, qtrdest_t f) : key(k), func(f), tid(gettid()), prev(NULL)
-{
-}
-
-void ThreadResourceNode::call(class ExceptionSink *xsink)
-{
-   func(key, xsink);
-}
-
-ThreadResourceList::ThreadResourceList()
-{
-   head = NULL;
-}
 
 class ThreadParams {
    public:
@@ -314,167 +289,6 @@ class BGThreadParams {
       }
 };
 
-inline ThreadResourceList::~ThreadResourceList()
-{
-   assert(!head);
-}
-
-inline class ThreadResourceNode *ThreadResourceList::find(void *key)
-{
-   class ThreadResourceNode *w = head;
-   while (w)
-   {
-      if (w->key == key)
-	 return w;
-      w = w->next;
-   }
-   return NULL;
-}
-
-inline class ThreadResourceNode *ThreadResourceList::find(void *key, int tid)
-{
-   class ThreadResourceNode *w = head;
-   while (w)
-   {
-      if (w->key == key && w->tid == tid)
-	 return w;
-      w = w->next;
-   }
-   return NULL;
-}
-
-void ThreadResourceList::setIntern(class ThreadResourceNode *n)
-{
-   n->next = head;
-   if (head)
-      head->prev = n;
-   head = n;
-   printd(5, "TRL::setIntern(key=%08p, func=%08p) head=%08p\n", n->key, n->func, head);
-}
-
-void ThreadResourceList::set(void *key, qtrdest_t func)
-{
-   //printd(5, "TRL::set(key=%08p, func=%08p, tid=%d)\n", key, func, gettid());
-   class ThreadResourceNode *n = new ThreadResourceNode(key, func);
-
-   AutoLocker al((LockedObject *)this);
-
-   assert(!find(key, gettid()));
-   setIntern(n);
-   //printd(5, "TRL::set(key=%08p, func=%08p, tid=%d) n=%08p, head=%08p, head->next=%08p\n", key, func, gettid(), n, head, head->next);
-}
-
-inline int ThreadResourceList::setOnce(void *key, qtrdest_t func)
-{
-   int rc = 0;
-
-   AutoLocker al((LockedObject *)this);
-
-   if (find(key))
-      rc = -1;
-   else
-      setIntern(new ThreadResourceNode(key, func));
-
-   return rc;
-}
-
-inline void ThreadResourceList::removeIntern(class ThreadResourceNode *w)
-{
-   //printd(5, "removeIntern(%08p) starting (head=%08p)\n", w, head);
-   if (w->prev)
-      w->prev->next = w->next;
-   else
-      head = w->next;
-   if (w->next)
-      w->next->prev = w->prev;
-   //printd(5, "removeIntern(%08p) done (head=%08p)\n", w, head);
-}
-
-void ThreadResourceList::purgeTID(int tid, class ExceptionSink *xsink)
-{
-   // we put all the nodes in a temporary list and then run them from there
-   class ThreadResourceList trl;
-
-   SafeLocker sl((LockedObject *)this);
-   //printd(5, "purgeTID(%d) head=%08p\n", tid, head);
-   class ThreadResourceNode *w = head;
-   while (w)
-   {
-      printd(5, "TRL::purgeTID(%d) w->tid=%d, w->key=%08p, w->next=%08p\n", tid, w->tid, w->key, w->next);
-      if (w->tid == tid)
-      {
-	 class ThreadResourceNode *n = w->next;
-	 removeIntern(w);
-	 w->prev = NULL;
-	 trl.setIntern(w);
-	 w = n;
-      }
-      else
-	 w = w->next;
-   }   
-   sl.unlock();
-
-   if (trl.head)
-   {
-      class ThreadResourceNode *w = trl.head;
-      while (w)
-      {
-	 w->call(xsink);
-	 class ThreadResourceNode *n = w->next;
-	 delete w;
-	 w = n;
-      }
-#ifdef DEBUG
-      trl.head = NULL;
-#endif
-   }
-
-   //printd(5, "TRL::purgeTID() done\n");
-}
-
-void ThreadResourceList::remove(void *key)
-{
-   //printd(0, "TRL::remove(key=%08p)\n", key);
-   AutoLocker al((LockedObject *)this);
-
-   class ThreadResourceNode *w = head;
-   while (w)
-   {
-      if (w->key == key)
-      {
-	 class ThreadResourceNode *n = w->next;
-	 removeIntern(w);
-	 delete w;
-	 w = n;
-      }
-      else
-	 w = w->next;
-   }
-}
-
-// there must be only one of these
-void ThreadResourceList::remove(void *key, int tid)
-{
-   AutoLocker al((LockedObject *)this);
-
-   //printd(0, "TRL::remove(key=%08p, tid=%d) this=%08p, head=%08p\n", key, tid, this, head);
-   class ThreadResourceNode *w = head;
-   while (w)
-   {
-      //printd(0, "TRL::remove(key=%08p, tid=%d) this=%08p, w=%08p key=%08p, tid=%d\n", key, tid, this, w, w->key, w->tid);
-      if (w->key == key && w->tid == tid)
-      {
-	 removeIntern(w);
-	 delete w;
-	 return;
-      }
-      w = w->next;
-   }
-   //printd(0, "TRL::remove(key=%08p, tid=%d) this=%08p ABORT\n", key, tid, this);
-   // if this function fails, there is a bug in the thread resource handling
-   assert(false);
-}
-
 ThreadCleanupList::ThreadCleanupList()
 {
    //printf("ThreadCleanupList::ThreadCleanupList() head=NULL\n");
@@ -553,6 +367,24 @@ ThreadData::~ThreadData()
 {
    delete pgmStack;
    assert(on_block_exit_list.empty());
+}
+
+void set_thread_resource(class AbstractThreadResource *atr)
+{
+   ThreadData *td = (ThreadData *)pthread_getspecific(thread_data_key);
+   td->trlist.set(atr);
+}
+
+int remove_thread_resource(class AbstractThreadResource *atr)
+{
+   ThreadData *td = (ThreadData *)pthread_getspecific(thread_data_key);
+   return td->trlist.remove(atr);
+}
+
+void purge_thread_resources(class ExceptionSink *xsink)
+{
+   ThreadData *td = (ThreadData *)pthread_getspecific(thread_data_key);
+   td->trlist.purge(xsink);
 }
 
 // called when a StatementBlock has "on block exit" blocks
@@ -965,7 +797,7 @@ static void *op_background_thread(class BGThreadParams *btp)
    btp->pgm->endThread(&xsink);
    
    // cleanup thread resources
-   trlist.purgeTID(btp->tid, &xsink);
+   purge_thread_resources(&xsink);
 
    xsink.handleExceptions();
 
@@ -1103,7 +935,7 @@ void delete_qore_threads()
    tracein("delete_qore_threads()");
 
    ExceptionSink xsink;
-   trlist.purgeTID(0, &xsink);
+   purge_thread_resources(&xsink);
    xsink.handleExceptions();
 
    pthread_mutexattr_destroy(&ma_recursive);

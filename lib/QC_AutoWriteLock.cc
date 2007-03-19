@@ -28,7 +28,7 @@ int CID_AUTOWRITELOCK;
 static void AWL_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
    class QoreNode *p = test_param(params, NT_OBJECT, 0);
-   QoreRWLock *rwl = p ? (QoreRWLock *)p->val.object->getReferencedPrivateData(CID_RWLOCK, xsink) : NULL;
+   RWLock *rwl = p ? (RWLock *)p->val.object->getReferencedPrivateData(CID_RWLOCK, xsink) : NULL;
    if (xsink->isException())
       return;
 

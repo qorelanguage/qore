@@ -34,7 +34,7 @@ ManagedDatasource::~ManagedDatasource()
 {
 }
 
-void ManagedDatasource::thread_cleanup(class ExceptionSink *xsink)
+void ManagedDatasource::cleanup(class ExceptionSink *xsink)
 {
    AutoLocker al(&ds_lock);
    // wait for any in-progress action to complete
@@ -58,6 +58,7 @@ void ManagedDatasource::thread_cleanup(class ExceptionSink *xsink)
 void ManagedDatasource::destructor(class ExceptionSink *xsink)
 {
    AutoLocker al(&ds_lock);
+   // closeUnlocked will throw an exception if a transaction is in progress (and release the lock)
    closeUnlocked(xsink);
    counter = -1;
 }
@@ -105,14 +106,14 @@ int ManagedDatasource::grabLock(class ExceptionSink *xsink)
    if (grabLockIntern(xsink))
       return -1;
    if (!in_transaction)
-      trlist.set(this, datasource_thread_lock_cleanup);
+      set_thread_resource(this);
    return 0;
 }
 
 void ManagedDatasource::releaseLock()
 {
    tGate.exit();
-   trlist.remove(this);
+   remove_thread_resource(this);
 }
 
 ManagedDatasource *ManagedDatasource::copy()
@@ -136,7 +137,7 @@ ManagedDatasource::ManagedDatasource(DBIDriver *ndsl) : Datasource(ndsl)
 int ManagedDatasource::wait_for_counter(class ExceptionSink *xsink)
 {
    // object has been deleted in another thread
-   if (counter == -1)
+   if (counter < 0)
    {
       xsink->raiseException("DATASOURCE-ERROR", "This object has been deleted in another thread");
       return -1;
@@ -155,7 +156,7 @@ int ManagedDatasource::startDBAction(class ExceptionSink *xsink)
 {
    AutoLocker al(&ds_lock);
    // object has been deleted in another thread
-   if (counter == -1)
+   if (counter < 0)
    {
       xsink->raiseException("DATASOURCE-ERROR", "This object has been deleted in another thread");
       return -1;
@@ -334,7 +335,7 @@ int ManagedDatasource::closeUnlocked()
       if ((tid = tGate.getLockTID()) != -1)
       {
 	 // remove the thread resource 
-	 trlist.remove(this);
+	 remove_thread_resource(this);
 	 // force-exit the transaction lock if it's held
 	 tGate.forceExit();
       }
@@ -366,7 +367,7 @@ int ManagedDatasource::closeUnlocked(class ExceptionSink *xsink)
       {
 	 xsink->raiseException("DATASOURCE-TRANSACTION-EXCEPTION", "Datasource closed while in a transaction; transaction will be automatically rolled back and the lock released");
 	 Datasource::rollback(xsink);
-	 trlist.remove(this);
+	 remove_thread_resource(this);
 	 in_transaction = false;
 	 // force-exit the transaction lock
 	 tGate.forceExit();

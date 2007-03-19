@@ -33,10 +33,10 @@ DLLLOCAL class QoreClass *initAutoLockClass();
 
 class QoreAutoLock : public AbstractPrivateData
 {
-   class Mutex *m;
+   class SmartMutex *m;
 
 public:
-   DLLLOCAL QoreAutoLock(class Mutex *mt, class ExceptionSink *xsink)
+   DLLLOCAL QoreAutoLock(class SmartMutex *mt, class ExceptionSink *xsink)
    {
       m = mt;
       m->grab(xsink);

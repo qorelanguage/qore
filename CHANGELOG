@@ -3,6 +3,8 @@
 	* implemented on_success and on_error statements to conditionally 
 	  execute code at the end of a block depending on whether an exception
 	  is active or not
+	* eliminated global lock for thread resources, now we track thread 
+	  resources per thread
 
 2007.03.18: David Nichols
 	* added per-connection locking in mysql driver when prepared statement 

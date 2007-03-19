@@ -41,14 +41,12 @@ FIXME: commit()s when autocommit=true should be made here, also after
 #include <qore/QoreCondition.h>
 #include <qore/SingleExitGate.h>
 #include <qore/Datasource.h>
-#include <qore/AbstractPrivateData.h>
+#include <qore/AbstractThreadResource.h>
 
 // default timeout set to 120 seconds
 #define DEFAULT_TL_TIMEOUT 120000
 
-DLLLOCAL void datasource_thread_lock_cleanup(void *ptr, class ExceptionSink *xsink);
-
-class ManagedDatasource : public AbstractPrivateData, public Datasource
+class ManagedDatasource : public AbstractThreadResource, public Datasource
 {
 private:
    class LockedObject ds_lock;
@@ -73,8 +71,8 @@ protected:
 
 public:
    DLLLOCAL ManagedDatasource(DBIDriver *);
-   DLLLOCAL void thread_cleanup(class ExceptionSink *xsink);
-   DLLLOCAL void destructor(class ExceptionSink *xsink);
+   DLLLOCAL virtual void cleanup(class ExceptionSink *xsink);
+   DLLLOCAL virtual void destructor(class ExceptionSink *xsink);
    DLLLOCAL virtual void deref(class ExceptionSink *xsink);
    DLLLOCAL virtual void deref();
    DLLLOCAL class QoreNode *select(class QoreString *query_str, class List *args, ExceptionSink *xsink);

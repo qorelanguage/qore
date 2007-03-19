@@ -41,11 +41,11 @@ class Condition : public AbstractPrivateData
       DLLLOCAL virtual ~Condition() {}
 
    public:
-      DLLLOCAL int wait(class Mutex *m, int timeout, class ExceptionSink *xsink)
+      DLLLOCAL int wait(class SmartMutex *m, int timeout, class ExceptionSink *xsink)
       {
 	 return m->extern_wait(&cond, xsink, timeout);
       }
-      DLLLOCAL int wait(class Mutex *m, class ExceptionSink *xsink)
+      DLLLOCAL int wait(class SmartMutex *m, class ExceptionSink *xsink)
       {
 	 return m->extern_wait(&cond, xsink);
       }
@@ -57,7 +57,7 @@ class Condition : public AbstractPrivateData
       {
 	 return cond.broadcast();
       }
-      DLLLOCAL int wait_count(class Mutex *m)
+      DLLLOCAL int wait_count(class SmartMutex *m)
       {
 	 return m->cond_count(&cond);
       }

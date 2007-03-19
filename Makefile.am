@@ -14,6 +14,8 @@ noinst_HEADERS = \
 	include/qore/types/Number.h \
 	include/qore/Context.h \
 	include/qore/qore_thread.h \
+	include/qore/ThreadResourceList.h \
+	include/qore/AbstractThreadResource.h \
 	include/qore/QoreProgram.h \
 	include/qore/ReferenceObject.h \
 	include/qore/AbstractPrivateData.h \

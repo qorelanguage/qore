@@ -35,7 +35,7 @@ DLLLOCAL class QoreClass *initGateClass();
 // rmutex class is deprecated and will be removed in the next major release
 DLLLOCAL class QoreClass *initRMutexClass();
 
-class QoreGate : public AbstractPrivateData, public VRMutex
+class QoreGate : public VRMutex
 {
    protected:
       DLLLOCAL virtual ~QoreGate() {}

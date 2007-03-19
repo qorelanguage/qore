@@ -1,7 +1,5 @@
-/* 
-  QC_RWLock.h
-
-  Read-Write Lock object (default: prefer readers)
+/*
+  AbstractThreadResource.h
 
   Qore Programming Language
 
@@ -22,14 +20,19 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _QORE_CLASS_QORERWLOCK
+#ifndef _QORE_ABSTRACTTHREADRESOURCE_H
 
-#define _QORE_CLASS_QORERWLOCK
+#define _QORE_ABSTRACTTHREADRESOURCE_H
 
-#include <qore/RWLock.h>
 #include <qore/AbstractPrivateData.h>
 
-DLLEXPORT extern int CID_RWLOCK;
-DLLLOCAL class QoreClass *initRWLockClass();
+class AbstractThreadResource : public AbstractPrivateData
+{
+   public:
+      DLLEXPORT virtual ~AbstractThreadResource()
+      {
+      }
+      virtual void cleanup(class ExceptionSink *xsink) = 0;
+};
 
-#endif // _QORE_CLASS_QORERWLOCK
+#endif

@@ -24,16 +24,17 @@
 #include <qore/AbstractSmartLock.h>
 #include <qore/VLock.h>
 
-void abstract_smart_lock_cleanup(AbstractSmartLock *asl, class ExceptionSink *xsink)
+void AbstractSmartLock::cleanupImpl()
 {
-   xsink->raiseException("LOCK-ERROR", "TID %d terminated while holding a %s lock; the lock will be automatically released", gettid(), asl->getName());
-   asl->cleanup();
+   if (tid == gettid())
+      release_and_signal();
 }
 
-void AbstractSmartLock::cleanup()
+void AbstractSmartLock::cleanup(class ExceptionSink *xsink)
 {
+   xsink->raiseException("LOCK-ERROR", "TID %d terminated while holding a %s lock; the lock will be automatically released", gettid(), getName());
    AutoLocker al(&asl_lock);	    
-   release_and_signal();
+   cleanupImpl();
 }
 
 void AbstractSmartLock::mark_and_push(int mtid, class VLock *nvl)
@@ -68,12 +69,12 @@ void AbstractSmartLock::grab_intern(int mtid, class VLock *nvl)
 {
    printd(5, "AbstractSmartLock::grab_intern() (%s) this=%08p grabbed lock (nvl=%08p)\n", getName(), this, nvl);
    mark_and_push(mtid, nvl);
-   trlist.set(this, (qtrdest_t)abstract_smart_lock_cleanup);
+   set_thread_resource(this);
 }
       
 void AbstractSmartLock::release_intern()
 {
-   trlist.remove(this, tid);
+   remove_thread_resource(this);
    release_and_signal();
 }
 
@@ -90,10 +91,13 @@ void AbstractSmartLock::destructor(class ExceptionSink *xsink)
       vl->pop(this);
       int mtid = gettid();
       if (mtid == tid)
+      {
 	 xsink->raiseException("LOCK-ERROR", "TID %d deleted %s object while holding the lock", mtid, getName());
+	 remove_thread_resource(this);
+      }
       else
 	 xsink->raiseException("LOCK-ERROR", "TID %d deleted %s object while TID %d was holding the lock", mtid, getName(), tid);
-      trlist.remove(this);
+
       signalAllImpl();
    }
    tid = Lock_Deleted;

@@ -32,10 +32,4 @@ DLLEXPORT extern int CID_MUTEX;
 
 DLLLOCAL class QoreClass *initMutexClass();
 
-class Mutex : public AbstractPrivateData, public SmartMutex
-{
-   public:
-      DLLLOCAL Mutex() {}
-};
-
 #endif // _QORE_CLASS_MUTEX

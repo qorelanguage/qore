@@ -78,6 +78,7 @@ libqore_la_SOURCES = \
 	StringList.cc \
 	ConstantList.cc \
 	QoreClassList.cc \
+	ThreadResourceList.cc \
 	thread.cc \
 	VRMutex.cc \
 	VLock.cc \

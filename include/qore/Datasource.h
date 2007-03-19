@@ -106,7 +106,6 @@ class Datasource
       DLLEXPORT bool isInTransaction() const;
       DLLEXPORT bool isOpen() const;
       DLLEXPORT Datasource *copy() const;
-      DLLEXPORT virtual void thread_cleanup(class ExceptionSink *xsink);
       DLLEXPORT const char *getDriverName() const;
 
       DLLLOCAL class DBIDriver *getDriver() const;

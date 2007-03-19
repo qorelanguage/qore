@@ -136,7 +136,7 @@ class QoreNode *f_getAllThreadCallStacks(class QoreNode *params, ExceptionSink *
 
 class QoreNode *f_throwThreadResourceExceptions(class QoreNode *params, ExceptionSink *xsink)
 {
-   trlist.purgeTID(gettid(), xsink);
+   purge_thread_resources(xsink);
    return NULL;
 }
 

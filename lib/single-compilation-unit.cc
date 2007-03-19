@@ -57,6 +57,7 @@
 #include "ConstantList.cc"
 #include "QoreClassList.cc"
 #include "thread.cc"
+#include "ThreadResourceList.cc"
 #include "VRMutex.cc"
 #include "VLock.cc"
 #include "AbstractSmartLock.cc"

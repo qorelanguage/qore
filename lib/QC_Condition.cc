@@ -58,14 +58,14 @@ static class QoreNode *CONDITION_broadcast(class Object *self, class Condition *
 static class QoreNode *CONDITION_wait(class Object *self, class Condition *c, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = test_param(params, NT_OBJECT, 0);
-   Mutex *m = p0 ? (Mutex *)p0->val.object->getReferencedPrivateData(CID_MUTEX, xsink) : NULL;
+   SmartMutex *m = p0 ? (SmartMutex *)p0->val.object->getReferencedPrivateData(CID_MUTEX, xsink) : NULL;
    if (!p0 || !m)
    {
       if (!xsink->isException())
 	 xsink->raiseException("CONDITION-WAIT-PARAMETER-EXCEPTION", "expecting a Mutex object as parameter to Condition::wait()");
       return NULL;
    }
-   ReferenceHolder<Mutex> holder(m, xsink);
+   ReferenceHolder<SmartMutex> holder(m, xsink);
 
    int timeout = getMsZeroInt(get_param(params, 1));
    QoreNode *rv;
@@ -90,14 +90,14 @@ static class QoreNode *CONDITION_wait(class Object *self, class Condition *c, cl
 static class QoreNode *CONDITION_wait_count(class Object *self, class Condition *c, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = test_param(params, NT_OBJECT, 0);
-   Mutex *m = p0 ? (Mutex *)p0->val.object->getReferencedPrivateData(CID_MUTEX, xsink) : NULL;
+   SmartMutex *m = p0 ? (SmartMutex *)p0->val.object->getReferencedPrivateData(CID_MUTEX, xsink) : NULL;
    if (!p0 || !m)
    {
       if (!xsink->isException())
 	 xsink->raiseException("CONDITION-WAIT-COUNT-PARAMETER-EXCEPTION", "expecting a Mutex object as parameter to Condition::wait_count()");
       return NULL;
    }
-   ReferenceHolder<Mutex> holder(m, xsink);
+   ReferenceHolder<SmartMutex> holder(m, xsink);
 
    return new QoreNode((int64)c->wait_count(m));
 }

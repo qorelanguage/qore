@@ -45,8 +45,12 @@ DLLEXPORT extern class Operator *OP_BACKGROUND;
 
 DLLEXPORT int gettid();
 DLLEXPORT extern class ThreadCleanupList tclist;
-DLLEXPORT extern class ThreadResourceList trlist;
 
+// for thread resource handling
+DLLEXPORT void set_thread_resource(class AbstractThreadResource *atr);
+DLLEXPORT int remove_thread_resource(class AbstractThreadResource *atr);
+
+DLLLOCAL void purge_thread_resources(class ExceptionSink *xsink);
 DLLLOCAL void beginParsing(char *file, void *ps = NULL);
 DLLLOCAL void *endParsing();
 DLLLOCAL class LVar *get_thread_stack();
@@ -91,28 +95,6 @@ DLLLOCAL void pushBlock(block_list_t::iterator i);
 DLLLOCAL block_list_t::iterator popBlock();
 // called by each "on_block_exit" statement to activate it's code for the block exit
 DLLLOCAL void advanceOnBlockExit();
-
-class ThreadResourceList : public LockedObject {
-   private:
-      class ThreadResourceNode *head;
-   
-      DLLLOCAL class ThreadResourceNode *find(void *key);
-      DLLLOCAL class ThreadResourceNode *find(void *key, int tid);
-      DLLLOCAL void removeIntern(class ThreadResourceNode *w);
-      DLLLOCAL void setIntern(class ThreadResourceNode *n);
-
-   public:
-      DLLLOCAL ThreadResourceList();
-      DLLLOCAL ~ThreadResourceList();
-   
-      DLLEXPORT void set(void *key, qtrdest_t func);
-      //returns 0 if not already set, 1 if already set
-      DLLEXPORT int setOnce(void *key, qtrdest_t func);
-      DLLEXPORT void remove(void *key);
-      // remove only for the given TID
-      DLLEXPORT void remove(void *key, int tid);
-      DLLEXPORT void purgeTID(int tid, class ExceptionSink *xsink);
-};
 
 class ThreadCleanupList {
    private:

@@ -1,7 +1,5 @@
-/* 
-  QC_RWLock.h
-
-  Read-Write Lock object (default: prefer readers)
+/*
+  ThreadResourceList.h
 
   Qore Programming Language
 
@@ -22,14 +20,30 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _QORE_CLASS_QORERWLOCK
+#ifndef _QORE_THREADRESOURCELIST_H
 
-#define _QORE_CLASS_QORERWLOCK
+#define _QORE_THREADRESOURCELIST_H
 
-#include <qore/RWLock.h>
-#include <qore/AbstractPrivateData.h>
+class ThreadResourceList {
+   private:
+      class ThreadResourceNode *head;
+   
+      DLLLOCAL class ThreadResourceNode *find(AbstractThreadResource *atr);
+      DLLLOCAL void removeIntern(class ThreadResourceNode *w);
+      DLLLOCAL void setIntern(class ThreadResourceNode *n);
 
-DLLEXPORT extern int CID_RWLOCK;
-DLLLOCAL class QoreClass *initRWLockClass();
+   public:
+      DLLLOCAL ThreadResourceList();
+      DLLLOCAL ~ThreadResourceList();
+   
+      DLLEXPORT void set(AbstractThreadResource *atr);
+      //returns 0 if not already set, -1 if already set
+      DLLEXPORT int setOnce(AbstractThreadResource *atr);
+      // returns 0 if removed, -1 if not found
+      DLLEXPORT int remove(AbstractThreadResource *atr);
+      DLLEXPORT void purge(class ExceptionSink *xsink);
+};
 
-#endif // _QORE_CLASS_QORERWLOCK
+
+
+#endif

@@ -33,10 +33,10 @@ DLLLOCAL class QoreClass *initAutoWriteLockClass();
 
 class QoreAutoWriteLock : public AbstractPrivateData
 {
-   class QoreRWLock *rwl;
+   class RWLock *rwl;
 
 public:
-   DLLLOCAL QoreAutoWriteLock(class QoreRWLock *n_rwl, class ExceptionSink *xsink)
+   DLLLOCAL QoreAutoWriteLock(class RWLock *n_rwl, class ExceptionSink *xsink)
    {
       rwl = n_rwl;
       rwl->grab(xsink);

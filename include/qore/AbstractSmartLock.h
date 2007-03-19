@@ -27,10 +27,9 @@
 #include <qore/Qore.h>
 #include <qore/LockedObject.h>
 #include <qore/QoreCondition.h>
+#include <qore/AbstractThreadResource.h>
 
-DLLLOCAL void abstract_smart_lock_cleanup(class AbstractSmartLock *asl, class ExceptionSink *xsink);
-
-class AbstractSmartLock
+class AbstractSmartLock : public AbstractThreadResource
 {
    protected:
       enum lock_status_e { Lock_Deleted = -2, Lock_Unlocked = -1 };
@@ -46,6 +45,7 @@ class AbstractSmartLock
       DLLLOCAL virtual void destructorImpl(class ExceptionSink *xsink);
       DLLLOCAL virtual void signalAllImpl();
       DLLLOCAL virtual void signalImpl();
+      DLLLOCAL virtual void cleanupImpl();
 
       DLLLOCAL void mark_and_push(int mtid, class VLock *nvl);
       DLLLOCAL void release_and_signal();
@@ -58,9 +58,9 @@ class AbstractSmartLock
       QoreCondition asl_cond;
 
       DLLLOCAL AbstractSmartLock() : vl(NULL), tid(-1), waiting(0)  {}
-      DLLLOCAL virtual void cleanup();
       DLLLOCAL virtual ~AbstractSmartLock() {}
       DLLLOCAL void destructor(class ExceptionSink *xsink);
+      DLLLOCAL virtual void cleanup(class ExceptionSink *xsink);
 
       // grab return values: 
       //    0   = grabbed the lock

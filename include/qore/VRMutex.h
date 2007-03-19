@@ -39,6 +39,7 @@ class VRMutex : public AbstractSmartLock
       DLLLOCAL virtual int releaseImpl(class ExceptionSink *xsink);
       DLLLOCAL virtual int grabImpl(int mtid, class VLock *nvl, class ExceptionSink *xsink, int timeout_ms = 0);
       DLLLOCAL virtual int tryGrabImpl(int mtid, class VLock *nvl);
+      DLLLOCAL virtual void cleanupImpl();
 
    public:
       DLLLOCAL VRMutex();
