@@ -4668,10 +4668,22 @@ $var[1].count++;
     <entry><para><link linkend='subcontext_Statements'>subcontext Statements</link></para></entry>
   </row>
   <row>
-    <entry><para>An <command>on_block_exit</command> statement</para></entry>
-    <entry><programlisting><command>on_block_exit</command>
+    <entry><para>An <command>on_exit</command> statement</para></entry>
+    <entry><programlisting><command>on_exit</command>
     <replaceable>statement</replaceable></programlisting></entry>
-    <entry><para><link linkend='on_block_exit_Statements'>on_block_exit Statements</link></para></entry>
+    <entry><para><link linkend='on_exit_Statements'>on_exit Statements</link></para></entry>
+  </row>
+  <row>
+    <entry><para>An <command>on_success</command> statement</para></entry>
+    <entry><programlisting><command>on_success</command>
+    <replaceable>statement</replaceable></programlisting></entry>
+    <entry><para><link linkend='on_success_Statements'>on_success Statements</link></para></entry>
+  </row>
+  <row>
+    <entry><para>An <command>on_error</command> statement</para></entry>
+    <entry><programlisting><command>on_error</command>
+    <replaceable>statement</replaceable></programlisting></entry>
+    <entry><para><link linkend='on_error_Statements'>on_error Statements</link></para></entry>
   </row>
 
 </tbody>
@@ -5263,28 +5275,28 @@ $name = getName();</programlisting>
       </variablelist>
     </sect2>
 
-    <sect2 id="on_block_exit_Statements">
-      <title>on_block_exit Statements</title>
+    <sect2 id="on_exit_Statements">
+      <title>on_exit Statements</title>
 
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Queues a statement or statement block for execution when the block is exited, even in the case of exceptions or <command>return</command> statements.</para>
+	    <para>Queues a statement or statement block for unconditional execution when the block is exited, even in the case of exceptions or <command>return</command> statements.  For similar statement that queue code for execution depending on the exception status when the block exits, see <link linkend="on_success_Statements">on_success statements</link> and <link linkend="on_error_Statements">on_error statements</link>.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Syntax</term>
 	  <listitem>
-	    <programlisting><command>on_block_exit</command>
+	    <programlisting><command>on_exit</command>
     <replaceable>statement</replaceable></programlisting>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Description</term>
 	  <listitem>
-	    <para>The <command>on_block_exit</command> statement provides a clean way to do exception-safe cleanup within Qore code.  Any single statment (or statement block) after the <command>on_block_exit</command> keyword will be executed when the current block exits (as long as the statement itself is reached when executing - <command>on_block_exit</command> statements that are never reached when executing will have no effect).  The the position of the <command>on_block_exit</command> statement in the block is important, as the immediate effect of this statement is to queue its code for execution when the block is exited.  Even if an exception is raised or a <command>return</command> statement is executed, any <command>on_block_exit</command> code that is queued will be executed.  Therefore it's ideal for putting cleanup code right next to the code that requires the cleanup.</para>
-	    <para>Note that if this statement is reached when executing in a loop, the <command>on_block_exit</command> code will be executed for each iteration of the loop.</para>
+	    <para>The <command>on_exit</command> statement provides a clean way to do exception-safe cleanup within Qore code.  Any single statment (or statement block) after the <command>on_exit</command> keyword will be executed when the current block exits (as long as the statement itself is reached when executing - <command>on_exit</command> statements that are never reached when executing will have no effect).  The the position of the <command>on_exit</command> statement in the block is important, as the immediate effect of this statement is to queue its code for execution when the block is exited.  Even if an exception is raised or a <command>return</command> statement is executed, any <command>on_exit</command> code that is queued will be executed.  Therefore it's ideal for putting cleanup code right next to the code that requires the cleanup.</para>
+	    <para>Note that if this statement is reached when executing in a loop, the <command>on_exit</command> code will be executed for each iteration of the loop.</para>
 	    <para>By using this statement, programmers ensure that necessary cleanup will be performed regardless of the exit status of the block (exception, return, etc).</para>
 	  </listitem>
 	</varlistentry>
@@ -5294,13 +5306,105 @@ $name = getName();</programlisting>
 	<programlisting>{
     $mutex.lock();
     # here we queue the unlock of the mutex when the block exits, even if an exception is thrown below
-    <command>on_block_exit</command> $mutex.unlock();
+    <command>on_exit</command> $mutex.unlock();
     if ($error)
         <command>throw</command> "ERROR", "Scary error happened";
     print("everything's OK!\n");
     return "OK";
 }
 # when the block exits for any reason, the mutex will be unlocked
+</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+  </sect2>
+
+    <sect2 id="on_success_Statements">
+      <title>on_success Statements</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Queues a statement or statement block for execution when the block is exited in the case that no exception is active.  Used often in conjunction with the <link linkend="on_error_Statements">on_error statement</link> and related to the <link linkend="on_exit_Statements">on_exit statement</link>.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Syntax</term>
+	  <listitem>
+	    <programlisting><command>on_success</command>
+    <replaceable>statement</replaceable></programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Description</term>
+	  <listitem>
+	    <para>The <command>on_success</command> statement provides a clean way to do block-level cleanup within Qore code in the case that no exception is thrown in the block.  Any single statment (or statement block) after the <command>on_success</command> keyword will be executed when the current block exits as long as no unhandled exception has been thrown (and as long as the statement itself is reached when executing - <command>on_success</command> statements that are never reached when executing will have no effect).  The the position of the <command>on_success</command> statement in the block is important, as the immediate effect of this statement is to queue its code for conditional execution when the block is exited.  Even if a <command>return</command> statement is executed later in the block, any <command>on_exit</command> code that is queued will be executed as long as there is no active (unhandled) exception.  Therefore it's ideal for putting cleanup code right next to the code that requires the cleanup, along with <link linkend="on_error_Statements">on_error statements</link>, which are executed in a manner similar to <command>on_success</command> statements, except <link linkend="on_error_Statements">on_error statements</link> are only executed when there is an active exception when the block is exited.</para>
+	    <para>Note that if this statement is reached when executing in a loop, the <command>on_success</command> code will be executed for each iteration of the loop (as long as there is no active exception).</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+      <listitem>
+	<programlisting>{
+    $db.beginTransaction();
+    # here we queue the commit in the case there are no errors
+    <command>on_success</command> $db.commit();
+    # here we queue a rollback in the case of an exception
+    <command>on_error</command> $db.rollback();
+    $db.select("select * from table where id = %v for update", $id);
+    ## .. more code
+
+    return "OK";
+}
+# when the block exits. the transaction will be either committed or rolled back, 
+# depending on if an exception was raised or not
+</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+  </sect2>
+
+    <sect2 id="on_error_Statements">
+      <title>on_error Statements</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Queues a statement or statement block for execution when the block is exited in the case that no exception is active.  Used often in conjunction with the <link linkend="on_error_Statements">on_error statement</link> and related to the <link linkend="on_exit_Statements">on_exit statement</link>.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Syntax</term>
+	  <listitem>
+	    <programlisting><command>on_error</command>
+    <replaceable>statement</replaceable></programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Description</term>
+	  <listitem>
+	    <para>The <command>on_error</command> statement provides a clean way to do block-level cleanup within Qore code in the case that an exception is thrown in the block.  Any single statment (or statement block) after the <command>on_error</command> keyword will be executed when the current block exits as long as an unhandled exception has been thrown (and as long as the statement itself is reached when executing - <command>on_error</command> statements that are never reached when executing will have no effect).  The the position of the <command>on_error</command> statement in the block is important, as the immediate effect of this statement is to queue its code for conditional execution when the block is exited.  Even if a <command>return</command> statement is executed later in the block, any <command>on_exit</command> code that is queued will be executed as long as there is an active (unhandled) exception.  Therefore it's ideal for putting cleanup code right next to the code that requires the cleanup, along with <link linkend="on_success_Statements">on_success statements</link>, which are executed in a manner similar to <command>on_error</command> statements, except <link linkend="on_success_Statements">on_success statements</link> are only executed when there is no active exception when the block is exited.</para>
+	    <para>Note that the code in this statement can only be executed once in any block, as a block (even a block within a loop) can only exit the loop once with an active exception.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+      <listitem>
+	<programlisting>{
+    $db.beginTransaction();
+    # here we queue the commit in the case there are no errors
+    <command>on_success</command> $db.commit();
+    # here we queue a rollback in the case of an exception
+    <command>on_error</command> $db.rollback();
+    $db.select("select * from table where id = %v for update", $id);
+    ## .. more code
+
+    return "OK";
+}
+# when the block exits. the transaction will be either committed or rolled back, 
+# depending on if an exception was raised or not
 </programlisting>
       </listitem>
     </varlistentry>
@@ -5836,7 +5940,7 @@ $name = getName();</programlisting>
 
   <para>System exceptions always throw 2 values, populating the "err" and "desc" keys of the exception hash, giving the exception string code and the exception description string, respectively. User exceptions have no restrictions, any values given in the throw statement will be mapped to exception keys as per the table above.</para>
 
-  <para>See the <link linkend="on_block_exit_Statements">on_block_exit Statement</link> for a statement that allows for exception-safe cleanup in Qore code.</para>
+  <para>See the <link linkend="on_exit_Statements">on_exit statement</link>, <link linkend="on_success_Statements">on_success statement</link>, and <link linkend="on_error_Statements">on_error statement</link> for statements that allow for exception-safe and exception-dependent cleanup in Qore code.</para>
 
 </sect1>
 

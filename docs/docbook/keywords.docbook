@@ -5,10 +5,53 @@
 
   <para>The following is a list of all keywords in the Qore language:</para>
 
-  <para><code>class, private, synchronized, new, inherits, where, do, while, if, else, for, foreach, const, namespace, return, my, 
-  our, try, throw, catch, find, delete, background, exists, thread_exit, in, 
-  elements, keys, sub, context, sortBy, sortDescendingBy, NULL, NOTHING, 
-  summarize, by, subcontext, break, continue, instanceof, on_block_exit</code></para>
+  <para><code>
+  <link linkend='Classes'>class</link>, 
+  <link linkend='Private_and_Synchronized_Methods'>private</link>, 
+  <link linkend='Private_and_Synchronized_Methods'>synchronized</link>, 
+  new, 
+  <link linkend='Class_Inheritance'>inherits</link>, 
+  where, 
+  <link linkend='do_while_Statements'>do</link>, 
+  <link linkend='while_Statements'>while</link>, 
+  <link linkend='if_and_else_Statements'>if</link>, 
+  <link linkend='if_and_else_Statements'>else</link>, 
+  <link linkend='for_Statements'>for</link>, 
+  <link linkend='foreach_Statements'>foreach</link>, 
+  <link linkend='switch_Statements'>switch</link>,
+  <link linkend='switch_Statements'>case</link>,
+  <link linkend='Constants'>const</link>, 
+  <link linkend='Namespaces'>namespace</link>, 
+  <link linkend='return_Statements'>return</link>, 
+  <link linkend='Variables'>my</link>, 
+  <link linkend='Variables'>our</link>, 
+  <link linkend='try_and_catch_Statements'>try</link>, 
+  <link linkend='throw_Statements'>throw Statements</link>, 
+  <link linkend='rethrow_Statements'>rethrow</link>,
+  <link linkend='try_and_catch_Statements'>catch</link>, 
+  find, 
+  <link linkend='delete_Statements'>delete</link>, 
+  background, 
+  exists, 
+  <link linkend='thread_exit_Statements'>thread_exit</link>, 
+  in, 
+  elements, 
+  keys, 
+  sub, 
+  <link linkend='context_Statements'>context Statements</link>, 
+  sortBy, sortDescendingBy, 
+  NULL, 
+  NOTHING, 
+  <link linkend='summarize_Statements'>summarize Statements</link>, 
+  by, 
+  <link linkend='subcontext_Statements'>subcontext</link>, 
+  <link linkend='break_Statements'>break</link>, 
+  <link linkend='continue_Statements'>continue</link>, 
+  <link linkend='Instanceof_Operator'>instanceof</link>,
+  <link linkend='on_exit_Statements'>on_exit</link>, 
+  <link linkend='on_success_Statements'>on_success</link>, 
+  <link linkend='on_error_Statements'>on_error</link>
+  </code></para>
 
   <para>The following are special keywords, in that they may be used as function or method names if they are followed by an open parenthesis:</para>
 
