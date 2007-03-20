@@ -239,7 +239,6 @@ void sybase_low_level_prepare_command(const sybase_command_wrapper& wrapper, con
   }
   if (result_type != CS_CMD_SUCCEED) {
     assert(result_type == CS_CMD_FAIL);
-printf("#### ct_results for CS_PREPARE for [%s] failed with error %d\n", sql_text, (int)result_type);
     assert(false);
     xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() for ct_dynamic(CS_PREPARE, '%s') failed with error %d", sql_text, (int)err);
     return;
@@ -406,13 +405,24 @@ void sybase_low_level_bind_parameters(
   ExceptionSink* xsink
   )
 {
-printf("#### IN sybase_low_level_bind_parameters\n");
   sybase_ct_dynamic(wrapper, CS_EXECUTE, xsink);
   if (xsink->isException()) {
     return;
   }
-printf("### binding %d parameters\n", parameters.size());
-  // TBD
+
+  for (unsigned i = 0, n = parameters.size(); i != n; ++i) {
+    sybase_ct_param(wrapper, i, encoding, parameters[i].m_type, parameters[i].m_node, xsink); 
+    if (xsink->isException()) {
+      return;
+    }
+  }
+
+  CS_RETCODE err = ct_send(wrapper());
+  if (err != CS_SUCCEED) {
+    assert(false);
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_send() failed with error %d", (int)err);
+    return;
+  }  
 }
 
 //------------------------------------------------------------------------------
@@ -601,12 +611,205 @@ DateTime* convert_SybaseDatetime4_2QoreDatetime(CS_CONTEXT* context, CS_DATETIME
 }
 
 //------------------------------------------------------------------------------
+void convert_float2SybaseMoney(CS_CONTEXT* context, double val, CS_MONEY& out, ExceptionSink* xsink)
+{
+  CS_DATAFMT srcfmt;
+  memset(&srcfmt, 0, sizeof(srcfmt));
+  srcfmt.datatype = CS_FLOAT_TYPE;
+  srcfmt.maxlength = sizeof(CS_FLOAT);
+
+  CS_DATAFMT destfmt;
+  memset(&destfmt, 0, sizeof(destfmt));
+  destfmt.datatype = CS_MONEY_TYPE;
+  destfmt.maxlength = sizeof(CS_MONEY);
+
+  CS_INT outlen;
+  CS_RETCODE err = cs_convert(context, &srcfmt, (CS_BYTE*)&val, &destfmt, (CS_BYTE*)&out, &outlen);
+  if (err != CS_SUCCEED) {
+    assert(false);
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_convert() failed to convert a float value into Sybase MONEY, err %d", (int)err);
+    return;
+  }
+}
+
+//------------------------------------------------------------------------------
+void convert_float2SybaseMoney4(CS_CONTEXT* context, double val, CS_MONEY4& out, ExceptionSink* xsink)
+{
+  CS_DATAFMT srcfmt;
+  memset(&srcfmt, 0, sizeof(srcfmt));
+  srcfmt.datatype = CS_FLOAT_TYPE;
+  srcfmt.maxlength = sizeof(CS_FLOAT);
+
+  CS_DATAFMT destfmt;
+  memset(&destfmt, 0, sizeof(destfmt));
+  destfmt.datatype = CS_MONEY4_TYPE;
+  destfmt.maxlength = sizeof(CS_MONEY4);
+
+  CS_INT outlen;
+  CS_RETCODE err = cs_convert(context, &srcfmt, (CS_BYTE*)&val, &destfmt, (CS_BYTE*)&out, &outlen);
+  if (err != CS_SUCCEED) {
+    assert(false);
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_convert() failed to convert a float value into Sybase MONEY4, err %d", (int)err);
+    return;
+  }
+}
+
+//------------------------------------------------------------------------------
+double convert_SybaseMoney2float(CS_CONTEXT* context, CS_MONEY& m, ExceptionSink* xsink)
+{
+  CS_DATAFMT srcfmt;
+  memset(&srcfmt, 0, sizeof(srcfmt));
+  srcfmt.datatype = CS_MONEY_TYPE;
+  srcfmt.maxlength = sizeof(CS_MONEY);
+
+  CS_DATAFMT destfmt;
+  memset(&destfmt, 0, sizeof(destfmt));
+  destfmt.datatype = CS_FLOAT_TYPE;
+  destfmt.maxlength = sizeof(CS_FLOAT);
+
+  CS_INT outlen;
+  CS_FLOAT result = 0.0;
+  CS_RETCODE err = cs_convert(context, &srcfmt, (CS_BYTE*)&m, &destfmt, (CS_BYTE*)&result, &outlen);
+  if (err != CS_SUCCEED) {
+    assert(false);
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_convert() failed to convert Sybase MONEY into FLOAT, err %d", (int)err);
+  }
+
+  return result;
+}
+
+//------------------------------------------------------------------------------
+double convert_SybaseMoney4_2float(CS_CONTEXT* context, CS_MONEY4& m, ExceptionSink* xsink)
+{
+  CS_DATAFMT srcfmt;
+  memset(&srcfmt, 0, sizeof(srcfmt));
+  srcfmt.datatype = CS_MONEY4_TYPE;
+  srcfmt.maxlength = sizeof(CS_MONEY4);
+
+  CS_DATAFMT destfmt;
+  memset(&destfmt, 0, sizeof(destfmt));
+  destfmt.datatype = CS_FLOAT_TYPE;
+  destfmt.maxlength = sizeof(CS_FLOAT);
+
+  CS_INT outlen;
+  CS_FLOAT result = 0.0;
+  CS_RETCODE err = cs_convert(context, &srcfmt, (CS_BYTE*)&m, &destfmt, (CS_BYTE*)&result, &outlen);
+  if (err != CS_SUCCEED) {
+    assert(false);
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_convert() failed to convert Sybase MONEY4 into FLOAT, err %d", (int)err);
+  }
+
+  return result;
+}
+
+//------------------------------------------------------------------------------
+void convert_float2SybaseDecimal(CS_CONTEXT* context, double val, CS_DECIMAL& out, ExceptionSink* xsink)
+{
+  CS_DATAFMT srcfmt;
+  memset(&srcfmt, 0, sizeof(srcfmt));
+  srcfmt.datatype = CS_FLOAT_TYPE;
+  srcfmt.maxlength = sizeof(CS_FLOAT);
+
+  CS_DATAFMT destfmt;
+  memset(&destfmt, 0, sizeof(destfmt));
+  destfmt.datatype = CS_DECIMAL_TYPE;
+  destfmt.maxlength = 35; // recommended by docs
+  destfmt.scale = 15; // # of digits after decimal point, guess 
+  destfmt.precision = 30; // total # of digits in number, also guess
+  
+  CS_INT outlen;
+  CS_RETCODE err = cs_convert(context, &srcfmt, (CS_BYTE*)&val, &destfmt, (CS_BYTE*)&out, &outlen);
+  if (err != CS_SUCCEED) {
+    assert(false);
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_convert() failed to convert a float value into Sybase DECIMAL, err %d", (int)err);
+    return;
+  }
+}
+
+//------------------------------------------------------------------------------
+double convert_SybaseDecimal2float(CS_CONTEXT* context, CS_DECIMAL& m, ExceptionSink* xsink)
+{
+  CS_DATAFMT srcfmt;
+  memset(&srcfmt, 0, sizeof(srcfmt));
+  srcfmt.datatype = CS_DECIMAL_TYPE;
+  srcfmt.maxlength = 35; // recommended by docs
+  srcfmt.scale = 15; // guess, keep the same as above
+  srcfmt.precision = 30; // also guess
+
+
+  CS_DATAFMT destfmt;
+  memset(&destfmt, 0, sizeof(destfmt));
+  destfmt.datatype = CS_FLOAT_TYPE;
+  destfmt.maxlength = sizeof(CS_FLOAT);
+
+  CS_INT outlen;
+  CS_FLOAT result = 0.0;
+  CS_RETCODE err = cs_convert(context, &srcfmt, (CS_BYTE*)&m, &destfmt, (CS_BYTE*)&result, &outlen);
+  if (err != CS_SUCCEED) {
+    assert(false);
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_convert() failed to convert Sybase DECIMAL into FLOAT, err %d", (int)err);
+  }
+
+  return result;
+}
+
+//------------------------------------------------------------------------------
+void convert_float2SybaseNumeric(CS_CONTEXT* context, double val, CS_NUMERIC& out, ExceptionSink* xsink)
+{
+  CS_DATAFMT srcfmt;
+  memset(&srcfmt, 0, sizeof(srcfmt));
+  srcfmt.datatype = CS_FLOAT_TYPE;
+  srcfmt.maxlength = sizeof(CS_FLOAT);
+
+  CS_DATAFMT destfmt;
+  memset(&destfmt, 0, sizeof(destfmt));
+  destfmt.datatype = CS_NUMERIC_TYPE;
+  destfmt.maxlength = 35; // recommended by docs
+  destfmt.scale = 15; // # of digits after decimal point, guess
+  destfmt.precision = 30; // total # of digits in number, also guess
+
+  CS_INT outlen;
+  CS_RETCODE err = cs_convert(context, &srcfmt, (CS_BYTE*)&val, &destfmt, (CS_BYTE*)&out, &outlen);
+  if (err != CS_SUCCEED) {
+    assert(false);
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_convert() failed to convert a float value into Sybase NUMERIC, err %d", (int)err);
+    return;
+  }
+}
+
+//------------------------------------------------------------------------------
+double convert_SybaseNumeric2float(CS_CONTEXT* context, CS_NUMERIC& m, ExceptionSink* xsink)
+{
+  CS_DATAFMT srcfmt;
+  memset(&srcfmt, 0, sizeof(srcfmt));
+  srcfmt.datatype = CS_NUMERIC_TYPE;
+  srcfmt.maxlength = 35; // recommended by docs
+  srcfmt.scale = 15; // guess, keep the same as above
+  srcfmt.precision = 30; // also guess
+
+
+  CS_DATAFMT destfmt;
+  memset(&destfmt, 0, sizeof(destfmt));
+  destfmt.datatype = CS_FLOAT_TYPE;
+  destfmt.maxlength = sizeof(CS_FLOAT);
+
+  CS_INT outlen;
+  CS_FLOAT result = 0.0;
+  CS_RETCODE err = cs_convert(context, &srcfmt, (CS_BYTE*)&m, &destfmt, (CS_BYTE*)&result, &outlen);
+  if (err != CS_SUCCEED) {
+    assert(false);
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_convert() failed to convert Sybase NUMERIC into FLOAT, err %d", (int)err);
+  }
+
+  return result;
+}
+
+//------------------------------------------------------------------------------
 void sybase_ct_param(
   const sybase_command_wrapper& wrapper,
   unsigned parameter_index,
   const QoreEncoding* encoding,
   int type, // like CS_INT_TYPE
-  unsigned max_size, // if applicable, CS_UNUSED otherwise
   QoreNode* data,
   ExceptionSink* xsink
   )
@@ -624,15 +827,16 @@ void sybase_ct_param(
     // SQL NULL value
     err = ct_param(wrapper(), &datafmt, 0, CS_UNUSED, -1);
     if (err != CS_SUCCEED) {
+      assert(false);
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_param(NULL) failed for parameter #%u with error %d", parameter_index + 1, (int)err);
     }
     return;
   }
 
   switch (type) {
+  case CS_LONGCHAR_TYPE: // Sybase types char, varchar (also image when used in WHERE x LIKE ? - this is likely a bug)
   case CS_VARCHAR_TYPE:
-  case CS_LONGCHAR_TYPE:
-  case CS_CHAR_TYPE: // all types are almost equivalent
+  case CS_CHAR_TYPE: 
   case CS_TEXT_TYPE: // text could be used only with LIKE in WHERE statement, nowhere else
   {
     if (data->type != NT_STRING) {
@@ -666,10 +870,12 @@ void sybase_ct_param(
   case CS_TINYINT_TYPE:
   {
     if (data->type != NT_INT) {
+      assert(false);
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Incorrect type for integer parameter #%u", parameter_index + 1);
       return;
     }
-    if (data->val.intval < 128 || data->val.intval >= 128) {
+    if (data->val.intval < -128 || data->val.intval >= 128) {
+      assert(false);
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Integer value (#%d parameter) is out of range for Sybase datatype", parameter_index + 1);
       return;
     }
@@ -692,7 +898,7 @@ void sybase_ct_param(
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Incorrect type for integer parameter #%u", parameter_index + 1);
       return;
     }
-    if (data->val.intval < 32 * 1024 || data->val.intval >= 32 * 1024) {
+    if (data->val.intval < -32 * 1024 || data->val.intval >= 32 * 1024) {
       assert(false);
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Integer value (#%d parameter) is out of range for Sybase datatype", parameter_index + 1);
       return;
@@ -712,6 +918,7 @@ void sybase_ct_param(
   case CS_INT_TYPE:
   {
     if (data->type != NT_INT) {
+      assert(false);
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Incorrect type for integer parameter #%u", parameter_index + 1);
       return;
     }
@@ -719,6 +926,7 @@ void sybase_ct_param(
     datafmt.datatype = CS_INT_TYPE;
     err = ct_param(wrapper(), &datafmt, &val, sizeof(val), 0);
     if (err != CS_SUCCEED) {
+      assert(false);
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase function ct_param() for integer parameter #%u failed with error", parameter_index + 1, (int)err);
       return;
     }
@@ -751,6 +959,7 @@ void sybase_ct_param(
   case CS_REAL_TYPE:
   {
     if (data->type != NT_FLOAT && data->type != NT_INT) {
+      assert(false);
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Incorrect type for float parameter #%u", parameter_index + 1);
       return;
     }
@@ -773,6 +982,7 @@ void sybase_ct_param(
   case CS_FLOAT_TYPE:
   {
     if (data->type != NT_FLOAT && data->type != NT_INT) {
+      assert(false);
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Incorrect type for float parameter #%u", parameter_index + 1);
       return;
     }
@@ -821,6 +1031,7 @@ void sybase_ct_param(
     CS_DATETIME dt;
     convert_QoreDatetime2SybaseDatetime(wrapper.getContext(), data->val.date_time, dt, xsink);
     if (xsink->isException()) {
+      assert(false);
       return;
     }
 
@@ -844,7 +1055,8 @@ void sybase_ct_param(
 
     CS_DATETIME4 dt;
     convert_QoreDatetime2SybaseDatetime4(wrapper.getContext(), data->val.date_time, dt, xsink);
-    if (xsink->isException()) {
+    if (xsink->isException()) {      
+      assert(false);
       return;
     }
 
@@ -858,8 +1070,121 @@ void sybase_ct_param(
   }
   return;
 
-  // TBD - remaining items
+  case CS_MONEY_TYPE:
+  {
+    if (data->type != NT_FLOAT && data->type != NT_INT) {
+      assert(false);
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "Incorrect type for money parameter #%u (integer or float expected)", parameter_index + 1);
+      return;
+    }
+    double val;
+    if (data->type == NT_FLOAT) {
+      val = data->val.floatval;
+    } else {
+      val = data->val.intval;
+    }
+    CS_MONEY m;
+    convert_float2SybaseMoney(wrapper.getContext(), val, m, xsink);
+    if (xsink->isException()) {
+      return;
+    }
+    datafmt.datatype = CS_MONEY_TYPE;
+    err = ct_param(wrapper(), &datafmt, &m, sizeof(m), 0);
+    if (err != CS_SUCCEED) {
+      assert(false);
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase function ct_param() for money parameter #%u failed with error", parameter_index, (int)err);
+      return;
+    }
+  }
+  return;
 
+  case CS_MONEY4_TYPE:
+  {
+    if (data->type != NT_FLOAT && data->type != NT_INT) {
+      assert(false);
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "Incorrect type for smallmoney parameter #%u (integer or float expected)", parameter_index + 1);
+      return;
+    }
+    double val;
+    if (data->type == NT_FLOAT) {
+      val = data->val.floatval;
+    } else {
+      val = data->val.intval;
+    }
+    CS_MONEY4 m;
+    convert_float2SybaseMoney4(wrapper.getContext(), val, m, xsink);
+    if (xsink->isException()) {
+      return;
+    }
+    datafmt.datatype = CS_MONEY4_TYPE;
+    err = ct_param(wrapper(), &datafmt, &m, sizeof(m), 0);
+    if (err != CS_SUCCEED) {
+      assert(false);
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase function ct_param() for smallmoney parameter #%u failed with error", parameter_index, (int)err);
+      return;
+    }
+  }
+  return;
+
+  case CS_DECIMAL_TYPE:
+  {
+    if (data->type != NT_FLOAT && data->type != NT_INT) {
+      assert(false);
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "Incorrect type for decimal parameter #%u (integer or float expected)", parameter_index + 1);
+      return;
+    }
+    double val;
+    if (data->type == NT_FLOAT) {
+      val = data->val.floatval;
+    } else {
+      val = data->val.intval;
+    }
+    CS_DECIMAL dc;
+    convert_float2SybaseDecimal(wrapper.getContext(), val, dc, xsink);
+    if (xsink->isException()) {
+      return;
+    }
+    datafmt.datatype = CS_DECIMAL_TYPE;
+    err = ct_param(wrapper(), &datafmt, &dc, sizeof(dc), 0);
+    if (err != CS_SUCCEED) {
+      assert(false);
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase function ct_param() for decimal parameter #%u failed with error", parameter_index, (int)err);
+      return;
+    }
+  }
+  return;
+
+  case CS_NUMERIC_TYPE:
+  {
+    if (data->type != NT_FLOAT && data->type != NT_INT) {
+      assert(false);
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "Incorrect type for numeric parameter #%u (integer or float expected)", parameter_index + 1);
+      return;
+    }
+    double val;
+    if (data->type == NT_FLOAT) {
+      val = data->val.floatval;
+    } else {
+      val = data->val.intval;
+    }
+    CS_DECIMAL dc;
+    convert_float2SybaseNumeric(wrapper.getContext(), val, dc, xsink);
+    if (xsink->isException()) {
+      return;
+    }
+    datafmt.datatype = CS_NUMERIC_TYPE;
+    err = ct_param(wrapper(), &datafmt, &dc, sizeof(dc), 0);
+    if (err != CS_SUCCEED) {
+      assert(false);
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase function ct_param() for numeric parameter #%u failed with error", parameter_index, (int)err);
+      return;
+    }
+  }
+  return;
+
+  default:
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "Unrecognized type %d of Sybase parameter # %u", type, parameter_index + 1);
+    return;
   } // switch 
 }
 

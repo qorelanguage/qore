@@ -3,6 +3,7 @@
 #include "sybase_tests_common.h"
 #include "sybase_low_level_interface.h"
 #include <qore/BinaryObject.h>
+#include <qore/DateTime.h>
 
 namespace sybase_tests_672738 {
 
@@ -45,54 +46,6 @@ static void delete_string_table(bool quiet = false)
 }
 
 //------------------------------------------------------------------------------
-TEST()
-{
-  printf("running test %s[%d]\n", __FILE__, __LINE__);
-  delete_string_table(true);
-  create_string_table();
-  delete_string_table();
-  create_string_table(); // once more
-  delete_string_table();
-}
-
-//------------------------------------------------------------------------------
-TEST()
-{
-  // testing varchar parameter
-  printf("running test %s[%d]\n", __FILE__, __LINE__);
-  delete_string_table(true);
-  create_string_table();
-  ON_BLOCK_EXIT(delete_string_table);
- 
-  sybase_executor executor;
-  executor.m_parsed_query.m_result_query_text = "select * from string_table where varchar_col = ?";
-  executor.m_parsed_query.m_is_procedure = false;
-
-  sybase_connection conn;
-  ExceptionSink xsink;
-  conn.init(SYBASE_TEST_SETTINGS, &xsink);
-  if (xsink.isException()) {
-    assert(false);
-  }
-  executor.m_test_encoding = QCS_DEFAULT;
-  executor.m_test_autocommit = false;
-  executor.m_test_connection = &conn;
-  List* l= new List;
-  l->push(new QoreNode("aaa"));
-  executor.m_args = l;
-
-  QoreNode* n = executor.exec(&xsink);
-  if (xsink.isException()) {
-    assert(false);
-  }
-  assert(!n);
-
-  if (n) n->deref(&xsink);
-  QoreNode* aux = new QoreNode(l);
-  aux->deref(&xsink);
-}
-
-//------------------------------------------------------------------------------
 static void create_string_table2()
 {
   const char* cmd =  "create table string_table2 (char_col CHAR(30))";
@@ -128,6 +81,52 @@ static void delete_string_table2(bool quiet = false)
       assert(false);
     }
   }
+}
+
+//------------------------------------------------------------------------------
+TEST()
+{
+  printf("running test %s[%d]\n", __FILE__, __LINE__);
+  delete_string_table(true);
+  create_string_table();
+  delete_string_table();
+}
+
+//------------------------------------------------------------------------------
+TEST()
+{
+  // testing varchar parameter
+  printf("running test %s[%d]\n", __FILE__, __LINE__);
+  delete_string_table(true);
+  create_string_table();
+  ON_BLOCK_EXIT(delete_string_table);
+
+  sybase_executor executor;
+  executor.m_parsed_query.m_result_query_text = "select * from string_table where varchar_col = ?";
+  executor.m_parsed_query.m_is_procedure = false;
+
+  sybase_connection conn;
+  ExceptionSink xsink;
+  conn.init(SYBASE_TEST_SETTINGS, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  executor.m_test_encoding = QCS_DEFAULT;
+  executor.m_test_autocommit = false;
+  executor.m_test_connection = &conn;
+  List* l= new List;
+  l->push(new QoreNode("aaa"));
+  executor.m_args = l;
+
+  QoreNode* n = executor.exec(&xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  assert(!n);
+
+  if (n) n->deref(&xsink);
+  QoreNode* aux = new QoreNode(l);
+  aux->deref(&xsink);
 }
 
 //------------------------------------------------------------------------------
@@ -733,7 +732,8 @@ TEST()
 
 //------------------------------------------------------------------------------
 TEST()
-{
+{/* the image column is read as CS_LONGCHAR_TYPE by the CT library
+
   // testing image parameter
   printf("running test %s[%d]\n", __FILE__, __LINE__);
   delete_image_table(true);
@@ -768,6 +768,7 @@ TEST()
 
   QoreNode* aux = new QoreNode(l);
   aux->deref(&xsink);
+*/
 }
 
 //------------------------------------------------------------------------------
@@ -1120,6 +1121,510 @@ TEST()
   executor.m_test_connection = &conn;
   List* l = new List;
   l->push(new QoreNode(NT_NULL)); // ? is NULL
+  executor.m_args = l;
+
+  QoreNode* n = executor.exec(&xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  assert(!n);
+  if (n) n->deref(&xsink);
+
+  QoreNode* aux = new QoreNode(l);
+  aux->deref(&xsink);
+}
+
+//------------------------------------------------------------------------------
+static void create_datetime_table()
+{
+  const char* cmd =  "create table datetime_table (datetime_col datetime)";
+
+  sybase_connection c;
+  ExceptionSink xsink;
+  c.init(SYBASE_TEST_SETTINGS, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  sybase_low_level_execute_directly_command(c.getConnection(), cmd, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+}
+
+//------------------------------------------------------------------------------
+static void delete_datetime_table(bool quiet = false)
+{
+  const char* cmd =  "drop table datetime_table";
+
+  sybase_connection c;
+  ExceptionSink xsink;
+  c.init(SYBASE_TEST_SETTINGS, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  sybase_low_level_execute_directly_command(c.getConnection(), cmd, &xsink);
+  if (xsink.isException()) {
+    if (quiet) {
+      xsink.clear();
+    } else {
+      assert(false);
+    }
+  }
+}
+
+//------------------------------------------------------------------------------
+TEST()
+{
+  printf("running test %s[%d]\n", __FILE__, __LINE__);
+  delete_datetime_table(true);
+  create_datetime_table();
+  delete_datetime_table();
+}
+
+//------------------------------------------------------------------------------
+TEST()
+{
+  // testing datetime parameter
+  printf("running test %s[%d]\n", __FILE__, __LINE__);
+  delete_datetime_table(true);
+  create_datetime_table();
+  ON_BLOCK_EXIT(delete_datetime_table);
+
+  sybase_executor executor;
+  executor.m_parsed_query.m_result_query_text = "select * from datetime_table where datetime_col = ?";
+  executor.m_parsed_query.m_is_procedure = false;
+
+  sybase_connection conn;
+  ExceptionSink xsink;
+  conn.init(SYBASE_TEST_SETTINGS, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  executor.m_test_encoding = QCS_DEFAULT;
+  executor.m_test_autocommit = false;
+  executor.m_test_connection = &conn;
+  List* l= new List;
+  l->push(new QoreNode(new DateTime));
+  executor.m_args = l;
+
+  QoreNode* n = executor.exec(&xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  assert(!n);
+  if (n) n->deref(&xsink);
+
+  QoreNode* aux = new QoreNode(l);
+  aux->deref(&xsink);
+}
+
+//------------------------------------------------------------------------------
+static void create_datetime4_table()
+{
+  const char* cmd =  "create table datetime4_table (datetime4_col smalldatetime)";
+
+  sybase_connection c;
+  ExceptionSink xsink;
+  c.init(SYBASE_TEST_SETTINGS, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  sybase_low_level_execute_directly_command(c.getConnection(), cmd, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+}
+
+//------------------------------------------------------------------------------
+static void delete_datetime4_table(bool quiet = false)
+{
+  const char* cmd =  "drop table datetime4_table";
+
+  sybase_connection c;
+  ExceptionSink xsink;
+  c.init(SYBASE_TEST_SETTINGS, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  sybase_low_level_execute_directly_command(c.getConnection(), cmd, &xsink);
+  if (xsink.isException()) {
+    if (quiet) {
+      xsink.clear();
+    } else {
+      assert(false);
+    }
+  }
+}
+
+//------------------------------------------------------------------------------
+TEST()
+{
+  printf("running test %s[%d]\n", __FILE__, __LINE__);
+  delete_datetime4_table(true);
+  create_datetime4_table();
+  delete_datetime4_table();
+}
+
+//------------------------------------------------------------------------------
+TEST()
+{
+  // testing datetime4 parameter
+  printf("running test %s[%d]\n", __FILE__, __LINE__);
+  delete_datetime4_table(true);
+  create_datetime4_table();
+  ON_BLOCK_EXIT(delete_datetime4_table);
+
+  sybase_executor executor;
+  executor.m_parsed_query.m_result_query_text = "select * from datetime4_table where datetime4_col = ?";
+  executor.m_parsed_query.m_is_procedure = false;
+
+  sybase_connection conn;
+  ExceptionSink xsink;
+  conn.init(SYBASE_TEST_SETTINGS, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  executor.m_test_encoding = QCS_DEFAULT;
+  executor.m_test_autocommit = false;
+  executor.m_test_connection = &conn;
+  List* l= new List;
+  l->push(new QoreNode(new DateTime));
+  executor.m_args = l;
+
+  QoreNode* n = executor.exec(&xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  assert(!n);
+  if (n) n->deref(&xsink);
+
+  QoreNode* aux = new QoreNode(l);
+  aux->deref(&xsink);
+}
+
+//------------------------------------------------------------------------------
+static void create_money_table()
+{
+  const char* cmd =  "create table money_table (money_col money)";
+
+  sybase_connection c;
+  ExceptionSink xsink;
+  c.init(SYBASE_TEST_SETTINGS, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  sybase_low_level_execute_directly_command(c.getConnection(), cmd, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+}
+
+//------------------------------------------------------------------------------
+static void delete_money_table(bool quiet = false)
+{
+  const char* cmd =  "drop table money_table";
+
+  sybase_connection c;
+  ExceptionSink xsink;
+  c.init(SYBASE_TEST_SETTINGS, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  sybase_low_level_execute_directly_command(c.getConnection(), cmd, &xsink);
+  if (xsink.isException()) {
+    if (quiet) {
+      xsink.clear();
+    } else {
+      assert(false);
+    }
+  }
+}
+
+//------------------------------------------------------------------------------
+TEST()
+{
+  printf("running test %s[%d]\n", __FILE__, __LINE__);
+  delete_money_table(true);
+  create_money_table();
+  delete_money_table();
+}
+
+//------------------------------------------------------------------------------
+TEST()
+{
+  // testing money parameter
+  printf("running test %s[%d]\n", __FILE__, __LINE__);
+  delete_money_table(true);
+  create_money_table();
+  ON_BLOCK_EXIT(delete_money_table);
+
+  sybase_executor executor;
+  executor.m_parsed_query.m_result_query_text = "select * from money_table where money_col = ?";
+  executor.m_parsed_query.m_is_procedure = false;
+
+  sybase_connection conn;
+  ExceptionSink xsink;
+  conn.init(SYBASE_TEST_SETTINGS, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  executor.m_test_encoding = QCS_DEFAULT;
+  executor.m_test_autocommit = false;
+  executor.m_test_connection = &conn;
+  List* l= new List;
+  l->push(new QoreNode(1.11));
+  executor.m_args = l;
+
+  QoreNode* n = executor.exec(&xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  assert(!n);
+  if (n) n->deref(&xsink);
+
+  QoreNode* aux = new QoreNode(l);
+  aux->deref(&xsink);
+}
+
+//------------------------------------------------------------------------------
+static void create_money4_table()
+{
+  const char* cmd =  "create table money4_table (money4_col smallmoney)";
+
+  sybase_connection c;
+  ExceptionSink xsink;
+  c.init(SYBASE_TEST_SETTINGS, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  sybase_low_level_execute_directly_command(c.getConnection(), cmd, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+}
+
+//------------------------------------------------------------------------------
+static void delete_money4_table(bool quiet = false)
+{
+  const char* cmd =  "drop table money4_table";
+
+  sybase_connection c;
+  ExceptionSink xsink;
+  c.init(SYBASE_TEST_SETTINGS, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  sybase_low_level_execute_directly_command(c.getConnection(), cmd, &xsink);
+  if (xsink.isException()) {
+    if (quiet) {
+      xsink.clear();
+    } else {
+      assert(false);
+    }
+  }
+}
+
+//------------------------------------------------------------------------------
+TEST()
+{
+  printf("running test %s[%d]\n", __FILE__, __LINE__);
+  delete_money4_table(true);
+  create_money4_table();
+  delete_money4_table();
+}
+
+//------------------------------------------------------------------------------
+TEST()
+{
+  // testing smallmoney parameter
+  printf("running test %s[%d]\n", __FILE__, __LINE__);
+  delete_money4_table(true);
+  create_money4_table();
+  ON_BLOCK_EXIT(delete_money4_table);
+
+  sybase_executor executor;
+  executor.m_parsed_query.m_result_query_text = "select * from money4_table where money4_col = ?";
+  executor.m_parsed_query.m_is_procedure = false;
+
+  sybase_connection conn;
+  ExceptionSink xsink;
+  conn.init(SYBASE_TEST_SETTINGS, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  executor.m_test_encoding = QCS_DEFAULT;
+  executor.m_test_autocommit = false;
+  executor.m_test_connection = &conn;
+  List* l= new List;
+  l->push(new QoreNode(1.11));
+  executor.m_args = l;
+
+  QoreNode* n = executor.exec(&xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  assert(!n);
+  if (n) n->deref(&xsink);
+
+  QoreNode* aux = new QoreNode(l);
+  aux->deref(&xsink);
+}
+
+//------------------------------------------------------------------------------
+static void create_decimal_table()
+{
+  const char* cmd =  "create table decimal_table (decimal_col decimal)";
+
+  sybase_connection c;
+  ExceptionSink xsink;
+  c.init(SYBASE_TEST_SETTINGS, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  sybase_low_level_execute_directly_command(c.getConnection(), cmd, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+}
+
+//------------------------------------------------------------------------------
+static void delete_decimal_table(bool quiet = false)
+{
+  const char* cmd =  "drop table decimal_table";
+
+  sybase_connection c;
+  ExceptionSink xsink;
+  c.init(SYBASE_TEST_SETTINGS, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  sybase_low_level_execute_directly_command(c.getConnection(), cmd, &xsink);
+  if (xsink.isException()) {
+    if (quiet) {
+      xsink.clear();
+    } else {
+      assert(false);
+    }
+  }
+}
+
+//------------------------------------------------------------------------------
+TEST()
+{
+  printf("running test %s[%d]\n", __FILE__, __LINE__);
+  delete_decimal_table(true);
+  create_decimal_table();
+  delete_decimal_table();
+}
+
+//------------------------------------------------------------------------------
+TEST()
+{
+  // testing decimal parameter
+  printf("running test %s[%d]\n", __FILE__, __LINE__);
+  delete_decimal_table(true);
+  create_decimal_table();
+  ON_BLOCK_EXIT(delete_decimal_table);
+
+  sybase_executor executor;
+  executor.m_parsed_query.m_result_query_text = "select * from decimal_table where decimal_col = ?";
+  executor.m_parsed_query.m_is_procedure = false;
+
+  sybase_connection conn;
+  ExceptionSink xsink;
+  conn.init(SYBASE_TEST_SETTINGS, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  executor.m_test_encoding = QCS_DEFAULT;
+  executor.m_test_autocommit = false;
+  executor.m_test_connection = &conn;
+  List* l= new List;
+  l->push(new QoreNode(1.11));
+  executor.m_args = l;
+
+  QoreNode* n = executor.exec(&xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  assert(!n);
+  if (n) n->deref(&xsink);
+
+  QoreNode* aux = new QoreNode(l);
+  aux->deref(&xsink);
+}
+
+//------------------------------------------------------------------------------
+static void create_numeric_table()
+{
+  const char* cmd =  "create table numeric_table (numeric_col numeric)";
+
+  sybase_connection c;
+  ExceptionSink xsink;
+  c.init(SYBASE_TEST_SETTINGS, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  sybase_low_level_execute_directly_command(c.getConnection(), cmd, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+}
+
+//------------------------------------------------------------------------------
+static void delete_numeric_table(bool quiet = false)
+{
+  const char* cmd =  "drop table numeric_table";
+
+  sybase_connection c;
+  ExceptionSink xsink;
+  c.init(SYBASE_TEST_SETTINGS, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  sybase_low_level_execute_directly_command(c.getConnection(), cmd, &xsink);
+  if (xsink.isException()) {
+    if (quiet) {
+      xsink.clear();
+    } else {
+      assert(false);
+    }
+  }
+}
+
+//------------------------------------------------------------------------------
+TEST()
+{
+  printf("running test %s[%d]\n", __FILE__, __LINE__);
+  delete_numeric_table(true);
+  create_numeric_table();
+  delete_numeric_table();
+}
+
+//------------------------------------------------------------------------------
+TEST()
+{
+  // testing numeric parameter
+  printf("running test %s[%d]\n", __FILE__, __LINE__);
+  delete_numeric_table(true);
+  create_numeric_table();
+  ON_BLOCK_EXIT(delete_numeric_table);
+
+  sybase_executor executor;
+  executor.m_parsed_query.m_result_query_text = "select * from numeric_table where numeric_col = ?";
+  executor.m_parsed_query.m_is_procedure = false;
+
+  sybase_connection conn;
+  ExceptionSink xsink;
+  conn.init(SYBASE_TEST_SETTINGS, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  executor.m_test_encoding = QCS_DEFAULT;
+  executor.m_test_autocommit = false;
+  executor.m_test_connection = &conn;
+  List* l= new List;
+  l->push(new QoreNode((int64)121));
   executor.m_args = l;
 
   QoreNode* n = executor.exec(&xsink);

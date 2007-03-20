@@ -94,11 +94,10 @@ extern std::vector<parameter_info_t> sybase_low_level_get_output_data_info(const
 // used by the function bellow
 struct bind_parameter_t 
 {
-  bind_parameter_t(int t, unsigned s, QoreNode* n) 
-  : m_type(t), m_max_size(s), m_node(n) {}
+  bind_parameter_t(int t, QoreNode* n) 
+  : m_type(t), m_node(n) {}
 
   int m_type; // e.g. CS_INT_TYPE
-  unsigned m_max_size;
   QoreNode* m_node; // not owned
 };
 
@@ -149,19 +148,35 @@ extern void sybase_ct_param(
   unsigned parameter_index, // starting with 0
   const QoreEncoding* encoding,
   int type, // like CS_INT_TYPE
-  unsigned max_size, // if applicable, CS_UNUSED otherwise
   QoreNode* data,
   ExceptionSink* xsink
   );
 
 //------------------------------------------------------------------------------
-// Sybase DATETIME manipulation 
+// Sybase DATETIME datatype manipulation 
 extern void convert_QoreDatetime2SybaseDatetime(CS_CONTEXT* context, DateTime* dt, CS_DATETIME& out, ExceptionSink* xsink);
 extern void convert_QoreDatetime2SybaseDatetime4(CS_CONTEXT* context, DateTime* dt, CS_DATETIME4& out, ExceptionSink* xsink);
 
 extern DateTime* convert_SybaseDatetime2QoreDatetime(CS_CONTEXT* context, CS_DATETIME& dt, ExceptionSink* xsink);
 extern DateTime* convert_SybaseDatetime4_2QoreDatetime(CS_CONTEXT* context, CS_DATETIME4& dt, ExceptionSink* xsink);
 
+//------------------------------------------------------------------------------
+// Sybase MONEY datatype manipulation (it is converted from float)
+extern void convert_float2SybaseMoney(CS_CONTEXT* context, double val, CS_MONEY& out, ExceptionSink* xsink);
+extern void convert_float2SybaseMoney4(CS_CONTEXT* context, double val, CS_MONEY4& out, ExceptionSink* xsink);
+
+extern double convert_SybaseMoney2float(CS_CONTEXT* context, CS_MONEY& m, ExceptionSink* xsink);
+extern double convert_SybaseMoney4_2float(CS_CONTEXT* context, CS_MONEY4& m, ExceptionSink* xsink);
+
+//------------------------------------------------------------------------------
+// Sybase DECIMAL datatype manipulation
+extern void convert_float2SybaseDecimal(CS_CONTEXT* context, double val, CS_DECIMAL& out, ExceptionSink* xsink);
+extern double convert_SybaseDecimal2float(CS_CONTEXT* context, CS_DECIMAL& m, ExceptionSink* xsink);
+
+//------------------------------------------------------------------------------
+// Sybase NUMERIC datatype manipulation
+extern void convert_float2SybaseNumeric(CS_CONTEXT* context, double val, CS_NUMERIC& out, ExceptionSink* xsink);
+extern double convert_SybaseNumeric2float(CS_CONTEXT* context, CS_NUMERIC& m, ExceptionSink* xsink);
 
 #endif
 

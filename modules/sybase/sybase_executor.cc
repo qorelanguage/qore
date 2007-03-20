@@ -91,25 +91,21 @@ QoreNode* sybase_executor::exec_procedure_call(const sybase_command_wrapper& w, 
 //------------------------------------------------------------------------------
 QoreNode* sybase_executor::exec_language_command(const sybase_command_wrapper& w, ExceptionSink* xsink)
 {
-printf("### position %d\n", __LINE__);
   sybase_low_level_prepare_command(w, m_parsed_query.m_result_query_text.c_str(), xsink);
   if (xsink->isException()) {
     return 0;
   }
 
-printf("### position %d\n", __LINE__);
   std::vector<parameter_info_t> inputs = sybase_low_level_get_input_parameters_info(w, xsink);
   if (xsink->isException()) {
     return 0;
   }
-printf("### position %d\n", __LINE__);
   std::vector<parameter_info_t> outputs = sybase_low_level_get_output_data_info(w, xsink);
   if (xsink->isException()) {
     assert(false);
     return 0;
   }
 
-printf("### position %d\n", __LINE__);
   if (inputs.empty()) {
     if (m_args && m_args->size() != 0) {
       assert(false);
@@ -127,18 +123,15 @@ printf("### position %d\n", __LINE__);
       return 0;
     }
   }
-printf("### position %d\n", __LINE__);
+
   std::vector<bind_parameter_t> bindings;
   bindings.reserve(inputs.size());
   for (unsigned i = 0, n = inputs.size(); i != n; ++i) {
-    bindings.push_back(bind_parameter_t(inputs[i].m_type, inputs[i].m_max_size, m_args->retrieve_entry(i)));
+    bindings.push_back(bind_parameter_t(inputs[i].m_type, m_args->retrieve_entry(i)));
   }
 
-printf("### position %d\n", __LINE__);
   sybase_low_level_bind_parameters(w, get_encoding(), m_parsed_query.m_result_query_text.c_str(), bindings, xsink);
-printf("#### after binding\n");
   if (xsink->isException()) {
-    assert(false);
     return 0;
   }
 
@@ -150,6 +143,7 @@ QoreNode* sybase_executor::exec_impl(ExceptionSink* xsink)
 {
   sybase_command_wrapper cmd_wrapper(*get_connection(), xsink);
   if (xsink->isException()) {
+    assert(false);
     return 0;
   }
 
@@ -157,7 +151,6 @@ QoreNode* sybase_executor::exec_impl(ExceptionSink* xsink)
   if (m_parsed_query.m_is_procedure) {
     return exec_procedure_call(cmd_wrapper, xsink);
   } else {
-printf("### calling exec_language_command\n");
     return exec_language_command(cmd_wrapper, xsink);
   }
 }
@@ -165,11 +158,10 @@ printf("### calling exec_language_command\n");
 //------------------------------------------------------------------------------
 QoreNode* sybase_executor::exec(ExceptionSink *xsink)
 {
-printf("### in exec\n");
   QoreNode* n = exec_impl(xsink);
-printf("#### after exec\n");
   if (n) n->deref(xsink); // not needed
   if (xsink->isException()) {
+    assert(false);
     return 0;
   }
   if (is_autocommit_enabled()) {
@@ -233,6 +225,7 @@ QoreNode* sybase_executor::selectRows(ExceptionSink *xsink)
 
 #ifdef DEBUG
 #  include "tests/sybase_executor_tests.cc"
+#  include "tests/sybase_executor_tests2.cc"
 #endif
 
 // EOF

@@ -2,6 +2,7 @@
 
 #include "sybase_tests_common.h"
 #include <qore/QoreNode.h>
+#include <math.h>
 
 namespace sybase_tests_78620983 {
 
@@ -920,8 +921,8 @@ TEST()
 //------------------------------------------------------------------------------
 TEST()
 {
+  // testing DATETIME <-> Qore Datetime conversion
   printf("running test %s[%d]\n", __FILE__, __LINE__);
-printf("### testing datetime\n");
 
   sybase_connection conn;
   ExceptionSink xsink;
@@ -958,8 +959,8 @@ printf("### testing datetime\n");
 //------------------------------------------------------------------------------
 TEST()
 {
+  // testing DATETIME4 <-> Qore Datetime conversion
   printf("running test %s[%d]\n", __FILE__, __LINE__);
-printf("### testing datetime\n");
 
   sybase_connection conn;
   ExceptionSink xsink;
@@ -991,6 +992,110 @@ printf("### testing datetime\n");
   if (d->getEpochSeconds() != d2->getEpochSeconds()) {
     assert(false);
   }
+}
+
+//------------------------------------------------------------------------------
+TEST()
+{
+  // testing MONEY <-> float conversion
+  printf("running test %s[%d]\n", __FILE__, __LINE__);
+
+  sybase_connection conn;
+  ExceptionSink xsink;
+  conn.init(SYBASE_TEST_SETTINGS, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+
+  CS_MONEY m;
+  convert_float2SybaseMoney(conn.getContext(), 1.2, m, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+
+  double d = convert_SybaseMoney2float(conn.getContext(), m, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  assert(d == 1.2);  
+}
+
+//------------------------------------------------------------------------------
+TEST()
+{
+  // testing MONEY4 <-> float conversion
+  printf("running test %s[%d]\n", __FILE__, __LINE__);
+
+  sybase_connection conn;
+  ExceptionSink xsink;
+  conn.init(SYBASE_TEST_SETTINGS, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+
+  CS_MONEY4 m;
+  convert_float2SybaseMoney4(conn.getContext(), 6.2, m, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+
+  double d = convert_SybaseMoney4_2float(conn.getContext(), m, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  assert(d == 6.2);
+}
+
+//------------------------------------------------------------------------------
+TEST()
+{
+  // testing DECIMAL <-> float conversion
+  printf("running test %s[%d]\n", __FILE__, __LINE__);
+
+  sybase_connection conn;
+  ExceptionSink xsink;
+  conn.init(SYBASE_TEST_SETTINGS, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+
+  CS_DECIMAL dc;  
+  convert_float2SybaseDecimal(conn.getContext(), 6.22, dc, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+
+  double d = convert_SybaseDecimal2float(conn.getContext(), dc, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  assert(d == 6.22);
+}
+
+//------------------------------------------------------------------------------
+TEST()
+{
+  // testing NUMERIC <-> float conversion
+  printf("running test %s[%d]\n", __FILE__, __LINE__);
+
+  sybase_connection conn;
+  ExceptionSink xsink;
+  conn.init(SYBASE_TEST_SETTINGS, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+
+  CS_DECIMAL dc;
+  convert_float2SybaseNumeric(conn.getContext(), 16.22, dc, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+
+  double d = convert_SybaseNumeric2float(conn.getContext(), dc, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  assert(d == 16.22);
 }
 
 } // namespace
