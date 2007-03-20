@@ -472,35 +472,47 @@ inline int MyBindGroup::parse(class List *args, class ExceptionSink *xsink)
    char quote = 0;
 
    const char *p = str->getBuffer();
+   int index = 0;
+   QoreString tmp(ds->getQoreEncoding());
    while (*p)
    {
       if (!quote && (*p) == '%') // found value marker
       {
-	 const char *w = p;
+	 class QoreNode *v = args->retrieve_entry(index++);
+	 int offset = p - str->getBuffer();
 
 	 p++;
+	 if ((*p) == 'd')
+	 {
+	    // add integer value or NULL
+	    if (is_nothing(v) || is_null(v))
+	    {
+	       str->replace(offset, 2, "null");
+	       p = str->getBuffer() + offset + 4;
+	    }
+	    else
+	    {
+	       tmp.sprintf("%lld", v->getAsBigInt());
+	       str->replace(offset, 2, &tmp);
+	       p = str->getBuffer() + offset + tmp.strlen();
+	       tmp.clear();
+	    }
+	    continue;
+	 }
 	 if ((*p) != 'v')
 	 {
-	    xsink->raiseException("DBI-EXEC-PARSE-EXCEPTION", "invalid value specification (expecting '%v', got %%%c)", *p);
+	    xsink->raiseException("DBI-EXEC-PARSE-EXCEPTION", "invalid value specification (expecting '%v' or '%d', got %%%c)", *p);
 	    return -1;
 	 }
 	 p++;
 	 if (isalpha(*p))
 	 {
-	    xsink->raiseException("DBI-EXEC-PARSE-EXCEPTION", "invalid value specification (expecting '%v', got %%v%c*)", *p);
+	    xsink->raiseException("DBI-EXEC-PARSE-EXCEPTION", "invalid value specification (expecting '%v' or '%d', got %%v%c*)", *p);
 	    return -1;
 	 }
-	 if (!args || args->size() <= len)
-	 {
-	    xsink->raiseException("DBI-EXEC-PARSE-EXCEPTION", "too few arguments passed (%d) for value expression (%d)",
-				  args ? args->size() : 0, len + 1);
-	    return -1;
-	 }
-	 class QoreNode *v = args->retrieve_entry(len);
 
 	 // replace value marker with "?"
 	 // find byte offset in case string buffer is reallocated with replace()
-	 int offset = w - str->getBuffer();
 	 str->replace(offset, 2, "?");
 	 p = str->getBuffer() + offset;
 

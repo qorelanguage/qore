@@ -635,6 +635,11 @@ static inline void addXMLRPCValueInternHash(QoreString *str, Hash *h, int indent
    while (hi.next())
    {
       std::auto_ptr<QoreString> member(hi.getKeyString());
+      if (!member->strlen())
+      {
+	 xsink->raiseException("XML-RPC-STRUCT-ERROR", "missing member name in struct");
+	 return;
+      }
       // convert string if needed
       if (member->getEncoding() != ccs)
       {
@@ -2695,6 +2700,11 @@ static class QoreNode *f_makeXMLRPCResponseString(class QoreNode *params, Except
       {
 	 str->concat("<param>");
 	 addXMLRPCValue(str, p, 0, ccs, 0, xsink);
+	 if (*xsink)
+	 {
+	    delete str;
+	    return NULL;
+	 }
 	 str->concat("</param>");
       }
       else
@@ -2758,6 +2768,13 @@ static class QoreNode *f_makeFormattedXMLRPCCallStringArgs(class QoreNode *param
 	    {
 	       str->concat("    <param>\n");
 	       addXMLRPCValue(str, p, 6, ccs, 1, xsink);
+	       if (*xsink)
+	       {
+		  delete str;
+		  traceout("f_makeFormattedXMLRPCCallStringArgs()");
+		  return NULL;
+	       }
+
 	       str->concat("    </param>\n");
 	    }
 	    else
@@ -2768,6 +2785,12 @@ static class QoreNode *f_makeFormattedXMLRPCCallStringArgs(class QoreNode *param
       {
 	 str->concat("    <param>\n");
 	 addXMLRPCValue(str, p1, 6, ccs, 1, xsink);
+	 if (*xsink)
+	 {
+	    delete str;
+	    traceout("f_makeFormattedXMLRPCCallStringArgs()");
+	    return NULL;
+	 }
 	 str->concat("    </param>\n");
       }
    }
@@ -2804,6 +2827,12 @@ static class QoreNode *f_makeFormattedXMLRPCCallString(class QoreNode *params, E
       {
 	 str->concat("    <param>\n");
 	 addXMLRPCValue(str, p, 6, ccs, 1, xsink);
+	 if (*xsink)
+	 {
+	    delete str;
+	    traceout("f_makeFormattedXMLRPCCallString()");
+	    return NULL;
+	 }
 	 str->concat("    </param>\n");
       }
       else
@@ -2838,6 +2867,12 @@ static class QoreNode *f_makeFormattedXMLRPCResponseString(class QoreNode *param
       {
 	 str->concat("    <param>\n");
 	 addXMLRPCValue(str, p, 6, ccs, 1, xsink);
+	 if (*xsink)
+	 {
+	    delete str;
+	    traceout("f_makeFormattedXMLRPCResponseString()");
+	    return NULL;
+	 }
 	 str->concat("    </param>\n");
       }
       else
@@ -2865,6 +2900,12 @@ static class QoreNode *f_makeFormattedXMLRPCValueString(class QoreNode *params, 
 
    QoreString *str = new QoreString(ccs);
    addXMLRPCValue(str, p, 0, ccs, 1, xsink);
+   if (*xsink)
+   {
+      delete str;
+      traceout("f_makeFormattedXMLRPCValueString()");
+      return NULL;
+   }
 
    traceout("f_makeFormattedXMLRPCValueString()");
    return new QoreNode(str);

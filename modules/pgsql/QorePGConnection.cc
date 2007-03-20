@@ -223,16 +223,20 @@ static class QoreNode *qpg_data_numeric(char *data, int type, int len, class Qor
 
    //printd(5, "(%d) ndigits=%d, weight=%d, sign=%d, dscale=%d\n", sizeof(NumericDigit), nd->ndigits, nd->weight, nd->sign, nd->dscale);
    class QoreString *str = new QoreString();
-   if (nd->sign < 0)
-      str->concat('-');
-   for (int i = 0; i < nd->ndigits; i++)
+   if (!nd->ndigits)
+      str->concat('0');
+   else
    {
-      if (i == nd->weight + 1)
-	 str->concat('.');
-      str->sprintf("%d", ntohs(nd->digits[i]));
-      //printd(5, "digit %d: %d\n", i, ntohs(nd->digits[i]));
+      if (nd->sign < 0)
+	 str->concat('-');
+      for (int i = 0; i < nd->ndigits; i++)
+      {
+	 if (i == nd->weight + 1)
+	    str->concat('.');
+	 str->sprintf("%d", ntohs(nd->digits[i]));
+	 //printd(5, "digit %d: %d\n", i, ntohs(nd->digits[i]));
+      }
    }
-
    return new QoreNode(str);
 }
 
@@ -1264,39 +1268,50 @@ int QorePGResult::parse(class QoreString *str, class List *args, class Exception
    char quote = 0;
    const char *p = str->getBuffer();
    QoreString tmp;
+   int index = 0;
    while (*p)
    {
       if (!quote && (*p) == '%') // found value marker
       {
-         const char *w = p;
+         int offset = p - str->getBuffer();
 
          p++;
+         class QoreNode *v = args->retrieve_entry(index++);
+	 if ((*p) == 'd')
+	 {
+	    // add integer value or NULL
+	    if (is_nothing(v) || is_null(v))
+	    {
+	       str->replace(offset, 2, "null");
+	       p = str->getBuffer() + offset + 4;
+	    }
+	    else
+	    {
+	       tmp.sprintf("%lld", v->getAsBigInt());
+	       str->replace(offset, 2, &tmp);
+	       p = str->getBuffer() + offset + tmp.strlen();
+	       tmp.clear();
+	    }
+	    continue;
+	 }
          if ((*p) != 'v')
          {
-            xsink->raiseException("DBI-EXEC-PARSE-EXCEPTION", "invalid value specification (expecting '%v', got %%%c)", *p);
+            xsink->raiseException("DBI-EXEC-PARSE-EXCEPTION", "invalid value specification (expecting '%v' or '%d', got %%%c)", *p);
             return -1;
          }
          p++;
          if (isalpha(*p))
          {
-            xsink->raiseException("DBI-EXEC-PARSE-EXCEPTION", "invalid value specification (expecting '%v', got %%v%c*)", *p);
+            xsink->raiseException("DBI-EXEC-PARSE-EXCEPTION", "invalid value specification (expecting '%v' or '%d', got %%v%c*)", *p);
             return -1;
          }
-         if (!args || args->size() <= nParams)
-         {
-            xsink->raiseException("DBI-EXEC-PARSE-EXCEPTION", "too few arguments passed (%d) for value expression (%d)",
-                                  args ? args->size() : 0, nParams + 1);
-            return -1;
-         }
-         class QoreNode *v = args->retrieve_entry(nParams);
 
          // replace value marker with "$<num>"
          // find byte offset in case string buffer is reallocated with replace()
 	 tmp.sprintf("$%d", nParams + 1); 
-         int offset = w - str->getBuffer();
          str->replace(offset, 2, &tmp);
+         p = str->getBuffer() + offset + tmp.strlen();
 	 tmp.clear();
-         p = str->getBuffer() + offset;
 	 if (add(v, xsink))
 	    return -1;
       }

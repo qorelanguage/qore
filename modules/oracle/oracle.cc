@@ -666,36 +666,50 @@ void OraBindGroup::parseQuery(class List *args, class ExceptionSink *xsink)
    char quote = 0;
 
    const char *p = str->getBuffer();
+   int index = 0;
+   QoreString tmp(ds->getQoreEncoding());
    while (*p)
    {
       if (!quote && (*p) == '%') // found value marker
       {
+	 int offset = p - str->getBuffer();
+	 class QoreNode *v = args->retrieve_entry(index++);
+
 	 p++;
+	 if ((*p) == 'd')
+	 {
+	    // add integer value or NULL
+	    if (is_nothing(v) || is_null(v))
+	    {
+	       str->replace(offset, 2, "null");
+	       p = str->getBuffer() + offset + 4;
+	    }
+	    else
+	    {
+	       tmp.sprintf("%lld", v->getAsBigInt());
+	       str->replace(offset, 2, &tmp);
+	       p = str->getBuffer() + offset + tmp.strlen();
+	       tmp.clear();
+	    }
+	    continue;
+	 }
 	 if ((*p) != 'v')
 	 {
-	    xsink->raiseException("DBI-EXEC-PARSE-EXCEPTION", "invalid value specification (expecting '%v', got %%%c)", *p);
+	    xsink->raiseException("DBI-EXEC-PARSE-EXCEPTION", "invalid value specification (expecting '%v' or '%d', got %%%c)", *p);
 	    break;
 	 }
 	 p++;
 	 if (isalpha(*p))
 	 {
-	    xsink->raiseException("DBI-EXEC-PARSE-EXCEPTION", "invalid value specification (expecting '%v', got %%v%c*)", *p);
+	    xsink->raiseException("DBI-EXEC-PARSE-EXCEPTION", "invalid value specification (expecting '%v' or '%d', got %%v%c*)", *p);
 	    break;
 	 }
-	 if (!args || args->size() <= len)
-	 {
-	    xsink->raiseException("DBI-EXEC-PARSE-EXCEPTION", "too few arguments passed (%d) for value expression (%d)",
-				  args ? args->size() : 0, len + 1);
-	    break;
-	 }
-	 class QoreNode *v = args->retrieve_entry(len);
 
 	 // replace value marker with generated name
-	 QoreString tn(ds->getQoreEncoding());
-	 tn.sprintf(":qdodvrs___%d", len);
-	 int offset = p - str->getBuffer() - 2;
-	 str->replace(offset, 2, &tn);
-	 p = str->getBuffer() + offset + tn.strlen();
+	 tmp.sprintf(":qdodvrs___%d", len);
+	 str->replace(offset, 2, &tmp);
+	 p = str->getBuffer() + offset + tmp.strlen();
+	 tmp.clear();
 
 	 printd(5, "OraBindGroup::parseQuery() newstr=%s\n", str->getBuffer());
 	 printd(5, "OraBindGroup::parseQuery() adding value type=%s\n",v ? v->type->getName() : "<NULL>");
@@ -715,7 +729,7 @@ void OraBindGroup::parseQuery(class List *args, class ExceptionSink *xsink)
 	 // check hash argument
 	 class QoreNode *v;
 	 // assume string if no argument passed
-	 if (!args || args->size() <= len || !(v = args->retrieve_entry(len)))
+	 if (!args || args->size() <= index || !(v = args->retrieve_entry(index++)))
 	    add(tstr.giveBuffer(), -1, "string");
 	 else if (v->type == NT_HASH)
 	 {

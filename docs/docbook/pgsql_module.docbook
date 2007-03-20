@@ -249,7 +249,7 @@ printf(&quot;%N\n&quot;, $result);</programlisting>
       </tgroup>
     </table>
 
-    <para>The following table gives data mapping when binding qore types by value.  To specify other types, use the <link linkend="pgsql_bind">pgsql_bind() function</link>.</para>
+    <para>The following table gives data mapping when binding qore types by value.  Be aware that PostgreSQL does only limited implicit type conversions when binding by value; to specify other types, either use a PostgreSQL type cast (i.e. <code>::type</code>) or use the <link linkend="pgsql_bind">pgsql_bind() function</link>.</para>
 
     <table>
       <title>Qore to PostgreSQL Type Mappings for Binding by Value</title>
