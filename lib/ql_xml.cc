@@ -649,13 +649,13 @@ static inline void addXMLRPCValueInternHash(QoreString *str, Hash *h, int indent
       //else printd(0, "addXMLRPCValueInternHashInternal() not converting %sx \"%s\"\n", member->getEncoding()->getCode(), member->getBuffer());
       // indent
       if (format)
-         str->addch(' ', indent);
+         str->addch(' ', indent + 2);
       str->concat("<member>");
       if (format)
       {
 	 str->concat('\n');
 	 // indent
-         str->addch(' ', indent + 6);
+         str->addch(' ', indent + 4);
       }
       str->concat("<name>");
       str->concatAndHTMLEncode(member.get(), xsink);
@@ -665,16 +665,16 @@ static inline void addXMLRPCValueInternHash(QoreString *str, Hash *h, int indent
       str->concat("</name>");
       if (format) str->concat('\n');
       QoreNode *val = hi.getValue();
-      addXMLRPCValue(str, val, indent + 6, ccs, format, xsink);
+      addXMLRPCValue(str, val, indent + 4, ccs, format, xsink);
       // indent
       if (format)
-         str->addch(' ', indent + 4);
+         str->addch(' ', indent + 2);
       str->concat("</member>");
       if (format) str->concat('\n');
    }
    // indent
    if (format)
-      str->addch(' ', indent + 2);
+      str->addch(' ', indent);
    str->concat("</struct>");
    //if (format) str->concat('\n');
 }
@@ -724,7 +724,7 @@ static void addXMLRPCValueIntern(QoreString *str, QoreNode *n, int indent, class
    }
 
    else if (n->type == NT_HASH)
-      addXMLRPCValueInternHash(str, n->val.hash, indent, ccs, format, xsink);
+      addXMLRPCValueInternHash(str, n->val.hash, indent + 2, ccs, format, xsink);
 
    else if (n->type == NT_LIST)
    {
@@ -2829,24 +2829,24 @@ static class QoreNode *f_makeFormattedXMLRPCResponseString(class QoreNode *param
       return NULL;
    }
 
-   QoreNode *rv = new QoreNode(NT_STRING);
-   rv->val.String = new QoreString(ccs);
-   rv->val.String->sprintf("<?xml version=\"1.0\" encoding=\"%s\"?>\n<methodResponse>\n  <params>\n", ccs->getCode());
+   QoreString *str = new QoreString(ccs);
+   str->sprintf("<?xml version=\"1.0\" encoding=\"%s\"?>\n<methodResponse>\n  <params>\n", ccs->getCode());
 
    // now loop through the params
    for (int i = 0; i < ls; i++)
       if ((p = get_param(params, i))) 
       {
-	 rv->val.String->concat("    <param>\n");
-	 addXMLRPCValue(rv->val.String, p, 6, ccs, 1, xsink);
-	 rv->val.String->concat("    </param>\n");
+	 str->concat("    <param>\n");
+	 addXMLRPCValue(str, p, 6, ccs, 1, xsink);
+	 str->concat("    </param>\n");
       }
       else
-	 rv->val.String->concat("    <param/>\n");
+	 str->concat("    <param/>\n");
 
-   rv->val.String->concat("  </params>\n</methodResponse>");
+   str->concat("  </params>\n</methodResponse>");
+ 
    traceout("f_makeFormattedXMLRPCResponseString()");
-   return rv;
+   return new QoreNode(str);
 }
 
 // makeFormattedXMLRPCValueString(params, ...)
