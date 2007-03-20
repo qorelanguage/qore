@@ -745,7 +745,7 @@ int QorePGResult::add(class QoreNode *v, class ExceptionSink *xsink)
 	 paramValues[nParams]  = (char *)&pb->i2;
 	 paramLengths[nParams] = sizeof(short);
       }
-      else if (v->val.intval <= 2147483647 && v->val.intval > -2147483648)
+      else if (v->val.intval <= 2147483647 && v->val.intval >= -2147483647)
       {
 	 //printd(5, "i4: %d (%d, %d)\n", (int)v->val.intval, sizeof(uint32_t), sizeof(int));
 	 paramTypes[nParams]   = INT4OID;
@@ -1446,7 +1446,7 @@ QorePGConnection::~QorePGConnection()
 
 int QorePGConnection::setPGEncoding(const char *enc, class ExceptionSink *xsink)
 {
-   SafeLocker sl(this);
+   SafeLocker sl((LockedObject *)this);
    if (PQsetClientEncoding(pc, enc))
    {
       xsink->raiseException("DBI:PGSQL:ENCODING-ERROR", "invalid PostgreSQL encoding '%s'", enc);
@@ -1457,28 +1457,28 @@ int QorePGConnection::setPGEncoding(const char *enc, class ExceptionSink *xsink)
 
 int QorePGConnection::commit(class Datasource *ds, ExceptionSink *xsink)
 {
-   SafeLocker sl(this);
+   SafeLocker sl((LockedObject *)this);
    QorePGResult res(this, ds->getQoreEncoding());
    return res.exec(pc, "commit", xsink);
 }
 
 int QorePGConnection::rollback(class Datasource *ds, ExceptionSink *xsink)
 {
-   SafeLocker sl(this);
+   SafeLocker sl((LockedObject *)this);
    QorePGResult res(this, ds->getQoreEncoding());
    return res.exec(pc, "rollback", xsink);
 }
 
 int QorePGConnection::begin_transaction(class Datasource *ds, ExceptionSink *xsink)
 {
-   SafeLocker sl(this);
+   SafeLocker sl((LockedObject *)this);
    QorePGResult res(this, ds->getQoreEncoding());
    return res.exec(pc, "begin", xsink);
 }
 
 class QoreNode *QorePGConnection::select(class Datasource *ds, QoreString *qstr, class List *args, class ExceptionSink *xsink)
 {
-   SafeLocker sl(this);
+   SafeLocker sl((LockedObject *)this);
    QorePGResult res(this, ds->getQoreEncoding());
    if (res.exec(pc, qstr, args, xsink))
       return NULL;
@@ -1491,7 +1491,7 @@ class QoreNode *QorePGConnection::select(class Datasource *ds, QoreString *qstr,
 
 class QoreNode *QorePGConnection::select_rows(class Datasource *ds, QoreString *qstr, class List *args, class ExceptionSink *xsink)
 {
-   SafeLocker sl(this);
+   SafeLocker sl((LockedObject *)this);
    QorePGResult res(this, ds->getQoreEncoding());
    if (res.exec(pc, qstr, args, xsink))
       return NULL;
@@ -1503,7 +1503,7 @@ class QoreNode *QorePGConnection::select_rows(class Datasource *ds, QoreString *
 
 class QoreNode *QorePGConnection::exec(class Datasource *ds, QoreString *qstr, class List *args, class ExceptionSink *xsink)
 {
-   SafeLocker sl(this);
+   SafeLocker sl((LockedObject *)this);
    QorePGResult res(this, ds->getQoreEncoding());
    if (res.exec(pc, qstr, args, xsink))
       return NULL;

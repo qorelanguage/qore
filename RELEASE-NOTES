@@ -59,9 +59,13 @@ The constructor understands a couple of new hash keys:
 
 Since the XmlRpcClient and JsonRpcClient inherit HTTPClient, all improvements to the HTTPClient class are also available in the XmlRpcClient and JsonRpcClient classes as well.
 
-*) new "on_block_exit" statement
+*) new "on_exit", "on_success", and "on_error" statements
 allows exception-safe cleanup code to be placed right next to the code requiring the cleanup
-...
+	on_exit : queues code to be executed when the current block is exited (regardless of exceptions or return statements)
+	on_success: queues code to be executed when the current block is exited, if there is no active exception
+	on_error: queues code to be executed when the current block is exited, but only if there is an active exception
+
+These statements provide a powerful mechanism for implementing cleanup code in a context where exceptions may occur as well
 
 *) deadlock detection
 All Qore threading primitives (including internal locks for variables and "synchronized" methods, etc) now use the new deadlock detection framework.  Potential deadlocks are checked before any primitive would otherwise block.  If a deadlock is detected, a DEADLOCK-EXCEPTION is thrown.  
