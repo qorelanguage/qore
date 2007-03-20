@@ -10738,11 +10738,21 @@ xs      </variablelist>
     <para>Note: This class is not available with the <link linkend="PO_NO_NETWORK"><code>PO_NO_NETWORK</code></link> parse option.</para>
 
     <para>The HTTPClient class can be used to communicate with HTTP servers using the HTTP or HTTPS (HTTP using an SSL/TLS encrypted connection) protocol.</para>
+
     <para>By default 'Connection: Keep-Alive' is always sent regardless of the HTTP protocol level set for the object, however if a server response contains 'Connection: close', the connection will be closed as soon as the full response (including any message body if present) has been read.</para>
-    <para>Note that HTTP redirect messages are currently not processed and will cause an <code>HTTP-CLIENT-RECEIVE-ERROR</code> exception to be thrown.</para>
+
+    <para>HTTP redirect responses are supported and can be limited with the <code>max_redirects</code> constructor hash key or by using the <link linkend="HTTPClient_setMaxRedirects">HTTPClient::setMaxRedirects()</link> method.  The default number of redirects is 5.</para>
+
+    <para>HTTP basic authentication is supported; set the username and password in the URL (ex: http://username:password@host:port/path).  To change the URL from the one set by the constructor, call <link linkend="HTTPClient_setURL">HTTPClient::setURL()</link>.</para>
+
+    <para>HTTP proxies and basic proxy authentication are supported by setting the <code>proxy</code> constructor hash key to the proxy URL (with a proxy username and password if required) or by calling the <link linkend="HTTPClient_setProxyURL">HTTPClient::setProxyURL()</link> method.</para>
+
     <para>Objects of this class are thread-safe and support serializing multiple simultaneous requests from many threads.  If a request is in progress and another thread attempts to make a request at the same time, the second thread will block until the first is complete.  Therefore the total amount of time a thread could wait for a response in a multi-threaded context could be greater than the read timeout value.</para>
+
     <para>This class understands and automatically decodes &quot;deflate&quot; and &quot;gzip&quot; content encodings as well.</para>
+
     <para>The default read timeout value is 300,000 milliseconds (5 minutes).  Note that the read timeout value applies to individual packets; for this reason for large transfers the overall read time could exceed the read timeout value.</para>
+
     <para>This class understands the protocols in the following table.</para>
 
     <table id="HTTPClient_Protocols">
@@ -10873,17 +10883,54 @@ xs      </variablelist>
             </entry>
           </row>
           <row>
-            <entry>
-              <para>
-                <link linkend="HTTPClient_copy">HTTPClient::copy()</link>
-              </para>
-            </entry>
-            <entry>
-              <para>Y</para>
-            </entry>
-            <entry>
-              <para>Copying objects of this class is not supported, an exception will be thrown.</para>
-            </entry>
+            <entry><para><link linkend="HTTPClient_copy">HTTPClient::copy()</link></para></entry>
+            <entry><para>Y</para></entry>
+            <entry><para>Copying objects of this class is not supported, an exception will be thrown.</para></entry>
+          </row>
+          <row>
+            <entry><para><link linkend="HTTPClient_getURL">HTTPClient::getURL()</link></para></entry>
+            <entry><para>N</para></entry>
+            <entry><para>Returns the current URL.</para></entry>
+          </row>
+          <row>
+            <entry><para><link linkend="HTTPClient_setURL">HTTPClient::setURL()</link></para></entry>
+            <entry><para>Y</para></entry>
+            <entry><para>Sets a new URL value for the next connection.</para></entry>
+          </row>
+          <row>
+            <entry><para><link linkend="HTTPClient_getProxyURL">HTTPClient::getProxyURL()</link></para></entry>
+            <entry><para>N</para></entry>
+            <entry><para>Returns the current proxy URL.</para></entry>
+          </row>
+          <row>
+            <entry><para><link linkend="HTTPClient_setProxyURL">HTTPClient::setProxyURL()</link></para></entry>
+            <entry><para>Y</para></entry>
+            <entry><para>Sets a new proxy URL value for the next connection.</para></entry>
+          </row>
+          <row>
+            <entry><para><link linkend="HTTPClient_clearProxyURL">HTTPClient::clearProxyURL()</link></para></entry>
+            <entry><para>N</para></entry>
+            <entry><para>Clears the proxy URL value.</para></entry>
+          </row>
+          <row>
+            <entry><para><link linkend="HTTPClient_setProxySecure">HTTPClient::setProxySecure()</link></para></entry>
+            <entry><para>N</para></entry>
+            <entry><para>Sets the SSL/TLS flag for the next connection to the proxy.</para></entry>
+          </row>
+          <row>
+            <entry><para><link linkend="HTTPClient_isProxySecure">HTTPClient::isProxySecure()</link></para></entry>
+            <entry><para>N</para></entry>
+            <entry><para>Returns the SSL/TLS flag.</para></entry>
+          </row>
+          <row>
+            <entry><para><link linkend="HTTPClient_getMaxRedirects">HTTPClient::getMaxRedirects()</link></para></entry>
+            <entry><para>N</para></entry>
+            <entry><para>Returns the current <code>max_redirects</code> value.</para></entry>
+          </row>
+          <row>
+            <entry><para><link linkend="HTTPClient_setMaxRedirects">HTTPClient::gstMaxRedirects()</link></para></entry>
+            <entry><para>N</para></entry>
+            <entry><para>Updates the <code>max_redirects</code> value.</para></entry>
           </row>
           <row>
             <entry>
@@ -11109,6 +11156,7 @@ xs      </variablelist>
         </tbody>
       </tgroup>
     </table>
+
     <sect2 id="HTTPClient_constructor">
       <title>HTTPClient::constructor()</title>
       <variablelist>
@@ -11171,27 +11219,35 @@ xs      </variablelist>
           <tbody>
             <row>
               <entry><para><code>url</code></para></entry>
-              <entry><para></para>A string giving the URL to connect to.</entry>
+              <entry><para>A string giving the URL to connect to.</para></entry>
             </row>
             <row>
               <entry><para><code>default_port</code></para></entry>
-              <entry><para></para>The default port number to connect to if none is given in the URL.</entry>
+              <entry><para>The default port number to connect to if none is given in the URL.</para></entry>
             </row>
             <row>
               <entry><para><code>protocols</code></para></entry>
-              <entry><para></para>A hash describing new protocols, the key is the protocol name and the value is either an integer giving the default port number or a hash with 'port' and 'ssl' keys giving the default port number and a boolean value to indicate that an SSL connection should be established.</entry>
+              <entry><para>A hash describing new protocols, the key is the protocol name and the value is either an integer giving the default port number or a hash with 'port' and 'ssl' keys giving the default port number and a boolean value to indicate that an SSL connection should be established.</para></entry>
             </row>
             <row>
               <entry><para><code>http_version</code></para></entry>
-              <entry><para></para>Either '1.0' or '1.1' for the claimed HTTP protocol version compliancy in outgoing message headers.</entry>
+              <entry><para>Either '1.0' or '1.1' for the claimed HTTP protocol version compliancy in outgoing message headers.</para></entry>
             </row>
             <row>
               <entry><para><code>default_path</code></para></entry>
-              <entry><para></para>The default path to use for new connections if a path is not otherwise specified in the connection URL</entry>
+              <entry><para>The default path to use for new connections if a path is not otherwise specified in the connection URL.</para></entry>
+            </row>
+            <row>
+              <entry><para><code>max_redirects</code></para></entry>
+              <entry><para>The maximum number of redirects before throwing an exception (the default is 5).</para></entry>
+            </row>
+            <row>
+              <entry><para><code>proxy</code></para></entry>
+              <entry><para>The proxy URL for connecting through a proxy.</para></entry>
             </row>
             <row>
               <entry><para><code>timeout</code></para></entry>
-              <entry><para></para>The timeout value in milliseconds (also can be a relative date-time value for clarity, ex: <code>5m</code>)</entry>
+              <entry><para>The timeout value in milliseconds (also can be a relative date-time value for clarity, ex: <code>5m</code>)</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -11227,34 +11283,22 @@ xs      </variablelist>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
             <row>
-              <entry>
-                <para>err</para>
-              </entry>
-              <entry>
-                <para>desc</para>
-              </entry>
+	      <entry><para>err</para></entry>
+              <entry><para>desc</para></entry>
             </row>
           </thead>
           <tbody>
             <row>
-              <entry>
-                <para>
-                  <code>HTTP-CLIENT-CONSTRUCTOR-ERROR</code>
-                </para>
-              </entry>
-              <entry>
-                <para>invalid or unknown option passed in option hash</para>
-              </entry>
+              <entry><para><code>HTTP-CLIENT-CONSTRUCTOR-ERROR</code></para></entry>
+              <entry><para>invalid or unknown option passed in option hash</para></entry>
             </row>
             <row>
-              <entry>
-                <para>
-                  <code>HTTP-CLIENT-UNKNOWN-PROTOCOL</code>
-                </para>
-              </entry>
-              <entry>
-                <para>unknown protocol passed in URL</para>
-              </entry>
+              <entry><para><code>HTTP-CLIENT-URL-ERROR</code></para></entry>
+              <entry><para>invalid URL string</para></entry>
+            </row>
+            <row>
+              <entry><para><code>HTTP-CLIENT-UNKNOWN-PROTOCOL</code></para></entry>
+	      <entry><para>unknown protocol passed in URL</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -11433,6 +11477,539 @@ xs      </variablelist>
         </tgroup>
       </table>
     </sect2>
+
+    <sect2 id="HTTPClient_getURL">
+      <title>HTTPClient::getURL()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns the current URL value for the object.  To set the URL, use the <link linkend="HTTPClient_setURL">HTTPClient::setURL()</link> method.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>HTTPClient::getURL()</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for HTTPClient::getURL()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry><para>Argument</para></entry>
+              <entry><para>Type</para></entry>
+              <entry><para>Description</para></entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry><para>n/a</para></entry>
+              <entry><para>n/a</para></entry>
+              <entry><para>This method takes no arguments.</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for HTTPClient::get()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+	      <entry><para>Return Type</para></entry>
+              <entry><para>Description</para></entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry><para>String</para></entry>
+              <entry><para>The current URL value.</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="HTTPClient_setURL">
+      <title>HTTPClient::setURL()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Sets the URL value for the object.  To retrieve the current URL value, use the <link linkend="HTTPClient_getURL">HTTPClient::getURL()</link> method.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>HTTPClient::setURL(<replaceable>url</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for HTTPClient::setURL()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry><para>Argument</para></entry>
+              <entry><para>Type</para></entry>
+              <entry><para>Description</para></entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry><para><replaceable>url</replaceable></para></entry>
+              <entry><para>String</para></entry>
+              <entry><para>The new URL for the object.</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for HTTPClient::set()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+	      <entry><para>Return Type</para></entry>
+              <entry><para>Description</para></entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry><para>n/a</para></entry>
+              <entry><para>This method does not return any value.</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Exceptions thrown by HTTPClient::setURL()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+	      <entry><para>err</para></entry>
+              <entry><para>desc</para></entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry><para><code>HTTP-CLIENT-URL-ERROR</code></para></entry>
+              <entry><para>invalid URL string</para></entry>
+            </row>
+            <row>
+              <entry><para><code>HTTP-CLIENT-UNKNOWN-PROTOCOL</code></para></entry>
+	      <entry><para>unknown protocol passed in URL</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="HTTPClient_getProxyURL">
+      <title>HTTPClient::getProxyURL()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns the current proxy URL value for the object (NOTHING if no proxy URL is set).  To set the proxy URL, use the <link linkend="HTTPClient_setProxyURL">HTTPClient::setProxyURL()</link> method.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>HTTPClient::getProxyURL()</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for HTTPClient::getProxyURL()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry><para>Argument</para></entry>
+              <entry><para>Type</para></entry>
+              <entry><para>Description</para></entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry><para>n/a</para></entry>
+              <entry><para>n/a</para></entry>
+              <entry><para>This method takes no arguments.</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for HTTPClient::getProxyURL()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+	      <entry><para>Return Type</para></entry>
+              <entry><para>Description</para></entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry><para>String</para></entry>
+              <entry><para>The current proxy URL value.</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="HTTPClient_setProxyURL">
+      <title>HTTPClient::setProxyURL()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Sets the proxy URL value for the object.  To retrieve the current URL value, use the <link linkend="HTTPClient_getProxyURL">HTTPClient::getProxyURL()</link> method.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>HTTPClient::setProxyURL(<replaceable>url</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for HTTPClient::setProxyURL()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry><para>Argument</para></entry>
+              <entry><para>Type</para></entry>
+              <entry><para>Description</para></entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry><para><replaceable>url</replaceable></para></entry>
+              <entry><para>String</para></entry>
+              <entry><para>The new proxy URL for the object.</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for HTTPClient::setProxyURL()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+	      <entry><para>Return Type</para></entry>
+              <entry><para>Description</para></entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry><para>n/a</para></entry>
+              <entry><para>This method does not return any value.</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Exceptions thrown by HTTPClient::setProxyURL()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+	      <entry><para>err</para></entry>
+              <entry><para>desc</para></entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry><para><code>HTTP-CLIENT-URL-ERROR</code></para></entry>
+              <entry><para>invalid URL string</para></entry>
+            </row>
+            <row>
+              <entry><para><code>HTTP-CLIENT-SET-PROXY-ERROR</code></para></entry>
+              <entry><para>invalid authorization credentials in proxy URL (username without password or vice-versa)</para></entry>
+            </row>
+            <row>
+              <entry><para><code>HTTP-CLIENT-PROXY-PROTOCOL-ERROR</code></para></entry>
+	      <entry><para>unknown protocol passed in URL</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="HTTPClient_clearProxyURL">
+      <title>HTTPClient::clearProxyURL()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Clears the current proxy URL</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>HTTPClient::clearProxyURL()</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for HTTPClient::clearProxyURL()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry><para>Argument</para></entry>
+              <entry><para>Type</para></entry>
+              <entry><para>Description</para></entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry><para>n/a</para></entry>
+              <entry><para>n/a</para></entry>
+              <entry><para>This method takes no arguments.</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for HTTPClient::clearProxyURL()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+	      <entry><para>Return Type</para></entry>
+              <entry><para>Description</para></entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry><para>n/a</para></entry>
+              <entry><para>This method does not return any value.</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="HTTPClient_setProxySecure">
+      <title>HTTPClient::setProxySecure()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Sets the SSL/TLS flag for the next proxy connection.  To check the flag, use the <link linkend="HTTPClient_isProxySecure">HTTPClient::isProxySecure()</link> method.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>HTTPClient::setProxySecure(<replaceable>boolean</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for HTTPClient::setProxySecure()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry><para>Argument</para></entry>
+              <entry><para>Type</para></entry>
+              <entry><para>Description</para></entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry><para><replaceable>boolean</replaceable></para></entry>
+              <entry><para>Boolean</para></entry>
+              <entry><para>sets the SSL/TLS flag for the next proxy connection</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for HTTPClient::setProxySecure()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+	      <entry><para>Return Type</para></entry>
+              <entry><para>Description</para></entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry><para>n/a</para></entry>
+              <entry><para>This method does not return any value.</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="HTTPClient_isProxySecure">
+      <title>HTTPClient::isProxySecure()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns the SSL/TLS flag for proxy connection.  To set the flag, use the <link linkend="HTTPClient_setProxySecure">HTTPClient::setProxySecure()</link> method.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>HTTPClient::isProxySecure()</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for HTTPClient::isProxySecure()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry><para>Argument</para></entry>
+              <entry><para>Type</para></entry>
+              <entry><para>Description</para></entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry><para>n/a</para></entry>
+              <entry><para>n/a</para></entry>
+              <entry><para>This method takes no arguments.</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for HTTPClient::isProxySecure()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+	      <entry><para>Return Type</para></entry>
+              <entry><para>Description</para></entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry><para>Boolean</para></entry>
+              <entry><para>The value of the SSL/TLS flag for the proxy connection.</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="HTTPClient_getMaxRedirects">
+      <title>HTTPClient::getMaxRedirects()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns the maximum number of redirects allowed for the object.  To set this value, use the <link linkend="HTTPClient_setMaxRedirects">HTTPClient::setMaxRedirects()</link> method.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>HTTPClient::getMaxRedirects()</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for HTTPClient::getMaxRedirects()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry><para>Argument</para></entry>
+              <entry><para>Type</para></entry>
+              <entry><para>Description</para></entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry><para>n/a</para></entry>
+              <entry><para>n/a</para></entry>
+              <entry><para>This method takes no arguments.</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for HTTPClient::getMaxRedirects()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+	      <entry><para>Return Type</para></entry>
+              <entry><para>Description</para></entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry><para>Integer</para></entry>
+              <entry><para>The current value of the <code>max_redirects</code> setting.</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="HTTPClient_setMaxRedirects">
+      <title>HTTPClient::setMaxRedirects()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Sets the maximum number of redirects allowed for the object.  To retrieve this value, use the <link linkend="HTTPClient_getMaxRedirects">HTTPClient::getMaxRedirects()</link> method.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>HTTPClient::setMaxRedirects(<replaceable>max_redirects</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for HTTPClient::setMaxRedirects()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry><para>Argument</para></entry>
+              <entry><para>Type</para></entry>
+              <entry><para>Description</para></entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry><para><replaceable>max_redirects</replaceable></para></entry>
+              <entry><para>Integer</para></entry>
+              <entry><para>The maximum number of HTTP redirects allowed for hte object before an exception is thrown.</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for HTTPClient::setMaxRedirects()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+	      <entry><para>Return Type</para></entry>
+              <entry><para>Description</para></entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry><para>n/a</para></entry>
+              <entry><para>This method does not return any value.</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+
     <sect2 id="HTTPClient_connect">
       <title>HTTPClient::connect()</title>
       <variablelist>
@@ -11501,6 +12078,31 @@ xs      </variablelist>
               <entry>
                 <para>This method returns no value</para>
               </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Exceptions thrown by HTTPClient::connect()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+	      <entry><para>err</para></entry>
+              <entry><para>desc</para></entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry><para><code>HTTP-CLIENT-MAXIMUM-.REDIRECTS-EXCEEDED</code></para></entry>
+              <entry><para>The attempt to connect exceeeded the maximum number of redirects allowed for the object.</para></entry>
+            </row>
+            <row>
+              <entry><para><code>HTTP-CLIENT-RECEIVE-ERROR</code></para></entry>
+              <entry><para>There was an error receiving data on the socket</para></entry>
+            </row>
+            <row>
+              <entry><para><code>HTTP-CLIENT-TIMEOUT</code></para></entry>
+	      <entry><para>The receive attempt timed out.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -17110,6 +17712,8 @@ xs      </variablelist>
 	  <listitem>
 	    <para>Grabs the transaction lock (if autocommit is disabled) and executes an SQL command on the server and returns either the row count (for example, for updates and inserts) or the data retrieved (for example, if a stored procedure is executed that returns values).  This method takes a special syntax for binding values and placeholders, similar to printf() functions.</para>
 	    <para>For binding values directly, use <code>%v</code> in the command string, and include the value as an argument after the string.</para>
+	    <para>To insert either an integer value or a 'null' string, use <code>%d</code> in the command string, and include the value as an artument after the string.  If the value is NOTHING or NULL, 'null' will be written to the string; otherwise the argument is converted to an integer if necessary and written to the string.  This is useful for working with DECIMAL (NUMERIC, NUMBER) types in a database-independent way; for example PostgreSQL servers (<link linkend="pgsql_Module">see the pgsql module</link>) do not do type conversions to DECIMAL types when a string or integer is bound by value, therefore to ensure that integral decimal values can be used in a database-independent way (with 'null' substitution when no value is bound), it's best to use the <code>%d</code> code in the command string instead of <code>%v</code>.</para>
+
 	    <para>For binding placeholders for output variables, write a unique name in the string and prefix it with a colon (ex: <code>:code</code>).  In this case the method will return a hash of the output variables using the placeholder names as keys, but without the colon prefix.  By default, a string type will be bound to the position.  To bind other variable types to placeholder positions, include the type constant (see <link linkend="Qore_Type_Constants">Type Constants</link>) as an argument after the command string.  For BLOBs, use Binary, for CLOBs, use the string "clob" (constants will be provided in a future release).</para>
 	  </listitem>
 	</varlistentry>

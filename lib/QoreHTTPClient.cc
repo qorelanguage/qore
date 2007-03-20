@@ -223,7 +223,7 @@ int QoreHTTPClient::set_url_unlocked(const char *str, ExceptionSink* xsink)
 {
    QoreURL url(str);
    if (!url.isValid()) {
-      xsink->raiseException("HTTP-CLIENT-CONSTRUCTOR-ERROR", "url parameter cannot be parsed");
+      xsink->raiseException("HTTP-CLIENT-URL-ERROR", "url parameter cannot be parsed");
       return -1;
    }
 
@@ -257,13 +257,13 @@ int QoreHTTPClient::set_url_unlocked(const char *str, ExceptionSink* xsink)
 
    if (username.empty() && !password.empty())
    {
-      xsink->raiseException("HTTP-CLIENT-CONSTRUCTOR-ERROR", "invalid authorization credentials: password set without username");
+      xsink->raiseException("HTTP-CLIENT-URL-ERROR", "invalid authorization credentials: password set without username");
       return -1;
    }
 
    if (!username.empty() && password.empty())
    {
-      xsink->raiseException("HTTP-CLIENT-CONSTRUCTOR-ERROR", "invalid authorization credentials: username set without password");
+      xsink->raiseException("HTTP-CLIENT-URL-ERROR", "invalid authorization credentials: username set without password");
       return -1;
    }
 
@@ -358,7 +358,7 @@ int QoreHTTPClient::set_proxy_url_unlocked(const char *pstr, class ExceptionSink
 { 
    QoreURL url(pstr);
    if (!url.isValid()) {
-      xsink->raiseException("HTTP-CLIENT-SET-PROXY-ERROR", "proxy URL '%s' cannot be parsed", pstr);
+      xsink->raiseException("HTTP-CLIENT-URL-ERROR", "proxy URL '%s' cannot be parsed", pstr);
       return -1;
    }
 

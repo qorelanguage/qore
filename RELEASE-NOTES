@@ -140,6 +140,14 @@ $g = new Gate();
 }
 etc...
 
+*) SQL strings accept '%d' placeholder for integer values
+provides a mechanism to deal with DECIMAL (NUMERIC, NUMER) columns in a database-independent way (substitutes 'null' for NULL or NOTHING, the integer text for anything else).
+This ensures that values will be set properly even for databases such as PostgreSQL that do not convert from string or integer types to DECIMAL.
+
+*) other bugfixes, updates, etc
+see CHANGELOG for details
+
+
 ***********************
 *** LANGUAGE ISSUES ***
 ***********************
