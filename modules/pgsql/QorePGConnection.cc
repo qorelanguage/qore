@@ -850,7 +850,10 @@ int QorePGResult::add(class QoreNode *v, class ExceptionSink *xsink)
 	 return -1;
       class QoreNode *t = v->val.hash->getKeyValue("^value^");
       if (is_nothing(t) || is_null(t))
+      {
 	 paramTypes[nParams] = 0;
+	 paramValues[nParams] = 0;
+      }
       else
       {
 	 paramTypes[nParams] = type;
@@ -881,7 +884,10 @@ int QorePGResult::add(class QoreNode *v, class ExceptionSink *xsink)
    {
       int len = v->val.list->size();
       if (!len)
+      {
 	 paramTypes[nParams] = 0;
+	 paramValues[nParams] = 0;
+      }
       else
       {
 	 std::auto_ptr<QorePGBindArray> ba(new QorePGBindArray(conn));
@@ -900,6 +906,7 @@ int QorePGResult::add(class QoreNode *v, class ExceptionSink *xsink)
    else
    {
       paramTypes[nParams] = 0;
+      paramValues[nParams] = 0;
       xsink->raiseException("DBI:PGSQL:EXEC-EXCEPTION", "don't know how to bind type '%s'", v->type->getName());
       rc = -1;
    }
