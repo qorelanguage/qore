@@ -2,6 +2,8 @@
 #
 # by David Nichols
 
+# some helper functions, not really xml-rpc related
+
 sub get_program_name()
 {
     my $l = split("/", $ENV{"_"});

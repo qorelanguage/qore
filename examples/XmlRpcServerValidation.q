@@ -1,5 +1,7 @@
 #!/usr/bin/env qore
 
+# this program implements an HTTP server with XML-RPC and JSON-RPC handlers
+
 # require global variables to be declared with "our" before use
 %require-our
 %enable-all-warnings
@@ -7,16 +9,17 @@
 %include xmlrpc.ql
 %include HTTPServer.qc
 %include XmlRpcHandler.qc
+%include JsonRpcHandler.qc
 
 # default port for server
 const DefaultPort = 8081;
 
-const XmlRpcMethods =
+const ApiMethods =
     (
      ( "name"     : "^sys\\.shutdown\$",
        "text"     : "sys.shutdown",
        "function" : "shutdown",
-       "help"     : "shuts down this XML-RPC server",
+       "help"     : "shuts down this server",
        "logopt"   : 0 ),
      ( "name"     : "^validator1\\.arrayOfStructsTest\$",
        "text"     : "validator1.arrayOfStructsTest",
@@ -55,13 +58,13 @@ const XmlRpcMethods =
        "logopt"   : 0 )
  );
 
-our ($o, $http_server, $xml_rpc_handler);
+our ($o, $http_server);
 
 sub usage()
 {
     printf(
 "usage: %s [options]
-  -p,--port=arg     sets XML-RPC server port ([interface:]port)
+  -p,--port=arg     sets HTTP server port ([interface:]port)
   -h,--help         this help text
 ", get_program_name());
     exit(1);
@@ -175,14 +178,12 @@ sub main()
     $http_server = new HTTPServer("log", "log");
     $http_server.addListener($o.port);
 
-    # create XML-RPC handler
-    $xml_rpc_handler = new XmlRpcHandler(XmlRpcMethods);
-
     # add XML-RPC handler to HTTP server - will handle all requests with
     # URL RPC2* or content-type = "text/xml"
-    $http_server.setHandler("xmlrpc", "^RPC2*", "text/xml", $xml_rpc_handler);
-    
-    printf("HTTP Server listening on port '%s' for XML-RPC requests\n", $o.port);
+    $http_server.setHandler("xmlrpc", "^RPC2", "text/xml", new XmlRpcHandler(ApiMethods));
+    $http_server.setHandler("jsonrpc", "^JSON", "application/json", new JsonRpcHandler(ApiMethods));
+
+    printf("HTTP Server listening on port '%s' for XML-RPC and JSON-RPC requests\n", $o.port);
 }
 
 main();
