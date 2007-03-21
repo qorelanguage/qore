@@ -161,7 +161,7 @@ QoreNode* sybase_executor::exec_language_command(const sybase_command_wrapper& w
     return 0;
   }
 
-  return convert_sybase_output_to_Qore(w, get_encoding(), m_parsed_query, xsink);
+  return convert_sybase_output_to_Qore(w, get_encoding(), m_parsed_query, outputs, xsink);
 }
 
 //------------------------------------------------------------------------------
@@ -267,6 +267,7 @@ printf("### CALLING SELECT_ROWS\n");
 #  include "tests/sybase_executor_tests.cc"
 #  include "tests/sybase_executor_tests2.cc"
 #  include "tests/sybase_executor_select_tests.cc"
+#  include "tests/sybase_executor_nonselect_tests.cc"
 #endif
 
 // EOF

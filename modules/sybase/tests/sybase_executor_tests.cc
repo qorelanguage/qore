@@ -4,6 +4,7 @@
 #include "sybase_low_level_interface.h"
 #include <qore/BinaryObject.h>
 #include <qore/DateTime.h>
+#include <qore/Hash.h>
 
 namespace sybase_tests_672738 {
 
@@ -1522,7 +1523,7 @@ TEST()
 //------------------------------------------------------------------------------
 TEST()
 {
-/*###
+/*### - BUGBUGBUG
   // testing decimal parameter
   printf("running test %s[%d]\n", __FILE__, __LINE__);
   delete_decimal_table(true);
@@ -1556,7 +1557,6 @@ TEST()
   QoreNode* aux = new QoreNode(l);
   aux->deref(&xsink);
 */
-printf("#################################### ends\n");
 }
 
 //------------------------------------------------------------------------------
@@ -1609,7 +1609,7 @@ TEST()
 //------------------------------------------------------------------------------
 TEST()
 {
-/*###
+/*### - BUGBUGBUG
   // testing numeric parameter
   printf("running test %s[%d]\n", __FILE__, __LINE__);
   delete_numeric_table(true);
@@ -1643,6 +1643,50 @@ TEST()
   QoreNode* aux = new QoreNode(l);
   aux->deref(&xsink);
 */
+}
+
+//------------------------------------------------------------------------------
+TEST()
+{
+  // testing generated name for calculated output
+  printf("running test %s[%d]\n", __FILE__, __LINE__);
+  delete_tinyint_table(true);
+  create_tinyint_table();
+  ON_BLOCK_EXIT(delete_tinyint_table);
+
+  sybase_executor executor;
+  executor.m_parsed_query.m_result_query_text = "insert into tinyint_table values(1)";
+  executor.m_parsed_query.m_is_procedure = false;
+
+  sybase_connection conn;
+  ExceptionSink xsink;
+  conn.init(SYBASE_TEST_SETTINGS, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  executor.m_test_encoding = QCS_DEFAULT;
+  executor.m_test_autocommit = true;
+  executor.m_test_connection = &conn;
+  List* l= new List;
+  executor.m_args = l;
+  QoreNode* n = executor.exec(&xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  assert(!n);
+
+  executor.m_parsed_query.m_result_query_text = "select 2 * tinyint_col  from tinyint_table";
+  n = executor.select(&xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  assert(n);
+  assert(n->type == NT_HASH);
+  Hash* h = n->val.hash;
+  assert(h->size() == 1);
+  QoreNode* x = h->getKeyValue("column1"); // always generated!
+  assert(x->type == NT_INT);
+  assert(x->val.intval == 2);
 }
 
 } // namespace

@@ -32,10 +32,11 @@ class sybase_command_wrapper;
 class ExceptionSink;
 
 #include "sybase_query_parser.h"
+#include "sybase_low_level_interface.h"
 
 //------------------------------------------------------------------------------
 // Read output of a command (SQL or procedure call) and convert it into Qore node (hash or list of hashes)
-extern QoreNode* convert_sybase_output_to_Qore(const sybase_command_wrapper& wrapper, const QoreEncoding* encoding, const processed_sybase_query& query_info, ExceptionSink* xsink);
+extern QoreNode* convert_sybase_output_to_Qore(const sybase_command_wrapper& wrapper, const QoreEncoding* encoding, const processed_sybase_query& query_info, std::vector<parameter_info_t>& outputs_info, ExceptionSink* xsink);
 
 #endif
 

@@ -82,10 +82,11 @@ static void free_coldata(EX_COLUMN_DATA* coldata, CS_INT cnt)
 }
 
 //------------------------------------------------------------------------------
-static void extract_row_data_to_Hash(Hash* out, unsigned col_index, CS_DATAFMT* datafmt, EX_COLUMN_DATA* coldata, const QoreEncoding* encoding, ExceptionSink* xsink)
+static void extract_row_data_to_Hash(Hash* out, unsigned col_index, CS_DATAFMT* datafmt, EX_COLUMN_DATA* coldata, const QoreEncoding* encoding, std::vector<parameter_info_t>& outputs_info, ExceptionSink* xsink)
 {
   char buffer[20];
   sprintf(buffer, "column%d", (int)(col_index + 1));
+  // TBD - use the name from outputs if exists
 
   std::auto_ptr<QoreString> key(new QoreString(buffer));
   QoreNode* v = 0;
@@ -172,12 +173,19 @@ static void extract_row_data_to_Hash(Hash* out, unsigned col_index, CS_DATAFMT* 
 
 //------------------------------------------------------------------------------
 // read single row
-static void sybase_read_row(const sybase_command_wrapper& wrapper, QoreNode*& out, const QoreEncoding* encoding, ExceptionSink* xsink)
+static void sybase_read_row(const sybase_command_wrapper& wrapper, QoreNode*& out, const QoreEncoding* encoding, std::vector<parameter_info_t>& outputs_info, ExceptionSink* xsink)
 {
   unsigned num_cols = sybase_get_columns_count(wrapper, xsink);
   if (xsink->isException()) {
     return;
   }
+  if (num_cols != outputs_info.size()) {
+    // something strange: at least the out column names are not reliable 
+    // so generated names will be always used
+    assert(false);
+    outputs_info.clear();
+  }
+
 printf("#### WEH HAVE %d columns to read\n", num_cols);
 
   // allocate helper structures for read data 
@@ -246,14 +254,12 @@ printf("#### WEH HAVE %d columns to read\n", num_cols);
 
   // read the row
   CS_INT rows_read = 0;
-printf("#### before fetching rows\n");
   while ((err = ct_fetch(wrapper(), CS_UNUSED, CS_UNUSED, CS_UNUSED, &rows_read)) == CS_SUCCEED) {
-printf("##### FETSING ONE ROW NOW\n");
     // process the row
     Hash* h = new Hash;
 
     for (unsigned j = 0; j < num_cols; ++j) {
-      extract_row_data_to_Hash(h, j, &datafmt[j], &coldata[j], encoding, xsink);
+      extract_row_data_to_Hash(h, j, &datafmt[j], &coldata[j], encoding, outputs_info, xsink);
       if (xsink->isException()) {
         assert(false);
         QoreNode* aux = new QoreNode(h);
@@ -287,16 +293,13 @@ printf("##### FETSING ONE ROW NOW\n");
 
 
 //------------------------------------------------------------------------------
-QoreNode* convert_sybase_output_to_Qore(const sybase_command_wrapper& wrapper, const QoreEncoding* encoding, const processed_sybase_query& query_info, ExceptionSink* xsink)
+QoreNode* convert_sybase_output_to_Qore(const sybase_command_wrapper& wrapper, const QoreEncoding* encoding, const processed_sybase_query& query_info, std::vector<parameter_info_t>& outputs_info, ExceptionSink* xsink)
 {
   QoreNode* result = 0;
   CS_RETCODE err;
-  bool status_read = false;
 
-printf("### calling convert_sybase_output_to_Qore\n");
   CS_INT result_type; 
-  while (ct_results(wrapper(), &result_type) == CS_SUCCEED) {
-printf("### calling convert_sybase_output_to_Qore returned result_type %d\n", (int)result_type);
+  while ((err = ct_results(wrapper(), &result_type)) == CS_SUCCEED) {
     switch (result_type) {
     case CS_CURSOR_RESULT:
       assert(false); // cannot happen, bug in driver
@@ -306,43 +309,24 @@ printf("### calling convert_sybase_output_to_Qore returned result_type %d\n", (i
     case CS_COMPUTE_RESULT:
     case CS_PARAM_RESULT: // procedure call
     case CS_ROW_RESULT:
-      if (status_read) {
-        assert(false); // algorithm error
-        xsink->raiseException("DBI-EXEC-EXCEPTION", "ct_results() returned both status and row(s)");
-        return result;
-      }
-printf("### ROW BEING READ pointer = %p\n", result);
       // 0 or more rows
-      sybase_read_row(wrapper, result, encoding, xsink);
+      sybase_read_row(wrapper, result, encoding, outputs_info, xsink);
       if (xsink->isException()) {
         return result;
       }
       break;
 
    case CS_STATUS_RESULT:
-printf("#### reading status result\n");
-      // single value
-      if (result) { // cannot happen?
-        assert(false);
-        xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() returned CS_STATUS_RESULT, some values already read");
-        return result;
-      }
-      sybase_read_row(wrapper, result, encoding, xsink);
+   { // status return codes are not used by Qore
+      QoreNode* dummy = 0;
+      sybase_read_row(wrapper, dummy, encoding, outputs_info, xsink);
+      if (dummy) dummy->deref(xsink);
       if (xsink->isException()) {
         assert(false);
         return result;
       }
-      status_read = true;
-{Hash* h = result->val.hash;//###
-HashIterator it(h);
-while (it.next()) {
-QoreNode*val = it.getValue();
-printf("#### hash value is of type %s\n", val->type->getName());
-const char* s = val->type->getAsString(val, 0, 0)->getBuffer();
-printf("### hash value %s\n", s);
-}
-}
       break;
+   }
 
     case CS_COMPUTEFMT_RESULT:
       // Sybase bug???
@@ -363,23 +347,23 @@ printf("### hash value %s\n", s);
       return result;
 
     case CS_DESCRIBE_RESULT:
-      // Sybase bug?
+      // not expected here
       assert(false);
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() failed with result code CS_DESCRIBE_RESULTS");
       return result;
 
     case CS_CMD_DONE:
       // e.g. update, ct_res_info() could be used to get # of affected rows
-      return result;
+      goto finish;
 
     case CS_CMD_FAIL:
       assert(false);
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() failed with result code CS_CMD_FAIL");
       return result;
 
-    case CS_CMD_SUCCEED: 
-      assert(result);
-      return result;
+    case CS_CMD_SUCCEED:
+      // current command succeeded, there may be more. CS_CMD_DONE is when we should return
+      continue; 
 
     default:
       assert(false);
@@ -388,7 +372,8 @@ printf("### hash value %s\n", s);
     } // switch
   } // while
 
-  if (err != CS_END_RESULTS) {
+finish:
+  if (err != CS_END_RESULTS && err != CS_SUCCEED) {
     assert(false);
     xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() finished with unexpected result %d", (int)err); 
   }
