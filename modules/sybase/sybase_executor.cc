@@ -86,9 +86,24 @@ sybase_executor::~sybase_executor()
 //------------------------------------------------------------------------------
 QoreNode* sybase_executor::exec_procedure_call(const sybase_command_wrapper& w, ExceptionSink* xsink)
 {
-
+/*
+  std::vector<RPC_parameter_info_t> RPC_parameters;
+  for (unsigned i = 0, n = m_parsed_query.m_parameters.size(); i != n; ++i) {
+    int type = m_parsed_query.m_parameters[i].
+    RPC_parameters.push_back(RPC_parameter_info_t());
+  }
+*/
 /*### TBD
   execute_RPC_call(w, m_parsed_query.m_result_query_text.c_str(), ..., xsink);
+
+extern void execute_RPC_call(
+  const sybase_command_wrapper& wrapper,
+  const QoreEncoding* encoding,
+  const char* RPC_command, // just name, w/o "exec[ute]" or parameters list
+  const std::vector<RPC_parameter_info_t>& parameters,
+  ExceptionSink* xsink
+  );
+
   const sybase_command_wrapper& wrapper,
   const char* RPC_command, // just name, w/o "exec[ute]" or parameters list
   const std::vector<RPC_parameter_info_t>& parameters,
@@ -169,6 +184,7 @@ QoreNode* sybase_executor::exec_impl(ExceptionSink* xsink)
 //------------------------------------------------------------------------------
 QoreNode* sybase_executor::exec(ExceptionSink *xsink)
 {
+printf("### CALLING EXEC\n");
   QoreNode* n = exec_impl(xsink);
   if (n) n->deref(xsink); // not needed
   if (xsink->isException()) {
@@ -184,6 +200,7 @@ QoreNode* sybase_executor::exec(ExceptionSink *xsink)
 //------------------------------------------------------------------------------
 QoreNode* sybase_executor::select(ExceptionSink *xsink)
 {
+printf("### CALLING SELECT\n");
   if (m_parsed_query.m_is_procedure) {
     assert(false);
     xsink->raiseException("DBI-EXEC-EXCEPTION", "A procedure call cannot select row");
@@ -192,6 +209,7 @@ QoreNode* sybase_executor::select(ExceptionSink *xsink)
 
   QoreNode* n = exec_impl(xsink);
   if (xsink->isException()) {
+    assert(false);
     if (n) n->deref(xsink);
     return 0;
   }
@@ -215,6 +233,7 @@ QoreNode* sybase_executor::select(ExceptionSink *xsink)
 //------------------------------------------------------------------------------
 QoreNode* sybase_executor::selectRows(ExceptionSink *xsink)
 {
+printf("### CALLING SELECT_ROWS\n");
   if (m_parsed_query.m_is_procedure) {
     assert(false);
     xsink->raiseException("DBI-EXEC-EXCEPTION", "A procedure call cannot select row");
@@ -224,6 +243,7 @@ QoreNode* sybase_executor::selectRows(ExceptionSink *xsink)
   QoreNode* n = exec_impl(xsink);
   if (xsink->isException()) {
     if (n) n->deref(xsink);
+    assert(false);
     return 0;
   }
   if (n) {
@@ -234,6 +254,10 @@ QoreNode* sybase_executor::selectRows(ExceptionSink *xsink)
         xsink->raiseException("DBI-EXEC-EXCEPTION", "Internal error - unexpected type returned");
         return 0;
       }
+      // always turn into a list
+      List* l = new List;
+      l->push(n);
+      n = new QoreNode(l);
     }
   }
   return n;

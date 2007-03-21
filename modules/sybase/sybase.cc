@@ -183,6 +183,7 @@ static int sybase_close(Datasource *ds)
 //------------------------------------------------------------------------------
 static QoreNode* sybase_select(Datasource *ds, QoreString *qstr, List *args, ExceptionSink *xsink)
 {
+printf("### sybase_select()\n");
   sybase_executor executor(ds, qstr, args, xsink);
   if (xsink->isException()) {
     return 0;
@@ -193,6 +194,7 @@ static QoreNode* sybase_select(Datasource *ds, QoreString *qstr, List *args, Exc
 //------------------------------------------------------------------------------
 static QoreNode* sybase_select_rows(Datasource *ds, QoreString *qstr, List *args, ExceptionSink *xsink)
 {
+printf("### sybase_select_rows()\n");
   sybase_executor executor(ds, qstr, args, xsink);
   if (xsink->isException()) {
     return 0;
@@ -203,6 +205,7 @@ static QoreNode* sybase_select_rows(Datasource *ds, QoreString *qstr, List *args
 //------------------------------------------------------------------------------
 static QoreNode* sybase_exec(Datasource *ds, QoreString *qstr, List *args, ExceptionSink *xsink)
 {
+printf("### sybase_exec()\n");
   sybase_executor executor(ds, qstr, args, xsink);
   if (xsink->isException()) {
     return 0;

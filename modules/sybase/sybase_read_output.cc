@@ -252,10 +252,12 @@ static void sybase_read_row(const sybase_command_wrapper& wrapper, QoreNode*& ou
     for (unsigned j = 0; j < num_cols; ++j) {
       extract_row_data_to_Hash(h, j, &datafmt[j], &coldata[j], encoding, xsink);
       if (xsink->isException()) {
+        assert(false);
         QoreNode* aux = new QoreNode(h);
         aux->deref(xsink);
         return;
       }
+      assert(h->size() > 0);
     }
 
     if (out == 0) {
@@ -371,7 +373,8 @@ printf("### hash value %s\n", s);
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() failed with result code CS_CMD_FAIL");
       return result;
 
-    case CS_CMD_SUCCEED: // no data returned
+    case CS_CMD_SUCCEED: 
+      assert(result);
       return result;
 
     default:
