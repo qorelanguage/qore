@@ -72,11 +72,17 @@ static void parse_rpc_parameters(const char* parameter_list, processed_sybase_qu
     // input parameter
     if (*s == '%') {
       ++s;
-      if (*s != 'v') {
-        xsink->raiseException("DBI-EXEC-EXCEPTION", "%%v expected, only %% found in procedure parameter list");
+      if (*s != 'v' && *s != 'd') {
+        xsink->raiseException("DBI-EXEC-EXCEPTION", "%%v or %%d expected in procedure parameter list");
         return;
       }
-      result.m_parameters.push_back(sybase_query_parameter());
+      if (*s == 'v') {
+        result.m_parameters.push_back(sybase_query_parameter());
+      } else {
+        // %d was introduced due to PostgreSQL limitations, it has not a much of use in Sybase 
+        // but is handled due to compatibility
+        result.m_parameters.push_back(sybase_query_parameter(true));
+      }
       ++s;
       while (isspace(*s)) ++s;
       if (*s == ')') return;

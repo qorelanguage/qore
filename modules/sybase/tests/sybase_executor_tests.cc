@@ -1100,6 +1100,7 @@ TEST()
 //------------------------------------------------------------------------------
 TEST()
 {
+/*###
   // testing when parameter is NULL
   printf("running test %s[%d]\n", __FILE__, __LINE__);
   delete_bit_table(true);
@@ -1132,6 +1133,7 @@ TEST()
 
   QoreNode* aux = new QoreNode(l);
   aux->deref(&xsink);
+*/
 }
 
 //------------------------------------------------------------------------------
@@ -1520,6 +1522,7 @@ TEST()
 //------------------------------------------------------------------------------
 TEST()
 {
+/*###
   // testing decimal parameter
   printf("running test %s[%d]\n", __FILE__, __LINE__);
   delete_decimal_table(true);
@@ -1552,6 +1555,8 @@ TEST()
 
   QoreNode* aux = new QoreNode(l);
   aux->deref(&xsink);
+*/
+printf("#################################### ends\n");
 }
 
 //------------------------------------------------------------------------------
@@ -1604,6 +1609,7 @@ TEST()
 //------------------------------------------------------------------------------
 TEST()
 {
+/*###
   // testing numeric parameter
   printf("running test %s[%d]\n", __FILE__, __LINE__);
   delete_numeric_table(true);
@@ -1636,6 +1642,7 @@ TEST()
 
   QoreNode* aux = new QoreNode(l);
   aux->deref(&xsink);
+*/
 }
 
 } // namespace

@@ -410,6 +410,7 @@ void sybase_low_level_bind_parameters(
     return;
   }
 
+  // bind parameters (by position)
   for (unsigned i = 0, n = parameters.size(); i != n; ++i) {
     sybase_ct_param(wrapper, i, encoding, parameters[i].m_type, parameters[i].m_node, xsink); 
     if (xsink->isException()) {
@@ -823,7 +824,7 @@ void sybase_ct_param(
   
   CS_RETCODE err;
   
-  if (is_null(data)) {
+  if (data->type == NT_NULL || data->type == NT_NOTHING) {
     // SQL NULL value
     err = ct_param(wrapper(), &datafmt, 0, CS_UNUSED, -1);
     if (err != CS_SUCCEED) {

@@ -60,7 +60,18 @@ sybase_executor::sybase_executor(Datasource* ds, QoreString* ostr, List *args, E
   for (unsigned i = 0, n = m_parsed_query.m_parameters.size(); i != n; ++i) {
     if (!m_parsed_query.m_parameters[i].is_input_parameter()) {
       if (m_parsed_query.m_is_procedure == false) {
+        assert(false);
         xsink->raiseException("DBI-EXEC-PARSE-EXCEPTION", "Only procedure calls can have placeholder output parameters");
+        return;
+      }
+    }
+    // check for the %d
+    if (m_parsed_query.m_parameters[i].m_is_integer_type) {
+      QoreNode* n = args->retrieve_entry(i);
+      assert(n);
+      if (n->type != NT_NULL && n->type != NT_NOTHING && n->type != NT_INT) {
+        assert(false);
+        xsink->raiseException("DBI-EXEC-PARSE-EXCEPTION", "Argument on position %d: expected integer or NULL", i + 1);
         return;
       }
     }
@@ -174,6 +185,7 @@ QoreNode* sybase_executor::exec(ExceptionSink *xsink)
 QoreNode* sybase_executor::select(ExceptionSink *xsink)
 {
   if (m_parsed_query.m_is_procedure) {
+    assert(false);
     xsink->raiseException("DBI-EXEC-EXCEPTION", "A procedure call cannot select row");
     return 0;
   }
@@ -186,11 +198,13 @@ QoreNode* sybase_executor::select(ExceptionSink *xsink)
   if (n) {
     if (n->type == NT_LIST) {
       n->deref(xsink);
+      assert(false);
       xsink->raiseException("DBI-EXEC-EXCEPTION", "SQL command returned more than one row");
       return 0;
     }
     if (n->type != NT_HASH) {
       n->deref(xsink);
+      assert(false);
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Internal error - unexpected type returned");
       return 0;
     }
@@ -202,6 +216,7 @@ QoreNode* sybase_executor::select(ExceptionSink *xsink)
 QoreNode* sybase_executor::selectRows(ExceptionSink *xsink)
 {
   if (m_parsed_query.m_is_procedure) {
+    assert(false);
     xsink->raiseException("DBI-EXEC-EXCEPTION", "A procedure call cannot select row");
     return 0;
   }
@@ -215,6 +230,7 @@ QoreNode* sybase_executor::selectRows(ExceptionSink *xsink)
     if (n->type != NT_LIST) {
       if (n->type != NT_HASH) {
         n->deref(xsink);
+        assert(false);
         xsink->raiseException("DBI-EXEC-EXCEPTION", "Internal error - unexpected type returned");
         return 0;
       }

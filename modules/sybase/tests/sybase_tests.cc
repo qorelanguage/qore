@@ -1,6 +1,7 @@
 #ifdef DEBUG
 
 #include "sybase_tests_common.h"
+#include "temporary.cc"
 
 namespace sybase_tests_962876 {
 
@@ -745,6 +746,7 @@ TEST()
 } 
 
 } // namespace
+
 #endif
 
 // EOF

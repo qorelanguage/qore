@@ -43,6 +43,7 @@
 #include "sybase_connection.h"
 #include "sybase_low_level_interface.h"
 #include "QoreSybaseMapper.h"
+#include "sybase_executor.h"
 
 #ifdef DEBUG
 #  define private public
@@ -100,7 +101,7 @@ QoreNode* runRecentSybaseTests(QoreNode* params, ExceptionSink* xsink)
 }
 #endif
 
-#include "temporary.cc"
+//### #include "temporary.cc"
 
 //------------------------------------------------------------------------------
 // copied from Postgres module
@@ -182,31 +183,31 @@ static int sybase_close(Datasource *ds)
 //------------------------------------------------------------------------------
 static QoreNode* sybase_select(Datasource *ds, QoreString *qstr, List *args, ExceptionSink *xsink)
 {
-  SybaseBindGroup grp(ds, qstr, args, xsink);
+  sybase_executor executor(ds, qstr, args, xsink);
   if (xsink->isException()) {
     return 0;
   }
-  return grp.select(xsink);
+  return executor.select(xsink);
 }
 
 //------------------------------------------------------------------------------
 static QoreNode* sybase_select_rows(Datasource *ds, QoreString *qstr, List *args, ExceptionSink *xsink)
 {
-  SybaseBindGroup grp(ds, qstr, args, xsink);
+  sybase_executor executor(ds, qstr, args, xsink);
   if (xsink->isException()) {
     return 0;
   }
-  return grp.selectRows(xsink);
+  return executor.selectRows(xsink);
 }
 
 //------------------------------------------------------------------------------
 static QoreNode* sybase_exec(Datasource *ds, QoreString *qstr, List *args, ExceptionSink *xsink)
 {
-  SybaseBindGroup grp(ds, qstr, args, xsink);
+  sybase_executor executor(ds, qstr, args, xsink);
   if (xsink->isException()) {
     return 0;
   }
-  return grp.exec(xsink);
+  return executor.exec(xsink);
 }
 
 //------------------------------------------------------------------------------

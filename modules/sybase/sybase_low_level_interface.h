@@ -95,7 +95,7 @@ extern std::vector<parameter_info_t> sybase_low_level_get_output_data_info(const
 struct bind_parameter_t 
 {
   bind_parameter_t(int t, QoreNode* n) 
-  : m_type(t), m_node(n) {}
+  : m_type(t), m_node(n)  {}
 
   int m_type; // e.g. CS_INT_TYPE
   QoreNode* m_node; // not owned

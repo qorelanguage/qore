@@ -35,13 +35,20 @@ class ExceptionSink;
 // description of extracted query parameter (value to bind or a placeholder name)
 struct sybase_query_parameter
 {
-  sybase_query_parameter() : m_input_parameter(true) {}
-  sybase_query_parameter(const char* s) : m_input_parameter(false), m_placeholder(s) {}
+  sybase_query_parameter() // for %v
+  : m_input_parameter(true), m_is_integer_type(false) {}
 
-  bool m_input_parameter; // if true then the %v was found
+  sybase_query_parameter(bool) 
+  : m_input_parameter(true), m_is_integer_type(true) {} // for %d
+
+  sybase_query_parameter(const char* s)  // for a placeholder
+  : m_input_parameter(false), m_placeholder(s), m_is_integer_type(false) {}
+
+  bool m_input_parameter; // if true then the %v or %d was found
   std::string m_placeholder; // if non-empty then the :name was found and 'name' is placed here
 
   bool is_input_parameter() const { return m_input_parameter;  } // as opposite to a placeholder
+  bool m_is_integer_type; // true if %d is found (could be NULL, though)
 };
 
 //------------------------------------------------------------------------------
