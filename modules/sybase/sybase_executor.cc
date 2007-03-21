@@ -184,7 +184,6 @@ QoreNode* sybase_executor::exec_impl(ExceptionSink* xsink)
 //------------------------------------------------------------------------------
 QoreNode* sybase_executor::exec(ExceptionSink *xsink)
 {
-printf("### CALLING EXEC\n");
   QoreNode* n = exec_impl(xsink);
   if (n) n->deref(xsink); // not needed
   if (xsink->isException()) {
@@ -200,7 +199,6 @@ printf("### CALLING EXEC\n");
 //------------------------------------------------------------------------------
 QoreNode* sybase_executor::select(ExceptionSink *xsink)
 {
-printf("### CALLING SELECT\n");
   if (m_parsed_query.m_is_procedure) {
     assert(false);
     xsink->raiseException("DBI-EXEC-EXCEPTION", "A procedure call cannot select row");
@@ -233,7 +231,6 @@ printf("### CALLING SELECT\n");
 //------------------------------------------------------------------------------
 QoreNode* sybase_executor::selectRows(ExceptionSink *xsink)
 {
-printf("### CALLING SELECT_ROWS\n");
   if (m_parsed_query.m_is_procedure) {
     assert(false);
     xsink->raiseException("DBI-EXEC-EXCEPTION", "A procedure call cannot select row");
@@ -268,6 +265,7 @@ printf("### CALLING SELECT_ROWS\n");
 #  include "tests/sybase_executor_tests2.cc"
 #  include "tests/sybase_executor_select_tests.cc"
 #  include "tests/sybase_executor_nonselect_tests.cc"
+#  include "tests/sybase_executor_rpc_tests.cc"
 #endif
 
 // EOF
