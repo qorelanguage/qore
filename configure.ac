@@ -1255,6 +1255,9 @@ check_sybase()
 
     if test -f "$dir/lib/libsybcs_r.${SHLIB_SUFFIX}"; then
        with_sybase_libs=$dir/lib
+    elif test -f "$dir/lib${LIBSUFFIX}/libct.${SHLIB_SUFFIX}"; then
+       with_sybase_libs=$dir/lib${LIBSUFFIX}
+       freetds=yes
     else
        unset with_sybase_includes
     fi
@@ -1289,10 +1292,10 @@ if test "${with_sybase}" != "no"; then
    done
 
    if test -n "$with_sybase_includes"; then
-      if test -n "$sybase_static"; then
-	 AC_MSG_RESULT([includes=$with_sybase_includes, libs=$with_sybase_libs (static)])
+      if test -n "$freetds"; then
+	 AC_MSG_RESULT([includes=$with_sybase_includes, libs=$with_sybase_libs (FreeTDS)])
       else
-	 AC_MSG_RESULT([includes=$with_sybase_includes, libs=$with_sybase_libs (shared)])
+	 AC_MSG_RESULT([includes=$with_sybase_includes, libs=$with_sybase_libs (Sybase OCS)])
       fi
       with_sybase=yes
    else
@@ -1302,7 +1305,11 @@ fi
 
 if test "${with_sybase}" = yes; then
    SYBASE_INCLUDES="-I$with_sybase_includes"
-   SYBASE_LIBS="-L$with_sybase_libs -lsybdb -lsybcs_r -lsybintl_r -lsybblk_r -lsybcomn_r -lsybct_r -lsybunic -lsybtcl_r"
+   if test -n "$freetds"; then
+      SYBASE_LIBS="-L$with_sybase_libs -lsybdb -lct -ltds"
+   else
+      SYBASE_LIBS="-L$with_sybase_libs -lsybdb -lsybcs_r -lsybintl_r -lsybblk_r -lsybcomn_r -lsybct_r -lsybunic -lsybtcl_r"
+   fi
 
    # check if C++ compiler can link with MYSQL libs
    SAVE_CXXFLAGS="$CXXFLAGS"

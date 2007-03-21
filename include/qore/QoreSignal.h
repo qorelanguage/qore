@@ -34,7 +34,7 @@
 #define QORE_SIGNAL_MAX 128
 #endif
 
-typedef std::map<int, class Function *> m_int_func_t;
+typedef std::map<int, class UserFunction *> m_int_func_t;
 
 class QoreSignalManager {
    private:
@@ -43,9 +43,9 @@ class QoreSignalManager {
    public:
       DLLLOCAL QoreSignalManager();
       DLLLOCAL ~QoreSignalManager();
-      DLLLOCAL void setHandler(int sig, class Function *f);
+      DLLLOCAL void setHandler(int sig, class UserFunction *f);
       DLLLOCAL void removeHandler(int sig);
-      DLLLOCAL class Function *getHandler(int sig);
+      DLLLOCAL class UserFunction *getHandler(int sig);
       DLLLOCAL void handleSignal(int sig);
 };
 

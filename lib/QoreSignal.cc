@@ -33,10 +33,9 @@ QoreSignalManager::QoreSignalManager()
 
 QoreSignalManager::~QoreSignalManager()
 {
-   smap.clear();
 }
 
-void QoreSignalManager::setHandler(int sig, class Function *f)
+void QoreSignalManager::setHandler(int sig, class UserFunction *f)
 {
    smap[sig] = f;
 }
@@ -46,7 +45,7 @@ void QoreSignalManager::removeHandler(int sig)
    smap.erase(sig);
 }
 
-class Function *QoreSignalManager::getHandler(int sig)
+class UserFunction *QoreSignalManager::getHandler(int sig)
 {
    m_int_func_t::iterator i = smap.find(sig);
    if (i == smap.end())

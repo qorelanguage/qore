@@ -47,7 +47,7 @@ sybase_executor::sybase_executor(Datasource* ds, QoreString* ostr, List *args, E
 : m_ds(ds),
   m_args(args)
 {
-  std::auto_ptr<QoreString> cmd(ostr->convertEncoding(get_encoding(), xsink));
+   std::auto_ptr<QoreString> cmd(ostr->convertEncoding(get_encoding(), xsink));
   if (xsink->isException()) {
     return;
   }

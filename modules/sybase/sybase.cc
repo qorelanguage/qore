@@ -45,6 +45,10 @@
 #include "QoreSybaseMapper.h"
 #include "sybase_executor.h"
 
+#ifndef CS_MAX_CHAR
+#define CS_MAX_CHAR 256
+#endif
+
 #ifdef DEBUG
 #  define private public
 #endif
@@ -112,7 +116,7 @@ static void set_encoding(Datasource* ds, ExceptionSink* xsink)
   } else  {
     char *enc = (char *)QoreSybaseMapper::getSybaseEncoding(QCS_DEFAULT);
     if (!enc) {
-      xsink->raiseException("DBI:SYBASE:UNKNOWN-CHARACTER-SET", "cannot find the PostgreSQL character encoding equivalent for '%s'", QCS_DEFAULT->getCode());
+      xsink->raiseException("DBI:SYBASE:UNKNOWN-CHARACTER-SET", "cannot find the Sybase character encoding equivalent for '%s'", QCS_DEFAULT->getCode());
       return;
     }
     ds->setDBEncoding(enc);
@@ -130,11 +134,6 @@ static int sybase_open(Datasource *ds, ExceptionSink *xsink)
     traceout("oracle_open()");
     return -1;
   }
-  if (!ds->getPassword()) {
-    xsink->raiseException("DATASOURCE-MISSING-PASSWORD", "Datasource has an empty password parameter");
-    traceout("oracle_open()");
-    return -1;
-  }
   if (!ds->getDBName()) {
     xsink->raiseException("DATASOURCE-MISSING-DBNAME", "Datasource has an empty dbname parameter");
     traceout("oracle_open()");
@@ -142,7 +141,7 @@ static int sybase_open(Datasource *ds, ExceptionSink *xsink)
   }
 
   std::auto_ptr<sybase_connection> sc(new sybase_connection);
-  sc->init(ds->getUsername(), ds->getPassword(), ds->getDBName(), xsink);
+  sc->init(ds->getUsername(), ds->getPassword() ? ds->getPassword() : "", ds->getDBName(), xsink);
   if (xsink->isException()) {
     return -1;  
   }
@@ -296,15 +295,33 @@ static void add_constants(Namespace* ns)
   ns->addConstant("CS_VOID_TYPE", new QoreNode((int64)CS_VOID_TYPE));
   ns->addConstant("CS_USHORT_TYPE", new QoreNode((int64)CS_USHORT_TYPE));
   ns->addConstant("CS_UNICHAR_TYPE", new QoreNode((int64)CS_UNICHAR_TYPE));
+#ifdef CS_BLOB_TYPE
   ns->addConstant("CS_BLOB_TYPE", new QoreNode((int64)CS_BLOB_TYPE));
+#endif
+#ifdef CS_DATE_TYPE
   ns->addConstant("CS_DATE_TYPE", new QoreNode((int64)CS_DATE_TYPE));
+#endif
+#ifdef CS_TIME_TYPE
   ns->addConstant("CS_TIME_TYPE", new QoreNode((int64)CS_TIME_TYPE));
+#endif
+#ifdef CS_UNITEXT_TYPE
   ns->addConstant("CS_UNITEXT_TYPE", new QoreNode((int64)CS_UNITEXT_TYPE));
+#endif
+#ifdef CS_BIGINT_TYPE
   ns->addConstant("CS_BIGINT_TYPE", new QoreNode((int64)CS_BIGINT_TYPE));
+#endif
+#ifdef CS_USMALLINT_TYPE
   ns->addConstant("CS_USMALLINT_TYPE", new QoreNode((int64)CS_USMALLINT_TYPE));
+#endif
+#ifdef CS_UINT_TYPE
   ns->addConstant("CS_UINT_TYPE", new QoreNode((int64)CS_UINT_TYPE));
+#endif
+#ifdef CS_UBIGINT_TYPE
   ns->addConstant("CS_UBIGINT_TYPE", new QoreNode((int64)CS_UBIGINT_TYPE));
+#endif
+#ifdef CS_XML_TYPE
   ns->addConstant("CS_XML_TYPE", new QoreNode((int64)CS_XML_TYPE));
+#endif
 }
 
 //------------------------------------------------------------------------------
