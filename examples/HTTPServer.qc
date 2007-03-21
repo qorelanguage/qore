@@ -3,13 +3,18 @@
 # *) not really HTTP 1.1 compliant
 # *) no real content-type handling
 
+# changes for v0.2.1:
+# * implementing logic to handle "deflate" and "gzip" content-encoding
+# * chunked content-encoding supported for POSTs
+# * Date: header always sent as per HTTP 1.1 spec
+
 # changes for v0.2.0: 
 # * modular/multiple listener support added
 # * https support added
 
 namespace HTTPServer
 {
-    const Version = "0.2.0";
+    const Version = "0.2.1";
 
     const ReadTimeout = 30000;  # recvs timeout after 30 seconds
     const PollTimeout = 5000;   # check for exit every 5 seconds while waiting
@@ -104,7 +109,8 @@ class HTTPServer::Listener inherits Qore::Socket {
 	    throw "LISTENER-CONSTRUCTOR-ERROR", "a certificate PEM file must be given if a private key file is passed";
 
 	# bind to socket and reuse address
-	$.bind($sock, True);
+	if ($.bind($sock, True))
+	    throw "BIND-ERROR", strerror(errno());
 
 	# save socket port/path
 	$.socket = $sock;
@@ -140,8 +146,9 @@ class HTTPServer::Listener inherits Qore::Socket {
 	# wake up main listener thread
 	try {
 	    my $s = new Socket();
+	    #printf("Listener::stop() socket=%N\n", $.socket);
 	    if (type($.socket) == Type::Int)
-		$s.connect("localhost:" + $.socket);
+		$s.connect("127.0.0.1:" + $.socket);
 	    else
 		$s.connect($.socket);
 	    $s.send("quit");
@@ -271,6 +278,24 @@ class HTTPServer::Listener inherits Qore::Socket {
 		if ($hdr.path =~ /^\//)
 		    $hdr.path = substr($hdr.path, 1);
 
+		# process ascii encodings in url if present
+		if (elements (my $xl = ($hdr.path =~ x/(%[0-9a-fA-F][0-9a-fA-F])/)))
+		{
+		    foreach my $x in ($xl)
+		    {
+			my $i = index($hdr.path, $x);
+			#printf("x=%n i=%d %n %n %n\n", $x, $i, substr($hdr.path, 0, $i), chr(hexToInt(substr($x, 1))), substr($hdr.path, $i + 3));
+			try {
+			    $hdr.path = substr($hdr.path, 0, $i) + chr(hexToInt(substr($x, 1))) + substr($hdr.path, $i + 3);
+			}
+			catch ()
+			{
+			    # break if there are invalid hex digits
+			    break;
+			}
+		    }
+		}
+
 		# split content-type fields
 		my $ct = split(";", $hdr."content-type");
 		foreach my $c in (\$ct)
@@ -294,6 +319,22 @@ class HTTPServer::Listener inherits Qore::Socket {
 		my $close = (inlist("close", $conn) || ($hdr.http_version != "1.1" && !inlist("keep-alive", $conn)));
 		#printf("conn=%n, close=%n\n", $conn, $close);
 
+		if ($hdr.method != "POST" && ($hdr."content-length" || $hdr."transfer-encoding" == "chunked"))
+		{
+		    my $err = sprintf("body sent with %s method", $hdr.method);
+		    my $str = sprintf("%s: received from %s via %s (header=%n)", $err, $s.source, $.socket, $hdr);
+		    $.logError($str);
+		    $.serv.sendHTTPError($s, 411, $err, True);
+		    break;
+		}
+
+		# check if the content-encoding header is misused to specify the character encoding
+		if ($hdr."content-encoding" =~ /iso-/i || $hdr."content-encoding" =~ /utf-/i)
+		{
+		    $.setCharset($hdr."content-encoding");
+		    delete $hdr."content-encoding";
+		}
+
 		# if we need to get a body
 		switch ($hdr.method)
 		{
@@ -306,26 +347,86 @@ class HTTPServer::Listener inherits Qore::Socket {
 		    break;
 		
 		case "POST":
-		    if (!$hdr."content-length")
+		    if ($hdr."transfer-encoding" == "chunked")
 		    {
-			my $err = "missing 'Content-Length' header";
+			try {
+			    if (exists $hdr."content-encoding")
+				$hdr += $s.readHTTPChunkedBodyBinary(HTTPServer::ReadTimeout);
+			    else
+				$hdr += $s.readHTTPChunkedBody(HTTPServer::ReadTimeout);
+			    $body = $hdr.body;
+			    $hdr -= "body";
+			}
+			catch ($ex)
+			{
+			    my $etxt = sprintf("error reading chunked body in POST: %s: %s", $ex.err, $ex.desc);
+			    my $str = sprintf("%s: received from %s via %s (header=%n)", $etxt, $s.source, $.socket, $hdr);
+			    $.logError($str);
+			    $.serv.sendHTTPError($s, 400, $etxt, True);
+			    $close = True;
+			    break;
+			}
+		    }
+		    else if (!$hdr."content-length")
+		    {
+			my $err = "missing body (no 'Content-Length' header, no chunked encoding)";
 			my $str = sprintf("%s: received from %s via %s (header=%n)", $err, $s.source, $.socket, $hdr);
 			$.logError($str);
-			$.serv.sendHTTPError($s, 411, $err);
+			$.serv.sendHTTPError($s, 411, $err, True);
+			$close = True;
 			break;
 		    }
-		    try {
-			$body = $s.recv($hdr."content-length", HTTPServer::ReadTimeout);
-			if (!exists $body)
-			    throw "SOCKET-TIMEOUT", sprintf("expected %d bytes, got timeout", $hdr."content-length");
-		    }
-		    catch ($ex)
+		    else
 		    {
-			my $etxt = sprintf("error reading body in POST: %s: %s", $ex.err, $ex.desc);
-			my $str = sprintf("%s: received from %s via %s (header=%n)", $etxt, $s.source, $.socket, $hdr);
-			$.logError($str);
-			$.serv.sendHTTPError($s, 400, $ex.err, True);
-			$close = True;
+			try {
+			    if (exists $hdr."content-encoding")
+				$body = $s.recvBinary($hdr."content-length", HTTPServer::ReadTimeout);
+			    else
+				$body = $s.recv($hdr."content-length", HTTPServer::ReadTimeout);
+			    #printf("%s\n", $body);
+			    if (!exists $body)
+				throw "SOCKET-TIMEOUT", sprintf("expected %d bytes, got timeout", $hdr."content-length");
+			}
+			catch ($ex)
+			{
+			    my $etxt = sprintf("error reading body in POST (Content-Length: %d): %s: %s", $hdr."content-length", $ex.err, $ex.desc);
+			    my $str = sprintf("%s: received from %s via %s (header=%n)", $etxt, $s.source, $.socket, $hdr);
+			    $.logError($str);
+			    $.serv.sendHTTPError($s, 400, $etxt, True);
+			    $close = True;
+			    break;
+			}
+		    }
+		    # handle content-encoding
+		    if (exists $hdr."content-encoding")
+		    {
+			#printf("context=%n\nhdr=%n\nSHA1(body)=%n, body=%N\n", $context, $hdr, SHA1($body), $body);
+			try {
+			    switch ($hdr."content-encoding")
+			    {
+				case "deflate":
+				case "x-deflate":
+				    $body = uncompress_to_string(binary($body));
+				    #printf("AFTER body=%N\n", $body);
+				    break;
+				case "gzip":
+				case "x-gzip":
+				    $body = gunzip_to_string(binary($body));
+				    #printf("AFTER body=%N\n", $body);
+				    break;
+			        default:
+				    throw "UNSUPPORTED-CONTENT-ENCODING", "don't know how to handle this content-encoding";
+			    }
+			}
+			catch ($ex)
+			{
+			    my $etxt = sprintf("error processing content encoding %s: %s: %s", $hdr."content-encoding", $ex.err, $ex.desc);
+			    my $str = sprintf("%s: received from %s via %s (header=%n)", $etxt, $s.source, $.socket, $hdr);
+			    $.logError($str);
+			    $.serv.sendHTTPError($s, 501, $etxt, True);
+			    $close = True;
+			    break;
+			}
 		    }
 	            $.serv.handleRequest($s, $context, $hdr, $body, \$close);
 	            break;
@@ -334,7 +435,8 @@ class HTTPServer::Listener inherits Qore::Socket {
 		    my $err = sprintf("unknown HTTP method %n", $hdr.method);
 		    my $str = sprintf("%s: received from %s via %s", $err, $s.source, $.socket);
 		    $.logError($str);
-		    $.serv.sendHTTPError($s, 501, $err);
+		    $.serv.sendHTTPError($s, 501, $err, True);
+		    $close = True;
 		    break;
 	        }
 
@@ -399,19 +501,13 @@ class HTTPServer::HTTPServer {
 
     addListener($sock, $cert, $key)
     {
-	my $l;
 	$.lm.lock();
-	try
-	    $l = new Listener($self, $.seqSessions, $sock, $cert, $key);
-	catch ()
-	{
-	    $.lm.unlock();
-	    rethrow;
-	}
+	on_exit $.lm.unlock();
+
+	my $l = new Listener($self, $.seqSessions, $sock, $cert, $key);
 	my $id = $.seqListeners.next();
 	$l.id = $id;
 	$.listeners.$id = $l;
-	$.lm.unlock();
 	return $id;
     }
 
@@ -424,21 +520,21 @@ class HTTPServer::HTTPServer {
     {
 	# shutdown all listeners
 	$.lm.lock();
+	on_exit $.lm.unlock();
+
 	foreach my $id in (keys $.listeners)
 	    $.listeners.$id.stop();
-	$.lm.unlock();
     }
 
     stopListener($id)
     {
-	my $rc;
 	$.lm.lock();
+	on_exit $.lm.unlock();
+
 	if (!exists $.listeners.$id)
-	    $rc = -1;
-	else
-	    $.listeners.$id.stop();
-	$.lm.unlock();
-	return $rc;
+	    return -1;
+
+	$.listeners.$id.stop();
     }
 
     getListenerTID($id)
@@ -516,13 +612,13 @@ class HTTPServer::HTTPServer {
 
 	$.log("no handler for %s (from %s) hdr=%n", $str, $context.source, $hdr);
 	return ( "code" : 501,
-		 "body" : "no handler has been registered for this request" );
+		 "body" : sprintf("no handler has been registered for %s", $str) );
     }
     
     sendHTTPError($s, $code, $msg, $close)
     {
 	my $str = sprintf("<html><head><title>%s %s</title></head><body><h1>%s</h1>%s<p><hr><address>%s on %s</address></body></html>",
-			  $code, HTTPServer::HTTPCodes.$code, HTTPServer::HTTPCodes.$code, html_encode($msg), $.httpserverstring, $.socket);
+			  $code, HTTPServer::HTTPCodes.$code, HTTPServer::HTTPCodes.$code, html_encode($msg), $.httpserverstring, gethostname());
 	
 	my $hdr = ( "Content-Type" : "text/html",
 		    "Server"       : $.httpserverstring );
@@ -536,6 +632,37 @@ class HTTPServer::HTTPServer {
 
     handleRequest($s, $context, $hdr, $body, $close, $head)
     {
+	# handle accept-encoding to compress data if necessary
+	if (exists $hdr."accept-encoding")
+	{
+	    # remove all writespace
+	    $hdr."accept-encoding" =~ s/\s//g;
+	    my $mq = 0;
+	    my $me;
+	    foreach my $acc in (split(",", $hdr."accept-encoding"))
+	    {
+		my $q;
+		# get encoding
+		my $enc = $acc =~ x/^(\w+|\*)/[0];
+		# ignore encodings we don't recognize
+		if (!inlist($enc, ("gzip", "deflate", "x-deflate", "x-gzip")))
+		    continue;
+		# get q value
+		$q = $acc =~ x/;q=(.*)$/[0];
+		$q = exists $q ? float($q) : 1.0;
+		if ($q > $mq)
+		{
+		    if ($enc =~ /x-/)
+			$enc =~ s/x-//;
+		    $me = $enc;
+		    $mq = $q;
+		}
+	    }
+	    if (exists $me)
+		$context.encoding = $me;
+	}
+		
+
 	# add logging functions
 	$context += 
 	    ( "logfunc"    : $.logfunc,
@@ -547,8 +674,7 @@ class HTTPServer::HTTPServer {
 	#printf("handleRequest() hdr=%n, handlers=%n\n", $hdr, $.handlers);
 	foreach my $h in (keys $.handlers)
 	{
-	    if (exists $hdr."content-type" 
-		&& $hdr."content-type" == $.handlers.$h.content)
+	    if (exists $hdr."content-type" && $hdr."content-type" == $.handlers.$h.content)
 	    {
 		if (strlen($.handlers.$h.url) && strlen($hdr.path) && regex($hdr.path, $.handlers.$h.url))
 		{
@@ -585,8 +711,11 @@ class HTTPServer::HTTPServer {
 	    else
 		$rv = $.handlers.$m.obj.handleRequest($context, $hdr, $body, \$close);
 
-	    # if the handler returns an invalid hash
-	    if (!exists HTTPCodes.($rv.code))
+	    if (type($rv) == Type::String)
+		$rv = ( "code" : 200,
+			"body" : $rv );
+	    else if (!exists HTTPCodes.($rv.code)) # if the handler returns an invalid hash
+
 	    {
 		my $str = sprintf("%s handler returned an invalid response", $m);
 		$.sendHTTPError($s, 500, $str, $close);
@@ -606,14 +735,35 @@ class HTTPServer::HTTPServer {
 	    }
 	    else
 	    {
+		#printf("\n\n\n**** REQUEST: %N\n", $body);
+		#printf("\n\n\n**** RESPONSE: %N\n", $rv.body);
 		if ($close)
 		    $rv.hdr.Connection = "close";
 		else
 		    $rv.hdr.Connection = "Keep-Alive";
+
+		if (!exists $rv.hdr.Date)
+		    $rv.hdr.Date = format_date("Dy, DD Mon YYYY HH:mm:SS", gmtime()) + " GMT";
+
+		if (!exists $rv.hdr.Server)
+		    $rv.hdr.Server = $.httpserverstring;
+
 		if ($head)
 		    $s.sendHTTPResponse($rv.code, HTTPServer::HTTPCodes.($rv.code), "1.1", $rv.hdr);
 		else
+		{
+		    if ($context.encoding == "deflate")
+		    {
+			$rv.hdr += ( "Content-Encoding" : "deflate" );
+			$rv.body = compress($rv.body);
+		    }
+		    else if ($context.encoding == "gzip")
+		    {
+			$rv.hdr += ( "Content-Encoding" : "gzip" );
+			$rv.body = gzip($rv.body);
+		    }
 		    $s.sendHTTPResponse($rv.code, HTTPServer::HTTPCodes.($rv.code), "1.1", $rv.hdr, $rv.body);
+		}
 	    }
 	    
 	    if (exists $rv.log)

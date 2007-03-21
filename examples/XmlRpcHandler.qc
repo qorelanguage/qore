@@ -1,18 +1,22 @@
 # XML-RPC handler class definition
 #
-# Copyright (C) 2006 David Nichols
+# Copyright (C) 2006, 2007 David Nichols
 # to be registered as a handler to the Qore HTTP server
 
 namespace XmlRpcHandler
 {
     const Version = "0.3.3";
 
-    const InternalMethods = ( "name"     : "^help\$",
-			      "function" : "help",
+    const InternalMethods = (("function" : "help",
 			      "help"     : "shows a list of XML-RPC methods registered with this handler",
 			      "text"     : "help",
 			      "logopt"   : 2
-			      );
+			      ),
+			     ("function" : "listMethods",
+			      "help"     : "lists XML-RPC method names registered with this handler",
+			      "text"     : "system.listMethods",
+			      "logopt"   : 2
+			       ));
 }
 
 class XmlRpcHandler::XmlRpcHandler {
@@ -23,7 +27,7 @@ class XmlRpcHandler::XmlRpcHandler {
 	$.methods = ();
 
 	# add internal methods
-	foreach my $im in (InternalMethods)
+	foreach my $im in (XmlRpcHandler::InternalMethods)
 	    $.addMethodInternal($im + ( "internal" : True ));
 	
 	foreach my $m in ($methods)
@@ -42,8 +46,8 @@ class XmlRpcHandler::XmlRpcHandler {
 
     addMethod($name, $func, $text, $help, $logopt, $cmark)
     {
-	if (!exists $name || !exists $func || !exists $text)
-	    throw "XML-RPC-SERVER-ADD-METHOD-PARAMETER-ERROR", "expecting method regex, function name, and text name as arguments";
+	if (!exists $func || !exists $text)
+	    throw "XML-RPC-SERVER-ADD-METHOD-PARAMETER-ERROR", "expecting function name and text name as hash key in argument";
 
 	$.addMethodInternal(( "name"     : $name,
 			      "function" : $func,
@@ -60,6 +64,8 @@ class XmlRpcHandler::XmlRpcHandler {
 	if (!exists $i)
 	    $i = elements $.methods;
 
+	if (!exists $h.name)
+	    $h.name = sprintf("^%s\$", $h.text);
 	$.methods[$i] = $h;
     }
 
@@ -73,6 +79,20 @@ class XmlRpcHandler::XmlRpcHandler {
 		$h.($m.text).params  = $m.params;
 	}
 	return $h;
+    }
+
+    private listMethods($c)
+    {
+	my $l = ();
+	foreach my $m in ($.methods)
+	    $l += $m.text;
+	return $l;
+    }
+
+    private log($func)
+    {
+	$argv[0] = "XmlRpcHandler " + $argv[0];
+	call_function_args($func, $argv);
     }
 
     private callMethod($context, $params)
@@ -97,40 +117,29 @@ class XmlRpcHandler::XmlRpcHandler {
 	    $context.cmark = $found.cmark;
 	    $context.function = $found.function;
 
-	    if (($found.logopt & LP_LEVELMASK) <= $.loglevel)
+	    if (($found.logopt & LP_LEVELMASK) <= $.loglevel && exists $context.logfunc)
 	    {
+		my $msg = sprintf("from %s: %s", $context.source, $method);
 		if ($found.logopt & LP_LOGPARAMS)
-		    $h.log = sprintf("%s params: %n", $method, $params);
-		else
-		    $h.log = sprintf("%s", $method);
-		$h.logreply = True;
+		    $msg += sprintf(", params: %n", $params);
+		$.log($context.logfunc, $msg);
 	    }
 	    #printf("about to call function '%s' (method=%s params=%n)\n", $found.function, $method, $params);
 	    my $rv;
+
 	    if (type($params) == Type::List)
-	    {
-		if ($found.internal)
-		    $rv = callObjectMethodArgs($self, $found.function, unshift $params, $context);
-		else
-		    $rv = call_function_args($found.function, (unshift $params, $context));
-	    }
+		unshift $params, $context;
 	    else if (exists $params)
-	    {
-		if ($found.internal)
-		    $rv = callObjectMethod($self, $found.function, $context, $params);
-		else
-		    $rv = call_function($found.function, $context, $params);
-	    }
+		$params = ($context, $params);
 	    else
-	    {
-		if ($found.internal)
-		    $rv = callObjectMethod($self, $found.function, $context);
-		else
-		    $rv = call_function($found.function, $context);
-	    }
+		$params = $context;
+	    
+	    if ($found.internal)
+		$rv = callObjectMethodArgs($self, $found.function, $params);
+	    else
+		$rv = call_function_args($found.function, $params);
 
 	    $h.body = makeXMLRPCResponseString($rv);
-
 	    return $h;
 	}
 	else
@@ -162,7 +171,6 @@ class XmlRpcHandler::XmlRpcHandler {
 		return ( "code" : 501,
 			 "body" : sprintf("don't know how to handle method %n", $hdr.method) );
 
-	    # FIXME: parse the content-type field properly (ex: content-type: text/xml; charset=utf-8)
 	    if ($hdr."content-type" != "text/xml")
 		return ( "code" : 501,
 			 "body" : sprintf("don't know how to handle content-type %n", $hdr."content-type") );
@@ -174,19 +182,22 @@ class XmlRpcHandler::XmlRpcHandler {
 	    {
 		return ( "code"   : 200,
 			 "errlog" : sprintf("%s: %s", $ex.err, $ex.desc),
+			 "hdr"    : ( "Content-Type" : "text/xml" ),
 			 "body"   : makeXMLRPCFaultResponseString(0, $ex.err) );
 	    }
 	}
 	try {
 	    #printf("msg=%s\nxmlrpc=%N\n", $body, $xmlrpc);fflush();
 	    $context.method = $xmlrpc.methodName;
-	    return ( "code" : 200 ) + $.callMethod($context, $xmlrpc.params);
+	    return ( "code" : 200, "hdr" : ( "Content-Type" : "text/xml" ) ) + $.callMethod($context, $xmlrpc.params);
 	}
 	catch ($ex)
 	{
 	    my $str = sprintf("%s: %s", $ex.err, $ex.desc);
+	    #$.log($context.logfunc, $str);
 	    return ( "code"   : 200,
 		     "errlog" : $str,
+		     "hdr"    : ( "Content-Type" : "text/xml" ),
 		     "body"   : makeXMLRPCFaultResponseString(0, $str) );
 	}
     }
