@@ -178,6 +178,7 @@ static void sybase_read_row(const sybase_command_wrapper& wrapper, QoreNode*& ou
   if (xsink->isException()) {
     return;
   }
+printf("#### WEH HAVE %d columns to read\n", num_cols);
 
   // allocate helper structures for read data 
   EX_COLUMN_DATA* coldata = (EX_COLUMN_DATA *)malloc(num_cols * sizeof (EX_COLUMN_DATA));
@@ -245,7 +246,9 @@ static void sybase_read_row(const sybase_command_wrapper& wrapper, QoreNode*& ou
 
   // read the row
   CS_INT rows_read = 0;
+printf("#### before fetching rows\n");
   while ((err = ct_fetch(wrapper(), CS_UNUSED, CS_UNUSED, CS_UNUSED, &rows_read)) == CS_SUCCEED) {
+printf("##### FETSING ONE ROW NOW\n");
     // process the row
     Hash* h = new Hash;
 
@@ -308,6 +311,7 @@ printf("### calling convert_sybase_output_to_Qore returned result_type %d\n", (i
         xsink->raiseException("DBI-EXEC-EXCEPTION", "ct_results() returned both status and row(s)");
         return result;
       }
+printf("### ROW BEING READ pointer = %p\n", result);
       // 0 or more rows
       sybase_read_row(wrapper, result, encoding, xsink);
       if (xsink->isException()) {
