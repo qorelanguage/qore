@@ -266,6 +266,7 @@ printf("### CALLING SELECT_ROWS\n");
 #ifdef DEBUG
 #  include "tests/sybase_executor_tests.cc"
 #  include "tests/sybase_executor_tests2.cc"
+#  include "tests/sybase_executor_select_tests.cc"
 #endif
 
 // EOF

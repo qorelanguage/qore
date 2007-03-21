@@ -213,6 +213,7 @@ sybase_command_wrapper::~sybase_command_wrapper()
 //------------------------------------------------------------------------------
 void sybase_low_level_prepare_command(const sybase_command_wrapper& wrapper, const char* sql_text, ExceptionSink* xsink)
 {
+printf("#### calling prepare [%s]\n", sql_text);
   assert(sql_text && sql_text[0]);
  
   CS_RETCODE err = ct_dynamic(wrapper(), CS_PREPARE, wrapper.getStringId(), CS_NULLTERM, (CS_CHAR*)sql_text, CS_NULLTERM);

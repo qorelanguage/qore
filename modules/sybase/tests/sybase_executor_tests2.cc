@@ -171,6 +171,88 @@ TEST()
   n->deref(&xsink);
 }
 
+//------------------------------------------------------------------------------
+TEST()
+{
+  // test sybase_executor::selectRows()
+  printf("running test %s[%d]\n", __FILE__, __LINE__);
+
+  sybase_executor executor;
+  executor.m_parsed_query.m_result_query_text = "select id, id from syskeys";
+  executor.m_parsed_query.m_is_procedure = false;
+
+  sybase_connection conn;
+  ExceptionSink xsink;
+  conn.init(SYBASE_TEST_SETTINGS, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  executor.m_test_encoding = QCS_DEFAULT;
+  executor.m_test_autocommit = false;
+  executor.m_test_connection = &conn;
+  List* l= new List;
+  executor.m_args = l;
+
+  QoreNode* n = executor.selectRows(&xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  assert(n);
+
+  assert(n->type == NT_LIST);
+  assert(n->val.list->size() > 0);
+
+  QoreNode* row1 = n->val.list->retrieve_entry(0);
+  assert(row1);
+  assert(row1->type == NT_HASH);
+  assert(row1->val.hash->size() == 2);
+
+  n->deref(&xsink);
+}
+
+//------------------------------------------------------------------------------
+TEST()
+{
+  // test sybase_executor::selectRows()
+  printf("running test %s[%d]\n", __FILE__, __LINE__);
+
+  sybase_executor executor;
+  executor.m_parsed_query.m_result_query_text = "select id, id from syskeys where id >= ? and id < ?";
+  executor.m_parsed_query.m_is_procedure = false;
+  executor.m_parsed_query.m_parameters.push_back(sybase_query_parameter());
+  executor.m_parsed_query.m_parameters.push_back(sybase_query_parameter());
+
+  sybase_connection conn;
+  ExceptionSink xsink;
+  conn.init(SYBASE_TEST_SETTINGS, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  executor.m_test_encoding = QCS_DEFAULT;
+  executor.m_test_autocommit = false;
+  executor.m_test_connection = &conn;
+  List* l= new List;
+  l->push(new QoreNode((int64)0));
+  l->push(new QoreNode((int64)100000000));
+  executor.m_args = l;
+
+  QoreNode* n = executor.selectRows(&xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  assert(n);
+
+  assert(n->type == NT_LIST);
+  assert(n->val.list->size() > 0);
+
+  QoreNode* row1 = n->val.list->retrieve_entry(0);
+  assert(row1);
+  assert(row1->type == NT_HASH);
+  assert(row1->val.hash->size() == 2);
+
+  n->deref(&xsink);
+}
+
 } // namespace
 #endif
 
