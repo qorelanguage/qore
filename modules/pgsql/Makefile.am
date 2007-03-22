@@ -13,7 +13,7 @@ pgsql_la_SOURCES = $(PGSQL_SOURCES)
 pgsql_la_LDFLAGS = -module -avoid-version ${PGSQL_LIBS}
 endif
 
-INCLUDES = -I$(top_srcdir)/include $(PGSQL_INCLUDES)
+INCLUDES = -I$(top_srcdir)/include $(PGSQL_INCLUDES) $(OPENSSL_CPPFLAGS)
 
 AM_CXXFLAGS = ${PTHREAD_CFLAGS}
 
