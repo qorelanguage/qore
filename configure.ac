@@ -1355,17 +1355,20 @@ check_pgsql()
     fi
     pdir=`ls -d $inc/postgres* 2>/dev/null | grep -v _ext.h | tail -1` 
     if test -n "$pdir"; then
-       inc=$pdir
+       alt_inc=$pdir
     fi
+    #echo DBG: checking $1 inc=$inc alt_inc=$alt_inc
     if test -f "$inc/libpq-fe.h"; then
        with_pgsql_includes=$inc
+    elif test -n "$alt_inc" -a -f "$alt_inc/libpq-fe.h"; then
+       with_pgsql_includes=$alt_inc
     elif test -f "$inc/postgresql/libpq-fe.h"; then
        with_pgsql_includes=$inc/postgresql
-     elif test -f "$inc/pgsql/libpq-fe.h"; then
+    elif test -f "$inc/pgsql/libpq-fe.h"; then
        with_pgsql_includes=$inc/pgsql
     fi
     if test -z "$with_pgsql_includes"; then
-       #echo pgsql $1 $inc not found
+       #echo DBG: pgsql $1 $inc not found
        return
     else
        # check for server include files
@@ -1376,7 +1379,7 @@ check_pgsql()
        elif test -d "$with_pgsql_includes/postgresql/server"; then
 	  with_pgsql_server_includes="$with_pgsql_includes/postgresql/server"
        else
-          #echo pgsql $1 $inc server includes not found
+          #echo DBG: pgsql $1 $inc server includes not found
           unset with_pgsql_includes
           return
        fi
@@ -1386,7 +1389,7 @@ check_pgsql()
 
     pdir=`ls -d $lib/postgres* 2>/dev/null |tail -1` 
     if test -n "$pdir"; then
-       lib=$pdir
+       alt_lib=$pdir
     fi
 
     if test -f "$lib/libpq.${SHLIB_SUFFIX}" -o -f "$lib/libpq.so"; then
@@ -1404,6 +1407,23 @@ check_pgsql()
     elif test -f "$lib/pgsql/libpq.a"; then
        with_pgsql_libs=$lib/pgsql
        pgsql_static=1
+    elif test -n "$alt_lib"; then
+       if test -f "$alt_lib/libpq.${SHLIB_SUFFIX}" -o -f "$alt_lib/libpq.so"; then
+          with_pgsql_libs=$alt_lib
+       elif test -f "$alt_lib/postgresql/libpq.${SHLIB_SUFFIX}"; then
+          with_pgsql_libs=$alt_lib/postgresql
+       elif test -f "$alt_lib/pgsql/libpq.${SHLIB_SUFFIX}"; then
+          with_pgsql_libs=$alt_lib/pgsql
+       elif test -f "$alt_lib/libpq.a"; then
+          with_pgsql_libs=$alt_lib
+          pgsql_static=1
+       elif test -f "$alt_lib/postgresql/libpq.a"; then
+          with_pgsql_libs=$alt_lib/postgresql
+          pgsql_static=1
+       elif test -f "$alt_lib/pgsql/libpq.a"; then
+          with_pgsql_libs=$alt_lib/pgsql
+          pgsql_static=1
+       fi
     fi
 
     if test -z "$with_pgsql_libs"; then
