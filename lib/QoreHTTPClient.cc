@@ -35,7 +35,7 @@
 #  include "tests/QoreHTTPClient_tests.cc"
 #endif
 
-DLLLOCAL str_set_t QoreHTTPClient::method_set;
+DLLLOCAL ccharcase_set_t QoreHTTPClient::method_set;
 DLLLOCAL strcase_set_t QoreHTTPClient::header_ignore;
 
 // static initialization
@@ -670,13 +670,15 @@ class QoreNode *QoreHTTPClient::getHostHeaderValue()
 class QoreNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath, class Hash *headers, const void *data, unsigned size, bool getbody, class ExceptionSink *xsink)
 {
    // check if method is valid
-   str_set_t::const_iterator i = method_set.find(meth);
+   ccharcase_set_t::const_iterator i = method_set.find(meth);
    if (i == method_set.end())
    {
       xsink->raiseException("HTTP-CLIENT-METHOD-ERROR", "HTTP method (%n) not recognized.", meth);
       return NULL;
    }
-   
+   // make sure the capitolized version is used
+   meth = *i;
+
    SafeLocker sl(this);
    class StackHash nh(xsink);
    bool keep_alive = true;

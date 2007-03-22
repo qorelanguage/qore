@@ -1,3 +1,9 @@
+2006.03.22: David Nichols
+	* compile fixes for Solaris and HPUX builds
+	* pgsql updates
+	* HTTPClient now ignores case for HTTP method names (but always sends
+	  upper case)
+
 2007.03.21: David Nichols
 	* updated configure to support building the sybase driver with freetds
 

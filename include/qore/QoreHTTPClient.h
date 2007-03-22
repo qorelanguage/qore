@@ -48,7 +48,7 @@
 
 // protocol map class to recognize user-defined protocols (mostly useful for derived classes)
 typedef std::map<std::string, int> prot_map_t;
-typedef std::set<std::string> str_set_t;
+typedef std::set<const char *, ltcstrcase> ccharcase_set_t;
 typedef std::set<std::string, ltstrcase> strcase_set_t;
 typedef std::map<std::string, std::string> header_map_t;
 
@@ -72,7 +72,7 @@ class SafeHash : public Hash
 class QoreHTTPClient : public AbstractPrivateData, public LockedObject
 {
    private:
-      DLLLOCAL static str_set_t method_set;
+      DLLLOCAL static ccharcase_set_t method_set;
       DLLLOCAL static strcase_set_t header_ignore;
    
       // are we using http 1.1 or 1.0?
