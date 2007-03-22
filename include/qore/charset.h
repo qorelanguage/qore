@@ -56,7 +56,7 @@ public:
 	 flength = l;
 	 fend = e;
 	 fpos = p;
-	 desc = d;
+	 desc = d ? d : "";
       }
       inline ~QoreEncoding()
       {
