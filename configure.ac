@@ -1149,7 +1149,7 @@ check_mysql()
 	if test "$with_mysql_includes" != "/usr/include"; then
 	   mysql_app_includes=true
         fi
-	if test "$with_mysql_libs" != "/lib${LIBSUFFIX}" -a "$with_mysql_libs" != "/usr/lib${LIBSUFFIX}"; then
+	if test "$with_mysql_libs" != "/lib${LIBSUFFIX}"; then
 	   mysql_app_libs=true
 	fi
     fi
@@ -1308,7 +1308,7 @@ fi
 if test "${with_sybase}" = yes; then
    SYBASE_INCLUDES="-I$with_sybase_includes"
    if test -n "$freetds"; then
-      SYBASE_LIBS="-L$with_sybase_libs -lsybdb -lct -ltds"
+      SYBASE_LIBS="-L$with_sybase_libs -lsybdb -lct"
    else
       SYBASE_LIBS="-L$with_sybase_libs -lsybdb -lsybcs_r -lsybintl_r -lsybblk_r -lsybcomn_r -lsybct_r -lsybunic -lsybtcl_r"
    fi
@@ -1415,7 +1415,7 @@ check_pgsql()
     if test "$with_pgsql_includes" != "/usr/include"; then
        pgsql_app_includes=true
     fi
-    if test "$with_pgsql_libs" != "/lib${LIBSUFFIX}" -a "$with_pgsql_libs" != "/usr/lib${LIBSUFFIX}"; then
+    if test "$with_pgsql_libs" != "/lib${LIBSUFFIX}"; then
        pgsql_app_libs=true
     fi
     

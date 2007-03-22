@@ -184,11 +184,8 @@ typedef std::map<QoreType *, qore_bind_info> qore_pg_bind_map;
 typedef class QoreNode *(*qore_pg_data_func_t)(char *data, int type, int size, class QorePGConnection *conn, class QoreEncoding *enc);
 
 typedef std::map<int, qore_pg_data_func_t> qore_pg_data_map_t;
-
 typedef std::pair<int, qore_pg_data_func_t> qore_pg_array_data_info_t;
-
 typedef std::map<int, qore_pg_array_data_info_t> qore_pg_array_data_map_t;
-
 typedef std::map<int, int> qore_pg_array_type_map_t;
 
 static inline void assign_point(Point &p, Point *raw)

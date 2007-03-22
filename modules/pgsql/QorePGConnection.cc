@@ -444,54 +444,55 @@ void QorePGResult::static_init()
    //data_map[OIDVECTOROID]   = qpg_data_oidvector;
 
    //array_data_map[INT2VECTOROID] = std::make_pair(INT2OID, qpg_data_int2);
-   array_data_map[QPGT_INT4ARRAYOID]         = std::make_pair(INT4OID, qpg_data_int4);
-   array_data_map[QPGT_CIRCLEARRAYOID]       = std::make_pair(CIRCLEOID, qpg_data_circle);
-   array_data_map[QPGT_MONEYARRAYOID]        = std::make_pair(CASHOID, qpg_data_cash);
-   array_data_map[QPGT_BOOLARRAYOID]         = std::make_pair(BOOLOID, qpg_data_bool);
-   array_data_map[QPGT_BYTEAARRAYOID]        = std::make_pair(BYTEAOID, qpg_data_bytea);
-   array_data_map[QPGT_NAMEARRAYOID]         = std::make_pair(NAMEOID, qpg_data_text);
-   array_data_map[QPGT_INT2ARRAYOID]         = std::make_pair(INT2OID, qpg_data_int2);
-   //array_data_map[QPGT_INT2VECTORARRAYOID]   = std::make_pair(OID, qpg_data_);
-   //array_data_map[QPGT_REGPROCARRAYOID]      = std::make_pair(OID, qpg_data_);
-   array_data_map[QPGT_TEXTARRAYOID]         = std::make_pair(TEXTOID, qpg_data_text);
-   array_data_map[QPGT_OIDARRAYOID]          = std::make_pair(OIDOID, qpg_data_int4);
-   array_data_map[QPGT_TIDARRAYOID]          = std::make_pair(TIDOID, qpg_data_tid);
-   array_data_map[QPGT_XIDARRAYOID]          = std::make_pair(XIDOID, qpg_data_int4);
-   array_data_map[QPGT_CIDARRAYOID]          = std::make_pair(CIDOID, qpg_data_int4);
-   //array_data_map[QPGT_OIDVECTORARRAYOID]    = std::make_pair(OID, qpg_data_);
-   array_data_map[QPGT_BPCHARARRAYOID]       = std::make_pair(BPCHAROID, qpg_data_char);
-   array_data_map[QPGT_VARCHARARRAYOID]      = std::make_pair(VARCHAROID, qpg_data_text);
-   array_data_map[QPGT_INT8ARRAYOID]         = std::make_pair(INT8OID, qpg_data_int8);
-   array_data_map[QPGT_POINTARRAYOID]        = std::make_pair(POINTOID, qpg_data_point);
-   array_data_map[QPGT_LSEGARRAYOID]         = std::make_pair(LSEGOID, qpg_data_lseg);
-   array_data_map[QPGT_PATHARRAYOID]         = std::make_pair(PATHOID, qpg_data_path);
-   array_data_map[QPGT_BOXARRAYOID]          = std::make_pair(BOXOID, qpg_data_box);
-   array_data_map[QPGT_FLOAT4ARRAYOID]       = std::make_pair(FLOAT4OID, qpg_data_float4);
-   array_data_map[QPGT_FLOAT8ARRAYOID]       = std::make_pair(FLOAT8OID, qpg_data_float8);
-   array_data_map[QPGT_ABSTIMEARRAYOID]      = std::make_pair(ABSTIMEOID, qpg_data_abstime);
-   array_data_map[QPGT_RELTIMEARRAYOID]      = std::make_pair(RELTIMEOID, qpg_data_reltime);
-   array_data_map[QPGT_TINTERVALARRAYOID]    = std::make_pair(TINTERVALOID, qpg_data_tinterval);
-   array_data_map[QPGT_POLYGONARRAYOID]      = std::make_pair(POLYGONOID, qpg_data_polygon);
-   //array_data_map[QPGT_ACLITEMARRAYOID]      = std::make_pair(OID, qpg_data_);
-   array_data_map[QPGT_MACADDRARRAYOID]      = std::make_pair(MACADDROID, qpg_data_macaddr);
-   array_data_map[QPGT_INETARRAYOID]         = std::make_pair(INETOID, qpg_data_inet);
-   array_data_map[QPGT_CIDRARRAYOID]         = std::make_pair(CIDROID, qpg_data_inet);
-   array_data_map[QPGT_TIMESTAMPARRAYOID]    = std::make_pair(TIMESTAMPOID, qpg_data_timestamp);
-   array_data_map[QPGT_DATEARRAYOID]         = std::make_pair(DATEOID, qpg_data_date);
-   array_data_map[QPGT_TIMEARRAYOID]         = std::make_pair(TIMEOID, qpg_data_time);
-   array_data_map[QPGT_TIMESTAMPTZARRAYOID]  = std::make_pair(TIMESTAMPTZOID, qpg_data_timestamp);
-   array_data_map[QPGT_INTERVALARRAYOID]     = std::make_pair(INTERVALOID, qpg_data_interval);
-   array_data_map[QPGT_NUMERICARRAYOID]      = std::make_pair(NUMERICOID, qpg_data_numeric);
-   array_data_map[QPGT_TIMETZARRAYOID]       = std::make_pair(TIMETZOID, qpg_data_timetz);
-   array_data_map[QPGT_BITARRAYOID]          = std::make_pair(BITOID, qpg_data_bit);
-   array_data_map[QPGT_VARBITARRAYOID]       = std::make_pair(VARBITOID, qpg_data_bit);
-   //array_data_map[QPGT_REFCURSORARRAYOID]    = std::make_pair(OID, qpg_data_);
-   //array_data_map[QPGT_REGPROCEDUREARRAYOID] = std::make_pair(OID, qpg_data_);
-   //array_data_map[QPGT_REGOPERARRAYOID]      = std::make_pair(OID, qpg_data_);
-   //array_data_map[QPGT_REGOPERATORARRAYOID]  = std::make_pair(OID, qpg_data_);
-   //array_data_map[QPGT_REGCLASSARRAYOID]     = std::make_pair(OID, qpg_data_);
-   //array_data_map[QPGT_REGTYPEARRAYOID]      = std::make_pair(OID, qpg_data_);
-   //array_data_map[QPGT_ANYARRAYOID]          = std::make_pair(OID, qpg_data_);
+   // NOTE: the casts are necessary with SunPro CC 5.8...
+   array_data_map[QPGT_INT4ARRAYOID]         = std::make_pair(INT4OID, (qore_pg_data_func_t)qpg_data_int4);
+   array_data_map[QPGT_CIRCLEARRAYOID]       = std::make_pair(CIRCLEOID, (qore_pg_data_func_t)qpg_data_circle);
+   array_data_map[QPGT_MONEYARRAYOID]        = std::make_pair(CASHOID, (qore_pg_data_func_t)qpg_data_cash);
+   array_data_map[QPGT_BOOLARRAYOID]         = std::make_pair(BOOLOID, (qore_pg_data_func_t)qpg_data_bool);
+   array_data_map[QPGT_BYTEAARRAYOID]        = std::make_pair(BYTEAOID, (qore_pg_data_func_t)qpg_data_bytea);
+   array_data_map[QPGT_NAMEARRAYOID]         = std::make_pair(NAMEOID, (qore_pg_data_func_t)qpg_data_text);
+   array_data_map[QPGT_INT2ARRAYOID]         = std::make_pair(INT2OID, (qore_pg_data_func_t)qpg_data_int2);
+   //array_data_map[QPGT_INT2VECTORARRAYOID]   = std::make_pair(OID, (qore_pg_data_func_t)qpg_data_);
+   //array_data_map[QPGT_REGPROCARRAYOID]      = std::make_pair(OID, (qore_pg_data_func_t)qpg_data_);
+   array_data_map[QPGT_TEXTARRAYOID]         = std::make_pair(TEXTOID, (qore_pg_data_func_t)qpg_data_text);
+   array_data_map[QPGT_OIDARRAYOID]          = std::make_pair(OIDOID, (qore_pg_data_func_t)qpg_data_int4);
+   array_data_map[QPGT_TIDARRAYOID]          = std::make_pair(TIDOID, (qore_pg_data_func_t)qpg_data_tid);
+   array_data_map[QPGT_XIDARRAYOID]          = std::make_pair(XIDOID, (qore_pg_data_func_t)qpg_data_int4);
+   array_data_map[QPGT_CIDARRAYOID]          = std::make_pair(CIDOID, (qore_pg_data_func_t)qpg_data_int4);
+   //array_data_map[QPGT_OIDVECTORARRAYOID]    = std::make_pair(OID, (qore_pg_data_func_t)qpg_data_);
+   array_data_map[QPGT_BPCHARARRAYOID]       = std::make_pair(BPCHAROID, (qore_pg_data_func_t)qpg_data_char);
+   array_data_map[QPGT_VARCHARARRAYOID]      = std::make_pair(VARCHAROID, (qore_pg_data_func_t)qpg_data_text);
+   array_data_map[QPGT_INT8ARRAYOID]         = std::make_pair(INT8OID, (qore_pg_data_func_t)qpg_data_int8);
+   array_data_map[QPGT_POINTARRAYOID]        = std::make_pair(POINTOID, (qore_pg_data_func_t)qpg_data_point);
+   array_data_map[QPGT_LSEGARRAYOID]         = std::make_pair(LSEGOID, (qore_pg_data_func_t)qpg_data_lseg);
+   array_data_map[QPGT_PATHARRAYOID]         = std::make_pair(PATHOID, (qore_pg_data_func_t)qpg_data_path);
+   array_data_map[QPGT_BOXARRAYOID]          = std::make_pair(BOXOID, (qore_pg_data_func_t)qpg_data_box);
+   array_data_map[QPGT_FLOAT4ARRAYOID]       = std::make_pair(FLOAT4OID, (qore_pg_data_func_t)qpg_data_float4);
+   array_data_map[QPGT_FLOAT8ARRAYOID]       = std::make_pair(FLOAT8OID, (qore_pg_data_func_t)qpg_data_float8);
+   array_data_map[QPGT_ABSTIMEARRAYOID]      = std::make_pair(ABSTIMEOID, (qore_pg_data_func_t)qpg_data_abstime);
+   array_data_map[QPGT_RELTIMEARRAYOID]      = std::make_pair(RELTIMEOID, (qore_pg_data_func_t)qpg_data_reltime);
+   array_data_map[QPGT_TINTERVALARRAYOID]    = std::make_pair(TINTERVALOID, (qore_pg_data_func_t)qpg_data_tinterval);
+   array_data_map[QPGT_POLYGONARRAYOID]      = std::make_pair(POLYGONOID, (qore_pg_data_func_t)qpg_data_polygon);
+   //array_data_map[QPGT_ACLITEMARRAYOID]      = std::make_pair(OID, (qore_pg_data_func_t)qpg_data_);
+   array_data_map[QPGT_MACADDRARRAYOID]      = std::make_pair(MACADDROID, (qore_pg_data_func_t)qpg_data_macaddr);
+   array_data_map[QPGT_INETARRAYOID]         = std::make_pair(INETOID, (qore_pg_data_func_t)qpg_data_inet);
+   array_data_map[QPGT_CIDRARRAYOID]         = std::make_pair(CIDROID, (qore_pg_data_func_t)qpg_data_inet);
+   array_data_map[QPGT_TIMESTAMPARRAYOID]    = std::make_pair(TIMESTAMPOID, (qore_pg_data_func_t)qpg_data_timestamp);
+   array_data_map[QPGT_DATEARRAYOID]         = std::make_pair(DATEOID, (qore_pg_data_func_t)qpg_data_date);
+   array_data_map[QPGT_TIMEARRAYOID]         = std::make_pair(TIMEOID, (qore_pg_data_func_t)qpg_data_time);
+   array_data_map[QPGT_TIMESTAMPTZARRAYOID]  = std::make_pair(TIMESTAMPTZOID, (qore_pg_data_func_t)qpg_data_timestamp);
+   array_data_map[QPGT_INTERVALARRAYOID]     = std::make_pair(INTERVALOID, (qore_pg_data_func_t)qpg_data_interval);
+   array_data_map[QPGT_NUMERICARRAYOID]      = std::make_pair(NUMERICOID, (qore_pg_data_func_t)qpg_data_numeric);
+   array_data_map[QPGT_TIMETZARRAYOID]       = std::make_pair(TIMETZOID, (qore_pg_data_func_t)qpg_data_timetz);
+   array_data_map[QPGT_BITARRAYOID]          = std::make_pair(BITOID, (qore_pg_data_func_t)qpg_data_bit);
+   array_data_map[QPGT_VARBITARRAYOID]       = std::make_pair(VARBITOID, (qore_pg_data_func_t)qpg_data_bit);
+   //array_data_map[QPGT_REFCURSORARRAYOID]    = std::make_pair(OID, (qore_pg_data_func_t)qpg_data_);
+   //array_data_map[QPGT_REGPROCEDUREARRAYOID] = std::make_pair(OID, (qore_pg_data_func_t)qpg_data_);
+   //array_data_map[QPGT_REGOPERARRAYOID]      = std::make_pair(OID, (qore_pg_data_func_t)qpg_data_);
+   //array_data_map[QPGT_REGOPERATORARRAYOID]  = std::make_pair(OID, (qore_pg_data_func_t)qpg_data_);
+   //array_data_map[QPGT_REGCLASSARRAYOID]     = std::make_pair(OID, (qore_pg_data_func_t)qpg_data_);
+   //array_data_map[QPGT_REGTYPEARRAYOID]      = std::make_pair(OID, (qore_pg_data_func_t)qpg_data_);
+   //array_data_map[QPGT_ANYARRAYOID]          = std::make_pair(OID, (qore_pg_data_func_t)qpg_data_);
 
    array_type_map[INT4OID]                      = QPGT_INT4ARRAYOID;
    array_type_map[CIRCLEOID]                    = QPGT_CIRCLEARRAYOID;
@@ -628,7 +629,8 @@ class QoreNode *QorePGResult::getNode(int row, int col, class ExceptionSink *xsi
    int ndim = ntohl(ah->ndim);
    //int oid  = ntohl(ah->oid);
    //printd(5, "array dimensions %d, oid=%d\n", ndim, oid);
-   int dim[ndim], lBound[ndim];
+   int *dim = new int[ndim];
+   int *lBound = new int[ndim];
    for (int i = 0; i < ndim; ++i)
    {
       dim[i]    = ntohl(ah->info[i].dim);
@@ -638,7 +640,10 @@ class QoreNode *QorePGResult::getNode(int row, int col, class ExceptionSink *xsi
    
    char *array_data = ((char *)data) + 12 + 8 * ndim;
    
-   return getArray(ai->second.first, ai->second.second, array_data, 0, ndim, dim);
+   class QoreNode *rv = getArray(ai->second.first, ai->second.second, array_data, 0, ndim, dim);
+   delete [] dim;
+   delete [] lBound;
+   return rv;
 }
 
 class Hash *QorePGResult::getHash(class ExceptionSink *xsink)
@@ -1166,8 +1171,8 @@ int QorePGBindArray::bind(class QoreNode *n, class QoreEncoding *enc, class Exce
       class DateTime *d = n->val.date_time;
       if (d->isRelative())
       {
-	 int size = conn->has_interval_day() ? 16 : 12;
-	 check_size(size);
+	 int d_size = conn->has_interval_day() ? 16 : 12;
+	 check_size(d_size);
 	 qore_pg_interval *i = (qore_pg_interval *)ptr;
 
 	 if (conn->has_interval_day())
@@ -1183,7 +1188,7 @@ int QorePGBindArray::bind(class QoreNode *n, class QoreEncoding *enc, class Exce
 	 else
 	    i->time.f = f8MSB((double)((d->getYear() * 365 * 24 * 3600) + d->getHour() * 3600 + d->getMinute() * 60 + d->getSecond()) + (double)d->getMillisecond() / 1000.0);
 
-	 ptr += size;
+	 ptr += d_size;
       }
       else
       {
@@ -1233,9 +1238,9 @@ int QorePGBindArray::process_list(List *l, int current, class QoreEncoding *enc,
    ListIterator li(l);
    while (li.next())
    {
-      class QoreType *type;
+      class QoreType *v_type;
       class QoreNode *n = li.getValue();
-      type = n ? n->type : NT_NOTHING;
+      v_type = n ? n->type : NT_NOTHING;
       if (type == NT_LIST)
       {
 	 if (li.first())
@@ -1248,7 +1253,7 @@ int QorePGBindArray::process_list(List *l, int current, class QoreEncoding *enc,
       {
 	 if (check_type(n, xsink))
 	    return -1;
-	 if (type == NT_HASH && check_oid(n->val.hash, xsink))
+	 if (v_type == NT_HASH && check_oid(n->val.hash, xsink))
 	    return -1;
 
 	 if (bind(n, enc, xsink))
