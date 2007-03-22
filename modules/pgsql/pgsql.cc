@@ -112,7 +112,10 @@ static int qore_pgsql_open(Datasource *ds, ExceptionSink *xsink)
       lstr.sprintf("host='%s' ", ds->getHostName());
 
    if (ds->getDBEncoding())
-      ds->setQoreEncoding(QorePGMapper::getQoreEncoding(ds->getDBEncoding()));
+   {
+      class QoreEncoding *enc = QorePGMapper::getQoreEncoding(ds->getDBEncoding());
+      ds->setQoreEncoding(enc);
+   }
    else
    {
       char *enc = (char *)QorePGMapper::getPGEncoding(QCS_DEFAULT);
@@ -127,13 +130,7 @@ static int qore_pgsql_open(Datasource *ds, ExceptionSink *xsink)
 
    class QorePGConnection *pc = new QorePGConnection(lstr.getBuffer(), xsink);
 
-   if (*xsink)
-   {
-      delete pc;
-      return -1;
-   }
-
-   if (pc->setPGEncoding(ds->getDBEncoding(), xsink))
+   if (*xsink || pc->setPGEncoding(ds->getDBEncoding(), xsink))
    {
       delete pc;
       return -1;

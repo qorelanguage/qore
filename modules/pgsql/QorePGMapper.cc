@@ -57,7 +57,7 @@ class QoreEncoding *QorePGMapper::getQoreEncoding(const char *cs)
    if (i != map.end())
       return i->second;
 
-   return QEM.findCreate((char *)cs);
+   return QEM.findCreate(cs);
 }
 
 const char *QorePGMapper::getPGEncoding(QoreEncoding *enc)
