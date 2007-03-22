@@ -1249,6 +1249,8 @@ check_sybase()
 
     if test -f "$dir/include/ctpublic.h"; then
         with_sybase_includes=$dir/include
+    elif test -f "$dir/include/freetds/ctpublic.h"; then
+        with_sybase_includes=$dir/include/freetds
     else
 	return
     fi
@@ -1284,7 +1286,7 @@ if test "${with_sybase}" != "no"; then
       fi
    fi
 
-   for dir in $SYBASE $SYBASE/$SYBASE_OCS /usr/sybase /usr/local/sybase /opt/sybase; do
+   for dir in $SYBASE $SYBASE/$SYBASE_OCS /usr/sybase /usr/local/sybase /opt/sybase /sw /opt/local; do
       check_sybase "$dir"
       if test -n "$with_sybase_includes"; then
 	 break;
