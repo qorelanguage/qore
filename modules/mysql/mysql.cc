@@ -770,7 +770,7 @@ int MyBindNode::bindValue(class QoreEncoding *enc, MYSQL_BIND *buf, class Except
    {
       // convert to the db charset if necessary
       class QoreString *bstr = data.value->val.String;
-      if (bstr->getQoreEncoding() != enc)
+      if (bstr->getEncoding() != enc)
       {
 	 bstr = bstr->convertEncoding(enc, xsink);
 	 if (!bstr) // exception was thrown

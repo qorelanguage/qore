@@ -84,7 +84,8 @@ class Window : public AbstractPrivateData, public LockedObject {
       inline int qaddstr(const char *str)
       {
 	 lock();
-	 int rc = waddstr(win, str);
+	 // note: need cast for solaris curses
+	 int rc = waddstr(win, (char *)str);
 	 unlock();
 	 return rc;
       }
@@ -92,7 +93,8 @@ class Window : public AbstractPrivateData, public LockedObject {
       inline int qmvaddstr(int y, int x, const char *str)
       {
 	 lock();
-	 int rc = mvwaddstr(win, y, x, str);
+	 // note: need cast for solaris curses
+	 int rc = mvwaddstr(win, y, x, (char *)str);
 	 unlock();
 	 return rc;
       }

@@ -255,7 +255,8 @@ static class QoreNode *f_printw(class QoreNode *params, class ExceptionSink *xsi
 
    QoreString *str = q_sprintf(params, 0, 0, xsink); 
 
-   int rc = printw(str->getBuffer());
+   // note: need cast for solaris curses
+   int rc = printw((char *)str->getBuffer());
    delete str;
    return new QoreNode((int64)rc);
 }
