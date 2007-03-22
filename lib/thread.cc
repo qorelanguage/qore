@@ -361,6 +361,7 @@ ThreadData::ThreadData(int ptid, class QoreProgram *p) : vlock(ptid)
    vstack            = NULL;
    cvarstack         = NULL;
    parseClass        = NULL;
+   catchException    = 0;
 }
 
 ThreadData::~ThreadData()
@@ -681,6 +682,7 @@ void catchSaveException(class Exception *e)
 class Exception *catchGetException()
 {
    ThreadData *td = (ThreadData *)pthread_getspecific(thread_data_key);
+   assert(td->catchException);
    return td->catchException;
 }
 
