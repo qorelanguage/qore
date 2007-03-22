@@ -281,6 +281,12 @@ static int qore_mysql_rollback(class Datasource *ds, ExceptionSink *xsink)
    return 0;
 }
 
+static void getLowerCaseName(class QoreString *str, class QoreEncoding *enc, const char *name)
+{
+   str->set(name, enc);
+   str->tolwr();
+}
+
 #ifdef HAVE_MYSQL_STMT
 void MyResult::bind(MYSQL_STMT *stmt)
 {
@@ -620,12 +626,6 @@ inline class QoreNode *MyBindGroup::getOutputHash(class ExceptionSink *xsink)
    return new QoreNode(h);
 }
 
-static void getLowerCaseName(class QoreString *str, class QoreEncoding *enc, const char *name)
-{
-   str->set(name, enc);
-   str->tolwr();
-}
-
 class QoreNode *MyBindGroup::execIntern(class ExceptionSink *xsink)
 {
    class QoreNode *rv = NULL;
@@ -770,7 +770,7 @@ int MyBindNode::bindValue(class QoreEncoding *enc, MYSQL_BIND *buf, class Except
    {
       // convert to the db charset if necessary
       class QoreString *bstr = data.value->val.String;
-      if (bstr->getEncoding() != enc)
+      if (bstr->getQoreEncoding() != enc)
       {
 	 bstr = bstr->convertEncoding(enc, xsink);
 	 if (!bstr) // exception was thrown
@@ -920,7 +920,7 @@ static class QoreNode *qore_mysql_do_sql(class Datasource *ds, QoreString *qstr,
 {
    tracein("qore_mysql_do_sql()");
 
-   TempEncodingHelper tqstr(qstr, ds->getEncoding(), xsink);
+   TempEncodingHelper tqstr(qstr, ds->getQoreEncoding(), xsink);
    if (!tqstr)
       return NULL;
    
