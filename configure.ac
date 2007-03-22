@@ -1286,7 +1286,7 @@ if test "${with_sybase}" != "no"; then
       fi
    fi
 
-   for dir in $SYBASE $SYBASE/$SYBASE_OCS /usr/sybase /usr/local/sybase /opt/sybase /sw /opt/local; do
+   for dir in $SYBASE $SYBASE/$SYBASE_OCS /usr/sybase /usr/local/sybase /opt/sybase /sw /opt/local /usr/local /opt/gnu /opt; do
       check_sybase "$dir"
       if test -n "$with_sybase_includes"; then
 	 break;
