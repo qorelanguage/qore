@@ -1466,7 +1466,7 @@ if test "${with_pgsql}" != "no"; then
       fi
    fi
 
-   for dir in $PGSQL_DIR / /usr /usr/local /opt/pgsql /usr/pgsql /sw /opt/local /opt/sfw /usr/sfw; do
+   for dir in $PGSQL_DIR / /usr /usr/local /opt/pgsql /usr/pgsql /sw /opt/local /opt/sfw /usr/sfw /opt/gnu; do
       check_pgsql $dir
       if test -n "$with_pgsql_includes"; then
 	 break;
