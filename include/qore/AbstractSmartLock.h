@@ -78,8 +78,7 @@ class AbstractSmartLock : public AbstractThreadResource
       DLLLOCAL int tryGrab();
       DLLLOCAL int release();
       DLLLOCAL int release(class ExceptionSink *xsink);
-      DLLLOCAL void self_wait() { asl_cond.wait(&asl_lock); }
-      DLLLOCAL int self_wait(int timeout_ms = 0) 
+      DLLLOCAL int self_wait(int timeout_ms) 
       { 
 	 return timeout_ms ? asl_cond.wait(&asl_lock, timeout_ms) : asl_cond.wait(&asl_lock); 
       }
