@@ -23,7 +23,9 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <qore/Qore.h>
+#include <qore/config.h>
+#include <qore/support.h>
+#include <qore/Exception.h>
 
 #include <ctpublic.h>
 #include <assert.h>
@@ -294,11 +296,7 @@ std::vector<parameter_info_t> sybase_low_level_get_input_parameters_info(
       std::string name;
       if (datafmt.name[0]) {
         name = datafmt.name;
-      } else {
-        char aux[60];
-        sprintf(aux, "unnamed parameter #%d", (int)i);
-        name = aux;
-      }
+      } 
       result.push_back(parameter_info_t(name, datafmt.datatype, datafmt.maxlength));
     }
   }
@@ -355,11 +353,7 @@ std::vector<parameter_info_t> sybase_low_level_get_output_data_info(
       std::string name;
       if (datafmt.name[0]) {
         name = datafmt.name;
-      } else {
-        char aux[60];
-        sprintf(aux, "unnamed column #%d", (int)i);
-        name = aux;
-      }
+      } 
       result.push_back(parameter_info_t(name, datafmt.datatype, datafmt.maxlength));
     }
   }

@@ -84,11 +84,17 @@ static void free_coldata(EX_COLUMN_DATA* coldata, CS_INT cnt)
 //------------------------------------------------------------------------------
 static void extract_row_data_to_Hash(Hash* out, unsigned col_index, CS_DATAFMT* datafmt, EX_COLUMN_DATA* coldata, const QoreEncoding* encoding, std::vector<parameter_info_t>& outputs_info, ExceptionSink* xsink)
 {
-  char buffer[20];
-  sprintf(buffer, "column%d", (int)(col_index + 1));
-  // TBD - use the name from outputs if exists
+  std::string column_name;
+  assert(col_index < outputs_info.size());
+  if (!outputs_info[col_index].m_name.empty()) {
+    column_name = outputs_info[col_index].m_name;
+  } else {
+    char buffer[20];
+    sprintf(buffer, "column%d", (int)(col_index + 1));
+    column_name = buffer;
+  }
 
-  std::auto_ptr<QoreString> key(new QoreString(buffer));
+  std::auto_ptr<QoreString> key(new QoreString(column_name.c_str()));
   QoreNode* v = 0;
 
   if (coldata->indicator == -1) { // NULL

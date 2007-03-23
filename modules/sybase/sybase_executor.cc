@@ -23,7 +23,13 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <qore/Qore.h>
+#include <qore/config.h>
+#include <qore/support.h>
+#include <qore/Exception.h>
+#include <qore/QoreString.h>
+#include <qore/QoreNode.h>
+#include <qore/Datasource.h>
+#include <qore/List.h>
 
 #include <assert.h>
 #include <memory>
@@ -255,11 +261,11 @@ QoreNode* sybase_executor::selectRows(ExceptionSink *xsink)
 }
 
 #ifdef DEBUG
-#  include "tests/sybase_executor_tests.cc"
-#  include "tests/sybase_executor_tests2.cc"
-#  include "tests/sybase_executor_select_tests.cc"
-#  include "tests/sybase_executor_nonselect_tests.cc"
 #  include "tests/sybase_executor_rpc_tests.cc"
+#  include "tests/sybase_executor_tinyint_tests.cc"
+#  include "tests/sybase_executor_smallint_tests.cc"
+#  include "tests/sybase_executor_int_tests.cc"
+#  include "tests/sybase_executor_bit_tests.cc"
 #endif
 
 // EOF
