@@ -105,6 +105,7 @@ static void extract_row_data_to_Hash(const sybase_command_wrapper& wrapper, Hash
   switch (datafmt->datatype) {
   case CS_LONGCHAR_TYPE:
   case CS_VARCHAR_TYPE:
+  case CS_TEXT_TYPE:
   case CS_CHAR_TYPE: // varchar
   {
     CS_CHAR* value = (CS_CHAR*)(coldata->value);
@@ -112,9 +113,9 @@ static void extract_row_data_to_Hash(const sybase_command_wrapper& wrapper, Hash
     v = new QoreNode(s);
     break;
   }
+  case CS_VARBINARY_TYPE:
   case CS_BINARY_TYPE:
   case CS_LONGBINARY_TYPE:
-  case CS_TEXT_TYPE:
   case CS_IMAGE_TYPE:
     // TBD
     assert(false);
@@ -177,16 +178,45 @@ static void extract_row_data_to_Hash(const sybase_command_wrapper& wrapper, Hash
     break;
   }
   case CS_MONEY_TYPE:
-  case CS_MONEY4_TYPE:
-    assert(false); // TBD
-    xsink->raiseException("DBI-EXEC-EXCEPTION", "Reading Sybase Money datatype is not supported");
-    return;
-  case CS_NUMERIC_TYPE:
-  case CS_DECIMAL_TYPE:
-  case CS_VARBINARY_TYPE:
-    assert(false);
-    // TBD - deal with all the types
+  {
+    CS_MONEY* value = (CS_MONEY*)(coldata->value);
+    double d = convert_SybaseMoney2float(wrapper.getContext(), *value, xsink);
+    if (xsink->isException()) {
+      return;
+    }
+    v = new QoreNode(d);
     break;
+  }
+  case CS_MONEY4_TYPE:
+  {
+    CS_MONEY4* value = (CS_MONEY4*)(coldata->value);
+    double d = convert_SybaseMoney4_2float(wrapper.getContext(), *value, xsink);
+    if (xsink->isException()) {
+      return;
+    }
+    v = new QoreNode(d);
+    break;
+  }
+  case CS_NUMERIC_TYPE:
+  {
+    CS_NUMERIC* value = (CS_NUMERIC*)(coldata->value);
+    double d = convert_SybaseNumeric2float(wrapper.getContext(), *value, xsink);
+    if (xsink->isException()) {
+      return;
+    }
+    v = new QoreNode(d);
+    break;
+  }
+  case CS_DECIMAL_TYPE:
+  {
+    CS_DECIMAL* value = (CS_DECIMAL*)(coldata->value);
+    double d = convert_SybaseDecimal2float(wrapper.getContext(), *value, xsink);
+    if (xsink->isException()) {
+      return;
+    }
+    v = new QoreNode(d);
+    break;
+  }
   default:
     assert(false);
     xsink->raiseException("DBI-EXEC-EXCEPTION", "Unknown data type %d", (int)datafmt->datatype);
@@ -210,8 +240,6 @@ static void sybase_read_row(const sybase_command_wrapper& wrapper, QoreNode*& ou
     assert(false);
     outputs_info.clear();
   }
-
-printf("#### WEH HAVE %d columns to read\n", num_cols);
 
   // allocate helper structures for read data 
   EX_COLUMN_DATA* coldata = (EX_COLUMN_DATA *)malloc(num_cols * sizeof (EX_COLUMN_DATA));
@@ -325,6 +353,7 @@ QoreNode* convert_sybase_output_to_Qore(const sybase_command_wrapper& wrapper, c
 
   CS_INT result_type; 
   while ((err = ct_results(wrapper(), &result_type)) == CS_SUCCEED) {
+printf("#### cs_results() retured %d\n", (int)result_type);
     switch (result_type) {
     case CS_CURSOR_RESULT:
       assert(false); // cannot happen, bug in driver
@@ -345,6 +374,7 @@ QoreNode* convert_sybase_output_to_Qore(const sybase_command_wrapper& wrapper, c
    { // status return codes are not used by Qore
       QoreNode* dummy = 0;
       sybase_read_row(wrapper, dummy, encoding, outputs_info, xsink);
+printf("#### startsu result = %s\n", dummy->type->getAsString(dummy, 0, 0)->getBuffer());
       if (dummy) dummy->deref(xsink);
       if (xsink->isException()) {
         assert(false);

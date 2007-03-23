@@ -213,7 +213,6 @@ sybase_command_wrapper::~sybase_command_wrapper()
 //------------------------------------------------------------------------------
 void sybase_low_level_prepare_command(const sybase_command_wrapper& wrapper, const char* sql_text, ExceptionSink* xsink)
 {
-printf("#### calling prepare [%s]\n", sql_text);
   assert(sql_text && sql_text[0]);
  
   CS_RETCODE err = ct_dynamic(wrapper(), CS_PREPARE, wrapper.getStringId(), CS_NULLTERM, (CS_CHAR*)sql_text, CS_NULLTERM);
@@ -1122,6 +1121,7 @@ void sybase_ct_param(
 
   case CS_DECIMAL_TYPE:
   {
+printf("#### converting value to decimal\n");
     if (data->type != NT_FLOAT && data->type != NT_INT) {
       assert(false);
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Incorrect type for decimal parameter #%u (integer or float expected)", parameter_index + 1);
