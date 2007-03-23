@@ -125,6 +125,7 @@ ManagedDatasource *ManagedDatasource::copy()
    nds->p_dbname      = p_dbname;
    nds->p_hostname    = p_hostname;
    nds->p_db_encoding = p_db_encoding;
+   nds->autocommit    = autocommit;
    return nds;
 }
 
