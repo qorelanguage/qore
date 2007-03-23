@@ -384,9 +384,17 @@ TEST()
     assert(false);
   }
   assert(inputs.size() == 1);
-  assert(inputs[0].m_name == "unnamed parameter #1");
+  assert(inputs[0].m_name == "");
   assert(inputs[0].m_type == CS_INT_TYPE);
   assert(inputs[0].m_max_size == sizeof(CS_INT));
+
+  std::vector<parameter_info_t> outputs = sybase_low_level_get_output_data_info(w, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  assert(outputs.size() > 1);
+  assert(outputs[0].m_name == "id");
+  assert(outputs[0].m_type == CS_INT_TYPE);
 }
 
 //------------------------------------------------------------------------------

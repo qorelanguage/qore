@@ -165,6 +165,38 @@ TEST()
   assert(res.m_is_procedure == true);
 }
 
+//------------------------------------------------------------------------------
+TEST()
+{
+  // test %d
+  printf("running test %s[%d]\n", __FILE__, __LINE__);
+  ExceptionSink xsink;
+  processed_sybase_query res = parse_sybase_query("aaa", &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  assert(res.m_result_query_text == "aaa");
+  assert(res.m_parameters.size() == 0);
+  assert(res.m_is_procedure == false);
+
+  res = parse_sybase_query(" EXECUTE aaa_1(%d, :abc, %v )", &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  assert(res.m_result_query_text == "aaa_1");
+  assert(res.m_parameters.size() == 3);
+  assert(res.m_parameters[0].m_input_parameter);
+  assert(res.m_parameters[0].m_is_integer_type == true);
+
+  assert(!res.m_parameters[1].m_input_parameter);
+  assert(res.m_parameters[1].m_placeholder == "abc");
+  assert(res.m_parameters[1].m_is_integer_type == false);
+
+  assert(res.m_parameters[2].m_input_parameter);
+  assert(res.m_is_procedure == true);
+  assert(res.m_parameters[2].m_is_integer_type == false);
+}
+
 } // namespace
 #endif
 
