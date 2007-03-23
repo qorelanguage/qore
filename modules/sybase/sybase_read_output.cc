@@ -166,7 +166,16 @@ static void extract_row_data_to_Hash(const sybase_command_wrapper& wrapper, Hash
     break;
   }
   case CS_DATETIME4_TYPE:
-    assert(false); ///???? what to do here
+  {
+    CS_DATETIME4* value = (CS_DATETIME4*)(coldata->value);
+    DateTime* dt = convert_SybaseDatetime4_2QoreDatetime(wrapper.getContext(), *value, xsink);
+    if (xsink->isException()) {
+      if (dt) delete dt;
+      return;
+    }
+    v = new QoreNode(dt);
+    break;
+  }
   case CS_MONEY_TYPE:
   case CS_MONEY4_TYPE:
     assert(false); // TBD
