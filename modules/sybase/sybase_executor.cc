@@ -225,6 +225,13 @@ QoreNode* sybase_executor::select(ExceptionSink *xsink)
       return 0;
     }
   }
+  if (is_autocommit_enabled()) {
+    sybase_low_level_commit(get_connection(), xsink);
+    if (xsink->isException()) {
+      if (n) n->deref(xsink);
+      return 0;
+    }
+  }
   return n;
 }
 
@@ -243,6 +250,14 @@ QoreNode* sybase_executor::selectRows(ExceptionSink *xsink)
     assert(false);
     return 0;
   }
+  if (is_autocommit_enabled()) {
+    sybase_low_level_commit(get_connection(), xsink);
+    if (xsink->isException()) {
+      if (n) n->deref(xsink);
+      return 0;
+    }  
+  }
+
   if (n) {
     if (n->type != NT_LIST) {
       if (n->type != NT_HASH) {
