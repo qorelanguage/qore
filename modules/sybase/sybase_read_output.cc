@@ -82,7 +82,7 @@ static void free_coldata(EX_COLUMN_DATA* coldata, CS_INT cnt)
 }
 
 //------------------------------------------------------------------------------
-static void extract_row_data_to_Hash(Hash* out, unsigned col_index, CS_DATAFMT* datafmt, EX_COLUMN_DATA* coldata, const QoreEncoding* encoding, std::vector<parameter_info_t>& outputs_info, ExceptionSink* xsink)
+static void extract_row_data_to_Hash(const sybase_command_wrapper& wrapper, Hash* out, unsigned col_index, CS_DATAFMT* datafmt, EX_COLUMN_DATA* coldata, const QoreEncoding* encoding, std::vector<parameter_info_t>& outputs_info, ExceptionSink* xsink)
 {
   std::string column_name;
   assert(col_index < outputs_info.size());
@@ -155,6 +155,16 @@ static void extract_row_data_to_Hash(Hash* out, unsigned col_index, CS_DATAFMT* 
     break;
   }
   case CS_DATETIME_TYPE:
+  {
+    CS_DATETIME* value = (CS_DATETIME*)(coldata->value);
+    DateTime* dt = convert_SybaseDatetime2QoreDatetime(wrapper.getContext(), *value, xsink);
+    if (xsink->isException()) {
+      if (dt) delete dt;
+      return;
+    }
+    v = new QoreNode(dt);
+    break;
+  }
   case CS_DATETIME4_TYPE:
     assert(false); ///???? what to do here
   case CS_MONEY_TYPE:
@@ -265,7 +275,7 @@ printf("#### WEH HAVE %d columns to read\n", num_cols);
     Hash* h = new Hash;
 
     for (unsigned j = 0; j < num_cols; ++j) {
-      extract_row_data_to_Hash(h, j, &datafmt[j], &coldata[j], encoding, outputs_info, xsink);
+      extract_row_data_to_Hash(wrapper, h, j, &datafmt[j], &coldata[j], encoding, outputs_info, xsink);
       if (xsink->isException()) {
         assert(false);
         QoreNode* aux = new QoreNode(h);
