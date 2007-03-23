@@ -59,7 +59,7 @@ TEST()
   printf("running test %s[%d]\n", __FILE__, __LINE__);
   delete_smallint_table(true);
   create_smallint_table();
-  ON_BLOCK_EXIT(delete_smallint_table);
+  ON_BLOCK_EXIT(delete_smallint_table, false);
 
   sybase_executor executor;
   executor.m_parsed_query.m_result_query_text = "select * from smallint_table where smallint_col = ?";
@@ -96,7 +96,7 @@ TEST()
   printf("running test %s[%d]\n", __FILE__, __LINE__);
   delete_smallint_table(true);
   create_smallint_table();
-  ON_BLOCK_EXIT(delete_smallint_table);
+  ON_BLOCK_EXIT(delete_smallint_table, false);
 
   sybase_executor executor;
   executor.m_parsed_query.m_result_query_text = "insert into smallint_table values (?)";
@@ -247,7 +247,7 @@ TEST()
   printf("running test %s[%d]\n", __FILE__, __LINE__);
   delete_smallint_table(true);
   create_smallint_table();
-  ON_BLOCK_EXIT(delete_smallint_table);
+  ON_BLOCK_EXIT(delete_smallint_table, false);
 
   sybase_executor executor;
   executor.m_parsed_query.m_result_query_text = "select * from smallint_table where smallint_col1 = ? and smallint_col2 = ?";

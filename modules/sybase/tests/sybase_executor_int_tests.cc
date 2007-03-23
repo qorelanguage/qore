@@ -59,7 +59,7 @@ TEST()
   printf("running test %s[%d]\n", __FILE__, __LINE__);
   delete_int_table(true);
   create_int_table();
-  ON_BLOCK_EXIT(delete_int_table);
+  ON_BLOCK_EXIT(delete_int_table, false);
 
   sybase_executor executor;
   executor.m_parsed_query.m_result_query_text = "select * from int_table where int_col = ?";
@@ -96,7 +96,7 @@ TEST()
   printf("running test %s[%d]\n", __FILE__, __LINE__);
   delete_int_table(true);
   create_int_table();
-  ON_BLOCK_EXIT(delete_int_table);
+  ON_BLOCK_EXIT(delete_int_table, false);
 
   sybase_executor executor;
   executor.m_parsed_query.m_result_query_text = "insert into int_table values (?)";
@@ -189,7 +189,7 @@ TEST()
   printf("running test %s[%d]\n", __FILE__, __LINE__);
   delete_int_table(true);
   create_int_table();
-  ON_BLOCK_EXIT(delete_int_table);
+  ON_BLOCK_EXIT(delete_int_table, false);
 
   sybase_executor executor;
   executor.m_parsed_query.m_result_query_text = "insert into int_table values(1)";

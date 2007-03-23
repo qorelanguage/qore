@@ -136,7 +136,7 @@ TEST()
   printf("running test %s[%d]\n", __FILE__, __LINE__);
   drop_test_procedure2(true);
   create_test_procedure2();
-  ON_BLOCK_EXIT(drop_test_procedure2);
+  ON_BLOCK_EXIT(drop_test_procedure2, false);
 
   sybase_connection conn;
   ExceptionSink xsink;

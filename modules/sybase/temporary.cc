@@ -33,12 +33,12 @@ private:
   static void deallocate_prepared_statement(CS_COMMAND* cmd, char* id);
 
   // description of both input parameters and output data
-  typedef struct column_info_t {
-    column_info_t(const std::string& n, unsigned t, unsigned s) : m_column_name(n), m_column_type(t), m_max_size(s) {}
+  typedef struct column_info {
+    column_info(const std::string& n, unsigned t, unsigned s) : m_column_name(n), m_column_type(t), m_max_size(s) {}
     std::string m_column_name;
     unsigned m_column_type; // CS_..._TYPE constants
     unsigned m_max_size;
-  };
+  } column_info_t;
 
 
   // wraps ct_dynamic(CS_DESCRIBE_INPUT)
@@ -398,7 +398,7 @@ printf("### failed to execute\n");
     return;
   }
 
-  for (unsigned i = 0, n = param_info.size(); i != n; ++i) {
+  for (unsigned i = 0, e = param_info.size(); i != e; ++i) {
     QoreNode* n = m_input_parameters[i];
     const char* param_name = param_info[i].m_column_name.c_str();
 

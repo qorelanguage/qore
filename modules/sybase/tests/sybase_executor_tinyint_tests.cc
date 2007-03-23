@@ -59,7 +59,7 @@ TEST()
   printf("running test %s[%d]\n", __FILE__, __LINE__);
   delete_tinyint_table(true);
   create_tinyint_table();
-  ON_BLOCK_EXIT(delete_tinyint_table);
+  ON_BLOCK_EXIT(delete_tinyint_table, false);
 
   sybase_executor executor;
   executor.m_parsed_query.m_result_query_text = "select * from tinyint_table where tinyint_col = ?";
@@ -96,7 +96,7 @@ TEST()
   printf("running test %s[%d]\n", __FILE__, __LINE__);
   delete_tinyint_table(true);
   create_tinyint_table();
-  ON_BLOCK_EXIT(delete_tinyint_table);
+  ON_BLOCK_EXIT(delete_tinyint_table, false);
 
   sybase_executor executor;
   executor.m_parsed_query.m_result_query_text = "insert into tinyint_table values (?)";
