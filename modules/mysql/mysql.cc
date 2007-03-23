@@ -696,7 +696,14 @@ inline class QoreNode *MyBindGroup::exec(class ExceptionSink *xsink)
 
 inline class QoreNode *MyBindGroup::select(class ExceptionSink *xsink)
 {
-   return execIntern(xsink);
+   class QoreNode *rv = execIntern(xsink);
+   
+#ifdef HAVE_MYSQL_COMMIT
+   if (!xsink->isException() && ds->getAutoCommit())
+      mysql_commit(mydata->db);
+#endif
+   
+   return rv;
 }
 
 class QoreNode *MyBindGroup::selectRows(class ExceptionSink *xsink)
@@ -752,6 +759,11 @@ class QoreNode *MyBindGroup::selectRows(class ExceptionSink *xsink)
       else
 	 rv = getOutputHash(xsink);
    }
+
+#ifdef HAVE_MYSQL_COMMIT
+   if (!xsink->isException() && ds->getAutoCommit())
+      mysql_commit(mydata->db);
+#endif
 
    return rv;
 }

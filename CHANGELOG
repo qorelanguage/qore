@@ -1,3 +1,8 @@
+2006.03.23: David Nichols
+	* updated oracle and mysql drivers to do a commit after select*()
+	  methods as well as exec if autocommit is set
+	* updated pgsql driver to do auto-commits properly when option is set
+
 2006.03.22: David Nichols
 	* compile fixes for Solaris and HPUX builds
 	* pgsql updates

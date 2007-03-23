@@ -1096,6 +1096,11 @@ class QoreNode *OraBindGroup::select(class ExceptionSink *xsink)
    if (!xsink->isEvent())
       h = ora_fetch(stmthp, ds, xsink);
 
+   // commit transaction if autocommit set for datasource
+   if (!xsink->isEvent() && ds->getAutoCommit())
+      if ((status = OCITransCommit(d_ora->svchp, d_ora->errhp, (ub4) 0)))
+	 ora_checkerr(d_ora->errhp, status, "OraBindGroup():commit", ds, xsink);
+
    if (!h)
       return NULL;
    return new QoreNode(h);
@@ -1112,6 +1117,11 @@ class QoreNode *OraBindGroup::selectRows(class ExceptionSink *xsink)
    class List *l = NULL;
    if (!xsink->isEvent())
       l = ora_fetch_horizontal(stmthp, ds, xsink);
+
+   // commit transaction if autocommit set for datasource
+   if (!xsink->isEvent() && ds->getAutoCommit())
+      if ((status = OCITransCommit(d_ora->svchp, d_ora->errhp, (ub4) 0)))
+	 ora_checkerr(d_ora->errhp, status, "OraBindGroup():commit", ds, xsink);
 
    if (!l)
       return NULL;
