@@ -76,6 +76,8 @@ static class QoreNode *qore_pgsql_select_rows(class Datasource *ds, QoreString *
 {
    QorePGConnection *pc = (QorePGConnection *)ds->getPrivateData();
 
+   return pc->select_rows(ds, qstr, args, xsink);
+/*
    class QoreNode *rv = pc->select_rows(ds, qstr, args, xsink);
    if (!*xsink && ds->getAutoCommit() && pc->commit(ds, xsink))
    {
@@ -83,12 +85,15 @@ static class QoreNode *qore_pgsql_select_rows(class Datasource *ds, QoreString *
       return NULL;
    }
    return rv;
+*/
 }
 
 static class QoreNode *qore_pgsql_select(class Datasource *ds, QoreString *qstr, class List *args, class ExceptionSink *xsink)
 {
    QorePGConnection *pc = (QorePGConnection *)ds->getPrivateData();
 
+   return pc->select(ds, qstr, args, xsink);
+/*
    class QoreNode *rv = pc->select(ds, qstr, args, xsink);
    if (!*xsink && ds->getAutoCommit() && pc->commit(ds, xsink))
    {
@@ -96,12 +101,15 @@ static class QoreNode *qore_pgsql_select(class Datasource *ds, QoreString *qstr,
       return NULL;
    }
    return rv;
+*/
 }
 
 static class QoreNode *qore_pgsql_exec(class Datasource *ds, QoreString *qstr, class List *args, class ExceptionSink *xsink)
 {
    QorePGConnection *pc = (QorePGConnection *)ds->getPrivateData();
 
+   return pc->exec(ds, qstr, args, xsink);
+/*
    class QoreNode *rv = pc->exec(ds, qstr, args, xsink);
    if (!*xsink && ds->getAutoCommit() && pc->commit(ds, xsink))
    {
@@ -109,6 +117,7 @@ static class QoreNode *qore_pgsql_exec(class Datasource *ds, QoreString *qstr, c
       return NULL;
    }
    return rv;
+*/
 }
 
 static int qore_pgsql_open(Datasource *ds, ExceptionSink *xsink)
