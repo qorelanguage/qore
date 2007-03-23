@@ -162,9 +162,57 @@ class QoreNode *map_mdata_to_node(MData *md, ExceptionSink *xsink)
    return NULL;
 }
 
-static inline void set_properties(MAppProperties *appProperties, Hash *h, ExceptionSink *xsink)
+class TibCommandLine {
+
+   private:
+      DLLLOCAL void add_intern(char *str)
+      {
+	 // resize array
+	 if (argc == alloc)
+	 {
+	    alloc += 10;
+	    argv = (char **)realloc(argv, sizeof(char *) * alloc);
+	 }
+	 argv[argc] = str;
+	 //printd(5, "add_intern %d='%s'\n", argc, str);
+	 argc++;
+      }
+
+   public:
+      char **argv;
+      int argc, alloc;
+
+      DLLLOCAL TibCommandLine() : argv(0), argc(0), alloc(0)
+      {
+      }
+      DLLLOCAL ~TibCommandLine()
+      {
+	 if (argv)
+	 {
+	    // delete every other string starting with index 2
+	    for (int i = 2; i < argc; i += 2)
+	       free(argv[i]);
+	    free(argv);
+	 }
+      }
+      DLLLOCAL void add(const char *key, const char *val)
+      {	 
+	 if (!argc)
+	    // add a dummy entry for the program name
+	    add_intern("dummy");
+	 QoreString str;
+	 add_intern("-system:clientVar");
+	 str.sprintf("%s=%s", key, val);
+	 add_intern(str.giveBuffer());
+      }
+};
+
+static inline void set_properties(MAppProperties *appProperties, Hash *h, TibCommandLine &tcl, ExceptionSink *xsink)
 {
    tracein("set_properties()");
+
+   // variable hash for overridding global variables
+   class Hash *vh = NULL;
 
    HashIterator hi(h);
    while (hi.next())
@@ -177,7 +225,14 @@ static inline void set_properties(MAppProperties *appProperties, Hash *h, Except
 			key);
 	 return;
       }
-      else if (hi.getValue()->type != NT_STRING)
+
+      if (!strcmp(key, "Vars") && hi.getValue() && hi.getValue()->type == NT_HASH)
+      {
+	 vh = hi.getValue()->val.hash;
+	 continue;
+      }
+
+      if (hi.getValue()->type != NT_STRING)
       {
 	 xsink->raiseException("TIBCO-INVALID-PROPERTIES-HASH",
 			"properties hash has invalid type \"%s\" for key \"%s\" (must be string)",
@@ -200,6 +255,26 @@ static inline void set_properties(MAppProperties *appProperties, Hash *h, Except
       else printe("ignoring properties member %s=%s\n", key, val);
 #endif
    }
+
+   if (vh)
+   {
+      HashIterator vhi(vh);
+      while (vhi.next())
+      {
+	 const char *key = vhi.getKey();
+	 if (!key || !key[0])
+	    continue;
+
+	 class QoreNode *n = vhi.getValue();
+	 if (!n || n->type != NT_STRING || !n->val.String->strlen())
+	    continue;
+	 //printd(5, "setting override for global variable %s=%s\n", key, n->val.String->getBuffer());
+	 tcl.add(key, n->val.String->getBuffer());
+      }
+   }
+
+   if (tcl.argc)
+      appProperties->setCommandLine(tcl.argc, tcl.argv);
 
    appProperties->setMultiThreaded(); 
    //appProperties->setDefaultStringEncoding(MEncoding::M_ASCII);
@@ -272,7 +347,9 @@ void TIBAE_constructor(class Object *self, class QoreNode *params, class Excepti
    class QoreApp *myQoreApp = NULL;
 
    MAppProperties *appProps = new MAppProperties();
-   set_properties(appProps, p1->val.hash, xsink); 
+
+   TibCommandLine tcl;
+   set_properties(appProps, p1->val.hash, tcl, xsink); 
 
    if (xsink->isEvent())
    {
@@ -282,14 +359,15 @@ void TIBAE_constructor(class Object *self, class QoreNode *params, class Excepti
    }
    try 
    {
-      printd(4, "before QoreApp constructor\n");
+      //printd(5, "before QoreApp constructor\n");
       myQoreApp =
          new QoreApp(appProps, session_name, classlist, service, network, daemon);
-      printd(4, "after QoreApp constructor (%08p)\n", myQoreApp);
 
-      printd(4, "before start()\n");
+      //printd(5, "after QoreApp constructor (%08p)\n", myQoreApp);
+
+      //printd(5, "before start()\n");
       myQoreApp->start(Mfalse);
-      printd(4, "after start()\n");
+      //printd(5, "after start()\n");
    }
    catch (MException &te)
    {
