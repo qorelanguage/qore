@@ -27,6 +27,7 @@
 #include <qore/support.h>
 #include <qore/Exception.h>
 
+#include <cstypes.h>
 #include <ctpublic.h>
 #include <assert.h>
 #include <pthread.h>
@@ -44,6 +45,11 @@
 #include "sybase_low_level_interface.h"
 #include "sybase_connection.h"
 #include "sybase_query_parser.h"
+
+#ifndef CS_MAX_CHAR
+// from <cstypes.h>
+#define CS_MAX_CHAR 256
+#endif
 
 //------------------------------------------------------------------------------
 int sybase_low_level_commit(sybase_connection* sc, ExceptionSink* xsink)
@@ -233,15 +239,25 @@ void sybase_low_level_prepare_command(const sybase_command_wrapper& wrapper, con
   CS_INT result_type;
   err = ct_results(wrapper(), &result_type);
   if (err != CS_SUCCEED) {
+#ifdef SYBASE
     assert(false);
     xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_result() failed with error %d", (int)err);
     return;
+#else
+// FreeTDS fails here
+printf("### FreeTDS difference: %s[%d]\n", __FILE__, __LINE__);
+#endif
   }
   if (result_type != CS_CMD_SUCCEED) {
+#ifdef SYBASE
     assert(result_type == CS_CMD_FAIL);
     assert(false);
     xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() for ct_dynamic(CS_PREPARE, '%s') failed with error %d", sql_text, (int)err);
     return;
+#else
+// FreeTDS fails here
+printf("### FreeTDS difference: %s[%d]\n", __FILE__, __LINE__);
+#endif
   }
   while((err = ct_results(wrapper(), &result_type)) == CS_SUCCEED);
 }
@@ -403,6 +419,7 @@ void sybase_low_level_bind_parameters(
   }
 
   // bind parameters (by position)
+printf("### trying to bind %d params\n", parameters.size());
   for (unsigned i = 0, n = parameters.size(); i != n; ++i) {
     sybase_ct_param(wrapper, i, encoding, parameters[i].m_type, parameters[i].m_node, xsink); 
     if (xsink->isException()) {
@@ -410,12 +427,14 @@ void sybase_low_level_bind_parameters(
     }
   }
 
+printf("### before ct_send\n");
   CS_RETCODE err = ct_send(wrapper());
   if (err != CS_SUCCEED) {
     assert(false);
     xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_send() failed with error %d", (int)err);
     return;
   }  
+printf("#### after ct_send\n");
 }
 
 //------------------------------------------------------------------------------
@@ -933,20 +952,54 @@ void sybase_ct_param(
   return;
 
   case CS_BINARY_TYPE:
-  case CS_LONGBINARY_TYPE:
-  case CS_VARBINARY_TYPE:
-  case CS_IMAGE_TYPE: // image could be used only with LIKE in WHERE statement, nowhere else
   {
     if (data->type != NT_BINARY) {
       assert(false);
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Incorrect type for binary parameter #%u", parameter_index + 1);
       return;
     }
+    int size = data->val.bin->size();
 
     datafmt.datatype = type;
-    datafmt.maxlength = data->val.bin->size();
+    datafmt.maxlength = size;
 
-    err = ct_param(wrapper(), &datafmt, data->val.bin->getPtr(), data->val.bin->size(), 0);
+printf("### binding binary value  with length %d\n", size);
+    err = ct_param(wrapper(), &datafmt, data->val.bin->getPtr(), size, 0);
+    if (err != CS_SUCCEED) {
+      assert(false);
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase function ct_param() for binary parameter #%u failed with error", parameter_index + 1, (int)err);
+      return;
+    }
+  }
+  return;
+
+    assert(false);
+  case CS_LONGBINARY_TYPE:
+    assert(false);
+  case CS_IMAGE_TYPE: // image could be used only with LIKE in WHERE statement, nowhere else
+    assert(false);
+  case CS_VARBINARY_TYPE:
+  {
+    assert(false); // should never be actually returned
+    if (data->type != NT_BINARY) {
+      assert(false);
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "Incorrect type for varbinary parameter #%u", parameter_index + 1);
+      return;
+    }
+    int size = data->val.bin->size();
+    if (size > CS_MAX_CHAR) {
+      assert(false);
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "Parameter #%u: varbinary supports up to %d B (attempt to insert %d B)", parameter_index + 1, CS_MAX_CHAR, size);
+      return;
+    }
+
+    datafmt.datatype = type;
+    datafmt.maxlength = size;
+    CS_VARBINARY varbin; // required by ct_param()
+    varbin.len = size;
+    memcpy(varbin.array, data->val.bin->getPtr(), size);
+
+    err = ct_param(wrapper(), &datafmt, &varbin, size, 0);
     if (err != CS_SUCCEED) {
       assert(false);
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase function ct_param() for binary parameter #%u failed with error", parameter_index + 1, (int)err);
@@ -1127,7 +1180,6 @@ void sybase_ct_param(
 
   case CS_DECIMAL_TYPE:
   {
-printf("#### converting value to decimal\n");
     if (data->type != NT_FLOAT && data->type != NT_INT) {
       assert(false);
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Incorrect type for decimal parameter #%u (integer or float expected)", parameter_index + 1);

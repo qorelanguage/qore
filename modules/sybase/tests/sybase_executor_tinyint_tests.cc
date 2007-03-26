@@ -116,17 +116,20 @@ TEST()
   l->push(new QoreNode((int64)123));
   executor.m_args = l;
 
+printf("### executing tinyint insert\n");
   QoreNode* n = executor.exec(&xsink);
   if (xsink.isException()) {
     assert(false);
   }
   assert(!n);
 
+printf("### executing one more tinyint insert\n");
   n = executor.exec(&xsink); // once more
   if (xsink.isException()) {
     assert(false);
   }
 
+printf("### executing tinyint insert with literal\n");
   executor.m_parsed_query.m_result_query_text = "insert into tinyint_table values (46)";
   executor.m_args = new List;
   n = executor.exec(&xsink);
@@ -134,6 +137,7 @@ TEST()
     assert(false);
   }
 
+printf("### executing tinyint select count(*)\n");
   executor.m_parsed_query.m_result_query_text = "select count(*) from tinyint_table";
   n = executor.select(&xsink);
   if (xsink.isException()) {

@@ -232,8 +232,8 @@ static int sybase_rollback(Datasource *ds, ExceptionSink *xsink)
 QoreString* sybase_module_init()
 {
    tracein("sybase_module_init()");
-
    QoreSybaseMapper::static_init();
+
 #ifdef DEBUG
   builtinFunctions.add("runSybaseTests", runSybaseTests, QDOM_DATABASE);
   builtinFunctions.add("runRecentSybaseTests", runRecentSybaseTests, QDOM_DATABASE);

@@ -1,3 +1,4 @@
+#if 0
 namespace {
 
 //------------------------------------------------------------------------------
@@ -1039,4 +1040,5 @@ QoreNode* SybaseBindGroup::selectRows(class ExceptionSink *xsink)
 
 } // anonymous namespace
 
+#endif
 

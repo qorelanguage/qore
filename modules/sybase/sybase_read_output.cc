@@ -33,6 +33,7 @@
 #include <qore/QoreString.h>
 #include <qore/QoreType.h>
 #include <qore/DateTime.h>
+#include <qore/BinaryObject.h>
 
 #include <assert.h>
 #include <qore/minitest.hpp>
@@ -114,12 +115,25 @@ static void extract_row_data_to_Hash(const sybase_command_wrapper& wrapper, Hash
     v = new QoreNode(s);
     break;
   }
-  case CS_VARBINARY_TYPE:
   case CS_BINARY_TYPE:
   case CS_LONGBINARY_TYPE:
   case CS_IMAGE_TYPE:
-    // TBD
     assert(false);
+  case CS_VARBINARY_TYPE:
+  {
+    CS_BINARY* value = (CS_BINARY*)(coldata->value);
+    int size = coldata->valuelen;
+printf("### read BINARY data of size %d B\n", size);
+    void* block = malloc(size);
+    if (!block) {
+      xsink->outOfMemory();
+      return;
+    }
+    memcpy(block, value, size);
+    BinaryObject* bin = new BinaryObject(block, size);
+    v = new QoreNode(bin);
+    break;
+  }
   case CS_TINYINT_TYPE:
   {
     CS_TINYINT* value = (CS_TINYINT*)(coldata->value);
@@ -274,6 +288,11 @@ static void sybase_read_row(const sybase_command_wrapper& wrapper, QoreNode*& ou
     assert(datafmt[i].maxlength < 100000); // guess, if invalid then app semnatic is wrong
 
     datafmt[i].maxlength += 4; // some padding for zero terminator, 4 is safe bet
+    if (datafmt[i].datatype == CS_BINARY_TYPE || datafmt[i].datatype == CS_VARBINARY_TYPE) {
+      // PHP Sybase driver does this
+      datafmt[i].maxlength *= 2;
+    }
+
     coldata[i].value = (CS_CHAR*)malloc(datafmt[i].maxlength);
     if (!coldata[i].value) {
       assert(false);
@@ -294,7 +313,6 @@ static void sybase_read_row(const sybase_command_wrapper& wrapper, QoreNode*& ou
       datafmt[i].scale = 15; // guess, # of digits after decimal dot
       datafmt[i].format = CS_FMT_UNUSED;
       break;
-
     default:
       datafmt[i].format = CS_FMT_UNUSED;
       break;
@@ -356,7 +374,6 @@ QoreNode* convert_sybase_output_to_Qore(const sybase_command_wrapper& wrapper, c
 
   CS_INT result_type; 
   while ((err = ct_results(wrapper(), &result_type)) == CS_SUCCEED) {
-printf("#### cs_results() retured %d\n", (int)result_type);
     switch (result_type) {
     case CS_CURSOR_RESULT:
       assert(false); // cannot happen, bug in driver
@@ -377,22 +394,6 @@ printf("#### cs_results() retured %d\n", (int)result_type);
    { // status return codes are not used by Qore
       QoreNode* dummy = 0;
       sybase_read_row(wrapper, dummy, encoding, outputs_info, xsink);
-printf("#### startsu result = %s\n", dummy->type->getAsString(dummy, 0, 0)->getBuffer());
-Hash* h = dummy->val.hash;
-HashIterator it(h);
-while (it.next()) {
-printf("### HASH VALUE\n");
-const char* name = it.getKey();
-QoreNode* vvv = it.getValue();
-
-const char* type;
-if (vvv->type == NT_INT) type = "int"; else
-if (vvv->type == NT_FLOAT) type = "float";
-else type = "unknown";
-const char* v = vvv->type->getAsString(vvv, 0, 0)->getBuffer();
-printf("### single hash value name [%s], type [%s] = [%s]\n", name, type, v);
-}
-printf("### end of hash values\n");
       if (dummy) dummy->deref(xsink);
       if (xsink->isException()) {
         assert(false);

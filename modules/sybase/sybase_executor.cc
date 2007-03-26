@@ -134,9 +134,14 @@ QoreNode* sybase_executor::exec_language_command(const sybase_command_wrapper& w
 
   if (inputs.empty()) {
     if (m_args && m_args->size() != 0) {
+#ifdef SYBASE
       assert(false);
       xsink->raiseException("DBI-EXEC-EXCEPTION", "No parameters excepted for the query %s", m_parsed_query.m_result_query_text.c_str());
       return 0;
+#else
+// looks like a FreeTDS bug
+printf("### FreeTDS difference: %s[%d]\n", __FILE__, __LINE__);
+#endif
     }
   } else {
     unsigned provided_args = 0;
@@ -150,17 +155,20 @@ QoreNode* sybase_executor::exec_language_command(const sybase_command_wrapper& w
     }
   }
 
+printf("### here1\n");
   std::vector<bind_parameter_t> bindings;
   bindings.reserve(inputs.size());
   for (unsigned i = 0, n = inputs.size(); i != n; ++i) {
     bindings.push_back(bind_parameter_t(inputs[i].m_type, m_args->retrieve_entry(i)));
   }
 
+printf("### here2\n");
   sybase_low_level_bind_parameters(w, get_encoding(), m_parsed_query.m_result_query_text.c_str(), bindings, xsink);
   if (xsink->isException()) {
     return 0;
   }
 
+printf("### here3\n");
   return convert_sybase_output_to_Qore(w, get_encoding(), m_parsed_query, outputs, xsink);
 }
 

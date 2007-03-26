@@ -55,8 +55,7 @@ TEST()
 
 //------------------------------------------------------------------------------
 TEST()
-{
-/*###
+{/*###
   // testing varbinary parameter
   printf("running test %s[%d]\n", __FILE__, __LINE__);
   delete_varbinary_table(true);
@@ -99,12 +98,12 @@ TEST()
 /*###
   // testing insert, delete, drop etc using executor
   printf("running test %s[%d]\n", __FILE__, __LINE__);
-  delete_varchar_table(true);
-  create_varchar_table();
-  ON_BLOCK_EXIT(delete_varchar_table, false);
+  delete_varbinary_table(true);
+  create_varbinary_table();
+  ON_BLOCK_EXIT(delete_varbinary_table, false);
 
   sybase_executor executor;
-  executor.m_parsed_query.m_result_query_text = "insert into varchar_table values (?)";
+  executor.m_parsed_query.m_result_query_text = "insert into varbinary_table values (?)";
   executor.m_parsed_query.m_is_procedure = false;
 
   sybase_connection conn;
@@ -118,7 +117,9 @@ TEST()
   executor.m_test_autocommit = false;
   executor.m_test_connection = &conn;
   List* l= new List;
-  l->push(new QoreNode("aaaa"));
+  void* block = malloc(999);
+  BinaryObject* bin = new BinaryObject(block, 999);
+  l->push(new QoreNode(bin));
   executor.m_args = l;
 
   QoreNode* n = executor.exec(&xsink);
@@ -132,14 +133,7 @@ TEST()
     assert(false);
   }
 
-  executor.m_parsed_query.m_result_query_text = "insert into varchar_table values ('bbbbbb')";
-  executor.m_args = new List;
-  n = executor.exec(&xsink);
-  if (xsink.isException()) {
-    assert(false);
-  }
-
-  executor.m_parsed_query.m_result_query_text = "select count(*) from varchar_table";
+  executor.m_parsed_query.m_result_query_text = "select count(*) from varbinary_table";
   n = executor.select(&xsink);
   if (xsink.isException()) {
     assert(false);
@@ -149,34 +143,37 @@ TEST()
   QoreNode* x = n->val.hash->getKeyValue("column1");
   assert(x);
   assert(x->type == NT_INT);
-  assert(x->val.intval == 3);
+  assert(x->val.intval == 2);
 
-  executor.m_parsed_query.m_result_query_text = "select * from varchar_table";
+  executor.m_parsed_query.m_result_query_text = "select * from varbinary_table";
   n = executor.selectRows(&xsink);
   if (xsink.isException()) {
     assert(false);
   }
   assert(n);
   assert(n->type == NT_LIST);
-  assert(n->val.list->size() == 3);
+  assert(n->val.list->size() == 2);
   x = n->val.list->retrieve_entry(0);
   assert(x);
   assert(x->type == NT_HASH);
   assert(x->val.hash->size() == 1);
-  x = x->val.hash->getKeyValue("varchar_col");
+  x = x->val.hash->getKeyValue("varbinary_col");
   assert(x);
-  assert(x->type == NT_STRING);
-  std::string s = x->val.String->getBuffer();
-  assert(s == "aaaa" || s == "bbbbbb");
+  assert(x->type == NT_BINARY);
+  BinaryObject* bin2 = x->val.bin;
+  assert(bin2->size() == 999);
+  if (memcmp(bin2->getPtr(), block, 999)) {
+    assert(false);
+  }
 
-  executor.m_parsed_query.m_result_query_text = "delete from varchar_table";
+  executor.m_parsed_query.m_result_query_text = "delete from varbinary_table";
   executor.m_args = new List;
   n = executor.exec(&xsink);
   if (xsink.isException()) {
     assert(false);
   }
 
-  executor.m_parsed_query.m_result_query_text = "select count(*) from varchar_table";
+  executor.m_parsed_query.m_result_query_text = "select count(*) from varbinary_table";
   n = executor.select(&xsink);
   if (xsink.isException()) {
     assert(false);
