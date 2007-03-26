@@ -288,6 +288,7 @@ QoreNode* sybase_executor::selectRows(ExceptionSink *xsink)
 #  include "tests/sybase_executor_money_tests.cc"
 #  include "tests/sybase_executor_money4_tests.cc"
 #  include "tests/sybase_executor_decimal_tests.cc"
+#  include "tests/sybase_executor_numeric_tests.cc"
 #endif
 
 // EOF
