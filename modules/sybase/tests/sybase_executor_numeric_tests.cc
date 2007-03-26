@@ -108,9 +108,9 @@ TEST()
 namespace sybase_tests_967876891190 {
 
 //------------------------------------------------------------------------------
-static void create_decimal_table()
+static void create_numeric_table()
 {
-  const char* cmd =  "create table decimal_table (decimal_col decimal(30, 15) )";
+  const char* cmd =  "create table numeric_table (numeric_col numeric(30, 15) )";
 
   sybase_connection c;
   ExceptionSink xsink;
@@ -125,9 +125,9 @@ static void create_decimal_table()
 }
 
 //------------------------------------------------------------------------------
-static void delete_decimal_table(bool quiet = false)
+static void delete_numeric_table(bool quiet = false)
 {
-  const char* cmd =  "drop table decimal_table";
+  const char* cmd =  "drop table numeric_table";
 
   sybase_connection c;
   ExceptionSink xsink;
@@ -149,22 +149,22 @@ static void delete_decimal_table(bool quiet = false)
 TEST()
 {
   printf("running test %s[%d]\n", __FILE__, __LINE__);
-  delete_decimal_table(true);
-  create_decimal_table();
-  delete_decimal_table();
+  delete_numeric_table(true);
+  create_numeric_table();
+  delete_numeric_table();
 }
 
 //------------------------------------------------------------------------------
 TEST()
 {
-  // testing decimal parameter
+  // testing numeric parameter
   printf("running test %s[%d]\n", __FILE__, __LINE__);
-  delete_decimal_table(true);
-  create_decimal_table();
-  ON_BLOCK_EXIT(delete_decimal_table, false);
+  delete_numeric_table(true);
+  create_numeric_table();
+  ON_BLOCK_EXIT(delete_numeric_table, false);
 
   sybase_executor executor;
-  executor.m_parsed_query.m_result_query_text = "select * from decimal_table where decimal_col = ?";
+  executor.m_parsed_query.m_result_query_text = "select * from numeric_table where numeric_col = ?";
   executor.m_parsed_query.m_is_procedure = false;
 
   sybase_connection conn;
@@ -196,12 +196,12 @@ TEST()
 {
   // testing insert, delete, drop etc using executor
   printf("running test %s[%d]\n", __FILE__, __LINE__);
-  delete_decimal_table(true);
-  create_decimal_table();
-  ON_BLOCK_EXIT(delete_decimal_table, false);
+  delete_numeric_table(true);
+  create_numeric_table();
+  ON_BLOCK_EXIT(delete_numeric_table, false);
 
   sybase_executor executor;
-  executor.m_parsed_query.m_result_query_text = "insert into decimal_table values (?)";
+  executor.m_parsed_query.m_result_query_text = "insert into numeric_table values (?)";
   executor.m_parsed_query.m_is_procedure = false;
 
   sybase_connection conn;
@@ -229,7 +229,7 @@ TEST()
     assert(false);
   }
 
-  executor.m_parsed_query.m_result_query_text = "select count(*) from decimal_table";
+  executor.m_parsed_query.m_result_query_text = "select count(*) from numeric_table";
   executor.m_args = new List;
   n = executor.select(&xsink);
   if (xsink.isException()) {
@@ -243,7 +243,7 @@ TEST()
   assert(x->type == NT_INT);
   assert(x->val.intval == 2);
 
-  executor.m_parsed_query.m_result_query_text = "select * from decimal_table";
+  executor.m_parsed_query.m_result_query_text = "select * from numeric_table";
   n = executor.selectRows(&xsink);
   if (xsink.isException()) {
     assert(false);
@@ -255,18 +255,18 @@ TEST()
   assert(x);
   assert(x->type == NT_HASH);
   assert(x->val.hash->size() == 1);
-  x = x->val.hash->getKeyValue("decimal_col");
+  x = x->val.hash->getKeyValue("numeric_col");
   assert(x);
   assert(x->type == NT_FLOAT);
   assert(x->val.floatval == 100.0);
 
-  executor.m_parsed_query.m_result_query_text = "delete from decimal_table";
+  executor.m_parsed_query.m_result_query_text = "delete from numeric_table";
   n = executor.exec(&xsink);
   if (xsink.isException()) {
     assert(false);
   }
 
-  executor.m_parsed_query.m_result_query_text = "select count(*) from decimal_table";
+  executor.m_parsed_query.m_result_query_text = "select count(*) from numeric_table";
   n = executor.select(&xsink);
   if (xsink.isException()) {
     assert(false);
