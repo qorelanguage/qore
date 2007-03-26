@@ -12,7 +12,7 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 qore is a modular, multithreaded, weakly-typed, object-oriented programming language suitable for embedding application logic, application scripting, interface development, and even complex multi-threaded, network-aware object-oriented application development. Qore features integrated XML capability, oracle, mysql, TIBCO Rendezvous and Adapters modules, as well as built-in date arithmetic, method and member redirection for classes, private methods, synchronized (in the Java sense) functions and class methods, national character set support with implicit and explicit character set conversions, exception handling, Perl5-compatible regular expression support, powerful and easy-to-use data structures (arrays, hashes, etc), and much more. Qore is under active development, very well-tested, and is also under commercial use as the technology behind the Qorus Integration Engine (formerly OM/Qore).
 
 %package oracle-module
-Summary: Oracle module for Qore
+Summary: Oracle DBI module for Qore
 Group: Development/Languages
 
 %description oracle-module
@@ -20,14 +20,14 @@ Oracle DBI driver module for the Qore Programming Language. The Oracle driver is
 
 %files oracle-module
 %ifarch i386
-/usr/lib/qore-0.6.2/auto/oracle.qmod
+/usr/lib/qore-0.6.2/oracle.qmod
 %endif
 %ifarch x86_64
-/usr/lib64/qore-0.6.2/auto/oracle.qmod
+/usr/lib64/qore-0.6.2/oracle.qmod
 %endif
 
 %package mysql-module
-Summary: MySQL module for Qore
+Summary: MySQL DBI module for Qore
 Group: Development/Languages
 
 %description mysql-module
@@ -35,10 +35,40 @@ MySQL DBI driver module for the Qore Programming Language. The MySQL driver is c
 
 %files mysql-module
 %ifarch i386
-/usr/lib/qore-0.6.2/auto/mysql.qmod
+/usr/lib/qore-0.6.2/mysql.qmod
 %endif
 %ifarch x86_64
-/usr/lib64/qore-0.6.2/auto/mysql.qmod
+/usr/lib64/qore-0.6.2/mysql.qmod
+%endif
+
+%package sybase-module
+Summary: Sybase DBI module for Qore
+Group: Development/Languages
+
+%description sybase-module
+Sybase DBI driver module for the Qore Programming Language. The Sybase driver is character set aware, supports multithreading, transaction management, stored prodedure and function execution, etc.
+
+%files sybase-module
+%ifarch i386
+/usr/lib/qore-0.6.2/sybase.qmod
+%endif
+%ifarch x86_64
+/usr/lib64/qore-0.6.2/sybase.qmod
+%endif
+
+%package mssql-module
+Summary: FreeTDS-based MS-SQL DBI module for Qore
+Group: Development/Languages
+
+%description mssql-module
+FreeTDS-based MS-SQL Server and Sybase DBI driver module for the Qore Programming Language. This driver is character set aware, supports multithreading, transaction management, stored prodedure and function execution, etc, and can be used to connect to Sybase and Microsoft SQL Server databases.
+
+%files mssql-module
+%ifarch i386
+/usr/lib/qore-0.6.2/mssql.qmod
+%endif
+%ifarch x86_64
+/usr/lib64/qore-0.6.2/mssql.qmod
 %endif
 
 %ifarch i386

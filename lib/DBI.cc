@@ -178,13 +178,28 @@ DBIDriverList::~DBIDriverList()
    }
 }
 
-DBIDriver *DBIDriverList::find(const char *name) const
+DBIDriver *DBIDriverList::find_intern(const char *name) const
 {
    for (dbi_list_t::const_iterator i = begin(); i != end(); i++)
       if (!strcmp(name, (*i)->getName()))
 	 return *i;
 
    return NULL;
+}
+
+DBIDriver *DBIDriverList::find(const char *name) const
+{
+   DBIDriver *d = find_intern(name);
+   if (d)
+      return d;
+
+   // to to load the driver if it doesn't exist
+   // ignore any exceptions
+   ExceptionSink xs;
+   MM.runTimeLoadModule(name, &xs);
+   xs.clear();
+
+   return find_intern(name);
 }
 
 class DBIDriver *DBIDriverList::registerDriver(const char *name, dbi_method_list_t &methods, int caps)

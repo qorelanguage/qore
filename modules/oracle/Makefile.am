@@ -8,7 +8,6 @@ noinst_LTLIBRARIES = liboracle.la
 liboracle_la_SOURCES = $(ORACLE_SOURCES)
 liboracle_la_LDFLAGS = ${ORACLE_LIBS} -static
 else
-automoddir = $(pkglibdir)/auto
 pkglib_LTLIBRARIES = oracle.la
 oracle_la_SOURCES = $(ORACLE_SOURCES)
 oracle_la_LDFLAGS = -module -avoid-version ${ORACLE_LIBS}
@@ -28,7 +27,6 @@ endif
 
 if !COND_MONOLITHIC
 install-exec-hook:
-	if ! test -d $(automoddir); then mkdir $(automoddir); fi
-	mv $(pkglibdir)/oracle.$(MODULE_SUFFIX) $(automoddir)/oracle.qmod
+	mv $(pkglibdir)/oracle.$(MODULE_SUFFIX) $(pkglibdir)/oracle.qmod
 	rm -f $(pkglibdir)/oracle.la $(pkglibdir)/oracle.a
 endif

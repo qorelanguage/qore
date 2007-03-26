@@ -8,7 +8,6 @@ noinst_LTLIBRARIES = libmysql.la
 libmysql_la_SOURCES = $(MYSQL_SOURCES)
 libmysql_la_LDFLAGS = ${MYSQL_LIBS} -static
 else
-automoddir = $(pkglibdir)/auto
 pkglib_LTLIBRARIES = mysql.la
 mysql_la_SOURCES = $(MYSQL_SOURCES)
 mysql_la_LDFLAGS = -module -avoid-version ${MYSQL_LIBS}
@@ -28,8 +27,7 @@ endif
 
 if !COND_MONOLITHIC
 install-exec-hook:
-	if ! test -d $(automoddir); then mkdir $(automoddir); fi
-	mv $(pkglibdir)/mysql.$(MODULE_SUFFIX) $(automoddir)/mysql.qmod
+	mv $(pkglibdir)/mysql.$(MODULE_SUFFIX) $(pkglibdir)/mysql.qmod
 	rm -f $(pkglibdir)/mysql.la $(pkglibdir)/mysql.a
 endif
 

@@ -147,6 +147,8 @@ typedef safe_dslist<class DBIDriver *> dbi_list_t;
 // should be acceptable...
 class DBIDriverList : public dbi_list_t
 {
+   DLLEXPORT DBIDriver *find_intern(const char *name) const;
+
 public:
    DLLEXPORT class DBIDriver *registerDriver(const char *name, dbi_method_list_t &methods, int caps);
    DLLEXPORT DBIDriver *find(const char *name) const;

@@ -2,6 +2,10 @@
 	* updated build system and sybase driver to be able to generate an
 	  "mssql" driver if freetds is present to connection to Microsoft
 	  SQL Server
+	* updated DBI driver "find" function to attempt to load the driver
+	  if it is not already in the list.
+	* moved oracle, mysql, and sybase drivers to the normal module
+	  directory - the "auto" directory is now empty
 
 2006.03.23: David Nichols
 	* updated oracle and mysql drivers to do a commit after select*()

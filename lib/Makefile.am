@@ -34,7 +34,7 @@ libqore_la_SOURCES = \
 	OnBlockExitStatement.cc \
 	ExpressionStatement.cc \
 	ReturnStatement.cc \
-	StatementBLock.cc \
+	StatementBlock.cc \
 	ContextStatement.cc \
 	SummarizeStatement.cc \
 	IfStatement.cc \
