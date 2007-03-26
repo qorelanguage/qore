@@ -4,17 +4,36 @@ pkglibdir = $(libdir)/@PACKAGE@-@VERSION@
 SYBASE_SOURCES = sybase.cc sybase_connection.cc sybase_low_level_interface.cc sybase_executor.cc sybase_query_parser.cc sybase_read_output.cc QoreSybaseMapper.cc
 
 if COND_MONOLITHIC
-noinst_LTLIBRARIES = libsybase.la
+noinst_LTLIBRARIES=
+if COND_SYBASE
+noinst_LTLIBRARIES += libsybase.la
 libsybase_la_SOURCES = $(SYBASE_SOURCES)
 libsybase_la_LDFLAGS = ${SYBASE_LIBS} -static
+libsybase_la_CPPFLAGS = $(SYBASE_INCLUDES) -DSYBASE=1
+endif
+if COND_FREETDS
+noinst_LTLIBRARIES += libmssql.la
+libmssql_la_SOURCES = $(SYBASE_SOURCES)
+libmssql_la_LDFLAGS = ${FREETDS_LIBS} -static
+libmssql_la_CPPFLAGS = $(FREETDS_INCLUDES) -DFREETDS=1
+endif
 else
-automoddir = $(pkglibdir)/auto
-pkglib_LTLIBRARIES = sybase.la
+pkglib_LTLIBRARIES=
+if COND_SYBASE
+pkglib_LTLIBRARIES += sybase.la
 sybase_la_SOURCES = $(SYBASE_SOURCES)
 sybase_la_LDFLAGS = -module -avoid-version ${SYBASE_LIBS}
+sybase_la_CPPFLAGS = $(SYBASE_INCLUDES) -DSYBASE=1
+endif
+if COND_FREETDS
+pkglib_LTLIBRARIES += mssql.la
+mssql_la_SOURCES = $(SYBASE_SOURCES)
+mssql_la_LDFLAGS = -module -avoid-version ${FREETDS_LIBS}
+mssql_la_CPPFLAGS = $(FREETDS_INCLUDES) -DFREETDS=1
+endif
 endif
 
-INCLUDES = -I$(top_srcdir)/include $(SYBASE_INCLUDES)
+INCLUDES = -I$(top_srcdir)/include 
 
 AM_CXXFLAGS = ${PTHREAD_CFLAGS}
 
@@ -28,7 +47,12 @@ endif
 
 if !COND_MONOLITHIC
 install-exec-hook:
-	if ! test -d $(automoddir); then mkdir $(automoddir); fi
-	mv $(pkglibdir)/sybase.$(MODULE_SUFFIX) $(automoddir)/sybase.qmod
+if COND_SYBASE
+	mv $(pkglibdir)/sybase.$(MODULE_SUFFIX) $(pkglibdir)/sybase.qmod
 	rm -f $(pkglibdir)/sybase.la $(pkglibdir)/sybase.a
+endif
+if COND_FREETDS
+	mv $(pkglibdir)/mssql.$(MODULE_SUFFIX) $(pkglibdir)/mssql.qmod
+	rm -f $(pkglibdir)/mssql.la $(pkglibdir)/mssql.a
+endif
 endif

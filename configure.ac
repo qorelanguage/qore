@@ -1238,6 +1238,32 @@ MYSQL mysql; mysql_init(&mysql);
   fi
 fi
 
+check_freetds()
+{
+    d=`ls -d $1/freetds* 2>/dev/null | tail -1`;
+    if test -n "$d"; then
+       dir="$d"
+    else
+       dir="$1"
+    fi
+
+    if test -f "$dir/include/tds.h" -a -f "$dir/include/ctpublic.h"; then
+        with_freetds_includes=$dir/include
+    elif test -f "$dir/include/freetds/tds.h" -a -f "$dir/include/freetds/ctpublic.h"; then
+        with_freetds_includes=$dir/include/freetds
+    else
+	return
+    fi
+
+    if test -f "$dir/lib${LIBSUFFIX}/libct.${SHLIB_SUFFIX}"; then
+       with_freetds_libs=$dir/lib${LIBSUFFIX}
+    elif test -f "$dir/lib${LIBSUFFIX}/freetds/libct.${SHLIB_SUFFIX}"; then
+       with_freetds_libs=$dir/lib${LIBSUFFIX}/freetds
+    else
+       unset with_freetds_includes
+    fi
+}
+
 check_sybase()
 {
     d=`ls -d $1/OCS-* 2>/dev/null | tail -1`;
@@ -1249,17 +1275,12 @@ check_sybase()
 
     if test -f "$dir/include/ctpublic.h"; then
         with_sybase_includes=$dir/include
-    elif test -f "$dir/include/freetds/ctpublic.h"; then
-        with_sybase_includes=$dir/include/freetds
     else
 	return
     fi
 
     if test -f "$dir/lib/libsybcs_r.${SHLIB_SUFFIX}"; then
        with_sybase_libs=$dir/lib
-    elif test -f "$dir/lib${LIBSUFFIX}/libct.${SHLIB_SUFFIX}"; then
-       with_sybase_libs=$dir/lib${LIBSUFFIX}
-       freetds=yes
     else
        unset with_sybase_includes
     fi
@@ -1271,7 +1292,7 @@ AC_ARG_WITH([sybase],
                     [Sybase or Sybase OCS base directory])],
     [if test ! -d "${with_sybase}"; then AC_MSG_ERROR(directory ${with_sybase} does not exist for --with-sybase); unset with_sybase; fi])
 
-# see if we can figure out where the mysql include files and libraries are
+# see if we can figure out where the sybase include files and libraries are
 if test "${with_sybase}" != "no"; then
    if test -n "$with_sybase"; then
       sybase_explicit=yes
@@ -1282,11 +1303,11 @@ if test "${with_sybase}" != "no"; then
    if test -n "$with_sybase"; then
       check_sybase "$with_sybase"
       if test -z "$with_sybase_includes"; then
-	 AC_MSG_ERROR([not found in $with_mysql])
+	 AC_MSG_ERROR([not found in $with_sybase])
       fi
    fi
 
-   for dir in $SYBASE $SYBASE/$SYBASE_OCS /usr/sybase /usr/local/sybase /opt/sybase /sw /opt/local /usr/local /opt/gnu /opt; do
+   for dir in $SYBASE $SYBASE/$SYBASE_OCS /usr/sybase /usr/local/sybase /opt/sybase /usr/local; do
       check_sybase "$dir"
       if test -n "$with_sybase_includes"; then
 	 break;
@@ -1294,11 +1315,7 @@ if test "${with_sybase}" != "no"; then
    done
 
    if test -n "$with_sybase_includes"; then
-      if test -n "$freetds"; then
-	 AC_MSG_RESULT([includes=$with_sybase_includes, libs=$with_sybase_libs (FreeTDS)])
-      else
-	 AC_MSG_RESULT([includes=$with_sybase_includes, libs=$with_sybase_libs (Sybase OCS)])
-      fi
+      AC_MSG_RESULT([includes=$with_sybase_includes, libs=$with_sybase_libs (Sybase OCS)])
       with_sybase=yes
    else
       AC_MSG_RESULT([not found])
@@ -1307,13 +1324,9 @@ fi
 
 if test "${with_sybase}" = yes; then
    SYBASE_INCLUDES="-I$with_sybase_includes"
-   if test -n "$freetds"; then
-      SYBASE_LIBS="-L$with_sybase_libs -lsybdb -lct"
-   else
-      SYBASE_LIBS="-L$with_sybase_libs -lsybdb -lsybcs_r -lsybintl_r -lsybblk_r -lsybcomn_r -lsybct_r -lsybunic -lsybtcl_r"
-   fi
+   SYBASE_LIBS="-L$with_sybase_libs -lsybdb -lsybcs_r -lsybintl_r -lsybblk_r -lsybcomn_r -lsybct_r -lsybunic -lsybtcl_r"
 
-   # check if C++ compiler can link with MYSQL libs
+   # check if C++ compiler can link with Sybase libs
    SAVE_CXXFLAGS="$CXXFLAGS"
    SAVE_LDFLAGS="$LDFLAGS"
    CXXFLAGS="$CXXFLAGS $SYBASE_INCLUDES"
@@ -1339,6 +1352,75 @@ CS_CONTEXT *m_context; ct_init(m_context, CS_VERSION_100);
       test
       AC_SUBST(SYBASE_INCLUDES)
       AC_SUBST(SYBASE_LIBS)
+   fi
+fi
+
+# freetds settings (mssql driver)
+AC_ARG_WITH([freetds],
+    [AS_HELP_STRING([--with-freetds@<:@=DIR@:>@],
+                    [FreeTDS base directory])],
+    [if test ! -d "${with_freetds}"; then AC_MSG_ERROR(directory ${with_freetds} does not exist for --with-freetds); unset with_freetds; fi])
+
+# see if we can figure out where the freetds include files and libraries are
+if test "${with_freetds}" != "no"; then
+   if test -n "$with_freetds"; then
+      freetds_explicit=yes
+   fi
+
+   AC_MSG_CHECKING([for freetds includes and libraries])
+
+   if test -n "$with_freetds"; then
+      check_freetds "$with_freetds"
+      if test -z "$with_freetds_includes"; then
+	 AC_MSG_ERROR([not found in $with_freetds])
+      fi
+   fi
+
+   for dir in $FREETDS /usr /opt /usr/local /sw /opt/local /usr/local /opt/gnu; do
+      check_freetds "$dir"
+      if test -n "$with_freetds_includes"; then
+	 break;
+      fi
+   done
+
+   if test -n "$with_freetds_includes"; then
+      AC_MSG_RESULT([includes=$with_freetds_includes, libs=$with_freetds_libs])
+      with_freetds=yes
+   else
+      AC_MSG_RESULT([not found])
+   fi
+fi
+
+if test "${with_freetds}" = yes; then
+   FREETDS_INCLUDES="-I$with_freetds_includes"
+   FREETDS_LIBS="-L$with_freetds_libs -lsybdb -lct"
+
+   # check if C++ compiler can link with FreeTDS libs
+   SAVE_CXXFLAGS="$CXXFLAGS"
+   SAVE_LDFLAGS="$LDFLAGS"
+   CXXFLAGS="$CXXFLAGS $FREETDS_INCLUDES"
+   LDFLAGS="$LDFLAGS $FREETDS_LIBS"
+   AC_LINK_IFELSE([AC_LANG_PROGRAM([[
+#include <ctpublic.h>
+	 ]],[[
+CS_CONTEXT *m_context; ct_init(m_context, CS_VERSION_100);
+	]])], freetds_links=yes, freetds_links=no)
+
+   CXXFLAGS="$SAVE_CXXFLAGS"
+   LDFLAGS="$SAVE_LDFLAGS"
+
+   if test "$freetds_links" = "no"; then
+      if test -n "$freetds_explicit"; then
+         AC_MSG_ERROR([could not compile and link a test FreeTDS program])
+      else
+         AC_MSG_WARN([could not compile and link a test FreeTDS program, disabling mssql support])
+	 unset with_freetds
+      fi
+   else
+      # without this "test" below, the shell will crap out
+      test
+      AC_SUBST(FREETDS_INCLUDES)
+      AC_SUBST(FREETDS_LIBS)
    fi
 fi
 
@@ -1863,6 +1945,8 @@ AM_CONDITIONAL([COND_PROFILE],    [test "$enable_profile" = yes])
 AM_CONDITIONAL([COND_ORACLE],     [test "$with_oracle" = yes])
 AM_CONDITIONAL([COND_MYSQL],      [test "$with_mysql" = yes])
 AM_CONDITIONAL([COND_SYBASE],     [test "$with_sybase" = yes])
+AM_CONDITIONAL([COND_FREETDS],    [test "$with_freetds" = yes])
+AM_CONDITIONAL([COND_SYBASE_DIR], [test "$with_sybase" = yes -o "$with_freetds" = yes]) 
 AM_CONDITIONAL([COND_PGSQL],      [test "$with_pgsql" = yes])
 AM_CONDITIONAL([COND_TIBRV],      [test "$with_tibrv" = yes])
 AM_CONDITIONAL([COND_TIBAE],      [test "$with_tibae" = yes])
@@ -1943,6 +2027,13 @@ fi
 
 printf "%-24s: " pgsql
 if test "$with_pgsql" = "yes"; then
+   echo yes
+else
+   echo disabled
+fi
+
+printf "%-24s: " mssql
+if test "$with_freetds" = "yes"; then
    echo yes
 else
    echo disabled

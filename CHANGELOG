@@ -1,3 +1,8 @@
+2006.03.26: David Nichols
+	* updated build system and sybase driver to be able to generate an
+	  "mssql" driver if freetds is present to connection to Microsoft
+	  SQL Server
+
 2006.03.23: David Nichols
 	* updated oracle and mysql drivers to do a commit after select*()
 	  methods as well as exec if autocommit is set

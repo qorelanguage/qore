@@ -54,9 +54,14 @@
 #endif
 
 #ifndef QORE_MONOLITHIC
+#ifdef SYBASE
 DLLEXPORT char qore_module_name[] = "sybase";
-DLLEXPORT char qore_module_version[] = "1.0";
 DLLEXPORT char qore_module_description[] = "Sybase database driver";
+#else
+DLLEXPORT char qore_module_name[] = "mssql";
+DLLEXPORT char qore_module_description[] = "Free-TDS database driver for MS-SQL Server and Sybase";
+#endif
+DLLEXPORT char qore_module_version[] = "1.0";
 DLLEXPORT char qore_module_author[] = "Qore Technologies";
 DLLEXPORT char qore_module_url[] = "http://qore.sourceforge.net";
 DLLEXPORT int qore_module_api_major = QORE_MODULE_API_MAJOR;
@@ -257,7 +262,11 @@ QoreString* sybase_module_init()
    methods.add(QDBI_METHOD_ROLLBACK, sybase_rollback);
 
    
+#ifdef SYBASE
    DBID_SYBASE = DBI.registerDriver("sybase", methods, DBI_SYBASE_CAPS);
+#else
+   DBID_SYBASE = DBI.registerDriver("mssql", methods, DBI_SYBASE_CAPS);
+#endif
 
    traceout("sybase_module_init()");
    return NULL;
@@ -326,7 +335,11 @@ static void add_constants(Namespace* ns)
 void sybase_module_ns_init(Namespace *rns, Namespace *qns)
 {
    tracein("sybase_module_ns_init()");
+#ifdef SYBASE
    Namespace* sybasens = new Namespace("Sybase");
+#else
+   Namespace* sybasens = new Namespace("MSSQL");
+#endif
    add_constants(sybasens);
    traceout("sybase_module_ns_init()");
 }
