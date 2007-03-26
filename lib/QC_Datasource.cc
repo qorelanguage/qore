@@ -37,7 +37,7 @@ static void DS_constructor(class Object *self, class QoreNode *params, Exception
    DBIDriver *db_driver = DBI.find(p->val.String->getBuffer());
    if (!db_driver)
    {
-      xsink->raiseException("DATASOURCE-UNSUPPORTED-DATABASE", "no DBI driver can be found for database type \"%s\"", p->val.String->getBuffer());
+      xsink->raiseException("DATASOURCE-UNSUPPORTED-DATABASE", "no DBI driver can be loaded for database type \"%s\"", p->val.String->getBuffer());
       return;
    }
    class ManagedDatasource *ds = new ManagedDatasource(db_driver);

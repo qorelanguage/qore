@@ -204,7 +204,7 @@ DBIDriver *DBIDriverList::find(const char *name) const
 
 class DBIDriver *DBIDriverList::registerDriver(const char *name, dbi_method_list_t &methods, int caps)
 {
-   assert(!find(name));
+   assert(!find_intern(name));
    
    DBIDriver *dd = new DBIDriver(name, methods, caps);
    push_back(dd);
