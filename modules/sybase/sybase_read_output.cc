@@ -239,9 +239,8 @@ static void sybase_read_row(const sybase_command_wrapper& wrapper, QoreNode*& ou
   if (num_cols != outputs_info.size()) {
     // something strange: at least the out column names are not reliable 
     // so generated names will be always used
-printf("###!!!!!! expected # of outputs = %d, actual # of outputs = %d\n", outputs_info.size(), num_cols);
-//###    assert(false);
-//###    outputs_info.clear();
+    assert(false);
+    outputs_info.clear();
   }
 
   // allocate helper structures for read data 
