@@ -276,7 +276,6 @@ QoreNode* sybase_executor::selectRows(ExceptionSink *xsink)
 }
 
 #ifdef DEBUG
-/*
 #  include "tests/sybase_executor_rpc_tests.cc"
 #  include "tests/sybase_executor_tinyint_tests.cc"
 #  include "tests/sybase_executor_smallint_tests.cc"
@@ -288,7 +287,6 @@ QoreNode* sybase_executor::selectRows(ExceptionSink *xsink)
 #  include "tests/sybase_executor_datetime4_tests.cc"
 #  include "tests/sybase_executor_money_tests.cc"
 #  include "tests/sybase_executor_money4_tests.cc"
-*/
 #  include "tests/sybase_executor_decimal_tests.cc"
 #endif
 

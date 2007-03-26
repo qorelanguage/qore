@@ -7,9 +7,110 @@
 namespace sybase_tests_9876212161600 {
 
 //------------------------------------------------------------------------------
+static void create_decimal1_table()
+{
+  // scale must be always used and at least 1, the scale 0 or default will cause a failure of the driver
+  const char* cmd =  "create table decimal1_table (decimal1_col decimal(18, 1) )";
+
+  sybase_connection c;
+  ExceptionSink xsink;
+  c.init(SYBASE_TEST_SETTINGS, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  sybase_low_level_execute_directly_command(c.getConnection(), cmd, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  cmd =  "insert into decimal1_table values (1.2)";
+  sybase_low_level_execute_directly_command(c.getConnection(), cmd, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  cmd =  "insert into decimal1_table values (1.2)";
+  sybase_low_level_execute_directly_command(c.getConnection(), cmd, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+}
+
+//------------------------------------------------------------------------------
+static void delete_decimal1_table(bool quiet = false)
+{
+  const char* cmd =  "drop table decimal1_table";
+
+  sybase_connection c;
+  ExceptionSink xsink;
+  c.init(SYBASE_TEST_SETTINGS, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  sybase_low_level_execute_directly_command(c.getConnection(), cmd, &xsink);
+  if (xsink.isException()) {
+    if (quiet) {
+      xsink.clear();
+    } else {
+      assert(false);
+    }
+  }
+}
+
+//------------------------------------------------------------------------------
+TEST()
+{
+  printf("running test %s[%d]\n", __FILE__, __LINE__);
+  delete_decimal1_table(true);
+  create_decimal1_table();
+  delete_decimal1_table();
+}
+
+//------------------------------------------------------------------------------
+TEST()
+{
+  // testing decimal parameter
+  printf("running test %s[%d]\n", __FILE__, __LINE__);
+  delete_decimal1_table(true);
+  create_decimal1_table();
+  ON_BLOCK_EXIT(delete_decimal1_table, false);
+
+  sybase_executor executor;
+  executor.m_parsed_query.m_result_query_text = "select * from decimal1_table where decimal1_col = ?";
+  executor.m_parsed_query.m_is_procedure = false;
+
+  sybase_connection conn;
+  ExceptionSink xsink;
+  conn.init(SYBASE_TEST_SETTINGS, &xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  executor.m_test_encoding = QCS_DEFAULT;
+  executor.m_test_autocommit = false;
+  executor.m_test_connection = &conn;
+  List* l= new List;
+  l->push(new QoreNode(1.2)); 
+  executor.m_args = l;
+
+  QoreNode* n = executor.selectRows(&xsink);
+  if (xsink.isException()) {
+    assert(false);
+  }
+  assert(n);
+  assert(n->type == NT_LIST);
+  assert(n->val.list->size() == 2);
+  if (n) n->deref(&xsink);
+
+  QoreNode* aux = new QoreNode(l);
+  aux->deref(&xsink);
+}
+
+} // namespace
+
+namespace sybase_tests_9187917 {
+
+//------------------------------------------------------------------------------
 static void create_decimal_table()
 {
-  const char* cmd =  "create table decimal_table (decimal_col decimal)";
+  const char* cmd =  "create table decimal_table (decimal_col decimal(30, 15) )";
 
   sybase_connection c;
   ExceptionSink xsink;
@@ -56,7 +157,6 @@ TEST()
 //------------------------------------------------------------------------------
 TEST()
 {
-/* ###
   // testing decimal parameter
   printf("running test %s[%d]\n", __FILE__, __LINE__);
   delete_decimal_table(true);
@@ -77,10 +177,10 @@ TEST()
   executor.m_test_autocommit = false;
   executor.m_test_connection = &conn;
   List* l= new List;
-  l->push(new QoreNode(1.23));
+  l->push(new QoreNode(1.111));
   executor.m_args = l;
 
-  QoreNode* n = executor.exec(&xsink);
+  QoreNode* n = executor.selectRows(&xsink);
   if (xsink.isException()) {
     assert(false);
   }
@@ -89,7 +189,6 @@ TEST()
 
   QoreNode* aux = new QoreNode(l);
   aux->deref(&xsink);
-*/
 }
 
 //------------------------------------------------------------------------------

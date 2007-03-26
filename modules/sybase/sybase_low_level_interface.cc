@@ -709,7 +709,10 @@ void convert_float2SybaseDecimal(CS_CONTEXT* context, double val, CS_DECIMAL& ou
   destfmt.maxlength = 35; // recommended by docs
   destfmt.scale = 15; // # of digits after decimal point, guess 
   destfmt.precision = 30; // total # of digits in number, also guess
-  
+ 
+#ifdef DEBUG
+  memset(&out, 0, sizeof(CS_DECIMAL));
+#endif 
   CS_INT outlen;
   CS_RETCODE err = cs_convert(context, &srcfmt, (CS_BYTE*)&val, &destfmt, (CS_BYTE*)&out, &outlen);
   if (err != CS_SUCCEED) {
@@ -717,6 +720,9 @@ void convert_float2SybaseDecimal(CS_CONTEXT* context, double val, CS_DECIMAL& ou
     xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_convert() failed to convert a float value into Sybase DECIMAL, err %d", (int)err);
     return;
   }
+  assert(out.precision);
+  assert(out.scale);
+  assert(out.precision > out.scale);
 }
 
 //------------------------------------------------------------------------------
@@ -1139,6 +1145,8 @@ printf("#### converting value to decimal\n");
       return;
     }
     datafmt.datatype = CS_DECIMAL_TYPE;
+    datafmt.precision = 30; // guess
+    datafmt.scale = 15; // guess
     err = ct_param(wrapper(), &datafmt, &dc, sizeof(dc), 0);
     if (err != CS_SUCCEED) {
       assert(false);
@@ -1161,12 +1169,14 @@ printf("#### converting value to decimal\n");
     } else {
       val = data->val.intval;
     }
-    CS_DECIMAL dc;
+    CS_NUMERIC dc;
     convert_float2SybaseNumeric(wrapper.getContext(), val, dc, xsink);
     if (xsink->isException()) {
       return;
     }
     datafmt.datatype = CS_NUMERIC_TYPE;
+    datafmt.precision = 30; // guess
+    datafmt.scale = 15; // guess
     err = ct_param(wrapper(), &datafmt, &dc, sizeof(dc), 0);
     if (err != CS_SUCCEED) {
       assert(false);

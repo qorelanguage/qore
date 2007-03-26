@@ -32,6 +32,7 @@
 #include <qore/List.h>
 #include <qore/QoreString.h>
 #include <qore/QoreType.h>
+#include <qore/DateTime.h>
 
 #include <assert.h>
 #include <qore/minitest.hpp>
@@ -133,6 +134,7 @@ static void extract_row_data_to_Hash(const sybase_command_wrapper& wrapper, Hash
   }
   case CS_INT_TYPE:
   {
+printf("### I READ INT NOW\n");
     CS_INT* value = (CS_INT*)(coldata->value);
     v = new QoreNode((int64)*value);
     break;
@@ -237,8 +239,9 @@ static void sybase_read_row(const sybase_command_wrapper& wrapper, QoreNode*& ou
   if (num_cols != outputs_info.size()) {
     // something strange: at least the out column names are not reliable 
     // so generated names will be always used
-    assert(false);
-    outputs_info.clear();
+printf("###!!!!!! expected # of outputs = %d, actual # of outputs = %d\n", outputs_info.size(), num_cols);
+//###    assert(false);
+//###    outputs_info.clear();
   }
 
   // allocate helper structures for read data 
@@ -286,12 +289,13 @@ static void sybase_read_row(const sybase_command_wrapper& wrapper, QoreNode*& ou
     case CS_TEXT_TYPE:
       datafmt[i].format = CS_FMT_NULLTERM;
       break;
-    case CS_NUMERIC_TYPE:
     case CS_DECIMAL_TYPE:
-      datafmt[i].precision = 15; // guess, # of digits after decimal dot
-      datafmt[i].scale = 30; // guess, total # of digits
+    case CS_NUMERIC_TYPE: // the same datatypes
+      datafmt[i].precision = 30; // guess, total # of digits
+      datafmt[i].scale = 15; // guess, # of digits after decimal dot
       datafmt[i].format = CS_FMT_UNUSED;
       break;
+
     default:
       datafmt[i].format = CS_FMT_UNUSED;
       break;
@@ -375,6 +379,21 @@ printf("#### cs_results() retured %d\n", (int)result_type);
       QoreNode* dummy = 0;
       sybase_read_row(wrapper, dummy, encoding, outputs_info, xsink);
 printf("#### startsu result = %s\n", dummy->type->getAsString(dummy, 0, 0)->getBuffer());
+Hash* h = dummy->val.hash;
+HashIterator it(h);
+while (it.next()) {
+printf("### HASH VALUE\n");
+const char* name = it.getKey();
+QoreNode* vvv = it.getValue();
+
+const char* type;
+if (vvv->type == NT_INT) type = "int"; else
+if (vvv->type == NT_FLOAT) type = "float";
+else type = "unknown";
+const char* v = vvv->type->getAsString(vvv, 0, 0)->getBuffer();
+printf("### single hash value name [%s], type [%s] = [%s]\n", name, type, v);
+}
+printf("### end of hash values\n");
       if (dummy) dummy->deref(xsink);
       if (xsink->isException()) {
         assert(false);
