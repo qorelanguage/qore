@@ -1,3 +1,6 @@
+2007.03.27: David Nichols
+	* ported global variable overrides in tibae module to 0.6.1 branch
+
 2007.02.19: David Nichols
 	* implemented QoreSocket::readHTTPChunkedBodyBinary()
 	* fixed deadlock in QoreHTTPClient.cc when a chunked read error occurs
