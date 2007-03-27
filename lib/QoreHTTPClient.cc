@@ -676,7 +676,7 @@ class QoreNode *QoreHTTPClient::send_internal(const char *meth, const char *mpat
       xsink->raiseException("HTTP-CLIENT-METHOD-ERROR", "HTTP method (%n) not recognized.", meth);
       return NULL;
    }
-   // make sure the capitolized version is used
+   // make sure the capitalized version is used
    meth = *i;
 
    SafeLocker sl(this);
