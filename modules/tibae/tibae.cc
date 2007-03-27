@@ -207,7 +207,7 @@ class TibCommandLine {
       }
 };
 
-static inline void set_properties(MAppProperties *appProperties, Hash *h, ExceptionSink *xsink)
+static inline void set_properties(MAppProperties *appProperties, Hash *h, TibCommandLine &tcl, ExceptionSink *xsink)
 {
    tracein("set_properties()");
 
@@ -335,7 +335,9 @@ void TIBAE_constructor(class Object *self, class QoreNode *params, class Excepti
    class QoreApp *myQoreApp = NULL;
 
    MAppProperties *appProps = new MAppProperties();
-   set_properties(appProps, p1->val.hash, xsink); 
+
+   TibCommandLine tcl;
+   set_properties(appProps, p1->val.hash, tcl, xsink); 
 
    if (xsink->isEvent())
    {
