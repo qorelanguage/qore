@@ -84,26 +84,26 @@ void sybase_connection::init(const char* username, const char* password, const c
   }
 
   // add callbacks
+/* not sure what this means, no docs for CS_MESSAGE_CB
   ret = cs_config(m_context, CS_SET, CS_MESSAGE_CB, (CS_VOID*)message_callback, CS_UNUSED, NULL);
   if (ret != CS_SUCCEED) {
     assert(false);
     xsink->raiseException("DBI:SYBASE:CT-LIB-SET-CALLBACK", "ct_config(CS_MESSAGE_CB) failed with error %d", ret);
     return;
   }
-
-  ret = ct_callback(m_context, 0, CS_SET, CS_CLIENTMSG_CB, (CS_VOID*)&clientmsg_callback);
+*/
+  ret = ct_callback(m_context, 0, CS_SET, CS_CLIENTMSG_CB, (CS_VOID*)clientmsg_callback);
+  if (ret != CS_SUCCEED) {
+    assert(false);
+    xsink->raiseException("DBI:SYBASE:CT-LIB-SET-CALLBACK", "ct_callback(CS_CLIENTMSG_CB) failed with error %d", ret);
+    return;
+  }
+  ret = ct_callback(m_context, 0, CS_SET, CS_SERVERMSG_CB, (CS_VOID*)servermsg_callback);
   if (ret != CS_SUCCEED) {
     assert(false);
     xsink->raiseException("DBI:SYBASE:CT-LIB-SET-CALLBACK", "ct_callback(CS_SERVERMSG_CB) failed with error %d", ret);
     return;
   }
-  ret = ct_callback(m_context, 0, CS_SET, CS_SERVERMSG_CB, (CS_VOID*)&servermsg_callback);
-  if (ret != CS_SUCCEED) {
-    assert(false);
-    xsink->raiseException("DBI:SYBASE:CT-LIB-SET-CALLBACK", "ct_callback(CS_SERVERMSG_CB) failed with error %d", ret);
-    return;
-  }
-
   ret = ct_con_alloc(m_context, &m_connection);
   if (ret != CS_SUCCEED) {
     assert(false);
@@ -150,14 +150,33 @@ CS_RETCODE sybase_connection::message_callback()
 }
 
 //------------------------------------------------------------------------------
-CS_RETCODE sybase_connection::clientmsg_callback()
+CS_RETCODE sybase_connection::clientmsg_callback(CS_CONTEXT* ctx, CS_CONNECTION* conn, CS_CLIENTMSG* errmsg)
 {
+#ifdef DEBUG
+  if ((CS_NUMBER(errmsg->msgnumber) == 211) || (CS_NUMBER(errmsg->msgnumber) == 212)) {
+    return CS_SUCCEED;
+  }
+printf("#### ******************* client error output here: *****************************\n");
+  fprintf(stderr, "\nOpen Client Message:\n");
+  fprintf(stderr, "Message number: LAYER = (%d) ORIGIN = (%d) ",
+    (int)CS_LAYER(errmsg->msgnumber), (int)CS_ORIGIN(errmsg->msgnumber));
+  fprintf(stderr, "SEVERITY = (%d) NUMBER = (%d)\n",
+    (int)CS_SEVERITY(errmsg->msgnumber), (int)CS_NUMBER(errmsg->msgnumber));
+  fprintf(stderr, "Message String: %s\n", errmsg->msgstring);
+  if (errmsg->osstringlen > 0) {
+    fprintf(stderr, "Operating System Error: %s\n", errmsg->osstring);
+  }
+  fflush(stderr);  
+#endif
   return CS_SUCCEED;
 }
 
 //------------------------------------------------------------------------------
-CS_RETCODE sybase_connection::servermsg_callback()
+CS_RETCODE sybase_connection::servermsg_callback(CS_CONTEXT* ctx, CS_CONNECTION* conn, CS_SERVERMSG* svrmsg)
 {
+#ifdef DEBUG
+printf("#### ******************* server error output here: *****************************\n");
+#endif
   return CS_SUCCEED;
 }
 

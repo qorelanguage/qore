@@ -27,6 +27,7 @@
 #define SYBASE_CONNECTION_H_
 
 #include <qore/Exception.h>
+#include <cstypes.h>
 
 //------------------------------------------------------------------------------
 // Instantiated class is kept as private data of the Datasource
@@ -40,8 +41,8 @@ private:
   CS_CONNECTION* m_connection;
 
   // Sybase requires callbacks, their implementation is dummy
-  static CS_RETCODE clientmsg_callback();
-  static CS_RETCODE servermsg_callback();
+  static CS_RETCODE clientmsg_callback(CS_CONTEXT* ctx, CS_CONNECTION* conn, CS_CLIENTMSG* errmsg);
+  static CS_RETCODE servermsg_callback(CS_CONTEXT* ctx, CS_CONNECTION* conn, CS_SERVERMSG* svrmsg);
   static CS_RETCODE message_callback();
 
 public:

@@ -134,14 +134,9 @@ QoreNode* sybase_executor::exec_language_command(const sybase_command_wrapper& w
 
   if (inputs.empty()) {
     if (m_args && m_args->size() != 0) {
-#ifdef SYBASE
       assert(false);
       xsink->raiseException("DBI-EXEC-EXCEPTION", "No parameters excepted for the query %s", m_parsed_query.m_result_query_text.c_str());
       return 0;
-#else
-// looks like a FreeTDS bug
-printf("### FreeTDS difference: %s[%d]\n", __FILE__, __LINE__);
-#endif
     }
   } else {
     unsigned provided_args = 0;

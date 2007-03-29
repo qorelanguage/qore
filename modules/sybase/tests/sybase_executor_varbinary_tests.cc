@@ -55,7 +55,7 @@ TEST()
 
 //------------------------------------------------------------------------------
 TEST()
-{/*###
+{
   // testing varbinary parameter
   printf("running test %s[%d]\n", __FILE__, __LINE__);
   delete_varbinary_table(true);
@@ -89,13 +89,11 @@ TEST()
 
   QoreNode* aux = new QoreNode(l);
   aux->deref(&xsink);
-*/
 }
 
 //------------------------------------------------------------------------------
 TEST()
 {
-/*###
   // testing insert, delete, drop etc using executor
   printf("running test %s[%d]\n", __FILE__, __LINE__);
   delete_varbinary_table(true);
@@ -117,8 +115,8 @@ TEST()
   executor.m_test_autocommit = false;
   executor.m_test_connection = &conn;
   List* l= new List;
-  void* block = malloc(999);
-  BinaryObject* bin = new BinaryObject(block, 999);
+  void* block = malloc(29);
+  BinaryObject* bin = new BinaryObject(block, 29);
   l->push(new QoreNode(bin));
   executor.m_args = l;
 
@@ -132,7 +130,7 @@ TEST()
   if (xsink.isException()) {
     assert(false);
   }
-
+/*###
   executor.m_parsed_query.m_result_query_text = "select count(*) from varbinary_table";
   n = executor.select(&xsink);
   if (xsink.isException()) {
@@ -161,8 +159,8 @@ TEST()
   assert(x);
   assert(x->type == NT_BINARY);
   BinaryObject* bin2 = x->val.bin;
-  assert(bin2->size() == 999);
-  if (memcmp(bin2->getPtr(), block, 999)) {
+  assert(bin2->size() == 29);
+  if (memcmp(bin2->getPtr(), block, 29)) {
     assert(false);
   }
 
