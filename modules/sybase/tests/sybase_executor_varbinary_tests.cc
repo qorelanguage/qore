@@ -112,7 +112,7 @@ TEST()
   }
 
   executor.m_test_encoding = QCS_DEFAULT;
-  executor.m_test_autocommit = false;
+  executor.m_test_autocommit = true;
   executor.m_test_connection = &conn;
   List* l= new List;
   void* block = malloc(29);
@@ -130,7 +130,8 @@ TEST()
   if (xsink.isException()) {
     assert(false);
   }
-/*###
+assert(false); //###
+  executor.m_args = 0;
   executor.m_parsed_query.m_result_query_text = "select count(*) from varbinary_table";
   n = executor.select(&xsink);
   if (xsink.isException()) {
@@ -163,7 +164,7 @@ TEST()
   if (memcmp(bin2->getPtr(), block, 29)) {
     assert(false);
   }
-
+/*
   executor.m_parsed_query.m_result_query_text = "delete from varbinary_table";
   executor.m_args = new List;
   n = executor.exec(&xsink);

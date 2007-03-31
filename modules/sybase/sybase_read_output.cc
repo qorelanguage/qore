@@ -115,11 +115,10 @@ static void extract_row_data_to_Hash(const sybase_command_wrapper& wrapper, Hash
     v = new QoreNode(s);
     break;
   }
+  case CS_VARBINARY_TYPE:
   case CS_BINARY_TYPE:
   case CS_LONGBINARY_TYPE:
   case CS_IMAGE_TYPE:
-    assert(false);
-  case CS_VARBINARY_TYPE:
   {
     CS_BINARY* value = (CS_BINARY*)(coldata->value);
     int size = coldata->valuelen;
@@ -277,7 +276,7 @@ static void sybase_read_row(const sybase_command_wrapper& wrapper, QoreNode*& ou
 
   CS_RETCODE err;
   // bind the data buffers
-  for (unsigned i = 0; i < num_cols; ++i) {
+  for (unsigned i = 0; i < num_cols; ++i) {   
     err = ct_describe(wrapper(), i + 1, &datafmt[i]);
     if (err != CS_SUCCEED) {
       assert(false);
@@ -285,10 +284,11 @@ static void sybase_read_row(const sybase_command_wrapper& wrapper, QoreNode*& ou
       return;
     }
     datafmt[i].count = 1; // fetch just single item
-    assert(datafmt[i].maxlength < 100000); // guess, if invalid then app semnatic is wrong
+    assert(datafmt[i].maxlength < 100000); // guess, if invalid then app semantic is wrong
 
     datafmt[i].maxlength += 4; // some padding for zero terminator, 4 is safe bet
     if (datafmt[i].datatype == CS_BINARY_TYPE || datafmt[i].datatype == CS_VARBINARY_TYPE) {
+printf("#### binary data with size %d will be retrieved\n", datafmt[i].maxlength);
       // PHP Sybase driver does this
       datafmt[i].maxlength *= 2;
     }

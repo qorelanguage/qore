@@ -950,6 +950,7 @@ void sybase_ct_param(
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Incorrect type for binary parameter #%u", parameter_index + 1);
       return;
     }
+printf("########## setting binary of length %d\n", data->val.bin->size());
     datafmt.datatype = type;
     datafmt.maxlength = data->val.bin->size();
 /*
