@@ -950,59 +950,11 @@ void sybase_ct_param(
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Incorrect type for binary parameter #%u", parameter_index + 1);
       return;
     }
-printf("########## setting binary of length %d\n", data->val.bin->size());
+
     datafmt.datatype = type;
     datafmt.maxlength = data->val.bin->size();
-/*
-// TEST - using cs_convert
-    int in_size = data->val.bin->size();
-    void* in_data = data->val.bin->getPtr();
+    datafmt.count = 1;
 
-    // the data need to be converted to string first
-    unsigned max_converted_length = in_size + 2 + 4;
-    void* converted_data = malloc(max_converted_length);
-    if (!converted_data) {
-      xsink->outOfMemory();
-      return;
-    }
-    ON_BLOCK_EXIT(free, converted_data);
-  
-    CS_DATAFMT srcfmt, destfmt;
-    memset(&srcfmt, 0, sizeof(srcfmt));
-    memset(&destfmt, 0, sizeof(destfmt)); 
-
-    srcfmt.datatype = CS_VARBINARY_TYPE; //## type
-    srcfmt.maxlength = in_size;
-    srcfmt.format = CS_FMT_UNUSED;
-    srcfmt.count = 1;
-
-    destfmt.datatype = CS_VARCHAR_TYPE;
-    destfmt.maxlength = max_converted_length;
-    destfmt.format = CS_FMT_NULLTERM;
-    destfmt.count = 1;
-
-    CS_INT converted_size = 0;
-printf("### trying to convert binary -> strring\n");
-    err = cs_convert(wrapper.getContext(), &srcfmt, in_data, &destfmt, converted_data, &converted_size);
-printf("##### binary -> string out size is now %d\n", (int)converted_size);
-    if (err != CS_SUCCEED) {
-printf("### CONVERSION FAILE\n");
-      assert(false);
-      xsink->raiseException("DBI-EXEC-EXCEPTION", "Converting binary parameter #%u to string by cs_convert() failed with error %d", parameter_index + 1, (int)err);
-      return;
-    }
-printf("### conversion OK to [%s], size %d B\n", (const char*)converted_data, strlen((const char*)converted_data));
-
-    datafmt.datatype = CS_CHAR_TYPE;
-    datafmt.maxlength = strlen((const char*)converted_data);//###converted_size;
-    datafmt.format = CS_FMT_NULLTERM;
-
-    err = ct_param(wrapper(), &datafmt, converted_data, converted_size, 0);
-
-// END of test of using cs_convert()
-*/
-
-printf("### ct_param() for binary value *************************************################## \n");
     err = ct_param(wrapper(), &datafmt, data->val.bin->getPtr(), data->val.bin->size(), 0);
     if (err != CS_SUCCEED) {
       assert(false);

@@ -294,6 +294,7 @@ QoreNode* sybase_executor::selectRows(ExceptionSink *xsink)
 #  include "tests/sybase_executor_numeric_tests.cc"
 #  include "tests/sybase_executor_varchar_tests.cc"
 #  include "tests/sybase_executor_varbinary_tests.cc"
+#  include "tests/sybase_executor_binary_tests.cc"
 #endif
 
 // EOF

@@ -9,7 +9,7 @@ namespace sybase_tests_84059043829 {
 //------------------------------------------------------------------------------
 static void create_varbinary_table()
 {
-  const char* cmd =  "create table varbinary_table (varbinary_col varbinary )";
+  const char* cmd =  "create table varbinary_table (varbinary_col varbinary(100) )";
 
   sybase_connection c;
   ExceptionSink xsink;
@@ -130,7 +130,7 @@ TEST()
   if (xsink.isException()) {
     assert(false);
   }
-assert(false); //###
+
   executor.m_args = 0;
   executor.m_parsed_query.m_result_query_text = "select count(*) from varbinary_table";
   n = executor.select(&xsink);
@@ -164,7 +164,7 @@ assert(false); //###
   if (memcmp(bin2->getPtr(), block, 29)) {
     assert(false);
   }
-/*
+
   executor.m_parsed_query.m_result_query_text = "delete from varbinary_table";
   executor.m_args = new List;
   n = executor.exec(&xsink);
@@ -182,7 +182,6 @@ assert(false); //###
   x = n->val.hash->getKeyValue("column1");
   assert(x->type == NT_INT);
   assert(x->val.intval == 0);
-*/
 }
 
 } // namespace

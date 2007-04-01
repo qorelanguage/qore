@@ -287,12 +287,12 @@ static void sybase_read_row(const sybase_command_wrapper& wrapper, QoreNode*& ou
     assert(datafmt[i].maxlength < 100000); // guess, if invalid then app semantic is wrong
 
     datafmt[i].maxlength += 4; // some padding for zero terminator, 4 is safe bet
+/*
     if (datafmt[i].datatype == CS_BINARY_TYPE || datafmt[i].datatype == CS_VARBINARY_TYPE) {
-printf("#### binary data with size %d will be retrieved\n", datafmt[i].maxlength);
       // PHP Sybase driver does this
       datafmt[i].maxlength *= 2;
     }
-
+*/
     coldata[i].value = (CS_CHAR*)malloc(datafmt[i].maxlength);
     if (!coldata[i].value) {
       assert(false);

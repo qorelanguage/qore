@@ -2,13 +2,14 @@
 
 #include "sybase_tests_common.h"
 #include <qore/Hash.h>
+#include <qore/BinaryObject.h>
 
-namespace sybase_tests_962309732 {
+namespace sybase_tests_228736185602 {
 
 //------------------------------------------------------------------------------
-static void create_tinyint_table()
+static void create_binary_table()
 {
-  const char* cmd =  "create table tinyint_table (tinyint_col tinyint)";
+  const char* cmd =  "create table binary_table (binary_col binary(100) )";
 
   sybase_connection c;
   ExceptionSink xsink;
@@ -23,9 +24,9 @@ static void create_tinyint_table()
 }
 
 //------------------------------------------------------------------------------
-static void delete_tinyint_table(bool quiet = false)
+static void delete_binary_table(bool quiet = false)
 {
-  const char* cmd =  "drop table tinyint_table";
+  const char* cmd =  "drop table binary_table";
 
   sybase_connection c;
   ExceptionSink xsink;
@@ -47,22 +48,22 @@ static void delete_tinyint_table(bool quiet = false)
 TEST()
 {
   printf("running test %s[%d]\n", __FILE__, __LINE__);
-  delete_tinyint_table(true);
-  create_tinyint_table();
-  delete_tinyint_table();
+  delete_binary_table(true);
+  create_binary_table();
+  delete_binary_table();
 }
 
 //------------------------------------------------------------------------------
 TEST()
 {
-  // testing tinyint parameter
+  // testing binary parameter
   printf("running test %s[%d]\n", __FILE__, __LINE__);
-  delete_tinyint_table(true);
-  create_tinyint_table();
-  ON_BLOCK_EXIT(delete_tinyint_table, false);
+  delete_binary_table(true);
+  create_binary_table();
+  ON_BLOCK_EXIT(delete_binary_table, false);
 
   sybase_executor executor;
-  executor.m_parsed_query.m_result_query_text = "select * from tinyint_table where tinyint_col = ?";
+  executor.m_parsed_query.m_result_query_text = "select * from binary_table where binary_col = ?";
   executor.m_parsed_query.m_is_procedure = false;
 
   sybase_connection conn;
@@ -75,7 +76,8 @@ TEST()
   executor.m_test_autocommit = false;
   executor.m_test_connection = &conn;
   List* l= new List;
-  l->push(new QoreNode((int64)10));
+  void* x = malloc(10);
+  l->push(new QoreNode(new BinaryObject(x, 10)));
   executor.m_args = l;
 
   QoreNode* n = executor.exec(&xsink);
@@ -94,12 +96,12 @@ TEST()
 {
   // testing insert, delete, drop etc using executor
   printf("running test %s[%d]\n", __FILE__, __LINE__);
-  delete_tinyint_table(true);
-  create_tinyint_table();
-  ON_BLOCK_EXIT(delete_tinyint_table, false);
+  delete_binary_table(true);
+  create_binary_table();
+  ON_BLOCK_EXIT(delete_binary_table, false);
 
   sybase_executor executor;
-  executor.m_parsed_query.m_result_query_text = "insert into tinyint_table values (?)";
+  executor.m_parsed_query.m_result_query_text = "insert into binary_table values (?)";
   executor.m_parsed_query.m_is_procedure = false;
 
   sybase_connection conn;
@@ -110,10 +112,12 @@ TEST()
   }
 
   executor.m_test_encoding = QCS_DEFAULT;
-  executor.m_test_autocommit = false;
+  executor.m_test_autocommit = true;
   executor.m_test_connection = &conn;
   List* l= new List;
-  l->push(new QoreNode((int64)123));
+  void* block = malloc(29);
+  BinaryObject* bin = new BinaryObject(block, 29);
+  l->push(new QoreNode(bin));
   executor.m_args = l;
 
   QoreNode* n = executor.exec(&xsink);
@@ -127,14 +131,8 @@ TEST()
     assert(false);
   }
 
-  executor.m_parsed_query.m_result_query_text = "insert into tinyint_table values (46)";
-  executor.m_args = new List;
-  n = executor.exec(&xsink);
-  if (xsink.isException()) {
-    assert(false);
-  }
-
-  executor.m_parsed_query.m_result_query_text = "select count(*) from tinyint_table";
+  executor.m_args = 0;
+  executor.m_parsed_query.m_result_query_text = "select count(*) from binary_table";
   n = executor.select(&xsink);
   if (xsink.isException()) {
     assert(false);
@@ -144,33 +142,38 @@ TEST()
   QoreNode* x = n->val.hash->getKeyValue("column1");
   assert(x);
   assert(x->type == NT_INT);
-  assert(x->val.intval == 3);
+  assert(x->val.intval == 2);
 
-  executor.m_parsed_query.m_result_query_text = "select * from tinyint_table";
+  executor.m_parsed_query.m_result_query_text = "select * from binary_table";
   n = executor.selectRows(&xsink);
   if (xsink.isException()) {
     assert(false);
   }
   assert(n);
   assert(n->type == NT_LIST);
-  assert(n->val.list->size() == 3);
+  assert(n->val.list->size() == 2);
   x = n->val.list->retrieve_entry(0);
   assert(x);
   assert(x->type == NT_HASH);
   assert(x->val.hash->size() == 1);
-  x = x->val.hash->getKeyValue("tinyint_col");
+  x = x->val.hash->getKeyValue("binary_col");
   assert(x);
-  assert(x->type == NT_INT);
-  assert(x->val.intval == 123 || x->val.intval == 46);
+  assert(x->type == NT_BINARY);
+  BinaryObject* bin2 = x->val.bin;
 
-  executor.m_parsed_query.m_result_query_text = "delete from tinyint_table";
+  assert(bin2->size() == 100); // zero padded
+  if (memcmp(bin2->getPtr(), block, 29)) {
+    assert(false);
+  }
+
+  executor.m_parsed_query.m_result_query_text = "delete from binary_table";
   executor.m_args = new List;
   n = executor.exec(&xsink);
   if (xsink.isException()) {
     assert(false);
   }
 
-  executor.m_parsed_query.m_result_query_text = "select count(*) from tinyint_table";
+  executor.m_parsed_query.m_result_query_text = "select count(*) from binary_table";
   n = executor.select(&xsink);
   if (xsink.isException()) {
     assert(false);
