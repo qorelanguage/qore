@@ -30,6 +30,15 @@
 #include <stdlib.h>
 #include <string.h>
 
+ManagedDatasource::ManagedDatasource(DBIDriver *ndsl) : Datasource(ndsl)
+{
+   counter = 0;
+   waiting = 0;
+   sql_waiting = 0;
+   tl_timeout_ms = DEFAULT_TL_TIMEOUT;
+   tid = -1;
+}
+
 ManagedDatasource::~ManagedDatasource()
 {
 }
@@ -38,20 +47,14 @@ void ManagedDatasource::cleanup(class ExceptionSink *xsink)
 {
    AutoLocker al(&ds_lock);
    // wait for any in-progress action to complete
-   if (counter > 0)
-   {
-      while (counter)
-	 cStatus.wait(&ds_lock);      
-      // in case there are other calls waiting on the condition
-      cStatus.signal();
-   }
+   wait_for_sql();
    if (in_transaction)
    {
       xsink->raiseException("DATASOURCE-TRANSACTION-EXCEPTION", "TID %d terminated while in a transaction; transaction will be automatically rolled back and the lock released", gettid());
       Datasource::rollback(xsink);
       in_transaction = false;
       // force-exit the transaction lock
-      tGate.forceExit();
+      forceReleaseLock();
    }
 }
 
@@ -81,39 +84,60 @@ void ManagedDatasource::deref()
    }
 }
 
-int ManagedDatasource::grabLockIntern(class ExceptionSink *xsink)
+int ManagedDatasource::grabLockIntern()
 {
-   if (tGate.enter(tl_timeout_ms) < 0)
+   int ctid = gettid();
+   
+   while (tid != -1 && tid != ctid)
+   {
+      ++waiting;
+      if (tl_timeout_ms)
+	 while (true)
+	 {
+	    if (!cTransaction.wait(&ds_lock, tl_timeout_ms))
+	       break;
+
+	    printd(1, "ManagedDatasource %08p timed out after %dms waiting for tid %d to release lock\n", this, tl_timeout_ms, tid);
+	    --waiting;
+	    return -1;
+	 }
+      else
+	 cTransaction.wait(&ds_lock);
+      --waiting;
+   }
+   
+   tid = ctid;
+   
+   return 0;   
+}
+
+int ManagedDatasource::grabLock(class ExceptionSink *xsink)
+{
+   if (grabLockIntern() < 0)
    {
       endDBAction();
       xsink->raiseException("TRANSACTION-TIMEOUT", "timed out on datasource '%s@%s' after waiting %d millisecond%s on transaction lock held by TID %d", 
 			    username.empty() ? "<n/a>" : username.c_str(), 
 			    dbname.empty() ? "<n/a>" : dbname.c_str(), tl_timeout_ms, 
-			    tl_timeout_ms == 1 ? "" : "s", tGate.getLockTID());
+			    tl_timeout_ms == 1 ? "" : "s", tid); //tGate.getLockTID());
       return -1;
    }
    return 0;
 }
 
-void ManagedDatasource::releaseLockIntern()
-{
-   tGate.exit();
-}
-
-// returns 0 for OK, -1 for error
-int ManagedDatasource::grabLock(class ExceptionSink *xsink)
-{	 
-   if (grabLockIntern(xsink))
-      return -1;
-   if (!in_transaction)
-      set_thread_resource(this);
-   return 0;
-}
-
 void ManagedDatasource::releaseLock()
 {
-   tGate.exit();
-   remove_thread_resource(this);
+   assert(tid == gettid());
+   tid = -1;
+   if (waiting)
+      cTransaction.signal();
+}
+
+void ManagedDatasource::forceReleaseLock()
+{
+   tid = -1;
+   if (waiting)
+      cTransaction.signal();
 }
 
 ManagedDatasource *ManagedDatasource::copy()
@@ -129,13 +153,8 @@ ManagedDatasource *ManagedDatasource::copy()
    return nds;
 }
 
-ManagedDatasource::ManagedDatasource(DBIDriver *ndsl) : Datasource(ndsl)
-{
-   counter = 0;
-   tl_timeout_ms = DEFAULT_TL_TIMEOUT;
-}
-
-int ManagedDatasource::wait_for_counter(class ExceptionSink *xsink)
+// must be holding ds_lock
+int ManagedDatasource::wait_for_sql(class ExceptionSink *xsink)
 {
    // object has been deleted in another thread
    if (counter < 0)
@@ -143,29 +162,35 @@ int ManagedDatasource::wait_for_counter(class ExceptionSink *xsink)
       xsink->raiseException("DATASOURCE-ERROR", "This object has been deleted in another thread");
       return -1;
    }
-   if (counter)
-   {
-      while (counter)
-	 cStatus.wait(&ds_lock);      
-      // in case there are other calls waiting
-      cStatus.signal();
-   }
+   wait_for_sql();
    return 0;
 }
 
-int ManagedDatasource::startDBAction(class ExceptionSink *xsink)
+// must be holding ds_lock
+void ManagedDatasource::wait_for_sql()
+{
+   while (counter > 0)
+   {
+      ++sql_waiting;
+      cSQL.wait(&ds_lock);
+      --sql_waiting;
+   }
+   // in case there are other calls waiting
+   cSQL.signal();
+}
+
+int ManagedDatasource::startDBAction(class ExceptionSink *xsink, bool need_transaction_lock)
 {
    AutoLocker al(&ds_lock);
-   // object has been deleted in another thread
-   if (counter < 0)
-   {
-      xsink->raiseException("DATASOURCE-ERROR", "This object has been deleted in another thread");
+   if (wait_for_sql(xsink))
       return -1;
-   }
-      
+
    if (isopen || (!Datasource::open(xsink) && !(xsink->isEvent())))
    {
-      counter++;
+      if (need_transaction_lock && !autocommit && grabLock(xsink))
+	 return -1;
+      
+      counter = 1;
       return 0;
    }
    return -1;
@@ -174,8 +199,10 @@ int ManagedDatasource::startDBAction(class ExceptionSink *xsink)
 void ManagedDatasource::endDBAction()
 {
    AutoLocker al(&ds_lock);
-   if (!--counter)
-      cStatus.signal();
+
+   counter = 0;
+   if (sql_waiting)
+      cSQL.signal();
 }
 
 void ManagedDatasource::setTransactionLockTimeout(int t_ms)
@@ -191,13 +218,7 @@ int ManagedDatasource::getTransactionLockTimeout()
 void ManagedDatasource::setAutoCommit(bool ac)
 {
    AutoLocker al(&ds_lock);
-   if (counter > 0)
-   {
-      while (counter)
-	 cStatus.wait(&ds_lock);      
-      // in case there are other calls waiting
-      cStatus.signal();
-   }
+   wait_for_sql();
    Datasource::setAutoCommit(ac);
 }
 
@@ -208,6 +229,7 @@ QoreNode *ManagedDatasource::select(class QoreString *query_str, class List *arg
    if (!startDBAction(xsink))
    {
       rv = Datasource::select(query_str, args, xsink);
+
       endDBAction();
    }
    else
@@ -223,6 +245,7 @@ QoreNode *ManagedDatasource::selectRows(class QoreString *query_str, class List 
    if (!startDBAction(xsink))
    {
       rv = Datasource::selectRows(query_str, args, xsink);
+
       endDBAction();
    }
    else
@@ -234,38 +257,39 @@ QoreNode *ManagedDatasource::selectRows(class QoreString *query_str, class List 
 QoreNode *ManagedDatasource::exec(class QoreString *query_str, class List *args, ExceptionSink *xsink)
 {
    class QoreNode *rv = NULL;
-   
-   if (!startDBAction(xsink))
+
+   if (!startDBAction(xsink, true))
    {
-      // only call grabLock if autocommit is disabled, skip execution if grabLock returns non-zero
-      if (autocommit || !grabLock(xsink))
-      {
-	 rv = Datasource::exec(query_str, args, xsink);
-	 
-	 // exit the transaction lock if we have failed to start a transaction (due to an exception)
-	 if (!autocommit && !in_transaction)
+      bool start_transaction = !in_transaction;
+      rv = Datasource::exec(query_str, args, xsink);
+
+      // save thread resource if we just started a transaction
+      if (!autocommit && start_transaction)
+	 if (in_transaction)
+	    set_thread_resource(this);
+	 else
 	    releaseLock();
-      }
+
       endDBAction();
    }
-   
+
    return rv;
 }
 
 void ManagedDatasource::beginTransaction(class ExceptionSink *xsink)
 {
    //printd(0, "ManagedDatasource::beginTransaction() autocommit=%s\n", autocommit ? "true" : "false");
-   if (!startDBAction(xsink))
+   if (!startDBAction(xsink, true))
    {
-      if (!grabLock(xsink))
-      {
-	 if (Datasource::beginTransaction(xsink))
-	 {
+      bool start_transaction = !in_transaction;
+
+      // save thread resource if we just started a transaction
+      if (!Datasource::beginTransaction(xsink) && start_transaction)
+	 if (in_transaction)
+	    set_thread_resource(this);
+	 else
 	    releaseLock();
-	    in_transaction = false;
-	 }
-      }
-      
+	    
       endDBAction();
    }
    //printd(0, "ManagedDatasource::beginTransaction() this=%08p in_transaction=%d\n", this, in_transaction);
@@ -274,18 +298,20 @@ void ManagedDatasource::beginTransaction(class ExceptionSink *xsink)
 int ManagedDatasource::commit(ExceptionSink *xsink)
 {
    int rc = -1;
-   
-   if (!startDBAction(xsink))
+
+   if (!startDBAction(xsink, true))
    {
-      // only call grabLock if autocommit is disabled, skip execution if grabLock returns non-zero
-      if (autocommit || !grabLock(xsink))
-      {
-	 rc = Datasource::commit(xsink);
-	 
-	 // transaction is complete, exit the lock
-	 if (!autocommit) 
-	    releaseLock();
-      }
+      bool was_in_transaction = in_transaction;
+
+      rc = Datasource::commit(xsink);
+
+      // transaction is complete, remove the transaction thread resource
+      if (was_in_transaction)
+	 remove_thread_resource(this);
+
+      if (!autocommit)
+	 releaseLock();
+      
       endDBAction();
    }
    
@@ -296,19 +322,20 @@ int ManagedDatasource::rollback(ExceptionSink *xsink)
 {
    int rc = -1;
    
-   if (!startDBAction(xsink))
+   if (!startDBAction(xsink, true))
    {
-      // only call grabLock if autocommit is disabled, skip execution if grabLock returns non-zero
-      if (autocommit || !grabLock(xsink))
-      {
-	 rc = Datasource::rollback(xsink);
-	 
-	 // transaction is complete, exit the lock
-	 if (!autocommit)
-	    releaseLock();
-	 
-	 endDBAction();
-      }
+      bool was_in_transaction = in_transaction;
+
+      rc = Datasource::rollback(xsink);
+
+      // transaction is complete, remove the transaction thread resource
+      if (was_in_transaction)
+	 remove_thread_resource(this);
+
+      if (!autocommit)
+	 releaseLock();
+
+      endDBAction();
    }
    
    return rc;
@@ -317,7 +344,7 @@ int ManagedDatasource::rollback(ExceptionSink *xsink)
 int ManagedDatasource::open(ExceptionSink *xsink)
 {
    AutoLocker al(&ds_lock);
-   if (wait_for_counter(xsink))
+   if (wait_for_sql(xsink))
       return -1;
    return Datasource::open(xsink);
 }
@@ -342,7 +369,7 @@ int ManagedDatasource::closeUnlocked()
       }
       
       // in case there are other close calls waiting
-      cStatus.signal();
+      cSQL.signal();
    }
    
    return rc;
@@ -355,13 +382,7 @@ int ManagedDatasource::closeUnlocked(class ExceptionSink *xsink)
    int rc = 0;
 
    // wait for any in-progress action to complete
-   if (counter > 0)
-   {
-      while (counter)
-	 cStatus.wait(&ds_lock);      
-      // in case there are other calls waiting on the condition
-      cStatus.signal();
-   }
+   wait_for_sql();
    if (isopen)
    {
       if (in_transaction)
@@ -371,10 +392,10 @@ int ManagedDatasource::closeUnlocked(class ExceptionSink *xsink)
 	 remove_thread_resource(this);
 	 in_transaction = false;
 	 // force-exit the transaction lock
-	 tGate.forceExit();
+	 forceReleaseLock();
 	 rc = -1;
       }
-      
+
       Datasource::close();
       isopen = false;
    }
@@ -382,6 +403,7 @@ int ManagedDatasource::closeUnlocked(class ExceptionSink *xsink)
    return rc;
 }
 
+// this method (without the ExceptionSink) is never called!
 int ManagedDatasource::close()
 {
    assert(false);
@@ -391,9 +413,9 @@ int ManagedDatasource::close()
    if (counter)
    {
       while (counter)
-	 cStatus.wait(&ds_lock);      
+	 cSQL.wait(&ds_lock);      
       // in case there are other calls waiting on the condition
-      cStatus.signal();
+      cSQL.signal();
    }
    return closeUnlocked();
  */

@@ -41,7 +41,7 @@
 
 #ifndef QORE_MONOLITHIC
 DLLEXPORT char qore_module_name[] = "mysql";
-DLLEXPORT char qore_module_version[] = "0.2";
+DLLEXPORT char qore_module_version[] = "0.3";
 DLLEXPORT char qore_module_description[] = "MySQL database driver";
 DLLEXPORT char qore_module_author[] = "David Nichols";
 DLLEXPORT char qore_module_url[] = "http://qore.sourceforge.net";
@@ -74,17 +74,8 @@ static pthread_key_t ptk_mysql;
 class MySQLConnection {
    public:
       MYSQL *db;
-      LockedObject lck;
 
       DLLLOCAL MySQLConnection(MYSQL *d) { db = d; }
-      DLLLOCAL void lock()
-      {
-	 lck.lock();
-      }
-      DLLLOCAL void unlock()
-      {
-	 lck.unlock();
-      }
 };
 
 static struct mapEntry {
@@ -250,8 +241,6 @@ static int qore_mysql_commit(class Datasource *ds, ExceptionSink *xsink)
    checkInit();
    MySQLConnection *d_mysql =(MySQLConnection *)ds->getPrivateData();
 
-   AutoLocker al(&d_mysql->lck);
-
    if (mysql_commit(d_mysql->db))
       xsink->raiseException("DBI:MYSQL:COMMIT-ERROR", (char *)mysql_error(d_mysql->db));
 #else
@@ -269,8 +258,6 @@ static int qore_mysql_rollback(class Datasource *ds, ExceptionSink *xsink)
    checkInit();
    MySQLConnection *d_mysql =(MySQLConnection *)ds->getPrivateData();
 
-   AutoLocker al(&d_mysql->lck);
-   
    if (mysql_rollback(d_mysql->db))
       xsink->raiseException("DBI:MYSQL:ROLLBACK-ERROR", (char *)mysql_error(d_mysql->db));
 #else
@@ -394,7 +381,6 @@ MyBindGroup::MyBindGroup(class Datasource *ods, class QoreString *ostr, class Li
    len = 0;
    ds = ods;
    mydata =(MySQLConnection *)ds->getPrivateData();
-   locked = false;
 
    // create copy of string and convert encoding if necessary
    str = ostr->convertEncoding(ds->getQoreEncoding(), xsink);
@@ -413,9 +399,6 @@ MyBindGroup::MyBindGroup(class Datasource *ods, class QoreString *ostr, class Li
    }
 
    //printd(5, "mysql prepare: (%d) %s\n", str->strlen(), str->getBuffer());
-
-   mydata->lock();
-   locked = true;
 
    // prepare the statement for execution
    if (mysql_stmt_prepare(stmt, str->getBuffer(), str->strlen()))
@@ -456,9 +439,6 @@ MyBindGroup::~MyBindGroup()
 
    if (stmt)
       mysql_stmt_close(stmt);
-
-   if (locked)
-      mydata->unlock();
 
    if (str)
       delete str;
@@ -939,11 +919,9 @@ static class QoreNode *qore_mysql_do_sql(class Datasource *ds, QoreString *qstr,
    MySQLConnection *d_mysql =(MySQLConnection *)ds->getPrivateData();
    MYSQL *db = d_mysql->db;
    
-   d_mysql->lck.lock();
    if (mysql_query(db, tqstr->getBuffer()))
    {
       xsink->raiseException("DBI:MYSQL:SELECT-ERROR", (char *)mysql_error(db));
-      d_mysql->lck.unlock();
       return NULL;
    }
 
@@ -951,7 +929,6 @@ static class QoreNode *qore_mysql_do_sql(class Datasource *ds, QoreString *qstr,
    if (mysql_field_count(db) > 0)
    {
       MYSQL_RES *res = mysql_store_result(db);
-      d_mysql->lck.unlock();
 
       if (!res)
       {
@@ -965,7 +942,6 @@ static class QoreNode *qore_mysql_do_sql(class Datasource *ds, QoreString *qstr,
    else
    {
       rv = new QoreNode(NT_INT, mysql_affected_rows(db));
-      d_mysql->lck.unlock();
    }
 #ifdef HAVE_MYSQL_COMMIT
    if (ds->getAutoCommit())
@@ -1091,6 +1067,7 @@ class QoreString *qore_mysql_module_init()
    methods.add(QDBI_METHOD_EXEC, qore_mysql_exec);
    methods.add(QDBI_METHOD_COMMIT, qore_mysql_commit);
    methods.add(QDBI_METHOD_ROLLBACK, qore_mysql_rollback);
+   methods.add(QDBI_METHOD_AUTO_COMMIT, qore_mysql_commit);
 
    DBID_MYSQL = DBI.registerDriver("mysql", methods, mysql_caps);
 

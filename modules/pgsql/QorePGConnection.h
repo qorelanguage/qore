@@ -194,7 +194,7 @@ static inline void assign_point(Point &p, Point *raw)
    p.y = MSBf8(raw->y);
 };
 
-class QorePGConnection : public LockedObject
+class QorePGConnection
 {
    private:
       PGconn *pc;

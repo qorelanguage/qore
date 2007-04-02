@@ -48,7 +48,7 @@ int SingleExitGate::enter(int timeout_ms)
    
    while (tid != -1 && tid != ctid)
    {
-      waiting++;
+      ++waiting;
       if (timeout_ms)
 	 while (true)
 	 {
@@ -65,13 +65,14 @@ int SingleExitGate::enter(int timeout_ms)
 	       break;
 	    
 	    // lock has timed out, unlock and return -1
+	    --waiting;
 	    pthread_mutex_unlock(&m);
-	    printd(1, "SingleExitGate %08p timed out after %dms waiting for tid %d to release lock\n", timeout_ms, tid);
+	    printd(1, "SingleExitGate %08p timed out after %dms waiting for tid %d to release lock\n", this, timeout_ms, tid);
 	    return -1;
 	 }
       else
 	 pthread_cond_wait(&cwait, &m);
-      waiting--;
+      --waiting;
    }
    
    tid = ctid;

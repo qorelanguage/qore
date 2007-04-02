@@ -215,6 +215,7 @@ static class QoreString *pgsql_module_init()
    methods.add(QDBI_METHOD_COMMIT, qore_pgsql_commit);
    methods.add(QDBI_METHOD_ROLLBACK, qore_pgsql_rollback);
    methods.add(QDBI_METHOD_BEGIN_TRANSACTION, qore_pgsql_begin_transaction);
+   methods.add(QDBI_METHOD_ABORT_TRANSACTION_START, qore_pgsql_rollback);
 
    DBID_PGSQL = DBI.registerDriver("pgsql", methods, pgsql_caps);
 

@@ -53,7 +53,6 @@ Datasource::~Datasource()
    if (private_data) 
       printe("ERROR: Datasource::~Datasource() private_data is not NULL\n");
 #endif
-   
 }
 
 List *Datasource::getCapabilityList() const
@@ -110,12 +109,18 @@ void Datasource::setAutoCommit(bool ac)
 
 QoreNode *Datasource::select(class QoreString *query_str, class List *args, ExceptionSink *xsink)
 {
-   return dsl->select(this, query_str, args, xsink);
+   QoreNode *rv = dsl->select(this, query_str, args, xsink);
+   if (autocommit)
+      dsl->autoCommit(this, xsink);
+   return rv;
 }
 
 QoreNode *Datasource::selectRows(class QoreString *query_str, class List *args, ExceptionSink *xsink)
 {
-   return dsl->selectRows(this, query_str, args, xsink);
+   QoreNode *rv = dsl->selectRows(this, query_str, args, xsink);
+   if (autocommit)
+      dsl->autoCommit(this, xsink);
+   return rv;
 }
 
 QoreNode *Datasource::exec(class QoreString *query_str, class List *args, ExceptionSink *xsink)
@@ -124,8 +129,15 @@ QoreNode *Datasource::exec(class QoreString *query_str, class List *args, Except
       return NULL;
 
    class QoreNode *rv = dsl->execSQL(this, query_str, args, xsink);
-   if (!autocommit && !in_transaction && !xsink->isException())
-      in_transaction = true;
+   if (autocommit)
+      dsl->autoCommit(this, xsink);
+   else if (!in_transaction)
+   {
+      if (xsink->isException())
+	 dsl->abortTransactionStart(this, xsink);
+      else
+	 in_transaction = true;	 
+   }
    
    return rv;
 }

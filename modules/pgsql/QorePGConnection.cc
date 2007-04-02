@@ -1451,7 +1451,6 @@ QorePGConnection::~QorePGConnection()
 
 int QorePGConnection::setPGEncoding(const char *enc, class ExceptionSink *xsink)
 {
-   SafeLocker sl((LockedObject *)this);
    if (PQsetClientEncoding(pc, enc))
    {
       xsink->raiseException("DBI:PGSQL:ENCODING-ERROR", "invalid PostgreSQL encoding '%s'", enc);
@@ -1462,33 +1461,27 @@ int QorePGConnection::setPGEncoding(const char *enc, class ExceptionSink *xsink)
 
 int QorePGConnection::commit(class Datasource *ds, ExceptionSink *xsink)
 {
-   SafeLocker sl((LockedObject *)this);
    QorePGResult res(this, ds->getQoreEncoding());
    return res.exec(pc, "commit", xsink);
 }
 
 int QorePGConnection::rollback(class Datasource *ds, ExceptionSink *xsink)
 {
-   SafeLocker sl((LockedObject *)this);
    QorePGResult res(this, ds->getQoreEncoding());
    return res.exec(pc, "rollback", xsink);
 }
 
 int QorePGConnection::begin_transaction(class Datasource *ds, ExceptionSink *xsink)
 {
-   SafeLocker sl((LockedObject *)this);
    QorePGResult res(this, ds->getQoreEncoding());
    return res.exec(pc, "begin", xsink);
 }
 
 class QoreNode *QorePGConnection::select(class Datasource *ds, QoreString *qstr, class List *args, class ExceptionSink *xsink)
 {
-   SafeLocker sl((LockedObject *)this);
    QorePGResult res(this, ds->getQoreEncoding());
    if (res.exec(pc, qstr, args, xsink))
       return NULL;
-
-   sl.unlock();
 
    class Hash *h = res.getHash(xsink);
    return h ? new QoreNode(h) : NULL;
@@ -1496,24 +1489,20 @@ class QoreNode *QorePGConnection::select(class Datasource *ds, QoreString *qstr,
 
 class QoreNode *QorePGConnection::select_rows(class Datasource *ds, QoreString *qstr, class List *args, class ExceptionSink *xsink)
 {
-   SafeLocker sl((LockedObject *)this);
    QorePGResult res(this, ds->getQoreEncoding());
    if (res.exec(pc, qstr, args, xsink))
       return NULL;
 
-   sl.unlock();
    class List *l = res.getList(xsink);
    return l ? new QoreNode(l) : NULL;
 }
 
 class QoreNode *QorePGConnection::exec(class Datasource *ds, QoreString *qstr, class List *args, class ExceptionSink *xsink)
 {
-   SafeLocker sl((LockedObject *)this);
    QorePGResult res(this, ds->getQoreEncoding());
    if (res.exec(pc, qstr, args, xsink))
       return NULL;
 
-   sl.unlock();
    if (res.hasResultData())
    {
       class Hash *h = res.getHash(xsink);

@@ -88,8 +88,17 @@ DBIDriver::DBIDriver(const char *nme, dbi_method_list_t &methods, int cps)
 	    assert(!f.begin_transaction);
 	    f.begin_transaction = (q_dbi_begin_transaction_t)(*i).second;
 	    break;
+	 case QDBI_METHOD_AUTO_COMMIT:
+	    assert(!f.auto_commit);
+	    f.auto_commit = (q_dbi_auto_commit_t)(*i).second;
+	    break;
+	 case QDBI_METHOD_ABORT_TRANSACTION_START:
+	    assert(!f.abort_transaction_start);
+	    f.abort_transaction_start = (q_dbi_abort_transaction_start_t)(*i).second;
+	    break;
       }
    }
+   // ensure minimum methods are defined
    assert(f.open);
    assert(f.close);
    assert(f.select);
@@ -164,6 +173,20 @@ int DBIDriver::beginTransaction(class Datasource *ds, class ExceptionSink *xsink
 {
    if (f.begin_transaction)
       return f.begin_transaction(ds, xsink);
+   return 0; // 0 = OK
+}
+
+int DBIDriver::autoCommit(class Datasource *ds, class ExceptionSink *xsink)
+{
+   if (f.auto_commit)
+      return f.auto_commit(ds, xsink);
+   return 0; // 0 = OK
+}
+
+int DBIDriver::abortTransactionStart(class Datasource *ds, class ExceptionSink *xsink)
+{
+   if (f.abort_transaction_start)
+      return f.abort_transaction_start(ds, xsink);
    return 0; // 0 = OK
 }
 

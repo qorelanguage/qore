@@ -47,16 +47,18 @@
 #define DBI_DEFAULT_STR_LEN 512
 
 // DBI method codes
-#define QDBI_METHOD_OPEN               1
-#define QDBI_METHOD_CLOSE              2
-#define QDBI_METHOD_SELECT             3
-#define QDBI_METHOD_SELECT_ROWS        4
-#define QDBI_METHOD_EXEC               5
-#define QDBI_METHOD_COMMIT             6
-#define QDBI_METHOD_ROLLBACK           7
-#define QDBI_METHOD_BEGIN_TRANSACTION  8
+#define QDBI_METHOD_OPEN                      1
+#define QDBI_METHOD_CLOSE                     2
+#define QDBI_METHOD_SELECT                    3
+#define QDBI_METHOD_SELECT_ROWS               4
+#define QDBI_METHOD_EXEC                      5
+#define QDBI_METHOD_COMMIT                    6
+#define QDBI_METHOD_ROLLBACK                  7
+#define QDBI_METHOD_BEGIN_TRANSACTION         8
+#define QDBI_METHOD_AUTO_COMMIT               9
+#define QDBI_METHOD_ABORT_TRANSACTION_START  10
 
-#define QDBI_VALID_CODES 9
+#define QDBI_VALID_CODES 11
 
 // DBI method signatures
 typedef int (*q_dbi_open_t)(class Datasource *, class ExceptionSink *xsink);
@@ -67,6 +69,8 @@ typedef class QoreNode *(*q_dbi_exec_t)(class Datasource *, class QoreString *, 
 typedef int (*q_dbi_commit_t)(class Datasource *, class ExceptionSink *xsink);
 typedef int (*q_dbi_rollback_t)(class Datasource *, class ExceptionSink *xsink);
 typedef int (*q_dbi_begin_transaction_t)(class Datasource *, class ExceptionSink *xsink);
+typedef int (*q_dbi_auto_commit_t)(class Datasource *, class ExceptionSink *xsink);
+typedef int (*q_dbi_abort_transaction_start_t)(class Datasource *, class ExceptionSink *xsink);
 
 typedef std::pair<int, void *> qore_dbi_method_t;
 
@@ -102,7 +106,11 @@ class DBIDriverFunctions {
       q_dbi_commit_t commit;
       q_dbi_rollback_t rollback;
       q_dbi_begin_transaction_t begin_transaction; // for DBI drivers that require explicit transaction starts
-
+      q_dbi_auto_commit_t auto_commit;             // for DBI drivers that require an explicit commit 
+      q_dbi_abort_transaction_start_t abort_transaction_start;  // for DBI drivers that require a rollback in order to use
+							        // the connection after an exception as the first statement
+							        // in a transaction
+      
       DLLLOCAL DBIDriverFunctions()
       {
 	 open = NULL;
@@ -113,6 +121,8 @@ class DBIDriverFunctions {
 	 commit = NULL;
 	 rollback = NULL;
 	 begin_transaction = NULL;
+	 auto_commit = NULL;
+	 abort_transaction_start = NULL;
       }
 };
 
@@ -133,9 +143,12 @@ class DBIDriver {
       DLLLOCAL int commit(class Datasource *, class ExceptionSink *xsink);
       DLLLOCAL int rollback(class Datasource *, class ExceptionSink *xsink);
       DLLLOCAL int beginTransaction(class Datasource *, class ExceptionSink *xsink);
+      DLLLOCAL int autoCommit(class Datasource *, class ExceptionSink *xsink);
+      DLLLOCAL int abortTransactionStart(class Datasource *, class ExceptionSink *xsink);
+
       DLLLOCAL int getCaps() const;
       DLLLOCAL class List *getCapList() const;
-      DLLLOCAL const char *getName() const;
+      DLLEXPORT const char *getName() const;
 };
 
 typedef safe_dslist<class DBIDriver *> dbi_list_t;

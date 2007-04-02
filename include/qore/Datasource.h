@@ -2,12 +2,18 @@
   Datasource.h
 
   Qore Programming Language
-
+ 
   Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
-
+ 
+  The Datasource class provides the low-level interface to Qore DBI drivers.
+ 
+  NOTE that this class is *not* thread-safe.  To use this class in a multi-
+  threaded context, per-thread connection locking must be done at a level
+  above this class...
+ 
   NOTE that 2 copies of connection values are kept in case
   the values are changed while a connection is in use
-
+ 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
   License as published by the Free Software Foundation; either
@@ -23,14 +29,11 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/* 
-   FIXME: commit()s when autocommit=true should be made here, also after
-          select()s (in case of a select for update, for example)
- */
-
 #ifndef _QORE_DATASOURCE_H
 
 #define _QORE_DATASOURCE_H
+
+#include <qore/LockedObject.h>
 
 #include <string>
 
@@ -42,8 +45,8 @@ class Datasource
       bool autocommit;
       class DBIDriver *dsl;
       class QoreEncoding *qorecharset;
-      void *private_data;
-
+      void *private_data;               // driver private data per connection
+      
       // for pending connection values
       std::string p_username,  // for Oracle, MySQL
 	 p_password,    // for Oracle, MySQL

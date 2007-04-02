@@ -1188,7 +1188,8 @@ static int oracle_open(Datasource *ds, ExceptionSink *xsink)
    class OracleData *d_ora = new OracleData;
    ds->setPrivateData((void *)d_ora);
 
-   int oci_flags = OCI_DEFAULT|OCI_THREADED;
+   // locking is done on the level above with the Datasource class
+   int oci_flags = OCI_DEFAULT|OCI_THREADED|OCI_NO_MUTEX;
 
    const char *charset;
 
@@ -1294,38 +1295,6 @@ static int oracle_open(Datasource *ds, ExceptionSink *xsink)
    }
 
    printd(5, "oracle_open() datasource %08p for DB=%s open (envhp=%08p)\n", ds, ds->getDBName(), d_ora->envhp);
-
-/*
-   OCIStmt *stmthp;
-   char *date_query = "alter session set nls_date_format = 'YYYYMMDDHH24MISS'";
-
-   // set default date format YYYYMMDDHH24MISS
-   ora_checkerr(d_ora->errhp, 
-		OCIHandleAlloc(d_ora->envhp, (dvoid **)&stmthp, OCI_HTYPE_STMT, 0, 0), 
-		"<open>", ds, xsink);
-   if (xsink->isEvent())
-   {
-      delete d_ora;
-      ds->setPrivateData(NULL);
-      traceout("oracle_open()");
-      return -1;
-   }
-   ora_checkerr(d_ora->errhp, 
-		OCIStmtPrepare(stmthp, d_ora->errhp, (text *)date_query, strlen(date_query), OCI_NTV_SYNTAX, OCI_DEFAULT), 
-		"<open>", ds, xsink);
-   if (xsink->isEvent())
-   {
-      delete d_ora;
-      ds->setPrivateData(NULL);
-   }
-   else
-   {
-      ora_checkerr(d_ora->errhp, 
-		   OCIStmtExecute(d_ora->svchp, stmthp, d_ora->errhp, 1, 0, NULL, NULL, OCI_DEFAULT), 
-		   "<open>", ds, xsink);
-   }
-   OCIHandleFree(stmthp, OCI_HTYPE_STMT);
-*/
    
    traceout("oracle_open()");
    return 0;
@@ -1362,6 +1331,7 @@ class QoreString *oracle_module_init()
    methods.add(QDBI_METHOD_EXEC, oracle_exec);
    methods.add(QDBI_METHOD_COMMIT, oracle_commit);
    methods.add(QDBI_METHOD_ROLLBACK, oracle_rollback);
+   methods.add(QDBI_METHOD_AUTO_COMMIT, oracle_commit);
    
    DBID_ORACLE = DBI.registerDriver("oracle", methods, DBI_ORACLE_CAPS);
 

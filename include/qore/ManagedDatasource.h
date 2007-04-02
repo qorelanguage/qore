@@ -49,22 +49,29 @@ FIXME: commit()s when autocommit=true should be made here, also after
 class ManagedDatasource : public AbstractThreadResource, public Datasource
 {
 private:
-   class LockedObject ds_lock;
-   class SingleExitGate tGate;
-   int counter;
-   int tl_timeout_ms;
-   class QoreCondition cStatus;
+   class LockedObject ds_lock;     // connection/transaction lock
+
+   int counter,                    // flag if SQL is in progress
+      tid,                         // TID of thread holding the connection/transaction lock
+      waiting,                     // number of threads waiting on the transaction lock
+      sql_waiting,                 // number of threads waiting on the SQL lock
+      tl_timeout_ms;               // transaction timeout in milliseconds
+
+   class QoreCondition cSQL,       // condition when no SQL is in-progress
+      cTransaction;                // condition when transaction lock is freed
    
-   DLLLOCAL int startDBAction(class ExceptionSink *xsink);
+   DLLLOCAL int startDBAction(class ExceptionSink *xsink, bool need_transaction_lock = false);
    DLLLOCAL void endDBAction();
    DLLLOCAL int closeUnlocked(class ExceptionSink *xsink);
    // returns 0 for OK, -1 for error
-   DLLLOCAL int grabLockIntern(class ExceptionSink *xsink);
-   DLLLOCAL void releaseLockIntern();
+   DLLLOCAL int grabLockIntern();
    // returns 0 for OK, -1 for error
    DLLLOCAL int grabLock(class ExceptionSink *xsink);
    DLLLOCAL void releaseLock();
-   DLLLOCAL int wait_for_counter(class ExceptionSink *xsink);
+   DLLLOCAL void forceReleaseLock();
+   DLLLOCAL int wait_for_sql(class ExceptionSink *xsink);
+   DLLLOCAL void wait_for_sql();
+   DLLLOCAL void finish_transaction();
    
 protected:
    DLLLOCAL virtual ~ManagedDatasource();

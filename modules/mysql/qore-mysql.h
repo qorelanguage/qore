@@ -149,7 +149,7 @@ class MyBindGroup {
       class MySQLConnection *mydata;
       int len;
       class StringList phl;
-      bool locked;
+      //bool locked;
 
       // returns -1 for error, 0 for OK
       DLLLOCAL inline int parse(class List *args, class ExceptionSink *xsink);

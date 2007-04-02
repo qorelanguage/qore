@@ -166,7 +166,7 @@ static int sybase_open(Datasource *ds, ExceptionSink *xsink)
     sybase_connection* sc = (sybase_connection*)ds->getPrivateData();
     ds->setPrivateData(0);
     delete sc;
-    return -1;    
+    return -1;
   }
 
   traceout("sybase_open()");
@@ -260,7 +260,7 @@ QoreString* sybase_module_init()
    methods.add(QDBI_METHOD_EXEC, sybase_exec);
    methods.add(QDBI_METHOD_COMMIT, sybase_commit);
    methods.add(QDBI_METHOD_ROLLBACK, sybase_rollback);
-
+   methods.add(QDBI_METHOD_AUTO_COMMIT, sybase_commit);
    
 #ifdef SYBASE
    DBID_SYBASE = DBI.registerDriver("sybase", methods, DBI_SYBASE_CAPS);

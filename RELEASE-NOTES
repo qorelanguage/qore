@@ -59,6 +59,20 @@ The constructor understands a couple of new hash keys:
 
 Since the XmlRpcClient and JsonRpcClient inherit HTTPClient, all improvements to the HTTPClient class are also available in the XmlRpcClient and JsonRpcClient classes as well.
 
+*) run-time module loading
+a new function "load_module()" can be used to load modules at run-time
+
+*) no modules in the "auto" directory by default, DBI drivers loaded on demand
+before the "mysql" and "oracle" drivers were in the "auto" subdirectory of the modules subdirectory (ex: /usr/lib/qore-<VER>/auto) meaning that they were loaded every time qore was executed.
+Now all drivers are in the module directory and the auto subdirectory is empty.
+However, an atomic, thread-safe mechanism is used to load DBI drivers on-demand - if the driver is not already loaded, then qore will attempt to load a module of the same name.  If no module can be loaded, then an exception is thrown, otherwise the code continues normally.
+So now to load any database driver all you have to do is execute:
+	$db = new Datasource("<driver name>",...);
+
+there is no need to write
+	%requires <dbi-driver> 
+anymore. (however you may want to do this if your code requires the database driver, so that if it cannot be loaded at parse time, the user will see a meaningful parse exception and the code will not execute)
+
 *) new "on_exit", "on_success", and "on_error" statements
 allows exception-safe cleanup code to be placed right next to the code requiring the cleanup
 	on_exit : queues code to be executed when the current block is exited (regardless of exceptions or return statements)
@@ -89,7 +103,7 @@ It's recommended to use a relative time value to make the units clear, i.e
 	}
 
 *) threading errors cause exceptions to be thrown
-Common thread errors. such as trying to lock a Mutex twice in the same thread without an intervening Mutex::unlock(), or trying to release a lock that is not held, will cause exceptions to be thrown as of this version of Qore.
+Common thread errors, such as trying to lock a Mutex twice in the same thread without an intervening Mutex::unlock(), or trying to release a lock that is not held, will cause exceptions to be thrown as of this version of Qore.
 Furthermore, locks are tracked as thread resources, and if a thread terminates without freeing the lock, an exception is thrown and the lock is freed automatically.
 
 See test/deadlock.q for deadlock and thread error tests.
@@ -142,7 +156,7 @@ etc...
 
 *) SQL strings accept '%d' placeholder for integer values
 provides a mechanism to deal with DECIMAL (NUMERIC, NUMER) columns in a database-independent way (substitutes 'null' for NULL or NOTHING, the integer text for anything else).
-This ensures that values will be set properly even for databases such as PostgreSQL that do not convert from string or integer types to DECIMAL.
+This ensures that values will be set properly even for databases such as PostgreSQL that do not convert from string or integer types to DECIMAL when binding bx value.
 
 *) other bugfixes, updates, etc
 see CHANGELOG for details
