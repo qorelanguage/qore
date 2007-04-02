@@ -70,11 +70,14 @@ private:
   }
 
   bool is_autocommit_enabled() const {
+   return false;
+/* commit handling moved into the DBI layer
 #ifdef DEBUG
     return m_test_autocommit;
 #else
     return m_ds->getAutoCommit();
 #endif
+*/
   }
 
 #ifdef DEBUG
