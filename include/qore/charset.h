@@ -78,7 +78,7 @@ struct QoreEncoding {
       }
 };
 
-typedef std::map<const char *, struct QoreEncoding *, class ltstr> encoding_map_t;
+typedef std::map<const char *, struct QoreEncoding *, class ltcstrcase> encoding_map_t;
 
 // there will always only be one of these, therefore all members and methods are static
 class QoreEncodingManager

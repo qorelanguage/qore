@@ -1,3 +1,6 @@
+2007.04.03: David Nichols
+	* fixed encoding name matches to ignore case
+
 2007.03.27: David Nichols
 	* ported global variable overrides in tibae module to 0.6.1 branch
 
