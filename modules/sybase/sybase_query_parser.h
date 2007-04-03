@@ -55,10 +55,12 @@ struct sybase_query_parameter
 // the final result of query processing
 struct processed_sybase_query
 {
-  processed_sybase_query(const char* s, const std::vector<sybase_query_parameter>& params, bool is_procedure)
-  : m_result_query_text(s), m_parameters(params), m_is_procedure(is_procedure) {}
-
+  processed_sybase_query(const char* s, const std::vector<sybase_query_parameter>& params, bool is_procedure);
   processed_sybase_query() : m_is_procedure(false) {}
+
+  // From a query in form "select * from x where y = ?" creates a form for ct_command(CS_LANG_CMD), 
+  // here "select * from x where y = @par0".
+  static std::string generate_query_parameter_names(const char* s);
 
   std::string m_result_query_text;
   std::vector<sybase_query_parameter> m_parameters;

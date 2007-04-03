@@ -228,6 +228,72 @@ processed_sybase_query parse_sybase_query(const char* original_query_text, Excep
   }
 }
 
+//------------------------------------------------------------------------------
+processed_sybase_query::processed_sybase_query(const char* s, const std::vector<sybase_query_parameter>& params, bool is_procedure)
+: m_parameters(params), 
+  m_is_procedure(is_procedure)
+{
+  m_result_query_text = generate_query_parameter_names(s); 
+}
+
+//------------------------------------------------------------------------------
+std::string processed_sybase_query::generate_query_parameter_names(const char* s) 
+{
+  std::string result;
+  result.reserve(1000);
+  unsigned args = 0;
+  while (*s) {
+    char ch = *s++;
+
+    // skip double qouted strings
+    if (ch == '"') {
+      result += ch;
+      for (;;) {
+        ch = *s++;
+        result += ch;
+        if (ch == '\\') {
+          ch = *s++;
+          result.push_back(ch);
+          continue;
+        }
+        if (ch == '"') {
+          goto next;
+        }
+      }      
+    }
+
+    // skip single qouted strings
+    if (ch == '\'') {
+      result += ch;
+      for (;;) {
+        ch = *s++;
+        result += ch;
+        if (ch == '\\') {
+          ch = *s++;
+          result.push_back(ch);
+          continue;
+        }
+        if (ch == '\'') {
+          goto next;
+        }
+      }
+    }
+
+    if (ch == '?') {
+      // ? was inserted originally for the dynamic SQL. ct_dynamic(CS_LANG_CMD) requires something as @xyz
+      char aux[20];
+      sprintf(aux, "@par%d", args++);
+      result += (const char*)aux;
+    } else {
+      result += ch;
+    }
+
+next:;
+  } // main while
+  return result;
+}
+
+
 #ifdef DEBUG
 #  include "tests/sybase_query_parser_tests.cc"
 #endif

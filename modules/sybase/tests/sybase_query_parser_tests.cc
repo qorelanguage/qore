@@ -197,6 +197,21 @@ TEST()
   assert(res.m_parameters[2].m_is_integer_type == false);
 }
 
+TEST()
+{
+  // test the routing making @parX from ? (used for ct_command(CS_LANG_CMD))
+  std::string s = processed_sybase_query::generate_query_parameter_names("select x from y");
+  assert(s == "select x from y");
+  s = processed_sybase_query::generate_query_parameter_names("select x from ?");
+  assert(s == "select x from @par0");
+  s = processed_sybase_query::generate_query_parameter_names("select x from ? and ?");
+  assert(s == "select x from @par0 and @par1");
+  s = processed_sybase_query::generate_query_parameter_names("select x from \"?\" and '?'");
+  assert(s == "select x from \"?\" and '?'");
+  s = processed_sybase_query::generate_query_parameter_names("select x from \"\\\"?\" and '\\\'?'");
+  assert(s == "select x from \"\\\"?\" and '\\\'?'");
+}
+
 } // namespace
 #endif
 

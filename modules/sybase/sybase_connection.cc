@@ -176,6 +176,17 @@ CS_RETCODE sybase_connection::servermsg_callback(CS_CONTEXT* ctx, CS_CONNECTION*
 {
 #ifdef DEBUG
 printf("#### ******************* server error output here: *****************************\n");
+  fprintf(stderr, "\nOpen Server Message:\n");
+  fprintf(stderr, "Message number = %d, severity = %d\n", svrmsg->msgnumber, svrmsg->severity);
+  fprintf(stderr, "State = %d, line = %d\n", svrmsg->state, svrmsg->line);
+  if (svrmsg->svrnlen) {
+    fprintf(stderr, "Server: %s\n", svrmsg->svrname);
+  }
+  if (svrmsg->proclen) {
+    fprintf(stderr, "Procedure: %s\n", svrmsg->proc);
+  }
+  fprintf(stderr, "Message string: %s\n", svrmsg->text);
+  fflush(stderr);
 #endif
   return CS_SUCCEED;
 }

@@ -941,8 +941,10 @@ void sybase_ct_param(
   }
   return;
 
-  case CS_LONGBINARY_TYPE:
   case CS_IMAGE_TYPE: // image could be used only with LIKE in WHERE statement, nowhere else
+printf("######### IMAGE TYPE FOR PREPARE\n");
+  case CS_LONGBINARY_TYPE:
+printf("###### IS LONG BINARY ######################################################\n");
   case CS_BINARY_TYPE:
   {
     if (data->type != NT_BINARY) {
@@ -954,7 +956,6 @@ void sybase_ct_param(
     datafmt.datatype = type;
     datafmt.maxlength = data->val.bin->size();
     datafmt.count = 1;
-
     err = ct_param(wrapper(), &datafmt, data->val.bin->getPtr(), data->val.bin->size(), 0);
     if (err != CS_SUCCEED) {
       assert(false);

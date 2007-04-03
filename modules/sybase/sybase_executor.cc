@@ -180,7 +180,7 @@ QoreNode* sybase_executor::exec_impl(ExceptionSink* xsink)
   if (m_parsed_query.m_is_procedure) {
     return exec_procedure_call(cmd_wrapper, xsink);
   } else {
-    return exec_language_command(cmd_wrapper, xsink);
+    exec_language_command(cmd_wrapper, xsink);
   }
 }
 
@@ -279,6 +279,7 @@ QoreNode* sybase_executor::selectRows(ExceptionSink *xsink)
 }
 
 #ifdef DEBUG
+/*
 #  include "tests/sybase_executor_rpc_tests.cc"
 #  include "tests/sybase_executor_tinyint_tests.cc"
 #  include "tests/sybase_executor_smallint_tests.cc"
@@ -295,6 +296,8 @@ QoreNode* sybase_executor::selectRows(ExceptionSink *xsink)
 #  include "tests/sybase_executor_varchar_tests.cc"
 #  include "tests/sybase_executor_varbinary_tests.cc"
 #  include "tests/sybase_executor_binary_tests.cc"
+*/
+//#  include "tests/sybase_executor_image_tests.cc"
 #endif
 
 // EOF

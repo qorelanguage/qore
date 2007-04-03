@@ -50,6 +50,7 @@ private:
 
   QoreNode* exec_procedure_call(const sybase_command_wrapper& w, ExceptionSink* xsink);
   QoreNode* exec_language_command(const sybase_command_wrapper& w, ExceptionSink* xsink);
+  QoreNode* exec_ct_command(const sybase_command_wrapper& w, ExceptionSink* xsink);
   
   // execute all kind of commands, including procedure calls
   QoreNode* exec_impl(ExceptionSink* xsink);
