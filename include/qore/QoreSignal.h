@@ -33,7 +33,15 @@
 
 // maximum number of signals
 #ifndef QORE_SIGNAL_MAX
-#define QORE_SIGNAL_MAX 32
+#ifdef NSIG
+#define QORE_SIGNAL_MAX (NSIG+1)
+#elif defined _NSIG
+#define QORE_SIGNAL_MAX _NSIG
+#elif defined _NSIGS
+#define QORE_SIGNAL_MAX _NSIGS
+#else
+#error don't know maximum signal number on this platform
+#endif
 #endif
 
 struct PgmFunc {
