@@ -1,13 +1,14 @@
 see docs/roadmap.html
 
-* implement GZFile class
+* implement function or object/method pointers
+* add signal constants/infrastructure (in progress)
+* add context functions
 * allow customizable QORE_INCLUDE_DIR searches
 * track include files, make sure they are only included once
 * add argument info to functions, throw errors if arguments are not correct
 * add parse-time argument checks (instead of just run-time exceptions)
 * add constant execution flag to functions, to allow execution in constant expressions
-* add signal constants/infrastructure
-* add context functions
+* implement GZFile class
 
 done:
 * fix Queue class (destructor must wake up any sleeping threads)

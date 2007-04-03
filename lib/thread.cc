@@ -755,69 +755,72 @@ static inline void register_thread(int tid, pthread_t ptid, class QoreProgram *p
    pthread_setspecific(thread_data_key, (void *)(new ThreadData(tid, p)));
 }
 
-static void *op_background_thread(class BGThreadParams *btp)
-{    
-   // register thread
-   register_thread(btp->tid, pthread_self(), btp->pgm);
-   printd(5, "op_background_thread() btp=%08p TID %d started\n", btp, btp->tid);
-   //printf("op_background_thread() btp=%08p TID %d started\n", btp, btp->tid);
+// put "op_background_thread" in an unnamed namespace to make it 'static extern "C"'
+namespace {
+   extern "C" void *op_background_thread(class BGThreadParams *btp)
+   {    
+      // register thread
+      register_thread(btp->tid, pthread_self(), btp->pgm);
+      printd(5, "op_background_thread() btp=%08p TID %d started\n", btp, btp->tid);
+      //printf("op_background_thread() btp=%08p TID %d started\n", btp, btp->tid);
 
 #ifdef DEBUG
-   if (!thread_list[btp->tid].callStack)
-   {
-      printf("TID %d: btp=%p, callstack = NULL, retry\n", btp->tid, btp);
-      abort();
-   }
+      if (!thread_list[btp->tid].callStack)
+      {
+	 printf("TID %d: btp=%p, callstack = NULL, retry\n", btp->tid, btp);
+	 abort();
+      }
 #endif
-   // create thread-local data for this thread in the program object
-   btp->pgm->startThread();
-   // set program counter for new thread
-   update_pgm_counter_pgm_file(btp->s_line, btp->e_line, btp->file);
+      // create thread-local data for this thread in the program object
+      btp->pgm->startThread();
+      // set program counter for new thread
+      update_pgm_counter_pgm_file(btp->s_line, btp->e_line, btp->file);
 
-   // push this call on the thread stack
-   pushCall("background operator", CT_NEWTHREAD, btp->callobj);
+      // push this call on the thread stack
+      pushCall("background operator", CT_NEWTHREAD, btp->callobj);
 
-   // dereference call object if present
-   btp->derefCallObj();
+      // dereference call object if present
+      btp->derefCallObj();
 
-   class ExceptionSink xsink;
+      class ExceptionSink xsink;
 
-   // run thread expression
-   class QoreNode *rv = btp->exec(&xsink);
+      // run thread expression
+      class QoreNode *rv = btp->exec(&xsink);
 
-   // if there is an object, we dereference the extra reference here
-   btp->derefObj(&xsink);
+      // if there is an object, we dereference the extra reference here
+      btp->derefObj(&xsink);
 
-   // pop the call from the stack
-   popCall(&xsink);
+      // pop the call from the stack
+      popCall(&xsink);
 
-   // dereference any return value from the background expression
-   if (rv)
-      rv->deref(&xsink);
+      // dereference any return value from the background expression
+      if (rv)
+	 rv->deref(&xsink);
 
-   // delete any thread data
-   btp->pgm->endThread(&xsink);
-   
-   // cleanup thread resources
-   purge_thread_resources(&xsink);
+      // delete any thread data
+      btp->pgm->endThread(&xsink);
+      
+      // cleanup thread resources
+      purge_thread_resources(&xsink);
+      
+      xsink.handleExceptions();
 
-   xsink.handleExceptions();
+      printd(4, "thread terminating");
 
-   printd(4, "thread terminating");
+      // delete internal thread data structure
+      delete_thread_data();
 
-   // delete internal thread data structure
-   delete_thread_data();
+      // deregister_thread
+      deregister_thread(btp->tid);
+      
+      // run any cleanup functions
+      tclist.exec();
 
-   // deregister_thread
-   deregister_thread(btp->tid);
+      delete btp;
 
-   // run any cleanup functions
-   tclist.exec();
-
-   delete btp;
-
-   pthread_exit(NULL);
-   return NULL;
+      pthread_exit(NULL);
+      return NULL;
+   }
 }
 
 static class QoreNode *op_background(class QoreNode *left, class QoreNode *right, bool ref_rv, ExceptionSink *xsink)
