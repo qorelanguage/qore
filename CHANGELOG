@@ -1,3 +1,6 @@
+2006.04.03: David Nichols
+	* initial, highly experimental signal handling support
+
 2006.04.01: David Nichols
 	* moved DBI connection locking to the level above the Datasource
 	  class (ex: ManagedDatasource)

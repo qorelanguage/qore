@@ -51,6 +51,8 @@
 #include <qore/QC_AutoReadLock.h>
 #include <qore/QC_AutoWriteLock.h>
 
+#include <qore/signal_constants.h>
+
 #include <string.h>
 #include <stdlib.h>
 #include <pcre.h>
@@ -1580,6 +1582,9 @@ RootNamespace::RootNamespace(class Namespace **QoreNS) : Namespace()
    qns->addSystemClass((http_client_class = initHTTPClientClass()));
    qns->addSystemClass(initXmlRpcClientClass(http_client_class));
    qns->addSystemClass(initJsonRpcClientClass(http_client_class));
+
+   // add signal constants
+   addSignalConstants(qns);
 
 #ifdef DEBUG
 { // tests

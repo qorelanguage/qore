@@ -25,12 +25,13 @@
 #include <qore/QT_backquote.h>
 #include <qore/ssl_constants.h>
 #include <qore/QoreURL.h>
+#include <qore/QoreSignal.h>
 
 #include <string.h>
 #include <zlib.h>
 #include <time.h>
 
-/*
+#ifdef HAVE_GZ_HEADER
 class qore_gz_header : public gz_header
 {
       DLLLOCAL qore_gz_header(bool n_text, char *n_name, char *n_comment)
@@ -50,7 +51,7 @@ class qore_gz_header : public gz_header
 	 done = 0;
       }
 };
-*/
+#endif
 
 // FIXME: don't copy the list - the arguments have already been evaluated
 // just build a new list and then zero it out before deleting it
@@ -1004,6 +1005,32 @@ static class QoreNode *f_load_module(class QoreNode *params, ExceptionSink *xsin
    return NULL;
 }
 
+static class QoreNode *f_set_signal_handler(class QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p0 = get_param(params, 0);
+   int signal = p0 ? p0->getAsInt() : 0;
+   if (!signal || signal > QORE_SIGNAL_MAX)
+   {
+      xsink->raiseException("SET-SIGNAL-HANDLER-ERROR", "%d is not a valid signal", signal);
+      return NULL;
+   }
+   QoreNode *p1 = test_param(params, NT_STRING, 1);
+   if (!p1)
+   {
+      xsink->raiseException("SET-SIGNAL-HANDLER-ERROR", "expecting function name as second argument to set_signal_handler()");
+      return NULL;
+   }
+   class QoreProgram *pgm = getProgram();
+   class UserFunction *f = pgm->findUserFunction(p1->val.String->getBuffer());
+   if (!f)
+   {
+      xsink->raiseException("SET-SIGNAL-HANDLER-ERROR", "cannot find function '%s'", p1->val.String->getBuffer());
+      return NULL;
+   }
+   QoreSignalManager::setHandler(signal, pgm, f, xsink);
+   return NULL;
+}
+
 void init_misc_functions()
 {
    // register builtin functions in this file
@@ -1037,8 +1064,9 @@ void init_misc_functions()
    builtinFunctions.add("hextoint", f_hextoint);
    builtinFunctions.add("strtoint", f_strtoint);
    builtinFunctions.add("load_module", f_load_module);
-
-   // depcrecated with stupid capitalization
+   builtinFunctions.add("set_signal_handler", f_set_signal_handler);
+   
+   // deprecated with stupid capitalization
    builtinFunctions.add("hexToInt", f_hextoint);
 
 }

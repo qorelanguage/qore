@@ -27,129 +27,122 @@
 
 class QoreSignalManager QSM;
 
+LockedObject QoreSignalManager::mutex;
+m_int_func_t QoreSignalManager::smap;
+bool QoreSignalManager::sig_event[QORE_SIGNAL_MAX];
+bool QoreSignalManager::sig_raised = false;
+
+extern "C" void sighandler(int sig) //, siginfo_t *info, ucontext_t *uap)
+{
+   QoreSignalManager::sig_raised = true;
+   QoreSignalManager::sig_event[sig] = true;
+}
+
 QoreSignalManager::QoreSignalManager() 
 {
+   for (int i = 0; i < QORE_SIGNAL_MAX; ++i)
+      sig_event[i] = 0;
 }
 
 QoreSignalManager::~QoreSignalManager()
 {
 }
 
-void QoreSignalManager::setHandler(int sig, class UserFunction *f)
+void QoreSignalManager::setHandler(int sig, class QoreProgram *pgm, class UserFunction *f, class ExceptionSink *xsink)
 {
-   smap[sig] = f;
+   bool already_set = false;
+
+   SafeLocker sl(&mutex);
+   m_int_func_t::iterator i = smap.find(sig);
+   if (i != smap.end())
+   {
+      already_set = true;
+      class PgmFunc *pf = i->second;
+      smap.erase(i);
+
+      // FIXME: change ProgramObject to deregister any signal handlers when the QoreProgram object is deleted
+      pf->pgm->deref(xsink);
+      delete pf;
+      if (xsink->isException())
+      {
+	 struct sigaction sa;
+	 sa.sa_handler = SIG_IGN;
+	 sigemptyset(&sa.sa_mask);
+	 sa.sa_flags = SA_RESTART;
+	 sigaction(sig, &sa, NULL);
+	 
+	 return;
+      }
+   }
+   
+   smap.erase(sig);
+   smap[sig] = new PgmFunc(pgm, f);
+   sl.unlock();
+
+   if (!already_set)
+   {
+      struct sigaction sa;
+      sa.sa_handler = sighandler;
+      sigemptyset(&sa.sa_mask);
+      sa.sa_flags = SA_RESTART;
+      sigaction(sig, &sa, NULL);
+   }
 }
 
-void QoreSignalManager::removeHandler(int sig)
+int QoreSignalManager::removeHandler(int sig, class ExceptionSink *xsink)
 {
-   smap.erase(sig);
+   SafeLocker sl(&mutex);
+   m_int_func_t::iterator i = smap.find(sig);
+   if (i == smap.end())
+      return 0;
+
+   class PgmFunc *pf = i->second;
+   smap.erase(i);
+   sl.unlock();
+   
+   struct sigaction sa;
+   sa.sa_handler = SIG_IGN;
+   sigemptyset(&sa.sa_mask);
+   sa.sa_flags = SA_RESTART;
+   sigaction(sig, &sa, NULL);
+
+   pf->pgm->deref(xsink);
+   delete pf;
+   return xsink->isException() ? -1 : 0;
 }
 
 class UserFunction *QoreSignalManager::getHandler(int sig)
 {
-   m_int_func_t::iterator i = smap.find(sig);
+   AutoLocker al(&mutex);
+   m_int_func_t::const_iterator i = smap.find(sig);
    if (i == smap.end())
       return NULL;
-   return i->second;
+   return i->second->f;
 }
 
-extern "C" void sighandler(int sig, siginfo_t *info, ucontext_t *uap)
+void QoreSignalManager::handleSignals()
 {
-/*
-   switch (sig)
+   if (!sig_raised)
+      return;
+
+   ExceptionSink xsink;
+   SafeLocker sl(&mutex);
+   if (!sig_raised)
+      return;
+   sig_raised = false;
+   
+   for (int i = 1; i < QORE_SIGNAL_MAX; ++i)
    {
-      case SIGINT:
-         signal(sig, sighandler);
-         printe("SIGINT: Interrupt from Keyboard\n");
-	 sig_leave(1);
-         break;
-      case SIGHUP:
-         signal(sig, sighandler);
-         printe("SIGHUP: Hangup Detected\n");
-	 sig_leave(1);
-         break;
-      case SIGTERM:
-         signal(sig, sighandler);
-         printe("SIGTERM: Termination Signal\n");
-	 sig_leave(1);
-         break;
-      case SIGTRAP:
-         signal(sig, sighandler);
-         printe("SIGTRAP: Trace/Breakpoint Trap\n");
-         break;
-      case SIGQUIT:
-         signal(sig, sighandler);
-         printe("SIGQUIT: Quit from Keyboard\n");
-	 sig_leave(1);
-         break;
-      case SIGSEGV:
-         signal(sig, sighandler);
-         printe("SIGSEGV: Segmentation Violation\n");
-	 sig_leave(1);
-         break;
-      case SIGABRT:
-         signal(sig, sighandler);
-         printe("SIGABRT: Abort Program\n");
-	 sig_leave(1);
-         break;
-      case SIGILL:
-         signal(sig, sighandler);
-         printe("SIGILL: Illegal Instruction\n");
-	 sig_leave(1);
-         break;
-      case SIGFPE:
-         signal(sig, sighandler);
-         printe("SIGFPE: Floating Point Exception\n");
-	 sig_leave(1);
-         break;
-      case SIGCONT:
-         signal(sig, sighandler);
-//         printe(""SIGCONT: Continue\n");
-         break;
-      case SIGIO:
-         signal(sig, sighandler);
-         printe("SIGIO: I/O Error\n");
-         break;
-      case SIGXCPU:
-         signal(sig, sighandler);
-         printe("SIGXCPU: CPU Time Limit Exceeded\n");
-	 sig_leave(1);
-         break;
-      case SIGXFSZ:
-         signal(sig, sighandler);
-         printe("SIGXFSZ: File Size Limit Exceeded\n");
-	 sig_leave(1);
-         break;
-      case SIGWINCH:
-         signal(sig, sighandler);
-         printe("SIGWINCH: Window Resized\n");
-         break;
+      if (sig_event[i])
+      {
+	 sig_event[i] = false;
+	 m_int_func_t::const_iterator j = smap.find(i);
+	 assert(j != smap.end());
+	 UserFunction *uf = j->second->f;
+	 sl.unlock();
+	 // FIXME: create signal number argument
+	 uf->eval(NULL, NULL, &xsink);
+      }
    }
-*/
 }
-
-void init_signals(void)
-{
-   tracein("init_signals()");
-#if 0
-   signal(SIGINT,   sighandler);
-   signal(SIGHUP,   sighandler);
-   signal(SIGTERM,  sighandler);
-   signal(SIGQUIT,  sighandler);
-   signal(SIGSEGV,  sighandler);
-   signal(SIGABRT,  sighandler);
-   signal(SIGILL,   sighandler);
-   signal(SIGFPE,   sighandler);
-   signal(SIGIO,    sighandler);
-   signal(SIGXCPU,  sighandler);
-   signal(SIGXFSZ,  sighandler);
-
-   signal(SIGPIPE,  SIG_IGN);
-   signal(SIGWINCH, SIG_IGN);
-   signal(SIGTRAP,  SIG_IGN);
-   signal(SIGCONT,  SIG_IGN);
-#endif
-   traceout("init_signals()");
-}
-
 

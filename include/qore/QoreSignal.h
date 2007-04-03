@@ -24,6 +24,8 @@
 
 #define _QORE_QORESIGNAL_H
 
+#include <qore/LockedObject.h>
+
 #include <signal.h>
 #include <stdio.h>
 
@@ -31,22 +33,38 @@
 
 // maximum number of signals
 #ifndef QORE_SIGNAL_MAX
-#define QORE_SIGNAL_MAX 128
+#define QORE_SIGNAL_MAX 32
 #endif
 
-typedef std::map<int, class UserFunction *> m_int_func_t;
-
-class QoreSignalManager {
-   private:
-      m_int_func_t smap;
+struct PgmFunc {
+   class QoreProgram *pgm;
+   class UserFunction *f;
    
+   PgmFunc(class QoreProgram *n_pgm, class UserFunction *n_f) : pgm(n_pgm), f(n_f)
+   {
+   }
+
+};
+
+typedef std::map<int, struct PgmFunc *> m_int_func_t;
+
+class QoreSignalManager
+{
+   public:
+      static bool sig_raised;
+      static bool sig_event[QORE_SIGNAL_MAX];
+
+   private:
+      static LockedObject mutex;
+      static m_int_func_t smap;
+      
    public:
       DLLLOCAL QoreSignalManager();
       DLLLOCAL ~QoreSignalManager();
-      DLLLOCAL void setHandler(int sig, class UserFunction *f);
-      DLLLOCAL void removeHandler(int sig);
-      DLLLOCAL class UserFunction *getHandler(int sig);
-      DLLLOCAL void handleSignal(int sig);
+      DLLLOCAL static void setHandler(int sig, class QoreProgram *pgm, class UserFunction *f, class ExceptionSink *xsink);
+      DLLLOCAL static int removeHandler(int sig, class ExceptionSink *xsink);
+      DLLLOCAL static class UserFunction *getHandler(int sig);
+      DLLLOCAL static void handleSignals();
 };
 
 #endif
