@@ -1,4 +1,8 @@
 2007.04.03: David Nichols
+	* fixed a bug in Hash::dereference() triggered by 
+	  delete_all_thread_data()
+
+2007.04.03: David Nichols
 	* fixed encoding name matches to ignore case
 
 2007.03.27: David Nichols

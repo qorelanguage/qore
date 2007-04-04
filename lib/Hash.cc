@@ -499,6 +499,7 @@ inline void Hash::deref_intern(class ExceptionSink *xsink)
 void Hash::dereference(class ExceptionSink *xsink)
 {
    deref_intern(xsink);
+   hm.clear();
    member_list = NULL;
    tail = NULL;
 }
