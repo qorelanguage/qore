@@ -33,6 +33,8 @@
 #include "qore-mysql.h"
 #include "qore-mysql-module.h"
 
+#include <errmsg.h>
+
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -71,29 +73,67 @@ class DBIDriver *DBID_MYSQL = NULL;
 // this is the thread key that will tell us if the current thread has been initialized for mysql threading
 static pthread_key_t ptk_mysql;
 
+static MYSQL *qore_mysql_init(Datasource *ds, ExceptionSink *xsink);
+
 class MySQLConnection {
    public:
       MYSQL *db;
 
       DLLLOCAL MySQLConnection(MYSQL *d) { db = d; }
+      DLLLOCAL ~MySQLConnection()
+      {
+	 mysql_close(db);
+      }      
+      DLLLOCAL int reconnect(Datasource *ds, class ExceptionSink *xsink)
+      {	 
+	 // throw an exception if a transaction is in progress
+	 if (ds->isInTransaction())
+	 {
+	    xsink->raiseException("DBI:MYSQL:CONNECTION-ERROR", "connection has timed out while in a transaction");
+	    return -1;
+	 }
+
+	 MYSQL *new_db = qore_mysql_init(ds, xsink);
+	 if (!new_db)
+	    return -1;
+
+	 mysql_close(db);
+	 db = new_db;
+	 return 0;
+      }
+      int commit()
+      {
+	 return mysql_commit(db);
+      }
+      int rollback()
+      {
+	 return mysql_rollback(db);
+      }
+      const char *error()
+      {
+	 return mysql_error(db);
+      }
+      MYSQL_STMT *stmt_init()
+      {
+	 return mysql_stmt_init(db);
+      }
 };
 
 static struct mapEntry {
-      char *qore;
       char *mysql;
       class QoreEncoding *id;
 } mapList[] = 
 {
-   { (char*)"utf-8", (char*)"utf8", QCS_UTF8 },
-   { (char*)"iso-8859-1", (char*)"latin1", QCS_ISO_8859_1 },
-   { (char*)"iso-8859-2", (char*)"latin2", QCS_ISO_8859_2 },
-   { (char*)"us-ascii", (char*)"ascii", QCS_USASCII },
-   { (char*)"koi8-r", (char*)"koi8r", QCS_KOI8_R },
-   { (char*)"koi8-u", (char*)"koi8u", QCS_KOI8_U },
-   { (char*)"iso-8859-7", (char*)"greek", QCS_ISO_8859_7 },
-   { (char*)"iso-8859-8", (char*)"hebrew", QCS_ISO_8859_8 },
-   { (char*)"iso-8858-9", (char*)"latin5", QCS_ISO_8859_9 },
-   { (char*)"iso-8859-13", (char*)"latin7", QCS_ISO_8859_13 },
+   { (char*)"utf8", QCS_UTF8 },
+   { (char*)"latin1", QCS_ISO_8859_1 },
+   { (char*)"latin2", QCS_ISO_8859_2 },
+   { (char*)"ascii", QCS_USASCII },
+   { (char*)"koi8r", QCS_KOI8_R },
+   { (char*)"koi8u", QCS_KOI8_U },
+   { (char*)"greek", QCS_ISO_8859_7 },
+   { (char*)"hebrew", QCS_ISO_8859_8 },
+   { (char*)"latin5", QCS_ISO_8859_9 },
+   { (char*)"latin7", QCS_ISO_8859_13 },
    //{ "", "big5_chinese_ci" },
    //{ "", "dec8_swedish_ci" },
    //{ "", "cp850_general_ci" },
@@ -166,20 +206,20 @@ static void mysql_thread_cleanup(void *unused)
       mysql_thread_end();
 }
 
-static int qore_mysql_init(Datasource *ds, ExceptionSink *xsink)
+static MYSQL *qore_mysql_init(Datasource *ds, ExceptionSink *xsink)
 {
    tracein("qore_mysql_init()");
-
+   
    printd(5, "qore_mysql_init() datasource %08p for DB=%s\n", ds, 
 	  ds->getDBName() ? ds->getDBName() : "unknown");
-
+   
    if (!ds->getDBName())
    {
       xsink->raiseException("DATASOURCE-MISSING-DBNAME", "Datasource has an empty dbname parameter");
       traceout("qore_mysql_init()");
-      return -1;
+      return NULL;
    }
-
+   
    if (ds->getDBEncoding())
       ds->setQoreEncoding(get_qore_cs((char *)ds->getDBEncoding()));
    else
@@ -189,48 +229,47 @@ static int qore_mysql_init(Datasource *ds, ExceptionSink *xsink)
       {
 	 xsink->raiseException("DBI:MYSQL:UNKNOWN-CHARACTER-SET", "cannot find the mysql character set equivalent for '%s'", QCS_DEFAULT->getCode());
 	 traceout("qore_mysql_init()");
-	 return -1;
+	 return NULL;
       }
       
       ds->setDBEncoding(enc);
       ds->setQoreEncoding(QCS_DEFAULT);
    }
-
+   
    printd(3, "qore_mysql_init(): user=%s pass=%s db=%s (encoding=%s)\n",
 	  ds->getUsername(), ds->getPassword(), ds->getDBName(), ds->getDBEncoding() ? ds->getDBEncoding() : "(none)");
-
+   
    MYSQL *db = mysql_init(NULL);
    if (!mysql_real_connect(db, ds->getHostName(), ds->getUsername(), ds->getPassword(), ds->getDBName(), 0, NULL, CLIENT_FOUND_ROWS))
    {
       xsink->raiseException("DBI:MYSQL:CONNECT-ERROR", "%s", mysql_error(db));
+      mysql_close(db);
       traceout("qore_mysql_init()");
-      return -1;
+      return NULL;
    }
-
-   class MySQLConnection *d_mysql = new MySQLConnection(db);
-   ds->setPrivateData((void *)d_mysql);
 
 #ifdef HAVE_MYSQL_SET_CHARACTER_SET
    // set character set
    mysql_set_character_set(db, ds->getDBEncoding());
 #endif
-
+   
 #ifdef HAVE_MYSQL_COMMIT
    // autocommits are handled by this driver, not by MySQL
    mysql_autocommit(db, false);
-
+   
    // set transaction handling
    if (mysql_query(db, "set transaction isolation level read committed"))
    {
       xsink->raiseException("DBI:MYSQL:INIT-ERROR", (char *)mysql_error(db));
+      mysql_close(db);
       traceout("qore_mysql_init()");
-      return -1;
+      return NULL;
    }
-
+   
 #endif
-
+   
    traceout("qore_mysql_init()");
-   return 0;
+   return db;
 }
 
 static int qore_mysql_commit(class Datasource *ds, ExceptionSink *xsink)
@@ -241,8 +280,8 @@ static int qore_mysql_commit(class Datasource *ds, ExceptionSink *xsink)
    checkInit();
    MySQLConnection *d_mysql =(MySQLConnection *)ds->getPrivateData();
 
-   if (mysql_commit(d_mysql->db))
-      xsink->raiseException("DBI:MYSQL:COMMIT-ERROR", (char *)mysql_error(d_mysql->db));
+   if (d_mysql->commit())
+      xsink->raiseException("DBI:MYSQL:COMMIT-ERROR", d_mysql->error());
 #else
    xsink->raiseException("DBI:MYSQL:NOT-IMPLEMENTED", "this version of the MySQL client API does not support transaction management");
 #endif
@@ -258,8 +297,8 @@ static int qore_mysql_rollback(class Datasource *ds, ExceptionSink *xsink)
    checkInit();
    MySQLConnection *d_mysql =(MySQLConnection *)ds->getPrivateData();
 
-   if (mysql_rollback(d_mysql->db))
-      xsink->raiseException("DBI:MYSQL:ROLLBACK-ERROR", (char *)mysql_error(d_mysql->db));
+   if (d_mysql->rollback())
+      xsink->raiseException("DBI:MYSQL:ROLLBACK-ERROR", d_mysql->error());
 #else
    xsink->raiseException("DBI:MYSQL:NOT-IMPLEMENTED", "this version of the MySQL client API does not support transaction management");
 #endif
@@ -380,18 +419,18 @@ MyBindGroup::MyBindGroup(class Datasource *ods, class QoreString *ostr, class Li
    bind = NULL;
    len = 0;
    ds = ods;
-   mydata =(MySQLConnection *)ds->getPrivateData();
+   mydata = (MySQLConnection *)ds->getPrivateData();
 
    // create copy of string and convert encoding if necessary
    str = ostr->convertEncoding(ds->getQoreEncoding(), xsink);
    if (!str)
       return;
-   
+
    // parse query and bind variables/placeholders, return on error
    if (parse(args, xsink))
       return;
-   
-   stmt = mysql_stmt_init(mydata->db);
+
+   stmt = mydata->stmt_init();
    if (!stmt)
    {
       xsink->raiseException("DBI:MYSQL:ERROR", "error creating MySQL statement handle: out of memory");
@@ -403,8 +442,14 @@ MyBindGroup::MyBindGroup(class Datasource *ods, class QoreString *ostr, class Li
    // prepare the statement for execution
    if (mysql_stmt_prepare(stmt, str->getBuffer(), str->strlen()))
    {
-      xsink->raiseException("DBI:MYSQL:ERROR", mysql_error(mydata->db));
-      return;
+      // try to reconnect if connection has disappeared
+      if (mysql_errno(mydata->db) != CR_SERVER_GONE_ERROR 
+	  || mydata->reconnect(ods, xsink) 
+	  || mysql_stmt_prepare(stmt, str->getBuffer(), str->strlen()))
+      {
+	 xsink->raiseException("DBI:MYSQL:ERROR", mydata->error());
+	 return;
+      }
    }
 
    // if there is data to bind, then bind it
@@ -429,7 +474,7 @@ MyBindGroup::MyBindGroup(class Datasource *ods, class QoreString *ostr, class Li
    }
    // now perform the bind
    if (mysql_stmt_bind_param(stmt, bind))
-      xsink->raiseException("DBI:MYSQL-ERROR", (char *)mysql_error(mydata->db));
+      xsink->raiseException("DBI:MYSQL-ERROR", mydata->error());
 }
 
 MyBindGroup::~MyBindGroup()
@@ -553,7 +598,7 @@ inline class QoreNode *MyBindGroup::getOutputHash(class ExceptionSink *xsink)
    {
       // prepare statement to retrieve values
       mysql_stmt_close(stmt);
-      stmt = mysql_stmt_init(mydata->db);
+      stmt = mydata->stmt_init();
 
       QoreString qstr;
       qstr.sprintf("select @%s", *sli);
@@ -562,7 +607,7 @@ inline class QoreNode *MyBindGroup::getOutputHash(class ExceptionSink *xsink)
       if (mysql_stmt_prepare(stmt, qstr.getBuffer(), qstr.strlen()))
       {
 	 h->derefAndDelete(xsink);
-	 xsink->raiseException("DBI:MYSQL:ERROR", (char *)mysql_error(mydata->db));
+	 xsink->raiseException("DBI:MYSQL:ERROR", mydata->error());
 	 return NULL;
       }
 
@@ -576,7 +621,7 @@ inline class QoreNode *MyBindGroup::getOutputHash(class ExceptionSink *xsink)
 	 if (mysql_stmt_execute(stmt))
 	 {
 	    h->derefAndDelete(xsink);
-	    xsink->raiseException("DBI:MYSQL:ERROR", (char *)mysql_error(mydata->db));
+	    xsink->raiseException("DBI:MYSQL:ERROR", mydata->error());
 	    return NULL;
 	 }
 
@@ -616,7 +661,7 @@ class QoreNode *MyBindGroup::execIntern(class ExceptionSink *xsink)
 
       if (mysql_stmt_execute(stmt))
       {
-	 xsink->raiseException("DBI:MYSQL:ERROR", (char *)mysql_error(mydata->db));
+	 xsink->raiseException("DBI:MYSQL:ERROR", mydata->error());
 	 return NULL;
       }
 
@@ -649,7 +694,7 @@ class QoreNode *MyBindGroup::execIntern(class ExceptionSink *xsink)
       // there is no result set
       if (mysql_stmt_execute(stmt))
       {
-	 xsink->raiseException("DBI:MYSQL:ERROR", (char *)mysql_error(mydata->db));
+	 xsink->raiseException("DBI:MYSQL:ERROR", mydata->error());
 	 return NULL;
       }
 
@@ -664,26 +709,12 @@ class QoreNode *MyBindGroup::execIntern(class ExceptionSink *xsink)
 
 inline class QoreNode *MyBindGroup::exec(class ExceptionSink *xsink)
 {
-   class QoreNode *rv = execIntern(xsink);
-   
-#ifdef HAVE_MYSQL_COMMIT
-   if (!xsink->isException() && ds->getAutoCommit())
-      mysql_commit(mydata->db);
-#endif
-   
-   return rv;
+   return execIntern(xsink);
 }
 
 inline class QoreNode *MyBindGroup::select(class ExceptionSink *xsink)
 {
-   class QoreNode *rv = execIntern(xsink);
-   
-#ifdef HAVE_MYSQL_COMMIT
-   if (!xsink->isException() && ds->getAutoCommit())
-      mysql_commit(mydata->db);
-#endif
-   
-   return rv;
+   return execIntern(xsink);
 }
 
 class QoreNode *MyBindGroup::selectRows(class ExceptionSink *xsink)
@@ -696,7 +727,7 @@ class QoreNode *MyBindGroup::selectRows(class ExceptionSink *xsink)
 
       if (mysql_stmt_execute(stmt))
       {
-	 xsink->raiseException("DBI:MYSQL:ERROR", (char *)mysql_error(mydata->db));
+	 xsink->raiseException("DBI:MYSQL:ERROR", mydata->error());
 	 return NULL;
       }
 
@@ -730,7 +761,7 @@ class QoreNode *MyBindGroup::selectRows(class ExceptionSink *xsink)
       // there is no result set
       if (mysql_stmt_execute(stmt))
       {
-	 xsink->raiseException("DBI:MYSQL:ERROR", (char *)mysql_error(mydata->db));
+	 xsink->raiseException("DBI:MYSQL:ERROR", mydata->error());
 	 return NULL;
       }
 
@@ -739,11 +770,6 @@ class QoreNode *MyBindGroup::selectRows(class ExceptionSink *xsink)
       else
 	 rv = getOutputHash(xsink);
    }
-
-#ifdef HAVE_MYSQL_COMMIT
-   if (!xsink->isException() && ds->getAutoCommit())
-      mysql_commit(mydata->db);
-#endif
 
    return rv;
 }
@@ -1019,14 +1045,16 @@ static class QoreNode *qore_mysql_exec(class Datasource *ds, QoreString *qstr, c
 
 static int qore_mysql_open_datasource(Datasource *ds, ExceptionSink *xsink)
 {
-   tracein("qore_mysql_open_datasource()");
-
    checkInit();
 
-   int rc = qore_mysql_init(ds, xsink);
+   MYSQL *db = qore_mysql_init(ds, xsink);
+   if (!db)
+      return -1;
+   
+   class MySQLConnection *d_mysql = new MySQLConnection(db);
+   ds->setPrivateData((void *)d_mysql);
 
-   traceout("qore_mysql_open_datasource()");
-   return rc;
+   return 0;
 }
 
 static int qore_mysql_close_datasource(class Datasource *ds)
@@ -1038,8 +1066,6 @@ static int qore_mysql_close_datasource(class Datasource *ds)
    class MySQLConnection *d_mysql = (MySQLConnection *)ds->getPrivateData();
    
    printd(3, "qore_mysql_close_datasource(): connection to %s closed.\n", ds->getDBName());
-   
-   mysql_close(d_mysql->db);
    
    delete d_mysql;
    ds->setPrivateData(NULL);

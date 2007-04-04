@@ -125,6 +125,7 @@ Timezone information is discarded when converting from Oracle types to Qore type
 *) mysql driver improvements
 added support for binary types (BLOBs, etc)
 mapped DECIMAL type to a string to avoid losing precision
+timed-out connections will be automatically reconnected if no transaction is in progress
 
 *) Datasource class now throws an exception if deleted while in a transaction
 

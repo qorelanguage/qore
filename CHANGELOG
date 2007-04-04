@@ -1,9 +1,13 @@
 2006.04.04: David Nichols
 	* fixed a bug in delete_all_thread_data(): left the thread data
 	  hash in an inconsistent state
+	* updated mysql driver for DBI-level auto-commit management
+	* updated mysql to try to automatically reconnect if the server 
+	  connection disappears while not in a transaction
 
 2007.04.04: Pavel Vozenilek
-	* BuiltinFunctionList does not clone the names (assumes they are all character literals)
+	* BuiltinFunctionList does not clone the names (assumes they are all 
+	  character literals)
 
 2007.04.03: David Nichols
 	* initial, highly experimental signal handling support
