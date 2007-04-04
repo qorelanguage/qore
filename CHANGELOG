@@ -1,12 +1,14 @@
-2006.04.03: David Nichols
+2007.04.04: Pavel Vozenilek
+	* BuiltinFunctionList does not clone the names (assumes they are all character literals)
+2007.04.03: David Nichols
 	* initial, highly experimental signal handling support
 
-2006.04.01: David Nichols
+2007.04.01: David Nichols
 	* moved DBI connection locking to the level above the Datasource
 	  class (ex: ManagedDatasource)
 	* added auto_commit and abort_transaction_start DBI methods
 
-2006.03.26: David Nichols
+2007.03.26: David Nichols
 	* updated build system and sybase driver to be able to generate an
 	  "mssql" driver if freetds is present to connection to Microsoft
 	  SQL Server
@@ -15,14 +17,14 @@
 	* moved oracle, mysql, and sybase drivers to the normal module
 	  directory - the "auto" directory is now empty
 
-2006.03.23: David Nichols
+2007.03.23: David Nichols
 	* updated oracle and mysql drivers to do a commit after select*()
 	  methods as well as exec if autocommit is set
 	* updated pgsql driver to do auto-commits properly when option is set
 	* fixed a bug in Datasource::copy() to preserve autocommit status in the
 	  copy
 
-2006.03.22: David Nichols
+2007.03.22: David Nichols
 	* compile fixes for Solaris and HPUX builds
 	* pgsql updates
 	* HTTPClient now ignores case for HTTP method names (but always sends

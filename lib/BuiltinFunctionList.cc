@@ -61,11 +61,13 @@ void BuiltinFunctionList::add(const char *name, class QoreNode *(*f)(class QoreN
    if (init_done)
    {
       mutex.lock();
-      hm[strdup(name)] = new BuiltinFunction(name, f, typ);
+      // version with cloning the name: hm[strdup(name)] = new BuiltinFunction(name, f, typ);
+      hm[name] = new BuiltinFunction(name, f, typ);
       mutex.unlock();
+   } else {
+      //version with cloning the name:  hm[strdup(name)] = new BuiltinFunction(name, f, typ);
+      hm[name] = new BuiltinFunction(name, f, typ);
    }
-   else
-      hm[strdup(name)] = new BuiltinFunction(name, f, typ);
 }
 
 BuiltinFunctionList::~BuiltinFunctionList()
@@ -75,7 +77,7 @@ BuiltinFunctionList::~BuiltinFunctionList()
    while ((i = hm.begin()) != hm.end())
    {
       //printd(5, "BuiltinFunctionList::~BuiltinFunctionList() deleting '%s()'\n", i->first);
-      char *c = (char *)i->first;
+      // char *c = (char *)i->first; - was used for deleting the cloned function name
 
       // delete function
       delete i->second;
@@ -84,7 +86,7 @@ BuiltinFunctionList::~BuiltinFunctionList()
       hm.erase(i);
 
       // delete name
-      free(c);
+      // free(c); - uncomment if the names are cloned, uncomment the 'c' declaration above too
    }
 }
 
