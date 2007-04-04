@@ -65,7 +65,10 @@ public:
 };
 
 //------------------------------------------------------------------------------
+// for ct_dynamic(CS_EXECUTE)
 extern void sybase_low_level_prepare_command(const sybase_command_wrapper& wrapper, const char* sql_text, ExceptionSink* xsink);
+// for ct_command(CS_LANG_CMD)
+extern void sybase_low_level_initiate_lang_command(const sybase_command_wrapper& wrapper, const char* sql_text, ExceptionSink* xsink);
 
 //------------------------------------------------------------------------------
 // Return lowercased encoding name in Sybase format (e.g. utf8, iso_1).

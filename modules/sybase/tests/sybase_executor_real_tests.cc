@@ -63,7 +63,7 @@ TEST()
   ON_BLOCK_EXIT(delete_real_table, false);
 
   sybase_executor executor;
-  executor.m_parsed_query.m_result_query_text = "select * from real_table where real_col = ?";
+  executor.m_parsed_query.m_result_dynamic_query_text = "select * from real_table where real_col = ?";
   executor.m_parsed_query.m_is_procedure = false;
 
   sybase_connection conn;
@@ -100,7 +100,7 @@ TEST()
   ON_BLOCK_EXIT(delete_real_table, false);
 
   sybase_executor executor;
-  executor.m_parsed_query.m_result_query_text = "insert into real_table values (?)";
+  executor.m_parsed_query.m_result_dynamic_query_text = "insert into real_table values (?)";
   executor.m_parsed_query.m_is_procedure = false;
 
   sybase_connection conn;
@@ -128,14 +128,14 @@ TEST()
     assert(false);
   }
 
-  executor.m_parsed_query.m_result_query_text = "insert into real_table values (1.2)";
+  executor.m_parsed_query.m_result_dynamic_query_text = "insert into real_table values (1.2)";
   executor.m_args = new List;
   n = executor.exec(&xsink);
   if (xsink.isException()) {
     assert(false);
   }
 
-  executor.m_parsed_query.m_result_query_text = "select count(*) from real_table";
+  executor.m_parsed_query.m_result_dynamic_query_text = "select count(*) from real_table";
   n = executor.select(&xsink);
   if (xsink.isException()) {
     assert(false);
@@ -147,7 +147,7 @@ TEST()
   assert(x->type == NT_INT);
   assert(x->val.intval == 3);
 
-  executor.m_parsed_query.m_result_query_text = "select * from real_table";
+  executor.m_parsed_query.m_result_dynamic_query_text = "select * from real_table";
   n = executor.selectRows(&xsink);
   if (xsink.isException()) {
     assert(false);
@@ -165,14 +165,14 @@ TEST()
   double delta = fabs(x->val.floatval - 1.2);
   assert(delta < 0.001);
 
-  executor.m_parsed_query.m_result_query_text = "delete from real_table";
+  executor.m_parsed_query.m_result_dynamic_query_text = "delete from real_table";
   executor.m_args = new List;
   n = executor.exec(&xsink);
   if (xsink.isException()) {
     assert(false);
   }
 
-  executor.m_parsed_query.m_result_query_text = "select count(*) from real_table";
+  executor.m_parsed_query.m_result_dynamic_query_text = "select count(*) from real_table";
   n = executor.select(&xsink);
   if (xsink.isException()) {
     assert(false);

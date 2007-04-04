@@ -60,11 +60,14 @@ struct processed_sybase_query
 
   // From a query in form "select * from x where y = ?" creates a form for ct_command(CS_LANG_CMD), 
   // here "select * from x where y = @par0".
-  static std::string generate_query_parameter_names(const char* s);
+  static std::string generate_static_query_parameter_names(const char* s);
 
-  std::string m_result_query_text;
-  std::vector<sybase_query_parameter> m_parameters;
   bool m_is_procedure;
+  std::string m_result_dynamic_query_text;
+  std::string m_result_static_query_text;
+  std::string m_rpc_name;
+
+  std::vector<sybase_query_parameter> m_parameters;
 };
 
 //------------------------------------------------------------------------------

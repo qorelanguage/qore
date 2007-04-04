@@ -134,7 +134,7 @@ static processed_sybase_query parse_procedure_call(const char* original_query_te
   while (isspace(*s)) ++s;
   const char* rpc_name_start = s;
   while (isalnum(*s) || *s == '_') ++s;
-  result.m_result_query_text = std::string(rpc_name_start, s - rpc_name_start);
+  result.m_rpc_name = std::string(rpc_name_start, s - rpc_name_start);
   
   while (isspace(*s)) ++s;
   if (!*s) return result;
@@ -214,7 +214,7 @@ next:
     ++s;
   } // while
   
-  result.m_result_query_text = text.array;
+  result.m_result_dynamic_query_text = text.array;
   return result;
 }
 
@@ -230,14 +230,15 @@ processed_sybase_query parse_sybase_query(const char* original_query_text, Excep
 
 //------------------------------------------------------------------------------
 processed_sybase_query::processed_sybase_query(const char* s, const std::vector<sybase_query_parameter>& params, bool is_procedure)
-: m_parameters(params), 
-  m_is_procedure(is_procedure)
+: m_is_procedure(is_procedure),
+  m_parameters(params), 
+  m_result_dynamic_query_text(s)
 {
-  m_result_query_text = generate_query_parameter_names(s); 
+  m_result_static_query_text = generate_static_query_parameter_names(s); 
 }
 
 //------------------------------------------------------------------------------
-std::string processed_sybase_query::generate_query_parameter_names(const char* s) 
+std::string processed_sybase_query::generate_static_query_parameter_names(const char* s) 
 {
   std::string result;
   result.reserve(1000);

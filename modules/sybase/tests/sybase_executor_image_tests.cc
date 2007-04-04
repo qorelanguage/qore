@@ -56,6 +56,8 @@ TEST()
 //------------------------------------------------------------------------------
 TEST()
 {
+/* IMAGE and TEXT datatypes do not work with ct_dynamic()
+
   // testing insert, delete, drop etc using executor
   printf("running test %s[%d]\n", __FILE__, __LINE__);
   delete_image_table(true);
@@ -63,7 +65,7 @@ TEST()
   ON_BLOCK_EXIT(delete_image_table, false);
 
   sybase_executor executor;
-  executor.m_parsed_query.m_result_query_text = "insert into image_table (image_col) values (?)";
+  executor.m_parsed_query.m_result_dynamic_query_text = "insert into image_table (image_col) values (?)";
   executor.m_parsed_query.m_is_procedure = false;
 
   sybase_connection conn;
@@ -87,14 +89,14 @@ TEST()
     assert(false);
   }
   assert(!n);
-/*
+
   n = executor.exec(&xsink); // once more
   if (xsink.isException()) {
     assert(false);
   }
 
   executor.m_args = 0;
-  executor.m_parsed_query.m_result_query_text = "select count(*) from image_table";
+  executor.m_parsed_query.m_result_dynamic_query_text = "select count(*) from image_table";
   n = executor.select(&xsink);
   if (xsink.isException()) {
     assert(false);
@@ -106,7 +108,7 @@ TEST()
   assert(x->type == NT_INT);
   assert(x->val.intval == 2);
 
-  executor.m_parsed_query.m_result_query_text = "select * from image_table";
+  executor.m_parsed_query.m_result_dynamic_query_text = "select * from image_table";
   n = executor.selectRows(&xsink);
   if (xsink.isException()) {
     assert(false);
@@ -128,14 +130,14 @@ printf("##### size of read binary is %d\n", bin2->size() );
     assert(false);
   }
 
-  executor.m_parsed_query.m_result_query_text = "delete from image_table";
+  executor.m_parsed_query.m_result_dynamic_query_text = "delete from image_table";
   executor.m_args = new List;
   n = executor.exec(&xsink);
   if (xsink.isException()) {
     assert(false);
   }
 
-  executor.m_parsed_query.m_result_query_text = "select count(*) from varbinary_table";
+  executor.m_parsed_query.m_result_dynamic_query_text = "select count(*) from varbinary_table";
   n = executor.select(&xsink);
   if (xsink.isException()) {
     assert(false);

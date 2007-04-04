@@ -253,12 +253,26 @@ void sybase_low_level_prepare_command(const sybase_command_wrapper& wrapper, con
 }
 
 //------------------------------------------------------------------------------
+void sybase_low_level_initiate_lang_command(const sybase_command_wrapper& wrapper, const char* sql_text, ExceptionSink* xsink)
+{
+  assert(sql_text && sql_text[0]);
+
+  CS_RETCODE err = ct_command(wrapper(), CS_LANG_CMD, (CS_CHAR*)sql_text, CS_NULLTERM, CS_UNUSED);
+  if (err != CS_SUCCEED) {
+    assert(false);
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_command(CS_LANG_CMD, \"%s\") failed with error %d", sql_text, (int)err);
+    return;
+  }
+}
+
+//------------------------------------------------------------------------------
 std::vector<parameter_info_t> sybase_low_level_get_input_parameters_info(
   const sybase_command_wrapper& wrapper, ExceptionSink* xsink)
 {
   typedef std::vector<parameter_info_t> result_t;
   result_t result;
 
+printf("##### command ID = [%s]\n", wrapper.getStringId());
   CS_RETCODE err = ct_dynamic(wrapper(), CS_DESCRIBE_INPUT, wrapper.getStringId(), CS_NULLTERM, 0, CS_UNUSED);
   if (err != CS_SUCCEED) {
     assert(false);

@@ -63,7 +63,7 @@ TEST()
   ON_BLOCK_EXIT(delete_money_table, false);
 
   sybase_executor executor;
-  executor.m_parsed_query.m_result_query_text = "select * from money_table where money_col = ?";
+  executor.m_parsed_query.m_result_dynamic_query_text = "select * from money_table where money_col = ?";
   executor.m_parsed_query.m_is_procedure = false;
 
   sybase_connection conn;
@@ -100,7 +100,7 @@ TEST()
   ON_BLOCK_EXIT(delete_money_table, false);
 
   sybase_executor executor;
-  executor.m_parsed_query.m_result_query_text = "insert into money_table values (?)";
+  executor.m_parsed_query.m_result_dynamic_query_text = "insert into money_table values (?)";
   executor.m_parsed_query.m_is_procedure = false;
 
   sybase_connection conn;
@@ -128,7 +128,7 @@ TEST()
     assert(false);
   }
 
-  executor.m_parsed_query.m_result_query_text = "select count(*) from money_table";
+  executor.m_parsed_query.m_result_dynamic_query_text = "select count(*) from money_table";
   executor.m_args = new List;
   n = executor.select(&xsink);
   if (xsink.isException()) {
@@ -142,7 +142,7 @@ TEST()
   assert(x->type == NT_INT);
   assert(x->val.intval == 2);
 
-  executor.m_parsed_query.m_result_query_text = "select * from money_table";
+  executor.m_parsed_query.m_result_dynamic_query_text = "select * from money_table";
   n = executor.selectRows(&xsink);
   if (xsink.isException()) {
     assert(false);
@@ -159,13 +159,13 @@ TEST()
   assert(x->type == NT_FLOAT);
   assert(x->val.floatval == 100.0);
 
-  executor.m_parsed_query.m_result_query_text = "delete from money_table";
+  executor.m_parsed_query.m_result_dynamic_query_text = "delete from money_table";
   n = executor.exec(&xsink);
   if (xsink.isException()) {
     assert(false);
   }
 
-  executor.m_parsed_query.m_result_query_text = "select count(*) from money_table";
+  executor.m_parsed_query.m_result_dynamic_query_text = "select count(*) from money_table";
   n = executor.select(&xsink);
   if (xsink.isException()) {
     assert(false);

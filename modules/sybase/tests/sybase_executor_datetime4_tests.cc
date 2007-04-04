@@ -63,7 +63,7 @@ TEST()
   ON_BLOCK_EXIT(delete_datetime4_table, false);
 
   sybase_executor executor;
-  executor.m_parsed_query.m_result_query_text = "select * from datetime4_table where datetime4_col = ?";
+  executor.m_parsed_query.m_result_dynamic_query_text = "select * from datetime4_table where datetime4_col = ?";
   executor.m_parsed_query.m_is_procedure = false;
 
   sybase_connection conn;
@@ -100,7 +100,7 @@ TEST()
   ON_BLOCK_EXIT(delete_datetime4_table, false);
 
   sybase_executor executor;
-  executor.m_parsed_query.m_result_query_text = "insert into datetime4_table values (?)";
+  executor.m_parsed_query.m_result_dynamic_query_text = "insert into datetime4_table values (?)";
   executor.m_parsed_query.m_is_procedure = false;
 
   sybase_connection conn;
@@ -128,7 +128,7 @@ TEST()
     assert(false);
   }
 
-  executor.m_parsed_query.m_result_query_text = "select count(*) from datetime4_table";
+  executor.m_parsed_query.m_result_dynamic_query_text = "select count(*) from datetime4_table";
   executor.m_args = new List;
   n = executor.select(&xsink);
   if (xsink.isException()) {
@@ -141,7 +141,7 @@ TEST()
   assert(x->type == NT_INT);
   assert(x->val.intval == 2);
 
-  executor.m_parsed_query.m_result_query_text = "select * from datetime4_table";
+  executor.m_parsed_query.m_result_dynamic_query_text = "select * from datetime4_table";
   n = executor.selectRows(&xsink);
   if (xsink.isException()) {
     assert(false);
@@ -161,14 +161,14 @@ TEST()
   int64 sec2 = x->val.date_time->getEpochSeconds();
   assert(sec1 == sec2);
 
-  executor.m_parsed_query.m_result_query_text = "delete from datetime4_table";
+  executor.m_parsed_query.m_result_dynamic_query_text = "delete from datetime4_table";
   executor.m_args = new List;
   n = executor.exec(&xsink);
   if (xsink.isException()) {
     assert(false);
   }
 
-  executor.m_parsed_query.m_result_query_text = "select count(*) from datetime4_table";
+  executor.m_parsed_query.m_result_dynamic_query_text = "select count(*) from datetime4_table";
   n = executor.select(&xsink);
   if (xsink.isException()) {
     assert(false);

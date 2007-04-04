@@ -115,9 +115,9 @@ extern void execute_RPC_call(
 }
 
 //------------------------------------------------------------------------------
-QoreNode* sybase_executor::exec_language_command(const sybase_command_wrapper& w, ExceptionSink* xsink)
+QoreNode* sybase_executor::exec_dynamic_language_command(const sybase_command_wrapper& w, ExceptionSink* xsink)
 {
-  sybase_low_level_prepare_command(w, m_parsed_query.m_result_query_text.c_str(), xsink);
+  sybase_low_level_prepare_command(w, m_parsed_query.m_result_dynamic_query_text.c_str(), xsink);
   if (xsink->isException()) {
     return 0;
   }
@@ -135,7 +135,7 @@ QoreNode* sybase_executor::exec_language_command(const sybase_command_wrapper& w
   if (inputs.empty()) {
     if (m_args && m_args->size() != 0) {
       assert(false);
-      xsink->raiseException("DBI-EXEC-EXCEPTION", "No parameters excepted for the query %s", m_parsed_query.m_result_query_text.c_str());
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "No parameters excepted for the query %s", m_parsed_query.m_result_dynamic_query_text.c_str());
       return 0;
     }
   } else {
@@ -145,7 +145,7 @@ QoreNode* sybase_executor::exec_language_command(const sybase_command_wrapper& w
     }
     if (provided_args != inputs.size()) {
       assert(false);
-      xsink->raiseException("DBI-EXEC-EXCEPTION", "%d parameters expected, %d are provided, query %s", inputs.size(), provided_args, m_parsed_query.m_result_query_text.c_str());
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "%d parameters expected, %d are provided, query %s", inputs.size(), provided_args, m_parsed_query.m_result_dynamic_query_text.c_str());
       return 0;
     }
   }
@@ -158,7 +158,7 @@ printf("### here1\n");
   }
 
 printf("### here2\n");
-  sybase_low_level_bind_parameters(w, get_encoding(), m_parsed_query.m_result_query_text.c_str(), bindings, xsink);
+  sybase_low_level_bind_parameters(w, get_encoding(), m_parsed_query.m_result_dynamic_query_text.c_str(), bindings, xsink);
   if (xsink->isException()) {
     return 0;
   }
@@ -180,7 +180,7 @@ QoreNode* sybase_executor::exec_impl(ExceptionSink* xsink)
   if (m_parsed_query.m_is_procedure) {
     return exec_procedure_call(cmd_wrapper, xsink);
   } else {
-    exec_language_command(cmd_wrapper, xsink);
+    return exec_dynamic_language_command(cmd_wrapper, xsink);
   }
 }
 
@@ -214,6 +214,7 @@ QoreNode* sybase_executor::select(ExceptionSink *xsink)
     if (n) n->deref(xsink);
     return 0;
   }
+printf("#### select returned %p\n", n);
   if (n) {
     if (n->type == NT_LIST) {
       n->deref(xsink);
@@ -235,6 +236,7 @@ QoreNode* sybase_executor::select(ExceptionSink *xsink)
       return 0;
     }
   }
+printf("#### select returned %p [2]\n", n);
   return n;
 }
 
@@ -248,9 +250,11 @@ QoreNode* sybase_executor::selectRows(ExceptionSink *xsink)
   }
 
   QoreNode* n = exec_impl(xsink);
+printf("#### select row returned %p\n", n);
   if (xsink->isException()) {
     if (n) n->deref(xsink);
     assert(false);
+printf("##### but exception was thrown\n");
     return 0;
   }
   if (is_autocommit_enabled()) {
@@ -275,11 +279,12 @@ QoreNode* sybase_executor::selectRows(ExceptionSink *xsink)
       n = new QoreNode(l);
     }
   }
+printf("#### returning %p\n", n);
   return n;
 }
 
 #ifdef DEBUG
-/*
+// these are all dynamic tests
 #  include "tests/sybase_executor_rpc_tests.cc"
 #  include "tests/sybase_executor_tinyint_tests.cc"
 #  include "tests/sybase_executor_smallint_tests.cc"
@@ -296,8 +301,7 @@ QoreNode* sybase_executor::selectRows(ExceptionSink *xsink)
 #  include "tests/sybase_executor_varchar_tests.cc"
 #  include "tests/sybase_executor_varbinary_tests.cc"
 #  include "tests/sybase_executor_binary_tests.cc"
-*/
-//#  include "tests/sybase_executor_image_tests.cc"
+#  include "tests/sybase_executor_image_tests.cc"
 #endif
 
 // EOF

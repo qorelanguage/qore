@@ -62,7 +62,7 @@ TEST()
   ON_BLOCK_EXIT(delete_smallint_table, false);
 
   sybase_executor executor;
-  executor.m_parsed_query.m_result_query_text = "select * from smallint_table where smallint_col = ?";
+  executor.m_parsed_query.m_result_dynamic_query_text = "select * from smallint_table where smallint_col = ?";
   executor.m_parsed_query.m_is_procedure = false;
 
   sybase_connection conn;
@@ -99,7 +99,7 @@ TEST()
   ON_BLOCK_EXIT(delete_smallint_table, false);
 
   sybase_executor executor;
-  executor.m_parsed_query.m_result_query_text = "insert into smallint_table values (?)";
+  executor.m_parsed_query.m_result_dynamic_query_text = "insert into smallint_table values (?)";
   executor.m_parsed_query.m_is_procedure = false;
 
   sybase_connection conn;
@@ -127,14 +127,14 @@ TEST()
     assert(false);
   }
 
-  executor.m_parsed_query.m_result_query_text = "insert into smallint_table values (46)";
+  executor.m_parsed_query.m_result_dynamic_query_text = "insert into smallint_table values (46)";
   executor.m_args = new List;
   n = executor.exec(&xsink);
   if (xsink.isException()) {
     assert(false);
   }
 
-  executor.m_parsed_query.m_result_query_text = "select count(*) from smallint_table";
+  executor.m_parsed_query.m_result_dynamic_query_text = "select count(*) from smallint_table";
   n = executor.select(&xsink);
   if (xsink.isException()) {
     assert(false);
@@ -146,7 +146,7 @@ TEST()
   assert(x->type == NT_INT);
   assert(x->val.intval == 3);
 
-  executor.m_parsed_query.m_result_query_text = "select * from smallint_table";
+  executor.m_parsed_query.m_result_dynamic_query_text = "select * from smallint_table";
   n = executor.selectRows(&xsink);
   if (xsink.isException()) {
     assert(false);
@@ -163,14 +163,14 @@ TEST()
   assert(x->type == NT_INT);
   assert(x->val.intval == 12345 || x->val.intval == 46);
 
-  executor.m_parsed_query.m_result_query_text = "delete from smallint_table";
+  executor.m_parsed_query.m_result_dynamic_query_text = "delete from smallint_table";
   executor.m_args = new List;
   n = executor.exec(&xsink);
   if (xsink.isException()) {
     assert(false);
   }
 
-  executor.m_parsed_query.m_result_query_text = "select count(*) from smallint_table";
+  executor.m_parsed_query.m_result_dynamic_query_text = "select count(*) from smallint_table";
   n = executor.select(&xsink);
   if (xsink.isException()) {
     assert(false);
@@ -250,7 +250,7 @@ TEST()
   ON_BLOCK_EXIT(delete_smallint_table, false);
 
   sybase_executor executor;
-  executor.m_parsed_query.m_result_query_text = "select * from smallint_table where smallint_col1 = ? and smallint_col2 = ?";
+  executor.m_parsed_query.m_result_dynamic_query_text = "select * from smallint_table where smallint_col1 = ? and smallint_col2 = ?";
   executor.m_parsed_query.m_parameters.push_back(sybase_query_parameter());
   executor.m_parsed_query.m_is_procedure = false;
 

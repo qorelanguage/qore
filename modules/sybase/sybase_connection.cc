@@ -156,7 +156,6 @@ CS_RETCODE sybase_connection::clientmsg_callback(CS_CONTEXT* ctx, CS_CONNECTION*
   if ((CS_NUMBER(errmsg->msgnumber) == 211) || (CS_NUMBER(errmsg->msgnumber) == 212)) {
     return CS_SUCCEED;
   }
-printf("#### ******************* client error output here: *****************************\n");
   fprintf(stderr, "\nOpen Client Message:\n");
   fprintf(stderr, "Message number: LAYER = (%d) ORIGIN = (%d) ",
     (int)CS_LAYER(errmsg->msgnumber), (int)CS_ORIGIN(errmsg->msgnumber));
@@ -175,7 +174,6 @@ printf("#### ******************* client error output here: *********************
 CS_RETCODE sybase_connection::servermsg_callback(CS_CONTEXT* ctx, CS_CONNECTION* conn, CS_SERVERMSG* svrmsg)
 {
 #ifdef DEBUG
-printf("#### ******************* server error output here: *****************************\n");
   fprintf(stderr, "\nOpen Server Message:\n");
   fprintf(stderr, "Message number = %d, severity = %d\n", svrmsg->msgnumber, svrmsg->severity);
   fprintf(stderr, "State = %d, line = %d\n", svrmsg->state, svrmsg->line);

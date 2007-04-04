@@ -63,7 +63,7 @@ TEST()
   ON_BLOCK_EXIT(delete_binary_table, false);
 
   sybase_executor executor;
-  executor.m_parsed_query.m_result_query_text = "select * from binary_table where binary_col = ?";
+  executor.m_parsed_query.m_result_dynamic_query_text = "select * from binary_table where binary_col = ?";
   executor.m_parsed_query.m_is_procedure = false;
 
   sybase_connection conn;
@@ -101,7 +101,7 @@ TEST()
   ON_BLOCK_EXIT(delete_binary_table, false);
 
   sybase_executor executor;
-  executor.m_parsed_query.m_result_query_text = "insert into binary_table values (?)";
+  executor.m_parsed_query.m_result_dynamic_query_text = "insert into binary_table values (?)";
   executor.m_parsed_query.m_is_procedure = false;
 
   sybase_connection conn;
@@ -132,7 +132,7 @@ TEST()
   }
 
   executor.m_args = 0;
-  executor.m_parsed_query.m_result_query_text = "select count(*) from binary_table";
+  executor.m_parsed_query.m_result_dynamic_query_text = "select count(*) from binary_table";
   n = executor.select(&xsink);
   if (xsink.isException()) {
     assert(false);
@@ -144,7 +144,7 @@ TEST()
   assert(x->type == NT_INT);
   assert(x->val.intval == 2);
 
-  executor.m_parsed_query.m_result_query_text = "select * from binary_table";
+  executor.m_parsed_query.m_result_dynamic_query_text = "select * from binary_table";
   n = executor.selectRows(&xsink);
   if (xsink.isException()) {
     assert(false);
@@ -166,14 +166,14 @@ TEST()
     assert(false);
   }
 
-  executor.m_parsed_query.m_result_query_text = "delete from binary_table";
+  executor.m_parsed_query.m_result_dynamic_query_text = "delete from binary_table";
   executor.m_args = new List;
   n = executor.exec(&xsink);
   if (xsink.isException()) {
     assert(false);
   }
 
-  executor.m_parsed_query.m_result_query_text = "select count(*) from binary_table";
+  executor.m_parsed_query.m_result_dynamic_query_text = "select count(*) from binary_table";
   n = executor.select(&xsink);
   if (xsink.isException()) {
     assert(false);
