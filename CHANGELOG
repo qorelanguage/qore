@@ -1,5 +1,10 @@
+2006.04.04: David Nichols
+	* fixed a bug in delete_all_thread_data(): left the thread data
+	  hash in an inconsistent state
+
 2007.04.04: Pavel Vozenilek
 	* BuiltinFunctionList does not clone the names (assumes they are all character literals)
+
 2007.04.03: David Nichols
 	* initial, highly experimental signal handling support
 

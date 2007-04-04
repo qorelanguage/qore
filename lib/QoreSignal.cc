@@ -126,6 +126,7 @@ void QoreSignalManager::handleSignals()
       return;
 
    ExceptionSink xsink;
+   // check flag again inside the lock
    SafeLocker sl(&mutex);
    if (!sig_raised)
       return;

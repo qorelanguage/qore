@@ -243,6 +243,7 @@ void Hash::setKeyValue(const char *key, class QoreNode *value, ExceptionSink *xs
 {
    assert(key);
    class QoreNode **v = getKeyValuePtr(key);
+   //printd(5, "Hash::setKeyValue(%s, %08p) v=%08p *v=%08p\n", key, value, v, *v);
    if (*v)
       (*v)->deref(xsink);
    *v = value;
@@ -501,7 +502,7 @@ inline void Hash::deref_intern(class ExceptionSink *xsink)
    while (where)
    {
 #if 0
-      printd(5, "Hash::dereference() %s=%08p type=%s references=%d\n",
+      printd(5, "Hash::deref_intern() %s=%08p type=%s references=%d\n",
 	     where->key ? where->key : "(null)",
 	     where->node,
 	     where->node ? where->node->type->getName() : "(null)",
@@ -522,6 +523,7 @@ void Hash::dereference(class ExceptionSink *xsink)
    deref_intern(xsink);
    member_list = NULL;
    tail = NULL;
+   hm.clear();
 }
 
 void Hash::derefAndDelete(class ExceptionSink *xsink)
