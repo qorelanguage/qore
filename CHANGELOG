@@ -2,6 +2,9 @@
 	* implemented remove_signal_handler() (experimental)
 	* added QDOM_PROCESS to new signal functions
 	* doc updates
+	* signal manager uses a VRMutex for reentrant locking
+	* resetting signal handlers ignores SIGPIPE signals
+	* signal handlers called with signal number as argument
 
 2006.04.04: David Nichols
 	* fixed a bug in delete_all_thread_data(): left the thread data

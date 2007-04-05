@@ -24,7 +24,7 @@
 
 #define _QORE_QORESIGNAL_H
 
-#include <qore/LockedObject.h>
+#include <qore/VRMutex.h>
 
 #include <signal.h>
 #include <stdio.h>
@@ -63,7 +63,7 @@ class QoreSignalManager
       static bool sig_event[QORE_SIGNAL_MAX];
 
    private:
-      static LockedObject mutex;
+      static VRMutex gate;
       static m_int_func_t smap;
       
    public:
@@ -71,7 +71,7 @@ class QoreSignalManager
       DLLLOCAL ~QoreSignalManager();
       DLLLOCAL static void setHandler(int sig, class QoreProgram *pgm, class UserFunction *f, class ExceptionSink *xsink);
       DLLLOCAL static int removeHandler(int sig, class ExceptionSink *xsink);
-      DLLLOCAL static class UserFunction *getHandler(int sig);
+      DLLLOCAL static class UserFunction *getHandler(int sig, class ExceptionSink *xsink);
       DLLLOCAL static void handleSignals();
 };
 

@@ -27,7 +27,7 @@
 
 class QoreSignalManager QSM;
 
-LockedObject QoreSignalManager::mutex;
+VRMutex QoreSignalManager::gate;
 m_int_func_t QoreSignalManager::smap;
 bool QoreSignalManager::sig_event[QORE_SIGNAL_MAX];
 bool QoreSignalManager::sig_raised = false;
@@ -52,7 +52,9 @@ void QoreSignalManager::setHandler(int sig, class QoreProgram *pgm, class UserFu
 {
    bool already_set = false;
 
-   SafeLocker sl(&mutex);
+   if (gate.enter(xsink))
+      return;
+
    m_int_func_t::iterator i = smap.find(sig);
    if (i != smap.end())
    {
@@ -70,14 +72,15 @@ void QoreSignalManager::setHandler(int sig, class QoreProgram *pgm, class UserFu
 	 sigemptyset(&sa.sa_mask);
 	 sa.sa_flags = SA_RESTART;
 	 sigaction(sig, &sa, NULL);
-	 
+
+	 gate.exit();
 	 return;
       }
    }
    
    smap.erase(sig);
    smap[sig] = new PgmFunc(pgm, f);
-   sl.unlock();
+   gate.exit();
 
    if (!already_set)
    {
@@ -91,14 +94,19 @@ void QoreSignalManager::setHandler(int sig, class QoreProgram *pgm, class UserFu
 
 int QoreSignalManager::removeHandler(int sig, class ExceptionSink *xsink)
 {
-   SafeLocker sl(&mutex);
+   if (gate.enter(xsink))
+      return -1;
+
    m_int_func_t::iterator i = smap.find(sig);
    if (i == smap.end())
+   {
+      gate.exit();
       return 0;
-
+   }
+   
    class PgmFunc *pf = i->second;
    smap.erase(i);
-   sl.unlock();
+   gate.exit();
    
    struct sigaction sa;
    sa.sa_handler = (sig == SIGPIPE ? SIG_IGN : SIG_DFL);
@@ -111,13 +119,19 @@ int QoreSignalManager::removeHandler(int sig, class ExceptionSink *xsink)
    return xsink->isException() ? -1 : 0;
 }
 
-class UserFunction *QoreSignalManager::getHandler(int sig)
+class UserFunction *QoreSignalManager::getHandler(int sig, class ExceptionSink *xsink)
 {
-   AutoLocker al(&mutex);
-   m_int_func_t::const_iterator i = smap.find(sig);
-   if (i == smap.end())
+   if (gate.enter(xsink))
       return NULL;
-   return i->second->f;
+
+   m_int_func_t::const_iterator i = smap.find(sig);
+   UserFunction *uf;
+   if (i == smap.end())
+      uf= NULL;
+   else
+      uf = i->second->f;
+   gate.exit();
+   return uf;
 }
 
 void QoreSignalManager::handleSignals()
@@ -126,10 +140,15 @@ void QoreSignalManager::handleSignals()
       return;
 
    ExceptionSink xsink;
-   // check flag again inside the lock
-   SafeLocker sl(&mutex);
-   if (!sig_raised)
+   if (gate.enter(&xsink))
       return;
+
+   // check flag again inside the lock
+   if (!sig_raised)
+   {
+      gate.exit();
+      return;
+   }
    sig_raised = false;
    
    for (int i = 1; i < QORE_SIGNAL_MAX; ++i)
@@ -140,9 +159,15 @@ void QoreSignalManager::handleSignals()
 	 m_int_func_t::const_iterator j = smap.find(i);
 	 assert(j != smap.end());
 	 UserFunction *uf = j->second->f;
-	 sl.unlock();
-	 // FIXME: create signal number argument
-	 uf->eval(NULL, NULL, &xsink);
+	 
+	 // create signal number argument
+	 class List *l = new List();
+	 l->push(new QoreNode((int64)i));
+	 class QoreNode *args = new QoreNode(l);
+	 uf->eval(args, NULL, &xsink);
+	 args->deref(&xsink);
       }
    }
+   
+   gate.exit();
 }

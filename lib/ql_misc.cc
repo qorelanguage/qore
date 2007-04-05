@@ -1082,5 +1082,4 @@ void init_misc_functions()
    
    // deprecated with stupid capitalization
    builtinFunctions.add("hexToInt", f_hextoint);
-
 }
