@@ -39,6 +39,11 @@ ex: $db = new Datasource(DSPGSQL);
 The driver's name is "sybase" and the Datasource type constant is SQL::DSSybase
 ex: $db = new Datasource(DSSybase);
 
+*) "mssql" module: FreeTDS driver for connecting to MS SQL Server databases
+...
+The driver's name is "mssql" and the Datasource type constant is SQL::DSMSSQL
+ex: $db = new Datasource(DSMSSQL);
+
 *) HTTPClient improvements
 the HTTPClient class now supports redirections, basic authentication, and proxy support (and basic proxy authentication).
 new methods in the HTTPClient class:
@@ -126,6 +131,7 @@ Timezone information is discarded when converting from Oracle types to Qore type
 added support for binary types (BLOBs, etc)
 mapped DECIMAL type to a string to avoid losing precision
 timed-out connections will be automatically reconnected if no transaction is in progress
+column names always returned in lower-case
 
 *) Datasource class now throws an exception if deleted while in a transaction
 

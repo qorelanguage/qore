@@ -16904,11 +16904,11 @@ xs      </variablelist>
     
     <para>Note: This class is not available with the <link linkend="PO_NO_DATABASE"><code>PO_NO_DATABASE</code></link> parse option.</para>
 
-    <para>Datasource objects allow Qore programs to access databases through a Qore database driver.</para>
+    <para>The Datasource class is the high-level Qore interface to Qore's DBI layer, and as such, Datasource objects allow Qore programs to access databases that have a Qore DBI driver.</para>
 
     <para>Datasource objects will implicitly call <link linkend="Qore::SQL::Datasource::open">Datasource::open()</link> if no connection has yet been established and a method is called requiring a connection to the database server.  Therefore any method that requires communication with the database server can also throw any exception that the open method can throw.</para>
 
-    <para>Database objects have an internal transaction lock which will be grabbed when the <link linkend="Qore::SQL::Datasource::exec">Datasource::exec()</link> or <link linkend="Qore::SQL::Datasource::beginTransaction">Datasource::beginTransaction()</link> methods are executed and autocommit is not enabled. This enables a single datasource to be safely used for transaction management by several threads simultaneously. Note that an exeption in a Datasource::exec() call, if the transaction lock is not already held, will have the effect that the transaction lock is not acquired.</para>
+    <para>Database objects have an internal transaction lock which will be grabbed when the <link linkend="Qore::SQL::Datasource::exec">Datasource::exec()</link> or <link linkend="Qore::SQL::Datasource::beginTransaction">Datasource::beginTransaction()</link> methods are executed and autocommit is not enabled. This enables a single datasource to be safely used for transaction management by several threads simultaneously. Note that an exception in a Datasource::exec() call, if the transaction lock is not already held, will have the effect that the transaction lock is not acquired.</para>
 
     <para>Any thread attempting to do transaction-relevant actions on a Datasource with auto-commit disabled while a transaction is in progress by another thread will block until the thread currently executing a transaction executes the <link linkend="Qore::SQL::Datasource::commit">Datasource::commit()</link> or <link linkend="Qore::SQL::Datasource::rollback">Datasource::rollback()</link> methods (or the Datasource is deleted, reset, or closed, in which case the lock is released and an exception is raised as well).</para>
     
@@ -16921,6 +16921,8 @@ xs      </variablelist>
     <para>DBI drivers delivered separately from Qore may support only a subset of all possible features.  Use the following functions to query DBI driver capabilities: <link linkend="getDBIDriverCapabilities">getDBIDriverCapabilities()</link>, <link linkend="getDBIDriverCapabilityList">getDBIDriverCapabilityList()</link>, and <link linkend="getDBIDriverList">getDBIDriverList()</link>.  See <link linkend="DBI_Capability_Constants">DBI Capability Constants</link> for a table of DBI driver capability codes.</para>
 
    <para>All Qore DBI drivers set new connections to use ISO transaction level &quot;read committed&quot;.</para>
+
+   <para>The Datasource class provides consistent, high-level, per-connection locking on requests at a level above the DBI drivers to ensure that the communication between clients and servers is properly serialized.</para>
 
     <table>
       <title>Qore::SQL::Datasource Method Overview</title>

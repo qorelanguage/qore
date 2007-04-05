@@ -113,6 +113,10 @@ class MySQLConnection {
       {
 	 return mysql_error(db);
       }
+      int errno()
+      {
+	 mysql_errno(db);
+      }
       MYSQL_STMT *stmt_init()
       {
 	 return mysql_stmt_init(db);
@@ -240,6 +244,12 @@ static MYSQL *qore_mysql_init(Datasource *ds, ExceptionSink *xsink)
 	  ds->getUsername(), ds->getPassword(), ds->getDBName(), ds->getDBEncoding() ? ds->getDBEncoding() : "(none)");
    
    MYSQL *db = mysql_init(NULL);
+   if (!db)
+   {
+      xsink->outOfMemory();
+      traceout("qore_mysql_init()");
+      return NULL;
+   }
    if (!mysql_real_connect(db, ds->getHostName(), ds->getUsername(), ds->getPassword(), ds->getDBName(), 0, NULL, CLIENT_FOUND_ROWS))
    {
       xsink->raiseException("DBI:MYSQL:CONNECT-ERROR", "%s", mysql_error(db));
@@ -443,7 +453,7 @@ MyBindGroup::MyBindGroup(class Datasource *ods, class QoreString *ostr, class Li
    if (mysql_stmt_prepare(stmt, str->getBuffer(), str->strlen()))
    {
       // try to reconnect if connection has disappeared
-      if (mysql_errno(mydata->db) != CR_SERVER_GONE_ERROR 
+      if (mydata->errno() != CR_SERVER_GONE_ERROR 
 	  || mydata->reconnect(ods, xsink) 
 	  || mysql_stmt_prepare(stmt, str->getBuffer(), str->strlen()))
       {

@@ -414,6 +414,7 @@ class Namespace *getSQLNamespace()
    SQLNS->addConstant("DSMySQL",    new QoreNode("mysql"));
    SQLNS->addConstant("DSSybase",   new QoreNode("sybase"));
    SQLNS->addConstant("DSPGSQL",    new QoreNode("pgsql"));
+   SQLNS->addConstant("DSMSSQL",    new QoreNode("mssql"));
    // the following have no drivers yet
    SQLNS->addConstant("DSDB2",      new QoreNode("db2"));
    SQLNS->addConstant("DSInformix", new QoreNode("informix"));

@@ -13,7 +13,9 @@
   
   <para>When compiled against MySQL 5, the following additional capabilities are available: <code>DBI_CAP_STORED_PROCEDURES</code>.</para>
   
-  <para>The driver uses MySQL's prepared statement interface when it is available (with MySQL 4 or better). Like all Qore components, the MySQL DBI driver is thread-safe and performs per-connection locking on requests to ensure that the communication between the client and the server is properly serialized.</para>
+  <para>The driver uses MySQL's prepared statement interface when it is available (must be compiled with MySQL 4 or better).</para>
+
+  <para>If a connection times out while not in a transaction, the connection will be automatically reconnected.  All column names are manually converted to lower case if necessary before being returned to the user.</para>
   
   <para>This driver sets new connections to use ISO transaction level &quot;read committed&quot; explicitly for every new connection to conform to Qore's default transaction management style.  The transaction level can be changed manually, however, using the <link linkend="Qore::SQL::Datasource::exec">Datasource::exec()</link> method.  Aditionally the CLIENT_FOUND_ROWS option is set for each connection, so <link linkend="Qore::SQL::Datasource::exec">Datasource::exec()</link> will return the number of rows affected by insert/update queries, etc in a manner consistent with other Qore DBI drivers (when this row is not set and a single row is updated with the same values, 0 is returned instead of 1 as with other Qore DBI drivers).</para>
   
