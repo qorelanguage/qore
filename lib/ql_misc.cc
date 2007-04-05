@@ -1031,6 +1031,19 @@ static class QoreNode *f_set_signal_handler(class QoreNode *params, ExceptionSin
    return NULL;
 }
 
+static class QoreNode *f_remove_signal_handler(class QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p0 = get_param(params, 0);
+   int signal = p0 ? p0->getAsInt() : 0;
+   if (!signal || signal > QORE_SIGNAL_MAX)
+   {
+      xsink->raiseException("REMOVE-SIGNAL-HANDLER-ERROR", "%d is not a valid signal", signal);
+      return NULL;
+   }
+   QoreSignalManager::removeHandler(signal, xsink);
+   return NULL;
+}
+
 void init_misc_functions()
 {
    // register builtin functions in this file
@@ -1064,7 +1077,8 @@ void init_misc_functions()
    builtinFunctions.add("hextoint", f_hextoint);
    builtinFunctions.add("strtoint", f_strtoint);
    builtinFunctions.add("load_module", f_load_module);
-   builtinFunctions.add("set_signal_handler", f_set_signal_handler);
+   builtinFunctions.add("set_signal_handler", f_set_signal_handler, QDOM_PROCESS);
+   builtinFunctions.add("remove_signal_handler", f_remove_signal_handler, QDOM_PROCESS);
    
    // deprecated with stupid capitalization
    builtinFunctions.add("hexToInt", f_hextoint);

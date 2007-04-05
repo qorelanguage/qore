@@ -2025,6 +2025,14 @@
             <para>Returns a list with the argument passed as the first element (or an empty list if no argument is passed)</para>
           </entry>
         </row>
+
+        <row>
+          <entry><para><link linkend="load_module">load_module()</link></para></entry>
+          <entry><para>n/a</para></entry>
+          <entry><para>Y</para></entry>
+          <entry><para>Loads a Qore module at run-time if the feature name is not already present in the current Program object.</para></entry>
+        </row>
+
         <row>
           <entry>
             <para>
@@ -15025,6 +15033,64 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     </tgroup>
   </table>
   <para>This function does not throw any exceptions.</para>
+
+</sect2>
+
+<sect2 id="load_module">
+<title>load_module()</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Loads in a Qore module at run-time.  If a feature with the same name already exists, then this feature's code is imported into the current Program object if necessary and no further action is taken.  Note that modules providing objects resolved at parse time (classes, constants, functions, etc) must be loaded with the <link linkend="required_directive"><code>%requires</code> directive</link> instead, unless all references to the objects provided by the module will be made in code embedded in <link linkend="Qore_Program_Class">Program</link> objects.</para>
+	<para>See also <link linkend="getFeatureList">getFeatureList()</link> for a function providing a list of available features.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+	<programlisting>load_module(<replaceable>module_name</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+  <table>
+    <title>Arguments and Return Values for load_module()</title>
+    <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument Type</para></entry>
+	  <entry><para>Return Type</para></entry>
+	  <entry><para>Description</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para>String</para></entry>
+	  <entry><para>String</para></entry>
+	  <entry><para>Loads the module with the given name if possible, otherwise throws an exception.  This function returns no value.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+
+  <table><title>Exceptions Thrown by load_module()</title>
+  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+    <thead>
+      <row>
+	<entry><para>err</para></entry>
+	<entry><para>desc</para></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+	<entry><para><code>LOAD-MODULE-ERROR</code></para></entry>
+	<entry><para>An error occurred loading the module (module not found, libraries not resolved, wrong module API, etc).</para></entry>
+      </row>
+    </tbody>
+  </tgroup>
+  </table>
 
 </sect2>
 

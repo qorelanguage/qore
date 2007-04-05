@@ -16904,8 +16904,8 @@ xs      </variablelist>
     
     <para>Note: This class is not available with the <link linkend="PO_NO_DATABASE"><code>PO_NO_DATABASE</code></link> parse option.</para>
 
-    <para>The Datasource class is the high-level Qore interface to Qore's DBI layer, and as such, Datasource objects allow Qore programs to access databases that have a Qore DBI driver.</para>
-
+    <para>The Datasource class is the high-level Qore interface to Qore's DBI layer, and as such, Datasource objects allow Qore programs to access databases that have a Qore DBI driver.  The Datasource class will attempt to load any DBI driver that is not currently loaded in the <link linkend="Qore::SQL::Datasource::constructor">constructor</link>.</para>
+    
     <para>Datasource objects will implicitly call <link linkend="Qore::SQL::Datasource::open">Datasource::open()</link> if no connection has yet been established and a method is called requiring a connection to the database server.  Therefore any method that requires communication with the database server can also throw any exception that the open method can throw.</para>
 
     <para>Database objects have an internal transaction lock which will be grabbed when the <link linkend="Qore::SQL::Datasource::exec">Datasource::exec()</link> or <link linkend="Qore::SQL::Datasource::beginTransaction">Datasource::beginTransaction()</link> methods are executed and autocommit is not enabled. This enables a single datasource to be safely used for transaction management by several threads simultaneously. Note that an exception in a Datasource::exec() call, if the transaction lock is not already held, will have the effect that the transaction lock is not acquired.</para>
@@ -16938,7 +16938,7 @@ xs      </variablelist>
 	  <row>
 	    <entry><para><link linkend="Qore::SQL::Datasource::constructor">Datasource::constructor()</link></para></entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Creates the Datasource object.</para></entry>
+	    <entry><para>Creates the Datasource object; attempts to load a DBI driver if the driver is not already present in Qore.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::SQL::Datasource::destructor">Datasource::destructor()</link></para></entry>

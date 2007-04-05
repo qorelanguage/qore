@@ -66,7 +66,7 @@ void QoreSignalManager::setHandler(int sig, class QoreProgram *pgm, class UserFu
       if (xsink->isException())
       {
 	 struct sigaction sa;
-	 sa.sa_handler = SIG_IGN;
+	 sa.sa_handler = (sig == SIGPIPE ? SIG_IGN : SIG_DFL);
 	 sigemptyset(&sa.sa_mask);
 	 sa.sa_flags = SA_RESTART;
 	 sigaction(sig, &sa, NULL);
@@ -101,7 +101,7 @@ int QoreSignalManager::removeHandler(int sig, class ExceptionSink *xsink)
    sl.unlock();
    
    struct sigaction sa;
-   sa.sa_handler = SIG_IGN;
+   sa.sa_handler = (sig == SIGPIPE ? SIG_IGN : SIG_DFL);
    sigemptyset(&sa.sa_mask);
    sa.sa_flags = SA_RESTART;
    sigaction(sig, &sa, NULL);
@@ -146,4 +146,3 @@ void QoreSignalManager::handleSignals()
       }
    }
 }
-

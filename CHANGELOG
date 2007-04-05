@@ -1,3 +1,8 @@
+2006.04.05: David Nichols
+	* implemented remove_signal_handler() (experimental)
+	* added QDOM_PROCESS to new signal functions
+	* doc updates
+
 2006.04.04: David Nichols
 	* fixed a bug in delete_all_thread_data(): left the thread data
 	  hash in an inconsistent state

@@ -18,9 +18,9 @@
 	  <entry><para><code>%include</code> <replaceable>file_name</replaceable></para></entry>
 	  <entry><para>Starts parsing <replaceable>file_name</replaceable> immediately.  Parsing resumes with the current input after <replaceable>file_name</replaceable> has been completely parsed.</para></entry>
 	</row>
-	<row>
+	<row id="requires_directive">
 	  <entry><para><code>%requires</code> <replaceable>feature</replaceable></para></entry>
-	  <entry><para>If the named feature is not already present in Qore, then the <code>QORE_MODULE_DIR</code> environment variable is used to provide a list of directories to seach for a module with the same name (<replaceable>feature</replaceable><code>.qmod</code>).  If the module is not found, then the qore default module directory is checked.</para></entry>
+	  <entry><para>If the named feature is not already present in Qore, then the <code>QORE_MODULE_DIR</code> environment variable is used to provide a list of directories to seach for a module with the same name (<replaceable>feature</replaceable><code>.qmod</code>).  If the module is not found, then the qore default module directory is checked.  This directive must be used to load modules providing parse support (i.e. modules providing classes, constants, functions, etc that are resolved at parse time).  See also <link linkend="load_module">load_module()</link> for a run-time module loading.</para></entry>
 	</row>
 nbm 	<row>
 	  <entry><para><code>%exec-class</code> <replaceable>class name</replaceable></para></entry>

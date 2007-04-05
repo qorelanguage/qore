@@ -5,6 +5,12 @@
 
     <para>The &quot;tuxedo&quot; module provides a Qore-language client API to BEA Tuxedo services.</para>
 
+    <para>Note that the code in this module is not available with the <link linkend="PO_NO_NETWORK"><code>PO_NO_NETWORK</code></link> parse option.</para>
+
+    <para>To use this module, include the following line in the qore program to load the module:</para>
+
+    <programlisting>%requires tuxedo</programlisting>
+
   <sect2 id="TuxedoAdapter_Class">
     <title>TuxedoAdapter Class</title>
     <para>The TuxedoAdapter class is used to communicate with Tuxedo servers. Detailed description of Tuxedo interface can be found on <ulink url="http://edocs.bea.com/tuxedo/tux91/interm/ref.htm">Tuxedo 9.1 reference</ulink> and related pages. TuxedoAdapter class provides multithread safe wrapper over messaging part of Tuxedo API. Constants from Tuxedo API (like <code>TPAPPAUTH</code>) are all exposed in Tuxedo namespace.</para>

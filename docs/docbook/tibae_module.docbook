@@ -5,6 +5,12 @@
 
     <para>The tibae module provides TIBCO Active Enterprise functionality; that is, the ability to use an adapter configuration decribing function and data classes to communicate safely with other TIBCO Active Enterprise components.</para>
 
+    <para>Note that the code in this module is not available with the <link linkend="PO_NO_NETWORK"><code>PO_NO_NETWORK</code></link> parse option.</para>
+
+    <para>To use this module, include the following line in the qore program to load the module:</para>
+
+    <programlisting>%requires tibae</programlisting>
+
     <note><para>This module was previously called &quot;tibco&quot;, however it was renamed to avoid confusion with the <link linkend="tibrv_Module">tibrv module</link></para></note>
 
     <sect2 id="Tibae_TibcoAdapter_Class">
@@ -16,7 +22,7 @@
 
       <para>String data is converted to UTF-8 format if necessary for transmission with TIBCO Rendezvous.</para>
 
-      <para>The <link linkend="Tibae_TibcoAdapter_constructor">TibcoAdapter::constructor()</link> method takes an adapter property hash to give the location for the repository and tell the SDK how the adapter should be instantiated.  The table below describes the recognized keys in the adapter property hash and how they are used to describe the repository and the adapter.</para>
+      <para>The <link linkend="Tibae_TibcoAdapter_constructor">TibcoAdapter::constructor()</link> method takes an adapter property hash to give the location for the repository and tell the SDK how the adapter should be instantiated.  The table below describes the recognized keys in the adapter property hash and how they are used to describe the repository and the adapter.  Note that the <code>Vars</code> key in the property hash is used to override global variable values in the adapter.</para>
 
       <para>When Qore data is serialized to TIBCO data format and you need to specify the class name for the data, use a hash and put the class name in the <code>^class^</code> key and the value in the <code>^value^</code> key.</para>
 
@@ -51,6 +57,10 @@
 	    <row>
 	      <entry><code>ConfigURL</code></entry>
 	      <entry><para>The location of the adapter in the repository.</para></entry>
+	    </row>
+	    <row>
+	      <entry><code>Vars</code></entry>
+	      <entry><para>This key can be set to a hash to override global variable values.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
