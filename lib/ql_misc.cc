@@ -1027,7 +1027,7 @@ static class QoreNode *f_set_signal_handler(class QoreNode *params, ExceptionSin
       xsink->raiseException("SET-SIGNAL-HANDLER-ERROR", "cannot find function '%s'", p1->val.String->getBuffer());
       return NULL;
    }
-   QoreSignalManager::setHandler(signal, pgm, f, xsink);
+   QoreSignalManager::setHandler(signal, pgm, f);
    return NULL;
 }
 
@@ -1040,7 +1040,7 @@ static class QoreNode *f_remove_signal_handler(class QoreNode *params, Exception
       xsink->raiseException("REMOVE-SIGNAL-HANDLER-ERROR", "%d is not a valid signal", signal);
       return NULL;
    }
-   QoreSignalManager::removeHandler(signal, xsink);
+   QoreSignalManager::removeHandler(signal);
    return NULL;
 }
 

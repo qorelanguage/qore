@@ -24,7 +24,7 @@
 
 #define _QORE_QORESIGNAL_H
 
-#include <qore/VRMutex.h>
+#include <qore/LockedObject.h>
 
 #include <signal.h>
 #include <stdio.h>
@@ -45,13 +45,13 @@
 #endif
 
 struct PgmFunc {
+   int sig;
    class QoreProgram *pgm;
    class UserFunction *f;
    
-   PgmFunc(class QoreProgram *n_pgm, class UserFunction *n_f) : pgm(n_pgm), f(n_f)
-   {
-   }
-
+   DLLLOCAL PgmFunc(int n_sig, class QoreProgram *n_pgm, class UserFunction *n_f);
+   DLLLOCAL ~PgmFunc();
+   void runHandler(class ExceptionSink *xsink);
 };
 
 typedef std::map<int, struct PgmFunc *> m_int_func_t;
@@ -63,15 +63,16 @@ class QoreSignalManager
       static bool sig_event[QORE_SIGNAL_MAX];
 
    private:
-      static VRMutex gate;
+      static class LockedObject mutex;
       static m_int_func_t smap;
       
    public:
       DLLLOCAL QoreSignalManager();
       DLLLOCAL ~QoreSignalManager();
-      DLLLOCAL static void setHandler(int sig, class QoreProgram *pgm, class UserFunction *f, class ExceptionSink *xsink);
-      DLLLOCAL static int removeHandler(int sig, class ExceptionSink *xsink);
-      DLLLOCAL static class UserFunction *getHandler(int sig, class ExceptionSink *xsink);
+      DLLLOCAL static void setHandler(int sig, class QoreProgram *pgm, class UserFunction *f);
+      DLLLOCAL static int removeHandler(int sig);
+      DLLLOCAL static int removeHandlerFromProgram(int sig);
+      DLLLOCAL static class UserFunction *getHandler(int sig);
       DLLLOCAL static void handleSignals();
 };
 

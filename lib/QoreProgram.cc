@@ -203,6 +203,9 @@ void QoreProgram::del(class ExceptionSink *xsink)
    // wait for all threads to terminate
    tcount.waitForZero();
 
+   // remove all signal handlers
+   removeSignalHandlers();
+   
    // have to delete global variables first because of destructors.
    // method call can be repeated
    global_var_list.delete_all(xsink);
@@ -225,6 +228,25 @@ void QoreProgram::del(class ExceptionSink *xsink)
       pthread_key_delete(thread_local_storage);
       base_object = false;
    }
+}
+
+void QoreProgram::removeSignalHandlers()
+{
+   for (int_set_t::iterator i = sig_set.begin(), e = sig_set.end(); i != e; ++i)
+      QoreSignalManager::removeHandlerFromProgram(*i);
+   sig_set.clear();
+}
+
+void QoreProgram::registerSignalHandler(int sig)
+{
+   assert(sig_set.find(sig) == sig_set.end());
+   sig_set.insert(sig);
+}
+
+void QoreProgram::deregisterSignalHandler(int sig)
+{
+   assert(sig_set.find(sig) != sig_set.end());
+   sig_set.erase(sig);
 }
 
 class Var *QoreProgram::findVar(const char *name)

@@ -38,6 +38,9 @@
 #include <qore/ImportedFunctionList.h>
 
 #include <string>
+#include <set>
+
+typedef std::set<int> int_set_t;
 
 // the two-layered reference counting is to eliminate problems from circular references
 // when a program has a global variable that contains an object that references the program...
@@ -70,7 +73,8 @@ class QoreProgram : public AbstractPrivateData
       bool po_locked, exec_class, base_object, requires_exception;
       std::string exec_class_name;
       pthread_key_t thread_local_storage;
-
+      int_set_t sig_set;
+      
       DLLLOCAL void init();
       DLLLOCAL void nextSB();
       DLLLOCAL void deleteSBList();
@@ -81,7 +85,8 @@ class QoreProgram : public AbstractPrivateData
       DLLLOCAL int internParsePending(const char *code, const char *label);
       DLLLOCAL class Hash *clearThreadData(class ExceptionSink *xsink);
       DLLLOCAL void del(class ExceptionSink *xsink);
-
+      DLLLOCAL void removeSignalHandlers();
+      
    protected:
       DLLLOCAL virtual ~QoreProgram();
 
@@ -168,6 +173,9 @@ class QoreProgram : public AbstractPrivateData
       {
 	 return &plock;
       }
+      // the following functions are only called by QoreSignalManager within its lock
+      DLLLOCAL void registerSignalHandler(int sig);
+      DLLLOCAL void deregisterSignalHandler(int sig);
 };
 
 DLLLOCAL void addProgramConstants(class Namespace *ns);

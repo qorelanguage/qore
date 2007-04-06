@@ -70,11 +70,13 @@ int QoreCounter::waitForZero(class ExceptionSink *xsink, int timeout_ms)
    AutoLocker al(&l);
    int rc = 0;
    ++waiting;
-   if (cnt && cnt != Cond_Deleted)
+   while (cnt && cnt != Cond_Deleted)
+   {
       if (!timeout_ms)
 	 rc = cond.wait(&l);
       else
 	 rc = cond.wait(&l, timeout_ms);
+   }
    --waiting;
    if (cnt == Cond_Deleted)
    {
@@ -91,7 +93,7 @@ void QoreCounter::waitForZero()
    // --- synchronization must be done externally
    AutoLocker al(&l);
    ++waiting;
-   if (cnt)
+   while (cnt)
       cond.wait(&l);
    --waiting;
 }
