@@ -1,3 +1,6 @@
+2006.04.06: David Nichols
+	* improved mysql driver reconnections when in transaction
+
 2006.04.05: David Nichols
 	* implemented remove_signal_handler() (experimental)
 	* added QDOM_PROCESS to new signal functions

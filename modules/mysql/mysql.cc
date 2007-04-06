@@ -87,11 +87,9 @@ class MySQLConnection {
       DLLLOCAL int reconnect(Datasource *ds, class ExceptionSink *xsink)
       {	 
 	 // throw an exception if a transaction is in progress
+	 // but continue to try and reconnect as well
 	 if (ds->isInTransaction())
-	 {
-	    xsink->raiseException("DBI:MYSQL:CONNECTION-ERROR", "connection has timed out while in a transaction");
-	    return -1;
-	 }
+	    xsink->raiseException("DBI:MYSQL:CONNECTION-ERROR", "connection timed out while in a transaction");
 
 	 MYSQL *new_db = qore_mysql_init(ds, xsink);
 	 if (!new_db)
@@ -115,7 +113,7 @@ class MySQLConnection {
       }
       int errno()
       {
-	 mysql_errno(db);
+	 return mysql_errno(db);
       }
       MYSQL_STMT *stmt_init()
       {
