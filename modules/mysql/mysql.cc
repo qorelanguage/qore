@@ -84,7 +84,7 @@ class MySQLConnection {
       {
 	 mysql_close(db);
       }      
-      DLLLOCAL int reconnect(Datasource *ds, class ExceptionSink *xsink)
+      DLLLOCAL int reconnect(Datasource *ds, MYSQL_STMT *&stmt, QoreString *str, class ExceptionSink *xsink)
       {	 
 	 // throw an exception if a transaction is in progress
 	 // but continue to try and reconnect as well
@@ -95,8 +95,23 @@ class MySQLConnection {
 	 if (!new_db)
 	    return -1;
 
+	 printd(5, "mysql datasource %08p reconnected after timeout\n", ds);
 	 mysql_close(db);
 	 db = new_db;
+
+	 if (xsink->isException())
+	    return -1;
+
+	 // reinitialize statement
+	 mysql_stmt_close(stmt);
+	 stmt = stmt_init(xsink);
+	 if (!stmt)
+	    return -1;
+	 
+	 // prepare the statement for execution (again)
+	 if (mysql_stmt_prepare(stmt, str->getBuffer(), str->strlen()))
+	    return -1;
+	 
 	 return 0;
       }
       int commit()
@@ -115,9 +130,12 @@ class MySQLConnection {
       {
 	 return mysql_errno(db);
       }
-      MYSQL_STMT *stmt_init()
+      MYSQL_STMT *stmt_init(class ExceptionSink *xsink)
       {
-	 return mysql_stmt_init(db);
+	 MYSQL_STMT *stmt = mysql_stmt_init(db);
+	 if (!stmt)
+	    xsink->raiseException("DBI:MYSQL:ERROR", "error creating MySQL statement handle: out of memory");
+	 return stmt;
       }
 };
 
@@ -262,7 +280,7 @@ static MYSQL *qore_mysql_init(Datasource *ds, ExceptionSink *xsink)
 #endif
    
 #ifdef HAVE_MYSQL_COMMIT
-   // autocommits are handled by this driver, not by MySQL
+   // autocommits are handled by qore, not by MySQL
    mysql_autocommit(db, false);
    
    // set transaction handling
@@ -438,26 +456,20 @@ MyBindGroup::MyBindGroup(class Datasource *ods, class QoreString *ostr, class Li
    if (parse(args, xsink))
       return;
 
-   stmt = mydata->stmt_init();
+   stmt = mydata->stmt_init(xsink);
    if (!stmt)
-   {
-      xsink->raiseException("DBI:MYSQL:ERROR", "error creating MySQL statement handle: out of memory");
       return;
-   }
 
    //printd(5, "mysql prepare: (%d) %s\n", str->strlen(), str->getBuffer());
 
    // prepare the statement for execution
    if (mysql_stmt_prepare(stmt, str->getBuffer(), str->strlen()))
    {
-      // try to reconnect if connection has disappeared
-      if (mydata->errno() != CR_SERVER_GONE_ERROR 
-	  || mydata->reconnect(ods, xsink) 
-	  || mysql_stmt_prepare(stmt, str->getBuffer(), str->strlen()))
-      {
-	 xsink->raiseException("DBI:MYSQL:ERROR", mydata->error());
+      if (mydata->errno() != CR_SERVER_GONE_ERROR)
+	 xsink->raiseException("DBI:MYSQL:STATEMENT-ERROR", mydata->error());
+
+      if (mydata->reconnect(ods, stmt, str, xsink))
 	 return;
-      }
    }
 
    // if there is data to bind, then bind it
@@ -606,8 +618,13 @@ inline class QoreNode *MyBindGroup::getOutputHash(class ExceptionSink *xsink)
    {
       // prepare statement to retrieve values
       mysql_stmt_close(stmt);
-      stmt = mydata->stmt_init();
-
+      stmt = mydata->stmt_init(xsink);
+      if (!stmt)
+      {
+	 h->derefAndDelete(xsink);
+	 return NULL;
+      }
+      
       QoreString qstr;
       qstr.sprintf("select @%s", *sli);
 
