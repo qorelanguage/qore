@@ -43,27 +43,30 @@
 #endif
 #endif
 
-struct PgmFunc {
-   int sig;
+class QoreSignalHandler {
    class QoreProgram *pgm;
    class UserFunction *f;
-   
-   DLLLOCAL PgmFunc(int n_sig, class QoreProgram *n_pgm, class UserFunction *n_f);
-   DLLLOCAL ~PgmFunc();
-   void runHandler(class ExceptionSink *xsink);
-};
 
-typedef std::map<int, struct PgmFunc *> m_int_func_t;
+public:
+   DLLLOCAL void init();
+   DLLLOCAL void set(int sig, class QoreProgram *n_pgm, class UserFunction *n_f);
+   DLLLOCAL void del(int sig);
+   void runHandler(int sig, class ExceptionSink *xsink);
+   bool isSet() const
+   {
+      return (bool)f;
+   }
+};
 
 class QoreSignalManager
 {
    public:
       static bool sig_raised;
       static bool sig_event[QORE_SIGNAL_MAX];
-
+      static QoreSignalHandler handlers[QORE_SIGNAL_MAX];
+      
    private:
       static class LockedObject mutex;
-      static m_int_func_t handler_map;
       
    public:
       DLLLOCAL QoreSignalManager();
@@ -71,7 +74,6 @@ class QoreSignalManager
       DLLLOCAL static void setHandler(int sig, class QoreProgram *pgm, class UserFunction *f);
       DLLLOCAL static int removeHandler(int sig);
       DLLLOCAL static int removeHandlerFromProgram(int sig);
-      DLLLOCAL static class UserFunction *getHandler(int sig);
       DLLLOCAL static void handleSignals();
       DLLLOCAL static void addSignalConstants(class Namespace *ns);
       DLLLOCAL static const char *getSignalName(int sig);

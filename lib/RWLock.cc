@@ -24,6 +24,7 @@
 
 #include <qore/Qore.h>
 #include <qore/RWLock.h>
+#include <qore/QoreSignal.h>
 
 #include <assert.h>
 
@@ -66,6 +67,13 @@ int RWLock::grabImpl(int mtid, class VLock *nvl, class ExceptionSink *xsink, int
       --waiting;
       if (rc)
 	 return -1;
+      // handle signals on spurious wakeups
+      if (tid >= 0 || (tid == Lock_Unlocked && vmap.size()))
+      {
+	 asl_lock.unlock();
+	 QoreSignalManager::handleSignals();
+	 asl_lock.lock();
+      }
    }
    if (tid == Lock_Deleted)
    {
@@ -249,7 +257,7 @@ int RWLock::readLock(class ExceptionSink *xsink, int timeout_ms)
 {
    int mtid = gettid();
    class VLock *nvl = getVLock();
-   AutoLocker al(&asl_lock);
+   SafeLocker sl(&asl_lock);
 
    if (tid == mtid)
    {
@@ -259,14 +267,23 @@ int RWLock::readLock(class ExceptionSink *xsink, int timeout_ms)
 
    if (tid >= 0)
    {
-      while (tid >= 0)
+      do
       {
 	 ++readRequests;
 	 int rc = nvl->waitOn((AbstractSmartLock *)this, &read, vl, xsink, timeout_ms);
 	 --readRequests;
 	 if (rc)
 	    return -1;
-      }
+	 
+	 // handle signals on spurious wakeups
+	 if (tid >= 0)
+	 {
+	    sl.unlock();
+	    QoreSignalManager::handleSignals();
+	    sl.lock();
+	 }
+      } while (tid >= 0);
+
       if (tid == Lock_Deleted)
       {
 	 xsink->raiseException("LOCK-ERROR", "The %s object has been deleted in another thread", getName());

@@ -22,6 +22,7 @@
 
 #include <qore/Qore.h>
 #include <qore/SmartMutex.h>
+#include <qore/QoreSignal.h>
 
 #include <assert.h>
 
@@ -54,6 +55,14 @@ int SmartMutex::grabImpl(int mtid, class VLock *nvl, class ExceptionSink *xsink,
       waiting--;
       if (rc)
 	 return -1;
+
+      // handle signals on spurious wakeups
+      if (tid >= 0)
+      {
+	 asl_lock.unlock();
+	 QoreSignalManager::handleSignals();
+	 asl_lock.lock();
+      }      
    }
    if (tid == Lock_Deleted)
    {

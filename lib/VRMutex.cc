@@ -22,6 +22,7 @@
 
 #include <qore/Qore.h>
 #include <qore/VRMutex.h>
+#include <qore/QoreSignal.h>
 
 #include <assert.h>
 
@@ -76,6 +77,13 @@ int VRMutex::grabImpl(int mtid, class VLock *nvl, class ExceptionSink *xsink, in
 	 // if rc is non-zero there was a timeout or deadlock
 	 if (rc)
 	    return -1;
+	 // handle signals on spurious wakeup
+	 if (tid != Lock_Unlocked)
+	 {
+	    asl_lock.unlock();
+	    QoreSignalManager::handleSignals();
+	    asl_lock.unlock();
+	 }
       }
       // the thread lock list must always be the same if the lock was grabbed
       assert((mtid == tid  && vl == nvl) || (tid == Lock_Unlocked && !vl));

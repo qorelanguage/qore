@@ -28,7 +28,7 @@
 class QoreSignalManager QSM;
 
 LockedObject QoreSignalManager::mutex;
-m_int_func_t QoreSignalManager::handler_map;
+QoreSignalHandler QoreSignalManager::handlers[QORE_SIGNAL_MAX];
 bool QoreSignalManager::sig_event[QORE_SIGNAL_MAX];
 bool QoreSignalManager::sig_raised = false;
 
@@ -39,19 +39,28 @@ extern "C" void sighandler(int sig) //, siginfo_t *info, ucontext_t *uap)
 }
 
 // must be called in the signal lock
-PgmFunc::PgmFunc(int n_sig, class QoreProgram *n_pgm, class UserFunction *n_f) : sig(n_sig), pgm(n_pgm), f(n_f)
+void QoreSignalHandler::set(int sig, class QoreProgram *n_pgm, class UserFunction *n_f)
 {
+   pgm = n_pgm;
+   f = n_f;
    pgm->registerSignalHandler(sig);
 }
 
+void QoreSignalHandler::init()
+{
+   pgm = NULL;
+   f = NULL;
+}
+
 // must be called in the signal lock
-PgmFunc::~PgmFunc()
+void QoreSignalHandler::del(int sig)
 {
    if (pgm)
       pgm->deregisterSignalHandler(sig);
+   init();
 }
 
-void PgmFunc::runHandler(class ExceptionSink *xsink)
+void QoreSignalHandler::runHandler(int sig, class ExceptionSink *xsink)
 {
    // create signal number argument
    class List *l = new List();
@@ -67,12 +76,14 @@ QoreSignalManager::QoreSignalManager()
 {
    // zero out sig_event
    for (int i = 0; i < QORE_SIGNAL_MAX; ++i)
+   {
       sig_event[i] = 0;
+      handlers[i].init();
+   }
 }
 
 QoreSignalManager::~QoreSignalManager()
 {
-   assert(handler_map.empty());
 }
 
 void QoreSignalManager::setHandler(int sig, class QoreProgram *pgm, class UserFunction *f)
@@ -81,18 +92,14 @@ void QoreSignalManager::setHandler(int sig, class QoreProgram *pgm, class UserFu
 
    SafeLocker sl(&mutex);
 
-   m_int_func_t::iterator i = handler_map.find(sig);
-   if (i != handler_map.end())
+   if (handlers[sig].isSet())
    {
       //printd(5, "replacing handler for signal %d\n", sig);
       already_set = true;
-      class PgmFunc *pf = i->second;
-      handler_map.erase(i);
-      delete pf;
    }
-   
+
    //printd(5, "setting handler for signal %d, pgm=%08p\n", sig, pgm);
-   handler_map[sig] = new PgmFunc(sig, pgm, f);
+   handlers[sig].set(sig, pgm, f);
    sl.unlock();
 
    if (!already_set)
@@ -109,18 +116,11 @@ int QoreSignalManager::removeHandlerFromProgram(int sig)
 {
    SafeLocker sl(&mutex);
    
-   m_int_func_t::iterator i = handler_map.find(sig);
-   if (i == handler_map.end())
+   if (!handlers[sig].isSet())
       return 0;
-   
+
    //printd(5, "removing handler for signal %d\n", sig);
-   
-   class PgmFunc *pf = i->second;
-   handler_map.erase(i);
-   
-   pf->pgm = NULL;
-   // does not have to be called in the signal lock because the program object will not be resynchronized
-   delete pf;
+   handlers[sig].init();
    sl.unlock();
    
    struct sigaction sa;
@@ -136,15 +136,11 @@ int QoreSignalManager::removeHandler(int sig)
 {
    AutoLocker al(&mutex);
 
-   m_int_func_t::iterator i = handler_map.find(sig);
-   if (i == handler_map.end())
+   if (!handlers[sig].isSet())
       return 0;
 
    //printd(5, "removing handler for signal %d\n", sig);
-
-   class PgmFunc *pf = i->second;
-   handler_map.erase(i);
-
+   
    struct sigaction sa;
    sa.sa_handler = (sig == SIGPIPE ? SIG_IGN : SIG_DFL);
    sigemptyset(&sa.sa_mask);
@@ -152,20 +148,9 @@ int QoreSignalManager::removeHandler(int sig)
    sigaction(sig, &sa, NULL);
 
    // must be called in the signal lock
-   delete pf;
+   handlers[sig].del(sig);
 
    return 0;
-}
-
-class UserFunction *QoreSignalManager::getHandler(int sig)
-{
-   AutoLocker al(&mutex);
-
-   m_int_func_t::const_iterator i = handler_map.find(sig);
-   if (i == handler_map.end())
-      return NULL;
-
-   return i->second->f;
 }
 
 void QoreSignalManager::handleSignals()
@@ -187,13 +172,11 @@ void QoreSignalManager::handleSignals()
       if (sig_event[i])
       {
 	 sig_event[i] = false;
-	 m_int_func_t::const_iterator j = handler_map.find(i);
-	 // ignore signal if handler was removed
-	 if (j == handler_map.end())
+	 if (!handlers[i].isSet())
 	    continue;
 
 	 sl.unlock();
-	 j->second->runHandler(&xsink);
+	 handlers[i].runHandler(i, &xsink);
 	 sl.lock();
       }
    }   

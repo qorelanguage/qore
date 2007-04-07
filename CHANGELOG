@@ -6,6 +6,7 @@
 	  this is necessary as signals can cause spurious wakeups
 	* added SignalToName and NameToSignal hash constants
 	* updated Queue class to handle signals on spurious wakeups
+	* modified locking classes to handle signals on spurious wakeups
 
 2006.04.06: David Nichols
 	* improved mysql driver reconnections when in transaction
