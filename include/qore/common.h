@@ -49,6 +49,9 @@
   #endif
 #endif
 
+#define _Q_MAKE_STRING(x) #x
+#define MAKE_STRING_FROM_SYMBOL(x) _Q_MAKE_STRING(x)
+
 // functor template for deleting pointers
 template <typename T> struct free_ptr : std::unary_function <T*, void>
 {

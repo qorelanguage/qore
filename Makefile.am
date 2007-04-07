@@ -115,7 +115,6 @@ noinst_HEADERS = \
 	include/qore/qore_bitopts.h \
 	include/qore/QoreSignal.h \
 	include/qore/ssl_constants.h \
-	include/qore/signal_constants.h \
 	include/qore/QoreQueue.h \
 	include/qore/QoreSSLBase.h \
 	include/qore/QoreWarnings.h \

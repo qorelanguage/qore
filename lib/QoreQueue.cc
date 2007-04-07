@@ -156,6 +156,13 @@ QoreNode *QoreQueue::shift(class ExceptionSink *xsink, int timeout_ms, bool *to)
 	 xsink->raiseException("QUEUE-ERROR", "Queue has been deleted in another thread");
 	 return NULL;
       }
+      // check for signals on spurious wakeup
+      if (!head)
+      {
+	 sl.unlock();
+	 QoreSignalManager::handleSignals();
+	 sl.lock();
+      }
    }
    if (to)
       *to = false;
@@ -202,6 +209,13 @@ QoreNode *QoreQueue::pop(class ExceptionSink *xsink, int timeout_ms, bool *to)
       {
 	 xsink->raiseException("QUEUE-ERROR", "Queue has been deleted in another thread");
 	 return NULL;
+      }
+      // check for signals on spurious wakeup
+      if (!head)
+      {
+	 sl.unlock();
+	 QoreSignalManager::handleSignals();
+	 sl.lock();
       }
    }
    if (to)

@@ -27,7 +27,6 @@
 #include <qore/LockedObject.h>
 
 #include <signal.h>
-#include <stdio.h>
 
 #include <map>
 
@@ -64,7 +63,7 @@ class QoreSignalManager
 
    private:
       static class LockedObject mutex;
-      static m_int_func_t smap;
+      static m_int_func_t handler_map;
       
    public:
       DLLLOCAL QoreSignalManager();
@@ -74,6 +73,8 @@ class QoreSignalManager
       DLLLOCAL static int removeHandlerFromProgram(int sig);
       DLLLOCAL static class UserFunction *getHandler(int sig);
       DLLLOCAL static void handleSignals();
+      DLLLOCAL static void addSignalConstants(class Namespace *ns);
+      DLLLOCAL static const char *getSignalName(int sig);
 };
 
 #endif

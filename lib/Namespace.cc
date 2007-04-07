@@ -34,6 +34,7 @@
 #include <qore/minitest.hpp>
 #include <qore/ConstantList.h>
 #include <qore/QoreClassList.h>
+#include <qore/QoreSignal.h>
 
 // include files for default object classes
 #include <qore/QC_Socket.h>
@@ -50,8 +51,6 @@
 #include <qore/QC_AutoGate.h>
 #include <qore/QC_AutoReadLock.h>
 #include <qore/QC_AutoWriteLock.h>
-
-#include <qore/signal_constants.h>
 
 #include <string.h>
 #include <stdlib.h>
@@ -1584,7 +1583,7 @@ RootNamespace::RootNamespace(class Namespace **QoreNS) : Namespace()
    qns->addSystemClass(initJsonRpcClientClass(http_client_class));
 
    // add signal constants
-   addSignalConstants(qns);
+   QoreSignalManager::addSignalConstants(qns);
 
 #ifdef DEBUG
 { // tests
