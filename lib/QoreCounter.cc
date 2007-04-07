@@ -22,6 +22,7 @@
 
 #include <qore/Qore.h>
 #include <qore/QoreCounter.h>
+#include <qore/QoreSignal.h>
 
 QoreCounter::QoreCounter(int nc) : cnt(nc), waiting(0)
 {
@@ -67,23 +68,30 @@ int QoreCounter::waitForZero(class ExceptionSink *xsink, int timeout_ms)
    // NOTE that we do not do a while(true) { cond.wait(); } because any broadcast means that the
    // counter hit zero, so even it it's bigger than zero by the time we are allowed to execute, it's ok
    // --- synchronization must be done externally
-   AutoLocker al(&l);
-   int rc = 0;
+   SafeLocker sl(&l);
    ++waiting;
    while (cnt && cnt != Cond_Deleted)
    {
       if (!timeout_ms)
-	 rc = cond.wait(&l);
+	 cond.wait(&l);
       else
-	 rc = cond.wait(&l, timeout_ms);
+	 if (cond.wait(&l, timeout_ms))
+	    break;
+      // check for signals to be handled on a spurious wakeup
+      if (cnt && cnt != Cond_Deleted)
+      {
+	 sl.unlock();
+	 QoreSignalManager::handleSignals();
+	 sl.lock();
+      }
    }
    --waiting;
    if (cnt == Cond_Deleted)
    {
       xsink->raiseException("COUNTER-ERROR", "Counter was deleted in another thread while waiting");
-      rc = -1;
+      return -1;
    }
-   return rc;
+   return 0;
 }
 
 void QoreCounter::waitForZero()
@@ -91,10 +99,19 @@ void QoreCounter::waitForZero()
    // NOTE that we do not do a while(true) { cond.wait(); } because any broadcast means that the
    // counter hit zero, so even it it's bigger than zero by the time we are allowed to execute, it's ok
    // --- synchronization must be done externally
-   AutoLocker al(&l);
+   SafeLocker sl(&l);
    ++waiting;
    while (cnt)
+   {
       cond.wait(&l);
+      // check for signals to be handled on a spurious wakeup
+      if (cnt)
+      {
+	 sl.unlock();
+	 QoreSignalManager::handleSignals();
+	 sl.lock();
+      }
+   }
    --waiting;
 }
 

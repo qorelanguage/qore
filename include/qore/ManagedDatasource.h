@@ -39,7 +39,6 @@ FIXME: commit()s when autocommit=true should be made here, also after
 #include <qore/common.h>
 #include <qore/LockedObject.h>
 #include <qore/QoreCondition.h>
-#include <qore/SingleExitGate.h>
 #include <qore/Datasource.h>
 #include <qore/AbstractThreadResource.h>
 

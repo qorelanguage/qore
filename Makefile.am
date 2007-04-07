@@ -79,7 +79,6 @@ noinst_HEADERS = \
 	include/qore/Find.h \
 	include/qore/QoreNumber.h \
 	include/qore/ErrnoConstants.h \
-	include/qore/Gate.h \
 	include/qore/Tree.h \
 	include/qore/ClassRef.h \
 	include/qore/ScopedObjectCall.h \
@@ -101,7 +100,6 @@ noinst_HEADERS = \
 	include/qore/QoreCondition.h \
 	include/qore/QoreCounter.h \
 	include/qore/BinaryObject.h \
-	include/qore/SingleExitGate.h \
 	include/qore/RegexSubst.h \
 	include/qore/RegexTrans.h \
 	include/qore/hash_map.h \

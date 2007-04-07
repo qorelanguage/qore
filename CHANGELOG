@@ -1,3 +1,10 @@
+2006.04.07: David Nichols
+	* removed unused SingleExitGate and Gate code
+	* updated QoreCounter to unlock and check for signals to be handled on
+	  spurious wakeups
+	* modified the Counter class to check the condition after every wakeup;
+	  this is necessary as signals can cause spurious wakeups
+
 2006.04.06: David Nichols
 	* improved mysql driver reconnections when in transaction
 	* signal updates
@@ -11,8 +18,8 @@
 	* signal handlers called with signal number as argument
 
 2006.04.04: David Nichols
-	* fixed a bug in delete_all_thread_data(): left the thread data
-	  hash in an inconsistent state
+	* fixed a bug in delete_all_thread_data(): left the thread data hash in
+	  an inconsistent state
 	* updated mysql driver for DBI-level auto-commit management
 	* updated mysql to try to automatically reconnect if the server 
 	  connection disappears while not in a transaction

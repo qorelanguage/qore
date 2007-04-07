@@ -86,8 +86,6 @@ libqore_la_SOURCES = \
 	RMutex.cc \
 	CallStack.cc \
 	ExecArgList.cc \
-	Gate.cc \
-	SingleExitGate.cc \
 	NamedScope.cc \
 	RWLock.cc \
 	QoreSSLBase.cc \
