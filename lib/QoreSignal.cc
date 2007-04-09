@@ -363,3 +363,4 @@ void QoreSignalManager::addSignalConstants(class Namespace *ns)
    ns->addConstant("SignalToName", new QoreNode(nh));
    ns->addConstant("NametoSignal", new QoreNode(sh));
 }
+
