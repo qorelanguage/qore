@@ -82,7 +82,7 @@ int VRMutex::grabImpl(int mtid, class VLock *nvl, class ExceptionSink *xsink, in
 	 {
 	    asl_lock.unlock();
 	    QoreSignalManager::handleSignals();
-	    asl_lock.unlock();
+	    asl_lock.lock();
 	 }
       }
       // the thread lock list must always be the same if the lock was grabbed

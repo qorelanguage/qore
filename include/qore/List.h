@@ -40,9 +40,9 @@ class List {
       DLLLOCAL void check_offset(int &offset, int &len);
       DLLLOCAL void deref_intern(class ExceptionSink *xisnk);
       // qsort sorts the list in-place (unstable)
-      DLLLOCAL int qsort(class QoreProgram *pgm, class UserFunction *f, int left, int right, class ExceptionSink *xsink);
+      DLLLOCAL int qsort(const class AbstractFunctionReference *fr, int left, int right, class ExceptionSink *xsink);
       // mergesort sorts the list in-place (stable)
-      DLLLOCAL int mergesort(class QoreProgram *pgm, class UserFunction *f, class ExceptionSink *xsink);
+      DLLLOCAL int mergesort(const class AbstractFunctionReference *fr, class ExceptionSink *xsink);
       DLLEXPORT ~List();
 
    public:
@@ -71,14 +71,14 @@ class List {
       DLLEXPORT class List *copyListFrom(int offset) const;
       DLLEXPORT class QoreNode *sort() const;
       DLLEXPORT class QoreNode *sortDescending() const;
-      DLLEXPORT class QoreNode *sort(const char *sort_function_name, class ExceptionSink *xsink) const;
+      DLLEXPORT class QoreNode *sort(const class AbstractFunctionReference *fr, class ExceptionSink *xsink) const;
       DLLEXPORT class QoreNode *sortStable() const;
       DLLEXPORT class QoreNode *sortDescendingStable() const;
-      DLLEXPORT class QoreNode *sortStable(const char *sort_function_name, class ExceptionSink *xsink) const;
+      DLLEXPORT class QoreNode *sortStable(const class AbstractFunctionReference *fr, class ExceptionSink *xsink) const;
       DLLEXPORT class QoreNode *min() const;
       DLLEXPORT class QoreNode *max() const;
-      DLLEXPORT class QoreNode *min(const char *callback_function_name, class ExceptionSink *xsink) const;
-      DLLEXPORT class QoreNode *max(const char *callback_function_name, class ExceptionSink *xsink) const;
+      DLLEXPORT class QoreNode *min(const class AbstractFunctionReference *fr, class ExceptionSink *xsink) const;
+      DLLEXPORT class QoreNode *max(const class AbstractFunctionReference *fr, class ExceptionSink *xsink) const;
       DLLEXPORT void splice(int offset, class ExceptionSink *xsink);
       DLLEXPORT void splice(int offset, int length, class ExceptionSink *xsink);
       DLLEXPORT void splice(int offset, int length, class QoreNode *l, class ExceptionSink *xsink);

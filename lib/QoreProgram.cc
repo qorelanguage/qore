@@ -203,9 +203,6 @@ void QoreProgram::del(class ExceptionSink *xsink)
    // wait for all threads to terminate
    tcount.waitForZero();
 
-   // remove all signal handlers
-   removeSignalHandlers();
-   
    // have to delete global variables first because of destructors.
    // method call can be repeated
    global_var_list.delete_all(xsink);
@@ -228,25 +225,6 @@ void QoreProgram::del(class ExceptionSink *xsink)
       pthread_key_delete(thread_local_storage);
       base_object = false;
    }
-}
-
-void QoreProgram::removeSignalHandlers()
-{
-   for (int_set_t::iterator i = sig_set.begin(), e = sig_set.end(); i != e; ++i)
-      QoreSignalManager::removeHandlerFromProgram(*i);
-   sig_set.clear();
-}
-
-void QoreProgram::registerSignalHandler(int sig)
-{
-   assert(sig_set.find(sig) == sig_set.end());
-   sig_set.insert(sig);
-}
-
-void QoreProgram::deregisterSignalHandler(int sig)
-{
-   assert(sig_set.find(sig) != sig_set.end());
-   sig_set.erase(sig);
 }
 
 class Var *QoreProgram::findVar(const char *name)
@@ -738,6 +716,56 @@ void QoreProgram::resolveFunction(class FunctionCall *f)
 
    // cannot find function, throw exception
    parse_error("function '%s()' cannot be found", fname);
+   traceout("QoreProgram::resolveFunction()");
+}
+
+// called during parsing (plock already grabbed)
+void QoreProgram::resolveFunctionReference(class FunctionReference *fr)
+{
+   tracein("QoreProgram::resolveFunctionReference()");
+   char *fname = fr->f.str;
+   
+   class UserFunction *ufc;
+   if ((ufc = user_func_list.find(fname)))
+   {
+      printd(5, "resolved function reference to user function %s\n", fname);
+      fr->type = FC_USER;
+      fr->f.user.set(ufc, this);
+      free(fname);
+      traceout("QoreProgram::resolveFunction()");
+      return;
+   }
+   
+   class ImportedFunctionNode *ifn;
+   if ((ifn = imported_func_list.findNode(fname)))
+   {
+      printd(5, "resolved function reference to imported function %s (pgm=%08p, func=%08p)\n",
+	     fname, ifn->pgm, ifn->func);
+      fr->type = FC_IMPORTED;
+      fr->f.ifunc = new ImportedFunctionCall(ifn->pgm, ifn->func);
+      free(fname);
+      traceout("QoreProgram::resolveFunction()");
+      return;
+   }
+   
+   class BuiltinFunction *bfc;
+   if ((bfc = builtinFunctions.find(fname)))
+   {
+      printd(5, "resolved function reference to builtin function to %s\n", fname);
+      fr->type = FC_BUILTIN;
+      fr->f.bf = bfc;
+      
+      // check parse options to see if access is allowed
+      if (bfc->getType() & parse_options)
+	 parse_error("parse options do not allow access to builtin function '%s'", fname);
+      
+      free(fname);
+      traceout("QoreProgram::resolveFunction()");
+      return;
+   }
+   
+   // cannot find function, throw exception
+   parse_error("reference to function '%s()' cannot be resolved", fname);
    traceout("QoreProgram::resolveFunction()");
 }
 

@@ -31,6 +31,7 @@
 #include <qore/Exception.h>
 #include <qore/ReferenceHolder.h>
 #include <qore/support.h>
+#include <qore/FunctionReference.h>
 
 #include <stdlib.h>
 #include <string.h>
@@ -403,7 +404,7 @@ static inline class QoreNode *do_args(QoreNode *e1, QoreNode *e2)
 }
 
 // mergesort for controlled and interruptible sorts (stable)
-int List::mergesort(class QoreProgram *pgm, class UserFunction *f, class ExceptionSink *xsink)
+int List::mergesort(const class AbstractFunctionReference *fr, class ExceptionSink *xsink)
 {
    //printd(5, "List::mergesort() ENTER this=%08p, pgm=%08p, f=%08p length=%d\n", this, pgm, f, length);
    
@@ -425,7 +426,7 @@ int List::mergesort(class QoreProgram *pgm, class UserFunction *f, class Excepti
    length = 0;
 
    // mergesort the two lists
-   if (left.mergesort(pgm, f, xsink) || right.mergesort(pgm, f, xsink))
+   if (left.mergesort(fr, xsink) || right.mergesort(fr, xsink))
       return -1;
 
    // merge the resulting lists
@@ -436,7 +437,7 @@ int List::mergesort(class QoreProgram *pgm, class UserFunction *f, class Excepti
       class QoreNode *l = left.entry[li];
       class QoreNode *r = right.entry[ri];
       safe_qorenode_t args(do_args(l, r), xsink);
-      safe_qorenode_t rv(pgm->callFunction(f, *args, xsink), xsink);
+      safe_qorenode_t rv(fr->exec(*args, xsink), xsink);
       if (xsink->isEvent())
 	 return -1;
       int rc = *rv ? rv->getAsInt() : 0;
@@ -458,7 +459,7 @@ int List::mergesort(class QoreProgram *pgm, class UserFunction *f, class Excepti
 }
 
 // quicksort for controlled and interruptible sorts (unstable)
-int List::qsort(class QoreProgram *pgm, class UserFunction *f, int left, int right, class ExceptionSink *xsink)
+int List::qsort(const class AbstractFunctionReference *fr, int left, int right, class ExceptionSink *xsink)
 {
    int l_hold = left;
    int r_hold = right;
@@ -469,7 +470,7 @@ int List::qsort(class QoreProgram *pgm, class UserFunction *f, int left, int rig
       while (true)
       {
 	 safe_qorenode_t args(do_args(entry[right], pivot), xsink);
-	 safe_qorenode_t rv(pgm->callFunction(f, *args, xsink), xsink);
+	 safe_qorenode_t rv(fr->exec(*args, xsink), xsink);
 	 if (xsink->isEvent())
 	    return -1;
 	 int rc = *rv ? rv->getAsInt() : 0;
@@ -488,7 +489,7 @@ int List::qsort(class QoreProgram *pgm, class UserFunction *f, int left, int rig
       while (true)
       {
 	 safe_qorenode_t args(do_args(entry[left], pivot), xsink);
-	 safe_qorenode_t rv(pgm->callFunction(f, *args, xsink), xsink);
+	 safe_qorenode_t rv(fr->exec(*args, xsink), xsink);
 	 if (xsink->isEvent())
 	    return -1;
 	 int rc = *rv ? rv->getAsInt() : 0;
@@ -510,24 +511,17 @@ int List::qsort(class QoreProgram *pgm, class UserFunction *f, int left, int rig
    right = r_hold;
    int rc = 0;
    if (left < t_left)
-      rc = qsort(pgm, f, left, t_left - 1, xsink);
+      rc = qsort(fr, left, t_left - 1, xsink);
    if (!rc && right > t_left)
-      rc = qsort(pgm, f, t_left + 1, right, xsink);
+      rc = qsort(fr, t_left + 1, right, xsink);
    return rc;
 }
 
-class QoreNode *List::sort(const char *sort_function_name, class ExceptionSink *xsink) const
+class QoreNode *List::sort(const class AbstractFunctionReference *fr, class ExceptionSink *xsink) const
 {   
-   QoreProgram *pgm = getProgram();
-   class UserFunction *f = pgm->findUserFunction(sort_function_name);
-   if (!f)
-   {
-      xsink->raiseException("LIST-CALLBACK-ERROR", "sort callback function '%s()' does not exist", sort_function_name);
-      return NULL;
-   }
    QoreNode *rv = copy();
    if (length)
-      if (rv->val.list->qsort(pgm, f, 0, length - 1, xsink))
+      if (rv->val.list->qsort(fr, 0, length - 1, xsink))
       {
 	 rv->deref(xsink);
 	 rv = NULL;
@@ -551,18 +545,11 @@ class QoreNode *List::sortDescendingStable() const
    return rv;
 }
 
-class QoreNode *List::sortStable(const char *sort_function_name, class ExceptionSink *xsink) const
+class QoreNode *List::sortStable(const class AbstractFunctionReference *fr, class ExceptionSink *xsink) const
 {   
-   QoreProgram *pgm = getProgram();
-   class UserFunction *f = pgm->findUserFunction(sort_function_name);
-   if (!f)
-   {
-      xsink->raiseException("LIST-CALLBACK-ERROR", "sort callback function '%s()' does not exist", sort_function_name);
-      return NULL;
-   }
    QoreNode *rv = copy();
    if (length)
-      if (rv->val.list->mergesort(pgm, f, xsink))
+      if (rv->val.list->mergesort(fr, xsink))
       {
 	 rv->deref(xsink);
 	 rv = NULL;
@@ -771,16 +758,8 @@ class QoreNode *List::max() const
    return rv ? rv->RefSelf() : NULL;
 }
 
-class QoreNode *List::min(const char *callback_function_name, class ExceptionSink *xsink) const
+class QoreNode *List::min(const class AbstractFunctionReference *fr, class ExceptionSink *xsink) const
 {
-   class QoreProgram *pgm = getProgram();
-   class UserFunction *f = pgm->findUserFunction(callback_function_name);
-   if (!f)
-   {
-      xsink->raiseException("LIST-CALLBACK-ERROR", "callback function '%s()' does not exist", callback_function_name);
-      return NULL;
-   }
-
    class QoreNode *rv = NULL;
 
    for (int i = 0; i < length; i++)
@@ -792,7 +771,7 @@ class QoreNode *List::min(const char *callback_function_name, class ExceptionSin
       else
       {
 	 safe_qorenode_t args(do_args(v, rv), xsink);
-	 safe_qorenode_t result(pgm->callFunction(f, *args, xsink), xsink);
+	 safe_qorenode_t result(fr->exec(*args, xsink), xsink);
 	 if (xsink->isEvent())
 	    return NULL;
 	 if (*result ? result->getAsInt() < 0 : false)
@@ -802,16 +781,8 @@ class QoreNode *List::min(const char *callback_function_name, class ExceptionSin
    return rv ? rv->RefSelf() : NULL;
 }
 
-class QoreNode *List::max(const char *callback_function_name, class ExceptionSink *xsink) const
+class QoreNode *List::max(const class AbstractFunctionReference *fr, class ExceptionSink *xsink) const
 {
-   class QoreProgram *pgm = getProgram();
-   class UserFunction *f = pgm->findUserFunction(callback_function_name);
-   if (!f)
-   {
-      xsink->raiseException("LIST-CALLBACK-ERROR", "callback function '%s()' does not exist", callback_function_name);
-      return NULL;
-   }
-
    class QoreNode *rv = NULL;
 
    for (int i = 0; i < length; i++)
@@ -823,7 +794,7 @@ class QoreNode *List::max(const char *callback_function_name, class ExceptionSin
       else
       {
 	 safe_qorenode_t args(do_args(v, rv), xsink);
-	 safe_qorenode_t result(pgm->callFunction(f, *args, xsink), xsink);
+	 safe_qorenode_t result(fr->exec(*args, xsink), xsink);
 	 if (xsink->isEvent())
 	    return NULL;
 	 if (*result ? result->getAsInt() > 0 : false)

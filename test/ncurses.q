@@ -116,7 +116,7 @@ class ncurses_test {
 	$.tc.broadcast();
 	$.t.waitForZero();
     }
-    
+
     private move_test()
     {
 	my $y = new Panel(8, 50, 7, 15);
@@ -124,7 +124,7 @@ class ncurses_test {
 	$y.setForegroundColor(COLOR_WHITE);
 	$y.mvaddstr(2, 1, "move=arrow keys or mouse, q=quit: ");
 	$y.refresh();
-    
+
 	while ((my $c = $y.getch()) != ord("q"))
 	{
 	    #$y.printw("y=%d, x=%d\n", $y.getBegY(), $y.getBegX());

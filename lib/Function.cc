@@ -87,7 +87,21 @@ SelfFunctionCall::~SelfFunctionCall()
       delete ns;
 }
 
-inline class QoreNode *SelfFunctionCall::eval(class QoreNode *args, class ExceptionSink *xsink)
+char *SelfFunctionCall::takeName()
+{
+   char *n = name;
+   name = 0;
+   return n;
+}
+
+class NamedScope *SelfFunctionCall::takeNScope()
+{
+   NamedScope *rns = ns;
+   ns = 0;
+   return rns;
+}
+
+class QoreNode *SelfFunctionCall::eval(class QoreNode *args, class ExceptionSink *xsink)
 {
    class Object *self = getStackObject();
    if (func)
@@ -195,6 +209,13 @@ FunctionCall::FunctionCall(class QoreProgram *p, class UserFunction *u, class Qo
    args = a;
 }
 
+FunctionCall::FunctionCall(char *n_c_str)
+{
+   type = FC_METHOD;
+   f.c_str = n_c_str;
+   args = NULL;
+}
+
 FunctionCall::~FunctionCall()
 {
    printd(5, "FunctionCall::~FunctionCall(): type=%d args=%08p (%s)\n",
@@ -224,6 +245,13 @@ FunctionCall::~FunctionCall()
 	 delete f.ifunc;
 	 break;
    }
+}
+
+char *FunctionCall::takeName()
+{
+   char *str = f.c_str;
+   f.c_str = 0;
+   return str;
 }
 
 void FunctionCall::parseMakeMethod()

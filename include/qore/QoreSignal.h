@@ -44,17 +44,16 @@
 #endif
 
 class QoreSignalHandler {
-   class QoreProgram *pgm;
-   class UserFunction *f;
-
+   class AbstractFunctionReference *funcref;
+   
 public:
    DLLLOCAL void init();
-   DLLLOCAL void set(int sig, class QoreProgram *n_pgm, class UserFunction *n_f);
-   DLLLOCAL void del(int sig);
+   DLLLOCAL void set(int sig, class AbstractFunctionReference *n_funcref);
+   DLLLOCAL void del(int sig, class ExceptionSink *xsink);
    void runHandler(int sig, class ExceptionSink *xsink);
    bool isSet() const
    {
-      return (bool)f;
+      return (bool)funcref;
    }
 };
 
@@ -71,9 +70,8 @@ class QoreSignalManager
    public:
       DLLLOCAL QoreSignalManager();
       DLLLOCAL ~QoreSignalManager();
-      DLLLOCAL static void setHandler(int sig, class QoreProgram *pgm, class UserFunction *f);
-      DLLLOCAL static int removeHandler(int sig);
-      DLLLOCAL static int removeHandlerFromProgram(int sig);
+      DLLLOCAL static void setHandler(int sig, class AbstractFunctionReference *fr);
+      DLLLOCAL static int removeHandler(int sig, class ExceptionSink *xsink);
       DLLLOCAL static void handleSignals();
       DLLLOCAL static void addSignalConstants(class Namespace *ns);
       DLLLOCAL static const char *getSignalName(int sig);

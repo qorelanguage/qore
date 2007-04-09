@@ -48,6 +48,8 @@
 #include <qore/SwitchStatementWithOperators.h>
 #include <qore/OnBlockExitStatement.h>
 #include <qore/Tree.h>
+#include <qore/FunctionReference.h>
+#include <qore/ObjectMethodReference.h>
 
 #include "parser.h"
 
@@ -391,8 +393,8 @@ bool needsEval(class QoreNode *n)
 
 static bool hasEffect(class QoreNode *n)
 {
-   // check for statements with no effect and issue parser error
-   if (n->type == NT_FUNCTION_CALL || n->type ==  NT_FIND)
+   // check for expressions with no effect
+   if (n->type == NT_FUNCTION_CALL || n->type == NT_FIND || n->type == NT_FUNCREFCALL)
       return true;
 
    if (n->type == NT_TREE)
@@ -461,7 +463,6 @@ struct MethodNode {
 	 delete this;
       }
 };
-
 
 %}
 
@@ -631,7 +632,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str)
 %token <Regex> REGEX "regular expression expression"
 %token <Regex> REGEX_EXTRACT "regular expression extraction expression"
 
-%nonassoc IFX
+%nonassoc IFX SCOPED_REF
 %nonassoc TOK_ELSE
 
 // FIXME: check precedence
@@ -655,7 +656,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str)
 %left '!'		      // logical not
 %right TOK_NEW TOK_BACKGROUND
 %nonassoc P_INCREMENT P_DECREMENT
-%left '{' '[' '.'             // list and object references, defined for precedence
+%left '{' '[' '.' '('         // list and object references, etc, defined for precedence
 
 %type <sblock>      block
 %type <sblock>      statement_or_block
@@ -666,9 +667,6 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str)
 %type <node>        exp
 %type <node>        myexp
 %type <node>        scalar
-%type <node>        function_call
-%type <node>        scoped_object_call
-%type <node>        self_function_call
 %type <node>        hash
 %type <node>        list
 %type <hashelement> hash_element
@@ -700,7 +698,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str)
  // destructor actions for elements that need deleting when parse errors occur
 %destructor { if ($$) delete $$; } BINARY DATETIME QUOTED_WORD REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod method_definition object_def top_namespace_decl namespace_decls namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor private_member_list member_list base_constructor_list base_constructors class_attributes
 %destructor { if ($$) $$->deref(); } superclass_list inheritance_list
-%destructor { if ($$) $$->deref(NULL); } exp myexp scalar function_call scoped_object_call self_function_call hash list
+%destructor { if ($$) $$->deref(NULL); } exp myexp scalar hash list
 %destructor { free($$); } IDENTIFIER VAR_REF SELF_REF CONTEXT_REF COMPLEX_CONTEXT_REF BACKQUOTE SCOPED_REF KW_IDENTIFIER_OPENPAREN optname
 
 %%
@@ -1354,43 +1352,6 @@ sub_def:
 	}
 	;
 
-function_call:
-	IDENTIFIER '(' myexp ')'
-        {
-	   printd(5, "parsing call %s()\n", $1);
-	   $$ = new QoreNode($1, makeArgs($3));
-        }
-        | KW_IDENTIFIER_OPENPAREN myexp ')'
-        {
-	   printd(5, "parsing call %s()\n", $1);
-	   $$ = new QoreNode($1, makeArgs($2));
-        }
-        ;
-
-scoped_object_call:
-	SCOPED_REF '(' myexp ')'
-        {
-	   printd(5, "parsing scoped class call (for new) %s()\n", $1);
-	   $$ = new QoreNode(new NamedScope($1), makeArgs($3));
-        }
-        ;
-
-self_function_call:
-	SELF_REF '(' myexp ')'
-        {
-	   printd(5, "parsing in-object method call %s()\n", $1);
-	   $$ = new QoreNode(makeArgs($3), $1);
-        }
-        | BASE_CLASS_CALL '(' myexp ')'
-        {
-	   printd(5, "parsing in-object base class method call %s()\n", $1->ostr);
-	   if (!strcmp($1->getIdentifier(), "copy"))
-	      parse_error("illegal call to base class copy method '%s'", $1->ostr);
-
-	   $$ = new QoreNode(makeArgs($3), $1);
-	}
-        ;
-
 list:
 	exp ',' exp
         { $$ = splice_expressions($1, $3); }
@@ -1439,9 +1400,7 @@ exp:    scalar
 	| '(' hash ')'
 	{ $$ = $2; }
         | SCOPED_REF
-        { 
-	   $$ = new QoreNode(new NamedScope($1)); 
-	}
+        { $$ = new QoreNode(new NamedScope($1)); }
         | VAR_REF
         { $$ = new QoreNode(NT_VARREF); $$->val.vref = new VarRef($1, VT_UNRESOLVED); }
         | TOK_MY VAR_REF
@@ -1779,8 +1738,72 @@ exp:    scalar
 	   else
 	      $$ = makeTree(OP_POST_DECREMENT, $1, NULL);
         }
-        | function_call		     { $$ = $1; }
-        | self_function_call         { $$ = $1; }
+	| exp '(' myexp ')'
+        {
+	   //printd(5, "1=%s (%08p), 3=%s (%08p)\n", $1->type->getName(), $1, $3 ? $3->type->getName() : "n/a", $3); 
+	   if ($1->type == NT_BAREWORD)
+	   {
+	      // take string from node and delete node
+	      char *str = $1->val.c_str;
+	      $1->val.c_str = 0;
+	      $1->deref(0);
+	      printd(5, "parsing call %s()\n", str);
+	      $$ = new QoreNode(str, makeArgs($3));
+	   }
+	   else if ($1->type == NT_CONSTANT)
+	   {
+	      // take NamedScope from node and delete node
+	      NamedScope *ns = $1->val.scoped_ref;
+	      $1->val.scoped_ref = 0;
+	      $1->deref(0);
+	      printd(5, "parsing scoped class call (for new) %s()\n", ns->ostr);
+	      $$ = new QoreNode(ns, makeArgs($3));	      
+	   }
+	   else if ($1->type == NT_SELF_VARREF)
+	   {
+	      // take string from node and delete node
+	      char *str = $1->val.c_str;
+	      $1->val.c_str = 0;
+	      $1->deref(0);
+	      printd(5, "parsing in-object method call %s()\n", str);
+	      $$ = new QoreNode(makeArgs($3), str);
+	   }
+	   else if ($1->type == NT_TREE && $1->val.tree->op == OP_OBJECT_REF
+		    && $1->val.tree->right && $1->val.tree->right->type == NT_STRING)
+	   {
+	      // create an object method call node
+	      //printd(5, "tree=%s, right=%s\n", $1->val.tree->left->type->getName(), $1->val.tree->right->type->getName());
+
+	      // take the string
+	      class QoreNode *r = $1->val.tree->right;
+	      class QoreString *str = r->val.String;
+	      r->val.String = 0;
+	      r->deref(0);
+	      char *cstr = str->giveBuffer();
+	      delete str;
+
+	      FunctionCall *fc = new FunctionCall(cstr);
+	      fc->args = makeArgs($3);
+	      $1->val.tree->right = new QoreNode(fc);
+	      $1->val.tree->op = OP_OBJECT_FUNC_REF;
+	      $$ = $1;
+	   }
+	   else
+	      $$ = new QoreNode(new FunctionReferenceCall($1, makeArgs($3)));
+	}
+        | BASE_CLASS_CALL '(' myexp ')'
+        {
+	   printd(5, "parsing in-object base class method call %s()\n", $1->ostr);
+	   if (!strcmp($1->getIdentifier(), "copy"))
+	      parse_error("illegal call to base class copy method '%s'", $1->ostr);
+
+	   $$ = new QoreNode(makeArgs($3), $1);
+	}
+        | KW_IDENTIFIER_OPENPAREN myexp ')'
+        {
+	   printd(5, "parsing call %s()\n", $1);
+	   $$ = new QoreNode($1, makeArgs($2));
+        }
         | SELF_REF                   { $$ = new QoreNode(NT_SELF_VARREF); $$->val.c_str = $1; }
 	| exp LOGICAL_AND exp	     { $$ = makeTree(OP_LOG_AND, $1, $3); }
 	| exp LOGICAL_OR exp	     { $$ = makeTree(OP_LOG_OR, $1, $3); }
@@ -1857,27 +1880,85 @@ exp:    scalar
 	| '-' exp %prec NEG	     { $$ = makeTree(OP_UNARY_MINUS, $2, NULL); }
         | '~' exp		     { $$ = makeTree(OP_BIN_NOT, $2, NULL); }
         | '!' exp                    { $$ = makeTree(OP_NOT, $2, NULL); }
-        | '\\' exp                   
-        { 
-	   $$ = new QoreNode(NT_REFERENCE);
-	   $$->val.lvexp = $2;
-	   if (check_lvalue($2))
-	      parse_error("argument to reference operator is not an lvalue");
-	}
-	| TOK_NEW function_call      
+        | '\\' exp
         {
-	   $$ = makeTree(OP_NEW, $2->val.fcall->parseMakeNewObject(), NULL);
-	   $2->deref(NULL);
-	   // see if new can be used
-	   if (checkParseOption(PO_NO_NEW))
-	      parse_error("illegal use of the \"new\" operator (conflicts with parse option NO_NEW)");
+	   if ($2->type == NT_FUNCTION_CALL)
+	   {
+	      if ($2->val.fcall->args)
+	      {
+		 parse_error("argument given to call reference");
+		 $$ = $2;
+	      }
+	      else
+	      {
+		 if ($2->val.fcall->type == FC_UNRESOLVED)
+		    $$ = new QoreNode(new FunctionReference($2->val.fcall->takeName()));
+		 else // must be self call
+		 {
+		    assert($2->val.fcall->type == FC_SELF);
+		    if ($2->val.fcall->f.sfunc->name)
+		       $$ = new QoreNode(new ParseSelfMethodReference($2->val.fcall->f.sfunc->takeName()));
+		    else
+		    {
+		       assert($2->val.fcall->f.sfunc->ns);
+		       $$ = new QoreNode(new ParseScopedSelfMethodReference($2->val.fcall->f.sfunc->takeNScope()));
+		    }
+		 }
+		 $2->deref(NULL);
+	      }
+	   }
+	   else if ($2->type == NT_TREE && $2->val.tree->op == OP_OBJECT_FUNC_REF
+		    && $2->val.tree->right->val.fcall->type == FC_METHOD)
+	   {
+	      if ($2->val.tree->right->val.fcall->args)
+	      {
+		 parse_error("argument given to call reference");
+		 $$ = $2;
+	      }
+	      else
+	      {
+		 // take components of tree and delete tree
+		 class QoreNode *exp = $2->val.tree->left;
+		 $2->val.tree->left = 0;
+		 char *meth = $2->val.tree->right->val.fcall->takeName();
+		 delete $2->val.tree->right->val.fcall;
+		 // $2->val.right->val.fcall = 0;
+		 $2->val.tree->right = 0;
+		 $2->deref(0);
+		 $$ = new QoreNode(new ParseObjectMethodReference(exp, meth));
+	      }
+	   }
+	   else
+	   {
+	      //printd(5, "type=%s\n", $2->type->getName());
+	      $$ = new QoreNode(NT_REFERENCE);
+	      $$->val.lvexp = $2;
+	      if (check_lvalue($2))
+		 parse_error("argument to reference operator is not an lvalue or a function or method");
+	   }
 	}
-        | TOK_NEW scoped_object_call 
-        { 
-	   $$ = makeTree(OP_NEW, $2, NULL); 
-	   // see if new can be used
-	   if (checkParseOption(PO_NO_NEW))
-	      parse_error("illegal use of the \"new\" operator (conflicts with parse option NO_NEW)");
+        | TOK_NEW exp //function_call
+        {
+	   if ($2->type == NT_SCOPE_REF)
+	   { 
+	      $$ = makeTree(OP_NEW, $2, NULL); 
+	      // see if new can be used
+	      if (checkParseOption(PO_NO_NEW))
+		 parse_error("illegal use of the \"new\" operator (conflicts with parse option NO_NEW)");
+	   }
+	   else if ($2->type != NT_FUNCTION_CALL)
+	   {
+	      parse_error("invalid expression after 'new' operator");
+	      $$ = $2;
+	   }
+	   else
+	   {
+	      $$ = makeTree(OP_NEW, $2->val.fcall->parseMakeNewObject(), NULL);
+	      $2->deref(NULL);
+	      // see if new can be used
+	      if (checkParseOption(PO_NO_NEW))
+		 parse_error("illegal use of the \"new\" operator (conflicts with parse option NO_NEW)");
+	   }
 	}
 	| TOK_BACKGROUND exp	     
 	{

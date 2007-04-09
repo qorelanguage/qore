@@ -286,31 +286,33 @@ int process_node(class QoreNode **node, lvh_t oflag, int pflag)
    int current_pflag = pflag;
    pflag &= ~PF_REFERENCE_OK;  // unset "reference ok" for next call
 
-   printd(4, "process_node() %08p type=%s cp=%d, p=%d\n", *node, *node ? (*node)->type->getName() : "(null)", current_pflag, pflag);
+   //printd(5, "process_node() %08p type=%s cp=%d, p=%d\n", *node, *node ? (*node)->type->getName() : "(null)", current_pflag, pflag);
    if (!(*node))
       return 0;
 
    if ((*node)->type == NT_REFERENCE)
    {
-       // otherwise throw a parse exception if an illegal reference is used
-       if (!(current_pflag & PF_REFERENCE_OK))
-	  parse_error("the reference operator can only be used in function and method call argument lists and in foreach statements");
-       else
-       {
-	  lvids = process_node(&((*node)->val.lvexp), oflag, pflag);
-	  // if a background expression is being parsed, then check that no references to local variables
-	  // or object members are being used
-	  if (pflag & PF_BACKGROUND)
-	  {
-	     int vtype = getBaseLVType((*node)->val.lvexp);
+      // otherwise throw a parse exception if an illegal reference is used
+      if (!(current_pflag & PF_REFERENCE_OK))
+      {	 
+	 parse_error("the reference operator can only be used in function and method call argument lists and in foreach statements");
+      }
+      else
+      {
+	 lvids = process_node(&((*node)->val.lvexp), oflag, pflag);
+	 // if a background expression is being parsed, then check that no references to local variables
+	 // or object members are being used
+	 if (pflag & PF_BACKGROUND)
+	 {
+	    int vtype = getBaseLVType((*node)->val.lvexp);
 
-	     if (vtype == VT_LOCAL)
-		parse_error("the reference operator cannot be used with local variables in a background expression");
+	    if (vtype == VT_LOCAL)
+	       parse_error("the reference operator cannot be used with local variables in a background expression");
 	     //else if (vtype == VT_OBJECT)
 	     //parse_error("the reference operator cannot be used with object members in a background expression");
-	  }
-       }
-       return lvids;
+	 }
+      }
+      return lvids;
    }
    
    if ((*node)->type == NT_VARREF)
@@ -543,7 +545,13 @@ int process_node(class QoreNode **node, lvh_t oflag, int pflag)
    
    if ((*node)->type == NT_CLASSREF)
       (*node)->val.classref->resolve();
-
+   else if ((*node)->type == NT_OBJMETHREF)
+      (*node)->val.objmethref->parseInit(oflag, pflag);
+   else if ((*node)->type == NT_FUNCREF)
+      (*node)->val.funcref->resolve();
+   else if ((*node)->type == NT_FUNCREFCALL)
+      (*node)->val.funcrefcall->parseInit(oflag, pflag);
+   
    return lvids;
 }
 

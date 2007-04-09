@@ -341,6 +341,42 @@ QoreNode::QoreNode(class ComplexContextRef *ccref)
 #endif
 }
 
+QoreNode::QoreNode(class FunctionReferenceCall *frc)
+{
+   type = NT_FUNCREFCALL;
+   val.funcrefcall = frc;
+#if TRACK_REFS
+   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, type->getName());
+#endif
+}
+
+QoreNode::QoreNode(class AbstractFunctionReference *afr)
+{
+   type = NT_FUNCREF;
+   val.funcref = afr;
+#if TRACK_REFS
+   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, type->getName());
+#endif
+}
+
+QoreNode::QoreNode(class AbstractParseObjectMethodReference *objmethref)
+{
+   type = NT_OBJMETHREF;
+   val.objmethref = objmethref;
+#if TRACK_REFS
+   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, type->getName());
+#endif
+}
+
+QoreNode::QoreNode(class FunctionCall *fc)
+{
+   type = NT_FUNCTION_CALL;
+   val.fcall = fc;
+#if TRACK_REFS
+   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, type->getName());
+#endif
+}
+
 class QoreNode *QoreNode::convert(class QoreType *new_type)
 {
    if (type == new_type)
@@ -380,7 +416,7 @@ void QoreNode::deref(ExceptionSink *xsink)
 #ifdef DEBUG
 #if TRACK_REFS
    printd(5, "QoreNode::deref() %08p type=%s (%d->%d)\n", this, type->getName(), references, references - 1);
-   if (type == NT_STRING) printd(5, "QoreNode::deref() %08p string='%s'\n", this, val.String->getBuffer());
+   if (type == NT_STRING) printd(5, "QoreNode::deref() %08p string='%s'\n", this, val.String ? val.String->getBuffer() : "(null)");
 #endif
    if (references > 51200)
       if (type == NT_INT)
@@ -402,7 +438,9 @@ void QoreNode::deref(ExceptionSink *xsink)
 	 val.hash->dereference(xsink);
       else if (type == NT_OBJECT)
 	 val.object->dereference(xsink);
-
+      else if (type == NT_FUNCREF)
+	 val.funcref->del(xsink);
+	 
       // now delete this QoreNode
       delete this;
    }

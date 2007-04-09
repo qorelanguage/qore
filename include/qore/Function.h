@@ -66,11 +66,11 @@ class SelfFunctionCall {
       DLLLOCAL ~SelfFunctionCall();
       DLLLOCAL class QoreNode *eval(class QoreNode *args, class ExceptionSink *xsink);
       DLLLOCAL void resolve();
+      DLLLOCAL char *takeName();
+      DLLLOCAL class NamedScope *takeNScope();
 };
 
 class FunctionCall {
-   private:
-
    public:
       union uFCall {
 	    class UserFunction *ufunc;
@@ -92,7 +92,9 @@ class FunctionCall {
 
       // normal function call constructor
       DLLLOCAL FunctionCall(char *name, class QoreNode *a);
-
+      // method call constructor
+      DLLLOCAL FunctionCall(char *n_c_str);
+      
       DLLLOCAL FunctionCall(class QoreProgram *p, class UserFunction *u, class QoreNode *a);
       DLLLOCAL ~FunctionCall();
 
@@ -103,6 +105,7 @@ class FunctionCall {
       DLLLOCAL int existsUserParam(int i) const;
       DLLLOCAL int getType() const;
       DLLLOCAL const char *getName() const;
+      DLLLOCAL char *takeName();
 };
 
 // object definitions and interfaces

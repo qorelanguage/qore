@@ -82,6 +82,12 @@ union node_u {
       class RegexTrans *retrans;
       // for class references
       class ClassRef *classref;
+      // for object method references
+      class AbstractParseObjectMethodReference *objmethref;
+      // for function references
+      class AbstractFunctionReference *funcref;
+      // for function reference calls
+      class FunctionReferenceCall *funcrefcall;
 };
 
 class QoreNode : public ReferenceObject
@@ -136,7 +142,11 @@ class QoreNode : public ReferenceObject
       DLLLOCAL QoreNode(class LVRef *lvref);
       DLLLOCAL QoreNode(class QoreRegex *r);
       DLLLOCAL QoreNode(class Tree *t);
-
+      DLLLOCAL QoreNode(class FunctionReferenceCall *frc);
+      DLLLOCAL QoreNode(class AbstractFunctionReference *afr);
+      DLLLOCAL QoreNode(class AbstractParseObjectMethodReference *objmethref);
+      DLLLOCAL QoreNode(class FunctionCall *fc);
+      
       DLLLOCAL bool needs_eval();
       DLLLOCAL class QoreNode *realCopy(class ExceptionSink *xsink);
       DLLLOCAL class QoreNode *eval(class ExceptionSink *xsink);

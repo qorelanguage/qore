@@ -85,7 +85,6 @@ class QoreProgram : public AbstractPrivateData
       DLLLOCAL int internParsePending(const char *code, const char *label);
       DLLLOCAL class Hash *clearThreadData(class ExceptionSink *xsink);
       DLLLOCAL void del(class ExceptionSink *xsink);
-      DLLLOCAL void removeSignalHandlers();
       
    protected:
       DLLLOCAL virtual ~QoreProgram();
@@ -140,6 +139,7 @@ class QoreProgram : public AbstractPrivateData
       DLLLOCAL QoreProgram(class QoreProgram *pgm, int po, bool ec = false, const char *ecn = NULL);
       DLLLOCAL void registerUserFunction(class UserFunction *u);
       DLLLOCAL void resolveFunction(class FunctionCall *f);      
+      DLLLOCAL void resolveFunctionReference(class FunctionReference *fr);      
       DLLLOCAL void addGlobalVarDef(const char *name);
       DLLLOCAL void addStatement(class AbstractStatement *s);
       DLLLOCAL class Var *findVar(const char *name);
@@ -173,9 +173,6 @@ class QoreProgram : public AbstractPrivateData
       {
 	 return &plock;
       }
-      // the following functions are only called by QoreSignalManager within its lock
-      DLLLOCAL void registerSignalHandler(int sig);
-      DLLLOCAL void deregisterSignalHandler(int sig);
 };
 
 DLLLOCAL void addProgramConstants(class Namespace *ns);

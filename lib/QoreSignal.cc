@@ -39,24 +39,21 @@ extern "C" void sighandler(int sig) //, siginfo_t *info, ucontext_t *uap)
 }
 
 // must be called in the signal lock
-void QoreSignalHandler::set(int sig, class QoreProgram *n_pgm, class UserFunction *n_f)
+void QoreSignalHandler::set(int sig, class AbstractFunctionReference *n_funcref)
 {
-   pgm = n_pgm;
-   f = n_f;
-   pgm->registerSignalHandler(sig);
+   funcref = n_funcref->copy();
 }
 
 void QoreSignalHandler::init()
 {
-   pgm = NULL;
-   f = NULL;
+   funcref = 0;
 }
 
 // must be called in the signal lock
-void QoreSignalHandler::del(int sig)
+void QoreSignalHandler::del(int sig, class ExceptionSink *xsink)
 {
-   if (pgm)
-      pgm->deregisterSignalHandler(sig);
+   if (funcref)
+      funcref->del(xsink);
    init();
 }
 
@@ -66,9 +63,7 @@ void QoreSignalHandler::runHandler(int sig, class ExceptionSink *xsink)
    class List *l = new List();
    l->push(new QoreNode((int64)sig));
    class QoreNode *args = new QoreNode(l);
-   pushProgram(pgm);
-   f->eval(args, NULL, xsink);
-   popProgram();
+   discard(funcref->exec(args, xsink), xsink);
    args->deref(xsink);
 }
 
@@ -86,7 +81,7 @@ QoreSignalManager::~QoreSignalManager()
 {
 }
 
-void QoreSignalManager::setHandler(int sig, class QoreProgram *pgm, class UserFunction *f)
+void QoreSignalManager::setHandler(int sig, class AbstractFunctionReference *fr)
 {
    bool already_set = false;
 
@@ -99,7 +94,7 @@ void QoreSignalManager::setHandler(int sig, class QoreProgram *pgm, class UserFu
    }
 
    //printd(5, "setting handler for signal %d, pgm=%08p\n", sig, pgm);
-   handlers[sig].set(sig, pgm, f);
+   handlers[sig].set(sig, fr);
    sl.unlock();
 
    if (!already_set)
@@ -112,27 +107,7 @@ void QoreSignalManager::setHandler(int sig, class QoreProgram *pgm, class UserFu
    }
 }
 
-int QoreSignalManager::removeHandlerFromProgram(int sig)
-{
-   SafeLocker sl(&mutex);
-   
-   if (!handlers[sig].isSet())
-      return 0;
-
-   //printd(5, "removing handler for signal %d\n", sig);
-   handlers[sig].init();
-   sl.unlock();
-   
-   struct sigaction sa;
-   sa.sa_handler = (sig == SIGPIPE ? SIG_IGN : SIG_DFL);
-   sigemptyset(&sa.sa_mask);
-   sa.sa_flags = SA_RESTART;
-   sigaction(sig, &sa, NULL);
-      
-   return 0;
-}
-
-int QoreSignalManager::removeHandler(int sig)
+int QoreSignalManager::removeHandler(int sig, class ExceptionSink *xsink)
 {
    AutoLocker al(&mutex);
 
@@ -148,7 +123,7 @@ int QoreSignalManager::removeHandler(int sig)
    sigaction(sig, &sa, NULL);
 
    // must be called in the signal lock
-   handlers[sig].del(sig);
+   handlers[sig].del(sig, xsink);
 
    return 0;
 }

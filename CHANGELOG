@@ -1,3 +1,7 @@
+2006.04.08: David Nichols
+	* implemented function and object method call references, updated 
+	  sort*(), min(), max() and set_signal_handler() to take call references
+
 2006.04.07: David Nichols
 	* removed unused SingleExitGate and Gate code
 	* updated QoreCounter to unlock and check for signals to be handled on

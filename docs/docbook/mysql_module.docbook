@@ -15,8 +15,10 @@
   
   <para>The driver uses MySQL's prepared statement interface when it is available (must be compiled with MySQL 4 or better).</para>
 
-  <para>If a connection times out while not in a transaction, the connection will be automatically reconnected.  All column names are manually converted to lower case if necessary before being returned to the user.</para>
-  
+  <para>If a connection times out while not in a transaction, the connection will be automatically reconnected.</para>
+
+  <para>All column names are manually converted to lower case if necessary before being returned to the user.</para>
+
   <para>This driver sets new connections to use ISO transaction level &quot;read committed&quot; explicitly for every new connection to conform to Qore's default transaction management style.  The transaction level can be changed manually, however, using the <link linkend="Qore::SQL::Datasource::exec">Datasource::exec()</link> method.  Aditionally the CLIENT_FOUND_ROWS option is set for each connection, so <link linkend="Qore::SQL::Datasource::exec">Datasource::exec()</link> will return the number of rows affected by insert/update queries, etc in a manner consistent with other Qore DBI drivers (when this row is not set and a single row is updated with the same values, 0 is returned instead of 1 as with other Qore DBI drivers).</para>
   
   <para>Note that is is not necessary to give buffer types when binding placeholder values; the mysql driver will determine the needed type in advance and create the placeholder buffer automatically.  Qore placeholder buffer specifications are ignored when the mysql driver is used.</para>

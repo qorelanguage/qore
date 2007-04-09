@@ -64,6 +64,11 @@ The constructor understands a couple of new hash keys:
 
 Since the XmlRpcClient and JsonRpcClient inherit HTTPClient, all improvements to the HTTPClient class are also available in the XmlRpcClient and JsonRpcClient classes as well.
 
+*) experimental support for safe signal handling in qore scripts
+see the documentation for the set_signal_handler() and remove_signal_handler() functions
+
+qore-language signal handlers are dispatched in a safe way before statements are executed and also in spurious wakeups in threading primitives (in case all threads are blocked when a signal is received)
+
 *) run-time module loading
 a new function "load_module()" can be used to load modules at run-time
 
