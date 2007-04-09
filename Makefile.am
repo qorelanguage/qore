@@ -217,12 +217,6 @@ noinst_HEADERS = \
 	modules/Tuxedo/QC_TuxedoAdapter.h \
 	modules/Tuxedo/QoreTuxedoAdapter.h \
 	modules/sybase/sybase.h \
-	modules/sybase/sybase_connection.h \
-	modules/sybase/sybase_low_level_interface.h \
-	modules/sybase/sybase_executor.h \
-	modules/sybase/sybase_query_parser.h \
-	modules/sybase/sybase_read_output.h \
-	modules/sybase/QoreSybaseMapper.h \
 	command-line.h \
 	include/qore/Qore.h 
 
