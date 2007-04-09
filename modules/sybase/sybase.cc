@@ -30,6 +30,7 @@
 #include <qore/Exception.h>
 #include <qore/Qore.h>
 #include <qore/minitest.hpp>
+#include <qore/ScopeGuard.h>
 
 #include <ctpublic.h>
 #include <assert.h>
@@ -39,15 +40,6 @@
 #include <vector>
 
 #include "sybase.h"
-#include <qore/ScopeGuard.h>
-#include "sybase_connection.h"
-#include "sybase_low_level_interface.h"
-#include "QoreSybaseMapper.h"
-#include "sybase_executor.h"
-
-#ifndef CS_MAX_CHAR
-#define CS_MAX_CHAR 256
-#endif
 
 #ifdef DEBUG
 #  define private public
@@ -73,7 +65,7 @@ DLLEXPORT qore_module_delete_t qore_module_delete = sybase_module_delete;
 
 static DBIDriver* DBID_SYBASE;
 
-// capabilities of this driver (todo - review this, copied from Oracle module)
+// capabilities of this driver
 #define DBI_SYBASE_CAPS ( \
   DBI_CAP_TRANSACTION_MANAGEMENT | \
   DBI_CAP_CHARSET_SUPPORT | \
@@ -110,65 +102,13 @@ QoreNode* runRecentSybaseTests(QoreNode* params, ExceptionSink* xsink)
 }
 #endif
 
-//### #include "temporary.cc"
 
-//------------------------------------------------------------------------------
-// copied from Postgres module
-static void set_encoding(Datasource* ds, ExceptionSink* xsink)
-{
-  if (ds->getDBEncoding()) {
-    ds->setQoreEncoding(QoreSybaseMapper::getQoreEncoding(ds->getDBEncoding()));
-  } else  {
-    char *enc = (char *)QoreSybaseMapper::getSybaseEncoding(QCS_DEFAULT);
-    if (!enc) {
-      xsink->raiseException("DBI:SYBASE:UNKNOWN-CHARACTER-SET", "cannot find the Sybase character encoding equivalent for '%s'", QCS_DEFAULT->getCode());
-      return;
-    }
-    ds->setDBEncoding(enc);
-    ds->setQoreEncoding(QCS_DEFAULT);
-  }
-}
 
 //------------------------------------------------------------------------------
 static int sybase_open(Datasource *ds, ExceptionSink *xsink)
 {
   tracein("sybase_open()");
-
-  if (!ds->getUsername()) {
-    xsink->raiseException("DATASOURCE-MISSING-USERNAME", "Datasource has an empty username parameter");
-    traceout("oracle_open()");
-    return -1;
-  }
-  if (!ds->getDBName()) {
-    xsink->raiseException("DATASOURCE-MISSING-DBNAME", "Datasource has an empty dbname parameter");
-    traceout("oracle_open()");
-    return -1;
-  }
-
-  std::auto_ptr<sybase_connection> sc(new sybase_connection);
-  sc->init(ds->getUsername(), ds->getPassword() ? ds->getPassword() : "", ds->getDBName(), xsink);
-  if (xsink->isException()) {
-    return -1;  
-  }
-
-  // set default type of string representation of DATETIME to long (like Jan 1 1990 12:32:55:0000 PM)
-  CS_INT aux = CS_DATES_LONG;
-  CS_RETCODE err = cs_dt_info(sc->getContext(), CS_SET, NULL, CS_DT_CONVFMT, CS_UNUSED, (CS_VOID*)&aux, sizeof(aux), 0);
-  if (err != CS_SUCCEED) {
-    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call cs_dt_info(CS_DT_CONVFMT) failed with error %d", (int)err);
-    return -1;
-  }
-
-  ds->setPrivateData(sc.release());
-
-  set_encoding(ds, xsink);
-  if (xsink->isException()) {
-    sybase_connection* sc = (sybase_connection*)ds->getPrivateData();
-    ds->setPrivateData(0);
-    delete sc;
-    return -1;
-  }
-
+  // TBD
   traceout("sybase_open()");
   return 0;
 }
@@ -176,81 +116,55 @@ static int sybase_open(Datasource *ds, ExceptionSink *xsink)
 //------------------------------------------------------------------------------
 static int sybase_close(Datasource *ds)
 {
-  tracein("sybase_close()");
-  sybase_connection* sc = (sybase_connection*)ds->getPrivateData();
-  ds->setPrivateData(0);
-  delete sc;
-  traceout("sybase_close()");
+  // TBD
   return 0;
 }
 
 //------------------------------------------------------------------------------
 static QoreNode* sybase_select(Datasource *ds, QoreString *qstr, List *args, ExceptionSink *xsink)
 {
-  sybase_executor executor(ds, qstr, args, xsink);
-  if (xsink->isException()) {
-    return 0;
-  }
-  return executor.select(xsink);
+  // TBD
+  return 0;
 }
 
 //------------------------------------------------------------------------------
 static QoreNode* sybase_select_rows(Datasource *ds, QoreString *qstr, List *args, ExceptionSink *xsink)
 {
-  sybase_executor executor(ds, qstr, args, xsink);
-  if (xsink->isException()) {
-    return 0;
-  }
-  return executor.selectRows(xsink);
+  // TBD
+  return 0;
 }
 
 //------------------------------------------------------------------------------
 static QoreNode* sybase_exec(Datasource *ds, QoreString *qstr, List *args, ExceptionSink *xsink)
 {
-  sybase_executor executor(ds, qstr, args, xsink);
-  if (xsink->isException()) {
-    return 0;
-  }
-  return executor.exec(xsink);
+  // TBD
+  return 0;
 }
 
 //------------------------------------------------------------------------------
 static int sybase_commit(Datasource *ds, ExceptionSink *xsink)
 {
-  sybase_connection* sc = (sybase_connection*)ds->getPrivateData();
-  return sybase_low_level_commit(sc, xsink);
+  // TBD
+  return 0;
 }
 
 //------------------------------------------------------------------------------
 static int sybase_rollback(Datasource *ds, ExceptionSink *xsink)
 {
-  sybase_connection* sc = (sybase_connection*)ds->getPrivateData();
-  return sybase_low_level_rollback(sc, xsink);
+  // TBD
+  return 0;
 }
 
 //------------------------------------------------------------------------------
 QoreString* sybase_module_init()
 {
    tracein("sybase_module_init()");
-   QoreSybaseMapper::static_init();
 
 #ifdef DEBUG
   builtinFunctions.add("runSybaseTests", runSybaseTests, QDOM_DATABASE);
   builtinFunctions.add("runRecentSybaseTests", runRecentSybaseTests, QDOM_DATABASE);
 #endif
 
-/* old registration method replaced on 2007/02/22
-   // register driver with DBI subsystem
-   DBIDriverFunctions *ddf =
-      new DBIDriverFunctions(sybase_open,
-                             sybase_close,
-                             sybase_select,
-                             sybase_select_rows,
-                             sybase_exec,
-                             sybase_commit,
-                             sybase_rollback);
-   DBID_SYBASE = DBI.registerDriver("sybase", ddf, DBI_SYBASE_CAPS);
-*/
    // register driver with DBI subsystem
    class qore_dbi_method_list methods;
    methods.add(QDBI_METHOD_OPEN, sybase_open);
@@ -348,13 +262,8 @@ void sybase_module_ns_init(Namespace *rns, Namespace *qns)
 void sybase_module_delete()
 {
    tracein("sybase_module_delete()");
-   //DBI_deregisterDriver(DBID_SYBASE); - commented out because it is commented in oracle module (and others)
    traceout("sybase_module_delete()");
 }
-
-#ifdef DEBUG
-#  include "tests/sybase_tests.cc"
-#endif
 
 // EOF
 
