@@ -1,0 +1,360 @@
+/*
+  sybase.cc
+
+  Sybase DB layer for QORE
+  uses Sybase OpenClient C library
+
+  Qore Programming language
+
+  Copyright (C) 2003, 2004, 2005, 2006
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+#include <qore/config.h>
+#include <qore/support.h>
+#include <qore/DBI.h>
+#include <qore/QoreNode.h>
+#include <qore/Exception.h>
+#include <qore/Qore.h>
+#include <qore/minitest.hpp>
+
+#include <ctpublic.h>
+#include <assert.h>
+#include <ctype.h>
+#include <memory>
+#include <string>
+#include <vector>
+
+#include "sybase.h"
+#include <qore/ScopeGuard.h>
+#include "sybase_connection.h"
+#include "sybase_low_level_interface.h"
+#include "QoreSybaseMapper.h"
+#include "sybase_executor.h"
+
+#ifndef CS_MAX_CHAR
+#define CS_MAX_CHAR 256
+#endif
+
+#ifdef DEBUG
+#  define private public
+#endif
+
+#ifndef QORE_MONOLITHIC
+#ifdef SYBASE
+DLLEXPORT char qore_module_name[] = "sybase";
+DLLEXPORT char qore_module_description[] = "Sybase database driver";
+#else
+DLLEXPORT char qore_module_name[] = "mssql";
+DLLEXPORT char qore_module_description[] = "Free-TDS database driver for MS-SQL Server and Sybase";
+#endif
+DLLEXPORT char qore_module_version[] = "1.0";
+DLLEXPORT char qore_module_author[] = "Qore Technologies";
+DLLEXPORT char qore_module_url[] = "http://qore.sourceforge.net";
+DLLEXPORT int qore_module_api_major = QORE_MODULE_API_MAJOR;
+DLLEXPORT int qore_module_api_minor = QORE_MODULE_API_MINOR;
+DLLEXPORT qore_module_init_t qore_module_init = sybase_module_init;
+DLLEXPORT qore_module_ns_init_t qore_module_ns_init = sybase_module_ns_init;
+DLLEXPORT qore_module_delete_t qore_module_delete = sybase_module_delete;
+#endif
+
+static DBIDriver* DBID_SYBASE;
+
+// capabilities of this driver (todo - review this, copied from Oracle module)
+#define DBI_SYBASE_CAPS ( \
+  DBI_CAP_TRANSACTION_MANAGEMENT | \
+  DBI_CAP_CHARSET_SUPPORT | \
+  DBI_CAP_LOB_SUPPORT | \
+  DBI_CAP_STORED_PROCEDURES)
+
+//------------------------------------------------------------------------------
+#ifdef DEBUG
+// exported
+QoreNode* runSybaseTests(QoreNode* params, ExceptionSink* xsink)
+{
+  minitest::result res = minitest::execute_all_tests();
+  if (res.all_tests_succeeded) {
+    printf("Sybase module: %d tests succeeded\n", res.sucessful_tests_count);
+    return 0;
+  }
+
+  xsink->raiseException("SYBASE-TEST-FAILURE", "Sybase test in file %s, line %d threw an exception.",
+    res.failed_test_file, res.failed_test_line);
+  return 0;
+}
+
+QoreNode* runRecentSybaseTests(QoreNode* params, ExceptionSink* xsink)
+{
+  minitest::result res = minitest::test_last_changed_files(1);
+  if (res.all_tests_succeeded) {
+    printf("Sybase module: %d recent tests succeeded\n", res.sucessful_tests_count);
+    return 0;
+  }
+
+  xsink->raiseException("SYBASE-TEST-FAILURE", "Sybase test in file %s, line %d threw an exception.",
+    res.failed_test_file, res.failed_test_line);
+  return 0;
+}
+#endif
+
+//### #include "temporary.cc"
+
+//------------------------------------------------------------------------------
+// copied from Postgres module
+static void set_encoding(Datasource* ds, ExceptionSink* xsink)
+{
+  if (ds->getDBEncoding()) {
+    ds->setQoreEncoding(QoreSybaseMapper::getQoreEncoding(ds->getDBEncoding()));
+  } else  {
+    char *enc = (char *)QoreSybaseMapper::getSybaseEncoding(QCS_DEFAULT);
+    if (!enc) {
+      xsink->raiseException("DBI:SYBASE:UNKNOWN-CHARACTER-SET", "cannot find the Sybase character encoding equivalent for '%s'", QCS_DEFAULT->getCode());
+      return;
+    }
+    ds->setDBEncoding(enc);
+    ds->setQoreEncoding(QCS_DEFAULT);
+  }
+}
+
+//------------------------------------------------------------------------------
+static int sybase_open(Datasource *ds, ExceptionSink *xsink)
+{
+  tracein("sybase_open()");
+
+  if (!ds->getUsername()) {
+    xsink->raiseException("DATASOURCE-MISSING-USERNAME", "Datasource has an empty username parameter");
+    traceout("oracle_open()");
+    return -1;
+  }
+  if (!ds->getDBName()) {
+    xsink->raiseException("DATASOURCE-MISSING-DBNAME", "Datasource has an empty dbname parameter");
+    traceout("oracle_open()");
+    return -1;
+  }
+
+  std::auto_ptr<sybase_connection> sc(new sybase_connection);
+  sc->init(ds->getUsername(), ds->getPassword() ? ds->getPassword() : "", ds->getDBName(), xsink);
+  if (xsink->isException()) {
+    return -1;  
+  }
+
+  // set default type of string representation of DATETIME to long (like Jan 1 1990 12:32:55:0000 PM)
+  CS_INT aux = CS_DATES_LONG;
+  CS_RETCODE err = cs_dt_info(sc->getContext(), CS_SET, NULL, CS_DT_CONVFMT, CS_UNUSED, (CS_VOID*)&aux, sizeof(aux), 0);
+  if (err != CS_SUCCEED) {
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call cs_dt_info(CS_DT_CONVFMT) failed with error %d", (int)err);
+    return -1;
+  }
+
+  ds->setPrivateData(sc.release());
+
+  set_encoding(ds, xsink);
+  if (xsink->isException()) {
+    sybase_connection* sc = (sybase_connection*)ds->getPrivateData();
+    ds->setPrivateData(0);
+    delete sc;
+    return -1;
+  }
+
+  traceout("sybase_open()");
+  return 0;
+}
+
+//------------------------------------------------------------------------------
+static int sybase_close(Datasource *ds)
+{
+  tracein("sybase_close()");
+  sybase_connection* sc = (sybase_connection*)ds->getPrivateData();
+  ds->setPrivateData(0);
+  delete sc;
+  traceout("sybase_close()");
+  return 0;
+}
+
+//------------------------------------------------------------------------------
+static QoreNode* sybase_select(Datasource *ds, QoreString *qstr, List *args, ExceptionSink *xsink)
+{
+  sybase_executor executor(ds, qstr, args, xsink);
+  if (xsink->isException()) {
+    return 0;
+  }
+  return executor.select(xsink);
+}
+
+//------------------------------------------------------------------------------
+static QoreNode* sybase_select_rows(Datasource *ds, QoreString *qstr, List *args, ExceptionSink *xsink)
+{
+  sybase_executor executor(ds, qstr, args, xsink);
+  if (xsink->isException()) {
+    return 0;
+  }
+  return executor.selectRows(xsink);
+}
+
+//------------------------------------------------------------------------------
+static QoreNode* sybase_exec(Datasource *ds, QoreString *qstr, List *args, ExceptionSink *xsink)
+{
+  sybase_executor executor(ds, qstr, args, xsink);
+  if (xsink->isException()) {
+    return 0;
+  }
+  return executor.exec(xsink);
+}
+
+//------------------------------------------------------------------------------
+static int sybase_commit(Datasource *ds, ExceptionSink *xsink)
+{
+  sybase_connection* sc = (sybase_connection*)ds->getPrivateData();
+  return sybase_low_level_commit(sc, xsink);
+}
+
+//------------------------------------------------------------------------------
+static int sybase_rollback(Datasource *ds, ExceptionSink *xsink)
+{
+  sybase_connection* sc = (sybase_connection*)ds->getPrivateData();
+  return sybase_low_level_rollback(sc, xsink);
+}
+
+//------------------------------------------------------------------------------
+QoreString* sybase_module_init()
+{
+   tracein("sybase_module_init()");
+   QoreSybaseMapper::static_init();
+
+#ifdef DEBUG
+  builtinFunctions.add("runSybaseTests", runSybaseTests, QDOM_DATABASE);
+  builtinFunctions.add("runRecentSybaseTests", runRecentSybaseTests, QDOM_DATABASE);
+#endif
+
+/* old registration method replaced on 2007/02/22
+   // register driver with DBI subsystem
+   DBIDriverFunctions *ddf =
+      new DBIDriverFunctions(sybase_open,
+                             sybase_close,
+                             sybase_select,
+                             sybase_select_rows,
+                             sybase_exec,
+                             sybase_commit,
+                             sybase_rollback);
+   DBID_SYBASE = DBI.registerDriver("sybase", ddf, DBI_SYBASE_CAPS);
+*/
+   // register driver with DBI subsystem
+   class qore_dbi_method_list methods;
+   methods.add(QDBI_METHOD_OPEN, sybase_open);
+   methods.add(QDBI_METHOD_CLOSE, sybase_close);
+   methods.add(QDBI_METHOD_SELECT, sybase_select);
+   methods.add(QDBI_METHOD_SELECT_ROWS, sybase_select_rows);
+   methods.add(QDBI_METHOD_EXEC, sybase_exec);
+   methods.add(QDBI_METHOD_COMMIT, sybase_commit);
+   methods.add(QDBI_METHOD_ROLLBACK, sybase_rollback);
+   methods.add(QDBI_METHOD_AUTO_COMMIT, sybase_commit);
+   
+#ifdef SYBASE
+   DBID_SYBASE = DBI.registerDriver("sybase", methods, DBI_SYBASE_CAPS);
+#else
+   DBID_SYBASE = DBI.registerDriver("mssql", methods, DBI_SYBASE_CAPS);
+#endif
+
+   traceout("sybase_module_init()");
+   return NULL;
+}
+
+//------------------------------------------------------------------------------
+static void add_constants(Namespace* ns)
+{
+  // constants to be use in exec() when placeholders are used
+  ns->addConstant("CS_CHAR_TYPE", new QoreNode((int64)CS_CHAR_TYPE));
+  ns->addConstant("CS_BINARY_TYPE", new QoreNode((int64)CS_BINARY_TYPE));
+  ns->addConstant("CS_LONGCHAR_TYPE", new QoreNode((int64)CS_LONGCHAR_TYPE));
+  ns->addConstant("CS_LONGBINARY_TYPE", new QoreNode((int64)CS_LONGBINARY_TYPE));
+  ns->addConstant("CS_TEXT_TYPE", new QoreNode((int64)CS_TEXT_TYPE));
+  ns->addConstant("CS_IMAGE_TYPE", new QoreNode((int64)CS_IMAGE_TYPE));
+  ns->addConstant("CS_TINYINT_TYPE", new QoreNode((int64)CS_TINYINT_TYPE));
+  ns->addConstant("CS_SMALLINT_TYPE", new QoreNode((int64)CS_SMALLINT_TYPE));
+  ns->addConstant("CS_INT_TYPE", new QoreNode((int64)CS_INT_TYPE));
+  ns->addConstant("CS_REAL_TYPE", new QoreNode((int64)CS_REAL_TYPE));
+  ns->addConstant("CS_FLOAT_TYPE", new QoreNode((int64)CS_FLOAT_TYPE));
+  ns->addConstant("CS_BIT_TYPE", new QoreNode((int64)CS_BIT_TYPE));
+  ns->addConstant("CS_DATETIME_TYPE", new QoreNode((int64)CS_DATETIME_TYPE));
+  ns->addConstant("CS_DATETIME4_TYPE", new QoreNode((int64)CS_DATETIME4_TYPE));
+  ns->addConstant("CS_MONEY_TYPE", new QoreNode((int64)CS_MONEY_TYPE));
+  ns->addConstant("CS_MONEY4_TYPE", new QoreNode((int64)CS_MONEY4_TYPE));
+  ns->addConstant("CS_NUMERIC_TYPE", new QoreNode((int64)CS_NUMERIC_TYPE));
+  ns->addConstant("CS_DECIMAL_TYPE", new QoreNode((int64)CS_DECIMAL_TYPE));
+  ns->addConstant("CS_VARCHAR_TYPE", new QoreNode((int64)CS_VARCHAR_TYPE));
+  ns->addConstant("CS_VARBINARY_TYPE", new QoreNode((int64)CS_VARBINARY_TYPE));
+  ns->addConstant("CS_LONG_TYPE", new QoreNode((int64)CS_LONG_TYPE));
+  ns->addConstant("CS_SENSITIVITY_TYPE", new QoreNode((int64)CS_SENSITIVITY_TYPE));
+  ns->addConstant("CS_BOUNDARY_TYPE", new QoreNode((int64)CS_BOUNDARY_TYPE));
+  ns->addConstant("CS_VOID_TYPE", new QoreNode((int64)CS_VOID_TYPE));
+  ns->addConstant("CS_USHORT_TYPE", new QoreNode((int64)CS_USHORT_TYPE));
+  ns->addConstant("CS_UNICHAR_TYPE", new QoreNode((int64)CS_UNICHAR_TYPE));
+#ifdef CS_BLOB_TYPE
+  ns->addConstant("CS_BLOB_TYPE", new QoreNode((int64)CS_BLOB_TYPE));
+#endif
+#ifdef CS_DATE_TYPE
+  ns->addConstant("CS_DATE_TYPE", new QoreNode((int64)CS_DATE_TYPE));
+#endif
+#ifdef CS_TIME_TYPE
+  ns->addConstant("CS_TIME_TYPE", new QoreNode((int64)CS_TIME_TYPE));
+#endif
+#ifdef CS_UNITEXT_TYPE
+  ns->addConstant("CS_UNITEXT_TYPE", new QoreNode((int64)CS_UNITEXT_TYPE));
+#endif
+#ifdef CS_BIGINT_TYPE
+  ns->addConstant("CS_BIGINT_TYPE", new QoreNode((int64)CS_BIGINT_TYPE));
+#endif
+#ifdef CS_USMALLINT_TYPE
+  ns->addConstant("CS_USMALLINT_TYPE", new QoreNode((int64)CS_USMALLINT_TYPE));
+#endif
+#ifdef CS_UINT_TYPE
+  ns->addConstant("CS_UINT_TYPE", new QoreNode((int64)CS_UINT_TYPE));
+#endif
+#ifdef CS_UBIGINT_TYPE
+  ns->addConstant("CS_UBIGINT_TYPE", new QoreNode((int64)CS_UBIGINT_TYPE));
+#endif
+#ifdef CS_XML_TYPE
+  ns->addConstant("CS_XML_TYPE", new QoreNode((int64)CS_XML_TYPE));
+#endif
+}
+
+//------------------------------------------------------------------------------
+void sybase_module_ns_init(Namespace *rns, Namespace *qns)
+{
+   tracein("sybase_module_ns_init()");
+#ifdef SYBASE
+   Namespace* sybasens = new Namespace("Sybase");
+#else
+   Namespace* sybasens = new Namespace("MSSQL");
+#endif
+   add_constants(sybasens);
+   traceout("sybase_module_ns_init()");
+}
+
+//------------------------------------------------------------------------------
+void sybase_module_delete()
+{
+   tracein("sybase_module_delete()");
+   //DBI_deregisterDriver(DBID_SYBASE); - commented out because it is commented in oracle module (and others)
+   traceout("sybase_module_delete()");
+}
+
+#ifdef DEBUG
+#  include "tests/sybase_tests.cc"
+#endif
+
+// EOF
+
