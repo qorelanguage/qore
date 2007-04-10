@@ -5,6 +5,9 @@ has different behavior to native CT library:
   incorrectly round the float number.
   See conversions_tests.cc.
 
+* cs_locale(CS_SYB_CHARSET) returns empty string
+  as the default encoding (CT library returns "utf8").
+  See encoding_helpers_tests.cc.
 
 
 EOF

@@ -259,34 +259,6 @@ std::vector<parameter_info_t> sybase_low_level_get_output_data_info(
 }
 
 //------------------------------------------------------------------------------
-std::string sybase_low_level_get_default_encoding(const sybase_connection& conn, ExceptionSink* xsink)
-{
-  CS_LOCALE* locale;
-  CS_RETCODE err = cs_loc_alloc(conn.getContext(), &locale);
-  if (err != CS_SUCCEED) {
-    assert(false);
-    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call cs_loc_alloc() returned error %d", (int)err);
-    return std::string();
-  }
-  ON_BLOCK_EXIT(cs_loc_drop, conn.getContext(), locale);
-
-  CS_CHAR encoding_str[100] = "";
-  err = cs_locale(conn.getContext(), CS_GET, locale, CS_SYB_CHARSET, encoding_str, sizeof(encoding_str), 0);
-  if (err != CS_SUCCEED) {
-    assert(false);
-    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call cs_locale() returned error %d", (int)err);
-    return std::string();
-  }
-
-  if (!encoding_str[0]) {
-    assert(false);
-    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call cs_locale() returned empty string for encoding");
-    return std::string();
-  }
-  return std::string(encoding_str);
-}
-
-//------------------------------------------------------------------------------
 void sybase_low_level_bind_parameters(
   const sybase_command_wrapper& wrapper,
   const QoreEncoding* encoding,

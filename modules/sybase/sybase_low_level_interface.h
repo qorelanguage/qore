@@ -50,14 +50,6 @@ extern void sybase_low_level_prepare_command(const sybase_command_wrapper& wrapp
 extern void sybase_low_level_initiate_lang_command(const sybase_command_wrapper& wrapper, const char* sql_text, ExceptionSink* xsink);
 
 //------------------------------------------------------------------------------
-// Return lowercased encoding name in Sybase format (e.g. utf8, iso_1).
-//
-// See http://infocenter.sybase.com/help/index.jsp?topic=/com.sybase.dc35823_1500/html/uconfig/X29127.htm
-// (customizing locale information for Adaptive Server)
-//
-extern std::string sybase_low_level_get_default_encoding(const sybase_connection& conn, ExceptionSink* xsink);
-
-//------------------------------------------------------------------------------
 // description of required input and output parameters for a SQL command, is extracted from Sybase 
 struct parameter_info_t {
   parameter_info_t(const std::string& n, unsigned t, unsigned s) 
