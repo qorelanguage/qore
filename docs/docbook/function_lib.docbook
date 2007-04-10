@@ -15603,6 +15603,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<programlisting>remove_signal_handler(<replaceable>signal</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Restrictions</term>
+      <listitem>
+	<para>Not available with <link linkend="PO_NO_PROCESS_CONTROL"><code>PO_NO_PROCESS_CONTROL</code></link></para>
+      </listitem>
+    </varlistentry>
   </variablelist>
 
 <table><title>Arguments and Return Values for remove_signal_handler()</title>
@@ -15693,6 +15699,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Usage</term>
       <listitem>
 	<programlisting>set_signal_handler(<replaceable>signal, call_reference</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Restrictions</term>
+      <listitem>
+	<para>Not available with <link linkend="PO_NO_PROCESS_CONTROL"><code>PO_NO_PROCESS_CONTROL</code></link></para>
       </listitem>
     </varlistentry>
   </variablelist>
