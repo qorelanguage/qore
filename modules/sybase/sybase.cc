@@ -40,6 +40,7 @@
 #include <vector>
 
 #include "sybase.h"
+#include "transactions.h"
 
 #ifdef DEBUG
 #  define private public
@@ -148,15 +149,15 @@ static QoreNode* sybase_exec(Datasource *ds, QoreString *qstr, List *args, Excep
 //------------------------------------------------------------------------------
 static int sybase_commit(Datasource *ds, ExceptionSink *xsink)
 {
-  // TBD
-  return 0;
+  connection* conn = (connection*)ds->getPrivateData();
+  return commit(*conn, xsink);
 }
 
 //------------------------------------------------------------------------------
 static int sybase_rollback(Datasource *ds, ExceptionSink *xsink)
 {
-  // TBD
-  return 0;
+  connection* conn = (connection*)ds->getPrivateData();
+  return rollback(*conn, xsink);
 }
 
 //------------------------------------------------------------------------------

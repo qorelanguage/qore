@@ -40,10 +40,6 @@ class QoreNode;
 class QoreEncoding;
 class DateTime;
 
-//------------------------------------------------------------------------------
-extern int sybase_low_level_commit(sybase_connection* sc, ExceptionSink* xsink);
-extern int sybase_low_level_rollback(sybase_connection* sc, ExceptionSink* xsink);
-
 // The command has no bindings and returns no results.
 extern void sybase_low_level_execute_directly_command(CS_CONNECTION* conn, const char* sql_text, ExceptionSink* xsink);
 

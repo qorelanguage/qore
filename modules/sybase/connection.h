@@ -28,6 +28,7 @@
 
 #include <qore/Exception.h>
 #include <cstypes.h>
+#include <ctpublic.h>
 
 //------------------------------------------------------------------------------
 // Instantiated class is kept as private data of the Datasource
