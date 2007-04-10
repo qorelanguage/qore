@@ -32,7 +32,7 @@
 //------------------------------------------------------------------------------
 // Instantiated class is kept as private data of the Datasource
 // for the time thge Datasource exists. All other Sybase
-// resources are shortlived (including CS_COMMAND*).
+// resources are shortlived (including CS_COMMAND* and its wrapper).
 //
 class connection
 {
