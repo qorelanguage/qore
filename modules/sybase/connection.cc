@@ -30,16 +30,16 @@
 #include <assert.h>
 #include <qore/minitest.hpp>
 
-#include "sybase_connection.h"
+#include "connection.h"
 
 //------------------------------------------------------------------------------
-sybase_connection::sybase_connection()
+connection::connection()
 : m_context(0), m_connection(0)
 {
 }
 
 //------------------------------------------------------------------------------
-sybase_connection::~sybase_connection()
+connection::~connection()
 {
   CS_RETCODE ret = CS_SUCCEED;
   if (m_connection) {
@@ -64,7 +64,7 @@ sybase_connection::~sybase_connection()
 
 //------------------------------------------------------------------------------
 // Post-constructor initialization 
-void sybase_connection::init(const char* username, const char* password, const char* dbname, ExceptionSink* xsink)
+void connection::init(const char* username, const char* password, const char* dbname, ExceptionSink* xsink)
 {
   assert(!m_connection);
   assert(!m_context);
@@ -84,14 +84,6 @@ void sybase_connection::init(const char* username, const char* password, const c
   }
 
   // add callbacks
-/* not sure what this means, no docs for CS_MESSAGE_CB
-  ret = cs_config(m_context, CS_SET, CS_MESSAGE_CB, (CS_VOID*)message_callback, CS_UNUSED, NULL);
-  if (ret != CS_SUCCEED) {
-    assert(false);
-    xsink->raiseException("DBI:SYBASE:CT-LIB-SET-CALLBACK", "ct_config(CS_MESSAGE_CB) failed with error %d", ret);
-    return;
-  }
-*/
   ret = ct_callback(m_context, 0, CS_SET, CS_CLIENTMSG_CB, (CS_VOID*)clientmsg_callback);
   if (ret != CS_SUCCEED) {
     assert(false);
@@ -144,18 +136,13 @@ void sybase_connection::init(const char* username, const char* password, const c
 }
 
 //------------------------------------------------------------------------------
-CS_RETCODE sybase_connection::message_callback()
-{
-  return CS_SUCCEED;
-}
-
-//------------------------------------------------------------------------------
-CS_RETCODE sybase_connection::clientmsg_callback(CS_CONTEXT* ctx, CS_CONNECTION* conn, CS_CLIENTMSG* errmsg)
+CS_RETCODE connection::clientmsg_callback(CS_CONTEXT* ctx, CS_CONNECTION* conn, CS_CLIENTMSG* errmsg)
 {
 #ifdef DEBUG
   if ((CS_NUMBER(errmsg->msgnumber) == 211) || (CS_NUMBER(errmsg->msgnumber) == 212)) {
     return CS_SUCCEED;
   }
+  fprintf(stderr, "-------------------------------------------------------------");
   fprintf(stderr, "\nOpen Client Message:\n");
   fprintf(stderr, "Message number: LAYER = (%d) ORIGIN = (%d) ",
     (int)CS_LAYER(errmsg->msgnumber), (int)CS_ORIGIN(errmsg->msgnumber));
@@ -171,9 +158,10 @@ CS_RETCODE sybase_connection::clientmsg_callback(CS_CONTEXT* ctx, CS_CONNECTION*
 }
 
 //------------------------------------------------------------------------------
-CS_RETCODE sybase_connection::servermsg_callback(CS_CONTEXT* ctx, CS_CONNECTION* conn, CS_SERVERMSG* svrmsg)
+CS_RETCODE connection::servermsg_callback(CS_CONTEXT* ctx, CS_CONNECTION* conn, CS_SERVERMSG* svrmsg)
 {
 #ifdef DEBUG
+  fprintf(stderr, "-------------------------------------------------------------");
   fprintf(stderr, "\nOpen Server Message:\n");
   fprintf(stderr, "Message number = %d, severity = %d\n", svrmsg->msgnumber, svrmsg->severity);
   fprintf(stderr, "State = %d, line = %d\n", svrmsg->state, svrmsg->line);
@@ -190,7 +178,7 @@ CS_RETCODE sybase_connection::servermsg_callback(CS_CONTEXT* ctx, CS_CONNECTION*
 }
 
 #ifdef DEBUG
-#  include "tests/sybase_connection_tests.cc"
+#  include "tests/connection_tests.cc"
 #endif
 
 // EOF

@@ -34,20 +34,19 @@
 // for the time thge Datasource exists. All other Sybase
 // resources are shortlived (including CS_COMMAND*).
 //
-class sybase_connection
+class connection
 {
 private:
   CS_CONTEXT* m_context;
   CS_CONNECTION* m_connection;
 
-  // Sybase requires callbacks, their implementation is dummy
+  // Sybase callbacks
   static CS_RETCODE clientmsg_callback(CS_CONTEXT* ctx, CS_CONNECTION* conn, CS_CLIENTMSG* errmsg);
   static CS_RETCODE servermsg_callback(CS_CONTEXT* ctx, CS_CONNECTION* conn, CS_SERVERMSG* svrmsg);
-  static CS_RETCODE message_callback();
 
 public:
-  sybase_connection();
-  ~sybase_connection();
+  connection();
+  ~connection();
 
   // to be called after the object is constructed
   void init(const char* username, const char* password, const char* dbname, ExceptionSink* xsink);
@@ -59,5 +58,4 @@ public:
 #endif
 
 // EOF
-
 
