@@ -223,6 +223,7 @@ noinst_HEADERS = \
 	modules/sybase/direct_execute.h \
 	modules/sybase/transactions.h \
 	modules/sybase/conversions.h \
+	modules/sybase/command.h \
 	command-line.h \
 	include/qore/Qore.h 
 
