@@ -630,7 +630,7 @@ language, either by an addition to this data type, or by adding another date typ
 
 <para>Qore uses the operating system's iconv library functions to perform any encoding conversions.</para>
 
-<para>Qore supports character sets that are backwards compatible with 7-bit ASCII.  This includes all ISO-8859-* character sets, UTF-8, KOIR-8, KOIU-8, and KOI7, among others.  However, mutibyte character encodings are currently only properly supported for UTF-8.  For UTF-8 strings, the <link linkend="length">length()</link>, <link linkend="index">index()</link>, <link linkend="rindex">rindex()</link>, <link linkend="substr">substr()</link>, <link linkend="Splice_Operator">splice operator</link> all work with character offsets, which may be different than byte offsets.  For all other character set encodings, a 1 byte=1 character relationship is assumed.</para>
+<para>Qore supports character sets that are backwards compatible with 7-bit ASCII.  This includes all ISO-8859-* character sets, UTF-8, KOIR-8, KOIU-8, and KOI7, among others.  However, mutibyte character encodings are currently only properly supported for UTF-8.  For UTF-8 strings, the <link linkend="length">length()</link>, <link linkend="index">index()</link>, <link linkend="rindex">rindex()</link>, <link linkend="substr">substr()</link>, <link linkend="reverse">reverse()</link>, the <link linkend="Splice_Operator">splice operator</link>, all work with character offsets, which may be different than byte offsets.  For all character set encodings other than UTF-8, a 1 byte=1 character relationship is assumed.</para>
 
 <para>The default Qore character set is determined by environment variables.</para>
 

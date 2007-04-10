@@ -15580,7 +15580,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Reverses a string or a list (depending on the argument) and returns the new string or list.</para>
+	<para>Reverses a string or a list (depending on the argument) and returns the new string or list.  Works properly on UTF-8 strings with multi-byte characters as well.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
