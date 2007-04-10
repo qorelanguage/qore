@@ -39,7 +39,7 @@ ex: $db = new Datasource(DSPGSQL);
 The driver's name is "sybase" and the Datasource type constant is SQL::DSSybase
 ex: $db = new Datasource(DSSybase);
 
-*) "mssql" module: FreeTDS driver for connecting to MS SQL Server databases
+*) "mssql" module: FreeTDS-based driver for connecting to MS SQL Server databases
 ...
 The driver's name is "mssql" and the Datasource type constant is SQL::DSMSSQL
 ex: $db = new Datasource(DSMSSQL);
@@ -64,7 +64,35 @@ The constructor understands a couple of new hash keys:
 
 Since the XmlRpcClient and JsonRpcClient inherit HTTPClient, all improvements to the HTTPClient class are also available in the XmlRpcClient and JsonRpcClient classes as well.
 
-*) experimental support for safe signal handling in qore scripts
+*) call references (references to functions and object methods) implemented
+a reference to a function or an object method can be made like this
+	function reference:
+	$cr = \function_name();
+
+	object method reference:
+	$cr = \$object_expression.method_name();
+
+such references can then be executed like this:
+$result = $fr($arg1, ...);
+
+so function f() returning a call reference can be executed like this:
+$result = f()($arg);
+
+Note that no arguments must be given when the reference is created; the empty parentheses in call references serve to distinguish normal references from call references.
+
+The following functions accept call references:
+	sort()                 - for an optional callback function
+	sortStable()           - for an optional callback function
+	min()                  - for an optional callback function
+	max()                  - for an optional callback function
+	set_signal_handler()   - for the signal handler code
+
+function references are resolved at parse time during stage 2 parsing (commit phase).
+object method references are resolved at run-time.
+
+This change also enables pure object-oriented programming, as functions formerly requiring a user function name can now accept a call reference which may be an object method reference.
+
+*) support for safe signal handling in qore scripts
 see the documentation for the set_signal_handler() and remove_signal_handler() functions
 
 qore-language signal handlers are dispatched in a safe way before statements are executed and also in spurious wakeups in threading primitives (in case all threads are blocked when a signal is received)
@@ -169,6 +197,10 @@ etc...
 *) SQL strings accept '%d' placeholder for integer values
 provides a mechanism to deal with DECIMAL (NUMERIC, NUMER) columns in a database-independent way (substitutes 'null' for NULL or NOTHING, the integer text for anything else).
 This ensures that values will be set properly even for databases such as PostgreSQL that do not convert from string or integer types to DECIMAL when binding bx value.
+
+*) new functions
+	- reverse()             - reverses strings and lists
+	- set_signal_handler()  - sets a signal handler 
 
 *) other bugfixes, updates, etc
 see CHANGELOG for details

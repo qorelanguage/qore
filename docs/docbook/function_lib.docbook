@@ -2880,21 +2880,19 @@
             <para>Prints a formatted string and returns string printed.</para>
           </entry>
         </row>
+
         <row>
-          <entry>
-            <para>
-              <link linkend="rand">rand()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>Float</para>
-          </entry>
-          <entry>
-            <para>N</para>
-          </entry>
-          <entry>
-            <para>Returns a random integer number.</para>
-          </entry>
+          <entry><para><link linkend="rand">rand()</link></para></entry>
+          <entry><para>Float</para></entry>
+          <entry><para>N</para></entry>
+          <entry><para>Returns a random integer number.</para></entry>
+        </row>
+
+        <row>
+          <entry><para><link linkend="reverse">reverse()</link></para></entry>
+          <entry><para>String or List</para></entry>
+          <entry><para>N</para></entry>
+          <entry><para>Reverses the order of a string or a list and returns the new string or list.</para></entry>
         </row>
 
       <row>
@@ -3279,25 +3277,25 @@
           <entry><para><link linkend="sort">sort()</link></para></entry>
           <entry><para>List</para></entry>
           <entry><para>Y</para></entry>
-          <entry><para>Sorts a list in ascending order (unstable); takes an optional callback function to sort non-trivial data types.</para></entry>
+          <entry><para>Sorts a list in ascending order (unstable); optionally takes a call reference (function or object method reference) to sort non-trivial data types.</para></entry>
         </row>
         <row>
           <entry><para><link linkend="sortDescending">sortDescending()</link></para></entry>
           <entry><para>List</para></entry>
           <entry><para>Y</para></entry>
-          <entry><para>Sorts a list in descending order (unstable); takes an optional callback function to sort non-trivial data types.</para></entry>
+          <entry><para>Sorts a list in descending order (unstable); optionally takes a call reference (function or object method reference) to sort non-trivial data types.</para></entry>
         </row>
         <row>
           <entry><para><link linkend="sortDescendingStable">sortDescendingStable()</link></para></entry>
           <entry><para>List</para></entry>
           <entry><para>Y</para></entry>
-          <entry><para>Performs a descending stable sort on a list and returns the new list; takes an optional callback function to sort non-trivial data types.</para></entry>
+          <entry><para>Performs a descending stable sort on a list and returns the new list; optionally takes a call reference (function or object method reference) to sort non-trivial data types.</para></entry>
         </row>
         <row>
           <entry><para><link linkend="sortStable">sortStable()</link></para></entry>
           <entry><para>List</para></entry>
           <entry><para>Y</para></entry>
-          <entry><para>Performs an ascending stable sort on a list and returns the new list; takes an optional callback function to sort non-trivial data types.</para></entry>
+          <entry><para>Performs an ascending stable sort on a list and returns the new list; optionally takes a call reference (function or object method reference) to sort non-trivial data types.</para></entry>
         </row>
         <row>
           <entry>
@@ -15566,6 +15564,55 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <entry><para>n/a</para></entry>
     <entry><para>Integer</para></entry>
     <entry><para>A random integer number is returned.  See <link linkend="srand">srand()</link> for a function to seed the random number generator.</para></entry>
+  </row>
+
+</tbody>
+</tgroup>
+</table>
+  <para>This function does not throw any exceptions.</para>
+
+</sect2>
+
+<sect2 id="reverse">
+<title>reverse()</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Reverses a string or a list (depending on the argument) and returns the new string or list.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+	<programlisting>reverse(<replaceable>string_or_list</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+<table><title>Arguments and Return Values for reverse()</title>
+<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+
+  <thead>
+  <row>
+    <entry><para>Argument Type</para></entry>
+    <entry><para>Return Type</para></entry>
+    <entry><para>Description</para></entry>
+  </row>
+  </thead>
+
+<tbody>
+  <row>
+    <entry><para>List</para></entry>
+    <entry><para>List</para></entry>
+    <entry><para>The list with its elements reversed.</para></entry>
+  </row>
+
+  <row>
+    <entry><para>String</para></entry>
+    <entry><para>String</para></entry>
+    <entry><para>The string with its characters reversed.</para></entry>
   </row>
 
 </tbody>

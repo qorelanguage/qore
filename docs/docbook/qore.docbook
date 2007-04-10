@@ -15,6 +15,7 @@
   <!ENTITY mysql_module     SYSTEM "mysql_module.docbook">
   <!ENTITY pgsql_module     SYSTEM "pgsql_module.docbook">
   <!ENTITY sybase_module    SYSTEM "sybase_module.docbook">
+  <!ENTITY mssql_module     SYSTEM "mssql_module.docbook">
   <!ENTITY tuxedo_module    SYSTEM "tuxedo_module.docbook">
   <!ENTITY command_line     SYSTEM "command_line.docbook">
   <!ENTITY parse_directives SYSTEM "parse_directives.docbook">

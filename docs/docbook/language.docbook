@@ -77,8 +77,10 @@
   <sect1 id="Qore_Modules">
     <title>Qore Modules</title>
     <para>Qore modules allow the Qore language to be extended at run-time.  Qore modules must conform to the Qore Module API and have the file extension <command><code>*.qmod</code></command>.</para>
-    <para>Modules shipping with Qore include <link linkend="oracle_Module"><code>oracle</code></link>, <link linkend="mysql_Module"><code>mysql</code></link>, <link linkend="pgsql_Module"><code>pgsql</code></link>, <link linkend="sybase_Module"><code>sybase</code></link>, <link linkend="ncurses_Module"><code>ncurses</code></link>, <link linkend="tibrv_Module"><code>tibrv</code></link>, <link linkend="tibae_Module"><code>tibae</code></link>, and <link linkend="Tuxedo_Module"><code>tuxedo</code></link>.</para>
-    <para>To load a module, use the <code>%requires</code> parse directive. If the named feature is not already present in Qore, Qore looks for a module with this name in the directories listed in the <code>QORE_MODULE_DIR</code> environment variable.</para>
+    <para>Modules shipping with Qore include <link linkend="oracle_Module"><code>oracle</code></link>, <link linkend="mysql_Module"><code>mysql</code></link>, <link linkend="pgsql_Module"><code>pgsql</code></link>, <link linkend="sybase_Module"><code>sybase</code></link>, <link linkend="mssql_Module"><code>mssql</code></link>, <link linkend="ncurses_Module"><code>ncurses</code></link>, <link linkend="tibrv_Module"><code>tibrv</code></link>, <link linkend="tibae_Module"><code>tibae</code></link>, and <link linkend="Tuxedo_Module"><code>tuxedo</code></link>.</para>
+    <para>To load a module at parse time (normally required for most modules), use the <link linkend="requires_directive"><code>%requires</code></link> parse directive. If the named feature is not already present in Qore, Qore looks for a module with this name in the directories listed in the <code>QORE_MODULE_DIR</code> environment variable.</para>
+    <para>Use the <link linkend="load_module">load_module()</link> function to load Qore modules at run-time; however, note that any module providing parse support (classes, constants, functions, etc) must be loaded at parse time using the <link linkend="requires_directive"><code>%requires</code></link> directive.</para>
+    <para>Also note that DBI drivers are loaded on demand by the <link linkend="Qore::SQL::Datasource_Class">Datasource class</link>.</para>
   </sect1>
   
   <sect1 id="Include_Files">
@@ -759,6 +761,12 @@ $a || $b
 	    <entry><para>A backquote expression</para></entry>
 	    <entry><para>Executes a UNIX process and returns the stdout as a string</para></entry>
 	    <entry><programlisting>'ls -l'</programlisting></entry>
+	  </row>
+	  <row>
+	    <entry><para>A call reference</para></entry>
+	    <entry><para>A reference to a function or object method call.  Function references are resolved in the second phase of parsing (commit phase), and object method references are resolved at run-time.</para></entry>
+	    <entry><programlisting>\function_call()
+\$object_expression.method_name()</programlisting></entry>
 	  </row>
 	</tbody>
       </tgroup>

@@ -29,6 +29,8 @@
 
   &sybase_module;
 
+  &mssql_module;
+
   &tuxedo_module;
 
 </chapter>

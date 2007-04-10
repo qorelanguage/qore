@@ -200,12 +200,24 @@ sub array_tests()
     test_value(sort($hl, \hash_sort_callback()), $sorted_hl, "first sort() with callback");
     test_value(sort($hl, \$s.hash()), $sorted_hl, "second sort() with callback");
     test_value(sort($hl, "hash_sort_callback"), $sorted_hl, "third sort() with callback");
+
+    my $r_sorted_hl = reverse($sorted_hl);
+    test_value(sortDescending($l1), (6,5,4,3,2,1), "first sortDescending()");
+    test_value(sortDescending($l2), ("two", "three", "six", "one", "four", "five"), "second sortDescending()");
+    test_value(sortDescending($hl, \hash_sort_callback()), $r_sorted_hl, "first sortDescending() with callback");
+    test_value(sortDescending($hl, \$s.hash()), $r_sorted_hl, "second sortDescending() with callback");
+    test_value(sortDescending($hl, "hash_sort_callback"), $r_sorted_hl, "third sortDescending() with callback");
+
     $hl += ( "key1" : 3, "key2" : "five-o" );
     test_value(sortStable($hl, \hash_sort_callback()), $stable_sorted_hl, "first sortStable() with callback");
     test_value(sortStable($hl, \$s.hash()), $stable_sorted_hl, "second sortStable() with callback");
     test_value(sortStable($hl, "hash_sort_callback"), $stable_sorted_hl, "third sortStable() with callback");
-    test_value(sortDescending($l1), (6,5,4,3,2,1), "first sortDescending()");
-    test_value(sortDescending($l2), ("two", "three", "six", "one", "four", "five"), "second sortDescending()");
+
+    my $r_stable_sorted_hl = reverse($stable_sorted_hl);
+    test_value(sortDescendingStable($hl, \hash_sort_callback()), $r_stable_sorted_hl, "first sortDescendingStable() with callback");
+    test_value(sortDescendingStable($hl, \$s.hash()), $r_stable_sorted_hl, "second sortDescendingStable() with callback");
+    test_value(sortDescendingStable($hl, "hash_sort_callback"), $r_stable_sorted_hl, "third sortDescendingStable() with callback");
+
     test_value(min($l1), 1, "simple min()");
     test_value(max($l1), 6, "simple max()");
     test_value(min($hl, \hash_sort_callback()), ( "key1" : 1, "key2" : "eight" ), "first min() with callback");
@@ -788,6 +800,7 @@ sub string_tests()
     test_value(strlen($str), 24, "strlen()");
     test_value(toupper($str), "HI THERE, YOU THERE, PAL", "toupper()");
     test_value(tolower($big), "gee whiz", "tolower()");
+    test_value(reverse($big), "ZIHW EEG", "reverse()");
     
     # set up a string with UTF-8 multi-byte characters
     $str = "Über die Wolken läßt sich die Höhe begrüßen";
@@ -800,6 +813,7 @@ sub string_tests()
     test_value(index($str, "läßt", 1), 16, "second UTF-8 index()");
     test_value(rindex($str, "ß"), 40, "first UTF-8 rindex()");
     test_value(rindex($str, "ß", 25), 18, "second UTF-8 rindex()"); 
+    test_value(reverse($str), "neßürgeb ehöH eid hcis tßäl nekloW eid rebÜ", "UTF-8 reverse()");
 
     # convert the string to single-byte ISO-8859-1 characters and retest
     $str = convert_encoding($str, "ISO-8859-1");

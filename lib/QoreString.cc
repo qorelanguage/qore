@@ -1561,3 +1561,29 @@ void QoreString::concatUTF8FromUnicode(unsigned code)
       concat((char)code);
 }
 
+class QoreString *QoreString::reverse() const
+{
+   class QoreString *str = new QoreString();
+   str->check_char(len);
+   if (charset->isMultiByte())
+   {
+      char *p = buf;
+      char *end = str->buf + len;
+      while (*p)
+      {
+	 int bl = charset->getByteLen(p, 1);
+	 end -= bl;
+	 // in case of corrupt data, make sure we don't go off the beginning of the string
+	 if (end < str->buf)
+	    break;
+	 strncpy(end, p, bl);
+	 p += bl;
+      }
+   }
+   else
+      for (int i = 0; i < len; ++i)
+	 str->buf[i] = buf[len - i - 1];
+   str->buf[len] = 0;
+   str->len = len;
+   return str;
+}

@@ -156,7 +156,9 @@ class QoreString {
       DLLEXPORT int concatUnicode(unsigned code, class ExceptionSink *xsink);
       // append a character sequence from a unicode code point (returns 0 for OK, -1 for error)
       DLLEXPORT int concatUnicode(unsigned code);
-
+      // return a Qorestring with the characters reversed
+      DLLEXPORT class QoreString *reverse() const;
+      
       // concatenates a qorestring without converting encodings - internal only
       DLLLOCAL void concat(const QoreString *);
 };

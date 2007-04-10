@@ -16819,15 +16819,19 @@ xs      </variablelist>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="mysql_Module"><code>SQL::DSMySQL</code></link></para></entry>
-	    <entry><para>Indicates an MySQL database to the Datasource::constructor() method</para></entry>
+	    <entry><para>Indicates a MySQL database to the Datasource::constructor() method</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="pgsql_Module"><code>SQL::DSPGSQL</code></link></para></entry>
-	    <entry><para>Indicates an PostgreSQL database to the Datasource::constructor() method</para></entry>
+	    <entry><para>Indicates a PostgreSQL database to the Datasource::constructor() method</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="sybase_Module"><code>SQL::DSSybase</code></link></para></entry>
-	    <entry><para>Indicates an Sybase database to the Datasource::constructor() method</para></entry>
+	    <entry><para>Indicates a Sybase database to the Datasource::constructor() method</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="mssql_Module"><code>SQL::DSMSSQL</code></link></para></entry>
+	    <entry><para>Indicates a Microsoft SQL Server database to the Datasource::constructor() method</para></entry>
 	  </row>
 	  
 	</tbody>

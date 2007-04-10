@@ -1,3 +1,8 @@
+2006.04.09: David Nichols
+	* implemented callback support for sortDescending() and 
+	  sortDescendingStable()
+	* implemented reverse() for strings and lists (also UTF-8 strings)
+
 2006.04.08: David Nichols
 	* implemented function and object method call references, updated 
 	  sort*(), min(), max() and set_signal_handler() to take call references

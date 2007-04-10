@@ -384,6 +384,18 @@ class QoreNode *List::sortDescending() const
    return rv;
 }
 
+class QoreNode *List::sortDescending(const class AbstractFunctionReference *fr, class ExceptionSink *xsink) const
+{   
+   QoreNode *rv = copy();
+   if (length)
+      if (rv->val.list->qsort(fr, 0, length - 1, false, xsink))
+      {
+	 rv->deref(xsink);
+	 rv = NULL;
+      }
+	 return rv;
+}
+
 class QoreNode *StackList::getAndClear(int i)
 {
    if (i < 0 || i >= length)
@@ -404,7 +416,7 @@ static inline class QoreNode *do_args(QoreNode *e1, QoreNode *e2)
 }
 
 // mergesort for controlled and interruptible sorts (stable)
-int List::mergesort(const class AbstractFunctionReference *fr, class ExceptionSink *xsink)
+int List::mergesort(const class AbstractFunctionReference *fr, bool ascending, class ExceptionSink *xsink)
 {
    //printd(5, "List::mergesort() ENTER this=%08p, pgm=%08p, f=%08p length=%d\n", this, pgm, f, length);
    
@@ -426,7 +438,7 @@ int List::mergesort(const class AbstractFunctionReference *fr, class ExceptionSi
    length = 0;
 
    // mergesort the two lists
-   if (left.mergesort(fr, xsink) || right.mergesort(fr, xsink))
+   if (left.mergesort(fr, ascending, xsink) || right.mergesort(fr, ascending, xsink))
       return -1;
 
    // merge the resulting lists
@@ -441,7 +453,8 @@ int List::mergesort(const class AbstractFunctionReference *fr, class ExceptionSi
       if (xsink->isEvent())
 	 return -1;
       int rc = *rv ? rv->getAsInt() : 0;
-      if (rc <= 0)
+      if ((ascending && rc <= 0)
+	  || (!ascending && rc > 0))
 	 push(left.getAndClear(li++));
       else
 	 push(right.getAndClear(ri++));
@@ -459,7 +472,8 @@ int List::mergesort(const class AbstractFunctionReference *fr, class ExceptionSi
 }
 
 // quicksort for controlled and interruptible sorts (unstable)
-int List::qsort(const class AbstractFunctionReference *fr, int left, int right, class ExceptionSink *xsink)
+// I am so smart that I did not comment this code
+int List::qsort(const class AbstractFunctionReference *fr, int left, int right, bool ascending, class ExceptionSink *xsink)
 {
    int l_hold = left;
    int r_hold = right;
@@ -474,7 +488,9 @@ int List::qsort(const class AbstractFunctionReference *fr, int left, int right, 
 	 if (xsink->isEvent())
 	    return -1;
 	 int rc = *rv ? rv->getAsInt() : 0;
-	 if (rc >= 0 && left < right)
+	 if ((left < right)
+	     && ((rc >= 0 && ascending)
+		 || (rc < 0 && !ascending)))
 	    right--;
 	 else
 	    break;
@@ -493,7 +509,9 @@ int List::qsort(const class AbstractFunctionReference *fr, int left, int right, 
 	 if (xsink->isEvent())
 	    return -1;
 	 int rc = *rv ? rv->getAsInt() : 0;
-	 if (rc <= 0 && left < right)
+	 if ((left < right) 
+	     && ((rc <= 0 && ascending)
+		 || (rc > 0 && !ascending)))
 	    left++;
 	 else
 	    break;
@@ -511,9 +529,9 @@ int List::qsort(const class AbstractFunctionReference *fr, int left, int right, 
    right = r_hold;
    int rc = 0;
    if (left < t_left)
-      rc = qsort(fr, left, t_left - 1, xsink);
+      rc = qsort(fr, left, t_left - 1, ascending, xsink);
    if (!rc && right > t_left)
-      rc = qsort(fr, t_left + 1, right, xsink);
+      rc = qsort(fr, t_left + 1, right, ascending, xsink);
    return rc;
 }
 
@@ -521,7 +539,7 @@ class QoreNode *List::sort(const class AbstractFunctionReference *fr, class Exce
 {   
    QoreNode *rv = copy();
    if (length)
-      if (rv->val.list->qsort(fr, 0, length - 1, xsink))
+      if (rv->val.list->qsort(fr, 0, length - 1, true, xsink))
       {
 	 rv->deref(xsink);
 	 rv = NULL;
@@ -545,11 +563,23 @@ class QoreNode *List::sortDescendingStable() const
    return rv;
 }
 
+class QoreNode *List::sortDescendingStable(const class AbstractFunctionReference *fr, class ExceptionSink *xsink) const
+{   
+   QoreNode *rv = copy();
+   if (length)
+      if (rv->val.list->mergesort(fr, false, xsink))
+      {
+	 rv->deref(xsink);
+	 rv = NULL;
+      }
+   return rv;
+}
+
 class QoreNode *List::sortStable(const class AbstractFunctionReference *fr, class ExceptionSink *xsink) const
 {   
    QoreNode *rv = copy();
    if (length)
-      if (rv->val.list->mergesort(fr, xsink))
+      if (rv->val.list->mergesort(fr, true, xsink))
       {
 	 rv->deref(xsink);
 	 rv = NULL;
@@ -802,6 +832,18 @@ class QoreNode *List::max(const class AbstractFunctionReference *fr, class Excep
       }
    }
    return rv ? rv->RefSelf() : NULL;
+}
+
+class List *List::reverse() const
+{
+   class List *l = new List();
+   l->resize(length);
+   for (int i = 0; i < length; ++i)
+   {
+      class QoreNode *n = entry[length - i - 1];
+      l->entry[i] = n ? n->RefSelf() : NULL;
+   }
+   return l;
 }
 
 ListIterator::ListIterator(class List *lst) 

@@ -58,11 +58,35 @@ static class QoreNode *f_sort(class QoreNode *params, ExceptionSink *xsink)
 
 static class QoreNode *f_sortDescending(class QoreNode *params, ExceptionSink *xsink)
 {
+   // check for a function name in second argument and throw exception if not present
+   // before checking for a list in the first argument
    QoreNode *lst = test_param(params, NT_LIST, 0);
    if (!lst)
+   {
+      xsink->raiseException("SORT-PARAMETER-ERROR", "first argument is not a list");
       return NULL;
+   }
    
-   return lst->val.list->sortDescending();
+   QoreNode *fn = get_param(params, 1);
+   if (is_nothing(fn))
+      return lst->val.list->sortDescending();
+   
+   if (fn->type == NT_STRING)
+   {
+      class FunctionReference *fr = getFunctionReference(fn->val.String, xsink);
+      if (!fr)
+	 return NULL;
+      
+      class QoreNode *rv = lst->val.list->sortDescending(fr, xsink);
+      fr->del(xsink);
+      return rv;
+   }
+   if (fn->type != NT_FUNCREF)
+   {
+      xsink->raiseException("SORT-PARAMETER-ERROR", "second argument is present and is not a call reference or string (%s)", fn->type->getName());
+      return NULL;
+   }
+   return lst->val.list->sortDescending(fn->val.funcref, xsink);
 }
 
 static class QoreNode *f_sortStable(class QoreNode *params, ExceptionSink *xsink)
@@ -99,12 +123,36 @@ static class QoreNode *f_sortStable(class QoreNode *params, ExceptionSink *xsink
 }
 
 static class QoreNode *f_sortDescendingStable(class QoreNode *params, ExceptionSink *xsink)
-{   
+{
+   // check for a function name in second argument and throw exception if not present
+   // before checking for a list in the first argument
    QoreNode *lst = test_param(params, NT_LIST, 0);
    if (!lst)
+   {
+      xsink->raiseException("SORT-PARAMETER-ERROR", "first argument is not a list");
       return NULL;
+   }
    
-   return lst->val.list->sortDescendingStable();
+   QoreNode *fn = get_param(params, 1);
+   if (is_nothing(fn))
+      return lst->val.list->sortDescendingStable();
+   
+   if (fn->type == NT_STRING)
+   {
+      class FunctionReference *fr = getFunctionReference(fn->val.String, xsink);
+      if (!fr)
+	 return NULL;
+      
+      class QoreNode *rv = lst->val.list->sortDescendingStable(fr, xsink);
+      fr->del(xsink);
+      return rv;
+   }
+   if (fn->type != NT_FUNCREF)
+   {
+      xsink->raiseException("SORT-PARAMETER-ERROR", "second argument is present and is not a call reference or string (%s)", fn->type->getName());
+      return NULL;
+   }
+   return lst->val.list->sortDescendingStable(fn->val.funcref, xsink);
 }
 
 static class QoreNode *f_min(class QoreNode *params, ExceptionSink *xsink)
@@ -171,15 +219,29 @@ static class QoreNode *f_max(class QoreNode *params, ExceptionSink *xsink)
    if (!num_params(params))
       return NULL;
    return params->val.list->max();
-}   
+}
+
+static class QoreNode *f_reverse(class QoreNode *params, ExceptionSink *xsink)
+{ 
+   class QoreNode *p = get_param(params, 0);
+   if (p)
+   {
+      if (p->type == NT_LIST)
+	 return new QoreNode(p->val.list->reverse());
+      if (p->type == NT_STRING)
+	 return new QoreNode(p->val.String->reverse());
+   }
+   return NULL;
+}
 
 void init_list_functions()
 {
    builtinFunctions.add("sort", f_sort);
-   builtinFunctions.add("sortDescending", f_sortDescending);
    builtinFunctions.add("sortStable", f_sortStable);
+   builtinFunctions.add("sortDescending", f_sortDescending);
    builtinFunctions.add("sortDescendingStable", f_sortDescendingStable);   
    builtinFunctions.add("min", f_min);
    builtinFunctions.add("max", f_max);
+   builtinFunctions.add("reverse", f_reverse);
 }
 
