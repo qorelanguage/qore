@@ -20,6 +20,8 @@
 
     <para>Qore automatically converts data types when necessary when evaluating operators. The goal is to provide the expected result for the programmer without requiring the programmer to explicitly convert data types. Please see <link linkend='Operators'>Operators</link> for more information.</para>
 
+    <para>Qore supports <link linkend="signal_handling">signal handling</link> by dispatching Qore-language signal handlers in a safe manner, asynchronously to the actual receipt of the signal.</para>
+
     <para>UNIX operating systems allow an executable script to specify their interpreter. This is done by setting the first line in the program to a special string indicating the location of the Qore binary. For the purposes of this document, the location for the Qore binary is assumed to be <code>/usr/bin/qore</code>. The first line of Qore scripts in this case should look as follows:</para>
 
     <programlisting>#!/usr/bin/qore</programlisting>
@@ -762,7 +764,7 @@ $a || $b
 	    <entry><para>Executes a UNIX process and returns the stdout as a string</para></entry>
 	    <entry><programlisting>'ls -l'</programlisting></entry>
 	  </row>
-	  <row>
+	  <row id="call_references">
 	    <entry><para>A call reference</para></entry>
 	    <entry><para>A reference to a function or object method call.  Function references are resolved in the second phase of parsing (commit phase), and object method references are resolved at run-time.</para></entry>
 	    <entry><programlisting>\function_call()
@@ -6144,6 +6146,12 @@ printf("%s\n", makeFormattedXMLString($h));</programlisting>
 	</tbody>
       </tgroup>
     </table>
+  </sect1>
+  <sect1 id="signal_handling">
+    <title>Signal Handling</title>
+    <para>Qore signal handling support is experimental.</para>
+    <para>Qore-language signal handlers are installed with <link linkend="set_signal_handler">set_signal_handler()</link>.  Signal handlers are removed with <link linkend="remove_signal_handler">remove_signal_handler()</link>.</para>
+    <para>Qore signal handlers are dispatched (when the appropriate signal has been raised) before executing each statement, or when blocked threads are awoken with a spurious wakeup, to ensure that sleeping processes can still process signals.</para>
   </sect1>
 </chapter>
 

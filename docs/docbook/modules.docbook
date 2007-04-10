@@ -7,7 +7,7 @@
 
   <para>Qore modules extend Qore's functionality by allowing the optional features to be loaded at run-time.  Qore modules normally depend on other shared libraries and therefore can only be loaded if the libraries they require are present on the system and can be found in the library path.</para>
 
-  <para>Modules are generally only loaded when the Qore program requiring the functionality of a module contains the appropriate <code>%requires</code> directive in the source.</code>
+  <para>Modules are generally only loaded when the Qore program requiring the functionality of a module contains the appropriate <code>%requires</code> directive in the source.</para>
 
   <para>An exception to this rule is for DBI drivers; DBI drivers are loaded on demand through the <link linkend="Qore::SQL::Datasource_Class">Datasource class</link>, therefore it's not necessary to use a <code>%requires</code> directive to load DBI drivers.</para>
 

@@ -2506,7 +2506,7 @@
           <entry><para><link linkend="max">max()</link></para></entry>
           <entry><para>Any</para></entry>
           <entry><para>N</para></entry>
-          <entry><para>Returns the maximum value in a list (see also <link linkend="min">min()</link>); one variant takes an optional callback function to process lists of complex data types.</para></entry>
+          <entry><para>Returns the maximum value in a list (see also <link linkend="min">min()</link>); one variant takes an optional callback reference to process lists of complex data types.</para></entry>
         </row>
       <row>
         <entry>
@@ -2567,7 +2567,7 @@
           <entry><para><link linkend="min">min()</link></para></entry>
           <entry><para>Any</para></entry>
           <entry><para>N</para></entry>
-          <entry><para>Returns the minumum value in a list (see also <link linkend="max">max()</link>); one variant takes an optional callback function to process lists of complex data types.</para></entry>
+          <entry><para>Returns the minumum value in a list (see also <link linkend="max">max()</link>); one variant takes an optional call reference to process lists of complex data types.</para></entry>
         </row>
         <row>
           <entry>
@@ -3052,6 +3052,14 @@
           <entry><para>Y</para></entry>
           <entry><para>Returns a string with patterns substituted according to the arguments passed.</para></entry>
         </row>
+
+        <row>
+          <entry><para><link linkend="remove_signal_handler">remove_signal_handler()()</link></para></entry>
+	  <entry><para>n/a</para></entry>
+          <entry><para>N</para></entry>
+          <entry><para>Removes an installed signal handler and returns the signal handling state to the default.</para></entry>
+        </row>
+
         <row>
           <entry>
             <para>
@@ -3085,7 +3093,6 @@
           <para>Returns the RIPEMD160 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
         </entry>
       </row>
-
 
         <row>
           <entry>
@@ -3140,6 +3147,13 @@
 	  <entry><para>Date</para></entry>
           <entry><para>N</para></entry>
           <entry><para>Returns a relative date in seconds to be used in date arithmetic.</para></entry>
+        </row>
+
+        <row>
+          <entry><para><link linkend="set_signal_handler">set_signal_handler()</link></para></entry>
+	  <entry><para>n/a</para></entry>
+          <entry><para>N</para></entry>
+          <entry><para>Installs or replaces a signal handler.</para></entry>
         </row>
 
       <row>
@@ -15041,7 +15055,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Loads in a Qore module at run-time.  If a feature with the same name already exists, then this feature's code is imported into the current Program object if necessary and no further action is taken.  Note that modules providing objects resolved at parse time (classes, constants, functions, etc) must be loaded with the <link linkend="required_directive"><code>%requires</code> directive</link> instead, unless all references to the objects provided by the module will be made in code embedded in <link linkend="Qore_Program_Class">Program</link> objects.</para>
+	<para>Loads in a Qore module at run-time.  If a feature with the same name already exists, then this feature's code is imported into the current Program object if necessary and no further action is taken.  Note that modules providing objects resolved at parse time (classes, constants, functions, etc) must be loaded with the <link linkend="requires_directive"><code>%requires</code> directive</link> instead, unless all references to the objects provided by the module will be made in code embedded in <link linkend="Qore_Program_Class">Program</link> objects.</para>
 	<para>See also <link linkend="getFeatureList">getFeatureList()</link> for a function providing a list of available features.</para>
       </listitem>
     </varlistentry>
@@ -15176,7 +15190,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
 	<term>Synopsis</term>
 	<listitem>
-	  <para>Returns the maximum value in a list (see also <link linkend="min">min()</link>).  Without a callback function, this function will only work on basic data types.  A callback function can be used to find the maximum value of a list of complex data types.  The callback function must accept two arguments and must return -1, 0, or 1 if the first is less than, equal to, or greater than the second, respectively.</para>
+	  <para>Returns the maximum value in a list (see also <link linkend="min">min()</link>).  Without a callback reference, this function will only work on basic data types.  A call reference can be used to find the maximum value of a list of complex data types.  The call reference must accept two arguments and must return -1, 0, or 1 if the first is less than, equal to, or greater than the second, respectively.</para>
 	</listitem>
       </varlistentry>
       <varlistentry>
@@ -15201,17 +15215,17 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	  <row>
 	    <entry><para><replaceable>list, [callback]</replaceable></para></entry>
 	    <entry><para>Any</para></entry>
-	    <entry><para>Finds the maxmimum value in the list and returns that value.  The list must be made up of basic data types unless a callback function is used as described above.</para></entry>
+	    <entry><para>Finds the maxmimum value in the list and returns that value.  The list must be made up of basic data types unless a call reference is used as described above.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><replaceable>elem1, elem2[, ...]</replaceable></para></entry>
 	    <entry><para>Any</para></entry>
-	    <entry><para>Finds the maximum value in the list of simple data types passed as top-level arguments to the function and returns that value.  No callback function can be specified with this variant.</para></entry>
+	    <entry><para>Finds the maximum value in the list of simple data types passed as top-level arguments to the function and returns that value.  No callback reference can be specified with this variant.</para></entry>
 	  </row>
 	</tbody>
       </tgroup>
     </table>
-    <para>This function does not throw any exceptions (note that the callback function could throw an exception).</para>
+    <para>This function does not throw any exceptions (note a call reference could throw an exception).</para>
   </sect2>
 
   <sect2 id="min">
@@ -15220,7 +15234,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
 	<term>Synopsis</term>
 	<listitem>
-	  <para>Returns the minumum value in a list (see also <link linkend="max">max()</link>).  Without a callback function, this function will only work on basic data types.  A callback function can be used to find the minimum value of a list of complex data types.  The callback function must accept two arguments and must return -1, 0, or 1 if the first is less than, equal to, or greater than the second, respectively.</para>
+	  <para>Returns the minumum value in a list (see also <link linkend="max">max()</link>).  Without a callback reference, this function will only work on basic data types.  A call reference can be used to find the minimum value of a list of complex data types.  The call reference must accept two arguments and must return -1, 0, or 1 if the first is less than, equal to, or greater than the second, respectively.</para>
 	</listitem>
       </varlistentry>
       <varlistentry>
@@ -15245,17 +15259,17 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	  <row>
 	    <entry><para><replaceable>list, [callback]</replaceable></para></entry>
 	    <entry><para>Any</para></entry>
-	    <entry><para>Finds the minimum value in the list and returns that value.  The list must be made up of basic data types unless a callback function is used as described above.</para></entry>
+	    <entry><para>Finds the minimum value in the list and returns that value.  The list must be made up of basic data types unless a call reference is used as described above.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><replaceable>elem1, elem2[, ...]</replaceable></para></entry>
 	    <entry><para>Any</para></entry>
-	    <entry><para>Finds the minimum value in the list of simple data types passed as top-level arguments to the function and returns that value.  No callback function can be specified with this variant.</para></entry>
+	    <entry><para>Finds the minimum value in the list of simple data types passed as top-level arguments to the function and returns that value.  No call reference can be specified with this variant.</para></entry>
 	  </row>
 	</tbody>
       </tgroup>
     </table>
-    <para>This function does not throw any exceptions (note that the callback function could throw an exception).</para>
+    <para>This function does not throw any exceptions (note that a call reference could throw an exception).</para>
   </sect2>
 
 <sect2 id="parse">
@@ -15573,6 +15587,49 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 
 </sect2>
 
+<sect2 id="remove_signal_handler">
+<title>remove_signal_handler()</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Removes a signal handler and returns the signal handling state to the default.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+	<programlisting>remove_signal_handler(<replaceable>signal</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+<table><title>Arguments and Return Values for remove_signal_handler()</title>
+<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+
+  <thead>
+  <row>
+    <entry><para>Argument Type</para></entry>
+    <entry><para>Return Type</para></entry>
+    <entry><para>Description</para></entry>
+  </row>
+  </thead>
+
+<tbody>
+  <row>
+    <entry><para>Integer</para></entry>
+    <entry><para>n/a</para></entry>
+    <entry><para>The signal number to process.</para></entry>
+  </row>
+
+</tbody>
+</tgroup>
+</table>
+  <para>This function does not throw any exceptions.</para>
+
+</sect2>
+
 <sect2 id="reverse">
 <title>reverse()</title>
 
@@ -15622,13 +15679,56 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 
 </sect2>
 
+<sect2 id="set_signal_handler">
+<title>set_signal_handler()</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Sets or replaces a signal handler according to the signal number and <link linkend="call_references">call reference</link> (function or object method reference) passed.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+	<programlisting>set_signal_handler(<replaceable>signal, call_reference</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+<table><title>Arguments and Return Values for set_signal_handler()</title>
+<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+
+  <thead>
+  <row>
+    <entry><para>Argument Type</para></entry>
+    <entry><para>Return Type</para></entry>
+    <entry><para>Description</para></entry>
+  </row>
+  </thead>
+
+<tbody>
+  <row>
+    <entry><para>Integer, Call Reference</para></entry>
+    <entry><para>n/a</para></entry>
+    <entry><para>The signal number to process and reference to the code to execute when the signal is raised.</para></entry>
+  </row>
+
+</tbody>
+</tgroup>
+</table>
+  <para>This function does not throw any exceptions.</para>
+
+</sect2>
+
 <sect2 id="sort">
   <title>sort()</title>
   <variablelist>
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Performs an unstable sort in ascending order and returns the new list (for a stable version see <link linkend="sortStable">sortStable()</link>).  Without a callback function, this function will only sort basic data types.  A callback function can be used to sort complex data types.  The callback function must accept two arguments and must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively.</para>
+	<para>Performs an unstable sort in ascending order and returns the new list (for a stable version see <link linkend="sortStable">sortStable()</link>).  Without a callback reference, this function will only sort basic data types.  A call reference can be used to sort complex data types.  The call reference must accept two arguments and must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -15650,9 +15750,9 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       </thead>
       <tbody>
 	<row>
+	  <entry><para>List, [Call Reference]</para></entry>
 	  <entry><para>List</para></entry>
-	  <entry><para>List</para></entry>
-	  <entry><para>Sorts the list passed in ascending order and returns the sorted list.  The list must be made up of basic data types unless a callback function is used.</para></entry>
+	  <entry><para>Sorts the list passed in ascending order and returns the sorted list.  The list must be made up of basic data types unless a call reference is used.</para></entry>
 	</row>
       </tbody>
     </tgroup>
@@ -15666,13 +15766,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
 	<term>Synopsis</term>
 	<listitem>
-	  <para>Performs an unstable sort in descending order and returns the new list (for a stable version see <link linkend="sortDescendingStable">sortDescendingStable()</link>).  Without a callback function, this function will only sort basic data types.  A callback function can be used to sort complex data types.  The callback function must accept two arguments and must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively.</para>
+	  <para>Performs an unstable sort in descending order and returns the new list (for a stable version see <link linkend="sortDescendingStable">sortDescendingStable()</link>).  Without a call reference, this function will only sort basic data types.  A call reference can be used to sort complex data types.  The call reference must accept two arguments and must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively.</para>
 	</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Usage</term>
 	<listitem>
-	  <programlisting>sortDescending(<replaceable>list</replaceable>)</programlisting>
+	  <programlisting>sortDescending(<replaceable>list, [callback]</replaceable>)</programlisting>
 	</listitem>
       </varlistentry>
     </variablelist>
@@ -15688,9 +15788,9 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	</thead>
 	<tbody>
 	  <row>
+	    <entry><para>List, [Call Reference]</para></entry>
 	    <entry><para>List</para></entry>
-	    <entry><para>List</para></entry>
-	    <entry><para>Sorts the list passed in descending order and returns the sorted list.  The list must be made up of basic data types unless a callback function is used.</para></entry>
+	    <entry><para>Sorts the list passed in descending order and returns the sorted list.  The list must be made up of basic data types unless a call reference is used.</para></entry>
 	  </row>
 	</tbody>
       </tgroup>
@@ -15704,13 +15804,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
 	<term>Synopsis</term>
 	<listitem>
-	  <para>Performs a stable sort in descending order and returns the new list (for an unstable version see <link linkend="sortDescending">sortDescending()</link>).  Without a callback function, this function will only sort basic data types.  A callback function can be used to sort complex data types.  The callback function must accept two arguments and must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively.</para>
+	  <para>Performs a stable sort in descending order and returns the new list (for an unstable version see <link linkend="sortDescending">sortDescending()</link>).  Without a call reference, this function will only sort basic data types.  A call reference can be used to sort complex data types.  The call reference must accept two arguments and must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively.</para>
 	</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Usage</term>
 	<listitem>
-	  <programlisting>sortDescendingStable(<replaceable>list</replaceable>)</programlisting>
+	  <programlisting>sortDescendingStable(<replaceable>list, [callback]</replaceable>)</programlisting>
 	</listitem>
       </varlistentry>
     </variablelist>
@@ -15726,9 +15826,9 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	</thead>
 	<tbody>
 	  <row>
+	    <entry><para>List, [Call Reference]</para></entry>
 	    <entry><para>List</para></entry>
-	    <entry><para>List</para></entry>
-	    <entry><para>Sorts the list passed in descending order and returns the sorted list.  The list must be made up of basic data types unless a callback function is used.</para></entry>
+	    <entry><para>Sorts the list passed in descending order and returns the sorted list.  The list must be made up of basic data types unless a call reference is used.</para></entry>
 	  </row>
 	</tbody>
       </tgroup>
@@ -15742,7 +15842,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Performs a stable sort in ascending order and returns the new list (for an unstable version see <link linkend="sort">sort()</link>).  Without a callback function, this function will only sort basic data types.  A callback function can be used to sort complex data types.  The callback function must accept two arguments and must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively.</para>
+	<para>Performs a stable sort in ascending order and returns the new list (for an unstable version see <link linkend="sort">sort()</link>).  Without a call reference, this function will only sort basic data types.  A call reference can be used to sort complex data types.  The call reference must accept two arguments and must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -15764,9 +15864,9 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       </thead>
       <tbody>
 	<row>
+	  <entry><para>List, [Call Reference]</para></entry>
 	  <entry><para>List</para></entry>
-	  <entry><para>List</para></entry>
-	  <entry><para>Sorts the list passed in ascending order and returns the sorted list.  The list must be made up of basic data types unless a callback function is used.</para></entry>
+	  <entry><para>Sorts the list passed in ascending order and returns the sorted list.  The list must be made up of basic data types unless a call reference is used.</para></entry>
 	</row>
       </tbody>
     </tgroup>
