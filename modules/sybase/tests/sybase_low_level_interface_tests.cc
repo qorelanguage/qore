@@ -9,50 +9,6 @@ namespace sybase_tests_78620983 {
 //------------------------------------------------------------------------------
 TEST()
 {
-  // test sybase_command_wrapper class
-  printf("running test %s[%d]\n", __FILE__, __LINE__);
-  sybase_connection conn;
-  ExceptionSink xsink;
-  conn.init(SYBASE_TEST_SETTINGS, &xsink);
-  if (xsink.isException()) {
-    assert(false);
-  }
-
-  sybase_command_wrapper w(conn, &xsink);
-  if (xsink.isException()) {
-    assert(false);
-  }
-}
-
-//------------------------------------------------------------------------------
-TEST()
-{
-  // test several sybase_command_wrappers together
-  printf("running test %s[%d]\n", __FILE__, __LINE__);
-  sybase_connection conn;
-  ExceptionSink xsink;
-  conn.init(SYBASE_TEST_SETTINGS, &xsink);
-  if (xsink.isException()) {
-    assert(false);
-  }
-
-  sybase_command_wrapper w1(conn, &xsink);
-  if (xsink.isException()) {
-    assert(false);
-  }
-  sybase_command_wrapper w2(conn, &xsink);
-  if (xsink.isException()) {
-    assert(false);
-  }
-  sybase_command_wrapper w3(conn, &xsink);
-  if (xsink.isException()) {
-    assert(false);
-  }
-}
-
-//------------------------------------------------------------------------------
-TEST()
-{
   // test sybase_low_level_prepare_command() for a command
   printf("running test %s[%d]\n", __FILE__, __LINE__);
   sybase_connection conn;

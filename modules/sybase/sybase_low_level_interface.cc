@@ -1152,7 +1152,7 @@ printf("###### IS LONG BINARY ##################################################
 }
 
 #ifdef DEBUG
-//#  include "tests/sybase_low_level_interface_tests.cc"
+#  include "tests/sybase_low_level_interface_tests.cc"
 #endif
 
 // EOF
