@@ -44,23 +44,6 @@ class DateTime;
 extern void sybase_low_level_execute_directly_command(CS_CONNECTION* conn, const char* sql_text, ExceptionSink* xsink);
 
 //------------------------------------------------------------------------------
-// Class used to automatically free all resources associated with a Sybase command
-class sybase_command_wrapper
-{
-  CS_COMMAND* m_cmd;
-  std::string m_string_id; // should be unique across connection
-  CS_CONTEXT* m_context; // needed for datetime conversions
-
-public:
-  sybase_command_wrapper(sybase_connection& conn, ExceptionSink* xsink);
-  ~sybase_command_wrapper();
-  
-  CS_COMMAND* operator()() const { return m_cmd; }
-  char* getStringId() const { return (char*)m_string_id.c_str(); }
-  CS_CONTEXT* getContext() const { return m_context; }
-};
-
-//------------------------------------------------------------------------------
 // for ct_dynamic(CS_EXECUTE)
 extern void sybase_low_level_prepare_command(const sybase_command_wrapper& wrapper, const char* sql_text, ExceptionSink* xsink);
 // for ct_command(CS_LANG_CMD)

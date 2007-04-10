@@ -95,34 +95,6 @@ void sybase_low_level_execute_directly_command(CS_CONNECTION* conn, const char* 
 }
 
 //------------------------------------------------------------------------------
-sybase_command_wrapper::sybase_command_wrapper(sybase_connection& conn, ExceptionSink* xsink)
-: m_cmd(0),
-  m_context(conn.getContext())
-{
-  CS_RETCODE err = ct_cmd_alloc(conn.getConnection(), &m_cmd);
-  if (err != CS_SUCCEED) {
-    assert(false);
-    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_cmd_alloc() failed with error %d", (int)err);
-    return;
-  }
-
-  // a unique (within the connection) string identifier needs to be generated
-  static unsigned counter = 0;
-  ++counter;
-  char aux[30];
-  sprintf(aux, "my_cmd_%u_%u", (unsigned)pthread_self(), counter);
-  m_string_id = aux;
-}
-
-//------------------------------------------------------------------------------
-sybase_command_wrapper::~sybase_command_wrapper()
-{
-  if (!m_cmd) return;
-  ct_cancel(0, m_cmd, CS_CANCEL_ALL);
-  ct_cmd_drop(m_cmd);
-}
-
-//------------------------------------------------------------------------------
 void sybase_low_level_prepare_command(const sybase_command_wrapper& wrapper, const char* sql_text, ExceptionSink* xsink)
 {
   assert(sql_text && sql_text[0]);
