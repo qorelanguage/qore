@@ -1,5 +1,0 @@
-* trim CHAR(n) types by checking ct_describe maxlength 
-  and comparing with the result. If the sizes are the 
-  same it is to be trimmed.
-
-
