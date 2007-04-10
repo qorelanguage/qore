@@ -125,12 +125,21 @@ void connection::init(const char* username, const char* password, const char* db
     return;
   }
 
-  // transaction management is done by the driver (docs says it is by default)
+  // Transaction management is done by the driver (docs says it is by default)
   CS_BOOL chained_transactions = CS_FALSE;
   ret = ct_options(m_connection, CS_SET, CS_OPT_CHAINXACTS, &chained_transactions, CS_UNUSED, NULL);
   if (ret != CS_SUCCEED) {
     assert(false);
     xsink->raiseException("DBI:SYBASE:CT-LIB-SET-TRANSACTION-CHAINING", "ct_options(CS_OPT_CHAINXACTS) failed with error %d", ret);
+    return;
+  }
+
+  // Set default type of string representation of DATETIME to long (like Jan 1 1990 12:32:55:0000 PM)
+  // Without this some routines in conversions.cc would fail.
+  CS_INT aux = CS_DATES_LONG;
+  ret = cs_dt_info(m_context, CS_SET, NULL, CS_DT_CONVFMT, CS_UNUSED, (CS_VOID*)&aux, sizeof(aux), 0);
+  if (ret != CS_SUCCEED) {
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call cs_dt_info(CS_DT_CONVFMT) failed with error %d", (int)ret);
     return;
   }
 }
@@ -163,8 +172,8 @@ CS_RETCODE connection::servermsg_callback(CS_CONTEXT* ctx, CS_CONNECTION* conn, 
 #ifdef DEBUG
   fprintf(stderr, "-------------------------------------------------------------");
   fprintf(stderr, "\nOpen Server Message:\n");
-  fprintf(stderr, "Message number = %d, severity = %d\n", svrmsg->msgnumber, svrmsg->severity);
-  fprintf(stderr, "State = %d, line = %d\n", svrmsg->state, svrmsg->line);
+  fprintf(stderr, "Message number = %d, severity = %d\n", (int)svrmsg->msgnumber, (int)svrmsg->severity);
+  fprintf(stderr, "State = %d, line = %d\n", (int)svrmsg->state, (int)svrmsg->line);
   if (svrmsg->svrnlen) {
     fprintf(stderr, "Server: %s\n", svrmsg->svrname);
   }
