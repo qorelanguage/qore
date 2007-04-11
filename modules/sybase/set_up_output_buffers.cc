@@ -1,12 +1,12 @@
 /*
-  get_row_description.h
+  set_up_output_buffers.cc
 
   Sybase DB layer for QORE
   uses Sybase OpenClient C library
 
   Qore Programming language
 
-  Copyright (C) 2007
+  Copyright (C) 2007 Qore Technologies
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -22,20 +22,17 @@
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
+#include <qore/config.h>
+#include <qore/support.h>
+#include <qore/Exception.h>
+#include <qore/minitest.hpp>
 
-#ifndef SYBASE_GET_ROW_DESCRIPTION_H_
-#define SYBASE_GET_ROW_DESCRIPTION_H_
+#include <assert.h>
 
-#include <cstypes.h>
-#include <vector>
-
-class command;
-class ExceptionSink;
+#include "set_up_output_buffers.h"
+#include "command.h"
 
 //------------------------------------------------------------------------------
-extern std::vector<CS_DATAFMT> get_row_description(command& cmd, unsigned columns_count, ExceptionSink* xsink);
-
-#endif
 
 // EOF
 

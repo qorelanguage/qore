@@ -1,5 +1,5 @@
 /*
-  get_row_description.h
+  common_constants.h
 
   Sybase DB layer for QORE
   uses Sybase OpenClient C library
@@ -23,17 +23,11 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef SYBASE_GET_ROW_DESCRIPTION_H_
-#define SYBASE_GET_ROW_DESCRIPTION_H_
+#ifndef SYBASE_COMMON_CONSTANTS_H_
+#define SYBASE_COMMON_CONSTANTS_H_
 
-#include <cstypes.h>
-#include <vector>
-
-class command;
-class ExceptionSink;
-
-//------------------------------------------------------------------------------
-extern std::vector<CS_DATAFMT> get_row_description(command& cmd, unsigned columns_count, ExceptionSink* xsink);
+const unsigned DefaultNumericPrecision = 30; // guess, total # of digits
+const unsigned DefaultNumericScale = 15;     // guess, # of digits after decimal dot
 
 #endif
 

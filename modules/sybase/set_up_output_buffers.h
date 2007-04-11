@@ -1,5 +1,5 @@
 /*
-  get_row_description.h
+  set_up_output_buffers.h
 
   Sybase DB layer for QORE
   uses Sybase OpenClient C library
@@ -23,17 +23,9 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef SYBASE_GET_ROW_DESCRIPTION_H_
-#define SYBASE_GET_ROW_DESCRIPTION_H_
+#ifndef SYBASE_SET_UP_OUTPUT_BUFFERS_H_
+#define SYBASE_SET_UP_OUTPUT_BUFFERS_H_
 
-#include <cstypes.h>
-#include <vector>
-
-class command;
-class ExceptionSink;
-
-//------------------------------------------------------------------------------
-extern std::vector<CS_DATAFMT> get_row_description(command& cmd, unsigned columns_count, ExceptionSink* xsink);
 
 #endif
 

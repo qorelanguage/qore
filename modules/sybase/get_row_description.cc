@@ -27,12 +27,52 @@
 #include <qore/Exception.h>
 
 #include <assert.h>
+#include <ctpublic.h>
 
 #include "get_row_description.h"
-#include "connection.h"
+#include "command.h"
+#include "common_constants.h"
 
 //------------------------------------------------------------------------------
+std::vector<CS_DATAFMT> get_row_description(command& cmd, unsigned columns_count, ExceptionSink* xsink)
+{
+  typedef std::vector<CS_DATAFMT> result_t;
+  result_t result;
+
+  for (unsigned i = 0; i < columns_count; ++i) {
+    CS_DATAFMT datafmt;
+    memset(&datafmt, 0, sizeof(datafmt));
+
+    CS_RETCODE err = ct_describe(cmd(), i + 1, &datafmt);
+    if (err != CS_SUCCEED) {
+      assert(false);
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_describe() failed with error %d", (int)err);
+      return result_t();
+    }
+    datafmt.count = 1; // fetch just single row  pr every ct_fetch()
+
+    switch (datafmt.datatype) {
+    case CS_LONGCHAR_TYPE:
+    case CS_VARCHAR_TYPE:
+    case CS_CHAR_TYPE:
+    case CS_TEXT_TYPE:
+      datafmt.format = CS_FMT_NULLTERM;
+      break;
+    case CS_DECIMAL_TYPE:
+    case CS_NUMERIC_TYPE: 
+      datafmt.precision = DefaultNumericPrecision;
+      datafmt.scale = DefaultNumericScale;
+      datafmt.format = CS_FMT_UNUSED;
+      break;
+    default:
+      datafmt.format = CS_FMT_UNUSED;
+      break;
+    }
+
+    result.push_back(datafmt); 
+  }
+  return result;
+}
 
 // EOF
-
 
