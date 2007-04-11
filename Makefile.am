@@ -229,6 +229,7 @@ noinst_HEADERS = \
 	modules/sybase/send_command.h \
 	modules/sybase/encoding_helpers.h \
 	modules/sybase/query_processing.h \
+	modules/sybase/get_columns_count.h \
 	command-line.h \
 	include/qore/Qore.h 
 
