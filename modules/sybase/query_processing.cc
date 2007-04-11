@@ -155,66 +155,81 @@ processed_procedure_call_t process_procedure_call(const char* rpc_text, Exceptio
     return processed_procedure_call_t();
   }
   ++s;
-
+  while (isspace(*s)) ++s;
+  if (*s == ')') { // no parameters
+    return result;
+  }
+  if (!*s) {
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "Closing parenthesis ')' is missing");
+    return processed_procedure_call_t();
+  }
+  
   // read parameters
-/*
   while (*s) {
-    char ch = *s++;
+    while (isspace(*s)) ++s;
 
-    // skip double qouted strings
-    if (ch == '"') {
-      result.m_cmd += ch;
-      for (;;) {
-        ch = *s++;
-        if (ch == '\\') {
-          ch = *s++;
-          continue;
-        }
-        if (ch == '"') {
-          goto next;
-        }
-      }
+    if (*s == ')') {
+      return result;
     }
-
-    // skip single qouted strings
-    if (ch == '\'') {
-      result.m_cmd += ch;
-      for (;;) {
-        ch = *s++;
-        result.m_cmd += ch;
-        if (ch == '\\') {
-          ch = *s++;
-          result.m_cmd += ch;
-          continue;
-        }
-        if (ch == '\'') {
-          goto next;
-        }
-      }
-    }
-
-    if (ch == '%') {
-      ch = *s++;
-      if (ch == 'v') {
-        result.m_parameter_types.push_back('v');
-      } else
-      if (ch == 'd') {
-        result.m_parameter_types.push_back('d');
+    // read input parameter marker
+    if (*s == '%') { // %v or %d
+      ++s;
+      if (*s == 'v') {
+        result.m_parameters.push_back(std::make_pair(false, "v"));
+      } else 
+      if (*s == 'd') {
+        result.m_parameters.push_back(std::make_pair(false, "d"));
       } else {
-        xsink->raiseException("DBI-EXEC-EXCEPTION", "Only %%v or %%d expected in parameter list");
-        return processed_language_command_t();
+        xsink->raiseException("DBI-EXEC-EXCEPTION", "%%v or %%d expected for an input parameter");
+        return processed_procedure_call_t();
       }
+      ++s;
+      while (isspace(*s)) ++s;
+      if (*s == ')') {
+        return result;
+      } else
+      if (*s == ',') {
+        ++s;
+      } else {
+        xsink->raiseException("DBI-EXEC-EXCEPTION", "%%v or %%d should be followed by comma or closing parenthesis");
+        return processed_procedure_call_t();
+      }
+      continue;
+    }
+    // read placeholder name
+    if (*s == ':') {
+      ++s;
+      const char* placeholder_start = s;
+      while (isalnum(*s) || *s == '_') ++s;
+      if (s == placeholder_start) {
+        xsink->raiseException("DBI-EXEC-EXCEPTION", "Placeholder name missing after ':'");
+        return processed_procedure_call_t();
+      }
+      std::string name(placeholder_start, s - placeholder_start);
+      result.m_parameters.push_back(std::make_pair(true, name));
 
-      char aux[20];
-      sprintf(aux, "@par%u", result.m_parameter_types.size());
-      result.m_cmd += (const char*)aux;
-    } else {
-      result.m_cmd += ch;
+      while (isspace(*s)) ++s;
+      if (*s == ')') {
+        return result;
+      } else
+      if (*s == ',') {
+        ++s;
+      } else {
+        xsink->raiseException("DBI-EXEC-EXCEPTION", "placeholder should be followed by comma or closing parenthesis");
+        return processed_procedure_call_t();
+      }
+      continue;
     }
 
-next:;
+    if (*s == 0) {
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "Unexpected end of query - closing parenthesis is missing");
+      return processed_procedure_call_t();
+    }
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "Unexpected text in query starting with [%s]", s);
+    return processed_procedure_call_t();
+
   } // while
-*/
+
   return result;
 }
 

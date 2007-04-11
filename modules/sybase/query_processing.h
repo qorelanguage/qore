@@ -52,10 +52,9 @@ extern processed_language_command_t process_language_command(const char* cmd_tex
 typedef struct processed_procedure_call_t {
   // extracted RPC call name
   std::string m_cmd;
-  enum parameter_type_t { Parameter, DirectValue, Placeholder };
   typedef std::pair<
-    parameter_type_t,
-    std::string // placeholder name or "v" (%v) or "d" (%d) or direct value name (string, number)
+    bool, // true == placeholder name w/o colon, false == "v" or "d"
+    std::string // placeholder name or "v" (%v) or "d" (%d)
   > parameter_t;
   std::vector<parameter_t> m_parameters;
 };

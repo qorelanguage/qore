@@ -65,6 +65,51 @@ TEST()
   assert(res.m_parameter_types.empty());
 }
 
+//------------------------------------------------------------------------------
+TEST()
+{
+  ExceptionSink xsink;
+  processed_procedure_call_t res = process_procedure_call("exec foo", &xsink);
+  assert(!xsink.isException());
+  assert(res.m_cmd == "foo");
+  assert(res.m_parameters.empty());
+
+  res = process_procedure_call("execute  foo ", &xsink);
+  assert(!xsink.isException());
+  assert(res.m_cmd == "foo");
+  assert(res.m_parameters.empty());
+
+  res = process_procedure_call("execute  foo ( )", &xsink);
+  assert(!xsink.isException());
+  assert(res.m_cmd == "foo");
+  assert(res.m_parameters.empty());
+
+  res = process_procedure_call("execute  foo()", &xsink);
+  assert(!xsink.isException());
+  assert(res.m_cmd == "foo");
+  assert(res.m_parameters.empty());
+
+  res = process_procedure_call("execute  foo(%d, %v,%v,:abc,:def,  :ghi , %d)", &xsink);
+  assert(!xsink.isException());
+  assert(res.m_cmd == "foo");
+  assert(res.m_parameters.size() == 7);
+
+  assert(res.m_parameters[0].first == false);
+  assert(res.m_parameters[0].second == "d");
+  assert(res.m_parameters[1].first == false);
+  assert(res.m_parameters[1].second == "v");
+  assert(res.m_parameters[2].first == false);
+  assert(res.m_parameters[2].second == "v");
+  assert(res.m_parameters[3].first == true);
+  assert(res.m_parameters[3].second == "abc");
+  assert(res.m_parameters[4].first == true);
+  assert(res.m_parameters[4].second == "def");
+  assert(res.m_parameters[5].first == true);
+  assert(res.m_parameters[5].second == "ghi");
+  assert(res.m_parameters[6].first == false);
+  assert(res.m_parameters[6].second == "d");
+}
+
 } // namespace
 #endif
 
