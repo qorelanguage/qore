@@ -1,7 +1,7 @@
 libdir = ${exec_prefix}/lib${LIBSUFFIX}
 pkglibdir = $(libdir)/@PACKAGE@-@VERSION@
 
-SYBASE_SOURCES = sybase.cc connection.cc direct_execute.cc transactions.cc conversions.cc command.cc initiate_language_command.cc send_command.cc encoding_helpers.cc query_processing.cc initiate_rpc_command.cc
+SYBASE_SOURCES = sybase.cc connection.cc direct_execute.cc transactions.cc conversions.cc command.cc initiate_language_command.cc send_command.cc encoding_helpers.cc query_processing.cc initiate_rpc_command.cc get_columns_count.cc
 
 if COND_MONOLITHIC
 noinst_LTLIBRARIES=
