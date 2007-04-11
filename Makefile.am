@@ -225,6 +225,7 @@ noinst_HEADERS = \
 	modules/sybase/conversions.h \
 	modules/sybase/command.h \
 	modules/sybase/initiate_language_command.h \
+	modules/sybase/initiate_rpc_command.h \
 	modules/sybase/send_command.h \
 	modules/sybase/encoding_helpers.h \
 	modules/sybase/query_processing.h \

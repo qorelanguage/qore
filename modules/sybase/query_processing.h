@@ -26,7 +26,41 @@
 #ifndef SYBASE_QUERY_PROCESSING_H_
 #define SYBASE_QUERY_PROCESSING_H_
 
+#include <string>
+#include <vector>
+#include <utility>
+
+class ExceptionSink;
+
 extern bool is_query_procedure_call(const char* query);
+
+//------------------------------------------------------------------------------
+// Language command (i.e. not a RPC)
+// 
+typedef struct processed_language_command_t {
+  // with %v and %d replaced with @parX
+  std::string m_cmd; 
+  // 'v' means %v, 'd' means %d
+  std::vector<char> m_parameter_types;
+};
+
+extern processed_language_command_t process_language_command(const char* cmd_text, ExceptionSink* xsink);
+
+//------------------------------------------------------------------------------
+// A RPC command (with placeholders)
+//
+typedef struct processed_procedure_call_t {
+  // extracted RPC call name
+  std::string m_cmd;
+  enum parameter_type_t { Parameter, DirectValue, Placeholder };
+  typedef std::pair<
+    parameter_type_t,
+    std::string // placeholder name or "v" (%v) or "d" (%d) or direct value name (string, number)
+  > parameter_t;
+  std::vector<parameter_t> m_parameters;
+};
+
+extern processed_procedure_call_t process_procedure_call(const char* rpc_text, ExceptionSink* xsink);
 
 #endif
 
