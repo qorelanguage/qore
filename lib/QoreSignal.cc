@@ -140,6 +140,10 @@ void QoreSignalManager::handleSignals()
    // check flag again inside the lock
    if (!sig_raised)
       return;
+
+   // save errno during signal processing
+   int save_errno = errno;
+
    sig_raised = false;
    
    for (int i = 1; i < QORE_SIGNAL_MAX; ++i)
@@ -154,7 +158,8 @@ void QoreSignalManager::handleSignals()
 	 handlers[i].runHandler(i, &xsink);
 	 sl.lock();
       }
-   }   
+   }
+   errno = save_errno;
 }
 
 #define CPP_MAKE_STRING1(x) #x

@@ -48,7 +48,7 @@
         <para>Qore has clean object-oriented features, built-in from the start by design</para>
       </listitem>
       <listitem>
-        <para>Qore has transparent UTF-8 support (qore's substr(), string splice, index(), etc work on character offsets, not byte offsets according to the character encoding used for the string), perl's wide character support is not as transparent - for example, 'printf("%s\n", substr("ä", 0, 1));' will output an invalid character in perl, but work properly in Qore using UTF-8 variable-width characters</para>
+        <para>Qore has transparent UTF-8 support (qore's <link linkend="substr">substr()</link>, string <link linkend="Splice_Operator">splice</link>, <link linkend="index">index()</link>, <link linkend="reverse">reverse()</link>, etc work on character offsets, not byte offsets according to the character encoding used for the string), perl's wide character support is not as transparent - for example, 'printf("%s\n", substr("ä", 0, 1));' will output an invalid character in perl, but work properly in Qore using UTF-8 variable-width characters</para>
       </listitem>
       <listitem>
         <para>Qore tends to avoid syntactic shortcuts and require more verbose expressions than perl; Qore has a much smaller grammar than perl, and no default variables (no $_, etc); Qore has <command>if</command> statements, but no "unless"; etc</para>
@@ -98,10 +98,10 @@ $scalar = 3.0;</programlisting>
         <para>there is currently no generic equivalent to perl's references.  It is only possible to pass values by reference in Qore if the subroutine includes a local variable argument list</para>
       </listitem>
       <listitem>
-        <para>Qore does not support enclosures or lamba functions, however Qore's Program class provides a powerful mechanism for embedding logic in a program or even for self-modifying programs</para>
+        <para>Qore does not support enclosures or lamba functions, however Qore's <link linkend="Qore_Program_Class">Program</link> class provides a powerful mechanism for embedding logic in a program (or even for self-modifying programs, if you really want to do that), and Qore's <link linkend="call_references">call references</link> allow expressions to be used to call functions or object methods (meaning that a call on a call reference pointing to an object method will be made in the context of a specific object) dynamically at run-time.</para>
       </listitem>
       <listitem>
-        <para>Qore does not yet support signal handling; this is planned for a future release (before 1.0)</para>
+        <para>Qore features experimental support for <link linkend="signal_handling">safe signal handling</link> as well.</para>
       </listitem>
     </itemizedlist>
 
@@ -160,9 +160,6 @@ $scalar = 3.0;</programlisting>
       </listitem>
       <listitem>
         <para>Java uses the <code>clone</code> method and a special interface to provide a mechanism to copy objects; qore uses the <code>copy()</code> method, which is run in the copy of the object after all members have been copied (although members that are objects get a new reference to the object, so it's not a deep copy -- basically Qore executed an equivalent of Java's <code>Object.clone()</code> call, and then allows the new object to make changes to the new data). Qore's <code>copy()</code> methods are inherited and run in the same order as <code>constructor()</code> methods in class hierarchies.</para>
-      </listitem>
-      <listitem>
-        <para>Declaring a Qore <code>copy()</code> method as <command>synchronized</command> has no effect because the method is run in the new object, which is always unique.</para>
       </listitem>
       <listitem>
         <para>Java is based on byte code and requires classes to be compiled to byte code before they are run. Qore parses (very quickly) normal text data to an internal compiled representation which is executed; there is no byte code in qore (yet).</para>

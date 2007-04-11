@@ -3047,6 +3047,12 @@
           <entry><para>Returns true if the regular expression matches the string passed</para></entry>
         </row>
         <row>
+          <entry><para><link linkend="regex_extract">regex_extract()</link></para></entry>
+	  <entry><para>String</para></entry>
+          <entry><para>Y</para></entry>
+          <entry><para>Returns a list of substrings in a string based on matching patterns defined by a regular expression.</para></entry>
+        </row>
+        <row>
           <entry><para><link linkend="regex_subst">regex_subst()</link></para></entry>
 	  <entry><para>String</para></entry>
           <entry><para>Y</para></entry>
@@ -3169,7 +3175,7 @@
           <para>Y</para>
         </entry>
         <entry>
-          <para>Changes the process effective group ID according to the argument passed.  Returns 0 for success, non-zero for errors (the error code can be retrieved with -link- linkend=-errno--errno()-/link-)</para>
+          <para>Changes the process effective group ID according to the argument passed.  Returns 0 for success, non-zero for errors (the error code can be retrieved with <link linkend="errno">errno()</link>)</para>
         </entry>
       </row>
       <row>
@@ -3185,7 +3191,7 @@
           <para>Y</para>
         </entry>
         <entry>
-          <para>Changes the process effective user ID according to the argument passed.  Returns 0 for success, non-zero for errors (the error code can be retrieved with -link- linkend=-errno--errno()-/link-)</para>
+          <para>Changes the process effective user ID according to the argument passed.  Returns 0 for success, non-zero for errors (the error code can be retrieved with <link linkend="errno">errno()</link>)</para>
         </entry>
       </row>
         <row>
@@ -3218,7 +3224,7 @@
           <para>Y</para>
         </entry>
         <entry>
-          <para>Changes the process group ID according to the argument passed.  Returns 0 for success, non-zero for errors (the error code can be retrieved with -link- linkend=-errno--errno()-/link-)</para>
+          <para>Changes the process group ID according to the argument passed.  Returns 0 for success, non-zero for errors (the error code can be retrieved with <link linkend="errno">errno()</link>)</para>
         </entry>
       </row>
       <row>
@@ -3234,7 +3240,7 @@
           <para>Y</para>
         </entry>
         <entry>
-          <para>Changes the process user ID according to the argument passed.  Returns 0 for success, non-zero for errors (the error code can be retrieved with -link- linkend=-errno--errno()-/link-)</para>
+          <para>Changes the process user ID according to the argument passed.  Returns 0 for success, non-zero for errors (the error code can be retrieved with <link linkend="errno">errno()</link>)</para>
         </entry>
       </row>
 
@@ -3762,6 +3768,12 @@
 	<programlisting>abs(<replaceable>numeric_expression</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$x = abs($y);</programlisting>
+      </listitem>
+    </varlistentry>
   </variablelist>
 
   <table>
@@ -3809,6 +3821,12 @@
 	<programlisting>acos(<replaceable>float</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$x = acos($y);</programlisting>
+      </listitem>
+    </varlistentry>
   </variablelist>
 
 
@@ -3852,6 +3870,12 @@
       <term>Usage</term>
       <listitem>
 	<programlisting>asin(<replaceable>float</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$x = asin($y);</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -3899,6 +3923,12 @@
 	<programlisting>atan(<replaceable>float</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$x = atan($y);</programlisting>
+      </listitem>
+    </varlistentry>
   </variablelist>
 
 
@@ -3944,6 +3974,12 @@
 	<programlisting>cbrt(<replaceable>float</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$x = cbrt($y);</programlisting>
+      </listitem>
+    </varlistentry>
   </variablelist>
 
   
@@ -3985,6 +4021,12 @@
       <term>Usage</term>
       <listitem>
 	<programlisting>ceil(<replaceable>float</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$x = ceil(3.2); # will return 4.0 </programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -4032,8 +4074,13 @@
 	<programlisting>cos(<replaceable>float</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$x = cos($y);</programlisting>
+      </listitem>
+    </varlistentry>
   </variablelist>
-
 
 <table><title>Arguments and Return Values for cos()</title>
 <tgroup cols='3' align='left' colsep='1' rowsep='1'>
@@ -4075,6 +4122,12 @@
       <term>Usage</term>
       <listitem>
 	<programlisting>cosh(<replaceable>float</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$x = cosh($y);</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -4122,6 +4175,12 @@
 	<programlisting>exp(<replaceable>float</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$x = exp($y);</programlisting>
+      </listitem>
+    </varlistentry>
   </variablelist>
 
 
@@ -4167,6 +4226,12 @@
 	<programlisting>exp2(<replaceable>float</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$x = exp2($y);</programlisting>
+      </listitem>
+    </varlistentry>
   </variablelist>
 
 
@@ -4203,7 +4268,7 @@
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Returns an equivalent of exp(x) - 1.</para>
+	<para>Returns an equivalent of <link linkend="exp">exp(x)</link> - 1.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -4212,10 +4277,16 @@
 	<programlisting>expm1(<replaceable>float</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$x = expm1($y);</programlisting>
+      </listitem>
+    </varlistentry>
   </variablelist>
 
 
-<table><title>Arguments and Return Values for exp()</title>
+<table><title>Arguments and Return Values for expm1()</title>
 <tgroup cols='3' align='left' colsep='1' rowsep='1'>
 
   <thead>
@@ -4254,6 +4325,12 @@
           <term>Usage</term>
           <listitem>
             <programlisting>floor(<replaceable>float</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$x = floor(3.7); # will return 3.0</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -4302,6 +4379,12 @@
 	<para>The <replaceable>format_string</replaceable> has the following format: &lt;<replaceable>thousands_seperator</replaceable>&gt;[&lt;<replaceable>decimal_separator</replaceable>&gt;&lt;<replaceable>decimals</replaceable>&gt;], where <replaceable>thousands_separator</replaceable> and <replaceable>decimal_seperator</replaceable> are single ASCII characters defining the thousands and decimal separator characters respectively, and <replaceable>decimals</replaceable> is a single digit defining how may decimals should appear after the decimal point.</para>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>format_number(".,3", -48392093894.2349); # returns "-48.392.093.894,235"</programlisting>
+      </listitem>
+    </varlistentry>
   </variablelist>
 
 
@@ -4345,6 +4428,12 @@
       <term>Usage</term>
       <listitem>
 	<programlisting>hypot(<replaceable>float_x, float_y</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$z = hypot($x, $y);</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -4392,6 +4481,12 @@
 	<programlisting>log10(<replaceable>float</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$x = log10($y);</programlisting>
+      </listitem>
+    </varlistentry>
   </variablelist>
 
   
@@ -4435,8 +4530,13 @@
 	<programlisting>log1p(<replaceable>float</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$x = log1p($y);</programlisting>
+      </listitem>
+    </varlistentry>
   </variablelist>
-
   
   <table>
     <title>Arguments and Return Values for log1p()</title>
@@ -4476,6 +4576,12 @@
       <term>Usage</term>
       <listitem>
 	<programlisting>logb(<replaceable>float</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$x = logb($y);</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -4523,6 +4629,12 @@
 	<programlisting>nlog(<replaceable>float</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$x = nlog();</programlisting>
+      </listitem>
+    </varlistentry>
   </variablelist>
 
 
@@ -4565,6 +4677,12 @@
       <term>Usage</term>
       <listitem>
 	<programlisting>pow(<replaceable>x, y</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$z = pow($x, $y);</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -4630,6 +4748,12 @@
 	<programlisting>sin(<replaceable>float</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$x = sin($y);</programlisting>
+      </listitem>
+    </varlistentry>
   </variablelist>
 
 
@@ -4671,6 +4795,12 @@
       <term>Usage</term>
       <listitem>
 	<programlisting>sinh(<replaceable>float</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$x = sinh($y);</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -4717,6 +4847,12 @@
 	<programlisting>sqrt(<replaceable>float</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$x = sqrt($y);</programlisting>
+      </listitem>
+    </varlistentry>
   </variablelist>
 
 
@@ -4759,6 +4895,12 @@
       <term>Usage</term>
       <listitem>
 	<programlisting>tan(<replaceable>float</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$x = tan($y);</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -4804,6 +4946,12 @@
 	<programlisting>tanh(<replaceable>float</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$x = tanh($y);</programlisting>
+      </listitem>
+    </varlistentry>
   </variablelist>
 
 
@@ -4844,13 +4992,19 @@
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Outputs the formatting string to standard output, respecting field widths.</para>
+	<para>Outputs a formatted string to standard output, respecting field widths in the formatting string.  See <link linkend="String_Formatting">String Formatting</link> for information on the formatting string, and see <link linkend="printf">printf()</link> for a similar function that does not enforce field widths.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Usage</term>
       <listitem>
 	<programlisting>f_printf(<replaceable>format_string, arguments...</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>f_printf("%5s\n", "long string"); # will print "long \n", respecting the 5-character field width</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -4883,13 +5037,19 @@
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Returns a formatted string without doing any output, respecting field widths.</para>
+	<para>Returns a formatted string without doing any output, respecting field widths.  See <link linkend="String_Formatting">String Formatting</link> for information on the formatting string, and see <link linkend="sprintf">sprintf()</link> for a similar function that does not enforce field widths.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Usage</term>
       <listitem>
 	<programlisting>f_sprintf(<replaceable>format_string, arguments...</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$str = f_sprintf("%5s", "a long string"); # will return "a lon"</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -4934,6 +5094,12 @@
 	<programlisting>flush()</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>flush();</programlisting>
+      </listitem>
+    </varlistentry>
   </variablelist>
 
   <table><title>Arguments and Return Values for flush()</title>
@@ -4965,13 +5131,19 @@
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Outputs a string to standard output with no formatting.</para>
+	<para>Outputs a string to standard output with no formatting.  See <link linkend="printf">printf()</link> for a function that allows for formatted output.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Usage</term>
       <listitem>
 	<programlisting>print(<replaceable>string</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>print("hello\n"); # do not use formatting with this function</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -5018,13 +5190,19 @@
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Outputs the string passed to standard output, using the first argument as a formatting string.</para>
+	<para>Outputs the string passed to standard output, using the first argument as a formatting string.  See <link linkend="f_printf">f_printf()</link> for a similar function that enforces field widths, and <link linkend="print">print</link> for an simple output function that does not accept a formatting string.  See <link linkend="String_Formatting">String Formatting</link> for information on the formatting string.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Usage</term>
       <listitem>
 	<programlisting>printf(<replaceable>format_string, arguments...</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>printf("%5s\n", "a long string"); # will output "a long string", exceeding the field width</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -5062,13 +5240,19 @@
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Returns a formatted string without enforcing hard field limits.</para>
+	<para>Returns a formatted string without enforcing hard field limits.  See <link linkend="f_sprintf">f_sprintf()</link> for a similar function that enforces field widths, and see <link linkend="String_Formatting">String Formatting</link> for information on the formatting string.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Usage</term>
       <listitem>
 	<programlisting>sprintf(<replaceable>format_string, arguments...</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$str = sprintf("%5s", "a long string"); # returns "a long string", exceeding the field width</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -5104,13 +5288,19 @@
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Outputs a formatted string based on a variable number of arguments given in a list after the format string and returns the string printed.</para>
+	<para>Outputs a formatted string based on a variable number of arguments given in a list after the format string and returns the string printed.  See <link linkend="String_Formatting">String Formatting</link> for information on the formatting string.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Usage</term>
       <listitem>
 	<programlisting>vprintf(<replaceable>format_string, arg_list</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>vprintf("%5s %3d\n", ("a long string", 5000)); # outputs "a long string 5000", exceeding field width of 5</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -5154,13 +5344,19 @@
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Formats a string based on two arguments: a format string and a list.  Does not enforce hard field widths.  Returns this formatted string.</para>
+	<para>Formats a string based on two arguments: a format string and a list.  Does not enforce hard field widths.  Returns this formatted string.   See <link linkend="String_Formatting">String Formatting</link> for information on the formatting string.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Usage</term>
       <listitem>
 	<programlisting>vsprintf(<replaceable>format_string, arg_list</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$str = vsprintf("%5s %3d\n", ("a long string", 5000)); # returns "a long string 5000", exceeding field width of 5</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -5213,13 +5409,19 @@
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Returns the system time in microseconds (1/1000000 second intervals since Jan 1, 1970 00:00).  Please note that many operating system/hardware combinbations are not capable of reporting time at this resolution; the last 3 or more digits may be zero in this case.</para>
+	<para>Returns an integer representing the system time in microseconds (1/1000000 second intervals since Jan 1, 1970 00:00).  Please note that many operating system/hardware combinbations are not capable of reporting time at this resolution; the last 3 or more digits may be zero in this case.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Usage</term>
       <listitem>
 	<programlisting>clock_getmicros()</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$time = clock_getmicros();</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -5267,13 +5469,19 @@
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Returns the system time in milliseconds (1/1000 second intervals since Jan 1, 1970 00:00).</para>
+	<para>Returns an integer representing the system time in milliseconds (1/1000 second intervals since Jan 1, 1970 00:00).</para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Usage</term>
       <listitem>
 	<programlisting>clock_getmillis()</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$time = clock_getmillis();</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -5330,6 +5538,12 @@
 	<programlisting>clock_getnanos()</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$time = clock_getnanos();</programlisting>
+      </listitem>
+    </varlistentry>
   </variablelist>
 
       <table>
@@ -5383,6 +5597,12 @@
             <programlisting>days(<replaceable>expression</replaceable>)</programlisting>
           </listitem>
         </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$days = days(5 * 5); # returns 25D</programlisting>
+          </listitem>
+        </varlistentry>
       </variablelist>
       
       <table>
@@ -5427,13 +5647,20 @@
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Returns a formatting string for a date argument passed.</para>
+	<para>Returns a formatting string for a date argument passed.  See <link linkend="Date_Formatting">Date Formatting</link> for information about the formatting string.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Usage</term>
       <listitem>
 	<programlisting>format_date(<replaceable>format_string, date_value</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$str = format_date("Day, Mon D, YYYY-MM-DD HH:mm:SS", 2004-02-01T12:30:00);
+# returns "Sunday, Feb 1, 2004-02-01 12:30:00"</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -5452,7 +5679,7 @@
             <row>
               <entry><para>String, Date</para></entry>
               <entry><para>String</para></entry>
-              <entry><para>Formats the date value using the string as a formatting specifier.  See <link linkend="Date_Formatting">Date Formatting</link> for information about the date formatting string.</para></entry>
+              <entry><para>Formats the date value using the string as a <link linkend="Date_Formatting">formatting specification</link>.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -5593,6 +5820,12 @@
           <programlisting>get_years(<replaceable>date</replaceable>)</programlisting>
         </listitem>
       </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$years = get_years(2007-01-23); # returns 2007</programlisting>
+        </listitem>
+      </varlistentry>
     </variablelist>
     <table>
       <title>Arguments and Return Values for get_years()</title>
@@ -5639,6 +5872,12 @@
         <term>Usage</term>
         <listitem>
           <programlisting>get_months(<replaceable>date</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$months = get_months(2007-01-23); # returns 1</programlisting>
         </listitem>
       </varlistentry>
     </variablelist>
@@ -5689,6 +5928,12 @@
           <programlisting>get_days(<replaceable>date</replaceable>)</programlisting>
         </listitem>
       </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$days = get_days(2007-01-23); # returns 23</programlisting>
+        </listitem>
+      </varlistentry>
     </variablelist>
     <table>
       <title>Arguments and Return Values for get_days()</title>
@@ -5735,6 +5980,12 @@
         <term>Usage</term>
         <listitem>
           <programlisting>get_hours(<replaceable>date</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$hours = get_hours(2007-01-23T11:24:03); # returns 11</programlisting>
         </listitem>
       </varlistentry>
     </variablelist>
@@ -5785,6 +6036,12 @@
           <programlisting>get_minutes(<replaceable>date</replaceable>)</programlisting>
         </listitem>
       </varlistentry>
+      <varlistentry>
+        <term>Examples</term>
+        <listitem>
+          <programlisting>$minutes = get_minutes(2007-01-23T11:24:03); # returns 24</programlisting>
+        </listitem>
+      </varlistentry>
     </variablelist>
     <table>
       <title>Arguments and Return Values for get_minutes()</title>
@@ -5831,6 +6088,12 @@
         <term>Usage</term>
         <listitem>
           <programlisting>get_seconds(<replaceable>date</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$secs = get_seconds(2007-01-23T11:24:03); # returns 3</programlisting>
         </listitem>
       </varlistentry>
     </variablelist>
@@ -5881,6 +6144,12 @@
           <programlisting>get_milliseconds(<replaceable>date</replaceable>)</programlisting>
         </listitem>
       </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$ms = get_milliseconds(2007-01-23T11:24:03.250); # returns 250</programlisting>
+        </listitem>
+      </varlistentry>
     </variablelist>
     <table>
       <title>Arguments and Return Values for get_milliseconds()</title>
@@ -5927,6 +6196,12 @@
         <term>Usage</term>
         <listitem>
           <programlisting>get_midnight(<replaceable>date</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$date = get_midnight(2007-01-23T11:24:03.250); # returns 2007-01-23T00:00:00.000</programlisting>
         </listitem>
       </varlistentry>
     </variablelist>
@@ -5977,6 +6252,12 @@
           <programlisting>getDateFromISOWeek(<replaceable>integer, integer, optional:integer</replaceable>)</programlisting>
         </listitem>
       </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$date = getDateFromISOWeek(2007, 3); # returns 2007-01-15T00:00:00.000</programlisting>
+        </listitem>
+      </varlistentry>
     </variablelist>
     <table>
       <title>Arguments and Return Values for getDateFromISOWeek()</title>
@@ -6023,6 +6304,12 @@
         <term>Usage</term>
         <listitem>
           <programlisting>getDayOfWeek(<replaceable>date</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>$dow = getDayOfWeek(2007-05-15); # returns 2</programlisting>
         </listitem>
       </varlistentry>
     </variablelist>
@@ -6073,6 +6360,12 @@
           <programlisting>getDayNumber(<replaceable>date</replaceable>)</programlisting>
         </listitem>
       </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$dn = getDayNumber(2007-05-15); # returns 135</programlisting>
+        </listitem>
+      </varlistentry>
     </variablelist>
     <table>
       <title>Arguments and Return Values for getDayNumber()</title>
@@ -6119,6 +6412,12 @@
         <term>Usage</term>
         <listitem>
           <programlisting>getISODayOfWeek(<replaceable>date</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$dow = getISODayOfWeek(2007-05-15); # returns 2 for Tuesday</programlisting>
         </listitem>
       </varlistentry>
     </variablelist>
@@ -6170,6 +6469,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <programlisting>getISOWeekHash(<replaceable>date</replaceable>)</programlisting>
         </listitem>
       </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$h = getISOWeekHash(2007-05-15); # returns year=2007, week=20, day=2</programlisting>
+        </listitem>
+      </varlistentry>
     </variablelist>
     <table>
       <title>Arguments and Return Values for getISOWeekHash()</title>
@@ -6216,6 +6521,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <term>Usage</term>
         <listitem>
           <programlisting>getISOWeekString(<replaceable>date</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$str = getISOWeekString(2007-05-15); # returns "2007-W20-2"</programlisting>
         </listitem>
       </varlistentry>
     </variablelist>
@@ -6267,6 +6578,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Usage</term>
       <listitem>
 	<programlisting>gmtime(<replaceable>[int_value]</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$date = gmtime(mktime(now)); # returns current GMT</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -6323,6 +6640,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
             <programlisting>hours(<replaceable>expression</replaceable>)</programlisting>
           </listitem>
         </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$h = hours(5 * 5); # returns 25h</programlisting>
+          </listitem>
+        </varlistentry>
       </variablelist>
       
       <table>
@@ -6373,6 +6696,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Usage</term>
       <listitem>
 	<programlisting>localtime(<replaceable>[int_value]</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$time = localtime(10);</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -6429,6 +6758,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
             <programlisting>millseconds(<replaceable>expression</replaceable>)</programlisting>
           </listitem>
         </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$ms = millseconds(5 * 5); # returns 25ms</programlisting>
+          </listitem>
+        </varlistentry>
       </variablelist>
       
       <table>
@@ -6480,6 +6815,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
             <programlisting>minutes(<replaceable>expression</replaceable>)</programlisting>
           </listitem>
         </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$m = minutes(5 * 5); # returns 25m</programlisting>
+          </listitem>
+        </varlistentry>
       </variablelist>
       
       <table>
@@ -6523,7 +6864,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Returns the number of seconds of the date and time in local time passed since Jan 1, 1970, 00:00:00.</para>
+	<para>Returns the number of seconds of the date and time in local time passed since Jan 1, 1970, 00:00:00 GMT.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -6532,8 +6873,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<programlisting>mktime(<replaceable>date_value</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$secs = mktime(2007-09-23T00:00:01);</programlisting>
+      </listitem>
+    </varlistentry>
   </variablelist>
-
 
 <para>Synopsis</para>
 <para></para>
@@ -6593,6 +6939,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
             <programlisting>months(<replaceable>expression</replaceable>)</programlisting>
           </listitem>
         </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$m = months(5 * 5); # returns 25M</programlisting>
+          </listitem>
+        </varlistentry>
       </variablelist>
       
       <table>
@@ -6644,6 +6996,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Usage</term>
       <listitem>
 	<programlisting>now()</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$now = now();</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -6699,6 +7057,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
             <programlisting>seconds(<replaceable>expression</replaceable>)</programlisting>
           </listitem>
         </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$time = now() + seconds(5 * 5); # 25 seconds from now</programlisting>
+          </listitem>
+        </varlistentry>
       </variablelist>
       
       <table>
@@ -6752,6 +7116,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<programlisting>timegm(<replaceable>date</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$secs = timegm(2007-05-01T11:34:01);</programlisting>
+      </listitem>
+    </varlistentry>
   </variablelist>
 
       <table>
@@ -6803,6 +7173,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <term>Usage</term>
           <listitem>
             <programlisting>years(<replaceable>expression</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$years = years(5 * 5); # returns 25Y</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -6863,6 +7239,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<programlisting>binary(<replaceable>string</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$bin = binary("hello");</programlisting>
+      </listitem>
+    </varlistentry>
   </variablelist>
 
       <table>
@@ -6916,6 +7298,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Usage</term>
       <listitem>
 	<programlisting>boolean(<replaceable>expression</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$bool = boolean(1); # returns True</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -6972,6 +7360,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<programlisting>date(<replaceable>expression</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$date = date(1); # return 1970-01-01T00:00:01</programlisting>
+      </listitem>
+    </varlistentry>
   </variablelist>
 
       <table>
@@ -7014,6 +7408,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<programlisting>float(<replaceable>expression</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$float = float("1.435"); # returns 1.435</programlisting>
+      </listitem>
+    </varlistentry>
   </variablelist>
 
       <table>
@@ -7054,6 +7454,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Usage</term>
       <listitem>
 	<programlisting>hash()</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$h = hash(); # creates an empty hash</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -7099,6 +7505,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<programlisting>int(<replaceable>expression</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$int = int("200"); # returns 200</programlisting>
+      </listitem>
+    </varlistentry>
   </variablelist>
 
       <table>
@@ -7140,6 +7552,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Usage</term>
       <listitem>
 	<programlisting>list([<replaceable>expression</replaceable>])</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$l = list(200);</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -7184,6 +7602,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<programlisting>string(<replaceable>expression</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$str = string(200); # returns "200"</programlisting>
+      </listitem>
+    </varlistentry>
   </variablelist>
 
       <table>
@@ -7215,13 +7639,19 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Returns the data type of the argument passed.</para>
+	<para>Returns the data type of the argument passed.  See <link linkend="Qore_Type_Constants">Type Constants</link> for the values returned by this function..</para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Usage</term>
       <listitem>
 	<programlisting>type(<replaceable>expression</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$type = type("hello"); # returns Type::String ("string")</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -7315,6 +7745,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<programlisting>getenv(<replaceable>variable_name</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$v = getenv("PATH");</programlisting>
+      </listitem>
+    </varlistentry>
   </variablelist>
 
       <table>
@@ -7357,6 +7793,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<programlisting>setenv(<replaceable>key_string, value_string</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>setenv("PATH", "/bin:/usr/bin");</programlisting>
+      </listitem>
+    </varlistentry>
   </variablelist>
 
       <table>
@@ -7397,6 +7839,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Usage</term>
       <listitem>
 	<programlisting>unsetenv(<replaceable>key_string</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>unsetenv("PATH");</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -7447,6 +7895,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<programlisting>bindex(<replaceable>string, substring [, start_position]</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$i = bindex("hello there", "the");</programlisting>
+      </listitem>
+    </varlistentry>
   </variablelist>
 
       <table>
@@ -7486,6 +7940,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	    <programlisting>brindex(<replaceable>string, substring, [position]</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$i = brindex("hello there", "the");</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
       <table>
         <title>Arguments and Return Values for brindex()</title>
@@ -7523,6 +7983,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Usage</term>
       <listitem>
 	<programlisting>chomp(<replaceable>string</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$line = chomp("hello\n"); # returns "hello"</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -7567,6 +8033,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<programlisting>chr(<replaceable>integer</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$i = chr(65); # returns "A"</programlisting>
+      </listitem>
+    </varlistentry>
   </variablelist>
 
       <table>
@@ -7607,6 +8079,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Usage</term>
       <listitem>
 	<programlisting>convert_encoding(<replaceable>string, new_encoding</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$utf8_str = convert_encoding($iso_8859_1_str, "utf-8");</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -7666,6 +8144,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<programlisting>get_encoding(<replaceable>string</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$enc = get_encoding($string);</programlisting>
+      </listitem>
+    </varlistentry>
   </variablelist>
 
       <table>
@@ -7707,6 +8191,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<programlisting>index(<replaceable>string, substring [, start_position]</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$i = index("hello there", "the");</programlisting>
+      </listitem>
+    </varlistentry>
   </variablelist>
 
       <table>
@@ -7746,6 +8236,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<programlisting>join(<replaceable>separator_string, list</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$str = join(":", ("a", "b", "c")); # returns "a:b:c"</programlisting>
+      </listitem>
+    </varlistentry>
   </variablelist>
   
   <table>
@@ -7777,13 +8273,19 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Returns the length in characters for the string passed.</para>
+	<para>Returns the length in characters for the string passed.  Note that the byte length may differ from the character length with multi-byte character sets.  For byte length of a string, see  <link linkend="strlen">strlen()</link>.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Usage</term>
       <listitem>
 	<programlisting>length(<replaceable>string</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$len = length("hello"); # returns 5</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -7802,7 +8304,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
             <row>
 	      <entry><para>String</para></entry>
               <entry><para>Integer</para></entry>
-              <entry><para>Returns the length in characters for the string passed.  Note that the byte length may differ from the character length with multi-byte character sets.  For byte length of a string, see  <link linkend="strlen">strlen()</link>.</para></entry>
+              <entry><para>Returns the length in characters for the string passed.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -7824,6 +8326,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Usage</term>
       <listitem>
 	<programlisting>ord(<replaceable>string</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$i = ord("A"); # returns 65</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -7868,6 +8376,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<programlisting>regex(<replaceable>string, pattern_string, [options]</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$bool = regex("hello", "^hel"); # returns True</programlisting>
+      </listitem>
+    </varlistentry>
   </variablelist>
 
       <table>
@@ -7884,7 +8398,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
             <row>
 	      <entry><para>String, String</para></entry>
               <entry><para>Boolean</para></entry>
-              <entry><para>Returns True if <replaceable>string</replaceable> matches <replaceable>pattern</replaceable>, False if not.  For valid options, see <link linkend="Qore_Regex_Constants">Regex Constants</link></para></entry>
+              <entry><para>Returns True if <replaceable>string</replaceable> matches <replaceable>pattern</replaceable>, False if not.  For valid options, see <link linkend="Qore_Regex_Constants">Regex Constants</link>.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -7911,6 +8425,75 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 
 </sect2>
 
+<sect2 id="regex_extract">
+<title>regex_extract()</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Returns a list of substrings in a string based on matching patterns defined by a regular expression.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+	<programlisting>regex_extract(<replaceable>string, pattern_string, [options]</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$list = regex_extract("hello:there", "(\\w+):(\\w+)");</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+      <table>
+        <title>Arguments and Return Values for regex_extract()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry><para>Argument Type</para></entry>
+              <entry><para>Return Type</para></entry>
+              <entry><para>Description</para></entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+	      <entry><para>String, String, [Integer]</para></entry>
+              <entry><para>String</para></entry>
+              <entry><para>Returns the result of <replaceable>string =~ s/pattern_string/[options]</replaceable>.  For valid options, see <link linkend="Qore_Regex_Constants">Regex Constants</link></para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+
+  <table><title>Exceptions Thrown by regex_extract()</title>
+  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+    <thead>
+      <row>
+	<entry><para>err</para></entry>
+	<entry><para>desc</para></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+	<entry><para><code>REGEX-OPTION-ERROR</code></para></entry>
+	<entry><para>Invalid options were passed to the function.</para></entry>
+      </row>
+      <row>
+	<entry><para><code>REGEX-COMPILATION-ERROR</code></para></entry>
+	<entry><para>There was an error compiling the regular expression.</para></entry>
+      </row>
+    </tbody>
+  </tgroup>
+  </table>
+
+  <para>For more information on regular expression processing, see <link linkend="Regular_Expressions">Regular Expressions</link>.</para>
+
+</sect2>
+
 <sect2 id="regex_subst">
 <title>regex_subst()</title>
 
@@ -7925,6 +8508,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Usage</term>
       <listitem>
 	<programlisting>regex_subst(<replaceable>string, pattern_string, target_string, [options]</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$str = regex_subst("hello there", "^there$", "you"); # returns "hello you"</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -7990,6 +8579,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<programlisting>replace(<replaceable>string, substring, new_substring</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$str = replace("hello there", "there", "you"); # returns "hello you"</programlisting>
+      </listitem>
+    </varlistentry>
   </variablelist>
 
       <table>
@@ -8031,6 +8626,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	    <programlisting>rindex(<replaceable>string, substring, [position]</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$i = rindex("hello there", "the");</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
       <table>
         <title>Arguments and Return Values for rindex()</title>
@@ -8070,6 +8671,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<programlisting>split(<replaceable>pattern, string</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$list = split(":", "some:text:here"); # returns ("some", "text", "here")</programlisting>
+      </listitem>
+    </varlistentry>
   </variablelist>
 
       <table>
@@ -8103,13 +8710,19 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Returns the length in bytes of the string argument.</para>
+	<para>Returns the length in bytes of the string argument.  Note that the byte length may differ from the character length with multi-byte character sets.  For the character length of a string, see  <link linkend="length">length()</link>.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Usage</term>
       <listitem>
 	<programlisting>strlen(<replaceable>string</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$len = strlen("hello"); # returns 5</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -8128,7 +8741,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
             <row>
 	      <entry><para>String</para></entry>
               <entry><para>Integer</para></entry>
-              <entry><para>Returns the length of the string passed. If the argument is not a string, then it is converted to a string.  Note that the byte length may differ from the character length with multi-byte character sets.  For the character length of a string, see  <link linkend="length">length()</link></para></entry>
+              <entry><para>Returns the length of the string passed. If the argument is not a string, then it is converted to a string.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -8151,6 +8764,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Usage</term>
       <listitem>
 	<programlisting>substr(<replaceable>string, offset, [length]</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$str = substr("hello there", 6); # returns "there"</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -8194,6 +8813,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<programlisting>tolower(<replaceable>string</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$str = tolower("HELLO"); # returns "hello"</programlisting>
+      </listitem>
+    </varlistentry>
   </variablelist>
 
       <table>
@@ -8234,6 +8859,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Usage</term>
       <listitem>
 	<programlisting>toupper(<replaceable>string</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$str = toupper("hello"); # returns "HELLO"</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -8284,6 +8915,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       </listitem>
     </varlistentry>
     <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>abort();</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
       <term>Restrictions</term>
       <listitem>
 	<para>Not available with <link linkend="PO_NO_PROCESS_CONTROL"><code>PO_NO_PROCESS_CONTROL</code></link></para>
@@ -8309,6 +8946,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Usage</term>
       <listitem>
 	<programlisting>basename(<replaceable>string</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$str = basename("/usr/local/bin/file_name"); # returns "file_name"</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -8346,13 +8989,19 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Returns the error code of the last error that occurred in the current thread.</para>
+	<para>Returns the error code of the last error that occurred in the current thread.  See <link linkend="strerror">strerror()</link> for a function that gives the string description for the error number returned by this function.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Usage</term>
       <listitem>
 	<programlisting>errno()</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$str = strerror(errno());</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -8398,6 +9047,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>exec(<replaceable>exec_string</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>exec("/bin/ls -l");</programlisting>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -8449,6 +9104,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>exit(2);</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
 	  <term>Restrictions</term>
 	  <listitem>
 	    <para>Not available with <link linkend="PO_NO_PROCESS_CONTROL"><code>PO_NO_PROCESS_CONTROL</code></link></para>
@@ -8487,13 +9148,19 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Creates a copy of the current process with a new PID.  This function will throw an exception if more than one thread is running.</para>
+	<para>Creates a copy of the current process with a new PID.  Returns 0 in the child process, the child's PID in the parent process.  This function will throw an exception if more than one thread is running.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Usage</term>
       <listitem>
 	<programlisting>fork()</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$pid = fork();</programlisting>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -8561,6 +9228,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Usage</term>
       <listitem>
 	<programlisting>getegid()</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$egid = getegid();</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -8650,6 +9323,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<programlisting>getgid()</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$gid = getgid();</programlisting>
+      </listitem>
+    </varlistentry>
   </variablelist>
 
 <table><title>Arguments and Return Values for getgid()</title>
@@ -8691,6 +9370,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Usage</term>
       <listitem>
 	<programlisting>gethostname()</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$host = gethostname();</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -8736,6 +9421,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<programlisting>getpid()</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$pid = getpid();</programlisting>
+      </listitem>
+    </varlistentry>
   </variablelist>
 
 <table><title>Arguments and Return Values for getpid()</title>
@@ -8779,6 +9470,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<programlisting>getppid()</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$ppid = getppid();</programlisting>
+      </listitem>
+    </varlistentry>
   </variablelist>
 
 <table><title>Arguments and Return Values for getppid()</title>
@@ -8820,6 +9517,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Usage</term>
       <listitem>
 	<programlisting>getuid()</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$uid = getuid();</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -8866,6 +9569,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<programlisting>glob(<replaceable>string</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$list = glob("*.txt");</programlisting>
+      </listitem>
+    </varlistentry>
   </variablelist>
 
 
@@ -8907,6 +9616,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Usage</term>
       <listitem>
 	<programlisting>kill(<replaceable>integer_pid, [integer_signal]</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>kill($pid, SIGINT);</programlisting>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -8952,6 +9667,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <term>Usage</term>
         <listitem>
           <programlisting>setegid(<replaceable>egid</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>setegid($egid);</programlisting>
         </listitem>
       </varlistentry>
     </variablelist>
@@ -9029,6 +9750,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <programlisting>seteuid(<replaceable>euid</replaceable>)</programlisting>
         </listitem>
       </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>seteuid($euid);</programlisting>
+        </listitem>
+      </varlistentry>
     </variablelist>
     <table>
       <title>Arguments and Return Values for seteuid()</title>
@@ -9102,6 +9829,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <term>Usage</term>
         <listitem>
           <programlisting>setgid(<replaceable>gid</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>setgid($gid);</programlisting>
         </listitem>
       </varlistentry>
     </variablelist>
@@ -9179,6 +9912,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <programlisting>setuid(<replaceable>uid</replaceable>)</programlisting>
         </listitem>
       </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>setuid($uid);</programlisting>
+        </listitem>
+      </varlistentry>
     </variablelist>
     <table>
       <title>Arguments and Return Values for setuid()</title>
@@ -9247,13 +9986,19 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Causes the current thread to sleep for a certain number of seconds.</para>
+	<para>Causes the current thread to sleep for a certain number of seconds.  Note that as with all Qore functions and methods accepting a timeout value, relative date/time values can be given instead of integers to make the source more readable (ie <code>5s</code>), however as this function only supports a resolution of 1 second, milliseconds are ignored if passed to this function.  See <link linkend="usleep">usleep()</link> for a similar function supporting microsecond resolution.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>sleep(<replaceable>integer_seconds</replaceable>)</programlisting>
+	<programlisting>sleep(<replaceable>seconds</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>sleep(5s); # sleeps for 5 seconds</programlisting>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -9278,9 +10023,9 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 
 <tbody>
   <row>
+    <entry><para>Integer or Relative Time</para></entry>
     <entry><para>Integer</para></entry>
-    <entry><para>Integer</para></entry>
-    <entry><para>Causes the current thread to sleep for a number of seconds equal to the argument passed.  Returns 0 for success.</para></entry>
+    <entry><para>Causes the current thread to sleep for a number of seconds equal to the argument passed.  Returns 0 for success.  An integer argument is interpreted as a number of seconds to sleep, relative date/time values are interpreted literally.</para></entry>
   </row>
 
 </tbody>
@@ -9298,13 +10043,19 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Returns a list of filesystem values for the file passed, following any symbolic links.</para>
+	<para>Returns a list of filesystem values for the file passed, following any symbolic links.  See also <link linkend="lstat">lstat()</link> for a version of this function that does not follow symbolic links, and see <link linkend="hstat">hstat()</link> for a version of this function that returns a user-friendly hash instead of a list.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Usage</term>
       <listitem>
 	<programlisting>stat(<replaceable>pathname</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$mode = stat($filepath)[2];</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -9323,7 +10074,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<row>
 	  <entry><para>String</para></entry>
 	  <entry><para>List</para></entry>
-	  <entry><para>Returns a list of filesystem values for the file passed, following symbolic links.  See also <link linkend="lstat">lstat()</link>.  See <link linkend="Stat_List">Stat List</link> below for a description of the list returned by this function.</para></entry>
+	  <entry><para>Returns a list of filesystem values for the file passed, following symbolic links.  See <link linkend="Stat_List">Stat List</link> below for a description of the list returned by this function.</para></entry>
 	</row>
       </tbody>
     </tgroup>
@@ -9332,64 +10083,78 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 
   <table id="Stat_List">
     <title>Stat List Description</title>
-    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+    <tgroup cols='3' align='left' colsep='1' rowsep='1'>
       <thead>
 	<row>
 	  <entry><para>Position</para></entry>
+	  <entry><para>Data Type</para></entry>
 	  <entry><para>Description</para></entry>
 	</row>
       </thead>
       <tbody>
 	<row>
 	  <entry><para>0</para></entry>
+	  <entry><para>Integer</para></entry>
 	  <entry><para>device inode number the file is on</para></entry>
 	</row>
 	<row>
 	  <entry><para>1</para></entry>
+	  <entry><para>Integer</para></entry>
 	  <entry><para>inode of the file</para></entry>
 	</row>
 	<row>
 	  <entry><para>2</para></entry>
+	  <entry><para>Integer</para></entry>
 	  <entry><para>inode protection mode</para></entry>
 	</row>
 	<row>
 	  <entry><para>3</para></entry>
+	  <entry><para>Integer</para></entry>
 	  <entry><para>number of hard links to this file</para></entry>
 	</row>
 	<row>
 	  <entry><para>4</para></entry>
+	  <entry><para>Integer</para></entry>
 	  <entry><para>user ID of the owner</para></entry>
 	</row>
 	<row>
 	  <entry><para>5</para></entry>
+	  <entry><para>Integer</para></entry>
 	  <entry><para>group ID of the owner</para></entry>
 	</row>
 	<row>
 	  <entry><para>6</para></entry>
+	  <entry><para>Integer</para></entry>
 	  <entry><para>device type number</para></entry>
 	</row>
 	<row>
 	  <entry><para>7</para></entry>
+	  <entry><para>Integer</para></entry>
 	  <entry><para>file size in bytes</para></entry>
 	</row>
 	<row>
 	  <entry><para>8</para></entry>
+	  <entry><para>Date/Time</para></entry>
 	  <entry><para>last access time of the file</para></entry>
 	</row>
 	<row>
 	  <entry><para>9</para></entry>
+	  <entry><para>Date/Time</para></entry>
 	  <entry><para>last modified time of the file</para></entry>
 	</row>
 	<row>
 	  <entry><para>10</para></entry>
+	  <entry><para>Date/Time</para></entry>
 	  <entry><para>last change time of the file's inode</para></entry>
 	</row>
 	<row>
 	  <entry><para>11</para></entry>
+	  <entry><para>Integer</para></entry>
 	  <entry><para>block size</para></entry>
 	</row>
 	<row>
 	  <entry><para>12</para></entry>
+	  <entry><para>Integer</para></entry>
 	  <entry><para>blocks allocated for the file</para></entry>
 	</row>
       </tbody>
@@ -9405,13 +10170,19 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Returns the string corresponding to the error code passed.</para>
+	<para>Returns the string corresponding to the error code passed (generally retrieved with <link linkend="errno">errno()</link>).</para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Usage</term>
       <listitem>
 	<programlisting>strerror(<replaceable>error_code</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>printf("%s\n", strerror(errno()));</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -9457,6 +10228,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       </listitem>
     </varlistentry>
     <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$rc = system("ls -l");</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
       <term>Restrictions</term>
       <listitem>
 	<para>Not available with <link linkend="PO_NO_EXTERNAL_PROCESS"><code>PO_NO_EXTERNAL_PROCESS</code></link></para>
@@ -9490,18 +10267,24 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 <sect2 id="usleep">
 <title>usleep()</title>
 
-
   <variablelist>
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Causes the current thread to sleep for a certain number of microseconds (1/1000000 second).</para>
+	<para>Causes the current thread to sleep for a certain number of microseconds (1/1000000 second).  Note that as with all Qore functions and methods accepting a timeout value, relative date/time values can be given instead of integers to make the source more readable (ie <code>1250ms</code>), however as this function supports a resolution of 1 microsecond, to achieve a resolution below milliseconds, an integer must be used instead of a relative date/time value.  See <link linkend="sleep">sleep()</link> for a similar function supporting second resolution.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Usage</term>
       <listitem>
 	<programlisting>usleep(<replaceable>file</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>usleep(1250ms); # sleeps for 1.25 seconds</programlisting>
+	<programlisting>usleep(500); # sleeps for 500 microseconds (0.5 milliseconds)</programlisting>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -9526,9 +10309,9 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 
 <tbody>
   <row>
+    <entry><para>Integer or Relative Time</para></entry>
     <entry><para>Integer</para></entry>
-    <entry><para>Integer</para></entry>
-    <entry><para>Causes the current thread to sleep for a certain number of microseconds (1/1000000 second).  Returns 0 for success.</para></entry>
+    <entry><para>Causes the current thread to sleep for a certain number of microseconds (1/1000000 second).  Returns 0 for success.  Integers are interpreted as microseconds, relative date/time values are interpreted literally.</para></entry>
   </row>
 
 </tbody>
@@ -9555,7 +10338,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <programlisting>blowfish_encrypt_cbc(<replaceable>string | binary</replaceable>)</programlisting>
+          <programlisting>blowfish_encrypt_cbc(<replaceable>string | binary, key, [input_vector]</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>blowfish_encrypt_cbc("hello there", $key);</programlisting>
         </listitem>
       </varlistentry>
     </variablelist>
@@ -9564,28 +10353,16 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <tgroup cols="3" align="left" colsep="1" rowsep="1">
         <thead>
           <row>
-            <entry>
-              <para>Argument Type</para>
-            </entry>
-            <entry>
-              <para>Return Type</para>
-            </entry>
-            <entry>
-              <para>Description</para>
-            </entry>
+            <entry><para>Argument Type</para></entry>
+            <entry><para>Return Type</para></entry>
+            <entry><para>Description</para></entry>
           </row>
         </thead>
         <tbody>
           <row>
-            <entry>
-              <para>String | binary</para>
-            </entry>
-            <entry>
-              <para>Binary</para>
-            </entry>
-            <entry>
-              <para>Encrypts data using the Cipher Block Chaining function for the <ulink url="http://www.counterpane.com/blowfish.html">blowfish</ulink> algorithm.</para>
-            </entry>
+            <entry><para>String | Binary, String  Binary, [String | Binary]</para></entry>
+            <entry><para>Binary</para></entry>
+            <entry><para>Encrypts data using the Cipher Block Chaining function for the <ulink url="http://www.counterpane.com/blowfish.html">blowfish</ulink> algorithm; accepts a variable-length key (recommended 16-bytes or more).  The input vector must be at least 8 bytes long if present.</para></entry>
           </row>
         </tbody>
       </tgroup>
@@ -9643,6 +10420,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <programlisting>blowfish_decrypt_cbc(<replaceable>binary, key, [iv]</replaceable>)</programlisting>
         </listitem>
       </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$bin = blowfish_decrypt_cbc("hello there", $key);</programlisting>
+        </listitem>
+      </varlistentry>
     </variablelist>
     <table>
       <title>Arguments and Return Values for blowfish_decrypt_cbc()</title>
@@ -9663,7 +10446,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <tbody>
           <row>
             <entry>
-              <para>Binary, Key, [iv]</para>
+              <para>Binary, String | Binary, [String | Binary]</para>
             </entry>
             <entry>
               <para>Binary</para>
@@ -9725,7 +10508,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <programlisting>blowfish_decrypt_cbc_to_string(<replaceable>binary, key, [iv]</replaceable>)</programlisting>
+          <programlisting>blowfish_decrypt_cbc_to_string(<replaceable>binary, key, [input_vector]</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$str = blowfish_decrypt_cbc_to_string($bin, $key);</programlisting>
         </listitem>
       </varlistentry>
     </variablelist>
@@ -9811,7 +10600,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <programlisting>des_encrypt_cbc(<replaceable>string | binary</replaceable>)</programlisting>
+          <programlisting>des_encrypt_cbc(<replaceable>string | binary, key, [input_vector]</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$bin = des_encrypt_cbc($text, $key);</programlisting>
         </listitem>
       </varlistentry>
     </variablelist>
@@ -9834,7 +10629,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <tbody>
           <row>
             <entry>
-              <para>String | binary</para>
+              <para>String | Binary, String | Binary, [String | Binary]</para>
             </entry>
             <entry>
               <para>Binary</para>
@@ -9896,7 +10691,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <programlisting>des_decrypt_cbc(<replaceable>binary, key, [iv]</replaceable>)</programlisting>
+          <programlisting>des_decrypt_cbc(<replaceable>binary, key, [input_vector]</replaceable>)</programlisting>
         </listitem>
       </varlistentry>
     </variablelist>
@@ -12666,7 +13461,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Returns a hash of filesystem values for the file passed; symbolic links are not followed; information is returned about symbolic links (see <link linkend="hlstat">hstat()</link> for a version of this function that follows symbolic links).</para>
+	<para>Returns a hash of filesystem values for the file passed; symbolic links are not followed; information is returned about symbolic links (see <link linkend="hstat">hstat()</link> for a version of this function that follows symbolic links).</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -13426,7 +14221,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Returns a list of filesystem values for the file or symbolic link passed.</para>
+	<para>Returns a list of filesystem values for the file or symbolic link passed.  Does not follow symbolic links, but rather returns filesystem information for symbolic links.  See also <link linkend="stat">stat()</link> for a version of this function that follows symbolic links, and <link linkend="hlstat">hlstat()</link> for a version of this function that returns a user-friendly hash instead of a list.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -13457,7 +14252,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<row>
 	  <entry><para>String</para></entry>
 	  <entry><para>List</para></entry>
-	  <entry><para>Returns a list of filesystem values for the file passed.  Does not follow symbolic links, but rather returns filesystem information for symbolic links.  See also <link linkend="stat">stat()</link>.  See <link linkend="Stat_List">Stat List</link> for a description of the list returned by this function.</para></entry>
+	  <entry><para>Returns a list of filesystem values for the file passed.  See <link linkend="Stat_List">Stat List</link> for a description of the list returned by this function.</para></entry>
 	</row>
       </tbody>
     </tgroup>
@@ -16581,7 +17376,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	  <row>
 	    <entry><para>Hash, [String]</para></entry>
 	    <entry><para>String</para></entry>
-	    <entry><para>Serializes the Qore hash to an XML string (see <link linkend="XML_Integration">XML Integration</link> for more information) without an XML header but with formatting.  The hash must have only one top-level key or an exception willbe thrown.</para></entry>
+	    <entry><para>Serializes the Qore hash to an XML string (see <link linkend="XML_Integration">XML Integration</link> for more information) without an XML header but with formatting.  The hash must have only one top-level key or an exception will be thrown.</para></entry>
 	  </row>
 	</tbody>
       </tgroup>
@@ -16928,7 +17723,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	  <row>
 	    <entry><para>Hash, [String]</para></entry>
 	    <entry><para>String</para></entry>
-	    <entry><para>Serializes the Qore hash to an XML string (see <link linkend="XML_Integration">XML Integration</link> for more information) with an XML header and formatting.  The hash must have only one top-level key or an exception willbe thrown.</para></entry>
+	    <entry><para>Serializes the Qore hash to an XML string (see <link linkend="XML_Integration">XML Integration</link> for more information) with an XML header and formatting.  The hash must have only one top-level key or an exception will be thrown.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para>String, Hash, [String]</para></entry>
@@ -16994,7 +17789,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	  <row>
 	    <entry><para>Hash, [String]</para></entry>
 	    <entry><para>String</para></entry>
-	    <entry><para>Serializes the Qore hash to an XML string (see <link linkend="XML_Integration">XML Integration</link> for more information) without an XML header and without whitespace formatting.  The hash must have only one top-level key or an exception willbe thrown.</para></entry>
+	    <entry><para>Serializes the Qore hash to an XML string (see <link linkend="XML_Integration">XML Integration</link> for more information) without an XML header and without whitespace formatting.  The hash must have only one top-level key or an exception will be thrown.</para></entry>
 	  </row>
 	</tbody>
       </tgroup>
@@ -17341,7 +18136,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	  <row>
 	    <entry><para>Hash, [String]</para></entry>
 	    <entry><para>String</para></entry>
-	    <entry><para>Serializes the Qore hash to an XML string (see <link linkend="XML_Integration">XML Integration</link> for more information) with an XML header but without whitespace formatting.  The hash must have only one top-level key or an exception willbe thrown.</para></entry>
+	    <entry><para>Serializes the Qore hash to an XML string (see <link linkend="XML_Integration">XML Integration</link> for more information) with an XML header but without whitespace formatting.  The hash must have only one top-level key or an exception will be thrown.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para>String, Hash, [String]</para></entry>

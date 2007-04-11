@@ -199,8 +199,11 @@ provides a mechanism to deal with DECIMAL (NUMERIC, NUMER) columns in a database
 This ensures that values will be set properly even for databases such as PostgreSQL that do not convert from string or integer types to DECIMAL when binding bx value.
 
 *) new functions
-	- reverse()             - reverses strings and lists
-	- set_signal_handler()  - sets a signal handler 
+	- reverse()                - reverses strings and lists
+	- set_signal_handler()     - sets or replaces a signal handler 
+	- remove_signal_handler()  - removes a signal handler
+	- load_module()            - loads a module at run time
+	- regex_extract()          - extracts patterns from a string based on a regular expression given at run time
 
 *) other bugfixes, updates, etc
 see CHANGELOG for details

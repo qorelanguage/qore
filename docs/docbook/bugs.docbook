@@ -5,7 +5,5 @@
 
   <para>Out of memory errors are not always captured. Internal support for trapping these conditions in the C++ <command>new</command> operator must be developed.</para>
 
-  <para>The documentation needs to be updated providing details about which classes/functions/features are not available when parse options are set.</para>
-
 </chapter>
 

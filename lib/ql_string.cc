@@ -520,6 +520,23 @@ static class QoreNode *f_regex_subst(class QoreNode *params, ExceptionSink *xsin
    return new QoreNode(qrs.exec(p0->val.String, p2->val.String, xsink));
 }
 
+static class QoreNode *f_regex_extract(class QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p0, *p1, *p2;
+   if (!(p0 = test_param(params, NT_STRING, 0)) ||
+       !(p1 = test_param(params, NT_STRING, 1)))
+      return NULL;
+   
+   p2 = get_param(params, 2);
+   int options = p2 ? p2->getAsInt() : 0;
+   
+   QoreRegex qr(p1->val.String, options, xsink);
+   if (xsink->isEvent())
+      return NULL;
+   
+   return new QoreNode(qr.extractSubstrings(p0->val.String, xsink));
+}
+
 // usage: replace(string, substring, new substring)
 static class QoreNode *f_replace(class QoreNode *params, ExceptionSink *xsink)
 {
@@ -654,6 +671,7 @@ void init_string_functions()
    builtinFunctions.add("convert_encoding", f_convert_encoding);
    builtinFunctions.add("regex", f_regex);
    builtinFunctions.add("regex_subst", f_regex_subst);
+   builtinFunctions.add("regex_extract", f_regex_extract);
    builtinFunctions.add("replace", f_replace);
    builtinFunctions.add("join", f_join);
    builtinFunctions.add("chomp", f_chomp);

@@ -9,7 +9,7 @@
   <link linkend='Classes'>class</link>, 
   <link linkend='Private_and_Synchronized_Methods'>private</link>, 
   <link linkend='Private_and_Synchronized_Methods'>synchronized</link>, 
-  new, 
+  <link linkend="New_Object_Operator">new</link>, 
   <link linkend='Class_Inheritance'>inherits</link>, 
   where, 
   <link linkend='do_while_Statements'>do</link>, 
@@ -29,19 +29,19 @@
   <link linkend='throw_Statements'>throw Statements</link>, 
   <link linkend='rethrow_Statements'>rethrow</link>,
   <link linkend='try_and_catch_Statements'>catch</link>, 
-  find, 
+  <link linkend="find_Expressions">find</link>, 
   <link linkend='delete_Statements'>delete</link>, 
-  background, 
-  exists, 
+  <link linkend="Background_Operator">background</link>, 
+  <link linkend="Exists_Operator">exists</link>, 
   <link linkend='thread_exit_Statements'>thread_exit</link>, 
   in, 
-  elements, 
-  keys, 
-  sub, 
+  <link linkend="Elements_Operator">elements</link>, 
+  <link linkend="Keys_Operator">keys</link>, 
+  <link linkend="Subroutines">sub</link>, 
   <link linkend='context_Statements'>context Statements</link>, 
   sortBy, sortDescendingBy, 
-  NULL, 
-  NOTHING, 
+  <link linkend="NULL">NULL</link>, 
+  <link linkend="NOTHING">NOTHING</link>, 
   <link linkend='summarize_Statements'>summarize Statements</link>, 
   by, 
   <link linkend='subcontext_Statements'>subcontext</link>, 
@@ -55,7 +55,15 @@
 
   <para>The following are special keywords, in that they may be used as function or method names if they are followed by an open parenthesis:</para>
 
-  <para><code>splice, pop, push, shift, unshift, chomp</code></para>
+  <para>
+    <code><link linkend="Splice_Operator">splice</link>, 
+    <link linkend="Pop_Operator">pop</link>, 
+    <link linkend="Push_Operator">push</link>, 
+    <link linkend="Shift_Operator">shift</link>, 
+    <link linkend="Unshift_Operator">unshift</link>, 
+    <link linkend="Chomp_Operator">chomp</link>
+    </code>
+  </para>
 
 </chapter>
 

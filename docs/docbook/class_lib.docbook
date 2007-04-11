@@ -3159,7 +3159,7 @@
           <row>
             <entry>
               <para>
-                <link linkend="FtpClient_setIncecure">FtpClient::setIncecure()</link>
+                <link linkend="FtpClient_setInsecure">FtpClient::setInsecure()</link>
               </para>
             </entry>
             <entry>
@@ -3803,8 +3803,8 @@
         </tgroup>
       </table>
     </sect2>
-    <sect2 id="FtpClient_setIncecure">
-      <title>FtpClient::setIncecure()</title>
+    <sect2 id="FtpClient_setInsecure">
+      <title>FtpClient::setInsecure()</title>
       <variablelist>
         <varlistentry>
           <term>Synopsis</term>
@@ -3815,12 +3815,12 @@
         <varlistentry>
           <term>Usage</term>
           <listitem>
-            <programlisting>FtpClient::setIncecure()</programlisting>
+            <programlisting>FtpClient::setInsecure()</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
       <table>
-        <title>Arguments for FtpClient::setIncecure()</title>
+        <title>Arguments for FtpClient::setInsecure()</title>
         <tgroup cols="3" align="left" colsep="1" rowsep="1">
           <thead>
             <row>
@@ -3851,7 +3851,7 @@
         </tgroup>
       </table>
       <table>
-        <title>Return Values for FtpClient::setIncecure()</title>
+        <title>Return Values for FtpClient::setInsecure()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
             <row>
@@ -3876,7 +3876,7 @@
         </tgroup>
       </table>
       <table>
-        <title>Exceptions thrown by FtpClient::setIncecure()</title>
+        <title>Exceptions thrown by FtpClient::setInsecure()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
             <row>
@@ -6102,7 +6102,7 @@
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_Program_existsFunction">Program::existsFunction()</link></para></entry>
-	    <entry>N</entry>
+	    <entry><para>N</para></entry>
 	    <entry><para>Checks if a user function exists in the program object</para></entry>
 	  </row>
 	  <row>
@@ -6123,9 +6123,8 @@
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_Program_getUserFunctionList">Program::getUserFunctionList()</link></para></entry>
-	    <entry>N</entry>
-	    <entry><para>Returns a list of all user functions defined 
-	    in the program object.</para></entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Returns a list of all user functions defined in the program object.</para></entry>
 	  </row>
 	  
 	</tbody>
@@ -16920,9 +16919,9 @@ xs      </variablelist>
 
     <para>Some Qore DBI drivers allow &quot;select&quot; queries to be executed through the <link linkend="Qore::SQL::Datasource::exec">Datasource::exec()</link> method, and allow SQL commands (procedure calls, etc) to be executed through the <link linkend="Qore::SQL::Datasource::select">Datasource::select()</link> method, and some DBI drivers do not (depends on the underlying DB API).  At any rate, the transaction lock is set when auto-commit is disabled and when the <link linkend="Qore::SQL::Datasource::exec">Datasource::exec()</link> or  <link linkend="Qore::SQL::Datasource::beginTransaction">Datasource::beginTransaction()</link> methods are executed as documented above.  Therefore executing a transaction relevant command through the  <link linkend="Qore::SQL::Datasource::select">Datasource::select()</link> method while auto-commit mode is disabled and a transaction has not yet started will not result in the transaction lock being allocated to the current thread and therefore could cause transaction errors when sharing the Datasource object between multiple threads.</para>
 
-    <para>Only databases with an existing Qore DBI driver can be accessed through the Qore Datasource class.  DBI drivers shipping with Qore include <link linkend="oracle_Module">oracle</link>, <link linkend="mysql_Module">mysql</link>, <link linkend="pgsql_Module">pgsql (PostgreSQL)</link>, and <link linkend="sybase_Module">sybase</link>.</para>
+    <para>Only databases with an existing Qore DBI driver can be accessed through the Qore Datasource class.  DBI drivers shipping with Qore include <link linkend="oracle_Module">oracle</link>, <link linkend="mysql_Module">mysql</link>, <link linkend="pgsql_Module">pgsql</link> (PostgreSQL), <link linkend="sybase_Module">sybase</link>, and <link linkend="mssql_Module">mssql</link> (FreeTDS-based Microsoft SQL Server driver).</para>
 
-    <para>DBI drivers delivered separately from Qore may support only a subset of all possible features.  Use the following functions to query DBI driver capabilities: <link linkend="getDBIDriverCapabilities">getDBIDriverCapabilities()</link>, <link linkend="getDBIDriverCapabilityList">getDBIDriverCapabilityList()</link>, and <link linkend="getDBIDriverList">getDBIDriverList()</link>.  See <link linkend="DBI_Capability_Constants">DBI Capability Constants</link> for a table of DBI driver capability codes.</para>
+    <para>DBI drivers delivered separately from Qore may support only a subset of all possible features (at the time of writing this documentation there are none).  Use the following functions to query DBI driver capabilities: <link linkend="getDBIDriverCapabilities">getDBIDriverCapabilities()</link>, <link linkend="getDBIDriverCapabilityList">getDBIDriverCapabilityList()</link>, and <link linkend="getDBIDriverList">getDBIDriverList()</link>.  See <link linkend="DBI_Capability_Constants">DBI Capability Constants</link> for a table of DBI driver capability codes.</para>
 
    <para>All Qore DBI drivers set new connections to use ISO transaction level &quot;read committed&quot;.</para>
 
@@ -18956,9 +18955,9 @@ xs      </variablelist>
 
     <para>For example:</para>
 
-    <programlisting><command>our</command> $gate = new Gate();
+    <programlisting><command>our</command> $gate = <command>new</command> Gate();
 
-<command>sub</command> checkit()
+<command>sub</command> check_error($error)
 {
     # note that the Gate is entered in the AutoGate constructor, and
     # the Gate will be exited as soon as the block is exited below.
@@ -19168,7 +19167,7 @@ xs      </variablelist>
 
     <programlisting><command>our</command> $mutex = new Mutex();
 
-<command>sub</command> checkit()
+<command>sub</command> check_error($error)
 {
     # note that the Mutex is acquired in the AutoLock constructor, and
     # the Mutex will be released as soon as the block is exited below.
@@ -19377,7 +19376,7 @@ xs      </variablelist>
 
     <programlisting><command>our</command> $rwl = new RWLock();
 
-<command>sub</command> checkit()
+<command>sub</command> check_error($error)
 {
     # note that the read lock is acquired in the AutoReadLock constructor, and
     # the read lock will be released as soon as the block is exited below.
@@ -19586,7 +19585,7 @@ xs      </variablelist>
 
     <programlisting><command>our</command> $rwl = new RWLock();
 
-<command>sub</command> checkit()
+<command>sub</command> check_error($error)
 {
     # note that the write lock is acquired in the AutoWriteLock constructor, and
     # the write lock will be released as soon as the block is exited below.
@@ -20135,12 +20134,13 @@ xs      </variablelist>
 	  <term>Synopsis</term>
 	  <listitem>
 	    <para>Blocks a thread on the Condition object.  Must be called with a <link linkend="Qore::Thread::Mutex_Class">Mutex</link> argument, and the Mutex must be locked before the call.  This method will atomically unlock the Mutex object and wait on this Condition object to be woken up with a <link linkend="Qore::Thread::Condition::signal">Condition::signal()</link> or <link linkend="Qore::Thread::Condition::broadcast">Condition::broadcast()</link> method call in another thread.  At this point, the Mutex will be reacquired before control returns to the blocked thread.  The wait condition should always be tested again when the thread is unblocked.</para>
+	    <para>Also accepts an optional timeout value in milliseconds.   Like all Qore functions and methods taking timeout values, a relative time value may be passed instead of an integer to make the timeout units clear (ex: <code>2500ms</code> for 2.5 seconds).  Also if the call times out, the Mutex will also be acquired when the Condition::wait() call returns and a non-zero return value will be returned.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
-	    <programlisting>Condition::wait(<replaceable>mutex</replaceable>)</programlisting>
+	    <programlisting>Condition::wait(<replaceable>mutex, [timeout_ms]</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -20161,6 +20161,11 @@ xs      </variablelist>
 	      <entry><para>Mutex Object</para></entry>
 	      <entry><para>The Mutex object to use for synchronization on this Condition object.  The Mutex must be locked before calling this method.</para></entry>
 	    </row>
+	    <row>
+	      <entry><para><replaceable>[timeout_ms]</replaceable></para></entry>
+	      <entry><para>Integer or Relative Time</para></entry>
+	      <entry><para>An optional timeout value; integers are interpreted as milliseconds; relative date/time values are interpreted literally.</para></entry>
+	    </row>
 	  </tbody>
 	</tgroup>
       </table>
@@ -20177,7 +20182,7 @@ xs      </variablelist>
 	  <tbody>
 	    <row>
 	      <entry><para>Integer</para></entry>
-	      <entry><para>0 for success, -1 for errors.</para></entry>
+	      <entry><para>0 for success, -1 for errors (timeout).</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -21020,7 +21025,7 @@ xs      </variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Blocks until at least one entry is available on the queue, then returns the first entry in the queue.  Accepts an optional timeout value in milliseconds (1/1000 second). Like all Qore functions and methods taking timeout values, a relative time value may be passed instead of an integer to make the timeout units clear (ex: <code>2500ms</code> for 2.5 seconds).</para>
+	    <para>Blocks until at least one entry is available on the queue, then returns the first entry in the queue.  Accepts an optional timeout value in milliseconds (1/1000 second). Like all Qore functions and methods taking timeout values, a relative time value may be passed instead of an integer to make the timeout units clear (ex: <code>2500ms</code> for 2.5 seconds).  Note that this function will throw an exception on timeout, in order to enable the case where NOTHING was pushed on the queue from a timeout.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -21044,7 +21049,7 @@ xs      </variablelist>
 	  <tbody>
 	    <row>
 	      <entry><para><replaceable>[timeout_ms]</replaceable></para></entry>
-	      <entry><para>Integer</para></entry>
+	      <entry><para>Integer or Relative Time</para></entry>
 	      <entry><para>If present, a timeout value in milliseconds (1/1000 second).  If no data is available in the timeout period, a QUEUE-TIMEOUT exception is thrown.</para></entry>
 	    </row>
 	  </tbody>
@@ -21099,7 +21104,7 @@ xs      </variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Blocks until at least one entry is available on the queue, then returns the last entry in the queue.  Accepts an optional timeout value in ms (1/1000 second).  Like all Qore functions and methods taking timeout values, a relative time value may be passed instead of an integer to make the timeout units clear (ex: <code>2500ms</code> for 2.5 seconds).</para>
+	    <para>Blocks until at least one entry is available on the queue, then returns the last entry in the queue.  Accepts an optional timeout value in ms (1/1000 second).  Like all Qore functions and methods taking timeout values, a relative time value may be passed instead of an integer to make the timeout units clear (ex: <code>2500ms</code> for 2.5 seconds).  Note that this function will throw an exception on timeout, in order to enable the case where NOTHING was pushed on the queue from a timeout.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -21123,7 +21128,7 @@ xs      </variablelist>
 	  <tbody>
 	    <row>
 	      <entry><para><replaceable>[timeout_ms]</replaceable></para></entry>
-	      <entry><para>Integer</para></entry>
+	      <entry><para>Integer or Relative Time</para></entry>
 	      <entry><para>If present, a timeout value in ms (1/1000 second).  If no data is available in the timeout period, a QUEUE-TIMEOUT exception is thrown.</para></entry>
 	    </row>
 	  </tbody>
@@ -21349,11 +21354,24 @@ xs      </variablelist>
 
     <para>Note: This class is not available with the <link linkend="PO_NO_THREAD_CLASSES"><code>PO_NO_THREAD_CLASSES</code></link> parse option.</para>
 
-    <para>The RWLock class implements a read-write lock for efficient thread locking when writes are less common than reads and reads must be atomic. When a thread holds the write lock, no other thread can grab the read or write lock. Multiple threads can hold the read lock at one time.</para>
+    <para>The RWLock class implements a read-write lock for efficient thread locking when write actions must be atomic and reads can be made in parallel if no write is in progress. When a thread holds the write lock, no other thread can grab the read or write lock. Multiple threads can hold the read lock at one time.</para>
 
     <para>As with all Qore threading primitives, this class supports deadlock detection and throws exceptions when threading errors are encountered (for example, trying to free the read lock while holding the write lock, etc).</para>
 
     <para>This read-write lock favors readers, so the read lock can be safely acquired recursively.</para>
+
+    <para>See the <link linkend="Qore::Thread::AutoReadLock_Class">AutoReadLock</link> and the <link linkend="Qore::Thread::AutoWriteLock_Class">AutoWriteLock</link> classes for classes that assist in exception-safe RWLock locking.</para>
+
+    <para>Additionally, the <link linkend="on_exit_Statements"><command>on_exit</command></link> statement can provide exception-safe RWLock handling at the lexical block level as in the following example:</para>
+
+    <programlisting>{
+    $rwl.writeLock();
+    <command>on_exit</command>
+        $rwl.writeUnlock();
+
+    # ... when this block exits the lock will be released, even in the
+    #     case of <code>return</code> statements or exceptions
+}</programlisting>
 
     <table>
       <title>Qore::Thread::RWLock Method Overview</title>
@@ -22186,6 +22204,19 @@ xs      </variablelist>
 
     <para>The Mutex class implements a mutual-exclusion lock for thread locking.  Like all Qore thread primitives, objects of this class participate in deadlock detection and throw exceptions when threading errors occur (ex: unlocking a Mutex object locked by another thread, etc).  See individual methods for more information on exceptions thrown.</para>
 
+    <para>See the <link linkend="Qore::Thread::AutoLock_Class">AutoLock class</link> for a class that assists in exception-safe Mutex locking.</para>
+
+    <para>Additionally, the <link linkend="on_exit_Statements"><command>on_exit</command></link> statement can provide exception-safe unlocking at the lexical block level for Mutex objects as in the following example:</para>
+
+    <programlisting>{
+    $m.lock();
+    <command>on_exit</command>
+        $m.unlock();
+
+    # ... when this block exits the lock will be released, even in the
+    #     case of <code>return</code> statements or exceptions
+}</programlisting>
+
     <table>
       <title>Qore::Thread::Mutex Method Overview</title>
       <tgroup cols='3' align='left' colsep='1' rowsep='1'>
@@ -22905,7 +22936,20 @@ xs      </variablelist>
 
     <para>Note: This class is not available with the <link linkend="PO_NO_THREAD_CLASSES"><code>PO_NO_THREAD_CLASSES</code></link> parse option.</para>
 
-    <para>The Gate class implements a reentrant thread lock.  Once a thread grabs the lock, it can call the Gate::enter() method again without blocking.  Other threads that try to enter the lock will block until the thread holding the lock calls Gate::exit() an equal number of times to the Gate::enter() calls.</para>
+    <para>The Gate class implements a reentrant thread lock.  Once a thread grabs the lock, it can call the <link linkend="Qore::Thread::Gate::enter">Gate::enter()</link> method again without blocking.  Other threads that try to enter the lock will block until the thread holding the lock calls <link linkend="Qore::Thread::Gate::exit">Gate::exit()</link> an equal number of times to <link linkend="Qore::Thread::Gate::enter">Gate::enter()</link> calls.</para>
+
+    <para>See the <link linkend="Qore::Thread::AutoGate_Class">AutoGate class</link> for a class that assists in exception-safe Gate locking.</para>
+
+    <para>Additionally, the <link linkend="on_exit_Statements"><command>on_exit</command></link> statement can provide exception-safe Gate handling at the lexical block level as in the following example:</para>
+
+    <programlisting>{
+    $g.enter();
+    <command>on_exit</command>
+        $g.exit();
+
+    # ... when this block exits the gate lock counter will be decremented,
+    #     even in the case of <code>return</code> statements or exceptions
+}</programlisting>
 
     <table>
       <title>Qore::Thread::Gate Method Overview</title>

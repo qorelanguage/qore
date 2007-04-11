@@ -906,6 +906,7 @@ sub string_tests()
     # regex subpattern extraction operator tests
     test_value("xmlns:wsdl" =~ x/(\w+):(\w+)/, ("xmlns", "wsdl"), "regex subpattern extraction");
     test_value("xmlns-wsdl" =~ x/(\w+):(\w+)/, NOTHING, "negative regex subpattern extraction");
+    test_value(regex_extract("xmlns:wsdl", "(\\w+):(\\w+)"), ("xmlns", "wsdl"), "regex_extract()");
 
     # regex operator tests
     test_value("hello" =~ /^hel*/, True, "regular expression positive match");
