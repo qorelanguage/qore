@@ -7651,7 +7651,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Example</term>
       <listitem>
-	<programlisting>$type = type("hello"); # returns Type::String ("string")</programlisting>
+	<programlisting>$type = type("hello"); # returns <link linkend="Qore_Type_Constants">Type::String</link> ("string")</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -10332,19 +10332,19 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Encrypts data using the Cipher Block Chaining function for the <ulink url="http://www.counterpane.com/blowfish.html">blowfish</ulink> algorithm.</para>
+          <para>Encrypts data using the Cipher Block Chaining function for the <ulink url="http://www.counterpane.com/blowfish.html">blowfish</ulink> algorithm using a variable-length key.  Returns a binary object of the encrypted data.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <programlisting>blowfish_encrypt_cbc(<replaceable>string | binary, key, [input_vector]</replaceable>)</programlisting>
+          <programlisting>blowfish_encrypt_cbc(<replaceable>input_data, key, [input_vector]</replaceable>)</programlisting>
         </listitem>
       </varlistentry>
       <varlistentry>
         <term>Example</term>
         <listitem>
-          <programlisting>blowfish_encrypt_cbc("hello there", $key);</programlisting>
+          <programlisting>$bin = blowfish_encrypt_cbc("hello there", $key);</programlisting>
         </listitem>
       </varlistentry>
     </variablelist>
@@ -10411,13 +10411,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Decrypts data using the Cipher Block Chaining function for the <ulink url="http://www.counterpane.com/blowfish.html">blowfish</ulink> algorithm.</para>
+          <para>Decrypts data using the Cipher Block Chaining function for the <ulink url="http://www.counterpane.com/blowfish.html">blowfish</ulink> algorithm using a variable-length key.  This function returns a binary object, for an equivalent function that decrypts to a string, see <link linkend="blowfish_decrypt_cbc_to_string">blowfish_decrypt_cbc_to_string()</link>.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <programlisting>blowfish_decrypt_cbc(<replaceable>binary, key, [iv]</replaceable>)</programlisting>
+          <programlisting>blowfish_decrypt_cbc(<replaceable>binary, key, [input_vector]</replaceable>)</programlisting>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -10452,7 +10452,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>Binary</para>
             </entry>
             <entry>
-              <para>Decrypts data using the Cipher Block Chaining function for the <ulink url="http://www.counterpane.com/blowfish.html">blowfish</ulink> algorithm.</para>
+              <para>Decrypts data using the Cipher Block Chaining function for the <ulink url="http://www.counterpane.com/blowfish.html">blowfish</ulink> algorithm using a variable-length key.</para>
             </entry>
           </row>
         </tbody>
@@ -10502,7 +10502,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Decrypts data to a string using the Cipher Block Chaining function for the <ulink url="http://www.counterpane.com/blowfish.html">blowfish</ulink> algorithm.</para>
+          <para>Decrypts data to a string using the Cipher Block Chaining function for the <ulink url="http://www.counterpane.com/blowfish.html">blowfish</ulink> algorithm using a variable-length key.  This function returns a string, for an equivalent function that decrypts to a binary object, see <link linkend="blowfish_decrypt_cbc">blowfish_decrypt_cbc()</link>.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -10537,13 +10537,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <tbody>
           <row>
             <entry>
-              <para>Binary, Key, [iv]</para>
+              <para>Binary, Key, [input_vector]</para>
             </entry>
             <entry>
               <para>String</para>
             </entry>
             <entry>
-              <para>Decrypts data to a string using the Cipher Block Chaining function for the <ulink url="http://www.counterpane.com/blowfish.html">blowfish</ulink> algorithm.</para>
+              <para>Decrypts data to a string using the Cipher Block Chaining function for the <ulink url="http://www.counterpane.com/blowfish.html">blowfish</ulink> algorithm using a variable-length key.</para>
             </entry>
           </row>
         </tbody>
@@ -10594,13 +10594,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Encrypts data using the Cipher Block Chaining function for the <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm.</para>
+          <para>Encrypts data using the Cipher Block Chaining function for the <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm using an 8-byte key.  Returns a binary object of the encrypted data.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <programlisting>des_encrypt_cbc(<replaceable>string | binary, key, [input_vector]</replaceable>)</programlisting>
+          <programlisting>des_encrypt_cbc(<replaceable>input_data, key, [input_vector]</replaceable>)</programlisting>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -10635,7 +10635,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>Binary</para>
             </entry>
             <entry>
-              <para>Encrypts data using the Cipher Block Chaining function for the <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm.</para>
+              <para>Encrypts data using the Cipher Block Chaining function for the <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm.  The key must be at least 8-bytes long (only the first 8 bytes will be used).  If the input_vector is present it must also be at least 8 bytes long.</para>
             </entry>
           </row>
         </tbody>
@@ -10685,7 +10685,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Decrypts data using the Cipher Block Chaining function for the <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm.</para>
+          <para>Decrypts data using the Cipher Block Chaining function for the <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm using an 8 byte key.  This function returns a binary object, for an equivalent function that decrypts to a string, see <link linkend="des_decrypt_cbc_to_string">des_decrypt_cbc_to_string()</link>.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -10714,13 +10714,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <tbody>
           <row>
             <entry>
-              <para>Binary, Key, [iv]</para>
+              <para>Binary, String | Binary, [String | Binary]</para>
             </entry>
             <entry>
               <para>Binary</para>
             </entry>
             <entry>
-              <para>Decrypts data using the Cipher Block Chaining function for the <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm.</para>
+              <para>Decrypts data using the Cipher Block Chaining function for the <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm using an 8-byte key.  If the input_vector is present it must also be at least 8 bytes long.</para>
             </entry>
           </row>
         </tbody>
@@ -10770,13 +10770,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Decrypts data using the Cipher Block Chaining function for the <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm.</para>
+          <para>Decrypts data using the Cipher Block Chaining function for the <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm using an 8-byte key.  This function returns a string, for an equivalent function that decrypts to a binary object, see <link linkend="des_decrypt_cbc">des_decrypt_cbc()</link>.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <programlisting>des_decrypt_cbc_to_string(<replaceable>binary, key, [iv]</replaceable>)</programlisting>
+          <programlisting>des_decrypt_cbc_to_string(<replaceable>binary, key, [input_vector]</replaceable>)</programlisting>
         </listitem>
       </varlistentry>
     </variablelist>
@@ -10799,13 +10799,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <tbody>
           <row>
             <entry>
-              <para>Binary, Key, [iv]</para>
+              <para>Binary, Key, [input_vector]</para>
             </entry>
             <entry>
               <para>String</para>
             </entry>
             <entry>
-              <para>Decrypts data using the Cipher Block Chaining function for the <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm.</para>
+              <para>Decrypts data using the Cipher Block Chaining function for the <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm using an 8-byte key.  If the input_vector is present it must also be at least 8 bytes long.</para>
             </entry>
           </row>
         </tbody>
@@ -10855,13 +10855,19 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Encrypts data using the Cipher Block Chaining function for the two-key triple <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm.</para>
+          <para>Encrypts data using the Cipher Block Chaining function for the two-key triple <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm using two eight-byte keys (set by a single 16-byte key argument).  Returns a binary object of the encrypted data.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <programlisting>des_ede_encrypt_cbc(<replaceable>string | binary</replaceable>)</programlisting>
+          <programlisting>des_ede_encrypt_cbc(<replaceable>input_data, key, [input_vector]</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$bin = des_ede_encrypt_cbc($text, $key);</programlisting>
         </listitem>
       </varlistentry>
     </variablelist>
@@ -10870,15 +10876,9 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <tgroup cols="3" align="left" colsep="1" rowsep="1">
         <thead>
           <row>
-            <entry>
-              <para>Argument Type</para>
-            </entry>
-            <entry>
-              <para>Return Type</para>
-            </entry>
-            <entry>
-              <para>Description</para>
-            </entry>
+            <entry><para>Argument Type</para></entry>
+            <entry><para>Return Type</para></entry>
+            <entry><para>Description</para></entry>
           </row>
         </thead>
         <tbody>
@@ -10890,7 +10890,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>Binary</para>
             </entry>
             <entry>
-              <para>Encrypts data using the Cipher Block Chaining function for the two-key triple <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm.</para>
+              <para>Encrypts data using the Cipher Block Chaining function for the two-key triple <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm.  The key argument must be at least 16 bytes long; only the first 16 bytes of the key argument will be used for the two 8-byte keys.  If the input_vector argument is present, it must be at least 8 bytes long.</para>
             </entry>
           </row>
         </tbody>
@@ -10940,13 +10940,19 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Decrypts data using the Cipher Block Chaining function for the two-key triple <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm.</para>
+          <para>Decrypts data using the Cipher Block Chaining function for the two-key triple <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm using two eight-byte keys (set by a single 16-byte key argument).  This function returns a binary object, for an equivalent function that decrypts to a string, see <link linkend="des_ede_decrypt_cbc_to_string">des_ede_decrypt_cbc_to_string()</link>.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <programlisting>des_ede_decrypt_cbc(<replaceable>binary, key, [iv]</replaceable>)</programlisting>
+          <programlisting>des_ede_decrypt_cbc(<replaceable>binary, key, [input_vector]</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$bin = des_ede_decrypt_cbc($data, $key);</programlisting>
         </listitem>
       </varlistentry>
     </variablelist>
@@ -10969,13 +10975,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <tbody>
           <row>
             <entry>
-              <para>Binary, Key, [iv]</para>
+              <para>Binary, String | Binary, [String | Binary]</para>
             </entry>
             <entry>
               <para>Binary</para>
             </entry>
             <entry>
-              <para>Decrypts data using the Cipher Block Chaining function for the two-key triple <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm.</para>
+              <para>Decrypts data using the Cipher Block Chaining function for the two-key triple <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm.  The key argument must be at least 16 bytes long; only the first 16 bytes of the key argument will be used for the two 8-byte keys.  If the input_vector argument is present, it must be at least 8 bytes long.</para>
             </entry>
           </row>
         </tbody>
@@ -11025,13 +11031,19 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Decrypts data to a string using the Cipher Block Chaining function for the two-key triple <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm.</para>
+          <para>Decrypts data to a string using the Cipher Block Chaining function for the two-key triple <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm using two eight-byte keys (set by a single 16-byte key argument).  This function returns a string, for an equivalent function that decrypts to a binary object, see <link linkend="des_ede_decrypt_cbc">des_ede_decrypt_cbc()</link>.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <programlisting>des_ede_decrypt_cbc_to_string(<replaceable>binary, key, [iv]</replaceable>)</programlisting>
+          <programlisting>des_ede_decrypt_cbc_to_string(<replaceable>binary, key, [input_vector]</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$str = des_ede_decrypt_cbc_to_string($data, $key);</programlisting>
         </listitem>
       </varlistentry>
     </variablelist>
@@ -11054,13 +11066,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <tbody>
           <row>
             <entry>
-              <para>Binary, Key, [iv]</para>
+              <para>Binary, String | Binary, [String | Binary]</para>
             </entry>
             <entry>
               <para>String</para>
             </entry>
             <entry>
-              <para>Decrypts data to a string using the Cipher Block Chaining function for the two-key triple <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm.</para>
+              <para>Decrypts data to a string using the Cipher Block Chaining function for the two-key triple <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm.  The key argument must be at least 16 bytes long; only the first 16 bytes of the key argument will be used for the two 8-byte keys.  If the input_vector argument is present, it must be at least 8 bytes long.</para>
             </entry>
           </row>
         </tbody>
@@ -11110,13 +11122,19 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Encrypts data using the Cipher Block Chaining function for the three-key triple <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm.</para>
+          <para>Encrypts data using the Cipher Block Chaining function for the three-key triple <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm using three 8-byte keys (set by a single 24-byte key argument) and an optional 8-byte input vector.  Returns a binary object of the encrypted data.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <programlisting>des_ede3_encrypt_cbc(<replaceable>string | binary</replaceable>)</programlisting>
+          <programlisting>des_ede3_encrypt_cbc(<replaceable>data, key, [input_vector]</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$bin = des_ede3_encrypt_cbc($data, $key);</programlisting>
         </listitem>
       </varlistentry>
     </variablelist>
@@ -11139,13 +11157,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <tbody>
           <row>
             <entry>
-              <para>String | binary</para>
+              <para>String | Binary, String | Binary, [String | Binary]</para>
             </entry>
             <entry>
               <para>Binary</para>
             </entry>
             <entry>
-              <para>Encrypts data using the Cipher Block Chaining function for the three-key triple <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm.</para>
+              <para>Encrypts data using the Cipher Block Chaining function for the three-key triple <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm using three 8-byte keys (set by a single 24-byte key argument) and an optional 8-byte input vector.  Returns a binary object of the encrypted data.</para>
             </entry>
           </row>
         </tbody>
@@ -11195,13 +11213,19 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Decrypts data using the Cipher Block Chaining function for the three-key triple <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm.</para>
+          <para>Decrypts data using the Cipher Block Chaining function for the three-key triple <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm using three 8-byte keys (set by a single 24-byte key argument) and an optional 8-byte input vector.  This function returns a binary object, for an equivalent function that decrypts to a string, see <link linkend="des_ede3_decrypt_cbc_to_string">des_ede3_decrypt_cbc_to_string()</link>.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <programlisting>des_ede3_decrypt_cbc(<replaceable>binary, key, [iv]</replaceable>)</programlisting>
+          <programlisting>des_ede3_decrypt_cbc(<replaceable>encrypted_data, key, [input_vector]</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$bin = des_ede3_decrypt_cbc($data, $key);</programlisting>
         </listitem>
       </varlistentry>
     </variablelist>
@@ -11224,7 +11248,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <tbody>
           <row>
             <entry>
-              <para>Binary, Key, [iv]</para>
+              <para>Binary, Key, [input_vector]</para>
             </entry>
             <entry>
               <para>Binary</para>
@@ -11280,13 +11304,19 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Decrypts data to a string using the Cipher Block Chaining function for the three-key triple <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm.</para>
+          <para>Decrypts data to a string using the Cipher Block Chaining function for the three-key triple <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm using three 8-byte keys (set by a single 24-byte key argument) and an optional 8-byte input vector.  This function returns a string, for an equivalent function that decrypts to a binary object, see <link linkend="des_ede3_decrypt_cbc">des_ede3_decrypt_cbc()</link>.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <programlisting>des_ede3_decrypt_cbc_to_string(<replaceable>binary, key, [iv]</replaceable>)</programlisting>
+          <programlisting>des_ede3_decrypt_cbc_to_string(<replaceable>encrypted_data, key, [input_vector]</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$str = des_ede3_decrypt_cbc_to_string($data, $key);</programlisting>
         </listitem>
       </varlistentry>
     </variablelist>
@@ -11309,13 +11339,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <tbody>
           <row>
             <entry>
-              <para>Binary, Key, [iv]</para>
+              <para>Binary, String | Binary, [String | Binary]</para>
             </entry>
             <entry>
               <para>String</para>
             </entry>
             <entry>
-              <para>Decrypts data to a string using the Cipher Block Chaining function for the three-key triple <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm.</para>
+              <para>Decrypts data to a string using the Cipher Block Chaining function for the three-key triple <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm using three 8-byte keys (set by a single 24-byte key argument) and an optional 8-byte input vector.</para>
             </entry>
           </row>
         </tbody>
@@ -11365,13 +11395,19 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Encrypts data using the Cipher Block Chaining function for RSA's <ulink url="http://www.rsasecurity.com/">DESX</ulink> algorithm.</para>
+          <para>Encrypts data using the Cipher Block Chaining function for RSA's <ulink url="http://www.rsasecurity.com/">DESX</ulink> algorithm using a 24-byte key and an optional 8-byte input vector.  Returns a binary object of the encrypted data.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <programlisting>desx_encrypt_cbc(<replaceable>string | binary</replaceable>)</programlisting>
+          <programlisting>desx_encrypt_cbc(<replaceable>data, key, [input_vector]</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$bin = desx_encrypt_cbc($data, $key);</programlisting>
         </listitem>
       </varlistentry>
     </variablelist>
@@ -11394,13 +11430,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <tbody>
           <row>
             <entry>
-              <para>String | binary</para>
+              <para>String | Binary, String | Binary, [String | Binary]</para>
             </entry>
             <entry>
               <para>Binary</para>
             </entry>
             <entry>
-              <para>Encrypts data using the Cipher Block Chaining function for RSA's <ulink url="http://www.rsasecurity.com/">DESX</ulink> algorithm.</para>
+              <para>Encrypts data using the Cipher Block Chaining function for RSA's <ulink url="http://www.rsasecurity.com/">DESX</ulink> algorithm using a 24-byte key and an optional 8-byte input vector.</para>
             </entry>
           </row>
         </tbody>
@@ -11450,13 +11486,19 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Encrypts data using the Cipher Block Chaining function for RSA's <ulink url="http://www.rsasecurity.com/">DESX</ulink> algorithm.</para>
+          <para>Decrypts data using the Cipher Block Chaining function for RSA's <ulink url="http://www.rsasecurity.com/">DESX</ulink> algorithm using a 24-byte key and an optional 8-byte input vector.  This function returns a binary object, for an equivalent function that decrypts to a string, see <link linkend="desx_decrypt_cbc_to_string">desx_decrypt_cbc_to_string()</link>.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <programlisting>desx_decrypt_cbc(<replaceable>binary, key, [iv]</replaceable>)</programlisting>
+          <programlisting>desx_decrypt_cbc(<replaceable>encrypted_data, key, [input_vector]</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$bin = desx_decrypt_cbc($data, $key);</programlisting>
         </listitem>
       </varlistentry>
     </variablelist>
@@ -11479,13 +11521,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <tbody>
           <row>
             <entry>
-              <para>Binary, Key, [iv]</para>
+              <para>Binary, Key, [input_vector]</para>
             </entry>
             <entry>
               <para>Binary</para>
             </entry>
             <entry>
-              <para>Encrypts data using the Cipher Block Chaining function for RSA's <ulink url="http://www.rsasecurity.com/">DESX</ulink> algorithm.</para>
+              <para>Decrypts data using the Cipher Block Chaining function for RSA's <ulink url="http://www.rsasecurity.com/">DESX</ulink> algorithm using a 24-byte key and an optional 8-byte input vector.</para>
             </entry>
           </row>
         </tbody>
@@ -11535,13 +11577,19 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Encrypts data to a string using the Cipher Block Chaining function for RSA's <ulink url="http://www.rsasecurity.com/">DESX</ulink> algorithm.</para>
+          <para>Decrypts data to a string using the Cipher Block Chaining function for RSA's <ulink url="http://www.rsasecurity.com/">DESX</ulink> algorithm using a 24-byte key and an optional 8-byte input vector.  This function returns a string, for an equivalent function that decrypts to a binary object, see <link linkend="desx_decrypt_cbc">desx_decrypt_cbc()</link>.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <programlisting>desx_decrypt_cbc_to_string(<replaceable>binary, key, [iv]</replaceable>)</programlisting>
+          <programlisting>desx_decrypt_cbc_to_string(<replaceable>binary, key, [input_vector]</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$str = desx_decrypt_cbc_to_string($data, $key);</programlisting>
         </listitem>
       </varlistentry>
     </variablelist>
@@ -11564,13 +11612,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <tbody>
           <row>
             <entry>
-              <para>Binary, Key, [iv]</para>
+              <para>Binary, String 7 Binary, [String | Binary]</para>
             </entry>
             <entry>
               <para>String</para>
             </entry>
             <entry>
-              <para>Encrypts data to a string using the Cipher Block Chaining function for RSA's <ulink url="http://www.rsasecurity.com/">DESX</ulink> algorithm.</para>
+              <para>Decrypts data to a string using the Cipher Block Chaining function for RSA's <ulink url="http://www.rsasecurity.com/">DESX</ulink> algorithm using a 24-byte key and an optional 8-byte input vector.</para>
             </entry>
           </row>
         </tbody>
@@ -11620,13 +11668,19 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Encrypts data using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC2(tm) algorithm.</para>
+          <para>Encrypts data using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC2(tm) algorithm using a variable-length key and an optional 8-byte input vector.  Returns a binary object of the encrypted data.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <programlisting>rc2_encrypt_cbc(<replaceable>string | binary</replaceable>)</programlisting>
+          <programlisting>rc2_encrypt_cbc(<replaceable>data, key, [input_vector]</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$bin = rc2_encrypt_cbc($data, $key);</programlisting>
         </listitem>
       </varlistentry>
     </variablelist>
@@ -11649,13 +11703,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <tbody>
           <row>
             <entry>
-              <para>String | binary</para>
+              <para>String | Binary, String | Binary, [String | Binary]</para>
             </entry>
             <entry>
               <para>Binary</para>
             </entry>
             <entry>
-              <para>Encrypts data using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC2(tm) algorithm.</para>
+              <para>Encrypts data using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC2(tm) algorithm using a variable-length key and an optional 8-byte input vector.</para>
             </entry>
           </row>
         </tbody>
@@ -11688,262 +11742,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <row>
             <entry>
               <para>
-                <code>BLOWFISH-ENCRYPT-PARAM-ERROR</code>
-              </para>
-            </entry>
-            <entry>
-              <para>missing or invalid key parameter (ex: invalid size) or invalid input vector (less than 8 bytes, only raised if input vector present)</para>
-            </entry>
-          </row>
-        </tbody>
-      </tgroup>
-    </table>
-  </sect2>
-  <sect2 id="cast5_encrypt_cbc">
-    <title>cast5_encrypt_cbc()</title>
-    <variablelist>
-      <varlistentry>
-        <term>Synopsis</term>
-        <listitem>
-          <para>Encrypts data using the Cipher Block Chaining function for the <ulink url="http://en.wikipedia.org/wiki/CAST5">CAST5</ulink> algorithm.</para>
-        </listitem>
-      </varlistentry>
-      <varlistentry>
-        <term>Usage</term>
-        <listitem>
-          <programlisting>cast5_encrypt_cbc(<replaceable>string | binary</replaceable>)</programlisting>
-        </listitem>
-      </varlistentry>
-    </variablelist>
-    <table>
-      <title>Arguments and Return Values for cast5_encrypt_cbc()</title>
-      <tgroup cols="3" align="left" colsep="1" rowsep="1">
-        <thead>
-          <row>
-            <entry>
-              <para>Argument Type</para>
-            </entry>
-            <entry>
-              <para>Return Type</para>
-            </entry>
-            <entry>
-              <para>Description</para>
-            </entry>
-          </row>
-        </thead>
-        <tbody>
-          <row>
-            <entry>
-              <para>String | binary</para>
-            </entry>
-            <entry>
-              <para>Binary</para>
-            </entry>
-            <entry>
-              <para>Encrypts data using the Cipher Block Chaining function for the <ulink url="http://en.wikipedia.org/wiki/CAST5">CAST5</ulink> algorithm.</para>
-            </entry>
-          </row>
-        </tbody>
-      </tgroup>
-    </table>
-    <table>
-      <title>Exceptions thrown by cast5_encrypt_cbc()</title>
-      <tgroup cols="2" align="left" colsep="1" rowsep="1">
-        <thead>
-          <row>
-            <entry>
-              <para>err</para>
-            </entry>
-            <entry>
-              <para>desc</para>
-            </entry>
-          </row>
-        </thead>
-        <tbody>
-          <row>
-            <entry>
-              <para>
-                <code>PARAMETER-ERROR</code>
-              </para>
-            </entry>
-            <entry>
-              <para>missing data (string or binary) parameter to function, invalid data type (expecing string or binary)</para>
-            </entry>
-          </row>
-          <row>
-            <entry>
-              <para>
-                <code>CAST5-ENCRYPT-PARAM-ERROR</code>
-              </para>
-            </entry>
-            <entry>
-              <para>missing or invalid key parameter (ex: invalid size) or invalid input vector (less than 8 bytes, only raised if input vector present)</para>
-            </entry>
-          </row>
-        </tbody>
-      </tgroup>
-    </table>
-  </sect2>
-  <sect2 id="cast5_decrypt_cbc">
-    <title>cast5_decrypt_cbc()</title>
-    <variablelist>
-      <varlistentry>
-        <term>Synopsis</term>
-        <listitem>
-          <para>Decrypts data using the Cipher Block Chaining function for the <ulink url="http://en.wikipedia.org/wiki/CAST5">CAST5</ulink> algorithm.</para>
-        </listitem>
-      </varlistentry>
-      <varlistentry>
-        <term>Usage</term>
-        <listitem>
-          <programlisting>cast5_decrypt_cbc(<replaceable>binary, key, [iv]</replaceable>)</programlisting>
-        </listitem>
-      </varlistentry>
-    </variablelist>
-    <table>
-      <title>Arguments and Return Values for cast5_decrypt_cbc()</title>
-      <tgroup cols="3" align="left" colsep="1" rowsep="1">
-        <thead>
-          <row>
-            <entry>
-              <para>Argument Type</para>
-            </entry>
-            <entry>
-              <para>Return Type</para>
-            </entry>
-            <entry>
-              <para>Description</para>
-            </entry>
-          </row>
-        </thead>
-        <tbody>
-          <row>
-            <entry>
-              <para>Binary, Key, [iv]</para>
-            </entry>
-            <entry>
-              <para>Binary</para>
-            </entry>
-            <entry>
-              <para>Decrypts data using the Cipher Block Chaining function for the <ulink url="http://en.wikipedia.org/wiki/CAST5">CAST5</ulink> algorithm.</para>
-            </entry>
-          </row>
-        </tbody>
-      </tgroup>
-    </table>
-    <table>
-      <title>Exceptions thrown by cast5_decrypt_cbc()</title>
-      <tgroup cols="2" align="left" colsep="1" rowsep="1">
-        <thead>
-          <row>
-            <entry>
-              <para>err</para>
-            </entry>
-            <entry>
-              <para>desc</para>
-            </entry>
-          </row>
-        </thead>
-        <tbody>
-          <row>
-            <entry>
-              <para>
-                <code>PARAMETER-ERROR</code>
-              </para>
-            </entry>
-            <entry>
-              <para>missing data (string or binary) parameter to function, invalid data type (expecing string or binary)</para>
-            </entry>
-          </row>
-          <row>
-            <entry>
-              <para>
-                <code>CAST5-DECRYPT-PARAM-ERROR</code>
-              </para>
-            </entry>
-            <entry>
-              <para>missing or invalid key parameter (ex: invalid size) or invalid input vector (less than 8 bytes, only raised if input vector present)</para>
-            </entry>
-          </row>
-        </tbody>
-      </tgroup>
-    </table>
-  </sect2>
-  <sect2 id="cast5_decrypt_cbc_to_string">
-    <title>cast5_decrypt_cbc_to_string()</title>
-    <variablelist>
-      <varlistentry>
-        <term>Synopsis</term>
-        <listitem>
-          <para>Decrypts data to a string using the Cipher Block Chaining function for the <ulink url="http://en.wikipedia.org/wiki/CAST5">CAST5</ulink> algorithm.</para>
-        </listitem>
-      </varlistentry>
-      <varlistentry>
-        <term>Usage</term>
-        <listitem>
-          <programlisting>cast5_decrypt_cbc_to_string(<replaceable>binary, key, [iv]</replaceable>)</programlisting>
-        </listitem>
-      </varlistentry>
-    </variablelist>
-    <table>
-      <title>Arguments and Return Values for cast5_decrypt_cbc_to_string()</title>
-      <tgroup cols="3" align="left" colsep="1" rowsep="1">
-        <thead>
-          <row>
-            <entry>
-              <para>Argument Type</para>
-            </entry>
-            <entry>
-              <para>Return Type</para>
-            </entry>
-            <entry>
-              <para>Description</para>
-            </entry>
-          </row>
-        </thead>
-        <tbody>
-          <row>
-            <entry>
-              <para>Binary, Key, [iv]</para>
-            </entry>
-            <entry>
-              <para>String</para>
-            </entry>
-            <entry>
-              <para>Decrypts data to a string using the Cipher Block Chaining function for the <ulink url="http://en.wikipedia.org/wiki/CAST5">CAST5</ulink> algorithm.</para>
-            </entry>
-          </row>
-        </tbody>
-      </tgroup>
-    </table>
-    <table>
-      <title>Exceptions thrown by cast5_decrypt_cbc_to_string()</title>
-      <tgroup cols="2" align="left" colsep="1" rowsep="1">
-        <thead>
-          <row>
-            <entry>
-              <para>err</para>
-            </entry>
-            <entry>
-              <para>desc</para>
-            </entry>
-          </row>
-        </thead>
-        <tbody>
-          <row>
-            <entry>
-              <para>
-                <code>PARAMETER-ERROR</code>
-              </para>
-            </entry>
-            <entry>
-              <para>missing data (string or binary) parameter to function, invalid data type (expecing string or binary)</para>
-            </entry>
-          </row>
-          <row>
-            <entry>
-              <para>
-                <code>CAST5-DECRYPT-PARAM-ERROR</code>
+                <code>RC2-ENCRYPT-PARAM-ERROR</code>
               </para>
             </entry>
             <entry>
@@ -11960,13 +11759,19 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Decrypts data using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC2(tm) algorithm.</para>
+          <para>Decrypts data using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC2(tm) algorithm using a variable-length key and an optional 8-byte input vector.  This function returns a binary object, for an equivalent function that decrypts to a string, see <link linkend="rc2_decrypt_cbc_to_string">rc2_decrypt_cbc_to_string()</link>.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <programlisting>rc2_decrypt_cbc(<replaceable>binary, key, [iv]</replaceable>)</programlisting>
+          <programlisting>rc2_decrypt_cbc(<replaceable>encrypted_data, key, [input_vector]</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$bin = rc2_decrypt_cbc($data, $key);</programlisting>
         </listitem>
       </varlistentry>
     </variablelist>
@@ -11989,13 +11794,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <tbody>
           <row>
             <entry>
-              <para>Binary, Key, [iv]</para>
+              <para>Binary, String | Binary, [String | Binary]</para>
             </entry>
             <entry>
               <para>Binary</para>
             </entry>
             <entry>
-              <para>Decrypts data using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC2(tm) algorithm.</para>
+              <para>Decrypts data using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC2(tm) algorithm using a variable-length key and an optional 8-byte input vector.</para>
             </entry>
           </row>
         </tbody>
@@ -12045,13 +11850,19 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Decrypts data to a string using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC2(tm) algorithm.</para>
+          <para>Decrypts data to a string using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC2(tm) algorithm using a variable-length key and an optional 8-byte input vector.  This function returns a string, for an equivalent function that decrypts to a binary object, see <link linkend="rc2_decrypt_cbc">rc2_decrypt_cbc()</link>.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <programlisting>rc2_decrypt_cbc_to_string(<replaceable>binary, key, [iv]</replaceable>)</programlisting>
+          <programlisting>rc2_decrypt_cbc_to_string(<replaceable>encrypted_data, key, [input_vector]</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$str = rc2_decrypt_cbc_to_string($data, $key);</programlisting>
         </listitem>
       </varlistentry>
     </variablelist>
@@ -12074,13 +11885,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <tbody>
           <row>
             <entry>
-              <para>Binary, Key, [iv]</para>
+              <para>Binary, String | Binary, [String | Binary]</para>
             </entry>
             <entry>
               <para>String</para>
             </entry>
             <entry>
-              <para>Decrypts data to a string using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC2(tm) algorithm.</para>
+              <para>Decrypts data to a string using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC2(tm) algorithm using a variable-length key and an optional 8-byte input vector.</para>
             </entry>
           </row>
         </tbody>
@@ -12113,7 +11924,280 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <row>
             <entry>
               <para>
-                <code>RC4-DECRYPT-PARAM-ERROR</code>
+                <code>RC2-DECRYPT-PARAM-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing or invalid key parameter (ex: invalid size) or invalid input vector (less than 8 bytes, only raised if input vector present)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="cast5_encrypt_cbc">
+    <title>cast5_encrypt_cbc()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Encrypts data using the Cipher Block Chaining function for the <ulink url="http://en.wikipedia.org/wiki/CAST5">CAST5</ulink> algorithm using a variable-length key and an optional 8-byte input vector.  Returns a binary object of the encrypted data.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>cast5_encrypt_cbc(<replaceable>data, key, [input_vector]</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$bin = cast5_encrypt_cbc($data, $key);</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for cast5_encrypt_cbc()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>String | Binary, String | Binary, [String | Binary]</para>
+            </entry>
+            <entry>
+              <para>Binary</para>
+            </entry>
+            <entry>
+              <para>Encrypts data using the Cipher Block Chaining function for the <ulink url="http://en.wikipedia.org/wiki/CAST5">CAST5</ulink> algorithm using a variable-length key and an optional 8-byte input vector.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table>
+      <title>Exceptions thrown by cast5_encrypt_cbc()</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>err</para>
+            </entry>
+            <entry>
+              <para>desc</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <code>PARAMETER-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing data (string or binary) parameter to function, invalid data type (expecing string or binary)</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <code>CAST5-ENCRYPT-PARAM-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing or invalid key parameter (ex: invalid size) or invalid input vector (less than 8 bytes, only raised if input vector present)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="cast5_decrypt_cbc">
+    <title>cast5_decrypt_cbc()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Decrypts data using the Cipher Block Chaining function for the <ulink url="http://en.wikipedia.org/wiki/CAST5">CAST5</ulink> algorithm using a variable-length key and an optional 8-byte input vector.  This function returns a binary object, for an equivalent function that decrypts to a string, see <link linkend="cast5_decrypt_cbc_to_string">cast5_decrypt_cbc_to_string()</link>.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>cast5_decrypt_cbc(<replaceable>encrypted_data, key, [input_vector]</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$bin = cast5_decrypt_cbc($data, $key);</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for cast5_decrypt_cbc()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Binary, Key, [input_vector]</para>
+            </entry>
+            <entry>
+              <para>Binary</para>
+            </entry>
+            <entry>
+              <para>Decrypts data using the Cipher Block Chaining function for the <ulink url="http://en.wikipedia.org/wiki/CAST5">CAST5</ulink> algorithm using a variable-length key and an optional 8-byte input vector.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table>
+      <title>Exceptions thrown by cast5_decrypt_cbc()</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>err</para>
+            </entry>
+            <entry>
+              <para>desc</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <code>PARAMETER-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing data (string or binary) parameter to function, invalid data type (expecing string or binary)</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <code>CAST5-DECRYPT-PARAM-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing or invalid key parameter (ex: invalid size) or invalid input vector (less than 8 bytes, only raised if input vector present)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="cast5_decrypt_cbc_to_string">
+    <title>cast5_decrypt_cbc_to_string()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Decrypts data to a string using the Cipher Block Chaining function for the <ulink url="http://en.wikipedia.org/wiki/CAST5">CAST5</ulink> algorithm using a variable-length key and an optional 8-byte input vector.  This function returns a string, for an equivalent function that decrypts to a binary object, see <link linkend="cast5_decrypt_cbc">cast5_decrypt_cbc()</link>.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>cast5_decrypt_cbc_to_string(<replaceable>binary, key, [input_vector]</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$str = cast5_decrypt_cbc_to_string($data, $key);</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for cast5_decrypt_cbc_to_string()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>Binary, Key, [input_vector]</para>
+            </entry>
+            <entry>
+              <para>String</para>
+            </entry>
+            <entry>
+              <para>Decrypts data to a string using the Cipher Block Chaining function for the <ulink url="http://en.wikipedia.org/wiki/CAST5">CAST5</ulink> algorithm using a variable-length key and an optional 8-byte input vector.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table>
+      <title>Exceptions thrown by cast5_decrypt_cbc_to_string()</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>err</para>
+            </entry>
+            <entry>
+              <para>desc</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <code>PARAMETER-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing data (string or binary) parameter to function, invalid data type (expecing string or binary)</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <code>CAST5-DECRYPT-PARAM-ERROR</code>
               </para>
             </entry>
             <entry>
@@ -12130,13 +12214,19 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Encrypts data using the Alleged RC4 cipher algorithm, which should be compatible with <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC4(tm) algorithm.</para>
+          <para>Encrypts data using the Alleged RC4 cipher algorithm, which should be compatible with <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC4(tm) algorithm using a variable-length key and an optional 8-byte input vector.  Returns a binary object of the encrypted data.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <programlisting>rc4_encrypt(<replaceable>string | binary</replaceable>)</programlisting>
+          <programlisting>rc4_encrypt(<replaceable>data, key, [input_vector]</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$bin = rc4_encrypt($data, $key);</programlisting>
         </listitem>
       </varlistentry>
     </variablelist>
@@ -12159,13 +12249,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <tbody>
           <row>
             <entry>
-              <para>String | binary</para>
+              <para>String | Binary, String | Binary, [String | Binary, ]</para>
             </entry>
             <entry>
               <para>Binary</para>
             </entry>
             <entry>
-              <para>Encrypts data using the Alleged RC4 cipher algorithm, which should be compatible with <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC4(tm) algorithm.</para>
+              <para>Encrypts data using the Alleged RC4 cipher algorithm, which should be compatible with <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC4(tm) algorithm using a variable-length key and an optional 8-byte input vector.</para>
             </entry>
           </row>
         </tbody>
@@ -12215,13 +12305,19 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Decrypts data using the Alleged RC4 cipher algorithm, which should be compatible with <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC4(tm) algorithm.</para>
+          <para>Decrypts data using the Alleged RC4 cipher algorithm, which should be compatible with <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC4(tm) algorithm using a variable-length key and an optional 8-byte input vector.  This function returns a binary object, for an equivalent function that decrypts to a string, see <link linkend="rc4_decrypt_to_string">rc4_decrypt_to_string()</link>.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <programlisting>rc4_decrypt(<replaceable>binary, key, [iv]</replaceable>)</programlisting>
+          <programlisting>rc4_decrypt(<replaceable>binary, key, [input_vector]</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$bin = rc4_decrypt($data, $key);</programlisting>
         </listitem>
       </varlistentry>
     </variablelist>
@@ -12244,13 +12340,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <tbody>
           <row>
             <entry>
-              <para>Binary, Key, [iv]</para>
+              <para>Binary, Key, [input_vector]</para>
             </entry>
             <entry>
               <para>Binary</para>
             </entry>
             <entry>
-              <para>Decrypts data using the Alleged RC4 cipher algorithm, which should be compatible with <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC4(tm) algorithm.</para>
+              <para>Decrypts data using the Alleged RC4 cipher algorithm, which should be compatible with <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC4(tm) algorithm using a variable-length key and an optional 8-byte input vector.</para>
             </entry>
           </row>
         </tbody>
@@ -12300,13 +12396,19 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Decrypts data to a string using the Alleged RC4 cipher algorithm, which should be compatible with <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC4(tm) algorithm.</para>
+          <para>Decrypts data to a string using the Alleged RC4 cipher algorithm, which should be compatible with <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC4(tm) algorithm using a variable-length key and an optional 8-byte input vector.  This function returns a string, for an equivalent function that decrypts to a binary object, see <link linkend="rc4_decrypt">rc4_decrypt()</link>.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <programlisting>rc4_decrypt_to_string(<replaceable>binary, key, [iv]</replaceable>)</programlisting>
+          <programlisting>rc4_decrypt_to_string(<replaceable>binary, key, [input_vector]</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$str = rc4_decrypt_to_string($data, $key);</programlisting>
         </listitem>
       </varlistentry>
     </variablelist>
@@ -12329,13 +12431,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <tbody>
           <row>
             <entry>
-              <para>Binary, Key, [iv]</para>
+              <para>Binary, Key, [input_vector]</para>
             </entry>
             <entry>
               <para>String</para>
             </entry>
             <entry>
-              <para>Decrypts data to a string using the Alleged RC4 cipher algorithm, which should be compatible with <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC4(tm) algorithm.</para>
+              <para>Decrypts data to a string using the Alleged RC4 cipher algorithm, which should be compatible with <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC4(tm) algorithm using a variable-length key and an optional 8-byte input vector.</para>
             </entry>
           </row>
         </tbody>
@@ -12385,13 +12487,19 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Encrypts data using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC5(tm) algorithm.</para>
+          <para>Encrypts data using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC5(tm) algorithm using a variable-length key and an optional 8-byte input vector.  Returns a binary object of the encrypted data.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <programlisting>rc5_encrypt_cbc(<replaceable>string | binary</replaceable>)</programlisting>
+          <programlisting>rc5_encrypt_cbc(<replaceable>data, key, [input_vector]</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$bin = rc5_encrypt_cbc($data, $key);</programlisting>
         </listitem>
       </varlistentry>
     </variablelist>
@@ -12414,13 +12522,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <tbody>
           <row>
             <entry>
-              <para>String | binary</para>
+              <para>String | Binary, String | Binary, [String | Binary]</para>
             </entry>
             <entry>
               <para>Binary</para>
             </entry>
             <entry>
-              <para>Encrypts data using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC5(tm) algorithm.</para>
+              <para>Encrypts data using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC5(tm) algorithm using a variable-length key and an optional 8-byte input vector.</para>
             </entry>
           </row>
         </tbody>
@@ -12470,13 +12578,19 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Decrypts data using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC5(tm) algorithm.</para>
+          <para>Decrypts data using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC5(tm) algorithm using a variable-length key and an optional 8-byte input vector.  This function returns a binary object, for an equivalent function that decrypts to a string, see <link linkend="rc5_decrypt_cbc_to_string">rc5_decrypt_cbc_to_string()</link>.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <programlisting>rc5_decrypt_cbc(<replaceable>binary, key, [iv]</replaceable>)</programlisting>
+          <programlisting>rc5_decrypt_cbc(<replaceable>binary, key, [input_vector]</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$bin = rc5_decrypt_cbc($data, $key);</programlisting>
         </listitem>
       </varlistentry>
     </variablelist>
@@ -12499,13 +12613,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <tbody>
           <row>
             <entry>
-              <para>Binary, Key, [iv]</para>
+              <para>Binary, Key, [input_vector]</para>
             </entry>
             <entry>
               <para>Binary</para>
             </entry>
             <entry>
-              <para>Decrypts data using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC5(tm) algorithm.</para>
+              <para>Decrypts data using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC5(tm) algorithm using a variable-length key and an optional 8-byte input vector.</para>
             </entry>
           </row>
         </tbody>
@@ -12555,13 +12669,19 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Decrypts data to a string using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC5(tm) algorithm.</para>
+          <para>Decrypts data to a string using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC5(tm) algorithm using a variable-length key and an optional 8-byte input vector.  This function returns a string, for an equivalent function that decrypts to a binary object, see <link linkend="rc5_decrypt_cbc">rc5_decrypt_cbc()</link>.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <programlisting>rc5_decrypt_cbc_to_string(<replaceable>binary, key, [iv]</replaceable>)</programlisting>
+          <programlisting>rc5_decrypt_cbc_to_string(<replaceable>encrypted_data, key, [input_vector]</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$str = rc5_decrypt_cbc_to_string($data, $key);</programlisting>
         </listitem>
       </varlistentry>
     </variablelist>
@@ -12584,13 +12704,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <tbody>
           <row>
             <entry>
-              <para>Binary, Key, [iv]</para>
+              <para>Binary, Key, [input_vector]</para>
             </entry>
             <entry>
               <para>String</para>
             </entry>
             <entry>
-              <para>Decrypts data to a string using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC5(tm) algorithm.</para>
+              <para>Decrypts data to a string using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC5(tm) algorithm using a variable-length key and an optional 8-byte input vector.</para>
             </entry>
           </row>
         </tbody>
@@ -12646,13 +12766,19 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Returns the DSS message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
+          <para>Returns the DSS message digest of the supplied argument (for strings, the trailing null character is not included in the digest) as a string of hex characters.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
         <term>Usage</term>
         <listitem>
           <programlisting>DSS(<replaceable>string | binary</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$str = DSS("hello");</programlisting>
         </listitem>
       </varlistentry>
     </variablelist>

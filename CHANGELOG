@@ -1,3 +1,6 @@
+2006.04.11: David Nichols
+	* massive documentation updates
+
 2006.04.09: David Nichols
 	* implemented callback support for sortDescending() and 
 	  sortDescendingStable()
