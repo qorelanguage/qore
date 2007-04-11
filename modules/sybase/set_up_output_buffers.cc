@@ -25,14 +25,58 @@
 #include <qore/config.h>
 #include <qore/support.h>
 #include <qore/Exception.h>
-#include <qore/minitest.hpp>
 
 #include <assert.h>
 
 #include "set_up_output_buffers.h"
 #include "command.h"
+#include <memory>
 
 //------------------------------------------------------------------------------
+output_value_buffer::output_value_buffer(unsigned len)
+: indicator(0),
+  value(0),
+  value_len(0)
+{
+  if (len) {
+    value = new char[len + 1];
+  }
+}
+
+//------------------------------------------------------------------------------
+output_value_buffer::~output_value_buffer()
+{
+  delete[] value;
+}
+
+//------------------------------------------------------------------------------
+row_output_buffers::~row_output_buffers()
+{
+  for (unsigned i = 0, n = m_buffers.size(); i != n; ++i) {
+    assert(m_buffers[i]);
+    delete m_buffers[i];
+  }
+}
+
+//------------------------------------------------------------------------------
+void set_up_output_buffers(command& cmd,
+  const std::vector<CS_DATAFMT>& input_row_descriptions,
+  row_output_buffers& result, 
+  ExceptionSink* xsink)
+{
+  for (unsigned i = 0, n = input_row_descriptions.size(); i != n; ++i) {
+    unsigned size = input_row_descriptions[i].maxlength;
+    output_value_buffer* buffer = new output_value_buffer(size);
+    result.m_buffers.push_back(buffer);
+
+    CS_RETCODE err = ct_bind(cmd(), i + 1, (CS_DATAFMT*)&input_row_descriptions[i], buffer->value, &buffer->value_len, &buffer->indicator);
+    if (err != CS_SUCCEED) {
+      assert(false);
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_bind() failed with error %d", (int)err);
+      return;
+    }
+  }
+}
 
 // EOF
 

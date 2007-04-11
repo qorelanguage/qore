@@ -233,6 +233,7 @@ noinst_HEADERS = \
 	modules/sybase/get_row_description.h \
 	modules/sybase/common_constants.h \
 	modules/sybase/set_up_output_buffers.h \
+	modules/sybase/fetch_row_into_buffers.h \
 	command-line.h \
 	include/qore/Qore.h 
 
