@@ -895,6 +895,110 @@ int QoreSocket::recvi8LSB(int timeout, int64 *val)
    return 4;
 }
 
+int QoreSocket::recvu1(int timeout, unsigned char *val)
+{
+   if (!sock)
+      return -1;
+   
+   return recv((char *)val, 1, 0, timeout);
+}
+
+int QoreSocket::recvu2(int timeout, unsigned short *val)
+{
+   if (!sock)
+      return -1;
+   
+   char *buf = (char *)val;
+   
+   int br = 0;
+   while (true)
+   {
+      int rc = recv(buf + br, 2 - br, 0, timeout);
+      if (rc <= 0)
+	 return rc;
+      
+      br += rc;
+      
+      if (br >= 2)
+	 break;
+   }
+   
+   *val = ntohs(*val);
+   return 2;
+}
+
+int QoreSocket::recvu4(int timeout, unsigned int *val)
+{
+   if (!sock)
+      return -1;
+   
+   char *buf = (char *)val;
+   
+   int br = 0;
+   while (true)
+   {
+      int rc = recv(buf + br, 4 - br, 0, timeout);
+      if (rc <= 0)
+	 return rc;
+      
+      br += rc;
+      
+      if (br >= 4)
+	 break;
+   }
+   
+   *val = ntohl(*val);
+   return 4;
+}
+
+int QoreSocket::recvu2LSB(int timeout, unsigned short *val)
+{
+   if (!sock)
+      return -1;
+   
+   char *buf = (char *)val;
+   
+   int br = 0;
+   while (true)
+   {
+      int rc = recv(buf + br, 2 - br, 0, timeout);
+      if (rc <= 0)
+	 return rc;
+      
+      br += rc;
+      
+      if (br >= 2)
+	 break;
+   }
+   
+   *val = LSBi2(*val);
+   return 2;
+}
+
+int QoreSocket::recvu4LSB(int timeout, unsigned int *val)
+{
+   if (!sock)
+      return -1;
+   
+   char *buf = (char *)val;
+   
+   int br = 0;
+   while (true)
+   {
+      int rc = recv(buf + br, 4 - br, 0, timeout);
+      if (rc <= 0)
+	 return rc;
+      
+      br += rc;
+      
+      if (br >= 4)
+	 break;
+   }
+   
+   *val = LSBi4(*val);
+   return 4;
+}
+
 int QoreSocket::send(int fd, int size)
 {
    if (!sock || !size)

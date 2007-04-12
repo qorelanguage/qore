@@ -459,6 +459,56 @@ static QoreNode *SOCKET_recvi8LSB(class Object *self, class mySocket *s, class Q
    return doReadResult(rc, b, "recvi8LSB", xsink);
 }
 
+static QoreNode *SOCKET_recvu1(class Object *self, class mySocket *s, class QoreNode *params, ExceptionSink *xsink)
+{
+   // get timeout
+   int timeout = getMsMinusOneInt(get_param(params, 0));
+   
+   unsigned char b;
+   int rc = s->recvu1(timeout, &b);
+   return doReadResult(rc, (int64)b, "recvu1", xsink);
+}
+
+static QoreNode *SOCKET_recvu2(class Object *self, class mySocket *s, class QoreNode *params, ExceptionSink *xsink)
+{
+   // get timeout
+   int timeout = getMsMinusOneInt(get_param(params, 0));
+   
+   unsigned short b;
+   int rc = s->recvu2(timeout, &b);
+   return doReadResult(rc, (int64)b, "recvu2", xsink);
+}
+
+static QoreNode *SOCKET_recvu4(class Object *self, class mySocket *s, class QoreNode *params, ExceptionSink *xsink)
+{
+   // get timeout
+   int timeout = getMsMinusOneInt(get_param(params, 0));
+   
+   unsigned int b;
+   int rc = s->recvu4(timeout, &b);
+   return doReadResult(rc, (int64)b, "recvu4", xsink);
+}
+
+static QoreNode *SOCKET_recvu2LSB(class Object *self, class mySocket *s, class QoreNode *params, ExceptionSink *xsink)
+{
+   // get timeout
+   int timeout = getMsMinusOneInt(get_param(params, 0));
+   
+   unsigned short b;
+   int rc = s->recvu2LSB(timeout, &b);
+   return doReadResult(rc, (int64)b, "recvu2LSB", xsink);
+}
+
+static QoreNode *SOCKET_recvu4LSB(class Object *self, class mySocket *s, class QoreNode *params, ExceptionSink *xsink)
+{
+   // get timeout
+   int timeout = getMsMinusOneInt(get_param(params, 0));
+   
+   unsigned b;
+   int rc = s->recvu4LSB(timeout, &b);
+   return doReadResult(rc, (int64)b, "recvu4LSB", xsink);
+}
+
 static QoreNode *SOCKET_recvBinary(class Object *self, class mySocket *s, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = get_param(params, 0);
@@ -859,6 +909,11 @@ class QoreClass *initSocketClass()
    QC_SOCKET->addMethod("recvi2LSB",                 (q_method_t)SOCKET_recvi2LSB);
    QC_SOCKET->addMethod("recvi4LSB",                 (q_method_t)SOCKET_recvi4LSB);
    QC_SOCKET->addMethod("recvi8LSB",                 (q_method_t)SOCKET_recvi8LSB);
+   QC_SOCKET->addMethod("recvu1",                    (q_method_t)SOCKET_recvu1);
+   QC_SOCKET->addMethod("recvu2",                    (q_method_t)SOCKET_recvu2);
+   QC_SOCKET->addMethod("recvu4",                    (q_method_t)SOCKET_recvu4);
+   QC_SOCKET->addMethod("recvu2LSB",                 (q_method_t)SOCKET_recvu2LSB);
+   QC_SOCKET->addMethod("recvu4LSB",                 (q_method_t)SOCKET_recvu4LSB);
    QC_SOCKET->addMethod("sendHTTPMessage",           (q_method_t)SOCKET_sendHTTPMessage);
    QC_SOCKET->addMethod("sendHTTPResponse",          (q_method_t)SOCKET_sendHTTPResponse);
    QC_SOCKET->addMethod("readHTTPHeader",            (q_method_t)SOCKET_readHTTPHeader);

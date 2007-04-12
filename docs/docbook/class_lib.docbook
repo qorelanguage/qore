@@ -606,27 +606,62 @@
 	  <row>
 	    <entry><para><link linkend="Qore_File_readi1">File::readi1()</link></para></entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Reads a 1 byte integer from the file.</para></entry>
+	    <entry><para>Reads a 1-byte signed integer from the file.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_File_readi2">File::readi2()</link></para></entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Reads a 2 byte integer from the file in big-endian format.</para></entry>
+	    <entry><para>Reads a 2-byte signed integer from the file in big-endian format.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_File_readi4">File::readi4()</link></para></entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Reads a 4 byte integer from the file in big-endian format.</para></entry>
+	    <entry><para>Reads a 4-byte signed integer from the file in big-endian format.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Qore_File_readi8">File::readi8()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Reads an 8-byte signed integer from the file in big-endian format.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_File_readi2LSB">File::readi2LSB()</link></para></entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Reads a 2 byte integer from the file in little-endian format.</para></entry>
+	    <entry><para>Reads a 2-byte signed integer from the file in little-endian format.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_File_readi4LSB">File::readi4LSB()</link></para></entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Reads a 4 byte integer from the file in little-endian format.</para></entry>
+	    <entry><para>Reads a 4-byte signed integer from the file in little-endian format.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Qore_File_readi8LSB">File::readi8LSB()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Reads an 8-byte signed integer from the file in little-endian format.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Qore_File_readu1">File::readu1()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Reads a 1-byte unsigned integer from the file.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Qore_File_readu2">File::readu2()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Reads a 2-byte unsigned integer from the file in big-endian format.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Qore_File_readu4">File::readu4()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Reads a 4-byte unsigned integer from the file in big-endian format.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Qore_File_readu2LSB">File::readu2LSB()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Reads a 2-byte unsigned integer from the file in little-endian format.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Qore_File_readu4LSB">File::readu4LSB()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Reads a 4-byte unsigned integer from the file in little-endian format.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_File_readBinary">File::readBinary()</link></para></entry>
@@ -684,6 +719,11 @@
 	    <entry><para>Writes a 4-byte integer in big-endian format.</para></entry>
 	  </row>
 	  <row>
+	    <entry><para><link linkend="Qore_File_writei4">File::writei8()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Writes an 8-byte integer in big-endian format.</para></entry>
+	  </row>
+	  <row>
 	    <entry><para><link linkend="Qore_File_writei2LSB">File::writei2LSB()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Writes a 2-byte integer in little-endian format.</para></entry>
@@ -692,6 +732,11 @@
 	    <entry><para><link linkend="Qore_File_writei4LSB">File::writei4LSB()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Writes a 4-byte integer in little-endian format.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Qore_File_writei8LSB">File::writei8LSB()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Writes an 8-byte integer in little-endian format.</para></entry>
 	  </row>
 	</tbody>
       </tgroup>
@@ -741,13 +786,19 @@
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Creates the File object. It accepts one optional argument that will set the default character set encoding for the file.</para>
+	    <para>Creates the File object. It accepts one optional argument that will set the default character set encoding for the file (only affects reading and writing string data).</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting><command>new</command> File(<replaceable>[string:encoding]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$f = <command>new</command> File("ISO-8859-1"); # specify ISO-8859-1 encoding for the file</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -808,6 +859,12 @@
 	    <programlisting><command>delete</command> <replaceable>lvalue</replaceable></programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting><command>delete</command> $f;</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
     </sect2>
 
@@ -824,6 +881,12 @@
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>File::copy()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$f1 = $f.copy();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -874,13 +937,19 @@
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Closes the file object if it's open.</para>
+	    <para>Closes the file object if it's open.  Note that this is automatically called by <link linkend="Qore_File_destructor">File::destructor()</link>.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>File::close()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$f.close();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -931,13 +1000,19 @@
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Writes a formatted string to a file, enforces hard field limits.</para>
+	    <para>Writes a formatted string to a file, enforces hard field limits (similar to the <link linkend="f_printf">f_printf()</link> function). See <link linkend="String_Formatting">String Formatting</link> for more information about the format string.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>File::f_printf(<replaceable>string:format, [args ...]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$f.f_printf("%5s\n", "long string"); # will print "long \n", respecting the 5-character field width</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -1013,13 +1088,19 @@
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Writes a formatted string to a file, where the second argument is the formatting argument list, enforces hard field limits.</para>
+	    <para>Writes a formatted string to a file, where the second argument is the formatting argument list, enforces hard field limits.   See <link linkend="String_Formatting">String Formatting</link> for more information about the format string.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
-	    <programlisting>File::f_vprintf(<replaceable>string:format, [arg_list]</replaceable>)</programlisting>
+	    <programlisting>File::f_vprintf(<replaceable>format_string, [arg_list]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$f.f_vprintf("%5s %3d\n", ("a long string", 5000)); # outputs "a lon 500", truncating output</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -1103,6 +1184,12 @@
 	    <programlisting>File::getchar()</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$char = $f.getchar();</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -1162,6 +1249,12 @@
 	    <programlisting>File::getCharset()</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$encoding = $f.getCharset();</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -1212,13 +1305,19 @@
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Gets the current file position in bytes.</para>
+	    <para>Gets the current file position as an integer giving the offset in bytes from the beginning of the file (starting from zero).</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>File::getPos()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$pos = $f.getPos();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -1271,13 +1370,19 @@
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Writes a formatted string to the file.</para>
+	    <para>Writes a formatted string with soft field widths to the file.  See <link linkend="Qore_File_f_printf">File::f_printf()</link> for a similar method that enforces field widths.  See <link linkend="String_Formatting">String Formatting</link> for more information about the format string.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>File::printf(<replaceable>string:format, [args ...]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$f.printf("%5s\n", "hello there"); # outputs "hello there\n", exceeding field width</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -1364,6 +1469,14 @@
 	    <programlisting>File::open(<replaceable>string:filename, [integer:flags, [integer:mode, [string:charset]]]</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting># open a file for writing, truncate data if already exists, create the file if doesn't exist
+# set 0644 permissions, and convert all string data to ISO-8859-1 encoding
+$f.open("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -1445,13 +1558,19 @@
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Reads a certain amount of string data from the file.</para>
+	    <para>Reads a certain amount of string data from the file; the size argument is required.  To read binary data, use the <link linkend="Qore_File_readBinary">File::readBinary()</link> method.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>File::read(<replaceable>integer:size</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$data = $f.read(-1); # read an entire text file into a variable</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -1527,13 +1646,19 @@
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Reads a 1-byte integer from the file.</para>
+	    <para>Reads a 1-byte signed integer from the file and returns the integer value read.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>File::readi1()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$int = $f.readi1();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -1572,7 +1697,7 @@
 	  <tbody>
 	    <row>
 	      <entry><para>Integer</para></entry>
-	      <entry><para>Returns a 1-byte integer as read from the file.</para></entry>
+	      <entry><para>Returns a 1-byte signed integer as read from the file in binary format.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -1603,13 +1728,19 @@
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Reads a 2-byte integer from the file in big-endian format.</para>
+	    <para>Reads a 2-byte signed integer from the file in big-endian (MSB, network byte order) format.  See <link linkend="Qore_File_readi2LSB">File::readi2LSB()</link> for an equivalent method reading a 2-byte signed integer in little-endian (LSB) format.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>File::readi2()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$int = $f.readi2();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -1648,7 +1779,7 @@
 	  <tbody>
 	    <row>
 	      <entry><para>Integer</para></entry>
-	      <entry><para>Returns a 2-byte as read from the file in big-endian format.</para></entry>
+	      <entry><para>Returns a 2-byte signed integer as read from the file in big-endian format.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -1679,13 +1810,19 @@
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Reads a 4-byte integer from the file in big-endian format.</para>
+	    <para>Reads a 4-byte signed integer from the file in big-endian format.  See <link linkend="Qore_File_readi4LSB">File::readi4LSB()</link> for an equivalent method reading a 4-byte signed integer in little-endian (LSB) format.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>File::readi4()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$int = $f.readi4();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -1724,13 +1861,95 @@
 	  <tbody>
 	    <row>
 	      <entry><para>Integer</para></entry>
-	      <entry><para>Returns a 4-byte integer as read from the file in big-endian format.</para></entry>
+	      <entry><para>Returns a 4-byte signed integer as read from the file in big-endian format.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
       </table>
       <table>
 	<title>Exceptions Thrown by File::readi4()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>FILE-READ-ERROR</code></para></entry>
+	      <entry><para>File is not open.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="Qore_File_readi8">
+      <title>File::readi8()</title>
+      
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Reads a 4-byte signed integer from the file in big-endian format.  See <link linkend="Qore_File_readi8LSB">File::readi8LSB()</link> for an equivalent method reading a 4-byte signed integer in little-endian (LSB) format.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>File::readi8()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$int = $f.readi8();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for File::readi8()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method does not take any arguments.</para></entry>
+	    </row>
+	    
+	  </tbody>
+	</tgroup>
+      </table>
+      
+      <table>
+	<title>Return Value for File::readi8()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>Returns a 4-byte signed integer as read from the file in big-endian format.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+      <table>
+	<title>Exceptions Thrown by File::readi8()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
@@ -1755,13 +1974,19 @@
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Reads a 2-byte integer from the file in little-endian format.</para>
+	    <para>Reads a 2-byte signed integer from the file in little-endian (LSB) format.  See <link linkend="Qore_File_readi2">File::readi2()</link> for an equivalent method reading a 2-byte signed integer in big-endian (MSB, network byte order) format.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>File::readi2LSB()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$int = $f.readi2LSB();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -1798,7 +2023,7 @@
 	  <tbody>
 	    <row>
 	      <entry><para>Integer</para></entry>
-	      <entry><para>Reads a 2-byte integer from the file in little-endian format.</para></entry>
+	      <entry><para>Reads a 2-byte signed integer from the file in little-endian format.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -1829,13 +2054,19 @@
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Reads a 4-byte integer from the file in little-endian format.</para>
+	    <para>Reads a 4-byte signed integer from the file in little-endian format.  See <link linkend="Qore_File_readi4">File::readi4()</link> for an equivalent method reading a 4-byte signed integer in big-endian (MSB, network byte order) format.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>File::readi4LSB()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$int = $f.readi4LSB();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -1872,13 +2103,498 @@
 	  <tbody>
 	    <row>
 	      <entry><para>Integer</para></entry>
-	      <entry><para>Reads a 4-byte integer from the file in little-endian format.</para></entry>
+	      <entry><para>Reads a 4-byte signed integer from the file in little-endian format.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
       </table>
       <table>
 	<title>Exceptions Thrown by File::readi4LSB()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>FILE-READ-ERROR</code></para></entry>
+	      <entry><para>File is not open.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="Qore_File_readi8LSB">
+      <title>File::readi8LSB()</title>
+      
+     <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Reads an 8-byte signed integer from the file in little-endian format.  See <link linkend="Qore_File_readi8">File::readi8()</link> for an equivalent method reading a 8-byte signed integer in big-endian (MSB, network byte order) format.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>File::readi8LSB()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$int = $f.readi8LSB();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for File::readi8LSB()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method does not take any arguments.</para></entry>
+	    </row>	    
+	  </tbody>
+	</tgroup>
+      </table>
+      
+      <table>
+	<title>Return Value for File::readi8LSB()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>Reads a 4-byte signed integer from the file in little-endian format.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+      <table>
+	<title>Exceptions Thrown by File::readi8LSB()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>FILE-READ-ERROR</code></para></entry>
+	      <entry><para>File is not open.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+    <sect2 id="Qore_File_readu1">
+      <title>File::readu1()</title>
+      
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Reads a 1-byte unsigned integer from the file and returns the integer value read.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>File::readu1()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$int = $f.readu1();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for File::readu1()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method does not take any arguments.</para></entry>
+	    </row>
+	    
+	  </tbody>
+	</tgroup>
+      </table>
+      
+      <table>
+	<title>Return Value for File::readu1()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>Returns a 1-byte unsigned integer as read from the file in binary format.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+      <table>
+	<title>Exceptions Thrown by File::readu1()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>FILE-READ-ERROR</code></para></entry>
+	      <entry><para>File is not open.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="Qore_File_readu2">
+      <title>File::readu2()</title>
+      
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Reads a 2-byte signed integer from the file in big-endian (MSB, network byte order) format.  See <link linkend="Qore_File_readu2LSB">File::readu2LSB()</link> for an equivalent method reading a 2-byte signed integer in little-endian (LSB) format.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>File::readu2()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$int = $f.readu2();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for File::readu2()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method does not take any arguments.</para></entry>
+	    </row>
+	    
+	  </tbody>
+	</tgroup>
+      </table>
+      
+      <table>
+	<title>Return Value for File::readu2()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>Returns a 2-byte signed integer as read from the file in big-endian format.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+      <table>
+	<title>Exceptions Thrown by File::readu2()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>FILE-READ-ERROR</code></para></entry>
+	      <entry><para>File is not open.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="Qore_File_readu4">
+      <title>File::readu4()</title>
+      
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Reads a 4-byte signed integer from the file in big-endian format.  See <link linkend="Qore_File_readu4LSB">File::readu4LSB()</link> for an equivalent method reading a 4-byte signed integer in little-endian (LSB) format.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>File::readu4()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$int = $f.readu4();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for File::readu4()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method does not take any arguments.</para></entry>
+	    </row>
+	    
+	  </tbody>
+	</tgroup>
+      </table>
+      
+      <table>
+	<title>Return Value for File::readu4()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>Returns a 4-byte signed integer as read from the file in big-endian format.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+      <table>
+	<title>Exceptions Thrown by File::readu4()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>FILE-READ-ERROR</code></para></entry>
+	      <entry><para>File is not open.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="Qore_File_readu2LSB">
+      <title>File::readu2LSB()</title>
+      
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Reads a 2-byte signed integer from the file in little-endian (LSB) format.  See <link linkend="Qore_File_readu2">File::readu2()</link> for an equivalent method reading a 2-byte signed integer in big-endian (MSB, network byte order) format.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>File::readu2LSB()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$int = $f.readu2LSB();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for File::readu2LSB()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method does not take any arguments.</para></entry>
+	    </row>	    
+	  </tbody>
+	</tgroup>
+      </table>
+      
+      <table>
+	<title>Return Value for File::readu2LSB()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>Reads a 2-byte signed integer from the file in little-endian format.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+      <table>
+	<title>Exceptions Thrown by File::readu2LSB()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>FILE-READ-ERROR</code></para></entry>
+	      <entry><para>File is not open.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="Qore_File_readu4LSB">
+      <title>File::readu4LSB()</title>
+      
+     <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Reads a 4-byte unsigned integer from the file in little-endian format.  See <link linkend="Qore_File_readu4">File::readu4()</link> for an equivalent method reading a 4-byte signed integer in big-endian (MSB, network byte order) format.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>File::readu4LSB()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$int = $f.readu4LSB();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for File::readu4LSB()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method does not take any arguments.</para></entry>
+	    </row>	    
+	  </tbody>
+	</tgroup>
+      </table>
+      
+      <table>
+	<title>Return Value for File::readu4LSB()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>Reads a 4-byte unsigned integer from the file in little-endian format.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+      <table>
+	<title>Exceptions Thrown by File::readu4LSB()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
@@ -1903,13 +2619,19 @@
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Read a certain amount of data and return a binary object.</para>
+	    <para>Read a certain amount of data and return a binary object; the size parameter is mandatory.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>File::readBinary(<replaceable>integer:size</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$data = $f.readBinary(-1); # reads an entire binary file into a variable</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -1982,13 +2704,25 @@
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Reads until an EOL marker is found.</para>
+	    <para>Reads until an EOL marker is found and returns a string containing the EOL marker.  Returns NOTHING on end of file.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>File::readLine()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>while (exists (my $line = $f.readLine()))
+{
+    # remove EOL marker
+    chomp $line;
+    # print out the line just read
+    printf("%s\n", $line);
+}</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -2027,7 +2761,7 @@
 	  <tbody>
 	    <row>
 	      <entry><para>String</para></entry>
-	      <entry><para>The line read from the file.</para></entry>
+	      <entry><para>The line read from the file or NOTHING at end of file.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -2058,13 +2792,19 @@
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Sets the character set for the file.</para>
+	    <para>Sets the character set encoding for the file.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>File::setCharset(<replaceable>string:encoding</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$f.setCharset("ISO-8859-1");</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -2117,13 +2857,19 @@
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Sets the current file position in bytes.</para>
+	    <para>Sets the current file position in bytes starting with zero.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>File::setPos(<replaceable>integer:position</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$f.setPos(0); # go to the beginning of the file</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -2183,6 +2929,12 @@
 	    <programlisting>File::sync()</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$f.sync();</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -2231,13 +2983,19 @@
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Writes a formatted string to a file, where the second argument is the formatting argument list.</para>
+	    <para>Writes a formatted string to a file, where the first argument is a <link linkend="String_Formatting">format string</link>,and the second argument is the formatting argument list.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>File::vprintf(<replaceable>string:format, [arg_list]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$f.vprintf("%5s\n", "hello");</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -2311,13 +3069,19 @@
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Writes string or binary data to a file.</para>
+	    <para>Writes string or binary data to a file.  String data will be converted to the file's character encoding if necessary before writing.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>File::write(<replaceable>arg</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$f.write($data);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -2400,6 +3164,12 @@
 	    <programlisting>File::writei1(<replaceable>integer</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$f.writei1($val);</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -2472,6 +3242,12 @@
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>File::writei2(<replaceable>integer</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$f.writei2($val);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -2549,6 +3325,12 @@
 	    <programlisting>File::writei4(<replaceable>integer</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$f.writei4($val);</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -2608,6 +3390,87 @@
       </table>
     </sect2>
 
+    <sect2 id="Qore_File_writei8">
+      <title>File::writei8()</title>
+      
+     <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Writes an 8-byte integer in big-endian format.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>File::writei8(<replaceable>integer</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$f.writei8($val);</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for File::writei8()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  
+	  <tbody>
+	    <row>
+	      <entry><para><replaceable>integer</replaceable></para></entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>The integer to write; writes an 8-byte integer in big-endian format.</para></entry>
+	    </row>	    
+	  </tbody>
+	</tgroup>
+      </table>
+      
+      <table>
+	<title>Return Value for File::writei8()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>Returns 0 for success, -1 for error.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+      <table>
+	<title>Exceptions Thrown by File::writei8()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>FILE-WRITE-ERROR</code></para></entry>
+	      <entry><para>File is not open.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
     <sect2 id="Qore_File_writei2LSB">
       <title>File::writei2LSB()</title>
       
@@ -2622,6 +3485,12 @@
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>File::writei2LSB(<replaceable>integer</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$f.writei2LSB($val);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -2698,6 +3567,12 @@
 	    <programlisting>File::writei4LSB(<replaceable>integer</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$f.writei4LSB($val);</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -2740,6 +3615,87 @@
       </table>
       <table>
 	<title>Exceptions Thrown by File::writei4LSB()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>FILE-WRITE-ERROR</code></para></entry>
+	      <entry><para>File is not open.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="Qore_File_writei8LSB">
+      <title>File::writei8LSB()</title>
+      
+     <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Writes an 8-byte integer to the file in little-endian (LSB) format.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>File::writei8LSB(<replaceable>integer</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$f.writei8LSB($val);</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for File::writei8LSB()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  
+	  <tbody>
+	    <row>
+	      <entry><para><replaceable>integer</replaceable></para></entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>The integer to write; writes an 8-byte integer in little-endian format.</para></entry>
+	    </row>	    
+	  </tbody>
+	</tgroup>
+      </table>
+      
+      <table>
+	<title>Return Value for File::writei8LSB()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>Returns 0 for success, -1 for error.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+      <table>
+	<title>Exceptions Thrown by File::writei8LSB()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
@@ -2816,6 +3772,19 @@
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting><command>new</command> GetOpt(<replaceable>option_hash</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>const program_options = 
+    ( "url"  : "url,u=s",
+      "xml"  : "xml,x",
+      "lxml" : "literal-xml,X",
+      "verb" : "verbose,v",
+      "help" : "help,h" );
+
+$getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -2922,6 +3891,12 @@
 	    <programlisting><command>delete</command> <replaceable>lvalue</replaceable></programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting><command>delete</command> $getopt;</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
     </sect2>
 
@@ -2933,12 +3908,6 @@
 	  <term>Synopsis</term>
 	  <listitem>
 	    <para>Throws an exception; objects of this class cannot be copied.</para>
-	  </listitem>
-	</varlistentry>
-	<varlistentry>
-	  <term>Usage</term>
-	  <listitem>
-	    <para>Do not use this method; this method is only present to prohibit copying of objects of this class.</para>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -3014,6 +3983,12 @@
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>GetOpt::parse(<replaceable>list_reference</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$o = $getopt.parse(\$ARGV);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -3405,6 +4380,12 @@
 	    <programlisting><command>new</command> FtpClient([<replaceable>string_value</replaceable>])</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$ftp = <command>new</command> FtpClient("ftp://user:pass@hostname");</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -3485,6 +4466,12 @@
 	    <programlisting><command>delete</command> <replaceable>lvalue</replaceable></programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting><command>delete</command> $ftp;</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
     </sect2>
 
@@ -3496,12 +4483,6 @@
 	  <term>Synopsis</term>
 	  <listitem>
 	    <para>Throws an exception; objects of this class cannot be copied.</para>
-	  </listitem>
-	</varlistentry>
-	<varlistentry>
-	  <term>Usage</term>
-	  <listitem>
-	    <para>Do not use this method; this method is only present to prohibit copying of objects of this class.</para>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -3577,6 +4558,12 @@
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>FtpClient::connect(optional:<replaceable>string_value</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$ftp.connect(); # connects to the URL set in the constructor</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -3662,6 +4649,12 @@
 	    <programlisting>FtpClient::disconnect()</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$ftp.disconnect();</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -3716,6 +4709,12 @@
           <term>Usage</term>
           <listitem>
             <programlisting>FtpClient::setSecure()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$ftp.setSecure();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -3818,6 +4817,12 @@
             <programlisting>FtpClient::setInsecure()</programlisting>
           </listitem>
         </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$ftp.setInsecure();</programlisting>
+          </listitem>
+        </varlistentry>
       </variablelist>
       <table>
         <title>Arguments for FtpClient::setInsecure()</title>
@@ -3916,6 +4921,12 @@
           <term>Usage</term>
           <listitem>
             <programlisting>FtpClient::setInsecureData()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$ftp.setInsecureData();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -4018,6 +5029,12 @@
             <programlisting>FtpClient::isSecure()</programlisting>
           </listitem>
         </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$bool = $ftp.isSecure();</programlisting>
+          </listitem>
+        </varlistentry>
       </variablelist>
       <table>
         <title>Arguments for FtpClient::isSecure()</title>
@@ -4089,6 +5106,12 @@
           <term>Usage</term>
           <listitem>
             <programlisting>FtpClient::isDataSecure()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$bool = $ftp.isDataSecure();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -4164,6 +5187,12 @@
             <programlisting>FtpClient::getSSLCipherName()</programlisting>
           </listitem>
         </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$str = $ftp.getSSLCipherName();</programlisting>
+          </listitem>
+        </varlistentry>
       </variablelist>
       <table>
         <title>Arguments for FtpClient::getSSLCipherName()</title>
@@ -4237,6 +5266,12 @@
             <programlisting>FtpClient::getSSLCipherVersion()</programlisting>
           </listitem>
         </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$str = $ftp.getSSLCipherVersion();</programlisting>
+          </listitem>
+        </varlistentry>
       </variablelist>
       <table>
         <title>Arguments for FtpClient::getSSLCipherVersion()</title>
@@ -4301,13 +5336,19 @@
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns a string code giving the result of verifying the remote certificate.  Return value are the keys described in the <link linkend="X509_VerificationReasons_Hash">X509_VerificationReasons hash constant</link>.  This hash can also be used to generate a textual description of the verification result.</para>
+            <para>Returns a string code giving the result of verifying the remote certificate for secure (FTPS) connections.  Return value are the keys described in the <link linkend="X509_VerificationReasons_Hash">X509_VerificationReasons hash constant</link>.  This hash can also be used to generate a textual description of the verification result.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Usage</term>
           <listitem>
             <programlisting>FtpClient::verifyPeerCertificate()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$str = $ftp.verifyPeerCertificate();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -4383,6 +5424,12 @@
             <programlisting>FtpClient::setModeAuto()</programlisting>
           </listitem>
         </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$ftp.setModeAuto();</programlisting>
+          </listitem>
+        </varlistentry>
       </variablelist>
       <table>
         <title>Arguments for FtpClient::setModeAuto()</title>
@@ -4454,6 +5501,12 @@
           <term>Usage</term>
           <listitem>
             <programlisting>FtpClient::setModeEPSV()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$ftp.setModeEPSV();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -4529,6 +5582,12 @@
             <programlisting>FtpClient::setModePASV()</programlisting>
           </listitem>
         </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$ftp.setModePASV();</programlisting>
+          </listitem>
+        </varlistentry>
       </variablelist>
       <table>
         <title>Arguments for FtpClient::setModePASV()</title>
@@ -4600,6 +5659,12 @@
           <term>Usage</term>
           <listitem>
             <programlisting>FtpClient::setModePORT()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$ftp.setModePORT();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -4675,6 +5740,12 @@
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>FtpClient::list()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$list = $ftp.list();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -4760,6 +5831,12 @@
 	    <programlisting>FtpClient::nlst()</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$str = $ftp.nlst();</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -4843,6 +5920,12 @@
 	    <programlisting>FtpClient::pwd()</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$str = $ftp.pwd();</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -4924,6 +6007,12 @@
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>FtpClient::cwd(<replaceable>path</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$ftp.cwd("/pub/gnu");</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -5010,6 +6099,12 @@
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>FtpClient::get(<replaceable>server_path</replaceable>, [<replaceable>local_path</replaceable>])</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$ftp.get("file.txt", "/tmp/file-1.txt");</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -5105,6 +6200,12 @@
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>FtpClient::put(<replaceable>local_path</replaceable>, [<replaceable>server_path</replaceable>])</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$ftp.put("/tmp/file-1.txt", "file.txt");</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -5206,6 +6307,12 @@
 	    <programlisting>FtpClient::del(<replaceable>server_path</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$ftp.del("file-2.txt");</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -5292,6 +6399,12 @@
 	    <programlisting>FtpClient::setUserName(<replaceable>string</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$ftp.setUserName("ftp");</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -5364,6 +6477,12 @@
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>FtpClient::setPassword(<replaceable>string</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$ftp.setPassword("ftp");</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -5440,6 +6559,12 @@
 	    <programlisting>FtpClient::setHostName(<replaceable>string</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$ftp.setHostName("hostname");</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -5505,13 +6630,19 @@
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Sets the connection port value.</para>
+	    <para>Sets the control port value (default is 21).</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>FtpClient::setPort(<replaceable>integer</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$ftp.setPort(21);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -5586,6 +6717,12 @@
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>FtpClient::setURL(<replaceable>string</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$ftp.setURL("ftps://user:pass@host");</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -5670,6 +6807,12 @@
 	    <programlisting>FtpClient::getUserName()</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$user = $ftp.getUserName();</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -5724,6 +6867,12 @@
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>FtpClient::getPassword()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$pass = $ftp.getPassword();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -5782,6 +6931,12 @@
 	    <programlisting>FtpClient::getHostName()</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$host = $ftp.getHostName();</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -5838,6 +6993,12 @@
 	    <programlisting>FtpClient::getPort()</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$port = $ftp.getPort();</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -5892,6 +7053,12 @@
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>FtpClient::getURL()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$url = $ftp.getURL();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -6147,6 +7314,12 @@
 	    <programlisting><command>new</command> Program([integer:<replaceable>parse_options</replaceable>])</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$pgm = <command>new</command> Program();</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
       
       <table>
@@ -6215,12 +7388,6 @@
 	  <term>Synopsis</term>
 	  <listitem>
 	    <para>Throws an exception; objects of this class cannot be copied.</para>
-	  </listitem>
-	</varlistentry>
-	<varlistentry>
-	  <term>Usage</term>
-	  <listitem>
-	    <para>Do not use this method; this method is only present to prohibit copying of objects of this class.</para>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -6294,7 +7461,7 @@
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
-	    <programlisting>QoreProgram::parse(<replaceable>string</replaceable>, <replaceable>label</replaceable>)</programlisting>
+	    <programlisting>Program::parse(<replaceable>string</replaceable>, <replaceable>label</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -6373,7 +7540,7 @@
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
-	    <programlisting>QoreProgram::parsePending(<replaceable>string</replaceable>, <replaceable>label</replaceable>)</programlisting>
+	    <programlisting>Program::parsePending(<replaceable>string</replaceable>, <replaceable>label</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -6452,7 +7619,7 @@
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
-	    <programlisting>QoreProgram::parseRollback()</programlisting>
+	    <programlisting>Program::parseRollback()</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -6508,7 +7675,7 @@
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
-	    <programlisting>QoreProgram::parseCommit()</programlisting>
+	    <programlisting>Program::parseCommit()</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -6582,7 +7749,7 @@
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
-	    <programlisting>QoreProgram::callFunction(<replaceable>string:function_name, [args ...]</replaceable>)</programlisting>
+	    <programlisting>Program::callFunction(<replaceable>string:function_name, [args ...]</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -6665,7 +7832,7 @@
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
-	    <programlisting>QoreProgram::callFunctionArgs(<replaceable>string:function_name, [arg_list]</replaceable>)</programlisting>
+	    <programlisting>Program::callFunctionArgs(<replaceable>string:function_name, [arg_list]</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -6748,7 +7915,7 @@
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
-	    <programlisting>QoreProgram::existsFunction(<replaceable>function_name</replaceable>)</programlisting>
+	    <programlisting>Program::existsFunction(<replaceable>function_name</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -6804,7 +7971,7 @@
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
-	    <programlisting>QoreProgram::run()</programlisting>
+	    <programlisting>Program::run()</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -6860,7 +8027,7 @@
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
-	    <programlisting>QoreProgram::importFunction(<replaceable>function_name</replaceable>)</programlisting>
+	    <programlisting>Program::importFunction(<replaceable>function_name</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -6942,7 +8109,7 @@
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
-	    <programlisting>QoreProgram::importGlobalVariable(<replaceable>string:name, [boolean:read_only]</replaceable>)</programlisting>
+	    <programlisting>Program::importGlobalVariable(<replaceable>string:name, [boolean:read_only]</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
 xs      </variablelist>
@@ -7026,7 +8193,7 @@ xs      </variablelist>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
-	    <programlisting>QoreProgram::getUserFunctionList()</programlisting>
+	    <programlisting>Program::getUserFunctionList()</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -7238,37 +8405,62 @@ xs      </variablelist>
 	  <row>
 	    <entry><para><link linkend="Qore_Socket_recvi1">Socket::recvi1()</link></para></entry>
 	    <entry>Y</entry>
-	    <entry><para>Receives a 1-byte integer from the socket.</para></entry>
+	    <entry><para>Receives a 1-byte signed integer from the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_Socket_recvi2">Socket::recvi2()</link></para></entry>
 	    <entry>Y</entry>
-	    <entry><para>Receives a 2-byte (16-bit) integer in big-endian format (network byte order) from the socket.</para></entry>
+	    <entry><para>Receives a 2-byte (16-bit) signed integer in big-endian format (network byte order) from the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_Socket_recvi4">Socket::recvi4()</link></para></entry>
 	    <entry>Y</entry>
-	    <entry><para>Receives a 4-byte (32-bit) integer in big-endian format (network byte order) from the socket.</para></entry>
+	    <entry><para>Receives a 4-byte (32-bit) signed integer in big-endian format (network byte order) from the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_Socket_recvi8">Socket::recvi8()</link></para></entry>
 	    <entry>Y</entry>
-	    <entry><para>Receives an 8-byte (64-bit) integer in big-endian format (network byte order) from the socket.</para></entry>
+	    <entry><para>Receives an 8-byte (64-bit) signed integer in big-endian format (network byte order) from the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_Socket_recvi2LSB">Socket::recvi2LSB()</link></para></entry>
 	    <entry>Y</entry>
-	    <entry><para>Receives a 2-byte (16-bit) integer in little-endian format from the socket.</para></entry>
+	    <entry><para>Receives a 2-byte (16-bit) signed integer in little-endian format from the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_Socket_recvi4LSB">Socket::recvi4LSB()</link></para></entry>
 	    <entry>Y</entry>
-	    <entry><para>Receives a 4-byte (32-bit) integer in little-endian format from the socket.</para></entry>
+	    <entry><para>Receives a 4-byte (32-bit) signed integer in little-endian format from the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_Socket_recvi8LSB">Socket::recvi8LSB()</link></para></entry>
 	    <entry>Y</entry>
-	    <entry><para>Receives an 8-byte (64-bit) integer in little-endian format from the socket.</para></entry>
+	    <entry><para>Receives an 8-byte (64-bit) signed integer in little-endian format from the socket.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Qore_Socket_recvu1">Socket::recvu1()</link></para></entry>
+	    <entry>Y</entry>
+	    <entry><para>Receives a 1-byte unsigned integer from the socket.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Qore_Socket_recvu2">Socket::recvu2()</link></para></entry>
+	    <entry>Y</entry>
+	    <entry><para>Receives a 2-byte (16-bit) unsigned integer in big-endian format (network byte order) from the socket.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Qore_Socket_recvu4">Socket::recvu4()</link></para></entry>
+	    <entry>Y</entry>
+	    <entry><para>Receives a 4-byte (32-bit) unsigned integer in big-endian format (network byte order) from the socket.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Qore_Socket_recvu2LSB">Socket::recvu2LSB()</link></para></entry>
+	    <entry>Y</entry>
+	    <entry><para>Receives a 2-byte (16-bit) unsigned integer in little-endian format from the socket.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Qore_Socket_recvu4LSB">Socket::recvu4LSB()</link></para></entry>
+	    <entry>Y</entry>
+	    <entry><para>Receives a 4-byte (32-bit) unsigned integer in little-endian format from the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_Socket_recvBinary">Socket::recvBinary()</link></para></entry>
@@ -7420,6 +8612,12 @@ xs      </variablelist>
 	    <programlisting><command>new</command> Socket()</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$sock = <command>new</command> Socket();</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -7477,6 +8675,12 @@ xs      </variablelist>
 	    <programlisting><command>delete</command> <replaceable>lvalue</replaceable></programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting><command>delete</command> $sock;</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
     </sect2>
 
@@ -7494,6 +8698,12 @@ xs      </variablelist>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>Socket::copy()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$new_sock = $sock.copy();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -7552,6 +8762,17 @@ xs      </variablelist>
 	    <programlisting>Socket::bind(<replaceable>port, [reuse_addr]</replaceable>)</programlisting>
 	    <programlisting>Socket::bind(<replaceable>host_and_port, [reuse_addr]</replaceable>)</programlisting>
 	    <programlisting>Socket::bind(<replaceable>filename, [reuse_addr]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Examples</term>
+	  <listitem>
+	    <programlisting># bind to port 80 on all interfaces on the local system and reuse the address
+$sock.bind(80, True);</programlisting>
+	    <programlisting># bind to interface 192.168.2.23 and do not reuse the address
+$sock.bind("192.168.2.23");</programlisting>
+	    <programlisting># bind to UNIX domain socket file "/tmp/socket"
+$sock.bind("/tmp/socket");</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -7643,6 +8864,12 @@ xs      </variablelist>
 	    <programlisting>Socket::accept()</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$new_socket = $sock.accept();</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -7715,6 +8942,12 @@ xs      </variablelist>
           <term>Usage</term>
           <listitem>
             <programlisting>Socket::acceptSSL()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$new_sock = $sock.acceptSSL();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -7819,6 +9052,13 @@ xs      </variablelist>
 	    <programlisting>Socket::connect(<replaceable>string:filename</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Examples</term>
+	  <listitem>
+	    <programlisting>$sock.connect("192.168.1.45:8080"); # connect to 192.168.1.45 port 8080</programlisting>
+	    <programlisting>$sock.connect("/tmp/socket");       # connect to UNIX domain socket file "/tmp/socket"</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -7898,6 +9138,13 @@ xs      </variablelist>
             <programlisting>Socket::connectSSL(<replaceable>remote</replaceable>)</programlisting>
           </listitem>
         </varlistentry>
+	<varlistentry>
+	  <term>Examples</term>
+	  <listitem>
+	    <programlisting>$sock.connectSSL("192.168.1.45:8080"); # connect to 192.168.1.45 port 8080</programlisting>
+	    <programlisting>$sock.connectSSL("/tmp/socket");       # connect to UNIX domain socket file "/tmp/socket"</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
       <table>
         <title>Arguments for Socket::connectSSL()</title>
@@ -8011,6 +9258,12 @@ xs      </variablelist>
 	    <programlisting>Socket::listen()</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$sock.listen();</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -8083,6 +9336,12 @@ xs      </variablelist>
           <term>Usage</term>
           <listitem>
             <programlisting>Socket::shutdownSSL()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$sock.shutdownSSL();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -8185,6 +9444,12 @@ xs      </variablelist>
             <programlisting>Socket::getSSLCipherName()</programlisting>
           </listitem>
         </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$str = $sock.getSSLCipherName();</programlisting>
+          </listitem>
+        </varlistentry>
       </variablelist>
       <table>
         <title>Arguments for Socket::getSSLCipherName()</title>
@@ -8256,6 +9521,12 @@ xs      </variablelist>
           <term>Usage</term>
           <listitem>
             <programlisting>Socket::getSSLCipherVersion()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$str = $sock.getSSLCipherVersion();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -8331,6 +9602,12 @@ xs      </variablelist>
             <programlisting>Socket::isSecure()</programlisting>
           </listitem>
         </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$bool = $sock.isSecure();</programlisting>
+          </listitem>
+        </varlistentry>
       </variablelist>
       <table>
         <title>Arguments for Socket::isSecure()</title>
@@ -8404,6 +9681,12 @@ xs      </variablelist>
             <programlisting>Socket::isOpen()</programlisting>
           </listitem>
         </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$bool = $sock.isOpen();</programlisting>
+          </listitem>
+        </varlistentry>
       </variablelist>
       <table>
         <title>Arguments for Socket::isOpen()</title>
@@ -8468,13 +9751,19 @@ xs      </variablelist>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Sets the X.509 certificate to use for negotiating encrypted connections.</para>
+            <para>Sets the X.509 certificate to use for negotiating encrypted connections.  Requires an <link linkend="SSLCertificate_Class">SSLCertificate</link> object as the only argument to the method.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Usage</term>
           <listitem>
             <programlisting>Socket::setCertificate(<replaceable>certificate</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$sock.setCertificate($cert);</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -8543,13 +9832,19 @@ xs      </variablelist>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Sets the private key to use for negotiating encrypted connections along with the X.509 certificate.</para>
+            <para>Sets the private key to use for negotiating encrypted connections along with the X.509 certificate.  Requires an <link linkend="SSLPrivateKey_Class">SSLPrivateKey</link> object as the only argument to the method.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Usage</term>
           <listitem>
-            <programlisting>Socket::setPrivateKey(<replaceable>certificate</replaceable>)</programlisting>
+            <programlisting>Socket::setPrivateKey(<replaceable>private_key_object</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+	  <term>Example</term>
+          <listitem>
+            <programlisting>$sock.setPrivateKey($pkey);</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -8573,14 +9868,14 @@ xs      </variablelist>
             <row>
               <entry>
                 <para>
-                  <replaceable>certificate</replaceable>
+                  <replaceable>privat_key_object</replaceable>
                 </para>
               </entry>
               <entry>
                 <para><link linkend="SSLPrivateKey_Class">SSLPrivateKey</link> Object</para>
               </entry>
               <entry>
-                <para>The private key for the certificate..</para>
+                <para>The private key for the certificate.</para>
               </entry>
             </row>
           </tbody>
@@ -8625,6 +9920,12 @@ xs      </variablelist>
           <term>Usage</term>
           <listitem>
             <programlisting>Socket::verifyPeerCertificate()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$str = $sock.verifyPeerCertificate();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -8692,13 +9993,19 @@ xs      </variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Returns True is data is available on the socket, takes an optional timeout.  Useful for non-blocking polling the socket for data (can also be used to poll for new connections before <link linkend="Qore_Socket_accept">Socket::accept()</link>).</para>
+	    <para>Returns True is data is available on the socket, takes an optional timeout.  With a timeout of zero this method can be used for non-blocking polling the socket for data (can also be used to poll for new connections before <link linkend="Qore_Socket_accept">Socket::accept()</link>).</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>Socket::isDataAvailable(<replaceable>[timeout_ms]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$bool = $sock.isDataAvailable(0); # returns True if data is available now</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -8748,13 +10055,19 @@ xs      </variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Sends string or binary data over a connected socket.  If the argument is not present, or is neither a String or Binary type, an exception will be thrown.</para>
+	    <para>Sends string or binary data over a connected socket.  If the argument is not present, or is neither a String or Binary type, an exception will be thrown.  String data will be converted to the encoding set for the socket if necessary.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>Socket::send(<replaceable>data</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$sock.send($data);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -8840,6 +10153,12 @@ xs      </variablelist>
 	    <programlisting>Socket::sendi1(<replaceable>integer</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$sock.sendi1($val);</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -8912,6 +10231,12 @@ xs      </variablelist>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>Socket::sendi2(<replaceable>integer</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$sock.sendi2($val);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -8988,6 +10313,12 @@ xs      </variablelist>
 	    <programlisting>Socket::sendi4(<replaceable>integer</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$sock.sendi4($val);</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -9060,6 +10391,12 @@ xs      </variablelist>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>Socket::sendi8(<replaceable>integer</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$sock.sendi8($val);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -9136,6 +10473,12 @@ xs      </variablelist>
 	    <programlisting>Socket::sendi2LSB(<replaceable>integer</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$sock.sendi2LSB($val);</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -9208,6 +10551,12 @@ xs      </variablelist>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>Socket::sendi4LSB(<replaceable>integer</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$sock.sendi4LSB($val);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -9284,6 +10633,12 @@ xs      </variablelist>
 	    <programlisting>Socket::sendi8LSB(<replaceable>integer</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$sock.sendi8LSB($val);</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -9356,6 +10711,12 @@ xs      </variablelist>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>Socket::sendHTTPMessage(<replaceable>string:method, string:path, string:http_version, hash:headers, [body]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$sock.sendHTTPMessage("POST", "/RPC2", "1.1", ("Content-Type" : "text/xml"), $xml);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -9465,6 +10826,12 @@ xs      </variablelist>
 	    <programlisting>Socket::sendHTTPResponse(<replaceable>status_code, string:description, string:http_version, hash:headers, [body]</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$sock.sendHTTPResponse(200, "OK", "1.1", ("Connection":"Keep-Alive"));</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -9572,6 +10939,12 @@ xs      </variablelist>
 	    <programlisting>Socket::recv(<replaceable>size, [timeout_ms]</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$data = $sock.recv(-1); # read all data available</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -9659,6 +11032,12 @@ xs      </variablelist>
 	    <programlisting>Socket::recvBinary(<replaceable>size, [timeout_ms]</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$bin = $sock.recvBinary(-1); # read all data available</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -9737,13 +11116,19 @@ xs      </variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Receives a 1-byte integer from the socket.</para>
+	    <para>Receives a 1-byte signed integer from the socket.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>Socket::recvi1(<replaceable>[timeout_ms]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$int = $sock.recvi1();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -9780,7 +11165,7 @@ xs      </variablelist>
 	  <tbody>
 	    <row>
 	      <entry><para>Integer</para></entry>
-	      <entry><para>The 1-byte integer read.</para></entry>
+	      <entry><para>The 1-byte signed integer read.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -9819,13 +11204,19 @@ xs      </variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Receives a 2-byte integer in big-endian format (network byte order) from the socket.</para>
+	    <para>Receives a 2-byte signed integer in big-endian format (network byte order) from the socket.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>Socket::recvi2(<replaceable>[timeout_ms]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$int = $sock.recvi2();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -9862,7 +11253,7 @@ xs      </variablelist>
 	  <tbody>
 	    <row>
 	      <entry><para>Integer</para></entry>
-	      <entry><para>The 2-byte integer read.</para></entry>
+	      <entry><para>The 2-byte signed integer read.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -9901,13 +11292,19 @@ xs      </variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Receives a 4-byte integer in big-endian format (network byte order) from the socket.</para>
+	    <para>Receives a 4-byte signed integer in big-endian format (network byte order) from the socket.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>Socket::recvi4(<replaceable>[timeout_ms]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$int = $sock.recvi4();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -9944,7 +11341,7 @@ xs      </variablelist>
 	  <tbody>
 	    <row>
 	      <entry><para>Integer</para></entry>
-	      <entry><para>The 4-byte integer read.</para></entry>
+	      <entry><para>The 4-byte signed integer read.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -9983,13 +11380,19 @@ xs      </variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Receives an 8-byte (64-bit) integer in big-endian format (network byte order) from the socket.</para>
+	    <para>Receives an 8-byte (64-bit) signed integer in big-endian format (network byte order) from the socket.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>Socket::recvi8(<replaceable>[timeout_ms]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$int = $sock.recvi8();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -10026,7 +11429,7 @@ xs      </variablelist>
 	  <tbody>
 	    <row>
 	      <entry><para>Integer</para></entry>
-	      <entry><para>The 8-byte (64-bit) integer read.</para></entry>
+	      <entry><para>The 8-byte (64-bit) signed integer read.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -10065,13 +11468,19 @@ xs      </variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Receives a 2-byte integer in little-endian format from the socket.</para>
+	    <para>Receives a 2-byte signed integer in little-endian format from the socket.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>Socket::recvi2LSB(<replaceable>[timeout_ms]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$int = $sock.recvi2LSB();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -10108,7 +11517,7 @@ xs      </variablelist>
 	  <tbody>
 	    <row>
 	      <entry><para>Integer</para></entry>
-	      <entry><para>The 2-byte integer read.</para></entry>
+	      <entry><para>The 2-byte signed integer read.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -10147,13 +11556,19 @@ xs      </variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Receives a 4-byte integer in little-endian format from the socket.</para>
+	    <para>Receives a 4-byte signed integer in little-endian format from the socket.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>Socket::recvi4LSB(<replaceable>[timeout_ms]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$int = $sock.recvi4LSB(1250ms); # timeout in 1.25 seconds</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -10190,7 +11605,7 @@ xs      </variablelist>
 	  <tbody>
 	    <row>
 	      <entry><para>Integer</para></entry>
-	      <entry><para>The 4-byte integer read.</para></entry>
+	      <entry><para>The 4-byte signed integer read.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -10229,13 +11644,19 @@ xs      </variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Receives an 8-byte (64-bit) integer in little-endian format from the socket.</para>
+	    <para>Receives an 8-byte (64-bit) signed integer in little-endian format from the socket.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>Socket::recvi8LSB(<replaceable>[timeout_ms]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$int = $sock.recvi8LSB();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -10272,7 +11693,7 @@ xs      </variablelist>
 	  <tbody>
 	    <row>
 	      <entry><para>Integer</para></entry>
-	      <entry><para>The 8-byte (64-bit) integer read.</para></entry>
+	      <entry><para>The 8-byte (64-bit) signed integer read.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -10280,6 +11701,446 @@ xs      </variablelist>
 
       <table>
 	<title>Exceptions Thrown by Socket::recvi8LSB()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>SOCKET-NOT-OPEN</code></para></entry>
+	      <entry><para>The socket is not connected.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>SOCKET-CLOSED</code></para></entry>
+	      <entry><para>The remote end has closed the connection.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>SOCKET-RECV-ERROR</code></para></entry>
+	      <entry><para>There was an error receiving the data.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="Qore_Socket_recvu1">
+      <title>Socket::recvu1()</title>
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Receives a 1-byte unsigned integer from the socket.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>Socket::recvu1(<replaceable>[timeout_ms]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$int = $sock.recvu1();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for Socket::recvu1()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><replaceable>[timeout_ms]</replaceable></para></entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>The timeout in milliseconds (1/1000 second).  If no timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for Socket::recvu1()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>The 1-byte unsigned integer read.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by Socket::recvu1()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>SOCKET-NOT-OPEN</code></para></entry>
+	      <entry><para>The socket is not connected.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>SOCKET-CLOSED</code></para></entry>
+	      <entry><para>The remote end has closed the connection.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>SOCKET-RECV-ERROR</code></para></entry>
+	      <entry><para>There was an error receiving the data.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="Qore_Socket_recvu2">
+      <title>Socket::recvu2()</title>
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Receives a 2-byte unsigned integer in big-endian format (network byte order) from the socket.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>Socket::recvu2(<replaceable>[timeout_ms]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$int = $sock.recvu2();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for Socket::recvu2()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><replaceable>[timeout_ms]</replaceable></para></entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>The timeout in milliseconds (1/1000 second).  If no timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for Socket::recvu2()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>The 2-byte unsigned integer read.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by Socket::recvu2()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>SOCKET-NOT-OPEN</code></para></entry>
+	      <entry><para>The socket is not connected.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>SOCKET-CLOSED</code></para></entry>
+	      <entry><para>The remote end has closed the connection.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>SOCKET-RECV-ERROR</code></para></entry>
+	      <entry><para>There was an error receiving the data.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="Qore_Socket_recvu4">
+      <title>Socket::recvu4()</title>
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Receives a 4-byte unsigned integer in big-endian format (network byte order) from the socket.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>Socket::recvu4(<replaceable>[timeout_ms]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$int = $sock.recvu4();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for Socket::recvu4()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><replaceable>[timeout_ms]</replaceable></para></entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>The timeout in milliseconds (1/1000 second).  If no timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for Socket::recvu4()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>The 4-byte unsigned integer read.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by Socket::recvu4()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>SOCKET-NOT-OPEN</code></para></entry>
+	      <entry><para>The socket is not connected.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>SOCKET-CLOSED</code></para></entry>
+	      <entry><para>The remote end has closed the connection.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>SOCKET-RECV-ERROR</code></para></entry>
+	      <entry><para>There was an error receiving the data.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="Qore_Socket_recvu2LSB">
+      <title>Socket::recvu2LSB()</title>
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Receives a 2-byte unsigned integer in little-endian format from the socket.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>Socket::recvu2LSB(<replaceable>[timeout_ms]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$int = $sock.recvu2LSB();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for Socket::recvu2LSB()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><replaceable>[timeout_ms]</replaceable></para></entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>The timeout in milliseconds (1/1000 second).  If no timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for Socket::recvu2LSB()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>The 2-byte unsigned integer read.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by Socket::recvu2LSB()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>SOCKET-NOT-OPEN</code></para></entry>
+	      <entry><para>The socket is not connected.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>SOCKET-CLOSED</code></para></entry>
+	      <entry><para>The remote end has closed the connection.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>SOCKET-RECV-ERROR</code></para></entry>
+	      <entry><para>There was an error receiving the data.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="Qore_Socket_recvu4LSB">
+      <title>Socket::recvu4LSB()</title>
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Receives a 4-byte unsigned integer in little-endian format from the socket.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>Socket::recvu4LSB(<replaceable>[timeout_ms]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$int = $sock.recvu4LSB();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for Socket::recvu4LSB()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><replaceable>[timeout_ms]</replaceable></para></entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>The timeout in milliseconds (1/1000 second).  If no timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for Socket::recvu4LSB()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>The 4-byte unsigned integer read.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by Socket::recvu4LSB()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
@@ -10318,6 +12179,12 @@ xs      </variablelist>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>Socket::readHTTPHeader(<replaceable>[timeout_ms]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$hash = $sock.readHTTPHeader();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -10402,6 +12269,12 @@ xs      </variablelist>
 	    <programlisting>Socket::getPort()</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$port = $sock.getPort();</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -10456,6 +12329,12 @@ xs      </variablelist>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>Socket::shutdown()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$sock.shutdown();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -10514,6 +12393,12 @@ xs      </variablelist>
 	    <programlisting>Socket::close()</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$sock.close();</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -10569,6 +12454,12 @@ xs      </variablelist>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>Socket::getCharset()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$enc = $sock.getCharset();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -10630,6 +12521,12 @@ xs      </variablelist>
 	    <programlisting>Socket::setCharset(<replaceable>string:encoding</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$sock.setCharset("ISO-8859-1");</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -10686,6 +12583,12 @@ xs      </variablelist>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>Socket::getSocket()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$sock = $sock.getSocket();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -11168,7 +13071,13 @@ xs      </variablelist>
         <varlistentry>
           <term>Usage</term>
           <listitem>
-            <programlisting>HTTPClient::constructor(<replaceable>[opts]</replaceable>)</programlisting>
+            <programlisting><command>new</command> HTTPClient(<replaceable>[opts]</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$httpclient = <command>new</command> HTTPClient(("url":"http://hostname:8080/path"));</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -11315,7 +13224,13 @@ xs      </variablelist>
         <varlistentry>
           <term>Usage</term>
           <listitem>
-            <programlisting>HTTPClient::destructor()</programlisting>
+	    <programlisting><command>delete</command> <replaceable>lvalue</replaceable></programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+	    <programlisting><command>delete</command> $httpclient;</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -11383,12 +13298,6 @@ xs      </variablelist>
           <term>Synopsis</term>
           <listitem>
             <para>Copying objects of this class is not supported, an exception will be thrown.</para>
-          </listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>Usage</term>
-          <listitem>
-            <programlisting>HTTPClient::copy()</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -11490,6 +13399,12 @@ xs      </variablelist>
           <term>Usage</term>
           <listitem>
             <programlisting>HTTPClient::getURL()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$url = $httpclient.getURL();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -13775,7 +15690,13 @@ xs      </variablelist>
         <varlistentry>
           <term>Usage</term>
           <listitem>
-            <programlisting>XmlRpcClient::constructor(<replaceable>[opts]</replaceable>)</programlisting>
+            <programlisting><command>new</command> XmlRpcClient(<replaceable>[opts]</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$xrc = <command>new</command> XmlRpcClient(("url":"http://hostname/RPC2"));</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -13850,7 +15771,13 @@ xs      </variablelist>
         <varlistentry>
           <term>Usage</term>
           <listitem>
-            <programlisting>XmlRpcClient::destructor()</programlisting>
+	    <programlisting><command>delete</command> <replaceable>lvalue</replaceable></programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+	    <programlisting><command>delete</command> $xrc;</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -13918,12 +15845,6 @@ xs      </variablelist>
           <term>Synopsis</term>
           <listitem>
             <para>Copying objects of this class is not supported, an exception will be thrown.</para>
-          </listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>Usage</term>
-          <listitem>
-            <programlisting>XmlRpcClient::copy()</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -14355,7 +16276,13 @@ xs      </variablelist>
         <varlistentry>
           <term>Usage</term>
           <listitem>
-            <programlisting>JsonRpcClient::constructor(<replaceable>[opts]</replaceable>)</programlisting>
+            <programlisting><command>new</command> JsonRpcClient(<replaceable>[opts]</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$jrc = <command>new</command> JsonRpcClient(("url":"http://hostname/json"));</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -14430,7 +16357,13 @@ xs      </variablelist>
         <varlistentry>
           <term>Usage</term>
           <listitem>
-            <programlisting>JsonRpcClient::destructor()</programlisting>
+	    <programlisting><command>delete</command> <replaceable>lvalue</replaceable></programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+	    <programlisting><command>delete</command> $jrc;</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -14498,12 +16431,6 @@ xs      </variablelist>
           <term>Synopsis</term>
           <listitem>
             <para>Copying objects of this class is not supported, an exception will be thrown.</para>
-          </listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>Usage</term>
-          <listitem>
-            <programlisting>JsonRpcClient::copy()</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -14895,7 +16822,7 @@ xs      </variablelist>
         <varlistentry>
           <term>Usage</term>
           <listitem>
-            <programlisting>SSLPrivateKey::constructor(<replaceable>filename, [passphrase]</replaceable>)</programlisting>
+            <programlisting><command>new</command> SSLPrivateKey(<replaceable>filename, [passphrase]</replaceable>)</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -15010,7 +16937,13 @@ xs      </variablelist>
         <varlistentry>
           <term>Usage</term>
           <listitem>
-            <programlisting>SSLPrivateKey::destructor()</programlisting>
+	    <programlisting><command>delete</command> <replaceable>lvalue</replaceable></programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+	    <programlisting><command>delete</command> $pkey;</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -15646,7 +17579,7 @@ xs      </variablelist>
         <varlistentry>
           <term>Usage</term>
           <listitem>
-            <programlisting>SSLCertificate::constructor(<replaceable>filename</replaceable>)</programlisting>
+            <programlisting><command>new</command> SSLCertificate(<replaceable>filename</replaceable>)</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -15748,7 +17681,13 @@ xs      </variablelist>
         <varlistentry>
           <term>Usage</term>
           <listitem>
-            <programlisting>SSLCertificate::destructor()</programlisting>
+	    <programlisting><command>delete</command> <replaceable>lvalue</replaceable></programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+	    <programlisting><command>delete</command> $cert;</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -17197,12 +19136,18 @@ xs      </variablelist>
 	    <para>Closes the datasource if it's open (if any operations are in progress, will block until the operations complete) and destroys the object.</para>
 	  </listitem>
 	</varlistentry>
-	<varlistentry>
-	  <term>Usage</term>
-	  <listitem>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
 	    <programlisting><command>delete</command> <replaceable>lvalue</replaceable></programlisting>
-	  </listitem>
-	</varlistentry>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+	    <programlisting><command>delete</command> $ds;</programlisting>
+          </listitem>
+        </varlistentry>
       </variablelist>
 
       <table>
@@ -19069,12 +21014,18 @@ xs      </variablelist>
 	    <para>Calls <link linkend="Qore::Thread::Gate::exit">Gate::exit()</link> on the saved Gate object and destroys the AutoGate object.</para>
 	  </listitem>
 	</varlistentry>
-	<varlistentry>
-	  <term>Usage</term>
-	  <listitem>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
 	    <programlisting><command>delete</command> <replaceable>lvalue</replaceable></programlisting>
-	  </listitem>
-	</varlistentry>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+	    <programlisting><command>delete</command> $ag;</programlisting>
+          </listitem>
+        </varlistentry>
       </variablelist>
     </sect2>
 
@@ -19086,12 +21037,6 @@ xs      </variablelist>
 	  <term>Synopsis</term>
 	  <listitem>
 	    <para>Throws an exception; objects of this class cannot be copied.</para>
-	  </listitem>
-	</varlistentry>
-	<varlistentry>
-	  <term>Usage</term>
-	  <listitem>
-	    <para>Do not use this method; this method is only present to prohibit copying of objects of this class.</para>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -19278,12 +21223,18 @@ xs      </variablelist>
 	    <para>Calls <link linkend="Qore::Thread::Mutex::unlock">Mutex::unlock()</link> on the saved Mutex and destroys the AutoLock object.</para>
 	  </listitem>
 	</varlistentry>
-	<varlistentry>
-	  <term>Usage</term>
-	  <listitem>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
 	    <programlisting><command>delete</command> <replaceable>lvalue</replaceable></programlisting>
-	  </listitem>
-	</varlistentry>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+	    <programlisting><command>delete</command> $al;</programlisting>
+          </listitem>
+        </varlistentry>
       </variablelist>
     </sect2>
 
@@ -19295,12 +21246,6 @@ xs      </variablelist>
 	  <term>Synopsis</term>
 	  <listitem>
 	    <para>Throws an exception; objects of this class cannot be copied.</para>
-	  </listitem>
-	</varlistentry>
-	<varlistentry>
-	  <term>Usage</term>
-	  <listitem>
-	    <para>Do not use this method; this method is only present to prohibit copying of objects of this class.</para>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -19487,12 +21432,18 @@ xs      </variablelist>
 	    <para>Calls <link linkend="Qore::Thread::RWLock::readUnlock">RWLock::readUnlock()</link> on the saved RWLock and destroys the AutoReadLock object.</para>
 	  </listitem>
 	</varlistentry>
-	<varlistentry>
-	  <term>Usage</term>
-	  <listitem>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
 	    <programlisting><command>delete</command> <replaceable>lvalue</replaceable></programlisting>
-	  </listitem>
-	</varlistentry>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+	    <programlisting><command>delete</command> $arl;</programlisting>
+          </listitem>
+        </varlistentry>
       </variablelist>
     </sect2>
 
@@ -19504,12 +21455,6 @@ xs      </variablelist>
 	  <term>Synopsis</term>
 	  <listitem>
 	    <para>Throws an exception; objects of this class cannot be copied.</para>
-	  </listitem>
-	</varlistentry>
-	<varlistentry>
-	  <term>Usage</term>
-	  <listitem>
-	    <para>Do not use this method; this method is only present to prohibit copying of objects of this class.</para>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -19696,12 +21641,18 @@ xs      </variablelist>
 	    <para>Calls <link linkend="Qore::Thread::RWLock::writeUnlock">RWLock::writeUnlock()</link> on the saved RWLock and destroys the AutoWriteLock object.</para>
 	  </listitem>
 	</varlistentry>
-	<varlistentry>
-	  <term>Usage</term>
-	  <listitem>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
 	    <programlisting><command>delete</command> <replaceable>lvalue</replaceable></programlisting>
-	  </listitem>
-	</varlistentry>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+	    <programlisting><command>delete</command> $awl;</programlisting>
+          </listitem>
+        </varlistentry>
       </variablelist>
     </sect2>
 
@@ -19713,12 +21664,6 @@ xs      </variablelist>
 	  <term>Synopsis</term>
 	  <listitem>
 	    <para>Throws an exception; objects of this class cannot be copied.</para>
-	  </listitem>
-	</varlistentry>
-	<varlistentry>
-	  <term>Usage</term>
-	  <listitem>
-	    <para>Do not use this method; this method is only present to prohibit copying of objects of this class.</para>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -19908,12 +21853,18 @@ xs      </variablelist>
 	    <para>Destroys the object.</para>
 	  </listitem>
 	</varlistentry>
-	<varlistentry>
-	  <term>Usage</term>
-	  <listitem>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
 	    <programlisting><command>delete</command> <replaceable>lvalue</replaceable></programlisting>
-	  </listitem>
-	</varlistentry>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+	    <programlisting><command>delete</command> $cond;</programlisting>
+          </listitem>
+        </varlistentry>
       </variablelist>
     </sect2>
 
@@ -20395,12 +22346,18 @@ xs      </variablelist>
 	    <para>Destroys the object.  Note that it is a programming error to delete this object while other threads are blocked on it; in this case an exception is thrown in the deleting thread, and in each thread blocked on this object when it is deleted.</para>
 	  </listitem>
 	</varlistentry>
-	<varlistentry>
-	  <term>Usage</term>
-	  <listitem>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
 	    <programlisting><command>delete</command> <replaceable>lvalue</replaceable></programlisting>
-	  </listitem>
-	</varlistentry>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+	    <programlisting><command>delete</command> $counter;</programlisting>
+          </listitem>
+        </varlistentry>
       </variablelist>
 
       <table>
@@ -20933,12 +22890,18 @@ xs      </variablelist>
 	    <para>Destroys the object.  Note that it is a programming error to delete this object while other threads are blocked on it; in this case an exception is thrown in the deleting thread, and in each thread blocked on this object when it is deleted.</para>
 	  </listitem>
 	</varlistentry>
-	<varlistentry>
-	  <term>Usage</term>
-	  <listitem>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
 	    <programlisting><command>delete</command> <replaceable>lvalue</replaceable></programlisting>
-	  </listitem>
-	</varlistentry>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+	    <programlisting><command>delete</command> $queue;</programlisting>
+          </listitem>
+        </varlistentry>
       </variablelist>
 
       <table>
@@ -21517,12 +23480,18 @@ xs      </variablelist>
 	    <para>Destroys the object.  Note that it is a programming error to delete this object while other threads are blocked on it; in this case an exception is thrown in the deleting thread, and in each thread blocked on this object when it is deleted.</para>
 	  </listitem>
 	</varlistentry>
-	<varlistentry>
-	  <term>Usage</term>
-	  <listitem>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
 	    <programlisting><command>delete</command> <replaceable>lvalue</replaceable></programlisting>
-	  </listitem>
-	</varlistentry>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+	    <programlisting><command>delete</command> $rwl;</programlisting>
+          </listitem>
+        </varlistentry>
       </variablelist>
 
       <table>
@@ -22330,12 +24299,18 @@ xs      </variablelist>
 	    <para>Destroys the object.  Note that it is a programming error to delete this object while other threads are blocked on it; in this case an exception is thrown in the deleting thread, and in each thread blocked on this object when it is deleted.</para>
 	  </listitem>
 	</varlistentry>
-	<varlistentry>
-	  <term>Usage</term>
-	  <listitem>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
 	    <programlisting><command>delete</command> <replaceable>lvalue</replaceable></programlisting>
-	  </listitem>
-	</varlistentry>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+	    <programlisting><command>delete</command> $mutex;</programlisting>
+          </listitem>
+        </varlistentry>
       </variablelist>
 
       <table>
@@ -22749,12 +24724,18 @@ xs      </variablelist>
 	    <para>Destroys the object.</para>
 	  </listitem>
 	</varlistentry>
-	<varlistentry>
-	  <term>Usage</term>
-	  <listitem>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
 	    <programlisting><command>delete</command> <replaceable>lvalue</replaceable></programlisting>
-	  </listitem>
-	</varlistentry>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+	    <programlisting><command>delete</command> $seq;</programlisting>
+          </listitem>
+        </varlistentry>
       </variablelist>
     </sect2>
 
@@ -23074,12 +25055,18 @@ xs      </variablelist>
 	    <para>Destroys the object.  Note that it is a programming error to delete this object while other threads are blocked on it; in this case an exception is thrown in the deleting thread, and in each thread blocked on this object when it is deleted.</para>
 	  </listitem>
 	</varlistentry>
-	<varlistentry>
-	  <term>Usage</term>
-	  <listitem>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
 	    <programlisting><command>delete</command> <replaceable>lvalue</replaceable></programlisting>
-	  </listitem>
-	</varlistentry>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+	    <programlisting><command>delete</command> $gate;</programlisting>
+          </listitem>
+        </varlistentry>
       </variablelist>
 
       <table>

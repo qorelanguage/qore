@@ -115,6 +115,49 @@ static class QoreNode *FILE_read(class Object *self, class File *f, class QoreNo
    return NULL;
 }
 
+static class QoreNode *FILE_readu1(class Object *self, class File *f, class QoreNode *params, ExceptionSink *xsink)
+{
+   unsigned char c;
+   if (f->readu1(&c, xsink))
+      return NULL;
+   return new QoreNode((int64)c);
+}
+
+static class QoreNode *FILE_readu2(class Object *self, class File *f, class QoreNode *params, ExceptionSink *xsink)
+{
+   unsigned short s;
+   if (f->readu2(&s, xsink))
+      return NULL;
+   return new QoreNode((int64)s);
+}
+
+static class QoreNode *FILE_readu4(class Object *self, class File *f, class QoreNode *params, ExceptionSink *xsink)
+{
+   unsigned int i;
+   if (f->readu4(&i, xsink))
+      return NULL;
+   
+   return new QoreNode((int64)i);
+}
+
+static class QoreNode *FILE_readu2LSB(class Object *self, class File *f, class QoreNode *params, ExceptionSink *xsink)
+{
+   unsigned short s;
+   if (f->readu2LSB(&s, xsink))
+      return NULL;
+   
+   return new QoreNode((int64)s);
+}
+
+static class QoreNode *FILE_readu4LSB(class Object *self, class File *f, class QoreNode *params, ExceptionSink *xsink)
+{
+   unsigned int i;
+   if (f->readu4LSB(&i, xsink))
+      return NULL;
+   
+   return new QoreNode((int64)i);
+}
+
 static class QoreNode *FILE_readi1(class Object *self, class File *f, class QoreNode *params, ExceptionSink *xsink)
 {
    char c;
@@ -140,6 +183,15 @@ static class QoreNode *FILE_readi4(class Object *self, class File *f, class Qore
    return new QoreNode((int64)i);
 }
 
+static class QoreNode *FILE_readi8(class Object *self, class File *f, class QoreNode *params, ExceptionSink *xsink)
+{
+   int64 i;
+   if (f->readi8(&i, xsink))
+      return NULL;
+   
+   return new QoreNode(i);
+}
+
 static class QoreNode *FILE_readi2LSB(class Object *self, class File *f, class QoreNode *params, ExceptionSink *xsink)
 {
    short s;
@@ -156,6 +208,15 @@ static class QoreNode *FILE_readi4LSB(class Object *self, class File *f, class Q
       return NULL;
 
    return new QoreNode((int64)i);
+}
+
+static class QoreNode *FILE_readi8LSB(class Object *self, class File *f, class QoreNode *params, ExceptionSink *xsink)
+{
+   int64 i;
+   if (f->readi8LSB(&i, xsink))
+      return NULL;
+   
+   return new QoreNode(i);
 }
 
 static class QoreNode *FILE_readBinary(class Object *self, class File *f, class QoreNode *params, ExceptionSink *xsink)
@@ -244,6 +305,21 @@ static class QoreNode *FILE_writei4(class Object *self, class File *f, class Qor
    return new QoreNode((int64)rc);
 }
 
+static class QoreNode *FILE_writei8(class Object *self, class File *f, class QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p0 = get_param(params, 0);
+   int64 i;
+   if (!p0)
+      i = 0;
+   else
+      i = p0->getAsBigInt();
+   
+   int rc = f->writei8(i, xsink);
+   if (xsink->isEvent())
+      return NULL;
+   
+   return new QoreNode((int64)rc);
+}
 static class QoreNode *FILE_writei2LSB(class Object *self, class File *f, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = get_param(params, 0);
@@ -273,6 +349,22 @@ static class QoreNode *FILE_writei4LSB(class Object *self, class File *f, class 
    if (xsink->isEvent())
       return NULL;
 
+   return new QoreNode((int64)rc);
+}
+
+static class QoreNode *FILE_writei8LSB(class Object *self, class File *f, class QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p0 = get_param(params, 0);
+   int64 i;
+   if (!p0)
+      i = 0;
+   else
+      i = p0->getAsBigInt();
+   
+   int rc = f->writei8LSB(i, xsink);
+   if (xsink->isEvent())
+      return NULL;
+   
    return new QoreNode((int64)rc);
 }
 
@@ -425,18 +517,28 @@ class QoreClass *initFileClass()
    QC_FILE->addMethod("close",             (q_method_t)FILE_close);
    QC_FILE->addMethod("sync",              (q_method_t)FILE_sync);
    QC_FILE->addMethod("read",              (q_method_t)FILE_read);
+   QC_FILE->addMethod("readu1",            (q_method_t)FILE_readu1);
+   QC_FILE->addMethod("readu2",            (q_method_t)FILE_readu2);
+   QC_FILE->addMethod("readu4",            (q_method_t)FILE_readu4);
+   QC_FILE->addMethod("readu2LSB",         (q_method_t)FILE_readu2LSB);
+   QC_FILE->addMethod("readu4LSB",         (q_method_t)FILE_readu4LSB);
    QC_FILE->addMethod("readi1",            (q_method_t)FILE_readi1);
    QC_FILE->addMethod("readi2",            (q_method_t)FILE_readi2);
    QC_FILE->addMethod("readi4",            (q_method_t)FILE_readi4);
+   QC_FILE->addMethod("readi8",            (q_method_t)FILE_readi8);
    QC_FILE->addMethod("readi2LSB",         (q_method_t)FILE_readi2LSB);
    QC_FILE->addMethod("readi4LSB",         (q_method_t)FILE_readi4LSB);
+   QC_FILE->addMethod("readi8LSB",         (q_method_t)FILE_readi8LSB);
+   QC_FILE->addMethod("readu1",            (q_method_t)FILE_readu1);
    QC_FILE->addMethod("readBinary",        (q_method_t)FILE_readBinary);
    QC_FILE->addMethod("write",             (q_method_t)FILE_write);
    QC_FILE->addMethod("writei1",           (q_method_t)FILE_writei1);
    QC_FILE->addMethod("writei2",           (q_method_t)FILE_writei2);
    QC_FILE->addMethod("writei4",           (q_method_t)FILE_writei4);
+   QC_FILE->addMethod("writei8",           (q_method_t)FILE_writei8);
    QC_FILE->addMethod("writei2LSB",        (q_method_t)FILE_writei2LSB);
    QC_FILE->addMethod("writei4LSB",        (q_method_t)FILE_writei4LSB);
+   QC_FILE->addMethod("writei8LSB",        (q_method_t)FILE_writei8LSB);
    QC_FILE->addMethod("readLine",          (q_method_t)FILE_readLine);
    QC_FILE->addMethod("setCharset",        (q_method_t)FILE_setCharset);
    QC_FILE->addMethod("getCharset",        (q_method_t)FILE_getCharset);

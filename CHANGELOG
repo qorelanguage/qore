@@ -1,3 +1,12 @@
+2006.04.12: David Nichols
+	* more documentation updates
+	* implemented new File class methods: readu1(), readu2(), readu4(), 
+	  readi8(), readu2LSB(), readu4LSB(), readi8LSB(), writeu1(), writeu2(),
+	  writeu4(), writeu2LSB(), writeu4LSB(), writei8(), writei8LSB()
+	* implemented new Socket class methods: Socket::recvu1(), 
+	  Socket::recvu2(), Socket::recvu4(), Socket::recvu2LSB(),
+	  Socket::recvu4LSB()
+
 2006.04.11: David Nichols
 	* massive documentation updates
 

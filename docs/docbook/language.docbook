@@ -2688,7 +2688,7 @@ $a || $b
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Tests if a value is less than another.</para>
+	<para>Tests if a value is less than another; types are converted if necessary (ex: ("1" &lt; 2) is True).</para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -2748,7 +2748,7 @@ $a || $b
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Tests if a value is greater than another.</para>
+	<para>Tests if a value is greater than another; types are converted if necessary (ex: ("2" &gt; 1) is True).</para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -2810,7 +2810,7 @@ $a || $b
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Tests if a value is equal to another.</para>
+	<para>Tests if a value is equal to another; types are converted if necessary (ex: ("1" == 1) is True).  For absolute equals, where types must also be equal to return true, see the <link linkend="Absolute_Equals_Operator">Absolute Equals Operator (===)</link>.</para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -2894,7 +2894,7 @@ $a || $b
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Tests if a value is not equal to another.</para>
+	<para>Tests if a value is not equal to another; types are converted if necessary (ex: ("1" != 1) is False).</para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -2978,7 +2978,7 @@ $a || $b
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Tests if a value is less than or equals to another value.</para>
+	<para>Tests if a value is less than or equals to another value; types are converted if necessary (ex: ("1" &lt;= 2) is True).</para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -3036,7 +3036,7 @@ $a || $b
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Tests if a value is greater than or equals to another value.</para>
+	<para>Tests if a value is greater than or equals to another value; types are converted if necessary (ex: ("2" >= 1) is True).</para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -3096,7 +3096,7 @@ $a || $b
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Tests if a value is less than, equal, or greater than another value.</para>
+	<para>Tests if a value is less than, equal, or greater than another value; types are converted if necessary (ex: ("1" &lt;=&gt; 2) returns -1).</para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -3111,15 +3111,15 @@ $a || $b
 	<programlisting><command>switch</command> ($x &lt;=&gt; $y)
 {
     <command>case</command> -1: 
-        print("x is less than $y\n");
+        print("$x is less than $y\n");
         <command>break</command>;
 
     <command>case</command> 0: 
-        print("x is equal to $y\n");
+        print("$x is equal to $y\n");
         <command>break</command>;
 
     <command>case</command> 1: 
-        print("x is greater than $y\n");
+        print("$x is greater than $y\n");
         <command>break</command>;
 }</programlisting>
       </listitem>

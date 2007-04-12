@@ -258,6 +258,37 @@ int mySocket::recvi8LSB(int timeout, int64 *b)
    return socket->recvi8LSB(timeout, b);
 }
 
+// receive integers and convert from network byte order
+int mySocket::recvu1(int timeout, unsigned char *b)
+{
+   SafeLocker sl(this);
+   return socket->recvu1(timeout, b);
+}
+
+int mySocket::recvu2(int timeout, unsigned short *b)
+{
+   SafeLocker sl(this);
+   return socket->recvu2(timeout, b);
+}
+
+int mySocket::recvu4(int timeout, unsigned int *b)
+{
+   SafeLocker sl(this);
+   return socket->recvu4(timeout, b);
+}
+
+int mySocket::recvu2LSB(int timeout, unsigned short *b)
+{
+   SafeLocker sl(this);
+   return socket->recvu2LSB(timeout, b);
+}
+
+int mySocket::recviuLSB(int timeout, unsigned int *b)
+{
+   SafeLocker sl(this);
+   return socket->recvu4LSB(timeout, b);
+}
+
 // send HTTP message
 int mySocket::sendHTTPMessage(const char *method, const char *path, const char *http_version, class Hash *headers, const void *ptr, int size)
 {

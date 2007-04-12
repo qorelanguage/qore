@@ -100,6 +100,11 @@ class mySocket : public AbstractPrivateData, public LockedObject
       DLLLOCAL int recvi2LSB(int timeout, short *b);
       DLLLOCAL int recvi4LSB(int timeout, int *b);
       DLLLOCAL int recvi8LSB(int timeout, int64 *b);
+      DLLLOCAL int recvu1(int timeout, unsigned char *b);
+      DLLLOCAL int recvu2(int timeout, unsigned short *b);
+      DLLLOCAL int recvu4(int timeout, unsigned int *b);
+      DLLLOCAL int recvu2LSB(int timeout, unsigned short *b);
+      DLLLOCAL int recvu4LSB(int timeout, unsigned int *b);
       // send HTTP message
       DLLLOCAL int sendHTTPMessage(const char *method, const char *path, const char *http_version, class Hash *headers, const void *ptr, int size);
       // send HTTP response

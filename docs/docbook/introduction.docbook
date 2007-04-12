@@ -27,7 +27,7 @@
       <listitem>
 	<para>XML and JSON Integration</para>
 	
-	<para>Qore uses the libxml2 library to provide fast and efficient XML functionality. Qore's XML integration enables serialization from Qore data structures to XML strings and deserialization from XML strings to Qore data structures, making it trivial to work with data in XML format (see <link linkend="XML_Integration">XML Integration</link>).  Qore provides <link linkend="JSON_Functions">JSON</link> and JSON-RPC integration as well.</para>
+	<para>Qore uses the libxml2 library to provide fast and efficient XML functionality. Qore's XML integration enables serialization from Qore data structures to XML strings and deserialization from XML strings to Qore data structures, making it trivial to work with data in XML format (see <link linkend="XML_Integration">XML Integration</link>).  Qore provides <link linkend="JSON_Functions">JSON</link> and <link linkend="JsonRpcClient_Class">JSON-RPC</link> integration as well.</para>
       </listitem>
     </itemizedlist>
 

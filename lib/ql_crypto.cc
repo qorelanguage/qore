@@ -773,7 +773,7 @@ void init_crypto_functions()
    builtinFunctions.add("DSS",       f_DSS);
    builtinFunctions.add("DSS1",      f_DSS1);
 #ifndef OPENSSL_NO_MDC2
-   builtinFunctions.add("MSC2",      f_MDC2);
+   builtinFunctions.add("MDC2",      f_MDC2);
 #endif
    builtinFunctions.add("RIPEMD160", f_RIPEMD160);
 

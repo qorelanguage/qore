@@ -50,7 +50,11 @@ class QoreFile {
       DLLLOCAL int readChar();
       // reads a buffer of the given size
       DLLLOCAL char *readBlock(int &size);
-     
+      // returns -1 for error
+      DLLLOCAL int check_read_open(class ExceptionSink *xsink);
+      // returns -1 for error
+      DLLLOCAL int check_write_open(class ExceptionSink *xsink);
+      
    public:
       DLLEXPORT QoreFile(class QoreEncoding *cs = QCS_DEFAULT);
       DLLEXPORT ~QoreFile();
@@ -71,6 +75,11 @@ class QoreFile {
       DLLEXPORT int writei2LSB(short i, class ExceptionSink *xsink);
       DLLEXPORT int writei4LSB(int i, class ExceptionSink *xsink);
       DLLEXPORT int writei8LSB(int64 i, class ExceptionSink *xsink);
+      DLLEXPORT int readu1(unsigned char *val, class ExceptionSink *xsink);
+      DLLEXPORT int readu2(unsigned short *val, class ExceptionSink *xsink);
+      DLLEXPORT int readu4(unsigned int *val, class ExceptionSink *xsink);
+      DLLEXPORT int readu2LSB(unsigned short *val, class ExceptionSink *xsink);
+      DLLEXPORT int readu4LSB(unsigned int *val, class ExceptionSink *xsink);
       DLLEXPORT int readi1(char *val, class ExceptionSink *xsink);
       DLLEXPORT int readi2(short *val, class ExceptionSink *xsink);
       DLLEXPORT int readi4(int *val, class ExceptionSink *xsink);

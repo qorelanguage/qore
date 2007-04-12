@@ -205,6 +205,24 @@ This ensures that values will be set properly even for databases such as Postgre
 	- load_module()            - loads a module at run time
 	- regex_extract()          - extracts patterns from a string based on a regular expression given at run time
 
+*) new File class methods
+	File::readu1()
+	File::readu2()
+	File::readu4()
+	File::readi8()
+	File::readu2LSB()
+	File::readu4LSB()
+	File::readi8LSB()
+	File::writei8()
+	File::writei8LSB()
+
+*) new Socket class methods
+	Socket::recvu1()
+	Socket::recvu2()
+	Socket::recvu4()
+	Socket::recvu2LSB()
+	Socket::recvu4LSB()
+
 *) other bugfixes, updates, etc
 see CHANGELOG for details
 

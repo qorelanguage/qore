@@ -31,6 +31,26 @@
 #include <qore/BinaryObject.h>
 #include <qore/QoreLib.h>
 
+// returns -1 for exception
+int QoreFile::check_read_open(class ExceptionSink *xsink)
+{
+   if (is_open)
+      return 0;
+   
+   xsink->raiseException("FILE-READ-ERROR", "file has not been opened");
+   return -1;
+}
+
+// returns -1 for exception
+int QoreFile::check_write_open(class ExceptionSink *xsink)
+{
+   if (is_open)
+      return 0;
+   
+   xsink->raiseException("FILE-WRITE-ERROR", "file has not been opened");
+   return -1;
+}
+
 QoreFile::QoreFile(class QoreEncoding *cs)
 {
    is_open = false;
@@ -186,11 +206,8 @@ class QoreString *QoreFile::getchar()
 
 int QoreFile::write(class QoreString *str, class ExceptionSink *xsink)
 {
-   if (!is_open)
-   {
-      xsink->raiseException("FILE-WRITE-ERROR", "file has not been opened");
+   if (check_write_open(xsink))
       return -1;
-   }
    
    if (!str)
       return 0;
@@ -214,11 +231,8 @@ int QoreFile::write(class QoreString *str, class ExceptionSink *xsink)
 
 int QoreFile::write(class BinaryObject *b, class ExceptionSink *xsink)
 {
-   if (!is_open)
-   {
-      xsink->raiseException("FILE-WRITE-ERROR", "file has not been opened");
+   if (check_write_open(xsink))
       return -1;
-   }
    
    if (!b)
       return 0;
@@ -235,11 +249,8 @@ class QoreString *QoreFile::read(int size, class ExceptionSink *xsink)
    if (!size)
       return NULL;
    
-   if (!is_open)
-   {
-      xsink->raiseException("FILE-READ-ERROR", "file has not been opened");
+   if (check_read_open(xsink))
       return NULL;
-   }
    
    char *buf = readBlock(size);
    if (!buf)
@@ -262,11 +273,8 @@ class BinaryObject *QoreFile::readBinary(int size, class ExceptionSink *xsink)
    if (!size)
       return NULL;
    
-   if (!is_open)
-   {
-      xsink->raiseException("FILE-READ-ERROR", "file has not been opened");
+   if (check_read_open(xsink))
       return NULL;
-   }
    
    char *buf = readBlock(size);
    if (!buf)
@@ -277,34 +285,25 @@ class BinaryObject *QoreFile::readBinary(int size, class ExceptionSink *xsink)
 
 int QoreFile::writei1(char i, class ExceptionSink *xsink)
 {
-   if (!is_open)
-   {
-      xsink->raiseException("FILE-WRITE-ERROR", "file has not been opened");
+   if (check_write_open(xsink))
       return -1;
-   }
-   
+
    return ::write(fd, (char *)&i, 1);   
 }
 
 int QoreFile::writei2(short i, class ExceptionSink *xsink)
 {
-   if (!is_open)
-   {
-      xsink->raiseException("FILE-WRITE-ERROR", "file has not been opened");
+   if (check_write_open(xsink))
       return -1;
-   }
-   
+
    i = htons(i);
    return ::write(fd, (char *)&i, 2);   
 }
 
 int QoreFile::writei4(int i, class ExceptionSink *xsink)
 {
-   if (!is_open)
-   {
-      xsink->raiseException("FILE-WRITE-ERROR", "file has not been opened");
+   if (check_write_open(xsink))
       return -1;
-   }
    
    i = htonl(i);
    return ::write(fd, (char *)&i, 4);
@@ -312,11 +311,8 @@ int QoreFile::writei4(int i, class ExceptionSink *xsink)
 
 int QoreFile::writei8(int64 i, class ExceptionSink *xsink)
 {
-   if (!is_open)
-   {
-      xsink->raiseException("FILE-WRITE-ERROR", "file has not been opened");
+   if (check_write_open(xsink))
       return -1;
-   }
    
    i = i8MSB(i);
    return ::write(fd, (char *)&i, 4);
@@ -324,11 +320,8 @@ int QoreFile::writei8(int64 i, class ExceptionSink *xsink)
 
 int QoreFile::writei2LSB(short i, class ExceptionSink *xsink)
 {
-   if (!is_open)
-   {
-      xsink->raiseException("FILE-WRITE-ERROR", "file has not been opened");
+   if (check_write_open(xsink))
       return -1;
-   }
    
    i = i2LSB(i);
    return ::write(fd, (char *)&i, 2);   
@@ -336,11 +329,8 @@ int QoreFile::writei2LSB(short i, class ExceptionSink *xsink)
 
 int QoreFile::writei4LSB(int i, class ExceptionSink *xsink)
 {
-   if (!is_open)
-   {
-      xsink->raiseException("FILE-WRITE-ERROR", "file has not been opened");
+   if (check_write_open(xsink))
       return -1;
-   }
    
    i = i4LSB(i);
    return ::write(fd, (char *)&i, 4);
@@ -348,24 +338,81 @@ int QoreFile::writei4LSB(int i, class ExceptionSink *xsink)
 
 int QoreFile::writei8LSB(int64 i, class ExceptionSink *xsink)
 {
-   if (!is_open)
-   {
-      xsink->raiseException("FILE-WRITE-ERROR", "file has not been opened");
+   if (check_write_open(xsink))
       return -1;
-   }
    
    i = i8LSB(i);
    return ::write(fd, (char *)&i, 4);
 }
 
+int QoreFile::readu1(unsigned char *val, class ExceptionSink *xsink)
+{
+   if (check_read_open(xsink))
+      return -1;
+   
+   int rc = ::read(fd, val, 1);
+   if (rc <= 0)
+      return -1;
+   return 0;
+}
+
+int QoreFile::readu2(unsigned short *val, class ExceptionSink *xsink)
+{
+   if (check_read_open(xsink))
+      return -1;
+   
+   int rc = ::read(fd, val, 2);
+   if (rc <= 0)
+      return -1;
+   
+   *val = ntohs(*val);
+   return 0;
+}
+
+int QoreFile::readu4(unsigned int *val, class ExceptionSink *xsink)
+{
+   if (check_read_open(xsink))
+      return -1;
+   
+   int rc = ::read(fd, val, 4);
+   if (rc <= 0)
+      return -1;
+   
+   *val = ntohl(*val);
+   return 0;
+}
+
+int QoreFile::readu2LSB(unsigned short *val, class ExceptionSink *xsink)
+{
+   if (check_read_open(xsink))
+      return -1;
+   
+   int rc = ::read(fd, val, 2);
+   if (rc <= 0)
+      return -1;
+   
+   *val = LSBi2(*val);
+   return 0;
+}
+
+int QoreFile::readu4LSB(unsigned int *val, class ExceptionSink *xsink)
+{
+   if (check_read_open(xsink))
+      return -1;
+   
+   int rc = ::read(fd, val, 4);
+   if (rc <= 0)
+      return -1;
+   
+   *val = LSBi4(*val);
+   return 0;
+}
+
 int QoreFile::readi1(char *val, class ExceptionSink *xsink)
 {
-   if (!is_open)
-   {
-      xsink->raiseException("FILE-READ-ERROR", "file has not been opened");
+   if (check_read_open(xsink))
       return -1;
-   }
-   
+      
    int rc = ::read(fd, val, 1);
    if (rc <= 0)
       return -1;
@@ -374,12 +421,9 @@ int QoreFile::readi1(char *val, class ExceptionSink *xsink)
 
 int QoreFile::readi2(short *val, class ExceptionSink *xsink)
 {
-   if (!is_open)
-   {
-      xsink->raiseException("FILE-READ-ERROR", "file has not been opened");
+   if (check_read_open(xsink))
       return -1;
-   }
-   
+      
    int rc = ::read(fd, val, 2);
    if (rc <= 0)
       return -1;
@@ -390,11 +434,8 @@ int QoreFile::readi2(short *val, class ExceptionSink *xsink)
 
 int QoreFile::readi4(int *val, class ExceptionSink *xsink)
 {
-   if (!is_open)
-   {
-      xsink->raiseException("FILE-READ-ERROR", "file has not been opened");
+   if (check_read_open(xsink))
       return -1;
-   }
    
    int rc = ::read(fd, val, 4);
    if (rc <= 0)
@@ -406,11 +447,8 @@ int QoreFile::readi4(int *val, class ExceptionSink *xsink)
 
 int QoreFile::readi8(int64 *val, class ExceptionSink *xsink)
 {
-   if (!is_open)
-   {
-      xsink->raiseException("FILE-READ-ERROR", "file has not been opened");
+   if (check_read_open(xsink))
       return -1;
-   }
    
    int rc = ::read(fd, val, 8);
    if (rc <= 0)
@@ -422,11 +460,8 @@ int QoreFile::readi8(int64 *val, class ExceptionSink *xsink)
 
 int QoreFile::readi2LSB(short *val, class ExceptionSink *xsink)
 {
-   if (!is_open)
-   {
-      xsink->raiseException("FILE-READ-ERROR", "file has not been opened");
+   if (check_read_open(xsink))
       return -1;
-   }
    
    int rc = ::read(fd, val, 2);
    if (rc <= 0)
@@ -438,11 +473,8 @@ int QoreFile::readi2LSB(short *val, class ExceptionSink *xsink)
 
 int QoreFile::readi4LSB(int *val, class ExceptionSink *xsink)
 {
-   if (!is_open)
-   {
-      xsink->raiseException("FILE-READ-ERROR", "file has not been opened");
+   if (check_read_open(xsink))
       return -1;
-   }
    
    int rc = ::read(fd, val, 4);
    if (rc <= 0)
@@ -454,11 +486,8 @@ int QoreFile::readi4LSB(int *val, class ExceptionSink *xsink)
 
 int QoreFile::readi8LSB(int64 *val, class ExceptionSink *xsink)
 {
-   if (!is_open)
-   {
-      xsink->raiseException("FILE-READ-ERROR", "file has not been opened");
+   if (check_read_open(xsink))
       return -1;
-   }
    
    int rc = ::read(fd, val, 8);
    if (rc <= 0)

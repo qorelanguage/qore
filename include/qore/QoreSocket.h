@@ -185,6 +185,11 @@ class QoreSocket
       DLLEXPORT int recvi2LSB(int timeout, short *val);
       DLLEXPORT int recvi4LSB(int timeout, int *val);
       DLLEXPORT int recvi8LSB(int timeout, int64 *val);
+      DLLEXPORT int recvu1(int timeout, unsigned char *val);
+      DLLEXPORT int recvu2(int timeout, unsigned short *val);
+      DLLEXPORT int recvu4(int timeout, unsigned int *val);
+      DLLEXPORT int recvu2LSB(int timeout, unsigned short *val);
+      DLLEXPORT int recvu4LSB(int timeout, unsigned int *val);
       // receive a certain number of bytes
       DLLEXPORT class QoreString *recv(int bufsize, int timeout, int *prc);
       // receive a certain number of bytes as a binary object
