@@ -2641,7 +2641,7 @@
       <row>
         <entry>
           <para>
-            <link linkend="MSC2">MSC2()</link>
+            <link linkend="MDC2">MDC2()</link>
           </para>
         </entry>
         <entry>
@@ -2651,7 +2651,7 @@
           <para>Y</para>
         </entry>
         <entry>
-          <para>Returns the MSC2 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
+          <para>Returns the MDC2 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
         </entry>
       </row>
 
@@ -12778,7 +12778,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Example</term>
         <listitem>
-          <programlisting>$str = DSS("hello");</programlisting>
+          <programlisting>$str = DSS("hello"); # returns "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d"</programlisting>
         </listitem>
       </varlistentry>
     </variablelist>
@@ -12856,6 +12856,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <programlisting>DSS1(<replaceable>string | binary</replaceable>)</programlisting>
         </listitem>
       </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$str = DSS1("hello"); # return "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d"</programlisting>
+        </listitem>
+      </varlistentry>
     </variablelist>
     <table>
       <title>Arguments and Return Values for DSS1()</title>
@@ -12929,6 +12935,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <term>Usage</term>
         <listitem>
           <programlisting>MD2(<replaceable>string | binary</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$str = MD2("hello"); # returns "a9046c73e00331af68917d3804f70655"</programlisting>
         </listitem>
       </varlistentry>
     </variablelist>
@@ -13006,6 +13018,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <programlisting>MD4(<replaceable>string | binary</replaceable>)</programlisting>
         </listitem>
       </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$str = MD4("hello"); # returns "866437cb7a794bce2b727acc0362ee27"</programlisting>
+        </listitem>
+      </varlistentry>
     </variablelist>
     <table>
       <title>Arguments and Return Values for MD4()</title>
@@ -13081,6 +13099,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <programlisting>MD5(<replaceable>string | binary</replaceable>)</programlisting>
         </listitem>
       </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$str = MD5("hello"); # returns "5d41402abc4b2a76b9719d911017c592"</programlisting>
+        </listitem>
+      </varlistentry>
     </variablelist>
     <table>
       <title>Arguments and Return Values for MD5()</title>
@@ -13141,24 +13165,30 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       </tgroup>
     </table>
   </sect2>
-  <sect2 id="MSC2">
-    <title>MSC2()</title>
+  <sect2 id="MDC2">
+    <title>MDC2()</title>
     <variablelist>
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Returns the MSC2 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
+          <para>Returns the MDC2 message digest of the supplied argument (for strings, the trailing null character is not included in the digest).  Availability of this function depends on the version of OpenSSL used to compile Qore.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <programlisting>MSC2(<replaceable>string | binary</replaceable>)</programlisting>
+          <programlisting>MDC2(<replaceable>string | binary</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$str = MDC2("hello");</programlisting>
         </listitem>
       </varlistentry>
     </variablelist>
     <table>
-      <title>Arguments and Return Values for MSC2()</title>
+      <title>Arguments and Return Values for MDC2()</title>
       <tgroup cols="3" align="left" colsep="1" rowsep="1">
         <thead>
           <row>
@@ -13182,14 +13212,14 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>String</para>
             </entry>
             <entry>
-              <para>Returns the MSC2 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
+              <para>Returns the MDC2 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
             </entry>
           </row>
         </tbody>
       </tgroup>
     </table>
     <table>
-      <title>Exceptions thrown by MSC2()</title>
+      <title>Exceptions thrown by MDC2()</title>
       <tgroup cols="2" align="left" colsep="1" rowsep="1">
         <thead>
           <row>
@@ -13205,7 +13235,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <row>
             <entry>
               <para>
-                <code>MSC2-DIGEST-ERROR</code>
+                <code>MDC2-DIGEST-ERROR</code>
               </para>
             </entry>
             <entry>
@@ -13229,6 +13259,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <term>Usage</term>
         <listitem>
           <programlisting>RIPEMD160(<replaceable>string | binary</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$str = RIPEMD160("hello"); # returns "108f07b8382412612c048d07d13f814118445acd"</programlisting>
         </listitem>
       </varlistentry>
     </variablelist>
@@ -13306,6 +13342,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <programlisting>SHA(<replaceable>string | binary</replaceable>)</programlisting>
         </listitem>
       </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$str = SHA("hello"); returns "ac62a630ca850b4ea07eda664eaecf9480843152"</programlisting>
+        </listitem>
+      </varlistentry>
     </variablelist>
     <table>
       <title>Arguments and Return Values for SHA()</title>
@@ -13379,6 +13421,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <term>Usage</term>
         <listitem>
           <programlisting>SHA1(<replaceable>string | binary</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$str = SHA1("hello"); # "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d"</programlisting>
         </listitem>
       </varlistentry>
     </variablelist>
@@ -13464,6 +13512,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<programlisting>chdir(<replaceable>directory_string</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>chdir("/usr/share");</programlisting>
+      </listitem>
+    </varlistentry>
       <varlistentry>
 	<term>Restrictions</term>
 	<listitem>
@@ -13530,6 +13584,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<programlisting>chmod(<replaceable>filename, mode</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>chmod("/bin/login", 0755);</programlisting>
+      </listitem>
+    </varlistentry>
       <varlistentry>
 	<term>Restrictions</term>
 	<listitem>
@@ -13594,6 +13654,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Usage</term>
       <listitem>
 	<programlisting>hlstat(<replaceable>pathname</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$type = hlstat("/bin/sh").type; # returns "REGULAR"</programlisting>
       </listitem>
     </varlistentry>
       <varlistentry>
@@ -13714,6 +13780,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<programlisting>hstat(<replaceable>pathname</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$type = hstat("/bin/sh").type; # returns "REGULAR"</programlisting>
+      </listitem>
+    </varlistentry>
       <varlistentry>
 	<term>Restrictions</term>
 	<listitem>
@@ -13758,6 +13830,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <term>Usage</term>
         <listitem>
           <programlisting>is_bdev(<replaceable>path</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$bool = is_bdev("/dev/sda");</programlisting>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -13815,6 +13893,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         </listitem>
       </varlistentry>
       <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$bool = is_cdev("/dev/tty");</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
 	<term>Restrictions</term>
 	<listitem>
 	  <para>Not available with <link linkend="PO_NO_FILESYSTEM"><code>PO_NO_FILESYSTEM</code></link></para>
@@ -13866,6 +13950,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <term>Usage</term>
         <listitem>
           <programlisting>is_dev(<replaceable>path</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$bool = is_dev("/dev/sda");</programlisting>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -13923,6 +14013,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         </listitem>
       </varlistentry>
       <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$bool = is_dir("/usr/share");</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
 	<term>Restrictions</term>
 	<listitem>
 	  <para>Not available with <link linkend="PO_NO_FILESYSTEM"><code>PO_NO_FILESYSTEM</code></link></para>
@@ -13974,6 +14070,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <term>Usage</term>
         <listitem>
           <programlisting>is_executable(<replaceable>path</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$bool = is_executable("/bin/sh");</programlisting>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -14031,6 +14133,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         </listitem>
       </varlistentry>
       <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$bool = is_file("/etc/hosts");</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
 	<term>Restrictions</term>
 	<listitem>
 	  <para>Not available with <link linkend="PO_NO_FILESYSTEM"><code>PO_NO_FILESYSTEM</code></link></para>
@@ -14082,6 +14190,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <term>Usage</term>
         <listitem>
           <programlisting>is_link(<replaceable>path</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$bool = is_link("/bin/sh");</programlisting>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -14139,6 +14253,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         </listitem>
       </varlistentry>
       <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$bool = is_pipe("/bin/sh");</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
 	<term>Restrictions</term>
 	<listitem>
 	  <para>Not available with <link linkend="PO_NO_FILESYSTEM"><code>PO_NO_FILESYSTEM</code></link></para>
@@ -14190,6 +14310,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <term>Usage</term>
         <listitem>
           <programlisting>is_readable(<replaceable>path</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$bool = is_readable("/etc/hosts");</programlisting>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -14247,6 +14373,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         </listitem>
       </varlistentry>
       <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$bool = is_socket("/tmp/X0");</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
 	<term>Restrictions</term>
 	<listitem>
 	  <para>Not available with <link linkend="PO_NO_FILESYSTEM"><code>PO_NO_FILESYSTEM</code></link></para>
@@ -14298,6 +14430,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <term>Usage</term>
         <listitem>
           <programlisting>is_wríteable(<replaceable>path</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$bool = is_wríteable("/etc/hosts");</programlisting>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -14357,6 +14495,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       </listitem>
     </varlistentry>
     <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$list = lstat(("/bin/sh");</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
       <term>Restrictions</term>
       <listitem>
 	<para>Not available with <link linkend="PO_NO_FILESYSTEM"><code>PO_NO_FILESYSTEM</code></link></para>
@@ -14400,6 +14544,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Usage</term>
       <listitem>
 	<programlisting>mkdir(<replaceable>string_name, [mode]</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>mkdir("/tmp/newdir", 0755);</programlisting>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -14466,6 +14616,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       </listitem>
     </varlistentry>
     <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>mkfifo("/tmp/pipe");</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
       <term>Restrictions</term>
       <listitem>
 	<para>Not available with <link linkend="PO_NO_FILESYSTEM"><code>PO_NO_FILESYSTEM</code></link></para>
@@ -14524,6 +14680,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Usage</term>
       <listitem>
 	<programlisting>rmdir(<replaceable>path</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>rmdir("/tmp/newdir");</programlisting>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -14593,6 +14755,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       </listitem>
     </varlistentry>
     <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>umask(0777);</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
       <term>Restrictions</term>
       <listitem>
 	<para>Not available with <link linkend="PO_NO_FILESYSTEM"><code>PO_NO_FILESYSTEM</code></link></para>
@@ -14641,6 +14809,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Usage</term>
       <listitem>
 	<programlisting>unlink(<replaceable>file</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>unlink("/tmp/tmp_file");</programlisting>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -14697,6 +14871,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Usage</term>
       <listitem>
 	<programlisting>backquote(<replaceable>shell_command_string</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$files = backquote("ls");</programlisting>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -14763,6 +14943,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Usage</term>
       <listitem>
 	<programlisting>call_function_args(<replaceable>function_name_string, [args]</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>call_function_args("func_name", $arg_list);</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -14832,6 +15018,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<programlisting>call_function(<replaceable>function_name_string, [args ...]</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$result = call_function("func_name", $arg1, $arg2);</programlisting>
+      </listitem>
+    </varlistentry>
   </variablelist>
 
 
@@ -14898,6 +15090,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Usage</term>
       <listitem>
 	<programlisting>callObjectMethod(<replaceable>object, method_string, [args ...]</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$result = callObjectMethod($obj, "method", $arg1, $arg2);</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -14972,6 +15170,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<programlisting>callObjectMethodArgs(<replaceable>object, method_string, [arg_list]</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$result = callObjectMethodArgs($obj, "method", $arg_list);</programlisting>
+      </listitem>
+    </varlistentry>
   </variablelist>
 
 
@@ -15044,6 +15248,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<programlisting>compress(<replaceable>string | binary, [level]</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$bin = compress("hello");</programlisting>
+      </listitem>
+    </varlistentry>
   </variablelist>
 
   <table>
@@ -15104,6 +15314,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<programlisting>existsFunction(<replaceable>string</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$bool = existsFunction("func_name");</programlisting>
+      </listitem>
+    </varlistentry>
   </variablelist>
 
 <table><title>Arguments and Return Values for existsFunction()</title>
@@ -15147,6 +15363,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<programlisting>functionType(<replaceable>string</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$type = functionType("print");</programlisting>
+      </listitem>
+    </varlistentry>
   </variablelist>
 
 
@@ -15182,7 +15404,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Returns the byte value of the offset in the object passed.  Of no offset is passed, then the value of the first byte is returned.</para>
+	<para>Returns the byte value of the offset (starting with 0) in the object passed.  Of no offset is passed, then the value of the first byte (offset 0) is returned.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -15191,8 +15413,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<programlisting>getByte(<replaceable>expr, [offset]</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$byte = getByte($bin, 2); # returns the thrid byte of the binary object</programlisting>
+      </listitem>
+    </varlistentry>
   </variablelist>
-
 
 <table><title>Arguments and Return Values for getByte()</title>
 <tgroup cols='3' align='left' colsep='1' rowsep='1'>
@@ -15232,6 +15459,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Usage</term>
       <listitem>
 	<programlisting>getClassName(<replaceable>object</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$name = getClassName($obj);</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -15278,13 +15511,19 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns an integer representing the capabilities of a DBI driver.</para>
+            <para>Returns an integer representing the capabilities of a DBI driver corresponding to the driver name passed as an argument.  See <link linkend="Qore_SQL_Constants">SQL constants</link> for constants for names of drivers shipping with the qore distribution.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Usage</term>
           <listitem>
             <programlisting>getDBIDriverCapabilities(<replaceable>driver_name</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$caps = getDBIDriverCapabilities("oracle");</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -15317,13 +15556,19 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns a list of each capability supported by the given DBI driver.</para>
+            <para>Returns a list of each capability supported by the given DBI driver.  See <link linkend="Qore_SQL_Constants">SQL constants</link> for constants giving names of drivers shipping with the Qore distribution.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Usage</term>
           <listitem>
             <programlisting>getDBIDriverCapabilityList(<replaceable>driver_name</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$list = getDBIDriverCapabilityList("mysql");</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -15356,13 +15601,19 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns a list of strings of DBI drivers currently available.</para>
+            <para>Returns a list of strings of DBI drivers currently loaded.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Usage</term>
           <listitem>
             <programlisting>getDBIDriverList()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$list = getDBIDriverList();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -15381,7 +15632,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
             <row>
 	      <entry><para>n/a</para></entry>
               <entry><para>List</para></entry>
-              <entry><para>Returns a list of strings of DBI drivers currently available.</para></entry>
+              <entry><para>Returns a list of strings of DBI drivers currently loaded.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -15403,6 +15654,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Usage</term>
       <listitem>
 	<programlisting>getFeatureList()</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$list = getFeatureList();</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -15448,6 +15705,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
             <programlisting>getMethodList(<replaceable>object</replaceable>)</programlisting>
           </listitem>
         </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$list = getMethodList($obj);</programlisting>
+          </listitem>
+        </varlistentry>
       </variablelist>
       
       <table>
@@ -15488,6 +15751,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<programlisting>getModuleList()</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$list = getModuleList();</programlisting>
+      </listitem>
+    </varlistentry>
   </variablelist>
 
 
@@ -15523,13 +15792,19 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Returns the name of the default character set encoding.</para>
+	<para>Returns the name of the default character set encoding for the currently-running Qore process.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Usage</term>
       <listitem>
 	<programlisting>get_default_encoding()</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$encoding = get_default_encoding();</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -15572,6 +15847,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <term>Usage</term>
           <listitem>
             <programlisting>getpwuid(<replaceable>integer_uid</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$hash = getpwuid(0); # returns the login information for root</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -15624,6 +15905,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>gunzip_to_binary(<replaceable>binary</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$bin = gunzip_to_binary($data);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -15683,6 +15970,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	    <programlisting>gunzip_to_string(<replaceable>binary, [encoding]</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$str = gunzip_to_string($gzipped_string);</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
       
       <table>
@@ -15738,6 +16031,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>gzip(<replaceable>string | binary, [level]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$bin = gzip($data);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -15800,6 +16099,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
             <programlisting>hash_values(<replaceable>hash</replaceable>)</programlisting>
           </listitem>
         </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$list = hash_values($hash);</programlisting>
+          </listitem>
+        </varlistentry>
       </variablelist>
       
       <table>
@@ -15849,6 +16154,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <term>Usage</term>
           <listitem>
             <programlisting>hextoint(<replaceable>hex_string</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$int = hextoint("ab3d4e0f12");</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -15903,6 +16214,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<programlisting>html_decode(<replaceable>string</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>html_decode("&amp;lt;hello&amp;gt;"); # returns "&lt;hello&gt;"</programlisting>
+      </listitem>
+    </varlistentry>
   </variablelist>
 
   <table>
@@ -15944,6 +16261,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<programlisting>html_encode(<replaceable>string</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$str = html_encode("&lt;hello&gt;"); # returns "&amp;lt;hello&amp;gt;"</programlisting>
+      </listitem>
+    </varlistentry>
   </variablelist>
 
   <table>
@@ -15960,7 +16283,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<row>
 	  <entry><para>String</para></entry>
 	  <entry><para>String</para></entry>
-	  <entry><para>Returns a string with characters needed HTML escape code transation (ie &amp; -&gt; &amp;amp;, etc) translated to the escape codes.</para></entry>
+	  <entry><para>Returns a string with characters needed HTML escape code transation (ie &amp; -&gt; &amp;amp; etc) translated to the escape codes.</para></entry>
 	</row>
       </tbody>
     </tgroup>
@@ -15984,6 +16307,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Usage</term>
       <listitem>
 	<programlisting>load_module(<replaceable>module_name</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>load_module("pgsql");</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -16042,6 +16371,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<programlisting>makeBase64String(<replaceable>arg</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$str = makeBase64String($bin);</programlisting>
+      </listitem>
+    </varlistentry>
   </variablelist>
   
   <table>
@@ -16079,6 +16414,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Usage</term>
       <listitem>
 	<programlisting>makeHexString(<replaceable>arg</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$str = makeHexString($bin);</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -16119,6 +16460,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<listitem>
 	  <programlisting>max(<replaceable>list, [callback]</replaceable>)</programlisting>
 	  <programlisting>max(<replaceable>elem1, elem2[, ...]</replaceable>)</programlisting>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Example</term>
+	<listitem>
+	  <programlisting>$max = max($complex_list, \callback_function());</programlisting>
+	  <programlisting>$max = max(1, 2, 3, 4);</programlisting>
 	</listitem>
       </varlistentry>
     </variablelist>
@@ -16165,6 +16513,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	  <programlisting>min(<replaceable>elem1, elem2[, ...]</replaceable>)</programlisting>
 	</listitem>
       </varlistentry>
+      <varlistentry>
+	<term>Example</term>
+	<listitem>
+	  <programlisting>$min = min($complex_list, \callback_function());</programlisting>
+	  <programlisting>$min = min(1, 10, 2, 3);</programlisting>
+	</listitem>
+      </varlistentry>
     </variablelist>
     <table>
       <title>Arguments and Return Values for min()</title>
@@ -16206,7 +16561,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>parse(<replaceable>string</replaceable>)</programlisting>
+	<programlisting>parse(<replaceable>code_string, label_string</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>parse($code, "label");</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -16268,6 +16629,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<programlisting>parseBase64String(<replaceable>base64_string</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$bin = parseBase64String($base64_string);</programlisting>
+      </listitem>
+    </varlistentry>
   </variablelist>
 
 
@@ -16327,6 +16694,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
             <programlisting>parseDatasource(<replaceable>datasource_string</replaceable>)</programlisting>
           </listitem>
         </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$hash = parseDatasource($ds_string);</programlisting>
+          </listitem>
+        </varlistentry>
       </variablelist>
       
       <table>
@@ -16383,8 +16756,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<programlisting>parseHexString(<replaceable>hex_string</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$bin = parseHexString($hex_string);</programlisting>
+      </listitem>
+    </varlistentry>
   </variablelist>
-
 
 <table><title>Arguments and Return Values for parseHexString()</title>
 <tgroup cols='3' align='left' colsep='1' rowsep='1'>
@@ -16441,6 +16819,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<programlisting>parseURL(<replaceable>url_string</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$hash = parseURL($url_string);</programlisting>
+      </listitem>
+    </varlistentry>
   </variablelist>
   
   <table>
@@ -16479,6 +16863,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Usage</term>
       <listitem>
 	<programlisting>rand()</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$num = rand();</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -16522,6 +16912,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Usage</term>
       <listitem>
 	<programlisting>remove_signal_handler(<replaceable>signal</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>remove_signal_handler(SIGINT);</programlisting>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -16571,6 +16967,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Usage</term>
       <listitem>
 	<programlisting>reverse(<replaceable>string_or_list</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$str = reverse("ABCDEF"); # returns "FEDCBA"</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -16623,6 +17025,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       </listitem>
     </varlistentry>
     <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>set_signal_handler(SIGINT, \signal_handler());</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
       <term>Restrictions</term>
       <listitem>
 	<para>Not available with <link linkend="PO_NO_PROCESS_CONTROL"><code>PO_NO_PROCESS_CONTROL</code></link></para>
@@ -16670,6 +17078,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<programlisting>sort(<replaceable>list, [callback]</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$list = sort($complex_list, \callback());</programlisting>
+      </listitem>
+    </varlistentry>
   </variablelist>
   <table>
     <title>Arguments and Return Values for sort()</title>
@@ -16706,6 +17120,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<term>Usage</term>
 	<listitem>
 	  <programlisting>sortDescending(<replaceable>list, [callback]</replaceable>)</programlisting>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Example</term>
+	<listitem>
+	  <programlisting>$list = sortDescending($complex_list, \callback());</programlisting>
 	</listitem>
       </varlistentry>
     </variablelist>
@@ -16746,6 +17166,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	  <programlisting>sortDescendingStable(<replaceable>list, [callback]</replaceable>)</programlisting>
 	</listitem>
       </varlistentry>
+      <varlistentry>
+	<term>Example</term>
+	<listitem>
+	  <programlisting>$list = sortDescendingStable($complex_list, \callback());</programlisting>
+	</listitem>
+      </varlistentry>
     </variablelist>
     <table>
       <title>Arguments and Return Values for sortDescendingStable()</title>
@@ -16782,6 +17208,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Usage</term>
       <listitem>
 	<programlisting>sortStable(<replaceable>list, [callback]</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$list = sortStable($complex_list, \callback());</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -16821,6 +17253,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Usage</term>
       <listitem>
 	<programlisting>srand(<replaceable>integer</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>srand(now()); # seeds with current time</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -16863,6 +17301,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <term>Usage</term>
           <listitem>
            <programlisting>strtoint(<replaceable>string, [base]</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+           <programlisting>$int = strtoint("41", 8);</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -16915,6 +17359,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Usage</term>
       <listitem>
 	<programlisting>uncompress_to_binary(<replaceable>binary</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$bin = uncompress_to_binary($compressed_data);</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -16972,6 +17422,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Usage</term>
       <listitem>
 	<programlisting>uncompress_to_string(<replaceable>binary, [encoding]</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$str = uncompress_to_string($compressed_data);</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -17036,6 +17492,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       </listitem>
     </varlistentry>
     <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>delete_all_thread_data();</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
       <term>Restrictions</term>
       <listitem>
 	<para>Not available with <link linkend="PO_NO_THREAD_CONTROL"><code>PO_NO_THREAD_CONTROL</code></link></para>
@@ -17078,6 +17540,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Usage</term>
       <listitem>
 	<programlisting>delete_thread_data(<replaceable>key_string, [key_string, ...]</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>delete_thread_data("key1", "key2");</programlisting>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -17126,6 +17594,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       </listitem>
     </varlistentry>
     <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$hash = get_all_thread_data();</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
       <term>Restrictions</term>
       <listitem>
 	<para>Not available with <link linkend="PO_NO_THREAD_CONTROL"><code>PO_NO_THREAD_CONTROL</code></link></para>
@@ -17167,6 +17641,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Usage</term>
       <listitem>
 	<programlisting>getAllThreadCallStacks()</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$hash = getAllThreadCallStacks();</programlisting>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -17214,6 +17694,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       </listitem>
     </varlistentry>
     <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$data = get_thread_data("key1");</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
       <term>Restrictions</term>
       <listitem>
 	<para>Not available with <link linkend="PO_NO_THREAD_CONTROL"><code>PO_NO_THREAD_CONTROL</code></link></para>
@@ -17258,6 +17744,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<programlisting>gettid()</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$tid = gettid();</programlisting>
+      </listitem>
+    </varlistentry>
   </variablelist>
     
     <table>
@@ -17297,6 +17789,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Usage</term>
       <listitem>
 	<programlisting>num_threads()</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$num = num_threads();</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -17341,6 +17839,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Usage</term>
       <listitem>
 	<programlisting>save_thread_data(<replaceable>key_string, value_expression</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>save_thread_data("key1", $value);</programlisting>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -17393,6 +17897,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	      <programlisting>thread_list()</programlisting>
 	    </listitem>
 	  </varlistentry>
+	  <varlistentry>
+	    <term>Example</term>
+	    <listitem>
+	      <programlisting>$list = thread_list();</programlisting>
+	    </listitem>
+	  </varlistentry>
 	</variablelist>
 
 	<table><title>Arguments and Return Values for thread_list()</title>
@@ -17431,6 +17941,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	    <term>Usage</term>
 	    <listitem>
 	      <programlisting>throwThreadResourceExceptions()</programlisting>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term>Example</term>
+	    <listitem>
+	      <programlisting>throwThreadResourceExceptions();</programlisting>
 	    </listitem>
 	  </varlistentry>
 	  <varlistentry>
@@ -17484,6 +18000,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Usage</term>
       <listitem>
 	<programlisting>makeFormattedXMLFragment(<replaceable>hash, [encoding]</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$xml = makeFormattedXMLFragment($hash);</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -17543,6 +18065,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<programlisting>makeFormattedXMLRPCCallString(<replaceable>method_name, [arguments ...]</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$xml = makeFormattedXMLRPCCallString("method.name", $arg1, $arg2);</programlisting>
+      </listitem>
+    </varlistentry>
   </variablelist>
   
   <table>
@@ -17600,6 +18128,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<programlisting>makeFormattedXMLRPCCallStringArgs(<replaceable>method_name, [arg_list]</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$xml = makeFormattedXMLRPCCallStringArgs("method.name", $arg_list);</programlisting>
+      </listitem>
+    </varlistentry>
   </variablelist>
   
   <table>
@@ -17655,6 +18189,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Usage</term>
       <listitem>
 	<programlisting>makeFormattedXMLRPCFaultResponseString(<replaceable>error_code, error_string</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$xml = makeFormattedXMLRPCFaultResponseString(10, "oh no, big error");</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -17719,6 +18259,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<programlisting>makeFormattedXMLRPCResponseString(<replaceable>any</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$xml = makeFormattedXMLRPCResponseString($value);</programlisting>
+      </listitem>
+    </varlistentry>
   </variablelist>
   
   <table>
@@ -17773,6 +18319,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Usage</term>
       <listitem>
 	<programlisting>makeFormattedXMLRPCValueString(<replaceable>any</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$xml = makeFormattedXMLRPCValueString($value);</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -17831,6 +18383,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <listitem>
 	<programlisting>makeFormattedXMLString(<replaceable>hash, [encoding]</replaceable>)</programlisting>
 	<programlisting>makeFormattedXMLString(<replaceable>string, hash, [encoding]</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Examples</term>
+      <listitem>
+	<programlisting>$xml = makeFormattedXMLString($hash);</programlisting>
+	<programlisting>$xml = makeFormattedXMLString("key", $hash);</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -17899,6 +18458,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<programlisting>makeXMLFragment(<replaceable>hash, [encoding]</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$xml = makeXMLFragment($hash);</programlisting>
+      </listitem>
+    </varlistentry>
   </variablelist>
     
     <table>
@@ -17954,6 +18519,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Usage</term>
       <listitem>
 	<programlisting>makeXMLRPCCallString(<replaceable>method_name, [arguments ...]</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$xml = makeXMLRPCCallString("method.name", $arg1, $arg2);</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -18013,6 +18584,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<programlisting>makeXMLRPCCallStringArgs(<replaceable>method_name, [arg_list]</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$xml = makeXMLRPCCallStringArgs("method.name", $arg_list);</programlisting>
+      </listitem>
+    </varlistentry>
   </variablelist>
   
   <table>
@@ -18068,6 +18645,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Usage</term>
       <listitem>
 	<programlisting>makeXMLRPCFaultResponseString(<replaceable>error_code, error_string</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$xml = makeXMLRPCFaultResponseString(10, "oh no, an error occured");</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -18132,6 +18715,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<programlisting>makeXMLRPCResponseString(<replaceable>any</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$xml = makeXMLRPCResponseString($response);</programlisting>
+      </listitem>
+    </varlistentry>
   </variablelist>
   
   <table>
@@ -18186,6 +18775,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Usage</term>
       <listitem>
 	<programlisting>makeXMLRPCValueString(<replaceable>any</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$xml = makeXMLRPCValueString($value);</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -18244,6 +18839,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <listitem>
 	<programlisting>makeXMLString(<replaceable>hash, [encoding]</replaceable>)</programlisting>
 	<programlisting>makeXMLString(<replaceable>string, hash, [encoding]</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Examples</term>
+      <listitem>
+	<programlisting>$xml = makeXMLString($hash);</programlisting>
+	<programlisting>$xml = makeXMLString("key", $hash);</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -18312,6 +18914,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<programlisting>parseXML(<replaceable>xml_string, [output_encoding]</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$hash = parseXML($xml);</programlisting>
+      </listitem>
+    </varlistentry>
   </variablelist>
   
   <table>
@@ -18367,6 +18975,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Usage</term>
       <listitem>
 	<programlisting>parseXMLRPCCall(<replaceable>xmlrpc_call_string, [output_encoding]</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$hash = parseXMLRPCCall($xml);</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -18429,6 +19043,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<programlisting>parseXMLRPCResponse(<replaceable>xmlrpc_response_string, [output_encoding]</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$hash = parseXMLRPCResponse($xml);</programlisting>
+      </listitem>
+    </varlistentry>
   </variablelist>
   
   <table>
@@ -18488,6 +19108,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Usage</term>
       <listitem>
 	<programlisting>parseXMLRPCValue(<replaceable>xmlrpc_value_string, [output_encoding]</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$hash = parseXMLRPCValue($xml);</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -18552,6 +19178,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <term>Usage</term>
         <listitem>
           <programlisting>makeJSONString(<replaceable>Any Type, [Encoding]</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$json = makeJSONString($value);</programlisting>
         </listitem>
       </varlistentry>
     </variablelist>
@@ -18620,6 +19252,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <programlisting>makeFormattedJSONString(<replaceable>Any Type, [Encoding]</replaceable>)</programlisting>
         </listitem>
       </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$json = makeFormattedJSONString($value);</programlisting>
+        </listitem>
+      </varlistentry>
     </variablelist>
     <table>
       <title>Arguments and Return Values for makeFormattedJSONString()</title>
@@ -18685,6 +19323,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <term>Usage</term>
         <listitem>
           <programlisting>makeJSONRPCRequestString(<replaceable>method_name, [json_version], [id], [arguments]</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$json = makeJSONRPCRequestString("method_name", "1.1", $id, $request_data);</programlisting>
         </listitem>
       </varlistentry>
     </variablelist>
@@ -18755,6 +19399,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <term>Usage</term>
         <listitem>
           <programlisting>makeFormattedJSONRPCRequestString(<replaceable>method_name, [json_version], [id], [arguments]</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$json = makeFormattedJSONRPCRequestString("method_name", "1.1", $id, $request_data);</programlisting>
         </listitem>
       </varlistentry>
     </variablelist>
@@ -18828,6 +19478,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <programlisting>makeJSONRPCResponseString(<replaceable>[json_version], [id], [response]</replaceable>)</programlisting>
         </listitem>
       </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$json = makeJSONRPCResponseString("1.1", $id, $response);</programlisting>
+        </listitem>
+      </varlistentry>
     </variablelist>
     <table>
       <title>Arguments and Return Values for makeJSONRPCResponseString()</title>
@@ -18892,6 +19548,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <term>Usage</term>
         <listitem>
           <programlisting>makeFormattedJSONRPCResponseString(<replaceable>[json_version], [id], [response]</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$json = makeFormattedJSONRPCResponseString("1.1", $id, $response);</programlisting>
         </listitem>
       </varlistentry>
     </variablelist>
@@ -18960,6 +19622,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <programlisting>makeJSONRPCErrorString(<replaceable>[json_version], [id], [response]</replaceable>)</programlisting>
         </listitem>
       </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$json = makeJSONRPCErrorString("1.1", $id, $response);</programlisting>
+        </listitem>
+      </varlistentry>
     </variablelist>
     <table>
       <title>Arguments and Return Values for makeJSONRPCErrorString()</title>
@@ -19025,6 +19693,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <programlisting>makeFormattedJSONRPCErrorString(<replaceable>[json_version], [id], [response]</replaceable>)</programlisting>
         </listitem>
       </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$json = makeFormattedJSONRPCErrorString("1.1", $id, $response);</programlisting>
+        </listitem>
+      </varlistentry>
     </variablelist>
     <table>
       <title>Arguments and Return Values for makeFormattedJSONRPCErrorString()</title>
@@ -19087,7 +19761,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <programlisting>makeJSONRPC11ErrorString(<replaceable></replaceable>)</programlisting>
+          <programlisting>makeJSONRPC11ErrorString(<replaceable>code, message, [[id], [error]</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$json = makeJSONRPC11ErrorString(200, $msg, $id, $error);</programlisting>
         </listitem>
       </varlistentry>
     </variablelist>
@@ -19157,6 +19837,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <term>Usage</term>
         <listitem>
           <programlisting>makeFormattedJSONRPC11ErrorString(<replaceable>code, error_message, [id], [error_response]</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$json = makeFormattedJSONRPC11ErrorString(200, $msg, $id, $error);</programlisting>
         </listitem>
       </varlistentry>
     </variablelist>
