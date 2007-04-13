@@ -33,20 +33,27 @@
 #include <memory>
 
 //------------------------------------------------------------------------------
-output_value_buffer::output_value_buffer(unsigned len)
+output_value_buffer::output_value_buffer()
 : indicator(0),
   value(0),
   value_len(0)
 {
-  if (len) {
-    value = new char[len + 1];
-  }
 }
 
 //------------------------------------------------------------------------------
 output_value_buffer::~output_value_buffer()
 {
   delete[] value;
+}
+
+//------------------------------------------------------------------------------
+void output_value_buffer::allocate_buffer()
+{
+  delete[] value;
+  value = 0;
+  if (value_len) {
+    value = new char[value_len + 1]; // one byte added for possible string terminator
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -66,7 +73,7 @@ void set_up_output_buffers(command& cmd,
 {
   for (unsigned i = 0, n = input_row_descriptions.size(); i != n; ++i) {
     unsigned size = input_row_descriptions[i].maxlength;
-    output_value_buffer* buffer = new output_value_buffer(size);
+    output_value_buffer* buffer = new output_value_buffer;
     result.m_buffers.push_back(buffer);
 
     CS_RETCODE err = ct_bind(cmd(), i + 1, (CS_DATAFMT*)&input_row_descriptions[i], buffer->value, &buffer->value_len, &buffer->indicator);

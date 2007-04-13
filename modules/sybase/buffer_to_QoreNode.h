@@ -1,5 +1,5 @@
 /*
-  fetch_row_into_buffers.h
+  buffer_to_QoreNode.h
 
   Sybase DB layer for QORE
   uses Sybase OpenClient C library
@@ -23,15 +23,17 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef SYBASE_FETCH_ROW_INTO_BUFFERS_H_
-#define SYBASE_FETCH_ROW_INTO_BUFFERS_H_
+#ifndef SYBASE_BUFFER_TO_QORE_NODE_H_
+#define SYBASE_BUFFER_TO_QORE_NODE_H_
 
-class command;
+#include "set_up_output_buffers.h"
+
 class ExceptionSink;
+class QoreEncoding;
+class QoreNode;
+class connection;
 
-
-// Returns true if a row was read. Call the function again until it returns false.
-extern bool fetch_row_into_buffers(command& cmd, ExceptionSink* xsink);
+extern QoreNode* buffer_to_QoreNode(command& cmd, const CS_DATAFMT& datafmt, const output_value_buffer& buffer, QoreEncoding* encoding, ExceptionSink* xsink);
 
 #endif
 

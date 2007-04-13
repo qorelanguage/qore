@@ -1,5 +1,5 @@
 /*
-  fetch_row_into_buffers.h
+  output_buffers_to_QoreHash.h
 
   Sybase DB layer for QORE
   uses Sybase OpenClient C library
@@ -23,15 +23,19 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef SYBASE_FETCH_ROW_INTO_BUFFERS_H_
-#define SYBASE_FETCH_ROW_INTO_BUFFERS_H_
+#ifndef SYBASE_OUTPUT_BUFFERS_TO_QOREHASH_H_
+#define SYBASE_OUTPUT_BUFFERS_TO_QOREHASH_H_
 
-class command;
+#include <vector>
+#include <cstypes.h>
+#include "set_up_output_buffers.h"
+
 class ExceptionSink;
+class Hash;
+class command;
 
-
-// Returns true if a row was read. Call the function again until it returns false.
-extern bool fetch_row_into_buffers(command& cmd, ExceptionSink* xsink);
+extern Hash* output_buffers_to_QoreHash(command& cmd, const std::vector<CS_DATAFMT>& columns_info, 
+  row_output_buffers& buffers, QoreEncoding* encoding, ExceptionSink* xsink);
 
 #endif
 

@@ -1,12 +1,12 @@
 /*
-  fetch_row_into_buffers.h
+  outpuut_buffers_to_QoreHash.cc
 
   Sybase DB layer for QORE
   uses Sybase OpenClient C library
 
   Qore Programming language
 
-  Copyright (C) 2007
+  Copyright (C) 2007 Qore Technologies
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -22,18 +22,18 @@
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
+#include <qore/config.h>
+#include <qore/support.h>
+#include <qore/Exception.h>
+#include <qore/minitest.hpp>
 
-#ifndef SYBASE_FETCH_ROW_INTO_BUFFERS_H_
-#define SYBASE_FETCH_ROW_INTO_BUFFERS_H_
+#include <assert.h>
 
-class command;
-class ExceptionSink;
+#include "output_buffers_to_QoreHash.h"
+#include "command.h"
 
-
-// Returns true if a row was read. Call the function again until it returns false.
-extern bool fetch_row_into_buffers(command& cmd, ExceptionSink* xsink);
-
-#endif
+//------------------------------------------------------------------------------
 
 // EOF
+
 
