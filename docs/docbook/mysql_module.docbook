@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-
+    
 <sect1 id="mysql_Module">
   <title>mysql Module</title>
 
   <para>The mysql module provides a MySQL driver to Qore's DBI system, allowing Qore programs to access MySQL databases through the <link linkend="Qore::SQL::Datasource_Class">Datasource Class</link>.</para>
 
-    <para>Example of creating a MySQL Datasource:</para>
+  <para>Example of creating a MySQL Datasource:</para>
 
-    <programlisting>$db = new Datasource(SQL::DSMySQL, $user, $pass, $db, $charset, $hostname);</programlisting>
+  <programlisting>$db = new Datasource(SQL::DSMySQL, $user, $pass, $db, $charset, $hostname);</programlisting>
 
   <para>This driver supports the following DBI capabilities when compiled against MySQL 4 or better: <code>DBI_CAP_TRANSACTION_MANAGEMENT, DBI_CAP_CHARSET_SUPPORT, DBI_CAP_LOB_SUPPORT</code>.</para>
   
@@ -18,6 +18,8 @@
   <para>If a connection times out while not in a transaction, the connection will be automatically reconnected.</para>
 
   <para>All column names are manually converted to lower case if necessary before being returned to the user.</para>
+
+  <para>The <link linkend="Qore::SQL::Datasource::getServerVersion">Datasource::getServerVersion()</link> and <link linkend="Qore::SQL::Datasource::getClientVersion">Datasource::getClientVersion()</link> methods are implemented for this driver and return integers giving the major, minor, and sub version numbers in a single integer according to the following formula: major_version * 10000 + minor_version * 100 + sub_version (ex: 50027 = 5.0.27).</para>
 
   <para>This driver sets new connections to use transaction isoloation level &quot;read committed&quot; explicitly for every new connection to conform to Qore's default transaction management style.  The transaction level can be changed manually, however, using the <link linkend="Qore::SQL::Datasource::exec">Datasource::exec()</link> method.  Aditionally the CLIENT_FOUND_ROWS option is set for each connection, so <link linkend="Qore::SQL::Datasource::exec">Datasource::exec()</link> will return the number of rows affected by insert/update queries, etc in a manner consistent with other Qore DBI drivers (when this row is not set and a single row is updated with the same values, 0 is returned instead of 1 as with other Qore DBI drivers).</para>
   

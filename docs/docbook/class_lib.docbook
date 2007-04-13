@@ -19371,6 +19371,16 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <entry><para>N</para></entry>
 	    <entry><para>Retrieves the transaction timeout value as an integer in milliseconds.</para></entry>
 	  </row>
+	  <row>
+	    <entry><para><link linkend="Qore::SQL::Datasource::getServerVersion">Datasource::getServerVersion()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Returns the driver-specific server version data for the current connection.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Qore::SQL::Datasource::getClientVersion">Datasource::getClientVersion()</link></para></entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Returns the driver-specific client library version data.  Not implemented by all drivers.</para></entry>
+	  </row>
 	  
 	</tbody>
       </tgroup>
@@ -21404,6 +21414,133 @@ $sock.bind("/tmp/socket");</programlisting>
 	  </tbody>
 	</tgroup>
       </table>
+    </sect2>
+
+    <sect2 id="Qore::SQL::Datasource::getServerVersion">
+      <title>Datasource::getServerVersion()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Retrieves the driver-specific server version information for the current connection.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>Datasource::getServerVersion()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$data = $ds.getServerVersion();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for Datasource::getServerVersion()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method takes no arguments.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for Datasource::getServerVersion()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>Driver-Specific</para></entry>
+	      <entry><para>See the documentation for the DBI driver used for the connection.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+    </sect2>
+    <sect2 id="Qore::SQL::Datasource::getClientVersion">
+      <title>Datasource::getClientVersion()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Retrieves the driver-specific client library version information.  Not implemented for all drivers.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>Datasource::getClientVersion()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$data = $ds.getClientVersion();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for Datasource::getClientVersion()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method takes no arguments.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for Datasource::getClientVersion()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>Driver-Specific</para></entry>
+	      <entry><para>See the documentation for the DBI driver used for the connection.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
     </sect2>
   </sect1>
 

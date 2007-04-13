@@ -15,6 +15,12 @@
 
     <para>Oracle TIMESTAMP data supports time resolution to the microsecond, however Qore's date/time value only supports a millisecond resolution.  Any Oracle TIMESTAMP values are rounded to millisecond resolution when converted to Qore data types.</para>
 
+    <para>The <link linkend="Qore::SQL::Datasource::getServerVersion">Datasource::getServerVersion()</link> and <link linkend="Qore::SQL::Datasource::getClientVersion">Datasource::getClientVersion()</link> methods are implemented for this driver.  <link linkend="Qore::SQL::Datasource::getServerVersion">Datasource::getServerVersion()</link> returns a string giving server information similar to the following:</para>
+
+    <programlisting>Oracle Database 10g Release 10.2.0.1.0 - 64bit Production</programlisting>
+
+    <para>The  <link linkend="Qore::SQL::Datasource::getClientVersion">Datasource::getClientVersion()</link> returns a hash giving version information in the following keys: <code>major, minor, update, patch, port_update</code>.</para>
+
     <para>PL/SQL code and stored procedure and function execution is supported; the following is an example of a stored procedure call:</para>
 
     <programlisting>$result = $db.exec(&quot;begin h3g_psft_order_import.insert_h3g_psft_customers(%v, %v, :status_code, :error_code, :error_description); end;&quot;, &quot;Customer Name&quot;, &quot;Customer-ID&quot;, Type::Int, Type::Int);

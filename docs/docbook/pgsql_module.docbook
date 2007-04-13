@@ -16,6 +16,8 @@
 
     <para>Due to the fact that Qore date/time values do not currently support time zone information, when PostgreSQL data having a time zone component is converted to a Qore data type, the time zone information is lost.  Also, Qore date/time values support a millisecond resolution, while PostgreSQL supports microsecond resolution.  All decimal places after milliseconds are discarded when converting to a Qore date/time value.</para>
 
+    <para>The <link linkend="Qore::SQL::Datasource::getServerVersion">Datasource::getServerVersion()</link> method is implemented for this driver and returns an integer giving the major, minor, and sub version numbers in a single integer according to the following formula: major_version * 10000 + minor_version * 100 + sub_version (ex: 80203 = 8.2.3).   The <link linkend="Qore::SQL::Datasource::getClientVersion">Datasource::getClientVersion()</link> is not implemented for this driver.</para>
+
     <para>Stored procedure execution is supported; the following is an example of a stored procedure call:</para>
 
     <para>Example PostgreSQL PLPG/SQL function:</para>
