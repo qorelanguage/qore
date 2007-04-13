@@ -26,14 +26,52 @@
 #include <qore/support.h>
 #include <qore/Exception.h>
 #include <qore/minitest.hpp>
+#include <qore/Hash.h>
+#include <qore/QoreNode.h>
+#include <qore/ScopeGuard.h>
+#include <qore/QoreString.h>
 
 #include <assert.h>
+#include <memory>
+#include <cstypes.h>
 
 #include "output_buffers_to_QoreHash.h"
 #include "command.h"
+#include "set_up_output_buffers.h" // for row_output_buffers
+#include "buffer_to_QoreNode.h"
 
 //------------------------------------------------------------------------------
+Hash* output_buffers_to_QoreHash(command& cmd, const std::vector<CS_DATAFMT>& columns_info,
+  row_output_buffers& all_buffers, QoreEncoding* encoding, ExceptionSink* xsink)
+{
+  Hash* result = new Hash;
+  for (unsigned i = 0, n = columns_info.size(); i != n; ++i) {
+
+    std::string column_name;
+    if (columns_info[i].name && columns_info[i].name[0]) {
+      column_name = columns_info[i].name;
+    } else {
+      char aux[20];
+      sprintf(aux, "column%d", i + 1);
+      column_name = (const char*)aux;
+    } 
+
+    const output_value_buffer& buff = *(all_buffers.m_buffers[i]);
+    QoreNode* value = buffer_to_QoreNode(cmd, columns_info[i], buff, encoding, xsink);
+    if (xsink->isException()) {
+      if (value) value->deref(xsink);
+      return result;
+    }
+
+    result->setKeyValue(column_name.c_str(), value, xsink);
+    if (xsink->isException()) {
+      assert(false);
+      return result;
+    }
+  } // for
+
+  return result;
+}
 
 // EOF
-
 

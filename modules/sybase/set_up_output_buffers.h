@@ -41,10 +41,8 @@ public:
   output_value_buffer(const output_value_buffer&); // not implemented
   output_value_buffer& operator=(output_value_buffer&); // not implemented  
 public:
-  output_value_buffer();
+  output_value_buffer(unsigned size);
   ~output_value_buffer();
-
-  void allocate_buffer(); // uses value_len
 
   CS_SMALLINT indicator;
   CS_CHAR* value;          // owned
