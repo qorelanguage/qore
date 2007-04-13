@@ -1325,7 +1325,7 @@ static class QoreNode *oracle_get_server_version(class Datasource *ds, class Exc
    char version_buf[VERSION_BUF_SIZE + 1];
 
    ora_checkerr(d_ora->errhp, 
-		OCIServerVersion (d_ora->envhp, d_ora->errhp, version_buf, VERSION_BUF_SIZE, OCI_HTYPE_ENV),
+		OCIServerVersion (d_ora->envhp, d_ora->errhp, (OraText *)version_buf, VERSION_BUF_SIZE, OCI_HTYPE_ENV),
 		"oracle_get_server_version", ds, xsink);
    if (xsink->isEvent())
       return NULL;
@@ -1339,11 +1339,11 @@ static class QoreNode *oracle_get_client_version()
 
    OCIClientVersion(&major, &minor, &update, &patch, &port_update);
    class Hash *h = new Hash();
-   h->setKeyValue("major", new QoreNode((int64)major));
-   h->setKeyValue("minor", new QoreNode((int64)minor));
-   h->setKeyValue("update", new QoreNode((int64)update));
-   h->setKeyValue("patch", new QoreNode((int64)patch));
-   h->setKeyValue("port_update", new QoreNode((int64)port_update));
+   h->setKeyValue("major", new QoreNode((int64)major), NULL);
+   h->setKeyValue("minor", new QoreNode((int64)minor), NULL);
+   h->setKeyValue("update", new QoreNode((int64)update), NULL);
+   h->setKeyValue("patch", new QoreNode((int64)patch), NULL);
+   h->setKeyValue("port_update", new QoreNode((int64)port_update), NULL);
    return new QoreNode(h);
 }
 
