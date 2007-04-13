@@ -57,8 +57,10 @@
 #define QDBI_METHOD_BEGIN_TRANSACTION         8
 #define QDBI_METHOD_AUTO_COMMIT               9
 #define QDBI_METHOD_ABORT_TRANSACTION_START  10
+#define QDBI_METHOD_GET_SERVER_VERSION       11
+#define QDBI_METHOD_GET_CLIENT_VERSION       12
 
-#define QDBI_VALID_CODES 11
+#define QDBI_VALID_CODES 13
 
 // DBI method signatures
 typedef int (*q_dbi_open_t)(class Datasource *, class ExceptionSink *xsink);
@@ -71,6 +73,8 @@ typedef int (*q_dbi_rollback_t)(class Datasource *, class ExceptionSink *xsink);
 typedef int (*q_dbi_begin_transaction_t)(class Datasource *, class ExceptionSink *xsink);
 typedef int (*q_dbi_auto_commit_t)(class Datasource *, class ExceptionSink *xsink);
 typedef int (*q_dbi_abort_transaction_start_t)(class Datasource *, class ExceptionSink *xsink);
+typedef class QoreNode *(*q_dbi_get_server_version_t)(class Datasource *, class ExceptionSink *xsink);
+typedef class QoreNode *(*q_dbi_get_client_version_t)();
 
 typedef std::pair<int, void *> qore_dbi_method_t;
 
@@ -94,6 +98,16 @@ public:
    {
       push_back(std::make_pair(code, (void *)method));
    }
+   // covers get_server_version
+   DLLEXPORT void add(int code, q_dbi_get_server_version_t method)
+   {
+      push_back(std::make_pair(code, (void *)method));
+   }
+   // covers get_client_version
+   DLLEXPORT void add(int code, q_dbi_get_client_version_t method)
+   {
+      push_back(std::make_pair(code, (void *)method));
+   }
 };
 
 class DBIDriverFunctions {
@@ -110,6 +124,8 @@ class DBIDriverFunctions {
       q_dbi_abort_transaction_start_t abort_transaction_start;  // for DBI drivers that require a rollback in order to use
 							        // the connection after an exception as the first statement
 							        // in a transaction
+      q_dbi_get_server_version_t get_server_version;
+      q_dbi_get_client_version_t get_client_version;
       
       DLLLOCAL DBIDriverFunctions()
       {
@@ -123,6 +139,8 @@ class DBIDriverFunctions {
 	 begin_transaction = NULL;
 	 auto_commit = NULL;
 	 abort_transaction_start = NULL;
+	 get_server_version = NULL;
+	 get_client_version = NULL;
       }
 };
 
@@ -145,6 +163,8 @@ class DBIDriver {
       DLLLOCAL int beginTransaction(class Datasource *, class ExceptionSink *xsink);
       DLLLOCAL int autoCommit(class Datasource *, class ExceptionSink *xsink);
       DLLLOCAL int abortTransactionStart(class Datasource *, class ExceptionSink *xsink);
+      DLLLOCAL class QoreNode *getServerVersion(class Datasource *, class ExceptionSink *xsink);
+      DLLLOCAL class QoreNode *getClientVersion();
 
       DLLLOCAL int getCaps() const;
       DLLLOCAL class List *getCapList() const;

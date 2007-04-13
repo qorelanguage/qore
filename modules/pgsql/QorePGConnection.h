@@ -213,6 +213,7 @@ class QorePGConnection
       DLLLOCAL int begin_transaction(class Datasource *ds, ExceptionSink *xsink);
       DLLLOCAL bool has_interval_day() const { return interval_has_day; }
       DLLLOCAL bool has_integer_datetimes() const { return integer_datetimes; }
+      DLLLOCAL int get_server_version() const;
 };
 
 union parambuf {

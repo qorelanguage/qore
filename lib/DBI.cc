@@ -96,6 +96,18 @@ DBIDriver::DBIDriver(const char *nme, dbi_method_list_t &methods, int cps)
 	    assert(!f.abort_transaction_start);
 	    f.abort_transaction_start = (q_dbi_abort_transaction_start_t)(*i).second;
 	    break;
+	 case QDBI_METHOD_GET_SERVER_VERSION:
+	    assert(!f.get_server_version);
+	    f.get_server_version = (q_dbi_get_server_version_t)(*i).second;
+	    break;
+	 case QDBI_METHOD_GET_CLIENT_VERSION:
+	    assert(!f.get_client_version);
+	    f.get_client_version = (q_dbi_get_client_version_t)(*i).second;
+	    break;
+#ifdef DEBUG
+	 default:
+	    assert(false);
+#endif
       }
    }
    // ensure minimum methods are defined
@@ -188,6 +200,20 @@ int DBIDriver::abortTransactionStart(class Datasource *ds, class ExceptionSink *
    if (f.abort_transaction_start)
       return f.abort_transaction_start(ds, xsink);
    return 0; // 0 = OK
+}
+
+class QoreNode *DBIDriver::getServerVersion(class Datasource *ds, class ExceptionSink *xsink)
+{
+   if (f.get_server_version)
+      return f.get_server_version(ds, xsink);
+   return 0;
+}
+
+class QoreNode *DBIDriver::getClientVersion()
+{
+   if (f.get_client_version)
+      return f.get_client_version();
+   return 0;
 }
 
 DBIDriverList::~DBIDriverList()

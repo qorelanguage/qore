@@ -19216,7 +19216,7 @@ $sock.bind("/tmp/socket");</programlisting>
 
     <para>DBI drivers delivered separately from Qore may support only a subset of all possible features (at the time of writing this documentation there are none).  Use the following functions to query DBI driver capabilities: <link linkend="getDBIDriverCapabilities">getDBIDriverCapabilities()</link>, <link linkend="getDBIDriverCapabilityList">getDBIDriverCapabilityList()</link>, and <link linkend="getDBIDriverList">getDBIDriverList()</link>.  See <link linkend="DBI_Capability_Constants">DBI Capability Constants</link> for a table of DBI driver capability codes.</para>
 
-   <para>All Qore DBI drivers set new connections to use ISO transaction level &quot;read committed&quot;.</para>
+   <para>All Qore DBI drivers set new connections to use transaction isolation level &quot;read committed&quot;.</para>
 
    <para>The Datasource class provides consistent, high-level, per-connection locking on requests at a level above the DBI drivers to ensure that the communication between clients and servers is properly serialized.</para>
 
@@ -20078,7 +20078,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$rows = $ds.exec("insert into example_table value (%v, %v, %v)", 100, now(), $ENV.USER);</programlisting>
+	    <programlisting>$rows = $ds.exec("insert into example_table value (%d, %v, %v)", 100, now(), $ENV.USER);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>

@@ -309,6 +309,16 @@ static QoreNode *DS_getDriverName(class Object *self, class ManagedDatasource *d
    return new QoreNode(ds->getDriver()->getName());
 }
 
+static QoreNode *DS_getServerVersion(class Object *self, class ManagedDatasource *ds, class QoreNode *params, ExceptionSink *xsink)
+{
+   return ds->getServerVersion(xsink);
+}
+
+static QoreNode *DS_getClientVersion(class Object *self, class ManagedDatasource *ds, class QoreNode *params, ExceptionSink *xsink)
+{
+   return ds->getClientVersion();
+}
+
 class QoreClass *initDatasourceClass()
 {
    tracein("initDatasourceClass()");
@@ -347,6 +357,8 @@ class QoreClass *initDatasourceClass()
    QC_DATASOURCE->addMethod("getOSCharset",      (q_method_t)DS_getOSCharset);
    QC_DATASOURCE->addMethod("getHostName",       (q_method_t)DS_getHostName);
    QC_DATASOURCE->addMethod("getDriverName",     (q_method_t)DS_getDriverName);
+   QC_DATASOURCE->addMethod("getServerVersion",  (q_method_t)DS_getServerVersion);
+   QC_DATASOURCE->addMethod("getClientVersion",  (q_method_t)DS_getClientVersion);
 
    QC_DATASOURCE->addMethod("setTransactionLockTimeout", (q_method_t)DS_setTransactionLockTimeout);
    QC_DATASOURCE->addMethod("getTransactionLockTimeout", (q_method_t)DS_getTransactionLockTimeout);

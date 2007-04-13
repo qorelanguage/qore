@@ -496,3 +496,24 @@ QoreNode *ManagedDatasource::getPendingHostName()
    AutoLocker al(&ds_lock);
    return Datasource::getPendingHostName();
 }
+
+QoreNode *ManagedDatasource::getServerVersion(ExceptionSink *xsink)
+{
+   class QoreNode *rv;
+   
+   if (!startDBAction(xsink))
+   {
+      rv = Datasource::getServerVersion(xsink);
+      
+      endDBAction();
+   }
+   else
+      rv = NULL;
+   
+   return rv;
+}
+
+QoreNode *ManagedDatasource::getClientVersion()
+{
+   return Datasource::getClientVersion();
+}

@@ -110,6 +110,8 @@ class Datasource
       DLLEXPORT bool isOpen() const;
       DLLEXPORT Datasource *copy() const;
       DLLEXPORT const char *getDriverName() const;
+      DLLEXPORT class QoreNode *getServerVersion(class ExceptionSink *xsink);
+      DLLEXPORT class QoreNode *getClientVersion();
 
       DLLLOCAL class DBIDriver *getDriver() const;
 };

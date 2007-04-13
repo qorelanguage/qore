@@ -1511,3 +1511,8 @@ class QoreNode *QorePGConnection::exec(class Datasource *ds, QoreString *qstr, c
 
    return new QoreNode((int64)res.rowsAffected());
 }
+
+int QorePGConnection::get_server_version() const
+{
+   return PQserverVersion(pc);
+}

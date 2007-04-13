@@ -1,3 +1,10 @@
+2006.04.13: David Nichols
+	* added new DBI methods: get_server_version and get_client_version: both
+	  functions are optional and return driver-specific version information
+	* added corresponding Datasource methods:
+		- Datasource::getServerVersion()
+		- Datasource::getClientVersion()
+
 2006.04.12: David Nichols
 	* more documentation updates
 	* implemented new File class methods: readu1(), readu2(), readu4(), 

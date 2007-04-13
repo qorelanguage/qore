@@ -343,3 +343,13 @@ class DBIDriver *Datasource::getDriver() const
 {
    return dsl;
 }
+
+class QoreNode *Datasource::getServerVersion(class ExceptionSink *xsink)
+{
+   return dsl->getServerVersion(this, xsink);
+}
+
+class QoreNode *Datasource::getClientVersion()
+{
+   return dsl->getClientVersion();
+}

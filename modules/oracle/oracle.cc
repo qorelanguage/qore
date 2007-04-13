@@ -1318,6 +1318,35 @@ static int oracle_close(class Datasource *ds)
    return 0;
 }
 
+#define VERSION_BUF_SIZE 512
+static class QoreNode *oracle_get_server_version(class Datasource *ds, class ExceptionSink *xsink)
+{
+   class OracleData *d_ora = (OracleData *)ds->getPrivateData();
+   char version_buf[VERSION_BUF_SIZE + 1];
+
+   ora_checkerr(d_ora->errhp, 
+		OCIServerVersion (d_ora->envhp, d_ora->errhp, version_buf, VERSION_BUF_SIZE, OCI_HTYPE_ENV),
+		"oracle_get_server_version", ds, xsink);
+   if (xsink->isEvent())
+      return NULL;
+   
+   return new QoreNode(version_buf);   
+}
+
+static class QoreNode *oracle_get_client_version()
+{
+   sword major, minor, update, patch, port_update;
+
+   OCIClientVersion(&major, &minor, &update, &patch, &port_update);
+   class Hash *h = new Hash();
+   h->setKeyValue("major", new QoreNode((int64)major));
+   h->setKeyValue("minor", new QoreNode((int64)minor));
+   h->setKeyValue("update", new QoreNode((int64)update));
+   h->setKeyValue("patch", new QoreNode((int64)patch));
+   h->setKeyValue("port_update", new QoreNode((int64)port_update));
+   return new QoreNode(h);
+}
+
 class QoreString *oracle_module_init()
 {
    tracein("oracle_module_init()");
@@ -1332,6 +1361,8 @@ class QoreString *oracle_module_init()
    methods.add(QDBI_METHOD_COMMIT, oracle_commit);
    methods.add(QDBI_METHOD_ROLLBACK, oracle_rollback);
    methods.add(QDBI_METHOD_AUTO_COMMIT, oracle_commit);
+   methods.add(QDBI_METHOD_GET_SERVER_VERSION, oracle_get_server_version);
+   methods.add(QDBI_METHOD_GET_CLIENT_VERSION, oracle_get_client_version);
    
    DBID_ORACLE = DBI.registerDriver("oracle", methods, DBI_ORACLE_CAPS);
 

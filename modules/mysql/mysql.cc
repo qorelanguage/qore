@@ -114,28 +114,32 @@ class MySQLConnection {
 	 
 	 return 0;
       }
-      int commit()
+      DLLLOCAL int commit()
       {
 	 return mysql_commit(db);
       }
-      int rollback()
+      DLLLOCAL int rollback()
       {
 	 return mysql_rollback(db);
       }
-      const char *error()
+      DLLLOCAL const char *error()
       {
 	 return mysql_error(db);
       }
-      int errno()
+      DLLLOCAL int errno()
       {
 	 return mysql_errno(db);
       }
-      MYSQL_STMT *stmt_init(class ExceptionSink *xsink)
+      DLLLOCAL MYSQL_STMT *stmt_init(class ExceptionSink *xsink)
       {
 	 MYSQL_STMT *stmt = mysql_stmt_init(db);
 	 if (!stmt)
 	    xsink->raiseException("DBI:MYSQL:ERROR", "error creating MySQL statement handle: out of memory");
 	 return stmt;
+      }
+      DLLLOCAL unsigned long getServerVersion()
+      {
+	 return mysql_get_server_version(db);
       }
 };
 
@@ -1100,6 +1104,19 @@ static int qore_mysql_close_datasource(class Datasource *ds)
    return 0;
 }
 
+static class QoreNode *qore_mysql_get_server_version(class Datasource *ds, class ExceptionSink *xsink)
+{
+   checkInit();
+   class MySQLConnection *d_mysql = (MySQLConnection *)ds->getPrivateData();
+   return new QoreNode((int64)d_mysql->getServerVersion());
+}
+
+static class QoreNode *qore_mysql_get_client_version()
+{
+   checkInit();
+   return new QoreNode((int64)mysql_get_client_version());
+}
+
 class QoreString *qore_mysql_module_init()
 {
    tracein("qore_mysql_module_init()");
@@ -1119,7 +1136,9 @@ class QoreString *qore_mysql_module_init()
    methods.add(QDBI_METHOD_COMMIT, qore_mysql_commit);
    methods.add(QDBI_METHOD_ROLLBACK, qore_mysql_rollback);
    methods.add(QDBI_METHOD_AUTO_COMMIT, qore_mysql_commit);
-
+   methods.add(QDBI_METHOD_GET_SERVER_VERSION, qore_mysql_get_server_version);
+   methods.add(QDBI_METHOD_GET_CLIENT_VERSION, qore_mysql_get_client_version);
+   
    DBID_MYSQL = DBI.registerDriver("mysql", methods, mysql_caps);
 
    traceout("qore_mysql_module_init()");

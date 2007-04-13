@@ -283,7 +283,7 @@ int mySocket::recvu2LSB(int timeout, unsigned short *b)
    return socket->recvu2LSB(timeout, b);
 }
 
-int mySocket::recviuLSB(int timeout, unsigned int *b)
+int mySocket::recvu4LSB(int timeout, unsigned int *b)
 {
    SafeLocker sl(this);
    return socket->recvu4LSB(timeout, b);

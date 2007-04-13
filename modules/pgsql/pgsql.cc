@@ -77,15 +77,6 @@ static class QoreNode *qore_pgsql_select_rows(class Datasource *ds, QoreString *
    QorePGConnection *pc = (QorePGConnection *)ds->getPrivateData();
 
    return pc->select_rows(ds, qstr, args, xsink);
-/*
-   class QoreNode *rv = pc->select_rows(ds, qstr, args, xsink);
-   if (!*xsink && ds->getAutoCommit() && pc->commit(ds, xsink))
-   {
-      discard(rv, xsink);
-      return NULL;
-   }
-   return rv;
-*/
 }
 
 static class QoreNode *qore_pgsql_select(class Datasource *ds, QoreString *qstr, class List *args, class ExceptionSink *xsink)
@@ -93,15 +84,6 @@ static class QoreNode *qore_pgsql_select(class Datasource *ds, QoreString *qstr,
    QorePGConnection *pc = (QorePGConnection *)ds->getPrivateData();
 
    return pc->select(ds, qstr, args, xsink);
-/*
-   class QoreNode *rv = pc->select(ds, qstr, args, xsink);
-   if (!*xsink && ds->getAutoCommit() && pc->commit(ds, xsink))
-   {
-      discard(rv, xsink);
-      return NULL;
-   }
-   return rv;
-*/
 }
 
 static class QoreNode *qore_pgsql_exec(class Datasource *ds, QoreString *qstr, class List *args, class ExceptionSink *xsink)
@@ -109,15 +91,6 @@ static class QoreNode *qore_pgsql_exec(class Datasource *ds, QoreString *qstr, c
    QorePGConnection *pc = (QorePGConnection *)ds->getPrivateData();
 
    return pc->exec(ds, qstr, args, xsink);
-/*
-   class QoreNode *rv = pc->exec(ds, qstr, args, xsink);
-   if (!*xsink && ds->getAutoCommit() && pc->commit(ds, xsink))
-   {
-      discard(rv, xsink);
-      return NULL;
-   }
-   return rv;
-*/
 }
 
 static int qore_pgsql_open(Datasource *ds, ExceptionSink *xsink)
@@ -176,6 +149,12 @@ static int qore_pgsql_close(class Datasource *ds)
    return 0;
 }
 
+static class QoreNode *qore_pgsql_get_server_version(class Datasource *ds, class ExceptionSink *xsink)
+{
+   QorePGConnection *pc = (QorePGConnection *)ds->getPrivateData();
+   return new QoreNode((int64)pc->get_server_version());
+}
+
 static class QoreNode *f_pgsql_bind(class QoreNode *params, class ExceptionSink *xsink)
 {
    class QoreNode *p = get_param(params, 0);
@@ -216,6 +195,7 @@ static class QoreString *pgsql_module_init()
    methods.add(QDBI_METHOD_ROLLBACK, qore_pgsql_rollback);
    methods.add(QDBI_METHOD_BEGIN_TRANSACTION, qore_pgsql_begin_transaction);
    methods.add(QDBI_METHOD_ABORT_TRANSACTION_START, qore_pgsql_rollback);
+   methods.add(QDBI_METHOD_GET_SERVER_VERSION, qore_pgsql_get_server_version);
 
    DBID_PGSQL = DBI.registerDriver("pgsql", methods, pgsql_caps);
 

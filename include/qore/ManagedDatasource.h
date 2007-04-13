@@ -21,9 +21,6 @@
  */
 
 /* 
-FIXME: commit()s when autocommit=true should be made here, also after
- select()s (in case of a select for update, for example)
- 
  FIXME: when raising an timeout exception there is a race condition
  getting the TID of the thread holding the lock, because the lock 
  could have been released after the ::enter() call fails... but it's
@@ -106,6 +103,8 @@ public:
    DLLLOCAL void beginTransaction(class ExceptionSink *xsink);
    DLLLOCAL void setAutoCommit(bool ac);   
    DLLLOCAL ManagedDatasource *copy();
+   DLLLOCAL class QoreNode *getServerVersion(class ExceptionSink *xsink);
+   DLLLOCAL class QoreNode *getClientVersion();
 };
 
 #endif
