@@ -1325,7 +1325,7 @@ static class QoreNode *oracle_get_server_version(class Datasource *ds, class Exc
    char version_buf[VERSION_BUF_SIZE + 1];
 
    ora_checkerr(d_ora->errhp, 
-		OCIServerVersion (d_ora->envhp, d_ora->errhp, (OraText *)version_buf, VERSION_BUF_SIZE, OCI_HTYPE_ENV),
+		OCIServerVersion (d_ora->svchp, d_ora->errhp, (OraText *)version_buf, VERSION_BUF_SIZE, OCI_HTYPE_SVCCTX),
 		"oracle_get_server_version", ds, xsink);
    if (xsink->isEvent())
       return NULL;
