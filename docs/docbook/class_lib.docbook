@@ -7377,6 +7377,12 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	    <programlisting><command>delete</command> <replaceable>lvalue</replaceable></programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting><command>delete</command> $pgm;</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
     </sect2>
 
@@ -7464,6 +7470,12 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	    <programlisting>Program::parse(<replaceable>string</replaceable>, <replaceable>label</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$pgm.parse($code, "label");</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -7534,13 +7546,19 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Parses the text passed to pending lists in the Program object; does not resolve all references or commit the code to the Program object.</para>
+	    <para>Parses the text passed to pending lists in the Program object; does not resolve all references or commit the code to the Program object.  References are resolved in the <link linkend="Qore_Program_parseCommit">Program::parseCommit()</link> method.  If an exception occurs in this method, all pending code is backed out, not just code parsed by this method.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>Program::parsePending(<replaceable>string</replaceable>, <replaceable>label</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$pgm.parsePending($code, "label");</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -7613,13 +7631,19 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Rolls back any pending code that has not yet been committed to the Program object with <link linkend="Qore_Program_parseCommit">parseCommit</link></para>
+	    <para>Rolls back any pending code processed with <link linkend="Qore_Program_parsePending">Program::parsePending()</link> that has not yet been committed to the Program object with <link linkend="Qore_Program_parseCommit">parseCommit</link></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>Program::parseRollback()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$pgm.parseRollback();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -7669,13 +7693,19 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Commits and pending code to the Program object and resolves all outstanding references in the pending code.</para>
+	    <para>Commits and pending code processed with <link linkend="Qore_Program_parsePending">Program::parsePending()</link> to the Program object and resolves all outstanding references in the pending code.  An exception in this method causes all pending code to be rolled back immediately.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>Program::parseCommit()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$pgm.parseCommit();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -7743,13 +7773,19 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Calls a function in the program object and returns the return value.</para>
+	    <para>Calls a function in the program object and returns the return value.  The function runs with the permissions of the Program object containing the function.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>Program::callFunction(<replaceable>string:function_name, [args ...]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$result = $pgm.callFunction("func_name", $arg1, $arg2);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -7826,13 +7862,19 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Calls a function in the program object and returns the return value, using the second argument as the argument list for the function call.</para>
+	    <para>Calls a function in the program object and returns the return value, using the second argument as the argument list for the function call.  The function runs with the permissions of the Program object containing the function.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>Program::callFunctionArgs(<replaceable>string:function_name, [arg_list]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$result = $pgm.callFunctionArgs("func_name", $arg_list);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -7918,6 +7960,12 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	    <programlisting>Program::existsFunction(<replaceable>function_name</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$bool = $pgm.existsFunction("func_name");</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -7965,13 +8013,19 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Runs the program.</para>
+	    <para>Runs the program and optionally returns a value if the top-level code exits with a <command>return</command> statement.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>Program::run()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$pgm.run();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -8021,13 +8075,19 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Imports a user function into the program object's space; any calls to the imported function will run in the parent's space.</para>
+	    <para>Imports a user function into the program object's space; any calls to the imported function will run in the parent's space.  This allows a user-defined API with greater capabilities than the embedded Program object to be imported into the embedded code.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>Program::importFunction(<replaceable>function_name</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$pgm.importFunction("function");</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -8112,7 +8172,13 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	    <programlisting>Program::importGlobalVariable(<replaceable>string:name, [boolean:read_only]</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
-xs      </variablelist>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$pgm.importGlobalVariable("var");</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
 
       <table>
 	<title>Arguments for Program::importGlobalVariable()</title>
@@ -8194,6 +8260,12 @@ xs      </variablelist>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>Program::getUserFunctionList()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$list = $pgm.getUserFunctionList();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -13461,6 +13533,12 @@ $sock.bind("/tmp/socket");</programlisting>
             <programlisting>HTTPClient::setURL(<replaceable>url</replaceable>)</programlisting>
           </listitem>
         </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$httpclient.setURL("https://user:password@hostname:8080/path");</programlisting>
+          </listitem>
+        </varlistentry>
       </variablelist>
       <table>
         <title>Arguments for HTTPClient::setURL()</title>
@@ -13536,6 +13614,12 @@ $sock.bind("/tmp/socket");</programlisting>
             <programlisting>HTTPClient::getProxyURL()</programlisting>
           </listitem>
         </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$proxy_url = $httpclient.getProxyURL();</programlisting>
+          </listitem>
+        </varlistentry>
       </variablelist>
       <table>
         <title>Arguments for HTTPClient::getProxyURL()</title>
@@ -13588,6 +13672,12 @@ $sock.bind("/tmp/socket");</programlisting>
           <term>Usage</term>
           <listitem>
             <programlisting>HTTPClient::setProxyURL(<replaceable>url</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$httpclient.setProxyURL("http://user:password@proxy_host:8080/path");</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -13669,6 +13759,12 @@ $sock.bind("/tmp/socket");</programlisting>
             <programlisting>HTTPClient::clearProxyURL()</programlisting>
           </listitem>
         </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$httpclient.clearProxyURL();</programlisting>
+          </listitem>
+        </varlistentry>
       </variablelist>
       <table>
         <title>Arguments for HTTPClient::clearProxyURL()</title>
@@ -13721,6 +13817,12 @@ $sock.bind("/tmp/socket");</programlisting>
           <term>Usage</term>
           <listitem>
             <programlisting>HTTPClient::setProxySecure(<replaceable>boolean</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$httpclient.setProxySecure(True);</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -13777,6 +13879,12 @@ $sock.bind("/tmp/socket");</programlisting>
             <programlisting>HTTPClient::isProxySecure()</programlisting>
           </listitem>
         </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$bool = $httpclient.isProxySecure();</programlisting>
+          </listitem>
+        </varlistentry>
       </variablelist>
       <table>
         <title>Arguments for HTTPClient::isProxySecure()</title>
@@ -13829,6 +13937,12 @@ $sock.bind("/tmp/socket");</programlisting>
           <term>Usage</term>
           <listitem>
             <programlisting>HTTPClient::getMaxRedirects()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$num = $httpclient.getMaxRedirects();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -13885,6 +13999,12 @@ $sock.bind("/tmp/socket");</programlisting>
             <programlisting>HTTPClient::setMaxRedirects(<replaceable>max_redirects</replaceable>)</programlisting>
           </listitem>
         </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$httpclient.setMaxRedirects(0); # disable redirections</programlisting>
+          </listitem>
+        </varlistentry>
       </variablelist>
       <table>
         <title>Arguments for HTTPClient::setMaxRedirects()</title>
@@ -13937,6 +14057,12 @@ $sock.bind("/tmp/socket");</programlisting>
           <term>Usage</term>
           <listitem>
             <programlisting>HTTPClient::connect()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$httpclient.connect();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -14037,6 +14163,12 @@ $sock.bind("/tmp/socket");</programlisting>
             <programlisting>HTTPClient::disconnect()</programlisting>
           </listitem>
         </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$httpclient.disconnect();</programlisting>
+          </listitem>
+        </varlistentry>
       </variablelist>
       <table>
         <title>Arguments for HTTPClient::disconnect()</title>
@@ -14101,13 +14233,19 @@ $sock.bind("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Sends an HTTP GET request and returns the message body received.  In order to get the headers and the body, use the <link linkend="HTTPClient_send">HTTPClient::send() method</link> instead.  If necessary, a connection will be established via an implcit call to <link linkend="HTTPClient_connect">HTTPClient::connect()</link> before sending the message.</para>
+            <para>Sends an HTTP GET request and returns the message body received.  In order to get the headers and the body, use the <link linkend="HTTPClient_send">HTTPClient::send() method</link> instead.  If necessary, a connection will be established via an implicit call to <link linkend="HTTPClient_connect">HTTPClient::connect()</link> before sending the message.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Usage</term>
           <listitem>
             <programlisting>HTTPClient::get(<replaceable>path, [headers]</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$html = $httpclient.get("/path/file.html");</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -14226,13 +14364,19 @@ $sock.bind("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Sends an HTTP HEAD request and returns the headers received.  If necessary, a connection will be established via an implcit call to <link linkend="HTTPClient_connect">HTTPClient::connect()</link> before sending the message.</para>
+            <para>Sends an HTTP HEAD request and returns the headers received.  If necessary, a connection will be established via an implicit call to <link linkend="HTTPClient_connect">HTTPClient::connect()</link> before sending the message.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Usage</term>
           <listitem>
             <programlisting>HTTPClient::head(<replaceable>path, [headers]</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$response = $httpclient.head("/path");</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -14351,7 +14495,7 @@ $sock.bind("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Sends an HTTP POST request with a message body and returns the message body received as a response.  In order to get the headers and the body, use the <link linkend="HTTPClient_send">HTTPClient::send() method</link> instead.  If necessary, a connection will be established via an implcit call to <link linkend="HTTPClient_connect">HTTPClient::connect()</link> before sending the message.</para>
+            <para>Sends an HTTP POST request with a message body and returns the message body received as a response.  In order to get the headers and the body, use the <link linkend="HTTPClient_send">HTTPClient::send() method</link> instead.  If necessary, a connection will be established via an implicit call to <link linkend="HTTPClient_connect">HTTPClient::connect()</link> before sending the message.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -14489,13 +14633,19 @@ $sock.bind("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Sends an HTTP request with the specified method and optional message body and returns headers and optionally the body received as a response in a hash format.  If necessary, a connection will be established via an implcit call to <link linkend="HTTPClient_connect">HTTPClient::connect()</link> before sending the message.</para>
+            <para>Sends an HTTP request with the specified method and optional message body and returns headers and optionally the body received as a response in a hash format.  If necessary, a connection will be established via an implicit call to <link linkend="HTTPClient_connect">HTTPClient::connect()</link> before sending the message.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Usage</term>
           <listitem>
             <programlisting>HTTPClient::send(<replaceable>message, method, path, [headers], [get_body]</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$msg = $httpclient.send($body, "POST", "/path", ("Connection":"Keep-Alive"));</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -14539,7 +14689,7 @@ $sock.bind("/tmp/socket");</programlisting>
                 <para>String</para>
               </entry>
               <entry>
-                <para>The name of the HTTP method (<code>'GET', 'POST', 'HEAD', 'OPTIONS', 'PUT', 'DELETE', 'TRACE', or 'CONNECT'</code>).  This is case-sensitive, so use upper case as given in the previous list.</para>
+                <para>The name of the HTTP method (<code>'GET', 'POST', 'HEAD', 'OPTIONS', 'PUT', 'DELETE', 'TRACE', or 'CONNECT'</code>).</para>
               </entry>
             </row>
             <row>
@@ -14672,6 +14822,12 @@ $sock.bind("/tmp/socket");</programlisting>
             <programlisting>HTTPClient::setTimeout(<replaceable>timeout</replaceable>)</programlisting>
           </listitem>
         </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$httpclient.setTimeout(2m); # sets timeout to 2 minutes</programlisting>
+          </listitem>
+        </varlistentry>
       </variablelist>
       <table>
         <title>Arguments for HTTPClient::setTimeout()</title>
@@ -14747,6 +14903,12 @@ $sock.bind("/tmp/socket");</programlisting>
             <programlisting>HTTPClient::getTimeout()</programlisting>
           </listitem>
         </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$timeout = $httpclient.getTimeout();</programlisting>
+          </listitem>
+        </varlistentry>
       </variablelist>
       <table>
         <title>Arguments for HTTPClient::getTimeout()</title>
@@ -14818,6 +14980,12 @@ $sock.bind("/tmp/socket");</programlisting>
           <term>Usage</term>
           <listitem>
             <programlisting>HTTPClient::setHTTPVersion(<replaceable>version</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$httpclient.setHTTPVersion("1.1");</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -14922,6 +15090,12 @@ $sock.bind("/tmp/socket");</programlisting>
             <programlisting>HTTPClient::getHTTPVersion()</programlisting>
           </listitem>
         </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$version = $httpclient.getHTTPVersion();</programlisting>
+          </listitem>
+        </varlistentry>
       </variablelist>
       <table>
         <title>Arguments for HTTPClient::getHTTPVersion()</title>
@@ -14993,6 +15167,12 @@ $sock.bind("/tmp/socket");</programlisting>
           <term>Usage</term>
           <listitem>
             <programlisting>HTTPClient::setSecure(<replaceable>[secure]</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$httpclient.setSecure(True);</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -15070,6 +15250,12 @@ $sock.bind("/tmp/socket");</programlisting>
             <programlisting>HTTPClient::isSecure()</programlisting>
           </listitem>
         </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$bool = $httpclient.isSecure();</programlisting>
+          </listitem>
+        </varlistentry>
       </variablelist>
       <table>
         <title>Arguments for HTTPClient::isSecure()</title>
@@ -15141,6 +15327,12 @@ $sock.bind("/tmp/socket");</programlisting>
           <term>Usage</term>
           <listitem>
             <programlisting>HTTPClient::verifyPeerCertificate()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$str = $httpclient.verifyPeerCertificate();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -15216,6 +15408,12 @@ $sock.bind("/tmp/socket");</programlisting>
             <programlisting>HTTPClient::getSSLCipherName()</programlisting>
           </listitem>
         </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$str = $httpclient.getSSLCipherName();</programlisting>
+          </listitem>
+        </varlistentry>
       </variablelist>
       <table>
         <title>Arguments for HTTPClient::getSSLCipherName()</title>
@@ -15289,6 +15487,12 @@ $sock.bind("/tmp/socket");</programlisting>
             <programlisting>HTTPClient::getSSLCipherVersion()</programlisting>
           </listitem>
         </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$str = $httpclient.getSSLCipherVersion();</programlisting>
+          </listitem>
+        </varlistentry>
       </variablelist>
       <table>
         <title>Arguments for HTTPClient::getSSLCipherVersion()</title>
@@ -15360,6 +15564,12 @@ $sock.bind("/tmp/socket");</programlisting>
           <term>Usage</term>
           <listitem>
             <programlisting>HTTPClient::setEncoding(<replaceable>encoding</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$httpclient.setEncoding("ISO-8859-1");</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -15462,6 +15672,12 @@ $sock.bind("/tmp/socket");</programlisting>
           <term>Usage</term>
           <listitem>
             <programlisting>HTTPClient::getEncoding()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$str = $httpclient.getEncoding();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -15947,6 +16163,12 @@ $sock.bind("/tmp/socket");</programlisting>
             <programlisting>XmlRpcClient::call(<replaceable>method_name, [args...]</replaceable>)</programlisting>
           </listitem>
         </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$result = $xrc.call("method.name", $arg1, $arg2);</programlisting>
+          </listitem>
+        </varlistentry>
       </variablelist>
       <table>
         <title>Arguments for XmlRpcClient::call()</title>
@@ -16033,6 +16255,12 @@ $sock.bind("/tmp/socket");</programlisting>
           <term>Usage</term>
           <listitem>
             <programlisting>XmlRpcClient::callArgs(<replaceable>method_name, [arg_list]</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$result = $xrc.callArgs("method.name", $arg_list);</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -16530,7 +16758,13 @@ $sock.bind("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Usage</term>
           <listitem>
-            <programlisting>JsonRpcClient::call(<replaceable>method_name, [arg_list]</replaceable>)</programlisting>
+            <programlisting>JsonRpcClient::call(<replaceable>method_name, [arg1, arg2...</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$result = $jrc.call("method_name", $arg1, $arg2);</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -16619,6 +16853,12 @@ $sock.bind("/tmp/socket");</programlisting>
           <term>Usage</term>
           <listitem>
             <programlisting>JsonRpcClient::callArgs(<replaceable>method_name, [arg_list]</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$result = $jrc.callArgs("method_name", $arg_list);</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -16823,6 +17063,12 @@ $sock.bind("/tmp/socket");</programlisting>
           <term>Usage</term>
           <listitem>
             <programlisting><command>new</command> SSLPrivateKey(<replaceable>filename, [passphrase]</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$pkey = <command>new</command> SSLPrivateKey("/etc/keys/key.pem");</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -17048,13 +17294,19 @@ $sock.bind("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns the algorithm used for the private key.</para>
+            <para>Returns a string giving the algorithm used for the private key.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Usage</term>
           <listitem>
             <programlisting>SSLPrivateKey::getType()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$str = $pkey.getType();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -17121,13 +17373,19 @@ $sock.bind("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns the version of the private key.</para>
+            <para>Returns the version of the private key as an integer.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Usage</term>
           <listitem>
             <programlisting>SSLPrivateKey::getVersion()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$int = $pkey.getVersion();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -17203,6 +17461,12 @@ $sock.bind("/tmp/socket");</programlisting>
             <programlisting>SSLPrivateKey::getBitLength()</programlisting>
           </listitem>
         </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$int = $pkey.getBitLength();</programlisting>
+          </listitem>
+        </varlistentry>
       </variablelist>
       <table>
         <title>Arguments for SSLPrivateKey::getBitLength()</title>
@@ -17274,6 +17538,12 @@ $sock.bind("/tmp/socket");</programlisting>
           <term>Usage</term>
           <listitem>
             <programlisting>SSLPrivateKey::getInfo()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$hash = $pkey.getInfo();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -17582,6 +17852,12 @@ $sock.bind("/tmp/socket");</programlisting>
             <programlisting><command>new</command> SSLCertificate(<replaceable>filename</replaceable>)</programlisting>
           </listitem>
         </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$cert = <command>new</command> SSLCertificate("/etc/certs/cert.pem");</programlisting>
+          </listitem>
+        </varlistentry>
       </variablelist>
       <table>
         <title>Arguments for SSLCertificate::constructor()</title>
@@ -17801,6 +18077,12 @@ $sock.bind("/tmp/socket");</programlisting>
             <programlisting>SSLCertificate::getPEM()</programlisting>
           </listitem>
         </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$pem_str = $cert.getPEM();</programlisting>
+          </listitem>
+        </varlistentry>
       </variablelist>
       <table>
         <title>Arguments for SSLCertificate::getPEM()</title>
@@ -17865,13 +18147,19 @@ $sock.bind("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns the version of the certificate.</para>
+            <para>Returns the version of the certificate as an integer.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Usage</term>
           <listitem>
             <programlisting>SSLCertificate::getVersion()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$int = $cert.getVersion();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -17947,6 +18235,12 @@ $sock.bind("/tmp/socket");</programlisting>
             <programlisting>SSLCertificate::getSignatureType()</programlisting>
           </listitem>
         </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$str = $cert.getSignatureType();</programlisting>
+          </listitem>
+        </varlistentry>
       </variablelist>
       <table>
         <title>Arguments for SSLCertificate::getSignatureType()</title>
@@ -18018,6 +18312,12 @@ $sock.bind("/tmp/socket");</programlisting>
           <term>Usage</term>
           <listitem>
             <programlisting>SSLCertificate::getSignature()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$bin = $cert.getSignature();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -18093,6 +18393,12 @@ $sock.bind("/tmp/socket");</programlisting>
             <programlisting>SSLCertificate::getPublicKeyAlgorithm()</programlisting>
           </listitem>
         </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$str = $cert.getPublicKeyAlgorithm();</programlisting>
+          </listitem>
+        </varlistentry>
       </variablelist>
       <table>
         <title>Arguments for SSLCertificate::getPublicKeyAlgorithm()</title>
@@ -18164,6 +18470,12 @@ $sock.bind("/tmp/socket");</programlisting>
           <term>Usage</term>
           <listitem>
             <programlisting>SSLCertificate::getPublicKey()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$bin = $cert.getPublicKey();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -18239,6 +18551,12 @@ $sock.bind("/tmp/socket");</programlisting>
             <programlisting>SSLCertificate::getSubjectHash()</programlisting>
           </listitem>
         </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$hash = $cert.getSubjectHash();</programlisting>
+          </listitem>
+        </varlistentry>
       </variablelist>
       <table>
         <title>Arguments for SSLCertificate::getSubjectHash()</title>
@@ -18312,6 +18630,12 @@ $sock.bind("/tmp/socket");</programlisting>
             <programlisting>SSLCertificate::getIssuerHash()</programlisting>
           </listitem>
         </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$hash = $cert.getIssuerHash();</programlisting>
+          </listitem>
+        </varlistentry>
       </variablelist>
       <table>
         <title>Arguments for SSLCertificate::getIssuerHash()</title>
@@ -18382,7 +18706,13 @@ $sock.bind("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Usage</term>
           <listitem>
-            <programlisting>SSLCertificate::getSerialNumber()</programlisting>
+            <programlisting>SSLCertificate::getIssuerHash()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$hash = $cert.getIssuerHash();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -18458,6 +18788,12 @@ $sock.bind("/tmp/socket");</programlisting>
             <programlisting>SSLCertificate::getPurposeHash()</programlisting>
           </listitem>
         </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$hash = $cert.getPurposeHash();</programlisting>
+          </listitem>
+        </varlistentry>
       </variablelist>
       <table>
         <title>Arguments for SSLCertificate::getPurposeHash()</title>
@@ -18529,6 +18865,12 @@ $sock.bind("/tmp/socket");</programlisting>
           <term>Usage</term>
           <listitem>
             <programlisting>SSLCertificate::getNotBeforeDate()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$date = $cert.getNotBeforeDate();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -18604,6 +18946,12 @@ $sock.bind("/tmp/socket");</programlisting>
             <programlisting>SSLCertificate::getNotAfterDate()</programlisting>
           </listitem>
         </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$date = $cert.getNotAfterDate();</programlisting>
+          </listitem>
+        </varlistentry>
       </variablelist>
       <table>
         <title>Arguments for SSLCertificate::getNotAfterDate()</title>
@@ -18675,6 +19023,12 @@ $sock.bind("/tmp/socket");</programlisting>
           <term>Usage</term>
           <listitem>
             <programlisting>SSLCertificate::getInfo()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$hash = $cert.getInfo();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -19038,6 +19392,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <programlisting><command>new</command> Datasource(<replaceable>driver_name, [username], [password], [dbname], [charset_name], [hostname]</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$ds = <command>new</command> Datasource(DSPGSQL, "user", "pass", "database", "utf8", "localhost");</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
       
       <table>
@@ -19186,6 +19546,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <programlisting>Datasource::copy()</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$new_ds = $ds.copy();</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
       
       <table>
@@ -19241,6 +19607,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>Datasource::beginTransaction()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$ds.beginTransaction();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -19322,6 +19694,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <programlisting>Datasource::open()</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$ds.open();</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -19397,6 +19775,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <programlisting>Datasource::close()</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$ds.close();</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -19453,6 +19837,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>Datasource::commit()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$ds.commit();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -19534,6 +19924,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <programlisting>Datasource::rollback()</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$ds.rollback();</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -19612,6 +20008,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <programlisting>Datasource::setAutoCommit(<replaceable>status</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$ds.setAutoCommit(False);</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -19671,6 +20073,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>Datasource::exec(<replaceable>sql_command, [arg1, ...]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$rows = $ds.exec("insert into example_table value (%v, %v, %v)", 100, now(), $ENV.USER);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -19757,6 +20165,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <programlisting>Datasource::vexec(<replaceable>sql_command, [list]</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$rows = $ds.vexec("insert into example_table value (%v, %v, %v)", $arg_list);</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -19841,6 +20255,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <programlisting>Datasource::select(<replaceable>select_statement, [arg1, ...]</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$query = $ds.select("select * from example_table where id = %v", 100);</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -19919,6 +20339,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>Datasource::vselect(<replaceable>select_statement, [list]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$query = $ds.vselect("select * from example_table where id = %v and name = %v", $arg_list);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -20001,6 +20427,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <programlisting>Datasource::selectRows(<replaceable>select_statement, [arg1, ...]</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$list = $ds.selectRows("select * from example_table");</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -20079,6 +20511,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>Datasource::vselectRows(<replaceable>select_statement, [list]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$list = $ds.vselectRows("select * from example_table where id = %v and name = %v", $arg_list);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -20161,6 +20599,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <programlisting>Datasource::setTransactionLockTimeout(<replaceable>timeout_ms</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$ds.setTransactionLockTimeout(5m); # transaction lock timeout set to 5 minutes</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -20216,6 +20660,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>Datasource::getTransactionLockTimeout()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$int = $ds.getTransactionLockTimeout();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -20276,6 +20726,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <programlisting>Datasource::setUserName(<replaceable>username</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$ds.setUserName("user");</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -20333,6 +20789,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <programlisting>Datasource::getUserName()</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$str = $ds.getUserName();</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -20388,7 +20850,13 @@ $sock.bind("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
-	    <programlisting>Datasource::setPassword(<replaceable>password</replaceable>)</programlisting>
+	    <programlisting>Datasource::setPassword()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$ds.setPassword("pass");</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -20446,6 +20914,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>Datasource::getPassword()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$str = $ds.getPassword();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -20506,6 +20980,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <programlisting>Datasource::setDBName(<replaceable>dbname</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$ds.setDBName("database");</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -20563,6 +21043,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <programlisting>Datasource::getDBName()</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$str = $ds.getDBName();</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -20612,13 +21098,19 @@ $sock.bind("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Sets the database character set encoding to use for the connection.  Invalid character set encoding names will cause an exception to be thrown when the connection is opened.</para>
+	    <para>Sets the database-specific character set encoding to use for the connection.  Invalid character set encoding names will cause an exception to be thrown when the connection is opened.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
-	    <programlisting>Datasource::setDBCharset(<replaceable>db_encoding_name</replaceable>)</programlisting>
+	    <programlisting>Datasource::setDBCharset(<replaceable>encoding</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$ds.setDBCharset("ALU32UTF8"); # Oracle UTF-8 encoding equivalent</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -20669,13 +21161,19 @@ $sock.bind("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Sets the hostname to use for the connection (for DBI drivers that support this parameter. such as the <link linkend="mysql_Module">MySQL Module</link>).  Invalid hostnames will cause an exception to be thrown when the connection is opened.</para>
+	    <para>Sets the hostname to use for the connection (for DBI drivers that support this parameter, such as the <link linkend="mysql_Module">mysql</link> and <link linkend="pgsql_Module">pgsql</link>, for example).  Invalid hostnames will cause an exception to be thrown when the connection is opened.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>Datasource::setHostName(<replaceable>hostname</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$ds.setHostName("localhost");</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -20735,6 +21233,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <programlisting>Datasource::getDBCharset()</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$str = $ds.getDBCharset();</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -20792,6 +21296,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <programlisting>Datasource::getOSCharset()</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$str = $ds.getOSCharset();</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -20847,6 +21357,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>Datasource::getHostName()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$str = $ds.getHostName();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -20953,13 +21469,19 @@ $sock.bind("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Creates the AutoGate object based on the Gate argument passed and immediately calls <link linkend="Qore::Thread::Gate::enter">Gate::enter()</link>.</para>
+	    <para>Creates the AutoGate object based on the <link linkend="Qore::Thread::Gate_Class">Gate</link> argument passed and immediately calls <link linkend="Qore::Thread::Gate::enter">Gate::enter()</link>.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
-	    <programlisting><command>new</command> AutoGate(<replaceable>$gate</replaceable>)</programlisting>
+	    <programlisting><command>new</command> AutoGate(<replaceable>gate_object</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>my $gate = <command>new</command> AutoGate($gate);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -20976,7 +21498,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><replaceable>$gate</replaceable></para></entry>
+	      <entry><para><replaceable>gate_object</replaceable></para></entry>
 	      <entry><para><link linkend="Qore::Thread::Gate_Class">Gate</link></para></entry>
 	      <entry><para>The Gate object to enter for the lifetime of the AutoGate object.</para></entry>
 	    </row>
@@ -21168,7 +21690,13 @@ $sock.bind("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
-	    <programlisting><command>new</command> AutoLock(<replaceable>$mutex</replaceable>)</programlisting>
+	    <programlisting><command>new</command> AutoLock(<replaceable>mutex_object</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>my $al = <command>new</command> AutoLock($mutex);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -21377,7 +21905,13 @@ $sock.bind("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
-	    <programlisting><command>new</command> AutoReadLock(<replaceable>$rwlock</replaceable>)</programlisting>
+	    <programlisting><command>new</command> AutoReadLock(<replaceable>rwlock_object</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>my $arl = <command>new</command> AutoReadLock($rwlock);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -21586,7 +22120,13 @@ $sock.bind("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
-	    <programlisting><command>new</command> AutoWriteLock(<replaceable>$rwlock</replaceable>)</programlisting>
+	    <programlisting><command>new</command> AutoWriteLock(<replaceable>rwlock_object</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>my $awl = <command>new</command> AutoWriteLock($rwlock);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -21801,6 +22341,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <programlisting><command>new</command> Condition()</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$cond = <command>new</command> Condition();</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -21884,6 +22430,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <programlisting>Condition::copy()</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$new_cond = $cond.copy();</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
       
       <table>
@@ -21941,6 +22493,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>Condition::signal()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$cond.signal();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -22018,6 +22576,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <programlisting>Condition::broadcast()</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$cond.broadcast();</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -22092,6 +22656,16 @@ $sock.bind("/tmp/socket");</programlisting>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>Condition::wait(<replaceable>mutex, [timeout_ms]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$mutex.lock();
+while ($num > 0)
+    $cond.wait($mutex);
+# ... do something
+$mutex.unlock();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -22172,6 +22746,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>Condition::wait_count()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$num_threads = $cond.wait_count();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -22294,6 +22874,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <programlisting><command>new</command> Counter()</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$counter = <command>new</command> Counter();</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -22396,6 +22982,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <programlisting>Counter::copy()</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$new_counter = $counter.copy();</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
       
       <table>
@@ -22453,6 +23045,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <programlisting>Counter::inc()</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$counter.inc();</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -22508,6 +23106,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>Counter::dec()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$counter.dec();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -22583,6 +23187,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>Counter::waitForZero(<replaceable>[timeout_ms]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$counter.waitForZero();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -22661,6 +23271,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <programlisting>Counter::getCount()</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$count = $counter.getCount();</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -22716,6 +23332,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>Counter::getWaiting()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$threads = $counter.getWaiting();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -22838,6 +23460,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <programlisting><command>new</command> Queue()</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$queue = <command>new</command> Queue();</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -22940,6 +23568,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <programlisting>Queue::copy()</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$new_queue = $queue.copy();</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
       
       <table>
@@ -22995,6 +23629,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>Queue::get(<replaceable>[timeout_ms]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$data = $queue.get();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -23076,6 +23716,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <programlisting>Queue::pop(<replaceable>[timeout_ms]</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$data = $queue.pop();</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -23155,6 +23801,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <programlisting>Queue::push(<replaceable>value</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$queue.push($value);</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -23212,6 +23864,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <programlisting>Queue::size()</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$size = $queue.size();</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -23267,6 +23925,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>Queue::getWaiting()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$num = $queue.getWaiting();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -23428,6 +24092,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <programlisting><command>new</command> RWLock()</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$rwl = <command>new</command> RWLock();</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -23530,6 +24200,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <programlisting>RWLock::copy()</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$new_rwl = $rwl.copy();</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
       
       <table>
@@ -23585,6 +24261,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>RWLock::readLock(<replaceable>[timeout_ms]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$rwl.readLock();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -23666,6 +24348,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <programlisting>RWLock::readUnlock()</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$rwl.readUnlock();</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -23740,6 +24428,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>RWLock::writeLock(<replaceable>[timeout_ms]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$rwl.writeLock();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -23821,6 +24515,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <programlisting>RWLock::writeUnlock()</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$rwl.writeUnlock();</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -23887,13 +24587,19 @@ $sock.bind("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Acquires the read lock only if it can be acquired immediately.</para>
+	    <para>Acquires the read lock only if it can be acquired immediately, returns 0 for success, -1 if it would block.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>RWLock::tryReadLock()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$bool = $rwl.tryReadLock();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -23944,13 +24650,19 @@ $sock.bind("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Acquires the write lock only if it can be acquired immediately.</para>
+	    <para>Acquires the write lock only if it can be acquired immediately, returns 0 for success, -1 if it would block.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>RWLock::tryWriteLock()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$bool = $rwl.tryWriteLock();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -24010,6 +24722,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <programlisting>RWLock::numReaders()</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$num = $rwl.numReaders();</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -24067,6 +24785,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <programlisting>RWLock::getReadWaiting()</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$num = $rwl.getReadWaiting();</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -24122,6 +24846,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>RWLock::getWriteWaiting()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$num = $rwl.getWriteWaiting();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -24247,6 +24977,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <programlisting><command>new</command> Mutex()</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$mutex = <command>new</command> Mutex();</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -24349,6 +25085,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <programlisting>Mutex::copy()</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$new_mutex = $mutex.copy();</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
       
       <table>
@@ -24405,6 +25147,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>Mutex::lock(<replaceable>[timeout_ms]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$mutex.lock();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -24486,6 +25234,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <programlisting>Mutex::unlock()</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$mutex.unlock();</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -24559,6 +25313,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>Mutex::trylock()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$bool = $mutex.trylock();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -24673,6 +25433,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <programlisting><command>new</command> Sequence(<replaceable>[start]</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$seq = <command>new</command> Sequence();</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -24755,6 +25521,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <programlisting>Sequence::copy()</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$new_seq = $seq.copy();</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
       
       <table>
@@ -24812,6 +25584,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <programlisting>Sequence::next()</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$seq.next();</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -24867,6 +25645,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>Sequence::getCurrent()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$seq.getCurrent();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -25003,6 +25787,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <programlisting><command>new</command> Gate()</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$gate = <command>new</command> Gate();</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -25105,6 +25895,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <programlisting>Gate::copy()</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$new_gate = $gate.copy();</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
       
       <table>
@@ -25159,6 +25955,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>Gate::enter(<replaceable>[timeout_ms]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$gate.enter();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -25239,6 +26041,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <programlisting>Gate::tryEnter(<replaceable>[timeout_ms]</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$gate.tryEnter();</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -25293,6 +26101,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>Gate::exit()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$gate.exit();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -25370,6 +26184,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <programlisting>Gate::numInside()</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$num = $gate.numInside();</programlisting>
+	  </listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -25424,6 +26244,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	  <term>Usage</term>
 	  <listitem>
 	    <programlisting>Gate::numWaiting()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$num = $gate.numWaiting();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
