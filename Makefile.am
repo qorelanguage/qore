@@ -236,6 +236,7 @@ noinst_HEADERS = \
 	modules/sybase/fetch_row_into_buffers.h \
 	modules/sybase/output_buffers_to_QoreHash.h \
 	modules/sybase/buffer_to_QoreNode.h \
+	modules/sybase/read_output.h \
 	command-line.h \
 	include/qore/Qore.h 
 
