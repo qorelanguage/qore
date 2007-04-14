@@ -4474,7 +4474,7 @@ $a || $b
 
     <para>Using this library, Qore implements regular expression pattern matching using the same syntax and semantics as Perl 5.</para>
 
-    The following is a list of operators based on regular expressions (or similar to regular expressions in the case of the ><link linkend='Transliteration_Operator'>transliteration operator</link>).
+    <para>The following is a list of operators based on regular expressions (or similar to regular expressions in the case of the <link linkend='Transliteration_Operator'>transliteration operator</link>).</para>
 
     <table id="Regular_Expression_Operators">
       <title>Regular Expression Operators</title>
@@ -5159,7 +5159,7 @@ $var[1].count++;
       <listitem>
 	<para>A single variable can be specified in the <command>catch</command> block to be instantiated with the exception hash, giving information about the exception that has occurred.  For detailed information about the exception hash, see <link linkend="Exception_Handling">Exception Handling</link>.</para>
 
-      <para>If no variable is given in the <command>catch</command> declaration, it will not be possible to access any information about the exception in the <command>catch</command> block.  However, the <command>rethrow</command> statement (see <link linkend="rethrow_Statements">rethrow</link>) statements can be used to rethrow exceptions at any time, but only in a catch block.</para>      </listitem>
+      <para>If no variable is given in the <command>catch</command> declaration, it will not be possible to access any information about the exception in the <command>catch</command> block.  However, the <link linkend="rethrow_Statements"><command>rethrow</command></link> statement can be used to rethrow exceptions at any time in a catch block.</para></listitem>
     </varlistentry>
   </variablelist>
 </sect2>

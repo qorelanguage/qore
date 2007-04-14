@@ -19405,7 +19405,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$ds = <command>new</command> Datasource(DSPGSQL, "user", "pass", "database", "utf8", "localhost");</programlisting>
+	    <programlisting>$db = <command>new</command> Datasource(DSPGSQL, "user", "pass", "database", "utf8", "localhost");</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -19515,7 +19515,7 @@ $sock.bind("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Example</term>
           <listitem>
-	    <programlisting><command>delete</command> $ds;</programlisting>
+	    <programlisting><command>delete</command> $db;</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -19559,7 +19559,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$new_ds = $ds.copy();</programlisting>
+	    <programlisting>$new_ds = $db.copy();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -19622,7 +19622,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$ds.beginTransaction();</programlisting>
+	    <programlisting>$db.beginTransaction();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -19707,7 +19707,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$ds.open();</programlisting>
+	    <programlisting>$db.open();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -19788,7 +19788,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$ds.close();</programlisting>
+	    <programlisting>$db.close();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -19852,7 +19852,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$ds.commit();</programlisting>
+	    <programlisting>$db.commit();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -19937,7 +19937,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$ds.rollback();</programlisting>
+	    <programlisting>$db.rollback();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -20021,7 +20021,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$ds.setAutoCommit(False);</programlisting>
+	    <programlisting>$db.setAutoCommit(False);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -20088,7 +20088,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$rows = $ds.exec("insert into example_table value (%d, %v, %v)", 100, now(), $ENV.USER);</programlisting>
+	    <programlisting>$rows = $db.exec("insert into example_table value (%d, %v, %v)", 100, now(), $ENV.USER);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -20178,7 +20178,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$rows = $ds.vexec("insert into example_table value (%v, %v, %v)", $arg_list);</programlisting>
+	    <programlisting>$rows = $db.vexec("insert into example_table value (%v, %v, %v)", $arg_list);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -20268,7 +20268,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$query = $ds.select("select * from example_table where id = %v", 100);</programlisting>
+	    <programlisting>$query = $db.select("select * from example_table where id = %v", 100);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -20354,7 +20354,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$query = $ds.vselect("select * from example_table where id = %v and name = %v", $arg_list);</programlisting>
+	    <programlisting>$query = $db.vselect("select * from example_table where id = %v and name = %v", $arg_list);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -20440,7 +20440,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$list = $ds.selectRows("select * from example_table");</programlisting>
+	    <programlisting>$list = $db.selectRows("select * from example_table");</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -20526,7 +20526,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$list = $ds.vselectRows("select * from example_table where id = %v and name = %v", $arg_list);</programlisting>
+	    <programlisting>$list = $db.vselectRows("select * from example_table where id = %v and name = %v", $arg_list);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -20612,7 +20612,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$ds.setTransactionLockTimeout(5m); # transaction lock timeout set to 5 minutes</programlisting>
+	    <programlisting>$db.setTransactionLockTimeout(5m); # transaction lock timeout set to 5 minutes</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -20675,7 +20675,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$int = $ds.getTransactionLockTimeout();</programlisting>
+	    <programlisting>$int = $db.getTransactionLockTimeout();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -20739,7 +20739,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$ds.setUserName("user");</programlisting>
+	    <programlisting>$db.setUserName("user");</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -20802,7 +20802,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$str = $ds.getUserName();</programlisting>
+	    <programlisting>$str = $db.getUserName();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -20866,7 +20866,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$ds.setPassword("pass");</programlisting>
+	    <programlisting>$db.setPassword("pass");</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -20929,7 +20929,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$str = $ds.getPassword();</programlisting>
+	    <programlisting>$str = $db.getPassword();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -20993,7 +20993,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$ds.setDBName("database");</programlisting>
+	    <programlisting>$db.setDBName("database");</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -21056,7 +21056,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$str = $ds.getDBName();</programlisting>
+	    <programlisting>$str = $db.getDBName();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -21120,7 +21120,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$ds.setDBCharset("ALU32UTF8"); # Oracle UTF-8 encoding equivalent</programlisting>
+	    <programlisting>$db.setDBCharset("ALU32UTF8"); # Oracle UTF-8 encoding equivalent</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -21183,7 +21183,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$ds.setHostName("localhost");</programlisting>
+	    <programlisting>$db.setHostName("localhost");</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -21246,7 +21246,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$str = $ds.getDBCharset();</programlisting>
+	    <programlisting>$str = $db.getDBCharset();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -21309,7 +21309,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$str = $ds.getOSCharset();</programlisting>
+	    <programlisting>$str = $db.getOSCharset();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -21372,7 +21372,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$str = $ds.getHostName();</programlisting>
+	    <programlisting>$str = $db.getHostName();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -21435,7 +21435,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$data = $ds.getServerVersion();</programlisting>
+	    <programlisting>$data = $db.getServerVersion();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -21498,7 +21498,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$data = $ds.getClientVersion();</programlisting>
+	    <programlisting>$data = $db.getClientVersion();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -25787,7 +25787,7 @@ $mutex.unlock();</programlisting>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$seq.getCurrent();</programlisting>
+	    <programlisting>$num = $seq.getCurrent();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
