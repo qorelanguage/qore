@@ -533,7 +533,7 @@ inline int MyBindGroup::parse(class List *args, class ExceptionSink *xsink)
    {
       if (!quote && (*p) == '%') // found value marker
       {
-	 class QoreNode *v = args->retrieve_entry(index++);
+	 class QoreNode *v = args ? args->retrieve_entry(index++) : NULL;
 	 int offset = p - str->getBuffer();
 
 	 p++;
