@@ -673,7 +673,7 @@ void OraBindGroup::parseQuery(class List *args, class ExceptionSink *xsink)
       if (!quote && (*p) == '%') // found value marker
       {
 	 int offset = p - str->getBuffer();
-	 class QoreNode *v = args->retrieve_entry(index++);
+	 class QoreNode *v = args ? args->retrieve_entry(index++) : NULL;
 
 	 p++;
 	 if ((*p) == 'd')
