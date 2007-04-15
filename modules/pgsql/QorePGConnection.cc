@@ -1281,7 +1281,7 @@ int QorePGResult::parse(class QoreString *str, class List *args, class Exception
          int offset = p - str->getBuffer();
 
          p++;
-         class QoreNode *v = args->retrieve_entry(index++);
+         class QoreNode *v = args ? args->retrieve_entry(index++) : NULL;
 	 if ((*p) == 'd')
 	 {
 	    // add integer value or NULL
