@@ -176,6 +176,8 @@ finish:
 
 #ifdef DEBUG
 #  include "tests/read_output_simple_tests.cc"
+#  include "tests/read_output_image_tests.cc"
+#  include "tests/read_output_text_tests.cc"
 #endif
 
 // EOF
