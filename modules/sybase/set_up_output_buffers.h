@@ -58,6 +58,7 @@ private:
   row_output_buffers& operator=(const row_output_buffers&); // not implemented
 
 public:
+  row_output_buffers() {}
   ~row_output_buffers();
 
   std::vector<output_value_buffer*> m_buffers;

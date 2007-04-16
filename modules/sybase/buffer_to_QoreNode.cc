@@ -34,7 +34,7 @@
 
 #include <assert.h>
 #include <memory>
-#include <malloc.h>
+#include <stdlib.h>
 
 #include "buffer_to_QoreNode.h"
 #include "command.h"
