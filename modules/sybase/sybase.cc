@@ -41,10 +41,9 @@
 
 #include "sybase.h"
 #include "transactions.h"
-
-#ifdef DEBUG
-#  define private public
-#endif
+#include "connection.h"
+#include "encoding_helpers.h"
+#include "executor.h"
 
 #ifndef QORE_MONOLITHIC
 #ifdef SYBASE
@@ -107,13 +106,50 @@ QoreNode* runRecentSybaseTests(QoreNode* params, ExceptionSink* xsink)
 }
 #endif
 
-
+//------------------------------------------------------------------------------
+// based on Postgres module
+static void set_encoding(Datasource* ds, ExceptionSink* xsink)
+{
+  if (ds->getDBEncoding()) {
+    ds->setQoreEncoding(name_to_QoreEncoding(ds->getDBEncoding()));
+  } else  {
+    char *enc = (char*)QoreEncoding_to_SybaseName(QCS_DEFAULT);
+    if (!enc) {
+      xsink->raiseException("DBI:SYBASE:UNKNOWN-CHARACTER-SET", "cannot find the Sybase character encoding equivalent for '%s'", QCS_DEFAULT->getCode());
+      return;
+    }
+    ds->setDBEncoding(enc);
+    ds->setQoreEncoding(QCS_DEFAULT);
+  }
+}
 
 //------------------------------------------------------------------------------
 static int sybase_open(Datasource *ds, ExceptionSink *xsink)
 {
   tracein("sybase_open()");
-  // TBD
+
+  if (!ds->getUsername()) {
+    xsink->raiseException("DATASOURCE-MISSING-USERNAME", "Datasource has an empty username parameter");
+    traceout("oracle_open()");
+    return -1;
+  }
+  if (!ds->getDBName()) {
+    xsink->raiseException("DATASOURCE-MISSING-DBNAME", "Datasource has an empty dbname parameter");
+    traceout("oracle_open()");
+    return -1;
+  }
+  set_encoding(ds, xsink);
+  if (xsink->isException()) {
+    return -1;
+  }
+
+  std::auto_ptr<connection> sc(new connection);
+  sc->init(ds->getUsername(), ds->getPassword() ? ds->getPassword() : "", ds->getDBName(), xsink);
+  if (xsink->isException()) {
+    return -1;
+  }
+
+  ds->setPrivateData(sc.release());
   traceout("sybase_open()");
   return 0;
 }
@@ -121,29 +157,32 @@ static int sybase_open(Datasource *ds, ExceptionSink *xsink)
 //------------------------------------------------------------------------------
 static int sybase_close(Datasource *ds)
 {
-  // TBD
+  connection* sc = (connection*)ds->getPrivateData();
+  ds->setPrivateData(0);
+  delete sc;
+
   return 0;
 }
 
 //------------------------------------------------------------------------------
 static QoreNode* sybase_select(Datasource *ds, QoreString *qstr, List *args, ExceptionSink *xsink)
 {
-  // TBD
-  return 0;
+  connection* sc = (connection*)ds->getPrivateData();
+  return execute_select(*sc, qstr, args, xsink);
 }
 
 //------------------------------------------------------------------------------
 static QoreNode* sybase_select_rows(Datasource *ds, QoreString *qstr, List *args, ExceptionSink *xsink)
 {
-  // TBD
-  return 0;
+  connection* sc = (connection*)ds->getPrivateData();
+  return execute_select_rows(*sc, qstr, args, xsink);
 }
 
 //------------------------------------------------------------------------------
 static QoreNode* sybase_exec(Datasource *ds, QoreString *qstr, List *args, ExceptionSink *xsink)
 {
-  // TBD
-  return 0;
+  connection* sc = (connection*)ds->getPrivateData();
+  return execute(*sc, qstr, args, xsink);
 }
 
 //------------------------------------------------------------------------------
