@@ -38,28 +38,43 @@
 #include "initiate_language_command.h"
 #include "send_command.h"
 #include "read_output.h"
+#include "query_processing.h"
 
 //------------------------------------------------------------------------------
 QoreNode* execute(connection& conn, QoreString* cmd, List* parameters, ExceptionSink* xsink)
 {
-/*
-  TempEncodingHelper query(cmd, get_default_Sybase_encoding(conn, xsink), xsink);
+  std::string enc_s = get_default_Sybase_encoding(conn, xsink);
+  QoreEncoding* enc = name_to_QoreEncoding(enc_s.c_str());
   if (xsink->isException()) {
     return 0;
   }
-*/
+  TempEncodingHelper query(cmd, enc, xsink);
+  if (xsink->isException()) {
+    return 0;
+  }
+
   // TBD
+  return 0;
 }
 
 //------------------------------------------------------------------------------
 QoreNode* execute_select(connection& conn, QoreString* cmd, List* parameters, ExceptionSink* xsink)
 {
-/*
-  TempEncodingHelper query(cmd, get_default_Sybase_encoding(conn, xsink), xsink);
+  std::string enc_s = get_default_Sybase_encoding(conn, xsink);
+  QoreEncoding* enc = name_to_QoreEncoding(enc_s.c_str());
   if (xsink->isException()) {
     return 0;
   }
-*/
+  TempEncodingHelper query(cmd, enc, xsink);
+  if (xsink->isException()) {
+    return 0;
+  }
+  if (is_query_procedure_call(query->getBuffer())) {
+    assert(false); // procedure returns status code, not rows
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "'select rows' cannot be used for procedure calls");
+    return 0;
+  }
+
   // TBD
   return 0;
 }
@@ -67,16 +82,25 @@ QoreNode* execute_select(connection& conn, QoreString* cmd, List* parameters, Ex
 //------------------------------------------------------------------------------
 QoreNode* execute_select_rows(connection& conn, QoreString* cmd, List* parameters, ExceptionSink* xsink)
 {
-/*
-  TempEncodingHelper query(cmd, get_default_Sybase_encoding(conn, xsink), xsink);
+  std::string enc_s = get_default_Sybase_encoding(conn, xsink);
+  QoreEncoding* enc = name_to_QoreEncoding(enc_s.c_str());
   if (xsink->isException()) {
     return 0;
   }
-*/
+  TempEncodingHelper query(cmd, enc, xsink);
+  if (xsink->isException()) {
+    return 0;
+  }
+  if (is_query_procedure_call(query->getBuffer())) {
+    assert(false); // procedure returns status code, not rows
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "'select rows' cannot be used for procedure calls");
+    return 0;
+  }
+
+
   // TBD
   return 0;
 }
 
 // EOF
-
 
