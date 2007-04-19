@@ -239,6 +239,7 @@ noinst_HEADERS = \
 	modules/sybase/read_output.h \
 	modules/sybase/arguments.h \
 	modules/sybase/executor.h \
+	modules/sybase/set_parameter.h \
 	command-line.h \
 	include/qore/Qore.h 
 
