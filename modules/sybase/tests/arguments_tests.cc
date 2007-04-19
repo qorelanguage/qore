@@ -201,7 +201,7 @@ TEST()
 {
   ExceptionSink xsink;
   std::vector<processed_procedure_call_t::parameter_t> arg_types;
-  arg_types.push_back(std::make_pair(false, "s"));
+  arg_types.push_back(std::make_pair(false, std::string("s")));
   List* args = new List;
   args->push(new QoreNode(false));
   args->push(new QoreNode((int64)CS_BIT_TYPE));
@@ -215,7 +215,7 @@ TEST()
 {
   ExceptionSink xsink;
   std::vector<processed_procedure_call_t::parameter_t> arg_types;
-  arg_types.push_back(std::make_pair(false, "d"));
+  arg_types.push_back(std::make_pair(false, std::string("d")));
   List* args = new List;
   args->push(new QoreNode(false)); // error
   args->push(new QoreNode((int64)CS_BIT_TYPE));
@@ -228,11 +228,11 @@ TEST()
 {
   ExceptionSink xsink;
   std::vector<processed_procedure_call_t::parameter_t> arg_types;
-  arg_types.push_back(std::make_pair(false, "s"));
-  arg_types.push_back(std::make_pair(true, "placeholder1"));
-  arg_types.push_back(std::make_pair(true, "placeholder2"));
-  arg_types.push_back(std::make_pair(false, "d"));
-  arg_types.push_back(std::make_pair(false, "s"));
+  arg_types.push_back(std::make_pair(false, std::string("s")));
+  arg_types.push_back(std::make_pair(true, std::string("placeholder1")));
+  arg_types.push_back(std::make_pair(true, std::string("placeholder2")));
+  arg_types.push_back(std::make_pair(false, std::string("d")));
+  arg_types.push_back(std::make_pair(false, std::string("s")));
 
 
   List* args = new List;

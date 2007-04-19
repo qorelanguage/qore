@@ -175,10 +175,10 @@ processed_procedure_call_t process_procedure_call(const char* rpc_text, Exceptio
     if (*s == '%') { // %v or %d
       ++s;
       if (*s == 'v') {
-        result.m_parameters.push_back(std::make_pair(false, "v"));
+        result.m_parameters.push_back(std::make_pair(false, std::string("v")));
       } else 
       if (*s == 'd') {
-        result.m_parameters.push_back(std::make_pair(false, "d"));
+        result.m_parameters.push_back(std::make_pair(false, std::string("d")));
       } else {
         xsink->raiseException("DBI-EXEC-EXCEPTION", "%%v or %%d expected for an input parameter");
         return processed_procedure_call_t();
