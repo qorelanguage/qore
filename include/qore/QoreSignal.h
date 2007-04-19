@@ -39,7 +39,7 @@
 #elif defined _NSIGS
 #define QORE_SIGNAL_MAX _NSIGS
 #else
-#error don't know maximum signal number on this platform
+#error do not know maximum signal number on this platform
 #endif
 #endif
 
