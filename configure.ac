@@ -1105,6 +1105,10 @@ if test "$with_oracle" = "yes"; then
 #include <oci.h>
          ]],[[
         ]])], with_oracle=yes, AC_MSG_ERROR(file 'oci.h' not found in '$ORACLE_INCLUDES'))
+   AC_CHECK_FUNC([OCIClientVersion], [have_ociclientversion=yes], [have_ociclientversion=no])
+   if test "$have_ociclientversion" = "yes"; then
+      AC_DEFINE(HAVE_OCICLIENTVERSION, 1, [define if OCIClientVersion is available])      
+   fi
    CXXFLAGS="$SAVE_CXXFLAGS"
    LDFLAGS="$SAVE_LDFLAGS"
 fi

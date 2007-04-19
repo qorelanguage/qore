@@ -1333,6 +1333,7 @@ static class QoreNode *oracle_get_server_version(class Datasource *ds, class Exc
    return new QoreNode(version_buf);   
 }
 
+#ifdef HAVE_OCICLIENTVERSION
 static class QoreNode *oracle_get_client_version()
 {
    sword major, minor, update, patch, port_update;
@@ -1346,6 +1347,7 @@ static class QoreNode *oracle_get_client_version()
    h->setKeyValue("port_update", new QoreNode((int64)port_update), NULL);
    return new QoreNode(h);
 }
+#endif
 
 class QoreString *oracle_module_init()
 {
@@ -1362,7 +1364,9 @@ class QoreString *oracle_module_init()
    methods.add(QDBI_METHOD_ROLLBACK, oracle_rollback);
    methods.add(QDBI_METHOD_AUTO_COMMIT, oracle_commit);
    methods.add(QDBI_METHOD_GET_SERVER_VERSION, oracle_get_server_version);
+#ifdef HAVE_OCICLIENTVERSION
    methods.add(QDBI_METHOD_GET_CLIENT_VERSION, oracle_get_client_version);
+#endif
    
    DBID_ORACLE = DBI.registerDriver("oracle", methods, DBI_ORACLE_CAPS);
 

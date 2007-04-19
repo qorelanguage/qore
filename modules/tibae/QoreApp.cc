@@ -30,7 +30,6 @@
 #include <qore/charset.h>
 #include <qore/DateTime.h>
 #include <qore/Restrictions.h>
-#include <qore/Gate.h>
 #include <qore/List.h>
 
 #include <memory>
