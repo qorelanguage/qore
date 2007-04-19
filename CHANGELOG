@@ -1,3 +1,8 @@
+2006.04.19: David Nichols
+	* fixed some oracle and tibae compile bugs
+	* use umem on Solaris for memory allocation if available
+	* fixed some sybase/mssql compile bugs on Solaris
+
 2006.04.13: David Nichols
 	* added new DBI methods: get_server_version and get_client_version: both
 	  functions are optional and return driver-specific version information

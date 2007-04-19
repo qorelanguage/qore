@@ -1251,9 +1251,9 @@ check_freetds()
        dir="$1"
     fi
 
-    if test -f "$dir/include/tds.h" -a -f "$dir/include/ctpublic.h"; then
+    if test -f "$dir/include/tds_sysdep_public.h" -a -f "$dir/include/ctpublic.h"; then
         with_freetds_includes=$dir/include
-    elif test -f "$dir/include/freetds/tds.h" -a -f "$dir/include/freetds/ctpublic.h"; then
+    elif test -f "$dir/include/freetds/tds_sysdep_public.h" -a -f "$dir/include/freetds/ctpublic.h"; then
         with_freetds_includes=$dir/include/freetds
     else
 	return
@@ -1740,6 +1740,13 @@ AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
 AC_CHECK_HEADERS([fcntl.h inttypes.h netdb.h netinet/in.h stddef.h stdlib.h string.h strings.h sys/socket.h sys/time.h unistd.h])
 
+# check for umem.h
+AC_CHECK_HEADER([umem.h], have_umem_h=yes, have_umem_h=no)
+if test "$have_umem_h" = "yes"; then
+   AC_DEFINE(HAVE_UMEM_H, 1, [define if umem.h is available])
+   OTHER_LIBS="$OTHER_LIBS -lumem"
+fi
+
 # Checks for typedefs, structures, and compiler characteristics.
 AC_HEADER_STDBOOL
 AC_C_CONST
@@ -1920,6 +1927,8 @@ fi
 if test "$GXX" = "yes"; then
    CXXFLAGS="$CXXFLAGS -Wall"  # gcc
 fi
+
+AC_SUBST(OTHER_LIBS)
 
 # set flag for monolithic builds if necessary
 if test "$enable_shared" = "no" -o "$enable_builtin_modules" = "yes"; then

@@ -52,6 +52,11 @@
 #define _Q_MAKE_STRING(x) #x
 #define MAKE_STRING_FROM_SYMBOL(x) _Q_MAKE_STRING(x)
 
+// use umem for memory allocation if available
+#ifdef HAVE_UMEM_H
+#include <umem.h>
+#endif
+
 // functor template for deleting pointers
 template <typename T> struct free_ptr : std::unary_function <T*, void>
 {
