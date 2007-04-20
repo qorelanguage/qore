@@ -1301,13 +1301,13 @@ int QorePGResult::parse(class QoreString *str, class List *args, class Exception
 	 }
          if ((*p) != 'v')
          {
-            xsink->raiseException("DBI-EXEC-PARSE-EXCEPTION", "invalid value specification (expecting '%v' or '%d', got %%%c)", *p);
+            xsink->raiseException("DBI-EXEC-PARSE-EXCEPTION", "invalid value specification (expecting '%v' or '%%d', got %%%c)", *p);
             return -1;
          }
          p++;
          if (isalpha(*p))
          {
-            xsink->raiseException("DBI-EXEC-PARSE-EXCEPTION", "invalid value specification (expecting '%v' or '%d', got %%v%c*)", *p);
+            xsink->raiseException("DBI-EXEC-PARSE-EXCEPTION", "invalid value specification (expecting '%v' or '%%d', got %%v%c*)", *p);
             return -1;
          }
 
