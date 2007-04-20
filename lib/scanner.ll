@@ -407,16 +407,21 @@ BINARY          <({HEX_DIGIT}{HEX_DIGIT})+>
 \/\*                                    {
                                             int c;
                                             while ((c = yyinput(yyscanner)))
+					    {
 					       if (c == '*')
 					       {
-						  if (yyinput(yyscanner) == '/') break;
-						  else unput(c);
+						  do
+						     c = yyinput(yyscanner);
+						  while (c == '*');
+						  if (c == '/') 
+						     break;
 					       }
-                                               else if (c == EOF)
+                                               if (c == EOF)
                                                {
 						  parse_error("EOF reached in block comment");
 						  break;
 					       }
+					    }
                                         }
 \"					yylval->String = new QoreString(); yylloc->setExplicitFirst(yylineno); BEGIN(str_state);
 <str_state>{

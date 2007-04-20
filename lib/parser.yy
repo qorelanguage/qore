@@ -1922,10 +1922,11 @@ exp:    scalar
 		 $2->val.tree->left = 0;
 		 char *meth = $2->val.tree->right->val.fcall->takeName();
 		 delete $2->val.tree->right->val.fcall;
-		 // $2->val.right->val.fcall = 0;
-		 $2->val.tree->right = 0;
+		 $2->val.tree->right->val.fcall = 0;
+		 //$2->val.tree->right = 0;
 		 $2->deref(0);
 		 $$ = new QoreNode(new ParseObjectMethodReference(exp, meth));
+		 //printd(5, "made parse object method reference: exp=%08p meth=%s (node=%08p)\n", exp, meth, $$);
 	      }
 	   }
 	   else

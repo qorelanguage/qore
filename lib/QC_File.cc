@@ -529,7 +529,6 @@ class QoreClass *initFileClass()
    QC_FILE->addMethod("readi2LSB",         (q_method_t)FILE_readi2LSB);
    QC_FILE->addMethod("readi4LSB",         (q_method_t)FILE_readi4LSB);
    QC_FILE->addMethod("readi8LSB",         (q_method_t)FILE_readi8LSB);
-   QC_FILE->addMethod("readu1",            (q_method_t)FILE_readu1);
    QC_FILE->addMethod("readBinary",        (q_method_t)FILE_readBinary);
    QC_FILE->addMethod("write",             (q_method_t)FILE_write);
    QC_FILE->addMethod("writei1",           (q_method_t)FILE_writei1);

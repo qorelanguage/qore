@@ -39,6 +39,7 @@
 #define FC_SELF           4
 #define FC_IMPORTED       5
 #define FC_METHOD         6
+#define FC_STATICUSERREF  7 // only used by FunctionReference
 
 // these data structures are all private to the library
 // FIXME: messy implementation - clean up!

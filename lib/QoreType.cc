@@ -385,6 +385,11 @@ static void objmethref_del(class QoreNode *n)
    delete n->val.objmethref;
 }
 
+static class QoreNode *funcref_eval(class QoreNode *n, class ExceptionSink *xsink)
+{
+   return n->val.funcref->eval(n);
+}
+
 static class QoreNode *funcrefcall_eval(class QoreNode *n, class ExceptionSink *xsink)
 {
    return n->val.funcrefcall->eval(xsink);
@@ -435,7 +440,7 @@ QoreTypeManager::QoreTypeManager()
    add(NT_REGEX = new QoreType("regular expression", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, INVALID_COPY, NULL, regex_DeleteContents, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
    add(NT_CLASSREF = new QoreType("class reference", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, INVALID_COPY, NULL, classref_DeleteContents, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
    add(NT_OBJMETHREF = new QoreType("object method reference", NULL, objmethref_eval, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, objmethref_del, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
-   add(NT_FUNCREF = new QoreType("function reference", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
+   add(NT_FUNCREF = new QoreType("function reference", NULL, funcref_eval, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
    add(NT_FUNCREFCALL = new QoreType("function reference call", NULL, funcrefcall_eval, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, funcrefcall_del, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
    
    // from now on, assign IDs in the user space 

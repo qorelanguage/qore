@@ -143,11 +143,13 @@ bool Object::isSystemObject() const
 
 void Object::tRef()
 {
+   printd(5, "Object::tRef(this=%08p) tref %d->%d\n", this, tRefs.reference_count(), tRefs.reference_count() + 1);
    tRefs.ROreference();
 }
 
 void Object::tDeref()
 {
+   printd(5, "Object::tDeref(this=%08p) tref %d->%d\n", this, tRefs.reference_count(), tRefs.reference_count() - 1);
    if (tRefs.ROdereference())
       delete this;
 }
@@ -207,7 +209,6 @@ void Object::uninstantiateLVar(class ExceptionSink *xsink)
 void Object::ref()
 {
    printd(5, "Object::ref(this=%08p) %d->%d\n", this, references, references + 1);
-   //tRef();          // increment total references
    ROreference();   // increment destructor-relevant references
 }
 

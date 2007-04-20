@@ -27,6 +27,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+class QoreNode *AbstractFunctionReference::eval(class QoreNode *n)
+{
+   return n->RefSelf();
+}
+
 FunctionReferenceCall::FunctionReferenceCall(class QoreNode *n_exp, class QoreNode *n_args) : exp(n_exp), args(n_args)
 {
    //printd(0, "FunctionReferenceCall");
@@ -99,7 +104,9 @@ class QoreNode *ParseObjectMethodReference::eval(class ExceptionSink *xsink) con
       xsink->raiseException("OBJECT-METHOD-REFERENCE-ERROR", "expression does not evaluate to an object");
       return NULL;
    }
-   return new QoreNode(new RunTimeObjectMethodReference(lv->val.object, method));
+   class QoreNode *rv = new QoreNode(new RunTimeObjectMethodReference(lv->val.object, method));
+   lv->deref(xsink);
+   return rv;
 }
 
 int ParseObjectMethodReference::parseInit(lvh_t oflag, int pflag)
@@ -181,11 +188,13 @@ AbstractFunctionReference *RunTimeObjectScopedMethodReference::copy()
 
 RunTimeObjectMethodReference::RunTimeObjectMethodReference(class Object *n_obj, char *n_method) : obj(n_obj), method(strdup(n_method))
 {
+   //printd(5, "RunTimeObjectMethodReference::RunTimeObjectMethodReference() this=%08p obj=%08p (method=%s)\n", this, obj, method);
    obj->tRef();
 }
 
 RunTimeObjectMethodReference::~RunTimeObjectMethodReference()
 {
+   //printd(5, "RunTimeObjectMethodReference::~RunTimeObjectMethodReference() this=%08p obj=%08p (method=%s)\n", this, obj, method);
    obj->tDeref();
    free(method);
 }
@@ -200,7 +209,7 @@ AbstractFunctionReference *RunTimeObjectMethodReference::copy()
    return new RunTimeObjectMethodReference(obj, method);
 }
 
-FunctionReference::FunctionReference(char *n_str)
+FunctionReference::FunctionReference(char *n_str) : type(FC_UNRESOLVED)
 {
    f.str = n_str;
 }
@@ -209,29 +218,33 @@ FunctionReference::FunctionReference(class UserFunction *n_uf) : type(FC_USER)
 {
    f.user.uf = n_uf;
    f.user.pgm = getProgram();
-   f.user.pgm->ref();
+   f.user.pgm->depRef();
 }
 
 FunctionReference::FunctionReference(class UserFunction *n_uf, class QoreProgram *n_pgm) : type(FC_USER)
 {
    f.user.uf = n_uf;
    f.user.pgm = n_pgm;
-   f.user.pgm->ref();
+   f.user.pgm->depRef();
 }
 
 FunctionReference::~FunctionReference()
 {
    if (type == FC_UNRESOLVED)
-      free(f.str);
+   {
+      if (f.str)
+	 free(f.str);
+   }
    else if (type == FC_IMPORTED)
       delete f.ifunc;
 }
 
 void FunctionReference::del(class ExceptionSink *xsink)
 {
+   //printd(5, "FunctionReference::del() this=%08p type=%d (%s)\n", this, type == FC_USER ? "user" : "?");
    if (type == FC_USER)
-      f.user.pgm->deref(xsink);
-   delete this;
+      f.user.pgm->depDeref(xsink);
+    delete this;
 }
 
 class QoreNode *FunctionReference::exec(class QoreNode *args, class ExceptionSink *xsink) const
@@ -259,5 +272,14 @@ void FunctionReference::resolve()
 
 AbstractFunctionReference *FunctionReference::copy()
 {
+   assert(type == FC_USER);
    return new FunctionReference(f.user.uf, f.user.pgm);
+}
+
+class QoreNode *FunctionReference::eval(class QoreNode *n)
+{
+   if (type == FC_STATICUSERREF)
+      return new QoreNode(new FunctionReference(f.user.uf, f.user.pgm));
+
+   return n->RefSelf();
 }

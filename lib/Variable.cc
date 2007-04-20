@@ -108,6 +108,7 @@ class QoreNode *Var::eval(class ExceptionSink *xsink)
       rv = v.val.value;
       if (rv)
 	 rv->ref();
+      //printd(5, "Var::eval() this=%08p val=%08p (%s)\n", this, rv, rv ? rv->type->getName() : "(null)");
    }
    gate.exit();
    return rv;

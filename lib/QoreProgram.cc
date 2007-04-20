@@ -729,8 +729,7 @@ void QoreProgram::resolveFunctionReference(class FunctionReference *fr)
    if ((ufc = user_func_list.find(fname)))
    {
       printd(5, "resolved function reference to user function %s\n", fname);
-      fr->type = FC_USER;
-      fr->f.user.set(ufc, this);
+      fr->set_static(ufc, this);
       free(fname);
       traceout("QoreProgram::resolveFunction()");
       return;

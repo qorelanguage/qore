@@ -2,6 +2,9 @@
 	* fixed some oracle and tibae compile bugs
 	* use umem on Solaris for memory allocation if available
 	* fixed some sybase/mssql compile bugs on Solaris
+	* fixed an obscure bug parsing block comments
+	* fixed a reference-counting bug and a static memory leak in object 
+	  method references
 
 2006.04.13: David Nichols
 	* added new DBI methods: get_server_version and get_client_version: both
