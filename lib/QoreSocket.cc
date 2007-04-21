@@ -1210,6 +1210,7 @@ int QoreSocket::sendHTTPMessage(const char *method, const char *path, const char
    QoreString hdr(charsetid);
 
    hdr.sprintf("%s %s HTTP/%s\r\n", method, path && path[0] ? path : "/", http_version);
+   // FIXME: implement a function for the following to share with sendHTTPResponse
    if (headers)
    {
       class HashIterator hi(headers);
@@ -1268,6 +1269,8 @@ int QoreSocket::sendHTTPResponse(int code, const char *desc, const char *http_ve
 	       hdr.sprintf("%s: %lld\r\n", hi.getKey(), v->val.intval);
 	    else if (v->type == NT_FLOAT)
 	       hdr.sprintf("%s: %f\r\n", hi.getKey(), v->val.floatval);
+	    else if (v->type == NT_BOOLEAN)
+	       hdr.sprintf("%s: %d\r\n", hi.getKey(), v->val.boolval);
 	 }
       }
    }

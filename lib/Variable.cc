@@ -218,6 +218,8 @@ LVar::LVar(lvh_t nid, QoreNode *ve, class Object *o)
    value = NULL;
    vexp = ve;
    obj = o;
+   if (o)
+      o->tRef();
 }
 
 class QoreNode *LVar::evalReference(class ExceptionSink *xsink)
@@ -346,15 +348,14 @@ void LVar::setValue(class QoreNode *val, class ExceptionSink *xsink)
 
 void LVar::deref(ExceptionSink *xsink)
 {
-   // if the variable was passed by reference, then write the value back to the
-   // vexp lvalue
+   // if there is a reference expression, decrement the reference counter
    if (vexp)
    {
       vexp->deref(xsink);
       if (obj)
 	 obj->tDeref();
    }
-   else 
+   else
       discard(value, xsink);
    delete this;
 }
@@ -953,8 +954,6 @@ class LVar *instantiateLVar(lvh_t id, class QoreNode *ve, class Object *o)
    // if we're instantiating the same variable recursively, then don't instantiate it at all
    // allocate new local variable structure
    lvar = new LVar(id, ve, o);
-   if (o)
-      o->tRef();
    // push on stack
    lvar->next = get_thread_stack();
    update_thread_stack(lvar);
