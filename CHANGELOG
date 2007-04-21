@@ -1,3 +1,7 @@
+2006.04.21: David Nichols
+	* fixed a race condition on platforms without atomic reference counting
+	  operations related to the SMP cache invalidation optimization
+
 2006.04.19: David Nichols
 	* fixed some oracle and tibae compile bugs
 	* use umem on Solaris for memory allocation if available
