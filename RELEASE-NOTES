@@ -117,7 +117,19 @@ allows exception-safe cleanup code to be placed right next to the code requiring
 	on_success: queues code to be executed when the current block is exited, if there is no active exception
 	on_error: queues code to be executed when the current block is exited, but only if there is an active exception
 
-These statements provide a powerful mechanism for implementing cleanup code in a context where exceptions may occur as well
+These statements provide a powerful mechanism for exception-safe or exception-dependent cleanup code
+
+	example:
+
+	{
+	    $mutex.lock();
+	    # the lock will be released when the block is exited
+	    on_exit
+		$mutex.unlock();
+
+	    # ... do something
+	    return 0;
+	}
 
 *) deadlock detection
 All Qore threading primitives (including internal locks for variables and "synchronized" methods, etc) now use the new deadlock detection framework.  Potential deadlocks are checked before any primitive would otherwise block.  If a deadlock is detected, a DEADLOCK-EXCEPTION is thrown.  

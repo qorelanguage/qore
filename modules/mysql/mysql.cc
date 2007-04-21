@@ -262,7 +262,7 @@ static MYSQL *qore_mysql_init(Datasource *ds, ExceptionSink *xsink)
    
    printd(3, "qore_mysql_init(): user=%s pass=%s db=%s (encoding=%s)\n",
 	  ds->getUsername(), ds->getPassword(), ds->getDBName(), ds->getDBEncoding() ? ds->getDBEncoding() : "(none)");
-   
+
    MYSQL *db = mysql_init(NULL);
    if (!db)
    {
