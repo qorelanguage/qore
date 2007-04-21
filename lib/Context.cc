@@ -164,7 +164,7 @@ class QoreNode *Context::evalValue(char *field, class ExceptionSink *xsink)
    }
 
    QoreNode *rv = v->val.list->eval_entry(row_list[pos], xsink);
-   //printd(5, "Context::evalValue(%s) pos=%d rv=%08p %s %lld\n", field, pos, rv, rv ? rv->type->getName() : "none", rv && rv->type == NT_INT ? rv->val.intval : -1);
+   //printd(5, "Context::evalValue(%s) this=%08p pos=%d rv=%08p %s %lld\n", field, this, pos, rv, rv ? rv->type->getName() : "none", rv && rv->type == NT_INT ? rv->val.intval : -1);
    v->deref(xsink);
    return rv;
 }
