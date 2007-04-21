@@ -47,9 +47,11 @@ void ReferenceObject::ROreference()
 // returns true when references reach zero
 bool ReferenceObject::ROdereference()
 {
+#ifndef HAVE_ATOMIC_MACROS
    // do not do a cache sync (or at worst a mutex lock and unlock) if references == 1
    if (references == 1)
       return true;
+#endif
 #ifdef HAVE_ATOMIC_MACROS
    return atomic_dec(&references);
 #else
