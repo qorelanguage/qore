@@ -1,10 +1,13 @@
 libdir = ${exec_prefix}/lib${LIBSUFFIX}
 pkglibdir = $(libdir)/@PACKAGE@-@VERSION@
 
+if COND_SINGLE_COMPILATION_UNIT
+TUXEDO_SOURCES =  single-compilation-unit.cc
+else
 TUXEDO_SOURCES =  tuxedo.cc \
   QC_TuxedoAdapter.cc \
   QoreTuxedoAdapter.cc 
-
+endif
 
 if COND_MONOLITHIC
 noinst_LTLIBRARIES = libtuxedo.la

@@ -1,7 +1,11 @@
 libdir = ${exec_prefix}/lib${LIBSUFFIX}
 pkglibdir = $(libdir)/@PACKAGE@-@VERSION@
 
+if COND_SINGLE_COMPILATION_UNIT
+PGSQL_SOURCES = single-compilation-unit.cc
+else
 PGSQL_SOURCES = pgsql.cc QorePGConnection.cc QorePGMapper.cc
+endif
 
 if COND_MONOLITHIC
 noinst_LTLIBRARIES = libpgsql.la
