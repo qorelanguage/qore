@@ -1514,5 +1514,24 @@ class QoreNode *QorePGConnection::exec(class Datasource *ds, QoreString *qstr, c
 
 int QorePGConnection::get_server_version() const
 {
+#if POSTGRES_VERSION_MAJOR >= 8
    return PQserverVersion(pc);
+#else
+   // create version number from string
+   int ver;
+   const char *pstr = PQparameterStatus(pc, "server_version");
+   if (!pstr)
+      return 0;
+   ver = 10000 * atoi(pstr);
+   char *i = strchr(pstr, '.');
+   if (i)
+   {
+      ++i;
+      ver += 100 * atoi(i);
+      i = strchr(i, '.');
+      if (i)
+	 ver += atoi(i + 1);
+   }
+   return ver;
+#endif
 }
