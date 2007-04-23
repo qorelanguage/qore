@@ -316,9 +316,13 @@ endif
 endif
 
 bin_PROGRAMS = qore
+if COND_SINGLE_COMPILATION_UNIT
+qore_SOURCES = single-compilation-unit.cc
+else
 qore_SOURCES = \
 	main.cc \
 	command-line.cc
+endif
 
 BUILD=$(shell cat $(top_srcdir)/.build)
 PACKAGE_VERSION=$(shell grep PACKAGE_VERSION include/qore/unix-config.h | cut -f3 -d\  | sed s/\"//g)
