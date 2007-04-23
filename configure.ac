@@ -108,6 +108,10 @@ case "${host_os}" in
 		   LDFLAGS="$LDFLAGS -norunpath"
 		fi
 		AC_DEFINE(SOLARIS, 1, if compiling on Solaris)
+		# add -ldl to libs if on Solaris 8
+		if test "${host_os}" = "solaris2.8"; then
+		   OTHER_LIBS="$OTHER_LIBS -ldl"
+		fi
 	        ;;
      *darwin*)  SHLIB_SUFFIX=dylib
 		# libtool 1.5.* is creating modules on Darwin 8.* (OS/X 10.4.*) with a .so suffix for some reason
