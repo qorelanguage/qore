@@ -47,9 +47,10 @@ int rollback(connection& conn, ExceptionSink* xsink)
   return xsink->isException() ? 0 : 1;
 }
 
-#ifdef DEBUG
-#  include "tests/direct_execute_tests.cc"
-#endif
+// already included in direct_execute.cc
+//#ifdef DEBUG
+//#  include "tests/direct_execute_tests.cc"
+//#endif
 
 // EOF
 
