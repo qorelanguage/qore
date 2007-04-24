@@ -10,11 +10,11 @@
 
     <para>This driver supports the following DBI capabilities when compiled against PostgreSQL 7 or better: <code>DBI_CAP_TRANSACTION_MANAGEMENT, DBI_CAP_CHARSET_SUPPORT, DBI_CAP_LOB_SUPPORT, DBI_CAP_STORED_PROCEDURES</code>.</para>
 
-    <para>The driver employs efficient binary bindings for all non-text data types and fully supports multidimensional arrays when in when selecting and binding by value.  The driver determines on a per-connection basis by querying server capabilities whether the server uses 8-byte integer or floating-point data for date/time types, and also whether or not a binary day value is included in intervals.</para>
+    <para>The driver employs efficient binary bindings for all non-text data types and fully supports multidimensional arrays when selecting and binding by value.  The driver determines on a per-connection basis by querying server capabilities whether the server uses 8-byte integer or floating-point data for date/time types, and also whether or not a binary day value is included in intervals.</para>
 
     <para>When the Datasource is not in auto-commit mode, this driver automatically inserts &quot;begin&quot; statements at the start of each transaction to provide consistent transaction handling across all Qore DBI drivers; it's not necessary to do this manually.  Note that an exception while already in a transaction will have the effect that the pgsql connection cannot be used until the transaction is closed; this is different from most other current Qore DBI drivers.  An exception in a <link linkend="Qore::SQL::Datasource::exec">Datasource::exec()</link> method as the first statement of a transaction will cause an automatic implicit rollback to be executed to maintain compatibility with other Qore DBI drivers.</para>
 
-    <para>Due to the fact that Qore date/time values do not currently support time zone information, when PostgreSQL data having a time zone component is converted to a Qore data type, the time zone information is lost.  Also, Qore date/time values support a millisecond resolution, while PostgreSQL supports microsecond resolution.  All decimal places after milliseconds are discarded when converting to a Qore date/time value.</para>
+    <para>Due to the fact that Qore date/time values do not currently support time zone information, when PostgreSQL data including a time zone component is converted to a Qore data type, the time zone information is lost.  Also, Qore date/time values support a millisecond resolution, while PostgreSQL supports microsecond resolution.  All decimal places after milliseconds are discarded when converting to a Qore date/time value.</para>
 
     <para>The <link linkend="Qore::SQL::Datasource::getServerVersion">Datasource::getServerVersion()</link> method is implemented for this driver and returns an integer giving the major, minor, and sub version numbers in a single integer according to the following formula: major_version * 10000 + minor_version * 100 + sub_version (ex: 80203 = 8.2.3).   The <link linkend="Qore::SQL::Datasource::getClientVersion">Datasource::getClientVersion()</link> is not implemented for this driver.</para>
 
@@ -40,9 +40,9 @@ printf(&quot;%N\n&quot;, $result);</programlisting>
 
     <para>Like all Qore components, the PostgreSQL DBI driver is thread-safe.</para>
 
-    <para>Note that binding by placeholder is not supported by this driver as PostgreSQL returns values directly; Qore DBI placeholder buffer specifications are ignored when the pgsql driver is used.</para>
+    <para>Note that binding by placeholder is not required or supported by this driver as PostgreSQL returns values directly; Qore DBI placeholder buffer specifications are ignored when the pgsql driver is used.</para>
 
-    <para>When binding arrays, all data types in the Qore list must be identical.  When binding multi-dimensional arrays, the number of elements in each list in each array dimension must be the same.  These are PostgreSQL restrictions.</para>
+    <para>When binding arrays, all data types in the Qore list must be identical.  When binding multi-dimensional arrays, the number of elements in each list in each array dimension must be the same.  These are PostgreSQL restrictions, not Qore restrictions.</para>
 
     <para>The following table describes how PostgreSQL data types are converted to Qore data types by the pgsql driver.</para>
 

@@ -2567,7 +2567,7 @@
           <entry><para><link linkend="min">min()</link></para></entry>
           <entry><para>Any</para></entry>
           <entry><para>N</para></entry>
-          <entry><para>Returns the minumum value in a list (see also <link linkend="max">max()</link>); one variant takes an optional call reference to process lists of complex data types.</para></entry>
+          <entry><para>Returns the minumum value in a list (see also <link linkend="max">max()</link>); one variant takes an optional <link linkend="call_references">call reference</link> to process lists of complex data types.</para></entry>
         </row>
         <row>
           <entry>
@@ -3297,25 +3297,25 @@
           <entry><para><link linkend="sort">sort()</link></para></entry>
           <entry><para>List</para></entry>
           <entry><para>Y</para></entry>
-          <entry><para>Sorts a list in ascending order (unstable); optionally takes a call reference (function or object method reference) to sort non-trivial data types.</para></entry>
+          <entry><para>Sorts a list in ascending order (unstable); optionally takes a <link linkend="call_references">call reference</link> (function or object method reference) to sort non-trivial data types.</para></entry>
         </row>
         <row>
           <entry><para><link linkend="sortDescending">sortDescending()</link></para></entry>
           <entry><para>List</para></entry>
           <entry><para>Y</para></entry>
-          <entry><para>Sorts a list in descending order (unstable); optionally takes a call reference (function or object method reference) to sort non-trivial data types.</para></entry>
+          <entry><para>Sorts a list in descending order (unstable); optionally takes a <link linkend="call_references">call reference</link> (function or object method reference) to sort non-trivial data types.</para></entry>
         </row>
         <row>
           <entry><para><link linkend="sortDescendingStable">sortDescendingStable()</link></para></entry>
           <entry><para>List</para></entry>
           <entry><para>Y</para></entry>
-          <entry><para>Performs a descending stable sort on a list and returns the new list; optionally takes a call reference (function or object method reference) to sort non-trivial data types.</para></entry>
+          <entry><para>Performs a descending stable sort on a list and returns the new list; optionally takes a <link linkend="call_references">call reference</link> (function or object method reference) to sort non-trivial data types.</para></entry>
         </row>
         <row>
           <entry><para><link linkend="sortStable">sortStable()</link></para></entry>
           <entry><para>List</para></entry>
           <entry><para>Y</para></entry>
-          <entry><para>Performs an ascending stable sort on a list and returns the new list; optionally takes a call reference (function or object method reference) to sort non-trivial data types.</para></entry>
+          <entry><para>Performs an ascending stable sort on a list and returns the new list; optionally takes a <link linkend="call_references">call reference</link> (function or object method reference) to sort non-trivial data types.</para></entry>
         </row>
         <row>
           <entry>
@@ -16471,7 +16471,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
 	<term>Synopsis</term>
 	<listitem>
-	  <para>Returns the maximum value in a list (see also <link linkend="min">min()</link>).  Without a callback reference, this function will only work on basic data types.  A call reference can be used to find the maximum value of a list of complex data types.  The call reference must accept two arguments and must return -1, 0, or 1 if the first is less than, equal to, or greater than the second, respectively.</para>
+	  <para>Returns the maximum value in a list (see also <link linkend="min">min()</link>).  Without a callback reference, this function will only work on basic data types.  A <link linkend="call_references">call reference</link> can be used to find the maximum value of a list of complex data types.  The call reference must accept two arguments and must return -1, 0, or 1 if the first is less than, equal to, or greater than the second, respectively.</para>
 	</listitem>
       </varlistentry>
       <varlistentry>
@@ -16522,7 +16522,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
 	<term>Synopsis</term>
 	<listitem>
-	  <para>Returns the minumum value in a list (see also <link linkend="max">max()</link>).  Without a callback reference, this function will only work on basic data types.  A call reference can be used to find the minimum value of a list of complex data types.  The call reference must accept two arguments and must return -1, 0, or 1 if the first is less than, equal to, or greater than the second, respectively.</para>
+	  <para>Returns the minumum value in a list (see also <link linkend="max">max()</link>).  Without a callback reference, this function will only work on basic data types.  A <link linkend="call_references">call reference</link> can be used to find the minimum value of a list of complex data types.  The call reference must accept two arguments and must return -1, 0, or 1 if the first is less than, equal to, or greater than the second, respectively.</para>
 	</listitem>
       </varlistentry>
       <varlistentry>
@@ -17070,7 +17070,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 
 <tbody>
   <row>
-    <entry><para>Integer, Call Reference</para></entry>
+    <entry><para>Integer, <link linkend="call_references">Call Reference</link></para></entry>
     <entry><para>n/a</para></entry>
     <entry><para>The signal number to process and reference to the code to execute when the signal is raised.</para></entry>
   </row>
@@ -17088,7 +17088,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Performs an unstable sort in ascending order and returns the new list (for a stable version see <link linkend="sortStable">sortStable()</link>).  Without a callback reference, this function will only sort basic data types.  A call reference can be used to sort complex data types.  The call reference must accept two arguments and must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively.</para>
+	<para>Performs an unstable sort in ascending order and returns the new list (for a stable version see <link linkend="sortStable">sortStable()</link>).  Without a callback reference, this function will only sort basic data types.  A <link linkend="call_references">call reference</link> can be used to sort complex data types.  The call reference must accept two arguments and must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -17116,7 +17116,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       </thead>
       <tbody>
 	<row>
-	  <entry><para>List, [Call Reference]</para></entry>
+	  <entry><para>List, [<link linkend="call_references">Call Reference</link>]</para></entry>
 	  <entry><para>List</para></entry>
 	  <entry><para>Sorts the list passed in ascending order and returns the sorted list.  The list must be made up of basic data types unless a call reference is used.</para></entry>
 	</row>
@@ -17132,7 +17132,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
 	<term>Synopsis</term>
 	<listitem>
-	  <para>Performs an unstable sort in descending order and returns the new list (for a stable version see <link linkend="sortDescendingStable">sortDescendingStable()</link>).  Without a call reference, this function will only sort basic data types.  A call reference can be used to sort complex data types.  The call reference must accept two arguments and must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively.</para>
+	  <para>Performs an unstable sort in descending order and returns the new list (for a stable version see <link linkend="sortDescendingStable">sortDescendingStable()</link>).  Without a <link linkend="call_references">call reference</link>, this function will only sort basic data types.  A call reference can be used to sort complex data types.  The call reference must accept two arguments and must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively.</para>
 	</listitem>
       </varlistentry>
       <varlistentry>
@@ -17160,7 +17160,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	</thead>
 	<tbody>
 	  <row>
-	    <entry><para>List, [Call Reference]</para></entry>
+	    <entry><para>List, [<link linkend="call_references">Call Reference</link>]</para></entry>
 	    <entry><para>List</para></entry>
 	    <entry><para>Sorts the list passed in descending order and returns the sorted list.  The list must be made up of basic data types unless a call reference is used.</para></entry>
 	  </row>
@@ -17176,7 +17176,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
 	<term>Synopsis</term>
 	<listitem>
-	  <para>Performs a stable sort in descending order and returns the new list (for an unstable version see <link linkend="sortDescending">sortDescending()</link>).  Without a call reference, this function will only sort basic data types.  A call reference can be used to sort complex data types.  The call reference must accept two arguments and must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively.</para>
+	  <para>Performs a stable sort in descending order and returns the new list (for an unstable version see <link linkend="sortDescending">sortDescending()</link>).  Without a <link linkend="call_references">call reference</link>, this function will only sort basic data types.  A call reference can be used to sort complex data types.  The call reference must accept two arguments and must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively.</para>
 	</listitem>
       </varlistentry>
       <varlistentry>
@@ -17204,7 +17204,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	</thead>
 	<tbody>
 	  <row>
-	    <entry><para>List, [Call Reference]</para></entry>
+	    <entry><para>List, [<link linkend="call_references">Call Reference</link>]</para></entry>
 	    <entry><para>List</para></entry>
 	    <entry><para>Sorts the list passed in descending order and returns the sorted list.  The list must be made up of basic data types unless a call reference is used.</para></entry>
 	  </row>
@@ -17220,7 +17220,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Performs a stable sort in ascending order and returns the new list (for an unstable version see <link linkend="sort">sort()</link>).  Without a call reference, this function will only sort basic data types.  A call reference can be used to sort complex data types.  The call reference must accept two arguments and must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively.</para>
+	<para>Performs a stable sort in ascending order and returns the new list (for an unstable version see <link linkend="sort">sort()</link>).  Without a <link linkend="call_references">call reference</link>, this function will only sort basic data types.  A call reference can be used to sort complex data types.  The call reference must accept two arguments and must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -17248,7 +17248,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       </thead>
       <tbody>
 	<row>
-	  <entry><para>List, [Call Reference]</para></entry>
+	  <entry><para>List, [<link linkend="call_references">Call Reference</link>]</para></entry>
 	  <entry><para>List</para></entry>
 	  <entry><para>Sorts the list passed in ascending order and returns the sorted list.  The list must be made up of basic data types unless a call reference is used.</para></entry>
 	</row>
@@ -20071,6 +20071,10 @@ catch ($ex)
 	<row>
 	  <entry><para>d</para></entry>
 	  <entry><para>Integer, output in base 10 format</para></entry>
+	</row>
+	<row>
+	  <entry><para>f</para></entry>
+	  <entry><para>Floating point value</para></entry>
 	</row>
 	<row>
 	  <entry><para>n</para></entry>

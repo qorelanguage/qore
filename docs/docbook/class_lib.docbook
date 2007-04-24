@@ -7631,7 +7631,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Rolls back any pending code processed with <link linkend="Qore_Program_parsePending">Program::parsePending()</link> that has not yet been committed to the Program object with <link linkend="Qore_Program_parseCommit">parseCommit</link></para>
+	    <para>Rolls back any pending code processed with <link linkend="Qore_Program_parsePending">Program::parsePending()</link> that has not yet been committed to the Program object with <link linkend="Qore_Program_parseCommit">Program::parseCommit()</link></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -8342,22 +8342,22 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	<tbody>
 	  <row>
 	    <entry><para><link linkend="Qore_Socket_constructor">Socket::constructor()</link></para></entry>
-	    <entry>N</entry>
+	    <entry><para>N</para></entry>
 	    <entry><para>Creates the socket object</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_Socket_destructor">Socket::destructor()</link></para></entry>
-	    <entry>N</entry>
+	    <entry><para>N</para></entry>
 	    <entry><para>Closes the socket if it's open and destroys the object.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_Socket_copy">Socket::copy()</link></para></entry>
-	    <entry>N</entry>
+	    <entry><para>N</para></entry>
 	    <entry><para>Creates a new Socket object, not based on the parent.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_Socket_connect">Socket::connect()</link></para></entry>
-	    <entry>N</entry>
+	    <entry><para>N</para></entry>
 	    <entry><para>Connects to a remote port or UNIX domain socket file.</para></entry>
 	  </row>
           <row>
@@ -8375,12 +8375,12 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
           </row>
 	  <row>
 	    <entry><para><link linkend="Qore_Socket_bind">Socket::bind()</link></para></entry>
-	    <entry>Y</entry>
+	    <entry><para>Y</para></entry>
 	    <entry><para>Binds the socket to a port or UNIX domain socket file.  If the second parameter is True, then the socket will set the SO_REUSEADDR option, which will allow the socket to be bound to a port that is not yet closed (for example, in a TIME_WAIT state).</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_Socket_accept">Socket::accept()</link></para></entry>
-	    <entry>Y</entry>
+	    <entry><para>Y</para></entry>
 	    <entry><para>Accepts connections on a listening socket.</para></entry>
 	  </row>
           <row>
@@ -8411,152 +8411,152 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
           </row>
 	  <row>
 	    <entry><para><link linkend="Qore_Socket_listen">Socket::listen()</link></para></entry>
-	    <entry>Y</entry>
+	    <entry><para>Y</para></entry>
 	    <entry><para>Listens for connections on the socket</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_Socket_isDataAvailable">Socket::isDataAvailable()</link></para></entry>
-	    <entry>N</entry>
+	    <entry><para>N</para></entry>
 	    <entry><para>Returns True or False depending on whether there is data to be read on the socket</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_Socket_send">Socket::send()</link></para></entry>
-	    <entry>Y</entry>
+	    <entry><para>Y</para></entry>
 	    <entry><para>Sends string or binary data over the socket</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_Socket_sendi1">Socket::sendi1()</link></para></entry>
-	    <entry>Y</entry>
+	    <entry><para>Y</para></entry>
 	    <entry><para>Sends a 1-byte integer over the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_Socket_sendi2">Socket::sendi2()</link></para></entry>
-	    <entry>Y</entry>
+	    <entry><para>Y</para></entry>
 	    <entry><para>Sends a 2-byte (16-bit) integer in big-endian format (network byte order) over the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_Socket_sendi4">Socket::sendi4()</link></para></entry>
-	    <entry>Y</entry>
+	    <entry><para>Y</para></entry>
 	    <entry><para>Sends a 4-byte (32-bit) integer in big-endian format (network byte order) over the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_Socket_sendi8">Socket::sendi8()</link></para></entry>
-	    <entry>Y</entry>
+	    <entry><para>Y</para></entry>
 	    <entry><para>Sends an 8-byte (64-bit) integer in big-endian format (network byte order) over the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_Socket_sendi2LSB">Socket::sendi2LSB()</link></para></entry>
-	    <entry>Y</entry>
+	    <entry><para>Y</para></entry>
 	    <entry><para>Sends a 2-byte (16-bit) integer in little-endian format over the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_Socket_sendi4LSB">Socket::sendi4LSB()</link></para></entry>
-	    <entry>Y</entry>
+	    <entry><para>Y</para></entry>
 	    <entry><para>Sends a 4-byte (32-bit) integer in little-endian format over the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_Socket_sendi8LSB">Socket::sendi8LSB()</link></para></entry>
-	    <entry>Y</entry>
+	    <entry><para>Y</para></entry>
 	    <entry><para>Sends an 8-byte (64-bit) integer in little-endian format over the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_Socket_sendHTTPMessage">Socket::sendHTTPMessage()</link></para></entry>
-	    <entry>Y</entry>
+	    <entry><para>Y</para></entry>
 	    <entry><para>Sends an HTTP message with a method and user-defined headers given as a hash</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_Socket_sendHTTPResponse">Socket::sendHTTPResponse()</link></para></entry>
-	    <entry>Y</entry>
+	    <entry><para>Y</para></entry>
 	    <entry><para>Sends an HTTP response with user-defined headers given as a hash</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_Socket_recv">Socket::recv()</link></para></entry>
-	    <entry>Y</entry>
+	    <entry><para>Y</para></entry>
 	    <entry><para>Receives data from the socket and returns a string</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_Socket_recvi1">Socket::recvi1()</link></para></entry>
-	    <entry>Y</entry>
+	    <entry><para>Y</para></entry>
 	    <entry><para>Receives a 1-byte signed integer from the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_Socket_recvi2">Socket::recvi2()</link></para></entry>
-	    <entry>Y</entry>
+	    <entry><para>Y</para></entry>
 	    <entry><para>Receives a 2-byte (16-bit) signed integer in big-endian format (network byte order) from the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_Socket_recvi4">Socket::recvi4()</link></para></entry>
-	    <entry>Y</entry>
+	    <entry><para>Y</para></entry>
 	    <entry><para>Receives a 4-byte (32-bit) signed integer in big-endian format (network byte order) from the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_Socket_recvi8">Socket::recvi8()</link></para></entry>
-	    <entry>Y</entry>
+	    <entry><para>Y</para></entry>
 	    <entry><para>Receives an 8-byte (64-bit) signed integer in big-endian format (network byte order) from the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_Socket_recvi2LSB">Socket::recvi2LSB()</link></para></entry>
-	    <entry>Y</entry>
+	    <entry><para>Y</para></entry>
 	    <entry><para>Receives a 2-byte (16-bit) signed integer in little-endian format from the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_Socket_recvi4LSB">Socket::recvi4LSB()</link></para></entry>
-	    <entry>Y</entry>
+	    <entry><para>Y</para></entry>
 	    <entry><para>Receives a 4-byte (32-bit) signed integer in little-endian format from the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_Socket_recvi8LSB">Socket::recvi8LSB()</link></para></entry>
-	    <entry>Y</entry>
+	    <entry><para>Y</para></entry>
 	    <entry><para>Receives an 8-byte (64-bit) signed integer in little-endian format from the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_Socket_recvu1">Socket::recvu1()</link></para></entry>
-	    <entry>Y</entry>
+	    <entry><para>Y</para></entry>
 	    <entry><para>Receives a 1-byte unsigned integer from the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_Socket_recvu2">Socket::recvu2()</link></para></entry>
-	    <entry>Y</entry>
+	    <entry><para>Y</para></entry>
 	    <entry><para>Receives a 2-byte (16-bit) unsigned integer in big-endian format (network byte order) from the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_Socket_recvu4">Socket::recvu4()</link></para></entry>
-	    <entry>Y</entry>
+	    <entry><para>Y</para></entry>
 	    <entry><para>Receives a 4-byte (32-bit) unsigned integer in big-endian format (network byte order) from the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_Socket_recvu2LSB">Socket::recvu2LSB()</link></para></entry>
-	    <entry>Y</entry>
+	    <entry><para>Y</para></entry>
 	    <entry><para>Receives a 2-byte (16-bit) unsigned integer in little-endian format from the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_Socket_recvu4LSB">Socket::recvu4LSB()</link></para></entry>
-	    <entry>Y</entry>
+	    <entry><para>Y</para></entry>
 	    <entry><para>Receives a 4-byte (32-bit) unsigned integer in little-endian format from the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_Socket_recvBinary">Socket::recvBinary()</link></para></entry>
-	    <entry>Y</entry>
+	    <entry><para>Y</para></entry>
 	    <entry><para>Receives data on a socket and returns a binary object</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_Socket_readHTTPHeader">Socket::readHTTPHeader()</link></para></entry>
-	    <entry>Y</entry>
+	    <entry><para>Y</para></entry>
 	    <entry><para>Retuns a hash representing the data in the HTTP header read</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_Socket_getPort">Socket::getPort()</link></para></entry>
-	    <entry>N</entry>
+	    <entry><para>N</para></entry>
 	    <entry><para>Returns the port number of the socket for INET sockets.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_Socket_shutdown">Socket::shutdown()</link></para></entry>
-	    <entry>N</entry>
+	    <entry><para>N</para></entry>
 	    <entry><para>Ensures that a socket will be closed even if shared with other processes.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_Socket_close">Socket::close()</link></para></entry>
-	    <entry>N</entry>
+	    <entry><para>N</para></entry>
 	    <entry><para>Closes the socket.</para></entry>
 	  </row>
 	  <row>
@@ -8571,7 +8571,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_Socket_getSocket">Socket::getSocket()</link></para></entry>
-	    <entry>N</entry>
+	    <entry><para>N</para></entry>
 	    <entry><para>Returns the socket file descriptor number.</para></entry>
 	  </row>	
           <row>
@@ -20073,10 +20073,13 @@ $sock.bind("/tmp/socket");</programlisting>
 	  <term>Synopsis</term>
 	  <listitem>
 	    <para>Grabs the transaction lock (if autocommit is disabled) and executes an SQL command on the server and returns either the row count (for example, for updates and inserts) or the data retrieved (for example, if a stored procedure is executed that returns values).  This method takes a special syntax for binding values and placeholders, similar to printf() functions.</para>
-	    <para>For binding values directly, use <code>%v</code> in the command string, and include the value as an argument after the string.</para>
+
+	    <para>For binding values directly in a binary format, use <code>%v</code> in the command string, and include the value as an argument after the string.  Binding by value means that Qore's DBI driver will take care of formatting the data properly for use in the query with the database server.  That means that strings do not need to be quoted, date/time values do not need special formatting, binary object (with BLOB columns, for example) can be used directly in queries, etc.  You can find an example below.</para>
+	    
 	    <para>To insert either an integer value or a 'null' string, use <code>%d</code> in the command string, and include the value as an artument after the string.  If the value is NOTHING or NULL, 'null' will be written to the string; otherwise the argument is converted to an integer if necessary and written to the string.  This is useful for working with DECIMAL (NUMERIC, NUMBER) types in a database-independent way; for example PostgreSQL servers (<link linkend="pgsql_Module">see the pgsql module</link>) do not do type conversions to DECIMAL types when a string or integer is bound by value, therefore to ensure that integral decimal values can be used in a database-independent way (with 'null' substitution when no value is bound), it's best to use the <code>%d</code> code in the command string instead of <code>%v</code>.</para>
 
-	    <para>For binding placeholders for output variables, write a unique name in the string and prefix it with a colon (ex: <code>:code</code>).  In this case the method will return a hash of the output variables using the placeholder names as keys, but without the colon prefix.  By default, a string type will be bound to the position.  To bind other variable types to placeholder positions, include the type constant (see <link linkend="Qore_Type_Constants">Type Constants</link>) as an argument after the command string.  For BLOBs, use Binary, for CLOBs, use the string "clob" (constants will be provided in a future release).</para>
+	    <para>For binding placeholders for output variables, write a unique name in the string and prefix it with a colon (ex: <code>:code</code>).  In this case the method will return a hash of the output variables using the placeholder names as keys, but without the colon prefix.  By default, a string type will be bound to the position.  To bind other variable types to placeholder positions, include the type constant (see <link linkend="Qore_Type_Constants">Type Constants</link>) as an argument after the command string.  For BLOBs, use Binary, for CLOBs, use the string "clob" (constants will be provided in a future release).  Not all DBI drivers require placeholder buffer specifications; see the documentation for the DBI driver in question for more information and examples regarding placeholder buffer specifications.</para>
+
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -20088,7 +20091,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$rows = $db.exec("insert into example_table value (%d, %v, %v)", 100, now(), $ENV.USER);</programlisting>
+	    <programlisting>$rows = $db.exec("insert into table (varchar_col, timestamp_col, blob_col, numeric_col) values (%v, %v, %v, %d)", $string, now(), $binary, 100);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -20257,6 +20260,11 @@ $sock.bind("/tmp/socket");</programlisting>
 	  <term>Synopsis</term>
 	  <listitem>
 	    <para>Executes an SQL select statement on the server and returns the result as a hash (column names) of lists (rows).  This format is suitable for use with <link linkend="context_Statements"><command>context</command> Statements</link>, for easy iteration and processing of query results.  Additionally, this format is more efficient format than that returned by the <link linkend="Qore::SQL::Datasource::selectRows">Datasource::selectRows()</link> method, because the column names are not repeated for each row returned.  Therefore, for retrieving anything greater than small amounts of data, it is recommended to use this method instead of <link linkend="Qore::SQL::Datasource::selectRows">Datasource::selectRows()</link>.</para>
+
+	    <para>For binding values directly in a binary format, use <code>%v</code> in the query string, and include the value as an argument after the string.  Binding by value means that Qore's DBI driver will take care of formatting the data properly for use in the query with the database server.  That means that strings do not need to be quoted, date/time values do not need special formatting, binary object (with BLOB columns, for example) can be used directly in queries, etc.  You can find an example below.</para>
+	    
+	    <para>To insert either an integer value or a 'null' string in a query, use <code>%d</code> in the command string, and include the value as an artument after the string.  If the value is NOTHING or NULL, 'null' will be written to the query string; otherwise the argument is converted to an integer if necessary and written to the string.  This is useful for working with DECIMAL (NUMERIC, NUMBER) types in a database-independent way; for example PostgreSQL servers (<link linkend="pgsql_Module">see the pgsql module</link>) do not do type conversions to DECIMAL types when a string or integer is bound by value, therefore to ensure that integral decimal values can be used in a database-independent way (with 'null' substitution when no value is bound), it's best to use the <code>%d</code> code in the command string instead of <code>%v</code>.</para>
+
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -20268,7 +20276,8 @@ $sock.bind("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$query = $db.select("select * from example_table where id = %v", 100);</programlisting>
+	    <programlisting># bind a string and a date/time value by value in a query
+$query = $db.select("select * from table where varchar_column = %v and timestamp_column > %v", $string, 2007-10-11T15:31:26.289);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -20429,6 +20438,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	  <term>Synopsis</term>
 	  <listitem>
 	    <para>Executes an SQL select statement on the server and returns the result as a list (rows) of hashes (the column values).  This format is not as efficient as that returned by the <link linkend="Qore::SQL::Datasource::select">Datasource::select()</link> method, therefore for larger amounts of data, it is recommended to use <link linkend="Qore::SQL::Datasource::select">Datasource::select()</link>.</para>
+	    <para>This method also accepts all bind parameters (%d, %v, etc) as documented in  <link linkend="Qore::SQL::Datasource::select">Datasource::select()</link>.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>

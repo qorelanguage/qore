@@ -5843,7 +5843,7 @@ $name = getName();</programlisting>
   <sect2 id="Thread_Synchronization_and_Inter-Thread_Communication">
     <title>Thread Synchronization and Inter-Thread Communication</title>
 
-    <para>The <command>synchronized</command> keyword can be used before subroutine or class method definitions in order to guarantee that the function or method call will only be executed in one thread at a time.  As in Java, this keyword can also be used safely with recursive functions and methods (internally an <link linkend="Qore::Thread::RMutex_Class">RMutex</link> object is used to guarantee thread-exclusivity and allow recursion).</para>
+    <para>The <command>synchronized</command> keyword can be used before subroutine or class method definitions in order to guarantee that the function or method call will only be executed in one thread at a time.  As in Java, this keyword can also be used safely with recursive functions and methods (internally a <link linkend="Qore::Thread::Gate_Class">Gate</link>-like object is used to guarantee thread-exclusivity and allow recursion).</para>
 
     <para>The following classes are useful when developing multi-threaded Qore programs:</para>
 
@@ -5962,9 +5962,9 @@ $name = getName();</programlisting>
     <sect2 id="Deadlocks">
       <title>Deadlocks</title>
   
-      <para>Qore supports deadlock detection in complex locking scenarios and will throw an exception rather than allow an operation to be performed that would cause a deadlock. Deadlock detection is implemented for internal locking of global variables and synchronized methods and subroutinges, etc, as well as for all Qore threading classes.</para>
+      <para>Qore supports deadlock detection in complex locking scenarios and will throw a <code>THREAD-DEADLOCK</code> exception rather than allow an operation to be performed that would cause a deadlock.  Deadlock detection is implemented for internal locking (global variable and object access), synchronized methods and subroutinges, etc, as well as for all Qore threading classes.</para>
 
-      <para>Qore can only detect deadlocks when a lock resource acquired by one thread is required by another who holds a lock that the first thread also needs.  Other errors such as forgetting to unlock a global lock and trying to acquire that lock in another thread cannot be detected and will result in a process that never terminates.  Common threading errors such as trying to lock the same Mutex twice in the same thread without unlocking it between the two Mutex::lock() calls are caught in Qore and exceptions are thrown.  Additionally, locks are tracked as thread resources, so if a thread terminates while holding a lock, an exception will be thrown and the lock will be automatically released.</para>
+      <para>Qore can only detect deadlocks when a lock resource acquired by one thread is required by another who holds a lock that the first thread also needs.  Other errors such as forgetting to unlock a global lock and trying to acquire that lock in another thread cannot be differentiated from valid use of threading primitives and will result in a process that never terminates.  However, common threading errors such as trying to lock the same Mutex twice in the same thread without unlocking it between the two Mutex::lock() calls are caught in Qore and exceptions are thrown.  Additionally, locks are tracked as thread resources, so if a thread terminates while holding a lock, an exception will be thrown and the lock will be automatically released.</para>
 
     </sect2>
   </sect1>
