@@ -158,7 +158,12 @@ QoreNode* read_output(command& cmd, QoreEncoding* encoding, ExceptionSink* xsink
       // current command succeeded, there may be more. CS_CMD_DONE is when we should return
       continue;
 
+    case CS_CMD_FAIL: // returned by the FreeTDS when used incorrectly
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() failed with result code CS_CMD_FAIL");
+      return result;
+
     default:
+printf("#### result type = %d\n", (int)result_type);
       assert(false);
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() gave unknown result type %d", (int)result_type);
       return result;

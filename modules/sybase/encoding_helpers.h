@@ -47,10 +47,6 @@ extern const char* QoreEncoding_to_SybaseName(QoreEncoding *enc);
 //
 extern std::string get_default_Sybase_encoding(connection& conn, ExceptionSink* xsink);
 
-//------------------------------------------------------------------------------
-// Set encoding for Sybase connection (the encoding name needs to be valid 
-// Sybase encoding string, e.g. "utf8")
-extern void set_Sybase_encoding(connection& conn, const char* encoding_name, ExceptionSink* xsink);
 
 
 #endif

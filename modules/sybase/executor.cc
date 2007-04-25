@@ -181,7 +181,6 @@ QoreNode* execute_select_rows(connection& conn, QoreString* cmd, List* parameter
     l->push(res);
     res = new QoreNode(l); 
   }
-
   return res;
 }
 

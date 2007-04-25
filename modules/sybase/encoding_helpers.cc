@@ -106,34 +106,14 @@ std::string get_default_Sybase_encoding(connection& conn, ExceptionSink* xsink)
     xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call cs_locale() returned error %d", (int)err);
     return std::string();
   }
-
-  if (!encoding_str[0]) {
-    assert(false);
-    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call cs_locale() returned empty string for encoding");
-    return std::string();
-  }
+#ifdef SYBASE
+#else
+  // FreeTDS 0.64 has a bug and always returns empty string
+  assert(encoding_str[0] == 0); // if fails the FreeTDS got fixed
+  strcpy(encoding_str, "utf8");
+#endif
   return std::string(encoding_str);
 }
-
-//------------------------------------------------------------------------------
-void set_Sybase_encoding(connection& conn, const char* encoding_name, ExceptionSink* xsink)
-{
-/* needs to be moved into connection class
-  assert(encoding_name && encoding_name[0]);
-  CS_LOCALE* loc = 0;
-  CS_RETCODE err = cs_loc_alloc(conn.getContext(), &loc);
-  if (err != CS_SUCCEED) {
-    assert(false);
-    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call to cs_loc_alloc() failed with error %d", (int)err);
-    return;
-  }
-  ON_BLOCK_EXIT(cs_loc_drop, conn.getContext(), loc);
-
-  err = cs_locale(conn.getContext(), CS_SET, loc, encoding_name, CS_NULLTERM, 0);
-  // TBD
-*/
-}
-
 
 #ifdef DEBUG
 #  include "tests/encoding_helpers_tests.cc"

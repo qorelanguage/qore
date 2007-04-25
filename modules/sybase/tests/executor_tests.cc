@@ -17,11 +17,11 @@ TEST()
     assert(false);
   }
 
-  std::string enc_s = get_default_Sybase_encoding(conn, &xsink);
-  QoreEncoding* enc = name_to_QoreEncoding(enc_s.c_str());
+  conn.set_charset("utf8", &xsink);
   if (xsink.isException()) {
     assert(false);
   }
+  QoreEncoding* enc = QCS_DEFAULT;//###name_to_QoreEncoding("utf8");
 
   QoreString cmd("select count(*) from syskeys");
   
@@ -54,11 +54,11 @@ TEST()
     assert(false);
   }
 
-  std::string enc_s = get_default_Sybase_encoding(conn, &xsink);
-  QoreEncoding* enc = name_to_QoreEncoding(enc_s.c_str());
+  conn.set_charset("utf8", &xsink);
   if (xsink.isException()) {
     assert(false);
   }
+  QoreEncoding* enc = QCS_DEFAULT;//###name_to_QoreEncoding("utf8");
 
   QoreString cmd("select * from syskeys");
 

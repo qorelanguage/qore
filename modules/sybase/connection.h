@@ -40,6 +40,7 @@ class connection
 private:
   CS_CONTEXT* m_context;
   CS_CONNECTION* m_connection;
+  CS_LOCALE* m_charset_locale; // lifetime is equal to lifetime of the connection
 
   // Sybase callbacks
   static CS_RETCODE clientmsg_callback(CS_CONTEXT* ctx, CS_CONNECTION* conn, CS_CLIENTMSG* errmsg);
@@ -51,6 +52,10 @@ public:
 
   // to be called after the object is constructed
   void init(const char* username, const char* password, const char* dbname, ExceptionSink* xsink);
+
+  // Set charset default for the connection.
+  // The 'charset_name' needs to be in Sybase format (e.g. "utf8", "iso_1").
+  void set_charset(const char* charset_name, ExceptionSink* xsink);
 
   CS_CONNECTION* getConnection() const { return m_connection; }
   CS_CONTEXT* getContext() const { return m_context; }

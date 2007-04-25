@@ -7,7 +7,8 @@ has different behavior to native CT library:
 
 * cs_locale(CS_SYB_CHARSET) returns empty string
   as the default encoding (CT library returns "utf8").
-  See encoding_helpers_tests.cc.
+  See encoding_helpers_tests.cc. 
+  Setting it and reading it again doesn't help.
 
 
 EOF

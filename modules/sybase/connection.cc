@@ -34,7 +34,7 @@
 
 //------------------------------------------------------------------------------
 connection::connection()
-: m_context(0), m_connection(0)
+: m_context(0), m_connection(0), m_charset_locale(0)
 {
 }
 
@@ -42,6 +42,12 @@ connection::connection()
 connection::~connection()
 {
   CS_RETCODE ret = CS_SUCCEED;
+
+  if (m_charset_locale) {
+    ret = cs_loc_drop(getContext(), m_charset_locale);
+    assert(ret == CS_SUCCEED);
+  }
+
   if (m_connection) {
     ret = ct_close(m_connection, CS_UNUSED);
     if (ret != CS_SUCCEED) {
@@ -139,7 +145,29 @@ void connection::init(const char* username, const char* password, const char* db
   CS_INT aux = CS_DATES_LONG;
   ret = cs_dt_info(m_context, CS_SET, NULL, CS_DT_CONVFMT, CS_UNUSED, (CS_VOID*)&aux, sizeof(aux), 0);
   if (ret != CS_SUCCEED) {
+    assert(false);
     xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call cs_dt_info(CS_DT_CONVFMT) failed with error %d", (int)ret);
+    return;
+  }
+}
+
+//------------------------------------------------------------------------------
+void connection::set_charset(const char* charset_name, ExceptionSink* xsink)
+{
+  if (m_charset_locale) {
+    assert(false); // called twice?
+    return;
+  }
+  CS_RETCODE err = cs_loc_alloc(getContext(), &m_charset_locale);
+  if (err != CS_SUCCEED) {
+    assert(false);
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_loc_alloc() returned error %d", (int)err);
+    return;
+  }
+  err = cs_locale(getContext(), CS_SET, m_charset_locale, CS_SYB_CHARSET, (CS_CHAR*)charset_name, CS_NULLTERM, 0);
+  if (err != CS_SUCCEED) {
+    assert(false);
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_locale(CS_SYB_CHARSET, \"%s\") failed with error %d", (int)err);
     return;
   }
 }
