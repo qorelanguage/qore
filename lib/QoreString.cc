@@ -1395,6 +1395,25 @@ class BinaryObject *QoreString::parseBase64(class ExceptionSink *xsink) const
    return ::parseBase64(buf, len, xsink);
 }
 
+class QoreString *QoreString::parseBase64ToString(class ExceptionSink *xsink) const
+{
+   class BinaryObject *b = ::parseBase64(buf, len, xsink);
+   if (!b)
+      return NULL;
+   QoreString *str = new QoreString();
+   str->len = b->size() - 1;
+   str->buf = (char *)b->giveBuffer();
+   delete b;
+   // check for null termination
+   if (str->buf[len])
+   {
+      ++str->len;
+      str->buf = (char *)realloc(str->buf, str->len + 1);
+      str->buf[str->len] = '\0';
+   }
+   return str;
+}
+
 class BinaryObject *QoreString::parseHex(class ExceptionSink *xsink) const
 {
    return ::parseHex(buf, len, xsink);

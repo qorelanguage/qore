@@ -104,6 +104,7 @@ class QoreString {
       DLLEXPORT void concatBase64(const class BinaryObject *bin);
       DLLEXPORT void concatBase64(const class QoreString *str);
       DLLEXPORT class BinaryObject *parseBase64(class ExceptionSink *xsink) const;
+      DLLEXPORT class QoreString *parseBase64ToString(class ExceptionSink *xsink) const;
       DLLEXPORT void concatHex(const char *buf, int size);
       DLLEXPORT void concatHex(const class BinaryObject *bin);
       DLLEXPORT void concatHex(const class QoreString *str);

@@ -846,7 +846,7 @@ int MyBindNode::bindValue(class QoreEncoding *enc, MYSQL_BIND *buf, class Except
    {
       len = data.value->val.bin->size();
       buf->buffer_type = MYSQL_TYPE_BLOB;
-      buf->buffer = data.value->val.bin->getPtr();
+      buf->buffer = (void *)data.value->val.bin->getPtr();
       buf->buffer_length = len;
       buf->length = &len;
       return 0;

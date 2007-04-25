@@ -179,7 +179,7 @@ void set_input_parameter(command& cmd, unsigned parameter_index, int type,
     datafmt.datatype = type;
     datafmt.maxlength = data->val.bin->size();
     datafmt.count = 1;
-    err = ct_param(cmd(), &datafmt, data->val.bin->getPtr(), data->val.bin->size(), 0);
+    err = ct_param(cmd(), &datafmt, (void *)data->val.bin->getPtr(), data->val.bin->size(), 0);
     if (err != CS_SUCCEED) {
       assert(false);
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase function ct_param() for binary parameter #%u failed with error", parameter_index, (int)err);

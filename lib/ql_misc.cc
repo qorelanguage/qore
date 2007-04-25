@@ -260,6 +260,18 @@ static class QoreNode *f_parseBase64String(class QoreNode *params, ExceptionSink
    return new QoreNode(b);
 }
 
+static class QoreNode *f_parseBase64StringToString(class QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p0 = test_param(params, NT_STRING, 0);
+   if (!p0)
+      return NULL;
+
+   class QoreString *str = p0->val.String->parseBase64ToString(xsink);
+   if (xsink->isEvent())
+      return NULL;
+   return new QoreNode(str);
+}
+
 static class QoreNode *f_getModuleList(class QoreNode *params, ExceptionSink *xsink)
 {
    List *l = MM.getModuleList();
@@ -1052,6 +1064,7 @@ void init_misc_functions()
    builtinFunctions.add("getClassName", f_getClassName);
    builtinFunctions.add("backquote", f_backquote, QDOM_EXTERNAL_PROCESS);
    builtinFunctions.add("parseBase64String", f_parseBase64String);
+   builtinFunctions.add("parseBase64StringToString", f_parseBase64StringToString);
    builtinFunctions.add("makeBase64String", f_makeBase64String);
    builtinFunctions.add("parseHexString", f_parseHexString);
    builtinFunctions.add("makeHexString", f_makeHexString);

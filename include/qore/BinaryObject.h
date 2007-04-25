@@ -74,7 +74,7 @@ class BinaryObject {
 	 return new BinaryObject(np, len);
       }
 
-      inline void *getPtr() const
+      inline const void *getPtr() const
       {
 	 return ptr;
       }
@@ -90,6 +90,15 @@ class BinaryObject {
       {
 	 append(b->ptr, b->len);
       }
+
+      inline void *giveBuffer()
+      {
+	 void *p = ptr;
+	 ptr = NULL;
+	 len = 0;
+	 return p;
+      }
+
 };
 
 #endif // _QORE_BINARYOBJECT_H
