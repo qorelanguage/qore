@@ -189,6 +189,7 @@ CS_RETCODE connection::clientmsg_callback(CS_CONTEXT* ctx, CS_CONNECTION* conn, 
   if (errmsg->osstringlen > 0) {
     fprintf(stderr, "Operating System Error: %s\n", errmsg->osstring);
   }
+  fprintf(stderr, "--------------------------------------------------\n");
   fflush(stderr);  
 #endif
   return CS_SUCCEED;
@@ -209,6 +210,7 @@ CS_RETCODE connection::servermsg_callback(CS_CONTEXT* ctx, CS_CONNECTION* conn, 
     fprintf(stderr, "Procedure: %s\n", svrmsg->proc);
   }
   fprintf(stderr, "Message string: %s\n", svrmsg->text);
+  fprintf(stderr, "--------------------------------------------------\n");
   fflush(stderr);
 #endif
   return CS_SUCCEED;

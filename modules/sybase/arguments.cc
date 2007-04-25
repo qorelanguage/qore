@@ -82,6 +82,7 @@ static bool is_integer_Sybase_type(int64 type)
 //------------------------------------------------------------------------------
 std::vector<argument_t> extract_language_command_arguments(List* args, const std::vector<char>& arg_types, ExceptionSink* xsink)
 {
+printf("#####???????????????????????????????????????????????????/ called\n");
   typedef std::vector<argument_t> result_t;
 
   unsigned query_params = arg_types.size();
@@ -112,8 +113,10 @@ std::vector<argument_t> extract_language_command_arguments(List* args, const std
           xsink->raiseException("DBI-EXEC-EXCEPTION", "Parameter #%d needs to be an integer (because of %%d)", i);
           return result_t();
         }
+printf("#### added INT type #%d\n", i);
         added_argument.m_type = CS_INT_TYPE;
       } else {
+printf("#### added string type #%d\n", i);
         added_argument.m_type = CS_CHAR_TYPE;
       }
       result.push_back(added_argument);

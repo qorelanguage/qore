@@ -38,6 +38,9 @@
 void initiate_language_command(command& cmd, const char* cmd_text, ExceptionSink* xsink)
 {
   assert(cmd_text && cmd_text[0]);
+printf("############################################\n");
+printf("#### executing cmd [%s]\n", cmd_text);
+printf("############################################\n");
   CS_RETCODE err = ct_command(cmd(), CS_LANG_CMD, (CS_CHAR*)cmd_text, CS_NULLTERM, CS_UNUSED);
   if (err != CS_SUCCEED) {
     assert(false);

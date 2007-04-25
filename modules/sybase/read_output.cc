@@ -98,6 +98,7 @@ QoreNode* read_output(command& cmd, QoreEncoding* encoding, ExceptionSink* xsink
   CS_INT result_type;  
   CS_RETCODE err;
   while ((err = ct_results(cmd(), &result_type)) == CS_SUCCEED) {
+printf("#### OOOOOOOOOOOOOOOOOOOOOOOOOOOOOO CT_RESULTS returned, result_type = %d\n", (int)result_type);
     switch (result_type) {
     case CS_CURSOR_RESULT:
       assert(false); // cannot happen, bug in driver

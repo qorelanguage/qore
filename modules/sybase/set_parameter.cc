@@ -481,6 +481,7 @@ void set_output_parameter(command& cmd, unsigned parameter_index, const char* na
   if (name) {
     sprintf(prepended_name, "@%s", name);
     strcpy(datafmt.name, prepended_name);
+    datafmt.namelen = strlen(datafmt.name);
   }
   datafmt.datatype = type;
 

@@ -42,6 +42,7 @@
 #include "command.h"
 #include "arguments.h"
 #include "read_output.h"
+#include "set_parameter.h"
 
 //------------------------------------------------------------------------------
 static QoreNode* execute_command_impl(connection& conn, QoreString* cmd_text, List* qore_args, QoreEncoding* encoding, ExceptionSink* xsink)
@@ -56,29 +57,31 @@ static QoreNode* execute_command_impl(connection& conn, QoreString* cmd_text, Li
     return 0;
   }
 
+printf("###### HERE 1\n");
   initiate_language_command(cmd, query.m_cmd.c_str(), xsink);
   if (xsink->isException()) {
     return 0;
   }
 
-  processed_language_command_t input_params = process_language_command(query.m_cmd.c_str(), xsink);
-  if (xsink->isException()) {
-    return 0;
-  }
-  if (!input_params.m_parameter_types.empty()) {
+printf("#### number of input parameters is %d\n", query.m_parameter_types.size());
+  if (!query.m_parameter_types.empty()) {
     // has some input parameters, set them now
-    std::vector<argument_t> input_params_extracted = extract_language_command_arguments(qore_args, input_params.m_parameter_types, xsink);
+    std::vector<argument_t> input_params_extracted = extract_language_command_arguments(qore_args, query.m_parameter_types, xsink);
     if (xsink->isException()) {
       return 0;
     }
-    assert(input_params_extracted.size() == input_params.m_parameter_types.size());
+    assert(input_params_extracted.size() == query.m_parameter_types.size());
     assert(input_params_extracted.size() == (unsigned)qore_args->size());
-    // set parameters
+    // set input parameters
     for (unsigned i = 0, n = input_params_extracted.size(); i != n; ++i) {
-      // TBD
+      set_input_parameter(cmd, i, input_params_extracted[i].m_type, input_params_extracted[i].m_node, encoding, xsink);
+      if (xsink->isException()) {
+        return 0;
+      }
     }
   }
 
+printf("##### HERE 3\n");
   send_command(cmd, xsink);
   if (xsink->isException()) {
     return 0;

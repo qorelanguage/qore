@@ -50,6 +50,7 @@ processed_language_command_t process_language_command(const char* cmd_text, Exce
 {
   processed_language_command_t result;
   result.m_cmd.reserve(1000); // guess
+printf("#### parsing query [%s]\n", cmd_text);
  
   const char* s = cmd_text;   
   while (*s) {
@@ -89,11 +90,14 @@ processed_language_command_t process_language_command(const char* cmd_text, Exce
     }
 
     if (ch == '%') {
+printf("###### %% detected\n");
       ch = *s++;
       if (ch == 'v') {
+printf("#### added 'v' parameter\n");
         result.m_parameter_types.push_back('v');
       } else
       if (ch == 'd') {
+printf("#### added 'd' parameter\n");
         result.m_parameter_types.push_back('d');
       } else {
         xsink->raiseException("DBI-EXEC-EXCEPTION", "Only %%v or %%d expected in parameter list");
