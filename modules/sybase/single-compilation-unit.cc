@@ -1,3 +1,4 @@
+/*
 #include "arguments.cc"
 #include "buffer_to_QoreNode.cc"
 #include "command.cc"
@@ -19,3 +20,4 @@
 #include "set_up_output_buffers.cc"
 #include "sybase.cc"
 #include "transactions.cc"
+*/

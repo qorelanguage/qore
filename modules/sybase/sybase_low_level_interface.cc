@@ -697,7 +697,7 @@ void sybase_ct_param(
   
   if (data->type == NT_NULL || data->type == NT_NOTHING) {
     // SQL NULL value
-    err = ct_param(wrapper(), &datafmt, 0, CS_UNUSED, -1);
+    err = ct_param(cmd(), &datafmt, 0, CS_UNUSED, -1);
     if (err != CS_SUCCEED) {
       assert(false);
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_param(NULL) failed for parameter #%u with error %d", parameter_index + 1, (int)err);
@@ -730,7 +730,7 @@ void sybase_ct_param(
     datafmt.format = CS_FMT_NULLTERM;
     datafmt.maxlength = (2 * 1024 * 1024 * 1024 - 1); // 2GB for text
 
-    err = ct_param(wrapper(), &datafmt, (CS_VOID*)s2, strlen(s2), 0);
+    err = ct_param(cmd(), &datafmt, (CS_VOID*)s2, strlen(s2), 0);
     if (err != CS_SUCCEED) {
       assert(false);
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase function ct_param() for string parameter #%u failed with error", parameter_index + 1, (int)err);

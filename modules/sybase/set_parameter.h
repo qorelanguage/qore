@@ -29,6 +29,13 @@
 class ExceptionSink;
 class command;
 
+extern void set_input_parameter(command& cmd, unsigned parameter_index, int type,
+  QoreNode* data, QoreEncoding* encoding, ExceptionSink* xsink);
+
+// for RPC (placeholder)
+extern void set_output_parameter(command& cmd, unsigned parameter_index, const char* name, 
+  int type, void* out_buffer, unsigned out_buffer_size, ExceptionSink* xsink);
+  
 
 #endif
 

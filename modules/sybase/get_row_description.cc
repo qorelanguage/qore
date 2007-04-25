@@ -49,7 +49,7 @@ std::vector<CS_DATAFMT> get_row_description(command& cmd, unsigned columns_count
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_describe() failed with error %d", (int)err);
       return result_t();
     }
-    datafmt.count = 1; // fetch just single row  pr every ct_fetch()
+    datafmt.count = 1; // fetch just single row per every ct_fetch()
 
     switch (datafmt.datatype) {
     case CS_LONGCHAR_TYPE:

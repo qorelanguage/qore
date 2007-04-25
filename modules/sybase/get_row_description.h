@@ -33,6 +33,7 @@ class command;
 class ExceptionSink;
 
 //------------------------------------------------------------------------------
+// Used to get description of the output data.
 extern std::vector<CS_DATAFMT> get_row_description(command& cmd, unsigned columns_count, ExceptionSink* xsink);
 
 #endif
