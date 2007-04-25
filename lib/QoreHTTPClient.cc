@@ -851,7 +851,7 @@ class QoreNode *QoreHTTPClient::send_internal(const char *meth, const char *mpat
       return NULL;
    }
 
-   if (code < 200 && code >= 300)
+   if (code < 200 || code >= 300)
    {
       sl.unlock();
       v = ah->getKeyValue("status_message");
@@ -1051,6 +1051,8 @@ class QoreNode *QoreHTTPClient::post(const char *path, class Hash *headers, cons
    class QoreNode *ans = send_internal("POST", path, headers, data, size, true, xsink);
    if (!ans)
       return NULL;
+   // check for 2** return code, if not throw an exception
+   
    class QoreNode *rv = ans->val.hash->takeKeyValue("body");
    ans->deref(xsink);
    return rv;

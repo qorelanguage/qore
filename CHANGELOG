@@ -1,6 +1,8 @@
 2006.04.25: David Nichols
 	* implemented parseBase64StringToString(), made BinaryObject::getPtr()
 	  return a const void *
+	* fixed a bug in HTTPClient where exceptions were not being thrown for
+	  HTTP response codes indicating an error
 
 2006.04.21: David Nichols
 	* fixed a race condition on platforms without atomic reference counting
