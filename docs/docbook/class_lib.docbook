@@ -504,6 +504,10 @@
 	    <entry><para><code>Qore::Type::NothingType</code></para></entry>
 	    <entry><para><link linkend="NOTHING">NOTHING</link></para></entry>
 	  </row>
+	  <row>
+	    <entry><para><code>Qore::Type::CallReference</code></para></entry>
+	    <entry><para><link linkend="call_references">call references</link></para></entry>
+	  </row>
 	</tbody>
       </tgroup>
     </table>

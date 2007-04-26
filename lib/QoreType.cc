@@ -440,9 +440,9 @@ QoreTypeManager::QoreTypeManager()
    add(NT_REGEX = new QoreType("regular expression", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, INVALID_COPY, NULL, regex_DeleteContents, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
    add(NT_CLASSREF = new QoreType("class reference", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, INVALID_COPY, NULL, classref_DeleteContents, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
    add(NT_OBJMETHREF = new QoreType("object method reference", NULL, objmethref_eval, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, objmethref_del, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
-   add(NT_FUNCREF = new QoreType("function reference", NULL, funcref_eval, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
-   add(NT_FUNCREFCALL = new QoreType("function reference call", NULL, funcrefcall_eval, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, funcrefcall_del, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
-   
+   add(NT_FUNCREF = new QoreType("call reference", NULL, funcref_eval, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
+   add(NT_FUNCREFCALL = new QoreType("call reference call", NULL, funcrefcall_eval, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, funcrefcall_del, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
+
    // from now on, assign IDs in the user space 
    lastid = QTM_USER_START;
 

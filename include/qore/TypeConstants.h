@@ -31,17 +31,18 @@ static inline class Namespace *get_type_ns()
 {
    class Namespace *Type = new Namespace("Type");
 
-   Type->addConstant("Boolean",     new QoreNode(NT_BOOLEAN->getName())); //new QoreNode((int64)(int)NT_BOOLEAN));
-   Type->addConstant("Int",         new QoreNode(NT_INT->getName())); //new QoreNode((int64)(int)NT_INT));
-   Type->addConstant("Float",       new QoreNode(NT_FLOAT->getName())); //new QoreNode((int64)(int)NT_FLOAT));
-   Type->addConstant("String",      new QoreNode(NT_STRING->getName())); //new QoreNode((int64)(int)NT_STRING));
-   Type->addConstant("Date",        new QoreNode(NT_DATE->getName())); //new QoreNode((int64)(int)NT_DATE));
-   Type->addConstant("NothingType", new QoreNode(NT_NOTHING->getName())); //new QoreNode((int64)(int)NT_NOTHING));
-   Type->addConstant("NullType",    new QoreNode(NT_NULL->getName())); //new QoreNode((int64)(int)NT_NULL));
-   Type->addConstant("Binary",      new QoreNode(NT_BINARY->getName())); //new QoreNode((int64)(int)NT_BINARY));
-   Type->addConstant("List",        new QoreNode(NT_LIST->getName())); //new QoreNode((int64)(int)NT_LIST));
-   Type->addConstant("Hash",        new QoreNode(NT_HASH->getName())); //new QoreNode((int64)(int)NT_HASH));
-   Type->addConstant("Object",      new QoreNode(NT_OBJECT->getName())); //new QoreNode((int64)(int)NT_OBJECT));
+   Type->addConstant("Boolean",        new QoreNode(NT_BOOLEAN->getName()));
+   Type->addConstant("Int",            new QoreNode(NT_INT->getName()));
+   Type->addConstant("Float",          new QoreNode(NT_FLOAT->getName()));
+   Type->addConstant("String",         new QoreNode(NT_STRING->getName()));
+   Type->addConstant("Date",           new QoreNode(NT_DATE->getName()));
+   Type->addConstant("NothingType",    new QoreNode(NT_NOTHING->getName()));
+   Type->addConstant("NullType",       new QoreNode(NT_NULL->getName()));
+   Type->addConstant("Binary",         new QoreNode(NT_BINARY->getName()));
+   Type->addConstant("List",           new QoreNode(NT_LIST->getName()));
+   Type->addConstant("Hash",           new QoreNode(NT_HASH->getName())); 
+   Type->addConstant("Object",         new QoreNode(NT_OBJECT->getName())); 
+   Type->addConstant("CallReference",  new QoreNode(NT_FUNCREF->getName()));
    //Type->addConstant("FList", new QoreNode("")); //new QoreNode((int64)(int)NT_FLIST));
    //Type->addConstant("BackquoteExpression", new QoreNode("")); //new QoreNode((int64)(int)NT_BACKQUOTE));
    //Type->addConstant("ContextRef", new QoreNode("")); //new QoreNode((int64)(int)NT_CONTEXTREF));

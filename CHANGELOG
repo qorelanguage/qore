@@ -2,6 +2,11 @@
 	* made assignments such as 
 	  my ($a, $b, $c) = (1, 2, 3)
 	  finally legal...
+	* added CallReference constant for call reference (return value of 
+	  type() for call reference arguments)
+	* fixed a bug in SSL handling for server sockets; if an SSL connection is
+	  not established on an attempted connection then a segmentation fault
+	  was generated when the Socket object was deleted
 
 2006.04.25: David Nichols
 	* implemented parseBase64StringToString(), made BinaryObject::getPtr()
