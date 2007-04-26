@@ -16,6 +16,7 @@ Otherwise for integers make sure and multiply any values representing seconds by
 the key is always assumed to be the TID (thread ID); meaning that only one thread can hold the lock at one time; however it can be acquired recursively
 Any integer passed to this method will be assumed to be a timeout value in milliseconds
 with a timeout, if the return value is -1, then the Gate was not grabbed
+The Gate class participates in the new Qore deadlock detection, more on this below.
 
 *) ***COMPATIBILITY WARNING**: the RMutex class is deprecated, use the Gate class instead
 Internally the RMutex class as of this release is a clone of the new implementation of the Gate class
@@ -33,16 +34,19 @@ The driver supports the following features:
 
 The driver's name is "pgsql" and the Datasource type constant is SQL::DSPGSQL
 ex: $db = new Datasource(DSPGSQL);
+ex: $db = new Datasource("pgsql");
 
 *) "sybase" module: Sybase driver
 ...
 The driver's name is "sybase" and the Datasource type constant is SQL::DSSybase
 ex: $db = new Datasource(DSSybase);
+ex: $db = new Datasource("sybase");
 
 *) "mssql" module: FreeTDS-based driver for connecting to MS SQL Server databases
 ...
 The driver's name is "mssql" and the Datasource type constant is SQL::DSMSSQL
 ex: $db = new Datasource(DSMSSQL);
+ex: $db = new Datasource("mssql");
 
 *) HTTPClient improvements
 the HTTPClient class now supports redirections, basic authentication, and proxy support (and basic proxy authentication).
@@ -238,6 +242,11 @@ This ensures that values will be set properly even for databases such as Postgre
 This optiimzation, designed to reduce the number of cache invalidations in SMP environments, leads to a race condition on platforms requiring a mutex lock for atomic reference operations.
 It's possible for one thread to delete an object while another thread is holding the lock.  This can lead to memory corruption/segmentation faults on these platforms.
 The fix was to disable the optimization if atomic reference operations are not supported without a mutex lock.
+
+*) significant documentation updates
+more code examples added, also for all functions and classes
+the Datasource class, DBI drivers, and encryption functionality were significantly expanded
+many corrections were made
 
 *) other bugfixes, updates, etc
 see CHANGELOG for details
