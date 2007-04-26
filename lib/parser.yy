@@ -1563,7 +1563,7 @@ exp:    scalar
 	{
 	   if ($1->type == NT_FLIST)
 	      $1->type = NT_LIST;
-	   if ($1->type == NT_LIST)
+	   if ($1->type == NT_LIST || $1->type == NT_VLIST)
 	   {
 	      bool ok = true;
 	      for (int i = 0; i < $1->val.list->size(); i++)
