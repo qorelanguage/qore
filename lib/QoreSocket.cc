@@ -387,7 +387,11 @@ int QoreSocket::upgradeServerToSSLIntern(X509 *cert, EVP_PKEY *pkey, class Excep
 {
    ssl = new SSLSocketHelper();
    if (ssl->setServer(sock, cert, pkey, xsink) || ssl->accept(xsink))
+   {
+      delete ssl;
+      ssl = NULL;
       return -1;
+   }
    return 0;
 }
 
