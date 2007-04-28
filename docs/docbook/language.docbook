@@ -5506,7 +5506,7 @@ $name = getName();</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Queues a statement or statement block for execution when the block is exited in the case that no exception is active.  Used often in conjunction with the <link linkend="on_error_Statements">on_error statement</link> and related to the <link linkend="on_exit_Statements">on_exit statement</link>.</para>
+	    <para>Queues a statement or statement block for execution when the block is exited in the case that no exception is active.  Used often in conjunction with the <link linkend="on_success_Statements">on_success statement</link> and related to the <link linkend="on_exit_Statements">on_exit statement</link>.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>

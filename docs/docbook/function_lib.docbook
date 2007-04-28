@@ -81,7 +81,7 @@
             <para>N</para>
           </entry>
           <entry>
-            <para>returns the absolute value of the argument passed</para>
+            <para>Returns the absolute value of the argument passed</para>
           </entry>
         </row>
         <row>
@@ -97,7 +97,7 @@
             <para>N</para>
           </entry>
           <entry>
-            <para>returns the arc cosine of the number passed in radians</para>
+            <para>Returns the arc cosine of the number passed in radians</para>
           </entry>
         </row>
         <row>
@@ -113,7 +113,7 @@
             <para>N</para>
           </entry>
           <entry>
-            <para>returns the arc sine of the number passed in radians.</para>
+            <para>Returns the arc sine of the number passed in radians.</para>
           </entry>
         </row>
         <row>
@@ -129,7 +129,7 @@
             <para>N</para>
           </entry>
           <entry>
-            <para>returns the arc tangent of the number passed in radians.</para>
+            <para>Returns the arc tangent of the number passed in radians.</para>
           </entry>
         </row>
         <row>
@@ -393,7 +393,7 @@
             <para>N</para>
           </entry>
           <entry>
-            <para>returns the cube root of the number passed.</para>
+            <para>Returns the cube root of the number passed.</para>
           </entry>
         </row>
         <row>
@@ -520,7 +520,7 @@
             <para>N</para>
           </entry>
           <entry>
-            <para>returns the cosine of the number in radians passed.</para>
+            <para>Returns the cosine of the number in radians passed.</para>
           </entry>
         </row>
         <row>
@@ -536,7 +536,7 @@
             <para>N</para>
           </entry>
           <entry>
-            <para>returns the hyperbolic cosine of the number passed.</para>
+            <para>Returns the hyperbolic cosine of the number passed.</para>
           </entry>
         </row>
         <row>
@@ -887,7 +887,7 @@
             <para>N</para>
           </entry>
           <entry>
-            <para>returns the value of e raised to the power of the argument passed</para>
+            <para>Returns the value of e raised to the power of the argument passed</para>
           </entry>
         </row>
         <row>
@@ -903,7 +903,7 @@
             <para>N</para>
           </entry>
           <entry>
-            <para>returns the value of 2 raised to the power of the argument passed</para>
+            <para>Returns the value of 2 raised to the power of the argument passed</para>
           </entry>
         </row>
         <row>
@@ -919,7 +919,7 @@
             <para>N</para>
           </entry>
           <entry>
-            <para>returns an equivalent of exp(x) - 1</para>
+            <para>Returns an equivalent of exp(x) - 1</para>
           </entry>
         </row>
         <row>
@@ -1750,7 +1750,7 @@
             <para>N</para>
           </entry>
           <entry>
-            <para>returns the length of the hypotenuse of a right-angle triangle with sides given as the two arguments.</para>
+            <para>Returns the length of the hypotenuse of a right-angle triangle with sides given as the two arguments.</para>
           </entry>
         </row>
         <row>
@@ -2845,7 +2845,7 @@
             <para>Y</para>
           </entry>
           <entry>
-            <para>returns the value of the first argument raised to the power of the second</para>
+            <para>Returns the value of the first argument raised to the power of the second</para>
           </entry>
         </row>
         <row>
@@ -3257,7 +3257,7 @@
           <para>Y</para>
         </entry>
         <entry>
-          <para>Returns the SHA message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
+          <para>Returns the SHA message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</Para>
         </entry>
       </row>
       <row>
@@ -3360,7 +3360,7 @@
             <para>N</para>
           </entry>
           <entry>
-            <para>returns the sine of the number in radians passed.</para>
+            <para>Returns the sine of the number in radians passed.</para>
           </entry>
         </row>
         <row>
@@ -3376,7 +3376,7 @@
             <para>N</para>
           </entry>
           <entry>
-            <para>returns the hyperbolic sine of the number passed.</para>
+            <para>Returns the hyperbolic sine of the number passed.</para>
           </entry>
         </row>
         <row>
@@ -3392,7 +3392,7 @@
             <para>N</para>
           </entry>
           <entry>
-            <para>returns the square root of the number passed.</para>
+            <para>Returns the square root of the number passed.</para>
           </entry>
         </row>
         <row>
@@ -3526,7 +3526,7 @@
             <para>N</para>
           </entry>
           <entry>
-            <para>returns the tangent of the number in radians passed.</para>
+            <para>Returns the tangent of the number in radians passed.</para>
           </entry>
         </row>
         <row>
@@ -3542,7 +3542,7 @@
             <para>N</para>
           </entry>
           <entry>
-            <para>returns the hyperbolic tangent of the number passed.</para>
+            <para>Returns the hyperbolic tangent of the number passed.</para>
           </entry>
         </row>
         <row>
@@ -3812,7 +3812,7 @@
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>returns the arc cosine of the number passed in radians</para>
+	<para>Returns the arc cosine of the number passed in radians</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -3863,7 +3863,7 @@
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>returns the arc sine of the number passed in radians</para>
+	<para>Returns the arc sine of the number passed in radians</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -3914,7 +3914,7 @@
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>returns the arc tangent of the number passed in radians</para>
+	<para>Returns the arc tangent of the number passed in radians</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -4871,7 +4871,7 @@
   <row>
     <entry><para>Float</para></entry>
     <entry><para>Float</para></entry>
-    <entry><para>returns the square root of the number passed.</para></entry>
+    <entry><para>Returns the square root of the number passed.</para></entry>
   </row>
   
 </tbody>

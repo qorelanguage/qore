@@ -238,6 +238,13 @@ This ensures that values will be set properly even for databases such as Postgre
 	Socket::recvu2LSB()
 	Socket::recvu4LSB()
 
+*) fixed parser to accept variable declarations and list assignment
+i.e.:
+	my ($a, $b, $c) = split(",", $string); 
+	our ($a, $b, $c) = $list;
+
+are now legal...
+
 *) "reference optimization" disabled on platforms where atomic reference operations not available (Sparc, PA-RISC)
 This optiimzation, designed to reduce the number of cache invalidations in SMP environments, leads to a race condition on platforms requiring a mutex lock for atomic reference operations.
 It's possible for one thread to delete an object while another thread is holding the lock.  This can lead to memory corruption/segmentation faults on these platforms.
