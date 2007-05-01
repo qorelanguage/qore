@@ -126,7 +126,7 @@ class MySQLConnection {
       {
 	 return mysql_error(db);
       }
-      DLLLOCAL int errno()
+      DLLLOCAL int q_errno()
       {
 	 return mysql_errno(db);
       }
@@ -469,7 +469,7 @@ MyBindGroup::MyBindGroup(class Datasource *ods, class QoreString *ostr, class Li
    // prepare the statement for execution
    if (mysql_stmt_prepare(stmt, str->getBuffer(), str->strlen()))
    {
-      if (mydata->errno() != CR_SERVER_GONE_ERROR)
+      if (mydata->q_errno() != CR_SERVER_GONE_ERROR)
 	 xsink->raiseException("DBI:MYSQL:STATEMENT-ERROR", mydata->error());
 
       if (mydata->reconnect(ods, stmt, str, xsink))
