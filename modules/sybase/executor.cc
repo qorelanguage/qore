@@ -29,6 +29,7 @@
 #include <qore/List.h>
 #include <qore/Hash.h>
 #include <qore/QoreNode.h>
+#include <qore/QoreString.h>
 
 #include <assert.h>
 
