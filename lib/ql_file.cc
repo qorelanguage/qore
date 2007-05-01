@@ -40,7 +40,7 @@ static class QoreNode *check_stat(unsigned code, class QoreNode *params, Excepti
    if ((rc = stat(p0->val.String->getBuffer(), &sbuf)))
       return NULL;
 
-   return (sbuf.st_mode & S_IFMT) == (unsigned)code ? boolean_true() : boolean_false();
+   return (sbuf.st_mode & S_IFMT) == (int)code ? boolean_true() : boolean_false();
 }
 
 static class QoreNode *check_lstat(unsigned code, class QoreNode *params, ExceptionSink *xsink)
@@ -55,7 +55,7 @@ static class QoreNode *check_lstat(unsigned code, class QoreNode *params, Except
    if ((rc = lstat(p0->val.String->getBuffer(), &sbuf)))
       return NULL;
    
-   return (sbuf.st_mode & S_IFMT) == (unsigned)code ? boolean_true() : boolean_false();
+   return (sbuf.st_mode & S_IFMT) == (int)code ? boolean_true() : boolean_false();
 }
 
 static class QoreNode *f_is_file(class QoreNode *params, ExceptionSink *xsink)
