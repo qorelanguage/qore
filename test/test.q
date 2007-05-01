@@ -557,11 +557,11 @@ sub statement_tests()
     test_value(switch_test("hello"), "case 1", "fifth switch");
     test_value(switch_test("testing"), "default", "sixth switch");
     # switch with relation operators
-    test_value(switch_with_relation_test(-2), "first switch");
-    test_value(switch_with_relation_test(2), "second switch");
-    test_value(switch_with_relation_test(-1.0), "third switch");
-    test_value(switch_with_relation_test(1.0), "fourth switch");
-    test_value(switch_with_relation_test(0), "fifth switch");
+    test_value(switch_with_relation_test(-2), "first switch", "first switch");
+    test_value(switch_with_relation_test(2), "second switch", "second switch");
+    test_value(switch_with_relation_test(-1.0), "third switch", "third switch");
+    test_value(switch_with_relation_test(1.0), "fourth switch", "fourth switch");
+    test_value(switch_with_relation_test(0), "fifth switch", "fifth switch");
 
     # on_exit tests
     try 
