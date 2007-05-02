@@ -46,6 +46,8 @@ if you have the open headers and libraries in a location the configure script ca
 --with-tibae=<dir>                  : directory of TIBCO AE SDK ("tibae" module)
 --with-tibae-tpcl=<dir>             : directory of TIBCO AE TPCL installation ("tibae" module)
 --with-tuxedo=<dir>                 : directory of Bea Tuxedo installation ("tuxedo" module)
+--with-sybase=<dir>                 : directory of Sybase or Sybase OCS installation ("sybase" module)
+--with-freetds=<dir>                : directory of FreeTDS installation ("mssql" module)
 
 rarely used options
 -------------------
@@ -61,31 +63,37 @@ recommended configure arguments: configure --disable-static --disable-debug --pr
 *) "oracle": Oracle DBI module requires Oracle 9i or better
 Oracle DB installation: If you have Oracle 9i or higher you can build in Oracle integration.  Make sure your ORACLE_HOME is set before calling configure (otherwise use the --with-oracle configure option).  Header files and libraries must be available in the standard locations.  
 Oracle Instant Client installation: Make sure the ORACLE_INSTANT_CLIENT environment variable is set before you run configure.  Note that on HPUX I have not found a working instant client for 32-bit PA-RISC, for some reason libnnz10 would not link
-Also note that on HPUX and Solaris I had to manually link the libclntsh.sl1.10.* (libclintsh.so.10.*) to libclintsh.sl (libclintsh.so) in instant client installations in order to link.
+Also note that on HPUX and Solaris I had to manually link the libclntsh.sl1.10.* (libclintsh.so.10.*) to libclintsh.sl (libclintsh.so) in instant client installations in order to link with instant client installations.
 Oracle support in qore is good, very well tested.
 
 *) "mysql": MySQL DBI module requires MySQL 3.3 or better
 If you have MySQL 3.3+ or better you can build in MySQL support.  With MySQL 4.1+ you can get transaction support and the module will use the more efficient prepared statement interface.
-If your mysql installation is in a non-standard location, set the MYSQL_DIR environment variable to the location of the installation before running configure
+If your mysql installation is in a non-standard location, set the MYSQL_DIR environment variable to the location of the installation before running configure.
+Note that you have to use g++ 4.0.* on Darwin to link with newer versions of the MySQL libraries
+MySQL support in qore is good and well tested.
 
 *) "pgsql": PostgreSQL DBI module requires PostgreSQL 7+ client libraries and headers
 If your PostgreSQL libraries are in a non-standard location you can use the --with-pgsql configure option or set the PGSQL_DIR environment variable.
+PostgreSQL support in qore is good and well tested.
 
 *) "sybase": Sybase DBI module requires Sybase OCS 15+ client libraries and headers
 Use --with-sybase or set the SYBASE and SYBASE_OCS environment variables to build the "sybase" module.  note that the sybase module has not been tested with x86_64 builds yet
+
+*) "mssql": FreeTDS-based Sybase and Microsoft SQL Server driver, requires FreeTDS headers and libraries
+User --with-freetds or set the FREETDS environment variable to your FreeTDS installation to build the "mssql" module.  Note that the "mssql" driver is built from the same source as the "sybase" driver.
 
 *) "tibrv": TIBCO Rendezvous module requires TIBCO Rendezvous 7.x (6 may work)
 Set the RV_ROOT environment variable to the Rendezvous directory before calling configure (or use the --with-tibrv configure option) to build the "tibrv" module for direct Rendezvous support.  Note that to build this module the libtibrvcpp library must be present; on some platforms you have to rebuild this yourself from the sources provided by TIBCO in order for it to link with the C++ compiler you are using - the sources are normally present in $RV_ROOT/src/librvcpp, normally you have to edit the Makefile provided there and then type "make" to rebuild.  I had to include "ranlib libtibrvcpp.a" on the libraries I rebuilt for OS X.  Secure daemon support is turned off by default in tibrvcpp, to enable secure daemon support edit $RV_ROOT/src/librvcpp/Makefile and uncomment the SD_MODULE line near the end of the file, rebuild, install the new library in $RV_ROOT/lib, and rerun qore's configure script
 
 *) "tibae": TIBCO AE module requires TIBCO SDK 5.2.1 or better
 If you have TIBCO Rendezvous and the AE SDK installed, and the supported C++ compiler, you can build in TIBCO AE integration.  Make sure that the RV_ROOT, SDK_ROOT, and TPCL_ROOT environment variables are pointing to your Rendezvous, SDK, and TPCL directories respectively before calling configure.  Otherwise you can use the --with-tibrv, --with-tibae, and with-tibae-tpcl configure options.  The TIBCO module will compile with SDK 4.* versions, but there are so many bugs in this version of the SDK (including some horrible dynamic memory leaks) that it doesn't make sense to use anything before 5.2.1...
-Note that this module is not supported on HP-UX PA-RISC platforms due to the fact that the compiler requirements for the SDK are incompatible with compiling qore.
+Note that this module is not supported on HP-UX PA-RISC platforms due to the fact that the compiler requirements for aCC for the SDK are incompatible with compiling qore.
 
 *) "tuxedo": BEA Tuxedo support requores Tuxedo 8 or better
 
 *) "ncurses": ncurses module
 note that this module is still experimental due to the fact that I'm not sure if it's possible to safely enable threading without putting a big lock around every curses call.
-if your ncurses is in a non-standard location, set the NCURSES_DIR environment variable before running configure
+if your ncurses is in a non-standard location, set the NCURSES_DIR environment variable before running configure.  Also can be built with Solaris curses.
 
 To build qore, run the following commands:
 
@@ -133,8 +141,9 @@ There have been numerous requests for this, so any (clean) patches would be appr
 
 CPU Support
 -----------
-*) i386, x86_64, and ppc: fast inline assembly atomic operations are supported for reference counting
+*) i386, x86_64, and ppc: fast inline assembly atomic operations are supported for reference counting, as well as a SMP cache invalidation optimization for temporary objects (temporary object do not require a cache invalidation)
 *) all others (including sparc & pa-risc): I use a pthread mutex to ensure atomicity for reference counting.  I would be very happy to have atomic operation support for sparc and pa-risc (or other) CPUs for gcc (and CC on Solaris, aCC on HP-UX), but I haven't been able to do it myself yet...
+The cache invalidation optimization is not safe on platforms without an atomic reference counting implementation :-(
 
 Modules
 -------
