@@ -8,9 +8,6 @@
 # execute the application class
 %exec-class xml_rpc_client
 
-#include some XML-RPC helper functions and class
-%include xmlrpc.ql
-
 # define command-line options for GetOpt class
 const xml_rpc_opts = 
     ( "url"  : "url,u=s",
@@ -103,7 +100,7 @@ class xml_rpc_client
   -X,--literal-xml  shows literal xml response (unformatted)
   -v,--verbose      shows more information
   -h,--help         this help text
-", get_program_name());
+", basename($ENV."_"));
 	exit(1);
     }
 

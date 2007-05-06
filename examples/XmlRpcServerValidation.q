@@ -6,7 +6,6 @@
 %require-our
 %enable-all-warnings
 
-%include xmlrpc.ql
 %include HTTPServer.qc
 %include XmlRpcHandler.qc
 %include JsonRpcHandler.qc
@@ -66,7 +65,7 @@ sub usage()
 "usage: %s [options]
   -p,--port=arg     sets HTTP server port ([interface:]port)
   -h,--help         this help text
-", get_program_name());
+", basename($ENV."_"));
     exit(1);
 }
 
@@ -94,6 +93,24 @@ sub process_command_line()
 
     if (!exists $o.port)
 	$o.port = DefaultPort;
+}
+
+sub trim($str)
+{
+    # remove beginning blanks
+    $str =~ s/^ *//;
+    # remove trailing blanks
+    $str =~ s/ *$//;
+        
+    return $str;
+}
+
+sub inlist($val, $list)
+{
+    foreach my $v in ($list)
+        if ($val == $v)
+            return True;
+    return False;
 }
 
 sub arrayOfStructsTest($m)

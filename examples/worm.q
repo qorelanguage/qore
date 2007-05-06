@@ -241,12 +241,6 @@ const worm_opts =
       "trail"  : "t,trail",
       "help"   : "h,help" );
 
-sub get_program_name()
-{
-    my $l = split("/", $ENV{"_"});
-    return $l[elements $l - 1];
-}
-
 sub usage()
 {
     printf(
@@ -257,7 +251,7 @@ sub usage()
   -t,--trail
   -h,--help
 ",
-	   get_program_name());
+	   basename($ENV."_"));
     exit(1);
 }
 
@@ -344,7 +338,7 @@ sub main()
     {
 	$length = $o.length;
 	if ($length < 2 || $length > 1024) {
-	    printf("%s: Invalid length\n", get_program_name());
+	    printf("%s: Invalid length\n", basename($ENV."_"));
 	    exit(1);
 	}
     }
@@ -352,7 +346,7 @@ sub main()
     {
 	$number = $o.number;
 	if ($number < 1 || $number > 40) {
-	    printf("%s: Invalid number of worms\n", get_program_name());
+	    printf("%s: Invalid number of worms\n", basename($ENV."_"));
 	    exit(1);
 	}
     }

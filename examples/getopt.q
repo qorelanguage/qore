@@ -4,12 +4,6 @@
 %require-our
 %enable-all-warnings
 
-sub get_program_name()
-{
-    my $l = split("/", $ENV{"_"});
-    return $l[elements $l - 1];
-}
-
 sub usage()
 {
     printf(
@@ -21,7 +15,7 @@ sub usage()
   -d,--date        returns a date value in 'date'
   -t               returns a boolean value in 'test'
   -o,--opt         returns an integer sum of arguments in 'opt'\n",
-	   get_program_name());
+	   basename($ENV."_"));
     exit();
 }
 
