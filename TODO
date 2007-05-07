@@ -2,7 +2,6 @@ see docs/roadmap.html
 
 * add support for break and continue arguments to affect outer loops
 * add error code to exceptions for XML-RPC fault reporting
-* implement support for regular expressions in case expressions
 * add signal constants/infrastructure (in progress)
 * add context functions
 * allow customizable QORE_INCLUDE_DIR searches
@@ -18,8 +17,10 @@ docs:
 * make a section for each parse restriction
 * add examples for modules
 * write ncurses module documentation
+* document optimizations
 
 done:
+* implement support for regular expressions in case expressions
 * implement function or object/method pointers
 * fix Queue class (destructor must wake up any sleeping threads)
 * add file functions (is_file() is_dir() is_symlink(), etc)
