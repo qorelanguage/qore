@@ -1,5 +1,5 @@
 /*
-  SwitchStatementWithOperators.h
+  CaseNodeWithOperator.h
 
   Qore Programming Language
 
@@ -20,8 +20,8 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef QORE_SWITCHSTATEMENT_WITH_OPERATORS_H
-#define QORE_SWITCHSTATEMENT_WITH_OPERATORS_H
+#ifndef QORE_CASENODEWITHOPERATOR_H
+#define QORE_CASENODEWITHOPERATOR_H
 
 #include <qore/SwitchStatement.h>
 

@@ -107,7 +107,8 @@ noinst_HEADERS = \
 	include/qore/hash_map.h \
 	include/qore/ExecArgList.h \
 	include/qore/SwitchStatement.h \
-	include/qore/SwitchStatementWithOperators.h \
+	include/qore/CaseNodeWithOperator.h \
+	include/qore/CaseNodeRegex.h \
 	include/qore/QoreRegex.h \
 	include/qore/QoreRegexBase.h \
 	include/qore/QoreGetOpt.h \

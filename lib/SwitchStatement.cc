@@ -21,7 +21,8 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/SwitchStatementWithOperators.h>
+#include <qore/CaseNodeWithOperator.h>
+#include <qore/CaseNodeRegex.h>
 #include <qore/minitest.hpp>
 
 #ifdef DEBUG
@@ -88,7 +89,7 @@ void SwitchStatement::addCase(class CaseNode *c)
    else
       head = c;
    tail = c;
-   if (!c->val)
+   if (c->isDefault())
    {
       if (deflt)
 	 parse_error("multiple defaults in switch statement");
@@ -191,6 +192,24 @@ bool CaseNodeWithOperator::isCaseNodeImpl() const
 bool CaseNodeWithOperator::matches(QoreNode* lhs_value, class ExceptionSink *xsink)
 {
    return m_operator->bool_eval(lhs_value, val, xsink);
+}
+
+bool CaseNodeRegex::matches(QoreNode *lhs_value, class ExceptionSink *xsink)
+{
+   QoreNodeTypeHelper str(lhs_value, NT_STRING, xsink);
+   if (!str)
+      return false;
+   
+   return re->exec((*str)->val.String, xsink);
+}
+
+bool CaseNodeNegRegex::matches(QoreNode *lhs_value, class ExceptionSink *xsink)
+{   
+   QoreNodeTypeHelper str(lhs_value, NT_STRING, xsink);
+   if (!str)
+      return false;
+   
+   return !re->exec((*str)->val.String, xsink);
 }
 
 // EOF

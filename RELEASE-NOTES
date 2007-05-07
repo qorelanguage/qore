@@ -245,10 +245,12 @@ i.e.:
 
 are now legal...
 
-*) "reference optimization" disabled on platforms where atomic reference operations not available (Sparc, PA-RISC)
+*) the switch/case statement accepts regular expressions and regular expression operators in case expressions
+
+*) "reference optimization" for temporary objects disabled on platforms where atomic reference operations are not available (Sparc, PA-RISC)
 This optiimzation, designed to reduce the number of cache invalidations in SMP environments, leads to a race condition on platforms requiring a mutex lock for atomic reference operations.
 It's possible for one thread to delete an object while another thread is holding the lock.  This can lead to memory corruption/segmentation faults on these platforms.
-The fix was to disable the optimization if atomic reference operations are not supported without a mutex lock.
+The fix was to disable the optimization if atomic reference operations are not supported (ie: without a mutex lock).
 
 *) significant documentation updates
 more code examples added, also for all functions and classes

@@ -1,6 +1,8 @@
 see docs/roadmap.html
 
-* implement function or object/method pointers
+* add support for break and continue arguments to affect outer loops
+* add error code to exceptions for XML-RPC fault reporting
+* implement support for regular expressions in case expressions
 * add signal constants/infrastructure (in progress)
 * add context functions
 * allow customizable QORE_INCLUDE_DIR searches
@@ -10,7 +12,15 @@ see docs/roadmap.html
 * add constant execution flag to functions, to allow execution in constant expressions
 * implement GZFile class
 
+docs:
+* make lists of items disabled with parse restrictions
+* expand on call references
+* make a section for each parse restriction
+* add examples for modules
+* write ncurses module documentation
+
 done:
+* implement function or object/method pointers
 * fix Queue class (destructor must wake up any sleeping threads)
 * add file functions (is_file() is_dir() is_symlink(), etc)
 * do not allow global variable initialization at the top level if NO_TOP_LEVEL is set

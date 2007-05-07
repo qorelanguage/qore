@@ -4927,7 +4927,7 @@ $var[1].count++;
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>The Qore <command>switch</command> statement is similar to the <command>switch</command> statement in C and C++, except that the <command>case</command> values can be any expression that does not need run-time evaluation and can also be expressions with simple relational operators using the switch value as an implied operand.</para>
+	<para>The Qore <command>switch</command> statement is similar to the <command>switch</command> statement in C and C++, except that the <command>case</command> values can be any expression that does not need run-time evaluation and can also be expressions with simple relational operators or regular expressions using the switch value as an implied operand.</para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -4957,6 +4957,9 @@ $var[1].count++;
     case &gt; 2007-01-22T15:00:00: 
         printf("greater than 2007-01-22 15:00:00\n");
 	break;
+    case /abc/:
+        printf("string with 'abc' somewhere inside\n");
+        break;
     default:
         printf("default\n");
 	break;
@@ -4969,6 +4972,45 @@ $var[1].count++;
 	<para>The first expression is evaluated and then compared to the value of each <command>case</command> expression in declaration order until one of the <command>case</command> expressions matches or is evaluated to True.  In this case all code up to a <command>break</command> statement is executed, at which time execution flow exits the <command>switch</command> statement.  Unless relational operators are used, the comparisons are "hard" comparisons; no type conversions are done, so in order for a match to be made, both the value and types of the expressions must match exactly.  When relational operators are used, the operators are executed exactly as they are in the rest of qore, so type conversions may be performed if nesessary.</para>
 	<para>If no match is found and a <command>default</command> label has been given, then any statements after the <command>default</command> label will be executed.  If a match is made, then the statements following that <command>case</command> label are executed.</para>
 	<para>To break out of the switch statement, use the <command>break</command> statement.</para>
+
+	<table>
+	  <title>Valid Case Expression Operators</title>
+	  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	    <thead>
+	      <row>
+		<entry><para>Operator</para></entry>
+		<entry><para>Description</para></entry>
+	      </row>
+	    </thead>
+	    <tbody>
+	      <row>
+		<entry><para>&gt;</para></entry>
+		<entry><para><link linkend='Greater_Than_Operator'>logical greater than operator</link></para></entry>
+	      </row>
+	      <row>
+		<entry><para>&gt;=</para></entry>
+		<entry><para><link linkend='Greater_Than_Or_Equals_Operator'>logical greater than or equals operator</link></para></entry>
+	      </row>
+	      <row>
+		<entry><para>&lt;</para></entry>
+		<entry><para><link linkend='Less_Than_Operator'>logical less than operator</link></para></entry>
+	      </row>
+	      <row>
+		<entry><para>&lt;=</para></entry>
+		<entry><para><link linkend='Less_Than_Or_Equals_Operator'>logical less than or equals operator</link></para></entry>
+	      </row>
+	      <row>
+		<entry><para>~=</para></entry>
+		<entry><para><link linkend='Regular_Expression_Match_Operator'>regular expression match operator</link></para></entry>
+	      </row>
+	      <row>
+		<entry><para>!~</para></entry>
+		<entry><para><link linkend='Regular_Expression_No_Match_Operator'>regular expression no match operator</link></para></entry>
+	      </row>
+	    </tbody>
+	  </tgroup>
+	</table>
+
      </listitem>
     </varlistentry>
   </variablelist>

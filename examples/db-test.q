@@ -1,10 +1,9 @@
 #!/usr/bin/env qore
 
-# database example script
-# edit the following parameters depending on which the example schema
+# database example script, depends on schemas:
 # 1) mysql-test-db.sql 
 # 2) oracle-test-db.sql 
-# has been installed
+# 3) pgsql-test-db.sql
 
 %require-our
 %enable-all-warnings
@@ -32,8 +31,8 @@ sub usage()
  -u,--user=ARG     set username
  -p,--pass=ARG     set password
  -d,--db=ARG       set database name
- -H,--host=ARG     set hostname (for MySQL connections)
- -o,--oracle       connect to an Oracle datasource\n",
+ -H,--host=ARG     set hostname (for MySQL and PostgreSQL connections)
+ -t,--type         set database driver (default mysql)\n",
 	   basename($ENV."_"));
     exit();
 }
@@ -50,11 +49,13 @@ sub parse_command_line()
 	stderr.printf("set the login parameters with -u,-p,-d, etc (-h for help)\n");
 	exit();
     }
+    if (!strlen($o.type))
+	$o.type = "mysql";
 }
 
 sub getDS()
 {
-    my $ds = new Datasource($o.oracle ? DSOracle : DSMySQL, $o.user, $o.pass, $o.db);
+    my $ds = new Datasource($o.type, $o.user, $o.pass, $o.db);
     if (strlen($o.host))
 	$ds.setHostName($o.host);
     return $ds;
@@ -62,7 +63,7 @@ sub getDS()
 
 sub doit($db)
 {
-    # frist we select all the data from the tables and then use context statements to order the output hierarchically
+    # first we select all the data from the tables and then use context statements to order the output hierarchically
 
     my $people = $db.select("select * from people");
 

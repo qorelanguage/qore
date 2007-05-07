@@ -107,6 +107,13 @@ class DigestHelper : public BaseHelper
 
 	 return str;
       }
+
+      class BinaryObject *getBinary()
+      {
+	 class BinaryObject *b = new BinaryObject();
+	 b->append(md_value, md_len);
+	 return b;
+      }      
 };
 
 class CryptoHelper : public BaseHelper
@@ -717,6 +724,89 @@ static class QoreNode *f_RIPEMD160(class QoreNode *params, ExceptionSink *xsink)
    return new QoreNode(dh.getString());
 }
 
+static class QoreNode *f_MD2_bin(class QoreNode *params, ExceptionSink *xsink)
+{
+   class DigestHelper dh;
+   if (dh.getData(MD2_ERR, params, xsink) || dh.doDigest(MD2_ERR, EVP_md2(), xsink))
+      return NULL;
+   
+   return new QoreNode(dh.getBinary());
+}
+
+static class QoreNode *f_MD4_bin(class QoreNode *params, ExceptionSink *xsink)
+{
+   class DigestHelper dh;
+   if (dh.getData(MD4_ERR, params, xsink) || dh.doDigest(MD4_ERR, EVP_md4(), xsink))
+      return NULL;
+   
+   return new QoreNode(dh.getBinary());
+}
+
+static class QoreNode *f_MD5_bin(class QoreNode *params, ExceptionSink *xsink)
+{
+   class DigestHelper dh;
+   if (dh.getData(MD5_ERR, params, xsink) || dh.doDigest(MD5_ERR, EVP_md5(), xsink))
+      return NULL;
+   
+   return new QoreNode(dh.getBinary());
+}
+
+static class QoreNode *f_SHA_bin(class QoreNode *params, ExceptionSink *xsink)
+{
+   class DigestHelper dh;
+   if (dh.getData(SHA_ERR, params, xsink) || dh.doDigest(SHA_ERR, EVP_sha(), xsink))
+      return NULL;
+   
+   return new QoreNode(dh.getBinary());
+}
+
+static class QoreNode *f_SHA1_bin(class QoreNode *params, ExceptionSink *xsink)
+{
+   class DigestHelper dh;
+   if (dh.getData(SHA1_ERR, params, xsink) || dh.doDigest(SHA1_ERR, EVP_sha1(), xsink))
+      return NULL;
+   
+   return new QoreNode(dh.getBinary());
+}
+
+static class QoreNode *f_DSS_bin(class QoreNode *params, ExceptionSink *xsink)
+{
+   class DigestHelper dh;
+   if (dh.getData(DSS_ERR, params, xsink) || dh.doDigest(DSS_ERR, EVP_dss(), xsink))
+      return NULL;
+   
+   return new QoreNode(dh.getBinary());
+}
+
+static class QoreNode *f_DSS1_bin(class QoreNode *params, ExceptionSink *xsink)
+{
+   class DigestHelper dh;
+   if (dh.getData(DSS1_ERR, params, xsink) || dh.doDigest(DSS1_ERR, EVP_dss1(), xsink))
+      return NULL;
+   
+   return new QoreNode(dh.getBinary());
+}
+
+#ifndef OPENSSL_NO_MDC2
+static class QoreNode *f_MDC2_bin(class QoreNode *params, ExceptionSink *xsink)
+{
+   class DigestHelper dh;
+   if (dh.getData(MDC2_ERR, params, xsink) || dh.doDigest(MDC2_ERR, EVP_mdc2(), xsink))
+      return NULL;
+   
+   return new QoreNode(dh.getBinary());
+}
+#endif
+
+static class QoreNode *f_RIPEMD160_bin(class QoreNode *params, ExceptionSink *xsink)
+{
+   class DigestHelper dh;
+   if (dh.getData(RIPEMD160_ERR, params, xsink) || dh.doDigest(RIPEMD160_ERR, EVP_ripemd160(), xsink))
+      return NULL;
+   
+   return new QoreNode(dh.getBinary());
+}
+
 static class QoreNode *f_des_random_key(class QoreNode *params, ExceptionSink *xsink)
 {
    DES_cblock *db = (DES_cblock *)malloc(sizeof(DES_cblock));
@@ -765,19 +855,27 @@ void init_crypto_functions()
 #endif
 
    // digest functions
-   builtinFunctions.add("MD2",       f_MD2);
-   builtinFunctions.add("MD4",       f_MD4);
-   builtinFunctions.add("MD5",       f_MD5);
-   builtinFunctions.add("SHA",       f_SHA);
-   builtinFunctions.add("SHA1",      f_SHA1);
-   builtinFunctions.add("DSS",       f_DSS);
-   builtinFunctions.add("DSS1",      f_DSS1);
+   builtinFunctions.add("MD2",           f_MD2);
+   builtinFunctions.add("MD2_bin",       f_MD2_bin);
+   builtinFunctions.add("MD4",           f_MD4);
+   builtinFunctions.add("MD4_bin",       f_MD4_bin);
+   builtinFunctions.add("MD5",           f_MD5);
+   builtinFunctions.add("MD5_bin",       f_MD5_bin);
+   builtinFunctions.add("SHA",           f_SHA);
+   builtinFunctions.add("SHA_bin",       f_SHA_bin);
+   builtinFunctions.add("SHA1",          f_SHA1);
+   builtinFunctions.add("SHA1_bin",      f_SHA1_bin);
+   builtinFunctions.add("DSS",           f_DSS);
+   builtinFunctions.add("DSS_bin",       f_DSS_bin);
+   builtinFunctions.add("DSS1",          f_DSS1);
+   builtinFunctions.add("DSS1_bin",      f_DSS1_bin);
 #ifndef OPENSSL_NO_MDC2
-   builtinFunctions.add("MDC2",      f_MDC2);
+   builtinFunctions.add("MDC2",          f_MDC2);
+   builtinFunctions.add("MDC2_bin",      f_MDC2_bin);
 #endif
-   builtinFunctions.add("RIPEMD160", f_RIPEMD160);
+   builtinFunctions.add("RIPEMD160",     f_RIPEMD160);
+   builtinFunctions.add("RIPEMD160_bin", f_RIPEMD160_bin);
 
    // other functions
    builtinFunctions.add("des_random_key", f_des_random_key);
-
 }

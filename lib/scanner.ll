@@ -273,7 +273,7 @@ static inline bool isRegexSubstModifier(class RegexSubst *qr, int c)
 %option noyy_push_state
 %option noyy_pop_state
 
-%x str_state regex_state incl check_regex regex_subst1 regex_subst2 line_comment exec_class_state requires regex_trans1 regex_trans2 regex_extract_state disable_warning enable_warning
+%x str_state regex_state incl regex_subst1 regex_subst2 line_comment exec_class_state requires regex_trans1 regex_trans2 regex_extract_state disable_warning enable_warning
 
 HEX_DIGIT       [0-9A-Fa-f]
 HEX_CONST       0x{HEX_DIGIT}+
@@ -522,15 +522,6 @@ BINARY          <({HEX_DIGIT}{HEX_DIGIT})+>
 					      yylval->RegexTrans->concatSource(*(yptr++));
 					}
 }
-<check_regex>{
-      {WS}+                             // ignore 
-      s\/                               yylval->RegexSubst = new RegexSubst(); yylloc->setExplicitFirst(yylineno); BEGIN(regex_subst1);
-      x\/                               yylval->Regex      = new QoreRegex();  yylloc->setExplicitFirst(yylineno); BEGIN(regex_extract_state);
-      m\/                               yylval->Regex      = new QoreRegex();  yylloc->setExplicitFirst(yylineno); BEGIN(regex_state);
-      \/                                yylval->Regex      = new QoreRegex();  yylloc->setExplicitFirst(yylineno); BEGIN(regex_state);
-      tr\/                              yylval->RegexTrans = new RegexTrans(); yylloc->setExplicitFirst(yylineno); BEGIN(regex_trans1);
-      [^\/]                             BEGIN(INITIAL);
-}
 <regex_state>{
       \/				{
                                            // get regex modifiers
@@ -690,8 +681,13 @@ P{D2}:{D2}:{D2}(\.{MS})?                yylval->datetime = makeRelativeTime(yyte
 \^{WS}*=                                return XOR_EQUALS;
 \>{WS}*\>{WS}*=				return SHIFT_RIGHT_EQUALS;
 \<{WS}*\<{WS}*=				return SHIFT_LEFT_EQUALS;
-=\~                                     BEGIN(check_regex); return REGEX_MATCH;
-\!\~                                    BEGIN(check_regex); return REGEX_NMATCH;
+s\/                                     yylval->RegexSubst = new RegexSubst(); yylloc->setExplicitFirst(yylineno); BEGIN(regex_subst1);
+x\/                                     yylval->Regex      = new QoreRegex();  yylloc->setExplicitFirst(yylineno); BEGIN(regex_extract_state);
+m\/                                     yylval->Regex      = new QoreRegex();  yylloc->setExplicitFirst(yylineno); BEGIN(regex_state);
+\/                                      yylval->Regex      = new QoreRegex();  yylloc->setExplicitFirst(yylineno); BEGIN(regex_state);
+tr\/                                    yylval->RegexTrans = new RegexTrans(); yylloc->setExplicitFirst(yylineno); BEGIN(regex_trans1);
+=\~                                     return REGEX_MATCH;
+\!\~                                    return REGEX_NMATCH;
 {WS}+					/* ignore whitespace */
 \n|\r                                    /* ignore linefeeds and carriage returns */
 .					return yytext[0];

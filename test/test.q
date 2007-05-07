@@ -496,6 +496,33 @@ sub switch_test($val)
     return $rv;
 }
 
+sub regex_switch_test($val)
+{
+    my $rv;
+
+    switch ($val)
+    {
+	case /abc/:
+	case /def/:
+	
+	case /barney/:
+	    $rv = "case 1";
+            break;
+
+	case =~ /dinosaur/:
+	    $rv = "case 2";
+	    break;
+
+	case !~ /can/:
+	    $rv = "case 3";
+	    break;
+
+        default:
+	    return "default";
+    }
+    return $rv;
+}
+
 sub switch_with_relation_test($val) 
 {
   my $rv;
@@ -556,12 +583,19 @@ sub statement_tests()
     test_value(switch_test(0), "case 1", "fourth switch");
     test_value(switch_test("hello"), "case 1", "fifth switch");
     test_value(switch_test("testing"), "default", "sixth switch");
-    # switch with relation operators
-    test_value(switch_with_relation_test(-2), "first switch", "first switch");
-    test_value(switch_with_relation_test(2), "second switch", "second switch");
-    test_value(switch_with_relation_test(-1.0), "third switch", "third switch");
-    test_value(switch_with_relation_test(1.0), "fourth switch", "fourth switch");
-    test_value(switch_with_relation_test(0), "fifth switch", "fifth switch");
+    # switch with operators
+    test_value(switch_with_relation_test(-2), "first switch", "first operator switch");
+    test_value(switch_with_relation_test(2), "second switch", "second operator switch");
+    test_value(switch_with_relation_test(-1.0), "third switch", "third operator switch");
+    test_value(switch_with_relation_test(1.0), "fourth switch", "fourth operator switch");
+    test_value(switch_with_relation_test(0), "fifth switch", "fifth operator switch");
+    # regex switch
+    test_value(regex_switch_test("abc"), "case 1", "first regex switch");
+    test_value(regex_switch_test(), "case 3", "second regex switch");
+    test_value(regex_switch_test("BOOM"), "case 3", "third regex switch");
+    test_value(regex_switch_test("dinosaur"), "case 2", "fourth regex switch");
+    test_value(regex_switch_test("barney"), "case 1", "fifth regex switch");
+    test_value(regex_switch_test("canada"), "default", "sixth regex switch");
 
     # on_exit tests
     try 

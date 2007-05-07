@@ -45,7 +45,8 @@
 #include <qore/QoreRegex.h>
 #include <qore/RegexTrans.h>
 #include <qore/SwitchStatement.h>
-#include <qore/SwitchStatementWithOperators.h>
+#include <qore/CaseNodeWithOperator.h>
+#include <qore/CaseNodeRegex.h>
 #include <qore/OnBlockExitStatement.h>
 #include <qore/Tree.h>
 #include <qore/FunctionReference.h>
@@ -629,7 +630,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str)
 %token <RegexSubst> REGEX_SUBST "regular expression substitution expression"
 %token <RegexTrans> REGEX_TRANS "tranliteration expression"
 %token <nscope> BASE_CLASS_CALL "call to base class method"
-%token <Regex> REGEX "regular expression expression"
+%token <Regex> REGEX "regular expression"
 %token <Regex> REGEX_EXTRACT "regular expression extraction expression"
 
 %nonassoc IFX SCOPED_REF
@@ -1024,53 +1025,85 @@ case_code:
           if (needsEval($3)) parse_error("case expression with '>=' needs run-time evaluation");
           $$ = new CaseNodeWithOperator($3, $5, OP_LOG_GE);
         }
-        | TOK_CASE LOGICAL_LE exp ':' statements
-        {
-         if (needsEval($3)) parse_error("case expression with '<=' needs run-time evaluation");
-          $$ = new CaseNodeWithOperator($3, $5, OP_LOG_LE);
-        }
-        | TOK_CASE '<' exp ':' statements
-        {
-          if (needsEval($3)) parse_error("case expression with '<' needs run-time evaluation");
-          $$ = new CaseNodeWithOperator($3, $5, OP_LOG_LT);
-        }
-        | TOK_CASE '>' exp ':' statements
-        {
-          if (needsEval($3)) parse_error("case expression with '>' needs run-time evaluation");
-          $$ = new CaseNodeWithOperator($3, $5, OP_LOG_GT);
-        }
-        | TOK_CASE exp ':' statements
-        {
-	   if (needsEval($2))
-	      parse_error("case expression needs run-time evaluation");
-	   $$ = new CaseNode($2, $4);
-	}
         | TOK_CASE LOGICAL_GE exp ':' // nothing
         {
           if (needsEval($3)) parse_error("case expression with '>=' needs run-time evaluation");
           $$ = new CaseNodeWithOperator($3, NULL, OP_LOG_GE);
+        }
+
+        | TOK_CASE LOGICAL_LE exp ':' statements
+        {
+         if (needsEval($3)) parse_error("case expression with '<=' needs run-time evaluation");
+          $$ = new CaseNodeWithOperator($3, $5, OP_LOG_LE);
         }
         | TOK_CASE LOGICAL_LE exp ':' // nothing
         {
          if (needsEval($3)) parse_error("case expression with '<=' needs run-time evaluation");
           $$ = new CaseNodeWithOperator($3, NULL, OP_LOG_LE);
         }
+
+        | TOK_CASE '<' exp ':' statements
+        {
+          if (needsEval($3)) parse_error("case expression with '<' needs run-time evaluation");
+          $$ = new CaseNodeWithOperator($3, $5, OP_LOG_LT);
+        }
         | TOK_CASE '<' exp ':' // nothing
         {
           if (needsEval($3)) parse_error("case expression with '>' needs run-time evaluation");
           $$ = new CaseNodeWithOperator($3, NULL, OP_LOG_LT);
+        }
+
+        | TOK_CASE '>' exp ':' statements
+        {
+          if (needsEval($3)) parse_error("case expression with '>' needs run-time evaluation");
+          $$ = new CaseNodeWithOperator($3, $5, OP_LOG_GT);
         }
         | TOK_CASE '>' exp ':' // nothing
         {
           if (needsEval($3)) parse_error("case expression with '<' needs run-time evaluation");
           $$ = new CaseNodeWithOperator($3, NULL, OP_LOG_GT);
         }
+
+	| TOK_CASE REGEX_MATCH REGEX ':' statements
+	{
+	   $$ = new CaseNodeRegex($3, $5);
+	}
+	| TOK_CASE REGEX_MATCH REGEX ':' // nothing
+	{
+	   $$ = new CaseNodeRegex($3, NULL);
+	}
+
+	| TOK_CASE REGEX_NMATCH REGEX ':' statements
+	{
+	   $$ = new CaseNodeNegRegex($3, $5);
+	}
+	| TOK_CASE REGEX_NMATCH REGEX ':' // nothing
+	{
+	   $$ = new CaseNodeNegRegex($3, NULL);
+	}
+
+	| TOK_CASE REGEX ':' statements
+	{
+	   $$ = new CaseNodeRegex($2, $4);
+	}
+	| TOK_CASE REGEX ':' // nothing
+	{
+	   $$ = new CaseNodeRegex($2, NULL);
+	}
+
+        | TOK_CASE exp ':' statements
+        {
+	   if (needsEval($2))
+	      parse_error("case expression needs run-time evaluation");
+	   $$ = new CaseNode($2, $4);
+	}
         | TOK_CASE exp ':' // nothing
         {
 	   if (needsEval($2))
 	      parse_error("case expression needs run-time evaluation");
 	   $$ = new CaseNode($2, NULL);
 	}
+
         | TOK_DEFAULT ':' statements
         {
 	   $$ = new CaseNode(NULL, $3);
@@ -1818,6 +1851,7 @@ exp:    scalar
         {
 	   $$ = makeTree(OP_REGEX_NMATCH, $1, new QoreNode($3));
 	}
+/*
         | exp REGEX_MATCH exp
         {
 	   $$ = makeTree(OP_REGEX_MATCH, $1, new QoreNode(new QoreRegex($3->val.String)));
@@ -1830,6 +1864,7 @@ exp:    scalar
 	   $3->type = NT_INT;
 	   $3->deref(NULL);
 	}
+*/
         | exp REGEX_MATCH REGEX_SUBST
         {
 	   if (check_lvalue($1))

@@ -37,6 +37,10 @@ class CaseNode {
 
       DLLLOCAL CaseNode(class QoreNode *v, class StatementBlock *c);
       DLLLOCAL virtual bool matches(QoreNode* lhs_value, class ExceptionSink *xsink);
+      DLLLOCAL virtual bool isDefault() const
+      {
+	 return !val;
+      }
       DLLLOCAL bool isCaseNode() const;
       DLLLOCAL virtual ~CaseNode();
 };

@@ -1,3 +1,13 @@
+2006.05.07: David Nichols
+	* fixed a bug where the parser was accepting exp =~ exp but crashing if
+	  the second exp was not a string
+	* implemented regular expressions case statements
+
+2006.05.06: David Nichols
+	* implemented binary versions of digest functions (return binary objects
+	  instead of strings): MD2_bin(), MD4_bin(), MD5_bin(), SHA_bin(), 
+	  SHA1_bin(), DSS_bin(), DSS1_bin(), MDC2_bin(), RIPE160_bin()
+
 2006.04.26: David Nichols
 	* made assignments such as 
 	  my ($a, $b, $c) = (1, 2, 3)

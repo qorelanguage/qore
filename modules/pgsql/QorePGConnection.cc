@@ -1222,7 +1222,7 @@ int QorePGBindArray::bind(class QoreNode *n, class QoreEncoding *enc, class Exce
 	 check_size(-1);
       else
       {
-	 QoreNodeStringHelper tmp(t, xsink);
+	 QoreNodeCStringHelper tmp(t, enc, xsink);
 	 if (!tmp)
 	    return -1;
 	 check_size(tmp.strlen());

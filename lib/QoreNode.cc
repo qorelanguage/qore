@@ -36,16 +36,64 @@
 
 #define TRACK_REFS 1
 
-const char *QoreNodeStringHelper::operator*()
+QoreNodeCStringHelper::QoreNodeCStringHelper(QoreNode *n, class QoreEncoding *enc, class ExceptionSink *xsink) : temp(false)
+{
+   if (is_nothing(n) || is_null(n))
+   {
+      node = NULL;
+      return;
+   }
+   if (n->type == NT_STRING)
+   {
+      if (n->val.String->getEncoding() == enc)
+      {
+	 node = n;
+	 return;
+      }
+      class QoreString *str = n->val.String->convertEncoding(enc, xsink);
+      if (!str)
+      {
+	 node = NULL;
+	 return;
+      }
+      node = new QoreNode(str);
+      temp = true;
+      return;
+   }
+   // if an exception occurs, node is NULL and temp is true                                                                                                                                
+   // NOTE: converting to a string means that the string will be effectively in ASCII encoding even though it will be marked with the default encoding                                     
+   // because only ASCII characters are generated when converted to a string (boolean, numbers, dates)                                                                                     
+   // since ASCII is the lowest common denominator for all encodings supported by Qore, this works regardless of the target encoding specified                                             
+   node = n->convert(NT_STRING, xsink);
+   temp = true;
+}
+
+const char *QoreNodeCStringHelper::operator*()
 {
    if (!node)
       return "";
    return node->val.String->getBuffer();
 }
 
-int QoreNodeStringHelper::strlen() const
+int QoreNodeCStringHelper::strlen() const
 {
    return node ? node->val.String->strlen() : 0;
+}
+
+QoreNodeTypeHelper::QoreNodeTypeHelper(QoreNode *n, class QoreType *t, class ExceptionSink *xsink) : temp(false)
+{
+   if (!n)
+   {
+      node = Nothing->convert(t, xsink);
+      temp = true;
+   }
+   else if (n->type != t)
+   {
+      node = n->convert(t, xsink);
+      temp = true;
+   }
+   else
+      node = n;
 }
 
 QoreNode::QoreNode() 

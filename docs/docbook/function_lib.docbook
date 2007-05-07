@@ -798,38 +798,29 @@
       </row>
 
       <row>
-        <entry>
-          <para>
-            <link linkend="DSS">DSS()</link>
-          </para>
-        </entry>
-        <entry>
-          <para>String</para>
-        </entry>
-        <entry>
-          <para>Y</para>
-        </entry>
-        <entry>
-          <para>Returns the DSS message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
-        </entry>
+        <entry><para><link linkend="DSS">DSS()</link></para></entry>
+        <entry><para>String</para></entry>
+        <entry><para>Y</para></entry>
+        <entry><para>Returns the DSS message digest of the supplied argument as a hex string (for strings, the trailing null character is not included in the digest)</para></entry>
       </row>
       <row>
-        <entry>
-          <para>
-            <link linkend="DSS1">DSS1()</link>
-          </para>
-        </entry>
-        <entry>
-          <para>String</para>
-        </entry>
-        <entry>
-          <para>Y</para>
-        </entry>
-        <entry>
-          <para>Returns the DSS1 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
-        </entry>
+        <entry><para><link linkend="DSS_bin">DSS_bin()</link></para></entry>
+        <entry><para>Binary</para></entry>
+        <entry><para>Y</para></entry>
+        <entry><para>Returns the DSS message digest of the supplied argument as a binary object (for strings, the trailing null character is not included in the digest)</para></entry>
       </row>
-
+      <row>
+        <entry><para><link linkend="DSS1">DSS1()</link></para></entry>
+        <entry><para>String</para></entry>
+        <entry><para>Y</para></entry>
+        <entry><para>Returns the DSS1 message digest of the supplied argument as a hex string (for strings, the trailing null character is not included in the digest)</para></entry>
+      </row>
+      <row>
+        <entry><para><link linkend="DSS1_bin">DSS1_bin()</link></para></entry>
+        <entry><para>Binary</para></entry>
+        <entry><para>Y</para></entry>
+        <entry><para>Returns the DSS1 message digest of the supplied argument as a binary object (for strings, the trailing null character is not included in the digest)</para></entry>
+      </row>
         <row>
           <entry><para><link linkend="errno">errno()</link></para></entry>
           <entry><para>Integer</para></entry>
@@ -2509,11 +2500,7 @@
           <entry><para>Returns the maximum value in a list (see also <link linkend="min">min()</link>); one variant takes an optional callback reference to process lists of complex data types.</para></entry>
         </row>
       <row>
-        <entry>
-          <para>
-            <link linkend="MD2">MD2()</link>
-          </para>
-        </entry>
+        <entry><para><link linkend="MD2">MD2()</link></para></entry>
         <entry>
           <para>String</para>
         </entry>
@@ -2521,7 +2508,19 @@
           <para>Y</para>
         </entry>
         <entry>
-          <para>Returns the MD2 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
+          <para>Returns the MD2 message digest of the supplied argument as a hex string (for strings, the trailing null character is not included in the digest)</para>
+        </entry>
+      </row>
+      <row>
+        <entry><para><link linkend="MD2_bin">MD2_bin()</link></para></entry>
+        <entry>
+          <para>Binary</para>
+        </entry>
+        <entry>
+          <para>Y</para>
+        </entry>
+        <entry>
+          <para>Returns the MD2 message digest of the supplied argument as a binary object (for strings, the trailing null character is not included in the digest)</para>
         </entry>
       </row>
       <row>
@@ -2537,7 +2536,23 @@
           <para>Y</para>
         </entry>
         <entry>
-          <para>Returns the MD4 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
+          <para>Returns the MD4 message digest of the supplied argument as a hex string (for strings, the trailing null character is not included in the digest)</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="MD4_bin">MD4_bin()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Binary</para>
+        </entry>
+        <entry>
+          <para>Y</para>
+        </entry>
+        <entry>
+          <para>Returns the MD4 message digest of the supplied argument as a binary object (for strings, the trailing null character is not included in the digest)</para>
         </entry>
       </row>
       <row>
@@ -2553,10 +2568,58 @@
           <para>Y</para>
         </entry>
         <entry>
-          <para>Returns the MD5 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
+          <para>Returns the MD5 message digest of the supplied argument as a hex string (for strings, the trailing null character is not included in the digest)</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="MD5_bin">MD5_bin()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Binary</para>
+        </entry>
+        <entry>
+          <para>Y</para>
+        </entry>
+        <entry>
+          <para>Returns the MD5 message digest of the supplied argument as a binary object (for strings, the trailing null character is not included in the digest)</para>
         </entry>
       </row>
 
+      <row>
+        <entry>
+          <para>
+            <link linkend="MDC2">MDC2()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>String</para>
+        </entry>
+        <entry>
+          <para>Y</para>
+        </entry>
+        <entry>
+          <para>Returns the MDC2 message digest of the supplied argument as a hex string (for strings, the trailing null character is not included in the digest)</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="MDC2_bin">MDC2_bin()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Binary</para>
+        </entry>
+        <entry>
+          <para>Y</para>
+        </entry>
+        <entry>
+          <para>Returns the MDC2 message digest of the supplied argument as a binary object (for strings, the trailing null character is not included in the digest)</para>
+        </entry>
+      </row>
         <row>
           <entry><para><link linkend="milliseconds">milliseconds()</link></para></entry>
 	  <entry><para>Date</para></entry>
@@ -2638,22 +2701,6 @@
           <entry><para>Returns a relative date in months to be used in date arithmetic.</para></entry>
         </row>
 
-      <row>
-        <entry>
-          <para>
-            <link linkend="MDC2">MDC2()</link>
-          </para>
-        </entry>
-        <entry>
-          <para>String</para>
-        </entry>
-        <entry>
-          <para>Y</para>
-        </entry>
-        <entry>
-          <para>Returns the MDC2 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
-        </entry>
-      </row>
 
         <row>
           <entry><para><link linkend="nlog">nlog()</link></para></entry>
@@ -3096,7 +3143,23 @@
           <para>Y</para>
         </entry>
         <entry>
-          <para>Returns the RIPEMD160 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
+          <para>Returns the RIPEMD160 message digest of the supplied argument as a hex string (for strings, the trailing null character is not included in the digest)</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="RIPEMD160_bin">RIPEMD160_bin()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Binary</para>
+        </entry>
+        <entry>
+          <para>Y</para>
+        </entry>
+        <entry>
+          <para>Returns the RIPEMD160 message digest of the supplied argument as a binary object (for strings, the trailing null character is not included in the digest)</para>
         </entry>
       </row>
 
@@ -3257,7 +3320,23 @@
           <para>Y</para>
         </entry>
         <entry>
-          <para>Returns the SHA message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</Para>
+          <para>Returns the SHA message digest of the supplied argument as a hex string (for strings, the trailing null character is not included in the digest)</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para>
+            <link linkend="SHA_bin">SHA_bin()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Binary</para>
+        </entry>
+        <entry>
+          <para>Y</para>
+        </entry>
+        <entry>
+          <para>Returns the SHA message digest of the supplied argument as a binary object(for strings, the trailing null character is not included in the digest)</para>
         </entry>
       </row>
       <row>
@@ -3273,7 +3352,24 @@
           <para>Y</para>
         </entry>
         <entry>
-          <para>Returns the SHA1 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
+          <para>Returns the SHA1 message digest of the supplied argument as a hex string (for strings, the trailing null character is not included in the digest)</para>
+        </entry>
+      </row>
+
+      <row>
+        <entry>
+          <para>
+            <link linkend="SHA1_bin">SHA1_bin()</link>
+          </para>
+        </entry>
+        <entry>
+          <para>Binary</para>
+        </entry>
+        <entry>
+          <para>Y</para>
+        </entry>
+        <entry>
+          <para>Returns the SHA1 message digest of the supplied argument as a binary object (for strings, the trailing null character is not included in the digest)</para>
         </entry>
       </row>
 
@@ -10903,7 +10999,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <tbody>
           <row>
             <entry>
-              <para>String | binary</para>
+              <para>String | Binary</para>
             </entry>
             <entry>
               <para>Binary</para>
@@ -12820,7 +12916,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <tbody>
           <row>
             <entry>
-              <para>String | binary</para>
+              <para>String | Binary</para>
             </entry>
             <entry>
               <para>String</para>
@@ -12860,13 +12956,94 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       </tgroup>
     </table>
   </sect2>
+  <sect2 id="DSS_bin">
+    <title>DSS_bin()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Returns the DSS message digest of the supplied argument (for strings, the trailing null character is not included in the digest) as a binary object.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>DSS_bin(<replaceable>string | binary</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$bin = DSS_bin("hello"); # returns &lt;aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d&gt;</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for DSS_bin()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>String | Binary</para>
+            </entry>
+            <entry>
+              <para>Binary</para>
+            </entry>
+            <entry>
+              <para>Returns the DSS message digest of the supplied argument (for strings, the trailing null character is not included in the digest).</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table>
+      <title>Exceptions thrown by DSS_bin()</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>err</para>
+            </entry>
+            <entry>
+              <para>desc</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <code>DSS-DIGEST-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing data parameter, invalid data parameter (expecing string or binary), error calculating digest</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
   <sect2 id="DSS1">
     <title>DSS1()</title>
     <variablelist>
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Returns the DSS1 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
+          <para>Returns the DSS1 message digest of the supplied argument (for strings, the trailing null character is not included in the digest) as a hex string.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -12901,13 +13078,94 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <tbody>
           <row>
             <entry>
-              <para>String | binary</para>
+              <para>String | Binary</para>
             </entry>
             <entry>
               <para>String</para>
             </entry>
             <entry>
-              <para>Returns the DSS1 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
+              <para>The DSS1 message digest of the supplied argument as a hex string (for strings, the trailing null character is not included in the digest)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table>
+      <title>Exceptions thrown by DSS1()</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>err</para>
+            </entry>
+            <entry>
+              <para>desc</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <code>DSS1-DIGEST-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing data parameter, invalid data parameter (expecing string or binary), error calculating digest</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="DSS1_bin">
+    <title>DSS1_bin()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Returns the DSS1 message digest of the supplied argument (for strings, the trailing null character is not included in the digest) as a binary object.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>DSS1_bin(<replaceable>string | binary</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$bin = DSS1_bin("hello"); # returns &lt;aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d&gt;</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for DSS1_bin()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>String | Binary</para>
+            </entry>
+            <entry>
+              <para>Binary</para>
+            </entry>
+            <entry>
+              <para>The DSS1 message digest of the supplied argument (for strings, the trailing null character is not included in the digest).</para>
             </entry>
           </row>
         </tbody>
@@ -12947,7 +13205,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Returns the MD2 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
+          <para>Returns the MD2 message digest of the supplied argument (for strings, the trailing null character is not included in the digest) as a string of hex digits.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -12982,13 +13240,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <tbody>
           <row>
             <entry>
-              <para>String | binary</para>
+              <para>String | Binary</para>
             </entry>
             <entry>
               <para>String</para>
             </entry>
             <entry>
-              <para>Returns the MD2 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
+              <para>The MD2 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
             </entry>
           </row>
         </tbody>
@@ -13022,13 +13280,94 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       </tgroup>
     </table>
   </sect2>
+  <sect2 id="MD2_bin">
+    <title>MD2_bin()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Returns the MD2 message digest of the supplied argument (for strings, the trailing null character is not included in the digest) as a string of hex digits.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>MD2_bin(<replaceable>string | binary</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$bin = MD2_bin("hello"); # returns &lt;a9046c73e00331af68917d3804f70655&gt;</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for MD2_bin()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>String | Binary</para>
+            </entry>
+            <entry>
+              <para>Binary</para>
+            </entry>
+            <entry>
+              <para>The MD2 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table>
+      <title>Exceptions thrown by MD2_bin()</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>err</para>
+            </entry>
+            <entry>
+              <para>desc</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <code>MD2-DIGEST-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing data parameter, invalid data parameter (expecing string or binary), error calculating digest</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
   <sect2 id="MD4">
     <title>MD4()</title>
     <variablelist>
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Returns the MD4 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
+          <para>Returns the MD4 message digest of the supplied argument (for strings, the trailing null character is not included in the digest) as a string of hex characters.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -13063,13 +13402,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <tbody>
           <row>
             <entry>
-              <para>String | binary</para>
+              <para>String | Binary</para>
             </entry>
             <entry>
               <para>String</para>
             </entry>
             <entry>
-              <para>Returns the MD4 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
+              <para>The MD4 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
             </entry>
           </row>
         </tbody>
@@ -13103,13 +13442,94 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       </tgroup>
     </table>
   </sect2>
+  <sect2 id="MD4_bin">
+    <title>MD4_bin()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Returns the MD4 message digest of the supplied argument (for strings, the trailing null character is not included in the digest) as a string of hex characters.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>MD4_bin(<replaceable>string | binary</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$str = MD4_bin("hello"); # returns "866437cb7a794bce2b727acc0362ee27"</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for MD4_bin()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>String | Binary</para>
+            </entry>
+            <entry>
+              <para>Binary</para>
+            </entry>
+            <entry>
+              <para>The MD4 message digest of the supplied argument (for strings, the trailing null character is not included in the digest) as a binary object</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table>
+      <title>Exceptions thrown by MD4_bin()</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>err</para>
+            </entry>
+            <entry>
+              <para>desc</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <code>MD4-DIGEST-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing data parameter, invalid data parameter (expecing string or binary), error calculating digest</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
   <sect2 id="MD5">
     <title>MD5()</title>
     <variablelist>
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Returns the MD5 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
+          <para>Returns the MD5 message digest of the supplied argument (for strings, the trailing null character is not included in the digest) as a string of hex characters.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -13144,13 +13564,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <tbody>
           <row>
             <entry>
-              <para>String | binary</para>
+              <para>String | Binary</para>
             </entry>
             <entry>
               <para>String</para>
             </entry>
             <entry>
-              <para>Returns the MD5 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
+              <para>The MD5 message digest of the supplied argument (for strings, the trailing null character is not included in the digest) as a string of hext characters.</para>
             </entry>
           </row>
         </tbody>
@@ -13158,6 +13578,87 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     </table>
     <table>
       <title>Exceptions thrown by MD5()</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>err</para>
+            </entry>
+            <entry>
+              <para>desc</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <code>MD5-DIGEST-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing data parameter, invalid data parameter (expecing string or binary), error calculating digest</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="MD5_bin">
+    <title>MD5_bin()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Returns the MD5 message digest of the supplied argument (for strings, the trailing null character is not included in the digest) as a binary object.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>MD5_bin(<replaceable>string | binary</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$str = MD5_bin("hello"); # returns &lt;5d41402abc4b2a76b9719d911017c592&gt;</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for MD5_bin()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>String | Binary</para>
+            </entry>
+            <entry>
+              <para>Binary</para>
+            </entry>
+            <entry>
+              <para>The MD5 message digest of the supplied argument (for strings, the trailing null character is not included in the digest) as a binary object.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table>
+      <title>Exceptions thrown by MD5_bin()</title>
       <tgroup cols="2" align="left" colsep="1" rowsep="1">
         <thead>
           <row>
@@ -13225,7 +13726,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <tbody>
           <row>
             <entry>
-              <para>String | binary</para>
+              <para>String | Binary</para>
             </entry>
             <entry>
               <para>String</para>
@@ -13265,13 +13766,94 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       </tgroup>
     </table>
   </sect2>
+  <sect2 id="MDC2_bin">
+    <title>MDC2_bin()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Returns the MDC2 message digest of the supplied argument (for strings, the trailing null character is not included in the digest) as a binary object.  Availability of this function depends on the version of OpenSSL used to compile Qore.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>MDC2_bin(<replaceable>string | binary</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$bin = MDC2_bin("hello");</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for MDC2_bin()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>String | Binary</para>
+            </entry>
+            <entry>
+              <para>Binary</para>
+            </entry>
+            <entry>
+              <para>Returns the MDC2 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table>
+      <title>Exceptions thrown by MDC2_bin()</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>err</para>
+            </entry>
+            <entry>
+              <para>desc</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <code>MDC2-DIGEST-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing data parameter, invalid data parameter (expecing string or binary), error calculating digest</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
   <sect2 id="RIPEMD160">
     <title>RIPEMD160()</title>
     <variablelist>
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Returns the RIPEMD160 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
+          <para>Returns the RIPEMD160 message digest of the supplied argument (for strings, the trailing null character is not included in the digest) as a string of hex characters.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -13306,7 +13888,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <tbody>
           <row>
             <entry>
-              <para>String | binary</para>
+              <para>String | Binary</para>
             </entry>
             <entry>
               <para>String</para>
@@ -13346,13 +13928,94 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       </tgroup>
     </table>
   </sect2>
+  <sect2 id="RIPEMD160_bin">
+    <title>RIPEMD160_bin()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Returns the RIPEMD160 message digest of the supplied argument (for strings, the trailing null character is not included in the digest) as a binary object.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>RIPEMD160_bin(<replaceable>string | binary</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$str = RIPEMD160_bin("hello"); # returns "108f07b8382412612c048d07d13f814118445acd"</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for RIPEMD160_bin()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>String | Binary</para>
+            </entry>
+            <entry>
+              <para>Binary</para>
+            </entry>
+            <entry>
+              <para>Returns the RIPEMD160 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table>
+      <title>Exceptions thrown by RIPEMD160_bin()</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>err</para>
+            </entry>
+            <entry>
+              <para>desc</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <code>RIPEMD160-DIGEST-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing data parameter, invalid data parameter (expecing string or binary), error calculating digest</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
   <sect2 id="SHA">
     <title>SHA()</title>
     <variablelist>
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Returns the SHA message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
+          <para>Returns the SHA message digest of the supplied argument (for strings, the trailing null character is not included in the digest) as a string of hext characters.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -13387,7 +14050,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <tbody>
           <row>
             <entry>
-              <para>String | binary</para>
+              <para>String | Binary</para>
             </entry>
             <entry>
               <para>String</para>
@@ -13427,13 +14090,94 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       </tgroup>
     </table>
   </sect2>
+  <sect2 id="SHA_bin">
+    <title>SHA_bin()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Returns the SHA message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>SHA_bin(<replaceable>string | binary</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$bin = SHA_bin("hello"); returns &lt;ac62a630ca850b4ea07eda664eaecf9480843152&gt;</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for SHA_bin()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>String | Binary</para>
+            </entry>
+            <entry>
+              <para>Binary</para>
+            </entry>
+            <entry>
+              <para>Returns the SHA message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table>
+      <title>Exceptions thrown by SHA_bin()</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>err</para>
+            </entry>
+            <entry>
+              <para>desc</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <code>SHA-DIGEST-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing data parameter, invalid data parameter (expecing string or binary), error calculating digest</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
   <sect2 id="SHA1">
     <title>SHA1()</title>
     <variablelist>
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Returns the SHA1 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
+          <para>Returns the SHA1 message digest of the supplied argument as a string of hex characters.  For string arguments, the trailing null character is not included in the digest.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -13468,7 +14212,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <tbody>
           <row>
             <entry>
-              <para>String | binary</para>
+              <para>String | Binary</para>
             </entry>
             <entry>
               <para>String</para>
@@ -13482,6 +14226,87 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     </table>
     <table>
       <title>Exceptions thrown by SHA1()</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>err</para>
+            </entry>
+            <entry>
+              <para>desc</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <code>SHA1-DIGEST-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing data parameter, invalid data parameter (expecing string or binary), error calculating digest</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="SHA1_bin">
+    <title>SHA_bin1()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Returns the SHA1 message digest of the supplied argument as a string of hex characters.  For string arguments, the trailing null character is not included in the digest.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>SHA1_bin(<replaceable>string | binary</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$bin = SHA1_bin("hello"); # &lt;aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d&gt;</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for SHA1_bin()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>String | Binary</para>
+            </entry>
+            <entry>
+              <para>String</para>
+            </entry>
+            <entry>
+              <para>Returns the SHA1 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table>
+      <title>Exceptions thrown by SHA1_bin()</title>
       <tgroup cols="2" align="left" colsep="1" rowsep="1">
         <thead>
           <row>
