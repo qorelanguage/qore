@@ -48,14 +48,18 @@ class AbstractFunctionReference {
       DLLLOCAL virtual class QoreNode *eval(class QoreNode *n);
 };
 
+struct fr_user_s {
+      class UserFunction *uf;
+      class QoreProgram *pgm;
+
+      DLLLOCAL class QoreNode *eval(class QoreNode *args, class ExceptionSink *xsink) const;
+};
+
 class FunctionReference : public AbstractFunctionReference
 {
    public:
       union {
-	    struct {
-		  class UserFunction *uf;
-		  class QoreProgram *pgm;
-	    } user;
+	    struct fr_user_s user;
 	    class BuiltinFunction *bf;
 	    class ImportedFunctionCall *ifunc;
 	    char *str;

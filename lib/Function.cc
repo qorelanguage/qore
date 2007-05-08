@@ -862,16 +862,14 @@ class QoreNode *UserFunction::evalConstructor(QoreNode *args, Object *self, clas
    if (!xsink->isEvent())
    {
       // switch to new program for imported objects
-      QoreProgram *cpgm;
+      QoreProgram *cpgm = NULL;
       QoreProgram *opgm = self->getProgram();
       if (opgm)
       {
 	 cpgm = getProgram();
-	 if (opgm && cpgm != opgm)
+	 if (cpgm != opgm)
 	    pushProgram(opgm);
       }
-      else
-	 cpgm = NULL;
 
       // execute constructor
       if (statements)

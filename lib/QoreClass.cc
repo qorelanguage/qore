@@ -909,16 +909,14 @@ class QoreNode *Method::eval(Object *self, QoreNode *args, ExceptionSink *xsink)
       new_args = NULL;
 
    // switch to new program for imported objects
-   QoreProgram *cpgm;
+   QoreProgram *cpgm = NULL;
    QoreProgram *opgm = self->getProgram();
    if (opgm)
    {
       cpgm = getProgram();
-      if (opgm && cpgm != opgm)
+      if (cpgm != opgm)
 	 pushProgram(opgm);
    }
-   else
-      cpgm = NULL;
 
    if (type == OTF_USER)
       rv = func.userFunc->eval(new_args, self, xsink);
@@ -985,16 +983,14 @@ void Method::evalConstructor(Object *self, QoreNode *args, class BCList *bcl, cl
       else
       {
 	 // switch to new program for imported objects
-	 QoreProgram *cpgm;
+	 QoreProgram *cpgm = NULL;
 	 QoreProgram *opgm = self->getProgram();
 	 if (opgm)
 	 {
 	    cpgm = getProgram();
-	    if (opgm && cpgm != opgm)
+	    if (cpgm != opgm)
 	       pushProgram(opgm);
 	 }
-	 else
-	    cpgm = NULL;
 
 	 func.builtin->evalConstructor(self, new_args, bcl, bceal, xsink);
 
@@ -1015,16 +1011,14 @@ void Method::evalConstructor(Object *self, QoreNode *args, class BCList *bcl, cl
 void Method::evalCopy(Object *self, Object *old, ExceptionSink *xsink)
 {
    // switch to new program for imported objects
-   QoreProgram *cpgm;
+   QoreProgram *cpgm = NULL;
    QoreProgram *opgm = self->getProgram();
    if (opgm)
    {
       cpgm = getProgram();
-      if (opgm && cpgm != opgm)
+      if (cpgm != opgm)
 	 pushProgram(opgm);
    }
-   else
-      cpgm = NULL;
 
    if (type == OTF_USER)
       func.userFunc->evalCopy(old, self, xsink);
@@ -1039,16 +1033,14 @@ void Method::evalCopy(Object *self, Object *old, ExceptionSink *xsink)
 void Method::evalDestructor(Object *self, ExceptionSink *xsink)
 {
    // switch to new program for imported objects
-   QoreProgram *cpgm;
+   QoreProgram *cpgm = NULL;
    QoreProgram *opgm = self->getProgram();
    if (opgm)
    {
       cpgm = getProgram();
-      if (opgm && cpgm != opgm)
+      if (cpgm != opgm)
 	 pushProgram(opgm);
    }
-   else
-      cpgm = NULL;
 
    if (type == OTF_USER)
       func.userFunc->eval(NULL, self, xsink);

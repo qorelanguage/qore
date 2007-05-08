@@ -1,3 +1,7 @@
+2006.05.08: David Nichols
+	* fixed a bug in signal handling when the handler is removed from within
+	  the handler
+
 2006.05.07: David Nichols
 	* fixed a bug where the parser was accepting exp =~ exp but crashing if
 	  the second exp was not a string

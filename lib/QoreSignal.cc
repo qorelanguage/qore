@@ -47,6 +47,7 @@ void QoreSignalHandler::set(int sig, class AbstractFunctionReference *n_funcref)
 void QoreSignalHandler::init()
 {
    funcref = 0;
+   status = SH_OK;
 }
 
 // must be called in the signal lock
@@ -114,16 +115,18 @@ int QoreSignalManager::removeHandler(int sig, class ExceptionSink *xsink)
    if (!handlers[sig].isSet())
       return 0;
 
-   //printd(5, "removing handler for signal %d\n", sig);
-   
+   //printd(5, "removing handler for signal %d\n", sig);   
    struct sigaction sa;
    sa.sa_handler = (sig == SIGPIPE ? SIG_IGN : SIG_DFL);
    sigemptyset(&sa.sa_mask);
    sa.sa_flags = SA_RESTART;
    sigaction(sig, &sa, NULL);
 
-   // must be called in the signal lock
-   handlers[sig].del(sig, xsink);
+   // ensure handler is not in progress, if so mark for deletion
+   if (handlers[sig].status == QoreSignalHandler::SH_InProgress)
+      handlers[sig].status = QoreSignalHandler::SH_Delete;
+   else // must be called in the signal lock
+      handlers[sig].del(sig, xsink);
 
    return 0;
 }
@@ -154,9 +157,23 @@ void QoreSignalManager::handleSignals()
 	 if (!handlers[i].isSet())
 	    continue;
 
+	 // set in progress status while in the lock
+	 assert(handlers[i].status == QoreSignalHandler::SH_OK);
+	 handlers[i].status = QoreSignalHandler::SH_InProgress;
 	 sl.unlock();
 	 handlers[i].runHandler(i, &xsink);
 	 sl.lock();
+	 if (handlers[i].status == QoreSignalHandler::SH_InProgress)
+	    handlers[i].status = QoreSignalHandler::SH_OK;
+	 else
+	 {
+#ifdef DEBUG
+	    if (handlers[i].status != QoreSignalHandler::SH_Delete)
+	       printd(0, "error: status=%d (sig=%d)\n", handlers[i].status, i);
+#endif
+	    assert(handlers[i].status == QoreSignalHandler::SH_Delete);
+	    handlers[i].del(i, &xsink);
+	 }
       }
    }
    errno = save_errno;

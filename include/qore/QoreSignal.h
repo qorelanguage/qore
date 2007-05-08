@@ -44,17 +44,21 @@
 #endif
 
 class QoreSignalHandler {
-   class AbstractFunctionReference *funcref;
+   private:
+      class AbstractFunctionReference *funcref;
    
-public:
-   DLLLOCAL void init();
-   DLLLOCAL void set(int sig, class AbstractFunctionReference *n_funcref);
-   DLLLOCAL void del(int sig, class ExceptionSink *xsink);
-   void runHandler(int sig, class ExceptionSink *xsink);
-   bool isSet() const
-   {
-      return (bool)funcref;
-   }
+   public:
+      enum sh_status_e { SH_OK = 0, SH_InProgress = 1, SH_Delete = 2 };
+      sh_status_e status;
+
+      DLLLOCAL void init();
+      DLLLOCAL void set(int sig, class AbstractFunctionReference *n_funcref);
+      DLLLOCAL void del(int sig, class ExceptionSink *xsink);
+      void runHandler(int sig, class ExceptionSink *xsink);
+      bool isSet() const
+      {
+	 return (bool)funcref;
+      }
 };
 
 class QoreSignalManager

@@ -41,22 +41,27 @@ QoreProgramStack::QoreProgramStack(class QoreProgram *p)
 
 QoreProgramStack::~QoreProgramStack()
 {
+   assert(tail && !tail->prev);
+   delete tail;
+/*
    while (tail)
    {
+      //printd(5, "QoreProgramStack::~QoreProgramStack() this=%08p, tail=%08p\n", this, tail);
       class ProgramNode *c = tail->prev;
       delete tail;
       tail = c;
    }
+*/
 }
 
 void QoreProgramStack::push(class QoreProgram *p)
 {
    tracein("QoreProgramStack::push()");
-   printd(5, "QoreProgramStack::push(%08p)\n", p);
-
    assert(p);
 
    ProgramNode *n = new ProgramNode(p);
+   //printd(5, "QoreProgramStack::push() this=%08p, old tail=%08p, new tail=%08p (p=%08p)\n", this, tail, n, p);
+
    n->prev = tail;
    tail = n;
    traceout("QoreProgramStack::push()");
@@ -65,7 +70,9 @@ void QoreProgramStack::push(class QoreProgram *p)
 void QoreProgramStack::pop()
 {
    tracein("QoreProgramStack::pop()");
-   printd(5, "QoreProgramStack::pop()\n", tail->pgm);
+   // the last entry is removed in the destructor, not by pop()
+   assert(tail->prev);
+   //printd(5, "QoreProgramStack::pop() this=%08p, tail=%08p, p=%08p (prev=%08p)\n", this, tail, tail->pgm, tail->prev);
    ProgramNode *n = tail;
    tail = tail->prev;
    delete n;
@@ -74,6 +81,10 @@ void QoreProgramStack::pop()
 
 class QoreProgram *QoreProgramStack::getProgram() const
 { 
+#ifdef DEBUG
+   if (!tail)
+      printd(0, "QoreProgramStack::getProgram() this=%08p, tail=NULL!\n", this);
+#endif
+   assert(tail);
    return tail->pgm; 
 }
-

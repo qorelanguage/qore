@@ -247,18 +247,21 @@ void FunctionReference::del(class ExceptionSink *xsink)
     delete this;
 }
 
+class QoreNode *fr_user_s::eval(class QoreNode *args, class ExceptionSink *xsink) const
+{
+   class QoreProgram *t_pgm = getProgram();
+   if (t_pgm != pgm)
+      pushProgram(pgm);
+   class QoreNode *rv = uf->eval(args, NULL, xsink);
+   if (t_pgm != pgm)
+      popProgram();
+   return rv;
+}
+
 class QoreNode *FunctionReference::exec(class QoreNode *args, class ExceptionSink *xsink) const
 {
    if (type == FC_USER)
-   {
-      class QoreProgram *pgm = getProgram();
-      if (pgm != f.user.pgm)
-	 pushProgram(f.user.pgm);
-      class QoreNode *rv = f.user.uf->eval(args, NULL, xsink);
-      if (pgm != f.user.pgm)
-	 popProgram();
-      return rv;
-   }
+      return f.user.eval(args, xsink);
    else if (type == FC_BUILTIN)
       return f.bf->eval(args, xsink);
    // must be an imported function reference

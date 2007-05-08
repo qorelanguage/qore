@@ -609,8 +609,12 @@ class QoreNode *QoreHTTPClient::getResponseHeader(const char *meth, const char *
       if (!ans || ans->type != NT_HASH)
       {
 	 if (ans)
+	 {
 	    ans->deref(xsink);
-	 xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", "malformed HTTP header received from socket %s, could not parse header", socketpath.c_str());
+	    xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", "malformed HTTP header received from socket %s, could not parse header", socketpath.c_str());
+	 }
+	 else
+	    xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", "socket %s closed on remote end without a response", socketpath.c_str());
 	 return NULL;
       }
 
