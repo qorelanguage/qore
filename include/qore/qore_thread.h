@@ -96,6 +96,15 @@ DLLLOCAL block_list_t::iterator popBlock();
 // called by each "on_block_exit" statement to activate it's code for the block exit
 DLLLOCAL void advanceOnBlockExit();
 
+/* TODO
+// for object implementation
+DLLLOCAL void substituteObjectIfEqual(class Object *o);
+DLLLOCAL class Object *getStackObject() const;
+DLLLOCAL class Object *substituteObject(class Object *o);
+// for methods that behave differently when called within the method itself
+DLLLOCAL bool inMethod(const char *name, class Object *o) const;
+*/
+
 class ThreadCleanupList {
    private:
       static class ThreadCleanupNode *head;

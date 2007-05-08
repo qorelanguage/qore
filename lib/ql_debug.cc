@@ -133,11 +133,6 @@ static class QoreString *dni(class QoreString *s, class QoreNode *n, int indent,
    return s;
 }
 
-static class QoreNode *f_dbg_get_object_ptr(class QoreNode *params, ExceptionSink *xsink)
-{
-   return new QoreNode((int64)(unsigned long)getCallStack()->getPrevStackObject());
-}
-
 //static 
 class QoreNode *f_dbg_node_info(class QoreNode *params, ExceptionSink *xsink)
 {
@@ -162,6 +157,5 @@ void init_debug_functions()
    builtinFunctions.add("dbg_node_info", f_dbg_node_info);
    builtinFunctions.add("dbg_global_vars", f_dbg_global_vars);
    builtinFunctions.add("dbg_get_ns_info", f_dbg_get_ns_info);
-   builtinFunctions.add("dbg_get_object_ptr", f_dbg_get_object_ptr);
 }
 

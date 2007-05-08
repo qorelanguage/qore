@@ -36,8 +36,7 @@ class CallNode {
    public:
       const char *func;
       const char *file_name;
-      int start_line, end_line;
-      int type;
+      int start_line, end_line, type;
       class Object *obj;
       class CallNode *next;
       class CallNode *prev;
@@ -57,7 +56,6 @@ class CallStack {
       DLLLOCAL class List *getCallStack() const;
       DLLLOCAL void push(const char *f, int t, class Object *o);
       DLLLOCAL void pop(class ExceptionSink *xsink);
-      DLLLOCAL class Object *getPrevStackObject();
       DLLLOCAL void substituteObjectIfEqual(class Object *o);
       DLLLOCAL class Object *getStackObject() const;
       DLLLOCAL class Object *substituteObject(class Object *o);

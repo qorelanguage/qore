@@ -162,15 +162,3 @@ bool CallStack::inMethod(const char *name, class Object *o) const
       return false;
    return tail->func == name && tail->obj == o;
 }
-
-class Object *CallStack::getPrevStackObject()
-{
-   class CallNode *w = tail;
-   while (w)
-   {
-      if (w->obj)
-         return w->obj;
-      w = w->prev;
-   }
-   return NULL;
-}
