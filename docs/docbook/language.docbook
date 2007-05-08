@@ -6261,23 +6261,23 @@ printf("%s\n", makeFormattedXMLString($h));</programlisting>
 	<tbody>
 	  <row>
 	    <entry><para><link linkend="makeFormattedXMLRPCCallString">makeFormattedXMLRPCCallString()</link></para></entry>
-	    <entry><para>Serializes a hash into an XML string formatted for an XML-RPC call without formatting.</para></entry>
+	    <entry><para>Serializes a hash into an XML string formatted for an XML-RPC call with formatting.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="makeFormattedXMLRPCCallStringArgs">makeFormattedXMLRPCCallStringArgs()</link></para></entry>
-	    <entry><para>Serializes a hash into an XML string formatted for an XML-RPC call without formatting, taking a single list argument for the argument list.</para></entry>
+	    <entry><para>Serializes a hash into an XML string formatted for an XML-RPC call with formatting, taking a single list argument for the argument list.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="makeFormattedXMLRPCFaultResponseString">makeFormattedXMLRPCFaultResponseString()</link></para></entry>
-	    <entry><para>Serializes a hash into an XML string formatted for an XML-RPC fault response without formatting.</para></entry>
+	    <entry><para>Serializes a hash into an XML string formatted for an XML-RPC fault response with formatting.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="makeFormattedXMLRPCResponseString">makeFormattedXMLRPCResponseString()</link></para></entry>
-	    <entry><para>Serializes a hash into an XML string formatted for an XML-RPC response without formatting.</para></entry>
+	    <entry><para>Serializes a hash into an XML string formatted for an XML-RPC response with formatting.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="makeFormattedXMLRPCValueString">makeFormattedXMLRPCValueString()</link></para></entry>
-	    <entry><para>Serializes a hash into an XML string in XML-RPC Value format without formatting.</para></entry>
+	    <entry><para>Serializes a hash into an XML string in XML-RPC Value format with formatting.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="makeXMLRPCCallString">makeXMLRPCCallString()</link></para></entry>
