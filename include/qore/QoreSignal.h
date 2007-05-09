@@ -85,6 +85,9 @@ class QoreSignalManager
       DLLLOCAL static bool busy;            // busy flag
       DLLLOCAL static int waiting;          // waiting count
       DLLLOCAL static QoreCondition bcond;  // busy condition
+      DLLLOCAL static bool in_handler;      // in handler flag
+      DLLLOCAL static int handler_waiting;  // handler waiting counter
+      DLLLOCAL static QoreCondition hcond;  // handler condition
       
       DLLLOCAL static int start_signal_thread(class ExceptionSink *xsink);
       DLLLOCAL static void reload();
@@ -111,6 +114,8 @@ class QoreSignalManager
       DLLLOCAL static void addSignalConstants(class Namespace *ns);
       DLLLOCAL static const char *getSignalName(int sig);
       DLLLOCAL static void signal_handler_thread();
+      DLLLOCAL static void lock_idle();
+      DLLLOCAL static void release_idle();
 };
 
 class QoreSignalManagerBusyHelper {
