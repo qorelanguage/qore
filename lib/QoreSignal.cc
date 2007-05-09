@@ -36,15 +36,6 @@ QoreSignalManager::sig_cmd_e QoreSignalManager::cmd = QoreSignalManager::C_None;
 pthread_t QoreSignalManager::ptid;
 int QoreSignalManager::tid = -1;
 QoreCounter QoreSignalManager::tcount;
-QoreCondition QoreSignalManager::bcond;
-int QoreSignalManager::waiting = 0;
-bool QoreSignalManager::busy = false;
-
-QoreCondition QoreSignalManager::hcond;
-int QoreSignalManager::handler_waiting = 0;
-int QoreSignalManager::in_handler = -1;
-int QoreSignalManager::idle_waiting = 0;
-bool QoreSignalManager::idle_lock = false;
 
 QoreSignalHandler QoreSignalManager::handlers[QORE_SIGNAL_MAX];
 
@@ -135,7 +126,7 @@ void QoreSignalManager::del()
 void QoreSignalManager::reload()
 {
    cmd = C_Reload;
-   if (thread_running && (in_handler == -1 || in_handler != gettid()))
+   if (thread_running && tid != gettid())
    {
       pthread_kill(ptid, QORE_STATUS_SIGNAL);
       // unlock lock and wait for condition
@@ -209,9 +200,6 @@ void QoreSignalManager::signal_handler_thread()
       if (!handlers[sig].isSet())
 	 continue;
 
-      // flag start of interrupt handler 
-      start_handler();
-      
       // set in progress status while in the lock
       assert(handlers[sig].status == QoreSignalHandler::SH_OK);
       handlers[sig].status = QoreSignalHandler::SH_InProgress;
@@ -238,9 +226,6 @@ void QoreSignalManager::signal_handler_thread()
       // reqcquire lock to check handler status
       sl.lock();
 
-      // wake up any threads waiting for the handler to complete
-      end_handler();
-      
       if (handlers[sig].status == QoreSignalHandler::SH_InProgress)
 	 handlers[sig].status = QoreSignalHandler::SH_OK;
       else
@@ -308,75 +293,9 @@ int QoreSignalManager::start_signal_thread(class ExceptionSink *xsink)
    return rc;
 }
 
-// called in the lock
-void QoreSignalManager::start_handler()
-{
-   while (idle_lock)
-   {
-      ++idle_waiting;
-      hcond.wait(&mutex);
-      --idle_waiting;
-   }
-   in_handler = gettid();
-}
-
-// called in the lock
-void QoreSignalManager::end_handler()
-{
-   if (handler_waiting)
-      hcond.signal();
-   in_handler = -1;
-}
-
-// ensures that interrupt handlers will not be run until release_idle
-void QoreSignalManager::lock_idle()
-{
-   AutoLocker al(&mutex);
-   while (in_handler >= 0)
-   {
-      ++handler_waiting;
-      hcond.wait(&mutex);
-      --handler_waiting;
-   }
-   idle_lock = true;
-}
-
-// releases the idle lock
-void QoreSignalManager::release_idle()
-{
-   AutoLocker al(&mutex);
-   if (idle_waiting)
-      hcond.signal();
-   idle_lock = false;
-}
-
-/*
-void QoreSignalManager::check_busy()
-{
-   mutex.lock();
-   while (busy)
-   {
-      ++waiting;
-      bcond.wait(&mutex);
-      --waiting;
-   }
-   busy = true;
-}
-
-// must be called in the lock
-void QoreSignalManager::done()
-{
-   busy = false;
-   if (waiting)
-      bcond.signal();
-   mutex.unlock();
-}
-*/
-
 int QoreSignalManager::setHandler(int sig, class AbstractFunctionReference *fr, class ExceptionSink *xsink)
 {
    AutoLocker al(&mutex);
-   //QoreSignalManagerBusyHelper bh; 
    
    if (!handlers[sig].isSet())
    {
@@ -399,7 +318,6 @@ int QoreSignalManager::setHandler(int sig, class AbstractFunctionReference *fr, 
 int QoreSignalManager::removeHandler(int sig, class ExceptionSink *xsink)
 {
    AutoLocker al(&mutex);
-   //QoreSignalManagerBusyHelper bh; 
 
    if (!handlers[sig].isSet())
       return 0;

@@ -82,14 +82,6 @@ class QoreSignalManager
       DLLLOCAL static pgm_set_t pgm_set;    // set of program objects used to manage thread-local storage
       DLLLOCAL static QoreCounter tcount;   // thread counter, for synchronization only
       DLLLOCAL static QoreCondition cond;   // to ensure atomicity of set and remove calls
-      DLLLOCAL static bool busy;            // busy flag
-      DLLLOCAL static int waiting;          // waiting count
-      DLLLOCAL static QoreCondition bcond;  // busy condition
-      DLLLOCAL static int in_handler;       // in handler flag (=TID)
-      DLLLOCAL static int handler_waiting;  // handler waiting counter
-      DLLLOCAL static bool idle_lock;       // idle lock flag
-      DLLLOCAL static int idle_waiting;     // idle waiting counter
-      DLLLOCAL static QoreCondition hcond;  // handler condition
       
       DLLLOCAL static void reload();
       
@@ -118,6 +110,10 @@ class QoreSignalManager
       DLLLOCAL static void end_handler();
       DLLLOCAL static int start_signal_thread(class ExceptionSink *xsink);
       DLLLOCAL static void stop_signal_thread();
+      DLLLOCAL static int gettid()
+      {
+	 return tid;
+      }
 };
 
 DLLLOCAL extern class QoreSignalManager QSM;
