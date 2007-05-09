@@ -64,21 +64,33 @@ class QoreSignalHandler {
       {
 	 return (bool)funcref;
       }
+      class QoreProgram *getProgram() const
+      {
+	 return funcref->getProgram();
+      }
 };
 
 typedef std::set<QoreProgram *> pgm_set_t;
 
 class QoreSignalManager
 {
+   friend class QoreSignalManagerBusyHelper;
+
    private:
-      DLLLOCAL static pthread_t ptid;      // handler thread
-      DLLLOCAL static int tid;             // handler thread TID
-      DLLLOCAL static pgm_set_t pgm_set;   // set of program objects used to manage thread-local storage
-      DLLLOCAL static QoreCounter tcount;  // thread counter, for synchronization only
+      DLLLOCAL static pthread_t ptid;       // handler thread
+      DLLLOCAL static int tid;              // handler thread TID
+      DLLLOCAL static pgm_set_t pgm_set;    // set of program objects used to manage thread-local storage
+      DLLLOCAL static QoreCounter tcount;   // thread counter, for synchronization only
+      DLLLOCAL static QoreCondition cond;   // to ensure atomicity of set and remove calls
+      DLLLOCAL static bool busy;            // busy flag
+      DLLLOCAL static int waiting;          // waiting count
+      DLLLOCAL static QoreCondition bcond;  // busy condition
       
       DLLLOCAL static int start_signal_thread(class ExceptionSink *xsink);
       DLLLOCAL static void reload();
       DLLLOCAL static void kill();
+      DLLLOCAL static void check_busy();
+      DLLLOCAL static void done();
       
    public:
       enum sig_cmd_e { C_None = 0, C_Reload = 1, C_Exit = 2 };
@@ -86,13 +98,11 @@ class QoreSignalManager
       static sigset_t mask;
       static int num_handlers;
       static bool thread_running;
-      //static bool sig_raised;
-      //static bool sig_event[QORE_SIGNAL_MAX];
       static QoreSignalHandler handlers[QORE_SIGNAL_MAX];
       static class LockedObject mutex;
-      static class QoreCondition cond;
       static sig_cmd_e cmd;
       
+      DLLLOCAL QoreSignalManager();
       DLLLOCAL static void init();
       DLLLOCAL static void del();
       DLLLOCAL static int setHandler(int sig, class AbstractFunctionReference *fr, class ExceptionSink *xsink);
@@ -100,7 +110,24 @@ class QoreSignalManager
       //DLLLOCAL static void handleSignals();
       DLLLOCAL static void addSignalConstants(class Namespace *ns);
       DLLLOCAL static const char *getSignalName(int sig);
-      DLLLOCAL static void signal_handler_thread(class QoreProgram *pgm);
+      DLLLOCAL static void signal_handler_thread();
+};
+
+class QoreSignalManagerBusyHelper {
+   private:
+      // not implemented
+      DLLLOCAL QoreSignalManagerBusyHelper(const QoreSignalManagerBusyHelper&);
+      DLLLOCAL QoreSignalManagerBusyHelper& operator=(const QoreSignalManagerBusyHelper&);
+      DLLLOCAL void *operator new(size_t);
+   public:
+      DLLLOCAL QoreSignalManagerBusyHelper()
+      {
+	 QoreSignalManager::check_busy();
+      }
+      DLLLOCAL ~QoreSignalManagerBusyHelper()
+      {
+	 QoreSignalManager::done();
+      }
 };
 
 DLLLOCAL extern class QoreSignalManager QSM;

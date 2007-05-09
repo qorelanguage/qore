@@ -90,6 +90,8 @@ void ExceptionSink::handleExceptions()
       defaultExceptionHandler(head);
       clear();
    }
+   else
+      thread_exit = false;
 }
 
 void ExceptionSink::handleWarnings()

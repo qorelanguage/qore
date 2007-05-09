@@ -46,6 +46,7 @@ class AbstractFunctionReference {
       DLLLOCAL virtual void resolve() {}
       DLLLOCAL virtual AbstractFunctionReference *copy() = 0;
       DLLLOCAL virtual class QoreNode *eval(class QoreNode *n);
+      DLLLOCAL virtual class QoreProgram *getProgram() const = 0;
 };
 
 struct fr_user_s {
@@ -81,32 +82,35 @@ class FunctionReference : public AbstractFunctionReference
 	 f.user.pgm = n_pgm;
       }
       DLLLOCAL virtual class QoreNode *eval(class QoreNode *n);
+      DLLLOCAL virtual class QoreProgram *getProgram() const;
 };
 
 class RunTimeObjectMethodReference : public AbstractFunctionReference
 {
-private:
-   class Object *obj;
-   char *method;
+   private:
+      class Object *obj;
+      char *method;
    
-public:
-   DLLLOCAL RunTimeObjectMethodReference(class Object *n_obj, char *n_method);
-   DLLLOCAL virtual ~RunTimeObjectMethodReference();
-   DLLLOCAL virtual class QoreNode *exec(class QoreNode *args, class ExceptionSink *xsink) const;
-   DLLLOCAL virtual AbstractFunctionReference *copy();
+   public:
+      DLLLOCAL RunTimeObjectMethodReference(class Object *n_obj, char *n_method);
+      DLLLOCAL virtual ~RunTimeObjectMethodReference();
+      DLLLOCAL virtual class QoreNode *exec(class QoreNode *args, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual AbstractFunctionReference *copy();
+      DLLLOCAL virtual class QoreProgram *getProgram() const;
 };
 
 class RunTimeObjectScopedMethodReference : public AbstractFunctionReference
 {
-private:
-   class Object *obj;
-   class Method *method;
+   private:
+      class Object *obj;
+      class Method *method;
 
-public:
-   DLLLOCAL RunTimeObjectScopedMethodReference(class Object *n_obj, class Method *n_method);
-   DLLLOCAL virtual ~RunTimeObjectScopedMethodReference();
-   DLLLOCAL virtual class QoreNode *exec(class QoreNode *args, class ExceptionSink *xsink) const;
-   DLLLOCAL virtual AbstractFunctionReference *copy();
+   public:
+      DLLLOCAL RunTimeObjectScopedMethodReference(class Object *n_obj, class Method *n_method);
+      DLLLOCAL virtual ~RunTimeObjectScopedMethodReference();
+      DLLLOCAL virtual class QoreNode *exec(class QoreNode *args, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual AbstractFunctionReference *copy();
+      DLLLOCAL virtual class QoreProgram *getProgram() const;
 };
 
 #endif

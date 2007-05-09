@@ -186,6 +186,12 @@ AbstractFunctionReference *RunTimeObjectScopedMethodReference::copy()
    return new RunTimeObjectScopedMethodReference(obj, method);
 }
 
+
+class QoreProgram *RunTimeObjectScopedMethodReference::getProgram() const
+{
+   return obj->getProgram();
+}
+
 RunTimeObjectMethodReference::RunTimeObjectMethodReference(class Object *n_obj, char *n_method) : obj(n_obj), method(strdup(n_method))
 {
    //printd(5, "RunTimeObjectMethodReference::RunTimeObjectMethodReference() this=%08p obj=%08p (method=%s)\n", this, obj, method);
@@ -207,6 +213,11 @@ class QoreNode *RunTimeObjectMethodReference::exec(class QoreNode *args, class E
 AbstractFunctionReference *RunTimeObjectMethodReference::copy()
 {
    return new RunTimeObjectMethodReference(obj, method);
+}
+
+class QoreProgram *RunTimeObjectMethodReference::getProgram() const
+{
+   return obj->getProgram();
 }
 
 FunctionReference::FunctionReference(char *n_str) : type(FC_UNRESOLVED)
@@ -237,6 +248,15 @@ FunctionReference::~FunctionReference()
    }
    else if (type == FC_IMPORTED)
       delete f.ifunc;
+}
+
+class QoreProgram *FunctionReference::getProgram() const
+{
+   if (type == FC_IMPORTED)
+      return f.ifunc->pgm;
+   if (type == FC_USER)
+      return f.user.pgm;
+   return NULL;
 }
 
 void FunctionReference::del(class ExceptionSink *xsink)

@@ -134,7 +134,7 @@ class ThreadData
       class Exception *catchException;
       std::list<block_list_t::iterator> on_block_exit_list;
       class ThreadResourceList trlist;
-
+      
       DLLLOCAL ThreadData(int ptid, QoreProgram *p);
       DLLLOCAL ~ThreadData();
 };
