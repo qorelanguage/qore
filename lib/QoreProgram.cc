@@ -373,10 +373,8 @@ void QoreProgram::cannotProvideFeature(class QoreString *desc)
 
 class UserFunction *QoreProgram::findUserFunction(const char *name)
 {
-   plock.lock();
-   class UserFunction *uf = user_func_list.find(name);
-   plock.unlock();
-   return uf;
+   AutoLocker al(&plock);
+   return user_func_list.find(name);
 }
 
 void QoreProgram::exportUserFunction(const char *name, class QoreProgram *p, class ExceptionSink *xsink)
@@ -494,6 +492,7 @@ int QoreProgram::getParseOptions() const
 
 class List *QoreProgram::getUserFunctionList()
 {
+   AutoLocker al(&plock);
    return user_func_list.getList(); 
 }
 
@@ -574,10 +573,8 @@ void QoreProgram::addStatement(class AbstractStatement *s)
 bool QoreProgram::existsFunction(const char *name)
 {
    // need to grab the parse lock for safe access to the user function map
-   plock.lock();
-   bool b = user_func_list.find(name);
-   plock.unlock();
-   return b;
+   AutoLocker al(&plock);
+   return user_func_list.find(name);
 }
 
 void QoreProgram::parseSetParseOptions(int po)
@@ -1112,7 +1109,7 @@ class QoreNode *QoreProgram::callFunction(class UserFunction *ufc, class QoreNod
 // called during run time (not during parsing)
 void QoreProgram::importUserFunction(class QoreProgram *p, class UserFunction *u, class ExceptionSink *xsink)
 {
-   plock.lock();
+   AutoLocker al(&plock);
    // check if a user function already exists with this name
    if (user_func_list.find(u->getName()))
       xsink->raiseException("FUNCTION-IMPORT-ERROR", "user function '%s' already exists in this program object", u->getName());
@@ -1120,7 +1117,6 @@ void QoreProgram::importUserFunction(class QoreProgram *p, class UserFunction *u
       xsink->raiseException("FUNCTION-IMPORT-ERROR", "function '%s' has already been imported into this program object", u->getName());
    else
       imported_func_list.add(p, u);
-   plock.unlock();
 }
 
 void QoreProgram::parseCommit(class ExceptionSink *xsink, class ExceptionSink *wS, int wm)

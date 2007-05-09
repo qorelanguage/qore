@@ -228,7 +228,7 @@ FunctionReference::FunctionReference(char *n_str) : type(FC_UNRESOLVED)
 FunctionReference::FunctionReference(class UserFunction *n_uf) : type(FC_USER)
 {
    f.user.uf = n_uf;
-   f.user.pgm = getProgram();
+   f.user.pgm = ::getProgram();
    f.user.pgm->depRef();
 }
 
@@ -269,7 +269,7 @@ void FunctionReference::del(class ExceptionSink *xsink)
 
 class QoreNode *fr_user_s::eval(class QoreNode *args, class ExceptionSink *xsink) const
 {
-   class QoreProgram *t_pgm = getProgram();
+   class QoreProgram *t_pgm = ::getProgram();
    if (t_pgm != pgm)
       pushProgram(pgm);
    class QoreNode *rv = uf->eval(args, NULL, xsink);
@@ -290,7 +290,7 @@ class QoreNode *FunctionReference::exec(class QoreNode *args, class ExceptionSin
 
 void FunctionReference::resolve()
 {
-   getProgram()->resolveFunctionReference(this);
+   ::getProgram()->resolveFunctionReference(this);
 }
 
 AbstractFunctionReference *FunctionReference::copy()
