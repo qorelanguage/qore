@@ -179,11 +179,12 @@ static class QoreNode *f_fork(class QoreNode *params, ExceptionSink *xsink)
       return NULL;
    }
    
-   // ensure no signal handling is in progress
-   QoreSignalManager::stop_signal_thread();
+   // stop signal handling thread and make sure it can't be restarted until fork is done
+   QoreSignalManager::block_and_stop();
+   //printd(5, "stopped signal thread, about to fork pid %d\n", getpid()); fflush(stdout);
    class QoreNode *rv = new QoreNode((int64)fork());
    // release signal handler lock
-   QoreSignalManager::start_signal_thread(xsink);
+   QoreSignalManager::unblock_and_start(xsink);
    return rv;
 }
 

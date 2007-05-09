@@ -82,8 +82,11 @@ class QoreSignalManager
       DLLLOCAL static pgm_set_t pgm_set;    // set of program objects used to manage thread-local storage
       DLLLOCAL static QoreCounter tcount;   // thread counter, for synchronization only
       DLLLOCAL static QoreCondition cond;   // to ensure atomicity of set and remove calls
+      DLLLOCAL static bool block;
+      DLLLOCAL static int waiting;
       
       DLLLOCAL static void reload();
+      DLLLOCAL static void stop_signal_thread_unlocked();
       
    public:
       enum sig_cmd_e { C_None = 0, C_Reload = 1, C_Exit = 2 };
@@ -110,6 +113,8 @@ class QoreSignalManager
       DLLLOCAL static void end_handler();
       DLLLOCAL static int start_signal_thread(class ExceptionSink *xsink);
       DLLLOCAL static void stop_signal_thread();
+      DLLLOCAL static void block_and_stop();
+      DLLLOCAL static void unblock_and_start(class ExceptionSink *xsink);
       DLLLOCAL static int gettid()
       {
 	 return tid;
