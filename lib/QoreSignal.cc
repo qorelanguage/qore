@@ -345,7 +345,8 @@ void QoreSignalManager::done()
 
 int QoreSignalManager::setHandler(int sig, class AbstractFunctionReference *fr, class ExceptionSink *xsink)
 {
-   QoreSignalManagerBusyHelper bh; 
+   AutoLocker al(&mutex);
+   //QoreSignalManagerBusyHelper bh; 
    
    if (!handlers[sig].isSet())
    {
@@ -367,7 +368,8 @@ int QoreSignalManager::setHandler(int sig, class AbstractFunctionReference *fr, 
 
 int QoreSignalManager::removeHandler(int sig, class ExceptionSink *xsink)
 {
-   QoreSignalManagerBusyHelper bh; 
+   AutoLocker al(&mutex);
+   //QoreSignalManagerBusyHelper bh; 
 
    if (!handlers[sig].isSet())
       return 0;
