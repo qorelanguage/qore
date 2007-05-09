@@ -93,8 +93,8 @@ class QoreSignalManager
       static class QoreCondition cond;
       static sig_cmd_e cmd;
       
-      DLLLOCAL QoreSignalManager();
-      DLLLOCAL ~QoreSignalManager();
+      DLLLOCAL static void init();
+      DLLLOCAL static void del();
       DLLLOCAL static int setHandler(int sig, class AbstractFunctionReference *fr, class ExceptionSink *xsink);
       DLLLOCAL static int removeHandler(int sig, class ExceptionSink *xsink);
       //DLLLOCAL static void handleSignals();
@@ -102,5 +102,7 @@ class QoreSignalManager
       DLLLOCAL static const char *getSignalName(int sig);
       DLLLOCAL static void signal_handler_thread(class QoreProgram *pgm);
 };
+
+DLLLOCAL extern class QoreSignalManager QSM;
 
 #endif

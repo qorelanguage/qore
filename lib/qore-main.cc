@@ -74,6 +74,9 @@ void qore_init(char *def_charset, bool show_module_errors)
 
    // init module subsystem
    MM.init(show_module_errors);
+
+   // init signals
+   QSM.init();
 }
 
 // NOTE: we do not cleanup in reverse initialization order
@@ -82,6 +85,9 @@ void qore_init(char *def_charset, bool show_module_errors)
 // cleanup functions to be run...
 void qore_cleanup()
 {
+   // stop signal manager
+   QSM.del();
+
    // now free memory
    delete_global_variables();
 

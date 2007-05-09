@@ -25,7 +25,7 @@
 
 #include <stdlib.h>
 
-static class QoreSignalManager QSM;
+class QoreSignalManager QSM;
 
 int QoreSignalManager::num_handlers = 0;
 LockedObject QoreSignalManager::mutex;
@@ -79,7 +79,7 @@ void QoreSignalHandler::runHandler(int sig, class ExceptionSink *xsink)
    args->deref(xsink);
 }
 
-QoreSignalManager::QoreSignalManager() 
+void QoreSignalManager::init() 
 {
    // set to ignore SIGPIPE
    struct sigaction sa;
@@ -108,7 +108,7 @@ QoreSignalManager::QoreSignalManager()
    }
 }
 
-QoreSignalManager::~QoreSignalManager()
+void QoreSignalManager::del()
 {
    {
       AutoLocker al(&mutex);
@@ -123,9 +123,8 @@ void QoreSignalManager::reload()
    cmd = C_Reload;
    if (thread_running)
    {
-      printd(0, "pthread_kill(%08p, %d) reload\n", ptid, QORE_STATUS_SIGNAL);
       int rc = pthread_kill(ptid, QORE_STATUS_SIGNAL);
-      printd(0, "pthread_kill rc=%d\n", rc);
+      printd(0, "pthread_kill reload rc=%d\n", rc);
    }
 }
 
@@ -134,16 +133,15 @@ void QoreSignalManager::kill()
    cmd = C_Exit;
    if (thread_running)
    {
-      printd(0, "pthread_kill(%08p, %d) exit\n", ptid, QORE_STATUS_SIGNAL);
       int rc = pthread_kill(ptid, QORE_STATUS_SIGNAL);
-      printd(0, "pthread_kill rc=%d\n", rc);
+      printd(0, "pthread_kill exit rc=%d\n", rc);
    }
 }
 
 void QoreSignalManager::signal_handler_thread(QoreProgram *pgm)
 {
    register_thread(tid, ptid, pgm);
-   printd(0, "signal handler thread started\n");
+   // printd(5, "signal handler thread started\n");
    
    // create thread-local data for this thread in the program object
    pgm->startThread();
@@ -229,7 +227,7 @@ void QoreSignalManager::signal_handler_thread(QoreProgram *pgm)
 
    // run thread cleanup handlers
    tclist.exec();
-   
+
    tcount.dec();
    pthread_exit(NULL);
 }
@@ -242,7 +240,7 @@ extern "C" void *sig_thread(class QoreProgram *pgm)
 
 int QoreSignalManager::start_signal_thread(class ExceptionSink *xsink)
 {
-   printd(0, "start_signal_thread() called\n");
+   //printd(5, "start_signal_thread() called\n");
    tid = get_thread_entry();
 
    // if can't start thread, then throw exception
@@ -251,7 +249,7 @@ int QoreSignalManager::start_signal_thread(class ExceptionSink *xsink)
       xsink->raiseException("THREAD-CREATION-FAILURE", "thread list is full with %d threads", MAX_QORE_THREADS);
       return -1;
    }   
-   printd(0, "got TID %d\n", tid);
+   printd(0, "start_signal_thread() got TID %d\n", tid);
    
    thread_running = true;
    tcount.inc();

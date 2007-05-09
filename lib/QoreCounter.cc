@@ -89,9 +89,6 @@ int QoreCounter::waitForZero(class ExceptionSink *xsink, int timeout_ms)
 
 void QoreCounter::waitForZero()
 {
-   // NOTE that we do not do a while(true) { cond.wait(); } because any broadcast means that the
-   // counter hit zero, so even it it's bigger than zero by the time we are allowed to execute, it's ok
-   // --- synchronization must be done externally
    SafeLocker sl(&l);
    ++waiting;
    while (cnt)
