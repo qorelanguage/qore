@@ -162,6 +162,8 @@ void QoreSignalManager::signal_handler_thread()
    // block only signals we are catching in this thread
    pthread_sigmask(SIG_SETMASK, &c_mask, NULL);
 
+   //printd(0, "usr2 blocked=%d (size=%d)\n", sigismember(&c_mask, SIGUSR2), sizeof(sigset_t));
+   
    while (true)
    {
       if (cmd != C_None)
@@ -186,10 +188,10 @@ void QoreSignalManager::signal_handler_thread()
       
       //printd(5, "about to call sigwait()\n");
       sigwait(&c_mask, &sig);
-      //printd(5, "returned from sigwait(), sig=%d, cmd=%d\n", sig, cmd);
 
       // reacquire lock to check command and handler status
       sl.lock();
+      //printd(5, "sigwait() sig=%d (cmd=%d)\n", sig, cmd);
       if (sig == QORE_STATUS_SIGNAL && cmd != C_None)
 	 continue;
 
