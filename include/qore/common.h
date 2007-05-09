@@ -53,7 +53,7 @@
 #define MAKE_STRING_FROM_SYMBOL(x) _Q_MAKE_STRING(x)
 
 // use umem for memory allocation if available
-#ifdef HAVE_UMEM_H
+#ifdef HAVE_UMEM_H_1
 #include <umem.h>
 #endif
 

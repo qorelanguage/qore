@@ -103,7 +103,6 @@ class QoreSignalManager
       DLLLOCAL static void del();
       DLLLOCAL static int setHandler(int sig, class AbstractFunctionReference *fr, class ExceptionSink *xsink);
       DLLLOCAL static int removeHandler(int sig, class ExceptionSink *xsink);
-      //DLLLOCAL static void handleSignals();
       DLLLOCAL static void addSignalConstants(class Namespace *ns);
       DLLLOCAL static const char *getSignalName(int sig);
       DLLLOCAL static void signal_handler_thread();
@@ -113,12 +112,13 @@ class QoreSignalManager
       DLLLOCAL static void end_handler();
       DLLLOCAL static int start_signal_thread(class ExceptionSink *xsink);
       DLLLOCAL static void stop_signal_thread();
-      DLLLOCAL static void block_and_stop();
-      DLLLOCAL static void unblock_and_start(class ExceptionSink *xsink);
+      DLLLOCAL static void pre_fork_block_and_stop();
+      DLLLOCAL static void post_fork_unblock_and_start(bool new_process, class ExceptionSink *xsink);
       DLLLOCAL static int gettid()
       {
 	 return tid;
       }
+      DLLLOCAL static void reset_default_signal_mask();
 };
 
 DLLLOCAL extern class QoreSignalManager QSM;

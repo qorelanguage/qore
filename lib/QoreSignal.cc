@@ -81,14 +81,6 @@ void QoreSignalHandler::runHandler(int sig, class ExceptionSink *xsink)
 
 QoreSignalManager::QoreSignalManager() 
 {
-   // set to ignore SIGPIPE
-   struct sigaction sa;
-   sa.sa_handler = SIG_IGN;
-   sigemptyset (&sa.sa_mask);
-   sa.sa_flags = SA_RESTART;
-   // ignore SIGPIPE signals
-   sigaction(SIGPIPE, &sa, NULL);
-
    // set command to none
    cmd = C_None;
    
@@ -99,14 +91,22 @@ QoreSignalManager::QoreSignalManager()
 
 void QoreSignalManager::init() 
 {
+   // set SIGPIPE to ignore
+   struct sigaction sa;
+   sa.sa_handler = SIG_IGN;
+   sigemptyset (&sa.sa_mask);
+   sa.sa_flags = SA_RESTART;
+   // ignore SIGPIPE signals
+   sigaction(SIGPIPE, &sa, NULL);
+
    // block all signals
    sigfillset(&mask);
    pthread_sigmask(SIG_SETMASK, &mask, NULL);
-   
+
    // set up default handler mask
    sigemptyset(&mask);
    sigaddset(&mask, QORE_STATUS_SIGNAL);
-   
+
    ExceptionSink xsink;
    if (start_signal_thread(&xsink))
    {
@@ -124,7 +124,7 @@ void QoreSignalManager::del()
 void QoreSignalManager::reload()
 {
    cmd = C_Reload;
-   if (thread_running && tid != gettid())
+   if (thread_running && tid != ::gettid())
    {
       int rc = pthread_kill(ptid, QORE_STATUS_SIGNAL);
       assert(!rc);
@@ -153,7 +153,7 @@ void QoreSignalManager::stop_signal_thread()
    tcount.waitForZero();   
 }
 
-void QoreSignalManager::block_and_stop()
+void QoreSignalManager::pre_fork_block_and_stop()
 {
    SafeLocker sl(&mutex);
    // if another block is already in progress then wait for it to complete
@@ -171,12 +171,21 @@ void QoreSignalManager::block_and_stop()
    tcount.waitForZero();
 }
 
-void QoreSignalManager::unblock_and_start(class ExceptionSink *xsink)
+void QoreSignalManager::post_fork_unblock_and_start(bool new_process, class ExceptionSink *xsink)
 {
    AutoLocker al(&mutex);
    block = false;
    if (waiting)
       cond.signal();
+
+   // set new default signal mask for new process
+   if (new_process)
+   {
+      // block all signals
+      sigset_t new_mask;
+      sigfillset(&new_mask);
+      pthread_sigmask(SIG_SETMASK, &new_mask, NULL);
+   }
 
    start_signal_thread(xsink);
 }
@@ -185,7 +194,7 @@ void QoreSignalManager::signal_handler_thread()
 {
    register_thread(tid, ptid, 0);
    
-   printd(5, "signal handler thread started\n");
+   printd(5, "signal handler thread started (TID %d)\n", tid);
 
    sigset_t c_mask;
    int sig;
@@ -199,8 +208,6 @@ void QoreSignalManager::signal_handler_thread()
    // block only signals we are catching in this thread
    pthread_sigmask(SIG_SETMASK, &c_mask, 0);
 
-   //printd(0, "usr2 blocked=%d (size=%d)\n", sigismember(&c_mask, SIGUSR2), sizeof(sigset_t));
-   
    while (true)
    {
       if (cmd != C_None)
@@ -313,7 +320,7 @@ int QoreSignalManager::start_signal_thread(class ExceptionSink *xsink)
    {
       xsink->raiseException("THREAD-CREATION-FAILURE", "thread list is full with %d threads", MAX_QORE_THREADS);
       return -1;
-   }   
+   }
    printd(5, "start_signal_thread() got TID %d\n", tid);
    
    thread_running = true;
