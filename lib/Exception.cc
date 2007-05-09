@@ -88,7 +88,7 @@ void ExceptionSink::handleExceptions()
    if (head)
    {
       defaultExceptionHandler(head);
-      clearIntern();
+      clear();
    }
 }
 
@@ -97,7 +97,7 @@ void ExceptionSink::handleWarnings()
    if (head)
    {
       defaultWarningHandler(head);
-      clearIntern();
+      clear();
    }
 }
 
@@ -116,6 +116,7 @@ void ExceptionSink::clear()
 {
    clearIntern();
    head = tail = NULL;
+   thread_exit = false;
 }
 
 void ExceptionSink::insert(class Exception *e)

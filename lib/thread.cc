@@ -404,7 +404,7 @@ block_list_t::iterator popBlock()
    return i;
 }
 
-// called by each "on_block_exit" statement to activate it's code for the block exit
+// called by each "on_block_exit" statement to activate its code for the block exit
 void advanceOnBlockExit()
 {
    ThreadData *td = (ThreadData *)pthread_getspecific(thread_data_key);
@@ -687,7 +687,7 @@ class Exception *catchGetException()
 }
 
 // returns tid allocated for thread
-static int get_thread_entry()
+int get_thread_entry()
 {
    int tid = -1;
 
@@ -724,12 +724,12 @@ static int get_thread_entry()
    return tid;
 }
 
-static inline void delete_thread_data()
+void delete_thread_data()
 {
    delete (ThreadData *)pthread_getspecific(thread_data_key);
 }
 
-static void deregister_thread(int tid)
+void deregister_thread(int tid)
 {
    // NOTE: cannot safely call printd here, because normally the thread_data has been deleted
    lThreadList.lock();
@@ -741,7 +741,7 @@ static void deregister_thread(int tid)
 }
 
 // should only be called from new thread
-static inline void register_thread(int tid, pthread_t ptid, class QoreProgram *p)
+void register_thread(int tid, pthread_t ptid, class QoreProgram *p)
 {
    thread_list[tid].ptid = ptid;
 #ifdef DEBUG

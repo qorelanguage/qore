@@ -26,10 +26,11 @@
 
 #include <qore/LockedObject.h>
 #include <qore/QoreCondition.h>
+#include <qore/QoreCounter.h>
 
 #include <signal.h>
 
-#include <map>
+#include <set>
 
 // maximum number of signals
 #ifndef QORE_SIGNAL_MAX
@@ -45,7 +46,7 @@
 #endif
 
 // use SIGCHLD for the status signal
-#define QORE_STATUS_SIGNAL SIGCHLD
+#define QORE_STATUS_SIGNAL SIGSYS //SIGCHLD
 
 class QoreSignalHandler {
    private:
@@ -65,15 +66,19 @@ class QoreSignalHandler {
       }
 };
 
+typedef std::set<QoreProgram *> pgm_set_t;
+
 class QoreSignalManager
 {
    private:
-      DLLLOCAL static pthread_t ptid;   // handler thread
-
+      DLLLOCAL static pthread_t ptid;      // handler thread
+      DLLLOCAL static int tid;             // handler thread TID
+      DLLLOCAL static pgm_set_t pgm_set;   // set of program objects used to manage thread-local storage
+      DLLLOCAL static QoreCounter tcount;  // thread counter, for synchronization only
+      
       DLLLOCAL static int start_signal_thread(class ExceptionSink *xsink);
       DLLLOCAL static void reload();
       DLLLOCAL static void kill();
-      DLLLOCAL static void *signal_handler_thread(void *);
       
    public:
       enum sig_cmd_e { C_None = 0, C_Reload = 1, C_Exit = 2 };
@@ -95,6 +100,7 @@ class QoreSignalManager
       //DLLLOCAL static void handleSignals();
       DLLLOCAL static void addSignalConstants(class Namespace *ns);
       DLLLOCAL static const char *getSignalName(int sig);
+      DLLLOCAL static void signal_handler_thread(class QoreProgram *pgm);
 };
 
 #endif

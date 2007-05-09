@@ -89,6 +89,12 @@ DLLLOCAL class Exception *catchGetException();
 DLLLOCAL class CallStack *getCallStack();
 DLLLOCAL class VLock *getVLock();
 
+// acquires a TID and thread entry, returns -1 if not successful
+DLLLOCAL int get_thread_entry();
+DLLLOCAL void delete_thread_data();
+DLLLOCAL void register_thread(int tid, pthread_t ptid, class QoreProgram *pgm);
+DLLLOCAL void deregister_thread(int tid);
+
 // called when a StatementBlock has "on block exit" blocks
 DLLLOCAL void pushBlock(block_list_t::iterator i);
 // called when a StatementBlock has "on block exit" blocks
