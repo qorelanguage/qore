@@ -1032,7 +1032,7 @@ static class QoreNode *f_set_signal_handler(class QoreNode *params, ExceptionSin
       xsink->raiseException("SET-SIGNAL-HANDLER-ERROR", "expecting call reference as second argument to set_signal_handler()");
       return NULL;
    }
-   QoreSignalManager::setHandler(signal, p1->val.funcref);
+   QoreSignalManager::setHandler(signal, p1->val.funcref, xsink);
    return NULL;
 }
 

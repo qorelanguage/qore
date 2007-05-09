@@ -77,13 +77,6 @@ int QoreCounter::waitForZero(class ExceptionSink *xsink, int timeout_ms)
       else
 	 if (cond.wait(&l, timeout_ms))
 	    break;
-      // check for signals to be handled on a spurious wakeup
-      if (cnt && cnt != Cond_Deleted)
-      {
-	 sl.unlock();
-	 QoreSignalManager::handleSignals();
-	 sl.lock();
-      }
    }
    --waiting;
    if (cnt == Cond_Deleted)
@@ -102,16 +95,7 @@ void QoreCounter::waitForZero()
    SafeLocker sl(&l);
    ++waiting;
    while (cnt)
-   {
       cond.wait(&l);
-      // check for signals to be handled on a spurious wakeup
-      if (cnt)
-      {
-	 sl.unlock();
-	 QoreSignalManager::handleSignals();
-	 sl.lock();
-      }
-   }
    --waiting;
 }
 

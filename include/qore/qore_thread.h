@@ -96,6 +96,8 @@ DLLLOCAL block_list_t::iterator popBlock();
 // called by each "on_block_exit" statement to activate it's code for the block exit
 DLLLOCAL void advanceOnBlockExit();
 
+DLLLOCAL extern pthread_attr_t ta_default;
+
 /* TODO
 // for object implementation
 DLLLOCAL void substituteObjectIfEqual(class Object *o);

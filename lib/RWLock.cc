@@ -67,13 +67,6 @@ int RWLock::grabImpl(int mtid, class VLock *nvl, class ExceptionSink *xsink, int
       --waiting;
       if (rc)
 	 return -1;
-      // handle signals on spurious wakeups
-      if (tid >= 0 || (tid == Lock_Unlocked && vmap.size()))
-      {
-	 asl_lock.unlock();
-	 QoreSignalManager::handleSignals();
-	 asl_lock.lock();
-      }
    }
    if (tid == Lock_Deleted)
    {
@@ -274,14 +267,6 @@ int RWLock::readLock(class ExceptionSink *xsink, int timeout_ms)
 	 --readRequests;
 	 if (rc)
 	    return -1;
-	 
-	 // handle signals on spurious wakeups
-	 if (tid >= 0)
-	 {
-	    sl.unlock();
-	    QoreSignalManager::handleSignals();
-	    sl.lock();
-	 }
       } while (tid >= 0);
 
       if (tid == Lock_Deleted)

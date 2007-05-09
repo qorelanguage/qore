@@ -74,13 +74,6 @@ void qore_init(char *def_charset, bool show_module_errors)
 
    // init module subsystem
    MM.init(show_module_errors);
-
-   struct sigaction sa;
-   sa.sa_handler = SIG_IGN;
-   sigemptyset (&sa.sa_mask);
-   sa.sa_flags = SA_RESTART;
-   // ignore SIGPIPE signals
-   sigaction(SIGPIPE, &sa, NULL);
 }
 
 // NOTE: we do not cleanup in reverse initialization order

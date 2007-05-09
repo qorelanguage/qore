@@ -25,6 +25,7 @@
 #define _QORE_QORESIGNAL_H
 
 #include <qore/LockedObject.h>
+#include <qore/QoreCondition.h>
 
 #include <signal.h>
 
@@ -42,6 +43,9 @@
 #error do not know maximum signal number on this platform
 #endif
 #endif
+
+// use SIGCHLD for the status signal
+#define QORE_STATUS_SIGNAL SIGCHLD
 
 class QoreSignalHandler {
    private:
@@ -63,20 +67,32 @@ class QoreSignalHandler {
 
 class QoreSignalManager
 {
-   public:
-      static bool sig_raised;
-      static bool sig_event[QORE_SIGNAL_MAX];
-      static QoreSignalHandler handlers[QORE_SIGNAL_MAX];
-      
    private:
-      static class LockedObject mutex;
+      DLLLOCAL static pthread_t ptid;   // handler thread
+
+      DLLLOCAL static int start_signal_thread(class ExceptionSink *xsink);
+      DLLLOCAL static void reload();
+      DLLLOCAL static void kill();
+      DLLLOCAL static void *signal_handler_thread(void *);
       
    public:
+      enum sig_cmd_e { C_None = 0, C_Reload = 1, C_Exit = 2 };
+
+      static sigset_t mask;
+      static int num_handlers;
+      static bool thread_running;
+      //static bool sig_raised;
+      //static bool sig_event[QORE_SIGNAL_MAX];
+      static QoreSignalHandler handlers[QORE_SIGNAL_MAX];
+      static class LockedObject mutex;
+      static class QoreCondition cond;
+      static sig_cmd_e cmd;
+      
       DLLLOCAL QoreSignalManager();
       DLLLOCAL ~QoreSignalManager();
-      DLLLOCAL static void setHandler(int sig, class AbstractFunctionReference *fr);
+      DLLLOCAL static int setHandler(int sig, class AbstractFunctionReference *fr, class ExceptionSink *xsink);
       DLLLOCAL static int removeHandler(int sig, class ExceptionSink *xsink);
-      DLLLOCAL static void handleSignals();
+      //DLLLOCAL static void handleSignals();
       DLLLOCAL static void addSignalConstants(class Namespace *ns);
       DLLLOCAL static const char *getSignalName(int sig);
 };

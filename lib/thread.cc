@@ -53,8 +53,8 @@ class Operator *OP_BACKGROUND;
 ThreadCleanupList tclist;
 
 // default thread creation attribute
-static pthread_attr_t ta_default;
-static int      current_tid = 0;
+pthread_attr_t ta_default;
+static int     current_tid = 0;
 
 DLLLOCAL bool threads_initialized = false;
 
