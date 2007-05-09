@@ -87,13 +87,13 @@ class QoreSignalManager
       DLLLOCAL static QoreCondition bcond;  // busy condition
       DLLLOCAL static bool in_handler;      // in handler flag
       DLLLOCAL static int handler_waiting;  // handler waiting counter
+      DLLLOCAL static bool idle_lock;       // idle lock flag
+      DLLLOCAL static int idle_waiting;     // idle waiting counter
       DLLLOCAL static QoreCondition hcond;  // handler condition
       
       DLLLOCAL static int start_signal_thread(class ExceptionSink *xsink);
       DLLLOCAL static void reload();
       DLLLOCAL static void kill();
-      DLLLOCAL static void check_busy();
-      DLLLOCAL static void done();
       
    public:
       enum sig_cmd_e { C_None = 0, C_Reload = 1, C_Exit = 2 };
@@ -116,23 +116,8 @@ class QoreSignalManager
       DLLLOCAL static void signal_handler_thread();
       DLLLOCAL static void lock_idle();
       DLLLOCAL static void release_idle();
-};
-
-class QoreSignalManagerBusyHelper {
-   private:
-      // not implemented
-      DLLLOCAL QoreSignalManagerBusyHelper(const QoreSignalManagerBusyHelper&);
-      DLLLOCAL QoreSignalManagerBusyHelper& operator=(const QoreSignalManagerBusyHelper&);
-      DLLLOCAL void *operator new(size_t);
-   public:
-      DLLLOCAL QoreSignalManagerBusyHelper()
-      {
-	 QoreSignalManager::check_busy();
-      }
-      DLLLOCAL ~QoreSignalManagerBusyHelper()
-      {
-	 QoreSignalManager::done();
-      }
+      DLLLOCAL static void start_handler();
+      DLLLOCAL static void end_handler();
 };
 
 DLLLOCAL extern class QoreSignalManager QSM;
