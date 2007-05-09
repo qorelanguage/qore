@@ -165,17 +165,17 @@ static class QoreNode *f_getppid(class QoreNode *params, ExceptionSink *xsink)
 extern int num_threads;
 static class QoreNode *f_fork(class QoreNode *params, ExceptionSink *xsink)
 {
-   if (num_threads > 2)
+   if (num_threads > (1 + (QoreSignalManager::thread_running ? 1 : 0)))
    {   
       xsink->raiseException("ILLEGAL-FORK", "cannot fork() when other threads are running");
       return NULL;
    }
    
    // ensure no signal handling is in progress
-   QoreSignalManager::lock_idle();
+   QoreSignalManager::stop_signal_thread();
    class QoreNode *rv = new QoreNode((int64)fork());
    // release signal handler lock
-   QoreSignalManager::release_idle();
+   QoreSignalManager::start_signal_thread(xsink);
    return rv;
 }
 

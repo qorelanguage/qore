@@ -126,7 +126,7 @@ void QoreSignalManager::del()
 {
    {
       AutoLocker al(&mutex);
-      kill();
+      stop_signal_thread();
    }
    tcount.waitForZero();
 }
@@ -143,11 +143,15 @@ void QoreSignalManager::reload()
    }
 }
 
-void QoreSignalManager::kill()
+void QoreSignalManager::stop_signal_thread()
 {
    cmd = C_Exit;
    if (thread_running)
+   {
       pthread_kill(ptid, QORE_STATUS_SIGNAL);
+      // wait for thread to exit
+      pthread_join(ptid, NULL);
+   }
 }
 
 void QoreSignalManager::signal_handler_thread()

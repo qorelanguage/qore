@@ -91,9 +91,7 @@ class QoreSignalManager
       DLLLOCAL static int idle_waiting;     // idle waiting counter
       DLLLOCAL static QoreCondition hcond;  // handler condition
       
-      DLLLOCAL static int start_signal_thread(class ExceptionSink *xsink);
       DLLLOCAL static void reload();
-      DLLLOCAL static void kill();
       
    public:
       enum sig_cmd_e { C_None = 0, C_Reload = 1, C_Exit = 2 };
@@ -118,6 +116,8 @@ class QoreSignalManager
       DLLLOCAL static void release_idle();
       DLLLOCAL static void start_handler();
       DLLLOCAL static void end_handler();
+      DLLLOCAL static int start_signal_thread(class ExceptionSink *xsink);
+      DLLLOCAL static void stop_signal_thread();
 };
 
 DLLLOCAL extern class QoreSignalManager QSM;
