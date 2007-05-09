@@ -42,7 +42,7 @@ bool QoreSignalManager::busy = false;
 
 QoreCondition QoreSignalManager::hcond;
 int QoreSignalManager::handler_waiting = 0;
-bool QoreSignalManager::in_handler = false;
+int QoreSignalManager::in_handler = -1;
 int QoreSignalManager::idle_waiting = 0;
 bool QoreSignalManager::idle_lock = false;
 
@@ -135,7 +135,7 @@ void QoreSignalManager::del()
 void QoreSignalManager::reload()
 {
    cmd = C_Reload;
-   if (thread_running)
+   if (thread_running && (in_handler == -1 || in_handler != gettid()))
    {
       pthread_kill(ptid, QORE_STATUS_SIGNAL);
       // unlock lock and wait for condition
@@ -313,7 +313,7 @@ void QoreSignalManager::start_handler()
       hcond.wait(&mutex);
       --idle_waiting;
    }
-   in_handler = true;
+   in_handler = gettid();
 }
 
 // called in the lock
@@ -321,14 +321,14 @@ void QoreSignalManager::end_handler()
 {
    if (handler_waiting)
       hcond.signal();
-   in_handler = false;
+   in_handler = -1;
 }
 
 // ensures that interrupt handlers will not be run until release_idle
 void QoreSignalManager::lock_idle()
 {
    AutoLocker al(&mutex);
-   while (in_handler)
+   while (in_handler >= 0)
    {
       ++handler_waiting;
       hcond.wait(&mutex);

@@ -85,7 +85,7 @@ class QoreSignalManager
       DLLLOCAL static bool busy;            // busy flag
       DLLLOCAL static int waiting;          // waiting count
       DLLLOCAL static QoreCondition bcond;  // busy condition
-      DLLLOCAL static bool in_handler;      // in handler flag
+      DLLLOCAL static int in_handler;       // in handler flag (=TID)
       DLLLOCAL static int handler_waiting;  // handler waiting counter
       DLLLOCAL static bool idle_lock;       // idle lock flag
       DLLLOCAL static int idle_waiting;     // idle waiting counter
