@@ -6366,9 +6366,6 @@ printf("%s\n", makeFormattedXMLString($h));</programlisting>
 	<para><link linkend="fork">fork()</link> (called externally to a signal handler) is handled as follows: the signal handling thread is terminated, <code>fork()</code> is executed, all signals are masked in the primary thread in the new process, then the signal handling thread is resumed in both processes.  No signals can be received or handled while the signal handling thread is terminated. After the <code>fork()</code>, the new process will have exactly the same signal handlers and signal masks as the parent process.</para>
       </listitem>
       <listitem>
-	<para>While executing signal handlers, Qore saves the value of the C <code>errno</code> thread-local variable and restores it after all handlers have been run.</para>
-      </listitem>
-      <listitem>
 	<para>Unhandled exceptions in error handlers will simply be displayed on stderr as an unhandled exception and will have no other effect on Qore or Qore code.</para>
       </listitem>
       <listitem>
