@@ -10,6 +10,13 @@ has different behavior to native CT library:
   See encoding_helpers_tests.cc. 
   Setting it and reading it again doesn't help.
 
+* For ct_command(CS_RPC_CMD) (i.e. calling procedure)
+  if one passes procedure parameters by position 
+  (i.e. not by name as in Sybase examples)
+  then the subsequent ct_send() fails.
+  This makes calling procedures impossible
+  (ct_dynamic() works here but it doesn't 
+   support TEXT and IMAGE datatypes).
 
 EOF
 
