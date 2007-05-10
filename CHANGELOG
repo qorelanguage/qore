@@ -1,5 +1,5 @@
 2006.05.10: David Nichols
-	* implemented a workaround to per-thread signal masks on Darwin by 
+	* implemented a workaround to per-thread signal masks bug on Darwin by
 	  calling sigprocmask() after pthread_sigmask() only on Darwin
 
 2006.05.09: David Nichols
