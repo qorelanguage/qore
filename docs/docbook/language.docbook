@@ -6319,10 +6319,62 @@ printf("%s\n", makeFormattedXMLString($h));</programlisting>
     <title>Signal Handling</title>
     <para>Qore signal handling support is experimental.</para>
     <para>Qore-language signal handlers are installed with <link linkend="set_signal_handler">set_signal_handler()</link>.  Signal handlers are removed with <link linkend="remove_signal_handler">remove_signal_handler()</link>.</para>
-    <para>Qore signal handlers are dispatched (when the appropriate signal has been raised) before executing statements, or when blocked threads are awoken with a spurious wakeup, to ensure that sleeping processes can still process signals.</para>
-    <para>It is not currently possible to set signal masks per thread; signals are handled in the first thread that sees the signal has been raised.  Signal checking is very fast; it is currently done by checking a fixed single byte without locking.  If the flag is set, then the lock is acquired and the flag is checked again and the signal handler is run in an atomic fashion.</para>
-    <para>While executing signal handlers, Qore saves the value of the C <code>errno</code> thread-local variable and restores it after all handlers have been run.</para>
-    <para>Note that exceptions thrown by error handlers cannot be caught; the exception information will simply be displayed on stderr as an unhandled exception.</para>
-  </sect1>
+
+    <para>Qore uses a signal handling thread, masks (blocks) all signals in every thread except the signal handling thread, and makes an internal call to <code>sigwait()</code> to process raised signals one at a time.  The signal handling thread stays blocked (sleeping) until a signal with a signal handler is raised, and then executes the handler.</para>
+
+    <table>
+      <title>Signal Handling Functions</title>
+      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>Function Name</para></entry>
+	    <entry><para>Description</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row>
+	    <entry><para><link linkend="set_signal_handler">set_signal_handler()</link></para></entry>
+	    <entry><para>Sets up a Qore signal handler using a signal number and a call reference.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="remove_signal_handler">remove_signal_handler()</link></para></entry>
+	    <entry><para>Removes a Qore signal handler using a signal number.</para></entry>
+	  </row>
+	</tbody>
+      </tgroup>
+    </table>
+
+    <para>The above functions are atomic, meaning that when they return to the caller, the signal handling thread has already acknowledged the changes.</para>
+
+    <para>It is not possible to set signal masks per thread; all signals are delivered to the signal handling thread.  Signals not handled with a Qore signal handler are handled with their default action.  It is not possible to catch <code>SIGPIPE</code>.  <code>SIGPIPE</code> is always ignored in Qore.</para>
+
+    <para>Some issues to be aware of in signal handlers:</para>
+    <itemizedlist mark='bullet'>
+      <listitem>
+	<para>Thread-local storage is not persistent in signal handlers; it is deleted after every signal handler is run.</para>
+      </listitem>
+      <listitem>
+	<para>A signal handler that does not terminate will block the execution of further signal handlers and signal handling changes (such as updating the signal mask) and result in a Qore process that must be killed manually.</para>
+      </listitem>
+      <listitem>
+	<para>Signal handlers may install or remove signal handlers using <link linkend="set_signal_handler">set_signal_handler()</link> or  <link linkend="remove_signal_handler">remove_signal_handler()</link>, however in this case, changes to signal handling are made after the signal handler returns.</para>
+      </listitem>
+      <listitem>
+	<para>Signal handlers cannot call <link linkend="fork">fork()</link>; any attempt to call <link linkend="fork">fork()</link> in a signal handler will result in an an exception.</para>
+      </listitem>
+      <listitem>
+	<para><link linkend="fork">fork()</link> (called externally to a signal handler) is handled as follows: the signal handling thread is terminated, <code>fork()</code> is executed, all signals are masked in the primary thread in the new process, then the signal handling thread is resumed in both processes.  No signals can be received or handled while the signal handling thread is terminated. After the <code>fork()</code>, the new process will have exactly the same signal handlers and signal masks as the parent process.</para>
+      </listitem>
+      <listitem>
+	<para>While executing signal handlers, Qore saves the value of the C <code>errno</code> thread-local variable and restores it after all handlers have been run.</para>
+      </listitem>
+      <listitem>
+	<para>Unhandled exceptions in error handlers will simply be displayed on stderr as an unhandled exception and will have no other effect on Qore or Qore code.</para>
+      </listitem>
+      <listitem>
+	<para>If a signal handler executes the <link linkend="thread_exit_Statements">thread_exit</link> statement, execution of the signal handler will terminate immediately, but the signal handling thread will not be stopped.  Execution of further signal handlers (including that for the same signal being handled when  <link linkend="thread_exit_Statements">thread_exit</link> is executed) will not be affected.</para>
+      </listitem>
+    </itemizedlist>
+   </sect1>
 </chapter>
 

@@ -17749,7 +17749,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Removes a signal handler and returns the signal handling state to the default.</para>
+	<para>Removes a signal handler and returns the signal handling state to the default.  By the time this function returns, changes to the signal handling thread have already been effected.  See <link linkend="signal_handling">Signal Handling</link> for more information.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -17859,7 +17859,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Sets or replaces a signal handler according to the signal number and <link linkend="call_references">call reference</link> (function or object method reference) passed.</para>
+	<para>Sets or replaces a signal handler according to the signal number and <link linkend="call_references">call reference</link> (function or object method reference) passed.  By the time this function returns, changes to the signal handling thread have already been effected.  See <link linkend="signal_handling">Signal Handling</link> for more information.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
