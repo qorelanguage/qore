@@ -1,3 +1,7 @@
+2006.05.10: David Nichols
+	* implemented a workaround to per-thread signal masks on Darwin by 
+	  calling sigprocmask() after pthread_sigmask() only on Darwin
+
 2006.05.09: David Nichols
 	* re-implemented safe signal handling to use a dedicated thread that
 	  blocks on the receipt of signals with qore handlers.  fixed fork()

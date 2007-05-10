@@ -208,6 +208,25 @@ void QoreSignalManager::signal_handler_thread()
    // block only signals we are catching in this thread
    pthread_sigmask(SIG_SETMASK, &c_mask, 0);
 
+#ifdef DARWIN
+   /* why do we call sigprocmask on Darwin?
+      it seems that Darwin has a bug in handling per-thread signal masks.  
+      Even though we explicitly set this thread's signal mask to unblock all signals
+      we are not explicitly catching (including QORE_STATUS_SIGNAL, currently set to
+      SIGSYS), no signal is delivered that is not in our list.  For example (on
+      Darwin only), if we are catching SIGUSR1 with a Qore signal handler (therefore
+      it's included in c_mask and blocked in this thread, because it will be also
+      included in sigwait below) and have no handler for SIGUSR2, if we send a 
+      SIGUSR2 to the process, unless we cann sigprocmask here and below after 
+      pthread_sigmask, the SIGUSR2 will also be blocked (even through the signal 
+      thread's signal mask explicitly allows for it to be delivered to this thread),
+      instead of being delivered to the process and triggering the default action - 
+      terminate the process.  The workaround (discovered with trial and error) is to
+      call sigprocmask after every call to pthread_sigmask in the signal handler 
+      thread  */
+   sigprocmask(SIG_SETMASK, &c_mask, 0);
+#endif
+
    while (true)
    {
       if (cmd != C_None)
@@ -222,10 +241,16 @@ void QoreSignalManager::signal_handler_thread()
 	    memcpy(&c_mask, &mask, sizeof(sigset_t));
 	    // block only signals we are catching in this thread
 	    pthread_sigmask(SIG_SETMASK, &c_mask, NULL);
+#ifdef DARWIN
+	    // see above for reasoning behind calling sigprocmask on Darwin
+	    sigprocmask(SIG_SETMASK, &c_mask, 0);
+#endif
+	    // confirm that the mask has been updated so updates are atomic
 	    cond.signal();
 	 }
       }
-      
+
+      // unlock to call sigwait
       sl.unlock();
       
       //printd(5, "about to call sigwait()\n");
@@ -267,7 +292,7 @@ void QoreSignalManager::signal_handler_thread()
       // consume exceptions and reset exception sink
       xsink.handleExceptions();
 
-      // reqcquire lock to check handler status
+      // reacquire lock to check handler status
       sl.lock();
 
       if (handlers[sig].status == QoreSignalHandler::SH_InProgress)
