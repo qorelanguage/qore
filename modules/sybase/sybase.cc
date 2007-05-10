@@ -134,27 +134,23 @@ static int sybase_open(Datasource *ds, ExceptionSink *xsink)
     traceout("oracle_open()");
     return -1;
   }
-printf("### pos1\n");
   if (!ds->getDBName()) {
     xsink->raiseException("DATASOURCE-MISSING-DBNAME", "Datasource has an empty dbname parameter");
     traceout("oracle_open()");
     return -1;
   }
 
-printf("### pos2\n");
   std::auto_ptr<connection> sc(new connection);
   sc->init(ds->getUsername(), ds->getPassword() ? ds->getPassword() : "", ds->getDBName(), xsink);
   if (xsink->isException()) {
     return -1;
   }
 
-printf("### po3\n");
   set_encoding(ds, sc.get(), xsink);
   if (xsink->isException()) {
     return -1;
   }
 
-printf("### pos4\n");
   ds->setPrivateData(sc.release());
   traceout("sybase_open()");
   return 0;
@@ -209,7 +205,6 @@ static int sybase_rollback(Datasource *ds, ExceptionSink *xsink)
 QoreString* sybase_module_init()
 {
    tracein("sybase_module_init()");
-printf("######################################### MODULE INIT\n");
 
 #ifdef DEBUG
   builtinFunctions.add("runSybaseTests", runSybaseTests, QDOM_DATABASE);

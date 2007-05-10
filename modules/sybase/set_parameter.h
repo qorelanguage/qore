@@ -34,7 +34,7 @@ extern void set_input_parameter(command& cmd, unsigned parameter_index, int type
 
 // for RPC (placeholder)
 extern void set_output_parameter(command& cmd, unsigned parameter_index, const char* name, 
-  int type, void* out_buffer, unsigned out_buffer_size, ExceptionSink* xsink);
+  int type, ExceptionSink* xsink);
   
 
 #endif

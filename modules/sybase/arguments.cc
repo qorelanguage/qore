@@ -82,7 +82,6 @@ static bool is_integer_Sybase_type(int64 type)
 //------------------------------------------------------------------------------
 std::vector<argument_t> extract_language_command_arguments(List* args, const std::vector<char>& arg_types, ExceptionSink* xsink)
 {
-printf("#####???????????????????????????????????????????????????/ called\n");
   typedef std::vector<argument_t> result_t;
 
   unsigned query_params = arg_types.size();
@@ -113,10 +112,8 @@ printf("#####???????????????????????????????????????????????????/ called\n");
           xsink->raiseException("DBI-EXEC-EXCEPTION", "Parameter #%d needs to be an integer (because of %%d)", i);
           return result_t();
         }
-printf("#### added INT type #%d\n", i);
         added_argument.m_type = CS_INT_TYPE;
       } else {
-printf("#### added string type #%d\n", i);
         added_argument.m_type = CS_CHAR_TYPE;
       }
       result.push_back(added_argument);
@@ -170,10 +167,12 @@ std::vector<argument_t> extract_procedure_call_arguments(List* args,
       ++input_params_count;
     }
   }
-  unsigned expected_params_count = arg_infos.size() + input_params_count;
+  // each input param requires value + type, each output requires type as parameter to select[Rows]/execute
+  unsigned expected_params_count = (arg_infos.size() - input_params_count) + 2 * input_params_count;
   unsigned args_count = args ? args->size() : 0;
   
   if (expected_params_count != args_count) {
+    assert(false);
     xsink->raiseException("DBI-EXEC-EXCEPTION", "Expected %d parameters (including types), %d parameters found", expected_params_count, args_count);
     return result_t();
   }
@@ -182,10 +181,12 @@ std::vector<argument_t> extract_procedure_call_arguments(List* args,
   for (unsigned i = input_params_count; i < args_count; ++i) {
     QoreNode* type_node = args->retrieve_entry(i);
     if (type_node->type != NT_INT) {
+      assert(false);
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Parameter #%d should be an integer with SYbase type, e.g. Sybase::CS-INT_TYPE)", i);
       return result_t();
     }
     if (!is_valid_Sybase_type(type_node->val.intval)) {
+      assert(false);
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Parameter #%d is not recognized as a Sybase type (e.g. Sybase::CS_INT_TYPE)", i);
       return result_t();
     }
@@ -209,10 +210,12 @@ std::vector<argument_t> extract_procedure_call_arguments(List* args,
 
       if (arg_infos[i].second == "d") { // more checking for the %d
         if (new_arg.m_node->type != NT_INT && new_arg.m_node->type != NT_NULL && new_arg.m_node->type != NT_NOTHING) {
+          assert(false);
           xsink->raiseException("DBI-EXEC-EXCEPTION", "Input parameter #%d needs to be an integer (because of %%d)", read_input_params - 1);
           return result_t();
         }
         if (!is_integer_Sybase_type(new_arg.m_type)) {
+          assert(false);
           xsink->raiseException("DBI-EXEC-EXCEPTION", "Parameter #%d (type) needs to be a Sybase integer type (e.g. Sybase::CS_INT_TYPE) because of %%d", i + input_params_count);
           return result_t();
         }
@@ -223,6 +226,7 @@ std::vector<argument_t> extract_procedure_call_arguments(List* args,
   }
   return result;
 }
+
 
 #ifdef DEBUG
 #  include "tests/arguments_tests.cc"

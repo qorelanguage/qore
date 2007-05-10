@@ -50,7 +50,6 @@ processed_language_command_t process_language_command(const char* cmd_text, Exce
 {
   processed_language_command_t result;
   result.m_cmd.reserve(1000); // guess
-printf("#### parsing query [%s]\n", cmd_text);
  
   const char* s = cmd_text;   
   while (*s) {
@@ -90,14 +89,11 @@ printf("#### parsing query [%s]\n", cmd_text);
     }
 
     if (ch == '%') {
-printf("###### %% detected\n");
       ch = *s++;
       if (ch == 'v') {
-printf("#### added 'v' parameter\n");
         result.m_parameter_types.push_back('v');
       } else
       if (ch == 'd') {
-printf("#### added 'd' parameter\n");
         result.m_parameter_types.push_back('d');
       } else {
         xsink->raiseException("DBI-EXEC-EXCEPTION", "Only %%v or %%d expected in parameter list");
@@ -164,6 +160,7 @@ processed_procedure_call_t process_procedure_call(const char* rpc_text, Exceptio
     return result;
   }
   if (!*s) {
+    assert(false);
     xsink->raiseException("DBI-EXEC-EXCEPTION", "Closing parenthesis ')' is missing");
     return processed_procedure_call_t();
   }
@@ -184,6 +181,7 @@ processed_procedure_call_t process_procedure_call(const char* rpc_text, Exceptio
       if (*s == 'd') {
         result.m_parameters.push_back(std::make_pair(false, std::string("d")));
       } else {
+        assert(false);
         xsink->raiseException("DBI-EXEC-EXCEPTION", "%%v or %%d expected for an input parameter");
         return processed_procedure_call_t();
       }
@@ -195,6 +193,7 @@ processed_procedure_call_t process_procedure_call(const char* rpc_text, Exceptio
       if (*s == ',') {
         ++s;
       } else {
+        assert(false);
         xsink->raiseException("DBI-EXEC-EXCEPTION", "%%v or %%d should be followed by comma or closing parenthesis");
         return processed_procedure_call_t();
       }
@@ -206,6 +205,7 @@ processed_procedure_call_t process_procedure_call(const char* rpc_text, Exceptio
       const char* placeholder_start = s;
       while (isalnum(*s) || *s == '_') ++s;
       if (s == placeholder_start) {
+        assert(false);
         xsink->raiseException("DBI-EXEC-EXCEPTION", "Placeholder name missing after ':'");
         return processed_procedure_call_t();
       }
@@ -219,6 +219,7 @@ processed_procedure_call_t process_procedure_call(const char* rpc_text, Exceptio
       if (*s == ',') {
         ++s;
       } else {
+        assert(false);
         xsink->raiseException("DBI-EXEC-EXCEPTION", "placeholder should be followed by comma or closing parenthesis");
         return processed_procedure_call_t();
       }
@@ -226,9 +227,11 @@ processed_procedure_call_t process_procedure_call(const char* rpc_text, Exceptio
     }
 
     if (*s == 0) {
+      assert(false);
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Unexpected end of query - closing parenthesis is missing");
       return processed_procedure_call_t();
     }
+    assert(false);
     xsink->raiseException("DBI-EXEC-EXCEPTION", "Unexpected text in query starting with [%s]", s);
     return processed_procedure_call_t();
 

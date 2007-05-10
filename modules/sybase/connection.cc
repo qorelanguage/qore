@@ -176,7 +176,7 @@ void connection::set_charset(const char* charset_name, ExceptionSink* xsink)
 CS_RETCODE connection::clientmsg_callback(CS_CONTEXT* ctx, CS_CONNECTION* conn, CS_CLIENTMSG* errmsg)
 {
 #ifdef DEBUG
-  if ((CS_NUMBER(errmsg->msgnumber) == 211) || (CS_NUMBER(errmsg->msgnumber) == 212)) {
+  if ((CS_NUMBER(errmsg->msgnumber) == 211) || (CS_NUMBER(errmsg->msgnumber) == 212)) { // acc. to the docs
     return CS_SUCCEED;
   }
   fprintf(stderr, "-------------------------------------------------------------");

@@ -455,8 +455,7 @@ void set_input_parameter(command& cmd, unsigned parameter_index, int type,
 }
 
 //------------------------------------------------------------------------------
-void set_output_parameter(command& cmd, unsigned parameter_index, const char* name,
-  int type, void* out_buffer, unsigned out_buffer_size, ExceptionSink* xsink)
+void set_output_parameter(command& cmd, unsigned parameter_index, const char* name, int type, ExceptionSink* xsink)
 {
   CS_DATAFMT datafmt;
   memset(&datafmt, 0, sizeof(datafmt));
@@ -477,15 +476,20 @@ void set_output_parameter(command& cmd, unsigned parameter_index, const char* na
     break;
   }
 
+/* Because of Sybase message: 
+  When defining parameters, names must be supplied for either 
+  all of the parameters or none of the parameters.
+
   char prepended_name[256];
   if (name) {
     sprintf(prepended_name, "@%s", name);
     strcpy(datafmt.name, prepended_name);
     datafmt.namelen = strlen(datafmt.name);
   }
+*/
   datafmt.datatype = type;
 
-  CS_RETCODE err = ct_param(cmd(), &datafmt, (CS_VOID*)out_buffer, out_buffer_size, 0);
+  CS_RETCODE err = ct_param(cmd(), &datafmt, 0, 0, -1);
   if (err != CS_SUCCEED) {
     assert(false);
     xsink->raiseException("DBI-EXEC-EXCEPTION", "ct_param failed for output parameter #%d, err = %d", parameter_index, (int)err);

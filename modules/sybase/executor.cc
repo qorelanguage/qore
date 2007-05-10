@@ -30,6 +30,7 @@
 #include <qore/Hash.h>
 #include <qore/QoreNode.h>
 #include <qore/QoreString.h>
+#include <qore/QoreType.h>
 
 #include <assert.h>
 
@@ -37,6 +38,7 @@
 #include "connection.h"
 #include "encoding_helpers.h"
 #include "initiate_language_command.h"
+#include "initiate_rpc_command.h"
 #include "send_command.h"
 #include "read_output.h"
 #include "query_processing.h"
@@ -58,13 +60,11 @@ static QoreNode* execute_command_impl(connection& conn, QoreString* cmd_text, Li
     return 0;
   }
 
-printf("###### HERE 1\n");
   initiate_language_command(cmd, query.m_cmd.c_str(), xsink);
   if (xsink->isException()) {
     return 0;
   }
 
-printf("#### number of input parameters is %d\n", query.m_parameter_types.size());
   if (!query.m_parameter_types.empty()) {
     // has some input parameters, set them now
     std::vector<argument_t> input_params_extracted = extract_language_command_arguments(qore_args, query.m_parameter_types, xsink);
@@ -82,7 +82,6 @@ printf("#### number of input parameters is %d\n", query.m_parameter_types.size()
     }
   }
 
-printf("##### HERE 3\n");
   send_command(cmd, xsink);
   if (xsink->isException()) {
     return 0;
@@ -94,6 +93,91 @@ printf("##### HERE 3\n");
     return 0;
   }
   return result;
+}
+
+//------------------------------------------------------------------------------
+static QoreNode* execute_rpc_impl(connection& conn, QoreString* rpc_text, List* qore_args, QoreEncoding* encoding, ExceptionSink* xsink)
+{
+  processed_procedure_call_t query = process_procedure_call(rpc_text->getBuffer(), xsink);
+  if (xsink->isException()) {
+    return 0;
+  }
+
+  command cmd(conn, xsink);
+  if (xsink->isException()) {
+    return 0;
+  }
+
+  initiate_rpc_command(cmd, query.m_cmd.c_str(), xsink);
+  if (xsink->isException()) {
+    return 0;
+  }
+
+  std::vector<std::string> out_names;
+  if (!query.m_parameters.empty()) {
+    std::vector<argument_t> extracted_params = extract_procedure_call_arguments(qore_args, query.m_parameters, xsink);
+    if (xsink->isException()) {
+      return 0;
+    }
+    for (unsigned i = 0, n = extracted_params.size(); i != n; ++i) {
+      if (extracted_params[i].m_node) {
+        // it is input parameter
+        set_input_parameter(cmd, i, extracted_params[i].m_type, extracted_params[i].m_node, encoding, xsink);
+        if (xsink->isException()) {
+          return 0;
+        }
+      } else {
+        // it is output parameter
+        set_output_parameter(cmd, i, extracted_params[i].m_name.c_str(), extracted_params[i].m_type, xsink);
+        if (xsink->isException()) {
+          return 0;
+        }
+        out_names.push_back(extracted_params[i].m_name);
+      }
+    }
+  }
+
+  send_command(cmd, xsink);
+  if (xsink->isException()) {
+    return 0;
+  }
+
+  QoreNode* result = read_output(cmd, encoding, xsink);
+  if (!result) {
+    if (!out_names.empty()) {
+      assert(false); // internal error
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "Internal error: %d output parameters expected, no one returned", out_names.size());
+    }
+    return 0;  
+  }
+  if (result->type != NT_HASH) {
+    assert(false); // internal error
+    result->deref(xsink);
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "Internal error: hash output was expected");
+    return 0;
+  }
+  if (result->val.hash->size() != (int)out_names.size()) {
+    assert(false);
+    result->deref(xsink);
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "Internal error: %d output parameters expected, %d returned", out_names.size(), result->val.hash->size());
+    return 0;
+  }
+
+  // convert into a hash with expected output names
+  Hash* h = new Hash;
+  HashIterator it(result->val.hash);
+  unsigned i = 0;
+  while (it.next()) {
+    QoreNode* val = it.getValue();
+    assert(val);
+    val->ref();
+    assert(i < out_names.size());
+    h->setKeyValue(out_names[i].c_str(), val, xsink);
+    ++i;
+  }
+  QoreNode* res2 = new QoreNode(h);
+  result->deref(xsink);
+  return res2;
 }
 
 //------------------------------------------------------------------------------
@@ -109,12 +193,13 @@ QoreNode* execute(connection& conn, QoreString* cmd, List* parameters, Exception
     return 0;
   }
 
+  QoreNode* res = 0;
   if (is_query_procedure_call(query->getBuffer())) {
-    // TBD
+    res = execute_rpc_impl(conn, *query, parameters, enc, xsink);    
   } else {
-    QoreNode* res = execute_command_impl(conn, *query, parameters, enc, xsink);
-    if (res) res->deref(xsink);
+    res = execute_command_impl(conn, *query, parameters, enc, xsink);
   }
+  if (res) res->deref(xsink);
   return 0;
 }
 
@@ -190,6 +275,7 @@ QoreNode* execute_select_rows(connection& conn, QoreString* cmd, List* parameter
 
 #ifdef DEBUG
 #  include "tests/executor_tests.cc" 
+#  include "tests/executor_rpc_tests.cc"
 #endif
 
 // EOF
