@@ -1,12 +1,13 @@
 #ifndef SYBASE_TESTS_COMMON_H_
 #define SYBASE_TESTS_COMMON_H_
 
-// Common settings for all unit tests
+// Common settings for all unit tests.
+// Change the values as needed for machine where the tests are run.
 
 #ifdef SYBASE
 // Server running locally
 
-// Connection parameters used for tests
+// Connection parameters (comma separated) used for tests
 // 1. user name
 // 2. password
 // 3. database name 
@@ -19,7 +20,6 @@
 
 // local Sybase connected via FreeTDS, details in freedts.conf
 #define SYBASE_TEST_SETTINGS "sa", 0, "pavel"
-
 
 #endif
 

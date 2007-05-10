@@ -5,8 +5,8 @@
 namespace sybase_tests_10626 {
 
 //------------------------------------------------------------------------------
-#ifdef SYBASE
-// FreeTDS 0.64 returns empty string as encoding
+// This test fails with FreeTDS 0.64 and Sybase 15.0. TDS always returns
+// empty string even if it was set differently before.
 
 TEST()
 {
@@ -28,7 +28,6 @@ TEST()
   }
   printf("default encoding chheck went OK\n");
 }
-#endif
 
 } // namespace
 #endif

@@ -106,12 +106,13 @@ std::string get_default_Sybase_encoding(connection& conn, ExceptionSink* xsink)
     xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call cs_locale() returned error %d", (int)err);
     return std::string();
   }
-#ifdef SYBASE
-#else
-  // FreeTDS 0.64 has a bug and always returns empty string
+/*
+  // FreeTDS 0.64 connected to local Syvase 15.0 has a bug and always returns empty string
+
   assert(encoding_str[0] == 0); // if fails the FreeTDS got fixed
   strcpy(encoding_str, "utf8");
-#endif
+*/
+  assert(!encoding_str[0]);
   return std::string(encoding_str);
 }
 

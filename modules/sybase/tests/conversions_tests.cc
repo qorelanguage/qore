@@ -72,8 +72,7 @@ TEST()
 }
 
 //------------------------------------------------------------------------------
-#ifdef SYBASE
-// fails with FreeTDS and Sybase 15.0
+// This test fails with FreeTDS 0.64 and Sybase 15.0
 
 TEST()
 {
@@ -100,11 +99,9 @@ TEST()
   assert(d == 1.2);  
   printf("conversion double <-> MONEY works\n");
 }
-#endif
 
 //------------------------------------------------------------------------------
-#ifdef SYBASE
-// fails with FreeTDS and Sybase 15.0
+// This test fails with FreeTDS 0.64 and Sybase 15.0
 
 TEST()
 {
@@ -131,7 +128,6 @@ TEST()
   assert(d == 6.2);
   printf("conversion double <-> MONEY4 works\n");
 }
-#endif
 
 //------------------------------------------------------------------------------
 TEST()
