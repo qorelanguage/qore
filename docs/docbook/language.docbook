@@ -6317,10 +6317,12 @@ printf("%s\n", makeFormattedXMLString($h));</programlisting>
   </sect1>
   <sect1 id="signal_handling">
     <title>Signal Handling</title>
-    <para>Qore signal handling support is experimental.</para>
-    <para>Qore-language signal handlers are installed with <link linkend="set_signal_handler">set_signal_handler()</link>.  Signal handlers are removed with <link linkend="remove_signal_handler">remove_signal_handler()</link>.</para>
 
-    <para>Qore uses a signal handling thread, masks (blocks) all signals in every thread except the signal handling thread, and makes an internal call to <code>sigwait()</code> to process raised signals one at a time.  The signal handling thread stays blocked (sleeping) until a signal with a signal handler is raised, and then executes the handler.</para>
+    <para>Qore implements safe signal handling.  Signals do not interrupt Qore threads, rather Qore uses a special signal handling thread that is dedicated to handling signals.  The signal handling thread uses very few resources; it stays blocked (using no processor time and very little memory) until a signal with a Qore signal handler is raised; it then executes the handler and resumes waiting for signals.</para>
+
+    <para>Internally, Qore masks (blocks) all signals in every thread except the signal handling thread.  In the signal handling thread, all signals are unblocked, except those with Qore-language handlers, then an internal call to <code>sigwait()</code> is made to receive and process signals raised one at a time.</para>
+
+    <para>Qore-language signal handlers are installed with <link linkend="set_signal_handler">set_signal_handler()</link>.  Signal handlers are removed with <link linkend="remove_signal_handler">remove_signal_handler()</link>.</para>
 
     <table>
       <title>Signal Handling Functions</title>
@@ -6344,6 +6346,8 @@ printf("%s\n", makeFormattedXMLString($h));</programlisting>
       </tgroup>
     </table>
 
+    <para>See <link linkend="Signal_Constants">Signal Constants</link> for a list of signal constants and <link linkend="Special_Signal_Constants">Signal Mapping Hash Constants</link> for two hash constants that can be used to map signal names to numbers and vice-versa.  Note that signal constants are system-dependent; not all signals will be available in all systems; in case of doubt, see your system documentation for information on which signals are available.</para>
+
     <para>The above functions are atomic, meaning that when they return to the caller, the signal handling thread has already acknowledged the changes.</para>
 
     <para>It is not possible to set signal masks per thread; all signals are delivered to the signal handling thread.  Signals not handled with a Qore signal handler are handled with their default action.  It is not possible to catch <code>SIGPIPE</code>.  <code>SIGPIPE</code> is always ignored in Qore.</para>
@@ -6354,7 +6358,7 @@ printf("%s\n", makeFormattedXMLString($h));</programlisting>
 	<para>Thread-local storage is not persistent in signal handlers; it is deleted after every signal handler is run.</para>
       </listitem>
       <listitem>
-	<para>A signal handler that does not terminate will block the execution of further signal handlers and signal handling changes (such as updating the signal mask) and result in a Qore process that must be killed manually.</para>
+	<para>A signal handler that does not terminate will block the execution of further signal handlers and will block signal handling changes (such as updating the signal mask), resulting in a Qore process that must be killed manually.  Because all Qore signal handling code is executed serially in a single thread, Qore signal handlers should execute and return quickly to give time to execute other handlers.</para>
       </listitem>
       <listitem>
 	<para>Signal handlers may install or remove signal handlers using <link linkend="set_signal_handler">set_signal_handler()</link> or  <link linkend="remove_signal_handler">remove_signal_handler()</link>, however in this case, changes to signal handling are made after the signal handler returns.</para>

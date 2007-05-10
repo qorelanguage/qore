@@ -342,6 +342,226 @@
       </tgroup>
     </table>
 
+    <para>The following gives a list of signal constants that may be present in Qore.  Signal constants and their values are system-dependent; only signals that the host system defines will be present in Qore, therefore not all of the signals in the following list will be present in any given version of Qore.</para>
+
+    <table id="Signal_Constants">
+      <title>Signal Constants in the Qore Namespace</title>
+      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>Name</para></entry>
+	    <entry><para>Description</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+          <row>
+            <entry><para><code>SIGHUP</code></para></entry>
+            <entry><para>Hangup signal.</para></entry>
+          </row>
+          <row>
+            <entry><para><code>SIGINT</code></para></entry>
+            <entry><para>Interrupt signal.</para></entry>
+          </row>
+          <row>
+            <entry><para><code>SIGQUIT</code></para></entry>
+            <entry><para>Quit signal.</para></entry>
+          </row>
+          <row>
+            <entry><para><code>SIGILL</code></para></entry>
+            <entry><para>Illegal instruction signal.</para></entry>
+          </row>
+          <row>
+            <entry><para><code>SIGTRAP</code></para></entry>
+            <entry><para>Trace trap signal.</para></entry>
+          </row>
+          <row>
+            <entry><para><code>SIGABRT</code></para></entry>
+            <entry><para>Abort signal.</para></entry>
+          </row>
+          <row>
+            <entry><para><code>SIGPOLL</code></para></entry>
+            <entry><para>Pollable event signal.</para></entry>
+          </row>
+          <row>
+            <entry><para><code>SIGIOT</code></para></entry>
+            <entry><para>Synonym for SIBABRT</para></entry>
+          </row>
+          <row>
+            <entry><para><code>SIGEMT</code></para></entry>
+            <entry><para>EMT instruction signal.</para></entry>
+          </row>
+          <row>
+            <entry><para><code>SIGFPE</code></para></entry>
+            <entry><para>Floating-point exception signal.</para></entry>
+          </row>
+          <row>
+            <entry><para><code>SIGKILL</code></para></entry>
+            <entry><para>Kill signal (cannot be caught)</para></entry>
+          </row>
+          <row>
+            <entry><para><code>SIGBUS</code></para></entry>
+            <entry><para>Bus error signal.</para></entry>
+          </row>
+          <row>
+            <entry><para><code>SIGSEGV</code></para></entry>
+            <entry><para>Segmentation violation signal.</para></entry>
+          </row>
+          <row>
+            <entry><para><code>SIGSYS</code></para></entry>
+            <entry><para>Bad arugment to a system call.</para></entry>
+          </row>
+          <row>
+            <entry><para><code>SIGPIPE</code></para></entry>
+            <entry><para>Write on pipe with no reader (this signal is always ignored in Qore).</para></entry>
+          </row>
+          <row>
+            <entry><para><code>SIGALRM</code></para></entry>
+            <entry><para>Alarm clock signal.</para></entry>
+          </row>
+         <row>
+            <entry><para><code>SIGTERM</code></para></entry>
+            <entry><para>Software termination signal.</para></entry>
+          </row>
+          <row>
+            <entry><para><code>SIGURG</code></para></entry>
+            <entry><para>Urgent condition on I/O channel.</para></entry>
+          </row>
+          <row>
+            <entry><para><code>SIGSTOP</code></para></entry>
+            <entry><para>Sendable stop signal (not from tty).</para></entry>
+          </row>
+          <row>
+            <entry><para><code>SIGTSTP</code></para></entry>
+            <entry><para>Stop signal from tty.</para></entry>
+          </row>
+          <row>
+            <entry><para><code>SIGCONT</code></para></entry>
+            <entry><para>Continue a stopped process.</para></entry>
+          </row>
+          <row>
+            <entry><para><code>SIGCHLD</code></para></entry>
+            <entry><para>To parent on child stop or exit.</para></entry>
+          </row>
+          <row>
+            <entry><para><code>SIGTTIN</code></para></entry>
+            <entry><para>To reader's process group on background tty read.</para></entry>
+          </row>
+          <row>
+            <entry><para><code>SIGTTOU</code></para></entry>
+            <entry><para>To writer's process group on background tty write.</para></entry>
+          </row>
+          <row>
+            <entry><para><code>SIGIO</code></para></entry>
+            <entry><para>Input/Output possible signal.</para></entry>
+          </row>
+          <row>
+            <entry><para><code>SIGXCPU</code></para></entry>
+            <entry><para>Exceeded CPU time limit.</para></entry>
+          </row>
+          <row>
+            <entry><para><code>SIGXFSZ</code></para></entry>
+            <entry><para>Exceeded file size limit.</para></entry>
+          </row>
+          <row>
+            <entry><para><code>SIGVTALRM</code></para></entry>
+            <entry><para>Virtual time alarm signal.</para></entry>
+          </row>
+          <row>
+            <entry><para><code>SIGPROF</code></para></entry>
+            <entry><para>Profiling time alarm signal.</para></entry>
+          </row>
+          <row>
+            <entry><para><code>SIGWINCH</code></para></entry>
+            <entry><para>Window size changes signal.</para></entry>
+          </row>
+          <row>
+            <entry><para><code>SIGINFO</code></para></entry>
+            <entry><para>Information request signal.</para></entry>
+          </row>
+          <row>
+            <entry><para><code>SIGUSR1</code></para></entry>
+            <entry><para>User-defined signal 1.</para></entry>
+          </row>
+          <row>
+            <entry><para><code>SIGUSR2</code></para></entry>
+            <entry><para>User-defined signal 2.</para></entry>
+          </row>
+          <row>
+            <entry><para><code>SIGSTKFLT</code></para></entry>
+            <entry><para>Stack fault on coprocessor.</para></entry>
+          </row>
+          <row>
+            <entry><para><code>SIGCLD</code></para></entry>
+            <entry><para>Synonym for SIGCHLD on some systems.</para></entry>
+          </row>
+          <row>
+            <entry><para><code>SIGPWR</code></para></entry>
+            <entry><para>Power failure signal.</para></entry>
+          </row>
+          <row>
+            <entry><para><code>SIGLOST</code></para></entry>
+            <entry><para>Resource (ex: file lock) lost signal.</para></entry>
+          </row>
+          <row>
+            <entry><para><code>SIGWAITING</code></para></entry>
+            <entry><para>(Solaris) Waiting signal.</para></entry>
+          </row>
+          <row>
+            <entry><para><code>SIGLWP</code></para></entry>
+            <entry><para>(Solaris) Light-weight process (thread) signal.</para></entry>
+          </row>
+          <row>
+            <entry><para><code>SIGFREEZE</code></para></entry>
+            <entry><para>(Solaris) Checkpoint freeze signal.</para></entry>
+          </row>
+          <row>
+            <entry><para><code>SIGTHAW</code></para></entry>
+            <entry><para>(Solaris) Checkpoint freeze thaw signal.</para></entry>
+          </row>
+          <row>
+            <entry><para><code>SIGCANCEL</code></para></entry>
+            <entry><para>(Solaris) Cancel signal.</para></entry>
+          </row>
+          <row>
+            <entry><para><code>SIGXRES</code></para></entry>
+            <entry><para>(Solaris) Resource control exceeded.</para></entry>
+          </row>
+          <row>
+            <entry><para><code>SIGJVM1</code></para></entry>
+            <entry><para>(Solaris) Java virtual machine 1 signal.</para></entry>
+          </row>
+          <row>
+            <entry><para><code>SIGJVM2</code></para></entry>
+            <entry><para>(Solaris) Java virtual machine 2 signal.</para></entry>
+          </row>
+	</tbody>
+      </tgroup>
+    </table>
+
+    <para>There are two special system-specific constants mapping signal names to signal number and vice-versa as given in the following table.</para>
+
+    <table id="Special_Signal_Constants">
+      <title>Signal Mapping Hash Constants in the Qore Namespace</title>
+      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>Name</para></entry>
+	    <entry><para>Description</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+          <row>
+            <entry><para><code>SignalToName</code></para></entry>
+            <entry><para>A hash mapping signal numbers to signal names (ex: <code>SignalToName."1"</code> gives the signal name corresponding to signal number <code>1</code>).</para></entry>
+          </row>
+          <row>
+            <entry><para><code>NameToSignal</code></para></entry>
+            <entry><para>A hash mapping signal names to signal numbers (ex: <code>SignalToName."SIGINT"</code> gives the signal number corresponding to <code>"SIGINT"</code>).</para></entry>
+          </row>
+	</tbody>
+      </tgroup>
+    </table>
+
     <para>The Qore::Err namespace contains error constants, returned by the <link linkend="errno">errno()</link> function.</para>
 
     <table id="Qore_Error_Constants">
