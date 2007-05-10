@@ -93,6 +93,7 @@ TEST()
   if (xsink.isException()) {
     assert(false);
   }
+
   printf("test for text datatype is OK\n");
 }
 

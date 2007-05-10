@@ -174,7 +174,7 @@ TEST()
 
 //------------------------------------------------------------------------------
 // procedure parameters
-
+/*###
 TEST()
 {
   ExceptionSink xsink;
@@ -269,6 +269,7 @@ TEST()
   assert(res[3].m_node->type == NT_INT);
   assert(res[4].m_node->type == NT_STRING);
 }
+*/
 
 } // namespace
 #endif
