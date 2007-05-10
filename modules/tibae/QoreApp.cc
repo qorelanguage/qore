@@ -285,8 +285,14 @@ lass \"%s\"", pcd->getFullName().c_str(), cn);
    }
 
    if (v->type == NT_INT)
-      return new MInteger((int)v->val.intval);
-
+   {
+      int64 i = v->val.intval;
+      // see if it's a 32-bit integer
+      if ((int)i == i)
+	 return new MInteger((int)i);
+      // otherwise return i8
+      return new MInteger(v->val.intval);
+   }
    if (v->type == NT_FLOAT)
       return new MReal(v->val.floatval);
 

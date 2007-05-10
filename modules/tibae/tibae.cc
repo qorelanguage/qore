@@ -135,11 +135,7 @@ class QoreNode *map_mdata_to_node(MData *md, ExceptionSink *xsink)
    else if ((mu = MUnion::downCast(md)))
       return map_munion_to_node(mu, xsink);
    else if ((mi = MInteger::downCast(md)))
-   {
-      QoreNode *rv = new QoreNode(NT_INT);
-      rv->val.intval = mi->getAsLong();
-      return rv;
-   }
+      return new QoreNode((int64)mi->getMi8());
    else if ((msd = MStringData::downCast(md)))
    {
       MString ms = msd->getAsString();
