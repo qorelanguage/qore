@@ -53,10 +53,6 @@ public:
   // to be called after the object is constructed
   void init(const char* username, const char* password, const char* dbname, const char *db_encoding, ExceptionSink* xsink);
 
-  // Set charset default for the connection.
-  // The 'charset_name' needs to be in Sybase format (e.g. "utf8", "iso_1").
-  void set_charset(const char* charset_name, ExceptionSink* xsink);
-
   CS_CONNECTION* getConnection() const { return m_connection; }
   CS_CONTEXT* getContext() const { return m_context; }
 };

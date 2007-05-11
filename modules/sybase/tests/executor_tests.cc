@@ -17,7 +17,7 @@ TEST()
     assert(false);
   }
 
-  conn.set_charset("utf8", &xsink);
+  //conn.set_charset("utf8", &xsink);
   if (xsink.isException()) {
     assert(false);
   }
@@ -54,7 +54,7 @@ TEST()
     assert(false);
   }
 
-  conn.set_charset("utf8", &xsink);
+  //conn.set_charset("utf8", &xsink);
   if (xsink.isException()) {
     assert(false);
   }

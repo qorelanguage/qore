@@ -126,17 +126,31 @@ void connection::init(const char* username, const char* password, const char* db
     }
   }
 
-  ret = cs_loc_alloc(getContext(), &m_charset_locale);
+  CS_LOCALE *tmp_locale;
+  
+  ret = cs_loc_alloc(m_context, &tmp_locale);
   if (ret != CS_SUCCEED) {
     assert(false);
     xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_loc_alloc() returned error %d", (int)ret);
     return;
   }
-  ret = cs_locale(getContext(), CS_SET, m_charset_locale, CS_SYB_CHARSET, (CS_CHAR*)db_encoding, CS_NULLTERM, 0);
+  ret = cs_locale(m_context, CS_SET, tmp_locale, CS_LC_ALL, 0, CS_NULLTERM, 0);
+  if (ret != CS_SUCCEED) {
+     assert(false);
+     xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_locale() returned error %d", (int)ret);
+     return;
+  }
+
+  ret = cs_locale(m_context, CS_SET, tmp_locale, CS_SYB_CHARSET, (CS_CHAR*)db_encoding, CS_NULLTERM, 0);
   if (ret != CS_SUCCEED) {
     assert(false);
     xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_locale(CS_SYB_CHARSET, \"%s\") failed with error %d", (int)ret);
     return;
+  }
+  ret = ct_con_props(m_connection, CS_SET, CS_LOC_PROP, tmp_locale, CS_UNUSED, 0);
+  if (ret !=CS_SUCCEED) {
+     xsink->raiseException("DBI-EXEC-EXCEPTION", "ct_con_props(CS_LOC_PROP, \"%s\") failed with error %d", (int)ret);
+     return;
   }
 
   //printd(0, "about to call ct_connect()\n");
@@ -164,27 +178,6 @@ void connection::init(const char* username, const char* password, const char* db
   if (ret != CS_SUCCEED) {
     assert(false);
     xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call cs_dt_info(CS_DT_CONVFMT) failed with error %d", (int)ret);
-    return;
-  }
-}
-
-//------------------------------------------------------------------------------
-void connection::set_charset(const char* charset_name, ExceptionSink* xsink)
-{
-  if (m_charset_locale) {
-    assert(false); // called twice?
-    return;
-  }
-  CS_RETCODE err = cs_loc_alloc(getContext(), &m_charset_locale);
-  if (err != CS_SUCCEED) {
-    assert(false);
-    xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_loc_alloc() returned error %d", (int)err);
-    return;
-  }
-  err = cs_locale(getContext(), CS_SET, m_charset_locale, CS_SYB_CHARSET, (CS_CHAR*)charset_name, CS_NULLTERM, 0);
-  if (err != CS_SUCCEED) {
-    assert(false);
-    xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_locale(CS_SYB_CHARSET, \"%s\") failed with error %d", (int)err);
     return;
   }
 }

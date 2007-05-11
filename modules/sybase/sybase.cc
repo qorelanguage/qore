@@ -140,8 +140,12 @@ static int sybase_open(Datasource *ds, ExceptionSink *xsink)
     return -1;
   }
 
-  std::auto_ptr<connection> sc(new connection);
   set_encoding(ds, xsink);
+  if (xsink->isException()) {
+     return -1;
+  }
+  
+  std::auto_ptr<connection> sc(new connection);
 
   sc->init(ds->getUsername(), ds->getPassword() ? ds->getPassword() : "", ds->getDBName(), ds->getDBEncoding(), xsink);
   if (xsink->isException()) {
