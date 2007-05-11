@@ -151,6 +151,18 @@ template<typename T> class safe_dslist
       typedef _qore_list_const_iterator<T> const_iterator;
       typedef _qore_list_node<T> node_t;
       typedef safe_dslist<T> self_t;
+
+   protected:
+      void clear_intern()
+      {
+	 node_t *w = head;
+	 while (w)
+	 {
+	    node_t *n = w->next;
+	    delete w;
+	    w = n;
+	 }
+      }
       
    private:
       node_t *head, *tail;
@@ -161,13 +173,12 @@ template<typename T> class safe_dslist
       }
       ~safe_dslist()
       {
-	 node_t *w = head;
-	 while (w)
-	 {
-	    node_t *n = w->next;
-	    delete w;
-	    w = n;
-	 }
+	 clear_intern();
+      }
+      void clear()
+      {
+	 clear_intern();
+	 head = tail = NULL;
       }
       iterator begin()
       {

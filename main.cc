@@ -38,6 +38,26 @@ int main(int argc, char *argv[])
    class ExceptionSink wsink, xsink;
    class QoreProgram *qpgm = new QoreProgram();
 
+   // load any modules
+   bool mod_errs = false;
+   for (cl_mod_list_t::iterator i = cl_mod_list.begin(), e = cl_mod_list.end(); i != e; ++i)
+   {
+      QoreString *err = MM.parseLoadModule((*i).c_str());
+      if (err)
+      {
+	 printf("cannot load '%s': %s\n", (*i).c_str(), err->getBuffer());
+	 mod_errs = true;
+	 delete err;
+      }
+   }
+   cl_mod_list.clear();
+   if (mod_errs)
+   {
+      printf("please fix the errors listed above and try again.\n");
+      rc = 2;
+      goto exit;
+   }
+   
    qpgm->parseSetParseOptions(parse_options);
    if (lock_options)
       qpgm->lockOptions();
@@ -98,7 +118,7 @@ int main(int argc, char *argv[])
       qpgm->waitForTermination();
    }
 
-  exit:
+exit:
    // destroy the program object (cannot call destructor explicitly)
    qpgm->deref(&xsink);
    xsink.handleExceptions();

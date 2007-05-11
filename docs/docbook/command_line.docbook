@@ -20,6 +20,11 @@
 
 <tbody>
   <row>
+    <entry><para><code>--load=arg</code></para></entry>
+    <entry><para><code>-l</code></para></entry>
+    <entry><para>Loads a module immediately.  The argument can be a module/feature name or an absolute path to the module.</para></entry>
+  </row>
+  <row>
     <entry><para><code>--no-global-vars</code></para></entry>
     <entry><para><code>-G</code></para></entry>
     <entry><para>Disallows the use of global variables.  Equivalent to parse option <code>PO_NO_GLOBAL_VARS</code> and the <code>%no-global-vars</code> directive.</para></entry>
@@ -81,7 +86,7 @@
   </row>
   <row>
     <entry><para><code>--no-database</code></para></entry>
-    <entry><para><code>-B</code></para></entry>
+    <entry><para><code>-D</code></para></entry>
     <entry><para>Disallows use of database functionality.  Equivalent to parse option <code>PO_NO_DATABASE</code> and the <code>%no-database</code> directive.</para></entry>
   </row>
   <row>
@@ -103,6 +108,21 @@
     <entry><para><code>--lock-warnings</code></para></entry>
     <entry><para><code>-A</code></para></entry>
     <entry><para>Prohibits further changes to the warning mask.  Equivalent to parse option <code>PO_LOCK_WARNINGS</code> and the <code>%lock-warnings</code> directive.</para></entry>
+  </row>
+  <row>
+    <entry><para><code>--enable-all-warnings</code></para></entry>
+    <entry><para><code>-W</code></para></entry>
+    <entry><para>Enables all warnings.  Equivalent to the <code>%enable-all-warnings</code> directive.</para></entry>
+  </row>
+  <row>
+    <entry><para><code>--enable-warning=arg</code></para></entry>
+    <entry><para><code>-w</code></para></entry>
+    <entry><para>Enables the named warning.  Equivalent to the <code>%enable-warning</code> directive.</para></entry>
+  </row>
+  <row>
+    <entry><para><code>--list-warnings</code></para></entry>
+    <entry><para><code>-i</code></para></entry>
+    <entry><para>Lists all valid warnings in Qore and exits immediately.</para></entry>
   </row>
 
 </tbody>

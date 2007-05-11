@@ -11,8 +11,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/support.h>
-#include <qore/charset.h>
+#include <qore/QoreWarnings.h>
 
 #include "command-line.h"
 
@@ -21,6 +20,9 @@
 #include <stdlib.h>
 #include <libgen.h>
 #include <ctype.h>
+
+// list of modules to load after library initialization
+cl_mod_list_t cl_mod_list;
 
 // global parse_option
 int parse_options = 0;
@@ -56,42 +58,46 @@ static char usage[] = "usage: %s [option(s)]... [program file]\n";
 static char suggest[] = "try '%s -h' for more information.\n";
 
 static char helpstr[] = 
+"  -a, --show-aliases           displays the list of character sets aliases\n"
+"  -c, --charset=arg            sets default character set encoding\n"
+"  -e, --exec=arg               execute program given on command-line\n"
+"  -h, --help                   shows this help text\n"
+"  -i, --list-warnings          list all warnings and quit\n"
+"  -l, --load=arg               load module 'arg' immediately\n"
+"  -m, --show-module-errors     show error messages related to loading and\n"
+"                               initializing qore modules\n"
+"  -r, --warnings-are-errors    treat warnings as errors\n"
+"  -s, --show-charsets          displays the list of known character sets\n"
+"  -V, --version                show program version information and quit\n"
+"  -W, --enable-all-warnings    turn on all warnings (recommended)\n"
+"  -w, --enable-warning=arg     turn on warning given by argument\n"
+"  -x, --exec-class[=arg]       instantiate class with same name as file name\n"
+"                               (override with arg, also sets --no-top-level)\n"
+"\n"
+" PARSE OPTIONS:\n"
+"  -A, --lock-warnings          do not allow changes in warning levels\n"
+"  -C, --no-class-defs          make class definitions illegal\n"
+"  -D, --no-database            disallow access to database functionality\n"
+"  -E, --no-external-process    make access to external processes illegal\n"
+"  -F, --no-constant-defs       make constant definitions illegal\n"
+"  -G, --no-global-vars         make global variable definitions illegal\n"
+"  -I, --no-child-restrictions  do not restrict subprograms' parse options\n"
+"  -K, --lock-options           disable changes to parse options in program\n"
+"  -L, --no-top-level           make top-level statements illegal\n"
+"  -M, --no-namespace-defs      make namespace declarations illegal\n"
+"  -N, --no-new                 make using the 'new' operator illegal\n"
+"  -O, --require-our            require 'our' with global variables (recommended)\n"
+"  -P, --no-process-control     make process control illegal (fork(), exit(), etc)\n"
+"  -R, --no-thread-control      make thread control operations illegal\n"
+"  -S, --no-subroutine-defs     make subroutine definitions illegal\n"
+"  -T, --no-threads             disallow thread access and control\n"
+"  -X, --no-thread-classes      disallow access to thread classes\n" 
 #ifdef DEBUG
-"  -d, --debug=arg              sets debugging level (higher number = more output)\n" \
+"\n DEBUGGING OPTIONS:\n"
+"  -d, --debug=arg              sets debugging level (higher number = more output)\n"
 "  -t, --trace                  turns on function tracing\n" 
 #endif
-"  -h, --help                   shows this help text\n" \
-"  -e, --exec=arg               execute program given on command-line\n" \
-"  -x, --exec-class[=arg]       instantiate class with same name as file name\n" \
-"                               (override with arg, also sets --no-top-level)\n" \
-"  -m, --show-module-errors     show error messages related to loading and\n" \
-"                               initializing qore modules\n"
-"  -c, --charset=arg            sets default character set encoding\n" \
-"      --show-charsets          displays the list of known character sets\n" \
-"      --show-aliases           displays the list of character sets aliases\n" \
-"  -r, --warnings-are-errors    treat warnings as errors\n" \
-"  -V, --version                show program version information and quit\n" \
-"  -W, --warn                   turn on all warnings (recommended)\n" \
-"\n" \
-" PARSE OPTIONS:\n" \
-"  -A, --lock-warnings          do not allow changes in warning levels\n" \
-"  -B, --no-database            do not allow any database access\n" \
-"  -C, --no-class-defs          make class definitions illegal\n" \
-"  -D, --no-namespace-defs      make namespace declarations illegal\n" \
-"  -E, --no-external-process    make access to external processes illegal\n" \
-"  -F, --no-constant-defs       make constant definitions illegal\n" \
-"  -G, --no-global-vars         make global variable definitions illegal\n" \
-"  -I, --no-child-restrictions  do not restrict subprograms' parse options\n" \
-"  -K, --lock-options           disable changes to parse options in program\n" \
-"  -L, --no-top-level           make top-level statements illegal\n" \
-"  -N, --no-new                 make using the 'new' operator illegal\n" \
-"  -O, --require-our            require 'our' with global variables (recommended)\n" \
-"  -P, --no-process-control     make process control illegal (fork(), exit(), etc)\n" \
-"  -R, --no-thread-control      make thread control operations illegal\n" \
-"  -S, --no-subroutine-def      make subroutine definitions illegal\n" \
-"  -T, --no-threads             disallow thread access and control\n" \
-"  -X, --no-thread-classes      disallow access to thread classes\n" 
-   ;
+;
 
 static inline void show_usage()
 {
@@ -117,6 +123,11 @@ static void do_help(char *arg)
    exit(0);
 }
 
+static void load_module(char *arg)
+{
+   cl_mod_list.push_back(arg);
+}
+
 static void warn_to_err(char *arg)
 {
    warnings_are_errors = true;
@@ -125,6 +136,24 @@ static void warn_to_err(char *arg)
 static void enable_warnings(char *arg)
 {
    warnings = -1;
+}
+
+static void enable_warning(char *arg)
+{
+   int code = get_warning_code(arg);
+   if (!code)
+   {
+      printf("cannot enable unknown warning '%s'\n", arg);
+      exit(1);
+   }
+   warnings |= code;
+}
+
+static void list_warnings(char *arg)
+{
+   for (unsigned i = 0; i < qore_num_warnings; i++)
+      printf("%s\n", qore_warnings[i]);
+   exit(0);
 }
 
 static void do_no_database(char *arg)
@@ -281,15 +310,18 @@ static struct opt_struct_s {
    { 'h', "help",                  ARG_NONE, do_help },
    { 'V', "version",               ARG_NONE, do_version },
    { 'c', "charset",               ARG_MAND, set_charset },
+   { 'l', "load",                  ARG_MAND, load_module },
    { 'e', "exec",                  ARG_MAND, set_exec },
    { 'x', "exec-class",            ARG_OPT,  do_exec_class },
    { 'm', "show-module-errors",    ARG_NONE, show_module_errors },
-   { '\0', "show-charsets",        ARG_NONE, show_charsets },
-   { '\0', "show-aliases",         ARG_NONE, show_charset_aliases },
+   { 's', "show-charsets",         ARG_NONE, show_charsets },
+   { 'a', "show-aliases",          ARG_NONE, show_charset_aliases },
    { 'r', "warnings-are-errors",   ARG_NONE, warn_to_err },
-   { 'W', "enable-warnings",       ARG_NONE, enable_warnings },
+   { 'i', "list-warnings",         ARG_NONE, list_warnings },
+   { 'W', "enable-all-warnings",   ARG_NONE, enable_warnings },
+   { 'w', "enable-warning",        ARG_MAND, enable_warning },
    { 'A', "lock-warnings",         ARG_NONE, do_lock_warnings },
-   { 'B', "no-database",           ARG_NONE, do_no_database },
+   { 'D', "no-database",           ARG_NONE, do_no_database },
    { 'G', "no-global-vars",        ARG_NONE, do_no_global_vars },
    { 'S', "no-subroutine-defs",    ARG_NONE, do_no_subroutine_defs },
    { 'T', "no-threads",            ARG_NONE, do_no_threads },
@@ -297,7 +329,7 @@ static struct opt_struct_s {
    { 'X', "no-thread-classes",     ARG_NONE, do_no_thread_classes },
    { 'L', "no-top-level",          ARG_NONE, do_no_top_level },
    { 'C', "no-class-defs",         ARG_NONE, do_no_class_defs },
-   { 'D', "no-namespace-defs",     ARG_NONE, do_no_namespace_defs },
+   { 'M', "no-namespace-defs",     ARG_NONE, do_no_namespace_defs },
    { 'F', "no-constant-defs",      ARG_NONE, do_no_constant_defs },
    { 'N', "no-new",                ARG_NONE, do_no_new },
    { 'I', "no-child-restrictions", ARG_NONE, do_no_child_po_restrictions },

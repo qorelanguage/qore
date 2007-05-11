@@ -33,7 +33,8 @@
 #define QP_WARN_UNREACHABLE_CODE         (1 << 5)
 
 // defined in QoreProgram.cc
-DLLLOCAL extern const char *qore_warnings[];
-DLLLOCAL int get_warning_code(const char *str);
+DLLEXPORT extern const char *qore_warnings[];
+DLLEXPORT int get_warning_code(const char *str);
+DLLEXPORT extern unsigned qore_num_warnings;
 
 #endif // _QORE_QOREWARNINGS_H

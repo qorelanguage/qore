@@ -1251,7 +1251,7 @@
             <para>N</para>
           </entry>
           <entry>
-            <para>Returns a hash of call stacks keyed by each TID (thread ID).</para>
+            <para>Returns a hash of call stacks keyed by each TID (thread ID) (deprecated).</para>
           </entry>
         </row>
         <row>
@@ -17143,7 +17143,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Loads in a Qore module at run-time.  If a feature with the same name already exists, then this feature's code is imported into the current Program object if necessary and no further action is taken.  Note that modules providing objects resolved at parse time (classes, constants, functions, etc) must be loaded with the <link linkend="requires_directive"><code>%requires</code> directive</link> instead, unless all references to the objects provided by the module will be made in code embedded in <link linkend="Qore_Program_Class">Program</link> objects.</para>
+	<para>Loads in a Qore module at run-time.  If a feature with the same name already exists, then this feature's code is imported into the current Program object if necessary and no further action is taken.  Note that modules providing objects resolved at parse time (classes, constants, functions, etc) must be loaded with the <link linkend="requires"><code>%requires</code> directive</link> instead, unless all references to the objects provided by the module will be made in code embedded in <link linkend="Qore_Program_Class">Program</link> objects.</para>
 	<para>See also <link linkend="getFeatureList">getFeatureList()</link> for a function providing a list of available features.</para>
       </listitem>
     </varlistentry>
@@ -18478,7 +18478,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Returns a hash of call stacks keyed by each TID (thread ID).</para>
+	<para>Returns a hash of call stacks keyed by each TID (thread ID).  DEPRECATED.</para>
       </listitem>
     </varlistentry>
     <varlistentry>

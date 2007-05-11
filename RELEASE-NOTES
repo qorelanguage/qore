@@ -99,9 +99,7 @@ This change also enables pure object-oriented programming, as functions formerly
 *) support for safe signal handling in qore scripts
 see the documentation for the set_signal_handler() and remove_signal_handler() functions
 
-qore-language signal handlers are handled in a dedicated thread that's launched when the qore library is initialized.  special handling is included to support fork()s properly.
-
-Darwin 8 (OS/X 10.4) seems to have an issue with managing per-thread signal masks.  In Darwin, all signals not handled with a Qorus signal handler are blocked, despite the fact that the signal mask for the signal thread explicitly masks only the signals with Qore-language signal handlers.  Therefore other signals, which might make the process abort or dump core are ignore unless a Qore-language signal handler is present.  I'm not sure what the solution is yet to align Qore signal handling/behavior on Darwin with other platforms.
+qore-language signal handlers are handled in a dedicated thread that's launched when the qore library is initialized.  special handling is included to support fork() properly.
 
 *) run-time module loading
 a new function "load_module()" can be used to load modules at run-time
@@ -248,6 +246,12 @@ i.e.:
 are now legal...
 
 *) the switch/case statement accepts regular expressions and regular expression operators in case expressions
+i.e.:
+	switch ($str)
+	{
+	    case /abc/:
+	    case /^hello[1-9]*/:
+	}
 
 *) "reference optimization" for temporary objects disabled on platforms where atomic reference operations are not available (Sparc, PA-RISC)
 This optiimzation, designed to reduce the number of cache invalidations in SMP environments, leads to a race condition on platforms requiring a mutex lock for atomic reference operations.
@@ -255,7 +259,7 @@ It's possible for one thread to delete an object while another thread is holding
 The fix was to disable the optimization if atomic reference operations are not supported (ie: without a mutex lock).
 
 *) significant documentation updates
-more code examples added, also for all functions and classes
+many more code examples added, including examples for all functions and classes in the main section (module docs not yet updated)
 the Datasource class, DBI drivers, and encryption functionality were significantly expanded
 many corrections were made
 

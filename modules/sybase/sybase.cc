@@ -111,10 +111,10 @@ QoreNode* runRecentSybaseTests(QoreNode* params, ExceptionSink* xsink)
 static void set_encoding(Datasource* ds, connection* conn, ExceptionSink* xsink)
 {
   if (ds->getDBEncoding()) {
-    const char* DB_encoding = ds->getDBEncoding();
-    conn->set_charset(DB_encoding, xsink);
+     QoreEncoding *enc = name_to_QoreEncoding(ds->getDBEncoding());
+     ds->setQoreEncoding(enc);
   } else  {
-    char *enc = (char*)QoreEncoding_to_SybaseName(QCS_DEFAULT);
+    const char *enc = QoreEncoding_to_SybaseName(QCS_DEFAULT);
     if (!enc) {
       xsink->raiseException("DBI:SYBASE:UNKNOWN-CHARACTER-SET", "cannot find the Sybase character encoding equivalent for '%s'", QCS_DEFAULT->getCode());
       return;
@@ -122,6 +122,7 @@ static void set_encoding(Datasource* ds, connection* conn, ExceptionSink* xsink)
     ds->setDBEncoding(enc);
     ds->setQoreEncoding(QCS_DEFAULT);
   }
+  conn->set_charset(ds->getDBEncoding(), xsink);
 }
 
 //------------------------------------------------------------------------------

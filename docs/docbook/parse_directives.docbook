@@ -15,105 +15,987 @@
       </thead>
       <tbody>
 	<row>
-	  <entry><para><code>%include</code> <replaceable>file_name</replaceable></para></entry>
-	  <entry><para>Starts parsing <replaceable>file_name</replaceable> immediately.  Parsing resumes with the current input after <replaceable>file_name</replaceable> has been completely parsed.</para></entry>
+	  <entry><para><link linkend="disable-all-warnings"><code>%disable-all-warnings</code></link></para></entry>
+	  <entry><para>Turns off all warnings</para></entry>
 	</row>
-	<row id="requires_directive">
-	  <entry><para><code>%requires</code> <replaceable>feature</replaceable></para></entry>
-	  <entry><para>If the named feature is not already present in Qore, then the <code>QORE_MODULE_DIR</code> environment variable is used to provide a list of directories to seach for a module with the same name (<replaceable>feature</replaceable><code>.qmod</code>).  If the module is not found, then the qore default module directory is checked.  This directive must be used to load modules providing parse support (i.e. modules providing classes, constants, functions, etc that are resolved at parse time).  See also <link linkend="load_module">load_module()</link> for a run-time module loading.</para></entry>
+	<row>
+	  <entry><para><link linkend="disable-warning"><code>%disable-warning</code></link> <replaceable>warning-code</replaceable></para></entry>
+	  <entry><para>Disables the named warning until <code>%enable-warning</code> is encountered with the same code or <code>%enable-all-warnings</code> is encountered</para></entry>
 	</row>
-nbm 	<row>
-	  <entry><para><code>%exec-class</code> <replaceable>class name</replaceable></para></entry>
+	<row>
+	  <entry><para><link linkend="enable-all-warnings"><code>%enable-all-warnings</code></link></para></entry>
+	  <entry><para>Turns on all warnings</para></entry>
+	</row>
+	<row>
+	  <entry><para><link linkend="enable-warning"><code>%enable-warning</code></link> <replaceable>warning-code</replaceable></para></entry>
+	  <entry><para>Enables the named warning.</para></entry>
+	</row>
+ 	<row>
+	  <entry><para><link linkend="exec-class"><code>%exec-class</code></link> <replaceable>class name</replaceable></para></entry>
 	  <entry><para>Instantiates the named class as the application class.  Also turns on <code>%no-top-level</code>.  If the program is read from stdin or from the command-line, an argument must be given specifying the class name.</para></entry>
 	</row>
 
 	<row>
-	  <entry><para><code>%disable-all-warnings</code></para></entry>
-	  <entry><para>Turns off all warnings</para></entry>
+	  <entry><para><link linkend="include"><code>%include</code></link> <replaceable>file_name</replaceable></para></entry>
+	  <entry><para>Starts parsing <replaceable>file_name</replaceable> immediately.  Parsing resumes with the current input after <replaceable>file_name</replaceable> has been completely parsed.</para></entry>
 	</row>
 	<row>
-	  <entry><para><code>%enable-all-warnings</code></para></entry>
-	  <entry><para>Turns on all warnings</para></entry>
+	  <entry><para><link linkend="lock-options"><code>%lock-options</code></link></para></entry>
+	  <entry><para>Prohibits further changes to parse options (equivalent to the <code>--lock-options</code> command-line option).</para></entry>
 	</row>
 	<row>
-	  <entry><para><code>%disable-warning</code> <replaceable>warning-code</replaceable></para></entry>
-	  <entry><para>Disables the named warning until <code>%enable-warning</code> is encountered with the same code or <code>%enable-all-warnings</code> is encountered</para></entry>
+	  <entry><para><link linkend="lock-warnings"><code>%lock-warnings</code></link></para></entry>
+	  <entry><para>Prohibits further changes to the warning mask (equivalent to the <code>--lock-warnings</code> command-line option).</para></entry>
 	</row>
 	<row>
-	  <entry><para><code>%enable-warning</code> <replaceable>warning-code</replaceable></para></entry>
-	  <entry><para>Enables the named warning.</para></entry>
-	</row>
-
-	<row>
-	  <entry><para><code>%no-global-vars</code></para></entry>
-	  <entry><para>Disallows the use of global variables.  Equivalent to parse option <code>PO_NO_GLOBAL_VARS</code> and the <code>--no-global-vars</code> command-line option.</para></entry>
-	</row>
-	<row>
-	  <entry><para><code>%no-database</code></para></entry>
-	  <entry><para>Disallows access to database functionality (for example the <link linkend="Qore::SQL::Datasource_Class">Datasource class</link>.  Equivalent to parse option <code>PO_NO_DATABASE</code> and the <code>--no-database</code> command-line option.</para></entry>
-	</row>
-	<row>
-	  <entry><para><code>%no-subroutine-defs</code></para></entry>
-	  <entry><para>Disallows subroutine (function) definitions.  Equivalent to parse option <code>PO_NO_SUBROUTINE_DEFS</code> and the <code>--no-subroutine-defs</code> command-line option.</para></entry>
-	</row>
-	<row>
-	  <entry><para><code>%no-thread-control</code></para></entry>
-	  <entry><para>Disallows access to thread control operations (background operator and thre_exit statement, for example).  Equivalent to parse option <code>PO_NO_THREAD_CONTROL</code> and the <code>--no-thread-control</code> command-line option.</para></entry>
-	</row>
-	<row>
-	  <entry><para><code>%no-thread-classes</code></para></entry>
-	  <entry><para>Disallows access to thread classes for example, the <link linkend="Qore::Thread::Mutex_Class">Thread::Mutex Class</link>, <link linkend="Qore::Thread::Gate_Class">Thread::Gate Class</link>, <link linkend="Qore::Thread::Queue_Class">Thread::Queue Class</link>, etc).  Equivalent to parse option <code>PO_NO_THREAD_CLASSES</code> and the <code>--no-thread-classes</code> command-line option.</para></entry>
-	</row>
-	<row>
-	  <entry><para><code>%no-threads</code></para></entry>
-	  <entry><para>Disallows access to all thread control operations and thread classes (equivalent to --no-thread-control and --no-thread-classes together).  Equivalent to parse option <code>PO_NO_THREADS</code> and the <code>--no-threads</code> command-line option.</para></entry>
-	</row>
-	<row>
-	  <entry><para><code>%no-top-level</code></para></entry>
-	  <entry><para>Disallows top level code.  Equivalent to parse option <code>PO_NO_TOP_LEVEL_STATEMENTS</code> and the <code>--no-top-level</code> command-line option.</para></entry>
-	</row>
-	<row>
-	  <entry><para><code>%no-class-defs</code></para></entry>
+	  <entry><para><link linkend="no-class-defs"><code>%no-class-defs</code></link></para></entry>
 	  <entry><para>Disallows class definitions.  Equivalent to <code>PO_NO_CLASS_DEFS</code> and the <code>--no-class-defs</code> command-line option.</para></entry>
 	</row>
 	<row>
-	  <entry><para><code>%no-namespace-defs</code></para></entry>
-	  <entry><para>Disallows new namespace definitions.  Equivalent to <code>PO_NO_NAMESPACE_DEFS</code> and the <code>--no-namespace-defs</code> command-line option..</para></entry>
+	  <entry><para><link linkend="no-child-restrictions"><code>%no-child-restrictions</code></link></para></entry>
+	  <entry><para>Allows child program objects to have parse option restrictions that are not a strict subset of the parents'.  Equivalent to parse option <code>PO_NO_CHILD_RESTRICTIONS</code> and the <code>--no-child-restrictions</code> command-line option.</para></entry>
 	</row>
 	<row>
-	  <entry><para><code>%no-external-process</code></para></entry>
-	  <entry><para>Disallows any access to external processes (with <link linkend="system">system()</link>, <link linkend="backquote">backquote()</link>, <link linkend="exec">exec()</link>, the <link linkend="Backquote_Operator"><command>backquote</command> operator</link>, etc).  Equivalent to parse option <code>PO_NO_EXTERNAL_PROCESS</code> and the <code>--no-external-process</code> command-line option..</para></entry>
+	  <entry><para><link linkend="no-constant-defs"><code>%no-constant-defs</code></link></para></entry>
+	  <entry><para>Disallows constant definitions.  Equivalent to parse option <code>PO_NO_CONSTANT_DEFS</code> and the <code>--no-constant-defs</code> command-line option.</para></entry>
 	</row>
 	<row>
-	  <entry><para><code>%no-process-control</code></para></entry>
-	  <entry><para>Disallows access to functions that would affect the current process (<link linkend="exit">exit()</link>, <link linkend="fork">fork()</link>, etc).  Equivalent to parse option <code>PO_NO_PROCESS_CONTROL</code> and the <code>--no-process-control</code> command-line option..</para></entry>
+	  <entry><para><link linkend="no-database"><code>%no-database</code></link></para></entry>
+	  <entry><para>Disallows access to database functionality (for example the <link linkend="Qore::SQL::Datasource_Class">Datasource class</link>.  Equivalent to parse option <code>PO_NO_DATABASE</code> and the <code>--no-database</code> command-line option.</para></entry>
 	</row>
 	<row>
-	  <entry><para><code>%no-constant-defs</code></para></entry>
-	  <entry><para>Disallows constant definitions.  Equivalent to parse option <code>PO_NO_CONSTANT_DEFS</code> and the <code>--no-constant-defs</code> command-line option..</para></entry>
+	  <entry><para><link linkend="no-external-process"><code>%no-external-process</code></link></para></entry>
+	  <entry><para>Disallows any access to external processes (see <link linkend="no-external-process"><code>%no-external-process</code></link> for a list of features not available with this parse option).  Equivalent to parse option <code>PO_NO_EXTERNAL_PROCESS</code> and the <code>--no-external-process</code> command-line option.</para></entry>
 	</row>
 	<row>
-	  <entry><para><code>%no-new</code></para></entry>
-	  <entry><para>Disallows use of the <command>new</command> operator.  Equivalent to parse option <code>PO_NO_NEW</code> and the <code>--no-new</code> command-line option..</para></entry>
+	  <entry><para><link linkend="no-global-vars"><code>%no-global-vars</code></link></para></entry>
+	  <entry><para>Disallows the use of global variables.  Equivalent to parse option <code>PO_NO_GLOBAL_VARS</code> and the <code>--no-global-vars</code> command-line option.</para></entry>
 	</row>
 	<row>
-	  <entry><para><code>%no-child-restrictions</code></para></entry>
-	  <entry><para>Allows child program objects to have parse option restrictions that are not a strict subset of the parents.  Equivalent to parse option <code>PO_NO_CHILD_RESTRICTIONS</code> and the <code>--no-child-restrictions</code> command-line option..</para></entry>
+	  <entry><para><link linkend="no-namespace-defs"><code>%no-namespace-defs</code></link></para></entry>
+	  <entry><para>Disallows new namespace definitions.  Equivalent to <code>PO_NO_NAMESPACE_DEFS</code> and the <code>--no-namespace-defs</code> command-line option.</para></entry>
 	</row>
 	<row>
-	  <entry><para><code>%require-our</code></para></entry>
-	  <entry><para>Requires global variables to be declared with "our" prior to use (like perl's <code>use strict vars</code> pragma).  Equivalent to parse option <code>PO_REQUIRE_OUR</code> and the <code>--require-our</code> command-line option..</para></entry>
+	  <entry><para><link linkend="no-new"><code>%no-new</code></link></para></entry>
+	  <entry><para>Disallows use of the <command>new</command> operator.  Equivalent to parse option <code>PO_NO_NEW</code> and the <code>--no-new</code> command-line option.</para></entry>
 	</row>
 	<row>
-	  <entry><para><code>%lock-options</code></para></entry>
-	  <entry><para>Prohibits further changes to parse options (equivalent to the --lock-options command-line option).</para></entry>
+	  <entry><para><link linkend="no-process-control"><code>%no-process-control</code></link></para></entry>
+	  <entry><para>Disallows access to functions that would affect the current process (see <link linkend="no-process-control"><code>%no-process-control</code></link> for a list of features not available with this parse option).  Equivalent to parse option <code>PO_NO_PROCESS_CONTROL</code> and the <code>--no-process-control</code> command-line option.</para></entry>
 	</row>
 	<row>
-	  <entry><para><code>%lock-warnings</code></para></entry>
-	  <entry><para>Prohibits further changes to the warning mask (equivalent to the --lock-warnings command-line option).</para></entry>
+	  <entry><para><link linkend="no-subroutine-defs"><code>%no-subroutine-defs</code></link></para></entry>
+	  <entry><para>Disallows subroutine (function) definitions.  Equivalent to parse option <code>PO_NO_SUBROUTINE_DEFS</code> and the <code>--no-subroutine-defs</code> command-line option.</para></entry>
+	</row>
+	<row>
+	  <entry><para><link linkend="no-thread-classes"><code>%no-thread-classes</code></link></para></entry>
+	  <entry><para>Disallows access to thread classes (see <link linkend="no-thread-classes"><code>%no-thread-classes</code></link> for a list of features not available with this parse option).  Equivalent to parse option <code>PO_NO_THREAD_CLASSES</code> and the <code>--no-thread-classes</code> command-line option.</para></entry>
+	</row>
+	<row>
+	  <entry><para><link linkend="no-thread-control"><code>%no-thread-control</code></link></para></entry>
+	  <entry><para>Disallows access to thread control operations (see <link linkend="no-thread-control"><code>%no-thread-control</code></link> for a list of features not available with this parse option).  Equivalent to parse option <code>PO_NO_THREAD_CONTROL</code> and the <code>--no-thread-control</code> command-line option.</para></entry>
+	</row>
+	<row>
+	  <entry><para><link linkend="no-threads"><code>%no-threads</code></link></para></entry>
+	  <entry><para>Disallows access to all thread control operations and thread classes (equivalent to <code>--no-thread-control</code> and <code>--no-thread-classes</code> together).  Equivalent to parse option <code>PO_NO_THREADS</code> and the <code>--no-threads</code> command-line option.</para></entry>
+	</row>
+	<row>
+	  <entry><para><link linkend="no-top-level"><code>%no-top-level</code></link></para></entry>
+	  <entry><para>Disallows top level code.  Equivalent to parse option <code>PO_NO_TOP_LEVEL_STATEMENTS</code> and the <code>--no-top-level</code> command-line option.</para></entry>
+	</row>
+	<row>
+	  <entry><para><link linkend="require-our"><code>%require-our</code></link></para></entry>
+	  <entry><para>Requires global variables to be declared with <command>our</command> prior to use (like perl's <code>use strict vars</code> pragma).  Equivalent to parse option <code>PO_REQUIRE_OUR</code> and the <code>--require-our</code> command-line option.</para></entry>
+	</row>
+	<row>
+	  <entry><para><link linkend="requires"><code>%requires</code></link> <replaceable>feature</replaceable></para></entry>
+	  <entry><para>If the named feature is not already present in Qore, then the <code>QORE_MODULE_DIR</code> environment variable is used to provide a list of directories to seach for a module with the same name (<replaceable>feature</replaceable><code>.qmod</code>).  If the module is not found, then the qore default module directory is checked.  This directive must be used to load modules providing parse support (i.e. modules providing classes, constants, functions, etc that are resolved at parse time).  See also <link linkend="load_module">load_module()</link> for a run-time module loading.</para></entry>
 	</row>
       </tbody>
     </tgroup>
   </table>  
+
+  <sect2 id="disable-all-warnings">
+    <title>disable-all-warnings</title>
+
+    <variablelist>
+      <varlistentry>
+	<term>Parse Directive</term>
+	<listitem>
+	  <para><code>%disable-all-warnings</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Command-Line</term>
+	<listitem>
+	  <para>none, warnings are disabled by default</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Parse Option Constant</term>
+	<listitem>
+	  <para>n/a</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Description</term>
+	<listitem>
+	  <para>Disables all warnings while parsing.  See <link linkend="Warnings">Warnings</link> for more information.</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+
+  </sect2>
+
+  <sect2 id="disable-warning">
+    <title>disable-warning</title>
+
+    <variablelist>
+      <varlistentry>
+	<term>Parse Directive</term>
+	<listitem>
+	  <para><code>%disable-warning</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Command-Line</term>
+	<listitem>
+	  <para>none, warnings are disabled by default</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Parse Option Constant</term>
+	<listitem>
+	  <para>n/a</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Description</term>
+	<listitem>
+	  <para>Disables the named warning while parsing.  See <link linkend="Warnings">Warnings</link> for more information.</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </sect2>
+
+  <sect2 id="enable-all-warnings">
+    <title>enable-all-warnings</title>
+    <variablelist>
+      <varlistentry>
+	<term>Parse Directive</term>
+	<listitem>
+	  <para><code>%enable-all-warnings</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Command-Line</term>
+	<listitem>
+	  <para><code>--enable-all-warnings, -W</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Parse Option Constant</term>
+	<listitem>
+	  <para>n/a</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Description</term>
+	<listitem>
+	  <para>Enables all warnings while parsing.  See <link linkend="Warnings">Warnings</link> for more information.</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </sect2>
+  <sect2 id="enable-warning">
+    <title>enable-warning</title>
+    <variablelist>
+      <varlistentry>
+	<term>Parse Directive</term>
+	<listitem>
+	  <para><code>%enable-warning</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Command-Line</term>
+	<listitem>
+	  <para><code>--enable-warning, -w</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Parse Option Constant</term>
+	<listitem>
+	  <para>n/a</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Description</term>
+	<listitem>
+	  <para>Enables the named warning while parsing.  See <link linkend="Warnings">Warnings</link> for more information.</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </sect2>
+  <sect2 id="exec-class">
+    <title>exec-class</title>
+    <variablelist>
+      <varlistentry>
+	<term>Parse Directive</term>
+	<listitem>
+	  <para><code>%exec-class</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Command-Line</term>
+	<listitem>
+	  <para><code>--exec-class, -x</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Parse Option Constant</term>
+	<listitem>
+	  <para>n/a</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Description</term>
+	<listitem>
+	  <para>Executes the named class as the application class and turns on <link linkend="no-top-level"><code>no-top-level</code></link> as well.</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </sect2>
+  <sect2 id="include">
+    <title>include</title>
+    <variablelist>
+      <varlistentry>
+	<term>Parse Directive</term>
+	<listitem>
+	  <para><code>%include</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Command-Line</term>
+	<listitem>
+	  <para>n/a from the command-line</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Parse Option Constant</term>
+	<listitem>
+	  <para>n/a</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Description</term>
+	<listitem>
+	  <para>Includes a file to be parsed.</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </sect2>
+  <sect2 id="lock-options">
+    <title>lock-options</title>
+    <variablelist>
+      <varlistentry>
+	<term>Parse Directive</term>
+	<listitem>
+	  <para><code>%lock-options</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Command-Line</term>
+	<listitem>
+	  <para><code>--lock-options, -K</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Parse Option Constant</term>
+	<listitem>
+	  <para>n/a</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Description</term>
+	<listitem>
+	  <para>Prohibits further changes to parse options.</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </sect2>
+  <sect2 id="lock-warnings">
+    <title>lock-warnings</title>
+    <variablelist>
+      <varlistentry>
+	<term>Parse Directive</term>
+	<listitem>
+	  <para><code>%lock-warnings</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Command-Line</term>
+	<listitem>
+	  <para><code>--lock-warnings, -A</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Parse Option Constant</term>
+	<listitem>
+	  <para><code>PO_LOCK_WARNINGS</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Description</term>
+	<listitem>
+	  <para>Prohibits further changes to the warning mask.</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </sect2>
+  <sect2 id="no-child-restrictions">
+    <title>no-child-restrictions</title>
+    <variablelist>
+      <varlistentry>
+	<term>Parse Directive</term>
+	<listitem>
+	  <para><code>%no-child-restrictions</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Command-Line</term>
+	<listitem>
+	  <para><code>--no-child-restrictions, -I</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Parse Option Constant</term>
+	<listitem>
+	  <para><code>PO_NO_CHILD_PO_RESTRICTIONS</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Description</term>
+	<listitem>
+	  <para>Allows child program objects to have parse option restrictions that are not a strict subset of the parents'.</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </sect2>
+  <sect2 id="no-class-defs">
+    <title>no-class-defs</title>
+    <variablelist>
+      <varlistentry>
+	<term>Parse Directive</term>
+	<listitem>
+	  <para><code>%no-class-defs</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Command-Line</term>
+	<listitem>
+	  <para><code>--no-class-defs, -C</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Parse Option Constant</term>
+	<listitem>
+	  <para><code>PO_NO_CLASS_DEFS</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Description</term>
+	<listitem>
+	  <para>Disallows new class definitions.  Any use of the reserved word <command>class</command> will result in a parse exception.</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </sect2>
+  <sect2 id="no-constant-defs">
+    <title>no-constant-defs</title>
+    <variablelist>
+      <varlistentry>
+	<term>Parse Directive</term>
+	<listitem>
+	  <para><code>%no-constant-defs</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Command-Line</term>
+	<listitem>
+	  <para><code>--no-constant-defs, -F</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Parse Option Constant</term>
+	<listitem>
+	  <para><code>PO_NO_CONSTANT_DEFS</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Description</term>
+	<listitem>
+	  <para>Disallows new constant definitions.  Any use of the reserved word <command>const</command> will result in a parse exception.</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </sect2>
+  <sect2 id="no-database">
+    <title>no-database</title>
+    <variablelist>
+      <varlistentry>
+	<term>Parse Directive</term>
+	<listitem>
+	  <para><code>%no-database</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Command-Line</term>
+	<listitem>
+	  <para><code>--no-database, -D</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Parse Option Constant</term>
+	<listitem>
+	  <para><code>PO_NO_DATABASE</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Description</term>
+	<listitem>
+	  <para>Disallows access to database functionality.  Currently this means that access to the <link linkend="Qore::SQL::Datasource_Class">Datasource</link> class is restricted.</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </sect2>
+  <sect2 id="no-external-process">
+    <title>no-external-process</title>
+    <variablelist>
+      <varlistentry>
+	<term>Parse Directive</term>
+	<listitem>
+	  <para><code>%no-external-process</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Command-Line</term>
+	<listitem>
+	  <para><code>--no-external-process, -E</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Parse Option Constant</term>
+	<listitem>
+	  <para><code>PO_NO_EXTERNAL_PROCESS</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Description</term>
+	<listitem>
+	  <para>Disallows any access to external processes.</para>
+
+	  <table>
+	    <title>Unavailable Features with no-external-process</title>
+	    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	      <thead>
+		<row>
+		  <entry><para>Feature/Function</para></entry>
+		  <entry><para>Description</para></entry>
+		</row>
+	      </thead>
+	      <tbody>
+		<row>
+		  <entry><para><link linkend="Backquote_Operator">backquote operator</link></para></entry>
+		  <entry><para>The backquote operator (``) is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="system">system()</link></para></entry>
+		  <entry><para>The system() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="kill">kill()</link></para></entry>
+		  <entry><para>The kill() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="exec">exec()</link></para></entry>
+		  <entry><para>The exec() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="backquote">backquote()</link></para></entry>
+		  <entry><para>The backquote() function is not available.</para></entry>
+		</row>
+	      </tbody>
+	    </tgroup>
+	  </table>  
+
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </sect2>
+  <sect2 id="no-global-vars">
+    <title>no-global-vars</title>
+    <variablelist>
+      <varlistentry>
+	<term>Parse Directive</term>
+	<listitem>
+	  <para><code>%no-global-vars</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Command-Line</term>
+	<listitem>
+	  <para><code>--no-global-vars, -G</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Parse Option Constant</term>
+	<listitem>
+	  <para><code>PO_NO_GLOBAL_VARS</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Description</term>
+	<listitem>
+	  <para>Disallows the use of global variables.</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </sect2>
+  <sect2 id="no-namespace-defs">
+    <title>no-namespace-defs</title>
+    <variablelist>
+      <varlistentry>
+	<term>Parse Directive</term>
+	<listitem>
+	  <para><code>%no-namespace-defs</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Command-Line</term>
+	<listitem>
+	  <para><code>--no-namespace-defs, -M</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Parse Option Constant</term>
+	<listitem>
+	  <para><code>PO_NO_NAMESPACE_DEFS</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Description</term>
+	<listitem>
+	  <para>Disallows new namespace definitions.</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </sect2>
+  <sect2 id="no-new">
+    <title>no-new</title>
+    <variablelist>
+      <varlistentry>
+	<term>Parse Directive</term>
+	<listitem>
+	  <para><code>%no-new</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Command-Line</term>
+	<listitem>
+	  <para><code>--no-new, -N</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Parse Option Constant</term>
+	<listitem>
+	  <para><code>PO_NO_NEW</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Description</term>
+	<listitem>
+	  <para>Disallows use of the <link linkend='New_Object_Operator'><command>new</command></link> operator.</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </sect2>
+  <sect2 id="no-process-control">
+    <title>no-process-control</title>
+    <variablelist>
+      <varlistentry>
+	<term>Parse Directive</term>
+	<listitem>
+	  <para><code>%no-process-control</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Command-Line</term>
+	<listitem>
+	  <para><code>--no-process-control, -P</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Parse Option Constant</term>
+	<listitem>
+	  <para><code>PO_NO_PROCESS_CONTROL</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Description</term>
+	<listitem>
+	  <para>Disallows access to functions that would affect the current process.</para>
+	  <table>
+	    <title>Unavailable Features with no-process-control</title>
+	    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	      <thead>
+		<row>
+		  <entry><para>Feature/Function</para></entry>
+		  <entry><para>Description</para></entry>
+		</row>
+	      </thead>
+	      <tbody>
+		<row>
+		  <entry><para><link linkend="exit">exit()</link></para></entry>
+		  <entry><para>The exit() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="abort">abort()</link></para></entry>
+		  <entry><para>The abort() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="sleep">sleep()</link></para></entry>
+		  <entry><para>The sleep() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="usleep">usleep()</link></para></entry>
+		  <entry><para>The usleep() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="fork">fork()</link></para></entry>
+		  <entry><para>The fork() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="exec">exec()</link></para></entry>
+		  <entry><para>The exec() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="set_signal_handler">set_signal_handler()</link></para></entry>
+		  <entry><para>The set_signal_handler() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="remove_signal_handler">remove_signal_handler()</link></para></entry>
+		  <entry><para>The remove_signal_handler() function is not available.</para></entry>
+		</row>
+	      </tbody>
+	    </tgroup>
+	  </table>  
+
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </sect2>
+  <sect2 id="no-subroutine-defs">
+    <title>no-subroutine-defs</title>
+    <variablelist>
+      <varlistentry>
+	<term>Parse Directive</term>
+	<listitem>
+	  <para><code>%no-subroutine-defs</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Command-Line</term>
+	<listitem>
+	  <para><code>--no-subroutine-defs, -S</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Parse Option Constant</term>
+	<listitem>
+	  <para><code>PO_NO_SUBROUTINE_DEFS</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Description</term>
+	<listitem>
+	  <para>Disallows subroutine (function) definitions.</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </sect2>
+  <sect2 id="no-thread-classes">
+    <title>no-thread-classes</title>
+    <variablelist>
+      <varlistentry>
+	<term>Parse Directive</term>
+	<listitem>
+	  <para><code>%no-thread-classes</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Command-Line</term>
+	<listitem>
+	  <para><code>--no-thread-classes, -X</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Parse Option Constant</term>
+	<listitem>
+	  <para><code>PO_NO_THREAD_CLASSES</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Description</term>
+	<listitem>
+	  <para>Disallows access to thread classes.</para>
+	  <table>
+	    <title>Unavailable Features with no-thread-classes</title>
+	    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	      <thead>
+		<row>
+		  <entry><para>Feature/Function</para></entry>
+		  <entry><para>Description</para></entry>
+		</row>
+	      </thead>
+	      <tbody>
+		<row>
+		  <entry><para><link linkend="Qore::Thread::AutoGate_Class">AutoGate</link> class</para></entry>
+		  <entry><para>The AutoGate class is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="Qore::Thread::AutoLock_Class">AutoLock</link> class</para></entry>
+		  <entry><para>The AutoLock class is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="Qore::Thread::AutoReadLock_Class">AutoReadLock</link> class</para></entry>
+		  <entry><para>The AutoReadLock class is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="Qore::Thread::AutoWriteLock_Class">AutoWriteLock</link> class</para></entry>
+		  <entry><para>The AutoWriteLock class is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="Qore::Thread::Condition_Class">Condition</link> class</para></entry>
+		  <entry><para>The Condition class is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="Qore::Thread::Counter_Class">Counter</link> class</para></entry>
+		  <entry><para>The Counter class is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="Qore::Thread::Mutex_Class">Mutex</link> class</para></entry>
+		  <entry><para>The Mutex class is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="Qore::Thread::Queue_Class">Queue</link> class</para></entry>
+		  <entry><para>The Queue class is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="Qore::Thread::RWLock_Class">RWLock</link> class</para></entry>
+		  <entry><para>The RWLock class is not available.</para></entry>
+		</row>
+	      </tbody>
+	    </tgroup>
+	  </table>  
+
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </sect2>
+  <sect2 id="no-thread-control">
+    <title>no-thread-control</title>
+    <variablelist>
+      <varlistentry>
+	<term>Parse Directive</term>
+	<listitem>
+	  <para><code>%no-thread-control</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Command-Line</term>
+	<listitem>
+	  <para><code>--no-thread-control, -R</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Parse Option Constant</term>
+	<listitem>
+	  <para><code>PO_NO_THREAD_CONTROL</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Description</term>
+	<listitem>
+	  <para>Disallows access to thread control operations.</para>
+	  <table>
+	    <title>Unavailable Features with no-thread-control</title>
+	    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	      <thead>
+		<row>
+		  <entry><para>Feature/Function</para></entry>
+		  <entry><para>Description</para></entry>
+		</row>
+	      </thead>
+	      <tbody>
+		<row>
+		  <entry><para><link linkend="Background_Operator"><command>background</command></link> operator</para></entry>
+		  <entry><para>The <command>background</command> operator is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend='thread_exit_Statements'>thread_exit</link> statement</para></entry>
+		  <entry><para>The <command>thread_exit</command> statement is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="get_thread_data">get_thread_data()</link></para></entry>
+		  <entry><para>The get_thread_data() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="get_all_thread_data">get_all_thread_data()</link></para></entry>
+		  <entry><para>The get_all_thread_data() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="save_thread_data">save_thread_data()</link></para></entry>
+		  <entry><para>The save_thread_data() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="delete_thread_data">delete_thread_data()</link></para></entry>
+		  <entry><para>The delete_thread_data() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="delete_all_thread_data">delete_all_thread_data()</link></para></entry>
+		  <entry><para>The delete_all_thread_data() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="getAllThreadCallStacks">getAllThreadCallStacks()</link></para></entry>
+		  <entry><para>The getAllThreadCallStacks() function is not available (this function is deprecated and will be removed from a future release).</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="throwThreadResourceExceptions">throwThreadResourceExceptions()</link></para></entry>
+		  <entry><para>The throwThreadResourceExceptions() function is not available.</para></entry>
+		</row>
+	      </tbody>
+	    </tgroup>
+	  </table>  
+
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </sect2>
+  <sect2 id="no-threads">
+    <title>no-threads</title>
+    <variablelist>
+      <varlistentry>
+	<term>Parse Directive</term>
+	<listitem>
+	  <para><code>%no-threads</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Command-Line</term>
+	<listitem>
+	  <para><code>--no-threads, -T</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Parse Option Constant</term>
+	<listitem>
+	  <para><code>PO_NO_THREADS</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Description</term>
+	<listitem>
+	  <para>Disallows access to all thread control operations and thread classes (equivalent to <link linkend="no-thread-control"><code>no-thread-control</code></link> and <link linkend="no-thread-classes"><code>no-thread-classes</code></link> together).</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </sect2>
+  <sect2 id="no-top-level">
+    <title>no-top-level</title>
+    <variablelist>
+      <varlistentry>
+	<term>Parse Directive</term>
+	<listitem>
+	  <para><code>%no-top-level</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Command-Line</term>
+	<listitem>
+	  <para><code>--no-top-level, -L</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Parse Option Constant</term>
+	<listitem>
+	  <para><code>PO_NO_TOP_LEVEL_STATEMENTS</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Description</term>
+	<listitem>
+	  <para>Disallows top level code.</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </sect2>
+  <sect2 id="require-our">
+    <title>require-our</title>
+    <variablelist>
+      <varlistentry>
+	<term>Parse Directive</term>
+	<listitem>
+	  <para><code>%require-our</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Command-Line</term>
+	<listitem>
+	  <para><code>--require-our, -O</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Parse Option Constant</term>
+	<listitem>
+	  <para><code>PO_REQUIRE_OUR</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Description</term>
+	<listitem>
+	  <para>Requires global variables to be declared with <command>our</command> prior to use (recommended to use for all larger scripts/programs).</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </sect2>
+  <sect2 id="requires">
+    <title>requires</title>
+    <variablelist>
+      <varlistentry>
+	<term>Parse Directive</term>
+	<listitem>
+	  <para><code>%requires</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Command-Line</term>
+	<listitem>
+	  <para><code>--load, -l</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Parse Option Constant</term>
+	<listitem>
+	  <para>n/a</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Description</term>
+	<listitem>
+	  <para>Loads a Qore module immediately during parsing (for parse directives) or before parsing (command-line).</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </sect2>
 
 </chapter>

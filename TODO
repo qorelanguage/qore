@@ -1,5 +1,6 @@
 see docs/roadmap.html
 
+* remove thread call stack tracing in non-debugging mode
 * add support for break and continue arguments to affect outer loops
 * add error code to exceptions for XML-RPC fault reporting
 * add signal constants/infrastructure (in progress)
@@ -12,14 +13,14 @@ see docs/roadmap.html
 * implement GZFile class
 
 docs:
-* make lists of items disabled with parse restrictions
 * expand on call references
-* make a section for each parse restriction
 * add examples for modules
 * write ncurses module documentation
 * document optimizations
 
 done:
+* make lists of items disabled with parse restrictions
+* make a section for each parse restriction
 * implement support for regular expressions in case expressions
 * implement function or object/method pointers
 * fix Queue class (destructor must wake up any sleeping threads)

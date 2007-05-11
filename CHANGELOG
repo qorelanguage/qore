@@ -2,6 +2,7 @@
 	* implemented a workaround to per-thread signal masks bug on Darwin by
 	  calling sigprocmask() after pthread_sigmask() only on Darwin
 	* updated tibae module to serialize integers > 32bits as i8
+	* implemented --list-warnings and --enable-warning command-line options
 
 2006.05.09: David Nichols
 	* re-implemented safe signal handling to use a dedicated thread that

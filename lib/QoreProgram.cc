@@ -43,6 +43,8 @@ const char *qore_warnings[] = {
 };
 #define NUM_WARNINGS (sizeof(qore_warnings)/sizeof(const char *))
 
+unsigned qore_num_warnings = NUM_WARNINGS;
+
 int get_warning_code(const char *str)
 {
    for (unsigned i = 0; i < NUM_WARNINGS; i++)
