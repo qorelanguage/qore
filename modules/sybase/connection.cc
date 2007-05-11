@@ -70,7 +70,7 @@ connection::~connection()
 
 //------------------------------------------------------------------------------
 // Post-constructor initialization 
-void connection::init(const char* username, const char* password, const char* dbname, ExceptionSink* xsink)
+void connection::init(const char* username, const char* password, const char* dbname, const char *db_encoding, ExceptionSink* xsink)
 {
   assert(!m_connection);
   assert(!m_context);
@@ -88,6 +88,8 @@ void connection::init(const char* username, const char* password, const char* db
     xsink->raiseException("DBI:SYBASE:CT-LIB-INIT-FAILED", "ct_init() failed with error %d", ret);
     return;
   }
+
+  set_charset(db_encoding, xsink);
 
   // add callbacks
   ret = ct_callback(m_context, 0, CS_SET, CS_CLIENTMSG_CB, (CS_VOID*)clientmsg_callback);

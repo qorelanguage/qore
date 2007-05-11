@@ -108,7 +108,7 @@ QoreNode* runRecentSybaseTests(QoreNode* params, ExceptionSink* xsink)
 
 //------------------------------------------------------------------------------
 // based on Postgres module
-static void set_encoding(Datasource* ds, connection* conn, ExceptionSink* xsink)
+static void set_encoding(Datasource* ds, ExceptionSink* xsink)
 {
   if (ds->getDBEncoding()) {
      QoreEncoding *enc = name_to_QoreEncoding(ds->getDBEncoding());
@@ -122,7 +122,6 @@ static void set_encoding(Datasource* ds, connection* conn, ExceptionSink* xsink)
     ds->setDBEncoding(enc);
     ds->setQoreEncoding(QCS_DEFAULT);
   }
-  conn->set_charset(ds->getDBEncoding(), xsink);
 }
 
 //------------------------------------------------------------------------------
@@ -142,12 +141,13 @@ static int sybase_open(Datasource *ds, ExceptionSink *xsink)
   }
 
   std::auto_ptr<connection> sc(new connection);
-  sc->init(ds->getUsername(), ds->getPassword() ? ds->getPassword() : "", ds->getDBName(), xsink);
+  set_encoding(ds, xsink);
+
+  sc->init(ds->getUsername(), ds->getPassword() ? ds->getPassword() : "", ds->getDBName(), ds->getDBEncoding(), xsink);
   if (xsink->isException()) {
     return -1;
   }
 
-  set_encoding(ds, sc.get(), xsink);
   if (xsink->isException()) {
     return -1;
   }

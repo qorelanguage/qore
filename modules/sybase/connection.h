@@ -51,7 +51,7 @@ public:
   ~connection();
 
   // to be called after the object is constructed
-  void init(const char* username, const char* password, const char* dbname, ExceptionSink* xsink);
+  void init(const char* username, const char* password, const char* dbname, const char *db_encoding, ExceptionSink* xsink);
 
   // Set charset default for the connection.
   // The 'charset_name' needs to be in Sybase format (e.g. "utf8", "iso_1").
