@@ -878,7 +878,7 @@ static QoreNode* closeResourceManager(Object* self, QoreTuxedoAdapter* adapter, 
 //-----------------------------------------------------------------------------
 static QoreNode* beginTransaction(Object* self, QoreTuxedoAdapter* adapter, QoreNode* params, ExceptionSink* xsink)
 {
-  char* err = (char*)"One optional parameter: integer or date/time timeout in seconds expected.";
+   //char* err = (char*)"One optional parameter: integer or date/time timeout in seconds expected.";
   QoreNode* n = test_param(params, NT_INT, 0);
   long timeout = 0; // no timeout by default
   if (!n) {

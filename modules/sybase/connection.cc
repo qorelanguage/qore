@@ -75,6 +75,8 @@ void connection::init(const char* username, const char* password, const char* db
   assert(!m_connection);
   assert(!m_context);
 
+  //printd(0, "connection::init() user=%s pass=%s dbname=%s, db_enc=%s\n", username, password, dbname, db_encoding);
+
   CS_RETCODE ret = cs_ctx_alloc(CS_VERSION_100, &m_context);
   if (ret != CS_SUCCEED) {
     assert(false);
@@ -88,8 +90,6 @@ void connection::init(const char* username, const char* password, const char* db
     xsink->raiseException("DBI:SYBASE:CT-LIB-INIT-FAILED", "ct_init() failed with error %d", ret);
     return;
   }
-
-  set_charset(db_encoding, xsink);
 
   // add callbacks
   ret = ct_callback(m_context, 0, CS_SET, CS_CLIENTMSG_CB, (CS_VOID*)clientmsg_callback);
@@ -126,12 +126,27 @@ void connection::init(const char* username, const char* password, const char* db
     }
   }
 
+  ret = cs_loc_alloc(getContext(), &m_charset_locale);
+  if (ret != CS_SUCCEED) {
+    assert(false);
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_loc_alloc() returned error %d", (int)ret);
+    return;
+  }
+  ret = cs_locale(getContext(), CS_SET, m_charset_locale, CS_SYB_CHARSET, (CS_CHAR*)db_encoding, CS_NULLTERM, 0);
+  if (ret != CS_SUCCEED) {
+    assert(false);
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_locale(CS_SYB_CHARSET, \"%s\") failed with error %d", (int)ret);
+    return;
+  }
+
+  //printd(0, "about to call ct_connect()\n");
   ret = ct_connect(m_connection, (CS_CHAR*)dbname,  strlen(dbname));
   if (ret != CS_SUCCEED) {
     assert(false);
     xsink->raiseException("DBI:SYBASE:CT-LIB-CONNECT", "ct_connect() failed with error %d", ret);
     return;
   }
+  //printd(0, "returned from ct_connect()\n");
 
   // Transaction management is done by the driver (docs says it is by default)
   CS_BOOL chained_transactions = CS_FALSE;
