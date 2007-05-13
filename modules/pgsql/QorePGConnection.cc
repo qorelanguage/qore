@@ -81,16 +81,14 @@ static class QoreNode *qpg_data_text(char *data, int type, int len, class QorePG
 
 static class QoreNode *qpg_data_float4(char *data, int type, int len, class QorePGConnection *conn, class QoreEncoding *enc)
 {
-   int val = ntohl(*((uint32_t *)data));
-   float *fv = (float *)&val;
-   return new QoreNode((double)*fv);
+   float fv = MSBf4(*((float *)data));
+   return new QoreNode((double)fv);
 }
 
 static class QoreNode *qpg_data_float8(char *data, int type, int len, class QorePGConnection *conn, class QoreEncoding *enc)
 {
-   int64 val = MSBi8(*((uint64_t *)data));
-   double *fv = (double *)&val;
-   return new QoreNode(*fv);
+   double fv = MSBf8(*((double *)data));
+   return new QoreNode(fv);
 }
 
 static class QoreNode *qpg_data_abstime(char *data, int type, int len, class QorePGConnection *conn, class QoreEncoding *enc)
@@ -139,13 +137,13 @@ static class QoreNode *qpg_data_interval(char *data, int type, int len, class Qo
    qore_pg_interval *iv = (qore_pg_interval *)data;
    if (conn->has_integer_datetimes())
    {
-      int64 us = MSBi8(*((uint64_t *)&iv->time.i));
+      int64 us = MSBi8(iv->time.i);
       secs = us / 1000000;
       ms = us / 1000 - (secs * 1000);
    }
    else
    {
-      double f = MSBf8(*((double *)&iv->time.f));
+      double f = MSBf8(iv->time.f);
       secs = (int64)f;
       ms = (int)((f - (double)secs) * 1000.0);   
    }
@@ -182,13 +180,15 @@ static class QoreNode *qpg_data_timetz(char *data, int type, int len, class Qore
    int ms;
    if (conn->has_integer_datetimes())
    {
-      int64 val = MSBi8(*((uint64_t *)&tm->time));
+      int64 *v = (int64 *)&tm->time;
+      int64 val = MSBi8(*v);  //MSBi8(*((uint64_t *)&tm->time));
       secs = val / 1000000;
       ms = val / 1000 - secs * 1000;
    }
    else
    {
-      double val = MSBf8(*((double *)&tm->time));
+      double *v = (double *)&tm->time;
+      double val = MSBf8(*v); //MSBf8(*((double *)&tm->time));
       secs = (int64)val;
       ms = (int)((val - (double)secs) * 1000.0);
    }
