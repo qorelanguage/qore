@@ -167,6 +167,11 @@ struct qore_pg_interval {
       } rest;
 };
 
+struct qore_pg_time_tz_adt {
+      qore_pg_time time;
+      int zone;
+};
+
 /*
 typedef void (*qore_pg_bind_func_t)(class QoreNode *v, char *data);
 typedef int (*qore_pg_bind_size_func_t)(class QoreNode *v);

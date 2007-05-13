@@ -175,20 +175,18 @@ static class QoreNode *qpg_data_time(char *data, int type, int len, class QorePG
 static class QoreNode *qpg_data_timetz(char *data, int type, int len, class QorePGConnection *conn, class QoreEncoding *enc)
 {
    // NOTE! timezone is ignored
-   TimeTzADT *tm = (TimeTzADT *)data;
+   qore_pg_time_tz_adt *tm = (qore_pg_time_tz_adt *)data;
    int64 secs;
    int ms;
    if (conn->has_integer_datetimes())
    {
-      int64 *v = (int64 *)&tm->time;
-      int64 val = MSBi8(*v);  //MSBi8(*((uint64_t *)&tm->time));
+      int64 val = MSBi8(tm->time.i);
       secs = val / 1000000;
       ms = val / 1000 - secs * 1000;
    }
    else
    {
-      double *v = (double *)&tm->time;
-      double val = MSBf8(*v); //MSBf8(*((double *)&tm->time));
+      double val = MSBf8(tm->time.f);
       secs = (int64)val;
       ms = (int)((val - (double)secs) * 1000.0);
    }
