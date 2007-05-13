@@ -42,6 +42,7 @@ class BuiltinFunctionList
    public:
       DLLLOCAL BuiltinFunctionList();
       DLLLOCAL ~BuiltinFunctionList();
+      DLLLOCAL void clear();
 
       // The function assumes that the 'name' string is ALWAYS character literal (aka "my_foo") which stays
       // valid during the whole lifetime of the session. If this assumption is not true the name would

@@ -94,6 +94,9 @@ void qore_cleanup()
    // delete threading infrastructure
    delete_qore_threads();
 
+   // clear the list before modules are unloaded
+   builtinFunctions.clear();
+
    // delete all loadable modules
    MM.cleanup();
 

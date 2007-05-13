@@ -46,14 +46,20 @@
 #endif // DEBUG
 
 #include <string.h>
+#include <assert.h>
 
 bool BuiltinFunctionList::init_done = false;
 hm_bf_t BuiltinFunctionList::hm;
 class LockedObject BuiltinFunctionList::mutex;
 class BuiltinFunctionList builtinFunctions;
 
-DLLLOCAL  BuiltinFunctionList::BuiltinFunctionList()
+BuiltinFunctionList::BuiltinFunctionList()
 {
+}
+
+BuiltinFunctionList::~BuiltinFunctionList()
+{
+   assert(hm.empty());
 }
 
 void BuiltinFunctionList::add(const char *name, class QoreNode *(*f)(class QoreNode *, class ExceptionSink *xsink), int typ)
@@ -70,7 +76,7 @@ void BuiltinFunctionList::add(const char *name, class QoreNode *(*f)(class QoreN
    }
 }
 
-BuiltinFunctionList::~BuiltinFunctionList()
+void BuiltinFunctionList::clear()
 {
    //printd(5, "BuiltinFunctionList::~BuiltinFunctionList() this=%08p\n", this);
    hm_bf_t::iterator i;
