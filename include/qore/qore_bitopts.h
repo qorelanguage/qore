@@ -39,30 +39,6 @@ static inline short LSBi2(short i);
 static inline int64 i8MSB(int64 i);
 static inline int64 MSBi8(int64 i);
 
-static inline double f8MSB(double f8)
-{
-   int64 val = i8MSB(*((int64 *)&f8));
-   return *((double *)&val);
-}
-
-static inline double MSBf8(double f8)
-{
-   int64 val = MSBi8(*((int64 *)&f8));
-   return *((double *)&val);
-}
-
-static inline float f4MSB(float f4)
-{
-   int val = htonl(*((int *)&f4));
-   return *((float *)&val);
-}
-
-static inline float MSBf4(float f4)
-{
-   int val = ntohl(*((int *)&f4));
-   return *((float *)&val);
-}
-
 static inline int64 swapi8(int64 i)
 { 
    char obuf[8];
@@ -79,6 +55,22 @@ static inline int64 swapi8(int64 i)
    return *((int64 *)obuf);
 }
 
+static inline double swapf8(double f)
+{ 
+   char obuf[8];
+   char *ibuf = (char *)&f;
+   obuf[7] = ibuf[0];
+   obuf[6] = ibuf[1];
+   obuf[5] = ibuf[2];
+   obuf[4] = ibuf[3];
+   obuf[3] = ibuf[4];
+   obuf[2] = ibuf[5];
+   obuf[1] = ibuf[6];
+   obuf[0] = ibuf[7];
+   
+   return *((double *)obuf);
+}
+
 static inline int swapi4(int i)
 { 
    char obuf[4];
@@ -89,6 +81,18 @@ static inline int swapi4(int i)
    obuf[0] = ibuf[3];
    
    return *((int *)obuf);
+}
+
+static inline float swapf4(float f)
+{ 
+   char obuf[4];
+   char *ibuf = (char *)&f;
+   obuf[3] = ibuf[0];
+   obuf[2] = ibuf[1];
+   obuf[1] = ibuf[2];
+   obuf[0] = ibuf[3];
+   
+   return *((float *)obuf);
 }
 
 static inline short swapi2(short i)
@@ -135,6 +139,31 @@ static inline short LSBi2(short i)
 static inline int64 i8MSB(int64 i) { return i; }
 static inline int64 MSBi8(int64 i) { return i; }
 
+static inline double f8LSB(double f)
+{
+   return swapf8(f);
+}
+
+static inline float f4LSB(float f)
+{
+   return swapf4(f);
+}
+
+static inline double LSBf8(double f)
+{ 
+   return swapf8(f);
+}
+
+static inline float LSBf4(float f)
+{
+   return swapf4(f);
+}
+
+static inline double f8MSB(double f) { return f; }
+static inline double MSBf8(double f) { return f; }
+static inline float f4MSB(float f)   { return f; }
+static inline float MSBf4(float f)   { return f; }
+
 #else  // definitions for little endian machines below
 
 static inline int64 i8LSB(int64 i) { return i; }
@@ -153,6 +182,32 @@ static inline int64 i8MSB(int64 i)
 static inline int64 MSBi8(int64 i) 
 { 
    return swapi8(i);
+}
+
+static inline double f8LSB(double f) { return f; }
+static inline float  f4LSB(float f)  { return f; }
+
+static inline double LSBf8(double f) { return f; }
+static inline float  LSBf4(float f)  { return f; }
+
+static inline double f8MSB(double f)
+{ 
+   return swapf8(f);
+}
+
+static inline double MSBf8(double f) 
+{ 
+   return swapf8(f);
+}
+
+static inline float f4MSB(float f)
+{ 
+   return swapf4(f);
+}
+
+static inline float MSBf4(float f) 
+{ 
+   return swapf4(f);
 }
 
 #endif
