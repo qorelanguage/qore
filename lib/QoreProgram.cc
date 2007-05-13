@@ -23,7 +23,6 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/QoreProgramStack.h>
 #include <qore/ParserSupport.h>
 
 #include <errno.h>
@@ -614,7 +613,7 @@ void QoreProgram::parsePending(const char *code, const char *label, class Except
    if (!code || !code[0])
       return;
 
-   pushProgram(this);
+   ProgramContextHelper pch(this);
 
    // grab program-level parse lock
    plock.lock();
@@ -629,8 +628,6 @@ void QoreProgram::parsePending(const char *code, const char *label, class Except
 #endif
    // release program-level parse lock
    plock.unlock();
-
-   popProgram();
 }
 
 void QoreProgram::startThread()
@@ -794,7 +791,7 @@ void QoreProgram::parse(FILE *fp, const char *name, class ExceptionSink *xsink, 
    fileList.push_front(sname);
    beginParsing(sname);
 
-   pushProgram(this);
+   ProgramContextHelper pch(this);
    printd(2, "QoreProgram::parse(): about to call yyparse()\n");
    yyscan_t lexer;
    yylex_init(&lexer);
@@ -813,8 +810,6 @@ void QoreProgram::parse(FILE *fp, const char *name, class ExceptionSink *xsink, 
    plock.unlock();
 
    yylex_destroy(lexer);
-
-   popProgram();
 }
 
 void QoreProgram::parse(class QoreString *str, class QoreString *lstr, class ExceptionSink *xsink, class ExceptionSink *wS, int wm)
@@ -858,7 +853,7 @@ void QoreProgram::parse(const char *code, const char *label, class ExceptionSink
    if (!(*code))
       return;
 
-   pushProgram(this);
+   ProgramContextHelper pch(this);
    
    // grab program-level parse lock
    plock.lock();
@@ -876,8 +871,6 @@ void QoreProgram::parse(const char *code, const char *label, class ExceptionSink
    warnSink = NULL;
    // release program-level parse lock
    plock.unlock();
-
-   popProgram();
 }
 
 void QoreProgram::parseFile(const char *filename, class ExceptionSink *xsink, class ExceptionSink *wS, int wm)
@@ -1032,17 +1025,17 @@ class QoreNode *QoreProgram::runTopLevel(class ExceptionSink *xsink)
    QoreNode *rv = NULL;
    SBNode *w = sb_head;
 
-   pushProgram(this);
-   while (w && !xsink->isEvent() && !rv)
    {
-      if (w->statements)
-	 rv = w->statements->exec(xsink);
-      else
-	 rv = NULL;
-      w = w->next;
-   } 
-   popProgram();
-
+      ProgramContextHelper pch(this);
+      while (w && !xsink->isEvent() && !rv)
+      {
+	 if (w->statements)
+	    rv = w->statements->exec(xsink);
+	 else
+	    rv = NULL;
+	 w = w->next;
+      } 
+   }
    tcount.dec();
    return rv;
 }
@@ -1082,9 +1075,11 @@ class QoreNode *QoreProgram::callFunction(const char *name, class QoreNode *args
       }
    }
 
-   pushProgram(this);
-   QoreNode *rv = fc->val.fcall->eval(xsink);
-   popProgram();
+   QoreNode *rv;
+   {
+      ProgramContextHelper pch(this);
+      rv = fc->val.fcall->eval(xsink);
+   }
 
    // let caller delete function arguments if necessary
    fc->val.fcall->args = NULL;
@@ -1097,10 +1092,12 @@ class QoreNode *QoreProgram::callFunction(class UserFunction *ufc, class QoreNod
 {
    QoreNode *fc = new QoreNode(ufc, args);
 
-   pushProgram(this);
-   QoreNode *rv = fc->val.fcall->eval(xsink);
-   popProgram();
-
+   QoreNode *rv;
+   {
+      ProgramContextHelper pch(this);
+      rv = fc->val.fcall->eval(xsink);
+   }
+   
    // let caller delete function arguments if necessary
    fc->val.fcall->args = NULL;
    fc->deref(xsink);
@@ -1123,7 +1120,7 @@ void QoreProgram::importUserFunction(class QoreProgram *p, class UserFunction *u
 
 void QoreProgram::parseCommit(class ExceptionSink *xsink, class ExceptionSink *wS, int wm)
 {
-   pushProgram(this);
+   ProgramContextHelper pch(this);
 
    // grab program-level parse lock
    plock.lock();
@@ -1140,15 +1137,13 @@ void QoreProgram::parseCommit(class ExceptionSink *xsink, class ExceptionSink *w
    warnSink = NULL;
    // release program-level parse lock
    plock.unlock();
-
-   popProgram();
 }
 
 // this function cannot throw an exception because as long as the 
 // parse lock is held
 void QoreProgram::parseRollback()
 {
-   pushProgram(this);
+   ProgramContextHelper pch(this);
 
    // grab program-level parse lock
    plock.lock();
@@ -1158,8 +1153,6 @@ void QoreProgram::parseRollback()
 
    // release program-level parse lock
    plock.unlock();   
-
-   popProgram();
 }
 
 void QoreProgram::runClass(const char *classname, class ExceptionSink *xsink)
@@ -1175,12 +1168,11 @@ void QoreProgram::runClass(const char *classname, class ExceptionSink *xsink)
 
    tcount.inc();
 
-   pushProgram(this);
-
-   discard(qc->execConstructor(NULL, xsink), xsink); 
-
-   popProgram();
-
+   {
+      ProgramContextHelper pch(this);
+      discard(qc->execConstructor(NULL, xsink), xsink); 
+   }
+   
    tcount.dec();
 }
 

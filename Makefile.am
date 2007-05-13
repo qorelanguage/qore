@@ -25,7 +25,6 @@ noinst_HEADERS = \
 	include/qore/SmartMutex.h \
 	include/qore/QoreType.h \
 	include/qore/List.h \
-	include/qore/ArgvStack.h \
 	include/qore/params.h \
 	include/qore/node_types.h \
 	include/qore/Function.h \
@@ -75,7 +74,6 @@ noinst_HEADERS = \
 	include/qore/ParserSupport.h \
 	include/qore/DateTime.h \
 	include/qore/support.h \
-	include/qore/QoreProgramStack.h \
 	include/qore/Exception.h \
 	include/qore/Hash.h \
 	include/qore/Find.h \

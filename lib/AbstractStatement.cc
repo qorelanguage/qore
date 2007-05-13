@@ -36,6 +36,7 @@ AbstractStatement::AbstractStatement(int start_line, int end_line) : LineNumber(
 int AbstractStatement::exec(class QoreNode **return_value, ExceptionSink *xsink)
 {
    printd(1, "AbstractStatement::exec() type=%s file=%s line=%d\n", typeid(this).name(), FileName, LineNumber);
+   
    update_pgm_counter_pgm_file(LineNumber, EndLineNumber, FileName);
    return execImpl(return_value, xsink);
 }

@@ -62,12 +62,16 @@ static QoreNode *f_callObjectMethod(QoreNode *params, ExceptionSink *xsink)
    }
    else
       args = NULL;
-   
+
+   QoreNode *rv;
    // make sure method call is internal (allows access to private methods) if this function was called internally
-   substituteObjectIfEqual(p0->val.object);
-   QoreNode *rv = p0->val.object->evalMethod(p1->val.String, args, xsink);
-   if (args)
-      args->deref(xsink);
+   {
+      CodeContextHelper cch(NULL, p0->val.object, xsink);
+      //substituteObjectIfEqual(p0->val.object);
+      rv = p0->val.object->evalMethod(p1->val.String, args, xsink);
+      if (args)
+	 args->deref(xsink);
+   }
    return rv;
 }
 
@@ -100,13 +104,16 @@ static QoreNode *f_callObjectMethodArgs(QoreNode *params, ExceptionSink *xsink)
       args = NULL;
    
    // make sure method call is internal (allows access to private methods) if this function was called internally
-   substituteObjectIfEqual(p0->val.object);
-   QoreNode *rv = p0->val.object->evalMethod(p1->val.String, args, xsink);
-   
-   if (p2 != args)
+   QoreNode *rv;
    {
-      args->val.list->shift();
-      args->deref(xsink);
+      CodeContextHelper cch(NULL, p0->val.object, xsink);
+      //substituteObjectIfEqual(p0->val.object);
+      rv = p0->val.object->evalMethod(p1->val.String, args, xsink);
+      if (p2 != args)
+      {
+	 args->val.list->shift();
+	 args->deref(xsink);
+      }
    }
    
    return rv;

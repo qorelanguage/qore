@@ -23,6 +23,8 @@
 #include <qore/Qore.h>
 #include <qore/CallStack.h>
 
+#include <assert.h>
+
 ExceptionSink::ExceptionSink()
 {
    thread_exit = false;
@@ -52,6 +54,83 @@ bool ExceptionSink::isThreadExit() const
 bool ExceptionSink::isException() const
 {
    return head;
+}
+
+// static function
+class Hash *Exception::getStackHash(int type, const char *class_name, const char *code, const char *file, int start_line, int end_line)
+{
+   class Hash *h = new Hash();
+
+   class QoreString *str = new QoreString();
+   if (class_name)
+      str->sprintf("%s::", class_name);
+   str->concat(code);
+   
+   h->setKeyValue("function", str ? new QoreNode(str) : NULL, NULL);
+   h->setKeyValue("line",     new QoreNode((int64)start_line), NULL);
+   h->setKeyValue("endline",  new QoreNode((int64)end_line), NULL);
+   h->setKeyValue("file",     file ? new QoreNode(file) : NULL, NULL);
+   h->setKeyValue("typecode", new QoreNode((int64)type), NULL);
+   const char *tstr = 0;
+   switch (type)
+   {
+      case CT_USER:
+	 tstr = "user";
+         break;
+      case CT_BUILTIN:
+	 tstr = "builtin";
+         break;
+      case CT_RETHROW:
+	 tstr = "rethrow";
+         break;
+/*
+      case CT_NEWTHREAD:
+	 tstr = "new-thread";
+         break;
+*/
+      default:
+	 assert(false);
+   }
+   h->setKeyValue("type",  new QoreNode(tstr), NULL);
+   return h;
+}
+
+// creates a stack trace node and adds it to all exceptions in this sink
+void ExceptionSink::addStackInfo(int type, const char *class_name, const char *code, const char *file, int start_line, int end_line)
+{
+   assert(head);
+   class Hash *h = Exception::getStackHash(type, class_name, code, file, start_line, end_line);
+   class QoreNode *n = new QoreNode(h);
+   
+   class Exception *w = head;
+   while (w)
+   {
+      w->addStackInfo(n);
+      w = w->next;
+      if (w)
+	 n->ref();
+   }   
+}
+
+// creates a stack trace node and adds it to all exceptions in this sink
+void ExceptionSink::addStackInfo(int type, const char *class_name, const char *code)
+{
+   assert(head);
+
+   const char *file = get_pgm_file();
+   int start_line, end_line;
+   get_pgm_counter(start_line, end_line);
+   class Hash *h = Exception::getStackHash(type, class_name, code, file, start_line, end_line);
+   class QoreNode *n = new QoreNode(h);
+   
+   class Exception *w = head;
+   while (w)
+   {
+      w->addStackInfo(n);
+      w = w->next;
+      if (w)
+	 n->ref();
+   }   
 }
 
 // Intended as a alternative to isException():
@@ -247,7 +326,7 @@ Exception::Exception(const char *e, class QoreString *d)
    get_pgm_counter(start_line, end_line);
    const char *f = get_pgm_file();
    file = f ? strdup(f) : NULL;
-   callStack = new QoreNode(getCallStackList());
+   callStack = new QoreNode(new List()); //getCallStackList());
 
    err = new QoreNode(e);
    desc = new QoreNode(d);
@@ -265,7 +344,7 @@ ParseException::ParseException(const char *e, class QoreString *d)
    get_parse_location(start_line, end_line);
    const char *f = get_parse_file();
    file = f ? strdup(f) : NULL;
-   callStack = new QoreNode(getCallStackList());
+   callStack = new QoreNode(new List()); //getCallStackList());
 
    err = new QoreNode(e);
    desc = new QoreNode(d);
@@ -282,7 +361,7 @@ ParseException::ParseException(int s_line, int e_line, const char *e, class Qore
    end_line = e_line;
    const char *f = get_parse_file();
    file = f ? strdup(f) : NULL;
-   callStack = new QoreNode(getCallStackList());
+   callStack = new QoreNode(new List()); //getCallStackList());
 
    err = new QoreNode(e);
    desc = new QoreNode(d);
@@ -321,7 +400,7 @@ Exception::Exception(class QoreNode *n)
    get_pgm_counter(start_line, end_line);   
    const char *f = get_pgm_file();
    file = f ? strdup(f) : NULL;
-   callStack = new QoreNode(getCallStackList());
+   callStack = new QoreNode(new List()); //getCallStackList());
    next = NULL;
 
    // must be a list
@@ -363,17 +442,10 @@ Exception::Exception(class Exception *old, class ExceptionSink *xsink)
       fn = n->val.hash->getKeyValue("function")->val.String->getBuffer();
    if (!fn)
       fn = "<unknown>";
-   class Hash *h = new Hash();
-   h->setKeyValue("type", new QoreNode("rethrow"), NULL);
-   h->setKeyValue("typecode", new QoreNode((int64)CT_RETHROW), NULL);
-   h->setKeyValue("function", new QoreNode(fn), NULL);
-   const char *f = get_pgm_file();
-   if (f)
-      h->setKeyValue("file", new QoreNode(f), NULL);
+   
    int sline, eline;
    get_pgm_counter(sline, eline);
-   h->setKeyValue("line", new QoreNode((int64)sline), NULL);
-   h->setKeyValue("endline", new QoreNode((int64)eline), NULL);
+   class Hash *h = getStackHash(CT_RETHROW, NULL, fn, get_pgm_file(), sline, eline);
    l->insert(new QoreNode(h));
 
    next = old->next ? new Exception(old->next, xsink) : NULL;
@@ -389,11 +461,7 @@ class QoreNode *Exception::makeExceptionObject()
 
    Hash *h = new Hash();
 
-   if (type == ET_USER)
-      h->setKeyValue("type", new QoreNode("User"), NULL);
-   else
-      h->setKeyValue("type", new QoreNode("System"), NULL);
-
+   h->setKeyValue("type", new QoreNode(type == ET_USER ? "User" : "System"), NULL);
    h->setKeyValue("file", new QoreNode(file), NULL);
    h->setKeyValue("line", new QoreNode((int64)start_line), NULL);
    h->setKeyValue("endline", new QoreNode((int64)end_line), NULL);
@@ -421,6 +489,11 @@ class QoreNode *Exception::makeExceptionObjectAndDelete(ExceptionSink *xsink)
    del(xsink);
    traceout("makeExceptionObjectAndDelete()");
    return rv;
+}
+
+void Exception::addStackInfo(class QoreNode *n)
+{
+   callStack->val.list->push(n);
 }
 
 // static member function

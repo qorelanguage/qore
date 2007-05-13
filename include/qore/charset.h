@@ -50,7 +50,7 @@ private:
       std::string desc;
 
 public:
-      inline QoreEncoding(const char *c, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, const char *d)
+      DLLLOCAL QoreEncoding(const char *c, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, const char *d)
       {
 	 code = c;
 	 flength = l;
@@ -58,22 +58,22 @@ public:
 	 fpos = p;
 	 desc = d ? d : "";
       }
-      inline ~QoreEncoding()
+      DLLLOCAL ~QoreEncoding()
       {
       }
-      inline int getLength(const char *p) const
+      DLLLOCAL int getLength(const char *p) const
       {
 	 return flength ? flength(p) : strlen(p);
       }
-      inline int getByteLen(const char *p, int c) const
+      DLLLOCAL int getByteLen(const char *p, int c) const
       {
 	 return fend ? fend(p, c) : c;
       }
-      inline int getCharPos(const char *p, const char *e) const
+      DLLLOCAL int getCharPos(const char *p, const char *e) const
       {
 	 return fpos ? fpos(p, e) : e - p;
       }
-      inline bool isMultiByte() const
+      DLLEXPORT bool isMultiByte() const
       {
 	 return (bool)flength;
       }

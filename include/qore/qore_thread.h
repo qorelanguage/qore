@@ -36,6 +36,11 @@
 #define MAX_QORE_THREADS 0x1000
 #endif
 
+#define CT_USER      0
+#define CT_BUILTIN   1
+#define CT_NEWTHREAD 2
+#define CT_RETHROW   3
+
 // pointer to a qore thread destructor function
 typedef void (*qtdest_t)(void *);
 // pointer to a qore thread resource destructor function
@@ -57,8 +62,6 @@ DLLLOCAL class LVar *get_thread_stack();
 DLLLOCAL void update_thread_stack(class LVar *lvstack);
 DLLLOCAL class Context *get_context_stack();
 DLLLOCAL void update_context_stack(Context *cstack);
-DLLLOCAL class ArgvStack *get_argvstack();
-DLLLOCAL void update_argvstack(class ArgvStack *as);
 DLLLOCAL void get_pgm_counter(int &start_line, int &end_line);
 DLLLOCAL char *get_pgm_file();
 DLLLOCAL void update_pgm_counter_pgm_file(int start_line, int end_line, char *f);
@@ -67,9 +70,6 @@ DLLLOCAL char *get_parse_file();
 DLLLOCAL void update_parse_location(int start_line, int end_line);
 DLLLOCAL void update_parse_location(int start_line, int end_line, char *f);
 DLLLOCAL bool inMethod(const char *name, class Object *o);
-DLLLOCAL void pushCall(const char *f, int type, class Object *o = NULL);
-DLLLOCAL void popCall(class ExceptionSink *xsink = NULL);
-DLLLOCAL class List *getCallStackList();
 DLLLOCAL void pushProgram(class QoreProgram *pgm);
 DLLLOCAL void popProgram();
 DLLLOCAL class QoreProgram *getProgram();
@@ -86,8 +86,21 @@ DLLLOCAL void substituteObjectIfEqual(class Object *o);
 DLLLOCAL class Object *substituteObject(class Object *o);
 DLLLOCAL void catchSaveException(class Exception *e);
 DLLLOCAL class Exception *catchGetException();
-DLLLOCAL class CallStack *getCallStack();
 DLLLOCAL class VLock *getVLock();
+
+#ifdef DEBUG
+DLLLOCAL void pushCall(const char *f, int type, class Object *o = NULL);
+DLLLOCAL void popCall(class ExceptionSink *xsink);
+DLLLOCAL class CallStack *getCallStack();
+DLLLOCAL class List *getCallStackList();
+#else
+#ifdef __GNUC__
+#define pushCall(args...)
+#else
+#define pushCall(args, ...)
+#endif
+#define popCall(x)
+#endif
 
 // acquires a TID and thread entry, returns -1 if not successful
 DLLLOCAL int get_thread_entry();
@@ -104,14 +117,10 @@ DLLLOCAL void advanceOnBlockExit();
 
 DLLLOCAL extern pthread_attr_t ta_default;
 
-/* TODO
 // for object implementation
-DLLLOCAL void substituteObjectIfEqual(class Object *o);
-DLLLOCAL class Object *getStackObject() const;
-DLLLOCAL class Object *substituteObject(class Object *o);
+DLLLOCAL class Object *getStackObject();
 // for methods that behave differently when called within the method itself
-DLLLOCAL bool inMethod(const char *name, class Object *o) const;
-*/
+DLLLOCAL bool inMethod(const char *name, class Object *o);
 
 class ThreadCleanupList {
    private:
@@ -124,6 +133,45 @@ class ThreadCleanupList {
 
       DLLEXPORT void push(qtdest_t func, void *arg);
       DLLEXPORT void pop(int exec = 0);
+};
+
+class CodeContextHelper {
+   private:
+      const char *old_code;
+      class Object *old_obj;
+      class ExceptionSink *xsink;
+	 
+   public:
+      DLLLOCAL CodeContextHelper(const char *code = NULL, class Object *obj = NULL, class ExceptionSink *xs = NULL);
+      DLLLOCAL ~CodeContextHelper();
+};
+
+class ObjectSubstitutionHelper {
+   private:
+      class Object *old_obj;
+   
+   public:
+      DLLLOCAL ObjectSubstitutionHelper(class Object *obj);
+      DLLLOCAL ~ObjectSubstitutionHelper();
+};
+
+class ProgramContextHelper {
+   private:
+      class QoreProgram *old_pgm;
+      bool restore;
+   
+   public:
+      DLLLOCAL ProgramContextHelper(class QoreProgram *pgm);
+      DLLLOCAL ~ProgramContextHelper();
+};
+
+class ArgvContextHelper {
+   private:
+      lvh_t old_argvid;
+   
+   public:
+      DLLLOCAL ArgvContextHelper(lvh_t argvid);
+      DLLLOCAL ~ArgvContextHelper();
 };
 
 DLLLOCAL void init_qore_threads();

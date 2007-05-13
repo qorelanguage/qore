@@ -37,7 +37,6 @@
 #include "Find.cc"
 #include "charset.cc"
 #include "QoreProgram.cc"
-#include "QoreProgramStack.cc"
 #include "Namespace.cc"
 #include "QoreNet.cc"
 #include "QoreURL.cc"
@@ -63,7 +62,9 @@
 #include "AbstractSmartLock.cc"
 #include "SmartMutex.cc"
 #include "RMutex.cc"
+#ifdef DEBUG
 #include "CallStack.cc"
+#endif
 #include "Datasource.cc"
 #include "ManagedDatasource.cc"
 #include "ExecArgList.cc"

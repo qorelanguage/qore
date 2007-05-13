@@ -225,17 +225,13 @@ LVar::LVar(lvh_t nid, QoreNode *ve, class Object *o)
 class QoreNode *LVar::evalReference(class ExceptionSink *xsink)
 {
    class QoreNode *rv;
-   class Object *o = NULL;
-   if (obj)
-      o = substituteObject(obj);
+   ObjectSubstitutionHelper osh(obj);
    // mask the ID in case it's a recursive reference
    lvh_t save = id;
    id = NULL;
    rv = vexp->eval(xsink);
    //printd(5, "LVar::eval() this=%08p obj=%08p (%s) reference expression %08p (%s) evaluated to %08p (%s)\n", this, obj, obj ? obj->getClass()->name : "NULL", vexp, vexp->type->getName(), rv, rv ? rv->type->getName() : "NULL");
    id = save;
-   if (obj)
-      substituteObject(o);
    return rv;
 }
 
@@ -275,9 +271,8 @@ class QoreNode **LVar::getValuePtr(class AutoVLock *vl, class ExceptionSink *xsi
       class QoreNode **rv;
       if (obj)
       {
-	 class Object *o = substituteObject(obj);
+	 ObjectSubstitutionHelper osh(obj);
 	 rv = get_var_value_ptr(vexp, vl, xsink);
-	 substituteObject(o);
       }
       else
 	 rv = get_var_value_ptr(vexp, vl, xsink);
@@ -297,9 +292,8 @@ class QoreNode *LVar::getValue(class AutoVLock *vl, class ExceptionSink *xsink)
       class QoreNode *rv;
       if (obj)
       {
-	 class Object *o = substituteObject(obj);
+	 ObjectSubstitutionHelper osh(obj);
 	 rv = getNoEvalVarValue(vexp, vl, xsink);
-	 substituteObject(o);
       }
       else
 	 rv = getNoEvalVarValue(vexp, vl, xsink);
@@ -313,9 +307,7 @@ void LVar::setValue(class QoreNode *val, class ExceptionSink *xsink)
 {
    if (vexp)
    {
-      class Object *o = NULL;
-      if (obj)
-	 o = substituteObject(obj);
+      ObjectSubstitutionHelper osh(obj);
       AutoVLock vl;
 
       // mask the ID in case it's a recursive reference
@@ -335,8 +327,6 @@ void LVar::setValue(class QoreNode *val, class ExceptionSink *xsink)
 	 vl.del();
 	 discard(val, xsink);
       }
-      if (obj)
-	 substituteObject(o);
    }
    else 
    {

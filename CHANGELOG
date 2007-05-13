@@ -1,3 +1,10 @@
+2006.05.13: David Nichols
+	* removed call stack tracing from non-debugging mode (performance and
+	  memory usage improvement)
+	* eliminated ProgramStack and ArgvStack objects with heap allocations
+	  and replaced them by storing the info on each thread's stack 
+	  (performance and memory usage improvement)
+
 2006.05.10: David Nichols
 	* implemented a workaround to per-thread signal masks bug on Darwin by
 	  calling sigprocmask() after pthread_sigmask() only on Darwin

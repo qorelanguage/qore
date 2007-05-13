@@ -126,7 +126,10 @@ void QoreSignalManager::reload()
    cmd = C_Reload;
    if (thread_running && tid != ::gettid())
    {
-      int rc = pthread_kill(ptid, QORE_STATUS_SIGNAL);
+#ifdef DEBUG
+      int rc = 
+#endif
+	 pthread_kill(ptid, QORE_STATUS_SIGNAL);
       assert(!rc);
       // unlock lock and wait for condition
       cond.wait(&mutex);
@@ -138,7 +141,10 @@ void QoreSignalManager::stop_signal_thread_unlocked()
    cmd = C_Exit;
    if (thread_running)
    {
-      int rc = pthread_kill(ptid, QORE_STATUS_SIGNAL);
+#ifdef DEBUG
+      int rc = 
+#endif
+	 pthread_kill(ptid, QORE_STATUS_SIGNAL);
       assert(!rc);
    }
 }

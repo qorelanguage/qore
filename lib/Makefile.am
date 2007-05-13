@@ -57,7 +57,6 @@ libqore_la_SOURCES = \
 	Find.cc \
 	charset.cc \
 	QoreProgram.cc \
-	QoreProgramStack.cc \
 	Namespace.cc \
 	QoreNet.cc \
 	QoreURL.cc \
@@ -84,7 +83,6 @@ libqore_la_SOURCES = \
 	VLock.cc \
 	AbstractSmartLock.cc \
 	RMutex.cc \
-	CallStack.cc \
 	ExecArgList.cc \
 	NamedScope.cc \
 	RWLock.cc \
@@ -162,7 +160,7 @@ libqore_la_SOURCES = \
 	QException.cc
 
 if COND_DEBUG
-libqore_la_SOURCES += ql_debug.cc
+libqore_la_SOURCES += ql_debug.cc CallStack.cc
 endif
 
 endif

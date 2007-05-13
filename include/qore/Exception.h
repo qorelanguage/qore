@@ -36,9 +36,9 @@ class ExceptionSink {
       bool thread_exit;
       class Exception *head, *tail;
 
-      DLLLOCAL inline void insert(class Exception *e);
-      DLLLOCAL inline void clearIntern();
-
+      DLLLOCAL void insert(class Exception *e);
+      DLLLOCAL void clearIntern();
+      
    public:
       DLLEXPORT ExceptionSink();
       DLLEXPORT ~ExceptionSink();
@@ -62,13 +62,16 @@ class ExceptionSink {
       DLLEXPORT void assimilate(class ExceptionSink *xs);
       DLLEXPORT void outOfMemory();
       DLLEXPORT void clear();
+      DLLEXPORT void addStackInfo(int type, const char *class_name, const char *code, const char *file, int start_line, int end_line);
+      DLLEXPORT void addStackInfo(int type, const char *class_name, const char *code);
 
       DLLLOCAL void raiseException(class Exception *e);
       DLLLOCAL void raiseException(class QoreNode *n);
       DLLLOCAL class Exception *catchException();
+      DLLLOCAL void overrideLocation(int sline, int eline, const char *file);
+
       DLLLOCAL static void defaultExceptionHandler(class Exception *e);
       DLLLOCAL static void defaultWarningHandler(class Exception *e);
-      DLLLOCAL void overrideLocation(int sline, int eline, const char *file);
 };
 
 class Exception {
@@ -83,8 +86,10 @@ class Exception {
       class QoreNode *callStack, *err, *desc, *arg;
       class Exception *next;
 
-      ~Exception();
-
+      DLLLOCAL ~Exception();
+      DLLLOCAL void addStackInfo(class QoreNode *n);
+      DLLLOCAL static class Hash *getStackHash(int type, const char *class_name, const char *code, const char *file, int start_line, int end_line);
+      
    public:
       // called for generic exceptions
       DLLEXPORT class QoreNode *makeExceptionObjectAndDelete(class ExceptionSink *xsink);

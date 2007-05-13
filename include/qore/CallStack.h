@@ -27,11 +27,6 @@
 
 #include <qore/common.h>
 
-#define CT_USER      0
-#define CT_BUILTIN   1
-#define CT_NEWTHREAD 2
-#define CT_RETHROW   3
-
 class CallNode {
    public:
       const char *func;

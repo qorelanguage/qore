@@ -21,14 +21,8 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/Tree.h>
 #include <qore/Function.h>
-#include <qore/Variable.h>
-#include <qore/CallStack.h>
-#include <qore/ArgvStack.h>
-#include <qore/VRMutex.h>
 #include <qore/Operator.h>
-#include <qore/NamedScope.h>
 #include <qore/StatementBlock.h>
 
 #include <stdio.h>
@@ -38,24 +32,6 @@
 static inline void param_error()
 {
    parse_error("parameter list contains non-variable reference expressions.");
-}
-
-static inline void push_argv(lvh_t argvid)
-{
-   //tracein("push_argv()");
-   class ArgvStack *as = new ArgvStack(argvid); 
-   as->next = get_argvstack();
-   update_argvstack(as);
-   //traceout("push_argv()");
-}
-
-static inline void pop_argv()
-{
-   //tracein("pop_argv()");
-   ArgvStack *oldargs = get_argvstack();
-   update_argvstack(oldargs->next);
-   delete oldargs;
-   //traceout("pop_argv()");
 }
 
 SelfFunctionCall::SelfFunctionCall(char *n) 
@@ -104,10 +80,20 @@ class NamedScope *SelfFunctionCall::takeNScope()
 class QoreNode *SelfFunctionCall::eval(class QoreNode *args, class ExceptionSink *xsink)
 {
    class Object *self = getStackObject();
+
+   // save current program location in case there's an exception
+   const char *o_fn = get_pgm_file();
+   int o_ln, o_eln;
+   get_pgm_counter(o_ln, o_eln);
+   
+   class QoreNode *rv;
    if (func)
-      return func->eval(self, args, xsink);
-   // otherwise exec copy method
-   return self->getClass()->execCopy(self, xsink);
+      rv = func->eval(self, args, xsink);
+   else   // otherwise exec copy method
+      rv = self->getClass()->execCopy(self, xsink);
+   if (xsink->isException())
+      xsink->addStackInfo(CT_USER, self->getClass()->getName(), func->getName(), o_fn, o_ln, o_eln);
+   return rv;
 }
 
 // called at parse time
@@ -154,7 +140,17 @@ void SelfFunctionCall::resolve()
 
 class QoreNode *ImportedFunctionCall::eval(class QoreNode *args, class ExceptionSink *xsink)
 {
-   return pgm->callFunction(func, args, xsink);
+   // save current program location in case there's an exception
+   const char *o_fn = get_pgm_file();
+   int o_ln, o_eln;
+   get_pgm_counter(o_ln, o_eln);
+   
+   class QoreNode *rv = pgm->callFunction(func, args, xsink);
+
+   if (xsink->isException())
+      xsink->addStackInfo(CT_USER, NULL, func->getName(), o_fn, o_ln, o_eln);
+   
+   return rv;
 }
 
 FunctionCall::FunctionCall(class UserFunction *u, class QoreNode *a)
@@ -281,6 +277,8 @@ class QoreNode *FunctionCall::eval(class ExceptionSink *xsink)
       case FC_IMPORTED:
 	 return f.ifunc->eval(args, xsink);
    }
+
+   assert(false);
    return NULL;
 }
 
@@ -444,18 +442,27 @@ void BuiltinFunction::evalConstructor(class Object *self, class QoreNode *args, 
 {
    tracein("BuiltinFunction::evalConstructor()");
 
+   // save current program location in case there's an exception
+   const char *o_fn = get_pgm_file();
+   int o_ln, o_eln;
+   get_pgm_counter(o_ln, o_eln);
+
+   CodeContextHelper cch("constructor", self, xsink);
+   // push call on call stack
+   pushCall("constructor", CT_BUILTIN, self);
+
    if (bcl)
       bcl->execConstructorsWithArgs(self, bceal, xsink);
    
    if (!xsink->isEvent())
    {
-      // push call on call stack
-      pushCall("constructor", CT_BUILTIN, self);
-
       code.constructor(self, args, xsink);
-
-      popCall(xsink);
+      if (xsink->isException())
+	 xsink->addStackInfo(CT_BUILTIN, self->getClass()->getName(), "constructor", o_fn, o_ln, o_eln);
    }
+   
+   popCall(xsink);
+
    traceout("BuiltinFunction::evalWithArgs()");
 }
 
@@ -471,13 +478,25 @@ QoreNode *BuiltinFunction::evalWithArgs(class Object *self, class QoreNode *args
 {
    tracein("BuiltinFunction::evalWithArgs()");
    printd(2, "BuiltinFunction::evalWithArgs() calling builtin function \"%s\"\n", name);
+
+   // save current program location in case there's an exception
+   const char *o_fn = get_pgm_file();
+   int o_ln, o_eln;
+   get_pgm_counter(o_ln, o_eln);
+
+   QoreNode *rv;
+   {
+      CodeContextHelper cch(name, self, xsink);
+      // push call on call stack
+      pushCall(name, CT_BUILTIN, self);
+
+      rv = code.func(args, xsink);
+
+      popCall(xsink);
+   }
    
-   // push call on call stack
-   pushCall(name, CT_BUILTIN, self);
-
-   QoreNode *rv = code.func(args, xsink);
-
-   popCall(xsink);
+   if (xsink->isException())
+      xsink->addStackInfo(CT_BUILTIN, self ? self->getClass()->getName() : NULL, name, o_fn, o_ln, o_eln);
 
    traceout("BuiltinFunction::evalWithArgs()");
    return rv;
@@ -488,13 +507,25 @@ QoreNode *BuiltinFunction::evalMethod(class Object *self, void *private_data, cl
    tracein("BuiltinFunction::evalMethod()");
    printd(2, "BuiltinFunction::evalMethod() calling builtin function '%s' obj=%08p data=%08p\n", name, self, private_data);
    
-   // push call on call stack
-   pushCall(name, CT_BUILTIN, self);
+   // save current program location in case there's an exception
+   const char *o_fn = get_pgm_file();
+   int o_ln, o_eln;
+   get_pgm_counter(o_ln, o_eln);
+   
+   QoreNode *rv;
+   {
+      CodeContextHelper cch(name, self, xsink);
+      // push call on call stack
+      pushCall(name, CT_BUILTIN, self);
 
-   QoreNode *rv = code.method(self, private_data, args, xsink);
+      rv = code.method(self, private_data, args, xsink);
 
-   popCall(xsink);
-
+      popCall(xsink);
+   }
+   
+   if (xsink->isException())
+      xsink->addStackInfo(CT_BUILTIN, self->getClass()->getName(), name, o_fn, o_ln, o_eln);
+   
    traceout("BuiltinFunction::evalWithArgs()");
    return rv;
 }
@@ -503,13 +534,24 @@ void BuiltinFunction::evalDestructor(class Object *self, void *private_data, cla
 {
    tracein("BuiltinFunction::evalDestructor()");
    
-   // push call on call stack
-   pushCall("destructor", CT_BUILTIN, self);
+   // save current program location in case there's an exception
+   const char *o_fn = get_pgm_file();
+   int o_ln, o_eln;
+   get_pgm_counter(o_ln, o_eln);
 
-   code.destructor(self, private_data, xsink);
+   {
+      CodeContextHelper cch("destructor", self, xsink);
+      // push call on call stack
+      pushCall("destructor", CT_BUILTIN, self);
 
-   popCall(xsink);
+      code.destructor(self, private_data, xsink);
 
+      popCall(xsink);
+   }
+   
+   if (xsink->isException())
+      xsink->addStackInfo(CT_BUILTIN, self->getClass()->getName(), "destructor", o_fn, o_ln, o_eln);
+   
    traceout("BuiltinFunction::destructor()");
 }
 
@@ -517,13 +559,24 @@ void BuiltinFunction::evalCopy(class Object *self, class Object *old, void *priv
 {
    tracein("BuiltinFunction::evalCopy()");
    
-   // push call on call stack
-   pushCall("copy", CT_BUILTIN, self);
+   // save current program location in case there's an exception
+   const char *o_fn = get_pgm_file();
+   int o_ln, o_eln;
+   get_pgm_counter(o_ln, o_eln);
+   
+   {
+      CodeContextHelper cch("copy", self, xsink);
+      // push call on call stack
+      pushCall("copy", CT_BUILTIN, self);
 
-   code.copy(self, old, private_data, xsink);
+      code.copy(self, old, private_data, xsink);
 
-   popCall(xsink);
-
+      popCall(xsink);
+   }
+   
+   if (xsink->isException())
+      xsink->addStackInfo(CT_BUILTIN, self->getClass()->getName(), "copy", o_fn, o_ln, o_eln);
+   
    traceout("BuiltinFunction::evalCopy()");
 }
 
@@ -542,6 +595,11 @@ QoreNode *BuiltinFunction::eval(QoreNode *args, ExceptionSink *xsink)
    
    //printd(5, "BuiltinFunction::eval(Node) args=%08p %s\n", args, args ? args->type->getName() : "(null)");
 
+   // save current program location in case there's an exception
+   const char *o_fn = get_pgm_file();
+   int o_ln, o_eln;
+   get_pgm_counter(o_ln, o_eln);
+   
    if (args)
       tmp = args->eval(&newsink);
    else
@@ -549,23 +607,29 @@ QoreNode *BuiltinFunction::eval(QoreNode *args, ExceptionSink *xsink)
 
    //printd(5, "BuiltinFunction::eval(Node) after eval tmp args=%08p %s\n", tmp, tmp ? tmp->type->getName() : "(null)");
 
-   // push call on call stack
-   pushCall(name, CT_BUILTIN);
+   {
+      CodeContextHelper cch(name, NULL, xsink);
+      // push call on call stack
+      pushCall(name, CT_BUILTIN);
 
-   // execute the function if no new exception has happened
-   // necessary only in the case of a builtin object destructor
-   if (!newsink.isEvent())
-      rv = code.func(tmp, xsink);
-   else
-      rv = NULL;
+      // execute the function if no new exception has happened
+      // necessary only in the case of a builtin object destructor
+      if (!newsink.isEvent())
+	 rv = code.func(tmp, xsink);
+      else
+	 rv = NULL;
 
-   xsink->assimilate(&newsink);
+      xsink->assimilate(&newsink);
 
-   // pop call off call stack
-   popCall(xsink);
+      // pop call off call stack
+      popCall(xsink);
+   }
 
    discard(tmp, xsink);
 
+   if (xsink->isException())
+      xsink->addStackInfo(CT_BUILTIN, NULL, name, o_fn, o_ln, o_eln);
+   
    traceout("BuiltinFunction::eval(Node)");
    return rv;
 }
@@ -574,9 +638,13 @@ QoreNode *BuiltinFunction::eval(QoreNode *args, ExceptionSink *xsink)
 class QoreNode *UserFunction::eval(QoreNode *args, Object *self, class ExceptionSink *xsink)
 {
    tracein("UserFunction::eval()");
-   printd(2, "UserFunction::eval(): function='%s' args=%08p (size=%d)\n", 
-          name, args, args ? args->val.list->size() : 0);
+   printd(2, "UserFunction::eval(): function='%s' args=%08p (size=%d)\n", name, args, args ? args->val.list->size() : 0);
 
+   // save current program location in case there's an exception
+   const char *o_fn = get_pgm_file();
+   int o_ln, o_eln;
+   get_pgm_counter(o_ln, o_eln);
+      
    int i = 0;
    class QoreNode *val = NULL;
    int num_args, num_params;
@@ -657,6 +725,8 @@ class QoreNode *UserFunction::eval(QoreNode *args, Object *self, class Exception
 
    if (statements)
    {
+      CodeContextHelper cch(name, self, xsink);
+
       pushCall(name, CT_USER, self);
 
       // push call on stack
@@ -665,21 +735,23 @@ class QoreNode *UserFunction::eval(QoreNode *args, Object *self, class Exception
    
       // instantiate argv and push id on stack
       instantiateLVar(params->argvid, argv);
-      push_argv(params->argvid);
 
-      // enter gate if necessary
-      if (!synchronized || (gate->enter(xsink) >= 0))
       {
-	 // execute function
-	 val = statements->exec(xsink);
+	 ArgvContextHelper(params->argvid);
 
-	 // exit gate if necessary
-	 if (synchronized)
-	    gate->exit();
+	 // enter gate if necessary
+	 if (!synchronized || (gate->enter(xsink) >= 0))
+	 {
+	    // execute function
+	    val = statements->exec(xsink);
+	    
+	    // exit gate if necessary
+	    if (synchronized)
+	       gate->exit();
+	 }	 
       }
 
-      // pop argv from stack and uninstantiate
-      pop_argv();
+      // uninstantiate
       uninstantiateLVar(xsink);
 
       // if self then uninstantiate
@@ -699,6 +771,9 @@ class QoreNode *UserFunction::eval(QoreNode *args, Object *self, class Exception
       for (i = 0; i < num_params; i++)
 	 uninstantiateLVar(xsink);
    }
+   if (xsink->isException())
+      xsink->addStackInfo(CT_USER, self ? self->getClass()->getName() : NULL, name, o_fn, o_ln, o_eln);
+   
    traceout("UserFunction::eval()");
    return val;
 }
@@ -708,6 +783,11 @@ void UserFunction::evalCopy(Object *oold, Object *self, ExceptionSink *xsink)
 {
    tracein("UserFunction::evalCopy()");
    printd(2, "UserFunction::evalCopy(): function='%s', num_params=%d, oldobj=%08p\n", name, params->num_params, oold);
+
+   // save current program location in case there's an exception
+   const char *o_fn = get_pgm_file();
+   int o_ln, o_eln;
+   get_pgm_counter(o_ln, o_eln);
 
    // create QoreNode for "old" for either param or argv list
    oold->ref();
@@ -734,6 +814,7 @@ void UserFunction::evalCopy(Object *oold, Object *self, ExceptionSink *xsink)
 
    if (statements)
    {
+      CodeContextHelper cch(name, self, xsink);
       // push call on stack
       pushCall(name, CT_USER, self);
 
@@ -742,18 +823,16 @@ void UserFunction::evalCopy(Object *oold, Object *self, ExceptionSink *xsink)
    
       // instantiate argv and push id on stack (for shift)
       instantiateLVar(params->argvid, argv);
-      push_argv(params->argvid);
-   
-      // execute function
-      discard(statements->exec(xsink), xsink);
-
-      // pop argv from stack
-      pop_argv();
+      {
+	 ArgvContextHelper(params->argvid);
+	 // execute function
+	 discard(statements->exec(xsink), xsink);
+      }
       uninstantiateLVar(xsink);
-   
+      
       // uninstantiate self
       self->uninstantiateLVar(xsink);
-
+      
       popCall(xsink);
    }
    else
@@ -767,6 +846,9 @@ void UserFunction::evalCopy(Object *oold, Object *self, ExceptionSink *xsink)
       for (int i = 0; i < params->num_params; i++)
 	 uninstantiateLVar(xsink);
    }
+   if (xsink->isException())
+      xsink->addStackInfo(CT_USER, self->getClass()->getName(), name, o_fn, o_ln, o_eln);
+   
    traceout("UserFunction::evalCopy()");
 }
 
@@ -777,6 +859,11 @@ class QoreNode *UserFunction::evalConstructor(QoreNode *args, Object *self, clas
    printd(2, "UserFunction::evalConstructor(): method='%s:%s' args=%08p (size=%d)\n", 
           self->getClass()->getName(), name, args, args ? args->val.list->size() : 0);
 
+   // save current program location in case there's an exception
+   const char *o_fn = get_pgm_file();
+   int o_ln, o_eln;
+   get_pgm_counter(o_ln, o_eln);
+   
    int i = 0;
    class QoreNode *val = NULL;
    int num_args, num_params;
@@ -862,18 +949,12 @@ class QoreNode *UserFunction::evalConstructor(QoreNode *args, Object *self, clas
    if (!xsink->isEvent())
    {
       // switch to new program for imported objects
-      QoreProgram *cpgm = NULL;
-      QoreProgram *opgm = self->getProgram();
-      if (opgm)
-      {
-	 cpgm = getProgram();
-	 if (cpgm != opgm)
-	    pushProgram(opgm);
-      }
-
+      ProgramContextHelper pch(self->getProgram());
+ 
       // execute constructor
       if (statements)
       {
+	 CodeContextHelper cch(name, self, xsink);
 	 // push call on stack
 	 pushCall(name, CT_USER, self);
 
@@ -882,21 +963,21 @@ class QoreNode *UserFunction::evalConstructor(QoreNode *args, Object *self, clas
 	 
 	 // instantiate argv and push id on stack
 	 instantiateLVar(params->argvid, argv);
-	 push_argv(params->argvid);
-	 
-	 // enter gate if necessary
-	 if (!synchronized || (gate->enter(xsink) >= 0))
-	 {
-	    // execute function
-	    val = statements->exec(xsink);
-	 
-	    // exit gate if necessary
-	    if (synchronized)
-	       gate->exit();
-	 }
 
-	 // pop argv from stack and uninstantiate
-	 pop_argv();
+	 {
+	    ArgvContextHelper(params->argvid);
+	    
+	    // enter gate if necessary
+	    if (!synchronized || (gate->enter(xsink) >= 0))
+	    {
+	       // execute function
+	       val = statements->exec(xsink);
+	       
+	       // exit gate if necessary
+	       if (synchronized)
+		  gate->exit();
+	    }
+	 }
 	 uninstantiateLVar(xsink);
 	    
 	 // uninstantiate "$self" variable
@@ -906,10 +987,6 @@ class QoreNode *UserFunction::evalConstructor(QoreNode *args, Object *self, clas
       }
       else
 	 discard(argv, xsink);
-      
-      // switch back to original program if necessary
-      if (opgm && cpgm != opgm)
-	 popProgram();
    }
 
    if (num_params)
@@ -920,6 +997,9 @@ class QoreNode *UserFunction::evalConstructor(QoreNode *args, Object *self, clas
       for (i = 0; i < num_params; i++)
 	 uninstantiateLVar(xsink);
    }
+   if (xsink->isException())
+      xsink->addStackInfo(CT_USER, self->getClass()->getName(), name, o_fn, o_ln, o_eln);
+   
    traceout("UserFunction::evalConstructor()");
    return val;
 }

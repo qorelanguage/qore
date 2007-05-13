@@ -1,4 +1,4 @@
-#/*
+/*
   Hash.h
 
   Qore Programming Language

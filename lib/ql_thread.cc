@@ -131,7 +131,11 @@ class QoreNode *f_get_all_thread_data(class QoreNode *params, ExceptionSink *xsi
 
 class QoreNode *f_getAllThreadCallStacks(class QoreNode *params, ExceptionSink *xsink)
 {
+#ifdef DEBUG
    return new QoreNode(getAllCallStacks());
+#else
+   return new QoreNode("getAllThreadCallStacks() not available without debugging");
+#endif
 }
 
 class QoreNode *f_throwThreadResourceExceptions(class QoreNode *params, ExceptionSink *xsink)

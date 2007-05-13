@@ -99,6 +99,7 @@ char *remove_trailing_blanks(char *str)
    return str;
 }
 
+#ifdef DEBUG
 void showCallStack()
 {
    List *callStack = getCallStackList();
@@ -122,6 +123,7 @@ void showCallStack()
       }
    }
 }
+#endif
 
 void parse_error(const char *fmt, ...)
 {

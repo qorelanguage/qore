@@ -269,12 +269,8 @@ void FunctionReference::del(class ExceptionSink *xsink)
 
 class QoreNode *fr_user_s::eval(class QoreNode *args, class ExceptionSink *xsink) const
 {
-   class QoreProgram *t_pgm = ::getProgram();
-   if (t_pgm != pgm)
-      pushProgram(pgm);
+   ProgramContextHelper pch(pgm);
    class QoreNode *rv = uf->eval(args, NULL, xsink);
-   if (t_pgm != pgm)
-      popProgram();
    return rv;
 }
 

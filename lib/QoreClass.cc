@@ -908,25 +908,16 @@ class QoreNode *Method::eval(Object *self, QoreNode *args, ExceptionSink *xsink)
    else
       new_args = NULL;
 
-   // switch to new program for imported objects
-   QoreProgram *cpgm = NULL;
-   QoreProgram *opgm = self->getProgram();
-   if (opgm)
    {
-      cpgm = getProgram();
-      if (cpgm != opgm)
-	 pushProgram(opgm);
+      // switch to new program for imported objects
+      ProgramContextHelper pch(self->getProgram());
+      
+      if (type == OTF_USER)
+	 rv = func.userFunc->eval(new_args, self, xsink);
+      else
+	 rv = self->evalBuiltinMethodWithPrivateData(func.builtin, new_args, xsink);      
    }
-
-   if (type == OTF_USER)
-      rv = func.userFunc->eval(new_args, self, xsink);
-   else
-      rv = self->evalBuiltinMethodWithPrivateData(func.builtin, new_args, xsink);
-
-   // switch back to original program if necessary
-   if (opgm && cpgm != opgm)
-      popProgram();
-
+   
    if (new_args && need_deref)
       new_args->deref(xsink);
 #ifdef DEBUG
@@ -983,20 +974,8 @@ void Method::evalConstructor(Object *self, QoreNode *args, class BCList *bcl, cl
       else
       {
 	 // switch to new program for imported objects
-	 QoreProgram *cpgm = NULL;
-	 QoreProgram *opgm = self->getProgram();
-	 if (opgm)
-	 {
-	    cpgm = getProgram();
-	    if (cpgm != opgm)
-	       pushProgram(opgm);
-	 }
-
+	 ProgramContextHelper pch(self->getProgram());
 	 func.builtin->evalConstructor(self, new_args, bcl, bceal, xsink);
-
-	 // switch back to original program if necessary
-	 if (opgm && cpgm != opgm)
-	    popProgram();
       }
    }
 
@@ -1011,36 +990,18 @@ void Method::evalConstructor(Object *self, QoreNode *args, class BCList *bcl, cl
 void Method::evalCopy(Object *self, Object *old, ExceptionSink *xsink)
 {
    // switch to new program for imported objects
-   QoreProgram *cpgm = NULL;
-   QoreProgram *opgm = self->getProgram();
-   if (opgm)
-   {
-      cpgm = getProgram();
-      if (cpgm != opgm)
-	 pushProgram(opgm);
-   }
+   ProgramContextHelper pch(self->getProgram());
 
    if (type == OTF_USER)
       func.userFunc->evalCopy(old, self, xsink);
    else // builtin function
       old->evalCopyMethodWithPrivateData(func.builtin, self, xsink);
-
-   // switch back to original program if necessary
-   if (opgm && cpgm != opgm)
-      popProgram();
 }
 
 void Method::evalDestructor(Object *self, ExceptionSink *xsink)
 {
    // switch to new program for imported objects
-   QoreProgram *cpgm = NULL;
-   QoreProgram *opgm = self->getProgram();
-   if (opgm)
-   {
-      cpgm = getProgram();
-      if (cpgm != opgm)
-	 pushProgram(opgm);
-   }
+   ProgramContextHelper pch(self->getProgram());
 
    if (type == OTF_USER)
       func.userFunc->eval(NULL, self, xsink);
@@ -1057,10 +1018,6 @@ void Method::evalDestructor(Object *self, ExceptionSink *xsink)
 	    xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::destructor() (base class of '%s') cannot be executed because the object has already been deleted", func.builtin->myclass->getName(), self->getClass()->getName());
       }
    }
-
-   // switch back to original program if necessary
-   if (opgm && cpgm != opgm)
-      popProgram();
 }
 
 class QoreClass *QoreClass::copyAndDeref()
