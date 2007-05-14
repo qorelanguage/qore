@@ -59,7 +59,7 @@ BuiltinFunctionList::BuiltinFunctionList()
 
 BuiltinFunctionList::~BuiltinFunctionList()
 {
-   assert(hm.empty());
+//   assert(hm.empty());
 }
 
 void BuiltinFunctionList::add(const char *name, class QoreNode *(*f)(class QoreNode *, class ExceptionSink *xsink), int typ)
