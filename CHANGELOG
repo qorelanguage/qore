@@ -1,3 +1,7 @@
+2006.05.14: David Nichols
+	* updated call_function() and call_function_args() to accept a call
+	  reference as the first argument as well as a string
+
 2006.05.13: David Nichols
 	* removed call stack tracing from non-debugging mode (performance and
 	  memory usage improvement)

@@ -354,9 +354,8 @@ void ThreadCleanupList::pop(int exec)
    }
 }
 
-ThreadData::ThreadData(int ptid, class QoreProgram *p) : vlock(ptid)
+ThreadData::ThreadData(int ptid, class QoreProgram *p) : tid(ptid), vlock(ptid), current_pgm(p)
 {
-   tid               = ptid;
    lvstack           = NULL;
    context_stack     = NULL;
    pgm_counter_start = 0;
@@ -373,7 +372,6 @@ ThreadData::ThreadData(int ptid, class QoreProgram *p) : vlock(ptid)
    catchException    = 0;
    current_obj       = 0;
    current_code      = 0;
-   current_pgm       = p;
    current_argvid    = 0;
 }
 

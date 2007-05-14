@@ -281,7 +281,7 @@
             <para>Y</para>
           </entry>
           <entry>
-            <para>Calls a function and returns the return value, passing the remaining arguments after the function name to the function.</para>
+            <para>Calls a function or a call reference and returns the return value, passing the remaining arguments after the function name to the function (or call reference).</para>
           </entry>
         </row>
         <row>
@@ -295,7 +295,7 @@
             <para>Y</para>
           </entry>
           <entry>
-            <para>Calls a function and returns the return value, using the argument after the function name as a list of arguments to pass to the function.</para>
+            <para>Calls a function or call reference and returns the return value, using the argument after the function name as a list of arguments to pass to the function (or call reference).</para>
           </entry>
         </row>
         <row>
@@ -15780,19 +15780,20 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Calls a function and returns the return value, using the optional second argument as a list of arguments for the function to be called.</para>
+	<para>Calls a function or call reference and returns the return value, using the optional second argument as a list of arguments for the function (or call reference) to be called.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>call_function_args(<replaceable>function_name_string, [args]</replaceable>)</programlisting>
+	<programlisting>call_function_args(<replaceable>func, [args]</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Example</term>
       <listitem>
 	<programlisting>call_function_args("func_name", $arg_list);</programlisting>
+	<programlisting>call_function_args($call_ref, $arg_list);</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -15811,10 +15812,10 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 
       <tbody>
 	<row>
-	  <entry><para>String, [List]</para></entry>
+	  <entry><para>String | Call Reference, [List]</para></entry>
 	  <entry><para>Any (depends on function)</para></entry>
-	<entry><para>Executes the given function using any second argument as the arguments for the function to be called.</para></entry>  </row>
-	
+	  <entry><para>Executes the given function or call reference using any second argument as the list of arguments.</para></entry>  
+	</row>
       </tbody>
     </tgroup>
   </table>
@@ -15853,19 +15854,20 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Calls a function and returns the return value, passing the remaining arguments after the function name to the function.</para>
+	<para>Calls a function or a call reference and returns the return value, passing the remaining arguments after the function name to the function (or call reference).</para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>call_function(<replaceable>function_name_string, [args ...]</replaceable>)</programlisting>
+	<programlisting>call_function(<replaceable>func, [arg1, arg2, ...]</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Example</term>
       <listitem>
 	<programlisting>$result = call_function("func_name", $arg1, $arg2);</programlisting>
+	<programlisting>$result = call_function($call_ref, $arg1, $arg2);</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -15884,9 +15886,9 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 
 <tbody>
   <row>
-    <entry><para>String, Any</para></entry>
+    <entry><para>String | Call Reference, Any</para></entry>
     <entry><para>Any (depends on function)</para></entry>
-    <entry><para>Executes the given function with the remainder of the arguments as the arguments to the function to be called.</para></entry>
+    <entry><para>Executes the given function or call reference with the remainder of the arguments as the arguments to the function (or call reference) to be called.</para></entry>
   </row>
 
 </tbody>

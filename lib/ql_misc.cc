@@ -53,36 +53,28 @@ class qore_gz_header : public gz_header
 };
 #endif
 
-// FIXME: don't copy the list - the arguments have already been evaluated
-// just build a new list and then zero it out before deleting it
 static class QoreNode *f_call_function(class QoreNode *params, ExceptionSink *xsink)
 {
-   const char *fname;
    QoreNode *args = NULL, *p0;
 
-   if (!(p0 = test_param(params, NT_STRING, 0)))
+   p0 = get_param(params, 0);
+   if (!p0 || (p0->type != NT_FUNCREF && p0->type != NT_STRING))
    {
       xsink->raiseException("CALL-FUNCTION-PARAMETER-ERROR",
-			 "invalid arguments passed to call_function(), must be either function name or function name plus argument list");
+			    "invalid argument passed to call_function(), first argument must be either function name or call reference");
       return NULL;
    }
-   fname = p0->val.String->getBuffer();
 
-   // if there are arguments to pass
-   if (get_param(params, 1))
-   {
-      // create argument list by copying current list
-      args = params->val.list->evalFrom(1, xsink);
-      if (xsink->isEvent())
-      {
-	 if (args)
-	    args->deref(xsink);
-	 return NULL;
-      }
-   }
+   // if there are arguments to pass, create argument list by copying current list
+   if (num_params(params) > 1)
+      args = new QoreNode(params->val.list->copyListFrom(1));
 
-   class QoreNode *rv = getProgram()->callFunction(fname, args, xsink);
-
+   class QoreNode *rv;
+   if (p0->type == NT_STRING)
+      rv = getProgram()->callFunction(p0->val.String->getBuffer(), args, xsink);
+   else
+      rv = p0->val.funcref->exec(args, xsink);
+      
    if (args)
       args->deref(xsink);
 
@@ -93,29 +85,35 @@ static class QoreNode *f_call_function_args(class QoreNode *params, ExceptionSin
 {
    class QoreNode *p0, *p1, *args;
 
-   if (!(p0 = test_param(params, NT_STRING, 0)))
+   p0 = get_param(params, 0);
+   if (!p0 || (p0->type != NT_FUNCREF && p0->type != NT_STRING))
    {
       xsink->raiseException("CALL-FUNCTION-ARGS-PARAMETER-ERROR",
-			    "invalid arguments passed to call_function_args(), must be either function name or function name plus argument list");
+			    "invalid argument passed to call_function_args(), first argument must be either function name or call reference");
       return NULL;
    }
-   const char *fname = p0->val.String->getBuffer();
-
+   
    p1 = get_param(params, 1);
    if (p1 && p1->type == NT_LIST)
       args = p1;
    else if (p1)
    {
       args = new QoreNode(new List());
+      // we borrow the reference for the new list
       args->val.list->push(p1);
    }
    else
       args = NULL;
 
-   class QoreNode *rv = getProgram()->callFunction(fname, args, xsink);
+   class QoreNode *rv;
+   if (p0->type == NT_STRING)
+      rv = getProgram()->callFunction(p0->val.String->getBuffer(), args, xsink);
+   else
+      rv = p0->val.funcref->exec(args, xsink);
 
    if (p1 != args)
    {
+      // we remove the element from the list without dereferencing
       args->val.list->shift();
       args->deref(xsink);
    }

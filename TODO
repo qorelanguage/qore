@@ -1,9 +1,8 @@
 see docs/roadmap.html
 
-* remove thread call stack tracing in non-debugging mode
+* do block allocations of per-thread local variable slots for performance reasons
 * add support for break and continue arguments to affect outer loops
 * add error code to exceptions for XML-RPC fault reporting
-* add signal constants/infrastructure (in progress)
 * add context functions
 * allow customizable QORE_INCLUDE_DIR searches
 * track include files, make sure they are only included once
@@ -19,6 +18,8 @@ docs:
 * document optimizations
 
 done:
+* add signal constants/infrastructure
+* remove thread call stack tracing in non-debugging mode
 * make lists of items disabled with parse restrictions
 * make a section for each parse restriction
 * implement support for regular expressions in case expressions
