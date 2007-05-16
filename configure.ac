@@ -1910,6 +1910,10 @@ if test "$enable_optimization" = "yes"; then
     elif test -n "`echo $CXX|grep aCC`"; then 
 	CXXFLAGS="$CXXFLAGS +O2" # HP-UX aCC
     fi
+else
+    if test "$GXX" = "yes"; then
+        CXXFLAGS="`echo $CXXFLAGS| sed s/-O2//`"  # gcc
+    fi
 fi
 
 # turn on some build flags for non-debugging, non-profiling builds

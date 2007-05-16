@@ -1,7 +1,10 @@
 2006.05.16: David Nichols
 	* local variable optimizations, reduced memory usage, drastically 
 	  reduced the number of memory allocations
-	* eliminated extraneous cals to pthread_setspecific
+	* eliminated extraneous calls to pthread_setspecific
+	* fixed a bug in thread resource tracking in non-debugging mode
+	* use a deque instead of a list for lock tracking in deadlock detection
+	  framework, giving a big performance boost
 
 2006.05.14: David Nichols
 	* updated call_function() and call_function_args() to accept a call

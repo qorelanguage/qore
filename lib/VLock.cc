@@ -57,13 +57,16 @@ void AutoVLock::push(class AbstractSmartLock *p)
    push_back(p);
 }
 
+class SafeLocker1 { public: SafeLocker1(LockedObject *l) {} void unlock() {} };
+
 int VLock::waitOn(AbstractSmartLock *asl, VLock *vl, class ExceptionSink *xsink, int timeout_ms)
 {
-   SafeLocker al(&global_lock);
+   SafeLocker sl(&global_lock);
    AbstractSmartLock *vl_wait = vl->waiting_on;
+   //printd(5, "VLock::waitOn(asl=%08p) vl_wait=%08p other_tid=%d\n", asl, vl_wait, vl->tid);
    if (vl_wait && find(vl_wait))
    {
-      al.unlock();
+      sl.unlock();
       // NOTE: we throw an exception here anyway as a deadlock is a programming mistake and therefore should be visible to the programmer
       // (even if it really wouldn't technically deadlock at this point due to the timeout)
       if (timeout_ms)
@@ -73,11 +76,7 @@ int VLock::waitOn(AbstractSmartLock *asl, VLock *vl, class ExceptionSink *xsink,
       return -1;
    }
    waiting_on = asl;
-   al.unlock();
-   
-#ifdef DEBUG
-   //show(vl);
-#endif
+   sl.unlock();
    
    //printd(0, "AbstractSmartLock::block() this=%08p asl=%08p about to block on VRMutex owned by TID %d\n", this, asl, vl ? vl->tid : -1);
    int rc = asl->self_wait(timeout_ms);
@@ -89,12 +88,12 @@ int VLock::waitOn(AbstractSmartLock *asl, VLock *vl, class ExceptionSink *xsink,
 
 int VLock::waitOn(AbstractSmartLock *asl, QoreCondition *cond, VLock *vl, class ExceptionSink *xsink, int timeout_ms)
 {
-   SafeLocker al(&global_lock);
+   SafeLocker sl(&global_lock);
    AbstractSmartLock *vl_wait = vl->waiting_on;
    //printd(5, "VLock::waitOn(asl=%08p) vl_wait=%08p other_tid=%d\n", asl, vl_wait, vl->tid);
    if (vl_wait && find(vl_wait))
    {
-      al.unlock();
+      sl.unlock();
       // NOTE: we throw an exception here anyway as a deadlock is a programming mistake and therefore should be visible to the programmer
       // (even if it really wouldn't technically deadlock at this point due to the timeout)
       if (timeout_ms)
@@ -104,7 +103,7 @@ int VLock::waitOn(AbstractSmartLock *asl, QoreCondition *cond, VLock *vl, class 
       return -1;
    }
    waiting_on = asl;
-   al.unlock();
+   sl.unlock();
 
    //printd(0, "AbstractSmartLock::block() this=%08p asl=%08p about to block on VRMutex owned by TID %d\n", this, asl, vl ? vl->tid : -1);
    int rc = asl->self_wait(cond, timeout_ms);
@@ -116,14 +115,14 @@ int VLock::waitOn(AbstractSmartLock *asl, QoreCondition *cond, VLock *vl, class 
 
 int VLock::waitOn(AbstractSmartLock *asl, vlock_map_t &vmap, class ExceptionSink *xsink, int timeout_ms)
 {
-   SafeLocker al(&global_lock);
+   SafeLocker sl(&global_lock);
    for (vlock_map_t::iterator i = vmap.begin(), e = vmap.end(); i != e; ++i)
    {
       AbstractSmartLock *vl_wait = i->second->waiting_on;
       //printd(5, "VLock::waitOn(asl=%08p, vmap size=%d) vl_wait=%08p other_tid=%d\n", asl, vmap.size(), vl_wait, i->second->tid);
       if (vl_wait && find(vl_wait))
       {
-	 al.unlock();
+	 sl.unlock();
 	 // NOTE: we throw an exception here anyway as a deadlock is a programming mistake and therefore should be visible to the programmer
 	 // (even if it really wouldn't technically deadlock at this point due to the timeout)
 	 if (timeout_ms)
@@ -134,8 +133,8 @@ int VLock::waitOn(AbstractSmartLock *asl, vlock_map_t &vmap, class ExceptionSink
       }
    }
    waiting_on = asl;
-   al.unlock();
-
+   sl.unlock();
+   
    //printd(0, "AbstractSmartLock::block() this=%08p asl=%08p about to block on VRMutex owned by TID %d\n", this, asl, vl ? vl->tid : -1);
    int rc = asl->self_wait(timeout_ms);
    //printd(0, "AbstractSmartLock::block() this=%08p asl=%08p regrabbed lock\n", this, asl);
@@ -194,39 +193,6 @@ int VLock::pop(AbstractSmartLock *g)
    erase(i);
    return -1;
 }
-
-/*
-void VLock::delToMark(AbstractSmartLock *mark)
-{
-   //printd(5, "VLock::delToMark() mark=%08p size=%d\n", mark, size());
-   abstract_lock_list_t::iterator i = end();
-   if (i == begin())
-      return;
-
-   do {
-      --i;
-      if (*i == mark)
-	 break;
-      if ((*i)->auto_delete)
-      {
-	 abstract_lock_list_t::iterator j = i + 1;
-	 //printd(5, "VLock::delToMark() releasing %08p (%d)\n", *i, begin() == end());
-	 (*i)->release();
-	 erase(i);
-	 i = j;
-      }
-   } while (end() != begin());
-   //printd(5, "VLock::delToMark() begin=%08p\n", begin() != end() ? *(begin()) : NULL);
-
-   //abstract_lock_list_t::reverse_iterator i;
-   //while (rbegin() != rend() && *(i = rbegin()) != mark)
-   //{
-   //   (*i)->release();
-   //   pop_back();
-   //}
-   //printd(5, "VLock::delToMark() rbegin=%08p\n", rbegin() != rend() ? *(rbegin()) : NULL);
-}
-*/
 
 class AbstractSmartLock *VLock::find(class AbstractSmartLock *g) const
 {

@@ -30,8 +30,6 @@
 
 #include <signal.h>
 
-#include <set>
-
 // maximum number of signals
 #ifndef QORE_SIGNAL_MAX
 #ifdef NSIG
@@ -70,8 +68,6 @@ class QoreSignalHandler {
       }
 };
 
-typedef std::set<QoreProgram *> pgm_set_t;
-
 class QoreSignalManager
 {
    friend class QoreSignalManagerBusyHelper;
@@ -79,7 +75,6 @@ class QoreSignalManager
    private:
       DLLLOCAL static pthread_t ptid;       // handler thread
       DLLLOCAL static int tid;              // handler thread TID
-      DLLLOCAL static pgm_set_t pgm_set;    // set of program objects used to manage thread-local storage
       DLLLOCAL static QoreCounter tcount;   // thread counter, for synchronization only
       DLLLOCAL static QoreCondition cond;   // to ensure atomicity of set and remove calls
       DLLLOCAL static bool block;

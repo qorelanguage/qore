@@ -138,10 +138,8 @@ void ThreadResourceList::purge(class ExceptionSink *xsink)
       delete w;
       w = n;
    }
-#ifdef DEBUG
    head = NULL;
-#endif
-   //printd(5, "TRL::purgeTID() done\n");
+   //printd(5, "TRL::purge() done\n");
 }
 
 int ThreadResourceList::remove(AbstractThreadResource *atr)

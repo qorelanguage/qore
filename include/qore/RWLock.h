@@ -45,8 +45,9 @@ class RWLock : public AbstractSmartLock
       int readRequests;
       QoreCondition read;
       bool prefer_writers;
-      tid_map_t tmap;
-      vlock_map_t vmap;
+      tid_map_t tmap;     // map of TIDs to read lock counts
+      vlock_map_t vmap;   // map of TIDs to VLock data structures
+      int num_readers;    // number of threads holding the read lock
 
       // 0 = last read lock in this thread released
       DLLLOCAL int cleanup_read_lock_intern(tid_map_t::iterator i);

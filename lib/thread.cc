@@ -539,7 +539,6 @@ void beginParsing(char *file, void *ps)
    }
    td->parse_file = file;
    td->parseState = ps;
-   //pthread_setspecific(thread_data_key, td);
 }
 
 void *endParsing()
@@ -561,7 +560,6 @@ void *endParsing()
       td->parse_file = NULL;
       td->parseState = NULL;
    }
-   //pthread_setspecific(thread_data_key, td);
    return rv;
 }
 
@@ -601,7 +599,6 @@ void update_context_stack(Context *cstack)
 {
    ThreadData *td    = (ThreadData *)pthread_getspecific(thread_data_key);
    td->context_stack = cstack;
-   //pthread_setspecific(thread_data_key, td);
 }
 
 void get_pgm_counter(int &start_line, int &end_line)
@@ -617,7 +614,6 @@ void update_pgm_counter_pgm_file(int start_line, int end_line, char *f)
    td->pgm_counter_start = start_line;
    td->pgm_counter_end   = end_line;
    td->pgm_file          = f;
-   //pthread_setspecific(thread_data_key, td);
 }
 
 void update_pgm_counter(int start_line, int end_line)
@@ -625,7 +621,6 @@ void update_pgm_counter(int start_line, int end_line)
    ThreadData *td  = (ThreadData *)pthread_getspecific(thread_data_key);
    td->pgm_counter_start = start_line;
    td->pgm_counter_end   = end_line;
-   //pthread_setspecific(thread_data_key, td);
 }
 
 char *get_pgm_file()
@@ -646,7 +641,6 @@ void update_parse_location(int start_line, int end_line, char *f)
    td->parse_line_start = start_line;
    td->parse_line_end   = end_line;
    td->parse_file       = f;
-   //pthread_setspecific(thread_data_key, td);
 }
 
 void update_parse_location(int start_line, int end_line)
@@ -654,7 +648,6 @@ void update_parse_location(int start_line, int end_line)
    ThreadData *td  = (ThreadData *)pthread_getspecific(thread_data_key);
    td->parse_line_start = start_line;
    td->parse_line_end   = end_line;
-   //pthread_setspecific(thread_data_key, td);
 }
 
 char *get_parse_file()
@@ -792,7 +785,6 @@ void updateCVarStack(class CVNode *ncvs)
 {
    ThreadData *td = (ThreadData *)pthread_getspecific(thread_data_key);
    td->cvarstack = ncvs;
-   //pthread_setspecific(thread_data_key, td);
 }
 
 class CVNode *getCVarStack()
@@ -804,7 +796,6 @@ void updateVStack(class VNode *nvs)
 {
    ThreadData *td = (ThreadData *)pthread_getspecific(thread_data_key);
    td->vstack = nvs;
-   //pthread_setspecific(thread_data_key, td);
 }
 
 class VNode *getVStack()
@@ -816,7 +807,6 @@ void setParseClass(class QoreClass *c)
 {
    ThreadData *td = (ThreadData *)pthread_getspecific(thread_data_key);
    td->parseClass = c;
-   //pthread_setspecific(thread_data_key, td);
 }
 
 class QoreClass *getParseClass()

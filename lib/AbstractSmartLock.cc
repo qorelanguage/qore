@@ -40,6 +40,7 @@ void AbstractSmartLock::cleanup(class ExceptionSink *xsink)
 void AbstractSmartLock::mark_and_push(int mtid, class VLock *nvl)
 {
    nvl->push(this);
+
    tid = mtid;
    vl = nvl;
 }
@@ -59,6 +60,7 @@ void AbstractSmartLock::signalImpl()
 void AbstractSmartLock::release_and_signal()
 {
    vl->pop(this);
+
    if (tid >= 0)
       tid = Lock_Unlocked;
    vl = NULL;
@@ -89,6 +91,7 @@ void AbstractSmartLock::destructor(class ExceptionSink *xsink)
    if (tid >= 0)
    {
       vl->pop(this);
+
       int mtid = gettid();
       if (mtid == tid)
       {
@@ -119,6 +122,7 @@ return grabInternImpl(mtid);
 int AbstractSmartLock::grab(class ExceptionSink *xsink, int timeout_ms)
 {
    int mtid = gettid();
+   
    class VLock *nvl = getVLock();
    AutoLocker al(&asl_lock);
    int rc = grabImpl(mtid, nvl, xsink, timeout_ms);

@@ -41,6 +41,7 @@ class AbstractSmartLock : public AbstractThreadResource
       virtual int releaseImpl(class ExceptionSink *xsink) = 0;
       virtual int grabImpl(int mtid, class VLock *nvl, class ExceptionSink *xsink, int timeout_ms = 0) = 0;
       virtual int tryGrabImpl(int mtid, class VLock *nvl) = 0;
+
       DLLLOCAL virtual int externWaitImpl(int mtid, class QoreCondition *cond, class ExceptionSink *xsink, int timeout_ms = 0);
       DLLLOCAL virtual void destructorImpl(class ExceptionSink *xsink);
       DLLLOCAL virtual void signalAllImpl();
