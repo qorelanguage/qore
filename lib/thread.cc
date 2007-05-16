@@ -42,9 +42,9 @@
 #include <assert.h>
 
 #if defined(DARWIN) && MAX_QORE_THREADS > 2560
-// testing has confirmed that darwin's pthread_create will not return an error when more than 2560 threads
-// are running, but threads are not started, therefore we set MAX_QORE_THREADS to 2560 on Darwin.  This should
-// be much more than any program/script should need (famous last words? :-) )
+// testing has revealed that darwin's pthread_create will not return an error when more than 2560 threads
+// are running, however the threads are not actually started, therefore we set MAX_QORE_THREADS to 2560 on 
+// Darwin.  This should be much more than any program/script should need (famous last words? :-) )
 #warning Darwin cannot support more than 2560 threads, MAX_QORE_THREADS set to 2560
 #undef MAX_QORE_THREADS
 #define MAX_QORE_THREADS 2560
@@ -116,13 +116,95 @@ class ProgramLocation {
       }
 };
 
+struct ThreadVariableBlock {
+   class LVar lvar[QORE_THREAD_STACK_BLOCK];
+   int pos;
+   struct ThreadVariableBlock *prev, *next;
+
+   DLLLOCAL ThreadVariableBlock(struct ThreadVariableBlock *n_prev = 0) : pos(0), prev(n_prev), next(0)
+   {
+   }
+   DLLLOCAL ~ThreadVariableBlock()
+   {
+   }
+};
+
+class ThreadVariableStack {
+private:
+   ThreadVariableBlock *curr;
+public:
+   DLLLOCAL ThreadVariableStack()
+   {
+      curr = new ThreadVariableBlock;
+      printf("this=%08p: first curr=%08p\n", this, curr);
+   }
+   DLLLOCAL ~ThreadVariableStack()
+   {
+      assert(!curr->prev);
+      assert(!curr->pos);
+      printf("this=%08p: del curr=%08p\n", this, curr);
+      delete curr;
+   }
+   DLLLOCAL class LVar *instantiate()
+   {
+      if (curr->pos == QORE_THREAD_STACK_BLOCK)
+      {
+	 if (curr->next)
+	    curr = curr->next;
+	 else
+	 {
+	    curr->next = new ThreadVariableBlock(curr);
+	    printf("this=%08p: add curr=%08p, curr->next=%08p\n", this, curr, curr->next);
+	    curr = curr->next;
+	 }
+      }
+      return &curr->lvar[curr->pos++];
+   }
+   DLLLOCAL void uninstantiate(class ExceptionSink *xsink)
+   {
+      if (!curr->pos)
+      {
+	 if (curr->next)
+	 {
+	    printf("this %08p: del curr=%08p, curr->next=%08p\n", this, curr, curr->next);
+	    delete curr->next;
+	    curr->next = 0;
+	 }
+	 curr = curr->prev;
+      }
+      else
+	 --curr->pos;
+      printd(5, "uninstantiating lvar \"%s\"\n", curr->lvar[curr->pos].id);
+      curr->lvar[curr->pos].deref(xsink);
+   }
+   DLLLOCAL class LVar *find(lvh_t id)
+   {
+      class ThreadVariableBlock *w = curr;
+      while (true)
+      {
+	 int p = w->pos;
+	 while (p)
+	 {
+	    if (w->lvar[--p].id == id)
+	       return &w->lvar[p];
+	 }
+	 w = w->prev;
+	 assert(w);
+      }
+      // to avoid a warning
+      return NULL;      
+   }      
+};
+
 // this structure holds all thread-specific data
 class ThreadData 
 {
+   private:
+      class ThreadVariableStack lvstack;
+
    public:
       int tid;
       class VLock vlock;     // for deadlock detection
-      class LVar *lvstack;
       class Context *context_stack;
       class ProgramLocation *plStack;
       int parse_line_start, parse_line_end;
@@ -147,6 +229,18 @@ class ThreadData
 
       DLLLOCAL ThreadData(int ptid, QoreProgram *p);
       DLLLOCAL ~ThreadData();
+      DLLLOCAL class LVar *instantiate_lvar()
+      {
+	 return lvstack.instantiate();
+      }
+      DLLLOCAL void uninstantiate_lvar(class ExceptionSink *xsink)
+      {
+	 lvstack.uninstantiate(xsink);
+      }
+      DLLLOCAL class LVar *find_lvar(lvh_t id)
+      {
+	 return lvstack.find(id);
+      }
 };
 
 void ThreadEntry::cleanup()
@@ -356,7 +450,6 @@ void ThreadCleanupList::pop(int exec)
 
 ThreadData::ThreadData(int ptid, class QoreProgram *p) : tid(ptid), vlock(ptid), current_pgm(p)
 {
-   lvstack           = NULL;
    context_stack     = NULL;
    pgm_counter_start = 0;
    pgm_counter_end   = 0;
@@ -445,7 +538,7 @@ void beginParsing(char *file, void *ps)
    }
    td->parse_file = file;
    td->parseState = ps;
-   pthread_setspecific(thread_data_key, td);
+   //pthread_setspecific(thread_data_key, td);
 }
 
 void *endParsing()
@@ -467,7 +560,7 @@ void *endParsing()
       td->parse_file = NULL;
       td->parseState = NULL;
    }
-   pthread_setspecific(thread_data_key, td);
+   //pthread_setspecific(thread_data_key, td);
    return rv;
 }
 
@@ -483,16 +576,19 @@ class VLock *getVLock()
    return &td->vlock;
 }
 
-class LVar *get_thread_stack()
+class LVar *thread_instantiate_lvar()
 {
-   return ((ThreadData *)pthread_getspecific(thread_data_key))->lvstack;
+   return ((ThreadData *)pthread_getspecific(thread_data_key))->instantiate_lvar();
 }
 
-void update_thread_stack(class LVar *lvstack)
+void thread_uninstantiate_lvar(class ExceptionSink *xsink)
 {
-   ThreadData *td = (ThreadData *)pthread_getspecific(thread_data_key);
-   td->lvstack    = lvstack;
-   pthread_setspecific(thread_data_key, td);
+   ((ThreadData *)pthread_getspecific(thread_data_key))->uninstantiate_lvar(xsink);
+}
+
+class LVar *thread_find_lvar(lvh_t id)
+{
+   return ((ThreadData *)pthread_getspecific(thread_data_key))->find_lvar(id);
 }
 
 Context *get_context_stack()
@@ -504,7 +600,7 @@ void update_context_stack(Context *cstack)
 {
    ThreadData *td    = (ThreadData *)pthread_getspecific(thread_data_key);
    td->context_stack = cstack;
-   pthread_setspecific(thread_data_key, td);
+   //pthread_setspecific(thread_data_key, td);
 }
 
 void get_pgm_counter(int &start_line, int &end_line)
@@ -520,7 +616,7 @@ void update_pgm_counter_pgm_file(int start_line, int end_line, char *f)
    td->pgm_counter_start = start_line;
    td->pgm_counter_end   = end_line;
    td->pgm_file          = f;
-   pthread_setspecific(thread_data_key, td);
+   //pthread_setspecific(thread_data_key, td);
 }
 
 void update_pgm_counter(int start_line, int end_line)
@@ -528,7 +624,7 @@ void update_pgm_counter(int start_line, int end_line)
    ThreadData *td  = (ThreadData *)pthread_getspecific(thread_data_key);
    td->pgm_counter_start = start_line;
    td->pgm_counter_end   = end_line;
-   pthread_setspecific(thread_data_key, td);
+   //pthread_setspecific(thread_data_key, td);
 }
 
 char *get_pgm_file()
@@ -549,7 +645,7 @@ void update_parse_location(int start_line, int end_line, char *f)
    td->parse_line_start = start_line;
    td->parse_line_end   = end_line;
    td->parse_file       = f;
-   pthread_setspecific(thread_data_key, td);
+   //pthread_setspecific(thread_data_key, td);
 }
 
 void update_parse_location(int start_line, int end_line)
@@ -557,7 +653,7 @@ void update_parse_location(int start_line, int end_line)
    ThreadData *td  = (ThreadData *)pthread_getspecific(thread_data_key);
    td->parse_line_start = start_line;
    td->parse_line_end   = end_line;
-   pthread_setspecific(thread_data_key, td);
+   //pthread_setspecific(thread_data_key, td);
 }
 
 char *get_parse_file()
@@ -695,7 +791,7 @@ void updateCVarStack(class CVNode *ncvs)
 {
    ThreadData *td = (ThreadData *)pthread_getspecific(thread_data_key);
    td->cvarstack = ncvs;
-   pthread_setspecific(thread_data_key, td);
+   //pthread_setspecific(thread_data_key, td);
 }
 
 class CVNode *getCVarStack()
@@ -707,7 +803,7 @@ void updateVStack(class VNode *nvs)
 {
    ThreadData *td = (ThreadData *)pthread_getspecific(thread_data_key);
    td->vstack = nvs;
-   pthread_setspecific(thread_data_key, td);
+   //pthread_setspecific(thread_data_key, td);
 }
 
 class VNode *getVStack()
@@ -719,7 +815,7 @@ void setParseClass(class QoreClass *c)
 {
    ThreadData *td = (ThreadData *)pthread_getspecific(thread_data_key);
    td->parseClass = c;
-   pthread_setspecific(thread_data_key, td);
+   //pthread_setspecific(thread_data_key, td);
 }
 
 class QoreClass *getParseClass()

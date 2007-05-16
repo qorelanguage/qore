@@ -58,8 +58,6 @@ DLLEXPORT int remove_thread_resource(class AbstractThreadResource *atr);
 DLLLOCAL void purge_thread_resources(class ExceptionSink *xsink);
 DLLLOCAL void beginParsing(char *file, void *ps = NULL);
 DLLLOCAL void *endParsing();
-DLLLOCAL class LVar *get_thread_stack();
-DLLLOCAL void update_thread_stack(class LVar *lvstack);
 DLLLOCAL class Context *get_context_stack();
 DLLLOCAL void update_context_stack(Context *cstack);
 DLLLOCAL void get_pgm_counter(int &start_line, int &end_line);
@@ -87,6 +85,10 @@ DLLLOCAL class Object *substituteObject(class Object *o);
 DLLLOCAL void catchSaveException(class Exception *e);
 DLLLOCAL class Exception *catchGetException();
 DLLLOCAL class VLock *getVLock();
+
+DLLLOCAL class LVar *thread_instantiate_lvar();
+DLLLOCAL void thread_uninstantiate_lvar(class ExceptionSink *xsink);
+DLLLOCAL class LVar *thread_find_lvar(lvh_t id);
 
 #ifdef DEBUG
 DLLLOCAL void pushCall(const char *f, int type, class Object *o = NULL);

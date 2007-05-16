@@ -41,6 +41,10 @@
 
 #include <string>
 
+#ifndef QORE_THREAD_STACK_BLOCK
+#define QORE_THREAD_STACK_BLOCK 128
+#endif
+
 // structure for local variables
 class LVar {
    private:
@@ -50,15 +54,17 @@ class LVar {
 
       DLLLOCAL class QoreNode *evalReference(class ExceptionSink *xsink);
       
-   protected:
-      DLLLOCAL ~LVar() {}
-
    public:
       lvh_t id;
-      class LVar *next;
+      //class LVar *next;
 
+      /*
       DLLLOCAL LVar(lvh_t nid, class QoreNode *nvalue);
       DLLLOCAL LVar(lvh_t nid, class QoreNode *ve, class Object *o);
+       */
+      DLLLOCAL void set(lvh_t nid, class QoreNode *nvalue);
+      DLLLOCAL void set(lvh_t nid, class QoreNode *ve, class Object *o);
+      
       DLLLOCAL class QoreNode **getValuePtr(class AutoVLock *vl, class ExceptionSink *xsink);
       DLLLOCAL class QoreNode *getValue(class AutoVLock *vl, class ExceptionSink *xsink);
       DLLLOCAL void setValue(class QoreNode *val, class ExceptionSink *xsink);

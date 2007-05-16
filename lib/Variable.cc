@@ -204,6 +204,7 @@ void Var::deref(class ExceptionSink *xsink)
    }
 }
 
+/*
 LVar::LVar(lvh_t nid, QoreNode *nvalue) 
 {
    id = nid; 
@@ -213,6 +214,25 @@ LVar::LVar(lvh_t nid, QoreNode *nvalue)
 }
 
 LVar::LVar(lvh_t nid, QoreNode *ve, class Object *o) 
+{
+   id = nid; 
+   value = NULL;
+   vexp = ve;
+   obj = o;
+   if (o)
+      o->tRef();
+}
+*/
+
+void LVar::set(lvh_t nid, QoreNode *nvalue) 
+{
+   id = nid; 
+   value = nvalue; 
+   vexp = NULL;
+   obj = NULL;
+}
+
+void LVar::set(lvh_t nid, QoreNode *ve, class Object *o) 
 {
    id = nid; 
    value = NULL;
@@ -910,17 +930,7 @@ void delete_var_node(class QoreNode *lvalue, ExceptionSink *xsink)
 // pops local variable off stack
 void uninstantiateLVar(class ExceptionSink *xsink)
 {
-   class LVar *lvs = get_thread_stack();
-   class LVar *lvar = lvs;
-
-   //tracein("uninstantiateLVar()");
-   assert(lvs);
-   printd(5, "uninstantiating lvar \"%s\"\n", lvs->id);
-   update_thread_stack(lvs->next);
-
-   // the following call will delete the local variable object
-   lvar->deref(xsink);
-   //traceout("uninstantiateLVar()");
+   thread_uninstantiate_lvar(xsink);
 }
 
 // pushes local variable on stack by value
@@ -928,45 +938,23 @@ class LVar *instantiateLVar(lvh_t id, class QoreNode *value)
 {
    printd(3, "instantiating lvar '%s' by value (val=%08p)\n", id, value);
    // allocate new local variable structure
-   class LVar *lvar = new LVar(id, value);
-   // push on stack
-   lvar->next = get_thread_stack();
-   update_thread_stack(lvar);
+   class LVar *lvar = thread_instantiate_lvar();
+   lvar->set(id, value);
 
    return lvar;
 }
 
 class LVar *instantiateLVar(lvh_t id, class QoreNode *ve, class Object *o)
 {
-   class LVar *lvar;
-
    printd(3, "instantiating lvar %08p '%s' by reference (ve=%08p, o=%08p)\n", id, id, ve, o);
    // if we're instantiating the same variable recursively, then don't instantiate it at all
    // allocate new local variable structure
-   lvar = new LVar(id, ve, o);
-   // push on stack
-   lvar->next = get_thread_stack();
-   update_thread_stack(lvar);
-
+   class LVar *lvar = thread_instantiate_lvar();
+   lvar->set(id, ve, o);
    return lvar;
 }
 
-/*
-// pushes local variable on stack by reference
-static inline class LVar *instantiateLVarRef(lvh_t id, class QoreNode **ptr, class VRMutex *eg)
-{
-   printd(3, "instantiating lvar \"%s\" by reference (ptr=%08p val=%08p)\n", id, ptr, *ptr);
-   // allocate new local variable structure
-   class LVar *lvar = new LVar(id, ptr, eg);
-   // push on stack
-   lvar->next = get_thread_stack();
-   update_thread_stack(lvar);
-
-   return lvar;
-}
-*/
-
-#ifdef DEBUG
+#if 0
 static inline void show_lvstack()
 {
    class LVar *lvar = get_thread_stack();
@@ -986,22 +974,5 @@ static inline void show_lvstack()
 // find_lvar() finds local variables on the local variable stack
 class LVar *find_lvar(lvh_t id)
 {
-   class LVar *lvar = get_thread_stack();
-
-   while (lvar)
-   {
-      //printd(5, "find_lvar(%s) 0x%08p \"%s\" (%08p == %08p) (0x%08p %s) (next=0x%08p)\n", id, lvar, lvar->id, lvar->id, id, lvar->getValue(), lvar->getValue() ? lvar->getValue()->type->getName() : "(null)", lvar->next);
-      if (lvar->id == id)
-         break;
-      lvar = lvar->next;
-   }
-#ifdef DEBUG
-   if (!lvar)
-   {
-      show_lvstack();
-      printd(0, "find_lvar(): local variable %08p (%s) not found on stack!", id, id);
-      assert(false);
-   }
-#endif
-   return lvar;
+   return thread_find_lvar(id);
 }
