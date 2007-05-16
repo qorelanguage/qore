@@ -367,7 +367,7 @@ void LVar::deref(ExceptionSink *xsink)
    }
    else
       discard(value, xsink);
-   delete this;
+   //delete this;
 }
 
 VarRef::VarRef(char *nme, int typ)

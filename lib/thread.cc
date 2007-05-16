@@ -132,17 +132,18 @@ struct ThreadVariableBlock {
 class ThreadVariableStack {
 private:
    ThreadVariableBlock *curr;
+
 public:
    DLLLOCAL ThreadVariableStack()
    {
       curr = new ThreadVariableBlock;
-      printf("this=%08p: first curr=%08p\n", this, curr);
+      //printf("this=%08p: first curr=%08p\n", this, curr);
    }
    DLLLOCAL ~ThreadVariableStack()
    {
       assert(!curr->prev);
       assert(!curr->pos);
-      printf("this=%08p: del curr=%08p\n", this, curr);
+      //printf("this=%08p: del curr=%08p\n", this, curr);
       delete curr;
    }
    DLLLOCAL class LVar *instantiate()
@@ -154,7 +155,7 @@ public:
 	 else
 	 {
 	    curr->next = new ThreadVariableBlock(curr);
-	    printf("this=%08p: add curr=%08p, curr->next=%08p\n", this, curr, curr->next);
+	    //printf("this=%08p: add curr=%08p, curr->next=%08p\n", this, curr, curr->next);
 	    curr = curr->next;
 	 }
       }
@@ -166,7 +167,7 @@ public:
       {
 	 if (curr->next)
 	 {
-	    printf("this %08p: del curr=%08p, curr->next=%08p\n", this, curr, curr->next);
+	    //printf("this %08p: del curr=%08p, curr->next=%08p\n", this, curr, curr->next);
 	    delete curr->next;
 	    curr->next = 0;
 	 }
