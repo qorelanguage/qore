@@ -5,14 +5,14 @@ This document provides an overview of the Qore programming language.
 What is Qore?
 -------------
 
-Qore is a modular, multi-threaded, SQL-integrated weakly-typed scripting language with procedural and object-oriented features, powerful and easy-to-use data types, structures, and operators, a clean and easy-to-lean/read syntax.  
+Qore is a modular, multi-threaded, SQL-integrated dynamically-typed scripting language with procedural and object-oriented features, powerful and easy-to-use data types, structures, and operators, a clean and easy-to-lean/read syntax.
 
 Why use Qore?
 -------------
 
 Qore was designed to provide a flexible vertical platform for business solutions and interface development.  Additionally, Qore was designed to be fun and efficient to program in.
 
-Qore's vertical approach means that the language has been designed to be suitable for writing simple yet powerful scripts, as well as complex, multi-threaded, database integrated, network-aware applications.  Another important feature of Qore at the higher end is the ability for a Qore application to support embedding (and arbitrarily restricting) user-defined logic (also written in the Qore language). The best example for an application taking advantage of this is Qorus Integration Engine (currently a proprietary application, formerly called OM/Qore), which is an Oracle and TIBCO integrated, highly multi-threaded workflow and service engine using XML-RPC as the primary application interface.  Qorus Integration Engine is entirely written in the Qore language, and served as the vehicle for qore language development up to now.
+Qore's vertical approach means that the language has been designed to be suitable for writing simple yet powerful scripts, as well as complex, multi-threaded, database integrated, network-aware applications.  Another important feature of Qore at the higher end is the ability for a Qore application to support embedding (and arbitrarily restricting) user-defined logic (also written in the Qore language). The best example for an application taking advantage of this is Qorus Integration Engine (currently a proprietary application, formerly called OM/Qore), which is highly multi-threaded workflow and service engine using web service protocols (such as XML-RPC and JSON-RPC) as the primary application interface.  A large part of Qorus Integration Engine is written in the Qore language, and has served as the vehicle for qore language development up to now.
 
 Qore is highly threadable and has been designed to favor multi-threaded performance over single-threaded performance, this Qore programs are very scalable on machines with many processors.
 
@@ -26,7 +26,7 @@ By defining methodGate() and memberGate() methods, the programmer can redirect a
 
 Qore has built-in national character set support based on the C library's iconv functions and supports both implicit and explicit character set conversions.  For example, if a Datasource object is assigned the "UTF-8" character set, but a File object has "ISO-8859-1" character set, any data written to the database from the File object will be automatically converted implicitly to the "UTF-8" character set without any intervention necessary by the programmer.
 
-Qore has good Oracle and MySQL integration, making it easy to write scripts/programs to manipulate data in Oracle databases.
+Qore has good Oracle, MySQL, and PostgreSQL integration, making it easy to write scripts/programs to manipulate data in Oracle databases.
 
 Qore has libxml2 integration, allowing simple, automatic, and transparent serialization/deserialization to/from XML data to/from Qore data structures.
 
@@ -42,7 +42,6 @@ Qore has a "tuxedo" module, providing a qore-language Tuxedo client API.
 
 On the future roadmap:
 * add optional strong typing to the language + strongly typed data structures
-* add PostgresSQL and Sybase drivers to the DBI layer
 * add integration with other messaging technologies
 
 How does Qore compare to other programming languages?

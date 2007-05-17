@@ -2,6 +2,19 @@ RELEASE NOTES for qore v0.6.2
 
 NOTE: for platform-specific notes and build instructions, please see the file BUILD
 
+RELEASE SUMMARY: major new features (see compatibility warnings below)
+	*) 3 new DBI drivers, PostgreSQL, Sybase, and FreeTDS ("pgsql", "sybase", "mssql")
+	*) more support for database and driver-independent programming with the Datasource class
+	*) HTTPClient improvements (redirections, basic authentication, proxy support)
+	*) safe signal handling
+	*) complete deadlock detection and thread primitive error handling
+	*) all thread locking primitives now take an optional timeout value
+	*) call references (including object method references that will be executed in the context of the object referenced)
+ 	*) mysql and oracle driver improvements
+	*) extensive enhancements for exception-safe programming (on_exit, on_error, on_success statements, new classes, etc)
+	*) performance improvements
+	*) many new functions and methods, bug fixes, extensive documentation updates, etc
+
 *) ***COMPATIBILITY WARNING***: all timeouts changed to milliseconds
 affects Condition::wait(), Datasource::setTransactionLockTimeout(), and Datasource::getTransactionLockTimeout()
 the optional timeout value is no longer seconds, but milliseconds
@@ -22,16 +35,16 @@ The Gate class participates in the new Qore deadlock detection, more on this bel
 Internally the RMutex class as of this release is a clone of the new implementation of the Gate class
 The RMutex class will be removed in the next release of Qore
 
-*) major performance improvements
+*) performance improvements
 stack traces are now generated on-demand when an exception occurs, instead of constantly allocating heap objects in each thread for each call.
 "argv" stacks and program stacks are now stored per-thread with no allocations (or locking).
 thread resource tracking is now done with a lock-free, per thread mechanism (the global lock has been removed)
-local variable usage was optimized, the number of memory allocations has been reduced by more than 2 orders of magnitude, also memory usage has improved
+local variable usage was optimized, the number of memory allocations/deallocations has been reduced by more than 2 orders of magnitude, also memory space usage has improved
 
 note that the stack trace optimization means the getAllThreadCallStacks() function does not return any useful value with non-debugging versions of qore.
 Call stacks are still maintained with debugging versions of qore so this function can be used to generate a live stack trace of all active threads at any time (useful for finding deadlocks, etc).  The performance impact vs. the utility of maintaining constant stack traces led to the decision to include continuous thread stack tracking only in debugging versions of qore.
 
-Due to the performance improvements in this release, this release of Qore is the fastest release yet for all Qore code, even in the face of significant enhancements to the Qore execution engine (deadlock detection, timeout support, etc).
+Due to the performance improvements in this release, this release of Qore faster than previous releases, even in the face of significant enhancements to the Qore execution engine (deadlock detection, timeout support, etc).
 
 *) "pgsql" module: PostgreSQL driver
 the new "pgsql" driver uses efficient binary communication with PostgreSQL servers for binding and retrieving values from queries.
@@ -167,6 +180,7 @@ This affects:
 	Gate::enter()
 	RWLock::writeLock()
 	RWLock::readLock()
+
 	...
 
 It's recommended to use a relative time value to make the units clear, i.e

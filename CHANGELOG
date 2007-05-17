@@ -2,6 +2,8 @@
 	* eliminated global lock for deadlock detection
 	* use a vector instead of a deque for VLock lock tracking (tests show a
 	  vector is slightly faster than a deque for this usage)
+	* added another example script to demonstrate multiple inheritance 
+	  (inherit2.q)
 
 2006.05.16: David Nichols
 	* local variable optimizations, reduced memory usage, drastically 
