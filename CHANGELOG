@@ -2,8 +2,6 @@
 	* eliminated global lock for deadlock detection
 	* use a vector instead of a deque for VLock lock tracking (tests show a
 	  vector is slightly faster than a deque for this usage)
-	* implemented experimental -k,--no-deadlock-detection flag to disable
-	  deadlock detection for performance reasons
 
 2006.05.16: David Nichols
 	* local variable optimizations, reduced memory usage, drastically 
