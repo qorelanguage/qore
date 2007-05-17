@@ -57,10 +57,13 @@ void AutoVLock::push(class AbstractSmartLock *p)
    push_back(p);
 }
 
-class SafeLocker1 { public: SafeLocker1(LockedObject *l) {} void unlock() {} };
+//class SafeLocker1 { public: SafeLocker1(LockedObject *l) {} void unlock() {} };
 
 int VLock::waitOn(AbstractSmartLock *asl, VLock *vl, class ExceptionSink *xsink, int timeout_ms)
 {
+   if (disable_deadlock_detection)
+      return asl->self_wait(timeout_ms);
+
    SafeLocker sl(&global_lock);
    AbstractSmartLock *vl_wait = vl->waiting_on;
    //printd(5, "VLock::waitOn(asl=%08p) vl_wait=%08p other_tid=%d\n", asl, vl_wait, vl->tid);
@@ -88,6 +91,9 @@ int VLock::waitOn(AbstractSmartLock *asl, VLock *vl, class ExceptionSink *xsink,
 
 int VLock::waitOn(AbstractSmartLock *asl, QoreCondition *cond, VLock *vl, class ExceptionSink *xsink, int timeout_ms)
 {
+   if (disable_deadlock_detection)
+      return asl->self_wait(cond, timeout_ms);
+
    SafeLocker sl(&global_lock);
    AbstractSmartLock *vl_wait = vl->waiting_on;
    //printd(5, "VLock::waitOn(asl=%08p) vl_wait=%08p other_tid=%d\n", asl, vl_wait, vl->tid);
@@ -115,6 +121,9 @@ int VLock::waitOn(AbstractSmartLock *asl, QoreCondition *cond, VLock *vl, class 
 
 int VLock::waitOn(AbstractSmartLock *asl, vlock_map_t &vmap, class ExceptionSink *xsink, int timeout_ms)
 {
+   if (disable_deadlock_detection)
+      return asl->self_wait(timeout_ms);
+
    SafeLocker sl(&global_lock);
    for (vlock_map_t::iterator i = vmap.begin(), e = vmap.end(); i != e; ++i)
    {

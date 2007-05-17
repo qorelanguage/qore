@@ -21,7 +21,7 @@
 extern int parse_options, warnings;
 extern char *def_charset;
 extern char *cl_pgm, *exec_class_name;
-extern bool show_mod_errs, lock_options, exec_class, warnings_are_errors;
+extern bool show_mod_errs, lock_options, exec_class, warnings_are_errors, no_deadlock_detection;
 
 int main(int argc, char *argv[])
 {   
@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
    char *program_file_name = parse_command_line(argc, argv);
 
    // initialize Qore subsystem
-   qore_init(def_charset, show_mod_errs);
+   qore_init(def_charset, show_mod_errs, no_deadlock_detection);
    if (def_charset)
       free(def_charset);
 

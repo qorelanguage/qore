@@ -28,6 +28,8 @@ cl_mod_list_t cl_mod_list;
 int parse_options = 0;
 int warnings = 0;
 
+bool no_deadlock_detection = false;
+
 // lock options
 bool lock_options = false;
 
@@ -63,6 +65,7 @@ static char helpstr[] =
 "  -e, --exec=arg               execute program given on command-line\n"
 "  -h, --help                   shows this help text\n"
 "  -i, --list-warnings          list all warnings and quit\n"
+"  -k, --no-deadlock-detection  disable deadlock detection for performance reasons\n"
 "  -l, --load=arg               load module 'arg' immediately\n"
 "  -m, --show-module-errors     show error messages related to loading and\n"
 "                               initializing qore modules\n"
@@ -121,6 +124,11 @@ static void do_help(char *arg)
    show_usage();
    printf(helpstr);
    exit(0);
+}
+
+static void no_deadlock(char *arg)
+{
+   no_deadlock_detection = true;
 }
 
 static void load_module(char *arg)
@@ -310,6 +318,7 @@ static struct opt_struct_s {
    { 'h', "help",                  ARG_NONE, do_help },
    { 'V', "version",               ARG_NONE, do_version },
    { 'c', "charset",               ARG_MAND, set_charset },
+   { 'k', "no-deadlock-detection", ARG_NONE, no_deadlock },
    { 'l', "load",                  ARG_MAND, load_module },
    { 'e', "exec",                  ARG_MAND, set_exec },
    { 'x', "exec-class",            ARG_OPT,  do_exec_class },

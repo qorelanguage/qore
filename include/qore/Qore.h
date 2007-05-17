@@ -64,6 +64,8 @@
 #include <qore/Context.h>
 #include <qore/Operator.h>
 #include <qore/Tree.h>
+
+DLLLOCAL extern bool disable_deadlock_detection;
 #endif
 
 DLLEXPORT extern char qore_version_string[];
@@ -75,7 +77,7 @@ DLLEXPORT extern int qore_target_bits;
 DLLEXPORT extern char qore_target_os[];
 DLLEXPORT extern char qore_target_arch[];
 
-DLLEXPORT void qore_init(char *def_charset = NULL, bool show_module_errors = false);
+DLLEXPORT void qore_init(char *def_charset = NULL, bool show_module_errors = false, bool disable_deadlock_detection = false);
 DLLEXPORT void qore_cleanup();
 
 #endif  // _QORE_QORE_H
