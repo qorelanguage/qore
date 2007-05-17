@@ -24,12 +24,14 @@ The RMutex class will be removed in the next release of Qore
 
 *) major performance improvements
 stack traces are now generated on-demand when an exception occurs, instead of constantly allocating heap objects in each thread for each call.
-also argv stacks and program stacks are now stored per-thread with no allocations (or locking).
+"argv" stacks and program stacks are now stored per-thread with no allocations (or locking).
 thread resource tracking is now done with a lock-free, per thread mechanism (the global lock has been removed)
 local variable usage was optimized, the number of memory allocations has been reduced by more than 2 orders of magnitude, also memory usage has improved
 
 note that the stack trace optimization means the getAllThreadCallStacks() function does not return any useful value with non-debugging versions of qore.
 Call stacks are still maintained with debugging versions of qore so this function can be used to generate a live stack trace of all active threads at any time (useful for finding deadlocks, etc).  The performance impact vs. the utility of maintaining constant stack traces led to the decision to include continuous thread stack tracking only in debugging versions of qore.
+
+note that deadlock detection can have a negative performance impact; see below
 
 *) "pgsql" module: PostgreSQL driver
 the new "pgsql" driver uses efficient binary communication with PostgreSQL servers for binding and retrieving values from queries.
@@ -144,9 +146,22 @@ These statements provide a powerful mechanism for exception-safe or exception-de
 	}
 
 *) deadlock detection
-All Qore threading primitives (including internal locks for variables and "synchronized" methods, etc) now use the new deadlock detection framework.  Potential deadlocks are checked before any primitive would otherwise block.  If a deadlock is detected, a DEADLOCK-EXCEPTION is thrown.  
+All Qore threading primitives (including internal locks for global variables and "synchronized" methods, etc) now use the new deadlock detection framework.  Potential deadlocks are checked before any primitive would otherwise block.  If a deadlock is detected, a DEADLOCK-EXCEPTION is thrown.  
 
 See test/deadlock.q for deadlock and thread error tests.
+
+Deadlock detection affects:
+* all qore threading classes
+* "synchronized" functions and methods
+* global variable accesses
+* object accesses
+
+Deadlock detection has undergone initial optimization and is only triggered when a threading primitive would block.  
+However, deadlock detection can still have a slight negative performance impact with code that uses a lot of threading primitives (locks, etc), global variables and/or objects.  
+Therefore a new command-line option: -k,--no-deadlock-detection has been implemented to turn off deadlock detection.
+Most Qore code is faster with this release than with any previous release even without this option, however with this option, all qore code is faster than with any previous release, even with the enhanced implementations of all threading primitives...
+
+I hope that I can further improve deadlock detection to the point where this option is no longer necessary, however, in case it's not possible in the short term, I may implement a "fast-threads" module with threading primitives that do not participate in deadlock detection and implement very fast and very simple threading primitives (FastLock, AutoFastLock, FastRWLock, etc).
 
 *) thread locking methods take optional timeouts in ms
 All thread locking methods take an optional timeout value in ms.  
