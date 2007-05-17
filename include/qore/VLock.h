@@ -64,13 +64,6 @@ class VLock : protected abstract_lock_list_t
       // for smart locks that can be held by more than one thread
       DLLLOCAL int waitOn(AbstractSmartLock *asl, vlock_map_t &vmap, class ExceptionSink *xsink, int timeout_ms = 0);
       DLLLOCAL int getTID() const { return tid; }
-      DLLLOCAL AbstractSmartLock *get_waiting_on()
-      {
-	 mutex.lock();
-	 AbstractSmartLock *rv = waiting_on;
-	 mutex.unlock();
-	 return rv;
-      }
          
 #ifdef DEBUG
       DLLLOCAL void show(class VLock *nvl) const; 

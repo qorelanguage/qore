@@ -55,18 +55,18 @@ void AutoVLock::push(class AbstractSmartLock *p)
    push_back(p);
 }
 
-//class SafeLocker1 { public: SafeLocker1(LockedObject *l) {} void unlock() {} };
-
 int VLock::waitOn(AbstractSmartLock *asl, VLock *vl, class ExceptionSink *xsink, int timeout_ms)
 {
    if (disable_deadlock_detection)
       return asl->self_wait(timeout_ms);
 
+   // NOTE: technically all we need is a memory barrier after the waiting_on assignment, not a lock
    mutex.lock();
    waiting_on = asl;
    mutex.unlock();
+   
    int rc = 0;
-   AbstractSmartLock *vl_wait = vl->get_waiting_on(); //waiting_on;
+   AbstractSmartLock *vl_wait = vl->waiting_on;
    //printd(5, "VLock::waitOn(asl=%08p) vl_wait=%08p other_tid=%d\n", asl, vl_wait, vl->tid);
    if (vl_wait && find(vl_wait))
    {
@@ -80,13 +80,13 @@ int VLock::waitOn(AbstractSmartLock *asl, VLock *vl, class ExceptionSink *xsink,
    }
 
    if (!rc)
-   //printd(0, "AbstractSmartLock::block() this=%08p asl=%08p about to block on VRMutex owned by TID %d\n", this, asl, vl ? vl->tid : -1);
+   {
+      //printd(0, "AbstractSmartLock::block() this=%08p asl=%08p about to block on VRMutex owned by TID %d\n", this, asl, vl ? vl->tid : -1);
       rc = asl->self_wait(timeout_ms);
-   //printd(0, "AbstractSmartLock::block() this=%08p asl=%08p regrabbed lock\n", this, asl);
-
-   mutex.lock();
+      //printd(0, "AbstractSmartLock::block() this=%08p asl=%08p regrabbed lock\n", this, asl);
+   }
+   
    waiting_on = NULL;
-   mutex.unlock();
    
    return rc;
 }
@@ -96,12 +96,14 @@ int VLock::waitOn(AbstractSmartLock *asl, QoreCondition *cond, VLock *vl, class 
    if (disable_deadlock_detection)
       return asl->self_wait(cond, timeout_ms);
    
+   // NOTE: technically all we need is a memory barrier after the waiting_on assignment, not a lock
    mutex.lock();
    waiting_on = asl;
    mutex.unlock();
+
    int rc = 0;
-   AbstractSmartLock *vl_wait = vl->get_waiting_on(); //waiting_on;
-						      //printd(5, "VLock::waitOn(asl=%08p) vl_wait=%08p other_tid=%d\n", asl, vl_wait, vl->tid);
+   AbstractSmartLock *vl_wait = vl->waiting_on;
+   //printd(5, "VLock::waitOn(asl=%08p) vl_wait=%08p other_tid=%d\n", asl, vl_wait, vl->tid);
    if (vl_wait && find(vl_wait))
    {
       // NOTE: we throw an exception here anyway as a deadlock is a programming mistake and therefore should be visible to the programmer
@@ -114,13 +116,13 @@ int VLock::waitOn(AbstractSmartLock *asl, QoreCondition *cond, VLock *vl, class 
    }
    
    if (!rc)
+   {
       //printd(0, "AbstractSmartLock::block() this=%08p asl=%08p about to block on VRMutex owned by TID %d\n", this, asl, vl ? vl->tid : -1);
       rc = asl->self_wait(cond, timeout_ms);
-   //printd(0, "AbstractSmartLock::block() this=%08p asl=%08p regrabbed lock\n", this, asl);
-   
-   mutex.lock();
+      //printd(0, "AbstractSmartLock::block() this=%08p asl=%08p regrabbed lock\n", this, asl);
+   }
+
    waiting_on = NULL;
-   mutex.unlock();
    
    return rc;
 }
@@ -130,11 +132,12 @@ int VLock::waitOn(AbstractSmartLock *asl, vlock_map_t &vmap, class ExceptionSink
    if (disable_deadlock_detection)
       return asl->self_wait(timeout_ms);
 
+   // NOTE: technically all we need is a memory barrier after the waiting_on assignment, not a lock
    mutex.lock();
    waiting_on = asl;
    mutex.unlock();
+
    int rc = 0;
-   
    for (vlock_map_t::iterator i = vmap.begin(), e = vmap.end(); i != e; ++i)
    {
       AbstractSmartLock *vl_wait = i->second->waiting_on;
@@ -152,14 +155,14 @@ int VLock::waitOn(AbstractSmartLock *asl, vlock_map_t &vmap, class ExceptionSink
       }
    }
    
-   //printd(0, "AbstractSmartLock::block() this=%08p asl=%08p about to block on VRMutex owned by TID %d\n", this, asl, vl ? vl->tid : -1);
    if (!rc)
+   {
+      //printd(0, "AbstractSmartLock::block() this=%08p asl=%08p about to block on VRMutex owned by TID %d\n", this, asl, vl ? vl->tid : -1);
       rc = asl->self_wait(timeout_ms);
-   //printd(0, "AbstractSmartLock::block() this=%08p asl=%08p regrabbed lock\n", this, asl);
+      //printd(0, "AbstractSmartLock::block() this=%08p asl=%08p regrabbed lock\n", this, asl);
+   }
 
-   mutex.lock();
    waiting_on = NULL;
-   mutex.unlock();
 
    return rc;
 }
@@ -179,14 +182,6 @@ VLock::~VLock()
 {
    //printd(5, "VLock::~VLock() this=%08p\n", this);
    assert(begin() == end());
-/*
-   abstract_lock_list_t::iterator i;
-   while ((i = begin()) != end())
-   {
-      (*i)->release();
-      erase(i);
-   }
-*/
 }
 
 void VLock::push(AbstractSmartLock *g)
