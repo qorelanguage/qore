@@ -60,10 +60,7 @@ int VLock::waitOn(AbstractSmartLock *asl, VLock *vl, class ExceptionSink *xsink,
    if (disable_deadlock_detection)
       return asl->self_wait(timeout_ms);
 
-   // NOTE: technically all we need is a memory barrier after the waiting_on assignment, not a lock
-   mutex.lock();
    waiting_on = asl;
-   mutex.unlock();
    
    int rc = 0;
    AbstractSmartLock *vl_wait = vl->waiting_on;
@@ -96,10 +93,7 @@ int VLock::waitOn(AbstractSmartLock *asl, QoreCondition *cond, VLock *vl, class 
    if (disable_deadlock_detection)
       return asl->self_wait(cond, timeout_ms);
    
-   // NOTE: technically all we need is a memory barrier after the waiting_on assignment, not a lock
-   mutex.lock();
    waiting_on = asl;
-   mutex.unlock();
 
    int rc = 0;
    AbstractSmartLock *vl_wait = vl->waiting_on;
@@ -132,10 +126,7 @@ int VLock::waitOn(AbstractSmartLock *asl, vlock_map_t &vmap, class ExceptionSink
    if (disable_deadlock_detection)
       return asl->self_wait(timeout_ms);
 
-   // NOTE: technically all we need is a memory barrier after the waiting_on assignment, not a lock
-   mutex.lock();
    waiting_on = asl;
-   mutex.unlock();
 
    int rc = 0;
    for (vlock_map_t::iterator i = vmap.begin(), e = vmap.end(); i != e; ++i)

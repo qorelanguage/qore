@@ -29,15 +29,15 @@ int CID_DATASOURCE;
 static void DS_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = test_param(params, NT_STRING, 0);
-   if (!p)
+   if (!p || !p->val.String->strlen())
    {
-      xsink->raiseException("DATASOURCE-PARAMETER-ERROR", "expecting database type as first parameter of ManagedDatasource() constructor");
+      xsink->raiseException("DATASOURCE-PARAMETER-ERROR", "expecting database driver name as first parameter of ManagedDatasource() constructor");
       return;
    }
    DBIDriver *db_driver = DBI.find(p->val.String->getBuffer());
    if (!db_driver)
    {
-      xsink->raiseException("DATASOURCE-UNSUPPORTED-DATABASE", "no DBI driver can be loaded for database type \"%s\"", p->val.String->getBuffer());
+      xsink->raiseException("DATASOURCE-UNSUPPORTED-DATABASE", "DBI driver '%s' cannot be loaded", p->val.String->getBuffer());
       return;
    }
    class ManagedDatasource *ds = new ManagedDatasource(db_driver);

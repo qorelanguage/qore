@@ -41,7 +41,6 @@ typedef std::map<int, class VLock *> vlock_map_t;
 class VLock : protected abstract_lock_list_t
 {
    private:
-      LockedObject mutex;	       // for synchronizing deadlock detection
       AbstractSmartLock *waiting_on;   // the lock this object is waiting on
       int tid;
 

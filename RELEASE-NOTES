@@ -31,7 +31,7 @@ local variable usage was optimized, the number of memory allocations has been re
 note that the stack trace optimization means the getAllThreadCallStacks() function does not return any useful value with non-debugging versions of qore.
 Call stacks are still maintained with debugging versions of qore so this function can be used to generate a live stack trace of all active threads at any time (useful for finding deadlocks, etc).  The performance impact vs. the utility of maintaining constant stack traces led to the decision to include continuous thread stack tracking only in debugging versions of qore.
 
-note that deadlock detection can have a negative performance impact; see below
+Due to the performance improvements in this release, this release of Qore is the fastest release yet for all Qore code, even in the face of significant enhancements to the Qore execution engine (deadlock detection, timeout support, etc).
 
 *) "pgsql" module: PostgreSQL driver
 the new "pgsql" driver uses efficient binary communication with PostgreSQL servers for binding and retrieving values from queries.
@@ -156,12 +156,9 @@ Deadlock detection affects:
 * global variable accesses
 * object accesses
 
-Deadlock detection has undergone initial optimization and is only triggered when a threading primitive would block.  
-However, deadlock detection can still have a slight negative performance impact with code that uses a lot of threading primitives (locks, etc), global variables and/or objects.  
-Therefore a new command-line option: -k,--no-deadlock-detection has been implemented to turn off deadlock detection.
-Most Qore code is faster with this release than with any previous release even without this option, however with this option, all qore code is faster than with any previous release, even with the enhanced implementations of all threading primitives...
+Deadlock detection has been optimized with a fast algorithm and efficient data structures and is only executed when a thread would block.
 
-I hope that I can further improve deadlock detection to the point where this option is no longer necessary, however, in case it's not possible in the short term, I may implement a "fast-threads" module with threading primitives that do not participate in deadlock detection and implement very fast and very simple threading primitives (FastLock, AutoFastLock, FastRWLock, etc).
+Despite the new deadlock detection infrastructure and significantly enhanced threading primitives in this release, this release of qore is faster than any previous release on single and multi-processor systems, even with Qore code making extensive use of global variables, objects, "synchronized" code, and threading primitives.
 
 *) thread locking methods take optional timeouts in ms
 All thread locking methods take an optional timeout value in ms.  

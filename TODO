@@ -12,6 +12,7 @@ see docs/roadmap.html
 * implement GZFile class
 
 docs:
+* document thread resource tracking
 * expand on call references
 * add examples for modules
 * write ncurses module documentation
