@@ -25,8 +25,6 @@
 
 #include <assert.h>
 
-LockedObject VLock::global_lock;
-
 AutoVLock::AutoVLock()
 {
    //printd(5, "AutoVLock::AutoVLock() this=%08p\n", this);
@@ -64,27 +62,31 @@ int VLock::waitOn(AbstractSmartLock *asl, VLock *vl, class ExceptionSink *xsink,
    if (disable_deadlock_detection)
       return asl->self_wait(timeout_ms);
 
-   SafeLocker sl(&global_lock);
-   AbstractSmartLock *vl_wait = vl->waiting_on;
+   mutex.lock();
+   waiting_on = asl;
+   mutex.unlock();
+   int rc = 0;
+   AbstractSmartLock *vl_wait = vl->get_waiting_on(); //waiting_on;
    //printd(5, "VLock::waitOn(asl=%08p) vl_wait=%08p other_tid=%d\n", asl, vl_wait, vl->tid);
    if (vl_wait && find(vl_wait))
    {
-      sl.unlock();
       // NOTE: we throw an exception here anyway as a deadlock is a programming mistake and therefore should be visible to the programmer
       // (even if it really wouldn't technically deadlock at this point due to the timeout)
       if (timeout_ms)
 	 xsink->raiseException("THREAD-DEADLOCK", "TID %d and %d would deadlock on the same resources; this represents a programming error so even though a %s method was called with a timeout and therefore would not technically deadlock at this point, this exception is thrown anyway.", vl->tid, tid, asl->getName());
       else
 	 xsink->raiseException("THREAD-DEADLOCK", "TID %d and %d have deadlocked trying to acquire the same resources", vl->tid, tid);
-      return -1;
+      rc = -1;
    }
-   waiting_on = asl;
-   sl.unlock();
-   
+
+   if (!rc)
    //printd(0, "AbstractSmartLock::block() this=%08p asl=%08p about to block on VRMutex owned by TID %d\n", this, asl, vl ? vl->tid : -1);
-   int rc = asl->self_wait(timeout_ms);
+      rc = asl->self_wait(timeout_ms);
    //printd(0, "AbstractSmartLock::block() this=%08p asl=%08p regrabbed lock\n", this, asl);
+
+   mutex.lock();
    waiting_on = NULL;
+   mutex.unlock();
    
    return rc;
 }
@@ -93,28 +95,32 @@ int VLock::waitOn(AbstractSmartLock *asl, QoreCondition *cond, VLock *vl, class 
 {
    if (disable_deadlock_detection)
       return asl->self_wait(cond, timeout_ms);
-
-   SafeLocker sl(&global_lock);
-   AbstractSmartLock *vl_wait = vl->waiting_on;
-   //printd(5, "VLock::waitOn(asl=%08p) vl_wait=%08p other_tid=%d\n", asl, vl_wait, vl->tid);
+   
+   mutex.lock();
+   waiting_on = asl;
+   mutex.unlock();
+   int rc = 0;
+   AbstractSmartLock *vl_wait = vl->get_waiting_on(); //waiting_on;
+						      //printd(5, "VLock::waitOn(asl=%08p) vl_wait=%08p other_tid=%d\n", asl, vl_wait, vl->tid);
    if (vl_wait && find(vl_wait))
    {
-      sl.unlock();
       // NOTE: we throw an exception here anyway as a deadlock is a programming mistake and therefore should be visible to the programmer
       // (even if it really wouldn't technically deadlock at this point due to the timeout)
       if (timeout_ms)
 	 xsink->raiseException("THREAD-DEADLOCK", "TID %d and %d would deadlock on the same resources; this represents a programming error so even though a %s method was called with a timeout and therefore would not technically deadlock at this point, this exception is thrown anyway.", vl->tid, tid, asl->getName());
       else
 	 xsink->raiseException("THREAD-DEADLOCK", "TID %d and %d have deadlocked trying to acquire the same resources", vl->tid, tid);
-      return -1;
+      rc = -1;
    }
-   waiting_on = asl;
-   sl.unlock();
-
-   //printd(0, "AbstractSmartLock::block() this=%08p asl=%08p about to block on VRMutex owned by TID %d\n", this, asl, vl ? vl->tid : -1);
-   int rc = asl->self_wait(cond, timeout_ms);
+   
+   if (!rc)
+      //printd(0, "AbstractSmartLock::block() this=%08p asl=%08p about to block on VRMutex owned by TID %d\n", this, asl, vl ? vl->tid : -1);
+      rc = asl->self_wait(cond, timeout_ms);
    //printd(0, "AbstractSmartLock::block() this=%08p asl=%08p regrabbed lock\n", this, asl);
+   
+   mutex.lock();
    waiting_on = NULL;
+   mutex.unlock();
    
    return rc;
 }
@@ -124,31 +130,37 @@ int VLock::waitOn(AbstractSmartLock *asl, vlock_map_t &vmap, class ExceptionSink
    if (disable_deadlock_detection)
       return asl->self_wait(timeout_ms);
 
-   SafeLocker sl(&global_lock);
+   mutex.lock();
+   waiting_on = asl;
+   mutex.unlock();
+   int rc = 0;
+   
    for (vlock_map_t::iterator i = vmap.begin(), e = vmap.end(); i != e; ++i)
    {
       AbstractSmartLock *vl_wait = i->second->waiting_on;
       //printd(5, "VLock::waitOn(asl=%08p, vmap size=%d) vl_wait=%08p other_tid=%d\n", asl, vmap.size(), vl_wait, i->second->tid);
       if (vl_wait && find(vl_wait))
       {
-	 sl.unlock();
 	 // NOTE: we throw an exception here anyway as a deadlock is a programming mistake and therefore should be visible to the programmer
 	 // (even if it really wouldn't technically deadlock at this point due to the timeout)
 	 if (timeout_ms)
 	    xsink->raiseException("THREAD-DEADLOCK", "TID %d and %d would deadlock on the same resources; this represents a programming error so even though a %s method was called with a timeout and therefore would not technically deadlock at this point, this exception is thrown anyway.", i->second->tid, tid, asl->getName());
 	 else
 	    xsink->raiseException("THREAD-DEADLOCK", "TID %d and %d have deadlocked trying to acquire the same resources", i->second->tid, tid);
-	 return -1;
+	 rc = -1;
+	 break;
       }
    }
-   waiting_on = asl;
-   sl.unlock();
    
    //printd(0, "AbstractSmartLock::block() this=%08p asl=%08p about to block on VRMutex owned by TID %d\n", this, asl, vl ? vl->tid : -1);
-   int rc = asl->self_wait(timeout_ms);
+   if (!rc)
+      rc = asl->self_wait(timeout_ms);
    //printd(0, "AbstractSmartLock::block() this=%08p asl=%08p regrabbed lock\n", this, asl);
+
+   mutex.lock();
    waiting_on = NULL;
-   
+   mutex.unlock();
+
    return rc;
 }
 

@@ -27,10 +27,13 @@
 #include <qore/Qore.h>
 #include <qore/AbstractSmartLock.h>
 
-#include <deque>
+#include <vector>
 #include <map>
 
-typedef std::deque<AbstractSmartLock *> abstract_lock_list_t;
+// this list will mostly have entries pushed and popped on the end
+// testing shows that a vector is slightly faster than a deque for this usage
+// and must faster than a list
+typedef std::vector<AbstractSmartLock *> abstract_lock_list_t;
 
 typedef std::map<int, class VLock *> vlock_map_t;
 
@@ -38,8 +41,8 @@ typedef std::map<int, class VLock *> vlock_map_t;
 class VLock : protected abstract_lock_list_t
 {
    private:
-      static LockedObject global_lock;
-      AbstractSmartLock *waiting_on;
+      LockedObject mutex;	       // for synchronizing deadlock detection
+      AbstractSmartLock *waiting_on;   // the lock this object is waiting on
       int tid;
 
       // not implemented
@@ -47,7 +50,7 @@ class VLock : protected abstract_lock_list_t
       VLock& operator=(const VLock&);
       
    public:
-      DLLEXPORT VLock(int n_tid);
+      DLLLOCAL VLock(int n_tid);
       DLLLOCAL ~VLock();
       DLLLOCAL void push(AbstractSmartLock *g);
       DLLLOCAL int pop(AbstractSmartLock *asl);
@@ -61,6 +64,13 @@ class VLock : protected abstract_lock_list_t
       // for smart locks that can be held by more than one thread
       DLLLOCAL int waitOn(AbstractSmartLock *asl, vlock_map_t &vmap, class ExceptionSink *xsink, int timeout_ms = 0);
       DLLLOCAL int getTID() const { return tid; }
+      DLLLOCAL AbstractSmartLock *get_waiting_on()
+      {
+	 mutex.lock();
+	 AbstractSmartLock *rv = waiting_on;
+	 mutex.unlock();
+	 return rv;
+      }
          
 #ifdef DEBUG
       DLLLOCAL void show(class VLock *nvl) const; 
