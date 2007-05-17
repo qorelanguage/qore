@@ -8,6 +8,48 @@ const opts =
     ( "help"       : "h,help",
       "verbose"    : "v,verbose" );
 
+class thread_object_test {
+    constructor()
+    {
+	$.process_command_line();
+	new CounterTest($.threads, $.iters);
+	new QueueTest($.threads, $.iters);
+        new ThreadTest($.threads, $.iters);
+    }
+
+    usage()
+    {
+        printf("usage: %s -[options] [iterations [threads]]
+  -h,--help           this help text
+  -v,--verbose        more information
+", basename($ENV."_"));
+        exit();
+    }
+
+    process_command_line()
+    {
+        my $g = new GetOpt(opts);
+        $.o = $g.parse(\$ARGV);
+        
+        if (exists $.o."_ERRORS_")
+        {
+            printf("%s\n", $.o."_ERRORS_"[0]);
+            exit(1);
+        }
+        
+        if ($.o.help)
+            $.usage();
+
+	$.iters = int(shift $ARGV);
+	if (!$.iters)
+	    $.iters = 2000;
+	$.threads = int(shift $ARGV);
+	if (!$.threads)
+	    $.threads = 5;
+	printf("iterations=%d threads=%d\n", $.iters, $.threads);
+    }
+}
+
 class CounterTest {
     constructor($threads, $iters)
     {
@@ -95,7 +137,6 @@ class ThreadTest inherits Mutex {
         $.drw = new RWLock();
         $.g   = new Gate();
         $.c   = new Counter();
-        #$.s   = new SingleExitGate();
         while ($threads)
         {
 	    $.c.inc();
@@ -209,46 +250,3 @@ class ThreadTest inherits Mutex {
     }
 }
 
-class thread_object_test {
-    private $.o;
-
-    constructor()
-    {
-	$.process_command_line();
-	new CounterTest($.threads, $.iters);
-	new QueueTest($.threads, $.iters);
-        new ThreadTest($.threads, $.iters);
-    }
-
-    private usage()
-    {
-        printf("usage: %s -[options] [iterations [threads]]
-  -h,--help           this help text
-  -v,--verbose        more information
-", basename($ENV."_"));
-        exit();
-    }
-
-    private process_command_line()
-    {
-        my $g = new GetOpt(opts);
-        $.o = $g.parse(\$ARGV);
-        
-        if (exists $.o."_ERRORS_")
-        {
-            printf("%s\n", $.o."_ERRORS_"[0]);
-            exit(1);
-        }
-        
-        if ($.o.help)
-            $.usage();
-
-	$.iters = int(shift $ARGV);
-	if (!$.iters)
-	    $.iters = 2000;
-	$.threads = int(shift $ARGV);
-	if (!$.threads)
-	    $.threads = 5;
-	printf("iterations=%d threads=%d\n", $.iters, $.threads);
-    }
-}
