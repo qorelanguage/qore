@@ -57,9 +57,6 @@ void AutoVLock::push(class AbstractSmartLock *p)
 
 int VLock::waitOn(AbstractSmartLock *asl, VLock *vl, class ExceptionSink *xsink, int timeout_ms)
 {
-   if (disable_deadlock_detection)
-      return asl->self_wait(timeout_ms);
-
    waiting_on = asl;
    
    int rc = 0;
@@ -90,9 +87,6 @@ int VLock::waitOn(AbstractSmartLock *asl, VLock *vl, class ExceptionSink *xsink,
 
 int VLock::waitOn(AbstractSmartLock *asl, QoreCondition *cond, VLock *vl, class ExceptionSink *xsink, int timeout_ms)
 {
-   if (disable_deadlock_detection)
-      return asl->self_wait(cond, timeout_ms);
-   
    waiting_on = asl;
 
    int rc = 0;
@@ -123,9 +117,6 @@ int VLock::waitOn(AbstractSmartLock *asl, QoreCondition *cond, VLock *vl, class 
 
 int VLock::waitOn(AbstractSmartLock *asl, vlock_map_t &vmap, class ExceptionSink *xsink, int timeout_ms)
 {
-   if (disable_deadlock_detection)
-      return asl->self_wait(timeout_ms);
-
    waiting_on = asl;
 
    int rc = 0;

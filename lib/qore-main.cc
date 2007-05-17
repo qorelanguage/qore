@@ -44,12 +44,11 @@ extern char **environ;
 
 int qore_trace = 0;
 int debug = 0;
+int qore_library_options = QLO_NONE;
 
-bool disable_deadlock_detection = false;
-
-void qore_init(char *def_charset, bool show_module_errors, bool n_disable_deadlock_detection)
+void qore_init(char *def_charset, bool show_module_errors, int n_qore_library_options)
 {
-   disable_deadlock_detection = n_disable_deadlock_detection;
+   qore_library_options = n_qore_library_options;
 
    // initialize libxml2 library
    LIBXML_TEST_VERSION

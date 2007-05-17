@@ -39,9 +39,8 @@ void AbstractSmartLock::cleanup(class ExceptionSink *xsink)
 
 void AbstractSmartLock::mark_and_push(int mtid, class VLock *nvl)
 {
-   if (!disable_deadlock_detection)
-      nvl->push(this);
-
+   nvl->push(this);
+   
    tid = mtid;
    vl = nvl;
 }
@@ -60,9 +59,8 @@ void AbstractSmartLock::signalImpl()
 
 void AbstractSmartLock::release_and_signal()
 {
-   if (!disable_deadlock_detection)
-      vl->pop(this);
-
+   vl->pop(this);
+   
    if (tid >= 0)
       tid = Lock_Unlocked;
    vl = NULL;
@@ -92,9 +90,8 @@ void AbstractSmartLock::destructor(class ExceptionSink *xsink)
    destructorImpl(xsink);
    if (tid >= 0)
    {
-      if (!disable_deadlock_detection)
-	 vl->pop(this);
-
+      vl->pop(this);
+      
       int mtid = gettid();
       if (mtid == tid)
       {
