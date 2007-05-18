@@ -278,6 +278,7 @@ EXTRA_DIST = .build next_build.sh WHATISQORE RELEASE-NOTES \
 	examples/clisrv.q \
 	examples/xml-rpc-client.q \
 	examples/inherit.q \
+	examples/inherit2.q \
 	examples/getopt.q \
 	examples/worm.q \
 	docs/qore.html \

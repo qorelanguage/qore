@@ -101,6 +101,10 @@ void QoreSignalManager::init()
 
    // block all signals
    sigfillset(&mask);
+#ifdef PROFILE
+   // do not block SIGPROF if profiling is enabled
+   sigdelset(&mask, SIGPROF);
+#endif
    pthread_sigmask(SIG_SETMASK, &mask, NULL);
 
    // set up default handler mask

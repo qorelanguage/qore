@@ -1,6 +1,6 @@
 see docs/roadmap.html
 
-* do block allocations of per-thread local variable slots for performance reasons
+* add support for ranges [2..9] and dereferencing strings with []
 * add support for break and continue arguments to affect outer loops
 * add error code to exceptions for XML-RPC fault reporting
 * add context functions
@@ -19,12 +19,13 @@ docs:
 * document optimizations
 
 done:
+* do block allocations of per-thread local variable slots for performance reasons
 * add signal constants/infrastructure
 * remove thread call stack tracing in non-debugging mode
 * make lists of items disabled with parse restrictions
 * make a section for each parse restriction
 * implement support for regular expressions in case expressions
-* implement function or object/method pointers
+* implement function and object/method pointers
 * fix Queue class (destructor must wake up any sleeping threads)
 * add file functions (is_file() is_dir() is_symlink(), etc)
 * do not allow global variable initialization at the top level if NO_TOP_LEVEL is set

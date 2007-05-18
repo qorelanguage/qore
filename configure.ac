@@ -563,6 +563,10 @@ else
    AC_DEFINE(NDEBUG, 1, Define if assert() declarations should be suppressed)
 fi
 
+if test "${enable_profile}" = yes; then
+   AC_DEFINE(PROFILE, 1, Define if profiling support should be included)
+fi
+
 AC_ARG_ENABLE([optimization],
      [AS_HELP_STRING([--enable-optimization],
 		     [turn on optimization (default=auto (yes unless debugging is enabled)])],

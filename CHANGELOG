@@ -1,3 +1,6 @@
+2006.05.18: David Nichols
+	* do not mask SIGPROF when profiling is enabled
+
 2006.05.17: David Nichols
 	* eliminated global lock for deadlock detection
 	* use a vector instead of a deque for VLock lock tracking (tests show a
