@@ -1,5 +1,6 @@
 2006.05.18: David Nichols
 	* do not mask SIGPROF when profiling is enabled
+	* more const char * updates
 
 2006.05.17: David Nichols
 	* eliminated global lock for deadlock detection

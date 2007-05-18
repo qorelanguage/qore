@@ -459,7 +459,7 @@ void Object::doDelete(class ExceptionSink *xsink)
 }
 
 // NOTE: caller must unlock
-class QoreNode **Object::getMemberValuePtr(char *key, class AutoVLock *vl, class ExceptionSink *xsink)
+class QoreNode **Object::getMemberValuePtr(const char *key, class AutoVLock *vl, class ExceptionSink *xsink)
 {
    if (g.enter(xsink) < 0)
       return NULL;
@@ -512,7 +512,7 @@ class QoreNode *Object::getMemberValueNoMethod(QoreString *key, class AutoVLock 
 }
 
 // NOTE: caller must unlock
-class QoreNode *Object::getMemberValueNoMethod(char *key, class AutoVLock *vl, class ExceptionSink *xsink)
+class QoreNode *Object::getMemberValueNoMethod(const char *key, class AutoVLock *vl, class ExceptionSink *xsink)
 {
    if (g.enter(xsink) < 0)
       return NULL;
@@ -548,7 +548,7 @@ void Object::deleteMemberValue(QoreString *key, ExceptionSink *xsink)
    g.exit();
 }
 
-void Object::deleteMemberValue(char *key, ExceptionSink *xsink)
+void Object::deleteMemberValue(const char *key, ExceptionSink *xsink)
 {
    if (g.enter(xsink) < 0)
       return;
@@ -579,7 +579,7 @@ class List *Object::getMemberList(class ExceptionSink *xsink)
    return lst;
 }
 
-void Object::setValue(char *key, class QoreNode *value, ExceptionSink *xsink)
+void Object::setValue(const char *key, class QoreNode *value, ExceptionSink *xsink)
 {
    if (g.enter(xsink) < 0)
       return;
@@ -681,7 +681,7 @@ class QoreNode *Object::evalMemberNoMethod(const char *mem, class ExceptionSink 
 }
 
 // it's OK to return NULL here to duplicate the behaviour of NOTHING
-class QoreNode *Object::evalMemberExistence(char *mem, class ExceptionSink *xsink)
+class QoreNode *Object::evalMemberExistence(const char *mem, class ExceptionSink *xsink)
 {
    if (g.enter(xsink) < 0)
       return NULL;
@@ -734,7 +734,7 @@ class QoreNode **Object::getExistingValuePtr(class QoreString *mem, class AutoVL
 
 // NOTE: caller must unlock lock
 // we check if the object is already locked
-class QoreNode **Object::getExistingValuePtr(char *mem, class AutoVLock *vl, class ExceptionSink *xsink)
+class QoreNode **Object::getExistingValuePtr(const char *mem, class AutoVLock *vl, class ExceptionSink *xsink)
 {
    if (g.enter(xsink) < 0)
       return NULL;

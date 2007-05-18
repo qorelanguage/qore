@@ -1833,7 +1833,7 @@ $f.open("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</prog
 	  <tbody>
 	    <row>
 	      <entry><para>String</para></entry>
-	      <entry><para>The data read from the file, returned as a string.</para></entry>
+	      <entry><para>The data read from the file, returned as a string.  NOTHING is returned if end-of-file is encountered, however, if data has been read before EOF, the data read will be returned and NOTHING (signifying EOF) will be returned on the next call to this method.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -2892,7 +2892,7 @@ $f.open("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</prog
 	  <tbody>
 	    <row>
 	      <entry><para>Binary</para></entry>
-	      <entry><para>A binary object containing the data read from the file.</para></entry>
+	      <entry><para>A binary object containing the data read from the file.  NOTHING is returned if end-of-file is encountered, however, if data has been read before EOF, the data read will be returned and NOTHING (signifying EOF) will be returned on the next call to this method.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -2985,7 +2985,7 @@ $f.open("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</prog
 	  <tbody>
 	    <row>
 	      <entry><para>String</para></entry>
-	      <entry><para>The line read from the file or NOTHING at end of file.</para></entry>
+	      <entry><para>The line read from the file.  NOTHING is returned if end-of-file is encountered, however, if data has been read before EOF, the data read will be returned and NOTHING (signifying EOF) will be returned on the next call to this method.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
