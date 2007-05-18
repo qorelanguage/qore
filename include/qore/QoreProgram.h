@@ -40,8 +40,6 @@
 #include <string>
 #include <set>
 
-typedef std::set<int> int_set_t;
-
 // the two-layered reference counting is to eliminate problems from circular references
 // when a program has a global variable that contains an object that references the program...
 // objects now reference the dependency counter, so when the object's counter reaches zero and
@@ -73,7 +71,6 @@ class QoreProgram : public AbstractPrivateData
       bool po_locked, exec_class, base_object, requires_exception;
       std::string exec_class_name;
       pthread_key_t thread_local_storage;
-      int_set_t sig_set;
       
       DLLLOCAL void init();
       DLLLOCAL void nextSB();

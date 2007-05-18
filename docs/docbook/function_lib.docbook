@@ -6679,7 +6679,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Example</term>
       <listitem>
-	<programlisting>$date = gmtime(mktime(now)); # returns current GMT</programlisting>
+	<programlisting>$date = gmtime(mktime(now())); # returns current GMT</programlisting>
+	<programlisting>$date = gmtime();              # also returns current GMT</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>

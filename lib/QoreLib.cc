@@ -683,7 +683,7 @@ class FunctionReference *getFunctionReference(class QoreString *str, class Excep
    class UserFunction *f = pgm->findUserFunction(str->getBuffer());
    if (!f)
    {
-      xsink->raiseException("NO-SUCH-FUNCTION", "sort callback function '%s()' does not exist", str->getBuffer());
+      xsink->raiseException("NO-SUCH-FUNCTION", "callback function '%s()' does not exist", str->getBuffer());
       return NULL;
    }
    return new FunctionReference(f, pgm);

@@ -31,6 +31,10 @@
 #include <string>
 #include <functional>
 #include <list>
+#include <set>
+
+// set of integers
+typedef std::set<int> int_set_t;
 
 #ifdef _MSC_VER
   #ifdef BUILDING_DLL
