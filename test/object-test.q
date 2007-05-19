@@ -58,7 +58,7 @@ sub et($t)
 }
 
 our $t = new Test(1, 2, 3);
-new Test(3, 4, 5).hello();
+(new Test(3, 4, 5)).hello();
 #$t.p1();
 #$t.p2();
 printf("object type=%s\n", $t.getType());

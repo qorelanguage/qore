@@ -425,7 +425,7 @@ QoreTypeManager::QoreTypeManager()
    add(NT_CONTEXTREF = new QoreType("context reference", NULL, contextref_Eval, NULL, NULL, NULL, NULL, NULL, NULL, simpleStringCopy, NULL, temp_crefDelete, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
    add(NT_COMPLEXCONTEXTREF = new QoreType("complex context reference", NULL, complexcontextref_Eval, NULL, NULL, NULL, NULL, NULL, NULL, complexcontextref_Copy, NULL, complexcontextref_DeleteContents, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
    add(NT_VARREF = new QoreType("variable reference", NULL, varref_Eval, varref_eval_opt_deref, NULL, NULL, NULL, NULL, NULL, varref_Copy, NULL, varref_DeleteContents, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
-   add(NT_TREE = new QoreType("tree", NULL, tree_Eval, NULL, tree_bool_eval, NULL, NULL, NULL, NULL, INVALID_COPY, NULL, tree_DeleteContents, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
+   add(NT_TREE = new QoreType("expression tree", NULL, tree_Eval, NULL, tree_bool_eval, NULL, NULL, NULL, NULL, INVALID_COPY, NULL, tree_DeleteContents, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
    add(NT_FIND = new QoreType("find", NULL, find_Eval, NULL, NULL, NULL, NULL, NULL, NULL, INVALID_COPY, NULL, find_DeleteContents, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
    add(NT_FUNCTION_CALL = new QoreType("function call", NULL, fcall_Eval, NULL, NULL, NULL, NULL, NULL, NULL, INVALID_COPY, NULL, fcall_DeleteContents, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
    add(NT_SELF_VARREF = new QoreType("in-object variable reference", NULL, selfref_Eval, NULL, NULL, NULL, NULL, NULL, NULL, simpleStringCopy, NULL, simpleStringDelete, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));

@@ -151,7 +151,7 @@ try
 	$queue.push(sprintf("total %d threads\n", num_threads()));
 	foreach my $t in ($l = thread_list())
 	    $queue.push(sprintf("TID %d still running\n", $t));
-	if (elements $l == 2)
+	if (elements $l == 3)
 	    break;
 	sleep(2);
     }
@@ -168,15 +168,3 @@ $queue.push(sprintf("key1=%s key2=%s mutex=%s\n", $obj.key1, $obj.key2, typename
 # tell output thread to terminate
 $queue.push("exit");
 
-/*
-for (my $i = 0; $i < $iters; $i++)
-{
-    printf("whizzlers ");
-    delay();
-}
-print("\n");
-*/
-
-#print("list of all global variables:\n");
-#foreach my $v in (dbg_global_vars())
-#    printf("%s\n", substr($v, 1));

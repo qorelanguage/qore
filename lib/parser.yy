@@ -1984,7 +1984,7 @@ exp:    scalar
 	   }
 	   else if ($2->type != NT_FUNCTION_CALL)
 	   {
-	      parse_error("invalid expression after 'new' operator");
+	      parse_error("invalid expression after 'new' operator (%s)", $2 ? $2->type->getName() : "<nothing>");
 	      $$ = $2;
 	   }
 	   else

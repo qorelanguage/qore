@@ -1,6 +1,5 @@
 see docs/roadmap.html
 
-* BUG: eliminate duplicate stack entries on exceptions
 * add support for special ::toString() method to serialize an object to a string (very useful for debugging)
 * add support for ranges [2..9] and dereferencing strings with []
 * add support for break and continue arguments to affect outer loops
@@ -10,7 +9,7 @@ see docs/roadmap.html
 * track include files, make sure they are only included once
 * add argument info to functions, throw errors if arguments are not correct
 * add parse-time argument checks (instead of just run-time exceptions)
-* add constant execution flag to functions, to allow execution in constant expressions
+* add "constant" flag to functions, to allow execution in constant expressions
 * implement GZFile class
 
 docs:

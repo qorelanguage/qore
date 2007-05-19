@@ -19,7 +19,7 @@ catch ($ex)
     $q.push(1);
     printf("%s: %s\n", $ex.err, $ex.desc);
 }
-while (num_threads() > 1)
+while (num_threads() > 2)
 {
     printf("size=%d, threads=%d, sleeping for 0.5 seconds\n", $q.size(), num_threads());
     usleep(500ms);
