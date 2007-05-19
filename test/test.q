@@ -337,6 +337,7 @@ sub local_operator_test()
     $a = 10;
     $a /= 2;
     test_value($a, 5, "integer /= operator");
+    test_value(4 / 2, 2, "first / operator");
     $a = 0xfdb4902a;
     $a ^= 0xbf40e848;
     test_value($a, 0x42f47862, "^= xor equals operator");

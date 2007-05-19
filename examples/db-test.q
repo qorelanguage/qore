@@ -17,13 +17,6 @@ const opts =
       "user"   : "u,user=s",
       "oracle" : "o,oracle" );
 
-# add a convenient method to the Datasource class 
-Datasource::selectRow($sql)
-{
-    context ($.select($sql))
-        return %%;
-}
-
 sub usage()
 {
     printf("usage: %s [options]

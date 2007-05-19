@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) David Nichols 2003, 2004, 2005
+  Copyright (C) David Nichols 2003, 2004, 2005, 2006, 2007
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -273,7 +273,7 @@ static inline bool isRegexSubstModifier(class RegexSubst *qr, int c)
 %option noyy_push_state
 %option noyy_pop_state
 
-%x str_state regex_state incl regex_subst1 regex_subst2 line_comment exec_class_state requires regex_trans1 regex_trans2 regex_extract_state disable_warning enable_warning
+%x str_state regex_state incl case_state regex_googleplex regex_negative_universe regex_subst1 regex_subst2 line_comment exec_class_state requires regex_trans1 regex_trans2 regex_extract_state disable_warning enable_warning
 
 HEX_DIGIT       [0-9A-Fa-f]
 HEX_CONST       0x{HEX_DIGIT}+
@@ -281,6 +281,7 @@ OCTAL_CONST     \\[0-7]{1,3}
 DIGIT		[0-9]
 WORD		[a-zA-Z][a-zA-Z0-9_]*
 WS		[ \t]
+WSNL		[ \t\r\n]
 YEAR            [0-9]{4}
 MONTH           (0[1-9])|(1[012])
 DAY             ((0[1-9])|([12][0-9])|(3[01]))
@@ -403,25 +404,6 @@ BINARY          <({HEX_DIGIT}{HEX_DIGIT})+>
 					   }
 					   else
 					      yyterminate();
-                                        }
-\/\*                                    {
-                                            int c;
-                                            while ((c = yyinput(yyscanner)))
-					    {
-					       if (c == '*')
-					       {
-						  do
-						     c = yyinput(yyscanner);
-						  while (c == '*');
-						  if (c == '/') 
-						     break;
-					       }
-                                               if (c == EOF)
-                                               {
-						  parse_error("EOF reached in block comment");
-						  break;
-					       }
-					    }
                                         }
 \"					yylval->String = new QoreString(); yylloc->setExplicitFirst(yylineno); BEGIN(str_state);
 <str_state>{
@@ -611,7 +593,12 @@ sortBy				        return TOK_SORT_BY;
 sortDescendingBy			return TOK_SORT_DESCENDING_BY;
 by					return TOK_BY;
 switch                                  return TOK_SWITCH;
-case                                    return TOK_CASE;
+case                                    BEGIN(case_state); return TOK_CASE;
+<case_state>{
+   \/                                   yylval->Regex = new QoreRegex(); yylloc->setExplicitFirst(yylineno); BEGIN(regex_state);
+   {WS}+                                /* ignore */
+   [^\/]                                yyless(0); BEGIN(INITIAL);
+}
 default                                 return TOK_DEFAULT;
 inherits                                return TOK_INHERITS;
 push                                    return TOK_PUSH;
@@ -681,14 +668,40 @@ P{D2}:{D2}:{D2}(\.{MS})?                yylval->datetime = makeRelativeTime(yyte
 \^{WS}*=                                return XOR_EQUALS;
 \>{WS}*\>{WS}*=				return SHIFT_RIGHT_EQUALS;
 \<{WS}*\<{WS}*=				return SHIFT_LEFT_EQUALS;
-s\/                                     yylval->RegexSubst = new RegexSubst(); yylloc->setExplicitFirst(yylineno); BEGIN(regex_subst1);
-x\/                                     yylval->Regex      = new QoreRegex();  yylloc->setExplicitFirst(yylineno); BEGIN(regex_extract_state);
-m\/                                     yylval->Regex      = new QoreRegex();  yylloc->setExplicitFirst(yylineno); BEGIN(regex_state);
-\/                                      yylval->Regex      = new QoreRegex();  yylloc->setExplicitFirst(yylineno); BEGIN(regex_state);
-tr\/                                    yylval->RegexTrans = new RegexTrans(); yylloc->setExplicitFirst(yylineno); BEGIN(regex_trans1);
-=\~                                     return REGEX_MATCH;
-\!\~                                    return REGEX_NMATCH;
-{WS}+					/* ignore whitespace */
-\n|\r                                    /* ignore linefeeds and carriage returns */
+
+\/\*                                    {
+                                           int c;
+					   while ((c = yyinput(yyscanner)))
+					   {
+					      if (c == '*')
+					      {
+						 do
+						    c = yyinput(yyscanner);
+						 while (c == '*');
+						 if (c == '/') 
+						    break;
+					      }
+					      if (c == EOF)
+						 yyterminate();
+					   }
+                                        }
+<regex_googleplex>{
+   s\/                                  yylval->RegexSubst = new RegexSubst(); yylloc->setExplicitFirst(yylineno); BEGIN(regex_subst1);
+   x\/                                  yylval->Regex      = new QoreRegex();  yylloc->setExplicitFirst(yylineno); BEGIN(regex_extract_state);
+   tr\/                                 yylval->RegexTrans = new RegexTrans(); yylloc->setExplicitFirst(yylineno); BEGIN(regex_trans1);
+   m\/                                  yylval->Regex      = new QoreRegex();  yylloc->setExplicitFirst(yylineno); BEGIN(regex_state); 
+   \/                                   yylval->Regex      = new QoreRegex();  yylloc->setExplicitFirst(yylineno); BEGIN(regex_state);
+   {WSNL}+                              /* ignore whitespace */
+   [^sxmt\/]                            parse_error("missing regular expression after =~"); BEGIN(INITIAL);
+}
+<regex_negative_universe>{
+   m\/                                  yylval->Regex      = new QoreRegex();  yylloc->setExplicitFirst(yylineno); BEGIN(regex_state); 
+   \/                                   yylval->Regex      = new QoreRegex();  yylloc->setExplicitFirst(yylineno); BEGIN(regex_state);
+   {WSNL}+                              /* ignore whitespace */
+   [^m\/]                               parse_error("missing regular expression after !~"); BEGIN(INITIAL);
+}
+=\~                                     BEGIN(regex_googleplex); return REGEX_MATCH;
+\!\~                                    BEGIN(regex_negative_universe); return REGEX_NMATCH;
+{WSNL}+					/* ignore whitespace */
 .					return yytext[0];
 %%

@@ -189,15 +189,17 @@ delete $i;
 printf("delete: $i = %n\n", $i);
 
 ###############################
-# the "on_block_exit" statement
+# the "on_exit" statement
 ###############################
-# the "on_block_exit" statement queues a statement for execution when a block is exited
+# the "on_exit" statement queues a statement for execution when a block is exited
 # this allows programmers to put cleanup code right after the code requiring the cleanup
 # instead at every possible exit point in a block
+# "on_error" and "on_success" statements work the same way except are conditionally
+# executed if there is an active exception or not when the block is exited
 try
 {
     $i = 10;
-    on_block_exit $i = 20;
+    on_exit $i = 20;
     $i = 30;
     throw False;
 }

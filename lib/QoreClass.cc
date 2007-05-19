@@ -541,7 +541,7 @@ void QoreClass::addDefaultBuiltinBaseClass(class QoreClass *qc, class QoreNode *
 void QoreClass::setSystemConstructor(q_constructor_t m)
 {
    sys = true;
-   system_constructor = new Method(new BuiltinMethod(this, m));
+   system_constructor = new Method(this, new BuiltinMethod(this, m));
 }
 
 // deletes all pending user methods
@@ -550,7 +550,7 @@ void QoreClass::parseRollback()
    delete_pending_methods();
 }
 
-inline void Method::userInit(UserFunction *u, int p)
+void Method::userInit(UserFunction *u, int p)
 {
    name = strdup(u->getName());
    type = OTF_USER;
@@ -558,17 +558,20 @@ inline void Method::userInit(UserFunction *u, int p)
    priv = p;
 }
 
-inline Method::Method()
+Method::Method(class QoreClass *p_class) : parent_class(p_class)
 { 
 }
 
 Method::Method(UserFunction *u, int p)
 {
+   // created at parse time, parent class assigned when method attached to class
+   parent_class = 0;
    userInit(u, p);
 }
 
-inline Method::Method(BuiltinMethod *b)
+Method::Method(class QoreClass *p_class, BuiltinMethod *b)
 {
+   parent_class = p_class;
    name = (char *)b->getName();
    type = OTF_BUILTIN;
    func.builtin = b;
@@ -585,27 +588,33 @@ Method::~Method()
       func.builtin->deref();
 }
 
-inline bool Method::isSynchronized() const
+void Method::assign_class(class QoreClass *p_class)
+{
+   assert(!parent_class);
+   parent_class = p_class;
+}
+
+bool Method::isSynchronized() const
 {
    if (type == OTF_BUILTIN)
       return false;
    return func.userFunc->isSynchronized();
 }
 
-inline bool Method::inMethod(class Object *self) const
+bool Method::inMethod(class Object *self) const
 {
    if (type == OTF_USER)
       return ::inMethod(func.userFunc->getName(), self);
    return ::inMethod(func.builtin->getName(), self);
 }
 
-inline void Method::evalSystemConstructor(Object *self, QoreNode *args, class BCList *bcl, class BCEAList *bceal, ExceptionSink *xsink)
+void Method::evalSystemConstructor(Object *self, QoreNode *args, class BCList *bcl, class BCEAList *bceal, ExceptionSink *xsink)
 {
    // type must be OTF_BUILTIN
    func.builtin->evalSystemConstructor(self, args, bcl, bceal, xsink);
 }
 
-inline void Method::evalSystemDestructor(class Object *self, class ExceptionSink *xsink)
+void Method::evalSystemDestructor(class Object *self, class ExceptionSink *xsink)
 {
    // get pointer to private data object from class ID of base type
    AbstractPrivateData *ptr = self->getAndClearPrivateData(func.builtin->myclass->getID(), xsink);
@@ -615,31 +624,31 @@ inline void Method::evalSystemDestructor(class Object *self, class ExceptionSink
       func.builtin->evalSystemDestructor(self, ptr, xsink);
 }
 
-inline void Method::parseInit()
+void Method::parseInit()
 {
    // must be called even if func.userFunc->statements is NULL
    func.userFunc->statements->parseInit(func.userFunc->params, NULL);
 }
 
-inline void Method::parseInitConstructor(class BCList *bcl)
+void Method::parseInitConstructor(class BCList *bcl)
 {
    // must be called even if func.userFunc->statements is NULL
    func.userFunc->statements->parseInit(func.userFunc->params, bcl);
 }
 
-inline class Method *Method::copy() const
+class Method *Method::copy(class QoreClass *p_class) const
 {
    class Method *nof;
    if (type == OTF_USER)
    {
       func.userFunc->ROreference();
-      nof = new Method;
+      nof = new Method(p_class);
       nof->userInit(func.userFunc, priv);
    }
    else
    {
       func.builtin->ROreference();
-      nof = new Method(func.builtin);
+      nof = new Method(p_class, func.builtin);
    }
    return nof;
 }
@@ -913,9 +922,18 @@ class QoreNode *Method::eval(Object *self, QoreNode *args, ExceptionSink *xsink)
       ProgramContextHelper pch(self->getProgram());
       
       if (type == OTF_USER)
-	 rv = func.userFunc->eval(new_args, self, xsink);
+	 rv = func.userFunc->eval(new_args, self, xsink, parent_class->getName());
       else
+      {
+	 // save current program location in case there's an exception
+	 const char *o_fn = get_pgm_file();
+	 int o_ln, o_eln;
+	 get_pgm_counter(o_ln, o_eln);
+	 
 	 rv = self->evalBuiltinMethodWithPrivateData(func.builtin, new_args, xsink);      
+	 if (xsink->isException())
+	    xsink->addStackInfo(CT_BUILTIN, self->getClass()->getName(), name, o_fn, o_ln, o_eln);
+      }
    }
    
    if (new_args && need_deref)
@@ -967,7 +985,7 @@ void Method::evalConstructor(Object *self, QoreNode *args, class BCList *bcl, cl
    {
       if (type == OTF_USER)
       {
-	 class QoreNode *rv = func.userFunc->evalConstructor(new_args, self, bcl, bceal, xsink);
+	 class QoreNode *rv = func.userFunc->evalConstructor(new_args, self, bcl, bceal, parent_class->getName(), xsink);
 	 if (rv)
 	    rv->deref(xsink);
       }
@@ -975,7 +993,7 @@ void Method::evalConstructor(Object *self, QoreNode *args, class BCList *bcl, cl
       {
 	 // switch to new program for imported objects
 	 ProgramContextHelper pch(self->getProgram());
-	 func.builtin->evalConstructor(self, new_args, bcl, bceal, xsink);
+	 func.builtin->evalConstructor(self, new_args, bcl, bceal, parent_class->getName(), xsink);
       }
    }
 
@@ -993,9 +1011,9 @@ void Method::evalCopy(Object *self, Object *old, ExceptionSink *xsink)
    ProgramContextHelper pch(self->getProgram());
 
    if (type == OTF_USER)
-      func.userFunc->evalCopy(old, self, xsink);
+      func.userFunc->evalCopy(old, self, parent_class->getName(), xsink);
    else // builtin function
-      old->evalCopyMethodWithPrivateData(func.builtin, self, xsink);
+      old->evalCopyMethodWithPrivateData(func.builtin, self, parent_class->getName(), xsink);
 }
 
 void Method::evalDestructor(Object *self, ExceptionSink *xsink)
@@ -1004,18 +1022,18 @@ void Method::evalDestructor(Object *self, ExceptionSink *xsink)
    ProgramContextHelper pch(self->getProgram());
 
    if (type == OTF_USER)
-      func.userFunc->eval(NULL, self, xsink);
+      func.userFunc->eval(NULL, self, xsink, parent_class->getName());
    else // builtin function
    {
-      AbstractPrivateData *ptr = self->getAndClearPrivateData(func.builtin->myclass->getID(), xsink);
+      AbstractPrivateData *ptr = self->getAndClearPrivateData(parent_class->getID(), xsink);
       if (ptr)
-	 func.builtin->evalDestructor(self, ptr, xsink);
-      else if (!xsink->isException() && func.builtin->myclass->getID() == func.builtin->myclass->getIDForMethod()) // do not throw an exception if the class has no private data
+	 func.builtin->evalDestructor(self, ptr, parent_class->getName(), xsink);
+      else if (!xsink->isException() && parent_class->getID() == parent_class->getIDForMethod()) // do not throw an exception if the class has no private data
       {
-	 if (self->getClass() == func.builtin->myclass)
+	 if (self->getClass() == parent_class)
 	    xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::destructor() cannot be executed because the object has already been deleted", self->getClass()->getName());
 	 else
-	    xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::destructor() (base class of '%s') cannot be executed because the object has already been deleted", func.builtin->myclass->getName(), self->getClass()->getName());
+	    xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::destructor() (base class of '%s') cannot be executed because the object has already been deleted", parent_class->getName(), self->getClass()->getName());
       }
    }
 }
@@ -1032,7 +1050,7 @@ class QoreClass *QoreClass::copyAndDeref()
 
    for (hm_method_t::iterator i = hm.begin(); i != hm.end(); i++)
    {
-      class Method *nf = i->second->copy();
+      class Method *nf = i->second->copy(noc);
 
       noc->hm[nf->getName()] = nf;
       if (i->second == constructor)
@@ -1344,14 +1362,31 @@ class QoreNode *QoreClass::execCopy(Object *old, ExceptionSink *xsink)
    if (xsink->isEvent())
       return NULL;
 
+   // save current program location in case there's an exception
+   const char *o_fn = NULL;
+   int o_ln, o_eln;
+   
    class Object *self = new Object(this, getProgram(), h);
 
    // execute superclass copy methods
    if (scl)
-      scl->sml.execCopyMethods(self, old, xsink);
+   {
+      o_fn = get_pgm_file();
+      get_pgm_counter(o_ln, o_eln);
 
+      scl->sml.execCopyMethods(self, old, xsink);
+   }
+   
    if (copyMethod && !xsink->isEvent())
+   {
+      // reload the old position for the copy method
+      if (o_fn)
+	 update_pgm_counter_pgm_file(o_ln, o_eln, o_fn);
+      
       copyMethod->evalCopy(self, old, xsink);
+      if (xsink->isException())
+	 xsink->addStackInfo(copyMethod->getType(), old->getClass()->getName(), "copy", o_fn, o_ln, o_eln);
+   }
 
    if (!xsink->isEvent())
       return new QoreNode(self);
@@ -1486,10 +1521,12 @@ Method *QoreClass::resolveSelfMethod(class NamedScope *nme)
    return m;
 }
 
+// for adding user-defined (qore language) methods to a class
 void QoreClass::addMethod(Method *m)
 {
    printd(5, "QoreClass::addMethod(%08p) %s.%s() (this=%08p)\n", m, name ? name : "<pending>", m->getName(), this);
 
+   m->assign_class(this);
    bool dst = !strcmp(m->getName(), "destructor");
    // check for illegal private constructor or destructor
    if (!strcmp(m->getName(), "constructor") || dst)
@@ -1538,7 +1575,7 @@ void QoreClass::addMethod(const char *nme, q_method_t m)
 
    sys = true;
    BuiltinMethod *b = new BuiltinMethod(this, nme, m);
-   Method *o = new Method(b);
+   Method *o = new Method(this, b);
    insertMethod(o);
    // check for special methods (except constructor and destructor)
    checkSpecialIntern(o);
@@ -1548,7 +1585,7 @@ void QoreClass::addMethod(const char *nme, q_method_t m)
 void QoreClass::setConstructor(q_constructor_t m)
 {
    sys = true;
-   Method *o = new Method(new BuiltinMethod(this, m));
+   Method *o = new Method(this, new BuiltinMethod(this, m));
    insertMethod(o);
    constructor = o;
 }
@@ -1557,7 +1594,7 @@ void QoreClass::setConstructor(q_constructor_t m)
 void QoreClass::setDestructor(q_destructor_t m)
 {
    sys = true;
-   Method *o = new Method(new BuiltinMethod(this, m));
+   Method *o = new Method(this, new BuiltinMethod(this, m));
    insertMethod(o);
    destructor = o;
 }
@@ -1566,7 +1603,7 @@ void QoreClass::setDestructor(q_destructor_t m)
 void QoreClass::setCopy(q_copy_t m)
 {
    sys = true;
-   Method *o = new Method(new BuiltinMethod(this, m));
+   Method *o = new Method(this, new BuiltinMethod(this, m));
    insertMethod(o);
    copyMethod = o;
 }

@@ -132,9 +132,9 @@ class BuiltinFunction
       DLLLOCAL BuiltinFunction(q_destructor_t m, int typ);
       DLLLOCAL BuiltinFunction(q_copy_t m, int typ);
       DLLLOCAL class QoreNode *evalMethod(class Object *self, void *private_data, class QoreNode *args, class ExceptionSink *xsink);
-      DLLLOCAL void evalConstructor(class Object *self, class QoreNode *args, class BCList *bcl, class BCEAList *bceal, class ExceptionSink *xsink);
-      DLLLOCAL void evalDestructor(class Object *self, void *private_data, class ExceptionSink *xsink);
-      DLLLOCAL void evalCopy(class Object *self, class Object *old, void *private_data, class ExceptionSink *xsink);
+      DLLLOCAL void evalConstructor(class Object *self, class QoreNode *args, class BCList *bcl, class BCEAList *bceal, const char *class_name, class ExceptionSink *xsink);
+      DLLLOCAL void evalDestructor(class Object *self, void *private_data, const char *class_name, class ExceptionSink *xsink);
+      DLLLOCAL void evalCopy(class Object *self, class Object *old, void *private_data, const char *class_name, class ExceptionSink *xsink);
       DLLLOCAL void evalSystemConstructor(class Object *self, class QoreNode *args, class BCList *bcl, class BCEAList *bceal, class ExceptionSink *xsink);
       DLLLOCAL void evalSystemDestructor(class Object *self, void *private_data, class ExceptionSink *xsink);
       DLLLOCAL class QoreNode *evalWithArgs(class Object *self, class QoreNode *args, class ExceptionSink *xsink);
@@ -172,9 +172,9 @@ class UserFunction : public ReferenceObject
 
       // the object owns the memory for "nme"
       DLLLOCAL UserFunction(char *nme, class Paramlist *parms, class StatementBlock *states, bool synced = false);
-      DLLLOCAL class QoreNode *eval(class QoreNode *args, class Object *self, class ExceptionSink *xsink);
-      DLLLOCAL class QoreNode *evalConstructor(class QoreNode *args, class Object *self, class BCList *bcl, class BCEAList *scbceal, class ExceptionSink *xsink);
-      DLLLOCAL void evalCopy(class Object *old, class Object *self, class ExceptionSink *xsink);
+      DLLLOCAL class QoreNode *eval(class QoreNode *args, class Object *self, class ExceptionSink *xsink, const char *class_name = 0);
+      DLLLOCAL class QoreNode *evalConstructor(class QoreNode *args, class Object *self, class BCList *bcl, class BCEAList *scbceal, const char *class_name, class ExceptionSink *xsink);
+      DLLLOCAL void evalCopy(class Object *old, class Object *self, const char *class_name, class ExceptionSink *xsink);
       DLLLOCAL bool isSynchronized() const 
       { 
 	 return synchronized; 

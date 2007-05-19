@@ -175,14 +175,14 @@ class QoreNode *Object::evalBuiltinMethodWithPrivateData(class BuiltinMethod *me
    return NULL;
 }
 
-void Object::evalCopyMethodWithPrivateData(class BuiltinMethod *meth, class Object *self, class ExceptionSink *xsink)
+void Object::evalCopyMethodWithPrivateData(class BuiltinMethod *meth, class Object *self, const char *class_name, class ExceptionSink *xsink)
 {
    // get referenced object
    class AbstractPrivateData *pd = getReferencedPrivateData(meth->myclass->getID(), xsink);
    
    if (pd)
    {
-      meth->evalCopy(self, this, pd, xsink);
+      meth->evalCopy(self, this, pd, class_name, xsink);
       pd->deref(xsink);
       return;
    }

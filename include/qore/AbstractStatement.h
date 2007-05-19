@@ -47,7 +47,7 @@ class AbstractStatement
    public:
       int LineNumber;
       int EndLineNumber;
-      char *FileName;
+      const char *FileName;
       class AbstractStatement *next;
 
       DLLLOCAL AbstractStatement(int start_line, int end_line);

@@ -28,12 +28,13 @@
 #include <qore/hash_map.h>
 #include <qore/common.h>
 #include <qore/BuiltinMethod.h>
+#include <qore/qore_thread.h>
 
 #include <qore/safe_dslist>
 #include <list>
 
-#define OTF_USER    0
-#define OTF_BUILTIN 1
+#define OTF_USER    CT_USER
+#define OTF_BUILTIN CT_BUILTIN
 
 class Method {
    private:
@@ -44,38 +45,44 @@ class Method {
       } func;
       bool priv;
       char *name;
+      class QoreClass *parent_class;
 
-      DLLLOCAL inline Method();
-      DLLLOCAL inline void userInit(UserFunction *u, int p);
+      DLLLOCAL Method(class QoreClass *p_class);
+      DLLLOCAL void userInit(UserFunction *u, int p);
 
    public:
       DLLLOCAL Method(class UserFunction *u, int p);
-      DLLLOCAL inline Method(class BuiltinMethod *b);
+      DLLLOCAL Method(class QoreClass *p_class, class BuiltinMethod *b);
       DLLLOCAL ~Method();
-      DLLLOCAL inline bool inMethod(class Object *self) const;
+      DLLLOCAL bool inMethod(class Object *self) const;
       DLLLOCAL class QoreNode *eval(class Object *self, class QoreNode *args, class ExceptionSink *xsink);
       DLLLOCAL void evalConstructor(class Object *self, class QoreNode *args, class BCList *bcl, class BCEAList *bceal, class ExceptionSink *xsink);
       DLLLOCAL void evalDestructor(class Object *self, class ExceptionSink *xsink);
-      DLLLOCAL inline void evalSystemConstructor(class Object *self, class QoreNode *args, class BCList *bcl, class BCEAList *bceal, class ExceptionSink *xsink);
-      DLLLOCAL inline void evalSystemDestructor(class Object *self, class ExceptionSink *xsink);
+      DLLLOCAL void evalSystemConstructor(class Object *self, class QoreNode *args, class BCList *bcl, class BCEAList *bceal, class ExceptionSink *xsink);
+      DLLLOCAL void evalSystemDestructor(class Object *self, class ExceptionSink *xsink);
       DLLLOCAL void evalCopy(class Object *self, class Object *old, class ExceptionSink *xsink);
-      DLLLOCAL inline class Method *copy() const;
-      DLLLOCAL inline void parseInit();
-      DLLLOCAL inline void parseInitConstructor(class BCList *bcl);
-      DLLLOCAL inline int getType() const
+      DLLLOCAL class Method *copy(class QoreClass *p_class) const;
+      DLLLOCAL void parseInit();
+      DLLLOCAL void parseInitConstructor(class BCList *bcl);
+      DLLLOCAL int getType() const
       {
 	 return type;
       }
-      DLLLOCAL inline bool isPrivate() const
+      DLLLOCAL bool isPrivate() const
       { 
 	 return priv; 
       }
-      DLLLOCAL inline const char *getName() const
+      DLLLOCAL const char *getName() const
       {
 	 return name;
       }
       // only called when method is user
-      DLLLOCAL inline bool isSynchronized() const;
+      DLLLOCAL bool isSynchronized() const;
+      DLLLOCAL class QoreClass *get_class()
+      {
+	 return parent_class;
+      }
+      DLLLOCAL void assign_class(class QoreClass *p_class);
 };
 
 /*

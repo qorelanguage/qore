@@ -105,11 +105,11 @@ static tid_node *tid_head = NULL, *tid_tail = NULL;
  
 class ProgramLocation {
    public:
-      char *file;
+      const char *file;
       void *parseState;
       class ProgramLocation *next;
       
-      DLLLOCAL ProgramLocation(char *fname, void *ps = NULL) 
+      DLLLOCAL ProgramLocation(const char *fname, void *ps = NULL) 
       { 
 	 file       = fname; 
 	 parseState = ps;
@@ -210,9 +210,9 @@ class ThreadData
       class Context *context_stack;
       class ProgramLocation *plStack;
       int parse_line_start, parse_line_end;
-      char *parse_file;
+      const char *parse_file;
       int pgm_counter_start, pgm_counter_end;
-      char *pgm_file;
+      const char *pgm_file;
       void *parseState;
       class VNode *vstack;  // used during parsing (local variable stack)
       class CVNode *cvarstack;
@@ -316,7 +316,7 @@ class BGThreadParams {
       class QoreProgram *pgm;
       int tid;
       int s_line, e_line;
-      char *file;
+      const char *file;
       bool method_reference;
 
       DLLLOCAL BGThreadParams(class QoreNode *f, int t, class ExceptionSink *xsink)
@@ -609,7 +609,7 @@ void get_pgm_counter(int &start_line, int &end_line)
    end_line = td->pgm_counter_end;
 }
 
-void update_pgm_counter_pgm_file(int start_line, int end_line, char *f)
+void update_pgm_counter_pgm_file(int start_line, int end_line, const char *f)
 {
    ThreadData *td  = (ThreadData *)pthread_getspecific(thread_data_key);
    td->pgm_counter_start = start_line;
@@ -624,7 +624,7 @@ void update_pgm_counter(int start_line, int end_line)
    td->pgm_counter_end   = end_line;
 }
 
-char *get_pgm_file()
+const char *get_pgm_file()
 {
    return ((ThreadData *)pthread_getspecific(thread_data_key))->pgm_file;
 }
@@ -636,7 +636,7 @@ void get_parse_location(int &start_line, int &end_line)
    end_line = td->parse_line_end;
 }
 
-void update_parse_location(int start_line, int end_line, char *f)
+void update_parse_location(int start_line, int end_line, const char *f)
 {
    ThreadData *td  = (ThreadData *)pthread_getspecific(thread_data_key);
    td->parse_line_start = start_line;
@@ -651,7 +651,7 @@ void update_parse_location(int start_line, int end_line)
    td->parse_line_end   = end_line;
 }
 
-char *get_parse_file()
+const char *get_parse_file()
 {
    return ((ThreadData *)pthread_getspecific(thread_data_key))->parse_file;
 }

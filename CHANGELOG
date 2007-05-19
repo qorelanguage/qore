@@ -10,6 +10,13 @@
 	  terminates will result in an exception being thrown and the connection
 	  being automatically returned to the pool.
 	* new methods: Datasource::selectRow() and Datasource::vselectRow()
+	* fixed some exception stack trace bugs (double entries, incorrect 
+	  position info) in the new "on-demand" stack trace solution
+	* fixed class name reporting for exceptions in derived classes
+	* fixed a bug in the scanner parsing the '/' operator and regular 
+	  expressions
+	* fixed a bug in the scanner where eof in a block comment would cause a
+	  crash
 
 2006.05.18: David Nichols
 	* do not mask SIGPROF when profiling is enabled
