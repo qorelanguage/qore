@@ -628,7 +628,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str)
 %token <String> QUOTED_WORD "quoted string"
 %token <binary> BINARY "binary constant value"
 %token <RegexSubst> REGEX_SUBST "regular expression substitution expression"
-%token <RegexTrans> REGEX_TRANS "tranliteration expression"
+%token <RegexTrans> REGEX_TRANS "transliteration expression"
 %token <nscope> BASE_CLASS_CALL "call to base class method"
 %token <Regex> REGEX "regular expression"
 %token <Regex> REGEX_EXTRACT "regular expression extraction expression"
