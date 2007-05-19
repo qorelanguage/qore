@@ -64,7 +64,7 @@ QoreFile::~QoreFile()
    close();
 }
 
-char *QoreFile::getFileName() const
+const char *QoreFile::getFileName() const
 { 
    return filename; 
 }

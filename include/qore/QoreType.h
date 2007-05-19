@@ -51,7 +51,7 @@ typedef class QoreString *(*string_func_t)(class QoreNode *, int format, class E
 // compare 0 l = r, 1 l != r
 class QoreType {
    private:
-      char *name;
+      const char *name;
       needs_eval_func_t       f_needs_eval;
       single_arg_func_t       f_eval;
       eval_opt_deref_func_t   f_eval_opt_deref;
@@ -70,7 +70,7 @@ class QoreType {
 
    public:
       // note that this method is not thread safe - should only be called in library or module initialization
-      DLLEXPORT QoreType(char *                  p_name, 
+      DLLEXPORT QoreType(const char *            p_name, 
 			 needs_eval_func_t       p_needs_eval,
 			 single_arg_func_t       p_eval, 
 			 eval_opt_deref_func_t   p_eval_opt_deref,
@@ -87,7 +87,7 @@ class QoreType {
 			 bool   p_is_container);
       DLLEXPORT int getID() const;
       DLLEXPORT bool isValue() const;
-      DLLEXPORT char *getName() const;
+      DLLEXPORT const char *getName() const;
       DLLEXPORT bool needs_eval(class QoreNode *n) const;
       DLLEXPORT class QoreNode *eval(class QoreNode *n, class ExceptionSink *xsink);
       DLLEXPORT class QoreNode *eval(bool &needs_deref, class QoreNode *n, class ExceptionSink *xsink);

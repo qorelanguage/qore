@@ -751,7 +751,7 @@ class QoreNode *UserFunction::eval(QoreNode *args, Object *self, class Exception
 	 }	 
       }
 
-      // uninstantiate
+      // uninstantiate argv
       uninstantiateLVar(xsink);
 
       // if self then uninstantiate

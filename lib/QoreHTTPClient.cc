@@ -102,7 +102,7 @@ void QoreHTTPClient::setDefaultPort(int def_port)
    default_port = def_port;
 }
 
-void QoreHTTPClient::setDefaultPath(char *def_path)
+void QoreHTTPClient::setDefaultPath(const char *def_path)
 {
    default_path = def_path;
 }
@@ -1062,7 +1062,7 @@ class QoreNode *QoreHTTPClient::post(const char *path, class Hash *headers, cons
    return rv;
 }
 
-void QoreHTTPClient::addProtocol(char *prot, int port, bool ssl)
+void QoreHTTPClient::addProtocol(const char *prot, int port, bool ssl)
 {
    prot_map[prot] = make_protocol(port, ssl);
 }

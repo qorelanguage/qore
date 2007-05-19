@@ -79,9 +79,10 @@ class AutoVLock : protected abstract_lock_list_t
       void *operator new(size_t);
    
    public:
-      DLLLOCAL AutoVLock();
-      DLLLOCAL ~AutoVLock();
-      DLLLOCAL void del();
+      DLLEXPORT AutoVLock();
+      DLLEXPORT ~AutoVLock();
+      DLLEXPORT void del();
+
       DLLLOCAL void push(AbstractSmartLock *asl);
 };
 

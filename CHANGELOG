@@ -1,6 +1,9 @@
+2006.05.19: David Nichols
+	* more "char *" -> "const char *" API header updates
+
 2006.05.18: David Nichols
 	* do not mask SIGPROF when profiling is enabled
-	* more const char * updates
+	* more "char *" -> "const char *" API header updates
 
 2006.05.17: David Nichols
 	* eliminated global lock for deadlock detection

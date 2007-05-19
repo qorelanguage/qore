@@ -94,7 +94,7 @@ class QoreSignalManager
       static sig_cmd_e cmd;
       
       DLLLOCAL QoreSignalManager();
-      DLLLOCAL static void init();
+      DLLLOCAL static void init(bool disable_signal_mask = false);
       DLLLOCAL static void del();
       DLLLOCAL static int setHandler(int sig, class AbstractFunctionReference *fr, class ExceptionSink *xsink);
       DLLLOCAL static int removeHandler(int sig, class ExceptionSink *xsink);

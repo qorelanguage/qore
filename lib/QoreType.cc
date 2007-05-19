@@ -75,7 +75,7 @@ DLLEXPORT class QoreType *NT_NOTHING, *NT_INT, *NT_FLOAT, *NT_STRING, *NT_DATE,
 // default value nodes for builtin types
 DLLEXPORT class QoreNode *Nothing, *Null, *Zero, *NullString, *ZeroFloat, *ZeroDate, *True, *False, *emptyList, *emptyHash;
 
-QoreType::QoreType(char *                  p_name, 
+QoreType::QoreType(const char *            p_name, 
 		   needs_eval_func_t       p_needs_eval,
 		   single_arg_func_t       p_eval, 
 		   eval_opt_deref_func_t   p_eval_opt_deref,
@@ -258,7 +258,7 @@ bool QoreType::isValue() const
    return is_value; 
 }
 
-char *QoreType::getName() const
+const char *QoreType::getName() const
 {
    return name;
 }

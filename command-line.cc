@@ -97,6 +97,7 @@ static char helpstr[] =
 "\n DEBUGGING OPTIONS:\n"
 "  -d, --debug=arg              sets debugging level (higher number = more output)\n"
 "  -t, --trace                  turns on function tracing\n" 
+"  -b, --disable-signals        disables signal handling\n"
 #endif
 ;
 
@@ -122,6 +123,11 @@ static void do_help(char *arg)
    show_usage();
    printf(helpstr);
    exit(0);
+}
+
+static void disable_signals(char *arg)
+{
+   qore_lib_options |= QLO_DISABLE_SIGNAL_HANDLING;
 }
 
 static void load_module(char *arg)
@@ -308,37 +314,38 @@ static struct opt_struct_s {
       int arg;
       void (*opt_func)(char *arg);
 } options[] = {
-   { 'h', "help",                  ARG_NONE, do_help },
-   { 'V', "version",               ARG_NONE, do_version },
+   { 'a', "show-aliases",          ARG_NONE, show_charset_aliases },
    { 'c', "charset",               ARG_MAND, set_charset },
-   { 'l', "load",                  ARG_MAND, load_module },
    { 'e', "exec",                  ARG_MAND, set_exec },
-   { 'x', "exec-class",            ARG_OPT,  do_exec_class },
+   { 'h', "help",                  ARG_NONE, do_help },
+   { 'i', "list-warnings",         ARG_NONE, list_warnings },
+   { 'l', "load",                  ARG_MAND, load_module },
    { 'm', "show-module-errors",    ARG_NONE, show_module_errors },
    { 's', "show-charsets",         ARG_NONE, show_charsets },
-   { 'a', "show-aliases",          ARG_NONE, show_charset_aliases },
    { 'r', "warnings-are-errors",   ARG_NONE, warn_to_err },
-   { 'i', "list-warnings",         ARG_NONE, list_warnings },
-   { 'W', "enable-all-warnings",   ARG_NONE, enable_warnings },
    { 'w', "enable-warning",        ARG_MAND, enable_warning },
+   { 'x', "exec-class",            ARG_OPT,  do_exec_class },
    { 'A', "lock-warnings",         ARG_NONE, do_lock_warnings },
+   { 'C', "no-class-defs",         ARG_NONE, do_no_class_defs },
    { 'D', "no-database",           ARG_NONE, do_no_database },
+   { 'E', "no-external-process",   ARG_NONE, do_no_external_process },
+   { 'F', "no-constant-defs",      ARG_NONE, do_no_constant_defs },
    { 'G', "no-global-vars",        ARG_NONE, do_no_global_vars },
+   { 'I', "no-child-restrictions", ARG_NONE, do_no_child_po_restrictions },
+   { 'K', "lock-options",          ARG_NONE, do_lock_options },
+   { 'L', "no-top-level",          ARG_NONE, do_no_top_level },
+   { 'M', "no-namespace-defs",     ARG_NONE, do_no_namespace_defs },
+   { 'N', "no-new",                ARG_NONE, do_no_new },
+   { 'O', "require-our",           ARG_NONE, do_require_our  },
+   { 'P', "no-process-control",    ARG_NONE, do_no_process_control },
+   { 'R', "no-thread-control",     ARG_NONE, do_no_thread_control },
    { 'S', "no-subroutine-defs",    ARG_NONE, do_no_subroutine_defs },
    { 'T', "no-threads",            ARG_NONE, do_no_threads },
-   { 'R', "no-thread-control",     ARG_NONE, do_no_thread_control },
+   { 'V', "version",               ARG_NONE, do_version },
+   { 'W', "enable-all-warnings",   ARG_NONE, enable_warnings },
    { 'X', "no-thread-classes",     ARG_NONE, do_no_thread_classes },
-   { 'L', "no-top-level",          ARG_NONE, do_no_top_level },
-   { 'C', "no-class-defs",         ARG_NONE, do_no_class_defs },
-   { 'M', "no-namespace-defs",     ARG_NONE, do_no_namespace_defs },
-   { 'F', "no-constant-defs",      ARG_NONE, do_no_constant_defs },
-   { 'N', "no-new",                ARG_NONE, do_no_new },
-   { 'I', "no-child-restrictions", ARG_NONE, do_no_child_po_restrictions },
-   { 'E', "no-external-process",   ARG_NONE, do_no_external_process },
-   { 'P', "no-process-control",    ARG_NONE, do_no_process_control },
-   { 'O', "require-our",           ARG_NONE, do_require_our  },
-   { 'K', "lock-options",          ARG_NONE, do_lock_options },
 #ifdef DEBUG
+   { 'b', "disable-signals",       ARG_NONE, disable_signals },
    { 'd', "debug",                 ARG_MAND, do_debug },
    { 't', "trace",                 ARG_NONE, do_trace },
 #endif

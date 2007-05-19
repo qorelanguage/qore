@@ -117,9 +117,9 @@ class QoreHTTPClient : public AbstractPrivateData, public LockedObject
       // useful for c++ derived classes
       DLLEXPORT void setDefaultPort(int prt);
       // useful for c++ derived classes
-      DLLEXPORT void setDefaultPath(char *pth);
+      DLLEXPORT void setDefaultPath(const char *pth);
       // useful for c++ derived classes
-      DLLEXPORT void addProtocol(char *prot, int port, bool ssl = false);
+      DLLEXPORT void addProtocol(const char *prot, int port, bool ssl = false);
 
       DLLEXPORT void setTimeout(int to);
       DLLEXPORT int getTimeout() const;

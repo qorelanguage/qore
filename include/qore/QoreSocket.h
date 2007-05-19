@@ -102,8 +102,8 @@ class SocketSource {
       DLLEXPORT SocketSource();
       DLLEXPORT ~SocketSource();
       DLLEXPORT void setAddress(class QoreString *addr);
-      DLLEXPORT void setAddress(char *addr);
-      DLLEXPORT void setHostName(char *host);
+      DLLEXPORT void setAddress(const char *addr);
+      DLLEXPORT void setHostName(const char *host);
       DLLEXPORT void setHostName(class QoreString *host);
       DLLEXPORT class QoreString *takeAddress();
       DLLEXPORT class QoreString *takeHostName();
@@ -231,7 +231,7 @@ class QoreSocket
       DLLEXPORT int upgradeClientToSSL(X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink);
       DLLEXPORT int upgradeServerToSSL(X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink);
 
-      DLLEXPORT static void doException(int rc, char *meth, class ExceptionSink *xsink);
+      DLLEXPORT static void doException(int rc, const char *meth, class ExceptionSink *xsink);
 };
 
 #endif // _QORE_QORESOCKET_H

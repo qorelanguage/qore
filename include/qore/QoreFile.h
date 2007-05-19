@@ -92,7 +92,7 @@ class QoreFile {
       DLLEXPORT int setPos(int pos);
       DLLEXPORT int getPos();
       DLLEXPORT class QoreString *getchar();
-      DLLEXPORT char *getFileName() const;
+      DLLEXPORT const char *getFileName() const;
 };
 
 #endif  // _QORE_QOREFILE_H

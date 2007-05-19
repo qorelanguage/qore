@@ -79,7 +79,7 @@ void qore_init(char *def_charset, bool show_module_errors, int n_qore_library_op
    MM.init(show_module_errors);
 
    // init signals
-   QSM.init();
+   QSM.init(qore_library_options & QLO_DISABLE_SIGNAL_HANDLING);
 }
 
 // NOTE: we do not cleanup in reverse initialization order

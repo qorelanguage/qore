@@ -216,12 +216,12 @@ void SocketSource::setAddress(class QoreString *addr)
    address = addr;
 }
 
-void SocketSource::setAddress(char *addr)
+void SocketSource::setAddress(const char *addr)
 {
    address = new QoreString(addr);
 }
 
-void SocketSource::setHostName(char *host)
+void SocketSource::setHostName(const char *host)
 {
    hostname = new QoreString(host);
 }
@@ -1475,7 +1475,7 @@ class QoreNode *QoreSocket::readHTTPHeader(int timeout, int *rc)
    return new QoreNode(h);
 }
 
-void QoreSocket::doException(int rc, char *meth, class ExceptionSink *xsink)
+void QoreSocket::doException(int rc, const char *meth, class ExceptionSink *xsink)
 {
    if (!rc)
       xsink->raiseException("SOCKET-CLOSED", "remote end has closed the connection");

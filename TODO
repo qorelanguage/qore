@@ -1,5 +1,7 @@
 see docs/roadmap.html
 
+* BUG: eliminate duplicate stack entries on exceptions
+* add support for special ::toString() method to serialize an object to a string (very useful for debugging)
 * add support for ranges [2..9] and dereferencing strings with []
 * add support for break and continue arguments to affect outer loops
 * add error code to exceptions for XML-RPC fault reporting

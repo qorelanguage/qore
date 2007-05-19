@@ -89,7 +89,7 @@ QoreSignalManager::QoreSignalManager()
       handlers[i].init();
 }
 
-void QoreSignalManager::init() 
+void QoreSignalManager::init(bool disable_signal_mask) 
 {
    // set SIGPIPE to ignore
    struct sigaction sa;
@@ -99,13 +99,16 @@ void QoreSignalManager::init()
    // ignore SIGPIPE signals
    sigaction(SIGPIPE, &sa, NULL);
 
-   // block all signals
-   sigfillset(&mask);
+   if (!disable_signal_mask)
+   {
+      // block all signals
+      sigfillset(&mask);
 #ifdef PROFILE
-   // do not block SIGPROF if profiling is enabled
-   sigdelset(&mask, SIGPROF);
+      // do not block SIGPROF if profiling is enabled
+      sigdelset(&mask, SIGPROF);
 #endif
-   pthread_sigmask(SIG_SETMASK, &mask, NULL);
+      pthread_sigmask(SIG_SETMASK, &mask, NULL);
+   }
 
    // set up default handler mask
    sigemptyset(&mask);

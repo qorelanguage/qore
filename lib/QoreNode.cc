@@ -467,6 +467,7 @@ void QoreNode::deref(ExceptionSink *xsink)
    if (type == NT_STRING) printd(5, "QoreNode::deref() %08p string='%s'\n", this, val.String ? val.String->getBuffer() : "(null)");
 #endif
    if (references > 51200)
+   {
       if (type == NT_INT)
 	 printd(0, "QoreNode::deref() WARNING, node %08p references=%d (type=%s) (val=%d)\n",
 		this, references, type->getName(), val.intval);
@@ -476,6 +477,8 @@ void QoreNode::deref(ExceptionSink *xsink)
       else
 	 printd(0, "QoreNode::deref() WARNING, node %08p references=%d (type=%s)\n",
 		this, references, type->getName());
+      assert(false);
+   }
 #endif
 
    if (ROdereference())
