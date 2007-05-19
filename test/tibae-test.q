@@ -34,7 +34,6 @@ sub testInit($q)
     $props.RepoURL = "./new.dat";
     $props.ConfigURL = "/tibco/private/adapter/testAdapter";
     my $classes.Test = "/tibco/public/class/ae/Test";
-    $classes.i8 = "/tibco/public/ae/scalar/i8";
 
     print("initializing TIBCO session: \n");
     my $adapter = new TibcoAdapter("rvSession", $props, $classes);#, "8504", "172.23.3.137", "172.23.5.143:7500");
