@@ -1,5 +1,6 @@
 2006.05.19: David Nichols
 	* more "char *" -> "const char *" API header updates
+	* fixed a bug in the new thread variable stack handling
 
 2006.05.18: David Nichols
 	* do not mask SIGPROF when profiling is enabled

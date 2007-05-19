@@ -144,6 +144,8 @@ public:
       assert(!curr->prev);
       assert(!curr->pos);
       //printf("this=%08p: del curr=%08p\n", this, curr);
+      if (curr->next)
+	 delete curr->next;
       delete curr;
    }
    DLLLOCAL class LVar *instantiate()
@@ -173,8 +175,7 @@ public:
 	 }
 	 curr = curr->prev;
       }
-      else
-	 --curr->pos;
+      --curr->pos;
       printd(5, "uninstantiating lvar \"%s\"\n", curr->lvar[curr->pos].id);
       curr->lvar[curr->pos].deref(xsink);
    }
