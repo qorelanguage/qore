@@ -24,6 +24,7 @@
 
 #include <qore/Qore.h>
 #include <qore/QC_Datasource.h>
+#include <qore/QC_DatasourcePool.h>
 
 #include <string.h>
 #include <stdio.h>
@@ -434,6 +435,7 @@ class Namespace *getSQLNamespace()
    class Namespace *SQLNS = new Namespace("SQL");
 
    SQLNS->addSystemClass(initDatasourceClass());
+   SQLNS->addSystemClass(initDatasourcePoolClass());
 
    // datasource type constants
    SQLNS->addConstant("DSOracle",   new QoreNode("oracle"));

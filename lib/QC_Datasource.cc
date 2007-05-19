@@ -140,6 +140,19 @@ static QoreNode *DS_select(class Object *self, class ManagedDatasource *ds, clas
    return rv;
 }
 
+static QoreNode *DS_selectRow(class Object *self, class ManagedDatasource *ds, class QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = test_param(params, NT_STRING, 0);
+   if (!p)
+      return NULL;
+   
+   List *args = params->val.list->size() > 1 ? params->val.list->copyListFrom(1) : NULL;
+   class QoreNode *rv = ds->selectRow(p->val.String, args, xsink);
+   if (args)
+      args->derefAndDelete(xsink);
+   return rv;
+}
+
 static QoreNode *DS_selectRows(class Object *self, class ManagedDatasource *ds, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = test_param(params, NT_STRING, 0);
@@ -162,6 +175,17 @@ static QoreNode *DS_vselect(class Object *self, class ManagedDatasource *ds, cla
    QoreNode *p1 = test_param(params, NT_LIST, 1);
    List *args = p1 ? p1->val.list : NULL;
    return ds->select(p0->val.String, args, xsink);
+}
+
+static QoreNode *DS_vselectRow(class Object *self, class ManagedDatasource *ds, class QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p0 = test_param(params, NT_STRING, 0);
+   if (!p0)
+      return NULL;
+   
+   QoreNode *p1 = test_param(params, NT_LIST, 1);
+   List *args = p1 ? p1->val.list : NULL;
+   return ds->selectRow(p0->val.String, args, xsink);
 }
 
 static QoreNode *DS_vselectRows(class Object *self, class ManagedDatasource *ds, class QoreNode *params, ExceptionSink *xsink)
@@ -334,9 +358,11 @@ class QoreClass *initDatasourceClass()
    QC_DATASOURCE->addMethod("rollback",          (q_method_t)DS_rollback);
    QC_DATASOURCE->addMethod("exec",              (q_method_t)DS_exec);
    QC_DATASOURCE->addMethod("select",            (q_method_t)DS_select);
+   QC_DATASOURCE->addMethod("selectRow",         (q_method_t)DS_selectRow);
    QC_DATASOURCE->addMethod("selectRows",        (q_method_t)DS_selectRows);
    QC_DATASOURCE->addMethod("vexec",             (q_method_t)DS_vexec);
    QC_DATASOURCE->addMethod("vselect",           (q_method_t)DS_vselect);
+   QC_DATASOURCE->addMethod("vselectRow",        (q_method_t)DS_vselectRow);
    QC_DATASOURCE->addMethod("vselectRows",       (q_method_t)DS_vselectRows);
    //QC_DATASOURCE->addMethod("describe",          (q_method_t)DS_describe);
    QC_DATASOURCE->addMethod("beginTransaction",  (q_method_t)DS_beginTransaction);

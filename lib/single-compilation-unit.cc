@@ -66,6 +66,7 @@
 #include "CallStack.cc"
 #endif
 #include "Datasource.cc"
+#include "DatasourcePool.cc"
 #include "ManagedDatasource.cc"
 #include "ExecArgList.cc"
 #include "FunctionReference.cc"
@@ -122,6 +123,7 @@
 #include "QC_GetOpt.cc"
 #include "QC_FtpClient.cc"
 #include "QC_Datasource.cc"
+#include "QC_DatasourcePool.cc"
 #include "QC_Queue.cc"
 #include "QC_Mutex.cc"
 #include "QC_Condition.cc"

@@ -238,6 +238,31 @@ QoreNode *ManagedDatasource::select(class QoreString *query_str, class List *arg
    return rv;
 }
 
+// FIXME: should be a native DBI driver method
+class QoreNode *ManagedDatasource::selectRow(class QoreString *sql, List *args, class ExceptionSink *xsink)
+{
+   class QoreNode *rv;
+   
+   if (!startDBAction(xsink))
+   {
+      rv = Datasource::selectRows(sql, args, xsink);
+
+      endDBAction();
+
+      // return only hash of first row, if any
+      if (rv && rv->type == NT_LIST)
+      {
+	 class QoreNode *h = rv->val.list->shift();
+	 rv->deref(xsink);
+	 rv = h;
+      }
+   }
+   else
+      rv = NULL;
+   
+   return rv;
+}
+
 QoreNode *ManagedDatasource::selectRows(class QoreString *query_str, class List *args, ExceptionSink *xsink)
 {
    class QoreNode *rv;

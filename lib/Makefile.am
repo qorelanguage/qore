@@ -73,6 +73,7 @@ libqore_la_SOURCES = \
 	FtpClient.cc \
 	DBI.cc \
 	Datasource.cc \
+	DatasourcePool.cc \
 	ManagedDatasource.cc \
 	StringList.cc \
 	ConstantList.cc \
@@ -138,6 +139,7 @@ libqore_la_SOURCES = \
 	QC_GetOpt.cc \
 	QC_FtpClient.cc \
 	QC_Datasource.cc \
+	QC_DatasourcePool.cc \
 	QC_Queue.cc \
 	QC_Mutex.cc \
 	QC_Condition.cc \

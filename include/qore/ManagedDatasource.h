@@ -79,6 +79,7 @@ public:
    DLLLOCAL virtual void deref(class ExceptionSink *xsink);
    DLLLOCAL virtual void deref();
    DLLLOCAL class QoreNode *select(class QoreString *query_str, class List *args, ExceptionSink *xsink);
+   DLLLOCAL class QoreNode *selectRow(class QoreString *query_str, class List *args, ExceptionSink *xsink);
    DLLLOCAL class QoreNode *selectRows(class QoreString *query_str, class List *args, ExceptionSink *xsink);
    DLLLOCAL class QoreNode *exec(class QoreString *query_str, class List *args, ExceptionSink *xsink);
    //DLLLOCAL class Hash *describe(char *table_name, ExceptionSink *xsink);

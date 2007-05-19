@@ -58,6 +58,10 @@
 	    <entry><para>For working with databases; provides the user interface to qore DBI drivers.</para></entry>
 	  </row>
 	  <row>
+	    <entry><para><link linkend="DatasourcePool_Class">SQL::DatasourcePool Class</link></para></entry>
+	    <entry><para>Provides transparent per-thread, per-transaction Datasource connection pooling.</para></entry>
+	  </row>
+	  <row>
 	    <entry><para><link linkend="Qore::Thread::AutoGate_Class">Thread::AutoGate Class</link></para></entry>
 	    <entry><para>A helper class for the <link linkend="Qore::Thread::Gate_Class">Gate Class</link> for exception-safe Gate handling.</para></entry>
 	  </row>
@@ -19424,7 +19428,7 @@ $sock.bind("/tmp/socket");</programlisting>
     
     <para>Note: This class is not available with the <link linkend="PO_NO_DATABASE"><code>PO_NO_DATABASE</code></link> parse option.</para>
 
-    <para>The Datasource class is the high-level Qore interface to Qore's DBI layer, and as such, Datasource objects allow Qore programs to access databases that have a Qore DBI driver.  The Datasource class will attempt to load any DBI driver that is not currently loaded in the <link linkend="Qore::SQL::Datasource::constructor">constructor</link>.</para>
+    <para>The Datasource class is the high-level Qore interface to Qore's DBI layer, and as such, Datasource objects allow Qore programs to access databases that have a Qore DBI driver.  The Datasource class will attempt to load any DBI driver that is not currently loaded in the <link linkend="Qore::SQL::Datasource::constructor">constructor</link>.  For connection pooling support, see the <link linkend="DatasourcePool_Class">DatasourcePool</link> class.</para>
     
     <para>Datasource objects will implicitly call <link linkend="Qore::SQL::Datasource::open">Datasource::open()</link> if no connection has yet been established and a method is called requiring a connection to the database server.  Therefore any method that requires communication with the database server can also throw any exception that the open method can throw.</para>
 
@@ -19516,6 +19520,16 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <entry><para>Executes a select statement on the server and returns the results in a hash (column names) of lists (rows), taking a list for all bind arguments.</para></entry>
 	  </row>
 	  <row>
+	    <entry><para><link linkend="Qore::SQL::Datasource::selectRow">Datasource::selectRow()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Executes a select statement on the server and returns the first row as a hash (column names and values).</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Qore::SQL::Datasource::vselectRow">Datasource::vselectRow()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Executes a select statement on the server and returns the first row as a hash (column names and values), taking a list for all bind arguments.</para></entry>
+	  </row>
+	  <row>
 	    <entry><para><link linkend="Qore::SQL::Datasource::selectRows">Datasource::selectRows()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Executes a select statement on the server and returns the results in a list (rows) of hashes (column names and values).</para></entry>
@@ -19584,6 +19598,11 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <entry><para><link linkend="Qore::SQL::Datasource::getHostName">Datasource::getHostName()</link></para></entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns the hostname parameter.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Qore::SQL::Datasource::getDriverName">Datasource::getDriverName()</link></para></entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Returns the name of the driver used for the object.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::SQL::Datasource::setTransactionLockTimeout">Datasource::setTransactionLockTimeout()</link></para></entry>
@@ -20393,7 +20412,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Same as the <link linkend="Qore::SQL::Datasource::exec">Datasource::exec</link> method, except this method takes a single argument after the SQL command giving the list of bind parameters.</para>
+	    <para>Same as the <link linkend="Qore::SQL::Datasource::exec">Datasource::exec()</link> method, except this method takes a single argument after the SQL command giving the list of bind parameters.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -20575,7 +20594,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Same as the <link linkend="Qore::SQL::Datasource::select">Datasource::select</link> method, except this method takes a single argument after the SQL command giving the list of bind value parameters.</para>
+	    <para>Same as the <link linkend="Qore::SQL::Datasource::select">Datasource::select()</link> method, except this method takes a single argument after the SQL command giving the list of bind value parameters.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -20637,6 +20656,179 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 
       <table>
 	<title>Exceptions Thrown by Datasource::vselect()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>depends on DBI driver</para></entry>
+	      <entry><para>See documentation for the DBI driver for driver-specific exceptions.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="Qore::SQL::Datasource::selectRow">
+      <title>Datasource::selectRow()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Executes an SQL select statement on the server and returns the first row as a hash (the column values).  If more than one row is returned, then all but the first row are discarded.  For a similar method taking a list for all bind arguments, see <link linkend="Qore::SQL::Datasource::vselectRow">Datasource::vselectRow()</link>.</para>
+	    <para>This method also accepts all bind parameters (%d, %v, etc) as documented in  <link linkend="Qore::SQL::Datasource::select">Datasource::select()</link>.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>Datasource::selectRow(<replaceable>select_statement, [arg1, ...]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$list = $db.selectRow("select * from example_table");</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for Datasource::selectRow()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><replaceable>select_statement</replaceable></para></entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>SQL select statement to execute on the server.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><replaceable>[arg1, ...]</replaceable></para></entry>
+	      <entry><para>Any</para></entry>
+	      <entry><para>Arguments to bind by value in %v positions in the SQL string.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for Datasource::selectRow()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>Hash or NOTHING</para></entry>
+	      <entry><para>Returns a hash (column values) of the first row, NOTHING if no rows are returned.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by Datasource::selectRow()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>depends on DBI driver</para></entry>
+	      <entry><para>See documentation for the DBI driver for driver-specific exceptions.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="Qore::SQL::Datasource::vselectRow">
+      <title>Datasource::vselectRow()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Same as the <link linkend="Qore::SQL::Datasource::selectRow">Datasource::selectRow()</link> method, except this method takes a single argument after the SQL command giving the list of bind value parameters.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>Datasource::vselectRow(<replaceable>select_statement, [list]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$list = $db.vselectRow("select * from example_table where id = %v and name = %v", $arg_list);</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for Datasource::vselectRow()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><replaceable>select_statement</replaceable></para></entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>SQL select statement to execute on the server.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><replaceable>[list]</replaceable></para></entry>
+	      <entry><para>List</para></entry>
+	      <entry><para>A list of arguments to bind by value in %v positions in the SQL string.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for Datasource::vselectRow()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>Hash or NOTHING</para></entry>
+	      <entry><para>Returns a hash of the first row (column values).  If no rows are returned by the query, then NOTHING is returned.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by Datasource::vselectRow()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
@@ -20748,7 +20940,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Same as the <link linkend="Qore::SQL::Datasource::selectRows">Datasource::selectRows</link> method, except this method takes a single argument after the SQL command giving the list of bind value parameters.</para>
+	    <para>Same as the <link linkend="Qore::SQL::Datasource::selectRows">Datasource::selectRows()</link> method, except this method takes a single argument after the SQL command giving the list of bind value parameters.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -21650,6 +21842,69 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
       </table>
     </sect2>
 
+    <sect2 id="Qore::SQL::Datasource::getDriverName">
+      <title>Datasource::getDriverName()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Returns the name of the DBI driver used for this object.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>Datasource::getDriverName()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$name = $db.getDriverName();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for Datasource::getDriverName()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method takes no arguments.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for Datasource::getDriverName()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>String</para></entry>
+	      <entry><para>The name of the database driver used for this object.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
     <sect2 id="Qore::SQL::Datasource::getServerVersion">
       <title>Datasource::getServerVersion()</title>
 
@@ -21759,6 +22014,1827 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 
       <table>
 	<title>Return Values for Datasource::getClientVersion()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>Driver-Specific</para></entry>
+	      <entry><para>See the documentation for the DBI driver used for the connection.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+    </sect2>
+  </sect1>
+
+  <sect1 id="DatasourcePool_Class">
+    <title>Qore::SQL::DatasourcePool Class</title>
+    
+    <para>Note: This class is not available with the <link linkend="PO_NO_DATABASE"><code>PO_NO_DATABASE</code></link> parse option.</para>
+
+    <para>The DatasourcePool class provides transparent per-thread, per-transaction <link linkend="Qore::SQL::Datasource_Class">Datasource</link> connection pooling.</para> 
+
+    <para>In most cases, the DatasourcePool class can be used as a drop-in replacement for the <link linkend="Qore::SQL::Datasource_Class">Datasource</link> class; when a transaction begins, a datasource will be automatically assigned to the calling thread, and it will only be released when a commit or rollback is called on the object.  If no Datasource is available, the calling thread will block until a Datasource comes available.</para>
+
+    <para>Note that the same priciples apply to SQL and database driver usage as with the Datasource class, see the <link linkend="Qore::SQL::Datasource_Class">Datasource</link> class documentation for more information.</para>
+
+    <para>The DatasourcePool class uses Qore's thread resource tracking infrastructure to raise an exception if a thread terminates while a connection is allocated to it.  If Qore user code enters a transaction with a DatasourcePool object and the thread terminates without closing the transaction (via <link linkend="DatasourcePool::commit">DatasourcePool::commit()</link> or <link linkend="DatasourcePool::rollback">DatasourcePool::rollback()</link>), an exception will automatically be raised, the transaction will be rolled back, and the Datasource connection will be freed to the pool.</para>
+
+    <para>The following methods allocate a persistent connection to the calling thread: <link linkend="DatasourcePool::exec">DatasourcePool::exec()</link>, <link linkend="DatasourcePool::vexec">DatasourcePool::vexec()</link>, and <link linkend="DatasourcePool::beginTransaction">DatasourcePool::beginTransaction()</link>.  The connection is released to the pool when <link linkend="DatasourcePool::commit">DatasourcePool::commit()</link> or <link linkend="DatasourcePool::rollback">DatasourcePool::rollback()</link> are called (or in the case the thread terminates, in which case an exception is raised as well).</para>
+
+    <para>To begin a transaction with one of the select methods (for example, with “select for update”), call <link linkend="DatasourcePool::beginTransaction">DatasourcePool::beginTransaction()</link> first to manually dedicate a Datasource to the thread before calling the select method.  Otherwise statements that should be in the same transaction may be executed in different connections.</para>
+
+    <para>Executing a DatasourcePool method while not in a transaction is realized by allocating a temporary connection to the calling thread which is re-released when the method returns.  No explicit commits are executed by the class, therefore it is an error to execute transaction-relevant commands without first calling <link linkend="DatasourcePool::exec">DatasourcePool::exec()</link>, <link linkend="DatasourcePool::vexec">DatasourcePool::vexec()</link>, or <link linkend="DatasourcePool::beginTransaction">DatasourcePool::beginTransaction()</link>.</para>
+
+    <table>
+      <title>DatasourcePool Method Overview</title>
+      <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>Method</para></entry>
+	    <entry><para>Except?</para></entry>
+	    <entry><para>Description</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row>
+	    <entry><para><link linkend="DatasourcePool::constructor">DatasourcePool::constructor()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Creates the DatasourcePool object; attempts to load a DBI driver if the driver is not already present in Qore.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="DatasourcePool::destructor">DatasourcePool::destructor()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Destroys the object.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="DatasourcePool::copy">DatasourcePool::copy()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Throws an exception; currently DatasourcePool objects may not be copied.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="DatasourcePool::commit">DatasourcePool::commit()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Commits the transaction and releases the connection to the pool.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="DatasourcePool::rollback">DatasourcePool::rollback()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Rolls back the transaction and releases the connection to the pool.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="DatasourcePool::exec">DatasourcePool::exec()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Executes SQL code on the DB connection and dedicates a connection to the calling thread.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="DatasourcePool::vexec">DatasourcePool::vexec()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Executes SQL code on the DB connection, taking a list for all bind arguments.  Dedicates a connection to the calling thread.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="DatasourcePool::select">DatasourcePool::select()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Executes a select statement on the server and returns the results in a hash (column names) of lists (rows).</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="DatasourcePool::vselect">DatasourcePool::vselect()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Executes a select statement on the server and returns the results in a hash (column names) of lists (rows), taking a list for all bind arguments.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="DatasourcePool::selectRow">DatasourcePool::selectRow()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Executes a select statement on the server and returns the first row as a hash (column names and values).</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="DatasourcePool::vselectRow">DatasourcePool::vselectRow()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Executes a select statement on the server and returns the first row as a hash (column names and values), taking a list for all bind arguments.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="DatasourcePool::selectRows">DatasourcePool::selectRows()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Executes a select statement on the server and returns the results in a list (rows) of hashes (column names and values).</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="DatasourcePool::vselectRows">DatasourcePool::vselectRows()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Executes a select statement on the server and returns the results in a list (rows) of hashes (column names and values), taking a list for all bind arguments.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="DatasourcePool::beginTransaction">DatasourcePool::beginTransaction()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Manually allocates a persistent connection to the calling thread.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="DatasourcePool::getUserName">DatasourcePool::getUserName()</link></para></entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Returns the username parameter.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="DatasourcePool::getPassword">DatasourcePool::getPassword()</link></para></entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Returns the password parameter.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="DatasourcePool::getDBName">DatasourcePool::getDBName()</link></para></entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Returns the dbname parameter.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="DatasourcePool::getDBCharset">DatasourcePool::getDBCharset()</link></para></entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Returns the DBI driver specific charset name for the current connection.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="DatasourcePool::getOSCharset">DatasourcePool::getOSCharset()</link></para></entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Returns the Qore charset name for the current connection.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="DatasourcePool::getHostName">DatasourcePool::getHostName()</link></para></entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Returns the hostname parameter.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="DatasourcePool::getDriverName">DatasourcePool::getDriverName()</link></para></entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Returns the name of the database driver used for this object.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="DatasourcePool::getServerVersion">DatasourcePool::getServerVersion()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Returns the driver-specific server version data for the current connection.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="DatasourcePool::getClientVersion">DatasourcePool::getClientVersion()</link></para></entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Returns the driver-specific client library version data.  Not implemented by all drivers.</para></entry>
+	  </row>
+	  
+	</tbody>
+      </tgroup>
+    </table>
+
+    <sect2 id="DatasourcePool::constructor">
+      <title>DatasourcePool::constructor()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Creates a DatasourcePool object. The constructor requires the database driver name as the first argument</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting><command>new</command> DatasourcePool(<replaceable>driver_name, [username], [password], [dbname], [charset_name], [hostname], [min], [max]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting># open a Datasource pool to a PostgreSQL database, username="user", password="pass", dbname="database"
+# use "utf8" for the character encoding for the connection, hostname="localhost"
+# minimum 5 connections (opened immediately), with a maximum of 20
+$pool = <command>new</command> DatasourcePool(DSPGSQL, "user", "pass", "database", "utf8", "localhost", 5, 20);</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+      
+      <table>
+	<title>Arguments for DatasourcePool::constructor()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><replaceable>driver_name</replaceable></para></entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>The name of the DBI driver for the DatasourcePool.  See <link linkend="Qore_SQL_Constants">SQL Constants</link> for builtin constants for DBI drivers shipped with Qore, or see the DBI driver documentation to use an add-on driver.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><replaceable>[username]</replaceable></para></entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>The user name for the new connection.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><replaceable>[password]</replaceable></para></entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>The password for the new connection.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><replaceable>[dbname]</replaceable></para></entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>The database name for the new connection.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><replaceable>[charset_name]</replaceable></para></entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>The database-specific name of the character encoding to use for the new connection.  If no value is passed for this parameter, then the database character encoding corresponding to the default character encoding for the Qore process will be used instead.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><replaceable>[hostname]</replaceable></para></entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>The host name for the new connection (not used by some DBI drivers).</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><replaceable>[min]</replaceable></para></entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>The minimum number of connections to open immediately (default=5).</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><replaceable>[max]</replaceable></para></entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>The maximum number of connections to open (default=20).</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for DatasourcePool::constructor()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>Object</para></entry>
+	      <entry><para>The DatasourcePool object created</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+      <table>
+	<title>Exceptions Thrown by DatasourcePool::constructor()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>DATASOURCEPOOL-PARAM-EEROR</code></para></entry>
+	      <entry><para>Missing DBI driver identifier as first argument, negative number of connections specified, or max &lt; min.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>DATASOURCEPOOL-UNSUPPORTED-DATABASE</code></para></entry>
+	      <entry><para>Could not load a driver for the database identified.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+    <sect2 id="DatasourcePool::destructor">
+      <title>DatasourcePool::destructor()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Throws an exception if any transactions are in progress.  The object is destroyed when the last reference to it is removed.</para>
+	  </listitem>
+	</varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+	    <programlisting><command>delete</command> <replaceable>lvalue</replaceable></programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+	    <programlisting><command>delete</command> $pool;</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Exceptions Thrown by DatasourcePool::destructor()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>DATASOURCEPOOL-ERROR</code></para></entry>
+	      <entry><para>The destructor was called while a transaction was still in progress.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+    </sect2>
+
+    <sect2 id="DatasourcePool::copy">
+      <title>DatasourcePool::copy()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Thows an exception; DatasourcePool objects cannot be copied at the moment.</para>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+      
+    </sect2>
+
+    <sect2 id="DatasourcePool::beginTransaction">
+      <title>DatasourcePool::beginTransaction()</title>
+      
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Manually allocates a persistent connection from the pool to the calling thread.  This method should be called when a transaction will be started with a <link linkend="DatasourcePool::select">DatasourcePool::select()</link> method (or vselect*, etc).</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>DatasourcePool::beginTransaction()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$pool.beginTransaction();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for DatasourcePool::beginTransaction()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method takes no arguments.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for DatasourcePool::beginTransaction()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method return no value.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="DatasourcePool::commit">
+      <title>DatasourcePool::commit()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Commits the current transaction and releases the connection to the pool.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>DatasourcePool::commit()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$pool.commit();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for DatasourcePool::commit()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method takes no arguments.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for DatasourcePool::commit()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>0 for success, -1 for not open.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by DatasourcePool::commit()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>depends on DBI driver</para></entry>
+	      <entry><para>See documentation for the DBI driver for driver-specific exceptions.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="DatasourcePool::rollback">
+      <title>DatasourcePool::rollback()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Rolls back the current transaction and releases the connection to the pool.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>DatasourcePool::rollback()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$pool.rollback();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for DatasourcePool::rollback()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method takes no arguments.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for DatasourcePool::rollback()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>0 for success, -1 for failure (driver-specific).</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by DatasourcePool::rollback()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>depends on DBI driver</para></entry>
+	      <entry><para>See documentation for the DBI driver for driver-specific exceptions.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+
+    <sect2 id="DatasourcePool::exec">
+      <title>DatasourcePool::exec()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Allocates a persistent connection to the calling thread, executes an SQL command on the server and returns either the row count (for example, for updates and inserts) or the data retrieved (for example, if a stored procedure is executed that returns values).  This method takes a special syntax for binding values and placeholders; see the <link linkend="Qore::SQL::Datasource::exec">Datasource::exec()</link> method for more information.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>DatasourcePool::exec(<replaceable>sql_command, [arg1, ...]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$rows = $pool.exec("insert into table (varchar_col, timestamp_col, blob_col, numeric_col) values (%v, %v, %v, %d)", $string, now(), $binary, 100);</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for DatasourcePool::exec()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><replaceable>sql_command</replaceable></para></entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>The SQL command to execute on the server.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><replaceable>[arg1, ...]</replaceable></para></entry>
+	      <entry><para>Any</para></entry>
+	      <entry><para>Include any values to be bound (using <code>%v</code> in the command string) or placeholder specifications (using :&lt;key_name&gt; in the command string) in order after the command string.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for DatasourcePool::exec()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>Integer or Hash</para></entry>
+	      <entry><para>For commands with placeholders, a hash is returned holding the values acquired from executing the SQL statement.  For all other commands, a row count is returned.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by DatasourcePool::exec()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>depends on DBI driver</para></entry>
+	      <entry><para>See documentation for the DBI driver for driver-specific exceptions.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="DatasourcePool::vexec">
+      <title>DatasourcePool::vexec()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Same as the <link linkend="DatasourcePool::exec">DatasourcePool::exec()</link> method, except this method takes a single argument after the SQL command giving the list of bind parameters.</para>
+	    <para>This method allocates a persistent connection from the pool to the calling thread.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>DatasourcePool::vexec(<replaceable>sql_command, [list]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$rows = $pool.vexec("insert into example_table value (%v, %v, %v)", $arg_list);</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for DatasourcePool::vexec()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><replaceable>sql_command</replaceable></para></entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>The SQL command to execute on the server.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><replaceable>[list]</replaceable></para></entry>
+	      <entry><para>List</para></entry>
+	      <entry><para>Include any values to be bound (using <code>%v</code> in the command string) or placeholder specifications (using :&lt;key_name&gt; in the command string) in a single list in order after the command string.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for DatasourcePool::vexec()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>Integer or Hash</para></entry>
+	      <entry><para>For commands with placeholders, a hash is returned holding the values acquired from executing the SQL statement.  For all other commands, a row count is returned.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by DatasourcePool::vexec()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>depends on DBI driver</para></entry>
+	      <entry><para>See documentation for the DBI driver for driver-specific exceptions.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="DatasourcePool::select">
+      <title>DatasourcePool::select()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Executes an SQL select statement on the server and returns the result as a hash (column names) of lists (rows).  See <link linkend="Qore::SQL::Datasource::select">Datasource::select()</link> for more information.</para>
+
+	    <para>Note that this method does not allocate a persistent connection to the calling thread; if the calling thread does not already have a connection allocated to it, a temporary connection will be allocated for executing the select query and returning the results; the temporary connection will be immediately returned to the pool when this method returns.  It is an error to execute transaction relevant commands with this method without first allocating a persistent connection with  <link linkend="DatasourcePool::exec">DatasourcePool::exec()</link>, <link linkend="DatasourcePool::vexec">DatasourcePool::vexec()</link>, or <link linkend="DatasourcePool::beginTransaction">DatasourcePool::beginTransaction()</link>.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>DatasourcePool::select(<replaceable>select_statement, [arg1, ...]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting># bind a string and a date/time value by value in a query
+$query = $pool.select("select * from table where varchar_column = %v and timestamp_column > %v", $string, 2007-10-11T15:31:26.289);</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for DatasourcePool::select()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><replaceable>select_statement</replaceable></para></entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>SQL select statement to execute on the server.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><replaceable>[arg1, ...]</replaceable></para></entry>
+	      <entry><para>Any</para></entry>
+	      <entry><para>Arguments to bind by value in %v positions in the SQL string.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for DatasourcePool::select()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>Hash</para></entry>
+	      <entry><para>Returns a hash (the keys are the column names) of lists (each hash key's value is a list giving the row data).</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by DatasourcePool::select()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>depends on DBI driver</para></entry>
+	      <entry><para>See documentation for the DBI driver for driver-specific exceptions.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="DatasourcePool::vselect">
+      <title>DatasourcePool::vselect()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Same as the <link linkend="DatasourcePool::select">DatasourcePool::select()</link> method, except this method takes a single argument after the SQL command giving the list of bind value parameters.</para>
+
+	    <para>Note that this method does not allocate a persistent connection to the calling thread; if the calling thread does not already have a connection allocated to it, a temporary connection will be allocated for executing the select query and returning the results; the temporary connection will be immediately returned to the pool when this method returns.  It is an error to execute transaction relevant commands with this method without first allocating a persistent connection with  <link linkend="DatasourcePool::exec">DatasourcePool::exec()</link>, <link linkend="DatasourcePool::vexec">DatasourcePool::vexec()</link>, or <link linkend="DatasourcePool::beginTransaction">DatasourcePool::beginTransaction()</link>.</para>
+
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>DatasourcePool::vselect(<replaceable>select_statement, [list]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$query = $pool.vselect("select * from example_table where id = %v and name = %v", $arg_list);</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for DatasourcePool::vselect()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><replaceable>select_statement</replaceable></para></entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>SQL select statement to execute on the server.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><replaceable>[arg1, ...]</replaceable></para></entry>
+	      <entry><para>List</para></entry>
+	      <entry><para>A list of arguments to bind by value in %v positions in the SQL string.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for DatasourcePool::vselect()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>Hash</para></entry>
+	      <entry><para>Returns a hash (the keys are the column names) of lists (each hash key's value is a list giving the row data).</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by DatasourcePool::vselect()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>depends on DBI driver</para></entry>
+	      <entry><para>See documentation for the DBI driver for driver-specific exceptions.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+    <sect2 id="DatasourcePool::selectRow">
+      <title>DatasourcePool::selectRow()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Executes an SQL select statement on the server and returns the first row as a hash (the column values).  If more than one row is returned, then all but the first row are discarded.  For a similar method taking a list for all bind arguments, see <link linkend="DatasourcePool::vselectRow">DatasourcePool::vselectRow()</link>.</para>
+	    <para>This method also accepts all bind parameters (%d, %v, etc) as documented in  <link linkend="DatasourcePool::select">DatasourcePool::select()</link>.</para>
+
+	    <para>Note that this method does not allocate a persistent connection to the calling thread; if the calling thread does not already have a connection allocated to it, a temporary connection will be allocated for executing the select query and returning the results; the temporary connection will be immediately returned to the pool when this method returns.  It is an error to execute transaction relevant commands with this method without first allocating a persistent connection with  <link linkend="DatasourcePool::exec">DatasourcePool::exec()</link>, <link linkend="DatasourcePool::vexec">DatasourcePool::vexec()</link>, or <link linkend="DatasourcePool::beginTransaction">DatasourcePool::beginTransaction()</link>.</para>
+
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>DatasourcePool::selectRow(<replaceable>select_statement, [arg1, ...]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$list = $pool.selectRow("select * from example_table");</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for DatasourcePool::selectRow()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><replaceable>select_statement</replaceable></para></entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>SQL select statement to execute on the server.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><replaceable>[arg1, ...]</replaceable></para></entry>
+	      <entry><para>Any</para></entry>
+	      <entry><para>Arguments to bind by value in %v positions in the SQL string.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for DatasourcePool::selectRow()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>Hash or NOTHING</para></entry>
+	      <entry><para>Returns a hash (column values) of the first row, NOTHING if no rows are returned.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by DatasourcePool::selectRow()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>depends on DBI driver</para></entry>
+	      <entry><para>See documentation for the DBI driver for driver-specific exceptions.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="DatasourcePool::vselectRow">
+      <title>DatasourcePool::vselectRow()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Same as the <link linkend="DatasourcePool::selectRow">DatasourcePool::selectRow()</link> method, except this method takes a single argument after the SQL command giving the list of bind value parameters.</para>
+
+	    <para>Note that this method does not allocate a persistent connection to the calling thread; if the calling thread does not already have a connection allocated to it, a temporary connection will be allocated for executing the select query and returning the results; the temporary connection will be immediately returned to the pool when this method returns.  It is an error to execute transaction relevant commands with this method without first allocating a persistent connection with  <link linkend="DatasourcePool::exec">DatasourcePool::exec()</link>, <link linkend="DatasourcePool::vexec">DatasourcePool::vexec()</link>, or <link linkend="DatasourcePool::beginTransaction">DatasourcePool::beginTransaction()</link>.</para>
+
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>DatasourcePool::vselectRow(<replaceable>select_statement, [list]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$list = $pool.vselectRow("select * from example_table where id = %v and name = %v", $arg_list);</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for DatasourcePool::vselectRow()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><replaceable>select_statement</replaceable></para></entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>SQL select statement to execute on the server.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><replaceable>[list]</replaceable></para></entry>
+	      <entry><para>List</para></entry>
+	      <entry><para>A list of arguments to bind by value in %v positions in the SQL string.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for DatasourcePool::vselectRow()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>Hash or NOTHING</para></entry>
+	      <entry><para>Returns a hash of the first row (column values).  If no rows are returned by the query, then NOTHING is returned.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="DatasourcePool::selectRows">
+      <title>DatasourcePool::selectRows()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Executes an SQL select statement on the server and returns the result as a list (rows) of hashes (the column values).  This format is not as efficient as that returned by the <link linkend="DatasourcePool::select">DatasourcePool::select()</link> method, therefore for larger amounts of data, it is recommended to use <link linkend="DatasourcePool::select">DatasourcePool::select()</link>.</para>
+	    <para>This method also accepts all bind parameters (%d, %v, etc) as documented in  <link linkend="DatasourcePool::select">DatasourcePool::select()</link>.</para>
+
+	    <para>Note that this method does not allocate a persistent connection to the calling thread; if the calling thread does not already have a connection allocated to it, a temporary connection will be allocated for executing the select query and returning the results; the temporary connection will be immediately returned to the pool when this method returns.  It is an error to execute transaction relevant commands with this method without first allocating a persistent connection with  <link linkend="DatasourcePool::exec">DatasourcePool::exec()</link>, <link linkend="DatasourcePool::vexec">DatasourcePool::vexec()</link>, or <link linkend="DatasourcePool::beginTransaction">DatasourcePool::beginTransaction()</link>.</para>
+
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>DatasourcePool::selectRows(<replaceable>select_statement, [arg1, ...]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$list = $pool.selectRows("select * from example_table");</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for DatasourcePool::selectRows()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><replaceable>select_statement</replaceable></para></entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>SQL select statement to execute on the server.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><replaceable>[arg1, ...]</replaceable></para></entry>
+	      <entry><para>Any</para></entry>
+	      <entry><para>Arguments to bind by value in %v positions in the SQL string.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for DatasourcePool::selectRows()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>List</para></entry>
+	      <entry><para>Returns a list (the rows returned) of hashes (column values).</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by DatasourcePool::selectRows()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>depends on DBI driver</para></entry>
+	      <entry><para>See documentation for the DBI driver for driver-specific exceptions.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="DatasourcePool::vselectRows">
+      <title>DatasourcePool::vselectRows()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Same as the <link linkend="DatasourcePool::selectRows">DatasourcePool::selectRows()</link> method, except this method takes a single argument after the SQL command giving the list of bind value parameters.</para>
+
+	    <para>Note that this method does not allocate a persistent connection to the calling thread; if the calling thread does not already have a connection allocated to it, a temporary connection will be allocated for executing the select query and returning the results; the temporary connection will be immediately returned to the pool when this method returns.  It is an error to execute transaction relevant commands with this method without first allocating a persistent connection with  <link linkend="DatasourcePool::exec">DatasourcePool::exec()</link>, <link linkend="DatasourcePool::vexec">DatasourcePool::vexec()</link>, or <link linkend="DatasourcePool::beginTransaction">DatasourcePool::beginTransaction()</link>.</para>
+
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>DatasourcePool::vselectRows(<replaceable>select_statement, [list]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$list = $pool.vselectRows("select * from example_table where id = %v and name = %v", $arg_list);</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for DatasourcePool::vselectRows()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><replaceable>select_statement</replaceable></para></entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>SQL select statement to execute on the server.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><replaceable>[list]</replaceable></para></entry>
+	      <entry><para>List</para></entry>
+	      <entry><para>A list of arguments to bind by value in %v positions in the SQL string.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for DatasourcePool::vselectRows()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>List</para></entry>
+	      <entry><para>Returns a list (the rows returned) of hashes (column values).</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by DatasourcePool::vselectRows()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>depends on DBI driver</para></entry>
+	      <entry><para>See documentation for the DBI driver for driver-specific exceptions.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+
+    <sect2 id="DatasourcePool::getUserName">
+      <title>DatasourcePool::getUserName()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Retrieves the username parameter for all connections in this pool.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>DatasourcePool::getUserName()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$str = $pool.getUserName();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for DatasourcePool::getUserName()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method takes no arguments.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for DatasourcePool::getUserName()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>String</para></entry>
+	      <entry><para>The username connection parameter.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+    </sect2>
+
+
+    <sect2 id="DatasourcePool::getPassword">
+      <title>DatasourcePool::getPassword()</title>
+      
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Retrieves the password connection parameter.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>DatasourcePool::getPassword()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$str = $pool.getPassword();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for DatasourcePool::getPassword()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method takes no arguments.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for DatasourcePool::getPassword()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>String</para></entry>
+	      <entry><para>Retrieves the password connection parameter.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+    </sect2>
+
+
+    <sect2 id="DatasourcePool::getDBName">
+      <title>DatasourcePool::getDBName()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Retrieves the dbname connection parameter.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>DatasourcePool::getDBName()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$str = $pool.getDBName();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for DatasourcePool::getDBName()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method takes no arguments.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for DatasourcePool::getDBName()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>String</para></entry>
+	      <entry><para>Retrieves the password connection parameter.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="DatasourcePool::getDBCharset">
+      <title>DatasourcePool::getDBCharset()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Retrieves the database-specific charset set encoding for the current connection.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>DatasourcePool::getDBCharset()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$str = $pool.getDBCharset();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for DatasourcePool::getDBCharset()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method takes no arguments.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for DatasourcePool::getDBCharset()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>String</para></entry>
+	      <entry><para>Retrieves the database-specific charset set encoding for the current connection.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+    </sect2>
+    <sect2 id="DatasourcePool::getOSCharset">
+      <title>DatasourcePool::getOSCharset()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Retrieves the Qore charset set encoding for the current connection.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>DatasourcePool::getOSCharset()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$str = $pool.getOSCharset();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for DatasourcePool::getOSCharset()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method takes no arguments.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for DatasourcePool::getOSCharset()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>String</para></entry>
+	      <entry><para>Retrieves the Qore charset set encoding for the current connection.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="DatasourcePool::getHostName">
+      <title>DatasourcePool::getHostName()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Retrieves the hostname connection parameter.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>DatasourcePool::getHostName()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$str = $pool.getHostName();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for DatasourcePool::getHostName()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method takes no arguments.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for DatasourcePool::getHostName()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>String</para></entry>
+	      <entry><para>Retrieves the hostname connection parameter.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="DatasourcePool::getDriverName">
+      <title>DatasourcePool::getDriverName()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Returns the name of the DBI driver used for this object.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>DatasourcePool::getDriverName()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$name = $pool.getDriverName();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for DatasourcePool::getDriverName()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method takes no arguments.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for DatasourcePool::getDriverName()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>String</para></entry>
+	      <entry><para>The name of the database driver used for this object.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="DatasourcePool::getServerVersion">
+      <title>DatasourcePool::getServerVersion()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Retrieves the driver-specific server version information for the current connection.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>DatasourcePool::getServerVersion()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$data = $pool.getServerVersion();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for DatasourcePool::getServerVersion()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method takes no arguments.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for DatasourcePool::getServerVersion()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>Driver-Specific</para></entry>
+	      <entry><para>See the documentation for the DBI driver used for the connection.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+    </sect2>
+    <sect2 id="DatasourcePool::getClientVersion">
+      <title>DatasourcePool::getClientVersion()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Retrieves the driver-specific client library version information.  Not implemented for all drivers.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>DatasourcePool::getClientVersion()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$data = $pool.getClientVersion();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for DatasourcePool::getClientVersion()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method takes no arguments.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for DatasourcePool::getClientVersion()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>

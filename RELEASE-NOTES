@@ -4,7 +4,8 @@ NOTE: for platform-specific notes and build instructions, please see the file BU
 
 RELEASE SUMMARY: major new features (see compatibility warnings below)
 	*) 3 new DBI drivers, PostgreSQL, Sybase, and FreeTDS ("pgsql", "sybase", "mssql")
-	*) more support for database and driver-independent programming with the Datasource class
+	*) more support for database and driver-independent programming
+	*) new DatasourcePool class for transparent Datasource connection pooling
 	*) HTTPClient improvements (redirections, basic authentication, proxy support)
 	*) safe signal handling
 	*) complete deadlock detection and thread primitive error handling
@@ -71,6 +72,14 @@ ex: $db = new Datasource("sybase");
 The driver's name is "mssql" and the Datasource type constant is SQL::DSMSSQL
 ex: $db = new Datasource(DSMSSQL);
 ex: $db = new Datasource("mssql");
+
+*) new DatasourcePool class provides transparent Datasource connection pooling
+Use the DatasourcePool class like the Datasource class; when you enter a transaction, a Datasource is automatically allocated to the thread, and released when the transaction is committed or rolled back.  
+Allocated connections are tracked with Qore's thread resource tracking and failure to release a connection before a thread terminates will result in an exception being thrown and the connection being automatically returned to the pool.
+
+Minimum and maximum number of connections can be set in the constructor; see the DatasourcePool class documentation for more information.
+
+Note that this class is only useful for transaction management; autocommit cannot be enabled with this class (this is because the automatic connection allocation to a thread is made when the thread starts a transaction).
 
 *) HTTPClient improvements
 the HTTPClient class now supports redirections, basic authentication, and proxy support (and basic proxy authentication).

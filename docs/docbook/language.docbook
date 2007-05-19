@@ -82,7 +82,7 @@
     <para>Modules shipping with Qore include <link linkend="oracle_Module"><code>oracle</code></link>, <link linkend="mysql_Module"><code>mysql</code></link>, <link linkend="pgsql_Module"><code>pgsql</code></link>, <link linkend="sybase_Module"><code>sybase</code></link>, <link linkend="mssql_Module"><code>mssql</code></link>, <link linkend="ncurses_Module"><code>ncurses</code></link>, <link linkend="tibrv_Module"><code>tibrv</code></link>, <link linkend="tibae_Module"><code>tibae</code></link>, and <link linkend="Tuxedo_Module"><code>tuxedo</code></link>.</para>
     <para>To load a module at parse time (normally required for most modules), use the <link linkend="requires"><code>%requires</code></link> parse directive. If the named feature is not already present in Qore, Qore looks for a module with this name in the directories listed in the <code>QORE_MODULE_DIR</code> environment variable.</para>
     <para>Use the <link linkend="load_module">load_module()</link> function to load Qore modules at run-time; however, note that any module providing parse support (classes, constants, functions, etc) must be loaded at parse time using the <link linkend="requires"><code>%requires</code></link> directive.</para>
-    <para>Also note that DBI drivers are loaded on demand by the <link linkend="Qore::SQL::Datasource_Class">Datasource class</link>.</para>
+    <para>Also note that DBI drivers are loaded on demand by the <link linkend="Qore::SQL::Datasource_Class">Datasource</link> and <link linkend="DatasourcePool_Class">DatasourcePool</link> classes.</para>
   </sect1>
   
   <sect1 id="Include_Files">
@@ -500,7 +500,7 @@ language, either by an addition to this data type, or by adding another date typ
 
   <para>Binary objects can be sent and received using classes provided by the <link linkend="tibrv_Module">tibrv module</link> as well.</para>
 
-  <para>The <link linkend="Qore::SQL::Datasource_Class">Datasource Class</link> can also be used to read and write Binary objects as BLOBs.</para>
+  <para>The <link linkend="Qore::SQL::Datasource_Class">Datasource</link> and <link linkend="DatasourcePool_Class">DatasourcePool</link> classes can also be used to read and write Binary objects as BLOBs.</para>
 
   <para>Note that this is not an exhaustive list; see the function and class library documentation for more examples.</para>
 
@@ -648,7 +648,7 @@ language, either by an addition to this data type, or by adding another date typ
 
 <para>The <link linkend='TibrvSender_Class'>TibrvSender Class</link>, <link linkend='TibrvListener_Class'>TibrvListener Class</link>, <link linkend='TibrvCmSender_Class'>TibrvCmSender Class</link>, and the <link linkend='TibrvCmListener_Class'>TibrvCmListener Class</link> will convert and tag strings to the encoding set for instantiated objects of these classes.</para>
 
-<para>The <link linkend='Qore::SQL::Datasource_Class'>Datasource Class</link> will translate character set encodings to the encoding required by the database if necessary as well (this is actually the responsibility of the DBI driver for the database in question).</para>
+<para>The <link linkend='Qore::SQL::Datasource_Class'>Datasource</link> and <link linkend="DatasourcePool_Class">DatasourcePool</link> classes will translate character set encodings to the encoding required by the database if necessary as well (this is actually the responsibility of the DBI driver for the database in question).</para>
 
 <para>The <link linkend='Qore_File_Class'>File</link> and <link linkend='Qore_Socket_Class'>Socket</link> classes translate character set encodings to the encoding specified for the object if necessary, as well as tagging strings received or read with the object's encoding.</para>
 

@@ -1,6 +1,15 @@
 2006.05.19: David Nichols
 	* more "char *" -> "const char *" API header updates
 	* fixed a bug in the new thread variable stack handling
+	* added DatasourcePool class for transparent Datasource connection
+	  pooling.  Use the DatasourcePool class like the Datasource class;
+	  when you enter a transaction, a Datasource is automatically allocated
+	  to the thread, and released when the transaction is committed or 
+	  rolled back.  Allocated connections are tracked with Qore's thread
+	  resource tracking and failure to release a connection before a thread
+	  terminates will result in an exception being thrown and the connection
+	  being automatically returned to the pool.
+	* new methods: Datasource::selectRow() and Datasource::vselectRow()
 
 2006.05.18: David Nichols
 	* do not mask SIGPROF when profiling is enabled

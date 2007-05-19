@@ -120,6 +120,7 @@ noinst_HEADERS = \
 	include/qore/QoreSSLBase.h \
 	include/qore/QoreWarnings.h \
 	include/qore/Datasource.h \
+	include/qore/DatasourcePool.h \
 	include/qore/ManagedDatasource.h \
 	include/qore/Environment.h \
 	include/qore/QT_NOTHING.h \
@@ -164,6 +165,7 @@ noinst_HEADERS = \
 	include/qore/QC_File.h \
 	include/qore/QC_Counter.h \
 	include/qore/QC_Datasource.h \
+	include/qore/QC_DatasourcePool.h \
 	include/qore/QC_GetOpt.h \
 	include/qore/QC_FtpClient.h \
 	include/qore/QC_SSLCertificate.h \

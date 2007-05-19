@@ -3,7 +3,7 @@
 <sect1 id="mysql_Module">
   <title>mysql Module</title>
 
-  <para>The mysql module provides a MySQL driver to Qore's DBI system, allowing Qore programs to access MySQL databases through the <link linkend="Qore::SQL::Datasource_Class">Datasource Class</link>.</para>
+  <para>The mysql module provides a MySQL driver to Qore's DBI system, allowing Qore programs to access MySQL databases through the <link linkend="Qore::SQL::Datasource_Class">Datasource</link> and <link linkend="DatasourcePool_Class">DatasourcePool</link> classes.</para>
 
   <para>Example of creating a MySQL Datasource:</para>
 
