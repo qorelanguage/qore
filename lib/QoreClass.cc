@@ -1364,7 +1364,7 @@ class QoreNode *QoreClass::execCopy(Object *old, ExceptionSink *xsink)
 
    // save current program location in case there's an exception
    const char *o_fn = NULL;
-   int o_ln, o_eln;
+   int o_ln = 0, o_eln = 0;
    
    class Object *self = new Object(this, getProgram(), h);
 
