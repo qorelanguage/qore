@@ -631,13 +631,13 @@ void QoreString::concatBase64(const class QoreString *str)
 
 #define DO_HEX_CHAR(b) ((b) + (((b) > 9) ? 87 : 48))
 
-void QoreString::concatHex(const char *buf, int size)
+void QoreString::concatHex(const char *binbuf, int size)
 {
-   //printf("buf=%08p, size=%d\n", buf, size);
+   //printf("buf=%08p, size=%d\n", binbuf, size);
    if (!size)
       return;
 
-   unsigned char *p = (unsigned char *)buf;
+   unsigned char *p = (unsigned char *)binbuf;
    unsigned char *endbuf = p + size;
    while (p < endbuf)
    {

@@ -22313,7 +22313,7 @@ $pool = <command>new</command> DatasourcePool(DSPGSQL, "user", "pass", "database
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Throws an exception if any transactions are in progress.  The object is destroyed when the last reference to it is removed.</para>
+	    <para>Throws an exception if any transactions are in progress and returns immediately.  The object is destroyed after any in-progress requests are completed.</para>
 	  </listitem>
 	</varlistentry>
         <varlistentry>

@@ -54,8 +54,8 @@ DLLEXPORT extern int debug;
 #define traceout(args...)
 #else
 #define printd(args, ...)
-#define tracein(args, ...)
-#define traceout(args, ...)
+#define tracein(x)
+#define traceout(x)
 #endif
 #endif
 

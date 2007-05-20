@@ -142,23 +142,23 @@ int QoreHTTPClient::setOptions(Hash* opts, ExceptionSink* xsink)
 	    xsink->raiseException("HTTP-CLIENT-CONSTRUCTOR-ERROR", "value of protocol hash key '%s' is not a hash or an int", hi.getKey());
 	    return -1;
 	 }
-	 bool ssl = false;
-	 int port;
+	 bool need_ssl = false;
+	 int need_port;
 	 if (v->type == NT_INT)
-	    port = v->val.intval;
+	    need_port = v->val.intval;
 	 else
 	 {
 	    class QoreNode *p = v->val.hash->getKeyValue("port");
-	    port = p ? p->getAsInt() : 0;
-	    if (!port)
+	    need_port = p ? p->getAsInt() : 0;
+	    if (!need_port)
 	    {
 	       xsink->raiseException("HTTP-CLIENT-CONSTRUCTOR-ERROR", "'port' key in protocol hash key '%s' is missing or zero", hi.getKey());
 	       return -1;
 	    }
 	    p = v->val.hash->getKeyValue("ssl");
-	    ssl = p ? p->getAsBool() : false;
+	    need_ssl = p ? p->getAsBool() : false;
 	 }
-	 prot_map[hi.getKey()] = make_protocol(port, ssl);
+	 prot_map[hi.getKey()] = make_protocol(need_port, need_ssl);
       }
    }
 
@@ -1030,14 +1030,14 @@ class QoreNode *QoreHTTPClient::send_internal(const char *meth, const char *mpat
    return ans;
 }
 
-class QoreNode *QoreHTTPClient::send(const char *meth, const char *path, class Hash *headers, const void *data, unsigned size, bool getbody, class ExceptionSink *xsink)
+class QoreNode *QoreHTTPClient::send(const char *meth, const char *new_path, class Hash *headers, const void *data, unsigned size, bool getbody, class ExceptionSink *xsink)
 {
-   return send_internal(meth, path, headers, data, size, getbody, xsink);
+   return send_internal(meth, new_path, headers, data, size, getbody, xsink);
 }
 
-class QoreNode *QoreHTTPClient::get(const char *path, class Hash *headers, class ExceptionSink *xsink)
+class QoreNode *QoreHTTPClient::get(const char *new_path, class Hash *headers, class ExceptionSink *xsink)
 {
-   class QoreNode *ans = send_internal("GET", path, headers, NULL, 0, true, xsink);
+   class QoreNode *ans = send_internal("GET", new_path, headers, NULL, 0, true, xsink);
    if (!ans)
       return NULL;
    class QoreNode *rv = ans->val.hash->takeKeyValue("body");
@@ -1045,14 +1045,14 @@ class QoreNode *QoreHTTPClient::get(const char *path, class Hash *headers, class
    return rv;
 }
 
-class QoreNode *QoreHTTPClient::head(const char *path, class Hash *headers, class ExceptionSink *xsink)
+class QoreNode *QoreHTTPClient::head(const char *new_path, class Hash *headers, class ExceptionSink *xsink)
 {
-   return send_internal("HEAD", path, headers, NULL, 0, false, xsink);
+   return send_internal("HEAD", new_path, headers, NULL, 0, false, xsink);
 }
 
-class QoreNode *QoreHTTPClient::post(const char *path, class Hash *headers, const void *data, unsigned size, class ExceptionSink *xsink)
+class QoreNode *QoreHTTPClient::post(const char *new_path, class Hash *headers, const void *data, unsigned size, class ExceptionSink *xsink)
 {
-   class QoreNode *ans = send_internal("POST", path, headers, data, size, true, xsink);
+   class QoreNode *ans = send_internal("POST", new_path, headers, data, size, true, xsink);
    if (!ans)
       return NULL;
    // check for 2** return code, if not throw an exception
@@ -1062,9 +1062,9 @@ class QoreNode *QoreHTTPClient::post(const char *path, class Hash *headers, cons
    return rv;
 }
 
-void QoreHTTPClient::addProtocol(const char *prot, int port, bool ssl)
+void QoreHTTPClient::addProtocol(const char *prot, int new_port, bool new_ssl)
 {
-   prot_map[prot] = make_protocol(port, ssl);
+   prot_map[prot] = make_protocol(new_port, new_ssl);
 }
 
 void QoreHTTPClient::setMaxRedirects(int max)
