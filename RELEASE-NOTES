@@ -47,6 +47,8 @@ Call stacks are still maintained with debugging versions of qore so this functio
 
 Due to the performance improvements in this release, this release of Qore faster than previous releases, even in the face of significant enhancements to the Qore execution engine (deadlock detection, timeout support, etc).
 
+Average speed improvement compared to 0.6.1.* on most platforms is 20%, however on Solaris 10 (sparc at least) the difference is more dramatic, up to 2x faster (the extra speed boost possibly due to using libumem for memory allocation on this platform).  With heavily threaded code the speed improvement is smaller, but still noticeable.
+
 *) "pgsql" module: PostgreSQL driver
 the new "pgsql" driver uses efficient binary communication with PostgreSQL servers for binding and retrieving values from queries.
 The driver supports the following features:
