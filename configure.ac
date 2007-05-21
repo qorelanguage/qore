@@ -1910,9 +1910,11 @@ if test "$enable_optimization" = "yes"; then
     if test "$GXX" = "yes"; then
         CXXFLAGS="$CXXFLAGS -O3"  # gcc
     elif test "$CXX" = "CC" -a "`echo $host_os|cut -b-7`" = "solaris"; then
-	CXXFLAGS="$CXXFLAGS -xO5" # Solaris CC
+        # remove -g with Solaris CC as it reduces optimization levels
+	CXXFLAGS="`echo $CXXFLAGS| sed s/-g//` -xO5" # Solaris CC
     elif test -n "`echo $CXX|grep aCC`"; then 
-	CXXFLAGS="$CXXFLAGS +O2" # HP-UX aCC
+        # remove -g with HP-UX aCC as it reduces optimization levels
+	CXXFLAGS="`echo $CXXFLAGS| sed s/-g//` +O4" # HP-UX aCC
     fi
 else
     if test "$GXX" = "yes"; then

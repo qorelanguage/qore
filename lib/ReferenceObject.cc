@@ -48,7 +48,13 @@ void ReferenceObject::ROreference()
 bool ReferenceObject::ROdereference()
 {
 #ifdef HAVE_ATOMIC_MACROS
-   // do not do a cache sync (or at worst a mutex lock and unlock) if references == 1
+   // do not do a cache sync if references == 1
+   // this optimization leads to a race condition on platforms without atomic reference counts
+   // (i.e. using a mutex lock), as one thread could decrement from 2 -> 1, and then before
+   // the lock is released, the caches are synced with another CPU that sees reference count = 1
+   // and deletes the object, then the first thread tries to unlock the mutex, but it's already
+   // been deleted...  therefore this optimization cannot be used where atomic reference counting
+   // is enforced with a mutex
    if (references == 1)
       return true;
    return atomic_dec(&references);
