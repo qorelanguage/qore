@@ -39,11 +39,11 @@
 class QoreNode;
 class List;
 
-typedef struct argument_t {
+typedef struct argument_s {
   std::string m_name; // could be empty
   int m_type; // like CS_INT_TYPE
   QoreNode* m_node; // 0 for output parameters
-};
+} argument_t;
 
 extern std::vector<argument_t> extract_language_command_arguments(List* args, const std::vector<char>& arg_types, ExceptionSink* xsink);
 

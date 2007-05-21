@@ -856,18 +856,18 @@ class QoreNode *get_file_constant(class QoreClass *fc, int fd)
 }
 
 // returns 0 for success, non-zero return value means error
-int RootNamespace::addMethodToClass(class NamedScope *name, class Method *qcmethod, class BCAList *bcal)
+int RootNamespace::addMethodToClass(class NamedScope *scname, class Method *qcmethod, class BCAList *bcal)
 {
    // find class
    //class QoreClassList *plist;
    //bool is_pending = false;
    class QoreClass *oc;
 
-   const char *cname  = name->strlist[name->elements - 2];
-   const char *method = name->strlist[name->elements - 1];
+   const char *cname  = scname->strlist[scname->elements - 2];
+   const char *method = scname->strlist[scname->elements - 1];
 
    // if there is no namespace specified, then just find class
-   if (name->elements == 2)
+   if (scname->elements == 2)
    {
       oc = rootFindClass(cname);
       if (!oc)
@@ -879,11 +879,11 @@ int RootNamespace::addMethodToClass(class NamedScope *name, class Method *qcmeth
    else
    {
       int m = 0;
-      oc = rootFindScopedClassWithMethod(name, &m);
+      oc = rootFindScopedClassWithMethod(scname, &m);
       if (!oc)
       {
-	 if (m != (name->elements - 2))
-	    parse_error("cannot resolve namespace '%s' in '%s()'", name->strlist[m], name->ostr);
+	 if (m != (scname->elements - 2))
+	    parse_error("cannot resolve namespace '%s' in '%s()'", scname->strlist[m], scname->ostr);
 	 else
 	    parse_error("class '%s' does not exist", cname);
 	 return -1;
@@ -945,31 +945,31 @@ class QoreClass *RootNamespace::parseFindScopedClass(class NamedScope *nscope) c
    return oc;
 }
 
-class QoreClass *RootNamespace::parseFindScopedClassWithMethod(class NamedScope *name) const
+class QoreClass *RootNamespace::parseFindScopedClassWithMethod(class NamedScope *scname) const
 {
    class QoreClass *oc;
 
    int m = 0;
-   oc = rootFindScopedClassWithMethod(name, &m);
+   oc = rootFindScopedClassWithMethod(scname, &m);
    
    if (!oc)
-      if (m != (name->elements - 1))
-	 parse_error("cannot resolve namespace '%s' in '%s()'", name->strlist[m], name->ostr);
+      if (m != (scname->elements - 1))
+	 parse_error("cannot resolve namespace '%s' in '%s()'", scname->strlist[m], scname->ostr);
       else
       {
 	 QoreString err;
-	 err.sprintf("cannot find class '%s' in any namespace '", name->getIdentifier());
-	 for (int i = 0; i < (name->elements - 1); i++)
+	 err.sprintf("cannot find class '%s' in any namespace '", scname->getIdentifier());
+	 for (int i = 0; i < (scname->elements - 1); i++)
 	 {
-	    err.concat(name->strlist[i]);
-	    if (i != (name->elements - 2))
+	    err.concat(scname->strlist[i]);
+	    if (i != (scname->elements - 2))
 	       err.concat("::");
 	 }
 	 err.concat("'");
 	 parse_error(err.getBuffer());
       }
    
-   printd(5, "RootNamespace::parseFindScopedClassWithMethod('%s') returning %08p\n", name->ostr, oc);
+   printd(5, "RootNamespace::parseFindScopedClassWithMethod('%s') returning %08p\n", scname->ostr, oc);
    return oc;
 }
 
@@ -1063,58 +1063,58 @@ int RootNamespace::resolveScopedConstant(class QoreNode **node, int level) const
    return 0;
 }
 
-class QoreNode *RootNamespace::findConstantValue(const char *name, int level) const
+class QoreNode *RootNamespace::findConstantValue(const char *cname, int level) const
 {
    // check recurse level and throw an error if it's too deep
    if (level >= MAX_RECURSION_DEPTH)
    {
-      parse_error("recursive constant definitions too deep resolving '%s'", name);
+      parse_error("recursive constant definitions too deep resolving '%s'", cname);
       return NULL;
    }
 
-   class QoreNode *rv = rootFindConstantValue(name);
+   class QoreNode *rv = rootFindConstantValue(cname);
    if (!rv)
-      parse_error("constant '%s' cannot be resolved in any namespace", name);
+      parse_error("constant '%s' cannot be resolved in any namespace", cname);
    return rv;
 }
 
 // called in 2nd stage of parsing to resolve constant references
-class QoreNode *RootNamespace::findConstantValue(class NamedScope *name, int level) const
+class QoreNode *RootNamespace::findConstantValue(class NamedScope *scname, int level) const
 {
    // check recurse level and throw an error if it's too deep
    if (level >= MAX_RECURSION_DEPTH)
    {
-      parse_error("recursive constant definitions too deep resolving '%s'", name->ostr);
+      parse_error("recursive constant definitions too deep resolving '%s'", scname->ostr);
       return NULL;
    }
 
    class QoreNode *rv;
 
-   if (name->elements == 1)
+   if (scname->elements == 1)
    {
-      rv = rootFindConstantValue(name->ostr);
+      rv = rootFindConstantValue(scname->ostr);
       if (!rv)
       {
-	 parse_error("constant '%s' cannot be resolved in any namespace", name->ostr);
+	 parse_error("constant '%s' cannot be resolved in any namespace", scname->ostr);
 	 return NULL;
       }
    }
    else
    {
       int m = 0;
-      rv = rootFindScopedConstantValue(name, &m);
+      rv = rootFindScopedConstantValue(scname, &m);
       if (!rv)
       {
-	 if (m != (name->elements - 1))
-	    parse_error("cannot resolve namespace '%s' in '%s'", name->strlist[m], name->ostr);
+	 if (m != (scname->elements - 1))
+	    parse_error("cannot resolve namespace '%s' in '%s'", scname->strlist[m], scname->ostr);
 	 else
 	 {
 	    QoreString err;
-	    err.sprintf("cannot find constant '%s' in any namespace '", name->getIdentifier());
-	    for (int i = 0; i < (name->elements - 1); i++)
+	    err.sprintf("cannot find constant '%s' in any namespace '", scname->getIdentifier());
+	    for (int i = 0; i < (scname->elements - 1); i++)
 	    {
-	       err.concat(name->strlist[i]);
-	       if (i != (name->elements - 2))
+	       err.concat(scname->strlist[i]);
+	       if (i != (scname->elements - 2))
 		  err.concat("::");
 	    }
 	    err.concat("'");
