@@ -51,7 +51,9 @@ inline void QoreString::check_char(unsigned i)
 {
    if (i >= allocated)
    {
-      allocated = i + STR_CLASS_BLOCK;
+      int diff = i / 3;
+      allocated = i + (diff < STR_CLASS_BLOCK ? STR_CLASS_BLOCK : diff);
+      //allocated = i + STR_CLASS_BLOCK;
       allocated = (allocated / 16 + 1) * 16; // use complete cache line
       buf = (char *)realloc(buf, allocated * sizeof(char));
    }
