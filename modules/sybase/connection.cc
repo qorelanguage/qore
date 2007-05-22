@@ -186,6 +186,9 @@ void connection::init(const char* username, const char* password, const char* db
 CS_RETCODE connection::clientmsg_callback(CS_CONTEXT* ctx, CS_CONNECTION* conn, CS_CLIENTMSG* errmsg)
 {
 #ifdef DEBUG
+  // This will print out description about an Sybase error. Most of the information
+  // can be ignored but if the application crashes the last error may be very informative.
+  // Comment it out if this output is not required.
   if ((CS_NUMBER(errmsg->msgnumber) == 211) || (CS_NUMBER(errmsg->msgnumber) == 212)) { // acc. to the docs
     return CS_SUCCEED;
   }
@@ -209,6 +212,9 @@ CS_RETCODE connection::clientmsg_callback(CS_CONTEXT* ctx, CS_CONNECTION* conn, 
 CS_RETCODE connection::servermsg_callback(CS_CONTEXT* ctx, CS_CONNECTION* conn, CS_SERVERMSG* svrmsg)
 {
 #ifdef DEBUG
+  // This will print out description about an Sybase error. Most of the information
+  // can be ignored but if the application crashes the last error may be very informative.
+  // Comment it out if this output is not required.
   fprintf(stderr, "-------------------------------------------------------------");
   fprintf(stderr, "\nOpen Server Message:\n");
   fprintf(stderr, "Message number = %d, severity = %d\n", (int)svrmsg->msgnumber, (int)svrmsg->severity);

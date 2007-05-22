@@ -229,12 +229,14 @@ QoreNode* execute_select(connection& conn, QoreString* cmd, List* parameters, Ex
   if (!res) res = 0;
 
   assert(res->type == NT_LIST || res->type == NT_HASH);
+/* for unknown reason Qore select() is sometimes used instead of selectRows()
   if (res->type == NT_LIST) {
     assert(false);
     res->deref(xsink);
     xsink->raiseException("DBI-EXEC-EXCEPTION", "'select' returned more than single row");
     return 0;
   }
+*/
 
   return res;
 }

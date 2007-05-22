@@ -112,7 +112,6 @@ std::string get_default_Sybase_encoding(connection& conn, ExceptionSink* xsink)
   assert(encoding_str[0] == 0); // if fails the FreeTDS got fixed
   strcpy(encoding_str, "utf8");
 */
-  assert(!encoding_str[0]);
   return std::string(encoding_str);
 }
 
