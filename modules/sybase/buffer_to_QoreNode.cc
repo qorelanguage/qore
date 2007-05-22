@@ -54,7 +54,8 @@ QoreNode* buffer_to_QoreNode(command& cmd, const CS_DATAFMT& datafmt, const outp
     case CS_CHAR_TYPE: // varchar
     {
       CS_CHAR* value = (CS_CHAR*)(buffer.value);
-      QoreString* s = new QoreString(value, buffer.value_len, encoding);
+      QoreString* s = new QoreString(value, buffer.value_len - 1, encoding);
+      //printd(5, "strlen=%d len=%d str='%s'\n", s->strlen(), s->length(), s->getBuffer());
       return new QoreNode(s);
     }
 
