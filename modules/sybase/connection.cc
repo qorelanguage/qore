@@ -34,7 +34,7 @@
 
 //------------------------------------------------------------------------------
 connection::connection()
-: m_context(0), m_connection(0), m_charset_locale(0)
+   : m_context(0), m_connection(0), m_charset_locale(0), connected(false)
 {
 }
 
@@ -49,11 +49,19 @@ connection::~connection()
   }
 
   if (m_connection) {
-    ret = ct_close(m_connection, CS_UNUSED);
-    if (ret != CS_SUCCEED) {
-// commented out since it returns CS_BUSY. No idea at the time of writing what to do with it.
-//      assert(false); // not much can be done here
-    }
+     if (connected)
+     {
+	ret = ct_close(m_connection, CS_UNUSED);
+	if (ret != CS_SUCCEED) {
+	   // commented out since it returns CS_BUSY. No idea at the time of writing what to do with it.
+	   //      assert(false); // not much can be done here
+	}
+     }
+#ifdef DEBUG
+    ret =
+#endif
+       ct_con_drop(m_connection);
+    assert(ret == CS_SUCCEED);
   }
   if (m_context) {
    CS_INT exit_type = ret == CS_SUCCEED ? CS_UNUSED : CS_FORCE_EXIT;
@@ -126,8 +134,7 @@ void connection::init(const char* username, const char* password, const char* db
     }
   }
 
-  CS_LOCALE *tmp_locale;
-  
+  CS_LOCALE *tmp_locale;  
   ret = cs_loc_alloc(m_context, &tmp_locale);
   if (ret != CS_SUCCEED) {
     assert(false);
@@ -136,15 +143,12 @@ void connection::init(const char* username, const char* password, const char* db
   }
   ret = cs_locale(m_context, CS_SET, tmp_locale, CS_LC_ALL, 0, CS_NULLTERM, 0);
   if (ret != CS_SUCCEED) {
-     assert(false);
      xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_locale() returned error %d", (int)ret);
      return;
   }
-
   ret = cs_locale(m_context, CS_SET, tmp_locale, CS_SYB_CHARSET, (CS_CHAR*)db_encoding, CS_NULLTERM, 0);
   if (ret != CS_SUCCEED) {
-    assert(false);
-    xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_locale(CS_SYB_CHARSET, \"%s\") failed with error %d", (int)ret);
+     xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_locale(CS_SYB_CHARSET, '%s') failed with error %d", db_encoding, (int)ret);
     return;
   }
   ret = ct_con_props(m_connection, CS_SET, CS_LOC_PROP, tmp_locale, CS_UNUSED, 0);
@@ -156,10 +160,10 @@ void connection::init(const char* username, const char* password, const char* db
   //printd(0, "about to call ct_connect()\n");
   ret = ct_connect(m_connection, (CS_CHAR*)dbname,  strlen(dbname));
   if (ret != CS_SUCCEED) {
-    assert(false);
-    xsink->raiseException("DBI:SYBASE:CT-LIB-CONNECT", "ct_connect() failed with error %d", ret);
-    return;
+     xsink->raiseException("DBI:SYBASE:CT-LIB-CONNECT", "ct_connect() failed with error %d", ret);
+     return;
   }
+  connected = true;
   //printd(0, "returned from ct_connect()\n");
 
   // Transaction management is done by the driver (docs says it is by default)

@@ -35,7 +35,10 @@ class Hash;
 class command;
 
 extern Hash* output_buffers_to_QoreHash(command& cmd, const std::vector<CS_DATAFMT>& columns_info, 
-  row_output_buffers& all_buffers, QoreEncoding* encoding, ExceptionSink* xsink);
+					row_output_buffers& all_buffers, QoreEncoding* encoding, ExceptionSink* xsink);
+
+int append_buffers_to_List(command& cmd, const std::vector<CS_DATAFMT>& columns_info,
+                           row_output_buffers& all_buffers, QoreEncoding* encoding, class Hash *h, ExceptionSink* xsink);
 
 #endif
 

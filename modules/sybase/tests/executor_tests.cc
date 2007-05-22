@@ -25,7 +25,7 @@ TEST()
 
   QoreString cmd("select count(*) from syskeys");
   
-  QoreNode* res = execute_command_impl(conn, &cmd, 0, enc, &xsink);
+  QoreNode* res = execute_command_impl(conn, &cmd, 0, enc, true, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
@@ -62,7 +62,7 @@ TEST()
 
   QoreString cmd("select * from syskeys");
 
-  QoreNode* res = execute_command_impl(conn, &cmd, 0, enc, &xsink);
+  QoreNode* res = execute_command_impl(conn, &cmd, 0, enc, true, &xsink);
   if (xsink.isException()) {
     assert(false);
   }

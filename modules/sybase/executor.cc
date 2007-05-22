@@ -48,7 +48,7 @@
 #include "set_parameter.h"
 
 //------------------------------------------------------------------------------
-static QoreNode* execute_command_impl(connection& conn, QoreString* cmd_text, List* qore_args, QoreEncoding* encoding, ExceptionSink* xsink)
+static QoreNode* execute_command_impl(connection& conn, QoreString* cmd_text, List* qore_args, QoreEncoding* encoding, bool list, ExceptionSink* xsink)
 {
   processed_language_command_t query = process_language_command(cmd_text->getBuffer(), xsink);
   if (xsink->isException()) {
@@ -87,7 +87,7 @@ static QoreNode* execute_command_impl(connection& conn, QoreString* cmd_text, Li
     return 0;
   }
 
-  QoreNode* result = read_output(cmd, encoding, xsink);
+  QoreNode* result = read_output(cmd, encoding, list, xsink);
   if (xsink->isException()) {
     if (result) result->deref(xsink);
     return 0;
@@ -142,7 +142,7 @@ static QoreNode* execute_rpc_impl(connection& conn, QoreString* rpc_text, List* 
     return 0;
   }
 
-  QoreNode* result = read_output(cmd, encoding, xsink);
+  QoreNode* result = read_output(cmd, encoding, true, xsink);
   if (!result) {
     if (!out_names.empty()) {
       assert(false); // internal error
@@ -197,7 +197,7 @@ QoreNode* execute(connection& conn, QoreString* cmd, List* parameters, Exception
   if (is_query_procedure_call(query->getBuffer())) {
     res = execute_rpc_impl(conn, *query, parameters, enc, xsink);    
   } else {
-    res = execute_command_impl(conn, *query, parameters, enc, xsink);
+     res = execute_command_impl(conn, *query, parameters, enc, false, xsink);
   }
   if (res) res->deref(xsink);
   return 0;
@@ -221,7 +221,7 @@ QoreNode* execute_select(connection& conn, QoreString* cmd, List* parameters, Ex
     return 0;
   }
 
-  QoreNode* res = execute_command_impl(conn, *query, parameters, enc, xsink);
+  QoreNode* res = execute_command_impl(conn, *query, parameters, enc, false, xsink);
   if (xsink->isException()) {
     if (res) res->deref(xsink);
     return 0;
@@ -236,6 +236,7 @@ QoreNode* execute_select(connection& conn, QoreString* cmd, List* parameters, Ex
     xsink->raiseException("DBI-EXEC-EXCEPTION", "'select' returned more than single row");
     return 0;
   }
+=======
 */
 
   return res;
@@ -259,7 +260,7 @@ QoreNode* execute_select_rows(connection& conn, QoreString* cmd, List* parameter
     return 0;
   }
 
-  QoreNode* res = execute_command_impl(conn, *query, parameters, enc, xsink);
+  QoreNode* res = execute_command_impl(conn, *query, parameters, enc, true, xsink);
   if (xsink->isException()) {
     if (res) res->deref(xsink);
     return 0;

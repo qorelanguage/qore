@@ -43,7 +43,7 @@
 #include "output_buffers_to_QoreHash.h"
 
 //------------------------------------------------------------------------------
-static void read_rows(command& cmd, QoreEncoding* encoding, QoreNode*& out_node, ExceptionSink* xsink)
+static void read_rows(command& cmd, QoreEncoding* encoding, QoreNode*& out_node, bool list, ExceptionSink* xsink)
 {
   unsigned columns = get_columns_count(cmd, xsink);
   if (xsink->isException()) {
@@ -61,29 +61,51 @@ static void read_rows(command& cmd, QoreEncoding* encoding, QoreNode*& out_node,
     return;
   }
 
+  // setup hash of lists if necessary
+  if (!list)
+  {
+     Hash *h = new Hash();
+     for (unsigned i = 0, n = descriptions.size(); i != n; ++i) {
+	assert(descriptions[i].name && descriptions[i].name[0]);
+	h->setKeyValue(descriptions[i].name, new QoreNode(new List()), 0);
+     }
+     out_node = new QoreNode(h);
+  }
+
   while (fetch_row_into_buffers(cmd, xsink)) {
-    Hash* h =  output_buffers_to_QoreHash(cmd, descriptions, out_buffers, encoding, xsink);
-    if (xsink->isException()) {
-      if (h) {
-        QoreNode* dummy = new QoreNode(h);
-        dummy->deref(xsink);
-      }
-      return;
-    }
-    if (out_node) {
-      if (out_node->type == NT_HASH) {
-        // nonvert to hash - several rows
-        QoreNode* aux = new QoreNode(new List);
-        aux->val.list->push(out_node);
-        aux->val.list->push(new QoreNode(h));
-        out_node = aux;
-      } else {
-        assert(out_node->type == NT_LIST);
-        out_node->val.list->push(new QoreNode(h));
-      }
-    } else {
-      out_node = new QoreNode(h);
-    }
+     if (!list)
+     {
+	if (append_buffers_to_List(cmd, descriptions, out_buffers, encoding, out_node->val.hash, xsink))
+	{
+	   out_node->deref(xsink);
+	   return;
+	}
+     }
+     else
+     {
+	Hash* h =  output_buffers_to_QoreHash(cmd, descriptions, out_buffers, encoding, xsink);
+	if (xsink->isException()) {
+	   if (h) {
+	      QoreNode* dummy = new QoreNode(h);
+	      dummy->deref(xsink);
+	   }
+	   return;
+	}
+	if (out_node) {
+	   if (out_node->type == NT_HASH) {
+	      // nonvert to hash - several rows
+	      QoreNode* aux = new QoreNode(new List);
+	      aux->val.list->push(out_node);
+	      aux->val.list->push(new QoreNode(h));
+	      out_node = aux;
+	   } else {
+	      assert(out_node->type == NT_LIST);
+	      out_node->val.list->push(new QoreNode(h));
+	   }
+	} else {
+	   out_node = new QoreNode(h);
+	}
+     }
   } // while
   if (xsink->isException()) {
     return;
@@ -91,7 +113,7 @@ static void read_rows(command& cmd, QoreEncoding* encoding, QoreNode*& out_node,
 }
 
 //------------------------------------------------------------------------------
-QoreNode* read_output(command& cmd, QoreEncoding* encoding, ExceptionSink* xsink)
+QoreNode* read_output(command& cmd, QoreEncoding* encoding, bool list, ExceptionSink* xsink)
 {
   QoreNode* result = 0;
 
@@ -108,16 +130,16 @@ QoreNode* read_output(command& cmd, QoreEncoding* encoding, ExceptionSink* xsink
     case CS_PARAM_RESULT: // procedure call
     case CS_ROW_RESULT:
       // 0 or more rows
-      read_rows(cmd, encoding, result, xsink);
-      if (xsink->isException()) {
-        return result;
-      }
-      break;
+       read_rows(cmd, encoding, result, list, xsink);
+       if (xsink->isException()) {
+	  return result;
+       }
+       break;
 
    case CS_STATUS_RESULT:
    { // status return codes are not used by Qore
       QoreNode* dummy = 0;
-      read_rows(cmd, encoding, dummy, xsink);
+      read_rows(cmd, encoding, dummy, list, xsink);
       if (dummy) dummy->deref(xsink);
       if (xsink->isException()) {
         assert(false);

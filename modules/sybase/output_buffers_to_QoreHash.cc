@@ -42,7 +42,7 @@
 
 //------------------------------------------------------------------------------
 Hash* output_buffers_to_QoreHash(command& cmd, const std::vector<CS_DATAFMT>& columns_info,
-  row_output_buffers& all_buffers, QoreEncoding* encoding, ExceptionSink* xsink)
+				 row_output_buffers& all_buffers, QoreEncoding* encoding, ExceptionSink* xsink)
 {
   Hash* result = new Hash;
   for (unsigned i = 0, n = columns_info.size(); i != n; ++i) {
@@ -71,6 +71,27 @@ Hash* output_buffers_to_QoreHash(command& cmd, const std::vector<CS_DATAFMT>& co
   } // for
 
   return result;
+}
+
+int append_buffers_to_List(command& cmd, const std::vector<CS_DATAFMT>& columns_info,
+			   row_output_buffers& all_buffers, QoreEncoding* encoding, class Hash *h, ExceptionSink* xsink)
+{
+  for (unsigned i = 0, n = columns_info.size(); i != n; ++i) {
+     assert(columns_info[i].name && columns_info[i].name[0]);
+
+     class List *l = h->getKeyValue(columns_info[i].name)->val.list;
+
+     const output_value_buffer& buff = *(all_buffers.m_buffers[i]);
+     QoreNode* value = buffer_to_QoreNode(cmd, columns_info[i], buff, encoding, xsink);
+     if (xsink->isException()) {
+	if (value) value->deref(xsink);
+	return -1;
+     }
+
+     l->push(value);
+  } // for
+
+  return 0;
 }
 
 // EOF

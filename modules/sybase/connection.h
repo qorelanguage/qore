@@ -41,6 +41,7 @@ private:
   CS_CONTEXT* m_context;
   CS_CONNECTION* m_connection;
   CS_LOCALE* m_charset_locale; // lifetime is equal to lifetime of the connection
+  bool connected;
 
   // Sybase callbacks
   static CS_RETCODE clientmsg_callback(CS_CONTEXT* ctx, CS_CONNECTION* conn, CS_CLIENTMSG* errmsg);

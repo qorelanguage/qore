@@ -1,3 +1,6 @@
+2006.05.22: David Nichols
+	* fixed select method and encodings for sybase driver
+
 2006.05.19: David Nichols
 	* more "char *" -> "const char *" API header updates
 	* fixed a bug in the new thread variable stack handling

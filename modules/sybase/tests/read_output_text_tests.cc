@@ -81,7 +81,7 @@ TEST()
     assert(false);
   }
 
-  QoreNode* result = read_output(cmd, QCS_DEFAULT, &xsink);
+  QoreNode* result = read_output(cmd, QCS_DEFAULT, true, &xsink);
   if (xsink.isException()) {
     assert(false);
   }

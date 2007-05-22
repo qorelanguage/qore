@@ -31,9 +31,8 @@ class ExceptionSink;
 class QoreEncoding;
 
 // Reads output of an executed language command or RPC call.
-// Returns Hash for single row or List for several rows.
-extern QoreNode* read_output(command& cmd, QoreEncoding* encoding, ExceptionSink* xsink);
-
+// Returns a Hash of Lists
+extern QoreNode* read_output(command& cmd, QoreEncoding* encoding, bool list, ExceptionSink* xsink);
 
 #endif
 
