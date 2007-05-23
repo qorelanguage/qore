@@ -44,7 +44,6 @@
 #endif
 
 #include <algorithm>
-using namespace std;
 
 #define LIST_BLOCK 20
 #define LIST_PAD   15

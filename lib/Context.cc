@@ -27,7 +27,6 @@
 #include <assert.h>
 
 #include <algorithm>
-using namespace std;
 
 class Templist {
 public:
@@ -163,8 +162,10 @@ class QoreNode *Context::evalValue(char *field, class ExceptionSink *xsink)
       return NULL;
    }
 
-   QoreNode *rv = v->val.list->eval_entry(row_list[pos], xsink);
+   QoreNode *rv = v->val.list->retrieve_entry(row_list[pos]);
+   if (rv) rv->ref();
    //printd(5, "Context::evalValue(%s) this=%08p pos=%d rv=%08p %s %lld\n", field, this, pos, rv, rv ? rv->type->getName() : "none", rv && rv->type == NT_INT ? rv->val.intval : -1);
+   //printd(5, "Context::evalValue(%s) pos=%d, val=%s\n", field, pos, rv && rv->type == NT_STRING ? rv->val.String->getBuffer() : "?");
    v->deref(xsink);
    return rv;
 }
@@ -272,7 +273,7 @@ void Context::Sort(class QoreNode *snode, int sort_type)
    }
 
    // sort the list with STL sort
-   sort(list, list + max_pos, compare_templist);
+   std::sort(list, list + max_pos, compare_templist);
 
    // assign sorted row list and delete temporary results
    if (sort_type == CM_SORT_DESCENDING)
