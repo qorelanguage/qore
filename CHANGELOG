@@ -8,6 +8,8 @@
 	  chained transaction mode
 	* fixed DECIMAL->string conversions for FreeTDS (returns DECIMAL as
 	  float)
+	* started moving test schema management into db-test.q, added pgsql
+	  support
 
 2006.05.22: David Nichols
 	* fixed select method and encodings for sybase driver

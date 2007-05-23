@@ -3,7 +3,6 @@
 # database example script, depends on schemas:
 # 1) mysql-test-db.sql 
 # 2) oracle-test-db.sql 
-# 3) pgsql-test-db.sql
 
 %require-our
 %enable-all-warnings
@@ -31,6 +30,124 @@ sub usage()
     exit();
 }
 
+const table_map = 
+ ( "oracle" : ora_tables,
+   "mysql"  : mysql_tables,
+   "pgsql"  : pgsql_tables,
+   "sybase" : syb_tables,
+   "mssql"  : mssql_tables );
+
+const ora_tables = "";
+const mysql_tables = "";
+
+const pgsql_tables = ("create table family (
+   family_id int not null,
+   name varchar(80) not null
+)", "
+create table people (
+   person_id int not null,
+   family_id int not null,
+   name varchar(250) not null,
+   dob date not null
+)", "
+create table attributes (
+   person_id int not null,
+   attribute varchar(80) not null,
+   value varchar(160) not null
+)" );
+
+const syb_tables = "
+create table family (
+   family_id int not null,
+   name varchar(80) not null
+)
+
+create table people (
+   person_id int not null,
+   family_id int not null,
+   name varchar(250) not null,
+   dob date not null
+)
+
+create table attributes (
+   person_id int not null,
+   attribute varchar(80) not null,
+   value varchar(160) not null
+)
+
+create table data_test (
+	null_f char(1) null,
+
+	varchar_f varchar(40) not null,
+	char_f char(40) not null,
+	unichar_f unichar(40) not null,
+	univarchar_f univarchar(40) not null,
+	text_f text not null,
+	unitext_f unitext not null, -- note that unitext is stored as 'image'
+
+	tinyint_f tinyint not null,
+	smallint_f smallint not null,
+	int_f int not null,
+
+	decimal_f decimal(10,4) not null,
+
+	float_f float not null,     -- 8-bytes
+	real_f real not null,       -- 4-bytes
+	money_f money not null,
+	smallmoney_f smallmoney not null,
+
+	date_f date not null,
+	time_f time not null,
+	datetime_f datetime not null,
+	smalldatetime_f smalldatetime not null
+)
+";
+
+const mssql_tables = "
+create table family (
+   family_id int not null,
+   name varchar(80) not null
+)
+
+create table people (
+   person_id int not null,
+   family_id int not null,
+   name varchar(250) not null,
+   dob date not null
+)
+
+create table attributes (
+   person_id int not null,
+   attribute varchar(80) not null,
+   value varchar(160) not null
+)
+
+create table data_test (
+	null_f char(1) null,
+
+	varchar_f varchar(40) not null,
+	char_f char(40) not null,
+	text_f text not null,
+	unitext_f unitext not null, -- note that unitext is stored as 'image'
+
+	tinyint_f tinyint not null,
+	smallint_f smallint not null,
+	int_f int not null,
+
+	decimal_f decimal(10,4) not null,
+
+	float_f float not null,     -- 8-bytes
+	real_f real not null,       -- 4-bytes
+	money_f money not null,
+	smallmoney_f smallmoney not null,
+
+	date_f date not null,
+	time_f time not null,
+	datetime_f datetime not null,
+	smalldatetime_f smalldatetime not null
+)
+";
+
 sub parse_command_line()
 {
     my $g = new GetOpt(opts);
@@ -45,6 +162,44 @@ sub parse_command_line()
     }
     if (!strlen($o.type))
 	$o.type = "mysql";
+}
+
+sub create_datamodel($db)
+{
+    # first we try to drop the tables and ignore any exceptions
+    my $list = ( "family", "people", "attributes", "data_test" );
+    foreach my $table in ($list)
+	try { $db.exec("drop table " + $table); $db.commit(); } catch () { $db.commit(); }
+    
+    foreach my $sql in (table_map.($db.getDriverName()))
+    {
+	$db.exec($sql);
+    }
+
+    $db.exec("insert into family values ( 1, 'Smith' )");
+    $db.exec("insert into family values ( 2, 'Jones' )");
+    $db.exec("insert into people values ( 1, 1, 'Arnie', '1983-05-13' )");
+    $db.exec("insert into people values ( 2, 1, 'Sylvia', '1994-11-10' )");
+    $db.exec("insert into people values ( 3, 1, 'Carol', '2003-07-23' )");
+    $db.exec("insert into people values ( 4, 1, 'Bernard', '1979-02-27' )");
+    $db.exec("insert into people values ( 5, 1, 'Isaac', '2000-04-04' )");
+    $db.exec("insert into people values ( 6, 2, 'Alan', '1992-06-04' )");
+    $db.exec("insert into people values ( 7, 2, 'John', '1995-03-23' )");
+    $db.exec("insert into attributes values ( 1, 'hair', 'blond' )");
+    $db.exec("insert into attributes values ( 1, 'eyes', 'brown' )");
+    $db.exec("insert into attributes values ( 2, 'hair', 'blond' )");
+    $db.exec("insert into attributes values ( 2, 'eyes', 'blue')");
+    $db.exec("insert into attributes values ( 3, 'hair', 'brown' )");
+    $db.exec("insert into attributes values ( 3, 'eyes', 'green')");
+    $db.exec("insert into attributes values ( 4, 'hair', 'brown' )");
+    $db.exec("insert into attributes values ( 4, 'eyes', 'brown')");
+    $db.exec("insert into attributes values ( 5, 'hair', 'red' )");
+    $db.exec("insert into attributes values ( 5, 'eyes', 'green')");
+    $db.exec("insert into attributes values ( 6, 'hair', 'black' )");
+    $db.exec("insert into attributes values ( 6, 'eyes', 'blue')");
+    $db.exec("insert into attributes values ( 7, 'hair', 'brown' )");
+    $db.exec("insert into attributes values ( 7, 'eyes', 'brown')");
+    $db.commit();
 }
 
 sub getDS()
@@ -157,40 +312,8 @@ sub mysql_test()
 {
 }
 
-const syb_table = "
-create table data_test (
-	null_f char(1) null,
-
-	varchar_f varchar(40) not null,
-	char_f char(40) not null,
-	unichar_f unichar(40) not null,
-	univarchar_f univarchar(40) not null,
-	text_f text not null,
-	unitext_f unitext not null, -- note that unitext is stored as 'image'
-
-	tinyint_f tinyint not null,
-	smallint_f smallint not null,
-	int_f int not null,
-
-	decimal_f decimal(10,4) not null,
-
-	float_f float not null,     -- 8-bytes
-	real_f real not null,       -- 4-bytes
-	money_f money not null,
-	smallmoney_f smallmoney not null,
-
-	date_f date not null,
-	time_f time not null,
-	datetime_f datetime not null,
-	smalldatetime_f smalldatetime not null
-)
-";
-
 sub sybase_test($db)
 {
-    # create test table, ignore any exceptions (assuming it's already there)
-    try	$db.exec(syb_table); catch() {}
-
     my $args = ( NULL, "test", "test", "test", "test", "test", "test" );
 
     # insert data
@@ -227,45 +350,12 @@ insert into data_test values (
 	printf(" %-16s= %-10s %N\n", $k, type($q.$k), $q.$k);
 
     $db.commit();
-    $db.exec("drop table data_test");
-    $db.commit();
-    #printf("%N\n", $q);
 }
-
-const mssql_table = "
-create table data_test (
-	null_f char(1) null,
-
-	varchar_f varchar(40) not null,
-	char_f char(40) not null,
-	text_f text not null,
-	unitext_f unitext not null, -- note that unitext is stored as 'image'
-
-	tinyint_f tinyint not null,
-	smallint_f smallint not null,
-	int_f int not null,
-
-	decimal_f decimal(10,4) not null,
-
-	float_f float not null,     -- 8-bytes
-	real_f real not null,       -- 4-bytes
-	money_f money not null,
-	smallmoney_f smallmoney not null,
-
-	date_f date not null,
-	time_f time not null,
-	datetime_f datetime not null,
-	smalldatetime_f smalldatetime not null
-)
-";
 
 sub mssql_test($db)
 {
     # freetds doesn't support the following column types as far as I can tell:
     # unichar, univarchar
-
-    # create test table
-    $db.exec(mssql_table);
 
     # insert data
     my $rows = $db.exec("
@@ -299,9 +389,6 @@ insert into data_test values (
 	printf(" %-16s= %-10s %N\n", $k, type($q.$k), $q.$k);
 
     $db.commit();
-    $db.exec("drop table data_test");
-    $db.commit();
-    #printf("%N\n", $q);
 }
 
 sub main()
@@ -316,9 +403,9 @@ sub main()
     parse_command_line();
     my $db = getDS();
 
-    if ($db.getDriverName() == "mssql") $db.exec("set chained on");
+    create_datamodel($db);
 
-    #doit($db);
+    doit($db);
     transaction_test($db);
     my $test = $test_map.($db.getDriverName());
     if (exists $test)
