@@ -38,7 +38,20 @@ const table_map =
 
 const table_list = ( "family", "people", "attributes", "data_test" );
 
-const ora_tables = "";
+const ora_tables = ("create table family (
+   family_id int not null,
+   name varchar2(80) not null
+)", "create table people (
+   person_id int not null,
+   family_id int not null,
+   name varchar2(250) not null,
+   dob date not null
+)", "create table attributes (
+   person_id int not null,
+   attribute varchar2(80) not null,
+   value varchar2(160) not null
+)");
+
 const mysql_tables = (
 "create table family (
    family_id int not null,
@@ -219,27 +232,27 @@ sub create_datamodel($db)
 
     $db.exec("insert into family values ( 1, 'Smith' )");
     $db.exec("insert into family values ( 2, 'Jones' )");
-    $db.exec("insert into people values ( 1, 1, 'Arnie', '1983-05-13' )");
-    $db.exec("insert into people values ( 2, 1, 'Sylvia', '1994-11-10' )");
-    $db.exec("insert into people values ( 3, 1, 'Carol', '2003-07-23' )");
-    $db.exec("insert into people values ( 4, 1, 'Bernard', '1979-02-27' )");
-    $db.exec("insert into people values ( 5, 1, 'Isaac', '2000-04-04' )");
-    $db.exec("insert into people values ( 6, 2, 'Alan', '1992-06-04' )");
-    $db.exec("insert into people values ( 7, 2, 'John', '1995-03-23' )");
+    $db.exec("insert into people values ( 1, 1, 'Arnie', %v)", 1983-05-13);
+    $db.exec("insert into people values ( 2, 1, 'Sylvia', %v)", 1994-11-10);
+    $db.exec("insert into people values ( 3, 1, 'Carol', %v)", 2003-07-23);
+    $db.exec("insert into people values ( 4, 1, 'Bernard', %v)", 1979-02-27);
+    $db.exec("insert into people values ( 5, 1, 'Isaac', %v)", 2000-04-04);
+    $db.exec("insert into people values ( 6, 2, 'Alan', %v)", 1992-06-04);
+    $db.exec("insert into people values ( 7, 2, 'John', %v)", 1995-03-23);
     $db.exec("insert into attributes values ( 1, 'hair', 'blond' )");
     $db.exec("insert into attributes values ( 1, 'eyes', 'brown' )");
     $db.exec("insert into attributes values ( 2, 'hair', 'blond' )");
-    $db.exec("insert into attributes values ( 2, 'eyes', 'blue')");
+    $db.exec("insert into attributes values ( 2, 'eyes', 'blue' )");
     $db.exec("insert into attributes values ( 3, 'hair', 'brown' )");
     $db.exec("insert into attributes values ( 3, 'eyes', 'green')");
     $db.exec("insert into attributes values ( 4, 'hair', 'brown' )");
-    $db.exec("insert into attributes values ( 4, 'eyes', 'brown')");
+    $db.exec("insert into attributes values ( 4, 'eyes', 'brown' )");
     $db.exec("insert into attributes values ( 5, 'hair', 'red' )");
-    $db.exec("insert into attributes values ( 5, 'eyes', 'green')");
+    $db.exec("insert into attributes values ( 5, 'eyes', 'green' )");
     $db.exec("insert into attributes values ( 6, 'hair', 'black' )");
-    $db.exec("insert into attributes values ( 6, 'eyes', 'blue')");
+    $db.exec("insert into attributes values ( 6, 'eyes', 'blue' )");
     $db.exec("insert into attributes values ( 7, 'hair', 'brown' )");
-    $db.exec("insert into attributes values ( 7, 'eyes', 'brown')");
+    $db.exec("insert into attributes values ( 7, 'eyes', 'brown' )");
     $db.commit();
 }
 
