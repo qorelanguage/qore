@@ -92,15 +92,14 @@ int ManagedDatasource::grabLockIntern()
    {
       ++waiting;
       if (tl_timeout_ms)
-	 while (true)
-	 {
-	    if (!cTransaction.wait(&ds_lock, tl_timeout_ms))
-	       break;
+      {
+	 if (!cTransaction.wait(&ds_lock, tl_timeout_ms))
+	    break;
 
-	    printd(1, "ManagedDatasource %08p timed out after %dms waiting for tid %d to release lock\n", this, tl_timeout_ms, tid);
-	    --waiting;
-	    return -1;
-	 }
+	 printd(5, "ManagedDatasource %08p timed out after %dms waiting for tid %d to release lock\n", this, tl_timeout_ms, tid);
+	 --waiting;
+	 return -1;
+      }
       else
 	 cTransaction.wait(&ds_lock);
       --waiting;
@@ -115,7 +114,7 @@ int ManagedDatasource::grabLock(class ExceptionSink *xsink)
 {
    if (grabLockIntern() < 0)
    {
-      endDBAction();
+      endDBActionIntern();
       xsink->raiseException("TRANSACTION-TIMEOUT", "timed out on datasource '%s@%s' after waiting %d millisecond%s on transaction lock held by TID %d", 
 			    username.empty() ? "<n/a>" : username.c_str(), 
 			    dbname.empty() ? "<n/a>" : dbname.c_str(), tl_timeout_ms, 
@@ -196,13 +195,17 @@ int ManagedDatasource::startDBAction(class ExceptionSink *xsink, bool need_trans
    return -1;
 }
 
-void ManagedDatasource::endDBAction()
+void ManagedDatasource::endDBActionIntern()
 {
-   AutoLocker al(&ds_lock);
-
    counter = 0;
    if (sql_waiting)
       cSQL.signal();
+}
+
+void ManagedDatasource::endDBAction()
+{
+   AutoLocker al(&ds_lock);
+   endDBActionIntern();
 }
 
 void ManagedDatasource::setTransactionLockTimeout(int t_ms)
