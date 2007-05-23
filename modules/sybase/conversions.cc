@@ -111,7 +111,7 @@ void DateTime_to_DATETIME(connection& conn, DateTime* dt, CS_DATETIME& out, Exce
   CS_RETCODE err = cs_convert(conn.getContext(), &srcfmt, (CS_BYTE*)string_dt.c_str(), &destfmt, (CS_BYTE*)&out, &aux);
   if (err != CS_SUCCEED) {
     assert(false);
-    xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_convert() failed to convert date [%s] into Sybase CS_DATETIME, err %d", string_dt.c_str(), (int)err);
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_convert() failed to convert date [%s] to Sybase CS_DATETIME, err %d", string_dt.c_str(), (int)err);
     return;
   }
 }
@@ -137,7 +137,7 @@ void DateTime_to_DATETIME4(connection& conn, DateTime* dt, CS_DATETIME4& out, Ex
   CS_RETCODE err = cs_convert(conn.getContext(), &srcfmt, (CS_BYTE*)string_dt.c_str(), &destfmt, (CS_BYTE*)&out, &outlen);
   if (err != CS_SUCCEED) {
     assert(false);
-    xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_convert() failed to convert date [%s] into Sybase CS_DATETIME4, err %d", string_dt.c_str(), (int)err);
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_convert() failed to convert date [%s] to Sybase CS_DATETIME4, err %d", string_dt.c_str(), (int)err);
     return;
   }
 }
@@ -154,7 +154,7 @@ DateTime* DATETIME_to_DateTime(connection& conn, CS_DATETIME& dt, ExceptionSink*
     return 0;
   }
 
-  return new DateTime(x.dateyear, x.datemonth, x.datedmonth, x.datehour, x.dateminute, x.datesecond, x.datemsecond, false);
+  return new DateTime(x.dateyear, x.datemonth + 1, x.datedmonth, x.datehour, x.dateminute, x.datesecond, x.datemsecond, false);
 }
 
 //------------------------------------------------------------------------------
@@ -169,7 +169,7 @@ DateTime* DATETIME4_to_DateTime(connection& conn, CS_DATETIME4& dt, ExceptionSin
     return 0;
   }
 
-  return new DateTime(x.dateyear, x.datemonth, x.datedmonth, x.datehour, x.dateminute, x.datesecond, x.datemsecond, false);
+  return new DateTime(x.dateyear, x.datemonth + 1, x.datedmonth, x.datehour, x.dateminute, x.datesecond, x.datemsecond, false);
 }
 
 //------------------------------------------------------------------------------
@@ -189,7 +189,7 @@ void double_to_MONEY(connection& conn, double val, CS_MONEY& out, ExceptionSink*
   CS_RETCODE err = cs_convert(conn.getContext(), &srcfmt, (CS_BYTE*)&val, &destfmt, (CS_BYTE*)&out, &outlen);
   if (err != CS_SUCCEED) {
     assert(false);
-    xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_convert() failed to convert a float value into Sybase MONEY, err %d", (int)err);
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_convert() failed to convert a float value to Sybase MONEY, err %d", (int)err);
     return;
   }
 }
@@ -211,7 +211,7 @@ void double_to_MONEY4(connection& conn, double val, CS_MONEY4& out, ExceptionSin
   CS_RETCODE err = cs_convert(conn.getContext(), &srcfmt, (CS_BYTE*)&val, &destfmt, (CS_BYTE*)&out, &outlen);
   if (err != CS_SUCCEED) {
     assert(false);
-    xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_convert() failed to convert a float value into Sybase MONEY4, err %d", (int)err);
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_convert() failed to convert a float value to Sybase MONEY4, err %d", (int)err);
     return;
   }
 }
@@ -234,7 +234,7 @@ double MONEY_to_double(connection& conn, CS_MONEY& m, ExceptionSink* xsink)
   CS_RETCODE err = cs_convert(conn.getContext(), &srcfmt, (CS_BYTE*)&m, &destfmt, (CS_BYTE*)&result, &outlen);
   if (err != CS_SUCCEED) {
     assert(false);
-    xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_convert() failed to convert Sybase MONEY into FLOAT, err %d", (int)err);
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_convert() failed to convert Sybase MONEY to FLOAT, err %d", (int)err);
   }
 
   return result;
@@ -258,7 +258,7 @@ double MONEY4_to_double(connection& conn, CS_MONEY4& m, ExceptionSink* xsink)
   CS_RETCODE err = cs_convert(conn.getContext(), &srcfmt, (CS_BYTE*)&m, &destfmt, (CS_BYTE*)&result, &outlen);
   if (err != CS_SUCCEED) {
     assert(false);
-    xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_convert() failed to convert Sybase MONEY4 into FLOAT, err %d", (int)err);
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_convert() failed to convert Sybase MONEY4 to FLOAT, err %d", (int)err);
   }
 
   return result;
@@ -283,7 +283,7 @@ void double_to_DECIMAL(connection& conn, double val, CS_DECIMAL& out, ExceptionS
   CS_RETCODE err = cs_convert(conn.getContext(), &srcfmt, (CS_BYTE*)&val, &destfmt, (CS_BYTE*)&out, &outlen);
   if (err != CS_SUCCEED) {
     assert(false);
-    xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_convert() failed to convert a float value into Sybase DECIMAL, err %d", (int)err);
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_convert() failed to convert a float value to Sybase decimal, err %d", (int)err);
     return;
   }
   assert(out.precision);
@@ -301,7 +301,6 @@ double DECIMAL_to_double(connection& conn, CS_DECIMAL& m, ExceptionSink* xsink)
   srcfmt.scale = 15; // guess, keep the same as above
   srcfmt.precision = 30; // also guess
 
-
   CS_DATAFMT destfmt;
   memset(&destfmt, 0, sizeof(destfmt));
   destfmt.datatype = CS_FLOAT_TYPE;
@@ -311,13 +310,39 @@ double DECIMAL_to_double(connection& conn, CS_DECIMAL& m, ExceptionSink* xsink)
   CS_FLOAT result = 0.0;
   CS_RETCODE err = cs_convert(conn.getContext(), &srcfmt, (CS_BYTE*)&m, &destfmt, (CS_BYTE*)&result, &outlen);
   if (err != CS_SUCCEED) {
-    assert(false);
-    xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_convert() failed to convert Sybase DECIMAL into FLOAT, err %d", (int)err);
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_convert() failed to convert Sybase decimal to float, err %d", (int)err);
   }
-
   return result;
 }
 
+#define SYB_DEC_STR_LEN 50
+class QoreString *DECIMAL_to_string(connection& conn, CS_DECIMAL& m, ExceptionSink* xsink)
+{
+  CS_DATAFMT srcfmt;
+  memset(&srcfmt, 0, sizeof(srcfmt));
+  srcfmt.datatype = CS_DECIMAL_TYPE;
+  srcfmt.maxlength = 35; // recommended by docs
+  srcfmt.scale = 15; // guess, keep the same as above
+  srcfmt.precision = 30; // also guess
+
+  CS_DATAFMT destfmt;
+  memset(&destfmt, 0, sizeof(destfmt));
+  destfmt.datatype = CS_CHAR_TYPE;
+  destfmt.format = CS_FMT_NULLTERM;
+  destfmt.maxlength = SYB_DEC_STR_LEN;
+
+  CS_INT outlen;
+  CS_CHAR buf[SYB_DEC_STR_LEN + 1];
+  CS_RETCODE err = cs_convert(conn.getContext(), &srcfmt, (CS_BYTE*)&m, &destfmt, buf, &outlen);
+  if (err != CS_SUCCEED) {
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_convert() failed to convert Sybase decimal to string, err %d", (int)err);
+    return 0;
+  }
+  //printd(5, "DECIMAL_to_string: '%s'\n", buf);
+  return new QoreString(buf);  
+}
+
+/*
 //------------------------------------------------------------------------------
 void double_to_NUMERIC(connection& conn, double val, CS_NUMERIC& out, ExceptionSink* xsink)
 {
@@ -337,7 +362,7 @@ void double_to_NUMERIC(connection& conn, double val, CS_NUMERIC& out, ExceptionS
   CS_RETCODE err = cs_convert(conn.getContext(), &srcfmt, (CS_BYTE*)&val, &destfmt, (CS_BYTE*)&out, &outlen);
   if (err != CS_SUCCEED) {
     assert(false);
-    xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_convert() failed to convert a float value into Sybase NUMERIC, err %d", (int)err);
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_convert() failed to convert a float value to Sybase NUMERIC, err %d", (int)err);
     return;
   }
 }
@@ -363,11 +388,12 @@ double NUMERIC_to_double(connection& conn, CS_NUMERIC& m, ExceptionSink* xsink)
   CS_RETCODE err = cs_convert(conn.getContext(), &srcfmt, (CS_BYTE*)&m, &destfmt, (CS_BYTE*)&result, &outlen);
   if (err != CS_SUCCEED) {
     assert(false);
-    xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_convert() failed to convert Sybase NUMERIC into FLOAT, err %d", (int)err);
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_convert() failed to convert Sybase NUMERIC to FLOAT, err %d", (int)err);
   }
 
   return result;
 }
+*/
 
 #ifdef DEBUG
 #  include "tests/conversions_tests.cc"

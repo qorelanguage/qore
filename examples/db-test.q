@@ -105,7 +105,7 @@ sub transaction_test($db)
 
     # now we verify that the new row is not visible to the other datasource
     # unless it's a sybase datasource, in which case this would deadlock :-(
-    if ($o.type != "sybase")
+    if ($o.type != "sybase" && $o.type != "mssql")
     {
 	$r = $ndb.selectRow("select name from family where family_id = 3").name;
 	if (exists $r)
@@ -146,13 +146,182 @@ sub transaction_test($db)
     $ndb.commit();
 }
 
+sub oracle_test()
+{
+}
+
+sub pgsql_test()
+{
+}
+
+sub mysql_test()
+{
+}
+
+const syb_table = "
+create table data_test (
+	null_f char(1) null,
+
+	varchar_f varchar(40) not null,
+	char_f char(40) not null,
+	unichar_f unichar(40) not null,
+	univarchar_f univarchar(40) not null,
+	text_f text not null,
+	unitext_f unitext not null, -- note that unitext is stored as 'image'
+
+	tinyint_f tinyint not null,
+	smallint_f smallint not null,
+	int_f int not null,
+
+	decimal_f decimal(10,4) not null,
+
+	float_f float not null,     -- 8-bytes
+	real_f real not null,       -- 4-bytes
+	money_f money not null,
+	smallmoney_f smallmoney not null,
+
+	date_f date not null,
+	time_f time not null,
+	datetime_f datetime not null,
+	smalldatetime_f smalldatetime not null
+)
+";
+
+sub sybase_test($db)
+{
+    # create test table
+    $db.exec(syb_table);
+
+    # insert data
+    my $rows = $db.exec("
+insert into data_test values (
+	null,
+	'test',
+	'test',
+	'test',
+	'test',
+	'test',
+	'test',
+
+	55,
+	4285,
+	405402,
+
+	500.1231,
+
+	23443.234324234,
+	213.123,
+	3434234250.2034,
+	211100.1012,
+
+	'2007-05-01',
+	'10:30:01',
+	'3459-01-01 11:15:02.251',
+	'2007-12-01 12:01'
+)
+");
+
+    my $q = $db.selectRow("select * from data_test");
+    foreach my $k in (keys $q)
+	printf(" %-16s= %-10s %N\n", $k, type($q.$k), $q.$k);
+
+    $db.commit();
+    $db.exec("drop table data_test");
+    $db.commit();
+    #printf("%N\n", $q);
+}
+
+const mssql_table = "
+create table data_test (
+	null_f char(1) null,
+
+	varchar_f varchar(40) not null,
+	char_f char(40) not null,
+	text_f text not null,
+	unitext_f unitext not null, -- note that unitext is stored as 'image'
+
+	tinyint_f tinyint not null,
+	smallint_f smallint not null,
+	int_f int not null,
+
+	decimal_f decimal(10,4) not null,
+
+	float_f float not null,     -- 8-bytes
+	real_f real not null,       -- 4-bytes
+	money_f money not null,
+	smallmoney_f smallmoney not null,
+
+	date_f date not null,
+	time_f time not null,
+	datetime_f datetime not null,
+	smalldatetime_f smalldatetime not null
+)
+";
+
+sub mssql_test($db)
+{
+    # freetds doesn't support the following column types as far as I can tell:
+    # unichar, univarchar
+
+    # create test table
+    $db.exec(mssql_table);
+
+    # insert data
+    my $rows = $db.exec("
+insert into data_test values (
+	null,
+	'test',
+	'test',
+	'test',
+	'test',
+
+	55,
+	4285,
+	405402,
+
+	500.1231,
+
+	23443.234324234,
+	213.123,
+	3434234250.2034,
+	211100.1012,
+
+	'2007-05-01',
+	'10:30:01',
+	'3459-01-01 11:15:02.251',
+	'2007-12-01 12:01'
+)
+");
+
+    my $q = $db.selectRow("select * from data_test");
+    foreach my $k in (keys $q)
+	printf(" %-16s= %-10s %N\n", $k, type($q.$k), $q.$k);
+
+    $db.commit();
+    $db.exec("drop table data_test");
+    $db.commit();
+    #printf("%N\n", $q);
+}
+
 sub main()
 {
+    my $test_map = 
+	( "sybase" : \sybase_test(),
+	  "mssql"  : \mssql_test(),
+	  "mysql"  : \mysql_test(),
+	  "pgsql"  : \pgsql_test(),
+	  "oracle" : \oracle_test());
+
     parse_command_line();
     my $db = getDS();
 
-    doit($db);
+    if ($db.getDriverName() == "mssql") $db.exec("set chained on");
+
+    #doit($db);
     transaction_test($db);
+    my $test = $test_map.($db.getDriverName());
+    if (exists $test)
+	$test($db);
 }
 
 main();

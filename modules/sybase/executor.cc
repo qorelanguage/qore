@@ -146,19 +146,16 @@ static QoreNode* execute_rpc_impl(connection& conn, QoreString* rpc_text, List* 
   QoreNode* result = read_output(cmd, encoding, true, xsink);
   if (!result) {
     if (!out_names.empty()) {
-      assert(false); // internal error
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Internal error: %d output parameters expected, no one returned", out_names.size());
     }
     return 0;  
   }
   if (result->type != NT_HASH) {
-    assert(false); // internal error
     result->deref(xsink);
     xsink->raiseException("DBI-EXEC-EXCEPTION", "Internal error: hash output was expected");
     return 0;
   }
   if (result->val.hash->size() != (int)out_names.size()) {
-    assert(false);
     result->deref(xsink);
     xsink->raiseException("DBI-EXEC-EXCEPTION", "Internal error: %d output parameters expected, %d returned", out_names.size(), result->val.hash->size());
     return 0;
@@ -182,98 +179,76 @@ static QoreNode* execute_rpc_impl(connection& conn, QoreString* rpc_text, List* 
 }
 
 //------------------------------------------------------------------------------
-QoreNode* execute(connection& conn, QoreString* cmd, List* parameters, ExceptionSink* xsink)
+QoreNode* execute(Datasource *ds, QoreString* cmd, List* parameters, ExceptionSink* xsink)
 {
-  std::string enc_s = get_default_Sybase_encoding(conn, xsink);
-  QoreEncoding* enc = name_to_QoreEncoding(enc_s.c_str());
-  if (xsink->isException()) {
-    return 0;
-  }
-  TempEncodingHelper query(cmd, enc, xsink);
-  if (xsink->isException()) {
-    return 0;
-  }
+   connection *conn = (connection*)ds->getPrivateData();
+   class QoreEncoding *enc = ds->getQoreEncoding();
 
-  QoreNode* res = 0;
-  if (is_query_procedure_call(query->getBuffer())) {
-    res = execute_rpc_impl(conn, *query, parameters, enc, xsink);    
-  } else {
-     res = execute_command_impl(conn, *query, parameters, enc, false, xsink);
-  }
-  return res;
+   TempEncodingHelper query(cmd, enc, xsink);
+   if (!query)
+      return 0;
+
+   QoreNode* res = 0;
+   if (is_query_procedure_call(query->getBuffer())) {
+      res = execute_rpc_impl(*conn, *query, parameters, enc, xsink);    
+   } else {
+      res = execute_command_impl(*conn, *query, parameters, enc, false, xsink);
+   }
+   return res;
 }
 
 //------------------------------------------------------------------------------
-QoreNode* execute_select(connection& conn, QoreString* cmd, List* parameters, ExceptionSink* xsink)
+QoreNode* execute_select(Datasource *ds, QoreString* cmd, List* parameters, ExceptionSink* xsink)
 {
-  std::string enc_s = get_default_Sybase_encoding(conn, xsink);
-  QoreEncoding* enc = name_to_QoreEncoding(enc_s.c_str());
-  if (xsink->isException()) {
-    return 0;
-  }
-  TempEncodingHelper query(cmd, enc, xsink);
-  if (xsink->isException()) {
-    return 0;
-  }
-  if (is_query_procedure_call(query->getBuffer())) {
-    assert(false); // procedure returns status code, not rows
-    xsink->raiseException("DBI-EXEC-EXCEPTION", "'select' cannot be used for procedure calls");
-    return 0;
-  }
+   connection *conn = (connection*)ds->getPrivateData();
+   class QoreEncoding *enc = ds->getQoreEncoding();
+  
+   TempEncodingHelper query(cmd, enc, xsink);
+   if (!query)
+      return 0;
 
-  QoreNode* res = execute_command_impl(conn, *query, parameters, enc, false, xsink);
-  if (xsink->isException()) {
-    if (res) res->deref(xsink);
-    return 0;
-  }
-  //if (!res) res = 0;
+   if (is_query_procedure_call(query->getBuffer())) {
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "'select' cannot be used for procedure calls");
+      return 0;
+   }
 
-  //assert(res->type == NT_LIST || res->type == NT_HASH);
-/* for unknown reason Qore select() is sometimes used instead of selectRows()
-  if (res->type == NT_LIST) {
-    assert(false);
-    res->deref(xsink);
-    xsink->raiseException("DBI-EXEC-EXCEPTION", "'select' returned more than single row");
-    return 0;
-  }
-=======
+   return execute_command_impl(*conn, *query, parameters, enc, false, xsink);
+}
+
+//------------------------------------------------------------------------------
+QoreNode* execute_select_rows(Datasource *ds, QoreString* cmd, List* parameters, ExceptionSink* xsink)
+{
+   printd(5, "execute_select_rows(ds=%08p, cmd='%s', params=%08p)\n", ds, cmd->getBuffer(), parameters); 
+
+   connection *conn = (connection*)ds->getPrivateData();
+   // ensure query is in correct encoding for database
+   class QoreEncoding *enc = ds->getQoreEncoding();
+   TempEncodingHelper query(cmd, enc, xsink);
+   if (!query)
+      return 0;
+
+   if (is_query_procedure_call(query->getBuffer())) {
+      // procedure returns status code, not rows
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "'select rows' cannot be used for procedure calls");
+      return 0;
+   }
+   
+   QoreNode* res = execute_command_impl(*conn, *query, parameters, enc, true, xsink);
+   if (!res) return 0;
+
+   //assert(res->type == NT_LIST || res->type == NT_HASH);
+
+/*
+   if (res->type != NT_LIST && res->type != NT_HASH)
+      printd(5, "select_rows returning %08p=%s\n", res, res ? res->type->getName() : "x");
 */
 
-  return res;
-}
-
-//------------------------------------------------------------------------------
-QoreNode* execute_select_rows(connection& conn, QoreString* cmd, List* parameters, ExceptionSink* xsink)
-{
-  std::string enc_s = get_default_Sybase_encoding(conn, xsink);
-  QoreEncoding* enc = name_to_QoreEncoding(enc_s.c_str());
-  if (xsink->isException()) {
-    return 0;
-  }
-  TempEncodingHelper query(cmd, enc, xsink);
-  if (xsink->isException()) {
-    return 0;
-  }
-  if (is_query_procedure_call(query->getBuffer())) {
-    assert(false); // procedure returns status code, not rows
-    xsink->raiseException("DBI-EXEC-EXCEPTION", "'select rows' cannot be used for procedure calls");
-    return 0;
-  }
-
-  QoreNode* res = execute_command_impl(conn, *query, parameters, enc, true, xsink);
-  if (xsink->isException()) {
-    if (res) res->deref(xsink);
-    return 0;
-  }
-  if (!res) return 0;
-
-  assert(res->type == NT_LIST || res->type == NT_HASH);
-  if (res->type == NT_HASH) {
-    List* l = new List;
-    l->push(res);
-    res = new QoreNode(l); 
-  }
-  return res;
+   if (res->type == NT_HASH) {
+      List* l = new List;
+      l->push(res);
+      res = new QoreNode(l); 
+   }
+   return res;
 }
 
 #ifdef DEBUG

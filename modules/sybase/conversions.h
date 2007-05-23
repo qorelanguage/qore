@@ -56,6 +56,7 @@ extern double MONEY4_to_double(connection& conn, CS_MONEY4& m, ExceptionSink* xs
 // Sybase DECIMAL datatype manipulation (it is converted from/to float)
 extern void double_to_DECIMAL(connection& conn, double val, CS_DECIMAL& out, ExceptionSink* xsink);
 extern double DECIMAL_to_double(connection& conn, CS_DECIMAL& m, ExceptionSink* xsink);
+extern class QoreString *DECIMAL_to_string(connection& conn, CS_DECIMAL& m, ExceptionSink* xsink);
 
 //------------------------------------------------------------------------------
 // Sybase NUMERIC datatype manipulation (it is converted from/to float)

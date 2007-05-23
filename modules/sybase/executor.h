@@ -32,11 +32,11 @@ class QoreNode;
 class List;
 class QoreString;
 
-extern QoreNode* execute(connection& conn, QoreString* cmd, List* parameters, ExceptionSink* xsink);
+extern QoreNode* execute(class Datasource *ds, QoreString* cmd, List* parameters, ExceptionSink* xsink);
 // returns Hash
-extern QoreNode* execute_select(connection& conn, QoreString* cmd, List* parameters, ExceptionSink* xsink);
+extern QoreNode* execute_select(class Datasource *ds, QoreString* cmd, List* parameters, ExceptionSink* xsink);
 // returns List
-extern QoreNode* execute_select_rows(connection& conn, QoreString* cmd, List* parameters, ExceptionSink* xsink);
+extern QoreNode* execute_select_rows(class Datasource *ds, QoreString* cmd, List* parameters, ExceptionSink* xsink);
 
 #endif
 

@@ -32,6 +32,10 @@
 
 #include "connection.h"
 
+#ifdef FREETDS
+#include "direct_execute.h"
+#endif
+
 //------------------------------------------------------------------------------
 connection::connection()
    : m_context(0), m_connection(0), m_charset_locale(0), connected(false)
@@ -75,6 +79,14 @@ connection::~connection()
     }
   }
 }
+// 0 = OK, -1 = error                                                                                                                                                     
+#ifdef FREETDS
+static inline int set_chained_on(connection& conn, ExceptionSink* xsink)
+{
+  direct_execute(conn, "set chained on", xsink);
+  return xsink->isException() ? -1 : 0;
+}
+#endif
 
 //------------------------------------------------------------------------------
 // Post-constructor initialization 
@@ -83,7 +95,7 @@ void connection::init(const char* username, const char* password, const char* db
   assert(!m_connection);
   assert(!m_context);
 
-  //printd(0, "connection::init() user=%s pass=%s dbname=%s, db_enc=%s\n", username, password, dbname, db_encoding);
+  printd(5, "connection::init() user=%s pass=%s dbname=%s, db_enc=%s\n", username, password ? password : "<n/a>", dbname, db_encoding ? db_encoding : "<n/a>");
 
   CS_RETCODE ret = cs_ctx_alloc(CS_VERSION_100, &m_context);
   if (ret != CS_SUCCEED) {
@@ -106,12 +118,14 @@ void connection::init(const char* username, const char* password, const char* db
     xsink->raiseException("DBI:SYBASE:CT-LIB-SET-CALLBACK", "ct_callback(CS_CLIENTMSG_CB) failed with error %d", ret);
     return;
   }
+/*
   ret = ct_callback(m_context, 0, CS_SET, CS_SERVERMSG_CB, (CS_VOID*)servermsg_callback);
   if (ret != CS_SUCCEED) {
     assert(false);
     xsink->raiseException("DBI:SYBASE:CT-LIB-SET-CALLBACK", "ct_callback(CS_SERVERMSG_CB) failed with error %d", ret);
     return;
   }
+*/
   ret = ct_con_alloc(m_context, &m_connection);
   if (ret != CS_SUCCEED) {
     assert(false);
@@ -157,6 +171,19 @@ void connection::init(const char* username, const char* password, const char* db
      return;
   }
 
+  CS_BOOL cs_bool;
+#if SYBASE
+  // turn off 2-byte character support
+/*
+  cs_bool = CS_FALSE;
+  ret = ct_capability(m_connection, CS_SET, CS_CAP_RESPONSE, CS_DATA_NOUNITEXT, &cs_bool);
+  if (ret != CS_SUCCEED) {
+     xsink->raiseException("DBI:SYBASE:CT-LIB-CAPABILITY", "ct_capability(CS_DATA_NOUNITEXT) failed with error %d", ret);
+     return;
+  }
+*/
+#endif
+
   //printd(0, "about to call ct_connect()\n");
   ret = ct_connect(m_connection, (CS_CHAR*)dbname,  strlen(dbname));
   if (ret != CS_SUCCEED) {
@@ -166,14 +193,25 @@ void connection::init(const char* username, const char* password, const char* db
   connected = true;
   //printd(0, "returned from ct_connect()\n");
 
-  // Transaction management is done by the driver (docs says it is by default)
-  CS_BOOL chained_transactions = CS_FALSE;
-  ret = ct_options(m_connection, CS_SET, CS_OPT_CHAINXACTS, &chained_transactions, CS_UNUSED, NULL);
+#ifdef SYBASE
+  // turn on chained transaction mode, this fits with Qore's transaction management approach
+  // - in autocommit mode qore executes a commit after every request manually
+  cs_bool = CS_TRUE;
+  ret = ct_options(m_connection, CS_SET, CS_OPT_CHAINXACTS, &cs_bool, CS_UNUSED, NULL);
   if (ret != CS_SUCCEED) {
     assert(false);
     xsink->raiseException("DBI:SYBASE:CT-LIB-SET-TRANSACTION-CHAINING", "ct_options(CS_OPT_CHAINXACTS) failed with error %d", ret);
     return;
   }
+#else
+  // FreeTDS' implementation of ct_options is a noop - therefore we execute the command manually
+  // FIXME: check for MS SQL server and execute "set implicit_transactions on" instead
+
+
+  if (set_chained_on(*this, xsink))
+     return;
+
+#endif
 
   // Set default type of string representation of DATETIME to long (like Jan 1 1990 12:32:55:0000 PM)
   // Without this some routines in conversions.cc would fail.

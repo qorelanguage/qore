@@ -84,6 +84,7 @@ static void read_rows(command& cmd, QoreEncoding* encoding, QoreNode*& out_node,
   }
 
   while (fetch_row_into_buffers(cmd, xsink)) {
+
      if (!list)
      {
 	if (append_buffers_to_List(cmd, descriptions, out_buffers, encoding, out_node->val.hash, xsink))
@@ -97,8 +98,7 @@ static void read_rows(command& cmd, QoreEncoding* encoding, QoreNode*& out_node,
 	Hash* h =  output_buffers_to_QoreHash(cmd, descriptions, out_buffers, encoding, xsink);
 	if (xsink->isException()) {
 	   if (h) {
-	      QoreNode* dummy = new QoreNode(h);
-	      dummy->deref(xsink);
+	      h->derefAndDelete(xsink);
 	   }
 	   return;
 	}
@@ -130,96 +130,91 @@ QoreNode* read_output(command& cmd, QoreEncoding* encoding, bool list, Exception
 
   CS_INT result_type;  
   CS_RETCODE err;
-  while ((err = ct_results(cmd(), &result_type)) == CS_SUCCEED) {
-     //printd(0, "read_output() result_type = %d\n", result_type);
-    switch (result_type) {
-    case CS_CURSOR_RESULT:
-      assert(false); // cannot happen, bug in driver
-      xsink->raiseException("DBI-EXEC-EXCEPTION", "Unexpected CS_CURSOR_RESULT: returned by ct_results()");
-      return result;
+  while ((err = ct_results(cmd(), &result_type)) == CS_SUCCEED) 
+  {
+     //printd(5, "read_output() result_type = %d\n", result_type);
 
-    case CS_COMPUTE_RESULT:
-    case CS_PARAM_RESULT: // procedure call
-    case CS_ROW_RESULT:
-      // 0 or more rows
-       read_rows(cmd, encoding, result, list, xsink);
-       if (xsink->isException()) {
-	  return result;
-       }
-       break;
+     switch (result_type) {
+	case CS_CURSOR_RESULT:
+	   xsink->raiseException("DBI-EXEC-EXCEPTION", "Unexpected CS_CURSOR_RESULT: returned by ct_results()");
+	   return result;
+	   
+	case CS_COMPUTE_RESULT:
+	case CS_PARAM_RESULT: // procedure call
+	case CS_ROW_RESULT:
+	   // 0 or more rows
+	   read_rows(cmd, encoding, result, list, xsink);
+	   if (xsink->isException()) {
+	      return result;
+	   }
+	   break;
+	   
+	case CS_STATUS_RESULT:
+	{ // status return codes are not used by Qore
+	   QoreNode* dummy = 0;
+	   read_rows(cmd, encoding, dummy, list, xsink);
+	   if (dummy) dummy->deref(xsink);
+	   if (xsink->isException()) {
+	      return result;
+	   }
+	   break;
+	}
+	
+	case CS_COMPUTEFMT_RESULT:
+	   // Sybase bug???
+	   xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() failed with result code CS_COMPUTE_FMT_RESULT");
+	   return result;
+	   
+	case CS_MSG_RESULT:
+	   // Sybase bug???
+	   xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() failed with result code CS_MSG_RESULT");
+	   return result;
+	   
+	case CS_ROWFMT_RESULT:
+	   // Sybase bug???
+	   xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() failed with result code CS_ROW_FMT_RESULT");
+	   return result;
+	   
+	case CS_DESCRIBE_RESULT:
+	   // not expected here
+	   xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() failed with result code CS_DESCRIBE_RESULTS");
+	   return result;
+	   
+	case CS_CMD_DONE:
+	{
+	   if (!result)
+	   {
+	      CS_INT rowcount;
+	      CS_RETCODE ret;
+	      ret = ct_res_info(cmd(), CS_ROW_COUNT, (CS_VOID *)&rowcount, CS_UNUSED, 0);
+	      if (ret != CS_SUCCEED)
+		 xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_res_info() finished with error code %d", (int)ret);
 
-   case CS_STATUS_RESULT:
-   { // status return codes are not used by Qore
-      QoreNode* dummy = 0;
-      read_rows(cmd, encoding, dummy, list, xsink);
-      if (dummy) dummy->deref(xsink);
-      if (xsink->isException()) {
-        assert(false);
-        return result;
-      }
-      break;
-   }
-
-    case CS_COMPUTEFMT_RESULT:
-      // Sybase bug???
-      assert(false);
-      xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() failed with result code CS_COMPUTE_FMT_RESULT");
-      return result;
-
-    case CS_MSG_RESULT:
-      // Sybase bug???
-      assert(false);
-      xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() failed with result code CS_MSG_RESULT");
-      return result;
-
-    case CS_ROWFMT_RESULT:
-      // Sybase bug???
-      assert(false);
-      xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() failed with result code CS_ROW_FMT_RESULT");
-      return result;
-
-    case CS_DESCRIBE_RESULT:
-      // not expected here
-      assert(false);
-      xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() failed with result code CS_DESCRIBE_RESULTS");
-      return result;
-
-    case CS_CMD_DONE:
-    {
-       CS_INT rowcount;
-       CS_RETCODE ret;
-       ret = ct_res_info(cmd(), CS_ROW_COUNT, (CS_VOID *)&rowcount, CS_UNUSED, 0);
-       if (ret != CS_SUCCEED)
-	  xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_res_info() finished with error code %d", (int)ret);
-       else if (!result)
-       {
-	  result = new QoreNode((int64)rowcount);
-	  //printd(0, "rowcount=%d, result=%08p\n", (int)rowcount, result);
-       }
-
-       goto finish;
-    }
-
-    case CS_CMD_SUCCEED:
-      // current command succeeded, there may be more. CS_CMD_DONE is when we should return
-      continue;
-
-    case CS_CMD_FAIL: // returned by the FreeTDS when used incorrectly
-      xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() failed with result code CS_CMD_FAIL");
-      return result;
-
-    default:
-      assert(false);
-      xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() gave unknown result type %d", (int)result_type);
-      return result;
-    } // switch
-
+	      if (rowcount >= 0)
+		 result = new QoreNode((int64)rowcount);
+	      //printd(5, "rowcount=%d, result=%08p\n", (int)rowcount, result);
+	   }
+	   
+	   goto finish;
+	}
+	
+	case CS_CMD_SUCCEED:
+	   // current command succeeded, there may be more. CS_CMD_DONE is when we should return
+	   continue;
+	   
+	case CS_CMD_FAIL: // returned by the FreeTDS when used incorrectly
+	   xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() failed with result code CS_CMD_FAIL");
+	   return result;
+	   
+	default:
+	   xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() gave unknown result type %d", (int)result_type);
+	   return result;
+     } // switch
   } // while
-
-finish:
+  
+  finish:
   if (err != CS_END_RESULTS && err != CS_SUCCEED) {
-    assert(false);
-    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() finished with unexpected result %d", (int)err);
+     xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() finished with unexpected result %d", (int)err);
   }
   return result;
 }

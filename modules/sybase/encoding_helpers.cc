@@ -87,6 +87,7 @@ const char* QoreEncoding_to_SybaseName(QoreEncoding *enc)
   return 0;
 }
 
+#if 0
 //------------------------------------------------------------------------------
 std::string get_default_Sybase_encoding(connection& conn, ExceptionSink* xsink)
 {
@@ -114,6 +115,7 @@ std::string get_default_Sybase_encoding(connection& conn, ExceptionSink* xsink)
 */
   return std::string(encoding_str);
 }
+#endif
 
 #ifdef DEBUG
 #  include "tests/encoding_helpers_tests.cc"

@@ -1,6 +1,11 @@
 2006.05.23: David Nichols
 	* fixed a deadlock in transaction lock timeouts in the ManagedDatasource
 	  class (qore Datasource class)
+	* sybase: added support for unichar types, strip trailing blanks from 
+	  CHAR columns, fixed off-by-one bug in datetime conversions, mapped
+	  DECIMAL,NUMERIC to string to avoid losing data, fixed string encoding
+	  bugs, fixed transaction management model to fit qore's by enabling
+	  chained transaction mode
 
 2006.05.22: David Nichols
 	* fixed select method and encodings for sybase driver

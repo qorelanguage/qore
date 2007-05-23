@@ -174,22 +174,20 @@ static int sybase_close(Datasource *ds)
 //------------------------------------------------------------------------------
 static QoreNode* sybase_select(Datasource *ds, QoreString *qstr, List *args, ExceptionSink *xsink)
 {
-  connection* sc = (connection*)ds->getPrivateData();
-  return execute_select(*sc, qstr, args, xsink);
+   return execute_select(ds, qstr, args, xsink);
 }
 
 //------------------------------------------------------------------------------
 static QoreNode* sybase_select_rows(Datasource *ds, QoreString *qstr, List *args, ExceptionSink *xsink)
 {
-  connection* sc = (connection*)ds->getPrivateData();
-  return execute_select_rows(*sc, qstr, args, xsink);
+   //printd(5, "sybase_select_rows(ds=%08p, qstr='%s', args=%08p)\n", ds, qstr->getBuffer(), args);
+   return execute_select_rows(ds, qstr, args, xsink);
 }
 
 //------------------------------------------------------------------------------
 static QoreNode* sybase_exec(Datasource *ds, QoreString *qstr, List *args, ExceptionSink *xsink)
 {
-  connection* sc = (connection*)ds->getPrivateData();
-  return execute(*sc, qstr, args, xsink);
+   return execute(ds, qstr, args, xsink);
 }
 
 //------------------------------------------------------------------------------
@@ -206,11 +204,13 @@ static int sybase_rollback(Datasource *ds, ExceptionSink *xsink)
   return rollback(*conn, xsink);
 }
 
+/*
 static int sybase_begin_transaction(Datasource *ds, ExceptionSink *xsink)
 {
   connection* conn = (connection*)ds->getPrivateData();
   return begin_transaction(*conn, xsink);
 }
+*/
 
 //------------------------------------------------------------------------------
 QoreString* sybase_module_init()
@@ -230,8 +230,8 @@ QoreString* sybase_module_init()
    methods.add(QDBI_METHOD_SELECT_ROWS, sybase_select_rows);
    methods.add(QDBI_METHOD_EXEC, sybase_exec);
    methods.add(QDBI_METHOD_COMMIT, sybase_commit);
-   methods.add(QDBI_METHOD_BEGIN_TRANSACTION, sybase_begin_transaction);
-   methods.add(QDBI_METHOD_ABORT_TRANSACTION_START, sybase_rollback);
+   //methods.add(QDBI_METHOD_BEGIN_TRANSACTION, sybase_begin_transaction);
+   //methods.add(QDBI_METHOD_ABORT_TRANSACTION_START, sybase_rollback);
    methods.add(QDBI_METHOD_ROLLBACK, sybase_rollback);
    methods.add(QDBI_METHOD_AUTO_COMMIT, sybase_commit);
    

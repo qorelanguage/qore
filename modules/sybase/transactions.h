@@ -30,7 +30,7 @@ class ExceptionSink;
 class connection;
 
 // Sybase commit/rollback
-extern int begin_transaction(connection& conn, ExceptionSink* xsink);
+//extern int begin_transaction(connection& conn, ExceptionSink* xsink);
 extern int commit(connection& conn, ExceptionSink* xsink);
 extern int rollback(connection& conn, ExceptionSink* xsink);
 

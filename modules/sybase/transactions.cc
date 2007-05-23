@@ -33,12 +33,15 @@
 #include "direct_execute.h"
 #include "connection.h"
 
+/*
 // 0 = OK, -1 = error
+// currently unused - we use "chained transaction mode" instead
 int begin_transaction(connection& conn, ExceptionSink* xsink)
 {
   direct_execute(conn, "begin tran", xsink);
   return xsink->isException() ? -1 : 0;
 }
+*/
 
 //------------------------------------------------------------------------------
 // 0 = OK, -1 = error

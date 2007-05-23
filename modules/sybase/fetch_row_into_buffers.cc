@@ -37,9 +37,9 @@ bool fetch_row_into_buffers(command& cmd, ExceptionSink* xsink)
 {
   CS_INT rows_read;
   CS_RETCODE err = ct_fetch(cmd(), CS_UNUSED, CS_UNUSED, CS_UNUSED, &rows_read);
+  //printd(5, "ct_fetch() returned %d rows_read=%d\n", err, rows_read);
   if (err == CS_SUCCEED) {
     if (rows_read != 1) {
-      assert(false);
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Internal error: ct_fetch() returned %d rows (expected 1)", (int)rows_read);
       return false;
     }

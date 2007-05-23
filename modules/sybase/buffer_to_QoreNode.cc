@@ -22,15 +22,9 @@
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-#include <qore/config.h>
-#include <qore/support.h>
-#include <qore/Exception.h>
+
+#include <qore/Qore.h>
 #include <qore/minitest.hpp>
-#include <qore/QoreString.h>
-#include <qore/QoreNode.h>
-#include <qore/QoreType.h>
-#include <qore/DateTime.h>
-#include <qore/BinaryObject.h>
 
 #include <assert.h>
 #include <memory>
@@ -44,37 +38,54 @@
 QoreNode* buffer_to_QoreNode(command& cmd, const CS_DATAFMT& datafmt, const output_value_buffer& buffer, QoreEncoding* encoding, ExceptionSink* xsink)
 {
   if (buffer.indicator == -1) { // SQL NULL
-    return new QoreNode(NT_NULL);
+     return null();
   }
+  //printd(5, "buffer_to_QoreNode() encoding=%s name=%s type=%d format=%d usertype=%d\n", encoding->getCode(), datafmt.name, datafmt.datatype, datafmt.format, datafmt.usertype);
 
   switch (datafmt.datatype) {
-    case CS_LONGCHAR_TYPE:
-    case CS_VARCHAR_TYPE:
-    case CS_TEXT_TYPE:
-    case CS_CHAR_TYPE: // varchar
-    {
-      CS_CHAR* value = (CS_CHAR*)(buffer.value);
-      QoreString* s = new QoreString(value, buffer.value_len - 1, encoding);
-      //printd(5, "strlen=%d len=%d str='%s'\n", s->strlen(), s->length(), s->getBuffer());
-      return new QoreNode(s);
-    }
+     case CS_CHAR_TYPE: // varchar
+     {
+	remove_trailing_blanks((char *)buffer.value);
+	CS_CHAR* value = (CS_CHAR*)(buffer.value);
+	QoreString* s = new QoreString(value, encoding);
+	//printd(5, "name=%s vlen=%d strlen=%d len=%d str='%s'\n", datafmt.name, buffer.value_len, s->strlen(), s->length(), s->getBuffer());
+	return new QoreNode(s);
+     }
 
-    case CS_VARBINARY_TYPE:
-    case CS_BINARY_TYPE:
-    case CS_LONGBINARY_TYPE:
-    case CS_IMAGE_TYPE:
-    {
-      CS_BINARY* value = (CS_BINARY*)(buffer.value);
-      int size = buffer.value_len;
-      void* block = malloc(size);
-      if (!block) {
-        xsink->outOfMemory();
-        return 0;
-      }
-      memcpy(block, value, size);
-      BinaryObject* bin = new BinaryObject(block, size);
-      return new QoreNode(bin);
-    }
+     case CS_LONGCHAR_TYPE:
+     case CS_VARCHAR_TYPE:
+     case CS_TEXT_TYPE:
+     {
+	CS_CHAR* value = (CS_CHAR*)(buffer.value);
+	QoreString *s;
+	// see if we need to strip trailing newlines (could not find a define USER_TYPE_* for this!)
+	if (datafmt.usertype == 1)
+	{
+	   remove_trailing_blanks((char *)buffer.value);
+	   s = new QoreString(value, encoding);
+	}
+	else
+	   s = new QoreString(value, buffer.value_len - 1, encoding);
+	//printd(5, "name=%s type=%d strlen=%d vallen=%d len=%d str='%s'\n", datafmt.name, datafmt.datatype, buffer.value_len, s->strlen(), s->length(), s->getBuffer());
+	return new QoreNode(s);
+     }
+
+     case CS_VARBINARY_TYPE:
+     case CS_BINARY_TYPE:
+     case CS_LONGBINARY_TYPE:
+     case CS_IMAGE_TYPE:
+     {
+	CS_BINARY* value = (CS_BINARY*)(buffer.value);
+	int size = buffer.value_len;
+	void* block = malloc(size);
+	if (!block) {
+	   xsink->outOfMemory();
+	   return 0;
+	}
+	memcpy(block, value, size);
+	BinaryObject* bin = new BinaryObject(block, size);
+	return new QoreNode(bin);
+     }
 
     case CS_TINYINT_TYPE:
     {
@@ -154,27 +165,21 @@ QoreNode* buffer_to_QoreNode(command& cmd, const CS_DATAFMT& datafmt, const outp
     }
 
     case CS_NUMERIC_TYPE:
-    {
-      CS_NUMERIC* value = (CS_NUMERIC*)(buffer.value);
-      double d = NUMERIC_to_double(cmd.getConnection(), *value, xsink);
-      if (xsink->isException()) {
-        return 0;
-      }
-      return new QoreNode(d);
-    }
-
     case CS_DECIMAL_TYPE:
     {
       CS_DECIMAL* value = (CS_DECIMAL*)(buffer.value);
+      QoreString *str = DECIMAL_to_string(cmd.getConnection(), *value, xsink);
+      return str ? new QoreNode(str) : 0;
+/*
       double d = DECIMAL_to_double(cmd.getConnection(), *value, xsink);
       if (xsink->isException()) {
         return 0;
       }
       return new QoreNode(d);
+*/
     }
 
     default:
-      assert(false);
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Unknown data type %d", (int)datafmt.datatype);
       return 0;
   } // switch

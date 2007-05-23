@@ -45,9 +45,7 @@ extern const char* QoreEncoding_to_SybaseName(QoreEncoding *enc);
 // See http://infocenter.sybase.com/help/index.jsp?topic=/com.sybase.dc35823_1500/html/uconfig/X29127.htm
 // (customizing locale information for Adaptive Server)
 //
-extern std::string get_default_Sybase_encoding(connection& conn, ExceptionSink* xsink);
-
-
+//extern std::string get_default_Sybase_encoding(connection& conn, ExceptionSink* xsink);
 
 #endif
 
