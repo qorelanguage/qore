@@ -6,6 +6,8 @@
 	  DECIMAL,NUMERIC to string to avoid losing data, fixed string encoding
 	  bugs, fixed transaction management model to fit qore's by enabling
 	  chained transaction mode
+	* fixed DECIMAL->string conversions for FreeTDS (returns DECIMAL as
+	  float)
 
 2006.05.22: David Nichols
 	* fixed select method and encodings for sybase driver

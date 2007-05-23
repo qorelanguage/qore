@@ -58,7 +58,7 @@ QoreNode* buffer_to_QoreNode(command& cmd, const CS_DATAFMT& datafmt, const outp
      {
 	CS_CHAR* value = (CS_CHAR*)(buffer.value);
 	QoreString *s;
-	// see if we need to strip trailing newlines (could not find a define USER_TYPE_* for this!)
+	// see if we need to strip trailing newlines (could not find a defined USER_TYPE_* for this!)
 	if (datafmt.usertype == 1)
 	{
 	   remove_trailing_blanks((char *)buffer.value);

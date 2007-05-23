@@ -85,6 +85,20 @@ std::vector<CS_DATAFMT> get_row_description(command& cmd, unsigned columns_count
 	   datafmt.format = CS_FMT_UNUSED;
 	   break;
 */
+
+#ifdef FREETDS
+	   // FreeTDS seems to return DECIMAL types as FLOAT for some reason
+	case CS_FLOAT_TYPE:
+	   // can't find a defined USER_TYPE_* for 26
+	   if (datafmt.usertype == 26)
+	   {
+	      datafmt.maxlength = 50;
+	      datafmt.datatype = CS_CHAR_TYPE;
+	      datafmt.format = CS_FMT_NULLTERM;
+	      break;
+	   }
+#endif
+
 	default:
 	   datafmt.format = CS_FMT_UNUSED;
 	   break;

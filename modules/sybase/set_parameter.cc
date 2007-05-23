@@ -73,7 +73,6 @@ void set_input_parameter(command& cmd, unsigned parameter_index, int type,
   case CS_TEXT_TYPE: // text could be used only with LIKE in WHERE statement, nowhere else
   {
     if (data->type != NT_STRING) {
-      assert(false);
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Incorrect type for string parameter #%u", parameter_index + 1);
       return;
     }

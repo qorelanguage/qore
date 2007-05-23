@@ -4,7 +4,6 @@
 # 1) mysql-test-db.sql 
 # 2) oracle-test-db.sql 
 # 3) pgsql-test-db.sql
-# 4) sybase-test-db.sql
 
 %require-our
 %enable-all-warnings
@@ -189,19 +188,21 @@ create table data_test (
 
 sub sybase_test($db)
 {
-    # create test table
-    $db.exec(syb_table);
+    # create test table, ignore any exceptions (assuming it's already there)
+    try	$db.exec(syb_table); catch() {}
+
+    my $args = ( NULL, "test", "test", "test", "test", "test", "test" );
 
     # insert data
-    my $rows = $db.exec("
+    my $rows = $db.vexec("
 insert into data_test values (
-	null,
-	'test',
-	'test',
-	'test',
-	'test',
-	'test',
-	'test',
+	%v,
+	%v,
+	%v,
+	%v,
+	%v,
+	%v,
+	%v,
 
 	55,
 	4285,
@@ -219,7 +220,7 @@ insert into data_test values (
 	'3459-01-01 11:15:02.251',
 	'2007-12-01 12:01'
 )
-");
+", $args);
 
     my $q = $db.selectRow("select * from data_test");
     foreach my $k in (keys $q)
