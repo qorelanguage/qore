@@ -4,9 +4,11 @@
 # 1) mysql-test-db.sql 
 # 2) oracle-test-db.sql 
 # 3) pgsql-test-db.sql
+# 4) sybase-test-db.sql
 
 %require-our
 %enable-all-warnings
+
 our $o;
 
 const opts = 
@@ -15,7 +17,7 @@ const opts =
       "pass"   : "p,pass=s",
       "db"     : "d,db=s",
       "user"   : "u,user=s",
-      "oracle" : "o,oracle" );
+      "type"   : "t,type=s" );
 
 sub usage()
 {
@@ -57,9 +59,7 @@ sub getDS()
 sub doit($db)
 {
     # first we select all the data from the tables and then use context statements to order the output hierarchically
-
     my $people = $db.select("select * from people");
-
     my $attributes = $db.select("select * from attributes");
 
     my $today = format_date("YYYYMMDD", now());
@@ -83,6 +83,7 @@ sub test_timeout($db, $q)
 	# this should cause an exception to be thrown
 	$db.exec("insert into family values (3, 'Test')\n");
 	printf("FAILED TRANSACTION LOCK TEST\n");
+	$db.exec("delete from family where name = 'Test'");
     }
     catch ($ex)
     {
@@ -94,18 +95,24 @@ sub test_timeout($db, $q)
 sub transaction_test($db)
 {
     my $ndb = getDS();
+    my $r;
     printf("db.autocommit=%N, ndb.autocommit=%N\n", $db.getAutoCommit(), $ndb.getAutoCommit());
 
     # first, we insert a new row into "family" but do not commit it
-    $db.exec("insert into family values (3, 'Test')\n");
+    my $rows = $db.exec("insert into family values (3, 'Test')\n");
+    if ($rows !== 1)
+	printf("FAILED INSERT, rows=%N\n", $rows);
 
     # now we verify that the new row is not visible to the other datasource
-    my $r;
-    $r = $ndb.selectRow("select name from family where family_id = 3").name;
-    if (exists $r)
-	printf("FAILED TRANSACTION TEST, name=%N\n", $r);
-    else
-	printf("TRANSACTION TEST OK\n");
+    # unless it's a sybase datasource, in which case this would deadlock :-(
+    if ($o.type != "sybase")
+    {
+	$r = $ndb.selectRow("select name from family where family_id = 3").name;
+	if (exists $r)
+	    printf("FAILED TRANSACTION TEST, name=%N\n", $r);
+	else
+	    printf("TRANSACTION TEST OK\n");
+    }
 
     # now we verify that the new row is visible to the inserting datasource
     $r = $db.selectRow("select name from family where family_id = 3").name;

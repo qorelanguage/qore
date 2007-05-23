@@ -74,24 +74,35 @@ Hash* output_buffers_to_QoreHash(command& cmd, const std::vector<CS_DATAFMT>& co
 }
 
 int append_buffers_to_List(command& cmd, const std::vector<CS_DATAFMT>& columns_info,
-			   row_output_buffers& all_buffers, QoreEncoding* encoding, class Hash *h, ExceptionSink* xsink)
+			   row_output_buffers& all_buffers, QoreEncoding* encoding, 
+			   class Hash *h, ExceptionSink* xsink)
 {
-  for (unsigned i = 0, n = columns_info.size(); i != n; ++i) {
-     assert(columns_info[i].name && columns_info[i].name[0]);
+   QoreString str(encoding);
 
-     class List *l = h->getKeyValue(columns_info[i].name)->val.list;
+   for (unsigned i = 0, n = columns_info.size(); i != n; ++i) {
+      const char *col_name;
 
-     const output_value_buffer& buff = *(all_buffers.m_buffers[i]);
-     QoreNode* value = buffer_to_QoreNode(cmd, columns_info[i], buff, encoding, xsink);
-     if (xsink->isException()) {
-	if (value) value->deref(xsink);
-	return -1;
-     }
+      if (columns_info[i].name && columns_info[i].name[0]) {
+	 col_name = columns_info[i].name;
+      } else {
+	 str.clear();
+	 str.sprintf("column%d", i + 1);
+	 col_name = str.getBuffer();
+      }
 
-     l->push(value);
-  } // for
+      class List *l = h->getKeyValue(col_name)->val.list;
 
-  return 0;
+      const output_value_buffer& buff = *(all_buffers.m_buffers[i]);
+      QoreNode* value = buffer_to_QoreNode(cmd, columns_info[i], buff, encoding, xsink);
+      if (xsink->isException()) {
+	 if (value) value->deref(xsink);
+	 return -1;
+      }
+
+      l->push(value);
+   } // for
+   
+   return 0;
 }
 
 // EOF

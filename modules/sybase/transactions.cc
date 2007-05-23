@@ -33,18 +33,27 @@
 #include "direct_execute.h"
 #include "connection.h"
 
-//------------------------------------------------------------------------------
-int commit(connection& conn, ExceptionSink* xsink)
+// 0 = OK, -1 = error
+int begin_transaction(connection& conn, ExceptionSink* xsink)
 {
-  direct_execute(conn, "commit tran", xsink);
-  return xsink->isException() ? 0 : 1;
+  direct_execute(conn, "begin tran", xsink);
+  return xsink->isException() ? -1 : 0;
 }
 
 //------------------------------------------------------------------------------
+// 0 = OK, -1 = error
+int commit(connection& conn, ExceptionSink* xsink)
+{
+  direct_execute(conn, "commit", xsink);
+  return xsink->isException() ? -1 : 0;
+}
+
+//------------------------------------------------------------------------------
+// 0 = OK, -1 = error
 int rollback(connection& conn, ExceptionSink* xsink)
 {
-  direct_execute(conn, "rollback tran", xsink);
-  return xsink->isException() ? 0 : 1;
+  direct_execute(conn, "rollback", xsink);
+  return xsink->isException() ? -1 : 0;
 }
 
 // already included in direct_execute.cc

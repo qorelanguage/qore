@@ -65,9 +65,20 @@ static void read_rows(command& cmd, QoreEncoding* encoding, QoreNode*& out_node,
   if (!list)
   {
      Hash *h = new Hash();
+     QoreString str(encoding);
      for (unsigned i = 0, n = descriptions.size(); i != n; ++i) {
-	assert(descriptions[i].name && descriptions[i].name[0]);
-	h->setKeyValue(descriptions[i].name, new QoreNode(new List()), 0);
+
+	const char *col_name;
+
+	if (descriptions[i].name && descriptions[i].name[0]) {
+	   col_name = descriptions[i].name;
+	} else {
+	   str.clear();
+	   str.sprintf("column%d", i + 1);
+	   col_name = str.getBuffer();
+	} 
+
+	h->setKeyValue(col_name, new QoreNode(new List()), 0);
      }
      out_node = new QoreNode(h);
   }
@@ -120,6 +131,7 @@ QoreNode* read_output(command& cmd, QoreEncoding* encoding, bool list, Exception
   CS_INT result_type;  
   CS_RETCODE err;
   while ((err = ct_results(cmd(), &result_type)) == CS_SUCCEED) {
+     //printd(0, "read_output() result_type = %d\n", result_type);
     switch (result_type) {
     case CS_CURSOR_RESULT:
       assert(false); // cannot happen, bug in driver
@@ -173,8 +185,20 @@ QoreNode* read_output(command& cmd, QoreEncoding* encoding, bool list, Exception
       return result;
 
     case CS_CMD_DONE:
-      // e.g. update, ct_res_info() could be used to get # of affected rows
-      goto finish;
+    {
+       CS_INT rowcount;
+       CS_RETCODE ret;
+       ret = ct_res_info(cmd(), CS_ROW_COUNT, (CS_VOID *)&rowcount, CS_UNUSED, 0);
+       if (ret != CS_SUCCEED)
+	  xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_res_info() finished with error code %d", (int)ret);
+       else if (!result)
+       {
+	  result = new QoreNode((int64)rowcount);
+	  //printd(0, "rowcount=%d, result=%08p\n", (int)rowcount, result);
+       }
+
+       goto finish;
+    }
 
     case CS_CMD_SUCCEED:
       // current command succeeded, there may be more. CS_CMD_DONE is when we should return

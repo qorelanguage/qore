@@ -206,6 +206,12 @@ static int sybase_rollback(Datasource *ds, ExceptionSink *xsink)
   return rollback(*conn, xsink);
 }
 
+static int sybase_begin_transaction(Datasource *ds, ExceptionSink *xsink)
+{
+  connection* conn = (connection*)ds->getPrivateData();
+  return begin_transaction(*conn, xsink);
+}
+
 //------------------------------------------------------------------------------
 QoreString* sybase_module_init()
 {
@@ -224,6 +230,8 @@ QoreString* sybase_module_init()
    methods.add(QDBI_METHOD_SELECT_ROWS, sybase_select_rows);
    methods.add(QDBI_METHOD_EXEC, sybase_exec);
    methods.add(QDBI_METHOD_COMMIT, sybase_commit);
+   methods.add(QDBI_METHOD_BEGIN_TRANSACTION, sybase_begin_transaction);
+   methods.add(QDBI_METHOD_ABORT_TRANSACTION_START, sybase_rollback);
    methods.add(QDBI_METHOD_ROLLBACK, sybase_rollback);
    methods.add(QDBI_METHOD_AUTO_COMMIT, sybase_commit);
    

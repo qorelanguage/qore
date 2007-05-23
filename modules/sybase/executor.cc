@@ -92,6 +92,7 @@ static QoreNode* execute_command_impl(connection& conn, QoreString* cmd_text, Li
     if (result) result->deref(xsink);
     return 0;
   }
+  //printd(5, "execute_command_impl() result=%08p (%lld)\n", result, result && result->type == NT_INT ? result->val.intval : 0LL);
   return result;
 }
 
@@ -199,8 +200,7 @@ QoreNode* execute(connection& conn, QoreString* cmd, List* parameters, Exception
   } else {
      res = execute_command_impl(conn, *query, parameters, enc, false, xsink);
   }
-  if (res) res->deref(xsink);
-  return 0;
+  return res;
 }
 
 //------------------------------------------------------------------------------
@@ -226,9 +226,9 @@ QoreNode* execute_select(connection& conn, QoreString* cmd, List* parameters, Ex
     if (res) res->deref(xsink);
     return 0;
   }
-  if (!res) res = 0;
+  //if (!res) res = 0;
 
-  assert(res->type == NT_LIST || res->type == NT_HASH);
+  //assert(res->type == NT_LIST || res->type == NT_HASH);
 /* for unknown reason Qore select() is sometimes used instead of selectRows()
   if (res->type == NT_LIST) {
     assert(false);
