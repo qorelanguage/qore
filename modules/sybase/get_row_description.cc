@@ -73,9 +73,10 @@ std::vector<CS_DATAFMT> get_row_description(command& cmd, unsigned columns_count
 	   datafmt.format = CS_FMT_PADNULL;
 	   break;
 
+#ifdef CS_BIGINT_TYPE
 	case CS_BIGINT_TYPE:
-
 	   break;
+#endif
 
 /*
 	case CS_DECIMAL_TYPE:

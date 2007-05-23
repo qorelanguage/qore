@@ -4,8 +4,8 @@
 
 Build Requirements
 ------------------
-*) flex 2.5.31 (or greater -- 2.5.4 or before will NOT work, sorry, flex 2.5.33 recommended)
-qore requires this nonstandard version of flex in order to build a reentrant parser.  I was not able to build a reentrant parser with earler versions of flex (including 2.5.4).  most distributions come with flex 2.5.4; this version will not work and the configure script will exit an error message if only this version is found.  You can download flex 2.5.33 at:
+*) flex 2.5.31 (or greater -- 2.5.4 or before will NOT work, sorry.  flex 2.5.33 is recommended)
+qore requires this very new version of flex in order to build a reentrant parser.  I was not able to build a reentrant parser with earler versions of flex (including 2.5.4).  many linux distributions ship with flex 2.5.4; this version will not work and the configure script will exit an error message if only this version is found.  You can download flex 2.5.33 at:
 	 http://sourceforge.net/projects/flex
 
 *) bison 1.85 (or better, 2.* versions are fine)
@@ -74,6 +74,7 @@ MySQL support in qore is good and well tested.
 
 *) "pgsql": PostgreSQL DBI module requires PostgreSQL 7+ client libraries and headers
 If your PostgreSQL libraries are in a non-standard location you can use the --with-pgsql configure option or set the PGSQL_DIR environment variable.
+The Qore pgsql driver uses binary communication with PostgreSQL servers and sets per-connection variables on server settings (i.e. it automatically determines if the server is using floats or 64-bit integers for time values, etc)
 PostgreSQL support in qore is good and well tested.
 
 *) "sybase": Sybase DBI module requires Sybase OCS 15+ client libraries and headers
@@ -128,15 +129,18 @@ Also note that qore requires a relatively new version of the SunPro compiler (CC
 I have heard that qore builds fine, but I have not actually seen it myself, nor do I have access to a FreeBSD platform for testing :-(
 
 *) HP-UX
-HP-UX builds are finally working with g++ (tested 4.1.1 and aCC), however the configure script include a hack to libtool to get the modules to link dynamic libraries with static libaries and to prohibit -ldl from being automatically included in the link lines.  I am using HP-UX 11.23 (v2) on PA-RISC.
-PA-RISC 2.0 32-bit binaries are produced in 32-bit mode, with --enable-64-bit, PA-RISC 2.0 64-bit binaries are produced
+HP-UX builds are finally working with g++ (tested 4.1.1), however the configure script include a hack to libtool to get the modules to link dynamic libraries with static libaries and to prohibit -ldl from being automatically included in the link lines.  I am using HP-UX 11.23 (v2) on PA-RISC.
+With aCC, PA-RISC 2.0 32-bit binaries are produced in 32-bit mode, with --enable-64-bit, PA-RISC 2.0 64-bit binaries are produced
+With g++, PA-RISC 1.1 32-bit binaries are produced in 32-bit mode, with --enable-64-bit, PA-RISC 2.0 64-bit binaries are produced
+Note that aCC no longer seems to work as of 0.6.2.  I don't know why.  Use g++ on HP-UX (itanium status unknown)
 Qore now uses strtoimax() as a replacement for strtoll() on HP-UX.
 The TIBCO Adapters module (tibae) is not supported on PA-RISC because the compiler requirements are incompatible with compiling qore.
 Currently there is no fast atomic reference count support on PA-RISC platforms.
 Note that only PA-RISC builds have been tested; itanium builds are untested.
 
 *) Windows
-Windows is generally not supported, although I have built previous versions on Windows using a Cygwin environment, but the executable was so slow that it's not worth supporting.  Windows may be supported in the future if I get it to work without Cygwin (i.e. using native win32 apis)
+Windows is generally not supported, although I have built previous versions on Windows using a Cygwin environment, but the executable was so slow that it's not worth supporting.
+Windows may be supported in the future if I get it to work without Cygwin (i.e. using native win32 apis)
 There have been numerous requests for this, so any (clean) patches would be appreciated!
 
 CPU Support
