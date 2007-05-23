@@ -57,6 +57,7 @@ private:
       cTransaction;                // condition when transaction lock is freed
    
    DLLLOCAL int startDBAction(class ExceptionSink *xsink, bool need_transaction_lock = false);
+   DLLLOCAL void endDBActionIntern();
    DLLLOCAL void endDBAction();
    DLLLOCAL int closeUnlocked(class ExceptionSink *xsink);
    // returns 0 for OK, -1 for error
