@@ -44,7 +44,7 @@ void direct_execute(const connection& conn, const char* sql_text, ExceptionSink*
   CS_RETCODE err = ct_cmd_alloc(conn.getConnection(), &cmd);
   if (err != CS_SUCCEED) {
     assert(false);
-    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_cmd_alloc() failed with error %d", (int)err);
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "ct_cmd_alloc() failed with error %d", (int)err);
     return;
   }
   ON_BLOCK_EXIT(ct_cmd_drop, cmd);
@@ -53,13 +53,13 @@ void direct_execute(const connection& conn, const char* sql_text, ExceptionSink*
   err = ct_command(cmd, CS_LANG_CMD, (CS_CHAR*)sql_text, strlen(sql_text), CS_END);
   if (err != CS_SUCCEED) {
     assert(false);
-    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_command(\"%s\") failed with error %d", (int)err, sql_text);
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "ct_command(\"%s\") failed with error %d", (int)err, sql_text);
     return;
   }
   err = ct_send(cmd);
   if (err != CS_SUCCEED) {
     assert(false);
-    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_send() failed with error %d", (int)err);
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "ct_send() failed with error %d", (int)err);
     return;
   }
 
@@ -68,12 +68,12 @@ void direct_execute(const connection& conn, const char* sql_text, ExceptionSink*
   err = ct_results(cmd, &result_type);
   if (err != CS_SUCCEED) {
     assert(false);
-    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_result() failed with error %d", (int)err);
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "ct_result() failed with error %d", (int)err);
     return;
   }
 
   if (result_type != CS_CMD_SUCCEED) {
-    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() for \"%s\" failed with error %d", sql_text, (int)err);
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "ct_results() for \"%s\" failed with error %d", sql_text, (int)err);
     return;
   }
   while((err = ct_results(cmd, &result_type)) == CS_SUCCEED);

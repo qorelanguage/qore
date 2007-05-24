@@ -21,47 +21,48 @@ TEST()
   ExceptionSink xsink;
 
   const char* cmd = "select x from y";
-  processed_language_command_t res = process_language_command(cmd, &xsink);
+  processed_language_command_t res;
+  res.init(cmd, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
-  assert(res.m_cmd == "select x from y");
+  assert(!res.m_cmd.compare("select x from y"));
   assert(res.m_parameter_types.empty());
 
   cmd = "select x from %v";
-  res = process_language_command(cmd, &xsink);
+  res.init(cmd, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
-  assert(res.m_cmd == "select x from @par1");
+  assert(!res.m_cmd.compare("select x from @par1"));
   assert(res.m_parameter_types.size() == 1);
   assert(res.m_parameter_types[0] == 'v');
 
   cmd = "select x from %v where z = %d";
-  res = process_language_command(cmd, &xsink);
+  res.init(cmd, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
-  assert(res.m_cmd == "select x from @par1 where z = @par2");
+  assert(!res.m_cmd.compare("select x from @par1 where z = @par2"));
   assert(res.m_parameter_types.size() == 2);
   assert(res.m_parameter_types[0] == 'v');
   assert(res.m_parameter_types[1] == 'd');
 
   // test that inner strings work
   cmd = "select x from \"%v\" and '%d'";
-  res = process_language_command(cmd, &xsink);
+  res.init(cmd, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
-  assert(res.m_cmd == "select x from \"%v\" and '%d'");
+  assert(res.m_cmd.compare("select x from \"%v\" and '%d'"));
   assert(res.m_parameter_types.empty());
 
   cmd = "elect x from \"\\\"?\" and '\\\'?'";
-  res = process_language_command(cmd, &xsink);
+  res.init(cmd, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
-  assert(res.m_cmd == "elect x from \"\\\"?\" and '\\\'?'");
+  assert(res.m_cmd.compare("elect x from \"\\\"?\" and '\\\'?'"));
   assert(res.m_parameter_types.empty());
 }
 

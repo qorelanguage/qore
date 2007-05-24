@@ -40,7 +40,7 @@ QoreNode* buffer_to_QoreNode(command& cmd, const CS_DATAFMT& datafmt, const outp
   if (buffer.indicator == -1) { // SQL NULL
      return null();
   }
-  //printd(5, "buffer_to_QoreNode() encoding=%s name=%s type=%d format=%d usertype=%d\n", encoding->getCode(), datafmt.name, datafmt.datatype, datafmt.format, datafmt.usertype);
+  printd(5, "buffer_to_QoreNode() encoding=%s name=%s type=%d format=%d usertype=%d\n", encoding->getCode(), datafmt.name, datafmt.datatype, datafmt.format, datafmt.usertype);
 
   switch (datafmt.datatype) {
      case CS_CHAR_TYPE: // varchar
@@ -126,12 +126,12 @@ QoreNode* buffer_to_QoreNode(command& cmd, const CS_DATAFMT& datafmt, const outp
     case CS_DATETIME_TYPE:
     {
       CS_DATETIME* value = (CS_DATETIME*)(buffer.value);
-      DateTime* dt = DATETIME_to_DateTime(cmd.getConnection(), *value, xsink);
-      if (xsink->isException()) {
-        if (dt) delete dt;
-        return 0;
-      }
-      return new QoreNode(dt);
+
+       // NOTE: can't find a USER_* define for 38!
+       if (datafmt.usertype == 38)
+	  return new QoreNode(TIME_to_DateTime(*value));
+
+      return new QoreNode(DATETIME_to_DateTime(*value));
     }
     case CS_DATETIME4_TYPE:
     {

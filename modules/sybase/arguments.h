@@ -45,9 +45,11 @@ typedef struct argument_s {
   QoreNode* m_node; // 0 for output parameters
 } argument_t;
 
-extern std::vector<argument_t> extract_language_command_arguments(List* args, const std::vector<char>& arg_types, ExceptionSink* xsink);
+typedef std::vector<argument_t> arg_vec_t;
 
-extern std::vector<argument_t> extract_procedure_call_arguments(List* args, 
+extern arg_vec_t extract_language_command_arguments(List* args, const std::vector<char>& arg_types, ExceptionSink* xsink);
+
+extern arg_vec_t extract_procedure_call_arguments(List* args, 
   const std::vector<processed_procedure_call_t::parameter_t>& arg_infos, ExceptionSink* xsink);
 
 

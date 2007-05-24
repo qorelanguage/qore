@@ -99,14 +99,12 @@ void connection::init(const char* username, const char* password, const char* db
 
   CS_RETCODE ret = cs_ctx_alloc(CS_VERSION_100, &m_context);
   if (ret != CS_SUCCEED) {
-    assert(false);
     xsink->raiseException("DBI:SYBASE:CT-LIB-CANNOT-ALLOCATE-ERROR", "cs_ctx_alloc() failed with error %d", ret);
     return;
   }
 
   ret = ct_init(m_context, CS_VERSION_100);
   if (ret != CS_SUCCEED) {
-    assert(false);
     xsink->raiseException("DBI:SYBASE:CT-LIB-INIT-FAILED", "ct_init() failed with error %d", ret);
     return;
   }
@@ -114,35 +112,30 @@ void connection::init(const char* username, const char* password, const char* db
   // add callbacks
   ret = ct_callback(m_context, 0, CS_SET, CS_CLIENTMSG_CB, (CS_VOID*)clientmsg_callback);
   if (ret != CS_SUCCEED) {
-    assert(false);
     xsink->raiseException("DBI:SYBASE:CT-LIB-SET-CALLBACK", "ct_callback(CS_CLIENTMSG_CB) failed with error %d", ret);
     return;
   }
 /*
   ret = ct_callback(m_context, 0, CS_SET, CS_SERVERMSG_CB, (CS_VOID*)servermsg_callback);
   if (ret != CS_SUCCEED) {
-    assert(false);
     xsink->raiseException("DBI:SYBASE:CT-LIB-SET-CALLBACK", "ct_callback(CS_SERVERMSG_CB) failed with error %d", ret);
     return;
   }
 */
   ret = ct_con_alloc(m_context, &m_connection);
   if (ret != CS_SUCCEED) {
-    assert(false);
     xsink->raiseException("DBI:SYBASE:CT-LIB-CREATE-CONNECTION", "ct_con_alloc() failed with error %d", ret);
     return;
   }
 
   ret = ct_con_props(m_connection, CS_SET, CS_USERNAME, (CS_VOID*)username, CS_NULLTERM, 0);
   if (ret != CS_SUCCEED) {
-    assert(false);
     xsink->raiseException("DBI:SYBASE:CT-LIB-SET-USERNAME", "ct_con_props(CS_USERNAME) failed with error %d", ret);
     return;
   }
   if (password && password[0]) {
     ret = ct_con_props(m_connection, CS_SET, CS_PASSWORD, (CS_VOID*)password, CS_NULLTERM, 0);
     if (ret != CS_SUCCEED) {
-      assert(false);
       xsink->raiseException("DBI:SYBASE:CT-LIB-SET-PASSWORD", "ct_con_props(CS_PASSWORD) failed with error %d", ret);
       return;
     }
@@ -151,7 +144,6 @@ void connection::init(const char* username, const char* password, const char* db
   CS_LOCALE *tmp_locale;  
   ret = cs_loc_alloc(m_context, &tmp_locale);
   if (ret != CS_SUCCEED) {
-    assert(false);
     xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_loc_alloc() returned error %d", (int)ret);
     return;
   }
@@ -199,18 +191,14 @@ void connection::init(const char* username, const char* password, const char* db
   cs_bool = CS_TRUE;
   ret = ct_options(m_connection, CS_SET, CS_OPT_CHAINXACTS, &cs_bool, CS_UNUSED, NULL);
   if (ret != CS_SUCCEED) {
-    assert(false);
     xsink->raiseException("DBI:SYBASE:CT-LIB-SET-TRANSACTION-CHAINING", "ct_options(CS_OPT_CHAINXACTS) failed with error %d", ret);
     return;
   }
 #else
   // FreeTDS' implementation of ct_options is a noop - therefore we execute the command manually
   // FIXME: check for MS SQL server and execute "set implicit_transactions on" instead
-
-
   if (set_chained_on(*this, xsink))
      return;
-
 #endif
 
   // Set default type of string representation of DATETIME to long (like Jan 1 1990 12:32:55:0000 PM)
@@ -218,7 +206,6 @@ void connection::init(const char* username, const char* password, const char* db
   CS_INT aux = CS_DATES_LONG;
   ret = cs_dt_info(m_context, CS_SET, NULL, CS_DT_CONVFMT, CS_UNUSED, (CS_VOID*)&aux, sizeof(aux), 0);
   if (ret != CS_SUCCEED) {
-    assert(false);
     xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call cs_dt_info(CS_DT_CONVFMT) failed with error %d", (int)ret);
     return;
   }

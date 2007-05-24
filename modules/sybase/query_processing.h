@@ -37,14 +37,26 @@ extern bool is_query_procedure_call(const char* query);
 //------------------------------------------------------------------------------
 // Language command (i.e. not a RPC)
 // 
-typedef struct processed_language_command_s {
-  // with %v and %d replaced with @parX
-  std::string m_cmd; 
-  // 'v' means %v, 'd' means %d
-  std::vector<char> m_parameter_types;
-} processed_language_command_t;
+struct processed_language_command_t {
+   private:
+      // not implemented
+      processed_language_command_t(const processed_language_command_t &);
+      processed_language_command_t& operator=(const processed_language_command_t &);
 
-extern processed_language_command_t process_language_command(const char* cmd_text, ExceptionSink* xsink);
+   public:
+      DLLLOCAL processed_language_command_t()
+      {
+      }
+      // with %v and %d replaced with @parX
+      QoreString m_cmd;
+      // 'v' means %v, 'd' means %d
+      std::vector<char> m_parameter_types;
+
+      // returns 0=OK, -1=err (exception raised)
+      DLLLOCAL int init(const char* cmd_text, ExceptionSink* xsink);
+};
+
+DLLLOCAL extern processed_language_command_t *process_language_command(const char* cmd_text, ExceptionSink* xsink);
 
 //------------------------------------------------------------------------------
 // A RPC command (with placeholders)

@@ -232,6 +232,9 @@ sub create_datamodel($db)
 
     $db.exec("insert into family values ( 1, 'Smith' )");
     $db.exec("insert into family values ( 2, 'Jones' )");
+
+    # we insert the dates here using binding by value so we don't have
+    # to worry about each database's specific date format
     $db.exec("insert into people values ( 1, 1, 'Arnie', %v)", 1983-05-13);
     $db.exec("insert into people values ( 2, 1, 'Sylvia', %v)", 1994-11-10);
     $db.exec("insert into people values ( 3, 1, 'Carol', %v)", 2003-07-23);
@@ -239,6 +242,7 @@ sub create_datamodel($db)
     $db.exec("insert into people values ( 5, 1, 'Isaac', %v)", 2000-04-04);
     $db.exec("insert into people values ( 6, 2, 'Alan', %v)", 1992-06-04);
     $db.exec("insert into people values ( 7, 2, 'John', %v)", 1995-03-23);
+
     $db.exec("insert into attributes values ( 1, 'hair', 'blond' )");
     $db.exec("insert into attributes values ( 1, 'eyes', 'brown' )");
     $db.exec("insert into attributes values ( 2, 'hair', 'blond' )");
@@ -293,7 +297,7 @@ sub context_test($db)
 
 sub test_timeout($db, $q)
 {
-    $db.setTransactionLockTimeout(1s);
+    $db.setTransactionLockTimeout(1ms);
     try {
 	# this should cause an exception to be thrown
 	$db.exec("insert into family values (3, 'Test')\n");
@@ -426,42 +430,23 @@ sub mysql_test()
 
 sub sybase_test($db)
 {
-    my $args = ( NULL, "test", "test", "test", "test", "test", "test" );
+    my $args = ( NULL, "test", "test", "test", "test", "test", "test", 55, 4285, 405402,
+		 500.1231, 
+		 23443.234324234,
+		 213.123,
+		 3434234250.2034,
+		 211100.1012,
+		 2007-05-01, 10:30:01, 3459-01-01T11:15:02.149, 2007-12-01T12:01:00 );
 
     # insert data
-    my $rows = $db.vexec("
-insert into data_test values (
-	%v,
-	%v,
-	%v,
-	%v,
-	%v,
-	%v,
-	%v,
-
-	55,
-	4285,
-	405402,
-
-	500.1231,
-
-	23443.234324234,
-	213.123,
-	3434234250.2034,
-	211100.1012,
-
-	'2007-05-01',
-	'10:30:01',
-	'3459-01-01 11:15:02.251',
-	'2007-12-01 12:01'
-)
-", $args);
+    my $rows = $db.vexec("insert into data_test values (%v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v)", $args);
 
     my $q = $db.selectRow("select * from data_test");
     foreach my $k in (keys $q)
 	printf(" %-16s= %-10s %N\n", $k, type($q.$k), $q.$k);
 
     $db.commit();
+    thread_exit;
 }
 
 sub mssql_test($db)
@@ -469,38 +454,23 @@ sub mssql_test($db)
     # freetds doesn't support the following column types as far as I can tell:
     # unichar, univarchar
 
+    my $args = ( NULL, "test", "test", "test", "test", 55, 4285, 405402,
+		 500.1231,
+		 23443.234324234,
+		 213.123,
+		 3434234250.2034,
+		 211100.1012,
+		 2007-05-01, 10:30:01, 3459-01-01T11:15:02.251, 2007-12-01T12:01:00 );
+
     # insert data
-    my $rows = $db.exec("
-insert into data_test values (
-	null,
-	'test',
-	'test',
-	'test',
-	'test',
-
-	55,
-	4285,
-	405402,
-
-	500.1231,
-
-	23443.234324234,
-	213.123,
-	3434234250.2034,
-	211100.1012,
-
-	'2007-05-01',
-	'10:30:01',
-	'3459-01-01 11:15:02.251',
-	'2007-12-01 12:01'
-)
-");
+    my $rows = $db.vexec("insert into data_test values (%v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v)", $args);
 
     my $q = $db.selectRow("select * from data_test");
     foreach my $k in (keys $q)
 	printf(" %-16s= %-10s %N\n", $k, type($q.$k), $q.$k);
 
     $db.commit();
+    thread_exit;
 }
 
 sub main()

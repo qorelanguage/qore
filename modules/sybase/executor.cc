@@ -50,37 +50,22 @@
 //------------------------------------------------------------------------------
 static QoreNode* execute_command_impl(connection& conn, QoreString* cmd_text, List* qore_args, QoreEncoding* encoding, bool list, ExceptionSink* xsink)
 {
-  processed_language_command_t query = process_language_command(cmd_text->getBuffer(), xsink);
-  if (xsink->isException()) {
-    return 0;
-  }
+   processed_language_command_t query;
+   if (query.init(cmd_text->getBuffer(), xsink))
+      return 0;
 
   command cmd(conn, xsink);
   if (xsink->isException()) {
     return 0;
   }
 
-  initiate_language_command(cmd, query.m_cmd.c_str(), xsink);
+  initiate_language_command(cmd, query.m_cmd.getBuffer(), xsink);
   if (xsink->isException()) {
     return 0;
   }
 
-  if (!query.m_parameter_types.empty()) {
-    // has some input parameters, set them now
-    std::vector<argument_t> input_params_extracted = extract_language_command_arguments(qore_args, query.m_parameter_types, xsink);
-    if (xsink->isException()) {
-      return 0;
-    }
-    assert(input_params_extracted.size() == query.m_parameter_types.size());
-    assert(input_params_extracted.size() == (unsigned)qore_args->size());
-    // set input parameters
-    for (unsigned i = 0, n = input_params_extracted.size(); i != n; ++i) {
-      set_input_parameter(cmd, i, input_params_extracted[i].m_type, input_params_extracted[i].m_node, encoding, xsink);
-      if (xsink->isException()) {
-        return 0;
-      }
-    }
-  }
+  if (!query.m_parameter_types.empty() && set_input_params(cmd, query, qore_args, encoding, xsink))
+     return 0;
 
   send_command(cmd, xsink);
   if (xsink->isException()) {

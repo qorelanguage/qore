@@ -2,7 +2,7 @@
   arguments.cc
 
   Sybase DB layer for QORE
-  uses Sybase OpenClient C library
+  uses Sybase OpenClient C library or FreeTDS
 
   Qore Programming language
 
@@ -22,6 +22,7 @@
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
+
 #include <qore/config.h>
 #include <qore/support.h>
 #include <qore/Exception.h>
@@ -80,26 +81,24 @@ static bool is_integer_Sybase_type(int64 type)
 }
 
 //------------------------------------------------------------------------------
-std::vector<argument_t> extract_language_command_arguments(List* args, const std::vector<char>& arg_types, ExceptionSink* xsink)
+arg_vec_t extract_language_command_arguments(List* args, const std::vector<char>& arg_types, ExceptionSink* xsink)
 {
-  typedef std::vector<argument_t> result_t;
-
   unsigned query_params = arg_types.size();
   unsigned args_num = args ? args->size() : 0;
 
   if (query_params == 0 && args_num == 0) {
-    return result_t();
+    return arg_vec_t();
   }
   if (query_params == 0 && args_num != 0) {
     xsink->raiseException("DBI-EXEC-EXCEPTION", "No parameters were expected");
-    return result_t();
+    return arg_vec_t();
   }
   if (args_num != query_params && args_num != query_params * 2) {
-    xsink->raiseException("DBI-EXEC-EXCEPTION", "Expected either %d or %d (with types) parameters", query_params, query_params * 2);
-    return result_t();
+    xsink->raiseException("DBI-EXEC-EXCEPTION", "Expected either %d or %d (with types) parameters", query_params);
+    return arg_vec_t();
   }
 
-  result_t result;
+  arg_vec_t result;
   if (args_num == query_params) {
     // no explicit types 
     for (unsigned i = 0; i < args_num; ++i) {
@@ -110,7 +109,7 @@ std::vector<argument_t> extract_language_command_arguments(List* args, const std
       if (arg_types[i] == 'd') {
         if (par->type != NT_INT && par->type != NT_NULL && par->type != NT_NOTHING) {
           xsink->raiseException("DBI-EXEC-EXCEPTION", "Parameter #%d needs to be an integer (because of %%d)", i);
-          return result_t();
+          return arg_vec_t();
         }
         added_argument.m_type = CS_INT_TYPE;
       } else {
@@ -126,11 +125,11 @@ std::vector<argument_t> extract_language_command_arguments(List* args, const std
     QoreNode* type = args->retrieve_entry(i);
     if (type->type != NT_INT) {
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Parameter #%d needs to be an integer with Sybase type (e.g. Sybase::CS_INT_TYPE)", i);
-      return result_t();
+      return arg_vec_t();
     }
     if (!is_valid_Sybase_type(type->val.intval)) {
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Parameter #%d is not recognized as Sybase type (e.g. Sybase::CS_INT_TYPE)", i);
-      return result_t();
+      return arg_vec_t();
     }
   }
 
@@ -141,12 +140,12 @@ std::vector<argument_t> extract_language_command_arguments(List* args, const std
     if (arg_types[i] == 'd') { // more checking
       if (new_arg.m_node->type != NT_INT && new_arg.m_node->type != NT_NOTHING && new_arg.m_node->type != NT_NULL) {
         xsink->raiseException("DBI-EXEC-EXCEPTION", "Parameter #%d is expected to be integer (because of %%d)", i);
-        return result_t();
+        return arg_vec_t();
       }
       QoreNode* type_node = args->retrieve_entry(i + query_params);
       if (!is_integer_Sybase_type(type_node->val.intval)) {
         xsink->raiseException("DBI-EXEC-EXCEPTION", "Parameter #%d is expected to be integer type like Sybase::CS_INT_TYPE", i + query_params);
-        return result_t();
+        return arg_vec_t();
       }
     }
 
@@ -156,11 +155,9 @@ std::vector<argument_t> extract_language_command_arguments(List* args, const std
 }
 
 //------------------------------------------------------------------------------
-std::vector<argument_t> extract_procedure_call_arguments(List* args,
+arg_vec_t extract_procedure_call_arguments(List* args,
   const std::vector<processed_procedure_call_t::parameter_t>& arg_infos, ExceptionSink* xsink)
 {
-  typedef std::vector<argument_t> result_t;
-
   unsigned input_params_count = 0;
   for (unsigned i = 0; i < arg_infos.size(); ++i) {
     if (arg_infos[i].first == false) { // %v or %d, not a placeholder
@@ -174,7 +171,7 @@ std::vector<argument_t> extract_procedure_call_arguments(List* args,
   if (expected_params_count != args_count) {
     assert(false);
     xsink->raiseException("DBI-EXEC-EXCEPTION", "Expected %d parameters (including types), %d parameters found", expected_params_count, args_count);
-    return result_t();
+    return arg_vec_t();
   }
 
   // check type params
@@ -183,16 +180,16 @@ std::vector<argument_t> extract_procedure_call_arguments(List* args,
     if (type_node->type != NT_INT) {
       assert(false);
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Parameter #%d should be an integer with SYbase type, e.g. Sybase::CS-INT_TYPE)", i);
-      return result_t();
+      return arg_vec_t();
     }
     if (!is_valid_Sybase_type(type_node->val.intval)) {
       assert(false);
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Parameter #%d is not recognized as a Sybase type (e.g. Sybase::CS_INT_TYPE)", i);
-      return result_t();
+      return arg_vec_t();
     }
   }
 
-  result_t result;
+  arg_vec_t result;
 
   unsigned read_input_params = 0;
   for (unsigned i = 0; i < arg_infos.size(); ++i) {
@@ -212,12 +209,12 @@ std::vector<argument_t> extract_procedure_call_arguments(List* args,
         if (new_arg.m_node->type != NT_INT && new_arg.m_node->type != NT_NULL && new_arg.m_node->type != NT_NOTHING) {
           assert(false);
           xsink->raiseException("DBI-EXEC-EXCEPTION", "Input parameter #%d needs to be an integer (because of %%d)", read_input_params - 1);
-          return result_t();
+          return arg_vec_t();
         }
         if (!is_integer_Sybase_type(new_arg.m_type)) {
           assert(false);
           xsink->raiseException("DBI-EXEC-EXCEPTION", "Parameter #%d (type) needs to be a Sybase integer type (e.g. Sybase::CS_INT_TYPE) because of %%d", i + input_params_count);
-          return result_t();
+          return arg_vec_t();
         }
       }
     }

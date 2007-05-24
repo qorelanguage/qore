@@ -36,32 +36,34 @@ class DateTime;
 class connection;
 
 
-//------------------------------------------------------------------------------
 // Sybase DATETIME datatype manipulation 
-extern void DateTime_to_DATETIME(connection& conn, DateTime* dt, CS_DATETIME& out, ExceptionSink* xsink);
-extern void DateTime_to_DATETIME4(connection& conn, DateTime* dt, CS_DATETIME4& out, ExceptionSink* xsink);
+// returns 0=OK, -1=error (exception raised)
+DLLLOCAL extern int DateTime_to_DATETIME(DateTime* dt, CS_DATETIME& out, ExceptionSink* xsink);
+DLLLOCAL extern void DateTime_to_DATETIME4(connection& conn, DateTime* dt, CS_DATETIME4& out, ExceptionSink* xsink);
 
-extern DateTime* DATETIME_to_DateTime(connection& conn, CS_DATETIME& dt, ExceptionSink* xsink);
-extern DateTime* DATETIME4_to_DateTime(connection& conn, CS_DATETIME4& dt, ExceptionSink* xsink);
+DLLLOCAL extern DateTime *TIME_to_DateTime(CS_DATETIME &dt);
+
+DLLLOCAL extern DateTime* DATETIME_to_DateTime(CS_DATETIME& dt);
+DLLLOCAL extern DateTime* DATETIME4_to_DateTime(connection& conn, CS_DATETIME4& dt, ExceptionSink* xsink);
 
 //------------------------------------------------------------------------------
 // Sybase MONEY datatype manipulation (it is converted from/to float)
-extern void double_to_MONEY(connection& conn, double val, CS_MONEY& out, ExceptionSink* xsink);
-extern void double_to_MONEY4(connection& conn, double val, CS_MONEY4& out, ExceptionSink* xsink);
+DLLLOCAL extern void double_to_MONEY(connection& conn, double val, CS_MONEY& out, ExceptionSink* xsink);
+DLLLOCAL extern void double_to_MONEY4(connection& conn, double val, CS_MONEY4& out, ExceptionSink* xsink);
 
-extern double MONEY_to_double(connection& conn, CS_MONEY& m, ExceptionSink* xsink);
-extern double MONEY4_to_double(connection& conn, CS_MONEY4& m, ExceptionSink* xsink);
+DLLLOCAL extern double MONEY_to_double(connection& conn, CS_MONEY& m, ExceptionSink* xsink);
+DLLLOCAL extern double MONEY4_to_double(connection& conn, CS_MONEY4& m, ExceptionSink* xsink);
 
 //------------------------------------------------------------------------------
 // Sybase DECIMAL datatype manipulation (it is converted from/to float)
-extern void double_to_DECIMAL(connection& conn, double val, CS_DECIMAL& out, ExceptionSink* xsink);
-extern double DECIMAL_to_double(connection& conn, CS_DECIMAL& m, ExceptionSink* xsink);
-extern class QoreString *DECIMAL_to_string(connection& conn, CS_DECIMAL& m, ExceptionSink* xsink);
+DLLLOCAL extern void double_to_DECIMAL(connection& conn, double val, CS_DECIMAL& out, ExceptionSink* xsink);
+DLLLOCAL extern double DECIMAL_to_double(connection& conn, CS_DECIMAL& m, ExceptionSink* xsink);
+DLLLOCAL extern class QoreString *DECIMAL_to_string(connection& conn, CS_DECIMAL& m, ExceptionSink* xsink);
 
 //------------------------------------------------------------------------------
 // Sybase NUMERIC datatype manipulation (it is converted from/to float)
-extern void double_to_NUMERIC(connection& conn, double val, CS_NUMERIC& out, ExceptionSink* xsink);
-extern double NUMERIC_to_double(connection& conn, CS_NUMERIC& m, ExceptionSink* xsink);
+DLLLOCAL extern void double_to_NUMERIC(connection& conn, double val, CS_NUMERIC& out, ExceptionSink* xsink);
+DLLLOCAL extern double NUMERIC_to_double(connection& conn, CS_NUMERIC& m, ExceptionSink* xsink);
 
 #endif
 

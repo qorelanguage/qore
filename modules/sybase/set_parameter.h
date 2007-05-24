@@ -29,7 +29,11 @@
 class ExceptionSink;
 class command;
 
-extern void set_input_parameter(command& cmd, unsigned parameter_index, int type,
+// returns 0=OK, -1 for error (exception raised)
+DLLLOCAL extern int set_input_params(command& cmd, processed_language_command_t &query, class List *args, QoreEncoding* encoding, ExceptionSink* xsink);
+
+// returns 0=OK, -1 for error (exception raised)
+DLLLOCAL extern int set_input_parameter(command& cmd, unsigned parameter_index, int type,
   QoreNode* data, QoreEncoding* encoding, ExceptionSink* xsink);
 
 // for RPC (placeholder)

@@ -162,22 +162,22 @@ QoreNode* read_output(command& cmd, QoreEncoding* encoding, bool list, Exception
 	
 	case CS_COMPUTEFMT_RESULT:
 	   // Sybase bug???
-	   xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() failed with result code CS_COMPUTE_FMT_RESULT");
+	   xsink->raiseException("DBI-EXEC-EXCEPTION", "ct_results() failed with result code CS_COMPUTE_FMT_RESULT");
 	   return result;
 	   
 	case CS_MSG_RESULT:
 	   // Sybase bug???
-	   xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() failed with result code CS_MSG_RESULT");
+	   xsink->raiseException("DBI-EXEC-EXCEPTION", "ct_results() failed with result code CS_MSG_RESULT");
 	   return result;
 	   
 	case CS_ROWFMT_RESULT:
 	   // Sybase bug???
-	   xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() failed with result code CS_ROW_FMT_RESULT");
+	   xsink->raiseException("DBI-EXEC-EXCEPTION", "ct_results() failed with result code CS_ROW_FMT_RESULT");
 	   return result;
 	   
 	case CS_DESCRIBE_RESULT:
 	   // not expected here
-	   xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() failed with result code CS_DESCRIBE_RESULTS");
+	   xsink->raiseException("DBI-EXEC-EXCEPTION", "ct_results() failed with result code CS_DESCRIBE_RESULTS");
 	   return result;
 	   
 	case CS_CMD_DONE:
@@ -188,7 +188,7 @@ QoreNode* read_output(command& cmd, QoreEncoding* encoding, bool list, Exception
 	      CS_RETCODE ret;
 	      ret = ct_res_info(cmd(), CS_ROW_COUNT, (CS_VOID *)&rowcount, CS_UNUSED, 0);
 	      if (ret != CS_SUCCEED)
-		 xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_res_info() finished with error code %d", (int)ret);
+		 xsink->raiseException("DBI-EXEC-EXCEPTION", "ct_res_info() finished with error code %d", (int)ret);
 
 	      if (rowcount >= 0)
 		 result = new QoreNode((int64)rowcount);
@@ -203,18 +203,18 @@ QoreNode* read_output(command& cmd, QoreEncoding* encoding, bool list, Exception
 	   continue;
 	   
 	case CS_CMD_FAIL: // returned by the FreeTDS when used incorrectly
-	   xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() failed with result code CS_CMD_FAIL");
+	   xsink->raiseException("DBI-EXEC-EXCEPTION", "ct_results() failed with result code CS_CMD_FAIL");
 	   return result;
 	   
 	default:
-	   xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() gave unknown result type %d", (int)result_type);
+	   xsink->raiseException("DBI-EXEC-EXCEPTION", "ct_results() gave unknown result type %d", (int)result_type);
 	   return result;
      } // switch
   } // while
   
   finish:
   if (err != CS_END_RESULTS && err != CS_SUCCEED) {
-     xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_results() finished with unexpected result %d", (int)err);
+     xsink->raiseException("DBI-EXEC-EXCEPTION", "ct_results() finished with unexpected result %d", (int)err);
   }
   return result;
 }

@@ -23,9 +23,7 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <qore/config.h>
-#include <qore/support.h>
-#include <qore/Exception.h>
+#include <qore/Qore.h>
 
 #include <cstypes.h>
 #include <ctpublic.h>
@@ -37,6 +35,8 @@
 #include <qore/DateTime.h>
 
 #include <string>
+
+#include <math.h>
 
 #include "connection.h"
 #include "conversions.h"
@@ -90,30 +90,52 @@ static std::string DateTime_to_SybaseFormat(DateTime* dt)
   return std::string(buffer);
 }
 
-//------------------------------------------------------------------------------
-// cs_convert() via string is the only available CT API function to create DATETIME
-void DateTime_to_DATETIME(connection& conn, DateTime* dt, CS_DATETIME& out, ExceptionSink* xsink)
+// Sybase dates (so the "Sybase epoch") start from 1900-01-01
+// 25567 days from 1900-01-01 to 1970-01-01, the start of the Qore 64-bit epoch
+#define SYB_DAYS_TO_EPOCH 25567
+#define SYB_SECS_TO_EPOCH (SYB_DAYS_TO_EPOCH * 86400LL)
+
+DateTime *TIME_to_DateTime(CS_DATETIME &dt)
 {
-  std::string string_dt = DateTime_to_SybaseFormat(dt);
+   int64 secs = dt.dttime / 300;
 
-  CS_DATAFMT srcfmt;
-  memset(&srcfmt, 0, sizeof(srcfmt));
-  srcfmt.datatype = CS_CHAR_TYPE;
-  srcfmt.maxlength = string_dt.size();
-  srcfmt.format = CS_FMT_NULLTERM;
+   // use floating point to get more accurate 1/3 s
+   double ts = round((double)(dt.dttime - (secs * 300)) * 3.3333333);
+   return new DateTime(secs, (int)ts);
+}
 
-  CS_DATAFMT destfmt;
-  memset(&destfmt, 0, sizeof(destfmt));
-  destfmt.datatype = CS_DATETIME_TYPE;
-  destfmt.maxlength = sizeof(CS_DATETIME);
+int DateTime_to_DATETIME(DateTime* dt, CS_DATETIME &out, ExceptionSink* xsink)
+{
+   if (dt->isRelative())
+   {
+      xsink->raiseException("DBI:SYBASE:DATE-ERROR", "relative date passed for binding as absolute date");
+      return -1;
+   }
+   int year = dt->getYear();
+   if (year > 9999)
+   {
+      QoreString *desc = new QoreString();
+      desc->sprintf("maximum sybase date is 9999-12-31, date passed: ");
+      dt->format(desc, "YYYY-DD-MM");
+      xsink->raiseException("DBI:SYBASE:DATE-ERROR", desc);
+      return -1;
+   }
+   if (year < 1753)
+   {
+      QoreString *desc = new QoreString();
+      desc->sprintf("minumum sybase date is 1753-01-01, date passed: ");
+      dt->format(desc, "YYYY-DD-MM");
+      xsink->raiseException("DBI:SYBASE:DATE-ERROR", desc);
+      return -1;
+   }
+   int64 secs = dt->getEpochSeconds();
+   int days = secs / 86400;
+   out.dtdays = days + SYB_DAYS_TO_EPOCH;
+   // use floating point to get more accurate 1/3 s
+   double ts = round((double)dt->getMillisecond() / 3.3333333);
+   out.dttime = (secs - (days * 86400)) * 300 + (int)ts;
 
-  CS_INT aux;
-  CS_RETCODE err = cs_convert(conn.getContext(), &srcfmt, (CS_BYTE*)string_dt.c_str(), &destfmt, (CS_BYTE*)&out, &aux);
-  if (err != CS_SUCCEED) {
-    assert(false);
-    xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_convert() failed to convert date [%s] to Sybase CS_DATETIME, err %d", string_dt.c_str(), (int)err);
-    return;
-  }
+   return 0;
 }
 
 //------------------------------------------------------------------------------
@@ -143,18 +165,12 @@ void DateTime_to_DATETIME4(connection& conn, DateTime* dt, CS_DATETIME4& out, Ex
 }
 
 //------------------------------------------------------------------------------
-DateTime* DATETIME_to_DateTime(connection& conn, CS_DATETIME& dt, ExceptionSink* xsink)
+DateTime* DATETIME_to_DateTime(CS_DATETIME& dt)
 {
-  CS_DATEREC x;
-  memset(&x, 0, sizeof(x));  
-  CS_RETCODE err = cs_dt_crack(conn.getContext(), CS_DATETIME_TYPE, &dt, &x);
-  if (err != CS_SUCCEED) {
-    assert(false);
-    xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_dt_crack() failed with error %d", (int)err);
-    return 0;
-  }
-
-  return new DateTime(x.dateyear, x.datemonth + 1, x.datedmonth, x.datehour, x.dateminute, x.datesecond, x.datemsecond, false);
+   int64 secs = dt.dttime / 300;
+   // use floating point to get more accurate 1/3 s
+   double ts = round((double)(dt.dttime - (secs * 300)) * 3.3333333);
+   return new DateTime(secs + dt.dtdays * 86400ll - SYB_SECS_TO_EPOCH, (int)ts);
 }
 
 //------------------------------------------------------------------------------

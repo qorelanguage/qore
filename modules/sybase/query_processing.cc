@@ -45,72 +45,74 @@ bool is_query_procedure_call(const char* query)
   return false;
 }
 
-//------------------------------------------------------------------------------
-processed_language_command_t process_language_command(const char* cmd_text, ExceptionSink* xsink)
+
+// returns 0=OK, -1=error (exception raised)
+int processed_language_command_t::init(const char* cmd_text, ExceptionSink* xsink)
 {
-  processed_language_command_t result;
-  result.m_cmd.reserve(1000); // guess
- 
-  const char* s = cmd_text;   
-  while (*s) {
-    char ch = *s++;
+#ifdef DEBUG
+   m_cmd.clear();
+   m_parameter_types.clear();
+#endif
 
-    // skip double qouted strings
-    if (ch == '"') {
-      result.m_cmd += ch;
-      for (;;) {
-        ch = *s++;
-        result.m_cmd += ch;
-        if (ch == '\\') {
-          ch = *s++;
-          result.m_cmd += ch;
-          continue;
-        }
-        if (ch == '"') {
-          goto next;
-        }
-      }
-    }
-    // skip single qouted strings
-    if (ch == '\'') {
-      result.m_cmd += ch;
-      for (;;) {
-        ch = *s++;
-        result.m_cmd += ch;
-        if (ch == '\\') {
-          ch = *s++;
-          result.m_cmd += ch;
-          continue;
-        }
-        if (ch == '\'') {
-          goto next;
-        }
-      }
-    }
+   const char* s = cmd_text;   
+   while (*s) {
+      char ch = *s++;
 
-    if (ch == '%') {
-      ch = *s++;
-      if (ch == 'v') {
-        result.m_parameter_types.push_back('v');
-      } else
-      if (ch == 'd') {
-        result.m_parameter_types.push_back('d');
+      // skip double qouted strings
+      if (ch == '"') {
+	 m_cmd.concat(ch);
+	 for (;;) {
+	    ch = *s++;
+	    m_cmd.concat(ch);
+	    if (ch == '\\') {
+	       ch = *s++;
+	       m_cmd.concat(ch);
+	       continue;
+	    }
+	    if (ch == '"') {
+	       goto next;
+	    }
+	 }
+      }
+      // skip single qouted strings
+      if (ch == '\'') {
+	 m_cmd.concat(ch);
+	 for (;;) {
+	    ch = *s++;
+	    m_cmd.concat(ch);
+	    if (ch == '\\') {
+	       ch = *s++;
+	       m_cmd.concat(ch);
+	       continue;
+	    }
+	    if (ch == '\'') {
+	       goto next;
+	    }
+	 }
+      }
+      
+      if (ch == '%') {
+	 ch = *s++;
+	 if (ch == 'v') {
+	    m_parameter_types.push_back('v');
+	 } else
+	    if (ch == 'd') {
+	       m_parameter_types.push_back('d');
+	    } else {
+	       xsink->raiseException("DBI-EXEC-EXCEPTION", "Only %%v or %%d expected in parameter list");
+	       return -1;
+	    }
+	 
+	 m_cmd.sprintf("@par%u", m_parameter_types.size());
       } else {
-        xsink->raiseException("DBI-EXEC-EXCEPTION", "Only %%v or %%d expected in parameter list");
-        return processed_language_command_t();
+	 m_cmd.concat(ch);
       }
-    
-      char aux[20];
-      sprintf(aux, "@par%u", result.m_parameter_types.size());
-      result.m_cmd += (const char*)aux;
-    } else {
-      result.m_cmd += ch;
-    }
+      
+     next:;
+   } // while
 
-next:;
-  } // while
-
-  return result;
+   //printd(5, "m_cmd=%s\n", m_cmd.getBuffer());
+   return 0;
 }
 
 //------------------------------------------------------------------------------
