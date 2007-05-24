@@ -498,25 +498,15 @@ QoreNode *BuiltinFunction::evalMethod(class Object *self, void *private_data, cl
    tracein("BuiltinFunction::evalMethod()");
    printd(2, "BuiltinFunction::evalMethod() calling builtin function '%s' obj=%08p data=%08p\n", name, self, private_data);
    
-   // save current program location in case there's an exception
-   const char *o_fn = get_pgm_file();
-   int o_ln, o_eln;
-   get_pgm_counter(o_ln, o_eln);
-   
-   QoreNode *rv;
-   {
-      CodeContextHelper cch(name, self, xsink);
-      // push call on call stack
-      pushCall(name, CT_BUILTIN, self);
+   CodeContextHelper cch(name, self, xsink);
+   // push call on call stack in debugging mode
+   pushCall(name, CT_BUILTIN, self);
 
-      rv = code.method(self, private_data, args, xsink);
+   // note: exception stack trace is added at the level above
+   QoreNode *rv = code.method(self, private_data, args, xsink);
 
-      popCall(xsink);
-   }
-   
-   if (xsink->isException())
-      xsink->addStackInfo(CT_BUILTIN, self->getClass()->getName(), name, o_fn, o_ln, o_eln);
-   
+   popCall(xsink);
+
    traceout("BuiltinFunction::evalWithArgs()");
    return rv;
 }

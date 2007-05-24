@@ -403,7 +403,7 @@ class QoreString *ModuleManager::loadModuleFromPath(const char *path, const char
    if (!ptr)
    {
       str = new QoreString();
-      str->sprintf("error loading qore module '%s': %s\n", path, dlerror());
+      str->sprintf("error loading qore module '%s': %s", path, dlerror());
       printd(5, "%s\n", str->getBuffer());
       return str;
    }

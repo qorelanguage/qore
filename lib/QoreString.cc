@@ -458,6 +458,7 @@ void QoreString::splice(int offset, int num, const class QoreNode *strn, class E
    splice_complex(offset, num, strn->val.String, xsink);
 }
 
+// removes a single trailing newline
 int QoreString::chomp()
 {
    if (len && buf[len - 1] == '\n')
@@ -1608,3 +1609,53 @@ class QoreString *QoreString::reverse() const
    str->len = len;
    return str;
 }
+
+// remove all trailing newlines (chonmp removes only one)
+void QoreString::trim_trailing_newlines()
+{
+   if (!len)
+      return;
+   
+   char *p = buf + len - 1;
+   while (p >= buf && (*p) == '\n')
+      --p;
+
+   terminate(p + 1 - buf);
+}
+
+// remove trailing blanks
+void QoreString::trim_trailing_blanks()
+{
+   if (!len)
+      return;
+   
+   char *p = buf + len - 1;
+   while (p >= buf && (*p) == ' ')
+      --p;
+   
+   terminate(p + 1 - buf);
+}
+
+// remove leading blanks
+void QoreString::trim_leading_blanks()
+{
+   if (!len)
+      return;
+   
+   int i = 0;
+   while (i < len && buf[i] == ' ')
+      ++i;
+   if (!i)
+      return;
+   
+   memmove(buf, buf + i, len + 1 - i);
+   len -= i;
+}
+
+// remove leading and trailing blanks
+void QoreString::trim()
+{
+   trim_trailing_blanks();
+   trim_leading_blanks();
+}
+

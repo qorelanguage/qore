@@ -26,7 +26,7 @@ By defining methodGate() and memberGate() methods, the programmer can redirect a
 
 Qore has built-in national character set support based on the C library's iconv functions and supports both implicit and explicit character set conversions.  For example, if a Datasource object is assigned the "UTF-8" character set, but a File object has "ISO-8859-1" character set, any data written to the database from the File object will be automatically converted implicitly to the "UTF-8" character set without any intervention necessary by the programmer.
 
-Qore has good Oracle, MySQL, and PostgreSQL integration, making it easy to write scripts/programs to manipulate data in Oracle databases.
+Qore has Oracl (oracle), MySQL (mysql), PostgreSQL (pgsql), Sybase (sybase), and FreeTDS (mssql) drivers, making it easy to write scripts/programs to manipulate data in different types of databases.  Furthermore the Datasource class offers an interface and constructs that facilitate database-independent development.
 
 Qore has libxml2 integration, allowing simple, automatic, and transparent serialization/deserialization to/from XML data to/from Qore data structures.
 

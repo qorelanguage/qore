@@ -1,3 +1,9 @@
+2006.05.24: David Nichols
+	* fixed double stack trace entry when an exception occurs in a builtin
+	  method
+	* removed extraneous '\n' from module error reporting with dlerror()
+	* removed 'FATAL:  ' from pgsql exception messages
+
 2006.05.23: David Nichols
 	* fixed a deadlock in transaction lock timeouts in the ManagedDatasource
 	  class (qore Datasource class)

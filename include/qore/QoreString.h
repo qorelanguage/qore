@@ -159,6 +159,14 @@ class QoreString {
       DLLEXPORT int concatUnicode(unsigned code);
       // return a Qorestring with the characters reversed
       DLLEXPORT class QoreString *reverse() const;
+      // remove trailing newline characters
+      DLLEXPORT void trim_trailing_newlines();
+      // remove trailing blanks
+      DLLEXPORT void trim_trailing_blanks();
+      // remove leading blanks
+      DLLEXPORT void trim_leading_blanks();
+      // remove leading and trailing blanks
+      DLLEXPORT void trim();
       
       // concatenates a qorestring without converting encodings - internal only
       DLLLOCAL void concat(const QoreString *);

@@ -8,5 +8,56 @@
 
     <programlisting>$db = new Datasource(SQL::DSSybase, $user, $pass, $db, $charset);</programlisting>
 
+    <para>This driver is linked with Sybase's ct-lib.  For Sybase connectivity with a freely-available library, see the <link linkend="mssql_Module">mssql</link> driver, allowing connectivity to Sybase and MS SQL Server.</para>
+
+    <para>Transaction management is supported by Qore by setting chained transactions to on for each connection.  In autocommit mode, Qore executes a commit after every request to the server.</para>
+
+    <para>The transaction isolation level is left at the default, 1, &quot;read committed&quot;, which is the default for all Qore drivers as well.</para>
+
+    <table>
+      <title>Sybase to Qore Type Mappings</title>
+      <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>Sybase Type</para></entry>
+	    <entry><para>Qore Type</para></entry>
+	    <entry><para>Notes</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row>
+	    <entry><para><code>TINYINT</code></para></entry>
+	    <entry><para><link linkend="Integer"><code>Type::Int</code></link></para></entry>
+	    <entry><para>direct conversion</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>SMALLINT</code></para></entry>
+	    <entry><para><link linkend="Integer"><code>Type::Int</code></link></para></entry>
+	    <entry><para>direct conversion</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>INT</code></para></entry>
+	    <entry><para><link linkend="Integer"><code>Type::Int</code></link></para></entry>
+	    <entry><para>direct conversion</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>DECIMAL, NUMERIC</code></para></entry>
+	    <entry><para><link linkend="String"><code>Type::String</code></link></para></entry>
+	    <entry><para>conversion to string to avoid losing information</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>FLOAT</code></para></entry>
+	    <entry><para><link linkend="Float"><code>Type::Float</code></link></para></entry>
+	    <entry><para>direct conversion</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>REAL</code></para></entry>
+	    <entry><para><link linkend="Float"><code>Type::Float</code></link></para></entry>
+	    <entry><para>direct conversion</para></entry>
+	  </row>
+	</tbody>
+      </tgroup>
+    </table>
+
   </sect1>
 
