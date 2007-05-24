@@ -1610,7 +1610,7 @@ class QoreString *QoreString::reverse() const
    return str;
 }
 
-// remove all trailing newlines (chonmp removes only one)
+// remove all trailing newlines (chomp removes only one)
 void QoreString::trim_trailing_newlines()
 {
    if (!len)
