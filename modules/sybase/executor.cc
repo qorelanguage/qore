@@ -22,15 +22,9 @@
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-#include <qore/config.h>
-#include <qore/support.h>
-#include <qore/Exception.h>
+
+#include <qore/Qore.h>
 #include <qore/minitest.hpp>
-#include <qore/List.h>
-#include <qore/Hash.h>
-#include <qore/QoreNode.h>
-#include <qore/QoreString.h>
-#include <qore/QoreType.h>
 
 #include <assert.h>
 
