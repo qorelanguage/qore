@@ -1335,7 +1335,7 @@ int QorePGResult::parse(class QoreString *str, class List *args, class Exception
 static int do_pg_error(const char *err, class ExceptionSink *xsink)
 {
    const char *e;
-   if (!strncmp(err, "ERROR:  ", 8))
+   if (!strncmp(err, "ERROR:  ", 8) || !strncmp(err, "FATAL:  ", 8))
       e = err + 8;
    else
       e = err;
@@ -1354,7 +1354,7 @@ bool QorePGResult::checkIntegerDateTimes(PGconn *pc, class ExceptionSink *xsink)
    {
       const char *err = PQerrorMessage(pc);
       const char *e;
-      if (!strncmp(err, "ERROR:  ", 8))
+      if (!strncmp(err, "ERROR:  ", 8) || !strncmp(err, "FATAL:  ", 8))
 	 e = err + 8;
       else
 	 e = err;
