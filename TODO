@@ -1,5 +1,6 @@
 see docs/roadmap.html
 
+* implement a mechanism for a thread to sleep until another thread terminates (join)
 * add support for special ::toString() method to serialize an object to a string (very useful for debugging)
 * add support for ranges [2..9] and dereferencing strings with []
 * add support for break and continue arguments to affect outer loops

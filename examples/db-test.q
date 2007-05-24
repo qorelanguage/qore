@@ -1,7 +1,8 @@
 #!/usr/bin/env qore
 
-# database example script, depends on schemas:
-# 2) oracle-test-db.sql 
+# database example script
+# databases users must be able to create and destroy tables and procedures, etc
+# in order to execute all tests
 
 %require-our
 %enable-all-warnings
@@ -277,16 +278,28 @@ sub getDS()
 
 sub context_test($db)
 {
-    # first we select all the data from the tables and then use context statements to order the output hierarchically
+    # first we select all the data from the tables and then use 
+    # context statements to order the output hierarchically
+    
+    # context statements are most useful when a set of queries can be executed once
+    # and the results processed many times by creating "views" with context statements
+
     my $people = $db.select("select * from people");
     my $attributes = $db.select("select * from attributes");
 
     my $today = format_date("YYYYMMDD", now());
 
-    context family ($db.select("select * from family"))
+    # display each family sorted by family name
+    context family ($db.select("select * from family")) sortBy (%name)
     {
 	printf("Family %d: %s\n", %family_id, %name);
-	context people ($people) sortDescendingBy (int(find %value in $attributes where (%attribute == "eyes" && %person_id == %people:person_id))) where (%family_id == %family:family_id)
+
+	# display people, sorted by eye color, descending
+	context people ($people) 
+	    sortDescendingBy (find %value in $attributes 
+			      where (%attribute == "eyes" 
+				     && %person_id == %people:person_id)) 
+	    where (%family_id == %family:family_id)
 	{
 	    printf("  %s, born %s\n", %name, format_date("Month DD, YYYY", %dob));
 	    context ($attributes) sortBy (%attribute) where (%person_id == %people:person_id)
@@ -295,7 +308,7 @@ sub context_test($db)
     }
 }
 
-sub test_timeout($db, $q)
+sub test_timeout($db, $c)
 {
     $db.setTransactionLockTimeout(1ms);
     try {
@@ -308,7 +321,8 @@ sub test_timeout($db, $q)
     {
 	printf("TRANSACTION LOCK TEST OK (%N)\n", $ex.err);
     }
-    $q.push();
+    # signal parent thread to continue
+    $c.dec();
 }
 
 sub transaction_test($db)
@@ -341,10 +355,13 @@ sub transaction_test($db)
 	printf("TRANSACTION TEST OK (name=%N)\n", $r);
 
     # test datasource timeout
-    my $q = new Queue();
-    background test_timeout($db, $q);
+    # this Counter variable will allow the parent thread to sleep
+    # until the child thread times out
+    my $c = new Counter(1);
+    background test_timeout($db, $c);
 
-    $q.get();
+    # wait for child thread to time out
+    $c.waitForZero();
     
     # now, we commit the transaction
     $db.commit();
