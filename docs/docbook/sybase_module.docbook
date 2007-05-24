@@ -8,11 +8,13 @@
 
     <programlisting>$db = new Datasource(SQL::DSSybase, $user, $pass, $db, $charset);</programlisting>
 
-    <para>This driver is linked with Sybase's ct-lib.  For Sybase connectivity with a freely-available library, see the <link linkend="mssql_Module">mssql</link> driver, allowing connectivity to Sybase and MS SQL Server.</para>
+    <para>This driver is linked with Sybase's ct-lib.  For Sybase connectivity with a freely-available library, see the <link linkend="mssql_Module">mssql</link> driver, providing connectivity to Sybase and MS SQL Server databases.</para>
 
     <para>Transaction management is supported by Qore by setting chained transactions to on for each connection.  In autocommit mode, Qore executes a commit after every request to the server.</para>
 
     <para>The transaction isolation level is left at the default, 1, &quot;read committed&quot;, which is the default for all Qore drivers as well.</para>
+
+    <para>Unlike many other Qore DBI drivers, this driver allows multiple commands to be submitted with a single call, however, if multiple select statements are issued, only the first will return results.</para>
 
     <table>
       <title>Sybase to Qore Type Mappings</title>
@@ -54,6 +56,66 @@
 	    <entry><para><code>REAL</code></para></entry>
 	    <entry><para><link linkend="Float"><code>Type::Float</code></link></para></entry>
 	    <entry><para>direct conversion</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>MONEY</code></para></entry>
+	    <entry><para><link linkend="Float"><code>Type::Float</code></link></para></entry>
+	    <entry><para>direct conversion</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>SMALLMONEY</code></para></entry>
+	    <entry><para><link linkend="Float"><code>Type::Float</code></link></para></entry>
+	    <entry><para>direct conversion</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>DATETIME</code></para></entry>
+	    <entry><para><link linkend="Date"><code>Type::Date</code></link></para></entry>
+	    <entry><para>Sybase 1/3 second values are converted and rounded to the nearest millisecond</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>SMALLDATETIME</code></para></entry>
+	    <entry><para><link linkend="Date"><code>Type::Date</code></link></para></entry>
+	    <entry><para>direct conversion</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>DATE</code></para></entry>
+	    <entry><para><link linkend="Date"><code>Type::Date</code></link></para></entry>
+	    <entry><para>direct conversion</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>TIME</code></para></entry>
+	    <entry><para><link linkend="Date"><code>Type::Date</code></link></para></entry>
+	    <entry><para>Date portion is set to '1970-01-01'; Sybase 1/3 second values are converted and rounded to the nearest millisecond</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>CHAR</code></para></entry>
+	    <entry><para><link linkend="String"><code>Type::String</code></link></para></entry>
+	    <entry><para>trailing blanks are removed</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>VARCHAR</code></para></entry>
+	    <entry><para><link linkend="String"><code>Type::String</code></link></para></entry>
+	    <entry><para>direct conversion</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>UNICHAR</code></para></entry>
+	    <entry><para><link linkend="String"><code>Type::String</code></link></para></entry>
+	    <entry><para>trailing blanks are removed</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>UNIVARCHAR</code></para></entry>
+	    <entry><para><link linkend="String"><code>Type::String</code></link></para></entry>
+	    <entry><para>direct conversion</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>TEXT</code></para></entry>
+	    <entry><para><link linkend="String"><code>Type::String</code></link></para></entry>
+	    <entry><para>direct conversion</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>UNITEXT</code></para></entry>
+	    <entry><para><link linkend="Binary"><code>Type::Binary</code></link></para></entry>
+	    <entry><para>this data is returned as type <code>IMAGE</code> from the dataserver</para></entry>
 	  </row>
 	</tbody>
       </tgroup>
