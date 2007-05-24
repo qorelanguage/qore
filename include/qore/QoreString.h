@@ -43,6 +43,12 @@ extern class QoreEncoding *QCS_DEFAULT;
 extern class code_table html_codes[];
 
 class QoreString {
+   private:
+      // the following two functions are not implemented - 
+      // QoreStrings must be explicitly copied with QoreString::copy()
+      QoreString(const QoreString &);
+      QoreString & operator=(const QoreString &);
+
       int len;
       unsigned allocated;
       char *buf;
