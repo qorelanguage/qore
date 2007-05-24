@@ -7,7 +7,8 @@
 	  floating point for conversions to and from Sybase 1/3 second time 
 	  values
 	* sybase: convert TIME to Qore datetime as offset from Qore epoch
-	* sybase: fixed native qore type binding
+	* sybase: fixed native qore type binding by value
+	* sybase: fixed char binding by value
 
 2006.05.23: David Nichols
 	* fixed a deadlock in transaction lock timeouts in the ManagedDatasource
