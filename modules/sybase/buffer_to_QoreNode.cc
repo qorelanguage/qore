@@ -40,7 +40,7 @@ QoreNode* buffer_to_QoreNode(command& cmd, const CS_DATAFMT& datafmt, const outp
   if (buffer.indicator == -1) { // SQL NULL
      return null();
   }
-  printd(0, "buffer_to_QoreNode() encoding=%s name=%s type=%d format=%d usertype=%d value_len=%d\n", encoding->getCode(), datafmt.name, datafmt.datatype, datafmt.format, datafmt.usertype, buffer.value_len);
+  //printd(5, "buffer_to_QoreNode() encoding=%s name=%s type=%d format=%d usertype=%d value_len=%d\n", encoding->getCode(), datafmt.name, datafmt.datatype, datafmt.format, datafmt.usertype, buffer.value_len);
 
   switch (datafmt.datatype) {
      case CS_CHAR_TYPE: // varchar
@@ -49,7 +49,7 @@ QoreNode* buffer_to_QoreNode(command& cmd, const CS_DATAFMT& datafmt, const outp
 	// sometimes freetds values are not coming with null termination for some reason
 	QoreString* s = new QoreString(value, buffer.value_len - 1, encoding);
 	s->trim_trailing_blanks();
-	printd(0, "name=%s vlen=%d strlen=%d len=%d str='%s'\n", datafmt.name, buffer.value_len, s->strlen(), s->length(), s->getBuffer());
+	//printd(5, "name=%s vlen=%d strlen=%d len=%d str='%s'\n", datafmt.name, buffer.value_len, s->strlen(), s->length(), s->getBuffer());
 	return new QoreNode(s);
      }
 
@@ -69,7 +69,7 @@ QoreNode* buffer_to_QoreNode(command& cmd, const CS_DATAFMT& datafmt, const outp
 	}
 	else
 	   s = new QoreString(value, buffer.value_len - 1, encoding);
-	printd(0, "name=%s type=%d strlen=%d vallen=%d len=%d str='%s'\n", datafmt.name, datafmt.datatype, buffer.value_len, s->strlen(), s->length(), s->getBuffer());
+	//printd(5, "name=%s type=%d strlen=%d vallen=%d len=%d str='%s'\n", datafmt.name, datafmt.datatype, buffer.value_len, s->strlen(), s->length(), s->getBuffer());
 	return new QoreNode(s);
      }
 
