@@ -40,15 +40,16 @@ QoreNode* buffer_to_QoreNode(command& cmd, const CS_DATAFMT& datafmt, const outp
   if (buffer.indicator == -1) { // SQL NULL
      return null();
   }
-  printd(5, "buffer_to_QoreNode() encoding=%s name=%s type=%d format=%d usertype=%d\n", encoding->getCode(), datafmt.name, datafmt.datatype, datafmt.format, datafmt.usertype);
+  printd(0, "buffer_to_QoreNode() encoding=%s name=%s type=%d format=%d usertype=%d value_len=%d\n", encoding->getCode(), datafmt.name, datafmt.datatype, datafmt.format, datafmt.usertype, buffer.value_len);
 
   switch (datafmt.datatype) {
      case CS_CHAR_TYPE: // varchar
      {
-	remove_trailing_blanks((char *)buffer.value);
 	CS_CHAR* value = (CS_CHAR*)(buffer.value);
-	QoreString* s = new QoreString(value, encoding);
-	//printd(5, "name=%s vlen=%d strlen=%d len=%d str='%s'\n", datafmt.name, buffer.value_len, s->strlen(), s->length(), s->getBuffer());
+	// sometimes freetds values are not coming with null termination for some reason
+	QoreString* s = new QoreString(value, buffer.value_len - 1, encoding);
+	s->trim_trailing_blanks();
+	printd(0, "name=%s vlen=%d strlen=%d len=%d str='%s'\n", datafmt.name, buffer.value_len, s->strlen(), s->length(), s->getBuffer());
 	return new QoreNode(s);
      }
 
@@ -57,16 +58,18 @@ QoreNode* buffer_to_QoreNode(command& cmd, const CS_DATAFMT& datafmt, const outp
      case CS_TEXT_TYPE:
      {
 	CS_CHAR* value = (CS_CHAR*)(buffer.value);
+
 	QoreString *s;
 	// see if we need to strip trailing newlines (could not find a defined USER_TYPE_* for this!)
 	if (datafmt.usertype == 1)
 	{
-	   remove_trailing_blanks((char *)buffer.value);
-	   s = new QoreString(value, encoding);
+	   // sometimes freetds values are not coming with null termination for some reason
+	   s = new QoreString(value, buffer.value_len - 1, encoding);
+	   s->trim_trailing_blanks();
 	}
 	else
 	   s = new QoreString(value, buffer.value_len - 1, encoding);
-	//printd(5, "name=%s type=%d strlen=%d vallen=%d len=%d str='%s'\n", datafmt.name, datafmt.datatype, buffer.value_len, s->strlen(), s->length(), s->getBuffer());
+	printd(0, "name=%s type=%d strlen=%d vallen=%d len=%d str='%s'\n", datafmt.name, datafmt.datatype, buffer.value_len, s->strlen(), s->length(), s->getBuffer());
 	return new QoreNode(s);
      }
 

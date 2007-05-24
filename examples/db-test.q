@@ -463,7 +463,6 @@ sub sybase_test($db)
 	printf(" %-16s= %-10s %N\n", $k, type($q.$k), $q.$k);
 
     $db.commit();
-    thread_exit;
 }
 
 sub mssql_test($db)
@@ -487,7 +486,6 @@ sub mssql_test($db)
 	printf(" %-16s= %-10s %N\n", $k, type($q.$k), $q.$k);
 
     $db.commit();
-    thread_exit;
 }
 
 sub main()

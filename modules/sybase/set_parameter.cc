@@ -135,6 +135,7 @@ int set_input_parameter(command& cmd, unsigned parameter_index, int type,
 	   slen = s->strlen();
 	}
 
+	datafmt.datatype = type;
 	datafmt.format = CS_FMT_NULLTERM;
 	// NOTE: setting large sizes here like 2GB works for sybase ctlib, not for freetds
 	datafmt.maxlength = slen + 1;

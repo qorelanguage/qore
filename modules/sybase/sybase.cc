@@ -308,12 +308,15 @@ static void add_constants(Namespace* ns)
 void sybase_module_ns_init(Namespace *rns, Namespace *qns)
 {
    tracein("sybase_module_ns_init()");
+   Namespace *sybase = 
 #ifdef SYBASE
-   Namespace* sybasens = new Namespace("Sybase");
+      new Namespace("Sybase");
 #else
-   Namespace* sybasens = new Namespace("MSSQL");
+      new Namespace("MSSQL");
 #endif
-   add_constants(sybasens);
+   add_constants(sybase);
+
+   qns->addInitialNamespace(sybase);
    traceout("sybase_module_ns_init()");
 }
 
