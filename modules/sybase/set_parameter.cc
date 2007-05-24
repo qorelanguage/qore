@@ -423,6 +423,7 @@ int set_input_parameter(command& cmd, unsigned parameter_index, int type,
      return 0;
      
      case CS_DECIMAL_TYPE:
+     case CS_NUMERIC_TYPE:
      {
 	if (data->type != NT_FLOAT && data->type != NT_INT) {
 	   xsink->raiseException("DBI-EXEC-EXCEPTION", "Incorrect type for decimal parameter #%u (integer or float expected)", parameter_index);
@@ -450,34 +451,6 @@ int set_input_parameter(command& cmd, unsigned parameter_index, int type,
      }
      return 0;
 
-     case CS_NUMERIC_TYPE:
-     {
-	if (data->type != NT_FLOAT && data->type != NT_INT) {
-	   xsink->raiseException("DBI-EXEC-EXCEPTION", "Incorrect type for numeric parameter #%u (integer or float expected)", parameter_index);
-	   return -1;
-	}
-	double val;
-	if (data->type == NT_FLOAT) {
-	   val = data->val.floatval;
-	} else {
-	   val = data->val.intval;
-	}
-	CS_NUMERIC dc;
-	double_to_NUMERIC(cmd.getConnection(), val, dc, xsink);
-	if (xsink->isException()) {
-	   return -1;
-	}
-	datafmt.datatype = CS_NUMERIC_TYPE;
-	datafmt.precision = DefaultNumericPrecision;
-	datafmt.scale = DefaultNumericScale;
-	err = ct_param(cmd(), &datafmt, &dc, sizeof(dc), 0);
-	if (err != CS_SUCCEED) {
-	   xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase function ct_param() for numeric parameter #%u failed with error", parameter_index, (int)err);
-	   return -1;
-	}
-     }
-     return 0;
-  
      default:
 	xsink->raiseException("DBI-EXEC-EXCEPTION", "Unrecognized type %d of Sybase parameter # %u", type, parameter_index + 1);
 	return -1;

@@ -170,13 +170,6 @@ QoreNode* buffer_to_QoreNode(command& cmd, const CS_DATAFMT& datafmt, const outp
       CS_DECIMAL* value = (CS_DECIMAL*)(buffer.value);
       QoreString *str = DECIMAL_to_string(cmd.getConnection(), *value, xsink);
       return str ? new QoreNode(str) : 0;
-/*
-      double d = DECIMAL_to_double(cmd.getConnection(), *value, xsink);
-      if (xsink->isException()) {
-        return 0;
-      }
-      return new QoreNode(d);
-*/
     }
 
     default:

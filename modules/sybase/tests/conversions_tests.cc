@@ -148,39 +148,7 @@ TEST()
     assert(false);
   }
 
-  double d = DECIMAL_to_double(conn, dc, &xsink);
-  if (xsink.isException()) {
-    assert(false);
-  }
-  assert(d == 6.22);
   printf("conversion double <-> DECIMAL works\n");
-}
-
-//------------------------------------------------------------------------------
-TEST()
-{
-  // testing NUMERIC <-> float conversion
-  printf("running test %s[%d]\n", __FILE__, __LINE__);
-
-  connection conn;
-  ExceptionSink xsink;
-  conn.init(SYBASE_TEST_SETTINGS, &xsink);
-  if (xsink.isException()) {
-    assert(false);
-  }
-
-  CS_DECIMAL dc;
-  double_to_NUMERIC(conn, 16.22, dc, &xsink);
-  if (xsink.isException()) {
-    assert(false);
-  }
-
-  double d = NUMERIC_to_double(conn, dc, &xsink);
-  if (xsink.isException()) {
-    assert(false);
-  }
-  assert(d == 16.22);
-  printf("conversion double <-> NUMERIC works\n");
 }
 
 } // namespace

@@ -307,30 +307,6 @@ void double_to_DECIMAL(connection& conn, double val, CS_DECIMAL& out, ExceptionS
   assert(out.precision > out.scale);
 }
 
-//------------------------------------------------------------------------------
-double DECIMAL_to_double(connection& conn, CS_DECIMAL& m, ExceptionSink* xsink)
-{
-  CS_DATAFMT srcfmt;
-  memset(&srcfmt, 0, sizeof(srcfmt));
-  srcfmt.datatype = CS_DECIMAL_TYPE;
-  srcfmt.maxlength = 35; // recommended by docs
-  srcfmt.scale = 15; // guess, keep the same as above
-  srcfmt.precision = 30; // also guess
-
-  CS_DATAFMT destfmt;
-  memset(&destfmt, 0, sizeof(destfmt));
-  destfmt.datatype = CS_FLOAT_TYPE;
-  destfmt.maxlength = sizeof(CS_FLOAT);
-
-  CS_INT outlen;
-  CS_FLOAT result = 0.0;
-  CS_RETCODE err = cs_convert(conn.getContext(), &srcfmt, (CS_BYTE*)&m, &destfmt, (CS_BYTE*)&result, &outlen);
-  if (err != CS_SUCCEED) {
-    xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_convert() failed to convert Sybase decimal to float, err %d", (int)err);
-  }
-  return result;
-}
-
 #define SYB_DEC_STR_LEN 50
 class QoreString *DECIMAL_to_string(connection& conn, CS_DECIMAL& m, ExceptionSink* xsink)
 {
@@ -357,59 +333,6 @@ class QoreString *DECIMAL_to_string(connection& conn, CS_DECIMAL& m, ExceptionSi
   //printd(5, "DECIMAL_to_string: '%s'\n", buf);
   return new QoreString(buf);  
 }
-
-/*
-//------------------------------------------------------------------------------
-void double_to_NUMERIC(connection& conn, double val, CS_NUMERIC& out, ExceptionSink* xsink)
-{
-  CS_DATAFMT srcfmt;
-  memset(&srcfmt, 0, sizeof(srcfmt));
-  srcfmt.datatype = CS_FLOAT_TYPE;
-  srcfmt.maxlength = sizeof(CS_FLOAT);
-
-  CS_DATAFMT destfmt;
-  memset(&destfmt, 0, sizeof(destfmt));
-  destfmt.datatype = CS_NUMERIC_TYPE;
-  destfmt.maxlength = 35; // recommended by docs
-  destfmt.scale = 15; // # of digits after decimal point, guess
-  destfmt.precision = 30; // total # of digits in number, also guess
-
-  CS_INT outlen;
-  CS_RETCODE err = cs_convert(conn.getContext(), &srcfmt, (CS_BYTE*)&val, &destfmt, (CS_BYTE*)&out, &outlen);
-  if (err != CS_SUCCEED) {
-    assert(false);
-    xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_convert() failed to convert a float value to Sybase NUMERIC, err %d", (int)err);
-    return;
-  }
-}
-
-//------------------------------------------------------------------------------
-double NUMERIC_to_double(connection& conn, CS_NUMERIC& m, ExceptionSink* xsink)
-{
-  CS_DATAFMT srcfmt;
-  memset(&srcfmt, 0, sizeof(srcfmt));
-  srcfmt.datatype = CS_NUMERIC_TYPE;
-  srcfmt.maxlength = 35; // recommended by docs
-  srcfmt.scale = 15; // guess, keep the same as above
-  srcfmt.precision = 30; // also guess
-
-
-  CS_DATAFMT destfmt;
-  memset(&destfmt, 0, sizeof(destfmt));
-  destfmt.datatype = CS_FLOAT_TYPE;
-  destfmt.maxlength = sizeof(CS_FLOAT);
-
-  CS_INT outlen;
-  CS_FLOAT result = 0.0;
-  CS_RETCODE err = cs_convert(conn.getContext(), &srcfmt, (CS_BYTE*)&m, &destfmt, (CS_BYTE*)&result, &outlen);
-  if (err != CS_SUCCEED) {
-    assert(false);
-    xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_convert() failed to convert Sybase NUMERIC to FLOAT, err %d", (int)err);
-  }
-
-  return result;
-}
-*/
 
 #ifdef DEBUG
 #  include "tests/conversions_tests.cc"
