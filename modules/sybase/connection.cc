@@ -173,8 +173,8 @@ void connection::init(const char* username, const char* password, const char* db
 
 #if SYBASE
   // turn off 2-byte character support
-/*
   CS_BOOL cs_bool;
+/*
   cs_bool = CS_FALSE;
   ret = ct_capability(m_connection, CS_SET, CS_CAP_RESPONSE, CS_DATA_NOUNITEXT, &cs_bool);
   if (ret != CS_SUCCEED) {
