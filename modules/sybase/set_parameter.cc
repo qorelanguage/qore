@@ -69,6 +69,8 @@ int set_input_params(command& cmd, processed_language_command_t &query, class Li
 #endif
       else if (val->type == NT_FLOAT)
 	 dtype = CS_FLOAT_TYPE;
+      else if (val->type == NT_BINARY)
+	 dtype = CS_BINARY_TYPE;
       else
       {
 	 xsink->raiseException("DBI:SYBASE:BIND-ERROR", "do not know how to bind values of type '%s'", val->type->getName());

@@ -9,6 +9,7 @@
 	* sybase: convert TIME to Qore datetime as offset from Qore epoch
 	* sybase: fixed native qore type binding by value
 	* sybase: fixed char binding by value
+	* sybase: implemented binary binding by value
 
 2006.05.23: David Nichols
 	* fixed a deadlock in transaction lock timeouts in the ManagedDatasource
