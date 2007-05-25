@@ -53,10 +53,8 @@ struct processed_language_command_t {
       std::vector<char> m_parameter_types;
 
       // returns 0=OK, -1=err (exception raised)
-      DLLLOCAL int init(const char* cmd_text, ExceptionSink* xsink);
+      DLLLOCAL int init(const char *cmd_text, class List *args, class ExceptionSink *xsink);
 };
-
-DLLLOCAL extern processed_language_command_t *process_language_command(const char* cmd_text, ExceptionSink* xsink);
 
 //------------------------------------------------------------------------------
 // A RPC command (with placeholders)

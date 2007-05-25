@@ -43,7 +43,6 @@ void direct_execute(const connection& conn, const char* sql_text, ExceptionSink*
   CS_COMMAND* cmd = 0;
   CS_RETCODE err = ct_cmd_alloc(conn.getConnection(), &cmd);
   if (err != CS_SUCCEED) {
-    assert(false);
     xsink->raiseException("DBI-EXEC-EXCEPTION", "ct_cmd_alloc() failed with error %d", (int)err);
     return;
   }
@@ -52,13 +51,11 @@ void direct_execute(const connection& conn, const char* sql_text, ExceptionSink*
 
   err = ct_command(cmd, CS_LANG_CMD, (CS_CHAR*)sql_text, strlen(sql_text), CS_END);
   if (err != CS_SUCCEED) {
-    assert(false);
     xsink->raiseException("DBI-EXEC-EXCEPTION", "ct_command(\"%s\") failed with error %d", (int)err, sql_text);
     return;
   }
   err = ct_send(cmd);
   if (err != CS_SUCCEED) {
-    assert(false);
     xsink->raiseException("DBI-EXEC-EXCEPTION", "ct_send() failed with error %d", (int)err);
     return;
   }
@@ -67,7 +64,6 @@ void direct_execute(const connection& conn, const char* sql_text, ExceptionSink*
   CS_INT result_type;
   err = ct_results(cmd, &result_type);
   if (err != CS_SUCCEED) {
-    assert(false);
     xsink->raiseException("DBI-EXEC-EXCEPTION", "ct_result() failed with error %d", (int)err);
     return;
   }

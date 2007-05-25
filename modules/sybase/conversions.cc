@@ -158,7 +158,6 @@ void DateTime_to_DATETIME4(connection& conn, DateTime* dt, CS_DATETIME4& out, Ex
   CS_INT outlen;
   CS_RETCODE err = cs_convert(conn.getContext(), &srcfmt, (CS_BYTE*)string_dt.c_str(), &destfmt, (CS_BYTE*)&out, &outlen);
   if (err != CS_SUCCEED) {
-    assert(false);
     xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_convert() failed to convert date [%s] to Sybase CS_DATETIME4, err %d", string_dt.c_str(), (int)err);
     return;
   }
@@ -180,7 +179,6 @@ DateTime* DATETIME4_to_DateTime(connection& conn, CS_DATETIME4& dt, ExceptionSin
   memset(&x, 0, sizeof(x));
   CS_RETCODE err = cs_dt_crack(conn.getContext(), CS_DATETIME4_TYPE, &dt, &x);
   if (err != CS_SUCCEED) {
-    assert(false);
     xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_dt_crack() failed with error %d", (int)err);
     return 0;
   }
@@ -204,7 +202,6 @@ void double_to_MONEY(connection& conn, double val, CS_MONEY& out, ExceptionSink*
   CS_INT outlen;
   CS_RETCODE err = cs_convert(conn.getContext(), &srcfmt, (CS_BYTE*)&val, &destfmt, (CS_BYTE*)&out, &outlen);
   if (err != CS_SUCCEED) {
-    assert(false);
     xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_convert() failed to convert a float value to Sybase MONEY, err %d", (int)err);
     return;
   }
@@ -226,7 +223,6 @@ void double_to_MONEY4(connection& conn, double val, CS_MONEY4& out, ExceptionSin
   CS_INT outlen;
   CS_RETCODE err = cs_convert(conn.getContext(), &srcfmt, (CS_BYTE*)&val, &destfmt, (CS_BYTE*)&out, &outlen);
   if (err != CS_SUCCEED) {
-    assert(false);
     xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_convert() failed to convert a float value to Sybase MONEY4, err %d", (int)err);
     return;
   }
@@ -249,7 +245,6 @@ double MONEY_to_double(connection& conn, CS_MONEY& m, ExceptionSink* xsink)
   CS_FLOAT result = 0.0;
   CS_RETCODE err = cs_convert(conn.getContext(), &srcfmt, (CS_BYTE*)&m, &destfmt, (CS_BYTE*)&result, &outlen);
   if (err != CS_SUCCEED) {
-    assert(false);
     xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_convert() failed to convert Sybase MONEY to FLOAT, err %d", (int)err);
   }
 
@@ -273,7 +268,6 @@ double MONEY4_to_double(connection& conn, CS_MONEY4& m, ExceptionSink* xsink)
   CS_FLOAT result = 0.0;
   CS_RETCODE err = cs_convert(conn.getContext(), &srcfmt, (CS_BYTE*)&m, &destfmt, (CS_BYTE*)&result, &outlen);
   if (err != CS_SUCCEED) {
-    assert(false);
     xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_convert() failed to convert Sybase MONEY4 to FLOAT, err %d", (int)err);
   }
 
@@ -298,7 +292,6 @@ void double_to_DECIMAL(connection& conn, double val, CS_DECIMAL& out, ExceptionS
   CS_INT outlen;
   CS_RETCODE err = cs_convert(conn.getContext(), &srcfmt, (CS_BYTE*)&val, &destfmt, (CS_BYTE*)&out, &outlen);
   if (err != CS_SUCCEED) {
-    assert(false);
     xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_convert() failed to convert a float value to Sybase decimal, err %d", (int)err);
     return;
   }

@@ -40,7 +40,6 @@ void initiate_language_command(command& cmd, const char* cmd_text, ExceptionSink
   assert(cmd_text && cmd_text[0]);
   CS_RETCODE err = ct_command(cmd(), CS_LANG_CMD, (CS_CHAR*)cmd_text, CS_NULLTERM, CS_UNUSED);
   if (err != CS_SUCCEED) {
-    assert(false);
     xsink->raiseException("DBI-EXEC-EXCEPTION", "ct_command(CS_LANG_CMD, \"%s\") failed with error %d", cmd_text, (int)err);
   } 
 }

@@ -52,9 +52,13 @@ int set_input_params(command& cmd, processed_language_command_t &query, class Li
 
    for (unsigned i = 0; i < nparams; ++i)
    {
+      if (query.m_parameter_types[i] == 'd') 
+	 continue;
+
       int dtype = 0;
 
       class QoreNode *val = args ? args->retrieve_entry(i) : NULL;
+      
       if (!val || is_null(val) || is_nothing(val))
 	 val = 0;
       else if (val->type == NT_STRING)

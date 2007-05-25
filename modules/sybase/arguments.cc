@@ -167,7 +167,6 @@ arg_vec_t extract_procedure_call_arguments(List* args,
   unsigned args_count = args ? args->size() : 0;
   
   if (expected_params_count != args_count) {
-    assert(false);
     xsink->raiseException("DBI-EXEC-EXCEPTION", "Expected %d parameters (including types), %d parameters found", expected_params_count, args_count);
     return arg_vec_t();
   }
@@ -176,12 +175,10 @@ arg_vec_t extract_procedure_call_arguments(List* args,
   for (unsigned i = input_params_count; i < args_count; ++i) {
     QoreNode* type_node = args->retrieve_entry(i);
     if (type_node->type != NT_INT) {
-      assert(false);
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Parameter #%d should be an integer with SYbase type, e.g. Sybase::CS-INT_TYPE)", i);
       return arg_vec_t();
     }
     if (!is_valid_Sybase_type(type_node->val.intval)) {
-      assert(false);
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Parameter #%d is not recognized as a Sybase type (e.g. Sybase::CS_INT_TYPE)", i);
       return arg_vec_t();
     }
@@ -205,12 +202,10 @@ arg_vec_t extract_procedure_call_arguments(List* args,
 
       if (arg_infos[i].second == "d") { // more checking for the %d
         if (new_arg.m_node->type != NT_INT && new_arg.m_node->type != NT_NULL && new_arg.m_node->type != NT_NOTHING) {
-          assert(false);
           xsink->raiseException("DBI-EXEC-EXCEPTION", "Input parameter #%d needs to be an integer (because of %%d)", read_input_params - 1);
           return arg_vec_t();
         }
         if (!is_integer_Sybase_type(new_arg.m_type)) {
-          assert(false);
           xsink->raiseException("DBI-EXEC-EXCEPTION", "Parameter #%d (type) needs to be a Sybase integer type (e.g. Sybase::CS_INT_TYPE) because of %%d", i + input_params_count);
           return arg_vec_t();
         }

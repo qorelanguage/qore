@@ -22,7 +22,7 @@ TEST()
 
   const char* cmd = "select x from y";
   processed_language_command_t res;
-  res.init(cmd, &xsink);
+  res.init(cmd, 0, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
@@ -30,7 +30,7 @@ TEST()
   assert(res.m_parameter_types.empty());
 
   cmd = "select x from %v";
-  res.init(cmd, &xsink);
+  res.init(cmd, 0, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
@@ -39,7 +39,7 @@ TEST()
   assert(res.m_parameter_types[0] == 'v');
 
   cmd = "select x from %v where z = %d";
-  res.init(cmd, &xsink);
+  res.init(cmd, 0, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
@@ -50,7 +50,7 @@ TEST()
 
   // test that inner strings work
   cmd = "select x from \"%v\" and '%d'";
-  res.init(cmd, &xsink);
+  res.init(cmd, 0, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
@@ -58,7 +58,7 @@ TEST()
   assert(res.m_parameter_types.empty());
 
   cmd = "elect x from \"\\\"?\" and '\\\'?'";
-  res.init(cmd, &xsink);
+  res.init(cmd, 0, &xsink);
   if (xsink.isException()) {
     assert(false);
   }

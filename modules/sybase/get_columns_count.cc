@@ -37,12 +37,10 @@ unsigned get_columns_count(command& cmd, ExceptionSink* xsink)
   CS_INT num_cols;
   CS_RETCODE err = ct_res_info(cmd(), CS_NUMDATA, &num_cols, CS_UNUSED, NULL);
   if (err != CS_SUCCEED) {
-    assert(false);
     xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_res_info() failed to get number of columns, error %d", (int)err);
     return 0;
   }
   if (num_cols <= 0) {
-    assert(false); // cannot happen
     xsink->raiseException("DBI-EXEC-EXCEPTION", "Internal error: no columns returned");
     return 0;
   }

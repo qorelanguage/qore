@@ -64,10 +64,6 @@ Hash* output_buffers_to_QoreHash(command& cmd, const std::vector<CS_DATAFMT>& co
     }
 
     result->setKeyValue(column_name.c_str(), value, xsink);
-    if (xsink->isException()) {
-      assert(false);
-      return result;
-    }
   } // for
 
   return result;

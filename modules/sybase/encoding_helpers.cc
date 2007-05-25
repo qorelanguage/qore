@@ -87,36 +87,6 @@ const char* QoreEncoding_to_SybaseName(QoreEncoding *enc)
   return 0;
 }
 
-#if 0
-//------------------------------------------------------------------------------
-std::string get_default_Sybase_encoding(connection& conn, ExceptionSink* xsink)
-{
-  CS_LOCALE* locale;
-  CS_RETCODE err = cs_loc_alloc(conn.getContext(), &locale);
-  if (err != CS_SUCCEED) {
-    assert(false);
-    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call cs_loc_alloc() returned error %d", (int)err);
-    return std::string();
-  }
-  ON_BLOCK_EXIT(cs_loc_drop, conn.getContext(), locale);
-
-  CS_CHAR encoding_str[100] = "";
-  err = cs_locale(conn.getContext(), CS_GET, locale, CS_SYB_CHARSET, encoding_str, sizeof(encoding_str), 0);
-  if (err != CS_SUCCEED) {
-    assert(false);
-    xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call cs_locale() returned error %d", (int)err);
-    return std::string();
-  }
-/*
-  // FreeTDS 0.64 connected to local Syvase 15.0 has a bug and always returns empty string
-
-  assert(encoding_str[0] == 0); // if fails the FreeTDS got fixed
-  strcpy(encoding_str, "utf8");
-*/
-  return std::string(encoding_str);
-}
-#endif
-
 #ifdef DEBUG
 #  include "tests/encoding_helpers_tests.cc"
 #endif

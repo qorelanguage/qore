@@ -45,7 +45,7 @@
 static QoreNode* execute_command_impl(connection& conn, QoreString* cmd_text, List* qore_args, QoreEncoding* encoding, bool list, ExceptionSink* xsink)
 {
    processed_language_command_t query;
-   if (query.init(cmd_text->getBuffer(), xsink))
+   if (query.init(cmd_text->getBuffer(), qore_args, xsink))
       return 0;
 
   command cmd(conn, xsink);

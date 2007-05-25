@@ -39,7 +39,6 @@ command::command(connection& conn, ExceptionSink* xsink)
 {
   CS_RETCODE err = ct_cmd_alloc(m_conn.getConnection(), &m_cmd);
   if (err != CS_SUCCEED) {
-    assert(false);
     xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_cmd_alloc() failed with error %d", (int)err);
     return;
   }

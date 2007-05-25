@@ -71,7 +71,6 @@ void set_up_output_buffers(command& cmd,
 
     CS_RETCODE err = ct_bind(cmd(), i + 1, (CS_DATAFMT*)&input_row_descriptions[i], out->value, &out->value_len, &out->indicator);
     if (err != CS_SUCCEED) {
-      assert(false);
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Sybase call ct_bind() failed with error %d", (int)err);
       return;
     }

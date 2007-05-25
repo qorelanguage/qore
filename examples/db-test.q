@@ -124,20 +124,17 @@ create table family (
    family_id int not null,
    name varchar(80) not null
 )
-
 create table people (
    person_id int not null,
    family_id int not null,
    name varchar(250) not null,
    dob date not null
 )
-
 create table attributes (
    person_id int not null,
    attribute varchar(80) not null,
    value varchar(160) not null
 )
-
 create table data_test (
 	null_f char(1) null,
 
@@ -152,6 +149,7 @@ create table data_test (
 	tinyint_f tinyint not null,
 	smallint_f smallint not null,
 	int_f int not null,
+        int_f2 int not null,
 
 	decimal_f decimal(10,4) not null,
 
@@ -176,20 +174,17 @@ create table family (
    family_id int not null,
    name varchar(80) not null
 )
-
 create table people (
    person_id int not null,
    family_id int not null,
    name varchar(250) not null,
    dob date not null
 )
-
 create table attributes (
    person_id int not null,
    attribute varchar(80) not null,
    value varchar(160) not null
 )
-
 create table data_test (
 	null_f char(1) null,
 
@@ -202,6 +197,7 @@ create table data_test (
 	tinyint_f tinyint not null,
 	smallint_f smallint not null,
 	int_f int not null,
+        int_f2 int not null,
 
 	decimal_f decimal(10,4) not null,
 
@@ -494,7 +490,7 @@ sub pgsql_test($db)
 		 "char_f"          : 'char text',
 		 "name_f"          : 'name',
 		 "date_f"          : 2004-01-05, 
-		 "abstime_f"       : 2005-12-03,
+		 "abstime_f"       : 2005-12-03T10:00:01,
 		 "reltime_f"       : 5M + 71D + 19h + 245m + 51s,
 		 "interval_f"      : 6M + 3D + 2h + 45m + 15s, 
 		 "time_f"          : 11:35:00, 
@@ -555,6 +551,7 @@ sub sybase_test($db)
 		 "tinyint_f"       : 55, 
 		 "smallint_f"      : 4285, 
 		 "int_f"           : 405402,
+		 "int_f2"          : 214123498,
 		 "decimal_f"       : 500.1231, 
 		 "float_f"         : 23443.234324234, 
 		 "real_f"          : 213.123, 
@@ -569,7 +566,7 @@ sub sybase_test($db)
 		 "image_f"         : <cafebead> );
 
     # insert data
-    my $rows = $db.vexec("insert into data_test values (%v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v)", hash_values($args));
+    my $rows = $db.vexec("insert into data_test values (%v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %d, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v)", hash_values($args));
 
     my $q = $db.selectRow("select * from data_test");
     if ($o.verbose > 1)
@@ -605,6 +602,7 @@ sub mssql_test($db)
 		 "tinyint_f"       : 55, 
 		 "smallint_f"      : 4285, 
 		 "int_f"           : 405402,
+		 "int_f2"          : 214123498,
 		 "decimal_f"       : 500.1231, 
 		 "float_f"         : 23443.234324234, 
 		 "real_f"          : 213.123, 
@@ -619,7 +617,7 @@ sub mssql_test($db)
 		 "image_f"         : <cafebead> );
 
     # insert data, using the values from the hash above
-    my $rows = $db.vexec("insert into data_test values (%v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v)", hash_values($args));
+    my $rows = $db.vexec("insert into data_test values (%v, %v, %v, %v, %v, %v, %v, %v, %v, %d, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v)", hash_values($args));
 
     my $q = $db.selectRow("select * from data_test");
     if ($o.verbose > 1)

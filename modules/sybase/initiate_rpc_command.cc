@@ -40,7 +40,6 @@ void initiate_rpc_command(command& cmd, const char* rpc, ExceptionSink* xsink)
   assert(rpc && rpc[0]);
   CS_RETCODE err = ct_command(cmd(), CS_RPC_CMD, (CS_CHAR*)rpc, CS_NULLTERM, CS_UNUSED);
   if (err != CS_SUCCEED) {
-    assert(false);
     xsink->raiseException("DBI-EXEC-EXCEPTION", "ct_command(CS_RPC_CMD, \"%s\") failed with error %d", rpc, (int)err);
   } 
 }

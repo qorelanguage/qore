@@ -1,9 +1,10 @@
 2006.05.25: David Nichols
-	* pgsql: fixed a bug in converting DECIMAL numbers >9999
+	* pgsql: fixed a bug in converting DECIMAL numbers > 9999
 	* sybase: mapped Boolen <-> bit, added test
 	* implemented round() math function
 	* implemented DBI_CAP_BIND_BY_VALUE and DBI_CAP_BIND_BY_PLACEHOLDER
 	  constants and tagged drivers appropriately, updated docs
+	* sybase: fixed %d processing in queries
 
 2006.05.24: David Nichols
 	* fixed double stack trace entry when an exception occurs in a builtin

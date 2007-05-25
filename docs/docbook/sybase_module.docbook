@@ -12,7 +12,7 @@
 
     <para>This driver supports the following <link linkend="DBI_Capability_Constants">DBI capabilities</link>: <code>DBI_CAP_TRANSACTION_MANAGEMENT, DBI_CAP_STORED_PROCEDURES, DBI_CAP_CHARSET_SUPPORT, DBI_CAP_LOB_SUPPORT, DBI_CAP_BIND_BY_VALUE, DBI_CAP_BIND_BY_PLACEHOLDER</code>.</para>
 
-    <para>Transaction management is supported by Qore by setting chained transactions to on for each connection.  In autocommit mode, Qore executes a commit after every request to the server.</para>
+    <para>Transaction management is supported by Qore by enabling chained transaction mode on each connection.  In autocommit mode, Qore executes a commit after every request to the server.</para>
 
     <para>The transaction isolation level is left at the default, 1, &quot;read committed&quot;, which is the default for all Qore drivers as well.</para>
 
@@ -109,7 +109,7 @@
 	  <row>
 	    <entry><para><code>UNIVARCHAR</code></para></entry>
 	    <entry><para><link linkend="String"><code>Type::String</code></link></para></entry>
-	    <entry><para>direct conversion</para></entry>
+	    <entry><para>trailing blanks are removed</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><code>TEXT</code></para></entry>
@@ -119,7 +119,7 @@
 	  <row>
 	    <entry><para><code>UNITEXT</code></para></entry>
 	    <entry><para><link linkend="Binary"><code>Type::Binary</code></link></para></entry>
-	    <entry><para>this data is returned as type <code>IMAGE</code> from the dataserver</para></entry>
+	    <entry><para>this data is returned as type <code>IMAGE</code> from the dataserver, so a binary object is returned by the driver</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><code>BINARY</code></para></entry>

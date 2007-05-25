@@ -39,7 +39,6 @@ void send_command(command& cmd, ExceptionSink* xsink)
 {
   CS_RETCODE err = ct_send(cmd());
   if (err != CS_SUCCEED) {
-    assert(false);
     xsink->raiseException("DBI-EXEC-EXCEPTION", "ct_send() failed with error %d", (int)err);
   } 
 }
