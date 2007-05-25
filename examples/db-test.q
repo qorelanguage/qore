@@ -143,6 +143,7 @@ create table data_test (
 	text_f text not null,
 	unitext_f unitext not null, -- note that unitext is stored as 'image'
 
+        bit_f bit not null,
 	tinyint_f tinyint not null,
 	smallint_f smallint not null,
 	int_f int not null,
@@ -192,6 +193,7 @@ create table data_test (
 	text_f text not null,
 	unitext_f unitext not null, -- note that unitext is stored as 'image'
 
+        bit_f bit not null,
 	tinyint_f tinyint not null,
 	smallint_f smallint not null,
 	int_f int not null,
@@ -455,12 +457,12 @@ sub mysql_test()
 
 sub sybase_test($db)
 {
-    my $args = ( NULL, "test", "test", "test", "test", "test", "test", 55, 4285, 405402,
+    my $args = ( NULL, "test", "test", "test", "test", "test", "test", True, 55, 4285, 405402,
 		 500.1231, 23443.234324234, 213.123, 3434234250.2034, 211100.1012,
 		 2007-05-01, 10:30:01, 3459-01-01T11:15:02.251, 2007-12-01T12:01:00, <0badbeef>, <feedface>, <cafebead> );
 
     # insert data
-    my $rows = $db.vexec("insert into data_test values (%v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v)", $args);
+    my $rows = $db.vexec("insert into data_test values (%v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v)", $args);
 
     my $q = $db.selectRow("select * from data_test");
     foreach my $k in (keys $q)
@@ -474,12 +476,12 @@ sub mssql_test($db)
     # freetds doesn't support the following column types as far as I can tell:
     # unichar, univarchar
 
-    my $args = ( NULL, "test", "test", "test", "test", 55, 4285, 405402,
+    my $args = ( NULL, "test", "test", "test", "test", True, 55, 4285, 405402,
 		 500.1231, 23443.234324234, 213.123, 3434234250.2034, 211100.1012,
 		 2007-05-01, 10:30:01, 3459-01-01T11:15:02.251, 2007-12-01T12:01:00, <0badbeef>, <feedface>, <cafebead> );
 
     # insert data
-    my $rows = $db.vexec("insert into data_test values (%v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v)", $args);
+    my $rows = $db.vexec("insert into data_test values (%v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v)", $args);
 
     my $q = $db.selectRow("select * from data_test");
     foreach my $k in (keys $q)

@@ -61,12 +61,14 @@ int set_input_params(command& cmd, processed_language_command_t &query, class Li
 	 dtype = CS_CHAR_TYPE;
       else if (val->type == NT_DATE)
 	 dtype = CS_DATETIME_TYPE;
-      else if (val->type == NT_INT || val->type == NT_BOOLEAN)
+      else if (val->type == NT_INT)
 #ifdef CS_BIGINT_TYPE_1
 	 dtype = CS_BIGINT_TYPE;
 #else
          dtype = CS_INT_TYPE;
 #endif
+      else if (val->type == NT_BOOLEAN)
+	 dtype = CS_BIT_TYPE;
       else if (val->type == NT_FLOAT)
 	 dtype = CS_FLOAT_TYPE;
       else if (val->type == NT_BINARY)
@@ -315,11 +317,7 @@ int set_input_parameter(command& cmd, unsigned parameter_index, int type,
 
      case CS_BIT_TYPE:
      {
-	if (data->type != NT_BOOLEAN) {
-	   xsink->raiseException("DBI-EXEC-EXCEPTION", "Incorrect type for boolean parameter #%u", parameter_index);
-	   return -1;
-	}
-	CS_BIT val = data->val.boolval ? 1 : 0;
+	CS_BIT val = data->getAsBool();
 	datafmt.datatype = CS_BIT_TYPE;
 	err = ct_param(cmd(), &datafmt, &val, sizeof(val), 0);
 	if (err != CS_SUCCEED) {
