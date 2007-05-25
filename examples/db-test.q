@@ -35,59 +35,67 @@ sub usage()
     exit();
 }
 
-const table_map = 
- ( "oracle" : ora_tables,
-   "mysql"  : mysql_tables,
-   "pgsql"  : pgsql_tables,
-   "sybase" : syb_tables,
-   "mssql"  : mssql_tables );
+const object_map = 
+ ( "oracle" : 
+   ( "tables" : ora_tables ),
+   "mysql"  : 
+   ( "tables" : mysql_tables ),
+   "pgsql"  : 
+   ( "tables" : pgsql_tables ),
+   "sybase" : 
+   ( "tables" : syb_tables ),
+   "mssql"  : 
+   ( "tables" : mssql_tables,
+     "procs"  : mssql_procs ) );
 
-const table_list = ( "family", "people", "attributes", "data_test" );
-
-const ora_tables = ("create table family (
+const ora_tables = ( 
+    "family" : "create table family (
    family_id int not null,
    name varchar2(80) not null
-)", "create table people (
+)",
+    "people" : "create table people (
    person_id int not null,
    family_id int not null,
    name varchar2(250) not null,
    dob date not null
-)", "create table attributes (
+)",
+    "attributes" : "create table attributes (
    person_id int not null,
    attribute varchar2(80) not null,
    value varchar2(160) not null
-)");
+)" );
 
 const mysql_tables = (
-"create table family (
+    "family" : "create table family (
    family_id int not null,
    name varchar(80) not null
 ) type = innodb",
-"create table people (
+    "people" : "create table people (
    person_id int not null,
    family_id int not null,
    name varchar(250) not null,
    dob date not null
 ) type = innodb",
-"create table attributes (
+    "attributes" : "create table attributes (
    person_id int not null,
    attribute varchar(80) not null,
    value varchar(160) not null
 ) type = innodb" );
 
-const pgsql_tables = ("create table family (
+const pgsql_tables = (
+    "family" : "create table family (
    family_id int not null,
    name varchar(80) not null )", 
-"create table people (
+    "people" : "create table people (
    person_id int not null,
    family_id int not null,
    name varchar(250) not null,
    dob date not null )",
-"create table attributes (
+    "attributes" : "create table attributes (
    person_id int not null,
    attribute varchar(80) not null,
    value varchar(160) not null)",
-"create table data_test (
+    "data_test" : "create table data_test (
         int2_f smallint not null,
         int4_f integer not null,
         int8_f int8 not null,
@@ -119,23 +127,23 @@ const pgsql_tables = ("create table family (
         --varbit_f bit varying(11) not null
 )" );
 
-const syb_tables = "
-create table family (
+const syb_tables = (
+    "family" : "create table family (
    family_id int not null,
    name varchar(80) not null
-)
-create table people (
+)", 
+    "people" : "create table people (
    person_id int not null,
    family_id int not null,
    name varchar(250) not null,
    dob date not null
-)
-create table attributes (
+)", 
+    "attributes" : "create table attributes (
    person_id int not null,
    attribute varchar(80) not null,
    value varchar(160) not null
-)
-create table data_test (
+)",
+    "data_test" : "create table data_test (
 	null_f char(1) null,
 
 	varchar_f varchar(40) not null,
@@ -166,26 +174,25 @@ create table data_test (
 	binary_f binary(4) not null,
 	varbinary_f varbinary(4) not null,
 	image_f image not null
-)
-";
+)" );
 
-const mssql_tables = "
-create table family (
+const mssql_tables = (
+    "family" : "create table family (
    family_id int not null,
    name varchar(80) not null
-)
-create table people (
+)", 
+    "people" : "create table people (
    person_id int not null,
    family_id int not null,
    name varchar(250) not null,
    dob date not null
-)
-create table attributes (
+)", 
+    "attributes" : "create table attributes (
    person_id int not null,
    attribute varchar(80) not null,
    value varchar(160) not null
-)
-create table data_test (
+)",
+    "data_test" : "create table data_test (
 	null_f char(1) null,
 
 	varchar_f varchar(40) not null,
@@ -214,8 +221,21 @@ create table data_test (
 	binary_f binary(4) not null,
 	varbinary_f varbinary(4) not null,
 	image_f image not null
-)
-";
+)" );
+
+const mssql_procs = ( 
+    "find_family" : 
+"create procedure find_family @name varchar(80) 
+as 
+select * from family where name = @name
+commit -- to maintain transaction count
+",
+    "get_values" : 
+"create procedure get_values @string varchar(80) output
+as 
+select @string = 'hello there'
+commit -- to maintain transaction count
+" );
 
 sub parse_command_line()
 {
@@ -237,10 +257,18 @@ sub create_datamodel($db)
 {
     drop_test_datamodel($db);
   
-    foreach my $sql in (table_map.($db.getDriverName()))
-    {
-	$db.exec($sql);
-    }
+    my $driver = $db.getDriverName();
+    # create tables
+    foreach my $table in (keys object_map.$driver.tables)
+	$db.exec(object_map.$driver.tables.$table);
+
+    # create procedures if any
+    foreach my $proc in (keys object_map.$driver.procs)
+	$db.exec(object_map.$driver.procs.$proc);
+
+    # create functions if any
+    foreach my $func in (keys object_map.$driver.funcs)
+	$db.exec(object_map.$driver.funcs.$func);
 
     $db.exec("insert into family values ( 1, 'Smith' )");
     $db.exec("insert into family values ( 2, 'Jones' )");
@@ -274,9 +302,30 @@ sub create_datamodel($db)
 
 sub drop_test_datamodel($db)
 {
-    # drop the tables and ignore any exceptions
-    foreach my $table in (table_list)
+    my $driver = $db.getDriverName();
+    # drop the tables and ignore exceptions
+    # the commits are needed for databases like postgresql, where errors will prohibit and further
+    # actions from being taken on the Datasource
+    foreach my $table in (keys object_map.$driver.tables)
 	try { $db.exec("drop table " + $table); $db.commit(); } catch () { $db.commit(); }
+    
+    # drop procedures and ignore exceptions
+    foreach my $proc in (keys object_map.$driver.procs)
+    {
+	my $cmd = object_map.$driver.drop_proc_cmd;
+	if (!exists $cmd)
+	    $cmd = "drop procedure";
+	try { $db.exec($cmd + " " + $proc); $db.commit(); } catch () { $db.commit(); }
+    }
+
+    # drop functions and ignore exceptions
+    foreach my $func in (keys object_map.$driver.funcs)
+    {
+	my $cmd = object_map.$driver.drop_func_cmd;
+	if (!exists $cmd)
+	    $cmd = "drop function";
+	try { $db.exec($cmd + " " + $func); $db.commit(); } catch () { $db.commit(); }
+    }
 }
 
 sub getDS()
@@ -590,7 +639,14 @@ sub sybase_test($db)
 
 sub mssql_test($db)
 {
-    # the mssql driver does not with with the following sybase column types:
+    # simple stored proc test, bind by name
+    my $x = $db.exec("exec find_family %v", "Smith");
+    test_value($x, ("name": list("Smith"), "family_id" : list(1)), "simple stored proc");
+
+    # bind by placeholder test
+    #$x = $db.exec("exec get_values :string");
+
+    # the mssql driver does not work with the following sybase column types:
     # unichar, univarchar
 
     my $args = ( "null_f"          : NULL,

@@ -122,23 +122,42 @@ void connection::init(const char* username, const char* password, const char* db
     return;
   }
 */
-  ret = ct_con_alloc(m_context, &m_connection);
-  if (ret != CS_SUCCEED) {
-    xsink->raiseException("DBI:SYBASE:CT-LIB-CREATE-CONNECTION", "ct_con_alloc() failed with error %d", ret);
-    return;
-  }
-
-  ret = ct_con_props(m_connection, CS_SET, CS_USERNAME, (CS_VOID*)username, CS_NULLTERM, 0);
-  if (ret != CS_SUCCEED) {
-    xsink->raiseException("DBI:SYBASE:CT-LIB-SET-USERNAME", "ct_con_props(CS_USERNAME) failed with error %d", ret);
-    return;
-  }
-  if (password && password[0]) {
-    ret = ct_con_props(m_connection, CS_SET, CS_PASSWORD, (CS_VOID*)password, CS_NULLTERM, 0);
-    if (ret != CS_SUCCEED) {
-      xsink->raiseException("DBI:SYBASE:CT-LIB-SET-PASSWORD", "ct_con_props(CS_PASSWORD) failed with error %d", ret);
+  
+   ret = ct_con_alloc(m_context, &m_connection);
+   if (ret != CS_SUCCEED) {
+      xsink->raiseException("DBI:SYBASE:CT-LIB-CREATE-CONNECTION", "ct_con_alloc() failed with error %d", ret);
       return;
-    }
+   }
+
+   /*
+   // set inline message handling
+   ret = ct_diag(m_connection, CS_INIT, CS_UNUSED, CS_UNUSED, 0);
+   if (ret != CS_SUCCEED)
+   {
+      xsink->raiseException("DBI:SYBASE:CT-LIB-INIT-ERROR-HANDLING-ERROR", "ct_diag(CS_INIT) failed with error %d, unable to initialize inline error handling", ret);
+      return;
+   }
+    */
+#if 0   
+   int num = 1;
+   ret = ct_diag(m_connection, CS_MSGLIMIT, CS_ALLMSG_TYPE, CS_UNUSED, &num);
+   if (ret != CS_SUCCEED)
+   {
+      xsink->raiseException("DBI:SYBASE:CT-LIB-INIT-ERROR-HANDLING-ERROR", "ct_diag(CS_MSGLIMIT) failed with error %d, unable to initialize inline error handling", ret);
+      return;
+   }   
+#endif   
+   ret = ct_con_props(m_connection, CS_SET, CS_USERNAME, (CS_VOID*)username, CS_NULLTERM, 0);
+   if (ret != CS_SUCCEED) {
+      xsink->raiseException("DBI:SYBASE:CT-LIB-SET-USERNAME", "ct_con_props(CS_USERNAME) failed with error %d", ret);
+      return;
+   }
+   if (password && password[0]) {
+      ret = ct_con_props(m_connection, CS_SET, CS_PASSWORD, (CS_VOID*)password, CS_NULLTERM, 0);
+      if (ret != CS_SUCCEED) {
+	 xsink->raiseException("DBI:SYBASE:CT-LIB-SET-PASSWORD", "ct_con_props(CS_PASSWORD) failed with error %d", ret);
+	 return;
+      }
   }
 
   CS_LOCALE *tmp_locale;  

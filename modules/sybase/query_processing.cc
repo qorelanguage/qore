@@ -34,6 +34,8 @@
 //------------------------------------------------------------------------------
 bool is_query_procedure_call(const char* query)
 {
+   return false;
+/*
   while (isspace(*query)) ++query;
   if (strncasecmp(query, "execute ", 8) == 0) {
     return true;
@@ -42,6 +44,7 @@ bool is_query_procedure_call(const char* query)
     return true;
   }
   return false;
+*/
 }
 
 
