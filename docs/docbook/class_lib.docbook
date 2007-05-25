@@ -19417,7 +19417,14 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <entry><para>SQL::DBI_CAP_LOB_SUPPORT</para></entry>
 	    <entry><para>Indicates that the DBI driver supports *LOB columns.</para></entry>
 	  </row>
-	  
+	  <row>
+	    <entry><para>SQL::DBI_CAP_BIND_BY_VALUE</para></entry>
+	    <entry><para>Indicates that the DBI driver supports directly binding qore values into queries using the %v placeholder in the query string.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>SQL::DBI_CAP_BIND_BY_PLACEHOLDER</para></entry>
+	    <entry><para>Indicates that the DBI driver supports binding placeholder buffers when executing SQL to retrieve data from queries and procedures, etc.</para></entry>
+	  </row>	  
 	</tbody>
       </tgroup>
     </table>
@@ -19431,22 +19438,24 @@ $sock.bind("/tmp/socket");</programlisting>
     <para>The Datasource class is the high-level Qore interface to Qore's DBI layer, and as such, Datasource objects allow Qore programs to access databases that have a Qore DBI driver.  The Datasource class will attempt to load any DBI driver that is not currently loaded in the <link linkend="Qore::SQL::Datasource::constructor">constructor</link>.  For connection pooling support, see the <link linkend="DatasourcePool_Class">DatasourcePool</link> class.</para>
     
     <para>Datasource objects will implicitly call <link linkend="Qore::SQL::Datasource::open">Datasource::open()</link> if no connection has yet been established and a method is called requiring a connection to the database server.  Therefore any method that requires communication with the database server can also throw any exception that the open method can throw.</para>
-
-    <para>Database objects have an internal transaction lock which will be grabbed when the <link linkend="Qore::SQL::Datasource::exec">Datasource::exec()</link> or <link linkend="Qore::SQL::Datasource::beginTransaction">Datasource::beginTransaction()</link> methods are executed and autocommit is not enabled. This enables a single datasource to be safely used for transaction management by several threads simultaneously. Note that an exception in a Datasource::exec() call, if the transaction lock is not already held, will have the effect that the transaction lock is not acquired.</para>
-
-    <para>Any thread attempting to do transaction-relevant actions on a Datasource with auto-commit disabled while a transaction is in progress by another thread will block until the thread currently executing a transaction executes the <link linkend="Qore::SQL::Datasource::commit">Datasource::commit()</link> or <link linkend="Qore::SQL::Datasource::rollback">Datasource::rollback()</link> methods (or the Datasource is deleted, reset, or closed, in which case the lock is released and an exception is raised as well).</para>
-    
-    <para>There is a timeout associated with the transaction lock; if a thread waits for the transaction lock for more than the timeout period, then an exception will be raised in the waiting thread. The timeout value can be read and changed with the <link linkend="Qore::SQL::Datasource::getTransactionLockTimeout">Datasource::getTransactionLockTimeout()</link> and <link linkend="Qore::SQL::Datasource::setTransactionLockTimeout">Datasource::setTransactionLockTimeout()</link> methods, respectively. The default transaction timeout value is 120 seconds.</para>
-
+	
     <para>Some Qore DBI drivers allow &quot;select&quot; queries to be executed through the <link linkend="Qore::SQL::Datasource::exec">Datasource::exec()</link> method, and allow SQL commands (procedure calls, etc) to be executed through the <link linkend="Qore::SQL::Datasource::select">Datasource::select()</link> method, and some DBI drivers do not (depends on the underlying DB API).  At any rate, the transaction lock is set when auto-commit is disabled and when the <link linkend="Qore::SQL::Datasource::exec">Datasource::exec()</link> or  <link linkend="Qore::SQL::Datasource::beginTransaction">Datasource::beginTransaction()</link> methods are executed as documented above.  Therefore executing a transaction relevant command through the  <link linkend="Qore::SQL::Datasource::select">Datasource::select()</link> method while auto-commit mode is disabled and a transaction has not yet started will not result in the transaction lock being allocated to the current thread and therefore could cause transaction errors when sharing the Datasource object between multiple threads.</para>
 
     <para>Only databases with an existing Qore DBI driver can be accessed through the Qore Datasource class.  DBI drivers shipping with Qore include <link linkend="oracle_Module">oracle</link>, <link linkend="mysql_Module">mysql</link>, <link linkend="pgsql_Module">pgsql</link> (PostgreSQL), <link linkend="sybase_Module">sybase</link>, and <link linkend="mssql_Module">mssql</link> (FreeTDS-based Microsoft SQL Server driver).</para>
 
-    <para>DBI drivers delivered separately from Qore may support only a subset of all possible features (at the time of writing this documentation there are none).  Use the following functions to query DBI driver capabilities: <link linkend="getDBIDriverCapabilities">getDBIDriverCapabilities()</link>, <link linkend="getDBIDriverCapabilityList">getDBIDriverCapabilityList()</link>, and <link linkend="getDBIDriverList">getDBIDriverList()</link>.  See <link linkend="DBI_Capability_Constants">DBI Capability Constants</link> for a table of DBI driver capability codes.</para>
-
    <para>All Qore DBI drivers set new connections to use transaction isolation level &quot;read committed&quot;.</para>
 
    <para>The Datasource class provides consistent, high-level, per-connection locking on requests at a level above the DBI drivers to ensure that the communication between clients and servers is properly serialized.</para>
+
+    <sect2 id="datasource_transaction_lock">
+      <title>Datasource Transaction Locks</title>
+      
+      <para>Datasource objects have an internal transaction lock which will be grabbed when the <link linkend="Qore::SQL::Datasource::exec">Datasource::exec()</link>, <link linkend="Qore::SQL::Datasource::vexec">Datasource::vexec()</link> or <link linkend="Qore::SQL::Datasource::beginTransaction">Datasource::beginTransaction()</link> methods are executed and autocommit is not enabled.  This enables a single datasource to be safely used for transaction management by several threads simultaneously. Note that an exception in a Datasource::exec() call, if the transaction lock is not already held, will have the effect that the transaction lock is not acquired.</para>
+
+      <para>Any thread attempting to do transaction-relevant actions on a Datasource with auto-commit disabled while a transaction is in progress by another thread will block until the thread currently executing a transaction executes the <link linkend="Qore::SQL::Datasource::commit">Datasource::commit()</link> or <link linkend="Qore::SQL::Datasource::rollback">Datasource::rollback()</link> methods (or the Datasource is deleted, reset, or closed, in which case the lock is released and an exception is raised as well).</para>
+    
+      <para>There is a timeout associated with the transaction lock; if a thread waits for the transaction lock for more than the timeout period, then an exception will be raised in the waiting thread. The timeout value can be read and changed with the <link linkend="Qore::SQL::Datasource::getTransactionLockTimeout">Datasource::getTransactionLockTimeout()</link> and <link linkend="Qore::SQL::Datasource::setTransactionLockTimeout">Datasource::setTransactionLockTimeout()</link> methods, respectively. The default transaction lock timeout value is 120 seconds.</para>
+    </sect2>
 
     <table>
       <title>Qore::SQL::Datasource Method Overview</title>
@@ -19487,12 +19496,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	  <row>
 	    <entry><para><link linkend="Qore::SQL::Datasource::commit">Datasource::commit()</link></para></entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Commits the transaction and releases the transaction lock.</para></entry>
+	    <entry><para>Commits the transaction and releases the <link linkid="datasource_transaction_lock">transaction lock</link>.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::SQL::Datasource::rollback">Datasource::rollback()</link></para></entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Rolls back the transaction and releases the transaction lock.</para></entry>
+	    <entry><para>Rolls back the transaction and releases the <link linkid="datasource_transaction_lock">transaction lock</link>.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::SQL::Datasource::setAutoCommit">Datasource::setAutoCommit()</link></para></entry>
@@ -19542,7 +19551,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	  <row>
 	    <entry><para><link linkend="Qore::SQL::Datasource::beginTransaction">Datasource::beginTransaction()</link></para></entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Manually grabs the transaction lock</para></entry>
+	    <entry><para>Manually grabs the <link linkid="datasource_transaction_lock">transaction lock</link></para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::SQL::Datasource::setUserName">Datasource::setUserName()</link></para></entry>
@@ -19607,12 +19616,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	  <row>
 	    <entry><para><link linkend="Qore::SQL::Datasource::setTransactionLockTimeout">Datasource::setTransactionLockTimeout()</link></para></entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Sets the transaction timeout value in milliseconds.  Set to 0 for no timeout.</para></entry>
+	    <entry><para>Sets the <link linkid="datasource_transaction_lock">transaction lock</link> timeout value in milliseconds.  Set to 0 for no timeout.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::SQL::Datasource::getTransactionLockTimeout">Datasource::getTransactionLockTimeout()</link></para></entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Retrieves the transaction timeout value as an integer in milliseconds.</para></entry>
+	    <entry><para>Retrieves the <link linkid="datasource_transaction_lock">transaction lock</link> timeout value as an integer in milliseconds.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::SQL::Datasource::getServerVersion">Datasource::getServerVersion()</link></para></entry>
@@ -19853,7 +19862,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Manually grabs the transaction lock.  This method should be called when the Datasource object will be shared between more than 1 thread, and a transaction will be started with a <link linkend="Qore::SQL::Datasource::select">Datasource::select()</link> method.</para>
+	    <para>Manually grabs the <link linkid="datasource_transaction_lock">transaction lock</link>.  This method should be called when the Datasource object will be shared between more than 1 thread, and a transaction will be started with a <link linkend="Qore::SQL::Datasource::select">Datasource::select()</link> method.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -19920,11 +19929,11 @@ $sock.bind("/tmp/socket");</programlisting>
 	  <tbody>
 	    <row>
 	      <entry><para><code>AUTOCOMMIT-ERROR</code></para></entry>
-	      <entry><para>Cannot grab the transaction lock on a datasource when autocommit is enabled.</para></entry>
+	      <entry><para>Cannot start a transaction when autocommit is enabled.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para><code>TRANSACTION-TIMEOUT</code></para></entry>
-	      <entry><para>Timeout trying to acquire the transaction lock.</para></entry>
+	      <entry><para><code>TRANSACTION-LOCK-TIMEOUT</code></para></entry>
+	      <entry><para>Timeout trying to acquire the <link linkid="datasource_transaction_lock">transaction lock</link>.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -20083,7 +20092,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Commits the current transaction and releases the transaction lock.</para>
+	    <para>Commits the current transaction and releases the <link linkid="datasource_transaction_lock">transaction lock</link>.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -20149,8 +20158,8 @@ $sock.bind("/tmp/socket");</programlisting>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code>TRANSACTION-TIMEOUT</code></para></entry>
-	      <entry><para>Timeout trying to acquire the transaction lock.</para></entry>
+	      <entry><para><code>TRANSACTION-LOCK-TIMEOUT</code></para></entry>
+	      <entry><para>Timeout trying to acquire the <link linkid="datasource_transaction_lock">transaction lock</link>.</para></entry>
 	    </row>
 	    <row>
 	      <entry><para>depends on DBI driver</para></entry>
@@ -20168,7 +20177,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Rolls back the current transaction and releases the transaction lock.</para>
+	    <para>Rolls back the current transaction and releases the <link linkid="datasource_transaction_lock">transaction lock</link>.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -20234,8 +20243,8 @@ $sock.bind("/tmp/socket");</programlisting>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code>TRANSACTION-TIMEOUT</code></para></entry>
-	      <entry><para>Timeout trying to acquire the transaction lock.</para></entry>
+	      <entry><para><code>TRANSACTION-LOCK-TIMEOUT</code></para></entry>
+	      <entry><para>Timeout trying to acquire the <link linkid="datasource_transaction_lock">transaction lock</link>.</para></entry>
 	    </row>
 	    <row>
 	      <entry><para>depends on DBI driver</para></entry>
@@ -20315,7 +20324,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Grabs the transaction lock (if autocommit is disabled) and executes an SQL command on the server and returns either the row count (for example, for updates and inserts) or the data retrieved (for example, if a stored procedure is executed that returns values).  This method takes a special syntax for binding values and placeholders, similar to printf() functions.</para>
+	    <para>Grabs the <link linkid="datasource_transaction_lock">transaction lock</link> (if autocommit is disabled) and executes an SQL command on the server and returns either the row count (for example, for updates and inserts) or the data retrieved (for example, if a stored procedure is executed that returns values).  This method takes a special syntax for binding values and placeholders, similar to printf() functions.</para>
 
 	    <para>For binding values directly in a binary format, use <code>%v</code> in the command string, and include the value as an argument after the string.  Binding by value means that Qore's DBI driver will take care of formatting the data properly for use in the query with the database server.  That means that strings do not need to be quoted, date/time values do not need special formatting, binary object (with BLOB columns, for example) can be used directly in queries, etc.  You can find an example below.</para>
 	    
@@ -20393,8 +20402,8 @@ $sock.bind("/tmp/socket");</programlisting>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code>TRANSACTION-TIMEOUT</code></para></entry>
-	      <entry><para>Timeout trying to acquire the transaction lock.</para></entry>
+	      <entry><para><code>TRANSACTION-LOCK-TIMEOUT</code></para></entry>
+	      <entry><para>Timeout trying to acquire the <link linkid="datasource_transaction_lock">transaction lock</link>.</para></entry>
 	    </row>
 	    <row>
 	      <entry><para>depends on DBI driver</para></entry>
@@ -20483,8 +20492,8 @@ $sock.bind("/tmp/socket");</programlisting>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code>TRANSACTION-TIMEOUT</code></para></entry>
-	      <entry><para>Timeout trying to acquire the transaction lock.</para></entry>
+	      <entry><para><code>TRANSACTION-LOCK-TIMEOUT</code></para></entry>
+	      <entry><para>Timeout trying to acquire the <link linkid="datasource_transaction_lock">transaction lock</link>.</para></entry>
 	    </row>
 	    <row>
 	      <entry><para>depends on DBI driver</para></entry>
@@ -21026,7 +21035,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Sets the transaction timeout value in milliseconds; set to 0 for no timeout.  Like all Qore functions and methods taking timeout values, a relative time value may be passed instead of an integer to make the timeout units clear (ex: <code>2500ms</code> for 2.5 seconds).</para>
+	    <para>Sets the <link linkid="datasource_transaction_lock">transaction lock</link> timeout value in milliseconds; set to 0 for no timeout.  Like all Qore functions and methods taking timeout values, a relative time value may be passed instead of an integer to make the timeout units clear (ex: <code>2500ms</code> for 2.5 seconds).</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -21038,7 +21047,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$db.setTransactionLockTimeout(5m); # transaction lock timeout set to 5 minutes</programlisting>
+	    <programlisting>$db.setTransactionLockTimeout(5m); # <link linkid="datasource_transaction_lock">transaction lock</link> timeout set to 5 minutes</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -21089,7 +21098,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Retrieves the transaction timeout value in milliseconds.</para>
+	    <para>Retrieves the <link linkid="datasource_transaction_lock">transaction lock</link> timeout value as an integer in milliseconds.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -21138,7 +21147,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	  <tbody>
 	    <row>
 	      <entry><para>Integer</para></entry>
-	      <entry><para>The transaction timeout value in milliseconds.</para></entry>
+	      <entry><para>The <link linkid="datasource_transaction_lock">transaction lock</link> timeout value in milliseconds.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>

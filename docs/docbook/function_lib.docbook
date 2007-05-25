@@ -397,20 +397,10 @@
           </entry>
         </row>
         <row>
-          <entry>
-            <para>
-              <link linkend="ceil">ceil()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>Float</para>
-          </entry>
-          <entry>
-            <para>N</para>
-          </entry>
-          <entry>
-            <para>Returns a value rounded up to the nearest 
-      integer</para>
+          <entry><para><link linkend="ceil">ceil()</link></para></entry>
+          <entry><para>Float</para></entry>
+          <entry><para>N</para></entry>
+          <entry><para>Returns a value rounded up to the next highest integer</para>
           </entry>
         </row>
         <row>
@@ -3196,6 +3186,13 @@
           </entry>
         </row>
         <row>
+          <entry><para><link linkend="round">round()</link></para></entry>
+          <entry><para>Float</para></entry>
+          <entry><para>N</para></entry>
+          <entry><para>Returns a value rounded up to the nearest integer integer</para>
+          </entry>
+        </row>
+        <row>
           <entry>
             <para>
               <link linkend="save_thread_data">save_thread_data()</link>
@@ -4826,6 +4823,57 @@
     </tbody>
   </tgroup>
   </table>
+</sect2>
+
+<sect2 id="round">
+<title>round()</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Returns a floating-point number equal to the closest integral to the argument passed.  Numers halfway between two integers are arounded away from zero.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+	<programlisting>round(<replaceable>float</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$x = round(3.2); # returns 3.0 </programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+  
+  <table>
+    <title>Arguments and Return Values for round()</title>
+    <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+
+  <thead>
+  <row>
+    <entry><para>Argument Type</para></entry>
+    <entry><para>Return Type</para></entry>
+    <entry><para>Description</para></entry>
+  </row>
+  </thead>
+
+<tbody>
+  <row>
+    <entry><para>Float</para></entry>
+    <entry><para>Float</para></entry>
+    <entry><para>Returns a value rounded to the nearest integral floating-point value, half-way cases are rounded away from zero.</para></entry>
+  </row>
+</tbody>
+</tgroup>
+</table>
+
+  <para>This function does not throw any exceptions.</para>
+
 </sect2>
 
 <sect2 id="sin">

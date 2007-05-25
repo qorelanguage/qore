@@ -9,9 +9,9 @@
 
     <programlisting>$db = new Datasource(SQL::DSOracle, $user, $pass, $db, $charset);</programlisting>
 
-    <para>This driver supports the following DBI capabilities: <code>DBI_CAP_TRANSACTION_MANAGEMENT, DBI_CAP_STORED_PROCEDURES, DBI_CAP_CHARSET_SUPPORT, DBI_CAP_LOB_SUPPORT</code>.</para>
+    <para>This driver supports the following <link linkend="DBI_Capability_Constants">DBI capabilities</link>: <code>DBI_CAP_TRANSACTION_MANAGEMENT, DBI_CAP_STORED_PROCEDURES, DBI_CAP_CHARSET_SUPPORT, DBI_CAP_LOB_SUPPORT, DBI_CAP_BIND_BY_VALUE, DBI_CAP_BIND_BY_PLACEHOLDER</code>.</para>
 
-    <para>Binding by value is supported, and bding by placeholder is required to retrieve values from a procedure or function call.  The oracle driver assumes that any placeholder values are string values unless a placeholder buffer specification is passed in the argument position corresponding to the placeholder specification in the string.  For placeholder buffer spcification values, see <link linkend="oracle_placeholder_specifications">Oracle Type Mappings for Placeholder Specifications</link>.</para>
+    <para>Binding by value is supported, and binding by placeholder is required to retrieve values from a procedure or function call.  The oracle driver assumes that any placeholder values are string values unless a placeholder buffer specification is passed in the argument position corresponding to the placeholder specification in the string.  For placeholder buffer spcification values, see <link linkend="oracle_placeholder_specifications">Oracle Type Mappings for Placeholder Specifications</link>.</para>
 
     <para>Oracle TIMESTAMP data supports time resolution to the microsecond, however Qore's date/time value only supports a millisecond resolution.  Any Oracle TIMESTAMP values are rounded to millisecond resolution when converted to Qore data types.</para>
 

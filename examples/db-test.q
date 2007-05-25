@@ -10,12 +10,14 @@
 our $o;
 
 const opts = 
-    ( "help"   : "h,help",
-      "host"   : "H,host=s",
-      "pass"   : "p,pass=s",
-      "db"     : "d,db=s",
-      "user"   : "u,user=s",
-      "type"   : "t,type=s" );
+    ( "help"    : "h,help",
+      "host"    : "H,host=s",
+      "pass"    : "p,pass=s",
+      "db"      : "d,db=s",
+      "user"    : "u,user=s",
+      "type"    : "t,type=s",
+      "verbose" : "v,verbose:i+" 
+ );
 
 sub usage()
 {
@@ -25,7 +27,8 @@ sub usage()
  -p,--pass=ARG     set password
  -d,--db=ARG       set database name
  -H,--host=ARG     set hostname (for MySQL and PostgreSQL connections)
- -t,--type         set database driver (default mysql)\n",
+ -t,--type         set database driver (default mysql)
+ -v,--verbose      more v's = more information\n",
 	   basename($ENV."_"));
     exit();
 }
@@ -321,15 +324,16 @@ sub context_test($db)
 sub test_timeout($db, $c)
 {
     $db.setTransactionLockTimeout(1ms);
+    print("transaction lock test: ");
     try {
-	# this should cause an exception to be thrown
+	# this should cause a TRANSACTION-LOCK-TIMEOUT exception to be thrown
 	$db.exec("insert into family values (3, 'Test')\n");
-	printf("FAILED TRANSACTION LOCK TEST\n");
+	printf("FAILED\n");
 	$db.exec("delete from family where name = 'Test'");
     }
     catch ($ex)
     {
-	printf("TRANSACTION LOCK TEST OK (%N)\n", $ex.err);
+	printf("OK\n");
     }
     # signal parent thread to continue
     $c.dec();
@@ -457,9 +461,29 @@ sub mysql_test()
 
 sub sybase_test($db)
 {
-    my $args = ( NULL, "test", "test", "test", "test", "test", "test", True, 55, 4285, 405402,
-		 500.1231, 23443.234324234, 213.123, 3434234250.2034, 211100.1012,
-		 2007-05-01, 10:30:01, 3459-01-01T11:15:02.251, 2007-12-01T12:01:00, <0badbeef>, <feedface>, <cafebead> );
+    my $args = ( "null_f"          : NULL,
+		 "varchar_f"       : "varchar", 
+		 "char_f"          : "char", 
+		 "unichar_f"       : "unichar",
+		 "univarchar_f"    : "univarchar",
+		 "text_f"          : "test",
+		 "unitext_f"       : "test",
+		 "bit_f"           : True,
+		 "tinyint_f"       : 55, 
+		 "smallint_f"      : 4285, 
+		 "int_f"           : 405402,
+		 "decimal_f"       : 500.1231, 
+		 "float_f"         : 23443.234324234, 
+		 "real_f"          : 213.123, 
+		 "money_f"         : 3434234250.2034, 
+		 "smallmoney_f"    : 211100.1012,
+		 "date_f"          : 2007-05-01, 
+	         "time_f"          : 10:30:01, 
+		 "datetime_f"      : 3459-01-01T11:15:02.250, 
+		 "smalldatetime_f" : 2007-12-01T12:01:00, 
+		 "binary_f"        : <0badbeef>, 
+		 "varbinary_f"     : <feedface>, 
+		 "image_f"         : <cafebead> );
 
     # insert data
     my $rows = $db.vexec("insert into data_test values (%v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v)", $args);
@@ -467,6 +491,26 @@ sub sybase_test($db)
     my $q = $db.selectRow("select * from data_test");
     foreach my $k in (keys $q)
 	printf(" %-16s= %-10s %N\n", $k, type($q.$k), $q.$k);
+
+    # remove values where we know they won't match
+    # unitext_f is returned as IMAGE by the server
+    delete $q.unitext_f;
+    delete $args.unitext_f;
+    # rounding errors can happen in real
+    $q.real_f = round($q.real_f);
+    $args.real_f = round($args.real_f);
+    
+    my $errs;
+    # compare each value
+    foreach my $k in (keys $q)
+    {
+	if ($q.$k != $args.$k)
+        {
+	    printf("ERROR %n != %n\n", $q.$k, $args.$k);
+	    ++$errs;
+	}
+    }
+    printf("%s bind and retrieve value test %s", $db.getDriverName(), $errs ? "FAILED" : "OK");
 
     $db.commit();
 }
@@ -476,16 +520,55 @@ sub mssql_test($db)
     # freetds doesn't support the following column types as far as I can tell:
     # unichar, univarchar
 
-    my $args = ( NULL, "test", "test", "test", "test", True, 55, 4285, 405402,
-		 500.1231, 23443.234324234, 213.123, 3434234250.2034, 211100.1012,
-		 2007-05-01, 10:30:01, 3459-01-01T11:15:02.251, 2007-12-01T12:01:00, <0badbeef>, <feedface>, <cafebead> );
+    my $args = ( "null_f"          : NULL,
+		 "varchar_f"       : "test", 
+		 "char_f"          : "test", 
+		 "text_f"          : "test",
+		 "unitext_f"       : "test",
+		 "bit_f"           : True,
+		 "tinyint_f"       : 55, 
+		 "smallint_f"      : 4285, 
+		 "int_f"           : 405402,
+		 "decimal_f"       : 500.1231, 
+		 "float_f"         : 23443.234324234, 
+		 "real_f"          : 213.123, 
+		 "money_f"         : 3434234250.2034, 
+		 "smallmoney_f"    : 211100.1012,
+		 "date_f"          : 2007-05-01, 
+	         "time_f"          : 10:30:01, 
+		 "datetime_f"      : 3459-01-01T11:15:02.250, 
+		 "smalldatetime_f" : 2007-12-01T12:01:00, 
+		 "binary_f"        : <0badbeef>, 
+		 "varbinary_f"     : <feedface>, 
+		 "image_f"         : <cafebead> );
 
-    # insert data
-    my $rows = $db.vexec("insert into data_test values (%v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v)", $args);
+    # insert data, using the values from the hash above
+    my $rows = $db.vexec("insert into data_test values (%v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v)", hash_values($args));
 
     my $q = $db.selectRow("select * from data_test");
     foreach my $k in (keys $q)
 	printf(" %-16s= %-10s %N\n", $k, type($q.$k), $q.$k);
+
+    # remove values where we know they won't match
+    # unitext_f is returned as IMAGE by the server
+    delete $q.unitext_f;
+    delete $args.unitext_f;
+    # rounding errors can happen in real
+    $q.real_f = round($q.real_f);
+    $args.real_f = round($args.real_f);
+    
+    my $errs;
+    # compare each value
+    foreach my $k in (keys $q)
+    {
+	if ($q.$k != $args.$k)
+        {
+	    printf("ERROR %n != %n\n", $q.$k, $args.$k);
+	    ++$errs;
+	}
+    }
+    if (!$errs)
+	printf("%s bind and retrieve value test OK!\n", $db.getDriverName());
 
     $db.commit();
 }

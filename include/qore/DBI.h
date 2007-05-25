@@ -40,6 +40,8 @@
 #define DBI_CAP_TRANSACTION_MANAGEMENT   (1 << 2)
 #define DBI_CAP_STORED_PROCEDURES        (1 << 3)
 #define DBI_CAP_LOB_SUPPORT              (1 << 4)
+#define DBI_CAP_BIND_BY_VALUE            (1 << 5)
+#define DBI_CAP_BIND_BY_PLACEHOLDER      (1 << 6)
 
 #define BN_PLACEHOLDER  0
 #define BN_VALUE        1

@@ -111,7 +111,7 @@ int ManagedDatasource::grabLock(class ExceptionSink *xsink)
    if (grabLockIntern() < 0)
    {
       endDBActionIntern();
-      xsink->raiseException("TRANSACTION-TIMEOUT", "timed out on datasource '%s@%s' after waiting %d millisecond%s on transaction lock held by TID %d", 
+      xsink->raiseException("TRANSACTION-LOCK-TIMEOUT", "timed out on datasource '%s@%s' after waiting %d millisecond%s on transaction lock held by TID %d", 
 			    username.empty() ? "<n/a>" : username.c_str(), 
 			    dbname.empty() ? "<n/a>" : dbname.c_str(), tl_timeout_ms, 
 			    tl_timeout_ms == 1 ? "" : "s", tid); //tGate.getLockTID());

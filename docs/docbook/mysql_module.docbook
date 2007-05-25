@@ -9,9 +9,9 @@
 
   <programlisting>$db = new Datasource(SQL::DSMySQL, $user, $pass, $db, $charset, $hostname);</programlisting>
 
-  <para>This driver supports the following DBI capabilities when compiled against MySQL 4 or better: <code>DBI_CAP_TRANSACTION_MANAGEMENT, DBI_CAP_CHARSET_SUPPORT, DBI_CAP_LOB_SUPPORT</code>.</para>
+  <para>This driver supports the following <link linkend="DBI_Capability_Constants">DBI capabilities</link> when compiled against MySQL 4 or better: <code>DBI_CAP_TRANSACTION_MANAGEMENT, DBI_CAP_CHARSET_SUPPORT, DBI_CAP_LOB_SUPPORT, DBI_CAP_BIND_BY_VALUE</code>.</para>
   
-  <para>When compiled against MySQL 5, the following additional capabilities are available: <code>DBI_CAP_STORED_PROCEDURES</code>.</para>
+  <para>When compiled against MySQL 5, the following additional capability is available: <code>DBI_CAP_STORED_PROCEDURES</code>.</para>
   
   <para>The driver uses MySQL's prepared statement interface when it is available (must be compiled with MySQL 4 or better).</para>
 

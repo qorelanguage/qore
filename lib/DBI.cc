@@ -452,6 +452,8 @@ class Namespace *getSQLNamespace()
    SQLNS->addConstant("DBI_CAP_TRANSACTION_MANAGEMENT", new QoreNode((int64)DBI_CAP_TRANSACTION_MANAGEMENT));
    SQLNS->addConstant("DBI_CAP_STORED_PROCEDURES",      new QoreNode((int64)DBI_CAP_STORED_PROCEDURES));
    SQLNS->addConstant("DBI_CAP_LOB_SUPPORT",            new QoreNode((int64)DBI_CAP_LOB_SUPPORT));
+   SQLNS->addConstant("DBI_CAP_BIND_BY_VALUE",          new QoreNode((int64)DBI_CAP_BIND_BY_VALUE));
+   SQLNS->addConstant("DBI_CAP_BIND_BY_PLACEHOLDER",    new QoreNode((int64)DBI_CAP_BIND_BY_PLACEHOLDER));
 
    // for column types for binding
    SQLNS->addConstant("VARCHAR", new QoreNode("string"));

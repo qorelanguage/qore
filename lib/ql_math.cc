@@ -27,6 +27,16 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+static class QoreNode *f_round(class QoreNode *params, ExceptionSink *xsink)
+{
+   class QoreNode *p0;
+
+   if (!(p0 = get_param(params, 0)))
+      return NULL;
+
+   return new QoreNode(round(p0->getAsFloat()));
+}
+
 static class QoreNode *f_ceil(class QoreNode *params, ExceptionSink *xsink)
 {
    class QoreNode *p0;
@@ -403,6 +413,7 @@ static class QoreNode *f_format_number(class QoreNode *params, ExceptionSink *xs
 
 void init_math_functions()
 {
+   builtinFunctions.add("round",         f_round);
    builtinFunctions.add("ceil",          f_ceil);
    builtinFunctions.add("floor",         f_floor);
    builtinFunctions.add("pow",           f_pow);

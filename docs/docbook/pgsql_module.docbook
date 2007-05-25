@@ -8,7 +8,7 @@
 
     <programlisting>$db = new Datasource(SQL::DSPGSQL, $user, $pass, $db, $charset, $hostname);</programlisting>
 
-    <para>This driver supports the following DBI capabilities when compiled against PostgreSQL 7 or better: <code>DBI_CAP_TRANSACTION_MANAGEMENT, DBI_CAP_CHARSET_SUPPORT, DBI_CAP_LOB_SUPPORT, DBI_CAP_STORED_PROCEDURES</code>.</para>
+    <para>This driver supports the following <link linkend="DBI_Capability_Constants">DBI capabilities</link> when compiled against PostgreSQL 7 or better: <code>DBI_CAP_TRANSACTION_MANAGEMENT, DBI_CAP_CHARSET_SUPPORT, DBI_CAP_LOB_SUPPORT, DBI_CAP_STORED_PROCEDURES, DBI_CAP_BIND_BY_VALUE</code>.</para>
 
     <para>The driver employs efficient binary bindings for all non-text data types and fully supports multidimensional arrays when selecting and binding by value.  The driver determines on a per-connection basis by querying server capabilities whether the server uses 8-byte integer or floating-point data for date/time types, and also whether or not a binary day value is included in intervals.</para>
 

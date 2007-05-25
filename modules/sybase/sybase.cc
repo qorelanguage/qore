@@ -66,11 +66,12 @@ DLLEXPORT qore_module_delete_t qore_module_delete = sybase_module_delete;
 static DBIDriver* DBID_SYBASE;
 
 // capabilities of this driver
-#define DBI_SYBASE_CAPS ( \
-  DBI_CAP_TRANSACTION_MANAGEMENT | \
+#define DBI_SYBASE_CAPS ( DBI_CAP_TRANSACTION_MANAGEMENT | \
   DBI_CAP_CHARSET_SUPPORT | \
   DBI_CAP_LOB_SUPPORT | \
-  DBI_CAP_STORED_PROCEDURES)
+  DBI_CAP_STORED_PROCEDURES | \
+  DBI_CAP_BIND_BY_VALUE | \
+  DBI_CAP_BIND_BY_PLACEHOLDER )
 
 //------------------------------------------------------------------------------
 #ifdef DEBUG

@@ -47,7 +47,8 @@ DLLEXPORT qore_module_delete_t qore_module_delete = pgsql_module_delete;
 static int pgsql_caps = DBI_CAP_TRANSACTION_MANAGEMENT 
    | DBI_CAP_CHARSET_SUPPORT
    | DBI_CAP_STORED_PROCEDURES 
-   | DBI_CAP_LOB_SUPPORT;
+   | DBI_CAP_LOB_SUPPORT
+   | DBI_CAP_BIND_BY_VALUE;
 
 class DBIDriver *DBID_PGSQL = NULL;
 
