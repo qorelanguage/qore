@@ -22,8 +22,7 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <qore/config.h>
-#include <qore/QoreLib.h>
+#include <qore/Qore.h>
 #include <qore/FtpClient.h>
 #include <qore/QoreURL.h>
 

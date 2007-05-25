@@ -22,14 +22,8 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <qore/config.h>
 #include <qore/Qore.h>
 #include <qore/QoreFile.h>
-#include <qore/support.h>
-#include <qore/charset.h>
-#include <qore/QoreString.h>
-#include <qore/BinaryObject.h>
-#include <qore/QoreLib.h>
 
 // returns -1 for exception
 int QoreFile::check_read_open(class ExceptionSink *xsink)
