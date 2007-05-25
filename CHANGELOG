@@ -10,6 +10,7 @@
 	* sybase: fixed native qore type binding by value
 	* sybase: fixed char binding by value
 	* sybase: implemented binary binding by value
+	* pgsql: fixed a bug in converting DECIMAL numbers >9999
 
 2006.05.23: David Nichols
 	* fixed a deadlock in transaction lock timeouts in the ManagedDatasource

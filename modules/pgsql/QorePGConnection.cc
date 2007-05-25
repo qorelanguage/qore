@@ -231,10 +231,14 @@ static class QoreNode *qpg_data_numeric(char *data, int type, int len, class Qor
       {
 	 if (i == nd->weight + 1)
 	    str->concat('.');
-	 str->sprintf("%d", ntohs(nd->digits[i]));
+	 if (i)
+	    str->sprintf("%04d", ntohs(nd->digits[i]));
+	 else
+	    str->sprintf("%d", ntohs(nd->digits[i]));
 	 //printd(5, "digit %d: %d\n", i, ntohs(nd->digits[i]));
       }
    }
+   //printd(5, "************ returning %s\n", str->getBuffer());
    return new QoreNode(str);
 }
 
