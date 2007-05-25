@@ -486,7 +486,7 @@ sub sybase_test($db)
 		 "image_f"         : <cafebead> );
 
     # insert data
-    my $rows = $db.vexec("insert into data_test values (%v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v)", $args);
+    my $rows = $db.vexec("insert into data_test values (%v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v)", hash_values($args));
 
     my $q = $db.selectRow("select * from data_test");
     foreach my $k in (keys $q)
@@ -517,7 +517,7 @@ sub sybase_test($db)
 
 sub mssql_test($db)
 {
-    # freetds doesn't support the following column types as far as I can tell:
+    # the mssql driver does not with with the following sybase column types:
     # unichar, univarchar
 
     my $args = ( "null_f"          : NULL,

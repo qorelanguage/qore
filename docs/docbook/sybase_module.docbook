@@ -16,7 +16,7 @@
 
     <para>The transaction isolation level is left at the default, 1, &quot;read committed&quot;, which is the default for all Qore drivers as well.</para>
 
-    <para>Sybase's <code>DATETIME</code> and <code>TIME</code> data types have a resolution of 1/3 of a second.  Qore uses float-point operations to convert to or from milliseconds when binding and retrieving data and rounds to the nearest integer to minimize conversion errors.</para>
+    <para>Sybase's <code>DATETIME</code> and <code>TIME</code> data types have a resolution of 1/3 of a second.  Qore uses floating-point operations to convert to or from milliseconds when binding and retrieving data and rounds to the nearest integer to minimize conversion errors.</para>
 
     <para>Unlike many other Qore DBI drivers, this driver allows multiple commands to be submitted with a single call, however, if multiple select statements are issued, only the first will return results.</para>
 
