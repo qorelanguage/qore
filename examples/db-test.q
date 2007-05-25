@@ -1,13 +1,13 @@
 #!/usr/bin/env qore
 
-# database example script
+# database test script
 # databases users must be able to create and destroy tables and procedures, etc
 # in order to execute all tests
 
 %require-our
 %enable-all-warnings
 
-our $o;
+our ($o, $errors, $test_count);
 
 const opts = 
     ( "help"    : "h,help",
@@ -16,7 +16,8 @@ const opts =
       "db"      : "d,db=s",
       "user"    : "u,user=s",
       "type"    : "t,type=s",
-      "verbose" : "v,verbose:i+" 
+      "verbose" : "v,verbose:i+",
+      "leave"   : "l,leave"
  );
 
 sub usage()
@@ -28,7 +29,8 @@ sub usage()
  -d,--db=ARG       set database name
  -H,--host=ARG     set hostname (for MySQL and PostgreSQL connections)
  -t,--type         set database driver (default mysql)
- -v,--verbose      more v's = more information\n",
+ -v,--verbose      more v's = more information
+ -l,--leave        leave test tables in schema at end\n",
 	   basename($ENV."_"));
     exit();
 }
@@ -86,35 +88,35 @@ const pgsql_tables = ("create table family (
    attribute varchar(80) not null,
    value varchar(160) not null)",
 "create table data_test (
-        int2_field smallint not null,
-        int4_field integer not null,
-        int8_field int8 not null,
-        bool_field boolean not null,
+        int2_f smallint not null,
+        int4_f integer not null,
+        int8_f int8 not null,
+        bool_f boolean not null,
         
-        float4_field real not null,
-        float8_field double precision not null,
+        float4_f real not null,
+        float8_f double precision not null,
         
-        number_field numeric(14) not null,
-        money_field money not null,
+        number_f numeric(16,3) not null,
+        money_f money not null,
 
-        text_field text not null,
-        varchar_field varchar(40) not null,
-        char_field char(40) not null,
-        name_field name not null,
+        text_f text not null,
+        varchar_f varchar(40) not null,
+        char_f char(40) not null,
+        name_f name not null,
 
-        date_field date not null,
-        abstime_field abstime not null,
-        reltime_field reltime not null,
-        interval_field interval not null,
-        time_field time not null,
-        timetz_field time with time zone not null,
-        timestamp_field timestamp not null,
-        timestamptz_field timestamp with time zone not null,
-        tinterval_field tinterval not null,
+        date_f date not null,
+        abstime_f abstime not null,
+        reltime_f reltime not null,
+        interval_f interval not null,
+        time_f time not null,
+        timetz_f time with time zone not null,
+        timestamp_f timestamp not null,
+        timestamptz_f timestamp with time zone not null,
+        tinterval_f tinterval not null,
         
-        bytea_field bytea not null
-        --bit_field bit(11) not null,
-        --varbit_field bit varying(11) not null
+        bytea_f bytea not null
+        --bit_f bit(11) not null,
+        --varbit_f bit varying(11) not null
 )" );
 
 const syb_tables = "
@@ -258,11 +260,11 @@ sub create_datamodel($db)
     $db.exec("insert into people values ( 7, 2, 'John', %v)", 1995-03-23);
 
     $db.exec("insert into attributes values ( 1, 'hair', 'blond' )");
-    $db.exec("insert into attributes values ( 1, 'eyes', 'brown' )");
+    $db.exec("insert into attributes values ( 1, 'eyes', 'hazel' )");
     $db.exec("insert into attributes values ( 2, 'hair', 'blond' )");
     $db.exec("insert into attributes values ( 2, 'eyes', 'blue' )");
     $db.exec("insert into attributes values ( 3, 'hair', 'brown' )");
-    $db.exec("insert into attributes values ( 3, 'eyes', 'green')");
+    $db.exec("insert into attributes values ( 3, 'eyes', 'grey')");
     $db.exec("insert into attributes values ( 4, 'hair', 'brown' )");
     $db.exec("insert into attributes values ( 4, 'eyes', 'brown' )");
     $db.exec("insert into attributes values ( 5, 'hair', 'red' )");
@@ -289,6 +291,58 @@ sub getDS()
     return $ds;
 }
 
+sub tprintf($v, $msg)
+{
+    if ($v <= $o.verbose)
+	vprintf($msg, $argv);
+}
+
+sub test_value($v1, $v2, $msg)
+{
+    ++$test_count;
+    if ($v1 == $v2)
+	tprintf(1, "OK: %s test\n", $msg);
+    else
+    {
+        tprintf(0, "ERROR: %s test failed! (%n != %n)\n", $msg, $v1, $v2);
+        $errors++;
+    }
+}
+
+const family_hash = (
+  "Jones" : (
+      "people" : (
+	  "John" : (
+	      "dob" : 1995-03-23,
+	      "eyes" : "brown",
+	      "hair" : "brown" ),
+	  "Alan" : (
+	      "dob" : 1992-06-04,
+	      "eyes" : "blue",
+	      "hair" : "black" ) ) ),
+    "Smith" : (
+	"people" : (
+	    "Arnie" : (
+		"dob" : 1983-05-13,
+		"eyes" : "hazel",
+		"hair" : "blond" ),
+	    "Carol" : ( 
+		"dob" : 2003-07-23,
+		"eyes" : "grey",
+		"hair" : "brown" ),
+	    "Isaac" : ( 
+		"dob" : 2000-04-04,
+		"eyes" : "green",
+		"hair" : "red" ),
+	    "Bernard" : ( 
+		"dob" : 1979-02-27,
+		"eyes" : "brown",
+		"hair" : "brown" ),
+	    "Sylvia" : (
+		"dob" : 1994-11-10,
+		"eyes" : "blue",
+		"hair" : "blond" ) ) ) );
+
 sub context_test($db)
 {
     # first we select all the data from the tables and then use 
@@ -302,10 +356,15 @@ sub context_test($db)
 
     my $today = format_date("YYYYMMDD", now());
 
+    # in this test, we create a big hash structure out of the queries executed above
+    # and compare it at the end to the expected result
+
     # display each family sorted by family name
+    my $fl;
     context family ($db.select("select * from family")) sortBy (%name)
     {
-	printf("Family %d: %s\n", %family_id, %name);
+	my $pl;
+	tprintf(2, "Family %d: %s\n", %family_id, %name);
 
 	# display people, sorted by eye color, descending
 	context people ($people) 
@@ -314,26 +373,43 @@ sub context_test($db)
 				     && %person_id == %people:person_id)) 
 	    where (%family_id == %family:family_id)
 	{
-	    printf("  %s, born %s\n", %name, format_date("Month DD, YYYY", %dob));
+	    my $al;
+	    tprintf(2, "  %s, born %s\n", %name, format_date("Month DD, YYYY", %dob));
 	    context ($attributes) sortBy (%attribute) where (%person_id == %people:person_id)
-		printf("    has %s %s\n", %value, %attribute);
+	    {
+		$al.%attribute = %value;
+		tprintf(2, "    has %s %s\n", %value, %attribute);
+	    }
+	    # leave out the ID fields and name from hash under name; subtracting a 
+	    # string from a hash removes that key from the result
+	    # this is "doing it the hard way", there is only one key left, 
+	    # "dob", then attributes are added directly into the person hash
+	    $pl.%name = %% - "family_id" - "person_id" - "name" + $al;
 	}
+	# leave out family_id and name fields (leaving an empty hash)
+	$fl.%name = %% - "family_id" - "name" + ( "people" : $pl );
     }
+
+    # test context ordering
+    test_value(keys $fl, ("Jones", "Smith"), "first context");
+    test_value(keys $fl.Smith.people, ("Arnie", "Carol", "Isaac", "Bernard", "Sylvia"), "second context");
+    # test entire context value
+    test_value($fl, family_hash, "third context");
 }
+    
 
 sub test_timeout($db, $c)
 {
     $db.setTransactionLockTimeout(1ms);
-    print("transaction lock test: ");
     try {
 	# this should cause a TRANSACTION-LOCK-TIMEOUT exception to be thrown
 	$db.exec("insert into family values (3, 'Test')\n");
-	printf("FAILED\n");
+	test_value(True, False, "transaction timeout");
 	$db.exec("delete from family where name = 'Test'");
     }
     catch ($ex)
     {
-	printf("OK\n");
+	test_value(True, True, "transaction timeout");
     }
     # signal parent thread to continue
     $c.dec();
@@ -343,7 +419,7 @@ sub transaction_test($db)
 {
     my $ndb = getDS();
     my $r;
-    printf("db.autocommit=%N, ndb.autocommit=%N\n", $db.getAutoCommit(), $ndb.getAutoCommit());
+    tprintf(2, "db.autocommit=%N, ndb.autocommit=%N\n", $db.getAutoCommit(), $ndb.getAutoCommit());
 
     # first, we insert a new row into "family" but do not commit it
     my $rows = $db.exec("insert into family values (3, 'Test')\n");
@@ -351,22 +427,16 @@ sub transaction_test($db)
 	printf("FAILED INSERT, rows=%N\n", $rows);
 
     # now we verify that the new row is not visible to the other datasource
-    # unless it's a sybase datasource, in which case this would deadlock :-(
+    # unless it's a sybase/ms sql server datasource, in which case this would deadlock :-(
     if ($o.type != "sybase" && $o.type != "mssql")
     {
 	$r = $ndb.selectRow("select name from family where family_id = 3").name;
-	if (exists $r)
-	    printf("FAILED TRANSACTION TEST, name=%N\n", $r);
-	else
-	    printf("TRANSACTION TEST OK\n");
+	test_value($r, NOTHING, "first transaction");
     }
 
     # now we verify that the new row is visible to the inserting datasource
     $r = $db.selectRow("select name from family where family_id = 3").name;
-    if (!exists $r)
-	printf("FAILED TRANSACTION TEST, name=%N\n", $r);
-    else
-	printf("TRANSACTION TEST OK (name=%N)\n", $r);
+    test_value($r, "Test", "second transaction");
 
     # test datasource timeout
     # this Counter variable will allow the parent thread to sleep
@@ -382,17 +452,11 @@ sub transaction_test($db)
 
     # now we verify that the new row is visible in the other datasource
     $r = $ndb.selectRow("select name from family where family_id = 3").name;
-    if (!exists $r)
-	printf("FAILED TRANSACTION TEST, name=%N\n", $r);
-    else
-	printf("TRANSACTION TEST OK\n");
-
+    test_value($r, "Test", "third transaction");
+    
     # now we delete the row we inserted (so we can repeat the test)
     $r = $ndb.exec("delete from family where family_id = 3");
-    if ($r != 1)
-	printf("FAILED TRANSACTION TEST, rows deleted=%N\n", $r);
-    else
-	printf("TRANSACTION TEST OK\n");
+    test_value($r, 1, "delete row count");
     $ndb.commit();
 }
 
@@ -400,57 +464,76 @@ sub oracle_test()
 {
 }
 
+# here we use a little workaround for modules that provide functions, 
+# namespace additions (constants, classes, etc) needed by test functions 
+# at parse time.  To avoid parse errors (as database modules are loaded
+# in this script at run-time when the Datasource class is instantiated)
+# we use a Program object that we parse and run on demand to return the
+# value required
+sub get_val($code)
+{
+    my $p = new Program();
+
+    my $str = sprintf("return %s;", $code);
+    $p.parse($str, "code");
+    return $p.run();
+}
+
 sub pgsql_test($db)
 {
-    # here we use a little workaround for the fact that the pgsql module provides
-    # some functions and constants needed by this function, but it is loaded on
-    # demand when the Datasource is first constructed (or not at all if another 
-    # test is being run), therefore parse exceptions would occur unless either
-    # the module is loaded at parse tine (in which case no tests could run if
-    # the module is not present or loadable, for example, with a system where
-    # postgresql is not installed), or this code is placed in a subprogram...x
-    my $str = "
-    return (
-         258,            #-- int2
-         233932,         #-- int4
-         239392939458,   #-- int8
-         True,           #-- bool
+    my $args = ( "int2_f"          : 258,
+		 "int4_f"          : 233932,
+		 "int8_f"          : 239392939458,
+		 "bool_f"          : True,
+		 "float4_f"        : 21.3444,
+		 "float8_f"        : 49394.23423491,
+		 "number_f"        : get_val("pgsql_bind(PG_TYPE_NUMERIC, '7235634215.3250')"),
+		 "money_f"         : get_val("pgsql_bind(PG_TYPE_CASH, \"400.56\")"),
+		 "text_f"          : 'some text  ',
+		 "varchar_f"       : 'varchar ',
+		 "char_f"          : 'char text',
+		 "name_f"          : 'name',
+		 "date_f"          : 2004-01-05, 
+		 "abstime_f"       : 2005-12-03,
+		 "reltime_f"       : 5M + 71D + 19h + 245m + 51s,
+		 "interval_f"      : 6M + 3D + 2h + 45m + 15s, 
+		 "time_f"          : 11:35:00, 
+		 "timetz_f"        : get_val("pgsql_bind(PG_TYPE_TIMETZ, \"11:38:21 CST\")"), 
+		 "timestamp_f"     : 2005-04-01T11:35:26, 
+		 "timestamptz_f"   : 2005-04-01T11:35:26.259,
+		 "tinterval_f"     : get_val("pgsql_bind(PG_TYPE_TINTERVAL, '[\"May 10, 1947 23:59:12\" \"Jan 14, 1973 03:14:21\"]')"),
+		 "bytea_f"         : <bead>
+		 #bit_f             : 
+		 #varbit_f          : 
+    );
 
-         21.3444,        #-- float4
-         49394.23423491, #-- float8
-         
-         1232333200.304, #-- numeric
-         pgsql_bind(PG_TYPE_CASH, \"400.56\"), #-- cash
-              
-         'some text  ',  #-- text
-         'varchar ',     #-- varchar
-         'char text ',   #-- char
-         'name',         # --name
+    $db.vexec("insert into data_test values (%v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v)", hash_values($args));
 
-         2004-01-05,   #-- date
-         2005-12-03,   #-- abstime
-         5M + 71D + 19h + 245m + 51s, #-- reltime
-         6M + 3D + 2h + 45m + 15s, #-- interval
-         11:35:00,        #-- time
-         pgsql_bind(PG_TYPE_TIMETZ, \"11:38:21 CST\"),    #-- time with tz
-         2005-04-01T11:35:26,          #-- timestamp
-         2005-04-01T11:35:26.259,      #-- timestamp with time zone
-         pgsql_bind(PG_TYPE_TINTERVAL, '[\"May 10, 1947 23:59:12\" \"Jan 14, 1973 03:14:21\"]'),
-         
-         <bead>          #-- bytea
-         #--B'10100010011',        #-- bit
-         #--B'001010011'           #-- varbit
-         );
-";
-
-    my $p = new Program();
-    $p.parse($str, "code");
-    my $args = $p.run();
-
-    $db.vexec("insert into data_test values (%v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v)", $args);
     my $q = $db.selectRow("select * from data_test");
+    if ($o.verbose > 1)
+	foreach my $k in (keys $q)
+	    printf(" %-16s= %-10s %N\n", $k, type($q.$k), $q.$k);
+
+    # fix values where we know the return type is different
+    $args.money_f = 400.56;
+    $args.timetz_f = 11:38:21;
+    $args.tinterval_f = '["1947-05-10 21:59:12" "1973-01-14 02:14:21"]';
+    $args.number_f = "7235634215.3250";
+    $args.reltime_f = 19177551s;
+    $args.interval_f = 6M + 3D + 9915s;
+
+    # rounding errors can happen in float4
+    $q.float4_f = round($q.float4_f);
+    $args.float4_f = round($args.float4_f);
+
+    # remove values where we know they won't match
+    # abstime and timestamptz are converted to GMT by the server
+    delete $q.abstime_f;
+    delete $q.timestamptz_f;
+    
+    # compare each value
     foreach my $k in (keys $q)
-	printf(" %-16s= %-10s %N\n", $k, type($q.$k), $q.$k);
+	test_value($q.$k, $args.$k, sprintf("%s bind and retrieve", $k));
 
     $db.commit();
 }
@@ -489,8 +572,9 @@ sub sybase_test($db)
     my $rows = $db.vexec("insert into data_test values (%v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v)", hash_values($args));
 
     my $q = $db.selectRow("select * from data_test");
-    foreach my $k in (keys $q)
-	printf(" %-16s= %-10s %N\n", $k, type($q.$k), $q.$k);
+    if ($o.verbose > 1)
+	foreach my $k in (keys $q)
+	    printf(" %-16s= %-10s %N\n", $k, type($q.$k), $q.$k);
 
     # remove values where we know they won't match
     # unitext_f is returned as IMAGE by the server
@@ -500,17 +584,9 @@ sub sybase_test($db)
     $q.real_f = round($q.real_f);
     $args.real_f = round($args.real_f);
     
-    my $errs;
     # compare each value
     foreach my $k in (keys $q)
-    {
-	if ($q.$k != $args.$k)
-        {
-	    printf("ERROR %n != %n\n", $q.$k, $args.$k);
-	    ++$errs;
-	}
-    }
-    printf("%s bind and retrieve value test %s", $db.getDriverName(), $errs ? "FAILED" : "OK");
+	test_value($q.$k, $args.$k, sprintf("%s bind and retrieve", $k));
 
     $db.commit();
 }
@@ -546,8 +622,9 @@ sub mssql_test($db)
     my $rows = $db.vexec("insert into data_test values (%v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v)", hash_values($args));
 
     my $q = $db.selectRow("select * from data_test");
-    foreach my $k in (keys $q)
-	printf(" %-16s= %-10s %N\n", $k, type($q.$k), $q.$k);
+    if ($o.verbose > 1)
+	foreach my $k in (keys $q)
+	     printf(" %-16s= %-10s %N\n", $k, type($q.$k), $q.$k);
 
     # remove values where we know they won't match
     # unitext_f is returned as IMAGE by the server
@@ -557,18 +634,9 @@ sub mssql_test($db)
     $q.real_f = round($q.real_f);
     $args.real_f = round($args.real_f);
     
-    my $errs;
     # compare each value
     foreach my $k in (keys $q)
-    {
-	if ($q.$k != $args.$k)
-        {
-	    printf("ERROR %n != %n\n", $q.$k, $args.$k);
-	    ++$errs;
-	}
-    }
-    if (!$errs)
-	printf("%s bind and retrieve value test OK!\n", $db.getDriverName());
+	test_value($q.$k, $args.$k, sprintf("%s bind and retrieve", $k));
 
     $db.commit();
 }
@@ -585,6 +653,7 @@ sub main()
     parse_command_line();
     my $db = getDS();
 
+    printf("testing %s driver\n", $db.getDriverName());
     create_datamodel($db);
 
     context_test($db);
@@ -592,8 +661,10 @@ sub main()
     my $test = $test_map.($db.getDriverName());
     if (exists $test)
 	$test($db);
-
-    drop_test_datamodel($db);
+    
+    if (!$o.leave)
+	drop_test_datamodel($db);
+    printf("%d/%d tests OK\n", $test_count - $errors, $test_count);
 }
 
 main();
