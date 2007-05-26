@@ -2,7 +2,6 @@
 
 #include "common.h"
 #include "connection.h"
-#include "initiate_language_command.h"
 
 namespace sybase_tests_571925222 {
 
@@ -21,11 +20,11 @@ TEST()
   if (xsink.isException()) {
     assert(false);
   }
-  initiate_language_command(cmd, "select * from syskeys", &xsink);
+  cmd.initiate_language_command("select * from syskeys", &xsink);
   if (xsink.isException()) {
     assert(false);
   } 
-  send_command(cmd, &xsink);
+  cmd.send(&xsink);
   if (xsink.isException()) {
     assert(false);
   } 

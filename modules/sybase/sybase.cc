@@ -34,10 +34,8 @@
 #include <vector>
 
 #include "sybase.h"
-#include "transactions.h"
 #include "connection.h"
 #include "encoding_helpers.h"
-#include "executor.h"
 
 #ifndef QORE_MONOLITHIC
 #ifdef SYBASE
@@ -142,7 +140,7 @@ static int sybase_open(Datasource *ds, ExceptionSink *xsink)
   
   std::auto_ptr<connection> sc(new connection);
 
-  sc->init(ds->getUsername(), ds->getPassword() ? ds->getPassword() : "", ds->getDBName(), ds->getDBEncoding(), xsink);
+  sc->init(ds->getUsername(), ds->getPassword() ? ds->getPassword() : "", ds->getDBName(), ds->getDBEncoding(), ds->getQoreEncoding(), xsink);
   if (xsink->isException()) {
     return -1;
   }
@@ -169,34 +167,37 @@ static int sybase_close(Datasource *ds)
 //------------------------------------------------------------------------------
 static QoreNode* sybase_select(Datasource *ds, QoreString *qstr, List *args, ExceptionSink *xsink)
 {
-   return execute_select(ds, qstr, args, xsink);
+   connection *conn = (connection*)ds->getPrivateData();
+   return conn->exec(qstr, args, xsink);
 }
 
 //------------------------------------------------------------------------------
 static QoreNode* sybase_select_rows(Datasource *ds, QoreString *qstr, List *args, ExceptionSink *xsink)
 {
+   connection *conn = (connection*)ds->getPrivateData();
    //printd(5, "sybase_select_rows(ds=%08p, qstr='%s', args=%08p)\n", ds, qstr->getBuffer(), args);
-   return execute_select_rows(ds, qstr, args, xsink);
+   return conn->exec_rows(qstr, args, xsink);
 }
 
 //------------------------------------------------------------------------------
 static QoreNode* sybase_exec(Datasource *ds, QoreString *qstr, List *args, ExceptionSink *xsink)
 {
-   return execute(ds, qstr, args, xsink);
+   connection *conn = (connection*)ds->getPrivateData();
+   return conn->exec(qstr, args, xsink);
 }
 
 //------------------------------------------------------------------------------
 static int sybase_commit(Datasource *ds, ExceptionSink *xsink)
 {
   connection* conn = (connection*)ds->getPrivateData();
-  return commit(*conn, xsink);
+  return conn->commit(xsink);
 }
 
 //------------------------------------------------------------------------------
 static int sybase_rollback(Datasource *ds, ExceptionSink *xsink)
 {
   connection* conn = (connection*)ds->getPrivateData();
-  return rollback(*conn, xsink);
+  return conn->rollback(xsink);
 }
 
 /*

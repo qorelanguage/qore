@@ -2,11 +2,6 @@
 
 #include "common.h"
 #include "connection.h"
-#include "initiate_language_command.h"
-#include "send_command.h"
-#include <qore/charset.h>
-#include <qore/QoreType.h>
-#include <qore/ScopeGuard.h>
 
 namespace sybase_tests_5102086165 {
 
@@ -71,11 +66,11 @@ TEST()
   if (xsink.isException()) {
     assert(false);
   }
-  initiate_language_command(cmd, "select * from text_table", &xsink);
+  cmd.initiate_language_command("select * from text_table", &xsink);
   if (xsink.isException()) {
     assert(false);
   }
-  send_command(cmd, &xsink);
+  cmd.send(&xsink);
   if (xsink.isException()) {
     assert(false);
   }

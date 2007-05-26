@@ -67,7 +67,7 @@ TEST()
   if (xsink.isException()) {
     assert(false);
   }
-  initiate_rpc_command(cmd, "my_sample_rpc1", &xsink);
+  cmd.initiate_rpc_command("my_sample_rpc1", &xsink);
   if (xsink.isException()) {
     assert(false);
   }  

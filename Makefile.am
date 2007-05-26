@@ -221,24 +221,17 @@ noinst_HEADERS = \
 	modules/Tuxedo/QoreTuxedoAdapter.h \
 	modules/sybase/sybase.h \
 	modules/sybase/connection.h \
-	modules/sybase/transactions.h \
 	modules/sybase/conversions.h \
 	modules/sybase/command.h \
-	modules/sybase/initiate_language_command.h \
-	modules/sybase/initiate_rpc_command.h \
-	modules/sybase/send_command.h \
 	modules/sybase/encoding_helpers.h \
 	modules/sybase/query_processing.h \
-	modules/sybase/get_columns_count.h \
 	modules/sybase/get_row_description.h \
 	modules/sybase/common_constants.h \
 	modules/sybase/set_up_output_buffers.h \
-	modules/sybase/fetch_row_into_buffers.h \
 	modules/sybase/output_buffers_to_QoreHash.h \
 	modules/sybase/buffer_to_QoreNode.h \
 	modules/sybase/read_output.h \
 	modules/sybase/arguments.h \
-	modules/sybase/executor.h \
 	modules/sybase/set_parameter.h \
 	command-line.h \
 	include/qore/Qore.h 

@@ -36,17 +36,15 @@
 
 #include "read_output.h"
 #include "command.h"
-#include "get_columns_count.h"
 #include "get_row_description.h"
 #include "set_up_output_buffers.h"
-#include "fetch_row_into_buffers.h"
 #include "output_buffers_to_QoreHash.h"
 #include "connection.h"
 
 //------------------------------------------------------------------------------
 static void read_rows(command& cmd, QoreEncoding* encoding, QoreNode*& out_node, bool list, ExceptionSink* xsink)
 {
-  unsigned columns = get_columns_count(cmd, xsink);
+  unsigned columns = cmd.get_column_count(xsink);
   if (xsink->isException()) {
     return;
   }
@@ -84,7 +82,7 @@ static void read_rows(command& cmd, QoreEncoding* encoding, QoreNode*& out_node,
      out_node = new QoreNode(h);
   }
 
-  while (fetch_row_into_buffers(cmd, xsink)) {
+  while (cmd.fetch_row_into_buffers(xsink)) {
 
      if (!list)
      {

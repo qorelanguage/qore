@@ -37,17 +37,29 @@ class ExceptionSink;
 //------------------------------------------------------------------------------
 class command
 { 
-  connection& m_conn;
-  CS_COMMAND* m_cmd;
-  std::string m_string_id; // should be unique across connection
+      connection& m_conn;
+      CS_COMMAND* m_cmd;
+      std::string m_string_id; // should be unique across connection
 
-public:
-  command(connection& conn, ExceptionSink* xsink);
-  ~command();
+   public:
+      DLLLOCAL command(connection& conn, ExceptionSink* xsink);
+      DLLLOCAL ~command();
 
-  CS_COMMAND* operator()() const { return m_cmd; }
-  char* getStringId() const { return (char*)m_string_id.c_str(); }
-  connection& getConnection() const { return m_conn; }
+      DLLLOCAL CS_COMMAND* operator()() const { return m_cmd; }
+      DLLLOCAL char* getStringId() const { return (char*)m_string_id.c_str(); }
+      DLLLOCAL connection& getConnection() const { return m_conn; }
+
+      // returns 0=OK, -1=error (exception raised)
+      DLLLOCAL int send(ExceptionSink* xsink);
+      // returns 0=OK, -1=error (exception raised)
+      DLLLOCAL int initiate_language_command(const char *cmd_text, class ExceptionSink *xsink);
+      // returns 0=OK, -1=error (exception raised)
+      //DLLLOCAL int initiate_rpc_command(const char *rpc_cmd, class ExceptionSink *xsink);
+      // returns true if data returned, false if not
+      DLLLOCAL bool fetch_row_into_buffers(class ExceptionSink *xsink);
+
+      DLLLOCAL unsigned get_column_count(ExceptionSink* xsink);
+
 };
 
 #endif

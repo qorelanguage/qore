@@ -21,11 +21,10 @@ TEST()
   if (xsink.isException()) {
     assert(false);
   }
-  QoreEncoding* enc = QCS_DEFAULT;//###name_to_QoreEncoding("utf8");
 
   QoreString cmd("select count(*) from syskeys");
   
-  QoreNode* res = execute_command_impl(conn, &cmd, 0, enc, true, &xsink);
+  QoreNode* res = conn.exec(&cmd, 0, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
@@ -58,11 +57,10 @@ TEST()
   if (xsink.isException()) {
     assert(false);
   }
-  QoreEncoding* enc = QCS_DEFAULT;//###name_to_QoreEncoding("utf8");
 
   QoreString cmd("select * from syskeys");
 
-  QoreNode* res = execute_command_impl(conn, &cmd, 0, enc, true, &xsink);
+  QoreNode* res = conn.exec(&cmd, 0, &xsink);
   if (xsink.isException()) {
     assert(false);
   }

@@ -31,6 +31,12 @@
 #include <ctpublic.h>
 
 #include "connection.h"
+#include "encoding_helpers.h"
+#include "read_output.h"
+#include "query_processing.h"
+#include "command.h"
+#include "arguments.h"
+#include "set_parameter.h"
 
 #ifdef FREETDS
 #include <tds.h>  // needed for the TDSLOGIN structure, to set connection encoding
@@ -44,7 +50,11 @@ struct tds_cs_connection {
 
 //------------------------------------------------------------------------------
 connection::connection()
-   : m_context(0), m_connection(0), m_charset_locale(0), connected(false)
+   : m_context(0), m_connection(0), 
+#ifdef SYBASE
+     m_charset_locale(0), 
+#endif
+     connected(false)
 {
 }
 
@@ -53,10 +63,12 @@ connection::~connection()
 {
    CS_RETCODE ret = CS_SUCCEED;
 
+#ifdef SYBASE
    if (m_charset_locale) {
       ret = cs_loc_drop(m_context, m_charset_locale);
       assert(ret == CS_SUCCEED);
    }
+#endif
 
    if (m_connection) {
       if (connected)
@@ -129,17 +141,74 @@ int connection::direct_execute(const char* sql_text, ExceptionSink* xsink)
    return purge_messages(xsink);
 }
 
-#ifdef DEBUG
-#  include "tests/direct_execute_tests.cc"
-#endif
+class QoreNode *connection::exec_intern(class QoreString *cmd_text, class List *qore_args, bool need_list, class ExceptionSink* xsink)
+{
+   processed_language_command_t query;
+   if (query.init(cmd_text->getBuffer(), qore_args, xsink))
+      return 0;
+
+   command cmd(*this, xsink);
+   if (xsink->isException()) {
+      return 0;
+   }
+
+   if (cmd.initiate_language_command(query.m_cmd.getBuffer(), xsink))
+      return 0;
+
+   if (!query.m_parameter_types.empty() && set_input_params(cmd, query, qore_args, enc, xsink))
+      return 0;
+
+   if (cmd.send(xsink))
+      return 0;
+
+   QoreNode* result = read_output(*this, cmd, enc, need_list, xsink);
+   if (xsink->isException()) {
+      if (result) result->deref(xsink);
+      return 0;
+   }
+   //printd(5, "execute_command_impl() result=%08p (%lld)\n", result, result && result->type == NT_INT ? result->val.intval : 0LL);
+   return result;
+}
+
+class QoreNode *connection::exec(class QoreString *cmd, class List *parameters, class ExceptionSink *xsink)
+{
+   TempEncodingHelper query(cmd, enc, xsink);
+   if (!query)
+      return 0;
+
+   return exec_intern(*query, parameters, false, xsink);
+}
+
+class QoreNode *connection::exec_rows(class QoreString *cmd, class List *parameters, class ExceptionSink *xsink)
+{
+   TempEncodingHelper query(cmd, enc, xsink);
+   if (!query)
+      return 0;
+
+   return exec_intern(*query, parameters, true, xsink);
+}
+
+// returns 0=OK, -1=error (exception raised)                                                                                                                                      
+int connection::commit(class ExceptionSink *xsink)
+{
+   return direct_execute("commit", xsink);
+}
+
+// returns 0=OK, -1=error (exception raised)                                                                                                                                      
+int connection::rollback(class ExceptionSink *xsink)
+{
+   return direct_execute("rollback", xsink);
+}
 
 // Post-constructor initialization 
-int connection::init(const char* username, const char* password, const char* dbname, const char *db_encoding, ExceptionSink* xsink)
+int connection::init(const char* username, const char* password, const char* dbname, const char *db_encoding, class QoreEncoding *n_enc, class ExceptionSink* xsink)
 {
   assert(!m_connection);
   assert(!m_context);
 
   printd(5, "connection::init() user=%s pass=%s dbname=%s, db_enc=%s\n", username, password ? password : "<n/a>", dbname, db_encoding ? db_encoding : "<n/a>");
+
+  enc = n_enc;
 
   CS_RETCODE ret = cs_ctx_alloc(CS_VERSION_100, &m_context);
   if (ret != CS_SUCCEED) {
@@ -414,6 +483,9 @@ CS_RETCODE connection::servermsg_callback(CS_CONTEXT* ctx, CS_CONNECTION* conn, 
 
 #ifdef DEBUG
 #  include "tests/connection_tests.cc"
+#  include "tests/direct_execute_tests.cc"
+#  include "tests/executor_tests.cc" 
+#  include "tests/executor_rpc_tests.cc"
 #endif
 
 // EOF

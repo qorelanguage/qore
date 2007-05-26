@@ -4,7 +4,7 @@ pkglibdir = $(libdir)/@PACKAGE@-@VERSION@
 if COND_SINGLE_COMPILATION_UNIT
 SYBASE_SOURCES = single-compilation-unit.cc
 else
-SYBASE_SOURCES = sybase.cc connection.cc transactions.cc conversions.cc command.cc initiate_language_command.cc send_command.cc encoding_helpers.cc query_processing.cc initiate_rpc_command.cc get_columns_count.cc get_row_description.cc set_up_output_buffers.cc fetch_row_into_buffers.cc output_buffers_to_QoreHash.cc buffer_to_QoreNode.cc read_output.cc arguments.cc executor.cc set_parameter.cc
+SYBASE_SOURCES = sybase.cc connection.cc conversions.cc command.cc encoding_helpers.cc query_processing.cc get_row_description.cc set_up_output_buffers.cc output_buffers_to_QoreHash.cc buffer_to_QoreNode.cc read_output.cc arguments.cc set_parameter.cc
 endif
 
 if COND_MONOLITHIC

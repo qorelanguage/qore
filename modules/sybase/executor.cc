@@ -157,10 +157,9 @@ static QoreNode* execute_rpc_impl(connection& conn, QoreString* rpc_text, List* 
 }
 
 //------------------------------------------------------------------------------
-QoreNode* execute(Datasource *ds, QoreString* cmd, List* parameters, ExceptionSink* xsink)
+QoreNode* execute(connection &conn, QoreString* cmd, List* parameters, ExceptionSink* xsink)
 {
-   connection *conn = (connection*)ds->getPrivateData();
-   class QoreEncoding *enc = ds->getQoreEncoding();
+   class QoreEncoding *enc = conn.getEncoding();
 
    TempEncodingHelper query(cmd, enc, xsink);
    if (!query)
@@ -168,18 +167,17 @@ QoreNode* execute(Datasource *ds, QoreString* cmd, List* parameters, ExceptionSi
 
    QoreNode* res = 0;
    if (is_query_procedure_call(query->getBuffer())) {
-      res = execute_rpc_impl(*conn, *query, parameters, enc, xsink);    
+      res = execute_rpc_impl(conn, *query, parameters, enc, xsink);    
    } else {
-      res = execute_command_impl(*conn, *query, parameters, enc, false, xsink);
+      res = execute_command_impl(conn, *query, parameters, enc, false, xsink);
    }
    return res;
 }
 
 //------------------------------------------------------------------------------
-QoreNode* execute_select(Datasource *ds, QoreString* cmd, List* parameters, ExceptionSink* xsink)
+QoreNode* execute_select(connection &conn, QoreString* cmd, List* parameters, ExceptionSink* xsink)
 {
-   connection *conn = (connection*)ds->getPrivateData();
-   class QoreEncoding *enc = ds->getQoreEncoding();
+   class QoreEncoding *enc = conn.getEncoding();
   
    TempEncodingHelper query(cmd, enc, xsink);
    if (!query)
@@ -190,17 +188,16 @@ QoreNode* execute_select(Datasource *ds, QoreString* cmd, List* parameters, Exce
       return 0;
    }
 
-   return execute_command_impl(*conn, *query, parameters, enc, false, xsink);
+   return execute_command_impl(conn, *query, parameters, enc, false, xsink);
 }
 
 //------------------------------------------------------------------------------
-QoreNode* execute_select_rows(Datasource *ds, QoreString* cmd, List* parameters, ExceptionSink* xsink)
+QoreNode* execute_select_rows(connection &conn, QoreString* cmd, List* parameters, ExceptionSink* xsink)
 {
-   printd(5, "execute_select_rows(ds=%08p, cmd='%s', params=%08p)\n", ds, cmd->getBuffer(), parameters); 
+   printd(5, "execute_select_rows(conn=%08p, cmd='%s', params=%08p)\n", &conn, cmd->getBuffer(), parameters); 
 
-   connection *conn = (connection*)ds->getPrivateData();
    // ensure query is in correct encoding for database
-   class QoreEncoding *enc = ds->getQoreEncoding();
+   class QoreEncoding *enc = conn.getEncoding();
    TempEncodingHelper query(cmd, enc, xsink);
    if (!query)
       return 0;
@@ -211,7 +208,7 @@ QoreNode* execute_select_rows(Datasource *ds, QoreString* cmd, List* parameters,
       return 0;
    }
    
-   QoreNode* res = execute_command_impl(*conn, *query, parameters, enc, true, xsink);
+   QoreNode* res = execute_command_impl(conn, *query, parameters, enc, true, xsink);
    if (!res) return 0;
 
    //assert(res->type == NT_LIST || res->type == NT_HASH);

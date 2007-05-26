@@ -20,7 +20,7 @@ TEST()
   if (xsink.isException()) {
     assert(false);
   }
-  initiate_language_command(cmd, "select * from syskeys", &xsink);
+  cmd.initiate_language_command("select * from syskeys", &xsink);
   if (xsink.isException()) {
     assert(false);
   }  
@@ -42,7 +42,7 @@ TEST()
   if (xsink.isException()) {
     assert(false);
   }
-  initiate_language_command(cmd, "select * from syskeys where id > @par1 and id < @par2", &xsink);
+  cmd.initiate_language_command("select * from syskeys where id > @par1 and id < @par2", &xsink);
   if (xsink.isException()) {
     assert(false);
   }

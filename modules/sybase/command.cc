@@ -58,7 +58,80 @@ command::~command()
   ct_cmd_drop(m_cmd);
 }
 
+int command::send(class ExceptionSink *xsink)
+{
+   CS_RETCODE err = ct_send(m_cmd);
+   if (err != CS_SUCCEED) {
+      m_conn.do_exception(xsink, "DBI:SYBASE:EXEC-ERROR", "ct_send() failed");
+      return -1;
+   } 
+   return 0;
+}
+
+int command::initiate_language_command(const char *cmd_text, class ExceptionSink *xsink)
+{
+   assert(cmd_text && cmd_text[0]);
+   CS_RETCODE err = ct_command(m_cmd, CS_LANG_CMD, (CS_CHAR*)cmd_text, CS_NULLTERM, CS_UNUSED);
+   if (err != CS_SUCCEED) {
+      m_conn.do_exception(xsink, "DBI:SYBASE:EXEC-ERROR", "ct_command(CS_LANG_CMD, '%s') failed with error %d", cmd_text, (int)err);
+      return -1;
+   }
+   return 0;
+}
+
+/*
+int command::initiate_rpc_command(const char *rpc, class ExceptionSink *xsink)
+{
+   assert(rpc && rpc[0]);
+   CS_RETCODE err = ct_command(m_cmd, CS_RPC_CMD, (CS_CHAR*)rpc, CS_NULLTERM, CS_UNUSED);
+   if (err != CS_SUCCEED) {
+      m_comm.do_exception(xsink, "DBI-EXEC-EXCEPTION", "ct_command(CS_RPC_CMD, \"%s\") failed with error %d", rpc, (int)err);
+      return -1;
+   }
+   return 0;
+} 
+
+bool command::fetch_row_into_buffers(class ExceptionSink *xsink)
+{
+   CS_INT rows_read;
+   CS_RETCODE err = ct_fetch(m_cmd, CS_UNUSED, CS_UNUSED, CS_UNUSED, &rows_read);
+   //printd(5, "ct_fetch() returned %d rows_read=%d\n", err, rows_read);
+   if (err == CS_SUCCEED) {
+      if (rows_read != 1) {
+	 m_conn.do_exception(xsink, "DBI:SYBASE:EXEC-ERROR", "ct_fetch() returned %d rows (expected 1)", (int)rows_read);
+	 return false;
+      }
+      return true;
+   }
+   if (err == CS_END_DATA) {
+      return false;
+   }
+   m_conn.do_exception(xsink, "DBI-EXEC-EXCEPTION", "ct_fetch() returned errno %d", (int)err);
+   return false;
+}
+
+unsigned command::get_column_count(ExceptionSink* xsink)
+{
+   CS_INT num_cols;
+   CS_RETCODE err = ct_res_info(m_cmd, CS_NUMDATA, &num_cols, CS_UNUSED, NULL);
+   if (err != CS_SUCCEED) {
+      m_conn.do_exception(xsink, "DBI-EXEC-EXCEPTION", "ct_res_info() failed with error %d", (int)err);
+      return 0;
+   }
+   if (num_cols <= 0) {
+      m_conn.do_exception(xsink, "DBI-EXEC-EXCEPTION", "ct_res_info() failed");
+      return 0;
+   }
+   return num_cols;
+}
+
 #ifdef DEBUG
+#  include "tests/initiate_rpc_command_tests.cc"
+#endif
+*/
+
+#ifdef DEBUG
+#  include "tests/send_command_tests.cc"
 #  include "tests/command_tests.cc"
 #endif
 

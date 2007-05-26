@@ -188,7 +188,7 @@ TEST()
   drop_test_procedure3();
 }
 
-//------------------------------------------------------------------------------
+/*
 TEST()
 {
   printf("running test %s[%d]\n", __FILE__, __LINE__);
@@ -208,14 +208,15 @@ TEST()
   args->push(new QoreNode((int64)100));
   args->push(new QoreNode((int64)CS_INT_TYPE));
 
-  QoreNode* res = execute_rpc_impl(conn, &cmd, args, QCS_DEFAULT, &xsink);
+  QoreNode* res = conn.exec_rpc(&cmd, args, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
   if (res) res->deref(&xsink);
 }
+*/
 
-//------------------------------------------------------------------------------
+/*
 TEST()
 {
   printf("running test %s[%d]\n", __FILE__, __LINE__);
@@ -236,7 +237,7 @@ TEST()
   args->push(new QoreNode((int64)CS_INT_TYPE));
   args->push(new QoreNode((int64)CS_INT_TYPE));
 
-  QoreNode* res = execute_rpc_impl(conn, &cmd, args, QCS_DEFAULT, &xsink);
+  QoreNode* res = conn.exec_rpc(&cmd, args, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
@@ -250,6 +251,7 @@ TEST()
 
   res->deref(&xsink);
 }
+*/
 
 } // namespace
 #endif
