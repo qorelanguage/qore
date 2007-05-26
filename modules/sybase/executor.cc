@@ -38,7 +38,6 @@
 #include "query_processing.h"
 #include "command.h"
 #include "arguments.h"
-#include "read_output.h"
 #include "set_parameter.h"
 
 //------------------------------------------------------------------------------
@@ -66,7 +65,7 @@ static QoreNode* execute_command_impl(connection& conn, QoreString* cmd_text, Li
     return 0;
   }
 
-  QoreNode* result = read_output(cmd, encoding, list, xsink);
+  QoreNode* result = read_output(conn, cmd, encoding, list, xsink);
   if (xsink->isException()) {
     if (result) result->deref(xsink);
     return 0;
@@ -122,7 +121,7 @@ static QoreNode* execute_rpc_impl(connection& conn, QoreString* rpc_text, List* 
     return 0;
   }
 
-  QoreNode* result = read_output(cmd, encoding, true, xsink);
+  QoreNode* result = read_output(conn, cmd, encoding, true, xsink);
   if (!result) {
     if (!out_names.empty()) {
       xsink->raiseException("DBI-EXEC-EXCEPTION", "Internal error: %d output parameters expected, no one returned", out_names.size());

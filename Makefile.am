@@ -221,7 +221,6 @@ noinst_HEADERS = \
 	modules/Tuxedo/QoreTuxedoAdapter.h \
 	modules/sybase/sybase.h \
 	modules/sybase/connection.h \
-	modules/sybase/direct_execute.h \
 	modules/sybase/transactions.h \
 	modules/sybase/conversions.h \
 	modules/sybase/command.h \

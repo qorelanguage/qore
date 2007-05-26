@@ -6,7 +6,6 @@
 #include "send_command.h"
 #include <qore/charset.h>
 #include <qore/QoreType.h>
-#include "direct_execute.h"
 #include <qore/ScopeGuard.h>
 
 namespace sybase_tests_591606641112 {
@@ -22,12 +21,12 @@ static void create_image_table()
   if (xsink.isException()) {
     assert(false);
   }
-  direct_execute(c, cmd, &xsink);
+  c.direct_execute(cmd, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
   cmd = "insert into image_table values (0xFFFFFE6788)";
-  direct_execute(c, cmd, &xsink);
+  c.direct_execute(cmd, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
@@ -44,7 +43,7 @@ static void delete_image_table(bool quiet = false)
   if (xsink.isException()) {
     assert(false);
   }
-  direct_execute(c, cmd, &xsink);
+  c.direct_execute(cmd, &xsink);
   if (xsink.isException()) {
     if (quiet) {
       xsink.clear();
@@ -81,7 +80,7 @@ TEST()
     assert(false);
   }
 
-  QoreNode* result = read_output(cmd, QCS_DEFAULT, true, &xsink);
+  QoreNode* result = read_output(conn, cmd, QCS_DEFAULT, true, &xsink);
   if (xsink.isException()) {
     assert(false);
   }

@@ -22,15 +22,13 @@
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-#include <qore/config.h>
-#include <qore/support.h>
-#include <qore/Exception.h>
+
+#include <qore/Qore.h>
 #include <qore/minitest.hpp>
 
 #include <assert.h>
 
 #include "transactions.h"
-#include "direct_execute.h"
 #include "connection.h"
 
 /*
@@ -38,8 +36,7 @@
 // currently unused - we use "chained transaction mode" instead
 int begin_transaction(connection& conn, ExceptionSink* xsink)
 {
-  direct_execute(conn, "begin tran", xsink);
-  return xsink->isException() ? -1 : 0;
+   return conn.direct_execute("begin tran", xsink);
 }
 */
 
@@ -47,23 +44,14 @@ int begin_transaction(connection& conn, ExceptionSink* xsink)
 // 0 = OK, -1 = error
 int commit(connection& conn, ExceptionSink* xsink)
 {
-  direct_execute(conn, "commit", xsink);
-  return xsink->isException() ? -1 : 0;
+   return conn.direct_execute("commit", xsink);
 }
 
 //------------------------------------------------------------------------------
 // 0 = OK, -1 = error
 int rollback(connection& conn, ExceptionSink* xsink)
 {
-  direct_execute(conn, "rollback", xsink);
-  return xsink->isException() ? -1 : 0;
+   return conn.direct_execute("rollback", xsink);
 }
 
-// already included in direct_execute.cc
-//#ifdef DEBUG
-//#  include "tests/direct_execute_tests.cc"
-//#endif
-
 // EOF
-
-

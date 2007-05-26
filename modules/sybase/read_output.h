@@ -27,12 +27,11 @@
 #define SYBASE_READ_OUTPUT_H_
 
 class command;
-class ExceptionSink;
-class QoreEncoding;
+class connection;
 
 // Reads output of an executed language command or RPC call.
 // Returns a Hash of Lists
-extern QoreNode* read_output(command& cmd, QoreEncoding* encoding, bool list, ExceptionSink* xsink);
+extern QoreNode* read_output(connection &conn, command &cmd, QoreEncoding *encoding, bool list, ExceptionSink *xsink);
 
 #endif
 

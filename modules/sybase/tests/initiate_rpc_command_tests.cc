@@ -2,7 +2,6 @@
 
 #include "common.h"
 #include "connection.h"
-#include "direct_execute.h"
 #include <qore/ScopeGuard.h>
 
 namespace sybase_tests_420792 {
@@ -21,7 +20,7 @@ static void create_test_procedure()
   if (xsink.isException()) {
     assert(false);
   }
-  direct_execute(c, cmd, &xsink);
+  c.direct_execute(cmd, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
@@ -38,7 +37,7 @@ static void drop_test_procedure(bool quiet = false)
   if (xsink.isException()) {
     assert(false);
   }
-  direct_execute(c, cmd, &xsink);
+  c.direct_execute(cmd, &xsink);
   if (xsink.isException()) {
     if (quiet) {
       xsink.clear();

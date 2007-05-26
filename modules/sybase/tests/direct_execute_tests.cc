@@ -18,7 +18,7 @@ TEST()
 
   // cleanup
   const char* cmd = "drop table my_test_672";
-  direct_execute(conn, cmd, &xsink);
+  conn.direct_execute(cmd, &xsink);
   if (xsink.isException()) {
     xsink.clear();
   }
@@ -28,37 +28,37 @@ TEST()
     "int_col INTEGER, "
     "varchar_col VARCHAR(30))";
 
-  direct_execute(conn, cmd, &xsink);
+  conn.direct_execute(cmd, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
 
   cmd = "insert into my_test_672 values(11, 'aaa')";
-  direct_execute(conn, cmd, &xsink);
+  conn.direct_execute(cmd, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
 
   cmd = "insert into my_test_672 (varchar_col, int_col) values('bbb', 22)";
-  direct_execute(conn, cmd, &xsink);
+  conn.direct_execute(cmd, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
 
   cmd = "commit tran";
-  direct_execute(conn, cmd, &xsink);
+  conn.direct_execute(cmd, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
 
   cmd = "drop table my_test_672";
-  direct_execute(conn, cmd, &xsink);
+  conn.direct_execute(cmd, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
 
   cmd = "commit tran";
-  direct_execute(conn, cmd, &xsink);
+  conn.direct_execute(cmd, &xsink);
   if (xsink.isException()) {
     assert(false);
   }

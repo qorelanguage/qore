@@ -26,15 +26,14 @@
 #ifndef SYBASE_CONNECTION_H_
 #define SYBASE_CONNECTION_H_
 
-#include <qore/Exception.h>
 #include <cstypes.h>
 #include <ctpublic.h>
 
-//------------------------------------------------------------------------------
+#include <stdarg.h>
+
 // Instantiated class is kept as private data of the Datasource
-// for the time thge Datasource exists. All other Sybase
+// for the time the Datasource exists. All other Sybase
 // resources are shortlived (including CS_COMMAND* and its wrapper).
-//
 class connection
 {
 private:
@@ -44,18 +43,30 @@ private:
   bool connected;
 
   // Sybase callbacks
+/*
   static CS_RETCODE clientmsg_callback(CS_CONTEXT* ctx, CS_CONNECTION* conn, CS_CLIENTMSG* errmsg);
   static CS_RETCODE servermsg_callback(CS_CONTEXT* ctx, CS_CONNECTION* conn, CS_SERVERMSG* svrmsg);
+*/
+
+#ifdef FREETDS
+  DLLLOCAL int set_chained_transaction_mode(ExceptionSink* xsink);
+#endif
 
 public:
-  connection();
-  ~connection();
+  DLLLOCAL connection();
+  DLLLOCAL ~connection();
 
   // to be called after the object is constructed
-  void init(const char* username, const char* password, const char* dbname, const char *db_encoding, ExceptionSink* xsink);
+  // returns 0=OK, -1=error (exception raised)
+  DLLLOCAL int init(const char* username, const char* password, const char* dbname, const char *db_encoding, ExceptionSink* xsink);
+  // returns 0=OK, -1=error (exception raised)
+  DLLLOCAL int purge_messages(class ExceptionSink *xsink);
+  // returns -1
+  DLLLOCAL int do_exception(class ExceptionSink *xsink, const char *err, const char *fmt, ...);
+  DLLLOCAL int direct_execute(const char* sql_text, ExceptionSink* xsink);
 
-  CS_CONNECTION* getConnection() const { return m_connection; }
-  CS_CONTEXT* getContext() const { return m_context; }
+  DLLLOCAL CS_CONNECTION* getConnection() const { return m_connection; }
+  DLLLOCAL CS_CONTEXT* getContext() const { return m_context; }
 };
 
 #endif

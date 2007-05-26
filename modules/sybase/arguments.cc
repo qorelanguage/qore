@@ -31,9 +31,8 @@
 
 #include "arguments.h"
 #include "connection.h"
+
 #include <cstypes.h>
-#include <qore/QoreNode.h>
-#include <qore/List.h>
 
 //------------------------------------------------------------------------------
 static bool is_valid_Sybase_type(int64 type)

@@ -1,3 +1,10 @@
+2006.05.26: David Nichols
+	* mssql: set connection encoding by setting server_charset in the 
+	  internal tdslogin structure directly, because freetds has stubs for
+	  the ctlib cs_locale functions
+	* sybase: set inline message processing to grab error messages and use
+	  them in exception text for more descriptive error messages
+
 2006.05.25: David Nichols
 	* pgsql: fixed a bug in converting DECIMAL numbers > 9999
 	* sybase: mapped Boolen <-> bit, added test
@@ -12,8 +19,8 @@
 	* removed extraneous '\n' from module error reporting with dlerror()
 	* removed 'FATAL:  ' from pgsql exception messages
 	* sybase: implemented fast, efficient binary datetime conversions, use
-	  floating point for conversions to and from Sybase 1/3 second time 
-	  values
+	  floating point for conversions to and from Sybase 1/300th second time 
+	  values to minimize conversion errors
 	* sybase: convert TIME to Qore datetime as offset from Qore epoch
 	* sybase: fixed native qore type binding by value
 	* sybase: fixed char binding by value

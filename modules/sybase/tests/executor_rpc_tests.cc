@@ -1,7 +1,6 @@
 #ifdef DEBUG
 
 #include "common.h"
-#include "../direct_execute.h"
 #include <qore/ScopeGuard.h>
 #include <cstypes.h>
 
@@ -36,7 +35,7 @@ static void create_test_procedure1()
   if (xsink.isException()) {
     assert(false);
   }
-  direct_execute(c, cmd, &xsink);
+  c.direct_execute(cmd, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
@@ -56,7 +55,7 @@ static void create_test_procedure2()
   if (xsink.isException()) {
     assert(false);
   }
-  direct_execute(c, cmd, &xsink);
+  c.direct_execute(cmd, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
@@ -78,7 +77,7 @@ static void create_test_procedure3()
   if (xsink.isException()) {
     assert(false);
   }
-  direct_execute(c, cmd, &xsink);
+  c.direct_execute(cmd, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
@@ -95,7 +94,7 @@ static void drop_test_procedure1(bool quiet = false)
   if (xsink.isException()) {
     assert(false);
   }
-  direct_execute(c, cmd, &xsink);
+  c.direct_execute(cmd, &xsink);
   if (xsink.isException()) {
     if (quiet) {
       xsink.clear();
@@ -116,7 +115,7 @@ static void drop_test_procedure2(bool quiet = false)
   if (xsink.isException()) {
     assert(false);
   }
-  direct_execute(c, cmd, &xsink);
+  c.direct_execute(cmd, &xsink);
   if (xsink.isException()) {
     if (quiet) {
       xsink.clear();
@@ -137,7 +136,7 @@ static void drop_test_procedure3(bool quiet = false)
   if (xsink.isException()) {
     assert(false);
   }
-  direct_execute(c, cmd, &xsink);
+  c.direct_execute(cmd, &xsink);
   if (xsink.isException()) {
     if (quiet) {
       xsink.clear();

@@ -4,8 +4,6 @@
 #include "connection.h"
 #include "initiate_language_command.h"
 #include "send_command.h"
-#include <qore/charset.h>
-#include <qore/QoreType.h>
 
 namespace sybase_tests_9752936571 {
 
@@ -32,7 +30,7 @@ TEST()
     assert(false);
   }
 
-  QoreNode* result = read_output(cmd, QCS_DEFAULT, true, &xsink);
+  QoreNode* result = read_output(conn, cmd, QCS_DEFAULT, true, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
@@ -74,7 +72,7 @@ TEST()
     assert(false);
   }
 
-  QoreNode* result = read_output(cmd, QCS_DEFAULT, true, &xsink);
+  QoreNode* result = read_output(conn, cmd, QCS_DEFAULT, true, &xsink);
   if (xsink.isException()) {
     assert(false);
   }

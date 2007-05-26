@@ -24,15 +24,11 @@
 */
 
 #include <qore/Qore.h>
+#include <qore/minitest.hpp>
 
 #include <cstypes.h>
 #include <ctpublic.h>
 #include <assert.h>
-#include <qore/minitest.hpp>
-#include <qore/QoreNode.h>
-#include <qore/QoreType.h>
-#include <qore/TypeConstants.h>
-#include <qore/DateTime.h>
 
 #include <string>
 

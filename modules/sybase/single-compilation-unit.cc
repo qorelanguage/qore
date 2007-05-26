@@ -3,7 +3,6 @@
 #include "command.cc"
 #include "connection.cc"
 #include "conversions.cc"
-#include "direct_execute.cc"
 #include "encoding_helpers.cc"
 #include "executor.cc"
 #include "fetch_row_into_buffers.cc"

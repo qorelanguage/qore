@@ -24,9 +24,6 @@
 
 #define _QORE_SYBASE_MODULE_H
 
-class QoreString;
-class Namespace;
-
 extern QoreString *sybase_module_init();
 extern void sybase_module_ns_init(Namespace *rns, Namespace *qns);
 extern void sybase_module_delete();
