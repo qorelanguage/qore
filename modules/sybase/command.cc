@@ -90,6 +90,7 @@ int command::initiate_rpc_command(const char *rpc, class ExceptionSink *xsink)
    }
    return 0;
 } 
+*/
 
 bool command::fetch_row_into_buffers(class ExceptionSink *xsink)
 {
@@ -126,13 +127,9 @@ unsigned command::get_column_count(ExceptionSink* xsink)
 }
 
 #ifdef DEBUG
-#  include "tests/initiate_rpc_command_tests.cc"
-#endif
-*/
-
-#ifdef DEBUG
 #  include "tests/send_command_tests.cc"
 #  include "tests/command_tests.cc"
+//#  include "tests/initiate_rpc_command_tests.cc"
 #endif
 
 // EOF
