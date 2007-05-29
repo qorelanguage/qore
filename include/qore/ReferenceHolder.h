@@ -47,20 +47,34 @@
 template<typename T>
 class ReferenceHolder
 {
-private:
-  ReferenceHolder(const ReferenceHolder&); // not implemented
-  ReferenceHolder& operator=(const ReferenceHolder&); // not implemented
-  void* operator new(size_t); // not implemented, make sure it is not new'ed
+   private:
+      DLLLOCAL ReferenceHolder(const ReferenceHolder&); // not implemented
+      DLLLOCAL ReferenceHolder& operator=(const ReferenceHolder&); // not implemented
+      DLLLOCAL void* operator new(size_t); // not implemented, make sure it is not new'ed
+      
+      T* p;
+      ExceptionSink* xsink;
 
-  T* p;
-  ExceptionSink* xsink;
-public:
-  ReferenceHolder(T* p_, ExceptionSink* xsink_) : p(p_), xsink(xsink_) {}
-  ~ReferenceHolder() { if(p) p->deref(xsink);}
-
-  T* operator->() { return p; }
-  T* operator*() { return p; }
-  operator bool() const { return p != 0; }
+   public:
+      DLLLOCAL ReferenceHolder(ExceptionSink* xsink_) : p(0), xsink(xsink_) {}
+      DLLLOCAL ReferenceHolder(T* p_, ExceptionSink* xsink_) : p(p_), xsink(xsink_) {}
+      DLLLOCAL ~ReferenceHolder() { if (p) p->deref(xsink);}
+      
+      DLLLOCAL T* operator->() { return p; }
+      DLLLOCAL T* operator*() { return p; }
+      DLLLOCAL void operator=(T *nv)
+      {
+	 if (p)
+	    p->deref(xsink);
+	 p = nv;
+      }
+      DLLLOCAL T *release()
+      {
+	 T *rv = p;
+	 p = 0;
+	 return rv;
+      }
+      DLLLOCAL operator bool() const { return p != 0; }
 };
 
 #endif
