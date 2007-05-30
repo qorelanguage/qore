@@ -224,15 +224,9 @@ noinst_HEADERS = \
 	modules/sybase/conversions.h \
 	modules/sybase/command.h \
 	modules/sybase/encoding_helpers.h \
-	modules/sybase/query_processing.h \
-	modules/sybase/get_row_description.h \
+	modules/sybase/sybase_query.h \
 	modules/sybase/common_constants.h \
-	modules/sybase/set_up_output_buffers.h \
-	modules/sybase/output_buffers_to_QoreHash.h \
-	modules/sybase/buffer_to_QoreNode.h \
-	modules/sybase/read_output.h \
-	modules/sybase/arguments.h \
-	modules/sybase/set_parameter.h \
+	modules/sybase/row_output_buffers.h \
 	command-line.h \
 	include/qore/Qore.h 
 

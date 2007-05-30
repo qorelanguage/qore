@@ -1,12 +1,12 @@
 /*
-  set_parameter.h
+  row_output_buffers.cc
 
   Sybase DB layer for QORE
   uses Sybase OpenClient C library
 
   Qore Programming language
 
-  Copyright (C) 2007
+  Copyright (C) 2007 Qore Technologies
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -23,25 +23,29 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef SYBASE_SET_PARAMETER_H_
-#define SYBASE_SET_PARAMETER_H_
+#include <qore/Qore.h>
 
-class ExceptionSink;
-class command;
+#include <assert.h>
 
-// returns 0=OK, -1 for error (exception raised)
-DLLLOCAL extern int set_input_params(command& cmd, processed_language_command_t &query, class List *args, QoreEncoding* encoding, ExceptionSink* xsink);
+#include "row_output_buffers.h"
 
-// returns 0=OK, -1 for error (exception raised)
-DLLLOCAL extern int set_input_parameter(command& cmd, unsigned parameter_index, int type,
-  QoreNode* data, QoreEncoding* encoding, ExceptionSink* xsink);
+output_value_buffer::output_value_buffer(unsigned size) : indicator(0), value_len(0)
+{
+   if (size < 7) size = 7; // ensure at least 8 bytes are allocated
+   value = size ? new char[size + 1] : 0; // terminator for strings
+}
 
-// for RPC (placeholder)
-extern void set_output_parameter(command& cmd, unsigned parameter_index, const char* name, 
-  int type, ExceptionSink* xsink);
-  
+output_value_buffer::~output_value_buffer()
+{
+   delete[] value;
+}
 
-#endif
-
-// EOF
+row_output_buffers::~row_output_buffers()
+{
+   for (unsigned i = 0, n = m_buffers.size(); i != n; ++i) 
+   {
+      assert(m_buffers[i]);
+      delete m_buffers[i];
+   }
+}
 

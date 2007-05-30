@@ -1,10 +1,10 @@
-#libdir = ${exec_prefix}/lib${LIBSUFFIX}
+libdir = ${exec_prefix}/lib${LIBSUFFIX}
 pkglibdir = $(libdir)/@PACKAGE@-@VERSION@
 
 if COND_SINGLE_COMPILATION_UNIT
 SYBASE_SOURCES = single-compilation-unit.cc
 else
-SYBASE_SOURCES = sybase.cc connection.cc conversions.cc command.cc encoding_helpers.cc query_processing.cc get_row_description.cc set_up_output_buffers.cc output_buffers_to_QoreHash.cc buffer_to_QoreNode.cc read_output.cc arguments.cc set_parameter.cc
+SYBASE_SOURCES = sybase.cc connection.cc conversions.cc command.cc encoding_helpers.cc sybase_query.cc row_output_buffers.cc
 endif
 
 if COND_MONOLITHIC

@@ -27,16 +27,14 @@
 #include <qore/minitest.hpp>
 
 #include <assert.h>
+#include <memory>
 
 #include <ctpublic.h>
 
 #include "connection.h"
 #include "encoding_helpers.h"
-#include "read_output.h"
-#include "query_processing.h"
+#include "sybase_query.h"
 #include "command.h"
-#include "arguments.h"
-#include "set_parameter.h"
 
 #ifdef FREETDS
 #include <tds.h>  // needed for the TDSLOGIN structure, to set connection encoding
@@ -143,25 +141,24 @@ int connection::direct_execute(const char* sql_text, ExceptionSink* xsink)
 
 class QoreNode *connection::exec_intern(class QoreString *cmd_text, class List *qore_args, bool need_list, class ExceptionSink* xsink)
 {
-   processed_language_command_t query;
-   if (query.init(cmd_text->getBuffer(), qore_args, xsink))
+   sybase_query query;
+   if (query.init(cmd_text, qore_args, xsink))
       return 0;
 
    command cmd(*this, xsink);
-   if (xsink->isException()) {
-      return 0;
-   }
-
-   if (cmd.initiate_language_command(query.m_cmd.getBuffer(), xsink))
+   if (xsink->isException())
       return 0;
 
-   if (!query.m_parameter_types.empty() && set_input_params(cmd, query, qore_args, enc, xsink))
+   if (cmd.initiate_language_command(query.m_cmd->getBuffer(), xsink))
+      return 0;
+
+   if (!query.param_list.empty() && cmd.set_params(query, qore_args, xsink))
       return 0;
 
    if (cmd.send(xsink))
       return 0;
 
-   QoreNode* result = read_output(*this, cmd, enc, need_list, xsink);
+   QoreNode* result = cmd.read_output(query.placeholder_list, need_list, xsink);
    if (xsink->isException()) {
       if (result) result->deref(xsink);
       return 0;
@@ -172,20 +169,24 @@ class QoreNode *connection::exec_intern(class QoreString *cmd_text, class List *
 
 class QoreNode *connection::exec(class QoreString *cmd, class List *parameters, class ExceptionSink *xsink)
 {
-   TempEncodingHelper query(cmd, enc, xsink);
+   // copy the string here for intrusive editing, convert encoding too if necessary
+   class QoreString *query = cmd->convertEncoding(enc, xsink);
    if (!query)
       return 0;
 
-   return exec_intern(*query, parameters, false, xsink);
+   std::auto_ptr<QoreString> tmp(query);
+   return exec_intern(query, parameters, false, xsink);
 }
 
 class QoreNode *connection::exec_rows(class QoreString *cmd, class List *parameters, class ExceptionSink *xsink)
 {
-   TempEncodingHelper query(cmd, enc, xsink);
+   // copy the string here for intrusive editing, convert encoding too if necessary
+   class QoreString *query = cmd->convertEncoding(enc, xsink);
    if (!query)
       return 0;
 
-   return exec_intern(*query, parameters, true, xsink);
+   std::auto_ptr<QoreString> tmp(query);
+   return exec_intern(query, parameters, true, xsink);
 }
 
 // returns 0=OK, -1=error (exception raised)                                                                                                                                      
@@ -309,7 +310,6 @@ int connection::init(const char* username, const char* password, const char* dbn
 
 #else
    // FreeTDS' implementation of ct_options is a noop - therefore we execute the command manually
-   // FIXME: check for MS SQL server and execute "set implicit_transactions on" instead
    if (set_chained_transaction_mode(xsink))
       return -1;
 #endif
@@ -347,9 +347,9 @@ int connection::purge_messages(class ExceptionSink *xsink)
 	 rc = -1;
       }
 #ifdef DEBUG
-      printd(5, "client: severity:%d, n:%d: %s\n", CS_SEVERITY(cmsg.msgnumber), CS_NUMBER(cmsg.msgnumber), cmsg.msgstring);
+      printd(1, "client: severity:%d, n:%d: %s\n", CS_SEVERITY(cmsg.msgnumber), CS_NUMBER(cmsg.msgnumber), cmsg.msgstring);
       if (cmsg.osstringlen > 0)
-	 printd(5, "Operating System Error: %s\n", cmsg.osstring);
+	 printd(1, "Operating System Error: %s\n", cmsg.osstring);
 #endif
    }
    ret = ct_diag(m_connection, CS_STATUS, CS_SERVERMSG_TYPE, CS_UNUSED, &num);
@@ -370,7 +370,7 @@ int connection::purge_messages(class ExceptionSink *xsink)
 	 xsink->raiseException("DBI:SYBASE:SERVER-ERROR", desc);
 	 rc = -1;
       }
-      printd(5, "server: line:%d, severity:%d, n:%d: %s", smsg.line, smsg.severity, smsg.msgnumber, smsg.text);
+      printd(1, "server: line:%d, severity:%d, n:%d: %s", smsg.line, smsg.severity, smsg.msgnumber, smsg.text);
    }
    ret = ct_diag(m_connection, CS_CLEAR, CS_ALLMSG_TYPE, CS_UNUSED, 0);
    assert(ret == CS_SUCCEED);
@@ -406,7 +406,7 @@ int connection::do_exception(class ExceptionSink *xsink, const char *err, const 
 	 estr->concat(", ");
       estr->sprintf("client message %d: severity %d: %s", CS_NUMBER(cmsg.msgnumber), CS_SEVERITY(cmsg.msgnumber), cmsg.msgstring);
       if (cmsg.osstringlen > 0)
-	 printd(0, ", OS error: %s", cmsg.osstring);
+	 estr->sprintf(", OS error: %s", cmsg.osstring);
       count++;
    }
    ret = ct_diag(m_connection, CS_STATUS, CS_SERVERMSG_TYPE, CS_UNUSED, &num);

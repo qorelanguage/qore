@@ -758,12 +758,7 @@ $a || $b
 	    <entry><programlisting>%%</programlisting></entry>
 	  </row>
 	  <row>
-	    <entry><para>A backquote expression</para></entry>
-	    <entry><para>Executes a UNIX process and returns the stdout as a string</para></entry>
-	    <entry><programlisting>'ls -l'</programlisting></entry>
-	  </row>
-	  <row id="call_references">
-	    <entry><para>A call reference</para></entry>
+	    <entry><para>A <link linkend="call_references">call reference</link></para></entry>
 	    <entry><para>A reference to a function or object method call.  Function references are resolved in the second phase of parsing (commit phase), and object method references are resolved at run-time.</para></entry>
 	    <entry><programlisting>\function_call()
 \$object_expression.method_name()</programlisting></entry>
@@ -778,7 +773,7 @@ $a || $b
     </table>
     
     <sect2 id="find_Expressions">
-      <title>find Expressions</title>
+      <title>Find Expressions</title>
       
       <variablelist>
 	<varlistentry>
@@ -816,6 +811,55 @@ $a || $b
 	</varlistentry>
       </variablelist>
     </sect2>
+
+    <sect2 id="call_references">
+      <title>Call References</title>
+      
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>References to functions or object methods are called call references.  A call reference can be used like a function pointer;  A call reference is a Qore data type that can be returned by functions or methods or assigned to variables.</para>
+	    <para>Note that it is currently not legal to assign a call reference to a constant.  This restriction may be lifted in a future version of Qore.</para>
+	    <para>Function Call References</para>
+	    <para>Call references to functions are resolved at parse time; if the function does not exist a parse exception will be thrown.</para>
+	    <para>Object Method Call References</para>
+	    <para>Call references to object methods are executed and resolved at run time; if the object expression does not evaluate to an object at run-time, an <code>OBJECT-METHOD-REFERENCE-ERROR</code> exception will be thrown.  If the method does not exist, a <code>METHOD-DOES-NOT-EXIST</code> run-time exception will be thrown.</para>
+	    <para>When called, a call reference to an object method will be executed in the context of the object originally referenced.</para>
+	    <para>Object method call references do not prolong the lifetime of an object; if the object is deleted (for example, by going out of scope), then if called the call reference will cause a <code>OBJECT-ALREADY-DELETED</code> exception to be thrown.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Syntax</term>
+	  <listitem>
+	    <para>
+	      <programlisting>\<replaceable>function_name</replaceable>();
+\<replaceable>object_expression.method_name</replaceable>();</programlisting>
+	    </para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Description</term>
+	  <listitem>
+	    <para>\<replaceable>function_name</replaceable>()</para>
+	    <para>This form gives a function call references.  The function name can be any valid user or builtin function name.  Note the backslash at the beginning and the empty pair of parentheses at the end; these are required when specifying a call reference.</para>
+
+	    <para>\<replaceable>object_expression.method_name</replaceable>()</para>
+	    <para>This form gives an object method call reference.  The object expression can be any valid Qore expression that evaluates to an object.  The method_name must be an unquoted string (see examples below) and must represent a valid method name of the object's class.</para>
+	    
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$call_ref = \func_name();
+$call_ref = $object.method_name();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+    </sect2>
+
+
   </sect1>
 
   <sect1 id="Operators">

@@ -43,10 +43,11 @@ const object_map =
    "pgsql"  : 
    ( "tables" : pgsql_tables ),
    "sybase" : 
-   ( "tables" : syb_tables ),
+   ( "tables" : syb_tables,
+     "procs"  : sybase_procs ),
    "mssql"  : 
    ( "tables" : mssql_tables,
-     "procs"  : mssql_procs ) );
+     "procs"  : sybase_procs ) );
 
 const ora_tables = ( 
     "family" : "create table family (
@@ -176,6 +177,53 @@ const syb_tables = (
 	image_f image not null
 )" );
 
+const sybase_procs = ( 
+    "find_family" : 
+"create procedure find_family @name varchar(80) 
+as 
+select * from family where name = @name
+commit -- to maintain transaction count
+",
+    "get_values" : 
+"create procedure get_values @string varchar(80) output, @int int output
+as 
+select @string = 'hello there'
+select @int = 150
+commit -- to maintain transaction count
+",
+    "get_values_and_select" : 
+"create procedure get_values_and_select @string varchar(80) output, @int int output
+as 
+select @string = 'hello there'
+select @int = 150
+select * from family where family_id = 1
+commit -- to maintain transaction count
+",
+    "get_values_and_multiple_select" : 
+"create procedure get_values_and_multiple_select @string varchar(80) output, @int int output
+as 
+select @string = 'hello there'
+select @int = 150
+select * from family where family_id = 1
+select * from people where person_id = 1
+commit -- to maintain transaction count
+",
+    "just_select" : 
+"create procedure just_select
+as 
+select * from family where family_id = 1
+commit -- to maintain transaction count
+",
+    "multiple_select" : 
+"create procedure multiple_select
+as 
+select * from family where family_id = 1
+select * from people where person_id = 1
+commit -- to maintain transaction count
+"
+ );
+
+
 const mssql_tables = (
     "family" : "create table family (
    family_id int not null,
@@ -222,20 +270,6 @@ const mssql_tables = (
 	varbinary_f varbinary(4) not null,
 	image_f image not null
 )" );
-
-const mssql_procs = ( 
-    "find_family" : 
-"create procedure find_family @name varchar(80) 
-as 
-select * from family where name = @name
-commit -- to maintain transaction count
-",
-    "get_values" : 
-"create procedure get_values @string varchar(80) output
-as 
-select @string = 'hello there'
-commit -- to maintain transaction count
-" );
 
 sub parse_command_line()
 {
@@ -330,7 +364,7 @@ sub drop_test_datamodel($db)
 
 sub getDS()
 {
-    my $ds = new Datasource($o.type, $o.user, $o.pass, $o.db);
+    my $ds = new Datasource($o.type, $o.user, $o.pass, $o.db, "iso_1");
     if (strlen($o.host))
 	$ds.setHostName($o.host);
     return $ds;
@@ -587,8 +621,56 @@ sub mysql_test()
 {
 }
 
+const family_q = ( "family_id" : 1,
+		   "name" : "Smith" );
+const person_q = ( "person_id" : 1,
+		   "family_id" : 1,
+		   "name" : "Arnie",
+		   "dob" : 1983-05-13 );
+const params = ( "string" : "hello there",
+		 "int" : 150 );
+
 sub sybase_test($db)
 {
+    # simple stored proc test, bind by name
+    my $x = $db.exec("exec find_family %v", "Smith");
+    test_value($x, ("name": list("Smith"), "family_id" : list(1)), "simple stored proc");
+
+    # stored proc execute with output params
+    $x = $db.exec("declare @string varchar(40), @int int
+exec get_values :string output, :int output");
+    test_value($x, params + ("rowcount":1), "get_values");
+
+    # we use Datasource::selectRows() in the following queries because we
+    # get hash results instead of a hash of lists as with exec in the queries
+    # normally we should not use selectRows to execute a stored procedure, 
+    # as the Datasource::selectRows() method will not grab the transaction lock,
+    # but we already called Datasource::exec() above, so we have it already.
+    # the other alternative would be to call Datasource::beginTransaction() before
+    # Datasource::selectRows()
+
+    # simple stored proc test, bind by name, returns hash
+    $x = $db.selectRows("exec find_family %v", "Smith");
+    test_value($x, family_q, "simple stored proc");
+
+    # stored proc execute with output params and select results
+    $x = $db.selectRows("declare @string varchar(40), @int int
+exec get_values_and_select :string output, :int output");
+    test_value($x, ("query":family_q,"params":params), "get_values_and_select");
+
+    # stored proc execute with output params and multiple select results
+    $x = $db.selectRows("declare @string varchar(40), @int int
+exec get_values_and_multiple_select :string output, :int output");
+    test_value($x, ("query":("query0":family_q,"query1":person_q),"params":params), "get_values_and_multiple_select");
+
+    # stored proc execute with just select results
+    $x = $db.selectRows("exec just_select");
+    test_value($x, family_q, "just_select");
+
+    # stored proc execute with multiple select results
+    $x = $db.selectRows("exec multiple_select");
+    test_value($x, ("query0":family_q,"query1":person_q), "multiple_select");
+
     my $args = ( "null_f"          : NULL,
 		 "varchar_f"       : "varchar", 
 		 "char_f"          : "char", 
@@ -643,8 +725,40 @@ sub mssql_test($db)
     my $x = $db.exec("exec find_family %v", "Smith");
     test_value($x, ("name": list("Smith"), "family_id" : list(1)), "simple stored proc");
 
-    # bind by placeholder test
-    #$x = $db.exec("exec get_values :string");
+    # stored proc execute with output params
+    $x = $db.exec("declare @string varchar(40), @int int
+exec get_values :string output, :int output");
+    test_value($x, params, "get_values");
+
+    # we use Datasource::selectRows() in the following queries because we
+    # get hash results instead of a hash of lists as with exec in the queries
+    # normally we should not use selectRows to execute a stored procedure, 
+    # as the Datasource::selectRows() method will not grab the transaction lock,
+    # but we already called Datasource::exec() above, so we have it already.
+    # the other alternative would be to call Datasource::beginTransaction() before
+    # Datasource::selectRows()
+
+    # simple stored proc test, bind by name, returns hash
+    $x = $db.selectRows("exec find_family %v", "Smith");
+    test_value($x, family_q, "simple stored proc");
+
+    # stored proc execute with output params and select results
+    $x = $db.selectRows("declare @string varchar(40), @int int
+exec get_values_and_select :string output, :int output");
+    test_value($x, ("query":family_q,"params":params), "get_values_and_select");
+
+    # stored proc execute with output params and multiple select results
+    $x = $db.selectRows("declare @string varchar(40), @int int
+exec get_values_and_multiple_select :string output, :int output");
+    test_value($x, ("query":("query0":family_q,"query1":person_q),"params":params), "get_values_and_multiple_select");
+
+    # stored proc execute with just select results
+    $x = $db.selectRows("exec just_select");
+    test_value($x, family_q, "just_select");
+
+    # stored proc execute with multiple select results
+    $x = $db.selectRows("exec multiple_select");
+    test_value($x, ("query0":family_q,"query1":person_q), "multiple_select");
 
     # the mssql driver does not work with the following sybase column types:
     # unichar, univarchar

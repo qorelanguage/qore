@@ -51,13 +51,14 @@ static rev_encoding_map_t encoding_rmap;
 static bool init_encoding_maps()
 {
   DO_MAP("utf8",     QCS_UTF8);
-  DO_MAP("iso_1",    QCS_ISO_8859_1); // Western Europe Latin
-  DO_MAP("iso88592", QCS_ISO_8859_2); // Central Europe Latin
-  DO_MAP("iso88595", QCS_ISO_8859_5); // Cyrilic
-  DO_MAP("iso88596", QCS_ISO_8859_6); // Arabic
-  DO_MAP("iso88597", QCS_ISO_8859_7); // Greek
-  DO_MAP("iso88598", QCS_ISO_8859_8); // Hebrew
-  DO_MAP("iso88599", QCS_ISO_8859_9); // Turkish
+  DO_MAP("iso_1",    QCS_ISO_8859_1);   // Western Europe Latin
+  DO_MAP("iso88592", QCS_ISO_8859_2);   // Central Europe Latin
+  DO_MAP("iso88595", QCS_ISO_8859_5);   // Cyrillic
+  DO_MAP("iso88596", QCS_ISO_8859_6);   // Arabic
+  DO_MAP("iso88597", QCS_ISO_8859_7);   // Greek
+  DO_MAP("iso88598", QCS_ISO_8859_8);   // Hebrew
+  DO_MAP("iso88599", QCS_ISO_8859_9);   // Turkish
+  DO_MAP("iso15",    QCS_ISO_8859_15);  // latin 1 with euro
   DO_MAP("ascii8",   QCS_USASCII);
   DO_MAP("koi8",     QCS_KOI8_R); // Cyrilic
   return 0;   

@@ -37,55 +37,6 @@
 #include "connection.h"
 #include "conversions.h"
 
-//------------------------------------------------------------------------------
-// e.g. return "Apr" for 4
-static const char* getMonthString(int mon)
-{
-  switch (mon) {
-  case 1: return "Jan";
-  case 2: return "Feb";
-  case 3: return "Mar";
-  case 4: return "Apr";
-  case 5: return "May";
-  case 6: return "Jun";
-  case 7: return "Jul";
-  case 8: return "Aug";
-  case 9: return "Sep";
-  case 10: return "Oct";
-  case 11: return "Nov";
-  case 12: return "Dec";
-  default:
-    assert(false);
-    return "";
-  }
-}
-
-//------------------------------------------------------------------------------
-// Create string in default Sybase format for datetimes to be converted by cs_convert later to DATETIME[4].
-
-static std::string DateTime_to_SybaseFormat(DateTime* dt)
-{
-  const char* mon = getMonthString(dt->getMonth());
-  int day = dt->getDay();
-  int year = dt->getYear();
-  int hour = dt->getHour();
-  const char* am_pm;
-  if (hour > 12) {
-    hour -= 12;
-    am_pm = "PM";
-  } else {
-    am_pm = "AM";
-  }
-  int min = dt->getMinute();
-  int sec = dt->getSecond();
-  int millis = dt->getMillisecond();
-
-  char buffer[100];
-  // Transact SQL datetime style needs to be set (see cs_dt_info(CS_DT_CONVFMT, CS_DATES_LONG))
-  sprintf(buffer, "%s %d %d %02d:%02d:%02d:%03d %s", mon, day, year, hour, min, sec, millis, am_pm);
-  return std::string(buffer);
-}
-
 // Sybase dates (so the "Sybase epoch") start from 1900-01-01
 // 25567 days from 1900-01-01 to 1970-01-01, the start of the Qore 64-bit epoch
 #define SYB_DAYS_TO_EPOCH 25567
@@ -111,7 +62,7 @@ int DateTime_to_DATETIME(DateTime* dt, CS_DATETIME &out, ExceptionSink* xsink)
    if (year > 9999)
    {
       QoreString *desc = new QoreString();
-      desc->sprintf("maximum sybase date is 9999-12-31, date passed: ");
+      desc->sprintf("maximum sybase datetime value is 9999-12-31, date passed: ");
       dt->format(desc, "YYYY-DD-MM");
       xsink->raiseException("DBI:SYBASE:DATE-ERROR", desc);
       return -1;
@@ -119,7 +70,7 @@ int DateTime_to_DATETIME(DateTime* dt, CS_DATETIME &out, ExceptionSink* xsink)
    if (year < 1753)
    {
       QoreString *desc = new QoreString();
-      desc->sprintf("minumum sybase date is 1753-01-01, date passed: ");
+      desc->sprintf("minumum sybase datetime value is 1753-01-01, date passed: ");
       dt->format(desc, "YYYY-DD-MM");
       xsink->raiseException("DBI:SYBASE:DATE-ERROR", desc);
       return -1;
@@ -134,32 +85,6 @@ int DateTime_to_DATETIME(DateTime* dt, CS_DATETIME &out, ExceptionSink* xsink)
    return 0;
 }
 
-//------------------------------------------------------------------------------
-// cs_convert() via string is the only available CT API function to create DATETIME4
-void DateTime_to_DATETIME4(connection& conn, DateTime* dt, CS_DATETIME4& out, ExceptionSink* xsink)
-{
-  std::string string_dt = DateTime_to_SybaseFormat(dt);
-
-  CS_DATAFMT srcfmt;
-  memset(&srcfmt, 0, sizeof(srcfmt));
-  srcfmt.datatype = CS_CHAR_TYPE;
-  srcfmt.maxlength = string_dt.size();
-  srcfmt.format = CS_FMT_NULLTERM;
-
-  CS_DATAFMT destfmt;
-  memset(&destfmt, 0, sizeof(destfmt));
-  destfmt.datatype = CS_DATETIME4_TYPE;
-  destfmt.maxlength = sizeof(CS_DATETIME4);
-
-  CS_INT outlen;
-  CS_RETCODE err = cs_convert(conn.getContext(), &srcfmt, (CS_BYTE*)string_dt.c_str(), &destfmt, (CS_BYTE*)&out, &outlen);
-  if (err != CS_SUCCEED) {
-    xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_convert() failed to convert date [%s] to Sybase CS_DATETIME4, err %d", string_dt.c_str(), (int)err);
-    return;
-  }
-}
-
-//------------------------------------------------------------------------------
 DateTime* DATETIME_to_DateTime(CS_DATETIME& dt)
 {
    int64 secs = dt.dttime / 300;
@@ -168,21 +93,51 @@ DateTime* DATETIME_to_DateTime(CS_DATETIME& dt)
    return new DateTime(secs + dt.dtdays * 86400ll - SYB_SECS_TO_EPOCH, (int)ts);
 }
 
-//------------------------------------------------------------------------------
-DateTime* DATETIME4_to_DateTime(connection& conn, CS_DATETIME4& dt, ExceptionSink* xsink)
-{
-  CS_DATEREC x;
-  memset(&x, 0, sizeof(x));
-  CS_RETCODE err = cs_dt_crack(conn.getContext(), CS_DATETIME4_TYPE, &dt, &x);
-  if (err != CS_SUCCEED) {
-    xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_dt_crack() failed with error %d", (int)err);
-    return 0;
-  }
+// maximum sybase small datetime value (June 6, 2079)
+static DateTime dt4_max(2079, 6, 6);
 
-  return new DateTime(x.dateyear, x.datemonth + 1, x.datedmonth, x.datehour, x.dateminute, x.datesecond, x.datemsecond, false);
+DateTime *DATETIME4_to_DateTime(CS_DATETIME4 &dt, ExceptionSink *xsink)
+{
+   int64 secs = dt.minutes * 60LL + dt.days * 86400LL - SYB_SECS_TO_EPOCH;
+   return new DateTime(secs);
 }
 
-//------------------------------------------------------------------------------
+/*
+// currently unused
+int DateTime_to_DATETIME4(DateTime *dt, CS_DATETIME4 &out, ExceptionSink *xsink)
+{
+   if (dt->isRelative())
+   {
+      xsink->raiseException("DBI:SYBASE:DATE-ERROR", "relative date passed for binding as absolute date");
+      return -1;
+   }
+   if (DateTime::compareDates(dt, &dt4_max) > 0)
+   {
+      QoreString *desc = new QoreString();
+      desc->sprintf("maximum sybase small datetime value is 2079-06-06, date passed: ");
+      dt->format(desc, "YYYY-DD-MM");
+      xsink->raiseException("DBI:SYBASE:DATE-ERROR", desc);
+      return -1;
+   }
+   int year = dt->getYear();
+   if (year < 1900)
+   {
+      QoreString *desc = new QoreString();
+      desc->sprintf("minumum sybase small datetime value is 1900-01-01, date passed: ");
+      dt->format(desc, "YYYY-DD-MM");
+      xsink->raiseException("DBI:SYBASE:DATE-ERROR", desc);
+      return -1;
+   }
+
+   int64 secs = dt->getEpochSeconds();
+   unsigned short days = secs / 86400;
+   out.days = days + SYB_DAYS_TO_EPOCH;
+   out.minutes = (secs - (days * 86400)) / 60;
+
+   return 0;
+}
+
+// currently unused
 void double_to_MONEY(connection& conn, double val, CS_MONEY& out, ExceptionSink* xsink)
 {
   CS_DATAFMT srcfmt;
@@ -203,7 +158,6 @@ void double_to_MONEY(connection& conn, double val, CS_MONEY& out, ExceptionSink*
   }
 }
 
-//------------------------------------------------------------------------------
 void double_to_MONEY4(connection& conn, double val, CS_MONEY4& out, ExceptionSink* xsink)
 {
   CS_DATAFMT srcfmt;
@@ -224,7 +178,6 @@ void double_to_MONEY4(connection& conn, double val, CS_MONEY4& out, ExceptionSin
   }
 }
 
-//------------------------------------------------------------------------------
 double MONEY_to_double(connection& conn, CS_MONEY& m, ExceptionSink* xsink)
 {
   CS_DATAFMT srcfmt;
@@ -247,7 +200,6 @@ double MONEY_to_double(connection& conn, CS_MONEY& m, ExceptionSink* xsink)
   return result;
 }
 
-//------------------------------------------------------------------------------
 double MONEY4_to_double(connection& conn, CS_MONEY4& m, ExceptionSink* xsink)
 {
   CS_DATAFMT srcfmt;
@@ -270,7 +222,6 @@ double MONEY4_to_double(connection& conn, CS_MONEY4& m, ExceptionSink* xsink)
   return result;
 }
 
-//------------------------------------------------------------------------------
 void double_to_DECIMAL(connection& conn, double val, CS_DECIMAL& out, ExceptionSink* xsink)
 {
   CS_DATAFMT srcfmt;
@@ -322,10 +273,14 @@ class QoreString *DECIMAL_to_string(connection& conn, CS_DECIMAL& m, ExceptionSi
   //printd(5, "DECIMAL_to_string: '%s'\n", buf);
   return new QoreString(buf);  
 }
+*/
 
+
+/*
 #ifdef DEBUG
 #  include "tests/conversions_tests.cc"
 #endif
+*/
 
 // EOF
 

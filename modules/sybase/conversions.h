@@ -30,32 +30,29 @@
 
 #include <ctpublic.h>
 
-class QoreNode;
-class ExceptionSink;
-class DateTime;
-class connection;
-
+//class connection;
 
 // Sybase DATETIME datatype manipulation 
 // returns 0=OK, -1=error (exception raised)
+
 DLLLOCAL extern int DateTime_to_DATETIME(DateTime* dt, CS_DATETIME& out, ExceptionSink* xsink);
-DLLLOCAL extern void DateTime_to_DATETIME4(connection& conn, DateTime* dt, CS_DATETIME4& out, ExceptionSink* xsink);
+//DLLLOCAL extern int DateTime_to_DATETIME4(DateTime* dt, CS_DATETIME4& out, ExceptionSink* xsink);
 
 DLLLOCAL extern DateTime *TIME_to_DateTime(CS_DATETIME &dt);
 
 DLLLOCAL extern DateTime* DATETIME_to_DateTime(CS_DATETIME& dt);
-DLLLOCAL extern DateTime* DATETIME4_to_DateTime(connection& conn, CS_DATETIME4& dt, ExceptionSink* xsink);
+DLLLOCAL extern DateTime* DATETIME4_to_DateTime(CS_DATETIME4& dt, ExceptionSink* xsink);
 
 // Sybase MONEY datatype manipulation (it is converted from/to float)
-DLLLOCAL extern void double_to_MONEY(connection& conn, double val, CS_MONEY& out, ExceptionSink* xsink);
-DLLLOCAL extern void double_to_MONEY4(connection& conn, double val, CS_MONEY4& out, ExceptionSink* xsink);
+//DLLLOCAL extern void double_to_MONEY(connection& conn, double val, CS_MONEY& out, ExceptionSink* xsink);
+//DLLLOCAL extern void double_to_MONEY4(connection& conn, double val, CS_MONEY4& out, ExceptionSink* xsink);
 
-DLLLOCAL extern double MONEY_to_double(connection& conn, CS_MONEY& m, ExceptionSink* xsink);
-DLLLOCAL extern double MONEY4_to_double(connection& conn, CS_MONEY4& m, ExceptionSink* xsink);
+//DLLLOCAL extern double MONEY_to_double(connection& conn, CS_MONEY& m, ExceptionSink* xsink);
+//DLLLOCAL extern double MONEY4_to_double(connection& conn, CS_MONEY4& m, ExceptionSink* xsink);
 
 // Sybase DECIMAL datatype manipulation
-DLLLOCAL extern void double_to_DECIMAL(connection& conn, double val, CS_DECIMAL& out, ExceptionSink* xsink);
-DLLLOCAL extern class QoreString *DECIMAL_to_string(connection& conn, CS_DECIMAL& m, ExceptionSink* xsink);
+//DLLLOCAL extern void double_to_DECIMAL(connection& conn, double val, CS_DECIMAL& out, ExceptionSink* xsink);
+//DLLLOCAL extern class QoreString *DECIMAL_to_string(connection& conn, CS_DECIMAL& m, ExceptionSink* xsink);
 
 
 #endif
