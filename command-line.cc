@@ -80,9 +80,10 @@ static char helpstr[] =
 "  -C, --no-class-defs          make class definitions illegal\n"
 "  -D, --no-database            disallow access to database functionality\n"
 "  -E, --no-external-process    make access to external processes illegal\n"
-"  -F, --no-constant-defs       make constant definitions illegal\n"
+"  -F, --no-filesystem          disallow access to the local filesystem\n"
 "  -G, --no-global-vars         make global variable definitions illegal\n"
 "  -I, --no-child-restrictions  do not restrict subprograms' parse options\n"
+"  -J, --no-constant-defs       make constant definitions illegal\n"
 "  -K, --lock-options           disable changes to parse options in program\n"
 "  -L, --no-top-level           make top-level statements illegal\n"
 "  -M, --no-namespace-defs      make namespace declarations illegal\n"
@@ -93,6 +94,7 @@ static char helpstr[] =
 "  -S, --no-subroutine-defs     make subroutine definitions illegal\n"
 "  -T, --no-threads             disallow thread access and control\n"
 "  -X, --no-thread-classes      disallow access to thread classes\n" 
+"  -Y, --no-network             disallow access to the network\n"
 #ifdef DEBUG
 "\n DEBUGGING OPTIONS:\n"
 "  -d, --debug=arg              sets debugging level (higher number = more output)\n"
@@ -183,6 +185,11 @@ static void do_no_subroutine_defs(char *arg)
    parse_options |= PO_NO_SUBROUTINE_DEFS;
 }
 
+static void do_no_network(char *arg)
+{
+   parse_options |= PO_NO_NETWORK;
+}
+
 static void do_no_threads(char *arg)
 {
    parse_options |= PO_NO_THREADS;
@@ -216,6 +223,11 @@ static void do_no_namespace_defs(char *arg)
 static void do_no_constant_defs(char *arg)
 {
    parse_options |= PO_NO_CONSTANT_DEFS;
+}
+
+static void do_no_filesystem(char *arg)
+{
+   parse_options |= PO_NO_FILESYSTEM;
 }
 
 static void do_no_new(char *arg)
@@ -329,9 +341,10 @@ static struct opt_struct_s {
    { 'C', "no-class-defs",         ARG_NONE, do_no_class_defs },
    { 'D', "no-database",           ARG_NONE, do_no_database },
    { 'E', "no-external-process",   ARG_NONE, do_no_external_process },
-   { 'F', "no-constant-defs",      ARG_NONE, do_no_constant_defs },
+   { 'F', "no-filesystem",         ARG_NONE, do_no_filesystem },
    { 'G', "no-global-vars",        ARG_NONE, do_no_global_vars },
    { 'I', "no-child-restrictions", ARG_NONE, do_no_child_po_restrictions },
+   { 'J', "no-constant-defs",      ARG_NONE, do_no_constant_defs },
    { 'K', "lock-options",          ARG_NONE, do_lock_options },
    { 'L', "no-top-level",          ARG_NONE, do_no_top_level },
    { 'M', "no-namespace-defs",     ARG_NONE, do_no_namespace_defs },
@@ -344,6 +357,7 @@ static struct opt_struct_s {
    { 'V', "version",               ARG_NONE, do_version },
    { 'W', "enable-all-warnings",   ARG_NONE, enable_warnings },
    { 'X', "no-thread-classes",     ARG_NONE, do_no_thread_classes },
+   { 'Y', "no-network",            ARG_NONE, do_no_network },
 #ifdef DEBUG
    { 'b', "disable-signals",       ARG_NONE, disable_signals },
    { 'd', "debug",                 ARG_MAND, do_debug },

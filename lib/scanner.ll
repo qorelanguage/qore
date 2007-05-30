@@ -301,11 +301,13 @@ BINARY          <({HEX_DIGIT}{HEX_DIGIT})+>
 ^%no-class-defs{WS}*$                   getProgram()->parseSetParseOptions(PO_NO_CLASS_DEFS);
 ^%no-namespace-defs{WS}*$               getProgram()->parseSetParseOptions(PO_NO_NAMESPACE_DEFS);
 ^%no-external-process{WS}*$             getProgram()->parseSetParseOptions(PO_NO_EXTERNAL_PROCESS);
+^%no-filesystem{WS}*$                   getProgram()->parseSetParseOptions(PO_NO_FILESYSTEM);
 ^%lock-options{WS}*$                    getProgram()->lockOptions();
 ^%lock-warnings{WS}*$                   getProgram()->parseSetParseOptions(PO_LOCK_WARNINGS);
 ^%no-process-control{WS}*$              getProgram()->parseSetParseOptions(PO_NO_PROCESS_CONTROL);
 ^%no-constant-defs{WS}*$                getProgram()->parseSetParseOptions(PO_NO_CONSTANT_DEFS);
 ^%no-new{WS}*$                          getProgram()->parseSetParseOptions(PO_NO_NEW);
+^%no-network{WS}*$                      getProgram()->parseSetParseOptions(PO_NO_NETWORK);
 ^%no-child-restrictions{WS}*$           getProgram()->parseSetParseOptions(PO_NO_CHILD_PO_RESTRICTIONS);
 ^%no-database{WS}*$                     getProgram()->parseSetParseOptions(PO_NO_DATABASE);
 ^%require-our{WS}*$                     getProgram()->parseSetParseOptions(PO_REQUIRE_OUR);
