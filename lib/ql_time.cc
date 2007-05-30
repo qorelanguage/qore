@@ -171,6 +171,15 @@ static class QoreNode *f_timegm(class QoreNode *params, ExceptionSink *xsink)
 }
 #endif
 
+static class QoreNode *f_get_epoch_seconds(class QoreNode *params, ExceptionSink *xsink)
+{
+   class QoreNode *p0 = test_param(params, NT_DATE, 0);
+   if (!p0)
+      return 0;
+
+   return new QoreNode((int64)p0->val.date_time->getEpochSeconds());
+}
+
 static class QoreNode *f_years(class QoreNode *params, ExceptionSink *xsink)
 {
    class QoreNode *p0 = get_param(params, 0);
@@ -443,6 +452,8 @@ void init_time_functions()
 #ifdef HAVE_TIMEGM
    builtinFunctions.add("timegm", f_timegm);
 #endif
+
+   builtinFunctions.add("get_epoch_seconds",   f_get_epoch_seconds);
 
    builtinFunctions.add("years",               f_years);
    builtinFunctions.add("months",              f_months);
