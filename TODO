@@ -1,5 +1,7 @@
 see docs/roadmap.html
 
+* fix %d Datasource specifier to work with floats
+* fix Datasource::getServerVersion() to always return an integer, implement Datasource::getServerVersionString() (implement for sybase/mssql)
 * implement a mechanism for a thread to sleep until another thread terminates (join)
 * add support for special ::toString() method to serialize an object to a string (very useful for debugging)
 * add support for ranges [2..9] and dereferencing strings with []

@@ -5,7 +5,7 @@
 
     <para>The tibae module provides TIBCO Active Enterprise functionality; that is, the ability to use an adapter configuration decribing function and data classes to communicate safely with other TIBCO Active Enterprise components.</para>
 
-    <para>Note that the code in this module is not available with the <link linkend="PO_NO_NETWORK"><code>PO_NO_NETWORK</code></link> parse option.</para>
+    <para>Note that the code in this module is not available with the <link linkend="no-network"><code>PO_NO_NETWORK</code></link> parse option.</para>
 
     <para>To use this module, include the following line in the qore program to load the module:</para>
 

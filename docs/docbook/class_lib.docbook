@@ -740,7 +740,7 @@
   <sect1 id="Qore_File_Class">
     <title>Qore::File Class</title>
 
-    <para>Note: This class is not available with the <link linkend="PO_NO_FILESYSTEM"><code>PO_NO_FILESYSTEM</code></link> parse option.</para>
+    <para>Note: This class is not available with the <link linkend="no-filesystem"><code>PO_NO_FILESYSTEM</code></link> parse option.</para>
 
     <para>The File class allows Qore programs to read, write, and create files.</para>
 
@@ -4264,7 +4264,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
   <sect1 id="Qore_FtpClient_Class">
     <title>Qore::FtpClient Class</title>
 
-    <para>Note: This class is not available with the <link linkend="PO_NO_NETWORK"><code>PO_NO_NETWORK</code></link> parse option.</para>
+    <para>Note: This class is not available with the <link linkend="no-network"><code>PO_NO_NETWORK</code></link> parse option.</para>
     
     <para>The FtpClient class allows Qore programs to communicate with FTP servers.  The constructor takes an optional URL with the following format:</para>
     
@@ -8541,7 +8541,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
   <sect1 id="Qore_Socket_Class">
     <title>Qore::Socket Class</title>
     
-    <para>Note: This class is not available with the <link linkend="PO_NO_NETWORK"><code>PO_NO_NETWORK</code></link> parse option.</para>
+    <para>Note: This class is not available with the <link linkend="no-network"><code>PO_NO_NETWORK</code></link> parse option.</para>
 
     <para>Socket objects allow Qore programs safe access to network sockets.  Non-blocking socket I/O can be performed by appending a timeout value in milliseconds to all Socket::recv*() methods, or by using the <link linkend="Qore_Socket_isDataAvailable">Socket::isDataAvailable()</link> method with a timeout value in milliseconds (1000 ms = 1 second).  Note that as with all Qore functions and methods accepting a timeout value, relative date/time values can be given instead of integers to make the source more readable, for example:</para>
 
@@ -12937,7 +12937,7 @@ $sock.bind("/tmp/socket");</programlisting>
   <sect1 id="HTTPClient_Class">
     <title>Qore::HTTPClient Class</title>
 
-    <para>Note: This class is not available with the <link linkend="PO_NO_NETWORK"><code>PO_NO_NETWORK</code></link> parse option.</para>
+    <para>Note: This class is not available with the <link linkend="no-network"><code>PO_NO_NETWORK</code></link> parse option.</para>
 
     <para>The HTTPClient class can be used to communicate with HTTP servers using the HTTP or HTTPS (HTTP using an SSL/TLS encrypted connection) protocol.</para>
 
@@ -15971,7 +15971,7 @@ $sock.bind("/tmp/socket");</programlisting>
   <sect1 id="XmlRpcClient_Class">
     <title>Qore::XmlRpcClient Class</title>
 
-    <para>Note: This class is not available with the <link linkend="PO_NO_NETWORK"><code>PO_NO_NETWORK</code></link> parse option.</para>
+    <para>Note: This class is not available with the <link linkend="no-network"><code>PO_NO_NETWORK</code></link> parse option.</para>
 
     <para>The XmlRpcClient class provides easy access to XML-RPC web services.  This class inherits all public methods of the <link linkend="HTTPClient_Class">HTTPClient class</link>.  The inherited <link linkend="HTTPClient_Class">HTTPClient</link> methods are not listed in this section, see the section on the <link linkend="HTTPClient_Class">HTTPClient class</link> for more information on methods provided by the parent class.  For low-level XML-RPC functions, see the XML-RPC functions in <link linkend="XML_Functions">XML Functions</link>.</para>
 
@@ -16569,7 +16569,7 @@ $sock.bind("/tmp/socket");</programlisting>
   <sect1 id="JsonRpcClient_Class">
     <title>Qore::JsonRpcClient Class</title>
 
-    <para>Note: This class is not available with the <link linkend="PO_NO_NETWORK"><code>PO_NO_NETWORK</code></link> parse option.</para>
+    <para>Note: This class is not available with the <link linkend="no-network"><code>PO_NO_NETWORK</code></link> parse option.</para>
 
     <para>The JsonRpcClient class provides easy access to JSON-RPC web services.  This class inherits all public methods of the <link linkend="HTTPClient_Class">HTTPClient class</link>.  The inherited HTTPClient methods are not listed in this section, see the section on the HTTPClient class for more information on methods provided by the parent class.  For low-level JSON-RPC functions, see the JSON-RPC functions in <link linkend="JSON_Functions">JSON Functions</link>.</para>
 
@@ -19433,7 +19433,7 @@ $sock.bind("/tmp/socket");</programlisting>
   <sect1 id="Qore::SQL::Datasource_Class">
     <title>Qore::SQL::Datasource Class</title>
     
-    <para>Note: This class is not available with the <link linkend="PO_NO_DATABASE"><code>PO_NO_DATABASE</code></link> parse option.</para>
+    <para>Note: This class is not available with the <link linkend="no-database"><code>PO_NO_DATABASE</code></link> parse option.</para>
 
     <para>The Datasource class is the high-level Qore interface to Qore's DBI layer, and as such, Datasource objects allow Qore programs to access databases that have a Qore DBI driver.  The Datasource class will attempt to load any DBI driver that is not currently loaded in the <link linkend="Qore::SQL::Datasource::constructor">constructor</link>.  For connection pooling support, see the <link linkend="DatasourcePool_Class">DatasourcePool</link> class.</para>
     
@@ -19441,11 +19441,28 @@ $sock.bind("/tmp/socket");</programlisting>
 	
     <para>Some Qore DBI drivers allow &quot;select&quot; queries to be executed through the <link linkend="Qore::SQL::Datasource::exec">Datasource::exec()</link> method, and allow SQL commands (procedure calls, etc) to be executed through the <link linkend="Qore::SQL::Datasource::select">Datasource::select()</link> method, and some DBI drivers do not (depends on the underlying DB API).  At any rate, the transaction lock is set when auto-commit is disabled and when the <link linkend="Qore::SQL::Datasource::exec">Datasource::exec()</link> or  <link linkend="Qore::SQL::Datasource::beginTransaction">Datasource::beginTransaction()</link> methods are executed as documented above.  Therefore executing a transaction relevant command through the  <link linkend="Qore::SQL::Datasource::select">Datasource::select()</link> method while auto-commit mode is disabled and a transaction has not yet started will not result in the transaction lock being allocated to the current thread and therefore could cause transaction errors when sharing the Datasource object between multiple threads.</para>
 
-    <para>Only databases with an existing Qore DBI driver can be accessed through the Qore Datasource class.  DBI drivers shipping with Qore include <link linkend="oracle_Module">oracle</link>, <link linkend="mysql_Module">mysql</link>, <link linkend="pgsql_Module">pgsql</link> (PostgreSQL), <link linkend="sybase_Module">sybase</link>, and <link linkend="mssql_Module">mssql</link> (FreeTDS-based Microsoft SQL Server driver).</para>
+    <para>Only databases with an existing Qore DBI driver can be accessed through the Qore Datasource class.  DBI drivers shipping with Qore include <link linkend="oracle_Module">oracle</link>, <link linkend="mysql_Module">mysql</link>, <link linkend="pgsql_Module">pgsql</link> (PostgreSQL), <link linkend="sybase_Module">sybase</link>, and <link linkend="mssql_Module">mssql</link> (FreeTDS-based Sybase and Microsoft SQL Server driver).</para>
 
    <para>All Qore DBI drivers set new connections to use transaction isolation level &quot;read committed&quot;.</para>
 
    <para>The Datasource class provides consistent, high-level, per-connection locking on requests at a level above the DBI drivers to ensure that the communication between clients and servers is properly serialized.</para>
+
+   <sect2 id="datasource_binding">
+     <title>Datasource Binding By Value and By Placeholder</title>
+
+     <para>All Datasource methods accepting SQL strings to execute understand a special syntax used in the query string to bind Qore data by value and to specify placeholders for output variables (for example, when executing a stored procedure or database function).  Placeholder binding is DBI driver specific, but binding by value is supported with the same syntax in all drivers.  Additionally, the <code>%d</code> numeric specifier is supported equally in all Qore DBI drivers.</para>
+
+     <para>To bind qore data values directly in a binary format in an SQL command, use <code>%v</code> in the command string, and include the value as an argument after the string.  Binding by value means that Qore's DBI driver will take care of formatting the data properly for use in the query with the database server.  That means that strings do not need to be quoted, date/time values do not need special formatting, binary object (with BLOB columns, for example) can be used directly in queries, etc.</para>
+
+     <para>Here is an example:</para>
+
+     <programlisting>$rows = $db.exec("insert into table (varchar_col, timestamp_col, blob_col, numeric_col) values (%v, %v, %v, %d)", $string, now(), $binary, 100);</programlisting>
+	    
+     <para>To insert either an integer value or a 'null' string, use <code>%d</code> in the command string, and include the value as an argument after the string.  If the value is NOTHING or NULL, 'null' will be written to the string; otherwise the argument is converted to an integer if necessary and written to the string.  This is useful for working with DECIMAL (NUMERIC, NUMBER) types in a database-independent way; for example PostgreSQL servers (<link linkend="pgsql_Module">see the pgsql module</link>) do not do type conversions to DECIMAL types when a string or integer is bound by value, therefore to ensure that integral decimal values can be used in a database-independent way (with 'null' substitution when no value is bound), it's best to use the <code>%d</code> code in the command string instead of <code>%v</code>.</para>
+
+     <para>For binding placeholders for output variables, write a unique name in the string and prefix it with a colon (ex: <code>:code</code>).  In this case the method will return a hash of the output variables using the placeholder names as keys, but without the colon prefix.  By default, a string type will be bound to the position.  To bind other variable types to placeholder positions, include the type constant (see <link linkend="Qore_Type_Constants">Type Constants</link>) as an argument after the command string.  For BLOBs, use Binary, for CLOBs, use the string "clob" (constants will be provided in a future release).  Not all DBI drivers require placeholder buffer specifications; see the documentation for the DBI driver in question for more information and examples regarding placeholder buffer specifications.</para>
+
+   </sect2>
 
     <sect2 id="datasource_transaction_lock">
       <title>Datasource Transaction Locks</title>
@@ -20324,13 +20341,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Grabs the <link linkend="datasource_transaction_lock">transaction lock</link> (if autocommit is disabled) and executes an SQL command on the server and returns either the row count (for example, for updates and inserts) or the data retrieved (for example, if a stored procedure is executed that returns values).  This method takes a special syntax for binding values and placeholders, similar to printf() functions.</para>
-
-	    <para>For binding values directly in a binary format, use <code>%v</code> in the command string, and include the value as an argument after the string.  Binding by value means that Qore's DBI driver will take care of formatting the data properly for use in the query with the database server.  That means that strings do not need to be quoted, date/time values do not need special formatting, binary object (with BLOB columns, for example) can be used directly in queries, etc.  You can find an example below.</para>
-	    
-	    <para>To insert either an integer value or a 'null' string, use <code>%d</code> in the command string, and include the value as an artument after the string.  If the value is NOTHING or NULL, 'null' will be written to the string; otherwise the argument is converted to an integer if necessary and written to the string.  This is useful for working with DECIMAL (NUMERIC, NUMBER) types in a database-independent way; for example PostgreSQL servers (<link linkend="pgsql_Module">see the pgsql module</link>) do not do type conversions to DECIMAL types when a string or integer is bound by value, therefore to ensure that integral decimal values can be used in a database-independent way (with 'null' substitution when no value is bound), it's best to use the <code>%d</code> code in the command string instead of <code>%v</code>.</para>
-
-	    <para>For binding placeholders for output variables, write a unique name in the string and prefix it with a colon (ex: <code>:code</code>).  In this case the method will return a hash of the output variables using the placeholder names as keys, but without the colon prefix.  By default, a string type will be bound to the position.  To bind other variable types to placeholder positions, include the type constant (see <link linkend="Qore_Type_Constants">Type Constants</link>) as an argument after the command string.  For BLOBs, use Binary, for CLOBs, use the string "clob" (constants will be provided in a future release).  Not all DBI drivers require placeholder buffer specifications; see the documentation for the DBI driver in question for more information and examples regarding placeholder buffer specifications.</para>
+	    <para>Grabs the <link linkend="datasource_transaction_lock">transaction lock</link> (if autocommit is disabled) and executes an SQL command on the server and returns either the row count (for example, for updates and inserts) or the data retrieved (for example, if a stored procedure is executed that returns values).</para>
 
 	  </listitem>
 	</varlistentry>
@@ -20513,10 +20524,6 @@ $sock.bind("/tmp/socket");</programlisting>
 	  <listitem>
 	    <para>Executes an SQL select statement on the server and returns the result as a hash (column names) of lists (rows).  This format is suitable for use with <link linkend="context_Statements"><command>context</command> Statements</link>, for easy iteration and processing of query results.  Additionally, this format is more efficient format than that returned by the <link linkend="Qore::SQL::Datasource::selectRows">Datasource::selectRows()</link> method, because the column names are not repeated for each row returned.  Therefore, for retrieving anything greater than small amounts of data, it is recommended to use this method instead of <link linkend="Qore::SQL::Datasource::selectRows">Datasource::selectRows()</link>.</para>
 
-	    <para>For binding values directly in a binary format, use <code>%v</code> in the query string, and include the value as an argument after the string.  Binding by value means that Qore's DBI driver will take care of formatting the data properly for use in the query with the database server.  That means that strings do not need to be quoted, date/time values do not need special formatting, binary object (with BLOB columns, for example) can be used directly in queries, etc.  You can find an example below.</para>
-	    
-	    <para>To insert either an integer value or a 'null' string in a query, use <code>%d</code> in the command string, and include the value as an artument after the string.  If the value is NOTHING or NULL, 'null' will be written to the query string; otherwise the argument is converted to an integer if necessary and written to the string.  This is useful for working with DECIMAL (NUMERIC, NUMBER) types in a database-independent way; for example PostgreSQL servers (<link linkend="pgsql_Module">see the pgsql module</link>) do not do type conversions to DECIMAL types when a string or integer is bound by value, therefore to ensure that integral decimal values can be used in a database-independent way (with 'null' substitution when no value is bound), it's best to use the <code>%d</code> code in the command string instead of <code>%v</code>.</para>
-
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -20690,7 +20697,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	  <term>Synopsis</term>
 	  <listitem>
 	    <para>Executes an SQL select statement on the server and returns the first row as a hash (the column values).  If more than one row is returned, then all but the first row are discarded.  For a similar method taking a list for all bind arguments, see <link linkend="Qore::SQL::Datasource::vselectRow">Datasource::vselectRow()</link>.</para>
-	    <para>This method also accepts all bind parameters (%d, %v, etc) as documented in  <link linkend="Qore::SQL::Datasource::select">Datasource::select()</link>.</para>
+	    <para>This method also accepts all bind parameters (%d, %v, etc) as documented in  <link linkend="datasource_binding">Datasource Binding</link>.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -20863,7 +20870,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	  <term>Synopsis</term>
 	  <listitem>
 	    <para>Executes an SQL select statement on the server and returns the result as a list (rows) of hashes (the column values).  This format is not as efficient as that returned by the <link linkend="Qore::SQL::Datasource::select">Datasource::select()</link> method, therefore for larger amounts of data, it is recommended to use <link linkend="Qore::SQL::Datasource::select">Datasource::select()</link>.</para>
-	    <para>This method also accepts all bind parameters (%d, %v, etc) as documented in  <link linkend="Qore::SQL::Datasource::select">Datasource::select()</link>.</para>
+	    <para>This method also accepts all bind parameters (%d, %v, etc) as documented in  <link linkend="datasource_binding">Datasource Binding</link>.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -22045,21 +22052,26 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
   <sect1 id="DatasourcePool_Class">
     <title>Qore::SQL::DatasourcePool Class</title>
     
-    <para>Note: This class is not available with the <link linkend="PO_NO_DATABASE"><code>PO_NO_DATABASE</code></link> parse option.</para>
+    <para>Note: This class is not available with the <link linkend="no-database"><code>PO_NO_DATABASE</code></link> parse option.</para>
 
     <para>The DatasourcePool class provides transparent per-thread, per-transaction <link linkend="Qore::SQL::Datasource_Class">Datasource</link> connection pooling.</para> 
 
-    <para>In most cases, the DatasourcePool class can be used as a drop-in replacement for the <link linkend="Qore::SQL::Datasource_Class">Datasource</link> class; when a transaction begins, a datasource will be automatically assigned to the calling thread, and it will only be released when a commit or rollback is called on the object.  If no Datasource is available, the calling thread will block until a Datasource comes available.</para>
+    <para>In most cases, the DatasourcePool class can be used as a drop-in replacement for the <link linkend="Qore::SQL::Datasource_Class">Datasource</link> class with autocommit disabled; when a transaction begins, a datasource will be automatically assigned to the calling thread, and it will only be released when a commit or rollback is called on the object.  If no Datasource is available, the calling thread will block until a Datasource comes available.</para>
 
     <para>Note that the same priciples apply to SQL and database driver usage as with the Datasource class, see the <link linkend="Qore::SQL::Datasource_Class">Datasource</link> class documentation for more information.</para>
 
     <para>The DatasourcePool class uses Qore's thread resource tracking infrastructure to raise an exception if a thread terminates while a connection is allocated to it.  If Qore user code enters a transaction with a DatasourcePool object and the thread terminates without closing the transaction (via <link linkend="DatasourcePool::commit">DatasourcePool::commit()</link> or <link linkend="DatasourcePool::rollback">DatasourcePool::rollback()</link>), an exception will automatically be raised, the transaction will be rolled back, and the Datasource connection will be freed to the pool.</para>
 
-    <para>The following methods allocate a persistent connection to the calling thread: <link linkend="DatasourcePool::exec">DatasourcePool::exec()</link>, <link linkend="DatasourcePool::vexec">DatasourcePool::vexec()</link>, and <link linkend="DatasourcePool::beginTransaction">DatasourcePool::beginTransaction()</link>.  The connection is released to the pool when <link linkend="DatasourcePool::commit">DatasourcePool::commit()</link> or <link linkend="DatasourcePool::rollback">DatasourcePool::rollback()</link> are called (or in the case the thread terminates, in which case an exception is raised as well).</para>
+    <sect2 id="datasourcepool_allocations">
+      <title>DatasourcePool Connection Allocations</title>
 
-    <para>To begin a transaction with one of the select methods (for example, with “select for update”), call <link linkend="DatasourcePool::beginTransaction">DatasourcePool::beginTransaction()</link> first to manually dedicate a Datasource to the thread before calling the select method.  Otherwise statements that should be in the same transaction may be executed in different connections.</para>
+      <para>The following methods allocate a persistent connection to the calling thread: <link linkend="DatasourcePool::exec">DatasourcePool::exec()</link>, <link linkend="DatasourcePool::vexec">DatasourcePool::vexec()</link>, and <link linkend="DatasourcePool::beginTransaction">DatasourcePool::beginTransaction()</link>.  The connection is released to the pool when <link linkend="DatasourcePool::commit">DatasourcePool::commit()</link> or <link linkend="DatasourcePool::rollback">DatasourcePool::rollback()</link> are called (or in the case the thread terminates, in which case an exception is raised as well).</para>
 
-    <para>Executing a DatasourcePool method while not in a transaction is realized by allocating a temporary connection to the calling thread which is re-released when the method returns.  No explicit commits are executed by the class, therefore it is an error to execute transaction-relevant commands without first calling <link linkend="DatasourcePool::exec">DatasourcePool::exec()</link>, <link linkend="DatasourcePool::vexec">DatasourcePool::vexec()</link>, or <link linkend="DatasourcePool::beginTransaction">DatasourcePool::beginTransaction()</link>.</para>
+      <para>To begin a transaction with one of the select methods (for example, with “select for update”), call <link linkend="DatasourcePool::beginTransaction">DatasourcePool::beginTransaction()</link> first to manually dedicate a Datasource to the thread before calling the select method.  Otherwise statements that should be in the same transaction may be executed in different connections.</para>
+
+      <para>Executing a DatasourcePool method while not in a transaction is realized by allocating a temporary connection to the calling thread which is re-released when the method returns.  No explicit commits are executed by the class, therefore it is an error to execute transaction-relevant commands without first calling <link linkend="DatasourcePool::exec">DatasourcePool::exec()</link>, <link linkend="DatasourcePool::vexec">DatasourcePool::vexec()</link>, or <link linkend="DatasourcePool::beginTransaction">DatasourcePool::beginTransaction()</link>.</para>
+
+    </sect2>
 
     <table>
       <title>DatasourcePool Method Overview</title>
@@ -22957,7 +22969,7 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 	  <term>Synopsis</term>
 	  <listitem>
 	    <para>Executes an SQL select statement on the server and returns the first row as a hash (the column values).  If more than one row is returned, then all but the first row are discarded.  For a similar method taking a list for all bind arguments, see <link linkend="DatasourcePool::vselectRow">DatasourcePool::vselectRow()</link>.</para>
-	    <para>This method also accepts all bind parameters (%d, %v, etc) as documented in  <link linkend="DatasourcePool::select">DatasourcePool::select()</link>.</para>
+	    <para>This method also accepts all bind parameters (%d, %v, etc) as documented in  <link linkend="datasource_binding">Datasource Binding</link>.</para>
 
 	    <para>Note that this method does not allocate a persistent connection to the calling thread; if the calling thread does not already have a connection allocated to it, a temporary connection will be allocated for executing the select query and returning the results; the temporary connection will be immediately returned to the pool when this method returns.  It is an error to execute transaction relevant commands with this method without first allocating a persistent connection with  <link linkend="DatasourcePool::exec">DatasourcePool::exec()</link>, <link linkend="DatasourcePool::vexec">DatasourcePool::vexec()</link>, or <link linkend="DatasourcePool::beginTransaction">DatasourcePool::beginTransaction()</link>.</para>
 
@@ -23118,7 +23130,7 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 	  <term>Synopsis</term>
 	  <listitem>
 	    <para>Executes an SQL select statement on the server and returns the result as a list (rows) of hashes (the column values).  This format is not as efficient as that returned by the <link linkend="DatasourcePool::select">DatasourcePool::select()</link> method, therefore for larger amounts of data, it is recommended to use <link linkend="DatasourcePool::select">DatasourcePool::select()</link>.</para>
-	    <para>This method also accepts all bind parameters (%d, %v, etc) as documented in  <link linkend="DatasourcePool::select">DatasourcePool::select()</link>.</para>
+	    <para>This method also accepts all bind parameters (%d, %v, etc) as documented in  <link linkend="datasource_binding">Datasource Binding</link>.</para>
 
 	    <para>Note that this method does not allocate a persistent connection to the calling thread; if the calling thread does not already have a connection allocated to it, a temporary connection will be allocated for executing the select query and returning the results; the temporary connection will be immediately returned to the pool when this method returns.  It is an error to execute transaction relevant commands with this method without first allocating a persistent connection with  <link linkend="DatasourcePool::exec">DatasourcePool::exec()</link>, <link linkend="DatasourcePool::vexec">DatasourcePool::vexec()</link>, or <link linkend="DatasourcePool::beginTransaction">DatasourcePool::beginTransaction()</link>.</para>
 
@@ -23866,7 +23878,7 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
   <sect1 id="Qore::Thread::AutoGate_Class">
     <title>Qore::Thread::AutoGate Class</title>
 
-    <para>Note: This class is not available with the <link linkend="PO_NO_THREAD_CLASSES"><code>PO_NO_THREAD_CLASSES</code></link> parse option.</para>
+    <para>Note: This class is not available with the <link linkend="no-thread-classes"><code>PO_NO_THREAD_CLASSES</code></link> parse option.</para>
 
     <para>AutoGate objects, when used along with a <link linkend="Qore::Thread::Gate_Class">Gate</link> object, allow Qore programmers to safely enter and exit a gate lock, even if exceptions are thrown or <command>return</command> statements are executed in the block where the AutoGate object is created.  AutoGate objects enter the gate lock for the lifetime of the AutoGate object.  For this reason, it is only appropriate to assign an AutoGate object to a local variable, so when the local variable goes out of scope, the AutoGate object will be deleted and the gate automatically exited.</para>
 
@@ -24082,7 +24094,7 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
   <sect1 id="Qore::Thread::AutoLock_Class">
     <title>Qore::Thread::AutoLock Class</title>
 
-    <para>Note: This class is not available with the <link linkend="PO_NO_THREAD_CLASSES"><code>PO_NO_THREAD_CLASSES</code></link> parse option.</para>
+    <para>Note: This class is not available with the <link linkend="no-thread-classes"><code>PO_NO_THREAD_CLASSES</code></link> parse option.</para>
 
     <para>AutoLock objects, when used along with a <link linkend="Qore::Thread::Mutex_Class">Mutex</link> object, allow Qore programmers to safely acquire and release a Mutex lock, even if exceptions are thrown or <command>return</command> statements are executed in the block where the AutoLock object is created.  AutoLock objects are helper objects that acquire a Mutex for the lifetime of the object.  For this reason, it is only appropriate to assign an AutoLock object to a local variable, so when the local variable goes out of scope, the AutoLock object will be deleted and the Mutex will be automatically released.</para>
 
@@ -24297,7 +24309,7 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
   <sect1 id="Qore::Thread::AutoReadLock_Class">
     <title>Qore::Thread::AutoReadLock Class</title>
 
-    <para>Note: This class is not available with the <link linkend="PO_NO_THREAD_CLASSES"><code>PO_NO_THREAD_CLASSES</code></link> parse option.</para>
+    <para>Note: This class is not available with the <link linkend="no-thread-classes"><code>PO_NO_THREAD_CLASSES</code></link> parse option.</para>
 
     <para>AutoReadLock objects, when used along with a <link linkend="Qore::Thread::RWLock_Class">RWLock</link> object, allow Qore programmers to safely acquire and release a read lock, even if exceptions are thrown or <command>return</command> statements are executed in the block where the AutoReadLock object is created.  AutoReadLock objects are helper objects that acquire a read lock for the lifetime of the AutoReadLock object.  For this reason, it is only appropriate to assign an AutoReadLock object to a local variable, so when the local variable goes out of scope, the AutoReadLock object will be deleted and the read lock will be automatically released.</para>
 
@@ -24512,7 +24524,7 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
   <sect1 id="Qore::Thread::AutoWriteLock_Class">
     <title>Qore::Thread::AutoWriteLock Class</title>
 
-    <para>Note: This class is not available with the <link linkend="PO_NO_THREAD_CLASSES"><code>PO_NO_THREAD_CLASSES</code></link> parse option.</para>
+    <para>Note: This class is not available with the <link linkend="no-thread-classes"><code>PO_NO_THREAD_CLASSES</code></link> parse option.</para>
 
     <para>AutoWriteLock objects, when used along with a <link linkend="Qore::Thread::RWLock_Class">RWLock</link> object, allow Qore programmers to safely acquire and release a write lock, even if exceptions are thrown or <command>return</command> statements are executed in the block where the AutoWriteLock object is created.  AutoWriteLock objects are helper objects that acquire a write lock for the lifetime of the AutoWriteLock object.  For this reason, it is only appropriate to assign an AutoWriteLock object to a local variable, so when the local variable goes out of scope, the AutoWriteLock object will be deleted and the write lock will be automatically released.</para>
 
@@ -24727,7 +24739,7 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
   <sect1 id="Qore::Thread::Condition_Class">
     <title>Qore::Thread::Condition Class</title>
 
-    <para>Note: This class is not available with the <link linkend="PO_NO_THREAD_CLASSES"><code>PO_NO_THREAD_CLASSES</code></link> parse option.</para>
+    <para>Note: This class is not available with the <link linkend="no-thread-classes"><code>PO_NO_THREAD_CLASSES</code></link> parse option.</para>
 
     <para>Condition objects, when used along with a <link linkend="Qore::Thread::Mutex_Class">Mutex</link> object, allow Qore threads to sleep until a certain condition becomes true.</para>
 
@@ -25255,7 +25267,7 @@ $mutex.unlock();</programlisting>
   <sect1 id="Qore::Thread::Counter_Class">
     <title>Qore::Thread::Counter Class</title>
 
-    <para>Note: This class is not available with the <link linkend="PO_NO_THREAD_CLASSES"><code>PO_NO_THREAD_CLASSES</code></link> parse option.</para>
+    <para>Note: This class is not available with the <link linkend="no-thread-classes"><code>PO_NO_THREAD_CLASSES</code></link> parse option.</para>
 
     <para>Counter objects allow Qore threads to sleep until a counter reaches zero.</para>
 
@@ -25841,7 +25853,7 @@ $mutex.unlock();</programlisting>
   <sect1 id="Qore::Thread::Queue_Class">
     <title>Qore::Thread::Queue Class</title>
 
-    <para>Note: This class is not available with the <link linkend="PO_NO_THREAD_CLASSES"><code>PO_NO_THREAD_CLASSES</code></link> parse option.</para>
+    <para>Note: This class is not available with the <link linkend="no-thread-classes"><code>PO_NO_THREAD_CLASSES</code></link> parse option.</para>
 
     <para>Queue objects provide a blocking, thread-safe message-passing object to Qore programs.</para>
 
@@ -26435,7 +26447,7 @@ $mutex.unlock();</programlisting>
   <sect1 id="Qore::Thread::RWLock_Class">
     <title>Qore::Thread::RWLock Class</title>
 
-    <para>Note: This class is not available with the <link linkend="PO_NO_THREAD_CLASSES"><code>PO_NO_THREAD_CLASSES</code></link> parse option.</para>
+    <para>Note: This class is not available with the <link linkend="no-thread-classes"><code>PO_NO_THREAD_CLASSES</code></link> parse option.</para>
 
     <para>The RWLock class implements a read-write lock for efficient thread locking when write actions must be atomic and reads can be made in parallel if no write is in progress. When a thread holds the write lock, no other thread can grab the read or write lock. Multiple threads can hold the read lock at one time.</para>
 
@@ -27355,7 +27367,7 @@ $mutex.unlock();</programlisting>
   <sect1 id="Qore::Thread::Mutex_Class">
     <title>Qore::Thread::Mutex Class</title>
 
-    <para>Note: This class is not available with the <link linkend="PO_NO_THREAD_CLASSES"><code>PO_NO_THREAD_CLASSES</code></link> parse option.</para>
+    <para>Note: This class is not available with the <link linkend="no-thread-classes"><code>PO_NO_THREAD_CLASSES</code></link> parse option.</para>
 
     <para>The Mutex class implements a mutual-exclusion lock for thread locking.  Like all Qore thread primitives, objects of this class participate in deadlock detection and throw exceptions when threading errors occur (ex: unlocking a Mutex object locked by another thread, etc).  See individual methods for more information on exceptions thrown.</para>
 
@@ -27824,7 +27836,7 @@ $mutex.unlock();</programlisting>
     <title>Qore::Thread::RMutex Class</title>
     <para>DEPRECATED: use the <link linkend="Qore::Thread::Gate_Class">Gate</link> class instead.</para>
 
-    <para>Note: This class is not available with the <link linkend="PO_NO_THREAD_CLASSES"><code>PO_NO_THREAD_CLASSES</code></link> parse option.</para>
+    <para>Note: This class is not available with the <link linkend="no-thread-classes"><code>PO_NO_THREAD_CLASSES</code></link> parse option.</para>
 
   </sect1>
 
@@ -28155,7 +28167,7 @@ $mutex.unlock();</programlisting>
   <sect1 id="Qore::Thread::Gate_Class">
     <title>Qore::Thread::Gate Class</title>
 
-    <para>Note: This class is not available with the <link linkend="PO_NO_THREAD_CLASSES"><code>PO_NO_THREAD_CLASSES</code></link> parse option.</para>
+    <para>Note: This class is not available with the <link linkend="no-thread-classes"><code>PO_NO_THREAD_CLASSES</code></link> parse option.</para>
 
     <para>The Gate class implements a reentrant thread lock.  Once a thread grabs the lock, it can call the <link linkend="Qore::Thread::Gate::enter">Gate::enter()</link> method again without blocking.  Other threads that try to enter the lock will block until the thread holding the lock calls <link linkend="Qore::Thread::Gate::exit">Gate::exit()</link> an equal number of times to <link linkend="Qore::Thread::Gate::enter">Gate::enter()</link> calls.</para>
 

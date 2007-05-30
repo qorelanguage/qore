@@ -12,9 +12,18 @@
 
     <para>The driver employs efficient binary bindings for all non-text data types and fully supports multidimensional arrays when selecting and binding by value.  The driver determines on a per-connection basis by querying server capabilities whether the server uses 8-byte integer or floating-point data for date/time types, and also whether or not a binary day value is included in intervals.</para>
 
+    <para>When binding by value, PostgreSQL servers do not convert data types as freely as many other database servers; instead the server throws an error if the bound type does not closely match the expected data type.  For example, binding a string or float value to a <code>NUMERIC</code> data type will cause an exception to be thrown.  To successfully bind by value, either use a PostgreSQL type cast in the SQL text (i.e. <code>::type</code>) or use the <link linkend="pgsql_bind">pgsql_bind()</link> function to specify the type to bind.</para>
+
+    <para>For <code>NUMERIC</code> fields, the <code>%d</code> specification in the query string can be used to substitute a numeric value or a literal &quot;null&quot; directly in the query string, providing the same effect as a bind by value in a very convenient form for the programmer, for example:</para>
+
+    <programlisting># the %d will be substituted with the value of $id directly in the query text
+# or with a "null" in case $id has no value (or is NULL)
+
+<command>my</command> $results = $db.select("select * from table where id = %d", $id);</programlisting>
+
     <para>When the Datasource is not in auto-commit mode, this driver automatically inserts &quot;begin&quot; statements at the start of each transaction to provide consistent transaction handling across all Qore DBI drivers; it's not necessary to do this manually.  Note that an exception while already in a transaction will have the effect that the pgsql connection cannot be used until the transaction is closed; this is different from most other current Qore DBI drivers.  An exception in a <link linkend="Qore::SQL::Datasource::exec">Datasource::exec()</link> method as the first statement of a transaction will cause an automatic implicit rollback to be executed to maintain compatibility with other Qore DBI drivers.</para>
 
-    <para>Due to the fact that Qore date/time values do not currently support time zone information, when PostgreSQL data including a time zone component is converted to a Qore data type, the time zone information is lost.  Also, Qore date/time values support a millisecond resolution, while PostgreSQL supports microsecond resolution.  All decimal places after milliseconds are discarded when converting to a Qore date/time value.  Be aware that values bound to <code>TIMESTAMP WITH TIME ZONE</code> and <code>ABSTIME</code> columns are converted to GMT by the server and returned as GMT, therefore different date/time values may be returned if binding date/time values in local time when the value is returned in GMT.</para>
+    <para>Due to the fact that Qore date/time values do not currently support time zone information, when PostgreSQL data including a time zone component is converted to a Qore data type, the time zone information is lost.  Also, Qore date/time values support a millisecond resolution, while PostgreSQL supports microsecond resolution.  All decimal places after milliseconds are discarded when converting to a Qore date/time value.  Be aware that values bound to <code>TIMESTAMP WITH TIME ZONE</code> and <code>ABSTIME</code> columns are converted to GMT by the server and returned as GMT, therefore different date/time values may be returned if binding date/time values in local time.</para>
 
     <para>The <link linkend="Qore::SQL::Datasource::getServerVersion">Datasource::getServerVersion()</link> method is implemented for this driver and returns an integer giving the major, minor, and sub version numbers in a single integer according to the following formula: major_version * 10000 + minor_version * 100 + sub_version (ex: 80204 = 8.2.4).   The <link linkend="Qore::SQL::Datasource::getClientVersion">Datasource::getClientVersion()</link> is not implemented for this driver.</para>
 
@@ -722,13 +731,21 @@ printf(&quot;%N\n&quot;, $result);</programlisting>
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Creates a hash data structure understood by the pgsql DBI driver when biding values in SQL queries that allows programmers to directly specify the PostgreSQL data type for the bind.  Use the <link linkend="pgsql_type_constants">pgsql type constants</link> to specify the PostgreSQL data type for the bind.</para>
+          <para>Creates a hash data structure understood by the pgsql DBI driver when binding values in SQL queries that allows programmers to directly specify the PostgreSQL data type for the bind.  Use the <link linkend="pgsql_type_constants">pgsql type constants</link> to specify the PostgreSQL data type for the bind.  If the value to bind is NOTHING or NULL, a NULL will be bound as the value, regardless of the PostgreSQL type code provided as the first argument.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
         <term>Usage</term>
         <listitem>
           <programlisting>pgsql_bind(<replaceable>pgsql_type_code, value</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+	  <programlisting># we use pgsql_bind() to bind a money type by value, otherwise the server would raise an error
+<command>my</command> $amount = 400.56;
+<command>my</command> $results = $db.select("select * from table where amount > %v", pgsql_bind(PG_TYPE_CASH, $amount));</programlisting>
         </listitem>
       </varlistentry>
     </variablelist>

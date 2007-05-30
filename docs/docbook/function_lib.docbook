@@ -1929,7 +1929,7 @@
       <row>
         <entry>
           <para>
-            <link linkend="is_wríteable">is_wríteable()</link>
+            <link linkend="is_writeable">is_writeable()</link>
           </para>
         </entry>
         <entry>
@@ -4832,7 +4832,7 @@
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Returns a floating-point number equal to the closest integral to the argument passed.  Numers halfway between two integers are arounded away from zero.</para>
+	<para>Returns a floating-point number equal to the closest integer to the argument passed.  Numers halfway between two integers are arounded away from zero.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -9068,7 +9068,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Restrictions</term>
       <listitem>
-	<para>Not available with <link linkend="PO_NO_PROCESS_CONTROL"><code>PO_NO_PROCESS_CONTROL</code></link></para>
+	<para>Not available with <link linkend="no-process-control"><code>PO_NO_PROCESS_CONTROL</code></link></para>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -9203,7 +9203,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<varlistentry>
 	  <term>Restrictions</term>
 	  <listitem>
-	    <para>Not available with <link linkend="PO_NO_PROCESS_CONTROL"><code>PO_NO_PROCESS_CONTROL</code></link> or <link linkend="PO_NO_EXTERNAL_PROCESS"><code>PO_NO_EXTERNAL_PROCESS</code></link></para>
+	    <para>Not available with <link linkend="no-process-control"><code>PO_NO_PROCESS_CONTROL</code></link> or <link linkend="no-external-process"><code>PO_NO_EXTERNAL_PROCESS</code></link></para>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -9257,7 +9257,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<varlistentry>
 	  <term>Restrictions</term>
 	  <listitem>
-	    <para>Not available with <link linkend="PO_NO_PROCESS_CONTROL"><code>PO_NO_PROCESS_CONTROL</code></link></para>
+	    <para>Not available with <link linkend="no-process-control"><code>PO_NO_PROCESS_CONTROL</code></link></para>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -9311,7 +9311,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Restrictions</term>
       <listitem>
-	<para>Not available with <link linkend="PO_NO_PROCESS_CONTROL"><code>PO_NO_PROCESS_CONTROL</code></link></para>
+	<para>Not available with <link linkend="no-process-control"><code>PO_NO_PROCESS_CONTROL</code></link></para>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -9772,7 +9772,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Restrictions</term>
       <listitem>
-	<para>Not available with <link linkend="PO_NO_EXTERNAL_PROCESS"><code>PO_NO_EXTERNAL_PROCESS</code></link></para>
+	<para>Not available with <link linkend="no-external-process"><code>PO_NO_EXTERNAL_PROCESS</code></link></para>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -10149,7 +10149,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Restrictions</term>
       <listitem>
-	<para>Not available with <link linkend="PO_NO_PROCESS_CONTROL"><code>PO_NO_PROCESS_CONTROL</code></link></para>
+	<para>Not available with <link linkend="no-process-control"><code>PO_NO_PROCESS_CONTROL</code></link></para>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -10381,7 +10381,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Restrictions</term>
       <listitem>
-	<para>Not available with <link linkend="PO_NO_EXTERNAL_PROCESS"><code>PO_NO_EXTERNAL_PROCESS</code></link></para>
+	<para>Not available with <link linkend="no-external-process"><code>PO_NO_EXTERNAL_PROCESS</code></link></para>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -10435,7 +10435,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Restrictions</term>
       <listitem>
-	<para>Not available with <link linkend="PO_NO_PROCESS_CONTROL"><code>PO_NO_PROCESS_CONTROL</code></link></para>
+	<para>Not available with <link linkend="no-process-control"><code>PO_NO_PROCESS_CONTROL</code></link></para>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -14414,7 +14414,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
 	<term>Restrictions</term>
 	<listitem>
-	  <para>Not available with <link linkend="PO_NO_FILESYSTEM"><code>PO_NO_FILESYSTEM</code></link></para>
+	  <para>Not available with <link linkend="no-filesystem"><code>PO_NO_FILESYSTEM</code></link></para>
 	</listitem>
       </varlistentry>
   </variablelist>
@@ -14486,7 +14486,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
 	<term>Restrictions</term>
 	<listitem>
-	  <para>Not available with <link linkend="PO_NO_FILESYSTEM"><code>PO_NO_FILESYSTEM</code></link></para>
+	  <para>Not available with <link linkend="no-filesystem"><code>PO_NO_FILESYSTEM</code></link></para>
 	</listitem>
       </varlistentry>
   </variablelist>
@@ -14558,7 +14558,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
 	<term>Restrictions</term>
 	<listitem>
-	  <para>Not available with <link linkend="PO_NO_FILESYSTEM"><code>PO_NO_FILESYSTEM</code></link></para>
+	  <para>Not available with <link linkend="no-filesystem"><code>PO_NO_FILESYSTEM</code></link></para>
 	</listitem>
       </varlistentry>
   </variablelist>
@@ -14682,7 +14682,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
 	<term>Restrictions</term>
 	<listitem>
-	  <para>Not available with <link linkend="PO_NO_FILESYSTEM"><code>PO_NO_FILESYSTEM</code></link></para>
+	  <para>Not available with <link linkend="no-filesystem"><code>PO_NO_FILESYSTEM</code></link></para>
 	</listitem>
       </varlistentry>
   </variablelist>
@@ -14734,7 +14734,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
 	<term>Restrictions</term>
 	<listitem>
-	  <para>Not available with <link linkend="PO_NO_FILESYSTEM"><code>PO_NO_FILESYSTEM</code></link></para>
+	  <para>Not available with <link linkend="no-filesystem"><code>PO_NO_FILESYSTEM</code></link></para>
 	</listitem>
       </varlistentry>
     </variablelist>
@@ -14794,7 +14794,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
 	<term>Restrictions</term>
 	<listitem>
-	  <para>Not available with <link linkend="PO_NO_FILESYSTEM"><code>PO_NO_FILESYSTEM</code></link></para>
+	  <para>Not available with <link linkend="no-filesystem"><code>PO_NO_FILESYSTEM</code></link></para>
 	</listitem>
       </varlistentry>
     </variablelist>
@@ -14854,7 +14854,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
 	<term>Restrictions</term>
 	<listitem>
-	  <para>Not available with <link linkend="PO_NO_FILESYSTEM"><code>PO_NO_FILESYSTEM</code></link></para>
+	  <para>Not available with <link linkend="no-filesystem"><code>PO_NO_FILESYSTEM</code></link></para>
 	</listitem>
       </varlistentry>
     </variablelist>
@@ -14914,7 +14914,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
 	<term>Restrictions</term>
 	<listitem>
-	  <para>Not available with <link linkend="PO_NO_FILESYSTEM"><code>PO_NO_FILESYSTEM</code></link></para>
+	  <para>Not available with <link linkend="no-filesystem"><code>PO_NO_FILESYSTEM</code></link></para>
 	</listitem>
       </varlistentry>
     </variablelist>
@@ -14974,7 +14974,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
 	<term>Restrictions</term>
 	<listitem>
-	  <para>Not available with <link linkend="PO_NO_FILESYSTEM"><code>PO_NO_FILESYSTEM</code></link></para>
+	  <para>Not available with <link linkend="no-filesystem"><code>PO_NO_FILESYSTEM</code></link></para>
 	</listitem>
       </varlistentry>
     </variablelist>
@@ -15034,7 +15034,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
 	<term>Restrictions</term>
 	<listitem>
-	  <para>Not available with <link linkend="PO_NO_FILESYSTEM"><code>PO_NO_FILESYSTEM</code></link></para>
+	  <para>Not available with <link linkend="no-filesystem"><code>PO_NO_FILESYSTEM</code></link></para>
 	</listitem>
       </varlistentry>
     </variablelist>
@@ -15094,7 +15094,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
 	<term>Restrictions</term>
 	<listitem>
-	  <para>Not available with <link linkend="PO_NO_FILESYSTEM"><code>PO_NO_FILESYSTEM</code></link></para>
+	  <para>Not available with <link linkend="no-filesystem"><code>PO_NO_FILESYSTEM</code></link></para>
 	</listitem>
       </varlistentry>
     </variablelist>
@@ -15154,7 +15154,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
 	<term>Restrictions</term>
 	<listitem>
-	  <para>Not available with <link linkend="PO_NO_FILESYSTEM"><code>PO_NO_FILESYSTEM</code></link></para>
+	  <para>Not available with <link linkend="no-filesystem"><code>PO_NO_FILESYSTEM</code></link></para>
 	</listitem>
       </varlistentry>
     </variablelist>
@@ -15214,7 +15214,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
 	<term>Restrictions</term>
 	<listitem>
-	  <para>Not available with <link linkend="PO_NO_FILESYSTEM"><code>PO_NO_FILESYSTEM</code></link></para>
+	  <para>Not available with <link linkend="no-filesystem"><code>PO_NO_FILESYSTEM</code></link></para>
 	</listitem>
       </varlistentry>
     </variablelist>
@@ -15274,7 +15274,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
 	<term>Restrictions</term>
 	<listitem>
-	  <para>Not available with <link linkend="PO_NO_FILESYSTEM"><code>PO_NO_FILESYSTEM</code></link></para>
+	  <para>Not available with <link linkend="no-filesystem"><code>PO_NO_FILESYSTEM</code></link></para>
 	</listitem>
       </varlistentry>
     </variablelist>
@@ -15310,8 +15310,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       </tgroup>
     </table>
   </sect2>
-  <sect2 id="is_wríteable">
-    <title>is_wríteable()</title>
+  <sect2 id="is_writeable">
+    <title>is_writeable()</title>
     <variablelist>
       <varlistentry>
         <term>Synopsis</term>
@@ -15322,24 +15322,24 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <programlisting>is_wríteable(<replaceable>path</replaceable>)</programlisting>
+          <programlisting>is_writeable(<replaceable>path</replaceable>)</programlisting>
         </listitem>
       </varlistentry>
       <varlistentry>
         <term>Example</term>
         <listitem>
-          <programlisting>$bool = is_wríteable("/etc/hosts");</programlisting>
+          <programlisting>$bool = is_writeable("/etc/hosts");</programlisting>
         </listitem>
       </varlistentry>
       <varlistentry>
 	<term>Restrictions</term>
 	<listitem>
-	  <para>Not available with <link linkend="PO_NO_FILESYSTEM"><code>PO_NO_FILESYSTEM</code></link></para>
+	  <para>Not available with <link linkend="no-filesystem"><code>PO_NO_FILESYSTEM</code></link></para>
 	</listitem>
       </varlistentry>
     </variablelist>
     <table>
-      <title>Arguments and Return Values for is_wríteable()</title>
+      <title>Arguments and Return Values for is_writeable()</title>
       <tgroup cols="3" align="left" colsep="1" rowsep="1">
         <thead>
           <row>
@@ -15396,7 +15396,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Restrictions</term>
       <listitem>
-	<para>Not available with <link linkend="PO_NO_FILESYSTEM"><code>PO_NO_FILESYSTEM</code></link></para>
+	<para>Not available with <link linkend="no-filesystem"><code>PO_NO_FILESYSTEM</code></link></para>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -15448,7 +15448,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Restrictions</term>
       <listitem>
-	<para>Not available with <link linkend="PO_NO_FILESYSTEM"><code>PO_NO_FILESYSTEM</code></link></para>
+	<para>Not available with <link linkend="no-filesystem"><code>PO_NO_FILESYSTEM</code></link></para>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -15517,7 +15517,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Restrictions</term>
       <listitem>
-	<para>Not available with <link linkend="PO_NO_FILESYSTEM"><code>PO_NO_FILESYSTEM</code></link></para>
+	<para>Not available with <link linkend="no-filesystem"><code>PO_NO_FILESYSTEM</code></link></para>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -15584,7 +15584,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Restrictions</term>
       <listitem>
-	<para>Not available with <link linkend="PO_NO_FILESYSTEM"><code>PO_NO_FILESYSTEM</code></link></para>
+	<para>Not available with <link linkend="no-filesystem"><code>PO_NO_FILESYSTEM</code></link></para>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -15656,7 +15656,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Restrictions</term>
       <listitem>
-	<para>Not available with <link linkend="PO_NO_FILESYSTEM"><code>PO_NO_FILESYSTEM</code></link></para>
+	<para>Not available with <link linkend="no-filesystem"><code>PO_NO_FILESYSTEM</code></link></para>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -15713,7 +15713,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Restrictions</term>
       <listitem>
-	<para>Not available with <link linkend="PO_NO_FILESYSTEM"><code>PO_NO_FILESYSTEM</code></link></para>
+	<para>Not available with <link linkend="no-filesystem"><code>PO_NO_FILESYSTEM</code></link></para>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -15775,7 +15775,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Restrictions</term>
       <listitem>
-	<para>Not available with <link linkend="PO_NO_EXTERNAL_PROCESS"><code>PO_NO_EXTERNAL_PROCESS</code></link></para>
+	<para>Not available with <link linkend="no-external-process"><code>PO_NO_EXTERNAL_PROCESS</code></link></para>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -17818,7 +17818,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Restrictions</term>
       <listitem>
-	<para>Not available with <link linkend="PO_NO_PROCESS_CONTROL"><code>PO_NO_PROCESS_CONTROL</code></link></para>
+	<para>Not available with <link linkend="no-process-control"><code>PO_NO_PROCESS_CONTROL</code></link></para>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -17928,7 +17928,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Restrictions</term>
       <listitem>
-	<para>Not available with <link linkend="PO_NO_PROCESS_CONTROL"><code>PO_NO_PROCESS_CONTROL</code></link></para>
+	<para>Not available with <link linkend="no-process-control"><code>PO_NO_PROCESS_CONTROL</code></link></para>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -18395,7 +18395,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Restrictions</term>
       <listitem>
-	<para>Not available with <link linkend="PO_NO_THREAD_CONTROL"><code>PO_NO_THREAD_CONTROL</code></link></para>
+	<para>Not available with <link linkend="no-thread-control"><code>PO_NO_THREAD_CONTROL</code></link></para>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -18446,7 +18446,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Restrictions</term>
       <listitem>
-	<para>Not available with <link linkend="PO_NO_THREAD_CONTROL"><code>PO_NO_THREAD_CONTROL</code></link></para>
+	<para>Not available with <link linkend="no-thread-control"><code>PO_NO_THREAD_CONTROL</code></link></para>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -18497,7 +18497,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Restrictions</term>
       <listitem>
-	<para>Not available with <link linkend="PO_NO_THREAD_CONTROL"><code>PO_NO_THREAD_CONTROL</code></link></para>
+	<para>Not available with <link linkend="no-thread-control"><code>PO_NO_THREAD_CONTROL</code></link></para>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -18547,7 +18547,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Restrictions</term>
       <listitem>
-	<para>Not available with <link linkend="PO_NO_THREAD_CONTROL"><code>PO_NO_THREAD_CONTROL</code></link></para>
+	<para>Not available with <link linkend="no-thread-control"><code>PO_NO_THREAD_CONTROL</code></link></para>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -18597,7 +18597,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Restrictions</term>
       <listitem>
-	<para>Not available with <link linkend="PO_NO_THREAD_CONTROL"><code>PO_NO_THREAD_CONTROL</code></link></para>
+	<para>Not available with <link linkend="no-thread-control"><code>PO_NO_THREAD_CONTROL</code></link></para>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -18745,7 +18745,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Restrictions</term>
       <listitem>
-	<para>Not available with <link linkend="PO_NO_THREAD_CONTROL"><code>PO_NO_THREAD_CONTROL</code></link></para>
+	<para>Not available with <link linkend="no-thread-control"><code>PO_NO_THREAD_CONTROL</code></link></para>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -18853,7 +18853,7 @@ catch ($ex)
 	  <varlistentry>
 	    <term>Restrictions</term>
 	    <listitem>
-	      <para>Not available with <link linkend="PO_NO_THREAD_CONTROL"><code>PO_NO_THREAD_CONTROL</code></link></para>
+	      <para>Not available with <link linkend="no-thread-control"><code>PO_NO_THREAD_CONTROL</code></link></para>
 	    </listitem>
 	  </varlistentry>
 	</variablelist>

@@ -5,7 +5,7 @@
 
     <para>The &quot;tuxedo&quot; module provides a Qore-language client API to BEA Tuxedo services.</para>
 
-    <para>Note that the code in this module is not available with the <link linkend="PO_NO_NETWORK"><code>PO_NO_NETWORK</code></link> parse option.</para>
+    <para>Note that the code in this module is not available with the <link linkend="no-network"><code>PO_NO_NETWORK</code></link> parse option.</para>
 
     <para>To use this module, include the following line in the qore program to load the module:</para>
 

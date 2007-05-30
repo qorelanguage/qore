@@ -2,6 +2,10 @@
 	* sybase: commit major driver re-org, stored proc execution, multiple
 	  select results, bugfixes, more
 
+2006.05.27: David Nichols
+	* implemented %no-network and %no-filesystem parse options and
+	  --no-network and --nofilesystem command-line options 
+
 2006.05.26: David Nichols
 	* mssql: set connection encoding by setting server_charset in the 
 	  internal tdslogin structure directly, because freetds has stubs for

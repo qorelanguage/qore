@@ -258,7 +258,7 @@
 <sect2 id="Lexical_Scope">
 <title>Lexical Scope</title>
 
-<para>Variables not in a parameter list automatically have global scope unless the first reference is prefixed with <command>my</command>.  Variable names in a parameter list are always local to their associated subroutine, method, or catch block. Global variables can be explicitly declared with <command>our</command>.  The <command>our</command> keyword is required if the parse option <code>PO_REQUIRE_OUR</code> (<code>-O</code> or <code>--require-our</code> command-line option) is set for the parent program.  See the section on <link linkend="Parse_Options">Parse Options</link> for more information.</para>
+<para>Variables not in a parameter list automatically have global scope unless the first reference is prefixed with <command>my</command>.  Variable names in a parameter list are always local to their associated subroutine, method, or catch block. Global variables can be explicitly declared with <command>our</command>.  The <command>our</command> keyword is required if the parse option <link linkend="require-our"><code>PO_REQUIRE_OUR</code></link> (<code>-O</code> or <code>--require-our</code> command-line option) is set for the parent program.  See the section on <link linkend="Parse_Options">Parse Options</link> for more information.</para>
 
 <para>Local variables are not shared between threads, however global variables are.  See <link linkend='Threading'>Threading</link> for more information.</para>
 
@@ -391,35 +391,35 @@ print("global a = %d\n", $a); </programlisting>
 
 <sect2 id="Date">
   <title>Date</title>
-  <para>Qore dates have a time component supporting a resolution to the millisecond and can be either absolute or relative.  Absolute dates are normal dates, such as January 1, 2005 10:35:00 and can be specified with a special syntax as follows:</para>
+  <para>Qore dates have a time component supporting a resolution to the millisecond and can be either absolute or relative.  Absolute date/time values specify a specific point in time, such as January 1, 2005 10:35:00 and can be specified with a special syntax as follows:</para>
 
-  <para><code>&lt;4d-year&gt;-&lt;2d-month&gt;-&lt;2d-day&gt;[-&lt;2d-hour&gt;:&lt;2d-minute&gt;:&lt;2d-second&gt;[.&lt;3d-millisecond&gt;]]</code></para>
+  <programlisting>&lt;4d-year&gt;-&lt;2d-month&gt;-&lt;2d-day&gt;[-&lt;2d-hour&gt;:&lt;2d-minute&gt;:&lt;2d-second&gt;[.&lt;3d-millisecond&gt;]]</programlisting>
 
   <para>or, an almost-ISO-8601-compliant format (without the ISO-8601 time zone component but including an optional millisecond component)</para>
 
-  <para><code>&lt;4d-year&gt;-&lt;2d-month&gt;-&lt;2d-day&gt;[T&lt;2d-hour&gt;:&lt;2d-minute&gt;:&lt;2d-second&gt;[.&lt;3d-millisecond&gt;]]</code></para>
+  <programlisting>&lt;4d-year&gt;-&lt;2d-month&gt;-&lt;2d-day&gt;[T&lt;2d-hour&gt;:&lt;2d-minute&gt;:&lt;2d-second&gt;[.&lt;3d-millisecond&gt;]]</programlisting>
 
   <para>for example, for just the date, without a time component:</para>
 
-  <para><code>&lt;4d-year&gt;-&lt;2d-month&gt;-&lt;2d-day&gt;</code></para>
+  <programlisting>&lt;4d-year&gt;-&lt;2d-month&gt;-&lt;2d-day&gt;</programlisting>
 
   <para>or, for just the time, without a date component (note that in this case the date component will be set to Jan 1, 1970, in order for time arithmetic to function properly):</para>
 
-  <para><code>&lt;2d-hour&gt;:&lt;2d-minute&gt;:&lt;2d-second&gt;[.&lt;3d-millisecond&gt;]]</code></para>
+  <programlisting>&lt;2d-hour&gt;:&lt;2d-minute&gt;:&lt;2d-second&gt;[.&lt;3d-millisecond&gt;]]</programlisting>
 
-  <para>For example:</para>
+  <para>Some examples should make it clearer:</para>
 
-  <para><code>2005-03-29-18:12:25</code> represents: March 29, 2005 6:12:25 pm</para>
-  <para><code>0512-01-01T01:49:59.213</code> represents: January 1, 512 1:49:59 am and 213 milliseconds</para>
+  <programlisting>2005-03-29-18:12:25      # represents: March 29, 2005 6:12:25 pm
+0512-01-01T01:49:59.213  # represents: January 1, 512 1:49:59 am and 213 milliseconds
 
-  <para><code>2005-03-29</code> represents: March 29, 2005 00:00:00</para>
-  <para><code>18:35:26</code> represents: 6:35:26 pm</para>
+2005-03-29               # represents: March 29, 2005 00:00:00
+18:35:26                 # represents: January 1, 1970 6:35:26 pm (start of the Qore epoch)</programlisting>
 
   <para>The year must be a four-digit number, and all other values except milliseconds must be two-digit numbers.  If milliseconds are present, 3 digits are required after the decimal point.  Pad the numbers with leading zeros if the numbers are smaller than the required number of spaces.  The hour component must be in 24-hour time format. Except for the month and day values, all other values start with 0 (hour = 00 - 23, minute and second: 00 - 59).  Any deviation from this format will cause a parse exception.</para>
 
   <para>Relative dates are specified as follows:</para>
 
-  <para><code>&lt;integer&gt;&lt;date component specifier&gt;</code></para>
+  <programlisting>&lt;integer&gt;&lt;date component specifier&gt;</programlisting>
 
   <table><title>Date Specifiers For Relative Dates</title>
   <tgroup cols='4' align='left' colsep='1' rowsep='1'>
@@ -480,6 +480,8 @@ print("global a = %d\n", $a); </programlisting>
 </table>
 
 <para>Relative dates are normally used for date addition and subtraction.  See <link linkend='Date_Time_Arithmetic'>Date/Time Arithmetic</link> for more information.</para>
+
+<para>When a date/time value is converted to an integer or vice-versa, a 64-bit offset in seconds from the start of the &quot;epoch&quot; is used for the conversion.  Qore's &quot;zero date&quot; (the start of Qore's &quot;epoch&quot;) is January 1, 1970.  When calculating second offsets from this date, a 64-bit integer is used.</para>
 
 <note>
   <para>Currently there is no time-zone component in Qore dates.  Timezone support may be added in future versions of the Qore 

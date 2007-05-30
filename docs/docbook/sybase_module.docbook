@@ -12,13 +12,60 @@
 
     <para>This driver supports the following <link linkend="DBI_Capability_Constants">DBI capabilities</link>: <code>DBI_CAP_TRANSACTION_MANAGEMENT, DBI_CAP_STORED_PROCEDURES, DBI_CAP_CHARSET_SUPPORT, DBI_CAP_LOB_SUPPORT, DBI_CAP_BIND_BY_VALUE, DBI_CAP_BIND_BY_PLACEHOLDER</code>.</para>
 
-    <para>Transaction management is supported by Qore by enabling chained transaction mode on each connection.  In autocommit mode, Qore executes a commit after every request to the server.</para>
+    <para>Transaction management is supported by enabling chained transaction mode on each connection.  In autocommit mode, Qore executes a commit after every request to the server.</para>
 
     <para>The transaction isolation level is left at the default, 1, &quot;read committed&quot;, which is the default for all Qore drivers as well.</para>
 
     <para>Sybase's <code>DATETIME</code> and <code>TIME</code> data types have a resolution of 1/300th of a second.  Qore uses floating-point operations to convert to or from milliseconds when binding and retrieving data and rounds to the nearest integer to minimize conversion errors.</para>
 
-    <para>Unlike many other Qore DBI drivers, this driver allows multiple commands to be submitted with a single call, however, if multiple select statements are issued, only the first will return results.</para>
+    <para>This driver allows all types of statements to be executed through <link linkend="Qore::SQL::Datasource::select">Datasource::select()</link>, <link linkend="Qore::SQL::Datasource::selectRows">Datasource::selectRows()</link>, and <link linkend="Qore::SQL::Datasource::exec">Datasource::exec()</link> (and related methods), however rules about <link linkend="datasource_transaction_lock">Datasource locking</link> or <link linkend="datasourcepool_allocations">DatasourcePool allocations</link> still apply as usual.  If a stored procedure is executed with <link linkend="Qore::SQL::Datasource::selectRows">Datasource::selectRows()</link> , then any query results returned will be returned in either a hash format (if only one row was returned), or as a list of hashes (for multiple rows).</para>
+
+    <para>Sybase stored procedure execution is supported, the following is an example of a stored procedure call with output parameters:</para>
+
+    <programlisting>create procedure get_values @string varchar(80) output, @int int output
+as 
+select @string = 'hello there'
+select @int = 150
+commit -- to maintain transaction count</programlisting>
+
+    <para>Qore code to call this procedure:</para>
+
+    <programlisting># note that if the output parameters are declared as @string and @int, the driver cannot
+# return the parameter result hash with key names corresponding to the param names.
+# ":string" and ":int" is qore placeholder syntax, consistent with other Qore DBI
+# driver placeholder syntax
+
+my $result = $db.exec("declare @string varchar(40), @int int
+exec get_values :string output, :int output");</programlisting>
+
+    <para>Unlike many other Qore DBI drivers, this driver allows and can return results from multiple select statements issued with a single call.  Additionally, it's possible for a stored procedure to return output paramters as well as one or more result sets from select statements.  The output format for commands like this differs from standard Qore DBI formats as follows:</para>
+
+    <table>
+      <title>Sybase Multiple Result Format</title>
+      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>Query Type</para></entry>
+	    <entry><para>Result Format</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row>
+	    <entry><para>Multiple Selects</para></entry>
+	    <entry><para>A hash is returned with a key giving the results from each select statement.  The key names have the format &quot;query#&quot;, where # is an increasing integer starting with 0.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>Return Parameters Only</para></entry>
+	    <entry><para>A hash is returned with keys giving the output parameter values, as long as the placeholder format (:name) was used for the output parameters, otherwise the key names in the output will be an increasing integer starting with 0 (i.e. &quot;0&quot;, &quot;1&quot;, etc).  If a count of affected rows is available, it's returned in the &quot;rowcount&quot; key.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>Return Parameters and Result Set(s)</para></entry>
+	    <entry><para>As above, but with an addition key &quot;query&quot;, giving the result set.  If multiple result sets are returned, then the &quot;query&quot; key will be a hash with &quot;query#&quot; keys giving the results for each query in order.</para></entry>
+	  </row>
+	</tbody>
+      </tgroup>
+    </table>
+
 
     <table>
       <title>Sybase to Qore Type Mappings</title>
@@ -154,7 +201,7 @@
 	  <row>
 	    <entry><para><link linkend="Integer"><code>Type::Int</code></link></para></entry>
 	    <entry><para><code>CS_BIGINT_TYPE</code></para></entry>
-	    <entry><para>Sybase's integer type is only 32-bits, integers greater than 2147483647 bound to an <code>INT</code> column will only have their lower 32 bits saved to Sybase</para></entry>
+	    <entry><para>Sybase's integer type is only 32-bits, integers greater than 2147483647 bound to an <code>INT</code> column will only have their lower 32 bits saved to Sybase.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Float"><code>Type::Float</code></link></para></entry>
