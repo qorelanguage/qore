@@ -16,6 +16,7 @@ const opts =
       "db"      : "d,db=s",
       "user"    : "u,user=s",
       "type"    : "t,type=s",
+      "enc"     : "e,encoding=s",
       "verbose" : "v,verbose:i+",
       "leave"   : "l,leave"
  );
@@ -23,14 +24,15 @@ const opts =
 sub usage()
 {
     printf("usage: %s [options]
- -h,--help         this help text
- -u,--user=ARG     set username
- -p,--pass=ARG     set password
- -d,--db=ARG       set database name
- -H,--host=ARG     set hostname (for MySQL and PostgreSQL connections)
- -t,--type         set database driver (default mysql)
- -v,--verbose      more v's = more information
- -l,--leave        leave test tables in schema at end\n",
+ -h,--help          this help text
+ -u,--user=ARG      set username
+ -p,--pass=ARG      set password
+ -d,--db=ARG        set database name
+ -e,--encoding=ARG  set database character set encoding (i.e. \"utf8\")
+ -H,--host=ARG      set hostname (for MySQL and PostgreSQL connections)
+ -t,--type          set database driver (default mysql)
+ -v,--verbose       more v's = more information
+ -l,--leave         leave test tables in schema at end\n",
 	   basename($ENV."_"));
     exit();
 }
@@ -281,7 +283,12 @@ sub parse_command_line()
     if (!strlen($o.db))
     {
 	stderr.printf("set the login parameters with -u,-p,-d, etc (-h for help)\n");
-	exit();
+	exit(1);
+    }
+    if (elements $ARGV)
+    {
+	stderr.printf("excess arguments on command-line (%n): -h for help\n", $ARGV);
+	exit(1);
     }
     if (!strlen($o.type))
 	$o.type = "mysql";
@@ -364,7 +371,8 @@ sub drop_test_datamodel($db)
 
 sub getDS()
 {
-    my $ds = new Datasource($o.type, $o.user, $o.pass, $o.db, "iso_1");
+    printf("encoding=%N\n", $o.enc);
+    my $ds = new Datasource($o.type, $o.user, $o.pass, $o.db, $o.enc);
     if (strlen($o.host))
 	$ds.setHostName($o.host);
     return $ds;
