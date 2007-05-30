@@ -303,12 +303,12 @@ QoreNode *command::read_output(PlaceholderList &placeholder_list, bool list, Exc
 	 }
 
 	 case CS_STATUS_RESULT:
-/*
+#ifdef SYBASE
 	    assert(!status_result);
 	    status_result = read_rows(0, true, xsink);
 	    if (xsink->isException())
 	       return 0;
-*/
+#endif
 	    break;
 	    
 	 case CS_CMD_DONE:
