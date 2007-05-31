@@ -111,7 +111,7 @@ Namespace::Namespace(QoreClassList *ocl, ConstantList *cl, NamespaceList *nnsl)
 Namespace::~Namespace()
 {
    //tracein("Namespace::~Namespace()");
-   printd(5, "Namespace::~Namespace() deleting NS '%s'\n", name.c_str());
+   printd(5, "Namespace::~Namespace() this=%08p '%s'\n", this, name.c_str());
 
    delete constant;
    delete classList;
