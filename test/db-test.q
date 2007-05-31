@@ -48,7 +48,7 @@ const object_map =
    ( "tables" : syb_tables,
      "procs"  : sybase_procs ),
    "mssql"  : 
-   ( "tables" : mssql_tables,
+   ( "tables" : mssql_sybase_tables,
      "procs"  : sybase_procs ) );
 
 const ora_tables = ( 
@@ -225,8 +225,7 @@ commit -- to maintain transaction count
 "
  );
 
-
-const mssql_tables = (
+const mssql_sybase_tables = (
     "family" : "create table family (
    family_id int not null,
    name varchar(80) not null
@@ -273,6 +272,50 @@ const mssql_tables = (
 	image_f image not null
 )" );
 
+const mssql_mssql_tables = (
+    "family" : "create table family (
+   family_id int not null,
+   name varchar(80) not null
+)", 
+    "people" : "create table people (
+   person_id int not null,
+   family_id int not null,
+   name varchar(250) not null,
+   dob datetime not null
+)", 
+    "attributes" : "create table attributes (
+   person_id int not null,
+   attribute varchar(80) not null,
+   value varchar(160) not null
+)",
+    "data_test" : "create table data_test (
+	null_f char(1) null,
+
+	varchar_f varchar(40) not null,
+	char_f char(40) not null,
+	text_f text not null,
+
+        bit_f bit not null,
+	tinyint_f tinyint not null,
+	smallint_f smallint not null,
+	int_f int not null,
+        int_f2 int not null,
+
+	decimal_f decimal(10,4) not null,
+
+	float_f float not null,     -- 8-bytes
+	real_f real not null,       -- 4-bytes
+	money_f money not null,
+	smallmoney_f smallmoney not null,
+
+	datetime_f datetime not null,
+	smalldatetime_f smalldatetime not null,
+
+	binary_f binary(4) not null,
+	varbinary_f varbinary(4) not null,
+	image_f image not null
+)" );
+
 sub parse_command_line()
 {
     my $g = new GetOpt(opts);
@@ -300,16 +343,32 @@ sub create_datamodel($db)
   
     my $driver = $db.getDriverName();
     # create tables
-    foreach my $table in (keys object_map.$driver.tables)
-	$db.exec(object_map.$driver.tables.$table);
+    my $tables = object_map.$driver.tables;
+    if ($driver == "mssql")
+	if ($db.is_sybase)
+	    $tables = mssql_sybase_tables;
+        else
+	    $tables = mssql_mssql_tables;
+
+    foreach my $table in (keys $tables)
+    {
+	tprintf(2, "creating table %n\n", $table);
+	$db.exec($tables.$table);
+    }
 
     # create procedures if any
     foreach my $proc in (keys object_map.$driver.procs)
+    {
+	tprintf(2, "creating procedure %n\n", $proc);
 	$db.exec(object_map.$driver.procs.$proc);
+    }
 
     # create functions if any
     foreach my $func in (keys object_map.$driver.funcs)
+    {
+	tprintf(2, "creating function %n\n", $func);
 	$db.exec(object_map.$driver.funcs.$func);
+    }
 
     $db.exec("insert into family values ( 1, 'Smith' )");
     $db.exec("insert into family values ( 2, 'Jones' )");
@@ -371,7 +430,6 @@ sub drop_test_datamodel($db)
 
 sub getDS()
 {
-    printf("encoding=%N\n", $o.enc);
     my $ds = new Datasource($o.type, $o.user, $o.pass, $o.db, $o.enc);
     if (strlen($o.host))
 	$ds.setHostName($o.host);
@@ -599,7 +657,7 @@ sub pgsql_test($db)
     my $q = $db.selectRow("select * from data_test");
     if ($o.verbose > 1)
 	foreach my $k in (keys $q)
-	    printf(" %-16s= %-10s %N\n", $k, type($q.$k), $q.$k);
+	    tprintf(2, " %-16s= %-10s %N\n", $k, type($q.$k), $q.$k);
 
     # fix values where we know the return type is different
     $args.money_f = 400.56;
@@ -710,7 +768,7 @@ exec get_values_and_multiple_select :string output, :int output");
     my $q = $db.selectRow("select * from data_test");
     if ($o.verbose > 1)
 	foreach my $k in (keys $q)
-	    printf(" %-16s= %-10s %N\n", $k, type($q.$k), $q.$k);
+	    tprintf(2, " %-16s= %-10s %N\n", $k, type($q.$k), $q.$k);
 
     # remove values where we know they won't match
     # unitext_f is returned as IMAGE by the server
@@ -733,10 +791,17 @@ sub mssql_test($db)
     my $x = $db.exec("exec find_family %v", "Smith");
     test_value($x, ("name": list("Smith"), "family_id" : list(1)), "simple stored proc");
 
-    # stored proc execute with output params
-    $x = $db.exec("declare @string varchar(40), @int int
+    # we cannot retrieve parameters from newer SQL Servers with the approach we use;
+    # Microsoft changed the handling of the protocol and require us to use RPC calls,
+    # this will be implemented in the next version of qore where the "mssql" driver will
+    # be able to add custom methods to the Datasource class.  For now, we skip these tests
+
+    if ($db.is_sybase)
+    {
+	$x = $db.exec("declare @string varchar(40), @int int
 exec get_values :string output, :int output");
-    test_value($x, params, "get_values");
+	test_value($x, params, "get_values");
+    }
 
     # we use Datasource::selectRows() in the following queries because we
     # get hash results instead of a hash of lists as with exec in the queries
@@ -751,14 +816,17 @@ exec get_values :string output, :int output");
     test_value($x, family_q, "simple stored proc");
 
     # stored proc execute with output params and select results
-    $x = $db.selectRows("declare @string varchar(40), @int int
+    if ($db.is_sybase)
+    {
+	$x = $db.selectRows("declare @string varchar(40), @int int
 exec get_values_and_select :string output, :int output");
-    test_value($x, ("query":family_q,"params":params), "get_values_and_select");
+	test_value($x, ("query":family_q,"params":params), "get_values_and_select");
 
-    # stored proc execute with output params and multiple select results
-    $x = $db.selectRows("declare @string varchar(40), @int int
+	# stored proc execute with output params and multiple select results
+	$x = $db.selectRows("declare @string varchar(40), @int int
 exec get_values_and_multiple_select :string output, :int output");
-    test_value($x, ("query":("query0":family_q,"query1":person_q),"params":params), "get_values_and_multiple_select");
+	test_value($x, ("query":("query0":family_q,"query1":person_q),"params":params), "get_values_and_multiple_select");
+    }
 
     # stored proc execute with just select results
     $x = $db.selectRows("exec just_select");
@@ -794,13 +862,26 @@ exec get_values_and_multiple_select :string output, :int output");
 		 "varbinary_f"     : <feedface>, 
 		 "image_f"         : <cafebead> );
 
+    # remove fields not supported by sql server
+    if (!$db.is_sybase)
+    {
+	delete $args.unitext_f;
+	delete $args.date_f;
+	delete $args.time_f;
+    }
+
+    my $sql = "insert into data_test values (";
+    for (my $i; $i < elements $args; ++$i)
+	$sql += "%v, ";
+    $sql = substr($sql, 0, -2) + ")";
+
     # insert data, using the values from the hash above
-    my $rows = $db.vexec("insert into data_test values (%v, %v, %v, %v, %v, %v, %v, %v, %v, %d, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v)", hash_values($args));
+    my $rows = $db.vexec($sql, hash_values($args));
 
     my $q = $db.selectRow("select * from data_test");
     if ($o.verbose > 1)
 	foreach my $k in (keys $q)
-	     printf(" %-16s= %-10s %N\n", $k, type($q.$k), $q.$k);
+	    tprintf(2, " %-16s= %-10s %N\n", $k, type($q.$k), $q.$k);
 
     # remove values where we know they won't match
     # unitext_f is returned as IMAGE by the server
@@ -829,7 +910,17 @@ sub main()
     parse_command_line();
     my $db = getDS();
 
-    printf("testing %s driver\n", $db.getDriverName());
+    my $driver = $db.getDriverName();
+    printf("testing %s driver\n", $driver);
+    my $sv = $db.getServerVersion();
+    if ($o.verbose > 1)
+	tprintf(2, "client version=%n\nserver version=%n\n", $db.getClientVersion(), $sv);
+
+    # determine if the server is a sybase or sql server dataserver
+    if ($driver == "mssql")
+	if ($sv !~ /microsoft/i)
+	    $db.is_sybase = True;
+
     create_datamodel($db);
 
     context_test($db);

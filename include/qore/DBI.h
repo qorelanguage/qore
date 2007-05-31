@@ -76,7 +76,7 @@ typedef int (*q_dbi_begin_transaction_t)(class Datasource *, class ExceptionSink
 typedef int (*q_dbi_auto_commit_t)(class Datasource *, class ExceptionSink *xsink);
 typedef int (*q_dbi_abort_transaction_start_t)(class Datasource *, class ExceptionSink *xsink);
 typedef class QoreNode *(*q_dbi_get_server_version_t)(class Datasource *, class ExceptionSink *xsink);
-typedef class QoreNode *(*q_dbi_get_client_version_t)();
+typedef class QoreNode *(*q_dbi_get_client_version_t)(class Datasource *, class ExceptionSink *xsink);
 
 typedef std::pair<int, void *> qore_dbi_method_t;
 
@@ -100,13 +100,8 @@ public:
    {
       push_back(std::make_pair(code, (void *)method));
    }
-   // covers get_server_version
+   // covers get_server_version and get_client_version
    DLLEXPORT void add(int code, q_dbi_get_server_version_t method)
-   {
-      push_back(std::make_pair(code, (void *)method));
-   }
-   // covers get_client_version
-   DLLEXPORT void add(int code, q_dbi_get_client_version_t method)
    {
       push_back(std::make_pair(code, (void *)method));
    }
@@ -166,7 +161,7 @@ class DBIDriver {
       DLLLOCAL int autoCommit(class Datasource *, class ExceptionSink *xsink);
       DLLLOCAL int abortTransactionStart(class Datasource *, class ExceptionSink *xsink);
       DLLLOCAL class QoreNode *getServerVersion(class Datasource *, class ExceptionSink *xsink);
-      DLLLOCAL class QoreNode *getClientVersion();
+      DLLLOCAL class QoreNode *getClientVersion(class Datasource *, class ExceptionSink *xsink);
 
       DLLLOCAL int getCaps() const;
       DLLLOCAL class List *getCapList() const;

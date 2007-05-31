@@ -101,9 +101,9 @@ class DatasourcePool : public AbstractThreadResource, public QoreCondition, publ
       {
 	 return pool[0]->getServerVersion(xsink);
       }
-      DLLLOCAL class QoreNode *getClientVersion()
+      DLLLOCAL class QoreNode *getClientVersion(class ExceptionSink *xsink)
       {
-	 return pool[0]->getClientVersion();
+	 return pool[0]->getClientVersion(xsink);
       }
 };
 

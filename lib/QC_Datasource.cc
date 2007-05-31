@@ -340,7 +340,7 @@ static QoreNode *DS_getServerVersion(class Object *self, class ManagedDatasource
 
 static QoreNode *DS_getClientVersion(class Object *self, class ManagedDatasource *ds, class QoreNode *params, ExceptionSink *xsink)
 {
-   return ds->getClientVersion();
+   return ds->getClientVersion(xsink);
 }
 
 class QoreClass *initDatasourceClass()

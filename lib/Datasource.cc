@@ -342,7 +342,7 @@ class QoreNode *Datasource::getServerVersion(class ExceptionSink *xsink)
    return dsl->getServerVersion(this, xsink);
 }
 
-class QoreNode *Datasource::getClientVersion()
+class QoreNode *Datasource::getClientVersion(class ExceptionSink *xsink)
 {
-   return dsl->getClientVersion();
+   return dsl->getClientVersion(this, xsink);
 }

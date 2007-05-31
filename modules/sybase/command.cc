@@ -480,6 +480,8 @@ int command::get_row_description(row_result_t &result, unsigned column_count, Ex
 
 	 case CS_UNICHAR_TYPE:
 	    datafmt.datatype = CS_CHAR_TYPE;
+	    datafmt.format = CS_FMT_PADNULL;
+	    break;
 
 	 case CS_LONGCHAR_TYPE:
 	 case CS_VARCHAR_TYPE:
@@ -610,18 +612,10 @@ class QoreNode *command::get_node(const CS_DATAFMT& datafmt, const output_value_
      case CS_CHAR_TYPE: // varchar
      {
 	CS_CHAR* value = (CS_CHAR*)(buffer.value);
-	QoreString *s;
-	// sometimes the strings are not null terminated, both with sybase and freetds#
-	// but sometimes they are?  something funny is going on
-	if (!memchr(value, '\0', buffer.value_len))
-	{
-	   s = new QoreString(value, buffer.value_len - 1, encoding);
-	   printd(5, "get_node() oops, no null in %s='%s'\n", datafmt.name, s->getBuffer());
-	}
-	else
-	   s = new QoreString(value, encoding);
+	QoreString *s = new QoreString(value, buffer.value_len - 1, encoding);
+	printd(5, "get_node() oops, no null in %s='%s' (len=%d)\n", datafmt.name, s->getBuffer(), buffer.value_len);
 	s->trim_trailing_blanks();
-	//printd(5, "name=%s vlen=%d strlen=%d len=%d str='%s'\n", datafmt.name, buffer.value_len, s->strlen(), s->length(), s->getBuffer());
+	printd(5, "name=%s vlen=%d strlen=%d len=%d str='%s'\n", datafmt.name, buffer.value_len, s->strlen(), s->length(), s->getBuffer());
 	return new QoreNode(s);
      }
 
@@ -635,19 +629,7 @@ class QoreNode *command::get_node(const CS_DATAFMT& datafmt, const output_value_
 	// see if we need to strip trailing newlines (could not find a defined USER_TYPE_* for this!)
 	if (datafmt.usertype == 1)
 	{
-#ifdef FREETDS_x
-	   // sometimes freetds values are not coming with null termination for some reason
-	   // see if there is a null value
-	   if (!memchr(value, '\0', buffer.value_len))
-	   {
-	      s = new QoreString(value, buffer.value_len - 1, encoding);
-	      printd(5, "get_node() no null in %s='%s'\n", datafmt.name, s->getBuffer());
-	   }
-	   else
-	      s = new QoreString(value, encoding);
-#else
 	   s = new QoreString(value, encoding);
-#endif
 	   s->trim_trailing_blanks();
 	}
 	else

@@ -36,6 +36,8 @@
 #include "sybase_query.h"
 #include "command.h"
 
+static QoreString ver_str("select @@version");
+
 #ifdef FREETDS
 #include <tds.h>  // needed for the TDSLOGIN structure, to set connection encoding
 
@@ -93,15 +95,6 @@ connection::~connection()
       assert(ret == CS_SUCCEED);
    }
 }
-#ifdef FREETDS
-// 0 = OK, -1 = error                                                                                                                                                     
-int connection::set_chained_transaction_mode(ExceptionSink* xsink)
-{
-   // FIXME: check for MS SQL Server and execute "set implicit_transactions on" instead
-   direct_execute("set chained on", xsink);
-   return xsink->isException() ? -1 : 0;
-}
-#endif
 
 int connection::direct_execute(const char* sql_text, ExceptionSink* xsink)
 {
@@ -300,20 +293,13 @@ int connection::init(const char* username, const char* password, const char* dbn
    }
    connected = true;
    
-#ifdef SYBASE
    // turn on chained transaction mode, this fits with Qore's transaction management approach
    // - in autocommit mode qore executes a commit after every request manually
    CS_BOOL cs_bool = CS_TRUE;
-   ret = ct_options(m_connection, CS_SET, CS_OPT_CHAINXACTS, &cs_bool, CS_UNUSED, NULL);
+   ret = ct_options(m_connection, CS_SET, CS_OPT_CHAINXACTS, &cs_bool, CS_UNUSED, 0);
    if (ret != CS_SUCCEED)
       return do_exception(xsink, "DBI:SYBASE:INIT-ERROR", "ct_options(CS_OPT_CHAINXACTS) failed");
 
-#else
-   // FreeTDS' implementation of ct_options is a noop - therefore we execute the command manually
-   if (set_chained_transaction_mode(xsink))
-      return -1;
-#endif
-   
    // Set default type of string representation of DATETIME to long (like Jan 1 1990 12:32:55:0000 PM)
    // Without this some routines in conversions.cc would fail.
    CS_INT aux = CS_DATES_LONG;
@@ -402,9 +388,14 @@ int connection::do_exception(class ExceptionSink *xsink, const char *err, const 
    {
       ret = ct_diag(m_connection, CS_GET, CS_CLIENTMSG_TYPE, i, &cmsg);
       assert(ret == CS_SUCCEED);
+      int severity = CS_SEVERITY(cmsg.msgnumber);
+      if (severity <= 10)
+	 continue;
+
       if (count)
 	 estr->concat(", ");
-      estr->sprintf("client message %d: severity %d: %s", CS_NUMBER(cmsg.msgnumber), CS_SEVERITY(cmsg.msgnumber), cmsg.msgstring);
+      estr->sprintf("client message %d: severity %d: %s", CS_NUMBER(cmsg.msgnumber), severity, cmsg.msgstring);
+      estr->trim_trailing_char('.');
       if (cmsg.osstringlen > 0)
 	 estr->sprintf(", OS error: %s", cmsg.osstring);
       count++;
@@ -416,6 +407,9 @@ int connection::do_exception(class ExceptionSink *xsink, const char *err, const 
    {
       ret = ct_diag(m_connection, CS_GET, CS_SERVERMSG_TYPE, i, &smsg);
       assert(ret == CS_SUCCEED);
+      if (smsg.severity <= 10)
+	 continue;
+      
       if (count)
 	 estr->concat(", ");
       estr->sprintf("server message %d, ", smsg.msgnumber);
@@ -423,6 +417,7 @@ int connection::do_exception(class ExceptionSink *xsink, const char *err, const 
 	 estr->sprintf("line %d, ", smsg.line);
       estr->sprintf("severity %d: %s", smsg.severity, smsg.text);
       estr->trim_trailing_newlines();
+      estr->trim_trailing_char('.');
       ++count;
    }
    ret = ct_diag(m_connection, CS_CLEAR, CS_ALLMSG_TYPE, CS_UNUSED, 0);
@@ -480,6 +475,38 @@ CS_RETCODE connection::servermsg_callback(CS_CONTEXT* ctx, CS_CONNECTION* conn, 
   return CS_SUCCEED;
 }
 */
+
+// get client version
+#define CLIENT_VER_LEN 240
+QoreString *connection::get_client_version(class ExceptionSink *xsink)
+{
+   char *buf = (char *)malloc(sizeof(char) * CLIENT_VER_LEN);
+   int olen;
+   CS_RETCODE ret = ct_config(m_context, CS_GET, CS_VER_STRING, buf, CLIENT_VER_LEN, &olen);
+   //printd(0, "olen=%d, ret=%d\n", olen, ret);
+   if (ret != CS_SUCCEED) {
+      do_exception(xsink, "DBI:SYBASE:GET-CLIENT-VERSION-ERROR", "ct_config(CS_VER_STRING) failed with error %d", (int)ret);
+      return 0;
+   }  
+   //printd(5, "client version=%s\n", buf);
+   return new QoreString(buf);
+}
+
+class QoreNode *connection::get_server_version(class ExceptionSink *xsink)
+{
+   class QoreNode *res = exec_intern(&ver_str, 0, true, xsink);
+   if (!res)
+      return 0;
+   assert(res->type == NT_HASH);
+   HashIterator hi(res->val.hash);
+   hi.next();
+   QoreNode *rv = hi.takeValueAndDelete();
+   if (rv && rv->type == NT_STRING)
+      rv->val.String->trim_trailing_newlines();
+   
+   return rv;
+}
+
 
 #ifdef DEBUG
 #  include "tests/connection_tests.cc"

@@ -43,7 +43,7 @@ DLLEXPORT char qore_module_name[] = "sybase";
 DLLEXPORT char qore_module_description[] = "Sybase database driver";
 #else
 DLLEXPORT char qore_module_name[] = "mssql";
-DLLEXPORT char qore_module_description[] = "Free-TDS database driver for MS-SQL Server and Sybase";
+DLLEXPORT char qore_module_description[] = "FreeTDS-based database driver for MS-SQL Server and Sybase";
 #endif
 DLLEXPORT char qore_module_version[] = "1.0";
 DLLEXPORT char qore_module_author[] = "Qore Technologies";
@@ -65,103 +65,98 @@ static DBIDriver* DBID_SYBASE;
   DBI_CAP_BIND_BY_VALUE | \
   DBI_CAP_BIND_BY_PLACEHOLDER )
 
-//------------------------------------------------------------------------------
 #ifdef DEBUG
 // exported
 QoreNode* runSybaseTests(QoreNode* params, ExceptionSink* xsink)
 {
-  minitest::result res = minitest::execute_all_tests();
-  if (res.all_tests_succeeded) {
-    printf("************************************************\n");
-    printf("Sybase module: %d tests succeeded\n", res.sucessful_tests_count);
-    printf("************************************************\n");
-     return 0;
-  }
+   minitest::result res = minitest::execute_all_tests();
+   if (res.all_tests_succeeded) {
+      printf("************************************************\n");
+      printf("Sybase module: %d tests succeeded\n", res.sucessful_tests_count);
+      printf("************************************************\n");
+      return 0;
+   }
 
-  xsink->raiseException("SYBASE-TEST-FAILURE", "Sybase test in file %s, line %d threw an exception.",
-    res.failed_test_file, res.failed_test_line);
-  return 0;
+   xsink->raiseException("SYBASE-TEST-FAILURE", "Sybase test in file %s, line %d threw an exception.",
+			 res.failed_test_file, res.failed_test_line);
+   return 0;
 }
 
 QoreNode* runRecentSybaseTests(QoreNode* params, ExceptionSink* xsink)
 {
-  minitest::result res = minitest::test_last_changed_files(1);
-  if (res.all_tests_succeeded) {
-     printf("************************************************\n");
-     printf("Sybase module: %d recent tests succeeded\n", res.sucessful_tests_count);
-     printf("************************************************\n");
-    return 0;
-  }
-
-  xsink->raiseException("SYBASE-TEST-FAILURE", "Sybase test in file %s, line %d threw an exception.",
-    res.failed_test_file, res.failed_test_line);
-  return 0;
+   minitest::result res = minitest::test_last_changed_files(1);
+   if (res.all_tests_succeeded) {
+      printf("************************************************\n");
+      printf("Sybase module: %d recent tests succeeded\n", res.sucessful_tests_count);
+      printf("************************************************\n");
+      return 0;
+   }
+   
+   xsink->raiseException("SYBASE-TEST-FAILURE", "Sybase test in file %s, line %d threw an exception.",
+			 res.failed_test_file, res.failed_test_line);
+   return 0;
 }
 #endif
 
-//------------------------------------------------------------------------------
-// based on Postgres module
 static void set_encoding(Datasource* ds, ExceptionSink* xsink)
 {
-  if (ds->getDBEncoding()) {
-     QoreEncoding *enc = name_to_QoreEncoding(ds->getDBEncoding());
-     ds->setQoreEncoding(enc);
-  } else  {
-    const char *enc = QoreEncoding_to_SybaseName(QCS_DEFAULT);
-    if (!enc) {
+   if (ds->getDBEncoding()) {
+      QoreEncoding *enc = name_to_QoreEncoding(ds->getDBEncoding());
+      ds->setQoreEncoding(enc);
+   } else  {
+      const char *enc = QoreEncoding_to_SybaseName(QCS_DEFAULT);
+      if (!enc) {
       xsink->raiseException("DBI:SYBASE:UNKNOWN-CHARACTER-SET", "cannot find the Sybase character encoding equivalent for '%s'", QCS_DEFAULT->getCode());
       return;
-    }
-    ds->setDBEncoding(enc);
-    ds->setQoreEncoding(QCS_DEFAULT);
-  }
+      }
+      ds->setDBEncoding(enc);
+      ds->setQoreEncoding(QCS_DEFAULT);
+   }
 }
 
-//------------------------------------------------------------------------------
 static int sybase_open(Datasource *ds, ExceptionSink *xsink)
 {
-  tracein("sybase_open()");
+   tracein("sybase_open()");
 
-  if (!ds->getUsername()) {
-    xsink->raiseException("DATASOURCE-MISSING-USERNAME", "Datasource has an empty username parameter");
-    traceout("oracle_open()");
-    return -1;
-  }
-  if (!ds->getDBName()) {
-    xsink->raiseException("DATASOURCE-MISSING-DBNAME", "Datasource has an empty dbname parameter");
-    traceout("oracle_open()");
-    return -1;
-  }
+   if (!ds->getUsername()) {
+      xsink->raiseException("DATASOURCE-MISSING-USERNAME", "Datasource has an empty username parameter");
+      traceout("oracle_open()");
+      return -1;
+   }
+   if (!ds->getDBName()) {
+      xsink->raiseException("DATASOURCE-MISSING-DBNAME", "Datasource has an empty dbname parameter");
+      traceout("oracle_open()");
+      return -1;
+   }
 
-  set_encoding(ds, xsink);
-  if (xsink->isException()) {
-     return -1;
-  }
+   set_encoding(ds, xsink);
+   if (xsink->isException()) {
+      return -1;
+   }
   
-  std::auto_ptr<connection> sc(new connection);
+   std::auto_ptr<connection> sc(new connection);
+  
+   sc->init(ds->getUsername(), ds->getPassword() ? ds->getPassword() : "", ds->getDBName(), ds->getDBEncoding(), ds->getQoreEncoding(), xsink);
+   if (xsink->isException()) {
+      return -1;
+   }
 
-  sc->init(ds->getUsername(), ds->getPassword() ? ds->getPassword() : "", ds->getDBName(), ds->getDBEncoding(), ds->getQoreEncoding(), xsink);
-  if (xsink->isException()) {
-    return -1;
-  }
+   if (xsink->isException()) {
+      return -1;
+   }
 
-  if (xsink->isException()) {
-    return -1;
-  }
-
-  ds->setPrivateData(sc.release());
-  traceout("sybase_open()");
-  return 0;
+   ds->setPrivateData(sc.release());
+   traceout("sybase_open()");
+   return 0;
 }
 
-//------------------------------------------------------------------------------
 static int sybase_close(Datasource *ds)
 {
-  connection* sc = (connection*)ds->getPrivateData();
-  ds->setPrivateData(0);
-  delete sc;
+   connection* sc = (connection*)ds->getPrivateData();
+   ds->setPrivateData(0);
+   delete sc;
 
-  return 0;
+   return 0;
 }
 
 //------------------------------------------------------------------------------
@@ -171,7 +166,6 @@ static QoreNode* sybase_select(Datasource *ds, QoreString *qstr, List *args, Exc
    return conn->exec(qstr, args, xsink);
 }
 
-//------------------------------------------------------------------------------
 static QoreNode* sybase_select_rows(Datasource *ds, QoreString *qstr, List *args, ExceptionSink *xsink)
 {
    connection *conn = (connection*)ds->getPrivateData();
@@ -179,37 +173,46 @@ static QoreNode* sybase_select_rows(Datasource *ds, QoreString *qstr, List *args
    return conn->exec_rows(qstr, args, xsink);
 }
 
-//------------------------------------------------------------------------------
 static QoreNode* sybase_exec(Datasource *ds, QoreString *qstr, List *args, ExceptionSink *xsink)
 {
    connection *conn = (connection*)ds->getPrivateData();
    return conn->exec(qstr, args, xsink);
 }
 
-//------------------------------------------------------------------------------
 static int sybase_commit(Datasource *ds, ExceptionSink *xsink)
 {
-  connection* conn = (connection*)ds->getPrivateData();
-  return conn->commit(xsink);
+   connection* conn = (connection*)ds->getPrivateData();
+   return conn->commit(xsink);
 }
 
-//------------------------------------------------------------------------------
 static int sybase_rollback(Datasource *ds, ExceptionSink *xsink)
 {
-  connection* conn = (connection*)ds->getPrivateData();
-  return conn->rollback(xsink);
+   connection* conn = (connection*)ds->getPrivateData();
+   return conn->rollback(xsink);
 }
 
-//------------------------------------------------------------------------------
+static class QoreNode *sybase_get_client_version(Datasource *ds, ExceptionSink *xsink)
+{
+   connection* conn = (connection*)ds->getPrivateData();
+   class QoreString *str = conn->get_client_version(xsink);
+   return str ? new QoreNode(str) : 0;
+}
+
+static class QoreNode *sybase_get_server_version(Datasource *ds, ExceptionSink *xsink)
+{
+   connection* conn = (connection*)ds->getPrivateData();
+   return conn->get_server_version(xsink);
+}
+
 QoreString* sybase_module_init()
 {
    tracein("sybase_module_init()");
-
+   
 #ifdef DEBUG
-  builtinFunctions.add("runSybaseTests", runSybaseTests, QDOM_DATABASE);
-  builtinFunctions.add("runRecentSybaseTests", runRecentSybaseTests, QDOM_DATABASE);
+   builtinFunctions.add("runSybaseTests", runSybaseTests, QDOM_DATABASE);
+   builtinFunctions.add("runRecentSybaseTests", runRecentSybaseTests, QDOM_DATABASE);
 #endif
-
+   
    // register driver with DBI subsystem
    class qore_dbi_method_list methods;
    methods.add(QDBI_METHOD_OPEN, sybase_open);
@@ -220,6 +223,8 @@ QoreString* sybase_module_init()
    methods.add(QDBI_METHOD_COMMIT, sybase_commit);
    methods.add(QDBI_METHOD_ROLLBACK, sybase_rollback);
    methods.add(QDBI_METHOD_AUTO_COMMIT, sybase_commit);
+   methods.add(QDBI_METHOD_GET_CLIENT_VERSION, sybase_get_client_version);
+   methods.add(QDBI_METHOD_GET_SERVER_VERSION, sybase_get_server_version);
    
 #ifdef SYBASE
    DBID_SYBASE = DBI.registerDriver("sybase", methods, DBI_SYBASE_CAPS);

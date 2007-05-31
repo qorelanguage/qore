@@ -1636,6 +1636,19 @@ void QoreString::trim_trailing_blanks()
    terminate(p + 1 - buf);
 }
 
+// remove trailing char
+void QoreString::trim_trailing_char(char c)
+{
+   if (!len)
+      return;
+   
+   char *p = buf + len - 1;
+   while (p >= buf && (*p) == c)
+      --p;
+   
+   terminate(p + 1 - buf);
+}
+
 // remove leading blanks
 void QoreString::trim_leading_blanks()
 {

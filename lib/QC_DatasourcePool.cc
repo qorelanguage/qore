@@ -277,7 +277,7 @@ static QoreNode *DSP_getServerVersion(class Object *self, class DatasourcePool *
 
 static QoreNode *DSP_getClientVersion(class Object *self, class DatasourcePool *ds, class QoreNode *params, ExceptionSink *xsink)
 {
-   return ds->getClientVersion();
+   return ds->getClientVersion(xsink);
 }
 
 class QoreClass *initDatasourcePoolClass()

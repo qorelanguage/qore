@@ -169,6 +169,8 @@ class QoreString {
       DLLEXPORT void trim_trailing_newlines();
       // remove trailing blanks
       DLLEXPORT void trim_trailing_blanks();
+      // remove trailing character
+      DLLEXPORT void trim_trailing_char(char c);
       // remove leading blanks
       DLLEXPORT void trim_leading_blanks();
       // remove leading and trailing blanks

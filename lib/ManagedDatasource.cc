@@ -537,7 +537,18 @@ QoreNode *ManagedDatasource::getServerVersion(ExceptionSink *xsink)
    return rv;
 }
 
-QoreNode *ManagedDatasource::getClientVersion()
+QoreNode *ManagedDatasource::getClientVersion(ExceptionSink *xsink)
 {
-   return Datasource::getClientVersion();
+   class QoreNode *rv;
+   
+   if (!startDBAction(xsink))
+   {
+      rv = Datasource::getClientVersion(xsink);
+      
+      endDBAction();
+   }
+   else
+      rv = NULL;
+   
+   return rv;
 }

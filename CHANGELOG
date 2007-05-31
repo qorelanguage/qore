@@ -1,3 +1,10 @@
+2006.05.31: David Nichols
+	* fixed setting chained transaction (sybase) and implicit_transactions
+	  (ms sql server) using ct_options on freetds
+	* sybase: implemented DBI methods get_client_version and 
+	  get_server_version
+	* update test/db-test.q to supoprt testing mssql with MS SQL Server
+
 2006.05.30: David Nichols
 	* sybase: commit major driver re-org, stored proc execution, multiple
 	  select results, bugfixes, more

@@ -47,7 +47,7 @@ Call stacks are still maintained with debugging versions of qore so this functio
 
 Due to the performance improvements in this release, this release of Qore faster than previous releases, even in the face of significant enhancements to the Qore execution engine (deadlock detection, timeout support, etc).
 
-Average speed improvement compared to 0.6.1.* on most platforms is 20%, however on Solaris 10 (sparc and x86_64) the difference is incredible.
+Average speed improvement compared to 0.6.1.* on most platforms is 20%, however on Solaris 10 (sparc and x86_64, but mostly on x86_64) the difference is incredible.
 On Solaris 10, qore 0.6.2 executes qore code normally between 2x - 3x as fast as with qore 0.6.1* (probably due to using libumem on this platform).  
 With heavily threaded code the speed improvement is smaller, but still noticeable.
 
@@ -66,16 +66,32 @@ ex: $db = new Datasource(DSPGSQL);
 ex: $db = new Datasource("pgsql");
 
 *) "sybase" module: Sybase driver
-...
+the new "sybase" driver uses Sybase' ct-lib to communicate with Sybase servers.
+
 The driver's name is "sybase" and the Datasource type constant is SQL::DSSybase
 ex: $db = new Datasource(DSSybase);
 ex: $db = new Datasource("sybase");
 
-*) "mssql" module: FreeTDS-based driver for connecting to MS SQL Server databases
-...
+features:
+* all builtin Sybase data types are supported
+* is thread-safe
+* stored procedure execution is supported
+* transaction management is supported
+* transparent character encoding conversion is supported if necessary
+* verbose error reporting in exceptions using client and server message information when available
+
+This driver also provides a special format for returning multiple result sets and/or output parameters in a single statement.  See the qore documentation for more information.
+
+*) "mssql" module: FreeTDS-based driver for connecting to Sybase and MS SQL Server databases
+This driver is built from the same sources as the "sybase" driver, but compiled with FreeTDS (http://www.freetds.org).
+
 The driver's name is "mssql" and the Datasource type constant is SQL::DSMSSQL
 ex: $db = new Datasource(DSMSSQL);
 ex: $db = new Datasource("mssql");
+
+It supports the same features as the "sybase" driver, except the freetds.conf file is used for connection information (instead of Sybase' interfaces file).
+
+The main difference between this driver and the Sybase driver is that it can connect to more types of databases (if they are properly configured in freetds.conf, also with the correct tds version level), and the UNICHAR and VARUNICHAR column types are not yet supported (have not yet been able to make them work).
 
 *) new DatasourcePool class provides transparent Datasource connection pooling
 Use the DatasourcePool class like the Datasource class; when you enter a transaction, a Datasource is automatically allocated to the thread, and released when the transaction is committed or rolled back.  

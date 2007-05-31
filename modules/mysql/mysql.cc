@@ -1111,7 +1111,7 @@ static class QoreNode *qore_mysql_get_server_version(class Datasource *ds, class
    return new QoreNode((int64)d_mysql->getServerVersion());
 }
 
-static class QoreNode *qore_mysql_get_client_version()
+static class QoreNode *qore_mysql_get_client_version(class Datasource *ds, class ExceptionSink *xsink)
 {
    checkInit();
    return new QoreNode((int64)mysql_get_client_version());

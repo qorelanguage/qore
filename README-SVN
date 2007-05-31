@@ -14,5 +14,9 @@ make install
 
 as usual...
 
+** NOTE: modules from different svn versions of qore may not be compatible even though they have the same API version label.  This is because when I start a new release where I know I'm going to update the module API I will increase the API numbers immediately, but the actual binary format may change until the release date.  Therefore it's best to delete all binary modules before installing a new release, just in case.
+
+** NOTE: as of qore 0.6.2 no modules are in the "$libdir/qore-$ver/auto" (ex: /usr/lib/qore-0.6.2/auto), so any svn modules there should be deleted
+
 for any problems or questions send me an email at: david_nichols@users.sourceforge.net
 

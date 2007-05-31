@@ -210,10 +210,10 @@ class QoreNode *DBIDriver::getServerVersion(class Datasource *ds, class Exceptio
    return 0;
 }
 
-class QoreNode *DBIDriver::getClientVersion()
+class QoreNode *DBIDriver::getClientVersion(class Datasource *ds, class ExceptionSink *xsink)
 {
    if (f.get_client_version)
-      return f.get_client_version();
+      return f.get_client_version(ds, xsink);
    return 0;
 }
 

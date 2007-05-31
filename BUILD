@@ -85,6 +85,7 @@ Use --with-sybase or set the SYBASE and SYBASE_OCS environment variables to buil
 
 *) "mssql": FreeTDS-based Sybase and Microsoft SQL Server driver, requires FreeTDS headers and libraries
 User --with-freetds or set the FREETDS environment variable to your FreeTDS installation to build the "mssql" module.  Note that the "mssql" driver is built from the same source as the "sybase" driver and can be used to connect to sybase and MS SQL Server databases
+FreeTDS website: http://www.freetds.org
 
 *) "tibrv": TIBCO Rendezvous module requires TIBCO Rendezvous 7.x (6 may work, not tested)
 Set the RV_ROOT environment variable to the Rendezvous directory before calling configure (or use the --with-tibrv configure option) to build the "tibrv" module for direct Rendezvous support.  Note that to build this module the libtibrvcpp library must be present; on some platforms you have to rebuild this yourself from the sources provided by TIBCO in order for it to link with the C++ compiler you are using - the sources are normally present in $RV_ROOT/src/librvcpp, normally you have to edit the Makefile provided there and then type "make" to rebuild.  I had to include "ranlib libtibrvcpp.a" on the libraries I rebuilt for OS X.  Secure daemon support is turned off by default in tibrvcpp, to enable secure daemon support edit $RV_ROOT/src/librvcpp/Makefile and uncomment the SD_MODULE line near the end of the file, rebuild, install the new library in $RV_ROOT/lib, and rerun qore's configure script

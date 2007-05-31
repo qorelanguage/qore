@@ -471,7 +471,7 @@
       <varlistentry>
 	<term>Description</term>
 	<listitem>
-	  <para>Disallows access to database functionality.  Currently this means that access to the <link linkend="Qore::SQL::Datasource_Class">Datasource</link> class is restricted.</para>
+	  <para>Disallows access to database functionality.  Currently this means that access to the <link linkend="Qore::SQL::Datasource_Class">Datasource</link> and <link linkend="DatasourcePool_Class">DatasourcePool</link> classes is restricted.</para>
 	</listitem>
       </varlistentry>
     </variablelist>
@@ -1215,7 +1215,7 @@
       <varlistentry>
 	<term>Description</term>
 	<listitem>
-	  <para>Loads a Qore module immediately during parsing (for parse directives) or before parsing (command-line).</para>
+	  <para>Loads a Qore module immediately.  The parse directive can be used to load a module during parsing, and the command-line version can be used to load a module before parsing.</para>
 	</listitem>
       </varlistentry>
     </variablelist>

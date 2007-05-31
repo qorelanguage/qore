@@ -45,9 +45,6 @@ class connection
       bool connected;
       class QoreEncoding *enc;
 
-#ifdef FREETDS
-      DLLLOCAL int set_chained_transaction_mode(ExceptionSink* xsink);
-#endif
       class QoreNode *exec_intern(class QoreString *cmd_text, class List *qore_args, bool need_list, class ExceptionSink* xsink);
 
 public:
@@ -74,6 +71,9 @@ public:
       DLLLOCAL CS_CONNECTION* getConnection() const { return m_connection; }
       DLLLOCAL CS_CONTEXT* getContext() const { return m_context; }
       DLLLOCAL class QoreEncoding *getEncoding() const { return enc; }
+
+      DLLLOCAL class QoreString *get_client_version(class ExceptionSink *xsink);
+      DLLLOCAL QoreNode *get_server_version(class ExceptionSink *xsink);
 };
 
 #endif

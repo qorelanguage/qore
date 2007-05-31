@@ -1334,7 +1334,7 @@ static class QoreNode *oracle_get_server_version(class Datasource *ds, class Exc
 }
 
 #ifdef HAVE_OCICLIENTVERSION
-static class QoreNode *oracle_get_client_version()
+static class QoreNode *oracle_get_client_version(class Datasource *ds, class ExceptionSink *xsink)
 {
    sword major, minor, update, patch, port_update;
 

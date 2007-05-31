@@ -106,7 +106,7 @@ public:
    DLLLOCAL void setAutoCommit(bool ac);   
    DLLLOCAL ManagedDatasource *copy();
    DLLLOCAL class QoreNode *getServerVersion(class ExceptionSink *xsink);
-   DLLLOCAL class QoreNode *getClientVersion();
+   DLLLOCAL class QoreNode *getClientVersion(class ExceptionSink *xsink);
 };
 
 #endif
