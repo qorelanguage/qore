@@ -55,7 +55,7 @@ TEST()
 
   drop_test_procedure(true);
   create_test_procedure();
-  ON_BLOCK_EXIT(drop_test_procedure);
+  ON_BLOCK_EXIT(drop_test_procedure, false);
 
   connection conn;
   ExceptionSink xsink;
