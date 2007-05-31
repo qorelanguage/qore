@@ -1405,7 +1405,7 @@ fi
 
 if test "${with_freetds}" = yes; then
    FREETDS_INCLUDES="-I$with_freetds_includes"
-   FREETDS_LIBS="-L$with_freetds_libs -lsybdb -lct -ltds"
+   FREETDS_LIBS="-L$with_freetds_libs -lsybdb -lct"
 
    # check if C++ compiler can link with FreeTDS libs
    SAVE_CXXFLAGS="$CXXFLAGS"
