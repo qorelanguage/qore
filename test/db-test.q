@@ -407,7 +407,15 @@ sub drop_test_datamodel($db)
     # the commits are needed for databases like postgresql, where errors will prohibit and further
     # actions from being taken on the Datasource
     foreach my $table in (keys object_map.$driver.tables)
-	try { $db.exec("drop table " + $table); $db.commit(); } catch () { $db.commit(); }
+	try { 
+	    $db.exec("drop table " + $table);
+	    $db.commit(); 
+	    tprintf(2, "dropped table %n\n", $table);
+	}
+        catch () 
+	{ 
+	    $db.commit(); 
+	}
     
     # drop procedures and ignore exceptions
     foreach my $proc in (keys object_map.$driver.procs)
@@ -415,7 +423,15 @@ sub drop_test_datamodel($db)
 	my $cmd = object_map.$driver.drop_proc_cmd;
 	if (!exists $cmd)
 	    $cmd = "drop procedure";
-	try { $db.exec($cmd + " " + $proc); $db.commit(); } catch () { $db.commit(); }
+	try { 
+	    $db.exec($cmd + " " + $proc); 
+	    $db.commit(); 
+	    tprintf(2, "dropped procedure %n\n", $proc);
+	} 
+	catch () 
+	{ 
+	    $db.commit(); 
+	}
     }
 
     # drop functions and ignore exceptions
@@ -424,7 +440,15 @@ sub drop_test_datamodel($db)
 	my $cmd = object_map.$driver.drop_func_cmd;
 	if (!exists $cmd)
 	    $cmd = "drop function";
-	try { $db.exec($cmd + " " + $func); $db.commit(); } catch () { $db.commit(); }
+	try { 
+	    $db.exec($cmd + " " + $func); 
+	    $db.commit(); 
+	    tprintf(2, "dropped function %n\n", $func);
+	} 
+	catch () 
+	{ 
+	    $db.commit(); 
+	}
     }
 }
 

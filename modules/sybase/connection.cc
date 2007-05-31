@@ -36,7 +36,7 @@
 #include "sybase_query.h"
 #include "command.h"
 
-static QoreString ver_str("select @@version");
+static QoreString ver_str("begin tran select @@version commit tran");
 
 #ifdef FREETDS
 #include <tds.h>  // needed for the TDSLOGIN structure, to set connection encoding
@@ -481,7 +481,7 @@ CS_RETCODE connection::servermsg_callback(CS_CONTEXT* ctx, CS_CONNECTION* conn, 
 QoreString *connection::get_client_version(class ExceptionSink *xsink)
 {
    char *buf = (char *)malloc(sizeof(char) * CLIENT_VER_LEN);
-   int olen;
+   CS_INT olen;
    CS_RETCODE ret = ct_config(m_context, CS_GET, CS_VER_STRING, buf, CLIENT_VER_LEN, &olen);
    //printd(0, "olen=%d, ret=%d\n", olen, ret);
    if (ret != CS_SUCCEED) {
