@@ -704,6 +704,14 @@ class QoreNode *command::get_node(const CS_DATAFMT& datafmt, const output_value_
       return new QoreNode((int64)*value);
     }
 
+#ifdef CS_BIGINT_TYPE
+    case CS_INT_TYPE:
+    {
+      CS_BIGINT *value = (CS_BIGINT *)(buffer.value);
+      return new QoreNode((int64)*value);
+    }
+#endif
+
     case CS_REAL_TYPE:
     {
       CS_REAL* value = (CS_REAL*)(buffer.value);
