@@ -41,6 +41,9 @@ static QoreString ver_str("begin tran select @@version commit tran");
 #ifdef FREETDS
 #include <tds.h>  // needed for the TDSLOGIN structure, to set connection encoding
 
+// warning: private tds library function
+extern "C" DSTR *tds_dstr_copy(DSTR *s, const char *src);
+
 // WARNING: hack into freetds internals, needed to set connection encoding
 struct tds_cs_connection {
       CS_CONTEXT *ctx;
@@ -283,7 +286,7 @@ int connection::init(const char* username, const char* password, const char* dbn
    // here we set the character encoding we expect for the connection to db_encoding
    tds_cs_connection *tconn = (tds_cs_connection *)m_connection;
    //printd(5, "sc=%08p (%s)\n", tconn->tds_login->server_charset, tconn->tds_login->server_charset ? (char *)tconn->tds_login->server_charset : "n/a");
-   tconn->tds_login->server_charset = (DSTR)strdup(db_encoding);
+   tds_dstr_copy(&tconn->tds_login->server_charset, db_encoding);
 #endif
 
    ret = ct_connect(m_connection, (CS_CHAR*)dbname,  strlen(dbname));
