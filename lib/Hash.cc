@@ -103,8 +103,8 @@ class QoreNode *HashIterator::takeValueAndDelete()
       rv = ptr->node;
       ptr->node = NULL;
       class HashMember *w = ptr;
-      h->internDeleteKey(w);
       ptr = ptr->prev;
+      h->internDeleteKey(w);
    }
    else
       rv = NULL;
