@@ -50,11 +50,7 @@ struct tds_cs_connection {
 
 //------------------------------------------------------------------------------
 connection::connection()
-   : m_context(0), m_connection(0), 
-#ifdef SYB_HAVE_LOCALE
-     m_charset_locale(0), 
-#endif
-     connected(false)
+   : m_context(0), m_connection(0), connected(false)
 {
 }
 
@@ -62,13 +58,6 @@ connection::connection()
 connection::~connection()
 {
    CS_RETCODE ret = CS_SUCCEED;
-
-#ifdef SYB_HAVE_LOCALE
-   if (m_charset_locale) {
-      ret = cs_loc_drop(m_context, m_charset_locale);
-      assert(ret == CS_SUCCEED);
-   }
-#endif
 
    if (m_connection) {
       if (connected)
@@ -258,7 +247,8 @@ int connection::init(const char* username, const char* password, const char* dbn
    }
 
 #ifdef SYB_HAVE_LOCALE
-   // cs_loc* functions are currently stubbed in freetds 0.64
+   CS_LOCALE *m_charset_locale = 0;
+
    ret = cs_loc_alloc(m_context, &m_charset_locale);
    if (ret != CS_SUCCEED) {
       xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_loc_alloc() returned error %d", (int)ret);
@@ -274,18 +264,14 @@ int connection::init(const char* username, const char* password, const char* dbn
       xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_locale(CS_SYB_CHARSET, '%s') failed with error %d", db_encoding, (int)ret);
       return -1;
    }
-
-   ret = cs_locale(m_context, CS_SET, m_charset_locale, CS_SYB_LANG_CHARSET, (CS_CHAR*)"us_english.iso_1", CS_NULLTERM, 0);
-   if (ret != CS_SUCCEED) {
-      xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_locale(CS_SYB_LANG) failed with error %d", (int)ret);
-      return -1;
-   }
-
    ret = ct_con_props(m_connection, CS_SET, CS_LOC_PROP, m_charset_locale, CS_UNUSED, 0);
    if (ret !=CS_SUCCEED) {
-      xsink->raiseException("DBI-EXEC-EXCEPTION", "ct_con_props(CS_LOC_PROP, \"%s\") failed with error %d", (int)ret);
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "ct_con_props(CS_LOC_PROP) failed with error %d", (int)ret);
       return -1;
    }
+
+   ret = cs_loc_drop(m_context, m_charset_locale);
+   assert(ret == CS_SUCCEED);
 #else
    // WARNING! hack into freetds internals that may change with future versions
    // here we set the character encoding we expect for the connection to db_encoding
@@ -343,9 +329,9 @@ int connection::purge_messages(class ExceptionSink *xsink)
 	 rc = -1;
       }
 #ifdef DEBUG
-      printd(0, "client: severity:%d, n:%d: %s\n", CS_SEVERITY(cmsg.msgnumber), CS_NUMBER(cmsg.msgnumber), cmsg.msgstring);
+      printd(1, "client: severity:%d, n:%d: %s\n", CS_SEVERITY(cmsg.msgnumber), CS_NUMBER(cmsg.msgnumber), cmsg.msgstring);
       if (cmsg.osstringlen > 0)
-	 printd(0, "Operating System Error: %s\n", cmsg.osstring);
+	 printd(1, "Operating System Error: %s\n", cmsg.osstring);
 #endif
    }
    ret = ct_diag(m_connection, CS_STATUS, CS_SERVERMSG_TYPE, CS_UNUSED, &num);
@@ -366,7 +352,7 @@ int connection::purge_messages(class ExceptionSink *xsink)
 	 xsink->raiseException("DBI:SYBASE:SERVER-ERROR", desc);
 	 rc = -1;
       }
-      printd(0, "server: line:%d, severity:%d, n:%d: %s", smsg.line, smsg.severity, smsg.msgnumber, smsg.text);
+      printd(1, "server: line:%d, severity:%d, n:%d: %s", smsg.line, smsg.severity, smsg.msgnumber, smsg.text);
    }
    ret = ct_diag(m_connection, CS_CLEAR, CS_ALLMSG_TYPE, CS_UNUSED, 0);
    assert(ret == CS_SUCCEED);

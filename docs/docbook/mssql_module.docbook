@@ -70,6 +70,8 @@ exec get_values :string output, :int output");</programlisting>
 
     <para>Note that this driver is not able to retrieve output parameter values when executing queries on MS SQL Server 2000 or above (<code>tds version</code> 5.0 or above), due to the fact that newer MS SQL Server dataservers no longer return output parameter information through the TDS protocol as with Sybase and previous versions of SQL Server.  A future version of this driver should offer an alternative Datasource method allowing explicit stored procedure execution through ct-lib RPC functions, which will allow output parameters to be returned.</para>
 
+    <para>There are other issues with data types, character set encoding, and more when using this driver; please see <ulink url="http://www.freetds.org">http://www.freetds.org</ulink> for more information.</para>
+
     <para>Some of the following types are only available on either Sybase or MS SQL Server.</para>
 
     <table>

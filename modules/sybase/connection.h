@@ -34,7 +34,7 @@
 #if defined(SYBASE) || defined(FREETDS_LOCALE)
 #define SYB_HAVE_LOCALE 1
 #else
-#under SYB_HAVE_LOCALE
+#undef SYB_HAVE_LOCALE
 #endif
 
 // Instantiated class is kept as private data of the Datasource
@@ -45,9 +45,6 @@ class connection
    private:
       CS_CONTEXT* m_context;
       CS_CONNECTION* m_connection;
-#ifdef SYB_HAVE_LOCALE
-      CS_LOCALE* m_charset_locale; // lifetime is equal to lifetime of the connection
-#endif
       bool connected;
       class QoreEncoding *enc;
 
