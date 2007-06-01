@@ -274,6 +274,22 @@ class List *DBIDriverList::getDriverList() const
    return l;
 }
 
+void DBI_concat_numeric(class QoreString *str, class QoreNode *v)
+{
+   if (is_nothing(v) || is_null(v))
+   {
+      str->concat("null");
+      return;
+   }
+
+   if (v->type == NT_FLOAT || (v->type == NT_STRING && strchr(v->val.String->getBuffer(), '.')))
+   {
+      str->sprintf("%g", v->getAsFloat());
+      return;
+   }
+   str->sprintf("%lld", v->getAsBigInt());
+}
+
 /*
   parseDatasource()
 

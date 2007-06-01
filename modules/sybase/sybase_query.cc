@@ -80,18 +80,14 @@ int sybase_query::init(QoreString *cmd_text, class List *args, ExceptionSink *xs
 	  
 	    tmp.clear();
 	    tmp.sprintf("@par%u", param_list.size());
-	    m_cmd->replace(offset, 2, tmp.getBuffer());
+	    m_cmd->replace(offset, 2, &tmp);
 	    s = m_cmd->getBuffer() + offset + tmp.strlen();
 	 } 
 	 else if (ch == 'd') 
 	 {
 	    class QoreNode *v = args ? args->retrieve_entry(param_list.size()) : 0;
-
 	    tmp.clear();
-	    if (!v || is_nothing(v) || is_null(v))
-	       tmp.concat("null");
-	    else
-	       tmp.sprintf("%lld", v->getAsBigInt());
+	    DBI_concat_numeric(&tmp, v);
 	    m_cmd->replace(offset, 2, tmp.getBuffer());
 	    s = m_cmd->getBuffer() + offset + tmp.strlen();
 

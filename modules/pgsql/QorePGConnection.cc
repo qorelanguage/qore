@@ -1286,19 +1286,10 @@ int QorePGResult::parse(class QoreString *str, class List *args, class Exception
          class QoreNode *v = args ? args->retrieve_entry(index++) : NULL;
 	 if ((*p) == 'd')
 	 {
-	    // add integer value or NULL
-	    if (is_nothing(v) || is_null(v))
-	    {
-	       str->replace(offset, 2, "null");
-	       p = str->getBuffer() + offset + 4;
-	    }
-	    else
-	    {
-	       tmp.sprintf("%lld", v->getAsBigInt());
-	       str->replace(offset, 2, &tmp);
-	       p = str->getBuffer() + offset + tmp.strlen();
-	       tmp.clear();
-	    }
+	    DBI_concat_numeric(&tmp, v);
+	    str->replace(offset, 2, &tmp);
+	    p = str->getBuffer() + offset + tmp.strlen();
+	    tmp.clear();
 	    continue;
 	 }
          if ((*p) != 'v')
