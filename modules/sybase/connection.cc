@@ -138,6 +138,7 @@ class QoreNode *connection::exec_intern(class QoreString *cmd_text, class List *
    if (query.init(cmd_text, qore_args, xsink))
       return 0;
 
+   printd(5, "connection::exec_intern() sql='%s'\n", cmd_text->getBuffer());
    command cmd(*this, xsink);
    if (xsink->isException())
       return 0;
@@ -335,9 +336,9 @@ int connection::purge_messages(class ExceptionSink *xsink)
 	 rc = -1;
       }
 #ifdef DEBUG
-      printd(1, "client: severity:%d, n:%d: %s\n", CS_SEVERITY(cmsg.msgnumber), CS_NUMBER(cmsg.msgnumber), cmsg.msgstring);
+      printd(5, "client: severity:%d, n:%d: %s\n", CS_SEVERITY(cmsg.msgnumber), CS_NUMBER(cmsg.msgnumber), cmsg.msgstring);
       if (cmsg.osstringlen > 0)
-	 printd(1, "Operating System Error: %s\n", cmsg.osstring);
+	 printd(5, "Operating System Error: %s\n", cmsg.osstring);
 #endif
    }
    ret = ct_diag(m_connection, CS_STATUS, CS_SERVERMSG_TYPE, CS_UNUSED, &num);
@@ -358,7 +359,7 @@ int connection::purge_messages(class ExceptionSink *xsink)
 	 xsink->raiseException("DBI:SYBASE:SERVER-ERROR", desc);
 	 rc = -1;
       }
-      printd(1, "server: line:%d, severity:%d, n:%d: %s", smsg.line, smsg.severity, smsg.msgnumber, smsg.text);
+      printd(5, "server: line:%d, severity:%d, n:%d: %s", smsg.line, smsg.severity, smsg.msgnumber, smsg.text);
    }
    ret = ct_diag(m_connection, CS_CLEAR, CS_ALLMSG_TYPE, CS_UNUSED, 0);
    assert(ret == CS_SUCCEED);

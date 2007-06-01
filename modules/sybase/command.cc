@@ -469,6 +469,7 @@ int command::get_row_description(row_result_t &result, unsigned column_count, Ex
 	 return -1;
       }
       datafmt.count = 1; // fetch just single row per every ct_fetch()
+      bool is_multi_byte = m_conn.getEncoding()->isMultiByte();
 
       //printd(5, "command::get_row_description(): name=%s type=%d usertype=%d\n", datafmt.name, datafmt.datatype, datafmt.usertype);
 
@@ -478,7 +479,7 @@ int command::get_row_description(row_result_t &result, unsigned column_count, Ex
 	 case CS_NUMERIC_TYPE: 
 	    datafmt.maxlength = 50;
 	    datafmt.datatype = CS_CHAR_TYPE;
-	    datafmt.format = CS_FMT_PADNULL;
+	    datafmt.format = CS_FMT_PADBLANK;
 	    break;
 
 	 case CS_UNICHAR_TYPE:
@@ -489,13 +490,16 @@ int command::get_row_description(row_result_t &result, unsigned column_count, Ex
 	 case CS_LONGCHAR_TYPE:
 	 case CS_VARCHAR_TYPE:
 	 case CS_TEXT_TYPE:
+	    // if it's a multi-byte encoding, double the buffer size
+	    if (is_multi_byte)
+	       datafmt.maxlength *= 2;
 	    datafmt.format = CS_FMT_NULLTERM;
 	    break;
 
-	    // freetds only works with CS_FMT_PADNULL with CS_CHAR columns it seems
+	    // freetds only works with CS_FMT_PADBLANK with CS_CHAR columns it seems
 	    // however this is also compatible with Sybase's ct-lib
 	 case CS_CHAR_TYPE:
-	    datafmt.format = CS_FMT_PADNULL;
+	    datafmt.format = CS_FMT_PADBLANK;
 	    break;
 
 #ifdef FREETDS
@@ -520,7 +524,7 @@ int command::get_row_description(row_result_t &result, unsigned column_count, Ex
 	    break;
       }
 
-      //printd(5, "command::get_row_description(): name=%s type=%d usertype=%d maxlength=%d\n", datafmt.name, datafmt.datatype, datafmt.usertype, datafmt.maxlength);
+      printd(5, "command::get_row_description(): name=%s type=%d usertype=%d maxlength=%d\n", datafmt.name, datafmt.datatype, datafmt.usertype, datafmt.maxlength);
 
       result.push_back(datafmt); 
    }
@@ -608,8 +612,8 @@ class QoreNode *command::get_node(const CS_DATAFMT& datafmt, const output_value_
   }
 
   class QoreEncoding *encoding = m_conn.getEncoding();
-
-  printd(0, "get_node() encoding=%s name=%s type=%d format=%d usertype=%d value_len=%d\n", encoding->getCode(), datafmt.name, datafmt.datatype, datafmt.format, datafmt.usertype, buffer.value_len);
+  
+  //printd(5, "get_node() encoding=%s name=%s type=%d format=%d usertype=%d value_len=%d\n", encoding->getCode(), datafmt.name, datafmt.datatype, datafmt.format, datafmt.usertype, buffer.value_len);
 
   switch (datafmt.datatype) {
      case CS_LONGCHAR_TYPE:
@@ -620,55 +624,21 @@ class QoreNode *command::get_node(const CS_DATAFMT& datafmt, const output_value_
 	CS_CHAR* value = (CS_CHAR*)(buffer.value);
 	QoreString *s = 0;
 	s = new QoreString(value, buffer.value_len - 1, encoding);
-	if (datafmt.format == CS_FMT_PADNULL || datafmt.usertype == 34)
+	if (datafmt.format == CS_FMT_PADBLANK || datafmt.usertype == 34
+#ifdef SYBASE
+	    // for some reason sybase returns a char field as LONGCHAR when the server
+	    // is uses iso_1 character encoding, but the connection is set to utf-8
+	    // also in this case the result is always blank padded even though the
+	    // datafmt.format is set to CS_FMT_NULLTERM
+	    || datafmt.datatype == CS_LONGCHAR_TYPE
+#endif
+	   )
 	   s->trim_trailing_blanks();
-	printd(0, "name=%s vlen=%d strlen=%d len=%d str='%s'\n", datafmt.name, buffer.value_len, s->strlen(), s->length(), s->getBuffer());
+	//printd(5, "name=%s vlen=%d strlen=%d len=%d str='%s'\n", datafmt.name, buffer.value_len, s->strlen(), s->length(), s->getBuffer());
 	return new QoreNode(s);
 	break;
      }
 
-/*
-     case CS_CHAR_TYPE: // varchar
-     {
-	CS_CHAR* value = (CS_CHAR*)(buffer.value);
-	QoreString *s = 0;
-#ifdef SYBASE_1
-	// sybase returns UNICHAR with a double length
-	if (datafmt.usertype == 34)
-	{
-	   // see if this encoding is a multi-byte encoding
-	   if (!encoding->isMultiByte())
-	      s = new QoreString(value, buffer.value_len/2 - 1, encoding);
-	   else
-	      ;
-	}	
-#endif
-	s = new QoreString(value, buffer.value_len - 1, encoding);
-	//printd(5, "get_node() oops, no null in %s='%s' (len=%d)\n", datafmt.name, s->getBuffer(), buffer.value_len);
-	s->trim_trailing_blanks();
-	printd(0, "name=%s vlen=%d strlen=%d len=%d str='%s'\n", datafmt.name, buffer.value_len, s->strlen(), s->length(), s->getBuffer());
-	return new QoreNode(s);
-     }
-
-     case CS_LONGCHAR_TYPE:
-     case CS_VARCHAR_TYPE:
-     case CS_TEXT_TYPE:
-     {
-	CS_CHAR* value = (CS_CHAR*)(buffer.value);
-
-	QoreString *s;
-	// see if we need to strip trailing newlines (could not find a defined USER_TYPE_* for this!)
-	if (datafmt.usertype == 1)
-	{
-	   s = new QoreString(value, encoding);
-	   s->trim_trailing_blanks();
-	}
-	else
-	   s = new QoreString(value, buffer.value_len - 1, encoding);
-	//printd(5, "name=%s type=%d strlen=%d vallen=%d len=%d str='%s'\n", datafmt.name, datafmt.datatype, buffer.value_len, s->strlen(), s->length(), s->getBuffer());
-	return new QoreNode(s);
-     }
-*/
      case CS_VARBINARY_TYPE:
      case CS_BINARY_TYPE:
      case CS_LONGBINARY_TYPE:
@@ -705,7 +675,7 @@ class QoreNode *command::get_node(const CS_DATAFMT& datafmt, const output_value_
     }
 
 #ifdef CS_BIGINT_TYPE
-    case CS_INT_TYPE:
+    case CS_BIGINT_TYPE:
     {
       CS_BIGINT *value = (CS_BIGINT *)(buffer.value);
       return new QoreNode((int64)*value);
