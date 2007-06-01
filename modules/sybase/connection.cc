@@ -284,7 +284,8 @@ int connection::init(const char* username, const char* password, const char* dbn
 
    ret = ct_connect(m_connection, (CS_CHAR*)dbname,  strlen(dbname));
    if (ret != CS_SUCCEED) {
-      xsink->raiseException("DBI:SYBASE:CT-LIB-CONNECT", "ct_connect() failed with error %d", ret);
+      do_exception(xsink, "DBI:SYBASE:CT-LIB-CONNECT", "ct_connect() failed with error %d", ret);
+      //xsink->raiseException("DBI:SYBASE:CT-LIB-CONNECT", "ct_connect() failed with error %d", ret);
       return -1;
    }
    connected = true;
