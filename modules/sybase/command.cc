@@ -277,7 +277,10 @@ QoreNode *command::read_output(PlaceholderList &placeholder_list, bool list, Exc
 	 {
 	    class QoreNode *t = read_rows(0, list, xsink);
 	    if (xsink->isException())
+	    {
+	       assert(!t);
 	       return 0;
+	    }
 	    
 	    if (result_count)
 	    {
@@ -446,9 +449,9 @@ class QoreNode *command::read_rows(PlaceholderList *placeholder_list, bool list,
 	       rv = new QoreNode(l);
 	    }
 	    rv->val.list->push(new QoreNode(h));
-	 } else {
+	 } 
+	 else
 	    rv = new QoreNode(h);
-	 }
       }
    } // while
    return rv;
@@ -677,8 +680,8 @@ class QoreNode *command::get_node(const CS_DATAFMT& datafmt, const output_value_
 #ifdef CS_BIGINT_TYPE
     case CS_BIGINT_TYPE:
     {
-      CS_BIGINT *value = (CS_BIGINT *)(buffer.value);
-      return new QoreNode((int64)*value);
+       int64 *value = (int64 *)(buffer.value);
+       return new QoreNode(*value);
     }
 #endif
 

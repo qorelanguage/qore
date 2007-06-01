@@ -1418,9 +1418,6 @@ if test "${with_freetds}" = yes; then
 CS_CONTEXT *m_context; ct_init(m_context, CS_VERSION_100);
 	]])], freetds_links=yes, freetds_links=no)
 
-   CXXFLAGS="$SAVE_CXXFLAGS"
-   LDFLAGS="$SAVE_LDFLAGS"
-
    if test "$freetds_links" = "no"; then
       if test -n "$freetds_explicit"; then
          AC_MSG_ERROR([could not compile and link a test FreeTDS program])
@@ -1431,9 +1428,27 @@ CS_CONTEXT *m_context; ct_init(m_context, CS_VERSION_100);
    else
       # without this "test" below, the shell will crap out
       test
+
+      # check if freetds supports ct_loc_alloc, etc, if it has CS_SYB_LANG_CHARSET defined, 
+      # then it will be OK
+      AC_LINK_IFELSE([AC_LANG_PROGRAM([[
+#include <cspublic.h>
+	 ]],[[
+#ifndef CS_SYB_LANG_CHARSET
+#error
+#endif
+	]])], freetds_locale=yes, freetds_locale=no)
+
+      if test "$freetds_locale" = "yes"; then
+         AC_DEFINE(FREETDS_LOCALE, 1, [define if freetds ct-lib cs_loc_alloc, cs_locale are (at least partially) implemented])
+      fi
+
       AC_SUBST(FREETDS_INCLUDES)
       AC_SUBST(FREETDS_LIBS)
    fi
+
+   CXXFLAGS="$SAVE_CXXFLAGS"
+   LDFLAGS="$SAVE_LDFLAGS"
 fi
 
 AC_ARG_WITH([pgsql],

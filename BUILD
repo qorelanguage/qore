@@ -85,6 +85,7 @@ Use --with-sybase or set the SYBASE and SYBASE_OCS environment variables to buil
 
 *) "mssql": FreeTDS-based Sybase and Microsoft SQL Server driver, requires FreeTDS headers and libraries
 User --with-freetds or set the FREETDS environment variable to your FreeTDS installation to build the "mssql" module.  Note that the "mssql" driver is built from the same source as the "sybase" driver and can be used to connect to sybase and MS SQL Server databases
+only tested so far with freetds 0.64, sybase ASE 15.0.1 and MS SQL Server 2005 SP2 (express edition)
 FreeTDS website: http://www.freetds.org
 
 *) "tibrv": TIBCO Rendezvous module requires TIBCO Rendezvous 7.x (6 may work, not tested)

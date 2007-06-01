@@ -31,6 +31,12 @@
 
 #include <stdarg.h>
 
+#if defined(SYBASE) || defined(FREETDS_LOCALE)
+#define SYB_HAVE_LOCALE 1
+#else
+#under SYB_HAVE_LOCALE
+#endif
+
 // Instantiated class is kept as private data of the Datasource
 // for the time the Datasource exists. All other Sybase
 // resources are shortlived (including CS_COMMAND* and its wrapper).
@@ -39,7 +45,7 @@ class connection
    private:
       CS_CONTEXT* m_context;
       CS_CONNECTION* m_connection;
-#ifdef SYBASE
+#ifdef SYB_HAVE_LOCALE
       CS_LOCALE* m_charset_locale; // lifetime is equal to lifetime of the connection
 #endif
       bool connected;

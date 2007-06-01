@@ -51,7 +51,7 @@ struct tds_cs_connection {
 //------------------------------------------------------------------------------
 connection::connection()
    : m_context(0), m_connection(0), 
-#ifdef SYBASE
+#ifdef SYB_HAVE_LOCALE
      m_charset_locale(0), 
 #endif
      connected(false)
@@ -63,7 +63,7 @@ connection::~connection()
 {
    CS_RETCODE ret = CS_SUCCEED;
 
-#ifdef SYBASE
+#ifdef SYB_HAVE_LOCALE
    if (m_charset_locale) {
       ret = cs_loc_drop(m_context, m_charset_locale);
       assert(ret == CS_SUCCEED);
@@ -257,7 +257,7 @@ int connection::init(const char* username, const char* password, const char* dbn
       }
    }
 
-#ifdef SYBASE
+#ifdef SYB_HAVE_LOCALE
    // cs_loc* functions are currently stubbed in freetds 0.64
    ret = cs_loc_alloc(m_context, &m_charset_locale);
    if (ret != CS_SUCCEED) {
@@ -266,7 +266,7 @@ int connection::init(const char* username, const char* password, const char* dbn
    }
    ret = cs_locale(m_context, CS_SET, m_charset_locale, CS_LC_ALL, 0, CS_NULLTERM, 0);
    if (ret != CS_SUCCEED) {
-      xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_locale() returned error %d", (int)ret);
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_locale(CS_LC_ALL) returned error %d", (int)ret);
       return -1;
    }
    ret = cs_locale(m_context, CS_SET, m_charset_locale, CS_SYB_CHARSET, (CS_CHAR*)db_encoding, CS_NULLTERM, 0);
@@ -274,6 +274,13 @@ int connection::init(const char* username, const char* password, const char* dbn
       xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_locale(CS_SYB_CHARSET, '%s') failed with error %d", db_encoding, (int)ret);
       return -1;
    }
+
+   ret = cs_locale(m_context, CS_SET, m_charset_locale, CS_SYB_LANG_CHARSET, (CS_CHAR*)"us_english.iso_1", CS_NULLTERM, 0);
+   if (ret != CS_SUCCEED) {
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "cs_locale(CS_SYB_LANG) failed with error %d", (int)ret);
+      return -1;
+   }
+
    ret = ct_con_props(m_connection, CS_SET, CS_LOC_PROP, m_charset_locale, CS_UNUSED, 0);
    if (ret !=CS_SUCCEED) {
       xsink->raiseException("DBI-EXEC-EXCEPTION", "ct_con_props(CS_LOC_PROP, \"%s\") failed with error %d", (int)ret);
@@ -336,9 +343,9 @@ int connection::purge_messages(class ExceptionSink *xsink)
 	 rc = -1;
       }
 #ifdef DEBUG
-      printd(5, "client: severity:%d, n:%d: %s\n", CS_SEVERITY(cmsg.msgnumber), CS_NUMBER(cmsg.msgnumber), cmsg.msgstring);
+      printd(0, "client: severity:%d, n:%d: %s\n", CS_SEVERITY(cmsg.msgnumber), CS_NUMBER(cmsg.msgnumber), cmsg.msgstring);
       if (cmsg.osstringlen > 0)
-	 printd(5, "Operating System Error: %s\n", cmsg.osstring);
+	 printd(0, "Operating System Error: %s\n", cmsg.osstring);
 #endif
    }
    ret = ct_diag(m_connection, CS_STATUS, CS_SERVERMSG_TYPE, CS_UNUSED, &num);
@@ -359,7 +366,7 @@ int connection::purge_messages(class ExceptionSink *xsink)
 	 xsink->raiseException("DBI:SYBASE:SERVER-ERROR", desc);
 	 rc = -1;
       }
-      printd(5, "server: line:%d, severity:%d, n:%d: %s", smsg.line, smsg.severity, smsg.msgnumber, smsg.text);
+      printd(0, "server: line:%d, severity:%d, n:%d: %s", smsg.line, smsg.severity, smsg.msgnumber, smsg.text);
    }
    ret = ct_diag(m_connection, CS_CLEAR, CS_ALLMSG_TYPE, CS_UNUSED, 0);
    assert(ret == CS_SUCCEED);
@@ -504,6 +511,7 @@ class QoreNode *connection::get_server_version(class ExceptionSink *xsink)
    HashIterator hi(res->val.hash);
    hi.next();
    QoreNode *rv = hi.takeValueAndDelete();
+   res->deref(xsink);
    if (rv && rv->type == NT_STRING)
       rv->val.String->trim_trailing_newlines();
    
