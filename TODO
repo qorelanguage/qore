@@ -1,6 +1,9 @@
 see docs/roadmap.html
 
-* implement auto-reconnect for mssql and other drivers (mysql has it already)
+* implement public_instanceof operator
+* fix +=, -= to use the rhs type if the lhs is NOTHING
+* implement -,-= with hash, list of strings to remove lists of hash keys
+* Implement auto-reconnect for mssql and other drivers (mysql has it already)
 * implement a mechanism for a thread to sleep until another thread terminates (join)
 * add support for special ::toString() method to serialize an object to a string (very useful for debugging)
 * add support for ranges [2..9] and dereferencing strings with []

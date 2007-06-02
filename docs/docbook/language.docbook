@@ -3142,7 +3142,7 @@ $call_ref = $object.method_name();</programlisting>
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Tests if a value is less than, equal, or greater than another value; types are converted if necessary (ex: ("1" &lt;=&gt; 2) returns -1).</para>
+	<para>Tests if the left-hand value is less than, equal, or greater than the right-hand value; types are converted if necessary (ex: ("1" &lt;=&gt; 2) returns -1).</para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -5575,7 +5575,7 @@ $name = getName();</programlisting>
     # here we queue a rollback in the case of an exception
     <command>on_error</command> $db.rollback();
     $db.select("select * from table where id = %v for update", $id);
-    ## .. more code
+    # .. more code
 
     return "OK";
 }
@@ -5621,7 +5621,7 @@ $name = getName();</programlisting>
     # here we queue a rollback in the case of an exception
     <command>on_error</command> $db.rollback();
     $db.select("select * from table where id = %v for update", $id);
-    ## .. more code
+    # .. more code
 
     return "OK";
 }

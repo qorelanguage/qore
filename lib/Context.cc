@@ -213,7 +213,8 @@ static inline int in_list(class QoreNode *node, struct node_row_list_s *nlist,
 	 if (nlist[i].num_rows == nlist[i].allocated)
 	 {
 	    printd(5, "%d: old row_list: %08p\n", i, nlist[i].row_list);
-	    nlist[i].allocated += ROW_BLOCK;
+	    int d = nlist[i].allocated >> 2;
+	    nlist[i].allocated += (d > ROW_BLOCK ? d : ROW_BLOCK);
 	    nlist[i].row_list = (int *)
 	       realloc(nlist[i].row_list, sizeof(int) * nlist[i].allocated);
 	    printd(5, "%d: new row_list: %08p\n", i, nlist[i].row_list);

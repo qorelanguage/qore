@@ -621,7 +621,9 @@ void List::resize(int num)
    // make larger
    if (num >= allocated)
    {
-      allocated = num + LIST_PAD;
+      int d = num >> 2;
+      allocated = num + (d < LIST_PAD ? LIST_PAD : d);
+      //allocated = num + LIST_PAD;
       entry = (class QoreNode **)realloc(entry, sizeof (QoreNode *) * allocated);
       for (int i = length; i < allocated; i++)
 	 entry[i] = NULL;

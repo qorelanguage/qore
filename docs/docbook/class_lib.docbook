@@ -7342,95 +7342,118 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
     
     <para>Note that a program can provide controlled access to functionality otherwise restricted by parse options by exporting a custom API into the child program object using either the <link linkend="Qore_Program_importFunction">Program::importFunction()</link> or <link linkend="Qore_Program_importGlobalVariable">Program::importGlobalVariable()</link> method.  This is possible because code (functions or object methods) imported into and called from a subprogram will run in the parent's space and therefore with the parent's capabilities.</para>
 
+    <para>The following constants are all in the <code>Qore</code> namespace.</para>
+
     <table id="Parse_Options">
       <title>Parse Options</title>
-      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <tgroup cols='3' align='left' colsep='1' rowsep='1'>
 	<thead>
 	  <row>
 	    <entry><para>Constant</para></entry>
+	    <entry><para>Details</para></entry>
 	    <entry><para>Description</para></entry>
 	  </row>
 	</thead>
 	
 	<tbody>
 	  <row id="PO_NO_GLOBAL_VARS">
-	    <entry><para>Qore::PO_NO_GLOBAL_VARS</para></entry>
+	    <entry><para>PO_NO_GLOBAL_VARS</para></entry>
+	    <entry><para><link linkend="no-global-vars"><code>%no-global-vars</code></link></para></entry>
 	    <entry><para>Disallows the use of global variables.</para></entry>
 	  </row>
 	  <row id="PO_NO_SUBROUTINE_DEFS">
-	    <entry><para>Qore::PO_NO_SUBROUTINE_DEFS</para></entry>
+	    <entry><para>PO_NO_SUBROUTINE_DEFS</para></entry>
+	    <entry><para><link linkend="no-subroutine-defs"><code>%no-subroutine-defs</code></link></para></entry>
 	    <entry><para>Disallows subroutine (function) definitions.</para></entry>
 	  </row>
 	  <row id="PO_NO_THREADS">
-	    <entry><para>Qore::PO_NO_THREADS</para></entry>
+	    <entry><para>PO_NO_THREADS</para></entry>
+	    <entry><para><link linkend="no-threads"><code>%no-threads</code></link></para></entry>
 	    <entry><para>Disallows any thread operations (the <link linkend="Background_Operator"><command>background</command> operator</link> and the <link linkend="thread_exit_Statements"><command>thread_exit</command> statement</link>, for example) and the use of thread-relevant classes and functions (equivalent to PO_NO_THREAD_CLASSES | PO_NO_THREAD_CONTROL).</para></entry>
 	  </row>
 	  <row id="PO_NO_THREAD_CLASSES">
-	    <entry><para>Qore::PO_NO_THREAD_CLASSES</para></entry>
+	    <entry><para>PO_NO_THREAD_CLASSES</para></entry>
+	    <entry><para><link linkend="no-thread-classes"><code>%no-thread-classes</code></link></para></entry>
 	    <entry><para>Disallows access to any thread classes.</para></entry>
 	  </row>
 	  <row id="PO_NO_THREAD_CONTROL">
-	    <entry><para>Qore::PO_NO_THREAD_CONTROL</para></entry>
+	    <entry><para>PO_NO_THREAD_CONTROL</para></entry>
+	    <entry><para><link linkend="no-thread-control"><code>%no-thread-control</code></link></para></entry>
 	    <entry><para>Disallows access to any thread-control functions and thread-relevant statements and operators (for example the <link linkend="Background_Operator"><command>background</command> operator</link> and the <link linkend="thread_exit_Statements"><command>thread_exit</command> statement</link>).</para></entry>
 	  </row>
 	  <row id="PO_NO_TOP_LEVEL_STATEMENTS">
-	    <entry><para>Qore::PO_NO_TOP_LEVEL_STATEMENTS</para></entry>
+	    <entry><para>PO_NO_TOP_LEVEL_STATEMENTS</para></entry>
+	    <entry><para><link linkend="no-top-level"><code>no-top-level</code></link></para></entry>
 	    <entry><para>Disallows top level code.</para></entry>
 	  </row>
 	  <row id="PO_NO_CLASS_DEFS">
-	    <entry><para>Qore::PO_NO_CLASS_DEFS</para></entry>
+	    <entry><para>PO_NO_CLASS_DEFS</para></entry>
+	    <entry><para><link linkend="no-class-defs"><code>no-class-defs</code></link></para></entry>
 	    <entry><para>Disallows class definitions.</para></entry>
 	  </row>
 	  <row id="PO_NO_NAMESPACE_DEFS">
-	    <entry><para>Qore::PO_NO_NAMESPACE_DEFS</para></entry>
+	    <entry><para>PO_NO_NAMESPACE_DEFS</para></entry>
+	    <entry><para><link linkend="no-namespace-defs"><code>no-namespace-defs</code></link></para></entry>
 	    <entry><para>Disallows new namespace definitions.</para></entry>
 	  </row>
 	  <row id="PO_NO_CONSTANT_DEFS">
-	    <entry><para>Qore::PO_NO_CONSTANT_DEFS</para></entry>
+	    <entry><para>PO_NO_CONSTANT_DEFS</para></entry>
+	    <entry><para><link linkend="no-constant-defs"><code>no-constant-defs</code></link></para></entry>
 	    <entry><para>Disallows constant definitions.</para></entry>
 	  </row>
 	  <row id="PO_NO_NEW">
-	    <entry><para>Qore::PO_NO_NEW</para></entry>
+	    <entry><para>PO_NO_NEW</para></entry>
+	    <entry><para><link linkend="no-new"><code>no-new</code></link></para></entry>
 	    <entry><para>Disallows use of the <command>new</command> operator.</para></entry>
 	  </row>
 	  <row id="PO_NO_SYSTEM_CLASSES">
-	    <entry><para>Qore::PO_NO_SYSTEM_CLASSES</para></entry>
+	    <entry><para>PO_NO_SYSTEM_CLASSES</para></entry>
+	    <entry><para>n/a</para></entry>
 	    <entry><para>Prohibits system classes from being imported into the new Program object.</para></entry>
 	  </row>
 	  <row id="PO_NO_USER_CLASSES">
-	    <entry><para>Qore::PO_NO_USER_CLASSES</para></entry>
+	    <entry><para>PO_NO_USER_CLASSES</para></entry>
+	    <entry><para>n/a</para></entry>
 	    <entry><para>Prohibits user classes from being imported into the new Program object.</para></entry>
 	  </row>
 	  <row id="PO_NO_CHILD_PO_RESTRICTIONS">
-	    <entry><para>Qore::PO_NO_CHILD_PO_RESTRICTIONS</para></entry>
+	    <entry><para>PO_NO_CHILD_PO_RESTRICTIONS</para></entry>
+	    <entry><para><link linkend="no-child-restrictions"><code>no-child-restrictions</code></link></para></entry>
 	    <entry><para>Allows child program objects to have fewer parse restrictions than the parent object.</para></entry>
 	  </row>
 	  <row id="PO_NO_EXTERNAL_PROCESS">
-	    <entry><para>Qore::PO_NO_EXTERNAL_PROCESS</para></entry>
+	    <entry><para>PO_NO_EXTERNAL_PROCESS</para></entry>
+	    <entry><para><link linkend="no-external-process"><code>no-external-process</code></link></para></entry>
 	    <entry><para>Disallows any access to external processes (with <link linkend="system">system()</link>, <link linkend="backquote">backquote()</link>, <link linkend="exec">exec()</link>, etc).</para></entry>
 	  </row>
 	  <row id="PO_REQUIRE_OUR">
-	    <entry><para>Qore::PO_REQUIRE_OUR</para></entry>
+	    <entry><para>PO_REQUIRE_OUR</para></entry>
+	    <entry><para><link linkend="require-our"><code>require-our</code></link></para></entry>
 	    <entry><para>Requires global variables to be declared with <command>our</command> before use.</para></entry>
 	  </row>
 	  <row id="PO_NO_PROCESS_CONTROL">
-	    <entry><para>Qore::PO_NO_PROCESS_CONTROL</para></entry>
+	    <entry><para>PO_NO_PROCESS_CONTROL</para></entry>
+	    <entry><para><link linkend="no-process-control"><code>no-process-control</code></link></para></entry>
 	    <entry><para>Disallows access to functions that would affect the current process (<link linkend="exit">exit()</link>, <link linkend="exit">exec()</link>, <link linkend="fork">fork()</link>, etc).</para></entry>
 	  </row>
 	  <row id="PO_NO_NETWORK">
-	    <entry><para>Qore::PO_NO_NETWORK</para></entry>
+	    <entry><para>PO_NO_NETWORK</para></entry>
+	    <entry><para><link linkend="no-network"><code>no-network</code></link></para></entry>
 	    <entry><para>Disallows access to network functions.</para></entry>
 	  </row>
 	  <row id="PO_NO_FILESYSTEM">
-	    <entry><para>Qore::PO_NO_FILESYSTEM</para></entry>
+	    <entry><para>PO_NO_FILESYSTEM</para></entry>
+	    <entry><para><link linkend="no-filesystem"><code>no-filesystem</code></link></para></entry>
 	    <entry><para>Disallows access to the filesystem.</para></entry>
 	  </row>
 	  <row id="PO_NO_WARNINGS">
-	    <entry><para>Qore::PO_LOCK_WARNINGS</para></entry>
+	    <entry><para>PO_LOCK_WARNINGS</para></entry>
+	    <entry><para><link linkend="lock-warnings"><code>lock-warnings</code></link></para></entry>
 	    <entry><para>Disallows changes to the warning mask.</para></entry>
 	  </row>
 	  <row id="PO_NO_DATABASE">
-	    <entry><para>Qore::PO_NO_DATABASE</para></entry>
+	    <entry><para>PO_NO_DATABASE</para></entry>
+	    <entry><para><link linkend="no-database"><code>no-database</code></link></para></entry>
 	    <entry><para>Disallows access to database functionality.</para></entry>
 	  </row>
 	  

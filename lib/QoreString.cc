@@ -51,7 +51,7 @@ inline void QoreString::check_char(unsigned i)
 {
    if (i >= allocated)
    {
-      int d = i >> 4;
+      int d = i >> 2;
       allocated = i + (d < STR_CLASS_BLOCK ? STR_CLASS_BLOCK : d);
       //allocated = i + STR_CLASS_BLOCK;
       allocated = (allocated / 16 + 1) * 16; // use complete cache line

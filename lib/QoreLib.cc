@@ -81,7 +81,7 @@ featureList::featureList()
    push_back(strdup("sql"));
    push_back(strdup("threads"));
    push_back(strdup("xml"));
-#ifdef QORE_DEBUG
+#ifdef DEBUG
    push_back(strdup("debug"));
 #endif
 #ifdef QORE_MONOLITHIC
@@ -99,6 +99,15 @@ featureList::featureList()
 # endif
 # ifdef TIBAE
    push_back(strdup("tibae"));
+# endif
+# ifdef TUXEDO
+   push_back(strdup("tuxedo"));
+# endif
+# ifdef SYBASE
+   push_back(strdup("sybase"));
+# endif
+# ifdef FREETDS
+   push_back(strdup("freetds"));
 # endif
 #endif
 }
