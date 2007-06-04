@@ -1,3 +1,8 @@
+2006.06.04: David Nichols
+	* fixed signal handling thread to be a special thread with TID 0, no 
+	  longer appears in get_thread_list() or affects num_threads().  Always
+	  has TID 0 even after a fork() in both processes
+
 2006.05.31: David Nichols
 	* fixed setting chained transaction (sybase) and implicit_transactions
 	  (ms sql server) using ct_options on freetds

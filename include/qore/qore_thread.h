@@ -106,9 +106,12 @@ DLLLOCAL class List *getCallStackList();
 
 // acquires a TID and thread entry, returns -1 if not successful
 DLLLOCAL int get_thread_entry();
+// acquires TID 0 and sets up the signal thread entry, always returns 0
+DLLLOCAL int get_signal_thread_entry();
 DLLLOCAL void delete_thread_data();
 DLLLOCAL void register_thread(int tid, pthread_t ptid, class QoreProgram *pgm);
 DLLLOCAL void deregister_thread(int tid);
+DLLLOCAL void deregister_signal_thread();
 
 // called when a StatementBlock has "on block exit" blocks
 DLLLOCAL void pushBlock(block_list_t::iterator i);

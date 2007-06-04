@@ -18677,7 +18677,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Returns the current number of threads in the process.</para>
+	<para>Returns the current number of threads in the process (not including the special <link linkend="signal_handling">signal handling thread</link>).</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -18783,7 +18783,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	  <varlistentry>
 	    <term>Synopsis</term>
 	    <listitem>
-	      <para>Returns a list of all current thread IDs.</para>
+	      <para>Returns a list of all current thread IDs.  Note that the special <link linkend="signal_handling">signal handling thread</link> with TID 0 is never included in this list.</para>
 	    </listitem>
 	  </varlistentry>
 	  <varlistentry>

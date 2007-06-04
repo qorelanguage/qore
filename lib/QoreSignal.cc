@@ -322,7 +322,6 @@ void QoreSignalManager::signal_handler_thread()
    }
 
    thread_running = false;
-   int c_tid = tid;
    tid = -1;
    sl.unlock();
 
@@ -332,7 +331,7 @@ void QoreSignalManager::signal_handler_thread()
    delete_thread_data();
 
    // deregister_thread
-   deregister_thread(c_tid);
+   deregister_signal_thread();
 
    // run thread cleanup handlers
    tclist.exec();
@@ -351,7 +350,7 @@ extern "C" void *sig_thread(void *x)
 int QoreSignalManager::start_signal_thread(class ExceptionSink *xsink)
 {
    printd(5, "start_signal_thread() called\n");
-   tid = get_thread_entry();
+   tid = get_signal_thread_entry();
 
    // if can't start thread, then throw exception
    if (tid == -1)
@@ -368,7 +367,7 @@ int QoreSignalManager::start_signal_thread(class ExceptionSink *xsink)
    if (rc)
    {
       tcount.dec();
-      deregister_thread(tid);
+      deregister_signal_thread();
       tid = -1;
       xsink->raiseException("THREAD-CREATION-FAILURE", "could not create thread: %s", strerror(rc));
       thread_running = false;

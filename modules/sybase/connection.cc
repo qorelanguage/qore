@@ -266,7 +266,7 @@ int connection::init(const char* username, const char* password, const char* dbn
    }
    ret = ct_con_props(m_connection, CS_SET, CS_LOC_PROP, m_charset_locale, CS_UNUSED, 0);
    if (ret !=CS_SUCCEED) {
-      xsink->raiseException("DBI-EXEC-EXCEPTION", "ct_con_props(CS_LOC_PROP) failed with error %d", (int)ret);
+      xsink->raiseException("DBI-EXEC-EXCEPTION", "ct_con_props(CS_SET, CS_LOC_PROP) failed with error %d", (int)ret);
       return -1;
    }
 

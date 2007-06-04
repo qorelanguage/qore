@@ -56,7 +56,8 @@ ThreadCleanupList tclist;
 
 // default thread creation attribute
 pthread_attr_t ta_default;
-static int     current_tid = 0;
+// TID 0 is reserved for the signal handler thread
+static int     current_tid = 1;
 
 DLLLOCAL bool threads_initialized = false;
 
@@ -830,6 +831,25 @@ class Exception *catchGetException()
    return td->catchException;
 }
 
+// must be called in the thread list lock
+static void allocate_thread_entry(int tid)
+{
+   thread_list[tid].ptid = (pthread_t)-1L;
+#ifdef DEBUG
+   thread_list[tid].callStack = NULL;
+#endif
+}
+
+// sets up the signal thread entry in the thread list
+int get_signal_thread_entry()
+{
+   lThreadList.lock();
+   allocate_thread_entry(0);
+   thread_list[0].tidnode = 0;
+   lThreadList.unlock();
+   return 0;
+}
+
 // returns tid allocated for thread
 int get_thread_entry()
 {
@@ -840,7 +860,7 @@ int get_thread_entry()
    {
       int i;
       // scan thread_list for free entry
-      for (i = 0; i < MAX_QORE_THREADS; i++)
+      for (i = 1; i < MAX_QORE_THREADS; i++)
       {
 	 if (!thread_list[i].ptid)
 	 {
@@ -857,12 +877,9 @@ int get_thread_entry()
    else
       tid = current_tid++;
 
-  finish:   
-   thread_list[tid].ptid = (pthread_t)-1L;
+  finish:
+   allocate_thread_entry(tid);
    thread_list[tid].tidnode = new tid_node(tid);
-#ifdef DEBUG
-   thread_list[tid].callStack = NULL;
-#endif
    num_threads++;
    lThreadList.unlock();
    //printf("t%d cs=0\n", tid);
@@ -883,6 +900,14 @@ void deregister_thread(int tid)
    thread_list[tid].cleanup();
    num_threads--;
 
+   lThreadList.unlock();
+}
+
+void deregister_signal_thread()
+{
+   // NOTE: cannot safely call printd here, because normally the thread_data has been deleted
+   lThreadList.lock();
+   thread_list[0].cleanup();
    lThreadList.unlock();
 }
 
@@ -1089,7 +1114,7 @@ void delete_qore_threads()
 
    delete_thread_data();
 
-   thread_list[0].cleanup();
+   thread_list[1].cleanup();
 
    // delete key
    pthread_key_delete(thread_data_key);
