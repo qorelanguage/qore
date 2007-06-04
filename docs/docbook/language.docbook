@@ -377,6 +377,12 @@ print("global a = %d\n", $a); </programlisting>
   <para>Strings are assumed by default to have the encoding given by the <code>QORE_CHARSET</code> or the <code>LANG</code> environment variable. If neither of these variables is set, then all strings will be assumed to have UTF-8 encoding.</para>
 
   <para>For detailed information on Qore character set handling, please see <link linkend="Qore_Strings_and_Character_Set_Encoding">Qore Strings and Character Set Encoding</link>.</para>
+
+  <para>It is legal to specify a string literal with newline characters like the following:</para>
+
+  <programlisting>$str = "this string
+is a multiline string";</programlisting>
+
 </sect2>
 
 <sect2 id="Integer">
@@ -570,7 +576,7 @@ language, either by an addition to this data type, or by adding another date typ
 
     <para>Hashes are containers that associate values to a string key.</para>
 
-    <note><para>Note that Qore hashes preserve the insertion order in order to be able to guarantee the order of keys when hashes are serialized to XML strings (see <link linkend="XML_Integration">XML Integration</link>), therefore the <command>keys</command> operator will always return the hash keys in insertion/creation order.</para></note>
+    <note><para>Note that Qore hashes preserve the insertion order in order to be able to guarantee the order of keys when hashes are serialized to XML strings (see <link linkend="XML_Integration">XML Integration</link>), therefore the <link linkend='Keys_Operator'><command>keys</command></link> operator will always return the hash keys in insertion/creation order.</para></note>
     
     <para>Hashes are specified using the following syntax:</para>
     
@@ -605,7 +611,7 @@ language, either by an addition to this data type, or by adding another date typ
   <sect2 id="Objects">
     <title>Objects</title>
 
-    <para>Qore objects are instantiations of a Qore class.  They have members (like a hash - values associated to string keys), and methods.  The Qore class definition specifies the methods that run on objects of that class, and any private members.  Qore classes are declared with a special syntax, and objects are instantiated using the <command>new</command> operator as follows.</para>
+    <para>Qore objects are instantiations of a Qore class.  They have members (like a hash - values associated to string keys), and methods.  The Qore class definition specifies the methods that run on objects of that class, and any private members.  Qore classes are declared with a special syntax, and objects are instantiated using the <link linkend='New_Object_Operator'><command>new</command></link> operator as follows.</para>
 
     <programlisting><replaceable>lvalue</replaceable> = <command>new</command> <replaceable>class_identifier</replaceable>([<replaceable>argument list</replaceable>])</programlisting>
 
@@ -620,7 +626,7 @@ language, either by an addition to this data type, or by adding another date typ
 <para>The object references above are normally variable references holding an object, but could be any expression that returns an object, such as a new expression or even a subroutine call.</para>
 
 <note>
-<para>Objects are always passed by reference, like in Java.  Objects can only be explicitly copied; otherwise any object instantiated with the <command>new</command> operator will remain unique until deleted or explicitly copied.  An explicit copy is made with the copy constructor, and does not guarantee an exact copy of the source object (it depends on the definition of the copy method for the class in question).</para>
+<para>Objects are always passed by reference, like in Java.  Objects can only be explicitly copied; otherwise any object instantiated with the <link linkend='New_Object_Operator'><command>new</command></link> operator will remain unique until deleted or explicitly copied.  An explicit copy is made with the copy constructor, and does not guarantee an exact copy of the source object (it depends on the definition of the copy method for the class in question).</para>
 </note>
 
 <para>Objects exist until they go out of scope, are explicitly deleted, or their last thread exits.  For detailed information, see the section <link linkend='Classes'>Classes</link> on Qore classes.</para>
@@ -5737,7 +5743,7 @@ $name = getName();</programlisting>
 
 <para>Constant definitions allow programmers to refer to values with Qore identifiers rather than using the value.  Constants are defined with the following syntax:</para>
 
-<para><command>const</command> [<replaceable>namespace_path</replaceable>::]<replaceable>constant_identifier</replaceable> = <replaceable>value</replaceable>;</para>
+<programlisting><command>const</command> [<replaceable>namespace_path</replaceable>::]<replaceable>constant_identifier</replaceable> = <replaceable>value</replaceable>;</programlisting>
 
 <note><para>The value cannot require run-time evaluation (executes a function, has a variable reference, uses an operator that changes values, etc) or a parse exception will be raised.</para></note>
 
@@ -5802,7 +5808,7 @@ $name = getName();</programlisting>
 <tbody>
   <row>
     <entry><para><code>constructor()</code></para></entry>
-    <entry><para>Called when objects are created with the <command>new</command> operator. User code may not explicitly call <code>constructor()</code> methods.  In a class tree, <code>constructor()</code> methods are called for base classes first in left-to-right, depth-first declaration order.</para></entry>
+    <entry><para>Called when objects are created with the <link linkend='New_Object_Operator'><command>new</command></link> operator. User code may not explicitly call <code>constructor()</code> methods.  In a class tree, <code>constructor()</code> methods are called for base classes first in left-to-right, depth-first declaration order.</para></entry>
   </row>
   <row>
     <entry><para><code>copy()</code></para></entry>
@@ -5891,12 +5897,12 @@ $name = getName();</programlisting>
 <sect2 id="Object_Scope_and_Threading">
 <title>Object Scope and Threading</title>
 
-<para>An object's destructor is called when it goes out of scope and the last thread running any of the object's methods returns from the object method, or if the destructor is called explicitly with the <command>delete</command> statement.</para>
+<para>An object's destructor is called when it goes out of scope and the last thread running any of the object's methods returns from the object method, or if the destructor is called explicitly with the <link linkend='delete_Statements'><command>delete</command></link> statement.</para>
 
-<para>This means that an object assigned to a local variable, but has a running method in another thread (for example, by launching the method explicitly with the <command>background</command> expression), will not be deleted until the last thread terminates.</para>
+<para>This means that an object assigned to a local variable, but has a running method in another thread (for example, by launching the method explicitly with the  <link linkend="Background_Operator"><command>background</command></link> expression), will not be deleted until the last thread terminates.</para>
 
 <note>
-<para>If an object spawns an object method in another thread using the <command>background</command> operator, that object will remain in scope until the last thread terminates or it's <code>destructor()</code> method is explicitly called with the <command>delete</command> operator. This means, for example, that objects assigned to local variables can exist for longer than the scope of their host variable if they have one or more methods running in other threads.</para>
+<para>If an object spawns an object method in another thread using the <link linkend="Background_Operator"><command>background</command></link> operator, that object will remain in scope until the last thread terminates or it's <code>destructor()</code> method is explicitly called with the <link linkend='delete_Statements'><command>delete</command></link> statement.  This means, for example, that objects assigned to local variables can exist for longer than the scope of their host variable if they have one or more methods running in other threads.</para>
 </note>
 
 <para>However, if an object with running threads is explicitly deleted, if this case is not handled in the object's <code>destructor()</code> method (by ensuring that all other running threads terminate gracefully), exceptions will be thrown in other threads at any attempt to access the already-deleted object.</para>
@@ -5909,14 +5915,14 @@ $name = getName();</programlisting>
 <sect1 id="Threading">
   <title>Threading</title>
 
-  <para>The Qore language is thread-safe and Qore programs should not crash the Qore executable due to threading errors.  Threading errors should only cause application errors.</para>
+  <para>The Qore language is thread-safe and Qore programs should not crash the Qore executable due to threading errors.  Threading errors should only cause exceptions to be thrown or application errors.</para>
 
   <para>Threading functionality in Qore is provided by the operating system's POSIX threads library.</para>
 
   <sect2 id="Creating_and_Terminating_Threads">
     <title>Creating and Terminating Threads</title>
 
-    <para>New threads are created with the <link linkend="Background_Operator"><command>background</command> operator</link>.  This operator executes the expression given as an argument in a new thread and returns the TID of the new thread to the calling thread.  This is most useful for calling user subroutines or object methods designed to run in a separate thread.</para>
+    <para>New threads are created with the <link linkend="Background_Operator"><command>background</command></link> operator.  This operator executes the expression given as an argument in a new thread and returns the TID of the new thread to the calling thread.  This is most useful for calling user subroutines or object methods designed to run in a separate thread.</para>
 
     <para>To terminate a thread, the <link linkend="thread_exit_Statements"><command>thread_exit</command> statement</link> should be called, as calling the <link linkend="exit">exit() function</link> will terminate the entire UNIX process (and therefore all threads) immediately.</para>
 

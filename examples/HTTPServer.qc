@@ -3,6 +3,9 @@
 # *) not really HTTP 1.1 compliant
 # *) no real content-type handling
 
+# changes for v0.2.2:
+# * basic authentication
+
 # changes for v0.2.1:
 # * implementing logic to handle "deflate" and "gzip" content-encoding
 # * chunked content-encoding supported for POSTs
@@ -82,12 +85,13 @@ namespace HTTPServer
 # Listener will be assigned to private members of the HTTPServer, so it does not need to declare private members, etc
 class HTTPServer::Listener inherits Qore::Socket {
     
-    # params: server, socket, [cert, key]
-    constructor($server, $ss, $sock, $cert, $key)
+    # params: server, session ID sequence object, socket, [cert, key]
+    constructor($server, $ss, $sock, $cert, $key, $rbac)
     {
 	# save a reference to the server object
 	$.serv = $server;
 	$.ss = $ss;
+	$.rbac = $rbac;
 
 	# convert socket argument to an integer if it's a port number so a UNIX domain socket will not be opened
 	if (int($sock) == $sock)
@@ -296,6 +300,79 @@ class HTTPServer::Listener inherits Qore::Socket {
 		    }
 		}
 
+		# check for authentication info
+		if (exists $.rbac && $.rbac.requires_authentication())
+		{
+		    if (exists $hdr.authorization)
+		    {
+			if ($hdr.authorization !~ /basic /i)
+			{
+			    $.serv.sendHTTPError($s, 401, "Only basic authentication is supported", True, ( "WWW-Authenticate" : sprintf("Basic realm=\"%s\"", $.rbac.getRealm())));
+			    break;
+			}
+			my $bstr = ($hdr.authorization =~ x/basic (.*)/i)[0];
+			if (!strlen($bstr))
+			{
+			    $.serv.sendHTTPError($s, 401, "Authentication is required to access this server", True, ( "WWW-Authenticate" : sprintf("Basic realm=\"%s\"", $.rbac.getRealm())));
+			    break;
+			}
+			my $str = parseBase64StringToString($bstr);
+			my $i = index($str, ":");
+			if ($i == -1)
+			{
+			    $.serv.sendHTTPError($s, 401, "Authentication is required to access this server", True, ( "WWW-Authenticate" : sprintf("Basic realm=\"%s\"", $.rbac.getRealm())));
+			    break;
+			}
+			my $user = substr($str, 0, $i);
+			my $pass = substr($str, $i + 1);
+			my $roles;
+			try
+			    $roles = $.rbac.authenticate($user, $pass);
+			catch ($ex)
+			{
+			    if ($ex.err == "AUTHENTICATION-ERROR")
+			    {
+				$.serv.sendHTTPError($s, 401, "Authentication is required to access this server", True, ( "WWW-Authenticate" : sprintf("Basic realm=\"%s\"", $.rbac.getRealm())));
+				break;
+			    }
+			    else
+				rethrow;
+			}
+			# save username in thread-local data
+			# since this thread is dedicated to this connection, the data will be 
+			# automatically deleted when the thread exits
+			save_thread_data(("http_authorized_user" : $user));
+			$context += ( "user"  : $user,
+				      "roles" : $roles );
+		    }
+		    else if (!exists get_thread_data("http_authorized_user"))
+		    {
+			my ($roles, $user);
+			# only try ip-based authentication if the connection is not already authenticated
+			try {
+			    $roles = $.rbac.authenticate_by_ip($s.source, \$user);
+			}
+			catch ($ex)
+			{
+			    # log the error
+			    my $str = sprintf("%s: %s: received from %s via %s", $ex.err, $ex.desc, $s.source, $.socket);
+			    $.logError($str);
+			}
+			if (elements $roles)
+			{
+			    # save username in thread-local data
+			    save_thread_data(("http_authorized_user" : $user));
+			    $context += ( "user"  : $user,
+					  "roles" : $roles );
+			}
+			else
+			{
+			    $.serv.sendHTTPError($s, 401, "Authentication is required to access this server", True, ( "WWW-Authenticate" : sprintf("Basic realm=\"%s\"", $.rbac.getRealm())));
+			    break;
+			}
+		    }
+		}
+
 		# split content-type fields
 		my $ct = split(";", $hdr."content-type");
 		foreach my $c in (\$ct)
@@ -450,7 +527,8 @@ class HTTPServer::Listener inherits Qore::Socket {
 	    my $str = sprintf("%s: received from %s via %s", $etxt, $s.source, $.socket);
 	    $.logError($str);
 	    $.logError(sprintf("hdr=%n", $hdr));
-	    $.logError(sprintf("msg=%n", $body));
+	    #$.logError(sprintf("msg=%n", $body));
+	    $.serv.sendHTTPError($s, 500, $etxt, True);
 	}
 	
 	$s.close();
@@ -471,13 +549,15 @@ class HTTPServer::HTTPServer {
 	$.defaultHandler,
 	$.listeners, 
 	$.seqListeners, 
+	$.rbac,                 # RBAC object for basic authentication
 	$.lm;                   # listener mutex
 
-    constructor($logfunc, $errlogfunc)
+    constructor($logfunc, $errlogfunc, $rbac)
     {
 	$.logfunc = $logfunc;
 	$.errlogfunc = $errlogfunc;
-	
+	$.rbac = $rbac;
+
 	if (exists $logfunc && !existsFunction($logfunc))
 	{
 	    delete $self;
@@ -504,7 +584,7 @@ class HTTPServer::HTTPServer {
 	$.lm.lock();
 	on_exit $.lm.unlock();
 
-	my $l = new Listener($self, $.seqSessions, $sock, $cert, $key);
+	my $l = new Listener($self, $.seqSessions, $sock, $cert, $key, $.rbac);
 	my $id = $.seqListeners.next();
 	$l.id = $id;
 	$.listeners.$id = $l;
@@ -615,7 +695,7 @@ class HTTPServer::HTTPServer {
 		 "body" : sprintf("no handler has been registered for %s", $str) );
     }
     
-    sendHTTPError($s, $code, $msg, $close)
+    sendHTTPError($s, $code, $msg, $close, $extra_hdrs)
     {
 	my $str = sprintf("<html><head><title>%s %s</title></head><body><h1>%s</h1>%s<p><hr><address>%s on %s</address></body></html>",
 			  $code, HTTPServer::HTTPCodes.$code, HTTPServer::HTTPCodes.$code, html_encode($msg), $.httpserverstring, gethostname());
@@ -626,6 +706,9 @@ class HTTPServer::HTTPServer {
 	    $hdr += ( "Connection" : "close" );
 	else
 	    $hdr += ( "Connection" : "Keep-Alive" );
+
+	if (type($extra_hdrs) == Type::Hash)
+	    $hdr += $extra_hdrs;
 	
 	$s.sendHTTPResponse($code, HTTPServer::HTTPCodes.$code, "1.1", $hdr, $str);
     }

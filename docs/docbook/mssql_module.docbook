@@ -37,7 +37,7 @@ commit -- to maintain transaction count</programlisting>
 # ":string" and ":int" is qore placeholder syntax, consistent with other Qore DBI
 # driver placeholder syntax
 
-my $result = $db.exec("declare @string varchar(40), @int int
+<command>my</command> $result = $db.exec("declare @string varchar(40), @int int
 exec get_values :string output, :int output");</programlisting>
 
     <para>Unlike many other Qore DBI drivers, this driver allows and can return results from multiple select statements issued with a single call.  Additionally, it's possible for a stored procedure to return output paramters as well as one or more result sets from select statements.  The output format for commands like this differs from standard Qore DBI formats as follows:</para>

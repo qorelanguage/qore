@@ -4306,6 +4306,8 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 
     <para>Objects of this class are capable of making encrypted FTPS connections according to RFC-4217.  TLS/SSL encrypted control and data connection will be attempted if the protocol is set to 'ftps' or the <link linkend="FtpClient_setSecure">FtpClient::setSecure() method</link> is called before connecting.</para>
 
+    <para>Note that 'sftp', or FTP over ssh, is not supported with this class; FTPS is an extension of the FTP protocol to allow for secure connections; while 'sftp' is FTP over an encrypted ssh connection.</para>
+
     <para>When a data connection is required, by default the following modes are tried in series: EPSV (Extended Passive Mode), PASV (Passive Mode), and PORT (Port mode). If the FTP server does support one of these methods, or network conditions do not allow a data connection of any of these types to be established, then an exception is thrown.</para>
 
     <para>To manually control which modes are tried, see the <link linkend="FtpClient_setModeEPSV">FtpClient::setModeEPSV()</link>, <link linkend="FtpClient_setModePASV">FtpClient::setModePASV()</link>, and <link linkend="FtpClient_setModePORT">FtpClient::setModePORT()</link> methods.</para>
