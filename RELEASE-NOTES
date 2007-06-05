@@ -302,6 +302,32 @@ This ensures that values will be set properly even for databases such as Postgre
 	Socket::recvu2LSB()
 	Socket::recvu4LSB()
 
+*) tibae module improvements
+the tibae module (TIBCO ActiveEnterprise/Adapters(TM) module) now can deal with interval, time, and binary types.  Milliseconds are now preserved with datetime and time when sending and receiving.
+
+the tibae_type() function has been added to allow control over how types are serialized (useful with the "any" type or to override default serialization).
+New constants have been added to the Tibae namespace for use with the tibae_type() function:
+        TIBAE_BINARY
+        TIBAE_BOOLEAN
+        TIBAE_BYTE
+        TIBAE_CHAR
+        TIBAE_DATE
+        TIBAE_DATETIME
+        TIBAE_FIXED
+        TIBAE_I1
+        TIBAE_I2
+        TIBAE_I4
+        TIBAE_I8
+        TIBAE_INTERVAL
+        TIBAE_R4
+        TIBAE_R8
+        TIBAE_STRING
+        TIBAE_TIME
+        TIBAE_U1
+        TIBAE_U2
+        TIBAE_U4
+        TIBAE_U8
+
 *) fixed parser to accept variable declarations and list assignment
 i.e.:
 	my ($a, $b, $c) = split(",", $string); 

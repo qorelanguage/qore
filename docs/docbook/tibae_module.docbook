@@ -13,6 +13,210 @@
 
     <note><para>This module was previously called &quot;tibco&quot;, however it was renamed to avoid confusion with the <link linkend="tibrv_Module">tibrv module</link></para></note>
 
+    <para>The following table describes how Qore data is converted to Tibae data.  To serialize to other types, use the <link linkend="tibae_type_constants">Tibae Type Constants</link> with the <link linkend="tibae_type">tibae_type()</link> function.</para>
+
+    <table>
+      <title>Default Serialization of Qore Data -&gt; Tibae Format</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+	<thead>
+	  <row>
+	    <entry><para>Qore Type</para></entry>
+	    <entry><para>Tibae Type</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row>
+	    <entry><para><link linkend="Boolean"><code>Type::Boolean</code></link></para></entry>
+	    <entry><para><code>Boolean</code></para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Integer"><code>Type::Int</code></link></para></entry>
+	    <entry><para><code>i4</code>, unless the integer is &gt; 32bit, then <code>i8</code></para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Float"><code>Type::Float</code></link></para></entry>
+	    <entry><para><code>r8</code></para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="String"><code>Type::String</code></link></para></entry>
+	    <entry><para><code>String</code></para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Binary"><code>Type::Binary</code></link></para></entry>
+	    <entry><para><code>Binary</code></para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Date"><code>Type::Date</code></link></para></entry>
+	    <entry><para><code>DateTime</code>, unless the repository calls for a <code>Date</code></para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Hashes"><code>Type::Hash</code></link></para></entry>
+	    <entry><para><code>Class</code> as expected by the repository or specified by the ^class^ key</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Lists"><code>Type::List</code></link></para></entry>
+	    <entry><para><code>Sequence</code> as expected by the repository, only when instantiating a class</para></entry>
+	  </row>
+	</tbody>
+      </tgroup>
+    </table>
+
+    <table>
+      <title>Deserialization of Tibae Message Data -&gt; Qore Data Structures</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+	<thead>
+	  <row>
+	    <entry><para>Tibae Type</para></entry>
+	    <entry><para>Qore Type</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row>
+	    <entry><para><code>Class</code></para></entry>
+	    <entry><para><link linkend="Hashes"><code>Type::Hash</code></link></para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>Associative List</code></para></entry>
+	    <entry><para><link linkend="Hashes"><code>Type::Hash</code></link></para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>Union</code></para></entry>
+	    <entry><para><link linkend="Hashes"><code>Type::Hash</code></link></para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>Sequence</code></para></entry>
+	    <entry><para><link linkend="Lists"><code>Type::List</code></link></para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>String</code></para></entry>
+	    <entry><para><link linkend="String"><code>Type::String</code></link></para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>Integer</code></para></entry>
+	    <entry><para><link linkend="Integer"><code>Type::Int</code></link></para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>Real</code></para></entry>
+	    <entry><para><link linkend="Float"><code>Type::Float</code></link></para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>DateTime</code></para></entry>
+	    <entry><para>absolute <link linkend="Date"><code>Type::Date</code></link>; note that microseconds are converted to milliseconds, so some precision may be lost</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>Date</code></para></entry>
+	    <entry><para>absolute <link linkend="Date"><code>Type::Date</code></link></para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>Time</code></para></entry>
+	    <entry><para>absolute <link linkend="Date"><code>Type::Date</code></link>; the date portion is set to 1970-01-01, and please note that microseconds are converted to milliseconds, so some precision may be lost</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>Interval</code></para></entry>
+	    <entry><para>relative <link linkend="Date"><code>Type::Date</code></link></para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>Boolean</code></para></entry>
+	    <entry><para><link linkend="Boolean"><code>Type::Boolean</code></link></para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>Binary</code></para></entry>
+	    <entry><para><link linkend="Binary"><code>Type::Binary</code></link></para></entry>
+	  </row>
+	</tbody>
+      </tgroup>
+    </table>
+
+
+    <table id="tibae_type_constants">
+      <title>Tibae Type Constants</title>
+      <tgroup cols="1" align="left" colsep="1" rowsep="1">
+	<thead>
+	  <row>
+	    <entry><para>Constant</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row><entry><para><code>TIBAE_BINARY</code></para></entry></row>
+	  <row><entry><para><code>TIBAE_BOOLEAN</code></para></entry></row>
+	  <row><entry><para><code>TIBAE_BYTE</code></para></entry></row>
+	  <row><entry><para><code>TIBAE_CHAR</code></para></entry></row>
+	  <row><entry><para><code>TIBAE_DATE</code></para></entry></row>
+	  <row><entry><para><code>TIBAE_DATETIME</code></para></entry></row>
+	  <row><entry><para><code>TIBAE_FIXED</code></para></entry></row>
+	  <row><entry><para><code>TIBAE_I1</code></para></entry></row>
+	  <row><entry><para><code>TIBAE_I2</code></para></entry></row>
+	  <row><entry><para><code>TIBAE_I4</code></para></entry></row>
+	  <row><entry><para><code>TIBAE_I8</code></para></entry></row>
+	  <row><entry><para><code>TIBAE_INTERVAL</code></para></entry></row>
+	  <row><entry><para><code>TIBAE_R4</code></para></entry></row>
+	  <row><entry><para><code>TIBAE_R8</code></para></entry></row>
+	  <row><entry><para><code>TIBAE_STRING</code></para></entry></row>
+	  <row><entry><para><code>TIBAE_TIME</code></para></entry></row>
+	  <row><entry><para><code>TIBAE_U1</code></para></entry></row>
+	  <row><entry><para><code>TIBAE_U2</code></para></entry></row>
+	  <row><entry><para><code>TIBAE_U4</code></para></entry></row>
+	  <row><entry><para><code>TIBAE_U8</code></para></entry></row>
+	</tbody>
+      </tgroup>
+    </table>
+
+    <sect2 id="tibae_type">
+      <title>tibae_type()</title>
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Creates a hash structure to ensure that qore data is serialized as a particular Tibae data type as specified by the first argument (use one of the constants in the <link linkend="tibae_type_constants">Tibae Type Constant</link> list).</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>tibae_type(<replaceable>integer, any</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$val = tibae_type(TIBAE_INTERVAL, 5D + 3h + 2m + 25s);</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+      <table>
+	<title>Arguments and Return Values for tibae_type()</title>
+	<tgroup cols="3" align="left" colsep="1" rowsep="1">
+	  <thead>
+	    <row>
+	      <entry>
+		<para>Argument Types</para>
+	      </entry>
+	      <entry>
+		<para>Return Type</para>
+	      </entry>
+	      <entry>
+		<para>Description</para>
+	      </entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry>
+		<para>Integer, Any</para>
+	      </entry>
+	      <entry>
+		<para>Hash</para>
+	      </entry>
+	      <entry>
+		<para>Creates a hash structure to ensure that qore data in the second argument is serialized as the Tibae type specified by the first argument.</para>
+	      </entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+
     <sect2 id="Tibae_TibcoAdapter_Class">
       <title>Tibae::TibcoAdapter Class</title>
 
