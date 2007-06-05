@@ -28,6 +28,8 @@
 #define TIBCO_EXPLICIT_CREATE_SESSION 1
 #define DEFAULT_SUBJECT "QORE.MESSAGE"
 
+#include "TibCommandLine.h"
+
 DLLLOCAL class QoreNode *map_mdata_to_node(MData *md, class ExceptionSink *xsink);
 DLLLOCAL void set_properties(MAppProperties *appProperties, Hash *h, TibCommandLine &tcl, ExceptionSink *xsink);
 
