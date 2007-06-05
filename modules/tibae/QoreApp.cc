@@ -20,33 +20,20 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <qore/config.h>
-#include <qore/common.h>
-#include <qore/Object.h>
-#include <qore/QoreString.h>
-#include <qore/QoreNode.h>
-#include <qore/LockedObject.h>
-#include <qore/ScopeGuard.h>
-#include <qore/charset.h>
-#include <qore/DateTime.h>
-#include <qore/Restrictions.h>
-#include <qore/List.h>
+#include <qore/Qore.h>
+
+#include "QoreApp.h"
+
+#include <Maverick.h>
 
 #include <memory>
 #include <string>
 #include <map>
 #include <utility>
+
 #include <assert.h>
-
-#include "QoreApp.h"
-
 #include <unistd.h>
-#include <Maverick.h> // TIBCO operations
 
-#ifdef TIBCO_MDT_BUG
-#include <qore/LockedObject.h>
-class LockedObject l_mdate_time;
-#endif
 
 static void remove_pending_calls(MApp* app);
 
@@ -62,8 +49,7 @@ static const char *get_class(Hash *h)
 }
 
 QoreApp::QoreApp(MAppProperties *pMAP, const char *name, Hash *clh,
-		 const char *svc, const char *net, const char *dmn, const char *sbj) 
-: MApp(pMAP)
+		 const char *svc, const char *net, const char *dmn, const char *sbj) : MApp(pMAP)
 {
    appProps = pMAP;
    session_name = strdup(name ? name : "");
@@ -143,58 +129,35 @@ const MBaseClassDescription *QoreApp::find_class(const char *cn, ExceptionSink *
    if (classlist && (t = classlist->getKeyValue(cn)) && t->type == NT_STRING)
       cdesc = t->val.String->getBuffer();
    else
-   {
-      xsink->raiseException("TIBCO-CLASS-DESCRIPTION-NOT-FOUND", "no class description given for class '%s'", cn);
-      return NULL;
-   }
-
-#if 0
-   if (!classlist || !(t = classlist->getKeyValue(cn)) || t->type != NT_STRING)
-   {
-      /*
-      cdesc = NULL;
-      const MList<MString> *l = mcr->getClassNames();
-      MListEnumerator<MString> *me = l->newEnumerator();
-      MString elem;
-      Mu4 index;
-      while (me->next(index, elem))
-      {
-         printd(0, "QoreApp::find_class() %s\n", elem.c_str());
-         if (strstr(elem.c_str(), cn))
-         {
-            cdesc = elem.c_str();
-            printd(0, "QoreApp:find_class() found %s!\n", cdesc);
-            break;
-         }
-      }
-      delete me;
-      */
-      xsink->raiseException("TIBCO-CLASS-DESCRIPTION-NOT-FOUND", "no class description given for class '%s'", cn);
-      return NULL;
-   }
-   else
-      cdesc = t->val.String->getBuffer();
-#endif
+      cdesc = cn;
 
    if (!(mbcd = mcr->getClassDescription(cdesc)))
    {
       xsink->raiseException("TIBCO-CLASS-NOT-FOUND", "class name '%s' with description '%s' cannot be found in repository", cn, cdesc);
       return NULL;
    }
-   //MListEnumerator<MString> *mle = classlist->newEnumerator();
-   //MString name;
-   //Mu4 i;
-
-   //while (mle->next(i, name))
-   //{
-   //   const char *repo_class = name.c_str();
-   //   printd(5, "list (%03d) %s\n", i, repo_class);
-   //}
-   //delete mle;
    return mbcd;
 }
 
-class MData *do_type(int type_code, QoreNode *v, ExceptionSink *xsink)
+DLLLOCAL MDateTime *get_mdatetime(class DateTime *d)
+{
+   // we have to use a string here in case the date is too large for a time_t value
+   QoreString str;
+   str.sprintf("%04d-%02d-%02dT%02d:%02d:%02d.%03d", d->getYear(), d->getMonth(), d->getDay(), 
+	       d->getHour(), d->getMinute(), d->getSecond(), d->getMillisecond());
+   return new MDateTime(str.getBuffer());
+
+#if 0
+   // we can't use the DateTime::getEpochSeconds() because that gives seconds in GMT
+   // and we need local time!
+   MDateTimeStruct mdts;
+   mdts.setTime_t(d.getEpochSeconds());
+   mdts.setMicroSeconds(d.getMillisecond() * 1000);
+   return new MDateTime(mdts);
+#endif
+}
+
+class MData *QoreApp::do_type(int type_code, QoreNode *v, ExceptionSink *xsink)
 {
    switch (type_code)
    {
@@ -213,16 +176,16 @@ class MData *do_type(int type_code, QoreNode *v, ExceptionSink *xsink)
       case TIBAE_I8:
 	 return new MInteger(v ? v->getAsBigInt() : 0ll);
 
-      case TIBAE_UI1:
+      case TIBAE_U1:
 	 return new MInteger((unsigned char)(v ? v->getAsInt() : 0));
 
-      case TIBAE_UI2:
+      case TIBAE_U2:
 	 return new MInteger((unsigned short)(v ? v->getAsInt() : 0));
 
-      case TIBAE_UI4:
+      case TIBAE_U4:
 	 return new MInteger((unsigned int)(v ? v->getAsInt() : 0));
 
-      case TIBAE_UI8:
+      case TIBAE_U8:
 	 return new MInteger((unsigned long long)(v ? v->getAsBigInt() : 0ll));
 
       case TIBAE_R4:
@@ -237,10 +200,7 @@ class MData *do_type(int type_code, QoreNode *v, ExceptionSink *xsink)
 	 if (!d)
 	    return 0;
 
-	 MDateTimeStruct mdts;
-	 mdts.setTime_t(d->val.date_time->getEpochSeconds());
-	 mdts.setMicroSeconds(d->val.date_time->getMillisecond() * 1000);
-	 return new MDateTime(mdts);
+	 return get_mdatetime(d->val.date_time);
       }
 
       case TIBAE_DATE:
@@ -426,36 +386,15 @@ lass '%s'", pcd->getFullName().c_str(), cn);
 
    if (v->type == NT_DATE)
    {
-      class MData *md;
       const char *type = pcd->getShortName().c_str();
       if (!strcmp(type, "dateTime") || !strcmp(type, "any"))
-      {
-         // we have to use a string here in case the date is too large for a time_t value
-         QoreString str;
-         str.sprintf("%04d-%02d-%02dT%02d:%02d:%02d",
-                     v->val.date_time->getYear(), v->val.date_time->getMonth(),
-                     v->val.date_time->getDay(), v->val.date_time->getHour(),
-                     v->val.date_time->getMinute(), v->val.date_time->getSecond());
-         //printd(5, "QoreApp::do_primitive_type() creating date '%s'\n", str);
-#ifdef TIBCO_MDT_BUG
-         l_mdate_time.lock();
-#endif
-         md = new MDateTime(str.getBuffer());
-#ifdef TIBCO_MDT_BUG
-         l_mdate_time.unlock();
-#endif
-      }
+	 return get_mdatetime(v->val.date_time);
       else if (!strcmp(type, "date"))
-      {
-         md = new MDate(v->val.date_time->getYear(), v->val.date_time->getMonth(), v->val.date_time->getDay());
-      }
-      else
-      {
-         xsink->raiseException("TIBCO-DATE-INSTANTIATION-ERROR", "cannot map from QORE type 'date' to TIBCO type '%s'",
-                               pcd->getShortName().c_str());
-         return NULL;
-      }
-      return md;
+	 return new MDate(v->val.date_time->getYear(), v->val.date_time->getMonth(), v->val.date_time->getDay());
+
+      xsink->raiseException("TIBCO-DATE-INSTANTIATION-ERROR", "cannot map from QORE type 'date' to TIBCO type '%s'",
+			    pcd->getShortName().c_str());
+      return 0;
    }
 
    if (v->type == NT_BINARY)
@@ -1264,11 +1203,11 @@ inline bool operator<(const pending_call_key& lhs, const pending_call_key& rhs) 
 }
 
 // global map with not yet consumed (pending) async calls
-typedef struct async_call_context_t
+typedef struct s_async_call_context
 {
-  async_call_context_t(MOperationRequest* req_, OperationsListener* listener_, MDispatcher* dispatcher_)
+  s_async_call_context(MOperationRequest* req_, OperationsListener* listener_, MDispatcher* dispatcher_)
   : req(req_), listener(listener_), dispatcher(dispatcher_) {}
-  async_call_context_t() : req(0), listener(0), dispatcher(0) {}
+  s_async_call_context() : req(0), listener(0), dispatcher(0) {}
 
   bool isEmpty() const { return !req && !listener && !dispatcher; }
   void destroy() {
@@ -1281,7 +1220,7 @@ typedef struct async_call_context_t
   MOperationRequest* req; // owned
   OperationsListener* listener; // owned
   MDispatcher* dispatcher;  
-};
+} async_call_context_t;
 
 typedef std::map<pending_call_key, async_call_context_t > pending_async_calls_t;
 static pending_async_calls_t g_pending_async_calls;

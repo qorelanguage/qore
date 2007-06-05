@@ -46,13 +46,13 @@ DLLEXPORT qore_module_ns_init_t qore_module_ns_init = tibae_module_ns_init;
 DLLEXPORT qore_module_delete_t qore_module_delete = tibae_module_delete;
 #endif
 
-static class QoreNode *f_tibco_type(class QoreNode *params, class ExceptionSink *xsink)
+static class QoreNode *f_tibae_type(class QoreNode *params, class ExceptionSink *xsink)
 {
    class QoreNode *p = get_param(params, 0);
    int type = p->getAsInt();
    if (type < 1 || type > MAX_TIBAE_TYPE)
    {
-      xsink->raiseException("TIBCO-TYPE-ERROR", "type %d is out of range (expecting 1 - %d)", type, MAX_TIBAE_TYPE);
+      xsink->raiseException("TIBAE-TYPE-ERROR", "type %d is out of range (expecting 1 - %d)", type, MAX_TIBAE_TYPE);
       return 0;
    }
    class Hash *h = new Hash();
@@ -66,7 +66,7 @@ static class QoreNode *f_tibco_type(class QoreNode *params, class ExceptionSink 
 
 class QoreString *tibae_module_init()
 {
-   builtinFunctions.add("tibco_type", f_tibco_type);
+   builtinFunctions.add("tibae_type", f_tibae_type);
    return NULL;
 }
 
@@ -93,10 +93,10 @@ void tibae_module_ns_init(class Namespace *rns, class Namespace *qns)
    tibns->addConstant("TIBAE_R8",          new QoreNode((int64)TIBAE_R8));
    tibns->addConstant("TIBAE_STRING",      new QoreNode((int64)TIBAE_STRING));
    tibns->addConstant("TIBAE_TIME",        new QoreNode((int64)TIBAE_TIME));
-   tibns->addConstant("TIBAE_UI1",         new QoreNode((int64)TIBAE_UI1));
-   tibns->addConstant("TIBAE_UI2",         new QoreNode((int64)TIBAE_UI2));
-   tibns->addConstant("TIBAE_UI4",         new QoreNode((int64)TIBAE_UI4));
-   tibns->addConstant("TIBAE_UI8",         new QoreNode((int64)TIBAE_UI8));
+   tibns->addConstant("TIBAE_U1",          new QoreNode((int64)TIBAE_U1));
+   tibns->addConstant("TIBAE_U2",          new QoreNode((int64)TIBAE_U2));
+   tibns->addConstant("TIBAE_U4",          new QoreNode((int64)TIBAE_U4));
+   tibns->addConstant("TIBAE_U8",          new QoreNode((int64)TIBAE_U8));
 
    qns->addInitialNamespace(tibns);
 

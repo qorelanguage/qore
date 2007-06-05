@@ -104,49 +104,76 @@ static inline class QoreNode *map_munion_to_node(const MUnion *mu, ExceptionSink
 class QoreNode *map_mdata_to_node(MData *md, ExceptionSink *xsink)
 {
    const MInstance *min;
-   const MAssocList *mal;
-   const MSequence *ms;
-   const MUnion *mu;
-   const MInteger *mi;
-   const MStringData *msd;
-   const MReal *mr;
-   const MDateTime *mdt;
-   const MBool *mb;
-   const MDate *mdate;
 
    // is it an MInstance?
    if ((min = MInstance::downCast(md)))
       return map_minstance_to_node(min, xsink);
+
+   const MAssocList *mal;
    // is it an associative list?
-   else if ((mal = MAssocList::downCast(md)))
+   if ((mal = MAssocList::downCast(md)))
       return map_massoclist_to_node(mal, xsink);
+
+   const MSequence *ms;
    // or is it a sequence?
-   else if ((ms = MSequence::downCast(md)))
+   if ((ms = MSequence::downCast(md)))
       return map_msequence_to_node(ms, xsink);
+
+   const MUnion *mu;
    // or is it a union?
-   else if ((mu = MUnion::downCast(md)))
+   if ((mu = MUnion::downCast(md)))
       return map_munion_to_node(mu, xsink);
-   else if ((mi = MInteger::downCast(md)))
+   
+   const MInteger *mi;
+   if ((mi = MInteger::downCast(md)))
       return new QoreNode((int64)mi->getMi8());
-   else if ((msd = MStringData::downCast(md)))
+   
+   const MStringData *msd;
+   if ((msd = MStringData::downCast(md)))
    {
       MString ms = msd->getAsString();
       return new QoreNode((char *)ms.c_str());
    }
-   else if ((mr = MReal::downCast(md)))
+   
+   const MReal *mr;
+   if ((mr = MReal::downCast(md)))
       return new QoreNode(mr->getAsDouble());
-   else if ((mdt = MDateTime::downCast(md)))
+   
+   const MDateTime *mdt;
+   if ((mdt = MDateTime::downCast(md)))
       return new QoreNode(new DateTime(mdt->getYear(), mdt->getMonth(), mdt->getDay(), mdt->getHour(), mdt->getMinute(), mdt->getSecond(), mdt->getMicroSeconds() / 1000));
-   else if ((mdate = MDate::downCast(md)))
+   
+   const MDate *mdate;
+   if ((mdate = MDate::downCast(md)))
       return new QoreNode(new DateTime(mdate->getYear(), mdate->getMonth(), mdate->getDay()));
-   else if ((mb = MBool::downCast(md)))
+   
+   const MBool *mb;
+   if ((mb = MBool::downCast(md)))
+      return new QoreNode((bool)mb->getAsBoolean());
+
+   const MBinary *mbin;
+   if ((mbin = MBinary::downCast(md)))
    {
-      QoreNode *rv = new QoreNode(NT_BOOLEAN);
-      rv->val.boolval = mb->getAsBoolean();
-      return rv;
+      BinaryObject *b = new BinaryObject();
+      b->append(mbin->getData(), mbin->size());
+      return new QoreNode(b);
    }
-   xsink->raiseException("MAP-ERROR", "can't map MData element of class \"%s\" to QORE type",
-	  md->getClassName());
+
+   const MInterval *mint;
+   if ((mint = MInterval::downCast(md)))
+   {
+      class DateTime *d = new DateTime(0, 0, 0, 0, 0, mint->getSeconds(), mint->getMicroSeconds() / 1000, true);
+      return new QoreNode(d);
+   }
+
+   const MTime *mtime;
+   if ((mtime = MTime::downCast(md)))
+   {
+      class DateTime *d = new DateTime(0, 0, 0, mtime->getHour(), mtime->getMinute(), mtime->getSecond(), mtime->getMicroSeconds() / 1000);
+      return new QoreNode(d);
+   }
+
+   xsink->raiseException("MAP-ERROR", "can't map MData element of class '%s' to QORE type", md->getClassName());
    return NULL;
 }
 
@@ -164,7 +191,7 @@ void set_properties(MAppProperties *appProperties, Hash *h, TibCommandLine &tcl,
       if (!hi.getValue())
       {
 	 xsink->raiseException("TIBCO-INVALID-PROPERTIES-HASH", 
-			"properties hash key \"%s\" has value = NOTHING",
+			"properties hash key '%s' has value = NOTHING",
 			key);
 	 return;
       }
@@ -178,7 +205,7 @@ void set_properties(MAppProperties *appProperties, Hash *h, TibCommandLine &tcl,
       if (hi.getValue()->type != NT_STRING)
       {
 	 xsink->raiseException("TIBCO-INVALID-PROPERTIES-HASH",
-			"properties hash has invalid type \"%s\" for key \"%s\" (must be string)",
+			"properties hash has invalid type '%s' for key '%s' (must be string)",
 			hi.getValue()->type->getName(), key);
 	 return;
       }

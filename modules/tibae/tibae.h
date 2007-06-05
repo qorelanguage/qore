@@ -45,10 +45,10 @@
 #define TIBAE_R8        14
 #define TIBAE_STRING    15
 #define TIBAE_TIME      16
-#define TIBAE_UI1       17
-#define TIBAE_UI2       18
-#define TIBAE_UI4       19
-#define TIBAE_UI8       20
+#define TIBAE_U1        17
+#define TIBAE_U2        18
+#define TIBAE_U4        19
+#define TIBAE_U8        20
 
 #define MAX_TIBAE_TYPE 20
 

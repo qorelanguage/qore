@@ -19,11 +19,7 @@ printf("%d iteration(s) %d thread(s)\n", $iters, $threads);
 
 our $seq = new Sequence();
 
-class Waiter {
-    constructor() { $.c = new Condition(); $.m = new Mutex(); $.t = False; }
-    wait() { $.m.lock(); if (!$.t) $.c.wait($.m); $.m.unlock(); }
-    broadcast() { $.m.lock(); $.t = True; $.c.broadcast(); $.m.unlock(); }
-}
+const test_class = "/tibco/public/class/ae/Test";
 
 sub testInit($q)
 {
@@ -33,7 +29,7 @@ sub testInit($q)
     $props.AppName = "testAdapter";
     $props.RepoURL = "./new.dat";
     $props.ConfigURL = "/tibco/private/adapter/testAdapter";
-    my $classes.Test = "/tibco/public/class/ae/Test";
+    my $classes.Test = test_class;
 
     print("initializing TIBCO session: \n");
     my $adapter = new TibcoAdapter("rvSession", $props, $classes);#, "8504", "172.23.3.137", "172.23.5.143:7500");
@@ -42,23 +38,57 @@ sub testInit($q)
     return $adapter;
 }
 
+const msg_in = ( "STRING"   : "hello there",
+		 "INTEGER"  : 2501234,
+		 "DATE"     : 2005-03-10,
+		 "DATETIME" : 2007-06-05T15:48:37.145,
+		 "BOOLEAN"  : True,
+		 "FLOAT"    : 123.23443,
+		 "I1"       : 110,
+		 "I2"       : 21312,
+		 "I4"       : 24983942,
+		 "I8"       : 349389023848234,
+		 "U1"       : -76,
+		 "U2"       : -20534,
+                 "U4"       : 34904932,
+                 "U8"       : 491934783039821,
+                 "R4"       : 154.0,
+                 "R8"       : 239349871094.2334,
+                 "BINARY"   : <beadface>,
+                 "TIME"     : 12:35:01.145,
+                 "INTERVAL" : 439395s );
+
+our $msg_out = ( "STRING"   : msg_in.STRING,
+		 "INTEGER"  : msg_in.INTEGER,
+		 "DATE"     : msg_in.DATE,
+		 "DATETIME" : msg_in.DATETIME,
+		 "BOOLEAN"  : msg_in.BOOLEAN,
+		 "FLOAT"    : msg_in.FLOAT,
+                 "BINARY"   : msg_in.BINARY,
+		 "I1"       : tibae_type(TIBAE_I1, msg_in.I1),
+		 "I2"       : tibae_type(TIBAE_I2, msg_in.I2),
+		 "I4"       : tibae_type(TIBAE_I4, msg_in.I4),
+		 "I8"       : tibae_type(TIBAE_I8, msg_in.I8),
+		 "U1"       : tibae_type(TIBAE_U1, msg_in.U1),
+		 "U2"       : tibae_type(TIBAE_U2, msg_in.U2),
+                 "U4"       : tibae_type(TIBAE_U4, msg_in.U4),
+                 "U8"       : tibae_type(TIBAE_U8, msg_in.U8),
+                 "R4"       : tibae_type(TIBAE_R4, msg_in.R4),
+                 "R8"       : tibae_type(TIBAE_R8, msg_in.R8),
+                 "TIME"     : tibae_type(TIBAE_TIME, msg_in.TIME),
+                 "INTERVAL" : tibae_type(TIBAE_INTERVAL, 5D + 2h + 3m + 15s + 251ms ) );
+
 sub sendTest($adapter, $subject)
 {
-    my $function = "Test";
-    my $msg = ( "STRING"   : "hello there",
-		"INTEGER"  : $seq.next(),
-		"DATE"     : now(),
-		"DATETIME" : now(), #9999-12-31,
-		"BOOLEAN"  : True,
-		"FLOAT"    : 123.23443 );
-    $adapter.sendSubjectWithSyncReply($subject, $function, $msg, 1);
+    # use the class repository path directly
+    $adapter.sendSubject($subject, test_class, $msg_out);
 }
 
 sub sendExitMsg($adapter, $subject)
 {
-    my $function = "Test";
     my $msg = ( "STRING"   : "exit" );
-    $adapter.sendSubject($subject, $function, $msg);
+    # look up the class path using the class hash passed to the TibcoAdapter constructor
+    $adapter.sendSubject($subject, "Test", $msg);
 }
 
 sub send($adapter, $subject)
@@ -66,7 +96,7 @@ sub send($adapter, $subject)
     $subject += ".1";
     printf("sending %s\n", $subject);
     my $cnt = 0;
-    $go.wait();
+    $go.waitForZero();
     printf("running sender %s\n", $subject);
     for (my $i; $i < $iters; $i++)
     {
@@ -81,13 +111,12 @@ sub send($adapter, $subject)
 sub receive($adapter, $subject)
 {
     my $cnt = 0;
-    my $sc;
 
     $subject += ".>";
     printf("listening on %s\n", $subject);
     # set up the listener
     $adapter.receive($subject, 1);
-    $go.wait();
+    $go.waitForZero();
     printf("running listener %s\n", $subject);
     while (True)
     {
@@ -99,25 +128,28 @@ sub receive($adapter, $subject)
 	    print("R");
 	if ($msg.msg.STRING == "exit")
 	    break;
-	if (!exists $sc)
-	    $sc = $msg.msg.INTEGER;
-	else if ($msg.msg.INTEGER == ($sc + 1))
-	    $sc++;
-	#else
-	    #printf("SEQUENCE ERROR: sc=%n msg=%n\n", $sc, $msg.msg);
+
+	foreach my $k in (keys msg_in)
+	{
+	    if ($msg.msg.$k != msg_in.$k)
+	    {
+		printf("error in field %n: recvd=%N, expected=%N\n", $k, $msg.msg.$k, msg_in.$k);
+		return;
+	    }
+	}
     }
     printf("\n%d messages received\n", $cnt);
 }
 
-our $go = new Waiter();
+our $go = new Counter();
 
 sub doTest()
 {
-
     my $a = ();
     for (my $i = 0; $i < $threads; $i++)
 	$a += testInit();
 
+    $go.inc();
     for (my $i = 0; $i < $threads; $i++)
     {
 	my $subject = sprintf("%s.%d.1", Subject, $i);
@@ -126,29 +158,8 @@ sub doTest()
 	background send($a[$i], $subject);
     }
 
-    $go.broadcast();
-}
-
-sub newTest()
-{
-    my $subject = Subject + ".1";
-
-    my $string = "hello: äöüßÖÄÜíìñéè";
-    $string = convert_encoding($string, "ISO-8859-1");
-    #print(dbg_node_info($string));
-
-    my $function = "Test";
-    my $msg = ( "STRING"   : $string,
-		"INTEGER"  : 39239,
-		"DATE"     : now(),
-		"DATETIME" : 9999-12-31-23:59:59,
-		"BOOLEAN"  : True,
-		"FLOAT"    : 123.23443 );
-
-    my $adapter = testInit();
-    $adapter.sendSubjectWithSyncReply($subject, $function, $msg, 1);
+    $go.dec();
 }
 
 doTest();
 
-#newTest();
