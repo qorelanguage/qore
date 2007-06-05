@@ -17,7 +17,7 @@
 
 namespace HTTPServer
 {
-    const Version = "0.2.1";
+    const Version = "0.2.2";
 
     const ReadTimeout = 30000;  # recvs timeout after 30 seconds
     const PollTimeout = 5000;   # check for exit every 5 seconds while waiting
