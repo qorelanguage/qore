@@ -1,5 +1,5 @@
 /*
-  TIBCO/QoreApp.h
+  QoreApp.h
 
   TIBCO integration to QORE
 
@@ -22,9 +22,9 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _QORE_TIBCO_QOREAPP_H
+#ifndef _QORE_TIBAE_QOREAPP_H
 
-#define _QORE_TIBCO_QOREAPP_H
+#define _QORE_TIBAE_QOREAPP_H
 
 #include <qore/common.h>
 #include <qore/support.h>
@@ -68,41 +68,42 @@ class QoreApp : public AbstractPrivateData, public MApp
       class QoreEventHandler *myEventHandler;
       class MClassRegistry *mcr;
 
-      class MTree *make_MTree(const char *class_name, QoreNode *value, ExceptionSink *xsink);
-      class MData *instantiate_class(QoreNode *v, const MBaseClassDescription *mbcd, ExceptionSink *xsink);
-      class MData *instantiate_sequence(const MSequenceClassDescription *msd, QoreNode *v, ExceptionSink *xsink);
-      class MData *instantiate_modeledclass(const MModeledClassDescription *mcd, QoreNode *v, ExceptionSink *xsink);
-      class MData *instantiate_union(const MUnionDescription *mud, QoreNode *v, ExceptionSink *xsink);
-      class MData *do_primitive_type(const MPrimitiveClassDescription *pcd, QoreNode *v, ExceptionSink *xsink);
-      const MBaseClassDescription *find_class(const char *cn, ExceptionSink *xsink);
+      DLLLOCAL class MTree *make_MTree(const char *class_name, QoreNode *value, ExceptionSink *xsink);
+      DLLLOCAL class MData *instantiate_class(QoreNode *v, const MBaseClassDescription *mbcd, ExceptionSink *xsink);
+      DLLLOCAL class MData *instantiate_sequence(const MSequenceClassDescription *msd, QoreNode *v, ExceptionSink *xsink);
+      DLLLOCAL class MData *instantiate_modeledclass(const MModeledClassDescription *mcd, QoreNode *v, ExceptionSink *xsink);
+      DLLLOCAL class MData *instantiate_union(const MUnionDescription *mud, QoreNode *v, ExceptionSink *xsink);
+      DLLLOCAL class MData *do_type(int type_code, QoreNode *v, ExceptionSink *xsink);
+      DLLLOCAL class MData *do_primitive_type(const MPrimitiveClassDescription *pcd, QoreNode *v, ExceptionSink *xsink);
+      DLLLOCAL const MBaseClassDescription *find_class(const char *cn, ExceptionSink *xsink);
 
       // helpers for operations 
-      void setRequestParameters(MOperationRequest& req, Hash* params, ExceptionSink* xsink);
+      DLLLOCAL void setRequestParameters(MOperationRequest& req, Hash* params, ExceptionSink* xsink);
 
    protected:
-      virtual void onInitialization() throw (MException);
-      virtual void onTermination() throw (MException) {}
-      virtual ~QoreApp();
+      DLLLOCAL virtual void onInitialization() throw (MException);
+      DLLLOCAL virtual void onTermination() throw (MException) {}
+      DLLLOCAL virtual ~QoreApp();
 
    public:
-      inline QoreApp(MAppProperties *pMAP, const char *name, class Hash *clh, 
-		     const char *svc = NULL, const char *net = NULL, 
-		     const char *dmn = NULL, const char *sbj = NULL);
-      class QoreNode *sendWithSyncReply(const char *function_name, QoreNode *value, int timeout, ExceptionSink *xsink);
-      class QoreNode *sendWithSyncReply(const char *subject, const char *function_name, QoreNode *value, int timeout, ExceptionSink *xsink);
-      void send(const char *function_name, QoreNode *value, ExceptionSink *xsink);
-      void send(const char *subject, const char *function_name, QoreNode *value, ExceptionSink *xsink);
-      class QoreNode *receive(const char *subject, unsigned long timeout, ExceptionSink *xsink);
-      void set_subject_name(const char *sub);
-      const char *get_subject() { return subject; }
-      class QoreNode *map_mtree_to_node(MTree *msg, ExceptionSink *xsink);
-      virtual void deref(class ExceptionSink *xsink);
+      DLLLOCAL QoreApp(MAppProperties *pMAP, const char *name, class Hash *clh, 
+		       const char *svc = NULL, const char *net = NULL, 
+		       const char *dmn = NULL, const char *sbj = NULL);
+      DLLLOCAL class QoreNode *sendWithSyncReply(const char *function_name, QoreNode *value, int timeout, ExceptionSink *xsink);
+      DLLLOCAL class QoreNode *sendWithSyncReply(const char *subject, const char *function_name, QoreNode *value, int timeout, ExceptionSink *xsink);
+      DLLLOCAL void send(const char *function_name, QoreNode *value, ExceptionSink *xsink);
+      DLLLOCAL void send(const char *subject, const char *function_name, QoreNode *value, ExceptionSink *xsink);
+      DLLLOCAL class QoreNode *receive(const char *subject, unsigned long timeout, ExceptionSink *xsink);
+      DLLLOCAL void set_subject_name(const char *sub);
+      DLLLOCAL const char *get_subject() { return subject; }
+      DLLLOCAL class QoreNode *map_mtree_to_node(MTree *msg, ExceptionSink *xsink);
+      DLLLOCAL virtual void deref(class ExceptionSink *xsink);
 
       // operations
-      QoreNode* operationsCallWithSyncResult(const char *class_name, const char *method_name, Hash* parameters, unsigned timeout, const char *client_name, ExceptionSink* xsink);
-      void operationsOneWayCall(const char *class_name, const char *method_name, Hash* parameters, const char *client_name, ExceptionSink* xsink);
-      void operationsAsyncCall(const char *class_name, const char *method_name, Hash* parameters, unsigned timeout, const char *client_name, ExceptionSink* xsink);
-      QoreNode* operationsGetAsyncCallResult(const char *class_name, const char *method_name, ExceptionSink* xsink);
+      DLLLOCAL QoreNode* operationsCallWithSyncResult(const char *class_name, const char *method_name, Hash* parameters, unsigned timeout, const char *client_name, ExceptionSink* xsink);
+      DLLLOCAL void operationsOneWayCall(const char *class_name, const char *method_name, Hash* parameters, const char *client_name, ExceptionSink* xsink);
+      DLLLOCAL void operationsAsyncCall(const char *class_name, const char *method_name, Hash* parameters, unsigned timeout, const char *client_name, ExceptionSink* xsink);
+      DLLLOCAL QoreNode* operationsGetAsyncCallResult(const char *class_name, const char *method_name, ExceptionSink* xsink);
 };
 
 class QoreEventHandler : public MEventListener
@@ -111,17 +112,18 @@ class QoreEventHandler : public MEventListener
       QoreApp *myQoreApp; 
       int count;
 
-      virtual void onEvent(const MEvent &refEvent);
+      DLLLOCAL virtual void onEvent(const MEvent &refEvent);
+
    public:
       QoreNode *msgNode;
       MString replySubject;
       MString subject;
       ExceptionSink xsink;
       
-      QoreEventHandler(QoreApp *pMApp);
-      virtual ~QoreEventHandler();
+      DLLLOCAL QoreEventHandler(QoreApp *pMApp);
+      DLLLOCAL virtual ~QoreEventHandler();
       
 }; // QoreEventHandler 
 
-#endif // _QORE_TIBCO_QOREAPP_H
+#endif // _QORE_TIBAE_QOREAPP_H
 

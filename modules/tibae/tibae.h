@@ -28,6 +28,30 @@
 #define TIBCO_EXPLICIT_CREATE_SESSION 1
 #define DEFAULT_SUBJECT "QORE.MESSAGE"
 
+// TIBAE primitive type codes
+#define TIBAE_BINARY    1
+#define TIBAE_BOOLEAN   2
+#define TIBAE_BYTE      3
+#define TIBAE_CHAR      4
+#define TIBAE_DATE      5
+#define TIBAE_DATETIME  6
+#define TIBAE_FIXED     7
+#define TIBAE_I1        8
+#define TIBAE_I2        9
+#define TIBAE_I4        10
+#define TIBAE_I8        11
+#define TIBAE_INTERVAL  12
+#define TIBAE_R4        13
+#define TIBAE_R8        14
+#define TIBAE_STRING    15
+#define TIBAE_TIME      16
+#define TIBAE_UI1       17
+#define TIBAE_UI2       18
+#define TIBAE_UI4       19
+#define TIBAE_UI8       20
+
+#define MAX_TIBAE_TYPE 20
+
 #include "TibCommandLine.h"
 
 DLLLOCAL class QoreNode *map_mdata_to_node(MData *md, class ExceptionSink *xsink);

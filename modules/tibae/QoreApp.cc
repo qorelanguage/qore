@@ -62,7 +62,7 @@ static const char *get_class(Hash *h)
 }
 
 QoreApp::QoreApp(MAppProperties *pMAP, const char *name, Hash *clh,
-    const char *svc, const char *net, const char *dmn, const char *sbj) 
+		 const char *svc, const char *net, const char *dmn, const char *sbj) 
 : MApp(pMAP)
 {
    appProps = pMAP;
@@ -144,7 +144,7 @@ const MBaseClassDescription *QoreApp::find_class(const char *cn, ExceptionSink *
       cdesc = t->val.String->getBuffer();
    else
    {
-      xsink->raiseException("TIBCO-CLASS-DESCRIPTION-NOT-FOUND", "no class description given for class \"%s\"", cn);
+      xsink->raiseException("TIBCO-CLASS-DESCRIPTION-NOT-FOUND", "no class description given for class '%s'", cn);
       return NULL;
    }
 
@@ -169,7 +169,7 @@ const MBaseClassDescription *QoreApp::find_class(const char *cn, ExceptionSink *
       }
       delete me;
       */
-      xsink->raiseException("TIBCO-CLASS-DESCRIPTION-NOT-FOUND", "no class description given for class \"%s\"", cn);
+      xsink->raiseException("TIBCO-CLASS-DESCRIPTION-NOT-FOUND", "no class description given for class '%s'", cn);
       return NULL;
    }
    else
@@ -178,7 +178,7 @@ const MBaseClassDescription *QoreApp::find_class(const char *cn, ExceptionSink *
 
    if (!(mbcd = mcr->getClassDescription(cdesc)))
    {
-      xsink->raiseException("TIBCO-CLASS-NOT-FOUND", "class name \"%s\" with description \"%s\" cannot be found in repository", cn, cdesc);
+      xsink->raiseException("TIBCO-CLASS-NOT-FOUND", "class name '%s' with description '%s' cannot be found in repository", cn, cdesc);
       return NULL;
    }
    //MListEnumerator<MString> *mle = classlist->newEnumerator();
@@ -194,6 +194,138 @@ const MBaseClassDescription *QoreApp::find_class(const char *cn, ExceptionSink *
    return mbcd;
 }
 
+class MData *do_type(int type_code, QoreNode *v, ExceptionSink *xsink)
+{
+   switch (type_code)
+   {
+      case TIBAE_BOOLEAN:
+	 return new MBool(v ? v->getAsBool() : false);
+
+      case TIBAE_I1:
+	 return new MInteger((char)(v ? v->getAsInteger() : 0));
+
+      case TIBAE_I2:
+	 return new MInteger((short)(v ? v->getAsInteger() : 0));
+
+      case TIBAE_I4:
+	 return new MInteger((int)(v ? v->getAsInteger() : 0));
+
+      case TIBAE_I8:
+	 return new MInteger(v ? v->getAsBigInt() : 0ll);
+
+      case TIBAE_UI1:
+	 return new MInteger((unsigned char)(v ? v->getAsInteger() : 0));
+
+      case TIBAE_UI2:
+	 return new MInteger((unsigned short)(v ? v->getAsInteger() : 0));
+
+      case TIBAE_UI4:
+	 return new MInteger((unsigned int)(v ? v->getAsInteger() : 0));
+
+      case TIBAE_UI8:
+	 return new MInteger((unsigned int64)(v ? v->getAsBigInt() : 0ll));
+
+      case TIBAE_R4:
+	 return new MReal((float)(v ? v->getAsFloat() : 0.0));
+
+      case TIBAE_R8:
+	 return new MReal(v ? v->getAsFloat() : 0.0);
+
+      case TIBAE_DATETIME:
+      {
+	 QoreNodeTypeHelper d(v, NT_DATE, xsink);
+	 if (!d)
+	    return 0;
+
+	 MDateTimeStruct mdts;
+	 mdts.setTime(d->val.date_time->getEpochSeconds());
+	 ndts.setMicroSeconds(d->val.date_time->getMillisecond() * 1000);
+	 return new MDateTime(mdts);
+      }
+
+      case TIBAE_DATE:
+      {
+	 QoreNodeTypeHelper d(v, NT_DATE, xsink);
+	 if (!d)
+	    return 0;	 
+
+         return new MDate(d->val.date_time->getYear(), d->val.date_time->getMonth(), d->val.date_time->getDay());
+      }
+
+      case TIBAE_STRING:
+      {
+	 QoreNodeTypeHelper d(v, NT_STRING, xsink);
+	 if (!d)
+	    return 0;
+
+	 TempEncodingHelper t(d->val.String, QCS_UTF8, xsink);
+	 if (!t)
+	    return 0;
+
+	 return new MStringData(t->getBuffer(), MEncoding::M_ASCII);
+      }
+
+      case TIBAE_BINARY:
+      {
+	 if (!v || v->type != NT_BINARY)
+	 {
+	    xsink->raiseException("TIBCO-TYPE-ERROR", "expecting binary object to serialize as TIBCO_BINARY, got '%s'", 
+				  v ? v->type->getName() : "NOTHING");
+	    return 0;
+	 }
+
+	 return new MBinary(v->val.bin->getPtr(), v->val.bin->size());
+      }
+
+      case TIBAE_INTERVAL:
+      {
+	 QoreNodeTypeHelper d(v, NT_DATE, xsink);
+	 if (!d)
+	    return 0;	 
+
+	 float seconds = (float)d->val.date_time->getSecond() + ((float)d->val.date_time->getMillisecond()) / (float)1000.0; 
+
+	 try {
+	    return new MInterval(d->val.date_time->getDay(), d->val.date_time->getHour(), 
+				 d->val.date_time->getMinute(), seconds);
+	 }
+	 catch (MException &tib_e)
+	 {
+	    xsink->raiseException("TIBCO-EXCEPTION", "%s, %s", 
+				  tib_e.getType().c_str(), tib_e.getDescription().c_str());
+	    return 0;
+	 }
+      }
+
+      case TIBAE_TIME:
+      {
+	 QoreNodeTypeHelper d(v, NT_DATE, xsink);
+	 if (!d)
+	    return 0;	 
+
+	 float seconds = (float)d->val.date_time->getSecond() + ((float)d->val.date_time->getMillisecond()) / (float)1000.0; 
+
+	 try {
+	    return new MTime(d->val.date_time->getHour(), d->val.date_time->getMinute(), seconds);
+	 }
+	 catch (MException &tib_e)
+	 {
+	    xsink->raiseException("TIBCO-EXCEPTION", "%s, %s", 
+				  tib_e.getType().c_str(), tib_e.getDescription().c_str());
+	    return 0;
+	 }
+      }
+
+      case TIBAE_BYTE:
+      case TIBAE_CHAR:
+      case TIBAE_FIXED:
+
+      default:
+	 xsink->raiseException("TIBCO-TYPE-ERROR", "Do not know how to serialize to type code %d", type_code);
+   }
+
+   return 0;
+}
 
 // FIXME: currently no comparison is done between the expected type and the provided type
 MData *QoreApp::do_primitive_type(const MPrimitiveClassDescription *pcd, QoreNode *v, ExceptionSink *xsink)
@@ -203,16 +335,18 @@ MData *QoreApp::do_primitive_type(const MPrimitiveClassDescription *pcd, QoreNod
    if (!v)
       return NULL;
 
-   if (v->type == NT_BOOLEAN)
-      return new MBool(v->val.boolval);
-
    if (v->type == NT_HASH)
    {
+      // check to see if type is specified
+      class QoreNode *t = v->val.hash->getKeyValue("^type^");
+      if (!is_nothing(t))
+	 return do_type(t->getAsInt(), v->val.hash->getKeyValue("^value^"), xsink);
+
       // class instantiation (normally for TIBCO m_any type)
       const char *cn;
       if (!(cn = get_class(v->val.hash)))
       {
-         xsink->raiseException("TIBCO-MISSING-CLASS-NAME", "instantiating type \"%s\": can't instantiate class from object without \"^class^\" entry", pcd->getFullName().c_str());
+         xsink->raiseException("TIBCO-MISSING-CLASS-NAME", "instantiating type '%s': can't instantiate class from object without '^class^' key", pcd->getFullName().c_str());
          return NULL;
       }
       else
@@ -223,7 +357,7 @@ MData *QoreApp::do_primitive_type(const MPrimitiveClassDescription *pcd, QoreNod
          QoreNode *val;
          if (!(val = v->val.hash->getKeyValue("^value^")))
          {
-           xsink->raiseException("TIBCO-MISSING-VALUE", "instantiating type \"%s\": no \"^value^\" entry found in hash for class \"%s\"", pcd->getFullName().c_str(), cn);
+           xsink->raiseException("TIBCO-MISSING-VALUE", "instantiating type '%s': no '^value^' entry found in hash for class '%s'", pcd->getFullName().c_str(), cn);
             return NULL;
          }
          return instantiate_class(val, mbcd, xsink);
@@ -236,8 +370,8 @@ MData *QoreApp::do_primitive_type(const MPrimitiveClassDescription *pcd, QoreNod
       const char *cn;
       if (!(cn = get_class(v->val.object->data)))
       {
-         xsink->raiseException("TIBCO-MISSING-CLASS-NAME", "instantiating type \"%s\": can't instantiate class from object wi
-thout \"^class^\" entry", pcd->getFullName().c_str());
+         xsink->raiseException("TIBCO-MISSING-CLASS-NAME", "instantiating type '%s': can't instantiate class from object wi
+thout '^class^' entry", pcd->getFullName().c_str());
          return NULL;
       }
       else
@@ -248,8 +382,8 @@ thout \"^class^\" entry", pcd->getFullName().c_str());
          QoreNode *val;
          if (!(val = v->val.object->retrieve_value("^value^")))
          {
-            xsink->raiseException("TIBCO-MISSING-VALUE", "instantiating type \"%s\": no \"^value^\" entry found in hash for c
-lass \"%s\"", pcd->getFullName().c_str(), cn);
+            xsink->raiseException("TIBCO-MISSING-VALUE", "instantiating type '%s': no '^value^' entry found in hash for c
+lass '%s'", pcd->getFullName().c_str(), cn);
             return NULL;
          }
          return instantiate_class(val, mbcd, xsink);
@@ -257,30 +391,24 @@ lass \"%s\"", pcd->getFullName().c_str(), cn);
    }
 */
 
+   if (v->type == NT_BOOLEAN)
+      return new MBool(v->val.boolval);
+
    if (v->type == NT_STRING)
    {
-      printd(3, "data=%08p val=\"%s\"\n", v->val.String->getBuffer(), v->val.String->getBuffer());
+      printd(3, "data=%08p val='%s'\n", v->val.String->getBuffer(), v->val.String->getBuffer());
 #if (TIBCO_SDK == 4)
       return new MStringData(v->val.String->getBuffer());
 #else
       // it appears that all MString data must be UTF-8, no matter how we use the MStringData constructor
       // furthermore, it appears that we have to trick the SDK into thinking that the data is ASCII, so
       // no conversions are attempted
-      QoreString *t = v->val.String;
-      if (t->getEncoding() != QCS_UTF8)
-      {
-         t = t->convertEncoding(QCS_UTF8, xsink);
-         if (xsink->isEvent())
-            return NULL;
-       //printd(5, "QoreApp::do_primitive_type() converted from %s to UTF-8 (%s)\n", t->getEncoding()->code, t->getBuffer());
-      }
+      TempEncodingHelper t(v->val.String, QCS_UTF8, xsink);
+      if (!t)
+	 return 0;
+
       //md = new MStringData(t->getBuffer(), MEncoding::M_UTF8);
-      //md = new MStringData(t->getBuffer(), MEncoding::M_LATIN_1);
-      class MData *md = new MStringData(t->getBuffer(), MEncoding::M_ASCII);
-      if (t != v->val.String)
-         delete t;
-      return md;
-      //printd(0, "1: MStringData encoding=%s\n", ms->getEncoding());
+      return new MStringData(t->getBuffer(), MEncoding::M_ASCII);
 #endif
    }
 
@@ -308,7 +436,7 @@ lass \"%s\"", pcd->getFullName().c_str(), cn);
                      v->val.date_time->getYear(), v->val.date_time->getMonth(),
                      v->val.date_time->getDay(), v->val.date_time->getHour(),
                      v->val.date_time->getMinute(), v->val.date_time->getSecond());
-         //printd(5, "QoreApp::do_primitive_type() creating date \"%s\"\n", str);
+         //printd(5, "QoreApp::do_primitive_type() creating date '%s'\n", str);
 #ifdef TIBCO_MDT_BUG
          l_mdate_time.lock();
 #endif
@@ -319,31 +447,24 @@ lass \"%s\"", pcd->getFullName().c_str(), cn);
       }
       else if (!strcmp(type, "date"))
       {
-#if 0
-         char *str = (char *)malloc(sizeof(char) * 32);
-         sprintf(str, "%04d-%02d-%02d",
-                 v->val.date_time->getYear(), v->val.date_time->getMonth(),
-                 v->val.date_time->getDay());
-         //printd(5, "QoreApp::do_primitive_type() creating date \"%s\"\n", str);
-         md = new MDate(str);
-         free(str);
-#else
          md = new MDate(v->val.date_time->getYear(), v->val.date_time->getMonth(), v->val.date_time->getDay());
-#endif
       }
       else
       {
-         xsink->raiseException("TIBCO-DATE-INSTANTIATION-ERROR", "cannot map from QORE type \"date\" to TIBCO type \"%s\"",
+         xsink->raiseException("TIBCO-DATE-INSTANTIATION-ERROR", "cannot map from QORE type 'date' to TIBCO type '%s'",
                                pcd->getShortName().c_str());
          return NULL;
       }
       return md;
    }
 
+   if (v->type == NT_BINARY)
+      return new MBinary(v->val.bin->getPtr(), v->val.bin->size());
+
    if (v->type == NT_NOTHING || v->type == NT_NULL)
       return NULL;
 
-   xsink->raiseException("TIBCO-UNSUPPORTED-TYPE", "unsupported QORE type \"%s\" (TIBCO type \"%s\")",
+   xsink->raiseException("TIBCO-UNSUPPORTED-TYPE", "unsupported QORE type '%s' (TIBCO type '%s')",
                   v->type->getName(), pcd->getShortName().c_str());
 
    //traceout("QoreApp::do_primitive_type()");
@@ -361,7 +482,7 @@ MTree *QoreApp::make_MTree(const char *class_name, QoreNode *value, ExceptionSin
       return NULL;
    if (!mbcd)
    {
-      xsink->raiseException("TIBCO-CLASS-DESCRIPTION-NOT-FOUND", "cannot find TIBCO class description for class name \"%s\"", class_name);
+      xsink->raiseException("TIBCO-CLASS-DESCRIPTION-NOT-FOUND", "cannot find TIBCO class description for class name '%s'", class_name);
       return NULL;
    }
    MData *md = instantiate_class(value, mbcd, xsink);
@@ -438,12 +559,12 @@ MData *QoreApp::instantiate_sequence(const MSequenceClassDescription *msd, QoreN
       if (!(cn = get_class(v->val.hash)))
       {
          xsink->raiseException("TIBCO-MISSING-CLASS-NAME",
-                            "can't instantiate sequence of type \"%s\" from hash without \"^class^\" entry",
+                            "can't instantiate sequence of type '%s' from hash without '^class^' entry",
                             msd->getFullName().c_str());
 
          return NULL;
       }
-      printd(1, "QoreApp::instantiate_sequence() \"%s\": ignoring class information provided (%s)\n",
+      printd(1, "QoreApp::instantiate_sequence() '%s': ignoring class information provided (%s)\n",
              msd->getFullName().c_str(), cn);
       v = v->val.hash->getKeyValue("^value^");
    }
@@ -454,12 +575,12 @@ MData *QoreApp::instantiate_sequence(const MSequenceClassDescription *msd, QoreN
       if (!(cn = get_class(v->val.object->data)))
       {
          xsink->raiseException("TIBCO-MISSING-CLASS-NAME",
-                            "can't instantiate sequence of type \"%s\" from object without \"^class^\" entry",
+                            "can't instantiate sequence of type '%s' from object without '^class^' entry",
                             msd->getFullName().c_str());
 
          return NULL;
       }
-      printd(1, "QoreApp::instantiate_sequence() \"%s\": ignoring class information provided (%s)\n",
+      printd(1, "QoreApp::instantiate_sequence() '%s': ignoring class information provided (%s)\n",
              msd->getFullName().c_str(), cn);
       v = v->val.object->retrieve_value("^value^");
    }
@@ -472,7 +593,7 @@ MData *QoreApp::instantiate_sequence(const MSequenceClassDescription *msd, QoreN
    else if (v->type != NT_LIST)
    {
       xsink->raiseException("TIBCO-INVALID-TYPE-FOR-SEQUENCE",
-                         "cannot instantiate TIBCO sequence \"%s\" from node type \"%s\"",
+                         "cannot instantiate TIBCO sequence '%s' from node type '%s'",
                          msd->getFullName().c_str(), v->type->getName());
       return NULL;
    }
@@ -510,7 +631,7 @@ MData *QoreApp::instantiate_modeledclass(const MModeledClassDescription *mcd, Qo
    else
    {
       xsink->raiseException("TIBCO-INVALID-TYPE-FOR-CLASS",
-                         "cannot instantiate class \"%s\" from node type \"%s\"",
+                         "cannot instantiate class '%s' from node type '%s'",
                          mcd->getFullName().c_str(), v->type->getName());
       return NULL;
    }
@@ -533,8 +654,8 @@ MData *QoreApp::instantiate_modeledclass(const MModeledClassDescription *mcd, Qo
          if (!(mad = mcd->getAttribute(key)))
          {
             xsink->raiseException("TIBCO-HASH-KEY-INVALID",
-                           "error instantiating TIBCO class \"%s\", hash key \"%s\" is not an attribute of this class",
-                           mcd->getFullName().c_str(), key);
+				  "error instantiating TIBCO class '%s', hash key '%s' is not an attribute of this class",
+				  mcd->getFullName().c_str(), key);
             delete ma;
             traceout("QoreApp::instantiate_modeledclass()");
             return NULL;
@@ -586,7 +707,7 @@ MData *QoreApp::instantiate_union(const MUnionDescription *mud, QoreNode *v, Exc
    else
    {
       xsink->raiseException("TIBCO-INVALID-TYPE-FOR-UNION",
-                         "cannot instantiate TIBCO union \"%s\" from node type \"%s\"",
+                         "cannot instantiate TIBCO union '%s' from node type '%s'",
                          mud->getFullName().c_str(), v->type->getName());
       return NULL;
    }
@@ -594,7 +715,7 @@ MData *QoreApp::instantiate_union(const MUnionDescription *mud, QoreNode *v, Exc
    if (h->size() > 1)
    {
       xsink->raiseException("TIBCO-INVALID-MULTIPLE-KEYS-FOR-UNION",
-                         "cannot instantiate TIBCO union \"%s\" from from hash with %d members!",
+                         "cannot instantiate TIBCO union '%s' from from hash with %d members!",
                          mud->getFullName().c_str(), v->val.hash->size());
       return NULL;
    }
@@ -611,7 +732,7 @@ MData *QoreApp::instantiate_union(const MUnionDescription *mud, QoreNode *v, Exc
       if (!(mmd = mud->getMember(key)))
       {
          xsink->raiseException("TIBCO-INVALID-KEY",
-                            "error instantiating TIBCO union \"%s\", hash key \"%s\" is not a member of this union",
+                            "error instantiating TIBCO union '%s', hash key '%s' is not a member of this union",
                         mud->getFullName().c_str(), key ? key : "(null)");
          delete mu;
          return NULL;
@@ -863,7 +984,7 @@ class QoreNode *QoreApp::receive(const char *subj, unsigned long timeout, Except
       try {
 	 if (mySubscriber && strcmp(subj, rcv_subject))
 	 {
-	    printd(5, "QoreApp::receive() new subject=\"%s\", destroying listener for \"%s\"\n", subj, rcv_subject);
+	    printd(5, "QoreApp::receive() new subject='%s', destroying listener for '%s'\n", subj, rcv_subject);
 	    mySubscriber->removeListener(myEventHandler);
 	    delete myEventHandler;
 	    delete mySubscriber;
@@ -873,7 +994,7 @@ class QoreNode *QoreApp::receive(const char *subj, unsigned long timeout, Except
 	 if (!mySubscriber)
 	 {
 	    rcv_subject = strdup(subj);
-	    printd(5, "QoreApp::receive() creating Subscriber for subject \"%s\"\n", subj);
+	    printd(5, "QoreApp::receive() creating Subscriber for subject '%s'\n", subj);
 	    mySubscriber = new MSubscriber(this, "subscriber", session_name, M_RV, subj, 0, true);
 	    printd(5, "QoreApp::receive() creating event handler for this subscriber\n");
 	    myEventHandler = new QoreEventHandler(this);
@@ -1024,7 +1145,7 @@ void QoreApp::setRequestParameters(MOperationRequest& req, Hash* params, Excepti
 	 return;
       }
       if (!data.get()) {
-	 xsink->raiseException("TIBCO-CLASS-DESCRIPTION-NOT-FOUND", "cannot find TIBCO class description for class name \"%s\"", key);
+	 xsink->raiseException("TIBCO-CLASS-DESCRIPTION-NOT-FOUND", "cannot find TIBCO class description for class name '%s'", key);
 	 return;
       }
       MString attribute_name(key);
@@ -1139,7 +1260,6 @@ inline bool operator<(const pending_call_key& lhs, const pending_call_key& rhs) 
   if (lhs.m_class_name < rhs.m_class_name) return true;
   return false;
 }
-
 
 // global map with not yet consumed (pending) async calls
 typedef struct async_call_context_t
