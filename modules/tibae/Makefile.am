@@ -4,7 +4,7 @@ pkglibdir = $(libdir)/@PACKAGE@-@VERSION@
 if COND_SINGLE_COMPILATION_UNIT
 TIBAE_SOURCES = single-compilation-unit.cc
 else
-TIBAE_SOURCES = QoreApp.cc tibae.cc tibae-module.cc 
+TIBAE_SOURCES = QoreApp.cc QC_TibcoAdapter.cc TibCommandLine.cc tibae.cc tibae-module.cc 
 endif
 
 if COND_MONOLITHIC

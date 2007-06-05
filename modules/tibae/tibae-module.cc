@@ -29,7 +29,7 @@
 #include <qore/ModuleManager.h>
 
 #include "tibae-module.h"
-#include "tibae.h"
+#include "QC_TibcoAdapter.h"
 
 #include <string.h>
 

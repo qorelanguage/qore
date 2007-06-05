@@ -1,7 +1,7 @@
 /*
-  tibae.h
+  QC_TibcoAdapter.h
 
-  TIBCO integration to QORE
+  TIBCO Active Enterprise integration to QORE
 
   Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
 
@@ -20,15 +20,10 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef QORE_TIBAE_H
+#ifndef _QORE_TIBAE_QC_TIBCOADAPTER_H
+#define _QORE_TIBAE_QC_TIBCOADAPTER_H
 
-#define QORE_TIBAE_H
-#include <Maverick.h>
-
-#define TIBCO_EXPLICIT_CREATE_SESSION 1
-#define DEFAULT_SUBJECT "QORE.MESSAGE"
-
-DLLLOCAL class QoreNode *map_mdata_to_node(MData *md, class ExceptionSink *xsink);
-DLLLOCAL void set_properties(MAppProperties *appProperties, Hash *h, TibCommandLine &tcl, ExceptionSink *xsink);
+DLLLOCAL class QoreClass *initTibcoAdapterClass();
+DLLLOCAL extern int CID_TIBAE;
 
 #endif
