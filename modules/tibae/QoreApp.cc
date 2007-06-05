@@ -243,11 +243,11 @@ class MData *QoreApp::do_type(int type_code, QoreNode *v, ExceptionSink *xsink)
 	 if (!d)
 	    return 0;	 
 
-	 float seconds = (float)d->val.date_time->getSecond() + ((float)d->val.date_time->getMillisecond()) / (float)1000.0; 
+	 int64 ms = d->getRelativeMilliseconds();
+	 float seconds = (float)ms / (float)1000.0; 
 
 	 try {
-	    return new MInterval(d->val.date_time->getDay(), d->val.date_time->getHour(), 
-				 d->val.date_time->getMinute(), seconds);
+	    return new MInterval(0, 0, 0, seconds);
 	 }
 	 catch (MException &tib_e)
 	 {
