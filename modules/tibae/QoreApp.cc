@@ -202,28 +202,28 @@ class MData *do_type(int type_code, QoreNode *v, ExceptionSink *xsink)
 	 return new MBool(v ? v->getAsBool() : false);
 
       case TIBAE_I1:
-	 return new MInteger((char)(v ? v->getAsInteger() : 0));
+	 return new MInteger((char)(v ? v->getAsInt() : 0));
 
       case TIBAE_I2:
-	 return new MInteger((short)(v ? v->getAsInteger() : 0));
+	 return new MInteger((short)(v ? v->getAsInt() : 0));
 
       case TIBAE_I4:
-	 return new MInteger((int)(v ? v->getAsInteger() : 0));
+	 return new MInteger((int)(v ? v->getAsInt() : 0));
 
       case TIBAE_I8:
 	 return new MInteger(v ? v->getAsBigInt() : 0ll);
 
       case TIBAE_UI1:
-	 return new MInteger((unsigned char)(v ? v->getAsInteger() : 0));
+	 return new MInteger((unsigned char)(v ? v->getAsInt() : 0));
 
       case TIBAE_UI2:
-	 return new MInteger((unsigned short)(v ? v->getAsInteger() : 0));
+	 return new MInteger((unsigned short)(v ? v->getAsInt() : 0));
 
       case TIBAE_UI4:
-	 return new MInteger((unsigned int)(v ? v->getAsInteger() : 0));
+	 return new MInteger((unsigned int)(v ? v->getAsInt() : 0));
 
       case TIBAE_UI8:
-	 return new MInteger((unsigned int64)(v ? v->getAsBigInt() : 0ll));
+	 return new MInteger((unsigned long long)(v ? v->getAsBigInt() : 0ll));
 
       case TIBAE_R4:
 	 return new MReal((float)(v ? v->getAsFloat() : 0.0));
@@ -238,8 +238,8 @@ class MData *do_type(int type_code, QoreNode *v, ExceptionSink *xsink)
 	    return 0;
 
 	 MDateTimeStruct mdts;
-	 mdts.setTime(d->val.date_time->getEpochSeconds());
-	 ndts.setMicroSeconds(d->val.date_time->getMillisecond() * 1000);
+	 mdts.setTime_t(d->val.date_time->getEpochSeconds());
+	 mdts.setMicroSeconds(d->val.date_time->getMillisecond() * 1000);
 	 return new MDateTime(mdts);
       }
 
@@ -1245,14 +1245,16 @@ void QoreApp::operationsOneWayCall(const char *class_name, const char *method_na
 //------------------------------------------------------------------------------
 // The state for the async calls is stored here and protected by the mutex.
 //
-typedef struct pending_call_key {
-  std::string m_class_name;
-  std::string m_method_name;
-  MApp* m_app;
-
-  pending_call_key(const char *class_name, const char *method_name, MApp* app)
-  : m_class_name(class_name), m_method_name(method_name), m_app(app) {}
-};
+typedef struct s_pending_call_key {
+      std::string m_class_name;
+      std::string m_method_name;
+      MApp* m_app;
+      
+      s_pending_call_key(const char *class_name, const char *method_name, MApp* app)
+	 : m_class_name(class_name), m_method_name(method_name), m_app(app) 
+      {
+      }
+} pending_call_key;
 
 inline bool operator<(const pending_call_key& lhs, const pending_call_key& rhs) {
   if (lhs.m_app < rhs.m_app) return true;
