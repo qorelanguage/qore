@@ -243,7 +243,7 @@ class MData *QoreApp::do_type(int type_code, QoreNode *v, ExceptionSink *xsink)
 	 if (!d)
 	    return 0;	 
 
-	 int64 ms = d->getRelativeMilliseconds();
+	 int64 ms = d->val.date_time->getRelativeMilliseconds();
 	 float seconds = (float)ms / (float)1000.0; 
 
 	 try {
