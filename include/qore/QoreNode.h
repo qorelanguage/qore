@@ -214,6 +214,10 @@ class QoreNodeTypeHelper {
       {
 	 return node;
       }
+      DLLEXPORT class QoreNode *operator->()
+      { 
+	 return node; 
+      }
       DLLEXPORT bool is_temp() const
       {
 	 return temp;

@@ -30,10 +30,10 @@
 class BinaryObject {
    private:
       void *ptr;
-      int len;
+      unsigned len;
 
    public:
-      inline BinaryObject(void *p = NULL, int size = 0)
+      inline BinaryObject(void *p = NULL, unsigned size = 0)
       {
 	 ptr = p;
 	 len = size;
@@ -59,7 +59,7 @@ class BinaryObject {
 	 return memcmp(ptr, obj->ptr, len);
       }
 
-      inline int size() const
+      inline unsigned size() const
       {
 	 return len;
       }
@@ -79,7 +79,7 @@ class BinaryObject {
 	 return ptr;
       }
 
-      inline void append(const void *nptr, int size)
+      inline void append(const void *nptr, unsigned size)
       {
 	 ptr = realloc(ptr, len + size);
 	 memcpy((char *)ptr + len, nptr, size);

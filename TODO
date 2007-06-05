@@ -1,7 +1,6 @@
 see docs/roadmap.html
 
 * update round() to allow the specification of significant digits
-* fix signal thread to be a special thread with a special thread list entry
 * implement support for builtin methodGate methods, custom DBI Datasource method extensions
 * implement public_instanceof operator
 * fix +=, -= to use the rhs type if the lhs is NOTHING
@@ -28,6 +27,7 @@ docs:
 * document optimizations
 
 done:
+* fix signal thread to be a special thread with a special thread list entry
 * fix %d Datasource specifier to work with floats
 * do block allocations of per-thread local variable slots for performance reasons
 * add signal constants/infrastructure

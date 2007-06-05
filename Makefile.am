@@ -211,6 +211,8 @@ noinst_HEADERS = \
 	modules/tibrv/QC_TibrvCmListener.h \
 	modules/tibrv/QC_TibrvDistributedQueue.h \
 	modules/tibae/tibae-module.h \
+	modules/tibae/QC_TibcoAdapter.h \
+	modules/tibae/TibCommandLine.h \
 	modules/tibae/QoreApp.h \
 	modules/tibae/tibae.h \
 	modules/ncurses/QC_Window.h \
