@@ -12,6 +12,7 @@
 
 #include <qore/Qore.h>
 #include <qore/QoreWarnings.h>
+#include <qore/ParseOptionMap.h>
 
 #include "command-line.h"
 
@@ -67,6 +68,8 @@ static char helpstr[] =
 "  -l, --load=arg               load module 'arg' immediately\n"
 "  -m, --show-module-errors     show error messages related to loading and\n"
 "                               initializing qore modules\n"
+"  -o, --list-parse-options     list all parse options\n"
+"  -p, --set-parse-option=arg   set parse option\n"
 "  -r, --warnings-are-errors    treat warnings as errors\n"
 "  -s, --show-charsets          displays the list of known character sets\n"
 "  -V, --version                show program version information and quit\n"
@@ -119,6 +122,23 @@ static void do_trace(char *arg)
    qore_trace = 1;
 }
 #endif
+
+static void set_parse_option(char *arg)
+{
+   int code = ParseOptionMap::find_code(arg);
+   if (code == -1)
+   {
+      printf("unknown parse option '%s', use -L or --list-parse-options\n", arg);
+      exit(1);
+   }
+   parse_options |= code;
+}
+
+static void list_parse_options(char *arg)
+{
+   ParseOptionMap::list_options();
+   exit(0);
+}
 
 static void do_help(char *arg)
 {
@@ -333,6 +353,8 @@ static struct opt_struct_s {
    { 'i', "list-warnings",         ARG_NONE, list_warnings },
    { 'l', "load",                  ARG_MAND, load_module },
    { 'm', "show-module-errors",    ARG_NONE, show_module_errors },
+   { 'o', "list-parse-options",    ARG_NONE, list_parse_options },
+   { 'p', "set-parse-option",      ARG_MAND, set_parse_option },
    { 's', "show-charsets",         ARG_NONE, show_charsets },
    { 'r', "warnings-are-errors",   ARG_NONE, warn_to_err },
    { 'w', "enable-warning",        ARG_MAND, enable_warning },

@@ -1,3 +1,7 @@
+2006.06.06: David Nichols
+	* implemented new command-line options -p,--set-parse-option and -o,
+	  --list-parse-options
+
 2006.06.05: David Nichols
 	* added tibae_type() function to tibae module, updated serialization to
 	  support binary, interval, i*, ui*, r*, time types, added TIBAE_* type

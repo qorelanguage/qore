@@ -123,6 +123,7 @@ noinst_HEADERS = \
 	include/qore/DatasourcePool.h \
 	include/qore/ManagedDatasource.h \
 	include/qore/Environment.h \
+	include/qore/ParseOptionMap.h \
 	include/qore/QT_NOTHING.h \
 	include/qore/QT_bigint.h \
 	include/qore/QT_float.h \

@@ -85,6 +85,7 @@
 #include "Sequence.cc"
 #include "ReferenceObject.cc"
 #include "QoreHTTPClient.cc"
+#include "ParseOptionMap.cc"
 #include "Environment.cc"
 #include "QoreCounter.cc"
 #include "QT_NOTHING.cc"

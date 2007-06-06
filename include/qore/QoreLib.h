@@ -115,6 +115,7 @@ DLLLOCAL void print_node(FILE *fp, class QoreNode *node);
 DLLLOCAL void delete_global_variables();
 DLLLOCAL void initENV(char *env[]);
 DLLLOCAL class FunctionReference *getFunctionReference(class QoreString *str, class ExceptionSink *xsink);
+
 #endif
 
 #endif // _QORE_QORELIB_H
