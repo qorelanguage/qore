@@ -626,31 +626,55 @@ static class QoreNode *f_setegid(class QoreNode *params, ExceptionSink *xsink)
 }
 #endif
 
+static class QoreNode *f_gethostbyname(class QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = test_param(params, NT_STRING, 0);
+   if (!p)
+      return NULL;
+
+   class Hash *h = q_gethostbyname_to_hash(p->val.String->getBuffer());
+   return h ? new QoreNode(h) : 0;
+}
+
+static class QoreNode *f_gethostbyaddr(class QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p0 = test_param(params, NT_STRING, 0);
+   if (!p0)
+      return NULL;
+
+   QoreNode *p1 = get_param(params, 1);
+   int type = p1 ? p1->getAsInt() : 0;
+   if (!type) type = AF_INET;
+
+   class Hash *h = q_gethostbyaddr_to_hash(p0->val.String->getBuffer(), type);
+   return h ? new QoreNode(h) : 0;
+}
+
 #ifdef DEBUG
 static QoreNode* runQoreTests(QoreNode* params, ExceptionSink* xsink)
 {
-  minitest::result res = minitest::execute_all_tests();
-  if (res.all_tests_succeeded) {
-    printf("Qore runtime: %d tests succeeded\n", res.sucessful_tests_count);
-    return 0;
-  }
-
-  xsink->raiseException("A Qore test failed", "Qore test in file %s, line %d threw an exception.",
-    res.failed_test_file, res.failed_test_line);
-  return 0;
+   minitest::result res = minitest::execute_all_tests();
+   if (res.all_tests_succeeded) {
+      printf("Qore runtime: %d tests succeeded\n", res.sucessful_tests_count);
+      return 0;
+   }
+   
+   xsink->raiseException("A Qore test failed", "Qore test in file %s, line %d threw an exception.",
+			 res.failed_test_file, res.failed_test_line);
+   return 0;
 }
 
 static QoreNode* runRecentQoreTests(QoreNode* params, ExceptionSink* xsink)
 {
-  minitest::result res = minitest::test_last_changed_files(3); // 3 last modified files
-  if (res.all_tests_succeeded) {
-    printf("Qore runtime: %d recent tests succeeded\n", res.sucessful_tests_count);
-    return 0;
-  }
-
-  xsink->raiseException("A Qore test failed", "Qore test in file %s, line %d threw an exception.",
-    res.failed_test_file, res.failed_test_line);
-  return 0;
+   minitest::result res = minitest::test_last_changed_files(3); // 3 last modified files
+   if (res.all_tests_succeeded) {
+      printf("Qore runtime: %d recent tests succeeded\n", res.sucessful_tests_count);
+      return 0;
+   }
+   
+   xsink->raiseException("A Qore test failed", "Qore test in file %s, line %d threw an exception.",
+			 res.failed_test_file, res.failed_test_line);
+   return 0;
 }
 
 namespace {
@@ -706,6 +730,8 @@ void init_lib_functions()
 #ifdef HAVE_SETEGID
    builtinFunctions.add("setegid",     f_setegid);
 #endif
+   builtinFunctions.add("gethostbyname",  f_gethostbyname);
+   builtinFunctions.add("gethostbyaddr",  f_gethostbyaddr);
 
 #ifdef DEBUG
    builtinFunctions.add("runQoreTests", runQoreTests);

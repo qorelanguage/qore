@@ -56,6 +56,7 @@
 #include <stdlib.h>
 #include <pcre.h>
 #include <assert.h>
+#include <sys/socket.h> // for AF_INET and AF_INET6
 
 #ifdef DEBUG
 // the #include "test/Namespace_tests.cc" is on the bottom
@@ -1648,6 +1649,10 @@ RootNamespace::RootNamespace(class Namespace **QoreNS) : Namespace()
    qns->addConstant("RE_MultiLine",  new QoreNode((int64)PCRE_MULTILINE));
    // note that the following constant is > 32-bits so it can't collide with PCRE constants
    qns->addConstant("RE_Global",     new QoreNode((int64)QRE_GLOBAL));
+
+   // network constants
+   qns->addConstant("AF_INET",       new QoreNode((int64)AF_INET));
+   qns->addConstant("AF_INET6",      new QoreNode((int64)AF_INET6));
 
    // create Qore::SQL namespace
    qns->addInitialNamespace(getSQLNamespace());

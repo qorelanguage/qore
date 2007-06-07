@@ -1,3 +1,7 @@
+2006.06.07: David Nichols
+	* implemented gethostbyname() and gethostbyaddr() functions returning a
+	  hash of all hostent information
+
 2006.06.06: David Nichols
 	* implemented new command-line options -p,--set-parse-option and -o,
 	  --list-parse-options

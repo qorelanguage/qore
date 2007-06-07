@@ -142,7 +142,7 @@
 #include "QC_AutoReadLock.cc"
 #include "QC_AutoWriteLock.cc"
 #include "minitest.cc"
-#include "inline_printf.cc"
+//#include "inline_printf.cc"
 //#include "QException.h"
 
 #ifdef DEBUG

@@ -26,8 +26,9 @@
 
 #define _QORE_QORENET_H
 
-#include <qore/common.h>
-#include <qore/LockedObject.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
 #ifndef HAVE_GETHOSTBYNAME_R
 extern class LockedObject lck_gethostbyname;
@@ -41,7 +42,12 @@ extern class LockedObject lck_gethostbyaddr;
 
 // thread-safe gethostbyname (0 = success, !0 = error)
 DLLEXPORT int q_gethostbyname(const char *host, struct in_addr *sin_addr);
+// thread-safe gethostbyname (0/NULL = error)
+DLLEXPORT class Hash *q_gethostbyname_to_hash(const char *host);
+
 // thread-safe gethostbyaddr (string returned must be freed)
 DLLEXPORT char *q_gethostbyaddr(const char *addr, int len, int type);
+// thread-safe gethostbyaddr (0/NULL = error)
+DLLEXPORT class Hash *q_gethostbyaddr_to_hash(const char *addr, int type = AF_INET);
 
 #endif // _QORE_QORENET_H
