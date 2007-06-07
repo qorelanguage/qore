@@ -1442,13 +1442,13 @@ QoreNode* QoreTuxedoAdapter::enqueue(const char* queue_space, const char* queue_
     n = get_val(call_settings, "queue_control_msgid", NT_BINARY);
     if (n) {
       BinaryObject* bin = n->val.bin;
-      int sz = sizeof(ctl.msgid);
+      unsigned sz = sizeof(ctl.msgid);
       if (bin->size() == sz) memcpy(&ctl.msgid, bin->getPtr(), sz);
     }
     n = get_val(call_settings, "queue_control_corrid", NT_BINARY);
     if (n) {
       BinaryObject* bin = n->val.bin;
-      int sz = sizeof(ctl.corrid);
+      unsigned sz = sizeof(ctl.corrid);
       if (bin->size() == sz) memcpy(&ctl.corrid, bin->getPtr(), sz);
     }
     n = get_val(call_settings, "queue_control_replyqueue", NT_STRING);
@@ -1511,13 +1511,13 @@ QoreNode* QoreTuxedoAdapter::dequeue(const char* queue_space, const char* queue_
     n = get_val(call_settings, "queue_control_msgid", NT_BINARY);
     if (n) {
       BinaryObject* bin = n->val.bin;
-      int sz = sizeof(ctl.msgid);
+      unsigned sz = sizeof(ctl.msgid);
       if (bin->size() == sz) memcpy(&ctl.msgid, bin->getPtr(), sz);
     }
     n = get_val(call_settings, "queue_control_corrid", NT_BINARY);
     if (n) {
       BinaryObject* bin = n->val.bin;
-      int sz = sizeof(ctl.corrid);
+      unsigned sz = sizeof(ctl.corrid);
       if (bin->size() == sz) memcpy(&ctl.corrid, bin->getPtr(), sz);
     }
   }
