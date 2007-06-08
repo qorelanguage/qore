@@ -632,7 +632,7 @@ static class QoreNode *f_gethostbyname(class QoreNode *params, ExceptionSink *xs
    if (!p)
       return NULL;
 
-   class QoreString *h = q_gethostbyname_to_string(p->val.String->getBuffer());
+   class QoreString *str = q_gethostbyname_to_string(p->val.String->getBuffer());
    return str ? new QoreNode(str) : 0;
 }
 
