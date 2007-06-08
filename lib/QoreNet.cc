@@ -134,7 +134,11 @@ static class QoreString *hename_string(struct hostent &he)
 static class QoreString *headdr_string(struct hostent &he)
 {
    if (he.h_addr_list && he.h_addr_list[0])
-      return new QoreString(he.h_addr_list[0]);
+   {
+      char buf[QORE_NET_ADDR_BUF_LEN];
+      if (inet_ntop(he.h_addrtype, he.h_addr_list[0], buf, QORE_NET_ADDR_BUF_LEN))
+	 return new QoreString(buf);
+   }
 
    return new QoreString();
 }

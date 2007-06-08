@@ -158,8 +158,8 @@ libqore_la_SOURCES = \
 	QC_AutoReadLock.cc \
 	QC_AutoWriteLock.cc \
 	QoreHTTPClient.cc \
-	minitest.cc \
-	inline_printf.cc
+	minitest.cc
+	//inline_printf.cc
 
 if COND_DEBUG
 libqore_la_SOURCES += ql_debug.cc CallStack.cc
