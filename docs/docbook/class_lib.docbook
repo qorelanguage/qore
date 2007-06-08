@@ -198,6 +198,28 @@
       </tgroup>
     </table>
 
+    <table id="network_address_constants">
+      <title>Network Address Type Constants</title>
+      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>Name</para></entry>
+	    <entry><para>Description</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row>
+	    <entry><para><code>AF_INET</code></para></entry>
+	    <entry><para>Designates an IPv4 network addresses.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>AF_INET6</code></para></entry>
+	    <entry><para>Designates an IPv6 network addresses.</para></entry>
+	  </row>
+	</tbody>
+      </tgroup>
+    </table>
+
     <para id="X509_VerificationReasons_Hash">The <code>X509_VerificationReasons_Hash</code> is a constant in the Qore namespace that maps verfication code strings (as returned from <link linkend="FtpClient_verifyPeerCertificate">FtpClient::verifyPeerCertificate()</link> and <link linkend="Socket_verifyPeerCertificate">Socket::verifyPeerCertificate()</link>) to textual descriptions.</para>
 
     <table id="X509_VerificationReasons_Hash_Table">

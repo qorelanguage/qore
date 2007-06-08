@@ -1407,18 +1407,34 @@
           </entry>
         </row>
         <row>
-          <entry>
-            <para>
-              <link linkend="gethostname">gethostname()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>String</para>
-          </entry>
+          <entry><para><link linkend="gethostbyaddr">gethostbyaddr()</link></para></entry>
+          <entry><para>String</para></entry>
           <entry><para>N</para></entry>
-          <entry>
-            <para>Returns the hostname of the system</para>
-          </entry>
+          <entry><para>Returns the official hostname corresponding to the network addressed passed</para></entry>
+        </row>
+        <row>
+          <entry><para><link linkend="gethostbyaddr_long">gethostbyaddr_long()</link></para></entry>
+          <entry><para>Hash</para></entry>
+          <entry><para>N</para></entry>
+          <entry><para>Returns all host information corresponding to the network address</para></entry>
+        </row>
+        <row>
+          <entry><para><link linkend="gethostbyname">gethostbyname()</link></para></entry>
+          <entry><para>String</para></entry>
+          <entry><para>N</para></entry>
+          <entry><para>Returns the first network address corresponding to the hostname</para></entry>
+        </row>
+        <row>
+          <entry><para><link linkend="gethostbyname_long">gethostbyname_long()</link></para></entry>
+          <entry><para>Hash</para></entry>
+          <entry><para>N</para></entry>
+          <entry><para>Returns all host information corresponding to the hostname</para></entry>
+        </row>
+        <row>
+          <entry><para><link linkend="gethostname">gethostname()</link></para></entry>
+          <entry><para>String</para></entry>
+          <entry><para>N</para></entry>
+          <entry><para>Returns the hostname of the system</para></entry>
         </row>
 
       <row>
@@ -9501,6 +9517,288 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 
 </sect2>
 
+<sect2 id="gethostbyaddr">
+<title>gethostbyaddr()</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Returns the official hostname corresponding to the network addressed passed as an argument.  If the second argument giving the address type is not passed, then AF_INET (IPv4) is assumed.  See <link linkend="network_address_constants">Network Address Type Constants</link> for valid values for the second argument.  If the address family is invalid or the address string is not a valid address for the given family an exception will be thrown.</para>
+	<para>For a version of this function that returns all host information, including all hostname aliases and all addresses, see <link linkend="gethostbyaddr_long">gethostbyaddr_long()</link>.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+	<programlisting>gethostbyaddr(<replaceable>address, [type]</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$hostname = gethostbyaddr("192.168.0.33");</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+<table><title>Arguments and Return Values for gethostbyaddr()</title>
+<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+
+  <thead>
+  <row>
+    <entry><para>Argument Type</para></entry>
+    <entry><para>Return Type</para></entry>
+    <entry><para>Description</para></entry>
+  </row>
+  </thead>
+
+<tbody>
+  <row>
+    <entry><para><replaceable>address, [type]</replaceable></para></entry>
+    <entry><para>String</para></entry>
+    <entry><para>Returns the hostname of the system or NOTHING if the address is unknown.</para></entry>
+  </row>
+
+</tbody>
+</tgroup>
+</table>
+
+    <table>
+      <title>Exceptions thrown by gethostbyaddr()</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry><para>err</para></entry>
+            <entry><para>desc</para></entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry><para><code>GETHOSTBYADDR-ERROR</code></para></entry>
+            <entry><para>invalid address or invalid address family passed as arguments</para></entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+
+</sect2>
+
+<sect2 id="gethostbyaddr_long">
+  <title>gethostbyaddr_long()</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Returns a hash representing all host and address information corresponding to the network addressed passed as an argument.  See <link linkend="host_information_hash">Host Information Hash</link> for a description of the return value.</para>
+	<para>If the second argument giving the address type is not passed, then AF_INET (IPv4) is assumed.  See <link linkend="network_address_constants">Network Address Type Constants</link> for valid values for the second argument.  If the address family is invalid or the address string is not a valid address for the given family an exception will be thrown.</para>
+	<para>For a version of this function that returns just the official hostname corresponding to the address, see <link linkend="gethostbyaddr">gethostbyaddr()</link>.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+	<programlisting>gethostbyaddr_long(<replaceable>address, [type]</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$hash = gethostbyaddr_long("192.168.0.33");</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+  <table><title>Arguments and Return Values for gethostbyaddr_long()</title>
+  <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+
+    <thead>
+      <row>
+	<entry><para>Argument Type</para></entry>
+	<entry><para>Return Type</para></entry>
+	<entry><para>Description</para></entry>
+      </row>
+    </thead>
+
+    <tbody>
+      <row>
+	<entry><para><replaceable>address, [type]</replaceable></para></entry>
+	<entry><para>Hash</para></entry>
+	<entry><para>Returns a hash representing all host and address information corresponding to the network address passed or NOTHING if the address is unknown.</para></entry>
+      </row>
+
+    </tbody>
+  </tgroup>
+  </table>
+
+  <table id="host_information_hash">
+    <title>Host Information Hash</title>
+    <tgroup cols="2" align="left" colsep="1" rowsep="1">
+      <thead>
+	<row>
+	  <entry><para>Key</para></entry>
+	  <entry><para>Type</para></entry>
+	  <entry><para>Value</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code>name</code></para></entry>
+	  <entry><para>String</para></entry>
+	  <entry><para>The official fully-qualified name of the host</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>aliases</code></para></entry>
+	  <entry><para>List of Strings</para></entry>
+	  <entry><para>Any hostname aliases for the host</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>typename</code></para></entry>
+	  <entry><para>String</para></entry>
+	  <entry><para>The type of network address (either &quot;ipv4&quot; or &quot;ipv6&quot;)</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>type</code></para></entry>
+	  <entry><para>Integer</para></entry>
+	  <entry><para>One of the <link linkend="network_address_constants">Network Address Type Constants</link> (either <code>AF_INET</code> or <code>AF_INET6</code>) corresponding to the type of network addresses given.</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>len</code></para></entry>
+	  <entry><para>Integer</para></entry>
+	  <entry><para>The length of the addresses in bytes when represented in binary form.</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>addresses</code></para></entry>
+	  <entry><para>List of Strings</para></entry>
+	  <entry><para>All addresses corresponding to the host; the list should have at least 1 element</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+
+  <table>
+    <title>Exceptions thrown by gethostbyaddr_long()</title>
+    <tgroup cols="2" align="left" colsep="1" rowsep="1">
+      <thead>
+	<row>
+	  <entry><para>err</para></entry>
+	  <entry><para>desc</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code>GETHOSTBYADDR-ERROR</code></para></entry>
+	  <entry><para>invalid address or invalid address family passed as arguments</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+
+</sect2>
+
+<sect2 id="gethostbyname">
+<title>gethostbyname()</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Returns the first address corresponding to the hostname passed as an argument.</para>
+	<para>For a version of this function that returns all host information, including all hostname aliases and all addresses, see <link linkend="gethostbyname_long">gethostbyname_long()</link>.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+	<programlisting>gethostbyname(<replaceable>hostname</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$addr = gethostbyname("host1");</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+<table><title>Arguments and Return Values for gethostbyname()</title>
+<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+
+  <thead>
+  <row>
+    <entry><para>Argument Type</para></entry>
+    <entry><para>Return Type</para></entry>
+    <entry><para>Description</para></entry>
+  </row>
+  </thead>
+
+<tbody>
+  <row>
+    <entry><para><replaceable>hostname</replaceable></para></entry>
+    <entry><para>String</para></entry>
+    <entry><para>Returns the first address corresponding to the hostname passed or NOTHING if the host is unknown.</para></entry>
+  </row>
+
+</tbody>
+</tgroup>
+</table>
+
+<para>This function does not throw any exceptions.</para>
+
+</sect2>
+
+<sect2 id="gethostbyname_long">
+  <title>gethostbyname_long()</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Returns a hash representing all host and address information corresponding to the hostname passed as an argument.  See <link linkend="host_information_hash">Host Information Hash</link> for a description of the return value.</para>
+	<para>For a version of this function that returns just the first network address corresponding to the hostname, see <link linkend="gethostbyname">gethostbyname()</link>.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+	<programlisting>gethostbyname_long(<replaceable>hostname</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$hash = gethostbyname_long("host1");</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+  <table><title>Arguments and Return Values for gethostbyname_long()</title>
+  <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+
+    <thead>
+      <row>
+	<entry><para>Argument Type</para></entry>
+	<entry><para>Return Type</para></entry>
+	<entry><para>Description</para></entry>
+      </row>
+    </thead>
+
+    <tbody>
+      <row>
+	<entry><para><replaceable>hostname</replaceable></para></entry>
+	<entry><para>Hash</para></entry>
+	<entry><para>Returns a <link linkend="host_information_hash">hash</link> representing all host and address information corresponding to the hostname passed or NOTHING if the host is unknown.</para></entry>
+      </row>
+
+    </tbody>
+  </tgroup>
+  </table>
+
+  <para>This function does not throw any exceptions.</para>
+
+</sect2>
+
 <sect2 id="gethostname">
 <title>gethostname()</title>
 
@@ -9857,24 +10155,14 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <tgroup cols="2" align="left" colsep="1" rowsep="1">
         <thead>
           <row>
-            <entry>
-              <para>err</para>
-            </entry>
-            <entry>
-              <para>desc</para>
-            </entry>
+            <entry><para>err</para></entry>
+            <entry><para>desc</para></entry>
           </row>
         </thead>
         <tbody>
           <row>
-            <entry>
-              <para>
-                <code>SETEGID-ERROR</code>
-              </para>
-            </entry>
-            <entry>
-              <para>missing EGID argument to function</para>
-            </entry>
+            <entry><para><code>SETEGID-ERROR</code></para></entry>
+            <entry><para>missing EGID argument to function</para></entry>
           </row>
         </tbody>
       </tgroup>

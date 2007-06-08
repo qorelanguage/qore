@@ -632,8 +632,8 @@ static class QoreNode *f_gethostbyname(class QoreNode *params, ExceptionSink *xs
    if (!p)
       return NULL;
 
-   class Hash *h = q_gethostbyname_to_hash(p->val.String->getBuffer());
-   return h ? new QoreNode(h) : 0;
+   class QoreString *h = q_gethostbyname_to_string(p->val.String->getBuffer());
+   return str ? new QoreNode(str) : 0;
 }
 
 static class QoreNode *f_gethostbyaddr(class QoreNode *params, ExceptionSink *xsink)
@@ -646,7 +646,31 @@ static class QoreNode *f_gethostbyaddr(class QoreNode *params, ExceptionSink *xs
    int type = p1 ? p1->getAsInt() : 0;
    if (!type) type = AF_INET;
 
-   class Hash *h = q_gethostbyaddr_to_hash(p0->val.String->getBuffer(), type);
+   class QoreString *str = q_gethostbyaddr_to_string(xsink, p0->val.String->getBuffer(), type);
+   return str ? new QoreNode(str) : 0;
+}
+
+static class QoreNode *f_gethostbyname_long(class QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = test_param(params, NT_STRING, 0);
+   if (!p)
+      return NULL;
+
+   class Hash *h = q_gethostbyname_to_hash(p->val.String->getBuffer());
+   return h ? new QoreNode(h) : 0;
+}
+
+static class QoreNode *f_gethostbyaddr_long(class QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p0 = test_param(params, NT_STRING, 0);
+   if (!p0)
+      return NULL;
+
+   QoreNode *p1 = get_param(params, 1);
+   int type = p1 ? p1->getAsInt() : 0;
+   if (!type) type = AF_INET;
+
+   class Hash *h = q_gethostbyaddr_to_hash(xsink, p0->val.String->getBuffer(), type);
    return h ? new QoreNode(h) : 0;
 }
 
@@ -730,8 +754,10 @@ void init_lib_functions()
 #ifdef HAVE_SETEGID
    builtinFunctions.add("setegid",     f_setegid);
 #endif
-   builtinFunctions.add("gethostbyname",  f_gethostbyname);
-   builtinFunctions.add("gethostbyaddr",  f_gethostbyaddr);
+   builtinFunctions.add("gethostbyname",       f_gethostbyname);
+   builtinFunctions.add("gethostbyaddr",       f_gethostbyaddr);
+   builtinFunctions.add("gethostbyname_long",  f_gethostbyname_long);
+   builtinFunctions.add("gethostbyaddr_long",  f_gethostbyaddr_long);
 
 #ifdef DEBUG
    builtinFunctions.add("runQoreTests", runQoreTests);

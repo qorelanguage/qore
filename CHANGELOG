@@ -1,3 +1,10 @@
+2006.06.08: David Nichols
+	* renamed gethostbyname() -> gethostbyname_long() and gethostbyaddr() ->
+	  gethostbyaddr_long() and implemented gethostbybname() and 
+	  gethostbyaddr() to just return a single string for the first address
+	  and the official hostname, respectively
+	* added documentation for new gethostby*() functions
+
 2006.06.07: David Nichols
 	* implemented gethostbyname() and gethostbyaddr() functions returning a
 	  hash of all hostent information
