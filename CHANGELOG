@@ -4,6 +4,8 @@
 	  gethostbyaddr() to just return a single string for the first address
 	  and the official hostname, respectively
 	* added documentation for new gethostby*() functions
+	* updated existsFunction() to always return True if the argument is a
+	  call reference
 
 2006.06.07: David Nichols
 	* implemented gethostbyname() and gethostbyaddr() functions returning a

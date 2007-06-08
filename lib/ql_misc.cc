@@ -123,9 +123,12 @@ static class QoreNode *f_call_function_args(class QoreNode *params, ExceptionSin
 
 static class QoreNode *f_existsFunction(class QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0;
-   if (!(p0 = test_param(params, NT_STRING, 0)))
-      return NULL;
+   QoreNode *p0 = get_param(params, 0);
+   // always return true if the argument is a call reference
+   if (p0 && p0->type == NT_FUNCREF)
+      return boolean_true();
+   if (!p0 || p0->type != NT_STRING)
+      return 0;
 
    if (getProgram()->existsFunction(p0->val.String->getBuffer()))
       return boolean_true();

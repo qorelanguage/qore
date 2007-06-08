@@ -14,6 +14,7 @@ RELEASE SUMMARY: major new features (see compatibility warnings below)
  	*) mysql and oracle driver improvements
 	*) extensive enhancements for exception-safe programming (on_exit, on_error, on_success statements, new classes, etc)
 	*) significant performance improvements
+	*) tibae module improvements
 	*) many new functions and methods, bug fixes, extensive documentation updates, etc
 
 *) ***COMPATIBILITY WARNING***: all timeouts changed to milliseconds
@@ -209,14 +210,16 @@ This affects:
 	Gate::enter()
 	RWLock::writeLock()
 	RWLock::readLock()
-
-	...
+	Condition::wait()
+	Counter::waitForZero()
+	Queue::get()
+	Queue::pop()
 
 It's recommended to use a relative time value to make the units clear, i.e
 	$m = new Mutex();
 	if ($m.lock(250ms))
 	{
-	    # lock not grabbed...
+	    # lock not grabbed due to timeout...
 	}
 
 *) threading errors cause exceptions to be thrown
@@ -283,6 +286,10 @@ This ensures that values will be set properly even for databases such as Postgre
 	- remove_signal_handler()  - removes a signal handler
 	- load_module()            - loads a module at run time
 	- regex_extract()          - extracts patterns from a string based on a regular expression given at run time
+	- gethostbyaddr()          - returns the fully qualified hostname for the given network address
+	- gethostbyaddr_long()     - returns a hash of all host information (all names, addresses, etc) for the given network address
+	- gethostbyname()          - returns the first network address for the given host name
+	- gethostbyname_long()     - returns a hash of all host information (all names, addresses, etc) for the given host name
 
 *) new File class methods for reading unsigned integer values and for handling 64-bit integers
 	File::readu1()
