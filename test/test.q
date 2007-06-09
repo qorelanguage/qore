@@ -304,6 +304,8 @@ sub hash_tests()
     test_value($b, ( "key" : 3, "unique" : 100 ), "hash minus operator"); 
     $b -= "unique";
     test_value($b, ( "key" : 3 ), "hash minus-equals operator"); 
+    my $nh += ( "new-hash" : 1 );
+    test_value($nh, ( "new-hash" : 1 ), "hash plus-equals, lhs NOTHING");
 }
 
 sub global_variable_testa()
@@ -375,6 +377,17 @@ sub local_operator_test()
     test_value($a, 2004-02-29-12:00:00, "first date += operator");
     $a -= (3h + 5m);
     test_value($a, 2004-02-29-08:55:00, "second date += operator");
+    my $ni += 3.2;
+    test_value($ni, 3.2, "float +=, lhs NOTHING");
+    delete $ni;
+    $ni += "hello";
+    test_value($ni, "hello", "string +=, lhs NOTHING");
+    delete $ni;
+    $ni -= 4.5;
+    test_value($ni, -4.5, "float -=, lhs NOTHING");
+    delete $ni;
+    $ni -= 4;
+    test_value($ni, -4, "integer -=, lhs NOTHING");
     # array and hash tests in separate functions
 }
 

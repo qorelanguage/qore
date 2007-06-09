@@ -1066,6 +1066,17 @@ static class QoreNode *op_plus_equals(class QoreNode *left, class QoreNode *righ
       if (rd)
 	 new_right->deref(xsink);
    }
+   else if (is_nothing(*v))
+   {
+      if (*v)
+	 (*v)->deref(xsink); // exception not possible here
+      // assign rhs to lhs (take reference for assignment)
+      *v = new_right;
+      if (rd)
+	 rd = false;
+      else
+	 new_right->ref();
+   }
    else // do integer plus-equals
    {
       // get new value if necessary
@@ -1165,22 +1176,35 @@ static class QoreNode *op_minus_equals(class QoreNode *left, class QoreNode *rig
    }
    else // do integer minus-equals
    {
-      // get new value if necessary
-      if (!(*v))
-	 (*v) = new QoreNode((int64)0);
-      else 
+      if (new_right->type == NT_FLOAT)
       {
-	 if ((*v)->type != NT_INT)
-	 {
-	    class QoreNode *n = (*v)->convert(NT_INT);
+	 // we know the lhs type is not NT_FLOAT already
+	 // dereferency any current value
+	 if (*v)
 	    (*v)->deref(xsink);
-	    (*v) = n;
-	 }
-	 ensure_unique(v, xsink);
-      }
 
-      // increment current value
-      (*v)->val.intval -= new_right->getAsBigInt();
+	 // assign negative argument
+	 (*v) = new QoreNode(-new_right->getAsFloat());
+      }
+      else
+      {
+	 // get new value if necessary
+	 if (!(*v))
+	    (*v) = new QoreNode((int64)0);
+	 else 
+	 {
+	    if ((*v)->type != NT_INT)
+	    {
+	       class QoreNode *n = (*v)->convert(NT_INT);
+	       (*v)->deref(xsink);
+	       (*v) = n;
+	    }
+	    ensure_unique(v, xsink);
+	 }
+	 
+	 // increment current value
+	 (*v)->val.intval -= new_right->getAsBigInt();	 
+      }
    }
    if (rd) new_right->deref(xsink);
 

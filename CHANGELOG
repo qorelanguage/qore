@@ -1,3 +1,8 @@
+2006.06.09: David Nichols
+	* fixed += and -= cases when the left-hand-side is NOTHING to take the
+	  type of the right-hand-side (i.e. my $str += "hello" will now work as
+	  expected (before would prodice $str = 0)
+
 2006.06.08: David Nichols
 	* renamed gethostbyname() -> gethostbyname_long() and gethostbyaddr() ->
 	  gethostbyaddr_long() and implemented gethostbybname() and 
