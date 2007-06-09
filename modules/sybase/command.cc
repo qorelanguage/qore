@@ -636,7 +636,7 @@ class QoreNode *command::get_node(const CS_DATAFMT& datafmt, const output_value_
 	    || datafmt.datatype == CS_LONGCHAR_TYPE
 #endif
 	   )
-	   s->trim_trailing_blanks();
+	   s->trim_trailing(' '); // remove trailing blanks
 	//printd(5, "name=%s vlen=%d strlen=%d len=%d str='%s'\n", datafmt.name, buffer.value_len, s->strlen(), s->length(), s->getBuffer());
 	return new QoreNode(s);
 	break;

@@ -419,7 +419,7 @@
           <entry><para><link linkend="chomp">chomp()</link></para></entry>
           <entry><para>String</para></entry>
           <entry><para>N</para></entry>
-          <entry><para>Removes the trailing end-of-line indicator from a string and returns the new string (also see the <link linkend="Chomp_Operator">chomp</link> operator).</para></entry>
+          <entry><para>Removes the trailing end-of-line indicator from a string and returns the new string (also see the <link linkend="Chomp_Operator">chomp</link> operator); also accepts variable references to do modifications in-place.</para></entry>
         </row>
         <row>
           <entry><para><link linkend="chr">chr()</link></para></entry>
@@ -3713,6 +3713,12 @@
           <entry>
             <para>Converts a string to all uppercase</para>
           </entry>
+        </row>
+        <row>
+          <entry><para><link linkend="trim">trim()</link></para></entry>
+          <entry><para>String</para></entry>
+          <entry><para>N</para></entry>
+          <entry><para>Removes the characters from a string (whiltespace by default, can be overridden) and returns the new string (also see the <link linkend="Trim_Operator">trim</link> operator); also accepts variable references to do modifications in-place.</para></entry>
         </row>
         <row>
           <entry>
@@ -8137,7 +8143,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Removes the trailing end-of-line indicator ('\n' or '\r\n') from a string and returns the new string (also see the <link linkend="Chomp_Operator">chomp operator</link>).  If no EOL indicator is present in the string, this function simply returns the original string unmodified.</para>
+	<para>Removes the trailing end-of-line indicator ('\n' or '\r\n') from a string and returns the new string (also see the <link linkend="Chomp_Operator">chomp operator</link>).  If no EOL indicator is present in the string, this function simply returns the original string unmodified.  This function accepts variable references, in which case it will modify the string in place and also return the modified string.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -8168,7 +8174,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
             <row>
 	      <entry><para>String</para></entry>
               <entry><para>String</para></entry>
-              <entry><para>Returns the new string with any end-of-line character(s) removed.</para></entry>
+              <entry><para>Returns the new string with any end-of-line character(s) removed; if the first argument is a variable reference, then the string is modified in place and the new string is also returned.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -9052,6 +9058,55 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 </tgroup>
 </table>
   <para>This function does not throw any exceptions.</para>
+</sect2>
+
+<sect2 id="trim">
+<title>trim()</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Removes characters from the start and end of a string and returns the new string (also see the <link linkend="Trim_Operator">trim operator</link>).  This function accepts variable references, in which case it will modify the string in place and also return the modified string.</para>
+	<para>By default the following whitespace characters are removed: ' ', '\n', '\r', '\t', '\v' (vertical tab, ASCII 11), and '\0' (null character).  To trim other character, pass a string as the second argument specifying the characters to be removed.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+	<programlisting>trim(<replaceable>string, [chars_to_trim]</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$line = trim("   hello  \n"); # returns "hello"</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+      <table>
+        <title>Arguments and Return Values for trim()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry><para>Argument Type</para></entry>
+              <entry><para>Return Type</para></entry>
+              <entry><para>Description</para></entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+	      <entry><para>String, [String]</para></entry>
+              <entry><para>String</para></entry>
+              <entry><para>Returns the new string with characters removed from the beginning and end of the string; if the first argument is a variable reference, then the string is modified in place and the new string is also returned.</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+
+  <para>This function does not throw any exceptions.</para>
+
 </sect2>
 
 </sect1>

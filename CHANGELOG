@@ -2,6 +2,18 @@
 	* fixed += and -= cases when the left-hand-side is NOTHING to take the
 	  type of the right-hand-side (i.e. my $str += "hello" will now work as
 	  expected (before would prodice $str = 0)
+	* implemented trim() function, accepting optional string designating
+	  characters to trim from the front and back of the string.  Default 
+	  characters to trim are ' ', '\n', '\r', '\t', '\v' (vertical tab, 
+	  ASCII 11), and '\0' (null character) - same as PHP's trim() function
+	* trim() and chomp() accept references to modify the variable reference
+	  in place
+	* implemented trim operator
+	* implemented scanner support for vertical tab escape '\v'
+	* updated documentation for chomp(), added documentation for the new 
+	  trim operator and the trim() function
+	* added tests for trim and chomp() with variable references to
+	  test/test.q
 
 2006.06.08: David Nichols
 	* renamed gethostbyname() -> gethostbyname_long() and gethostbyaddr() ->

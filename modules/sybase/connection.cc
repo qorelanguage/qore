@@ -349,7 +349,7 @@ int connection::purge_messages(class ExceptionSink *xsink)
 	 if (smsg.line)
 	    desc->sprintf("line %d, ", smsg.line);
 	 desc->sprintf("severity %d: %s", smsg.severity, smsg.text);
-	 desc->trim_trailing_newlines();
+	 desc->trim_trailing('\n');
 	 xsink->raiseException("DBI:SYBASE:SERVER-ERROR", desc);
 	 rc = -1;
       }
@@ -392,7 +392,7 @@ int connection::do_exception(class ExceptionSink *xsink, const char *err, const 
       if (count)
 	 estr->concat(", ");
       estr->sprintf("client message %d: severity %d: %s", CS_NUMBER(cmsg.msgnumber), severity, cmsg.msgstring);
-      estr->trim_trailing_char('.');
+      estr->trim_trailing('.');
       if (cmsg.osstringlen > 0)
 	 estr->sprintf(", OS error: %s", cmsg.osstring);
       count++;
@@ -413,8 +413,7 @@ int connection::do_exception(class ExceptionSink *xsink, const char *err, const 
       if (smsg.line)
 	 estr->sprintf("line %d, ", smsg.line);
       estr->sprintf("severity %d: %s", smsg.severity, smsg.text);
-      estr->trim_trailing_newlines();
-      estr->trim_trailing_char('.');
+      estr->trim_trailing("\n.");
       ++count;
    }
    ret = ct_diag(m_connection, CS_CLEAR, CS_ALLMSG_TYPE, CS_UNUSED, 0);
@@ -500,11 +499,10 @@ class QoreNode *connection::get_server_version(class ExceptionSink *xsink)
    QoreNode *rv = hi.takeValueAndDelete();
    res->deref(xsink);
    if (rv && rv->type == NT_STRING)
-      rv->val.String->trim_trailing_newlines();
+      rv->val.String->trim_trailing('\n');
    
    return rv;
 }
-
 
 #ifdef DEBUG
 #  include "tests/connection_tests.cc"

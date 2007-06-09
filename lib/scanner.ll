@@ -424,6 +424,7 @@ BINARY          <({HEX_DIGIT}{HEX_DIGIT})+>
       \\r				yylval->String->concat('\r');
       \\b				yylval->String->concat('\b');
       \\f				yylval->String->concat('\f');
+      \\v				yylval->String->concat('\v');
       \\.				yylval->String->concat(yytext[1]);
       \\\n                              yylval->String->concat('\n');
       [^\\\n\"]+			{
@@ -608,10 +609,12 @@ pop                                     return TOK_POP;
 splice                                  return TOK_SPLICE;
 instanceof                              return TOK_INSTANCEOF;
 chomp					return TOK_CHOMP;
+trim					return TOK_TRIM;
 on_exit 		 		return TOK_ON_EXIT;
 on_success				return TOK_ON_SUCCESS;
 on_error 				return TOK_ON_ERROR;
 chomp\(                                 yylval->string = strdup("chomp"); return KW_IDENTIFIER_OPENPAREN;
+trim\(                                  yylval->string = strdup("trim"); return KW_IDENTIFIER_OPENPAREN;
 push\(                                  yylval->string = strdup("push"); return KW_IDENTIFIER_OPENPAREN;
 pop\(                                   yylval->string = strdup("pop"); return KW_IDENTIFIER_OPENPAREN;
 splice\(                                yylval->string = strdup("splice"); return KW_IDENTIFIER_OPENPAREN;

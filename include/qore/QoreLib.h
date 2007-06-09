@@ -55,6 +55,7 @@ DLLEXPORT char *q_basenameptr(const char *path);
 DLLEXPORT char *q_dirname(const char *path);
 DLLEXPORT void qore_setup_argv(int pos, int argc, char *argv[]);
 
+// find one of any characters in a string
 static inline char *strchrs(const char *str, const char *chars)
 {
    while (*str)
@@ -63,7 +64,20 @@ static inline char *strchrs(const char *str, const char *chars)
 	 return (char *)str;
       str++;
    }
-   return NULL;
+   return 0;
+}
+
+// find a character in a string up to len
+static inline char *strnchr(const char *str, int len, char c)
+{
+   int i = 0;
+   while (i++ != len)
+   {
+      if (*str == c)
+	 return (char *)str;
+      ++str;
+   }
+   return 0;
 }
 
 static inline void strtolower(char *str)

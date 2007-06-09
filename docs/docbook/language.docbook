@@ -976,6 +976,12 @@ $call_ref = $object.method_name();</programlisting>
     <entry><code><command>chomp</command> $string</code></entry>
   </row>
   <row>
+    <entry><para><command>trim</command></para></entry>
+    <entry><para>7</para></entry>
+    <entry><para><link linkend='Trim_Operator'>trim characters operator</link></para></entry>
+    <entry><code><command>trim</command> $string</code></entry>
+  </row>
+  <row>
     <entry><para><command>elements</command></para></entry>
     <entry><para>8</para></entry>
     <entry><para><link linkend='Elements_Operator'>number of elements operator (list, hash, string, binary)</link></para></entry>
@@ -2159,6 +2165,63 @@ $call_ref = $object.method_name();</programlisting>
 	<row>
 	  <entry><para><replaceable>lvalue</replaceable>: Hash</para></entry>
 	  <entry><para>Removes any EOL characters from each hash key's value (where the value is a string) and returns the number of characters removed.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+
+  <para>This operator does not throw any exceptions.</para>
+
+</sect2>
+
+<sect2 id="Trim_Operator">
+  <title>Trim Operator (trim)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Removes whitespace characters from the beginning and end of a string, or each string element in a list, or each hash key value in a hash (if the value is a string) and returns the value processed (string, list, or hash).</para>
+	<para>To perform this operation on a non-lvalue expression, see the <link linkend="trim">trim() function</link>.</para>
+	<para>The following whitespace characters are removed from the beginning and end of strings: ' ', '\n', '\r', '\t', '\v' (vertical tab, ASCII 11), and '\0' (null character).</para>  
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><command>trim</command> <replaceable>lvalue</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting><command>trim</command> $str;</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+  <table>
+    <title>Arguments Processed By trim</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument</para></entry>
+	  <entry><para>Processing</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><replaceable>lvalue</replaceable>: String</para></entry>
+	  <entry><para>Removes whitespace characters from the beginning and end of a string and returns the value processed.</para></entry>
+	</row>
+	<row>
+	  <entry><para><replaceable>lvalue</replaceable>: List</para></entry>
+	  <entry><para>Removes whitespace characters from the beginning and end of each string element of the list passed and returns the list.</para></entry>
+	</row>
+	<row>
+	  <entry><para><replaceable>lvalue</replaceable>: Hash</para></entry>
+	  <entry><para>Removes whitespace characters from the beginning and end of each string value of the hash passed and returns the hash.</para></entry>
 	</row>
       </tbody>
     </tgroup>
@@ -4069,7 +4132,7 @@ $call_ref = $object.method_name();</programlisting>
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Increments and concatentates an lvalue with the value of an expression depending on the data type of the lvalue.</para>
+	<para>Increments and concatentates an lvalue with the value of an expression depending on the data type of the lvalue, unless the lvalue is NOTHING, in which case this operator acts like the assignment operator (simply assigns the value of the right hand side to the lvalue).</para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -4110,6 +4173,10 @@ $call_ref = $object.method_name();</programlisting>
       <row>
 	<entry><para><replaceable>lvalue</replaceable>: Float</para></entry>
 	<entry><para>the expression will be evaluated and converted to a float if necessary and added to the lvalue.</para></entry>
+      </row>
+      <row>
+	<entry><para><replaceable>lvalue</replaceable>: NOTHING</para></entry>
+	<entry><para>the lvalue will be assigned to the value of <replaceable>expression</replaceable>.</para></entry>
       </row>
       <row>
 	<entry><para><replaceable>lvalue</replaceable>: all others</para></entry>
@@ -4160,6 +4227,10 @@ $call_ref = $object.method_name();</programlisting>
       <row>
 	<entry><para><replaceable>lvalue</replaceable>: Hash, <replaceable>expression</replaceable>: String</para></entry>
 	<entry><para>the hash key represented by <replaceable>expression</replaceable> will be removed from the lvalue</para></entry>
+      </row>
+      <row>
+	<entry><para><replaceable>lvalue</replaceable>: NOTHING, <replaceable>expression</replaceable>: Float</para></entry>
+	<entry><para>the lvalue will be assigned to -<replaceable>expression</replaceable></para></entry>
       </row>
       <row>
 	<entry><para><replaceable>lvalue</replaceable>: all others</para></entry>

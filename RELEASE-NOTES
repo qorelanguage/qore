@@ -290,6 +290,10 @@ This ensures that values will be set properly even for databases such as Postgre
 	- gethostbyaddr_long()     - returns a hash of all host information (all names, addresses, etc) for the given network address
 	- gethostbyname()          - returns the first network address for the given host name
 	- gethostbyname_long()     - returns a hash of all host information (all names, addresses, etc) for the given host name
+	- trim()                   - removes characters from the front and end of a string, by default whitespace characters, accepts references
+
+modified functions:
+	- chomp()                  - was modified to accept variable references to chomp in place (as an alternative to the chomp operator) 
 
 *) new File class methods for reading unsigned integer values and for handling 64-bit integers
 	File::readu1()
@@ -349,6 +353,15 @@ i.e.:
 	    case /abc/:
 	    case /^hello[1-9]*/:
 	}
+
+*) += and -= operators updated to work more naturally when the lvalue is NOTHING
+now += and -= use the right-hand-side's type when assigning to the lvalue if the lvalue is NOTHING, i.e. the following is now possible:
+
+	my $str += "hello";                  # assigns "hello" to $str
+	my $hash += ( "new-key" : "value" ); # assigns ( "new-key" : "value" ) to $hash
+	my $float -= -4.5;                   # assigns -4.5 to $float
+
+before this change $str and $hash would be = 0 and $float would be = -4.  This means that it's no longer necessary to assign a type to a variable before using the += and -= operators; they will behave more intuitively in these cases. 
 
 *) "reference optimization" for temporary objects disabled on platforms where atomic reference operations are not available (Sparc, PA-RISC)
 This optiimzation, designed to reduce the number of cache invalidations in SMP environments, leads to a race condition on platforms requiring a mutex lock for atomic reference operations.

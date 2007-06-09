@@ -1,13 +1,12 @@
 see docs/roadmap.html
 
-* implement a way to declare public class members
+* implement a way to declare public class members (so typos with class members can be caught)
 * update QoreString::trim*() functions to trim all whitespace, and not just blanks, with an optional character array giving the character to trim
 * implement a way to modify table names in queries (support table name prefixes, for example)
 * implement default argument values
 * update round() to allow the specification of significant digits
 * implement support for builtin methodGate methods, custom DBI Datasource method extensions
 * implement public_instanceof operator
-* fix +=, -= to use the rhs type if the lhs is NOTHING
 * implement -,-= with hash, list of strings to remove lists of hash keys
 * Implement auto-reconnect for mssql and other drivers (mysql has it already)
 * implement a mechanism for a thread to sleep until another thread terminates (join)
@@ -31,6 +30,7 @@ docs:
 * document optimizations
 
 done:
+* fix +=, -= to use the rhs type if the lhs is NOTHING
 * fix signal thread to be a special thread with a special thread list entry
 * fix %d Datasource specifier to work with floats
 * do block allocations of per-thread local variable slots for performance reasons

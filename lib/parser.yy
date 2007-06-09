@@ -590,6 +590,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str)
 %token TOK_POP "pop"
 %token TOK_SHIFT "shift"
 %token TOK_CHOMP "chomp"
+%token TOK_TRIM "trim"
 %token LOGICAL_AND "&& operator"
 %token LOGICAL_OR "|| operator"
 %token LOGICAL_EQ "== operator"
@@ -651,7 +652,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str)
 %left '%'		      // modula
 %left '*' '/'		      // arithmetic multiply and divide
 %right TOK_ELEMENTS TOK_KEYS
-%nonassoc TOK_SHIFT TOK_POP TOK_CHOMP
+%nonassoc TOK_SHIFT TOK_POP TOK_CHOMP TOK_TRIM
 %left NEG		      // unary minus, defined for precedence
 %right '~' '\\'               // binary not, reference operator
 %left '!'		      // logical not
@@ -1704,11 +1705,21 @@ exp:    scalar
 	{
 	   if (check_lvalue($2))
 	   {
-	      parse_error("argument to chomp operator is not an lvalue");
+	      parse_error("argument to chomp operator is not an lvalue (use the chomp() function instead)");
 	      $$ = makeErrorTree(OP_CHOMP, $2, NULL); 
 	   }
 	   else
 	      $$ = makeTree(OP_CHOMP, $2, NULL); 
+	}
+	| TOK_TRIM exp
+	{
+	   if (check_lvalue($2))
+	   {
+	      parse_error("argument to trim operator is not an lvalue (use the trim() function instead)");
+	      $$ = makeErrorTree(OP_TRIM, $2, NULL); 
+	   }
+	   else
+	      $$ = makeTree(OP_TRIM, $2, NULL); 
 	}
         | TOK_SPLICE exp  // splice lvalue-list, offset, [length, list]
         {

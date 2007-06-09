@@ -1028,6 +1028,23 @@ sub string_tests()
     my $h = ( "key1" : "hello\n", "key2" : 2045, "key3": "test\r\n", "key4" : 302.223 );
     chomp $h;
     test_value($h, ( "key1" : "hello", "key2" : 2045, "key3": "test", "key4" : 302.223 ), "hash chomp");
+    $str = "hello\n";
+    chomp(\$str);
+    test_value($str, "hello", "string reference chomp()");
+    $str = "  \t\n  hello  \n   \r \t \0 ";
+    trim $str;
+    test_value($str, "hello", "trim string operator test");
+    $str = "  \t\n  hello  \n   \r \t \0 ";
+    trim(\$str);
+    test_value($str, "hello", "trim string reference test");
+
+    $l = ( 1, "   \r \t hello  \n  \r \v \t", 3.0, True, "    test\r\n  " );
+    trim $l;
+    test_value($l, ( 1, "hello", 3.0, True, "test" ), "list trim");
+
+    $h = ( "key1" : "    hello\n \r  ", "key2" : 2045, "key3": "     test\r   \n \t\v   ", "key4" : 302.223 );
+    trim $h;
+    test_value($h, ( "key1" : "hello", "key2" : 2045, "key3": "test", "key4" : 302.223 ), "hash trim");    
 }
 
 sub pwd_tests()

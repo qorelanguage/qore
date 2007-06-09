@@ -41,6 +41,9 @@
 #define STR_CLASS_BLOCK 80
 #define STR_CLASS_EXTRA 40
 
+// to be used for trim
+static char default_whitespace[] = { ' ', '\t', '\n', '\r', '\v', '\0' };
+
 const struct code_table QoreString::html_codes[] = 
 { { '&', "&amp;", 5 },
   { '<', "&lt;", 4 },
@@ -1610,34 +1613,8 @@ class QoreString *QoreString::reverse() const
    return str;
 }
 
-// remove all trailing newlines (chomp removes only one)
-void QoreString::trim_trailing_newlines()
-{
-   if (!len)
-      return;
-   
-   char *p = buf + len - 1;
-   while (p >= buf && (*p) == '\n')
-      --p;
-
-   terminate(p + 1 - buf);
-}
-
-// remove trailing blanks
-void QoreString::trim_trailing_blanks()
-{
-   if (!len)
-      return;
-   
-   char *p = buf + len - 1;
-   while (p >= buf && (*p) == ' ')
-      --p;
-   
-   terminate(p + 1 - buf);
-}
-
 // remove trailing char
-void QoreString::trim_trailing_char(char c)
+void QoreString::trim_trailing(char c)
 {
    if (!len)
       return;
@@ -1649,14 +1626,14 @@ void QoreString::trim_trailing_char(char c)
    terminate(p + 1 - buf);
 }
 
-// remove leading blanks
-void QoreString::trim_leading_blanks()
+// remove leading char
+void QoreString::trim_leading(char c)
 {
    if (!len)
       return;
    
    int i = 0;
-   while (i < len && buf[i] == ' ')
+   while (i < len && buf[i] == c)
       ++i;
    if (!i)
       return;
@@ -1665,10 +1642,53 @@ void QoreString::trim_leading_blanks()
    len -= i;
 }
 
-// remove leading and trailing blanks
-void QoreString::trim()
+// remove leading and trailing char
+void QoreString::trim(char c)
 {
-   trim_trailing_blanks();
-   trim_leading_blanks();
+   trim_trailing(c);
+   trim_leading(c);
 }
 
+// remove trailing chars
+void QoreString::trim_trailing(const char *chars)
+{
+   if (!len)
+      return;
+
+   char *p = buf + len - 1;
+   if (!chars) // use an alternate path here so we can check for embedded nulls as well
+      while (p >= buf && strnchr(default_whitespace, sizeof(default_whitespace), *p))
+	 --p;
+   else
+      while (p >= buf && strchr(chars, *p))
+	 --p;
+
+   terminate(p + 1 - buf);
+}
+
+// remove leading char
+void QoreString::trim_leading(const char *chars)
+{
+   if (!len)
+      return;
+   
+   int i = 0;
+   if (!chars) 
+      while (i < len && strnchr(default_whitespace, sizeof(default_whitespace), buf[i]))
+	 ++i;
+   else
+      while (i < len && strchr(chars, buf[i]))
+	 ++i;
+   if (!i)
+      return;
+   
+   memmove(buf, buf + i, len + 1 - i);
+   len -= i;
+}
+
+// remove leading and trailing blanks
+void QoreString::trim(const char *chars)
+{
+   trim_trailing(chars);
+   trim_leading(chars);
+}

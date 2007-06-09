@@ -645,12 +645,66 @@ static class QoreNode *f_join(class QoreNode *params, ExceptionSink *xsink)
 
 static class QoreNode *f_chomp(class QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p = test_param(params, NT_STRING, 0);
+   class QoreNode *p = get_param(params, 0);   
    if (!p)
-      return NULL;
-   class QoreString *str = p->val.String->copy();
-   str->chomp();
-   return new QoreNode(str);
+      return 0;
+
+   if (p->type == NT_STRING)
+   {
+      class QoreString *str = p->val.String->copy();
+      str->chomp();
+      return new QoreNode(str);
+   }
+   else if (p->type == NT_REFERENCE)
+   {
+      class AutoVLock vl;
+      class QoreNode **vp = get_var_value_ptr(p->val.lvexp, &vl, xsink);
+      if (*xsink || !(*vp) || (*vp)->type != NT_STRING)
+	 return 0;
+      if (!(*vp)->is_unique())
+      {
+	 QoreNode *old = *vp;
+	 (*vp) = old->realCopy(xsink); // exception is not possible here because it's a string
+	 old->deref(xsink);           // nor here
+      }
+      (*vp)->val.String->chomp();
+      (*vp)->ref();
+      return *vp;
+   }
+   return 0;
+}
+
+static class QoreNode *f_trim(class QoreNode *params, ExceptionSink *xsink)
+{
+   class QoreNode *p0 = get_param(params, 0);   
+   if (!p0)
+      return 0;
+   class QoreNode *p1 = test_param(params, NT_STRING, 1);
+   const char *chars = p1 ? p1->val.String->getBuffer() : 0;
+
+   if (p0->type == NT_STRING)
+   {
+      class QoreString *str = p0->val.String->copy();
+      str->trim(chars);
+      return new QoreNode(str);
+   }
+   else if (p0->type == NT_REFERENCE)
+   {
+      class AutoVLock vl;
+      class QoreNode **vp = get_var_value_ptr(p0->val.lvexp, &vl, xsink);
+      if (*xsink || !(*vp) || (*vp)->type != NT_STRING)
+	 return 0;
+      if (!(*vp)->is_unique())
+      {
+	 QoreNode *old = *vp;
+	 (*vp) = old->realCopy(xsink); // exception is not possible here because it's a string
+	 old->deref(xsink);           // nor here
+      }
+      (*vp)->val.String->trim(chars);
+      (*vp)->ref();
+      return *vp;
+   }
+   return 0;
 }
 
 void init_string_functions()
@@ -675,4 +729,5 @@ void init_string_functions()
    builtinFunctions.add("replace", f_replace);
    builtinFunctions.add("join", f_join);
    builtinFunctions.add("chomp", f_chomp);
+   builtinFunctions.add("trim", f_trim);
 }

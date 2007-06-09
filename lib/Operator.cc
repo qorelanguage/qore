@@ -50,7 +50,7 @@ class Operator *OP_ASSIGNMENT, *OP_MODULA,
    *OP_UNSHIFT, *OP_REGEX_SUBST, *OP_LIST_ASSIGNMENT, *OP_SPLICE, *OP_MODULA_EQUALS, 
    *OP_MULTIPLY_EQUALS, *OP_DIVIDE_EQUALS, *OP_XOR_EQUALS, *OP_SHIFT_LEFT_EQUALS, 
    *OP_SHIFT_RIGHT_EQUALS, *OP_REGEX_TRANS, *OP_REGEX_EXTRACT, 
-   *OP_CHOMP, *OP_LOG_AND, *OP_LOG_OR, *OP_LOG_LT, 
+   *OP_CHOMP, *OP_TRIM, *OP_LOG_AND, *OP_LOG_OR, *OP_LOG_LT, 
    *OP_LOG_GT, *OP_LOG_EQ, *OP_LOG_NE, *OP_LOG_LE, *OP_LOG_GE, *OP_NOT, 
    *OP_ABSOLUTE_EQ, *OP_ABSOLUTE_NE, *OP_REGEX_MATCH, *OP_REGEX_NMATCH,
    *OP_EXISTS, *OP_INSTANCEOF;
@@ -2151,6 +2151,61 @@ static int64 op_chomp(class QoreNode *arg, class QoreNode *x, ExceptionSink *xsi
    return (int64)count;
 }
 
+static QoreNode *op_trim(class QoreNode *arg, class QoreNode *x, bool ref_rv, ExceptionSink *xsink)
+{
+   //tracein("op_trim()");
+   
+   class AutoVLock vl;
+   QoreNode **val = get_var_value_ptr(arg, &vl, xsink);
+   if (xsink->isEvent())
+      return 0;
+   
+   if (!(*val) || ((*val)->type != NT_STRING && (*val)->type != NT_LIST && (*val)->type != NT_HASH))
+   {
+      xsink->raiseException("TRIM-ERROR", "argument to trim is not a string, list, or hash");
+      return 0;
+   }
+   
+   // note that no exception can happen here
+   ensure_unique(val, xsink);
+   if ((*val)->type == NT_STRING)
+      (*val)->val.String->trim();
+   else if ((*val)->type == NT_LIST)
+   {
+      ListIterator li((*val)->val.list);
+      while (li.next())
+      {
+	 class QoreNode **v = li.getValuePtr();
+	 if (*v && (*v)->type == NT_STRING)
+	 {
+	    // note that no exception can happen here
+	    ensure_unique(v, xsink);
+	    (*v)->val.String->trim();
+	 }
+      }      
+   }
+   else // is a hash
+   {
+      HashIterator hi((*val)->val.hash);
+      while (hi.next())
+      {
+	 class QoreNode **v = hi.getValuePtr();
+	 if (*v && (*v)->type == NT_STRING)
+	 {
+	    // note that no exception can happen here
+	    ensure_unique(v, xsink);
+	    (*v)->val.String->trim();
+	 }
+      }
+   }
+
+   // reference for return value
+   if (ref_rv)
+      return (*val)->RefSelf();
+   
+   return 0;
+}
+
 static QoreNode *op_minus_hash_string(class QoreNode *h, class QoreNode *s, bool ref_rv, ExceptionSink *xsink)
 {
    class QoreNode *x = h->realCopy(xsink);
@@ -3196,6 +3251,9 @@ void OperatorList::init()
 
    OP_CHOMP = add(new Operator(1, "chomp", "chomp EOL marker from lvalue", 0, true, true));
    OP_CHOMP->addFunction(NT_ALL, NT_NONE, op_chomp);
+
+   OP_TRIM = add(new Operator(1, "trim", "trim characters from an lvalue", 0, true, true));
+   OP_TRIM->addFunction(NT_ALL, NT_NONE, op_trim);
 
    // initialize all operators
    for (oplist_t::iterator i = begin(); i != end(); i++)
