@@ -1,7 +1,6 @@
 see docs/roadmap.html
 
 * implement a way to declare public class members (so typos with class members can be caught)
-* update QoreString::trim*() functions to trim all whitespace, and not just blanks, with an optional character array giving the character to trim
 * implement a way to modify table names in queries (support table name prefixes, for example)
 * implement default argument values
 * update round() to allow the specification of significant digits
@@ -30,6 +29,7 @@ docs:
 * document optimizations
 
 done:
+* update QoreString::trim*() functions to trim all whitespace, and not just blanks, with an optional character array giving the character to trim
 * fix +=, -= to use the rhs type if the lhs is NOTHING
 * fix signal thread to be a special thread with a special thread list entry
 * fix %d Datasource specifier to work with floats

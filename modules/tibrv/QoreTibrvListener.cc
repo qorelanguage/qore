@@ -50,7 +50,8 @@ QoreTibrvListener::QoreTibrvListener(const char *subject, const char *desc, cons
    {
       xsink->raiseException("TIBRVLISTENER-CONSTRUCTOR-ERROR", "cannot create listener on %s: %s", subject, status.getText());
       return;
-   }  
+   }
+   //printd(5, "created listener on '%s'\n", subject);
 }
 
 class Hash *QoreTibrvListener::getMessage(class ExceptionSink *xsink)

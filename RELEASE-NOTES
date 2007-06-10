@@ -357,6 +357,9 @@ i.e.:
 *) trim operator implemented
 removes whitespace from the beginning and end of strings, string elements of lists, and string values in hashes, similar to the chomp operator
 
+*) chomp modified to ignore arguments that are not a string, list, or hash
+before it would throw an exception, which was unfriendly when run on NOTHING
+
 *) += and -= operators updated to work more naturally when the lvalue is NOTHING
 now += and -= use the right-hand-side's type when assigning to the lvalue if the lvalue is NOTHING, i.e. the following is now possible:
 

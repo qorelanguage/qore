@@ -2110,10 +2110,7 @@ static int64 op_chomp(class QoreNode *arg, class QoreNode *x, ExceptionSink *xsi
       return 0;
    
    if (!(*val) || ((*val)->type != NT_STRING && (*val)->type != NT_LIST && (*val)->type != NT_HASH))
-   {
-      xsink->raiseException("CHOMP-ERROR", "argument to chomp is not a string, list or hash");
       return 0;
-   }
    int count = 0;
    
    // note that no exception can happen here
@@ -2161,10 +2158,7 @@ static QoreNode *op_trim(class QoreNode *arg, class QoreNode *x, bool ref_rv, Ex
       return 0;
    
    if (!(*val) || ((*val)->type != NT_STRING && (*val)->type != NT_LIST && (*val)->type != NT_HASH))
-   {
-      xsink->raiseException("TRIM-ERROR", "argument to trim is not a string, list, or hash");
       return 0;
-   }
    
    // note that no exception can happen here
    ensure_unique(val, xsink);
