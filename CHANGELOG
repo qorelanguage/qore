@@ -1,3 +1,6 @@
+2006.06.11: David Nichols
+	* fixed configure for 64-bit editions of Sybase
+
 2006.06.09: David Nichols
 	* fixed += and -= cases when the left-hand-side is NOTHING to take the
 	  type of the right-hand-side (i.e. my $str += "hello" will now work as

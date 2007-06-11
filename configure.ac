@@ -1336,7 +1336,7 @@ fi
 
 if test "${with_sybase}" = yes; then
    SYBASE_INCLUDES="-I$with_sybase_includes"
-   SYBASE_LIBS="-L$with_sybase_libs -lsybdb -lsybcs_r -lsybintl_r -lsybblk_r -lsybcomn_r -lsybct_r -lsybunic -lsybtcl_r"
+   SYBASE_LIBS="-L$with_sybase_libs -lsybdb${LIBSUFFIX} -lsybcs_r${LIBSUFFIX} -lsybintl_r${LIBSUFFIX} -lsybblk_r${LIBSUFFIX} -lsybcomn_r${LIBSUFFIX} -lsybct_r${LIBSUFFIX} -lsybunic${LIBSUFFIX} -lsybtcl_r${LIBSUFFIX}"
 
    # check if C++ compiler can link with Sybase libs
    SAVE_CXXFLAGS="$CXXFLAGS"
