@@ -289,7 +289,7 @@ class Hash *q_gethostbyaddr_to_hash(class ExceptionSink *xsink, const char *addr
    char buf[NET_BUFSIZE];
    int err;
 # ifdef HAVE_SOLARIS_STYLE_GETHOST
-   if (!gethostbyaddr_r(dst, len, type, &he, buf, NET_BUFSIZE, &err))
+   if (!gethostbyaddr_r((char *)dst, len, type, &he, buf, NET_BUFSIZE, &err))
       return 0;
 # else // assume glibc2-style gethostbyaddr_r
    struct hostent *p;
@@ -303,7 +303,7 @@ class Hash *q_gethostbyaddr_to_hash(class ExceptionSink *xsink, const char *addr
 #else  // else if !HAVE_GETHOSTBYADDR_R
    AutoLocker al(&lck_gethostbyaddr);
    struct hostent *he;
-   if (!(he = gethostbyaddr(dst, len, type)))
+   if (!(he = gethostbyaddr((char *)dst, len, type)))
       return 0;
 
    return he_to_hash(*he);
@@ -349,7 +349,7 @@ class QoreString *q_gethostbyaddr_to_string(class ExceptionSink *xsink, const ch
    char buf[NET_BUFSIZE];
    int err;
 # ifdef HAVE_SOLARIS_STYLE_GETHOST
-   if (!gethostbyaddr_r(dst, len, type, &he, buf, NET_BUFSIZE, &err))
+   if (!gethostbyaddr_r((char *)dst, len, type, &he, buf, NET_BUFSIZE, &err))
       return 0;
 # else // assume glibc2-style gethostbyaddr_r
    struct hostent *p;
@@ -363,7 +363,7 @@ class QoreString *q_gethostbyaddr_to_string(class ExceptionSink *xsink, const ch
 #else  // else if !HAVE_GETHOSTBYADDR_R
    AutoLocker al(&lck_gethostbyaddr);
    struct hostent *he;
-   if (!(he = gethostbyaddr(dst, len, type)))
+   if (!(he = gethostbyaddr((char *)dst, len, type)))
       return 0;
 
    return hename_string(*he);
