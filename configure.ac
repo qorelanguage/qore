@@ -116,7 +116,7 @@ case "${host_os}" in
      *darwin*)  SHLIB_SUFFIX=dylib
 		# libtool 1.5.* is creating modules on Darwin 8.* (OS/X 10.4.*) with a .so suffix for some reason
 		MODULE_SUFFIX=so
-		AC_DEFINE(DARWIN, 1, if compiling on Darwin)
+		AC_DEFINE(DARWIN, 1, [if compiling on Darwin])
 		;;
      *hpux*)    if test "$host_cpu" = "ia64"; then
      		   SHLIB_SUFFIX=so
@@ -126,11 +126,11 @@ case "${host_os}" in
 		fi
 		# add "-AA" and -D__STDC_EXT__ to aCC commandline to enable a clean compile
 		if test -n "`echo $CXX|grep aCC`"; then
-		   CXXFLAGS="$CXXFLAGS -AA -D__STDC_EXT__"
-		   AC_DEFINE(HPUX_ACC_SOCKLEN_HACK, 1, if compiling on HP-UX with aCC and need to use int instead of socklen_t)
+		   CXXFLAGS="$CXXFLAGS -AA -D__STDC_EXT__ -D_RWSTD_MULTI_THREAD"
+		   AC_DEFINE(HPUX_ACC_SOCKLEN_HACK, 1, [if compiling on HP-UX with aCC and need to use int instead of socklen_t])
 		fi
 		AC_DEFINE(HPUX, 1, if compiling on HP-UX)
-		AC_DEFINE(NEED_ENVIRON_LOCK, 1, if the environment operations are thread-safe)
+		AC_DEFINE(NEED_ENVIRON_LOCK, 1, [if the environment operations need explicit locking])
 		;;
 esac
 AC_SUBST(SHLIB_SUFFIX)
