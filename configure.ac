@@ -59,7 +59,7 @@ AC_CHECK_LIB(rt, clock_gettime)
 # set system variables
 OS=`uname -s`
 if test "$OS" = "HP-UX"; then
-   if "$host_cpu" = "ia64"; then
+   if test "$host_cpu" = "ia64"; then
       ARCH=itanium
    else
       ARCH=PA-RISC
