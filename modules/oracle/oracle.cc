@@ -1173,7 +1173,7 @@ static int oracle_open(Datasource *ds, ExceptionSink *xsink)
       traceout("oracle_open()");
       return -1;
    }
-   printd(3, "oracle_open(): user=%s pass=%s db=%s (oracle encoding=%s)\n",
+   printd(5, "oracle_open(): user=%s pass=%s db=%s (oracle encoding=%s)\n",
 	  ds->getUsername(), ds->getPassword(), ds->getDBName(), ds->getDBEncoding() ? ds->getDBEncoding() : "(none)");
 
    class OracleData *d_ora = new OracleData;
@@ -1232,11 +1232,18 @@ static int oracle_open(Datasource *ds, ExceptionSink *xsink)
       traceout("oracle_open()");
       return -1;
    }
-   printd(5, "Oracle character encoding '%s' has ID %d\n", charset, d_ora->charsetid);
+   printd(5, "Oracle character encoding '%s' has ID %d, oci_flags=%d\n", charset, d_ora->charsetid, oci_flags);
    // create environment with default character set
-   OCIEnvNlsCreate(&d_ora->envhp, oci_flags, 0, NULL, NULL, NULL, 0, NULL, d_ora->charsetid, d_ora->charsetid);
-   // map the Oracle character set to a core character set
+   if (OCIEnvNlsCreate(&d_ora->envhp, oci_flags, 0, NULL, NULL, NULL, 0, NULL, d_ora->charsetid, d_ora->charsetid) != OCI_SUCCESS)
+   {
+      xsink->raiseException("DBI:ORACLE:OPEN-ERROR", "error creating new environment handle with encoding '%s'", ds->getDBEncoding());
+      delete d_ora;
+      ds->setPrivateData(0);
+      traceout("oracle_open()");
+      return -1;
+   }
 
+   // map the Oracle character set to a qore character set
    if (need_to_set_charset)
    {
       // map Oracle character encoding name to QORE/OS character encoding name
@@ -1245,13 +1252,14 @@ static int oracle_open(Datasource *ds, ExceptionSink *xsink)
 	 printd(5, "oracle_open() Oracle character set '%s' mapped to '%s' character set\n", ds->getDBEncoding(), nbuf);
 	 ds->setQoreEncoding(nbuf);
       }
-#ifdef DEBUG
       else
       {
-	 printd(5, "oracle_open(): can't map Oracle character set '%s' to OS character set\n", ds->getDBEncoding());
-	 assert(false);
+	 xsink->raiseException("DBI:ORACLE:OPEN-ERROR", "error mapping Oracle encoding '%s' to a qore encoding: unknown encoding", ds->getDBEncoding());
+	 delete d_ora;
+	 ds->setPrivateData(0);
+	 traceout("oracle_open()");
+	 return -1;
       }
-#endif
    }
 
 #else // !HAVE_OCIENVNLSCREATE
@@ -1273,12 +1281,24 @@ static int oracle_open(Datasource *ds, ExceptionSink *xsink)
 # endif
 */
 #endif // HAVE_OCIENVNLSCREATE
-   OCIHandleAlloc(d_ora->envhp, (dvoid **) &d_ora->errhp, OCI_HTYPE_ERROR, 0, 0);
+
+   if (OCIHandleAlloc(d_ora->envhp, (dvoid **) &d_ora->errhp, OCI_HTYPE_ERROR, 0, 0) != OCI_SUCCESS)
+   {
+      OCIHandleFree(d_ora->envhp, OCI_HTYPE_ENV);
+      xsink->raiseException("DBI:ORACLE:OPEN-ERROR", "failed to allocate error handle for connection");
+      delete d_ora;
+      ds->setPrivateData(NULL);
+      traceout("oracle_open()");
+      return -1;
+   }
+   //printd(5, "oracle_open() about to call OCILogon()\n");
    ora_checkerr(d_ora->errhp, 
 		OCILogon(d_ora->envhp, d_ora->errhp, &d_ora->svchp, (text *)ds->getUsername(), strlen(ds->getUsername()), (text *)ds->getPassword(), strlen(ds->getPassword()), (text *)ds->getDBName(), strlen(ds->getDBName())), 
 		"<open>", ds, xsink);
    if (xsink->isEvent())
    {
+      OCIHandleFree(d_ora->errhp, OCI_HTYPE_ERROR);
+      OCIHandleFree(d_ora->envhp, OCI_HTYPE_ENV);
       delete d_ora;
       ds->setPrivateData(NULL);
       traceout("oracle_open()");
