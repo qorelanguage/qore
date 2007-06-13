@@ -17,6 +17,8 @@ RELEASE SUMMARY: major new features (see compatibility warnings below)
 	*) tibae module improvements
 	*) many new functions and methods, bug fixes, extensive documentation updates, etc
 
+RPM NOTES: the "tibae" module was removed from Linux i386 F7 binary packages because it requires g++-32; if you need this module; build it from source
+
 *) ***COMPATIBILITY WARNING***: all timeouts changed to milliseconds
 affects Condition::wait(), Datasource::setTransactionLockTimeout(), and Datasource::getTransactionLockTimeout()
 the optional timeout value is no longer seconds, but milliseconds
