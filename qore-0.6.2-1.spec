@@ -41,6 +41,21 @@ MySQL DBI driver module for the Qore Programming Language. The MySQL driver is c
 /usr/lib64/qore-0.6.2/mysql.qmod
 %endif
 
+%package pgsql-module
+Summary: PostgreSQL DBI module for Qore
+Group: Development/Languages
+
+%description pgsql-module
+PostgreSQL DBI driver module for the Qore Programming Language. The PostgreSQL driver is character set aware, supports multithreading, transaction management, stored prodedure and function execution, etc.
+
+%files pgsql-module
+%ifarch i386
+/usr/lib/qore-0.6.2/pgsql.qmod
+%endif
+%ifarch x86_64
+/usr/lib64/qore-0.6.2/pgsql.qmod
+%endif
+
 %package sybase-module
 Summary: Sybase DBI module for Qore
 Group: Development/Languages
@@ -57,7 +72,7 @@ Sybase DBI driver module for the Qore Programming Language. The Sybase driver is
 %endif
 
 %package mssql-module
-Summary: FreeTDS-based MS-SQL DBI module for Qore
+Summary: FreeTDS-based MS-SQL and Sybase DBI module for Qore
 Group: Development/Languages
 
 %description mssql-module
@@ -71,17 +86,17 @@ FreeTDS-based MS-SQL Server and Sybase DBI driver module for the Qore Programmin
 /usr/lib64/qore-0.6.2/mssql.qmod
 %endif
 
-%ifarch i386
-%package tibae-module
-Summary: TIBCO Adapters integration module for Qore
-Group: Development/Languages
-
-%description tibae-module
-This module provides the TibcoAdapter class, which enables qore scripts/programs to communicate with (or implement) TIBCO Adapters.
-
-%files tibae-module
-/usr/lib/qore-0.6.2/tibae.qmod
-%endif
+#%ifarch i386
+#%package tibae-module
+#Summary: TIBCO Adapters integration module for Qore
+#Group: Development/Languages
+#
+#%description tibae-module
+#This module provides the TibcoAdapter class, which enables qore scripts/programs to communicate with (or implement) TIBCO Adapters.
+#
+#%files tibae-module
+#/usr/lib/qore-0.6.2/tibae.qmod
+#%endif
 
 %package tibrv-module
 Summary: TIBCO Rendezvous integration module for Qore
@@ -120,7 +135,8 @@ cxx=g++
 c64=--enable-64bit
 %endif
 %ifarch i386
-cxx=g++32
+#cxx=g++32
+cxx=g++
 %endif
 
 CXX=$cxx ./configure RPM_OPT_FLAGS="$RPM_OPT_FLAGS" --prefix=/usr --disable-debug --disable-static $c64
@@ -166,9 +182,13 @@ rm -rf $RPM_BUILD_ROOT
 /usr/lib64/libqore.la
 /usr/lib64/qore-0.6.2/ncurses.qmod
 %endif
-/usr/man/man1/qore.1.gz
+/usr/share/man/man1/qore.1.gz
 
 %changelog
+* Wed Jun 13 2007 David Nichols <david_nichols@users.sourceforge.net>
+- removed tibae module from spec file due to compiler requiremenets (g++-32)
+- added pgsql module
+
 * Tue Feb 20 2007 David Nichols <david_nichols@users.sourceforge.net>
 - updated to libqore.so.3.0.0
 
