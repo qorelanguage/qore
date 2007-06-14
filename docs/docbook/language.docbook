@@ -861,7 +861,7 @@ $a || $b
 	  <term>Example</term>
 	  <listitem>
 	    <programlisting>$call_ref = \func_name();
-$call_ref = $object.method_name();</programlisting>
+$call_ref = \$object.method_name();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -1749,7 +1749,7 @@ $call_ref = $object.method_name();</programlisting>
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Creates an instance of a class and runs the class' constructor on the new class (if any exists).</para>
+	<para>Creates an instance of a class by running the class' constructor on the new <link linkend="Qore_Class_List">class</link> (if any exists) and returns the new object.</para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -4985,7 +4985,7 @@ $var[1].count++;
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>The Qore <command>for</command> statement is most similar to the <command>for</command> statement in C and Java, or the non array iterator <command>for</command> statement in Perl.  This statement is ideal for loops that should execute a given number of times, then complete.  Each of the three expressions in the <command>for</command> statement is optional and may be omitted.</para>
+	<para>The Qore <command>for</command> statement is most similar to the <command>for</command> statement in C and Java, or the non array iterator <command>for</command> statement in Perl.  This statement is ideal for loops that should execute a given number of times, then complete.  Each of the three expressions in the <command>for</command> statement is optional and may be omitted.  To iterate through a list without directly referencing list index values, see the <link linkend="foreach_Statements">foreach</link> statement.</para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -5023,7 +5023,7 @@ $var[1].count++;
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>The Qore <command>foreach</command> statement is most similar to the <command>for</command> or <command>foreach</command> array iterator statement in Perl.</para>
+	<para>The Qore <command>foreach</command> statement is most similar to the <command>for</command> or <command>foreach</command> array iterator statement in Perl.  To iterate an action until a condition is true, use the <link linkend="for_Statements">for</link> statement instead.</para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -5037,6 +5037,17 @@ $var[1].count++;
       <term>Description</term>
       <listitem>
 	<para>If the <replaceable>expression</replaceable> does not evaluate to a list, then the variable will be assigned the value of the expression evaluation and the statement will only execute one time.  Otherwise the variable will be assigned to each value of the list and the statement will be called once for each value.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<para>Here is an example of a <command>foreach</command> loop using a local variable:</para>
+	<programlisting># if $str_list is a list of strings, this will remove all whitespace from the
+# strings; the reference in the list expression ensures that changes
+# to the iterator variable are written back to the list
+<command>foreach</command> <command>my</command> $string <command>in</command> (\$str_list)
+    trim $string;</programlisting>
      </listitem>
     </varlistentry>
   </variablelist>
@@ -5124,7 +5135,7 @@ $var[1].count++;
 	      </row>
 	      <row>
 		<entry><para>~=</para></entry>
-		<entry><para><link linkend='Regular_Expression_Match_Operator'>regular expression match operator</link></para></entry>
+		<entry><para><link linkend='Regular_Expression_Match_Operator'>regular expression match operator</link> (in this case the regular expression may be optionally given without the operator)</para></entry>
 	      </row>
 	      <row>
 		<entry><para>!~</para></entry>

@@ -1,3 +1,6 @@
+2006.06.14: David Nichols
+	* minor documentation corrections
+
 2006.06.12: David Nichols
 	* added -D_RWSTD_MULTI_THREAD to HP-UX compiles with aCC to fix 
 	  threading issues with the STL

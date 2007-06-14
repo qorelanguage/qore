@@ -591,7 +591,7 @@
         <varlistentry>
           <term>Usage</term>
           <listitem>
-            <programlisting><command>new</command> TibrvSender(<replaceable>[desc], [service], [network], [daemon]</replaceable>)</programlisting>
+            <programlisting><command>new </command>TibrvSender(<replaceable>[desc], [service], [network], [daemon]</replaceable>)</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -5463,7 +5463,7 @@ pondent name without a confirmed delivery to be redelivered.</para>
         <varlistentry>
           <term>Usage</term>
           <listitem>
-            <programlisting><command>new</command>TibrvFtMember(<replaceable>group_name, weight, activeGoal, heartbeatInterval, preparationInterval, activationInterval, [desc], [service], [network], [daemon]</replaceable>)</programlisting>
+            <programlisting><command>new</command> TibrvFtMember(<replaceable>group_name, weight, activeGoal, heartbeatInterval, preparationInterval, activationInterval, [desc], [service], [network], [daemon]</replaceable>)</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
