@@ -1,6 +1,5 @@
 # JSON-RPC handler class definition
 #
-# Copyright (C) 2007 Qore Technologies
 # to be registered as a handler in the HTTPServer class
 
 namespace JsonRpcHandler
