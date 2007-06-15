@@ -19,10 +19,9 @@ Group: Development/Languages
 Oracle DBI driver module for the Qore Programming Language. The Oracle driver is character set aware, supports multithreading, transaction management, stored prodedure and function execution, etc.
 
 %files oracle-module
-%ifarch i386
+%ifnarch x86_64
 /usr/lib/qore-0.6.2/oracle.qmod
-%endif
-%ifarch x86_64
+%else
 /usr/lib64/qore-0.6.2/oracle.qmod
 %endif
 
@@ -34,10 +33,9 @@ Group: Development/Languages
 MySQL DBI driver module for the Qore Programming Language. The MySQL driver is character set aware and supports multithreading, transaction management, and stored procedure execution.
 
 %files mysql-module
-%ifarch i386
+%ifnarch x86_64
 /usr/lib/qore-0.6.2/mysql.qmod
-%endif
-%ifarch x86_64
+%else
 /usr/lib64/qore-0.6.2/mysql.qmod
 %endif
 
@@ -49,10 +47,9 @@ Group: Development/Languages
 PostgreSQL DBI driver module for the Qore Programming Language. The PostgreSQL driver is character set aware, supports multithreading, transaction management, stored prodedure and function execution, etc.
 
 %files pgsql-module
-%ifarch i386
+%ifnarch x86_64
 /usr/lib/qore-0.6.2/pgsql.qmod
-%endif
-%ifarch x86_64
+%else
 /usr/lib64/qore-0.6.2/pgsql.qmod
 %endif
 
@@ -64,10 +61,9 @@ Group: Development/Languages
 Sybase DBI driver module for the Qore Programming Language. The Sybase driver is character set aware, supports multithreading, transaction management, stored prodedure and function execution, etc.
 
 %files sybase-module
-%ifarch i386
+%ifnarch x86_64
 /usr/lib/qore-0.6.2/sybase.qmod
-%endif
-%ifarch x86_64
+%else
 /usr/lib64/qore-0.6.2/sybase.qmod
 %endif
 
@@ -79,14 +75,13 @@ Group: Development/Languages
 FreeTDS-based MS-SQL Server and Sybase DBI driver module for the Qore Programming Language. This driver is character set aware, supports multithreading, transaction management, stored prodedure and function execution, etc, and can be used to connect to Sybase and Microsoft SQL Server databases.
 
 %files mssql-module
-%ifarch i386
+%ifnarch x86_64
 /usr/lib/qore-0.6.2/mssql.qmod
-%endif
-%ifarch x86_64
+%else
 /usr/lib64/qore-0.6.2/mssql.qmod
 %endif
 
-#%ifarch i386
+#%ifarch i386 sparc
 #%package tibae-module
 #Summary: TIBCO Adapters integration module for Qore
 #Group: Development/Languages
@@ -106,10 +101,9 @@ Group: Development/Languages
 This module provides functionality enabling qore scripts/programs to communicate using TIBCO Rendezvous publish-subscribe messaging (reliable and certified protocols), join and monitor fault-tolerant groups, join distributed queues, etc.
 
 %files tibrv-module
-%ifarch i386
+%ifnarch x86_64
 /usr/lib/qore-0.6.2/tibrv.qmod
-%endif
-%ifarch x86_64
+%else
 /usr/lib64/qore-0.6.2/tibrv.qmod
 %endif
 
@@ -121,10 +115,9 @@ Group: Development/Languages
 This module provides functionality enabling qore scripts/programs to communicate using the BEA Tuxedo(R) client API.
 
 %files tuxedo-module
-%ifarch i386
+%ifnarch x86_64
 /usr/lib/qore-0.6.2/tuxedo.qmod
-%endif
-%ifarch x86_64
+%else
 /usr/lib64/qore-0.6.2/tuxedo.qmod
 %endif
 
@@ -133,10 +126,6 @@ This module provides functionality enabling qore scripts/programs to communicate
 cxx=g++
 %ifarch x86_64
 c64=--enable-64bit
-%endif
-%ifarch i386
-#cxx=g++32
-cxx=g++
 %endif
 
 CXX=$cxx ./configure RPM_OPT_FLAGS="$RPM_OPT_FLAGS" --prefix=/usr --disable-debug --disable-static $c64
@@ -147,13 +136,12 @@ make -j4
 %install
 rm -rf $RPM_BUILD_ROOT
 mkdir -p $RPM_BUILD_ROOT/usr/bin
-%ifarch i386
-mkdir -p $RPM_BUILD_ROOT/usr/lib/qore-0.6.2
-mkdir -p $RPM_BUILD_ROOT/usr/lib/qore-0.6.2/auto
-%endif
 %ifarch x86_64
 mkdir -p $RPM_BUILD_ROOT/usr/lib64/qore-0.6.2
 mkdir -p $RPM_BUILD_ROOT/usr/lib64/qore-0.6.2/auto
+%else
+mkdir -p $RPM_BUILD_ROOT/usr/lib/qore-0.6.2
+mkdir -p $RPM_BUILD_ROOT/usr/lib/qore-0.6.2/auto
 %endif
 mkdir -p $RPM_BUILD_ROOT/usr/man/man1
 mkdir -p $RPM_BUILD_ROOT/usr/share/doc/qore/examples
@@ -168,14 +156,13 @@ rm -rf $RPM_BUILD_ROOT
 %doc COPYING README RELEASE-NOTES CHANGELOG AUTHORS WHATISQORE docs/roadmap.html docs/qore-style.css docs/img docs/qore.html examples/ test/
 
 /usr/bin/qore
-%ifarch i386
+%ifnarch x86_64
 /usr/lib/libqore.so.3.0.0
 /usr/lib/libqore.so.3
 /usr/lib/libqore.so
 /usr/lib/libqore.la
 /usr/lib/qore-0.6.2/ncurses.qmod
-%endif
-%ifarch x86_64
+%else
 /usr/lib64/libqore.so.3.0.0
 /usr/lib64/libqore.so.3
 /usr/lib64/libqore.so
@@ -185,6 +172,9 @@ rm -rf $RPM_BUILD_ROOT
 /usr/share/man/man1/qore.1.gz
 
 %changelog
+* Thu Jun 14 2007 David Nichols <david_nichols@users.sourceforge.net>
+- fixed spec file to support omre architectures
+
 * Wed Jun 13 2007 David Nichols <david_nichols@users.sourceforge.net>
 - removed tibae module from spec file due to compiler requiremenets (g++-32)
 - added pgsql module
