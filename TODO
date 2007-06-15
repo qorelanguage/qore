@@ -22,8 +22,8 @@ see docs/roadmap.html
 * implement GZFile class
 
 docs:
+* update tibae module docs regarding function class, can be hash lookup or direct class string
 * document thread resource tracking
-* expand on call references
 * add examples for modules
 * write ncurses module documentation
 * document optimizations
