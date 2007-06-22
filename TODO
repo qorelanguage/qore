@@ -22,6 +22,7 @@ see docs/roadmap.html
 * implement GZFile class
 
 docs:
+* add links to HTTPClient::connect() text
 * update tibae module docs regarding function class, can be hash lookup or direct class string
 * document thread resource tracking
 * add examples for modules

@@ -22105,7 +22105,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 
     <para>In most cases, the DatasourcePool class can be used as a drop-in replacement for the <link linkend="Qore::SQL::Datasource_Class">Datasource</link> class with autocommit disabled; when a transaction begins, a datasource will be automatically assigned to the calling thread, and it will only be released when a commit or rollback is called on the object.  If no Datasource is available, the calling thread will block until a Datasource comes available.</para>
 
-    <para>Note that the same priciples apply to SQL and database driver usage as with the Datasource class, see the <link linkend="Qore::SQL::Datasource_Class">Datasource</link> class documentation for more information.</para>
+    <para>Note that the same principles apply to SQL and database driver usage as with the Datasource class, see the <link linkend="Qore::SQL::Datasource_Class">Datasource</link> class documentation for more information.</para>
 
     <para>The DatasourcePool class uses Qore's thread resource tracking infrastructure to raise an exception if a thread terminates while a connection is allocated to it.  If Qore user code enters a transaction with a DatasourcePool object and the thread terminates without closing the transaction (via <link linkend="DatasourcePool::commit">DatasourcePool::commit()</link> or <link linkend="DatasourcePool::rollback">DatasourcePool::rollback()</link>), an exception will automatically be raised, the transaction will be rolled back, and the Datasource connection will be freed to the pool.</para>
 
