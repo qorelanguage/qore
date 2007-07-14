@@ -1,148 +1,176 @@
+%define with_mysql   1
+%define with_pgsql   1
+%define with_mssql   1
+%define with_oracle  1
+%define with_sybase  1
+%define with_tibae   0
+%define with_tibrv   1
+%define with_mssql   1
+%define with_tuxedo  1
+
 Summary: Qore Programming Language
 Name: qore
 Version: 0.6.2
-Release: 1%{dist}
+Release: 2%{dist}
 License: LGPL
 Group: Development/Languages
-URL: http://qore.sourceforge.net
-Source0: %{name}-%{version}.tar.gz
+URL: http://www.qoretechnologies.com/qore
+Source: http://prdownloads.sourceforge.net/qore/qore-%{version}-src.tar.gz
+#Source0: %{name}-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
+BuildRequires: flex >= 2.5.31
+BuildRequires: openssl-devel
+BuildRequires: pcre-devel
+BuildRequires: libxml2-devel
+BuildRequires: ncurses-devel
+%if 0%{?with_mysql}
+BuildRequires: mysql-devel
+%endif
+%if 0%{?with_pgsql}
+BuildRequires: postgresql-devel
+%endif
+%if 0%{?with_mssql}
+BuildRequires: freetds-devel
+%endif
 
 %description
-qore is a modular, multithreaded, weakly-typed, object-oriented programming language suitable for embedding application logic, application scripting, interface development, and even complex multi-threaded, network-aware object-oriented application development. Qore features integrated XML capability, oracle, mysql, TIBCO Rendezvous and Adapters modules, as well as built-in date arithmetic, method and member redirection for classes, private methods, synchronized (in the Java sense) functions and class methods, national character set support with implicit and explicit character set conversions, exception handling, Perl5-compatible regular expression support, powerful and easy-to-use data structures (arrays, hashes, etc), and much more. Qore is under active development, very well-tested, and is also under commercial use as the technology behind the Qorus Integration Engine (formerly OM/Qore).
+Qore is a modular, multithreaded, dynamically-typed, object-oriented programming language suitable for embedding application logic, application scripting, interface development, and even complex multi-threaded, network-aware object-oriented application development.
 
+%debug_package
+
+%post
+ldconfig %{_libdir}
+
+%if 0%{?with_oracle}
 %package oracle-module
 Summary: Oracle DBI module for Qore
 Group: Development/Languages
+Requires: %{name} = %{version}-%{release}
 
 %description oracle-module
 Oracle DBI driver module for the Qore Programming Language. The Oracle driver is character set aware, supports multithreading, transaction management, stored prodedure and function execution, etc.
 
 %files oracle-module
-%ifnarch x86_64
-/usr/lib/qore-0.6.2/oracle.qmod
-%else
-/usr/lib64/qore-0.6.2/oracle.qmod
+%defattr(-,root,root,-)
+%{_libdir}/qore-%{version}/oracle.qmod
 %endif
 
+%if 0%{?with_mysql}
 %package mysql-module
 Summary: MySQL DBI module for Qore
 Group: Development/Languages
+Requires: %{name} = %{version}-%{release}
 
 %description mysql-module
 MySQL DBI driver module for the Qore Programming Language. The MySQL driver is character set aware and supports multithreading, transaction management, and stored procedure execution.
 
 %files mysql-module
-%ifnarch x86_64
-/usr/lib/qore-0.6.2/mysql.qmod
-%else
-/usr/lib64/qore-0.6.2/mysql.qmod
+%defattr(-,root,root,-)
+%{_libdir}/qore-%{version}/mysql.qmod
 %endif
 
+%if 0%{?with_pgsql}
 %package pgsql-module
 Summary: PostgreSQL DBI module for Qore
 Group: Development/Languages
+Requires: %{name} = %{version}-%{release}
 
 %description pgsql-module
 PostgreSQL DBI driver module for the Qore Programming Language. The PostgreSQL driver is character set aware, supports multithreading, transaction management, stored prodedure and function execution, etc.
 
 %files pgsql-module
-%ifnarch x86_64
-/usr/lib/qore-0.6.2/pgsql.qmod
-%else
-/usr/lib64/qore-0.6.2/pgsql.qmod
+%defattr(-,root,root,-)
+%{_libdir}/qore-%{version}/pgsql.qmod
 %endif
 
+%if 0%{?with_sybase}
 %package sybase-module
 Summary: Sybase DBI module for Qore
 Group: Development/Languages
+Requires: %{name} = %{version}-%{release}
 
 %description sybase-module
 Sybase DBI driver module for the Qore Programming Language. The Sybase driver is character set aware, supports multithreading, transaction management, stored prodedure and function execution, etc.
 
 %files sybase-module
-%ifnarch x86_64
-/usr/lib/qore-0.6.2/sybase.qmod
-%else
-/usr/lib64/qore-0.6.2/sybase.qmod
+%defattr(-,root,root,-)
+%{_libdir}/qore-%{version}/sybase.qmod
 %endif
 
+%if 0%{?with_mssql}
 %package mssql-module
 Summary: FreeTDS-based MS-SQL and Sybase DBI module for Qore
 Group: Development/Languages
+Requires: %{name} = %{version}-%{release}
 
 %description mssql-module
 FreeTDS-based MS-SQL Server and Sybase DBI driver module for the Qore Programming Language. This driver is character set aware, supports multithreading, transaction management, stored prodedure and function execution, etc, and can be used to connect to Sybase and Microsoft SQL Server databases.
 
 %files mssql-module
-%ifnarch x86_64
-/usr/lib/qore-0.6.2/mssql.qmod
-%else
-/usr/lib64/qore-0.6.2/mssql.qmod
+%defattr(-,root,root,-)
+%{_libdir}/qore-%{version}/mssql.qmod
 %endif
 
-#%ifarch i386 sparc
-#%package tibae-module
-#Summary: TIBCO Adapters integration module for Qore
-#Group: Development/Languages
-#
-#%description tibae-module
-#This module provides the TibcoAdapter class, which enables qore scripts/programs to communicate with (or implement) TIBCO Adapters.
-#
-#%files tibae-module
-#/usr/lib/qore-0.6.2/tibae.qmod
-#%endif
+%if 0%{?with_tibae}
+%ifarch i386 sparc
+%package tibae-module
+Summary: TIBCO Adapters integration module for Qore
+Group: Development/Languages
+Requires: %{name} = %{version}-%{release}
 
+%description tibae-module
+This module provides the TibcoAdapter class, which enables qore scripts/programs to communicate with (or implement) TIBCO Adapters.
+
+%files tibae-module
+%defattr(-,root,root,-)
+%{_libdir}/qore-%{version}/tibae.qmod
+%endif
+%endif
+
+%if 0%{?with_tibrv}
 %package tibrv-module
 Summary: TIBCO Rendezvous integration module for Qore
 Group: Development/Languages
+Requires: %{name} = %{version}-%{release}
 
 %description tibrv-module
 This module provides functionality enabling qore scripts/programs to communicate using TIBCO Rendezvous publish-subscribe messaging (reliable and certified protocols), join and monitor fault-tolerant groups, join distributed queues, etc.
 
 %files tibrv-module
-%ifnarch x86_64
-/usr/lib/qore-0.6.2/tibrv.qmod
-%else
-/usr/lib64/qore-0.6.2/tibrv.qmod
+%defattr(-,root,root,-)
+%{_libdir}/qore-%{version}/tibrv.qmod
 %endif
 
+%if 0%{?with_tuxedo}
 %package tuxedo-module
 Summary: BEA Tuxedo(R) client API integration module for Qore
 Group: Development/Languages
+Requires: %{name} = %{version}-%{release}
 
 %description tuxedo-module
 This module provides functionality enabling qore scripts/programs to communicate using the BEA Tuxedo(R) client API.
 
 %files tuxedo-module
-%ifnarch x86_64
-/usr/lib/qore-0.6.2/tuxedo.qmod
-%else
-/usr/lib64/qore-0.6.2/tuxedo.qmod
+%defattr(-,root,root,-)
+%{_libdir}/qore-%{version}/tuxedo.qmod
 %endif
 
 %prep
 %setup -q
-cxx=g++
-%ifarch x86_64
+%ifarch x86_64 ppc64 x390x
 c64=--enable-64bit
 %endif
-
-CXX=$cxx ./configure RPM_OPT_FLAGS="$RPM_OPT_FLAGS" --prefix=/usr --disable-debug --disable-static $c64
+# need to configure with /usr as prefix as this will be used to derive the module directory
+./configure RPM_OPT_FLAGS="$RPM_OPT_FLAGS" --prefix=/usr --disable-debug --disable-static $c64
 
 %build
-make -j4
+%{__make}
 
 %install
 rm -rf $RPM_BUILD_ROOT
 mkdir -p $RPM_BUILD_ROOT/usr/bin
-%ifarch x86_64
-mkdir -p $RPM_BUILD_ROOT/usr/lib64/qore-0.6.2
-mkdir -p $RPM_BUILD_ROOT/usr/lib64/qore-0.6.2/auto
-%else
-mkdir -p $RPM_BUILD_ROOT/usr/lib/qore-0.6.2
-mkdir -p $RPM_BUILD_ROOT/usr/lib/qore-0.6.2/auto
-%endif
+mkdir -p $RPM_BUILD_ROOT/%{_libdir}/qore-%{version}
+mkdir -p $RPM_BUILD_ROOT/%{_libdir}/qore-%{version}/auto
 mkdir -p $RPM_BUILD_ROOT/usr/man/man1
 mkdir -p $RPM_BUILD_ROOT/usr/share/doc/qore/examples
 mkdir -p $RPM_BUILD_ROOT/usr/share/doc/qore/test
@@ -156,24 +184,20 @@ rm -rf $RPM_BUILD_ROOT
 %doc COPYING README RELEASE-NOTES CHANGELOG AUTHORS WHATISQORE docs/roadmap.html docs/qore-style.css docs/img docs/qore.html examples/ test/
 
 /usr/bin/qore
-%ifnarch x86_64
-/usr/lib/libqore.so.3.0.0
-/usr/lib/libqore.so.3
-/usr/lib/libqore.so
-/usr/lib/libqore.la
-/usr/lib/qore-0.6.2/ncurses.qmod
-%else
-/usr/lib64/libqore.so.3.0.0
-/usr/lib64/libqore.so.3
-/usr/lib64/libqore.so
-/usr/lib64/libqore.la
-/usr/lib64/qore-0.6.2/ncurses.qmod
-%endif
+%{_libdir}/libqore.so.3.0.0
+%{_libdir}/libqore.so.3
+%{_libdir}/libqore.so
+%{_libdir}/libqore.la
+%{_libdir}/qore-%{version}/ncurses.qmod
 /usr/share/man/man1/qore.1.gz
 
 %changelog
+* Sat Jul 14 2007 David Nichols <david_nichols@users.sourceforge.net>
+- updated version to 0.7.0
+- copied improvements from opensuse rpm and updated based on rpmlint output
+
 * Thu Jun 14 2007 David Nichols <david_nichols@users.sourceforge.net>
-- fixed spec file to support omre architectures
+- fixed spec file to support more architectures
 
 * Wed Jun 13 2007 David Nichols <david_nichols@users.sourceforge.net>
 - removed tibae module from spec file due to compiler requiremenets (g++-32)
