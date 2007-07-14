@@ -16,8 +16,9 @@ License: LGPL
 Group: Development/Languages
 URL: http://www.qoretechnologies.com/qore
 Source: http://prdownloads.sourceforge.net/qore/qore-%{version}-src.tar.gz
-#Source0: %{name}-%{version}.tar.gz
+Source0: %{name}-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
+Requires: /usr/bin/env
 BuildRequires: flex >= 2.5.31
 BuildRequires: openssl-devel
 BuildRequires: pcre-devel
@@ -34,11 +35,25 @@ BuildRequires: freetds-devel
 %endif
 
 %description
-Qore is a modular, multithreaded, dynamically-typed, object-oriented programming language suitable for embedding application logic, application scripting, interface development, and even complex multi-threaded, network-aware object-oriented application development.
+Qore is a modular, multithreaded, weakly-typed, object-oriented programming
+language suitable for embedding application logic, application scripting,
+interface development, and even complex multi-threaded, network-aware object-
+oriented application development. Qore features integrated XML and JSON 
+support (as well as HTTP, XML-RPC, and JSON-RPC client classes), database
+integration, database-independent programming support, exception-handling and 
+exception-safe programming support, TIBCO and Tuxedo modules, as well as built-
+in date arithmetic, character encoding (including proper UTF-8) support, and
+much more.
 
+
+%if 0%{?suse_version}
 %debug_package
+%endif
 
 %post
+ldconfig %{_libdir}
+
+%postun
 ldconfig %{_libdir}
 
 %if 0%{?with_oracle}
@@ -48,7 +63,20 @@ Group: Development/Languages
 Requires: %{name} = %{version}-%{release}
 
 %description oracle-module
-Oracle DBI driver module for the Qore Programming Language. The Oracle driver is character set aware, supports multithreading, transaction management, stored prodedure and function execution, etc.
+Qore is a modular, multithreaded, weakly-typed, object-oriented programming
+language suitable for embedding application logic, application scripting,
+interface development, and even complex multi-threaded, network-aware object-
+oriented application development. Qore features integrated XML and JSON 
+support (as well as HTTP, XML-RPC, and JSON-RPC client classes), database
+integration, database-independent programming support, exception-handling and 
+exception-safe programming support, TIBCO and Tuxedo modules, as well as built-
+in date arithmetic, character encoding (including proper UTF-8) support, and
+much more.
+
+Oracle DBI driver module for the Qore Programming Language. The Oracle driver is
+character set aware, supports multithreading, transaction management, stored
+prodedure and function execution, etc.
+
 
 %files oracle-module
 %defattr(-,root,root,-)
@@ -62,7 +90,20 @@ Group: Development/Languages
 Requires: %{name} = %{version}-%{release}
 
 %description mysql-module
-MySQL DBI driver module for the Qore Programming Language. The MySQL driver is character set aware and supports multithreading, transaction management, and stored procedure execution.
+Qore is a modular, multithreaded, weakly-typed, object-oriented programming
+language suitable for embedding application logic, application scripting,
+interface development, and even complex multi-threaded, network-aware object-
+oriented application development. Qore features integrated XML and JSON 
+support (as well as HTTP, XML-RPC, and JSON-RPC client classes), database
+integration, database-independent programming support, exception-handling and 
+exception-safe programming support, TIBCO and Tuxedo modules, as well as built-
+in date arithmetic, character encoding (including proper UTF-8) support, and
+much more.
+
+MySQL DBI driver module for the Qore Programming Language. The MySQL driver is
+character set aware and supports multithreading, transaction management, and
+stored procedure execution.
+
 
 %files mysql-module
 %defattr(-,root,root,-)
@@ -76,7 +117,20 @@ Group: Development/Languages
 Requires: %{name} = %{version}-%{release}
 
 %description pgsql-module
-PostgreSQL DBI driver module for the Qore Programming Language. The PostgreSQL driver is character set aware, supports multithreading, transaction management, stored prodedure and function execution, etc.
+Qore is a modular, multithreaded, weakly-typed, object-oriented programming
+language suitable for embedding application logic, application scripting,
+interface development, and even complex multi-threaded, network-aware object-
+oriented application development. Qore features integrated XML and JSON 
+support (as well as HTTP, XML-RPC, and JSON-RPC client classes), database
+integration, database-independent programming support, exception-handling and 
+exception-safe programming support, TIBCO and Tuxedo modules, as well as built-
+in date arithmetic, character encoding (including proper UTF-8) support, and
+much more.
+
+PostgreSQL DBI driver module for the Qore Programming Language. The PostgreSQL
+driver is character set aware, supports multithreading, transaction management,
+stored prodedure and function execution, etc.
+
 
 %files pgsql-module
 %defattr(-,root,root,-)
@@ -90,7 +144,20 @@ Group: Development/Languages
 Requires: %{name} = %{version}-%{release}
 
 %description sybase-module
-Sybase DBI driver module for the Qore Programming Language. The Sybase driver is character set aware, supports multithreading, transaction management, stored prodedure and function execution, etc.
+Qore is a modular, multithreaded, weakly-typed, object-oriented programming
+language suitable for embedding application logic, application scripting,
+interface development, and even complex multi-threaded, network-aware object-
+oriented application development. Qore features integrated XML and JSON 
+support (as well as HTTP, XML-RPC, and JSON-RPC client classes), database
+integration, database-independent programming support, exception-handling and 
+exception-safe programming support, TIBCO and Tuxedo modules, as well as built-
+in date arithmetic, character encoding (including proper UTF-8) support, and
+much more.
+
+Sybase DBI driver module for the Qore Programming Language. The Sybase driver is
+character set aware, supports multithreading, transaction management, stored
+prodedure and function execution, etc.
+
 
 %files sybase-module
 %defattr(-,root,root,-)
@@ -104,7 +171,22 @@ Group: Development/Languages
 Requires: %{name} = %{version}-%{release}
 
 %description mssql-module
-FreeTDS-based MS-SQL Server and Sybase DBI driver module for the Qore Programming Language. This driver is character set aware, supports multithreading, transaction management, stored prodedure and function execution, etc, and can be used to connect to Sybase and Microsoft SQL Server databases.
+Qore is a modular, multithreaded, weakly-typed, object-oriented programming
+language suitable for embedding application logic, application scripting,
+interface development, and even complex multi-threaded, network-aware object-
+oriented application development. Qore features integrated XML and JSON 
+support (as well as HTTP, XML-RPC, and JSON-RPC client classes), database
+integration, database-independent programming support, exception-handling and 
+exception-safe programming support, TIBCO and Tuxedo modules, as well as built-
+in date arithmetic, character encoding (including proper UTF-8) support, and
+much more.
+
+FreeTDS-based MS-SQL Server and Sybase DBI driver module for the Qore
+Programming Language. This driver is character set aware, supports
+multithreading, transaction management, stored prodedure and function
+execution, etc, and can be used to connect to Sybase and Microsoft SQL Server
+databases.
+
 
 %files mssql-module
 %defattr(-,root,root,-)
@@ -119,7 +201,19 @@ Group: Development/Languages
 Requires: %{name} = %{version}-%{release}
 
 %description tibae-module
-This module provides the TibcoAdapter class, which enables qore scripts/programs to communicate with (or implement) TIBCO Adapters.
+Qore is a modular, multithreaded, weakly-typed, object-oriented programming
+language suitable for embedding application logic, application scripting,
+interface development, and even complex multi-threaded, network-aware object-
+oriented application development. Qore features integrated XML and JSON 
+support (as well as HTTP, XML-RPC, and JSON-RPC client classes), database
+integration, database-independent programming support, exception-handling and 
+exception-safe programming support, TIBCO and Tuxedo modules, as well as built-
+in date arithmetic, character encoding (including proper UTF-8) support, and
+much more.
+
+This module provides the TibcoAdapter class, which enables qore scripts/programs
+to communicate with (or implement) TIBCO Adapters.
+
 
 %files tibae-module
 %defattr(-,root,root,-)
@@ -134,7 +228,21 @@ Group: Development/Languages
 Requires: %{name} = %{version}-%{release}
 
 %description tibrv-module
-This module provides functionality enabling qore scripts/programs to communicate using TIBCO Rendezvous publish-subscribe messaging (reliable and certified protocols), join and monitor fault-tolerant groups, join distributed queues, etc.
+Qore is a modular, multithreaded, weakly-typed, object-oriented programming
+language suitable for embedding application logic, application scripting,
+interface development, and even complex multi-threaded, network-aware object-
+oriented application development. Qore features integrated XML and JSON 
+support (as well as HTTP, XML-RPC, and JSON-RPC client classes), database
+integration, database-independent programming support, exception-handling and 
+exception-safe programming support, TIBCO and Tuxedo modules, as well as built-
+in date arithmetic, character encoding (including proper UTF-8) support, and
+much more.
+
+This module provides functionality enabling qore scripts/programs to communicate
+using TIBCO Rendezvous(R) publish-subscribe messaging (reliable and certified
+protocols), join and monitor fault-tolerant groups, join distributed queues, 
+etc.
+
 
 %files tibrv-module
 %defattr(-,root,root,-)
@@ -148,7 +256,19 @@ Group: Development/Languages
 Requires: %{name} = %{version}-%{release}
 
 %description tuxedo-module
-This module provides functionality enabling qore scripts/programs to communicate using the BEA Tuxedo(R) client API.
+Qore is a modular, multithreaded, weakly-typed, object-oriented programming
+language suitable for embedding application logic, application scripting,
+interface development, and even complex multi-threaded, network-aware object-
+oriented application development. Qore features integrated XML and JSON 
+support (as well as HTTP, XML-RPC, and JSON-RPC client classes), database
+integration, database-independent programming support, exception-handling and 
+exception-safe programming support, TIBCO and Tuxedo modules, as well as built-
+in date arithmetic, character encoding (including proper UTF-8) support, and
+much more.
+
+This module provides functionality enabling qore scripts/programs to communicate
+using the BEA Tuxedo(R) client API.
+
 
 %files tuxedo-module
 %defattr(-,root,root,-)
@@ -193,8 +313,8 @@ rm -rf $RPM_BUILD_ROOT
 
 %changelog
 * Sat Jul 14 2007 David Nichols <david_nichols@users.sourceforge.net>
-- updated version to 0.7.0
 - copied improvements from opensuse rpm and updated based on rpmlint output
+- updated version to 0.7.0
 
 * Thu Jun 14 2007 David Nichols <david_nichols@users.sourceforge.net>
 - fixed spec file to support more architectures
@@ -220,5 +340,5 @@ rm -rf $RPM_BUILD_ROOT
 - changes to make spec file more release-agnostic (use of the dist tag in release)
 
 * Thu Dec 7 2005 David Nichols <david_nichols@users.sourceforge.net>
-- Initial rpm build.
+- Initial rpm build
 
