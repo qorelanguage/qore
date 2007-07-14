@@ -271,7 +271,7 @@ class CryptoHelper : public BaseHelper
 
 	 // we allocate 1 byte more than we need in case we return as a string so we can terminate it
 	 output = (unsigned char *)malloc(sizeof(char) * (input_len + (EVP_MAX_BLOCK_LENGTH * 2)));
-   
+
 	 if (!EVP_CipherUpdate(&ctx, output, &output_len, input, input_len))
 	 {
 	    xsink->raiseException(err, "error %scrypting %s block", do_crypt ? "en" : "de", cipher);
