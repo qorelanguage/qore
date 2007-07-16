@@ -191,6 +191,7 @@ if test "$enable_64bit" = "yes"; then
 		fi
 		;;
    esac
+   SYBLIBSUFFIX=64
    RVLIBSUFFIX=64
    bits=64
 else
@@ -1336,9 +1337,9 @@ fi
 
 if test "${with_sybase}" = yes; then
    SYBASE_INCLUDES="-I$with_sybase_includes"
-   SYBASE_LIBS="-L$with_sybase_libs -lsybdb${LIBSUFFIX} -lsybcs_r${LIBSUFFIX} -lsybintl_r${LIBSUFFIX} -lsybblk_r${LIBSUFFIX} -lsybcomn_r${LIBSUFFIX} -lsybct_r${LIBSUFFIX} -lsybtcl_r${LIBSUFFIX}"
-   if test -f $with_sybase_libs/libsybunic${LIBSUFFIX}.${SHLIB_SUFFIX} ; then
-      SYBASE_LIBS="$SYBASE_LIBS -lsybunic${LIBSUFFIX}"
+   SYBASE_LIBS="-L$with_sybase_libs -lsybdb${SYBLIBSUFFIX} -lsybcs_r${SYBLIBSUFFIX} -lsybintl_r${SYBLIBSUFFIX} -lsybblk_r${SYBLIBSUFFIX} -lsybcomn_r${SYBLIBSUFFIX} -lsybct_r${SYBLIBSUFFIX} -lsybunic${SYBLIBSUFFIX} -lsybtcl_r${SYBLIBSUFFIX}"
+   if test -f $with_sybase_libs/libsybunic${SYBLIBSUFFIX}.${SHLIB_SUFFIX} ; then
+      SYBASE_LIBS="$SYBASE_LIBS -lsybunic${SYBLIBSUFFIX}"
    fi
 
    # check if C++ compiler can link with Sybase libs
