@@ -190,6 +190,7 @@ public:
 DLLEXPORT extern class DBIDriverList DBI;
 DLLEXPORT class Hash *parseDatasource(const char *ds, class ExceptionSink *xsink);
 DLLEXPORT void DBI_concat_numeric(class QoreString *str, class QoreNode *v);
+DLLEXPORT int DBI_concat_string(class QoreString *str, class QoreNode *v, class ExceptionSink *xsink);
 
 DLLLOCAL void init_dbi_functions();
 DLLLOCAL class Namespace *getSQLNamespace();

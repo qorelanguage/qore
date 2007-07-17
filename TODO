@@ -1,7 +1,7 @@
 see docs/roadmap.html
 
+* add API compatibility info to to module data
 * implement a way to declare public class members (so typos with class members can be caught)
-* implement a way to modify table names in queries (support table name prefixes, for example)
 * implement default argument values
 * update round() to allow the specification of significant digits
 * implement support for builtin methodGate methods, custom DBI Datasource method extensions
@@ -10,7 +10,7 @@ see docs/roadmap.html
 * Implement auto-reconnect for mssql and other drivers (mysql has it already)
 * implement a mechanism for a thread to sleep until another thread terminates (join)
 * add support for special ::toString() method to serialize an object to a string (very useful for debugging)
-* add support for ranges [2..9] and dereferencing strings with []
+* add support for ranges [2..9]
 * add support for break and continue arguments to affect outer loops
 * add error code to exceptions for XML-RPC fault reporting
 * add context functions
@@ -29,7 +29,11 @@ docs:
 * write ncurses module documentation
 * document optimizations
 
-done:
+done 0.7.0:
+* added support for dereferencing strings with []
+* implement a way to modify table names in queries (support table name prefixes, for example)
+
+done previously:
 * update QoreString::trim*() functions to trim all whitespace, and not just blanks, with an optional character array giving the character to trim
 * fix +=, -= to use the rhs type if the lhs is NOTHING
 * fix signal thread to be a special thread with a special thread list entry

@@ -290,6 +290,19 @@ void DBI_concat_numeric(class QoreString *str, class QoreNode *v)
    str->sprintf("%lld", v->getAsBigInt());
 }
 
+int DBI_concat_string(class QoreString *str, class QoreNode *v, class ExceptionSink *xsink)
+{
+   if (is_nothing(v) || is_null(v))
+      return 0;
+   
+   QoreNodeTypeHelper tstr(v, NT_STRING, xsink);
+   if (!tstr)
+      return -1;
+   
+   str->concat(tstr->val.String, xsink);
+   return *xsink;
+}
+
 /*
   parseDatasource()
 

@@ -863,6 +863,9 @@ sub string_tests()
     test_value(rindex($str, "ß", 25), 18, "second UTF-8 rindex()"); 
     test_value(reverse($str), "neßürgeb ehöH eid hcis tßäl nekloW eid rebÜ", "UTF-8 reverse()");
 
+    test_value($str[31], "ö", "first UTF-8 string index dereference");
+    test_value($str[39], "ü", "second UTF-8 string index dereference");
+
     # convert the string to single-byte ISO-8859-1 characters and retest
     $str = convert_encoding($str, "ISO-8859-1");
     test_value(strlen($str), 43, "ISO-8859-1 strlen()");

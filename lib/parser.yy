@@ -108,7 +108,7 @@ static class QoreNode *makeTree(class Operator *op, class QoreNode *left, class 
 	 getProgram()->addParseException(&xsink);
 
       //traceout("makeTree()");
-      return n_node;
+      return n_node ? n_node : nothing();
    }
    // otherwise, put nodes and operator into tree for runtime evaluation
    return new QoreNode(new Tree(left, op, right));

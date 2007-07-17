@@ -1,3 +1,18 @@
+2006.07.17: David Nichols
+	* implemented %s in queries to allow for direct string insertion
+	  (without any escaping) to facilitate support for table name prefixes,
+	  etc
+	* updated library version to 4-0-1
+ 	* updated version number to 0.7.0
+	* updated module API to 0.4 (need to add compatibility info)
+	* updated spec file for library version 3.1.0
+	* fixed a bug where null values could be inserted into the parse tree
+	  causing a core dump (i.e.: "hello"[1] - this is not yet legal, support
+	  for this will be implemented in this release, but before this bug fix
+	  a core dump would result)
+	* implemented string position dereferences with the list dereference 
+	  operator "[]"
+
 *** v0.6.2 RELEASE *** 
 
 2006.06.14: David Nichols

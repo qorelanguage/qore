@@ -304,7 +304,7 @@ rm -rf $RPM_BUILD_ROOT
 %doc COPYING README RELEASE-NOTES CHANGELOG AUTHORS WHATISQORE docs/roadmap.html docs/qore-style.css docs/img docs/qore.html examples/ test/
 
 /usr/bin/qore
-%{_libdir}/libqore.so.3.0.0
+%{_libdir}/libqore.so.3.1.0
 %{_libdir}/libqore.so.3
 %{_libdir}/libqore.so
 %{_libdir}/libqore.la
@@ -312,6 +312,9 @@ rm -rf $RPM_BUILD_ROOT
 /usr/share/man/man1/qore.1.gz
 
 %changelog
+* Tue Jul 17 2007 David Nichols <david_nichols@users.sourceforge.net>
+- updated library version to 3.1.0
+
 * Sat Jul 14 2007 David Nichols <david_nichols@users.sourceforge.net>
 - copied improvements from opensuse rpm and updated based on rpmlint output
 - updated version to 0.7.0

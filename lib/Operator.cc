@@ -707,17 +707,29 @@ static class QoreNode *op_list_ref(class QoreNode *left, class QoreNode *index, 
    QoreNode *lp = left->eval(ld, xsink);
 
    // return NULL if left side is not a list (or exception)
-   if (xsink->isEvent() || !lp || lp->type != NT_LIST)
+   if (!lp || *xsink || (lp->type != NT_LIST && lp->type != NT_STRING))
    {
       if (lp && ld) lp->deref(xsink);
       return NULL;
    }
 
-   // retrieve value and reference for return if there
-   class QoreNode *rv;
-   if ((rv = lp->val.list->retrieve_entry(index->integerEval(xsink))))
-      rv->ref();
-   //printd(5, "op_list_ref() index=%d, rv=%08p\n", ind, rv);
+   class QoreNode *rv = 0;
+   int ind = index->integerEval(xsink);
+   if (!*xsink) {
+      // get value
+      if (lp->type == NT_LIST) {
+	 rv = lp->val.list->retrieve_entry(ind);
+	 // reference for return
+	 if (rv)
+	    rv->ref();
+      }
+      else if (ind >= 0) {
+	 QoreString *str = lp->val.String->substr(ind, 1);
+	 if (str)
+	    rv = new QoreNode(str);
+      }
+      //printd(5, "op_list_ref() index=%d, rv=%08p\n", ind, rv);
+   }
    if (ld) lp->deref(xsink);
    return rv;
 }

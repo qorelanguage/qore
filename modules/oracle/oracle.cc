@@ -684,6 +684,15 @@ void OraBindGroup::parseQuery(class List *args, class ExceptionSink *xsink)
 	    tmp.clear();
 	    continue;
 	 }
+	 if ((*p) == 's')
+	 {
+	    if (DBI_concat_string(&tmp, v, xsink))
+	       break;
+	    str->replace(offset, 2, &tmp);
+	    p = str->getBuffer() + offset + tmp.strlen();
+	    tmp.clear();
+	    continue;
+	 }
 	 if ((*p) != 'v')
 	 {
 	    xsink->raiseException("DBI-EXEC-PARSE-EXCEPTION", "invalid value specification (expecting '%v' or '%%d', got %%%c)", *p);

@@ -46,7 +46,7 @@ DLLEXPORT char qore_module_name[] = "mysql";
 DLLEXPORT char qore_module_version[] = "0.3";
 DLLEXPORT char qore_module_description[] = "MySQL database driver";
 DLLEXPORT char qore_module_author[] = "David Nichols";
-DLLEXPORT char qore_module_url[] = "http://qore.sourceforge.net";
+DLLEXPORT char qore_module_url[] = "http://www.qoretechnologies.com/qore";
 DLLEXPORT int qore_module_api_major = QORE_MODULE_API_MAJOR;
 DLLEXPORT int qore_module_api_minor = QORE_MODULE_API_MINOR;
 DLLEXPORT qore_module_init_t qore_module_init = qore_mysql_module_init;
@@ -545,6 +545,15 @@ inline int MyBindGroup::parse(class List *args, class ExceptionSink *xsink)
 	    tmp.clear();
 	    continue;
 	 }
+	 if ((*p) == 's')
+	 {
+	    if (DBI_concat_string(&tmp, v, xsink))
+	       return -1;
+	    str->replace(offset, 2, &tmp);
+	    p = str->getBuffer() + offset + tmp.strlen();
+	    tmp.clear();
+	    continue;
+	 }	 
 	 if ((*p) != 'v')
 	 {
 	    xsink->raiseException("DBI-EXEC-PARSE-EXCEPTION", "invalid value specification (expecting '%v' or '%%d', got %%%c)", *p);
