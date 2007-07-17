@@ -284,7 +284,7 @@ EXTRA_DIST = .build next_build.sh WHATISQORE RELEASE-NOTES \
 	docs/img/scrollup.gif \
 	docs/img/word.gif \
 	docs/roadmap.html \
-	qore-0.6.2-2.spec \
+	qore-0.6.2.1-1.spec \
 	CHANGELOG
 
 dist_man_MANS = qore.1
