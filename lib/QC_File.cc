@@ -65,12 +65,12 @@ static class QoreNode *FILE_open(class Object *self, class File *f, class QoreNo
       return NULL;
    }
    p = get_param(params, 1);
-   if (p)
+   if (!is_nothing(p))
       flags = p->getAsInt();
    else
-      flags = 0;
+      flags = O_RDONLY;
    p = get_param(params, 2);
-   if (p)
+   if (!is_nothing(p))
       mode = p->getAsInt();
    else
       mode = 0666;
@@ -81,6 +81,39 @@ static class QoreNode *FILE_open(class Object *self, class File *f, class QoreNo
       charset = QCS_DEFAULT;
 
    return new QoreNode((int64)f->open(p0->val.String->getBuffer(), flags, mode, charset));
+}
+
+// open2(filename, [flags, mode, charset])
+// thrown an exception if there is an error
+static class QoreNode *FILE_open2(class Object *self, class File *f, class QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p0, *p;
+   int flags, mode;
+   class QoreEncoding *charset;
+   p0 = test_param(params, NT_STRING, 0);
+   if (!p0)
+   {
+      xsink->raiseException("FILE-OPEN2-PARAMETER-ERROR", "expecting string filename as first argument of File::open2()");
+      return NULL;
+   }
+   p = get_param(params, 1);
+   if (!is_nothing(p))
+      flags = p->getAsInt();
+   else
+      flags = O_RDONLY;
+   p = get_param(params, 2);
+   if (!is_nothing(p))
+      mode = p->getAsInt();
+   else
+      mode = 0666;
+   p = test_param(params, NT_STRING, 3);
+   if (p)
+      charset = QEM.findCreate(p->val.String);
+   else
+      charset = QCS_DEFAULT;
+   
+   f->open2(xsink, p0->val.String->getBuffer(), flags, mode, charset);
+   return 0;
 }
 
 static class QoreNode *FILE_close(class Object *self, class File *f, class QoreNode *params, ExceptionSink *xsink)
@@ -514,6 +547,7 @@ class QoreClass *initFileClass()
    QC_FILE->setConstructor(FILE_constructor);
    QC_FILE->setCopy((q_copy_t)FILE_copy);
    QC_FILE->addMethod("open",              (q_method_t)FILE_open);
+   QC_FILE->addMethod("open2",             (q_method_t)FILE_open2);
    QC_FILE->addMethod("close",             (q_method_t)FILE_close);
    QC_FILE->addMethod("sync",              (q_method_t)FILE_sync);
    QC_FILE->addMethod("read",              (q_method_t)FILE_read);

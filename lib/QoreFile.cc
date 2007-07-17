@@ -25,6 +25,9 @@
 #include <qore/Qore.h>
 #include <qore/QoreFile.h>
 
+#include <stdio.h>
+#include <errno.h>
+
 // returns -1 for exception
 int QoreFile::check_read_open(class ExceptionSink *xsink)
 {
@@ -123,12 +126,37 @@ int QoreFile::open(const char *fn, int flags, int mode, class QoreEncoding *cs)
    close();
    if (!flags)
       flags = O_RDONLY;
-   if (!mode)
-      mode = 0777;   
    fd = ::open(fn, flags, mode);
-   filename = strdup(fn);
    if (fd < 0)
       return fd;
+   filename = strdup(fn);
+   if (cs)
+      charset = cs;
+   is_open = true;
+   return 0;
+}
+
+int QoreFile::open2(class ExceptionSink *xsink, const char *fn, int flags, int mode, class QoreEncoding *cs)
+{
+   if (!fn)
+   {
+      xsink->raiseException("FILE-OPEN2-ERROR", "no file name given");
+      return -1;
+   }
+   if (special_file)
+   {
+      xsink->raiseException("FILE-OPEN2-ERROR", "system files cannot be reopened");
+      return -1;
+   }
+   close();
+   if (!flags)
+      flags = O_RDONLY;
+   fd = ::open(fn, flags, mode);
+   if (fd < 0) {
+      xsink->raiseException("FILE-OPEN2-ERROR", "cannot open '%s': %s", fn, strerror(errno));
+      return -1;
+   }
+   filename = strdup(fn);
    if (cs)
       charset = cs;
    is_open = true;

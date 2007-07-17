@@ -12,6 +12,9 @@
 	  a core dump would result)
 	* implemented string position dereferences with the list dereference 
 	  operator "[]"
+	* implemented File::open2() method that throws an exception if the file
+	  cannot be opened
+	* updated documentation to reflect 0.7.0 version number
 
 *** v0.6.2 RELEASE *** 
 
