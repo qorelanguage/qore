@@ -1,6 +1,7 @@
 2006.07.19: David Nichols
         * fixed a bug in HTTPClient::head(), was erroneously trying to read the
 	  message body
+	* started adding qt4 module
 
 2006.07.17: David Nichols
 	* implemented %s in queries to allow for direct string insertion

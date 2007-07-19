@@ -39,3 +39,6 @@ if COND_SYBASE_DIR
 SUBDIRS += sybase
 endif
 
+if COND_QT
+SUBDIRS += qt
+endif

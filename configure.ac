@@ -117,6 +117,7 @@ case "${host_os}" in
 		# libtool 1.5.* is creating modules on Darwin 8.* (OS/X 10.4.*) with a .so suffix for some reason
 		MODULE_SUFFIX=so
 		AC_DEFINE(DARWIN, 1, [if compiling on Darwin])
+		darwin=true
 		;;
      *hpux*)    if test "$host_cpu" = "ia64"; then
      		   SHLIB_SUFFIX=so
@@ -1762,6 +1763,189 @@ wresize((WINDOW *)0, 0, 0);
    fi
 fi
 
+AC_ARG_WITH([qt],
+    [AS_HELP_STRING([--with-qt@<:@=DIR@:>@],
+                    [QT4 base directory])],
+    [if test ! -d "${with_qt}"; then AC_MSG_ERROR(directory ${with_qt} does not exist for --with-qt); unset with_qt; fi])
+
+AC_ARG_WITH([qt-libs],
+    [AS_HELP_STRING([--with-qt-libs@<:@=DIR@:>@],
+                    [QT4 library directory])],
+    [if test ! -d "${with_qt_libs}"; then AC_MSG_ERROR(directory ${with_qt_libs} does not exist for --with-qt-libs); unset with_qt_libs; fi])
+
+AC_ARG_WITH([qt-includes],
+    [AS_HELP_STRING([--with-qt-includes@<:@=DIR@:>@],
+                    [QT4 include file parent directory])],
+    [if test ! -d "${with_qt_includes}"; then AC_MSG_ERROR(directory ${with_qt_includes} does not exist for --with-qt-includes); unset with_qt_includes; fi])
+
+check_qt_include()
+{
+    if test -f "$1/QtCore/qglobal.h" -a -f "$1/QtGui/QApplication"; then
+       found_qt_includes=$1
+    elif test $2 = "err"; then
+       AC_MSG_ERROR([$1 is not a valid QT parent include directory])
+    fi
+}
+
+check_qt_lib()
+{
+    lib="$1/lib${LIBSUFFIX}"
+
+    if test -f "$lib/libQtCore.${SHLIB_SUFFIX}" -a "$lib/libQtGui.${SHLIB_SUFFIX}"; then
+       found_qt_libs=$lib
+    elif test $2 = "err"; then
+    	AC_MSG_ERROR([$1 is not a valid QT 4 library directory])
+    fi
+}
+
+check_qt_version()
+{
+    # check qt version
+    qt_maj=`grep QT_VERSION_STR $with_qt_includes/QtCore/qglobal.h|cut -f2 -d\"|cut -f1 -d.`
+    if test -z "$qt_maj"; then
+       AC_MSG_ERROR([can't determine QT version])
+    fi
+    if test $qt_maj -ne 4; then
+       AC_MSG_ERROR([QT version $version is not supported (must be = 4)])
+    fi
+}
+
+check_qt()
+{
+    if test -z "$with_qt_includes"; then
+        inc="$1/include"
+        if test "$1" = "/"; then
+       	    inc=/usr/include
+        fi
+	check_qt_include $inc
+
+	if test -z "$found_qt_includes"; then
+       	    #echo DBG: qt $1 $inc not found
+       	    return
+    	fi
+	with_qt_includes="$found_qt_includes"
+	unset found_qt_includes
+    fi
+
+    if test -z "$with_qt_libs"; then
+        lib="$1/lib${LIBSUFFIX}"
+
+    	if test -z "$found_qt_libs"; then
+       	    #echo DGB: qt $1 libs not found
+       	    unset with_qt_includes
+       	    return
+    	fi
+	with_qt_libs="$found_qt_libs"
+    fi
+    if test "$with_qt_includes" != "/usr/include"; then
+        qt_app_includes=true
+    fi
+    if test "$with_qt_libs" != "/lib${LIBSUFFIX}"; then
+        qt_app_libs=true
+    fi
+
+    check_qt_version
+}
+
+# see if we can figure out where the qt include files and libraries are
+if test "${with_qt}" != "no"; then
+   AC_MSG_CHECKING([for QT 4 includes and libraries])
+
+   if test -n "$with_qt_includes" -a -n "$with_qt_libs"; then
+      check_qt_includes "$with_qt_includes" err
+      check_qt_libs "$with_qt_libs" err
+   else
+      if test -n "$with_qt"; then
+      	 check_qt "$with_qt"
+      	 if test -z "$with_qt_includes"; then
+	    AC_MSG_ERROR([not found in $with_qt])
+      	 fi
+      else
+         # check for frameworks on darwin
+	 if test -n "$darwin" -a -d /Library/Frameworks/QtCore.framework -a -d /Library/Frameworks/QtGui.framework; then
+	    qt_framework="/Library/Frameworks"
+	    QT_INCLUDES="-I /Library/Frameworks/QtCore.framework/Headers -I /Library/Frameworks/QtGui.framework/Headers"
+	    QT_LIBS="-framework QtCore -framework QtGui"
+	 else
+	    for dir in $QT_DIR / /usr /usr/local /opt/qt /opt/qt4 /usr/qt /usr/qt4 /sw /opt/local /opt/sfw /usr/sfw /opt/gnu; do
+      	       check_qt $dir
+      	       if test -n "$with_qt_includes"; then
+	          break;
+      	       fi
+   	    done
+         fi
+      fi
+   fi
+
+   if test -n "$qt_framework"; then
+      AC_MSG_RESULT([using Darwin frameworks in $qt_framework])
+      with_qt=yes
+   else
+      if test -n "$with_qt_includes"; then
+         if test -n "$qt_static"; then
+	    AC_MSG_RESULT([includes=$with_qt_includes, libs=$with_qt_libs (static)])
+      	 else
+	    AC_MSG_RESULT([includes=$with_qt_includes, libs=$with_qt_libs (shared)])
+      	 fi
+      	 with_qt=yes
+      else
+	 AC_MSG_RESULT([not found])
+         unset with_qt
+      fi
+   fi
+fi
+
+if test "${with_qt}" = yes; then
+  if test -n "$with_qt_includes" -o -n "qt_framework"; then
+     if test -z "$QT_INCLUDES"; then
+        # only set include path if necessary
+     	if test -n "$qt_app_includes"; then
+           QT_INCLUDES="-I$with_qt_includes"
+     	fi
+     fi
+     if test -z "$QT_LIBS"; then
+	QT_LIBS="-lQtCore -lQtGui"
+	if test -n "$qt_app_libs"; then
+	   QT_LIBS="-L$with_qt_libs $QT_LIBS"
+	fi
+     fi
+
+     # check if C++ compiler can link with QT libs
+     SAVE_CXXFLAGS="$CXXFLAGS"
+     SAVE_LDFLAGS="$LDFLAGS"
+     CXXFLAGS="$CXXFLAGS $QT_INCLUDES"
+     LDFLAGS="$LDFLAGS $QT_LIBS"
+     AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+#include <QApplication>
+#include <QPushButton>
+	 ]],[[
+   int argc = 0;
+   char **argv = 0;
+   QApplication app(argc, argv);
+
+   QPushButton hello("Hello world!");
+   hello.resize(100, 30);
+
+   hello.show();
+   return app.exec();
+	]])], qt_links=yes, qt_links=no)
+
+     CXXFLAGS="$SAVE_CXXFLAGS"
+     LDFLAGS="$SAVE_LDFLAGS"
+
+     if test "$qt_links" = "no"; then
+        AC_MSG_ERROR([could not compile a test QT program])
+     else
+        AC_SUBST(QT_INCLUDES)
+	AC_SUBST(QT_LIBS)
+        with_qt=yes
+     fi
+  else
+     AC_MSG_WARN([no QT libraries or includes found, disabling QT support])
+     unset with_qt
+  fi
+fi
+
 # Checks for header files.
 AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
@@ -1997,10 +2181,11 @@ AM_CONDITIONAL([COND_PGSQL],      [test "$with_pgsql" = yes])
 AM_CONDITIONAL([COND_TIBRV],      [test "$with_tibrv" = yes])
 AM_CONDITIONAL([COND_TIBAE],      [test "$with_tibae" = yes])
 AM_CONDITIONAL([COND_TUXEDO],     [test "$with_tuxedo" = yes])
+AM_CONDITIONAL([COND_QT],         [test "$with_qt" = yes])
 AM_CONDITIONAL([COND_MONOLITHIC], [test "$enable_shared" = no -o "$enable_builtin_modules" = "yes"])
 AM_CONDITIONAL([COND_SINGLE_COMPILATION_UNIT], [test "$enable_single_compilation_unit" = yes])
 
-AC_CONFIG_FILES([Makefile lib/Makefile modules/Makefile modules/ncurses/Makefile modules/tibrv/Makefile modules/tibae/Makefile modules/mysql/Makefile modules/oracle/Makefile modules/Tuxedo/Makefile modules/sybase/Makefile modules/pgsql/Makefile])
+AC_CONFIG_FILES([Makefile lib/Makefile modules/Makefile modules/ncurses/Makefile modules/tibrv/Makefile modules/tibae/Makefile modules/mysql/Makefile modules/oracle/Makefile modules/Tuxedo/Makefile modules/sybase/Makefile modules/pgsql/Makefile modules/qt/Makefile])
 AC_OUTPUT
 
 echo "*** BUILTIN FEATURES ***"
@@ -2011,100 +2196,35 @@ else
    printf " (32-bit)\n"
 fi
 
-printf "%-24s: " optimizations
-if test "$enable_optimization" = "yes"; then
-   echo yes
-else
-   echo disabled
-fi
+show_library_feature()
+{
+   printf "%-24s: " "$1"
+   if test "$2" = "yes"; then
+      echo yes
+   else
+      echo disabled
+   fi
+}
 
-printf "%-24s: " "single compilation unit"
-if test "$enable_single_compilation_unit" = "yes"; then
-   echo yes
-else
-   echo disabled
-fi
-
-printf "%-24s: " debug
-if test "$enable_debug" = "yes"; then
-   echo yes
-else
-   echo disabled
-fi
-
-printf "%-24s: " profiling
-if test "$enable_profile" = "yes"; then
-   echo yes
-else
-   echo disabled
-fi
+show_library_feature optimizations $enable_optimization
+show_library_feature "single compilation unit" $enable_single_compilation_unit
+show_library_feature debug $enable_debug
+show_library_feature profiling $enable_profiling
 
 if test "$enable_shared" = "yes"; then
    echo "*** MODULES ***"
 fi
 
-printf "%-24s: " ncurses
-if test "$enable_ncurses" = "yes"; then
-   echo yes
-else
-   echo disabled
-fi
-
-printf "%-24s: " oracle
-if test "$with_oracle" = "yes"; then
-   echo yes
-else
-   echo disabled
-fi
-
-printf "%-24s: " sybase
-if test "$with_sybase" = "yes"; then
-   echo yes
-else
-   echo disabled
-fi
-
-printf "%-24s: " mysql
-if test "$with_mysql" = "yes"; then
-   echo yes
-else
-   echo disabled
-fi
-
-printf "%-24s: " pgsql
-if test "$with_pgsql" = "yes"; then
-   echo yes
-else
-   echo disabled
-fi
-
-printf "%-24s: " mssql
-if test "$with_freetds" = "yes"; then
-   echo yes
-else
-   echo disabled
-fi
-
-printf "%-24s: " tibrv
-if test "$with_tibrv" = "yes"; then
-   echo yes
-else
-   echo disabled
-fi
-
-printf "%-24s: " tibae
-if test "$with_tibae" = "yes"; then
-   echo yes
-else
-   echo disabled
-fi
-
-printf "%-24s: " tuxedo
-if test "$with_tuxedo" = "yes"; then
-   echo yes
-else
-   echo disabled
-fi
+show_library_feature ncurses $enable_ncurses
+show_library_feature oracle $with_oracle
+show_library_feature sybase $with_sybase
+show_library_feature mysql $with_mysql
+show_library_feature pgsql $with_pgsql
+show_library_feature mssql $with_freetds
+show_library_feature tibrv $with_tibrv
+show_library_feature tibae $with_tibae
+show_library_feature tuxedo $with_tuxedo
+show_library_feature qt $with_qt
 
 # hack to use our libtool if on PA-RISC HP-UX to enable static libs to be linked in to modules
 # also to allow 64-bit PA-RISC libraries to be linked to modules
@@ -2122,4 +2242,3 @@ if test "$OS" = "HP-UX" -a "$host_os" != "ia64"; then
    # delete temporary files
    rm -f libtool.tmp libtool.tmp.1
 fi
-

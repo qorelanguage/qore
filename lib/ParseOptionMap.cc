@@ -56,6 +56,7 @@ void ParseOptionMap::static_init()
    DO_MAP("no-network",               PO_NO_NETWORK);
    DO_MAP("no-filesystem",            PO_NO_FILESYSTEM);
    DO_MAP("no-database",              PO_NO_DATABASE);
+   DO_MAP("no-gui",                   PO_NO_GUI);
 }
 
 int ParseOptionMap::find_code(const char *name)

@@ -45,6 +45,7 @@
 #define PO_NO_FILESYSTEM             (1 << 17)  // do not allow any file access (objects & subroutines)
 #define PO_LOCK_WARNINGS             (1 << 18)  // do not allow programs to change the warning mask
 #define PO_NO_DATABASE               (1 << 19)  // do not allow database access
+#define PO_NO_GUI                    (1 << 20)  // do not allow any GUI-relevant actions to be performed
 //#define PO_NO_BUILTIN_SUBROUTINES    (1 << 20)  // do not allow any calls to builtin functions
 
 // combination options
@@ -62,5 +63,6 @@
 #define QDOM_THREAD_CLASS      PO_NO_THREAD_CLASSES
 #define QDOM_THREAD_CONTROL    PO_NO_THREAD_CONTROL
 #define QDOM_DATABASE          PO_NO_DATABASE
+#define QDOM_GUI               PO_NO_GUI
 
 #endif //_QORE_RESTRICTIONS_H

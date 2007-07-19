@@ -74,6 +74,7 @@ DLLLOCAL void addProgramConstants(class Namespace *ns)
    ns->addConstant("PO_NO_NETWORK",               new QoreNode((int64)PO_NO_NETWORK));
    ns->addConstant("PO_NO_FILESYSTEM",            new QoreNode((int64)PO_NO_FILESYSTEM));
    ns->addConstant("PO_LOCK_WARNINGS",            new QoreNode((int64)PO_LOCK_WARNINGS));
+   ns->addConstant("PO_NO_GUI",                   new QoreNode((int64)PO_NO_GUI));
 }
 
 class SBNode {

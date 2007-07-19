@@ -230,6 +230,8 @@ noinst_HEADERS = \
 	modules/sybase/sybase_query.h \
 	modules/sybase/common_constants.h \
 	modules/sybase/row_output_buffers.h \
+	modules/qt/QC_QApplication.h \
+	modules/qt/QC_QPushButton.h \
 	command-line.h \
 	include/qore/Qore.h 
 
@@ -271,6 +273,7 @@ EXTRA_DIST = .build next_build.sh WHATISQORE RELEASE-NOTES \
 	examples/inherit2.q \
 	examples/getopt.q \
 	examples/worm.q \
+	examples/qt.q \
 	docs/qore.html \
 	docs/qore-style.css \
 	docs/img/acrobat_a.gif \
