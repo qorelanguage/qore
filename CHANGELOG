@@ -1,8 +1,12 @@
+2006.07.19: David Nichols
+        * fixed a bug in HTTPClient::head(), was erroneously trying to read the
+          message body (backported from trunk/0.7.0 branch)
+
 2006.07.17:
         * fixed a bug where null values could be inserted into the parse tree
           causing a core dump (i.e.: "hello"[1] - this is not yet legal, support
           for this will be implemented in this release, but before this bug fix
-          a core dump would result)
+          a core dump would result) (backported from trunk/0.7.0 branch)
 	* updated release to 0.6.2.1
 
 2006.06.14: David Nichols
