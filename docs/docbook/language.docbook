@@ -6460,7 +6460,7 @@ printf("%s\n", makeFormattedXMLString($h));</programlisting>
 
     <para>Because the signal Qore's signal handling thread is not a normal thread, it does not affect <link linkend="num_threads">num_threads()</link> and does not appear in the list returned by <link linkend="thread_list">thread_list()</link>.</para>
 
-    <para>Internally, Qore masks (blocks) all signals in every thread except the signal handling thread.  In the signal handling thread, all signals are unblocked, except those with Qore-language handlers, then an internal call to <code>sigwait()</code> is made to receive and process signals raised one at a time.</para>
+    <para>Internally, Qore masks (blocks) all signals in every thread except the signal handling thread.  In the signal handling thread, all signals are unmasked, except those with Qore-language handlers, then an internal call to <code>sigwait()</code> is made to receive and process signals raised one at a time.</para>
 
     <para>Qore-language signal handlers are installed by passing a <link linkend="Signal_Constants">signal constant</link> and a <link linkend="call_references">call reference</link> to the code to execute when the signal is raised to the <link linkend="set_signal_handler">set_signal_handler()</link> function.  Signal handlers are removed by passing a <link linkend="Signal_Constants">signal constant</link> to the <link linkend="remove_signal_handler">remove_signal_handler()</link> function.</para>
 
@@ -6510,7 +6510,7 @@ printf("%s\n", makeFormattedXMLString($h));</programlisting>
 	<para><link linkend="fork">fork()</link> (called externally to a signal handler) is handled as follows: the signal handling thread is terminated, <code>fork()</code> is executed, all signals are masked in the primary thread in the new process, then the signal handling thread is resumed in both processes.  No signals can be received or handled while the signal handling thread is terminated. After the <code>fork()</code>, the new process will have exactly the same signal handlers and signal masks as the parent process.</para>
       </listitem>
       <listitem>
-	<para>Unhandled exceptions in error handlers will simply be displayed on stderr as an unhandled exception and will have no other effect on Qore or Qore code.</para>
+	<para>Unhandled exceptions in signal handlers will simply be displayed on stderr as an unhandled exception and will have no other effect on Qore or Qore code.</para>
       </listitem>
       <listitem>
 	<para>If a signal handler executes the <link linkend="thread_exit_Statements">thread_exit</link> statement, execution of the signal handler will terminate immediately, but the signal handling thread will not be stopped.  Execution of further signal handlers (including that for the same signal being handled when  <link linkend="thread_exit_Statements">thread_exit</link> is executed) will not be affected.</para>
