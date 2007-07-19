@@ -1,3 +1,7 @@
+2006.07.19: David Nichols
+        * fixed a bug in HTTPClient::head(), was erroneously trying to read the
+	  message body
+
 2006.07.17: David Nichols
 	* implemented %s in queries to allow for direct string insertion
 	  (without any escaping) to facilitate support for table name prefixes,
@@ -17,6 +21,10 @@
 	* updated documentation to reflect 0.7.0 version number
 
 *** v0.6.2 RELEASE *** 
+
+2006.06.22: David Nichols
+	* updated qore's system() to use system() if ";" is found in the string
+	  (added ';' to the shell meta-character list)
 
 2006.06.14: David Nichols
 	* minor documentation corrections

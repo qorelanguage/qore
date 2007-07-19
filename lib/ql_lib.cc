@@ -83,7 +83,7 @@ static class QoreNode *f_system(class QoreNode *params, ExceptionSink *xsink)
 
    int rc;
    // use system() if shell meta-characters are found
-   if (strchrs(p0->val.String->getBuffer(), "*?><"))
+   if (strchrs(p0->val.String->getBuffer(), "*?><;"))
    {
       QoreString c;
       c.sprintf("/bin/sh -c \"%s\"", p0->val.String->getBuffer());

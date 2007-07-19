@@ -946,7 +946,7 @@ class QoreNode *QoreHTTPClient::send_internal(const char *meth, const char *mpat
       body = nah->takeKeyValue("body");
       ah->assimilate(nah, xsink);
    }
-   else if (len || getbody)
+   else if (getbody || (len && strcmp(meth, "HEAD")))
    {
       int rc;
 
