@@ -2,6 +2,7 @@
         * fixed a bug in HTTPClient::head(), was erroneously trying to read the
 	  message body
 	* started adding qt4 module
+	* ensure there is only one instance of QApplication at any one time
 
 2006.07.17: David Nichols
 	* implemented %s in queries to allow for direct string insertion

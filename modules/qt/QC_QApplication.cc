@@ -28,13 +28,26 @@ DLLLOCAL int CID_QAPPLICATION;
 DLLLOCAL int static_argc    = 0;
 DLLLOCAL char **static_argv = 0;
 
+static LockedObject qapp_lock;
+static int qapp_count = 0;
+
+void qapp_dec()
+{
+   AutoLocker al(&qapp_lock);
+   --qapp_count;
+}
+
 static void QA_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
+   AutoLocker al(&qapp_lock);
+   if (qapp_count) {
+      xsink->raiseException("QAPPLICATION-ERROR", "only one QApplication can exist at one time");
+      return;
+   }
+   ++qapp_count;
+
    QoreQApplication *qa = new QoreQApplication();
-   if (*xsink)
-      qa->deref(xsink);
-   else
-      self->setPrivate(CID_QAPPLICATION, qa);
+   self->setPrivate(CID_QAPPLICATION, qa);
 }
 
 static void QA_destructor(class Object *self, class QoreQApplication *qa, ExceptionSink *xsink)

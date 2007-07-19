@@ -35,11 +35,18 @@ DLLLOCAL class QoreClass *initQApplicationClass();
 extern int static_argc;
 extern char **static_argv;
 
+DLLLOCAL extern void qapp_dec();
+
 class QoreQApplication : public AbstractPrivateData, public QApplication
 {
    public:
       DLLLOCAL QoreQApplication() : QApplication(static_argc, static_argv)
       {
+      }
+
+      DLLLOCAL ~QoreQApplication()
+      {
+	 qapp_dec();
       }
 
       DLLLOCAL virtual void deref(class ExceptionSink *xsink) 
