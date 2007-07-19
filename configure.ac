@@ -1782,18 +1782,16 @@ check_qt_include()
 {
     if test -f "$1/QtCore/qglobal.h" -a -f "$1/QtGui/QApplication"; then
        found_qt_includes=$1
-    elif test $2 = "err"; then
+    elif test "$2" = "err"; then
        AC_MSG_ERROR([$1 is not a valid QT parent include directory])
     fi
 }
 
 check_qt_lib()
 {
-    lib="$1/lib${LIBSUFFIX}"
-
-    if test -f "$lib/libQtCore.${SHLIB_SUFFIX}" -a "$lib/libQtGui.${SHLIB_SUFFIX}"; then
+    if test -f "$1/libQtCore.${SHLIB_SUFFIX}" -a "$1/libQtGui.${SHLIB_SUFFIX}"; then
        found_qt_libs=$lib
-    elif test $2 = "err"; then
+    elif test "$2" = "err"; then
     	AC_MSG_ERROR([$1 is not a valid QT 4 library directory])
     fi
 }
@@ -1820,7 +1818,7 @@ check_qt()
 	check_qt_include $inc
 
 	if test -z "$found_qt_includes"; then
-       	    #echo DBG: qt $1 $inc not found
+	    #echo DBG: qt $1 $inc includes not found
        	    return
     	fi
 	with_qt_includes="$found_qt_includes"
@@ -1830,15 +1828,13 @@ check_qt()
     if test -z "$with_qt_libs"; then
         lib="$1/lib${LIBSUFFIX}"
 
+	check_qt_lib $lib
     	if test -z "$found_qt_libs"; then
-       	    #echo DGB: qt $1 libs not found
+       	    #echo DBG: qt $1 $lib libs not found
        	    unset with_qt_includes
        	    return
     	fi
 	with_qt_libs="$found_qt_libs"
-    fi
-    if test "$with_qt_includes" != "/usr/include"; then
-        qt_app_includes=true
     fi
     if test "$with_qt_libs" != "/lib${LIBSUFFIX}"; then
         qt_app_libs=true
@@ -1898,10 +1894,7 @@ fi
 if test "${with_qt}" = yes; then
   if test -n "$with_qt_includes" -o -n "qt_framework"; then
      if test -z "$QT_INCLUDES"; then
-        # only set include path if necessary
-     	if test -n "$qt_app_includes"; then
-           QT_INCLUDES="-I$with_qt_includes"
-     	fi
+        QT_INCLUDES="-I$with_qt_includes/QtCore -I$with_qt_includes/QtGui"
      fi
      if test -z "$QT_LIBS"; then
 	QT_LIBS="-lQtCore -lQtGui"
