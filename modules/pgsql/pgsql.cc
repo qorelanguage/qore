@@ -31,7 +31,7 @@ static class QoreString *pgsql_module_init();
 static void pgsql_module_ns_init(class Namespace *rns, class Namespace *qns);
 static void pgsql_module_delete();
 
-#ifndef QORE_MOINOLITHIC
+#ifndef QORE_MONOLITHIC
 DLLEXPORT char qore_module_name[] = "pgsql";
 DLLEXPORT char qore_module_version[] = "0.1";
 DLLEXPORT char qore_module_description[] = "PostgreSQL module";

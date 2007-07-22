@@ -1,5 +1,5 @@
 /*
- QC_QPushButton.h
+ QC_QObject.h
  
  Qore Programming Language
  
@@ -20,40 +20,51 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _QORE_QC_QPUSHBUTTON_H
+#ifndef _QORE_QC_QOBJECT_H
 
-#define _QORE_QC_QPUSHBUTTON_H
+#define _QORE_QC_QOBJECT_H
 
 #include "QoreAbstractQObject.h"
 
-#include <QPushButton>
+#include <QObject>
 
-DLLEXPORT extern int CID_QPUSHBUTTON;
+DLLEXPORT extern int CID_QOBJECT;
 
-DLLLOCAL class QoreClass *initQPushButtonClass();
+DLLLOCAL class QoreClass *initQObjectClass();
 
-class QoreQPushButton : public QoreAbstractQObject
+class QoreQObject : public QoreAbstractQObject
 {
+   private:
    public:
-      QPointer<QPushButton> qobj;
-   
-      DLLLOCAL QoreQPushButton(const char *str, QWidget *parent = 0) : qobj(new QPushButton(str, parent))
+      QPointer<QObject> qobj;
+
+      DLLLOCAL QoreQObject(QObject *parent = 0) : qobj(new QObject(parent))
       {
       }
-      DLLLOCAL QoreQPushButton(QWidget *parent = 0) : qobj(new QPushButton(parent))
-      {
-      }
+
       DLLLOCAL virtual void destructor(class ExceptionSink *xsink)
       {
-	 //QObject::disconnect(qobj, SLOT(isDeleted()));
 	 if (qobj)
 	    delete qobj;
       }
+
       DLLLOCAL virtual class QObject *getQObject() const
       {
-	 return static_cast<QObject *>(&(*qobj));
+	 return &*qobj;
       }
+
 };
 
+// template functions for inherited methods
+template<typename T>
+static QoreNode *QO_inherits(class Object *self, T *qo, class QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = test_param(params, NT_STRING, 0);
+   if (!p) {
+      xsink->raiseException("QOBJECT-INHERITS-ERROR", "missing class name as first and only argument");
+      return 0;
+   }
+   return new QoreNode(qo->qobj->inherits(p->val.String->getBuffer()));
+}
 
 #endif

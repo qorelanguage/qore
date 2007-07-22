@@ -91,7 +91,10 @@ class Object : public ReferenceObject
       DLLEXPORT class QoreNode *evalMemberExistence(const char *mem, class ExceptionSink *xsink);
       DLLEXPORT class Hash *evalData(class ExceptionSink *xsink);
       DLLEXPORT void setPrivate(int key, AbstractPrivateData *pd);
+      DLLEXPORT void setPrivate(int key, int metakey, AbstractPrivateData *pd);
+      DLLEXPORT void setPrivate(int key, int_set_t *metakeyset, AbstractPrivateData *pd);
       DLLEXPORT AbstractPrivateData *getReferencedPrivateData(int key, class ExceptionSink *xsink);
+      DLLEXPORT AbstractPrivateData *getReferencedPrivateDataFromMetaClass(int metakey, class ExceptionSink *xsink);
       DLLEXPORT class QoreNode *evalMethod(class QoreString *name, class QoreNode *args, class ExceptionSink *xsink);
       DLLEXPORT class QoreClass *getClass(int cid) const;
       DLLEXPORT class QoreClass *getClass() const;

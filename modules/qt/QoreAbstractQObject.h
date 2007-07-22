@@ -1,5 +1,5 @@
 /*
- QC_QPushButton.h
+ QoreAbstractQObject.h
  
  Qore Programming Language
  
@@ -20,40 +20,45 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _QORE_QC_QPUSHBUTTON_H
+#ifndef _QORE_QOREABSTRACTQOBJECT_H
 
-#define _QORE_QC_QPUSHBUTTON_H
+#define _QORE_QOREABSTRACTQOBJECT_H
 
-#include "QoreAbstractQObject.h"
+#include <qore/Qore.h>
 
-#include <QPushButton>
+#include <QPointer>
+#include <QObject>
 
-DLLEXPORT extern int CID_QPUSHBUTTON;
-
-DLLLOCAL class QoreClass *initQPushButtonClass();
-
-class QoreQPushButton : public QoreAbstractQObject
+class QoreAbstractQObject : public AbstractPrivateData
 {
-   public:
-      QPointer<QPushButton> qobj;
-   
-      DLLLOCAL QoreQPushButton(const char *str, QWidget *parent = 0) : qobj(new QPushButton(str, parent))
-      {
-      }
-      DLLLOCAL QoreQPushButton(QWidget *parent = 0) : qobj(new QPushButton(parent))
-      {
-      }
-      DLLLOCAL virtual void destructor(class ExceptionSink *xsink)
-      {
-	 //QObject::disconnect(qobj, SLOT(isDeleted()));
-	 if (qobj)
-	    delete qobj;
-      }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-	 return static_cast<QObject *>(&(*qobj));
-      }
-};
+   private:
+      //QOBJECT
 
+      //LockedObject m_qobj;
+      //bool deleted;
+
+      DLLLOCAL void qinit()
+      {
+	 //QObject::connect(qobj, SIGNAL(destroyed()), qobj, SLOT(is_Deleted()));
+      }
+
+   public:
+
+/*
+   public slots:
+      DLLLOCAL void isDeleted()
+      {
+	 AutoLocker al(&m_qobj);
+	 deleted = true;
+      }
+*/
+      DLLLOCAL QoreAbstractQObject() //: deleted(0)
+      {
+      }
+
+      DLLLOCAL virtual void destructor(class ExceptionSink *xsink) = 0;
+
+      DLLLOCAL virtual class QObject *getQObject() const = 0;
+};
 
 #endif

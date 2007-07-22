@@ -228,7 +228,7 @@ class BCList : public ReferenceObject, public bclist_t
 */
 class QoreClass{
       friend class BCList;
-   friend class BCSMList;
+      friend class BCSMList;
 
    private:
       char *name;                  // the name of the class

@@ -232,8 +232,12 @@ noinst_HEADERS = \
 	modules/sybase/row_output_buffers.h \
 	modules/qt/QC_QApplication.h \
 	modules/qt/QC_QPushButton.h \
+	modules/qt/QC_QFont.h \
+	modules/qt/QC_QWidget.h \
+	modules/qt/QC_QObject.h \
+	modules/qt/QoreAbstractQObject.h \
 	command-line.h \
-	include/qore/Qore.h 
+	include/qore/Qore.h
 
 EXTRA_DIST = .build next_build.sh WHATISQORE RELEASE-NOTES \
         test/thread-object-test.q \

@@ -24,7 +24,7 @@
 
 #define _QORE_QC_QAPPLICATION_H
 
-#include <qore/Qore.h>
+#include "QoreAbstractQObject.h"
 
 #include <QApplication>
 
@@ -37,10 +37,12 @@ extern char **static_argv;
 
 DLLLOCAL extern void qapp_dec();
 
-class QoreQApplication : public AbstractPrivateData, public QApplication
+class QoreQApplication : public QoreAbstractQObject
 {
    public:
-      DLLLOCAL QoreQApplication() : QApplication(static_argc, static_argv)
+      QApplication *qobj;
+
+      DLLLOCAL QoreQApplication() : qobj(new QApplication(static_argc, static_argv))
       {
       }
 
@@ -49,16 +51,16 @@ class QoreQApplication : public AbstractPrivateData, public QApplication
 	 qapp_dec();
       }
 
-      DLLLOCAL virtual void deref(class ExceptionSink *xsink) 
+      DLLLOCAL virtual void destructor(class ExceptionSink *xsink)
       {
-	 if (ROdereference())
-	 {
-	    delete this;
-	 }
+	 //QObject::disconnect(qobj, SLOT(isDeleted()));
+	 if (qobj)
+	    delete qobj;
       }
-      
-      DLLLOCAL virtual void destructor(class ExceptionSink *xsink) 
+
+      DLLLOCAL virtual class QObject *getQObject() const
       {
+	 return static_cast<QObject *>(qobj);
       }
 };
 

@@ -1,7 +1,7 @@
 /*
  QC_QPushButton.cc
  
- Qore Programming Langupbe
+ Qore Programming Language
  
  Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
  
@@ -23,15 +23,72 @@
 #include <qore/Qore.h>
 
 #include "QC_QPushButton.h"
+#include "QC_QFont.h"
+#include "QC_QWidget.h"
+//#include "QC_QAbstractButton.h"
 
 int CID_QPUSHBUTTON;
 
 static void QPB_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = test_param(params, NT_STRING, 0);
+   QoreQPushButton *pb;
+   int np = num_params(params);
+   if (!np)
+      pb = new QoreQPushButton();
+   else if (np == 1)
+   {
+      QoreNode *p = get_param(params, 0);
+      if (p && p->type == NT_OBJECT)
+      {
+	 QoreQWidget *parent = p ? (QoreQWidget *)p->val.object->getReferencedPrivateDataFromMetaClass(CID_QWIDGET, xsink) : 0;
+	 if (!parent)
+	 {
+	    if (!xsink->isException())
+	       xsink->raiseException("QPUSHBUTTON-CONSTRUCTOR-ERROR", "expecting an object derived from QWidget as parameter to QPushButton::constructor(), object class passed: '%s' is not derived from QWidget", p->val.object->getClass()->getName());
+	    return;
+	 }
+	 ReferenceHolder<QoreAbstractQObject> holder(parent, xsink);
+	 pb = new QoreQPushButton(parent->getQWidget());
+      }
+      else if (p && p->type == NT_STRING)
+	 pb = new QoreQPushButton(p->val.String->getBuffer());
+   }
+   else if (np == 2 || np == 3)
+   {
+      QoreNode *p = get_param(params, 0);
+      if (p && p->type == NT_STRING)
+      {
+	 const char *name = p->val.String->getBuffer();
+	 QoreNode *p = test_param(params, NT_OBJECT, 1);
+	 QoreQWidget *parent = p ? (QoreQWidget *)p->val.object->getReferencedPrivateDataFromMetaClass(CID_QWIDGET, xsink) : 0;
+	 if (!parent)
+	 {
+	    if (!xsink->isException())
+	       xsink->raiseException("QPUSHBUTTON-CONSTRUCTOR-ERROR", "expecting an object derived from QWidget as parameter to QPushButton::constructor() in second argument when first argument is a string and second argument is passed");
+	    return;
+	 }
+	 ReferenceHolder<QoreAbstractQObject> holder(parent, xsink);
+	 pb = new QoreQPushButton(name, parent->getQWidget());
+      }
+      else // FIXME: implement constructor version with icon
+      {
+	 xsink->raiseException("QPUSHBUTTON-CONSTRUCTOR-ERROR", "unexpected value type %s for QPushButton::constructor() with %d arguments", p ? p->type->getName() : "NOTHING", np);
+	 return;
+      }
+   }
+   else
+   {
+      xsink->raiseException("QPUSHBUTTON-CONSTRUCTOR-ERROR", "expecting 0-3 arguments to QPushButton::constructor(), got %d", np);
+      return;
+   }
 
-   QoreQPushButton *pb = p ? new QoreQPushButton(p->val.String->getBuffer()) : new QoreQPushButton();
-   self->setPrivate(CID_QPUSHBUTTON, pb);
+   // create metaclass set
+   int_set_t *mks = new int_set_t;
+   mks->insert(CID_QOBJECT);
+   mks->insert(CID_QWIDGET);
+   //mks->insert(CID_QABSTRACTBUTTON);
+
+   self->setPrivate(CID_QPUSHBUTTON, mks, pb);
 }
 
 static void QPB_destructor(class Object *self, class QoreQPushButton *pb, ExceptionSink *xsink)
@@ -45,31 +102,7 @@ static void QPB_copy(class Object *self, class Object *old, class QoreQPushButto
    xsink->raiseException("QPUSHBUTTON-COPY-ERROR", "objects of this class cannot be copied");
 }
 
-static class QoreNode *QPB_resize(class Object *self, class QoreQPushButton *pb, class QoreNode *params, ExceptionSink *xsink)
-{
-   QoreNode *p = get_param(params, 0);
-   if (is_nothing(p)) {
-      xsink->raiseException("QPUSHBUTTON-RESIZE-ERROR", "missing first argument: x size");
-      return 0;
-   }
-   int x = p->getAsInt();
-   
-   p = get_param(params, 1);
-   if (is_nothing(p)) {
-      xsink->raiseException("QPUSHBUTTON-RESIZE-ERROR", "missing second argument: y size");
-      return 0;
-   }
-   int y = p->getAsInt();
-
-   pb->resize(x, y);
-   return 0;
-}
-
-static class QoreNode *QPB_show(class Object *self, class QoreQPushButton *pb, class QoreNode *params, ExceptionSink *xsink)
-{
-   pb->show();
-   return 0;
-}
+typedef QoreNode *(*qpb_func_t)(Object *, QoreQPushButton *, QoreNode *, ExceptionSink *);
 
 class QoreClass *initQPushButtonClass()
 {
@@ -77,12 +110,18 @@ class QoreClass *initQPushButtonClass()
    
    class QoreClass *QC_QPushButton = new QoreClass("QPushButton", QDOM_GUI);
    CID_QPUSHBUTTON = QC_QPushButton->getID();
+
    QC_QPushButton->setConstructor(QPB_constructor);
    QC_QPushButton->setDestructor((q_destructor_t)QPB_destructor);
    QC_QPushButton->setCopy((q_copy_t)QPB_copy);
-   QC_QPushButton->addMethod("resize",  (q_method_t)QPB_resize);
-   QC_QPushButton->addMethod("show",    (q_method_t)QPB_show);
-   
+
+   // inherited functions from templates
+   QC_QPushButton->addMethod("inherits",     (q_method_t)(qpb_func_t)QO_inherits<QoreQPushButton>);
+   QC_QPushButton->addMethod("resize",       (q_method_t)(qpb_func_t)QW_resize<QoreQPushButton>);
+   QC_QPushButton->addMethod("setGeometry",  (q_method_t)(qpb_func_t)QW_setGeometry<QoreQPushButton>);
+   QC_QPushButton->addMethod("show",         (q_method_t)(qpb_func_t)QW_show<QoreQPushButton>);
+   QC_QPushButton->addMethod("setFont",      (q_method_t)(qpb_func_t)QW_setFont<QoreQPushButton>);
+
    traceout("initQPushButtonClass()");
    return QC_QPushButton;
 }

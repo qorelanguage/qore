@@ -1,5 +1,5 @@
 /*
- QC_QPushButton.h
+ QC_QFont.h
  
  Qore Programming Language
  
@@ -20,38 +20,22 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _QORE_QC_QPUSHBUTTON_H
+#ifndef _QORE_QC_QFONT_H
 
-#define _QORE_QC_QPUSHBUTTON_H
+#define _QORE_QC_QFONT_H
 
-#include "QoreAbstractQObject.h"
+#include <QFont>
 
-#include <QPushButton>
+extern int CID_QFONT;
 
-DLLEXPORT extern int CID_QPUSHBUTTON;
+DLLLOCAL class QoreClass *initQFontClass();
 
-DLLLOCAL class QoreClass *initQPushButtonClass();
-
-class QoreQPushButton : public QoreAbstractQObject
+class QoreQFont : public AbstractPrivateData, public QFont
 {
    public:
-      QPointer<QPushButton> qobj;
-   
-      DLLLOCAL QoreQPushButton(const char *str, QWidget *parent = 0) : qobj(new QPushButton(str, parent))
+      DLLLOCAL QoreQFont(const char *fname, int point_size = -1, int weight = -1, bool italic = false) : 
+	 QFont(fname, point_size, weight, italic)
       {
-      }
-      DLLLOCAL QoreQPushButton(QWidget *parent = 0) : qobj(new QPushButton(parent))
-      {
-      }
-      DLLLOCAL virtual void destructor(class ExceptionSink *xsink)
-      {
-	 //QObject::disconnect(qobj, SLOT(isDeleted()));
-	 if (qobj)
-	    delete qobj;
-      }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-	 return static_cast<QObject *>(&(*qobj));
       }
 };
 

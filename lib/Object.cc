@@ -30,50 +30,115 @@
 
 #include <map>
 
-typedef std::map<int, AbstractPrivateData *> keymap_t;
+// actual object data and set of super/metaclass IDs
+typedef std::pair<AbstractPrivateData *, int_set_t *> abstract_data_record_t;
+// mapping from qore class ID to the object data and super/metaclass ID set
+typedef std::map<int, abstract_data_record_t> keymap_t;
+// mapping from qore super/metaclass ID to object data
+typedef std::multimap<int, AbstractPrivateData *> metakeymap_t;
 
 // for objects with multiple classes, private data has to be keyed
-class KeyList : public keymap_t 
+class KeyList
 {
+   private:
+      keymap_t keymap;
+      metakeymap_t metakeymap;
+
    public:
-      DLLLOCAL inline AbstractPrivateData *getReferencedPrivateData(int key) const;
-      DLLLOCAL inline void addToString(class QoreString *str) const;
-      DLLLOCAL inline void derefAll(class ExceptionSink *xsink) const;
-      DLLLOCAL inline AbstractPrivateData *getAndClearPtr(int key);
+      DLLLOCAL AbstractPrivateData *getReferencedPrivateData(int key) const
+      {
+	 keymap_t::const_iterator i = keymap.find(key);
+	 if (i == keymap.end())
+	    return 0;
+
+	 AbstractPrivateData *apd = i->second.first;
+	 apd->ref();
+	 return apd;
+      }
+
+      DLLLOCAL AbstractPrivateData *getReferencedPrivateDataFromMetaClass(int metakey) const
+      {
+	 metakeymap_t::const_iterator i = metakeymap.find(metakey);
+	 if (i == metakeymap.end())
+	    return getReferencedPrivateData(metakey);
+
+	 AbstractPrivateData *apd = i->second;
+	 apd->ref();
+	 return apd;
+      }
+
+      DLLLOCAL void addToString(class QoreString *str) const
+      {
+	 for (keymap_t::const_iterator i = keymap.begin(), e = keymap.end(); i != e; ++i)
+	    str->sprintf("%d=<0x%08p>, ", i->first, i->second.first);
+      }
+
+      DLLLOCAL void derefAll(class ExceptionSink *xsink) const
+      {
+	 for (keymap_t::const_iterator i = keymap.begin(), e = keymap.end(); i != e; ++i)
+	 {
+	    i->second.first->deref(xsink);
+	    if (i->second.second)
+	       delete i->second.second;
+	 }
+      }
+
+      DLLLOCAL AbstractPrivateData *getAndClearPtr(int key)
+      {
+	 keymap_t::iterator i = keymap.find(key);
+	 if (i == keymap.end())
+	    return 0;
+
+	 class AbstractPrivateData *rv = i->second.first;
+	 // if there are meta mappings, then delete them too
+	 if (i->second.second)
+	 {
+	    for (int_set_t::iterator mi = i->second.second->begin(), e = i->second.second->end(); mi != e; ++mi)
+	    {
+	       metakeymap_t::iterator j = metakeymap.find(*mi);
+	       assert(j != metakeymap.end());
+	       while (j != metakeymap.end() && j->first == *mi)
+		  if (j->second == rv) {
+		     metakeymap.erase(j);
+		     break;
+		  }
+		  else
+		     ++j;
+	    }
+	    delete i->second.second;
+	 }
+	 keymap.erase(i);
+	 return rv;
+      }
+
+      DLLLOCAL void insert(int key, AbstractPrivateData *pd)
+      {
+	 keymap.insert(std::make_pair(key, std::make_pair(pd, (int_set_t *)0)));
+      }
+
+      DLLLOCAL void insert(int key, int metakey, AbstractPrivateData *pd)
+      {
+	 assert(metakey);
+	 // make new meta key set with one key
+	 int_set_t *metakeyset = new int_set_t;
+	 metakeyset->insert(metakey);
+	 keymap.insert(std::make_pair(key, std::make_pair(pd, metakeyset)));
+
+	 metakeymap.insert(std::make_pair(metakey, pd));
+      }
+
+      DLLLOCAL void insert(int key, int_set_t *metakeyset, AbstractPrivateData *pd)
+      {
+	 keymap.insert(std::make_pair(key, std::make_pair(pd, metakeyset)));
+
+	 for (int_set_t::iterator i = metakeyset->begin(), e = metakeyset->end(); i != e; ++i)
+	 {
+	    assert(*i);
+	    metakeymap.insert(std::make_pair(*i, pd));
+	 }
+      }
+
 };
-
-inline void KeyList::derefAll(class ExceptionSink *xsink) const
-{
-   for (keymap_t::const_iterator i = begin(), e = end(); i != e; ++i)
-      i->second->deref(xsink);
-}
-
-DLLLOCAL inline AbstractPrivateData *KeyList::getReferencedPrivateData(int key) const
-{
-   keymap_t::const_iterator i = find(key);
-   if (i == end())
-      return NULL;
-   
-   i->second->ref();
-   return i->second;
-}
-
-inline void KeyList::addToString(class QoreString *str) const
-{
-   for (keymap_t::const_iterator i = begin(), e = end(); i != e; ++i)
-      str->sprintf("%d=<0x%08p>, ", i->first, i->second);
-}
-
-inline AbstractPrivateData *KeyList::getAndClearPtr(int key)
-{
-   keymap_t::iterator i = find(key);
-   if (i == end())
-      return NULL;
-
-   class AbstractPrivateData *rv = i->second;
-   erase(i);
-   return rv;
-}
 
 inline void Object::init(class QoreClass *oc, class QoreProgram *p)
 {
@@ -766,6 +831,19 @@ AbstractPrivateData *Object::getReferencedPrivateData(int key, class ExceptionSi
    return rv;
 }
 
+AbstractPrivateData *Object::getReferencedPrivateDataFromMetaClass(int metakey, class ExceptionSink *xsink)
+{ 
+   AbstractPrivateData *rv = NULL;
+
+   if (g.enter(xsink) < 0)
+      return NULL;
+   if (status != OS_DELETED && privateData)
+      rv = privateData->getReferencedPrivateDataFromMetaClass(metakey);
+   g.exit();
+
+   return rv;
+}
+
 AbstractPrivateData *Object::getAndClearPrivateData(int key, class ExceptionSink *xsink)
 { 
    AbstractPrivateData *rv = NULL;
@@ -782,7 +860,21 @@ void Object::setPrivate(int key, AbstractPrivateData *pd)
 { 
    if (!privateData)
       privateData = new KeyList();
-   privateData->insert(std::make_pair(key, pd));
+   privateData->insert(key, pd);
+}
+
+void Object::setPrivate(int key, int metakey, AbstractPrivateData *pd)
+{ 
+   if (!privateData)
+      privateData = new KeyList();
+   privateData->insert(key, metakey, pd);
+}
+
+void Object::setPrivate(int key, int_set_t *metakeyset, AbstractPrivateData *pd)
+{ 
+   if (!privateData)
+      privateData = new KeyList();
+   privateData->insert(key, metakeyset, pd);
 }
 
 void Object::addPrivateDataToString(class QoreString *str, class ExceptionSink *xsink)

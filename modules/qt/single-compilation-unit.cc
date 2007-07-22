@@ -1,3 +1,6 @@
+#include "QC_QObject.cc"
 #include "QC_QApplication.cc"
 #include "QC_QPushButton.cc"
+#include "QC_QFont.cc"
+#include "QC_QWidget.cc"
 #include "qt.cc"

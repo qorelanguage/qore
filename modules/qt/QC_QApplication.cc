@@ -22,6 +22,7 @@
 
 #include <qore/Qore.h>
 #include "QC_QApplication.h"
+#include "QC_QObject.h"
 
 DLLLOCAL int CID_QAPPLICATION;
 
@@ -47,7 +48,7 @@ static void QA_constructor(class Object *self, class QoreNode *params, Exception
    ++qapp_count;
 
    QoreQApplication *qa = new QoreQApplication();
-   self->setPrivate(CID_QAPPLICATION, qa);
+   self->setPrivate(CID_QAPPLICATION, CID_QOBJECT, qa);
 }
 
 static void QA_destructor(class Object *self, class QoreQApplication *qa, ExceptionSink *xsink)
@@ -63,9 +64,11 @@ static void QA_copy(class Object *self, class Object *old, class QoreQApplicatio
 
 static class QoreNode *QA_exec(class Object *self, class QoreQApplication *qa, class QoreNode *params, ExceptionSink *xsink)
 {
-   qa->exec();
+   qa->qobj->exec();
    return 0;
 }
+
+typedef QoreNode *(*qa_func_t)(Object *, QoreQApplication *, QoreNode *, ExceptionSink *);
 
 class QoreClass *initQApplicationClass()
 {
@@ -78,6 +81,9 @@ class QoreClass *initQApplicationClass()
    QC_QApplication->setCopy((q_copy_t)QA_copy);
 
    QC_QApplication->addMethod("exec",    (q_method_t)QA_exec);
+
+   // inherited functions from templates
+   QC_QApplication->addMethod("inherits",     (q_method_t)(qa_func_t)QO_inherits<QoreQApplication>);
 
    traceout("initQApplicationClass()");
    return QC_QApplication;
