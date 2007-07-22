@@ -325,4 +325,6 @@ class QoreClass{
       DLLLOCAL void parseSetBaseClassList(class BCList *bcl);
 };
 
+DLLEXPORT int get_abstract_class_id();
+
 #endif // _QORE_QORECLASS_H

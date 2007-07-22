@@ -1,5 +1,5 @@
 /*
- QC_QPushButton.h
+ QC_QVBoxLayout.h
  
  Qore Programming Language
  
@@ -20,27 +20,28 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _QORE_QC_QPUSHBUTTON_H
+#ifndef _QORE_QC_QVBOXLAYOUT_H
 
-#define _QORE_QC_QPUSHBUTTON_H
+#define _QORE_QC_QVBOXLAYOUT_H
 
-#include "QoreAbstractQWidget.h"
+#include "QoreAbstractQLayout.h"
 
-#include <QPushButton>
+#include <QVBoxLayout>
 
-DLLEXPORT extern int CID_QPUSHBUTTON;
+DLLEXPORT extern int CID_QVBOXLAYOUT;
 
-DLLLOCAL class QoreClass *initQPushButtonClass();
+DLLLOCAL class QoreClass *initQVBoxLayoutClass();
 
-class QoreQPushButton : public QoreAbstractQWidget
+class QoreQVBoxLayout : public QoreAbstractQLayout
 {
    public:
-      QPointer<QPushButton> qobj;
-   
-      DLLLOCAL QoreQPushButton(const char *str, QWidget *parent = 0) : qobj(new QPushButton(str, parent))
+      QPointer<QVBoxLayout> qobj;
+
+      DLLLOCAL QoreQVBoxLayout() : qobj(new QVBoxLayout)
       {
       }
-      DLLLOCAL QoreQPushButton(QWidget *parent = 0) : qobj(new QPushButton(parent))
+
+      DLLLOCAL QoreQVBoxLayout(QWidget *parent) : qobj(new QVBoxLayout(parent))
       {
       }
       DLLLOCAL virtual void destructor(class ExceptionSink *xsink)
@@ -49,15 +50,16 @@ class QoreQPushButton : public QoreAbstractQWidget
 	 if (qobj && !qobj->parent())
 	    delete qobj;
       }
-      DLLLOCAL virtual class QObject *getQObject() const
+      DLLLOCAL virtual QObject *getQObject() const
       {
 	 return static_cast<QObject *>(&(*qobj));
       }
-      DLLLOCAL virtual class QWidget *getQWidget() const
-      {
-	 return static_cast<QWidget *>(&(*qobj));
-      }
-};
 
+      DLLLOCAL virtual QLayout *getQLayout() const
+      {
+	 return static_cast<QLayout *>(&(*qobj));
+      }
+
+};
 
 #endif

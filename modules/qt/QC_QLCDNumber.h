@@ -1,5 +1,5 @@
 /*
- QC_QPushButton.h
+ QC_QLCDNumber.h
  
  Qore Programming Language
  
@@ -20,27 +20,24 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _QORE_QC_QPUSHBUTTON_H
+#ifndef _QORE_QC_QLCDNUMBER_H
 
-#define _QORE_QC_QPUSHBUTTON_H
+#define _QORE_QC_QLCDNUMBER_H
 
 #include "QoreAbstractQWidget.h"
 
-#include <QPushButton>
+#include <QLCDNumber>
 
-DLLEXPORT extern int CID_QPUSHBUTTON;
+DLLEXPORT extern int CID_QLCDNUMBER;
 
-DLLLOCAL class QoreClass *initQPushButtonClass();
+DLLLOCAL class QoreClass *initQLCDNumberClass();
 
-class QoreQPushButton : public QoreAbstractQWidget
+class QoreQLCDNumber : public QoreAbstractQWidget
 {
    public:
-      QPointer<QPushButton> qobj;
-   
-      DLLLOCAL QoreQPushButton(const char *str, QWidget *parent = 0) : qobj(new QPushButton(str, parent))
-      {
-      }
-      DLLLOCAL QoreQPushButton(QWidget *parent = 0) : qobj(new QPushButton(parent))
+      QPointer<QLCDNumber>qobj;
+
+      DLLLOCAL QoreQLCDNumber(QWidget *parent = 0) : qobj(new QLCDNumber(parent))
       {
       }
       DLLLOCAL virtual void destructor(class ExceptionSink *xsink)
@@ -53,11 +50,10 @@ class QoreQPushButton : public QoreAbstractQWidget
       {
 	 return static_cast<QObject *>(&(*qobj));
       }
-      DLLLOCAL virtual class QWidget *getQWidget() const
+      DLLLOCAL virtual QWidget *getQWidget() const
       {
 	 return static_cast<QWidget *>(&(*qobj));
       }
 };
-
 
 #endif

@@ -2,6 +2,7 @@
 	* qt: new class hierarchy infrastructure support to better model QT's
 	  class hierarchy, function templates, etc
 	* metaclass support for Qore objects
+	* qt: more classes, more methods, constants, etc
 
 2006.07.20: David Nichols
 	* qt: added QFont class stub

@@ -32,27 +32,9 @@
 class QoreAbstractQObject : public AbstractPrivateData
 {
    private:
-      //QOBJECT
-
-      //LockedObject m_qobj;
-      //bool deleted;
-
-      DLLLOCAL void qinit()
-      {
-	 //QObject::connect(qobj, SIGNAL(destroyed()), qobj, SLOT(is_Deleted()));
-      }
 
    public:
-
-/*
-   public slots:
-      DLLLOCAL void isDeleted()
-      {
-	 AutoLocker al(&m_qobj);
-	 deleted = true;
-      }
-*/
-      DLLLOCAL QoreAbstractQObject() //: deleted(0)
+      DLLLOCAL QoreAbstractQObject()
       {
       }
 

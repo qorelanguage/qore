@@ -1,5 +1,5 @@
 /*
- QC_QPushButton.h
+ QC_QFrame.h
  
  Qore Programming Language
  
@@ -20,27 +20,24 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _QORE_QC_QPUSHBUTTON_H
+#ifndef _QORE_QC_QFRAME_H
 
-#define _QORE_QC_QPUSHBUTTON_H
+#define _QORE_QC_QFRAME_H
 
 #include "QoreAbstractQWidget.h"
 
-#include <QPushButton>
+#include <QFrame>
 
-DLLEXPORT extern int CID_QPUSHBUTTON;
+DLLEXPORT extern int CID_QFRAME;
 
-DLLLOCAL class QoreClass *initQPushButtonClass();
+DLLLOCAL class QoreClass *initQFrameClass();
 
-class QoreQPushButton : public QoreAbstractQWidget
+class QoreQFrame : public QoreAbstractQWidget
 {
    public:
-      QPointer<QPushButton> qobj;
-   
-      DLLLOCAL QoreQPushButton(const char *str, QWidget *parent = 0) : qobj(new QPushButton(str, parent))
-      {
-      }
-      DLLLOCAL QoreQPushButton(QWidget *parent = 0) : qobj(new QPushButton(parent))
+      QPointer<QFrame>qobj;
+
+      DLLLOCAL QoreQFrame(QWidget *parent = 0, Qt::WindowFlags window_flags = 0) : qobj(new QFrame(parent, window_flags))
       {
       }
       DLLLOCAL virtual void destructor(class ExceptionSink *xsink)
@@ -53,11 +50,29 @@ class QoreQPushButton : public QoreAbstractQWidget
       {
 	 return static_cast<QObject *>(&(*qobj));
       }
-      DLLLOCAL virtual class QWidget *getQWidget() const
+      DLLLOCAL virtual QWidget *getQWidget() const
       {
 	 return static_cast<QWidget *>(&(*qobj));
       }
 };
 
+/*
+template<typename T>
+static QoreNode *QW_setFont(class Object *self, T *qw, class QoreNode *params, ExceptionSink *xsink)
+{
+   class QoreNode *p = test_param(params, NT_OBJECT, 0);
+   QoreQFont *qf = p ? (QoreQFont *)p->val.object->getReferencedPrivateData(CID_QFONT, xsink) : NULL;
+   if (!p || !qf)
+   {
+      if (!xsink->isException())
+         xsink->raiseException("QFRAME-SETFONT-PARAM-EXCEPTION", "expecting a QFont object as parameter to QFrame::setFont()");
+      return NULL;
+   }
+   ReferenceHolder<QoreQFont> holder(qf, xsink);
+
+   qw->qobj->setFont(*((QFont *)qf));
+   return 0;
+}
+*/
 
 #endif

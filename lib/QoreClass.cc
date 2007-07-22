@@ -31,6 +31,11 @@
 // global class ID sequence
 DLLLOCAL class Sequence classIDSeq;
 
+int get_abstract_class_id()
+{
+   return classIDSeq.next();
+}
+
 // BCEANode
 // base class constructor evaluated argument node
 // created locally at run time

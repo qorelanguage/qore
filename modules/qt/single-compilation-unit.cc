@@ -3,4 +3,8 @@
 #include "QC_QPushButton.cc"
 #include "QC_QFont.cc"
 #include "QC_QWidget.cc"
+#include "QC_QFrame.cc"
+#include "QC_QLCDNumber.cc"
+#include "QC_QSlider.cc"
+#include "QC_QVBoxLayout.cc"
 #include "qt.cc"

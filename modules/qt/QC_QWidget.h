@@ -24,7 +24,8 @@
 
 #define _QORE_QC_QWIDGET_H
 
-#include "QoreAbstractQObject.h"
+#include "QoreAbstractQWidget.h"
+#include "QoreAbstractQLayout.h"
 
 #include <QWidget>
 
@@ -32,7 +33,7 @@ DLLEXPORT extern int CID_QWIDGET;
 
 DLLLOCAL class QoreClass *initQWidgetClass();
 
-class QoreQWidget : public QoreAbstractQObject
+class QoreQWidget : public QoreAbstractQWidget
 {
    public:
       QPointer<QWidget>qobj;
@@ -43,20 +44,18 @@ class QoreQWidget : public QoreAbstractQObject
       DLLLOCAL virtual void destructor(class ExceptionSink *xsink)
       {
 	 //QObject::disconnect(qobj, SLOT(isDeleted()));
-	 if (qobj)
+	 if (qobj && !qobj->parent())
 	    delete qobj;
       }
-      DLLLOCAL virtual class QObject *getQObject() const
+      DLLLOCAL virtual QObject *getQObject() const
       {
 	 return static_cast<QObject *>(&(*qobj));
       }
-      DLLLOCAL QWidget *getQWidget() const
+      DLLLOCAL virtual QWidget *getQWidget() const
       {
 	 return &(*qobj);
       }
 };
-
-template<typename T> void f(T*) {}
 
 // template functions for inherited methods
 template<typename T>
@@ -116,6 +115,153 @@ static QoreNode *QW_setGeometry(class Object *self, T *qw, class QoreNode *param
 }
 
 template<typename T>
+QoreNode *QW_setFixedWidth(class Object *self, T *qw, class QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   if (is_nothing(p)) {
+      xsink->raiseException("QWIDGET-SETFIXEDWIDTH-ERROR", "missing width argument");
+      return 0;
+   }
+   int w = p->getAsInt();
+   
+   qw->qobj->setFixedWidth(w);
+   return 0;
+}
+
+template<typename T>
+QoreNode *QW_setFixedHeight(class Object *self, T *qw, class QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   if (is_nothing(p)) {
+      xsink->raiseException("QWIDGET-SETFIXEDHEIGHT-ERROR", "missing height argument");
+      return 0;
+   }
+   int h = p->getAsInt();
+
+   qw->qobj->setFixedHeight(h);
+   return 0;
+}
+
+template<typename T>
+QoreNode *QW_setFixedSize(class Object *self, T *qw, class QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   if (is_nothing(p)) {
+      xsink->raiseException("QWIDGET-SETFIXEDSIZE-ERROR", "missing first argument: width");
+      return 0;
+   }
+   int w = p->getAsInt();
+   
+   p = get_param(params, 1);
+   if (is_nothing(p)) {
+      xsink->raiseException("QWIDGET-SETFIXEDSIZE-ERROR", "missing second argument: height");
+      return 0;
+   }
+   int h = p->getAsInt();
+
+   qw->qobj->setFixedSize(w, h);
+   return 0;
+}
+
+template<typename T>
+QoreNode *QW_setMinimumWidth(class Object *self, T *qw, class QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   if (is_nothing(p)) {
+      xsink->raiseException("QWIDGET-SETMINIMUMWIDTH-ERROR", "missing width argument");
+      return 0;
+   }
+   int w = p->getAsInt();
+   
+   qw->qobj->setMinimumWidth(w);
+   return 0;
+}
+
+template<typename T>
+QoreNode *QW_setMinimumHeight(class Object *self, T *qw, class QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   if (is_nothing(p)) {
+      xsink->raiseException("QWIDGET-SETMINIMUMHEIGHT-ERROR", "missing height argument");
+      return 0;
+   }
+   int h = p->getAsInt();
+
+   qw->qobj->setMinimumHeight(h);
+   return 0;
+}
+
+template<typename T>
+QoreNode *QW_setMinimumSize(class Object *self, T *qw, class QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   if (is_nothing(p)) {
+      xsink->raiseException("QWIDGET-SETMINIMUMSIZE-ERROR", "missing first argument: width");
+      return 0;
+   }
+   int w = p->getAsInt();
+   
+   p = get_param(params, 1);
+   if (is_nothing(p)) {
+      xsink->raiseException("QWIDGET-SETMINIMUMSIZE-ERROR", "missing second argument: height");
+      return 0;
+   }
+   int h = p->getAsInt();
+
+   qw->qobj->setMinimumSize(w, h);
+   return 0;
+}
+
+template<typename T>
+QoreNode *QW_setMaximumWidth(class Object *self, T *qw, class QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   if (is_nothing(p)) {
+      xsink->raiseException("QWIDGET-SETMAXIMUMWIDTH-ERROR", "missing width argument");
+      return 0;
+   }
+   int w = p->getAsInt();
+   
+   qw->qobj->setMaximumWidth(w);
+   return 0;
+}
+
+template<typename T>
+QoreNode *QW_setMaximumHeight(class Object *self, T *qw, class QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   if (is_nothing(p)) {
+      xsink->raiseException("QWIDGET-SETMAXIMUMHEIGHT-ERROR", "missing height argument");
+      return 0;
+   }
+   int h = p->getAsInt();
+
+   qw->qobj->setMaximumHeight(h);
+   return 0;
+}
+
+template<typename T>
+QoreNode *QW_setMaximumSize(class Object *self, T *qw, class QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   if (is_nothing(p)) {
+      xsink->raiseException("QWIDGET-SETMAXIMUMSIZE-ERROR", "missing first argument: width");
+      return 0;
+   }
+   int w = p->getAsInt();
+   
+   p = get_param(params, 1);
+   if (is_nothing(p)) {
+      xsink->raiseException("QWIDGET-SETMAXIMUMSIZE-ERROR", "missing second argument: height");
+      return 0;
+   }
+   int h = p->getAsInt();
+
+   qw->qobj->setMaximumSize(w, h);
+   return 0;
+}
+
+template<typename T>
 static QoreNode *QW_show(class Object *self, T *qw, class QoreNode *params, ExceptionSink *xsink)
 {
    qw->qobj->show();
@@ -136,6 +282,23 @@ static QoreNode *QW_setFont(class Object *self, T *qw, class QoreNode *params, E
    ReferenceHolder<QoreQFont> holder(qf, xsink);
 
    qw->qobj->setFont(*((QFont *)qf));
+   return 0;
+}
+
+template<typename T>
+static QoreNode *QW_setLayout(class Object *self, T *qw, class QoreNode *params, ExceptionSink *xsink)
+{
+   class QoreNode *p = test_param(params, NT_OBJECT, 0);
+   QoreAbstractQLayout *qal = p ? (QoreAbstractQLayout *)p->val.object->getReferencedPrivateDataFromMetaClass(CID_QLAYOUT, xsink) : NULL;
+   if (!p || !qal)
+   {
+      if (!xsink->isException())
+         xsink->raiseException("QWIDGET-SETLAYOUT-PARAM-ERROR", "expecting a QLayout object as argument to QWidget::setLayout()");
+      return NULL;
+   }
+   ReferenceHolder<QoreAbstractQLayout> holder(qal, xsink);
+
+   qw->qobj->setLayout(qal->getQLayout());
    return 0;
 }
 

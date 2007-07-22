@@ -27,8 +27,14 @@
 #include "QC_QPushButton.h"
 #include "QC_QFont.h"
 #include "QC_QWidget.h"
+#include "QC_QFrame.h"
+#include "QC_QLCDNumber.h"
+#include "QC_QVBoxLayout.h"
 
 #include <assert.h>
+
+// abstract class IDs
+DLLLOCAL int CID_QLAYOUT;
 
 static class QoreString *qt_module_init();
 static void qt_module_ns_init(class Namespace *rns, class Namespace *qns);
@@ -111,7 +117,7 @@ class QoreNode *f_SLOT(class QoreNode *params, class ExceptionSink *xsink)
    str->concat(p->val.String->getBuffer());
    const char *buf = str->getBuffer();
    int slen = str->strlen();
-   if (slen < 3 || buf[slen - 2] != '(' || buf[slen - 1] != ')')
+   if (slen < 3 || buf[slen - 1] != ')')
       str->concat("()");
    return new QoreNode(str);
 }
@@ -129,9 +135,26 @@ class QoreNode *f_SIGNAL(class QoreNode *params, class ExceptionSink *xsink)
    str->concat(p->val.String->getBuffer());
    const char *buf = str->getBuffer();
    int slen = str->strlen();
-   if (slen < 3 || buf[slen - 2] != '(' || buf[slen - 1] != ')')
+   if (slen < 3 || buf[slen - 1] != ')')
       str->concat("()");
    return new QoreNode(str);
+}
+
+class QoreNode *f_TR(class QoreNode *params, class ExceptionSink *xsink)
+{
+   // get slot name
+   QoreNode *p = test_param(params, NT_STRING, 0);
+   if (!p || !p->val.String->strlen())
+   {
+      xsink->raiseException("TR-ERROR", "missing string argument to TR()");
+      return 0;
+   }
+   return new QoreNode(new QoreString(QObject::tr(p->val.String->getBuffer()).toUtf8().data()));
+}
+
+class QoreNode *f_QAPP(class QoreNode *params, class ExceptionSink *xsink)
+{
+   return get_qore_qapp();
 }
 
 static class QoreString *qt_module_init()
@@ -139,19 +162,28 @@ static class QoreString *qt_module_init()
    builtinFunctions.add("QObject_connect", f_QObject_connect);
    builtinFunctions.add("SLOT",            f_SLOT);
    builtinFunctions.add("SIGNAL",          f_SIGNAL);
+   builtinFunctions.add("TR",              f_TR);
+   builtinFunctions.add("QAPP",            f_QAPP);
    
    return 0;
 }
 
 static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
 {
-   class Namespace *qt = new Namespace("QT");
+   class Namespace *qt = new Namespace("Qt");
+
+   // get abstract class IDs
+   CID_QLAYOUT = get_abstract_class_id();
 
    // the order is sensitive here as child classes need the parent IDs
    qt->addSystemClass(initQObjectClass());
    qt->addSystemClass(initQApplicationClass());
    qt->addSystemClass(initQWidgetClass());
    qt->addSystemClass(initQPushButtonClass());
+   qt->addSystemClass(initQFrameClass());
+   qt->addSystemClass(initQLCDNumberClass());
+   qt->addSystemClass(initQSliderClass());
+   qt->addSystemClass(initQVBoxLayoutClass());
    qt->addSystemClass(initQFontClass());
    
    // add QFont namespaces and constants
@@ -163,12 +195,39 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qf->addConstant("Black",    new QoreNode((int64)QFont::Black));
    qt->addInitialNamespace(qf);
 
+   // add QLCDNumber namespace and constants
+   class Namespace *qlcdn = new Namespace("QLCDNumber");
+   qlcdn->addConstant("Outline",   new QoreNode((int64)QLCDNumber::Outline));
+   qlcdn->addConstant("Filled",    new QoreNode((int64)QLCDNumber::Filled));
+   qlcdn->addConstant("Flat",      new QoreNode((int64)QLCDNumber::Flat));
+   qlcdn->addConstant("Hex",       new QoreNode((int64)QLCDNumber::Hex));
+   qlcdn->addConstant("Dec",       new QoreNode((int64)QLCDNumber::Dec));
+   qlcdn->addConstant("Oct",       new QoreNode((int64)QLCDNumber::Oct));
+   qlcdn->addConstant("Bin",       new QoreNode((int64)QLCDNumber::Bin));
+   qt->addInitialNamespace(qlcdn);
+
+   // add QAbstractSlider namespace and constants
+   class Namespace *qas = new Namespace("QAbstractSlider");
+   qas->addConstant("SliderNoAction",        new QoreNode((int64)QAbstractSlider::SliderNoAction));
+   qas->addConstant("SliderSingleStepAdd",   new QoreNode((int64)QAbstractSlider::SliderSingleStepAdd));
+   qas->addConstant("SliderSingleStepSub",   new QoreNode((int64)QAbstractSlider::SliderSingleStepSub));
+   qas->addConstant("SliderPageStepAdd",     new QoreNode((int64)QAbstractSlider::SliderPageStepAdd));
+   qas->addConstant("SliderPageStepSub",     new QoreNode((int64)QAbstractSlider::SliderPageStepSub));
+   qas->addConstant("SliderToMinimum",       new QoreNode((int64)QAbstractSlider::SliderToMinimum));
+   qas->addConstant("SliderToMaximum",       new QoreNode((int64)QAbstractSlider::SliderToMaximum));
+   qas->addConstant("SliderMove",            new QoreNode((int64)QAbstractSlider::SliderMove));
+   qt->addInitialNamespace(qas);
+
    // add connection enum values
    qt->addConstant("AutoConnection",           new QoreNode((int64)Qt::AutoConnection));
    qt->addConstant("DirectConnection",         new QoreNode((int64)Qt::DirectConnection));
    qt->addConstant("QueuedConnection",         new QoreNode((int64)Qt::QueuedConnection));
    qt->addConstant("AutoCompatConnection",     new QoreNode((int64)Qt::AutoCompatConnection));
    qt->addConstant("BlockingQueuedConnection", new QoreNode((int64)Qt::BlockingQueuedConnection));
+
+   // orientation enum values
+   qt->addConstant("Vertical",        new QoreNode((int64)Qt::Vertical));
+   qt->addConstant("Horizontal",      new QoreNode((int64)Qt::Horizontal));
 
    qns->addInitialNamespace(qt);
 }

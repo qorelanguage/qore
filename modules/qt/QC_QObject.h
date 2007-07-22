@@ -44,7 +44,7 @@ class QoreQObject : public QoreAbstractQObject
 
       DLLLOCAL virtual void destructor(class ExceptionSink *xsink)
       {
-	 if (qobj)
+	 if (qobj && !qobj->parent())
 	    delete qobj;
       }
 

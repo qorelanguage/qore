@@ -1,5 +1,5 @@
 /*
- QC_QApplication.h
+ QoreAbstractQWidget.h
  
  Qore Programming Language
  
@@ -20,50 +20,16 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _QORE_QC_QAPPLICATION_H
+#ifndef _QORE_QOREABSTRACTQWIDGET_H
 
-#define _QORE_QC_QAPPLICATION_H
+#define _QORE_QOREABSTRACTQWIDGET_H
 
 #include "QoreAbstractQObject.h"
 
-#include <QApplication>
-
-extern int CID_QAPPLICATION;
-
-DLLLOCAL class QoreClass *initQApplicationClass();
-
-extern int static_argc;
-extern char **static_argv;
-
-DLLLOCAL extern void qapp_dec();
-DLLLOCAL extern QoreNode *get_qore_qapp();
-
-class QoreQApplication : public QoreAbstractQObject
+class QoreAbstractQWidget : public QoreAbstractQObject
 {
    public:
-      QApplication *qobj;
-
-      DLLLOCAL QoreQApplication() : qobj(new QApplication(static_argc, static_argv))
-      {
-      }
-
-      DLLLOCAL ~QoreQApplication()
-      {
-	 qapp_dec();
-      }
-
-      DLLLOCAL virtual void destructor(class ExceptionSink *xsink)
-      {
-	 //QObject::disconnect(qobj, SLOT(isDeleted()));
-	 if (qobj)
-	    delete qobj;
-      }
-
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-	 return static_cast<QObject *>(qobj);
-      }
+      DLLLOCAL virtual QWidget *getQWidget() const = 0;
 };
-
 
 #endif

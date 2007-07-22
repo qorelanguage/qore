@@ -30,20 +30,14 @@ int CID_QWIDGET;
 static void QW_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreQWidget *qw;
-   int np = num_params(params);
-   if (!np)
+   QoreNode *p = test_param(params, NT_OBJECT, 0);
+   QoreAbstractQWidget *parent = p ? (QoreAbstractQWidget *)p->val.object->getReferencedPrivateDataFromMetaClass(CID_QWIDGET, xsink) : 0;
+
+   if (!parent)
       qw = new QoreQWidget();
    else 
    {
-      QoreNode *p = test_param(params, NT_OBJECT, 0);
-      QoreQWidget *parent = p ? (QoreQWidget *)p->val.object->getReferencedPrivateDataFromMetaClass(CID_QWIDGET, xsink) : 0;
-      if (!parent)
-      {
-	 if (!xsink->isException())
-	    xsink->raiseException("QWIDGET-CONSTRUCTOR-ERROR", "expecting an object derived from QWidget as parameter to QWidget::constructor() in first argument if passed, however the argument is either NOTHING or not derived from QWidget (type passed: %s)", p ? p->type->getName() : "NOTHING");
-	 return;
-      }
-      ReferenceHolder<QoreQWidget> holder(parent, xsink);
+      ReferenceHolder<QoreAbstractQWidget> holder(parent, xsink);
       p = get_param(params, 1);
       int window_flags = p ? p->getAsInt() : 0;
       qw = new QoreQWidget(parent->getQWidget(), (Qt::WindowFlags)window_flags);
@@ -76,11 +70,21 @@ class QoreClass *initQWidgetClass()
    QC_QWidget->setCopy((q_copy_t)QW_copy);
 
    // inherited functions from templates
-   QC_QWidget->addMethod("inherits",     (q_method_t)(qw_func_t)QO_inherits<QoreQWidget>);
-   QC_QWidget->addMethod("resize",       (q_method_t)(qw_func_t)QW_resize<QoreQWidget>);
-   QC_QWidget->addMethod("setGeometry",  (q_method_t)(qw_func_t)QW_setGeometry<QoreQWidget>);
-   QC_QWidget->addMethod("show",         (q_method_t)(qw_func_t)QW_show<QoreQWidget>);
-   QC_QWidget->addMethod("setFont",      (q_method_t)(qw_func_t)QW_setFont<QoreQWidget>);
+   QC_QWidget->addMethod("inherits",          (q_method_t)(qw_func_t)QO_inherits<QoreQWidget>);
+   QC_QWidget->addMethod("resize",            (q_method_t)(qw_func_t)QW_resize<QoreQWidget>);
+   QC_QWidget->addMethod("setGeometry",       (q_method_t)(qw_func_t)QW_setGeometry<QoreQWidget>);
+   QC_QWidget->addMethod("show",              (q_method_t)(qw_func_t)QW_show<QoreQWidget>);
+   QC_QWidget->addMethod("setFont",           (q_method_t)(qw_func_t)QW_setFont<QoreQWidget>);
+   QC_QWidget->addMethod("setFixedHeight",    (q_method_t)(qw_func_t)QW_setFixedHeight<QoreQWidget>);
+   QC_QWidget->addMethod("setFixedWidth",     (q_method_t)(qw_func_t)QW_setFixedWidth<QoreQWidget>);
+   QC_QWidget->addMethod("setFixedSize",      (q_method_t)(qw_func_t)QW_setFixedSize<QoreQWidget>);
+   QC_QWidget->addMethod("setMinimumHeight",  (q_method_t)(qw_func_t)QW_setMinimumHeight<QoreQWidget>);
+   QC_QWidget->addMethod("setMinimumWidth",   (q_method_t)(qw_func_t)QW_setMinimumWidth<QoreQWidget>);
+   QC_QWidget->addMethod("setMinimumSize",    (q_method_t)(qw_func_t)QW_setMinimumSize<QoreQWidget>);
+   QC_QWidget->addMethod("setMaximumHeight",  (q_method_t)(qw_func_t)QW_setMaximumHeight<QoreQWidget>);
+   QC_QWidget->addMethod("setMaximumWidth",   (q_method_t)(qw_func_t)QW_setMaximumWidth<QoreQWidget>);
+   QC_QWidget->addMethod("setMaximumSize",    (q_method_t)(qw_func_t)QW_setMaximumSize<QoreQWidget>);
+   QC_QWidget->addMethod("setLayout",         (q_method_t)(qw_func_t)QW_setLayout<QoreQWidget>);
    
    traceout("initQWidgetClass()");
    return QC_QWidget;

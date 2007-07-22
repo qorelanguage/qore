@@ -4,7 +4,7 @@ pkglibdir = $(libdir)/@PACKAGE@-@VERSION@
 if COND_SINGLE_COMPILATION_UNIT
 QT_SOURCES = single-compilation-unit.cc
 else
-QT_SOURCES = qt.cc QC_Qobject.cc QC_QApplication.cc QC_QPushButton.cc QC_QFont.cc QC_QWidget.cc
+QT_SOURCES = qt.cc QC_Qobject.cc QC_QApplication.cc QC_QPushButton.cc QC_QFont.cc QC_QWidget.cc QC_QFrame.cc QC_QLCDNumber.cc QC_QSlider.cc QC_QVBoxLayout.cc
 endif
 
 if COND_MONOLITHIC
