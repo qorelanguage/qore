@@ -149,7 +149,7 @@ class QoreNode *f_TR(class QoreNode *params, class ExceptionSink *xsink)
       xsink->raiseException("TR-ERROR", "missing string argument to TR()");
       return 0;
    }
-   return new QoreNode(new QoreString(QObject::tr(p->val.String->getBuffer()).toUtf8().data()));
+   return new QoreNode(new QoreString(QObject::tr(p->val.String->getBuffer()).toUtf8().data(), QCS_UTF8));
 }
 
 class QoreNode *f_QAPP(class QoreNode *params, class ExceptionSink *xsink)

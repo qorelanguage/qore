@@ -30,8 +30,10 @@
 
 #include <map>
 
+// if the second part of the pair is true, then the data is virtual
+typedef std::pair<AbstractPrivateData *, bool> private_pair_t;
 // mapping from qore class ID to the object data
-typedef std::map<int, AbstractPrivateData *> keymap_t;
+typedef std::map<int, private_pair_t> keymap_t;
 
 // for objects with multiple classes, private data has to be keyed
 class KeyList
@@ -46,7 +48,7 @@ class KeyList
 	 if (i == keymap.end())
 	    return 0;
 
-	 AbstractPrivateData *apd = i->second;
+	 AbstractPrivateData *apd = i->second.first;
 	 apd->ref();
 	 return apd;
       }
@@ -54,13 +56,14 @@ class KeyList
       DLLLOCAL void addToString(class QoreString *str) const
       {
 	 for (keymap_t::const_iterator i = keymap.begin(), e = keymap.end(); i != e; ++i)
-	    str->sprintf("%d=<0x%08p>, ", i->first, i->second);
+	    str->sprintf("%d=<0x%08p>, ", i->first, i->second.first);
       }
 
       DLLLOCAL void derefAll(class ExceptionSink *xsink) const
       {
 	 for (keymap_t::const_iterator i = keymap.begin(), e = keymap.end(); i != e; ++i)
-	    i->second->deref(xsink);
+	    if (!i->second.second)
+	       i->second.first->deref(xsink);
       }
 
       DLLLOCAL AbstractPrivateData *getAndClearPtr(int key)
@@ -69,20 +72,21 @@ class KeyList
 	 if (i == keymap.end())
 	    return 0;
 
-	 class AbstractPrivateData *rv = i->second;
+	 assert(!i->second.second);
+	 class AbstractPrivateData *rv = i->second.first;
 	 keymap.erase(i);
 	 return rv;
       }
 
       DLLLOCAL void insert(int key, AbstractPrivateData *pd)
       {
-	 keymap.insert(std::make_pair(key, pd));
+	 keymap.insert(std::make_pair(key, std::make_pair(pd, false)));
       }
 
-      DLLLOCAL void insertIfNotPresent(int key, AbstractPrivateData *pd)
+      DLLLOCAL void insertVirtual(int key, AbstractPrivateData *pd)
       {
 	 if (keymap.find(key) == keymap.end())
-	    keymap.insert(std::make_pair(key, pd));
+	    keymap.insert(std::make_pair(key, std::make_pair(pd, true)));
       }
 
 };
@@ -798,7 +802,7 @@ void Object::addVirtualPrivateData(AbstractPrivateData *apd)
 
    for (class_list_t::const_iterator i = sml->begin(), e = sml->end(); i != e; ++i)
       if ((*i).second)
-	 privateData->insertIfNotPresent((*i).first->getID(), apd);
+	 privateData->insertVirtual((*i).first->getID(), apd);
 }
 
 // called only during constructor execution, therefore no need for locking

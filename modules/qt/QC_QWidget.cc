@@ -73,9 +73,10 @@ static QoreNode *QW_acceptDrops(class Object *self, QoreAbstractQWidget *qw, cla
 }
 
 //QString accessibleDescription () const
-//static QoreNode *QW_accessibleDescription(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
-//{
-//}
+static QoreNode *QW_accessibleDescription(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode(new QoreString(qw->getQWidget()->accessibleDescription().toUtf8().data(), QCS_UTF8));
+}
 
 //QString accessibleName () const
 //static QoreNode *QW_accessibleName(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
@@ -489,9 +490,10 @@ static QoreNode *QW_isWindowModified(class Object *self, QoreAbstractQWidget *qw
 //}
 
 //int maximumHeight () const
-//static QoreNode *QW_maximumHeight(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
-//{
-//}
+static QoreNode *QW_maximumHeight(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((int64)qw->getQWidget()->maximumHeight());
+}
 
 //QSize maximumSize () const
 //static QoreNode *QW_maximumSize(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
@@ -499,14 +501,16 @@ static QoreNode *QW_isWindowModified(class Object *self, QoreAbstractQWidget *qw
 //}
 
 //int maximumWidth () const
-//static QoreNode *QW_maximumWidth(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
-//{
-//}
+static QoreNode *QW_maximumWidth(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((int64)qw->getQWidget()->maximumWidth());
+}
 
 //int minimumHeight () const
-//static QoreNode *QW_minimumHeight(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
-//{
-//}
+static QoreNode *QW_minimumHeight(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((int64)qw->getQWidget()->minimumHeight());
+}
 
 //QSize minimumSize () const
 //static QoreNode *QW_minimumSize(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
@@ -519,9 +523,10 @@ static QoreNode *QW_isWindowModified(class Object *self, QoreAbstractQWidget *qw
 //}
 
 //int minimumWidth () const
-//static QoreNode *QW_minimumWidth(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
-//{
-//}
+static QoreNode *QW_minimumWidth(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((int64)qw->getQWidget()->minimumWidth());
+}
 
 //void move ( const QPoint & )
 //static QoreNode *QW_move(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
@@ -1109,9 +1114,13 @@ static QoreNode *QW_setUpdatesEnabled(class Object *self, QoreAbstractQWidget *q
 //}
 
 //void setWindowRole ( const QString & role )
-//static QoreNode *QW_setWindowRole(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
-//{
-//}
+static QoreNode *QW_setWindowRole(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = test_param(params, NT_STRING, 0);
+   if (p)
+      qw->getQWidget()->setWindowRole(p->val.String->getBuffer());
+   return 0;
+}
 
 //void setWindowState ( Qt::WindowStates windowState )
 //static QoreNode *QW_setWindowState(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
@@ -1279,9 +1288,10 @@ static QoreNode *QW_updatesEnabled(class Object *self, QoreAbstractQWidget *qw, 
 //}
 
 //QString windowRole () const
-//static QoreNode *QW_windowRole(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
-//{
-//}
+static QoreNode *QW_windowRole(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode(new QoreString(qw->getQWidget()->windowRole().toUtf8().data(), QCS_UTF8));
+}
 
 //Qt::WindowStates windowState () const
 //static QoreNode *QW_windowState(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
@@ -1294,9 +1304,10 @@ static QoreNode *QW_updatesEnabled(class Object *self, QoreAbstractQWidget *qw, 
 //}
 
 //QString windowTitle () const
-//static QoreNode *QW_windowTitle(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
-//{
-//}
+static QoreNode *QW_windowTitle(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode(new QoreString(qw->getQWidget()->windowTitle().toUtf8().data(), QCS_UTF8));
+}
 
 //Qt::WindowType windowType () const
 //static QoreNode *QW_windowType(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
@@ -1304,9 +1315,10 @@ static QoreNode *QW_updatesEnabled(class Object *self, QoreAbstractQWidget *qw, 
 //}
 
 //int x () const
-//static QoreNode *QW_x(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
-//{
-//}
+static QoreNode *QW_x(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((int64)qw->getQWidget()->x());
+}
 
 //const QX11Info & x11Info () const
 //static QoreNode *QW_x11Info(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
@@ -1319,9 +1331,10 @@ static QoreNode *QW_updatesEnabled(class Object *self, QoreAbstractQWidget *qw, 
 //}
 
 //int y () const
-//static QoreNode *QW_y(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
-//{
-//}
+static QoreNode *QW_y(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((int64)qw->getQWidget()->y());
+}
 
 class QoreClass *initQWidgetClass(class QoreClass *qobject)
 {
@@ -1340,7 +1353,7 @@ class QoreClass *initQWidgetClass(class QoreClass *qobject)
    QC_QWidget->addMethod("show",              (q_method_t)QW_show);
 
    QC_QWidget->addMethod("acceptDrops",                  (q_method_t)QW_acceptDrops);
-   //QC_QWidget->addMethod("accessibleDescription",        (q_method_t)QW_accessibleDescription);
+   QC_QWidget->addMethod("accessibleDescription",        (q_method_t)QW_accessibleDescription);
    //QC_QWidget->addMethod("accessibleName",               (q_method_t)QW_accessibleName);
    //QC_QWidget->addMethod("actions",                      (q_method_t)QW_actions);
    QC_QWidget->addMethod("activateWindow",               (q_method_t)QW_activateWindow);
@@ -1411,14 +1424,13 @@ class QoreClass *initQWidgetClass(class QoreClass *qobject)
    //QC_QWidget->addMethod("mapToGlobal",                  (q_method_t)QW_mapToGlobal);
    //QC_QWidget->addMethod("mapToParent",                  (q_method_t)QW_mapToParent);
    //QC_QWidget->addMethod("mask",                         (q_method_t)QW_mask);
-   //QC_QWidget->addMethod("maximumHeight",                (q_method_t)QW_maximumHeight);
+   QC_QWidget->addMethod("maximumHeight",                (q_method_t)QW_maximumHeight);
    //QC_QWidget->addMethod("maximumSize",                  (q_method_t)QW_maximumSize);
-   //QC_QWidget->addMethod("maximumWidth",                 (q_method_t)QW_maximumWidth);
-   //QC_QWidget->addMethod("minimumHeight",                (q_method_t)QW_minimumHeight);
+   QC_QWidget->addMethod("maximumWidth",                 (q_method_t)QW_maximumWidth);
+   QC_QWidget->addMethod("minimumHeight",                (q_method_t)QW_minimumHeight);
    //QC_QWidget->addMethod("minimumSize",                  (q_method_t)QW_minimumSize);
    //QC_QWidget->addMethod("minimumSizeHint",              (q_method_t)QW_minimumSizeHint);
-   //QC_QWidget->addMethod("minimumWidth",                 (q_method_t)QW_minimumWidth);
-   //QC_QWidget->addMethod("move",                         (q_method_t)QW_move);
+   QC_QWidget->addMethod("minimumWidth",                 (q_method_t)QW_minimumWidth);
    //QC_QWidget->addMethod("move",                         (q_method_t)QW_move);
    //QC_QWidget->addMethod("nextInFocusChain",             (q_method_t)QW_nextInFocusChain);
    //QC_QWidget->addMethod("normalGeometry",               (q_method_t)QW_normalGeometry);
@@ -1434,8 +1446,6 @@ class QoreClass *initQWidgetClass(class QoreClass *qobject)
    //QC_QWidget->addMethod("releaseShortcut",              (q_method_t)QW_releaseShortcut);
    //QC_QWidget->addMethod("removeAction",                 (q_method_t)QW_removeAction);
    //QC_QWidget->addMethod("render",                       (q_method_t)QW_render);
-   //QC_QWidget->addMethod("repaint",                      (q_method_t)QW_repaint);
-   //QC_QWidget->addMethod("repaint",                      (q_method_t)QW_repaint);
    //QC_QWidget->addMethod("repaint",                      (q_method_t)QW_repaint);
    QC_QWidget->addMethod("resize",                       (q_method_t)QW_resize);
    //QC_QWidget->addMethod("restoreGeometry",              (q_method_t)QW_restoreGeometry);
@@ -1495,7 +1505,7 @@ class QoreClass *initQWidgetClass(class QoreClass *qobject)
    //QC_QWidget->addMethod("setWindowIconText",            (q_method_t)QW_setWindowIconText);
    //QC_QWidget->addMethod("setWindowModality",            (q_method_t)QW_setWindowModality);
    //QC_QWidget->addMethod("setWindowOpacity",             (q_method_t)QW_setWindowOpacity);
-   //QC_QWidget->addMethod("setWindowRole",                (q_method_t)QW_setWindowRole);
+   QC_QWidget->addMethod("setWindowRole",                (q_method_t)QW_setWindowRole);
    //QC_QWidget->addMethod("setWindowState",               (q_method_t)QW_setWindowState);
    //QC_QWidget->addMethod("setWindowSurface",             (q_method_t)QW_setWindowSurface);
    //QC_QWidget->addMethod("size",                         (q_method_t)QW_size);
@@ -1527,15 +1537,15 @@ class QoreClass *initQWidgetClass(class QoreClass *qobject)
    //QC_QWidget->addMethod("windowIconText",               (q_method_t)QW_windowIconText);
    //QC_QWidget->addMethod("windowModality",               (q_method_t)QW_windowModality);
    //QC_QWidget->addMethod("windowOpacity",                (q_method_t)QW_windowOpacity);
-   //QC_QWidget->addMethod("windowRole",                   (q_method_t)QW_windowRole);
+   QC_QWidget->addMethod("windowRole",                   (q_method_t)QW_windowRole);
    //QC_QWidget->addMethod("windowtSate",                  (q_method_t)QW_windowState);
    //QC_QWidget->addMethod("windowSurface",                (q_method_t)QW_windowSurface);
-   //QC_QWidget->addMethod("windowTitle",                  (q_method_t)QW_windowTitle);
+   QC_QWidget->addMethod("windowTitle",                  (q_method_t)QW_windowTitle);
    //QC_QWidget->addMethod("windowType",                   (q_method_t)QW_windowType);
-   //QC_QWidget->addMethod("x",                            (q_method_t)QW_x);
+   QC_QWidget->addMethod("x",                            (q_method_t)QW_x);
    //QC_QWidget->addMethod("x11Info",                      (q_method_t)QW_x11Info);
    //QC_QWidget->addMethod("x11PictureHandle",             (q_method_t)QW_x11PictureHandle);
-   //QC_QWidget->addMethod("y",                            (q_method_t)QW_y);
+   QC_QWidget->addMethod("y",                            (q_method_t)QW_y);
    
    traceout("initQWidgetClass()");
    return QC_QWidget;
