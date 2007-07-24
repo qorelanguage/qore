@@ -47,7 +47,9 @@ class QoreQSlider : public QoreAbstractQWidget
       {
 	 //QObject::disconnect(qobj, SLOT(isDeleted()));
 	 if (qobj && !qobj->parent())
-	    delete qobj;
+	    //qobj->deleteLater();
+	    //delete qobj;
+	    ;
       }
       DLLLOCAL virtual class QObject *getQObject() const
       {

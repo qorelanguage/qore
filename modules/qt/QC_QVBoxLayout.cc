@@ -56,14 +56,14 @@ static void QVBOXL_copy(class Object *self, class Object *old, class QoreQVBoxLa
    xsink->raiseException("QVBOXLAYOUT-COPY-ERROR", "objects of this class cannot be copied");
 }
 
-class QoreClass *initQVBoxLayoutClass(class QoreClass *qlayout)
+class QoreClass *initQVBoxLayoutClass(class QoreClass *qboxlayout)
 {
    tracein("initQVBoxLayoutClass()");
    
    class QoreClass *QC_QVBoxLayout = new QoreClass("QVBoxLayout", QDOM_GUI);
    CID_QVBOXLAYOUT = QC_QVBoxLayout->getID();
 
-   QC_QVBoxLayout->addBuiltinVirtualBaseClass(qlayout);
+   QC_QVBoxLayout->addBuiltinVirtualBaseClass(qboxlayout);
 
    QC_QVBoxLayout->setConstructor(QVBOXL_constructor);
    QC_QVBoxLayout->setDestructor((q_destructor_t)QVBOXL_destructor);

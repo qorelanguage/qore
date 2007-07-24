@@ -79,9 +79,10 @@ static QoreNode *QW_accessibleDescription(class Object *self, QoreAbstractQWidge
 }
 
 //QString accessibleName () const
-//static QoreNode *QW_accessibleName(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
-//{
-//}
+static QoreNode *QW_accessibleName(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode(new QoreString(qw->getQWidget()->accessibleName().toUtf8().data(), QCS_UTF8));
+}
 
 //QList<QAction *> actions () const
 //static QoreNode *QW_actions(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
@@ -671,14 +672,22 @@ static QoreNode *QW_resize(class Object *self, QoreAbstractQWidget *qw, class Qo
 //}
 
 //void setAccessibleDescription ( const QString & description )
-//static QoreNode *QW_setAccessibleDescription(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
-//{
-//}
+static QoreNode *QW_setAccessibleDescription(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = test_param(params, NT_STRING, 0);
+   if (p)
+      qw->getQWidget()->setAccessibleDescription(p->val.String->getBuffer());
+   return 0;
+}
 
 //void setAccessibleName ( const QString & name )
-//static QoreNode *QW_setAccessibleName(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
-//{
-//}
+static QoreNode *QW_setAccessibleName(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = test_param(params, NT_STRING, 0);
+   if (p)
+      qw->getQWidget()->setAccessibleName(p->val.String->getBuffer());
+   return 0;
+}
 
 //void setAttribute ( Qt::WidgetAttribute attribute, bool on = true )
 //static QoreNode *QW_setAttribute(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
@@ -1061,9 +1070,13 @@ static QoreNode *QW_setMinimumWidth(class Object *self, QoreAbstractQWidget *qw,
 //}
 
 //void setStatusTip ( const QString & )
-//static QoreNode *QW_setStatusTip(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
-//{
-//}
+static QoreNode *QW_setStatusTip(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = test_param(params, NT_STRING, 0);
+   if (p)
+      qw->getQWidget()->setStatusTip(p->val.String->getBuffer());
+   return 0;
+}
 
 //void setStyle ( QStyle * style )
 //static QoreNode *QW_setStyle(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
@@ -1071,9 +1084,13 @@ static QoreNode *QW_setMinimumWidth(class Object *self, QoreAbstractQWidget *qw,
 //}
 
 //void setToolTip ( const QString & )
-//static QoreNode *QW_setToolTip(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
-//{
-//}
+static QoreNode *QW_setToolTip(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = test_param(params, NT_STRING, 0);
+   if (p)
+      qw->getQWidget()->setToolTip(p->val.String->getBuffer());
+   return 0;
+}
 
 //void setUpdatesEnabled ( bool enable )
 static QoreNode *QW_setUpdatesEnabled(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
@@ -1084,9 +1101,13 @@ static QoreNode *QW_setUpdatesEnabled(class Object *self, QoreAbstractQWidget *q
 }
 
 //void setWhatsThis ( const QString & )
-//static QoreNode *QW_setWhatsThis(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
-//{
-//}
+static QoreNode *QW_setWhatsThis(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = test_param(params, NT_STRING, 0);
+   if (p)
+      qw->getQWidget()->setWhatsThis(p->val.String->getBuffer());
+   return 0;
+}
 
 //void setWindowFlags ( Qt::WindowFlags type )
 //static QoreNode *QW_setWindowFlags(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
@@ -1099,9 +1120,13 @@ static QoreNode *QW_setUpdatesEnabled(class Object *self, QoreAbstractQWidget *q
 //}
 
 //void setWindowIconText ( const QString & )
-//static QoreNode *QW_setWindowIconText(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
-//{
-//}
+static QoreNode *QW_setWindowIconText(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = test_param(params, NT_STRING, 0);
+   if (p)
+      qw->getQWidget()->setWindowIconText(p->val.String->getBuffer());
+   return 0;
+}
 
 //void setWindowModality ( Qt::WindowModality windowModality )
 //static QoreNode *QW_setWindowModality(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
@@ -1158,9 +1183,10 @@ static QoreNode *QW_setWindowRole(class Object *self, QoreAbstractQWidget *qw, c
 //}
 
 //QString statusTip () const
-//static QoreNode *QW_statusTip(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
-//{
-//}
+static QoreNode *QW_statusTip(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode(new QoreString(qw->getQWidget()->statusTip().toUtf8().data(), QCS_UTF8));
+}
 
 //QStyle * style () const
 //static QoreNode *QW_style(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
@@ -1168,9 +1194,10 @@ static QoreNode *QW_setWindowRole(class Object *self, QoreAbstractQWidget *qw, c
 //}
 
 //QString styleSheet () const
-//static QoreNode *QW_styleSheet(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
-//{
-//}
+static QoreNode *QW_styleSheet(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode(new QoreString(qw->getQWidget()->styleSheet().toUtf8().data(), QCS_UTF8));
+}
 
 //bool testAttribute ( Qt::WidgetAttribute attribute ) const
 //static QoreNode *QW_testAttribute(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
@@ -1178,9 +1205,10 @@ static QoreNode *QW_setWindowRole(class Object *self, QoreAbstractQWidget *qw, c
 //}
 
 //QString toolTip () const
-//static QoreNode *QW_toolTip(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
-//{
-//}
+static QoreNode *QW_toolTip(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode(new QoreString(qw->getQWidget()->toolTip().toUtf8().data(), QCS_UTF8));
+}
 
 //bool underMouse () const
 static QoreNode *QW_underMouse(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
@@ -1243,14 +1271,16 @@ static QoreNode *QW_updatesEnabled(class Object *self, QoreAbstractQWidget *qw, 
 //}
 
 //QString whatsThis () const
-//static QoreNode *QW_whatsThis(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
-//{
-//}
+static QoreNode *QW_whatsThis(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode(new QoreString(qw->getQWidget()->whatsThis().toUtf8().data(), QCS_UTF8));
+}
 
 //int width () const
-//static QoreNode *QW_width(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
-//{
-//}
+static QoreNode *QW_width(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((int64)qw->getQWidget()->width());
+}
 
 //WId winId () const
 //static QoreNode *QW_winId(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
@@ -1273,9 +1303,10 @@ static QoreNode *QW_updatesEnabled(class Object *self, QoreAbstractQWidget *qw, 
 //}
 
 //QString windowIconText () const
-//static QoreNode *QW_windowIconText(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
-//{
-//}
+static QoreNode *QW_windowIconText(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode(new QoreString(qw->getQWidget()->windowIconText().toUtf8().data(), QCS_UTF8));
+}
 
 //Qt::WindowModality windowModality () const
 //static QoreNode *QW_windowModality(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
@@ -1354,7 +1385,7 @@ class QoreClass *initQWidgetClass(class QoreClass *qobject)
 
    QC_QWidget->addMethod("acceptDrops",                  (q_method_t)QW_acceptDrops);
    QC_QWidget->addMethod("accessibleDescription",        (q_method_t)QW_accessibleDescription);
-   //QC_QWidget->addMethod("accessibleName",               (q_method_t)QW_accessibleName);
+   QC_QWidget->addMethod("accessibleName",               (q_method_t)QW_accessibleName);
    //QC_QWidget->addMethod("actions",                      (q_method_t)QW_actions);
    QC_QWidget->addMethod("activateWindow",               (q_method_t)QW_activateWindow);
    //QC_QWidget->addMethod("addAction",                    (q_method_t)QW_addAction);
@@ -1453,8 +1484,8 @@ class QoreClass *initQWidgetClass(class QoreClass *qobject)
    //QC_QWidget->addMethod("scroll",                       (q_method_t)QW_scroll);
    //QC_QWidget->addMethod("scroll",                       (q_method_t)QW_scroll);
    //QC_QWidget->addMethod("setAcceptDrops",               (q_method_t)QW_setAcceptDrops);
-   //QC_QWidget->addMethod("setAccessibleDescription",     (q_method_t)QW_setAccessibleDescription);
-   //QC_QWidget->addMethod("setAccessibleName",            (q_method_t)QW_setAccessibleName);
+   QC_QWidget->addMethod("setAccessibleDescription",     (q_method_t)QW_setAccessibleDescription);
+   QC_QWidget->addMethod("setAccessibleName",            (q_method_t)QW_setAccessibleName);
    //QC_QWidget->addMethod("setAttribute",                 (q_method_t)QW_setAttribute);
    QC_QWidget->addMethod("setAutoFillBackground",        (q_method_t)QW_setAutoFillBackground);
    QC_QWidget->addMethod("setBackgroundRole",            (q_method_t)QW_setBackgroundRole);
@@ -1495,14 +1526,14 @@ class QoreClass *initQWidgetClass(class QoreClass *qobject)
    //QC_QWidget->addMethod("setSizeIncrement",             (q_method_t)QW_setSizeIncrement);
    //QC_QWidget->addMethod("setSizePolicy",                (q_method_t)QW_setSizePolicy);
    //QC_QWidget->addMethod("setSizePolicy",                (q_method_t)QW_setSizePolicy);
-   //QC_QWidget->addMethod("setStatusTip",                 (q_method_t)QW_setStatusTip);
+   QC_QWidget->addMethod("setStatusTip",                 (q_method_t)QW_setStatusTip);
    //QC_QWidget->addMethod("setStyle",                     (q_method_t)QW_setStyle);
-   //QC_QWidget->addMethod("setToolTip",                   (q_method_t)QW_setToolTip);
+   QC_QWidget->addMethod("setToolTip",                   (q_method_t)QW_setToolTip);
    QC_QWidget->addMethod("setUpdatesEnabled",            (q_method_t)QW_setUpdatesEnabled);
-   //QC_QWidget->addMethod("setWhatsThis",                 (q_method_t)QW_setWhatsThis);
+   QC_QWidget->addMethod("setWhatsThis",                 (q_method_t)QW_setWhatsThis);
    //QC_QWidget->addMethod("setWindowFlags",               (q_method_t)QW_setWindowFlags);
    //QC_QWidget->addMethod("setWindowIcon",                (q_method_t)QW_setWindowIcon);
-   //QC_QWidget->addMethod("setWindowIconText",            (q_method_t)QW_setWindowIconText);
+   QC_QWidget->addMethod("setWindowIconText",            (q_method_t)QW_setWindowIconText);
    //QC_QWidget->addMethod("setWindowModality",            (q_method_t)QW_setWindowModality);
    //QC_QWidget->addMethod("setWindowOpacity",             (q_method_t)QW_setWindowOpacity);
    QC_QWidget->addMethod("setWindowRole",                (q_method_t)QW_setWindowRole);
@@ -1513,28 +1544,26 @@ class QoreClass *initQWidgetClass(class QoreClass *qobject)
    //QC_QWidget->addMethod("sizeIncrement",                (q_method_t)QW_sizeIncrement);
    //QC_QWidget->addMethod("sizePolicy",                   (q_method_t)QW_sizePolicy);
    //QC_QWidget->addMethod("stackUnder",                   (q_method_t)QW_stackUnder);
-   //QC_QWidget->addMethod("statusTip",                    (q_method_t)QW_statusTip);
+   QC_QWidget->addMethod("statusTip",                    (q_method_t)QW_statusTip);
    //QC_QWidget->addMethod("style",                        (q_method_t)QW_style);
-   //QC_QWidget->addMethod("styleSheet",                   (q_method_t)QW_styleSheet);
+   QC_QWidget->addMethod("styleSheet",                   (q_method_t)QW_styleSheet);
    //QC_QWidget->addMethod("testAttribute",                (q_method_t)QW_testAttribute);
-   //QC_QWidget->addMethod("toolTip",                      (q_method_t)QW_toolTip);
+   QC_QWidget->addMethod("toolTip",                      (q_method_t)QW_toolTip);
    QC_QWidget->addMethod("underMouse",                   (q_method_t)QW_underMouse);
    QC_QWidget->addMethod("unsetCursor",                  (q_method_t)QW_unsetCursor);
    QC_QWidget->addMethod("unsetLayoutDirection",         (q_method_t)QW_unsetLayoutDirection);
    QC_QWidget->addMethod("unsetLocale",                  (q_method_t)QW_unsetLocale);
    //QC_QWidget->addMethod("update",                       (q_method_t)QW_update);
-   //QC_QWidget->addMethod("update",                       (q_method_t)QW_update);
-   //QC_QWidget->addMethod("update",                       (q_method_t)QW_update);
    QC_QWidget->addMethod("updateGeometry",               (q_method_t)QW_updateGeometry);
    QC_QWidget->addMethod("updatesEnabled",               (q_method_t)QW_updatesEnabled);
    //QC_QWidget->addMethod("visibleRegion",                (q_method_t)QW_visibleRegion);
-   //QC_QWidget->addMethod("whatsThis",                    (q_method_t)QW_whatsThis);
-   //QC_QWidget->addMethod("width",                        (q_method_t)QW_width);
+   QC_QWidget->addMethod("whatsThis",                    (q_method_t)QW_whatsThis);
+   QC_QWidget->addMethod("width",                        (q_method_t)QW_width);
    //QC_QWidget->addMethod("winId",                        (q_method_t)QW_winId);
    //QC_QWidget->addMethod("window",                       (q_method_t)QW_window);
    //QC_QWidget->addMethod("windowFlags",                  (q_method_t)QW_windowFlags);
    //QC_QWidget->addMethod("windowIcon",                   (q_method_t)QW_windowIcon);
-   //QC_QWidget->addMethod("windowIconText",               (q_method_t)QW_windowIconText);
+   QC_QWidget->addMethod("windowIconText",               (q_method_t)QW_windowIconText);
    //QC_QWidget->addMethod("windowModality",               (q_method_t)QW_windowModality);
    //QC_QWidget->addMethod("windowOpacity",                (q_method_t)QW_windowOpacity);
    QC_QWidget->addMethod("windowRole",                   (q_method_t)QW_windowRole);

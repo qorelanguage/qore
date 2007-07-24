@@ -29,20 +29,41 @@ int CID_QLCDNUMBER;
 static void QLCDNUMBER_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreQLCDNumber *qlcdn;
-   QoreNode *p = test_param(params, NT_OBJECT, 0);
-   QoreAbstractQWidget *parent = p ? (QoreAbstractQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
-   if (p && !parent)
+   QoreNode *p = get_param(params, 0);
+   if (p && p->type != NT_OBJECT)
    {
-      xsink->raiseException("QLCDNUMBER-CONSTRUCTOR-ERROR", "object passed to QLCDNumber::constructor() is not derived from QWidget (class: '%s')", p->val.object->getClass()->getName());
-      return;
+      int num_digits = p->getAsInt();
+      p = test_param(params, NT_OBJECT, 1);
+      QoreAbstractQWidget *parent = p ? (QoreAbstractQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+      if (p && !parent)
+      {
+	 xsink->raiseException("QLCDNUMBER-CONSTRUCTOR-ERROR", "object passed to QLCDNumber::constructor() is second argument is not derived from QWidget (class: '%s')", p->val.object->getClass()->getName());
+	 return;
+      }
+      if (!parent)
+	 qlcdn = new QoreQLCDNumber(num_digits, 0);
+      else
+      {
+	 ReferenceHolder<QoreAbstractQWidget> holder(parent, xsink);
+	 qlcdn = new QoreQLCDNumber(num_digits, parent->getQWidget());
+      }
    }
+   else {
+      p = test_param(params, NT_OBJECT, 0);
+      QoreAbstractQWidget *parent = p ? (QoreAbstractQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+      if (p && !parent)
+      {
+	 xsink->raiseException("QLCDNUMBER-CONSTRUCTOR-ERROR", "object passed to QLCDNumber::constructor() is not derived from QWidget (class: '%s')", p->val.object->getClass()->getName());
+	 return;
+      }
 
-   if (!parent)
-      qlcdn = new QoreQLCDNumber();
-   else 
-   {
-      ReferenceHolder<QoreAbstractQWidget> holder(parent, xsink);
-      qlcdn = new QoreQLCDNumber(parent->getQWidget());
+      if (!parent)
+	 qlcdn = new QoreQLCDNumber();
+      else 
+      {
+	 ReferenceHolder<QoreAbstractQWidget> holder(parent, xsink);
+	 qlcdn = new QoreQLCDNumber(parent->getQWidget());
+      }
    }
 
    self->setPrivate(CID_QLCDNUMBER, qlcdn);

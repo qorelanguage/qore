@@ -44,7 +44,9 @@ class QoreQFrame : public QoreAbstractQWidget
       {
 	 //QObject::disconnect(qobj, SLOT(isDeleted()));
 	 if (qobj && !qobj->parent())
-	    delete qobj;
+	    //delete qobj;
+	    //qobj->deleteLater();
+	    ;
       }
       DLLLOCAL virtual class QObject *getQObject() const
       {

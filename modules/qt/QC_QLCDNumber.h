@@ -37,6 +37,9 @@ class QoreQLCDNumber : public QoreAbstractQWidget
    public:
       QPointer<QLCDNumber>qobj;
 
+      DLLLOCAL QoreQLCDNumber(int num_digits, QWidget *parent = 0) : qobj(new QLCDNumber(num_digits, parent))
+      {
+      }
       DLLLOCAL QoreQLCDNumber(QWidget *parent = 0) : qobj(new QLCDNumber(parent))
       {
       }
@@ -44,7 +47,9 @@ class QoreQLCDNumber : public QoreAbstractQWidget
       {
 	 //QObject::disconnect(qobj, SLOT(isDeleted()));
 	 if (qobj && !qobj->parent())
-	    delete qobj;
+	    //qobj->deleteLater();
+	    //delete qobj;
+	    ;
       }
       DLLLOCAL virtual class QObject *getQObject() const
       {

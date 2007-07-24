@@ -1,5 +1,5 @@
 /*
- QC_QObject.h
+ QoreAbstractQBoxLayout.h
  
  Qore Programming Language
  
@@ -20,41 +20,18 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _QORE_QC_QOBJECT_H
+#ifndef _QORE_QOREABSTRACTQBOXLAYOUT_H
 
-#define _QORE_QC_QOBJECT_H
+#define _QORE_QOREABSTRACTQBOXLAYOUT_H
 
-#include "QoreAbstractQObject.h"
+#include "QoreAbstractQLayout.h"
 
-#include <QObject>
+extern int CID_QWIDGET;
 
-DLLEXPORT extern int CID_QOBJECT;
-
-DLLLOCAL class QoreClass *initQObjectClass();
-
-class QoreQObject : public QoreAbstractQObject
+class QoreAbstractQBoxLayout : public QoreAbstractQLayout
 {
-   private:
    public:
-      QPointer<QObject> qobj;
-
-      DLLLOCAL QoreQObject(QObject *parent = 0) : qobj(new QObject(parent))
-      {
-      }
-
-      DLLLOCAL virtual void destructor(class ExceptionSink *xsink)
-      {
-	 if (qobj && !qobj->parent())
-	    //delete qobj;
-	    //qobj->deleteLater();
-	    ;
-      }
-
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-	 return &*qobj;
-      }
-
+      DLLLOCAL virtual QBoxLayout *getQBoxLayout() const = 0;
 };
 
 #endif

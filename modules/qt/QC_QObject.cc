@@ -71,6 +71,14 @@ static QoreNode *QO_inherits(class Object *self, QoreAbstractQObject *qo, class 
    return new QoreNode(qo->getQObject()->inherits(p->val.String->getBuffer()));
 }
 
+static QoreNode *QO_getParent(class Object *self, QoreAbstractQObject *qo, class QoreNode *params, ExceptionSink *xsink)
+{
+   QObject *parent = qo->getQObject()->parent();
+   if (!parent)
+      return 0;
+   return new QoreNode((int64)parent);
+}
+
 class QoreClass *initQObjectClass()
 {
    tracein("initQObjectClass()");
@@ -82,7 +90,8 @@ class QoreClass *initQObjectClass()
    QC_QObject->setDestructor((q_destructor_t)QO_destructor);
    QC_QObject->setCopy((q_copy_t)QO_copy);
    
-   QC_QObject->addMethod("inherits",    (q_method_t)QO_inherits);
+   QC_QObject->addMethod("inherits",     (q_method_t)QO_inherits);
+   QC_QObject->addMethod("getParent",    (q_method_t)QO_getParent);
 
    traceout("initQObjectClass()");
    return QC_QObject;

@@ -45,7 +45,11 @@ class QoreQWidget : public QoreAbstractQWidget
       {
 	 //QObject::disconnect(qobj, SLOT(isDeleted()));
 	 if (qobj && !qobj->parent())
-	    delete qobj;
+	 {
+	    //printd(0, "deleting %08x\n", &*qobj);
+	    //qobj->deleteLater();
+	    //delete qobj;
+	 }
       }
       DLLLOCAL virtual QObject *getQObject() const
       {

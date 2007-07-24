@@ -4,6 +4,8 @@
 	* removed metaclass tagging for object private data
 	* qt: reworked class inheritance model based on new virtual base class
 	  support
+	* qt: removed explicit deletion code from wrapper objects, qt library
+	  handles deletions when the objects are no longer referenced
 
 2006.07.22: David Nichols
 	* qt: new class hierarchy infrastructure support to better model QT's

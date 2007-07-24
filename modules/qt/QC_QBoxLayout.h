@@ -1,5 +1,5 @@
 /*
- QC_QApplication.h
+ QC_QBoxLayout.h
  
  Qore Programming Language
  
@@ -20,52 +20,53 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _QORE_QC_QAPPLICATION_H
+#ifndef _QORE_QC_QBOXLAYOUT_H
 
-#define _QORE_QC_QAPPLICATION_H
+#define _QORE_QC_QBOXLAYOUT_H
 
-#include "QoreAbstractQObject.h"
+#include "QoreAbstractQBoxLayout.h"
 
-#include <QApplication>
+#include <QBoxLayout>
 
-extern int CID_QAPPLICATION;
+DLLEXPORT extern int CID_QBOXLAYOUT;
 
-DLLLOCAL class QoreClass *initQApplicationClass(class QoreClass *parent);
+DLLLOCAL class QoreClass *initQBoxLayoutClass();
 
-extern int static_argc;
-extern char **static_argv;
-
-DLLLOCAL extern void qapp_dec();
-DLLLOCAL extern QoreNode *get_qore_qapp();
-
-class QoreQApplication : public QoreAbstractQObject
+class QoreQBoxLayout : public QoreAbstractQBoxLayout
 {
    public:
-      QApplication *qobj;
+      QPointer<QBoxLayout> qobj;
 
-      DLLLOCAL QoreQApplication() : qobj(new QApplication(static_argc, static_argv))
+      DLLLOCAL QoreQBoxLayout(QBoxLayout::Direction dir) : qobj(new QBoxLayout(dir))
       {
       }
 
-      DLLLOCAL ~QoreQApplication()
+      DLLLOCAL QoreQBoxLayout(QBoxLayout::Direction dir, QWidget *parent) : qobj(new QBoxLayout(dir, parent))
       {
-	 qapp_dec();
       }
-
       DLLLOCAL virtual void destructor(class ExceptionSink *xsink)
       {
 	 //QObject::disconnect(qobj, SLOT(isDeleted()));
-	 if (qobj)
+	 if (qobj && !qobj->parent())
 	    //delete qobj;
 	    //qobj->deleteLater();
 	    ;
       }
-
-      DLLLOCAL virtual class QObject *getQObject() const
+      DLLLOCAL virtual QObject *getQObject() const
       {
-	 return static_cast<QObject *>(qobj);
+	 return static_cast<QObject *>(&(*qobj));
       }
-};
 
+      DLLLOCAL virtual QLayout *getQLayout() const
+      {
+	 return static_cast<QLayout *>(&(*qobj));
+      }
+
+      DLLLOCAL virtual QBoxLayout *getQBoxLayout() const
+      {
+	 return static_cast<QBoxLayout *>(&(*qobj));
+      }
+
+};
 
 #endif

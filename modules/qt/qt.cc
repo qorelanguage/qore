@@ -30,7 +30,9 @@
 #include "QC_QFrame.h"
 #include "QC_QLCDNumber.h"
 #include "QC_QLayout.h"
+#include "QC_QBoxLayout.h"
 #include "QC_QVBoxLayout.h"
+#include "QC_QGridLayout.h"
 
 #include <QPalette>
 
@@ -173,17 +175,23 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    class Namespace *qt = new Namespace("Qt");
 
     // the order is sensitive here as child classes need the parent IDs
-   class QoreClass *qobject, *qwidget, *qlayout, *qframe;
+   class QoreClass *qobject, *qwidget, *qlayout, *qframe, *qboxlayout;
    qt->addSystemClass((qobject = initQObjectClass()));
    qt->addSystemClass(initQApplicationClass(qobject));
+
    qt->addSystemClass((qwidget = initQWidgetClass(qobject)));
    qt->addSystemClass(initQPushButtonClass(qwidget));
+
    qt->addSystemClass((qframe = initQFrameClass(qwidget)));
    qt->addSystemClass(initQLCDNumberClass(qframe));
    qt->addSystemClass(initQSliderClass(qframe));
 
    qt->addSystemClass((qlayout = initQLayoutClass(qobject)));
-   qt->addSystemClass(initQVBoxLayoutClass(qlayout));
+   qt->addSystemClass(initQGridLayoutClass(qlayout));
+
+   qt->addSystemClass((qboxlayout = initQBoxLayoutClass(qlayout)));
+   qt->addSystemClass(initQVBoxLayoutClass(qboxlayout));
+
    qt->addSystemClass(initQFontClass());
 
    // ColorRole enum
@@ -216,6 +224,16 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addConstant("Current",         new QoreNode((int64)QPalette::Current));
    qt->addConstant("All",             new QoreNode((int64)QPalette::All));
    qt->addConstant("Normal",          new QoreNode((int64)QPalette::Normal));
+
+   // add QBoxLayout namespace and constants
+   class Namespace *qbl = new Namespace("QBoxLayout");
+   // Direction enum
+   qbl->addConstant("LeftToRight",    new QoreNode((int64)QBoxLayout::LeftToRight));
+   qbl->addConstant("RightToLeft",    new QoreNode((int64)QBoxLayout::RightToLeft));
+   qbl->addConstant("TopToBottom",    new QoreNode((int64)QBoxLayout::TopToBottom));
+   qbl->addConstant("BottomToTop",    new QoreNode((int64)QBoxLayout::BottomToTop));
+
+   qt->addInitialNamespace(qbl);
 
    // add QFont namespaces and constants
    class Namespace *qf = new Namespace("QFont");

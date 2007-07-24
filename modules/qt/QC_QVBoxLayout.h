@@ -24,7 +24,7 @@
 
 #define _QORE_QC_QVBOXLAYOUT_H
 
-#include "QoreAbstractQLayout.h"
+#include "QoreAbstractQBoxLayout.h"
 
 #include <QVBoxLayout>
 
@@ -32,7 +32,7 @@ DLLEXPORT extern int CID_QVBOXLAYOUT;
 
 DLLLOCAL class QoreClass *initQVBoxLayoutClass();
 
-class QoreQVBoxLayout : public QoreAbstractQLayout
+class QoreQVBoxLayout : public QoreAbstractQBoxLayout
 {
    public:
       QPointer<QVBoxLayout> qobj;
@@ -48,7 +48,9 @@ class QoreQVBoxLayout : public QoreAbstractQLayout
       {
 	 //QObject::disconnect(qobj, SLOT(isDeleted()));
 	 if (qobj && !qobj->parent())
-	    delete qobj;
+	    //qobj->deleteLater();
+	    //delete qobj;
+	    ;
       }
       DLLLOCAL virtual QObject *getQObject() const
       {
@@ -58,6 +60,11 @@ class QoreQVBoxLayout : public QoreAbstractQLayout
       DLLLOCAL virtual QLayout *getQLayout() const
       {
 	 return static_cast<QLayout *>(&(*qobj));
+      }
+
+      DLLLOCAL virtual QBoxLayout *getQBoxLayout() const
+      {
+	 return static_cast<QBoxLayout *>(&(*qobj));
       }
 
 };

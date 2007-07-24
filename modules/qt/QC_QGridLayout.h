@@ -1,5 +1,5 @@
 /*
- QC_QApplication.h
+ QC_QGridLayout.h
  
  Qore Programming Language
  
@@ -20,52 +20,48 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _QORE_QC_QAPPLICATION_H
+#ifndef _QORE_QC_QGRIDLAYOUT_H
 
-#define _QORE_QC_QAPPLICATION_H
+#define _QORE_QC_QGRIDLAYOUT_H
 
-#include "QoreAbstractQObject.h"
+#include "QoreAbstractQLayout.h"
 
-#include <QApplication>
+#include <QGridLayout>
 
-extern int CID_QAPPLICATION;
+DLLEXPORT extern int CID_QGRIDLAYOUT;
 
-DLLLOCAL class QoreClass *initQApplicationClass(class QoreClass *parent);
+DLLLOCAL class QoreClass *initQGridLayoutClass();
 
-extern int static_argc;
-extern char **static_argv;
-
-DLLLOCAL extern void qapp_dec();
-DLLLOCAL extern QoreNode *get_qore_qapp();
-
-class QoreQApplication : public QoreAbstractQObject
+class QoreQGridLayout : public QoreAbstractQLayout
 {
    public:
-      QApplication *qobj;
+      QPointer<QGridLayout> qobj;
 
-      DLLLOCAL QoreQApplication() : qobj(new QApplication(static_argc, static_argv))
+      DLLLOCAL QoreQGridLayout() : qobj(new QGridLayout)
       {
       }
 
-      DLLLOCAL ~QoreQApplication()
+      DLLLOCAL QoreQGridLayout(QWidget *parent) : qobj(new QGridLayout(parent))
       {
-	 qapp_dec();
       }
-
       DLLLOCAL virtual void destructor(class ExceptionSink *xsink)
       {
 	 //QObject::disconnect(qobj, SLOT(isDeleted()));
-	 if (qobj)
+	 if (qobj && !qobj->parent())
 	    //delete qobj;
 	    //qobj->deleteLater();
 	    ;
       }
-
-      DLLLOCAL virtual class QObject *getQObject() const
+      DLLLOCAL virtual QObject *getQObject() const
       {
-	 return static_cast<QObject *>(qobj);
+	 return static_cast<QObject *>(&(*qobj));
       }
-};
 
+      DLLLOCAL virtual QLayout *getQLayout() const
+      {
+	 return static_cast<QLayout *>(&(*qobj));
+      }
+
+};
 
 #endif
