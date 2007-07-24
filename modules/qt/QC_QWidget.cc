@@ -67,9 +67,10 @@ static QoreNode *QW_show(class Object *self, QoreAbstractQWidget *qw, class Qore
 
 
 //bool acceptDrops () const
-//static QoreNode *QW_acceptDrops(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
-//{
-//}
+static QoreNode *QW_acceptDrops(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode(qw->getQWidget()->acceptDrops());
+}
 
 //QString accessibleDescription () const
 //static QoreNode *QW_accessibleDescription(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
@@ -87,9 +88,11 @@ static QoreNode *QW_show(class Object *self, QoreAbstractQWidget *qw, class Qore
 //}
 
 //void activateWindow ()
-//static QoreNode *QW_activateWindow(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
-//{
-//}
+static QoreNode *QW_activateWindow(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
+{
+   qw->getQWidget()->adjustSize();
+   return 0;
+}
 
 //void addAction ( QAction * action )
 //static QoreNode *QW_addAction(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
@@ -102,14 +105,17 @@ static QoreNode *QW_show(class Object *self, QoreAbstractQWidget *qw, class Qore
 //}
 
 //void adjustSize ()
-//static QoreNode *QW_adjustSize(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
-//{
-//}
+static QoreNode *QW_adjustSize(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
+{
+   qw->getQWidget()->adjustSize();
+   return 0;
+}
 
 //bool autoFillBackground () const
-//static QoreNode *QW_autoFillBackground(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
-//{
-//}
+static QoreNode *QW_autoFillBackground(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode(qw->getQWidget()->autoFillBackground());
+}
 
 //QPalette::ColorRole backgroundRole () const
 static QoreNode *QW_backgroundRole(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
@@ -143,14 +149,18 @@ static QoreNode *QW_backgroundRole(class Object *self, QoreAbstractQWidget *qw, 
 //}
 
 //void clearFocus ()
-//static QoreNode *QW_clearFocus(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
-//{
-//}
+static QoreNode *QW_clearFocus(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
+{
+   qw->getQWidget()->clearFocus();
+   return 0;
+}
 
 //void clearMask ()
-//static QoreNode *QW_clearMask(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
-//{
-//}
+static QoreNode *QW_clearMask(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
+{
+   qw->getQWidget()->clearMask();
+   return 0;
+}
 
 //QRect contentsRect () const
 //static QoreNode *QW_contentsRect(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
@@ -282,7 +292,7 @@ static QoreNode *QW_height(class Object *self, QoreAbstractQWidget *qw, class Qo
 //virtual int heightForWidth ( int w ) const
 static QoreNode *QW_heightForWidth(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
 {
-   static QoreNode *p = get_param(params, 0);
+   QoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       xsink->raiseException("QWIDGET-HEIGHTFORWIDTH-ERROR", "missing width argument in QWidget::heightForWidth()");
       return 0;
@@ -612,7 +622,7 @@ static QoreNode *QW_isWindowModified(class Object *self, QoreAbstractQWidget *qw
 //void resize ( int w, int h )
 static QoreNode *QW_resize(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
 {
-   static QoreNode *p = get_param(params, 0);
+   QoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       xsink->raiseException("QWIDGET-RESIZE-ERROR", "missing first argument: x size");
       return 0;
@@ -671,9 +681,12 @@ static QoreNode *QW_resize(class Object *self, QoreAbstractQWidget *qw, class Qo
 //}
 
 //void setAutoFillBackground ( bool enabled )
-//static QoreNode *QW_setAutoFillBackground(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
-//{
-//}
+static QoreNode *QW_setAutoFillBackground(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   qw->getQWidget()->setAutoFillBackground(!num_params(params) ? true : (!p ? false : p->getAsBool()));
+   return 0;
+}
 
 //void setBackgroundRole ( QPalette::ColorRole role )
 static QoreNode *QW_setBackgroundRole(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
@@ -721,7 +734,7 @@ static QoreNode *QW_setBackgroundRole(class Object *self, QoreAbstractQWidget *q
 //void setFixedHeight ( int h )
 static QoreNode *QW_setFixedHeight(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
 {
-   static QoreNode *p = get_param(params, 0);
+   QoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       xsink->raiseException("QWIDGET-SETFIXEDHEIGHT-ERROR", "missing height argument");
       return 0;
@@ -736,7 +749,7 @@ static QoreNode *QW_setFixedHeight(class Object *self, QoreAbstractQWidget *qw, 
 //void setFixedSize ( int w, int h )
 static QoreNode *QW_setFixedSize(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
 {
-   static QoreNode *p = get_param(params, 0);
+   QoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       xsink->raiseException("QWIDGET-SETFIXEDSIZE-ERROR", "missing first argument: width");
       return 0;
@@ -757,7 +770,7 @@ static QoreNode *QW_setFixedSize(class Object *self, QoreAbstractQWidget *qw, cl
 //void setFixedWidth ( int w )
 static QoreNode *QW_setFixedWidth(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
 {
-   static QoreNode *p = get_param(params, 0);
+   QoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       xsink->raiseException("QWIDGET-SETFIXEDWIDTH-ERROR", "missing width argument");
       return 0;
@@ -818,7 +831,7 @@ static QoreNode *QW_setForegroundRole(class Object *self, QoreAbstractQWidget *q
 //void setGeometry ( int x, int y, int w, int h )
 static QoreNode *QW_setGeometry(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
 {
-   static QoreNode *p = get_param(params, 0);
+   QoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       xsink->raiseException("QWIDGET-SETGEOMETRY-ERROR", "missing first argument: x size");
       return 0;
@@ -895,7 +908,7 @@ static QoreNode *QW_setLayout(class Object *self, QoreAbstractQWidget *qw, class
 //void setMaximumHeight ( int maxh )
 static QoreNode *QW_setMaximumHeight(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
 {
-   static QoreNode *p = get_param(params, 0);
+   QoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       xsink->raiseException("QWIDGET-SETMAXIMUMHEIGHT-ERROR", "missing height argument");
       return 0;
@@ -910,7 +923,7 @@ static QoreNode *QW_setMaximumHeight(class Object *self, QoreAbstractQWidget *qw
 //void setMaximumSize ( int maxw, int maxh )
 static QoreNode *QW_setMaximumSize(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
 {
-   static QoreNode *p = get_param(params, 0);
+   QoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       xsink->raiseException("QWIDGET-SETMAXIMUMSIZE-ERROR", "missing first argument: width");
       return 0;
@@ -931,7 +944,7 @@ static QoreNode *QW_setMaximumSize(class Object *self, QoreAbstractQWidget *qw, 
 //void setMaximumWidth ( int maxw )
 static QoreNode *QW_setMaximumWidth(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
 {
-   static QoreNode *p = get_param(params, 0);
+   QoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       xsink->raiseException("QWIDGET-SETMAXIMUMWIDTH-ERROR", "missing width argument");
       return 0;
@@ -945,7 +958,7 @@ static QoreNode *QW_setMaximumWidth(class Object *self, QoreAbstractQWidget *qw,
 //void setMinimumHeight ( int minh )
 static QoreNode *QW_setMinimumHeight(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
 {
-   static QoreNode *p = get_param(params, 0);
+   QoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       xsink->raiseException("QWIDGET-SETMINIMUMHEIGHT-ERROR", "missing height argument");
       return 0;
@@ -960,7 +973,7 @@ static QoreNode *QW_setMinimumHeight(class Object *self, QoreAbstractQWidget *qw
 //void setMinimumSize ( int minw, int minh )
 static QoreNode *QW_setMinimumSize(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
 {
-   static QoreNode *p = get_param(params, 0);
+   QoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       xsink->raiseException("QWIDGET-SETMINIMUMSIZE-ERROR", "missing first argument: width");
       return 0;
@@ -981,7 +994,7 @@ static QoreNode *QW_setMinimumSize(class Object *self, QoreAbstractQWidget *qw, 
 //void setMinimumWidth ( int minw )
 static QoreNode *QW_setMinimumWidth(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
 {
-   static QoreNode *p = get_param(params, 0);
+   QoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       xsink->raiseException("QWIDGET-SETMINIMUMWIDTH-ERROR", "missing width argument");
       return 0;
@@ -1058,9 +1071,12 @@ static QoreNode *QW_setMinimumWidth(class Object *self, QoreAbstractQWidget *qw,
 //}
 
 //void setUpdatesEnabled ( bool enable )
-//static QoreNode *QW_setUpdatesEnabled(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
-//{
-//}
+static QoreNode *QW_setUpdatesEnabled(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   qw->getQWidget()->setUpdatesEnabled(!num_params(params) ? true : (!p ? false : p->getAsBool()));
+   return 0;
+}
 
 //void setWhatsThis ( const QString & )
 //static QoreNode *QW_setWhatsThis(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
@@ -1158,24 +1174,31 @@ static QoreNode *QW_setMinimumWidth(class Object *self, QoreAbstractQWidget *qw,
 //}
 
 //bool underMouse () const
-//static QoreNode *QW_underMouse(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
-//{
-//}
+static QoreNode *QW_underMouse(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode(qw->getQWidget()->underMouse());
+}
 
 //void unsetCursor ()
-//static QoreNode *QW_unsetCursor(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
-//{
-//}
+static QoreNode *QW_unsetCursor(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
+{
+   qw->getQWidget()->unsetCursor();
+   return 0;
+}
 
 //void unsetLayoutDirection ()
-//static QoreNode *QW_unsetLayoutDirection(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
-//{
-//}
+static QoreNode *QW_unsetLayoutDirection(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
+{
+   qw->getQWidget()->unsetLayoutDirection();
+   return 0;
+}
 
 //void unsetLocale ()
-//static QoreNode *QW_unsetLocale(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
-//{
-//}
+static QoreNode *QW_unsetLocale(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
+{
+   qw->getQWidget()->unsetLocale();
+   return 0;
+}
 
 //void update ( int x, int y, int w, int h )
 //static QoreNode *QW_update(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
@@ -1200,9 +1223,10 @@ static QoreNode *QW_updateGeometry(class Object *self, QoreAbstractQWidget *qw, 
 }
 
 //bool updatesEnabled () const
-//static QoreNode *QW_updatesEnabled(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
-//{
-//}
+static QoreNode *QW_updatesEnabled(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode(qw->getQWidget()->updatesEnabled());
+}
 
 //QRegion visibleRegion () const
 //static QoreNode *QW_visibleRegion(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
@@ -1315,23 +1339,23 @@ class QoreClass *initQWidgetClass(class QoreClass *qobject)
    // add methods for slots
    QC_QWidget->addMethod("show",              (q_method_t)QW_show);
 
-   //QC_QWidget->addMethod("acceptDrops",                  (q_method_t)QW_acceptDrops);
+   QC_QWidget->addMethod("acceptDrops",                  (q_method_t)QW_acceptDrops);
    //QC_QWidget->addMethod("accessibleDescription",        (q_method_t)QW_accessibleDescription);
    //QC_QWidget->addMethod("accessibleName",               (q_method_t)QW_accessibleName);
    //QC_QWidget->addMethod("actions",                      (q_method_t)QW_actions);
-   //QC_QWidget->addMethod("activateWindow",               (q_method_t)QW_activateWindow);
+   QC_QWidget->addMethod("activateWindow",               (q_method_t)QW_activateWindow);
    //QC_QWidget->addMethod("addAction",                    (q_method_t)QW_addAction);
    //QC_QWidget->addMethod("addActions",                   (q_method_t)QW_addActions);
-   //QC_QWidget->addMethod("adjustSize",                   (q_method_t)QW_adjustSize);
-   //QC_QWidget->addMethod("autoFillBackground",           (q_method_t)QW_autoFillBackground);
+   QC_QWidget->addMethod("adjustSize",                   (q_method_t)QW_adjustSize);
+   QC_QWidget->addMethod("autoFillBackground",           (q_method_t)QW_autoFillBackground);
    QC_QWidget->addMethod("backgroundRole",               (q_method_t)QW_backgroundRole);
    //QC_QWidget->addMethod("baseSize",                     (q_method_t)QW_baseSize);
    //QC_QWidget->addMethod("childAt",                      (q_method_t)QW_childAt);
    //QC_QWidget->addMethod("childAt",                      (q_method_t)QW_childAt);
    //QC_QWidget->addMethod("childrenRect",                 (q_method_t)QW_childrenRect);
    //QC_QWidget->addMethod("childrenRegion",               (q_method_t)QW_childrenRegion);
-   //QC_QWidget->addMethod("clearFocus",                   (q_method_t)QW_clearFocus);
-   //QC_QWidget->addMethod("clearMask",                    (q_method_t)QW_clearMask);
+   QC_QWidget->addMethod("clearFocus",                   (q_method_t)QW_clearFocus);
+   QC_QWidget->addMethod("clearMask",                    (q_method_t)QW_clearMask);
    //QC_QWidget->addMethod("contentsRect",                 (q_method_t)QW_contentsRect);
    //QC_QWidget->addMethod("contextMenuPolicy",            (q_method_t)QW_contextMenuPolicy);
    //QC_QWidget->addMethod("cursor",                       (q_method_t)QW_cursor);
@@ -1422,7 +1446,7 @@ class QoreClass *initQWidgetClass(class QoreClass *qobject)
    //QC_QWidget->addMethod("setAccessibleDescription",     (q_method_t)QW_setAccessibleDescription);
    //QC_QWidget->addMethod("setAccessibleName",            (q_method_t)QW_setAccessibleName);
    //QC_QWidget->addMethod("setAttribute",                 (q_method_t)QW_setAttribute);
-   //QC_QWidget->addMethod("setAutoFillBackground",        (q_method_t)QW_setAutoFillBackground);
+   QC_QWidget->addMethod("setAutoFillBackground",        (q_method_t)QW_setAutoFillBackground);
    QC_QWidget->addMethod("setBackgroundRole",            (q_method_t)QW_setBackgroundRole);
    //QC_QWidget->addMethod("setBaseSize",                  (q_method_t)QW_setBaseSize);
    //QC_QWidget->addMethod("setBaseSize",                  (q_method_t)QW_setBaseSize);
@@ -1464,7 +1488,7 @@ class QoreClass *initQWidgetClass(class QoreClass *qobject)
    //QC_QWidget->addMethod("setStatusTip",                 (q_method_t)QW_setStatusTip);
    //QC_QWidget->addMethod("setStyle",                     (q_method_t)QW_setStyle);
    //QC_QWidget->addMethod("setToolTip",                   (q_method_t)QW_setToolTip);
-   //QC_QWidget->addMethod("setUpdatesEnabled",            (q_method_t)QW_setUpdatesEnabled);
+   QC_QWidget->addMethod("setUpdatesEnabled",            (q_method_t)QW_setUpdatesEnabled);
    //QC_QWidget->addMethod("setWhatsThis",                 (q_method_t)QW_setWhatsThis);
    //QC_QWidget->addMethod("setWindowFlags",               (q_method_t)QW_setWindowFlags);
    //QC_QWidget->addMethod("setWindowIcon",                (q_method_t)QW_setWindowIcon);
@@ -1484,15 +1508,15 @@ class QoreClass *initQWidgetClass(class QoreClass *qobject)
    //QC_QWidget->addMethod("styleSheet",                   (q_method_t)QW_styleSheet);
    //QC_QWidget->addMethod("testAttribute",                (q_method_t)QW_testAttribute);
    //QC_QWidget->addMethod("toolTip",                      (q_method_t)QW_toolTip);
-   //QC_QWidget->addMethod("underMouse",                   (q_method_t)QW_underMouse);
-   //QC_QWidget->addMethod("unsetCursor",                  (q_method_t)QW_unsetCursor);
-   //QC_QWidget->addMethod("unsetLayoutDirection",         (q_method_t)QW_unsetLayoutDirection);
-   //QC_QWidget->addMethod("unsetLocale",                  (q_method_t)QW_unsetLocale);
+   QC_QWidget->addMethod("underMouse",                   (q_method_t)QW_underMouse);
+   QC_QWidget->addMethod("unsetCursor",                  (q_method_t)QW_unsetCursor);
+   QC_QWidget->addMethod("unsetLayoutDirection",         (q_method_t)QW_unsetLayoutDirection);
+   QC_QWidget->addMethod("unsetLocale",                  (q_method_t)QW_unsetLocale);
    //QC_QWidget->addMethod("update",                       (q_method_t)QW_update);
    //QC_QWidget->addMethod("update",                       (q_method_t)QW_update);
    //QC_QWidget->addMethod("update",                       (q_method_t)QW_update);
    QC_QWidget->addMethod("updateGeometry",               (q_method_t)QW_updateGeometry);
-   //QC_QWidget->addMethod("updatesEnabled",               (q_method_t)QW_updatesEnabled);
+   QC_QWidget->addMethod("updatesEnabled",               (q_method_t)QW_updatesEnabled);
    //QC_QWidget->addMethod("visibleRegion",                (q_method_t)QW_visibleRegion);
    //QC_QWidget->addMethod("whatsThis",                    (q_method_t)QW_whatsThis);
    //QC_QWidget->addMethod("width",                        (q_method_t)QW_width);
