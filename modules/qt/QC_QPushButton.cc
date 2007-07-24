@@ -41,7 +41,7 @@ static void QPB_constructor(class Object *self, class QoreNode *params, Exceptio
       QoreNode *p = get_param(params, 0);
       if (p && p->type == NT_OBJECT)
       {
-	 QoreAbstractQWidget *parent = p ? (QoreAbstractQWidget *)p->val.object->getReferencedPrivateDataFromMetaClass(CID_QWIDGET, xsink) : 0;
+	 QoreAbstractQWidget *parent = p ? (QoreAbstractQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
 	 if (!parent)
 	 {
 	    if (!xsink->isException())
@@ -61,7 +61,7 @@ static void QPB_constructor(class Object *self, class QoreNode *params, Exceptio
       {
 	 const char *name = p->val.String->getBuffer();
 	 QoreNode *p = test_param(params, NT_OBJECT, 1);
-	 QoreAbstractQWidget *parent = p ? (QoreAbstractQWidget *)p->val.object->getReferencedPrivateDataFromMetaClass(CID_QWIDGET, xsink) : 0;
+	 QoreAbstractQWidget *parent = p ? (QoreAbstractQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
 	 if (!parent)
 	 {
 	    if (!xsink->isException())
@@ -83,13 +83,7 @@ static void QPB_constructor(class Object *self, class QoreNode *params, Exceptio
       return;
    }
 
-   // create metaclass set
-   int_set_t *mks = new int_set_t;
-   mks->insert(CID_QOBJECT);
-   mks->insert(CID_QWIDGET);
-   //mks->insert(CID_QABSTRACTBUTTON);
-
-   self->setPrivate(CID_QPUSHBUTTON, mks, pb);
+   self->setPrivate(CID_QPUSHBUTTON, pb);
 }
 
 static void QPB_destructor(class Object *self, class QoreQPushButton *pb, ExceptionSink *xsink)
@@ -103,35 +97,18 @@ static void QPB_copy(class Object *self, class Object *old, class QoreQPushButto
    xsink->raiseException("QPUSHBUTTON-COPY-ERROR", "objects of this class cannot be copied");
 }
 
-typedef QoreNode *(*qpb_func_t)(Object *, QoreQPushButton *, QoreNode *, ExceptionSink *);
-
-class QoreClass *initQPushButtonClass()
+class QoreClass *initQPushButtonClass(class QoreClass *qwidget)
 {
    tracein("initQPushButtonClass()");
    
    class QoreClass *QC_QPushButton = new QoreClass("QPushButton", QDOM_GUI);
    CID_QPUSHBUTTON = QC_QPushButton->getID();
 
+   QC_QPushButton->addBuiltinVirtualBaseClass(qwidget);
+
    QC_QPushButton->setConstructor(QPB_constructor);
    QC_QPushButton->setDestructor((q_destructor_t)QPB_destructor);
    QC_QPushButton->setCopy((q_copy_t)QPB_copy);
-
-   // inherited functions from templates
-   QC_QPushButton->addMethod("inherits",          (q_method_t)(qpb_func_t)QO_inherits<QoreQPushButton>);
-   QC_QPushButton->addMethod("resize",            (q_method_t)(qpb_func_t)QW_resize<QoreQPushButton>);
-   QC_QPushButton->addMethod("setGeometry",       (q_method_t)(qpb_func_t)QW_setGeometry<QoreQPushButton>);
-   QC_QPushButton->addMethod("show",              (q_method_t)(qpb_func_t)QW_show<QoreQPushButton>);
-   QC_QPushButton->addMethod("setFont",           (q_method_t)(qpb_func_t)QW_setFont<QoreQPushButton>);
-   QC_QPushButton->addMethod("setFixedHeight",    (q_method_t)(qpb_func_t)QW_setFixedHeight<QoreQPushButton>);
-   QC_QPushButton->addMethod("setFixedWidth",     (q_method_t)(qpb_func_t)QW_setFixedWidth<QoreQPushButton>);
-   QC_QPushButton->addMethod("setFixedSize",      (q_method_t)(qpb_func_t)QW_setFixedSize<QoreQPushButton>);
-   QC_QPushButton->addMethod("setMinimumHeight",  (q_method_t)(qpb_func_t)QW_setMinimumHeight<QoreQPushButton>);
-   QC_QPushButton->addMethod("setMinimumWidth",   (q_method_t)(qpb_func_t)QW_setMinimumWidth<QoreQPushButton>);
-   QC_QPushButton->addMethod("setMinimumSize",    (q_method_t)(qpb_func_t)QW_setMinimumSize<QoreQPushButton>);
-   QC_QPushButton->addMethod("setMaximumHeight",  (q_method_t)(qpb_func_t)QW_setMaximumHeight<QoreQPushButton>);
-   QC_QPushButton->addMethod("setMaximumWidth",   (q_method_t)(qpb_func_t)QW_setMaximumWidth<QoreQPushButton>);
-   QC_QPushButton->addMethod("setMaximumSize",    (q_method_t)(qpb_func_t)QW_setMaximumSize<QoreQPushButton>);
-   QC_QPushButton->addMethod("setLayout",         (q_method_t)(qpb_func_t)QW_setLayout<QoreQPushButton>);
 
    traceout("initQPushButtonClass()");
    return QC_QPushButton;

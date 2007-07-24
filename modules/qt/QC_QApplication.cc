@@ -57,7 +57,7 @@ static void QA_constructor(class Object *self, class QoreNode *params, Exception
    }
 
    QoreQApplication *qa = new QoreQApplication();
-   self->setPrivate(CID_QAPPLICATION, CID_QOBJECT, qa);
+   self->setPrivate(CID_QAPPLICATION, qa);
    qore_qapp = self;
 }
 
@@ -80,20 +80,20 @@ static class QoreNode *QA_exec(class Object *self, class QoreQApplication *qa, c
 
 typedef QoreNode *(*qa_func_t)(Object *, QoreQApplication *, QoreNode *, ExceptionSink *);
 
-class QoreClass *initQApplicationClass()
+class QoreClass *initQApplicationClass(class QoreClass *qobject)
 {
    tracein("initQApplicationClass()");
    
    class QoreClass *QC_QApplication = new QoreClass("QApplication", QDOM_GUI);
    CID_QAPPLICATION = QC_QApplication->getID();
+
+   QC_QApplication->addBuiltinVirtualBaseClass(qobject);
+
    QC_QApplication->setConstructor(QA_constructor);
    QC_QApplication->setDestructor((q_destructor_t)QA_destructor);
    QC_QApplication->setCopy((q_copy_t)QA_copy);
 
    QC_QApplication->addMethod("exec",    (q_method_t)QA_exec);
-
-   // inherited functions from templates
-   QC_QApplication->addMethod("inherits",     (q_method_t)(qa_func_t)QO_inherits<QoreQApplication>);
 
    traceout("initQApplicationClass()");
    return QC_QApplication;

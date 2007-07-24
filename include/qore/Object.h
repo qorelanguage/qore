@@ -63,6 +63,7 @@ class Object : public ReferenceObject
       // must only be called when inside the gate
       DLLLOCAL inline void doDeleteIntern(class ExceptionSink *xsink);
       DLLLOCAL void cleanup(class ExceptionSink *xsink, class Hash *td);
+      DLLLOCAL void addVirtualPrivateData(AbstractPrivateData *apd);
       
    protected:
       DLLLOCAL ~Object();
@@ -91,10 +92,7 @@ class Object : public ReferenceObject
       DLLEXPORT class QoreNode *evalMemberExistence(const char *mem, class ExceptionSink *xsink);
       DLLEXPORT class Hash *evalData(class ExceptionSink *xsink);
       DLLEXPORT void setPrivate(int key, AbstractPrivateData *pd);
-      DLLEXPORT void setPrivate(int key, int metakey, AbstractPrivateData *pd);
-      DLLEXPORT void setPrivate(int key, int_set_t *metakeyset, AbstractPrivateData *pd);
       DLLEXPORT AbstractPrivateData *getReferencedPrivateData(int key, class ExceptionSink *xsink);
-      DLLEXPORT AbstractPrivateData *getReferencedPrivateDataFromMetaClass(int metakey, class ExceptionSink *xsink);
       DLLEXPORT class QoreNode *evalMethod(class QoreString *name, class QoreNode *args, class ExceptionSink *xsink);
       DLLEXPORT class QoreClass *getClass(int cid) const;
       DLLEXPORT class QoreClass *getClass() const;

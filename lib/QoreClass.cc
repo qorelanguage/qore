@@ -31,10 +31,12 @@
 // global class ID sequence
 DLLLOCAL class Sequence classIDSeq;
 
+/*
 int get_abstract_class_id()
 {
    return classIDSeq.next();
 }
+*/
 
 // BCEANode
 // base class constructor evaluated argument node
@@ -167,8 +169,7 @@ inline void BCANode::resolve()
 
 BCNode::~BCNode()
 {
-   if (cname)
-      delete cname;
+   delete cname;
    if (cstr)
       free(cstr);
    if (args)
@@ -234,7 +235,7 @@ inline void BCList::parseInit(class QoreClass *cls, class BCAList *bcal)
       // recursively add base classes to special method list
       if ((*i)->sclass)
       {
-         (*i)->sclass->addBaseClassesToSubclass(cls);
+         (*i)->sclass->addBaseClassesToSubclass(cls, (*i)->is_virtual);
 	 // include all subclass domains in this class' domain
 	 cls->addDomain((*i)->sclass->getDomain());
       }
@@ -344,7 +345,10 @@ inline void BCList::execConstructors(class Object *o, class BCEAList *bceal, cla
    for (bclist_t::iterator i = begin(); i != end(); i++)
    {
       printd(5, "BCList::execConstructors() %s::constructor() o=%08p (for subclass %s)\n", (*i)->sclass->getName(), o, o->getClass()->getName()); 
-
+      
+      // do not execute constructors for virtual base classes
+      if ((*i)->is_virtual)
+	 continue;
       (*i)->sclass->execSubclassConstructor(o, bceal, xsink);
       if (xsink->isEvent())
 	 break;
@@ -357,7 +361,7 @@ void BCList::execConstructorsWithArgs(class Object *o, class BCEAList *bceal, cl
    // by a base class constructor argument specification in a subclass, evaluate them now
    for (bclist_t::iterator i = begin(); i != end(); i++)
       if ((*i)->hasargs && bceal->add((*i)->sclass, (*i)->args, xsink))
-	    return;
+	 return;
    execConstructors(o, bceal, xsink);
 }
 
@@ -365,7 +369,9 @@ inline void BCList::execSystemConstructors(class Object *o, class BCEAList *bcea
 {
    for (bclist_t::iterator i = begin(); i != end(); i++)
    {
-      printd(5, "BCList::execSystemConstructors() %s::constructor() o=%08p (for subclass %s)\n", (*i)->sclass->getName(), o, o->getClass()->getName()); 
+      printd(5, "BCList::execSystemConstructors() %s::constructor() o=%08p virt=%s (for subclass %s)\n", (*i)->sclass->getName(), o, (*i)->is_virtual ? "true" : "false", o->getClass()->getName()); 
+      if ((*i)->is_virtual)
+	 continue;
       (*i)->sclass->execSubclassSystemConstructor(o, bceal, xsink);
       if (xsink->isEvent())
 	 break;
@@ -543,6 +549,14 @@ void QoreClass::addDefaultBuiltinBaseClass(class QoreClass *qc, class QoreNode *
    methodID = qc->classID;
 }
 
+void QoreClass::addBuiltinVirtualBaseClass(class QoreClass *qc)
+{
+   //printd(5, "adding %s as virtual base class to %s\n", qc->name, name);
+   if (!scl)
+      scl = new BCList();
+   scl->push_back(new BCNode(qc, 0, true));   
+}
+
 void QoreClass::setSystemConstructor(q_constructor_t m)
 {
    sys = true;
@@ -696,25 +710,25 @@ inline bool BCSMList::isBaseClass(class QoreClass *qc) const
    class_list_t::const_iterator i = begin();
    while (i != end())
    {
-      if (qc == *i)
+      if (qc == (*i).first)
 	 return true;
       i++;
    }
    return false;
 }
 
-inline void BCSMList::addBaseClassesToSubclass(class QoreClass *thisclass, class QoreClass *sc)
+inline void BCSMList::addBaseClassesToSubclass(class QoreClass *thisclass, class QoreClass *sc, bool is_virtual)
 {
    //printd(5, "BCSMList::addBaseClassesToSubclass(this=%s, sc=%s) size=%d\n", thisclass->getName(), sc->getName());
    class_list_t::const_iterator i = begin();
    while (i != end())
    {
-      sc->scl->sml.add(thisclass, *i);
+      sc->scl->sml.add(thisclass, (*i).first, is_virtual || (*i).second);
       i++;
    }
 }
 
-inline void BCSMList::add(class QoreClass *thisclass, class QoreClass *qc)
+inline void BCSMList::add(class QoreClass *thisclass, class QoreClass *qc, bool is_virtual)
 {
    if (thisclass == qc)
    {
@@ -725,9 +739,9 @@ inline void BCSMList::add(class QoreClass *thisclass, class QoreClass *qc)
    class_list_t::const_iterator i = begin();
    while (i != end())
    {
-      if (*i == qc)
+      if ((*i).first == qc)
          return;
-      if (*i == thisclass)
+      if ((*i).first == thisclass)
       {
       	 parse_error("circular reference in class hierarchy, '%s' is an ancestor of itself", thisclass->getName());
       	 return;
@@ -736,7 +750,7 @@ inline void BCSMList::add(class QoreClass *thisclass, class QoreClass *qc)
    }
 
    // append to the end of the doubly-linked list
-   push_back(qc);
+   push_back(std::make_pair(qc, is_virtual));
 }
 
 inline void BCSMList::execDestructors(class Object *o, class ExceptionSink *xsink)
@@ -745,8 +759,9 @@ inline void BCSMList::execDestructors(class Object *o, class ExceptionSink *xsin
    // cast below required by g++ 3.2 at least
    while (i != rend())
    {
-      printd(5, "BCSMList::execDestructors() %s::destructor() o=%08p (subclass %s)\n", (*i)->getName(), o, o->getClass()->getName());
-      (*i)->execSubclassDestructor(o, xsink);
+      printd(5, "BCSMList::execDestructors() %s::destructor() o=%08p virt=%s (subclass %s)\n", (*i).first->getName(), o, (*i).second ? "true" : "false", o->getClass()->getName());
+      if (!(*i).second)
+	 (*i).first->execSubclassDestructor(o, xsink);
       i++;
    }
 }
@@ -756,8 +771,9 @@ inline void BCSMList::execSystemDestructors(class Object *o, class ExceptionSink
    class_list_t::reverse_iterator i = rbegin();
    while (i != rend())
    {
-      printd(5, "BCSMList::execSystemDestructors() %s::destructor() o=%08p (subclass %s)\n", (*i)->getName(), o, o->getClass()->getName());
-      (*i)->execSubclassSystemDestructor(o, xsink);
+      printd(5, "BCSMList::execSystemDestructors() %s::destructor() o=%08p virt=%s (subclass %s)\n", (*i).first->getName(), o, (*i).second ? "true" : "false", o->getClass()->getName());
+      if (!(*i).second)
+	 (*i).first->execSubclassSystemDestructor(o, xsink);
       i++;
    }
 }
@@ -767,9 +783,11 @@ inline void BCSMList::execCopyMethods(class Object *self, class Object *old, cla
    class_list_t::const_iterator i = begin();
    while (i != end())
    {
-      (*i)->execSubclassCopy(self, old, xsink);
-      if (xsink->isEvent())
-	 break;
+      if (!(*i).second) {
+	 (*i).first->execSubclassCopy(self, old, xsink);
+	 if (xsink->isEvent())
+	    break;
+      }
       i++;
    }
 }
@@ -779,8 +797,8 @@ inline class QoreClass *BCSMList::getClass(int cid) const
    class_list_t::const_iterator i = begin();
    while (i != end())
    {
-      if ((*i)->getID() == cid)
-	 return *i;
+      if ((*i).first->getID() == cid)
+	 return (*i).first;
       i++;
    }
    return NULL;
@@ -1405,15 +1423,15 @@ inline void QoreClass::execSubclassCopy(Object *self, Object *old, ExceptionSink
       copyMethod->evalCopy(self, old, xsink);
 }
 
-void QoreClass::addBaseClassesToSubclass(class QoreClass *sc)
+void QoreClass::addBaseClassesToSubclass(class QoreClass *sc, bool is_virtual)
 {      
    if (scl)
    {
       // initialize list, just in case
       scl->parseInit(this, bcal);
-      scl->sml.addBaseClassesToSubclass(this, sc);
+      scl->sml.addBaseClassesToSubclass(this, sc, is_virtual);
    }
-   sc->scl->sml.add(sc, this);
+   sc->scl->sml.add(sc, this, is_virtual);
 }
 
 // private, called from subclasses only

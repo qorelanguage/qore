@@ -23,9 +23,6 @@
 #include <qore/Qore.h>
 
 #include "QC_QLCDNumber.h"
-#include "QC_QFont.h"
-#include "QC_QWidget.h"
-#include "QC_QFrame.h"
 
 int CID_QLCDNUMBER;
 
@@ -33,7 +30,12 @@ static void QLCDNUMBER_constructor(class Object *self, class QoreNode *params, E
 {
    QoreQLCDNumber *qlcdn;
    QoreNode *p = test_param(params, NT_OBJECT, 0);
-   QoreAbstractQWidget *parent = p ? (QoreAbstractQWidget *)p->val.object->getReferencedPrivateDataFromMetaClass(CID_QWIDGET, xsink) : 0;
+   QoreAbstractQWidget *parent = p ? (QoreAbstractQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   if (p && !parent)
+   {
+      xsink->raiseException("QLCDNUMBER-CONSTRUCTOR-ERROR", "object passed to QLCDNumber::constructor() is not derived from QWidget (class: '%s')", p->val.object->getClass()->getName());
+      return;
+   }
 
    if (!parent)
       qlcdn = new QoreQLCDNumber();
@@ -43,12 +45,7 @@ static void QLCDNUMBER_constructor(class Object *self, class QoreNode *params, E
       qlcdn = new QoreQLCDNumber(parent->getQWidget());
    }
 
-   int_set_t *mks = new int_set_t;
-   mks->insert(CID_QOBJECT);
-   mks->insert(CID_QWIDGET);
-   mks->insert(CID_QFRAME);
-
-   self->setPrivate(CID_QLCDNUMBER, mks, qlcdn);
+   self->setPrivate(CID_QLCDNUMBER, qlcdn);
 }
 
 static void QLCDNUMBER_destructor(class Object *self, class QoreQLCDNumber *qlcdn, ExceptionSink *xsink)
@@ -160,14 +157,15 @@ static class QoreNode *QLCDNUMBER_checkOverflow(class Object *self, class QoreQL
    return new QoreNode(rc);
 }
 
-typedef QoreNode *(*qlcdnumber_func_t)(Object *, QoreQLCDNumber *, QoreNode *, ExceptionSink *);
-
-class QoreClass *initQLCDNumberClass()
+class QoreClass *initQLCDNumberClass(class QoreClass *qframe)
 {
    tracein("initQLCDNumberClass()");
    
    class QoreClass *QC_QLCDNumber = new QoreClass("QLCDNumber", QDOM_GUI);
    CID_QLCDNUMBER = QC_QLCDNumber->getID();
+
+   QC_QLCDNumber->addBuiltinVirtualBaseClass(qframe);
+
    QC_QLCDNumber->setConstructor(QLCDNUMBER_constructor);
    QC_QLCDNumber->setDestructor((q_destructor_t)QLCDNUMBER_destructor);
    QC_QLCDNumber->setCopy((q_copy_t)QLCDNUMBER_copy);
@@ -186,23 +184,6 @@ class QoreClass *initQLCDNumberClass()
    QC_QLCDNumber->addMethod("setBinMode",             (q_method_t)QLCDNUMBER_setBinMode);
    QC_QLCDNumber->addMethod("setMode",                (q_method_t)QLCDNUMBER_setMode);
    QC_QLCDNumber->addMethod("checkOverflow",          (q_method_t)QLCDNUMBER_checkOverflow);
-
-   // inherited functions from templates
-   QC_QLCDNumber->addMethod("inherits",          (q_method_t)(qlcdnumber_func_t)QO_inherits<QoreQLCDNumber>);
-   QC_QLCDNumber->addMethod("resize",            (q_method_t)(qlcdnumber_func_t)QW_resize<QoreQLCDNumber>);
-   QC_QLCDNumber->addMethod("setGeometry",       (q_method_t)(qlcdnumber_func_t)QW_setGeometry<QoreQLCDNumber>);
-   QC_QLCDNumber->addMethod("show",              (q_method_t)(qlcdnumber_func_t)QW_show<QoreQLCDNumber>);
-   QC_QLCDNumber->addMethod("setFont",           (q_method_t)(qlcdnumber_func_t)QW_setFont<QoreQLCDNumber>);
-   QC_QLCDNumber->addMethod("setFixedHeight",    (q_method_t)(qlcdnumber_func_t)QW_setFixedHeight<QoreQLCDNumber>);
-   QC_QLCDNumber->addMethod("setFixedWidth",     (q_method_t)(qlcdnumber_func_t)QW_setFixedWidth<QoreQLCDNumber>);
-   QC_QLCDNumber->addMethod("setFixedSize",      (q_method_t)(qlcdnumber_func_t)QW_setFixedSize<QoreQLCDNumber>);
-   QC_QLCDNumber->addMethod("setMinimumHeight",  (q_method_t)(qlcdnumber_func_t)QW_setMinimumHeight<QoreQLCDNumber>);
-   QC_QLCDNumber->addMethod("setMinimumWidth",   (q_method_t)(qlcdnumber_func_t)QW_setMinimumWidth<QoreQLCDNumber>);
-   QC_QLCDNumber->addMethod("setMinimumSize",    (q_method_t)(qlcdnumber_func_t)QW_setMinimumSize<QoreQLCDNumber>);
-   QC_QLCDNumber->addMethod("setMaximumHeight",  (q_method_t)(qlcdnumber_func_t)QW_setMaximumHeight<QoreQLCDNumber>);
-   QC_QLCDNumber->addMethod("setMaximumWidth",   (q_method_t)(qlcdnumber_func_t)QW_setMaximumWidth<QoreQLCDNumber>);
-   QC_QLCDNumber->addMethod("setMaximumSize",    (q_method_t)(qlcdnumber_func_t)QW_setMaximumSize<QoreQLCDNumber>);
-   QC_QLCDNumber->addMethod("setLayout",         (q_method_t)(qlcdnumber_func_t)QW_setLayout<QoreQLCDNumber>);
 
    traceout("initQLCDNumberClass()");
    return QC_QLCDNumber;

@@ -127,15 +127,17 @@ class BCAList : public bcalist_t
       DLLLOCAL ~BCAList();
 };
 
-typedef std::list<class QoreClass *> class_list_t;
+typedef std::pair<class QoreClass *, bool> class_virt_pair_t;
+typedef std::list<class_virt_pair_t> class_list_t;
 
 // BCSMList: Base Class Special Method List
 // unique list of base classes for a class hierarchy to ensure that "special" methods, constructor(), destructor(), copy() - are executed only once
+// this class also tracks virtual classes to ensure that they are not inserted into the list in a complex tree and executed here
 class BCSMList : public class_list_t
 {
    public:
-      DLLLOCAL inline void add(class QoreClass *thisclass, class QoreClass *qc);
-      DLLLOCAL inline void addBaseClassesToSubclass(class QoreClass *thisclass, class QoreClass *sc);
+      DLLLOCAL inline void add(class QoreClass *thisclass, class QoreClass *qc, bool is_virtual);
+      DLLLOCAL inline void addBaseClassesToSubclass(class QoreClass *thisclass, class QoreClass *sc, bool is_virtual);
       DLLLOCAL inline bool isBaseClass(class QoreClass *qc) const;
       DLLLOCAL inline class QoreClass *getClass(int cid) const;
       //inline void execConstructors(class Object *o, class BCEAList *bceal, class ExceptionSink *xsink);
@@ -155,34 +157,19 @@ class BCNode
       class QoreNode *args;
       bool hasargs;
       bool priv;
+      bool is_virtual;
       
-      DLLLOCAL inline BCNode(class NamedScope *c, bool p)
+      DLLLOCAL inline BCNode(class NamedScope *c, bool p) : cname(c), cstr(0), sclass(0), args(0), hasargs(false), priv(p), is_virtual(false)
       {
-	 cname = c;
-	 cstr = NULL;
-	 sclass = NULL;
-	 args = NULL;
-	 hasargs = false;
-	 priv = p;
       }
       // this method takes ownership of *str
-      DLLLOCAL inline BCNode(char *str, bool p)
+      DLLLOCAL inline BCNode(char *str, bool p) : cname(0), cstr(str), sclass(0), args(0), hasargs(false), priv(p), is_virtual(false)
       {
-	 cname = NULL;
-	 cstr = str;
-	 sclass = NULL;
-	 args = NULL;
-	 hasargs = false;
-	 priv = p;
       }
-      DLLLOCAL inline BCNode(class QoreClass *qc, class QoreNode *xargs = NULL)
+      // for builtin base classes
+      DLLLOCAL inline BCNode(class QoreClass *qc, class QoreNode *xargs = 0, bool n_virtual  = false) 
+	 : cname(0), cstr(0), sclass(qc), args(xargs), hasargs(xargs ? true : false), priv(false), is_virtual(n_virtual)
       {
-	 cname = NULL;
-	 cstr = NULL;
-	 sclass = qc;
-	 args = xargs;
-	 hasargs = xargs ? true : false;
-	 priv = false;
       }
       DLLLOCAL ~BCNode();
 };
@@ -286,13 +273,18 @@ class QoreClass{
       DLLEXPORT bool hasMemberGate() const;
       DLLEXPORT int getDomain() const;
       DLLEXPORT const char *getName() const;
-      // make a builtin class a child of a another builtin class, private inheritance makes no sense
+      // make a builtin class a child of another builtin class, private inheritance makes no sense
       // (there would be too much overhead to use user-level qore interfaces to call private methods)
       // but base class constructor arguments can be given
       DLLEXPORT void addBuiltinBaseClass(class QoreClass *qc, class QoreNode *xargs = NULL);
       // this method will do the same as above but will also ensure that the given class' private data
       // will be used in all object methods - in this case the class cannot have any private data
       DLLEXPORT void addDefaultBuiltinBaseClass(class QoreClass *qc, class QoreNode *xargs = NULL);
+      // this method adds a base class placeholder for a subclass - where the subclass' private data 
+      // object is actually a subclass of the parent class and all methods are virtual, so the
+      // base class' constructor, destructor, and copy constructor will never be run and the base
+      // class methods will be passed a pointer to the subclass' data
+      DLLEXPORT void addBuiltinVirtualBaseClass(class QoreClass *qc);
 
       DLLLOCAL QoreClass();
       DLLLOCAL void addMethod(class Method *f);
@@ -307,7 +299,7 @@ class QoreClass{
       DLLLOCAL class Method *resolveSelfMethod(class NamedScope *nme);
       DLLLOCAL inline void addDomain(int dom);
       DLLLOCAL class QoreClass *copyAndDeref();
-      DLLLOCAL void addBaseClassesToSubclass(class QoreClass *sc);
+      DLLLOCAL void addBaseClassesToSubclass(class QoreClass *sc, bool is_virtual);
       // returns 0 for success, -1 for error
       DLLLOCAL int parseAddBaseClassArgumentList(class BCAList *bcal);
       // only called when parsing, sets the name of the class
@@ -323,8 +315,13 @@ class QoreClass{
       DLLLOCAL void parseRollback();
       DLLLOCAL int getIDForMethod() const;
       DLLLOCAL void parseSetBaseClassList(class BCList *bcl);
+      // get base class list to add virtual class indexes for private data
+      DLLLOCAL BCSMList *getBCSMList() const
+      {
+	 return scl ? &scl->sml : 0;
+      }
 };
 
-DLLEXPORT int get_abstract_class_id();
+//DLLEXPORT int get_abstract_class_id();
 
 #endif // _QORE_QORECLASS_H

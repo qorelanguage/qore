@@ -29,14 +29,12 @@
 #include "QC_QWidget.h"
 #include "QC_QFrame.h"
 #include "QC_QLCDNumber.h"
+#include "QC_QLayout.h"
 #include "QC_QVBoxLayout.h"
 
 #include <QPalette>
 
 #include <assert.h>
-
-// abstract class IDs
-DLLLOCAL int CID_QLAYOUT;
 
 static class QoreString *qt_module_init();
 static void qt_module_ns_init(class Namespace *rns, class Namespace *qns);
@@ -58,7 +56,7 @@ DLLEXPORT qore_module_delete_t qore_module_delete = qt_module_delete;
 class QoreNode *f_QObject_connect(class QoreNode *params, class ExceptionSink *xsink)
 {
    QoreNode *p = test_param(params, NT_OBJECT, 0);
-   class AbstractPrivateData *spd = p ? p->val.object->getReferencedPrivateDataFromMetaClass(CID_QOBJECT, xsink) : NULL;
+   class AbstractPrivateData *spd = p ? p->val.object->getReferencedPrivateData(CID_QOBJECT, xsink) : NULL;
    QoreAbstractQObject *sender = spd ? dynamic_cast<QoreAbstractQObject *>(spd) : 0;
    assert(!spd || sender);
    if (!sender) {
@@ -81,7 +79,7 @@ class QoreNode *f_QObject_connect(class QoreNode *params, class ExceptionSink *x
       xsink->raiseException("QOBJECT-CONNECT-ERROR", "missing receiving object as third argument");
       return 0;      
    }
-   class AbstractPrivateData *rpd = p ? p->val.object->getReferencedPrivateDataFromMetaClass(CID_QOBJECT, xsink) : NULL;
+   class AbstractPrivateData *rpd = p ? p->val.object->getReferencedPrivateData(CID_QOBJECT, xsink) : NULL;
    QoreAbstractQObject *receiver = rpd ? dynamic_cast<QoreAbstractQObject *>(rpd) : 0;
    assert(!rpd || receiver);
    if (!receiver) {
@@ -174,18 +172,18 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
 {
    class Namespace *qt = new Namespace("Qt");
 
-   // get abstract class IDs
-   CID_QLAYOUT = get_abstract_class_id();
+    // the order is sensitive here as child classes need the parent IDs
+   class QoreClass *qobject, *qwidget, *qlayout, *qframe;
+   qt->addSystemClass((qobject = initQObjectClass()));
+   qt->addSystemClass(initQApplicationClass(qobject));
+   qt->addSystemClass((qwidget = initQWidgetClass(qobject)));
+   qt->addSystemClass(initQPushButtonClass(qwidget));
+   qt->addSystemClass((qframe = initQFrameClass(qwidget)));
+   qt->addSystemClass(initQLCDNumberClass(qframe));
+   qt->addSystemClass(initQSliderClass(qframe));
 
-   // the order is sensitive here as child classes need the parent IDs
-   qt->addSystemClass(initQObjectClass());
-   qt->addSystemClass(initQApplicationClass());
-   qt->addSystemClass(initQWidgetClass());
-   qt->addSystemClass(initQPushButtonClass());
-   qt->addSystemClass(initQFrameClass());
-   qt->addSystemClass(initQLCDNumberClass());
-   qt->addSystemClass(initQSliderClass());
-   qt->addSystemClass(initQVBoxLayoutClass());
+   qt->addSystemClass((qlayout = initQLayoutClass(qobject)));
+   qt->addSystemClass(initQVBoxLayoutClass(qlayout));
    qt->addSystemClass(initQFontClass());
 
    // ColorRole enum

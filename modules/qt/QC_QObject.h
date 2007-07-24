@@ -55,16 +55,4 @@ class QoreQObject : public QoreAbstractQObject
 
 };
 
-// template functions for inherited methods
-template<typename T>
-static QoreNode *QO_inherits(class Object *self, T *qo, class QoreNode *params, ExceptionSink *xsink)
-{
-   QoreNode *p = test_param(params, NT_STRING, 0);
-   if (!p) {
-      xsink->raiseException("QOBJECT-INHERITS-ERROR", "missing class name as first and only argument");
-      return 0;
-   }
-   return new QoreNode(qo->qobj->inherits(p->val.String->getBuffer()));
-}
-
 #endif

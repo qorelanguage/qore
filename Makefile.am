@@ -239,6 +239,7 @@ noinst_HEADERS = \
 	modules/qt/QC_QLCDNumber.h \
 	modules/qt/QC_QSlider.h \
 	modules/qt/QC_QVBoxLayout.h \
+	modules/qt/QC_QLayout.h \
 	modules/qt/QoreAbstractQLayout.h \
 	modules/qt/QoreAbstractQObject.h \
 	modules/qt/QoreAbstractQWidget.h \

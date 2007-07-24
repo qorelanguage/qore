@@ -30,7 +30,7 @@
 
 extern int CID_QAPPLICATION;
 
-DLLLOCAL class QoreClass *initQApplicationClass();
+DLLLOCAL class QoreClass *initQApplicationClass(class QoreClass *parent);
 
 extern int static_argc;
 extern char **static_argv;

@@ -30,7 +30,7 @@
 
 DLLEXPORT extern int CID_QFRAME;
 
-DLLLOCAL class QoreClass *initQFrameClass();
+DLLLOCAL class QoreClass *initQFrameClass(class QoreClass *parent);
 
 class QoreQFrame : public QoreAbstractQWidget
 {

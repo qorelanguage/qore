@@ -1,3 +1,10 @@
+2006.07.24: David Nichols
+	* added supoprt for builtin virtual base classes in builtin class
+	  hierarchies
+	* removed metaclass tagging for object private data
+	* qt: reworked class inheritance model based on new virtual base class
+	  support
+
 2006.07.22: David Nichols
 	* qt: new class hierarchy infrastructure support to better model QT's
 	  class hierarchy, function templates, etc

@@ -6,5 +6,6 @@
 #include "QC_QFrame.cc"
 #include "QC_QLCDNumber.cc"
 #include "QC_QSlider.cc"
+#include "QC_QLayout.cc"
 #include "QC_QVBoxLayout.cc"
 #include "qt.cc"

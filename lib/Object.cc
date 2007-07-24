@@ -30,19 +30,14 @@
 
 #include <map>
 
-// actual object data and set of super/metaclass IDs
-typedef std::pair<AbstractPrivateData *, int_set_t *> abstract_data_record_t;
-// mapping from qore class ID to the object data and super/metaclass ID set
-typedef std::map<int, abstract_data_record_t> keymap_t;
-// mapping from qore super/metaclass ID to object data
-typedef std::multimap<int, AbstractPrivateData *> metakeymap_t;
+// mapping from qore class ID to the object data
+typedef std::map<int, AbstractPrivateData *> keymap_t;
 
 // for objects with multiple classes, private data has to be keyed
 class KeyList
 {
    private:
       keymap_t keymap;
-      metakeymap_t metakeymap;
 
    public:
       DLLLOCAL AbstractPrivateData *getReferencedPrivateData(int key) const
@@ -50,17 +45,6 @@ class KeyList
 	 keymap_t::const_iterator i = keymap.find(key);
 	 if (i == keymap.end())
 	    return 0;
-
-	 AbstractPrivateData *apd = i->second.first;
-	 apd->ref();
-	 return apd;
-      }
-
-      DLLLOCAL AbstractPrivateData *getReferencedPrivateDataFromMetaClass(int metakey) const
-      {
-	 metakeymap_t::const_iterator i = metakeymap.find(metakey);
-	 if (i == metakeymap.end())
-	    return getReferencedPrivateData(metakey);
 
 	 AbstractPrivateData *apd = i->second;
 	 apd->ref();
@@ -70,17 +54,13 @@ class KeyList
       DLLLOCAL void addToString(class QoreString *str) const
       {
 	 for (keymap_t::const_iterator i = keymap.begin(), e = keymap.end(); i != e; ++i)
-	    str->sprintf("%d=<0x%08p>, ", i->first, i->second.first);
+	    str->sprintf("%d=<0x%08p>, ", i->first, i->second);
       }
 
       DLLLOCAL void derefAll(class ExceptionSink *xsink) const
       {
 	 for (keymap_t::const_iterator i = keymap.begin(), e = keymap.end(); i != e; ++i)
-	 {
-	    i->second.first->deref(xsink);
-	    if (i->second.second)
-	       delete i->second.second;
-	 }
+	    i->second->deref(xsink);
       }
 
       DLLLOCAL AbstractPrivateData *getAndClearPtr(int key)
@@ -89,53 +69,20 @@ class KeyList
 	 if (i == keymap.end())
 	    return 0;
 
-	 class AbstractPrivateData *rv = i->second.first;
-	 // if there are meta mappings, then delete them too
-	 if (i->second.second)
-	 {
-	    for (int_set_t::iterator mi = i->second.second->begin(), e = i->second.second->end(); mi != e; ++mi)
-	    {
-	       metakeymap_t::iterator j = metakeymap.find(*mi);
-	       assert(j != metakeymap.end());
-	       while (j != metakeymap.end() && j->first == *mi)
-		  if (j->second == rv) {
-		     metakeymap.erase(j);
-		     break;
-		  }
-		  else
-		     ++j;
-	    }
-	    delete i->second.second;
-	 }
+	 class AbstractPrivateData *rv = i->second;
 	 keymap.erase(i);
 	 return rv;
       }
 
       DLLLOCAL void insert(int key, AbstractPrivateData *pd)
       {
-	 keymap.insert(std::make_pair(key, std::make_pair(pd, (int_set_t *)0)));
+	 keymap.insert(std::make_pair(key, pd));
       }
 
-      DLLLOCAL void insert(int key, int metakey, AbstractPrivateData *pd)
+      DLLLOCAL void insertIfNotPresent(int key, AbstractPrivateData *pd)
       {
-	 assert(metakey);
-	 // make new meta key set with one key
-	 int_set_t *metakeyset = new int_set_t;
-	 metakeyset->insert(metakey);
-	 keymap.insert(std::make_pair(key, std::make_pair(pd, metakeyset)));
-
-	 metakeymap.insert(std::make_pair(metakey, pd));
-      }
-
-      DLLLOCAL void insert(int key, int_set_t *metakeyset, AbstractPrivateData *pd)
-      {
-	 keymap.insert(std::make_pair(key, std::make_pair(pd, metakeyset)));
-
-	 for (int_set_t::iterator i = metakeyset->begin(), e = metakeyset->end(); i != e; ++i)
-	 {
-	    assert(*i);
-	    metakeymap.insert(std::make_pair(*i, pd));
-	 }
+	 if (keymap.find(key) == keymap.end())
+	    keymap.insert(std::make_pair(key, pd));
       }
 
 };
@@ -236,7 +183,7 @@ class QoreNode *Object::evalBuiltinMethodWithPrivateData(class BuiltinMethod *me
    if (myclass == meth->myclass)
       xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::%s() cannot be executed because the object has already been deleted", myclass->getName(), meth->getName());
    else
-      xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::%s() (base class of object's class '%s') cannot be executed because the object has already been deleted", meth->myclass->getName(), meth->getName(), myclass->getName());
+      xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::%s() (base class of '%s') cannot be executed because the object has already been deleted", meth->myclass->getName(), meth->getName(), myclass->getName());
    return NULL;
 }
 
@@ -257,7 +204,7 @@ void Object::evalCopyMethodWithPrivateData(class BuiltinMethod *meth, class Obje
    if (myclass == meth->myclass)
       xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::copy() cannot be executed because the object has already been deleted", myclass->getName());
    else
-      xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::copy() (base class of object's class '%s') cannot be executed because the object has already been deleted", meth->myclass->getName(), myclass->getName());
+      xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::copy() (base class of '%s') cannot be executed because the object has already been deleted", meth->myclass->getName(), myclass->getName());
 }
 
 void Object::instantiateLVar(lvh_t id)
@@ -831,19 +778,6 @@ AbstractPrivateData *Object::getReferencedPrivateData(int key, class ExceptionSi
    return rv;
 }
 
-AbstractPrivateData *Object::getReferencedPrivateDataFromMetaClass(int metakey, class ExceptionSink *xsink)
-{ 
-   AbstractPrivateData *rv = NULL;
-
-   if (g.enter(xsink) < 0)
-      return NULL;
-   if (status != OS_DELETED && privateData)
-      rv = privateData->getReferencedPrivateDataFromMetaClass(metakey);
-   g.exit();
-
-   return rv;
-}
-
 AbstractPrivateData *Object::getAndClearPrivateData(int key, class ExceptionSink *xsink)
 { 
    AbstractPrivateData *rv = NULL;
@@ -855,26 +789,25 @@ AbstractPrivateData *Object::getAndClearPrivateData(int key, class ExceptionSink
    return rv;
 }
 
+// add virtual IDs for private data to class list
+void Object::addVirtualPrivateData(AbstractPrivateData *apd)
+{
+   class BCSMList *sml = myclass->getBCSMList();
+   if (!sml)
+      return;
+
+   for (class_list_t::const_iterator i = sml->begin(), e = sml->end(); i != e; ++i)
+      if ((*i).second)
+	 privateData->insertIfNotPresent((*i).first->getID(), apd);
+}
+
 // called only during constructor execution, therefore no need for locking
 void Object::setPrivate(int key, AbstractPrivateData *pd)
 { 
    if (!privateData)
       privateData = new KeyList();
    privateData->insert(key, pd);
-}
-
-void Object::setPrivate(int key, int metakey, AbstractPrivateData *pd)
-{ 
-   if (!privateData)
-      privateData = new KeyList();
-   privateData->insert(key, metakey, pd);
-}
-
-void Object::setPrivate(int key, int_set_t *metakeyset, AbstractPrivateData *pd)
-{ 
-   if (!privateData)
-      privateData = new KeyList();
-   privateData->insert(key, metakeyset, pd);
+   addVirtualPrivateData(pd);
 }
 
 void Object::addPrivateDataToString(class QoreString *str, class ExceptionSink *xsink)

@@ -30,7 +30,7 @@
 
 DLLEXPORT extern int CID_QSLIDER;
 
-DLLLOCAL class QoreClass *initQSliderClass();
+DLLLOCAL class QoreClass *initQSliderClass(class QoreClass *qframe);
 
 class QoreQSlider : public QoreAbstractQWidget
 {

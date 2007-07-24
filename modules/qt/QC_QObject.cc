@@ -36,7 +36,7 @@ static void QO_constructor(class Object *self, class QoreNode *params, Exception
    else 
    {
       QoreNode *p = test_param(params, NT_OBJECT, 0);
-      QoreAbstractQObject *parent = p ? (QoreAbstractQObject *)p->val.object->getReferencedPrivateDataFromMetaClass(CID_QOBJECT, xsink) : 0;
+      QoreAbstractQObject *parent = p ? (QoreAbstractQObject *)p->val.object->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
       if (!parent)
       {
 	 if (!xsink->isException())
@@ -61,7 +61,15 @@ static void QO_copy(class Object *self, class Object *old, class QoreQObject *qo
    xsink->raiseException("QOBJECT-COPY-ERROR", "objects of this class cannot be copied");
 }
 
-typedef QoreNode *(*qo_func_t)(Object *, QoreQObject *, QoreNode *, ExceptionSink *);
+static QoreNode *QO_inherits(class Object *self, QoreAbstractQObject *qo, class QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = test_param(params, NT_STRING, 0);
+   if (!p) {
+      xsink->raiseException("QOBJECT-INHERITS-ERROR", "missing class name as first and only argument");
+      return 0;
+   }
+   return new QoreNode(qo->getQObject()->inherits(p->val.String->getBuffer()));
+}
 
 class QoreClass *initQObjectClass()
 {
@@ -69,11 +77,12 @@ class QoreClass *initQObjectClass()
    
    class QoreClass *QC_QObject = new QoreClass("QObject", QDOM_GUI);
    CID_QOBJECT = QC_QObject->getID();
+
    QC_QObject->setConstructor(QO_constructor);
    QC_QObject->setDestructor((q_destructor_t)QO_destructor);
    QC_QObject->setCopy((q_copy_t)QO_copy);
    
-   QC_QObject->addMethod("inherits",    (q_method_t)(qo_func_t)QO_inherits<QoreQObject>);
+   QC_QObject->addMethod("inherits",    (q_method_t)QO_inherits);
 
    traceout("initQObjectClass()");
    return QC_QObject;

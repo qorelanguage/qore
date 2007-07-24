@@ -23,9 +23,6 @@
 #include <qore/Qore.h>
 
 #include "QC_QSlider.h"
-#include "QC_QFont.h"
-#include "QC_QWidget.h"
-#include "QC_QFrame.h"
 
 int CID_QSLIDER;
 
@@ -38,7 +35,7 @@ static void QSLIDER_constructor(class Object *self, class QoreNode *params, Exce
 
    if (p0 && p0->type == NT_OBJECT)
    {
-      parent = p0 ? (QoreAbstractQWidget *)p0->val.object->getReferencedPrivateDataFromMetaClass(CID_QWIDGET, xsink) : 0;
+      parent = p0 ? (QoreAbstractQWidget *)p0->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
       if (!parent) {
 	 xsink->raiseException("QSLIDER-CONSTRUCTOR-ERROR", "class '%s' passed as first parameter of QSlider::constructor() is not a subclass of QWidget", p0->val.object->getClass()->getName());
 	 return;
@@ -47,7 +44,7 @@ static void QSLIDER_constructor(class Object *self, class QoreNode *params, Exce
       qs = new QoreQSlider(parent->getQWidget());
    }
    else if (p1 && p1->type == NT_OBJECT) {
-      parent = p1 ? (QoreAbstractQWidget *)p1->val.object->getReferencedPrivateDataFromMetaClass(CID_QWIDGET, xsink) : 0;
+      parent = p1 ? (QoreAbstractQWidget *)p1->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
       if (!parent) {
 	 xsink->raiseException("QSLIDER-CONSTRUCTOR-ERROR", "class '%s' passed as second parameter of QSlider::constructor() is not a subclass of QWidget", p1->val.object->getClass()->getName());
 	 return;
@@ -59,12 +56,7 @@ static void QSLIDER_constructor(class Object *self, class QoreNode *params, Exce
    else
       qs = new QoreQSlider((Qt::Orientation)(p0 ? p0->getAsInt() : 0));
 
-   int_set_t *mks = new int_set_t;
-   mks->insert(CID_QOBJECT);
-   mks->insert(CID_QWIDGET);
-   mks->insert(CID_QFRAME);
-
-   self->setPrivate(CID_QSLIDER, mks, qs);
+   self->setPrivate(CID_QSLIDER, qs);
 }
 
 static void QSLIDER_destructor(class Object *self, class QoreQSlider *qs, ExceptionSink *xsink)
@@ -226,14 +218,16 @@ static class QoreNode *QSLIDER_value(class Object *self, class QoreQSlider *qs, 
    return new QoreNode((int64)qs->qobj->value());
 }
 
-typedef QoreNode *(*qslider_func_t)(Object *, QoreQSlider *, QoreNode *, ExceptionSink *);
-
-class QoreClass *initQSliderClass()
+class QoreClass *initQSliderClass(class QoreClass *qframe)
 {
    tracein("initQSliderClass()");
    
    class QoreClass *QC_QSlider = new QoreClass("QSlider", QDOM_GUI);
+
    CID_QSLIDER = QC_QSlider->getID();
+
+   QC_QSlider->addBuiltinVirtualBaseClass(qframe);
+
    QC_QSlider->setConstructor(QSLIDER_constructor);
    QC_QSlider->setDestructor((q_destructor_t)QSLIDER_destructor);
    QC_QSlider->setCopy((q_copy_t)QSLIDER_copy);
@@ -262,23 +256,6 @@ class QoreClass *initQSliderClass()
    QC_QSlider->addMethod("sliderPosition",         (q_method_t)QSLIDER_sliderPosition);
    QC_QSlider->addMethod("value",                  (q_method_t)QSLIDER_value);
 
-   // inherited functions from templates
-   QC_QSlider->addMethod("inherits",          (q_method_t)(qslider_func_t)QO_inherits<QoreQSlider>);
-   QC_QSlider->addMethod("resize",            (q_method_t)(qslider_func_t)QW_resize<QoreQSlider>);
-   QC_QSlider->addMethod("setGeometry",       (q_method_t)(qslider_func_t)QW_setGeometry<QoreQSlider>);
-   QC_QSlider->addMethod("show",              (q_method_t)(qslider_func_t)QW_show<QoreQSlider>);
-   QC_QSlider->addMethod("setFont",           (q_method_t)(qslider_func_t)QW_setFont<QoreQSlider>);
-   QC_QSlider->addMethod("setFixedHeight",    (q_method_t)(qslider_func_t)QW_setFixedHeight<QoreQSlider>);
-   QC_QSlider->addMethod("setFixedWidth",     (q_method_t)(qslider_func_t)QW_setFixedWidth<QoreQSlider>);
-   QC_QSlider->addMethod("setFixedSize",      (q_method_t)(qslider_func_t)QW_setFixedSize<QoreQSlider>);
-   QC_QSlider->addMethod("setMinimumHeight",  (q_method_t)(qslider_func_t)QW_setMinimumHeight<QoreQSlider>);
-   QC_QSlider->addMethod("setMinimumWidth",   (q_method_t)(qslider_func_t)QW_setMinimumWidth<QoreQSlider>);
-   QC_QSlider->addMethod("setMinimumSize",    (q_method_t)(qslider_func_t)QW_setMinimumSize<QoreQSlider>);
-   QC_QSlider->addMethod("setMaximumHeight",  (q_method_t)(qslider_func_t)QW_setMaximumHeight<QoreQSlider>);
-   QC_QSlider->addMethod("setMaximumWidth",   (q_method_t)(qslider_func_t)QW_setMaximumWidth<QoreQSlider>);
-   QC_QSlider->addMethod("setMaximumSize",    (q_method_t)(qslider_func_t)QW_setMaximumSize<QoreQSlider>);
-   QC_QSlider->addMethod("setLayout",         (q_method_t)(qslider_func_t)QW_setLayout<QoreQSlider>);
-   
    traceout("initQSliderClass()");
    return QC_QSlider;
 }

@@ -30,7 +30,7 @@
 
 DLLEXPORT extern int CID_QPUSHBUTTON;
 
-DLLLOCAL class QoreClass *initQPushButtonClass();
+DLLLOCAL class QoreClass *initQPushButtonClass(class QoreClass *parent);
 
 class QoreQPushButton : public QoreAbstractQWidget
 {

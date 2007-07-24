@@ -32,7 +32,7 @@ static void QVBOXL_constructor(class Object *self, class QoreNode *params, Excep
 {
    QoreQVBoxLayout *qw;
    QoreNode *p = test_param(params, NT_OBJECT, 0);
-   QoreAbstractQWidget *parent = p ? (QoreAbstractQWidget *)p->val.object->getReferencedPrivateDataFromMetaClass(CID_QWIDGET, xsink) : 0;
+   QoreAbstractQWidget *parent = p ? (QoreAbstractQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
 
    if (!parent)
       qw = new QoreQVBoxLayout();
@@ -42,10 +42,7 @@ static void QVBOXL_constructor(class Object *self, class QoreNode *params, Excep
       qw = new QoreQVBoxLayout(parent->getQWidget());
    }
 
-   int_set_t *mks = new int_set_t;
-   mks->insert(CID_QOBJECT);
-   mks->insert(CID_QLAYOUT);
-   self->setPrivate(CID_QVBOXLAYOUT, mks, qw);
+   self->setPrivate(CID_QVBOXLAYOUT, qw);
 }
 
 static void QVBOXL_destructor(class Object *self, class QoreQVBoxLayout *ql, ExceptionSink *xsink)
@@ -59,22 +56,19 @@ static void QVBOXL_copy(class Object *self, class Object *old, class QoreQVBoxLa
    xsink->raiseException("QVBOXLAYOUT-COPY-ERROR", "objects of this class cannot be copied");
 }
 
-typedef QoreNode *(*qvbl_func_t)(Object *, QoreQVBoxLayout *, QoreNode *, ExceptionSink *);
-
-class QoreClass *initQVBoxLayoutClass()
+class QoreClass *initQVBoxLayoutClass(class QoreClass *qlayout)
 {
    tracein("initQVBoxLayoutClass()");
    
    class QoreClass *QC_QVBoxLayout = new QoreClass("QVBoxLayout", QDOM_GUI);
    CID_QVBOXLAYOUT = QC_QVBoxLayout->getID();
+
+   QC_QVBoxLayout->addBuiltinVirtualBaseClass(qlayout);
+
    QC_QVBoxLayout->setConstructor(QVBOXL_constructor);
    QC_QVBoxLayout->setDestructor((q_destructor_t)QVBOXL_destructor);
    QC_QVBoxLayout->setCopy((q_copy_t)QVBOXL_copy);
 
-   // inherited functions from templates
-   QC_QVBoxLayout->addMethod("inherits",          (q_method_t)(qvbl_func_t)QO_inherits<QoreQVBoxLayout>);
-   QC_QVBoxLayout->addMethod("addWidget",         (q_method_t)(qvbl_func_t)QLAYOUT_addWidget<QoreQVBoxLayout>);
-   
    traceout("initQVBoxLayoutClass()");
    return QC_QVBoxLayout;
 }

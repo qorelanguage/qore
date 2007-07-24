@@ -30,7 +30,7 @@
 
 DLLEXPORT extern int CID_QLCDNUMBER;
 
-DLLLOCAL class QoreClass *initQLCDNumberClass();
+DLLLOCAL class QoreClass *initQLCDNumberClass(class QoreClass *qframe);
 
 class QoreQLCDNumber : public QoreAbstractQWidget
 {

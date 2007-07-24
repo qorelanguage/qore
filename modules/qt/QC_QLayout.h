@@ -1,9 +1,11 @@
 /*
- QoreAbstractQLayout.h
+ QC_QLayout.h
  
  Qore Programming Language
  
  Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+
+ Abstract class for QT
  
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
@@ -20,19 +22,17 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _QORE_QOREABSTRACTQLAYOUT_H
+#ifndef _QORE_QC_QLAYOUT_H
 
-#define _QORE_QOREABSTRACTQLAYOUT_H
+#define _QORE_QC_QLAYOUT_H
 
-#include "QoreAbstractQObject.h"
-#include "QoreAbstractQWidget.h"
+#include "QoreAbstractQLayout.h"
 
-extern int CID_QWIDGET;
+#include <QLayout>
 
-class QoreAbstractQLayout : public QoreAbstractQObject
-{
-   public:
-      DLLLOCAL virtual QLayout *getQLayout() const = 0;
-};
+DLLEXPORT extern int CID_QLAYOUT;
+
+DLLLOCAL class QoreClass *initQLayoutClass();
+
 
 #endif
