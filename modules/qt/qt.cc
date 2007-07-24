@@ -31,6 +31,8 @@
 #include "QC_QLCDNumber.h"
 #include "QC_QVBoxLayout.h"
 
+#include <QPalette>
+
 #include <assert.h>
 
 // abstract class IDs
@@ -185,14 +187,88 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addSystemClass(initQSliderClass());
    qt->addSystemClass(initQVBoxLayoutClass());
    qt->addSystemClass(initQFontClass());
+
+   // ColorRole enum
+   qt->addConstant("WindowText",      new QoreNode((int64)QPalette::WindowText));
+   qt->addConstant("Button",          new QoreNode((int64)QPalette::Button));
+   qt->addConstant("Light",           new QoreNode((int64)QPalette::Light));
+   qt->addConstant("Midlight",        new QoreNode((int64)QPalette::Midlight));
+   qt->addConstant("Dark",            new QoreNode((int64)QPalette::Dark));
+   qt->addConstant("Mid",             new QoreNode((int64)QPalette::Mid));
+   qt->addConstant("Text",            new QoreNode((int64)QPalette::Text));
+   qt->addConstant("BrightText",      new QoreNode((int64)QPalette::BrightText));
+   qt->addConstant("ButtonText",      new QoreNode((int64)QPalette::ButtonText));
+   qt->addConstant("Base",            new QoreNode((int64)QPalette::Base));
+   qt->addConstant("Window",          new QoreNode((int64)QPalette::Window));
+   qt->addConstant("Shadow",          new QoreNode((int64)QPalette::Shadow));
+   qt->addConstant("Highlight",       new QoreNode((int64)QPalette::Highlight));
+   qt->addConstant("HighlightedText", new QoreNode((int64)QPalette::HighlightedText));
+   qt->addConstant("Link",            new QoreNode((int64)QPalette::Link));
+   qt->addConstant("LinkVisited",     new QoreNode((int64)QPalette::LinkVisited));
+   qt->addConstant("NoRole",          new QoreNode((int64)QPalette::NoRole));
+   qt->addConstant("NColorRoles",     new QoreNode((int64)QPalette::NColorRoles));
+   qt->addConstant("Foreground",      new QoreNode((int64)QPalette::Foreground));
+   qt->addConstant("Background",      new QoreNode((int64)QPalette::Background));
    
+   // ColorGroup enum
+   qt->addConstant("Active",          new QoreNode((int64)QPalette::Active));
+   qt->addConstant("Disabled",        new QoreNode((int64)QPalette::Disabled));
+   qt->addConstant("Inactive",        new QoreNode((int64)QPalette::Inactive));
+   qt->addConstant("NColorGroups",    new QoreNode((int64)QPalette::NColorGroups));
+   qt->addConstant("Current",         new QoreNode((int64)QPalette::Current));
+   qt->addConstant("All",             new QoreNode((int64)QPalette::All));
+   qt->addConstant("Normal",          new QoreNode((int64)QPalette::Normal));
+
    // add QFont namespaces and constants
    class Namespace *qf = new Namespace("QFont");
+   // Weight enum
    qf->addConstant("Light",    new QoreNode((int64)QFont::Light));
    qf->addConstant("Normal",   new QoreNode((int64)QFont::Normal));
    qf->addConstant("DemiBold", new QoreNode((int64)QFont::DemiBold));
    qf->addConstant("Bold",     new QoreNode((int64)QFont::Bold));
    qf->addConstant("Black",    new QoreNode((int64)QFont::Black));
+
+   // StyleHint enum
+   qf->addConstant("Helvetica",    new QoreNode((int64)QFont::Helvetica));
+   qf->addConstant("SansSerif",    new QoreNode((int64)QFont::SansSerif));
+   qf->addConstant("Times",        new QoreNode((int64)QFont::Times));
+   qf->addConstant("Serif",        new QoreNode((int64)QFont::Serif));
+   qf->addConstant("Courier",      new QoreNode((int64)QFont::Courier));
+   qf->addConstant("TypeWriter",   new QoreNode((int64)QFont::TypeWriter));
+   qf->addConstant("OldEnglish",   new QoreNode((int64)QFont::OldEnglish));
+   qf->addConstant("Decorative",   new QoreNode((int64)QFont::Decorative));
+   qf->addConstant("System",       new QoreNode((int64)QFont::System));
+   qf->addConstant("AnyStyle",     new QoreNode((int64)QFont::AnyStyle));
+
+   // StyleStrategy
+   qf->addConstant("PreferDefault",    new QoreNode((int64)QFont::PreferDefault));
+   qf->addConstant("PreferBitmap",     new QoreNode((int64)QFont::PreferBitmap));
+   qf->addConstant("PreferDevice",     new QoreNode((int64)QFont::PreferDevice));
+   qf->addConstant("PreferOutline",    new QoreNode((int64)QFont::PreferOutline));
+   qf->addConstant("ForceOutline",     new QoreNode((int64)QFont::ForceOutline));
+   qf->addConstant("PreferMatch",      new QoreNode((int64)QFont::PreferMatch));
+   qf->addConstant("PreferQuality",    new QoreNode((int64)QFont::PreferQuality));
+   qf->addConstant("PreferAntialias",  new QoreNode((int64)QFont::PreferAntialias));
+   qf->addConstant("NoAntialias",      new QoreNode((int64)QFont::NoAntialias));
+   qf->addConstant("OpenGLCompatible", new QoreNode((int64)QFont::OpenGLCompatible));
+   qf->addConstant("NoFontMerging",    new QoreNode((int64)QFont::NoFontMerging));
+
+   // Style enum
+   qf->addConstant("StyleNormal",   new QoreNode((int64)QFont::StyleNormal));
+   qf->addConstant("StyleItalic",   new QoreNode((int64)QFont::StyleItalic));
+   qf->addConstant("StyleOblique",  new QoreNode((int64)QFont::StyleOblique));
+
+   // Stretch enum
+   qf->addConstant("UltraCondensed",  new QoreNode((int64)QFont::UltraCondensed));
+   qf->addConstant("ExtraCondensed",  new QoreNode((int64)QFont::ExtraCondensed));
+   qf->addConstant("Condensed",       new QoreNode((int64)QFont::Condensed));
+   qf->addConstant("SemiCondensed",   new QoreNode((int64)QFont::SemiCondensed));
+   qf->addConstant("Unstretched",     new QoreNode((int64)QFont::Unstretched));
+   qf->addConstant("SemiExpanded",    new QoreNode((int64)QFont::SemiExpanded));
+   qf->addConstant("Expanded",        new QoreNode((int64)QFont::Expanded));
+   qf->addConstant("ExtraExpanded",   new QoreNode((int64)QFont::ExtraExpanded));
+   qf->addConstant("UltraExpanded",   new QoreNode((int64)QFont::UltraExpanded));
+
    qt->addInitialNamespace(qf);
 
    // add QLCDNumber namespace and constants
