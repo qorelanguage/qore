@@ -41,16 +41,6 @@ class QoreQWidget : public QoreAbstractQWidget
       DLLLOCAL QoreQWidget(QWidget *parent = 0, Qt::WindowFlags window_flags = 0) : qobj(new QWidget(parent, window_flags))
       {
       }
-      DLLLOCAL virtual void destructor(class ExceptionSink *xsink)
-      {
-	 //QObject::disconnect(qobj, SLOT(isDeleted()));
-	 if (qobj && !qobj->parent())
-	 {
-	    //printd(0, "deleting %08x\n", &*qobj);
-	    //qobj->deleteLater();
-	    //delete qobj;
-	 }
-      }
       DLLLOCAL virtual QObject *getQObject() const
       {
 	 return static_cast<QObject *>(&(*qobj));

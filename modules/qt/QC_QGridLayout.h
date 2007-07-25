@@ -44,14 +44,6 @@ class QoreQGridLayout : public QoreAbstractQLayout
       DLLLOCAL QoreQGridLayout(QWidget *parent) : qobj(new QGridLayout(parent))
       {
       }
-      DLLLOCAL virtual void destructor(class ExceptionSink *xsink)
-      {
-	 //QObject::disconnect(qobj, SLOT(isDeleted()));
-	 if (qobj && !qobj->parent())
-	    //delete qobj;
-	    //qobj->deleteLater();
-	    ;
-      }
       DLLLOCAL virtual QObject *getQObject() const
       {
 	 return static_cast<QObject *>(&(*qobj));

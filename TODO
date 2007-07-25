@@ -1,5 +1,7 @@
 see docs/roadmap.html
 
+* tag functions if they have no effect except returning a value so if the value is not
+  used at the top level a warning may be emitted
 * implement find_key operator, taking a regular expression to find a key in a hash
 * add API compatibility info to to module data
 * implement a way to declare public class members (so typos with class members can be caught)

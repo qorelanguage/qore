@@ -50,12 +50,6 @@ static void QO_constructor(class Object *self, class QoreNode *params, Exception
    self->setPrivate(CID_QOBJECT, qo);
 }
 
-static void QO_destructor(class Object *self, class QoreQObject *qo, ExceptionSink *xsink)
-{
-   qo->destructor(xsink);
-   qo->deref(xsink);
-}
-
 static void QO_copy(class Object *self, class Object *old, class QoreQObject *qo, ExceptionSink *xsink)
 {
    xsink->raiseException("QOBJECT-COPY-ERROR", "objects of this class cannot be copied");
@@ -87,7 +81,6 @@ class QoreClass *initQObjectClass()
    CID_QOBJECT = QC_QObject->getID();
 
    QC_QObject->setConstructor(QO_constructor);
-   QC_QObject->setDestructor((q_destructor_t)QO_destructor);
    QC_QObject->setCopy((q_copy_t)QO_copy);
    
    QC_QObject->addMethod("inherits",     (q_method_t)QO_inherits);

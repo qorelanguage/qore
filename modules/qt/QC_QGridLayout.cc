@@ -45,12 +45,6 @@ static void QGRIDL_constructor(class Object *self, class QoreNode *params, Excep
    self->setPrivate(CID_QGRIDLAYOUT, qw);
 }
 
-static void QGRIDL_destructor(class Object *self, class QoreQGridLayout *ql, ExceptionSink *xsink)
-{
-   ql->destructor(xsink);
-   ql->deref(xsink);
-}
-
 static void QGRIDL_copy(class Object *self, class Object *old, class QoreQGridLayout *ql, ExceptionSink *xsink)
 {
    xsink->raiseException("QGRIDLAYOUT-COPY-ERROR", "objects of this class cannot be copied");
@@ -105,7 +99,6 @@ class QoreClass *initQGridLayoutClass(class QoreClass *qlayout)
    QC_QGridLayout->addBuiltinVirtualBaseClass(qlayout);
 
    QC_QGridLayout->setConstructor(QGRIDL_constructor);
-   QC_QGridLayout->setDestructor((q_destructor_t)QGRIDL_destructor);
    QC_QGridLayout->setCopy((q_copy_t)QGRIDL_copy);
 
    QC_QGridLayout->addMethod("addWidget",   (q_method_t)QGRIDL_addWidget);

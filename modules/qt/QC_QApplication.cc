@@ -61,12 +61,6 @@ static void QA_constructor(class Object *self, class QoreNode *params, Exception
    qore_qapp = self;
 }
 
-static void QA_destructor(class Object *self, class QoreQApplication *qa, ExceptionSink *xsink)
-{
-   qa->destructor(xsink);
-   qa->deref(xsink);
-}
-
 static void QA_copy(class Object *self, class Object *old, class QoreQApplication *qa, ExceptionSink *xsink)
 {
    xsink->raiseException("QAPPLICATION-COPY-ERROR", "objects of this class cannot be copied");
@@ -90,7 +84,6 @@ class QoreClass *initQApplicationClass(class QoreClass *qobject)
    QC_QApplication->addBuiltinVirtualBaseClass(qobject);
 
    QC_QApplication->setConstructor(QA_constructor);
-   QC_QApplication->setDestructor((q_destructor_t)QA_destructor);
    QC_QApplication->setCopy((q_copy_t)QA_copy);
 
    QC_QApplication->addMethod("exec",    (q_method_t)QA_exec);

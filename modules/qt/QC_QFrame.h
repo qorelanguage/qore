@@ -40,14 +40,6 @@ class QoreQFrame : public QoreAbstractQWidget
       DLLLOCAL QoreQFrame(QWidget *parent = 0, Qt::WindowFlags window_flags = 0) : qobj(new QFrame(parent, window_flags))
       {
       }
-      DLLLOCAL virtual void destructor(class ExceptionSink *xsink)
-      {
-	 //QObject::disconnect(qobj, SLOT(isDeleted()));
-	 if (qobj && !qobj->parent())
-	    //delete qobj;
-	    //qobj->deleteLater();
-	    ;
-      }
       DLLLOCAL virtual class QObject *getQObject() const
       {
 	 return static_cast<QObject *>(&(*qobj));

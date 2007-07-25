@@ -52,15 +52,6 @@ class QoreQApplication : public QoreAbstractQObject
 	 qapp_dec();
       }
 
-      DLLLOCAL virtual void destructor(class ExceptionSink *xsink)
-      {
-	 //QObject::disconnect(qobj, SLOT(isDeleted()));
-	 if (qobj)
-	    //delete qobj;
-	    //qobj->deleteLater();
-	    ;
-      }
-
       DLLLOCAL virtual class QObject *getQObject() const
       {
 	 return static_cast<QObject *>(qobj);

@@ -46,12 +46,6 @@ static void QBOXLAYOUT_constructor(class Object *self, class QoreNode *params, E
    self->setPrivate(CID_QBOXLAYOUT, qw);
 }
 
-static void QBOXLAYOUT_destructor(class Object *self, class QoreQBoxLayout *ql, ExceptionSink *xsink)
-{
-   ql->destructor(xsink);
-   ql->deref(xsink);
-}
-
 static void QBOXLAYOUT_copy(class Object *self, class Object *old, class QoreQBoxLayout *ql, ExceptionSink *xsink)
 {
    xsink->raiseException("QBOXLAYOUT-COPY-ERROR", "objects of this class cannot be copied");
@@ -108,7 +102,6 @@ class QoreClass *initQBoxLayoutClass(class QoreClass *qlayout)
    QC_QBoxLayout->addBuiltinVirtualBaseClass(qlayout);
 
    QC_QBoxLayout->setConstructor(QBOXLAYOUT_constructor);
-   QC_QBoxLayout->setDestructor((q_destructor_t)QBOXLAYOUT_destructor);
    QC_QBoxLayout->setCopy((q_copy_t)QBOXLAYOUT_copy);
 
    QC_QBoxLayout->addMethod("addLayout",     (q_method_t)QBOXLAYOUT_addLayout);

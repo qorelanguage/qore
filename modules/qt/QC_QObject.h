@@ -42,14 +42,6 @@ class QoreQObject : public QoreAbstractQObject
       {
       }
 
-      DLLLOCAL virtual void destructor(class ExceptionSink *xsink)
-      {
-	 if (qobj && !qobj->parent())
-	    //delete qobj;
-	    //qobj->deleteLater();
-	    ;
-      }
-
       DLLLOCAL virtual class QObject *getQObject() const
       {
 	 return &*qobj;

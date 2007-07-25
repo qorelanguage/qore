@@ -43,14 +43,6 @@ class QoreQLCDNumber : public QoreAbstractQWidget
       DLLLOCAL QoreQLCDNumber(QWidget *parent = 0) : qobj(new QLCDNumber(parent))
       {
       }
-      DLLLOCAL virtual void destructor(class ExceptionSink *xsink)
-      {
-	 //QObject::disconnect(qobj, SLOT(isDeleted()));
-	 if (qobj && !qobj->parent())
-	    //qobj->deleteLater();
-	    //delete qobj;
-	    ;
-      }
       DLLLOCAL virtual class QObject *getQObject() const
       {
 	 return static_cast<QObject *>(&(*qobj));

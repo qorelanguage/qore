@@ -59,12 +59,6 @@ static void QSLIDER_constructor(class Object *self, class QoreNode *params, Exce
    self->setPrivate(CID_QSLIDER, qs);
 }
 
-static void QSLIDER_destructor(class Object *self, class QoreQSlider *qs, ExceptionSink *xsink)
-{
-   qs->destructor(xsink);
-   qs->deref(xsink);
-}
-
 static void QSLIDER_copy(class Object *self, class Object *old, class QoreQSlider *qs, ExceptionSink *xsink)
 {
    xsink->raiseException("QSLIDER-COPY-ERROR", "objects of this class cannot be copied");
@@ -229,7 +223,6 @@ class QoreClass *initQSliderClass(class QoreClass *qframe)
    QC_QSlider->addBuiltinVirtualBaseClass(qframe);
 
    QC_QSlider->setConstructor(QSLIDER_constructor);
-   QC_QSlider->setDestructor((q_destructor_t)QSLIDER_destructor);
    QC_QSlider->setCopy((q_copy_t)QSLIDER_copy);
 
    QC_QSlider->addMethod("setRange",               (q_method_t)QSLIDER_setRange);

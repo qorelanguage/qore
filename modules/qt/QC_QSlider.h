@@ -43,14 +43,7 @@ class QoreQSlider : public QoreAbstractQWidget
       DLLLOCAL QoreQSlider(Qt::Orientation orientation, QWidget *parent = 0) : qobj(new QSlider(orientation, parent))
       {
       }
-      DLLLOCAL virtual void destructor(class ExceptionSink *xsink)
-      {
-	 //QObject::disconnect(qobj, SLOT(isDeleted()));
-	 if (qobj && !qobj->parent())
-	    //qobj->deleteLater();
-	    //delete qobj;
-	    ;
-      }
+
       DLLLOCAL virtual class QObject *getQObject() const
       {
 	 return static_cast<QObject *>(&(*qobj));

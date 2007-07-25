@@ -47,12 +47,6 @@ static void QW_constructor(class Object *self, class QoreNode *params, Exception
    self->setPrivate(CID_QWIDGET, qw);
 }
 
-static void QW_destructor(class Object *self, class QoreQWidget *qw, ExceptionSink *xsink)
-{
-   qw->destructor(xsink);
-   qw->deref(xsink);
-}
-
 static void QW_copy(class Object *self, class Object *old, class QoreQWidget *qw, ExceptionSink *xsink)
 {
    xsink->raiseException("QWIDGET-COPY-ERROR", "objects of this class cannot be copied");
@@ -1377,7 +1371,6 @@ class QoreClass *initQWidgetClass(class QoreClass *qobject)
    QC_QWidget->addBuiltinVirtualBaseClass(qobject);
 
    QC_QWidget->setConstructor(QW_constructor);
-   QC_QWidget->setDestructor((q_destructor_t)QW_destructor);
    QC_QWidget->setCopy((q_copy_t)QW_copy);
 
    // add methods for slots

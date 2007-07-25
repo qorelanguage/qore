@@ -44,14 +44,6 @@ class QoreQBoxLayout : public QoreAbstractQBoxLayout
       DLLLOCAL QoreQBoxLayout(QBoxLayout::Direction dir, QWidget *parent) : qobj(new QBoxLayout(dir, parent))
       {
       }
-      DLLLOCAL virtual void destructor(class ExceptionSink *xsink)
-      {
-	 //QObject::disconnect(qobj, SLOT(isDeleted()));
-	 if (qobj && !qobj->parent())
-	    //delete qobj;
-	    //qobj->deleteLater();
-	    ;
-      }
       DLLLOCAL virtual QObject *getQObject() const
       {
 	 return static_cast<QObject *>(&(*qobj));

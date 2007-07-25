@@ -69,12 +69,6 @@ static void QLCDNUMBER_constructor(class Object *self, class QoreNode *params, E
    self->setPrivate(CID_QLCDNUMBER, qlcdn);
 }
 
-static void QLCDNUMBER_destructor(class Object *self, class QoreQLCDNumber *qlcdn, ExceptionSink *xsink)
-{
-   qlcdn->destructor(xsink);
-   qlcdn->deref(xsink);
-}
-
 static void QLCDNUMBER_copy(class Object *self, class Object *old, class QoreQLCDNumber *qlcdn, ExceptionSink *xsink)
 {
    xsink->raiseException("QLCDNUMBER-COPY-ERROR", "objects of this class cannot be copied");
@@ -188,7 +182,6 @@ class QoreClass *initQLCDNumberClass(class QoreClass *qframe)
    QC_QLCDNumber->addBuiltinVirtualBaseClass(qframe);
 
    QC_QLCDNumber->setConstructor(QLCDNUMBER_constructor);
-   QC_QLCDNumber->setDestructor((q_destructor_t)QLCDNUMBER_destructor);
    QC_QLCDNumber->setCopy((q_copy_t)QLCDNUMBER_copy);
 
    QC_QLCDNumber->addMethod("setSegmentStyle",        (q_method_t)QLCDNUMBER_setSegmentStyle);

@@ -45,12 +45,6 @@ static void QFRAME_constructor(class Object *self, class QoreNode *params, Excep
    self->setPrivate(CID_QFRAME, qw);
 }
 
-static void QFRAME_destructor(class Object *self, class QoreQFrame *qw, ExceptionSink *xsink)
-{
-   qw->destructor(xsink);
-   qw->deref(xsink);
-}
-
 static void QFRAME_copy(class Object *self, class Object *old, class QoreQFrame *qw, ExceptionSink *xsink)
 {
    xsink->raiseException("QFRAME-COPY-ERROR", "objects of this class cannot be copied");
@@ -66,7 +60,6 @@ class QoreClass *initQFrameClass(class QoreClass *qwidget)
    QC_QFrame->addBuiltinVirtualBaseClass(qwidget);
 
    QC_QFrame->setConstructor(QFRAME_constructor);
-   QC_QFrame->setDestructor((q_destructor_t)QFRAME_destructor);
    QC_QFrame->setCopy((q_copy_t)QFRAME_copy);
 
    traceout("initQFrameClass()");

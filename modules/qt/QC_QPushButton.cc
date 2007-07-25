@@ -86,12 +86,6 @@ static void QPB_constructor(class Object *self, class QoreNode *params, Exceptio
    self->setPrivate(CID_QPUSHBUTTON, pb);
 }
 
-static void QPB_destructor(class Object *self, class QoreQPushButton *pb, ExceptionSink *xsink)
-{
-   pb->destructor(xsink);
-   pb->deref(xsink);
-}
-
 static void QPB_copy(class Object *self, class Object *old, class QoreQPushButton *pb, ExceptionSink *xsink)
 {
    xsink->raiseException("QPUSHBUTTON-COPY-ERROR", "objects of this class cannot be copied");
@@ -107,7 +101,6 @@ class QoreClass *initQPushButtonClass(class QoreClass *qwidget)
    QC_QPushButton->addBuiltinVirtualBaseClass(qwidget);
 
    QC_QPushButton->setConstructor(QPB_constructor);
-   QC_QPushButton->setDestructor((q_destructor_t)QPB_destructor);
    QC_QPushButton->setCopy((q_copy_t)QPB_copy);
 
    traceout("initQPushButtonClass()");

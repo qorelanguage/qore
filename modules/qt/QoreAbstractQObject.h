@@ -38,8 +38,6 @@ class QoreAbstractQObject : public AbstractPrivateData
       {
       }
 
-      DLLLOCAL virtual void destructor(class ExceptionSink *xsink) = 0;
-
       DLLLOCAL virtual class QObject *getQObject() const = 0;
 };
 
