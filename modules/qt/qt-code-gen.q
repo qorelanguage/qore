@@ -5,6 +5,7 @@
 
 const opts = (
     "abstract" : "a,abstract",
+    "indep"    : "i,independent",
     "help"     : "h.help"
     );
 
@@ -17,6 +18,7 @@ sub usage()
 {
     printf(
 "usage: %s input_file class_name
+  -i,--independent  emit code for independent class
   -a,--abstract     emit abstract class name
   -h,--help         this help text
 ", basename($ENV."_"));
@@ -118,18 +120,16 @@ sub main()
 	trim $t;
 	#printf("%s\n", $t);
 
-	my ($rt, $name, $args) = $t =~ x/([a-zA-Z\*<>:&]+) (\w+) \((.*)\)/;
+	my ($rt, $name, $args) = $t =~ x/([a-zA-Z0-9\*<>:&]+) (\w+) \((.*)\)/;
 	$args = split(",", $args);
 	trim $args;
 	foreach my $arg in (\$args)
 	{
 	    $arg =~ s/const //;
 	    my ($ra, $def) = $arg =~ x/(.*)=(.*)/;
-	    if (exists $def) {
-		$arg.def = $def;
+	    if (exists $def)
 		$arg = trim($ra);
-	    }
-	    my ($type, $pname) = $arg =~ x/([a-zA-Z\*<>:&]+) (\w+)/;
+	    my ($type, $pname) = $arg =~ x/([a-zA-Z0-9\*<>:&]+) (\w+)/;
 	    if (!exists $type) {
 		$type = $arg;
 		if ($type == "int" || $type == "float")
@@ -139,7 +139,7 @@ sub main()
 		else
 		    $pname = tolower($arg);
 	    }
-	    $arg = ( "type" : $type, "name" : $pname );
+	    $arg = ( "type" : $type, "name" : $pname, "def" : $def );
 	}
 
 	$proto += ( "name" : $name, "rt" : $rt, "args" : $args, "orig" : $p, "funcname" : sprintf("%s_%s", $func_prefix, $name) );
@@ -155,20 +155,28 @@ sub main()
 		      $p.funcname, $qore_class, $cl);
 	$lo += "{";
 
-	my $callstr = sprintf("%s->%s->%s(", $cl, $get_obj, $p.name);
+	my $callstr = $o.indep ? sprintf("%s->%s(", $cl, $p.name) : sprintf("%s->%s->%s(", $cl, $get_obj, $p.name);
 
 	# do arguments
 	for (my $i = 0; $i < elements $p.args; ++$i) {
 	    $lo += sprintf("   %sp = get_param(params, %d);", $i ? "" : "QoreNode *", $i);
 	    switch ($p.args[$i].type) {
+		case "quint32":
 		case "int": {
-		    $lo += sprintf("   int %s = p ? p->getAsInt() : 0;", $p.args[$i].name);
+		    if ($p.args[$i].def)
+			$lo += sprintf("   int %s = !is_nothing(p) ? p->getAsInt() : %d;", $p.args[$i].name, $p.args[$i].def);
+		    else
+			$lo += sprintf("   int %s = p ? p->getAsInt() : 0;", $p.args[$i].name);
 		    break;
 		}
 		case "bool": {
-		    $lo += sprintf("   bool %s = p ? p->getAsBool() : 0;", $p.args[$i].name);
+		    if ($p.args[$i].def =~ /true/)
+			$lo += sprintf("   bool %s = !is_nothing(p) ? p->getAsBool() : true;", $p.args[$i].name);
+		    else
+			$lo += sprintf("   bool %s = p ? p->getAsBool() : 0;", $p.args[$i].name);
 		    break;
 		}
+		case "qreal":
 		case "float": {
 		    $lo += sprintf("   float %s = p ? p->getAsFloat() : 0;", $p.args[$i].name);
 		    break;
@@ -192,8 +200,14 @@ sub main()
 		}
 		
 	        default: {
-		    if ($p.args[$i].type !~ /\*/ && $p.args[$i].type !~ /&/)
-			$lo += sprintf("   %s %s = (%s)(p ? p->getAsInt() : 0);", $p.args[$i].type, $p.args[$i].name, $p.args[$i].type);
+		    if ($p.args[$i].type !~ /\*/ && $p.args[$i].type !~ /&/) {
+			if ($p.args[$i].def) {
+			    $lo += sprintf("   %s %s = (%s)(!is_nothing(p) ? p->getAsInt() : %d);" ,$p.args[$i].type, $p.args[$i].name,
+, $p.args[$i].type, $p.args[$i].def);
+			}
+			else
+			    $lo += sprintf("   %s %s = (%s)(p ? p->getAsInt() : 0);", $p.args[$i].type, $p.args[$i].name, $p.args[$i].type);
+		    }
 		    else {
 			#printf("DEBUG err arg type=%n\n", $p.args[$i].type);
 			$lo += sprintf("   ??? %s %s = p;", $p.args[$i].type, $p.args[$i].name);
@@ -219,12 +233,17 @@ sub main()
 		$lo += sprintf("   return new QoreNode(%s);", $callstr); 
 		break;
 	    }
+	    case "quint32" :
 	    case "int" : {
 		$lo += sprintf("   return new QoreNode((int64)%s);", $callstr); 
 		break;
 	    }
 	    case "float" : {
 		$lo += sprintf("   return new QoreNode(%s);", $callstr); 
+		break;
+	    }
+	    case "QString": {
+		$lo += sprintf("   return new QoreNode(new QoreString(%s.toUtf8().data(), QCS_UTF8));", $callstr); 
 		break;
 	    }
 	    default: {
