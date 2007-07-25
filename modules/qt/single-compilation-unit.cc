@@ -9,5 +9,6 @@
 #include "QC_QLayout.cc"
 #include "QC_QBoxLayout.cc"
 #include "QC_QVBoxLayout.cc"
+#include "QC_QHBoxLayout.cc"
 #include "QC_QGridLayout.cc"
 #include "qt.cc"

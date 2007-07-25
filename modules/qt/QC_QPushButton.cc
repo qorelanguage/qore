@@ -30,7 +30,7 @@
 
 int CID_QPUSHBUTTON;
 
-static void QPB_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static void QPUSHBUTTON_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreQPushButton *pb;
    int np = num_params(params);
@@ -86,10 +86,79 @@ static void QPB_constructor(class Object *self, class QoreNode *params, Exceptio
    self->setPrivate(CID_QPUSHBUTTON, pb);
 }
 
-static void QPB_copy(class Object *self, class Object *old, class QoreQPushButton *pb, ExceptionSink *xsink)
+static void QPUSHBUTTON_copy(class Object *self, class Object *old, class QoreQPushButton *pb, ExceptionSink *xsink)
 {
    xsink->raiseException("QPUSHBUTTON-COPY-ERROR", "objects of this class cannot be copied");
 }
+
+//bool autoDefault () const
+static QoreNode *QPUSHBUTTON_autoDefault(Object *self, QoreQPushButton *qpb, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode(qpb->qobj->autoDefault());
+}
+
+//bool isDefault () const
+static QoreNode *QPUSHBUTTON_isDefault(Object *self, QoreQPushButton *qpb, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode(qpb->qobj->isDefault());
+}
+
+//bool isFlat () const
+static QoreNode *QPUSHBUTTON_isFlat(Object *self, QoreQPushButton *qpb, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode(qpb->qobj->isFlat());
+}
+
+//QMenu * menu () const
+//static QoreNode *QPUSHBUTTON_menu(Object *self, QoreQPushButton *qpb, QoreNode *params, ExceptionSink *xsink)
+//{
+//   ??? return qpb->qobj->menu();
+//}
+
+//void setAutoDefault ( bool )
+static QoreNode *QPUSHBUTTON_setAutoDefault(Object *self, QoreQPushButton *qpb, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   bool b = p ? p->getAsBool() : 0;
+   qpb->qobj->setAutoDefault(b);
+   return 0;
+}
+
+//void setDefault ( bool )
+static QoreNode *QPUSHBUTTON_setDefault(Object *self, QoreQPushButton *qpb, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   bool b = p ? p->getAsBool() : 0;
+   qpb->qobj->setDefault(b);
+   return 0;
+}
+
+//void setFlat ( bool )
+static QoreNode *QPUSHBUTTON_setFlat(Object *self, QoreQPushButton *qpb, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   bool b = p ? p->getAsBool() : 0;
+   qpb->qobj->setFlat(b);
+   return 0;
+}
+
+//void setMenu ( QMenu * menu )
+//static QoreNode *QPUSHBUTTON_setMenu(Object *self, QoreQPushButton *qpb, QoreNode *params, ExceptionSink *xsink)
+//{
+//   QoreNode *p = get_param(params, 0);
+//   ??? QMenu* menu = p;
+//   qpb->qobj->setMenu(menu);
+//   return 0;
+//}
+
+// slots
+//void showMenu()
+static QoreNode *QPUSHBUTTON_showMenu(Object *self, QoreQPushButton *qpb, QoreNode *params, ExceptionSink *xsink)
+{
+   qpb->qobj->showMenu();
+   return 0;
+}
+
 
 class QoreClass *initQPushButtonClass(class QoreClass *qwidget)
 {
@@ -100,8 +169,18 @@ class QoreClass *initQPushButtonClass(class QoreClass *qwidget)
 
    QC_QPushButton->addBuiltinVirtualBaseClass(qwidget);
 
-   QC_QPushButton->setConstructor(QPB_constructor);
-   QC_QPushButton->setCopy((q_copy_t)QPB_copy);
+   QC_QPushButton->setConstructor(QPUSHBUTTON_constructor);
+   QC_QPushButton->setCopy((q_copy_t)QPUSHBUTTON_copy);
+
+   QC_QPushButton->addMethod("autoDefault",                 (q_method_t)QPUSHBUTTON_autoDefault);
+   QC_QPushButton->addMethod("isDefault",                   (q_method_t)QPUSHBUTTON_isDefault);
+   QC_QPushButton->addMethod("isFlat",                      (q_method_t)QPUSHBUTTON_isFlat);
+   //QC_QPushButton->addMethod("menu",                        (q_method_t)QPUSHBUTTON_menu);
+   QC_QPushButton->addMethod("setAutoDefault",              (q_method_t)QPUSHBUTTON_setAutoDefault);
+   QC_QPushButton->addMethod("setDefault",                  (q_method_t)QPUSHBUTTON_setDefault);
+   QC_QPushButton->addMethod("setFlat",                     (q_method_t)QPUSHBUTTON_setFlat);
+   //QC_QPushButton->addMethod("setMenu",                     (q_method_t)QPUSHBUTTON_setMenu);
+   QC_QPushButton->addMethod("showMenu",                    (q_method_t)QPUSHBUTTON_showMenu);
 
    traceout("initQPushButtonClass()");
    return QC_QPushButton;

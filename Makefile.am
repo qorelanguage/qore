@@ -240,6 +240,7 @@ noinst_HEADERS = \
 	modules/qt/QC_QSlider.h \
 	modules/qt/QC_QBoxLayout.h \
 	modules/qt/QC_QVBoxLayout.h \
+	modules/qt/QC_QHBoxLayout.h \
 	modules/qt/QC_QLayout.h \
 	modules/qt/QC_QGridLayout.h \
 	modules/qt/QoreAbstractQLayout.h \

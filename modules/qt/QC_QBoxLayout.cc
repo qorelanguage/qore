@@ -51,46 +51,199 @@ static void QBOXLAYOUT_copy(class Object *self, class Object *old, class QoreQBo
    xsink->raiseException("QBOXLAYOUT-COPY-ERROR", "objects of this class cannot be copied");
 }
 
-static QoreNode *QBOXLAYOUT_addLayout(class Object *self, QoreAbstractQBoxLayout *qbl, class QoreNode *params, ExceptionSink *xsink)
+//void addLayout ( QLayout * layout, int stretch = 0 )
+static QoreNode *QBOXLAYOUT_addLayout(Object *self, QoreAbstractQBoxLayout *qbl, QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p = test_param(params, NT_OBJECT, 0);
-   QoreAbstractQLayout *qal = p ? (QoreAbstractQLayout *)p->val.object->getReferencedPrivateData(CID_QLAYOUT, xsink) : NULL;
-   if (!p || !qal)
+   QoreNode *p = get_param(params, 0);
+   QoreAbstractQLayout *layout = (p && p->type == NT_OBJECT) ? (QoreAbstractQLayout *)p->val.object->getReferencedPrivateData(CID_QLAYOUT, xsink) : 0;
+   if (!p || !layout)
    {
       if (!xsink->isException())
-         xsink->raiseException("QBOXLAYOUT-ADDLAYOUT-PARAM-ERROR", "expecting a QLayout object as argument to QBoxLayout::addLayout()");
-      return NULL;
+         xsink->raiseException("QBOXLAYOUT-ADDLAYOUT-PARAM-ERROR", "expecting a QLayout object as first argument to QBoxLayout::addLayout()");
+      return 0;
    }
-   ReferenceHolder<QoreAbstractQLayout> holder(qal, xsink);
-
+   ReferenceHolder<QoreAbstractQLayout> holder(layout, xsink);
    p = get_param(params, 1);
    int stretch = p ? p->getAsInt() : 0;
-
-   qbl->getQBoxLayout()->addLayout(qal->getQLayout(), stretch);
+   qbl->getQBoxLayout()->addLayout(layout->getQLayout(), stretch);
    return 0;
 }
 
-QoreNode *QBOXLAYOUT_addWidget(class Object *self, QoreAbstractQBoxLayout *qbl, class QoreNode *params, ExceptionSink *xsink)
+//void addSpacing ( int size )
+static QoreNode *QBOXLAYOUT_addSpacing(Object *self, QoreAbstractQBoxLayout *qbl, QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = test_param(params, NT_OBJECT, 0);
-   QoreAbstractQWidget *widget = p ? (QoreAbstractQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
-   if (!widget)
+   QoreNode *p = get_param(params, 0);
+   int size = p ? p->getAsInt() : 0;
+   qbl->getQBoxLayout()->addSpacing(size);
+   return 0;
+}
+
+//void addStretch ( int stretch = 0 )
+static QoreNode *QBOXLAYOUT_addStretch(Object *self, QoreAbstractQBoxLayout *qbl, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   int stretch = p ? p->getAsInt() : 0;
+   qbl->getQBoxLayout()->addStretch(stretch);
+   return 0;
+}
+
+//void addStrut ( int size )
+static QoreNode *QBOXLAYOUT_addStrut(Object *self, QoreAbstractQBoxLayout *qbl, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   int size = p ? p->getAsInt() : 0;
+   qbl->getQBoxLayout()->addStrut(size);
+   return 0;
+}
+
+//void addWidget ( QWidget * widget, int stretch = 0, Qt::Alignment alignment = 0 )
+static QoreNode *QBOXLAYOUT_addWidget(Object *self, QoreAbstractQBoxLayout *qbl, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QoreAbstractQWidget *widget = (p && p->type == NT_OBJECT) ? (QoreAbstractQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   if (!p || !widget)
    {
       if (!xsink->isException())
-         xsink->raiseException("QLAYOUT-ADDWIDGET-ERROR", "expecting an object derived from QWidget as the only argument to QLayout::addWidget()");
+         xsink->raiseException("QBOXLAYOUT-ADDWIDGET-PARAM-ERROR", "expecting a QWidget object as first argument to QBoxLayout::addWidget()");
       return 0;
    }
    ReferenceHolder<QoreAbstractQWidget> holder(widget, xsink);
-
    p = get_param(params, 1);
    int stretch = p ? p->getAsInt() : 0;
-
    p = get_param(params, 2);
-   int alignment = p ? p->getAsInt() : 0;
-
-   qbl->getQBoxLayout()->addWidget(widget->getQWidget(), stretch, (Qt::Alignment)alignment);
+   Qt::Alignment alignment = (Qt::Alignment)(p ? p->getAsInt() : 0);
+   qbl->getQBoxLayout()->addWidget(widget->getQWidget(), stretch, alignment);
    return 0;
 }
+
+//Direction direction () const
+static QoreNode *QBOXLAYOUT_direction(Object *self, QoreAbstractQBoxLayout *qbl, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((int64)qbl->getQBoxLayout()->direction());
+}
+
+//void insertLayout ( int index, QLayout * layout, int stretch = 0 )
+static QoreNode *QBOXLAYOUT_insertLayout(Object *self, QoreAbstractQBoxLayout *qbl, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   int index = p ? p->getAsInt() : 0;
+   p = get_param(params, 1);
+   QoreAbstractQLayout *layout = (p && p->type == NT_OBJECT) ? (QoreAbstractQLayout *)p->val.object->getReferencedPrivateData(CID_QLAYOUT, xsink) : 0;
+   if (!p || !layout)
+   {
+      if (!xsink->isException())
+         xsink->raiseException("QBOXLAYOUT-INSERTLAYOUT-PARAM-ERROR", "expecting a QLayout object as second argument to QBoxLayout::insertLayout()");
+      return 0;
+   }
+   ReferenceHolder<QoreAbstractQLayout> holder(layout, xsink);
+   p = get_param(params, 2);
+   int stretch = p ? p->getAsInt() : 0;
+   qbl->getQBoxLayout()->insertLayout(index, layout->getQLayout(), stretch);
+   return 0;
+}
+
+//void insertSpacing ( int index, int size )
+static QoreNode *QBOXLAYOUT_insertSpacing(Object *self, QoreAbstractQBoxLayout *qbl, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   int index = p ? p->getAsInt() : 0;
+   p = get_param(params, 1);
+   int size = p ? p->getAsInt() : 0;
+   qbl->getQBoxLayout()->insertSpacing(index, size);
+   return 0;
+}
+
+//void insertStretch ( int index, int stretch = 0 )
+static QoreNode *QBOXLAYOUT_insertStretch(Object *self, QoreAbstractQBoxLayout *qbl, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   int index = p ? p->getAsInt() : 0;
+   p = get_param(params, 1);
+   int stretch = p ? p->getAsInt() : 0;
+   qbl->getQBoxLayout()->insertStretch(index, stretch);
+   return 0;
+}
+
+//void insertWidget ( int index, QWidget * widget, int stretch = 0, Qt::Alignment alignment = 0 )
+static QoreNode *QBOXLAYOUT_insertWidget(Object *self, QoreAbstractQBoxLayout *qbl, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   int index = p ? p->getAsInt() : 0;
+   p = get_param(params, 1);
+   QoreAbstractQWidget *widget = (p && p->type == NT_OBJECT) ? (QoreAbstractQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   if (!p || !widget)
+   {
+      if (!xsink->isException())
+         xsink->raiseException("QBOXLAYOUT-INSERTWIDGET-PARAM-ERROR", "expecting a QWidget object as second argument to QBoxLayout::insertWidget()");
+      return 0;
+   }
+   ReferenceHolder<QoreAbstractQWidget> holder(widget, xsink);
+   p = get_param(params, 2);
+   int stretch = p ? p->getAsInt() : 0;
+   p = get_param(params, 3);
+   Qt::Alignment alignment = (Qt::Alignment)(p ? p->getAsInt() : 0);
+   qbl->getQBoxLayout()->insertWidget(index, widget->getQWidget(), stretch, alignment);
+   return 0;
+}
+
+//virtual void invalidate ()
+static QoreNode *QBOXLAYOUT_invalidate(Object *self, QoreAbstractQBoxLayout *qbl, QoreNode *params, ExceptionSink *xsink)
+{
+   qbl->getQBoxLayout()->invalidate();
+   return 0;
+}
+
+//void setDirection ( Direction direction )
+static QoreNode *QBOXLAYOUT_setDirection(Object *self, QoreAbstractQBoxLayout *qbl, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QBoxLayout::Direction direction = (QBoxLayout::Direction)(p ? p->getAsInt() : 0);
+   qbl->getQBoxLayout()->setDirection(direction);
+   return 0;
+}
+
+//void setSpacing ( int spacing )
+static QoreNode *QBOXLAYOUT_setSpacing(Object *self, QoreAbstractQBoxLayout *qbl, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   int spacing = p ? p->getAsInt() : 0;
+   qbl->getQBoxLayout()->setSpacing(spacing);
+   return 0;
+}
+
+//bool setStretchFactor ( QWidget * widget, int stretch )
+//bool setStretchFactor ( QLayout * layout, int stretch )
+static QoreNode *QBOXLAYOUT_setStretchFactor(Object *self, QoreAbstractQBoxLayout *qbl, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 1);
+   int stretch = p ? p->getAsInt() : 0;
+
+   p = get_param(params, 0);
+   QoreAbstractQWidget *widget = (p && p->type == NT_OBJECT) ? (QoreAbstractQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   if (p && !widget) {
+      QoreAbstractQLayout *layout = (p && p->type == NT_OBJECT) ? (QoreAbstractQLayout *)p->val.object->getReferencedPrivateData(CID_QLAYOUT, xsink) : 0;
+      if (layout) {
+	 ReferenceHolder<QoreAbstractQLayout> holder(layout, xsink);
+	 return new QoreNode(qbl->getQBoxLayout()->setStretchFactor(layout->getQLayout(), stretch));
+      }
+   }
+
+   if (!widget)
+   {
+      if (!xsink->isException())
+         xsink->raiseException("QBOXLAYOUT-SETSTRETCHFACTOR-PARAM-ERROR", "expecting a QWidget object as first argument to QBoxLayout::setStretchFactor()");
+      return 0;
+   }
+   ReferenceHolder<QoreAbstractQWidget> holder(widget, xsink);
+   return new QoreNode(qbl->getQBoxLayout()->setStretchFactor(widget->getQWidget(), stretch));
+}
+
+//int spacing () const
+static QoreNode *QBOXLAYOUT_spacing(Object *self, QoreAbstractQBoxLayout *qbl, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((int64)qbl->getQBoxLayout()->spacing());
+}
+
 
 class QoreClass *initQBoxLayoutClass(class QoreClass *qlayout)
 {
@@ -104,8 +257,21 @@ class QoreClass *initQBoxLayoutClass(class QoreClass *qlayout)
    QC_QBoxLayout->setConstructor(QBOXLAYOUT_constructor);
    QC_QBoxLayout->setCopy((q_copy_t)QBOXLAYOUT_copy);
 
-   QC_QBoxLayout->addMethod("addLayout",     (q_method_t)QBOXLAYOUT_addLayout);
-   QC_QBoxLayout->addMethod("addWidget",     (q_method_t)QBOXLAYOUT_addWidget);
+   QC_QBoxLayout->addMethod("addLayout",                    (q_method_t)QBOXLAYOUT_addLayout);
+   QC_QBoxLayout->addMethod("addSpacing",                   (q_method_t)QBOXLAYOUT_addSpacing);
+   QC_QBoxLayout->addMethod("addStretch",                   (q_method_t)QBOXLAYOUT_addStretch);
+   QC_QBoxLayout->addMethod("addStrut",                     (q_method_t)QBOXLAYOUT_addStrut);
+   QC_QBoxLayout->addMethod("addWidget",                    (q_method_t)QBOXLAYOUT_addWidget);
+   QC_QBoxLayout->addMethod("direction",                    (q_method_t)QBOXLAYOUT_direction);
+   QC_QBoxLayout->addMethod("insertLayout",                 (q_method_t)QBOXLAYOUT_insertLayout);
+   QC_QBoxLayout->addMethod("insertSpacing",                (q_method_t)QBOXLAYOUT_insertSpacing);
+   QC_QBoxLayout->addMethod("insertStretch",                (q_method_t)QBOXLAYOUT_insertStretch);
+   QC_QBoxLayout->addMethod("insertWidget",                 (q_method_t)QBOXLAYOUT_insertWidget);
+   QC_QBoxLayout->addMethod("invalidate",                   (q_method_t)QBOXLAYOUT_invalidate);
+   QC_QBoxLayout->addMethod("setDirection",                 (q_method_t)QBOXLAYOUT_setDirection);
+   QC_QBoxLayout->addMethod("setSpacing",                   (q_method_t)QBOXLAYOUT_setSpacing);
+   QC_QBoxLayout->addMethod("setStretchFactor",             (q_method_t)QBOXLAYOUT_setStretchFactor);
+   QC_QBoxLayout->addMethod("spacing",                      (q_method_t)QBOXLAYOUT_spacing);
 
    traceout("initQBoxLayoutClass()");
    return QC_QBoxLayout;

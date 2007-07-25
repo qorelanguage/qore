@@ -32,6 +32,7 @@
 #include "QC_QLayout.h"
 #include "QC_QBoxLayout.h"
 #include "QC_QVBoxLayout.h"
+#include "QC_QHBoxLayout.h"
 #include "QC_QGridLayout.h"
 
 #include <QPalette>
@@ -191,6 +192,7 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
 
    qt->addSystemClass((qboxlayout = initQBoxLayoutClass(qlayout)));
    qt->addSystemClass(initQVBoxLayoutClass(qboxlayout));
+   qt->addSystemClass(initQHBoxLayoutClass(qboxlayout));
 
    qt->addSystemClass(initQFontClass());
 
@@ -234,6 +236,28 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qbl->addConstant("BottomToTop",    new QoreNode((int64)QBoxLayout::BottomToTop));
 
    qt->addInitialNamespace(qbl);
+
+   // add QFont namespaces and constants
+   class Namespace *qframens = new Namespace("QFrame");
+   // Shadow enum
+   qframens->addConstant("Plain",    new QoreNode((int64)QFrame::Plain));
+   qframens->addConstant("Raised",   new QoreNode((int64)QFrame::Raised));
+   qframens->addConstant("Sunken",   new QoreNode((int64)QFrame::Sunken));
+
+   // Shape enum
+   qframens->addConstant("NoFrame",      new QoreNode((int64)QFrame::NoFrame));
+   qframens->addConstant("Box",          new QoreNode((int64)QFrame::Box));
+   qframens->addConstant("Panel",        new QoreNode((int64)QFrame::Panel));
+   qframens->addConstant("StyledPanel",  new QoreNode((int64)QFrame::StyledPanel));
+   qframens->addConstant("HLine",        new QoreNode((int64)QFrame::HLine));
+   qframens->addConstant("VLine",        new QoreNode((int64)QFrame::VLine));
+   qframens->addConstant("WinPanel",     new QoreNode((int64)QFrame::WinPanel));
+
+   // StyleMask
+   qframens->addConstant("Shadow_Mask",  new QoreNode((int64)QFrame::Shadow_Mask));
+   qframens->addConstant("Shape_Mask",   new QoreNode((int64)QFrame::Shape_Mask));
+
+   qt->addInitialNamespace(qframens);
 
    // add QFont namespaces and constants
    class Namespace *qf = new Namespace("QFont");
