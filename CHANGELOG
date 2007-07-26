@@ -1,3 +1,7 @@
+2006.07.26: David Nichols
+	* ported a thread resource management fix from the qore 0.6.2 branch for
+	  the DatasourcePool class
+
 2006.07.24: David Nichols
 	* added supoprt for builtin virtual base classes in builtin class
 	  hierarchies
