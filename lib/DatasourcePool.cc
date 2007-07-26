@@ -451,5 +451,23 @@ void DatasourcePool::cleanup(class ExceptionSink *xsink)
    if (sql)
       delete sql;
 #endif
-   rollback(xsink);
+
+   int tid = gettid();
+   // thread must have a Datasource allocated
+   SafeLocker sl((LockedObject *)this);
+   thread_use_t::iterator i = tmap.find(tid);
+   assert(i != tmap.end());
+   sl.unlock();
+
+   // execute rollback on Datasource before releasing to pool
+   pool[i->second]->rollback(xsink);
+
+   // grab lock to add to free list and erase thread map entry
+   sl.lock();
+   free_list.push_back(i->second);
+   // erase thread map entry
+   tmap.erase(i);
+   // signal any waiting threads
+   if (wait_count)
+      signal();
 }
