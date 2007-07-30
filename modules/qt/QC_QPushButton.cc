@@ -35,7 +35,7 @@ static void QPUSHBUTTON_constructor(class Object *self, class QoreNode *params, 
    QoreQPushButton *pb;
    int np = num_params(params);
    if (!np)
-      pb = new QoreQPushButton();
+      pb = new QoreQPushButton(self);
    else if (np == 1)
    {
       QoreNode *p = get_param(params, 0);
@@ -49,10 +49,10 @@ static void QPUSHBUTTON_constructor(class Object *self, class QoreNode *params, 
 	    return;
 	 }
 	 ReferenceHolder<QoreAbstractQWidget> holder(parent, xsink);
-	 pb = new QoreQPushButton(parent->getQWidget());
+	 pb = new QoreQPushButton(self, parent->getQWidget());
       }
       else if (p && p->type == NT_STRING)
-	 pb = new QoreQPushButton(p->val.String->getBuffer());
+	 pb = new QoreQPushButton(self, p->val.String->getBuffer());
    }
    else if (np == 2 || np == 3)
    {
@@ -69,7 +69,7 @@ static void QPUSHBUTTON_constructor(class Object *self, class QoreNode *params, 
 	    return;
 	 }
 	 ReferenceHolder<QoreAbstractQWidget> holder(parent, xsink);
-	 pb = new QoreQPushButton(name, parent->getQWidget());
+	 pb = new QoreQPushButton(self, name, parent->getQWidget());
       }
       else // FIXME: implement constructor version with icon
       {

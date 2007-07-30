@@ -32,15 +32,31 @@ DLLEXPORT extern int CID_QLCDNUMBER;
 
 DLLLOCAL class QoreClass *initQLCDNumberClass(class QoreClass *qframe);
 
+class myQLCDNumber : public QLCDNumber
+{
+#define QOREQTYPE QLCDNumber
+#include "qore-qt-metacode.h"
+#undef QOREQTYPE
+   public:
+      DLLLOCAL myQLCDNumber(Object *obj, QWidget *parent = 0) : QLCDNumber(parent)
+      {
+	 init(obj);
+      }
+      DLLLOCAL myQLCDNumber(Object *obj, int num_digits, QWidget *parent = 0) : QLCDNumber(num_digits, parent)
+      {
+	 init(obj);
+      }
+};
+
 class QoreQLCDNumber : public QoreAbstractQWidget
 {
    public:
-      QPointer<QLCDNumber>qobj;
+      QPointer<myQLCDNumber>qobj;
 
-      DLLLOCAL QoreQLCDNumber(int num_digits, QWidget *parent = 0) : qobj(new QLCDNumber(num_digits, parent))
+      DLLLOCAL QoreQLCDNumber(Object *obj, int num_digits, QWidget *parent = 0) : qobj(new myQLCDNumber(obj, num_digits, parent))
       {
       }
-      DLLLOCAL QoreQLCDNumber(QWidget *parent = 0) : qobj(new QLCDNumber(parent))
+      DLLLOCAL QoreQLCDNumber(Object *obj, QWidget *parent = 0) : qobj(new myQLCDNumber(obj, parent))
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const
@@ -51,6 +67,9 @@ class QoreQLCDNumber : public QoreAbstractQWidget
       {
 	 return static_cast<QWidget *>(&(*qobj));
       }
+
+      QORE_VIRTUAL_QOBJECT_METHODS
+
 };
 
 #endif

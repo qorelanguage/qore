@@ -41,7 +41,7 @@ static void QSLIDER_constructor(class Object *self, class QoreNode *params, Exce
 	 return;
       }
       ReferenceHolder<QoreAbstractQWidget> holder(parent, xsink);
-      qs = new QoreQSlider(parent->getQWidget());
+      qs = new QoreQSlider(self, parent->getQWidget());
    }
    else if (p1 && p1->type == NT_OBJECT) {
       parent = p1 ? (QoreAbstractQWidget *)p1->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
@@ -51,10 +51,10 @@ static void QSLIDER_constructor(class Object *self, class QoreNode *params, Exce
       }
       ReferenceHolder<QoreAbstractQWidget> holder(parent, xsink);
       int orientation = p0 ? p0->getAsInt() : 0;
-      qs = new QoreQSlider((Qt::Orientation)orientation, parent->getQWidget());
+      qs = new QoreQSlider(self, (Qt::Orientation)orientation, parent->getQWidget());
    }
    else
-      qs = new QoreQSlider((Qt::Orientation)(p0 ? p0->getAsInt() : 0));
+      qs = new QoreQSlider(self, (Qt::Orientation)(p0 ? p0->getAsInt() : 0));
 
    self->setPrivate(CID_QSLIDER, qs);
 }

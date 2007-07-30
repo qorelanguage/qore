@@ -36,11 +36,11 @@ static void QBOXLAYOUT_constructor(class Object *self, class QoreNode *params, E
    QoreAbstractQWidget *parent = p ? (QoreAbstractQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
 
    if (!parent)
-      qw = new QoreQBoxLayout((QBoxLayout::Direction)direction);
+      qw = new QoreQBoxLayout(self, (QBoxLayout::Direction)direction);
    else 
    {
       ReferenceHolder<QoreAbstractQWidget> holder(parent, xsink);
-      qw = new QoreQBoxLayout((QBoxLayout::Direction)direction, parent->getQWidget());
+      qw = new QoreQBoxLayout(self, (QBoxLayout::Direction)direction, parent->getQWidget());
    }
 
    self->setPrivate(CID_QBOXLAYOUT, qw);

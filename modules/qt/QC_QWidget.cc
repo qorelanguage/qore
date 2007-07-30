@@ -35,13 +35,13 @@ static void QW_constructor(class Object *self, class QoreNode *params, Exception
    QoreAbstractQWidget *parent = p ? (QoreAbstractQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
 
    if (!parent)
-      qw = new QoreQWidget();
+      qw = new QoreQWidget(self);
    else 
    {
       ReferenceHolder<QoreAbstractQWidget> holder(parent, xsink);
       p = get_param(params, 1);
       int window_flags = p ? p->getAsInt() : 0;
-      qw = new QoreQWidget(parent->getQWidget(), (Qt::WindowFlags)window_flags);
+      qw = new QoreQWidget(self, parent->getQWidget(), (Qt::WindowFlags)window_flags);
    }
 
    self->setPrivate(CID_QWIDGET, qw);
@@ -1361,6 +1361,161 @@ static QoreNode *QW_y(class Object *self, QoreAbstractQWidget *qw, class QoreNod
    return new QoreNode((int64)qw->getQWidget()->y());
 }
 
+// slots
+//bool close ()
+static QoreNode *QWIDGET_close(Object *self, QoreAbstractQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode(qw->getQWidget()->close());
+}
+
+//void hide ()
+static QoreNode *QWIDGET_hide(Object *self, QoreAbstractQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+{
+   qw->getQWidget()->hide();
+   return 0;
+}
+
+//void lower ()
+static QoreNode *QWIDGET_lower(Object *self, QoreAbstractQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+{
+   qw->getQWidget()->lower();
+   return 0;
+}
+
+//void raise ()
+static QoreNode *QWIDGET_raise(Object *self, QoreAbstractQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+{
+   qw->getQWidget()->raise();
+   return 0;
+}
+
+//void repaint ()
+static QoreNode *QWIDGET_repaint(Object *self, QoreAbstractQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+{
+   qw->getQWidget()->repaint();
+   return 0;
+}
+
+//void setDisabled ( bool disable )
+static QoreNode *QWIDGET_setDisabled(Object *self, QoreAbstractQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   bool disable = p ? p->getAsBool() : 0;
+   qw->getQWidget()->setDisabled(disable);
+   return 0;
+}
+
+//void setEnabled ( bool )
+static QoreNode *QWIDGET_setEnabled(Object *self, QoreAbstractQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   bool b = p ? p->getAsBool() : 0;
+   qw->getQWidget()->setEnabled(b);
+   return 0;
+}
+
+//void setFocus ()
+static QoreNode *QWIDGET_setFocus(Object *self, QoreAbstractQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+{
+   qw->getQWidget()->setFocus();
+   return 0;
+}
+
+//void setHidden ( bool hidden )
+static QoreNode *QWIDGET_setHidden(Object *self, QoreAbstractQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   bool hidden = p ? p->getAsBool() : 0;
+   qw->getQWidget()->setHidden(hidden);
+   return 0;
+}
+
+//void setStyleSheet ( const QString & styleSheet )
+static QoreNode *QWIDGET_setStyleSheet(Object *self, QoreAbstractQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   if (!p || p->type != NT_STRING) {
+      xsink->raiseException("QWIDGET-SETSTYLESHEET-PARAM-ERROR", "expecting a string as first argument to QWidget::setStyleSheet()");
+      return 0;
+   }
+   const char *styleSheet = p->val.String->getBuffer();
+   qw->getQWidget()->setStyleSheet(styleSheet);
+   return 0;
+}
+
+//virtual void setVisible ( bool visible )
+static QoreNode *QWIDGET_setVisible(Object *self, QoreAbstractQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   bool visible = p ? p->getAsBool() : 0;
+   qw->getQWidget()->setVisible(visible);
+   return 0;
+}
+
+//void setWindowModified ( bool )
+static QoreNode *QWIDGET_setWindowModified(Object *self, QoreAbstractQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   bool b = p ? p->getAsBool() : 0;
+   qw->getQWidget()->setWindowModified(b);
+   return 0;
+}
+
+//void setWindowTitle ( const QString & )
+static QoreNode *QWIDGET_setWindowTitle(Object *self, QoreAbstractQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   if (!p || p->type != NT_STRING) {
+      xsink->raiseException("QWIDGET-SETWINDOWTITLE-PARAM-ERROR", "expecting a string as first argument to QWidget::setWindowTitle()");
+      return 0;
+   }
+   const char *qstring = p->val.String->getBuffer();
+   qw->getQWidget()->setWindowTitle(qstring);
+   return 0;
+}
+
+//void show ()
+static QoreNode *QWIDGET_show(Object *self, QoreAbstractQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+{
+   qw->getQWidget()->show();
+   return 0;
+}
+
+//void showFullScreen ()
+static QoreNode *QWIDGET_showFullScreen(Object *self, QoreAbstractQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+{
+   qw->getQWidget()->showFullScreen();
+   return 0;
+}
+
+//void showMaximized ()
+static QoreNode *QWIDGET_showMaximized(Object *self, QoreAbstractQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+{
+   qw->getQWidget()->showMaximized();
+   return 0;
+}
+
+//void showMinimized ()
+static QoreNode *QWIDGET_showMinimized(Object *self, QoreAbstractQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+{
+   qw->getQWidget()->showMinimized();
+   return 0;
+}
+
+//void showNormal ()
+static QoreNode *QWIDGET_showNormal(Object *self, QoreAbstractQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+{
+   qw->getQWidget()->showNormal();
+   return 0;
+}
+
+//void update ()
+static QoreNode *QWIDGET_update(Object *self, QoreAbstractQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+{
+   qw->getQWidget()->update();
+   return 0;
+}
+
 class QoreClass *initQWidgetClass(class QoreClass *qobject)
 {
    tracein("initQWidgetClass()");
@@ -1569,6 +1724,28 @@ class QoreClass *initQWidgetClass(class QoreClass *qobject)
    //QC_QWidget->addMethod("x11PictureHandle",             (q_method_t)QW_x11PictureHandle);
    QC_QWidget->addMethod("y",                            (q_method_t)QW_y);
    
+   // slots
+   QC_QWidget->addMethod("close",                       (q_method_t)QWIDGET_close);
+   QC_QWidget->addMethod("hide",                        (q_method_t)QWIDGET_hide);
+   QC_QWidget->addMethod("lower",                       (q_method_t)QWIDGET_lower);
+   QC_QWidget->addMethod("raise",                       (q_method_t)QWIDGET_raise);
+   QC_QWidget->addMethod("repaint",                     (q_method_t)QWIDGET_repaint);
+   QC_QWidget->addMethod("setDisabled",                 (q_method_t)QWIDGET_setDisabled);
+   QC_QWidget->addMethod("setEnabled",                  (q_method_t)QWIDGET_setEnabled);
+   QC_QWidget->addMethod("setFocus",                    (q_method_t)QWIDGET_setFocus);
+   QC_QWidget->addMethod("setHidden",                   (q_method_t)QWIDGET_setHidden);
+   QC_QWidget->addMethod("setStyleSheet",               (q_method_t)QWIDGET_setStyleSheet);
+   QC_QWidget->addMethod("setVisible",                  (q_method_t)QWIDGET_setVisible);
+   QC_QWidget->addMethod("setWindowModified",           (q_method_t)QWIDGET_setWindowModified);
+   QC_QWidget->addMethod("setWindowTitle",              (q_method_t)QWIDGET_setWindowTitle);
+   QC_QWidget->addMethod("show",                        (q_method_t)QWIDGET_show);
+   QC_QWidget->addMethod("showFullScreen",              (q_method_t)QWIDGET_showFullScreen);
+   QC_QWidget->addMethod("showMaximized",               (q_method_t)QWIDGET_showMaximized);
+   QC_QWidget->addMethod("showMinimized",               (q_method_t)QWIDGET_showMinimized);
+   QC_QWidget->addMethod("showNormal",                  (q_method_t)QWIDGET_showNormal);
+   QC_QWidget->addMethod("update",                      (q_method_t)QWIDGET_update);
+
+
    traceout("initQWidgetClass()");
    return QC_QWidget;
 }

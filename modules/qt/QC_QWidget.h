@@ -29,16 +29,30 @@
 
 #include <QWidget>
 
+#include <string>
+
 DLLEXPORT extern int CID_QWIDGET;
 
 DLLLOCAL class QoreClass *initQWidgetClass(class QoreClass *parent);
 
+class myQWidget : public QWidget
+{
+#define QOREQTYPE QWidget
+#include "qore-qt-metacode.h"
+#undef QOREQTYPE
+   public:
+      DLLLOCAL myQWidget(Object *obj, QWidget *parent = 0, Qt::WindowFlags window_flags = 0) : QWidget(parent, window_flags)
+      {
+	 init(obj);
+      }
+};
+
 class QoreQWidget : public QoreAbstractQWidget
 {
    public:
-      QPointer<QWidget>qobj;
+      QPointer<myQWidget>qobj;
 
-      DLLLOCAL QoreQWidget(QWidget *parent = 0, Qt::WindowFlags window_flags = 0) : qobj(new QWidget(parent, window_flags))
+      DLLLOCAL QoreQWidget(Object *obj, QWidget *parent = 0, Qt::WindowFlags window_flags = 0) : qobj(new myQWidget(obj, parent, window_flags))
       {
       }
       DLLLOCAL virtual QObject *getQObject() const
@@ -47,8 +61,10 @@ class QoreQWidget : public QoreAbstractQWidget
       }
       DLLLOCAL virtual QWidget *getQWidget() const
       {
+	 //return static_cast<QWidget *>(&(*qobj));
 	 return &(*qobj);
       }
+      QORE_VIRTUAL_QOBJECT_METHODS
 };
 
 #endif

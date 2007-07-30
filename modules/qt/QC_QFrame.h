@@ -32,12 +32,23 @@ DLLEXPORT extern int CID_QFRAME;
 
 DLLLOCAL class QoreClass *initQFrameClass(class QoreClass *parent);
 
+class myQFrame : public QFrame
+{
+#define QOREQTYPE QFrame
+#include "qore-qt-metacode.h"
+#undef QOREQTYPE
+      DLLLOCAL myQFrame(Object *obj, QWidget *parent = 0, Qt::WindowFlags window_flags = 0) : QFrame(parent, window_flags)
+      {
+	 init(obj);
+      }
+};
+
 class QoreQFrame : public QoreAbstractQWidget
 {
    public:
-      QPointer<QFrame>qobj;
+      QPointer<myQFrame>qobj;
 
-      DLLLOCAL QoreQFrame(QWidget *parent = 0, Qt::WindowFlags window_flags = 0) : qobj(new QFrame(parent, window_flags))
+      DLLLOCAL QoreQFrame(Object *obj, QWidget *parent = 0, Qt::WindowFlags window_flags = 0) : qobj(new myQFrame(obj, parent, window_flags))
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const
@@ -48,25 +59,7 @@ class QoreQFrame : public QoreAbstractQWidget
       {
 	 return static_cast<QWidget *>(&(*qobj));
       }
+      QORE_VIRTUAL_QOBJECT_METHODS
 };
-
-/*
-template<typename T>
-static QoreNode *QW_setFont(class Object *self, T *qw, class QoreNode *params, ExceptionSink *xsink)
-{
-   class QoreNode *p = test_param(params, NT_OBJECT, 0);
-   QoreQFont *qf = p ? (QoreQFont *)p->val.object->getReferencedPrivateData(CID_QFONT, xsink) : NULL;
-   if (!p || !qf)
-   {
-      if (!xsink->isException())
-         xsink->raiseException("QFRAME-SETFONT-PARAM-EXCEPTION", "expecting a QFont object as parameter to QFrame::setFont()");
-      return NULL;
-   }
-   ReferenceHolder<QoreQFont> holder(qf, xsink);
-
-   qw->qobj->setFont(*((QFont *)qf));
-   return 0;
-}
-*/
 
 #endif

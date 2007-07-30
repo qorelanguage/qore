@@ -32,15 +32,33 @@ DLLEXPORT extern int CID_QSLIDER;
 
 DLLLOCAL class QoreClass *initQSliderClass(class QoreClass *qframe);
 
+
+class myQSlider : public QSlider
+{
+#define QOREQTYPE QSlider
+#include "qore-qt-metacode.h"
+#undef QOREQTYPE
+   public:
+      DLLLOCAL myQSlider(Object *obj, QWidget *parent = 0) : QSlider(parent)
+      {
+	 init(obj);
+      }
+      DLLLOCAL myQSlider(Object *obj, Qt::Orientation orientation, QWidget *parent = 0) : QSlider(orientation, parent)
+      {
+	 init(obj);
+      }
+};
+
+
 class QoreQSlider : public QoreAbstractQWidget
 {
    public:
-      QPointer<QSlider>qobj;
+      QPointer<myQSlider>qobj;
 
-      DLLLOCAL QoreQSlider(QWidget *parent = 0) : qobj(new QSlider(parent))
+      DLLLOCAL QoreQSlider(Object *obj, QWidget *parent = 0) : qobj(new myQSlider(obj, parent))
       {
       }
-      DLLLOCAL QoreQSlider(Qt::Orientation orientation, QWidget *parent = 0) : qobj(new QSlider(orientation, parent))
+      DLLLOCAL QoreQSlider(Object *obj, Qt::Orientation orientation, QWidget *parent = 0) : qobj(new myQSlider(obj, orientation, parent))
       {
       }
 
@@ -52,6 +70,8 @@ class QoreQSlider : public QoreAbstractQWidget
       {
 	 return static_cast<QWidget *>(&(*qobj));
       }
+      QORE_VIRTUAL_QOBJECT_METHODS
+
 };
 
 #endif

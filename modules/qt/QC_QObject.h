@@ -32,13 +32,24 @@ DLLEXPORT extern int CID_QOBJECT;
 
 DLLLOCAL class QoreClass *initQObjectClass();
 
+class myQObject : public QObject {
+#define QOREQTYPE QObject
+#include "qore-qt-metacode.h"
+#undef QOREQTYPE
+   public:
+      DLLLOCAL myQObject(Object *obj, QObject *parent = 0) : QObject(parent)
+      {
+	 init(obj);
+      }
+};
+
 class QoreQObject : public QoreAbstractQObject
 {
    private:
    public:
-      QPointer<QObject> qobj;
+      QPointer<myQObject> qobj;
 
-      DLLLOCAL QoreQObject(QObject *parent = 0) : qobj(new QObject(parent))
+      DLLLOCAL QoreQObject(Object *obj, QObject *parent = 0) : qobj(new myQObject(obj, parent))
       {
       }
 
@@ -47,6 +58,7 @@ class QoreQObject : public QoreAbstractQObject
 	 return &*qobj;
       }
 
+      QORE_VIRTUAL_QOBJECT_METHODS
 };
 
 #endif

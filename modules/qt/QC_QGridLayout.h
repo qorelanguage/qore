@@ -32,18 +32,35 @@ DLLEXPORT extern int CID_QGRIDLAYOUT;
 
 DLLLOCAL class QoreClass *initQGridLayoutClass();
 
+class myQGridLayout : public QGridLayout
+{
+#define QOREQTYPE QGridLayout
+#include "qore-qt-metacode.h"
+#undef QOREQTYPE
+      DLLLOCAL myQGridLayout(Object *obj) : QGridLayout()
+      {
+	 init(obj);
+      }
+
+      DLLLOCAL myQGridLayout(Object *obj, QWidget *parent) : QGridLayout(parent)
+      {
+	 init(obj);
+      }      
+};
+
 class QoreQGridLayout : public QoreAbstractQLayout
 {
    public:
-      QPointer<QGridLayout> qobj;
+      QPointer<myQGridLayout> qobj;
 
-      DLLLOCAL QoreQGridLayout() : qobj(new QGridLayout)
+      DLLLOCAL QoreQGridLayout(Object *obj) : qobj(new myQGridLayout(obj))
       {
       }
 
-      DLLLOCAL QoreQGridLayout(QWidget *parent) : qobj(new QGridLayout(parent))
+      DLLLOCAL QoreQGridLayout(Object *obj, QWidget *parent) : qobj(new myQGridLayout(obj, parent))
       {
       }
+
       DLLLOCAL virtual QObject *getQObject() const
       {
 	 return static_cast<QObject *>(&(*qobj));
@@ -54,6 +71,7 @@ class QoreQGridLayout : public QoreAbstractQLayout
 	 return static_cast<QLayout *>(&(*qobj));
       }
 
+      QORE_VIRTUAL_QOBJECT_METHODS
 };
 
 #endif

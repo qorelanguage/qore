@@ -33,13 +33,13 @@ static void QFRAME_constructor(class Object *self, class QoreNode *params, Excep
    QoreAbstractQWidget *parent = p ? (QoreAbstractQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
 
    if (!parent)
-      qw = new QoreQFrame();
+      qw = new QoreQFrame(self);
    else 
    {
       ReferenceHolder<QoreAbstractQWidget> holder(parent, xsink);
       p = get_param(params, 1);
       int window_flags = p ? p->getAsInt() : 0;
-      qw = new QoreQFrame(parent->getQWidget(), (Qt::WindowFlags)window_flags);
+      qw = new QoreQFrame(self, parent->getQWidget(), (Qt::WindowFlags)window_flags);
    }
 
    self->setPrivate(CID_QFRAME, qw);

@@ -51,11 +51,12 @@ class Method {
       DLLLOCAL void userInit(UserFunction *u, int p);
 
    public:
+      DLLEXPORT class QoreNode *eval(class Object *self, class QoreNode *args, class ExceptionSink *xsink);
+
       DLLLOCAL Method(class UserFunction *u, int p);
       DLLLOCAL Method(class QoreClass *p_class, class BuiltinMethod *b);
       DLLLOCAL ~Method();
       DLLLOCAL bool inMethod(class Object *self) const;
-      DLLLOCAL class QoreNode *eval(class Object *self, class QoreNode *args, class ExceptionSink *xsink);
       DLLLOCAL void evalConstructor(class Object *self, class QoreNode *args, class BCList *bcl, class BCEAList *bceal, class ExceptionSink *xsink);
       DLLLOCAL void evalDestructor(class Object *self, class ExceptionSink *xsink);
       DLLLOCAL void evalSystemConstructor(class Object *self, class QoreNode *args, class BCList *bcl, class BCEAList *bceal, class ExceptionSink *xsink);

@@ -100,11 +100,15 @@ class QoreNode *f_QObject_connect(class QoreNode *params, class ExceptionSink *x
    }
    const char *member = p->val.String->getBuffer();
 
+   /*
    p = get_param(params, 4);
    int conn_type = is_nothing(p) ? Qt::AutoConnection : p->getAsInt();
 
    bool b = QObject::connect(sender->getQObject(), signal, receiver->getQObject(), member, (enum Qt::ConnectionType)conn_type);
    return new QoreNode(b);
+   */
+   receiver->connectDynamic(sender, signal, member, xsink);
+   return 0;
 }
 
 class QoreNode *f_SLOT(class QoreNode *params, class ExceptionSink *xsink)

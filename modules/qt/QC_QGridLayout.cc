@@ -35,11 +35,11 @@ static void QGRIDLAYOUT_constructor(class Object *self, class QoreNode *params, 
    QoreAbstractQWidget *parent = p ? (QoreAbstractQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
 
    if (!parent)
-      qw = new QoreQGridLayout();
+      qw = new QoreQGridLayout(self);
    else 
    {
       ReferenceHolder<QoreAbstractQWidget> holder(parent, xsink);
-      qw = new QoreQGridLayout(parent->getQWidget());
+      qw = new QoreQGridLayout(self, parent->getQWidget());
    }
 
    self->setPrivate(CID_QGRIDLAYOUT, qw);

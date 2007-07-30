@@ -32,7 +32,7 @@ static void QOBJECT_constructor(class Object *self, class QoreNode *params, Exce
    QoreQObject *qo;
    int np = num_params(params);
    if (!np)
-      qo = new QoreQObject();
+      qo = new QoreQObject(self);
    else 
    {
       QoreNode *p = test_param(params, NT_OBJECT, 0);
@@ -44,7 +44,7 @@ static void QOBJECT_constructor(class Object *self, class QoreNode *params, Exce
 	 return;
       }
       ReferenceHolder<QoreAbstractQObject> holder(parent, xsink);
-      qo = new QoreQObject(parent->getQObject());
+      qo = new QoreQObject(self, parent->getQObject());
    }
 
    self->setPrivate(CID_QOBJECT, qo);
@@ -94,9 +94,12 @@ static QoreNode *QOBJECT_connect(Object *self, QoreAbstractQObject *qo, QoreNode
       return 0;
    }
    const char *method = p->val.String->getBuffer();
-   p = get_param(params, 3);
-   Qt::ConnectionType type = (Qt::ConnectionType)(p ? p->getAsInt() : 0);
-   return new QoreNode(qo->getQObject()->connect(sender->getQObject(), signal, method, type));
+   //p = get_param(params, 3);
+   //Qt::ConnectionType type = (Qt::ConnectionType)(p ? p->getAsInt() : 0);
+   //return new QoreNode(qo->getQObject()->connect(sender->getQObject(), signal, method, type));
+
+   qo->connectDynamic(sender, signal, method, xsink);
+   return 0;
 }
 
 //bool disconnect ( const char * signal = 0, const QObject * receiver = 0, const char * method = 0 )
@@ -272,10 +275,10 @@ static QoreNode *QOBJECT_killTimer(Object *self, QoreAbstractQObject *qo, QoreNo
 //}
 
 //QString objectName () const
-//static QoreNode *QOBJECT_objectName(Object *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
-//{
-//   ??? return new QoreNode((int64)qo->getQObject()->objectName());
-//}
+static QoreNode *QOBJECT_objectName(Object *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode(new QoreString(qo->getQObject()->objectName().toUtf8().data(), QCS_UTF8));
+}
 
 //QObject * parent () const
 //static QoreNode *QOBJECT_parent(Object *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
@@ -374,6 +377,21 @@ static QoreNode *QOBJECT_startTimer(Object *self, QoreAbstractQObject *qo, QoreN
 //   ??? return qo->getQObject()->thread();
 //}
 
+
+// custom methods
+static QoreNode *QOBJECT_createSignal(Object *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = test_param(params, NT_STRING, 0);
+   if (!p) {
+      xsink->raiseException("QOBJECT-CREATE-SIGNAL-ERROR", "no string argument passed to QObject::createSignal()");
+      return 0;
+   }
+
+   qo->createSignal(p->val.String->getBuffer());
+   return 0;
+}
+
+
 class QoreClass *initQObjectClass()
 {
    tracein("initQObjectClass()");
@@ -401,7 +419,7 @@ class QoreClass *initQObjectClass()
    QC_QObject->addMethod("killTimer",                   (q_method_t)QOBJECT_killTimer);
    //QC_QObject->addMethod("metaObject",                  (q_method_t)QOBJECT_metaObject);
    //QC_QObject->addMethod("moveToThread",                (q_method_t)QOBJECT_moveToThread);
-   //QC_QObject->addMethod("objectName",                  (q_method_t)QOBJECT_objectName);
+   QC_QObject->addMethod("objectName",                  (q_method_t)QOBJECT_objectName);
    //QC_QObject->addMethod("parent",                      (q_method_t)QOBJECT_parent);
    //QC_QObject->addMethod("property",                    (q_method_t)QOBJECT_property);
    QC_QObject->addMethod("removeEventFilter",           (q_method_t)QOBJECT_removeEventFilter);
@@ -411,6 +429,10 @@ class QoreClass *initQObjectClass()
    QC_QObject->addMethod("signalsBlocked",              (q_method_t)QOBJECT_signalsBlocked);
    QC_QObject->addMethod("startTimer",                  (q_method_t)QOBJECT_startTimer);
    //QC_QObject->addMethod("thread",                      (q_method_t)QOBJECT_thread);
+
+   // custom methods
+   QC_QObject->addMethod("createSignal",                (q_method_t)QOBJECT_createSignal);
+
 
    traceout("initQObjectClass()");
    return QC_QObject;

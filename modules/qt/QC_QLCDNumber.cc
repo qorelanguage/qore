@@ -41,11 +41,11 @@ static void QLCDNUMBER_constructor(class Object *self, class QoreNode *params, E
 	 return;
       }
       if (!parent)
-	 qlcdn = new QoreQLCDNumber(num_digits, 0);
+	 qlcdn = new QoreQLCDNumber(self, num_digits, 0);
       else
       {
 	 ReferenceHolder<QoreAbstractQWidget> holder(parent, xsink);
-	 qlcdn = new QoreQLCDNumber(num_digits, parent->getQWidget());
+	 qlcdn = new QoreQLCDNumber(self, num_digits, parent->getQWidget());
       }
    }
    else {
@@ -58,11 +58,11 @@ static void QLCDNUMBER_constructor(class Object *self, class QoreNode *params, E
       }
 
       if (!parent)
-	 qlcdn = new QoreQLCDNumber();
+	 qlcdn = new QoreQLCDNumber(self);
       else 
       {
 	 ReferenceHolder<QoreAbstractQWidget> holder(parent, xsink);
-	 qlcdn = new QoreQLCDNumber(parent->getQWidget());
+	 qlcdn = new QoreQLCDNumber(self, parent->getQWidget());
       }
    }
 
@@ -95,28 +95,9 @@ static class QoreNode *QLCDNUMBER_numDigits(class Object *self, class QoreQLCDNu
    return new QoreNode((int64)qlcdn->qobj->numDigits());
 }
 
-static class QoreNode *QLCDNUMBER_setSmallDecimalPoint(class Object *self, class QoreQLCDNumber *qlcdn, QoreNode *params, ExceptionSink *xsink)
-{
-   class QoreNode *p = get_param(params, 0);
-   qlcdn->qobj->setSmallDecimalPoint(p ? p->getAsBool() : false);
-   return 0;
-}
-
 static class QoreNode *QLCDNUMBER_smallDecimalPoint(class Object *self, class QoreQLCDNumber *qlcdn, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qlcdn->qobj->smallDecimalPoint());
-}
-
-static class QoreNode *QLCDNUMBER_display(class Object *self, class QoreQLCDNumber *qlcdn, QoreNode *params, ExceptionSink *xsink)
-{
-   class QoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_STRING)
-      qlcdn->qobj->display(p->val.String->getBuffer());
-   else if (p && p->type == NT_FLOAT)
-      qlcdn->qobj->display(p->val.floatval);
-   else
-      qlcdn->qobj->display(p ? p->getAsInt() : 0);
-   return 0;
 }
 
 static class QoreNode *QLCDNUMBER_value(class Object *self, class QoreQLCDNumber *qlcdn, QoreNode *params, ExceptionSink *xsink)
@@ -127,30 +108,6 @@ static class QoreNode *QLCDNUMBER_value(class Object *self, class QoreQLCDNumber
 static class QoreNode *QLCDNUMBER_intValue(class Object *self, class QoreQLCDNumber *qlcdn, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qlcdn->qobj->intValue());
-}
-
-static class QoreNode *QLCDNUMBER_setHexMode(class Object *self, class QoreQLCDNumber *qlcdn, QoreNode *params, ExceptionSink *xsink)
-{
-   qlcdn->qobj->setHexMode();
-   return 0;
-}
-
-static class QoreNode *QLCDNUMBER_setDecMode(class Object *self, class QoreQLCDNumber *qlcdn, QoreNode *params, ExceptionSink *xsink)
-{
-   qlcdn->qobj->setDecMode();
-   return 0;
-}
-
-static class QoreNode *QLCDNUMBER_setOctMode(class Object *self, class QoreQLCDNumber *qlcdn, QoreNode *params, ExceptionSink *xsink)
-{
-   qlcdn->qobj->setOctMode();
-   return 0;
-}
-
-static class QoreNode *QLCDNUMBER_setBinMode(class Object *self, class QoreQLCDNumber *qlcdn, QoreNode *params, ExceptionSink *xsink)
-{
-   qlcdn->qobj->setBinMode();
-   return 0;
 }
 
 static class QoreNode *QLCDNUMBER_setMode(class Object *self, class QoreQLCDNumber *qlcdn, QoreNode *params, ExceptionSink *xsink)
@@ -172,6 +129,60 @@ static class QoreNode *QLCDNUMBER_checkOverflow(class Object *self, class QoreQL
    return new QoreNode(rc);
 }
 
+// slots
+
+//void display ( int num )
+static QoreNode *QLCDNUMBER_display(Object *self, QoreQLCDNumber *qlcdn, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   if (p && p->type == NT_FLOAT)
+      qlcdn->qobj->display(p->val.floatval);
+   else if (p && p->type == NT_STRING)
+      qlcdn->qobj->display(p->val.String->getBuffer());
+   else {
+      int num = p ? p->getAsInt() : 0;
+      qlcdn->qobj->display(num);
+   }
+   return 0;
+}
+
+//void setBinMode ()
+static QoreNode *QLCDNUMBER_setBinMode(Object *self, QoreQLCDNumber *qlcdn, QoreNode *params, ExceptionSink *xsink)
+{
+   qlcdn->qobj->setBinMode();
+   return 0;
+}
+
+//void setDecMode ()
+static QoreNode *QLCDNUMBER_setDecMode(Object *self, QoreQLCDNumber *qlcdn, QoreNode *params, ExceptionSink *xsink)
+{
+   qlcdn->qobj->setDecMode();
+   return 0;
+}
+
+//void setHexMode ()
+static QoreNode *QLCDNUMBER_setHexMode(Object *self, QoreQLCDNumber *qlcdn, QoreNode *params, ExceptionSink *xsink)
+{
+   qlcdn->qobj->setHexMode();
+   return 0;
+}
+
+//void setOctMode ()
+static QoreNode *QLCDNUMBER_setOctMode(Object *self, QoreQLCDNumber *qlcdn, QoreNode *params, ExceptionSink *xsink)
+{
+   qlcdn->qobj->setOctMode();
+   return 0;
+}
+
+//void setSmallDecimalPoint ( bool )
+static QoreNode *QLCDNUMBER_setSmallDecimalPoint(Object *self, QoreQLCDNumber *qlcdn, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   bool b = p ? p->getAsBool() : 0;
+   qlcdn->qobj->setSmallDecimalPoint(b);
+   return 0;
+}
+
 class QoreClass *initQLCDNumberClass(class QoreClass *qframe)
 {
    tracein("initQLCDNumberClass()");
@@ -187,17 +198,19 @@ class QoreClass *initQLCDNumberClass(class QoreClass *qframe)
    QC_QLCDNumber->addMethod("setSegmentStyle",        (q_method_t)QLCDNUMBER_setSegmentStyle);
    QC_QLCDNumber->addMethod("setNumDigits",           (q_method_t)QLCDNUMBER_setNumDigits);
    QC_QLCDNumber->addMethod("numDigits",              (q_method_t)QLCDNUMBER_numDigits);
-   QC_QLCDNumber->addMethod("setSmallDecimalPoint",   (q_method_t)QLCDNUMBER_setSmallDecimalPoint);
    QC_QLCDNumber->addMethod("smallDecimalPoint",      (q_method_t)QLCDNUMBER_smallDecimalPoint);
-   QC_QLCDNumber->addMethod("display",                (q_method_t)QLCDNUMBER_display);
    QC_QLCDNumber->addMethod("value",                  (q_method_t)QLCDNUMBER_value);
    QC_QLCDNumber->addMethod("intValue",               (q_method_t)QLCDNUMBER_intValue);
-   QC_QLCDNumber->addMethod("setHexMode",             (q_method_t)QLCDNUMBER_setHexMode);
-   QC_QLCDNumber->addMethod("setDecMode",             (q_method_t)QLCDNUMBER_setDecMode);
-   QC_QLCDNumber->addMethod("setOctMode",             (q_method_t)QLCDNUMBER_setOctMode);
-   QC_QLCDNumber->addMethod("setBinMode",             (q_method_t)QLCDNUMBER_setBinMode);
    QC_QLCDNumber->addMethod("setMode",                (q_method_t)QLCDNUMBER_setMode);
    QC_QLCDNumber->addMethod("checkOverflow",          (q_method_t)QLCDNUMBER_checkOverflow);
+
+   // slots
+   QC_QLCDNumber->addMethod("display",                (q_method_t)QLCDNUMBER_display);
+   QC_QLCDNumber->addMethod("setBinMode",             (q_method_t)QLCDNUMBER_setBinMode);
+   QC_QLCDNumber->addMethod("setDecMode",             (q_method_t)QLCDNUMBER_setDecMode);
+   QC_QLCDNumber->addMethod("setHexMode",             (q_method_t)QLCDNUMBER_setHexMode);
+   QC_QLCDNumber->addMethod("setOctMode",             (q_method_t)QLCDNUMBER_setOctMode);
+   QC_QLCDNumber->addMethod("setSmallDecimalPoint",   (q_method_t)QLCDNUMBER_setSmallDecimalPoint);
 
    traceout("initQLCDNumberClass()");
    return QC_QLCDNumber;

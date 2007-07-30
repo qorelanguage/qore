@@ -174,10 +174,10 @@ static QoreNode *QFONT_pointSize(Object *self, QoreQFont *qf, QoreNode *params, 
 }
 
 //qreal pointSizeF () const
-//static QoreNode *QFONT_pointSizeF(Object *self, QoreQFont *qf, QoreNode *params, ExceptionSink *xsink)
-//{
-//   ??? return new QoreNode((int64)qf->pointSizeF());
-//}
+static QoreNode *QFONT_pointSizeF(Object *self, QoreQFont *qf, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode(qf->pointSizeF());
+}
 
 //bool rawMode () const
 static QoreNode *QFONT_rawMode(Object *self, QoreQFont *qf, QoreNode *params, ExceptionSink *xsink)
@@ -186,10 +186,10 @@ static QoreNode *QFONT_rawMode(Object *self, QoreQFont *qf, QoreNode *params, Ex
 }
 
 //QString rawName () const
-//static QoreNode *QFONT_rawName(Object *self, QoreQFont *qf, QoreNode *params, ExceptionSink *xsink)
-//{
-//   ??? return new QoreNode((int64)qf->rawName());
-//}
+static QoreNode *QFONT_rawName(Object *self, QoreQFont *qf, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode(new QoreString(qf->rawName().toUtf8().data(), QCS_UTF8));
+}
 
 //QFont resolve ( const QFont & other ) const
 //static QoreNode *QFONT_resolve(Object *self, QoreQFont *qf, QoreNode *params, ExceptionSink *xsink)
@@ -384,22 +384,22 @@ static QoreNode *QFONT_strikeOut(Object *self, QoreQFont *qf, QoreNode *params, 
 }
 
 //Style style () const
-//static QoreNode *QFONT_style(Object *self, QoreQFont *qf, QoreNode *params, ExceptionSink *xsink)
-//{
-//   ??? return new QoreNode((int64)qf->style());
-//}
+static QoreNode *QFONT_style(Object *self, QoreQFont *qf, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((int64)qf->style());
+}
 
 //StyleHint styleHint () const
-//static QoreNode *QFONT_styleHint(Object *self, QoreQFont *qf, QoreNode *params, ExceptionSink *xsink)
-//{
-//   ??? return new QoreNode((int64)qf->styleHint());
-//}
+static QoreNode *QFONT_styleHint(Object *self, QoreQFont *qf, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((int64)qf->styleHint());
+}
 
 //StyleStrategy styleStrategy () const
-//static QoreNode *QFONT_styleStrategy(Object *self, QoreQFont *qf, QoreNode *params, ExceptionSink *xsink)
-//{
-//   ??? return new QoreNode((int64)qf->styleStrategy());
-//}
+static QoreNode *QFONT_styleStrategy(Object *self, QoreQFont *qf, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((int64)qf->styleStrategy());
+}
 
 //QString toString () const
 static QoreNode *QFONT_toString(Object *self, QoreQFont *qf, QoreNode *params, ExceptionSink *xsink)
@@ -418,7 +418,6 @@ static QoreNode *QFONT_weight(Object *self, QoreQFont *qf, QoreNode *params, Exc
 {
    return new QoreNode((int64)qf->weight());
 }
-
 
 class QoreClass *initQFontClass()
 {
@@ -449,9 +448,9 @@ class QoreClass *initQFontClass()
    QC_QFont->addMethod("overline",                    (q_method_t)QFONT_overline);
    QC_QFont->addMethod("pixelSize",                   (q_method_t)QFONT_pixelSize);
    QC_QFont->addMethod("pointSize",                   (q_method_t)QFONT_pointSize);
-   //QC_QFont->addMethod("pointSizeF",                  (q_method_t)QFONT_pointSizeF);
+   QC_QFont->addMethod("pointSizeF",                  (q_method_t)QFONT_pointSizeF);
    QC_QFont->addMethod("rawMode",                     (q_method_t)QFONT_rawMode);
-   //QC_QFont->addMethod("rawName",                     (q_method_t)QFONT_rawName);
+   QC_QFont->addMethod("rawName",                     (q_method_t)QFONT_rawName);
    //QC_QFont->addMethod("resolve",                     (q_method_t)QFONT_resolve);
    QC_QFont->addMethod("setBold",                     (q_method_t)QFONT_setBold);
    QC_QFont->addMethod("setFamily",                   (q_method_t)QFONT_setFamily);
@@ -473,9 +472,9 @@ class QoreClass *initQFontClass()
    QC_QFont->addMethod("setWeight",                   (q_method_t)QFONT_setWeight);
    QC_QFont->addMethod("stretch",                     (q_method_t)QFONT_stretch);
    QC_QFont->addMethod("strikeOut",                   (q_method_t)QFONT_strikeOut);
-   //QC_QFont->addMethod("style",                       (q_method_t)QFONT_style);
-   //QC_QFont->addMethod("styleHint",                   (q_method_t)QFONT_styleHint);
-   //QC_QFont->addMethod("styleStrategy",               (q_method_t)QFONT_styleStrategy);
+   QC_QFont->addMethod("style",                       (q_method_t)QFONT_style);
+   QC_QFont->addMethod("styleHint",                   (q_method_t)QFONT_styleHint);
+   QC_QFont->addMethod("styleStrategy",               (q_method_t)QFONT_styleStrategy);
    QC_QFont->addMethod("toString",                    (q_method_t)QFONT_toString);
    QC_QFont->addMethod("underline",                   (q_method_t)QFONT_underline);
    QC_QFont->addMethod("weight",                      (q_method_t)QFONT_weight);

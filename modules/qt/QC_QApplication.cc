@@ -56,7 +56,7 @@ static void QA_constructor(class Object *self, class QoreNode *params, Exception
       return;
    }
 
-   QoreQApplication *qa = new QoreQApplication();
+   QoreQApplication *qa = new QoreQApplication(self);
    self->setPrivate(CID_QAPPLICATION, qa);
    qore_qapp = self;
 }

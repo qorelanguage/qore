@@ -38,12 +38,24 @@ extern char **static_argv;
 DLLLOCAL extern void qapp_dec();
 DLLLOCAL extern QoreNode *get_qore_qapp();
 
+class myQApplication : public QApplication
+{
+#define QOREQTYPE QApplication
+#include "qore-qt-metacode.h"
+#undef QOREQTYPE
+
+      DLLLOCAL myQApplication(Object *obj, int &argc, char **argv) : QApplication(argc, argv)
+      {
+	 init(obj);
+      }
+};
+
 class QoreQApplication : public QoreAbstractQObject
 {
    public:
-      QApplication *qobj;
+      myQApplication *qobj;
 
-      DLLLOCAL QoreQApplication() : qobj(new QApplication(static_argc, static_argv))
+      DLLLOCAL QoreQApplication(Object *obj) : qobj(new myQApplication(obj, static_argc, static_argv))
       {
       }
 
@@ -56,6 +68,7 @@ class QoreQApplication : public QoreAbstractQObject
       {
 	 return static_cast<QObject *>(qobj);
       }
+      QORE_VIRTUAL_QOBJECT_METHODS
 };
 
 

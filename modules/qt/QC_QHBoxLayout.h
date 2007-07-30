@@ -32,16 +32,31 @@ DLLEXPORT extern int CID_QHBOXLAYOUT;
 
 DLLLOCAL class QoreClass *initQHBoxLayoutClass();
 
+class myQHBoxLayout : public QHBoxLayout
+{
+#define QOREQTYPE QHBoxLayout
+#include "qore-qt-metacode.h"
+#undef QOREQTYPE
+   DLLLOCAL myQHBoxLayout(Object *obj) : QHBoxLayout()
+   {
+      init(obj);
+   }
+   DLLLOCAL myQHBoxLayout(Object *obj, QWidget *parent) : QHBoxLayout(parent)
+   {
+      init(obj);
+   }
+};
+
 class QoreQHBoxLayout : public QoreAbstractQBoxLayout
 {
    public:
-      QPointer<QHBoxLayout> qobj;
+      QPointer<myQHBoxLayout> qobj;
 
-      DLLLOCAL QoreQHBoxLayout() : qobj(new QHBoxLayout)
+      DLLLOCAL QoreQHBoxLayout(Object *obj) : qobj(new myQHBoxLayout(obj))
       {
       }
 
-      DLLLOCAL QoreQHBoxLayout(QWidget *parent) : qobj(new QHBoxLayout(parent))
+      DLLLOCAL QoreQHBoxLayout(Object *obj, QWidget *parent) : qobj(new myQHBoxLayout(obj, parent))
       {
       }
       DLLLOCAL virtual QObject *getQObject() const
@@ -59,6 +74,7 @@ class QoreQHBoxLayout : public QoreAbstractQBoxLayout
 	 return static_cast<QBoxLayout *>(&(*qobj));
       }
 
+      QORE_VIRTUAL_QOBJECT_METHODS
 };
 
 #endif

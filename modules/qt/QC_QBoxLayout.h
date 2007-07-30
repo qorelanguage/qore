@@ -32,16 +32,31 @@ DLLEXPORT extern int CID_QBOXLAYOUT;
 
 DLLLOCAL class QoreClass *initQBoxLayoutClass();
 
+class myQBoxLayout : public QBoxLayout
+{
+#define QOREQTYPE QBoxLayout
+#include "qore-qt-metacode.h"
+#undef QOREQTYPE
+      DLLLOCAL myQBoxLayout(Object *obj, QBoxLayout::Direction dir) : QBoxLayout(dir)
+      {
+	 init(obj);
+      }
+      DLLLOCAL myQBoxLayout(Object *obj, QBoxLayout::Direction dir, QWidget *parent) : QBoxLayout(dir, parent)
+      {
+	 init(obj);
+      }
+};
+
 class QoreQBoxLayout : public QoreAbstractQBoxLayout
 {
    public:
-      QPointer<QBoxLayout> qobj;
+      QPointer<myQBoxLayout> qobj;
 
-      DLLLOCAL QoreQBoxLayout(QBoxLayout::Direction dir) : qobj(new QBoxLayout(dir))
+      DLLLOCAL QoreQBoxLayout(Object *obj, QBoxLayout::Direction dir) : qobj(new myQBoxLayout(obj, dir))
       {
       }
 
-      DLLLOCAL QoreQBoxLayout(QBoxLayout::Direction dir, QWidget *parent) : qobj(new QBoxLayout(dir, parent))
+      DLLLOCAL QoreQBoxLayout(Object *obj, QBoxLayout::Direction dir, QWidget *parent) : qobj(new myQBoxLayout(obj, dir, parent))
       {
       }
       DLLLOCAL virtual QObject *getQObject() const
@@ -59,6 +74,7 @@ class QoreQBoxLayout : public QoreAbstractQBoxLayout
 	 return static_cast<QBoxLayout *>(&(*qobj));
       }
 
+      QORE_VIRTUAL_QOBJECT_METHODS
 };
 
 #endif

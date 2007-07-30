@@ -247,6 +247,7 @@ noinst_HEADERS = \
 	modules/qt/QoreAbstractQBoxLayout.h \
 	modules/qt/QoreAbstractQObject.h \
 	modules/qt/QoreAbstractQWidget.h \
+	modules/qt/qore-qt-metacode.h \
 	command-line.h \
 	include/qore/Qore.h
 

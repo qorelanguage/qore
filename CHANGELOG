@@ -1,3 +1,9 @@
+2007.07.30: David Nichols
+	* qt: implemented dynamic signal and slot qore<->qt glue layer with
+	  support for a limited number of c-style data types
+	* qt: qore wrapper objects have the same lifetime as qt objects unless
+	  explicitly deleted
+
 2006.07.26: David Nichols
 	* ported a thread resource management fix from the qore 0.6.2 branch for
 	  the DatasourcePool class

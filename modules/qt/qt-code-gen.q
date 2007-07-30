@@ -238,6 +238,7 @@ sub main()
 		$lo += sprintf("   return new QoreNode((int64)%s);", $callstr); 
 		break;
 	    }
+	    case "qreal" :
 	    case "float" : {
 		$lo += sprintf("   return new QoreNode(%s);", $callstr); 
 		break;

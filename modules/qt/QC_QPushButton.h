@@ -32,15 +32,30 @@ DLLEXPORT extern int CID_QPUSHBUTTON;
 
 DLLLOCAL class QoreClass *initQPushButtonClass(class QoreClass *parent);
 
+class myQPushButton : public QPushButton
+{
+#define QOREQTYPE QPushButton
+#include "qore-qt-metacode.h"
+#undef QOREQTYPE
+      myQPushButton(Object *obj, const char *str, QWidget *parent = 0) : QPushButton(str, parent)
+      {
+	 init(obj);
+      }
+      myQPushButton(Object *obj, QWidget *parent = 0) : QPushButton(parent)
+      {
+	 init(obj);
+      }
+};
+
 class QoreQPushButton : public QoreAbstractQWidget
 {
    public:
-      QPointer<QPushButton> qobj;
+      QPointer<myQPushButton> qobj;
    
-      DLLLOCAL QoreQPushButton(const char *str, QWidget *parent = 0) : qobj(new QPushButton(str, parent))
+      DLLLOCAL QoreQPushButton(Object *obj, const char *str, QWidget *parent = 0) : qobj(new myQPushButton(obj, str, parent))
       {
       }
-      DLLLOCAL QoreQPushButton(QWidget *parent = 0) : qobj(new QPushButton(parent))
+      DLLLOCAL QoreQPushButton(Object *obj, QWidget *parent = 0) : qobj(new myQPushButton(obj, parent))
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const
@@ -51,6 +66,8 @@ class QoreQPushButton : public QoreAbstractQWidget
       {
 	 return static_cast<QWidget *>(&(*qobj));
       }
+
+      QORE_VIRTUAL_QOBJECT_METHODS
 };
 
 
