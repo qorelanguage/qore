@@ -66,6 +66,10 @@ class QoreQPushButton : public QoreAbstractQWidget
       {
 	 return static_cast<QWidget *>(&(*qobj));
       }
+      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
+      {
+         return static_cast<QPaintDevice *>(&(*qobj));
+      }
 
       QORE_VIRTUAL_QOBJECT_METHODS
 };

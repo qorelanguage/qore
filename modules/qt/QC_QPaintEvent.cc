@@ -1,0 +1,98 @@
+/*
+ QC_QPaintEvent.cc
+ 
+ Qore Programming Language
+ 
+ Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+ 
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+ 
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+ 
+ You should have received a copy of the GNU Lesser General Public
+ License along with this library; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ */
+
+#include <qore/Qore.h>
+
+#include "QC_QPaintEvent.h"
+#include "QC_QRegion.h"
+#include "QC_QRect.h"
+
+int CID_QPAINTEVENT;
+
+class QoreClass *QC_QPaintEvent = 0;
+
+static void QPAINTEVENT_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+{
+   QoreQPaintEvent *qr;
+
+   QoreNode *p = test_param(params, NT_OBJECT, 0);
+      
+   QoreQRect *rectangle = p ? (QoreQRect *)p->val.object->getReferencedPrivateData(CID_QRECT, xsink) : 0;
+   if (*xsink)
+      return;
+   if (!rectangle)
+   {
+      QoreQRegion *region = p ? (QoreQRegion *)p->val.object->getReferencedPrivateData(CID_QREGION, xsink) : 0;
+      if (!region) {
+	 if (!xsink->isException())
+	    xsink->raiseException("QPAINTEVENT-CONSTRUCTOR-ERROR", "Expecting a QRect or QRegion object as argument to QPaintEvent::constructor()");
+	 return ;
+      }
+      ReferenceHolder<QoreQRegion> holder(region, xsink);
+      qr = new QoreQPaintEvent(*region);
+   }
+   else {
+      ReferenceHolder<QoreQRect> holder(rectangle, xsink);
+      qr = new QoreQPaintEvent(*rectangle);
+   }
+
+   self->setPrivate(CID_QPAINTEVENT, qr);
+}
+
+static void QPAINTEVENT_copy(class Object *self, class Object *old, class QoreQPaintEvent *qr, ExceptionSink *xsink)
+{
+   xsink->raiseException("QPAINTEVENT-COPY-ERROR", "objects of this class cannot be copied");
+}
+
+//const QRect & rect () const
+static QoreNode *QPAINTEVENT_rect(Object *self, QoreQPaintEvent *qpe, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreQRect *q_qr = new QoreQRect(qpe->rect());
+   Object *o_qr = new Object(self->getClass(CID_QRECT), getProgram());
+   o_qr->setPrivate(CID_QRECT, q_qr);
+   return new QoreNode(o_qr);
+}
+
+//const QRegion & region () const
+static QoreNode *QPAINTEVENT_region(Object *self, QoreQPaintEvent *qpe, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreQRegion *q_qr = new QoreQRegion(qpe->region());
+   Object *o_qr = new Object(self->getClass(CID_QREGION), getProgram());
+   o_qr->setPrivate(CID_QREGION, q_qr);
+   return new QoreNode(o_qr);
+}
+
+class QoreClass *initQPaintEventClass()
+{
+   tracein("initQPaintEventClass()");
+   
+   QC_QPaintEvent = new QoreClass("QPaintEvent", QDOM_GUI);
+   CID_QPAINTEVENT = QC_QPaintEvent->getID();
+   QC_QPaintEvent->setConstructor(QPAINTEVENT_constructor);
+   QC_QPaintEvent->setCopy((q_copy_t)QPAINTEVENT_copy);
+
+   QC_QPaintEvent->addMethod("rect",                        (q_method_t)QPAINTEVENT_rect);
+   QC_QPaintEvent->addMethod("region",                      (q_method_t)QPAINTEVENT_region);
+
+   traceout("initQPaintEventClass()");
+   return QC_QPaintEvent;
+}

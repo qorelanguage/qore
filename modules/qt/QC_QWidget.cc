@@ -25,8 +25,31 @@
 #include "QC_QWidget.h"
 #include "QC_QFont.h"
 #include "QC_QLayout.h"
+#include "QC_QPalette.h"
+#include "QC_QPaintEvent.h"
 
 int CID_QWIDGET;
+
+void myQWidget::paintEvent(QPaintEvent *event) 
+{
+   if (!e_paintEvent)
+      return;
+
+   class ExceptionSink xsink;
+   // create argument list
+   Object *peo = new Object(QC_QPaintEvent, getProgram());
+   peo->setPrivate(CID_QPAINTEVENT, new QoreQPaintEvent(*event));
+   QoreNode *a = new QoreNode(peo);
+   List *args = new List();
+   args->push(a);
+   QoreNode *na = new QoreNode(args);
+
+   // call event method
+   e_paintEvent->eval(qore_obj, na, &xsink);
+
+   // delete arguments
+   na->deref(&xsink);
+}
 
 static void QW_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
@@ -790,20 +813,33 @@ static QoreNode *QW_setFixedWidth(class Object *self, QoreAbstractQWidget *qw, c
 }
 
 
-//void setFocus ( Qt::FocusReason reason )
-//static QoreNode *QW_setFocus(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
-//{
-//}
-
 //void setFocusPolicy ( Qt::FocusPolicy policy )
-//static QoreNode *QW_setFocusPolicy(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
-//{
-//}
+static QoreNode *QW_setFocusPolicy(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   Qt::FocusPolicy policy = (Qt::FocusPolicy)(p ? p->getAsInt() : 0);
+
+   qw->getQWidget()->setFocusPolicy(policy);
+   return 0;
+}
 
 //void setFocusProxy ( QWidget * w )
-//static QoreNode *QW_setFocusProxy(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
-//{
-//}
+static QoreNode *QW_setFocusProxy(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
+{
+   static QoreNode *p = test_param(params, NT_OBJECT, 0);
+   QoreAbstractQWidget *proxy = p ? (QoreAbstractQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+
+   if (!proxy)
+   {
+      if (!xsink->isException())
+	 xsink->raiseException("QWIDGET-SETFOCUSPROXY-ERROR", "expecting a QWidget object as sole argument to QWidget::setFocusProxy()");
+      return 0;
+   }
+
+   ReferenceHolder<QoreAbstractQWidget> holder(proxy, xsink);
+   qw->getQWidget()->setFocusProxy(proxy->getQWidget());
+   return 0;
+}
 
 //void setFont ( const QFont & )
 static QoreNode *QW_setFont(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
@@ -1019,9 +1055,21 @@ static QoreNode *QW_setMinimumWidth(class Object *self, QoreAbstractQWidget *qw,
 //}
 
 //void setPalette ( const QPalette & )
-//static QoreNode *QW_setPalette(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
-//{
-//}
+static QoreNode *QW_setPalette(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
+{
+   class QoreNode *p = test_param(params, NT_OBJECT, 0);
+   QoreQPalette *qp = p ? (QoreQPalette *)p->val.object->getReferencedPrivateData(CID_QPALETTE, xsink) : 0;
+   if (!qp)
+   {
+      if (!xsink->isException())
+         xsink->raiseException("QWIDGET-SETPALETTE-PARAM-ERROR", "expecting a QPalette object as argument to QWidget::setPalette()");
+      return 0;
+   }
+   ReferenceHolder<QoreQPalette> holder(qp, xsink);
+
+   qw->getQWidget()->setPalette(*qp);
+   return 0;
+}
 
 //void setParent ( QWidget * parent )
 //static QoreNode *QW_setParent(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
@@ -1414,10 +1462,17 @@ static QoreNode *QWIDGET_setEnabled(Object *self, QoreAbstractQWidget *qw, QoreN
    return 0;
 }
 
+// slot and method
 //void setFocus ()
 static QoreNode *QWIDGET_setFocus(Object *self, QoreAbstractQWidget *qw, QoreNode *params, ExceptionSink *xsink)
 {
-   qw->getQWidget()->setFocus();
+   QoreNode *p = get_param(params, 0);
+   if (is_nothing(p))
+      qw->getQWidget()->setFocus();
+   else {
+      Qt::FocusReason reason = (Qt::FocusReason)(p ? p->getAsInt() : 0);
+      qw->getQWidget()->setFocus(reason);
+   }
    return 0;
 }
 
@@ -1516,7 +1571,7 @@ static QoreNode *QWIDGET_update(Object *self, QoreAbstractQWidget *qw, QoreNode 
    return 0;
 }
 
-class QoreClass *initQWidgetClass(class QoreClass *qobject)
+class QoreClass *initQWidgetClass(class QoreClass *qobject, class QoreClass *qpaintdevice)
 {
    tracein("initQWidgetClass()");
    
@@ -1524,6 +1579,7 @@ class QoreClass *initQWidgetClass(class QoreClass *qobject)
    CID_QWIDGET = QC_QWidget->getID();
 
    QC_QWidget->addBuiltinVirtualBaseClass(qobject);
+   QC_QWidget->addBuiltinVirtualBaseClass(qpaintdevice);
 
    QC_QWidget->setConstructor(QW_constructor);
    QC_QWidget->setCopy((q_copy_t)QW_copy);
@@ -1646,9 +1702,8 @@ class QoreClass *initQWidgetClass(class QoreClass *qobject)
    QC_QWidget->addMethod("setFixedHeight",               (q_method_t)QW_setFixedHeight);
    QC_QWidget->addMethod("setFixedSize",                 (q_method_t)QW_setFixedSize);
    QC_QWidget->addMethod("setFixedWidth",                (q_method_t)QW_setFixedWidth);
-   //QC_QWidget->addMethod("setFocus",                     (q_method_t)QW_setFocus);
-   //QC_QWidget->addMethod("setFocusPolicy",               (q_method_t)QW_setFocusPolicy);
-   //QC_QWidget->addMethod("setFocusProxy",                (q_method_t)QW_setFocusProxy);
+   QC_QWidget->addMethod("setFocusPolicy",               (q_method_t)QW_setFocusPolicy);
+   QC_QWidget->addMethod("setFocusProxy",                (q_method_t)QW_setFocusProxy);
    QC_QWidget->addMethod("setFont",                      (q_method_t)QW_setFont);
    QC_QWidget->addMethod("setForegroundRole",            (q_method_t)QW_setForegroundRole);
    QC_QWidget->addMethod("setGeometry",                  (q_method_t)QW_setGeometry);
@@ -1665,7 +1720,7 @@ class QoreClass *initQWidgetClass(class QoreClass *qobject)
    QC_QWidget->addMethod("setMinimumSize",               (q_method_t)QW_setMinimumSize);
    QC_QWidget->addMethod("setMinimumWidth",              (q_method_t)QW_setMinimumWidth);
    //QC_QWidget->addMethod("setMouseTracking",             (q_method_t)QW_setMouseTracking);
-   //QC_QWidget->addMethod("setPalette",                   (q_method_t)QW_setPalette);
+   QC_QWidget->addMethod("setPalette",                   (q_method_t)QW_setPalette);
    //QC_QWidget->addMethod("setParent",                    (q_method_t)QW_setParent);
    //QC_QWidget->addMethod("setParent",                    (q_method_t)QW_setParent);
    //QC_QWidget->addMethod("setShortcutAutoRepeat",        (q_method_t)QW_setShortcutAutoRepeat);

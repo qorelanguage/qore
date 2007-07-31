@@ -40,11 +40,25 @@ class myQWidget : public QWidget
 #define QOREQTYPE QWidget
 #include "qore-qt-metacode.h"
 #undef QOREQTYPE
+
+   private:
+      // event methods
+      Method *e_paintEvent;
+
+      DLLLOCAL void local_init()
+      {
+	 QoreClass *qc = qore_obj->getClass();
+	 e_paintEvent = qc->findMethod("paintEvent");
+      }
+
    public:
       DLLLOCAL myQWidget(Object *obj, QWidget *parent = 0, Qt::WindowFlags window_flags = 0) : QWidget(parent, window_flags)
       {
 	 init(obj);
+	 local_init();
       }
+
+      DLLLOCAL virtual void paintEvent(QPaintEvent *event);
 };
 
 class QoreQWidget : public QoreAbstractQWidget
@@ -64,6 +78,11 @@ class QoreQWidget : public QoreAbstractQWidget
 	 //return static_cast<QWidget *>(&(*qobj));
 	 return &(*qobj);
       }
+      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
+      {
+	 return static_cast<QPaintDevice *>(&(*qobj));
+      }
+
       QORE_VIRTUAL_QOBJECT_METHODS
 };
 

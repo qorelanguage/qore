@@ -387,7 +387,19 @@ static QoreNode *QOBJECT_createSignal(Object *self, QoreAbstractQObject *qo, Qor
       return 0;
    }
 
-   qo->createSignal(p->val.String->getBuffer());
+   qo->createSignal(p->val.String->getBuffer(), xsink);
+   return 0;
+}
+
+static QoreNode *QOBJECT_emit(Object *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = test_param(params, NT_STRING, 0);
+   if (!p) {
+      xsink->raiseException("QOBJECT-EMIT-ERROR", "no string argument passed to QObject::emit()");
+      return 0;
+   }
+
+   qo->emit_signal(p->val.String->getBuffer(), params->val.list);
    return 0;
 }
 
@@ -432,6 +444,7 @@ class QoreClass *initQObjectClass()
 
    // custom methods
    QC_QObject->addMethod("createSignal",                (q_method_t)QOBJECT_createSignal);
+   QC_QObject->addMethod("emit",                        (q_method_t)QOBJECT_emit);
 
 
    traceout("initQObjectClass()");

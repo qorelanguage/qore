@@ -60,7 +60,27 @@ sub dlh($l)
     return substr($str, 0, -2);
 }
 
-sub do_class($arg, $name, $cn, $i)
+sub do_return_class($type, $callstr)
+{
+    $type =~ s/&//g;
+    my $cl = $type;
+    $cl =~ s/[a-z]//g;
+    $cl = tolower($cl);
+
+    my $lo = ();
+
+    my $utn = toupper($type);
+
+    $lo += "";
+    $lo += sprintf("   Qore%s *q_%s = new Qore%s(%s);", $type, $cl, $type, $callstr);
+    $lo += sprintf("   Object *o_%s = new Object(self->getClass(CID_%s), getProgram());", $cl, $utn);
+    $lo += sprintf("   o_%s->setPrivate(CID_%s, q_%s);", $cl, $utn, $cl);
+    $lo += sprintf("   return new QoreNode(o_%s);", $cl);
+
+    return $lo;
+}
+
+sub do_class($arg, $name, $cn, $i, $d)
 {
     my $lo = ();
     
@@ -68,10 +88,17 @@ sub do_class($arg, $name, $cn, $i)
     $type =~ s/\*//;
     my $utn = toupper($type);
 
-    $arg.get = sprintf("%s->get%s()", $arg.name, $type);
+    my $tcn = sprintf("Qore%s%s", $d ? "" : "Abstract", $type);
 
-    $lo += sprintf("   QoreAbstract%s *%s = (p && p->type == NT_OBJECT) ? (QoreAbstract%s *)p->val.object->getReferencedPrivateData(CID_%s, xsink) : 0;", 
-		   $type, $arg.name, $type, $utn);
+    $arg.get = 
+	$d 
+	? ($arg.ref 
+	   ? sprintf("*((%s *)%s)", $type, $arg.name) 
+	   : sprintf("(%s *)%s", $type, $arg.name)) 
+	: sprintf("%s->get%s()", $arg.name, $type);
+
+    $lo += sprintf("   %s *%s = (p && p->type == NT_OBJECT) ? (%s *)p->val.object->getReferencedPrivateData(CID_%s, xsink) : 0;", 
+		   $tcn, $arg.name, $tcn, $utn);
     $lo += sprintf("   if (!p || !%s)", $arg.name);
     $lo += "   {";
     $lo += "      if (!xsink->isException())";
@@ -79,7 +106,7 @@ sub do_class($arg, $name, $cn, $i)
 		   toupper($cn), toupper($name), $type, ordinal[$i], $cn, $name);
     $lo += "      return 0;";
     $lo += "   }";
-    $lo += sprintf("   ReferenceHolder<QoreAbstract%s> holder(%s, xsink);", $type, $arg.name);
+    $lo += sprintf("   ReferenceHolder<%s> holder(%s, xsink);", $tcn, $arg.name);
 
     return $lo;
 }
@@ -111,9 +138,9 @@ sub main()
     foreach my $p in ($l) {
 	my $t = $p;
 	$t =~ s/ \* /* /g;
-	$t =~ s/ & /& /;
-	$t =~ s/const / /;
-	$t =~ s/virtual / /;
+	$t =~ s/ & /& /g;
+	$t =~ s/const / /g;
+	$t =~ s/virtual / /g;
 	$t =~ s/\) const.*/)/; 
 	$t =~ s/ \*>/*>/;
 	$t =~ s/  / /;
@@ -125,6 +152,7 @@ sub main()
 	trim $args;
 	foreach my $arg in (\$args)
 	{
+	    #printf("arg=%n\n", $arg);
 	    $arg =~ s/const //;
 	    my ($ra, $def) = $arg =~ x/(.*)=(.*)/;
 	    if (exists $def)
@@ -138,8 +166,15 @@ sub main()
 		    $pname = "b";
 		else
 		    $pname = tolower($arg);
+		$arg =~ s/&//;
 	    }
-	    $arg = ( "type" : $type, "name" : $pname, "def" : $def );
+	    my $ref;
+	    if ($type =~ /&/) {
+		$type =~ s/&//;
+		$ref = True;
+	    }
+	    $arg = ( "type" : $type, "name" : $pname, "def" : $def, "ref" : $ref );
+	    #printf("%N\n", $arg);
 	}
 
 	$proto += ( "name" : $name, "rt" : $rt, "args" : $args, "orig" : $p, "funcname" : sprintf("%s_%s", $func_prefix, $name) );
@@ -161,6 +196,7 @@ sub main()
 	for (my $i = 0; $i < elements $p.args; ++$i) {
 	    $lo += sprintf("   %sp = get_param(params, %d);", $i ? "" : "QoreNode *", $i);
 	    switch ($p.args[$i].type) {
+		case "QRgb":
 		case "quint32":
 		case "int": {
 		    if ($p.args[$i].def)
@@ -181,7 +217,6 @@ sub main()
 		    $lo += sprintf("   float %s = p ? p->getAsFloat() : 0;", $p.args[$i].name);
 		    break;
 		}
-		case "QString&":
 		case "QString":
 		case "char*": {
 		    $lo += "   if (!p || p->type != NT_STRING) {";
@@ -192,6 +227,23 @@ sub main()
 		    $lo += sprintf("   const char *%s = p->val.String->getBuffer();", $p.args[$i].name);
 		    break;
 		}
+		case "QFont*":
+		case "QFont":
+		case "QRectF*":
+		case "QRectF":
+		case "QRect*":
+		case "QRect":
+		case "QRegion*":
+		case "QRegion":
+		case "QBrush*":
+		case "QBrush":
+		case "QColor*":
+		case "QColor": {
+		    $lo += do_class(\$p.args[$i], $p.name, $cn, $i, True);
+		    break;
+		}
+
+		case "QPaintDevice*":
 		case "QObject*":
 		case "QWidget*":
 		case "QLayout*": {
@@ -200,16 +252,22 @@ sub main()
 		}
 		
 	        default: {
-		    if ($p.args[$i].type !~ /\*/ && $p.args[$i].type !~ /&/) {
+		    if (!$p.args[$i].ref && $p.args[$i].type !~ /\*/ && $p.args[$i].type !~ /&/) {
 			if ($p.args[$i].def) {
 			    $lo += sprintf("   %s %s = (%s)(!is_nothing(p) ? p->getAsInt() : %d);" ,$p.args[$i].type, $p.args[$i].name,
 , $p.args[$i].type, $p.args[$i].def);
 			}
 			else
-			    $lo += sprintf("   %s %s = (%s)(p ? p->getAsInt() : 0);", $p.args[$i].type, $p.args[$i].name, $p.args[$i].type);
+			{
+			    # add class prefix to enum if not already present
+			    my $tn = $p.args[$i].type;
+			    if ($tn !~ /::/) 
+				$tn = $cn + "::" + $tn;
+			    $lo += sprintf("   %s %s = (%s)(p ? p->getAsInt() : 0);", $tn, $p.args[$i].name, $tn);
+			}
 		    }
 		    else {
-			#printf("DEBUG err arg type=%n\n", $p.args[$i].type);
+			#printf("DEBUG err arg type=%n (%n)\n", $p.args[$i].type, $p.args[$i]);
 			$lo += sprintf("   ??? %s %s = p;", $p.args[$i].type, $p.args[$i].name);
 			$p.ok = False;
 		    }
@@ -233,7 +291,9 @@ sub main()
 		$lo += sprintf("   return new QoreNode(%s);", $callstr); 
 		break;
 	    }
+	    case =~ m/::/:
 	    case "quint32" :
+	    case "QRgb":
 	    case "int" : {
 		$lo += sprintf("   return new QoreNode((int64)%s);", $callstr); 
 		break;
@@ -243,6 +303,17 @@ sub main()
 		$lo += sprintf("   return new QoreNode(%s);", $callstr); 
 		break;
 	    }
+	    case "QRegion":
+	    case "QRegion&":
+	    case "QRectF":
+	    case "QRectF&":
+	    case "QRect":
+	    case "QRect&":
+	    case "QColor":
+	    case "QColor&": {
+		$lo += do_return_class($p.rt, $callstr);
+		break;
+	    }		
 	    case "QString": {
 		$lo += sprintf("   return new QoreNode(new QoreString(%s.toUtf8().data(), QCS_UTF8));", $callstr); 
 		break;

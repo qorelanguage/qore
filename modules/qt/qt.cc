@@ -34,6 +34,14 @@
 #include "QC_QVBoxLayout.h"
 #include "QC_QHBoxLayout.h"
 #include "QC_QGridLayout.h"
+#include "QC_QBrush.h"
+#include "QC_QColor.h"
+#include "QC_QRect.h"
+#include "QC_QPalette.h"
+#include "QC_QPaintDevice.h"
+#include "QC_QPaintEvent.h"
+#include "QC_QPainter.h"
+#include "QC_QRegion.h"
 
 #include <QPalette>
 
@@ -56,7 +64,7 @@ DLLEXPORT qore_module_ns_init_t qore_module_ns_init = qt_module_ns_init;
 DLLEXPORT qore_module_delete_t qore_module_delete = qt_module_delete;
 #endif
 
-class QoreNode *f_QObject_connect(class QoreNode *params, class ExceptionSink *xsink)
+static class QoreNode *f_QObject_connect(class QoreNode *params, class ExceptionSink *xsink)
 {
    QoreNode *p = test_param(params, NT_OBJECT, 0);
    class AbstractPrivateData *spd = p ? p->val.object->getReferencedPrivateData(CID_QOBJECT, xsink) : NULL;
@@ -111,7 +119,7 @@ class QoreNode *f_QObject_connect(class QoreNode *params, class ExceptionSink *x
    return 0;
 }
 
-class QoreNode *f_SLOT(class QoreNode *params, class ExceptionSink *xsink)
+static class QoreNode *f_SLOT(class QoreNode *params, class ExceptionSink *xsink)
 {
    // get slot name
    QoreNode *p = test_param(params, NT_STRING, 0);
@@ -129,7 +137,7 @@ class QoreNode *f_SLOT(class QoreNode *params, class ExceptionSink *xsink)
    return new QoreNode(str);
 }
 
-class QoreNode *f_SIGNAL(class QoreNode *params, class ExceptionSink *xsink)
+static class QoreNode *f_SIGNAL(class QoreNode *params, class ExceptionSink *xsink)
 {
    // get slot name
    QoreNode *p = test_param(params, NT_STRING, 0);
@@ -147,7 +155,7 @@ class QoreNode *f_SIGNAL(class QoreNode *params, class ExceptionSink *xsink)
    return new QoreNode(str);
 }
 
-class QoreNode *f_TR(class QoreNode *params, class ExceptionSink *xsink)
+static class QoreNode *f_TR(class QoreNode *params, class ExceptionSink *xsink)
 {
    // get slot name
    QoreNode *p = test_param(params, NT_STRING, 0);
@@ -159,9 +167,57 @@ class QoreNode *f_TR(class QoreNode *params, class ExceptionSink *xsink)
    return new QoreNode(new QoreString(QObject::tr(p->val.String->getBuffer()).toUtf8().data(), QCS_UTF8));
 }
 
-class QoreNode *f_QAPP(class QoreNode *params, class ExceptionSink *xsink)
+static class QoreNode *f_QAPP(class QoreNode *params, class ExceptionSink *xsink)
 {
    return get_qore_qapp();
+}
+
+static class QoreNode *f_qDebug(class QoreNode *params, class ExceptionSink *xsink)
+{
+   class QoreString *str = q_sprintf(params, 0, 0, xsink);
+   if (*xsink) {
+      if (str)
+	 delete str;
+   }
+   else
+      qDebug(str->getBuffer());
+   return 0;
+}
+
+static class QoreNode *f_qWarning(class QoreNode *params, class ExceptionSink *xsink)
+{
+   class QoreString *str = q_sprintf(params, 0, 0, xsink);
+   if (*xsink) {
+      if (str)
+	 delete str;
+   }
+   else
+      qWarning(str->getBuffer());
+   return 0;
+}
+
+static class QoreNode *f_qCritical(class QoreNode *params, class ExceptionSink *xsink)
+{
+   class QoreString *str = q_sprintf(params, 0, 0, xsink);
+   if (*xsink) {
+      if (str)
+	 delete str;
+   }
+   else
+      qCritical(str->getBuffer());
+   return 0;
+}
+
+static class QoreNode *f_qFatal(class QoreNode *params, class ExceptionSink *xsink)
+{
+   class QoreString *str = q_sprintf(params, 0, 0, xsink);
+   if (*xsink) {
+      if (str)
+	 delete str;
+   }
+   else
+      qFatal(str->getBuffer());
+   return 0;
 }
 
 static class QoreString *qt_module_init()
@@ -171,6 +227,10 @@ static class QoreString *qt_module_init()
    builtinFunctions.add("SIGNAL",          f_SIGNAL);
    builtinFunctions.add("TR",              f_TR);
    builtinFunctions.add("QAPP",            f_QAPP);
+   builtinFunctions.add("qDebug",          f_qDebug);
+   builtinFunctions.add("qWarning",        f_qWarning);
+   builtinFunctions.add("qCritical",       f_qCritical);
+   builtinFunctions.add("qFatal",          f_qFatal);
    
    return 0;
 }
@@ -180,11 +240,13 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    class Namespace *qt = new Namespace("Qt");
 
     // the order is sensitive here as child classes need the parent IDs
-   class QoreClass *qobject, *qwidget, *qlayout, *qframe, *qboxlayout;
+   class QoreClass *qobject, *qwidget, *qlayout, *qframe, *qboxlayout, *qpaintdevice;
    qt->addSystemClass((qobject = initQObjectClass()));
    qt->addSystemClass(initQApplicationClass(qobject));
 
-   qt->addSystemClass((qwidget = initQWidgetClass(qobject)));
+   qt->addSystemClass((qpaintdevice = initQPaintDeviceClass()));
+
+   qt->addSystemClass((qwidget = initQWidgetClass(qobject, qpaintdevice)));
    qt->addSystemClass(initQPushButtonClass(qwidget));
 
    qt->addSystemClass((qframe = initQFrameClass(qwidget)));
@@ -197,6 +259,14 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addSystemClass((qboxlayout = initQBoxLayoutClass(qlayout)));
    qt->addSystemClass(initQVBoxLayoutClass(qboxlayout));
    qt->addSystemClass(initQHBoxLayoutClass(qboxlayout));
+
+   qt->addSystemClass(initQRectClass());
+   qt->addSystemClass(initQBrushClass());
+   qt->addSystemClass(initQColorClass());
+   qt->addSystemClass(initQPaletteClass());
+   qt->addSystemClass(initQPainterClass());
+   qt->addSystemClass(initQPaintEventClass());
+   qt->addSystemClass(initQRegionClass());
 
    qt->addSystemClass(initQFontClass());
 

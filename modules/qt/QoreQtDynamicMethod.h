@@ -1,0 +1,138 @@
+/*
+ QoreAbstractQObject.h
+ 
+ Qore Programming Language
+ 
+ Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+ 
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+ 
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+ 
+ You should have received a copy of the GNU Lesser General Public
+ License along with this library; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ */
+
+#ifndef _QORE_QOREQTDYNAMICMETHOD_H
+
+#define _QORE_QOREQTDYNAMICMETHOD_H
+
+#define QORE_VIRTUAL_QOBJECT_METHODS \
+   DLLLOCAL virtual int getSlotIndex(const QByteArray &theSlot, class ExceptionSink *xsink) {\
+      return qobj->getSlotIndex(theSlot, xsink);				\
+   } \
+   DLLLOCAL virtual int getSignalIndex(const QByteArray &theSignal) const { \
+      return qobj->getSignalIndex(theSignal);				\
+   } \
+   DLLLOCAL virtual int createSignal(const char *signal, class ExceptionSink *xsink) {	\
+      return qobj->createDynamicSignal(signal, xsink);			\
+   } \
+   DLLLOCAL virtual int connectDynamic(QoreAbstractQObject *sender, const char *signal, const char *slot, class ExceptionSink *xsink) { \
+      return qobj->connectDynamic(sender, signal, slot, xsink);		\
+   } \
+   DLLLOCAL virtual void emit_signal(const char *sig, List *args) { return qobj->emit_signal(sig, args); }
+
+#include <vector>
+
+#define QQT_TYPE_UNKNOWN  -1
+#define QQT_TYPE_VOID      0
+#define QQT_TYPE_INT       1
+#define QQT_TYPE_LONG      2
+#define QQT_TYPE_BOOL      3
+#define QQT_TYPE_FLOAT     4
+#define QQT_TYPE_DOUBLE    5
+#define QQT_TYPE_P_CHAR    6
+
+union qt_arg_u {
+      int t_int;
+      float t_float;
+      double t_double;
+      bool t_bool;
+
+      DLLLOCAL qt_arg_u()         {}
+      DLLLOCAL void set(int i)    { t_int = i; }
+      DLLLOCAL void set(float f)  { t_float = f; }
+      DLLLOCAL void set(double f) { t_double = f; }
+      DLLLOCAL void set(bool b)   { t_bool = b; }
+};
+
+typedef std::vector<int> type_list_t;
+
+struct QoreQtDynamicMethod {
+   protected:
+      type_list_t type_list;
+
+      DLLLOCAL static int get_type(const char *&p);
+
+   public:
+      virtual ~QoreQtDynamicMethod()
+      {
+      }
+};
+
+class QoreQtDynamicSlot : public QoreQtDynamicMethod
+{
+   private:
+      Object *qore_obj;
+      Method *method;
+      int return_type;
+
+      DLLLOCAL static Method *resolveMethod(Object *n_qore_obj, const char *name, class ExceptionSink *xsink);
+
+   public:
+      DLLLOCAL QoreQtDynamicSlot(Object *n_qore_obj, const char *sig, ExceptionSink *xsink);
+
+      DLLLOCAL virtual ~QoreQtDynamicSlot()
+      {
+      }
+
+      DLLLOCAL virtual void call(void **arguments);
+};
+
+struct QoreQtDynamicSignal : public QoreQtDynamicMethod
+{
+   private:
+
+   public:
+      DLLLOCAL QoreQtDynamicSignal(const char *sig, ExceptionSink *xsink);
+      DLLLOCAL virtual ~QoreQtDynamicSignal()
+      {
+      }
+      DLLLOCAL void emit_signal(QObject *obj, int id, List *args);
+};
+
+typedef std::vector<QoreQtDynamicMethod *> qore_qt_method_list_t;
+
+class DynamicMethodMap : public qore_qt_method_list_t
+{
+   private:
+
+   public:
+      DLLLOCAL ~DynamicMethodMap()
+      {
+	 for (qore_qt_method_list_t::iterator i = begin(), e = end(); i != e; ++i)
+	    delete *i;
+      }
+      DLLLOCAL int addMethod(QoreQtDynamicSlot *slot)
+      {
+	 int id = size();
+	 push_back(slot);
+	 return id;
+      }
+      DLLLOCAL int addMethod(QoreQtDynamicSignal *sig)
+      {
+	 int id = size();
+	 push_back(sig);
+	 return id;
+      }
+};
+
+
+#endif

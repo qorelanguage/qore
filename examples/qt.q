@@ -32,6 +32,7 @@ class LCDRange inherits QWidget
 	$layout.addWidget($lcd);
 	$layout.addWidget($.slider);
 	$.setLayout($layout);
+	$.setFocusProxy($.slider);
     }
 
     value()
@@ -53,6 +54,51 @@ class LCDRange inherits QWidget
     {
 	printf("testValueChanged(%n) called\n", $val); flush();
     }
+
+    setRange($minValue, $maxValue)
+    {
+	if ($minValue < 0 || $maxValue > 99 || $minValue > $maxValue) {
+	    qWarning("LCDRange::setRange(%d, %d)
+\tRange must be 0..99
+\tand minValue must not be greater than maxValue",
+		     $minValue, $maxValue);
+	    return;
+	}
+	$.slider.setRange($minValue, $maxValue);
+    }
+}
+
+class CannonField inherits QWidget
+{
+    private $.currentAngle;
+
+    constructor($parent) : QWidget($parent)
+    {
+	$.createSignal("angleChanged(int)");
+        $.currentAngle = 45;
+	$.setPalette(new QPalette(new QColor(250, 250, 200)));
+	$.setAutoFillBackground(True);
+    }
+
+    setAngle($angle)
+    {
+	#printf("CannonField::setAngle(%N) called\n", $angle);
+	if ($angle < 5)
+	    $angle = 5;
+	else if ($angle > 70)
+	    $angle = 70;
+	if ($.currentAngle == $angle)
+	    return;
+	$.currentAngle = $angle;
+	$.update();
+	$.emit("angleChanged(int)", $.currentAngle);
+    }
+
+    paintEvent()
+    {
+	my $painter = new QPainter($self);
+	$painter.drawText(20, 20, TR("Angle = ") + $.currentAngle);
+    }
 }
 
 class MyWidget inherits QWidget
@@ -64,22 +110,23 @@ class MyWidget inherits QWidget
 
 	QObject_connect($quit, SIGNAL("clicked()"), QAPP(), SLOT("quit()"));
 
-	my $grid = new QGridLayout();
-	my $previousRange;
-	for (my $row = 0; $row < 3; ++$row) {
-	    for (my $column = 0; $column < 3; ++$column) {
-		my $lcdRange = new LCDRange();
-		$grid.addWidget($lcdRange, $row, $column);
-		if (exists $previousRange)
-		    QObject_connect($lcdRange, SIGNAL("valueChanged(int)"), $previousRange, SLOT("setValue(int)"));
-		    #$previousRange.connect($lcdRange, SIGNAL("valueChanged(int)"), SLOT("setValue(int)"));
-		$previousRange = $lcdRange;
-	    }
-	}
-	my $layout = new QVBoxLayout();
-	$layout.addWidget($quit);
-	$layout.addLayout($grid);
-	$.setLayout($layout);
+	my $angle = new LCDRange();
+	$angle.setRange(5, 70);
+
+	my $cannonField = new CannonField();
+
+	QObject_connect($angle,       SIGNAL("valueChanged(int)"), $cannonField, SLOT("setAngle(int)"));
+	QObject_connect($cannonField, SIGNAL("angleChanged(int)"), $angle,       SLOT("setValue(int)"));
+
+	my $gridLayout = new QGridLayout();
+	$gridLayout.addWidget($quit, 0, 0);
+	$gridLayout.addWidget($angle, 1, 0);
+	$gridLayout.addWidget($cannonField, 1, 1, 2, 1);
+	$gridLayout.setColumnStretch(1, 10);
+	$.setLayout($gridLayout);
+
+	$angle.setValue(60);
+	$angle.setFocus();
     }
 }
 
@@ -88,6 +135,7 @@ class qt_example inherits QApplication
     constructor() {
 
 	my $widget = new MyWidget();
+	$widget.setGeometry(100, 100, 500, 355);
 	$widget.show();
 
 	$.exec();

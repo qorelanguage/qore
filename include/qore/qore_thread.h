@@ -49,6 +49,8 @@ typedef void (*qtrdest_t)(void *, class ExceptionSink *);
 DLLEXPORT extern class Operator *OP_BACKGROUND;
 
 DLLEXPORT int gettid();
+DLLEXPORT class QoreProgram *getProgram();
+
 DLLEXPORT extern class ThreadCleanupList tclist;
 
 // for thread resource handling
@@ -70,7 +72,6 @@ DLLLOCAL void update_parse_location(int start_line, int end_line, const char *f)
 DLLLOCAL bool inMethod(const char *name, class Object *o);
 DLLLOCAL void pushProgram(class QoreProgram *pgm);
 DLLLOCAL void popProgram();
-DLLLOCAL class QoreProgram *getProgram();
 DLLLOCAL class RootNamespace *getRootNS();
 DLLLOCAL int getParseOptions();
 DLLLOCAL void updateCVarStack(class CVNode *ncvs);
