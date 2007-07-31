@@ -26,7 +26,8 @@
 
 #include <QRegion>
 
-extern int CID_QREGION;
+DLLLOCAL extern int CID_QREGION;
+DLLLOCAL extern class QoreClass *QC_QRegion;
 
 DLLLOCAL class QoreClass *initQRegionClass();
 

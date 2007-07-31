@@ -303,6 +303,7 @@ sub main()
 		$lo += sprintf("   return new QoreNode(%s);", $callstr); 
 		break;
 	    }
+	    case "QWidget*":
 	    case "QRegion":
 	    case "QRegion&":
 	    case "QRectF":

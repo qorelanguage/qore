@@ -419,6 +419,58 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addConstant("Vertical",        new QoreNode((int64)Qt::Vertical));
    qt->addConstant("Horizontal",      new QoreNode((int64)Qt::Horizontal));
 
+   // PenStyle enum
+   qt->addConstant("NoPen",             new QoreNode((int64)Qt::NoPen));
+   qt->addConstant("SolidLine",         new QoreNode((int64)Qt::SolidLine));
+   qt->addConstant("DashLine",          new QoreNode((int64)Qt::DashLine));
+   qt->addConstant("DotLine",           new QoreNode((int64)Qt::DotLine));
+   qt->addConstant("DashDotLine",       new QoreNode((int64)Qt::DashDotLine));
+   qt->addConstant("DashDotDotLine",    new QoreNode((int64)Qt::DashDotDotLine));
+   qt->addConstant("CustomDashLine",    new QoreNode((int64)Qt::CustomDashLine));
+
+   // GlobalColor enum
+   qt->addConstant("color0",            new QoreNode((int64)Qt::color0));
+   qt->addConstant("color1",            new QoreNode((int64)Qt::color1));
+   qt->addConstant("black",             new QoreNode((int64)Qt::black));
+   qt->addConstant("white",             new QoreNode((int64)Qt::white));
+   qt->addConstant("darkGray",          new QoreNode((int64)Qt::darkGray));
+   qt->addConstant("gray",              new QoreNode((int64)Qt::gray));
+   qt->addConstant("lightGray",         new QoreNode((int64)Qt::lightGray));
+   qt->addConstant("red",               new QoreNode((int64)Qt::red));
+   qt->addConstant("green",             new QoreNode((int64)Qt::green));
+   qt->addConstant("blue",              new QoreNode((int64)Qt::blue));
+   qt->addConstant("cyan",              new QoreNode((int64)Qt::cyan));
+   qt->addConstant("magenta",           new QoreNode((int64)Qt::magenta));
+   qt->addConstant("yellow",            new QoreNode((int64)Qt::yellow));
+   qt->addConstant("darkRed",           new QoreNode((int64)Qt::darkRed));
+   qt->addConstant("darkGreen",         new QoreNode((int64)Qt::darkGreen));
+   qt->addConstant("darkBlue",          new QoreNode((int64)Qt::darkBlue));
+   qt->addConstant("darkCyan",          new QoreNode((int64)Qt::darkCyan));
+   qt->addConstant("darkMagenta",       new QoreNode((int64)Qt::darkMagenta));
+   qt->addConstant("darkYellow",        new QoreNode((int64)Qt::darkYellow));
+   qt->addConstant("transparent",       new QoreNode((int64)Qt::transparent));
+
+   // BrushStyle enum
+   qt->addConstant("NoBrush",                  new QoreNode((int64)Qt::NoBrush));
+   qt->addConstant("SolidPattern",             new QoreNode((int64)Qt::SolidPattern));
+   qt->addConstant("Dense1Pattern",            new QoreNode((int64)Qt::Dense1Pattern));
+   qt->addConstant("Dense2Pattern",            new QoreNode((int64)Qt::Dense2Pattern));
+   qt->addConstant("Dense3Pattern",            new QoreNode((int64)Qt::Dense3Pattern));
+   qt->addConstant("Dense4Pattern",            new QoreNode((int64)Qt::Dense4Pattern));
+   qt->addConstant("Dense5Pattern",            new QoreNode((int64)Qt::Dense5Pattern));
+   qt->addConstant("Dense6Pattern",            new QoreNode((int64)Qt::Dense6Pattern));
+   qt->addConstant("Dense7Pattern",            new QoreNode((int64)Qt::Dense7Pattern));
+   qt->addConstant("HorPattern",               new QoreNode((int64)Qt::HorPattern));
+   qt->addConstant("VerPattern",               new QoreNode((int64)Qt::VerPattern));
+   qt->addConstant("CrossPattern",             new QoreNode((int64)Qt::CrossPattern));
+   qt->addConstant("BDiagPattern",             new QoreNode((int64)Qt::BDiagPattern));
+   qt->addConstant("FDiagPattern",             new QoreNode((int64)Qt::FDiagPattern));
+   qt->addConstant("DiagCrossPattern",         new QoreNode((int64)Qt::DiagCrossPattern));
+   qt->addConstant("LinearGradientPattern",    new QoreNode((int64)Qt::LinearGradientPattern));
+   qt->addConstant("RadialGradientPattern",    new QoreNode((int64)Qt::RadialGradientPattern));
+   qt->addConstant("ConicalGradientPattern",   new QoreNode((int64)Qt::ConicalGradientPattern));
+   qt->addConstant("TexturePattern",           new QoreNode((int64)Qt::TexturePattern));
+
    qns->addInitialNamespace(qt);
 }
 

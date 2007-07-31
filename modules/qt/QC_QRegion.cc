@@ -26,6 +26,7 @@
 #include "QC_QColor.h"
 
 DLLLOCAL int CID_QREGION;
+DLLLOCAL class QoreClass *QC_QRegion = 0;
 
 static void QREGION_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
@@ -286,7 +287,7 @@ class QoreClass *initQRegionClass()
 {
    tracein("initQRegionClass()");
    
-   class QoreClass *QC_QRegion = new QoreClass("QRegion", QDOM_GUI);
+   QC_QRegion = new QoreClass("QRegion", QDOM_GUI);
    CID_QREGION = QC_QRegion->getID();
    QC_QRegion->setConstructor(QREGION_constructor);
    QC_QRegion->setCopy((q_copy_t)QREGION_copy);

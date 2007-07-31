@@ -97,6 +97,15 @@ class CannonField inherits QWidget
     paintEvent()
     {
 	my $painter = new QPainter($self);
+	$painter.setPen(Qt::NoPen);
+	my $brush = new QBrush(Qt::SolidPattern );
+	$brush.setColor(Qt::blue);
+	$painter.setBrush($brush);
+	$painter.translate(0, $.rect().height());
+	$painter.drawPie(new QRect(-35, -35, 70, 70), 0, 90 * 16);
+	$painter.rotate(-$.currentAngle);
+	$painter.drawRect(new QRect(30, -5, 20, 10));
+
 	$painter.drawText(20, 20, TR("Angle = ") + $.currentAngle);
     }
 }
