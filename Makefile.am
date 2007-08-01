@@ -247,6 +247,9 @@ noinst_HEADERS = \
 	modules/qt/QoreAbstractQBoxLayout.h \
 	modules/qt/QoreAbstractQObject.h \
 	modules/qt/QoreAbstractQWidget.h \
+	modules/qt/QoreAbstractQFrame.h \
+	modules/qt/QoreAbstractQPixmap.h \
+	modules/qt/QoreAbstractQPaintDevice.h \
 	modules/qt/qore-qt-metacode.h \
 	modules/qt/QC_QBrush.h \
 	modules/qt/QC_QColor.h \
@@ -260,6 +263,14 @@ noinst_HEADERS = \
 	modules/qt/QC_QPaintEvent.h \
 	modules/qt/QoreQtDynamicMethod.h \
 	modules/qt/QC_QTimer.h \
+	modules/qt/QC_QLabel.h \
+	modules/qt/QC_QPicture.h \
+	modules/qt/QC_QPixmap.h \
+	modules/qt/QC_QMovie.h \
+	modules/qt/QC_QBitmap.h \
+	modules/qt/QC_QDateTime.h \
+	modules/qt/QC_QDate.h \
+	modules/qt/QC_QTime.h \
 	command-line.h \
 	include/qore/Qore.h
 

@@ -48,7 +48,7 @@ class myQLCDNumber : public QLCDNumber
       }
 };
 
-class QoreQLCDNumber : public QoreAbstractQWidget
+class QoreQLCDNumber : public QoreAbstractQFrame
 {
    public:
       QPointer<myQLCDNumber>qobj;
@@ -66,6 +66,10 @@ class QoreQLCDNumber : public QoreAbstractQWidget
       DLLLOCAL virtual QWidget *getQWidget() const
       {
 	 return static_cast<QWidget *>(&(*qobj));
+      }
+      DLLLOCAL virtual QFrame *getQFrame() const
+      {
+	 return static_cast<QFrame *>(&(*qobj));
       }
       DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
       {

@@ -72,8 +72,6 @@ static class QoreNode *QA_exec(class Object *self, class QoreQApplication *qa, c
    return 0;
 }
 
-typedef QoreNode *(*qa_func_t)(Object *, QoreQApplication *, QoreNode *, ExceptionSink *);
-
 class QoreClass *initQApplicationClass(class QoreClass *qobject)
 {
    tracein("initQApplicationClass()");

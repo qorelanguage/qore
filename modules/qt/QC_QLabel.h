@@ -1,5 +1,5 @@
 /*
- QC_QFrame.h
+ QC_QLabel.h
  
  Qore Programming Language
  
@@ -20,35 +20,43 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _QORE_QC_QFRAME_H
+#ifndef _QORE_QC_QLABEL_H
 
-#define _QORE_QC_QFRAME_H
+#define _QORE_QC_QLABEL_H
 
 #include "QoreAbstractQFrame.h"
 
-#include <QFrame>
+#include <QLabel>
 
-DLLEXPORT extern int CID_QFRAME;
+DLLEXPORT extern int CID_QLABEL;
 
-DLLLOCAL class QoreClass *initQFrameClass(class QoreClass *parent);
+DLLLOCAL class QoreClass *initQLabelClass(class QoreClass *qframe);
 
-class myQFrame : public QFrame
+class myQLabel : public QLabel
 {
-#define QOREQTYPE QFrame
+#define QOREQTYPE QLabel
 #include "qore-qt-metacode.h"
 #undef QOREQTYPE
-      DLLLOCAL myQFrame(Object *obj, QWidget *parent = 0, Qt::WindowFlags window_flags = 0) : QFrame(parent, window_flags)
+   public:
+      DLLLOCAL myQLabel(Object *obj, QWidget *parent = 0, Qt::WindowFlags f = 0) : QLabel(parent, f)
+      {
+	 init(obj);
+      }
+      DLLLOCAL myQLabel(Object *obj, const char *text, QWidget *parent = 0, Qt::WindowFlags f = 0) : QLabel(text, parent, f)
       {
 	 init(obj);
       }
 };
 
-class QoreQFrame : public QoreAbstractQFrame
+class QoreQLabel : public QoreAbstractQFrame
 {
    public:
-      QPointer<myQFrame>qobj;
+      QPointer<myQLabel>qobj;
 
-      DLLLOCAL QoreQFrame(Object *obj, QWidget *parent = 0, Qt::WindowFlags window_flags = 0) : qobj(new myQFrame(obj, parent, window_flags))
+      DLLLOCAL QoreQLabel(Object *obj, QWidget *parent = 0, Qt::WindowFlags f = 0) : qobj(new myQLabel(obj, parent, f))
+      {
+      }
+      DLLLOCAL QoreQLabel(Object *obj, const char *text, QWidget *parent = 0, Qt::WindowFlags f = 0) : qobj(new myQLabel(obj, text, parent, f))
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const
@@ -61,7 +69,7 @@ class QoreQFrame : public QoreAbstractQFrame
       }
       DLLLOCAL virtual QFrame *getQFrame() const
       {
-	 return static_cast<QFrame *>(&(*qobj));
+         return static_cast<QFrame *>(&(*qobj));
       }
       DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
       {
@@ -69,6 +77,7 @@ class QoreQFrame : public QoreAbstractQFrame
       }
 
       QORE_VIRTUAL_QOBJECT_METHODS
+
 };
 
 #endif

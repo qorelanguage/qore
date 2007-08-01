@@ -8,7 +8,7 @@
 
 class LCDRange inherits QWidget
 {
-    constructor($parent) : QWidget($parent)
+    constructor($text, $parent) : QWidget($parent)
     {
 	my $lcd = new QLCDNumber(2);
 	$lcd.setSegmentStyle(QLCDNumber::Filled);
@@ -19,6 +19,10 @@ class LCDRange inherits QWidget
 	$.slider = new QSlider(Qt::Horizontal);
 	$.slider.setRange(0, 99);
 	$.slider.setValue(0);
+	
+	$.label = new QLabel();
+	$.label.setAlignment(Qt::AlignHCenter | Qt::AlignTop);
+
 	QObject_connect($.slider, SIGNAL("valueChanged(int)"), $lcd, SLOT("display(int)"));
 	QObject_connect($.slider, SIGNAL("valueChanged(int)"), $self, SIGNAL("valueChanged(int)"));
 
@@ -31,8 +35,10 @@ class LCDRange inherits QWidget
 	my $layout = new QVBoxLayout();
 	$layout.addWidget($lcd);
 	$layout.addWidget($.slider);
+	$layout.addWidget($.label);
 	$.setLayout($layout);
 	$.setFocusProxy($.slider);
+	$.setText($text);
     }
 
     value()
@@ -66,16 +72,29 @@ class LCDRange inherits QWidget
 	}
 	$.slider.setRange($minValue, $maxValue);
     }
+
+    text()
+    {
+	return $.label.text();
+    }
+
+    setText($text)
+    {
+	$.label.setText($text);
+    }
 }
 
 class CannonField inherits QWidget
 {
-    private $.currentAngle, $.currentForce, $.timerCount, $.autoShootTimer, $.shootAngle, $.shootForce;
+    private $.currentAngle, $.currentForce, $.timerCount, $.autoShootTimer, $.shootAngle, $.shootForce, $.target;
 
     constructor($parent) : QWidget($parent)
     {
 	$.createSignal("angleChanged(int)");
 	$.createSignal("forceChanged(int)");
+	$.createSignal("hit()");
+	$.createSignal("missed()");
+
         $.currentAngle = 45;
 	$.currentForce = 0;
 
@@ -85,8 +104,20 @@ class CannonField inherits QWidget
 	$.shootAngle = 0;
 	$.shootForce = 0;
 
+	$.target = new QPoint(0, 0);
 	$.setPalette(new QPalette(new QColor(250, 250, 200)));
 	$.setAutoFillBackground(True);
+	$.newTarget();
+    }
+
+    newTarget()
+    {
+	if ($firstTime) {
+	    $firstTime = False;
+	    qsrand(now());
+	}
+	$.target = new QPoint(200 + qrand() % 190, 10 + qrand() % 255);
+	$.update();
     }
 
     setAngle($angle)
@@ -117,8 +148,18 @@ class CannonField inherits QWidget
     {
 	my $painter = new QPainter($self);
 	$.paintCannon($painter);
+	$.paintTarget($painter);
 	if ($.autoShootTimer.isActive())
 	    $.paintShot($painter);
+    }
+
+    paintTarget($painter)
+    {
+	my $brush = new QBrush(Qt::SolidPattern);
+	$brush.setColor(Qt::red);
+	$painter.setBrush($brush);
+	$painter.setPen(0);
+	$painter.drawRect($.targetRect());
     }
 
     paintCannon($painter)
@@ -169,12 +210,16 @@ class CannonField inherits QWidget
 	
 	my $shotR = $.shotRect();
 	
-	if ($shotR.x() > $.width() || $shotR.y
-	    () > $.height()) {
+	if ($shotR.intersects($.targetRect())) {
 	    $.autoShootTimer.stop();
-	} else {
+	    $.emit("hit()");
+	} else if ($shotR.x() > $.width() || $shotR.y
+		   () > $.height()) {
+	    $.autoShootTimer.stop();
+	    $.emit("missed()");
+	} else
 	    $region = $region.united($shotR);
-	}
+
 	$.update($region);
     }
 
@@ -197,6 +242,14 @@ class CannonField inherits QWidget
 	$result.moveCenter(new QPoint(qRound($x), $.height() - 1 - qRound($y)));
 	return $result;
     }
+
+    targetRect()
+    {
+	my $result = new QRect(0, 0, 20, 10);
+	$result.moveCenter(new QPoint($.target.x(), $.height() - 1 - $.target.y
+				      ()));
+	return $result;
+    }
 }
 
 class MyWidget inherits QWidget
@@ -208,7 +261,7 @@ class MyWidget inherits QWidget
 
 	QObject_connect($quit, SIGNAL("clicked()"), QAPP(), SLOT("quit()"));
 
-	my $angle = new LCDRange();
+	my $angle = new LCDRange(TR("ANGLE"));
 	$angle.setRange(5, 70);
 
 	my $cannonField = new CannonField();
@@ -216,7 +269,7 @@ class MyWidget inherits QWidget
 	QObject_connect($angle,       SIGNAL("valueChanged(int)"), $cannonField, SLOT("setAngle(int)"));
 	QObject_connect($cannonField, SIGNAL("angleChanged(int)"), $angle,       SLOT("setValue(int)"));
 
-	my $force = new LCDRange();
+	my $force = new LCDRange(TR("FORCE"));
 	$force.setRange(10, 50);
 
 	$cannonField.connect($force, SIGNAL("valueChanged(int)"), SLOT("setForce(int)"));
@@ -252,6 +305,8 @@ class qt_example inherits QApplication
 {
     constructor() {
 
+	our $firstTime = True;
+	
 	our $barrelRect = new QRect(30, -5, 20, 10);
 
 	my $widget = new MyWidget();

@@ -33,7 +33,7 @@
 
 DLLEXPORT extern int CID_QWIDGET;
 
-DLLLOCAL class QoreClass *initQWidgetClass(class QoreClass *parent);
+DLLLOCAL class QoreClass *initQWidgetClass(class QoreClass *qobject, class QoreClass *qpaintdevice);
 
 class myQWidget : public QWidget
 {

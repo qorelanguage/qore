@@ -1,5 +1,5 @@
 /*
- QC_QColor.h
+ QC_QBitmap.h
  
  Qore Programming Language
  
@@ -20,39 +20,42 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _QORE_QC_QCOLOR_H
+#ifndef _QORE_QC_QBITMAP_H
 
-#define _QORE_QC_QCOLOR_H
+#define _QORE_QC_QBITMAP_H
 
-#include <QColor>
+#include "QoreAbstractQPaintDevice.h"
 
-DLLLOCAL extern int CID_QCOLOR;
-DLLLOCAL extern QoreClass *QC_QColor;
+#include <QBitmap>
 
-DLLLOCAL class QoreClass *initQColorClass();
+DLLLOCAL extern int CID_QBITMAP;
+DLLLOCAL extern QoreClass *QC_QBitmap;
 
-class QoreQColor : public AbstractPrivateData, public QColor
+DLLLOCAL class QoreClass *initQBitmapClass(class QoreClass *qpaintdevice);
+
+class QoreQBitmap : public AbstractPrivateData, public QoreAbstractQPaintDevice, public QBitmap
 {
    public:
-      DLLLOCAL QoreQColor()
+      DLLLOCAL QoreQBitmap(int w, int h) : QBitmap(w, h)
       {
       }
-      DLLLOCAL QoreQColor(int r, int g, int b, int a = 255) : QColor(r, g, b, a)
+      DLLLOCAL QoreQBitmap(const char *filename, const char *format = 0) : QBitmap(filename, format)
       {
       }
-      DLLLOCAL QoreQColor(const char *name) : QColor(name)
+      DLLLOCAL QoreQBitmap(const QPixmap &pix) : QBitmap(pix)
       {
       }
-      DLLLOCAL QoreQColor(Qt::GlobalColor globalcolor) : QColor(globalcolor)
+      DLLLOCAL QoreQBitmap(const QBitmap &bitmap) : QBitmap(bitmap)
       {
       }
-      DLLLOCAL QoreQColor(QRgb rgb) : QColor(rgb)
+      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
       {
+         return static_cast<QPaintDevice *>(const_cast<QoreQBitmap *>(this));
       }
-      DLLLOCAL QoreQColor(const QColor &color) : QColor(color)
+      DLLLOCAL virtual QPixmap *getQPixmap() const
       {
+         return static_cast<QPixmap *>(const_cast<QoreQBitmap *>(this));
       }
 };
-
 
 #endif

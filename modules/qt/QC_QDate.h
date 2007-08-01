@@ -1,11 +1,9 @@
 /*
- QC_QLayout.h
+ QC_QDate.h
  
  Qore Programming Language
  
  Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
-
- Abstract class for QT
  
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
@@ -22,16 +20,30 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _QORE_QC_QLAYOUT_H
+#ifndef _QORE_QC_QDATE_H
 
-#define _QORE_QC_QLAYOUT_H
+#define _QORE_QC_QDATE_H
 
-#include "QoreAbstractQLayout.h"
+#include <QDate>
 
-#include <QLayout>
+DLLLOCAL extern int CID_QDATE;
+DLLLOCAL extern QoreClass *QC_QDate;
 
-DLLEXPORT extern int CID_QLAYOUT;
+DLLLOCAL class QoreClass *initQDateClass();
 
-DLLLOCAL class QoreClass *initQLayoutClass(class QoreClass *qobject);
+class QoreQDate : public AbstractPrivateData, public QDate
+{
+   public:
+      DLLLOCAL QoreQDate()
+      {
+      }
+      DLLLOCAL QoreQDate(const QDate &date) : QDate(date)
+      {
+      }
+      DLLLOCAL QoreQDate(int y, int m, int d) : QDate(y, m, d)
+      {
+      }
+};
+
 
 #endif

@@ -1,11 +1,9 @@
 /*
- QC_QLayout.h
+ QoreAbstractQPixmap.h
  
  Qore Programming Language
  
  Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
-
- Abstract class for QT
  
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
@@ -22,16 +20,15 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _QORE_QC_QLAYOUT_H
+#ifndef _QORE_QOREABSTRACTQPIXMAP_H
 
-#define _QORE_QC_QLAYOUT_H
+#define _QORE_QOREABSTRACTQPIXMAP_H
 
-#include "QoreAbstractQLayout.h"
+class QoreAbstractQPixmap : public QoreAbstractQPaintDevice
+{
+   public:
+      DLLLOCAL virtual QPixmap *getQPixmap() const = 0;
 
-#include <QLayout>
-
-DLLEXPORT extern int CID_QLAYOUT;
-
-DLLLOCAL class QoreClass *initQLayoutClass(class QoreClass *qobject);
+};
 
 #endif

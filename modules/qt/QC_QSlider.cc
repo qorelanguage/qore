@@ -212,7 +212,7 @@ static class QoreNode *QSLIDER_value(class Object *self, class QoreQSlider *qs, 
    return new QoreNode((int64)qs->qobj->value());
 }
 
-class QoreClass *initQSliderClass(class QoreClass *qframe)
+class QoreClass *initQSliderClass(class QoreClass *qwidget)
 {
    tracein("initQSliderClass()");
    
@@ -220,7 +220,7 @@ class QoreClass *initQSliderClass(class QoreClass *qframe)
 
    CID_QSLIDER = QC_QSlider->getID();
 
-   QC_QSlider->addBuiltinVirtualBaseClass(qframe);
+   QC_QSlider->addBuiltinVirtualBaseClass(qwidget);
 
    QC_QSlider->setConstructor(QSLIDER_constructor);
    QC_QSlider->setCopy((q_copy_t)QSLIDER_copy);

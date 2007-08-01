@@ -30,7 +30,7 @@
 
 DLLEXPORT extern int CID_QTIMER;
 
-DLLLOCAL class QoreClass *initQTimerClass();
+DLLLOCAL class QoreClass *initQTimerClass(class QoreClass *qobject);
 
 class myQTimer : public QTimer
 {

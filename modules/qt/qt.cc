@@ -44,6 +44,16 @@
 #include "QC_QPoint.h"
 #include "QC_QRegion.h"
 #include "QC_QTimer.h"
+#include "QC_QLabel.h"
+#include "QC_QSlider.h"
+#include "QC_QPicture.h"
+#include "QC_QPixmap.h"
+#include "QC_QBitmap.h"
+#include "QC_QMovie.h"
+#include "QC_QImage.h"
+#include "QC_QDateTime.h"
+#include "QC_QDate.h"
+#include "QC_QTime.h"
 
 #include <QPalette>
 
@@ -228,6 +238,18 @@ static class QoreNode *f_qRound(class QoreNode *params, class ExceptionSink *xsi
    return new QoreNode((int64)qRound(p ? p->getAsFloat() : 0.0));
 }
 
+static class QoreNode *f_qsrand(class QoreNode *params, class ExceptionSink *xsink)
+{
+   class QoreNode *p = get_param(params, 0);
+   qsrand(p ? p->getAsInt() : 0);
+   return 0;
+}
+
+static class QoreNode *f_qrand(class QoreNode *params, class ExceptionSink *xsink)
+{
+   return new QoreNode((int64)qrand());
+}
+
 static class QoreString *qt_module_init()
 {
    builtinFunctions.add("QObject_connect", f_QObject_connect);
@@ -240,6 +262,8 @@ static class QoreString *qt_module_init()
    builtinFunctions.add("qCritical",       f_qCritical);
    builtinFunctions.add("qFatal",          f_qFatal);
    builtinFunctions.add("qRound",          f_qRound);
+   builtinFunctions.add("qsrand",          f_qsrand);
+   builtinFunctions.add("qrand",           f_qrand);
    
    return 0;
 }
@@ -249,18 +273,25 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    class Namespace *qt = new Namespace("Qt");
 
     // the order is sensitive here as child classes need the parent IDs
-   class QoreClass *qobject, *qwidget, *qlayout, *qframe, *qboxlayout, *qpaintdevice;
+   class QoreClass *qobject, *qwidget, *qlayout, *qframe, *qboxlayout, *qpaintdevice, *qpixmap;
    qt->addSystemClass((qobject = initQObjectClass()));
    qt->addSystemClass(initQApplicationClass(qobject));
+   qt->addSystemClass(initQMovieClass(qobject));
 
    qt->addSystemClass((qpaintdevice = initQPaintDeviceClass()));
+   qt->addSystemClass(initQPictureClass(qpaintdevice));
+   qt->addSystemClass(initQImageClass(qpaintdevice));
+
+   qt->addSystemClass((qpixmap = initQPixmapClass(qpaintdevice)));
+   qt->addSystemClass(initQBitmapClass(qpixmap));
 
    qt->addSystemClass((qwidget = initQWidgetClass(qobject, qpaintdevice)));
    qt->addSystemClass(initQPushButtonClass(qwidget));
+   qt->addSystemClass(initQSliderClass(qwidget));
 
    qt->addSystemClass((qframe = initQFrameClass(qwidget)));
    qt->addSystemClass(initQLCDNumberClass(qframe));
-   qt->addSystemClass(initQSliderClass(qframe));
+   qt->addSystemClass(initQLabelClass(qframe));
 
    qt->addSystemClass((qlayout = initQLayoutClass(qobject)));
    qt->addSystemClass(initQGridLayoutClass(qlayout));
@@ -279,6 +310,10 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addSystemClass(initQPaintEventClass());
    qt->addSystemClass(initQRegionClass());
    qt->addSystemClass(initQPointClass());
+
+   qt->addSystemClass(initQDateTimeClass());
+   qt->addSystemClass(initQDateClass());
+   qt->addSystemClass(initQTimeClass());
 
    qt->addSystemClass(initQFontClass());
 
@@ -482,6 +517,21 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addConstant("RadialGradientPattern",    new QoreNode((int64)Qt::RadialGradientPattern));
    qt->addConstant("ConicalGradientPattern",   new QoreNode((int64)Qt::ConicalGradientPattern));
    qt->addConstant("TexturePattern",           new QoreNode((int64)Qt::TexturePattern));
+
+   // AlignmentFlag enum
+   qt->addConstant("AlignLeft",                new QoreNode((int64)Qt::AlignLeft));
+   qt->addConstant("AlignLeading",             new QoreNode((int64)Qt::AlignLeading));
+   qt->addConstant("AlignRight",               new QoreNode((int64)Qt::AlignRight));
+   qt->addConstant("AlignTrailing",            new QoreNode((int64)Qt::AlignTrailing));
+   qt->addConstant("AlignHCenter",             new QoreNode((int64)Qt::AlignHCenter));
+   qt->addConstant("AlignJustify",             new QoreNode((int64)Qt::AlignJustify));
+   qt->addConstant("AlignAbsolute",            new QoreNode((int64)Qt::AlignAbsolute));
+   qt->addConstant("AlignHorizontal_Mask",     new QoreNode((int64)Qt::AlignHorizontal_Mask));
+   qt->addConstant("AlignTop",                 new QoreNode((int64)Qt::AlignTop));
+   qt->addConstant("AlignBottom",              new QoreNode((int64)Qt::AlignBottom));
+   qt->addConstant("AlignVCenter",             new QoreNode((int64)Qt::AlignVCenter));
+   qt->addConstant("AlignVertical_Mask",       new QoreNode((int64)Qt::AlignVertical_Mask));
+   qt->addConstant("AlignCenter",              new QoreNode((int64)Qt::AlignCenter));
 
    qns->addInitialNamespace(qt);
 }

@@ -1,5 +1,5 @@
 /*
- QC_QColor.h
+ QC_QPixmap.h
  
  Qore Programming Language
  
@@ -20,39 +20,39 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _QORE_QC_QCOLOR_H
+#ifndef _QORE_QC_QPIXMAP_H
 
-#define _QORE_QC_QCOLOR_H
+#define _QORE_QC_QPIXMAP_H
 
-#include <QColor>
+#include "QoreAbstractQPixmap.h"
 
-DLLLOCAL extern int CID_QCOLOR;
-DLLLOCAL extern QoreClass *QC_QColor;
+#include <QPixmap>
 
-DLLLOCAL class QoreClass *initQColorClass();
+DLLLOCAL extern int CID_QPIXMAP;
+DLLLOCAL extern QoreClass *QC_QPixmap;
 
-class QoreQColor : public AbstractPrivateData, public QColor
+DLLLOCAL class QoreClass *initQPixmapClass(class QoreClass *qpaintdevice);
+
+class QoreQPixmap : public AbstractPrivateData, public QoreAbstractQPixmap, public QPixmap
 {
    public:
-      DLLLOCAL QoreQColor()
+      DLLLOCAL QoreQPixmap(int w, int h) : QPixmap(w, h)
       {
       }
-      DLLLOCAL QoreQColor(int r, int g, int b, int a = 255) : QColor(r, g, b, a)
+      DLLLOCAL QoreQPixmap(const char *filename, const char *format = 0, Qt::ImageConversionFlags flags = Qt::AutoColor) : QPixmap(filename, format, flags)
       {
       }
-      DLLLOCAL QoreQColor(const char *name) : QColor(name)
+      DLLLOCAL QoreQPixmap(const QPixmap &pix) : QPixmap(pix)
       {
       }
-      DLLLOCAL QoreQColor(Qt::GlobalColor globalcolor) : QColor(globalcolor)
+      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
       {
+         return static_cast<QPaintDevice *>(const_cast<QoreQPixmap *>(this));
       }
-      DLLLOCAL QoreQColor(QRgb rgb) : QColor(rgb)
+      DLLLOCAL virtual QPixmap *getQPixmap() const
       {
-      }
-      DLLLOCAL QoreQColor(const QColor &color) : QColor(color)
-      {
+         return static_cast<QPixmap *>(const_cast<QoreQPixmap *>(this));
       }
 };
-
 
 #endif

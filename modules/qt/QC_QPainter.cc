@@ -34,9 +34,12 @@ static void QPAINTER_constructor(class Object *self, class QoreNode *params, Exc
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT)
    {
-      QoreAbstractQObject *qpd = p ? (QoreAbstractQObject *)p->val.object->getReferencedPrivateData(CID_QPAINTDEVICE, xsink) : 0;
-      if (qpd) {
-	 ReferenceHolder<QoreAbstractQObject> holder(qpd, xsink);
+      AbstractPrivateData *apd = p->val.object->getReferencedPrivateData(CID_QPAINTDEVICE, xsink);
+      if (apd) {
+	 ReferenceHolder<AbstractPrivateData> holder(apd, xsink);
+	 QoreAbstractQPaintDevice *qpd = dynamic_cast<QoreAbstractQPaintDevice *>(apd);
+	 assert(qpd);
+	 //printd(5, "apd=%08p qpb=%08p\n", apd, qpd);
 	 qp = new QoreQPainter(qpd->getQPaintDevice());
       }
       else {
@@ -71,14 +74,18 @@ static QoreNode *QPAINTER_backgroundMode(Object *self, QoreQPainter *qp, QoreNod
 static QoreNode *QPAINTER_begin(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreAbstractQObject *device = (p && p->type == NT_OBJECT) ? (QoreAbstractQObject *)p->val.object->getReferencedPrivateData(CID_QPAINTDEVICE, xsink) : 0;
-   if (!p || !device)
+
+   AbstractPrivateData *apd = (p && p->type == NT_OBJECT) ? p->val.object->getReferencedPrivateData(CID_QPAINTDEVICE, xsink) : 0;
+   if (!apd)
    {
       if (!xsink->isException())
          xsink->raiseException("QPAINTER-BEGIN-PARAM-ERROR", "expecting a QPaintDevice object as first argument to QPainter::begin()");
       return 0;
    }
-   ReferenceHolder<QoreAbstractQObject> holder(device, xsink);
+
+   ReferenceHolder<AbstractPrivateData> holder(apd, xsink);
+   QoreAbstractQPaintDevice *device = dynamic_cast<QoreAbstractQPaintDevice *>(apd);
+   assert(device);
    return new QoreNode(qp->begin(device->getQPaintDevice()));
 }
 

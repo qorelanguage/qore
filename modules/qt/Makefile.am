@@ -4,7 +4,14 @@ pkglibdir = $(libdir)/@PACKAGE@-@VERSION@
 if COND_SINGLE_COMPILATION_UNIT
 QT_SOURCES = single-compilation-unit.cc
 else
-QT_SOURCES = qt.cc QC_Qobject.cc QC_QApplication.cc QC_QPushButton.cc QC_QFont.cc QC_QWidget.cc QC_QFrame.cc QC_QLCDNumber.cc QC_QSlider.cc QC_QLayout.cc QC_QBoxLayout.cc QC_QVBoxLayout.cc QC_QHBoxLayout.cc QC_QGridLayout.cc QC_QBrush.cc QC_QColor.cc QC_QPaintDevice.cc QC_QRect.cc QC_QRectF.cc QC_QPainter.cc QC_QPalette.cc QoreQtDynamicMethod.cc QC_QRegion.cc QC_QPaintEvent.cc QC_QPoint.cc QC_QTimer.cc
+QT_SOURCES = qt.cc QC_Qobject.cc QC_QApplication.cc QC_QPushButton.cc QC_QFont.cc \
+	QC_QWidget.cc QC_QFrame.cc QC_QLCDNumber.cc QC_QSlider.cc QC_QLayout.cc \
+	QC_QBoxLayout.cc QC_QVBoxLayout.cc QC_QHBoxLayout.cc QC_QGridLayout.cc \
+	QC_QBrush.cc QC_QColor.cc QC_QPaintDevice.cc QC_QRect.cc QC_QRectF.cc \
+	QC_QPainter.cc QC_QPalette.cc QoreQtDynamicMethod.cc QC_QRegion.cc \
+	QC_QPaintEvent.cc QC_QPoint.cc QC_QTimer.cc QC_QLabel.cc QC_QPicture.cc \
+	QC_QPixmap.cc QC_QMovie.cc QC_QBitmap.cc QC_QImage.cc QC_QDateTime.cc \
+	QC_QDate.cc QC_QTime.cc
 endif
 
 if COND_MONOLITHIC

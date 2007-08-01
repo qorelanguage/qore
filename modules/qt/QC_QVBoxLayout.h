@@ -30,7 +30,7 @@
 
 DLLEXPORT extern int CID_QVBOXLAYOUT;
 
-DLLLOCAL class QoreClass *initQVBoxLayoutClass();
+DLLLOCAL class QoreClass *initQVBoxLayoutClass(class QoreClass *qboxlayout);
 
 class myQVBoxLayout : public QVBoxLayout
 {

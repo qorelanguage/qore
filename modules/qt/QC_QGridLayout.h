@@ -30,7 +30,7 @@
 
 DLLEXPORT extern int CID_QGRIDLAYOUT;
 
-DLLLOCAL class QoreClass *initQGridLayoutClass();
+DLLLOCAL class QoreClass *initQGridLayoutClass(class QoreClass *qlayout);
 
 class myQGridLayout : public QGridLayout
 {

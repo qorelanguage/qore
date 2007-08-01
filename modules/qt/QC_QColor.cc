@@ -23,7 +23,8 @@
 #include <qore/Qore.h>
 #include "QC_QColor.h"
 
-DLLLOCAL int CID_QCOLOR;
+int CID_QCOLOR;
+QoreClass *QC_QColor = 0;
 
 static void QCOLOR_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
@@ -560,7 +561,7 @@ class QoreClass *initQColorClass()
 {
    tracein("initQColorClass()");
    
-   class QoreClass *QC_QColor = new QoreClass("QColor", QDOM_GUI);
+   QC_QColor = new QoreClass("QColor", QDOM_GUI);
    CID_QCOLOR = QC_QColor->getID();
    QC_QColor->setConstructor(QCOLOR_constructor);
    QC_QColor->setCopy((q_copy_t)QCOLOR_copy);

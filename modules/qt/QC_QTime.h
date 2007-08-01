@@ -1,11 +1,9 @@
 /*
- QC_QLayout.h
+ QC_QTime.h
  
  Qore Programming Language
  
  Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
-
- Abstract class for QT
  
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
@@ -22,16 +20,30 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _QORE_QC_QLAYOUT_H
+#ifndef _QORE_QC_QTIME_H
 
-#define _QORE_QC_QLAYOUT_H
+#define _QORE_QC_QTIME_H
 
-#include "QoreAbstractQLayout.h"
+#include <QTime>
 
-#include <QLayout>
+DLLLOCAL extern int CID_QTIME;
+DLLLOCAL extern QoreClass *QC_QTime;
 
-DLLEXPORT extern int CID_QLAYOUT;
+DLLLOCAL class QoreClass *initQTimeClass();
 
-DLLLOCAL class QoreClass *initQLayoutClass(class QoreClass *qobject);
+class QoreQTime : public AbstractPrivateData, public QTime
+{
+   public:
+      DLLLOCAL QoreQTime()
+      {
+      }
+      DLLLOCAL QoreQTime(const QTime &time) : QTime(time)
+      {
+      }
+      DLLLOCAL QoreQTime(int h, int m, int s = 0, int ms = 0) : QTime(h, m, s, ms)
+      {
+      }
+};
+
 
 #endif

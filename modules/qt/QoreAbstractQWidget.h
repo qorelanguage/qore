@@ -25,8 +25,9 @@
 #define _QORE_QOREABSTRACTQWIDGET_H
 
 #include "QoreAbstractQObject.h"
+#include "QoreAbstractQPaintDevice.h"
 
-class QoreAbstractQWidget : public QoreAbstractQObject
+class QoreAbstractQWidget : public QoreAbstractQObject, public QoreAbstractQPaintDevice
 {
    public:
       DLLLOCAL virtual QWidget *getQWidget() const = 0;

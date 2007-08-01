@@ -36,73 +36,73 @@ static void QPAINTDEVICE_copy(class Object *self, class Object *old, class QoreQ
 }
 
 //int depth () const
-static QoreNode *QPAINTDEVICE_depth(Object *self, QoreAbstractQObject *qpd, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTDEVICE_depth(Object *self, QoreAbstractQPaintDevice *qpd, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qpd->getQPaintDevice()->depth());
 }
 
 //int height () const
-static QoreNode *QPAINTDEVICE_height(Object *self, QoreAbstractQObject *qpd, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTDEVICE_height(Object *self, QoreAbstractQPaintDevice *qpd, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qpd->getQPaintDevice()->height());
 }
 
 //int heightMM () const
-static QoreNode *QPAINTDEVICE_heightMM(Object *self, QoreAbstractQObject *qpd, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTDEVICE_heightMM(Object *self, QoreAbstractQPaintDevice *qpd, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qpd->getQPaintDevice()->heightMM());
 }
 
 //int logicalDpiX () const
-static QoreNode *QPAINTDEVICE_logicalDpiX(Object *self, QoreAbstractQObject *qpd, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTDEVICE_logicalDpiX(Object *self, QoreAbstractQPaintDevice *qpd, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qpd->getQPaintDevice()->logicalDpiX());
 }
 
 //int logicalDpiY () const
-static QoreNode *QPAINTDEVICE_logicalDpiY(Object *self, QoreAbstractQObject *qpd, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTDEVICE_logicalDpiY(Object *self, QoreAbstractQPaintDevice *qpd, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qpd->getQPaintDevice()->logicalDpiY());
 }
 
 //int numColors () const
-static QoreNode *QPAINTDEVICE_numColors(Object *self, QoreAbstractQObject *qpd, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTDEVICE_numColors(Object *self, QoreAbstractQPaintDevice *qpd, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qpd->getQPaintDevice()->numColors());
 }
 
 //virtual QPaintEngine * paintEngine () const = 0
-//static QoreNode *QPAINTDEVICE_paintEngine(Object *self, QoreAbstractQObject *qpd, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QPAINTDEVICE_paintEngine(Object *self, QoreAbstractQPaintDevice *qpd, QoreNode *params, ExceptionSink *xsink)
 //{
 //   ??? return qpd->getQPaintDevice()->paintEngine();
 //}
 
 //bool paintingActive () const
-static QoreNode *QPAINTDEVICE_paintingActive(Object *self, QoreAbstractQObject *qpd, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTDEVICE_paintingActive(Object *self, QoreAbstractQPaintDevice *qpd, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qpd->getQPaintDevice()->paintingActive());
 }
 
 //int physicalDpiX () const
-static QoreNode *QPAINTDEVICE_physicalDpiX(Object *self, QoreAbstractQObject *qpd, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTDEVICE_physicalDpiX(Object *self, QoreAbstractQPaintDevice *qpd, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qpd->getQPaintDevice()->physicalDpiX());
 }
 
 //int physicalDpiY () const
-static QoreNode *QPAINTDEVICE_physicalDpiY(Object *self, QoreAbstractQObject *qpd, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTDEVICE_physicalDpiY(Object *self, QoreAbstractQPaintDevice *qpd, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qpd->getQPaintDevice()->physicalDpiY());
 }
 
 //int width () const
-static QoreNode *QPAINTDEVICE_width(Object *self, QoreAbstractQObject *qpd, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTDEVICE_width(Object *self, QoreAbstractQPaintDevice *qpd, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qpd->getQPaintDevice()->width());
 }
 
 //int widthMM () const
-static QoreNode *QPAINTDEVICE_widthMM(Object *self, QoreAbstractQObject *qpd, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTDEVICE_widthMM(Object *self, QoreAbstractQPaintDevice *qpd, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qpd->getQPaintDevice()->widthMM());
 }

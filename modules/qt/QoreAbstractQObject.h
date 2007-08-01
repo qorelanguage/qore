@@ -39,8 +39,6 @@ class QoreAbstractQObject : public AbstractPrivateData
    public:
 
       DLLLOCAL virtual class QObject *getQObject() const = 0;
-      // this version of the function should never be called 
-      DLLLOCAL virtual class QPaintDevice *getQPaintDevice() const { assert(false); return 0; }
 
       // for dynamic signals and slots
       DLLLOCAL virtual int getSlotIndex(const QByteArray &theSlot, class ExceptionSink *xsink) = 0;
