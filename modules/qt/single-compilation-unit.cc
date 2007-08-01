@@ -20,5 +20,6 @@
 #include "QC_QPalette.cc"
 #include "QC_QRegion.cc"
 #include "QC_QPaintEvent.cc"
+#include "QC_QPoint.cc"
 #include "QoreQtDynamicMethod.cc"
 #include "qt.cc"

@@ -41,6 +41,7 @@
 #include "QC_QPaintDevice.h"
 #include "QC_QPaintEvent.h"
 #include "QC_QPainter.h"
+#include "QC_QPoint.h"
 #include "QC_QRegion.h"
 
 #include <QPalette>
@@ -267,6 +268,7 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addSystemClass(initQPainterClass());
    qt->addSystemClass(initQPaintEventClass());
    qt->addSystemClass(initQRegionClass());
+   qt->addSystemClass(initQPointClass());
 
    qt->addSystemClass(initQFontClass());
 

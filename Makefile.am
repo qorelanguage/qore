@@ -255,6 +255,7 @@ noinst_HEADERS = \
 	modules/qt/QC_QRect.h \
 	modules/qt/QC_QRectF.h \
 	modules/qt/QC_QPainter.h \
+	modules/qt/QC_QPoint.h \
 	modules/qt/QC_QPalette.h \
 	modules/qt/QC_QPaintEvent.h \
 	modules/qt/QoreQtDynamicMethod.h \

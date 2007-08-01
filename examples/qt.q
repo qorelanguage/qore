@@ -70,12 +70,14 @@ class LCDRange inherits QWidget
 
 class CannonField inherits QWidget
 {
-    private $.currentAngle;
+    private $.currentAngle, $.currentForce;
 
     constructor($parent) : QWidget($parent)
     {
 	$.createSignal("angleChanged(int)");
+	$.createSignal("forceChanged(int)");
         $.currentAngle = 45;
+	$.currentForce = 0;
 	$.setPalette(new QPalette(new QColor(250, 250, 200)));
 	$.setAutoFillBackground(True);
     }
@@ -90,8 +92,18 @@ class CannonField inherits QWidget
 	if ($.currentAngle == $angle)
 	    return;
 	$.currentAngle = $angle;
-	$.update();
+	$.update($.cannonRect());
 	$.emit("angleChanged(int)", $.currentAngle);
+    }
+
+    setForce($force)
+    {
+	if ($force < 0)
+	    $force = 0;
+	if ($.currentForce == $force)
+	    return;
+	$.currentForce = $force;
+	$.emit("forceChanged(int)", $.currentForce);
     }
 
     paintEvent()
@@ -101,12 +113,20 @@ class CannonField inherits QWidget
 	my $brush = new QBrush(Qt::SolidPattern );
 	$brush.setColor(Qt::blue);
 	$painter.setBrush($brush);
+
 	$painter.translate(0, $.rect().height());
 	$painter.drawPie(new QRect(-35, -35, 70, 70), 0, 90 * 16);
 	$painter.rotate(-$.currentAngle);
 	$painter.drawRect(new QRect(30, -5, 20, 10));
 
-	$painter.drawText(20, 20, TR("Angle = ") + $.currentAngle);
+	#$painter.drawText(20, 20, TR("Angle = ") + $.currentAngle);
+    }
+
+    cannonRect()
+    {
+	my $result = new QRect(0, 0, 50, 50);
+	$result.moveBottomLeft($.rect().bottomLeft());
+	return $result;
     }
 }
 
@@ -127,12 +147,24 @@ class MyWidget inherits QWidget
 	QObject_connect($angle,       SIGNAL("valueChanged(int)"), $cannonField, SLOT("setAngle(int)"));
 	QObject_connect($cannonField, SIGNAL("angleChanged(int)"), $angle,       SLOT("setValue(int)"));
 
+	my $force = new LCDRange();
+	$force.setRange(10, 50);
+
+	$cannonField.connect($force, SIGNAL("valueChanged(int)"), SLOT("setForce(int)"));
+	$force.connect($cannonField, SIGNAL("forceChanged(int)"), SLOT("setValue(int)"));
+	
+	my $leftLayout = new QVBoxLayout();
+	$leftLayout.addWidget($angle);
+	$leftLayout.addWidget($force);
+
 	my $gridLayout = new QGridLayout();
 	$gridLayout.addWidget($quit, 0, 0);
-	$gridLayout.addWidget($angle, 1, 0);
+	$gridLayout.addLayout($leftLayout, 1, 0);
 	$gridLayout.addWidget($cannonField, 1, 1, 2, 1);
 	$gridLayout.setColumnStretch(1, 10);
 	$.setLayout($gridLayout);
+
+	$force.setValue(25);
 
 	$angle.setValue(60);
 	$angle.setFocus();
