@@ -217,10 +217,10 @@ static QoreNode *QPIXMAP_fill(Object *self, QoreQPixmap *qp, QoreNode *params, E
 }
 
 //Qt::HANDLE handle () const
-static QoreNode *QPIXMAP_handle(Object *self, QoreQPixmap *qp, QoreNode *params, ExceptionSink *xsink)
-{
-   return new QoreNode((int64)qp->handle());
-}
+//static QoreNode *QPIXMAP_handle(Object *self, QoreQPixmap *qp, QoreNode *params, ExceptionSink *xsink)
+//{
+//   return new QoreNode((int64)qp->handle());
+//}
 
 //bool hasAlpha () const
 static QoreNode *QPIXMAP_hasAlpha(Object *self, QoreQPixmap *qp, QoreNode *params, ExceptionSink *xsink)
@@ -497,7 +497,7 @@ class QoreClass *initQPixmapClass(class QoreClass *qpaintdevice)
    QC_QPixmap->addMethod("depth",                       (q_method_t)QPIXMAP_depth);
    QC_QPixmap->addMethod("detach",                      (q_method_t)QPIXMAP_detach);
    QC_QPixmap->addMethod("fill",                        (q_method_t)QPIXMAP_fill);
-   QC_QPixmap->addMethod("handle",                      (q_method_t)QPIXMAP_handle);
+   //QC_QPixmap->addMethod("handle",                      (q_method_t)QPIXMAP_handle);
    QC_QPixmap->addMethod("hasAlpha",                    (q_method_t)QPIXMAP_hasAlpha);
    QC_QPixmap->addMethod("hasAlphaChannel",             (q_method_t)QPIXMAP_hasAlphaChannel);
    QC_QPixmap->addMethod("height",                      (q_method_t)QPIXMAP_height);
