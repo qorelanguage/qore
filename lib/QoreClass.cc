@@ -1562,7 +1562,7 @@ void QoreClass::addMethod(Method *m)
    // (system objects without explicit destructors have an implicit default system destructor that cannot be overridden)
    if (parseFindMethod(m->getName()) || (sys && dst))
    {
-      parse_error("method '%s::%s()' has already been defined", name, m->getName());
+      parse_error("method '%s::%s()' has already been defined", name ? name : "<pending>", m->getName());
       delete m;
    }
    else

@@ -43,6 +43,7 @@
 #include "QC_QPainter.h"
 #include "QC_QPoint.h"
 #include "QC_QRegion.h"
+#include "QC_QTimer.h"
 
 #include <QPalette>
 
@@ -221,6 +222,12 @@ static class QoreNode *f_qFatal(class QoreNode *params, class ExceptionSink *xsi
    return 0;
 }
 
+static class QoreNode *f_qRound(class QoreNode *params, class ExceptionSink *xsink)
+{
+   class QoreNode *p = get_param(params, 0);
+   return new QoreNode((int64)qRound(p ? p->getAsFloat() : 0.0));
+}
+
 static class QoreString *qt_module_init()
 {
    builtinFunctions.add("QObject_connect", f_QObject_connect);
@@ -232,6 +239,7 @@ static class QoreString *qt_module_init()
    builtinFunctions.add("qWarning",        f_qWarning);
    builtinFunctions.add("qCritical",       f_qCritical);
    builtinFunctions.add("qFatal",          f_qFatal);
+   builtinFunctions.add("qRound",          f_qRound);
    
    return 0;
 }
@@ -260,6 +268,8 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addSystemClass((qboxlayout = initQBoxLayoutClass(qlayout)));
    qt->addSystemClass(initQVBoxLayoutClass(qboxlayout));
    qt->addSystemClass(initQHBoxLayoutClass(qboxlayout));
+
+   qt->addSystemClass(initQTimerClass(qobject));
 
    qt->addSystemClass(initQRectClass());
    qt->addSystemClass(initQBrushClass());

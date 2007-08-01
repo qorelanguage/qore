@@ -131,21 +131,24 @@ QoreQtDynamicSlot::QoreQtDynamicSlot(Object *n_qore_obj, const char *sig, Except
       return_type = get_type(tmp);
    }
    ++p;
-   while (p && *p) {
-      int tc = get_type(p);
-      if (tc == QQT_TYPE_UNKNOWN) {
-	 QoreString *desc = new QoreString("cannot resolve argument type '");
-	 char *x = strchrs(p, " ,)");
-	 if (x)
-	    desc->concat(p, x - p);
-	 else
-	    desc->concat("unknown");
-	 desc->sprintf("' in '%s'", sig);
-	 xsink->raiseException("DYNAMIC-SLOT-ERROR", desc);
-	 break;
+   while (*p && isblank(*p))
+      ++p;
+   if (*p != ')') 
+      while (*p) {
+	 int tc = get_type(p);
+	 if (tc == QQT_TYPE_UNKNOWN) {
+	    QoreString *desc = new QoreString("cannot resolve argument type '");
+	    char *x = strchrs(p, " ,)");
+	    if (x)
+	       desc->concat(p, x - p);
+	    else
+	       desc->concat("unknown");
+	    desc->sprintf("' in '%s'", sig);
+	    xsink->raiseException("DYNAMIC-SLOT-ERROR", desc);
+	    break;
+	 }
+	 type_list.push_back(tc);
       }
-      type_list.push_back(tc);
-   }
 }
 
 void QoreQtDynamicSlot::call(void **arguments)
@@ -209,9 +212,16 @@ QoreQtDynamicSignal::QoreQtDynamicSignal(const char *sig, ExceptionSink *xsink)
    // process signature
    const char *p = strchr(sig, '(');
 
-   assert(p);
+   if (!p) {
+      xsink->raiseException("DYNAMIC-SIGNAL-ERROR", "invalid signal signature '%s'", sig);
+      return;
+   }
 
    ++p;
+   while (*p && isblank(*p))
+      ++p;
+   if (*p != ')') 
+
    while (*p) {
       int at = get_type(p);
       if (at == QQT_TYPE_UNKNOWN) {

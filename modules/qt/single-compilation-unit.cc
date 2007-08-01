@@ -21,5 +21,6 @@
 #include "QC_QRegion.cc"
 #include "QC_QPaintEvent.cc"
 #include "QC_QPoint.cc"
+#include "QC_QTimer.cc"
 #include "QoreQtDynamicMethod.cc"
 #include "qt.cc"

@@ -364,6 +364,7 @@ BINARY          <({HEX_DIGIT}{HEX_DIGIT})+>
                                            char *cn = trim(yytext);
 					   //printf("setting class name to: '%s'\n", cn);
 	 				   getProgram()->setExecClass(cn);
+					   getProgram()->parseSetParseOptions(PO_NO_TOP_LEVEL_STATEMENTS);
 					   free(cn);
 					   BEGIN(INITIAL);
                                         }

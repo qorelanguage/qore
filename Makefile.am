@@ -259,6 +259,7 @@ noinst_HEADERS = \
 	modules/qt/QC_QPalette.h \
 	modules/qt/QC_QPaintEvent.h \
 	modules/qt/QoreQtDynamicMethod.h \
+	modules/qt/QC_QTimer.h \
 	command-line.h \
 	include/qore/Qore.h
 
