@@ -471,10 +471,10 @@ static QoreNode *QPIXMAP_width(Object *self, QoreQPixmap *qp, QoreNode *params, 
 //}
 
 //Qt::HANDLE x11PictureHandle () const
-static QoreNode *QPIXMAP_x11PictureHandle(Object *self, QoreQPixmap *qp, QoreNode *params, ExceptionSink *xsink)
-{
-   return new QoreNode((int64)qp->x11PictureHandle());
-}
+//static QoreNode *QPIXMAP_x11PictureHandle(Object *self, QoreQPixmap *qp, QoreNode *params, ExceptionSink *xsink)
+//{
+//   return new QoreNode((int64)qp->x11PictureHandle());
+//}
 
 class QoreClass *initQPixmapClass(class QoreClass *qpaintdevice)
 {
@@ -520,7 +520,7 @@ class QoreClass *initQPixmapClass(class QoreClass *qpaintdevice)
    //QC_QPixmap->addMethod("transformed",                 (q_method_t)QPIXMAP_transformed);
    QC_QPixmap->addMethod("width",                       (q_method_t)QPIXMAP_width);
    //QC_QPixmap->addMethod("x11Info",                     (q_method_t)QPIXMAP_x11Info);
-   QC_QPixmap->addMethod("x11PictureHandle",            (q_method_t)QPIXMAP_x11PictureHandle);
+   //QC_QPixmap->addMethod("x11PictureHandle",            (q_method_t)QPIXMAP_x11PictureHandle);
 
 
    traceout("initQPixmapClass()");
