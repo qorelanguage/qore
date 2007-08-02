@@ -24,6 +24,7 @@
 
 #include "QC_QPainter.h"
 #include "QC_QColor.h"
+#include "QC_QBrush.h"
 
 DLLLOCAL int CID_QPAINTER;
 
@@ -59,10 +60,13 @@ static void QPAINTER_copy(class Object *self, class Object *old, class QoreQPain
 }
 
 //const QBrush & background () const
-//static QoreNode *QPAINTER_background(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   ??? return new QoreNode((int64)qp->background());
-//}
+static QoreNode *QPAINTER_background(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreQBrush *q_qr = new QoreQBrush(qp->background());
+   Object *o_qr = new Object(QC_QBrush, getProgram());
+   o_qr->setPrivate(CID_QBRUSH, q_qr);
+   return new QoreNode(o_qr);
+}
 
 //Qt::BGMode backgroundMode () const
 static QoreNode *QPAINTER_backgroundMode(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
@@ -180,10 +184,13 @@ static QoreNode *QPAINTER_boundingRect(Object *self, QoreQPainter *qp, QoreNode 
 //}
 
 //const QBrush & brush () const
-//static QoreNode *QPAINTER_brush(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   ??? return new QoreNode((int64)qp->brush());
-//}
+static QoreNode *QPAINTER_brush(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreQBrush *q_qr = new QoreQBrush(qp->brush());
+   Object *o_qr = new Object(QC_QBrush, getProgram());
+   o_qr->setPrivate(CID_QBRUSH, q_qr);
+   return new QoreNode(o_qr);
+}
 
 //QPoint brushOrigin () const
 //static QoreNode *QPAINTER_brushOrigin(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
@@ -1730,8 +1737,13 @@ static QoreNode *QPAINTER_setBrush(Object *self, QoreQPainter *qp, QoreNode *par
       qp->setBrush(*((QBrush *)brush));
       return 0;
    }
+   if (!p || p->type != NT_BRUSHSTYLE) {
+      Qt::GlobalColor color = (Qt::GlobalColor)(p ? p->getAsInt() : 0);
+      qp->setBrush(color);
+      return 0;
+   }
 
-   Qt::BrushStyle style = (Qt::BrushStyle)(p ? p->getAsInt() : 0);
+   Qt::BrushStyle style = (Qt::BrushStyle)p->val.intval;
    qp->setBrush(style);
    return 0;
 }
@@ -2163,11 +2175,11 @@ class QoreClass *initQPainterClass()
    QC_QPainter->setConstructor(QPAINTER_constructor);
    QC_QPainter->setCopy((q_copy_t)QPAINTER_copy);
 
-   //QC_QPainter->addMethod("background",                  (q_method_t)QPAINTER_background);
+   QC_QPainter->addMethod("background",                  (q_method_t)QPAINTER_background);
    QC_QPainter->addMethod("backgroundMode",              (q_method_t)QPAINTER_backgroundMode);
    QC_QPainter->addMethod("begin",                       (q_method_t)QPAINTER_begin);
    QC_QPainter->addMethod("boundingRect",                (q_method_t)QPAINTER_boundingRect);
-   //QC_QPainter->addMethod("brush",                       (q_method_t)QPAINTER_brush);
+   QC_QPainter->addMethod("brush",                       (q_method_t)QPAINTER_brush);
    //QC_QPainter->addMethod("brushOrigin",                 (q_method_t)QPAINTER_brushOrigin);
    //QC_QPainter->addMethod("clipPath",                    (q_method_t)QPAINTER_clipPath);
    //QC_QPainter->addMethod("clipRegion",                  (q_method_t)QPAINTER_clipRegion);

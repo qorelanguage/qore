@@ -155,9 +155,7 @@ class CannonField inherits QWidget
 
     paintTarget($painter)
     {
-	my $brush = new QBrush(Qt::SolidPattern);
-	$brush.setColor(Qt::red);
-	$painter.setBrush($brush);
+	$painter.setBrush(Qt::red);
 	$painter.setPen(0);
 	$painter.drawRect($.targetRect());
     }
@@ -165,9 +163,7 @@ class CannonField inherits QWidget
     paintCannon($painter)
     {
 	$painter.setPen(Qt::NoPen);
-	my $brush = new QBrush(Qt::SolidPattern);
-	$brush.setColor(Qt::blue);
-	$painter.setBrush($brush);
+	$painter.setBrush(Qt::blue);
 
 	$painter.save();
 	$painter.translate(0, $.height());
@@ -180,9 +176,7 @@ class CannonField inherits QWidget
     paintShot($painter)
     {
 	$painter.setPen(Qt::NoPen);
-	my $brush = new QBrush(Qt::SolidPattern);
-	$brush.setColor(Qt::black);
-	$painter.setBrush($brush);
+	$painter.setBrush(Qt::black);
 	$painter.drawRect($.shotRect());
     }
 

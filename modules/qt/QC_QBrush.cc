@@ -25,7 +25,8 @@
 #include "QC_QBrush.h"
 #include "QC_QColor.h"
 
-DLLLOCAL int CID_QBRUSH;
+int CID_QBRUSH;
+QoreClass *QC_QBrush = 0;
 
 static void QBRUSH_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
@@ -41,18 +42,51 @@ static void QBRUSH_constructor(class Object *self, class QoreNode *params, Excep
 	 ReferenceHolder<QoreQColor> holder(color, xsink);
 	 
 	 p = get_param(params, 1);
-	 Qt::BrushStyle style = p ? (Qt::BrushStyle)p->getAsInt() : Qt::SolidPattern;
-	 
-	 qb = new QoreQBrush(color, style);
+	 if (p && p->type == NT_OBJECT) {
+
+	    AbstractPrivateData *apd_qpixmap = (p && p->type == NT_OBJECT) ? p->val.object->getReferencedPrivateData(CID_QPIXMAP, xsink) : 0;
+	    if (!apd_qpixmap) {
+	       if (!xsink->isException())
+		  xsink->raiseException("QBRUSH-CONSTRUCTOR-ERROR", "QLabel::setPixmap() does not know how to handle arguments of class '%s'", p->val.object->getClass()->getName());
+	       return;
+	    }
+	    ReferenceHolder<AbstractPrivateData> holder(apd_qpixmap, xsink);
+	    QoreAbstractQPixmap *qpixmap = dynamic_cast<QoreAbstractQPixmap *>(apd_qpixmap);
+	    assert(qpixmap);
+	    qb = new QoreQBrush(*color, *(qpixmap->getQPixmap()));
+	 }
+
+	 Qt::BrushStyle style = p && p->type == NT_BRUSHSTYLE ? (Qt::BrushStyle)p->val.intval : Qt::SolidPattern;	 
+	 qb = new QoreQBrush(*color, style);
       }
       else {
 	 xsink->raiseException("QBRUSH-CONSTRUCTOR-ERROR", "QBrush::constructor() does not take objects of class '%s' as an argument", p->val.object->getClass()->getName());
 	 return;
       }
    }
-   else {
-      Qt::BrushStyle style = (Qt::BrushStyle)p->getAsInt();
+   else if (p->type == NT_BRUSHSTYLE) {
+      Qt::BrushStyle style = (Qt::BrushStyle)p->val.intval;
       qb = new QoreQBrush(style);
+   }
+   else {
+      Qt::GlobalColor color = (Qt::GlobalColor)p->getAsInt();
+
+      p = get_param(params, 1);
+      if (p && p->type == NT_OBJECT) {
+
+	 AbstractPrivateData *apd_qpixmap = (p && p->type == NT_OBJECT) ? p->val.object->getReferencedPrivateData(CID_QPIXMAP, xsink) : 0;
+	 if (!apd_qpixmap) {
+	    if (!xsink->isException())
+	       xsink->raiseException("QBRUSH-CONSTRUCTOR-ERROR", "QLabel::setPixmap() does not know how to handle arguments of class '%s'", p->val.object->getClass()->getName());
+	    return;
+	 }
+	 ReferenceHolder<AbstractPrivateData> holder(apd_qpixmap, xsink);
+	 QoreAbstractQPixmap *qpixmap = dynamic_cast<QoreAbstractQPixmap *>(apd_qpixmap);
+	 assert(qpixmap);
+	 qb = new QoreQBrush(color, *(qpixmap->getQPixmap()));
+      }
+      else
+	 qb = new QoreQBrush(color);
    }
 
    self->setPrivate(CID_QBRUSH, qb);
@@ -136,8 +170,12 @@ static QoreNode *QBRUSH_setColor(Object *self, QoreQBrush *qb, QoreNode *params,
 //void setStyle ( Qt::BrushStyle style )
 static QoreNode *QBRUSH_setStyle(Object *self, QoreQBrush *qb, QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
-   Qt::BrushStyle style = (Qt::BrushStyle)(p ? p->getAsInt() : 0);
+   QoreNode *p = test_param(params, NT_BRUSHSTYLE, 0);
+   if (!p) {
+      xsink->raiseException("QBRUSH-SETSTYLE-ERROR", "expecting a BrushStyle constant as the sole argument to QBrush::setStyle()");
+      return 0;
+   }
+   Qt::BrushStyle style = (Qt::BrushStyle)p->val.intval;
    qb->setStyle(style);
    return 0;
 }
@@ -172,7 +210,7 @@ static QoreNode *QBRUSH_setStyle(Object *self, QoreQBrush *qb, QoreNode *params,
 //Qt::BrushStyle style () const
 static QoreNode *QBRUSH_style(Object *self, QoreQBrush *qb, QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qb->style());
+   return make_enum(NT_BRUSHSTYLE, (int)qb->style());
 }
 
 //QPixmap texture () const
@@ -198,7 +236,7 @@ class QoreClass *initQBrushClass()
 {
    tracein("initQBrushClass()");
    
-   class QoreClass *QC_QBrush = new QoreClass("QBrush", QDOM_GUI);
+   QC_QBrush = new QoreClass("QBrush", QDOM_GUI);
    CID_QBRUSH = QC_QBrush->getID();
    QC_QBrush->setConstructor(QBRUSH_constructor);
    QC_QBrush->setCopy((q_copy_t)QBRUSH_copy);

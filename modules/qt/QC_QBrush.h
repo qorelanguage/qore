@@ -26,7 +26,8 @@
 
 #include <QBrush>
 
-extern int CID_QBRUSH;
+DLLLOCAL extern int CID_QBRUSH;
+DLLLOCAL extern QoreClass *QC_QBrush;
 
 DLLLOCAL class QoreClass *initQBrushClass();
 
@@ -36,14 +37,24 @@ class QoreQBrush : public AbstractPrivateData, public QBrush
       DLLLOCAL QoreQBrush() : QBrush()
       {
       }
-      DLLLOCAL QoreQBrush(QColor *color, Qt::BrushStyle style = Qt::SolidPattern) : QBrush(*color, style)
+      DLLLOCAL QoreQBrush(const QColor &color, Qt::BrushStyle style = Qt::SolidPattern) : QBrush(color, style)
       {
       }
       DLLLOCAL QoreQBrush(Qt::BrushStyle style) : QBrush(style)
       {
       }
-   
-   
+      DLLLOCAL QoreQBrush(Qt::GlobalColor color, Qt::BrushStyle style = Qt::SolidPattern) : QBrush(color, style)
+      {
+      }
+      DLLLOCAL QoreQBrush(const QColor &color, const QPixmap &pixmap) : QBrush(color, pixmap)
+      {
+      }
+      DLLLOCAL QoreQBrush(Qt::GlobalColor color, const QPixmap &pixmap) : QBrush(color, pixmap)
+      {
+      }   
+      DLLLOCAL QoreQBrush(const QBrush &brush) : QBrush(brush)
+      {
+      }
 };
 
 

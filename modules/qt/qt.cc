@@ -55,9 +55,15 @@
 #include "QC_QDate.h"
 #include "QC_QTime.h"
 
+#include "QT_BrushStyle.h"
+
+#include "qore-qt.h"
+
 #include <QPalette>
 
 #include <assert.h>
+
+QoreType *QT_BRUSHSTYLE = 0;
 
 static class QoreString *qt_module_init();
 static void qt_module_ns_init(class Namespace *rns, class Namespace *qns);
@@ -264,7 +270,9 @@ static class QoreString *qt_module_init()
    builtinFunctions.add("qRound",          f_qRound);
    builtinFunctions.add("qsrand",          f_qsrand);
    builtinFunctions.add("qrand",           f_qrand);
-   
+ 
+   addBrushStyleType();
+  
    return 0;
 }
 
@@ -498,6 +506,26 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addConstant("transparent",       new QoreNode((int64)Qt::transparent));
 
    // BrushStyle enum
+   qt->addConstant("NoBrush",                  make_enum(NT_BRUSHSTYLE, (int)Qt::NoBrush));
+   qt->addConstant("SolidPattern",             make_enum(NT_BRUSHSTYLE, (int)Qt::SolidPattern));
+   qt->addConstant("Dense1Pattern",            make_enum(NT_BRUSHSTYLE, (int)Qt::Dense1Pattern));
+   qt->addConstant("Dense2Pattern",            make_enum(NT_BRUSHSTYLE, (int)Qt::Dense2Pattern));
+   qt->addConstant("Dense3Pattern",            make_enum(NT_BRUSHSTYLE, (int)Qt::Dense3Pattern));
+   qt->addConstant("Dense4Pattern",            make_enum(NT_BRUSHSTYLE, (int)Qt::Dense4Pattern));
+   qt->addConstant("Dense5Pattern",            make_enum(NT_BRUSHSTYLE, (int)Qt::Dense5Pattern));
+   qt->addConstant("Dense6Pattern",            make_enum(NT_BRUSHSTYLE, (int)Qt::Dense6Pattern));
+   qt->addConstant("Dense7Pattern",            make_enum(NT_BRUSHSTYLE, (int)Qt::Dense7Pattern));
+   qt->addConstant("HorPattern",               make_enum(NT_BRUSHSTYLE, (int)Qt::HorPattern));
+   qt->addConstant("VerPattern",               make_enum(NT_BRUSHSTYLE, (int)Qt::VerPattern));
+   qt->addConstant("CrossPattern",             make_enum(NT_BRUSHSTYLE, (int)Qt::CrossPattern));
+   qt->addConstant("BDiagPattern",             make_enum(NT_BRUSHSTYLE, (int)Qt::BDiagPattern));
+   qt->addConstant("FDiagPattern",             make_enum(NT_BRUSHSTYLE, (int)Qt::FDiagPattern));
+   qt->addConstant("DiagCrossPattern",         make_enum(NT_BRUSHSTYLE, (int)Qt::DiagCrossPattern));
+   qt->addConstant("LinearGradientPattern",    make_enum(NT_BRUSHSTYLE, (int)Qt::LinearGradientPattern));
+   qt->addConstant("RadialGradientPattern",    make_enum(NT_BRUSHSTYLE, (int)Qt::RadialGradientPattern));
+   qt->addConstant("ConicalGradientPattern",   make_enum(NT_BRUSHSTYLE, (int)Qt::ConicalGradientPattern));
+   qt->addConstant("TexturePattern",           make_enum(NT_BRUSHSTYLE, (int)Qt::TexturePattern));
+/*
    qt->addConstant("NoBrush",                  new QoreNode((int64)Qt::NoBrush));
    qt->addConstant("SolidPattern",             new QoreNode((int64)Qt::SolidPattern));
    qt->addConstant("Dense1Pattern",            new QoreNode((int64)Qt::Dense1Pattern));
@@ -517,6 +545,7 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addConstant("RadialGradientPattern",    new QoreNode((int64)Qt::RadialGradientPattern));
    qt->addConstant("ConicalGradientPattern",   new QoreNode((int64)Qt::ConicalGradientPattern));
    qt->addConstant("TexturePattern",           new QoreNode((int64)Qt::TexturePattern));
+*/
 
    // AlignmentFlag enum
    qt->addConstant("AlignLeft",                new QoreNode((int64)Qt::AlignLeft));
