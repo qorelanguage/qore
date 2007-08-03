@@ -273,6 +273,7 @@ noinst_HEADERS = \
 	modules/qt/QC_QTime.h \
 	modules/qt/qore-qt.h \
 	modules/qt/QT_BrushStyle.h \
+	modules/qt/QC_QIcon.h \
 	command-line.h \
 	include/qore/Qore.h
 

@@ -34,3 +34,4 @@
 #include "QC_QDate.cc"
 #include "QC_QTime.cc"
 #include "QT_BrushStyle.cc"
+#include "QC_QIcon.cc"
