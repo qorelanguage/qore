@@ -274,6 +274,7 @@ noinst_HEADERS = \
 	modules/qt/qore-qt.h \
 	modules/qt/QT_BrushStyle.h \
 	modules/qt/QC_QIcon.h \
+	modules/qt/QC_QKeySequence.h \
 	command-line.h \
 	include/qore/Qore.h
 

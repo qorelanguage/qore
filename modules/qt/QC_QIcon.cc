@@ -30,28 +30,32 @@ static void QICON_constructor(class Object *self, class QoreNode *params, Except
    QoreQIcon *qi;
 
    QoreNode *p = get_param(params, 0);
-   if (!p || (p->type != NT_STRING && p->type != NT_OBJECT)) {
-      xsink->raiseException("QICON-CONSTRUCTOR-ERROR", "missing icon name or QPixmap as first parameter");
-      return;
-   }
-
-   if (p->type == NT_OBJECT) {
-      AbstractPrivateData *apd_pixmap = (p && p->type == NT_OBJECT) ? p->val.object->getReferencedPrivateData(CID_QPIXMAP, xsink) : 0;
-      if (!apd_pixmap) {
-	 if (!xsink->isException())
-	    xsink->raiseException("QICON-ADDPIXMAP-PARAM-ERROR", "QIcon::constructor() does not know how to handle arguments of class '%s'", p->val.object->getClass()->getName());
+   if (is_nothing(p))
+      qi = new QoreQIcon();
+   else {
+      if (p->type != NT_STRING && p->type != NT_OBJECT) {
+	 xsink->raiseException("QICON-CONSTRUCTOR-ERROR", "missing icon name or QPixmap as first parameter (got type '%s')", p->type->getName());
 	 return;
       }
-      ReferenceHolder<AbstractPrivateData> holder(apd_pixmap, xsink);
-      QoreAbstractQPixmap *pixmap = dynamic_cast<QoreAbstractQPixmap *>(apd_pixmap);
-      assert(pixmap);
-      
-      qi = new QoreQIcon(*(pixmap->getQPixmap()));
-   }
-   else {
-      const char *fname = p->val.String->getBuffer();
 
-      qi = new QoreQIcon(fname);
+      if (p->type == NT_OBJECT) {
+	 AbstractPrivateData *apd_pixmap = (p && p->type == NT_OBJECT) ? p->val.object->getReferencedPrivateData(CID_QPIXMAP, xsink) : 0;
+	 if (!apd_pixmap) {
+	    if (!xsink->isException())
+	       xsink->raiseException("QICON-ADDPIXMAP-PARAM-ERROR", "QIcon::constructor() does not know how to handle arguments of class '%s'", p->val.object->getClass()->getName());
+	    return;
+	 }
+	 ReferenceHolder<AbstractPrivateData> holder(apd_pixmap, xsink);
+	 QoreAbstractQPixmap *pixmap = dynamic_cast<QoreAbstractQPixmap *>(apd_pixmap);
+	 assert(pixmap);
+	 
+	 qi = new QoreQIcon(*(pixmap->getQPixmap()));
+      }
+      else {
+	 const char *fname = p->val.String->getBuffer();
+	 
+	 qi = new QoreQIcon(fname);
+      }
    }
 
    self->setPrivate(CID_QICON, qi);

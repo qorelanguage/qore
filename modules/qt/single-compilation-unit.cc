@@ -35,3 +35,4 @@
 #include "QC_QTime.cc"
 #include "QT_BrushStyle.cc"
 #include "QC_QIcon.cc"
+#include "QC_QKeySequence.cc"

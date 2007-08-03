@@ -23,12 +23,12 @@ const class_list = ( "QFont*", "QFont",
 		     "QImage*", "QImage",
 		     "QMovie*", "QMovie",
 		     "QPicture*", "QPicture",
-		     "QDateTime", "QDate", "QTime"
+		     "QDateTime", "QDate", "QTime", "QKeySequence"
  );
 
 const qobject_list = ( "QWidget", "QMovie" );
 
-const const_class_list = ("QMovie", "QPixmap", "QPicture" ,"QImage", "QPoint", "QColor", "QDateTime", "QDate", "QTime" );
+const const_class_list = ("QMovie", "QPixmap", "QPicture" ,"QImage", "QPoint", "QColor", "QDateTime", "QDate", "QTime", "QKeySequence" );
 
 const abstract_class_list = ( "QObject*", "QWidget*", "QLayout*" );
 

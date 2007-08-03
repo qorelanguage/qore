@@ -55,6 +55,7 @@
 #include "QC_QDate.h"
 #include "QC_QTime.h"
 #include "QC_QIcon.h"
+#include "QC_QKeySequence.h"
 
 #include "QT_BrushStyle.h"
 
@@ -324,6 +325,7 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addSystemClass(initQDateClass());
    qt->addSystemClass(initQTimeClass());
 
+   qt->addSystemClass(initQKeySequenceClass());
    qt->addSystemClass(initQIconClass());
    qt->addSystemClass(initQFontClass());
 
