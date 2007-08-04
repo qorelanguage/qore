@@ -681,7 +681,7 @@ void QoreClass::addPrivateMember(char *nme)
    }
    else
    {
-      parse_error("private member '%s' already declared in class %s", nme, name);
+      parse_error("private member '%s' already declared in class %s", nme, name ? name : "<pending>");
       free(nme);
    }
 }
@@ -1469,7 +1469,7 @@ Method *QoreClass::resolveSelfMethod(const char *nme)
       m = NULL;
    }
    else if (!m)
-      parse_error("no method %s::%s() has been defined", name, nme);
+      parse_error("no method %s::%s() has been defined", name ? name : "<pending>", nme);
 
    return m;
 }
@@ -1484,7 +1484,7 @@ Method *QoreClass::resolveSelfMethod(class NamedScope *nme)
    // see if class is base class of this class
    if (qc != this && !scl->sml.isBaseClass(qc))
    {
-      parse_error("'%s' is not a base class of '%s'", qc->getName(), name);
+      parse_error("'%s' is not a base class of '%s'", qc->getName(), name ? name : "<pending>");
       return NULL;
    }
 
@@ -1539,7 +1539,7 @@ void QoreClass::addMethod(Method *m)
    // (system objects without explicit destructors have an implicit default system destructor that cannot be overridden)
    if (parseFindMethod(m->getName()) || (sys && dst))
    {
-      parse_error("method '%s::%s()' has already been defined", name, m->getName());
+      parse_error("method '%s::%s()' has already been defined", name ? name : "<pending>", m->getName());
       delete m;
    }
    else
