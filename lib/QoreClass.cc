@@ -692,7 +692,7 @@ void QoreClass::addPrivateMember(char *nme)
       else
       {
 	 if (name)
-	    parse_error("private member '%s' already pending in class %s", nme, name);
+	    parse_error("private member '%s' already pending in class %s", nme, name ? name : "<pending>");
 	 else
 	    parse_error("private member '%s' already pending in class", nme);
 	 free(nme);
@@ -700,7 +700,7 @@ void QoreClass::addPrivateMember(char *nme)
    }
    else
    {
-      parse_error("private member '%s' already declared in class %s", nme, name);
+      parse_error("private member '%s' already declared in class %s", nme, name ? name : "<pending>");
       free(nme);
    }
 }
@@ -1492,7 +1492,7 @@ Method *QoreClass::resolveSelfMethod(const char *nme)
       m = NULL;
    }
    else if (!m)
-      parse_error("no method %s::%s() has been defined", name, nme);
+      parse_error("no method %s::%s() has been defined", name ? name : "<pending>", nme);
 
    return m;
 }
@@ -1507,7 +1507,7 @@ Method *QoreClass::resolveSelfMethod(class NamedScope *nme)
    // see if class is base class of this class
    if (qc != this && !scl->sml.isBaseClass(qc))
    {
-      parse_error("'%s' is not a base class of '%s'", qc->getName(), name);
+      parse_error("'%s' is not a base class of '%s'", qc->getName(), name ? name : "<pending>");
       return NULL;
    }
 
