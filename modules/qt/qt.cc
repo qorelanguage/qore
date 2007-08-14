@@ -56,6 +56,8 @@
 #include "QC_QTime.h"
 #include "QC_QIcon.h"
 #include "QC_QKeySequence.h"
+#include "QC_QAction.h"
+#include "QC_QActionGroup.h"
 
 #include "QT_BrushStyle.h"
 
@@ -287,6 +289,8 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addSystemClass((qobject = initQObjectClass()));
    qt->addSystemClass(initQApplicationClass(qobject));
    qt->addSystemClass(initQMovieClass(qobject));
+   qt->addSystemClass(initQActionClass(qobject));
+   qt->addSystemClass(initQActionGroupClass(qobject));
 
    qt->addSystemClass((qpaintdevice = initQPaintDeviceClass()));
    qt->addSystemClass(initQPictureClass(qpaintdevice));

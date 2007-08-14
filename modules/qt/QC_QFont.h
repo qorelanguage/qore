@@ -26,7 +26,8 @@
 
 #include <QFont>
 
-extern int CID_QFONT;
+DLLLOCAL extern int CID_QFONT;
+DLLLOCAL extern QoreClass *QC_QFont;
 
 DLLLOCAL class QoreClass *initQFontClass();
 
@@ -35,6 +36,9 @@ class QoreQFont : public AbstractPrivateData, public QFont
    public:
       DLLLOCAL QoreQFont(const char *fname, int point_size = -1, int weight = -1, bool italic = false) : 
 	 QFont(fname, point_size, weight, italic)
+      {
+      }
+      DLLLOCAL QoreQFont(const QFont &font) : QFont(font)
       {
       }
 };

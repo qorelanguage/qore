@@ -23,7 +23,8 @@
 #include <qore/Qore.h>
 #include "QC_QIcon.h"
 
-DLLLOCAL int CID_QICON;
+int CID_QICON;
+QoreClass *QC_QIcon = 0;
 
 static void QICON_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
@@ -209,7 +210,7 @@ class QoreClass *initQIconClass()
 {
    tracein("initQIconClass()");
    
-   class QoreClass *QC_QIcon = new QoreClass("QIcon", QDOM_GUI);
+   QC_QIcon = new QoreClass("QIcon", QDOM_GUI);
    CID_QICON = QC_QIcon->getID();
    QC_QIcon->setConstructor(QICON_constructor);
    QC_QIcon->setCopy((q_copy_t)QICON_copy);

@@ -26,7 +26,8 @@
 
 #include <QIcon>
 
-extern int CID_QICON;
+DLLLOCAL extern int CID_QICON;
+DLLLOCAL extern QoreClass *QC_QIcon;
 
 DLLLOCAL class QoreClass *initQIconClass();
 
@@ -36,10 +37,10 @@ class QoreQIcon : public AbstractPrivateData, public QIcon
       DLLLOCAL QoreQIcon() : QIcon()
       {
       }
-      DLLLOCAL QoreQIcon(QPixmap &pixmap) : QIcon(pixmap)
+      DLLLOCAL QoreQIcon(const QPixmap &pixmap) : QIcon(pixmap)
       {
       }
-      DLLLOCAL QoreQIcon(QIcon &icon) : QIcon(icon)
+      DLLLOCAL QoreQIcon(const QIcon &icon) : QIcon(icon)
       {
       }
       DLLLOCAL QoreQIcon(const char *str) : QIcon(str)

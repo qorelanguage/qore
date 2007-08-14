@@ -1,3 +1,6 @@
+2007.08.14: David Nichols
+	* qt: new classes, updates
+
 2007.07.31: David Nichols
 	* qt: new classes, support for emitting signals from qore code, example
 	  and Qore qt support updated to tutorial 8

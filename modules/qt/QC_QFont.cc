@@ -23,7 +23,8 @@
 #include <qore/Qore.h>
 #include "QC_QFont.h"
 
-DLLLOCAL int CID_QFONT;
+int CID_QFONT;
+QoreClass *QC_QFont = 0;
 
 static void QFONT_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
@@ -423,7 +424,7 @@ class QoreClass *initQFontClass()
 {
    tracein("initQFontClass()");
    
-   class QoreClass *QC_QFont = new QoreClass("QFont", QDOM_GUI);
+   QC_QFont = new QoreClass("QFont", QDOM_GUI);
    CID_QFONT = QC_QFont->getID();
    QC_QFont->setConstructor(QFONT_constructor);
    QC_QFont->setCopy((q_copy_t)QFONT_copy);

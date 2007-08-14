@@ -36,3 +36,5 @@
 #include "QT_BrushStyle.cc"
 #include "QC_QIcon.cc"
 #include "QC_QKeySequence.cc"
+#include "QC_QAction.cc"
+#include "QC_QActionGroup.cc"

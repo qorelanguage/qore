@@ -23,12 +23,13 @@ const class_list = ( "QFont*", "QFont",
 		     "QImage*", "QImage",
 		     "QMovie*", "QMovie",
 		     "QPicture*", "QPicture",
-		     "QDateTime", "QDate", "QTime", "QKeySequence"
+		     "QDateTime", "QDate", "QTime", "QKeySequence", "QIcon",
+		     "QAction", "QAction*", "QActionGroup", "QActionGroup*"
  );
 
-const qobject_list = ( "QWidget", "QMovie" );
+const qobject_list = ( "QWidget", "QMovie", "QAction", "QActionGroup" );
 
-const const_class_list = ("QMovie", "QPixmap", "QPicture" ,"QImage", "QPoint", "QColor", "QDateTime", "QDate", "QTime", "QKeySequence" );
+const const_class_list = ("QMovie", "QPixmap", "QPicture" ,"QImage", "QPoint", "QColor", "QDateTime", "QDate", "QTime", "QKeySequence", "QIcon", "QFont" );
 
 const abstract_class_list = ( "QObject*", "QWidget*", "QLayout*" );
 
@@ -691,6 +692,9 @@ sub do_return_value($offset, $rt, $callstr, $ok)
 	    case /^QDateTime/:
 	    case /^QDate/:
 	    case /^QTime/:
+	    case /^QFont/:
+	    case /^QIcon/:
+	    case /^QAction/:
 	    case /^QColor/: {
 		# add blank line if not the first line
 		if (elements $lo > 2) $lo += "";

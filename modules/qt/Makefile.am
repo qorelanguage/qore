@@ -11,7 +11,8 @@ QT_SOURCES = qt.cc QC_Qobject.cc QC_QApplication.cc QC_QPushButton.cc QC_QFont.c
 	QC_QPainter.cc QC_QPalette.cc QoreQtDynamicMethod.cc QC_QRegion.cc \
 	QC_QPaintEvent.cc QC_QPoint.cc QC_QTimer.cc QC_QLabel.cc QC_QPicture.cc \
 	QC_QPixmap.cc QC_QMovie.cc QC_QBitmap.cc QC_QImage.cc QC_QDateTime.cc \
-	QC_QDate.cc QC_QTime.cc QT_BrushStyle.cc QC_QIcon.cc QC_QKeySequence.cc
+	QC_QDate.cc QC_QTime.cc QT_BrushStyle.cc QC_QIcon.cc QC_QKeySequence.cc \
+	QC_QAction.cc QC_QActionGroup.cc
 endif
 
 if COND_MONOLITHIC

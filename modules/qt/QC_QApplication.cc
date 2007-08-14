@@ -1,7 +1,7 @@
 /*
  QC_QApplication.cc
  
- Qore Programming Langupbe
+ Qore Programming Language
  
  Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
  
