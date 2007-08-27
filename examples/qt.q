@@ -26,12 +26,6 @@ class LCDRange inherits QWidget
 	QObject_connect($.slider, SIGNAL("valueChanged(int)"), $lcd, SLOT("display(int)"));
 	QObject_connect($.slider, SIGNAL("valueChanged(int)"), $self, SIGNAL("valueChanged(int)"));
 
-	#$lcd.connect($.slider, SIGNAL("valueChanged(int)"), SLOT("display(int)"));
-	#$.connect($.slider, SIGNAL("valueChanged(int)"), SIGNAL("valueChanged(int)"));
-
-	#$.connect($.slider, SIGNAL("valueChanged(int)"), SLOT("printValue(int)"));
-	#$.connect($self, SIGNAL("valueChanged(int)"), SLOT("testValueChanged(int)"));
-
 	my $layout = new QVBoxLayout();
 	$layout.addWidget($lcd);
 	$layout.addWidget($.slider);
@@ -86,7 +80,8 @@ class LCDRange inherits QWidget
 
 class CannonField inherits QWidget
 {
-    private $.currentAngle, $.currentForce, $.timerCount, $.autoShootTimer, $.shootAngle, $.shootForce, $.target, $.gameEnded;
+    private $.currentAngle, $.currentForce, $.timerCount, $.autoShootTimer, $.shootAngle, 
+    $.shootForce, $.target, $.gameEnded, $.barrelPressed;
 
     constructor($parent) : QWidget($parent)
     {
@@ -107,6 +102,7 @@ class CannonField inherits QWidget
 
 	$.target = new QPoint(0, 0);
 	$.gameEnded = False;
+	$.barrelPressed = False;
 	$.setPalette(new QPalette(new QColor(250, 250, 200)));
 	$.setAutoFillBackground(True);
 	$.newTarget();
@@ -183,6 +179,7 @@ class CannonField inherits QWidget
 
     paintEvent()
     {
+	#printf("hi\n");
 	my $painter = new QPainter($self);
 
 	if ($.gameEnded) {
@@ -192,6 +189,7 @@ class CannonField inherits QWidget
 	}
 
 	$.paintCannon($painter);
+	$.paintBarrier($painter);
 	if ($.isShooting())
 	    $.paintShot($painter);
 	if (!$.gameEnded)
@@ -203,6 +201,27 @@ class CannonField inherits QWidget
 	$painter.setPen(Qt::black);
 	$painter.setBrush(Qt::red);
 	$painter.drawRect($.targetRect());
+    }
+
+    paintBarrier($painter)
+    {
+	$painter.setPen(Qt::black);
+	$painter.setBrush(Qt::yellow);
+	$painter.drawRect($.barrierRect());
+    }
+
+    barrierRect()
+    {
+	return new QRect(145, $.height() - 100, 15, 99);
+    }
+
+    barrelHit($pos)
+    {
+	my $matrix = new QMatrix();
+	$matrix.translate(0, $.height());
+	$matrix.rotate(-$.currentAngle);
+	$matrix = $matrix.inverted();
+	return $barrelRect.contains($matrix.map($pos));
     }
 
     paintCannon($painter)
@@ -260,7 +279,7 @@ class CannonField inherits QWidget
 	    $.emit("hit()");
 	    $.emit("canShoot(bool)", True);
 	} else if ($shotR.x() > $.width() || $shotR.y
-		   () > $.height()) {
+		   () > $.height() || $shotR.intersects($.barrierRect())) {
 	    $.autoShootTimer.stop();
 	    $.emit("missed()");
 	    $.emit("canShoot(bool)", True);
@@ -268,6 +287,35 @@ class CannonField inherits QWidget
 	    $region = $region.united($shotR);
 
 	$.update($region);
+    }
+
+    mousePressEvent($event)
+    {
+	if ($event.button() != Qt::LeftButton)
+	    return;
+	if ($.barrelHit($event.pos()))
+	    $.barrelPressed = True;
+    }
+
+    mouseMoveEvent($event)
+    {
+	if (!$.barrelPressed)
+	    return;
+	my $pos = $event.pos();
+	if ($pos.x() <= 0)
+	    $pos.setX(1);
+	if ($pos.y
+	    () >= $.height())
+	    $pos.setY($.height() - 1);
+	my $rad = atan((float($.rect().bottom()) - $pos.y
+			   ()) / $pos.x());
+	$.setAngle(qRound($rad * 180 / 3.14159265));
+    }
+
+    mouseReleaseEvent($event)
+    {
+	if ($event.button() == Qt::LeftButton)
+	    $.barrelPressed = False;
     }
 
     shotRect()
@@ -297,6 +345,11 @@ class CannonField inherits QWidget
 				      ()));
 	return $result;
     }
+
+    sizeHint()
+    {
+	return new QSize(400, 300);
+    }
 }
 
 class GameBoard inherits QWidget
@@ -313,6 +366,9 @@ class GameBoard inherits QWidget
 
 	my $force = new LCDRange(TR("FORCE"));
 	$force.setRange(10, 50);
+
+	my $cannonBox = new QFrame();
+	$cannonBox.setFrameStyle(QFrame::WinPanel | QFrame::Sunken);
 
 	$.cannonField = new CannonField();
 
@@ -344,6 +400,10 @@ class GameBoard inherits QWidget
 
 	my $hitsLabel = new QLabel(TR("HITS"));
 	my $shotsLeftLabel = new QLabel(TR("SHOTS LEFT"));
+
+	new QShortcut(Qt::Key_Enter, $self, SLOT("fire()"));
+	new QShortcut(Qt::Key_Return, $self, SLOT("fire()"));
+	new QShortcut(Qt::CTRL + Qt::Key_Q, $self, SLOT("close()"));
 
 	my $topLayout = new QHBoxLayout();
 	$topLayout.addWidget($shoot);

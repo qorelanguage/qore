@@ -23,6 +23,7 @@
 #include <qore/Qore.h>
 
 #include "QC_QSlider.h"
+#include "QC_QAbstractSlider.h"
 
 int CID_QSLIDER;
 
@@ -64,155 +65,37 @@ static void QSLIDER_copy(class Object *self, class Object *old, class QoreQSlide
    xsink->raiseException("QSLIDER-COPY-ERROR", "objects of this class cannot be copied");
 }
 
-static class QoreNode *QSLIDER_setRange(class Object *self, class QoreQSlider *qs, QoreNode *params, ExceptionSink *xsink)
+//void setTickInterval ( int ti )
+static QoreNode *QSLIDER_setTickInterval(Object *self, QoreQSlider *qs, QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p = get_param(params, 0);
-   int min = p ? p->getAsInt() : 0;
-   p = get_param(params, 1);
-   int max = p ? p->getAsInt() : 0;
-   qs->qobj->setRange(min, max);
+   QoreNode *p = get_param(params, 0);
+   int ti = p ? p->getAsInt() : 0;
+   qs->qobj->setTickInterval(ti);
    return 0;
 }
 
-static class QoreNode *QSLIDER_setValue(class Object *self, class QoreQSlider *qs, QoreNode *params, ExceptionSink *xsink)
+//void setTickPosition ( TickPosition position )
+static QoreNode *QSLIDER_setTickPosition(Object *self, QoreQSlider *qs, QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p = get_param(params, 0);
-   if (!is_nothing(p))
-      qs->qobj->setValue(p->getAsInt());
+   QoreNode *p = get_param(params, 0);
+   QSlider::TickPosition position = (QSlider::TickPosition)(p ? p->getAsInt() : 0);
+   qs->qobj->setTickPosition(position);
    return 0;
 }
 
-static class QoreNode *QSLIDER_setOrientation(class Object *self, class QoreQSlider *qs, QoreNode *params, ExceptionSink *xsink)
+//int tickInterval () const
+static QoreNode *QSLIDER_tickInterval(Object *self, QoreQSlider *qs, QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p = get_param(params, 0);
-   if (!is_nothing(p))
-      qs->qobj->setOrientation((Qt::Orientation)p->getAsInt());
-   return 0;
+   return new QoreNode((int64)qs->qobj->tickInterval());
 }
 
-static class QoreNode *QSLIDER_orientation(class Object *self, class QoreQSlider *qs, QoreNode *params, ExceptionSink *xsink)
+//TickPosition tickPosition () const
+static QoreNode *QSLIDER_tickPosition(Object *self, QoreQSlider *qs, QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qs->qobj->orientation());
+   return new QoreNode((int64)qs->qobj->tickPosition());
 }
 
-static class QoreNode *QSLIDER_setMinimum(class Object *self, class QoreQSlider *qs, QoreNode *params, ExceptionSink *xsink)
-{
-   class QoreNode *p = get_param(params, 0);
-   if (!is_nothing(p))
-      qs->qobj->setMinimum(p->getAsInt());
-   return 0;
-}
-
-static class QoreNode *QSLIDER_setMaximum(class Object *self, class QoreQSlider *qs, QoreNode *params, ExceptionSink *xsink)
-{
-   class QoreNode *p = get_param(params, 0);
-   if (!is_nothing(p))
-      qs->qobj->setMaximum(p->getAsInt());
-   return 0;
-}
-
-static class QoreNode *QSLIDER_minimum(class Object *self, class QoreQSlider *qs, QoreNode *params, ExceptionSink *xsink)
-{
-   return new QoreNode((int64)qs->qobj->minimum());
-}
-
-static class QoreNode *QSLIDER_maximum(class Object *self, class QoreQSlider *qs, QoreNode *params, ExceptionSink *xsink)
-{
-   return new QoreNode((int64)qs->qobj->maximum());
-}
-
-static class QoreNode *QSLIDER_setPageStep(class Object *self, class QoreQSlider *qs, QoreNode *params, ExceptionSink *xsink)
-{
-   class QoreNode *p = get_param(params, 0);
-   if (!is_nothing(p))
-      qs->qobj->setPageStep(p->getAsInt());
-   return 0;
-}
-
-static class QoreNode *QSLIDER_pageStep(class Object *self, class QoreQSlider *qs, QoreNode *params, ExceptionSink *xsink)
-{
-   return new QoreNode((int64)qs->qobj->pageStep());
-}
-
-static class QoreNode *QSLIDER_setSingleStep(class Object *self, class QoreQSlider *qs, QoreNode *params, ExceptionSink *xsink)
-{
-   class QoreNode *p = get_param(params, 0);
-   if (!is_nothing(p))
-      qs->qobj->setSingleStep(p->getAsInt());
-   return 0;
-}
-
-static class QoreNode *QSLIDER_singleStep(class Object *self, class QoreQSlider *qs, QoreNode *params, ExceptionSink *xsink)
-{
-   return new QoreNode((int64)qs->qobj->singleStep());
-}
-
-static class QoreNode *QSLIDER_setTracking(class Object *self, class QoreQSlider *qs, QoreNode *params, ExceptionSink *xsink)
-{
-   class QoreNode *p = get_param(params, 0);
-   qs->qobj->setTracking(is_nothing(p) ? true : p->getAsBool());
-   return 0;
-}
-
-static class QoreNode *QSLIDER_hasTracking(class Object *self, class QoreQSlider *qs, QoreNode *params, ExceptionSink *xsink)
-{
-   return new QoreNode(qs->qobj->hasTracking());
-}
-
-static class QoreNode *QSLIDER_setInvertedAppearance(class Object *self, class QoreQSlider *qs, QoreNode *params, ExceptionSink *xsink)
-{
-   class QoreNode *p = get_param(params, 0);
-   qs->qobj->setInvertedAppearance(is_nothing(p) ? true : p->getAsBool());
-   return 0;
-}
-
-static class QoreNode *QSLIDER_invertedAppearance(class Object *self, class QoreQSlider *qs, QoreNode *params, ExceptionSink *xsink)
-{
-   return new QoreNode(qs->qobj->invertedAppearance());
-}
-
-static class QoreNode *QSLIDER_setInvertedControls(class Object *self, class QoreQSlider *qs, QoreNode *params, ExceptionSink *xsink)
-{
-   class QoreNode *p = get_param(params, 0);
-   qs->qobj->setInvertedControls(is_nothing(p) ? true : p->getAsBool());
-   return 0;
-}
-
-static class QoreNode *QSLIDER_invertedControls(class Object *self, class QoreQSlider *qs, QoreNode *params, ExceptionSink *xsink)
-{
-   return new QoreNode(qs->qobj->invertedControls());
-}
-
-static class QoreNode *QSLIDER_setSliderDown(class Object *self, class QoreQSlider *qs, QoreNode *params, ExceptionSink *xsink)
-{
-   class QoreNode *p = get_param(params, 0);
-   qs->qobj->setSliderDown(is_nothing(p) ? true : p->getAsBool());
-   return 0;
-}
-
-static class QoreNode *QSLIDER_isSliderDown(class Object *self, class QoreQSlider *qs, QoreNode *params, ExceptionSink *xsink)
-{
-   return new QoreNode(qs->qobj->isSliderDown());
-}
-
-static class QoreNode *QSLIDER_setSliderPosition(class Object *self, class QoreQSlider *qs, QoreNode *params, ExceptionSink *xsink)
-{
-   class QoreNode *p = get_param(params, 0);
-   qs->qobj->setSliderPosition(p ? p->getAsInt() : 0);
-   return 0;
-}
-
-static class QoreNode *QSLIDER_sliderPosition(class Object *self, class QoreQSlider *qs, QoreNode *params, ExceptionSink *xsink)
-{
-   return new QoreNode((int64)qs->qobj->sliderPosition());
-}
-
-static class QoreNode *QSLIDER_value(class Object *self, class QoreQSlider *qs, QoreNode *params, ExceptionSink *xsink)
-{
-   return new QoreNode((int64)qs->qobj->value());
-}
-
-class QoreClass *initQSliderClass(class QoreClass *qwidget)
+class QoreClass *initQSliderClass(class QoreClass *qabstractslider)
 {
    tracein("initQSliderClass()");
    
@@ -220,34 +103,15 @@ class QoreClass *initQSliderClass(class QoreClass *qwidget)
 
    CID_QSLIDER = QC_QSlider->getID();
 
-   QC_QSlider->addBuiltinVirtualBaseClass(qwidget);
+   QC_QSlider->addBuiltinVirtualBaseClass(qabstractslider);
 
    QC_QSlider->setConstructor(QSLIDER_constructor);
    QC_QSlider->setCopy((q_copy_t)QSLIDER_copy);
 
-   QC_QSlider->addMethod("setRange",               (q_method_t)QSLIDER_setRange);
-   QC_QSlider->addMethod("setValue",               (q_method_t)QSLIDER_setValue);
-   QC_QSlider->addMethod("setOrientation",         (q_method_t)QSLIDER_setOrientation);
-   QC_QSlider->addMethod("orientation",            (q_method_t)QSLIDER_orientation);
-   QC_QSlider->addMethod("setMinimum",             (q_method_t)QSLIDER_setMinimum);
-   QC_QSlider->addMethod("setMaximum",             (q_method_t)QSLIDER_setMaximum);
-   QC_QSlider->addMethod("minimum",                (q_method_t)QSLIDER_minimum);
-   QC_QSlider->addMethod("maximum",                (q_method_t)QSLIDER_maximum);
-   QC_QSlider->addMethod("setPageStep",            (q_method_t)QSLIDER_setPageStep);
-   QC_QSlider->addMethod("pageStep",               (q_method_t)QSLIDER_pageStep);
-   QC_QSlider->addMethod("setSingleStep",          (q_method_t)QSLIDER_setSingleStep);
-   QC_QSlider->addMethod("singleStep",             (q_method_t)QSLIDER_singleStep);
-   QC_QSlider->addMethod("setTracking",            (q_method_t)QSLIDER_setTracking);
-   QC_QSlider->addMethod("hasTracking",            (q_method_t)QSLIDER_hasTracking);
-   QC_QSlider->addMethod("setInvertedAppearance",  (q_method_t)QSLIDER_setInvertedAppearance);
-   QC_QSlider->addMethod("invertedAppearance",     (q_method_t)QSLIDER_invertedAppearance);
-   QC_QSlider->addMethod("setInvertedControls",    (q_method_t)QSLIDER_setInvertedControls);
-   QC_QSlider->addMethod("invertedControls",       (q_method_t)QSLIDER_invertedControls);
-   QC_QSlider->addMethod("setSliderDown",          (q_method_t)QSLIDER_setSliderDown);
-   QC_QSlider->addMethod("isSliderDown",           (q_method_t)QSLIDER_isSliderDown);
-   QC_QSlider->addMethod("setSLiderPosition",      (q_method_t)QSLIDER_setSliderPosition);
-   QC_QSlider->addMethod("sliderPosition",         (q_method_t)QSLIDER_sliderPosition);
-   QC_QSlider->addMethod("value",                  (q_method_t)QSLIDER_value);
+   QC_QSlider->addMethod("setTickInterval",             (q_method_t)QSLIDER_setTickInterval);
+   QC_QSlider->addMethod("setTickPosition",             (q_method_t)QSLIDER_setTickPosition);
+   QC_QSlider->addMethod("tickInterval",                (q_method_t)QSLIDER_tickInterval);
+   QC_QSlider->addMethod("tickPosition",                (q_method_t)QSLIDER_tickPosition);
 
    traceout("initQSliderClass()");
    return QC_QSlider;

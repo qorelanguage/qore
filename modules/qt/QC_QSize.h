@@ -1,5 +1,5 @@
 /*
- QC_QKeySequence.h
+ QC_QSize.h
  
  Qore Programming Language
  
@@ -20,35 +20,30 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _QORE_QC_QKEYSEQUENCE_H
+#ifndef _QORE_QC_QSIZE_H
 
-#define _QORE_QC_QKEYSEQUENCE_H
+#define _QORE_QC_QSIZE_H
 
-#include <QKeySequence>
+#include <QSize>
 
-DLLLOCAL extern int CID_QKEYSEQUENCE;
-DLLLOCAL extern QoreClass *QC_QKeySequence;
+DLLLOCAL extern int CID_QSIZE;
+DLLLOCAL extern class QoreClass *QC_QSize;
 
-DLLLOCAL class QoreClass *initQKeySequenceClass();
+DLLLOCAL class QoreClass *initQSizeClass();
 
-class QoreQKeySequence : public AbstractPrivateData, public QKeySequence
+class QoreQSize : public AbstractPrivateData, public QSize
 {
    public:
-      DLLLOCAL QoreQKeySequence() : QKeySequence()
+      DLLLOCAL QoreQSize() : QSize()
       {
       }
-      DLLLOCAL QoreQKeySequence(StandardKey key) : QKeySequence(key)
+      DLLLOCAL QoreQSize(const QSize &size) : QSize(size)
       {
       }
-      DLLLOCAL QoreQKeySequence(int k1, int k2 = 0, int k3 = 0, int k4 = 0) : QKeySequence(k1, k2, k3, k4)
-      {
-      }
-      DLLLOCAL QoreQKeySequence(QKeySequence &KeySequence) : QKeySequence(KeySequence)
-      {
-      }
-      DLLLOCAL QoreQKeySequence(const char *str) : QKeySequence(str)
+      DLLLOCAL QoreQSize(int width, int height) : QSize(width, height)
       {
       }
 };
+
 
 #endif

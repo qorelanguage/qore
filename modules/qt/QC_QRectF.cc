@@ -25,7 +25,8 @@
 #include "QC_QRectF.h"
 #include "QC_QColor.h"
 
-DLLLOCAL int CID_QRECTF;
+int CID_QRECTF;
+QoreClass *QC_QRectF = 0;
 
 static void QRECTF_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
@@ -632,8 +633,9 @@ class QoreClass *initQRectFClass()
 {
    tracein("initQRectFClass()");
    
-   class QoreClass *QC_QRectF = new QoreClass("QRectF", QDOM_GUI);
+   QC_QRectF = new QoreClass("QRectF", QDOM_GUI);
    CID_QRECTF = QC_QRectF->getID();
+
    QC_QRectF->setConstructor(QRECTF_constructor);
    QC_QRectF->setCopy((q_copy_t)QRECTF_copy);
 

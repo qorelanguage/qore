@@ -1,5 +1,5 @@
 /*
- QC_QKeySequence.h
+ QoreAbstractQAbstractSlider.h
  
  Qore Programming Language
  
@@ -20,35 +20,16 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _QORE_QC_QKEYSEQUENCE_H
+#ifndef _QORE_QOREABSTRACTQABSTRACTSLIDER_H
 
-#define _QORE_QC_QKEYSEQUENCE_H
+#define _QORE_QOREABSTRACTQABSTRACTSLIDER_H
 
-#include <QKeySequence>
+#include "QoreAbstractQWidget.h"
 
-DLLLOCAL extern int CID_QKEYSEQUENCE;
-DLLLOCAL extern QoreClass *QC_QKeySequence;
-
-DLLLOCAL class QoreClass *initQKeySequenceClass();
-
-class QoreQKeySequence : public AbstractPrivateData, public QKeySequence
+class QoreAbstractQAbstractSlider : public QoreAbstractQWidget
 {
    public:
-      DLLLOCAL QoreQKeySequence() : QKeySequence()
-      {
-      }
-      DLLLOCAL QoreQKeySequence(StandardKey key) : QKeySequence(key)
-      {
-      }
-      DLLLOCAL QoreQKeySequence(int k1, int k2 = 0, int k3 = 0, int k4 = 0) : QKeySequence(k1, k2, k3, k4)
-      {
-      }
-      DLLLOCAL QoreQKeySequence(QKeySequence &KeySequence) : QKeySequence(KeySequence)
-      {
-      }
-      DLLLOCAL QoreQKeySequence(const char *str) : QKeySequence(str)
-      {
-      }
+      DLLLOCAL virtual class QAbstractSlider *getQAbstractSlider() const = 0;
 };
 
 #endif

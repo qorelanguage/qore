@@ -1,5 +1,5 @@
 /*
- QC_QSlider.h
+ QC_QAbstractSlider.h
  
  Qore Programming Language
  
@@ -20,52 +20,43 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _QORE_QC_QSLIDER_H
+#ifndef _QORE_QC_QABSTRACTSLIDER_H
 
-#define _QORE_QC_QSLIDER_H
+#define _QORE_QC_QABSTRACTSLIDER_H
 
 #include "QoreAbstractQAbstractSlider.h"
 
-#include <QSlider>
+#include <QAbstractSlider>
 
 #include "qore-qt-events.h"
 
-DLLEXPORT extern int CID_QSLIDER;
+DLLEXPORT extern int CID_QABSTRACTSLIDER;
 
-DLLLOCAL class QoreClass *initQSliderClass(class QoreClass *qframe);
+DLLLOCAL class QoreClass *initQAbstractSliderClass(class QoreClass *qframe);
 
-class myQSlider : public QSlider
+class myQAbstractSlider : public QAbstractSlider
 {
-#define QOREQTYPE QSlider
+#define QOREQTYPE QAbstractSlider
 #include "qore-qt-metacode.h"
 #include "qore-qt-widget-events.h"
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQSlider(Object *obj, QWidget *parent = 0) : QSlider(parent)
+      DLLLOCAL myQAbstractSlider(Object *obj, QWidget *parent = 0) : QAbstractSlider(parent)
       {
 	 init(obj);
-      }
-      DLLLOCAL myQSlider(Object *obj, Qt::Orientation orientation, QWidget *parent = 0) : QSlider(orientation, parent)
-      {
-	 init(obj);
-	 init_widget_events();
       }
 };
 
 
-class QoreQSlider : public QoreAbstractQAbstractSlider
+class QoreQAbstractSlider : public QoreAbstractQAbstractSlider
 {
    public:
-      QPointer<myQSlider>qobj;
+      QPointer<myQAbstractSlider>qobj;
 
-      DLLLOCAL QoreQSlider(Object *obj, QWidget *parent = 0) : qobj(new myQSlider(obj, parent))
+      DLLLOCAL QoreQAbstractSlider(Object *obj, QWidget *parent = 0) : qobj(new myQAbstractSlider(obj, parent))
       {
       }
-      DLLLOCAL QoreQSlider(Object *obj, Qt::Orientation orientation, QWidget *parent = 0) : qobj(new myQSlider(obj, orientation, parent))
-      {
-      }
-
       DLLLOCAL virtual class QObject *getQObject() const
       {
 	 return static_cast<QObject *>(&(*qobj));

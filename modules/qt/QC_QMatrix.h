@@ -1,5 +1,5 @@
 /*
- QC_QKeySequence.h
+ QC_QMatrix.h
  
  Qore Programming Language
  
@@ -20,35 +20,28 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _QORE_QC_QKEYSEQUENCE_H
+#ifndef _QORE_QC_QMATRIX_H
 
-#define _QORE_QC_QKEYSEQUENCE_H
+#define _QORE_QC_QMATRIX_H
 
-#include <QKeySequence>
+#include <QMatrix>
 
-DLLLOCAL extern int CID_QKEYSEQUENCE;
-DLLLOCAL extern QoreClass *QC_QKeySequence;
+DLLLOCAL extern int CID_QMATRIX;
+DLLLOCAL extern QoreClass *QC_QMatrix;
 
-DLLLOCAL class QoreClass *initQKeySequenceClass();
+DLLLOCAL class QoreClass *initQMatrixClass();
 
-class QoreQKeySequence : public AbstractPrivateData, public QKeySequence
+class QoreQMatrix : public AbstractPrivateData, public QMatrix
 {
    public:
-      DLLLOCAL QoreQKeySequence() : QKeySequence()
+      DLLLOCAL QoreQMatrix(qreal m11, qreal m12, qreal m21, qreal m22, qreal dx, qreal dy) : 
+	 QMatrix(m11, m12, m21, m22, dx, dy)
       {
       }
-      DLLLOCAL QoreQKeySequence(StandardKey key) : QKeySequence(key)
-      {
-      }
-      DLLLOCAL QoreQKeySequence(int k1, int k2 = 0, int k3 = 0, int k4 = 0) : QKeySequence(k1, k2, k3, k4)
-      {
-      }
-      DLLLOCAL QoreQKeySequence(QKeySequence &KeySequence) : QKeySequence(KeySequence)
-      {
-      }
-      DLLLOCAL QoreQKeySequence(const char *str) : QKeySequence(str)
+      DLLLOCAL QoreQMatrix(const QMatrix &matrix) : QMatrix(matrix)
       {
       }
 };
+
 
 #endif

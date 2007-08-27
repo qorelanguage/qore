@@ -26,7 +26,8 @@
 
 #include <QRectF>
 
-extern int CID_QRECTF;
+DLLLOCAL extern int CID_QRECTF;
+DLLLOCAL extern class QoreClass *QC_QRectF;
 
 DLLLOCAL class QoreClass *initQRectFClass();
 

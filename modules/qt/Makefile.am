@@ -12,7 +12,9 @@ QT_SOURCES = qt.cc QC_Qobject.cc QC_QApplication.cc QC_QPushButton.cc QC_QFont.c
 	QC_QPaintEvent.cc QC_QPoint.cc QC_QTimer.cc QC_QLabel.cc QC_QPicture.cc \
 	QC_QPixmap.cc QC_QMovie.cc QC_QBitmap.cc QC_QImage.cc QC_QDateTime.cc \
 	QC_QDate.cc QC_QTime.cc QT_BrushStyle.cc QC_QIcon.cc QC_QKeySequence.cc \
-	QC_QAction.cc QC_QActionGroup.cc QT_PenStyle.cc
+	QC_QAction.cc QC_QActionGroup.cc QT_PenStyle.cc QC_QMouseEvent.cc \
+	QC_QEvent.cc QC_QInputEvent.cc QC_QKeyEvent.cc QC_QMoveEvent.cc \
+	QC_QResizeEvent.cc QC_QSize.cc QC_QMatrix.cc QC_QShortcut.cc
 endif
 
 if COND_MONOLITHIC

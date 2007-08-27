@@ -13,6 +13,8 @@ const ordinal = ( "first", "second", "third", "fourth", "fifth", "sixth", "seven
 
 const class_list = ( "QFont*", "QFont",
 		     "QPoint*", "QPoint",
+		     "QMatrix*", "QMatrix",
+		     "QSize*", "QSize",
 		     "QRectF*", "QRectF",
 		     "QRect*", "QRect",
 		     "QRegion*", "QRegion",
@@ -24,12 +26,13 @@ const class_list = ( "QFont*", "QFont",
 		     "QMovie*", "QMovie",
 		     "QPicture*", "QPicture",
 		     "QDateTime", "QDate", "QTime", "QKeySequence", "QIcon",
-		     "QAction", "QAction*", "QActionGroup", "QActionGroup*"
+		     "QAction", "QAction*", "QActionGroup", "QActionGroup*",
+		     "QKeySequence"
  );
 
 const qobject_list = ( "QWidget", "QMovie", "QAction", "QActionGroup" );
 
-const const_class_list = ("QMovie", "QPixmap", "QPicture" ,"QImage", "QPoint", "QColor", "QDateTime", "QDate", "QTime", "QKeySequence", "QIcon", "QFont" );
+const const_class_list = ("QMovie", "QPixmap", "QPicture" ,"QImage", "QPoint", "QMatrix", "QSize", "QColor", "QDateTime", "QDate", "QTime", "QKeySequence", "QIcon", "QFont" );
 
 const abstract_class_list = ( "QObject*", "QWidget*", "QLayout*" );
 
@@ -562,7 +565,15 @@ sub do_single_arg($offset, $name, $arg, $i, $ok)
 	    break;
 	}
 	case "qreal":
+	{
+	    $lo += sprintf("qreal %s = p ? p->getAsFloat() : 0.0;", $arg.name);
+	    break;
+	}
 	    case "double":
+	{
+	    $lo += sprintf("double %s = p ? p->getAsFloat() : 0.0;", $arg.name);
+	    break;
+	}
 	    case "float": {
 		$lo += sprintf("float %s = p ? p->getAsFloat() : 0.0;", $arg.name);
 		break;
@@ -681,6 +692,9 @@ sub do_return_value($offset, $rt, $callstr, $ok)
 	}
 	#case "QWidget*":
 	case /^QPoint/:
+	case /^QSize/:
+	case /^QMatrix/:
+	case /^QKeySequence/:
 	    case /^QRegion/:
 	    case /^QRectF/:
 	    case /^QRect/:

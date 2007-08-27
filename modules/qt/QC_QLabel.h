@@ -28,6 +28,8 @@
 
 #include <QLabel>
 
+#include "qore-qt-events.h"
+
 DLLEXPORT extern int CID_QLABEL;
 
 DLLLOCAL class QoreClass *initQLabelClass(class QoreClass *qframe);
@@ -36,15 +38,19 @@ class myQLabel : public QLabel
 {
 #define QOREQTYPE QLabel
 #include "qore-qt-metacode.h"
+#include "qore-qt-widget-events.h"
 #undef QOREQTYPE
+
    public:
       DLLLOCAL myQLabel(Object *obj, QWidget *parent = 0, Qt::WindowFlags f = 0) : QLabel(parent, f)
       {
 	 init(obj);
+	 init_widget_events();
       }
       DLLLOCAL myQLabel(Object *obj, const char *text, QWidget *parent = 0, Qt::WindowFlags f = 0) : QLabel(text, parent, f)
       {
 	 init(obj);
+	 init_widget_events();
       }
 };
 

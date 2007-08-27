@@ -32,27 +32,6 @@
 
 int CID_QWIDGET;
 
-void myQWidget::paintEvent(QPaintEvent *event) 
-{
-   if (!e_paintEvent)
-      return;
-
-   class ExceptionSink xsink;
-   // create argument list
-   Object *peo = new Object(QC_QPaintEvent, getProgram());
-   peo->setPrivate(CID_QPAINTEVENT, new QoreQPaintEvent(*event));
-   QoreNode *a = new QoreNode(peo);
-   List *args = new List();
-   args->push(a);
-   QoreNode *na = new QoreNode(args);
-
-   // call event method
-   e_paintEvent->eval(qore_obj, na, &xsink);
-
-   // delete arguments
-   na->deref(&xsink);
-}
-
 static void QWIDGET_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreQWidget *qw;

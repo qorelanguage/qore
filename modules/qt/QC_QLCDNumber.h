@@ -28,6 +28,8 @@
 
 #include <QLCDNumber>
 
+#include "qore-qt-events.h"
+
 DLLEXPORT extern int CID_QLCDNUMBER;
 
 DLLLOCAL class QoreClass *initQLCDNumberClass(class QoreClass *qframe);
@@ -36,15 +38,19 @@ class myQLCDNumber : public QLCDNumber
 {
 #define QOREQTYPE QLCDNumber
 #include "qore-qt-metacode.h"
+#include "qore-qt-widget-events.h"
 #undef QOREQTYPE
+
    public:
       DLLLOCAL myQLCDNumber(Object *obj, QWidget *parent = 0) : QLCDNumber(parent)
       {
 	 init(obj);
+	 init_widget_events();
       }
       DLLLOCAL myQLCDNumber(Object *obj, int num_digits, QWidget *parent = 0) : QLCDNumber(num_digits, parent)
       {
 	 init(obj);
+	 init_widget_events();
       }
 };
 

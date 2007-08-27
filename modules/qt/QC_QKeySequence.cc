@@ -23,7 +23,8 @@
 #include <qore/Qore.h>
 #include "QC_QKeySequence.h"
 
-DLLLOCAL int CID_QKEYSEQUENCE;
+int CID_QKEYSEQUENCE;
+QoreClass *QC_QKeySequence = 0;
 
 static void QKEYSEQUENCE_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
@@ -102,7 +103,7 @@ class QoreClass *initQKeySequenceClass()
 {
    tracein("initQKeySequenceClass()");
    
-   class QoreClass *QC_QKeySequence = new QoreClass("QKeySequence", QDOM_GUI);
+   QC_QKeySequence = new QoreClass("QKeySequence", QDOM_GUI);
    CID_QKEYSEQUENCE = QC_QKeySequence->getID();
    QC_QKeySequence->setConstructor(QKEYSEQUENCE_constructor);
    QC_QKeySequence->setCopy((q_copy_t)QKEYSEQUENCE_copy);

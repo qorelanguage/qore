@@ -1,5 +1,5 @@
 /*
- QC_QKeySequence.h
+ QC_QKeyEvent.h
  
  Qore Programming Language
  
@@ -20,35 +20,27 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _QORE_QC_QKEYSEQUENCE_H
+#ifndef _QORE_QC_QKEYEVENT_H
 
-#define _QORE_QC_QKEYSEQUENCE_H
+#define _QORE_QC_QKEYEVENT_H
 
-#include <QKeySequence>
+#include <QKeyEvent>
 
-DLLLOCAL extern int CID_QKEYSEQUENCE;
-DLLLOCAL extern QoreClass *QC_QKeySequence;
+DLLLOCAL extern int CID_QKEYEVENT;
+DLLLOCAL extern class QoreClass *QC_QKeyEvent;
 
-DLLLOCAL class QoreClass *initQKeySequenceClass();
+DLLLOCAL class QoreClass *initQKeyEventClass(class QoreClass *parent);
 
-class QoreQKeySequence : public AbstractPrivateData, public QKeySequence
+class QoreQKeyEvent : public AbstractPrivateData, public QKeyEvent
 {
    public:
-      DLLLOCAL QoreQKeySequence() : QKeySequence()
+      DLLLOCAL QoreQKeyEvent(const QKeyEvent &qr) : QKeyEvent(qr)
       {
       }
-      DLLLOCAL QoreQKeySequence(StandardKey key) : QKeySequence(key)
-      {
-      }
-      DLLLOCAL QoreQKeySequence(int k1, int k2 = 0, int k3 = 0, int k4 = 0) : QKeySequence(k1, k2, k3, k4)
-      {
-      }
-      DLLLOCAL QoreQKeySequence(QKeySequence &KeySequence) : QKeySequence(KeySequence)
-      {
-      }
-      DLLLOCAL QoreQKeySequence(const char *str) : QKeySequence(str)
+      DLLLOCAL QoreQKeyEvent(Type type, int key, Qt::KeyboardModifiers modifiers, const QString &text = QString(), bool autorep  = false, ushort count = 1) : QKeyEvent(type, key, modifiers, text, autorep, count)
       {
       }
 };
+
 
 #endif

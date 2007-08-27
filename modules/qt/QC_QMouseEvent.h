@@ -1,5 +1,5 @@
 /*
- QC_QKeySequence.h
+ QC_QMouseEvent.h
  
  Qore Programming Language
  
@@ -20,35 +20,30 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _QORE_QC_QKEYSEQUENCE_H
+#ifndef _QORE_QC_QMOUSEEVENT_H
 
-#define _QORE_QC_QKEYSEQUENCE_H
+#define _QORE_QC_QMOUSEEVENT_H
 
-#include <QKeySequence>
+#include <QMouseEvent>
 
-DLLLOCAL extern int CID_QKEYSEQUENCE;
-DLLLOCAL extern QoreClass *QC_QKeySequence;
+DLLLOCAL extern int CID_QMOUSEEVENT;
+DLLLOCAL extern class QoreClass *QC_QMouseEvent;
 
-DLLLOCAL class QoreClass *initQKeySequenceClass();
+DLLLOCAL class QoreClass *initQMouseEventClass(class QoreClass *parent);
 
-class QoreQKeySequence : public AbstractPrivateData, public QKeySequence
+class QoreQMouseEvent : public AbstractPrivateData, public QMouseEvent
 {
    public:
-      DLLLOCAL QoreQKeySequence() : QKeySequence()
+      DLLLOCAL QoreQMouseEvent(const QMouseEvent &qr) : QMouseEvent(qr)
       {
       }
-      DLLLOCAL QoreQKeySequence(StandardKey key) : QKeySequence(key)
+      DLLLOCAL QoreQMouseEvent(Type type, const QPoint & position, Qt::MouseButton button, Qt::MouseButtons buttons, Qt::KeyboardModifiers modifiers) : QMouseEvent(type, position, button, buttons, modifiers)
       {
       }
-      DLLLOCAL QoreQKeySequence(int k1, int k2 = 0, int k3 = 0, int k4 = 0) : QKeySequence(k1, k2, k3, k4)
-      {
-      }
-      DLLLOCAL QoreQKeySequence(QKeySequence &KeySequence) : QKeySequence(KeySequence)
-      {
-      }
-      DLLLOCAL QoreQKeySequence(const char *str) : QKeySequence(str)
+      DLLLOCAL QoreQMouseEvent(Type type, const QPoint & pos, const QPoint & globalPos, Qt::MouseButton button, Qt::MouseButtons buttons, Qt::KeyboardModifiers modifiers) : QMouseEvent(type, pos, globalPos, button, buttons, modifiers)
       {
       }
 };
+
 
 #endif

@@ -29,7 +29,7 @@
 DLLLOCAL extern int CID_QPAINTEVENT;
 DLLLOCAL extern class QoreClass *QC_QPaintEvent;
 
-DLLLOCAL class QoreClass *initQPaintEventClass();
+DLLLOCAL class QoreClass *initQPaintEventClass(class QoreClass *parent);
 
 class QoreQPaintEvent : public AbstractPrivateData, public QPaintEvent
 {

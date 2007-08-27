@@ -1,5 +1,5 @@
 /*
- QC_QKeySequence.h
+ QC_QEvent.h
  
  Qore Programming Language
  
@@ -20,35 +20,27 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _QORE_QC_QKEYSEQUENCE_H
+#ifndef _QORE_QC_QEVENT_H
 
-#define _QORE_QC_QKEYSEQUENCE_H
+#define _QORE_QC_QEVENT_H
 
-#include <QKeySequence>
+#include <QEvent>
 
-DLLLOCAL extern int CID_QKEYSEQUENCE;
-DLLLOCAL extern QoreClass *QC_QKeySequence;
+DLLLOCAL extern int CID_QEVENT;
+DLLLOCAL extern class QoreClass *QC_QEvent;
 
-DLLLOCAL class QoreClass *initQKeySequenceClass();
+DLLLOCAL class QoreClass *initQEventClass();
 
-class QoreQKeySequence : public AbstractPrivateData, public QKeySequence
+class QoreQEvent : public AbstractPrivateData, public QEvent
 {
    public:
-      DLLLOCAL QoreQKeySequence() : QKeySequence()
+      DLLLOCAL QoreQEvent(const QEvent &qr) : QEvent(qr)
       {
       }
-      DLLLOCAL QoreQKeySequence(StandardKey key) : QKeySequence(key)
-      {
-      }
-      DLLLOCAL QoreQKeySequence(int k1, int k2 = 0, int k3 = 0, int k4 = 0) : QKeySequence(k1, k2, k3, k4)
-      {
-      }
-      DLLLOCAL QoreQKeySequence(QKeySequence &KeySequence) : QKeySequence(KeySequence)
-      {
-      }
-      DLLLOCAL QoreQKeySequence(const char *str) : QKeySequence(str)
+      DLLLOCAL QoreQEvent(QEvent::Type type) : QEvent(type)
       {
       }
 };
+
 
 #endif

@@ -233,10 +233,12 @@ noinst_HEADERS = \
 	modules/qt/QC_QApplication.h \
 	modules/qt/QC_QPushButton.h \
 	modules/qt/QC_QFont.h \
+	modules/qt/QC_QMatrix.h \
 	modules/qt/QC_QWidget.h \
 	modules/qt/QC_QObject.h \
 	modules/qt/QC_QFrame.h \
 	modules/qt/QC_QLCDNumber.h \
+	modules/qt/QC_QAbstractSlider.h \
 	modules/qt/QC_QSlider.h \
 	modules/qt/QC_QBoxLayout.h \
 	modules/qt/QC_QVBoxLayout.h \
@@ -248,8 +250,11 @@ noinst_HEADERS = \
 	modules/qt/QoreAbstractQObject.h \
 	modules/qt/QoreAbstractQWidget.h \
 	modules/qt/QoreAbstractQFrame.h \
+	modules/qt/QoreAbstractQAbstractSlider.h \
 	modules/qt/QoreAbstractQPixmap.h \
 	modules/qt/QoreAbstractQPaintDevice.h \
+	modules/qt/qore-qt-events.h \
+	modules/qt/qore-qt-widget-events.h \
 	modules/qt/qore-qt-metacode.h \
 	modules/qt/QC_QBrush.h \
 	modules/qt/QC_QColor.h \
@@ -259,8 +264,15 @@ noinst_HEADERS = \
 	modules/qt/QC_QRectF.h \
 	modules/qt/QC_QPainter.h \
 	modules/qt/QC_QPoint.h \
+	modules/qt/QC_QSize.h \
 	modules/qt/QC_QPalette.h \
+	modules/qt/QC_QEvent.h \
 	modules/qt/QC_QPaintEvent.h \
+	modules/qt/QC_QInputEvent.h \
+	modules/qt/QC_QMouseEvent.h \
+	modules/qt/QC_QKeyEvent.h \
+	modules/qt/QC_QMoveEvent.h \
+	modules/qt/QC_QResizeEvent.h \
 	modules/qt/QoreQtDynamicMethod.h \
 	modules/qt/QC_QTimer.h \
 	modules/qt/QC_QLabel.h \
@@ -271,6 +283,7 @@ noinst_HEADERS = \
 	modules/qt/QC_QDateTime.h \
 	modules/qt/QC_QDate.h \
 	modules/qt/QC_QTime.h \
+	modules/qt/QC_QShortcut.h \
 	modules/qt/qore-qt.h \
 	modules/qt/QC_QIcon.h \
 	modules/qt/QC_QKeySequence.h \

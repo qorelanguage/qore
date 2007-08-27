@@ -81,12 +81,15 @@ static QoreNode *QPAINTEVENT_region(Object *self, QoreQPaintEvent *qpe, QoreNode
    return new QoreNode(o_qr);
 }
 
-class QoreClass *initQPaintEventClass()
+class QoreClass *initQPaintEventClass(class QoreClass *qevent)
 {
    tracein("initQPaintEventClass()");
    
    QC_QPaintEvent = new QoreClass("QPaintEvent", QDOM_GUI);
    CID_QPAINTEVENT = QC_QPaintEvent->getID();
+
+   QC_QPaintEvent->addBuiltinVirtualBaseClass(qevent);
+
    QC_QPaintEvent->setConstructor(QPAINTEVENT_constructor);
    QC_QPaintEvent->setCopy((q_copy_t)QPAINTEVENT_copy);
 

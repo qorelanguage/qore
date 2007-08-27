@@ -28,6 +28,8 @@
 
 #include <QFrame>
 
+#include "qore-qt-events.h"
+
 DLLEXPORT extern int CID_QFRAME;
 
 DLLLOCAL class QoreClass *initQFrameClass(class QoreClass *parent);
@@ -36,10 +38,13 @@ class myQFrame : public QFrame
 {
 #define QOREQTYPE QFrame
 #include "qore-qt-metacode.h"
+#include "qore-qt-widget-events.h"
 #undef QOREQTYPE
+
       DLLLOCAL myQFrame(Object *obj, QWidget *parent = 0, Qt::WindowFlags window_flags = 0) : QFrame(parent, window_flags)
       {
 	 init(obj);
+	 init_widget_events();
       }
 };
 

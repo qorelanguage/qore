@@ -1,5 +1,5 @@
 /*
- QC_QKeySequence.h
+ QC_QMoveEvent.h
  
  Qore Programming Language
  
@@ -20,35 +20,27 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _QORE_QC_QKEYSEQUENCE_H
+#ifndef _QORE_QC_QMOVEEVENT_H
 
-#define _QORE_QC_QKEYSEQUENCE_H
+#define _QORE_QC_QMOVEEVENT_H
 
-#include <QKeySequence>
+#include <QMoveEvent>
 
-DLLLOCAL extern int CID_QKEYSEQUENCE;
-DLLLOCAL extern QoreClass *QC_QKeySequence;
+DLLLOCAL extern int CID_QMOVEEVENT;
+DLLLOCAL extern class QoreClass *QC_QMoveEvent;
 
-DLLLOCAL class QoreClass *initQKeySequenceClass();
+DLLLOCAL class QoreClass *initQMoveEventClass(class QoreClass *parent);
 
-class QoreQKeySequence : public AbstractPrivateData, public QKeySequence
+class QoreQMoveEvent : public AbstractPrivateData, public QMoveEvent
 {
    public:
-      DLLLOCAL QoreQKeySequence() : QKeySequence()
+      DLLLOCAL QoreQMoveEvent(const QMoveEvent &qme) : QMoveEvent(qme)
       {
       }
-      DLLLOCAL QoreQKeySequence(StandardKey key) : QKeySequence(key)
+      DLLLOCAL QoreQMoveEvent(const QPoint &pos, const QPoint &oldPos) : QMoveEvent(pos, oldPos)
       {
       }
-      DLLLOCAL QoreQKeySequence(int k1, int k2 = 0, int k3 = 0, int k4 = 0) : QKeySequence(k1, k2, k3, k4)
-      {
-      }
-      DLLLOCAL QoreQKeySequence(QKeySequence &KeySequence) : QKeySequence(KeySequence)
-      {
-      }
-      DLLLOCAL QoreQKeySequence(const char *str) : QKeySequence(str)
-      {
-      }
+
 };
 
 #endif
