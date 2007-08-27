@@ -86,7 +86,7 @@ class LCDRange inherits QWidget
 
 class CannonField inherits QWidget
 {
-    private $.currentAngle, $.currentForce, $.timerCount, $.autoShootTimer, $.shootAngle, $.shootForce, $.target;
+    private $.currentAngle, $.currentForce, $.timerCount, $.autoShootTimer, $.shootAngle, $.shootForce, $.target, $.gameEnded;
 
     constructor($parent) : QWidget($parent)
     {
@@ -94,6 +94,7 @@ class CannonField inherits QWidget
 	$.createSignal("forceChanged(int)");
 	$.createSignal("hit()");
 	$.createSignal("missed()");
+	$.createSignal("canShoot(bool)");
 
         $.currentAngle = 45;
 	$.currentForce = 0;
@@ -105,19 +106,55 @@ class CannonField inherits QWidget
 	$.shootForce = 0;
 
 	$.target = new QPoint(0, 0);
+	$.gameEnded = False;
 	$.setPalette(new QPalette(new QColor(250, 250, 200)));
 	$.setAutoFillBackground(True);
 	$.newTarget();
+    }
+
+    angle()
+    {
+	return $.currentAngle;
+    }
+
+    force()
+    {
+	return $.currentForce;
+    }
+
+    gameOver()
+    {
+	return $.gameEnded;
     }
 
     newTarget()
     {
 	if ($firstTime) {
 	    $firstTime = False;
-	    qsrand(now());
+	    my $now = now();
+	    qsrand($now - get_midnight($now));
 	}
 	$.target = new QPoint(200 + qrand() % 190, 10 + qrand() % 255);
 	$.update();
+    }
+
+    setGameOver()
+    {
+	if ($.gameEnded)
+	    return;
+	if ($.isShooting())
+	    $.autoShootTimer.stop();
+	$.gameEnded = True;
+	$.update();
+    }
+
+    restartGame()
+    {
+	if ($.isShooting())
+	    $.autoShootTimer.stop();
+	$.gameEnded = False;
+	$.update();
+	$.emit("canShoot(bool)", True);
     }
 
     setAngle($angle)
@@ -147,16 +184,24 @@ class CannonField inherits QWidget
     paintEvent()
     {
 	my $painter = new QPainter($self);
+
+	if ($.gameEnded) {
+	    $painter.setPen(Qt::black);
+	    $painter.setFont(new QFont("Countier", 48, QFont::Bold));
+	    $painter.drawText($.rect(), Qt::AlignCenter, TR("Game Over"));
+	}
+
 	$.paintCannon($painter);
-	$.paintTarget($painter);
-	if ($.autoShootTimer.isActive())
+	if ($.isShooting())
 	    $.paintShot($painter);
+	if (!$.gameEnded)
+	    $.paintTarget($painter);
     }
 
     paintTarget($painter)
     {
+	$painter.setPen(Qt::black);
 	$painter.setBrush(Qt::red);
-	$painter.setPen(0);
 	$painter.drawRect($.targetRect());
     }
 
@@ -187,14 +232,20 @@ class CannonField inherits QWidget
 	return $result;
     }
 
+    isShooting() 
+    {
+	return $.autoShootTimer.isActive();
+    }
+
     shoot()
     {
-	if ($.autoShootTimer.isActive())
+	if ($.isShooting())
 	    return;
 	$.timerCount = 0;
 	$.shootAngle = $.currentAngle;
 	$.shootForce = $.currentForce;
 	$.autoShootTimer.start(5);
+	$.emit("canShoot(bool)", False);
     }
 
     moveShot()
@@ -207,10 +258,12 @@ class CannonField inherits QWidget
 	if ($shotR.intersects($.targetRect())) {
 	    $.autoShootTimer.stop();
 	    $.emit("hit()");
+	    $.emit("canShoot(bool)", True);
 	} else if ($shotR.x() > $.width() || $shotR.y
 		   () > $.height()) {
 	    $.autoShootTimer.stop();
 	    $.emit("missed()");
+	    $.emit("canShoot(bool)", True);
 	} else
 	    $region = $region.united($shotR);
 
@@ -246,7 +299,7 @@ class CannonField inherits QWidget
     }
 }
 
-class MyWidget inherits QWidget
+class GameBoard inherits QWidget
 {
     constructor($parent) : QWidget($parent)
     {
@@ -258,24 +311,48 @@ class MyWidget inherits QWidget
 	my $angle = new LCDRange(TR("ANGLE"));
 	$angle.setRange(5, 70);
 
-	my $cannonField = new CannonField();
-
-	QObject_connect($angle,       SIGNAL("valueChanged(int)"), $cannonField, SLOT("setAngle(int)"));
-	QObject_connect($cannonField, SIGNAL("angleChanged(int)"), $angle,       SLOT("setValue(int)"));
-
 	my $force = new LCDRange(TR("FORCE"));
 	$force.setRange(10, 50);
 
-	$cannonField.connect($force, SIGNAL("valueChanged(int)"), SLOT("setForce(int)"));
-	$force.connect($cannonField, SIGNAL("forceChanged(int)"), SLOT("setValue(int)"));
+	$.cannonField = new CannonField();
+
+	QObject_connect($angle,       SIGNAL("valueChanged(int)"), $.cannonField, SLOT("setAngle(int)"));
+	QObject_connect($.cannonField, SIGNAL("angleChanged(int)"), $angle,       SLOT("setValue(int)"));
+
+	$.cannonField.connect($force, SIGNAL("valueChanged(int)"), SLOT("setForce(int)"));
+	$force.connect($.cannonField, SIGNAL("forceChanged(int)"), SLOT("setValue(int)"));
 	
+	$.connect($.cannonField, SIGNAL("hit()"),    SLOT("hit()"));
+	$.connect($.cannonField, SIGNAL("missed()"), SLOT("missed()"));
+
 	my $shoot = new QPushButton(TR("&Shoot"));
 	$shoot.setFont(new QFont("Times", 18, QFont::Bold));
 
-	$cannonField.connect($shoot, SIGNAL("clicked()"), SLOT("shoot()"));
+	$.connect($shoot, SIGNAL("clicked()"), SLOT("fire()"));
+	$shoot.connect($.cannonField, SIGNAL("canShoot(bool)"), SLOT("setEnabled(bool)"));
+
+	my $restart = new QPushButton(TR("&New Game"));
+	$restart.setFont(new QFont("Times", 18, QFont::Bold));
+
+	$.connect($restart, SIGNAL("clicked()"), SLOT("newGame()"));
+
+	$.hits = new QLCDNumber(2);
+	$.hits.setSegmentStyle(QLCDNumber::Filled);
+
+	$.shotsLeft = new QLCDNumber(2);
+	$.shotsLeft.setSegmentStyle(QLCDNumber::Filled);
+
+	my $hitsLabel = new QLabel(TR("HITS"));
+	my $shotsLeftLabel = new QLabel(TR("SHOTS LEFT"));
+
 	my $topLayout = new QHBoxLayout();
 	$topLayout.addWidget($shoot);
+	$topLayout.addWidget($.hits);
+	$topLayout.addWidget($hitsLabel);
+	$topLayout.addWidget($.shotsLeft);
+	$topLayout.addWidget($shotsLeftLabel);
 	$topLayout.addStretch(1);
+	$topLayout.addWidget($restart);
 
 	my $leftLayout = new QVBoxLayout();
 	$leftLayout.addWidget($angle);
@@ -285,13 +362,46 @@ class MyWidget inherits QWidget
 	$gridLayout.addWidget($quit, 0, 0);
 	$gridLayout.addLayout($topLayout, 0, 1);
 	$gridLayout.addLayout($leftLayout, 1, 0);
-	$gridLayout.addWidget($cannonField, 1, 1, 2, 1);
+	$gridLayout.addWidget($.cannonField, 1, 1, 2, 1);
 	$gridLayout.setColumnStretch(1, 10);
 	$.setLayout($gridLayout);
 
 	$angle.setValue(60);
 	$force.setValue(25);
 	$angle.setFocus();
+
+	$.newGame();
+    }
+
+    fire()
+    {
+	if ($.cannonField.gameOver() || $.cannonField.isShooting())
+	    return;
+	$.shotsLeft.display($.shotsLeft.intValue() - 1);
+	$.cannonField.shoot();
+    }
+
+    hit()
+    {
+	$.hits.display($.hits.intValue() + 1);
+	if ($.shotsLeft.intValue() == 0)
+	    $.cannonField.setGameOver();
+	else
+	    $.cannonField.newTarget();
+    }
+
+    missed()
+    {
+	if ($.shotsLeft.intValue() == 0)
+	    $.cannonField.setGameOver();
+    }
+
+    newGame()
+    {
+	$.shotsLeft.display(15);
+	$.hits.display(0);
+	$.cannonField.restartGame();
+	$.cannonField.newTarget();
     }
 }
 
@@ -303,9 +413,9 @@ class qt_example inherits QApplication
 	
 	our $barrelRect = new QRect(30, -5, 20, 10);
 
-	my $widget = new MyWidget();
-	$widget.setGeometry(100, 100, 500, 355);
-	$widget.show();
+	my $board = new GameBoard();
+	$board.setGeometry(100, 100, 500, 355);
+	$board.show();
 
 	$.exec();
     }

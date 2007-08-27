@@ -24,7 +24,7 @@
 
 #define _QORE_QORE_QT_H
 
-DLLLOCAL QoreType *NT_BRUSHSTYLE;
+DLLLOCAL QoreType *NT_BRUSHSTYLE, *NT_PENSTYLE;
 
 #include <map>
 

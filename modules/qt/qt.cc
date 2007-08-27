@@ -60,6 +60,7 @@
 #include "QC_QActionGroup.h"
 
 #include "QT_BrushStyle.h"
+#include "QT_PenStyle.h"
 
 #include "qore-qt.h"
 
@@ -276,6 +277,7 @@ static class QoreString *qt_module_init()
    builtinFunctions.add("qrand",           f_qrand);
  
    addBrushStyleType();
+   addPenStyleType();
   
    return 0;
 }
@@ -482,15 +484,6 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addConstant("Vertical",        new QoreNode((int64)Qt::Vertical));
    qt->addConstant("Horizontal",      new QoreNode((int64)Qt::Horizontal));
 
-   // PenStyle enum
-   qt->addConstant("NoPen",             new QoreNode((int64)Qt::NoPen));
-   qt->addConstant("SolidLine",         new QoreNode((int64)Qt::SolidLine));
-   qt->addConstant("DashLine",          new QoreNode((int64)Qt::DashLine));
-   qt->addConstant("DotLine",           new QoreNode((int64)Qt::DotLine));
-   qt->addConstant("DashDotLine",       new QoreNode((int64)Qt::DashDotLine));
-   qt->addConstant("DashDotDotLine",    new QoreNode((int64)Qt::DashDotDotLine));
-   qt->addConstant("CustomDashLine",    new QoreNode((int64)Qt::CustomDashLine));
-
    // GlobalColor enum
    qt->addConstant("color0",            new QoreNode((int64)Qt::color0));
    qt->addConstant("color1",            new QoreNode((int64)Qt::color1));
@@ -533,27 +526,15 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addConstant("RadialGradientPattern",    make_enum(NT_BRUSHSTYLE, (int)Qt::RadialGradientPattern));
    qt->addConstant("ConicalGradientPattern",   make_enum(NT_BRUSHSTYLE, (int)Qt::ConicalGradientPattern));
    qt->addConstant("TexturePattern",           make_enum(NT_BRUSHSTYLE, (int)Qt::TexturePattern));
-/*
-   qt->addConstant("NoBrush",                  new QoreNode((int64)Qt::NoBrush));
-   qt->addConstant("SolidPattern",             new QoreNode((int64)Qt::SolidPattern));
-   qt->addConstant("Dense1Pattern",            new QoreNode((int64)Qt::Dense1Pattern));
-   qt->addConstant("Dense2Pattern",            new QoreNode((int64)Qt::Dense2Pattern));
-   qt->addConstant("Dense3Pattern",            new QoreNode((int64)Qt::Dense3Pattern));
-   qt->addConstant("Dense4Pattern",            new QoreNode((int64)Qt::Dense4Pattern));
-   qt->addConstant("Dense5Pattern",            new QoreNode((int64)Qt::Dense5Pattern));
-   qt->addConstant("Dense6Pattern",            new QoreNode((int64)Qt::Dense6Pattern));
-   qt->addConstant("Dense7Pattern",            new QoreNode((int64)Qt::Dense7Pattern));
-   qt->addConstant("HorPattern",               new QoreNode((int64)Qt::HorPattern));
-   qt->addConstant("VerPattern",               new QoreNode((int64)Qt::VerPattern));
-   qt->addConstant("CrossPattern",             new QoreNode((int64)Qt::CrossPattern));
-   qt->addConstant("BDiagPattern",             new QoreNode((int64)Qt::BDiagPattern));
-   qt->addConstant("FDiagPattern",             new QoreNode((int64)Qt::FDiagPattern));
-   qt->addConstant("DiagCrossPattern",         new QoreNode((int64)Qt::DiagCrossPattern));
-   qt->addConstant("LinearGradientPattern",    new QoreNode((int64)Qt::LinearGradientPattern));
-   qt->addConstant("RadialGradientPattern",    new QoreNode((int64)Qt::RadialGradientPattern));
-   qt->addConstant("ConicalGradientPattern",   new QoreNode((int64)Qt::ConicalGradientPattern));
-   qt->addConstant("TexturePattern",           new QoreNode((int64)Qt::TexturePattern));
-*/
+
+   // PenStyle enum
+   qt->addConstant("NoPen",             make_enum(NT_PENSTYLE, (int)Qt::NoPen));
+   qt->addConstant("SolidLine",         make_enum(NT_PENSTYLE, (int)Qt::SolidLine));
+   qt->addConstant("DashLine",          make_enum(NT_PENSTYLE, (int)Qt::DashLine));
+   qt->addConstant("DotLine",           make_enum(NT_PENSTYLE, (int)Qt::DotLine));
+   qt->addConstant("DashDotLine",       make_enum(NT_PENSTYLE, (int)Qt::DashDotLine));
+   qt->addConstant("DashDotDotLine",    make_enum(NT_PENSTYLE, (int)Qt::DashDotDotLine));
+   qt->addConstant("CustomDashLine",    make_enum(NT_PENSTYLE, (int)Qt::CustomDashLine));
 
    // AlignmentFlag enum
    qt->addConstant("AlignLeft",                new QoreNode((int64)Qt::AlignLeft));
@@ -577,3 +558,4 @@ static void qt_module_delete()
 {
    // nothing to do
 }
+

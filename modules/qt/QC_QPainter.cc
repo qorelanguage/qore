@@ -1920,9 +1920,12 @@ static QoreNode *QPAINTER_setPen(Object *self, QoreQPainter *qp, QoreNode *param
       qp->setPen(*((QColor *)color));
       return 0;
    }
-
-   Qt::PenStyle style = (Qt::PenStyle)(p ? p->getAsInt() : 0);
-   qp->setPen(style);
+   else if (p && p->type == NT_PENSTYLE)
+      qp->setPen((Qt::PenStyle)p->val.intval);
+   else {  // assume it's a color value
+      Qt::GlobalColor color = (Qt::GlobalColor)(p ? p->getAsInt() : 0);
+      qp->setPen(color);
+   }
    return 0;
 }
 

@@ -1,3 +1,6 @@
+2007.08.27: David Nichols
+	* qt: updated to tutorial/example 13, make PenStyle a unique Qore type
+
 2007.08.14: David Nichols
 	* qt: new classes, updates
 

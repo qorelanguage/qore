@@ -33,8 +33,10 @@
 #include "QC_QDateTime.cc"
 #include "QC_QDate.cc"
 #include "QC_QTime.cc"
-#include "QT_BrushStyle.cc"
 #include "QC_QIcon.cc"
 #include "QC_QKeySequence.cc"
 #include "QC_QAction.cc"
 #include "QC_QActionGroup.cc"
+
+#include "QT_BrushStyle.cc"
+#include "QT_PenStyle.cc"
