@@ -1050,6 +1050,29 @@ static class QoreNode *f_remove_signal_handler(class QoreNode *params, Exception
    return NULL;
 }
 
+// returns a string with percent-encodings substituted for characters
+static class QoreNode *f_decode_url(class QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = test_param(params, NT_STRING, 0);
+   if (!p || !p->val.String->strlen())
+      return 0;
+
+   const char *c = p->val.String->getBuffer();
+   QoreString *str = new QoreString(p->val.String->getEncoding());
+   while (*c) {
+      if (*c == '%' && isxdigit(*(c + 1)) && isxdigit(*(c + 2))) {
+	 char x[3] = { *(c + 1), *(c + 2), '\0' };
+	 char code = strtol(x, 0, 16);
+	 str->concat(code);
+	 c += 3;
+	 continue;
+      }
+      str->concat(*c);
+      c++;
+   }
+   return new QoreNode(str);
+}
+
 void init_misc_functions()
 {
    // register builtin functions in this file
@@ -1086,6 +1109,7 @@ void init_misc_functions()
    builtinFunctions.add("load_module", f_load_module);
    builtinFunctions.add("set_signal_handler", f_set_signal_handler, QDOM_PROCESS);
    builtinFunctions.add("remove_signal_handler", f_remove_signal_handler, QDOM_PROCESS);
+   builtinFunctions.add("decode_url", f_decode_url);
    
    // deprecated with stupid capitalization
    builtinFunctions.add("hexToInt", f_hextoint);

@@ -1,6 +1,13 @@
+2007.08.28: David Nichols
+        * implemented decode_url() to decode URL escape encodings (backported
+	  from trunk/0.7.0 branch)
+        * updated HTTPClient to automatically encode space (' ') characters as
+          '%20' in the path before sending (backported from trunk/0.7.0 branch)
+
 2006.07.26: David Nichols
 	* fixed a thread resource management bug in the DatasourcePool class
-	  (thread resource errors would cause a crash)
+	  (thread resource errors would cause a crash) (backported from 
+	  trunk/0.7.0 branch)
 
 2006.07.19: David Nichols
         * fixed a bug in HTTPClient::head(), was erroneously trying to read the

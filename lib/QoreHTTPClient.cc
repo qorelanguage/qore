@@ -23,6 +23,7 @@
 /*
   RFC 2616 HTTP 1.1
   RFC 2617 HTTP authentication
+  RFC 3986 HTTP URI specification
 */
 
 #include <qore/Qore.h>
@@ -30,6 +31,8 @@
 #include <qore/QoreHTTPClient.h>
 #include <qore/ql_misc.h>
 #include <qore/minitest.hpp>
+
+#include <ctype.h>
 
 #ifdef DEBUG
 #  include "tests/QoreHTTPClient_tests.cc"
@@ -54,7 +57,6 @@ void QoreHTTPClient::static_init()
    header_ignore.insert("Content-Length");
 }
 
-//-----------------------------------------------------------------------------
 QoreHTTPClient::QoreHTTPClient()
    : http11(true),
      ssl(false), proxy_ssl(false),
@@ -214,7 +216,6 @@ int QoreHTTPClient::setOptions(Hash* opts, ExceptionSink* xsink)
    return 0;
 }
 
-//-----------------------------------------------------------------------------
 QoreHTTPClient::~QoreHTTPClient()
 {
 }
@@ -322,7 +323,6 @@ class QoreString *QoreHTTPClient::getURL()
    return pstr;
 }
 
-//-----------------------------------------------------------------------------
 int QoreHTTPClient::setHTTPVersion(const char* version, ExceptionSink* xsink)
 {
    int rc = 0;
@@ -575,15 +575,24 @@ const char *QoreHTTPClient::getMsgPath(const char *mpath, class QoreString &pstr
 	 pstr.sprintf(":%d", port);
       if (mpath[0] != '/')
 	 pstr.concat('/');
-      pstr.concat(mpath);
-      mpath = (const char *)pstr.getBuffer();
    }
-   return mpath;
+   // concat mpath to pstr, performing URL encoding
+   const char *p = mpath;
+   while (*p) {
+      // encode spaces only
+      if (*p == ' ')
+	 pstr.concat("%20");
+      // according to RFC 3896 it'S not necessary to encode non-ascii characters
+      else
+	 pstr.concat(*p);
+      ++p;
+   }
+   return (const char *)pstr.getBuffer();
 }
 
 class QoreNode *QoreHTTPClient::getResponseHeader(const char *meth, const char *mpath, class Hash &nh, const void *data, unsigned size, int &code, class ExceptionSink *xsink)
 {
-   class QoreString pathstr;
+   class QoreString pathstr(m_socket.getEncoding());
    const char *msgpath = getMsgPath(mpath, pathstr);
 
    if (connect_unlocked(xsink))

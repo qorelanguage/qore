@@ -282,23 +282,8 @@ class HTTPServer::Listener inherits Qore::Socket {
 		if ($hdr.path =~ /^\//)
 		    $hdr.path = substr($hdr.path, 1);
 
-		# process ascii encodings in url if present
-		if (elements (my $xl = ($hdr.path =~ x/(%[0-9a-fA-F][0-9a-fA-F])/)))
-		{
-		    foreach my $x in ($xl)
-		    {
-			my $i = index($hdr.path, $x);
-			#printf("x=%n i=%d %n %n %n\n", $x, $i, substr($hdr.path, 0, $i), chr(hexToInt(substr($x, 1))), substr($hdr.path, $i + 3));
-			try {
-			    $hdr.path = substr($hdr.path, 0, $i) + chr(hexToInt(substr($x, 1))) + substr($hdr.path, $i + 3);
-			}
-			catch ()
-			{
-			    # break if there are invalid hex digits
-			    break;
-			}
-		    }
-		}
+		# decode escape encodings in url if present
+		$hdr.path = decode_url($hdr.path);
 
 		# check for authentication info
 		if (exists $.rbac && $.rbac.requires_authentication())

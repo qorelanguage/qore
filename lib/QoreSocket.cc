@@ -1465,7 +1465,8 @@ class QoreNode *QoreSocket::readHTTPHeader(int timeout, int *rc)
 	 if (t1)
 	 {
 	    *t1 = '\0';
-	    h->setKeyValue("path", new QoreNode(t2), NULL);
+	    // the path is returned as-is with no decodings - use decode_url() to decode
+	    h->setKeyValue("path", new QoreNode(new QoreString(t2, charsetid)), 0);
 	 }
       }
    }
