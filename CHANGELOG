@@ -1,3 +1,8 @@
+2007.08.28: David Nichols
+	* implemented decode_url() to decode URL escape encodings
+	* updated HTTPClient to automatically encode space (' ') characters as 
+	  '%20' in the path before sending
+
 2007.08.27: David Nichols
 	* qt: updated to tutorial/example 13, made PenStyle a unique Qore type
 	* qt: updated to tutorial/example 14, added new classes, enums,
