@@ -1749,6 +1749,12 @@ static QoreNode *QPAINTER_setBrush(Object *self, QoreQPainter *qp, QoreNode *par
       qp->setBrush(*(static_cast<QColor *>(color)));
       return 0;
    }
+   if (!p || p->type != NT_BRUSHSTYLE) {
+      Qt::GlobalColor color = (Qt::GlobalColor)(p ? p->getAsInt() : 0);
+      qp->setBrush(color);
+      return 0;
+   }
+
    Qt::BrushStyle style = (Qt::BrushStyle)(p ? p->getAsInt() : 0);
    qp->setBrush(style);
    return 0;
