@@ -1,9 +1,18 @@
 #!/usr/bin/env qore
 
+# This is bascially a direct port of the QT tutorial to Qore 
+# using Qore's "qt" module.  
+
+# Note that Qore's "qt" module requires QT 4.3 or above 
+
+# use the "qt" module
 %requires qt
 
+# this is an object-oriented program, the application class is "qt_example"
 %exec-class qt_example
+# require all variables to be explicitly  declared
 %require-our
+# enable all parse warnings
 %enable-all-warnings
 
 class LCDRange inherits QWidget
@@ -13,7 +22,7 @@ class LCDRange inherits QWidget
 	my $lcd = new QLCDNumber(2);
 	$lcd.setSegmentStyle(QLCDNumber::Filled);
 
-	#  create dynamic signals
+	# signals must be declared before used - note that the signature should be c/c++ style
 	$.createSignal("valueChanged(int)");
 
 	$.slider = new QSlider(Qt::Horizontal);
@@ -43,16 +52,6 @@ class LCDRange inherits QWidget
     setValue($val)
     {
 	$.slider.setValue($val);
-    }
-
-    printValue($val)
-    {
-	printf("printValue(%n) called\n", $val); flush();
-    }
-
-    testValueChanged($val)
-    {
-	printf("testValueChanged(%n) called\n", $val); flush();
     }
 
     setRange($minValue, $maxValue)
@@ -85,6 +84,7 @@ class CannonField inherits QWidget
 
     constructor($parent) : QWidget($parent)
     {
+	# declare dynamic signals
 	$.createSignal("angleChanged(int)");
 	$.createSignal("forceChanged(int)");
 	$.createSignal("hit()");
@@ -179,7 +179,6 @@ class CannonField inherits QWidget
 
     paintEvent()
     {
-	#printf("hi\n");
 	my $painter = new QPainter($self);
 
 	if ($.gameEnded) {
@@ -264,6 +263,7 @@ class CannonField inherits QWidget
 	$.shootAngle = $.currentAngle;
 	$.shootForce = $.currentForce;
 	$.autoShootTimer.start(5);
+	# emit a signal - the arguments are given as qore expressions after the signal signature
 	$.emit("canShoot(bool)", False);
     }
 
@@ -276,6 +276,8 @@ class CannonField inherits QWidget
 	
 	if ($shotR.intersects($.targetRect())) {
 	    $.autoShootTimer.stop();
+	    # emit a signal - arguments (if any) are given as qore expressions 
+	    # after the signal signature
 	    $.emit("hit()");
 	    $.emit("canShoot(bool)", True);
 	} else if ($shotR.x() > $.width() || $shotR.y
@@ -468,9 +470,9 @@ class GameBoard inherits QWidget
 class qt_example inherits QApplication 
 {
     constructor() {
-
+	# in qore programs using "exec-class", global variables must be
+	# initialized in the application's constructor
 	our $firstTime = True;
-	
 	our $barrelRect = new QRect(30, -5, 20, 10);
 
 	my $board = new GameBoard();
