@@ -6,38 +6,44 @@
 const opts = (
     "abstract" : "a,abstract",
     "indep"    : "i,independent",
+    "file"     : "f,file",
+    "parent"   : "p,parent=s",
     "help"     : "h.help"
     );
 
 const ordinal = ( "first", "second", "third", "fourth", "fifth", "sixth", "seventh", "eighth", "ninth", "tenth" );
 
-const class_list = ( "QFont*", "QFont",
-		     "QPoint*", "QPoint",
-		     "QMatrix*", "QMatrix",
-		     "QSize*", "QSize",
-		     "QRectF*", "QRectF",
-		     "QRect*", "QRect",
-		     "QRegion*", "QRegion",
-		     "QBrush*", "QBrush",
-		     "QColor*", "QColor",
-		     "QPainter*", "QPainter",
-		     "QBitmap*", "QBitmap",
-		     "QImage*", "QImage",
-		     "QMovie*", "QMovie",
-		     "QPicture*", "QPicture",
+const class_list = ( "QFont",
+		     "QPoint",
+		     "QPointF",
+		     "QLine",
+		     "QLineF",
+		     "QPolygon",
+		     "QPolygonF",
+		     "QMatrix",
+		     "QSize",
+		     "QRectF",
+		     "QRect",
+		     "QRegion",
+		     "QBrush",
+		     "QColor",
+		     "QPainter",
+		     "QBitmap",
+		     "QImage",
+		     "QMovie",
+		     "QPicture",
 		     "QDateTime", "QDate", "QTime", "QKeySequence", "QIcon",
-		     "QAction", "QAction*", "QActionGroup", "QActionGroup*",
+		     "QAction", "QActionGroup", "QActionGroup*",
 		     "QKeySequence"
  );
 
 const qobject_list = ( "QWidget", "QMovie", "QAction", "QActionGroup" );
 
-const const_class_list = ("QMovie", "QPixmap", "QPicture" ,"QImage", "QPoint", "QMatrix", "QSize", "QColor", "QDateTime", "QDate", "QTime", "QKeySequence", "QIcon", "QFont" );
+const const_class_list = ("QMovie", "QPixmap", "QPicture" ,"QImage", "QPoint", "QPointF", "QPolygon", "QPolygonF", "QLine", "QLineF", "QMatrix", "QSize", "QColor", "QDateTime", "QDate", "QTime", "QKeySequence", "QIcon", "QFont" );
 
-const abstract_class_list = ( "QObject*", "QWidget*", "QLayout*" );
+const abstract_class_list = ( "QObject", "QWidget", "QLayout" );
 
-const dynamic_class_list = ( "QPaintDevice*", "QPaintDevice", 
-			     "QPixmap*", "QPixmap", 
+const dynamic_class_list = ( "QPaintDevice", "QPixmap", 
     );
 
 const spaces = "                                                                        ";
@@ -129,7 +135,7 @@ sub do_return_class($type, $callstr)
     return $lo;
 }
 
-sub do_class($arg, $name, $cn, $i, $d)
+sub do_class($arg, $name, $cn, $i, $d, $const)
 {
     my $lo = ();
     
@@ -157,14 +163,14 @@ sub do_class($arg, $name, $cn, $i, $d)
     $lo += "      if (!xsink->isException())";
     $lo += sprintf("         xsink->raiseException(\"%s-%s-PARAM-ERROR\", \"expecting a %s object as %s argument to %s::%s()\");", 
 		   toupper($cn), toupper($name), $type, ordinal[$i], $cn, $name);
-    $lo += "      return 0;";
+    $lo += $const ? "      return;" : "      return 0;";
     $lo += "   }";
-    $lo += sprintf("   ReferenceHolder<%s> holder(%s, xsink);", $tcn, $arg.name);
+    $lo += sprintf("   ReferenceHolder<%s> %sHolder(%s, xsink);", $tcn, $arg.name, $arg.name);
 
     return $lo;
 }
 
-sub do_dynamic_class($arg, $name, $cn, $i)
+sub do_dynamic_class($arg, $name, $cn, $i, $const)
 {
     my $lo = ();
     
@@ -188,13 +194,104 @@ sub do_dynamic_class($arg, $name, $cn, $i)
     $lo += "      if (!xsink->isException())";
     $lo += sprintf("         xsink->raiseException(\"%s-%s-PARAM-ERROR\", \"expecting a %s object as %s argument to %s::%s()\");", 
 		   toupper($cn), toupper($name), $type, ordinal[$i], $cn, $name);
-    $lo += "      return 0;";
+    $lo += $const ? "      return;" : "      return 0;";
     $lo += "   }";
     $lo += sprintf("   ReferenceHolder<AbstractPrivateData> holder(apd_%s, xsink);", $arg.name);
     $lo += sprintf("   %s *%s = dynamic_cast<%s *>(apd_%s);", $tcn, $arg.name, $tcn, $arg.name);
     $lo += sprintf("   assert(%s);", $arg.name);
 
     return $lo;
+}
+
+sub get_file($fn)
+{
+    #return stdout;
+
+    if (is_file($fn)) {
+	my $nfn = $fn + ".orig";
+	if (is_file($nfn)) {
+	    my $suf = 1;
+	    while (is_file(sprintf("%s.%d", $nfn, $suf)))
+		++$suf;
+	    $nfn = sprintf("%s.%d", $nfn, $suf);
+	}
+	printf("backing up %s as %s\n", $fn, $nfn);
+	system(sprintf("mv %s %s", $fn, $nfn));
+    }
+    else
+	printf("creating new file %s\n", $fn);
+    my $of = new File();
+    $of.open($fn, O_CREAT | O_TRUNC | O_WRONLY);
+    return $of;
+}
+
+sub add_new_build_files($fp)
+{
+    my $cc = $fp + ".cc";
+    my $hh = $fp + ".h";
+    # see if the file is already present in single-compilation-unit.cc
+    my $str = "grep " + $cc + " single-compilation-unit.cc";
+    if (!strlen(trim(backquote($str))))
+	system("printf '#include \\\"" + $cc + "\\\"\\n'>> single-compilation-unit.cc");
+
+    # add to qt/Makefile.am
+    if (!strlen(trim(backquote("grep " + $cc + " Makefile.am")))) {
+	my $lines = split("\n", `cat Makefile.am`);
+	my $of = get_file("Makefile.am");
+	my $done;
+	for (my $i = 0; $i < elements $lines; ++$i) {
+	    
+	    if (!$done && $lines[$i + 1] =~ /endif/) {
+	        trim $lines[$i];
+		$of.printf("\t%s \\\n", $lines[$i]);
+		$of.printf("\t%s\n", $cc);
+		$done = True;
+		continue;
+	    }
+	    $of.printf("%s\n", $lines[$i]);
+	}
+    }    
+
+    # add to root Makefile.am
+    if (!strlen(trim(backquote("grep " + $hh + " ../../Makefile.am")))) {
+	my $lines = split("\n", `cat ../../Makefile.am`);
+	my $of = get_file("../../Makefile.am");
+	my ($found, $done);
+	for (my $i = 0; $i < elements $lines; ++$i) {
+	    if (!$done) {
+		if (!$found && $lines[$i] =~ /modules\/qt/) {
+		    $found = True;
+		}
+		else if ($found && $lines[$i] !~ /modules\/qt/) {
+		    $of.printf("\tmodules/qt/%s \\\n", $hh);
+		    $done = True;
+		}
+	    }
+	    $of.printf("%s\n", $lines[$i]);
+	}
+    }
+
+    # add to qt.cc
+    if (!strlen(trim(backquote("grep " + $hh + " qt.cc")))) {
+	my $lines = split("\n", `cat qt.cc`);
+	my $of = get_file("qt.cc");
+	my ($found, $done);
+	for (my $i = 0; $i < elements $lines; ++$i) {
+	    if (!$done) {
+		if (!$found && $lines[$i] =~ /#include "QC_/) {
+		    $found = True;
+		}
+		else if ($found && $lines[$i] !~ /#include "QC_/) {
+		    $of.printf("#include \"%s\"\n", $hh);
+		    $done = True;
+		}
+	    }
+	    else if ($lines[$i + 1] =~ /ColorRole enum/)
+		$of.printf("   qt->addSystemClass(init%sClass(%s));\n", $cn, tolower($o.parent));
+
+	    $of.printf("%s\n", $lines[$i]);
+	}	
+    }
 }
 
 sub main()
@@ -229,11 +326,17 @@ sub main()
 	$t =~ s/virtual / /g;
 	$t =~ s/\) const.*/)/; 
 	$t =~ s/ \*>/*>/;
-	$t =~ s/  / /;
+	$t =~ s/  / /g;
 	trim $t;
 	#printf("%s\n", $t);
 
 	my ($rt, $name, $args) = $t =~ x/([a-zA-Z0-9\*<>:&]+) (\w+) \((.*)\)/;
+	if (!exists $rt) { # must be a constructor or destructor
+	    if ($t =~ /~/) # skip the destructor
+		continue;
+	    ($name, $args) = $t =~ x/(\w+) \((.*)\)/;
+	}
+	my $orig_args = trim($args);
 	$args = split(",", $args);
 	trim $args;
 	foreach my $arg in (\$args)
@@ -264,34 +367,34 @@ sub main()
 		$ref = True;
 	    }
 	    $arg = ( "type" : $type, "name" : $pname, "def" : $def, "ref" : $ref );
-	    if (inlist($type, class_list)) {
+	    my $typename = $type;
+	    $typename =~ s/\*//g;
+	    $typename =~ s/&//g;
+	    if (inlist($typename, class_list)) {
 		$arg.is_class = True;
-		$arg.classname = $type;
+		$arg.classname = $typename;
 	    }
-	    else if (inlist($type, abstract_class_list)) {
+	    else if (inlist($typename, abstract_class_list)) {
 		$arg.is_abstract_class = True;
-		$arg.classname = $type;
+		$arg.classname = $typename;
 	    }
-	    else if (inlist($type, dynamic_class_list)) {
+	    else if (inlist($typename, dynamic_class_list)) {
 		$arg.is_dynamic_class = True;
-		$arg.classname = $type;
+		$arg.classname = $typename;
 	    }
 	    else if ($type == "float" || $type == "double")
 		$arg.is_float = True;
 	    else if (!$ref && $type !~ /\*/ && $type !~ /&/)
 		$arg.is_int = True;
 
-	    if (exists $arg.classname) {
-		$arg.classname =~ s/\*//g;
-		$arg.classname =~ s/&//g;
-	    }
 	    #printf("%N\n", $arg);
 	}
 
 	if (!exists $proto.$name)
-	    $proto.$name = ( "funcname" : sprintf("%s_%s", $func_prefix, $name), "rt" : $rt, "inst" : () );
+	    $proto.$name = ( "funcname" : sprintf("%s_%s", $func_prefix, $cn == $name ? "constructor" : $name), 
+			     "rt" : $rt, "inst" : () );
 
-	$proto.$name.inst += ( "args" : $args, "orig" : $p );
+	$proto.$name.inst += ( "args" : $args, "orig" : $p, "orig_args" : $orig_args );
     }
 
     foreach my $p in (keys $proto) {	
@@ -299,14 +402,29 @@ sub main()
 	$proto.$p.ok = True;
 	my $lo = ();
 
-	my $hdr;
-	foreach my $i in ($proto.$p.inst)
-	    $hdr += sprintf("//%s\n", $i.orig);
-	$lo += sprintf("static QoreNode *%s(Object *self, Qore%s *%s, QoreNode *params, ExceptionSink *xsink)", 
-		      $proto.$p.funcname, $qore_class, $cl);
+	my $hdr = ();
+	foreach my $i in (\$proto.$p.inst) {
+	    $hdr += sprintf("//%s", $i.orig);
+            # delete constant constructors
+            #printf("%n %n i=%n\n", elements $i.args, $i.args[0].type, $i);
+            if ($p == $cn && elements $i.args == 1 && $i.args[0].type == $cn) { 
+                delete $i;
+                continue;
+            }
+        }
+	if ($p == $cn)
+	    $lo += sprintf("static void %s(Object *self, QoreNode *params, ExceptionSink *xsink)", 
+			   $proto.$p.funcname, $cl);
+	else
+	    $lo += sprintf("static QoreNode *%s(Object *self, Qore%s *%s, QoreNode *params, ExceptionSink *xsink)", 
+			   $proto.$p.funcname, $qore_class, $cl);
 	$lo += "{";
 
-	my $callstr = $o.indep ? sprintf("%s->%s(", $cl, $p) : sprintf("%s->%s->%s(", $cl, $get_obj, $p);
+	my $callstr;
+	if (exists $proto.$p.rt)
+	    $callstr = $o.indep ? sprintf("%s->%s(", $cl, $p) : sprintf("%s->%s->%s(", $cl, $get_obj, $p);
+	else # for constructor calls
+	    $callstr = sprintf("new Qore%s(", $p);
 
 	if (elements $proto.$p.inst == 1)
 	    $lo += do_single_function($p, \$proto.$p, $proto.$p.inst[0], $callstr);
@@ -314,21 +432,156 @@ sub main()
 	    $lo += do_multi_function($p, \$proto.$p, $proto.$p.inst, $callstr);
 
 	$lo += "}";
-    
-	printf("%s", $hdr);
-	foreach my $line in ($lo)
-	    printf("%s%s\n", $proto.$p.ok ? "" : "//", $line);
 
-	print("\n");
+	$proto.$p.code = $hdr + $lo; 
+    
 	#printf("%-15s %-20s (%s)\n", "(" + $rt + ")", $name, dlh($args));
     }
 
+    my $of;
+    if (exists $o.file) {
+	add_new_build_files("QC_" + $cn);
+
+	$of = get_file("QC_" + $cn + ".h");
+	$of.printf(
+"/*
+ QC_%s.h
+ 
+ Qore Programming Language
+ 
+ Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+ 
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+ 
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+ 
+ You should have received a copy of the GNU Lesser General Public
+ License along with this library; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ */
+
+#ifndef _QORE_QT_QC_%s_H
+
+#define _QORE_QT_QC_%s_H
+
+#include <%s>
+
+DLLLOCAL extern int CID_%s;
+DLLLOCAL extern class QoreClass *QC_%s;
+
+DLLLOCAL class QoreClass *init%sClass();
+
+", $cn, $func_prefix, $func_prefix, $cn, $func_prefix, $cn, $cn);
+
+	if ($o.indep) {
+	    $of.printf("class Qore%s : public AbstractPrivateData, public %s\n", $cn, $cn);
+	    $of.printf("{
+   public:
+", $cn, $cn);
+	    
+	    if (exists $proto.$cn) {
+		foreach my $i in ($proto.$cn.inst) {
+		    my $arg_names;
+		    foreach my $a in ($i.args)
+			$arg_names += $a.name + ", ";
+		    if (exists $arg_names)
+			splice $arg_names, -2;
+		    $of.printf("      DLLLOCAL Qore%s(%s) : %s(%s)\n      {\n      }\n", $cn, $i.orig_args, $cn, $arg_names);
+		}
+	    }
+	    $of.printf("};\n");
+	}
+	else {
+	    $of.printf();
+	}
+
+	$of.printf("\n#endif // _QORE_QT_QC_%s_H\n", $func_prefix);
+
+	$of = get_file("QC_" + $cn + ".cc");
+    }
+    else
+	$of = stdout;
+
+    # do file prefix
+    if (exists $o.file) {
+	$of.printf("/*
+ QC_%s.cc
+ 
+ Qore Programming Language
+ 
+ Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+ 
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+ 
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+ 
+ You should have received a copy of the GNU Lesser General Public
+ License along with this library; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ */
+
+#include <qore/Qore.h>
+
+#include \"QC_%s.h\"
+
+int CID_%s;
+class QoreClass *QC_%s = 0;
+
+", $cn, $cn, $func_prefix, $cn);
+    }
+
+    foreach my $p in (keys $proto) {
+	foreach my $line in ($proto.$p.code)
+	    $of.printf("%s%s\n", $proto.$p.ok ? "" : "//", $line);
+	
+	$of.printf("\n");
+
+	if ($p == $cn) {
+	    $of.printf("static void %s_copy(class Object *self, class Object *old, class Qore%s *%s, ExceptionSink *xsink)
+{
+   xsink->raiseException(\"%s-COPY-ERROR\", \"objects of this class cannot be copied\");
+}
+
+", $func_prefix, $cn, $cl, $func_prefix);
+	}
+    }
+
+    # do init function
+    if (exists $o.file) {
+	$of.printf("QoreClass *init%sClass(%s)\n{\n", $cn, exists $o.parent ? "QoreClass *" + tolower($o.parent) : "");
+	$of.printf("   QC_%s = new QoreClass(\"%s\", QDOM_GUI);\n", $cn, $cn);
+	$of.printf("   CID_%s = QC_%s->getID();\n\n", $func_prefix, $cn);
+
+	if (exists $o.parent)
+	    $of.printf("   QC_%s->addBuiltinVirtualBaseClass(%s);\n\n", $cn, tolower($o.parent));
+
+	$of.printf("   QC_%s->setConstructor(%s_constructor);\n", $cn, $func_prefix);
+        $of.printf("   QC_%s->setCopy((q_copy_t)%s_copy);\n\n", $cn, $func_prefix);
+    }
+
     foreach my $p in (keys $proto) {	
-	printf("   %sQC_%s->addMethod(%-30s (q_method_t)%s);\n", $proto.$p.ok ? "" : "//", $cn, "\""+$p+"\",", $proto.$p.funcname);
+	if ($p != $cn)
+	    $of.printf("   %sQC_%s->addMethod(%-30s (q_method_t)%s);\n", $proto.$p.ok ? "" : "//", $cn, "\""+$p+"\",", $proto.$p.funcname);
+    }
+
+    if (exists $o.file) {
+	$of.printf("\n   return QC_%s;\n}\n", $cn);
     }
 }
 
-sub do_multi_class_header($offset, $final, $arg, $name, $i)
+sub do_multi_class_header($offset, $final, $arg, $name, $i, $const, $last)
 {
     my $lo = ();
     
@@ -348,16 +601,26 @@ sub do_multi_class_header($offset, $final, $arg, $name, $i)
 	   : sprintf("static_cast<%s *>(%s)", $type, $arg.name)) 
 	: sprintf("%s->get%s()", $arg.name, $type);
 
-    $lo += sprintf("%s%s *%s = (%s *)p->val.object->getReferencedPrivateData(CID_%s, xsink);", 
-		   $os, $tcn, $arg.name, $tcn, $utn);
+    if (!$last)
+	$lo += sprintf("%s%s *%s = (%s *)p->val.object->getReferencedPrivateData(CID_%s, xsink);", 
+		       $os, $tcn, $arg.name, $tcn, $utn);
+    else
+	$lo += sprintf("%s%s *%s = p ? (%s *)p->val.object->getReferencedPrivateData(CID_%s, xsink) : 0;", 
+		       $os, $tcn, $arg.name, $tcn, $utn);
     $lo += sprintf("%sif (!%s) {", $os, $arg.name);
     if ($final) {
 	$lo += sprintf("%s   if (!xsink->isException())", $os);
-	my $str = sprintf("%s      xsink->raiseException(\"%s-%s-PARAM-ERROR\", \"%s::%s() does not know how to handle arguments of class '%s' as passed as the ", 
+	my $str;
+	if (!$last) 
+	    $str = sprintf("%s      xsink->raiseException(\"%s-%s-PARAM-ERROR\", \"%s::%s() does not know how to handle arguments of class '%s' as passed as the ", 
 			  		       $os, toupper($cn), toupper($name), $cn, $name);
+	else
+	    $str = sprintf("%s      xsink->raiseException(\"%s-%s-PARAM-ERROR\", \"this version of %s::%s() expects an object derived from %s as the ", 
+			  		       $os, toupper($cn), toupper($name), $cn, $name, $type);
+
 	$str += sprintf("%s argument\", p->val.object->getClass()->getName());", ordinal[$i]);
 	$lo += $str;
-	$lo += sprintf("%s   return 0;", $os);
+	$lo += sprintf("%s   return%s;", $os, $const ? "" : " 0");
     }
 
     #$lo += sprintf("%sReferenceHolder<%s> holder(%s, xsink);", $os, $tcn, $arg.name);
@@ -381,25 +644,32 @@ sub do_multi_class_trailer($offset, $arg)
     return $lo;
 }
 
+sub cl_order($l, $r) 
+{
+    return elements $l.args < $r.args ? 1 : -1;
+}
+
 sub do_multi_function($name, $func, $inst, $callstr, $param, $offset)
 {
     my $lo = ();
 
     my $os = substr(spaces, 0, $offset + 3);
 
-    # separate into 3 lists: classes, ints, everything else
+    # separate into 4 lists: classes, ints, everything else
     my $cl = ();
     my $il = ();
     my $fl = ();
     my $rl = ();
+    my $none;
 
     foreach my $i in (\$inst) {
 	$i.callstr = $callstr;
 
-	if (elements $i.args <= $param)
+	if (!$param && !elements $i.args)
+	    $none = $i;
+	else if (elements $i.args <= $param)
 	    continue;
-
-	if ($i.args[$param].is_class || $i.args[$param].is_abstract_class || $i.args[$param].is_dynanic_class)
+	else if ($i.args[$param].is_class || $i.args[$param].is_abstract_class || $i.args[$param].is_dynamic_class)
 	    $cl += $i;	
 	else if ($i.args[$param].is_int)
 	    $il += $i;
@@ -420,27 +690,44 @@ sub do_multi_function($name, $func, $inst, $callstr, $param, $offset)
     }
 
     $lo += sprintf("%sp = get_param(params, %d);", $param ? "" : "QoreNode *", $param);
+    if (exists $none) {
+	$lo += sprintf("if (is_nothing(p)) {");
+	$lo += do_return_value(3, $func.rt, $callstr + ")", \$func.ok);
+	$lo += "}";
+    }
     if (elements $cl) {
-	$lo += sprintf("if (p && p->type == NT_OBJECT) {");
-	
-	for (my $cc = $param; $cc < elements $cl; ++$cc) {
-	    #printf("cl=%N\nrl=%N\nil=%N\n", $cl, $rl, $fl);
-	    $lo += do_multi_class_header(($cc + 1) * 3, $cc == (elements $cl) - 1, \$cl[$cc].args[$param], $name, $param);
+	if (!$param)
+	    $cl = sort($cl, \cl_order());
 
+	my $last = $param ? elements $cl == 1 : elements $cl == 1 && !elements $rl && !elements $fl;
+
+	if (!$last)
+	    $lo += sprintf("if (p && p->type == NT_OBJECT) {");
+	#$lo += sprintf("++ param=%n, elements $cl=%n", $param, elements $cl);
+
+	for (my $cc = 0; $cc < elements $cl; ++$cc) {
+	    my $off = $last ? 0 : ($cc + 1) * 3;
+
+	    #printf("cl=%N\nrl=%N\nil=%N\n", $cl, $rl, $fl);
+	    $lo += do_multi_class_header($off, $cc == (elements $cl) - 1, \$cl[$cc].args[$param], $name, $param, $name == $cn, $last);
+	    
 	    append_call(\$cl[$cc].callstr, $cl[$cc].args[$param]);
 	}
 	for (my $cc = (elements $cl) - 1; $cc >= 0; --$cc) {
-	    $lo += do_multi_class_trailer(($cc + 1) * 3, \$cl[$cc].args[$param]);
+	    my $off = $last ? 0 : ($cc + 1) * 3;
+
+	    $lo += do_multi_class_trailer($off, \$cl[$cc].args[$param]);
 	    
 	    # if this is the last argument for this branch, do call
 	    if ($param == (elements $cl[$cc].args - 1)) {
 		splice $cl[$cc].callstr, -2, 2, ")";
-		$lo += do_return_value(($cc + 1) * 3, $func.rt, $cl[$cc].callstr, \$func.ok);
+		$lo += do_return_value($off, $func.rt, $cl[$cc].callstr, \$func.ok);
 	    }
 	    else
 		$lo += do_multi_function($name, \$func, $cl, $cl[$cc].callstr, $param + 1, $cc * 3);
 	}
-	$lo += sprintf("}");
+	if (!$last)
+	    $lo += sprintf("}");
     }
 
     foreach my $opt in ($rl) {
@@ -527,7 +814,7 @@ sub do_multi_function($name, $func, $inst, $callstr, $param, $offset)
     return $lo;
 }
 
-sub do_single_arg($offset, $name, $arg, $i, $ok)
+sub do_single_arg($offset, $name, $arg, $i, $ok, $const)
 {
     my $lo = ();
     my $os = substr(spaces, 0, $offset);
@@ -586,7 +873,8 @@ sub do_single_arg($offset, $name, $arg, $i, $ok)
 		    $lo += "if (!p || p->type != NT_STRING) {";
 		    $lo += sprintf("   xsink->raiseException(\"%s-%s-PARAM-ERROR\", \"expecting a string as %s argument to %s::%s()\");", 
 				   toupper($cn), toupper($name), ordinal[$i], $cn, $name);
-		    $lo += "   return 0;";
+	
+		    $lo += $const ? "   return;" : "   return 0;";
 		    $lo += "}";
 		    $lo += sprintf("const char *%s = p->val.String->getBuffer();", $arg.name);
 		}
@@ -639,13 +927,13 @@ sub do_single_function($name, $func, $inst, $callstr)
 	$lo += sprintf("   %sp = get_param(params, %d);", $i ? "" : "QoreNode *", $i);
 	
 	if ($inst.args[$i].is_class)
-	    $lo += do_class(\$inst.args[$i], $name, $cn, $i, True);
+	    $lo += do_class(\$inst.args[$i], $name, $cn, $i, True, !exists $func.rt);
 	else if ($inst.args[$i].is_abstract_class)
-	    $lo += do_class(\$inst.args[$i], $name, $cn, $i);
+	    $lo += do_class(\$inst.args[$i], $name, $cn, $i, False, !exists $func.rt);
 	else if ($inst.args[$i].is_dynamic_class)
-	    $lo += do_dynamic_class(\$inst.args[$i], $name, $cn, $i);
+	    $lo += do_dynamic_class(\$inst.args[$i], $name, $cn, $i, !exists $func.rt);
 	else
-	    $lo += do_single_arg(3, $name, $inst.args[$i], $i, \$func.ok);
+	    $lo += do_single_arg(3, $name, $inst.args[$i], $i, \$func.ok, !exists $func.rt);
 
 	append_call(\$callstr, $inst.args[$i]);
     }
@@ -654,8 +942,17 @@ sub do_single_function($name, $func, $inst, $callstr)
     else
 	$callstr += ")";
 
-    $lo += do_return_value(3, $func.rt, $callstr, \$func.ok);
+    $lo += do_return_value(3, $func.rt, $callstr, \$func.ok, !exists $func.rt);
     
+    return $lo;
+}
+
+sub do_constructor_return($callstr)
+{
+    my $lo = ();
+
+    $lo += sprintf("self->setPrivate(CID_%s, %s);", toupper($cn), $callstr);
+    $lo += "return;";
     return $lo;
 }
 
@@ -665,6 +962,11 @@ sub do_return_value($offset, $rt, $callstr, $ok)
     my $os = substr(spaces, 0, $offset);
 
     switch ($rt) {
+	case NOTHING: {
+	    $lo = do_constructor_return($callstr);
+	    break;
+	}
+
 	case "void": {
 	    $lo += sprintf("%s;", $callstr);
 	    $lo += "return 0;"; 
@@ -692,7 +994,12 @@ sub do_return_value($offset, $rt, $callstr, $ok)
 	}
 	#case "QWidget*":
 	case /^QPoint/:
+	case /^QPointF/:
 	case /^QSize/:
+	case /^QLine/:
+	case /^QLineF/:
+	case /^QPolygon/:
+	case /^QPolygonF/:
 	case /^QMatrix/:
 	case /^QKeySequence/:
 	    case /^QRegion/:

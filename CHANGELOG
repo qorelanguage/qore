@@ -1,3 +1,9 @@
+2007.09.04: David Nichols
+	* qt: implemented support for dynamic signals and slots for QShortcut
+
+2007.09.03: David Nichols
+	* qt: major qt-code-gen.q improvements, added new classes
+
 2007.08.28: David Nichols
 	* implemented decode_url() to decode URL escape encodings
 	* updated HTTPClient to automatically encode space (' ') characters as 

@@ -205,6 +205,15 @@ void QoreQtDynamicSlot::call(void **arguments)
    discard(rv, &xsink);
 }
 
+void QoreQtDynamicSlot::call()
+{
+   //printd(5, "DynamicSlot::call() sender=%08p\n", sender);
+
+   ExceptionSink xsink;
+   QoreNode *rv = method->eval(qore_obj, 0, &xsink);
+   discard(rv, &xsink);
+}
+
 QoreQtDynamicSignal::QoreQtDynamicSignal(const char *sig, ExceptionSink *xsink) 
 {
    assert(sig);

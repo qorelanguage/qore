@@ -33,20 +33,102 @@ DLLLOCAL extern QoreClass *QC_QShortcut;
 
 DLLLOCAL class QoreClass *initQShortcutClass(class QoreClass *parent);
 
+DLLLOCAL extern void *static_void_args[];
+DLLLOCAL extern QByteArray static_void_sig;
+
 class myQShortcut : public QShortcut
 {
+#define QORE_QT_METACALL if (id == 1) { activated(); return -1; } else if (id == 2) { activatedAmbiguously(); return -1; }
+
 #define QOREQTYPE QShortcut
 #include "qore-qt-metacode.h"
 #undef QOREQTYPE
 
-   public:
-      DLLLOCAL myQShortcut(Object *obj, QWidget *parent = 0) : QShortcut(parent)
+   private:
+      QoreAbstractQWidget *parent;
+      int target_m, target_am;
+
+      DLLLOCAL void init_shortcut(QoreAbstractQWidget *n_parent)
       {
-	 init(obj);
+	 parent = n_parent;
+	 target_m = target_am = -1;
+
+	 // create dummy slot entry for "activated" signal
+	 methodMap.addMethod(new QoreQtDynamicSlot(qore_obj, 0, 0));
+	 // catch activated signal
+	 QByteArray theSignal = QMetaObject::normalizedSignature("activated()");
+	 int sigid = metaObject()->indexOfSignal(theSignal);
+	 //printd(5, "sigid=%d %s\n", sigid, theSignal.data());
+	 assert(sigid >= 0);
+
+	 QMetaObject::connect(this, sigid, this, metaObject()->methodCount() + 1);
+	 //printd(5, "init_shortcut() connect b=%s sigid_a=%d\n", b ? "true" : "false", sigid); 
+
+	 // create dummy slot entry for "activatedAmbiguously" signal
+	 methodMap.addMethod(new QoreQtDynamicSlot(qore_obj, 0, 0));
+	 theSignal = QMetaObject::normalizedSignature("activatedAmbiguously()");
+	 sigid = metaObject()->indexOfSignal(theSignal);
+	 //printd(5, "sigid=%d %s\n", sigid, theSignal.data());
+	 assert(sigid >= 0);
+	 QMetaObject::connect(this, sigid, this, metaObject()->methodCount() + 2);
       }
-      DLLLOCAL myQShortcut(Object *obj, const QKeySequence & key, QWidget * parent, const char * member = 0, const char * ambiguousMember = 0, Qt::ShortcutContext context = Qt::WindowShortcut) : QShortcut(key, parent, member, ambiguousMember, context)
+
+      DLLLOCAL void activated()
+      {
+	 //printd(5, "QoreQShortcut::activated() this=%08p target_m=%d\n", this, target_m);
+	 if (target_m != -1)
+	    parent->getQObject()->qt_metacall(QMetaObject::InvokeMetaMethod, target_m, static_void_args);
+      }
+      
+      DLLLOCAL void activatedAmbigously()
+      {
+	 if (target_am != -1)
+	    parent->getQObject()->qt_metacall(QMetaObject::InvokeMetaMethod, target_am, static_void_args);
+      }
+      
+   public:
+      DLLLOCAL myQShortcut(Object *obj, QoreAbstractQWidget *parent = 0) : QShortcut(parent->getQWidget())
       {
 	 init(obj);
+	 init_shortcut(parent);
+      }
+      DLLLOCAL myQShortcut(Object *obj, const QKeySequence & key, QoreAbstractQWidget * parent, Qt::ShortcutContext context = Qt::WindowShortcut) : QShortcut(key, parent->getQWidget(), 0, 0, context)
+      {
+	 init(obj);
+	 init_shortcut(parent);
+      }
+
+      DLLLOCAL void setMember(const char *target, class ExceptionSink *xsink)
+      {
+	 QByteArray theSlot = QMetaObject::normalizedSignature(target + 1);
+
+	 if (!QMetaObject::checkConnectArgs(static_void_sig, theSlot)) {
+	    xsink->raiseException("SHORTCUT-ERROR", "incompatible signature '%s' with 'void activated()' signal", target + 1);
+	    return;
+	 }
+
+	 target_m = (target[0] == '1') ? parent->getSlotIndex(theSlot, xsink) : parent->getSignalIndex(theSlot);
+	 if (target_m < 0 && target[0] != '1') {
+	    xsink->raiseException("SHOTCUT-ERROR", "target signal '%s' does not exist", target + 1);
+	    return;
+	 }
+	 //printd(5, "QoreQShortcut::setMember() this=%08p target=%s target_m=%d\n", this, target, target_m);
+      }
+
+      DLLLOCAL void setAmbiguousMember(const char *target, class ExceptionSink *xsink)
+      {
+	 QByteArray theSlot = QMetaObject::normalizedSignature(target + 1);
+
+	 if (!QMetaObject::checkConnectArgs(static_void_sig, theSlot)) {
+	    xsink->raiseException("SHORTCUT-ERROR", "incompatible signature '%s' with 'void activatedAmbiguously()' signal", target + 1);
+	    return;
+	 }
+
+	 target_am = (target[0] == '1') ? parent->getSlotIndex(theSlot, xsink) : parent->getSignalIndex(theSlot);
+	 if (target_am < 0 && target[0] != '1') {
+	    xsink->raiseException("SHOTCUT-ERROR", "target signal '%s' does not exist", target + 1);
+	    return;
+	 }
       }
 };
 
@@ -55,11 +137,11 @@ class QoreQShortcut : public QoreAbstractQObject
    public:
       myQShortcut *qobj;
 
-      DLLLOCAL QoreQShortcut(Object *obj, QWidget *parent = 0) : qobj(new myQShortcut(obj, parent))
+      DLLLOCAL QoreQShortcut(Object *obj, QoreAbstractQWidget *parent = 0) : qobj(new myQShortcut(obj, parent))
       {
       }
 
-      DLLLOCAL QoreQShortcut(Object *obj, const QKeySequence & key, QWidget * parent, const char * member = 0, const char * ambiguousMember = 0, Qt::ShortcutContext context = Qt::WindowShortcut) : qobj(new myQShortcut(obj, key, parent, member, ambiguousMember, context))
+      DLLLOCAL QoreQShortcut(Object *obj, const QKeySequence & key, QoreAbstractQWidget * parent, Qt::ShortcutContext context = Qt::WindowShortcut) : qobj(new myQShortcut(obj, key, parent, context))
       {
       }
 
@@ -71,6 +153,17 @@ class QoreQShortcut : public QoreAbstractQObject
       {
 	 return static_cast<QObject *>(qobj);
       }
+
+      DLLLOCAL void setMember(const char *target, class ExceptionSink *xsink)
+      {
+	 qobj->setMember(target, xsink);
+      }
+
+      DLLLOCAL void setAmbiguousMember(const char *target, class ExceptionSink *xsink)
+      {
+	 qobj->setAmbiguousMember(target, xsink);
+      }
+
       QORE_VIRTUAL_QOBJECT_METHODS
 };
 

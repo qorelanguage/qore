@@ -1,0 +1,178 @@
+/*
+ QC_QLine.cc
+ 
+ Qore Programming Language
+ 
+ Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+ 
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+ 
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+ 
+ You should have received a copy of the GNU Lesser General Public
+ License along with this library; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ */
+
+#include <qore/Qore.h>
+
+#include "QC_QLine.h"
+
+int CID_QLINE;
+class QoreClass *QC_QLine = 0;
+
+//QLine ()
+//QLine ( const QPoint & p1, const QPoint & p2 )
+//QLine ( int x1, int y1, int x2, int y2 )
+static void QLINE_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   if (is_nothing(p)) {
+      self->setPrivate(CID_QLINE, new QoreQLine());
+      return;
+   }
+   if (p && p->type == NT_OBJECT) {
+      QoreQPoint *p1 = (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink);
+      if (!p1) {
+         if (!xsink->isException())
+            xsink->raiseException("QLINE-QLINE-PARAM-ERROR", "QLine::QLine() does not know how to handle arguments of class '%s' as passed as the first argument", p->val.object->getClass()->getName());
+         return;
+      }
+      ReferenceHolder<QoreQPoint> p1Holder(p1, xsink);
+      p = get_param(params, 1);
+      QoreQPoint *p2 = p ? (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+      if (!p2) {
+         if (!xsink->isException())
+            xsink->raiseException("QLINE-QLINE-PARAM-ERROR", "this version of QLine::QLine() expects an object derived from QPoint as the second argument", p->val.object->getClass()->getName());
+         return;
+      }
+      ReferenceHolder<QoreQPoint> p2Holder(p2, xsink);
+      self->setPrivate(CID_QLINE, new QoreQLine(*(static_cast<QPoint *>(p1)), *(static_cast<QPoint *>(p2))));
+      return;
+   }
+   int x1 = p ? p->getAsInt() : 0;
+   p = get_param(params, 1);
+   int y1 = p ? p->getAsInt() : 0;
+   p = get_param(params, 2);
+   int x2 = p ? p->getAsInt() : 0;
+   p = get_param(params, 3);
+   int y2 = p ? p->getAsInt() : 0;
+   self->setPrivate(CID_QLINE, new QoreQLine(x1, y1, x2, y2));
+   return;
+}
+
+static void QLINE_copy(class Object *self, class Object *old, class QoreQLine *ql, ExceptionSink *xsink)
+{
+   xsink->raiseException("QLINE-COPY-ERROR", "objects of this class cannot be copied");
+}
+
+//QPoint p1 () const
+static QoreNode *QLINE_p1(Object *self, QoreQLine *ql, QoreNode *params, ExceptionSink *xsink)
+{
+   Object *o_qp = new Object(QC_QPoint, getProgram());
+   QoreQPoint *q_qp = new QoreQPoint(ql->p1());
+   o_qp->setPrivate(CID_QPOINT, q_qp);
+   return new QoreNode(o_qp);
+}
+
+//QPoint p2 () const
+static QoreNode *QLINE_p2(Object *self, QoreQLine *ql, QoreNode *params, ExceptionSink *xsink)
+{
+   Object *o_qp = new Object(QC_QPoint, getProgram());
+   QoreQPoint *q_qp = new QoreQPoint(ql->p2());
+   o_qp->setPrivate(CID_QPOINT, q_qp);
+   return new QoreNode(o_qp);
+}
+
+//int x1 () const
+static QoreNode *QLINE_x1(Object *self, QoreQLine *ql, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((int64)ql->x1());
+}
+
+//int x2 () const
+static QoreNode *QLINE_x2(Object *self, QoreQLine *ql, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((int64)ql->x2());
+}
+
+//int y1 () const
+static QoreNode *QLINE_y1(Object *self, QoreQLine *ql, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((int64)ql->y1());
+}
+
+//int y2 () const
+static QoreNode *QLINE_y2(Object *self, QoreQLine *ql, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((int64)ql->y2());
+}
+
+//int dx () const
+static QoreNode *QLINE_dx(Object *self, QoreQLine *ql, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((int64)ql->dx());
+}
+
+//int dy () const
+static QoreNode *QLINE_dy(Object *self, QoreQLine *ql, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((int64)ql->dy());
+}
+
+//bool isNull () const
+static QoreNode *QLINE_isNull(Object *self, QoreQLine *ql, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode(ql->isNull());
+}
+
+//void translate ( const QPoint & offset )
+//void translate ( int dx, int dy )
+static QoreNode *QLINE_translate(Object *self, QoreQLine *ql, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   if (p && p->type == NT_OBJECT) {
+      QoreQPoint *offset = (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink);
+      if (!offset) {
+         if (!xsink->isException())
+            xsink->raiseException("QLINE-TRANSLATE-PARAM-ERROR", "QLine::translate() does not know how to handle arguments of class '%s' as passed as the first argument", p->val.object->getClass()->getName());
+         return 0;
+      }
+      ReferenceHolder<QoreQPoint> offsetHolder(offset, xsink);
+      ql->translate(*(static_cast<QPoint *>(offset)));
+      return 0;
+   }
+   int dx = p ? p->getAsInt() : 0;
+   p = get_param(params, 1);
+   int dy = p ? p->getAsInt() : 0;
+   ql->translate(dx, dy);
+   return 0;
+}
+
+QoreClass *initQLineClass()
+{
+   QC_QLine = new QoreClass("QLine", QDOM_GUI);
+   CID_QLINE = QC_QLine->getID();
+
+   QC_QLine->setConstructor(QLINE_constructor);
+   QC_QLine->setCopy((q_copy_t)QLINE_copy);
+
+   QC_QLine->addMethod("p1",                          (q_method_t)QLINE_p1);
+   QC_QLine->addMethod("p2",                          (q_method_t)QLINE_p2);
+   QC_QLine->addMethod("x1",                          (q_method_t)QLINE_x1);
+   QC_QLine->addMethod("x2",                          (q_method_t)QLINE_x2);
+   QC_QLine->addMethod("y1",                          (q_method_t)QLINE_y1);
+   QC_QLine->addMethod("y2",                          (q_method_t)QLINE_y2);
+   QC_QLine->addMethod("dx",                          (q_method_t)QLINE_dx);
+   QC_QLine->addMethod("dy",                          (q_method_t)QLINE_dy);
+   QC_QLine->addMethod("isNull",                      (q_method_t)QLINE_isNull);
+   QC_QLine->addMethod("translate",                   (q_method_t)QLINE_translate);
+
+   return QC_QLine;
+}

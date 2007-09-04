@@ -47,6 +47,7 @@ class QoreAbstractQObject : public AbstractPrivateData
       DLLLOCAL virtual int connectDynamic(QoreAbstractQObject *sender, const char *signal, const char *slot, class ExceptionSink *xsink) = 0;
       // emits a signal; args are offset from 1
       DLLLOCAL virtual void emit_signal(const char *sig, List *args) = 0;
+      DLLLOCAL virtual QoreQtDynamicSlot *getSlot(const char *sig, class ExceptionSink *xsink) = 0;
 };
 
 #endif

@@ -28,16 +28,19 @@
 int CID_QSHORTCUT;
 class QoreClass *QC_QShortcut = 0;
 
+void *static_void_args[] = { 0 };
+QByteArray static_void_sig = QMetaObject::normalizedSignature("void a()");
+
 //void QShortcut ( QWidget * parent )
 //void QShortcut ( const QKeySequence & key, QWidget * parent, const char * member = 0, const char * ambiguousMember = 0, Qt::ShortcutContext context = Qt::WindowShortcut )
 static void QSHORTCUT_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreQShortcut *qs;
-   QoreNode *p = test_param(params, NT_OBJECT, 0);
+   QoreNode *p = get_param(params, 0);
 
-   QoreAbstractQWidget *parent = (QoreAbstractQWidget *)(p ? p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0);
+   QoreAbstractQWidget *parent = (QoreAbstractQWidget *)((p && p->type == NT_OBJECT) ? p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0);
    if (!parent) {
-      QoreQKeySequence *key = (QoreQKeySequence *)(p ? p->val.object->getReferencedPrivateData(CID_QKEYSEQUENCE, xsink) : 0);
+      QoreQKeySequence *key = (QoreQKeySequence *)((p && p->type == NT_OBJECT) ? p->val.object->getReferencedPrivateData(CID_QKEYSEQUENCE, xsink) : 0);
       ReferenceHolder<QoreQKeySequence> keyHolder(key, xsink);
       int nkey = 0;
       if (!key)
@@ -52,19 +55,35 @@ static void QSHORTCUT_constructor(class Object *self, class QoreNode *params, Ex
       }
       ReferenceHolder<QoreAbstractQWidget> parentHolder(parent, xsink);
       p = get_param(params, 2);
-      const char *member = p ? p->val.String->getBuffer() : 0;
+      const char *member = p && p->val.String->strlen() ? p->val.String->getBuffer() : 0;
       p = get_param(params, 3);
-      const char *ambiguousMember = p ? p->val.String->getBuffer() : 0;
+      const char *ambiguousMember = p && p->val.String->strlen() ? p->val.String->getBuffer() : 0;
       p = get_param(params, 4);
       Qt::ShortcutContext context = !is_nothing(p) ? (Qt::ShortcutContext)p->getAsInt() : Qt::WindowShortcut;
+
+      //printd(5, "QShortcut::constructor() key=%08p nkey=%d context=%d\n", key, nkey, context);
       if (key)
-	 qs = new QoreQShortcut(self, *(static_cast<QKeySequence *>(key)), parent->getQWidget(), member, ambiguousMember, context);
+	 qs = new QoreQShortcut(self, *(static_cast<QKeySequence *>(key)), parent, context);
       else
-	 qs = new QoreQShortcut(self, nkey, parent->getQWidget(), member, ambiguousMember, context);
+	 qs = new QoreQShortcut(self, nkey, parent, context);
+
+      ReferenceHolder<QoreQShortcut> qsHolder(qs, xsink);
+
+      if (member)
+	 qs->setMember(member, xsink);
+      if (*xsink)
+	 return;
+
+      if (ambiguousMember)
+	 qs->setAmbiguousMember(ambiguousMember, xsink);
+      if (*xsink)
+	 return;
+
+      qsHolder.release();
    }
    else {
       ReferenceHolder<QoreAbstractQWidget> parentHolder(parent, xsink);
-      qs = new QoreQShortcut(self, parent->getQWidget());
+      qs = new QoreQShortcut(self, parent);
    }
    self->setPrivate(CID_QSHORTCUT, qs);
 }

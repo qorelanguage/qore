@@ -345,44 +345,40 @@ static QoreNode *QPAINTER_drawChord(Object *self, QoreQPainter *qp, QoreNode *pa
 }
 
 //void drawConvexPolygon ( const QPointF * points, int pointCount )
-//static QoreNode *QPAINTER_drawConvexPolygon(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   ??? QPointF* points = p;
-//   p = get_param(params, 1);
-//   int pointCount = p ? p->getAsInt() : 0;
-//   qp->drawConvexPolygon(points, pointCount);
-//   return 0;
-//}
-
 //void drawConvexPolygon ( const QPoint * points, int pointCount )
-//static QoreNode *QPAINTER_drawConvexPolygon(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   ??? QPoint* points = p;
-//   p = get_param(params, 1);
-//   int pointCount = p ? p->getAsInt() : 0;
-//   qp->drawConvexPolygon(points, pointCount);
-//   return 0;
-//}
-
 //void drawConvexPolygon ( const QPolygonF & polygon )
-//static QoreNode *QPAINTER_drawConvexPolygon(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   ??? QPolygonF polygon = p;
-//   qp->drawConvexPolygon(polygon);
-//   return 0;
-//}
-
 //void drawConvexPolygon ( const QPolygon & polygon )
-//static QoreNode *QPAINTER_drawConvexPolygon(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   ??? QPolygon polygon = p;
-//   qp->drawConvexPolygon(polygon);
-//   return 0;
-//}
+static QoreNode *QPAINTER_drawConvexPolygon(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   if (p && p->type == NT_OBJECT) {
+      QoreQPolygonF *polygonf = (QoreQPolygonF *)p->val.object->getReferencedPrivateData(CID_QPOLYGONF, xsink);
+      if (!polygonf) {
+	 QoreQPolygon *polygon = (QoreQPolygon *)p->val.object->getReferencedPrivateData(CID_QPOLYGON, xsink);
+	 if (!polygon) {
+	    if (!xsink->isException())
+	       xsink->raiseException("QPAINTER-DRAWCONVEXPOLYGON-PARAM-ERROR", "QPainter::drawConvexPolygon() does not know how to handle arguments of class '%s' as passed as the first argument", p->val.object->getClass()->getName());
+	    return 0;
+	 }
+	 ReferenceHolder<QoreQPolygon> polygonHolder(polygon, xsink);
+	 qp->drawConvexPolygon(*(static_cast<QPolygon *>(polygon)));
+	 return 0;
+      }
+      ReferenceHolder<QoreQPolygonF> polygonHolder(polygonf, xsink);
+      qp->drawConvexPolygon(*(static_cast<QPolygonF *>(polygonf)));
+      return 0;
+   }
+
+/*
+   if (!p || p->type != NT_LIST) {
+      xsink->raiseException("QPAINTER-DRAWCONVEXPOLYGON-PARAM-ERROR", "expecting QPolygon, QPolygonF, or list of QPoints or QPointFs as argument to QPainter::drawConvexPolygon()");
+      return 0;
+   }
+*/
+
+   xsink->raiseException("QPAINTER-DRAWCONVEXPOLYGON-PARAM-ERROR", "expecting QPolygon, QPolygonF object as argument to QPainter::drawConvexPolygon()");
+   return 0;
+}
 
 //void drawEllipse ( const QRectF & rectangle )
 //void drawEllipse ( const QRect & rectangle )
@@ -422,26 +418,37 @@ static QoreNode *QPAINTER_drawEllipse(Object *self, QoreQPainter *qp, QoreNode *
 }
 
 //void drawImage ( const QRectF & target, const QImage & image, const QRectF & source, Qt::ImageConversionFlags flags = Qt::AutoColor )
-//static QoreNode *QPAINTER_drawImage(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   QoreQRectF *target = (p && p->type == NT_OBJECT) ? (QoreQRectF *)p->val.object->getReferencedPrivateData(CID_QRECTF, xsink) : 0;
-//   if (!p || !target)
-//   {
-//      if (!xsink->isException())
-//         xsink->raiseException("QPAINTER-DRAWIMAGE-PARAM-ERROR", "expecting a QRectF object as first argument to QPainter::drawImage()");
-//      return 0;
-//   }
-//   ReferenceHolder<QoreQRectF> holder(target, xsink);
-//   p = get_param(params, 1);
-//   ???  image = p;
-//   p = get_param(params, 2);
-//   ???  source = p;
-//   p = get_param(params, 3);
-//   Qt::ImageConversionFlags flags = (Qt::ImageConversionFlags)(p ? p->getAsInt() : 0);
-//   qp->drawImage(*((QRectF *)target), image, source, flags);
-//   return 0;
-//}
+static QoreNode *QPAINTER_drawImage(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QoreQRectF *target = (p && p->type == NT_OBJECT) ? (QoreQRectF *)p->val.object->getReferencedPrivateData(CID_QRECTF, xsink) : 0;
+   if (!target) {
+      if (!xsink->isException())
+         xsink->raiseException("QPAINTER-DRAWIMAGE-PARAM-ERROR", "expecting a QRectF object as first argument to QPainter::drawImage()");
+      return 0;
+   }
+   ReferenceHolder<QoreQRectF> holder(target, xsink);
+   p = get_param(params, 1);
+   QoreQImage *image = (p && p->type == NT_OBJECT) ? (QoreQImage *)p->val.object->getReferencedPrivateData(CID_QIMAGE, xsink) : 0;
+   if (!image) {
+      if (!xsink->isException())
+         xsink->raiseException("QPAINTER-DRAWIMAGE-PARAM-ERROR", "expecting a QImage object as second argument to QPainter::drawImage()");
+      return 0;
+   }
+   ReferenceHolder<QoreQImage> imageHolder(image, xsink);
+   p = get_param(params, 2);
+   QoreQRectF *source = (p && p->type == NT_OBJECT) ? (QoreQRectF *)p->val.object->getReferencedPrivateData(CID_QRECTF, xsink) : 0;
+   if (!source) {
+      if (!xsink->isException())
+         xsink->raiseException("QPAINTER-DRAWIMAGE-PARAM-ERROR", "expecting a QRectF object as third argument to QPainter::drawImage()");
+      return 0;
+   }
+   ReferenceHolder<QoreQRectF> sourceHolder(source, xsink);
+   p = get_param(params, 3);
+   Qt::ImageConversionFlags flags = !is_nothing(p) ? (Qt::ImageConversionFlags)p->getAsInt() : Qt::AutoColor;
+   qp->drawImage(*(static_cast<QRectF *>(target)), *(static_cast<QImage *>(image)), *(static_cast<QRectF *>(source)), flags);
+   return 0;
+}
 
 //void drawImage ( const QRect & target, const QImage & image, const QRect & source, Qt::ImageConversionFlags flags = Qt::AutoColor )
 //static QoreNode *QPAINTER_drawImage(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
@@ -2194,9 +2201,9 @@ class QoreClass *initQPainterClass()
    //QC_QPainter->addMethod("deviceTransform",             (q_method_t)QPAINTER_deviceTransform);
    QC_QPainter->addMethod("drawArc",                     (q_method_t)QPAINTER_drawArc);
    QC_QPainter->addMethod("drawChord",                   (q_method_t)QPAINTER_drawChord);
-   //QC_QPainter->addMethod("drawConvexPolygon",           (q_method_t)QPAINTER_drawConvexPolygon);
+   QC_QPainter->addMethod("drawConvexPolygon",           (q_method_t)QPAINTER_drawConvexPolygon);
    QC_QPainter->addMethod("drawEllipse",                 (q_method_t)QPAINTER_drawEllipse);
-   //QC_QPainter->addMethod("drawImage",                   (q_method_t)QPAINTER_drawImage);
+   QC_QPainter->addMethod("drawImage",                   (q_method_t)QPAINTER_drawImage);
    QC_QPainter->addMethod("drawLine",                    (q_method_t)QPAINTER_drawLine);
    //QC_QPainter->addMethod("drawLines",                   (q_method_t)QPAINTER_drawLines);
    //QC_QPainter->addMethod("drawPath",                    (q_method_t)QPAINTER_drawPath);

@@ -51,3 +51,8 @@
 #include "QC_QKeyEvent.cc"
 #include "QC_QMoveEvent.cc"
 #include "QC_QResizeEvent.cc"
+#include "QC_QPointF.cc"
+#include "QC_QPolygon.cc"
+#include "QC_QPolygonF.cc"
+#include "QC_QLine.cc"
+#include "QC_QLineF.cc"

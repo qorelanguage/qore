@@ -28,6 +28,9 @@
    DLLLOCAL virtual int getSlotIndex(const QByteArray &theSlot, class ExceptionSink *xsink) {\
       return qobj->getSlotIndex(theSlot, xsink);				\
    } \
+   DLLLOCAL virtual QoreQtDynamicSlot *getSlot(const char *sig, class ExceptionSink *xsink) {\
+      return qobj->getSlot(sig, xsink); \
+   } \
    DLLLOCAL virtual int getSignalIndex(const QByteArray &theSignal) const { \
       return qobj->getSignalIndex(theSignal);				\
    } \
@@ -94,6 +97,7 @@ class QoreQtDynamicSlot : public QoreQtDynamicMethod
       }
 
       DLLLOCAL virtual void call(void **arguments);
+      DLLLOCAL virtual void call();
 };
 
 struct QoreQtDynamicSignal : public QoreQtDynamicMethod

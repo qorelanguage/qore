@@ -61,6 +61,11 @@
 #include "QC_QKeySequence.h"
 #include "QC_QAction.h"
 #include "QC_QActionGroup.h"
+#include "QC_QPointF.h"
+#include "QC_QPolygon.h"
+#include "QC_QPolygonF.h"
+#include "QC_QLine.h"
+#include "QC_QLineF.h"
 
 #include "qore-qt-events.h"
 
@@ -353,6 +358,13 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addSystemClass((qinputevent = initQInputEventClass(qevent)));
    qt->addSystemClass(initQKeyEventClass(qinputevent));
    qt->addSystemClass(initQMouseEventClass(qinputevent));
+
+   // automatically added classes
+   qt->addSystemClass(initQPointFClass());
+   qt->addSystemClass(initQPolygonClass());
+   qt->addSystemClass(initQPolygonFClass());
+   qt->addSystemClass(initQLineClass());
+   qt->addSystemClass(initQLineFClass());
 
    // ColorRole enum
    qt->addConstant("WindowText",      new QoreNode((int64)QPalette::WindowText));

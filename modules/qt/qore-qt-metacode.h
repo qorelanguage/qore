@@ -28,17 +28,24 @@ class T {
       DLLLOCAL virtual int qt_metacall(QMetaObject::Call call, int id, void **arguments)
       {
 	 int nid = QOREQTYPE::qt_metacall(call, id, arguments);
-	 //printd(5, "%s::qt_metacall(call=%d, id=%d, arguments=%08p) this=%08p new id=%d (dynamic methods: %d, static methods: %d)\n", metaObject()->className(), call, id, arguments, this, nid, methodMap.size(), metaObject()->methodCount());
+
+	 printd(5, "%s::qt_metacall(call=%d, id=%d, arguments=%08p) this=%08p new id=%d (dynamic methods: %d, static methods: %d)\n", metaObject()->className(), call, id, arguments, this, nid, methodMap.size(), metaObject()->methodCount());
 	 id = nid;
 	 if (id < 0 || call != QMetaObject::InvokeMetaMethod)
             return id;
 
 	 // process "destroyed" signal
 	 if (!id) {
+	    assert(false);
 	    ExceptionSink xsink;
 	    qore_obj->dereference(&xsink);
 	    return -1;
 	 }
+
+#ifdef QORE_QT_METACALL
+	 QORE_QT_METACALL
+#undef QORE_QT_METACALL
+#endif
 
 	 //printd(5, "%s::qt_metacall() id=%d (%s)\n", metaObject()->className(), id, i == methodMap.end() ? "not found" : (i->second->getSlot() ? "slot" : "signal"));
 	 assert(id < (int)methodMap.size());
@@ -114,6 +121,15 @@ class T {
 	 signalIndices[theSignal] = signalId;
 	 //printd(5, "%s::createDynamicSignal() this=%08p id=%d, method_id=%d: '%s'\n", metaObject()->className(), this, signalId, signalId + metaObject()->methodCount(), signal);
 	 return 0;
+      }
+
+      DLLLOCAL virtual QoreQtDynamicSlot *getSlot(const char *sig, class ExceptionSink *xsink)
+      {
+	 QByteArray theSlot = QMetaObject::normalizedSignature(sig);
+	 int index = getSlotIndex(theSlot, xsink);
+	 if (*xsink)
+	    return 0;
+	 return dynamic_cast<QoreQtDynamicSlot *>(methodMap[index]);	 
       }
 
       DLLLOCAL virtual int getSlotIndex(const QByteArray &theSlot, class ExceptionSink *xsink)

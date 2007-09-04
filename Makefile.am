@@ -291,6 +291,11 @@ noinst_HEADERS = \
 	modules/qt/QC_QActionGroup.h \
 	modules/qt/QT_BrushStyle.h \
 	modules/qt/QT_PenStyle.h \
+	modules/qt/QC_QPointF.h \
+	modules/qt/QC_QPolygon.h \
+	modules/qt/QC_QPolygonF.h \
+	modules/qt/QC_QLine.h \
+	modules/qt/QC_QLineF.h \
 	command-line.h \
 	include/qore/Qore.h
 
